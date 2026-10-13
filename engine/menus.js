@@ -370,7 +370,7 @@ export class EngineMenus {
     const T = this.title;
     const base = { v: this.v, kind: 'title', screen: T.screen, logo: 'HIRAETH', version: this.version };
     if (T.starting) return { ...base, rows: [], starting: this.note || '…', hint: '' };
-    if (T.screen === 'settings') return { ...base, head: t('title.settings').toUpperCase(), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ← → adjust · B / ○ back' };
+    if (T.screen === 'settings') return { ...base, head: t('title.settings').toUpperCase(), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ◀ ▶ adjust · B / ○ back' };
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1) }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose';
@@ -382,7 +382,7 @@ export class EngineMenus {
     return { v: this.v, kind: 'start', head: this.where() || '', sub: '',
       side: START_SIDE.map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
       page: { title: page === 'controls' ? t('menu.controls') : t('menu.settings'), rows: this.startPageRows() },
-      hint: S.at.in === 'page' ? '← → adjust · A / × change · B / ○ back' : 'A / × choose · → the page · B / ○ resume' };
+      hint: S.at.in === 'page' ? '◀ ▶ adjust · A / × change · B / ○ back' : 'A / × choose · ▶ the page · B / ○ resume' };
   }
   gameView() {
     const p = this.panel(), at = this.state.cursor(), cell = this.state.cell(p.rows);
@@ -391,11 +391,13 @@ export class EngineMenus {
       text: c.name ?? '', sub: c.sub ?? '', col: c.col ?? k, span: p.id === 'items' && c.kind !== 'item' ? (c.col === 0 ? CARRY_COL : GEAR_COLS - CARRY_COL) : 1,
       kind: c.kind, on: !at.edge && at.r === r && at.c === k, inUse: !!c.it?.inUse, tracked: !!c.q?.tracked, done: c.kind === 'ended' ? (c.q?.failed ? 'failed' : 'done') : '',
       here: c.kind === 'world' && /here/i.test(c.sub ?? ''), off: c.kind === 'mark' && !c.mark?.on,
+      // (a quest's next step under it, as the page's card shows it)
+      step: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.step) : '',
     })));
     const view = { v: this.v, kind: 'game', panel: p.id, tabs: { names, i: this.state.i, edge: at.edge ?? 0 }, cols: COLS[p.id] ?? [1], rows,
       empty: rows.length ? '' : plain(BUILDERS[p.id](p.data).html.match(/<p class="none">([^<]*)<\/p>/)?.[1] ?? ''),
       strip: cell ? { name: cell.name ?? '', sub: cell.sub ?? '', desc: plain(cell.desc), act: cell.act ? ACT[cell.act] : '' } : null,
-      hint: this.full ? 'B / ○ back · ← → the next' : 'LB / RB turn · A / × choose · B / ○ close' };
+      hint: this.full ? 'B / ○ back · ◀ ▶ the next' : 'LB / RB turn · A / × choose · B / ○ close' };
     if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
     if (p.id === 'map') view.map = { world: p.data?.world ?? '', marks: (p.data?.marks ?? []).filter((m) => m.on).map((m) => ({ id: m.id, kind: m.kind, name: m.name, u: +m.u.toFixed(4), v: +m.v.toFixed(4), deg: m.deg ?? null, on: cell?.id === m.id })), note: p.data?.note ?? '', zoom: this.zoom };
     if (p.id === 'people' && p.data?.person) {
@@ -403,7 +405,7 @@ export class EngineMenus {
       view.person = { name: d.name, role: [d.role, d.worldTitle].filter(Boolean).join(' · '), story: d.story ?? [], now: d.now ?? '', choices: d.choices ?? [],
         between: [d.talks ? (d.talks > 1 ? t('gm.p.talksN', { n: d.talks }) : t('gm.p.talks1')) : '', ...(d.quests ?? []).map((q) => `${q.state === 'done' ? '✓' : q.state === 'failed' ? '·' : '◇'} ${q.title}`), ...(d.things ?? [])].filter(Boolean),
         prev: d.prev ?? '', next: d.next ?? '' };
-      view.hint = 'B / ○ back · ← → the next';
+      view.hint = 'B / ○ back · ◀ ▶ the next';
     }
     if (this.full) {
       const c = this.full.cell, F = this.full, f = c.full ?? {};

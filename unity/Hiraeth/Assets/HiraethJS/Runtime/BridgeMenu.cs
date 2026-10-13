@@ -23,7 +23,7 @@ namespace Hiraeth.Bridge
 
         Image dim;
         Ui.Box sheet;
-        Label logo, head, sub, version, hint, note, empty;
+        Label logo, head, sub, version, hint, note, empty, meas;
         // a pool of entries (a row of the title, the sidebar, a page's control, a panel's cell), each a band, its words, a value and a slider
         class Cell { public Ui.Box box; public Label text, sub, val; public Image bar, fill, mark, line; }
         readonly List<Cell> cells = new();
@@ -58,6 +58,8 @@ namespace Hiraeth.Bridge
             hint = Ui.Label(root, "hint", mono, Small, Ui.Ink, TextAnchor.LowerRight);
             note = Ui.Label(root, "note", mono, Body, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Italic);
             empty = Ui.Label(root, "empty", mono, Body, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
+            meas = Ui.Label(root, "measure", mono, Small, Color.clear);   // (the Controls page's rows measured with it, never shown)
+            Ui.Place(meas.rectTransform, -4000, 0, 10, 10);
             for (int i = 0; i < 5; i++) tabs.Add(Ui.Label(root, "tab" + i, mono, Body, Muted, TextAnchor.MiddleCenter));
             tabPrev = Ui.Label(root, "tabPrev", mono, Small, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             tabNext = Ui.Label(root, "tabNext", mono, Small, Ui.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
@@ -117,7 +119,7 @@ namespace Hiraeth.Bridge
             c.sub.gameObject.SetActive(hasSub);
             if (hasSub) { var ss = Ui.Set(c.sub, under, w - pad * 2 - valW - 8); Ui.Place(c.sub.rectTransform, pad, 5 + ts.y + 1, w - pad * 2 - valW - 8, Mathf.Min(ss.y, h - ts.y - 6)); }
             c.val.gameObject.SetActive(valW > 0);
-            if (valW > 0) { c.val.text = val; c.val.fontSize = size; Ui.Place(c.val.rectTransform, w - pad - valW, 5, valW, size * 1.4f); }
+            if (valW > 0) { c.val.text = val; c.val.fontSize = size; Ui.Place(c.val.rectTransform, w - pad - valW, 5, valW, Mathf.Max(size * 1.4f, h - 8)); }
             c.bar.gameObject.SetActive(slider >= 0);
             if (slider >= 0) { float bw = Mathf.Min(160, w * 0.3f); Ui.Place(c.bar.rectTransform, w - pad - bw, h - 9, bw, 3); Ui.Place(c.fill.rectTransform, 0, 0, bw * Mathf.Clamp01(slider), 3); }
             c.mark.gameObject.SetActive(on);
@@ -276,13 +278,24 @@ namespace Hiraeth.Bridge
         void DrawSettings(List<object> rows, float x, float y, float w, float h, bool plain = false)
         {
             rows ??= new List<object>();
-            float rh = plain ? 30 : 44;
+            // (a row as tall as its words: the Controls page's lines wrap, what they are and how, side by side)
             var hs = new List<float>(); int at = 0;
-            for (int i = 0; i < rows.Count; i++) { hs.Add(rh); if (B(rows[i], "on")) at = i; }
-            float yy = y - Scroll(hs, at, h);
-            foreach (var o in rows)
+            for (int i = 0; i < rows.Count; i++)
             {
-                var r = o as Dictionary<string, object>;
+                float rh = 44;
+                if (plain)
+                {
+                    float tw = Ui.Measure(meas, rows[i].S("text") ?? "", w * 0.5f - 28).y, vw = Ui.Measure(meas, rows[i].S("val") ?? "", w * 0.45f).y;
+                    rh = Mathf.Max(28, Mathf.Max(tw, vw) + 12);
+                }
+                hs.Add(rh);
+                if (B(rows[i], "on")) at = i;
+            }
+            float yy = y - Scroll(hs, at, h);
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i] as Dictionary<string, object>;
+                float rh = hs[i];
                 if (yy + rh > y - 1 && yy < y + h - 2)
                 {
                     float sl = r.Get("slider") is double d ? (float)d : -1;
@@ -395,7 +408,7 @@ namespace Hiraeth.Bridge
             float RowH(List<object> row)
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
-                return panel == "quests" ? (k == "ended" ? 34 : 62) : panel == "items" ? (k == "item" ? 74 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
+                return panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" ? 74 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
             }
             var hs = new List<float>(); int at = 0;
             for (int r = 0; r < rows.Count; r++) { var row = rows[r] as List<object>; hs.Add(RowH(row)); foreach (var c in row) if (B(c, "on")) at = r; }
@@ -412,6 +425,7 @@ namespace Hiraeth.Bridge
                         float cx = x + w * colX[col], cw = w * (colX[Mathf.Min(col + span, colX.Count - 1)] - colX[col]) - 6;
                         string text = c.S("text"), under = c.S("sub");
                         if (B(c, "inUse")) under = "in use";
+                        if (!string.IsNullOrEmpty(c.S("step"))) under = (string.IsNullOrEmpty(under) ? "" : under + "\n") + "Next: " + c.S("step");
                         if (B(c, "tracked")) text = "◆ " + text;
                         if (c.S("done") == "done") text = "✓ " + text; else if (c.S("done") == "failed") text = "· " + text;
                         bool tile = c.S("kind") == "item";
