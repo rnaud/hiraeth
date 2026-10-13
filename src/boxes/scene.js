@@ -363,7 +363,7 @@ export class BoxScene {
         this.model.position.copy(this.handAt());
         this.model.scale.setScalar(ITEM_SCALE * HAND.scale);
       }
-      tickItem(this.model, this.fluid, { time, fill: this.fill });   // (its fluid's clock, each of its own kind: the blade, the wings, the guard's)
+      tickItem(this.model, this.fluid, { time, fill: this.fill });   // (its fluid's clock, each of its own kind: the blade, the guard's)
     }
     this.offerFrame(t, T);
     if (this.phase === 'beat') this.beatFrame(t, time);

@@ -4,8 +4,7 @@ import * as THREE from 'three';
 import { buildItemModel, fluidMaterials, tickItem } from '../src/boxes/model.js';
 import { buildSword, bladeGeometry, brassGeometry, gripGeometry, swordMaterial } from '../src/fluid-sword.js';
 import { ShieldDevice, SHIELD } from '../src/shield.js';
-import { globMaterial, FLUID_TONES } from '../src/fluid-tool.js';
-import { FluidWings } from '../src/fluid-kit.js';
+import { globMaterial } from '../src/fluid-tool.js';
 import { gunModel } from '../src/gadgets/gun.js';
 import { TRAVELLER_PALETTE as PAL } from '../src/traveller-style.js';
 
@@ -48,22 +47,17 @@ test('the Givers\' guard comes out open, as it is raised: the brass petals, the 
   assert.ok(s.x > 0.2 && s.x < 0.45, `scaled for the reveal (${s.x.toFixed(2)} m across)`);
 });
 
-test('the fluid wings come out open, as they bloom over the glide: the same lobes in the wing fluid', () => {
-  const item = buildItemModel('glider'), worn = new FluidWings(new THREE.Group(), FLUID_TONES);
-  const lobes = meshes(item).filter((m) => kind(m.material) === 3);
-  assert.equal(lobes.length, worn.lobes.length);
-  assert.equal(lobes[0].geometry.attributes.position.count, worn.lobes[0].mesh.geometry.attributes.position.count);
-  assert.notEqual(lobes[0].material, worn.material, 'a material of its own');
-  assert.ok(lobes.every((m) => m.scale.y > 0.5 && m.visible), 'open, not folded');
-});
-
-test('the fluid gun\'s glove is the one he wears: its leather, its band and its lights', () => {
+test('the wings and the gun\'s glove come out of their chests as they did before #242 (issue #283: the sword and the guard alone)', () => {
+  const wings = buildItemModel('glider');
+  assert.equal(meshes(wings).filter((m) => kind(m.material) === 3).length, 0, 'no lobes of wing fluid: the leaves of colour on a brass rod');
+  assert.equal(meshes(wings).length, 7, 'six leaves and the rod');
   const colours = new Set(meshes(gunModel()).map((m) => `#${m.material.uniforms.uColor.value.getHexString()}`));
-  for (const c of [PAL.glove, PAL.lavender, PAL.gloveLight, PAL.fitting]) assert.ok(colours.has(c), `${c} (src/traveller.js fluidGlove)`);
+  for (const c of ['#6a4f38', '#efe6cf', '#d6a94a', '#72d5bf']) assert.ok(colours.has(c), `${c}: the brown glove, its cream cuff, brass and fluid`);
+  assert.ok(!colours.has(PAL.lavender), 'not the worn glove\'s lavender band');
 });
 
 test('a reveal\'s fluid flows on the box\'s clock, each of its own kind; the parts that move do', () => {
-  for (const id of ['sword', 'shield', 'glider', 'backpack']) {
+  for (const id of ['sword', 'shield', 'backpack']) {
     const m = buildItemModel(id), mats = fluidMaterials(m), kinds = mats.map(kind);
     tickItem(m, mats, { time: 3.2, fill: 0.5 });
     assert.deepEqual(mats.map(kind), kinds, `${id}: its fluid's kind kept`);

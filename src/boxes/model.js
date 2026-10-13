@@ -5,7 +5,6 @@ import { TANK, FLUID_TONES, buildFlask, globMaterial } from '../fluid-tool.js';
 import { buildSword } from '../fluid-sword.js';
 import { BLADE_LOOK, BLADE_QUALITY } from '../blade-shader.js';
 import { buildShieldFace } from '../shield.js';
-import { FluidWings } from '../fluid-kit.js';
 import { ITEMS } from '../items.js';
 import { chestGeometry, openEase, starShape, MAKERS_CHEST, CHEST_COLORS } from './chest.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -31,7 +30,7 @@ export { starShape, chestKind } from './chest.js';
 //                      mats.body.uniforms.uBoxA: x the ray's strength, y the marks' glow, z the star's reach, w the
 //                      ray's clock (one pass per unit: index.js and scene.js wind it)
 //   buildItemModel(id) → a small Group (≈ 0.3 m) for the hovering display
-//                      built from the item in use (the held sword, the raised guard, the open wings: issue #242)
+//                      built from the item in use (the held sword, the raised guard: issue #242)
 //   tickItem(model, fluidMaterials(model), { time, fill })   a frame of its life: its fluids' clocks, its moving parts
 //   buildSparkles()  → twinkling specks round the hovering item; buildMotes() → jade motes rising out of an opening chest
 //   buildBeacon(key) → a thin pale column of light over an unopened box (seen from afar)
@@ -229,26 +228,21 @@ function wardenbellowsModel() {
   return g;
 }
 
-/**
- * The fluid wings as they open over the glide (src/fluid-kit.js FluidWings: the same lobes of living membrane, in their
- * fluid's tones, flapping slowly), out of the two brass shoulders of the tank's cap they bloom from; in a material of
- * their own (the box winds its clock). Issue #242: before, three flat leaves of colour on a brass rod.
- */
 function wingsModel() {
-  const g = new THREE.Group(), tank = new THREE.Group();
-  const wings = new FluidWings(tank, FLUID_TONES, { key: 'box.item.glider' });
-  wings.update(0, { open: 1, time: 0 });
-  // (the lobes' roots are the cap's shoulders, 0.43 m up the tank: brought down to the middle)
-  tank.position.y = -0.43;
-  for (const sx of [-1, 1]) tank.add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8).translate(sx * 0.13, 0.43, -0.03), flatM(BRASS)));
-  tank.add(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.26, 10).rotateZ(Math.PI / 2).translate(0, 0.43, -0.03), flatM(BRASS_DARK)));
-  g.add(tank);
-  let last = 0;
-  g.userData.tick = (time, fill = 1) => { wings.update(Math.max(0, Math.min(0.1, time - last)), { open: 1, time, fill }); last = time; };
-  g.scale.setScalar(0.115);   // (≈ 2.6 m across worn: about 0.4 m here)
-  g.rotation.set(1.45, 0, 0);   // (the membranes face up and back, worn: turned to face the eye, up and forward)
-  const w = new THREE.Group(); w.add(g);
-  return w;
+  const g = new THREE.Group();
+  const leaf = new THREE.Shape();
+  leaf.moveTo(0, 0); leaf.bezierCurveTo(0.06, 0.1, 0.1, 0.26, 0.03, 0.36); leaf.bezierCurveTo(-0.02, 0.24, -0.03, 0.1, 0, 0);
+  const tones = [FLUID_TONES[0], FLUID_TONES[1], '#cfeef0'];
+  for (const sx of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const m = new THREE.Mesh(new THREE.ExtrudeGeometry(leaf, { depth: 0.012, bevelEnabled: false }), flatM(tones[i], { glow: 0.45, side: THREE.DoubleSide }));
+      m.position.set(sx * 0.02, -0.16, -0.01 + i * 0.016);
+      m.rotation.set(0, sx < 0 ? Math.PI : 0, -sx * (0.25 + i * 0.28));
+      g.add(m);
+    }
+  }
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.08, 10).rotateZ(Math.PI / 2).translate(0, -0.16, 0), flatM(BRASS)));
+  return g;
 }
 
 function lensModel(color = '#bfe8f2', { glyph = false, ice = false } = {}) {
@@ -684,8 +678,8 @@ export function buildItemModel(id) {
 
 /**
  * One frame of an item model's life (the box scene, the items page): its fluid materials' clock and fill (each keeps
- * its own kind and tones: the blade, the wings, the glob), and the parts that move of themselves (`userData.tick(time, fill)`:
- * the sword's breath, the guard's flowing fluid, the wings' slow beat). `mats`: fluidMaterials(model), found once.
+ * its own kind and tones: the blade, the glob), and the parts that move of themselves (`userData.tick(time, fill)`:
+ * the sword's breath, the guard's flowing fluid). `mats`: fluidMaterials(model), found once.
  */
 export function tickItem(model, mats, { time = 0, fill = 1 } = {}) {
   for (const m of mats) {

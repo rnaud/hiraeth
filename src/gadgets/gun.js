@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { inkMat } from './kit.js';
 import { ITEMS } from '../items.js';
-import { TRAVELLER_PALETTE as PAL } from '../traveller-style.js';
 
 // The fluid gun (docs/systems/gadgets.md, "The fluid gun"): the makers' glove that drinks from the backpack and
 // shoots its fluid. Since the progression rewrite (v1.38) it is a gadget like the others, found in the desert's
@@ -11,15 +10,12 @@ import { TRAVELLER_PALETTE as PAL } from '../traveller-style.js';
 // gadgets' runtime, the wheel, the chip and the boxes need of it. `trigger: 'tool'` tells the runtime to leave the
 // triggers to the tool.
 
-// the glove as he wears it (src/traveller.js fluidGlove, TRAVELLER_PALETTE): dark green-grey leather, the pale lavender
-// band round the cuff's open end, the oval plate on the back of the hand and the three knuckle lights in the fluid's
-// light, and the brass fitting on the cuff with its vial of fluid (issue #242: it was brown with a cream trumpet cuff)
-const LEATHER = PAL.glove, BAND = PAL.lavender, LIGHT = PAL.gloveLight, FITTING = PAL.fitting;
+const LEATHER = '#6a4f38', CUFF = '#efe6cf', BRASS = '#d6a94a', FLUID = '#72d5bf';
 
 /** The glove as an object (the box's hovering picture, the menu, the chip): ≈ 0.3 m, fingers forward (+z). */
 export function gunModel() {
   const g = new THREE.Group();
-  const leather = inkMat(LEATHER), band = inkMat(BAND), fitting = inkMat(FITTING, { metal: 'brass' }), light = inkMat(LIGHT, { glow: 0.75 });
+  const leather = inkMat(LEATHER), cuff = inkMat(CUFF), brass = inkMat(BRASS, { metal: 'brass' }), fluid = inkMat(FLUID, { glow: 0.7 });
   // the back of the hand and the palm: a rounded slab; four fingers curled a little; the thumb along the side
   g.add(new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.045, 0.12).translate(0, 0, 0.02), leather));
   for (let i = 0; i < 4; i++) {
@@ -27,19 +23,17 @@ export function gunModel() {
     const f = new THREE.Mesh(new THREE.CapsuleGeometry(0.011, 0.05, 3, 6).rotateX(Math.PI / 2), leather);
     f.position.set(x, -0.006, 0.11); f.rotation.x = 0.35;
     g.add(f);
-    // the knuckle lights: one charge each, on the index, middle and ring fingers (GLOVE.knuckles)
-    if (i > 0) g.add(new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6).scale(0.0075, 0.005, 0.0105), light).translateX(x).translateY(0.024).translateZ(0.082));
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.008, 6, 4), brass).translateX(x).translateY(0.025).translateZ(0.075));   // a knuckle stud
   }
   const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.04, 3, 6).rotateX(Math.PI / 2), leather);
   thumb.position.set(0.066, -0.01, 0.045); thumb.rotation.y = -0.5;
   g.add(thumb);
-  // the cuff a little way up the wrist, flaring to its open end, the band round it
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.058, 0.07, 14, 1, true).rotateX(Math.PI / 2).translate(0, 0, -0.07), inkMat(LEATHER, { side: THREE.DoubleSide })));
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.007, 5, 18).translate(0, 0, -0.1), band));
-  // the oval plate on the back of the hand (lit in the mode's tone), the fitting on the cuff and its vial
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8).scale(0.03, 0.009, 0.042), light).translateY(0.022).translateZ(0.02));
-  for (const z of [-0.06, -0.033]) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.006, 10).rotateX(Math.PI / 2).translate(0, 0.05, z), fitting));
-  g.add(new THREE.Mesh(new THREE.CapsuleGeometry(0.01, 0.018, 3, 8).rotateX(Math.PI / 2).translate(0, 0.05, -0.0465), light));
+  // the flared cuff with its pale band, the brass fitting on the wrist and the vial of fluid in it
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.07, 0.09, 14, 1, true).rotateX(Math.PI / 2).translate(0, 0, -0.08), inkMat(LEATHER, { side: THREE.DoubleSide })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.068, 0.008, 5, 18).translate(0, 0, -0.118), cuff));
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.02, 0.06).translate(0, 0.03, -0.045), brass));
+  g.add(new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.035, 3, 8).rotateX(Math.PI / 2).translate(0, 0.048, -0.045), fluid));
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.008, 0.05).translate(0, 0.026, 0.03), brass));   // the plate on the back of the hand
   g.rotation.set(-0.5, 0.6, 0);
   return g;
 }

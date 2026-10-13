@@ -68,10 +68,10 @@ export const CHANGELOG = [
     // (src/minigames/pirates.js, pirates-rules.js, kit/runner.js, src/ui.js; docs/systems/minigames.md; issue #224)
     { text: 'The chime pirates no longer open on a start screen: after the take-off the fight counts in at once, its buttons shown small at the bottom right. Your ship carries four missiles too, on LT / L2 (F on the keyboard): each locks the pirate nearest your aim, marked with a teal diamond, and chases it down; a repair ring gives one back. Once you have beaten the pirates, which way pushing up flies is in Settings, under Game.',
       see: 'Fly to a world you have never visited: the pirates’ fight starts straight after the take-off, the controls at the bottom right with your missiles under them. Press LT / L2 (or F) with a raider in the teal diamond.' },
-    // the reveals: what comes out of a chest is the thing in use: the held sword, the raised guard's face, the open wings, the worn
-    // glove's colours (src/boxes/model.js buildItemModel, tickItem; src/fluid-sword.js, src/shield.js buildShieldFace,
-    // src/fluid-kit.js, src/gadgets/gun.js; docs/systems/boxes.md "What comes out"; issue #242)
-    'What comes out of a chest now looks like what you will use. The Givers’ blade rises as the broad blade of living fluid you swing, with its brass cup, wrapped grip, flowing currents and glow, not a thin green spike; the Givers’ guard comes out open, its brass petals and bright rim of fluid as when you raise it; the fluid wings open as they do over a glide; and the fluid gun’s glove is the dark one you wear, with its lavender band and its lights. Their pictures in the menu, and those of Anselm’s upgrades for them, match.',
+    // the reveals: what comes out of a chest is the thing in use: the held sword, the raised guard (src/boxes/model.js
+    // buildItemModel, tickItem; src/fluid-sword.js, src/shield.js buildShieldFace; docs/systems/boxes.md "What comes out";
+    // issue #242; the wings and the gun's glove left as they were: issue #283)
+    'What comes out of a chest now looks like what you will use. The Givers’ blade rises as the broad blade of living fluid you swing, with its brass cup, wrapped grip, flowing currents and glow, not a thin green spike, and the Givers’ guard comes out as the one you raise. Their pictures in the menu, and those of Anselm’s upgrades for them, match.',
     // the Map as wide as the page: its shape the page's box's (src/world-map.js mapAspect, mapBounds aspect, MapView.aspect;
     // src/game-menu.js mapBoxAspect, mapFit; src/game-menu.css; docs/systems/ui.md "As wide as the page"; issue #272)
     'The game menu’s Map fills its page now instead of sitting in a square with empty paper either side: it shows a wider stretch of the world, east and west of the places you know, on a desktop screen and on a handheld alike, with the compass, the scale bar and the zoom buttons in its corners.',
