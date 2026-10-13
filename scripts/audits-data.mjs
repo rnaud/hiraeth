@@ -10,7 +10,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildIndex, cinematicVerdicts, parseReport, todoSections } from '../src/audits-page/parse.js';
+import { buildIndex, cinematicVerdicts, compareVersions, parseReport, todoSections } from '../src/audits-page/parse.js';
 import { themeOf } from '../src/audits-page/themes.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
@@ -61,11 +61,15 @@ export function mediaFiles(root = ROOT) {
 export function auditsData(root = ROOT) {
   const read = (f) => readFileSync(join(root, f), 'utf8');
   const files = reportFiles(root);
+  // (the review page's verdicts go with the newest cinematics pass: a docs/audits/cinematics-v<version>.md once there is
+  // one, v1.66 for issue #226; before that the v1.6 baseline in docs/systems/cinematics-qc.md)
+  const cineVersion = (f) => (f.match(/cinematics-v([\d.]+)\.md$/) ?? [])[1];
+  const newestCine = files.filter(cineVersion).sort((a, b) => compareVersions(cineVersion(a), cineVersion(b))).at(-1) ?? CINEMATICS_QC.file;
   const reports = files.map((file) => {
     const cine = file === CINEMATICS_QC.file;
     const md = read(file);
     const r = parseReport(md, { file, link: linkFor(file), ...(cine ? { kind: 'cinematics', depth: 3 } : {}) });
-    if (cine && existsSync(join(root, CINEMATICS_QC.notes))) {
+    if (file === newestCine && existsSync(join(root, CINEMATICS_QC.notes))) {
       const { by, counts } = cinematicVerdicts(JSON.parse(read(CINEMATICS_QC.notes)));
       r.verdicts = counts;
       for (const t of r.scoreTables) for (const row of t.rows) if (by[row.id]) row.verdict = by[row.id];

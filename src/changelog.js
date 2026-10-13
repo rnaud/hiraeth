@@ -23,6 +23,13 @@ export const CHANGELOG = [
     // the dialogue review v1.66's fixes: the light brushed the ship (lore/continuity.md), bare "Good night" exits
     { text: 'In Viridel and the Buried Machine the traveller says the light brushed his ship, as it did, not that it struck it; and Vell, Edda and Solange’s goodbyes answer what was said instead of a bare “Good night”.',
       see: 'In Viridel tell Mira about the mark under the flowers; in the Buried Machine ask Hask about the mark on everything; on the night mail ask Solange about the chalk and read the last answer.' },
+    // the cinematics QC v1.66 (docs/audits/cinematics-v1.66.md): Vael II's face shot (arzach2-moments.js clearSide), the
+    // clock's cogs (glassdunes-moments.js cogShot), the ship's ground under a lens over a void (ship.js), the review page
+    // staging a merged world's climax from its own part (src/cinematics-page/runtime.js)
+    'When the bell rings under the cloud, the close-up of the traveller is filmed from the side away from the rope, so it no longer hangs across his face.',
+    'The Glass Dunes’ clock moment has a fourth shot, low by a great cog turning in the sand, before his face.',
+    'Landing in the City Floating in Space no longer flashes black frames as the ship comes down over the void.',
+    'On the cinematics review page, the sky stones’ bell and the Deep Wood’s pools play their own scenes again instead of an empty stretch of sand.',
   ] },
   { v: '1.66', date: '2026-10-13', items: [
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own

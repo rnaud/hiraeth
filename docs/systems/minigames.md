@@ -89,7 +89,7 @@ as before. Tests: `tests/hosts.test.js` (every game, trial and makers' run in a 
 Play / Not now; a hosted sign has no button; where the persons stand in the desert, the market and Vael),
 `tests/trials-worlds.test.js` (each trial's host on solid ground, out of the water).
 
-**Not before it can be had** (v1.66, issue #226's quest QC): a trial's or makers' run's spot passes its `lacks()` (the
+**Not before it can be had** (v1.67, issue #226's quest QC): a trial's or makers' run's spot passes its `lacks()` (the
 trial's own: "It wants the hoverbike.", "Its prize is for the lantern."). While it says something, the host adds it as
 a last page ("It wants the hoverbike. Come back with it.") and offers only "I'll come back with it.": no Play to be
 refused a moment later by the notice. Once had, the lines and Play / Not now as before.

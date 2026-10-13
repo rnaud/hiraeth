@@ -250,7 +250,7 @@ Flags are the extractor's, judged, not counted as faults.
 - [#281](https://github.com/rnaud/hiraeth/issues/281): recommendation 2, the near names and the Rose Canyon.
 - [#282](https://github.com/rnaud/hiraeth/issues/282): recommendations 3 and 4, the fragments' words, the lore page's
   nights and the small repeats.
-- **Fixed in the same pass** (v1.66, with the [quest QC](quest-v1.66.md), which owns the answer-follows rule):
+- **Fixed in the same pass** (v1.67, with the [quest QC](quest-v1.66.md), which owns the answer-follows rule):
   - Ilen's three splinter pages now come before "It was mine. My answer. I'm sorry.", so "Your answer?" follows her
     answer. They stay in `light`, which keeps the confession whole and the pages' conditions unchanged (finding 4).
   - Fitz's rule is the gallery's own (finding 6).

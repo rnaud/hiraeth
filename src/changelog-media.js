@@ -763,8 +763,22 @@ const REVEAL242 = 'Issue #242: muted headless Chrome (High, 10:00) against this 
 const MAP272 = 'Issue #272: muted headless Chrome (Medium, 10:00, the Desert) against this branch’s own Vite (port 5981), before on the tree before it (cfcb5f41), the game menu opened on the Map once its ground was drawn; cwebp -q 72';
 // (v1.66, issue #250: the fragments in and on the places of interest; a scratch driver making views for scripts/design-qc/capture.mjs)
 const FRAG250 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5971), scripts/design-qc/capture.mjs, the camera pinned a few metres off the spot with a clear line to it; before: the same view with that fragment found (a save holding its flag), after: a new save; 13 October; cwebp -q 72';
+// (v1.67, issue #226: the cinematics QC's own frames, before and after its fixes)
+const CINE226 = 'Issue #226, the cinematics QC: scripts/cinematics-qc.mjs (muted headless Chrome, High, 960 × 540) against this branch before and after the fix, the same frame of the same cinematic; cwebp';
 export const CHANGELOG_MEDIA = {
   '1.67': [
+    { match: 'When the bell rings under the cloud', tags: ['cinematics', 'vael'], shots: [
+      { name: 'bell-rope', title: 'The bell rung: his face', caption: 'Before, the bell rope hangs across his face in the close-up; after, the lens on the other side, the rope behind him.', from: CINE226 },
+    ] },
+    { match: 'The Glass Dunes’ clock moment has a fourth shot', tags: ['cinematics'], shots: [
+      { name: 'clock-cogs', title: 'The clock: a cog in the sand', caption: 'Before, the moment cut from the house to his face; after, a low shot by a great cog turning in the sand between them.', from: CINE226 },
+    ] },
+    { match: 'Landing in the City Floating in Space', tags: ['cinematics'], shots: [
+      { name: 'spacecity-landing', title: 'The arrival over the void', caption: 'Before, a black frame as the ship comes down (the lens had no ground under it); after, the islands and the ship.', from: CINE226 },
+    ] },
+    { match: 'On the cinematics review page', tags: ['cinematics'], shots: [
+      { name: 'review-bell', title: 'The review page’s bell', caption: 'Before, the bell’s scene staged on bare sand, no bell in sight; after, the bell itself swinging under its beam, as in play.', from: CINE226 },
+    ] },
     { match: 'The Elder of Vael now has her new feathered body in the Aerie', tags: ['characters', 'vael'], shots: [
       { name: 'elder-aerie-ground', title: 'Inside the Aerie', only: 'after', size: [1280, 720], caption: 'The approved bird in the real elevated roost, settling for the final touch. Her feather colours remain readable in temple shade.', from: 'Codex in-app browser, actual Vael game, temporary-progress silent Elder temple review, 13 October 2026.' },
       { name: 'elder-natural-front', title: 'Natural feathered wings', only: 'after', size: [1280, 720], caption: 'The replacement mesh has a centred frontal neck and single feathered wing surfaces.', from: 'Codex in-app browser, Elder review, Game ink, Spread wings at 3 s, Front, 13 October 2026.' },

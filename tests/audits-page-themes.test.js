@@ -25,7 +25,7 @@ test('one card per theme, each its latest report (versions compared as numbers: 
   assert.deepEqual(themes.map((t) => t.kind).filter((k) => THEME_ORDER.includes(k)), THEME_ORDER.filter((k) => kinds.includes(k)), 'in the dashboard\'s order');
   assert.equal(theme('visual').latest.id, 'visual-v1.21');
   assert.equal(theme('game').latest.id, 'game-v1.59');
-  assert.equal(theme('cinematics').latest.id, 'cinematics-v1.6');
+  assert.equal(theme('cinematics').latest.id, 'cinematics-v1.66');   // (the second full pass, issue #226; the v1.6 baseline stays in docs/systems/cinematics-qc.md)
   for (const t of themes) {
     const same = reports.filter((r) => r.kind === t.kind);
     assert.equal(t.history.length, same.length, `${t.kind}: every version in its history`);
@@ -107,7 +107,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(scenes.length, 16, 'v1.53: the 13 of v1.34 and the three worlds that joined in v1.40');
   assert.ok(near(avg(scenes.map((r) => r.value)), theme('ink-lines').latest.overall), 'each scene the mean of its resolutions');
   const worldsCine = group('cinematics', 'By world').rows;
-  assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 91, 'the 91 cinematics, by world');
+  assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 107, 'the 107 cinematics of the v1.66 pass, by world');
   assert.ok(worldsCine.some((r) => r.label === 'desert') && worldsCine.some((r) => r.label === 'prologue'));
   // (v1.39: the merged and dismissed worlds' arrivals, the Hangar's signal and recordings 10-11 out, the Glass Dunes' clock in)
   // (v1.40: the three new worlds' climaxes, chests and gifts, and recordings 10-12: 12 verdicts more, not reviewed yet)

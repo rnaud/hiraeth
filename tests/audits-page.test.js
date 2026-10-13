@@ -89,14 +89,14 @@ test('the score tables are read from the real reports: criteria, totals, "before
   assert.deepEqual([desert.from, desert.to, desert.delta], [4, 4.11, 0.11], 'matched with v1.49\'s row by name');
   assert.deepEqual(desert.criteria.find((c) => c.name === 'Spacing'), { name: 'Spacing', from: 4, to: 5 }, 'and its criteria by header');
 
-  const cine = byId('cinematics-v1.6');
+  const cine = byId('cinematics-v1.66');   // (the newest pass carries the review page's verdicts, issue #226)
   const ct = cine.scoreTables.find((x) => x.rows.length > 80);
   assert.ok(ct, 'the cinematics table');
   assert.equal(ct.scoreCols.length, 2, 'tech and interest (not the length or the cuts)');
   const prologue = ct.rows.find((r) => r.id === 'prologue');
   assert.equal(prologue.verdict, 'Needs work', 'the review page\'s verdict, from the notes');
   assert.equal(Object.values(cine.verdicts).reduce((a, b) => a + b, 0), Object.keys(JSON.parse(read('docs/systems/cinematics-qc-notes.json')).notes).length);
-  assert.ok(cine.sections.some((s) => /v1\.6/.test(s.title)), 'its passes are sections');
+  assert.ok(cine.sections.some((s) => /Headline findings/.test(s.title)), 'its sections');
 
   // the second combat review's guardians: criteria and total in one cell, the earlier defs beside them
   const c6 = byId('combat-v1.6');

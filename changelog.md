@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.67 — 2026-10-13
 
+- On the cinematics review page, the sky stones’ bell and the Deep Wood’s pools play their own scenes again instead of an empty stretch of sand.
+- Landing in the City Floating in Space no longer flashes black frames as the ship comes down over the void.
+- The Glass Dunes’ clock moment has a fourth shot, low by a great cog turning in the sand, before his face.
+- When the bell rings under the cloud, the close-up of the traveller is filmed from the side away from the rope, so it no longer hangs across his face.
 - In Viridel and the Buried Machine the traveller says the light brushed his ship, as it did, not that it struck it; and Vell, Edda and Solange’s goodbyes answer what was said instead of a bare “Good night”.
 - Fitz at the shooting gallery tells the rule as it is: a miss, or a splashed parasol, breaks your streak, not your run. And the search for old Oum is now “Search the western dunes for old Oum”.
 - Two answers that now follow what was said: Anselm Thrum takes “Come aboard, then” as the invitation it is, and Ilen ends on her own answer before you ask “Your answer?”.
