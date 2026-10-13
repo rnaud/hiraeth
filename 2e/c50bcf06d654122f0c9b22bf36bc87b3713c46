@@ -1,0 +1,58 @@
+changelog.md
+  s_9ca76055a220ed::t_19987ca2d98347 5-6,10
+  s_9ca76055a220ed::t_d36a17390630fd 7
+docs/systems/characters.md
+  s_9ca76055a220ed::t_b8957ec8593afb 1251-1269,1276-1288,1298-1301,1303-1314
+  s_9ca76055a220ed::t_85ad54380efc13 1270-1275,1289-1297,1302
+docs/systems/faces.md
+  s_9ca76055a220ed::t_bec5a72b476c1b 26-29
+scripts/tripo/README.md
+  s_9ca76055a220ed::t_ea583aef38d7ed 32-33
+src/changelog-media.js
+  s_9ca76055a220ed::t_60318984e93f70 741,743,757,760-762
+  s_9ca76055a220ed::t_9ad4105961136e 758-759
+src/changelog.js
+  s_9ca76055a220ed::t_98d5f58329cceb 11,20-21,23
+  s_9ca76055a220ed::t_7802a4aa37ddc4 22
+src/characters/portrait-head.js
+  s_9ca76055a220ed::t_2c155e3fe2c456 12-14,17-19,21-23,68-69,72,78,102-121,124,128-129,132,135-136,150
+  s_9ca76055a220ed::t_fef02fc7c80dec 15-16,20,122-123,125-127,130-131,133-134
+src/characters/traveller-cloth-ink.js
+  s_9ca76055a220ed::t_323d6f556846de 1,5-6,16-19
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_233eb664204035 28,33,35,42,87
+src/characters/tripo-head.js
+  s_9ca76055a220ed::t_92c61707f4612e 104-105
+src/pipeline.js
+  s_9ca76055a220ed::t_6b1e8360f3285a 81-83,85
+scripts/tripo/bake-face-ink.mjs
+  s_83d42ff487c9ed::t_530597a092a246 1-2,4-44,74-84,89-90,93-97
+  s_9ca76055a220ed::t_5d6bfd8d8a739a 3,45-73,85-88,91-92
+tests/portrait-face-ink.test.js
+  s_83d42ff487c9ed::t_ef1f49aefe9d1e 1-73,76-91,107-109
+  s_9ca76055a220ed::t_3ebf2eac4022db 74-75,92-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ec50bcf06d654122f0c9b22bf36bc87b3713c46",
+  "prompts": {},
+  "sessions": {
+    "s_83d42ff487c9ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa1bd755f1956a4d0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
