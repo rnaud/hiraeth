@@ -23,9 +23,8 @@ import { FACE } from '../humanoid.js';
 export const OBJECTIVE = 'Find a new source of power.';
 /** The ship's good morning in the prologue: a message is waiting (no word of where from). */
 export const WAKE_LINE = { who: 'ship', text: 'Good morning. You have one new message.', tone: 'neutral' };
-/** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the great dark tree (src/boxes/, the desert's first stage). */
+/** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the great dark tree (src/boxes/, the desert's first stage). No card says it since issue #222: the charge's card is the one line, and Marrow, his balloon and the scout lead there. */
 export const FIRST_OBJECTIVE = 'Walk to the city under the great dark tree.';
-const stepOutObjective = () => (game.flag('item.backpack') ? OBJECTIVE : FIRST_OBJECTIVE);
 const STEP_OUT_YAW = 0.34;   // rad off straight-behind when the traveller first steps out
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
@@ -361,8 +360,8 @@ export class PrologueDirector {
         s.rig.pitch = 0.2;
         s.release(1.4);
         C.bars(false); C.hud(true);
-        C.objective(stepOutObjective());
-        s.sound?.chime?.();
+        // (no objective card: the father's charge was the one line about it, its own card, issue #222; the way on is
+        // Marrow by the ship, his balloon and the scout's find, and the quest log has the step)
         break;
     }
   }
@@ -672,16 +671,16 @@ export class PrologueDirector {
       s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;
-      // the ship's word and his answer, then the objective card: one after the other, after the region's name (the
-      // notices' order, src/ship/cinema.js NOTICE_ORDER; issue #78: they used to come up together)
-      setTimeout(() => { this.landingLines(); C.objective(stepOutObjective()); }, Math.max(0, wait - 500));
+      // the ship's word and his answer, after the region's name (the notices' order, src/ship/cinema.js NOTICE_ORDER;
+      // issue #78: they used to come up together); no objective card after the charge's (issue #222)
+      setTimeout(() => this.landingLines(), Math.max(0, wait - 500));
     } else {
       if (!this.landingSaid) C.say(null);   // (the ship's word and his answer play on as he walks out)
       C.hint(null); C.hud(true); C.bars(false);
     }
     game.set('objective', OBJECTIVE);
     game.set('ship.level', 'desert');
-    setTimeout(() => s.onReady?.(), 6800 + (skipped ? Math.max(0, wait - 500) : 0));   // after the objective card (6.5 s) has faded, never on top of it
+    setTimeout(() => s.onReady?.(), 6800 + (skipped ? Math.max(0, wait - 500) : 0));   // after the ship's lines, never on top of them
   }
 }
 

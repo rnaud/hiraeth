@@ -91,8 +91,9 @@ export function chargeJournalHtml(st) {
 
 // ---------------------------------------------------------------------------
 // The title card: the father's words lettered over the landing site, the way a comic opens its
-// first chapter: thin airy capitals like the title screen's (src/title.js LOGO) on a band of paper, a pen line drawn
-// under them, the gold star of the charge. It asks nothing of you and leaves by itself.
+// first chapter: one line of airy capitals like the title screen's (src/title.js LOGO) on a band of paper, "✦ BRING BACK
+// SOMETHING OF VALUE", a pen line drawn under it (issue #222: one line, it was three). It asks nothing of you and
+// leaves by itself.
 
 // It sits low in the lower third, under the new world and the traveller (the arrival is for looking at), well
 // clear of the toasts at the top and the subtitles at the bottom, and goes in five seconds.
@@ -103,25 +104,24 @@ const CSS = `
 #charge-card.on { opacity: 1; }
 #charge-card.off { opacity: 0; transition: opacity 1.1s; }
 #charge-card .sheet { box-sizing: border-box; width: min(max(640px, 44em), 88vw); text-align: center; color: #2b211f; padding: 10px 4vw 10px;
-  background: linear-gradient(90deg, rgba(255, 246, 220, 0), rgba(255, 246, 220, .9) 20%, rgba(255, 246, 220, .9) 80%, rgba(255, 246, 220, 0));
+  background: linear-gradient(90deg, rgba(255, 246, 220, 0), rgba(255, 246, 220, .95) 18%, rgba(255, 246, 220, .95) 82%, rgba(255, 246, 220, 0));
   transform: translateY(8px); transition: transform 1.4s cubic-bezier(.2,.7,.2,1); }
 #charge-card.on .sheet { transform: none; }
-#charge-card .k { margin: 0 0 6px; font: 600 calc(var(--type-s) * 0.8)/1 var(--face); letter-spacing: .38em; text-transform: uppercase; opacity: 0; transition: opacity .7s .2s; }
-#charge-card .k i { font-style: normal; color: #f2c54b; -webkit-text-stroke: .7px #2b211f; font-size: 12px; margin-right: .3em; }
-#charge-card.on .k { opacity: .8; }
-#charge-card h1 { margin: 0; font: 300 clamp(17px, 2.6vw, 28px)/1.05 var(--face);
+#charge-card h1 { margin: 0; font: 400 clamp(16px, 2.5vw, 27px)/1.1 var(--face); white-space: nowrap;
   letter-spacing: .42em; margin-right: -.42em; color: #2b211f;
   transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin 1.8s cubic-bezier(.2,.7,.2,1); }
 #charge-card.on h1 { letter-spacing: .22em; margin-right: -.22em; }
+#charge-card h1 i { font-style: normal; color: #f2c54b; -webkit-text-stroke: .8px #2b211f; margin-right: .35em; }
 #charge-card svg { display: block; width: min(300px, 60vw); height: 16px; margin: 3px auto 0; overflow: visible; }
 #charge-card svg path { fill: none; stroke: #2b211f; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; transition: stroke-dashoffset 1.2s .5s ease-in-out; }
 #charge-card.on svg path { stroke-dashoffset: 0; }
 #charge-card svg circle { fill: #f2c54b; stroke: #2b211f; stroke-width: 1.4; transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .5s 1.5s cubic-bezier(.3,1.6,.5,1); }
 #charge-card.on svg circle { transform: scale(1); }
-#charge-card .q { margin: 6px 0 0; font: italic var(--type-s)/1.4 var(--face); letter-spacing: .04em; opacity: 0; transition: opacity .9s 1.3s; }
-#charge-card.on .q { opacity: .85; }
-@media (max-width: 600px) { #charge-card .sheet { background: rgba(255, 246, 220, .9); } #charge-card.on h1 { letter-spacing: .14em; margin-right: -.14em; } }
+@media (max-width: 600px) { #charge-card .sheet { background: rgba(255, 246, 220, .95); } #charge-card h1 { white-space: normal; } #charge-card.on h1 { letter-spacing: .14em; margin-right: -.14em; } }
 `;
+
+/** The title card's one line: the charge, in capitals, no full stop. */
+export const chargeCardLine = () => CHARGE.words.replace(/\.$/, '').toUpperCase();
 
 /**
  * Letter the charge in the lower third for a few seconds (resolves when it has gone).
@@ -135,9 +135,10 @@ export function showChargeCard({ sound = null, doc = typeof document !== 'undefi
   const el = doc.createElement('div');
   el.id = 'charge-card';
   el.setAttribute('role', 'status');
-  el.innerHTML = `<div class="sheet"><p class="k"><i>${CHARGE.mark}</i>${CHARGE.from}</p><h1>SOMETHING OF VALUE</h1>
-    <svg viewBox="0 0 520 26" aria-hidden="true"><path d="M14 15 C120 6 230 20 330 12 S470 9 506 14"/><circle cx="260" cy="15" r="5"/></svg>
-    <p class="q">“${CHARGE.words}”</p></div>`;
+  // one line, the charge itself (issue #222: "your father's charge, something of value, bring back something of value":
+  // the same words three times over; it was a kicker, a title and the quote)
+  el.innerHTML = `<div class="sheet"><h1 aria-label="${CHARGE.from}: ${CHARGE.words}"><i>${CHARGE.mark}</i>${chargeCardLine()}</h1>
+    <svg viewBox="0 0 520 26" aria-hidden="true"><path d="M14 15 C120 6 230 20 330 12 S470 9 506 14"/><circle cx="260" cy="15" r="5"/></svg></div>`;
   doc.body.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');

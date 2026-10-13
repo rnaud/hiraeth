@@ -19,9 +19,9 @@ const CSS = `
 #boxscene.on .skip { opacity: .85; pointer-events: auto; }
 #boxscene.card .skip { opacity: 0; pointer-events: none; }
 #boxcard { position: absolute; left: 50%; bottom: max(6px, calc(5.5vh - 34px)); width: min(max(900px, 66em), calc(100vw - 24px)); box-sizing: border-box;
-  transform: translate(-50%, 16px) rotate(-.3deg); opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,.9,.3,1.3); pointer-events: none;
+  transform: translate(-50%, 16px); opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,.9,.3,1.3); pointer-events: none;
   font: var(--type-s)/1.4 var(--face); color: #2b211f; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; padding: 0.6em 1.2em; }
-#boxscene.card #boxcard { opacity: 1; transform: translate(-50%, 0) rotate(-.3deg); pointer-events: auto; }
+#boxscene.card #boxcard { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 #boxcard .head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 14px; }
 #boxcard h2 { margin: 0; font: 900 1.75em/1.15 var(--face-title); letter-spacing: .04em; }
 #boxcard h2 .star { display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.35em; vertical-align: -1px; background: #25386c;

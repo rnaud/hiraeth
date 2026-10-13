@@ -198,7 +198,7 @@ export function overlaps(rects) {
 //   title      the father's charge, lettered over the crash site (src/story/charge.js #charge-card): the scene's own
 //   caption    the region's name (src/hud.js PlaceName), first on arriving: where you are, before anything else
 //   line       a spoken line outside a scene (the ship's word as you step out, a console's answer)
-//   objective  the objective card ("Walk to the city under the great dark tree.")
+//   objective  the objective card: one line, the step (a homecoming's "Follow the light to …"; issue #222)
 //   toast      the notices (#toast: a quest's start, a world's opening words, a find), one after the other
 //   teach      a first lesson on the cue ("Look around with …", src/first-steps.js), a nudge, a caller's balloon
 //
@@ -293,7 +293,7 @@ export class Cinema {
     this.skipEl = el.querySelector('.skip'); this.skipBar = this.skipEl.querySelector('u');
     this.fadeEl = el.querySelector('.fade'); this.redEl = el.querySelector('.red'); this.hintEl = el.querySelector('.hint');
     this.obj = document.createElement('div'); this.obj.id = 'objective';
-    this.obj.innerHTML = '<div class="k">OBJECTIVE</div><div class="t"></div>';
+    this.obj.innerHTML = '<div class="t"></div>';   // (one line, the step: issue #222)
     document.body.appendChild(this.obj);
     this.obj.addEventListener('animationend', () => { this.obj.classList.remove('show'); this.layout(); });
     // the game's toasts (index.html #toast, main.js) take their place in the stack too

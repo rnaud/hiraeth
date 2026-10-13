@@ -32,7 +32,7 @@
 #journal .gm-tab.on {
   font: 900 calc(clamp(16px, 4.2vh, 34px) * var(--ts, 1))/1 var(--face-title); letter-spacing: 0.08em;
   margin: 0 clamp(4px, 1vw, 12px); padding: clamp(5px, 1vh, 9px) clamp(14px, 2vw, 26px); color: var(--paper); -webkit-text-stroke: 1.8px var(--ink); paint-order: stroke fill;
-  text-shadow: 3px 3px 0 var(--ink); background: var(--gold); border: 2.5px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--ink); transform: rotate(-1.5deg);
+  text-shadow: 3px 3px 0 var(--ink); background: var(--gold); border: 2.5px solid var(--ink); border-radius: 6px; box-shadow: 4px 4px 0 var(--ink); transform: none;
 }
 #journal .gm-close {
   position: absolute; top: calc(clamp(6px, 2.2vh, 26px) + var(--safe-top, env(safe-area-inset-top, 0px))); right: calc(clamp(8px, 2.4vw, 40px) + var(--safe-right, env(safe-area-inset-right, 0px)));
@@ -177,7 +177,7 @@ body.touch #journal .gm-full .fback::before { content: '◀'; margin-right: 6px;
 #journal .gm-full .fpic { grid-row: 2; display: grid; place-items: center; min-height: 0; min-width: 0; }
 #journal .gm-full .big {
   position: relative; display: grid; place-items: center; overflow: hidden; box-sizing: border-box; height: 100%; max-height: 100%; max-width: 100%; aspect-ratio: 1;
-  background: var(--paper2); border: 3px solid var(--ink); border-radius: 26%; box-shadow: 7px 7px 0 var(--ink), inset 0 -10px 0 rgba(43, 33, 31, 0.08); transform: rotate(-1.5deg);
+  background: var(--paper2); border: 3px solid var(--ink); border-radius: 26%; box-shadow: 7px 7px 0 var(--ink), inset 0 -10px 0 rgba(43, 33, 31, 0.08); transform: none;
 }
 #journal .gm-full .big .ico { width: 92%; height: 92%; border-radius: 24%; }
 #journal .gm-full .big .ico.mark, #journal .gm-full .big.mark i { font-style: normal; font-size: calc(min(22vh, 15vw, 170px) * var(--ts, 1)); color: var(--teal); -webkit-text-stroke: 1.5px var(--ink); }
@@ -319,8 +319,8 @@ body.touch #journal .gm-full .fback::before { content: '◀'; margin-right: 6px;
   display: flex; align-items: center; gap: clamp(7px, 1vw, 12px); min-width: 0; padding: clamp(4px, 0.8vh, 8px); text-align: left;
   background: #fffaf0; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 3px;
 }
-#journal .pcard:nth-child(odd) { transform: rotate(-0.4deg); }
-#journal .pcard:nth-child(even) { transform: rotate(0.35deg); }
+#journal .pcard:nth-child(odd) { transform: none; }
+#journal .pcard:nth-child(even) { transform: none; }
 #journal .pcard.at, #journal .pcard:hover { background: var(--gold); transform: translate(-2px, -2px) rotate(0); box-shadow: 6px 6px 0 var(--ink); }
 #journal .gm-people .pic, #journal .gm-person .pic {
   position: relative; flex: none; display: grid; place-items: center; overflow: hidden; box-sizing: border-box;
@@ -343,7 +343,7 @@ body.touch #journal .gm-person .pback { padding-left: 14px; }
 body.touch #journal .gm-person .pback::before { content: '◀'; margin-right: 6px; color: var(--red); font-size: 0.8em; }
 #journal .gm-person .pback.at, #journal .gm-person .pback:hover { background: var(--gold); }
 #journal .gm-person .phead { display: flex; flex-direction: column; align-items: center; gap: clamp(6px, 1.2vh, 12px); text-align: center; }
-#journal .gm-person .phead .pic { width: min(100%, clamp(84px, 24vh, 168px)); border-width: 3px; box-shadow: 5px 5px 0 var(--ink); transform: rotate(-2deg); }
+#journal .gm-person .phead .pic { width: min(100%, clamp(84px, 24vh, 168px)); border-width: 3px; box-shadow: 5px 5px 0 var(--ink); transform: none; }
 #journal .gm-person .phead .pic i { font-size: calc(clamp(30px, 8vh, 64px) * var(--ts, 1)); }
 #journal .gm-person .pname { display: flex; flex-direction: column; gap: 3px; align-items: center; }
 #journal .gm-person .pname h2 { margin: 0; font: 900 calc(clamp(14px, 3vh, 24px) * var(--ts, 1))/1.1 var(--face-title); letter-spacing: 0.06em; text-transform: uppercase; }

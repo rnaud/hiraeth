@@ -390,10 +390,10 @@ function shooterSounds(sound) {
 const HUD_CSS = `
 #minigame canvas.pirates-hud { position: absolute; inset: 0; width: 100%; height: 100%; }
 #minigame .pirates-comms { position: absolute; left: 18px; bottom: 22px; max-width: min(420px, 70vw); padding: 7px 12px 8px; background: #2b211f; color: #f7ecd2; border: 2px solid #2b211f;
-  box-shadow: 4px 4px 0 rgba(0,0,0,.35); font: calc(var(--type-s) * 1.05)/1.35 var(--face); transform: rotate(-0.6deg); transition: opacity .3s, transform .3s; }
+  box-shadow: 4px 4px 0 rgba(0,0,0,.35); font: calc(var(--type-s) * 1.05)/1.35 var(--face); transform: none; transition: opacity .3s, transform .3s; }
 #minigame .pirates-comms b { display: block; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #9ff2e6; }
 #minigame .pirates-comms.captain b { color: #ef9479; }
-#minigame .pirates-comms.off { opacity: 0; transform: translateY(8px) rotate(-0.6deg); }
+#minigame .pirates-comms.off { opacity: 0; transform: translateY(8px); }
 body.touch #minigame .pirates-comms { bottom: auto; top: 64px; }
 #minigame .mg-lives i.lost { animation: pirates-lost .8s ease-out; }
 @keyframes pirates-lost { 0% { transform: scale(1.9); background: #fff1c8; opacity: 1; } 35% { transform: scale(1.5); background: #d9643a; opacity: 1; } 100% { transform: scale(1); } }

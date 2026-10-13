@@ -23,7 +23,7 @@ const CSS = `
     font: var(--type-s)/1.4 var(--face); background: rgba(43, 33, 31, 0.42); }
   #arcade-board.open { display: grid; }
   #arcade-board .sheet { position: relative; width: min(860px, 94vw); max-height: 90vh; overflow: auto; box-sizing: border-box; padding: 18px 24px 14px;
-    background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; transform: rotate(-0.5deg); }
+    background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 7px 7px 0 #2b211f; transform: none; }
   #arcade-board .kicker { margin: 0 0 2px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8a5a3c; }
   #arcade-board h1 { margin: 0 0 12px; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; }
   #arcade-board .close { position: absolute; right: 14px; top: 12px; font: 700 16px/1 var(--face); padding: 4px 9px; color: #2b211f; cursor: pointer;

@@ -6,7 +6,7 @@
 #shop.open { display: grid; animation: shopIn .22s ease-out; }
 @keyframes shopIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 #shop .shop-sheet { position: relative; width: min(max(860px, 62em), 100%); max-height: 100%; overflow: auto; box-sizing: border-box; padding: 16px 18px 18px;
-  background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; transform: rotate(-0.4deg); }
+  background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; transform: none; }
 #shop .shop-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
 #shop .shop-keeper { flex: 1; min-width: 0; }
 #shop .shop-keeper b { font-size: 1.35em; letter-spacing: 0.06em; }
@@ -33,7 +33,7 @@
 #shop .ware.short .ware-price { color: #a33a2c; }
 #shop .ware.soldout, #shop .ware.full { background: #efe3c8; }
 #shop .ware.soldout .ware-pic, #shop .ware.full .ware-pic { opacity: 0.45; filter: grayscale(0.6); }
-#shop .ware.soldout .ware-flag { background: #2b211f; color: #f7ecd2; transform: rotate(-4deg); }
+#shop .ware.soldout .ware-flag { background: #2b211f; color: #f7ecd2; transform: none; }
 #shop .shop-wares[inert] { opacity: 0.5; }
 /* Anselm's upgrades for fragments (src/fragment-shop.js): the items page's own pictures, a fragment until drawn;
    one fitted or wanting its gear first greyed like a sold-out ware, its line saying why */
@@ -42,8 +42,8 @@
 #shop .ware-pic .frag-pic { display: block; height: 58px; width: auto; filter: drop-shadow(2px 2px 0 rgba(43, 33, 31, 0.85)); }
 #shop .ware.owned, #shop .ware.needs { background: #efe3c8; }
 #shop .ware.owned .ware-pic, #shop .ware.needs .ware-pic { opacity: 0.5; filter: grayscale(0.6); }
-#shop .ware.owned .ware-flag { background: #2b211f; color: #f7ecd2; transform: rotate(-4deg); }
-#shop .shop-ask { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%) rotate(0.6deg); width: min(420px, 90%); padding: 12px 16px; text-align: center;
+#shop .ware.owned .ware-flag { background: #2b211f; color: #f7ecd2; transform: none; }
+#shop .shop-ask { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); width: min(420px, 90%); padding: 12px 16px; text-align: center;
   background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; }
 #shop .shop-ask p { margin: 0 0 10px; font-weight: 700; }
 #shop .shop-ask-row { display: flex; justify-content: center; gap: 12px; }

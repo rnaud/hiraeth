@@ -761,6 +761,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'Hints and notices at the top are a dark strip with light letters', shots: [
       { name: 'notice-strip', title: 'A notice at the top', caption: 'The Desert’s arrival words: before, the story’s title and the words on wide translucent cream paper; after, the words alone, shorter, on a narrower dark strip.', from: `${FROM_HUD}, as the world loads` },
     ], see: 'Arrive in a world, or meet a new kind of foe: the notice at the top is a dark strip. Teaching hints come at least twenty seconds apart.' },
+    { match: 'Your father’s charge is one line now', shots: [
+      { name: 'charge-card', title: 'The father’s charge', caption: 'Before, three lines: “Your father’s charge”, “Something of value” and the quote; after, one.', from: `${FROM_HUD}, the card shown by hand` },
+      { name: 'objective-card', title: 'The objective card', caption: 'Before, “OBJECTIVE” over a tilted card; after, one level line, the step itself (a homecoming’s).', from: `${FROM_HUD}, the card shown by hand` },
+    ], see: 'Start a new game: as you step out of the ship the father’s words are one line, and no objective card follows.' },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [

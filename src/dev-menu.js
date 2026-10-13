@@ -15,7 +15,7 @@ const CSS = `
 #devmenu.open { display: flex; }
 #devmenu .panel { pointer-events: auto; margin: calc(12px + var(--safe-top, env(safe-area-inset-top, 0px))) calc(12px + var(--safe-right, env(safe-area-inset-right, 0px))) 0 0; width: min(380px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px); overflow: auto; box-sizing: border-box; padding: 14px 16px 16px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f;
-  font: 13px ui-monospace, Menlo, monospace; color: #2b211f; transform: rotate(.3deg); }
+  font: 13px ui-monospace, Menlo, monospace; color: #2b211f; transform: none; }
 #devmenu h1 { margin: 0 0 4px; font-size: 16px; letter-spacing: .16em; display: flex; justify-content: space-between; align-items: center; }
 #devmenu h1 button { font-size: 12px; padding: 4px 10px; }
 #devmenu h2 { margin: 12px 0 6px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #7a3a35; border-bottom: 1.5px solid #2b211f; padding-bottom: 2px; }

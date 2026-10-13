@@ -672,11 +672,17 @@ Stepping out of the ship for the first time, the ship's line, the objective card
 and the desert's opening words all came up within a few seconds. Now everything that writes on the screen by itself
 takes its turn, one at a time (`NOTICE_ORDER`, `noticeMay` in `src/ship/cinema.js`; `tests/notices.test.js`):
 
-0. **the father's charge** (`#charge-card`, lettered over the crash site), the scene's own title;
+0. **the father's charge** (`#charge-card`, lettered over the crash site), the scene's own title: one line since v1.65,
+   "✦ BRING BACK SOMETHING OF VALUE" (issue #222: "your father's charge, something of value, bring back something of
+   value ... always should have only 1 line about the objective"; it was a kicker, a title and the quote), and no
+   objective card after it ("why do we have this and another objective card ... right after"): the way on is Marrow
+   by the ship, his balloon and the scout;
 1. **the region's name** (`PlaceName`, on the cue), first on arriving and on every load: it settles while the scene
    plays (`hold`) and the others wait for it (`waiting`);
 2. **a line** outside a scene (the ship's word and his answer as you step out: `Cinema.say` holds it);
-3. **the objective card** (`Cinema.objective` holds it in `_objPending`);
+3. **the objective card** (`Cinema.objective` holds it in `_objPending`): one line, the step itself after a gold ◆, on the
+   notices' dark strip, no "OBJECTIVE" over it and not tilted (v1.65, issue #222; a homecoming's "Follow the light to the
+   Signal Market's silent tower");
 4. **the notices** (`#toast`), each for its full time before the next (they used to overlap at 58 %);
 5. **a lesson** on the cue (`src/first-steps.js`), a nudge (the scout's auto-ping), a caller's balloon or an idle
    greeting balloon (`Cinema.noticeBusy()`).
@@ -685,6 +691,14 @@ Each waits while another is up and while one ahead of it waits. Not notices: a p
 for), a conversation, anything inside a letterboxed scene. The crash's objective card is the desert's opening words,
 so they are not said again as a notice (`Story.start({ quiet })`), and a makers' box offered on arrival
 (`background`) starts without a quest card (the Quests page lists it).
+
+## Nothing slanted (v1.65, issue #222: "make sure nothing is slanted in the UI")
+
+No panel, card, tag, stamp, heading or portrait is drawn tilted any more: the few degrees of `rotate()` the paper
+sheets had (the pause menus', the game menu's tabs, the people's cards, the story page, the restart card, the shop,
+the minigames' boxes and stamps, the box card, the stamina wheel, the gadget chip) are gone. Turns that mean
+something stay: a 45° diamond, a quarter or half turn, an arrow turned the way you face, a spinner, the potion tilting
+as you drink, the title's cape in the wind. `tests/no-slant.test.js` reads every style.
 
 ## Screen sizes (resolution audit, 9 October 2026)
 

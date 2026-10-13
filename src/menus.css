@@ -179,7 +179,7 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 }
 .fullmenu .brand {
   font: 900 calc(clamp(28px, min(7vh, 8vw), 66px) * var(--ts, 1))/1 var(--face-title); letter-spacing: 0.06em;
-  color: #fbf4e2; -webkit-text-stroke: 2px #2b211f; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b211f; transform: rotate(-2deg); transform-origin: left;
+  color: #fbf4e2; -webkit-text-stroke: 2px #2b211f; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b211f; transform: none; transform-origin: left;
 }
 .fullmenu .where { font-size: calc(clamp(11px, 1.8vh, 26px) * var(--ts, 1)); line-height: 1.5; }
 .fullmenu .where b { display: block; font-size: 1.15em; }

@@ -727,8 +727,9 @@ export class HomecomingDirector {
     s.journal?.markSeen?.('home');
     game.emit('ending', { keepsake: this.chosen, kind: this.kind });
     // (after the first: where the light went, the market's silent tower, or its trace once the market is heard: src/story/charge.js says the same)
-    const onward = marketHeard({ flag: (k) => game.flag(k) }) ? 'The light’s trace is on the map, past the Signal Market.' : 'The light went toward the Signal Market’s silent tower.';
-    setTimeout(() => C.objective(this.final ? 'The ship is ready whenever you are.' : `${onward} The ship is ready when you are.`), 1200);
+    // (one line, the step: issue #222; it was two sentences, where the light went and the ship being ready)
+    const onward = marketHeard({ flag: (k) => game.flag(k) }) ? 'Follow the light’s trace, past the Signal Market' : 'Follow the light to the Signal Market’s silent tower';
+    setTimeout(() => C.objective(this.final ? 'The ship is ready whenever you are' : onward), 1200);
     s.onReady?.();
   }
 }
