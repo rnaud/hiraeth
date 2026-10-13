@@ -1,0 +1,29 @@
+docs/systems/challenges.md
+  s_9ca76055a220ed::t_0cb9945eb01956 13
+docs/systems/foes.md
+  s_9ca76055a220ed::t_7448cf7785cbb5 697
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_08394cdad9f11c 31,77,470,504
+src/changelog-media.js
+  s_9ca76055a220ed::t_efc166fc43de14 751,795-796
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_662d92590f3374 962
+src/temples/migrate.js
+  s_9ca76055a220ed::t_871cfcfcb3bfdb 151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "462bd403dd3b6297e941c79e48461da0a8e6a99b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
