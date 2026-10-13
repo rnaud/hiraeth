@@ -1,0 +1,29 @@
+changelog.md
+  s_9fcc5115891f15::t_305f466025d7ad 7
+docs/systems/engine-bridge.md
+  s_9fcc5115891f15::t_b96538710bbac1 650-655
+docs/systems/performance.md
+  s_9fcc5115891f15::t_fd5fe06546421d 2252-2301
+docs/systems/xbox.md
+  s_9fcc5115891f15::t_7331c918b11a76 385
+src/changelog-media.js
+  s_9fcc5115891f15::t_da666139c724f9 749-758
+src/changelog.js
+  s_9fcc5115891f15::t_ea86dd621076b8 43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe9f21e1862a1c80a537698a882504add28e60c0",
+  "prompts": {},
+  "sessions": {
+    "s_9fcc5115891f15": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab5797a4061b7adcb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
