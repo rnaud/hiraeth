@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_45b9f6356a308c 7
+docs/design/chest-prompts.md
+  s_9ca76055a220ed::t_dc7b9b9f72e3e6 113-130
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_f2ad9c4917a045 67-68,83-120
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_f89b36eb207042 1141-1145
+"references/Core Objects/Chests/light/manifest.json"
+  s_9ca76055a220ed::t_520ffb13496fa2 1-42
+src/boxes/index.js
+  s_9ca76055a220ed::t_b09f36b31fbc19 7,172-174,335,375
+src/boxes/light.js
+  s_9ca76055a220ed::t_50c36529e0fad8 1-169
+src/boxes/model.js
+  s_9ca76055a220ed::t_50e4bc65048cd5 35
+src/boxes/scene.js
+  s_9ca76055a220ed::t_1554104bbf26dc 2-3,22-25,96-98,144-149,208,222,338,354-355,357-359,466-468,470-471,473-479,627-629
+src/changelog-media.js
+  s_9ca76055a220ed::t_7bec5eed85bb24 768-769,774-780
+src/changelog.js
+  s_9ca76055a220ed::t_3292e1148619f3 46-49
+src/materials.js
+  s_9ca76055a220ed::t_57df52e86aed5e 1865,2428-2430,2434
+src/veil.js
+  s_9ca76055a220ed::t_b82e7eb490bd91 38,40,59,63,92-103,121,134-140
+tests/boxes.test.js
+  s_9ca76055a220ed::t_44d750dde0d514 268
+tests/chest-light.test.js
+  s_9ca76055a220ed::t_0572f95f65c9ea 1-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2d9a1d4b8b3e182f3b4465aec9ea4c0781994a46",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
