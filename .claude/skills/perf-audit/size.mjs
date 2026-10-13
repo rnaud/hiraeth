@@ -2,14 +2,15 @@
 // (the game's code, music, sound effects, animations, bodies, pictures…), the JavaScript and CSS gzipped,
 // what the first page needs before the title screen (index.html, its scripts, styles and preloads), and
 // the biggest files. With --against <previous size.json>, the change for each.
-//   npx vite build && node .claude/skills/perf-audit/size.mjs [--out size.json] [--against old.json]
+//   npx vite build && node .claude/skills/perf-audit/size.mjs [--out size.json] [--against old.json] [--dist <another build's dist/>]
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import { siteOnly, leftOff } from '../../../scripts/site-only.mjs';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..'), DIST = join(ROOT, 'dist');
 const args = process.argv.slice(2), arg = (n) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : undefined; };
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..'), DIST = resolve(arg('dist') ?? join(ROOT, 'dist'));
 const files = [];
 const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f), s = statSync(p); s.isDirectory() ? walk(p) : files.push({ path: relative(DIST, p), bytes: s.size }); } };
 walk(DIST);
@@ -30,12 +31,15 @@ const first = [...new Set([...html.matchAll(/(?:src|href)="\.?\/?([^"]+\.(?:m?js
 const firstLoad = { files: first.length + 1, bytes: first.reduce((a, p) => a + statSync(join(DIST, p)).size, 0) + Buffer.byteLength(html), gzip: first.reduce((a, p) => a + gz(p), 0) + gzipSync(html).length };
 
 const total = files.reduce((a, f) => a + f.bytes, 0);
-const out = { date: new Date().toISOString(), total, devices: total - areas['changelog pictures (site only)'].bytes, files: files.length, areas, firstLoad,
+// (what the devices get: not the site's own files (scripts/site-only.mjs: the changelog's, the audits' and the lore's
+// pictures, the reference sheets); the APK and the Deck package leave out the themes fetched on demand too)
+const sum = (test) => files.filter((f) => !test(f.path)).reduce((a, f) => a + f.bytes, 0);
+const out = { date: new Date().toISOString(), total, devices: sum(siteOnly), apk: sum(leftOff), files: files.length, areas, firstLoad,
   biggest: [...files].sort((a, b) => b.bytes - a.bytes).slice(0, 15) };
 const MB = (b) => `${(b / 2 ** 20).toFixed(2)} MB`;
 const old = arg('against') ? JSON.parse(readFileSync(arg('against'), 'utf8')) : null;
 const d = (now, was) => (was == null ? '' : ` (${now >= was ? '+' : ''}${MB(now - was)})`);
-console.log(`dist/: ${MB(out.total)} in ${out.files} files${d(out.total, old?.total)}; on the devices (no changelog pictures): ${MB(out.devices)}${d(out.devices, old?.devices)}`);
+console.log(`dist/: ${MB(out.total)} in ${out.files} files${d(out.total, old?.total)}; on the devices (not the site's own files): ${MB(out.devices)}${d(out.devices, old?.devices)}; in the APK and the Deck package (not the themes fetched on demand either): ${MB(out.apk)}${d(out.apk, old?.apk)}`);
 for (const [n, a] of Object.entries(areas)) if (a.files) console.log(`  ${n.padEnd(32)} ${MB(a.bytes).padStart(10)}${a.gzip ? `  gzip ${MB(a.gzip)}` : ''}  ${a.files} files${d(a.bytes, old?.areas?.[n]?.bytes)}`);
 console.log(`  first load (index.html and what it asks for): ${MB(firstLoad.bytes)}, gzip ${MB(firstLoad.gzip)}${d(firstLoad.gzip, old?.firstLoad?.gzip)}`);
 console.log('  biggest:'); for (const f of out.biggest) console.log(`    ${MB(f.bytes).padStart(10)}  ${f.path}`);

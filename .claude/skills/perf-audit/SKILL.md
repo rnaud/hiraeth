@@ -30,7 +30,7 @@ node .claude/skills/perf-audit/size.mjs --out <scratch>/size.json [--against <la
 ```
 
 Every report gives these numbers, each against the last report's (this step is not optional):
-- the total, and what goes to the devices (everything but the changelog pictures);
+- the total, what goes to the devices (everything but the site's own files: scripts/site-only.mjs `siteOnly`) and what the APK and the Deck package carry (`leftOff`: not the themes fetched on demand either);
 - each area: code, music, sound, animations and bodies;
 - JS and CSS, gzipped;
 - the **first load**: what `index.html` needs before the title;
