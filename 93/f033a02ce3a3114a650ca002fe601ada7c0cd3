@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_4f930638ca2633 7
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_218f83005c1103 133-134
+docs/systems/lore-page.md
+  s_9ca76055a220ed::t_ec43f0677f3567 32-33
+src/changelog.js
+  s_9ca76055a220ed::t_9768cde158dd2d 41-44
+src/levels/mangrove.js
+  s_9ca76055a220ed::t_a7bb2c48fe6f4e 137,144
+src/lore-page/lore-text.js
+  s_9ca76055a220ed::t_79b3f1605514f2 12,27,70,78,95,102
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_36d874954c5ad6 519
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_7042871b4a13ff 220
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_7d19e7a6f4e6dd 60,82
+src/story/shop-data.js
+  s_9ca76055a220ed::t_3f5807df7d532a 62,95,109,123,137,151,164,205,219,232,339,379
+tests/dialogue-voices.test.js
+  s_9ca76055a220ed::t_b939a8a72c1e4e 92-103
+tests/fragments.test.js
+  s_9ca76055a220ed::t_5b958cf46dbfb7 169-170,196-198
+tests/lore-page.test.js
+  s_6b138bf74b6de1::t_46d228e3445af2 85-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93f033a02ce3a3114a650ca002fe601ada7c0cd3",
+  "prompts": {},
+  "sessions": {
+    "s_6b138bf74b6de1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa317ee239c7daf58",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
