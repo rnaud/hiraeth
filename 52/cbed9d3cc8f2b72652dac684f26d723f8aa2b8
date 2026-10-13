@@ -1,0 +1,29 @@
+docs/systems/temples.md
+  s_61d6bbe60a9d6d::t_961412fc5f94bd 303-305,697-724
+src/temples/desert.js
+  s_61d6bbe60a9d6d::t_2be2dcfa9871ce 181-184,187,390-391
+src/temples/pieces.js
+  s_61d6bbe60a9d6d::t_f50936e56c0731 357-358,636-641
+src/temples/spheres.js
+  s_61d6bbe60a9d6d::t_f793fcec4fce30 252-258,326,328
+tests/temple-playthrough.test.js
+  s_61d6bbe60a9d6d::t_92b07c5ee543cb 1-451
+tests/temples.test.js
+  s_61d6bbe60a9d6d::t_55cf8b189466d5 943,953-954,956-959
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "52cbed9d3cc8f2b72652dac684f26d723f8aa2b8",
+  "prompts": {},
+  "sessions": {
+    "s_61d6bbe60a9d6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a134e2352c869abe6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
