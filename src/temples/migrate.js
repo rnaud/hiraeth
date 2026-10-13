@@ -148,7 +148,7 @@ export const LAYOUTS = {
   underwater: { v: 2, steps: [{ if: ['lit.e5', 'open.dK', 'open.dL', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arH': true } }] },
   moonfoundry: { v: 2, steps: [{ if: ['open.dF', 'boss'], set: { 'unlocked.dF': 1, 'found.kS': true, 'lit.arS': true } }] },
   spheres: { v: 2, steps: [{ if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } }] },
-  // v1.64: the Rose House's bellows' wind gone (issue #245); the Givers' watcher by the far landing's east doorway, its
+  // v1.65: the Rose House's bellows' wind gone (issue #245); the Givers' watcher by the far landing's east doorway, its
   // door shut till it is broken. Past it in the old house (in the Hall of Channels, or anything done there or after):
   // the watcher broken, its door open
   desert: { v: 2, steps: [{ if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } }] },

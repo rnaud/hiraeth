@@ -28,7 +28,7 @@ world (`src/minigames/pirates.js`, below "Pirates between worlds").
   west rim of the Sky Stones' start plateau, `[-52, 40.33, -61]`: there the ground found from high up is not the
   plateau's, so its height is given). Stand at a sign and the button must say "play …" (QA: every sign checked,
   and Quit puts you back by it).
-- **Hosted** (v1.64, issue #248): in a world a sign starts nothing itself. Its host stands beside it (a person of
+- **Hosted** (v1.65, issue #248): in a world a sign starts nothing itself. Its host stands beside it (a person of
   that place, or where nobody could stand the sign itself, read), says in a line or two what the game is in the
   place's own story, and offers it: **Play** or **Not now**. Play does what the sign's button did (the game's page,
   or a trial's start card); below, "The hosts". The Arcade's signs (a developer's plaza) still play at once.
@@ -74,7 +74,7 @@ shapes go too (each wave of Ink tide left them), and its floor warning's own glo
 leave the material count flat (`tests/minigames-waves.test.js`). QA: `renderer.info.memory.geometries` stays flat over three
 Retries in every game.
 
-## The hosts (v1.64, issue #248: `src/story/hosts-data.js`, `src/minigames/kit/hosts.js`)
+## The hosts (v1.65, issue #248: `src/story/hosts-data.js`, `src/minigames/kit/hosts.js`)
 
 A sign in a world asks for its host instead of registering a button: `placeGameMarker` (unless in the Arcade, or
 `host: false`) and the trials' and makers' runs' signs (`makeTrial`'s `host`) call `queueHost({ id, name, at,
@@ -467,7 +467,7 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
 - **The rail** (`railPoint(s, u, v)`): the ship flies at `FLY.speed` (42 m/s) along a long gentle wander down -z
   (slopes under 0.3: `railX`, `railY`); it moves only across it, `u` right and `v` up within a 13 × 7.5 m box,
   steered as a plane is (pushing up dives, as in Star Fox 64 and on the jets, and the hints say so:
-  `pirateHints(pitch)`, `pirateControls(pitch)` the long form). **No start card** (v1.64, issue #224: "we can skip the
+  `pirateHints(pitch)`, `pirateControls(pitch)` the long form). **No start card** (v1.65, issue #224: "we can skip the
   start screen"): the game is `direct` (the runner counts 3, 2, 1 in at once after the take-off, and flashes "On the way
   to …" over it on the way to a world) and its controls are `hints`, short rows in Xbox / PlayStation form drawn small
   at the bottom right while it runs (the runner's `.mg-hints`, through `keyText`, so a handheld's own names show:
@@ -501,7 +501,7 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶): one quick whole turn
   (0.45 s, eased out so it snaps), a short shove aside, shots turned away while it spins. Scores: `POINTS`; a pip
   left at the end is worth 50.
-- **Missiles** (v1.64, issue #224: "add missiles on top of normal lasers"; `FLY.missile`): four a run on their own
+- **Missiles** (v1.65, issue #224: "add missiles on top of normal lasers"; `FLY.missile`): four a run on their own
   button (**LT / L2**, F, the touch ◇), a teal ring gives one back (up to four), a checkpoint fills the rack. A press
   looses one at what lies nearest the reticle in a cone twice the charge's (`findLock(S, cone)`; with nothing there it
   flies straight on): it drops off the ship, its motor lights and it speeds up (55 to 115 m/s) turning after its target,

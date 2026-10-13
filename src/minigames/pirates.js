@@ -959,7 +959,7 @@ export function piratePitch(ctx) {
   // (no start card since issue #224: Settings → Game, "Chime pirates: push up to", shown once beaten)
   const set = ctx.settings?.piratePitch;
   if (set === 'climb' || set === 'dive') return set;
-  const kept = ctx.state.flag(optionKey('pirates', 'pitch'));   // (chosen on the start card, before v1.64)
+  const kept = ctx.state.flag(optionKey('pirates', 'pitch'));   // (chosen on the start card, before v1.65)
   return kept === 'climb' || kept === 'dive' ? kept : own;
 }
 

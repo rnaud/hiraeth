@@ -694,7 +694,7 @@ The count is said every 5 ink.
   mineral basin under the lavender cliffs (src/desert-vistas.js `BASIN`, opposite the fishing sign), its lamp turned
   out over the water: the one deep water the dunes hold.
 
-- **The Givers' watcher** (v1.64, issue #245; `src/temples/pieces.js` `Sentry`, `SENTRY`): a temple foe, not one of
+- **The Givers' watcher** (v1.65, issue #245; `src/temples/pieces.js` `Sentry`, `SENTRY`): a temple foe, not one of
   the roster's archetypes (no hearts, no lock-on, never spawned by `Foes`). A squat bronze bell on a rose-stone foot,
   one amber glass eye under a hood, three vanes down its back, about 2.1 m. It stands on the Rose House's far landing
   by the east doorway and wakes once the Givers' guard is in hand: it turns its head to you, its eye brightens and a

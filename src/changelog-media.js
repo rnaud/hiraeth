@@ -753,6 +753,7 @@ const TELLS263 = 'headless Chrome (muted, High, 1280 × 720, 10:00, clear), the 
 const GUARD267 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Rose House’s cistern: the Keeper driven by hand through the real fight’s poses (src/temples/boss.js poseRig and its own animate), the camera pinned 13 m in front and to its side; before, the procedural body swapped back in on the same branch; 13 October; cwebp -q 72';
 const GUARD237 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5941), in the Aerie’s hall: the generated Elder put in place of the live one for the review and driven by hand (her real poses, the camera pinned 13 m in front and to her side, she looking ahead); before, the prototype as it was on main (1e94ecb8) on the same branch; 13 October; cwebp -q 72';
 // (v1.64, issues #252 #245 #248 #224: a scratch driver for headless Chrome against this branch's Vite (port 5931) and the
+// (v1.65, issues #252 #245 #248 #224: a scratch driver for headless Chrome against this branch's Vite (port 5931) and the
 // tree before it (1e94ecb8, served apart on port 5933), the camera pinned at the same view for both)
 const BATCH13 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931) and the tree before it (1e94ecb8, port 5933), the camera pinned at the same view; 13 October; cwebp -q 72';
 const BATCH13_AFTER = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931); 13 October; cwebp -q 72';
@@ -819,6 +820,8 @@ export const CHANGELOG_MEDIA = {
       { name: 'pirates-start', title: 'The first screen', caption: 'Before, a start card: its rules, its controls, Start; after, the fight under way, its buttons small at the bottom right with the four missiles under them.', from: `${BATCH13}, half a second after the page came up` },
       { name: 'pirates-missile', only: 'after', title: 'A missile', caption: 'A missile chasing a pirate down its smoke trail, the teal diamond on the next it would lock; the hints in a controller’s buttons once one is in use, two missiles left.', from: `${BATCH13_AFTER}, a controller in use` },
     ] },
+  ],
+  '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [
       { name: 'unity-start', title: 'The first screen', caption: 'Before, the preview opened straight into the Desert, the camera inside the ship over the traveller’s head; after, the title: Continue, Saves and Settings.', from: 'adb screencap on the Retroid Pocket Nova, the Unity preview muted (-mute -metrics: the frame readout at the top), build 2066 against this branch’s build (12 October)' },
       { name: 'unity-start-menu', only: 'after', title: 'The Start menu', caption: 'Menu: the sidebar and its page, here the settings, a slider’s value moved with the stick.', from: 'the same device and build' },
