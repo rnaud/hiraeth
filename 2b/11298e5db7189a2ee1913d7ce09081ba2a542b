@@ -1,0 +1,55 @@
+src/main.js
+  s_9ca76055a220ed::t_c5506b551fda34 7-8,156-159,1873-1875,1877
+tests/interior-cull.test.js
+  s_9ca76055a220ed::t_534c6e8d191149 167-184
+src/perf.js
+  s_9ca76055a220ed::t_2c9980cf44da7d 302-303,361-365
+src/static-batch.js
+  s_9ca76055a220ed::t_a1645e67a044c2 239-247,251,273-275,298-305
+  s_9ca76055a220ed::t_2374ec266207c9 430,510-511,517-519
+src/skeleton-update.js
+  s_9ca76055a220ed::t_9a664e9aba51c3 1-59
+scripts/bench/deck-worlds.mjs
+  s_9ca76055a220ed::t_7e6a52ee2873b3 6,23,32-33,185-191
+scripts/bench/web-page.mjs
+  s_9ca76055a220ed::t_a69b4e715958d5 126-160
+engine/scene-matrices.js
+  s_9ca76055a220ed::t_e23267a5374d12 46,85-89,92
+scripts/bench/android-worlds.mjs
+  s_9ca76055a220ed::t_10a5f386319021 33
+engine/mirror.js
+  s_9ca76055a220ed::t_776662a527ed2c 47,467-468
+tests/skeleton-update.test.js
+  s_9ca76055a220ed::t_c1fac8f5914985 1-58
+scripts/bench/viewpoints-worlds.json
+  s_9ca76055a220ed::t_4c515919e1107c 10114-11785
+tests/static-batch.test.js
+  s_9ca76055a220ed::t_30df6287e36012 108,112-117,119-124,126-127,131-148
+tests/scene-matrices.test.js
+  s_9ca76055a220ed::t_bda48bb94048df 115-131
+  s_9ca76055a220ed::t_73cf63180c0703 114
+changelog.md
+  s_9ca76055a220ed::t_af47946f372b88 5-9
+docs/systems/performance.md
+  s_9ca76055a220ed::t_83c4da6d2e4164 2376-2457
+src/changelog-media.js
+  s_9ca76055a220ed::t_d21f1891ff228a 742-756
+src/changelog.js
+  s_9ca76055a220ed::t_823859c1b6caba 11-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2b11298e5db7189a2ee1913d7ce09081ba2a542b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
