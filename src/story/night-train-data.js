@@ -97,7 +97,7 @@ export const PEOPLE = {
         },
         after: {
           say: ['~happy~ Spring, she said. I’ve started counting nights instead of postcards.', '~neutral~ The bell’s there if you want another ride. Ambrose doesn’t mind.'],
-          choices: [{ text: '~neutral~ Goodnight, Edda.', end: true }],
+          choices: [{ text: '~happy~ Count them to spring, then.', end: true }],
         },
       },
     },
@@ -154,7 +154,7 @@ export const PEOPLE = {
         stranger: {
           say: ['~neutral~ (An old woman sits cross-legged on the last roof, a stub of chalk in her hand, watching the rails run out behind.)',
             '~happy~ You found the best seat. Sit, if you like. Hold on.'],
-          choices: [{ text: '~curious~ The chalk mark?', goto: 'chalk' }, { text: '~neutral~ Goodnight.', end: true }],
+          choices: [{ text: '~curious~ The chalk mark?', goto: 'chalk' }, { text: '~playful~ (sit, and hold on)', end: true }],
         },
         hello: {
           say: ['~curious~ A visitor, up here? Nobody climbs up but me. Ambrose thinks I’ll fall off one of these nights.',
@@ -174,12 +174,12 @@ export const PEOPLE = {
           say: ['~neutral~ It was here the night I boarded. Old chalk, nearly gone. I drew it over so it wouldn’t be.',
             '~curious~ I don’t know who drew it first. Somebody who rode up here, and wanted to be seen from the sky, I think.',
             '~playful~ So I keep it. A train should have one thing nobody can explain.'],
-          choices: [{ text: '~neutral~ Goodnight, Solange.', end: true }],
+          choices: [{ text: '~neutral~ Then keep it.', end: true }],
         },
         after: {
           say: [{ if: { has: 'reply' }, text: '~neutral~ Go on, go on. Down the ladder, and off at the halt. She’ll be waiting by the lamp. She always is, I expect.' },
             { if: { not: { has: 'reply' } }, text: '~happy~ Spring. I said spring. I’ll have to get off this thing and remember how stairs work.' }],
-          choices: [{ text: '~neutral~ Goodnight.', end: true }],
+          choices: [{ text: '~happy~ (wave, and start for the ladder)', end: true }],
         },
       },
     },

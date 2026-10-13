@@ -197,9 +197,9 @@ export const PEOPLE = {
         thumb: {
           say: ["~solemn~ {glyph} The Maker’s Thumb. They say its builder pressed three fingers into soft iron and drew an arc. Every gauge carries it.", "~curious~ Wen says your ship has that mark. Was your ship built by the same hands?"],
           do: { set: { 'clue.buried.mark': true } },
-          choices: [{ text: '~neutral~ No. Something hit it.', do: { set: { 'buried.hask.said': 'hit' } }, goto: 'hit' }, { text: '~neutral~ I don’t know.', do: { set: { 'buried.hask.said': 'unsure' } }, goto: 'hit' }],
+          choices: [{ text: '~neutral~ No. Something brushed it.', do: { set: { 'buried.hask.said': 'hit' } }, goto: 'hit' }, { text: '~neutral~ I don’t know.', do: { set: { 'buried.hask.said': 'unsure' } }, goto: 'hit' }],
         },
-        hit: { say: [{ if: { flag: 'buried.hask.said', is: 'unsure' }, text: '~tired~ Nor do I. Wen says it’s burned on, where the light brushed you.' }, { if: { not: { flag: 'buried.hask.said', is: 'unsure' } }, text: '~tired~ Hit it, yes. Wen says it’s burned on, where the light brushed you.' }, "~tired~ Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
+        hit: { say: [{ if: { flag: 'buried.hask.said', is: 'unsure' }, text: '~tired~ Nor do I. Wen says it’s burned on, where the light brushed you.' }, { if: { not: { flag: 'buried.hask.said', is: 'unsure' } }, text: '~tired~ Brushed it, yes. Wen says it’s burned on, where the light went by.' }, "~tired~ Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         felt: {
           say: [{ if: { flag: 'buried.wheel.turned' }, text: "~happy~ It turned. I felt the bench shake. My fifty-third year. And the sky stayed empty." }, { if: { not: { flag: 'buried.wheel.turned' } }, text: "~happy~ The Wick is burning. Go *stand before the wheel*. You’ve earned a view of what you helped wake." }],
           choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~happy~ I’ll go and watch it.', if: { not: { flag: 'buried.wheel.turned' } }, end: true }, { text: '~happy~ Fifty-three, then.', if: { flag: 'buried.wheel.turned' }, end: true }],

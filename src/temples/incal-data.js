@@ -33,12 +33,12 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ I’ll go up and look.', do: { start: 'temple.incal' }, goto: 'go' },
             { text: '~curious~ What walks up there?', goto: 'walks' },
-            { text: '~neutral~ Good night, Vell.', end: true },
+            { text: '~whisper~ (listen to the pacing)', end: true },
           ],
         },
         walks: {
           say: ["~solemn~ A mechanical warden. Three legs, one lamp for an eye. Built to keep the shaft’s air moving.", "~scared~ Its eye used to be gold. Now I see red through the window slits."],
-          choices: [{ text: '~neutral~ I’ll go up and look.', do: { start: 'temple.incal' }, goto: 'go' }, { text: '~neutral~ Good night, Vell.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go up and look.', do: { start: 'temple.incal' }, goto: 'go' }, { text: '~solemn~ Keep the rim lit, Vell.', end: true }],
         },
         go: {
           say: ["~neutral~ *The door faces your ship.* It’s open. Going in has never been the problem; wanting to has.", "~curious~ My grandmother said the tower ran on its own breath: *little wind-wheels in the walls*, turning its floors. Splash one, she said, and watch it go. Until it stops.", "~playful~ There are supposed to be old jets inside. People below could use those. Stairs are an unfair way to distribute sky."],

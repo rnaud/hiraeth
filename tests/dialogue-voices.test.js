@@ -72,7 +72,8 @@ test('nobody opens a conversation on their own name (the panel shows it)', () =>
 });
 
 test('the traveller never leaves on a bare goodbye: his last word answers what was said', () => {
-  const BARE = /^(good)?bye\b|^see you\b|^farewell\b|^walk on\b/i;
+  // ("Good night" too: six of them slipped past the first version of this list, the dialogue review v1.66)
+  const BARE = /^(good)?bye\b|^good ?night\b|^see you\b|^farewell\b|^walk on\b/i;
   const bad = [];
   let n = 0;
   for (const [where, p] of ALL) {

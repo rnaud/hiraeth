@@ -180,10 +180,10 @@ export const PEOPLE = {
           say: ["~solemn~ You saw the mark under the flowers. Tell me."],
           choices: [
             { text: '~neutral~ There’s a scorch on their hull: three dots over an arc.', goto: 'mark' },
-            { text: '~solemn~ My ship has the same mark. Something struck it, on the way here.', goto: 'same' },
+            { text: '~solemn~ My ship has the same mark. The light brushed it, on the way here.', goto: 'same' },
           ],
         },
-        mark: { say: ["~sad~ Talo showed it to us that first spring. Then he asked us to leave the ship for the garden. We did."], choices: [{ text: '~solemn~ My ship has the same mark. Something struck it, on the way here.', goto: 'same' }] },
+        mark: { say: ["~sad~ Talo showed it to us that first spring. Then he asked us to leave the ship for the garden. We did."], choices: [{ text: '~solemn~ My ship has the same mark. The light brushed it, on the way here.', goto: 'same' }] },
         same: {
           say: ['~surprised~ …', '~whisper~ Then it wasn’t only theirs.', "~solemn~ Talo called it *the Singer*. A light that sang, turned, then struck their ship. They left to find out why."],
           do: { set: { 'clue.edena.struck': true } },
@@ -538,7 +538,7 @@ export const THINGS = {
       },
       mine: {
         speaker: 'player',
-        say: ["~surprised~ The mark on my ship. Even the burn is the same.", "~scared~ It hit them too. Long before it found me."],
+        say: ["~surprised~ The mark on my ship. Even the burn is the same.", "~scared~ It brought them down too. Long before it found me."],
         do: { set: { 'edena.scar.seen': true } },
         choices: [{ text: '~solemn~ (let the flowers close)', end: true }],
       },
