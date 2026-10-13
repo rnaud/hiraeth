@@ -11,6 +11,8 @@
 //     tip, subnasale          [x, y, z] on the centre line: the nose's furthest point, the corner under it
 //     wings                   { left, right: x of the groove round each wing, top, bottom: y } (bottom: the
 //                             lowest the nose's underside reaches, as seen from in front)
+//     noseSide                { left, right: [[x, y]…] } each side's edge between the nose's front and its side wall,
+//                             every 0.005 from the bridge (y 0.53) down to the wings (#276)
 //     mouth                   { stomion: y on the centre line, crease: [[x, y, depth]…] the valley between the
 //                             lips column by column, corners: [x, x] where that valley fades }
 //     lowerLip                [[x, y]…] the lower lip's lower edge (its normal turned furthest down)
@@ -20,6 +22,8 @@ import * as T from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 
 const R = 0.001;   // the sampling step (source units: 0.26 mm)
+/** How far round the nose's side has turned (its normal's x) where its front ends (noseSide). */
+export const NOSE_EDGE = 0.55;
 
 export function faceLandmarks(geometry) {
   const bvh = new MeshBVH(geometry), pos = geometry.attributes.position, nrm = geometry.attributes.normal;
@@ -87,11 +91,22 @@ export function faceLandmarks(geometry) {
     if (Math.abs(x - ridge) > 0.03) foot = Math.min(foot, y);
   }
   const wings = { left: best.left[0], right: best.right[0], y: best.y, top: Math.max(...strong.map((w) => w.y)), bottom, foot };
+  // the nose's sides (#276): on each side of the centre line, row by row from the bridge down to the wings, where its
+  // narrow front turns into the steep side wall (the normal's x past NOSE_EDGE, a little smoothed over the facets).
+  // That edge is where the model's own light and shadow part on the nose; the portrait's side line is drawn on it.
+  const nxs = (x, y) => (nx(x, y - 0.002) + nx(x, y) + nx(x, y + 0.002)) / 3;
+  const noseSide = { left: [], right: [] };
+  for (let y = 0.53; y >= wings.top + 0.005 - 1e-9; y -= 0.005) for (const [s, out] of [[-1, noseSide.left], [1, noseSide.right]]) {
+    for (let ax = 0.003; ax <= 0.04; ax += R / 2) {
+      const a = s * nxs(ridge + s * ax, y);
+      if (a >= NOSE_EDGE) { const b = s * nxs(ridge + s * (ax - R / 2), y), t = (NOSE_EDGE - b) / (a - b || 1); out.push([ridge + s * (ax - R / 2 + (R / 2) * t), y]); break; }
+    }
+  }
   // the lower lip's lower edge, and the hollow under it
   const lowerLip = [-0.04, -0.02, 0, 0.02, 0.04].map((dx) => { let m = [0, 9]; for (let y = stomion - 0.015; y >= stomion - 0.07; y -= R) { const v = ny(ridge + dx, y); if (v < m[1]) m = [y, v]; } return [ridge + dx, m[0]]; });
   const fold = [ridge, pick(0.19, Math.min(...lowerLip.map((p) => p[1])) - 0.002, false)[0]];
   return {
-    ridge, tip: [ridge, tip[0], tip[1]], subnasale: [ridge, sub[0], sub[1]], wings,
+    ridge, tip: [ridge, tip[0], tip[1]], subnasale: [ridge, sub[0], sub[1]], wings, noseSide,
     mouth: { stomion, crease, corners }, lowerLip, fold, surface,
   };
 }

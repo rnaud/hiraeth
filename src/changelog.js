@@ -19,6 +19,9 @@ export const CHANGELOG = [
     // fewer, the overwritten targets not loaded (docs/systems/performance.md "Unity on the Retroid: the GPU's frame")
     'The Unity preview on the Retroid runs faster where the picture was heavy: 45 frames a second where the Desert starts (40 before), 60 on the dunes (49), 41 at the City-Shaft’s start (37) and 28 over its wide view (23), and 41 to 60 in the Signal Market (38 to 54), with the same picture. It no longer draws the many small things out of view, and works out each surface’s marks only where they show.',
     'The Elder of Vael now has her new feathered body in the Aerie: natural wings, a centred neck, a closed beak at rest, small head movements as she walks and legs that tuck up in flight. She returns to the rooftop perch after you calm her, and the Arena uses the same bird.',
+    // the traveller's nose side line on the mesh's own edge between the nose's front and its side wall (issue #276:
+    // face-landmarks.mjs noseSide, bake-face-ink.mjs), the bridge's hatching with it, the line gone in profile (portrait-head.js side)
+    'The line down the side of the traveller’s nose now follows his nose: it lies where the front of his nose turns into its shaded side, so from three-quarters and the side it runs along the edge of the shadow instead of down the middle of it, and a few strokes of hatching beside it shade the bridge as in his portrait. Seen right from the side it gives way to the nose’s outline.',
     // the design audits re-run on the updated skills (issue #226): docs/audits/quest-v1.66.md, dialogue-v1.66.md,
     // level-design-v1.66.md, temple-design-v1.66.md, cinematics-v1.66.md
     // the hosts of the trials and makers' runs, told what the run lacks (src/minigames/kit/hosts.js hostTalk `lacks`)

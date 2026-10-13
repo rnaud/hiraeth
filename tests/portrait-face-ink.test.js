@@ -89,7 +89,49 @@ test('the nose base is on the nose: wings on their grooves, nostrils above its l
   // (unmoved, they sat 5.4 mm above the outline, on the nose's front)
   assert.ok(nostrils.length > 150 && (cy - L.wings.foot) * MM > 1 && (cy - L.wings.foot) * MM < 4, `nostrils ${((cy - L.wings.foot) * MM).toFixed(2)} mm above the outline`);
   assert.ok(Math.abs(cx - L.ridge) * MM < 1, 'the nostrils either side of the nose’s own centre line');
-  assert.ok(!red.some(([x, y]) => Math.abs(x - L.ridge) < 0.012 && y > L.wings.foot + 0.012 && y < L.tip[1] + 0.02), 'nothing on the tip of the nose');
+  // (the tip's front, inside the edges its side line ends on since #276: 0.0115–0.016 from the centre line there)
+  assert.ok(!red.some(([x, y]) => Math.abs(x - L.ridge) < 0.01 && y > L.wings.foot + 0.012 && y < L.tip[1] + 0.02), 'nothing on the tip of the nose');
+});
+
+/** The nose's side line on the mesh (#276): row by row, the middle of its red ink between the nose's front and the
+ *  bridge's hatching (0.006–0.021 left of the centre line; v1.64's line, at 0.025, measured from the same band's edge). */
+function sideLine(points, ridge) {
+  const rows = new Map();
+  for (const [x, y] of points) if (y > 0.415 && y < 0.505 && x - ridge > -0.021 && x - ridge < -0.006) { const k = Math.round(y / 0.005); (rows.get(k) ?? rows.set(k, []).get(k)).push(x); }
+  return [...rows].filter(([, xs]) => xs.length >= 2).map(([k, xs]) => [xs.reduce((a, b) => a + b) / xs.length, k * 0.005]);
+}
+const edgeX = (y) => { const e = L.noseSide.left, i = e.findIndex((q) => q[1] <= y + 1e-9); const a = e[i - 1] ?? e[0], b = e[i] ?? e.at(-1); return a[1] === b[1] ? a[0] : a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]); };
+
+test('the nose’s side line lies on the edge of the nose’s front, where the model’s own shadow begins, at every yaw', () => {
+  const rows = sideLine(red, L.ridge);
+  assert.ok(rows.length >= 15, `${rows.length} rows of side line`);
+  assert.ok(L.noseSide.left.length > 20 && L.noseSide.right.length > 20, 'both sides of the nose measured');
+  // in source-front x (as the mask is laid on): v1.64's line sat 4–5 mm out on the side wall
+  const dx = rows.map(([x, y]) => (x - edgeX(y)) * MM), worst = Math.max(...dx.map(Math.abs));
+  if (process.env.FACE_DIAG) console.log(rows.map(([x, y], i) => `${y.toFixed(3)}:${dx[i].toFixed(2)}`).join(' '));
+  assert.ok(worst < 1.0, `the side line ${dx.map((v) => v.toFixed(1)).join(' ')} mm off the nose's edge`);
+  // and on the head turned round to its side (orthographic, about the head's up axis): the line and the edge where
+  // the front of the nose turns into its side, both on the frontmost skin, a fraction of a millimetre apart on screen
+  for (const deg of [0, -20, -45, -60, -75]) {
+    const a = (deg * Math.PI) / 180, screen = (x, y) => { const s = L.surface(x, y); return [x * Math.cos(a) - s.z * Math.sin(a), y]; };
+    const off = rows.map(([x, y]) => Math.abs(screen(x, y)[0] - screen(edgeX(y), y)[0]) * MM);
+    const mean = off.reduce((s, v) => s + v, 0) / off.length;
+    assert.ok(mean < 0.6 && Math.max(...off) < 1.0, `at ${deg}°: the line ${mean.toFixed(2)} mm (worst ${Math.max(...off).toFixed(2)}) from the nose's edge on screen`);
+  }
+  // the skin under the line has turned a little past the front's edge, not as far round as the side wall (≈ −0.8)
+  const nx = rows.map(([x, y]) => L.surface(x, y).normal.x), mean = nx.reduce((s, v) => s + v, 0) / nx.length;
+  assert.ok(mean > -0.72 && mean < -0.4, `the normal's x under the line: ${mean.toFixed(2)}`);
+});
+
+test('the nose’s side line gives way in profile on its own side, where it would double the outline', () => {
+  // (uHeadView.z: the view's z in the head's frame; the line's side is −x, his right)
+  const gone = (deg) => { const z = Math.cos((deg * Math.PI) / 180), x = Math.sin((deg * Math.PI) / 180);
+    const t = Math.min(1, Math.max(0, (z - FI.side.front[0]) / (FI.side.front[1] - FI.side.front[0]))), s = Math.min(1, Math.max(0, -x / 0.3));
+    return (1 - t * t * (3 - 2 * t)) * s * s * (3 - 2 * s); };
+  for (const deg of [0, -20, -45, -60]) assert.equal(gone(deg), 0, `kept at ${deg}°`);
+  assert.ok(gone(-90) > 0.99, 'gone in profile'); assert.equal(gone(90), 0, 'the far side: hidden by the nose itself, not faded');
+  const { head } = createTravellerV1(buildCharacter(), { ...assets, faceInk: new T.DataTexture(new Uint8Array(4), 1, 1, T.RGFormat) });
+  assert.match(head.material.fragmentShader, /phMajor=[^;]*\(1\.0-phSideLine\)/);
 });
 
 test('under the mouth: the lower lip’s stroke on its lower edge, the chin’s mark just under the hollow', () => {

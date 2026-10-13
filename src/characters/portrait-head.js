@@ -27,7 +27,12 @@ export const PORTRAIT_FACE_INK = Object.freeze({
  weight:{major:1.6, minor:1.35, jaw:1.9, hatch:1.4},
  steep:[[1.15,2.2],.82],
  nostrils:{ridge:.01, x:.047, y:.373, size:[.013,.012], near:[.3,.55], front:[.05,.2]},
+ side:{x:[.005,.024], y:[.405,.545], front:[.16,.34]},
 });
+// side (#276): the nose's side line lies on the mesh's own edge between the nose's narrow front and its side wall
+// (face-landmarks.mjs noseSide, x from the nostrils' ridge, y its height); seen from nearly in profile that front is
+// edge-on and the line runs a millimetre inside the nose's outline, a doubled contour, so on its own side it gives
+// way as the view's z in the head's frame falls through `front` (about 70 to 80 degrees round).
 const smooth=(a,b,x)=>{const t=T.MathUtils.clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
 const patch=(x,y,w,h)=>1-smooth(.55,1,Math.hypot(x/w,y/h));
 export function makePortraitHead(asset,body){
@@ -132,7 +137,11 @@ export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  vec2 phNo=vec2(abs(ph.x-${FI.nostrils.ridge.toFixed(3)})-${FI.nostrils.x.toFixed(3)},ph.y-${FI.nostrils.y.toFixed(3)})/vec2(${FI.nostrils.size.map((v)=>v.toFixed(3)).join(',')});
  float phNearSide=uHeadView.x*sign(ph.x-${FI.nostrils.ridge.toFixed(3)});
  float phNostril=(1.0-smoothstep(.8,1.0,length(phNo)))*max(smoothstep(${FI.nostrils.near.map((v)=>v.toFixed(2)).join(',')},phNearSide),1.0-smoothstep(${FI.nostrils.front.map((v)=>v.toFixed(2)).join(',')},uHeadView.z));
- float phMajor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.r)*fiOn*(1.0-phNostril)*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
+ // (the nose's side line, on the edge of the nose's front: seen nearly in profile from its side, it would double the outline)
+ float phSideX=ph.x-${FI.nostrils.ridge.toFixed(3)};
+ float phSideLine=step(${(-FI.side.x[1]).toFixed(3)},phSideX)*step(phSideX,${(-FI.side.x[0]).toFixed(3)})*step(${FI.side.y[0].toFixed(3)},ph.y)*step(ph.y,${FI.side.y[1].toFixed(3)})
+   *(1.0-smoothstep(${FI.side.front.map((v)=>v.toFixed(2)).join(',')},uHeadView.z))*smoothstep(.0,.3,-uHeadView.x);
+ float phMajor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.r)*fiOn*(1.0-phNostril)*(1.0-phSideLine)*smoothstep(${FI.fade.major[0].toFixed(1)},${FI.fade.major[1].toFixed(1)},phFaceH);
  float phMinor=smoothstep(fiThr-fiAa,fiThr+fiAa,fiTex.g)*fiOn*smoothstep(${FI.fade.minor[0].toFixed(1)},${FI.fade.minor[1].toFixed(1)},phFaceH);
  // The jaw: where the rest normal turns under the chin (the crease, at any angle), near the jaw's
  // measured curve, on the skull's side of the step back to the throat (the throat sits well behind

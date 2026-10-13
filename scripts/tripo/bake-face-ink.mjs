@@ -90,6 +90,9 @@ for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
   const major = (y > 0.29 && y < 0.325) || (y > 0.36 && y < 0.6 && Math.abs(x) < 0.07);
   // the nose's side line above its wings, a lighter stroke than the reference's darkest marks (it read heavy)
   if (major && y > 0.41) ink *= 0.72;
+  // the bridge's hatching beside it, as dark as the portrait draws it (#276): on the nose's side wall, seen from
+  // three-quarters or the side, these are the side view's few strokes behind the bridge
+  if (major && x > -0.052 && x < -0.03 && y > 0.443 && y < 0.492) ink = Math.min(1, ink * 1.8);
   // the nostrils, a little fuller than drawn: on the mesh they sit on the nose's underside, seen slantwise from in
   // front, and a slantwise sample of a thin mark thins it further (#266)
   if (major && Math.abs(Math.abs(x) - 0.03) < 0.017 && Math.abs(y - 0.383) < 0.009) ink = Math.min(1, ink * 1.6);
@@ -124,16 +127,35 @@ const PORTRAIT = {
 const mouthAt = (x) => { const i = Math.round(((x - X0) / (X1 - X0)) * W - 0.5); let s = 0, n = 0; for (let j = 0; j < H; j++) { const [, y] = point(i, j); if (y > 0.29 && y < 0.325 && P[0][j * W + i] > 0.5) { s += y; n++; } } return n ? s / n : null; };
 const pairs = [];   // [mesh x, mesh y, portrait x, portrait y]
 const same = (x, y) => pairs.push([x, y, x, y]);
-// (what stays: the eyes and brows, the cheeks and their freckles, the bridge's ticks, the jaw, the forehead)
-for (const [x, y] of [[-0.118, 0.522], [0.125, 0.522], [-0.12, 0.59], [0.12, 0.59], [0, 0.6], [-0.035, 0.475], [-0.17, 0.44], [0.17, 0.44],
+// (what stays: the eyes and brows, the cheeks and their freckles, the jaw, the forehead)
+for (const [x, y] of [[-0.118, 0.522], [0.125, 0.522], [-0.12, 0.59], [0.12, 0.59], [0, 0.6], [-0.17, 0.44], [0.17, 0.44],
   [-0.15, 0.4], [0.15, 0.38], [-0.16, 0.33], [0.16, 0.33], [-0.13, 0.26], [0.13, 0.26], [-0.1, 0.2], [0.1, 0.2], [0, 0.17], [-0.2, 0.3], [0.2, 0.3]]) same(x, y);
 const W8 = M.wings, foot = W8.foot + 0.003;   // (the wings' feet on the nose's lower outline under them, the nostrils a little above)
 pairs.push([W8.left, W8.y, ...PORTRAIT.wing.left], [W8.right, W8.y, ...PORTRAIT.wing.right],
   [W8.left + 0.006, foot, ...PORTRAIT.wing.footL], [W8.right - 0.007, foot, ...PORTRAIT.wing.footR],
   [W8.left + 0.004, W8.top + 0.006, ...PORTRAIT.wing.topL], [W8.right - 0.004, W8.top + 0.006, ...PORTRAIT.wing.topR],
   [M.ridge, foot + 0.006, ...PORTRAIT.nostrils]);
-// the side line: its top at the bridge (by the nose's centre line, as far left of it as in the portrait), its foot by the left wing's top
-pairs.push([M.ridge + PORTRAIT.side[0][0] - 0.004, PORTRAIT.side[0][1], ...PORTRAIT.side[0]], [M.ridge + PORTRAIT.side[1][0] - 0.004, W8.top + 0.01, ...PORTRAIT.side[1]]);
+// The side line, row by row, on the edge where the nose's front turns into its side wall (#276), the model's own
+// parting of light and shadow on the nose; the bridge's ticks beside it moved with it, on the side wall. Placed as
+// far left of the centre line as the portrait draws it (v1.64), it lay 4–5 mm out on the side wall, a steep slope
+// the front projection foreshortens: right from in front, but from three-quarters and the side a line down the
+// middle of the shadowed side, well behind the edge where the model's shadow begins.
+// (both a little smoothed: the portrait's line a straight fit through its rows, the edge over 0.015 of height,
+// so the facets of the mesh do not put kinks in the pen line)
+const rows = [];
+for (let y = PORTRAIT.side[0][1]; y >= PORTRAIT.side[1][1] - 1e-9; y -= 0.0025) {
+  const j = Math.round(((Y1 - y) / (Y1 - Y0)) * H - 0.5); let s = 0, n = 0;
+  for (let i = 0; i < W; i++) { const [x] = point(i, j), v = P[0][j * W + i]; if (x > -0.028 && x < -0.012 && v > 0.3) { s += x * v; n += v; } }
+  if (n) rows.push([y, s / n]);
+}
+const my = rows.reduce((s, r) => s + r[0], 0) / rows.length, mx = rows.reduce((s, r) => s + r[1], 0) / rows.length;
+const slope = rows.reduce((s, r) => s + (r[0] - my) * (r[1] - mx), 0) / rows.reduce((s, r) => s + (r[0] - my) ** 2, 0);
+const sideAt = (y) => mx + slope * (y - my);
+const edgeRaw = (y) => { const e = M.noseSide.left, i = e.findIndex((q) => q[1] <= y + 1e-9); if (i <= 0) return e[Math.max(0, i)][0]; const a = e[i - 1], b = e[i]; return a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]); };
+const edgeAt = (y) => (edgeRaw(y + 0.0075) + edgeRaw(y) + edgeRaw(y - 0.0075)) / 3;
+const PORTRAIT_TICKS = [[-0.04, 0.48], [-0.045, 0.462]];   // (the bridge's hatching, left of the line)
+for (const y of [0.505, 0.475, 0.445, 0.415]) pairs.push([edgeAt(y), y, sideAt(y), y]);
+for (const [tx, ty] of PORTRAIT_TICKS) pairs.push([tx + edgeAt(ty) - sideAt(ty), ty, tx, ty]);
 // the mouth, column by column: the portrait's corners on the mesh's, its line on the valley between the lips
 const [c0, c1] = M.mouth.corners, [p0, p1] = PORTRAIT.mouth, creaseAt = (x) => {
   const c = M.mouth.crease, i = c.findIndex((q) => q[0] >= x);

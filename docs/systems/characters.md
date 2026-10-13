@@ -1367,6 +1367,23 @@ and the continuous brows stay as v1 had them; no new references were made.
   0.8 mm of its edge. In rest space they ride the shape keys: on the morphed face of talking,
   happy, sad and angry the mouth line stays within 0.4 mm of the parting on average (1.4 at
   worst, talking).
+- **The nose's side line on the nose's edge (v1.67, issue #276).** v1.64 placed the side line as
+  far left of the nose's centre line as the portrait draws it (0.025 units, 6.6 mm). On this mesh
+  the nose's front is narrow (its normal turns past x −0.55 only 3.4–4 mm out) and its side wall
+  steep (normal x about −0.8), so the line lay 4–5 mm out on the side wall: foreshortened from in
+  front it looked right, but from three-quarters and the side it ran down the middle of the
+  shaded side, well behind the edge where the model's own toon shadow begins, and in profile
+  down the cheek behind the bridge. `face-landmarks.mjs` now measures `noseSide`, each side's
+  edge between the front and the side wall row by row (the normal's x past `NOSE_EDGE`, 0.55,
+  smoothed over three rows), and the bake moves the side line onto it (four pairs, the
+  portrait's line a straight fit, the edge smoothed over 0.015 so the facets put no kinks in it),
+  the bridge's two hatching ticks moved with it onto the side wall and baked 1.8 times as dark,
+  as the portrait has them: seen from the side they are the side view's strokes behind the
+  bridge. In profile the edge is a millimetre inside the nose's outline and the line would
+  double it, so on its own side it gives way as the view's z in the head's frame falls through
+  0.34–0.16 (about 70–80° round: `PORTRAIT_FACE_INK.side`). Now the line is within 0.3 mm of the
+  edge row by row, and within 0.6 mm of it on screen at every yaw to 75°
+  (`tests/portrait-face-ink.test.js`).
 - **Seen from the side.** Laid on from in front, a line on skin the view sees more squarely
   than the front does (the wings' grooves from the side) comes out wider, so the threshold
   rises with that ratio (`steep`: the view's dot with the normal over the rest normal's z, 1.15
