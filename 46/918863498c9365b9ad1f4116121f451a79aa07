@@ -1,0 +1,75 @@
+changelog.md
+  s_9ca76055a220ed::t_4c1a58dc53aeef 5-9
+docs/systems/audio.md
+  s_9ca76055a220ed::t_e5f6aaeeca6b0f 34-41
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_38a58278bdcb7a 199-205
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_509ac365512911 129
+docs/systems/temples.md
+  s_9ca76055a220ed::t_021ee5c723644b 440-460
+docs/systems/ui.md
+  s_9ca76055a220ed::t_806a3dad5ccf30 674-685
+engine/game.js
+  s_9ca76055a220ed::t_4234492f610e70 66,435-438
+index.html
+  s_9ca76055a220ed::t_c30228984bf03a 111-128,530
+src/audio.js
+  s_9ca76055a220ed::t_548f5181cbad00 187-188,1393-1429
+src/boxes/light.js
+  s_9ca76055a220ed::t_b790d2c3c7f544 112,119-120,122,124
+src/boxes/model.js
+  s_9ca76055a220ed::t_7a90f30866f763 24,76-77
+src/changelog-media.js
+  s_9ca76055a220ed::t_b2a61c8fee3c77 773-774,776-784
+src/changelog.js
+  s_9ca76055a220ed::t_fc45fe35ae475b 11-19
+src/hud.js
+  s_9ca76055a220ed::t_6db8441774b85e 190-205
+src/main.js
+  s_9ca76055a220ed::t_25553a3f4bcd8d 21,548-571,2334
+src/platform.js
+  s_9ca76055a220ed::t_3e6d43adfb79ca 55,61
+src/temples/buried.js
+  s_9ca76055a220ed::t_6f2fa8fbe36126 331
+src/temples/edena.js
+  s_9ca76055a220ed::t_5ebfa8598afbf4 355
+src/temples/pieces.js
+  s_9ca76055a220ed::t_6232e6ef073999 16-17,221-222,2649-2668,2671-2672,2676,2678,2681,2683-2692,2696,2698-2701,2706-2709,2711-2712,2714-2720,2724-2739,2741,2747-2790
+src/temples/runtime.js
+  s_9ca76055a220ed::t_5582b45c4ccc88 134-142
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_6a75e4a28dc245 185
+tests/key-chests.test.js
+  s_9ca76055a220ed::t_710e4e0f7c91e1 1-194
+tests/temples.test.js
+  s_9ca76055a220ed::t_c0c1f83310c5b6 52-57,1157,1173,1468,1767,1935,1963,2109,2286,2487,2629,2853,2896,3041,3091,3340,3374,3471,3583,3590,3612,3748,3961,3978,4163,4379,4399
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_d7901524e0a792 27,44,68-69,147,207-219
+tests/playthrough-agent.js
+  s_207cde1711728e::t_7195624e71e645 655,658-660
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "46918863498c9365b9ad1f4116121f451a79aa07",
+  "prompts": {},
+  "sessions": {
+    "s_207cde1711728e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a49cda16d82d58d02",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
