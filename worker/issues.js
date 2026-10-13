@@ -12,7 +12,7 @@ const SESSION_SECONDS = 400 * 24 * 60 * 60;
 const encoder = new TextEncoder();
 const API = `https://api.github.com/repos/${REPOSITORY}/issues`;
 /** The issue's last line, by the page the note came from (a POST's `source`; anything else is the notebook's). */
-export const SOURCES = { notebook: 'Added from the Hiraeth notebook.', lore: 'Added from the Hiraeth lore page.' };
+export const SOURCES = { notebook: 'Added from the Hiraeth notebook.', lore: 'Added from the Hiraeth lore page.', music: 'Added from the Hiraeth music page.' };
 
 function json(data, status = 200, headers = {}) {
   return Response.json(data, { status, headers: {

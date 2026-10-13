@@ -33,6 +33,8 @@ export const BUILD_INPUT = {
   // the lore page (src/lore-page/: the story, the traveller, the worlds, temples, guardians and gadgets from the game's
   // data, scripts/lore-data.mjs; a Note on every part; its pictures, public/lore-pictures/, are the site's alone)
   lore: fileURLToPath(new URL('./lore.html', import.meta.url)),
+  // the music page (src/music-page/: every song, recorded and procedural, and every sound effect, each with a Note)
+  music: fileURLToPath(new URL('./music.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**

@@ -52,7 +52,8 @@ const GROUND = { bazaar: 'stone', desert: 'sand', incal: 'stone', arzach: 'sand'
 export function footSurface(levelId, footing = 'ground') {
   return footing === 'built' ? 'stone' : GROUND[levelId] ?? 'sand';
 }
-const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', arena: 'wind', gadgetyard: 'wind', shadows: 'wind', arcade: 'wind', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city', overnighttrain: 'rails' };
+/** Each world's ambience bed (ambienceTick; the music page plays a score with it). */
+export const AMBIENCE = { bazaar: 'city', desert: 'wind', incal: 'city', arzach: 'highwind', garage: 'machine', edena: 'birds', perdide: 'swamp', arzach2: 'highwind', buried: 'machine', spheres: 'birds', perdide2: 'swamp', atelier: 'paper', arena: 'wind', gadgetyard: 'wind', shadows: 'wind', arcade: 'wind', home: 'birds', mangrove: 'swamp', waterfall: 'falls', saltharbour: 'wind', antennas: 'signals', underwater: 'city', eclipse: 'city', fallenring: 'birds', moonfoundry: 'machine', underside: 'highwind', spacecity: 'city', overnighttrain: 'rails' };
 // the instruments audio.js plays itself (the rest are src/score-voices.js's)
 export const OWN_KINDS = new Set(['duduk', 'reed', 'flute', 'strings', 'synth', 'bell', 'marimba', 'oud', 'ney', 'chant', 'celesta', 'kalimba']);
 

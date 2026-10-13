@@ -44,11 +44,14 @@ export async function signedIn(fetcher) {
   try { return (await call('session', {}, fetcher)).authenticated === true; } catch { return false; }
 }
 
-/** File a note about `ref` ({ label, anchor }): the issue the Worker made ({ number, url, title }). */
-export async function fileNote(comment, ref, fetcher) {
+/**
+ * File a note about `ref` ({ label, anchor }): the issue the Worker made ({ number, url, title }). `request`: what the
+ * Worker gets for it (another page's own: the music page's, src/music-page/notes.js).
+ */
+export async function fileNote(comment, ref, fetcher, request = noteRequest) {
   const text = String(comment ?? '').trim();
   if (!text) throw new Error('Write a line first.');
-  const body = noteRequest(text, ref);
+  const body = request(text, ref);
   if (body.text.length > MAX) throw new Error(`Please keep a note under ${MAX - (body.text.length - text.length)} characters.`);
   const { issue } = await call('issues', { method: 'POST', body: JSON.stringify(body) }, fetcher);
   return issue;

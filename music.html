@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7ecd2">
+<title>Hiraeth · The music and the sounds</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<style>
+  /* The music page (src/music-page/, docs/systems/audio.md "The music page"): every song and sound, the game's ink and paper */
+  :root { --paper: #f7ecd2; --card: #fbf4e2; --ink: #2b211f; --soft: #6d5f57; --rule: #d8c9a8; --accent: #8a5a3c; --jade: #3d8f80; --gold: #f2c54b; --bad: #b2452f; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 190px; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  body > header { position: sticky; top: 0; z-index: 5; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 8px; background: var(--paper); border-bottom: 2px solid var(--ink); }
+  .top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  h1 { margin: 0; font-size: 20px; letter-spacing: 0.14em; flex: 1 1 auto; }
+  h1 span { font-size: 12px; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+  #search { flex: 1 1 200px; min-width: 0; padding: 5px 10px; background: var(--card); border: 2px solid var(--ink); }
+  .btn { padding: 4px 10px; background: var(--card); border: 2px solid var(--ink); text-decoration: none; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+  .ctl { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; }
+  .ctl select { background: var(--card); border: 2px solid var(--ink); padding: 2px 4px; }
+  #sections { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 8px; }
+  .chip { padding: 1px 9px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 14px; font-size: 12px; text-decoration: none; }
+  #status { margin: 6px 0 0; font-size: 12px; color: var(--soft); min-height: 1.5em; }
+  #status.error { color: var(--bad); }
+  main { padding: 6px 16px 60px; }
+  .band { margin-top: 22px; }
+  .band[hidden] { display: none; }
+  h2 { font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 2px solid var(--ink); padding-bottom: 3px; margin: 0 0 12px; }
+  h2 small { font-size: 11px; font-weight: normal; color: var(--accent); letter-spacing: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 12px; }
+  .card { padding: 10px 12px; background: var(--card); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+  .card[hidden] { display: none; }
+  .card.playing { box-shadow: 4px 4px 0 var(--jade); border-color: var(--jade); }
+  .head { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
+  h3 { margin: 0; font-size: 14.5px; letter-spacing: 0.03em; }
+  p { margin: 0 0 5px; }
+  .meta { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .where { font-size: 12.5px; }
+  .dir { font-size: 12px; color: var(--soft); border-left: 3px solid var(--rule); padding-left: 8px; }
+  .small { font-size: 11.5px; color: var(--soft); }
+  details summary { cursor: pointer; font-size: 11.5px; color: var(--accent); }
+  .transport, .opts, .vars { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 6px 0; font-size: 12px; }
+  .transport .seek, .transport progress { flex: 1 1 140px; accent-color: var(--jade); }
+  .opts input[type=number] { width: 4.5em; padding: 1px 4px; background: #fff; border: 1.5px solid var(--ink); }
+  .opts select { background: #fff; border: 1.5px solid var(--ink); }
+  .play, .var { padding: 2px 10px; background: var(--ink); color: var(--paper); border: 2px solid var(--ink); cursor: pointer; font-size: 12px; }
+  .var { background: var(--card); color: var(--ink); }
+  .var:active, .play:active { transform: translate(1px, 1px); }
+  .playing .play { background: var(--jade); border-color: var(--jade); }
+  .note-btn { flex: none; padding: 1px 8px; font-size: 11px; letter-spacing: 0.06em; background: transparent; border: 1.5px solid var(--ink); border-radius: 10px; cursor: pointer; opacity: 0.55; }
+  .note-btn:hover, .note-btn:focus-visible { opacity: 1; background: var(--card); }
+  .note-btn::before { content: '✎ '; }
+  .note-btn.noted { opacity: 1; background: var(--jade); color: #fff; border-color: var(--jade); }
+  .note-btn.noted::before { content: '✓ '; }
+  dialog { width: min(520px, calc(100vw - 24px)); padding: 14px 16px; background: var(--card); color: var(--ink); border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+  dialog::backdrop { background: rgba(43, 33, 31, 0.35); }
+  dialog h2 { font-size: 14px; border: 0; margin: 0 0 2px; }
+  #note-about { margin: 0 0 10px; font-weight: bold; }
+  #note-text { width: 100%; min-height: 120px; padding: 8px; background: #fff; border: 2px solid var(--ink); resize: vertical; }
+  .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--soft); }
+  .row button, #note-close { padding: 4px 12px; background: var(--ink); color: var(--paper); border: 2px solid var(--ink); cursor: pointer; }
+  #note-close { background: var(--card); color: var(--ink); }
+  #note-status { margin: 8px 0 0; font-size: 14px; }
+  #note-status.error { color: var(--bad); }
+  .box-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+  @media (max-width: 760px) { body > header { position: static; } }
+</style>
+</head>
+<body data-debug-back="keys-off pad-off" data-debug-busy="#note-box[open]">
+<header>
+  <div class="top">
+    <h1 class="debug-room">THE MUSIC <span id="count"></span></h1>
+    <input id="search" type="search" placeholder="Search the songs and sounds" aria-label="Search the songs and sounds" autocomplete="off">
+    <label class="ctl" title="The world whose scale the effects and tunes sing in">scale <select id="world"></select></label>
+    <label class="ctl">volume <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8"></label>
+    <button class="btn" id="stop" type="button">■ Stop all</button>
+    <a class="btn" id="notes-link" href="notes.html">Notes</a>
+    <a class="btn" href="./">Play</a>
+  </div>
+  <nav id="sections" aria-label="The page’s parts"></nav>
+  <p id="status" role="status" aria-live="polite"></p>
+</header>
+<main id="list"></main>
+<dialog id="note-box" aria-labelledby="note-title">
+  <h2 id="note-title">A note on</h2>
+  <p id="note-about"></p>
+  <form id="note-form" hidden>
+    <label for="note-text" style="font-size:12px">The first line is the issue’s title.</label>
+    <textarea id="note-text" required placeholder="What should change here?"></textarea>
+    <div class="row"><span>⌘/Ctrl + Enter to send · filed as a GitHub issue</span><button id="note-send" type="submit">Send</button></div>
+  </form>
+  <p id="note-status" role="status" aria-live="polite"></p>
+  <div class="box-foot"><button id="note-close" type="button">Close</button></div>
+</dialog>
+<noscript><p>Turn on JavaScript to listen.</p></noscript>
+<script type="module" src="/src/music-page/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
+</body>
+</html>

@@ -44,7 +44,7 @@ test('the sections, in order, with their cards numbered as shown', () => {
 });
 
 test('pages: every link kept, the dev server\'s marked and only there, the References page everywhere (marked reference material)', () => {
-  for (const f of ['changelog.html', 'audits.html', 'items.html', 'enemies.html', 'studio.html', 'motion.html', 'cinematics.html', 'trailer.html', 'references.html']) {
+  for (const f of ['changelog.html', 'audits.html', 'items.html', 'enemies.html', 'studio.html', 'motion.html', 'cinematics.html', 'trailer.html', 'references.html', 'music.html']) {
     assert.ok(PAGES.some((p) => p.href === f), f);
   }
   assert.ok(DEV_PAGES.every((p) => p.dev));

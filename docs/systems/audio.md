@@ -478,3 +478,38 @@ The Unity bridge plays it through the same Web Audio shim (engine/webaudio.js ha
 Tests (`tests/foe-voices.test.js`, the last six): the fall with distance and the floors, left/right turning with the
 camera, behind duller and out of view louder but never under the floor, rendered left/right channels, the pan following
 a foe that walks round, the effects volume still ruling it, and the foes passing the chest.
+
+## The music page (issue #270, October 2026)
+
+`music.html` (`src/music-page/`, Debug → Pages → **Music & sounds**; on the Notes site at
+https://hiraeth.alexandria-rnaud.workers.dev/music) plays every song and every sound of the game, each with a **Note**.
+
+- **Songs: recorded**: each file of `public/music/` the game plays (`SOUNDTRACKS`, the title's `TITLE_THEME`, the
+  cues of `CUES`), in the route's order, with the worlds that play it, its Suno title, direction, prompt and link from
+  `manifest.json`; play / stop and a seek bar. On a device only the bundled themes are there.
+- **Songs: each world's score**: every `SCORES` entry, played by the game's own scheduler (`Sound.schedule`) on a bus
+  of its own (Stop cuts it at once) with the world's params shown, a **seed** (the arc it starts on: each arc draws its
+  own order of sections), a **length**, what you are doing (standing, walking, riding, indoors, night, storm: the
+  score's `act`), its ambience bed, and for a score with moments of its own its light layers alone.
+- **Songs: the other music**: the menu music, the fight's layer, the musicians as each world sets them up (`setBands`,
+  with their modes), and the tunes sung at a moment (the singing light's theme, a swell, the charge, the homage, Bako's
+  ney, the spheres' song, the makers' hum).
+- **Effects**, grouped: the traveller, the recorded takes (`src/sfx.js`, each group), water, the gun, the blade and
+  the shield, calls and the scout, chests, keys and items, chimes and the shop, quests and moments, foes and guardians
+  (every `FOE_VOICES` kind hurt and done, the wind-ups, the attack cues), creatures, the ship (`src/ship/sfx.js`),
+  ambience (the continuous layers of `Sound.update` held a few seconds: wind, storm, rain, the waterfall, the masts,
+  the train, the bike), voices (every language of `src/story/voice.js` and the call voices), the building blocks, and
+  every instrument, hit and colour of the scores. A variant is a button. The **scale** in the header is the world
+  whose scale the effects and tunes sing in.
+
+The catalogue (`src/music-page/catalog.js`) is pure: each variant is a small function of the game's `Sound`
+(`(s, e) => s.keyGet(true)`), `e` the page's player (`src/music-page/player.js`: where a placed sound is put, `hold`
+for a continuous layer, `later`). `tests/music-page.test.js` checks that **every method of `Sound` is played by some
+entry or named in `PLUMBING`** (a new sound fails the test until it is on the page), that every recording on disk and
+in the manifest, every score, sample group, foe voice, instrument, language and ship sound is listed, and plays every
+variant on the engines' in-memory context (`engine/webaudio.js`): no fault, finite, heard.
+
+Notes go the lore page's way (`src/lore-page/note-box.js`, `notes.js` `fileNote` with the page's own request): a
+GitHub issue through the Worker with the notebook's session, its body naming the song or sound, its catalogue id and
+its link (`…/music#s-<id>`), and the footer "Added from the Hiraeth music page." (`source: 'music'`,
+`worker/issues.js` SOURCES). The canyon run's bike engine and the trailer's foley are their own pages' and not here.
