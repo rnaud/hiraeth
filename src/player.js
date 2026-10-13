@@ -2081,6 +2081,8 @@ export class Player {
 
   updateClimb(dt, f, s, input) {
     const U = this.frame.up, n = this.wallN;
+    // (on a ladder: the train's porches, the foundry's cage ladders, the market mast's rungs; issue #252, src/physics.js onLadder)
+    const ladder = this.onLadder = !!this.physics.onLadder?.(this.pos);
     const into = _v1.copy(n).negate();
     const chest = _v2.copy(this.pos).addScaledVector(U, 1.2);
     const hit = this.physics.rayHit(chest, into, 1.6);
@@ -2088,7 +2090,7 @@ export class Player {
     if (!hit) { if (f >= 0 && this.tryMantle(U, into)) return; this.stopClimb(false); return; }
     n.copy(hit.normal);
     // (on a ladder its rungs' round faces are neither an overhang nor a slope: held to the ladder's upright way, issue #252)
-    if (this.physics.onLadder?.(this.pos)) { const up = n.dot(U); if (Math.abs(up) < 0.95) n.addScaledVector(U, -up).normalize(); }
+    if (ladder) { const up = n.dot(U); if (Math.abs(up) < 0.95) n.addScaledVector(U, -up).normalize(); }
     if (n.dot(U) > 0.55) { if (!this.tryMantle(U, into)) this.stopClimb(true); return; }
     if (n.dot(U) < -0.6) { this.stopClimb(false); return; }                // an overhang
     // stick to the wall
@@ -2105,8 +2107,8 @@ export class Player {
       if (f < 0) { this.stopClimb(true); return; }
     }
 
-    // a ceiling over the head (an olive's crown over its trunk, a beam): no higher
-    if (f > 0 && this.physics.rayDistance(_v2.copy(this.pos).addScaledVector(U, 1.2), U, 0.8) < 0.7) f = 0;
+    // a ceiling over the head (an olive's crown over its trunk, a beam): no higher (a cage ladder's hoops are round you, not over you)
+    if (f > 0 && !ladder && this.physics.rayDistance(_v2.copy(this.pos).addScaledVector(U, 1.2), U, 0.8) < 0.7) f = 0;
 
     // reached the top: nothing in front at head height -> mantle over
     const head = _v2.copy(this.pos).addScaledVector(U, 2.3);
@@ -2128,9 +2130,8 @@ export class Player {
     this._climbF = f; this._climbS = s;
 
     // ~22 s of climbing (climbK: the makers' resin halves it), less climbing fast: the sprint's stamina (src/stamina.js)
-    // (a ladder costs nothing: the train's porches, the foundry's cage ladders; issue #252, src/physics.js onLadder)
-    this.onLadder = !!this.physics.onLadder?.(this.pos);
-    if (!this.onLadder) spendStamina(this, (f || s ? 0.045 * (fast ? STAMINA.climbFast : 1) : 0.02) * dt * (this.climbK ?? 1));
+    // (a ladder costs nothing)
+    if (!ladder) spendStamina(this, (f || s ? 0.045 * (fast ? STAMINA.climbFast : 1) : 0.02) * dt * (this.climbK ?? 1));
     if (input.Space && !this._jumpHeld) {                       // jump off the wall
       this.stopClimb(false);
       this.vel.copy(n).multiplyScalar(6).addScaledVector(U, 8);

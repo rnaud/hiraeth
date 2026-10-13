@@ -67,3 +67,27 @@ test('the Overnight Train: up a porch ladder to the roof walk, its rungs held as
   assert.ok(maxY > l.y1 - 0.2, `up to the roof walk (${maxY.toFixed(2)} of ${l.y1.toFixed(2)})`);
   assert.equal(p.stamina, 1, 'not a breath of stamina spent');
 });
+
+test('the Moon Foundry: up a pillar’s cage ladder, its hoops round you and not a ceiling, the stamina full', async () => {
+  await import('./register-gadgets.js');
+  const { LEVELS } = await import('../src/levels/index.js');
+  const quiet = (f) => { const w = console.warn, i = console.info; console.warn = console.info = () => {}; try { return f(); } finally { console.warn = w; console.info = i; } };
+  const scene = new THREE.Scene(), level = quiet(() => LEVELS.find((l) => l.id === 'moonfoundry').create(scene));
+  const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
+  quiet(() => level.init?.(physics));
+  physics.ladders = level.ladders;
+  assert.ok(level.ladders.length > 10, `${level.ladders.length} cage ladders`);
+  const l = level.ladders[0], [ox, oz] = l.out;
+  const at = new THREE.Vector3(l.x + ox * 0.8, 0, l.z + oz * 0.8);
+  at.y = physics.groundAt(at.x, 3, at.z, 6);
+  const p = new Player(physics, { spawn: at.clone(), climb: true });
+  p.pos.copy(at);
+  // up the ladder, until it ends (the climb comes out on the machinery round the pillar's foot, or the hoops go on)
+  let onIt = 0, maxY = at.y, stamina = 1;
+  for (let k = 0; k < 60 * 6; k++) {
+    p.update(1 / 60, { KeyW: true }, Math.atan2(ox, oz));
+    if (p.climbing && p.onLadder) { onIt++; maxY = Math.max(maxY, p.pos.y); stamina = p.stamina; } else if (onIt > 30) break;
+  }
+  assert.ok(onIt > 60 && maxY > at.y + 2.5, `up it, past its first hoop (${(maxY - at.y).toFixed(1)} m, ${onIt} frames)`);
+  assert.equal(stamina, 1, 'not a breath of stamina on it');
+});

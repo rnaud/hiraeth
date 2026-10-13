@@ -444,7 +444,7 @@ export function pillar({ h = 80, r = 3, seed = 1, detail = 1, pipes = 3, ladder 
     const a = side + Math.PI * 0.75, c = Math.cos(a), s = Math.sin(a), t = V(-s, 0, c), o = V(c * (r + 0.35), 0, s * (r + 0.35)), lh = h * 0.8;
     for (const e of [-1, 1]) out.rail.push(bar(o.clone().addScaledVector(t, e * 0.25), o.clone().addScaledVector(t, e * 0.25).add(V(0, lh, 0)), 0.035, 0.035, 3));
     if (detail >= 0.7) for (let y = 3; y < lh; y += 2.5) out.rail.push(plain(new THREE.TorusGeometry(0.42, 0.025, 3, 8, Math.PI)).rotateX(Math.PI / 2).rotateY(-a + Math.PI / 2).translate(o.x + c * 0.15, y, o.z + s * 0.15));
-    out.ladders = [{ x: o.x, z: o.z, y0: 0, y1: lh }];   // (climbed for free: src/physics.js onLadder, issue #252)
+    out.ladders = [{ x: o.x, z: o.z, y0: 0, y1: lh, r: 1.1, out: [c, s] }];   // (climbed for free: src/physics.js onLadder, issue #252; out: the way it faces)
   }
   // a platform ring partway up (planks and a rail)
   if (platform > 0) {
