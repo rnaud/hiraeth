@@ -1,0 +1,29 @@
+unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs
+  s_9ca76055a220ed::t_27578a22376bb5 147-149,393,409
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs
+  s_9ca76055a220ed::t_69daed6b4935b4 144-146,152,155
+unity/Hiraeth/Assets/Hiraeth/Runtime/Wildlife.cs
+  s_9ca76055a220ed::t_2a85055d010da0 80-81,83,85,98-99,101,103,149-157,163,165-192,194
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_ac6bbfcc413114 366-367,489,503,515,528,542,756,818-826,862-866,868,979,982,1021-1025,1040-1042,1046-1047,1094-1096,1098,1102-1110,1126,1218
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_226990c378fa40 953,959-961,975,1006
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_2f19c6ab1ee974 426-428
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "64c37a3f8e1dfebfac4c1f9a08b967bd97b062b4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
