@@ -1,0 +1,45 @@
+engine/game.js
+  s_9ca76055a220ed::t_a5dd6bef9ec690 432-442,618,743
+engine/ink-spec.js
+  s_9ca76055a220ed::t_7de3d63a7d6e2f 8,40
+engine/mirror.js
+  s_9ca76055a220ed::t_de50717054ee06 158-159
+engine/unity/backend.js
+  s_9ca76055a220ed::t_8f97bdea967bad 93-96,122-125,135
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_b35b5e27a9a4bd 26-30,86-87
+src/veil.js
+  s_9ca76055a220ed::t_eb43cdb46b971a 112,128-132,136-141
+tests/unity-veil.test.js
+  s_9ca76055a220ed::t_a8e013398354f0 1-100
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_9ca76055a220ed::t_1a91d4f7bbc1e8 183
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_35770406a43b9f 63,132,246,766-769,1142
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader
+  s_9ca76055a220ed::t_225344a6894a0c 1-87
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader.meta
+  s_9ca76055a220ed::t_0e1082c16752cf 1-9
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_7b5b3124fe6672 177,371-384,393,433,462,798-799
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_a26d8c682d86ca 416-417
+unity/Hiraeth/ProjectSettings/GraphicsSettings.asset
+  s_9ca76055a220ed::t_8ac4802c056379 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06ea23a87e42e58c22cd76bef87862536c32a41a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
