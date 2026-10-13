@@ -217,7 +217,7 @@ export const KEEPERS = [
         },
         thanks: { say: ["~playful~ It’s *a shell ring with a hook*, right at the top. Bring it down more gracefully than I came down, please."], choices: [{ text: '~neutral~ I’ll be careful.', end: true }] },
         waiting: { say: ["~neutral~ The glass dome down the path. On its roof. Careful: the ribs are slippery."], choices: [{ text: '~neutral~ Going.', end: true }] },
-        strange: { say: ["~playful~ You’re the strangest thing lately. Before you, the pools went dark when the sky sang. Robin saw it. She has an exhausting commitment to being awake."], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~playful~ I’ll try to be less strange.', end: true }] },
+        strange: { say: ["~playful~ You’re the strangest thing lately. Before you, three pools went dark in one night. Robin saw it. She has an exhausting commitment to being awake."], choices: [{ text: '~curious~ And your door?', goto: 'latch', if: { quest: 'perdide2.latch', started: false } }, { text: '~playful~ I’ll try to be less strange.', end: true }] },
         back: {
           say: ['~surprised~ My latch! You went all the way up?', '~happy~ There, on it goes. Now: shut. Shut… Oh, come on.', "~sad~ The latch fits, but moss has grown into the frame. The door still won’t move."],
           do: [{ take: 'latch' }, { advance: 'perdide2.latch' }],

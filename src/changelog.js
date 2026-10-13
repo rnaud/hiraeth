@@ -38,6 +38,10 @@ export const CHANGELOG = [
     // the hosts in their own voices (issue #280; the dialogue review v1.66's findings 1 and 9): src/story/hosts-data.js
     { text: 'The people who offer the games and races in each world now talk like themselves: Yusra about this morning’s catch, Darro about the bike he keeps rebuilding, Ostra about cab fares, Tibor about his father’s goat. Each explains the rules in their own words.',
       see: 'In the desert, ask Yusra about fishing by the basin, or Nadir about the dune line; on the Buried Machine, ask Tibor about the canyon dive.' },
+    // the dialogue review v1.66's small ones (issue #282): Anselm hedges (src/story/scientist-data.js), the lore page's
+    // nights (src/lore-page/lore-text.js), the shops' exits without "Goodbye.", Liss, the market's old trader and Pim
+    { text: 'Smaller touches to the writing: Anselm says what he thinks the fragments are rather than telling you, each world on the lore page names the night the light went over in its own people’s words, the shopkeepers’ farewells end on the reply alone, and Liss, the old trader in Signal Square and Pim in the Deep Wood have lines of their own instead of repeating others’.',
+      see: 'In the Deep Wood ask Pim about anything strange; on the lore page, read the Underwater City’s and the Moon Foundry’s worlds; in any shop, the last answer of a talk.' },
   ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under

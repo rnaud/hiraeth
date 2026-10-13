@@ -130,7 +130,8 @@ studies light, and has been on the lookout for the fragments since the night the
 
 - **The meeting.** The first fragment you take brings him: he comes up a few steps from you (`meetSpot`: ground near
   yours, room over him, nothing between) and the talk opens at once (or as soon as nothing else has the screen). Four
-  lines and one answer: "Don't drop it!", he has been on the lookout for them, what they are, five and he'll have
+  lines and one answer: "Don't drop it!", he has been on the lookout for them, what he thinks they are (a guess:
+  "Bits of its song, I'd say", v1.68, #282; only Ilen says what the light is), five and he'll have
   something (since v1.62: "Bring me more. I'll work them into your gear, at a price."); then he asks to come aboard
   (`frag.met`). Once that talk has opened he is met however it ends (v1.62: B out of it before the last answer used to
   leave him unmet, on the spot, and in no ship after). (Until v1.61 he was Orrin and introduced himself, name and

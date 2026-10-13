@@ -59,7 +59,7 @@ export const SHOPKEEPERS = {
           choices: [
             { text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'qanat' }] }, end: true },
             { text: '~curious~ Where do your hearts come from?', goto: 'hearts' },
-            { text: '~neutral~ Just looking. Goodbye.', end: true },
+            { text: '~neutral~ Just looking.', end: true },
           ],
         },
         chimes: {
@@ -92,7 +92,7 @@ export const SHOPKEEPERS = {
     hello: ['~happy~ (She looks up from her tray of sand.) Trade?', '~neutral~ Cures. Hearts. Chimes. (She draws a flask in the sand, then a crystal beside it.)'],
     again: ['~happy~ Back.', '~neutral~ (She smooths the sand in her tray, ready to draw a price.)'],
     topic: { ask: '~curious~ Why one word at a time?', flag: 'arzach.brin.words', say: ['~whisper~ Wind. Carries. Words.', '~neutral~ (She points up at the cords turning under the cap.) Few words. Far.'] },
-    bye: '~happy~ I understand. Goodbye.',
+    bye: '~happy~ I understand.',
   }),
 
   // Vael II: Sister Perpetue is the monks' almoner: round and brisk, a grey habit and a white wimple like a bell.
@@ -106,7 +106,7 @@ export const SHOPKEEPERS = {
     hello: ['~happy~ A traveller from below the cloud! Come to the hatch, come. I keep what the order gives to the road, and the road is mostly you.', '~playful~ Cures, sealed in wax with the Three Notes. Now and then a heart, when the cloud brings one up. Chimes, if you please. The bells don’t ring themselves.'],
     again: [{ if: { quest: 'arzach2.bell', done: true }, text: '~happy~ The great bell rings again, and so do mine. What a noisy, happy house.' }, '~happy~ Back at the hatch! I kept the wax warm.'],
     topic: { ask: '~curious~ Why a bell for every sale?', flag: 'arzach2.perpetue.bells', say: ['~solemn~ Seven little bells, one for each founder. When I sell a cure I ring one, so the founders know something was given away and not kept.', '~playful~ Mother Ysolde says it’s the noisiest prayer in the monastery. She’s right. It’s also the only one that pays for the candles.'] },
-    bye: '~happy~ Ring one for me. Goodbye.',
+    bye: '~happy~ Ring one for me.',
   }),
 
   // Lorn: Nettle keeps a raft-house moored in the reeds by the landing: an old, long-armed swamp woman under a
@@ -120,7 +120,7 @@ export const SHOPKEEPERS = {
     hello: ['~whisper~ Step soft, sky-child. The float bobs and the snappers listen. This is the only shop on the water.', '~playful~ Cures for bites. A heart now and then. A little more room in that tank, if you can pay in chimes. Every sale’s a knot on my cord.'],
     again: [{ if: { quest: 'perdide.crystal', done: true }, text: '~happy~ The Great Crystal sings again. My knots are counting faster.' }, '~happy~ Back on my float. Mind the hatch, it’s wet.'],
     topic: { ask: '~curious~ What’s painted on your door?', flag: 'perdide.nettle.hush', say: ['~whisper~ The Hush. Three drops over a closed mouth. The snappers know it: whoever paints it means them no harm and makes no noise.', '~playful~ I keep quiet, they keep their teeth to themselves. Forty years of good neighbours.'] },
-    bye: '~whisper~ I’ll keep quiet. Goodbye.',
+    bye: '~whisper~ I’ll keep quiet.',
   }),
 
   // Lorn II: Rowan, Hollin's cousin, keeps the Welcome-Shelf, a moss dome on the lit path: plump and flustered in a
@@ -134,7 +134,7 @@ export const SHOPKEEPERS = {
     hello: ['~surprised~ Oh! Oh, a customer! Thirty years I’ve kept this shelf stocked for travellers, and you’re the first. Hollin will be furious he missed it. Do come in, mind the rug.', '~happy~ Cures, all dusted. A heart in a glass jar, the only one I have. Chimes, please. I had to look up what to charge.'],
     again: [{ if: { quest: 'perdide2.lamps', done: true }, text: '~happy~ The lamps are lit all the way down the path. More travellers, Hollin says. Imagine!' }, '~happy~ You came back! Twice is a regular, you know.'],
     topic: { ask: '~curious~ Why keep a shop nobody came to?', flag: 'perdide2.rowan.welcome', say: ['~solemn~ Because the Welcome says someone will come. Three lamps over a door mean a traveller can knock. You don’t take them down just because nobody has.', '~playful~ And I dust. A shop that’s ready is half a shop already. The other half is you.'] },
-    bye: '~happy~ I’ll come back. Goodbye.',
+    bye: '~happy~ I’ll come back.',
   }),
 
   // Viridel: Clover keeps the Potting House, a lean-to of wood and glass against a fallen builders' slab under an
@@ -148,7 +148,7 @@ export const SHOPKEEPERS = {
     hello: ['~happy~ Come in out of the light; the glass keeps it soft. I pot what the garden gives and sell it to whoever needs it.', '~neutral~ Cures from the red-leaf. A heart, when one ripens. I dig up nothing the builders left. Chimes, please.'],
     again: [{ if: { quest: 'edena.garden', done: true }, text: '~happy~ The ship’s flank is in flower. Mira hasn’t stopped smiling. Neither have my pots.' }, '~happy~ Back again. The seedlings remember you.'],
     topic: { ask: '~curious~ A heart that ripens?', flag: 'edena.clover.hearts', say: ['~whisper~ Under the umbrella trees, once a season, a red thing grows in the moss, the size of a fist. It beats if you hold it.', '~solemn~ I take one and leave the rest. Mira says that’s the only rule the garden ever had: take, leave, and dig up nothing.'] },
-    bye: '~happy~ Take one, leave the rest. Goodbye.',
+    bye: '~happy~ Take one, leave the rest.',
   }),
 
   // The City-Shaft: Fausta keeps a narrow basket-shop on the middle terraces by the cab stop: a brisk, sharp-eyed
@@ -161,7 +161,7 @@ export const SHOPKEEPERS = {
     hello: ['~neutral~ In or out, the door’s letting the shaft in. I sell to every level of this city with a basket and a rope.', '~playful~ Cures, a heart or two, a little room for that tank of yours. Chimes. Here in the middle you pay middle prices. Don’t tell the rim.'],
     again: [{ if: { quest: 'incal.light', done: true }, text: '~happy~ The Lodestar’s lit and the whole shaft is shopping. My rope’s worn thin.' }, '~neutral~ Back again. Good. The basket was getting bored.'],
     topic: { ask: '~curious~ Why a basket on a rope?', flag: 'incal.fausta.basket', say: ['~neutral~ The rim won’t come down and the bottom can’t come up. So the shop goes to them. A bell rings at the top, a bell rings at the bottom, the basket goes where it’s rung for.', '~playful~ Rim prices on the way up, bottom prices on the way down. Same cure. Nobody’s ever compared baskets.'] },
-    bye: '~playful~ Your secret’s safe. Goodbye.',
+    bye: '~playful~ Your secret’s safe.',
   }),
 
   // The Sealed Hangar: Odo is the Major's quartermaster, stocky in a faded blue boiler suit with brass buttons and a
@@ -202,7 +202,7 @@ export const SHOPKEEPERS = {
     hello: ['~happy~ Come in, shake the sand off. I count the way the wheel does here: one tooth at a time.', '~neutral~ Cures. A couple of hearts. A little room in that tank. Chimes, on the abacus. Every sale dated by the wheel’s tooth, so I always know how old a debt is.'],
     again: [{ if: { quest: 'buried.tooth', done: true }, text: '~happy~ The wheel turned its tooth. I wrote it down twice, in case I didn’t believe it.' }, '~happy~ Back again! Still the same tooth. Nothing changes fast down here.'],
     topic: { ask: '~curious~ Dated by the wheel’s tooth?', flag: 'buried.mott.teeth', say: ['~neutral~ The great wheel turns one tooth a year. My mother dated her sales by it, and her mother. This is tooth nine hundred and twelve.', '~playful~ A cure sold on tooth nine hundred and twelve is fresh. One from tooth eight hundred, I’d pour away.'] },
-    bye: '~happy~ Tooth nine hundred and twelve. Goodbye.',
+    bye: '~happy~ Tooth nine hundred and twelve.',
   }),
 
   // The Garden of Spheres: Hale keeps the Listening Stall, a round white pavilion by the cypress avenue: a lean,
@@ -216,7 +216,7 @@ export const SHOPKEEPERS = {
     hello: ['~whisper~ Softly, if you would. I am listening. You may listen too; it costs nothing.', '~neutral~ Every cure here has been struck and heard. A heart that beats in tune. Chimes, if you please. They ring, too. I listen to those as well.'],
     again: [{ if: { quest: 'spheres.listen', done: true }, text: '~happy~ The spheres remember aloud now. Everything in the stall hums a little sweeter.' }, '~whisper~ Ah. Your footsteps. I knew them.'],
     topic: { ask: '~curious~ You listen to the cures?', flag: 'spheres.hale.listen', say: ['~whisper~ Strike the fork, hold the flask to it. A good cure hums back the same note. One that hums flat has turned, and I pour it away.', '~solemn~ The spheres taught us. Everything that is well holds a note. Your chimes do. I checked when you came in.'] },
-    bye: '~neutral~ I’ll listen too. Goodbye.',
+    bye: '~neutral~ I’ll listen too.',
   }),
 
   // The Signal Market: Pashka keeps a cure-stall in a tower's foot on the market avenue: a big round lavender-skinned
@@ -229,7 +229,7 @@ export const SHOPKEEPERS = {
     hello: ['~shout~ A NEW FACE! Step up, step up! Pashka’s Cure-Stall, the loudest on the avenue!', '~happy~ Cures in a crate, hearts in a glass case, vials to deepen that tank. Chimes, friend, chimes! The board lights up every time you buy. Everyone sees. Very good for business.'],
     again: [{ if: { quest: 'bazaar.signal', done: true }, text: '~happy~ The silent tower talks again and the whole market’s celebrating. Celebrations need cures, friend!' }, '~happy~ My favourite customer! I say that to everyone. But today it’s true.'],
     topic: { ask: '~curious~ Why the board?', flag: 'bazaar.pashka.board', say: ['~playful~ In a market of signals, a stall without one is a stall nobody hears. So: a heart and a flask, and lights.', '~whisper~ (He leans in.) Between us, the bulbs cost more than the cures. But nobody buys from a dark stall.'] },
-    bye: '~playful~ Keep it lit. Goodbye.',
+    bye: '~playful~ Keep it lit.',
   }),
   // The three worlds that joined the route in v1.40.
   // The Underwater City: Odette keeps the Air-Shop inside the Avenue's great dome, a round woman in a teal diving
@@ -336,7 +336,7 @@ export const SHOP_LINES = {
     short: ['~sad~ Not enough. The garden’s patient. So am I.', '~neutral~ A few chimes short. Come back after a season. Or a fight.'],
     soldOut: ['~sad~ That was the only ripe one. The next is still green.', '~neutral~ None left. I don’t dig up what isn’t ready.'],
     full: ['~surprised~ Your pack is full of cures. Drink one, then come back.', '~playful~ Any more and you’ll slosh.'],
-    bye: ['~happy~ Walk soft in the garden.', '~neutral~ Take one, leave the rest. Goodbye.'],
+    bye: ['~happy~ Walk soft in the garden.', '~neutral~ Take one, leave the rest.'],
   },
   fausta: {
     open: ['~neutral~ There. Pick. The basket’s waiting.', '~playful~ Middle prices. Enjoy them.'],
@@ -376,7 +376,7 @@ export const SHOP_LINES = {
     short: ['~sad~ The abacus won’t close. A few chimes more.', '~playful~ Short. Even the wheel waits a year for its tooth.'],
     soldOut: ['~sad~ That’s the last until the wheel turns again.', '~neutral~ None left. Maybe next tooth.'],
     full: ['~surprised~ Your pack’s full. Drink one first.', '~playful~ Any more and you’ll clank like the derrick.'],
-    bye: ['~happy~ Shake the sand off on the way out.', '~neutral~ Tooth nine hundred and twelve. Goodbye.'],
+    bye: ['~happy~ Shake the sand off on the way out.', '~neutral~ Tooth nine hundred and twelve.'],
   },
   hale: {
     open: ['~whisper~ Take your time. Listen, if you like.', '~neutral~ Everything here hums true. I checked this morning.'],

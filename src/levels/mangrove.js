@@ -134,14 +134,14 @@ export const MANGROVE_CONTENT = {
     { at: [RING_R - 2, GREAT.z], y: WALK_Y + 0.2, radius: 3, lang: 'perdide2', lines: ['~happy~ Evening. The lanterns are lit.', '~neutral~ The ring walk takes you round to every stair.'] },
     // (Liss: the detour's trace, src/story/sightings-detours.js)
     { id: 'liss', name: 'Liss', title: 'who poles the boats', color: '#b8a8d8', kind: 'f', at: [-RING_R + 0.2, GREAT.z - 4], y: WALK_Y + 0.2, radius: 0.8, lang: 'perdide2',   // (on the ring walk: further in is the lake)
-      lines: ['~curious~ You came by the sky? We came by boat, a long time ago.', '~whisper~ Don’t lean on the lantern posts. They lean back.'],
+      lines: ['~curious~ You came by the sky? We came by boat, a long time ago.', '~whisper~ Don’t stand up in a boat. The lake takes it personally.'],
       talk: { listen: [
         { after: () => true, say: [
           '~curious~ Another one from the sky. Long ago a woman came down in a ship no bigger than my boat.',
           '~neutral~ She asked about the {glyph} on the great tree’s roots. I showed her how it goes: dots, then arc.',
           '~solemn~ She drew it on her knee, over and over, thanked me in words that didn’t come through, and went up.',
         ], do: { set: { 'sight.mangrove.liss': true } } },
-        '~whisper~ Don’t lean on the lantern posts. They lean back.',
+        '~whisper~ Don’t stand up in a boat. The lake takes it personally.',
         '~neutral~ The roots grow out and down, and the mark on them grows too. A little wider every year.',
         '~playful~ We came by boat, a long time ago. Nobody remembers from where. The boats might.',
       ] } },

@@ -89,3 +89,15 @@ test('the traveller never leaves on a bare goodbye: his last word answers what w
   assert.ok(n > 300, `${n} closing answers read`);
   assert.deepEqual(bad, []);
 });
+
+test('no exit ends on a tacked-on "Goodbye." (the dialogue review v1.66, finding 10; issue #282)', () => {
+  // ("Ring one for me. Goodbye.", ten shopkeepers' exits in one template: the reply alone says it)
+  const TACKED = /[.!?]\s+Goodbye\.?$/i;
+  const bad = [];
+  for (const [where, p] of ALL) {
+    for (const [id, node] of Object.entries(p.talk.nodes)) {
+      for (const c of node?.choices ?? []) if (c.end && TACKED.test(text(c.text))) bad.push(`${where} ${id}: “${text(c.text)}”`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});

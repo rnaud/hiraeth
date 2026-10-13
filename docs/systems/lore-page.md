@@ -29,7 +29,8 @@ once: restart it to see a change to the game's data. `node scripts/lore-data.mjs
 
 The only hand-written words are `src/lore-page/lore-text.js`: the story's parts, the traveller, each world's lore
 (short, from `docs/story-bible.md`, `lore/continuity.md` and `lore/characters/`) and the verbs' names. A new world on
-the route needs its lore there (the test fails without it).
+the route needs its lore there (the test fails without it). Each world names the night the light went over in its own
+people's words (`lore/voice-guide.md`): "the night the sky rang" is the City-Shaft's alone (tests/lore-page.test.js).
 
 The pictures: worlds use `public/thumbs/`, items `public/item-pictures/`. The traveller, the guardians and the temples
 use reference picks (`src/lore-page/pictures.js` SOURCES) made small by `node scripts/lore-pictures.mjs` into

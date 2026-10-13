@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.68 — 2026-10-13
 
+- Smaller touches to the writing: Anselm says what he thinks the fragments are rather than telling you, each world on the lore page names the night the light went over in its own people’s words, the shopkeepers’ farewells end on the reply alone, and Liss, the old trader in Signal Square and Pim in the Deep Wood have lines of their own instead of repeating others’.
 - The people who offer the games and races in each world now talk like themselves: Yusra about this morning’s catch, Darro about the bike he keeps rebuilding, Ostra about cab fares, Tibor about his father’s goat. Each explains the rules in their own words.
 - Arriving in a new world no longer fills your Quests page: people give you the quests. In each world the one who keeps watch by the makers’ temple comes first, and tells you of the temple and of the chests the makers left in the open; the others follow. Until you have talked to them, the ship marks them on your map: it hears the light’s pulse on the people who saw it pass. Going into a temple or opening a chest before anyone told you still counts. Worlds you had already been to stay as they were.
 - Inside a temple a key counter sits at the top left, as in Zelda: a brass key and how many small keys you hold, with the great key beside it once it is yours. It counts up as a key comes out of its chest and down as one turns in a lock, which now clicks softly instead of clanking. Outside the temples it is gone.

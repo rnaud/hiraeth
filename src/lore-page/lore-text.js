@@ -9,7 +9,7 @@
 /** The game's lore: the thread through every world. */
 export const THREAD = [
   { id: 'light', title: 'The singing light', text: [
-    'The night the sky rang, a light crossed the worlds singing one long note. In every world someone saw it: it dipped low, turned “like it was looking for something”, and climbed away. It never fell.',
+    'One night a light crossed the worlds singing one long note, and every people names that night for what it saw: the night the light passed in Qanat, the night the sky rang in the City-Shaft, the night the whales went quiet under the sea. In every world someone saw it: it dipped low, turned “like it was looking for something”, and climbed away. It never fell.',
     'It passed so close to the traveller’s ship that it drank its power, and the ship came down on its reserve in the desert near Qanat: a forced landing, not a crash. Where it brushed the hull it left a scorched glyph, three dots over an arc that bows upward. The traveller chose to follow it.',
     'The scar is magnetised and beats slowly in threes. The ship charts only the worlds whose field carries the same signature: the worlds the light passed through. That is the route.',
   ], ending: [
@@ -24,7 +24,7 @@ export const THREAD = [
   { id: 'makers', title: 'The makers (the Givers)', text: [
     'Nobody has seen a maker. They made the giants walk: the giants carried the makers’ water across the worlds and lay down where they could go no farther, and cities grew on their bones. They signed everything they made with the glyph, and every world has its own name for them and their sign; in the desert they are the Givers.',
     'They left gifts behind for travellers who would come a long way after them: the backpack and its jade fluid, its wings, its lenses, little charms. Each waits in a chest of pale ceramic with a four-point star on its lid, a traveller’s sign, “a small light, a long way from home”. They open only for someone who has come a long way: the traveller is the first in living memory.',
-    'In every world the makers built one great house, a temple of rooms and puzzles in that world’s architecture. Half-way in waits a gadget that is the key to the rest; at the end, a guardian they left to keep the house, frightened or broken since the night the sky rang. A guardian that lives is calmed; a machine is stopped. Either way the world outside changes.',
+    'In every world the makers built one great house, a temple of rooms and puzzles in that world’s architecture. Half-way in waits a gadget that is the key to the rest; at the end, a guardian they left to keep the house, frightened or broken since the light went over. A guardian that lives is calmed; a machine is stopped. Either way the world outside changes.',
   ] },
   { id: 'fragments', title: 'The fragments of the singing light', text: [
     'The light sang so hard on its way, world to world, that it shed bits of itself wherever it passed: eight small pale splinters in each world on the route, 96 in all. Each glows and still sings faintly, three soft notes in the light’s beat of threes.',
@@ -67,7 +67,7 @@ export const WORLD_LORE = {
     'South, over a sea of cloud, hang the sky stones, where the monastery bell has not rung since the cloud rose thirty years ago. The monks believe its ringing kept the world down, and that when it stopped everything loose fell up.',
   ],
   perdide: [
-    'A twilight swamp of humming crystal forests and carnivorous plants. The Great Crystal sings in the rain and the plants fall silent; the swamp people say it is a piece of something that fell, long before the night the sky rang.',
+    'A twilight swamp of humming crystal forests and carnivorous plants. The Great Crystal sings in the rain and the plants fall silent; the swamp people say it is a piece of something that fell, long before the night the light passed.',
     'North of the swamp, in the Deep Wood of half-transparent mushrooms, people keep the pools lit for travellers who never come. Hollin has kept a light for Odile and Talo for forty years.',
   ],
   edena: [
@@ -75,7 +75,7 @@ export const WORLD_LORE = {
     'The white builders found older spheres and pyramids and copied them, and the mark. “We tend the garden. The garden tends us.”',
   ],
   underwater: [
-    'A city of glass domes on the sea floor, its halls joined by sealed tubes. Outside the glass the whales used to come close and sing. The night the sky rang a light came down through the sea singing one note; the whales sang it back, all at once, and went away.',
+    'A city of glass domes on the sea floor, its halls joined by sealed tubes. Outside the glass the whales used to come close and sing. The night the whales went quiet, a light came down through the sea singing one note; the whales sang it back, all at once, and went away.',
     'Since then the glass hums that one note all over the city, and something in the makers’ Whale-House has been singing the light’s note back at the whales.',
   ],
   incal: [
@@ -92,14 +92,14 @@ export const WORLD_LORE = {
   ],
   moonfoundry: [
     'Under a vast roof on rust pillars the founders cast small moons for somebody’s sky, and nobody came for them. They hang from the cranes and lie in orange claws, and the foundry’s folk live in the old machinery.',
-    'The night the sky rang every hung moon turned on its hook toward where the light went, and since then the makers’ Casting-House pours again by itself at night. Its ledger’s first page: the first moons were sent to a garden far off, and fell short.',
+    'The night the singing went over, every hung moon turned on its hook toward where the light went, and since then the makers’ Casting-House pours again by itself at night. Its ledger’s first page: the first moons were sent to a garden far off, and fell short.',
   ],
   spheres: [
     'Umbrella trees shade white pyramids, and great pale spheres sink into a mirror lake. They came down long ago, the first moons, sent and fallen short; each one “remembers” one sound, and the round plaza’s pole hums when the great sphere is on the horizon.',
   ],
   spacecity: [
     'Heaped houses on islands floating in the dark, joined by bridges, a great pale planet over the roofs. The islands are moored to each other by the moorers’ cables, held by the great capstan in the makers’ Mooring-House.',
-    'The night the sky rang its note ran down every cable; since then the islands drift apart a hand’s width a night. The cables were never for holding the islands up: they listen.',
+    'The night the cables sang, the light’s note ran down every cable; since then the islands drift apart a hand’s width a night. The cables were never for holding the islands up: they listen.',
   ],
   bazaar: [
     'A thousand signs speak; one broadcast tower is silent. The market believes the silent tower was the only one that told the truth.',

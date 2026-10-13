@@ -166,7 +166,8 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   const m = talk(person, ctx, ['Come aboard']);
   assert.match(m.said, /on the lookout for these/, 'he has been on the lookout for them');
   assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.61, #229): the panel names him');
-  assert.match(m.said, /splinters of its song/);
+  assert.match(m.said, /Bits of its song, I’d say/, 'he hedges: a witness reports before believing (issue #282)');
+  assert.doesNotMatch(m.said, /shed splinters/, 'not told as fact before the Lantern');
   assert.match(m.said, /at a price/);
   assert.match(m.said, /the hold, among the crates/);
   assert.doesNotMatch(m.said, /if you’ll have me/, 'an invitation is not answered "if you’ll have me" (issue #226, quest QC rule 5)');
@@ -192,6 +193,9 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   assert.equal(affordable(ctx.game.data.flags, ctx.items.has), 'finder');
   assert.equal(person.fresh(), true, 'his balloon: enough for something');
   assert.match(tallyLines(found(96), null, () => false).join(' '), /every one there is/);
+  const none = tallyLines({}, null, () => false).join(' ');
+  assert.match(none, /None of 96 yet\. None to spend\./, 'the zero count reads as words (issue #282)');
+  assert.doesNotMatch(none, /\bNo of\b/);
   // every line he says, toned (the meeting, the count, the shop)
   const all = [...Object.values(THRUM_TALK.nodes).flatMap((n) => [n.say].flat()), ...Object.values(THRUM_TALK.nodes).flatMap((n) => (n.choices ?? []).map((c) => c.text)), ...THRUM.lines, ...Object.values(THRUM_SHOP_LINES).flat()];
   for (const l of all) assert.ok(parseLine(l).explicit, `toned: ${l}`);

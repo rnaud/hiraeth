@@ -57,7 +57,7 @@ export const THRUM = {
 /** His count, in his words: how many found, how many to spend, and where most still hide (`here`: the world you are in). */
 export function tallyLines(flags = {}, here = null, has = (id) => !!flags[`item.${id}`]) {
   const c = fragmentCounts(flags), { held } = fragmentPurse(flags, has);
-  const out = [`~neutral~ ${cap(say(c.found))} of ${c.total}${c.found >= c.total ? ', every one there is' : ''}. ${held ? `${cap(say(held))} to spend.` : 'None to spend.'}`];
+  const out = [`~neutral~ ${c.found ? cap(say(c.found)) : 'None'} of ${c.total}${c.found ? '' : ' yet'}${c.found >= c.total ? ', every one there is' : ''}. ${held ? `${cap(say(held))} to spend.` : 'None to spend.'}`];
   const left = Object.entries(c.worlds).filter(([, w]) => w.left > 0);
   const hw = here && c.worlds[here];
   if (hw) out.push(hw.left ? `~curious~ ${cap(say(hw.left))} still hide${hw.left === 1 ? 's' : ''} here, in ${inLine(here)}.` : `~happy~ None left here, in ${inLine(here)}. You’ve had them all.`);
@@ -79,7 +79,7 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
         // (v1.61, #229: he opens in the middle of the chase, not on his name and trade; the panel names him)
         '~surprised~ (A thin man in a patched coat comes at a run, goggles on his brow, a brass box ticking in his hand.) Don’t drop it!',
         '~happy~ A fragment of the singing light. I’ve been on the lookout for these since the night the light went over.',
-        '~curious~ Where it passed, it shed splinters of its song. They hide where nobody goes.',
+        '~curious~ They turn up wherever it passed. Bits of its song, I’d say. They hide where nobody goes.',
         '~playful~ Bring me more. I’ll work them into your gear, at a price.',
       ],
       choices: [

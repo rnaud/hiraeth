@@ -82,6 +82,18 @@ test('the story, its ending behind a fold, and the traveller', () => {
   assert.ok(lore.traveller.portrait && lore.traveller.gear.length >= 3);
 });
 
+test('each world names the night by its own people\'s words (lore/voice-guide.md; issue #282)', () => {
+  // "the night the sky rang" is the City-Shaft's, a shaft that rings; the others name it by what they saw
+  const OWN = { perdide: 'the night the light passed', underwater: 'the night the whales went quiet', moonfoundry: 'the night the singing went over', spacecity: 'the night the cables sang', glassdunes: 'the night the singing light passed' };
+  for (const [id, paras] of Object.entries(WORLD_LORE)) {
+    const t = paras.join(' ');
+    if (id !== 'incal') assert.doesNotMatch(t, /sky rang/, `${id}: not the City-Shaft's night`);
+    if (OWN[id]) assert.ok(t.toLowerCase().includes(OWN[id]), `${id}: “${OWN[id]}”`);
+  }
+  const thread = THREAD.flatMap((p) => [...p.text, ...(p.ending ?? [])]).join(' ');
+  assert.equal(thread.match(/sky rang/g)?.length ?? 0, 1, 'the story names the City-Shaft\'s night once, beside the others');
+});
+
 test('no missing pictures, and every Note names its part', () => {
   for (const name of Object.keys(SOURCES)) assert.ok(existsSync(new URL(`../public/lore-pictures/${name}.webp`, import.meta.url)), `${name}: made (node scripts/lore-pictures.mjs)`);
   for (const src of lorePictures(lore)) assert.ok(existsSync(new URL(`../public/${src}`, import.meta.url)), `${src} exists`);
