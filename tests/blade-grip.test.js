@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { circumcentre, gripLine, fistGrip, bracerMount } from '../src/blade-grip.js';
-import { ShieldState, SHIELD, shieldArc, blobRadius, centreTarget } from '../src/shield.js';
+import { circumcentre, gripLine, fistGrip, forearmMount, FOREARM } from '../src/blade-grip.js';
+import { ShieldState, SHIELD, shieldArc, blobRadius, braceShift } from '../src/shield.js';
 import { SWINGS, WHIRL, GUARD, STANCE, attackSample, bladeDrawn, inGuard } from '../src/fluid-blade.js';
 import { DRAW, SHEATHE } from '../src/sword-sheath.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -81,15 +81,13 @@ test('the fluid is a blob, not a disc: its edge never round, rippling with time,
   assert.ok(Math.abs(even.half - shieldArc(v(), v(0, 0, 0.4), v(0, 0, 1), 0.35, up).half) < 1e-12, 'even: a disc');
 });
 
-test('open, the shield slides from the bracer to the chest\'s middle line on its arm, never further than the arm reaches', () => {
-  const up = v(0, 1, 0), dir = v(0, 0, 1), chest = v(0, 1.1, 0);
-  const bracer = v(0.27, 1.4, 0.38);   // (the block pose: on the left, ahead, up by the face)
-  const t = centreTarget(bracer, chest, dir, up, 1);
-  assert.ok(Math.abs(t.x) < 1e-9, 'on the middle line');
-  assert.ok(t.z >= SHIELD.ahead[0] && t.z <= SHIELD.ahead[1] && Math.abs(t.y - bracer.y) < 1e-9, 'ahead of the chest, at the hand\'s height');
-  assert.ok(centreTarget(bracer, chest, dir, up, 0).distanceTo(bracer) < 1e-9, 'folded: on the hand');
-  assert.ok(centreTarget(v(0.27, 1.4, 0.38), chest, dir, up, 0.5).x > 0.1, 'half way');
-  assert.ok(centreTarget(v(1.5, 1.4, 0.4), chest, dir, up, 1).distanceTo(v(1.5, 1.4, 0.4)) <= SHIELD.arm + 1e-9, 'the arm\'s length at most');
+test('raised, the arm is brought across so the bracer stands just left of the chest\'s middle line, never further than SHIELD.brace', () => {
+  const chest = v(0, 1.1, 0), dir = v(0, 0, 1), up = v(0, 1, 0);   // (up × dir: +x, his left)
+  const s = braceShift(v(0.3, 1.38, 0.34), chest, dir, up, 1);
+  assert.ok(Math.abs(s.x + (0.3 - SHIELD.middle)) < 1e-9 && s.y === 0 && s.z === 0, 'across to his right, flat');
+  assert.ok(braceShift(v(0.3, 1.38, 0.34), chest, dir, up, 0).length() < 1e-12, 'lowered: where the clip has it');
+  assert.ok(braceShift(v(-0.2, 1.38, 0.34), chest, dir, up, 1).length() < 1e-12, 'never pushed out to the left');
+  assert.ok(Math.abs(braceShift(v(1.5, 1.38, 0.34), chest, dir, up, 1).length() - SHIELD.brace) < 1e-9, 'by SHIELD.brace at most');
 });
 
 test('the blade is in the fist in a fight and a while after, put away out of it', () => {
@@ -115,12 +113,12 @@ async function armed(body) {
 for (const body of ['v1', 'plain']) {
   test(`${body} traveller: the hilt sits in the fist and the bracer on the left hand on every frame of every combat clip`, async () => {
     const { p, tool, tick } = await armed(body);
-    const H = p.humanoid, B = H.b, blade = tool.blade, grip = fistGrip(H), mount = bracerMount(H);
+    const H = p.humanoid, B = H.b, blade = tool.blade, grip = fistGrip(H), mount = forearmMount(H);
     // (the guard draws the blade off his back: src/sword-sheath.js, in the fist after DRAW.time)
     for (let i = 0; i < Math.ceil(DRAW.time / dt) + 2; i++) tick({ KeyZ: true });
     for (let i = 0; i < 6; i++) tick({});
     assert.equal(blade.group.parent, B.hand_r, 'carried by the right hand bone');
-    assert.equal(blade.device.root.parent, B.hand_l, 'the bracer by the left');
+    assert.equal(blade.device.root.parent, B.lowerarm_l, 'the bracer strapped round the left forearm');
     assert.ok(blade.group.visible, 'drawn');
     // the fingers of a fist wrap round the grip: each finger's middle joint a finger's thickness from its line
     H.hands.set('fist');
@@ -146,7 +144,15 @@ for (const body of ['v1', 'plain']) {
         const axis = v(0, 1, 0).transformDirection(g.matrixWorld), wantAxis = grip.axis.clone().transformDirection(hand.matrixWorld);
         assert.ok(axis.dot(wantAxis) > 0.9999, `${S.clip}: the blade along the fist's grip`);
         const b = blade.device.root; b.updateWorldMatrix(true, false);
-        assert.ok(v().setFromMatrixPosition(b.matrixWorld).distanceTo(mount.position.clone().applyMatrix4(B.hand_l.matrixWorld)) < 1e-3, `${S.clip}: the bracer on the hand`);
+        // the bracer on this frame's forearm, FOREARM.along of the way from the elbow to the wrist, its face out of the
+        // forearm the back of the hand's way (issue #284: strapped like a real shield, following the arm's bones)
+        const el = B.lowerarm_l.getWorldPosition(v()), wr = B.hand_l.getWorldPosition(v()), at2 = v().setFromMatrixPosition(b.matrixWorld);
+        const axis2 = wr.clone().sub(el).normalize(), along = at2.clone().sub(el).dot(axis2) / wr.distanceTo(el);
+        assert.ok(Math.abs(along - FOREARM.along) < 0.02, `${S.clip}: along the forearm (${along.toFixed(2)})`);
+        const off = at2.clone().sub(el).addScaledVector(axis2, -at2.clone().sub(el).dot(axis2)).length();
+        assert.ok(Math.abs(off - FOREARM.lift) < 3e-3, `${S.clip}: on its outside (${off.toFixed(3)} m off the bone line)`);
+        const out = v(0, 0, 1).transformDirection(b.matrixWorld), back = mount.outHand.clone().transformDirection(B.hand_l.matrixWorld);
+        assert.ok(Math.abs(out.dot(axis2)) < 1e-3 && out.dot(back) > 0.7, `${S.clip}: facing out, the back of the hand's way (${out.dot(back).toFixed(2)})`);
         // the swings cut edge first: the tip's motion across the blade along its edge
         if (SWINGS.includes(S) && s.phase === 'strike') {
           const tip = at.clone().addScaledVector(axis, 0.9);
@@ -161,17 +167,18 @@ for (const body of ['v1', 'plain']) {
 }
 
 for (const body of ['v1', 'plain']) {
-  test(`${body} traveller: in the block pose the shield covers both sides alike, 50–55° each way of facing, hinged to the bracer`, async () => {
+  test(`${body} traveller: in the block pose the shield covers both sides alike, 50–60° each way of facing, on its knuckle off the forearm`, async () => {
     const { p, tool, tick } = await armed(body);
     const blade = tool.blade, D = blade.device;
     for (let i = 0; i < 90; i++) tick({ KeyZ: true });
     const a = blade.guardArc, f = p.frame.dir(p.heading, v()), side = v().crossVectors(p.frame.up, f);
     const centre = Math.atan2(a.dir.dot(side), a.dir.dot(f)) * 180 / Math.PI, half = a.half * 180 / Math.PI;
     assert.ok(Math.abs(centre) <= 5, `centred ${centre.toFixed(1)}° from facing`);
-    assert.ok(half >= 50 && half <= 55.5, `${half.toFixed(1)}° each side (left ${(half + centre).toFixed(0)}°, right ${(half - centre).toFixed(0)}°)`);
+    assert.ok(half >= 50 && half <= 60, `${half.toFixed(1)}° each side (left ${(half + centre).toFixed(0)}°, right ${(half - centre).toFixed(0)}°)`);
     const chest = p.pos.clone().addScaledVector(p.frame.up, 1.1), c = D.centre.clone().sub(chest);
-    assert.ok(Math.abs(c.dot(side)) < 0.06, `on the chest's middle line (${c.dot(side).toFixed(2)} m off it)`);
-    assert.ok(D.arm.visible && D.rod.scale.y > 0.15 && D.rod.scale.y <= SHIELD.arm + SHIELD.stand + 1e-6, `on its arm from the bracer (${D.rod.scale.y.toFixed(2)} m)`);
+    assert.ok(Math.abs(c.dot(side)) < 0.12 && c.dot(f) > 0.25 && c.dot(p.frame.up) > 0, `before the chest, the arm braced across (${c.dot(side).toFixed(2)} m left, ${c.dot(f).toFixed(2)} ahead, ${c.dot(p.frame.up).toFixed(2)} up)`);
+    const bracer = v().setFromMatrixPosition(D.root.matrixWorld);
+    assert.ok(D.root.parent === p.humanoid.b.lowerarm_l && Math.abs(D.centre.distanceTo(bracer) - SHIELD.stand) < 0.01, `on its knuckle off the forearm's bracer (${D.centre.distanceTo(bracer).toFixed(3)} m)`);
     // the arc is the drawn blob's: its reach either side off the edge as drawn
     const n = D.normal.clone().setY(0).normalize(), s2 = v().crossVectors(p.frame.up, n).normalize();
     const reach = Math.max(...D.outline.map((q) => q.clone().sub(D.centre).dot(s2)));
@@ -190,7 +197,7 @@ test('put away climbing, swimming, in a scene and knocked down; the bracer stays
   for (const [k, val] of [['swim', true], ['climbing', true], ['down', true]]) {
     for (let i = 0; i < 30; i++) { p[k] = val; tool.update(dt, { KeyZ: true }); }
     assert.ok(blade.sheath.held === 0 && blade.group.parent === p.humanoid.chestAnchor && blade.group.visible, `${k}: the blade back on his back`);
-    assert.ok(blade.device.root.visible && blade.device.s.k === 0, `${k}: the bracer folded on the hand`);
+    assert.ok(blade.device.root.visible && blade.device.s.k === 0, `${k}: the bracer folded on the forearm`);
     p[k] = k === 'swim' ? null : false;
   }
   for (let i = 0; i < 30; i++) tool.update(dt, { KeyZ: true }, true);   // (a scene: the tool paused)

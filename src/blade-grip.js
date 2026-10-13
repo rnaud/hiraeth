@@ -14,10 +14,13 @@ import * as THREE from 'three';
 //     centres (the little finger's to the index's) is the grip, and the blade leaves the fist on the
 //     index's side. The edge faces the way the fingers point out of the palm (the knuckles' way, as
 //     a sword is held), its flat to the palm's side.
-//   - the bracer: on the back of the left hand, over the middle of its bones, its face out.
+//   - the bracer (bracerMount): on the back of the left hand, over the middle of its bones, its face out; the shield's
+//     own (forearmMount) is strapped round the left forearm, near the wrist (issue #284).
 //
 //   fistGrip(humanoid)       { bone, position, quaternion } for the hilt (+y up the blade, +x the edge)
-//   bracerMount(humanoid)    { bone, position, quaternion } for the bracer (+z out of the back of the hand, +y to the fingers)
+//   bracerMount(humanoid)    { bone, position, quaternion } on the back of the hand (+z out of its back, +y to the fingers)
+//   forearmMount(humanoid)   the shield's bracer strapped round the left forearm (+z out, +y to the hand), turning with
+//                            the hand (forearmFrame each frame; issue #284)
 //   carry(object, mount)     parent `object` to the mount's bone, there (and at world size each frame: fitScale)
 
 export const GRIP = {
@@ -27,6 +30,10 @@ export const GRIP = {
 export const BRACER = {
   along: 0.45,       // share of the way from the wrist to the knuckles
   lift: 0.028,       // m off the hand's bone line, out of its back (half the hand's thickness)
+};
+export const FOREARM = {
+  along: 0.7,        // share of the way from the elbow to the wrist the shield's bracer is strapped (issue #284)
+  lift: 0.042,       // m off the forearm's bone line, out of its back (the forearm's half thickness and the strap)
 };
 
 /** The centre of the circle through three points, or null if they are (nearly) in a line. */
@@ -136,6 +143,48 @@ export function bracerMount(humanoid, s = 'l') {
     const quaternion = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, along, out));
     return { bone: hand, position, quaternion, along: along.clone(), out };
   });
+}
+
+/**
+ * Where the shield's bracer is strapped (issue #284): round the left forearm, FOREARM.along of the way from the elbow
+ * to the wrist, on its outside (the back of the hand's side), in the forearm bone's frame: +y along the forearm toward
+ * the hand, +z out of it. `outHand` is the back of the hand's way in the hand bone's frame: the strap turns with the
+ * hand as a forearm does near the wrist (forearmFrame, each frame), where the forearm bone itself does not roll.
+ */
+export function forearmMount(humanoid, s = 'l') {
+  const B = humanoid?.b, arm = B?.[`lowerarm_${s}`], hand = B?.[`hand_${s}`];
+  if (!arm || !hand) return null;
+  return withPose(humanoid, 'fist', () => {
+    hand.updateMatrixWorld(true);
+    const hinv = new THREE.Matrix4().copy(hand.matrixWorld).invert();
+    const { palm } = handAxes(B, s, hinv);
+    const outHand = palm.clone().negate();
+    const inv = _m.copy(arm.matrixWorld).invert();
+    const wrist = local(hand, inv), len = wrist.length(), along = wrist.clone().normalize();
+    const mount = { bone: arm, hand, along, len, outHand, position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), out: new THREE.Vector3() };
+    forearmFrame(mount);
+    return mount;
+  });
+}
+
+const _o = new THREE.Vector3(), _x = new THREE.Vector3(), _mb = new THREE.Matrix4(), _mi = new THREE.Matrix4();
+/**
+ * The bracer's place on the forearm this frame (forearmMount's mount, written in place: position, quaternion, out, in
+ * the forearm bone's frame): its outside the back of the hand's way as the hand is turned now, square to the forearm.
+ */
+export function forearmFrame(mount) {
+  const { bone, hand, along, len, outHand } = mount;
+  bone.updateWorldMatrix(true, false); hand.updateWorldMatrix(false, false);
+  _mi.copy(bone.matrixWorld).invert();
+  const o = _o.copy(outHand).transformDirection(hand.matrixWorld).transformDirection(_mi);
+  o.addScaledVector(along, -o.dot(along));
+  if (o.lengthSq() < 1e-8) return mount;   // (the hand bent straight along it: keep the last)
+  o.normalize();
+  mount.out.copy(o);
+  mount.position.copy(along).multiplyScalar(len * FOREARM.along).addScaledVector(o, FOREARM.lift);
+  const x = _x.crossVectors(along, o).normalize();
+  mount.quaternion.setFromRotationMatrix(_mb.makeBasis(x, along, o));
+  return mount;
 }
 
 /** Parent `object` to `mount.bone` where the mount says, at world size (fitScale). */

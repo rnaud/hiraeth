@@ -36,7 +36,7 @@ export const ITEMS = {
   },
   shield: {
     name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: on the far landing of the Hall of Fires, where the Givers’ watcher stands.',
-    text: 'A brass disc on a bracer that opens like a fan. Hold {key:guard}: it takes a blow from in front, turns one back if raised just in time, and sends a bolt back where it came from.',
+    text: 'A brass flower on your forearm that opens into living fluid. Hold {key:guard}: it takes a blow from in front, turns one back if raised in time, and sends a bolt back.',
   },
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',

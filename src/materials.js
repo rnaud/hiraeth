@@ -3055,7 +3055,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
     mat.uniforms.uFluidDome = { value: new THREE.Vector4(0, 0, 0, 0) };   // (the round backpack's dome: fluid-tool.js buildFlask sets it)
     mat.uniforms.uFluidDomeK = { value: 1 };
-    if (o.fluid === 'blade') bladeMaterial(mat);   // the sword's living blade (blade-shader.js)
+    if (o.fluid === 'blade') bladeMaterial(mat, { disc: !!o.disc });   // the sword's living blade (blade-shader.js); o.disc: the guard's shield
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
   if (o.mirror) {

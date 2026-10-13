@@ -121,7 +121,7 @@ function over(w, id, k) {
  *   prop     a held prop in the right hand (PROP_GRIPS)
  *   aim      0..1 aiming the glove: the right fist, the left cupped under it
  *   sword    0..1 the fluid blade drawn: the right hand a fist round its grip (src/blade-grip.js)
- *   shield   0..1 the shield open on the back of the left hand: that hand a fist
+ *   shield   0..1 the shield open on the left forearm: that hand a fist
  *   handoff  0..1 both hands on the tank
  *   startle  0..1 a fright (splayed hands)
  *   talk     { tone, k (0..1), beat (0..1) } speaking a line: a gesture in its tone

@@ -1,27 +1,33 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
-import { bracerMount, carry, fitScale } from './blade-grip.js';
+import { forearmMount, forearmFrame, carry, fitScale } from './blade-grip.js';
+import { SWORD_TONES } from './fluid-sword.js';
+import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
 
-// The shield: a makers' brass disc worn on the back of the traveller's left hand (src/blade-grip.js
-// bracerMount), always there with the backpack, folded small. Raise the guard (LB / L1) and it opens
-// in a blink: six brass petals spin out of the disc round the hub, a brass ring closes round them,
-// and the tank's fluid spills out beyond them: no disc but a living blob of it, its edge never quite
-// round, rippling as it flows, drawn as ink would draw it (a few swirling strokes following the flow
-// round the hub, a bright wavy rim inked on its outside, the traveller seen through the gaps). As it
-// opens it slides off the back of the hand on a short brass arm to the middle of the chest, where it
-// covers both sides alike, and swivels on its hub to face the guard's way. Held, a ripple runs out to
-// the rim; a block sends ripples running out, a perfect parry bursts bright rings off it, a blow it
-// cannot take (the tank empty) cracks it and it flickers; let go and the fluid drains back into the
-// hub, the arm folds back onto the hand and the petals fold away.
+// The shield (issue #284; references/Core Objects/Fluid Shield/shield-turnaround, guard-poses): a makers' brass hub
+// on a leather bracer strapped round the traveller's left forearm (src/blade-grip.js forearmMount), always there
+// with the backpack, folded small: six brass petals closed round the hub. Raise the guard (LB / L1) and it opens in a
+// blink: the petals spin out inside a riveted brass ring, the hub stands off the bracer on its short knuckled arm,
+// and the tank's fluid floods out round them into a living disc of the sword's own water (src/blade-shader.js,
+// BLADE_DISC: the currents wound in a slow swirl round the hub, the pen round them, ripples, motes, the breathing
+// glow), its edge never quite round, rippling, a bright pale lemon rim. The arm that wears it raises it: the guard
+// clip's, braced a little across so the hub stands before the chest (brace), the face turned on its knuckle to the
+// guard's way. Seen from behind him (the camera) its back sheet is see-through but for the rim, the swirl's strokes
+// and a print screen of the water. A block sends a ring running out to the rim, a perfect parry bursts bright rings
+// off it, a blow it cannot take (the tank empty) cracks it and it flickers; let go and the fluid drains back into
+// the hub and the petals fold away.
 //
 //   new ShieldState()            the pure state machine: update(dt, want) -> 'open' | 'close' | null,
 //                                hit('block' | 'perfect' | 'broken'); open, fill, ribs(i), flare, flash, crack
 //   blobRadius(theta, t, wobble) the fluid's edge (unit radius about 1): never a circle, rippling with time
 //   shieldArc(chest, centre, normal, radius, up)   the bearing a shape covers round the chest (the guard's arc);
 //                                radius a number (a disc) or { plus, minus } (its reach either side, measured)
-//   centreTarget(...)            where the open shield sits: off the bracer toward the chest's middle line
+//   braceShift(hub, chest, dir, up, w)   how far the raised arm is brought across so the hub stands before the chest
+//   dishZ(s)                     the disc's face (m, out of the hub's plane) at s of the way to the rim: a shallow dish
+//   shieldMaterial(key)          the disc's water: the sword's blade material, spread (BLADE_DISC)
 //   new ShieldDevice(tool)       the drawn device: update(dt, { want, dir, up, chest }) after the pose, arc() for the guard
+//   buildShieldFace(key)         the open face alone (the box's reveal, the menu's picture)
 
 export const SHIELD = {
   radius: 0.35,       // m, open (the blob's mean reach; the traveller stays in sight behind it)
@@ -30,11 +36,13 @@ export const SHIELD = {
   ribs: 6,
   open: 0.16,         // s to open (the guard is up at half of it: GUARD in src/fluid-blade.js)
   close: 0.14,        // s to fold away
-  stand: 0.03,        // m the open shield stands off the back of the hand (before the arm swings it in)
+  stand: 0.05,        // m the open hub stands off the bracer on its knuckled arm (folded: `folded`)
+  folded: 0.012,
   slack: 0.15,        // m round the rim a blow still meets it (the foe's swing is not a line)
-  // open, it slides off the bracer on its arm to the chest's middle line: `pull` of the way across, its
-  // reach ahead of the chest kept within `ahead` (m, min and max), at most `arm` m from the bracer
-  pull: 1, ahead: [0.36, 0.44], arm: 0.42,
+  // raised, the arm is brought across (brace) so the bracer stands `middle` m to the left of the chest's middle line,
+  // by `brace` m at most
+  middle: 0.05, brace: 0.3,
+  swivel: 1.3,        // rad its face turns on the knuckle off the forearm's outside, at most
   wobble: 1,          // the edge's ripple at rest (1: the blob's own); spilling out and struck it ripples more
   flare: 0.25, flash: 0.4, crack: 0.7,   // s each hit's look lasts
 };
@@ -113,17 +121,36 @@ export function shieldArc(chest, centre, normal, radius, up = new THREE.Vector3(
 }
 
 /**
- * Where the open shield's hub goes (world), from the bracer's `bracer` and the chest's `chest`, the guard's
- * flat way `dir` and `up`: slid across toward the chest's middle line by `pull`, its reach ahead of the chest
- * kept within `ahead`, its height the hand's; never more than `arm` from the bracer (the brass arm's length).
- * `w` (0..1) how far it has slid (it slides as it opens). Pure but for the vectors; writes `out`.
+ * How far to bring the raised arm across (world, flat, toward his right): the bracer at `hub` (world) stands
+ * SHIELD.middle to the left of the chest's middle line (`chest`, the guard's flat way `dir`, `up`), moved
+ * SHIELD.brace at most, never out to the left; `w` (0..1) how raised. Pure but for the vectors; writes `out`.
  */
-export function centreTarget(bracer, chest, dir, up, w = 1, out = new THREE.Vector3(), { pull = SHIELD.pull, ahead = SHIELD.ahead, arm = SHIELD.arm } = {}) {
-  const d = new THREE.Vector3().subVectors(bracer, chest), side = new THREE.Vector3().crossVectors(up, dir).normalize();
-  const across = d.dot(side), fwd = d.dot(dir);
-  const want = new THREE.Vector3().addScaledVector(side, -across * pull).addScaledVector(dir, THREE.MathUtils.clamp(fwd, ahead[0], ahead[1]) - fwd);
-  if (want.length() > arm) want.setLength(arm);
-  return out.copy(bracer).addScaledVector(want, w);
+export function braceShift(hub, chest, dir, up, w = 1, out = new THREE.Vector3(), { middle = SHIELD.middle, brace = SHIELD.brace } = {}) {
+  const left = new THREE.Vector3().crossVectors(up, dir).normalize();
+  const across = new THREE.Vector3().subVectors(hub, chest).dot(left);
+  return out.copy(left).multiplyScalar(-THREE.MathUtils.clamp(across - middle, 0, brace) * w);
+}
+
+/** The disc's face at `s` (0 the hub .. 1 the rim), m out of the hub's plane: a shallow dish, its rim a little forward. */
+export const dishZ = (s) => -0.011 + 0.028 * s * s;
+/** The lens's thickness at `s` (m): thickest at the hub (the sheet's side view). */
+const lens = (s) => 0.002 + 0.01 * (1 - s * s);
+
+/**
+ * A petal: a brass paddle, narrow at the hub and round at its end (the sheet's flower), y 0..1 along it (scaled to
+ * its length as it spins out), x across in metres, a few millimetres thick.
+ */
+function petalGeometry() {
+  const P = new THREE.Shape(), w = 0.024, n = 0.006;
+  P.moveTo(-n, 0.05); P.bezierCurveTo(-n * 1.5, 0.3, -w, 0.45, -w, 0.68);
+  P.bezierCurveTo(-w, 0.98, w, 0.98, w, 0.68); P.bezierCurveTo(w, 0.45, n * 1.5, 0.3, n, 0.05); P.closePath();
+  return new THREE.ExtrudeGeometry(P, { depth: 0.004, bevelEnabled: false, curveSegments: 6 }).translate(0, 0, 0.002);
+}
+
+/** The disc's water: the sword's living blade material (src/fluid-sword.js swordMaterial's tones), spread (BLADE_DISC). */
+export function shieldMaterial(key = 'fluid-shield') {
+  const T = SWORD_TONES;
+  return makeMaterial({ color: '#ffffff', fluid: 'blade', disc: true, glow: 0.5, fluidBase: T.base, fluidTones: [T.cream, T.deep, T.pale, T.gold, T.base, T.light], key });
 }
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4();
@@ -165,70 +192,129 @@ class Stroke {
   }
 }
 
-/** The device on the left hand, drawn: the brass disc, its arm, the petals, the fluid, its rim, the cracks. */
+/**
+ * The fluid's disc: a lens of two sheets (the face, +z, aFold.y 1; the back, aFold.y 0.5), RINGS rings of SEGS points
+ * round a centre; x, y in units of its reach (the mesh is scaled by it), z in metres (dishZ, lens). Rebuilt each frame
+ * to the edge's ripple (blobRadius); aFold.x the share of the way out (0 the hub .. 1 the edge).
+ */
+const RINGS = 9, SEGS = 72;
+class Disc {
+  constructor(material) {
+    const per = 1 + RINGS * SEGS, n = per * 2;
+    const pos = new Float32Array(n * 3), fold = new Float32Array(n * 2);
+    const idx = [];
+    for (let sheet = 0; sheet < 2; sheet++) {
+      const o = sheet * per, back = sheet === 1;
+      for (let r = 0; r < RINGS; r++) for (let i = 0; i < SEGS; i++) {
+        const j = (i + 1) % SEGS, a = o + 1 + r * SEGS + i, b = o + 1 + r * SEGS + j;
+        if (r === 0) { if (back) idx.push(o, b, a); else idx.push(o, a, b); continue; }
+        const c = a - SEGS, d = b - SEGS;
+        if (back) idx.push(c, b, a, c, d, b); else idx.push(c, a, b, c, b, d);
+      }
+      for (let v = 0; v < per; v++) {
+        const s = v === 0 ? 0 : (1 + Math.floor((v - 1) / SEGS)) / RINGS;
+        fold[(o + v) * 2] = s; fold[(o + v) * 2 + 1] = back ? 0.5 : 1;
+      }
+    }
+    this.geo = new THREE.BufferGeometry();
+    this.geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    this.geo.setAttribute('aFold', new THREE.BufferAttribute(fold, 2));
+    this.geo.setIndex(idx);
+    this.per = per;
+    this.mesh = new THREE.Mesh(this.geo, material);
+    this.mesh.name = 'shield fluid';
+  }
+  /** Its edge at time t with `wobble` (blobRadius), its reach R (m). */
+  build(R, t, wobble) {
+    const pos = this.geo.attributes.position.array, per = this.per;
+    for (let sheet = 0; sheet < 2; sheet++) {
+      const o = sheet * per;
+      pos.set([0, 0, dishZ(0) - (sheet ? lens(0) : 0)], o * 3);
+      for (let i = 0; i < SEGS; i++) {
+        const th = (i / SEGS) * Math.PI * 2, e = blobRadius(th, t, wobble), cx = Math.cos(th) * e, cy = Math.sin(th) * e;
+        for (let r = 0; r < RINGS; r++) {
+          const s = (r + 1) / RINGS, k = (o + 1 + r * SEGS + i) * 3;
+          pos[k] = cx * s; pos[k + 1] = cy * s; pos[k + 2] = dishZ(s) - (sheet ? lens(s) : 0);
+        }
+      }
+    }
+    this.mesh.scale.set(R, R, 1);
+    this.geo.attributes.position.needsUpdate = true;
+    this.geo.computeVertexNormals();
+    this.geo.computeBoundingSphere();
+  }
+}
+
+/** The device on the left forearm, drawn: the bracer and its folded hub, the knuckled arm, the petals, the fluid, the cracks. */
 export class ShieldDevice {
-  constructor(tool) {
+  constructor(tool, { key = 'fluid-shield' } = {}) {
     this.tool = tool;
     this.s = new ShieldState();
     const brass = makeMaterial({ color: '#c99a46', metal: 'brass', key: 'fluid-blade-brass' });
     const dark = makeMaterial({ color: '#5b4326', metal: 'brass', key: 'shield-brass-dark' });
+    const leather = makeMaterial({ color: '#7a4a2c', key: 'shield-strap' });
     const edge = makeMaterial({ color: '#fffbea', flat: true, glow: 1, key: 'fluid-blade-edge' });
     const ink = makeMaterial({ color: '#2b211f', flat: true, key: 'shield-crack' });
+    this.fluid = shieldMaterial(key);
     this.root = new THREE.Group();
     this.root.name = 'shield bracer';
-    // the disc on the back of the hand: a brass drum with a raised rim and a bead of fluid at its hub, strapped round the palm
+    // the bracer: a worn leather strap round the forearm (its bone line FOREARM.lift under the root: blade-grip.js), a
+    // brass plate riveted on its outside; on the plate the folded hub: a brass drum with a raised rim, the petals' ends
+    // drawn on its face like the leaves of a closed iris, a bead of the fluid at its middle. One mesh a material (worn
+    // in every view; issue #111)
+    const strap = new THREE.CylinderGeometry(0.041, 0.039, 0.05, 18, 1, true).translate(0, 0, -0.042);
+    const strap2 = new THREE.CylinderGeometry(0.037, 0.035, 0.026, 18, 1, true).translate(0, -0.075, -0.042);
+    this.strap = new THREE.Mesh(mergeGeometries([strap, strap2]), leather);
+    const plate = new THREE.BoxGeometry(0.05, 0.062, 0.006).translate(0, -0.006, -0.001);
     const disc = new THREE.Group();
-    disc.add(new THREE.Mesh(new THREE.CylinderGeometry(SHIELD.hub, SHIELD.hub * 1.06, 0.01, 18).rotateX(Math.PI / 2).translate(0, 0, 0.002), brass));
-    // its rim and the ribs folded into it, their ends drawn on its face like the leaves of a closed iris: one mesh (the
-    // same dark brass, never moved apart: 1 draw a pass instead of 7, worn in every view; issue #111)
-    const darkParts = [new THREE.TorusGeometry(SHIELD.hub * 0.92, 0.0035, 5, 20).translate(0, 0, 0.0085)];
+    const darkParts = [new THREE.TorusGeometry(SHIELD.hub * 0.92, 0.0035, 5, 20).translate(0, 0, 0.0085 + SHIELD.folded)];
     for (let i = 0; i < SHIELD.ribs; i++) {
       const a = (i / SHIELD.ribs) * Math.PI * 2;
-      darkParts.push(new THREE.BoxGeometry(0.0025, SHIELD.hub * 0.5, 0.002).translate(0, SHIELD.hub * 0.5, 0.0078).rotateZ(a + 0.35));
+      darkParts.push(new THREE.BoxGeometry(0.0025, SHIELD.hub * 0.5, 0.002).translate(0, SHIELD.hub * 0.5, 0.0078 + SHIELD.folded).rotateZ(a + 0.35));
     }
+    for (const [x, y] of [[-0.019, 0.022], [0.019, 0.022], [-0.019, -0.034], [0.019, -0.034]]) darkParts.push(new THREE.SphereGeometry(0.0035, 6, 4).translate(x, y, 0.002));   // (the plate's rivets)
+    disc.add(new THREE.Mesh(mergeGeometries([plate, new THREE.CylinderGeometry(SHIELD.hub, SHIELD.hub * 1.06, 0.01, 18).rotateX(Math.PI / 2).translate(0, 0, 0.002 + SHIELD.folded)]), brass));
     disc.add(new THREE.Mesh(mergeGeometries(darkParts), dark));
-    this.bead = new THREE.Mesh(new THREE.SphereGeometry(0.014, 12, 8).scale(1, 1, 0.5).translate(0, 0, 0.008), tool.globMat);
+    this.bead = new THREE.Mesh(new THREE.SphereGeometry(0.014, 12, 8).scale(1, 1, 0.5).translate(0, 0, 0.008 + SHIELD.folded), this.fluid);
     disc.add(this.bead);
-    this.root.add(disc);
-    // the arm: a brass rod from a knuckle on the disc to the shield's hub, swung out as it opens
+    this.disc = disc;
+    this.root.add(this.strap, disc);
+    // the arm: a short brass link from a knuckle on the plate to the hub's back, swung out as it opens
     this.arm = new THREE.Group();
-    this.rod = new THREE.Mesh(new THREE.CylinderGeometry(0.0065, 0.009, 1, 6).translate(0, 0.5, 0), brass);
-    this.knuckle = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 6), dark);
+    this.rod = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.01, 1, 8).translate(0, 0.5, 0), brass);
+    this.knuckle = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), dark);
+    this.knuckle.position.set(0, 0, 0.006);
     this.arm.add(this.rod, this.knuckle);
     this.root.add(this.arm);
-    // the shield: on the arm's end, swivelled to face the guard's way (face). Round the hub a collar of six
-    // brass petals and a brass ring (the only solid part); beyond them the fluid as ink would draw it: a
-    // few swirling strokes round the hub, a wavy bright rim with its ink line outside, a ripple running out
-    // (the game's materials are opaque: the see-through is the gaps between the strokes)
+    // the shield: on the arm's end, turned on its knuckle to face the guard's way (face). Round the hub six brass
+    // petals inside a riveted brass ring (the solid part, before the water); round them the disc of fluid
     this.face = new THREE.Group();
     this.root.add(this.face);
     this.ribs = [];
     for (let i = 0; i < SHIELD.ribs; i++) {
       const pivot = new THREE.Group(), tilt = new THREE.Group();
-      const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.012, 1, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 0.22).translate(0, 0.5, 0.004), brass);
+      const petal = new THREE.Mesh(petalGeometry(), brass);
       const tip = new THREE.Mesh(new THREE.SphereGeometry(0.007, 6, 5), dark);
-      tilt.add(plate, tip); pivot.add(tilt);
+      tilt.add(petal, tip); pivot.add(tilt);
       this.face.add(pivot);
-      this.ribs.push({ pivot, tilt, rib: plate, tip, home: (i / SHIELD.ribs) * Math.PI * 2 });
+      this.ribs.push({ pivot, tilt, rib: petal, tip, home: (i / SHIELD.ribs) * Math.PI * 2 });
     }
-    this.collar = new THREE.Mesh(new THREE.TorusGeometry(SHIELD.petal * 0.92, 0.006, 6, 36), brass);
-    // the fluid (in metres: the strokes are rebuilt each frame at the shield's size)
+    const ringParts = [new THREE.TorusGeometry(SHIELD.petal * 1.02, 0.008, 6, 40), new THREE.CylinderGeometry(SHIELD.hub * 0.55, SHIELD.hub * 0.6, 0.016, 14).rotateX(Math.PI / 2).translate(0, 0, 0.008)];
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; ringParts.push(new THREE.SphereGeometry(0.0042, 6, 4).translate(Math.cos(a) * SHIELD.petal * 1.02, Math.sin(a) * SHIELD.petal * 1.02, 0.007)); }
+    this.collar = new THREE.Mesh(mergeGeometries(ringParts.map((g) => g.index ? g.toNonIndexed() : g)), brass);
+    // the fluid (the disc, rebuilt each frame at the shield's size) and a parry's bright rings bursting off its rim
     this.field = new THREE.Group();
-    this.flows = Array.from({ length: 5 }, (_, i) => new Stroke(22, tool.globMat, false, i % 2 ? 0.003 : -0.003));
-    this.rimLine = new Stroke(72, edge, true, 0.004);
-    this.inkLine = new Stroke(72, ink, true, -0.002);
-    this.ripple = new Stroke(56, edge, true, 0.002);
-    this.waves = [new Stroke(56, tool.globMat, true, 0.005), new Stroke(56, edge, true, 0.006)];   // (a block's ripples running out)
-    this.bursts = [new Stroke(56, edge, true, 0.008), new Stroke(56, edge, true, 0.008)];         // (a parry's bright rings off it)
-    this.field.add(...this.flows.map((s) => s.mesh), this.rimLine.mesh, this.inkLine.mesh, this.ripple.mesh, ...this.waves.map((s) => s.mesh), ...this.bursts.map((s) => s.mesh));
-    // the cracks: a zigzag of ink lines across the fluid from near the hub (unit radius: scaled to the shield's)
+    this.water = new Disc(this.fluid);
+    this.bursts = [new Stroke(56, edge, true, 0.022), new Stroke(56, edge, true, 0.022)];
+    this.field.add(this.water.mesh, ...this.bursts.map((s) => s.mesh));
+    // the cracks: a zigzag of ink lines across the fluid from near the hub (x, y in its reach: scaled to it), on its face
     this.cracks = new THREE.Group();
-    const zig = [[0.05, 0.1], [0.32, 0.22], [0.5, 0.12], [0.78, 0.3], [0.97, 0.2]];
+    const zig = [[0.3, 0.1], [0.45, 0.22], [0.6, 0.12], [0.78, 0.3], [0.97, 0.2]];
     for (const turn of [0.3, 2.2, 4.1]) for (let i = 0; i < zig.length - 1; i++) {
       const [r0, a0] = zig[i], [r1, a1] = zig[i + 1];
       const p0 = new THREE.Vector2(Math.cos(turn + a0) * r0, Math.sin(turn + a0) * r0), p1 = new THREE.Vector2(Math.cos(turn + a1) * r1, Math.sin(turn + a1) * r1);
-      const len = p0.distanceTo(p1), seg = new THREE.Mesh(new THREE.BoxGeometry(len, 0.03, 0.012), ink);
-      seg.position.set((p0.x + p1.x) / 2, (p0.y + p1.y) / 2, 0.012);
+      const len = p0.distanceTo(p1), seg = new THREE.Mesh(new THREE.BoxGeometry(len, 0.03, 0.004), ink);
+      seg.position.set((p0.x + p1.x) / 2, (p0.y + p1.y) / 2, dishZ((r0 + r1) / 2) + 0.003);
       seg.rotation.z = Math.atan2(p1.y - p0.y, p1.x - p0.x);
       this.cracks.add(seg);
     }
@@ -241,97 +327,94 @@ export class ShieldDevice {
     this.outline = Array.from({ length: 36 }, () => new THREE.Vector3());   // its edge in the world, for the arc
   }
 
-  /** On the hand once there is a body with hands (else nowhere: no shield drawn, the guard's own arc). */
+  /** On the left forearm once there is a body with arms (else nowhere: no shield drawn, the guard's own arc). */
   attach() {
     const H = this.tool.player?.humanoid;
-    if (H && this.mount?.bone && this.mount.humanoid === H && this.root.parent === this.mount.bone) return true;
-    const m = H?.b?.hand_l ? bracerMount(H) : null;
+    if (H && this.mount?.bone && this.mount.humanoid === H && this.root.parent === this.mount.bone) {
+      forearmFrame(this.mount);
+      carry(this.root, this.mount);
+      return true;
+    }
+    const m = H?.b?.lowerarm_l && H.b.hand_l ? forearmMount(H) : null;
     if (!m) { this.root.removeFromParent(); this.mount = null; return false; }
-    this.mount = { ...m, humanoid: H };
+    this.mount = Object.assign(m, { humanoid: H });
     carry(this.root, this.mount);
+    return true;
+  }
+
+  /**
+   * Raised, the arm that wears it is brought across before the chest (braceShift), as much as it is open: after the
+   * pose (the guard clip's), before update. chest, dir (flat, the guard's way), up: as update's.
+   */
+  brace({ chest = null, dir = null, up = null } = {}) {
+    const H = this.tool.player?.humanoid, B = H?.b, k = smooth(this.s.k, 0, 0.6);
+    if (!chest || !dir || !up || k <= 0 || !B?.upperarm_l || !B.lowerarm_l || !B.hand_l || !H.solveTwoBone || !this.attach()) return false;
+    this.root.updateWorldMatrix(true, false);
+    const hub = _a.setFromMatrixPosition(this.root.matrixWorld), shift = braceShift(hub, chest, dir, up, k, _b);
+    if (shift.lengthSq() < 1e-8) return false;
+    const target = B.hand_l.getWorldPosition(_c).add(shift), pole = B.lowerarm_l.getWorldPosition(_d).addScaledVector(up, -0.1);
+    H.solveTwoBone(B.upperarm_l, B.lowerarm_l, B.hand_l, target, pole, 1);
     return true;
   }
 
   /** The fluid drawn for this frame: R the blob's reach (m), f how far it has flooded, at time t. */
   drawFluid(R, f, t, S) {
-    const wob = S.wobble, TAU = Math.PI * 2;
-    const edgeAt = (th, scale = 1, extra = 0) => R * scale * blobRadius(th, t + extra, wob);
-    // the rim: a bright wavy line (thicker where the edge bulges), its ink line just outside
-    const fill = (stroke, scale, w, out = 0, extra = 0) => {
-      for (let i = 0; i < stroke.n; i++) {
-        const th = (i / stroke.n) * TAU, r = edgeAt(th, scale, extra) + out, p = stroke.pts[i];
-        p[0] = Math.cos(th) * r; p[1] = Math.sin(th) * r; p[2] = w * (0.75 + 0.5 * (blobRadius(th, t, wob) - 0.92) / 0.18);
-      }
-      stroke.build();
-    };
-    fill(this.rimLine, 1, 0.0052 * (1 + 0.6 * S.flare));
-    fill(this.inkLine, 1, 0.003, 0.0085);
-    // the flow: strokes curling out from the collar toward the rim, turning slowly round the hub (the
-    // fluid's tones running along them), each wavering; they reach the rim as the fluid floods out
-    for (let j = 0; j < this.flows.length; j++) {
-      const st = this.flows[j], th0 = (j / this.flows.length) * TAU + t * 0.55, n = st.n;
-      for (let i = 0; i < n; i++) {
-        const u = i / (n - 1), th = th0 + 1.9 * u + 0.18 * Math.sin(3.1 * u + t * 2.3 + j);
-        const r = (SHIELD.petal * 1.05 + (edgeAt(th) * 0.86 - SHIELD.petal * 1.05) * u) * Math.min(1, f * 1.15), p = st.pts[i];
-        p[0] = Math.cos(th) * r; p[1] = Math.sin(th) * r; p[2] = 0.0055 * Math.sin(Math.PI * Math.min(1, u * 1.15)) * (1 + 0.5 * S.flare) + 0.0008;
-      }
-      st.build();
-    }
-    // held, a ripple runs out from the hub to the rim, the blob's shape
-    const run = (t * 0.9) % 1;
-    this.ripple.mesh.visible = f > 0.95 && S.crack === 0;
-    if (this.ripple.mesh.visible) fill(this.ripple, 0.25 + 0.68 * run, 0.0035 * (1 - run * 0.6), 0, 0.4);
-    // a block: two ripples running out past the rim as the flare dies
-    for (let i = 0; i < this.waves.length; i++) {
-      const k = S.flare - i * 0.25, w = this.waves[i];
-      w.mesh.visible = k > 0.02;
-      if (w.mesh.visible) fill(w, 0.35 + (1 - k) * 0.85, 0.006 * k, 0, 0.7 + i);
-    }
+    this.water.build(R, t, S.wobble);
+    // its water's clock and light (src/blade-shader.js: the sword's, spread): the breath, a blow's ring, a parry's flash
+    const U = this.fluid.uniforms;
+    U.uFluidA.value.z = t;
+    U.uBlade.value.set(0, 1, t * BLADE_LOOK.breathRate, BLADE_QUALITY.lite ? 1 : 0);
+    const age = (1 - S.flare) * SHIELD.flare;
+    U.uBladeB.value.set(0, 0, S.flare > 0 ? age : 99, 0.3);
+    U.uBladeC.value.x = S.flash > 0 ? BLADE_LOOK.ripple.parry : BLADE_LOOK.ripple.block;
+    U.uBladeC.value.y = S.flash > 0 ? 0.6 : 0;
+    U.uBladeC.value.z = 0.6 * S.flash;
     // a perfect parry: bright rings bursting off it
+    const TAU = Math.PI * 2;
     for (let i = 0; i < this.bursts.length; i++) {
       const b = this.bursts[i];
       b.mesh.visible = S.flash > 0.02;
-      if (b.mesh.visible) fill(b, (i ? 0.78 : 1.04) + 0.5 * (1 - S.flash), 0.008 * S.flash, 0, 1.5 + i);
+      if (!b.mesh.visible) continue;
+      const scale = (i ? 0.78 : 1.04) + 0.5 * (1 - S.flash), w = 0.008 * S.flash;
+      for (let j = 0; j < b.n; j++) {
+        const th = (j / b.n) * TAU, r = R * scale * blobRadius(th, t + 1.5 + i, S.wobble), p = b.pts[j];
+        p[0] = Math.cos(th) * r; p[1] = Math.sin(th) * r; p[2] = w;
+      }
+      b.build();
     }
   }
 
   /**
    * Per frame, after the pose (src/fluid-blade.js update): want (the guard held), worn (shown at
-   * all), dir (flat, the guard's way), up, chest (the chest's middle: the open shield slides to its
-   * middle line). Returns what the state machine said ('open' | 'close' | null).
+   * all), dir (flat, the guard's way), up, chest (the chest's middle). Returns what the state machine
+   * said ('open' | 'close' | null).
    */
   update(dt, { want = false, worn = true, dir = null, up = null, chest = null, time = 0 } = {}) {
     const S = this.s, said = S.update(dt, want && worn);
     const on = worn && this.attach() && this.tool.player?.object?.visible !== false;
     this.root.visible = on;
     if (!on) return said;
+    if (chest && dir && up) this.brace({ chest, dir, up });
     fitScale(this.root);
     const k = S.k;
     this.face.visible = k > 0.002;
+    this.disc.visible = k < 0.5;   // (the folded hub opens into the face)
     this.arm.visible = false;
     if (this.face.visible) {
       this.root.updateWorldMatrix(true, false);
       this.root.matrixWorld.decompose(_a, _q, _b);
-      // where it sits: off the back of the hand, then (as it opens) slid on its arm to the chest's middle line
-      const stand = _c.set(0, 0, SHIELD.stand * smooth(k, 0, 0.5));
-      if (dir && up && chest) {
-        const slide = smooth(k, 0.1, 0.85);
-        centreTarget(_a, chest, dir, up, slide, _d);
-        this.root.worldToLocal(_d);
-        this.face.position.copy(stand).add(_d);
-        const len = this.face.position.length();
-        this.arm.visible = len > 0.02;
-        if (this.arm.visible) {
-          this.rod.quaternion.setFromUnitVectors(_Y, _b.copy(this.face.position).divideScalar(len));
-          this.rod.scale.set(1, len, 1);
-          this.knuckle.position.set(0, 0, 0.006);
-        }
-      } else this.face.position.copy(stand);
-      // swivel on the hub toward the guard's way, as much as it is open (folded it lies on the hand)
+      // off the bracer on its knuckled arm, out as it opens
+      const stand = THREE.MathUtils.lerp(SHIELD.folded, SHIELD.stand, smooth(k, 0, 0.6));
+      this.face.position.set(0, 0, stand);
+      this.arm.visible = k > 0.15;
+      if (this.arm.visible) { this.rod.position.set(0, 0, 0.006); this.rod.quaternion.setFromUnitVectors(_Y, _Z); this.rod.scale.set(1, Math.max(0.001, stand - 0.012), 1); }
+      // turned on its knuckle toward the guard's way, as much as it is open (folded it lies on the bracer)
       if (dir && up) {
         const z = _a.copy(dir).normalize(), x = _b.crossVectors(up, z).normalize(), y = _c.crossVectors(z, x);
         _q2.setFromRotationMatrix(_m.makeBasis(x, y, z));
-        const turn = smooth(k, 0, 0.7);
+        // (the knuckle turns it SHIELD.swivel at most off the forearm's outside: a strapped shield never faces back)
+        const off = _d.copy(_Z).applyQuaternion(_q).angleTo(z);
+        const turn = smooth(k, 0, 0.7) * Math.min(1, SHIELD.swivel / Math.max(off, 1e-6));
         this.face.quaternion.copy(_q).invert().multiply(_q.clone().slerp(_q2, turn));
       } else this.face.quaternion.identity();
       this.poseFace(time);
@@ -351,24 +434,24 @@ export class ShieldDevice {
   /** The face as open as the state says at `time`: the petals, the brass ring, the fluid and its cracks (update; the box's model). */
   poseFace(time) {
     const S = this.s, k = S.k, R = SHIELD.radius;
-    // the petals spin out of the disc and fan out a little round the hub, the brass ring closing round them
+    // the petals spin out of the hub and spread round it, flat inside the brass ring closing round them
     const shake = S.crack > 0 ? S.crack * 0.08 * Math.sin(time * 70) : 0;
     for (let i = 0; i < this.ribs.length; i++) {
       const r = this.ribs[i], u = S.rib(i, this.ribs.length);
       r.pivot.rotation.z = THREE.MathUtils.lerp(-Math.PI * 0.5 + i * 0.08, r.home, u) + S.spin * 0.04 * (1 - u) + shake * (i % 2 ? 1 : -1);
-      r.tilt.rotation.x = -0.35 * u;   // (fanned back from the face, a shallow cup)
-      const len = THREE.MathUtils.lerp(SHIELD.hub * 0.9, SHIELD.petal, u);
+      r.tilt.rotation.x = 0;
+      const len = THREE.MathUtils.lerp(SHIELD.hub * 0.9, SHIELD.petal * 0.92, u);
       r.rib.scale.set(1, len, 1); r.tip.position.set(0, len, 0.004);
     }
     this.collar.visible = k > 0.5;
     this.collar.scale.setScalar(smooth(k, 0.5, 1));
-    // the fluid spills out of the hub, swells with a blow
+    // the fluid floods out of the hub, swells with a blow
     const f = S.fill, shown = S.shown(time);
     this.reach = Math.max(0.01, R * f * (1 + 0.012 * Math.sin(time * 9) + 0.12 * S.flare));
     this.field.visible = f > 0.01 && shown;
     if (this.field.visible) this.drawFluid(this.reach, f, time, S);
     this.cracks.visible = S.crack > 0.02 && f > 0.3;
-    this.cracks.scale.setScalar(this.reach);
+    this.cracks.scale.set(this.reach, this.reach, 1);
   }
 
   /**
@@ -393,13 +476,13 @@ export class ShieldDevice {
 }
 
 /**
- * The guard as an object (the box's hovering item, the menu's picture: src/boxes/model.js, issue #242): the held
- * device's own face (ShieldDevice: the brass petals, the ring, the living fluid with its bright rim), open, in the
- * fluid material `fluid` (the tool's globs' look, a box's own clock). Unscaled (about 0.75 m across, the blob's
- * reach); `userData.tick(time)` keeps its fluid flowing.
+ * The guard as an object (the box's hovering item, the menu's picture: src/boxes/model.js, issues #242, #284): the
+ * held device's own face (ShieldDevice: the brass petals and the riveted ring, the disc of living fluid with its
+ * bright rim), open, in a shield material of its own (`key`: the box winds its clock). Unscaled (about 0.75 m across,
+ * the blob's reach); `userData.tick(time)` keeps its fluid flowing.
  */
-export function buildShieldFace(fluid) {
-  const d = new ShieldDevice({ globMat: fluid });
+export function buildShieldFace(key = 'box.item.shield') {
+  const d = new ShieldDevice({}, { key });
   d.s.k = 1; d.s.state = 'open';
   const face = d.face;
   face.removeFromParent();

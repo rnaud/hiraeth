@@ -142,7 +142,7 @@ spike on a brass rod while the hand held a broad blade of living fluid; now:
 | Item | Its reveal | Built by |
 | --- | --- | --- |
 | `sword` | the held sword: the wrapped grip, the brass collar and cup, the blade with its currents, ripples, meniscus and breathing glow | `fluid-sword.js buildSword({ key })` |
-| `shield` | the guard open as raised: six brass petals, the ring, the fluid flowing round them, its bright rim | `shield.js buildShieldFace` (the held `ShieldDevice`'s face, `poseFace`) |
+| `shield` | the guard open as raised: six brass petals in the riveted ring, the disc of the sword's water round them, its pale lemon rim (issue #284) | `shield.js buildShieldFace` (the held `ShieldDevice`'s face, `poseFace`) |
 | `backpack` | the flask, unworn (no plate, no straps) | `fluid-tool.js buildFlask` (already so) |
 
 Each fluid has a material of its own (`key: 'box.item.<id>'`: the same options as the one in use, so the same

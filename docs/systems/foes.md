@@ -215,7 +215,7 @@ The first things in the game that fight back, and the tool's answer to them.
 
 ## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
 
-- **Carried by the bones.** The hilt is a child of the right hand's bone and the shield's bracer of the left's,
+- **Carried by the bones.** The hilt is a child of the right hand's bone and the shield's bracer of the left forearm's,
   so they are wherever the hand is drawn after every layer of the frame's pose (clips, motion matching, combat
   moves, aim and foot IK, scene overlays): no lag, nothing to update in order. `carry` parents them;
   `fitScale` undoes the bone's world scale (a taller body holds the same sword).
@@ -223,8 +223,11 @@ The first things in the game that fight back, and the tool's answer to them.
   wraps round the grip, so the circle through its three joints is centred on the grip's axis; the line through
   the four centres (little finger to index) is the grip, the blade out on the index's side, the edge the way the
   fingers point out of the palm (`+x` of the hilt), the flat to the palm. The hilt's origin is the middle of
-  its grip. On the swings the edge leads the tip's motion (|cos| 0.93–0.99), which tests check. The bracer
-  (`bracerMount`) sits on the back of the left hand, over the middle of its bones.
+  its grip. On the swings the edge leads the tip's motion (|cos| 0.93–0.99), which tests check. The shield's bracer
+  (`forearmMount`, issue #284) is strapped round the left forearm, `FOREARM.along` (0.7) of the way from the elbow to
+  the wrist and `FOREARM.lift` (4.2 cm) out of its bone line, on its outside: the way the back of the hand faces as
+  the hand is turned now (`forearmFrame`, each frame: the forearm bone itself never rolls, a real forearm does near
+  the wrist).
 - **Drawn or put away** (`bladeDrawn`, `STANCE`): in the fist while swinging, guarding, evading, locked on, or
   within `STANCE.linger` (2.5 s) of any of those or of a blow taken; put away at once when the tool may not act
   (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
@@ -236,33 +239,41 @@ The first things in the game that fight back, and the tool's answer to them.
   0.12 s, before any cut opens, and the blade lights only in the fist (`FluidBlade.place`: `sheath.held`).
   The hits always read the fist's own frame (`gripMatrix`), never where the hilt is drawn on its way.
 - **The blade's segment** (hits) is read from the hilt's own frame, so it is the drawn blade exactly.
-- **The shield** (`ShieldDevice`): the brass disc always on the hand with the backpack. Open, it is 0.35 m in mean
-  radius (`SHIELD.radius`): a collar of six brass petals (`SHIELD.petal`) and a brass ring round the hub, the
-  only solid parts; beyond them the fluid as a blob, not a disc: its edge `blobRadius(θ, t, wobble)`, three waves
-  of 3, 5 and 8 lobes running round at different speeds (about 0.86–1.1 of the radius), rippling more as it
-  spills out, on a block and cracked (`ShieldState.wobble`). It is drawn in flat two-sided strokes rebuilt each
-  frame (`Stroke`): five strokes of the tank's fluid swirling out from the collar and turning slowly round the
-  hub, a bright wavy rim with an ink line just outside it, a ripple running out to the rim while held (the
-  game's materials are opaque: the see-through is the gaps between strokes). `ShieldState` is the
-  pure state machine (folded → opening → open → closing, and broken): it opens in `SHIELD.open` (0.16 s; the
-  guard counts as up at `guardK` 0.5, unchanged), the six petals spinning out one after another, the fluid
-  flooding out to the rim after them; held a ripple runs out; `hit('block')` flares it (two ripples running out past the rim), `'perfect'` bursts two bright blob-shaped rings off it,
-  `'broken'` (a blow within its arc with the tank empty) cracks and flickers it until it mends; it folds in
-  `SHIELD.close`. It swivels on the hub to face the guard's way as it opens. Sounds: `shieldOpen`,
-  `shieldClose`, `shieldBreak` (src/audio.js), on the state machine's transitions.
+- **The shield** (`ShieldDevice`; issue #284, after `references/Core Objects/Fluid Shield/shield-turnaround` and
+  `guard-poses`): a worn leather bracer round the left forearm with a riveted brass plate, and on it the folded hub,
+  always there with the backpack. Open, it is 0.35 m in mean radius (`SHIELD.radius`): six rounded brass petals
+  (`SHIELD.petal`) spread flat inside a riveted brass ring round the hub, the solid part, standing `SHIELD.stand`
+  (5 cm) off the bracer on a short knuckled arm; round them a disc of the sword's own water (`shieldMaterial`: the
+  blade material, `fluid: 'blade', disc: true`, the BLADE_DISC branch of `src/blade-shader.js`): the same tones,
+  currents, pen line, ripples, motes, breathing glow and soft ink, the currents wound in a slow swirl round the hub,
+  jade where the water is shallow, the edge a bright pale lemon meniscus. Its edge is a blob, not a circle:
+  `blobRadius(θ, t, wobble)`, three waves of 3, 5 and 8 lobes running round at different speeds (about 0.86–1.1 of
+  the radius), rippling more as it floods out, on a block and cracked (`ShieldState.wobble`). The disc (`Disc`) is a
+  lens of two sheets rebuilt each frame to that edge, a shallow dish (`dishZ`: its rim 1.7 cm forward of the hub)
+  thickest at the hub; the back sheet (the camera's side, behind him) is see-through but for the rim, the swirl's
+  strokes and a 22 % print screen of the water (discarded, the game's materials being opaque), so what he guards
+  against stays in sight. `ShieldState` is the pure state machine (folded → opening → open → closing, and broken):
+  it opens in `SHIELD.open` (0.16 s; the guard counts as up at `guardK` 0.5, unchanged), the six petals spinning out
+  one after another, the fluid flooding out to the rim after them; `hit('block')` sends a ring running out to the rim
+  (the blade's ripple, `uBladeB`, `uBladeC`), `'perfect'` a gold-tinged one, a flash and two bright blob-shaped rings
+  bursting off it, `'broken'` (a blow within its arc with the tank empty) cracks and flickers it until it mends; it
+  folds in `SHIELD.close`. Sounds: `shieldOpen`, `shieldClose`, `shieldBreak` (src/audio.js), on the state
+  machine's transitions.
 - **Coverage is the drawn shape.** Each frame `ShieldDevice.arc` measures the bearings between the shield's two
   edges (`SHIELD.radius` + `SHIELD.slack`) as seen from the chest (`shieldArc`); `block()` tests the blow's
   bearing against that arc (`guardArc`), and the hitbox overlay draws the same arc. With no shield drawn,
   `GUARD.angle` is the arc of one held `GUARD.reach` ahead (about 48°). The reach either side is measured off
   the drawn blob's edge (`ShieldDevice.outline`, 36 points: its furthest along the shield's flat side either
   way, never less than 0.9 × `SHIELD.radius` while it floods), so the arc follows the shape as it ripples.
-- **In front of the chest** (`centreTarget`, `SHIELD.pull`, `ahead`, `arm`): as it opens, the shield slides off
-  the bracer on a short brass arm (`ShieldDevice.arm`: a rod from a knuckle on the disc to the shield's hub) to
-  the chest's middle line, its reach ahead of the chest kept within 0.36–0.44 m, at the hand's height, never
-  more than 0.42 m from the bracer; folding, it comes back onto the hand. In the block pose the arc is about
-  52° each side, centred within 2° of facing (v1 traveller: left 53°, right 50°; plain body 55° and 51°);
-  before it was 45° each side of a line 18° left of facing (63° left, 28° right). `tests/blade-grip.test.js`
-  checks 50–55° and ±5° on both bodies.
+- **Raised by the arm that wears it** (`brace`, `braceShift`, `SHIELD.middle`, `brace`, `swivel`): the guard clip
+  (`mixamo_ss_block_idle`) raises the left forearm; as the shield opens the arm is brought across (a two-bone solve
+  of the left arm after the pose) so the bracer stands `SHIELD.middle` (5 cm) left of the chest's middle line, moved
+  `SHIELD.brace` (0.3 m) at most, never out to the left, and the face turns on its knuckle toward the guard's way, at
+  most `SHIELD.swivel` (1.3 rad) off the forearm's outside (a strapped shield never faces back). In the block pose
+  its hub is about 6 cm left of the middle line, 0.3–0.4 m ahead and 0.25–0.3 m over the chest, the arc 52° each side
+  centred 4° from facing on the v1 traveller (58° and 3.5° on the plain body); `tests/blade-grip.test.js` checks
+  50–60° and ±5° on both bodies, and the bracer on the forearm on every frame of every combat clip. Before (v0.93 to
+  v1.66) the shield's disc sat on the back of the hand and the open shield slid on a 0.42 m brass arm to the chest.
 - **Inspect:** the studio (`studio.html?backpack=true&sword=true&shield=1&view=arms`, any clip scrubbed with
   `anim=clip:mixamo_ss_slash_1&paused=true&time=0.4`; views `hands` and `bracer` for close-ups; `guard=block|
   parry|broken`) runs the blade's own placing code (`FluidBlade.inspect`). `tests/blade-grip.test.js` samples

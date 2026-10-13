@@ -52,6 +52,10 @@ export const BLADE_LOOK = {
 };
 
 const v4 = (...a) => new THREE.Vector4(...a);
+/** The shield's back sheet (seen from behind him): the share of its water kept as a print screen between the strokes. */
+const SEE = 0.22;
+/** The shield's jade, where its water is shallow (the sheet's green through the turquoise). */
+const JADE = ((c) => `vec3(${c.r.toFixed(3)}, ${c.g.toFixed(3)}, ${c.b.toFixed(3)})`)(new THREE.Color('#7ccf96'));
 
 /**
  * The graphics preset's say (main.js applyDetail, bladeLiteFor): `lite` leaves out the ripples' lines, the motes and the
@@ -65,9 +69,12 @@ export const BLADE_QUALITY = { lite: false };
  */
 export const bladeLiteFor = (preset, low = !!preset?.lowDetail) => !!preset?.postLite || (low && preset?.key !== 'deck');
 
-/** Turn a fresh makeMaterial() fluid material into the living blade (o.fluid === 'blade'). */
-export function bladeMaterial(mat) {
-  mat.defines = { ...mat.defines, BLADE_FLUID: 1 };
+/**
+ * Turn a fresh makeMaterial() fluid material into the living blade (o.fluid === 'blade'); `disc`: the same water spread
+ * as the guard's shield (src/shield.js: BLADE_DISC, the currents swirled round the hub).
+ */
+export function bladeMaterial(mat, { disc = false } = {}) {
+  mat.defines = { ...mat.defines, BLADE_FLUID: 1, ...(disc ? { BLADE_DISC: 1 } : {}) };
   Object.assign(mat.uniforms, {
     uBlade: { value: v4(0, 1, 0, 0) },        // x the smear 0..1, y the energy (magic) 0..1, z the breath's phase (rad), w lite (BLADE_QUALITY)
     uBladeB: { value: v4(0, 0, 99, 0.75) },   // xy the lag (object space x, z at the point), z the ripple's age (s), w where it started (v)
@@ -97,6 +104,10 @@ export const BLADE_VERT_PARS = /* glsl */ `
 
 export const BLADE_VERT = /* glsl */ `
   #ifdef BLADE_FLUID
+  #ifdef BLADE_DISC
+  // (the shield: a blow's ring bulges the face out as it runs to the rim)
+  transformed.z += 0.012 * bladeRing(aFold.x);
+  #else
   if (aFold.y > 0.0) {   // (the blade: the bead in the cup has no fold)
     float bu = aFold.x, bv = aFold.y, bs = uBlade.x;
     // the fluid lags the swing: the outer blade bowed back, the side it trails stretched out
@@ -106,6 +117,7 @@ export const BLADE_VERT = /* glsl */ `
     // a wave running up the edges while it smears, and the ripple's ring bulging it
     transformed.x += (sin(bv * 22.0 - uFluidA.z * 9.0) * 0.004 * bs + 0.01 * bladeRing(bv)) * bu;
   }
+  #endif
   #endif
 `;
 
@@ -133,6 +145,77 @@ export const BLADE_FLUID_GLSL = /* glsl */ `
     return max(w, 0.0) * smoothstep(0.03, 0.12, v) * (1.0 - smoothstep(0.93, 0.99, v));
   }
   #endif
+  #ifdef BLADE_DISC
+  // The guard's shield (src/shield.js; docs/systems/foes.md "In the hands"): the blade's water spread into a
+  // living disc round the brass hub. aFold.x 0 at the hub .. 1 at its edge as drawn now (the edge's own wobble is the
+  // geometry's), aFold.y 1 on the face, 0.5 on the back sheet; vBind.xy the disc's plane, its edge about 1 out. The
+  // currents are the blade's, wound in a slow swirl round the hub (the sheet's spiral of streaks), with the same pen
+  // round them, ripples, motes, light and soft ink; the edge a bright pale lemon meniscus.
+  float discSkin(float a, float t) {
+    vec2 c = vec2(cos(a), sin(a));
+    return 0.018 + 0.03 * vnoise(c * 2.3 + vec2(t * 0.45, -t * 0.3)) - 0.03 * bladeRing(1.0);
+  }
+  vec3 bladeFluid(float t) {
+    float s = vFold.x;
+    vec2 xy = vBind.xy;
+    float a = atan(xy.y, xy.x);
+    bool lite = uBlade.w > 0.5;
+    // the swirl: the plane wound more toward the hub, turning slowly
+    float tw = 2.6 * (1.0 - s) + t * 0.22;
+    vec2 sp = mat2(cos(tw), sin(tw), -sin(tw), cos(tw)) * xy;
+    vec2 p = sp * 2.4 + vec2(0.0, -t * 0.15);
+    vec2 q = vec2(vnoise(p * vec2(1.0, 2.0) + vec2(0.0, t * 0.3)), vnoise(p * vec2(1.3, 2.4) + vec2(5.2, 1.3) - vec2(t * 0.2, 0.0)));
+    float f = vnoise(p + 1.7 * q + vec2(1.7, 9.2));
+    float g = vnoise(p * vec2(1.6, 2.6) + 1.3 * q.yx + vec2(4.1, 2.7));
+    // the spiral's arms (whole turns: no seam), broken by the warp
+    float sw = a + 3.2 * s - t * 0.22;
+    float arm = 0.5 + 0.5 * sin(5.0 * sw + 3.0 * f);
+    float cream = 0.55 * f + 0.45 * arm - 0.25 * (1.0 - smoothstep(0.25, 0.5, s)) - 0.1 * smoothstep(0.85, 1.0, s);
+    vec3 col = mix(uFluidBase, fluidTone(1), 0.85 * smoothstep(0.36, 0.22, g - 0.08 * (1.0 - s)));   // deep pools, more by the hub
+    // jade where the water is shallow (the sheet's green through its turquoise)
+    col = mix(col, ${JADE}, 0.45 * smoothstep(0.45, 0.7, f) * smoothstep(0.3, 0.6, s));
+    col = mix(col, fluidTone(0), smoothstep(0.8, 0.86, cream));
+    col = mix(col, fluidTone(2), 0.5 * smoothstep(0.55, 0.62, g) * (1.0 - smoothstep(0.62, 0.7, g)));
+    float cfw = max(fwidth(cream), 1e-4);
+    col = mix(col, fluidTone(1) * 0.72, 0.75 * (1.0 - smoothstep(0.4, 1.2, abs(cream - 0.83) / cfw)) * (1.0 - smoothstep(0.05, 0.12, cfw)));
+    // the swirl's fine strokes: pale lines along the arms (the sheet's ink strokes round the hub, here in the water's light)
+    float ln = sin(9.0 * sw + 1.5 * g);
+    float lw = max(fwidth(ln), 1e-4);
+    col = mix(col, fluidTone(2), 0.45 * (1.0 - smoothstep(0.0, 1.5 * lw, abs(ln - 0.82) - 0.4 * lw)) * (1.0 - smoothstep(0.3, 0.6, lw)) * smoothstep(0.3, 0.45, s));
+    bladeSpark = 0.0; bladeWave = g;
+    if (!lite) {
+      float cn = vnoise(p * vec2(2.2, 3.1) + 2.2 * q + vec2(t * 0.35, -t * 0.5));
+      float cw = max(fwidth(cn), 1e-4);
+      float caus = (1.0 - smoothstep(0.5, 1.5, abs(cn - 0.5) / cw)) * (1.0 - smoothstep(0.06, 0.16, cw)) * smoothstep(0.3, 0.45, s);
+      col = mix(col, mix(fluidTone(2), fluidTone(5), 0.4), 0.6 * caus);
+      bladeWave = cn;
+      // motes: small bubbles drifting out round the swirl
+      vec2 m = sp / 0.07 + vec2(0.0, -t * 2.0);
+      vec2 cell = floor(m), fc = fract(m) - 0.5;
+      float h = bladeHash(cell + vec2(1.3, 7.1));
+      vec2 c = (vec2(bladeHash(cell + 4.1), bladeHash(cell + 9.3)) - 0.5) * 0.5;
+      float r = 0.13 + 0.1 * fract(h * 13.7), d = length(fc - c), mw = max(fwidth(m.y), 1e-4);
+      float inside = step(0.86, h) * smoothstep(0.35, 0.5, s) * (1.0 - smoothstep(0.85, 0.95, s));
+      float ringB = (1.0 - smoothstep(0.0, 1.6 * mw, abs(d - r) - 0.25 * mw)) * inside;
+      float glint = (1.0 - smoothstep(0.0, 1.2 * mw, length(fc - c - vec2(0.35, 0.4) * r) - 0.3 * r)) * inside;
+      col = mix(col, mix(fluidTone(2), fluidTone(5), 0.5), 0.8 * ringB);
+      col = mix(col, vec3(1.0), glint);
+      bladeSpark = max(bladeSpark, max(0.6 * ringB, 0.9 * glint));
+    }
+    // the meniscus: a band paler toward the edge, then the bright pale lemon rim line just inside it
+    float skin = discSkin(a, t), fs = max(fwidth(s), 1e-4);
+    col = mix(col, mix(fluidTone(5), fluidTone(2), 0.5), 0.35 * smoothstep(0.8, 0.97, s));
+    float edge = 1.0 - smoothstep(0.0, max(0.035, 2.2 * fs), 1.0 - s - skin);
+    col = mix(col, mix(fluidTone(3), vec3(1.0, 0.99, 0.82), 0.55), edge);
+    bladeSpark = max(bladeSpark, 0.8 * edge);
+    // a blow's ring running out to the rim, and a parry's flash
+    float ring = bladeRing(s);
+    col = mix(col, mix(mix(fluidTone(5), vec3(1.0), 0.25), fluidTone(3), uBladeC.y), clamp(ring, 0.0, 1.0) * 0.85);
+    col = mix(col, fluidTone(5), uBladeC.z * 0.45);
+    bladeSpark = max(bladeSpark, min(ring, 1.0));
+    return col;
+  }
+  #else
   vec3 bladeFluid(float t) {
     float u = vFold.x, v = vFold.y;
     #ifdef BLADE_FLUID
@@ -200,6 +283,7 @@ export const BLADE_FLUID_GLSL = /* glsl */ `
     #endif
     return col;
   }
+  #endif
   #ifdef BLADE_FLUID
   // its light (after the light term, as the chimes' crystal): the rim, the sun's flecks, the breathing inner glow
   void bladeLight(inout vec3 albedo, inout float L, inout float emit, vec3 n) {
@@ -234,7 +318,21 @@ export const BLADE_FLUID_GLSL = /* glsl */ `
 /** In main(), with the other fluids' discards: the meniscus (the skin's wobbling edge). */
 export const BLADE_DISCARD = /* glsl */ `
   #ifdef BLADE_FLUID
+  #ifdef BLADE_DISC
+  {
+    // the shield's meniscus; and its back sheet (aFold.y 0.5, seen from behind him: the camera's side) see-through but
+    // for its rim, the swirl's strokes and a print screen of the water, so what he guards against shows through it
+    float a = atan(vBind.y, vBind.x), s = vFold.x, skin = discSkin(a, uFluidA.z);
+    if (s > 1.0 - skin) discard;
+    if (vFold.y < 0.75 && s > 0.34 && s < 0.9 - skin) {
+      float sw = a + 3.2 * s - uFluidA.z * 0.22;
+      float stroke = abs(sin(5.0 * sw + 2.0 * vnoise(vBind.xy * 3.0 + uFluidA.z * 0.2)));
+      if (stroke < 0.86 && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) > ${SEE.toFixed(2)} * smoothstep(0.34, 0.5, s)) discard;
+    }
+  }
+  #else
   if (vFold.y > 0.0 && abs(vFold.x) > 1.0 - bladeSkin(vFold.x, vFold.y, uFluidA.z)) discard;
+  #endif
   #endif
 `;
 

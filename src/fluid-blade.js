@@ -412,7 +412,7 @@ export class FluidBlade {
     this.sheathAt = sheathFrame();
     this.frog = buildFrog();
     this.frog.visible = false;
-    // the guard's shield: the makers' disc on the back of the left hand, opening into a shield of the tank's fluid (src/shield.js)
+    // the guard's shield: the makers' hub on a bracer round the left forearm, opening into a disc of the sword's water (src/shield.js)
     this.guardK = 0; this.guardT = 0; this.parry = 0;
     this.guardHeld = false; this.guardAge = Infinity; this.guardRearm = 0; this.perfectReady = false;
     this.evadeHeld = false; this.evadeT = 0; this.evadeCool = 0; this.evadeDir = new THREE.Vector3();
@@ -737,12 +737,13 @@ export class FluidBlade {
   }
 
   /**
-   * The shield on the back of the left hand (src/shield.js): open while the guard is wanted, turned to its
-   * way; then the guard's arc from where it is drawn (block). The hands close round it (player.shieldGrip).
+   * The shield strapped round the left forearm (src/shield.js): open while the guard is wanted, the arm braced across
+   * before the chest and the face turned to its way; then the guard's arc from where it is drawn (block). The hands
+   * close (player.shieldGrip).
    */
   placeShield(dt = 0) {
     const T = this.tool, p = T.player, D = this.device;
-    const U = p?.frame?.up, chest = U ? _f.copy(p.pos).addScaledVector(U, 1.1) : null;   // (the open shield slides to the chest's middle line)
+    const U = p?.frame?.up, chest = U ? _f.copy(p.pos).addScaledVector(U, 1.1) : null;   // (the raised arm is braced across before it)
     const said = D.update(dt, { want: !!this.guardWant, worn: !!p && !p.ride && !p.boarding && !p.unboarding && T.shieldOn !== false, dir: this.dir, up: U, chest, time: T.time ?? 0 });
     if (said === 'open') T.sound?.shieldOpen?.();
     else if (said === 'close') T.sound?.shieldClose?.();

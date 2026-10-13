@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
-import { TANK, FLUID_TONES, buildFlask, globMaterial } from '../fluid-tool.js';
+import { TANK, FLUID_TONES, buildFlask } from '../fluid-tool.js';
 import { buildSword } from '../fluid-sword.js';
 import { BLADE_LOOK, BLADE_QUALITY } from '../blade-shader.js';
 import { buildShieldFace } from '../shield.js';
@@ -287,11 +287,11 @@ function swordModel() {
 }
 /**
  * The Givers' guard as it is raised (src/shield.js buildShieldFace: the held device's own face, open: six brass
- * petals round the hub, the brass ring, the living fluid round them with its bright wavy rim), in the tool's glob
- * fluid with a clock of its own. Issue #242: before, a folded fan of brass leaves on a ring.
+ * petals inside the riveted ring, the disc of living fluid round them, the sword's water, with its bright pale rim),
+ * in a shield material with a clock of its own. Issues #242, #284: before, a folded fan of brass leaves on a ring.
  */
 function shieldModel() {
-  const face = buildShieldFace(globMaterial('box.item.shield'));
+  const face = buildShieldFace('box.item.shield');
   const g = new THREE.Group(); g.add(face);   // (its fluid flows on face.userData.tick)
   g.scale.setScalar(0.42);   // (0.75 m across held: about 0.32 m here)
   g.rotation.set(-0.2, 0.5, 0);

@@ -72,6 +72,11 @@ export const CHANGELOG = [
     // buildItemModel, tickItem; src/fluid-sword.js, src/shield.js buildShieldFace; docs/systems/boxes.md "What comes out";
     // issue #242; the wings and the gun's glove left as they were: issue #283)
     'What comes out of a chest now looks like what you will use. The Givers’ blade rises as the broad blade of living fluid you swing, with its brass cup, wrapped grip, flowing currents and glow, not a thin green spike, and the Givers’ guard comes out as the one you raise. Their pictures in the menu, and those of Anselm’s upgrades for them, match.',
+    // the Givers' guard redone to its turnaround: the sword's water as a disc (src/blade-shader.js BLADE_DISC, src/shield.js
+    // shieldMaterial, Disc), strapped round the left forearm (src/blade-grip.js forearmMount, forearmFrame), the arm braced
+    // across when raised (ShieldDevice.brace); docs/systems/foes.md "In the hands"; issue #284)
+    { text: 'The Givers’ guard is redrawn after its design sheet. It is strapped round your left forearm now, a brass flower on a leather bracer, and raising it brings the arm across your chest like a real shield. Open, its six brass petals spread inside a riveted ring and the fluid floods out round them as a disc of the same living green water as your sword, swirling round the hub, with its pale lemon rim. Seen from behind you it stays see-through, so you still see what you are guarding against. The guard that rises out of its chest is the same.',
+      see: 'Hold LB / L1 (Ctrl on the keyboard) and turn the camera round to the front: the swirling green disc on your forearm. Let go: it folds back to the brass flower on its strap. The guard’s chest in the Rose House shows the same.' },
     // the Map as wide as the page: its shape the page's box's (src/world-map.js mapAspect, mapBounds aspect, MapView.aspect;
     // src/game-menu.js mapBoxAspect, mapFit; src/game-menu.css; docs/systems/ui.md "As wide as the page"; issue #272)
     'The game menu’s Map fills its page now instead of sitting in a square with empty paper either side: it shows a wider stretch of the world, east and west of the places you know, on a desktop screen and on a handheld alike, with the compass, the scale bar and the zoom buttons in its corners.',

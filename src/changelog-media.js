@@ -765,6 +765,8 @@ const MAP272 = 'Issue #272: muted headless Chrome (Medium, 10:00, the Desert) ag
 const FRAG250 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this branch’s own Vite (port 5971), scripts/design-qc/capture.mjs, the camera pinned a few metres off the spot with a clear line to it; before: the same view with that fragment found (a save holding its flag), after: a new save; 13 October; cwebp -q 72';
 // (v1.67, issue #226: the cinematics QC's own frames, before and after its fixes)
 const CINE226 = 'Issue #226, the cinematics QC: scripts/cinematics-qc.mjs (muted headless Chrome, High, 960 × 540) against this branch before and after the fix, the same frame of the same cinematic; cwebp';
+// (v1.66, issue #284: a scratch shooter against this branch's own Vite (port 5981) and the tree before it (627462fc, port 5983))
+const SHIELD284 = 'Issue #284: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 5981) and the tree before it (627462fc, port 5983): the Arena, its foes taken away, the guard held (Ctrl) 1.6 s, drawn by the game’s own captureView from the same place round him; the chest opened in the Rose House (boxes.open) and drawn at its card; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.67': [
     { match: 'When the bell rings under the cloud', tags: ['cinematics', 'vael'], shots: [
@@ -854,6 +856,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'reveal-guard', title: 'The Givers’ guard', caption: 'Before, a folded fan of dark brass leaves round a jade bead; after, the guard open as he raises it: the six brass petals and the ring, the fluid flowing round them and its bright rim.', from: REVEAL242 },
       { name: 'reveal-guard-held', only: 'after', title: 'The guard raised', caption: 'The same guard raised on his arm, for comparison (the Character studio’s arms view).', from: 'muted headless Chrome (900 × 700) against this branch’s own Vite (port 5951), studio.html?backpack=true&shield=1&view=arms; 13 October; cwebp -q 72' },
     ], see: 'Open the sword’s chest in the Rose House: the blade that rises is the one you then swing. The guard’s chest there is the same; the menu’s Items show them so too.' },
+    { match: 'The Givers’ guard is redrawn after its design sheet', tags: ['combat'], shots: [
+      { name: 'shield-close-raised', title: 'Raised, up close', caption: 'From in front: before, a ring of bright line round a few swirling strokes and a brass wheel on its rod; after, six brass petals in a riveted ring and a disc of the sword’s green water swirling round them, its pale lemon rim.', from: SHIELD284,
+        reference: { sheet: 'references/Core Objects/Fluid Shield/shield-turnaround/sheet-1.jpg', caption: 'The design sheet it was drawn to: the shield all round, its hub up close (the reference lab, 12 October)' } },
+      { name: 'shield-front-raised', title: 'The guard', caption: 'Before, the shield slid off the back of his hand to the middle of his chest on a long rod; after, the arm that wears it raises it across his chest, the shield on its knuckle off the forearm’s bracer.', from: SHIELD284,
+        reference: { sheet: 'references/Core Objects/Fluid Shield/guard-poses/sheet-1.jpg', caption: 'The guard poses it was drawn to (the reference lab, 12 October)' } },
+      { name: 'shield-side-raised', title: 'From the side', caption: 'A thin lens of the fluid on the forearm’s bracer, the fist behind it.', from: SHIELD284 },
+      { name: 'shield-tp-raised', title: 'From behind him', caption: 'As the camera sees it: its back is see-through but for the rim, the swirl’s strokes and a fine screen of the water, so the way ahead stays in sight.', from: SHIELD284 },
+      { name: 'shield-close-rest', title: 'At rest', caption: 'Before, a brass disc on the back of the hand; after, the brass flower closed on a leather bracer round the forearm.', from: SHIELD284 },
+      { name: 'shield-reveal-close', title: 'Out of its chest', caption: 'The guard that rises out of its chest in the Rose House, over his hand at its card: the same disc of green water.', from: SHIELD284 },
+    ], see: 'Hold LB / L1 (Ctrl) in the Arena and look from the front; open the guard’s chest in the Rose House.' },
     { match: 'The game menu’s Map fills its page now', shots: [
       { name: 'map-wide', title: 'At 1280 × 720', caption: 'The Desert’s map as the menu opens: before, a square in the middle of the page with empty paper left and right; after, the map across the whole page, more of the desert to the east and west, the cursor on the traveller.', from: MAP272 },
       { name: 'map-wide-hand', title: 'On a handheld', caption: 'At the Retroid’s 730 × 410: before, a square a third of the page wide; after, the whole page, the compass, the scale bar and − / + still in its corners.', from: MAP272 },

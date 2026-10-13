@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import { buildItemModel, fluidMaterials, tickItem } from '../src/boxes/model.js';
 import { buildSword, bladeGeometry, brassGeometry, gripGeometry, swordMaterial } from '../src/fluid-sword.js';
 import { ShieldDevice, SHIELD } from '../src/shield.js';
-import { globMaterial } from '../src/fluid-tool.js';
 import { gunModel } from '../src/gadgets/gun.js';
 import { TRAVELLER_PALETTE as PAL } from '../src/traveller-style.js';
 
@@ -36,13 +35,15 @@ test('the Givers\' blade comes out of its chest as it is held: the wrapped grip,
 });
 
 test('the Givers\' guard comes out open, as it is raised: the brass petals, the ring and the living fluid with its rim', () => {
-  const item = buildItemModel('shield'), d = new ShieldDevice({ globMat: globMaterial() });
+  const item = buildItemModel('shield'), d = new ShieldDevice({});
   assert.deepEqual(counts(item), counts(d.face), 'the held device\'s face, every mesh');
   const fluid = fluidMaterials(item);
-  assert.ok(fluid.length >= 5 && fluid.every((m) => kind(m) === 2), 'its flowing strokes in the glob\'s fluid');
-  assert.notEqual(fluid[0], d.tool.globMat, 'a material of its own');
-  const rims = meshes(item).filter((m) => m.visible && m.geometry.boundingSphere?.radius > SHIELD.radius * 0.8);
-  assert.ok(rims.length >= 2, 'open: its rim and ink line out at the blob\'s reach');
+  assert.ok(fluid.length >= 1 && fluid.every((m) => kind(m) === 6 && m.defines.BLADE_FLUID && m.defines.BLADE_DISC), 'the sword\'s living water, spread as a disc (issue #284)');
+  assert.notEqual(fluid[0], d.fluid, 'a material of its own');
+  for (const k of ['uFluidTones', 'uFluidBase']) assert.equal(JSON.stringify(fluid[0].uniforms[k].value), JSON.stringify(swordMaterial().uniforms[k].value), `the sword's ${k}`);
+  const disc = meshes(item).find((m) => m.name === 'shield fluid');
+  disc.geometry.computeBoundingSphere();
+  assert.ok(disc.visible && disc.scale.x > SHIELD.radius * 0.8, 'open: the disc out at the blob\'s reach');
   const s = size(item);
   assert.ok(s.x > 0.2 && s.x < 0.45, `scaled for the reveal (${s.x.toFixed(2)} m across)`);
 });

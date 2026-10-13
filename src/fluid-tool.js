@@ -723,8 +723,8 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
 }
 
 /**
- * The globs' churning fluid (the shots, the jets' flames, the guard's fluid: src/shield.js). `key`: another of the
- * same look with a clock of its own (the box's guard: src/boxes/model.js); none, the tool's own.
+ * The globs' churning fluid (the shots, the jets' flames). `key`: another of the same look with a clock of its own;
+ * none, the tool's own.
  */
 export function globMaterial(key) {
   return makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES, ...(key ? { key } : {}) });
