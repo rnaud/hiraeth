@@ -30,6 +30,9 @@ export const CHANGELOG = [
     // the Unity Start menu's What's new (engine/menus.js newsRows: src/changelog.js's newest versions) and the Controls page's
     // rebinding (controlsRows, rebind: src/remap.js capturePad, as src/ui.js rebindHtml; run and guard); issue #264
     'The Unity preview’s Start menu has What’s new, the newest versions’ changes as the game lists them, and its Controls page lets you move each verb to another button as the game’s does: choose a verb, press its new button (Menu keeps it as it was), with the ones that share a button marked, Run and Guard held or toggled, and Reset to defaults.',
+    // the conversations' gestures in the engines: public/anim/gestures.glb attached to the clip library (engine/game.js,
+    // src/motion-match.js attachMotion; -js-off gestures without), the traveller's locoMoves off (no moves.glb there); issues #197, #264
+    'In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.',
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

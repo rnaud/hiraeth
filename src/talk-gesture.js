@@ -12,7 +12,7 @@
 // thinking) play while the line is said and a moment after; one-shots (a wave, a shrug, a surprise) play
 // to their end, and a long line carries on with a talking loop. The one listening nods now and then
 // (ACK). Each change is a crossfade (two layers at most). Without gestures.glb (not loaded yet, or the
-// engine bridge, which loads no captured motion) nothing is played and nothing is computed.
+// engine bridge with -js-off gestures) nothing is played and nothing is computed; the engines load it alone (engine/game.js).
 
 /**
  * The clips (gestures.glb, named `gesture_<id>`), one-shots unless `loop`; `w` a clip's own share of the pose

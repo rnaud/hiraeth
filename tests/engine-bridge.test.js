@@ -496,6 +496,10 @@ test('the game in a bare V8 context: a world with its people, the traveller walk
     const game = await exports.createGame({ levelId: 'garage', backend: R.backend });
     // the world's people on MakeHuman bodies, as main.js has them (src/makehuman/people.js)
     assert.ok(game.npcs.some((n) => n.humanoid?.profile?.buildGeometry), 'MakeHuman bodies for the people');
+    // the conversations' gestures (issue #197, #264: public/anim/gestures.glb), the only captured motion the engines
+    // load; the traveller's own captured moves left off with it (they are in moves.glb, not loaded)
+    assert.ok(game.player.animator.lib.motion?.clips?.some((c) => /^gesture_talking/.test(c.name)), 'the talking clips');
+    assert.equal(game.player.locoMoves, false);
     game.frame(1 / 30);
     const p0 = game.player.pos.clone(), c0 = game.camera.position.clone();
     game.key('KeyW', true);

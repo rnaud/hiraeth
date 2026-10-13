@@ -72,6 +72,7 @@ import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
 import { padFaces, setFaces } from '../src/native-pad.js';
+import { attachMotion } from '../src/motion-match.js';
 
 export { page };
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
@@ -181,7 +182,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true } = {}) {
   const T = {};
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
@@ -197,6 +198,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
+  // the conversations' gestures (issue #197: public/anim/gestures.glb, src/talk-gesture.js), the only captured motion the
+  // engines load (not the walks, the moves, nor the matching database); `gestures` false (-gestures 0) without them
+  const gesturesP = gestures ? new GLTFLoader().loadAsync('anim/gestures.glb').catch((e) => { log('gestures unavailable', e?.message ?? e); return null; }) : null;
   // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller-v1.js), his overshirt's cloth
   // stepped on this thread (no workers in the engines' VMs: tripo-cloth.js falls back); the old suit if he can't load
   const travellerV1P = loadTravellerV1('').catch((e) => { log('traveller v1 unavailable', e?.message ?? e); return null; });
@@ -223,7 +227,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   });
   const lib = await animLib;
+  const gestureClips = await gesturesP;
+  if (lib && gestureClips) { attachMotion(lib, gestureClips); stamp('gestures'); }
   if (lib) player.animator = player._animator = new Animator(lib, player.char);
+  // (the traveller's captured jumps, idles, starts and stops are in moves.glb, which the engines don't load: with the
+  // gestures in lib.motion his loops stay the library's, as before; src/player.js locoMoves)
+  if (gestureClips) player.locoMoves = false;
   const humans0 = await humansP;
   // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
   // keeps his own body)

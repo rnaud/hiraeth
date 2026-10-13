@@ -971,10 +971,14 @@ line, their body above the hips takes a gesture in the line's tone, from Mixamo'
 - **What it costs**: the layer's own time (`Animator.layTalk`) for three people in a conversation, one speaking and
   two listening: 0.014 ms a frame in Node; in headless Chrome on the Mac at the Handheld preset with the CPU slowed
   4× (the machine under heavy load) 0.13 ms; the people's whole update 1.06–1.10 ms without against 1.08–1.26
-  with (noise). **The engine bridge** (Unity on the Xbox, Godot) loads no captured motion (`engine/game.js` never
-  calls `loadMotionLibrary`: no moves or walks there either), so `drive()` returns at its first check and nothing
-  is stepped: the Xbox's script time is untouched. Loading `anim/gestures.glb` there would bring it, at the cost
-  above.
+  with (noise). **The engine bridge** (Unity on the Xbox, the Retroid and the Deck; issue #264) loads
+  `anim/gestures.glb` alone (`engine/game.js`: `attachMotion` on the clip library; no moves, walks or matching
+  database, so the traveller's `locoMoves` stays off there) and the people gesture as on the web. Measured in the
+  Unity bundle's VM (Node, the Desert, Ysa's conversation): `layTalk` 0.014-0.021 ms a frame for the two bodies
+  talking, nothing out of a conversation (the layer is dropped once idle); the game's update 2.49 ms without against
+  2.60 ms with over the same 190 frames (four runs each, within their noise), the world's build unchanged. The
+  Xbox's script runs about 5× the VM's time on the Mac (its update ~12.5 ms at the desert spawn against ~2.5), so
+  ~0.1 ms there while talking. `-js-off gestures` leaves them out, for a before-and-after on a device.
 - **Checked** in the running game (headless Chrome, the Desert, Marrow and the traveller, each clip held at six
   moments: no broken limbs, the feet where they stood, the hands in front of the body; Disappointed turns the
   head away and down, as captured). Tests: `tests/talk-gesture.test.js` (every tone mapped, every clip in the file

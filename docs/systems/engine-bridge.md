@@ -227,9 +227,15 @@ held or toggled (`CONTROL_ROWS`); Reset to defaults; then every control in the b
 except the menus' own rows, `PAD_RAW_ROWS`). The keyboard's rebinding is the web's only. Tests:
 tests/engine-menus.test.js.
 
-Left for later: the items' pictures (the web draws
-them with its own renderer, src/item-icons.js), the Map's drawn ground, the photo mode, What's new, the
-prologue (a new save starts at the ramp), the talk gestures (no captured motion is loaded in the engines).
+**The talk gestures** (issues #197, #264): engine/game.js loads public/anim/gestures.glb onto the clip library
+(`attachMotion`), the only captured motion the engines carry, so `talkGestures.drive` plays them in conversations
+as on the web; the traveller's `locoMoves` stays off (his captured moves are in moves.glb, not loaded). Their cost
+in the VM: docs/systems/characters.md, "What it costs" (~0.02 ms a frame while talking, nothing otherwise);
+`-js-off gestures` leaves them out.
+
+Left for later (issue #264): the photo mode (left out on purpose), the ship's interior attached in the engine (the
+console's star map, the voicemail, Anselm's shop and the hold are the page's own panels: each wants an engine
+drawing first), the prologue (a new save starts at the ramp), the keyboard's rebinding, the language setting.
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD
 draws it in uGUI with the C# port's own pieces and layout (Hud.cs, Ui.cs: the paper, the ink, the

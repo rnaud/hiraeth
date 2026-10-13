@@ -147,6 +147,7 @@ function launch(args, { start: from = null, arrive = false } = {}) {
   if (off.has('people')) backend.peopleLod = false;
   if (off.has('shape')) backend.shapeAttrs = null;
   if (off.has('copy')) backend.frameView = false;
+  // (gestures: the conversations' captured gestures left unloaded, public/anim/gestures.glb, issue #197)
   // (played, the title's state kept: its menus, settings and the save chosen)
   S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
@@ -155,7 +156,7 @@ function launch(args, { start: from = null, arrive = false } = {}) {
   const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
   const menus = S.menus ?? null;
   createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
-    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn })
+    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures') })
     .then((game) => {
       S.game = game;
       if (menus) {
