@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.65 — 2026-10-13
 
+- A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold.
 - The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.
 - You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.
 - Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.

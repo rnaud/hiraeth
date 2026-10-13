@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { auditsPlugin } from './scripts/audits-data.mjs';
 import { referenceLabPlugin } from './scripts/reference-lab/server.mjs';
 import { referencesPlugin } from './scripts/references-index.mjs';
+import { lorePlugin } from './scripts/lore-data.mjs';
 import { threeProgramKeys } from './scripts/three-program-keys.mjs';
 
 // Relative asset paths so the build works both at a site root and under
@@ -29,6 +30,9 @@ export const BUILD_INPUT = {
   // the references page (src/references-page/; its index, thumbnails and web-size copies, dist/references/, are
   // the site's alone: the deploy writes them, scripts/references-site.mjs)
   references: fileURLToPath(new URL('./references.html', import.meta.url)),
+  // the lore page (src/lore-page/: the story, the traveller, the worlds, temples, guardians and gadgets from the game's
+  // data, scripts/lore-data.mjs; a Note on every part; its pictures, public/lore-pictures/, are the site's alone)
+  lore: fileURLToPath(new URL('./lore.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**
@@ -77,6 +81,6 @@ export default defineConfig({
   // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md; the
   // references page's live index is the dev server's, the site's is written by the deploy: docs/systems/references.md)
   // (threeProgramKeys: the surfaces' programs keyed without their side, normals or colours: fewer programs to compile)
-  plugins: [threeProgramKeys(), versionModule(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
+  plugins: [threeProgramKeys(), versionModule(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin(), lorePlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

@@ -45,6 +45,9 @@ export const CHANGELOG = [
     // offerHand, src/hands.js, src/audio.js boxLatch / boxOpen; docs/systems/boxes.md; issue #223)
     { text: 'The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.',
       see: 'Open any makers’ chest: the first is on the dais at the foot of Qanat’s tree.' },
+    // the lore page (lore.html, src/lore-page/, scripts/lore-data.mjs; docs/systems/lore-page.md; issues #268, #269)
+    { text: 'A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold.',
+      see: 'Open Lore from the What changed page or the Notes page (hiraeth.alexandria-rnaud.workers.dev/lore).' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state
