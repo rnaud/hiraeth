@@ -24,6 +24,9 @@ export const CHANGELOG = [
     // the Unity menus' Items panel: the items' pictures (public/item-pictures as PNGs, scripts/engine-bundle.mjs unityPictures;
     // BridgeMenu.cs DrawTile), as many tiles a row as fit (engine/menus.js itemGrid, BridgeHost.MenuWidth), the slots to find; issue #264
     'In the Unity preview the Items panel shows each item’s picture on its tile, as the game does, and in its full view; the tiles are larger, as many to a row as the screen holds, so their names no longer break in the middle on the Retroid, and the slots still to find are drawn after them.',
+    // the Unity menus' Map with its ground: the world's collision sampled straight down a few ms a frame (src/world-map.js WorldMap
+    // in engine/game.js), drawn by drawTerrain into engine/raster.js PixelCanvas, sent once (BridgeHost.MapImage, BridgeMenu.SetMap); issue #264
+    'In the Unity preview the Map shows the ground under its marks, drawn as the game draws it: the bands of height, the contours, the cliffs and walls inked, the water in teal, with a scale bar. It is drawn the first time you open the Map in a world, in a moment.',
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

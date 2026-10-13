@@ -205,6 +205,8 @@ namespace Hiraeth.Bridge
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
         public static float MenuWidth() => menuWidth;
         public static volatile float menuWidth = 1280;
+        /// <summary>The Map's drawn ground (engine/game.js mapPicture: RGBA, w × h, rows top down) for BridgeMenu, by its key.</summary>
+        public static void MapImage(string key, object buffer, int w, int h) { var b = JsRuntime.Bytes(buffer, out int n); var copy = new byte[n]; System.Buffer.BlockCopy(b, 0, copy, 0, n); On(() => { if (Runner && Runner.menu) Runner.menu.SetMap(key, copy, w, h); }); }
         public static void Menu(string json) => On(() => { if (Runner && Runner.menu) Runner.menu.Set(json); });
         /// <summary>
         /// The engine started again with these arguments (the script's JSON, its `boot` choice: Quit to title onto another

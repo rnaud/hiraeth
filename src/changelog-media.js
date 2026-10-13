@@ -775,6 +775,7 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Open the Character studio’s Close-up view of the traveller and turn him, set a tone or open his mouth: the mouth line stays where his lips part.' },
     { match: 'In the Unity preview the buttons on screen are named as your controller prints them', see: 'On the Retroid, open Hiraeth (Unity): the prompts at the foot of the menus read A and B, the game menu’s tabs L1 and R1, and the bottom button jumps. On the Xbox or the Steam Deck they read A, B, LB and RB.' },
     { match: 'In the Unity preview the Items panel shows each item’s picture on its tile', see: 'In the Unity preview press View, then LB / RB to Items: each tile has its picture and its whole name; A / × on one opens it with its picture large.' },
+    { match: 'In the Unity preview the Map shows the ground under its marks', see: 'In the Unity preview press View, then RB to the Map: “Drawing the map…” for a moment, then the ground under the marks; A / × on a mark zooms in, with its own ground.' },
   ],
   '1.63': [
     { match: 'The Unity preview on the Xbox no longer catches every three seconds', numbers: [

@@ -202,6 +202,18 @@ and the slots still to find follow the gear as faint, unnamed tiles that the cur
 `.slot`: the picture on its paper in an ink frame up to 132 units, the name under it in two lines, the pad's in
 gold on its shadow with a red ring; the full view shows the picture large at its top right.
 
+**The Map's ground** (issue #264). As on the web (src/world-map.js, main.js `mapSource`), engine/game.js keeps a
+`WorldMap` whose rays sample the world's collision straight down (`physics.groundAt`, the open water by
+`waters.surfaceAt`), `MAP.budget` ms a frame while the Map is open (the menu told every eighth frame how far, for its
+"Drawing the map… n %"); once full, the web's own `drawTerrain` draws it into engine/raster.js's `PixelCanvas`
+(512 px: fillRect, the paths' strokes as a coverage mask blended once, strokeRect, '#hex' / 'rgb' / 'rgba'), kept by
+its key for the session (the whole map and each zoom). The view's `map.ground` names it; the bundle sends the RGBA
+once, before the state that names it (`game.mapPicture(key)`, `BridgeHost.MapImage`), and BridgeMenu makes it a
+texture (`SetMap`) under the marks, with the scale bar (`map.scale`). The drawing is one call of ~40-120 ms on the
+Mac (the desert's whole map, rays and drawing: 63 ms in the VM), once a map, while the world is paused under the
+menu. Tests: tests/engine-raster.test.js, tests/engine-unity.test.js (the bundle's Map: one 512 × 512 picture sent
+before it shows).
+
 Left for later: the items' pictures (the web draws
 them with its own renderer, src/item-icons.js), the Map's drawn ground, the photo mode, What's new, the
 prologue (a new save starts at the ramp), the talk gestures (no captured motion is loaded in the engines).

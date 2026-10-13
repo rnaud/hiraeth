@@ -443,7 +443,12 @@ export class EngineMenus {
       strip: cell ? { name: cell.name ?? '', sub: cell.sub ?? '', desc: plain(cell.desc), act: cell.act ? ACT[cell.act] : '' } : null,
       hint: this.full ? 'B / ○ back · ◀ ▶ the next' : 'LB / RB turn · A / × choose · B / ○ close' };
     if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
-    if (p.id === 'map') view.map = { world: p.data?.world ?? '', marks: (p.data?.marks ?? []).filter((m) => m.on).map((m) => ({ id: m.id, kind: m.kind, name: m.name, u: +m.u.toFixed(4), v: +m.v.toFixed(4), deg: m.deg ?? null, on: cell?.id === m.id })), note: p.data?.note ?? '', zoom: this.zoom };
+    if (p.id === 'map') {
+      // (its drawn ground: the engine's picture by its key, engine/game.js mapPicture; "Drawing the map… n %" until then)
+      const ground = p.data?.canvas?.key ?? '', progress = p.data?.progress ?? 0;
+      view.map = { world: p.data?.world ?? '', marks: (p.data?.marks ?? []).filter((m) => m.on).map((m) => ({ id: m.id, kind: m.kind, name: m.name, u: +m.u.toFixed(4), v: +m.v.toFixed(4), deg: m.deg ?? null, on: cell?.id === m.id })), note: p.data?.note ?? '', zoom: this.zoom,
+        ground, drawing: ground ? '' : `${t('gm.map.drawing')} ${Math.round(progress * 100)} %`, scale: p.data?.scale ? { frac: +p.data.scale.frac.toFixed(4), label: p.data.scale.label } : null };
+    }
     if (p.id === 'people' && p.data?.person) {
       const d = p.data.person;
       view.person = { name: d.name, role: [d.role, d.worldTitle].filter(Boolean).join(' · '), story: d.story ?? [], now: d.now ?? '', choices: d.choices ?? [],

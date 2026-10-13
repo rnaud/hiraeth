@@ -35,6 +35,9 @@ namespace Hiraeth.Bridge
         // the items' pictures (public/item-pictures as PNGs: scripts/engine-bundle.mjs unityPictures), each read once
         static readonly Dictionary<string, Texture2D> pictures = new();
         RawImage cardPic; Label cardMark;
+        // the Map's drawn ground (engine/game.js: the world's collision sampled straight down, drawn as the web's map), by key
+        readonly Dictionary<string, Texture2D> grounds = new();
+        RawImage mapGround; Label mapDrawing, mapScale; Image mapBar;
         // the game menu's tabs, the strip at the foot, a thing full screen, a question, the map's marks
         readonly List<Label> tabs = new();
         Label tabPrev, tabNext; Image tabLine;
@@ -67,6 +70,17 @@ namespace Hiraeth.Bridge
 
         public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object>; dirty = true; }
 
+        /// <summary>The Map's ground, RGBA rows top down (BridgeHost.MapImage), kept by its key for the view that names it.</summary>
+        public void SetMap(string key, byte[] rgba, int w, int h)
+        {
+            if (rgba == null || rgba.Length < w * h * 4 || grounds.ContainsKey(key)) return;   // (a key is drawn once)
+            var t = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "map " + key, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            grounds[key] = t;
+            t.LoadRawTextureData(rgba);
+            t.Apply(false, true);
+            dirty = true;
+        }
+
         void Start()
         {
             root = Hud.MakeCanvas(cam, "Menus (JS bridge)", 200);
@@ -89,6 +103,11 @@ namespace Hiraeth.Bridge
             tabNext = Ui.Label(root, "tabNext", mono, Small, Ui.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
             tabLine = Ui.Rect(root, Ui.Red, 0, "tabLine");
             mapBox = Ui.Panel(root, "map", Ui.Hex("#efe0bd"), Ui.Ink, 1.5f);
+            mapGround = Ui.Node("ground", mapBox.rt).gameObject.AddComponent<RawImage>(); mapGround.raycastTarget = false;
+            mapGround.uvRect = new Rect(0, 1, 1, -1);   // (its rows top down: Unity's textures start at the bottom)
+            mapDrawing = Ui.Label(mapBox.rt, "drawing", mono, Small, Muted, TextAnchor.MiddleCenter, FontStyle.Italic);
+            mapBar = Ui.Rect(mapBox.rt, Ui.Ink, 0, "scaleBar");
+            mapScale = Ui.Label(mapBox.rt, "scale", mono, Tiny, Ui.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             strip = Ui.Panel(root, "strip", Ui.Paper, Ui.Ink, 1.5f, 3, 3);
             stripName = Ui.Label(strip.rt, "name", mono, Body, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             stripSub = Ui.Label(strip.rt, "sub", mono, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
@@ -529,6 +548,18 @@ namespace Hiraeth.Bridge
             float side = Mathf.Min(h, w * 0.58f);
             mapBox.Show(true);
             Ui.Place(mapBox.rt, x, y, side, side);
+            // the ground under the marks (drawn once its rays are all in; until then how far they are)
+            var key = m?.S("ground") ?? "";
+            var ground = key.Length > 0 && grounds.TryGetValue(key, out var gt) ? gt : null;
+            Show(mapGround, ground != null);
+            if (ground != null) { mapGround.texture = ground; Ui.Place(mapGround.rectTransform, 0, 0, side, side); mapGround.transform.SetAsFirstSibling(); mapBox.fill.transform.SetAsFirstSibling(); }
+            var drawing = m?.S("drawing") ?? "";
+            Show(mapDrawing, ground == null && drawing.Length > 0);
+            if (ground == null && drawing.Length > 0) { mapDrawing.text = drawing; Ui.Place(mapDrawing.rectTransform, 0, side / 2 - 12, side, 24); }
+            // the scale bar at the foot, a round length
+            var sc = m?.O("scale");
+            Show(mapBar, sc != null); Show(mapScale, sc != null);
+            if (sc != null) { float bw = side * Mathf.Clamp01(sc.F("frac")); Ui.Place(mapBar.rectTransform, 16, side - 18, bw, 3); mapScale.text = sc.S("label") ?? ""; Ui.Place(mapScale.rectTransform, 16, side - 38, 160, 18); }
             var list = m?.L("marks") ?? new List<object>();
             while (marks.Count < list.Count)
             {

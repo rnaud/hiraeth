@@ -124,7 +124,14 @@ function showMenu() {
   const m = S?.menus;
   if (!m || m.v === S.menuV) return;
   S.menuV = m.v;
-  host.Menu?.(forPad(JSON.stringify(m.view()), false));
+  const v = m.view();
+  // (the Map's drawn ground, once each: its RGBA to Unity before the state that shows it, BridgeHost.MapImage)
+  const key = v?.map?.ground;
+  if (key && !(S.mapsSent ??= new Set()).has(key)) {
+    const pic = S.game?.mapPicture?.(key);
+    if (pic && host.MapImage) { host.MapImage(key, toHost(pic.data.buffer), pic.width, pic.height); S.mapsSent.add(key); }
+  }
+  host.Menu?.(forPad(JSON.stringify(v), false));
 }
 
 function launch(args, { start: from = null, arrive = false } = {}) {

@@ -57,7 +57,8 @@ import { ToolHud, SaveGame } from '../src/ui.js';
 import { screen } from '../src/platform.js';
 import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
-import { mapBounds, mapMarks, scaleBar } from '../src/world-map.js';
+import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
+import { PixelCanvas } from './raster.js';
 import { items as gear, ITEMS } from '../src/items.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
@@ -77,6 +78,8 @@ export { Raycaster } from 'three';   // (for the tests and the tools that probe 
 
 /** Sound where the engine has none: every call taken, nothing played. */
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
+// the Map's drawn ground: its side in pixels (BridgeMenu shows it up to ~500 units of its 720-high canvas)
+const MAP_PX = 512;
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
 
 /** The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. */
@@ -447,14 +450,28 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     return `engine:portrait:${n}`;
   }
   let simT = 0, frames = 0, saveIn = 10;
-  // the game menu's Map (main.js mapSource, src/world-map.js): the marks over the world's square, the ground not drawn
-  // (the page draws it on a canvas from the heights; an engine has none yet)
-  let mapWhole = null;
+  // the game menu's Map (main.js mapSource, src/world-map.js): the marks over the world's square, and its ground drawn
+  // as the web draws it, the world's collision sampled straight down a few milliseconds a frame while the Map is open
+  // (WorldMap.pump), then drawn by drawTerrain into a picture of its own (engine/raster.js PixelCanvas, MAP_PX square),
+  // which the engine shows (game.mapPicture(key): the Unity bridge's BridgeHost.MapImage)
+  let mapWhole = null, mapTop = 0, mapPics = 0;
+  const pictures = new Map();   // key → the drawn ground
+  const worldMap = new WorldMap({
+    size: MAP_PX,
+    canvas: () => { const c = new PixelCanvas(MAP_PX); c.key = `map${++mapPics}`; pictures.set(c.key, c); return c; },
+    sample: (x, z) => {
+      const h = physics.groundAt(x, mapTop, z, MAP.drop);
+      const w = Number.isFinite(h) ? waters?.surfaceAt?.(x, z, h, 1) : null;
+      return { h, water: w && !w.body?.sea && w.y > h + 0.15 ? w.y : null };
+    },
+  });
+  worldMap.onReady = () => menus?.changed?.();
   const temples = () => (level.temples ?? []).filter((t) => t.outside?.door?.at).map((t) => ({ id: t.id, name: t.def?.name, x: t.outside.door.at.x, z: t.outside.door.at.z, y: t.outside.door.at.y }));
-  function mapSource() {
+  function mapSource({ zoom = null } = {}) {
     if (!mapWhole) {
       const pts = [level.spawn, level.ship?.pos, ...temples(), ...npcs.map((n) => n.pos), ...(boxes?.list ?? []).map((b) => b.pos), player.pos].filter(Boolean);
       mapWhole = mapBounds(pts, { limit: level.limit ?? Infinity });
+      mapTop = Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up;
     }
     const dir = player.frame.dir(player.heading, new THREE.Vector3());
     const goal = nextObjective({ player, story: null, ship: level.ship, level: { navigationPortals: [] }, quest: () => story?.objective?.() });
@@ -466,8 +483,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
       boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, x: b.pos.x, z: b.pos.z })),
     };
-    return { world: TITLES[levelId] ?? level.title ?? '', marks: mapMarks({ ...raw, bounds: mapWhole }), canvas: null, progress: 1, zoom: null, scale: scaleBar(mapWhole.w), note: '' };
+    // (a mark zoomed on: a third of the whole map round it, its own ground drawn, as main.js mapSource)
+    const focus = zoom && mapMarks({ ...raw, bounds: mapWhole }).find((m) => m.id === zoom);
+    const bounds = focus ? zoomBounds(mapWhole, { x: mapWhole.x0 + focus.u * mapWhole.w, z: mapWhole.z0 + focus.v * mapWhole.h }) : mapWhole;
+    const v = worldMap.view(bounds, focus ? MAP.zoomCells : MAP.cells);
+    return { world: TITLES[levelId] ?? level.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: v.canvas, progress: v.progress, zoom: focus ? zoom : null, scale: scaleBar(bounds.w), note: '' };
   }
+  /** The Map's ground being drawn: its rays for `ms` this frame (the Map open), as main.js pausedFrame does. */
+  function pumpMap(ms = MAP.budget) {
+    const gm = physics.groundMover, gk = physics.groundKind;
+    try { worldMap.pump(ms); } finally { physics.groundMover = gm; physics.groundKind = gk; }
+    return !!worldMap.want && !worldMap.want.drawn;
+  }
+  let mapTick = 0;
   // a fixed view (the side-by-sides and the benchmark's viewpoints): the camera pinned there
   let pinned = view ? pin(view) : null;
   let smallCull = null;
@@ -570,7 +598,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     /**
      * The game menu's panels (src/game-menu-data.js menuSources, as main.js wires them, with what the engine carries:
-     * no items' pictures, the Map's marks without its drawn ground). `travel(id)`: the Worlds page's Travel here.
+     * the items' pictures by id, the Map's ground drawn by its WorldMap). `travel(id)`: the Worlds page's Travel here.
      */
     menuSources({ travel = null } = {}) {
       const charge = () => chargeState({ flag: (f) => gameState.flag(f), keepsakes: gameState.keepsakes(), completed: ship?.completed?.().length ?? 0,
@@ -582,6 +610,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [] }), boxes: () => boxes?.counts?.() ?? {},
         map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }) });
     },
+    /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
+    mapPicture: (key) => pictures.get(key) ?? null,
+    /** Fill and draw the Map's ground now (a test's, a tool's), `ms` at most. */
+    drawMap(ms = 1e5) { if (!mapWhole) mapSource(); worldMap.view(mapWhole, MAP.cells); pumpMap(ms); return worldMap.want?.canvas ?? null; },
     /** Why the ship won't take you to `id` (null: it will; src/fast-travel.js). */
     travelRefusal(id) { return fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
     /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */
@@ -605,6 +637,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // goes to the menu (the controller's menu context), the scene is still drawn
       if (menus?.open) {
         controller.update(dt, true);
+        // (the Map open: its ground drawn on, the menu told how far every few frames for its "Drawing the map… n %")
+        if (menus.mode === 'game' && menus.state?.panel?.id === 'map' && pumpMap() && ++mapTick % 8 === 0) menus.changed();
         screen.set('prompt', null); screen.set('stamina', null);
         const tB0 = performance.now();
         mirror.time = simT;
