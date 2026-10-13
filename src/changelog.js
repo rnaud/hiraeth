@@ -9,6 +9,7 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.68', date: '2026-10-13', items: [
+    'The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.',
     // room behind every push-the-ball puzzle (issue #275): scripts/ball-room.mjs, tests/ball-room.test.js; the Aerie's
     // Eyrie stone off the gap's lip (STACK.groove), the balcony a metre deeper (BALCONY), the perch's stone in from its rim
     // (GULF.stone); docs/systems/temples.md "Room to push every ball"
@@ -82,6 +83,7 @@ export const CHANGELOG = [
     // its lamp and the linings' glow; references/Core Objects/Chests/light/; docs/systems/boxes.md; issue #285)
     { text: 'Chests open with real light now instead of little glassy shapes: a soft column of jade and gold rays pours up out of the chest as its halves part, the inside of it and the undersides of its halves glow, a few motes drift up in the beam, and the light falls on the traveller and the ground round him. It swells as the chest opens and settles as the item rises.',
       see: 'Open any chest: the star’s in the desert city, or the lift valve’s in the cave under the dunes.' },
+
   ] },
   { v: '1.66', date: '2026-10-13', items: [
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own

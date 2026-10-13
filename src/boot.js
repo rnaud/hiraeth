@@ -1,4 +1,4 @@
-if (['keeper','elder'].includes(new URLSearchParams(location.search).get('guardianReview'))) {
+if (['keeper','elder'].includes(new URLSearchParams(location.search).get('guardianReview')) || new URLSearchParams(location.search).get('characterReview')==='b3') {
   const {seedGuardianReview} = await import('./guardian-review.js');
   await seedGuardianReview();
 }

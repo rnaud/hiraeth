@@ -16,7 +16,7 @@ export function relaxWalkArms(char, motion, enabled = true, options = {}) {
     const side = i === 0 ? -1 : 1;
     const angle = Math.atan2(dir.x * side, -dir.y);
     const minimum=options.minimum ?? (motion==='jog'?12:7), maximum=options.maximum ?? (motion==='jog'?40:8);
-    const amount = MathUtils.clamp(angle - MathUtils.degToRad(minimum), 0, MathUtils.degToRad(maximum)) * (options.weight ?? 1);
+    const amount = MathUtils.clamp(angle - MathUtils.degToRad(minimum), -MathUtils.degToRad(options.outward ?? 0), MathUtils.degToRad(maximum)) * (options.weight ?? 1);
     const rotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1).applyQuaternion(rootQ), -side * amount);
     const world = arm.getWorldQuaternion(new Quaternion()).premultiply(rotation);
     arm.quaternion.copy(arm.parent.getWorldQuaternion(new Quaternion()).invert().multiply(world));
@@ -37,13 +37,13 @@ export function relaxWalkHands(humanoid, rotations) {
 
 // The source seated clip is Driving_Loop. Retain its body/leg motion but place
 // the hands on the lap, instead of preserving a steering-wheel reach and roll.
-export function seatTripoArms(h,motion){
+export function seatTripoArms(h,motion,fit={}){
  if(motion!=='drive')return;
  const root=h.char.root,q=root.getWorldQuaternion(new Quaternion()),up=new Vector3(0,1,0).applyQuaternion(q),right=new Vector3(1,0,0).applyQuaternion(q),forward=new Vector3(0,0,1).applyQuaternion(q);
  for(const [side,sign]of [['r',-1],['l',1]]){
   const upper=h.b['upperarm_'+side],lower=h.b['lowerarm_'+side],hand=h.b['hand_'+side];
   const hip=h.b['thigh_'+side].getWorldPosition(new Vector3()),knee=h.b['calf_'+side].getWorldPosition(new Vector3());
-  const target=hip.clone().lerp(knee,.45).addScaledVector(up,.115).addScaledVector(right,sign*.025);
+  const target=hip.clone().lerp(knee,fit.along??.45).addScaledVector(up,fit.lift??.115).addScaledVector(right,sign*(fit.outward??.025));
   const pole=upper.getWorldPosition(new Vector3()).addScaledVector(up,-.32).addScaledVector(right,sign*.08).addScaledVector(forward,-.04);
   h.solveTwoBone(upper,lower,hand,target,pole);
   const along=hand.getWorldPosition(new Vector3()).sub(lower.getWorldPosition(new Vector3()));

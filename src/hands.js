@@ -167,10 +167,10 @@ export function handTargets(ctx = {}) {
 }
 
 /** The pose of a weighted set (a straight blend of the angles). */
-export function mixPose(weights, out = new Float32Array(N_PARAMS)) {
+export function mixPose(weights, out = new Float32Array(N_PARAMS), poses = HAND_POSES) {
   out.fill(0);
   for (const id in weights) {
-    const p = HAND_POSES[id], w = weights[id];
+    const p = poses[id] ?? HAND_POSES[id], w = weights[id];
     if (!p) continue;
     for (let i = 0; i < N_PARAMS; i++) out[i] += p[i] * w;
   }
@@ -252,6 +252,7 @@ export class Hands {
     // how much of each pose a body's fingers and thumb take (the coral-shirt traveller's generated thumb
     // takes less: src/characters/tripo-hands.js). Part of every write (apply), so it never accumulates
     this.reach = { fingers: 1, thumb: 1 };
+    this.poses = HAND_POSES; // optional per-character fit; shared definitions stay immutable
     this.apply();
   }
 
@@ -326,7 +327,7 @@ export class Hands {
 
   /** Both hands to one pose at once (no easing): a pose id or 16 numbers. */
   set(p) {
-    const v = typeof p === 'string' ? HAND_POSES[p] : p;
+    const v = typeof p === 'string' ? this.poses[p] ?? HAND_POSES[p] : p;
     if (!v) return;
     for (const S of this.sides) { S.cur.set(v); S.goal.set(v); S.lag = S.lagV = 0; }
     this.apply();
@@ -351,7 +352,7 @@ export class Hands {
     const T = (this.targets = handTargets({ ...ctx, speed: ctx.speed ?? this.speed, air: ctx.air ?? this.air }));
     for (const S of this.sides) {
       const w = T[S.s];
-      mixPose(w, S.goal);
+      mixPose(w, S.goal, this.poses);
       easePose(S.cur, S.goal, T.rate, dt);
       S.tight += (tightness(w) - S.tight) * (1 - Math.exp(-T.rate * dt));
       this.inertia(S, dt);

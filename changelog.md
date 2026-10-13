@@ -10,6 +10,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Aerie’s gulf has a way back: on the higher ledge, a doorway in the east wall drops into a passage that runs back along the gulf and climbs to the near side. Crossing without the great key no longer leaves you stranded, and the great lock tells you where the way back is.
 - Balls that started pressed against a wall now start a stride along their grooves, with room behind them to push from: five in the Engine-House, and one each in the Clock-House, the Greenhouse, the Mooring-House and the Casting-House, and the second orb of the Orb walk in Lorn’s Deep Wood.
 - More room round the stone balls you push in Vael’s Aerie: the Eyrie’s stone starts away from the wall and the gap’s edge, the high balcony over the Wind Well reaches a step further out with its stone further along, and the perch’s stone lies in from the rim. You can step behind each one without jumping over it or standing on the edge.
+- The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.
 
 ## v1.67 — 2026-10-13
 

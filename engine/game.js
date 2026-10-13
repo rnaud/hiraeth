@@ -27,7 +27,7 @@ import { Controller, mergeControls } from '../src/controller.js';
 import { loadAnimationLibrary, Animator } from '../src/animator.js';
 import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
-import { loadTravellerV1, createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { loadTraveller, createTraveller } from '../src/characters/traveller.js';
 import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
 import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
@@ -201,9 +201,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the conversations' gestures (issue #197: public/anim/gestures.glb, src/talk-gesture.js), the only captured motion the
   // engines load (not the walks, the moves, nor the matching database); `gestures` false (-gestures 0) without them
   const gesturesP = gestures ? new GLTFLoader().loadAsync('anim/gestures.glb').catch((e) => { log('gestures unavailable', e?.message ?? e); return null; }) : null;
-  // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller-v1.js), his overshirt's cloth
+  // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller.js), his overshirt's cloth
   // stepped on this thread (no workers in the engines' VMs: tripo-cloth.js falls back); the old suit if he can't load
-  const travellerV1P = loadTravellerV1('').catch((e) => { log('traveller v1 unavailable', e?.message ?? e); return null; });
+  const travellerP = loadTraveller('').catch((e) => { log('traveller B3 unavailable', e?.message ?? e); return null; });
   const humansP = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { log('human models failed', e); return null; });
   // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md), each world's as main.js has them
   const mhP = people && usesMakeHuman(levelId) ? loadPeople('', levelId).catch((e) => { log('MakeHuman bodies unavailable', e?.message ?? e); return null; }) : null;
@@ -237,15 +237,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
   // keeps his own body)
   const humans = humans0 && mhP ? ((await mhP)?.humans() ?? humans0) : humans0;
-  const generated = await travellerV1P;
+  const generated = await travellerP;
   if (generated) {
     try {
       // (his overshirt done by the engine where it can: Unity's Burst job, not this thread; tripo-cloth.js CLOTH_HOST)
       CLOTH_HOST.offload = backend?.clothOffload?.() ?? null;
-      try { player.character = createTravellerV1(player.char, generated); } finally { CLOTH_HOST.offload = null; }
+      try { player.character = createTraveller(player.char, generated); } finally { CLOTH_HOST.offload = null; }
       player.humanoid = player.character.humanoid;
       engineColours(player.character, generated);
-    } catch (e) { log('traveller v1 failed', e?.message ?? e); player.character = null; }
+    } catch (e) { log('traveller B3 failed', e?.message ?? e); player.character = null; }
   }
   if (!player.humanoid && humans0) {
     const travellerTemplate = await new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);

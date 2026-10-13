@@ -35,10 +35,10 @@ export const PORTRAIT_FACE_INK = Object.freeze({
 // way as the view's z in the head's frame falls through `front` (about 70 to 80 degrees round).
 const smooth=(a,b,x)=>{const t=T.MathUtils.clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
 const patch=(x,y,w,h)=>1-smooth(.55,1,Math.hypot(x/w,y/h));
-export function makePortraitHead(asset,body){
+export function makePortraitHead(asset,body,fit=PORTRAIT_HEAD){
  const sources=[];asset.scene.traverse(o=>{if(o.isMesh)sources.push(o)});
  if(sources.length!==1)throw new Error('Portrait head needs its single prepared mesh');
- const source=sources[0],g=source.geometry.clone(),raw=g.attributes.position.clone(),p=g.attributes.position,F=PORTRAIT_HEAD;
+ const source=sources[0],g=source.geometry.clone(),raw=g.attributes.position.clone(),p=g.attributes.position,F=fit;
  if(!g.attributes._portrait_hair)throw new Error('Portrait head is missing its prepared hair mask attribute');
  const bones=body.skeleton.bones,head=bones.findIndex(b=>b.name==='Head'),neck=bones.findIndex(b=>b.name==='neck_01');
  if(head<0||neck<0)throw new Error('Portrait head needs Head and neck_01 joints');
@@ -46,7 +46,7 @@ export function makePortraitHead(asset,body){
  for(let i=0;i<p.count;i++){
   const x=raw.getX(i),y=raw.getY(i),z=raw.getZ(i),hair=g.attributes._portrait_hair.getX(i);
   const collar=1-smooth(0,.12,y);
-  const throat=1-smooth(.17,.24,z),flare=1+.32*(1-smooth(.045,.19,y))*throat;
+  const throat=1-smooth(.17,.24,z),flare=1+(F.neckFlare??.32)*(1-smooth(.045,.19,y))*throat;
   p.setXYZ(i,x*F.scale*flare+F.offset[0],y*F.scale+F.offset[1]-.050*collar,((z+.015)*flare-.015)*F.scale+F.offset[2]);
   // The short neck meets the scarf. The chin and jaw underside are skull, even
   // where they share a height with the back of the neck.
@@ -72,13 +72,14 @@ export function makePortraitHead(asset,body){
  for(let i=0;i<p.count;i++)if(raw.getY(i)<.19&&raw.getZ(i)<.24)g.attributes.normal.setXYZ(i,base[i*3],base[i*3+1],base[i*3+2]);
  g.morphAttributes.normal=keys.map(k=>{const q=scratch.attributes.position.array;for(let i=0;i<q.length;i++)q[i]=p.array[i]+k[i];scratch.computeVertexNormals();return new T.Float32BufferAttribute(scratch.attributes.normal.array.map((v,i)=>v-base[i]),3)});scratch.dispose();
  g.morphTargetsRelative=true;g.computeBoundingBox();g.computeBoundingSphere();
- const mesh=new T.SkinnedMesh(g,source.material.clone());mesh.name='TravellerPortraitHead';mesh.frustumCulled=false;mesh.userData.portraitHead=true;
+ const mesh=new T.SkinnedMesh(g,source.material.clone());mesh.name='TravellerPortraitHead';mesh.frustumCulled=false;mesh.userData.portraitHead=true;mesh.userData.portraitHeadFit=fit;
  mesh.userData.inkLine=.45;mesh.userData.inkTint=.5;
  body.parent.add(mesh);mesh.bind(body.skeleton,body.bindMatrix);return mesh;
 }
 const SRGB='albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));';
-const F=PORTRAIT_HEAD,FI=PORTRAIT_FACE_INK;
+const FI=PORTRAIT_FACE_INK;
 export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
+ const F=mesh.userData.portraitHeadFit??PORTRAIT_HEAD;
  const mat=mesh.material;if(!mat.fragmentShader.includes(SRGB))throw new Error('Portrait face needs the game material');
  mat.uniforms.uPortraitHairInk={value:hairInk};mat.uniforms.uPortraitHairAmount={value:1};
  mat.uniforms.uPortraitFaceInk={value:faceInk};mat.uniforms.uPortraitFaceAmount={value:faceInk?1:0};

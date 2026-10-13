@@ -49,7 +49,7 @@ test('the title world never compiles in one task with its first frame', () => {
   assert.match(w, /warmShadersSliced\(renderer, scene, camera, \{ target: cascades\.near\.rt, wear: shadowOverride/, 'the shadow passes\' programs too');
   assert.match(w, /const batch = seen\.slice\(i, i \+ 8\);\s*await settle\(renderer, warmDraw\.compile\(batch\), \d+\);\s*warmDraw\.draw\(batch\); await step\(\); await pace\(\);/, 'what the view sees uploaded a few at a time, its programs linked first');
   // and the long pieces of the build go in steps: the traveller's body, the sand's drifts
-  assert.match(w, /await runStepsAsync\(createTravellerV1Steps\(player\.char, assets\), slice\)/);
+  assert.match(w, /await runStepsAsync\(createTravellerSteps\(player\.char, assets\), slice\)/);
   assert.match(src('levels/desert.js'), /yield\* sand\.close\(\)\.buildSteps\(/);
   assert.match(src('levels/desert.js'), /yield\* sand\.raiseSteps\(terrain\)/);
 });

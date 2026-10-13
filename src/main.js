@@ -80,7 +80,7 @@ import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
-import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js';
+import { loadTraveller, createTraveller } from './characters/traveller.js';
 import { buildTravellerLod } from './characters/traveller-lod.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
@@ -318,7 +318,7 @@ const meta = minigameDef ? levelMetaFor(minigameDef, levelById) : levelById(leve
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
-const traveller = loadTravellerV1(import.meta.env.BASE_URL).catch(e => { console.warn('Traveller v1 unavailable; using the original explorer.', e); return null; });
+const traveller = loadTraveller(import.meta.env.BASE_URL).catch(e => { console.warn('Traveller B3 unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: the Desert's by default, ?mh=1
 // any world's, ?mh=0 none): the body's one file asked for now, while the rest loads
@@ -603,7 +603,7 @@ const peopleT = humanT && mhPeople ? ((await mhPeople)?.humans() ?? humanT) : hu
 setStep('traveller');
 const generatedTraveller = await traveller;
 if (generatedTraveller) {
-  player.character = createTravellerV1(player.char, generatedTraveller);
+  player.character = createTraveller(player.char, generatedTraveller);
   player.humanoid = player.character.humanoid;
   // his levels of detail when the camera is far enough (characters/traveller-lod.js: built in a worker,
   // the full meshes until then and up close), picked each frame with the people's (skinnedLods)
@@ -683,7 +683,7 @@ await slice();
 // a context; startReview runs after world loading and is too late for this.
 setStep('sound, tool');
 // (behind the title, the game's sound waits for its first frame: the title's music plays meanwhile)
-const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') ? true : undefined, autoStart: !titleHold });
+const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') || query.has('characterReview') ? true : undefined, autoStart: !titleHold });
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)
@@ -2710,4 +2710,9 @@ Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');
   startGuardianReview({level,player,sound,rig,kind:query.get('guardianReview')});
+}
+
+if(query.get('characterReview')==='b3'){
+ const {startCharacterReview}=await import('./character-review.js');
+ startCharacterReview({player,sound,rig,input});
 }

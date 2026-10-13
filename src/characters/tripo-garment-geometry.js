@@ -3,16 +3,16 @@ export const isShirtColor=([r,g,b])=>r>25&&r>g*1.22&&r>b*1.4&&(g-b)/(r-b)<.43;
 // Fill the hidden upper-trouser surfaces the AI model never generated. They are weighted to the same skeleton and live inside the shirt.
 // Loft two leg openings into one waist. The inner top arcs share vertex indices,
 // so the crotch is connected geometry rather than overlapping tubes or a fly patch.
-export function makeUnderlayer(source,colors){
+export function makeUnderlayer(source,colors,fit={}){
  const geometry=source.geometry,A=geometry.attributes,bones=source.skeleton.bones;
- const CUT=.665,ROWS=14,COLS=48,HALF=COLS/2,segments=[];
+ const CUT=fit.cut??.665,hipY=fit.hipY??.935,waistY=fit.waistY??1.002,rx=fit.rx??.163,rz=fit.rz??.103,cz=fit.centerZ??-.012,ROWS=14,COLS=48,HALF=COLS/2,segments=[];
  const point=i=>new T.Vector3().fromBufferAttribute(A.position,i);
  const blendWeights=(entries)=>{const sums=new Map();for(const [i,amount]of entries)for(let k=0;k<4;k++){const j=A.skinIndex.getComponent(i,k);sums.set(j,(sums.get(j)??0)+A.skinWeight.getComponent(i,k)*amount);}const top=[...sums].sort((a,b)=>b[1]-a[1]).slice(0,4),total=top.reduce((s,v)=>s+v[1],0);return {j:Array.from({length:4},(_,k)=>top[k]?.[0]??0),w:Array.from({length:4},(_,k)=>(top[k]?.[1]??0)/(total||1))};};
  const edge=(a,b,t)=>({p:point(a).lerp(point(b),t),entries:[[a,1-t],[b,t]]});
  for(let k=0;k<geometry.index.count;k+=3){const ids=[0,1,2].map(d=>geometry.index.getX(k+d)),cross=[];for(let d=0;d<3;d++){const a=ids[d],b=ids[(d+1)%3],ya=A.position.getY(a),yb=A.position.getY(b);if((ya-CUT)*(yb-CUT)<0)cross.push(edge(a,b,(CUT-ya)/(yb-ya)));}if(cross.length===2)segments.push(cross);}
  if(!segments.length)throw new Error('No closed trouser section at the lower repair boundary');
  const position=[],joint=[],weight=[],rgb=[],index=[],boundary=[],rings=[];
- const fabric=new T.Color().setHex(0xcbb897, T.LinearSRGBColorSpace).convertSRGBToLinear(),boneIndex=name=>bones.findIndex(b=>b.name===name);
+ const fabric=new T.Color().setHex(fit.fabric??0xcbb897, T.LinearSRGBColorSpace).convertSRGBToLinear(),boneIndex=name=>bones.findIndex(b=>b.name===name);
  function vertex(p,skin,color){const i=position.length/3;position.push(...p.toArray());joint.push(...skin.j);weight.push(...skin.w);rgb.push(color.r,color.g,color.b);return i;}
  const cross2=(a,b)=>a.x*b.z-a.z*b.x;
  for(const [side,sign]of [['l',1],['r',-1]]){
@@ -31,10 +31,11 @@ export function makeUnderlayer(source,colors){
   for(let row=0;row<=ROWS;row++){const t=row/ROWS,s=t*t*(3-2*t),ids=[];
    for(let col=0;col<COLS;col++){
     const angle=col/COLS*Math.PI*2,sin=Math.sin(angle),cos=Math.cos(angle),start=ring[col];
-    const end=new T.Vector3(sign*.163*Math.max(0,sin),.935+Math.min(0,sin)*.10,.103*cos-.012);
+    const end=new T.Vector3(sign*rx*Math.max(0,sin),hipY+Math.min(0,sin)*.10,rz*cos+cz);
     const p=start.p.clone().lerp(end,t);
     // Ease the change of section near the original trouser opening, retaining its folds.
     p.x=T.MathUtils.lerp(start.p.x,end.x,s);p.z=T.MathUtils.lerp(start.p.z,end.z,s);
+    if(fit.inset)p.addScaledVector(start.normal,-fit.inset*(1-t));
     if(side==='r'&&row===ROWS&&col>=HALF){ids.push(rings[0][ROWS][col]);continue;}
     if(side==='r'&&row===ROWS&&col===0){ids.push(rings[0][ROWS][0]);continue;}
     const i=vertex(p,start.skin,start.color.clone().lerp(fabric,T.MathUtils.smoothstep(t,0,.4)));ids.push(i);if(row===0)boundary.push({i,normal:start.normal});
@@ -46,7 +47,7 @@ export function makeUnderlayer(source,colors){
  // Outer half arcs form a single waist boundary; the inner arcs are the shared crotch.
  let previous=[...rings[0][ROWS].slice(0,HALF+1),...rings[1][ROWS].slice(1,HALF).reverse()];
  const baseWaist=previous.map(i=>new T.Vector3().fromArray(position,i*3));
- for(let row=1;row<=5;row++){const t=row/5,next=[];for(let col=0;col<previous.length;col++){const p=baseWaist[col].clone();p.x*=T.MathUtils.lerp(1,.90,t);p.z=(p.z+.012)*T.MathUtils.lerp(1,.92,t)-.012;p.y=T.MathUtils.lerp(.935,1.002,t);next.push(vertex(p,{j:[boneIndex('pelvis'),0,0,0],w:[1,0,0,0]},fabric));}
+ for(let row=1;row<=5;row++){const t=row/5,next=[];for(let col=0;col<previous.length;col++){const p=baseWaist[col].clone();p.x*=T.MathUtils.lerp(1,.90,t);p.z=(p.z-cz)*T.MathUtils.lerp(1,.92,t)+cz;p.y=T.MathUtils.lerp(hipY,waistY,t);next.push(vertex(p,{j:[boneIndex('pelvis'),0,0,0],w:[1,0,0,0]},fabric));}
   for(let col=0;col<previous.length;col++){const n=(col+1)%previous.length;index.push(previous[col],previous[n],next[col],previous[n],next[n],next[col]);}previous=next;
  }
  const out=new T.BufferGeometry();out.setAttribute('position',new T.Float32BufferAttribute(position,3));out.setAttribute('skinIndex',new T.Uint16BufferAttribute(joint,4));out.setAttribute('skinWeight',new T.Float32BufferAttribute(weight,4));out.setAttribute('color',new T.Float32BufferAttribute(rgb,3));out.setIndex(index);out.computeVertexNormals();
@@ -54,10 +55,23 @@ export function makeUnderlayer(source,colors){
  const mesh=new T.SkinnedMesh(out,new T.MeshStandardMaterial({vertexColors:true,roughness:1,side:T.DoubleSide}));source.parent?.add(mesh);mesh.bind(source.skeleton,source.bindMatrix);mesh.frustumCulled=false;return mesh;
 }
 
+// A cut creates a new point between two already-weighted vertices. Blend the
+// bone influences too: choosing one endpoint's weights makes tiny cut edges
+// tear apart when the hip and thigh rotate differently.
+function appendCutVertex(attrs,arrays,names,a,b,t){
+ const influences=new Map();
+ if(attrs.skinIndex&&attrs.skinWeight)for(const [i,amount]of [[a,1-t],[b,t]])for(let k=0;k<4;k++){
+  const bone=arrays.skinIndex[i*4+k];influences.set(bone,(influences.get(bone)??0)+arrays.skinWeight[i*4+k]*amount);
+ }
+ const best=[...influences].sort((a,b)=>b[1]-a[1]).slice(0,4),total=best.reduce((s,v)=>s+v[1],0)||1;
+ for(const name of names)for(let k=0;k<attrs[name].itemSize;k++)arrays[name].push(
+  name==='skinIndex'?(best[k]?.[0]??0):name==='skinWeight'?(best[k]?.[1]??0)/total:T.MathUtils.lerp(arrays[name][a*attrs[name].itemSize+k],arrays[name][b*attrs[name].itemSize+k],t));
+}
+
 export function separateShirt(geometry,mask,height,below=false){
  const attrs=geometry.attributes,names=Object.keys(attrs),arrays=Object.fromEntries(names.map(n=>[n,Array.from(attrs[n].array)])),index=[];
  let count=attrs.position.count;
- const intersection=(a,b)=>{const t=(height-arrays.position[a*3+1])/(arrays.position[b*3+1]-arrays.position[a*3+1]);for(const n of names){const size=attrs[n].itemSize;for(let k=0;k<size;k++)arrays[n].push(n==='skinIndex'||n==='skinWeight'?arrays[n][(t<.5?a:b)*size+k]:T.MathUtils.lerp(arrays[n][a*size+k],arrays[n][b*size+k],t));}return count++;};
+ const intersection=(a,b)=>{const t=(height-arrays.position[a*3+1])/(arrays.position[b*3+1]-arrays.position[a*3+1]);appendCutVertex(attrs,arrays,names,a,b,t);return count++;};
  for(let k=0;k<geometry.index.count;k+=3){const ids=[0,1,2].map(d=>geometry.index.getX(k+d));if(!ids.some(i=>mask[i])){if(!below)index.push(...ids);continue;}
  const poly=[];for(let d=0;d<3;d++){const a=ids[d],b=ids[(d+1)%3],ia=below?attrs.position.getY(a)<=height:attrs.position.getY(a)>=height,ib=below?attrs.position.getY(b)<=height:attrs.position.getY(b)>=height;if(ia)poly.push(a);if(ia!==ib)poly.push(intersection(a,b));}
  for(let d=1;d+1<poly.length;d++)index.push(poly[0],poly[d],poly[d+1]);
@@ -99,14 +113,14 @@ export function shadeTrouserRepair(mesh){
 
 export function removeTrouserBand(geometry,low=.665,high=.955){
  const attrs=geometry.attributes,names=Object.keys(attrs),arrays=Object.fromEntries(names.map(n=>[n,Array.from(attrs[n].array)])),index=[];let count=attrs.position.count;
- const split=(a,b,y)=>{const t=(y-arrays.position[a*3+1])/(arrays.position[b*3+1]-arrays.position[a*3+1]);for(const n of names){const size=attrs[n].itemSize;for(let k=0;k<size;k++)arrays[n].push(n==='skinIndex'||n==='skinWeight'?arrays[n][(t<.5?a:b)*size+k]:T.MathUtils.lerp(arrays[n][a*size+k],arrays[n][b*size+k],t));}return count++;};
+ const split=(a,b,y)=>{const t=(y-arrays.position[a*3+1])/(arrays.position[b*3+1]-arrays.position[a*3+1]);appendCutVertex(attrs,arrays,names,a,b,t);return count++;};
  for(let k=0;k<geometry.index.count;k+=3){const ids=[0,1,2].map(d=>geometry.index.getX(k+d));for(const [plane,above]of [[low,false],[high,true]]){const poly=[];for(let d=0;d<3;d++){const a=ids[d],b=ids[(d+1)%3],ia=above?attrs.position.getY(a)>=plane:attrs.position.getY(a)<=plane,ib=above?attrs.position.getY(b)>=plane:attrs.position.getY(b)<=plane;if(ia)poly.push(a);if(ia!==ib)poly.push(split(a,b,plane));}for(let d=1;d+1<poly.length;d++)index.push(poly[0],poly[d],poly[d+1]);}}
  const result=new T.BufferGeometry();for(const n of names)result.setAttribute(n,new T.BufferAttribute(new attrs[n].array.constructor(arrays[n]),attrs[n].itemSize));result.setIndex(index);return result;
 }
 
 // The generated inner shirt exists only in the narrow opening between the coat
 // panels. Add an opaque tucked-in backing beneath its original textured folds.
-export function makeInnerShirt(source,colors){
+export function makeInnerShirt(source,colors,fit={}){
  const A=source.geometry.attributes,position=[],skinIndex=[],skinWeight=[],index=[],ROWS=12,COLS=48;
  const candidates=[];
  for(let i=0;i<A.position.count;i++){
@@ -116,13 +130,16 @@ export function makeInnerShirt(source,colors){
  const shade=new T.Color(0,0,0);
  for(const i of candidates){const c=colors[i];shade.add(new T.Color().setRGB(c[0]/255,c[1]/255,c[2]/255).convertSRGBToLinear());}shade.multiplyScalar(1/candidates.length);
  for(let row=0;row<=ROWS;row++){
-  const t=row/ROWS,y=T.MathUtils.lerp(.975,1.27,t),nearest=candidates.reduce((a,b)=>Math.abs(A.position.getY(a)-y)<Math.abs(A.position.getY(b)-y)?a:b);
+  const t=row/ROWS,y=T.MathUtils.lerp(fit.bottom??.975,fit.top??1.27,t),nearest=candidates.reduce((a,b)=>Math.abs(A.position.getY(a)-y)<Math.abs(A.position.getY(b)-y)?a:b);
   for(let col=0;col<COLS;col++){
-   const angle=col/COLS*Math.PI*2;position.push(.148*Math.sin(angle),y,.086*Math.cos(angle)-.020);
+   const angle=col/COLS*Math.PI*2;position.push((fit.rx??.148)*Math.sin(angle),y,(fit.rz??.086)*Math.cos(angle)+(fit.centerZ??-.020));
    for(let k=0;k<4;k++){skinIndex.push(A.skinIndex.getComponent(nearest,k));skinWeight.push(A.skinWeight.getComponent(nearest,k));}
    if(row<ROWS){const a=row*COLS+col,b=row*COLS+(col+1)%COLS,c=a+COLS,d=b+COLS;index.push(a,b,c,b,d,c);}
   }
  }
+ // A fitted hidden torso is closed at both ends, so a lifted panel cannot
+ // expose the empty interior through a waist or upper-chest boundary.
+ if(fit.closed)for(const row of [0,ROWS]){const first=row*COLS,center=position.length/3;position.push(0,position[first*3+1],fit.centerZ??-.020);for(let k=0;k<4;k++){skinIndex.push(skinIndex[first*4+k]);skinWeight.push(skinWeight[first*4+k])}for(let col=0;col<COLS;col++){const a=first+col,b=first+(col+1)%COLS;if(row===0)index.push(center,b,a);else index.push(center,a,b)}}
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(position,3));geometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(skinIndex,4));geometry.setAttribute('skinWeight',new T.Float32BufferAttribute(skinWeight,4));geometry.setIndex(index);geometry.computeVertexNormals();
  const mesh=new T.SkinnedMesh(geometry,new T.MeshStandardMaterial({color:shade,roughness:1,side:T.DoubleSide}));mesh.name='InnerShirtBacking';mesh.bind(source.skeleton,source.bindMatrix);mesh.frustumCulled=false;return mesh;
 }

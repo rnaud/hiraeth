@@ -21,7 +21,7 @@ import { loadMotionLibrary, MotionMatcher, MATCH } from '../motion-match.js';
 import { loadHuman, Humanoid } from '../humanoid.js';
 import { Player, buildCharacter } from '../player.js';
 import { playerHands } from '../hands.js';
-import { loadTravellerV1, createTravellerV1 } from '../characters/traveller-v1.js';
+import { loadTraveller, createTraveller } from '../characters/traveller.js';
 import { loadBody as loadMakeHumanBody } from '../makehuman/body.js';
 import { MakeHumanPeople } from '../makehuman/people.js';
 import { Physics } from '../physics.js';
@@ -118,11 +118,11 @@ const LANE = 0.9;                                // duo: the loops at +x, matchi
 // ------------------------------------------------------------------ assets
 const BASE = import.meta.env.BASE_URL;
 const t0 = performance.now();
-const [lib, hm, hf, travellerScene, travellerV1, mhData] = await Promise.all([
+const [lib, hm, hf, travellerScene, travellerAsset, mhData] = await Promise.all([
   loadAnimationLibrary(`${BASE}anim/ual.glb`), loadHuman('m'), loadHuman('f'),
   new GLTFLoader().loadAsync(`${BASE}anim/traveller.glb`).then((g) => g.scene).catch(() => null),
-  // the game's traveller (the coral shirt: src/characters/traveller-v1.js), and the MakeHuman people's body
-  loadTravellerV1(BASE).catch((e) => { console.warn('motion: no traveller v1, the old one', e); return null; }),
+  // the game's traveller (the coral shirt: src/characters/traveller.js), and the MakeHuman people's body
+  loadTraveller(BASE).catch((e) => { console.warn('motion: no traveller B3, the old one', e); return null; }),
   loadMakeHumanBody(BASE).catch(() => null),
 ]);
 // the captured motion: the people's walks (walks.glb) and the matching database, whatever
@@ -138,7 +138,7 @@ const noItems = { has: () => false };
 function makeTraveller(key, matching) {
   const p = new Player(physics, { climb: false, health: false, items: noItems });
   p.animator = new Animator(lib, p.char);
-  if (travellerV1) { p.character = createTravellerV1(p.char, travellerV1); p.humanoid = p.character.humanoid; }
+  if (travellerAsset) { p.character = createTraveller(p.char, travellerAsset); p.humanoid = p.character.humanoid; }
   else p.humanoid = travellerScene ? new Humanoid(hm, p.char, 'm', { outfit: travellerScene }) : new Humanoid(hm, p.char, 'm', { suit: true });
   p.humanoid.ownMaterials?.();
   p.attach(scene);
@@ -181,13 +181,13 @@ const moveBodies = (() => {
   const T = { key: 'v1', p: null };
   const v1 = new Player(physics, { climb: false, health: false, items: noItems });
   v1.animator = new Animator(lib, v1.char);
-  if (travellerV1) { v1.character = createTravellerV1(v1.char, travellerV1); v1.humanoid = v1.character.humanoid; }
+  if (travellerAsset) { v1.character = createTraveller(v1.char, travellerAsset); v1.humanoid = v1.character.humanoid; }
   else v1.humanoid = new Humanoid(hm, v1.char, 'm', { suit: true });
   v1.gear = { update() {}, device: { visible: true }, noShadow: [] };   // (no gear: but no robe either, Player.updateCloth gives a body without gear one)
   v1.humanoid.ownMaterials?.();
   v1.attach(scene);
   markHero(v1.char.root);
-  T.p = v1; T.name = travellerV1 ? 'The traveller' : 'The traveller (old body)';
+  T.p = v1; T.name = travellerAsset ? 'The traveller' : 'The traveller (old body)';
   out.push(T);
   if (mhData) {
     const npc = new NPC(scene, physics, { route: [MOVES_AT.clone()], cape: 0, lines: ['~neutral~ …'], lib, human: new MakeHumanPeople(mhData).template('m'), kind: 'm' });

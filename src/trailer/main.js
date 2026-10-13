@@ -12,7 +12,7 @@ import { applyTimeOfDay, colourScript } from '../timeofday.js';
 import { loadHuman } from '../humanoid.js';
 import { loadAnimationLibrary } from '../animator.js';
 import { createActors } from './actors.js';
-import { loadTravellerV1 } from '../characters/traveller-v1.js';
+import { loadTraveller } from '../characters/traveller.js';
 import { REFERENCE_SCENES, referenceBuilder } from './reference-scenes.js';
 import { Physics } from '../physics.js';
 import { Bird } from '../bird.js';
@@ -203,7 +203,7 @@ try {
   renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   renderer.setSize(RW, RH); renderer.autoClear = false;
   status.textContent = "Preparing the cast…";
-  const [human, lib, outfit] = await Promise.all([loadHuman(), loadAnimationLibrary(), loadTravellerV1(import.meta.env.BASE_URL)]);
+  const [human, lib, outfit] = await Promise.all([loadHuman(), loadAnimationLibrary(), loadTraveller(import.meta.env.BASE_URL)]);
   for (const [id, build, title] of [['desert', buildDesert, 'the desert'], ['arzach2', buildArzach2, 'the sky stones'], ['buried', buildBuried, 'the Buried Machine'], ['perdide2', buildPerdide2, 'the Deep Wood'], ['spheres', buildSpheres, 'the Garden of Spheres'], ...Object.keys(REFERENCE_SCENES).map(id => [id, referenceBuilder(id), id])]) {
     status.textContent = `Preparing ${title}…`;
     const scene = new THREE.Scene(), level = await runStepsAsync(build(scene));

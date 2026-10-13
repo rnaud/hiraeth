@@ -4,7 +4,7 @@
 // Only the people's assets load: the two bodies, the clip library, the
 // traveller's outfit (and a world's story data and sky when picked).
 import * as THREE from 'three';
-import { loadTravellerV1, createTravellerV1 } from '../characters/traveller-v1.js';
+import { loadTraveller, createTraveller } from '../characters/traveller.js';
 import { sharedUniforms, makeMaterial, markHero } from '../materials.js';
 import { createPost, DEBUG_VIEWS, PRESETS } from '../post.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from '../pipeline.js';
@@ -118,7 +118,7 @@ const BASE = import.meta.env.BASE_URL;
 const t0 = performance.now();
 const [lib, hm, hf, travellerAsset] = await Promise.all([
   loadAnimationLibrary(`${BASE}anim/ual.glb`), loadHuman('m'), loadHuman('f'),
-  loadTravellerV1(BASE),
+  loadTraveller(BASE),
 ]);
 const humans = { m: hm, f: hf };
 // the captured motion too (scripts/mocap/: CMU takes through the same retargeting): the matcher's takes (mm:) and the people's walks (walk:) in the clip list
@@ -145,7 +145,7 @@ const fakePlayer = { pos: new THREE.Vector3(0, -100, 0), wind, vel: new THREE.Ve
 function makeTraveller() {
   const char = buildCharacter();
   char.jetpack.visible = false;
-  const character = createTravellerV1(char, travellerAsset);
+  const character = createTraveller(char, travellerAsset);
   const h = character.humanoid;
   const animator = new Animator(lib, char);
   scene.add(char.root);
@@ -426,9 +426,9 @@ function animate(p, dt, t) {
   const H = p.h;
   const wrists = p.character?.poseArms({ animator: a, onGround: true, overlay: !!clip });
   H.update();
-  if (wrists) p.character.poseWrists(wrists);
   if (p.type === 'traveller') {
-    H.poseHands(a);
+    if(p.character?.poseHands)p.character.poseHands(a,wrists);
+    else {H.poseHands(a);if(wrists)p.character?.poseWrists(wrists);}
     // the traveller's feet find the ground (the player's plantFeet); the people's don't, in the game either
     if (state.plant && !clip && !seated) H.plantFeet(dt, physics, UP, root.position, _w.set(Math.sin(p.heading), 0, Math.cos(p.heading)), null);
     else H.resetFeet();

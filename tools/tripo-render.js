@@ -7,7 +7,7 @@ import { Cascade, shadowDirection } from '../src/shadows.js';
 import { makeReviewInkMaterial } from '../src/characters/tripo-material.js';
 export { makeReviewInkMaterial };
 
-export function createReviewInk(renderer,scene,meshes,{garment,grid,helper,focus}){
+export function createReviewInk(renderer,scene,meshes,{garment,grid,helper,focus,inkMaterials}){
  const post=createPost(),U=post.uniforms,gbuffer=createGBuffer(),compose=createComposeTarget(),blit=createBlit(compose.texture);
  // The game disables colour management and uses printed RGB shader colours.
  // This preview retains normal Three.js colour management for its standard view.
@@ -16,7 +16,7 @@ export function createReviewInk(renderer,scene,meshes,{garment,grid,helper,focus
  U.tAlbedo.value=gbuffer.textures[0];U.tNormal.value=gbuffer.textures[1];U.tHatch.value=gbuffer.textures[2];
  const bg=scene.background.clone().convertLinearToSRGB();U.uBackdrop.value.set(bg.r,bg.g,bg.b,1);
  SU.uSunDir.value.set(2,4,3).normalize();SU.uCloudShadows.value=0;U.uSunDir.value.copy(SU.uSunDir.value);
- const materials=meshes.map(mesh=>({mesh,standard:mesh.material,ink:makeReviewInkMaterial(mesh,{lining:mesh===garment})}));
+ const materials=meshes.map(mesh=>({mesh,standard:mesh.material,ink:inkMaterials?.get(mesh)??makeReviewInkMaterial(mesh,{lining:mesh===garment})}));
  const cascades=[
   new Cascade({name:'fine',size:2048,extent:12,depth:1600,bias:3.4,offset:2.6,uniforms:{map:SU.uShadowMap0,matrix:SU.uShadowMatrix0,bias:SU.uShadowBias0,offset:SU.uShadowNormalOffset0}}),
   new Cascade({name:'near',size:256,extent:220,depth:1600,uniforms:{map:SU.uShadowMap,matrix:SU.uShadowMatrix,bias:SU.uShadowBias,offset:SU.uShadowNormalOffset}}),

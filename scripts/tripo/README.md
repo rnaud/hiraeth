@@ -366,3 +366,44 @@ and Arena. Review the actual encounter silently with temporary progress at
 `/?level=arzach&guardianReview=elder`. Run `tests/elder-guardian.test.js` too.
 Device profiling remains pending #237; see the natural-wing replacement section in
 `docs/systems/characters.md` for budgets and validation limits.
+
+
+## Traveller B3 playable body (13 October 2026)
+
+Run `node scripts/tripo/prepare-traveller-b3.mjs` then
+`node --test tests/traveller-b3.test.js tests/portrait-head.test.js`.
+Open `/tools/traveller-b3-review.html` on the task server at port 5174.
+The approved three-view source and Tripo job are preserved under
+`references/main character/Body study - 2026-10-13/`; the build uses the measured
+B3 fit rather than v1's palm-down surface-slice assumptions. The approved portrait
+head remains unchanged and is uniformly fitted to this new collar at runtime.
+The review GLB is a 2K rigged fused source. Runtime now separates and simulates
+the lower shirt with the shared cloth cage, plus fitted hidden waist layers.
+The user accepted it as the playable traveller. `src/characters/traveller.js` is
+the canonical game/title/studio/trailer/native entry; the review shares its fit
+and posing helpers. Open `/?level=arena&characterReview=b3` for silent live
+inspection with temporary progress. Device profiling remains pending.
+See the Traveller B3 section in `docs/systems/characters.md` for budgets and checks.
+
+B3 hand/posture review: inspect both hand close-ups in Open, Relaxed, Fist and
+Point, in T-pose and moving clips. The weights isolate separated digits; the
+runtime maps anatomical wrist axes and fits thumb opposition. Jogging reduces
+forward neck lean without changing skull facing. These corrections are isolated
+to B3; they do not change the shared animation library.
+
+The B3 review loads all five runtime clip libraries and nine procedural pose
+scenarios. Use Motion sheet for the grouped overview. The complete mesh audit is
+`node --test --test-name-pattern='complete animation-library' tests/traveller-b3.test.js`;
+it writes the per-motion report under `output/character-tripo/body-b3/` and takes
+roughly two minutes locally. `B3_AUDIT_MATCH` can focus a diagnostic subset; a
+subset must not be reported as the complete pass.
+
+B3 clothing review: enable Shirt physics, choose Shirt / waist focus and inspect
+Walk/Jog from left, right and back. Drive must settle while retaining cloth
+simulation. Underlayers exposes the hidden waist repair for diagnosis. The cloth
+contact/stability regressions run with the same CPU geometry as the preview;
+`node --test --test-name-pattern='jogging hands|seated shirt|moving cloth stays|seated hands|playable|procedural palms' tests/traveller-b3.test.js`.
+
+Default body opens a synchronized, unfitted average male MakeHuman comparison.
+Use T-pose + Clay for proportions and Skeleton for both rigs; disable Default
+body to return to B3 alone. Both keep their actual world scale.

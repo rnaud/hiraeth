@@ -553,18 +553,18 @@ function placeTraveller(player, { at, heading = 0 }, physics) {
 
 /**
  * The traveller as the game draws him: the Player (his body, cape, gear; held in TITLE_STANCE), his generated
- * body (characters/traveller-v1.js), his flask on his back (fluid-tool.js), the game's animation
+ * body (characters/traveller.js), his flask on his back (fluid-tool.js), the game's animation
  * library. Loaded only when the shot has him; the world shows without him if a file is missing.
  */
 async function makeTraveller({ scene, physics, level, camera, waters, shot, step, slice, onStage = () => {} }) {
   const base = import.meta.env?.BASE_URL ?? '/';
-  const [{ Player }, { Animator, loadAnimationLibrary }, { loadTravellerV1, createTravellerV1Steps }, { FluidTool }] = await Promise.all([
-    import('./player.js'), import('./animator.js'), import('./characters/traveller-v1.js'), import('./fluid-tool.js'),
+  const [{ Player }, { Animator, loadAnimationLibrary }, { loadTraveller, createTravellerSteps }, { FluidTool }] = await Promise.all([
+    import('./player.js'), import('./animator.js'), import('./characters/traveller.js'), import('./fluid-tool.js'),
   ]);
   onStage('traveller:assets');
   const [lib, assets] = await Promise.all([
     loadAnimationLibrary().catch((e) => { console.warn('title world: animation library', e); return null; }),
-    loadTravellerV1(base).catch((e) => { console.warn('title world: traveller', e); return null; }),
+    loadTraveller(base).catch((e) => { console.warn('title world: traveller', e); return null; }),
   ]);
   await step();
   onStage('traveller:player');
@@ -577,7 +577,7 @@ async function makeTraveller({ scene, physics, level, camera, waters, shot, step
   onStage('traveller:body');
   if (assets) {
     // (his body fitted, his hair, cloth and head made a step at a time: in one, 130-350 ms)
-    player.character = await runStepsAsync(createTravellerV1Steps(player.char, assets), slice);
+    player.character = await runStepsAsync(createTravellerSteps(player.char, assets), slice);
     player.humanoid = player.character.humanoid;
     await step();
   }

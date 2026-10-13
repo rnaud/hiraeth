@@ -1485,3 +1485,287 @@ shade profile (12% hatch, 25% shade lift, 80% hue retention) through
 `inkShade`; it still receives world lighting, shadows and contours. The profile
 is shared by the preview and gameplay. It does not alter the Keeper or other
 characters. The v3 runtime stays separate from main’s v1 repair checkpoint.
+
+
+## Traveller B3 body (13 October 2026)
+
+The user approved the OpenAI B3 slender-young-adult proportions and matching left
+and back T-poses, then the Tripo result. Inputs, source export and provenance are
+in `references/main character/Body study - 2026-10-13/`. Tripo H3.1 job
+`c8bf8b97-1dc1-420e-b81a-ed47e61ef479` used Front/Left/Back, 50 credits, Ultra Mesh,
+50k triangle target, 4K texture, Remove Lighting on and PBR off. The untouched
+source is 3,427,108 bytes, 47,161 triangles, 29,288 vertices, one material, no rig.
+
+`node scripts/tripo/prepare-traveller-b3.mjs` creates the runtime files under
+`public/characters/traveller-b3/`. The source shape is uniformly scaled to 1.75 m;
+`traveller-b3-fit.js` records the measured 53-joint MakeHuman fit with 0.314 m
+shoulder-pivot spacing and palm-forward finger chains. `rig-baseline.mjs
+--traveller-b3` uses this continuous anatomical weight field, not the old body's
+surface fit. The source has fused shirt/trouser seams: a hard cloth-color weight
+override tore adjacent triangles. One continuous field avoids that tear; fingers
+blend neighboring chain fields across their webs. All thirty finger joints have
+measured influence and actual vertex displacement.
+
+The rigged GLB is 2,812,392 bytes with the same geometry, 53 bones, one material and
+a 2048² JPEG (about 21.33 MiB decoded with mipmaps). At runtime the generated head
+is removed and the accepted `traveller-v1/head-v3` portrait is fitted uniformly
+at scale .280 and offset [-.001, 1.487, -.006]. Its geometry, hair mask, face ink,
+blink and speech driver are reused. The old body retains its original .264 fit.
+`portrait-head.js` keeps the per-instance fit with the mesh so shader coordinates,
+morphs and gaze agree. Each instance's render/face setup leaves the cached source geometry untouched. Final rendered geometry differs from
+the raw body budget because the source head is removed and the portrait added.
+
+Open `/tools/traveller-b3-review.html` on port 5174. This silent review uses the
+real Animator/Humanoid/Hands and game G-buffer/ink/shadow pipeline. It includes
+idle, walk, jog, climb, seated and bind poses, short motion crossfades, side/back
+views, hand and collar close-ups, unlit/clay and opposing light controls. The
+wrist driver maps measured palm/finger axes from the clip to B3 and shares the
+final roll with the forearm once. The earlier fixed 90-degree correction shared
+roll twice and did not align the anatomical axes exactly.
+
+The hand repair restricts neighboring digit blending to the palm/web; distal
+fingers have effectively exclusive chains. Each phalanx follows its own joint
+until the next knuckle, avoiding rubber-like bending halfway along the bone.
+B3 thumb roll/in signs and flexion axes are fitted to its palm-forward source,
+with 65% of the shared thumb pose. Both hands can be inspected in open, relaxed,
+fist and pointing poses, including paused T-pose; camera focus follows either
+hand. Automatic hands resolve immediately when paused. Generated knuckle
+geometry remains angular at close range; exhaustive prop-contact inspection remains pending.
+
+Jogging reduces the neck control's forward pitch by 55%, weighted by the actual
+jog crossfade. The skull keeps its existing world orientation and the torso keeps
+its clip motion. This avoids moving the entire portrait forward with the source
+clip's 35–50 degree neck lean. Tests cover the full jog cycle at a rotated spawn,
+independent fingertip movement, palm-axis retargeting, thumb opposition and
+repeatable finger poses.
+
+Validation: `tests/traveller-b3.test.js` checks bind roundtrips at arbitrary
+spawns, every digit's real deformation, and 24 phases each of five complete
+motion loops. Worst sampled body edge ratios (>3 mm rest edges) were 2.29 idle,
+2.69 walk, 3.49 jog, 4.57 climb and 3.28 seated-source loop; these bound tears,
+not cloth quality. Browser inspection covered front/back walking, side jogging,
+raised-arm climb, seated lap hands, fist in clay and head/collar profile. The
+source texture and opposite lighting still need full final acceptance.
+
+The user accepted B3 and requested it as the playable traveller. The canonical
+`characters/traveller.js` entry now builds it in the game, title world, native
+engine bridge, studio, motion page and trailer. The earlier v1 builder remains
+for historical tools and regressions. The clothing and live integration follow-ups
+below supersede the initial fused-shirt prototype. The exported rig GLB has no
+baked clips, replacement portrait, reconstructed layers or cloth simulation;
+those are assembled at runtime. Deep lunges and floor recoveries still stretch
+the generated upper garment. Device profiling and exhaustive equipment-contact
+inspection remain limitations.
+
+
+### B3 full-library review and neck attachment follow-up
+
+The review now uses `traveller-b3-motion.js` in both browser and mesh tests:
+16 UAL game clips, 35 captured actions, 29 conversational gestures, 12 segmented
+character walks and 108 segmented motion-matching takes (200 stored clips).
+Nine additional scenarios call the game's actual procedural pose functions:
+glide, hovering/flying with jets, treading water, breaststroke, crawl, front/back
+flip and side hop. The two baked legacy clips in `anim/traveller.glb` belong to a
+different old skeleton and are not runtime Animator inputs. They are not counted.
+The selector groups every entry; Motion sheet provides 14 clay contact-sheet
+pages with 15/50/85% phase controls. Cameras follow airborne/floor-level bodies
+and the face/hand close-ups. These previews create no audio system.
+
+The full audit samples 33 points through every clip/scenario (6,897 poses), both
+body and portrait vertices, plus selected transitions. It writes the per-motion
+report to `output/character-tripo/body-b3/motion-audit.json`. Isolated clip audits
+use the same source tracks and full hip orientation for captured actions; they
+are not a world-controller/contact/weapon-equipment acceptance test. Contact
+sheets at 50% covered every stored clip, with extra early/late recovery poses
+and individual animated neck/hand checks. Do not claim every rendered frame was
+manually inspected.
+
+This exposed excess trouser-centre stretching and head-attachment stretching.
+The central upper trouser region now blends toward the pelvis instead of being
+pulled entirely by both thighs. B3's skull pivot moved from the skull centre to
+[0, 1.535, -.028] at the neck. Its head skin transition spans 1.450–1.523 m.
+The inherited 32% neck-base flare is disabled only for B3, leaving the approved
+face geometry unchanged. The original neck lining is retained inside the scarf,
+its top tucked inward and its skin colour matched to the portrait in both
+standard/unlit and game-ink materials. Removing that lining creates holes inside
+the scarf, so it must not simply be cut away with the old head.
+
+Deep lunges and floor recoveries still stretch the fused clothing. The numeric
+limits guard against regression, not realistic cloth or exact prop contact.
+B3 is now accepted for play; these deep-pose limitations remain visible in the review.
+
+The old-head cut now ends at 1.515 m rather than 1.495 m, preserving the raised
+coral rear collar. A mesh regression checks that those fabric vertices survive
+unchanged. The neck lining tucks inward by up to 45%; the pale rear lining is
+also matched to the portrait skin. Front and back idle and back jogging were
+checked in the in-app browser. This is not a new open shirt design.
+
+Review transitions preserve outgoing clip clocks. Actions and gestures clamp at
+their final frame instead of wrapping non-looping poses (the held sword block
+had produced a 35 cm mesh jump at its loop boundary). Play restarts a completed
+one-shot. The seven selected transition pairs pass a per-frame continuity check.
+
+Final validation on 13 October: all 209 scenarios × 33 poses passed the finite
+vertex/deformation audit. Worst sampled edge ratios were 5.365 for the fused
+body and 2.305 for the portrait neck, down from the initial 6.621 and 5.110.
+These ratios are regression bounds, not cloth-quality scores. All 36 targeted
+character/material tests and 22 changelog tests passed; the production build
+passed. No browser warnings or errors appeared during the final collar check.
+
+### B3 contextual fingers and walking clearance
+
+The joint-influence checks passed while the review still sent only a generic
+relaxed context to talking clips. B3 now passes speech strength, beat and tone
+through the existing hand driver for Talk, all conversation clips, and the Talk
+checkbox. Explicit diagnostic hand poses remain authoritative. The review keeps
+looping conversation clips looping according to `GESTURE_CLIPS`; only one-shot
+gestures hold their final pose. Finger drift follows the review time, and paused
+poses reset lag/tightness so seeking or returning from a grip is deterministic.
+
+`Hands.poses` optionally overrides a character's fitted pose angles without
+mutating the shared pose definitions. B3 uses a more even resting finger arc,
+less extra spread (its mesh is already fanned) and a thumb closer to the index.
+Its speech pose opens the fingers more gently. Other bodies retain the shared
+library, including full grip/fist/point articulation.
+
+The original walk styling only narrowed arms and did not account for B3's trouser
+width. B3 allows a small outward correction and keeps an 18-degree upper-arm
+clearance in the walk. This preserves elbow bend and fore/aft swing, applies the
+matching wrist rotation, and blends with the locomotion weight. The common
+walk-style defaults remain unchanged for other characters.
+
+A new regression poses the actual body mesh at 60 phases of the complete walking
+loop and checks both hand triangle sets against the posed trouser/lower-shirt
+triangles using BVHs. An initial 13-degree setting still failed at 18 hand/phase
+pairs; the final fit has no intersections at those 120 checks. Speech regressions
+measure real fingertip displacement, tone response, idle return, and repeatable
+paused poses, with the held base torso unchanged. This does not certify equipment
+contact or all the other clips' clothing intersections. Front and three-quarter
+ink/clay views were checked at the previous collision phases for both hands.
+
+The final hand follow-up passed all 34 targeted hand/character tests (including
+the 209-scenario, 6,897-pose mesh audit), 22 changelog tests and the production
+build. The final in-app preview emitted no warnings or errors.
+
+### B3 cloth, side/back clearance and seated stability
+
+The initial B3 preview had a fused skinned shirt: v1's cloth had not been ported.
+B3 now uses `makeTripoCloth` with an explicit measured fit and the existing 90 Hz
+cage solver. The lower coral panels are separated, ink-dark seam neighbours stay
+with the panels, and the missing hidden waist/inner shirt are reconstructed.
+The original textured trousers are retained beneath the moving shirt; only the
+hidden missing waist is backed. Replacing their upper band exposed a differently
+shaded repair and looked like a second pair of trousers. Newly cut edges interpolate bone
+influences; selecting an endpoint's weights made tiny waist edges tear apart.
+That interpolation repair also applies to the shared garment cutters.
+
+B3's shirt attaches at 1.20 m with an 18 cm gradual skin-to-cloth transition.
+Its cage ends at .825 m and its hip/thigh contacts use the fitted B3 proportions.
+The hidden waist is narrower than v1's initial borrowed fit and tucked inside
+the seated rear hem. Pinned normals and the ink treatment match the upper shirt.
+Detailed per-vertex capsule projection is disabled for B3: it collapsed the
+fused source's nearby inner/outer folds onto one surface, causing side/back
+flicker and seated chatter. The collision-aware cage still drives the garment;
+cloth is not frozen for the driving pose. Hand clearance comes from fitted arm
+motion, not competing inward cloth forces. Walk/jog upper-arm clearance is now
+22/38 degrees, with bounded outward correction and blended wrist orientation.
+
+The B3 review uses the CPU garment path so tests can inspect the same triangles
+that are displayed. The playable B3 uses the existing worker/GPU path (or native
+cloth offload), with the same cage and disabled detail-fold projection. Mobile
+profiling remains pending. The shared B3 motion driver
+updates cloth after body, wrist and finger posing. A seek resets simulation;
+paused frames preserve the settled cloth. Shirt physics and Underlayers switches,
+and the Shirt / waist focus, expose these layers for review. Static motion sheets
+show sampled poses, not a settled simulation of every action.
+
+New regressions sample 60 phases after two warm-up cycles: both hands against
+shirt/torso for walk, jog and sprint (360 hand/phase checks), and shirt against
+reconstructed trousers for idle, walk, jog and drive (240 checks). All pass with
+zero triangle intersections. A held driving pose settles below 0.025 mm maximum
+vertex movement per 60 Hz frame in its final measured second. These bounds do
+not certify prop contact, every extreme motion's cloth, or a seat/cockpit mesh.
+The silent in-app review checks front, both sides and rear, in ink and clay.
+
+The targeted character/hand/cloth checks include all 209 scenarios × 33
+body/head poses. A procedural-cloth regression verifies that flight/swim setup does not reset
+the solver through its intermediate idle pose on every frame. The review's cloth
+is stepped once after the final procedural pose, preserving continuity.
+
+### B3 default-body comparison
+
+The body review now opens with a second, unfitted MakeHuman adult male body
+beside B3. It uses the average macro settings (male, age 25, midpoint muscle,
+weight, height and proportions), its own skeleton and the same clip catalogue,
+clock, playback and hand controls. It does not inherit B3's fitted proportions,
+neck correction or arm-clearance settings. Both are drawn at the same world
+scale and camera depth; their heights are not normalized. The reference has no
+traveller accessories and is shaded as a plain mannequin.
+
+Default body toggles the comparison. Skeleton shows both rigs, Clay removes
+texture distraction, and T-pose exposes proportions. Camera-relative placement
+keeps the bodies side by side when switching to profiles/back or orbiting.
+Motion sheets remain B3-only. This is a reference body, not a claim that the
+stock body's every deformation is ideal.
+
+
+### B3 opaque inner layer and bowed-head chest fit
+
+The reconstructed inner T-shirt now spans .92–1.34 m, with a .155 m half-width
+and .100 m half-depth. Closed end caps and matching torso weights maintain
+coverage inside the original open shirt and retained trousers. A regression
+checks closed edges and opaque material, then casts 1,920 rays through actual
+skinned geometry over 96 idle/walk/jog/drive poses. This guards against seeing
+through the torso; it is not a full collision audit of every outer-shirt fold.
+
+The old height-only neck weights bent the upper chest with the bowed head,
+reducing sampled front/back thickness by roughly 10% in Sad Idle. The rebuilt
+B3 mesh now restricts neck influence to the neck base, with a smooth transition
+into the collar and head. The ribcage keeps its shape without suppressing the
+expressive neck motion. Both sad idles are sampled at 65 phases, checking five
+actual front/back vertex pairs against a 2% depth tolerance. Side views in clay
+with the default body comparison accompany this check in the interactive changelog.
+
+
+### B3 playable integration and seated hands
+
+The canonical builder preserves origin/rest binding even when the player spawns
+far from the origin, and yields between build stages for title loading. The game
+retains its glove, fluid muzzle, chest/tank and scout anchors, authored interaction
+poses, and asynchronous body/head/cloth LOD generation. Per-vertex head colours
+are loaded for the native renderer. Anatomical wrist alignment is shared between
+clip playback, get-up, procedural flight/swimming and rides. Cab passengers use
+the fitted lap reach; bike/skiff control-hand positions are left intact. Walking
+arm and jog-neck corrections yield to aiming, climbing, mantle, swimming, flight,
+boarding and scene overlays.
+
+The seated hands initially intersected the moving shirt in 351 of 360 sampled
+hand/frame checks. Their reach is now 72% down the thigh with 17.5 cm lift and
+2.5 cm outward clearance. A B3-specific relaxed thumb in the seated `limp` pose
+removes the remaining lap penetration. Three cycles (180 frames, both hands and
+distal wrists, actual shirt/lap triangles) have zero intersections. The ordinary
+cab pose is checked separately for palm orientation and fitted wrist targets.
+The live Arena view confirms B3, equipment and worker/GPU cloth render together;
+walk/run controls exercise the real Player updates. `?level=arena&characterReview=b3`
+starts muted before audio construction and sandboxes progress. Its panel displays
+master, music, effects and voice values; all were zero in the in-app browser.
+
+Runtime budget for one near-camera hero: 60,264 vertices / 94,222 triangles across
+body, portrait, overshirt, trousers repair and inner shirt; five visible base
+material draws plus the cloth shadow and equipped items. The body/source stage
+is reduced from the 3,427,108-byte 4K export to the 2,812,392-byte 2K rigged body;
+its original head and hidden faces are cut at runtime. Body + rig + colour data
+are 3,206,131 bytes; including the existing portrait, portrait colour data and
+ink masks, the loaded character assets total 6,426,454 bytes (animations and
+MakeHuman template shared separately). Both colour atlases are 2048²; hair is
+1024² R8 and face ink 512×584 RG8, about 44.76 MiB decoded including mipmaps,
+excluding geometry, skin palettes and render targets. This keeps the base hero
+under the chosen 100k-triangle / 6.5 MB / 45 MiB texture envelope. Existing runtime
+LODs reduce distant draws. No mobile-frame-time claim is made from the desktop
+preview; on-device profiling remains outstanding.
+
+Validation includes the 209-entry / 6,897-pose full mesh audit, walking/jogging and
+seated triangle-contact checks, all thirty digit chains, sad-idle chest depth,
+opaque inner-layer coverage, translated/rotated cloth, gameplay pose priorities,
+GPU collision settings and cab palm targets. The interactive changelog saves
+both the accepted review and actual playable-game evidence.

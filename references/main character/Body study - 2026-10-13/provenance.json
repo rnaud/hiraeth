@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-13",
+  "character": "Traveller",
+  "purpose": "Slender young-adult body redesign; preserve approved portrait head at later integration",
+  "reference_service": "OpenAI built-in image generation",
+  "approved_design": "B3 balanced arm proportions",
+  "reference_approval": "User approved B3, then left and back views",
+  "references": {
+    "approved_sheet": {
+      "file": "approved-b3-proportions.png",
+      "sha256": "6e00ec1c0d97e5a1c11fa3a801966f2a984e35d7536b66c05287b3ecdf31070d"
+    },
+    "front": {
+      "file": "front-tpose.png",
+      "sha256": "1c07bbf6f7220c5a4a7d2608197e3c3071587c7a1b37c58acaf619d842a1a35c"
+    },
+    "left": {
+      "file": "left-tpose.png",
+      "sha256": "6353e93e7dbb249ee81ac790c62df8059e85a88595ab67347c68ed13747dd8ab"
+    },
+    "back": {
+      "file": "back-tpose.png",
+      "sha256": "78ed5f8356eb62c91edbc95e4039d24c90d80b45398f8caaac46afeaad86eb2c"
+    }
+  },
+  "tripo": {
+    "job_id": "c8bf8b97-1dc1-420e-b81a-ed47e61ef479",
+    "url": "https://studio.tripo3d.ai/workspace/generate/c8bf8b97-1dc1-420e-b81a-ed47e61ef479",
+    "model": "H3.1",
+    "mode": "multi-view",
+    "views": [
+      "front",
+      "left",
+      "back"
+    ],
+    "credits": 50,
+    "ultra_mesh": true,
+    "texture": "4K",
+    "remove_lighting": true,
+    "pbr": false,
+    "topology": "triangle",
+    "target_faces": 50000,
+    "generate_in_parts": false,
+    "status": "complete"
+  },
+  "limitations": [
+    "Generated turnarounds are interpreted views, not guaranteed identical geometry.",
+    "Dressed source is a visual prototype; independent cloth, hidden body surfaces and rig are not yet verified.",
+    "Live game character and approved portrait head have not been changed."
+  ],
+  "source": {
+    "file": "source.glb",
+    "bytes": 3427108,
+    "sha256": "ca84c8e1ccb26f7fdd8d267fbf25f4289fc883d41da6c8699c75b2a4640a945b",
+    "vertices": 29288,
+    "triangles": 47161,
+    "materials": 1,
+    "skins": 0,
+    "animations": 0
+  },
+  "review": "Front silhouette reviewed in Tripo; unrigged source pending detailed side/back, texture and deformation validation.",
+  "integration": {
+    "date": "2026-10-13",
+    "approval": "User accepted the fitted body and explicitly requested B3 as the playable traveller.",
+    "runtime": "public/characters/traveller-b3; src/characters/traveller.js",
+    "portrait": "Existing traveller-v1/head-v3, refitted without replacing the approved face.",
+    "review": "tools/traveller-b3-review.html and silent live Arena characterReview=b3",
+    "notes": "The limitations and review fields above record the unrigged acquisition stage. Runtime now adds the fitted skeleton, independent lower shirt and opaque underlayers; see docs/systems/characters.md for current validation and limitations."
+  }
+}

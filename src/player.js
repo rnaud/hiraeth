@@ -1323,6 +1323,7 @@ export class Player {
         this._animAcc = 0;
       }
       this.humanoid?.update();
+      this.character?.poseRiding?.(this);
       this.humanoid?.resetFeet();
       this.updateCloth(dt);
       return;
@@ -1776,9 +1777,9 @@ export class Player {
       const armRotations = this.character?.poseArms(this);
       H.update();
       if (this.animator && !this.ride && !this.gliding && !this.onJets && !this.swim && !posed) {
-        H.poseHands(this.animator);
-        this.character?.poseWrists(armRotations);
-      }
+        if(this.character?.poseHands)this.character.poseHands(this.animator,armRotations);
+        else {H.poseHands(this.animator);this.character?.poseWrists(armRotations);}
+      } else this.character?.poseProceduralHands?.();
       const U = this.frame.up;
       if (this.mantle) {
         H.resetFeet();

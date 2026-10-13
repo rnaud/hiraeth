@@ -5,7 +5,7 @@ import { runSteps } from '../load-steps.js';
 
 const V = () => new T.Vector3();
 const clamp = T.MathUtils.clamp;
-const TOP = 1.22, BOTTOM = .69, COLS = 32, ROWS = 14;
+const COLS = 32, ROWS = 14;
 const START = .40, END = Math.PI * 2 - START;
 const angleOf = p => { let a = Math.atan2(p.x, p.z + .016); return a < 0 ? a + Math.PI * 2 : a; };
 const red = isShirtColor;
@@ -166,17 +166,28 @@ export const CLOTH_HOST = { offload: null };
 // offload: an engine's (CLOTH_HOST): the cage, the garment and its normals are its own (neither a worker nor gpu)
 export function makeTripoCloth(...args) { return runSteps(makeTripoClothSteps(...args)); }
 /** makeTripoCloth in steps (src/load-steps.js runStepsAsync: the title builds the traveller while its menu answers). */
-export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offload, useWorker = !offload && typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = !offload && typeof window !== 'undefined' } = {}) {
+export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offload, useWorker = !offload && typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = !offload && typeof window !== 'undefined', fit = null } = {}) {
+  const TOP=fit?.top??1.22,BOTTOM=fit?.bottom??.69;
   const original = source.geometry, pos = original.attributes.position;
   const points = Array.from({length:pos.count}, (_,i) => V().fromBufferAttribute(pos,i));
-  const shirt = points.map((p,i) => p.y > .66 && p.y < TOP + .035 && Math.abs(p.x) < .25 && red(colors[i]));
+  let shirt = points.map((p,i) => p.y > (fit?.maskBottom??.66) && p.y < TOP + .035 && Math.abs(p.x) < (fit?.maskWidth??.25) && red(colors[i]));
+
+  if(fit?.growMask){const seams=new Map();points.forEach((p,i)=>{const key=p.toArray().map(v=>Math.round(v*1e6)).join(',');if(!seams.has(key))seams.set(key,[]);seams.get(key).push(i)});for(const ids of seams.values())if(ids.some(i=>shirt[i]))for(const i of ids)shirt[i]=true;}
+  // Ink-dark creases belong to the same panel as the nearby coral fabric.
+  for(let pass=0;pass<(fit?.growMask??0);pass++){
+    const next=shirt.slice();for(let k=0;k<original.index.count;k+=3){const ids=[0,1,2].map(d=>original.index.getX(k+d));if(!ids.some(i=>shirt[i]))continue;
+      for(const i of ids){const p=points[i],c=colors[i];if(p.y>(fit?.maskBottom??.66)&&p.y<TOP+.035&&Math.abs(p.x)<(fit?.maskWidth??.25)&&(c[1]<c[0]*.83||c[0]<100))next[i]=true;}
+    }shirt=next;
+  }
 
   const skinSource=new T.SkinnedMesh(original,source.material);skinSource.bind(source.skeleton,source.bindMatrix);
   // Retain non-garment faces; repair missing surfaces below the fused hem separately.
-  source.geometry=removeTrouserBand(separateShirt(original,shirt,TOP));
-  const underlayer=makeUnderlayer(skinSource,colors);source.parent.add(underlayer);yield;fitTrouserWeights(source);fitTrouserWeights(underlayer);shadeTrouserRepair(source);
+  source.geometry=separateShirt(original,shirt,TOP);
+  if(!fit?.retainTrousers)source.geometry=removeTrouserBand(source.geometry,fit?.trouserCut??fit?.underlayer?.cut??.665,fit?.repairTop??.955);
+  const underlayer=makeUnderlayer(skinSource,colors,fit?.underlayer);source.parent.add(underlayer);yield;
+  if(fit?.weights)fit.weights(underlayer);else{fitTrouserWeights(source);fitTrouserWeights(underlayer);shadeTrouserRepair(source);}
   yield;
-  const innerShirt=makeInnerShirt(skinSource,colors);source.parent.add(innerShirt);
+  const innerShirt=makeInnerShirt(skinSource,colors,fit?.innerShirt);source.parent.add(innerShirt);if(fit?.weights)fit.weights(innerShirt);
   yield;
   const geo=new T.BufferGeometry();
   // The regular cage is hidden; the original textured folds follow its displacement.
@@ -195,7 +206,7 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
 
   for(let row=0;row<=ROWS;row++)for(let col=0;col<=COLS;col++){
     const theta=T.MathUtils.lerp(START,END,col/COLS), y=T.MathUtils.lerp(TOP+.025,BOTTOM,row/ROWS);
-    const v=row/ROWS,rx=T.MathUtils.lerp(.178,.197,v),rz=T.MathUtils.lerp(.126,.147,v);
+    const v=row/ROWS,rx=T.MathUtils.lerp(fit?.width?.[0]??.178,fit?.width?.[1]??.197,v),rz=T.MathUtils.lerp(fit?.depth?.[0]??.126,fit?.depth?.[1]??.147,v);
     const radius=1/Math.sqrt((Math.sin(theta)/rx)**2+(Math.cos(theta)/rz)**2);
     const p=new T.Vector3(Math.sin(theta)*radius,y,Math.cos(theta)*radius-.016);
     if(row===0)p.copy(top[col].p).add(new T.Vector3(0,.008,0));
@@ -231,7 +242,7 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
   const used=[...new Set(Array.from(detailed.index.array))];
   const garmentGeometry=compactGeometry(detailed,used,gpu?[]:['skinIndex','skinWeight']);
   // (its normals at rest as they were worked out each frame from the shape: the shader turns these)
-  if(gpu)vertexNormals(garmentGeometry);
+  if(gpu&&!fit?.preservePinNormals)vertexNormals(garmentGeometry);
   yield;
   const garmentMaterial=source.material.clone();garmentMaterial.side=T.DoubleSide;
   const lining=new T.Color().setHex(0xb46249, T.LinearSRGBColorSpace).convertSRGBToLinear();
@@ -242,7 +253,7 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
   // (its shadow, the same shape: drawn by the shadow passes on its own, garmentDepthMaterial)
   let shadow=null;
   if(gpu){shadow=new T.SkinnedMesh(garmentGeometry,garmentDepthMaterial(COLS));shadow.name='TravellerOvershirt shadow';shadow.bindMode='detached';shadow.bind(source.skeleton,source.bindMatrix);shadow.frustumCulled=false;shadow.matrixAutoUpdate=false;shadow.matrixWorldAutoUpdate=false;}
-  const mapping=used.map((i,o)=>{const p=V().fromArray(detailedRest,i*3),u=clamp((angleOf(p)-START)/(END-START)*COLS,0,COLS-.000001),v=clamp((TOP+.025-p.y)/(TOP+.025-BOTTOM)*ROWS,0,ROWS-.000001),c=Math.floor(u),r=Math.floor(v);return {i,o,p,ids:[id(r,c),id(r,c+1),id(r+1,c),id(r+1,c+1)],weights:[(1-u+c)*(1-v+r),(u-c)*(1-v+r),(1-u+c)*(v-r),(u-c)*(v-r)],free:T.MathUtils.smoothstep(TOP-p.y,0,.10),local:p.clone().applyMatrix4(source.matrixWorld).applyMatrix4(inverseAttachment),outward:new T.Vector3(p.x,0,p.z+.016).normalize()};});
+  const mapping=used.map((i,o)=>{const p=V().fromArray(detailedRest,i*3),u=clamp((angleOf(p)-START)/(END-START)*COLS,0,COLS-.000001),v=clamp((TOP+.025-p.y)/(TOP+.025-BOTTOM)*ROWS,0,ROWS-.000001),c=Math.floor(u),r=Math.floor(v);return {i,o,p,ids:[id(r,c),id(r,c+1),id(r+1,c),id(r+1,c+1)],weights:[(1-u+c)*(1-v+r),(u-c)*(1-v+r),(1-u+c)*(v-r),(u-c)*(v-r)],free:T.MathUtils.smoothstep(TOP-p.y,0,fit?.freeHeight??.10),local:p.clone().applyMatrix4(source.matrixWorld).applyMatrix4(inverseAttachment),outward:new T.Vector3(p.x,0,p.z+.016).normalize()};});
   // the shader's inputs (gpu): each vertex's cell (its first particle, where in it, its freedom) and its outward
   // direction; the particles and their targets, a texel each, every frame; the rest shape onto the attachment bone
   let gpuState=null;
@@ -263,9 +274,9 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
   }
   for(const side of ['l','r']){
     const sign=side==='l'?1:-1,hip=bone('thigh_'+side),knee=bone('calf_'+side),foot=bone('foot_'+side);
-    const h=hip.getWorldPosition(V()).setX(sign*.078).setZ(-.012);
-    const k=knee.getWorldPosition(V()).setX(sign*.096).setZ(-.012);
-    collider(hip,knee,h,k,.103);
+    const h=hip.getWorldPosition(V()).setX(sign*(fit?.hipX??.078)).setZ(fit?.legZ??-.012);
+    const k=knee.getWorldPosition(V()).setX(sign*(fit?.kneeX??.096)).setZ(fit?.legZ??-.012);
+    collider(hip,knee,h,k,fit?.thighRadius??.103);
     collider(knee,foot,k,foot.getWorldPosition(V()),.085);
   }
   collider(bone('thigh_l'),bone('thigh_r'),new T.Vector3(.065,.948,-.012),new T.Vector3(-.065,.948,-.012),.096);
@@ -334,7 +345,7 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
     for(let i=0;i<target.length;i++)target[i].copy(attachmentRest[i]).applyMatrix4(attachToLocal);
     for(let i=0;i<=COLS;i++){const s=top[i],a=skin(sourceSkin,s.a,current.copy(rest[i])),b=skin(sourceSkin,s.b,scratch.copy(rest[i]));target[i].copy(a.lerp(b,s.t));}
     for(let i=0;i<N;i++){G[i*3]=target[i].x;G[i*3+1]=target[i].y;G[i*3+2]=target[i].z;}
-    caps.forEach((c,k)=>{c.from.copy(c.localFrom).applyMatrix4(c.a.matrixWorld).applyMatrix4(toLocal);c.to.copy(c.localTo).applyMatrix4(c.b.matrixWorld).applyMatrix4(toLocal);setCap(simCaps,k,c.from,c.to,c.radius+.012);setCap(mapCaps,k,c.from,c.to,c.radius+.008);});
+    caps.forEach((c,k)=>{c.from.copy(c.localFrom).applyMatrix4(c.a.matrixWorld).applyMatrix4(toLocal);c.to.copy(c.localTo).applyMatrix4(c.b.matrixWorld).applyMatrix4(toLocal);setCap(simCaps,k,c.from,c.to,c.radius+.012);setCap(mapCaps,k,c.from,c.to,fit?.detailCollisions===false?0:c.radius+.008);});
     const simulated=enabled&&motion!=='rest';
     if(!initialized||motion!==lastMotion||!simulated){
       for(let i=0;i<N;i++){positions[i].copy(target[i]);previous[i].copy(target[i]);}
@@ -401,10 +412,15 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
         const t=1-free;x+=(sx-x)*t;y+=(sy-y)*t;z+=(sz-z)*t;
       }
       if(free>0)for(let k=v*4,end=k+4;k<end;k++){const j=M.ids[k],w=M.weights[k];x+=D[j]*w;y+=D[j+1]*w;z+=D[j+2]*w;}
-      if(simulated&&free>.95){const ox=M.outward[l],oy=M.outward[l+1],oz=M.outward[l+2];for(let k=0,c=0;k<caps.length;k++,c+=CAP){if(x<mapCaps[c+8]||x>mapCaps[c+11]||y<mapCaps[c+9]||y>mapCaps[c+12]||z<mapCaps[c+10]||z>mapCaps[c+13])continue;const hi=pushOut(x,y,z,ox,oy,oz,mapCaps,k);if(hi){x+=ox*hi;y+=oy*hi;z+=oz*hi;}}}   // (the box first, here: most vertices are nowhere near a leg)
+      // B3's fused inner folds must keep their separation. Projecting every
+      // detailed vertex onto one capsule collapses them onto each other;
+      // its fitted cage supplies contact instead.
+      if(simulated&&free>.95&&fit?.detailCollisions!==false){const ox=M.outward[l],oy=M.outward[l+1],oz=M.outward[l+2];for(let k=0,c=0;k<caps.length;k++,c+=CAP){if(x<mapCaps[c+8]||x>mapCaps[c+11]||y<mapCaps[c+9]||y>mapCaps[c+12]||z<mapCaps[c+10]||z>mapCaps[c+13])continue;const hi=pushOut(x,y,z,ox,oy,oz,mapCaps,k);if(hi){x+=ox*hi;y+=oy*hi;z+=oz*hi;}}}   // (the box first, here: most vertices are nowhere near a leg)
       const o=M.out[v];out[o]=x;out[o+1]=y;out[o+2]=z;
     }
     garmentGeometry.attributes.position.needsUpdate=true;vertexNormals(garmentGeometry);
+    if(fit?.preservePinNormals){const normals=garmentGeometry.attributes.normal,raw=detailed.attributes.normal;for(const m of mapping){if(m.free>=.4)continue;const normal=V(),part=V(),restN=V().fromBufferAttribute(raw,m.i);for(let k=0;k<4;k++){const w=detailSkin[1][m.i*4+k];if(w)normal.addScaledVector(part.copy(restN).transformDirection(boneMesh[detailSkin[0][m.i*4+k]]),w)}normal.normalize();part.fromBufferAttribute(normals,m.o).lerp(normal,1-T.MathUtils.smoothstep(m.free,0,.4)).normalize();normals.setXYZ(m.o,part.x,part.y,part.z)}normals.needsUpdate=true;}
+
     // (the regular cage itself is never drawn: its normals only when it is shown, for a debug view)
     geo.attributes.position.needsUpdate=true;if(mesh.visible)geo.computeVertexNormals();
     return {particles:positions.length,triangles:renderIndex.length/3,renderTriangles:detailed.index.count/3,radii:caps.map(c=>c.radius),threaded:!!worker};

@@ -74,3 +74,19 @@ test('connected trouser reconstruction has three openings and normalized weights
  const p=repaired.geometry.attributes.position,w=repaired.geometry.attributes.skinWeight;
  for(let i=0;i<p.count;i++){assert.ok(Number.isFinite(p.getX(i)+p.getY(i)+p.getZ(i)));let sum=0;for(let k=0;k<4;k++)sum+=w.getComponent(i,k);assert.ok(Math.abs(sum-1)<1e-5,`vertex ${i}: ${sum}`);}
 });
+
+test('cut cloth and trouser seams blend both bones instead of jumping to an endpoint',async()=>{
+ const {removeTrouserBand}=await import('../tools/tripo-garment-geometry.js');
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute([0,2,0,1,0,0,-1,0,0],3));
+ g.setAttribute('skinIndex',new T.Uint16BufferAttribute([0,0,0,0,1,0,0,0,1,0,0,0],4));
+ g.setAttribute('skinWeight',new T.Float32BufferAttribute([1,0,0,0,1,0,0,0,1,0,0,0],4));g.setIndex([0,1,2]);
+ for(const cut of [separateShirt(g,[true,true,true],1),removeTrouserBand(g,.5,1)]){
+  for(let i=3;i<cut.attributes.position.count;i++){
+   const y=cut.attributes.position.getY(i),byBone=new Map();for(let k=0;k<4;k++)byBone.set(cut.attributes.skinIndex.getComponent(i,k),(byBone.get(cut.attributes.skinIndex.getComponent(i,k))??0)+cut.attributes.skinWeight.getComponent(i,k));
+   // Independent opposing bone translations: the cut must retain its
+   // continuous height-based blend, even with different bone-index slots.
+   const displacement=(byBone.get(0)??0)*.2-(byBone.get(1)??0)*.2;
+   assert.ok(Math.abs(displacement-(y/2*.2-(1-y/2)*.2))<1e-6);
+  }
+ }
+});

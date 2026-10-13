@@ -3,7 +3,7 @@ import { NPC } from '../npc.js';
 import { Taxi } from '../taxi.js';
 import { Trail } from '../trail.js';
 import { buildCharacter, Player } from '../player.js';
-import { createTravellerV1 } from '../characters/traveller-v1.js';
+import { createTraveller } from '../characters/traveller.js';
 import { Animator } from '../animator.js';
 import { Hoverbike } from '../bike.js';
 import { mulberry32 } from '../noise.js';
@@ -19,7 +19,7 @@ export function createActors(scene, level, shots, human, lib, outfit, bird) {
       let object, person, taxi, flock, mount, trails, climber;
       if (cue.kind === 'hero') {
         const char = buildCharacter();
-        const character = createTravellerV1(char, outfit), humanoid = character.humanoid;
+        const character = createTraveller(char, outfit), humanoid = character.humanoid;
         const animator = new Animator(lib, char); animator.bindBody(humanoid);
         object = char.root; scene.add(object);
         person = { object, animator, humanoid, character };
@@ -106,8 +106,9 @@ export function createActors(scene, level, shots, human, lib, outfit, bird) {
           animator.apply(object);
           for (const key of Object.keys(animator.w)) animator.w[key] = key === clip ? 1 : 0;
           const wrists = person.character?.poseArms({ animator, onGround: !mount && !climber });
-          person.humanoid.update(); person.humanoid.poseHands(animator);
-          person.character?.poseWrists(wrists ?? []);
+          person.humanoid.update();
+          if(person.character?.poseHands)person.character.poseHands(animator,wrists);
+          else {person.humanoid.poseHands(animator);person.character?.poseWrists(wrists ?? []);}
           if (person.character) {
             // the fingers by what he does (src/hands.js), the same at any seek: a grip on the handlebars, open running, relaxed
             person.humanoid.hands?.set(mount ? 'grip' : clip === 'jog' ? 'open' : 'relaxed');
