@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_d9926111a3101d 7
+docs/systems/characters.md
+  s_9ca76055a220ed::t_4c4e9416975fdb 974-981
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_4d7efee0be7965 230-238
+engine/game.js
+  s_9ca76055a220ed::t_dca2c8334aa2c7 75,201-203,230-231,233-235
+engine/unity/game.js
+  s_9ca76055a220ed::t_9052f1a5c64a83 150
+src/changelog-media.js
+  s_9ca76055a220ed::t_c88906ae520b0e 780
+src/changelog.js
+  s_9ca76055a220ed::t_ada37bc8bbe766 33-35
+src/talk-gesture.js
+  s_9ca76055a220ed::t_d38e4e72f550fd 15
+tests/engine-bridge.test.js
+  s_9ca76055a220ed::t_8c22d07973b396 499-502
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c2e00d87083b87a8583a2abb76a1ad41fc5e680b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
