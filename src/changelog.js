@@ -27,6 +27,9 @@ export const CHANGELOG = [
     // the Unity menus' Map with its ground: the world's collision sampled straight down a few ms a frame (src/world-map.js WorldMap
     // in engine/game.js), drawn by drawTerrain into engine/raster.js PixelCanvas, sent once (BridgeHost.MapImage, BridgeMenu.SetMap); issue #264
     'In the Unity preview the Map shows the ground under its marks, drawn as the game draws it: the bands of height, the contours, the cliffs and walls inked, the water in teal, with a scale bar. It is drawn the first time you open the Map in a world, in a moment.',
+    // the Unity Start menu's What's new (engine/menus.js newsRows: src/changelog.js's newest versions) and the Controls page's
+    // rebinding (controlsRows, rebind: src/remap.js capturePad, as src/ui.js rebindHtml; run and guard); issue #264
+    'The Unity preview’s Start menu has What’s new, the newest versions’ changes as the game lists them, and its Controls page lets you move each verb to another button as the game’s does: choose a verb, press its new button (Menu keeps it as it was), with the ones that share a button marked, Run and Guard held or toggled, and Reset to defaults.',
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

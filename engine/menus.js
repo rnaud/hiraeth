@@ -22,7 +22,10 @@ import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
 import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
-import { controlsList } from '../src/ui.js';
+import { controlsList, REBIND_PAD, PAD_RAW_ROWS } from '../src/ui.js';
+import { PAD_VERBS, BUTTON_NAME } from '../src/bindings.js';
+import { padFor, padConflicts, padRename, capturePad, RUN_MODES, GUARD_MODES } from '../src/remap.js';
+import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 import { confirmKey, backKey } from '../src/native-pad.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
@@ -61,7 +64,7 @@ export function settingStep(row, v, dir) {
   return +Math.min(row.max, Math.max(row.min, n)).toFixed(3);
 }
 
-/** The Start menu's sidebar: its entries and what each does (src/ui.js SettingsMenu render, in the game). */
+/** The Start menu's sidebar: its entries and what each does (src/ui.js SettingsMenu render, in the game; no photo mode). */
 export const START_SIDE = [
   { id: 'resume', label: () => t('menu.resume') },
   { id: 'items', label: () => t('menu.items'), panel: 'items' },
@@ -69,8 +72,18 @@ export const START_SIDE = [
   { id: 'map', label: () => t('menu.map'), panel: 'map' },
   { id: 'settings', label: () => t('menu.settings'), page: 'settings' },
   { id: 'controls', label: () => t('menu.controls'), page: 'controls' },
+  { id: 'news', label: () => t('menu.news'), page: 'news' },
   { id: 'quit', label: () => t('menu.quit') },
 ];
+
+/** The Controls page's own choices over the rebinding (src/ui.js: run and guard held or toggled). */
+export const CONTROL_ROWS = [
+  { k: 'run', label: () => t('set.run'), kind: 'choice', opts: RUN_MODES, name: (v) => t(`set.run.${v ?? 'auto'}`) },
+  { k: 'guard', label: () => t('set.guard'), kind: 'choice', opts: GUARD_MODES, name: (v) => t(`set.guard.${v ?? 'hold'}`) },
+];
+/** How many versions What's new lists (the newest first, as the web's changelog panel; the rest on the web's page). */
+export const NEWS_VERSIONS = 4;
+const verbName = (v) => { const k = `verb.${v}.pad`, s = t(k); return s === k ? t(`verb.${v}`) : s; };
 
 const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
 /** Each panel's columns across the sheet, as the page lays them out (the cells' `col`; a cell's `span` columns wide). */
@@ -125,7 +138,7 @@ export class EngineMenus {
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.startAt(); }
     this.changed();
   }
-  close() { if (!this.mode) return; this.mode = null; this.changed(); this.onResume(); }
+  close() { if (!this.mode) return; this.stopRebind?.(); this.mode = null; this.changed(); this.onResume(); }
 
   // ------------------------------------------------------------------ input
 
@@ -148,6 +161,7 @@ export class EngineMenus {
   /** A key (KeyboardEvent.code) while a menu is open: true when it was the menus'. */
   key(code) {
     if (!this.mode) return false;
+    if (this.rebinding) { if (code === 'Escape' || code === 'Backspace') this.stopRebind?.(); return true; }   // (a pad's button awaited)
     const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] }[code];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
@@ -258,16 +272,69 @@ export class EngineMenus {
 
   // ------------------------------------------------------------------ the Start menu
 
-  startPage() { return this.start.page === 'controls' ? 'controls' : 'settings'; }
+  startPage() { return ['controls', 'news'].includes(this.start.page) ? this.start.page : 'settings'; }
   startPageRows() {
-    if (this.startPage() === 'controls') return controlsList().pad.map(([what, how]) => ({ text: what, val: how, plain: true }));
-    return this.settingsPage(this.start.at);
+    const page = this.startPage(), at = this.start.at, on = (i) => at.in === 'page' && at.i === i;
+    if (page === 'controls') return this.controlsRows().map((r, i) => ({ ...r, on: on(i) }));
+    if (page === 'news') return this.newsRows().map((r, i) => ({ ...r, on: on(i) }));
+    return this.settingsPage(at);
   }
+  /**
+   * The Controls page (src/ui.js rebindHtml, then controlsList): the pad's verbs, each on its button now (A / × on
+   * one: the next button pressed is its new one, src/remap.js capturePad; Menu or 8 s leave it), the ones sharing a
+   * button marked, run and guard held or toggled, the reset; then every control, in the buttons now bound.
+   */
+  controlsRows() {
+    const s = this.settings ?? {}, pad = s.pad ?? {}, clash = padConflicts(pad), wait = this.rebinding?.verb;
+    const rows = [];
+    if (this.settings) {
+      for (const v of REBIND_PAD) {
+        const others = clash.has(v) ? REBIND_PAD.filter((w) => w !== v && padFor(w, pad) === padFor(v, pad)).map(verbName) : [];
+        rows.push({ text: verbName(v), val: wait === v ? t('rebind.pressButton') : `${others.length ? '⚠ ' : ''}${BUTTON_NAME[padFor(v, pad)]}`, rebind: v, moved: padFor(v, pad) !== PAD_VERBS[v], note: others.length ? `⚠ ${t('rebind.also', { verbs: others.join(', ') })}` : '' });
+      }
+      for (const r of CONTROL_ROWS) rows.push({ text: r.label(), val: r.name(s[r.k]), control: r.k });
+      rows.push({ text: t('rebind.reset'), act: 'reset', note: clash.size ? `⚠ ${t('rebind.clashes')}` : '' });
+      rows.push({ text: t('menu.controls').toUpperCase(), head: true, plain: true });
+    }
+    // (the menus' own buttons never move: those rows as they are, the rest in the player's buttons, src/remap.js padRename)
+    for (const [what, how, id] of controlsList().pad) rows.push({ text: what, val: PAD_RAW_ROWS.has(id) ? how : padRename(how, pad), plain: true });
+    return rows;
+  }
+  /** What's new (src/changelog.js, as its panel lists it): the newest versions, each line newest first. */
+  newsRows() {
+    const rows = [];
+    for (const e of CHANGELOG.slice(0, NEWS_VERSIONS)) {
+      rows.push({ text: `v${e.v}`, val: e.date ?? '', head: true, plain: true });
+      for (const i of newestFirst(e)) rows.push({ text: plain(lineText(i)), plain: true, wide: true });
+    }
+    return rows;
+  }
+  /** A verb's button chosen again: the next press (after all are let go) is its new button; Menu, View or 8 s keep it. */
+  rebind(verb) {
+    this.stopRebind?.();
+    let stop = () => {};
+    const finish = (value) => {
+      stop(); this.rebinding = null; this.stopRebind = null;
+      if (value && this.settings) {
+        const next = { ...(this.settings.pad ?? {}) };
+        if (value === PAD_VERBS[verb]) delete next[verb]; else next[verb] = value;
+        this.setSetting({ k: 'pad' }, next);
+      }
+      this.changed();
+    };
+    this.rebinding = { verb, until: Date.now() + 8000 };
+    stop = capturePad(finish);
+    this.stopRebind = () => finish(null);
+  }
+  /** Each frame (the engine's): a rebinding left waiting 8 s keeps the button it had. */
+  tick() { if (this.rebinding && Date.now() > this.rebinding.until) this.stopRebind?.(); }
   startMove(x, y) {
     const S = this.start, side = START_SIDE.length;
-    const pageRows = this.startPageRows(), page = this.startPage() === 'settings' ? pageRows.length : 0;
+    const pageRows = this.startPageRows(), page = pageRows.length;
     // (a slider, a switch or a choice in the page: left / right its value, as the web keeps a slider's; B goes back)
-    if (S.at.in === 'page' && x && page) { const r = SETTINGS_ROWS[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settings[r.k], x)); return; }
+    if (S.at.in === 'page' && x && page && this.startPage() === 'settings') { const r = SETTINGS_ROWS[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settings[r.k], x)); return; }
+    const control = S.at.in === 'page' && x && CONTROL_ROWS.find((r) => r.k === pageRows[S.at.i]?.control);
+    if (control) { this.setSetting(control, settingStep(control, this.settings[control.k], x)); return; }
     const home = START_SIDE.findIndex((e) => e.page === this.startPage());
     const go = sideStep({ side, page, at: S.at, home, back: S.back }, x, y);
     if (!go) return;
@@ -284,6 +351,12 @@ export class EngineMenus {
     if (S.at.in === 'page') {
       if (name === 'back') { S.back = S.at.i; S.at = { in: 'side', i: Math.max(0, START_SIDE.findIndex((e) => e.page === this.startPage())) }; return; }
       if (name === 'confirm' && this.startPage() === 'settings') this.settingsAction('confirm', S, () => {});
+      if (name === 'confirm' && this.startPage() === 'controls') {
+        const r = this.startPageRows()[S.at.i], control = CONTROL_ROWS.find((c) => c.k === r?.control);
+        if (r?.rebind) this.rebind(r.rebind);
+        else if (control) this.setSetting(control, settingStep(control, this.settings[control.k], 1));
+        else if (r?.act === 'reset') this.setSetting({ k: 'pad' }, {});
+      }
       return;
     }
     if (name === 'back') { this.close(); return; }
@@ -291,7 +364,7 @@ export class EngineMenus {
     const e = START_SIDE[S.at.i];
     if (e.id === 'resume') this.close();
     else if (e.panel) this.show('game', e.panel);
-    else if (e.page) { S.page = e.page; if (e.page === 'settings') S.at = { in: 'page', i: 0 }; }
+    else if (e.page) { S.page = e.page; S.at = { in: 'page', i: 0 }; }
     else if (e.id === 'quit') { this.mode = null; this.onQuit(); }
   }
 
@@ -410,10 +483,13 @@ export class EngineMenus {
   }
   startView() {
     const S = this.start, page = this.startPage();
+    const title = { controls: t('rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}` }[page] ?? t('menu.settings');
+    const hint = this.rebinding ? `${t('rebind.pressButton')} · Menu keeps it`
+      : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
+      : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
     return { v: this.v, kind: 'start', head: this.where() || '', sub: '',
       side: START_SIDE.map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
-      page: { title: page === 'controls' ? t('menu.controls') : t('menu.settings'), rows: this.startPageRows() },
-      hint: S.at.in === 'page' ? '◀ ▶ adjust · A / × change · B / ○ back' : 'A / × choose · ▶ the page · B / ○ resume' };
+      page: { title, note: page === 'controls' && this.settings ? t('rebind.padHow') : '', rows: this.startPageRows() }, hint };
   }
   gameView() {
     const p = this.panel(), at = this.state.cursor(), cell = this.state.cell(p.rows);

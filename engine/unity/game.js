@@ -343,6 +343,7 @@ function pumpAudio(game) {
 }
 
 export function frame(dt) {
+  S?.menus?.tick?.();   // (a rebinding on the Controls page left waiting: kept as it was, engine/menus.js)
   // the title, before a world: only its menu (the world loading behind it once chosen)
   if (S?.menus && !S.game) { if (!S.menus.title.starting) readTitleInput(dt); showMenu(); return; }
   if (!S?.game) return;

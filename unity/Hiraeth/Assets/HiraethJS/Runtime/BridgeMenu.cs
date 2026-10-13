@@ -379,18 +379,22 @@ namespace Hiraeth.Bridge
         void DrawSettings(List<object> rows, float x, float y, float w, float h, bool plain = false)
         {
             rows ??= new List<object>();
-            // (a row as tall as its words: the Controls page's lines wrap, what they are and how, side by side)
+            // (a row as tall as its words: the Controls page's lines wrap, what they are and how, side by side; a line of
+            // What's new across the page; a setting or a verb one line, its note under it while the pad is on it)
             var hs = new List<float>(); int at = 0;
             for (int i = 0; i < rows.Count; i++)
             {
+                var r = rows[i];
                 float rh = 44;
-                if (plain)
+                if (plain || B(r, "plain"))
                 {
-                    float tw = Ui.Measure(meas, rows[i].S("text") ?? "", w * 0.5f - 28).y, vw = Ui.Measure(meas, rows[i].S("val") ?? "", w * 0.45f).y;
-                    rh = Mathf.Max(28, Mathf.Max(tw, vw) + 12);
+                    float tw = B(r, "wide") ? Ui.Measure(meas, r.S("text") ?? "", w - 28).y : Ui.Measure(meas, r.S("text") ?? "", w * 0.5f - 28).y;
+                    float vw = B(r, "wide") ? 0 : Ui.Measure(meas, r.S("val") ?? "", w * 0.45f).y;
+                    rh = Mathf.Max(28, Mathf.Max(tw, vw) + 12) + (B(r, "head") ? 8 : 0);
                 }
+                else if (B(r, "on") && !string.IsNullOrEmpty(r.S("note"))) rh += 18;
                 hs.Add(rh);
-                if (B(rows[i], "on")) at = i;
+                if (B(r, "on")) at = i;
             }
             float yy = y - Scroll(hs, at, h);
             for (int i = 0; i < rows.Count; i++)
@@ -400,7 +404,11 @@ namespace Hiraeth.Bridge
                 if (yy + rh > y - 1 && yy < y + h - 2)
                 {
                     float sl = r.Get("slider") is double d ? (float)d : -1;
-                    Entry(x, yy, w, rh - 4, r.S("text"), B(r, "on") ? r.S("note") : null, r.S("val"), B(r, "on"), sl, plain ? Small : Body);
+                    bool rowPlain = plain || B(r, "plain"), head = B(r, "head");
+                    var c = Entry(x, yy + (head ? 8 : 0), w, rh - 4 - (head ? 8 : 0), r.S("text"), B(r, "on") ? r.S("note") : null, r.S("val"), B(r, "on"), sl, rowPlain && !head ? Small : Body);
+                    if (head) c.text.fontStyle = FontStyle.Bold;
+                    // (a verb moved off its own button: its button in red, as the web marks it)
+                    c.val.color = B(r, "moved") ? Ui.Red : head ? Muted : Ui.Ink;
                 }
                 yy += rh;
             }
@@ -428,9 +436,14 @@ namespace Hiraeth.Bridge
             sub.fontStyle = FontStyle.Bold;
             Ui.Set(sub, Ui.Upper(page?.S("title") ?? ""), pw);
             Ui.Place(sub.rectTransform, px + 14, top - 2, pw, 20);
+            // (what the page is for, under its title: the Controls page's "choose a verb, then press its new button")
+            var pn = page?.S("note") ?? "";
+            float noteH = 0;
+            Show(empty, pn.Length > 0);
+            if (pn.Length > 0) { empty.fontSize = Tiny; var ns = Ui.Set(empty, pn, pw - 28); noteH = ns.y + 6; Ui.Place(empty.rectTransform, px + 14, top + 20, pw - 28, ns.y); }
+            else empty.fontSize = Body;
             var rows = page?.L("rows");
-            bool plain = rows != null && rows.Count > 0 && B(rows[0], "plain");
-            DrawSettings(rows, px, top + 22, pw, sh - (top - sy) - 40, plain);
+            DrawSettings(rows, px, top + 22 + noteH, pw, sh - (top - sy) - 40 - noteH);
         }
 
         // ------------------------------------------------------------------ the game menu
@@ -491,7 +504,7 @@ namespace Hiraeth.Bridge
             colX.Add(acc);
             if (rows.Count == 0)
             {
-                Show(empty, true);
+                Show(empty, true); empty.fontSize = Body;
                 Ui.Set(empty, state.S("empty") ?? "", w);
                 Ui.Place(empty.rectTransform, x + 14, y + 10, w - 28, 60);
                 return;

@@ -214,6 +214,19 @@ Mac (the desert's whole map, rays and drawing: 63 ms in the VM), once a map, whi
 menu. Tests: tests/engine-raster.test.js, tests/engine-unity.test.js (the bundle's Map: one 512 × 512 picture sent
 before it shows).
 
+**What's new and the Controls page's rebinding** (issue #264). The Start menu's sidebar has What's new after
+Controls (the web's order, without Photo mode): the newest `NEWS_VERSIONS` (4) versions of src/changelog.js, a
+heading each and its lines newest first (`newestFirst`, the tags stripped), up / down through them as the page
+scrolls; the rest is on the web's interactive changelog. The Controls page is the web's (src/ui.js `rebindHtml`,
+then `controlsList`): the pad's verbs (`REBIND_PAD`) each on its button now, A / × on one waits for the next
+button pressed (src/remap.js `capturePad`, which the controller hands the press to before anything else; Menu or
+View, Esc on the keyboard, or 8 s leave it: `EngineMenus.tick`), saved with the settings (`pad`, applied by
+`applyAccess`: the controller reads through `padMap` while playing and riding, the menus and conversations keep
+their own); a verb sharing a button is marked ⚠ with the other's name, a moved one's button in red; Run and Guard
+held or toggled (`CONTROL_ROWS`); Reset to defaults; then every control in the buttons now bound (`padRename`,
+except the menus' own rows, `PAD_RAW_ROWS`). The keyboard's rebinding is the web's only. Tests:
+tests/engine-menus.test.js.
+
 Left for later: the items' pictures (the web draws
 them with its own renderer, src/item-icons.js), the Map's drawn ground, the photo mode, What's new, the
 prologue (a new save starts at the ramp), the talk gestures (no captured motion is loaded in the engines).

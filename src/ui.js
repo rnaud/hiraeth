@@ -151,7 +151,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   };
 }
 // (the pad's rows that name the menus' own buttons, which never move: native-pad.js leaves them as they are)
-const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
+export const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
 
 /** The verbs on the Controls page's "your buttons" and "your keys", in the order shown. */
 export const REBIND_PAD = ['jump', 'evade', 'interact', 'whistle', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'modeNext'];

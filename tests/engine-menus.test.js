@@ -164,8 +164,69 @@ test('the Start menu: the sidebar and its page, as issue #210 has it; B in the p
   for (let i = 0; i < 5; i++) m.navigate(0, 1);
   m.action('confirm');
   v = m.view();
-  assert.equal(v.page.title, 'Controls');
-  assert.ok(v.page.rows.length > 5 && v.page.rows.every((r) => r.plain));
+  assert.equal(v.page.title, 'Your buttons (controller)');
+  assert.ok(v.page.rows.filter((r) => r.plain && !r.head).length > 5, 'every control under the rebinding');
+});
+
+test('the Controls page rebinds the pad as the web\'s does (issue #264): a verb, the next press, the clash marked, Menu keeps it, the reset', async () => {
+  const { padCaptured, capturingPad, controlPrefs } = await import('../src/remap.js');
+  const { PAD_BUTTONS } = await import('../src/bindings.js');
+  const { applyAccess } = await import('../src/ui.js');
+  const s = settingsStub();
+  s.pad = {}; s.run = 'auto'; s.guard = 'hold';
+  s.set = function (k, v) { this[k] = v; applyAccess(this, null); };
+  const m = new EngineMenus({ store: memStore(), settings: s });
+  m.show('start');
+  for (let i = START_SIDE.findIndex((e) => e.id === 'controls'); i > 0; i--) m.navigate(0, 1);
+  m.action('confirm');
+  let v = m.view();
+  assert.equal(v.page.rows[0].text, 'Jump');
+  assert.equal(v.page.rows[0].val, 'A / ×');
+  assert.ok(v.page.rows[0].on, 'in the page, on its first verb');
+  // A / × on Jump: waiting for a button; B / ○ pressed: jump is on B now, and evade (B's) shares it
+  m.action('confirm');
+  assert.ok(capturingPad());
+  assert.equal(m.view().page.rows[0].val, 'press a button…');
+  padCaptured(PAD_BUTTONS.indexOf('B'));
+  assert.equal(s.pad.jump, 'B');
+  assert.equal(controlPrefs().pad.jump, 'B', 'the controller reads through it (src/remap.js padMap)');
+  v = m.view();
+  assert.match(v.page.rows[0].val, /⚠ B \/ ○/);
+  assert.match(v.page.rows[0].note, /Evade/);
+  // Menu keeps it as it was
+  m.action('confirm'); padCaptured(PAD_BUTTONS.indexOf('Menu'));
+  assert.equal(s.pad.jump, 'B');
+  // run and guard: held or toggled, left / right or A / ×
+  const runAt = v.page.rows.findIndex((r) => r.control === 'run');
+  for (let i = 0; i < runAt; i++) m.navigate(0, 1);
+  m.navigate(1, 0);
+  assert.equal(s.run, 'hold');
+  // the reset: every verb on its own button again
+  m.navigate(0, 1); m.navigate(0, 1); m.action('confirm');
+  assert.deepEqual(s.pad, {});
+  // a rebinding left waiting keeps the button after 8 s
+  for (let i = 0; i < runAt + 2; i++) m.navigate(0, -1);
+  m.action('confirm');
+  assert.ok(m.rebinding);
+  m.rebinding.until = Date.now() - 1; m.tick();
+  assert.equal(m.rebinding, null);
+  assert.ok(!capturingPad());
+});
+
+test('What\'s new in the Start menu (issue #264): the newest versions\' lines, newest first, as the changelog panel lists them', async () => {
+  const { CHANGELOG, lineText, newestFirst } = await import('../src/changelog.js');
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub() });
+  m.show('start');
+  for (let i = START_SIDE.findIndex((e) => e.id === 'news'); i > 0; i--) m.navigate(0, 1);
+  m.action('confirm');
+  const v = m.view();
+  assert.match(v.page.title, new RegExp(`v${CHANGELOG[0].v.replace('.', '\\.')}`));
+  assert.equal(v.page.rows[0].text, `v${CHANGELOG[0].v}`);
+  assert.ok(v.page.rows[0].head);
+  assert.equal(v.page.rows[1].text, lineText(newestFirst(CHANGELOG[0])[0]).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
+  assert.ok(v.page.rows.filter((r) => r.head).length >= 2);
+  m.navigate(0, 1);
+  assert.ok(m.view().page.rows[1].on, 'down: the next line (the page scrolls with it)');
 });
 
 /** Sources for the game menu as menuSources gives them, small. */

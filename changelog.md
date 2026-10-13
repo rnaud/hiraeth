@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.64 — 2026-10-12
 
+- The Unity preview’s Start menu has What’s new, the newest versions’ changes as the game lists them, and its Controls page lets you move each verb to another button as the game’s does: choose a verb, press its new button (Menu keeps it as it was), with the ones that share a button marked, Run and Guard held or toggled, and Reset to defaults.
 - In the Unity preview the Map shows the ground under its marks, drawn as the game draws it: the bands of height, the contours, the cliffs and walls inked, the water in teal, with a scale bar. It is drawn the first time you open the Map in a world, in a moment.
 - In the Unity preview the Items panel shows each item’s picture on its tile, as the game does, and in its full view; the tiles are larger, as many to a row as the screen holds, so their names no longer break in the middle on the Retroid, and the slots still to find are drawn after them.
 - In the Unity preview the buttons on screen are named as your controller prints them: on the Retroid A, B, L1, R1, Select and Start, with jump on the bottom button as in the game’s app and the menus confirming with A; on the Xbox and the Steam Deck the Xbox letters alone. Settings has Controller buttons, for a Retroid set to its own Xbox style.
