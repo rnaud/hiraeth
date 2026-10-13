@@ -8,11 +8,41 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
-  { v: '1.65', date: '2026-10-13', items: [
+  { v: '1.66', date: '2026-10-13', items: [
     // the see-through surfaces in the Unity bridge: the rim's cut (_Veil), the washes on Hiraeth/Veil, the shafts' own
     // meshes drawn by nothing (engine/game.js veilsFrame, port-format.js, Veil.shader; docs/systems/engine-bridge.md
     // "See-through surfaces"; issue #263)
     'In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.',
+    // the lore page (lore.html, src/lore-page/, scripts/lore-data.mjs; docs/systems/lore-page.md; issues #268, #269)
+    { text: 'A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.',
+      see: 'Open Lore from the What changed page or the Notes page (hiraeth.alexandria-rnaud.workers.dev/lore). Press Note on any part, write a line and send it.' },
+    // the Rose House's Keeper on its fitted Tripo skin, the procedural body until it loads (src/temples/guardian-generated.js,
+    // src/characters/keeper-creature.js, creature-legs.js; the planner's fast gait, src/motion-kit/gait.js; docs/systems/
+    // characters.md "The Keeper in the Rose House"; issue #267)
+    'The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.',
+    // the Elder's generated body, still a preview off the Aerie (src/characters/elder-creature.js; docs/systems/characters.md
+    // "Elder generated guardian review"; issue #237)
+    'The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.',
+    // ladders climbed without stamina (level.ladders -> physics.ladders, physics.onLadder, player.updateClimb;
+    // docs/systems/movement.md "Ladders are free"; issue #252)
+    { text: 'Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. The train’s and the foundry’s ladders also climb all the way now: they used to let go at the first rung or hoop. Climbing a wall tires you as before.',
+      see: 'On the Overnight Train, climb a porch ladder to the roof walk: the stamina wheel never shows. Then climb a carriage’s side wall: it shows and empties as before.' },
+
+    // the Rose House's bellows' wind gone: the Givers' watcher, a sentry whose bolt the guard sends back (src/temples/pieces.js
+    // Sentry, src/temples/desert.js sentry / dw, src/temples/migrate.js LAYOUTS.desert; docs/systems/temples.md; issue #245)
+    { text: 'In the Rose House, the Givers’ guard no longer holds back a wind. Once you have it, a bronze watcher wakes by the far landing’s east door: its eye holds a narrowing beam on you, then fires a bolt. Raise your guard as it comes and the bolt flies back into its eye; the watcher breaks and the door opens onto the Hall of Channels. A save already past the old wind finds it broken.',
+      see: 'In the Rose House, cross the bridge in the Hall of Fires and open the guard’s chest on the far landing. The watcher by the east door wakes; hold LB / L1 as its beam narrows.' },
+    // every game in a world starts from its host (src/story/hosts-data.js, src/minigames/kit/hosts.js, src/story/index.js
+    // host; docs/systems/minigames.md "The hosts"; issue #248)
+    { text: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign. Someone of the place stands by each sign, tells you in a line or two what it is, in that world’s own story, and asks if you want to play: Play or Not now. A makers’ run’s post and the lagoon’s race buoy are read instead.',
+      see: 'In the Desert, walk to the pilgrims’ small fire: Hamid stands by the drum circle’s sign. “Ask Hamid about the drum circle”, hear him out, then choose Play or Not now.' },
+    // the pirates between worlds: no start card (the runner's def.direct), the controls as hints at the bottom right
+    // (def.hints), missiles on LT / L2 (FLY.missile, MISSILE_POINTS), the pitch in Settings → Game once beaten
+    // (src/minigames/pirates.js, pirates-rules.js, kit/runner.js, src/ui.js; docs/systems/minigames.md; issue #224)
+    { text: 'The chime pirates no longer open on a start screen: after the take-off the fight counts in at once, its buttons shown small at the bottom right. Your ship carries four missiles too, on LT / L2 (F on the keyboard): each locks the pirate nearest your aim, marked with a teal diamond, and chases it down; a repair ring gives one back. Once you have beaten the pirates, which way pushing up flies is in Settings, under Game.',
+      see: 'Fly to a world you have never visited: the pirates’ fight starts straight after the take-off, the controls at the bottom right with your missiles under them. Press LT / L2 (or F) with a raider in the teal diamond.' },
+  ] },
+  { v: '1.65', date: '2026-10-13', items: [
     // the screen while playing (docs/systems/ui.md): the gadget chip (src/gadgets/hud.js, issue #240), the talk prompt
     // (src/talk-prompt.js, issue #241), the notices and their pace (index.html #toast, src/notice-pace.js, issue #221),
     // the charge's card and the objective card (src/story/charge.js, src/ship/cinema.js, issue #222)
@@ -49,34 +79,6 @@ export const CHANGELOG = [
     // offerHand, src/hands.js, src/audio.js boxLatch / boxOpen; docs/systems/boxes.md; issue #223)
     { text: 'The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.',
       see: 'Open any makers’ chest: the first is on the dais at the foot of Qanat’s tree.' },
-    // the lore page (lore.html, src/lore-page/, scripts/lore-data.mjs; docs/systems/lore-page.md; issues #268, #269)
-    { text: 'A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.',
-      see: 'Open Lore from the What changed page or the Notes page (hiraeth.alexandria-rnaud.workers.dev/lore). Press Note on any part, write a line and send it.' },
-    // the Rose House's Keeper on its fitted Tripo skin, the procedural body until it loads (src/temples/guardian-generated.js,
-    // src/characters/keeper-creature.js, creature-legs.js; the planner's fast gait, src/motion-kit/gait.js; docs/systems/
-    // characters.md "The Keeper in the Rose House"; issue #267)
-    'The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.',
-    // the Elder's generated body, still a preview off the Aerie (src/characters/elder-creature.js; docs/systems/characters.md
-    // "Elder generated guardian review"; issue #237)
-    'The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.',
-    // ladders climbed without stamina (level.ladders -> physics.ladders, physics.onLadder, player.updateClimb;
-    // docs/systems/movement.md "Ladders are free"; issue #252)
-    { text: 'Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. The train’s and the foundry’s ladders also climb all the way now: they used to let go at the first rung or hoop. Climbing a wall tires you as before.',
-      see: 'On the Overnight Train, climb a porch ladder to the roof walk: the stamina wheel never shows. Then climb a carriage’s side wall: it shows and empties as before.' },
-
-    // the Rose House's bellows' wind gone: the Givers' watcher, a sentry whose bolt the guard sends back (src/temples/pieces.js
-    // Sentry, src/temples/desert.js sentry / dw, src/temples/migrate.js LAYOUTS.desert; docs/systems/temples.md; issue #245)
-    { text: 'In the Rose House, the Givers’ guard no longer holds back a wind. Once you have it, a bronze watcher wakes by the far landing’s east door: its eye holds a narrowing beam on you, then fires a bolt. Raise your guard as it comes and the bolt flies back into its eye; the watcher breaks and the door opens onto the Hall of Channels. A save already past the old wind finds it broken.',
-      see: 'In the Rose House, cross the bridge in the Hall of Fires and open the guard’s chest on the far landing. The watcher by the east door wakes; hold LB / L1 as its beam narrows.' },
-    // every game in a world starts from its host (src/story/hosts-data.js, src/minigames/kit/hosts.js, src/story/index.js
-    // host; docs/systems/minigames.md "The hosts"; issue #248)
-    { text: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign. Someone of the place stands by each sign, tells you in a line or two what it is, in that world’s own story, and asks if you want to play: Play or Not now. A makers’ run’s post and the lagoon’s race buoy are read instead.',
-      see: 'In the Desert, walk to the pilgrims’ small fire: Hamid stands by the drum circle’s sign. “Ask Hamid about the drum circle”, hear him out, then choose Play or Not now.' },
-    // the pirates between worlds: no start card (the runner's def.direct), the controls as hints at the bottom right
-    // (def.hints), missiles on LT / L2 (FLY.missile, MISSILE_POINTS), the pitch in Settings → Game once beaten
-    // (src/minigames/pirates.js, pirates-rules.js, kit/runner.js, src/ui.js; docs/systems/minigames.md; issue #224)
-    { text: 'The chime pirates no longer open on a start screen: after the take-off the fight counts in at once, its buttons shown small at the bottom right. Your ship carries four missiles too, on LT / L2 (F on the keyboard): each locks the pirate nearest your aim, marked with a teal diamond, and chases it down; a repair ring gives one back. Once you have beaten the pirates, which way pushing up flies is in Settings, under Game.',
-      see: 'Fly to a world you have never visited: the pirates’ fight starts straight after the take-off, the controls at the bottom right with your missiles under them. Press LT / L2 (or F) with a raider in the teal diamond.' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

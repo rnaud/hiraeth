@@ -2,7 +2,7 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v1.65 — 2026-10-13
+## v1.66 — 2026-10-13
 
 - The chime pirates no longer open on a start screen: after the take-off the fight counts in at once, its buttons shown small at the bottom right. Your ship carries four missiles too, on LT / L2 (F on the keyboard): each locks the pirate nearest your aim, marked with a teal diamond, and chases it down; a repair ring gives one back. Once you have beaten the pirates, which way pushing up flies is in Settings, under Game.
 - The games, trials and makers’ runs out in the worlds no longer start from a bare sign. Someone of the place stands by each sign, tells you in a line or two what it is, in that world’s own story, and asks if you want to play: Play or Not now. A makers’ run’s post and the lagoon’s race buoy are read instead.
@@ -11,6 +11,10 @@ The same release notes shown in the game (press **N** or open settings).
 - The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.
 - The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.
 - A lore page on the game’s site: the story of the singing light, the traveller, and every world on the way in order, with its people, its temples, the gadget inside each and how it calms or stops the guardian, and every item and where it is found. The ending waits behind a fold. Signed in to the notebook, every part has a Note button that files your comment as an issue.
+- In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.
+
+## v1.65 — 2026-10-13
+
 - The makers’ chests open where they stand: no more floating up. A brass latch clicks, the chest rocks on the ground, its halves part and light pours up out of it, and what it kept rises out of the light and comes to float just over your open hand. It opens with a soft swell instead of a creak, and stays there, open, once you have what was inside.
 - You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.
 - Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.
@@ -23,7 +27,6 @@ The same release notes shown in the game (press **N** or open settings).
 - Hints and notices at the top are a dark strip with light letters, easy to read over the bright desert, narrower and one short line each. Teaching hints come at most every twenty seconds, the same words are not said twice in a row of minutes, a hint you have already acted on is dropped, and none come with Hints off. Every hint line and every world’s arrival words were cut down to fit.
 - The prompt to talk to someone sits right beside them, just below the shoulder, instead of over their head; near the edge of the screen it moves to their other side.
 - The gadget in your hands is a small picture in the top right corner now, nothing else: no name, no button, no count. A thin ring round it shows how much is left, and it pops with a gold ring when you change gadget.
-- In the Unity preview, see-through things are see-through again: the City-Shaft’s air pillars are glass columns with their rings and the city behind them, not white pillars, the shafts of light are soft beams instead of solid white cones, and the Glass Dunes’ lenses and windows, Lorn II’s glassy mushrooms and the overnight train’s windows show what is behind them.
 
 ## v1.64 — 2026-10-12
 

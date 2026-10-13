@@ -758,7 +758,15 @@ const GUARD237 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this
 const BATCH13 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931) and the tree before it (1e94ecb8, port 5933), the camera pinned at the same view; 13 October; cwebp -q 72';
 const BATCH13_AFTER = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931); 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
-  '1.65': [
+  '1.66': [
+    { match: 'The Elder’s new body, still a preview', tags: ['characters', 'vael'], shots: [
+      { name: 'elder-head', title: 'Facing ahead', caption: 'Standing in the Aerie, from in front (top) and the side: before, her beak turned well to her left; after, ahead of her.', from: GUARD237 },
+      { name: 'elder-flight', title: 'Taking off', caption: 'At 0.2, 0.6, 1.0, 1.5 and 2.5 s after she takes to the air: before, she was at her hover at once, her legs hanging straight; after, she rises over a second and a half and folds her legs and toes up under her.', from: GUARD237 },
+    ], see: 'On the development server open /tools/elder-review.html and choose Hover, Walk or Front. She is a preview: the Aerie still has the Elder you know.' },
+    { match: 'The Keeper of the cistern in the Rose House has its new body', tags: ['characters', 'desert'], shots: [
+      { name: 'keeper-skin-walk', title: 'Coming for you', caption: 'Walking at the fight’s pace across the cistern, from in front (top) and the side (bottom), a frame every 0.3 s: before, the old body of plates on six splayed legs; after, the new body trotting on three legs at a time.', from: GUARD267 },
+      { name: 'keeper-skin-stamp', title: 'Its stamp', caption: 'At 0.4, 0.8, 1.2, 1.4 and 1.8 s into its stamp: it rears on its four hind legs, its forelegs up, and slams down.', from: GUARD267 },
+    ], see: 'In the Rose House, open the way to the cistern and step in: the Keeper wakes. Watch it walk, rear to stamp and pant; give it water when it does.' },
     { match: 'In the Unity preview, see-through things are see-through again', shots: [
       { name: 'unity-glass-column', title: 'The City-Shaft’s rim', caption: 'Before, the air pillar beside the palace’s spire was an opaque white column and the shaft of light on the left a white bar; after, a glass column, its rings and the city seen through it, as the web draws it.', from: 'the Xbox Series X (Developer Mode, Direct3D 12, 1440p, muted), the bridge’s -views plan at viewpoints-worlds.json’s incal “start”: build 2086 as installed against this branch’s build 2105 (13 October); cwebp -q 72' },
       { name: 'unity-light-shafts', title: 'The Glass Dunes', caption: 'Before, the shafts of light over the glass city’s wells were solid white cones; after, soft beams, and the lens on the dune a glass rim.', from: 'the same console and builds, the Glass Dunes’ “wide” view' },
@@ -768,6 +776,26 @@ export const CHANGELOG_MEDIA = {
         { where: 'the rim: GPU ms a frame', before: 14.64, after: 14.74 },
       ], source: 'scripts/xbox-unity.mjs, build 2105; the mean of the last 30 s of a 170 s run, two alternated rounds averaged; before: the same build with -no-veil (no cut, no washes)', note: 'The cut is only in the full surface variant: in the lean ones a discard, even one never taken, cost every surface its early depth test (44 fps, 21 ms of GPU, in a first build).' },
     ], see: 'In the Unity preview, stand at the City-Shaft’s rim and look at the tall column right of the palace’s spire.' },
+    { match: 'The chime pirates no longer open on a start screen', shots: [
+      { name: 'pirates-start', title: 'The first screen', caption: 'Before, a start card: its rules, its controls, Start; after, the fight under way, its buttons small at the bottom right with the four missiles under them.', from: `${BATCH13}, half a second after the page came up` },
+      { name: 'pirates-missile', only: 'after', title: 'A missile', caption: 'A missile chasing a pirate down its smoke trail, the teal diamond on the next it would lock; the hints in a controller’s buttons once one is in use, two missiles left.', from: `${BATCH13_AFTER}, a controller in use` },
+    ] },
+    { match: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign', shots: [
+      { name: 'game-host', title: 'The drum circle’s sign', caption: 'Before, the sign alone: pressing at it opened the game; after, Hamid, who keeps the camps’ drums, stands by it.', from: BATCH13 },
+      { name: 'game-host-offer', only: 'after', title: 'Play or Not now', caption: 'He says what the game is in the camps’ own story, then asks: Play or Not now.', from: `${BATCH13_AFTER}, the talk opened with E` },
+    ] },
+    { match: 'In the Rose House, the Givers’ guard no longer holds back a wind', shots: [
+      { name: 'givers-watcher', title: 'The far landing', caption: 'Before, the east doorway stood open onto the Hall of Winds, its bellows’ wind held back by the guard; after, its door is shut and the Givers’ watcher beside it holds its beam on the traveller, about to fire.', from: BATCH13 },
+      { name: 'givers-watcher-broken', only: 'after', title: 'Its bolt sent back', caption: 'Taken on the guard, the bolt flew back into its eye: the watcher sags, its eye gone grey, and the east door has sunk open.', from: BATCH13_AFTER },
+    ] },
+    { match: 'Climbing a ladder no longer tires you', numbers: [
+      { title: 'Up a porch ladder of the Overnight Train to the roof walk (4.4 m)', unit: '', better: 'higher', device: 'the game’s own player and collision in node, 60 steps a second, walking into the ladder from the porch', rows: [
+        { where: 'metres climbed (before, the climb let go at the first rung)', before: 0.05, after: 4.4 },
+        { where: 'stamina left at the top, of 1', before: null, after: 1 },
+        { where: 'stamina left after the carriage’s end wall beside it (a wall: as before)', before: 0.93, after: 0.93 },
+      ], source: 'a scratch probe of the level’s porch ladders on the tree before (1e94ecb8) and this change (tests/ladder-stamina.test.js holds the after); in headless Chrome the same: the roof reached, the stamina 1' }] },
+  ],
+  '1.65': [
     { match: 'The gadget in your hands is a small picture in the top right corner now', shots: [
       { name: 'gadget-chip', title: 'The gadget in hand', caption: 'Before, a paper chip in the lower left, tilted, with “Ink bombs”, its count as dots and its key; after, the bombs’ picture alone in the top right corner, the ring round it full.', from: `${FROM_HUD}, the ink bombs in hand` },
       { name: 'gadget-chip-hand', title: 'On a handheld, changing gadget', caption: 'At the Retroid’s 730 × 410, the hook just taken in hand: the picture pops with a gold ring.', from: `${FROM_HUD}, 730 × 410` },
@@ -792,34 +820,6 @@ export const CHANGELOG_MEDIA = {
     { match: 'The makers’ chests open where they stand', shots: [{ name: 'chest-open', title: 'Opening a chest', caption: 'The first chest, on the dais at the tree’s foot, seven frames from the latch to the card. Before, it floated up, wobbled in the air and came apart into light, the backpack hanging where it was; after, it rocks on the ground, opens there with light pouring out of it, and the backpack floats over his open hand.', from: 'muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s Vite (port 5921) and the tree before it (9a78b7a2, the same port): a save at the quest’s chest step, the chest opened from in front of it; frames at 0.9, 2.2, 3.6, 5.4, 6.6, 7.6 and 8.8 s' }] },
     { match: 'Setting the spark-stone in Qanat’s roots is filmed now', shots: [{ name: 'tree-lit', title: 'Lighting the tree', caption: 'Seven frames from the moment the stone goes in to ten seconds after. Before, the camera stayed behind you at the foot of the trunk; after, from the ground by you out to the whole tree over Qanat.',
         from: 'muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s Vite (port 5921), a save at the spark-stone’s last step, the stone set from the roots; frames at 0.6, 2, 3.6, 5, 6.8, 8.6 and 10 s; before: the same build with the moment already seen (the camera as it always was)' }] },
-    { match: 'The Keeper of the cistern in the Rose House has its new body', tags: ['characters', 'desert'], shots: [
-      { name: 'keeper-skin-walk', title: 'Coming for you', caption: 'Walking at the fight’s pace across the cistern, from in front (top) and the side (bottom), a frame every 0.3 s: before, the old body of plates on six splayed legs; after, the new body trotting on three legs at a time.', from: GUARD267 },
-      { name: 'keeper-skin-stamp', title: 'Its stamp', caption: 'At 0.4, 0.8, 1.2, 1.4 and 1.8 s into its stamp: it rears on its four hind legs, its forelegs up, and slams down.', from: GUARD267 },
-    ], see: 'In the Rose House, open the way to the cistern and step in: the Keeper wakes. Watch it walk, rear to stamp and pant; give it water when it does.' },
-    { match: 'The Elder’s new body, still a preview', tags: ['characters', 'vael'], shots: [
-      { name: 'elder-head', title: 'Facing ahead', caption: 'Standing in the Aerie, from in front (top) and the side: before, her beak turned well to her left; after, ahead of her.', from: GUARD237 },
-      { name: 'elder-flight', title: 'Taking off', caption: 'At 0.2, 0.6, 1.0, 1.5 and 2.5 s after she takes to the air: before, she was at her hover at once, her legs hanging straight; after, she rises over a second and a half and folds her legs and toes up under her.', from: GUARD237 },
-    ], see: 'On the development server open /tools/elder-review.html and choose Hover, Walk or Front. She is a preview: the Aerie still has the Elder you know.' },
-  ],
-  '1.64': [
-    { match: 'Climbing a ladder no longer tires you', numbers: [
-      { title: 'Up a porch ladder of the Overnight Train to the roof walk (4.4 m)', unit: '', better: 'higher', device: 'the game’s own player and collision in node, 60 steps a second, walking into the ladder from the porch', rows: [
-        { where: 'metres climbed (before, the climb let go at the first rung)', before: 0.05, after: 4.4 },
-        { where: 'stamina left at the top, of 1', before: null, after: 1 },
-        { where: 'stamina left after the carriage’s end wall beside it (a wall: as before)', before: 0.93, after: 0.93 },
-      ], source: 'a scratch probe of the level’s porch ladders on the tree before (1e94ecb8) and this change (tests/ladder-stamina.test.js holds the after); in headless Chrome the same: the roof reached, the stamina 1' }] },
-    { match: 'In the Rose House, the Givers’ guard no longer holds back a wind', shots: [
-      { name: 'givers-watcher', title: 'The far landing', caption: 'Before, the east doorway stood open onto the Hall of Winds, its bellows’ wind held back by the guard; after, its door is shut and the Givers’ watcher beside it holds its beam on the traveller, about to fire.', from: BATCH13 },
-      { name: 'givers-watcher-broken', only: 'after', title: 'Its bolt sent back', caption: 'Taken on the guard, the bolt flew back into its eye: the watcher sags, its eye gone grey, and the east door has sunk open.', from: BATCH13_AFTER },
-    ] },
-    { match: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign', shots: [
-      { name: 'game-host', title: 'The drum circle’s sign', caption: 'Before, the sign alone: pressing at it opened the game; after, Hamid, who keeps the camps’ drums, stands by it.', from: BATCH13 },
-      { name: 'game-host-offer', only: 'after', title: 'Play or Not now', caption: 'He says what the game is in the camps’ own story, then asks: Play or Not now.', from: `${BATCH13_AFTER}, the talk opened with E` },
-    ] },
-    { match: 'The chime pirates no longer open on a start screen', shots: [
-      { name: 'pirates-start', title: 'The first screen', caption: 'Before, a start card: its rules, its controls, Start; after, the fight under way, its buttons small at the bottom right with the four missiles under them.', from: `${BATCH13}, half a second after the page came up` },
-      { name: 'pirates-missile', only: 'after', title: 'A missile', caption: 'A missile chasing a pirate down its smoke trail, the teal diamond on the next it would lock; the hints in a controller’s buttons once one is in use, two missiles left.', from: `${BATCH13_AFTER}, a controller in use` },
-    ] },
   ],
   '1.64': [
     { match: 'The Unity preview opens on the title screen now', shots: [
