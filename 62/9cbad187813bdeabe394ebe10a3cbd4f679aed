@@ -1,0 +1,37 @@
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_31af84d9b1cf43 26-32,35,44-47,50,67,69,73-77
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_43f5450173f761 8-9,27-29,97,119,136-138,177-179,218-226,265-269,274-277,281,284-289,291
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_05cda893a6f027 239-286
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_9bb68fea72fa24 22-33,65,73-75,77-80,95-101
+scripts/camera-qc/sim-lock.mjs
+  s_9ca76055a220ed::t_5e487e333cfac3 1-134
+scripts/camera-qc/sim-shop.mjs
+  s_9ca76055a220ed::t_098c64f609e97c 1-44
+src/foes.js
+  s_9ca76055a220ed::t_1f86030a5bda9e 167-204
+src/main.js
+  s_9ca76055a220ed::t_6f240fc1b69f5a 113,2147-2150,2371-2377
+src/player.js
+  s_9ca76055a220ed::t_83922f29c1a8a6 2795,3360,3374-3378,3530,3532-3536,3539-3543,3545,3547,3554,3647-3649
+tests/camera-qc-lock.test.js
+  s_9ca76055a220ed::t_77d5a869007c6c 1-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "629cbad187813bdeabe394ebe10a3cbd4f679aed",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
