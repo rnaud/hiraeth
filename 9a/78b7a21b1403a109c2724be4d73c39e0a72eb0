@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_2c73bb784e3844 7
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_86ab280a77bd1a 133,153-161
+src/changelog-media.js
+  s_9ca76055a220ed::t_e893b411247b93 749-750
+src/changelog.js
+  s_9ca76055a220ed::t_497c93cab238ec 34-37
+src/story/desert-moments.js
+  s_9ca76055a220ed::t_8ca2516ade2bd9 226-284,286-293
+src/story/desert.js
+  s_9ca76055a220ed::t_af70cc34430a04 879-884
+src/story/film.js
+  s_9ca76055a220ed::t_9cf6f8c49db49c 23
+tests/moment.test.js
+  s_9ca76055a220ed::t_14bce37c44f414 303-331
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9a78b7a21b1403a109c2724be4d73c39e0a72eb0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
