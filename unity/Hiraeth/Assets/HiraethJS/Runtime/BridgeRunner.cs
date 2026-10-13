@@ -68,6 +68,11 @@ namespace Hiraeth.Bridge
             if (BridgeMetrics.Wanted()) gameObject.AddComponent<BridgeMetrics>().runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Hiraeth bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // (Android's -1 is 30 frames a second: the handheld at the display's rate, 60 on the Retroid; -fps N another. Every
+            // frame there was 33 ms whatever the GPU took, 18-28 ms of it at Handheld: docs/systems/performance.md "Unity on the Retroid")
+            Application.targetFrameRate = BridgeArgs.Arg("-fps") is string fps && int.TryParse(fps, out int fpsN) ? fpsN : Mathf.Max(60, Mathf.RoundToInt((float)Screen.currentResolution.refreshRateRatio.value));
+#endif
             Experiments();
             if (args.Contains("\"split\":true")) gpuSplit = new BridgeGpuSplit();
             // the sound (BridgeAudio): played, except in batch runs and with -mute, where nothing may make any

@@ -38,7 +38,13 @@ namespace Hiraeth.Bridge
                 if (!string.IsNullOrWhiteSpace(extra)) a = a.Concat(Split(extra)).ToArray();
                 Debug.Log($"Hiraeth bridge: the plan from the intent: {(string.IsNullOrWhiteSpace(extra) ? "none" : extra)}");
             }
-            catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the intent's arguments: " + e.Message); }
+            catch (Exception e)
+            {
+                // (asked first from a thread that is not Java's (a static field's initialiser run on Unity's loading thread:
+                // "Field currentActivity … not found", and -mute was lost with the rest): not kept, the main thread reads it again)
+                Debug.LogWarning("Hiraeth bridge: the intent's arguments (read again later): " + e.Message);
+                return a;
+            }
 #endif
 #if UNITY_WSA && !UNITY_EDITOR
             try
