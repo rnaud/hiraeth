@@ -8,6 +8,14 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.69', date: '2026-10-13', items: [
+    // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27
+    { text: 'The Night Mail is done the moment Solange hands you her answer on the last roof: nothing sends you back to report. Step off at the halt as before, and Edda reads the answer when you pass her lamp.',
+      see: 'In the Signal Market, take Edda’s letter, ring the bell and give it to Solange on the last roof: the errand is done there. Step off at the halt and talk to Edda.' },
+    // Marrow's question at the ship (issue #279, quest QC rule 5): src/story/desert-data.js wreck / hello
+    { text: 'You ask Marrow about the singing on the sand when you meet him at your ship, or when you come back to him, instead of straight after he has told you about Qanat’s fire or the mark on your hull.',
+      see: 'Start a new game and talk to Marrow at the ship: the singing is the third question, beside the way to power and the mark.' },
+  ] },
   { v: '1.68', date: '2026-10-13', items: [
     'The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.',
     // room behind every push-the-ball puzzle (issue #275): scripts/ball-room.mjs, tests/ball-room.test.js; the Aerie's

@@ -714,20 +714,24 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ My ship has no power. Where can I find some?', goto: 'fire' },
             { text: '~curious~ What does the mark mean?', goto: 'mean' },
+            // (the fragment sings forty paces off as you step out: the traveller asks about what he hears, here and in
+            //  `hello`, not after a page about Qanat's fire or the mark; quest QC v1.66 rule 5, issue #279)
+            { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }] }, goto: 'splinter' },
           ],
         },
         fire: {
           say: ["~neutral~ Power? Your ship isn’t broken, sky-person. It’s empty, drained to the last drop. Nothing out here holds that much. Nothing but *Qanat*: when its great tree burns, every lamp in the city burns on its water.",
             "~whisper~ It went cold the night the light passed. And burning or cold, Qanat doesn’t hand its fire to strangers.",
             "~playful~ *The city is over the dunes that way*, past the pilgrims’ camps. Up its great tree there’s *a chest that’s been humming* since the light went over. Old Nour’s sat under it sixty years, waiting for someone. Go and be someone."],
-          choices: [{ text: '~neutral~ Qanat, the tree, the chest. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' },
-            { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }] }, goto: 'splinter' }],
+          choices: [{ text: '~neutral~ Qanat, the tree, the chest. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' }],
         },
         hello: {
           say: [{ if: { not: { flag: 'desert.marrow.warned' } }, text: '~playful~ Sky-person, back again. Your ship is exactly where you left it. I checked. Twice. Purely for your peace of mind.' }, { if: { flag: 'desert.marrow.warned' }, text: '~playful~ Sky-person. I haven’t been near your ship. I’ve been near it at a respectful distance, which is a different thing.' }, "~whisper~ That mark on your hull still hasn’t cooled. Three dots and an arc. {glyph} Sand doesn’t do that."],
           choices: [
             { text: '~curious~ What does it mean?', goto: 'mean' },
             { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
+            // (once the bike is asked about: three answers at most, tests/dialogue-choices.test.js; a new game asks it at the ship)
+            { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }, { any: [{ quest: 'desert.bike', started: true }, { flag: 'desert.bike.found' }] }] }, goto: 'splinter' },
             { text: '~angry~ Stay away from my ship.', do: { set: { 'desert.marrow.warned': true } }, end: true },
           ],
         },
@@ -756,8 +760,7 @@ export const PEOPLE = {
         price: { say: ["~playful~ Free. It ate my tarp. Ride it past the camp occasionally so I can claim the success from a safe distance."], choices: [{ text: '~happy~ Deal.', end: true }] },
         bikeWhere: { say: ["~neutral~ Red-rag hollow, between camps and ship. Remove the tarp. Wake the bike with *a full fluid tank*."], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         bikeAfter: { say: ["~happy~ I heard it start! A kettle with ambitions. Look after it. I’m becoming attached to the idea that I helped."], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
-        mean: { say: ["~solemn~ Same mark as the giants and old gates. I’ve found it on fallen sky-metal before. Yours is the first example still warm from arrival."], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true },
-          { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }] }, goto: 'splinter' }] },
+        mean: { say: ["~solemn~ Same mark as the giants and old gates. I’ve found it on fallen sky-metal before. Yours is the first example still warm from arrival."], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         before: { say: ["~playful~ Humming glass. A bowl that rings alone. Things like that. I suspect the singing matters. Professional suspicion, complimentary today.",
           "~curious~ Also, my compass points at your ship now. Whatever made the scar magnetised the metal. That observation actually is free."], choices: [{ text: '~curious~ What do you sell, then?', goto: 'sell' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         sell: { say: ["~playful~ Rumours. The giant’s holding its breath. The Speaker walks the wrong way. Your ship sneezed. Three prices, one standard of evidence."], choices: [{ text: '~tired~ I’ll pass.', end: true }] },

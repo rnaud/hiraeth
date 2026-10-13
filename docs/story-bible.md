@@ -540,7 +540,7 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **People**: **Edda**, who keeps the halt's lamp and sorts the night mail; **Solange**, her grandmother, who boarded
   the night Edda was born "to see where the plain ends" and never got off, and rides the roofs of the long tail by the
   chalk mark she keeps; **Ambrose**, the conductor, who knows everyone aboard by the cup they drink from.
-- **The quest** (`bazaar.nightmail`, "The Night Mail"; stages edda, board, mireille, off, home):
+- **The quest** (`bazaar.nightmail`, "The Night Mail"; stages edda, board, mireille; her answer in your hand is the errand done, issue #279):
   1. Edda at the halt: forty years of postcards from Solange, one a year, never a question; this year Edda has written
      back, and can't leave the lamp. She gives you the letter, and says where Solange rides: the last roof.
   2. Ring the bell: the train stops for the bell, it has to. The screen fades and you are aboard on the station-side
@@ -550,13 +550,15 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
   4. Solange by the chalk mark: she reads the letter with her back to the wind and writes her answer on the back of it
      in chalk. (The mark was there the night she boarded, nearly gone; she drew it over so it wouldn't be, and doesn't
      know who drew it first. A train should have one thing nobody can explain.)
-  5. She pulls the cord along the roof herself; a minute on, the brakes take hold and the train brakes into the market's halt.
-  6. Step down on the station side once it has stopped (`?level=bazaar&from=overnighttrain`: on the halt's platform).
-  7. Edda reads the answer under the lamp, twice: the plain doesn't end, and Solange will get off at the market's halt
-     next spring, to see if the lamp is still lit. "It will be."
+     Her answer given is the quest done: nothing sends you back to tell anyone (the standing rule).
+  5. She pulls the cord along the roof herself; a minute on, the brakes take hold and the train brakes into the market's
+     halt. Step down on the station side once it has stopped (`?level=bazaar&from=overnighttrain`: on the halt's
+     platform), no step of it.
+  6. When you pass Edda with the answer, she reads it under the lamp, twice: the plain doesn't end, and Solange will get
+     off at the market's halt next spring, to see if the lamp is still lit. "It will be." (`nightmail.read`; no step.)
 - **After**: the bell calls the train whenever it is rung (a ride for its own sake; Ambrose stops at the halt when asked).
   A save on the train wakes on the train, still running; the train never waits at a station unless someone asks.
-- **Keepsake**: none; the quest's outro (Solange's answer pinned under the halt's lamp).
+- **Keepsake**: none; the quest's outro (Solange's answer in chalk on the back of the letter, the cord pulled).
 
 ## The fragments of the singing light (built: src/fragments.js, src/story/scientist-data.js; docs/systems/fragments.md)
 

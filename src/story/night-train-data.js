@@ -7,12 +7,16 @@
 // ends", and never got off: a postcard comes back to the halt every year, never a word more. This year Edda has
 // written back, and she can't leave the lamp. Ring the bell, board, find Solange (up on the roofs of the long tail, by
 // the chalk mark she keeps: the train's trace, sightings-detours.js), give her the letter (she pulls the cord for the
-// market's halt herself), step off, and bring Edda the answer. Edda says where Solange rides, and Solange stops the
-// train: Ambrose the conductor is someone you meet aboard, not a stop of the quest (it was Edda → Ambrose → Solange →
-// Ambrose, one person sending you to the next, issue #85; src/save-migrate.js step 15 moves a save at 'find' or 'stop').
+// market's halt herself). Her answer in your hand is the errand done (issue #279: reaching the goal completes the
+// quest): you step off at the halt, and Edda reads it when you pass her lamp, no step of it (it was "Step off when the
+// train halts", "Bring Edda her grandmother's answer": a report-back; src/save-migrate.js step 27 moves a save on
+// either to done, the answer still in his coat). Edda says where Solange rides, and Solange stops the train: Ambrose
+// the conductor is someone you meet aboard, not a stop of the quest (it was Edda → Ambrose → Solange → Ambrose, one
+// person sending you to the next, issue #85; src/save-migrate.js step 15 moves a save at 'find' or 'stop').
 //
-// Flags: nightmail.rang (the bell rung, the train called), nightmail.stop (Ambrose asked: the train brakes into the halt).
-// Items: letter (Edda's letter), reply (Solange's answer). Quest stages: edda, board, mireille, off, home.
+// Flags: nightmail.rang (the bell rung, the train called), nightmail.stop (a stop asked: the train brakes into the halt),
+// nightmail.read (Edda has read the answer). Items: letter (Edda's letter), reply (Solange's answer, until Edda reads
+// it). Quest stages: edda, board, mireille.
 
 export const Q = 'bazaar.nightmail';
 export const ITEMS = { letter: 'Edda’s letter', reply: 'Solange’s answer' };
@@ -20,13 +24,12 @@ export const ITEMS = { letter: 'Edda’s letter', reply: 'Solange’s answer' };
 export const QUESTS = [
   {
     id: Q, title: 'The Night Mail', world: 'bazaar', major: true,
-    outro: 'Solange’s answer is pinned up under the halt’s lamp. Edda reads it every night, before the bell.',
+    outro: 'Solange wrote back in chalk, on the back of Edda’s letter, and pulled the cord for the market’s halt.',
+    // (her answer in your hand is the end, issue #279: Edda reads it when you pass, no step of it)
     stages: [
       { id: 'edda', text: 'Hear Edda out at the night halt', label: 'Edda, at the night halt', talk: 'edda' },
       { id: 'board', text: 'Ring the bell and board the train', label: 'The halt’s bell', at: 'bell' },
       { id: 'mireille', text: 'Give Solange the letter, on the last roof', label: 'Solange, on the last carriage’s roof', bring: 'letter', to: 'mireille' },
-      { id: 'off', text: 'Step off when the train halts', label: 'The platform', at: 'stepOff' },
-      { id: 'home', text: 'Bring Edda her grandmother’s answer', label: 'Edda, at the night halt', bring: 'reply', to: 'edda' },
     ],
   },
 ];
@@ -39,9 +42,10 @@ export const PEOPLE = {
     lines: ['~neutral~ Night mail. Mind the lamp.', '~curious~ Is that the bell? No. Not yet.', '~tired~ Forty years of postcards. One a year.'],
     talk: {
       entry: [
+        // (the answer in your coat: she reads it when you pass, once)
+        { if: { all: [{ has: 'reply' }, { not: { flag: 'nightmail.read' } }] }, node: 'answer' },
         { if: { quest: Q, done: true }, node: 'after' },
-        { if: { all: [{ quest: Q, stage: 'home' }, { has: 'reply' }] }, node: 'answer' },
-        { if: { quest: Q, stage: ['board', 'mireille', 'off', 'home'] }, node: 'again' },
+        { if: { quest: Q, stage: ['board', 'mireille'] }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -77,7 +81,7 @@ export const PEOPLE = {
         take: {
           say: ['~surprised~ You would? Then *ring the bell on the platform*: the train stops for the bell, it has to.',
             '~neutral~ She never sits inside. She rides *the roofs of the long tail*, at the very back, by a chalk mark.',
-            '~happy~ Bring me what she says. The train stops at *the market’s halt* when someone asks.',
+            '~happy~ If she writes back, the train stops at *the market’s halt* when someone asks.',
             '~playful~ Your ship? The porters will have it up on the landing wagon before the bell stops ringing. The night train carries ships for nothing.'],
           do: [{ stage: [Q, 'board'] }, { give: 'letter' }],
           choices: [{ text: '~neutral~ I’ll ring the bell.', end: true }],
@@ -92,7 +96,7 @@ export const PEOPLE = {
             '~whisper~ (Edda reads it under the lamp, twice. She folds it very small.)',
             '~happy~ She says the plain doesn’t end. She says she’ll get off at the market’s halt next spring, to see if the lamp is still lit.',
             '~solemn~ It will be.'],
-          do: [{ take: 'reply' }, { advance: [Q, 'home'] }],
+          do: [{ take: 'reply' }, { set: { 'nightmail.read': true } }],
           choices: [{ text: '~happy~ Keep it lit.', end: true }],
         },
         after: {
@@ -109,7 +113,7 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { all: [{ quest: Q, stage: 'mireille' }, { has: 'letter' }] }, node: 'find' },
-        { if: { quest: Q, stage: 'off' }, node: 'braking' },
+        { if: { flag: 'nightmail.stop' }, node: 'braking' },
         { node: 'hello' },
       ],
       nodes: {
@@ -147,7 +151,7 @@ export const PEOPLE = {
     talk: {
       entry: [
         { if: { quest: Q, stage: 'mireille' }, node: 'hello' },
-        { if: { quest: Q, reached: 'off' }, node: 'after' },
+        { if: { quest: Q, done: true }, node: 'after' },
         { node: 'stranger' },
       ],
       nodes: {

@@ -1,8 +1,8 @@
 // The night mail, played through (src/story/night-train.js, docs/story-bible.md "The night mail"): the Signal Market's
 // side quest that takes you aboard the Overnight Train, its sub-level. In node, on the game's own modules (the
 // play-through's agent, tests/playthrough-agent.js): the market's halt, Edda and her bell; the train boarded from it,
-// running, Ambrose on the porch, Solange on the last roof (she asks for the stop); the halt, the step down; back at the
-// halt with the answer. And the saves: a save on the train wakes on the running train with the quest where it was.
+// running, Ambrose on the porch, Solange on the last roof (her answer is the errand done, issue #279; she asks for the
+// stop); the halt, the step down; back at the halt, Edda reads the answer when you pass. And the saves: a save on the train wakes on the running train with the quest where it was.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadSave, loadWorld, talkTo, goalOf, standNear, objectiveNow, allInteractables, game, V } from './playthrough-agent.js';
@@ -61,8 +61,9 @@ test('the night mail: the market\'s halt, the train boarded from it, Solange on 
   r = talkTo(W, 'solange', goalOf(W, Q));
   assert.ok(!r.error, r.error);
   assert.ok(W.quests.has('reply') && !W.quests.has('letter'), 'she writes her answer');
+  assert.ok(W.quests.isDone(Q), 'her answer in your hand is the errand done: nobody to go back and tell (issue #279)');
+  assert.ok(!W.quests.isActive(Q), 'no step of it left');
   // the stop: she pulls the cord herself, and the train brakes into the market's halt
-  assert.equal(W.quests.stage(Q), 'off');
   assert.ok(game.flag('nightmail.stop'));
   W.at(NIGHT_MAIL.arrival.pos.clone()); W.step(3);   // (back along the roofs and down the ladder to the porch)
   const halt = W.level.plan.halt();
@@ -83,11 +84,14 @@ test('the night mail: the market\'s halt, the train boarded from it, Solange on 
   // ---------------------------------------------------------------- the halt again, with the answer
   page('?level=bazaar&from=overnighttrain');
   W = loadWorld('bazaar');
-  assert.equal(W.quests.stage(Q), 'home', 'off the train: bring Edda the answer');
-  r = talkTo(W, 'edda', goalOf(W, Q));
+  assert.ok(W.quests.isDone(Q), 'off the train: still done, no step back to Edda');
+  r = talkTo(W, 'edda', goalOf(W, Q, { flags: ['nightmail.read'] }));
   assert.ok(!r.error, r.error);
-  assert.ok(W.quests.isDone(Q), 'done');
+  assert.ok(r.said.some((t) => /That’s her hand/.test(t)), 'passing her lamp, she reads it');
   assert.ok(!W.quests.has('reply'), 'she keeps it');
+  assert.ok(game.flag('nightmail.read'));
+  r = talkTo(W, 'edda', goalOf(W, Q, { flags: ['nightmail.read'] }));
+  assert.ok(!r.said.some((t) => /That’s her hand/.test(t)) && r.said.some((t) => /counting nights/.test(t)), 'read once');
   // the bell still calls the train, for a ride of your own
   L = listen();
   use(W, 'nightmail.bell').use(W.player);
@@ -108,7 +112,7 @@ test('a save on the train wakes on the running train, the night mail where it wa
   assert.equal(W.level.run.phase, 'running', 'still running twenty seconds on: nobody asked it to stop');
   W.dispose();
   // a stop asked and then the game left before the halt: on waking, the train stops again for you
-  loadSave({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, [`quest.${Q}`]: 'off', 'item.reply': 1, 'nightmail.stop': true }, keepsakes: [] });
+  loadSave({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, [`quest.${Q}`]: 'done', 'item.reply': 1, 'nightmail.stop': true }, keepsakes: [] });
   W = loadWorld('overnighttrain');
   assert.ok(W.level.plan.halt(), 'the stop asked for is kept');
   W.dispose();

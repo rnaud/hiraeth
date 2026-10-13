@@ -905,6 +905,19 @@ idea." "All quests should be solvable by just going to the end if you can."
   (`desert.ilo.told`: true, monster or secret, as before). `src/save-migrate.js` step 21 (`QUEST_STAGE_MOVES_183`): a
   save sent back down to Nima goes back to `look`, its flag set; one that had heard her keeps her word said.
   `tests/quest-steps.test.js` keeps neither on its list.
+- **And the night mail's** (#279, v1.69): "Bring Edda her grandmother's answer" carried Solange's answer back to the
+  one who sent you, a report-back the no-talk test missed (a thing brought counts as no talk). The errand ends on the
+  roof, as Solange gives you her answer; you step off at the halt (no step), and Edda reads it when you pass
+  (`nightmail.read`, the reply taken then). `src/save-migrate.js` step 27 (`QUEST_STAGE_MOVES_279`): a save stepping
+  off or bringing it back is done, the answer kept. `tests/quest-steps.test.js`: no quest ends bringing its giver an
+  item another person's talk gives (the drum back to Teo, a thing found, and a letter delivered stay goals).
+- **Every answer follows from what was just said** (the quest QC's rule 5, #279): `tests/answers-follow.test.js` walks
+  every conversation in `src/story/*-data.js`, `*-people.js` and `src/temples/*-data.js`. An answer naming a thing (a
+  capitalised name not starting a sentence, or "the singing") is offered only where the node's pages, or a node
+  leading to it, name it, or the speaker is it. The traveller's own search (the singing light, Odile and Talo) is
+  known everywhere; the rest are listed in its `EXCEPTIONS`, each with its reason (what he hears or sees, what he
+  found and tells, a person of the same world's quest). Marrow's "What's that singing out on the sand?" is offered at
+  the ship (`wreck`, and `hello` once the bike is asked about) instead of after a page about Qanat's fire or the mark.
 
 ## Places to stop on the way (the second story pass, October 2026)
 

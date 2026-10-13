@@ -44,7 +44,11 @@ node .claude/skills/dialogue-review/extract.mjs <scratch>/dialogue --worlds dese
 
 `check.mjs` flags long steps, buttons in a step, hand-offs (a talk step to one person right after one to another),
 steps that send you to ask someone, steps with no goal the game can see (they can't be passed over), and item steps
-with no gate. Read the conversations themselves for rules 2, 5 and 6: the numbers only say where to look.
+with no gate. It reads the temples' steps (`src/temples/*-data.js` `QUEST`) and the boxes' hints
+(`src/boxes/placements.js`) too, with the flags a line alone can have (long, keys, ask-someone). Rule 5 has a test,
+`tests/answers-follow.test.js`: an answer naming a thing (a proper noun, "the singing") is offered only where the node,
+or one leading to it, names it, with its exceptions listed and each given a reason. Read the conversations themselves
+for rules 2, 5 and 6: the numbers only say where to look.
 
 ## Fix, then record
 

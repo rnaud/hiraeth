@@ -861,16 +861,19 @@ test('#247: the first fragments sing by your ship, and Marrow points at the near
   assert.ok(near.length >= 2 && Math.min(...near) < 45, `two within 70 m of the landing, one within 45 (${near.map((d) => d.toFixed(0)).join(', ')} m)`);
   assert.equal(flat(V(...SPLINTER_AT), V(...FRAGMENTS.desert[5])), 0, 'the errand points at the desert’s slot 5');
   game.set(SPLINTER_FLAG, undefined);
-  // (his plain hello and the mark: the bike and the hull told already; a new game asks it in his first talk, after the way to Qanat)
+  // (his plain hello: the bike and the hull told already; a new game asks it in his first talk, at the ship. Only there:
+  //  the traveller asks about what he hears, not after a page about Qanat's fire or the mark, issue #279)
   for (const f of ['desert.marrow.bike', 'desert.marrow.hull', 'desert.bike.found']) game.set(f, true);
-  const r = talk(PEOPLE.marrow, ['What does it mean', 'What’s that singing']);
+  const offered = Object.entries(PEOPLE.marrow.talk.nodes).filter(([, n]) => (n.choices ?? []).some((c) => /singing out on the sand/.test(c.text))).map(([id]) => id);
+  assert.deepEqual(offered.sort(), ['hello', 'wreck'], 'asked at the ship and in his hello alone');
+  const r = talk(PEOPLE.marrow, ['What’s that singing']);
   assert.equal(r.nodeId, 'splinter');
   assert.ok(quests.isActive(SPLINTER), 'his one line starts the errand');
   assert.ok(flat(quests.where(quests.current(SPLINTER)), V(...SPLINTER_AT)) < 0.1, 'its marker on the fragment');
   game.set(SPLINTER_FLAG, true);   // (taken: src/fragments.js)
   step(2);
   assert.ok(quests.isDone(SPLINTER), 'reaching it completes it: nobody to go back to');
-  const again = talk(PEOPLE.marrow, ['What does it mean']);
+  const again = talk(PEOPLE.marrow, []);
   while (!again.ended && !again.lastPage && again.advance());
   assert.ok(!again.choices().some((c) => /singing/.test(c.text)), 'and he isn’t asked again');
 });

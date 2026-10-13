@@ -93,7 +93,7 @@ wants the fluid wings. Come back with it.").
    - **The problem:** the splinter pages came after "It was mine. My answer. I'm sorry.", so the answer followed a page
      about the fragments.
    - **Fix:** her answer is the node's last page again. `tests/fragments.test.js`.
-5. **Marrow's "What's that singing out on the sand?"** (rule 5, the desert's Marrow, `fire` and `mean` nodes; left).
+5. **Marrow's "What's that singing out on the sand?"** (rule 5, the desert's Marrow, `fire` and `mean` nodes; fixed in v1.69, #279: offered from `wreck` and `hello`, and `tests/answers-follow.test.js` checks rule 5 over all the story data).
    - **The problem:** offered after a page about Qanat's fire, or about the mark on the hull. The traveller can hear
      the fragment 40 m off, so the question is about what he hears, not what Marrow said.
    - **Proposal:** offer it from `wreck` and `hello` only. Small enough to be in the hosts' and fragments' wording
@@ -105,7 +105,7 @@ wants the fluid wings. Come back with it.").
      straight to the end.
    - **The problem:** a player who didn't is fed at the ship, sent away and walked back (the level design audit's
      loops 5 → 3).
-7. **The night mail's chain** (rule 2, `bazaar.nightmail`; left).
+7. **The night mail's chain** (rule 2, `bazaar.nightmail`; the report-back fixed in v1.69, #279: done at Solange's answer).
    - **The chain:** Edda → the bell → Solange → off → Edda: a courier errand between two people.
    - **Why it stands:** each step names the thing carried, and the train's halt is its own goal.
    - **But:** "Bring Edda her grandmother's answer" sends you back to tell someone. That breaks the standing rule
@@ -115,7 +115,7 @@ wants the fluid wings. Come back with it.").
 8. **The temples' steps are one template** (rule 1; noted).
    - **The template:** "Find what the makers left in X", "Go up to what … at the top", fourteen times.
    - **Why it stands:** each is short and names a place. It is the dialogue review's to judge as voice.
-   - **The checker:** `check.mjs` still reads only the story data. The temples' and boxes' lines are checked for length
+   - **The checker:** `check.mjs` read only the story data (since #279 it reads the temples' steps and the boxes' hints too). The temples' and boxes' lines are checked for length
      only, by `tests/quest-steps.test.js`.
 
 ## Patterns

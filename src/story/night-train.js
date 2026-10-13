@@ -14,6 +14,7 @@ import { Q, QUESTS, PEOPLE, THINGS, ITEMS } from './night-train-data.js';
 //     (level.requestStop), and once it halts the step down on the station side takes you back to the market's halt
 //     (?level=bazaar&from=overnighttrain: level.arrivals, main.js).
 //
+// Solange's answer in your hand is the errand done; Edda reads it when you pass her lamp (issue #279).
 // A save in either place stays where it was: the quest's stage is in the game state, the train runs on (it never
 // waits at a station unless asked) and the halt's bell calls it again whenever it is rung.
 
@@ -46,8 +47,8 @@ export function setupNightHalt(ctx) {
   const H = level?.nightHalt;
   if (!H) return null;
   define(quests);
-  // back from the train: you stepped off at the halt (the arrival puts you on its platform: main.js level.arrivals)
-  if (quests.stage(Q) === 'off') quests.advance(Q, 'off');
+  // (back from the train, the arrival puts you on its platform: main.js level.arrivals; Edda reads Solange's answer
+  //  when you pass her, no step of it: the errand was done when the answer was in your hand, issue #279)
   const people = {};
   if (spawn) {
     people.edda = spawn(PEOPLE.edda, { route: [H.edda.clone()], heading: H.heading, speed: 0.4 });

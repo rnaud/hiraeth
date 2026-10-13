@@ -1,5 +1,7 @@
 // The quest QC's measurable checks (.claude/skills/quest-qc/SKILL.md): every quest in the story data, step by step,
-// with what can be counted flagged (⚑). It only imports the data, as the tests do; it never runs the game.
+// with what can be counted flagged (⚑); then the temples' steps (src/temples/*-data.js QUEST: find, gadget, use,
+// keeper) and the makers' boxes' hints (src/boxes/placements.js), each a one-step quest, with the flags that apply to
+// a line (long step, keys, ask-someone; issue #279). It only imports the data, as the tests do; it never runs the game.
 //
 //   node .claude/skills/quest-qc/check.mjs [--worlds desert,incal] [--all]
 //
@@ -44,4 +46,39 @@ for (const f of readdirSync(dir).filter((x) => /-(data|people)\.js$/.test(x))) {
     if (lines.length) console.log(`\n${q.id}${q.main ? ' (main)' : ''}  ${f}\n${lines.join('\n')}`);
   }
 }
-console.log(`\n${n} steps, ${flagged} flagged`);
+
+// ------------------------------------------------------------------ the temples' steps and the boxes' hints
+/** The flags that read a line alone: long, keys, ask-someone (a step that sends you to a person, not its quest's last). */
+const lineFlags = (text, last) => {
+  const fl = [];
+  if (words(text) > WORDS) fl.push(`long step (${words(text)} words)`);
+  if (/\{key:/.test(text)) fl.push('keys');
+  if (ASK.test(text) && !last && /^(Ask|Tell|Talk|Speak)/.test(text)) fl.push('ask-someone');
+  return fl;
+};
+const report = (title, steps) => {
+  const lines = [];
+  steps.forEach(([id, text], i) => {
+    const fl = lineFlags(text, i === steps.length - 1);
+    n++;
+    if (fl.length) flagged++;
+    if (fl.length || all) lines.push(`  ${id.padEnd(10)} ${text}${fl.length ? `  ⚑ ${fl.join(', ')}` : ''}`);
+  });
+  if (lines.length) console.log(`\n${title}\n${lines.join('\n')}`);
+};
+const tdir = join(ROOT, 'src/temples');
+let temples = 0, boxes = 0;
+const story = n;
+for (const f of readdirSync(tdir).filter((x) => /-data\.js$/.test(x))) {
+  const { QUEST: q } = await import(pathToFileURL(join(tdir, f)));
+  if (!q || (only && !only.has(q.world))) continue;
+  temples++;
+  const steps = [['find', q.find], ['gadget', q.gadget], q.use && ['use', q.use.text ?? q.use], ['keeper', q.keeper]].filter((s) => s && s[1]);
+  report(`${q.id}${q.main ? ' (main)' : ''}  temples/${f}`, steps);
+}
+const { PLACEMENTS } = await import(pathToFileURL(join(ROOT, 'src/boxes/placements.js')));
+for (const [world, list] of Object.entries(PLACEMENTS)) {
+  if (only && !only.has(world)) continue;
+  for (const b of list) if (b.hint) { boxes++; report(`box.${b.id}  boxes/placements.js`, [['find', b.hint]]); }
+}
+console.log(`\n${n} steps (${story} in the story, ${n - story - boxes} in ${temples} temples, ${boxes} boxes’ hints), ${flagged} flagged`);

@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 26);   // (26: quests given by people, the worlds a save had been to keeping the old ways, issue #273)
+  assert.equal(MIGRATED(), 27);   // (27: the night mail done at Solange's answer, issue #279)
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -280,7 +280,8 @@ test('nobody sends you to somebody else (issue #85, step 15): a save on a step t
   assert.equal(run({ 'quest.perdide.crystal': 'listen' })['quest.perdide.crystal'], 'splinter');
   assert.equal(run({ 'quest.bazaar.nightmail': 'find' })['quest.bazaar.nightmail'], 'mireille');
   const stop = run({ 'quest.bazaar.nightmail': 'stop', 'item.reply': 1 });
-  assert.equal(stop['quest.bazaar.nightmail'], 'off');
+  assert.equal(stop['quest.bazaar.nightmail'], 'done', 'on to the step off, which went too (step 27, issue #279)');
+  assert.equal(stop['item.reply'], 1, 'the answer kept for Edda');
   assert.equal(stop['nightmail.stop'], true, 'the stop asked for, as Solange’s cord does now');
   // the cab pass: Tobin's coin on its way back to Lio is the pass in hand
   const pass = run({ 'quest.incal.pass': 'back', 'item.fare': 1 });
@@ -290,7 +291,7 @@ test('nobody sends you to somebody else (issue #85, step 15): a save on a step t
   // where they go is a stage the quest still has, and the steps that went are gone
   for (const [list, id, gone, to] of [[INCAL, 'incal.light', 'palace', 'look'], [EDENA, 'edena.garden', 'vey', 'inside'],
     [PERDIDE, 'perdide.crystal', 'saba', 'sing'], [PERDIDE, 'perdide.crystal', 'listen', 'splinter'],
-    [TRAIN, 'bazaar.nightmail', 'find', 'mireille'], [TRAIN, 'bazaar.nightmail', 'stop', 'off'], [INCAL, 'incal.pass', 'back', 'fare']]) {
+    [TRAIN, 'bazaar.nightmail', 'find', 'mireille'], [INCAL, 'incal.pass', 'back', 'fare']]) {
     assert.ok(!stages(list, id).includes(gone), `${id} has no ${gone}`);
     assert.ok(stages(list, id).includes(to), `${id} has ${to}`);
   }
@@ -421,4 +422,20 @@ test('the capstan man is Ewart (issue #251, step 24): his flags leave Lorn’s B
   const old = { 'save.migrated': 23, 'met.bram': true, 'talks.bram': 1, 'quest.spacecity.main': 'cables' };
   migrateFlags(old);
   assert.equal(old['met.ewart'], true); assert.equal(old['met.bram'], undefined); assert.equal(old['save.migrated'], MIGRATED());
+});
+
+test('the night mail is done at Solange’s answer (issue #279, step 27): a save stepping off or bringing it back is done, the answer kept for Edda', async () => {
+  const { QUESTS: TRAIN } = await import('../src/story/night-train-data.js');
+  const run = (flags) => { const f = { 'save.migrated': 26, ...flags }; migrateFlags(f); return f; };
+  const stages = TRAIN[0].stages.map((s) => s.id);
+  assert.deepEqual(stages, ['edda', 'board', 'mireille'], 'the errand ends on the roof');
+  for (const was of ['off', 'home']) {
+    const f = run({ 'quest.bazaar.nightmail': was, 'item.reply': 1, ...(was === 'off' ? { 'nightmail.stop': true } : {}) });
+    assert.equal(f['quest.bazaar.nightmail'], 'done', was);
+    assert.equal(f['item.reply'], 1, `${was}: still in his coat, for Edda to read when he passes`);
+    assert.equal(f['nightmail.read'], undefined, `${was}: not read yet`);
+  }
+  const done = run({ 'quest.bazaar.nightmail': 'done' });
+  assert.equal(done['nightmail.read'], true, 'brought under the old steps: she has read it');
+  assert.equal(run({ 'quest.bazaar.nightmail': 'mireille', 'item.letter': 1 })['quest.bazaar.nightmail'], 'mireille', 'a save on the roof’s step stays');
 });

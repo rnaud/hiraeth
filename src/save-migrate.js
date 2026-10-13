@@ -101,6 +101,10 @@
 // are) and marks each part it had already been to as keeping the old ways (`givers.old.<part>`: there the box quests
 // still come on arrival, the temple's quest as you near its door); only the worlds it has still to reach have givers.
 //
+// The night mail is done when Solange's answer is in your hand (issue #279, v1.69): its last two steps (step off at the
+// halt, bring Edda the answer) went. Step 27 moves a save on either to done, the answer kept for Edda to read when you
+// pass; a save that had brought it already has had her read it (`nightmail.read`).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -271,7 +275,16 @@ const STEPS = [
   (flags) => migrateFragments250(flags),
   // 26: quests are given by people (issue #273, v1.67): the worlds a save had been to keep their quests' old ways
   (flags) => migrateQuestGivers273(flags),
+  // 27: the night mail done at Solange's answer (issue #279, v1.69): a save stepping off or bringing it back is done
+  (flags) => migrateNightMail279(flags),
 ];
+/** The night mail's steps removed in v1.69 (issue #279): step 27. */
+export const QUEST_STAGE_MOVES_279 = { 'bazaar.nightmail': { off: 'done', home: 'done' } };
+/** Step 27 (pure, in place): the answer stays in his coat until Edda reads it; brought already, she has. */
+export function migrateNightMail279(flags) {
+  if (flags['quest.bazaar.nightmail'] === 'done') flags['nightmail.read'] ??= true;
+  return migrateQuestStages(flags, QUEST_STAGE_MOVES_279);
+}
 /** Step 26's parts: every part of the route, and the Clock-House's own id (the Glass Dunes' temple and two of its boxes). */
 export const GIVER_PARTS_273 = [...ROUTE_PARTS, 'garage'];
 /**

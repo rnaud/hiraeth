@@ -145,3 +145,33 @@ test('no quest ends on a talk: the goal reached is the quest done (issue #172)',
   assert.deepEqual(bad, []);
   assert.deepEqual(kept.sort(), Object.keys(ENDS_WITH_SOMEONE).sort(), 'every kept one still ends with its person (or comes off the list)');
 });
+
+// A bring step can be a report-back too: the night mail's "Bring Edda her grandmother's answer" carried back what another
+// person gave you back to the one who sent you (issue #279). Handing over what you found (the drum back to Teo) or the
+// letter you were asked to deliver is the goal; carrying the answer home to whoever gave the quest is telling them. So no
+// quest ends bringing its giver an item that a different person's talk gives.
+test('no quest ends carrying one person’s answer back to another (issue #279)', async () => {
+  const bad = [];
+  const finds = (v, hit, out = []) => {   // (every effect in a talk that hit(key, value) picks out)
+    if (Array.isArray(v)) { for (const x of v) finds(x, hit, out); return out; }
+    if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { if (hit(k, x)) out.push(true); else finds(x, hit, out); }
+    return out;
+  };
+  const gives = (talk, item) => finds(talk, (k, x) => k === 'give' && x === item).length > 0;
+  const starts = (talk, id) => finds(talk, (k, x) => (k === 'start' && x === id) || (k === 'stage' && Array.isArray(x) && x[0] === id)).length > 0;
+  let n = 0;
+  for (const [f, m] of await storyData()) {
+    const who = { ...(m.PEOPLE ?? {}), ...(m.VISITORS ?? {}) };
+    for (const q of m.QUESTS ?? []) {
+      const s = q.stages.at(-1);
+      if (!s.bring) continue;
+      n++;
+      const giver = new Set([q.stages[0].talk, ...Object.entries(who).filter(([, p]) => starts(p.talk, q.id)).map(([k]) => k)].filter(Boolean));
+      if (!giver.has(s.to)) continue;
+      const from = Object.entries(who).filter(([k, p]) => k !== s.to && p.id !== s.to && gives(p.talk, s.bring)).map(([k]) => k);
+      if (from.length) bad.push(`${f} ${q.id}: ends on “${s.text}”, ${s.bring} given by ${from.join(', ')}`);
+    }
+  }
+  assert.ok(n > 3, `${n} quests end on a thing brought`);
+  assert.deepEqual(bad, []);
+});
