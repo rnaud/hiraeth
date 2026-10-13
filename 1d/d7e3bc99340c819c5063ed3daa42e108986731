@@ -1,0 +1,57 @@
+changelog.md
+  s_9ca76055a220ed::t_c548f052239678 7
+docs/systems/foes.md
+  s_9ca76055a220ed::t_c4adfeb588c2d0 456-460,514
+src/changelog.js
+  s_9ca76055a220ed::t_30c33695ff4106 36-37
+src/telegraph.js
+  s_9ca76055a220ed::t_60720bcaf71e00 29-30
+src/temples/arzach.js
+  s_9ca76055a220ed::t_efe632c2dae7ab 164
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_c5748a9f94daed 161
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_c5513e170e596d 192
+src/temples/buried.js
+  s_9ca76055a220ed::t_7066d5281860e1 182
+src/temples/garage.js
+  s_9ca76055a220ed::t_77ed3047a166ed 179
+src/temples/incal.js
+  s_9ca76055a220ed::t_a13c3d90de2835 189
+src/temples/perdide.js
+  s_9ca76055a220ed::t_45f744448d03b9 181
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_78d44b92a20eee 185
+src/temples/spheres.js
+  s_9ca76055a220ed::t_99d94e4694cb02 154
+tests/combat-review.test.js
+  s_9ca76055a220ed::t_671cf93620673b 65-78
+tests/telegraphs.test.js
+  s_9ca76055a220ed::t_5e6d9851b9d63e 41,48
+scripts/combat-review/lib.mjs
+  s_0cd5e7d4a41e46::t_7fb2a76fbcbd3e 180-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1dd7e3bc99340c819c5063ed3daa42e108986731",
+  "prompts": {},
+  "sessions": {
+    "s_0cd5e7d4a41e46": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7baa0db727b82b07",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
