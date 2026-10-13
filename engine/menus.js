@@ -523,7 +523,7 @@ export class EngineMenus {
       // (its drawn ground: the engine's picture by its key, engine/game.js mapPicture; "Drawing the map… n %" until then)
       const ground = p.data?.canvas?.key ?? '', progress = p.data?.progress ?? 0;
       view.map = { world: p.data?.world ?? '', marks: (p.data?.marks ?? []).filter((m) => m.on).map((m) => ({ id: m.id, kind: m.kind, name: m.name, u: +m.u.toFixed(4), v: +m.v.toFixed(4), deg: m.deg ?? null, on: cell?.id === m.id })), note: p.data?.note ?? '', zoom: this.zoom,
-        ground, drawing: ground ? '' : `${t('gm.map.drawing')} ${Math.round(progress * 100)} %`, scale: p.data?.scale ? { frac: +p.data.scale.frac.toFixed(4), label: p.data.scale.label } : null };
+        aspect: +(p.data?.aspect ?? 1).toFixed(3), ground, drawing: ground ? '' : `${t('gm.map.drawing')} ${Math.round(progress * 100)} %`, scale: p.data?.scale ? { frac: +p.data.scale.frac.toFixed(4), label: p.data.scale.label } : null };
     }
     if (p.id === 'people' && p.data?.person) {
       const d = p.data.person;

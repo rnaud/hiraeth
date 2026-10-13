@@ -43,7 +43,7 @@ import { glyph } from './pad-glyphs.js';
 import { gridStep } from './menu-pad.js';
 import { t, onLanguage } from './i18n.js';
 import { chimeIcon } from './chime-icon.js';
-import { MapView, VIEW } from './world-map.js';
+import { MapView, VIEW, mapAspect } from './world-map.js';
 
 // (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213)
 export const PANELS = ['quests', 'map', 'items', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
@@ -329,19 +329,20 @@ const MARK_SYM = {
 /**
  * Map: { world, marks: [{ id, kind, name, sub, u, v, deg, on }] (src/world-map.js mapMarks), canvas (the drawn ground,
  * or null while it is drawn), progress (0..1), zoom (an engine's mark zoomed on, or null), scale: { frac, label }, note,
- * span (m the whole map is across), detail: { canvas, u0, v0, s } (a sharper drawing of a part, for a zoomed view) }.
+ * span (m the whole map is across), detail: { canvas, u0, v0, s } (a sharper drawing of a part, for a zoomed view),
+ * aspect (the map's width over its height: the sheet's shape, as wide as the page's box for it, issue #272; 1 a square) }.
  * The map is the whole sheet, north up, the marks over it (the traveller's arrow turned the way he faces), a cursor
  * on it and the name of the mark under it beside the cursor; the zoom's − and + in a corner (issue #244: "There should
  * be no list under it"). The marks are placed for the whole map here; GameMenu.mapPaint places them for its view.
  * Rows: a mark a row (the strip and an engine's own cursor: engine/menus.js); the page shows no list.
  */
-export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, zoom = null, scale = null, note = '', detail = null } = {}) {
+export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, zoom = null, scale = null, note = '', detail = null, aspect = 1 } = {}) {
   const rows = marks.map((m, i) => [{ col: 0, kind: 'mark', id: m.id, name: m.name, sub: m.sub, desc: '', act: 'zoom', mark: m, r: i }]);
   const pos = (m) => `left:${(m.u * 100).toFixed(2)}%;top:${(m.v * 100).toFixed(2)}%`;
   const markHtml = (m) => `<span class="mk mk-${m.kind}" data-mark="${esc(m.id)}" style="${pos(m)}${m.deg !== undefined ? `;--deg:${m.deg.toFixed(1)}deg` : ''}">${MARK_SYM[m.kind] ?? ''}</span>`;
   const d = detail?.canvas ? detail : null;
   const html = `<div class="gm-map${zoom ? ' zoomed' : ''}">
-    <div class="gm-mapsheet" data-map-sheet>
+    <div class="gm-mapsheet" data-map-sheet style="--a:${(aspect > 0 ? aspect : 1).toFixed(3)}">
       <div class="gm-mapplane"><div class="gm-mapimg">${canvas ? '' : `<p class="drawing"><span class="pen" aria-hidden="true"></span>${t('gm.map.drawing')} ${Math.round(progress * 100)}%</p>`}</div>${d ? `<div class="gm-mapdetail" style="left:${(d.u0 * 100).toFixed(3)}%;top:${(d.v0 * 100).toFixed(3)}%;width:${(d.s * 100).toFixed(3)}%;height:${(d.s * 100).toFixed(3)}%"></div>` : ''}</div>
       <div class="gm-marks">${marks.filter((m) => m.on).map(markHtml).join('')}</div>
       <span class="gm-cursor" aria-hidden="true"></span>
@@ -358,6 +359,7 @@ export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, 
 }
 
 const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
+const MAP_SHADOW = 10;   // px: the map sheet's ink shadow and border, kept inside the page (src/game-menu.css)
 
 /** The verb A / × does on a cell ('' if nothing). */
 export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole', 'travel'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
@@ -400,7 +402,7 @@ export function fullHtml(cell, { prev = null, next = null, note = null } = {}) {
 export class GameMenu {
   /**
    * @param el      the menu's root (index.html #journal)
-   * @param o.sources { items(), quests(), map({ zoom }), worlds(), people(open) } → each panel's data (src/game-menu-data.js)
+   * @param o.sources { items(), quests(), map({ zoom, detail, aspect }), worlds(), people(open) } → each panel's data (src/game-menu-data.js)
    * @param o.onTrack (id) a quest chosen (the scout finds it) · o.onUse (id) an item used (a gun mode, a gadget, a switch)
    * @param o.onTravel (id) "Travel here" on a world: null if the ship goes, else the line why not (shown in the full view)
    * @param o.onClose () the ✕, B / ○ or Esc (Journal.toggle(false))
@@ -431,6 +433,8 @@ export class GameMenu {
       </div>`;
     this.body = el.querySelector('.gm-body');
     this.fullEl = el.querySelector('.gm-full');
+    // (the window resized, a handheld turned: the Map at its box's new shape)
+    if (typeof window !== 'undefined') window.addEventListener?.('resize', () => this.mapFit());
     // (a new language: the tabs' and the close button's words; the panels are drawn again as they open)
     onLanguage(() => {
       for (const b of el.querySelectorAll('.gm-tab')) b.textContent = PANELS.find((p) => p.id === b.dataset.panel)?.name ?? b.textContent;
@@ -506,7 +510,9 @@ export class GameMenu {
     const id = this.panel;
     let data = null;
     // (the People panel: its source is asked for the open person's page too; the Map, for a sharper part when zoomed)
-    const arg = id === 'people' ? this.person : id === 'map' ? { zoom: null, detail: this.mapView.detailWindow() } : undefined;
+    // (the Map's shape: the page's box for it, as last measured: issue #272)
+    if (id === 'map') this._mapAspect = this.mapBoxAspect() ?? this._mapAspect ?? 1;
+    const arg = id === 'people' ? this.person : id === 'map' ? { zoom: null, detail: this.mapView.detailWindow(), aspect: this._mapAspect } : undefined;
     try { data = this.sources[id]?.(arg) ?? null; } catch (e) { console.warn('game menu', id, e); }
     if (id === 'people' && this.person && !data?.person) { this.person = null; if (this.gridAt) this.state.at.people = this.gridAt; }
     this.detail = id === 'people' ? data?.person ?? null : null;
@@ -514,8 +520,9 @@ export class GameMenu {
     this.rows = rows;
     if (id === 'map') {
       this.mapData = data;
-      // (opened: the whole map, the cursor on the traveller)
-      if (this._mapFresh) { this._mapFresh = false; const you = data?.marks?.find((m) => m.kind === 'you' && m.on); this.mapView.reset(you ? [you.u, you.v] : null); }
+      // (opened, or the map at a new shape, so another rectangle of the world: the whole map, the cursor on the traveller)
+      const a = data?.aspect > 0 ? data.aspect : 1;
+      if (this._mapFresh || Math.abs(a - this.mapView.aspect) > 1e-3) { this._mapFresh = false; const you = data?.marks?.find((m) => m.kind === 'you' && m.on); this.mapView.reset(you ? [you.u, you.v] : null, a); }
       const w = arg?.detail;   // (the part asked for: drawn now, or told when it is, mapReady)
       this._detailKey = w ? `${w.u0},${w.v0},${w.s}` : '';
     }
@@ -575,7 +582,8 @@ export class GameMenu {
     // (View / Select, J, the touch ❏: the Quests, issue #213; the Start menu's Items, Quests and Map their own)
     this.leavePerson(); this.full = null; this._mapFresh = true; this.state.show(panel ?? DEFAULT_PANEL); this.render();
     // (drawn while the menu was still hidden: once it shows, the cursor's cell scrolled into view)
-    if (this.el && typeof requestAnimationFrame === 'function') requestAnimationFrame(() => this.paint());
+    // (and the Map, drawn before its box could be measured: again at the box's shape, issue #272)
+    if (this.el && typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { this.paint(); this.mapFit(); });
   }
   close() { this.full = null; this.drawFull(); }
   show(panel) { this.leavePerson(); this.full = null; this.state.show(panel); this.render(); }
@@ -733,6 +741,26 @@ export class GameMenu {
 
   /** The world's map (or a sharper part of it) is drawn (src/world-map.js): the Map panel again, if it shows. */
   mapReady() { if (this.panel === 'map') this.render(); }
+
+  /**
+   * The Map's box in the page (the body inside its padding, less the sheet's shadow) as a map's aspect (mapAspect), or
+   * null while it can't be measured (the menu hidden, no page). Issue #272: "draw the map larger (it leaves wide empty
+   * margins in the page)": the map is as wide as the page lets it be, from a phone's to a wide handheld's.
+   */
+  mapBoxAspect() {
+    const b = this.body;
+    if (!b || typeof getComputedStyle !== 'function' || !(b.clientWidth > 0)) return null;
+    const cs = getComputedStyle(b), px = (k) => parseFloat(cs[k]) || 0;
+    const w = b.clientWidth - px('paddingLeft') - px('paddingRight') - MAP_SHADOW, h = b.clientHeight - px('paddingTop') - px('paddingBottom') - MAP_SHADOW;
+    return w > 0 && h > 0 ? mapAspect(w, h) : null;
+  }
+
+  /** The Map drawn again if its box has changed shape (the menu shown, the window resized). */
+  mapFit() {
+    if (this.panel !== 'map' || !this.el?.classList.contains('open')) return;
+    const a = this.mapBoxAspect();
+    if (a && a !== this._mapAspect) this.render();
+  }
 
   // ---- the Map's view (issue #244: "using the left stick should move around the map ... I should be able to zoom in
   // and out ... Hovering over an item tells me what it is")

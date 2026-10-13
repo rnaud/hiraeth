@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MAP, VIEW, MapView, mapBounds, zoomBounds, toMap, onMap, compass, facing, metres, HeightGrid, contourStep, drawTerrain, WorldMap, mapMarks, scaleBar } from '../src/world-map.js';
+import { MAP, VIEW, MapView, mapBounds, mapAspect, mapPixels, zoomBounds, toMap, onMap, compass, facing, metres, HeightGrid, contourStep, drawTerrain, WorldMap, mapMarks, scaleBar } from '../src/world-map.js';
 import { GameMenu, mapPanel, PANELS } from '../src/game-menu.js';
 import { menuSources } from '../src/game-menu-data.js';
 
@@ -221,4 +221,86 @@ test('the game draws the map: its source, its rays only while the Map shows, no 
   assert.match(source, /game\.flag\(`met\.\$\{n\.def\.id\}`\)/, 'only the people met');
   assert.match(wm, /Never a fragment of the singing light/);
   assert.match(src('src/ui.js'), /data-panel="map">\$\{t\('menu\.map'\)\}/, 'the Start menu has a Map entry too');
+});
+
+// ------------------------------------------------------------------ issue #272: the map as wide as the page
+test('the map\'s shape (issue #272): the page\'s box in steps, the world\'s rectangle round the places, the ground drawn as wide', () => {
+  assert.equal(mapAspect(1066, 508), 2.1); assert.equal(mapAspect(587, 267), 2.2); assert.equal(mapAspect(500, 500), 1);
+  assert.equal(mapAspect(100, 1000), MAP.aspects.min, 'a tall phone: as tall as it may be'); assert.equal(mapAspect(5000, 100), MAP.aspects.max);
+  assert.equal(mapAspect(0, 300), 1, 'nothing measured: a square');
+  const pts = [{ x: -100, z: 0 }, { x: 100, z: 50 }, { x: 0, z: -40 }], sq = mapBounds(pts);
+  for (const a of [1.6, 2.2, 0.7]) {
+    const b = mapBounds(pts, { aspect: a });
+    assert.ok(Math.abs(b.w / b.h - a) < 1e-9, `${a}: its shape`);
+    assert.ok(b.x0 <= -100 && b.x0 + b.w >= 100 && b.z0 <= -40 && b.z0 + b.h >= 50, `${a}: everything inside`);
+    assert.ok(Math.min(b.w, b.h) >= MAP.minSpan - 1e-9, `${a}: never smaller than the least`);
+    assert.ok(Math.max(b.w, b.h) >= sq.w - 1e-9, `${a}: at least as much of the world as the square, the long way`);
+  }
+  // wide in a world with an edge: kept inside it where it fits
+  const e = mapBounds([{ x: 280, z: 0 }, { x: 200, z: 10 }], { limit: 300, aspect: 1.8 });
+  assert.ok(e.x0 + e.w <= 300 + 1e-6 && e.x0 >= -300 - 1e-6);
+  // the ground: rays and pixels the map's shape, its short side as many as before
+  const g = new HeightGrid({ x0: 0, z0: 0, w: 200, h: 100 }, [40, 20], (x, z) => ({ h: x * 0.1 + z * 0.02 }));
+  while (!g.step(50));
+  assert.deepEqual([g.nx, g.ny, g.h.length], [40, 20, 800]);
+  assert.ok(g.h[39] > g.h[0] && g.h[20 * 40 - 40] > g.h[0], 'across is x, down is z');
+  assert.deepEqual(mapPixels(g, 320), [640, 320]); assert.deepEqual(mapPixels({ n: 10 }, 64), [64, 64]);
+  const made = [];
+  const wm = new WorldMap({ sample: () => ({ h: 1 }), canvas: () => { const c = { width: 0, height: 0, getContext: () => recorder() }; made.push(c); return c; }, size: 64 });
+  const v = wm.view({ x0: 0, z0: 0, w: 180, h: 100 }, 20);
+  for (let i = 0; i < 80 && !wm.pump(50); i++);
+  assert.deepEqual([wm.want.grid.nx, wm.want.grid.ny], [36, 20]);
+  assert.deepEqual([made[0].width, made[0].height], [115, 64]);
+  assert.equal(v.bounds.h, 100);
+  // the last few looked at are kept, the whole map among them (it is asked for at every look)
+  const whole = { x0: 0, z0: 0, w: 180, h: 100 };
+  for (let i = 0; i < MAP.keep + 3; i++) { wm.view(whole, 20); wm.view({ x0: i, z0: 0, w: 18, h: 10 }, 20); }
+  assert.ok(wm.maps.has(wm.key(whole)) && wm.maps.size === MAP.keep + 1);
+});
+
+test('the map fills the page\'s box at a desktop\'s and a handheld\'s sizes (issue #272), its corners\' marks inside it', () => {
+  const css = src('src/game-menu.css'), gm = src('src/game-menu.js');
+  assert.match(css, /#journal \.gm-map \{[^}]*container-type: size;/);
+  assert.match(css, /#journal \.gm-mapsheet \{ --a: 1;[^}]*width: min\(100cqw - 10px, \(100cqh - 10px\) \* var\(--a\)\); height: min\(100cqh - 10px, \(100cqw - 10px\) \/ var\(--a\)\);/);
+  assert.match(gm, /const MAP_SHADOW = 10;/, 'the shadow the CSS keeps inside, the same');
+  // the sheet as the CSS lays it out in the page's box for it (.gm-body's, inside its padding: measured in headless
+  // Chrome at each size), at the shape GameMenu.mapBoxAspect asks for
+  const pad = (vw, vh) => [Math.min(32, Math.max(10, 0.022 * vw)), Math.min(26, Math.max(8, 0.024 * vh))];
+  const sizes = { '1280×720': [[1280, 720], [1132, 559]], '1440×900 (16:10)': [[1440, 900], [1279, 712]], '730×410 (the Retroid)': [[730, 410], [629, 300]], '1280×960 (4:3)': [[1280, 960], [1127, 766]] };
+  for (const [name, [[vw, vh], [bw, bh]]] of Object.entries(sizes)) {
+    const [px, py] = pad(vw, vh), W = bw - 2 * px - 10, H = bh - 2 * py - 10;
+    const a = mapAspect(W, H), w = Math.min(W, H * a), h = Math.min(H, W / a);
+    assert.ok(w <= W + 1e-9 && h <= H + 1e-9, `${name}: inside the box`);
+    assert.ok(w / W > 0.97 && h / H > 0.97, `${name}: fills it (${Math.round(w)} × ${Math.round(h)} of ${Math.round(W)} × ${Math.round(H)})`);
+    assert.ok(Math.min(H, W) / W < 0.75, `${name}: a square there would leave wide margins`);
+  }
+  // the panel: the sheet at the map's shape; the menu asks its source for the box's shape and moves the cursor as far
+  // down on the sheet as across
+  assert.match(mapPanel({ aspect: 1.8 }).html, /data-map-sheet style="--a:1\.800"/);
+  assert.match(mapPanel({}).html, /data-map-sheet style="--a:1\.000"/, 'a square without a shape (an engine\'s)');
+  const asked = [], bounds = { x0: -180, z0: -100, w: 360, h: 200 };
+  const map = (o) => { asked.push(o); return { world: 'The Desert', marks: mapMarks({ bounds, you: { x: 0, z: 0 } }), canvas: null, progress: 0, span: 360, aspect: 1.8 }; };
+  const m = new GameMenu(null, { sources: menuSources({ items: { owned: () => [] }, journal: { data: {} }, levels: [], order: [], map }) });
+  m.mapBoxAspect = () => 1.8;
+  m.open('map');
+  assert.equal(asked.at(-1).aspect, 1.8);
+  assert.equal(m.mapView.aspect, 1.8);
+  assert.deepEqual([m.mapView.u, m.mapView.v], [0.5, 0.5], 'the cursor on the traveller');
+  m.mapAnalog({ x: 1, y: 1 }, 0.1);
+  const [du, dv] = [m.mapView.u - 0.5, m.mapView.v - 0.5];
+  assert.ok(Math.abs(dv / du - 1.8) < 1e-9, 'as far down on the sheet as across');
+  m.mapAnalog({ rt: 1 }, 0.5); assert.ok(m.mapView.z > 1.5, 'the triggers still zoom');
+  m.confirm(); assert.ok(m.mapView.z > 3, 'A / × too');
+  // the pick's reach: of the sheet's height on a wide map (a mark as near on the sheet as on a square one)
+  const V = new MapView().reset([0.5, 0.5], 2);
+  assert.equal(V.pick([{ id: 's', kind: 'ship', u: 0.535, v: 0.5, on: true }]), null, 'on a square map within reach, here twice as far on the sheet');
+  assert.equal(V.pick([{ id: 's', kind: 'ship', u: 0.52, v: 0.5, on: true }])?.id, 's');
+  assert.equal(V.pick([{ id: 's', kind: 'ship', u: 0.5, v: 0.04 + 0.5, on: true }])?.id, 's', 'down: as near on the sheet');
+});
+
+test('an engine\'s menus: the Map\'s shape handed to the Unity bridge, which draws it at that shape', () => {
+  assert.match(src('engine/menus.js'), /aspect: \+\(p\.data\?\.aspect \?\? 1\)\.toFixed\(3\)/);
+  const cs = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs');
+  assert.match(cs, /float aspect = Mathf\.Clamp\(m\?\.F\("aspect", 1\) \?\? 1, 0\.5f, 3f\);/);
+  assert.match(cs, /Ui\.Place\(mapBox\.rt, x, y, mw, mh\);/);
 });

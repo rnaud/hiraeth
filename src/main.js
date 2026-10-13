@@ -968,13 +968,13 @@ const worldMap = new WorldMap({
   },
 });
 worldMap.onReady = () => { if (journal.open) journal.menu.mapReady(); };
-function mapSource({ zoom = null, detail = null } = {}) {
-  // the whole map's square, once a world: round where you land, the ship, the temples, the people and every box
-  // (opened or not: they frame it, they are never drawn until opened)
-  if (!mapWhole) {
-    const pts = [level.spawn, level.ship?.pos, ...mapTemples(), ...npcs.map((n) => n.pos && mapAt(n.pos)), ...(boxes.list ?? []).map((b) => mapAt(b.pos)), mapAt(player.pos)].filter(Boolean);
-    const b = mapBounds(pts, { limit: level.limit ?? Infinity });
-    mapWhole = { bounds: b, top: Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up };
+function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
+  // the whole map's rectangle, once a world (and a shape: the page's box for it, issue #272): round where you land, the
+  // ship, the temples, the people and every box (opened or not: they frame it, they are never drawn until opened)
+  if (!mapWhole || mapWhole.aspect !== aspect) {
+    const pts = mapWhole?.pts ?? [level.spawn, level.ship?.pos, ...mapTemples(), ...npcs.map((n) => n.pos && mapAt(n.pos)), ...(boxes.list ?? []).map((b) => mapAt(b.pos)), mapAt(player.pos)].filter(Boolean).map((p) => ({ x: p.x, y: p.y, z: p.z }));
+    const b = mapBounds(pts, { limit: level.limit ?? Infinity, aspect });
+    mapWhole = { bounds: b, pts, aspect, top: mapWhole?.top ?? Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up };
   }
   const you = mapAt(player.pos), dir = player.frame.dir(player.heading, new THREE.Vector3());
   const goal = nextObjective({ player, expedition, story, ship: level.ship, level: { navigationPortals: [] }, quest: () => storyRt.objective() });
@@ -1000,7 +1000,7 @@ function mapSource({ zoom = null, detail = null } = {}) {
   }
   const frag = fragments.counts(), here = frag.worlds?.[levelId];
   return { world: LEVELS.find((l) => l.id === levelId)?.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: view.canvas, progress: view.progress, zoom: focus ? zoom : null,
-    scale: scaleBar(bounds.w), span: bounds.w, detail: part, note: frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : '' };
+    scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part, note: frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : '' };
 }
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)

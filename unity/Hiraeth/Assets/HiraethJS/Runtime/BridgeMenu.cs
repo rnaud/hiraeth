@@ -558,21 +558,23 @@ namespace Hiraeth.Bridge
         void DrawMap(float x, float y, float w, float h)
         {
             var m = state.O("map");
-            float side = Mathf.Min(h, w * 0.58f);
+            // (the map's shape, width over height: 1 a square, the engine's; a wider one as wide as the room lets it be, issue #272)
+            float aspect = Mathf.Clamp(m?.F("aspect", 1) ?? 1, 0.5f, 3f);
+            float mw = Mathf.Min(h * aspect, w * 0.58f), mh = mw / aspect;
             mapBox.Show(true);
-            Ui.Place(mapBox.rt, x, y, side, side);
+            Ui.Place(mapBox.rt, x, y, mw, mh);
             // the ground under the marks (drawn once its rays are all in; until then how far they are)
             var key = m?.S("ground") ?? "";
             var ground = key.Length > 0 && grounds.TryGetValue(key, out var gt) ? gt : null;
             Show(mapGround, ground != null);
-            if (ground != null) { mapGround.texture = ground; Ui.Place(mapGround.rectTransform, 0, 0, side, side); mapGround.transform.SetAsFirstSibling(); mapBox.fill.transform.SetAsFirstSibling(); }
+            if (ground != null) { mapGround.texture = ground; Ui.Place(mapGround.rectTransform, 0, 0, mw, mh); mapGround.transform.SetAsFirstSibling(); mapBox.fill.transform.SetAsFirstSibling(); }
             var drawing = m?.S("drawing") ?? "";
             Show(mapDrawing, ground == null && drawing.Length > 0);
-            if (ground == null && drawing.Length > 0) { mapDrawing.text = drawing; Ui.Place(mapDrawing.rectTransform, 0, side / 2 - 12, side, 24); }
+            if (ground == null && drawing.Length > 0) { mapDrawing.text = drawing; Ui.Place(mapDrawing.rectTransform, 0, mh / 2 - 12, mw, 24); }
             // the scale bar at the foot, a round length
             var sc = m?.O("scale");
             Show(mapBar, sc != null); Show(mapScale, sc != null);
-            if (sc != null) { float bw = side * Mathf.Clamp01(sc.F("frac")); Ui.Place(mapBar.rectTransform, 16, side - 18, bw, 3); mapScale.text = sc.S("label") ?? ""; Ui.Place(mapScale.rectTransform, 16, side - 38, 160, 18); }
+            if (sc != null) { float bw = mw * Mathf.Clamp01(sc.F("frac")); Ui.Place(mapBar.rectTransform, 16, mh - 18, bw, 3); mapScale.text = sc.S("label") ?? ""; Ui.Place(mapScale.rectTransform, 16, mh - 38, 160, 18); }
             var list = m?.L("marks") ?? new List<object>();
             while (marks.Count < list.Count)
             {
@@ -586,17 +588,17 @@ namespace Hiraeth.Bridge
                 Show(dot, true); Show(name, true);
                 float u = Mathf.Clamp01(k.F("u")), v = Mathf.Clamp01(k.F("v")), s = k.S("kind") == "you" ? 12 : 9;
                 dot.color = k.S("kind") == "you" ? Ui.Red : k.S("kind") == "ship" ? Ui.Teal : k.S("kind") == "goal" ? Ui.Gold : Ui.Ink;
-                Ui.Place(dot.rectTransform, u * side - s / 2, v * side - s / 2, s, s);
+                Ui.Place(dot.rectTransform, u * mw - s / 2, v * mh - s / 2, s, s);
                 bool on = B(k, "on");
                 name.text = on || k.S("kind") == "you" || k.S("kind") == "ship" ? k.S("name") : "";
                 name.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
-                Ui.Place(name.rectTransform, u * side + 8, v * side - 8, 180, 16);
+                Ui.Place(name.rectTransform, u * mw + 8, v * mh - 8, 180, 16);
             }
             // the legend beside it: the rows
             Show(sub, true); sub.fontStyle = FontStyle.Bold;
-            Ui.Set(sub, Ui.Upper(m?.S("world") ?? ""), w - side - 20);
-            Ui.Place(sub.rectTransform, x + side + 20, y - 2, w - side - 20, 18);
-            DrawRows("map", x + side + 14, y + 20, w - side - 14, h - 20);
+            Ui.Set(sub, Ui.Upper(m?.S("world") ?? ""), w - mw - 20);
+            Ui.Place(sub.rectTransform, x + mw + 20, y - 2, w - mw - 20, 18);
+            DrawRows("map", x + mw + 14, y + 20, w - mw - 14, h - 20);
         }
 
         void DrawPerson(Dictionary<string, object> p, float x, float y, float w, float h)

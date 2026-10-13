@@ -559,9 +559,22 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   places that frame it, so a dome or a temple room far overhead is left out. The rays run `MAP.budget` (6 ms)
   a frame while the Map shows (`pausedFrame` → `worldMap.pump`; the physics' ground mover is put back after),
   and the map is drawn once into a canvas and kept for the page (`WorldMap`); until then "Drawing the map…"
-  and how far. The square shown (`mapBounds`) frames where you land, the ship, the temples' doors, the people
-  and every box (opened or not: they frame it, a closed one is never drawn), padded, 160 m to 1.6 km across,
-  inside the world's `limit`.
+  and how far. The rectangle shown (`mapBounds`) frames where you land, the ship, the temples' doors, the people
+  and every box (opened or not: they frame it, a closed one is never drawn), padded, its short side 160 m to
+  1.6 km, inside the world's `limit` where it fits, at the page's shape (below).
+- **As wide as the page** (v1.66, issue #272: "draw the map larger (it leaves wide empty margins in the page)"):
+  the map is no longer a square. `GameMenu.mapBoxAspect` measures the page's box for it (`.gm-body` inside its
+  padding, less the sheet's 10 px shadow, `MAP_SHADOW`) and rounds its width over its height to a tenth, 0.6 to
+  2.4 (`mapAspect`, `MAP.aspects`); `mapSource({ aspect })` frames a rectangle of the world that shape, the same
+  places at its middle and more of the world to their sides (about 2.1 at 1280 × 720, 1.8 at 1440 × 900, 2.2 at
+  the Retroid's 730 × 410, 1.5 at 4:3), its rays `MAP.cells` across the short side and as many more the long
+  way, its canvas `MAP.size` (640 px) the short side. The CSS lays the sheet in with container units
+  (`width: min(100cqw - 10px, (100cqh - 10px) * var(--a))`, and its height so), so a box a little off its step
+  is letterboxed by a few pixels. The menu measures once it shows (the first draw, hidden, is a square; a frame
+  later `mapFit` draws it again at the box's shape) and on a resize; a new shape starts the whole map again,
+  the cursor on the traveller. `MapView.aspect`: a step of the stick or the D-pad goes as far down on the sheet
+  as across, the pick's reach is of the view's height on a wide map, the scale bar about as long as on a square
+  one. Tests: `tests/world-map.test.js` (the shapes, the rectangle, the fill at the four sizes).
 - **The ink** (`drawTerrain`): five bands of ochre to pale by height, shaded from the north-west in four steps,
   smoothed; contour lines (`contourStep`: 1, 2, 5, 10 … m, about twelve, every fifth darker); the pen's lines
   traced round with marching squares: the steep places (a cliff, a wall, a dome's rim), the edge of the void
@@ -593,7 +606,9 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   the first is found (as the Worlds panel does).
 - **The data** stays as it was for an engine's menus (engine/menus.js reuses `mapPanel`): `mapPanel(data)` still
   returns `{ html, rows }` with a row a mark (`act: 'zoom'`) and takes `zoom` (a mark's id) as before; new and
-  optional are `data.span` (m across the whole map), `data.detail` and the marks' `quest` kind.
+  optional are `data.span` (m across the whole map), `data.detail`, `data.aspect` (its width over its height,
+  v1.66) and the marks' `quest` kind. The engine's own map stays square (engine/game.js asks no shape); the view
+  it hands the Unity bridge carries `map.aspect`, and BridgeMenu.cs draws the map at that shape beside its rows.
 - Web only: the Unity bridge draws the HUD and the conversation (BridgeHud.cs), never the menus.
 
 ## The galactic map's signature search (v1.6)

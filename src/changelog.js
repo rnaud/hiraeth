@@ -45,6 +45,9 @@ export const CHANGELOG = [
     // glove's colours (src/boxes/model.js buildItemModel, tickItem; src/fluid-sword.js, src/shield.js buildShieldFace,
     // src/fluid-kit.js, src/gadgets/gun.js; docs/systems/boxes.md "What comes out"; issue #242)
     'What comes out of a chest now looks like what you will use. The Givers’ blade rises as the broad blade of living fluid you swing, with its brass cup, wrapped grip, flowing currents and glow, not a thin green spike; the Givers’ guard comes out open, its brass petals and bright rim of fluid as when you raise it; the fluid wings open as they do over a glide; and the fluid gun’s glove is the dark one you wear, with its lavender band and its lights. Their pictures in the menu, and those of Anselm’s upgrades for them, match.',
+    // the Map as wide as the page: its shape the page's box's (src/world-map.js mapAspect, mapBounds aspect, MapView.aspect;
+    // src/game-menu.js mapBoxAspect, mapFit; src/game-menu.css; docs/systems/ui.md "As wide as the page"; issue #272)
+    'The game menu’s Map fills its page now instead of sitting in a square with empty paper either side: it shows a wider stretch of the world, east and west of the places you know, on a desktop screen and on a handheld alike, with the compass, the scale bar and the zoom buttons in its corners.',
   ] },
   { v: '1.65', date: '2026-10-13', items: [
     // the screen while playing (docs/systems/ui.md): the gadget chip (src/gadgets/hud.js, issue #240), the talk prompt
