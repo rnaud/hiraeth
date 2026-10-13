@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_848451152144b2 7
+docs/systems/lore-page.md
+  s_9ca76055a220ed::t_44a5b5cddb1232 40-55,57-58
+docs/systems/notes.md
+  s_9ca76055a220ed::t_8ac7485691f9f1 17-19
+lore.html
+  s_9ca76055a220ed::t_2c28f9c14bae64 41-47,96-108,122,125-135
+src/changelog.js
+  s_9ca76055a220ed::t_ccdad3c6a1674d 37-38
+src/lore-page/main.js
+  s_9ca76055a220ed::t_b1740ce4823ec1 3,6,14-61
+src/lore-page/notes.js
+  s_9ca76055a220ed::t_e01a739b460f6f 1-55
+tests/lore-page.test.js
+  s_9ca76055a220ed::t_8d7df0e7e5e288 2-3,9,16,94-139
+worker/issues.js
+  s_9ca76055a220ed::t_1e2030984564bc 13-14,179-181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c43189d8a1259baf8d01a672b98dbe85c74d3506",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

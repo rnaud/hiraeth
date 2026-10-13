@@ -1,0 +1,25 @@
+changelog.md
+  s_9ca76055a220ed::t_5f154ae9eee923 7
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_1a0ab4c538a19a 1013-1042
+src/changelog-media.js
+  s_9ca76055a220ed::t_873121e27ee8d8 767-775
+src/changelog.js
+  s_9ca76055a220ed::t_5335a21cbc6302 18-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "24f051e76b2041dcce76d3ddac9e79cfab9b7709",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

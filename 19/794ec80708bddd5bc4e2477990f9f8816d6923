@@ -1,0 +1,42 @@
+src/shield.js
+  s_9ca76055a220ed::t_fd9e97942cb70c 309,337,351-373,394-411
+src/fluid-kit.js
+  s_9ca76055a220ed::t_7ff5f61fe050d6 93-94,97
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_e2565ab18ed8a7 136-161
+src/fluid-sword.js
+  s_9ca76055a220ed::t_8402701dec4ba5 162-166,168,171-176
+src/items-page/viewer.js
+  s_9ca76055a220ed::t_e48342f3c04adf 93
+changelog.md
+  s_9ca76055a220ed::t_33a270b1cce072 7
+src/fluid-tool.js
+  s_9ca76055a220ed::t_2d68ea416eb4e2 725-732,813
+src/changelog-media.js
+  s_9ca76055a220ed::t_e825c1992b249d 761
+src/boxes/scene.js
+  s_9ca76055a220ed::t_b475fd9ff0b6ba 366
+  s_9ca76055a220ed::t_757da49d85dd45 2
+src/boxes/model.js
+  s_9ca76055a220ed::t_39c83d27a0566d 4-8,34-35,232-236,238-251,273-278,280-292,294-298,300-305,685-698
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_d8df8fa5b42291 4,14-17,22,30-31,36-42
+tests/item-reveals.test.js
+  s_9ca76055a220ed::t_52fdda89cea4f0 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19794ec80708bddd5bc4e2477990f9f8816d6923",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

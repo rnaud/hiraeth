@@ -1,0 +1,29 @@
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_34bc761b961c6b 145-148
+src/characters/elder-creature.js
+  s_9ca76055a220ed::t_56e8ebb2a1a2cb 5-7,11-12,22-27,30,33-34,38,53-72,76
+src/temples/guardian-motion.js
+  s_9ca76055a220ed::t_6a47d08b87171a 58,63
+tests/elder-creature.test.js
+  s_9ca76055a220ed::t_94a0d88e34786e 114,117-179
+tests/motion-guardians.test.js
+  s_9ca76055a220ed::t_91292da4d41e41 19,31,33,45-46
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_f7ff6a52cd6db4 49-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b97c9be4fe484be417f1a9bcaf54c63b375d4ad",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
