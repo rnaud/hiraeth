@@ -744,3 +744,8 @@ strike on ones, and the three machines still walking on planted feet.
   the Deck, CPU ×4), `shimmer.mjs` the ink flicker round one walking foe with the stepped clock off and on.
 - The guardians: `run.mjs keeper gardener foreman sentinel warden sign elder` (10 s each; a `knee` column, the legs' mean
   bend and the least).
+- The generated skins (the Keeper's Tripo body, issue #267; the Elder's prototype, #237) are subjects too:
+  `run.mjs 'keeper (generated)' 'elder (generated)'` (walk.mjs `addGeneratedSkins`, the GLBs parsed in node, measured on
+  their own bones by `boneLegs`; `tests/motion-guardians.test.js` uses the same). `--cost` walks every kind once before
+  timing (the JIT's warm-up read 11-25 µs a leg on the first kinds). The review of all 23 walkers on the rubric:
+  docs/audits/procedural-animation-v1.66.md.

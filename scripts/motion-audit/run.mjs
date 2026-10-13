@@ -8,23 +8,28 @@
 //   node scripts/motion-audit/run.mjs --pace=0.5      at half their speeds (does the gait follow the speed?)
 //   node scripts/motion-audit/run.mjs --pack          a second of each kind beside it: do they step in unison?
 //   node scripts/motion-audit/run.mjs --cost          the kit's time a frame per foe and per leg (µs, this machine)
+//   node scripts/motion-audit/run.mjs 'keeper (generated)' 'elder (generated)'   the Tripo skins on their own bones
 //   node scripts/motion-audit/run.mjs moustache moustache-hurry   the dog at home (src/dog.js), following a walker
 //
 // Columns: reach% and lift% are shares of the leg's length, for the foes on the locomotion kit (src/motion-kit/);
 // unison is the correlation of two pack members' first feet (1: in step). The walking is in walk.mjs.
 import { SKINS } from '../../src/enemies/skins.js';
-import { foeSystem, foeSubject, OLD, GUARDIANS, DOGS, ARCHETYPE_SUBJECTS, legsFor } from './walk.mjs';
+import { foeSystem, foeSubject, OLD, GUARDIANS, DOGS, ARCHETYPE_SUBJECTS, legsFor, addGeneratedSkins } from './walk.mjs';
 
 const args = process.argv.slice(2), json = args.includes('--json'), skins = args.includes('--skins');
 const pace = Number(args.find((a) => a.startsWith('--pace='))?.slice(7) ?? 1);   // (walk at this share of each one's speed)
 const pack = args.includes('--pack'), cost = args.includes('--cost');
 const picks = args.filter((a) => !a.startsWith('--'));
 
+await addGeneratedSkins();   // (the Tripo skins: 'keeper (generated)', 'elder (generated)')
 const sys = foeSystem();
 const archetypes = skins ? Object.keys(ARCHETYPE_SUBJECTS).flatMap((k) => Object.keys(SKINS[k]).map((w) => `${k}@${w}`)) : Object.keys(ARCHETYPE_SUBJECTS);
 const ids = picks.length ? picks : [...archetypes, ...Object.keys(OLD), ...Object.keys(GUARDIANS), ...Object.keys(DOGS)];
 const out = {};
 const opts = { pace, pack, cost };
+// (timing: a throwaway walk of every kind first, so the first ones measured aren't the JIT's warm-up: without it the crab
+// and the lizard read 11 and 25 µs a leg, 0.7 and 1.0 after; procedural-animation-v1.66)
+if (cost) for (const id of ids) if (!GUARDIANS[id] && !DOGS[id] && legsFor(id)) foeSubject(sys, id, legsFor(id), opts);
 for (const id of ids) {
   if (GUARDIANS[id]) out[id] = GUARDIANS[id](pace);
   else if (DOGS[id]) { const { dog, ...r } = DOGS[id](pace); out[id] = r; void dog; }

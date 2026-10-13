@@ -11,6 +11,10 @@ import { keeperModel, sentinelModel, foremanModel, gardenerModel, signModel, eld
 import { jointAngle } from './metrics.mjs';
 import { walkReport, correlation } from './metrics.mjs';
 import { Dog } from '../../src/dog.js';
+import fs from 'node:fs';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createKeeperCreature } from '../../src/characters/keeper-creature.js';
+import { createElderCreature } from '../../src/characters/elder-creature.js';
 
 export const DT = 1 / 60, SETTLE = 60, FRAMES = 240;
 const v = new THREE.Vector3();
@@ -181,3 +185,24 @@ export function dogSubject(speed = 1.6, pace = 1) {
   return { speed, ...run, legLength: L, reachShare: run.reachSpan / L, liftShare: run.lift / L, legsN: legs.length, dog };
 }
 export const DOGS = { moustache: (pace) => dogSubject(1.6, pace), 'moustache-hurry': (pace) => dogSubject(4.2, pace) };
+
+/** A generated skin's GLB (public/guardians/<file>/model.glb) parsed in node, its materials and textures left out. */
+export async function loadSkin(file) {
+  globalThis.ProgressEvent ??= class { constructor(type, x) { this.type = type; Object.assign(this, x); } };
+  const bytes = fs.readFileSync(new URL(`../../public/guardians/${file}/model.glb`, import.meta.url)), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
+  for (const m of json.meshes) for (const p of m.primitives) delete p.material;
+  delete json.materials; delete json.textures; delete json.images;
+  json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');
+  return new GLTFLoader().parseAsync(JSON.stringify(json), '');
+}
+/**
+ * The generated skins (src/characters/*-creature.js) joined to GUARDIANS: the Rose House's Keeper (issue #267, live) and
+ * the Aerie's Elder (issue #237, a prototype), measured on their own bones (boneLegs). Loaded once.
+ */
+let skinsAdded = null;
+export function addGeneratedSkins() {
+  return (skinsAdded ??= Promise.all([loadSkin('keeper-v1'), loadSkin('elder-v1')]).then(([keeper, elder]) => {
+    GUARDIANS['keeper (generated)'] = (pace) => guardianSubject(() => createKeeperCreature(keeper), boneLegs, 2.2, pace);
+    GUARDIANS['elder (generated)'] = (pace) => guardianSubject(() => createElderCreature(elder), boneLegs, 1.8, pace);
+  }));
+}
