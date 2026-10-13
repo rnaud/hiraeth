@@ -99,3 +99,36 @@ footer { padding: 0 0 calc(12px + env(safe-area-inset-bottom)); font-size: 11px;
 .question-error { margin: 6px 0 0; color: #984631; font-size: 12px; }
 .question-error:empty { display: none; }
 @media (max-width: 520px) { .question-foot { flex-direction: column; align-items: stretch; } .question-option { flex: 1 1 100%; } }
+
+/* each note's status (#277): a pill and the row's dot by status, the filter's chips, an opened note's activity */
+.refresh-row { display: flex; align-items: center; gap: 10px; }
+#listed-at { font-size: 11px; color: var(--soft); }
+#listed-at:empty { display: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+.filter { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 16px; background: transparent; color: var(--ink); font-size: 12px; }
+.filter:hover { border-color: var(--green); }
+.filter[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.filter-count { color: var(--soft); font-variant-numeric: tabular-nums; }
+.filter[aria-pressed="true"] .filter-count { color: #c9ccc6; }
+.status { padding: 0 6px; border-radius: 3px; font-weight: 600; letter-spacing: .01em; }
+.status.status-open { color: var(--green); background: #e6eee9; }
+.status.status-progress { color: #7a5a00; background: #fbefc2; }
+.status.status-needs { color: #fff; background: #b4561f; }
+.status.status-blocked { color: #5a3fc0; background: #ece7fd; }
+.status.status-done { color: var(--soft); background: #ecedea; }
+.issue.status-progress .issue-dot { background: #d9a400; box-shadow: 0 0 0 3px #fbefc2; }
+.issue.status-needs .issue-dot { background: #b4561f; }
+.issue.status-blocked .issue-dot { background: #7a5af8; }
+.issue.status-done .issue-dot { background: transparent; border: 1px solid var(--soft); }
+.issue.status-done .issue-title { color: var(--soft); }
+.issue-toggle { min-height: 0; padding: 0; font-size: 11px; }
+.activity { margin-top: 8px; padding: 8px 10px; border-left: 2px solid var(--line); background: #fff; border-radius: 0 6px 6px 0; font-size: 13px; }
+.issue.status-progress .activity { border-left-color: #d9a400; }
+.activity p { margin: 0; }
+.activity-who { color: var(--soft); font-size: 12px; }
+.activity-who strong { color: var(--ink); font-weight: 600; }
+.activity-text { margin-top: 3px !important; white-space: pre-wrap; overflow-wrap: anywhere; }
+.activity-line { color: var(--soft); }
+.activity-line.error { color: #984631; }
+.activity-foot { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px !important; font-size: 12px; color: var(--soft); }
+.activity-foot .commit { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--green); }

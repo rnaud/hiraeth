@@ -1,5 +1,6 @@
 import { handleDrafts, doStore, CORS } from './drafts.js';
 import { handleQuestions } from './questions.js';
+import { issueStatus, labelNames, latestComment, closingCommit } from './status.js';
 
 // The private notebook: GitHub is the store; neither credential reaches the page.
 // Set HIRAETH_ISSUES_TOKEN (this repo, Issues read/write) and HIRAETH_NOTES_PASSWORD
@@ -88,8 +89,11 @@ function issueView(issue) {
     number: issue.number, title: issue.title,
     url: `https://github.com/${REPOSITORY}/issues/${issue.number}`,
     createdAt: issue.created_at, updatedAt: issue.updated_at,
-    labels: (issue.labels ?? []).map((l) => typeof l === 'string' ? l : l.name).filter((l) => typeof l === 'string'),
+    labels: labelNames(issue),
     comments: issue.comments ?? 0,
+    // (the status on the page, #277: worker/status.js; a new issue's POST answer has no state yet: open)
+    state: issue.state === 'closed' ? 'closed' : 'open', status: issueStatus(issue),
+    ...(issue.state === 'closed' ? { closedAt: issue.closed_at ?? null, stateReason: issue.state_reason ?? null } : {}),
   };
 }
 async function github(fetcher, env, url, options = {}) {
@@ -113,6 +117,37 @@ function githubFailure(response, writing = false) {
 const DRAFT_ROUTE = /^\/api\/notes\/(pair(\/approve)?|drafts(\/[a-f0-9]{32}(\/publish)?)?|shots\/[a-f0-9]{32}\.jpg)$/;
 /** The questions for the author (worker/questions.js): the list, and an answer to one issue's. */
 const QUESTION_ROUTE = /^\/api\/notes\/questions(?:\/([1-9]\d{0,6})\/answer)?$/;
+/** One issue's activity, for a note opened on the page (#277): its latest comment and the commit that closed it. */
+const ACTIVITY_ROUTE = /^\/api\/notes\/issues\/([1-9]\d{0,6})\/activity$/;
+const lastPage = (response) => Number(/[?&]page=(\d{1,4})[^>]*>;\s*rel="last"/.exec(response.headers.get('Link') ?? '')?.[1] ?? 0);
+
+/** GET …/issues/<n>/activity → { issue, comment, closedBy }: two or three GitHub calls (the issue, its last comment, its events if closed). */
+async function issueActivity(gh, number) {
+  const got = await gh(`${API}/${number}`);
+  if (got.status === 404 || got.status === 410) return failure(404, 'That issue is gone. Refresh the list.');
+  if (!got.ok) return githubFailure(got);
+  const issue = await got.json();
+  if (!issue || issue.pull_request || !Number.isSafeInteger(issue.number)) return failure(404, 'That issue is gone. Refresh the list.');
+  let comment = null, closedBy = null;
+  const count = Number.isSafeInteger(issue.comments) ? issue.comments : 0;
+  if (count > 0) {
+    // (one comment a page: the page numbered by the count is the newest)
+    const response = await gh(`${API}/${number}/comments?per_page=1&page=${count}`);
+    if (!response.ok) return githubFailure(response);
+    comment = latestComment(await response.json());
+  }
+  if (issue.state === 'closed') {
+    let response = await gh(`${API}/${number}/events?per_page=100`);
+    if (!response.ok) return githubFailure(response);
+    const last = lastPage(response);
+    if (last > 1) {
+      response = await gh(`${API}/${number}/events?per_page=100&page=${last}`);
+      if (!response.ok) return githubFailure(response);
+    }
+    closedBy = closingCommit(await response.json());
+  }
+  return json({ issue: issueView(issue), comment, closedBy });
+}
 
 export async function handleIssues(request, env, fetcher = fetch, now = Date.now(), store = env.NOTES_DRAFTS ? doStore(env.NOTES_DRAFTS) : null) {
   const url = new URL(request.url), session = url.pathname === '/api/notes/session';
@@ -126,8 +161,9 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
     }, now);
   }
   const question = QUESTION_ROUTE.exec(url.pathname);
-  if (!session && !question && url.pathname !== '/api/notes/issues') return failure(404, 'Not found.');
-  const allowed = session ? ['GET', 'POST', 'DELETE'] : question ? [question[1] ? 'POST' : 'GET'] : ['GET', 'POST'];
+  const activity = ACTIVITY_ROUTE.exec(url.pathname);
+  if (!session && !question && !activity && url.pathname !== '/api/notes/issues') return failure(404, 'Not found.');
+  const allowed = session ? ['GET', 'POST', 'DELETE'] : question ? [question[1] ? 'POST' : 'GET'] : activity ? ['GET'] : ['GET', 'POST'];
   if (!allowed.includes(request.method)) return json({ error: 'Method not allowed.' }, 405, { Allow: allowed.join(', ') });
   // SameSite cookies plus explicit Origin validation: no public token-backed write proxy.
   if (request.method !== 'GET' && request.headers.get('Origin') !== url.origin) return failure(403, 'Please open the notebook directly to make changes.');
@@ -161,11 +197,15 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
       return await handleQuestions(request, { github: (u, options) => github(fetcher, env, u, options), githubFailure, api: API, repository: REPOSITORY, json, failure },
         question[1] ? Number(question[1]) : null, body);
     }
+    if (activity) return await issueActivity((u, options) => github(fetcher, env, u, options), Number(activity[1]));
     if (request.method === 'GET') {
       const pageText = url.searchParams.get('page') ?? '1';
       if (!/^[1-9]\d{0,3}$/.test(pageText)) return failure(400, 'Invalid page.');
       const page = Number(pageText);
-      const response = await github(fetcher, env, `${API}?state=open&sort=created&direction=desc&per_page=50&page=${page}`);
+      // (state=all: every issue with its status, #277, 100 a page; without it the open ones, 50 a page, as before)
+      const state = url.searchParams.get('state') ?? 'open';
+      if (state !== 'open' && state !== 'all') return failure(400, 'Invalid state.');
+      const response = await github(fetcher, env, `${API}?state=${state}&sort=created&direction=desc&per_page=${state === 'all' ? 100 : 50}&page=${page}`);
       if (!response.ok) return githubFailure(response);
       const issues = await response.json();
       if (!Array.isArray(issues)) return failure(502, 'The notes could not be loaded. Please try again.');

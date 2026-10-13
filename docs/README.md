@@ -91,7 +91,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | File | What |
 |---|---|
 | [cloudflare.md](cloudflare.md) | the Cloudflare Worker that serves the game and its update feed |
-| [notes.md](systems/notes.md) | the private notebook: one-line notes backed by GitHub Issues, Worker secrets and access setup |
+| [notes.md](systems/notes.md) | the private notebook: one-line notes backed by GitHub Issues, each note's status (Open, In progress, Needs you, Blocked, Done: the labels the coordinator sets), Worker secrets and access setup |
 | [lore-page.md](systems/lore-page.md) | the lore page (`lore.html`): the story, the traveller, each world's lore, people, temples, guardians and gadgets read from the game's data at build time, and a Note on every part that files an issue through the notebook |
 | [steam-deck.md](steam-deck.md) | the Steam Deck package: install, release, its updates from the site and the settings' Updates section |
 | [makehuman.md](makehuman.md) | the MakeHuman / MPFB bodies pipeline (pictures in `makehuman/`) |

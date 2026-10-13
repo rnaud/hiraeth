@@ -44,10 +44,11 @@
           <p id="pair-status" role="status" aria-live="polite"></p>
         </details>
         <section class="open-notes" aria-labelledby="open-title">
-          <div class="list-heading"><h2 id="open-title">To do <span id="count"></span></h2><button id="refresh" class="text-button">Refresh <span aria-hidden="true">↻</span></button></div>
+          <div class="list-heading"><h2 id="open-title">Notes <span id="count"></span></h2><span class="refresh-row"><span id="listed-at"></span><button id="refresh" class="text-button">Refresh <span aria-hidden="true">↻</span></button></span></div>
+          <div id="filters" class="filters" role="group" aria-label="Show notes by status"></div>
           <label class="sr-only" for="search">Find a note in the loaded list</label><input id="search" type="search" placeholder="Find a note…" autocomplete="off">
           <p id="list-status" role="status" aria-live="polite"></p>
-          <ul id="issues" aria-label="Open issues"></ul>
+          <ul id="issues" aria-label="Notes and their status"></ul>
           <button id="more" class="more" hidden>Load more notes</button>
         </section>
       </section>

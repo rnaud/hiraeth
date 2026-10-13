@@ -1,12 +1,13 @@
 # The notebook
 
-`notes.html` is the phone-friendly Notes page in the game's Pages list. It shows open GitHub issues
-(excluding pull requests), 50 records per page with a Load more button. Search filters the loaded notes.
+`notes.html` is the phone-friendly Notes page in the game's Pages list. It shows the GitHub issues
+(excluding pull requests), open and closed, each with its status (see "Status" below), 100 a page: the first five
+pages load by themselves, then a Load more button. Search and the status filter work on the loaded notes.
 Write up to 4,000 characters in the expanding composer. Enter adds a line; Add or Ctrl/⌘ + Enter sends.
 The first line (up to 256 characters) becomes the issue title; the full text is preserved in its body.
 The composer clears immediately, and pending notes appear in the list while you type the next one.
 Labels and reply counts come from GitHub, and each note links to its issue. Closing an issue on GitHub
-removes it on the next refresh. The page does not start the game or its audio system.
+moves it to Done on the next refresh. The page does not start the game or its audio system.
 
 GitHub is the only task store: no second database and no automatic TODO.md import. Creating a note does
 not wake Claude; issue polling/assignment is a separate workflow that must be configured explicitly.
@@ -110,6 +111,40 @@ the drafts' routes answer 503 and the Notes page hides the section; the notes th
 The write limiter covers pairing and drafts too. `tests/notes-drafts.test.js` (the Worker: pairing, tokens, limits,
 publish with a fake GitHub) and `tests/issue-draft.test.js` (the game's side over the real Worker and a store in
 memory; the menu's section). No test files a real issue.
+
+## Status (issue #277)
+
+Each note shows its status, from the issue's state and labels (`worker/status.js` `issueStatus`, the first that holds):
+
+| Status | When | Who sets it |
+| --- | --- | --- |
+| **Done** | the issue is closed | the fix's commit (`Fixes #n`), or by hand |
+| **Needs you** | open, labelled `needs-author` | an agent or the coordinator, with a question (below) |
+| **Blocked** | open, labelled `codex-only` | work the author does in the Codex browser (Midjourney); agents leave it |
+| **In progress** | open, labelled `in progress` | the coordinator, when an agent starts the issue |
+| **Open** | open, none of those (`todo`, `answered` and the rest are shown as plain labels) | |
+
+**The coordinator's part.** When an agent starts an issue the coordinator puts **`in progress`** on it and comments as
+the work goes (what was found, what is being tried, the commit when it lands); the fix's `Fixes #n` closes it when it
+reaches `main`, and the label goes with it. A question puts `needs-author` on instead; an answer brings `answered`.
+
+**On the page.** A pill and the row's dot by status; chips to filter (**To do**: everything not done, the default,
+with what needs the author and what is in progress first; **All**; then each status), each with its count; the
+choice is kept on the device. **Activity ▾** on a note opens its latest comment (who, when, its first three lines
+as plain text, a link to it) and, for a closed issue, the commit that closed it ("Landed in `3c068b4`", from the
+issue's last `closed` event) and a link to the issue.
+
+**Calls and caching.** The list is `GET /api/notes/issues?state=all&page=n` (one GitHub call a page; without
+`state` it is the open issues 50 a page, as before), so a refresh of ~300 issues is four calls through the
+Worker's token (5,000 an hour, not the 60 of an anonymous page). An opened note is `GET
+/api/notes/issues/<n>/activity`: the issue, its newest comment (`comments?per_page=1&page=<count>`) and, closed,
+its events (the last page): two or three calls, only for the notes opened. The page keeps the last list in
+localStorage (`hiraeth.notes.list.v2`) and shows it at once on the next visit while the new one loads ("Updated 5
+min ago"), and keeps each opened note's activity (`hiraeth.notes.activity.v1`, 200 at most) while the issue's
+`updatedAt` stands: a new comment, a label or closing it moves `updatedAt`, so it is fetched again. If GitHub
+refuses (its rate limit: the Worker's 429), the page says so and keeps showing the list it has, with its time.
+Sign out clears both caches. Tests: `tests/notes-status.test.js` (the mapping, the excerpt and the closing commit
+from GitHub-shaped fixtures, both routes over a fake GitHub, the filter, the order and the caches).
 
 ## Questions for the author (`needs-author`)
 

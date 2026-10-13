@@ -1,5 +1,7 @@
 // No game engine, audio or GitHub credential. Same-origin Worker calls only.
 import { questionCard, pageTitle } from './needs-you.js';
+import { FILTERS, STATUS_TEXT, statusOf, matchesFilter, sortForFilter, filterCounts, otherLabels, relativeTime, shortSha,
+  readList, writeList, cachedActivity, storeActivity, LIST_CACHE, ACTIVITY_CACHE, AUTO_PAGES } from './status-view.js';
 const $ = (id) => document.getElementById(id);
 const DRAFT = 'hiraeth.notes.draft.v1';
 const OUTBOX = 'hiraeth.notes.outbox.v1';
@@ -22,6 +24,14 @@ const HOSTED = 'https://hiraeth.alexandria-rnaud.workers.dev/notes';
 const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 const onWorker = location.hostname === new URL(HOSTED).hostname;
 let issues = [], nextPage = null, loading = false, generation = 0;
+// (#277: each note's status, a filter by it, and an opened note's latest comment and landing commit)
+const FILTER = 'hiraeth.notes.filter.v1';
+const store = (() => { try { return localStorage; } catch { return null; } })();
+let filter = 'todo', listedAt = null;
+try { const f = store?.getItem(FILTER); if (FILTERS.some(([k]) => k === f)) filter = f; } catch { /* private browsing */ }
+const expanded = new Set();
+const activity = new Map();   // number → { updatedAt, state: 'loading' | 'ok' | 'error', data, error }
+const REPO_URL = 'https://github.com/rnaud/hiraeth';
 
 function notice(text = '', error = false) { $('notice').textContent = text; $('notice').classList.toggle('error', error); }
 function signedIn(on) { $('signin').hidden = on; $('board').hidden = !on; $('lock').hidden = !on; if (on) resizeComposer(); }
@@ -57,22 +67,87 @@ function element(tag, className, text) {
   if (text !== undefined) el.textContent = text;
   return el;
 }
+function outLink(className, text, href) {
+  const a = element('a', className, text); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+  return a;
+}
 function issueRow(issue) {
-  const li = element('li', 'issue'); li.dataset.number = issue.number;
+  const status = statusOf(issue), open = expanded.has(issue.number);
+  const li = element('li', `issue status-${status}`); li.dataset.number = issue.number; li.dataset.status = status;
   const dot = element('span', 'issue-dot'); dot.setAttribute('aria-hidden', 'true');
   const content = element('div', 'issue-content');
   // Construct the destination rather than trusting a stored title/body/URL as markup.
-  const href = `https://github.com/rnaud/hiraeth/issues/${Number(issue.number)}`;
-  const link = element('a', 'issue-title', issue.title); link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
+  const href = `${REPO_URL}/issues/${Number(issue.number)}`;
+  const link = outLink('issue-title', issue.title, href);
   const meta = element('div', 'issue-meta');
+  meta.append(element('span', `status status-${status}`, STATUS_TEXT[status]));
   meta.append(element('span', '', `#${issue.number}`));
-  const date = new Date(issue.createdAt);
-  if (!Number.isNaN(date.valueOf())) meta.append(element('span', '', date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })));
-  for (const label of issue.labels ?? []) meta.append(element('span', 'label', label));
+  const done = status === 'done';
+  const date = new Date(done && issue.closedAt ? issue.closedAt : issue.createdAt);
+  if (!Number.isNaN(date.valueOf())) meta.append(element('span', '', `${done ? 'closed ' : ''}${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`));
+  for (const label of otherLabels(issue)) meta.append(element('span', 'label', label));
   if (issue.comments) meta.append(element('span', '', `${issue.comments} ${issue.comments === 1 ? 'reply' : 'replies'}`));
+  const toggle = element('button', 'text-button issue-toggle', open ? 'Hide activity ▴' : 'Activity ▾'); toggle.type = 'button';
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.addEventListener('click', () => {
+    if (expanded.has(issue.number)) expanded.delete(issue.number); else expanded.add(issue.number);
+    render(); document.querySelector(`#issues li[data-number="${Number(issue.number)}"] .issue-toggle`)?.focus();
+  });
+  meta.append(toggle);
   content.append(link, meta);
+  if (open) content.append(activityPanel(issue));
   const arrow = element('span', 'issue-arrow', '↗'); arrow.setAttribute('aria-hidden', 'true');
   li.append(dot, content, arrow); return li;
+}
+/** An opened note: its latest comment (who, when, the first lines), the commit that closed it, its issue. */
+function activityPanel(issue) {
+  const panel = element('div', 'activity');
+  const a = activity.get(issue.number);
+  if (!a || a.state === 'loading') { panel.append(element('p', 'activity-line', 'Reading its latest activity…')); return panel; }
+  if (a.state === 'error') { panel.append(element('p', 'activity-line error', a.error)); return panel; }
+  const { comment, closedBy } = a.data ?? {};
+  const href = `${REPO_URL}/issues/${Number(issue.number)}`;
+  if (comment) {
+    const who = element('p', 'activity-who');
+    who.append(element('strong', '', comment.author), element('span', '', ` · ${relativeTime(comment.at)}`));
+    panel.append(who, element('p', 'activity-text', comment.excerpt || '(no text)'));
+  } else panel.append(element('p', 'activity-line', 'No comments yet.'));
+  const foot = element('p', 'activity-foot');
+  if (closedBy) {
+    const landed = element('span', '', 'Landed in ');
+    landed.append(outLink('commit', shortSha(closedBy.sha), `${REPO_URL}/commit/${closedBy.sha}`));
+    foot.append(landed);
+  }
+  else if (statusOf(issue) === 'done') foot.append(element('span', '', issue.stateReason === 'not_planned' ? 'Closed as not planned' : 'Closed'));
+  foot.append(outLink('', comment?.id ? 'Read the thread ↗' : `Open #${Number(issue.number)} ↗`, comment?.id ? `${href}#issuecomment-${Number(comment.id)}` : href));
+  panel.append(foot);
+  return panel;
+}
+async function loadActivity(issue) {
+  const n = issue.number;
+  const cached = cachedActivity(store, issue);
+  if (cached) { activity.set(n, { updatedAt: issue.updatedAt, state: 'ok', data: cached }); return; }
+  activity.set(n, { updatedAt: issue.updatedAt, state: 'loading' });
+  try {
+    const { issue: fresh, comment, closedBy } = await api(`issues/${Number(n)}/activity`);
+    const data = { comment, closedBy };
+    storeActivity(store, fresh, data);
+    activity.set(n, { updatedAt: fresh.updatedAt, state: 'ok', data });
+    issues = issues.map((i) => i.number === n ? { ...i, ...fresh } : i);   // (its status may have moved since the list)
+  } catch (e) { activity.set(n, { updatedAt: issue.updatedAt, state: 'error', error: e.message }); }
+  render();
+}
+function renderFilters(counts) {
+  $('filters').replaceChildren(...FILTERS.map(([key, text]) => {
+    const b = element('button', `filter status-${key}`); b.type = 'button';
+    b.setAttribute('aria-pressed', String(key === filter));
+    b.append(element('span', '', text), element('span', 'filter-count', String(counts[key])));
+    b.addEventListener('click', () => {
+      filter = key; try { store?.setItem(FILTER, key); } catch { /* private browsing */ }
+      render(); document.querySelector(`#filters .status-${key}`)?.focus();
+    });
+    return b;
+  }));
 }
 function pendingRow(note) {
   const li = element('li', `issue pending ${note.state}`); li.dataset.pending = note.id;
@@ -102,28 +177,58 @@ async function send(note) {
 }
 function render() {
   const q = $('search').value.trim().toLocaleLowerCase();
-  const matches = issues.filter((i) => `${i.title} ${i.number} ${(i.labels ?? []).join(' ')}`.toLocaleLowerCase().includes(q));
-  const pending = outbox.filter((n) => n.text.toLocaleLowerCase().includes(q));
+  const searched = issues.filter((i) => `${i.title} ${i.number} ${(i.labels ?? []).join(' ')} ${STATUS_TEXT[statusOf(i)]}`.toLocaleLowerCase().includes(q));
+  const matches = sortForFilter(searched.filter((i) => matchesFilter(i, filter)), filter);
+  const pending = filter === 'done' ? [] : outbox.filter((n) => n.text.toLocaleLowerCase().includes(q));
+  // (an opened note's activity: from the cache while its updatedAt stands, else one call to the Worker)
+  for (const i of matches) {
+    const a = activity.get(i.number);
+    if (expanded.has(i.number) && (!a || (a.state !== 'loading' && a.updatedAt !== i.updatedAt))) void loadActivity(i);
+  }
   $('issues').replaceChildren(...pending.map(pendingRow), ...matches.map(issueRow));
   $('lock').disabled = outbox.some((n) => n.state === 'sending');
-  $('count').textContent = `${issues.length}${nextPage ? '+' : ''} open`;
+  renderFilters(filterCounts(searched));
+  const all = filterCounts(issues);
+  $('count').textContent = `${all.todo} to do · ${all.all}${nextPage ? '+' : ''} in all`;
   $('more').hidden = !nextPage;
-  $('list-status').textContent = matches.length || pending.length ? '' : q
-    ? `No matching notes${nextPage ? ' in the loaded list. Load more to keep looking' : ''}.`
-    : nextPage ? 'No notes on this page. Load more to continue.' : 'A clean page. Add your first thought above.';
+  const which = filter === 'all' || filter === 'todo' ? '' : `“${STATUS_TEXT[filter]}” `;
+  $('list-status').textContent = matches.length || pending.length ? '' : q || which
+    ? `No ${which}${q ? 'matching ' : ''}notes${nextPage ? ' in the loaded list. Load more to keep looking' : ''}.`
+    : nextPage ? 'No notes on this page. Load more to continue.' : filter === 'todo' && issues.length ? 'Nothing left to do.' : 'A clean page. Add your first thought above.';
+  $('listed-at').textContent = listedAt ? `Updated ${relativeTime(new Date(listedAt).toISOString())}` : '';
 }
+/** The list with each note's status (state=all, 100 a page): page 1, then on by itself up to AUTO_PAGES, so the
+ *  filter's counts are whole; the list is kept on the device and shown at once on the next visit. */
 async function load(page = 1) {
   if (loading) return;
   loading = true; $('refresh').disabled = $('more').disabled = true;
   const version = generation;
-  $('list-status').textContent = 'Reading your notes…';
+  if (!issues.length) $('list-status').textContent = 'Reading your notes…';
   try {
-    const data = await api(`issues?page=${page}`);
-    if (version !== generation) return;
-    issues = [...new Map([...(page === 1 ? [] : issues), ...data.issues].map((i) => [i.number, i])).values()];
-    nextPage = data.nextPage; render();
-  } catch (e) { $('list-status').textContent = e.message; }
+    let fresh = page === 1 ? [] : issues, next = page;
+    do {
+      const data = await api(`issues?state=all&page=${next}`);
+      if (version !== generation) return;
+      fresh = [...new Map([...fresh, ...data.issues].map((i) => [i.number, i])).values()];
+      next = data.nextPage;
+    } while (next && page === 1 && next <= AUTO_PAGES);
+    issues = fresh; nextPage = next; listedAt = Date.now();
+    writeList(store, issues, nextPage, listedAt);
+    render();
+  } catch (e) {
+    render();
+    $('list-status').textContent = listedAt
+      ? `${e.message} Showing the list from ${new Date(listedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}.`
+      : e.message;
+  }
   finally { loading = false; $('refresh').disabled = $('more').disabled = false; }
+}
+/** The list kept from the last visit, shown while the new one loads. */
+function showCachedList() {
+  const cached = readList(store);
+  if (!cached || issues.length) return;
+  issues = cached.issues.filter((i) => Number.isSafeInteger(i?.number) && typeof i.title === 'string');
+  nextPage = cached.nextPage; listedAt = cached.at; render();
 }
 // ---- the screenshot drafts (worker/drafts.js, issue #8): taken in the game, written up and sent from here
 let drafts = [];
@@ -200,7 +305,7 @@ async function loadQuestions() {
   catch { questions = []; renderQuestions(); }   // (an older Worker: the section stays hidden)
 }
 
-async function enter() { signedIn(true); notice(); await Promise.all([load(), loadDrafts(), loadQuestions()]); }
+async function enter() { signedIn(true); notice(); showCachedList(); await Promise.all([load(), loadDrafts(), loadQuestions()]); }
 
 $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault(); if ($('unlock').disabled) return;
@@ -230,7 +335,12 @@ $('more').addEventListener('click', () => { if (nextPage) load(nextPage); });
 $('lock').addEventListener('click', async () => {
   if (outbox.some((n) => n.state === 'sending')) return;
   $('lock').disabled = true;
-  try { await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; questions = []; renderQuestions(); render(); signedIn(false); notice('Signed out.'); }
+  try {
+    await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; listedAt = null;
+    questions = []; activity.clear(); expanded.clear();
+    try { store?.removeItem(LIST_CACHE); store?.removeItem(ACTIVITY_CACHE); } catch { /* private browsing */ }
+    renderQuestions(); render(); signedIn(false); notice('Signed out.');
+  }
   catch (e) { notice(e.message, true); }
   finally { $('lock').disabled = false; }
 });
