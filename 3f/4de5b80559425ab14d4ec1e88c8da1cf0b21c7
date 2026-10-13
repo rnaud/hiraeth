@@ -1,0 +1,33 @@
+docs/design/guardian-turnaround-prompts.md
+  s_9ca76055a220ed::t_2c5cc8bd6a3ccc 47-60,321-326,350-355,378-383
+scripts/guardian-renders.mjs
+  s_9ca76055a220ed::t_dd1e3161026ec9 1-174
+docs/systems/reference-lab.md
+  s_fa00d61a748c9b::t_3c676eb5c34016 216-224
+tests/guardian-renders.test.js
+  s_fa00d61a748c9b::t_409c3102228341 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3f4de5b80559425ab14d4ec1e88c8da1cf0b21c7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_fa00d61a748c9b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af98eb3f1151924d6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
