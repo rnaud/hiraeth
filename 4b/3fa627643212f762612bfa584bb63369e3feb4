@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_26bef464528097 5-8
+docs/systems/foes.md
+  s_9ca76055a220ed::t_6dbd8acb871374 440,444-452,1022
+src/audio.js
+  s_9ca76055a220ed::t_8371dff3daa721 19,2081,2084-2086
+src/changelog.js
+  s_9ca76055a220ed::t_38645bffdcd91f 11-15
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_1281b8259c0781 61-62,548-551
+src/enemies/plans/quadruped.js
+  s_9ca76055a220ed::t_74daeacdd07e75 311,329-330,334-336,346
+src/foe-voices.js
+  s_9ca76055a220ed::t_a468f26d99ae29 109-119
+src/foes.js
+  s_9ca76055a220ed::t_82979979d90a1e 2381
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_524079440894d6 253-255
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4b3fa627643212f762612bfa584bb63369e3feb4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
