@@ -45,7 +45,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *Across this bridge, through the gallery door.*"],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach2', started: false }, do: { start: 'temple.arzach2' }, end: true }, { text: '~neutral~ After I’ve looked at the edge a while.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach2', done: false }, do: { start: 'temple.arzach2' }, end: true }, { text: '~neutral~ After I’ve looked at the edge a while.', end: true }],
         },
         inside: {
           say: ['~surprised~ You crossed, and came back. Good. Not everyone’s sense of the edge is reliable. Did the bells ring?', '~curious~ And her? Did you see her?'],

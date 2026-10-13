@@ -403,7 +403,8 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   first active one: `Quests.objective`), routed through doorways; while the observatory expedition
   is under way its steps first; then the world's story goal (its beacon); once the story is told,
   the ship from more than 25 m away; else nothing. It never points at a relic any more: they are
-  yours to find. A quest with `background: true` (the makers' boxes, offered on arrival) is only
+  yours to find. While the world's lead giver waits (v1.68: docs/systems/story.md, "Quests are given") it finds them
+  first. A quest with `background: true` (the makers' boxes) is only
   tracked when nothing else is or when you choose it, so a box doesn't take the scout from the
   quest you are on.
 - **The quest marker** (`QuestMarker`, the cyan diamond over the tracked objective) no longer hangs
@@ -582,7 +583,10 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   darker; a world's sea, the Underwater City's, is not open water); a double frame, N, a scale bar.
 - **The marks** (`mapMarks`, HTML over the canvas so they stay sharp): you (a red arrow turned the way you
   face), the way on (the scout's objective, `nextObjective` without the doorways), the other quests under way at
-  their steps (v1.65, `quests`: `Quests.objectives()`, a gold ◇; one at the way on's own place is the way on), your
+  their steps (v1.65, `quests`: `Quests.objectives()`, a gold ◇; one at the way on's own place is the way on), the
+  people with a quest for you not talked to yet (v1.68, issue #273, `givers`: `Quests.giverMarks()`, a gold ◉ in a
+  breathing ring, "the ship heard the light on them", the Map's line `GIVERS_NOTE` under them: docs/systems/story.md,
+  "Quests are given"), your
   ship, the makers' temples (at their doors), the people met here, the boxes opened. Something inside a temple's or a
   shop's room (built far from the ground) is drawn at its door (`mapAt`). Never a fragment of the singing light, nor
   a box still closed. No name is written on the map at rest.
@@ -738,7 +742,7 @@ takes its turn, one at a time (`NOTICE_ORDER`, `noticeMay` in `src/ship/cinema.j
 
 Each waits while another is up and while one ahead of it waits. Not notices: a prompt, the scout's find (asked
 for), a conversation, anything inside a letterboxed scene. The crash's objective card is the desert's opening words,
-so they are not said again as a notice (`Story.start({ quiet })`), and a makers' box offered on arrival
+so they are not said again as a notice (`Story.start({ quiet })`), and a makers' box given in a talk
 (`background`) starts without a quest card (the Quests page lists it).
 
 ## Nothing slanted (v1.65, issue #222: "make sure nothing is slanted in the UI")

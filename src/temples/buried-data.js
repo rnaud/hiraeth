@@ -44,7 +44,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ The oval door, toward the hollow. Greased.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.buried', started: false }, do: { start: 'temple.buried' }, end: true }, { text: '~neutral~ After the turn.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.buried', done: false }, do: { start: 'temple.buried' }, end: true }, { text: '~neutral~ After the turn.', end: true }],
         },
         inside: {
           say: ['~surprised~ You went in. Does it smell of grease in there, or did my father exaggerate?', '~curious~ And the warden?'],

@@ -56,6 +56,19 @@ import { hintsFor } from '../hint-level.js';
 // is said with the quest under way; its "Quest:" toast waits for the end of that talk (quests.opened())
 // or for the stage the talk moves it on to.
 //
+// Quests are given by people (issue #273: "I shouldn't have all quests in my menu by default when arriving at a new
+// level. Key characters should give me the quests, and they should be visible on the map"): quests.givenBy(id, who)
+// holds quest `id` back until you talk to one of `who` (a temple's local gives the temple's quest and the makers'
+// boxes of their part of the world; the opening quest's people, opensWith, give the world's own). Talking starts every
+// quest that person gives, just before they speak, quietly (opened() says so at the talk's end); a given quest's
+// `line` (a box's: where it is) is said as the talk's last page (givenWords). Until they are talked to, the givers
+// are marked on the map (giverMarks: the ship hears the light's beat on them, src/story/signature.js GIVERS_LINE) and
+// the scout finds them: the world's lead first and alone (the giver ranked first: a temple's local, or the desert's
+// Marrow, `opensWith(..., { lead: true })`), then every giver still waiting. Doing the thing first never waits for
+// them: a goal reached starts or ends its quest as before (a temple entered starts its quest, a box opened is its
+// quest done, openAhead). A giver whose quest waits on something else (`ready`: no box quests before the first box is
+// found) is not waiting yet.
+//
 // A failed quest has ended like a finished one (not active, never tracked), but it
 // went wrong: the journal files it under its own heading with a ✗ stamp and its
 // `failOutro`; `onFail` runs instead of `onDone`. It can't be retried.
@@ -75,7 +88,8 @@ export class Quests {
     this.listeners = new Set();
     this._v = new THREE.Vector3();
     this.opener = null;   // { id, who: [person ids], label, at }: the opening quest, waiting for a conversation
-    this._quiet = null;   // the quest a conversation just started: its toast waits (opened())
+    this.givers = [];     // [{ id, who, at, label, rank, ready, line, n }]: the quests a person gives (givenBy)
+    this._quiet = new Set();   // the quests a conversation just started: their toasts wait (opened())
   }
 
   define(def) {
@@ -147,8 +161,8 @@ export class Quests {
     else if (this.game.flag('quest.tracked') === id) this.game.set('quest.tracked', this.active().find((q) => q.main)?.id ?? this.active()[0]?.id ?? null);
     // the conversation that opens a quest starts it quietly (its toast waits for the talk's end, opened());
     // a stage it moves on to during that talk is said as the quest's first word
-    const opening = this._quiet === id;
-    if (opening) this._quiet = prev === undefined && !end ? id : null;
+    const opening = this._quiet.has(id);
+    if (opening && !(prev === undefined && !end)) this._quiet.delete(id);
     const st = d.stages.find((x) => x.id === stage);
     if (opening && prev === undefined && !end) { /* (said at the talk's end) */ }
     else {
@@ -220,9 +234,10 @@ export class Quests {
    * first the one the scout finds): `label` for the scout (default: the first stage's), `at` a
    * place or locator for it (default: the first of `who`).
    */
-  opensWith(id, who, { label = null, at = null } = {}) {
+  opensWith(id, who, { label = null, at = null, lead = false } = {}) {
     // (a merged world's parts each have one, src/levels/names.js PARTS: they wait in turn, the world's own first)
-    const o = { id, who: [].concat(who), label, at };
+    // (`lead`: this world's first giver, ahead of its temple's local: the desert's Marrow, the ship's power before anything)
+    const o = { id, who: [].concat(who), label, at, lead, n: (this._gn = (this._gn ?? 0) + 1) };
     this.openers = [...(this.openers ?? []).filter((x) => x.id !== id), o];
     this.opener = this.openers[0];
     return o;
@@ -232,21 +247,32 @@ export class Quests {
     const list = this.openers ?? (this.opener ? [this.opener] : []);
     return list.find((o) => this.def(o.id) && !this.isStarted(o.id)) ?? null;
   }
-  /** A conversation with `personId` begins (before they speak): it starts the opening quest if they are one who opens it. */
+  /**
+   * A conversation with `personId` begins (before they speak): it starts the opening quest if they are one who opens
+   * it, and every quest they give (givenBy) that waits for them. Returns whether it started any.
+   */
   opening(personId) {
-    const o = (this.openers ?? (this.opener ? [this.opener] : [])).find((x) => x.who.includes(personId) && this.def(x.id) && !this.isStarted(x.id));
-    if (!o) return false;
-    this._quiet = o.id;
-    this.start(o.id);
-    return true;
+    const list = [...(this.openers ?? (this.opener ? [this.opener] : [])), ...this.givers].filter((x) => x.who.includes(personId) && this.waiting(x));
+    this._given = [];
+    for (const x of list) {
+      this._quiet.add(x.id);
+      this.start(x.id);
+      if (x.line) this._given.push(typeof x.line === 'function' ? x.line(this._given.length) : x.line);
+    }
+    return list.length > 0;
   }
-  /** The conversation is over: the quest it started says so now (unless a stage it moved to said it already). */
+  /** What the quests this talk just gave add to its first node (a box's: where it is): [lines, each with its tone]. */
+  givenWords() { const w = (this._given ?? []).filter(Boolean); this._given = []; return w; }
+  /** The conversation is over: the quests it started say so now (unless a stage one moved to said it already). */
   opened() {
-    const id = this._quiet;
-    this._quiet = null;
-    if (!id || !this.isActive(id)) return false;
-    const d = this.def(id), st = this.current(id);
-    this.startToast(d, st);
+    const ids = [...this._quiet].filter((id) => this.isActive(id));
+    this._quiet.clear();
+    if (!ids.length) return false;
+    // (one card for what was given, the first that isn't a box's; the boxes' quests, `background`, join the log quietly)
+    const big = ids.find((id) => !this.def(id).background);
+    if (big) this.startToast(this.def(big), this.current(big));
+    const boxes = ids.filter((id) => this.def(id).background).length;
+    if (boxes && hintsFor('tip')) this.toast(boxes > 1 ? `${boxes} makers’ boxes: the Quests page says where.` : 'A makers’ box: the Quests page says where.');
     this.sound?.chime?.();
     return true;
   }
@@ -261,6 +287,61 @@ export class Quests {
     return { id: `opener-${o.id}`, quest: o.id, label: label ?? st.label ?? st.text, position: p.clone() };
   }
 
+  // ------------------------------------------------------------ the givers (issue #273)
+  /**
+   * Quest `id` is given by one of `who` (person ids, the first the one marked): it waits for that talk. `at` a place or
+   * locator for the mark (default: the first of `who`), `label` for the scout, `rank` (0 a temple's local, the world's
+   * lead; 2 everyone else; the openers are 1), `ready()` (it waits on something else first: not marked till then),
+   * `line` what they say of it as they give it (src/boxes/index.js: where a box is).
+   */
+  givenBy(id, who, { at = null, label = null, rank = 2, ready = null, line = null } = {}) {
+    const g = { id, who: [].concat(who), at, label, rank, ready, line, n: (this._gn = (this._gn ?? 0) + 1) };
+    this.givers = [...this.givers.filter((x) => x.id !== id), g];
+    return g;
+  }
+  /** Who gives quest `id` (their entry), or null. */
+  giverOf(id) { return this.givers.find((x) => x.id === id) ?? null; }
+  /** A giver's quest waits for their talk: defined, not started, and nothing else to wait on. */
+  waiting(x) { return !!this.def(x.id) && !this.isStarted(x.id) && (!x.ready || !!x.ready()); }
+  /** Every giver, the world's openers too, in the order they are marked: the lead first, a temple's locals, the rest. */
+  allGivers() {
+    const openers = (this.openers ?? (this.opener ? [this.opener] : [])).map((o) => ({ ...o, opener: true, rank: o.lead ? -1 : 1 }));
+    return [...openers, ...this.givers].filter((x) => this.def(x.id)).sort((a, b) => a.rank - b.rank || (a.n ?? 0) - (b.n ?? 0));
+  }
+  /** The givers still waiting, a person each: [{ person, quests: [ids], at, label, rank }]. */
+  pendingGivers() {
+    const out = new Map();
+    for (const x of this.allGivers()) {
+      if (!this.waiting(x)) continue;
+      const k = x.who[0];
+      if (!out.has(k)) out.set(k, { person: k, quests: [], at: x.at ?? k, label: x.label, rank: x.rank });
+      out.get(k).quests.push(x.id);
+    }
+    return [...out.values()];
+  }
+  /** The world's lead giver while they wait (the first ranked: marked alone until then), or null. */
+  leadGiver() {
+    const first = this.allGivers()[0];
+    if (!first || !this.waiting(first)) return null;
+    return this.pendingGivers().find((g) => g.person === first.who[0]) ?? null;
+  }
+  /** Has `personId` a quest waiting for their talk? Its id, or null. */
+  givesNow(personId) { return this.allGivers().find((x) => x.who.includes(personId) && this.waiting(x))?.id ?? null; }
+  /** Where a giver is, for the scout and the map: { id, quest, person, label, position } or null. */
+  giverObjective(g) {
+    if (!g) return null;
+    const p = this.resolve(g.at);
+    if (!p) return null;
+    const st = this.def(g.quests[0])?.stages[0];
+    const label = typeof g.label === 'function' ? g.label() : g.label;
+    return { id: `giver-${g.person}`, quest: g.quests[0], person: g.person, label: label ?? st?.label ?? st?.text ?? g.person, position: p.clone() };
+  }
+  /** The givers marked on the map: the lead alone while they wait, then everyone still waiting. */
+  giverMarks() {
+    const lead = this.leadGiver();
+    return (lead ? [lead] : this.pendingGivers()).map((g) => this.giverObjective(g)).filter(Boolean);
+  }
+
   /** The tracked quest's objective for the scout and the marker: { id, label, position } or null. */
   objective() {
     const id = this.tracked() ?? this.active().find((q) => q.main)?.id ?? this.active()[0]?.id;
@@ -268,8 +349,13 @@ export class Quests {
     // that started on its own on arrival (a box's, `background`; a temple's, `arrival`), unless you chose
     // that one in the quest log (an errand someone gave you keeps the scout)
     const self = this.def(id)?.background || this.def(id)?.arrival;
-    if (this.pendingOpener() && (!id || (self && id !== this._chosen))) { const o = this.openerObjective(); if (o) return o; }
-    if (!id) return null;
+    const free = !id || (self && id !== this._chosen);
+    // (the world's lead giver first while they wait, alone: a temple's local, the desert's Marrow; issue #273)
+    // (a lead who opens the world's quest is found as its opener: below)
+    if (free && !this.allGivers()[0]?.opener) { const g = this.giverObjective(this.leadGiver()); if (g) return g; }
+    if (this.pendingOpener() && free) { const o = this.openerObjective(); if (o) return o; }
+    // (nothing under way: the next giver still waiting)
+    if (!id) return this.giverObjective(this.pendingGivers()[0]);
     const st = this.current(id);
     const position = this.where(st);
     return position ? { id: `quest-${id}-${st.id}`, quest: id, label: st.label ?? st.text, position } : null;

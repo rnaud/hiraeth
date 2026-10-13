@@ -103,7 +103,8 @@ test('the main quest: Sel, Kip’s recording, the antenna, the broadcast, and wh
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('bazaar.signal'), undefined);
   assert.equal(quests.openerObjective()?.id, `opener-${'bazaar.signal'}`);
-  assert.ok(quests.objective().position.distanceTo(W.people.sel.pos) < 0.01);
+  assert.equal(quests.objective()?.id, 'giver-hobb', 'the Undertower’s local is found first (issue #273)');
+  assert.ok(quests.openerObjective().position.distanceTo(W.people.sel.pos) < 0.01);
   // (issue #44) she meets the ship by the landing, not 319 m off at the tower's foot
   assert.ok(flatD(W.people.sel.pos, level.spawn) < 40, `Sel is ${flatD(W.people.sel.pos, level.spawn).toFixed(0)} m from the landing`);
   talk(PEOPLE.sel, ['Why did it go quiet', 'Where is it now', 'Then we listen']);

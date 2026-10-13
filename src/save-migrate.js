@@ -96,10 +96,15 @@
 // 23 did: a found flag on a moved slot goes to an unmoved one still to find (never the Desert's slot 5, Marrow's errand's
 // goal), so the new places show.
 //
+// Quests are given by people since issue #273 (v1.67): on arrival a world's quests wait for whoever gives them, the
+// temple's local first, marked on the map. Step 26 hides nothing a save has (its quests started or done stay as they
+// are) and marks each part it had already been to as keeping the old ways (`givers.old.<part>`: there the box quests
+// still come on arrival, the temple's quest as you near its door); only the worlds it has still to reach have givers.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
-import { ORDER, MERGED, DISMISSED, worldFor } from './levels/names.js';
+import { ORDER, MERGED, DISMISSED, worldFor, ROUTE_PARTS } from './levels/names.js';
 import { STOPS as FELLOW_STOPS } from './story/fellow-data.js';
 
 /** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
@@ -264,7 +269,25 @@ const STEPS = [
   (flags) => migrateBram251(flags),
   // 25: the fragments re-placed in and on the worlds' places of interest (issue #250, v1.66)
   (flags) => migrateFragments250(flags),
+  // 26: quests are given by people (issue #273, v1.67): the worlds a save had been to keep their quests' old ways
+  (flags) => migrateQuestGivers273(flags),
 ];
+/** Step 26's parts: every part of the route, and the Clock-House's own id (the Glass Dunes' temple and two of its boxes). */
+export const GIVER_PARTS_273 = [...ROUTE_PARTS, 'garage'];
+/**
+ * Step 26 (pure, in place): since issue #273 a world's quests wait for the people who give them (the temple's local gives
+ * the temple's and the boxes'), instead of starting on arrival or as you pass the temple's door. A save from before
+ * keeps every quest it has, started or done (nothing is hidden), and each part it had been to keeps the old ways
+ * (`givers.old.<part>`: src/temples/index.js, src/boxes/index.js); the parts it had not been to, the new arrivals,
+ * have givers.
+ */
+export function migrateQuestGivers273(flags) {
+  const keys = Object.keys(flags);
+  const been = (w) => visited(flags, w) || keys.some((k) => k.startsWith(`temple.${w}.`) || k === `quest.temple.${w}` || k.startsWith(`box.${w}.`) || k.startsWith(`quest.box.${w}.`));
+  const same = { garage: 'glassdunes', glassdunes: 'garage' };   // (the Clock-House stands in the Glass Dunes)
+  for (const w of GIVER_PARTS_273) if (been(w) || (same[w] && been(same[w]))) flags[`givers.old.${w}`] = true;
+  return flags;
+}
 /** The slots of src/fragments-data.js whose spots moved in v1.66 (issue #250), world by world: step 25. */
 export const FRAGMENTS_MOVED_250 = {
   desert: [0, 7], arzach: [0, 3], perdide: [3], edena: [0, 5, 7], underwater: [3], incal: [2, 4, 5, 6], glassdunes: [2, 4, 6, 7],

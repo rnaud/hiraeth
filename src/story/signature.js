@@ -86,3 +86,16 @@ export function arrivalLine(id, flag = () => undefined) {
   if (!s || flag(`signature.${id}`)) return null;
   return spoken('ship', `~neutral~ The singing light’s signature, here too. Strongest ${s.where}.`, { set: { [`signature.${id}`]: true } });
 }
+
+// The givers on the map (issue #273): why the ship can mark the people who have something for you before you meet them.
+// The light's pulse lingers, faintly, on the people it passed over (in every world a few saw it go over, low, the night
+// before it found the ship: docs/story-bible.md, "The thread"), and the scar hears its own beat in them. Said once, by
+// the ship: after the landing in the desert (the prologue's hatch, after his answer), or out of the first jump for a
+// save that landed before (flag `signature.givers`); and in a line on the Map whenever someone is marked.
+export const GIVERS_FLAG = 'signature.givers';
+/** The ship's line: why some people are on the map before you have met them. */
+export const GIVERS_LINE = spoken('ship', "~curious~ The same pulse, faint, on people below who saw the light pass. I'll mark them on your map.", { set: { [GIVERS_FLAG]: true } });
+/** The Map's line while someone is marked (src/world-map.js mapMarks: the marks of kind 'giver'). */
+export const GIVERS_NOTE = 'The ship hears the light’s pulse on them: they saw it pass.';
+/** The ship's line about the givers if it has not said it yet, or null. */
+export const giversLine = (flag = () => undefined) => (flag(GIVERS_FLAG) ? null : GIVERS_LINE);

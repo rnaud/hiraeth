@@ -10,7 +10,7 @@ import { callHum, callHumLevel } from '../story/hum.js';
 import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs, carryJets } from './exhaust.js';
-import { LANDING_LINE, FOLLOW_LINE, arrivalLine } from '../story/signature.js';
+import { LANDING_LINE, FOLLOW_LINE, arrivalLine, giversLine } from '../story/signature.js';
 import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD_MS } from '../story/charge.js';
 import { BUST } from './hologram.js';
 import { rumblePlay } from '../rumble.js';
@@ -632,6 +632,9 @@ export class PrologueDirector {
     this.landingSaid = true;
     const C = this.s.cinema;
     C.say(LANDING_LINE, { secs: 6 }); C.say(FOLLOW_LINE, { secs: 4.5, queue: true });
+    // (and why some people are on the map before he meets them: issue #273)
+    const gl = giversLine((k) => game.flag(k));
+    if (gl) { C.say(gl, { secs: 5, queue: true }); for (const [k, v] of Object.entries(gl.set)) game.set(k, v); }
     this.s.sound?.makersHum?.({ vol: 0.55 });
   }
 
@@ -813,6 +816,9 @@ export class ArrivalDirector extends Sequence {
           // the first time here: the ship reads the light's signature (src/story/signature.js)
           const sig = arrivalLine(ship.levelId, (k) => game.flag(k));
           if (sig) { C.say(sig, { secs: 5.2 }); for (const [k, v] of Object.entries(sig.set)) game.set(k, v); }
+          // (a save that landed before the givers: why some people are on the map, once; issue #273)
+          const gl = giversLine((k) => game.flag(k));
+          if (gl) { C.say(gl, { secs: 5, queue: !!sig }); for (const [k, v] of Object.entries(gl.set)) game.set(k, v); }
           const a = ship.buildApproach();
           m.group.position.copy(a.centre); m.group.quaternion.copy(ship.restQuat);
           m.mats.thrust.uniforms.uGlow.value = 0.6;

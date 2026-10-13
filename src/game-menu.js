@@ -323,7 +323,7 @@ const MARK_SYM = {
   you: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0 -9 L7 7 L0 3.5 L-7 7 Z"/></svg>',
   ship: '<svg viewBox="-12 -8 24 16" aria-hidden="true"><path d="M-11 1 C-6 -6 6 -6 11 1 C6 6 -6 6 -11 1 Z"/><path d="M-4 -4 L0 -7 L4 -4" fill="none"/></svg>',
   goal: '<i>✦</i>', temple: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M-8 8 V-1 L0 -8 L8 -1 V8 Z"/><path d="M-3 8 V2 H3 V8" fill="none"/></svg>',
-  person: '<i>●</i>', box: '<i>▣</i>', quest: '<i>◇</i>',
+  person: '<i>●</i>', box: '<i>▣</i>', quest: '<i>◇</i>', giver: '<i>◉</i>',   // (giver: someone with a quest for you, not met yet: issue #273)
 };
 
 /**

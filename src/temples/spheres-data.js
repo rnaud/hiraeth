@@ -44,7 +44,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ The door is in the heel, on the grove side.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spheres', started: false }, do: { start: 'temple.spheres' }, end: true }, { text: '~playful~ After one more lap.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spheres', done: false }, do: { start: 'temple.spheres' }, end: true }, { text: '~playful~ After one more lap.', end: true }],
         },
         inside: {
           say: ["~surprised~ You went below? How far down does it go?", '~curious~ And the singing?'],

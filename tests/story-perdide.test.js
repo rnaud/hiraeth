@@ -106,7 +106,8 @@ test('the swamp’s people and places stand on walkable or wadeable ground', () 
 test('side quest: feed nothing to the plants', () => {
   // the main quest doesn't just appear: it waits for the first talk with Wendel, the scout finding him till then
   assert.equal(quests.stage('perdide.crystal'), undefined);
-  assert.equal(quests.objective()?.id, 'opener-perdide.crystal');
+  assert.equal(quests.objective()?.id, 'giver-teasel', 'the Hush-House’s local is found first (issue #273)');
+  assert.equal(quests.openerObjective()?.id, 'opener-perdide.crystal');
   talk(LANDING[0], ['Why keep the plants hungry?', 'What do you mean, the patient?']);
   assert.equal(quests.stage('perdide.crystal'), 'wendel', 'that talk opened it');
   assert.equal(quests.stage('perdide.patience'), 'bed');

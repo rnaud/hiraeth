@@ -56,7 +56,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~curious~ *East of the city, among the high dunes.* Enter on the side facing Qanat."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.desert', started: false }, do: { start: 'temple.desert' }, end: true }, { text: '~playful~ Not today. The dunes are high.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.desert', done: false }, do: { start: 'temple.desert' }, end: true }, { text: '~playful~ Not today. The dunes are high.', end: true }],
         },
         inside: {
           say: ["~surprised~ You went in? Deeper than my wells, I’d bet.", "~curious~ Did you find the Keeper?"],

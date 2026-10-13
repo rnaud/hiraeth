@@ -282,15 +282,25 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   // you arrive while the box is still shut, its step says where to look, tracking it sends the scout
   // there, and opening the box finishes it (the flag box.<id>). Not before you have found a box of
   // your own (boxesFound): then they start a few seconds after that first one opens.
+  // Since issue #273 they are given: the local of the box's part's temple (who knows the makers' things) gives them as
+  // they give the temple's quest, saying where each is (boxLine), or when you next talk to them once your first box is
+  // found (src/story/quests.js givenBy). A box opened before anyone gave its quest is that quest done, quietly. A
+  // world with no such local, or a save that had been here before the givers (`givers.old.<part>`: src/save-migrate.js
+  // step 26), offers them on arrival as before.
   const boxQuests = [];
+  const part = (b) => String(b.id).split('.')[0];
+  const giverFor = (b) => quests?.giverOf?.(`temple.${part(b)}`) ?? quests?.givers?.find?.((x) => x.rank === 0) ?? null;
+  const offered = (b) => !giverFor(b) || !!g.flag(`givers.old.${part(b)}`);
   function defineQuests() {
     if (!quests?.define) return;
     for (const b of list) {
       if (b.fallback || !b.place.hint) continue;
       const id = `box.${b.id}`;
-      if (!quests.def?.(id)) quests.define({ id, title: b.place.title ?? 'A Makers’ Box', world: levelId, outro: `${b.def.name}: yours.`, background: true,   // (offered on arrival: it doesn't take the scout from the quest you are on)
+      if (!quests.def?.(id)) quests.define({ id, title: b.place.title ?? 'A Makers’ Box', world: levelId, outro: `${b.def.name}: yours.`, background: true,   // (it doesn't take the scout from the quest you are on)
         stages: [{ id: 'find', text: b.place.hint, label: 'The makers’ box', flag: `box.${b.id}`, at: `box.${b.id}` }] });
       boxQuests.push({ b, id });
+      const giver = !offered(b) && giverFor(b);
+      if (giver) quests.givenBy(id, giver.who, { at: giver.at, label: giver.label, ready: () => boxesFound(g) && !spent(b), line: (k) => boxLine(b.place.hint, k) });
     }
   }
   let questClock = 0, questsOffered = false;
@@ -301,7 +311,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     if ((questClock += dt) < BOX_QUEST_DELAY || current) return;
     questsOffered = true;
     let n = 0;
-    for (const { b, id } of boxQuests) if (!spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
+    for (const { b, id } of boxQuests) if (offered(b) && !spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
     if (n && hintsFor('tip')) toast(n > 1 ? 'More makers’ boxes in this world: the menu’s Quests page says where.' : 'Another makers’ box in this world: the menu’s Quests page says where.');
   }
 
@@ -318,6 +328,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       const grant = () => {
         items.grant(b.item);
         g.set(`box.${b.id}`, true);
+        // (found before anyone gave its quest: that quest is done, on the Quests page's finished list; issue #273)
+        const qid = `box.${b.id}`;
+        if (quests?.def?.(qid) && !quests.isStarted?.(qid)) g.set(`quest.${qid}`, 'done');
       };
       const finish = () => {
         b.justOpened = true;
@@ -420,3 +433,12 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
 }
 /** Seconds after you arrive before a world's box quests start (the landing and the first page come first). */
 export const BOX_QUEST_DELAY = 8;
+
+/**
+ * What the one who gives a box's quest says of it (issue #273): the first of a talk's boxes, then "and one…", with its
+ * hint for the place (its first letter made small: "On the needle spire" → "on the needle spire").
+ */
+export function boxLine(hint, k = 0) {
+  const where = String(hint ?? '').replace(/^./, (c) => c.toLowerCase());
+  return k ? `~neutral~ And one *${where}*.` : `~curious~ The makers left chests out in the open too. One *${where}*.`;
+}

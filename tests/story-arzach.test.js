@@ -158,22 +158,32 @@ test('the tower’s steps are boost-jumps from the balcony up to the sill', () =
   for (let i = 0; i < pts.length - 1; i++) assert.equal(hop(pts[i], pts[i + 1], true), true, `step ${i + 1} is in a boost's reach`);
 });
 
-test('passing the Aerie on the way in starts its quest, but the scout still finds Oïa first', () => {
+test('the Aerie’s quest is Lark’s to give (issue #273): marked first and alone, passing its door starts nothing, going in does', () => {
   const door = rt.temple?.rt?.outside?.door?.at;
   assert.ok(door, 'the Aerie has a door in the world');
-  // a save that has the wings already: the Aerie's quest did not start on arrival (the browser pass's old save)
   game.set('quest.temple.arzach', undefined);
-  quests.def('temple.arzach').arrival = false;
-  assert.equal(quests.isStarted('temple.arzach'), false);
+  assert.equal(quests.isStarted('temple.arzach'), false, 'nothing on arrival');
+  // the scout and the map: Lark, by the Aerie, alone (the world's lead giver)
+  assert.equal(quests.objective()?.id, 'giver-lark');
+  assert.match(quests.objective().label, /Lark, by the Aerie/);
+  assert.deepEqual(quests.giverMarks().map((g) => g.person), ['lark'], 'the map marks Lark alone');
   at(door.clone().add(V(0, 0, 20)));
   step(2);
-  assert.equal(quests.isStarted('temple.arzach'), true, 'near its door the Aerie’s quest begins');
-  assert.equal(quests.objective()?.id, 'opener-arzach.bird', 'the opening talk keeps the scout');
-  // inside, it no longer counts as one that started on its own
+  assert.equal(quests.isStarted('temple.arzach'), false, 'passing its door starts nothing');
+  // going in first starts it all the same (never waits for her)
   game.set('temple.arzach.entered', true);
-  step(1);
-  assert.equal(!!quests.def('temple.arzach').arrival, false);
+  step(2);
+  assert.equal(quests.isActive('temple.arzach'), true, 'inside, the Aerie’s quest is under way');
+  assert.equal(quests.giverMarks().some((g) => g.person === 'lark'), false, 'and Lark is no longer marked');
+  assert.equal(quests.objective()?.id === 'giver-lark', false);
   game.set('temple.arzach.entered', undefined);
+  game.set('quest.temple.arzach', undefined);
+  // talking to her gives it: then the rest of Vael's givers are marked, Oïa's opening talk the scout's
+  assert.equal(quests.opening('lark'), true);
+  quests.opened();
+  assert.equal(quests.isActive('temple.arzach'), true);
+  assert.ok(quests.giverMarks().some((g) => g.person === 'oia'), 'Oïa is marked once Lark has spoken');
+  assert.equal(quests.objective()?.quest, 'temple.arzach', 'the quest she gave is the scout’s');
   at(V(0, 0, 0));
 });
 

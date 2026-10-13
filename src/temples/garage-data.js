@@ -48,7 +48,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *Through the door under the clock.* Follow the ticking."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.garage', started: false }, do: { start: 'temple.garage' }, end: true }, { text: '~playful~ In a minute. Whichever minute it is.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.garage', done: false }, do: { start: 'temple.garage' }, end: true }, { text: '~playful~ In a minute. Whichever minute it is.', end: true }],
         },
         inside: {
           say: ['~surprised~ Back already? I make that eleven minutes. Or forty. Is it all clocks in there?', '~curious~ And the Foreman? Is it as tall as they say?'],

@@ -29,6 +29,11 @@ export const CHANGELOG = [
       see: 'In the Clock-House, win the Pendulum Hall or wake the Striking Room’s eye, then open the little chest whose cage has sunk.' },
     { text: 'Inside a temple a key counter sits at the top left, as in Zelda: a brass key and how many small keys you hold, with the great key beside it once it is yours. It counts up as a key comes out of its chest and down as one turns in a lock, which now clicks softly instead of clanking. Outside the temples it is gone.',
       see: 'In the Clock-House, take both small keys and walk up to the door over the climb: the counter goes from 2 to 1 to 0 as the keyholes fill.' },
+    // quests given by people (issue #273): src/story/quests.js givenBy / giverMarks, the temples' locals (src/temples/index.js),
+    // the boxes' quests theirs (src/boxes/index.js boxLine), the Map's giver marks (src/world-map.js), the ship's line
+    // (src/story/signature.js GIVERS_LINE), old saves' worlds kept as they were (src/save-migrate.js step 26)
+    { text: 'Arriving in a new world no longer fills your Quests page: people give you the quests. In each world the one who keeps watch by the makers’ temple comes first, and tells you of the temple and of the chests the makers left in the open; the others follow. Until you have talked to them, the ship marks them on your map: it hears the light’s pulse on the people who saw it pass. Going into a temple or opening a chest before anyone told you still counts. Worlds you had already been to stay as they were.',
+      see: 'Land in a world you have not been to and open the menu: the Quests page is empty, and the Map marks one person with a gold ring by the makers’ temple. Talk to them: the temple’s quest and the chests’ appear, and the others who have something for you are marked.' },
   ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under

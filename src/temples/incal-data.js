@@ -46,7 +46,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ Enter on the side facing your ship, then climb the tower."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.incal', started: false }, do: { start: 'temple.incal' }, end: true }, { text: '~playful~ Not yet. Wanting to is the hard part.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.incal', done: false }, do: { start: 'temple.incal' }, end: true }, { text: '~playful~ Not yet. Wanting to is the hard part.', end: true }],
         },
         inside: {
           say: ['~surprised~ You went in. Is it as tall inside as it looks?', '~curious~ And the warden?'],

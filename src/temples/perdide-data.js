@@ -44,7 +44,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *East door, channel side.* Listen as you go."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide', started: false }, do: { start: 'temple.perdide' }, end: true }, { text: '~neutral~ At a sensible distance, for now.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide', done: false }, do: { start: 'temple.perdide' }, end: true }, { text: '~neutral~ At a sensible distance, for now.', end: true }],
         },
         inside: {
           say: ["~surprised~ You went in? Is the Mother still snapping?"],

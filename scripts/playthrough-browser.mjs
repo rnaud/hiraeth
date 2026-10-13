@@ -189,7 +189,9 @@ try {
   await until('!window.ship.playing', 120, 'the landing to end');
   await sleep(1500);
   const ob2 = await ev(`window.storyRt.objective()?.label ?? null`);
-  check(/Oïa/.test(ob2 ?? ''), `the drone finds Oïa, who opens Vael’s quest (“${ob2}”)`);
+  // (since issue #273 a world the save has not been to has givers: the Aerie's local first, alone on the map)
+  check(/Lark/.test(ob2 ?? ''), `the drone finds Lark, who gives the Aerie’s quest (“${ob2}”)`);
+  check(await ev(`!window.quests.isStarted('temple.arzach') && JSON.stringify(window.quests.giverMarks().map((g) => g.person)) === '["lark"]'`), 'nothing on arrival; the map marks Lark alone');
   check(await ev(`!window.quests.isStarted('arzach.bird')`), 'Vael’s quest waits for its first talk');
   check(await ev(`!window.player.mount || (window.player.mount.dormant && !window.player.mount.object.visible)`), 'the bird is nowhere until her call');
   check(await ev(`window.boxes.list.filter((b) => b.fallback).length === 0`), 'no fallback box by the ship');

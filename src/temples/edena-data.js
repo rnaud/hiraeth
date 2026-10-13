@@ -45,7 +45,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ Up the white steps. (She nods at the glass.)'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.edena', started: false }, do: { start: 'temple.edena' }, end: true }, { text: '~neutral~ Let me water something first.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.edena', done: false }, do: { start: 'temple.edena' }, end: true }, { text: '~neutral~ Let me water something first.', end: true }],
         },
         inside: {
           say: ['~curious~ You went in. Are the beds in there as dry as mine?', '~sad~ And the gardener?'],

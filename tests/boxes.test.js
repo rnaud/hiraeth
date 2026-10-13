@@ -400,6 +400,55 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('pouch');
 });
 
+test('issue #273: a world’s box quests are the temple’s local’s to give; a box opened first is its quest done; an old save’s world offers them as before', () => {
+  const { scene, physics, level } = world('edena');
+  const setup = (flags = {}) => {
+    game.reset(); clearInteractables();
+    for (const [k, v] of Object.entries(flags)) game.set(k, v);
+    const quests = new Quests({ game });
+    quests.define({ id: 'temple.edena', title: 'The Builders’ Greenhouse', world: 'edena', stages: [{ id: 'find', text: 'Find it', flag: 'temple.edena.entered' }] });
+    quests.locate('sorrel', () => V(10, 0, 10));
+    quests.givenBy('temple.edena', 'sorrel', { rank: 0, label: 'Sorrel, by the Builders’ Greenhouse' });   // (as src/temples/index.js does)
+    const pl = player(level.spawn);
+    const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: () => {} });
+    for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
+    return { quests, boxes, pl };
+  };
+  // a box found already somewhere (box quests wait for the first): nothing on arrival, Sorrel marked
+  let { quests, boxes, pl } = setup({ 'box.desert.backpack': true });
+  const qid = 'box.edena.pouch';
+  assert.equal(quests.isStarted(qid), false, 'nothing offered on arrival');
+  assert.deepEqual(quests.giverMarks().map((g) => g.person), ['sorrel'], 'the map marks Sorrel alone');
+  const hers = quests.pendingGivers()[0].quests;
+  assert.ok(hers[0] === 'temple.edena' && hers.includes(qid), `the temple's quest first, then the boxes' (${hers})`);
+  // talking to her gives the temple's quest and the boxes', and she says where each box is
+  assert.equal(quests.opening('sorrel'), true);
+  const words = quests.givenWords();
+  assert.ok(words.length >= 1 && words.every((w) => /^~[a-z]+~ /.test(w)), 'each line with its tone');
+  assert.match(words[0], /makers left chests/);
+  assert.ok(words.some((w) => /umbrella tree/.test(w)), 'where the pouch’s box is');
+  assert.equal(quests.isActive('temple.edena'), true);
+  assert.equal(quests.isActive(qid), true);
+  assert.deepEqual(quests.giverMarks(), [], 'nobody left to mark');
+  boxes.dispose();
+  // a box opened before anyone gave its quest: that quest is done (on the finished list), nobody marked for it
+  ({ quests, boxes, pl } = setup({ 'box.desert.backpack': true }));
+  boxes.open('edena.pouch', { instant: true });
+  quests.update(pl);
+  assert.equal(quests.isDone(qid), true, 'found first: done');
+  assert.ok(quests.summary().done.some((q) => q.id === qid), 'listed as done');
+  assert.equal(quests.pendingGivers()[0]?.quests.includes(qid), false);
+  boxes.dispose(); items.revoke('pouch');
+  // before any box was found: the boxes' quests are not hers to give yet (Sorrel marked for the temple alone)
+  ({ quests, boxes } = setup({}));
+  assert.deepEqual(quests.pendingGivers()[0].quests, ['temple.edena']);
+  boxes.dispose();
+  // a save that had been here before the givers (step 26): offered on arrival, as before
+  ({ quests, boxes } = setup({ 'box.desert.backpack': true, 'givers.old.edena': true }));
+  assert.equal(quests.isActive(qid), true, 'the old ways in a world the save knew');
+  boxes.dispose(); clearInteractables(); game.reset();
+});
+
 test('a rounded box (the small items’ slabs) has no edges: one closed smooth shell', () => {
   const g = roundedBox(0.33, 0.27, 0.29, 0.15);
   const p = g.attributes.position, n = g.attributes.normal;

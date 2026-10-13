@@ -45,7 +45,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ (She nods at the door, and goes on sweeping.)'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach', started: false }, do: { start: 'temple.arzach' }, end: true }, { text: '~neutral~ (nod, and let her sweep)', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.arzach', done: false }, do: { start: 'temple.arzach' }, end: true }, { text: '~neutral~ (nod, and let her sweep)', end: true }],
         },
         inside: {
           say: ['~curious~ (She stops sweeping.) Her?'],

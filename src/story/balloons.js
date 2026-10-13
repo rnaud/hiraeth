@@ -5,7 +5,8 @@ import { check } from './dialogue.js';
 // shows over their head only when they have something for you:
 //
 //   'objective'  the quest you follow points at them (they are the next step)
-//   'quest'      they open the world's quest that is still waiting for its first conversation
+//   'quest'      they open the world's quest that is still waiting for its first conversation, or give a quest
+//                that waits for their talk (a temple's local: src/story/quests.js givenBy, issue #273)
 //   'new'        a person with a conversation you have never talked to (their first greeting), or one with a
 //                new conversation waiting (`person.fresh(ctx)`: the fellow traveller's next meeting)
 //   'news'       a listen-only person with news you have not heard yet (an `after` entry: dialogue.js pickListen)
@@ -37,6 +38,7 @@ export function balloonReason(person, { game, quests = null, objective = null, a
   }
   if (objective?.position && at && objective.position.distanceTo(at) < NEAR) return 'objective';
   if (quests?.pendingOpener?.()?.who?.includes(person.id)) return 'quest';
+  if (quests?.givesNow?.(person.id)) return 'quest';   // (a giver with a quest waiting for their talk: issue #273)
   if (!game.flag?.(`met.${person.id}`)) return 'new';
   return null;
 }
@@ -48,7 +50,7 @@ export function balloonReason(person, { game, quests = null, objective = null, a
  */
 export function beckonFor(why, person, { quests = null, objective = null } = {}) {
   if (why === 'objective') return `objective:${objective?.id ?? person?.id}`;
-  if (why === 'quest') return `quest:${quests?.pendingOpener?.()?.id ?? person?.id}`;
+  if (why === 'quest') { const o = quests?.pendingOpener?.(); return `quest:${(o?.who?.includes(person?.id) ? o.id : null) ?? quests?.givesNow?.(person?.id) ?? o?.id ?? person?.id}`; }
   return null;
 }
 

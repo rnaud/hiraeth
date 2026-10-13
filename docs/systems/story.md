@@ -621,6 +621,62 @@ sound to make it clear I should chat with her".
   quest starts in that talk; Nour comes over and calls, never opens the talk herself), each
   world's `tests/story-*.test.js` (the quest waits for its first talk).
 
+## Quests are given, and the givers are on the map (issue #273, v1.68)
+The author: "I shouldn't have all quests in my menu by default when arriving at a new level. Key characters should
+give me the quests (and they should be visible on the map in case I'm lost) [...] Each major level should focus on
+giving me access to the quest for the temple first."
+- **Nothing starts on arrival.** The temple's quest no longer starts as the ship lands (Vael's Aerie, the City-Shaft's
+  Warden's Well: `startsOnArrival`) nor as you pass within 70 m of its door, and the makers' boxes' quests are no longer
+  offered a few seconds after landing. The Quests page is empty until someone gives you something.
+- **Who gives what** (`src/story/quests.js` `givenBy(id, who, { rank, label, ready, line })`; `opening(person)` starts
+  every quest that person gives as the talk begins, quietly, one card at its end): the temple's local
+  (`src/temples/index.js`: `T.def.local`, the desert's Sabri) gives the temple's quest and the makers' boxes of their
+  part of the world (`src/boxes/index.js`: they know the makers' things), saying where each box is as the last page of
+  their first words (`boxLine`, with its tone: "The makers left chests out in the open too. One *on the needle
+  spire*."). The world's own quest stays with its opening people (`opensWith`). The box quests wait for your first box
+  as before (`ready`: `boxesFound`); once it is found the local is marked again, and gives them at the next talk.
+
+  | World | First, alone on the map | Then |
+  |---|---|---|
+  | the Desert | Marrow, by your ship (the ship's power: the tank is empty, the temple can wait) | Sabri at Qanat's camps: the Rose House, the desert's boxes |
+  | Vael | Lark, by the Aerie (the wings) | Oïa (the bird); Ysel by the Founders' Belfry and Sister Aube on the sky stones |
+  | Lorn | Teasel, by the Hush-House | Wendel (the crystal); Tamsy by the Lamp-House and Hollin in the Deep Wood |
+  | Viridel | Sorrel, by the Builders' Greenhouse | Mira |
+  | the Underwater City | Anselme, by the Whale-House | Bastien |
+  | the City-Shaft | Vell, by the Warden's Well (the bellows) | Nima |
+  | the Glass Dunes | Wim, by the Clock-House | Oren |
+  | the Buried Machine | Brann, by the Engine-House | Wen |
+  | the Moon Foundry | Ilse, by the Casting-House | Hedda |
+  | the Garden of Spheres | Tessa, by the Footprint | Sister Aube |
+  | the City Floating in Space | Joss, by the Mooring-House | Rosa |
+  | the Signal Market | Hobb, by the Undertower | Sel |
+
+  The desert's lead is Marrow (`opensWith(..., { lead: true })`): nothing in the desert can be done before the ship has
+  power and the tank fluid (Sabri says so herself).
+- **On the map and the scout** (`giverMarks`, `leadGiver`, `objective`): until they are talked to, the givers are marked
+  on the game menu's Map (`src/world-map.js` mark kind `giver`, a gold ring that breathes: "the ship heard the light on
+  them"; one the way on points at is the way on, saying so; `main.js` and `engine/game.js` mapSource), with the Map's line
+  `GIVERS_NOTE`. The world's lead (the giver ranked first: the temple's local, rank 0; the openers are 1) is marked alone
+  and is what the scout (Q, R3) finds; once they have spoken, every giver still waiting is marked and the scout goes on to
+  the world's opening talk. They call you over (`src/story/balloons.js`: reason `quest`, a wave once).
+- **The lore** (`src/story/signature.js` `GIVERS_LINE`, said once by the ship, flag `signature.givers`): the light's
+  pulse lingers, faintly, on the people it passed over (a few in every world saw it go over, low, the night before it
+  found the ship), and the scar hears its own beat in them: "The same pulse, faint, on people below who saw the light
+  pass. I'll mark them on your map." Said after the landing in the prologue (after his answer), or out of the first jump
+  for a save that landed before.
+- **Doing it first never waits for them.** Going into a temple starts its quest (its first step done); a box opened
+  before anyone gave its quest is that quest done, on the Quests page's finished list; the world's own quest whose goal
+  is reached first starts past it or ends (`openAhead`). A giver with nothing left to give is no longer marked.
+- **Old saves** (`src/save-migrate.js` step 26, `migrateQuestGivers273`): nothing is hidden (every quest started or done
+  stays), and each part of the route the save had already been to keeps the old ways (`givers.old.<part>`: the temple's
+  quest on arrival or near its door, the boxes' offered on arrival). Only the worlds it has still to reach have givers.
+- The temple locals' "I'm going." answer now shows while the quest is under way (`done: false`), since their talk has
+  already given it.
+- Tests: `tests/quest-givers.test.js` (only the temple's giver known on arrival; talking unlocks, the words said; the
+  map's marks; the lead alone, then the rest; reaching the goal first; the migration; the lore line),
+  `tests/boxes.test.js` (the boxes' quests given by the local, a box opened first is done, an old save's world),
+  `tests/story-arzach.test.js` and `tests/story-incal.test.js` (Lark and Vell first; passing the door starts nothing).
+
 ## A quest that fails, fewer fetch quests, and the lore made one story
 
 - **Quests can fail** (`src/story/quests.js`): `quests.fail(id)` ends a quest as `'failed'`

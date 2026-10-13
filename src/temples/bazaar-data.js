@@ -47,7 +47,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~whisper~ (Hobb points to the rear doorway, keeping his ear on the stone.)"],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.bazaar', started: false }, do: { start: 'temple.bazaar' }, end: true }, { text: '~whisper~ (leave him listening)', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.bazaar', done: false }, do: { start: 'temple.bazaar' }, end: true }, { text: '~whisper~ (leave him listening)', end: true }],
         },
         inside: {
           say: ['~surprised~ You went down! Is it loud, down there?', '~curious~ And the doors? Do they open for anybody?'],

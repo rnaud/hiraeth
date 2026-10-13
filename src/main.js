@@ -2,6 +2,7 @@ import * as shipSfx from './ship/sfx.js';
 import { homecomingKind } from './story/ending.js';
 import { updateHazards, registerHazard } from './hazards.js';
 import { fireHazard } from './story/flames.js';
+import { GIVERS_NOTE } from './story/signature.js';
 import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
 import { installSkeletonUpdate } from './skeleton-update.js';
@@ -818,7 +819,7 @@ const scoutSays = (text, secs, kind = '') => { scoutSaid.text = text; scoutSaid.
 // what the find is for: the quest's overall goal (src/story/quest-goals.js), the observatory's, the world's story
 const findGoal = (target) => {
   const id = String(target?.id ?? '').replace(/^portal-\d+-/, '');   // (through a doorway first: the same find)
-  const q = /^(quest|opener)-/.test(id) ? storyRt.quests.objective()?.quest : null;
+  const q = /^(quest|opener|giver)-/.test(id) ? storyRt.quests.objective()?.quest : null;
   if (q) return storyRt.quests.goal(q);
   if (/^(ledge|lens|observatory|traveler)/.test(id)) return 'Wake the sleeping observatory';
   if (id === 'story') return content.story.title ?? '';
@@ -1002,14 +1003,17 @@ function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
   }
   const you = mapAt(player.pos), dir = player.frame.dir(player.heading, new THREE.Vector3());
   const goal = nextObjective({ player, expedition, story, ship: level.ship, level: { navigationPortals: [] }, quest: () => storyRt.objective() });
+  const givers = (storyRt.quests.giverMarks?.() ?? []).map((g) => ({ id: g.person, name: npcs.find((n) => n.def?.id === g.person)?.def?.name ?? null, label: g.label, ...mapAt(g.position) }));
   const raw = {
     you: { x: you.x, z: you.z, dx: dir.x, dz: dir.z },
     ship: level.ship?.pos && levelId !== 'home' ? mapAt(level.ship.pos) : null,
     goal: goal?.position ? { ...mapAt(goal.position), label: goal.label } : null,
     // (the other quests under way, at their steps: issue #244)
     quests: (storyRt.quests.objectives?.() ?? []).filter((q) => !q.tracked).map((q) => ({ id: q.quest, title: q.title, label: q.label, ...mapAt(q.position) })),
+    // (the people with a quest waiting for their talk, before you meet them: issue #273, src/story/quests.js giverMarks)
+    givers,
     temples: mapTemples(),
-    people: npcs.filter((n) => n.def?.id && n.pos && game.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, ...mapAt(n.pos) })),
+    people: npcs.filter((n) => n.def?.id && n.pos && game.flag(`met.${n.def.id}`) && !givers.some((g) => g.id === n.def.id)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, ...mapAt(n.pos) })),
     boxes: (boxes.list ?? []).filter((b) => b.opened()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...mapAt(b.pos) })),
   };
   const whole = mapWhole.bounds, focus = zoom && mapMarks({ ...raw, bounds: whole }).find((m) => m.id === zoom);
@@ -1024,7 +1028,8 @@ function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
   }
   const frag = fragments.counts(), here = frag.worlds?.[levelId];
   return { world: LEVELS.find((l) => l.id === levelId)?.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: view.canvas, progress: view.progress, zoom: focus ? zoom : null,
-    scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part, note: frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : '' };
+    scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part,
+    note: [givers.length ? GIVERS_NOTE : '', frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : ''].filter(Boolean).join(' · ') };
 }
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)

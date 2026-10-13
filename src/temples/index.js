@@ -242,7 +242,7 @@ function setupOneTemple(ctx, rt) {
   });
   quests?.locate?.(`temple.${id}.door`, () => rt.outside?.door.at ?? rt.arrival.pos);
   quests?.locate?.(`temple.${id}.next`, () => nextSpot(rt));
-  // you found the door yourself: the quest starts when you come near it, or go in
+  // you found the door yourself: the quest starts as you go in (and, in a save from before the givers, as you come near)
   const near = () => rt.outside && player && player.pos.distanceTo(rt.outside.door.at) < 70;
   // the local who points you there
   const people = [];
@@ -265,8 +265,16 @@ function setupOneTemple(ctx, rt) {
     people.push(n);
     quests?.locate?.(local.person, () => n.pos);
   }
-  // a temple whose gadget this world needs to get about (the City-Shaft's jets): its quest starts on arrival
-  if (T.def.startsOnArrival?.() && quests && !quests.isStarted?.(Q.id)) {
+  // the local gives the temple's quest (issue #273): it waits for their talk, and they are the world's lead giver, the
+  // one the ship marks on the map on arrival (src/story/quests.js givenBy); going in starts it all the same. A save that
+  // had been here before the givers (src/save-migrate.js step 26, `givers.old.<temple>`) keeps the old ways: the quest
+  // starts on arrival where the world needs its gadget, and as you come near the door.
+  const giver = levelId === 'desert' && P.sabri ? (people.length ? 'sabri' : null) : person && rt.outside && spawn ? local.person : null;
+  const giverName = giver ? (P[giver]?.name ?? giver) : null;
+  if (giver) quests?.givenBy?.(Q.id, giver, { rank: 0, label: levelId === 'desert' ? `${giverName}, at Qanat’s camps` : `${giverName}, by ${String(T.def.name ?? 'the makers’ house').replace(/^The /, 'the ')}` });
+  const legacy = !giver || !quests?.givenBy || !!game.flag(`givers.old.${id}`);
+  // a temple whose gadget this world needs to get about (the City-Shaft's jets): its quest started on arrival (old saves)
+  if (legacy && T.def.startsOnArrival?.() && quests && !quests.isStarted?.(Q.id)) {
     quests.start(Q.id);
     // (the world's own story stays the tracked one: the temple waits in the sketchbook, and says so; and
     // while the world's own quest waits for its first conversation, the scout finds who to talk to)
@@ -284,7 +292,7 @@ function setupOneTemple(ctx, rt) {
   return {
     rt, people, dispose: offAfter,
     update(dt, t) {
-      if (!quests?.isStarted?.(Q.id) && (near() || game.flag(`temple.${id}.entered`))) {
+      if (!quests?.isStarted?.(Q.id) && ((legacy && near()) || game.flag(`temple.${id}.entered`))) {
         quests.start(Q.id);
         // only passing by (the ship lands near Vael's Aerie): it started on its own, so while the world's own
         // quest waits for its first conversation the scout still finds who to talk to (quests.objective)

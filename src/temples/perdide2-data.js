@@ -44,7 +44,7 @@ export const PEOPLE = {
         },
         again: {
           say: ["~neutral~ *The causeway starts by the root cave.* It leads to the Lamp-House."],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide2', started: false }, do: { start: 'temple.perdide2' }, end: true }, { text: '~neutral~ Not tonight. Count me out.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.perdide2', done: false }, do: { start: 'temple.perdide2' }, end: true }, { text: '~neutral~ Not tonight. Count me out.', end: true }],
         },
         inside: {
           say: ["~surprised~ You reached it? Did you see the moth?"],

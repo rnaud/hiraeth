@@ -299,7 +299,7 @@ export class WorldMap {
  * way from you), u, v (0..1 on the map), deg (the traveller's), on (inside the map) }. The traveller first, then the
  * way on, the other quests, the ship and the temples, then the people and the boxes, nearest first.
  */
-export function mapMarks({ you = null, ship = null, goal = null, quests = [], temples = [], people = [], boxes = [], bounds }) {
+export function mapMarks({ you = null, ship = null, goal = null, quests = [], givers = [], temples = [], people = [], boxes = [], bounds }) {
   const far = (p) => (you ? Math.hypot(p.x - you.x, p.z - you.z) : 0);
   const sub = (p, what) => {
     if (!you) return what;
@@ -316,7 +316,12 @@ export function mapMarks({ you = null, ship = null, goal = null, quests = [], te
     out.push({ ...mark('you', 'you', you, 'You', ''), sub: way ? `facing ${way}` : 'here', deg: facing(you.dx ?? 0, you.dz ?? 1) });
   }
   const rest = [];
-  if (goal) rest.push(mark('goal', 'goal', goal, goal.label || 'The way on', 'the way on'));
+  // (the people with a quest for you, not met yet: the ship hears the light's pulse on them, issue #273; one the way on
+  // points at is the way on, drawn as a giver: its gold ring, and why the ship knows them)
+  const heard = 'the ship heard the light on them';
+  const atGoal = goal && givers.find((p) => Math.hypot(p.x - goal.x, p.z - goal.z) < 2);
+  if (goal) rest.push(atGoal ? mark('goal', 'giver', goal, goal.label || atGoal.label || 'The way on', `the way on · ${heard}`) : mark('goal', 'goal', goal, goal.label || 'The way on', 'the way on'));
+  for (const p of givers) if (p !== atGoal) rest.push(mark(`giver.${p.id}`, 'giver', p, p.label || p.name || 'Someone with a word for you', heard));
   // (the other quests under way, each at its step: issue #244; one at the way on's own place is the way on)
   for (const q of quests) {
     if (goal && Math.hypot(q.x - goal.x, q.z - goal.z) < 2) continue;
@@ -326,7 +331,7 @@ export function mapMarks({ you = null, ship = null, goal = null, quests = [], te
   temples.forEach((t, i) => rest.push(mark(`temple.${t.id ?? i}`, 'temple', t, t.name || 'The makers’ temple', 'a makers’ temple')));
   people.forEach((p) => rest.push(mark(`person.${p.id}`, 'person', p, p.name, 'met')));
   boxes.forEach((b) => rest.push(mark(`box.${b.id}`, 'box', b, b.name || 'A makers’ box', 'a box you opened')));
-  const rank = { goal: 0, quest: 1, ship: 2, temple: 3, person: 4, box: 5 };
+  const rank = { goal: 0, giver: 1, quest: 1, ship: 2, temple: 3, person: 4, box: 5 };
   rest.sort((a, b) => rank[a.kind] - rank[b.kind] || a.d - b.d);
   return [...out, ...rest];
 }

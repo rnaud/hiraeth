@@ -130,9 +130,17 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('incal.light'), undefined);
   assert.equal(quests.openerObjective()?.id, `opener-${'incal.light'}`);
-  assert.match(rt.hud(), /Nima/);
-  // the marker is on Nima
-  assert.ok(quests.objective().position.distanceTo(W.people.nima.pos) < 0.01);
+  // (but the temple's local comes first, issue #273: Vell gives the Warden's Well's quest, and nothing starts on arrival)
+  assert.equal(quests.isStarted('temple.incal'), false, 'the temple’s quest waits for Vell');
+  assert.match(rt.hud(), /Vell/);
+  assert.equal(quests.opening('vell'), true, 'talking to Vell gives it');
+  quests.opened();
+  assert.equal(quests.isActive('temple.incal'), true);
+  assert.match(rt.hud(), /Warden’s Well/, 'the quest Vell gave is the scout’s');
+  // and Nima is on the map now, the one who opens the city's own quest
+  const nimaMark = quests.giverMarks().find((g) => g.person === 'nima');
+  assert.ok(nimaMark && nimaMark.position.distanceTo(W.people.nima.pos) < 0.01, 'the map marks Nima');
+  assert.ok(quests.openerObjective().position.distanceTo(W.people.nima.pos) < 0.01);
   talk(PEOPLE.nima, ['It looks dim', 'The night the sky rang', 'Where did the piece']);
   step(2);
   assert.equal(quests.stage('incal.light'), 'down', 'down the lamplighters’ drops first');

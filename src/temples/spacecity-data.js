@@ -49,7 +49,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door that faces the bridge.* Mind the floors inside. Some of them stop short, and there is nothing under them for a long way.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spacecity', started: false }, do: { start: 'temple.spacecity' }, end: true }, { text: '~neutral~ I’ll mind the floors.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.spacecity', done: false }, do: { start: 'temple.spacecity' }, end: true }, { text: '~neutral~ I’ll mind the floors.', end: true }],
         },
         inside: {
           say: ['~surprised~ You came back out! Did the floors hold?', '~curious~ And the capstan? Still turning the wrong way?'],

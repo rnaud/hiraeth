@@ -196,6 +196,11 @@ export class DialogueRunner {
     apply(n.do, this.ctx);
     this.ctx.onNode?.(id, n);
   }
+  /** Lines said after this node's own (each with its tone): what a giver says of the quests the talk gave (issue #273). */
+  addPages(lines = []) {
+    if (this.ended || !lines.length) return;
+    for (const l of lines) { const p = parseLine(l); this.pages.push(p.text); this.tones.push(p.tone); }
+  }
   get text() { return this.pages[this.page] ?? ''; }
   get tone() { return this.tones?.[this.page] ?? 'neutral'; }
   get speaker() { return this.node.speaker === 'player' ? 'player' : 'npc'; }
@@ -379,8 +384,10 @@ export class Dialogue {
       onNode: (node, n) => this.game.emit('dialogue:node', { id: person.id, node, say: n.say }),
     };
     // the world's opening quest, if this is one who opens it: under way before they speak (src/story/quests.js opensWith)
+    // (and every quest they give, issue #273: what they say of one as they give it, a box's where, ends their first words)
     this.quests?.opening?.(person.id);
     this.runner = new DialogueRunner(person, ctx);
+    this.runner.addPages(this.quests?.givenWords?.() ?? []);
     if (this.runner.ended) { this.quests?.opened?.(); return false; }
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;

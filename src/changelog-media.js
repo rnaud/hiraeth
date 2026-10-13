@@ -773,6 +773,8 @@ const SHIELD284 = 'Issue #284: muted headless Chrome (High, 1280 × 720, 10:00) 
 const BALLS275 = 'Issue #275: muted headless Chrome (High, 1280 × 720, 10:00, the camera pinned over each ball) through changelog-shots.mjs’s serve and shoot, the tree before the change (its own Vite, port 5989) and the change, 13 October; cwebp -q 72';
 // (v1.68, issue #274: a scratch shooter against this branch's own Vite (port 6274), before on the tree before it (51b81557))
 const KEYS274 = 'Issue #274: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 6274) and the tree before it (51b81557): the Clock-House, the Striking Room’s key freed, the camera pinned over his shoulder (the opening held at 0.62 s), then both keys taken and the door over the climb walked into; cwebp -q 72';
+// (v1.68, issue #273: a scratch shooter, Vael from its debug save (?level=arzach&debugsave), the game menu on Quests, then the Map zoomed round the landing)
+const GIVERS273 = 'Issue #273: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5993) and the tree before it (6f2a6136, port 5997): Vael from its debug save, 12 s after landing, the game menu on Quests, then on the Map zoomed round the landing; the talk on Medium; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.68': [
     { match: 'More room round the stone balls you push in Vael’s Aerie', shots: [
@@ -783,6 +785,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'Balls that started pressed against a wall now start a stride along their grooves', shots: [
       { name: 'furnace-balls', title: 'The Engine-House’s Furnace', caption: 'The two balls by the cranks: before, pressed against the wall; after, a stride out, room behind each to push it into its crank.', from: BALLS275 },
       { name: 'orb-walk', title: 'The Orb walk', caption: 'The second orb: before, at the lip the stones come up to; after, two metres in, with deck behind it to push from.', from: BALLS275 },
+    ] },
+    { match: 'Arriving in a new world no longer fills your Quests page', tags: ['vael', 'menus'], shots: [
+      { name: 'givers-quests', title: 'The Quests page on arrival', caption: 'Landing in Vael for the first time: before, the Aerie’s quest and four makers’ boxes were waiting in the Quests page; after, nothing of Vael’s until someone gives it.', from: GIVERS273 },
+      { name: 'givers-map', title: 'The Map on arrival', caption: 'The Map round the landing: before, the way on led to Oïa and the Aerie was just a house; after, Lark by the Aerie is the way on, in a gold ring: the ship heard the light on her.', from: GIVERS273 },
+      { name: 'givers-talk', only: 'after', title: 'Lark gives them', caption: 'Talking to Lark gives the Aerie’s quest and the chests she knows of, and she says where they are.', from: GIVERS273 },
     ] },
     { match: 'The Aerie’s gulf has a way back', tags: ['vael'], shots: [
       { name: 'gulf-way', title: 'The higher ledge', caption: 'Over the gulf, by the great lock: after, a doorway in the ledge’s east wall, a stone feather over it.', from: BALLS275 },

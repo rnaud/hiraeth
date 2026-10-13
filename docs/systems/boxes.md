@@ -225,9 +225,12 @@ shut until it holds: no hum, no shudder, no light, no beacon; E on it says `seal
 `boxesFound(game)` is true once any `box.*` flag is set (a box opened, a temple's chest, an old
 save's backpack). Until then nothing tells of the boxes: the per-world box quests and their
 toast wait, the sketchbook has no "Item boxes" page, the empty gear page says only "Nothing
-yet", and the Qanat pilgrim who tells of the roof box keeps quiet. The world's other box quests
-start `BOX_QUEST_DELAY` s after the first box opens (the story's own box in the desert, or a
-fallback by the ship).
+yet", and the Qanat pilgrim who tells of the roof box keeps quiet. Since v1.68 (issue #273) a
+world's box quests are given by the local of the box's part's temple (`givenBy`, `boxLine`: they say
+where each is as the last page of their first words), once the first box is found; a box opened
+before anyone gave its quest is that quest done (docs/systems/story.md, "Quests are given"). In a
+world with no temple's local, or one an old save had been to (`givers.old.<part>`), they start
+`BOX_QUEST_DELAY` s after the first box opens, as before.
 
 ## The tree's dais (desert)
 

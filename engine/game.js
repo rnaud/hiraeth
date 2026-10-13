@@ -503,6 +503,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       you: { x: player.pos.x, z: player.pos.z, dx: dir.x, dz: dir.z },
       ship: level.ship?.pos ?? null,
       goal: goal?.position ? { x: goal.position.x, z: goal.position.z, label: goal.label } : null,
+      // (the people with a quest waiting for their talk: issue #273, as main.js mapSource)
+      givers: (story?.quests?.giverMarks?.() ?? []).map((g) => ({ id: g.person, name: npcs.find((n) => n.def?.id === g.person)?.def?.name ?? null, label: g.label, x: g.position.x, z: g.position.z })),
       temples: temples(),
       people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
       boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, x: b.pos.x, z: b.pos.z })),

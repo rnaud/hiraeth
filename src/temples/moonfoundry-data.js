@@ -54,7 +54,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door under the chimney.* Mind the heavy moons.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.moonfoundry', started: false }, do: { start: 'temple.moonfoundry' }, end: true }, { text: '~neutral~ Heavy moons. Right.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.moonfoundry', done: false }, do: { start: 'temple.moonfoundry' }, end: true }, { text: '~neutral~ Heavy moons. Right.', end: true }],
         },
         inside: {
           say: ['~surprised~ You’ve been in! Is the crucible still warm?', '~curious~ And the Last Founder? Did you see it?'],

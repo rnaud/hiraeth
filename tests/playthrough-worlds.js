@@ -213,10 +213,12 @@ export const ACTIONS = {
   crossGate: (W, issue) => {
     const gate = W.quests.resolve('gate');
     if (!gate) return issue('lead', 'no riders’ gate in Vael');
-    const o = W.quests.objective();
+    // (the Aerie's quest, Lark's since issue #273 and left at its heart, is the one you are on: the scout keeps to it, and
+    // the riders' gate is the sky stones' opening talk, the next one waiting, as the map marks it)
+    const o = W.quests.openerObjective() ?? W.quests.objective();
     if (!o || !/riders’ gate/.test(o.label) || o.position.distanceTo(gate) > 3) issue('lead', `from the tower the scout finds ${o ? `“${o.label}”` : 'nothing'}, not the riders’ gate`);
     W.at(gate.clone()); W.step(2);
-    const o2 = W.quests.objective();
+    const o2 = W.quests.openerObjective() ?? W.quests.objective();
     if (!o2 || /riders’ gate/.test(o2.label)) issue('lead', 'at the riders’ gate the scout does not move on to Sister Aube');
   },
   cabTakesYou: (W, issue) => {

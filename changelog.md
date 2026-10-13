@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.68 — 2026-10-13
 
+- Arriving in a new world no longer fills your Quests page: people give you the quests. In each world the one who keeps watch by the makers’ temple comes first, and tells you of the temple and of the chests the makers left in the open; the others follow. Until you have talked to them, the ship marks them on your map: it hears the light’s pulse on the people who saw it pass. Going into a temple or opening a chest before anyone told you still counts. Worlds you had already been to stay as they were.
 - Inside a temple a key counter sits at the top left, as in Zelda: a brass key and how many small keys you hold, with the great key beside it once it is yours. It counts up as a key comes out of its chest and down as one turns in a lock, which now clicks softly instead of clanking. Outside the temples it is gone.
 - Temple keys now come in little chests, the same chest you find everywhere but smaller, on the floor where the key stood. Once its cage sinks, open it: the halves part with light pouring out, the key rises out of the light with a short bright chime, and it flies into your key counter.
 - The Aerie’s gulf has a way back: on the higher ledge, a doorway in the east wall drops into a passage that runs back along the gulf and climbs to the near side. Crossing without the great key no longer leaves you stranded, and the great lock tells you where the way back is.

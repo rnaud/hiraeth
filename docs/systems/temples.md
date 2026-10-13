@@ -75,7 +75,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
 - **`index.js`**: `attachTemple(levelId, scene, level)` (called by the level's
   `create`: joins portals, lights, `init`, `dynamic`, `update`, clears the
   world's own trees and rocks round the building) and `setupTempleStory(ctx)`
-  (from `src/story/index.js`: the temple's quest, its local, the locators).
+  (from `src/story/index.js`: the temple's quest, its local, the locators; the local gives the quest and is
+  the world's lead giver on the map, the quest starting otherwise only as you go in: docs/systems/story.md,
+  "Quests are given", v1.68).
   `TEMPLES` and `GADGETS` (the 50/50 plan). **`migrate.js`**: whoever already owns
   a temple's gadget finds its chest open. Per world: `desert.js` + `desert-data.js`,
   `incal.js` + `incal-data.js`, `arzach2.js` + `arzach2-data.js`, `buried.js` +

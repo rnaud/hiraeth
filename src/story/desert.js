@@ -169,7 +169,7 @@ export function setupDesert(ctx) {
   // the quest starts in that talk (src/story/quests.js opensWith); or Ama, the Speaker, Nour or Hessa, if
   // you walk past him. Until then the scout finds Marrow.
   const opening = () => !quests.isStarted('desert.power') && !game.flag('ship.powered');
-  if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', at: 'marrow' });
+  if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', at: 'marrow', lead: true });   // (the lead giver, ahead of Sabri's temple: the ship's power first, issue #273)
   // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
   const lit = () => !!game.flag('desert.tree.lit');
   const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) quests.set('desert.power', 'ship'); };

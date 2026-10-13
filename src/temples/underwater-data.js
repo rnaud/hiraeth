@@ -48,7 +48,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door at the end of the tube.* Listen for the deep note in there.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ Keep the door, Anselme.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.underwater', done: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ Keep the door, Anselme.', end: true }],
         },
         inside: {
           say: ['~surprised~ You’ve been in. Does it still smell of brass and salt?', '~curious~ And the Listener? Did it hear you?'],
