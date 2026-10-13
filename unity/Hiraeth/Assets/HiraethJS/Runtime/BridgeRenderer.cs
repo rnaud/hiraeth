@@ -968,11 +968,15 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The crowd's draws for the cameras about to render (each frame, and before a shot's own render), the prints', the motes'.</summary>
+        readonly Plane[] viewPlanes = new Plane[6];
         public void DrawCrowds()
         {
             if (census && Time.frameCount % 300 == 0) Census();
             PointQuads();
             var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
+            // (the GPU instances drawn only where the camera's view holds them: InstMats.ViewCull)
+            Plane[] view = null;
+            if (cam) { GeometryUtility.CalculateFrustumPlanes(cam, viewPlanes); view = viewPlanes; }
             foreach (var n in nodes.Values)
             {
                 if (!n.go.activeInHierarchy) continue;
@@ -986,7 +990,7 @@ namespace Hiraeth.Bridge
                     for (int i = 0; i < n.rawN; i++) n.im.Set(i, W * n.raw[i], n.rawCol[i]);
                     n.im.count = n.rawN; n.imDirty = false; n.go.transform.hasChanged = false;
                 }
-                n.im.Draw(around, n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off);
+                n.im.Draw(around, n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off, view);
             }
             foreach (var (id, g) in grass)
             {
@@ -1017,7 +1021,7 @@ namespace Hiraeth.Bridge
             foreach (var n in nodes.Values)
             {
                 if (!n.go || !n.go.activeInHierarchy) continue;
-                if (n.im != null) { if (n.rawN > 0) Add("inst", n.rawN, (long)n.rawN * (n.im.mesh ? n.im.mesh.vertexCount : 0), true); continue; }
+                if (n.im != null) { if (n.rawN > 0) { int vc = n.im.mesh ? n.im.mesh.vertexCount : 0; Add("inst", n.rawN, (long)n.rawN * vc, false); Add("inst seen", n.im.lastDrawn, (long)n.im.lastDrawn * vc, true); } continue; }
                 if (n.r == null || !n.r.enabled) continue;
                 var m = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
                 Add(n.smr ? "skinned" : n.kind, 1, m ? m.vertexCount : 0, n.r.isVisible);

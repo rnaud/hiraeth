@@ -144,7 +144,9 @@ namespace Hiraeth.Rendering
                         builder.UseRendererList(d.movers);
                         d.hasMovers = true;
                     }
-                    builder.SetRenderAttachmentDepth(sm.maps[i], AccessFlags.Write);
+                    // (WriteAll: the pass clears the map first, so a tiled GPU need not load the old one into its tiles: on the
+                    // Retroid's Adreno a 2048-square map is 16 MB read for nothing each time a cascade is drawn, issue #262)
+                    builder.SetRenderAttachmentDepth(sm.maps[i], AccessFlags.WriteAll);
                     builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
                     builder.SetRenderFunc((PassData x, RasterGraphContext ctx) => HiraethShadows.Instance.Render(ctx.cmd, x.plan, x.camPos, x.movers, x.hasMovers));
@@ -388,7 +390,7 @@ namespace Hiraeth.Rendering
                     pass.flip = fxaa == null && ToScreen(res, cam) ? 1 : 0;
                     builder.UseTexture(g.albedo); builder.UseTexture(g.normal); builder.UseTexture(g.hatch);
                     if (pass.hasBloom) { builder.UseTexture(b1); builder.UseTexture(b2); }
-                    builder.SetRenderAttachment(target, 0, AccessFlags.Write);
+                    builder.SetRenderAttachment(target, 0, AccessFlags.WriteAll);   // (every pixel written, no blend: nothing to load)
                     builder.AllowGlobalStateModification(true);
                     builder.SetRenderFunc((PassData d, RasterGraphContext ctx) =>
                     {
@@ -404,7 +406,7 @@ namespace Hiraeth.Rendering
                     {
                         pass.mat = fxaa; pass.src = target; pass.texel = new Vector4(1f / W, 1f / H, 0, 0); pass.flip = ToScreen(res, cam) ? 1 : 0; pass.mpb = fxaaMpb;
                         builder.UseTexture(target);
-                        builder.SetRenderAttachment(res.activeColorTexture, 0, AccessFlags.Write);
+                        builder.SetRenderAttachment(res.activeColorTexture, 0, AccessFlags.WriteAll);   // (every pixel written: nothing to load)
                         builder.AllowGlobalStateModification(true);
                         builder.SetRenderFunc((FxaaData d, RasterGraphContext ctx) => { d.mpb.SetTexture(IdFx, d.src); d.mpb.SetVector(IdTexel, d.texel); d.mpb.SetFloat(IdFlip, d.flip); ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1, d.mpb); });
                     }

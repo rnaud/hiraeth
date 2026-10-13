@@ -425,6 +425,9 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-hide") is string hk) foreach (var k in hk.Split(',')) BridgeRenderer.hide.Add(k.Trim());
             BridgeRenderer.census = BridgeArgs.Flag("-census");
             BridgeRenderer.skinCull = BridgeArgs.Flag("-skin-cull");
+            if (BridgeArgs.Flag("-no-view-instances")) InstMats.ViewCull = false;
+            if (BridgeArgs.Arg("-shadow-depth") is string sdp)
+                HiraethShadows.DepthFormat = sdp == "16" ? UnityEngine.Experimental.Rendering.GraphicsFormat.D16_UNorm : sdp == "24" ? UnityEngine.Experimental.Rendering.GraphicsFormat.D24_UNorm_S8_UInt : UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat;
             // (the Surface shader's lean variants for the materials that need none of its rare paths, or only the ground's or the
             // water's: the Linux player's and the Xbox's (their GPU's time), -lean elsewhere, -no-lean off)
             if (BridgeArgs.Flag("-lean")) BridgeRenderer.lean = true;

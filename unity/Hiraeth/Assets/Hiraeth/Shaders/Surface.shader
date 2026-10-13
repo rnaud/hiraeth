@@ -365,7 +365,8 @@ Shader "Hiraeth/Surface"
         float3 objNormal : TEXCOORD5;
         float3 objRel : TEXCOORD6;      // objPos measured from the camera (facet normals stay exact far out)
         float2 fold : TEXCOORD7;
-        float3 posWS : TEXCOORD8;       // Unity space (shadows)
+        // (no posWS: Unity's space is three's with x turned back, toThree(worldPos) in the fragment: three floats fewer
+        // a vertex to pass on, issue #262)
         float3 bind : TEXCOORD9;
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
         nointerpolation float3 grassLook : TEXCOORD11;   // a grass blade: its pen line, its outline's fade, its blend into the ground
@@ -399,7 +400,6 @@ Shader "Hiraeth/Surface"
         float3 nWS = TransformObjectToWorldNormal(v.normalOS);
         float3 scl = float3(length(UNITY_MATRIX_M._m00_m10_m20), length(UNITY_MATRIX_M._m01_m11_m21), length(UNITY_MATRIX_M._m02_m12_m22));
         o.positionCS = TransformWorldToHClip(posWS);
-        o.posWS = posWS;
         o.worldPos = toThree(posWS);
         o.normal = toThree(nWS);
         o.instColor = _NoVertexColor > 0.5 ? float3(1, 1, 1) : v.color.rgb;   // (a mesh without colours may read black)
@@ -443,7 +443,6 @@ Shader "Hiraeth/Surface"
           posWS = ci.at.xyz + float3(cc * pu.x + sn * pu.z, pu.y, -sn * pu.x + cc * pu.z);
           nWS = normalize(float3(cc * nu.x + sn * nu.z, nu.y, -sn * nu.x + cc * nu.z));
           o.positionCS = TransformWorldToHClip(posWS);
-          o.posWS = posWS;
           o.worldPos = toThree(posWS);
           o.normal = toThree(nWS);
           o.instColor = ccol;
@@ -489,7 +488,7 @@ Shader "Hiraeth/Surface"
           float3 gn = normalize(float3(bend.x * 0.25 * (1.0 - look), 1.0, bend.y * 0.25 * (1.0 - look)));
           posWS = toThree(wpT); nWS = toThree(gn);
           o.positionCS = TransformWorldToHClip(posWS);
-          o.posWS = posWS; o.worldPos = wpT; o.normal = gn;
+          o.worldPos = wpT; o.normal = gn;
           o.instColor = lerp(float3(1, 1, 1), _Color2.rgb / max(_Color.rgb, 0.02), gi.b.y) * lerp(0.8, 1.06, frac(rank * 13.7)) * lerp(0.94, 1.08, gt);
           o.viewDepth = -TransformWorldToView(posWS).z;
           o.objPos = wpT; o.objNormal = gn; o.objRel = wpT - camT;
@@ -503,7 +502,7 @@ Shader "Hiraeth/Surface"
           posWS = pi.at.xyz + rotXYZ(lp, e3);
           nWS = normalize(rotXYZ(v.normalOS / max(pi.size.xyz, 1e-4), e3));
           o.positionCS = TransformWorldToHClip(posWS);
-          o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+          o.worldPos = toThree(posWS); o.normal = toThree(nWS);
           o.instColor = pi.col.rgb * v.color.rgb;
           o.viewDepth = -TransformWorldToView(posWS).z;
           o.objPos = toThree(lp); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos - pi.at.xyz);
@@ -515,7 +514,7 @@ Shader "Hiraeth/Surface"
           posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
           nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
           o.positionCS = TransformWorldToHClip(posWS);
-          o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+          o.worldPos = toThree(posWS); o.normal = toThree(nWS);
           o.instColor = mi.col.rgb * v.color.rgb;
           o.viewDepth = -TransformWorldToView(posWS).z;
           float ms = length(mi.r0.xyz);
@@ -528,7 +527,7 @@ Shader "Hiraeth/Surface"
             floraPlace(_Flora[v.iid], v.positionOS.xyz, v.normalOS, fw, fs, fn);
             posWS = fs; nWS = fn;
             o.positionCS = TransformWorldToHClip(posWS);
-            o.posWS = posWS; o.worldPos = toThree(posWS); o.normal = toThree(nWS);
+            o.worldPos = toThree(posWS); o.normal = toThree(nWS);
             o.instColor = (_NoVertexColor > 0.5 ? float3(1, 1, 1) : v.color.rgb) * _Flora[v.iid].col.rgb;
             o.viewDepth = -TransformWorldToView(posWS).z;
             // (patterns anchored in the world, as on the merged chunks the flora was drawn as)
@@ -542,7 +541,7 @@ Shader "Hiraeth/Surface"
         {
           float3 pw = TransformObjectToWorld(v.positionOS.xyz);
           o.positionCS = TransformWorldToHClip(pw);
-          o.posWS = pw; o.worldPos = toThree(pw);
+          o.worldPos = toThree(pw);
           o.normal = toThree(TransformObjectToWorldNormal(v.normalOS));
           o.viewDepth = -TransformWorldToView(pw).z;
         }
@@ -756,6 +755,7 @@ Shader "Hiraeth/Surface"
           vmColor = float4(i.vm1.xyz, 1); vmColor2 = float4(i.vm2.xyz, 1); vmColor3 = float4(i.vm3.xyz, 1);
           vmStrataSize = i.vm1.w; vmGrid = i.vm2.w; vmFlat = i.vm3.w;
         #endif
+        float3 posWS = toThree(i.worldPos);   // (Unity's space, for the shadow maps: the same numbers as the varying it was)
         // (-surface-debug 9: nothing of the shader but its plain colour, normal and view depth, at once: whether a surface that
         // goes missing on the Xbox is drawn at all)
         UNITY_BRANCH if ((_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5) || _MSurfaceDebug > 11.5)
@@ -823,9 +823,15 @@ Shader "Hiraeth/Surface"
         float2 wCell = floor(i.worldPos.xz / 9.0);
         float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = _Weather * (0.6 + 0.8 * hash(wCell + 3.0));
         // strokes along the beds of rock (the strata's wavy horizontals)
-        float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
-        float2 strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
-        float strataFw = fwidth(strataCo.x);
+        // (only strata rock reads them: worked out in its own branch, uniform over a draw (its derivatives fine there), as
+        // the web compiles them under S_STRATA alone; every other pixel paid two noises and a derivative for nothing, #262)
+        float2 strataCo = 0; float strataFw = 0;
+        UNITY_BRANCH if (mode == MODE_STRATA)
+        {
+          float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
+          strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
+          strataFw = fwidth(strataCo.x);
+        }
         float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
         float tfAA = max(fwidth(i.bind.x) + fwidth(i.bind.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
         float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
@@ -854,7 +860,6 @@ Shader "Hiraeth/Surface"
         }
         float2 bw = 0;
         float slope = 1.0 - n.y;
-        float3 strataC = strata(_StrataObject > 0.5 ? i.objPos : i.worldPos);
         if (mode == MODE_TERRAIN) {
           float3 c1 = _Color.rgb, c2 = _Color2.rgb, c3 = _Color3.rgb;
           if (_Biomes > 0.5) { bw = biomeWeights(i.worldPos.xz); biomeGround(bw, c1, c2, c3); }
@@ -862,10 +867,13 @@ Shader "Hiraeth/Surface"
           albedo = patches > 0.6 ? c2 : c1;
           if (slope > 0.42) albedo = c3;
           else if (slope > 0.30 && patches < 0.45) albedo = lerp(c1, c3, 0.5);
-          float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
-          if (_SandInk < 0.5) albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
+          if (_SandInk < 0.5)
+          {
+            float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
+            albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
+          }
         } else if (mode == MODE_STRATA) {
-          albedo = strataC;
+          albedo = strata(_StrataObject > 0.5 ? i.objPos : i.worldPos);   // (in its uniform branch: strata() takes derivatives)
         } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
@@ -976,10 +984,10 @@ Shader "Hiraeth/Surface"
         if (_Flat > 0.5 && ndl < 0.03) ndl = min(ndl, -0.03);
         float lambert = ndl * 0.5 + 0.5;
         float sh = 1.0;
-        float shadowPx = max(length(ddx(i.posWS)), length(ddy(i.posWS)));   // (outside the branch: derivatives)
+        float shadowPx = max(length(ddx(posWS)), length(ddy(posWS)));   // (outside the branch: derivatives)
         float nTurn = length(fwidth(n));
         // (the lit fraction steepened about its half, materials.js SHADOW_CUT: the toon threshold cuts at the shadow's true edge)
-        if (ndl > 0.0) sh = saturate((getShadow(i.posWS, toThree(n), ndl, shadowPx) - 0.5) * 3.0 + 0.5) * cloudShadow(i.worldPos);
+        if (ndl > 0.0) sh = saturate((getShadow(posWS, toThree(n), ndl, shadowPx) - 0.5) * 3.0 + 0.5) * cloudShadow(i.worldPos);
         // a big curved surface turning from the sun: its terminator is the light's own (TERMINATOR, TERMINATOR_TURN)
         if (mode != MODE_TERRAIN && _Flat < 0.5)
           sh = lerp(sh, lerp(1.0, sh, smoothstep(0.0, 0.08, ndl)), 1.0 - smoothstep(0.02, 0.06, nTurn));
@@ -1017,14 +1025,12 @@ Shader "Hiraeth/Surface"
         float2 gp = i.worldPos.xz;
         UNITY_BRANCH if (TERRAINK && mode == MODE_TERRAIN) {
           float gm = max(length(ddx(gp)), length(ddy(gp)));
-          float2 q1 = crackCoord(gp, 5.5), q2 = crackCoord(gp + 31.0, 1.6);
-          float4 j1 = float4(ddx(q1), ddy(q1)), j2 = float4(ddx(q2), ddy(q2));
-          float ripples = sandRipples(gp, slope);
-          float scuffs = sandScuffs(gp);
-          float ticks = grassTicks(gp, fwp);
           float sandK = 1.0 - bw.y;
-          if (_Ripples > 0.5) {
-            detail = max(detail, ripples * sandK);
+          // (each mark worked out only where the ground draws it, in its material's uniform branch (derivatives fine
+          // there), as the web compiles S_RIPPLES, S_BIOMES, S_TICKS and S_SANDINK: before, every ground pixel paid for
+          // all four, #262)
+          UNITY_BRANCH if (_Ripples > 0.5) {
+            detail = max(detail, sandRipples(gp, slope) * sandK);
             // grains close up; in the print look its pebbles and stones instead (ground-ink.js PEBBLES): a dark side, a cast shadow
             float grains = _Dots > 0.0 ? 0.0 : sandGrains(gp, gm, 0.25, 0.12, 0.005, 0.01, 71.0) * 0.55;
             detail = max(detail, grains * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
@@ -1039,12 +1045,14 @@ Shader "Hiraeth/Surface"
               detail = max(detail, peb * _Dots * sandK * (1.0 - smoothstep(0.35, 0.6, slope)));
             }
           }
-          if (_Biomes > 0.5) {
+          UNITY_BRANCH if (_Biomes > 0.5) {
+            float2 q1 = crackCoord(gp, 5.5), q2 = crackCoord(gp + 31.0, 1.6);
+            float4 j1 = float4(ddx(q1), ddy(q1)), j2 = float4(ddx(q2), ddy(q2));
             float k = smoothstep(0.3, 0.8, bw.y) * (1.0 - smoothstep(0.14, 0.22, slope));
             if (k > 0.0) detail = max(detail, mudCracks(gp, q1, j1, q2, j2) * k);
           }
-          if (_Ticks > 0.5 && slope < 0.35) detail = max(detail, ticks * 0.8);
-          if (_SandInk > 0.5) detail = max(detail, scuffs * (1.0 - bw.y));
+          if (_Ticks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(gp, fwp) * 0.8);
+          UNITY_BRANCH if (_SandInk > 0.5) detail = max(detail, sandScuffs(gp) * (1.0 - bw.y));
         } else if (mode == MODE_WATER) {
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);
         } else if (mode == MODE_STRATA && abs(normalize(on).y) < 0.6) {
@@ -1091,19 +1099,23 @@ Shader "Hiraeth/Surface"
         float hsp0 = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth));
         float hsp = max(hsp0 / min(hDense, 1.3), min(hsp0, 4.5));   // (never closer than a pen can draw: HATCH_DENSE.minPx)
         float dark = min(dark0 * (1.0 + (hDense - 1.0) * 0.9), 1.0);
-        float h1s = strokes(ce1, fw1, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
-        float hcs = strokes(ceY, fwY, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
-        bool rings = _FormHatch > 0.0 && _Flat < 0.5 && mode != MODE_TERRAIN;
-        float h2s = (rings ? strokes(ceY, fwY, hsp * 1.2, lerp(0.6, 1.7, dark)) : strokes(ce2, fw2, hsp * 1.2, lerp(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
-        float st = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
+        // (each pen's strokes worked out in the branch that draws them, as the web does: strokes() and stipple() take no
+        // derivatives (their footprints come in from above), so a pixel in the light, or one stippled, pays for none of
+        // the others' noise, #262)
         if (dark > 0.0 && _HatchOn > 0.0 && _ShadeStyle > 0.5) {
-          o.hatch.r = st;
+          o.hatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
         } else if (dark > 0.0 && _HatchOn > 0.0 && i.form.w > 0.5 && _FormHatch > 0.0) {
           o.hatch.rg = formHatch(i.form, formDx, formDy, hsp, dark, i.viewDepth);   // strokes radiating from its axis or wrapping round it
         } else if (dark > 0.0 && _HatchOn > 0.0) {
-          float h1 = h1s;
-          if (_FormHatch > 0.0 && mode == MODE_TERRAIN) h1 = lerp(h1, hcs, smoothstep(0.1, 0.3, slope) * _FormHatch);
-          o.hatch.rg = float2(h1, dark > 0.5 ? h2s : 0.0);
+          float h1 = strokes(ce1, fw1, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
+          if (_FormHatch > 0.0 && mode == MODE_TERRAIN) h1 = lerp(h1, strokes(ceY, fwY, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark), smoothstep(0.1, 0.3, slope) * _FormHatch);
+          float h2 = 0.0;
+          if (dark > 0.5)
+          {
+            bool rings = _FormHatch > 0.0 && _Flat < 0.5 && mode != MODE_TERRAIN;
+            h2 = (rings ? strokes(ceY, fwY, hsp * 1.2, lerp(0.6, 1.7, dark)) : strokes(ce2, fw2, hsp * 1.2, lerp(0.6, 1.7, dark))) * smoothstep(0.5, 0.65, dark);
+          }
+          o.hatch.rg = float2(h1, h2);
         }
         // rock in light keeps runs of strokes along its beds (materials.js strataHatch)
         if (mode == MODE_STRATA && _Shade.w > 0.0 && L >= _Toon && i.viewDepth < 700.0 && abs(normalize(on).y) < 0.7)
@@ -1119,7 +1131,7 @@ Shader "Hiraeth/Surface"
         {
           float turned = ndl < 0.0 ? (ndl > -0.42 ? 1.0 : 0.6) : 0.0;
           // (no half-tone inside another's cast shadow; built walls only: a cliff's own body would read as another's)
-          if (turned > 0.0 && _Halftone > 0.0 && _SunDir.y > 0.0 && mode != MODE_STRATA && mode != MODE_TERRAIN && abs(n.y) < 0.5) turned *= 1.0 - castBeyond(i.posWS);
+          if (turned > 0.0 && _Halftone > 0.0 && _SunDir.y > 0.0 && mode != MODE_STRATA && mode != MODE_TERRAIN && abs(n.y) < 0.5) turned *= 1.0 - castBeyond(posWS);
           float lift = 1.0 - (1.0 - _Shade.x) * (1.0 - _Halftone * turned) * (1.0 - _Bounce * smoothstep(-0.1, -0.7, n.y));
           float hatchK = mode == MODE_TERRAIN ? lerp(min(_Shade.z, 1.0), 1.0, smoothstep(0.16, 0.36, slope)) : min(_Shade.z, 1.0);
           float liftK = lift;
@@ -1211,7 +1223,7 @@ Shader "Hiraeth/Surface"
         #endif
         return positionCS;
       }
-      half4 shadowFrag() : SV_Target { return 0; }
+      void shadowFrag() { }   // (depth alone, no colour output: a tiled GPU's depth-only path)
       ENDHLSL
     }
   }

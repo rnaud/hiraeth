@@ -77,11 +77,12 @@ namespace Hiraeth
             b.SetData(s, 0, 0, k);
         }
         /// <summary>The whole box inside every plane (nothing to cull one by one).</summary>
-        static bool Holds(HiraethShadows.Cascade c, Bounds b)
+        static bool Holds(HiraethShadows.Cascade c, Bounds b) => Holds(c.cullPlanes, c.cullN, b);
+        static bool Holds(Plane[] P, int np, Bounds b)
         {
-            for (int k = 0; k < c.cullN; k++)
+            for (int k = 0; k < np; k++)
             {
-                var p = c.cullPlanes[k]; var n = p.normal;
+                var p = P[k]; var n = p.normal;
                 var near = new Vector3(n.x >= 0 ? b.min.x : b.max.x, n.y >= 0 ? b.min.y : b.max.y, n.z >= 0 ? b.min.z : b.max.z);
                 if (Vector3.Dot(n, near) + p.distance < 0) return false;
             }
@@ -94,11 +95,12 @@ namespace Hiraeth
         static readonly List<InstMats> all = new();
         /// <summary>The highest any instanced caster reaches (for the shadow maps' sweep: HiraethShadows.CullFor).</summary>
         public static float Top = float.NegativeInfinity;
-        static bool Inside(HiraethShadows.Cascade c, Bounds b)
+        static bool Inside(HiraethShadows.Cascade c, Bounds b) => Inside(c.cullPlanes, c.cullN, b);
+        static bool Inside(Plane[] P, int np, Bounds b)
         {
-            for (int k = 0; k < c.cullN; k++)
+            for (int k = 0; k < np; k++)
             {
-                var p = c.cullPlanes[k]; var n = p.normal;
+                var p = P[k]; var n = p.normal;
                 // (the box's corner furthest along the normal: outside if even it is behind the plane)
                 var far = new Vector3(n.x >= 0 ? b.max.x : b.min.x, n.y >= 0 ? b.max.y : b.min.y, n.z >= 0 ? b.max.z : b.min.z);
                 if (Vector3.Dot(n, far) + p.distance < 0) return false;
@@ -144,17 +146,52 @@ namespace Hiraeth
             boundsOk = true;
             Top = Mathf.Max(Top, bounds.max.y);
         }
-        public void Draw(Bounds b, ShadowCastingMode shadows)
+        /// <summary>The instances the camera's view holds, drawn alone (Draw with the view's planes): a set wholly out of view
+        /// draws nothing, one partly in view only the instances inside it, by their reach round their places, as the shadow
+        /// maps' cull (Cull). Before, every set drew every instance wherever the camera looked: on the Retroid at the
+        /// desert's spawn 4 243 instances, 0.9 M vertices a frame (issue #262). -no-view-instances: as before.</summary>
+        public static bool ViewCull = true;
+        Inst[] viewSub; GraphicsBuffer viewBuf; MaterialPropertyBlock viewMpb;
+        /// <summary>The instances the last Draw drew (the census: BridgeRenderer -census).</summary>
+        public int lastDrawn;
+        public void Draw(Bounds b, ShadowCastingMode shadows, Plane[] view = null)
         {
             if (count <= 0) return;
             FinishBounds();
             if (buf == null || buf.count < data.Length) { buf?.Release(); buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, data.Length, Marshal.SizeOf<Inst>()); mat.SetBuffer("_Mats", buf); }
             buf.SetData(data, 0, 0, count);
-            Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true }, mesh, 0, count);
-            // (its shadow: drawn in the sun's cascades this frame, HiraethShadows)
+            // (its shadow: drawn in the sun's cascades this frame, HiraethShadows; whether or not the view holds any of it)
             drawnAt = Time.frameCount; casts = shadows != ShadowCastingMode.Off;
+            int k = count; MaterialPropertyBlock mpb = null;
+            lastDrawn = 0;
+            if (view != null && ViewCull && boundsOk)
+            {
+                if (!Inside(view, view.Length, bounds)) return;
+                if (count >= 16 && rad.Length >= count && !Holds(view, view.Length, bounds))
+                {
+                    if (viewSub == null || viewSub.Length < count) viewSub = new Inst[data.Length];
+                    k = 0;
+                    for (int i = 0; i < count; i++)
+                    {
+                        ref var d = ref data[i];
+                        float x = d.r0.w, y = d.r1.w, z = d.r2.w, r = -rad[i];
+                        bool keep = true;
+                        for (int j = 0; j < view.Length; j++) { var n = view[j].normal; if (n.x * x + n.y * y + n.z * z + view[j].distance < r) { keep = false; break; } }
+                        if (keep) viewSub[k++] = d;
+                    }
+                    if (k == 0) return;
+                    if (k < count)
+                    {
+                        if (viewBuf == null || viewBuf.count < viewSub.Length) { viewBuf?.Release(); viewBuf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, viewSub.Length, Marshal.SizeOf<Inst>()); (viewMpb ??= new MaterialPropertyBlock()).SetBuffer(IdMats, viewBuf); }
+                        viewBuf.SetData(viewSub, 0, 0, k);
+                        mpb = viewMpb;
+                    }
+                }
+            }
+            lastDrawn = k;
+            Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true, matProps = mpb }, mesh, 0, k);
         }
-        public void Release() { buf?.Release(); buf = null; for (int i = 0; i < 3; i++) { subBuf[i]?.Release(); subBuf[i] = null; } HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
+        public void Release() { buf?.Release(); buf = null; viewBuf?.Release(); viewBuf = null; for (int i = 0; i < 3; i++) { subBuf[i]?.Release(); subBuf[i] = null; } HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
     }
 
     /// <summary>

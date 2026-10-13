@@ -141,15 +141,18 @@ namespace Hiraeth
             Setup(far, Quality.farSize, 1150);
         }
 
+        /// <summary>The maps' depth format (D32 float; the bridge's -shadow-depth 16 or 24 another, a test of the tiled GPU's
+        /// bandwidth, issue #262).</summary>
+        public static GraphicsFormat DepthFormat = GraphicsFormat.D32_SFloat;
         static void Setup(Cascade c, int size, float extent)
         {
             c.enabled = size > 0;
             c.extent = extent;
             int s = Mathf.Max(size, 16);
-            if (c.size != s || c.rt == null)
+            if (c.size != s || c.rt == null || c.rt.rt.depthStencilFormat != DepthFormat)
             {
                 c.rt?.Release();
-                var desc = new RenderTextureDescriptor(s, s, GraphicsFormat.None, GraphicsFormat.D32_SFloat) { shadowSamplingMode = ShadowSamplingMode.CompareDepths, msaaSamples = 1 };
+                var desc = new RenderTextureDescriptor(s, s, GraphicsFormat.None, DepthFormat) { shadowSamplingMode = ShadowSamplingMode.CompareDepths, msaaSamples = 1 };
                 c.rt = RTHandles.Alloc(desc, FilterMode.Bilinear, TextureWrapMode.Clamp, isShadowMap: true, name: "_MShadow_" + c.name);
                 c.size = s;
             }
