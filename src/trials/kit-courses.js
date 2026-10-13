@@ -986,7 +986,8 @@ export const COURSES = {
     K.stairs([2, -depth + 0.2, -7.6], [2, 0, -2], 2.6);   // (up onto the first deck from the bank, to one side)
     const orbs = [
       rt.orb({ id: 'orb1', a: [-1.4, 0.04, 1.6], b: [-1.4, 0.04, 13.6], lamp: 'lamp1', post: [-2.55, 0, 15], bridge: { a: [0, 0, 16], b: [0, 0, 26] } }),
-      rt.orb({ id: 'orb2', a: [1.4, 0.04, 27.6], b: [1.4, 0.04, 39.6], lamp: 'lamp2', post: [2.55, 0, 41], bridge: { a: [0, 0, 42], b: [0, 0, 52] } }),
+      // (issue #275: two metres in from the lip the stones come up to, so there is deck behind it to push from)
+      rt.orb({ id: 'orb2', a: [1.4, 0.04, 29.6], b: [1.4, 0.04, 39.6], lamp: 'lamp2', post: [2.55, 0, 41], bridge: { a: [0, 0, 42], b: [0, 0, 52] } }),
     ];
     // the arch on the last deck
     for (const s of [-1, 1]) K.column(s * 2.4, 59.6, 0, 4.2, 0.38);

@@ -637,6 +637,41 @@ puzzles' rooms are unchanged (no jump, timing, wind, ball or checkpoint distance
 antechamber stand in its middle. `tests/room-size.test.js` holds the vestibule's size; the on-foot walks in
 `tests/temples.test.js` walk into the guardians' halls 4 m further on.
 
+## Room to push every ball, and always a way back (issue #275)
+
+The author: "A lot of the 'push this ball' puzzles feel a bit cramped. In Vael I basically have to jump over them or
+almost fall to do them … If I cross the chasm to go to a door and I don't have the key I can't go back?"
+
+**Room behind a ball.** `scripts/ball-room.mjs` measures every `Ball` of every temple and of the makers' runs out in the
+worlds (the Sphere court, the Moon roll, the Long look, the Orb walk). Along the stretch of its groove its puzzle rolls it
+(its start to its plate; to the stops a condition wants it on, both ways when there are two; off a stop only wanted
+left, as the Aerie's vents), every half metre, the floor round it is sampled at the groove's level on a 25 cm grid (a
+drop or a face over a step is an edge, a seam a boot steps over is floor, doors and bridges open, thorns cut): is there a
+push spot with `NEED` (0.8 m: his radius and a margin) clear of every edge and wall, behind the ball within 60° of its
+groove (the push's 0.8 of a straight one), in reach (the fluid's 6 m; a hand or a cut, next to it), in sight, with a
+metre of run-up behind it, on the floor you come in on (the piece with the room's mark on it; a pocket behind the ball
+you would jump over or squeeze past it to reach doesn't count)? `node scripts/ball-room.mjs [temple…|courses]` prints each
+ball's clearance (the most room every sample keeps a spot at); `--map <temple> <ball> <t> <dir> [need]` draws its floor;
+`--profile <temple> <ball>` the clearance sample by sample. `tests/ball-room.test.js` holds every ball to `NEED`, but three
+pushed from where nobody stands by design (the Warden's Well's loft ball, from the air; the Footprint's floating sphere,
+from the bank; the Long look's, a run over the drop on purpose). Fixed with it: the Aerie's three (the Eyrie's stone off
+the gap's lip and the south wall, `STACK.groove`; the high balcony a metre deeper, `BALCONY.depth`, its stone's groove
+east; the perch's stone in from its rim, `GULF.stone`), and the balls that started against a wall, now a metre or so along
+their grooves (`start`): the Engine-House's gantry, cell, furnace and hall balls and the Governor Room's groove half a metre
+short of the parapet, the Clock-House's counterweight, the Greenhouse's sun-seed, the Mooring-House's winch ball, the
+Casting-House's shelf moon, and the Orb walk's second orb two metres in from the lip.
+
+**The way back.** A crossing that doesn't come back (a glide over a gulf, a wind that carries you, a drop) is a logic link
+with `oneWay: true`. `stranded(L)` (`logic.js`) lists the rooms you can get to that can't get back to the entrance: the
+links walked the way they go through the doors as they stand, and where that finds nothing, the house solved on from that
+room (a stone rolled there may open its way out). `tests/way-back.test.js` solves every temple in order, the other way
+round and with each key left where it lies, and asks it after every step: nobody is ever stranded. The Aerie's Gulf was
+(its two crossings go one way; over them without the great key, nothing took you back, and a fall put you back at the far
+mark): `GULF.way` is a doorway in the higher ledge's east wall onto a sill, a 7 m drop (no jump climbs it) into a passage
+outside the gulf's wall, back along it and up stairs through a doorway onto the near lip, beside the door you came in by
+(room `gulfWay`); the great lock says where it is. The test walks it with a real `Player`, and jumps at the sill from
+below.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

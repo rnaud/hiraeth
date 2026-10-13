@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.68 — 2026-10-13
+
+- The Aerie’s gulf has a way back: on the higher ledge, a doorway in the east wall drops into a passage that runs back along the gulf and climbs to the near side. Crossing without the great key no longer leaves you stranded, and the great lock tells you where the way back is.
+- Balls that started pressed against a wall now start a stride along their grooves, with room behind them to push from: five in the Engine-House, and one each in the Clock-House, the Greenhouse, the Mooring-House and the Casting-House, and the second orb of the Orb walk in Lorn’s Deep Wood.
+- More room round the stone balls you push in Vael’s Aerie: the Eyrie’s stone starts away from the wall and the gap’s edge, the high balcony over the Wind Well reaches a step further out with its stone further along, and the perch’s stone lies in from the rim. You can step behind each one without jumping over it or standing on the edge.
+
 ## v1.67 — 2026-10-13
 
 - Chests open with real light now instead of little glassy shapes: a soft column of jade and gold rays pours up out of the chest as its halves part, the inside of it and the undersides of its halves glow, a few motes drift up in the beam, and the light falls on the traveller and the ground round him. It swells as the chest opens and settles as the item rises.

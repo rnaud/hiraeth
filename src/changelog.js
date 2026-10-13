@@ -8,6 +8,21 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.68', date: '2026-10-13', items: [
+    // room behind every push-the-ball puzzle (issue #275): scripts/ball-room.mjs, tests/ball-room.test.js; the Aerie's
+    // Eyrie stone off the gap's lip (STACK.groove), the balcony a metre deeper (BALCONY), the perch's stone in from its rim
+    // (GULF.stone); docs/systems/temples.md "Room to push every ball"
+    { text: 'More room round the stone balls you push in Vael’s Aerie: the Eyrie’s stone starts away from the wall and the gap’s edge, the high balcony over the Wind Well reaches a step further out with its stone further along, and the perch’s stone lies in from the rim. You can step behind each one without jumping over it or standing on the edge.',
+      see: 'In the Aerie, walk round the ledge from the high balcony into the Eyrie: there is floor behind the stone between it and the wall, and a stride between it and the drop.' },
+    // the balls that lay against a wall, a metre or so along their grooves (their drum's `start`); the Governor Room's groove
+    // half a metre short of the parapet (src/temples/buried.js WING.groove); the Orb walk's second orb in from the lip
+    { text: 'Balls that started pressed against a wall now start a stride along their grooves, with room behind them to push from: five in the Engine-House, and one each in the Clock-House, the Greenhouse, the Mooring-House and the Casting-House, and the second orb of the Orb walk in Lorn’s Deep Wood.',
+      see: 'In the Engine-House’s Furnace, the two balls by the near lip: you can stand behind each and push it into its crank without squeezing against the wall.' },
+    // the Aerie's gulf: its crossings one way (logic `oneWay`), the way back (GULF.way, room gulfWay; src/temples/logic.js
+    // stranded, tests/way-back.test.js, every temple checked)
+    { text: 'The Aerie’s gulf has a way back: on the higher ledge, a doorway in the east wall drops into a passage that runs back along the gulf and climbs to the near side. Crossing without the great key no longer leaves you stranded, and the great lock tells you where the way back is.',
+      see: 'Cross the gulf on the wind before you have the Eyrie’s great key, walk up to the great lock, then take the doorway on the ledge’s east side.' },
+  ] },
   { v: '1.67', date: '2026-10-13', items: [
     // z-fighting found by the zfight audit (docs/audits/zfight-v1.66.md; issue #226): the city under the sand's walls under
     // its glass (src/glass-dunes-city.js), the water stair's lips off the walls' faces (src/viridel-stair.js LIP.gap), the

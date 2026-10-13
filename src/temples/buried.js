@@ -120,14 +120,14 @@ export const LOGIC = {
     pZ: { type: 'plate', room: 'pistons' },
     pumps: { type: 'bridge', opens: { all: [{ lit: 's1' }, { drumOn: ['ball0', 'pY'] }] } },
     // the gantry's ball, rolled down its groove through the corridor into the hammer's crank (pJ): the hammer stops
-    ballJ: { type: 'drum', room: 'pistons', plate: 'pJ', plateAt: 1, start: 0 },
+    ballJ: { type: 'drum', room: 'pistons', plate: 'pJ', plateAt: 1, start: 0.09 },   // (issue #275: it starts 1 m along its groove, off the wall it lay against: room behind it to push from)
     pJ: { type: 'plate', room: 'weight' },
     h1: { type: 'door', opens: { drumOn: ['ballJ', 'pJ'] } },
     chest: { type: 'gadget', room: 'cell', item: 'cell' },
     k0: { type: 'switch', room: 'cell', needs: ['magic:4'] },       // the chamber's four still eyes, two by each shutter
     dS: { type: 'door', opens: { lit: 'k0' }, latch: true },        // its shutters west and east (two pieces, one element)
     // the Crank Passage: four eyes on pistons that rise in turn, one crank for all four: jammed, all stay up
-    bK: { type: 'drum', room: 'cell', plate: 'pK', plateAt: 1, start: 0 },
+    bK: { type: 'drum', room: 'cell', plate: 'pK', plateAt: 1, start: 0.22 },   // (issue #275: it starts 0.9 m along its groove, off the wall it lay against: room behind it to push from)
     pK: { type: 'plate', room: 'cell' },
     k1: { type: 'switch', room: 'cell', needs: ['magic:4'], when: { drumOn: ['bK', 'pK'] } },   // four eyes in one breath
     d3: { type: 'door', lock: 'small', opens: { lit: 'k1' }, latch: true },
@@ -148,15 +148,15 @@ export const LOGIC = {
     h2: { type: 'door', opens: { drumOn: ['bQ', 'pH'] } },          // the hammer stopped (no doorway: it guards the cage)
     kB: { type: 'key', kind: 'big', room: 'gov', when: { all: [{ lit: 'k3' }, { drumOn: ['bQ', 'pH'] }] } },
     // the Furnace: the two west pistons jammed up (a ball in each crank), then four in a breath
-    bA: { type: 'drum', room: 'furnace', plate: 'pA', plateAt: 1, start: 0 },
+    bA: { type: 'drum', room: 'furnace', plate: 'pA', plateAt: 1, start: 0.43 },   // (issue #275: it starts 1.5 m along its groove, off the wall it lay against: room behind it to push from)
     pA: { type: 'plate', room: 'furnace' },
-    bB: { type: 'drum', room: 'furnace', plate: 'pB', plateAt: 1, start: 0 },
+    bB: { type: 'drum', room: 'furnace', plate: 'pB', plateAt: 1, start: 0.43 },   // (issue #275: it starts 1.5 m along its groove, off the wall it lay against: room behind it to push from)
     pB: { type: 'plate', room: 'furnace' },
     k2: { type: 'switch', room: 'furnace', needs: ['magic:4'], when: { all: [{ drumOn: ['bA', 'pA'] }, { drumOn: ['bB', 'pB'] }] } },
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', lock: 'big' },                            // the great key's door (and the arena's: shut while the warden fights)
     // the hall's great gear: a ball in its teeth stops the warden turning (its last phase wants it)
-    bG: { type: 'drum', room: 'hall', plate: 'pG', plateAt: 1, start: 0 },
+    bG: { type: 'drum', room: 'hall', plate: 'pG', plateAt: 1, start: 0.07 },   // (issue #275: it starts 0.5 m along its groove, off the wall it lay against: room behind it to push from)
     pG: { type: 'plate', room: 'hall' },
     warden: { type: 'boss', room: 'hall', needs: ['gun', 'magic:4'], requires: { drumOn: ['bG', 'pG'] } },
     d5: { type: 'door', opens: { resolved: true } },
@@ -267,7 +267,7 @@ export const WING = {
   flue: { x: -17, z: 95.2 },                   // its way out: north up the flue, then east into the Crank Passage
   gov: { x: 22.5, w: 18, d: 16 },
   anvil: [27.6, 71.4], cage: 2.5,              // the great key's anvil, and the hammer's foot over its caged plinth (m)
-  groove: { x: 20.4, z: [70.6, 78.4] },        // the ball's: the hammer's crank at its south end, the pistons' at its north
+  groove: { x: 20.4, z: [70.6, 77.9] },        // the ball's: the hammer's crank at its south end, the pistons' at its north (issue #275: half a metre short of the parapet, room to push it back)
   pistons: { x: [16.2, 20.2, 24.8, 28.8], z: 81.8 },
 };
 WING.zone = { min: [-29.5, 6, WING.c - 7], max: [-13.5, 17, WING.c + 7] };

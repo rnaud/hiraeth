@@ -124,7 +124,7 @@ export const LOGIC = {
     s2: { type: 'switch', room: 'esc', after: 's1' },
     s3: { type: 'switch', room: 'esc', after: 's2' },
     discs: { type: 'bridge', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
-    ball1: { type: 'drum', room: 'escFar', plate: 'p1', plateAt: 1, start: 0 },   // the counterweight, on the escapement's landing
+    ball1: { type: 'drum', room: 'escFar', plate: 'p1', plateAt: 1, start: 0.07 },   // the counterweight, on the escapement's landing (issue #275: 1.5 m along its groove, off the wall: room behind it to push from)
     p1: { type: 'plate', room: 'well' },
     // the Pendulum Hall: its keepers beaten, the key's cage sinks and the way out onto the ledge opens
     arW: { type: 'arena', room: 'pend' },

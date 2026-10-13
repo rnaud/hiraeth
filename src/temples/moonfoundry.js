@@ -125,7 +125,7 @@ export const LOGIC = {
     eM: { type: 'switch', room: 'moulds', when: { drumOn: ['m1', 'pM'] } },
     dM: { type: 'door', opens: { lit: 'eM' }, latch: true },
     // the hoist's counterweight pan, on the Mould Room's shelf: you in it, or the stone moon
-    m2: { type: 'drum', room: 'moulds', plate: 'pK', plateAt: 1, start: 0 },
+    m2: { type: 'drum', room: 'moulds', plate: 'pK', plateAt: 1, start: 0.44 },   // (issue #275: it starts 1.9 m along its groove, off the wall it lay against: room behind it to push from)
     pK: { type: 'plate', room: 'moulds' },
     hoist: { type: 'bridge', opens: { pressed: 'pK' } },
     // the test scale on the Pouring Floor: a stone moon in a little cradle; it tips, and nothing waits on it

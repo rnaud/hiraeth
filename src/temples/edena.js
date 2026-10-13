@@ -146,7 +146,7 @@ export const LOGIC = {
     pS: { type: 'plate', room: 'gulf' },
     seed1: { type: 'switch', room: 'gulf', needs: ['bloom'], when: { drumOn: ['sun', 'pS'] } },
     vine1: { type: 'bridge', opens: { lit: 'seed1' }, latch: true },
-    sb: { type: 'drum', room: 'gulfFar', plate: 'pG', plateAt: 1, start: 0 },
+    sb: { type: 'drum', room: 'gulfFar', plate: 'pG', plateAt: 1, start: 0.2 },   // (issue #275: it starts 1.5 m along its groove, off the wall it lay against: room behind it to push from)
     pG: { type: 'plate', room: 'gulfFar' },
     seed2: { type: 'switch', room: 'gulfFar', needs: ['bloom'], when: { drumOn: ['sb', 'pG'] } },
     d4: { type: 'door', opens: { lit: 'seed2' }, latch: true },      // (the arena's door too: it shuts behind you)

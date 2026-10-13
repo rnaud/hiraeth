@@ -271,6 +271,43 @@ export class TempleLogic {
   awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => (isGate(g) && !this.isOpen(d) && mentions(g.opens, id)) || (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id))); }
 }
 
+/**
+ * The rooms you can get to now that you can't get back to the entrance from (issue #275: over the Aerie's gulf without
+ * the great key, nothing took you back). From each room reachable from the entrance, the links walked the way they go
+ * (a `oneWay` link only from a to b: a glide across, a drop, a wind that carries you), through the doors as they stand;
+ * where that finds no way, the house is solved on from that room as it stands (a stone rolled there, a plate stood on,
+ * what can be done from where you are) until the entrance comes in reach, or nothing more can be done: stranded. The
+ * guardian's arena and the way out past it are left out: the arena's door shuts behind you by design, and its guardian
+ * is the way on.
+ */
+export function stranded(L) {
+  const def = L.def, entry = def.entry;
+  const boss = new Set(Object.entries(def.rooms).filter(([, r]) => r.boss).map(([id]) => id));
+  const past = new Set(def.links.filter((l) => boss.has(l.a) && l.door && def.elements[l.door]?.opens?.resolved).map((l) => l.b));
+  const back = (from) => {
+    const seen = new Set([from]), todo = [from];
+    while (todo.length) {
+      const r = todo.pop();
+      if (r === entry) return true;
+      for (const l of def.links) {
+        const other = l.a === r ? l.b : l.b === r && !l.oneWay ? l.a : null;
+        if (!other || seen.has(other) || !L.linkOpen(l)) continue;
+        seen.add(other); todo.push(other);
+      }
+    }
+    return false;
+  };
+  // (solved on from room r, the house as it stands: does the entrance come in reach?)
+  const solvedBack = (r) => {
+    if (!L.store.data) return false;
+    let home = false;
+    const from = { data: L.store.data, has: (i) => L.has(i) };
+    const R = solve({ ...def, entry: r }, { items: [], from, each: (L2) => { home ||= L2.reachable().has(entry); } });
+    return home || R.logic.reachable().has(entry);
+  };
+  return [...L.reachable()].filter((r) => r !== entry && !boss.has(r) && !past.has(r) && !back(r) && !solvedBack(r));
+}
+
 /** Where along its groove a drum rests on `plate` (t), or null: its own plate, or one of its `stops`. */
 export function stopOf(e, plate) {
   if (e?.stops && e.stops[plate] != null) return e.stops[plate];
@@ -300,17 +337,19 @@ const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x,
  * traveller carries in; `withhold` items never come (to prove a gadget is the
  * key). `reverse`: walk the rooms' elements and the locks the other way round (the wings of a hub, taken in the
  * other order: a temple whose keys could be wasted fails one way or the other); `forbid`: elements never done (a wing
- * left alone: the other still gives its key). Returns { done, log, order (rooms
+ * left alone: the other still gives its key); `each(logic, step)`: called after every step, the house as it stands then
+ * (the way-back check, tests/way-back.test.js); `from: { data, has }`: go on from a house as it stands (a memory store's
+ * data, and what was carried). Returns { done, log, order (rooms
  * in the order reached), gadgetAt (index in log), stuck (rooms reached when it got stuck) }.
  */
-export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxSteps = 400, reverse = false, forbid = [] } = {}) {
+export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxSteps = 400, reverse = false, forbid = [], each = null, from = null } = {}) {
   const owned = new Set(items.filter((i) => !withhold.includes(i)));
-  const has = (i) => meetsWith((x) => owned.has(x), i);   // ('magic:4': the bar the items make, src/resources.js)
-  const L = new TempleLogic(def, { has });
+  const has = (i) => meetsWith((x) => owned.has(x), i) || !!from?.has(i);   // ('magic:4': the bar the items make, src/resources.js)
+  const L = new TempleLogic(def, { has, store: from ? memoryStore(from.data) : memoryStore() });
   const log = [], order = [def.entry];
   let gadgetAt = -1;
   const lockIds = Object.entries(def.elements).filter(([, e]) => isGate(e) && e.lock).map(([id]) => id);
-  const note = (s) => { log.push(s); L.update(); for (const r of L.reachable()) if (!order.includes(r)) order.push(r); };
+  const note = (s) => { log.push(s); L.update(); for (const r of L.reachable()) if (!order.includes(r)) order.push(r); each?.(L, s); };
   for (let step = 0; step < maxSteps; step++) {
     const reach = L.reachable();
     let did = false;

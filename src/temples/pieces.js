@@ -89,7 +89,8 @@ function mesh(geos, mat) {
 export class Door {
   /**
    * @param rt   the runtime (kit, root, logic, M)
-   * @param o    { id, at: [x, y, z] the doorway's foot, yaw (0: the slab faces ±z), w, h, t, lamps: [condition], bell }
+   * @param o    { id, at: [x, y, z] the doorway's foot, yaw (0: the slab faces ±z), w, h, t, lamps: [condition], bell,
+   *             locked (a great lock's line, walked up to without its key: where the way back is, the Aerie's) }
    * A door whose element has `lock` ('small' | 'big', `keys` keyholes) wears a brass lock plate on both faces, a keyhole
    * for each key; walk up to it with a key of its kind and the key goes in (Zelda's way: no button), one per keyhole.
    */
@@ -220,7 +221,7 @@ Door.prototype.updateLock = function (dt) {
         this.rt.notice(left > 0 ? `The key turns. ${left === 1 ? 'One keyhole' : `${left} keyholes`} still empty.` : this.lock === 'big' ? 'The great key turns, and the lock lets go.' : 'The small key turns, and the lock lets go.', left > 0 ? null : `lock.${id}`);
         this.rt.onUnlock?.(id);
       }
-    } else if (this.lock === 'big') this.rt.notice('A great lock. It wants the house’s great key.', `locked.${id}`);
+    } else if (this.lock === 'big') this.rt.notice(this.o.locked ?? 'A great lock. It wants the house’s great key.', `locked.${id}`);
     else this.rt.notice(L.keysIn(id) ? 'One more small key would turn it.' : 'Locked. A small key would turn it.', `locked.${id}.${L.keysIn(id)}`);
   } else this.keyWait = 0;
   const n = L.keysIn(id);

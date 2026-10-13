@@ -124,7 +124,7 @@ export const LOGIC = {
   ],
   elements: {
     // the winch's counterweight, rolled into its socket at the winch's mouth: the shaft's gate rises (its pawl holds it)
-    ballW: { type: 'drum', room: 'winch', plate: 'pG', plateAt: 1, start: 0 },
+    ballW: { type: 'drum', room: 'winch', plate: 'pG', plateAt: 1, start: 0.12 },   // (issue #275: it starts 1.3 m along its groove, off the wall it lay against: room behind it to push from)
     pG: { type: 'plate', room: 'winch' },
     g1: { type: 'door', opens: { drumOn: ['ballW', 'pG'] }, latch: true },
     s1: { type: 'switch', room: 'stair' },                          // the lamp-eye, seen only from the shaft's balcony

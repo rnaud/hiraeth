@@ -770,7 +770,23 @@ const CINE226 = 'Issue #226, the cinematics QC: scripts/cinematics-qc.mjs (muted
 const CHEST285 = 'Issue #285: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5985), the cinematics review page’s chest opening with its clock held at the same moment before and after the change (the tree before it: 1d10c2aa); cwebp -q 72';
 // (v1.67, issue #284: a scratch shooter against this branch's own Vite (port 5981) and the tree before it (627462fc, port 5983))
 const SHIELD284 = 'Issue #284: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 5981) and the tree before it (627462fc, port 5983): the Arena, its foes taken away, the guard held (Ctrl) 1.6 s, drawn by the game’s own captureView from the same place round him; the chest opened in the Rose House (boxes.open) and drawn at its card; 13 October; cwebp -q 72';
+const BALLS275 = 'Issue #275: muted headless Chrome (High, 1280 × 720, 10:00, the camera pinned over each ball) through changelog-shots.mjs’s serve and shoot, the tree before the change (its own Vite, port 5989) and the change, 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.68': [
+    { match: 'More room round the stone balls you push in Vael’s Aerie', shots: [
+      { name: 'eyrie-stone', title: 'The Eyrie’s stone', caption: 'From over the Eyrie’s ledge: before, the stone in the corner against the wall at the gap’s edge (the dark on the left), nowhere to stand behind it; after, a stride of floor between it and the wall and between it and the drop.', from: BALLS275 },
+      { name: 'balcony-stone', title: 'The high balcony', caption: 'From over the Wind Well: the balcony reaches a step further out over the well, and its stone starts further along its groove, with room behind it.', from: BALLS275 },
+      { name: 'perch-stone', title: 'The perch', caption: 'The perch over the gulf: before, the stone at the rim with a stride of floor behind it over the drop; after, in from the rim.', from: BALLS275 },
+    ] },
+    { match: 'Balls that started pressed against a wall now start a stride along their grooves', shots: [
+      { name: 'furnace-balls', title: 'The Engine-House’s Furnace', caption: 'The two balls by the cranks: before, pressed against the wall; after, a stride out, room behind each to push it into its crank.', from: BALLS275 },
+      { name: 'orb-walk', title: 'The Orb walk', caption: 'The second orb: before, at the lip the stones come up to; after, two metres in, with deck behind it to push from.', from: BALLS275 },
+    ] },
+    { match: 'The Aerie’s gulf has a way back', tags: ['vael'], shots: [
+      { name: 'gulf-way', title: 'The higher ledge', caption: 'Over the gulf, by the great lock: after, a doorway in the ledge’s east wall, a stone feather over it.', from: BALLS275 },
+      { name: 'gulf-passage', only: 'after', title: 'The way back', caption: 'Down off the doorway’s sill into the passage outside the gulf’s wall, which runs back to stairs up onto the near side.', from: BALLS275 },
+    ] },
+  ],
   '1.67': [
     { match: 'Chests open with real light now', tags: ['cinematics'], shots: [
       { name: 'chest-cave-full', title: 'Opening, in the cave', caption: 'The lift valve’s chest in the cave under the dunes as its halves finish parting: before, a spray of thin glassy blades and jade specks; after, a column of light, the inside of the chest full of it, motes drifting up.', from: CHEST285,

@@ -48,7 +48,9 @@ import { chestMound } from '../boxes/mound.js';
 //                        back in the hall, with the wings and the push). Then a ledge six metres HIGHER than the
 //                        perch: no glide climbs. A vent far below beside the perch, its throat on the perch with
 //                        its stone in it: push it out and a column rises past the perch, and lifts you (the well's
-//                        lesson, from a perch over nothing)
+//                        lesson, from a perch over nothing). Neither crossing comes back: a doorway in the higher
+//                        ledge's east wall drops into a passage outside the gulf, back along it and up onto the near
+//                        lip (since issue #275: over there without the great key, nothing took you back)
 //   the Roost            the guardian (organic: you calm her): the Elder, under the open sky. Two vents in its floor
 //                        and one stone: in one, the wind rises from the other. When she spreads her wings and looks
 //                        up, afraid, ride the wind beside her; she will not fly alone. In the wind her wings lift
@@ -85,7 +87,7 @@ export const PALETTE = {
 
 export const LOGIC = {
   id: 'arzach', entry: 'threshold', gadget: 'glider',
-  rooms: { threshold: { checkpoint: true }, gusts: { checkpoint: true }, well: { checkpoint: true }, wings: { checkpoint: true }, top: { checkpoint: true }, moult: { checkpoint: true }, eyrie: { checkpoint: true }, eyrieKey: {}, gulf: { checkpoint: true }, perch: { checkpoint: true }, gulfFar: { checkpoint: true }, roost: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, gusts: { checkpoint: true }, well: { checkpoint: true }, wings: { checkpoint: true }, top: { checkpoint: true }, moult: { checkpoint: true }, eyrie: { checkpoint: true }, eyrieKey: {}, gulf: { checkpoint: true }, perch: { checkpoint: true }, gulfFar: { checkpoint: true }, gulfWay: {}, roost: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'gusts' },
     { a: 'gusts', b: 'well' },                                          // through the gusts, screen to screen
@@ -98,8 +100,14 @@ export const LOGIC = {
     { a: 'top', b: 'eyrie' },                                           // along the ledge round the well's west wall
     { a: 'eyrie', b: 'eyrieKey', door: 'lift', needs: ['glider'] },     // over the gap and up to the great key's perch, on the column out of its foot
     { a: 'top', b: 'gulf', door: 'dG' },                                // the way north off the balcony: the small key
-    { a: 'gulf', b: 'perch', door: 'tail', needs: ['glider'] },         // the Gulf: too far on still air, carried by the vent's gusts
-    { a: 'perch', b: 'gulfFar', door: 'rise', needs: ['glider'] },      // to a ledge higher than the perch: lifted by the column beside it
+    // (the Gulf's crossings go one way: no glide comes back 46 m to a lip four metres higher, nor up to the higher ledge.
+    // Issue #275: over there without the great key you were stranded; the way back is the passage outside its east wall,
+    // tests/way-back.test.js)
+    { a: 'gulf', b: 'perch', door: 'tail', needs: ['glider'], oneWay: true },   // the Gulf: too far on still air, carried by the vent's gusts
+    { a: 'perch', b: 'gulfFar', door: 'rise', needs: ['glider'], oneWay: true },   // to a ledge higher than the perch: lifted by the column beside it
+    { a: 'gulfFar', b: 'perch', needs: ['glider'], oneWay: true },      // (and down onto the perch again: a glide)
+    { a: 'gulfFar', b: 'gulfWay', oneWay: true },                       // the way back: off the sill in the ledge's east doorway, down into the passage
+    { a: 'gulfWay', b: 'gulf' },                                        // along it under the gulf's wall, and up its stairs onto the near lip
     { a: 'gulfFar', b: 'roost', door: 'd3' },
     { a: 'roost', b: 'out', door: 'd5' },
   ],
@@ -185,7 +193,18 @@ export const ELDER = {
  * (carry, m/s, while it blows); the perch's radius and height; the second leg up to a ledge higher than the perch;
  * the column beside the perch (its x and top).
  */
-export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, carry: 10, column: 8, top: 46 };
+export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, carry: 10, column: 8, top: 46, stone: [-1.4, 2.6],
+  // the way back (issue #275: over on the higher ledge without the great key, nothing took you back across): a doorway in
+  // the gulf's east wall off the higher ledge (`far` m along it), onto a sill over a passage outside the wall, `drop` m
+  // down (no jump climbs it: a way back only); the passage runs back along the wall, `y` its floor, `x` its width, and
+  // stairs at its end climb to a doorway onto the near lip (`near` m along it), beside the door you came in by
+  way: { door: 3, near: 3, far: 6, y: 27, x: [12.2, 16.2], stairs: 11.6 } };
+/**
+ * The high balcony over the well: how far it reaches out from the wall (m), and the gulf vent's stone's groove along it
+ * (x: its throat, pB, and its cup, pX). The perch's stone's groove across the perch is GULF.stone. (Issue #275: both
+ * grooves ran from near an edge, with a stride of floor behind the stone, over the dark: tests/ball-room.test.js.)
+ */
+export const BALCONY = { depth: 6.0, groove: [-2.1, 5.1] };
 export const ROOST = { vent: 8, near: 12, ride: 0.7, wind: [0.15, 0.3, 0.075], still: [0.15, 0.15, 0], open: [null, 5.2, 6.6], miss: 1.4, over: 4.5, drift: 3 };
 /** Is p (the traveller) in the wind out of one of the roost's vents? */
 const inWind = (rt, p) => !!rt.roostWinds?.some((w) => w.contains(p));
@@ -220,7 +239,9 @@ export const STACK = {
   column: { x: -29.6, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
   shelf: { x: [-21.6, -18], z: [72.8, 76], y: 39.5 },
   vent: { x: -20.2, z: 71.2, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
-  groove: { x: -22.6, z: [61.8, 66.2] },     // the stone's: the gap-vent's throat at its south end (pU), the ledge vent's at its north (pC)
+  // the stone's: the gap-vent's throat at its south end (pU), the ledge vent's at its north (pC). (Since issue #275 off the
+  // gap's lip and off the south wall: it started in the corner, and you pushed it from the edge over the dark)
+  groove: { x: -21.2, z: [63.6, 68.0] },
 };
 STACK.zone = { min: [-32, -1, 68 - 7], max: [-18, 10, 68 + 7] };
 
@@ -285,7 +306,8 @@ function stack(rt, K, M, { C2, WR, feather }) {
   add(Key, { id: 'kE', big: true, at: [Pp.x[0] + 1.8, Pp.y, C2], yaw: Math.PI / 2 });
   // the way north off the high balcony, toward the Gulf: the small key's door
   add(Door, { id: 'dG', at: [0, E.y, C2 + WR + 2], w: 5, h: 6.4 });
-  add(Mark, { room: 'eyrie', at: [L1 - 1.6, E.y, C2 - 3.4], yaw: -Math.PI / 2 });   // (by the way in: taken as you come)
+  // (by the way in: taken as you come; against the wall since the stone's groove moved east, issue #275, its spot north of it, clear of the stone)
+  add(Mark, { room: 'eyrie', at: [L1 - 0.9, E.y, C2 - 3.6], yaw: 0 });
 }
 
 // ------------------------------------------------------------------ inside
@@ -367,15 +389,18 @@ function layout(rt) {
   add(Mark, { room: 'wings', at: [C3x + 4, 16, C2 - 5], yaw: -Math.PI * 0.75 });
 
   // ---- the high balcony over the well (floor 32): the great carved eye beside it, the way north to the gulf
-  K.slab(-6.4, C2 + WR - 5.2, 6.4, C2 + WR + 1, 32, 0.7);
-  K.add(M.trim, box(12.8, 0.35, 0.35, 0, 33.1, C2 + WR - 5.15));
-  for (const s of [-1, 1]) K.add(M.trim, box(0.35, 1.1, 0.35, s * 6.3, 32.55, C2 + WR - 5.15));
+  // (issue #275: a metre deeper over the well than it was, and the stone's groove east along it, so there is room
+  // behind the stone where it starts and in front of it by the edge: you got behind it along the lip, or not at all)
+  const BE = C2 + WR - BALCONY.depth, [BX0, BX1] = BALCONY.groove;
+  K.slab(-6.4, BE, 6.4, C2 + WR + 1, 32, 0.7);
+  K.add(M.trim, box(12.8, 0.35, 0.35, 0, 33.1, BE + 0.05));
+  for (const s of [-1, 1]) K.add(M.trim, box(0.35, 1.1, 0.35, s * 6.3, 32.55, BE + 0.05));
   // the gulf vent's throat: a grate in the balcony, its stone in it (pB); its cup at the groove's end (pX)
-  K.add(M.dark, box(8, 0.04, 1.0, 0, 32.02, C2 + WR - 3.2));
-  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [-3.6, 32.02, C2 + WR - 3.2]));
-  add(Ball, { id: 'ballB', a: [-3.6, 32.04, C2 + WR - 3.2], b: [3.6, 32.04, C2 + WR - 3.2], r: 1.1 });
-  add(Plate, { id: 'pB', at: [-3.6, 32, C2 + WR - 3.2], r: 1.3 });
-  add(Plate, { id: 'pX', at: [3.6, 32, C2 + WR - 3.2], r: 1.3 });
+  K.add(M.dark, box(BX1 - BX0 + 0.8, 0.04, 1.0, (BX0 + BX1) / 2, 32.02, C2 + WR - 3.2));
+  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [BX0, 32.02, C2 + WR - 3.2]));
+  add(Ball, { id: 'ballB', a: [BX0, 32.04, C2 + WR - 3.2], b: [BX1, 32.04, C2 + WR - 3.2], r: 1.1 });
+  add(Plate, { id: 'pB', at: [BX0, 32, C2 + WR - 3.2], r: 1.3 });
+  add(Plate, { id: 'pX', at: [BX1, 32, C2 + WR - 3.2], r: 1.3 });
   K.both(M.wall, T(new THREE.ConeGeometry(3.2, 6, 4, 1, true).rotateY(Math.PI / 4), [0, 28.6, C2 + WR - 1.4], [Math.PI, 0, 0]));   // its corbel, down the wall
   {
     // the eye: a great carved lid and iris in the wall to the balcony's left, as the makers carved their birds
@@ -397,7 +422,8 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 3.2, 0, 38.8, C2 + WR + 2.2));
   const G0 = C2 + WR + 3.6, { leg1, perchR, leg2, perchY, farY } = GULF;
   const PZ = G0 + 6 + leg1 + perchR, FZ = PZ + perchR + leg2, GD = FZ + 12 - G0;
-  K.hall({ x: 0, z: G0 + GD / 2, w: 22, d: GD, y: 2, h: 52, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 30 }, { side: 'n', w: 5, h: 6.4, y0: farY - 2 }] });
+  const WB = GULF.way, wayDoor = (z, y) => ({ side: 'e', at: z - (G0 + GD / 2), w: WB.door, h: 4.4, y0: y - 2 });
+  K.hall({ x: 0, z: G0 + GD / 2, w: 22, d: GD, y: 2, h: 52, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 30 }, { side: 'n', w: 5, h: 6.4, y0: farY - 2 }, wayDoor(G0 + WB.near, 32), wayDoor(FZ + WB.far, farY)] });
   K.slab(-11, G0, 11, G0 + 6, 32, 30);
   K.slab(-11, FZ, 11, FZ + 12, farY, farY - 2);
   K.both(M.dark, box(22, 1, FZ - G0 - 6, 0, 1.5, (G0 + 6 + FZ) / 2));
@@ -419,21 +445,37 @@ function layout(rt) {
   K.both(M.floor, new THREE.CylinderGeometry(perchR, perchR * 0.8, 1.4, 24).translate(0, perchY - 0.7, PZ));
   K.add(M.trim, T(annulus(perchR - 0.2, perchR + 0.15, 0.3, 40), [0, perchY - 0.1, PZ]));
   for (let i = 0; i < 9; i++) { const a = (i / 9) * TAU + 0.4; if (Math.abs(Math.sin(a)) > 0.75 && Math.cos(a) > -0.2) continue; feather(i % 3 ? M.wall : M.trim, Math.sin(a) * (perchR + 0.3), perchY - 1.4, PZ + Math.cos(a) * (perchR + 0.3), 3.4 + (i % 2), a, 0.9); }
-  K.add(M.dark, box(6.6, 0.04, 1.0, 0.2, perchY + 0.02, PZ));
-  add(Ball, { id: 'ballP', a: [-2.6, perchY + 0.04, PZ], b: [3, perchY + 0.04, PZ], r: 1.1 });
-  add(Plate, { id: 'pP', at: [-2.6, perchY, PZ], r: 1.3 });
-  add(Plate, { id: 'pQ', at: [3, perchY, PZ], r: 1.3 });
+  const [S0, S1] = GULF.stone;
+  K.add(M.dark, box(S1 - S0 + 1, 0.04, 1.0, (S0 + S1) / 2, perchY + 0.02, PZ));
+  add(Ball, { id: 'ballP', a: [S0, perchY + 0.04, PZ], b: [S1, perchY + 0.04, PZ], r: 1.1 });
+  add(Plate, { id: 'pP', at: [S0, perchY, PZ], r: 1.3 });
+  add(Plate, { id: 'pQ', at: [S1, perchY, PZ], r: 1.3 });
   add(Updraft, { at: [GULF.column, 2, PZ], r: 3, h: GULF.top - 2, lift: 7.5, when: { not: { drumOn: ['ballP', 'pP'] } }, still: 'Still air: the column’s stone sits in its throat, up on the perch.' });
   K.add(M.trim, T(annulus(2.9, 3.4, 0.2, 32), [GULF.column, 2.1, PZ]));
   add(Mark, { room: 'perch', at: [-2.4, perchY, PZ - 3.2], yaw: 0 });
   add(Mark, { room: 'gulfFar', at: [7, farY, FZ + 6], yaw: Math.PI });
+  // the way back: off the higher ledge through its east doorway onto a sill, down into the passage outside the gulf's wall
+  // (a drop no jump climbs back), along it, and up its stairs through the doorway onto the near lip
+  {
+    const [X0, X1] = WB.x, xm = (X0 + X1) / 2, Y = WB.y, zN = G0 + WB.near, zF = FZ + WB.far, zS = zN + 2.2 + WB.stairs, top = farY + 7;
+    K.slab(11, zN - 2.2, X1, zN + 2.2, 32, 0.8);                 // the near landing, through its doorway
+    K.stairs([xm, Y, zS], [xm, 32, zN + 2.2], X1 - X0, { sides: false });
+    K.slab(X0, zS - 0.4, X1, zF + 2.4, Y, 0.8);                  // the passage's floor
+    K.slab(11, zF - 1.6, X0 + 2, zF + 1.6, farY, 0.8);           // the sill off the higher ledge, over the drop
+    K.wall(X1 + 0.4, zN - 2.6, X1 + 0.4, zF + 2.8, Y - 0.8, top - Y + 0.8, { t: 0.8 });
+    K.wall(X0, zF + 2.8, X1 + 0.8, zF + 2.8, Y - 0.8, top - Y + 0.8, { t: 0.8 });
+    K.wall(X1 + 0.8, zN - 2.6, X0, zN - 2.6, 31.2, top - 31.2, { t: 0.8 });
+    K.both(M.wall, box(X1 - X0 + 1.2, 0.8, zF - zN + 6.2, xm + 0.2, top + 0.4, (zN + zF) / 2 + 0.1));
+    // a stone feather over each doorway, as over the house's other ways (the way back reads as a way)
+    for (const [z, y] of [[zN, 32], [zF, farY]]) feather(M.trim, 10.7, y + 4.9, z, 2.2, Math.PI / 2, 0.15);
+  }
 
   // ---- the corridor, and the Roost (floor farY): a round hall under the open sky; two vents in its floor, one stone
   const RY = farY, F0 = FZ + 12;
   K.slab(-3.2, F0 - 0.6, 3.2, F0 + 3.4, RY, 0.8);
   K.wall(-3.2, F0 + 0.2, -3.2, F0 + 3.4, RY, 7, { t: 0.8 }); K.wall(3.2, F0 + 3.4, 3.2, F0 + 0.2, RY, 7, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 3.6, 0, RY + 7.4, F0 + 1.6));
-  add(Door, { id: 'd3', at: [0, RY, F0 + 1.2], w: 5, h: 6.4 });
+  add(Door, { id: 'd3', at: [0, RY, F0 + 1.2], w: 5, h: 6.4, locked: 'A great lock. It wants the house’s great key. The doorway in the ledge’s east wall goes back to the near side.' });
   add(Mark, { room: 'ante', at: [2.2, RY, F0 - 0.2], yaw: -Math.PI / 2 });
   const HR = 19, CL = F0 + 3.2 + HR + 0.2;
   K.rotunda({ x: 0, z: CL, y: RY, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.6 });
@@ -471,7 +513,7 @@ function layout(rt) {
     bounds: new THREE.Box3(V(-40, -6, -3), V(C3x + 12, Math.max(WH, GULF.top, RY + 24) + 22, CL + HR + 12)),
     gadget: { at: W(C3x, 16.62, C2).toArray(), face: K.heading(-Math.PI / 2) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, RY + 0.5, CL + HR + 9.6), r: 1.5 }],
-    lights: [[0, 5, 6, 10], [0, 6, 32, 14], [0, 10, C2, 16], [STACK.moult.x, 6, C2, 12], [0, 34, C2, 16], [STACK.eyrie.x, 38, C2, 16], [C3x, 20, C2, 10], [0, 36, G0 + 20, 22], [0, 36, PZ + 10, 22], [0, RY + 6, CL, 18]],
+    lights: [[0, 5, 6, 10], [0, 6, 32, 14], [0, 10, C2, 16], [STACK.moult.x, 6, C2, 12], [0, 34, C2, 16], [STACK.eyrie.x, 38, C2, 16], [C3x, 20, C2, 10], [0, 36, G0 + 20, 22], [0, 36, PZ + 10, 22], [0, RY + 6, CL, 18], [14.2, 31, G0 + 30, 20], [14.2, 31, FZ - 16, 20]],
     guardian: { def: { ...ELDER, onHit: elderHit, openFor: elderOpenFor }, model, arena },
   };
 }
