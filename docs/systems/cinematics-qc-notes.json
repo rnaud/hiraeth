@@ -16,6 +16,11 @@
    "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. The tank’s gauge showed over the letterbox; panel C was shot from just behind his head, his hair a black blob filling half the frame, the glove and the glob unseen. Fixed: Gauge hidden in cinematics; panel C reframed from his side with the pool.",
    "updated": "2026-10-09T12:00:00.000Z"
   },
+  "desert.lit": {
+   "verdict": "Pass",
+   "text": "New 2026-10-13 (issue #239), checked in seven headless frames: A low beside him at the roots, B rising after the spark up the bark, C the long pull back to the whole tree over Qanat as the fire grows. Fixed before it landed: Hessa stood in A, right behind him (she steps back to the far end of her sweep, and the lens takes the avenue's other side).",
+   "updated": "2026-10-13T08:00:00.000Z"
+  },
   "arzach.bird": {
    "verdict": "Pass",
    "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 5/5. Panel A shot from 3 m inside a dune on a slope (107 frames); B was 2 s of plain sky; the pale star floated by his face in C. Fixed: Lens kept above the terrain; A takes the lower side; star on the lapel; v1.2: B keeps the horizon and the haze’s towers at its foot (riseLook), she starts 90 m up.",

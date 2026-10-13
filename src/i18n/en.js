@@ -515,7 +515,7 @@ export const EN = {
   'teach.shove': 'Switch to push ({key:mode}), then shoot.',
   'teach.foesShort': '{key:blade} cuts · {key:guard} guards · {key:evade} evades.',
   'teach.foes': '{key:blade} cuts (it refills the tank) · {key:guard} guards, late to parry · {key:evade} evades.',
-  'teach.bikeCall': 'The pack clicks into the hoverbike: it calls it to you from anywhere with {key:call}.',
+  'teach.bikeCall': 'The pack clicks into the hoverbike: call it from anywhere with {key:call}.',
   'teach.bell': 'The bell-note whistle: sound it with {key:whistle}.',
   'teach.echo': 'The echo shell: let something sing near it, then play it back with {key:whistle}.',
   'teach.horn': 'The whale-horn: sound its deep note with {key:whistle}.',
