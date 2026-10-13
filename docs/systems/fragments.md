@@ -50,6 +50,18 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   Market's and the Floating city's new country is mostly the route itself now (the galleries, the old market, the lanes,
   the stack's lower tiers, the catwalk under the Towers): the fragments sit at the ends off it. A moving platform is no
   place for one (a hover-stall's roof the flood once stood on: the contact audit's built world has it elsewhere).
+- **The first two, easy (#247).** The author: "in the desert level there should be a quest to find the first
+  light fragment. Or make the first few ones easy to find around my ship." The Desert's slots 5 and 6 (they were 609 m
+  out in the far south and 252 m out on the western ridge) moved to the open sand round the landing: one 40 m from the
+  ramp, ahead and to the right as you step out, the other up the low rise 60 m behind the ship. Both keep #228's rule
+  (32 and 42 m off the route's line: the way to Qanat leaves the ramp the other way), so they are there to be found, not
+  stepped on. You hear the nearer one sing from the ramp (26 m) as you walk out. And Marrow, at your ship, has one line
+  for it (*"A splinter of the light that went over, singing on the sand forty paces from your ramp. I don't pick up
+  things that sing."*), asked from his talk's first answers (the way to Qanat, the mark): it starts the errand
+  **Something Singing** (`desert.splinter`, `SPLINTER` in `src/story/desert-data.js`), one step whose goal is the
+  fragment itself (`frag.desert.5`): taking it ends it, and brings Anselm as the first one always does. Found first, the
+  question isn't there. A save that found either old slot keeps its count (the flag stays on its slot, so the new place
+  shows as found); nothing to migrate. `tests/desert-story.test.js` ("#247").
 - **Seeing and hearing them.** A pale splinter (an elongated octahedron, glowing) with three motes going round it (the
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the

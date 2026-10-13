@@ -15,6 +15,11 @@
 // critical path: tests/fragments-route.test.js, 25 m at least), each in the slot it replaced, marked "(v1.61, #228)"
 // with its place. A save's found flags on those slots move to unmoved ones still to find (src/save-migrate.js step 23,
 // FRAGMENTS_MOVED_228, which must list exactly the marked slots).
+//
+// Issue #247 ("make the first few ones easy to find around my ship"): the Desert's slots 5 and 6 moved from the far
+// south and the western ridge to the open sand round the landing, 40 and 60 m from the ramp and 30 m and more off the
+// route (#228's rule kept), marked "(#247)"; Marrow points at the nearer (the errand desert.splinter). A save that
+// found either keeps its count (the flag stays on its slot: the new place shows as found).
 
 import { ORDER, TITLES } from './levels/names.js';
 
@@ -28,8 +33,8 @@ export const FRAGMENTS = {
     [658.0, 24.45, 51.9],
     [-166.0, 27.03, 745.9],
     [-324.0, 7.61, 395.9],
-    [-34.0, 28.91, -440.1],
-    [-148.0, 39.45, 71.9],
+    [70.0, 17.85, 190.5],   // (#247) the first, easy: on the open sand 40 m from the ramp, ahead and to the right as you step out
+    [44.0, 20.86, 120.0],   // (#247) the second, easy: up the low rise 60 m behind the ship
     [150.0, -4.91, 565.9],
   ],
   arzach: [   // (v1.55, issue #187: picked afresh, scripts/fragment-spots.mjs, once the riders' road, the sundial and the broken edge were in)

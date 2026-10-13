@@ -58,6 +58,10 @@ export const CHANGELOG = [
     // src/fluid-tool.js signal; docs/systems/movement.md "Mounts come to you"; issue #249)
     { text: 'You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.',
       see: 'In the Desert, once the hoverbike is awake, walk away from it and press D-pad ↓ (E on a keyboard): the rings on your tank blink, two soft notes, and the bike’s engine answers from far off.' },
+    // the desert's first two fragments by the landing, and Marrow's errand for the nearer (src/fragments-data.js slots 5
+    // and 6, src/story/desert-data.js SPLINTER; docs/systems/fragments.md "The first two, easy"; issue #247)
+    { text: 'The first fragments of the singing light are easy to find in the Desert: one sings on the open sand a short walk from your ship’s ramp, another on the low rise behind it. Ask Marrow what is singing out there and he points you to the first, a small errand of its own that ends when you take it.',
+      see: 'Start a new game, step out of the ship and look ahead and to the right: a pale splinter singing on the sand about 40 m away. Or ask Marrow, “What’s that singing out on the sand?”' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

@@ -37,8 +37,12 @@
 // src/story/quests.js. Flags (game-state.js): desert.* below.
 
 import { coreStage } from './leave-gate.js';
+import { FRAGMENTS } from '../fragments-data.js';
 
 const Q = 'desert.power';
+/** The first fragment's errand (issue #247): its id, the fragment it finds (the desert's slot 5) and where it sings. */
+export const SPLINTER = 'desert.splinter', SPLINTER_FLAG = 'frag.desert.5';
+export const SPLINTER_AT = [FRAGMENTS.desert[5][0], FRAGMENTS.desert[5][1] + 0.9, FRAGMENTS.desert[5][2]];
 // for the listen-only talks of the people outside the quests (src/story/dialogue.js pickListen)
 const LIT = { flag: 'desert.tree.lit' }, RISEN = { flag: 'desert.channel.open' }, DONE = { flag: 'world.desert.done' };
 const TEMPLE = { flag: 'temple.desert.done' }, BACKPACK = { flag: 'item.backpack' };
@@ -126,6 +130,14 @@ export const QUESTS = [
       // last step while they're missing, passed over when they're had (issue #232); the ship wakes when it's fed (desert.js)
       coreStage('desert', { id: 'gear', text: 'Take the blade and guard from the Rose House', label: 'The Givers’ blade and guard', at: 'temple.desert.door' }),
     ],
+  },
+  {
+    // the first fragment of the singing light, easy (issue #247: "there should be a quest to find the first light fragment"):
+    // Marrow, at your ship, points at it singing on the sand 40 m from the ramp (src/fragments-data.js, the desert's slot 5);
+    // taking it is the goal (and it brings Anselm Thrum, docs/systems/fragments.md). Found first, it never starts.
+    id: SPLINTER, title: 'Something Singing', world: 'desert',
+    outro: 'A splinter of the singing light, warm in your hand. More of them hide out there.',
+    stages: [{ id: 'find', text: 'Find what sings on the sand by your ship', label: 'Something singing', flag: SPLINTER_FLAG, at: SPLINTER_AT }],
   },
   {
     id: 'desert.drum', title: 'Teo’s Drum', world: 'desert',
@@ -674,7 +686,8 @@ export const PEOPLE = {
           say: ["~neutral~ Power? Your ship isn’t broken, sky-person. It’s empty, drained to the last drop. Nothing out here holds that much. Nothing but *Qanat*: when its great tree burns, every lamp in the city burns on its water.",
             "~whisper~ It went cold the night the light passed. And burning or cold, Qanat doesn’t hand its fire to strangers.",
             "~playful~ *The city is over the dunes that way*, past the pilgrims’ camps. Up its great tree there’s *a chest that’s been humming* since the light went over. Old Nour’s sat under it sixty years, waiting for someone. Go and be someone."],
-          choices: [{ text: '~neutral~ Qanat, the tree, the chest. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' }],
+          choices: [{ text: '~neutral~ Qanat, the tree, the chest. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' },
+            { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }] }, goto: 'splinter' }],
         },
         hello: {
           say: [{ if: { not: { flag: 'desert.marrow.warned' } }, text: '~playful~ Sky-person, back again. Your ship is exactly where you left it. I checked. Twice. Purely for your peace of mind.' }, { if: { flag: 'desert.marrow.warned' }, text: '~playful~ Sky-person. I haven’t been near your ship. I’ve been near it at a respectful distance, which is a different thing.' }, "~whisper~ That mark on your hull still hasn’t cooled. Three dots and an arc. {glyph} Sand doesn’t do that."],
@@ -683,6 +696,12 @@ export const PEOPLE = {
             { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
             { text: '~angry~ Stay away from my ship.', do: { set: { 'desert.marrow.warned': true } }, end: true },
           ],
+        },
+        // the first fragment, singing by your ship (issue #247): one line, and the errand is yours to take or leave
+        splinter: {
+          say: ["~playful~ That? A splinter of the light that went over, singing on the sand *forty paces from your ramp*. I don’t pick up things that sing."],
+          do: [{ start: SPLINTER }],
+          choices: [{ text: '~neutral~ I’ll have a look.', end: true }],
         },
         // the crashed hull in the south: his old camp, picked clean years ago (the slate: THINGS.slate)
         hull: {
@@ -703,7 +722,8 @@ export const PEOPLE = {
         price: { say: ["~playful~ Free. It ate my tarp. Ride it past the camp occasionally so I can claim the success from a safe distance."], choices: [{ text: '~happy~ Deal.', end: true }] },
         bikeWhere: { say: ["~neutral~ Red-rag hollow, between camps and ship. Remove the tarp. Wake the bike with *a full fluid tank*."], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         bikeAfter: { say: ["~happy~ I heard it start! A kettle with ambitions. Look after it. I’m becoming attached to the idea that I helped."], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
-        mean: { say: ["~solemn~ Same mark as the giants and old gates. I’ve found it on fallen sky-metal before. Yours is the first example still warm from arrival."], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
+        mean: { say: ["~solemn~ Same mark as the giants and old gates. I’ve found it on fallen sky-metal before. Yours is the first example still warm from arrival."], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true },
+          { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }] }, goto: 'splinter' }] },
         before: { say: ["~playful~ Humming glass. A bowl that rings alone. Things like that. I suspect the singing matters. Professional suspicion, complimentary today.",
           "~curious~ Also, my compass points at your ship now. Whatever made the scar magnetised the metal. That observation actually is free."], choices: [{ text: '~curious~ What do you sell, then?', goto: 'sell' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         sell: { say: ["~playful~ Rumours. The giant’s holding its breath. The Speaker walks the wrong way. Your ship sneezed. Three prices, one standard of evidence."], choices: [{ text: '~tired~ I’ll pass.', end: true }] },
