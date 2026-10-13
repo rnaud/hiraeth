@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { buildItemModel, buildSparkles, buildMotes, buildShaft, fluidMaterials, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
+import { buildItemModel, buildSparkles, buildMotes, buildShaft, fluidMaterials, tickItem, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
 import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 
 // Opening a box. The makers' chests are big: they wake, unlatch, rock a few times on the
@@ -363,7 +363,7 @@ export class BoxScene {
         this.model.position.copy(this.handAt());
         this.model.scale.setScalar(ITEM_SCALE * HAND.scale);
       }
-      for (const m of this.fluid) { m.uniforms.uFluidA.value.set(this.fill, 4, time, 0); }
+      tickItem(this.model, this.fluid, { time, fill: this.fill });   // (its fluid's clock, each of its own kind: the blade, the wings, the guard's)
     }
     this.offerFrame(t, T);
     if (this.phase === 'beat') this.beatFrame(t, time);

@@ -90,6 +90,7 @@ export class ItemViewer {
     this.floor.position.y = 0;
     // (a flask's fluid stands full and churns, in its two first tones, as it hovers out of its box)
     for (const f of m.fluids) if (f.uniforms.uFluidA) { const A = f.uniforms.uFluidA.value; A.x = 1; A.y = Math.max(A.y, 2); A.z = this.time; }
+    m.holder.traverse((o) => o.userData.tick?.(this.time));   // (the parts that move of themselves: the sword's breath, the guard's fluid, the wings)
     const centre = m.holder.position, d = (m.r * VIEW.margin * orbit.zoom) / Math.sin(THREE.MathUtils.degToRad(VIEW.fov / 2));
     const C = this.camera, cp = Math.cos(orbit.pitch);
     C.position.set(centre.x + Math.sin(orbit.yaw) * cp * d, centre.y + Math.sin(orbit.pitch) * d, centre.z + Math.cos(orbit.yaw) * cp * d);

@@ -159,15 +159,21 @@ export function wakeStyle(special = null, full = false) {
   return S;
 }
 
-/** The blade's material (one, shared): src/materials.js fluid kind 'blade'. */
-export function swordMaterial() {
+/**
+ * The blade's material: src/materials.js fluid kind 'blade'. One, shared by the held sword; `key` makes another of
+ * the same look with its own clock (the box's hovering blade: src/boxes/model.js).
+ */
+export function swordMaterial(key = 'fluid-sword') {
   const T = SWORD_TONES;
-  return makeMaterial({ color: '#ffffff', fluid: 'blade', glow: 0.5, fluidBase: T.base, fluidTones: [T.cream, T.deep, T.pale, T.gold, T.base, T.light], key: 'fluid-sword' });
+  return makeMaterial({ color: '#ffffff', fluid: 'blade', glow: 0.5, fluidBase: T.base, fluidTones: [T.cream, T.deep, T.pale, T.gold, T.base, T.light], key });
 }
 
-/** The sword's meshes: { group (the hilt's frame), blade (its own group, y 0 at the cup), wake, material }. */
-export function buildSword({ length = 0.85, width = REF_W, bladeBase = HILT.mouth } = {}) {
-  const fluid = swordMaterial();
+/**
+ * The sword's meshes: { group (the hilt's frame), blade (its own group, y 0 at the cup), wake, material }. `key`: the
+ * blade's material's (swordMaterial), for a sword drawn apart from the held one (the box's, issue #242).
+ */
+export function buildSword({ length = 0.85, width = REF_W, bladeBase = HILT.mouth, key = 'fluid-sword' } = {}) {
+  const fluid = swordMaterial(key);
   const brass = makeMaterial({ color: '#d6aa58', metal: 'brass', key: 'fluid-sword-brass' });
   const leather = makeMaterial({ color: '#6b4630', key: 'fluid-sword-grip' });
   const hilt = new THREE.Group();

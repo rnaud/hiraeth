@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
-import { TANK, FLUID_TONES, buildFlask } from '../fluid-tool.js';
+import { TANK, FLUID_TONES, buildFlask, globMaterial } from '../fluid-tool.js';
+import { buildSword } from '../fluid-sword.js';
+import { BLADE_LOOK, BLADE_QUALITY } from '../blade-shader.js';
+import { buildShieldFace } from '../shield.js';
+import { FluidWings } from '../fluid-kit.js';
 import { ITEMS } from '../items.js';
 import { chestGeometry, openEase, starShape, MAKERS_CHEST, CHEST_COLORS } from './chest.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -27,6 +31,8 @@ export { starShape, chestKind } from './chest.js';
 //                      mats.body.uniforms.uBoxA: x the ray's strength, y the marks' glow, z the star's reach, w the
 //                      ray's clock (one pass per unit: index.js and scene.js wind it)
 //   buildItemModel(id) → a small Group (≈ 0.3 m) for the hovering display
+//                      built from the item in use (the held sword, the raised guard, the open wings: issue #242)
+//   tickItem(model, fluidMaterials(model), { time, fill })   a frame of its life: its fluids' clocks, its moving parts
 //   buildSparkles()  → twinkling specks round the hovering item; buildMotes() → jade motes rising out of an opening chest
 //   buildBeacon(key) → a thin pale column of light over an unopened box (seen from afar)
 
@@ -223,21 +229,26 @@ function wardenbellowsModel() {
   return g;
 }
 
+/**
+ * The fluid wings as they open over the glide (src/fluid-kit.js FluidWings: the same lobes of living membrane, in their
+ * fluid's tones, flapping slowly), out of the two brass shoulders of the tank's cap they bloom from; in a material of
+ * their own (the box winds its clock). Issue #242: before, three flat leaves of colour on a brass rod.
+ */
 function wingsModel() {
-  const g = new THREE.Group();
-  const leaf = new THREE.Shape();
-  leaf.moveTo(0, 0); leaf.bezierCurveTo(0.06, 0.1, 0.1, 0.26, 0.03, 0.36); leaf.bezierCurveTo(-0.02, 0.24, -0.03, 0.1, 0, 0);
-  const tones = [FLUID_TONES[0], FLUID_TONES[1], '#cfeef0'];
-  for (const sx of [-1, 1]) {
-    for (let i = 0; i < 3; i++) {
-      const m = new THREE.Mesh(new THREE.ExtrudeGeometry(leaf, { depth: 0.012, bevelEnabled: false }), flatM(tones[i], { glow: 0.45, side: THREE.DoubleSide }));
-      m.position.set(sx * 0.02, -0.16, -0.01 + i * 0.016);
-      m.rotation.set(0, sx < 0 ? Math.PI : 0, -sx * (0.25 + i * 0.28));
-      g.add(m);
-    }
-  }
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.08, 10).rotateZ(Math.PI / 2).translate(0, -0.16, 0), flatM(BRASS)));
-  return g;
+  const g = new THREE.Group(), tank = new THREE.Group();
+  const wings = new FluidWings(tank, FLUID_TONES, { key: 'box.item.glider' });
+  wings.update(0, { open: 1, time: 0 });
+  // (the lobes' roots are the cap's shoulders, 0.43 m up the tank: brought down to the middle)
+  tank.position.y = -0.43;
+  for (const sx of [-1, 1]) tank.add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8).translate(sx * 0.13, 0.43, -0.03), flatM(BRASS)));
+  tank.add(new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.26, 10).rotateZ(Math.PI / 2).translate(0, 0.43, -0.03), flatM(BRASS_DARK)));
+  g.add(tank);
+  let last = 0;
+  g.userData.tick = (time, fill = 1) => { wings.update(Math.max(0, Math.min(0.1, time - last)), { open: 1, time, fill }); last = time; };
+  g.scale.setScalar(0.115);   // (≈ 2.6 m across worn: about 0.4 m here)
+  g.rotation.set(1.45, 0, 0);   // (the membranes face up and back, worn: turned to face the eye, up and forward)
+  const w = new THREE.Group(); w.add(g);
+  return w;
 }
 
 function lensModel(color = '#bfe8f2', { glyph = false, ice = false } = {}) {
@@ -259,25 +270,39 @@ function lensModel(color = '#bfe8f2', { glyph = false, ice = false } = {}) {
   return g;
 }
 
+/**
+ * The Givers' blade as it is held (src/fluid-sword.js buildSword: the leather-wrapped grip, the brass collar and its cup,
+ * the broad living blade of fluid with its currents, ripples, meniscus and glow; src/blade-shader.js), in a blade
+ * material of its own (the box winds its clock and its breath: tickItem). Issue #242: before, a thin jade spike on a
+ * brass rod, nothing like the sword in the hand.
+ */
 function swordModel() {
-  // the Givers' blade: its brass hilt and cup (src/fluid-sword.js draws the held one), the fluid grown out of it a little,
-  // jade, as it lies in the chest
-  const g = new THREE.Group();
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.13, 10).translate(0, -0.12, 0), flatM(BRASS_DARK)));
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8).translate(0, -0.19, 0), flatM(BRASS)));
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.02, 0.035, 14).translate(0, -0.04, 0), flatM(BRASS)));
-  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.32, 4).scale(1, 1, 0.3).translate(0, 0.14, 0), flatM('#38b8a9', { glow: 0.45 })));
-  g.rotation.set(0, 0.4, 0.55);
-  return g;
+  const s = buildSword({ key: 'box.item.sword' });
+  const bead = s.group.getObjectByName('bead');
+  s.group.position.y = -0.36;   // (the hilt's frame: the grip's middle at 0, the point 0.95 m up: the middle to the middle)
+  s.group.userData.tick = (time) => {
+    const breath = time * BLADE_LOOK.breathRate;
+    s.material.uniforms.uBlade.value.set(0, 1, breath, BLADE_QUALITY.lite ? 1 : 0);
+    if (bead) bead.scale.setScalar(1 + 0.12 * (0.5 + 0.5 * Math.sin(breath)));
+  };
+  const g = new THREE.Group(); g.add(s.group);
+  g.scale.setScalar(0.36);   // (1.08 m from the pommel to the point held: 0.39 m here; the box scene scales the whole by ITEM_SCALE)
+  g.rotation.set(0, 0.4, 0.4);
+  const w = new THREE.Group(); w.add(g);
+  return w;
 }
+/**
+ * The Givers' guard as it is raised (src/shield.js buildShieldFace: the held device's own face, open: six brass
+ * petals round the hub, the brass ring, the living fluid round them with its bright wavy rim), in the tool's glob
+ * fluid with a clock of its own. Issue #242: before, a folded fan of brass leaves on a ring.
+ */
 function shieldModel() {
-  // the Givers' guard: a folded disc of brass on its bracer, its fan of leaves half open
-  const g = new THREE.Group();
-  for (let i = 0; i < 5; i++) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.01, 18, 1, false, 0, Math.PI * 0.55).rotateX(Math.PI / 2).rotateZ(-0.9 + i * 0.32).translate(0, 0, i * 0.008), flatM(i % 2 ? BRASS : BRASS_DARK)));
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 18).translate(0, 0, -0.02), flatM('#8a5a3a')));
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8).translate(0, 0, 0.05), flatM('#38b8a9', { glow: 0.5 })));
-  g.rotation.set(-0.35, 0.5, 0);
-  return g;
+  const face = buildShieldFace(globMaterial('box.item.shield'));
+  const g = new THREE.Group(); g.add(face);   // (its fluid flows on face.userData.tick)
+  g.scale.setScalar(0.42);   // (0.75 m across held: about 0.32 m here)
+  g.rotation.set(-0.2, 0.5, 0);
+  const w = new THREE.Group(); w.add(g);
+  return w;
 }
 function flintModel() {
   const g = new THREE.Group();
@@ -655,6 +680,20 @@ export function buildItemModel(id) {
   const g = (MODELS[id] ?? (ITEMS[id]?.light ? () => lightModel(ITEMS[id].light) : null) ?? (ITEMS[id]?.trial && MODELS[ITEMS[id].needs] ? () => upgradeModel(ITEMS[id].needs) : null) ?? (() => { const x = new THREE.Group(); x.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), flatM('#f2c54b', { glow: 0.6 }))); return x; }))();
   g.name = `Item ${id}`;
   return noCollide(g);
+}
+
+/**
+ * One frame of an item model's life (the box scene, the items page): its fluid materials' clock and fill (each keeps
+ * its own kind and tones: the blade, the wings, the glob), and the parts that move of themselves (`userData.tick(time, fill)`:
+ * the sword's breath, the guard's flowing fluid, the wings' slow beat). `mats`: fluidMaterials(model), found once.
+ */
+export function tickItem(model, mats, { time = 0, fill = 1 } = {}) {
+  for (const m of mats) {
+    const A = m.uniforms.uFluidA.value;
+    A.x = fill; A.z = time;
+    if (A.w === 0) A.y = 4;   // (the tank's glass: four tones in its blend)
+  }
+  model.traverse((o) => o.userData.tick?.(time, fill));
 }
 
 /** The item model's fluid glass, if it has one (its time uniform is animated). */

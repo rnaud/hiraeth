@@ -90,10 +90,11 @@ const WING_NORMAL = new THREE.Vector3(0, 0.78, -0.62).normalize();   // the memb
  * (more in turns, and in the wind).
  */
 export class FluidWings {
-  constructor(tankGroup, tones) {
+  /** `key`: the membrane's material's (the worn wings' by default; the box's own wings have theirs, its clock apart). */
+  constructor(tankGroup, tones, { key = 'fluid-wings' } = {}) {
     this.group = new THREE.Group();
     this.group.name = 'Fluid wings';
-    this.material = makeMaterial({ color: '#ffffff', fluid: 'wing', glow: 0.5, side: THREE.DoubleSide, fluidTones: tones, key: 'fluid-wings' });
+    this.material = makeMaterial({ color: '#ffffff', fluid: 'wing', glow: 0.5, side: THREE.DoubleSide, fluidTones: tones, key });
     this.U = this.material.uniforms;
     const geo = lobeGeometry();
     this.lobes = [];

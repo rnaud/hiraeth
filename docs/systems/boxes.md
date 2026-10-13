@@ -133,6 +133,32 @@ tank: empty unless the pool has risen), and the scene draws the glass empty (`Bo
 card**: toasts wait while `#boxscene` is on (`HOLD_TOASTS`, src/ship/cinema.js) and nobody's balloon shows
 (main.js), so the square's murmurs no longer come up over it.
 
+## What comes out: the thing in use (issue #242)
+
+**What rises out of a chest is what he will use**, built by the same code (`model.js buildItemModel`, which the
+menu's pictures, `src/item-icons.js`, and the items page draw too). The Givers' blade came out as a thin jade
+spike on a brass rod while the hand held a broad blade of living fluid; now:
+
+| Item | Its reveal | Built by |
+| --- | --- | --- |
+| `sword` | the held sword: the wrapped grip, the brass collar and cup, the blade with its currents, ripples, meniscus and breathing glow | `fluid-sword.js buildSword({ key })` |
+| `shield` | the guard open as raised: six brass petals, the ring, the fluid flowing round them, its bright rim | `shield.js buildShieldFace` (the held `ShieldDevice`'s face, `poseFace`) |
+| `glider` | the wings open as over a glide, beating slowly, from two brass shoulders | `fluid-kit.js FluidWings(…, { key })` |
+| `backpack` | the flask, unworn (no plate, no straps) | `fluid-tool.js buildFlask` (already so) |
+| `gun` | the glove in the worn glove's colours and parts (leather, lavender band, plate, three knuckle lights, the fitting's vial) | `gadgets/gun.js gunModel` (the worn one is skinned to his hand: `traveller.js fluidGlove`) |
+
+Each fluid has a material of its own (`key: 'box.item.<id>'`: the same options as the one in use, so the same
+look, but the box winds its clock, not the held sword's). `tickItem(model, fluidMaterials(model), { time, fill })`
+runs a frame of it: each fluid's clock and fill, its kind kept (the box used to write the tank's kind over every
+fluid), and `userData.tick(time, fill)` on the parts that move of themselves (the blade's breath and its bead, the
+guard's strokes, the wings' beat). The scene scales the item (`ITEM_SCALE`, then `HAND.scale` over his open hand), so a model scales itself
+on an inner group. Anselm's upgrades (`light`) and the trials' (`trial`) wrap these models, so they follow.
+`tests/item-reveals.test.js` checks each against its in-use model (the same meshes, the same fluid kind).
+
+Left as they were: the lift valve (its valve, wheel and fins, the parts of the backpack's first stage, on their
+own) and the Warden's bellows (worn, only the backpack's third-stage valve shows: there is nothing on him to match);
+the gadgets already build their reveal from the model they hold (`bombBody`, `fanModel`, `lensModel`…).
+
 ## Where a chest stands (the rule)
 
 A makers' chest is a gift left on purpose (docs/story-bible.md, "The boxes"), so it stands **somewhere that feels

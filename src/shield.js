@@ -306,7 +306,7 @@ export class ShieldDevice {
     this.root.visible = on;
     if (!on) return said;
     fitScale(this.root);
-    const k = S.k, R = SHIELD.radius;
+    const k = S.k;
     this.face.visible = k > 0.002;
     this.arm.visible = false;
     if (this.face.visible) {
@@ -334,24 +334,7 @@ export class ShieldDevice {
         const turn = smooth(k, 0, 0.7);
         this.face.quaternion.copy(_q).invert().multiply(_q.clone().slerp(_q2, turn));
       } else this.face.quaternion.identity();
-      // the petals spin out of the disc and fan out a little round the hub, the brass ring closing round them
-      const shake = S.crack > 0 ? S.crack * 0.08 * Math.sin(time * 70) : 0;
-      for (let i = 0; i < this.ribs.length; i++) {
-        const r = this.ribs[i], u = S.rib(i, this.ribs.length);
-        r.pivot.rotation.z = THREE.MathUtils.lerp(-Math.PI * 0.5 + i * 0.08, r.home, u) + S.spin * 0.04 * (1 - u) + shake * (i % 2 ? 1 : -1);
-        r.tilt.rotation.x = -0.35 * u;   // (fanned back from the face, a shallow cup)
-        const len = THREE.MathUtils.lerp(SHIELD.hub * 0.9, SHIELD.petal, u);
-        r.rib.scale.set(1, len, 1); r.tip.position.set(0, len, 0.004);
-      }
-      this.collar.visible = k > 0.5;
-      this.collar.scale.setScalar(smooth(k, 0.5, 1));
-      // the fluid spills out of the hub, swells with a blow
-      const f = S.fill, shown = S.shown(time);
-      this.reach = Math.max(0.01, R * f * (1 + 0.012 * Math.sin(time * 9) + 0.12 * S.flare));
-      this.field.visible = f > 0.01 && shown;
-      if (this.field.visible) this.drawFluid(this.reach, f, time, S);
-      this.cracks.visible = S.crack > 0.02 && f > 0.3;
-      this.cracks.scale.setScalar(this.reach);
+      this.poseFace(time);
     } else this.reach = 0;
     // where it is, for the guard's arc (src/fluid-blade.js block) and the block's splash: its hub, its facing, its edge
     this.face.updateWorldMatrix(true, false);
@@ -363,6 +346,29 @@ export class ShieldDevice {
       this.outline[i].set(Math.cos(th) * r, Math.sin(th) * r, 0).applyMatrix4(this.face.matrixWorld);
     }
     return said;
+  }
+
+  /** The face as open as the state says at `time`: the petals, the brass ring, the fluid and its cracks (update; the box's model). */
+  poseFace(time) {
+    const S = this.s, k = S.k, R = SHIELD.radius;
+    // the petals spin out of the disc and fan out a little round the hub, the brass ring closing round them
+    const shake = S.crack > 0 ? S.crack * 0.08 * Math.sin(time * 70) : 0;
+    for (let i = 0; i < this.ribs.length; i++) {
+      const r = this.ribs[i], u = S.rib(i, this.ribs.length);
+      r.pivot.rotation.z = THREE.MathUtils.lerp(-Math.PI * 0.5 + i * 0.08, r.home, u) + S.spin * 0.04 * (1 - u) + shake * (i % 2 ? 1 : -1);
+      r.tilt.rotation.x = -0.35 * u;   // (fanned back from the face, a shallow cup)
+      const len = THREE.MathUtils.lerp(SHIELD.hub * 0.9, SHIELD.petal, u);
+      r.rib.scale.set(1, len, 1); r.tip.position.set(0, len, 0.004);
+    }
+    this.collar.visible = k > 0.5;
+    this.collar.scale.setScalar(smooth(k, 0.5, 1));
+    // the fluid spills out of the hub, swells with a blow
+    const f = S.fill, shown = S.shown(time);
+    this.reach = Math.max(0.01, R * f * (1 + 0.012 * Math.sin(time * 9) + 0.12 * S.flare));
+    this.field.visible = f > 0.01 && shown;
+    if (this.field.visible) this.drawFluid(this.reach, f, time, S);
+    this.cracks.visible = S.crack > 0.02 && f > 0.3;
+    this.cracks.scale.setScalar(this.reach);
   }
 
   /**
@@ -384,4 +390,22 @@ export class ShieldDevice {
   }
 
   dispose() { this.root.removeFromParent(); }
+}
+
+/**
+ * The guard as an object (the box's hovering item, the menu's picture: src/boxes/model.js, issue #242): the held
+ * device's own face (ShieldDevice: the brass petals, the ring, the living fluid with its bright rim), open, in the
+ * fluid material `fluid` (the tool's globs' look, a box's own clock). Unscaled (about 0.75 m across, the blob's
+ * reach); `userData.tick(time)` keeps its fluid flowing.
+ */
+export function buildShieldFace(fluid) {
+  const d = new ShieldDevice({ globMat: fluid });
+  d.s.k = 1; d.s.state = 'open';
+  const face = d.face;
+  face.removeFromParent();
+  face.position.set(0, 0, 0); face.quaternion.identity();
+  face.traverse((o) => { o.frustumCulled = false; o.userData.noCollide = true; });
+  face.userData.tick = (time) => d.poseFace(time);
+  d.poseFace(0.8);
+  return face;
 }

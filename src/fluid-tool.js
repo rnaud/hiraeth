@@ -722,6 +722,14 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
   return { group: g, glass, lights, stages };
 }
 
+/**
+ * The globs' churning fluid (the shots, the jets' flames, the guard's fluid: src/shield.js). `key`: another of the
+ * same look with a clock of its own (the box's guard: src/boxes/model.js); none, the tool's own.
+ */
+export function globMaterial(key) {
+  return makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES, ...(key ? { key } : {}) });
+}
+
 /** Show the parts of a backpack stage (0..3) and those below it (buildFlask's `stages`). */
 export function setStage(flask, stage = 0) {
   (flask.stages ?? []).forEach((s, i) => { if (s) s.visible = i <= stage; });
@@ -802,7 +810,7 @@ export class FluidTool {
     this.glow = new Dots(fx, 160, makeMaterial({ color: '#ffffff', flat: true, glow: 0.95 }));
     this.splats = new Splats(fx, () => this.physics);
     this.rings = new Rings(fx);
-    const globMat = (this.globMat = makeMaterial({ color: '#ffffff', fluid: 'glob', glow: 0.8, fluidBox: [-1, 1, 1, 0], fluidTones: FLUID_TONES }));
+    const globMat = (this.globMat = globMaterial());
     this.globU = globMat.uniforms;
     this.globMeshes = Array.from({ length: 6 }, () => { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 2), globMat); m.visible = false; m.userData.noCollide = true; fx.add(m); return m; });
     this.blade = new FluidBlade(this);   // the glove's blade of fluid (RB / R1, a left click, F)

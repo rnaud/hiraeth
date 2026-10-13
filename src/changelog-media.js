@@ -757,6 +757,8 @@ const GUARD237 = 'headless Chrome (muted, High, 1280 × 720, 10:00) against this
 // tree before it (1e94ecb8, served apart on port 5933), the camera pinned at the same view for both)
 const BATCH13 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931) and the tree before it (1e94ecb8, port 5933), the camera pinned at the same view; 13 October; cwebp -q 72';
 const BATCH13_AFTER = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5931); 13 October; cwebp -q 72';
+// (v1.66, issue #242: a scratch shooter against this branch's own Vite (port 5951) and origin/main's tree (9c12a511))
+const REVEAL242 = 'Issue #242: muted headless Chrome (High, 10:00) against this branch’s own Vite (port 5951) and the tree before it (9c12a511, with #223’s opening in place), the chest opened in its world (boxes.open) and the item over his open hand drawn by the game’s own captureView, 1.4 m off, at its card, at the same moment of its turn; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.66': [
     { match: 'The Elder’s new body, still a preview', tags: ['characters', 'vael'], shots: [
@@ -794,6 +796,14 @@ export const CHANGELOG_MEDIA = {
         { where: 'stamina left at the top, of 1', before: null, after: 1 },
         { where: 'stamina left after the carriage’s end wall beside it (a wall: as before)', before: 0.93, after: 0.93 },
       ], source: 'a scratch probe of the level’s porch ladders on the tree before (1e94ecb8) and this change (tests/ladder-stamina.test.js holds the after); in headless Chrome the same: the roof reached, the stamina 1' }] },
+    { match: 'What comes out of a chest now looks like what you will use', shots: [
+      { name: 'reveal-blade', title: 'The Givers’ blade', caption: 'Out of its chest in the Rose House: before, a thin jade spike on a brass rod; after, the sword as it is held, its broad blade of fluid with its currents and glow, the brass cup and the wrapped grip.', from: REVEAL242 },
+      { name: 'reveal-blade-held', only: 'after', title: 'The blade in hand', caption: 'The same sword in his hand, for comparison (the Character studio’s arms view).', from: 'muted headless Chrome (900 × 700) against this branch’s own Vite (port 5951), studio.html?backpack=true&sword=true&view=arms; 13 October; cwebp -q 72' },
+      { name: 'reveal-guard', title: 'The Givers’ guard', caption: 'Before, a folded fan of dark brass leaves round a jade bead; after, the guard open as he raises it: the six brass petals and the ring, the fluid flowing round them and its bright rim.', from: REVEAL242 },
+      { name: 'reveal-guard-held', only: 'after', title: 'The guard raised', caption: 'The same guard raised on his arm, for comparison (the Character studio’s arms view).', from: 'muted headless Chrome (900 × 700) against this branch’s own Vite (port 5951), studio.html?backpack=true&shield=1&view=arms; 13 October; cwebp -q 72' },
+      { name: 'reveal-wings', title: 'The fluid wings', caption: 'In Vael’s Aerie: before, five flat leaves of colour on a brass block; after, the wings’ own lobes of living membrane, open and beating slowly, as over a glide.', from: REVEAL242 },
+      { name: 'reveal-glove', title: 'The fluid gun', caption: 'In the Givers’ Hearth: before, a brown glove with a cream trumpet cuff; after, the glove he wears, dark green-grey with its lavender band, the plate and the three knuckle lights.', from: REVEAL242 },
+    ], see: 'Open the sword’s chest in the Rose House: the blade that rises is the one you then swing. The guard’s chest there, the gun’s in the Givers’ Hearth and the wings’ in Vael’s Aerie are the same; the menu’s Items show them so too.' },
   ],
   '1.65': [
     { match: 'The gadget in your hands is a small picture in the top right corner now', shots: [
