@@ -240,6 +240,11 @@ export function buildMarketInTheAir(scene, M) {
   }
   return {
     group, line, sights, stairs, galleries, stalls, basket: B_, crowd,
+    /** The mast's rungs, as ladders (climbed without tiring: src/physics.js onLadder, issue #252). */
+    ladders: [
+      { x: MAST.x1, z: (MAST.z0 + MAST.z1) / 2, y0: 0, y1: MAST.deck, r: 1.1 },
+      { x: (MAST.x0 + MAST.x1) / 2 + 0.9, z: (MAST.z0 + MAST.z1) / 2, y0: MAST.deck, y1: MAST.nest, r: 0.9 },
+    ],
     places: { antennaSeller: stalls[7].counter.clone(), lanternStair: stairs[0].foot.clone(), nest: V((MAST.x0 + MAST.x1) / 2, MAST.nest, (MAST.z0 + MAST.z1) / 2), deck: V((MAST.x0 + MAST.x1) / 2, MAST.deck, (MAST.z0 + MAST.z1) / 2) },
     /** The basket as a moving collider (the level's init). */
     init(physics) { B_.collider = physics.addMover?.(basket.userData.solid, { all: true }) ?? null; },

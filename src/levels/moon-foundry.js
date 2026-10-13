@@ -309,6 +309,7 @@ export function* buildMoonFoundry(scene) {
   put(0, MOUTH, { steel: [beam(V(HALL.x0, HALL.roof - 1.6, MOUTH), V(HALL.x1, HALL.roof - 1.6, MOUTH), 1.2, 4.5)] }, { solid: false, shadow: false });
   const stations = [HUNG, CRADLE, { x: COURT.x, z: COURT.z, R: COURT.R + 8 }, { x: BOWL.x, z: BOWL.z, R: BOWL.R + 6 }, { x: PMOON.x, z: PMOON.z, R: 14 }, { x: FURNACE.x, z: FURNACE.z, R: 16 }, { x: QUARTER.x, z: QUARTER.z, R: QUARTER.r }, HUNG2, { x: CASTING_HOUSE.x, z: CASTING_HOUSE.z, R: 16 }];   // (the Casting-House: src/temples/moonfoundry.js)
   const pillars = [];
+  const ladders = [];   // (the pillars' cage ladders: climbed without tiring, issue #252)
   for (const x of [-150, -100, -50, 50, 100, 150]) for (const z of [30, -50, -128, -206, -280]) {
     if (stations.some((s) => Math.hypot(s.x - x, s.z - z) < (s.R ?? 10) + 8) || (Math.abs(x) < 30 && z > -150) || nearWay(WAYS.main, x, z) < 8 || nearWay(WAYS.branch, x, z) < 8 || nearRunnel(x, z, 4.5)) continue;
     pillars.push([x, z]);
@@ -316,6 +317,7 @@ export function* buildMoonFoundry(scene) {
   for (const [i, [x, z]] of pillars.entries()) {
     const P = pillar({ h: HALL.roof - 3.4, r: 2.6, seed: i + 1, detail: 0.7, pipes: 2 + (i % 3), platform: i % 3 ? 0 : 0.6, dressing: 0.8, rings: 6 });
     put(x, z, moveParts(P, (g) => g.translate(x, 0, z)), { tones: { rust: i % 4 ? 'rust' : 'rust3' } });
+    for (const l of P.ladders ?? []) ladders.push({ ...l, x: l.x + x, z: l.z + z });
     if (i % 3 === 0) yield;
   }
 
@@ -404,6 +406,7 @@ export function* buildMoonFoundry(scene) {
   {
     const p = PMOON, P = pillar({ h: p.h, r: 3.2, seed: 71, detail: 0.8, platform: 0.78, pipes: 3, rings: 5 });
     put(p.x, p.z, moveParts(P, (g) => g.translate(p.x, 0, p.z)));
+    for (const l of P.ladders ?? []) ladders.push({ ...l, x: l.x + p.x, z: l.z + p.z });
     put(p.x, p.z, moveParts(moon({ R: p.R, seg: 48, craters: 26, seed: 72, detail: 0.8 }), (g) => g.translate(p.x, p.h + p.R * 0.92, p.z)), { tones: { shell: 'ivory2' } });
     const Hh = house({ x: p.x, y: p.h * 0.78, z: p.z + 6.2, w: 4, d: 3, floors: 1, yaw: 0, seed: 73, lit: 0.6, pitched: true });
     put(p.x, p.z, Hh, { solid: false });
@@ -697,6 +700,7 @@ export function* buildMoonFoundry(scene) {
   // (the makers' temple, the Casting-House on the hangar's east side: src/temples/moonfoundry.js)
   return attachTemple('moonfoundry', scene, {
     id: 'moonfoundry',
+    ladders,
     portals: [...shop.portals],
     shops: [shop],
     floraAvoid: shop.avoid(),

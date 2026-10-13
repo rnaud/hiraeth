@@ -1621,7 +1621,7 @@ export class Player {
       if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
       // pushing into a steep wall: start climbing (immediately in the air)
       const wall = Math.abs(n.dot(U)) < 0.35 && move.dot(n) < -0.6;
-      if (this.opts.climb && wall && this._climbCooldown === 0 && this.stamina > 0.1 && !this.winded) {
+      if (this.opts.climb && wall && this._climbCooldown === 0 && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
         this._press += dt;
         if (!this.onGround || this._press > 0.25) this.startClimb(n);
       } else this._press = 0;
@@ -2126,7 +2126,9 @@ export class Player {
     this._climbF = f; this._climbS = s;
 
     // ~22 s of climbing (climbK: the makers' resin halves it), less climbing fast: the sprint's stamina (src/stamina.js)
-    spendStamina(this, (f || s ? 0.045 * (fast ? STAMINA.climbFast : 1) : 0.02) * dt * (this.climbK ?? 1));
+    // (a ladder costs nothing: the train's porches, the foundry's cage ladders; issue #252, src/physics.js onLadder)
+    this.onLadder = !!this.physics.onLadder?.(this.pos);
+    if (!this.onLadder) spendStamina(this, (f || s ? 0.045 * (fast ? STAMINA.climbFast : 1) : 0.02) * dt * (this.climbK ?? 1));
     if (input.Space && !this._jumpHeld) {                       // jump off the wall
       this.stopClimb(false);
       this.vel.copy(n).multiplyScalar(6).addScaledVector(U, 8);
@@ -2134,7 +2136,7 @@ export class Player {
       this._wallKick = true;   // (the captured kick off the wall: src/air-moves.js)
     }
     this._jumpHeld = !!input.Space;
-    if (this.stamina <= 0) { this.stamina = 0; this.winded = true; this.stopClimb(false); this._climbCooldown = 1; }
+    if (this.stamina <= 0 && !this.onLadder) { this.stamina = 0; this.winded = true; this.stopClimb(false); this._climbCooldown = 1; }
     // climbing down onto the ground, or coming out on top of something
     // (e.g. through a tree canopy): stand on it
     this._climbTime += dt;
@@ -2145,6 +2147,7 @@ export class Player {
 
   stopClimb(onTop) {
     this.climbing = false;
+    this.onLadder = false;
     this.vel.set(0, 0, 0);
     this.onGround = false;
     if (!onTop) this._climbCooldown = Math.max(this._climbCooldown, 0.3);

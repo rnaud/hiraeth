@@ -59,6 +59,11 @@ export const CHANGELOG = [
     // the Elder's generated body, still a preview off the Aerie (src/characters/elder-creature.js; docs/systems/characters.md
     // "Elder generated guardian review"; issue #237)
     'The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.',
+    // ladders climbed without stamina (level.ladders -> physics.ladders, physics.onLadder, player.updateClimb;
+    // docs/systems/movement.md "Ladders are free"; issue #252)
+    { text: 'Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. Climbing a wall tires you as before.',
+      see: 'On the Overnight Train, climb a porch ladder to the roof walk: the stamina wheel never shows. Then climb a carriage’s side wall: it shows and empties as before.' },
+
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

@@ -371,6 +371,7 @@ export function* buildOvernightTrain(scene) {
 
   return {
     id: 'overnighttrain',
+    ladders: T.ladders,   // (the porches' ladders to the roof walk: climbed without tiring, issue #252)
     ground: { heightAt: groundHeight },
     envGround: TRAIN_TONES.plain,
     collision: { strategy: 'SAH' },

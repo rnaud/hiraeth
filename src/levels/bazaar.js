@@ -442,6 +442,7 @@ export function* buildBazaar(scene) {
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
   return attachTemple('bazaar', scene, {
+    ladders: air.ladders,
     portals: [...cureStall.portals],
     shops: [cureStall],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the night halt (src/story/night-train.js), and stepping down there off the Overnight Train (main.js level.arrivals)

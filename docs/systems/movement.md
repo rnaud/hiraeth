@@ -443,6 +443,12 @@ From the author's notes (TODO.md, "Feel and look"). Tests: `tests/feel.test.js`.
   afloat; never in the air or on the wall. Run dry, you are **winded** (`player.winded`): no
   sprint (a jog), no fast climb, no new hold on a wall until it is back to `STAMINA.recover`; on
   the wall it lets go, as before. The sprint is 8.2 m/s (7.2 before: +14 %).
+- **Ladders are free** (issue #252). A level lists its ladders as upright lines
+  (`level.ladders`: `[{ x, z, y0, y1, r? }]`, read into `physics.ladders`); `physics.onLadder(p)`
+  says whether a climber is on one, and `updateClimb` spends nothing there (and does not let go
+  winded); a winded traveller still takes hold of a ladder. Listed: the Overnight Train's porch
+  ladders (`porch().ladder`), the Moon Foundry's cage ladders up its pillars (`pillar().ladders`),
+  the Bazaar's antenna mast rungs (`market-air.js` `ladders`). Walls cost what they did.
 - **The stamina wheel** (`#stamina` in index.html, `updateStamina` in main.js): a small inked ring
   beside the traveller's shoulders (projected each frame), paper and ink with an offset shadow,
   the arc green while it fills and red, pulsing, while winded. It shows only while the stamina

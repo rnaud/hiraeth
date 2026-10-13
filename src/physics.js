@@ -226,6 +226,20 @@ export class Physics {
   }
 
   /**
+   * Is p on one of the level's ladders (`ladders`: [{ x, z, y0, y1, r? }] upright, level.ladders: the train's porches, the
+   * foundry's cage ladders)? Within r across of its line and between its foot and a little over its top. A ladder is
+   * climbed without spending stamina (issue #252; src/player.js updateClimb).
+   */
+  onLadder(p, r = 0.9) {
+    for (const l of this.ladders ?? []) {
+      if (p.y < l.y0 - 1 || p.y > l.y1 + 0.6) continue;
+      const R = l.r ?? r;
+      if ((p.x - l.x) ** 2 + (p.z - l.z) ** 2 < R * R) return true;
+    }
+    return false;
+  }
+
+  /**
    * May a climber's chest at p take hold of the wall nearest it (within r)? Everywhere, but inside a temple (issue #115):
    * its walls are baked noClimb (src/temples/kit.js) and only the climbs its design uses are marked climbable
    * (K.climbable), so the nearest of the two decides. A climb is held to it as it goes (src/player.js updateClimb).

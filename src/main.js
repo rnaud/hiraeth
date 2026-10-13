@@ -343,6 +343,7 @@ const t0 = performance.now();
 setStep('bake');
 const physics = await Physics.create(scene, level.ground.heightAt ? level.ground : null, slice, level.collision ?? {});
 physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the desert's cave, src/physics.js noClimbNear)
+physics.ladders = level.ladders ?? null;   // (ladders: climbed without spending stamina, src/physics.js onLadder, issue #252)
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
 setStep('level init');
 // distant detail, finished after the first frame (src/deferred.js; ?defer=0 does it all now, as before)
