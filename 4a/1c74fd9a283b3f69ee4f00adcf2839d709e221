@@ -1,0 +1,39 @@
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_689f1b13b2805c 20,137-156
+src/arena-guardians.js
+  s_9ca76055a220ed::t_c164762ab7a9b4 5,7,40
+src/characters/creature-legs.js
+  s_9ca76055a220ed::t_0bd80e4b1d1bb5 1-85
+src/characters/elder-creature.js
+  s_9ca76055a220ed::t_dc53b5a46ac4da 8,21,30,52
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_9a96cf15be6573 5,8-12,14-41,51,55-57,61-62,65-66,73,87,95-98,101
+src/motion-kit/gait.js
+  s_9ca76055a220ed::t_e3597794ef6517 85,90-92,186-194,217-220,225-229,314,316-319
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_917d982e7f8b94 165
+src/temples/desert.js
+  s_9ca76055a220ed::t_01555dd42df4ae 10,425-426
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_52e78abbb61f8f 1-104
+tests/keeper-guardian.test.js
+  s_9ca76055a220ed::t_f4ae2a4c2d6591 1-166
+tests/motion-guardians.test.js
+  s_9ca76055a220ed::t_8fe4330a78647a 5,14-16,18-30,34-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a1c74fd9a283b3f69ee4f00adcf2839d709e221",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
