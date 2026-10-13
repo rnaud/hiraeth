@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_7b9395871121c0 7-8
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_a341819f3c125a 134-177
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_15ba42442d4d35 385
+engine/menus.js
+  s_9ca76055a220ed::t_873eb016712586 163
+src/changelog.js
+  s_9ca76055a220ed::t_4b975a3e36f08f 23-28
+tests/android-bridge.test.js
+  s_9ca76055a220ed::t_cf5ac9bc027f6d 35-36
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_83d42ff487c9ed::t_d41141e22dc67f 34,40-43,59-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6c8e8675f9600814555fa512a7357e8ac1c6b4bd",
+  "prompts": {},
+  "sessions": {
+    "s_83d42ff487c9ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa1bd755f1956a4d0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
