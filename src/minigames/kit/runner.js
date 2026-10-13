@@ -53,12 +53,14 @@ export class MinigameRunner {
     document.body.classList.toggle('mg-onfoot', !this.drives);
     // a touch screen: only the buttons the game uses (kit/flow.js touchButtons)
     this.touchStyle = document.createElement('style');
-    this.touchStyle.textContent = touchButtonsCss(touchButtons(def));
+    this.touchStyle.textContent = touchButtonsCss(touchButtons(def), def.touchShow ?? []);
     document.head.appendChild(this.touchStyle);
     if (host.ship?.parked?.group) host.ship.parked.group.visible = false;   // (the ship waits out of the picture)
     this.ctx = this.makeCtx();
     this.session = def.start(this.ctx) ?? {};
-    this.showIntro();
+    // (def.direct: no start card, the run counts in at once: the pirates between worlds, issue #224; its controls are
+    // the small hints at the bottom right instead, def.hints)
+    if (def.direct) this.begin(); else this.showIntro();
     this.onKey = (e) => this.key(e);
     window.addEventListener('keydown', this.onKey, true);
   }
@@ -96,6 +98,8 @@ export class MinigameRunner {
       addScore(n = 1) { R.points += n; R.bumpScore(); },
       /** A line of the game's own in the score's box (the speed, the gates): null gives the box back to the score. */
       status(text) { R.statusText = text; },
+      /** A line under the controls' hints at the bottom right (def.hints; html), or null. */
+      hintNote(html) { R.hintNote = html ?? null; },
       /** Lives (null: none shown). */
       setLives(n, max = R.livesMax ?? n) { R.lives = n; R.livesMax = max; R.drawLives(); },
       flash: (text, kind = '', secs) => R.flash(text, kind, secs),
@@ -118,6 +122,7 @@ export class MinigameRunner {
   /** main.js, each frame the world runs: dt, and the merged controls (none while a card is up). */
   update(dt, controls) {
     if (this.phase === 'intro' && inputKind() !== this.introKind) this.showIntro();   // (a pad picked up: the card lists its buttons)
+    if (this.hintsEl) this.drawHints();
     const inp = readInput(controls, this.prevIn);
     this.prevIn = inp;
     if (this.phase === 'count') {
@@ -144,6 +149,23 @@ export class MinigameRunner {
     this.showCount(String(COUNT.from));
     this.sfx.tick(COUNT.from);
     this.hud.classList.remove('off');
+    // (no start card: what it said as the run begins, a game on the way somewhere: "On the way to Vael")
+    if (this.def.direct && this.host.links?.intro?.kicker) this.flash(this.host.links.intro.kicker, 'good', 2.2);
+  }
+  /**
+   * The game's controls as small hints at the bottom right while it runs (def.hints: { pad, keys, touch } rows as
+   * def.controls', in Xbox / PlayStation form, drawn for the input in hand: src/prompt-keys.js, native-pad.js), and a
+   * line of the game's own under them (ctx.hintNote: the missiles left).
+   */
+  drawHints() {
+    const kind = inputKind(), live = ['count', 'play'].includes(this.phase) && !this.paused;
+    this.hintsEl.classList.toggle('off', !live);
+    const sig = `${kind}|${this.hintNote ?? ''}`;
+    if (sig === this._hintSig) return;
+    this._hintSig = sig;
+    const keys = (x) => keyText(h(x), { kind, html: true, teach: true });
+    const rows = controlsFor({ controls: this.def.hints }, kind).map(([k, v]) => `<dt>${keys(k)}</dt><dd>${keys(v)}</dd>`).join('');
+    this.hintsEl.innerHTML = `<dl>${rows}</dl>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
   }
 
   finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0 } = {}) {
@@ -297,7 +319,7 @@ export class MinigameRunner {
     el.innerHTML = `<canvas class="mg-speed"></canvas>
       <div class="mg-hud off"><div class="mg-lives"></div><div class="mg-box mg-timer"></div><div class="mg-box mg-score"></div></div>
       <button class="mg-pause" type="button" aria-label="Pause">❚❚</button>
-      <div class="mg-count"></div><div class="mg-flash"></div>
+      <div class="mg-count"></div><div class="mg-flash"></div>${this.def.hints ? '<div class="mg-hints off"></div>' : ''}
       <div class="mg-card" role="dialog"><div class="sheet"></div></div>`;
     document.body.appendChild(el);
     this.hud = el.querySelector('.mg-hud');
@@ -309,6 +331,7 @@ export class MinigameRunner {
     this.card = el.querySelector('.mg-card');
     this.sheet = el.querySelector('.sheet');
     this.speedCv = el.querySelector('canvas.mg-speed');
+    this.hintsEl = el.querySelector('.mg-hints');
     this.card.addEventListener('click', (e) => {
       const o = e.target.closest('button[data-opt]');
       if (o) {

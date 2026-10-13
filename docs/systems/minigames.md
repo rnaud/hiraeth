@@ -466,12 +466,18 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
 
 - **The rail** (`railPoint(s, u, v)`): the ship flies at `FLY.speed` (42 m/s) along a long gentle wander down -z
   (slopes under 0.3: `railX`, `railY`); it moves only across it, `u` right and `v` up within a 13 × 7.5 m box,
-  steered as a plane is (pushing up dives, as in Star Fox 64 and on the jets, and the controls on the card say so:
-  `pirateControls(pitch)`). The start card's **Push up to: Dive / Climb** choice (`options.pitch`) is offered only once
-  the pirates have been beaten anywhere (the save's `minigame.pirates.beaten`; v1.59, issue #206: "don't let me switch
-  controls at first"): the kit's option `when(state)` (`kit/flow.js optionOffered`) hides it until then. Until then the
-  game's own jets setting decides (`piratePitch(ctx)`, v1.60, issue #230: Settings' `invertFlight` on, push up climbs,
-  whatever was kept), and once offered it is the card's default until a choice is made. Everything that flies with
+  steered as a plane is (pushing up dives, as in Star Fox 64 and on the jets, and the hints say so:
+  `pirateHints(pitch)`, `pirateControls(pitch)` the long form). **No start card** (v1.64, issue #224: "we can skip the
+  start screen"): the game is `direct` (the runner counts 3, 2, 1 in at once after the take-off, and flashes "On the way
+  to …" over it on the way to a world) and its controls are `hints`, short rows in Xbox / PlayStation form drawn small
+  at the bottom right while it runs (the runner's `.mg-hints`, through `keyText`, so a handheld's own names show:
+  src/native-pad.js), the missiles left under them (`ctx.hintNote`). The **pitch switch** is a setting now, since there is
+  no card to hold it: **Settings → Game → "Chime pirates: push the stick up to"** (`piratePitch`: As the jets' setting,
+  Dive, Climb), its row hidden until the pirates have been beaten anywhere (the save's `minigame.pirates.beaten`; v1.59,
+  issue #206: "don't let me switch controls at first"; src/ui.js `data-pirates`, main.js `piratesBeaten`). Until then
+  the game's own jets setting decides (`piratePitch(ctx)`, v1.60, issue #230: Settings' `invertFlight` on, push up
+  climbs, whatever was kept); once beaten, the setting, and a choice kept from the old start card if the setting is
+  left as the jets'. Everything that flies with
   the ship (the pirates, their shots, the bolts) is kept relative to it (`ds` ahead); the rocks, the mines and the
   repair rings hang still in space at an absolute `s`. Pure: `runStep(S, input, dt)` returns the step's events
   (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `checkpoint`, `win`, `dead`, …), which the game draws.
@@ -495,6 +501,17 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶): one quick whole turn
   (0.45 s, eased out so it snaps), a short shove aside, shots turned away while it spins. Scores: `POINTS`; a pip
   left at the end is worth 50.
+- **Missiles** (v1.64, issue #224: "add missiles on top of normal lasers"; `FLY.missile`): four a run on their own
+  button (**LT / L2**, F, the touch ◇), a teal ring gives one back (up to four), a checkpoint fills the rack. A press
+  looses one at what lies nearest the reticle in a cone twice the charge's (`findLock(S, cone)`; with nothing there it
+  flies straight on): it drops off the ship, its motor lights and it speeds up (55 to 115 m/s) turning after its target,
+  and what it meets takes 14 (a raider or a gun pod's chunk in one) and a splash of 4 round it, their shots there gone.
+  Feedback: a teal diamond round what a missile would lock now (while one is left), a hiss and a whine and a flare under
+  the ship as it goes, a pale body with a coral head and a flame trailing smoke, a burst and the reticle's gold mark on a
+  kill, "No missiles left" and a click when the rack is empty, "Missile +1" at a ring. **Balance**: a missile's kill is
+  worth `MISSILE_POINTS` (three quarters) of its points, so a run's total and its chimes stay where the bolts left them:
+  the pilot scores 1,619 on average with them against 1,642 without (80–81 chimes against 82; `tests/pirates.test.js`
+  holds it within 4 %).
 - **The reticle** (v1.59, issue #206: "the two boxes are confusing"): one line of fire, `aimAt` (where the bolts
   will be), drawn as a broken ink ring 26 m down it and a small diamond 80 m down it (`RETICLE`). When the line runs
   through a pirate or a live part of the captain (`aimTarget`: within its body and 0.6 m) the ring tightens and goes
@@ -540,11 +557,12 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   (index.html). On that page main.js marks `ambush.<world>` 'met' at once (a crash or a closed tab never sends you
   round it again: the one way past it left, and not one the game offers), 'won' on a win (`host.onResult`; saves from
   before v1.45 may hold 'skipped'); the way out is the win's, `?level=<world>&via=ship`. The runner's `host.links`
-  (`transitLinks`): the start card says where you are going and the ship's warning (`links.intro`), `mandatory` (above),
+  (`transitLinks`): the count-in flashes where you are going (`links.intro.kicker`; the ship's warning is said in the run, its comms), `mandatory` (above),
   a win's main button **Fly on to <world>** (`links.win`).
 - Tests: `tests/pirates.test.js` (the rail, the rocks, the pilot `botInput` winning at 120, 60, 30 and 20 fps in under
   three quarters of the old run's time, an idle ship lost, the charge's lock and burst, the roll, the rings, the
-  captain breaking off, the controls and the pitch choice (not offered until beaten), the feel against Star Fox below,
+  captain breaking off, the controls and the pitch setting (not offered until beaten), no start card and the hints,
+  the missiles (the lock, the chase, the rack, the ring, the totals with and without), the feel against Star Fox below,
   the points and the tally, a pip lost (the flash, the shake, the pips, the sound), the reticle's tightening and hit
   mark, the gunship, the checkpoints and the mercy; a session is run on a recording host in node), `tests/ambush.test.js` (which trips, the pages, the cards' buttons with no skip however
   often it is lost, the lines' tones, the wiring and the chimes banked); the playthrough wins each ambush on the way

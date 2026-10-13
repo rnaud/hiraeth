@@ -1387,6 +1387,7 @@ const menu = new SettingsMenu(settings, {
   onPhoto: () => setPhoto(true),   // (photo mode from the menu: the only way on a touch screen; View + D-pad ↑ on a pad, P)
   onDebug: () => showPicker(true),
   hasJets: () => items.has('jetpack'),   // (the jets' pitch row: the debug jets only, issue #122)
+  piratesBeaten: () => !!game.flag('minigame.pirates.beaten'),   // (the chime pirates' pitch row: once beaten, issue #224)
   onQuit: () => quitToTitle(),
   onBeforeRestart: saveBeforeRestart,
   // where you are, at the top of the Start menu

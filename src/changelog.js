@@ -72,6 +72,11 @@ export const CHANGELOG = [
     // host; docs/systems/minigames.md "The hosts"; issue #248)
     { text: 'The games, trials and makers’ runs out in the worlds no longer start from a bare sign. Someone of the place stands by each sign, tells you in a line or two what it is, in that world’s own story, and asks if you want to play: Play or Not now. A makers’ run’s post and the lagoon’s race buoy are read instead.',
       see: 'In the Desert, walk to the pilgrims’ small fire: Hamid stands by the drum circle’s sign. “Ask Hamid about the drum circle”, hear him out, then choose Play or Not now.' },
+    // the pirates between worlds: no start card (the runner's def.direct), the controls as hints at the bottom right
+    // (def.hints), missiles on LT / L2 (FLY.missile, MISSILE_POINTS), the pitch in Settings → Game once beaten
+    // (src/minigames/pirates.js, pirates-rules.js, kit/runner.js, src/ui.js; docs/systems/minigames.md; issue #224)
+    { text: 'The chime pirates no longer open on a start screen: after the take-off the fight counts in at once, its buttons shown small at the bottom right. Your ship carries four missiles too, on LT / L2 (F on the keyboard): each locks the pirate nearest your aim, marked with a teal diamond, and chases it down; a repair ring gives one back. Once you have beaten the pirates, which way pushing up flies is in Settings, under Game.',
+      see: 'Fly to a world you have never visited: the pirates’ fight starts straight after the take-off, the controls at the bottom right with your missiles under them. Press LT / L2 (or F) with a raider in the teal diamond.' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

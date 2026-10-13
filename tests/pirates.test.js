@@ -2,10 +2,10 @@
 // run played by the pilot at any frame rate, the charged shot's lock and burst, the roll, the repair rings, the
 // captain breaking off, the controls; the game's definition and its shapes.
 import test from 'node:test';
-import fs from 'node:fs';
+import fs, { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { FLY, BOSS, SCRIPT, KINDS, POINTS, CHIME_RATE, chimesFor, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt, aimTarget } from '../src/minigames/pirates-rules.js';
+import { FLY, BOSS, SCRIPT, KINDS, POINTS, MISSILE_POINTS, CHIME_RATE, chimesFor, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt, aimTarget } from '../src/minigames/pirates-rules.js';
 import pirates, { piratePitch, pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT } from '../src/minigames/pirates.js';
 import { checkGame } from '../src/minigames/index.js';
 import { optionValue, optionOffered } from '../src/minigames/kit/flow.js';
@@ -173,12 +173,12 @@ test('the captain: the bridge armoured until both guns are down; left alone, the
   assert.equal(core.hp, core.hp0);
 });
 
-test('the controls: the stick as the jets fly, fire from A / ×, Space or the touch ✺, the roll from B, LB, X, Shift or ↶', () => {
+test('the controls: the stick as the jets fly, fire from A / ×, Space or the touch ✺, the roll from B, LB, X, Shift or ↶, a missile from LT, F or the touch ◇', () => {
   assert.equal(pirateInput({ y: 1 }).y, -1, 'forward dives');
-  assert.equal(pirateInput({ y: 1 }, {}, { climb: true }).y, 1, 'or climbs, as chosen on the start card');
-  const pitch = pirates.options.find((o) => o.id === 'pitch');
-  assert.deepEqual(pitch.choices.map(([v]) => v), ['dive', 'climb']);
-  assert.equal(pitch.default, 'dive', 'dives by default, as in Star Fox 64 and on the jets, and the card says so');
+  assert.equal(pirateInput({ y: 1 }, {}, { climb: true }).y, 1, 'or climbs, as chosen in Settings once beaten');
+  assert.equal(pirates.options, undefined, 'no start card (issue #224): no choice on it');
+  for (const raw of [{ PadAim: true }, { KeyF: true }, { TouchGuard: true }]) assert.equal(pirateInput({}, raw).missile, true);
+  assert.equal(pirateInput({}).missile, false);
   assert.equal(pirateInput({ jump: true }).fire, true);
   assert.equal(pirateInput({}, { TouchFire: true }).fire, true);
   assert.equal(pirateInput({ trigger: 1 }).auto, true);
@@ -326,14 +326,21 @@ test('the reticle: one line of fire; it tightens on what that line runs through 
   assert.ok(sess.feedback.hitT > 0, 'the hit mark');
 });
 
-test('the controls: push up to dive by default; the switch is not offered at first, only once the pirates are beaten (issue #206)', () => {
-  const pitch = pirates.options.find((o) => o.id === 'pitch');
+test('the controls: push up to dive by default; the switch is not offered at first, only once the pirates are beaten, in Settings (issue #206, #224)', () => {
   const fresh = { flag: (k) => ({ 'minigame.pirates.opt.pitch': 'climb' })[k] };
-  assert.equal(optionOffered(pitch, fresh), false, 'not on the first start card');
-  assert.equal(optionValue(pirates, fresh, 'pitch'), 'dive', 'a climb kept from before is not used until it is offered');
-  const beaten = { flag: (k) => ({ 'minigame.pirates.opt.pitch': 'climb', [BEATEN]: true })[k] };
-  assert.equal(optionOffered(pitch, beaten), true);
-  assert.equal(optionValue(pirates, beaten, 'pitch'), 'climb');
+  assert.equal(piratePitch({ settings: { piratePitch: 'climb' }, state: fresh }), 'dive', 'not beaten: neither the setting nor a climb kept from before');
+  const beaten = { flag: (k) => ({ [BEATEN]: true })[k] };
+  assert.equal(piratePitch({ settings: { piratePitch: 'climb' }, state: beaten }), 'climb', 'beaten: Settings → Game, "Chime pirates: push the stick up to"');
+  assert.equal(piratePitch({ settings: { piratePitch: 'auto', invertFlight: true }, state: beaten }), 'climb', '"as the jets\' setting"');
+  assert.equal(piratePitch({ settings: { piratePitch: 'dive', invertFlight: true }, state: beaten }), 'dive');
+  // the Settings row is there, hidden until beaten (src/ui.js data-pirates), with its words in English and French
+  const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
+  assert.match(ui, /set\.piratePitch'\), opts\('piratePitch', \['auto', 'dive', 'climb'\]\), ' data-pirates hidden'/);
+  assert.match(ui, /\[data-pirates\]'\)\) r\.hidden = !this\.piratesBeaten\(\)/);
+  for (const lang of ['en', 'fr']) {
+    const L = readFileSync(new URL(`../src/i18n/${lang}.js`, import.meta.url), 'utf8');
+    for (const k of ['set.piratePitch', 'set.piratePitch.auto', 'set.piratePitch.dive', 'set.piratePitch.climb']) assert.ok(L.includes(`'${k}'`), `${lang}: ${k}`);
+  }
   // the card says it, in Xbox / PlayStation form (src/native-pad.js rewrites them on Android)
   const C = pirateControls('dive');
   assert.match(C.pad[0][1], /push up to dive, pull back to climb/);
@@ -407,7 +414,13 @@ test('the game: a complete definition, its controls in Xbox / PlayStation form, 
   assert.deepEqual(checkGame(pirates), []);
   assert.equal(pirates.id, 'pirates');
   for (const [k] of pirates.controls.pad) assert.doesNotMatch(k, /\b(Space|Shift|Esc|Enter)\b/);
-  assert.deepEqual(pirates.touchButtons, ['fire', 'evade']);
+  assert.deepEqual(pirates.touchButtons, ['fire', 'evade', 'guard'], 'the missile on the ◇');
+  assert.deepEqual(pirates.touchShow, ['guard']);
+  // no start card (issue #224): it counts in at once, its controls as short hints at the bottom right, Xbox / PlayStation form
+  assert.equal(pirates.direct, true);
+  assert.ok(pirates.hints.pad.some(([k, v]) => k === 'LT / L2' && /missile/.test(v)) && pirates.hints.keys.some(([k]) => k === 'F'));
+  for (const [k] of pirates.hints.pad) assert.doesNotMatch(k, /\b(Space|Shift|Esc|Enter|F)\b/);
+  for (const [, v] of [...pirates.hints.pad, ...pirates.hints.keys]) assert.ok(v.length <= 22, `short: ${v}`);
   for (const [kind, parts] of Object.entries(pirateShapes())) {
     assert.ok(LOOK_SIZE[kind], `${kind} has a size`);
     for (const p of parts) {
@@ -454,4 +467,44 @@ test('the first flight follows the jets setting; Reduce motion or Camera shake a
   } finally { setMotion({ reduce: false, shake: 1 }); session(); }
   // the shake's size follows the slider
   assert.match(fs.readFileSync(new URL('../src/minigames/pirates.js', import.meta.url), 'utf8'), /const k = run\.shake \* run\.shake \* HURT\.amp \* shakeScale\(\);/);
+});
+
+// ------------------------------------------------------------------ the missiles (issue #224)
+test('a missile locks the pirate nearest the aim, chases it and downs a raider in one; four a run, a click when none is left', () => {
+  const S = empty();
+  const add = (kind, u, v, ds) => { const e = { id: S.nextId++, kind, path: 'parked', hp: KINDS[kind].hp, r: KINDS[kind].r, ds, u, v, age: 0, flash: 0, fireT: 99 }; S.foes.push(e); return e; };
+  const r = add('raider', 6, 2, 80);
+  const ev = [];
+  ev.push(...runStep(S, {}, 1 / 60));
+  assert.equal(S.ship.aim?.foe, r, 'the missile\'s mark on it (a wider cone than the charge\'s)');
+  ev.push(...runStep(S, { missile: true }, 1 / 60));
+  assert.ok(ev.some((e) => e.kind === 'missile' && e.locked), 'loosed, locked');
+  assert.equal(S.ship.missiles, FLY.missile.count - 1);
+  for (let t = 0; t < 2.5 && !r.dead; t += 1 / 60) ev.push(...runStep(S, {}, 1 / 60));
+  assert.ok(r.dead, 'it chases the raider down (6 hp: the bolts need six hits)');
+  const kill = ev.find((e) => e.kind === 'kill');
+  assert.equal(kill.by, 'missile');
+  assert.equal(kill.pts, Math.round(POINTS.raider * MISSILE_POINTS), 'a missile\'s kill is worth less: the totals stay');
+  assert.ok(ev.some((e) => e.kind === 'missileHit' && e.n === 1));
+  // held, it looses one; it must be let go for the next, and they run out
+  const T = empty();
+  let n = 0, dry = 0;
+  for (let i = 0; i < 40; i++) { for (const e of runStep(T, { missile: i % 2 === 0 }, 0.4)) { if (e.kind === 'missile') n++; if (e.kind === 'dry') dry++; } }
+  assert.equal(n, FLY.missile.count, 'four a run');
+  assert.ok(dry > 0, 'then a click: none left');
+  // a teal ring gives one back
+  T.rings.push({ s: T.s + 10, u: T.ship.u, v: T.ship.v, r: 3.4 });
+  const rev = [];
+  for (let t = 0; t < 0.5; t += 1 / 60) rev.push(...runStep(T, {}, 1 / 60));
+  assert.ok(rev.some((e) => e.kind === 'rearm') && T.ship.missiles === 1, 'a ring: a missile back');
+  // from a checkpoint, the rack is full again
+  assert.equal(newRun({ from: CHECKPOINTS[1] }).ship.missiles, FLY.missile.count);
+});
+
+test('the missiles keep the totals: the pilot with them scores within a few percent of the bolts alone, the chimes in the same range', () => {
+  const total = (missiles) => { let sum = 0, fired = 0; for (const to of ['incal', 'arzach', 'perdide', 'edena']) { const S = newRun({ seed: seedOf(to) }); while (!S.done && S.t < 200) fired += runStep(S, botInput(S, { missiles }), 1 / 60).filter((e) => e.kind === 'missile').length; assert.equal(S.done, 'won'); sum += S.score; } return { sum, fired }; };
+  const a = total(false), b = total(true);
+  assert.ok(b.fired >= 12, `the pilot looses its missiles (${b.fired})`);
+  assert.ok(Math.abs(b.sum - a.sum) / a.sum < 0.04, `${b.sum} with the missiles against ${a.sum} without`);
+  assert.ok(Math.abs(chimesFor(b.sum / 4) - chimesFor(a.sum / 4)) <= 3, 'the chimes a run within three');
 });

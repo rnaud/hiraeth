@@ -102,3 +102,12 @@ body.minigame:has(#minigame .mg-card.open) #touch { visibility: hidden; }
 /* a game on the way somewhere (host.links.intro: the pirates between worlds): what is said as it begins */
 #minigame .sheet .lead { padding: 7px 10px; background: #2b211f; color: #f7ecd2; transform: none; font-size: 1em; }
 #minigame .sheet .lead b { display: block; font-size: 0.77em; letter-spacing: 0.16em; text-transform: uppercase; color: #9ff2e6; }
+
+/* the controls as small hints at the bottom right while a game runs (def.hints: the pirates between worlds, issue #224) */
+#minigame .mg-hints { position: absolute; right: 16px; bottom: 16px; padding: 6px 10px 7px; background: rgba(247, 236, 210, 0.86); border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; font: 600 12px var(--face); color: #2b211f; transition: opacity .3s; pointer-events: none; max-width: 46vw; }
+#minigame .mg-hints.off { opacity: 0; }
+#minigame .mg-hints dl { display: grid; grid-template-columns: auto auto; gap: 2px 9px; margin: 0; align-items: center; }
+#minigame .mg-hints dt { font-weight: 800; text-align: right; white-space: nowrap; }
+#minigame .mg-hints dd { margin: 0; white-space: nowrap; }
+#minigame .mg-hints p { margin: 5px 0 0; text-align: right; font-weight: 800; letter-spacing: 0.04em; }
+body.touch #minigame .mg-hints { display: none; }

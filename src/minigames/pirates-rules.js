@@ -8,8 +8,8 @@
 // repair rings) has an absolute s.
 //
 //   const S = newRun({ seed, heat, gentle });
-//   const ev = runStep(S, input, dt);        // input: { x, y, fire, fireHeld, auto, roll } (pirateInput below)
-//   ev: [{ kind: 'shot' | 'charged' | 'hit' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'win' | 'dead', … }]
+//   const ev = runStep(S, input, dt);        // input: { x, y, fire, fireHeld, auto, roll, missile } (pirateInput below)
+//   ev: [{ kind: 'shot' | 'charged' | 'hit' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'missile' | 'missileHit' | 'dry' | 'win' | 'dead', … }]
 //   newRun({ from, fails, score }): a lost run again from a checkpoint (CHECKPOINTS), kinder each time (MERCY)
 //
 // SCRIPT is the run, by the seconds since GO: the waves, the repair rings, the lines, the captain.
@@ -33,6 +33,10 @@ export const FLY = {
   bolt: { speed: 170, life: 1.25, every: 0.12, auto: 0.2, r: 0.7, spread: 0.9, lead: 0.5 },   // the twin bolts; `lead`: how much of the ship's sideways speed they keep
   charge: { after: 0.28, full: 0.7, speed: 120, turn: 6, life: 2.4, blast: 9, dmg: 12 },   // hold to charge (s), the homing shot, its blast (m) and its harm
   roll: { dur: 0.45, cool: 0.5, push: 14 },   // the barrel roll: s, s before the next, m/s of sideways shove
+  // the missiles (issue #224): a few a run on their own button, each locking the pirate nearest the reticle (a wider
+  // cone than the charge's) and chasing it, slower off the rail than a bolt but turning after it; a hit does `dmg` to
+  // it and `splash` round it. `count` a run (a repair ring gives one back, up to `count`); `cool` s between two
+  missile: { count: 4, cool: 0.6, speed: 55, top: 115, accel: 140, turn: 4.5, life: 3.4, dmg: 14, splash: 5, splashDmg: 4, cone: 0.26, r: 1.6 },
   lock: { near: 12, far: 230, cone: 0.11 },     // a charged shot locks what lies within that slope of the reticle, between near and far (m ahead)
   enemyShot: { speed: 50, r: 0.9, life: 4.5 },
 };
@@ -97,6 +101,11 @@ export const CHECKPOINTS = [0, ...SCRIPT.filter((e) => e.checkpoint).map((e) => 
 export const BELTS = [[175, 875, 3.2], [1190, 1890, 4.6], [2100, 2450, 2.2], [2590, 2940, 3]];
 /** What a kill is worth. */
 export const POINTS = { skiff: 10, raider: 30, hauler: 60, mine: 5, rock: 5, turret: 150, core: 500, ring: 20, hull: 50, multi: 25 };
+/**
+ * A missile's kill is worth this share of its points (issue #224: the missiles make the big pirates quick to down, and
+ * the run's total, and the chimes it makes, stay where the bolts alone left them: tests/pirates.test.js).
+ */
+export const MISSILE_POINTS = 0.75;
 /** Each kind's health, size (m) and how often it fires (s, 0: never). */
 export const KINDS = {
   skiff: { hp: 1, r: 2.6, fire: 3.4 },
@@ -158,9 +167,10 @@ export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0
   const next = from > 0 ? script.findIndex((e) => e.t > from) : 0;
   return {
     t: from, s: from * F.speed, F, rand: rng(seed * 7 + 3 + Math.round(from)),
-    ship: { u: 0, v: -1, vu: 0, vv: 0, hull, hull0: hull, iframe: from > 0 ? 1.5 : 0, roll: 0, rollDir: 1, rollCool: 0, heldT: 0, charge: 0, lock: null, boltT: 0, side: 1, bank: 0, aimU: 0, aimV: 0 },
+    ship: { u: 0, v: -1, vu: 0, vv: 0, hull, hull0: hull, iframe: from > 0 ? 1.5 : 0, roll: 0, rollDir: 1, rollCool: 0, heldT: 0, charge: 0, lock: null, boltT: 0, side: 1, bank: 0, aimU: 0, aimV: 0,
+      missiles: F.missile.count, missileCool: 0, aim: null },   // (aim: what a missile would lock now, for the HUD's bracket)
     rocks: courseRocks(seed), rockI: 0,
-    foes: [], shots: [], bolts: [], rings: [],
+    foes: [], shots: [], bolts: [], rings: [], missiles: [],
     script, next: next < 0 ? script.length : next, nextId: 1,
     boss: null, score, kills: 0, hits: 0, fired: 0, done: null,
     from, checkpoint: from, scoreAt: score, safe: fails >= MERCY.safe,   // (scoreAt: the points at the last checkpoint, kept for a retry)
@@ -176,6 +186,8 @@ export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0
 export function pirateInput(inp = {}, raw = {}, { climb = false } = {}) {
   const fire = !!(inp.jump || raw.TouchFire);
   return {
+    // (a missile: LT / L2, F, or the touch ◇: issue #224)
+    missile: !!(raw.PadAim || raw.KeyF || raw.TouchGuard),
     x: inp.x ?? 0,
     y: (climb ? 1 : -1) * (inp.y ?? 0),
     fire,
@@ -291,6 +303,21 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   P.fireHeld = !!inp.fire;
   if (P.lock && !targetAlive(S, P.lock)) P.lock = null;
 
+  // a missile (issue #224): a press looses one at what lies nearest the reticle (or straight on, with nothing there)
+  const M = F.missile;
+  P.missileCool = Math.max(0, P.missileCool - dt);
+  P.aim = P.missiles > 0 ? findLock(S, M.cone) : null;
+  if (inp.missile && !P.missileHeld) {
+    if (P.missiles <= 0) ev.push({ kind: 'dry' });
+    else if (P.missileCool <= 0) {
+      P.missiles--; P.missileCool = M.cool;
+      const target = P.aim;
+      S.missiles.push({ ds: 1.5, u: P.u, v: P.v - 0.6, vu: P.vu * 0.5, vv: -6, vds: M.speed, life: M.life, target, age: 0 });
+      ev.push({ kind: 'missile', locked: !!target, left: P.missiles });
+    }
+  }
+  P.missileHeld = !!inp.missile;
+
   // ---------------------------------------------------------------- the pirates
   for (const e of S.foes) moveFoe(S, e, dt, ev);
   if (S.boss) moveBoss(S, dt, ev);
@@ -313,6 +340,25 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
     if (b.life <= 0) { if (b.charged) blast(S, b, ev); continue; }
     boltHits(S, b, ds0, ev);
   }
+
+  // the missiles: they speed up and turn after their target; what they meet takes the hit
+  for (const m of S.missiles) {
+    const ds0 = m.ds;
+    m.age += dt;
+    const sp = Math.min(M.top, Math.hypot(m.vds, m.vu, m.vv) + M.accel * dt);
+    const at = m.target ? targetPos(S, m.target) : null;
+    if (!at && m.target) m.target = null;
+    let dx = 1, du = 0, dv = 0;
+    if (at) { dx = at.ds - m.ds; du = at.u - m.u; dv = at.v - m.v; }
+    const d = Math.hypot(dx, du, dv) || 1, k = Math.min(1, M.turn * dt * (m.age < 0.15 ? 0.3 : 1));   // (a moment's drop off the rail before it turns)
+    m.vds += (dx / d * sp - m.vds) * k; m.vu += (du / d * sp - m.vu) * k; m.vv += (dv / d * sp - m.vv) * k;
+    const n = Math.hypot(m.vds, m.vu, m.vv) || 1;
+    m.vds *= sp / n; m.vu *= sp / n; m.vv *= sp / n;
+    m.ds += m.vds * dt; m.u += m.vu * dt; m.v += m.vv * dt; m.life -= dt;
+    if (m.life <= 0) { ev.push({ kind: 'missileHit', at: { ds: m.ds, u: m.u, v: m.v }, n: 0 }); continue; }
+    missileHits(S, m, ds0, ev);
+  }
+  S.missiles = S.missiles.filter((m) => m.life > 0);
 
   // the rocks, the mines' and the rings' still places, the ship's knocks
   rocksAndRings(S, ev);
@@ -338,9 +384,9 @@ function targetPos(S, t) {
   if (t.part) return partAt(S.boss, t.part);
   return t.foe;
 }
-/** What a charged shot locks now: the pirate nearest the aim, within FLY.lock's cone (or null). */
-export function findLock(S) {
-  const P = S.ship, L = S.F.lock;
+/** What a charged shot locks now: the pirate nearest the aim, within FLY.lock's cone (or a missile's wider `cone`), or null. */
+export function findLock(S, cone = S.F.lock.cone) {
+  const P = S.ship, L = { ...S.F.lock, cone };
   let best = null, bd = Infinity;
   const consider = (t, at, r) => {
     if (at.ds < L.near || at.ds > L.far) return;
@@ -481,6 +527,7 @@ function moveBoss(S, dt, ev) {
 const easeOut = (k) => 1 - Math.pow(1 - clamp(k, 0, 1), 3);
 
 function damage(S, target, dmg, ev, by = 'bolt') {
+  const share = by === 'missile' ? MISSILE_POINTS : 1;   // (a missile's kill is worth less: the totals stay as they were)
   if (target.part) {
     const B = S.boss, p = target.part;
     if (p.gone || B.dying) return false;
@@ -489,7 +536,7 @@ function damage(S, target, dmg, ev, by = 'bolt') {
     if (p.hp > 0) ev.push({ kind: 'hit', by, part: p.id });
     if (p.hp <= 0) {
       p.gone = true;
-      const pts = p.id === 'core' ? POINTS.core : POINTS.turret;
+      const pts = Math.round((p.id === 'core' ? POINTS.core : POINTS.turret) * share);
       S.score += pts; S.kills++;
       ev.push({ kind: 'part', id: p.id, at: partAt(B, p), pts });
       if (p.id === 'core') { B.dying = 0.001; ev.push({ kind: 'sunk', at: partAt(B, p) }); }
@@ -503,8 +550,9 @@ function damage(S, target, dmg, ev, by = 'bolt') {
   if (e.hp > 0) ev.push({ kind: 'hit', by, foe: e.kind });
   if (e.hp <= 0) {
     e.dead = true;
-    S.score += POINTS[e.kind] ?? 0; S.kills++;
-    ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts: POINTS[e.kind] ?? 0, by });
+    const pts = Math.round((POINTS[e.kind] ?? 0) * share);
+    S.score += pts; S.kills++;
+    ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts, by });
   }
   return true;
 }
@@ -548,6 +596,30 @@ function boltHits(S, b, ds0, ev) {
       return;
     }
   }
+}
+
+/** A missile, gone from ds0 to m.ds this step: the first pirate, part or rock it meets takes it, a splash round it. */
+function missileHits(S, m, ds0, ev) {
+  const M = S.F.missile;
+  let hit = null;
+  if (S.boss && !S.boss.dying && S.boss.age > 1) for (const p of S.boss.parts) if (!p.gone && sweep(m, ds0, partAt(S.boss, p), p.r + M.r)) { hit = { part: p }; break; }
+  if (!hit) for (const e of S.foes) if (!e.dead && !e.hidden && sweep(m, ds0, e, e.r + M.r)) { hit = { foe: e }; break; }
+  if (!hit) {
+    for (let i = S.rockI; i < S.rocks.length; i++) {
+      const r = S.rocks[i];
+      if (r.s - S.s > m.ds + 10) break;
+      if (!r.gone && sweep(m, ds0, { ds: r.s - S.s, u: r.u, v: r.v }, r.r)) { m.life = 0; ev.push({ kind: 'missileHit', at: { ds: m.ds, u: m.u, v: m.v }, n: 0, rock: true }); return; }
+    }
+    return;
+  }
+  m.life = 0;
+  const at = { ds: m.ds, u: m.u, v: m.v }, k = S.kills;
+  damage(S, hit, M.dmg, ev, 'missile');
+  // the splash: the other pirates close by take a little, their shots there are gone
+  const near = (p, r) => Math.hypot(p.ds - at.ds, p.u - at.u, p.v - at.v) < M.splash + r;
+  for (const e of S.foes) if (e !== hit.foe && !e.dead && !e.hidden && near(e, e.r)) damage(S, { foe: e }, M.splashDmg, ev, 'missile');
+  for (const s of S.shots) if (near(s, 0)) s.life = 0;
+  ev.push({ kind: 'missileHit', at, n: S.kills - k, part: hit.part?.id ?? null });
 }
 
 /** The charged shot bursts: harm to everything within its blast, their shots too; a bonus for each kill past the first. */
@@ -600,6 +672,7 @@ function rocksAndRings(S, ev) {
     if (ds < 0.5 && ds > -2.5) {
       g.taken = true;
       if (Math.hypot(P.u - g.u, P.v - g.v) < g.r + 0.4) {
+        if (P.missiles < S.F.missile.count) { P.missiles++; ev.push({ kind: 'rearm', missiles: P.missiles }); }   // (and a missile back: issue #224)
         if (P.hull < (P.hull0 ?? S.F.hull)) { P.hull++; ev.push({ kind: 'repair', hull: P.hull }); }
         else { S.score += POINTS.ring; ev.push({ kind: 'repair', hull: P.hull, pts: POINTS.ring }); }
       } else g.missed = true;
@@ -631,9 +704,10 @@ function shipHits(S, ev) {
 // ------------------------------------------------------------------ a pilot for the tests and the screenshots
 /**
  * A fair pilot: it steers for the nearest pirate ahead (or the captain's next part), slides away from a rock about to
- * be hit, rolls when a shot is close, streams bolts on RT and charges a shot now and then at a group.
+ * be hit, rolls when a shot is close, streams bolts on RT, and looses a missile at a big one in its cone
+ * (`missiles: false`: the bolts alone, as before issue #224).
  */
-export function botInput(S) {
+export function botInput(S, { missiles = true } = {}) {
   const P = S.ship;
   let tu = 0, tv = -1;
   let best = null, bd = Infinity;
@@ -667,5 +741,8 @@ export function botInput(S) {
   // a shot about to land: roll
   const close = S.shots.some((b) => b.ds > 0 && b.ds < 12 && Math.hypot(b.u - P.u, b.v - P.v) < 2.6);
   const x = clamp((tu - from.u) / 4, -1, 1), y = clamp((tv - from.v) / 3, -1, 1);
-  return { x, y, fire: false, auto: true, roll: close };
+  // a missile at a big one (a raider, a hauler, the captain's parts) when one is in its cone
+  const big = P.aim && (P.aim.part || P.aim.foe.kind === 'raider' || P.aim.foe.kind === 'hauler');
+  const missile = missiles && !!big && !P.missileHeld && P.missileCool <= 0 && P.missiles > 0;
+  return { x, y, fire: false, auto: true, roll: close, missile };
 }

@@ -46,6 +46,7 @@ const DEFAULTS = {
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
   enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
+  piratePitch: 'auto',  // the chime pirates' stick (src/minigames/pirates.js piratePitch): auto (as the jets' setting) | dive | climb; shown once beaten (issue #224)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
   hitboxes: false,      // the fight's hitbox overlay (F4, the world debug menu (L3 + R3), the dev menu, the Arena's board: src/hitboxes.js)
@@ -201,9 +202,10 @@ export const MENU_PAGES = ['settings', 'controls'];
 const MENU_ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
 
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, piratesBeaten = () => false, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.hasJets = hasJets;   // (the jets' pitch row: shown only once the jets are owned, a debug item since v1.38)
+    this.piratesBeaten = piratesBeaten;   // (the chime pirates' pitch row: shown only once they have been beaten, issue #224)
     this.el = el;
     this.where = where;
     this.title = title;
@@ -224,6 +226,8 @@ export class SettingsMenu {
       for (const b of el.querySelectorAll('[data-dev]')) b.hidden = !dev;
       // the jets' pitch: only where the jets can be had (the debug toggles give them; issue #122)
       for (const r of el.querySelectorAll('[data-jets]')) r.hidden = !this.hasJets();
+      // the chime pirates' pitch: only once they have been beaten (issue #206: "don't let me switch controls at first")
+      for (const r of el.querySelectorAll('[data-pirates]')) r.hidden = !this.piratesBeaten();
       for (const c of el.querySelectorAll('[data-k]')) {
         const k = c.dataset.k;
         const v = k === 'mute' ? sound?.muted : k === 'reduceMotion' ? reducedMotion(this.s) : this.s[k];
@@ -358,6 +362,7 @@ export class SettingsMenu {
           ${row(t('set.mute'), `<input data-k="mute" type="checkbox">`)}
           <h2>${t('set.group.game')}</h2>
           ${row(t('set.enemies'), opts('enemies', ['normal', 'gentle', 'off']))}
+          ${row(t('set.piratePitch'), opts('piratePitch', ['auto', 'dive', 'climb']), ' data-pirates hidden')}
           ${row(t('set.hints'), opts('hints', HINT_LEVELS))}
           ${row(t('set.droneHints'), opts('droneHints', DRONE_HINTS))}
           ${game ? `<div class="danger">

@@ -22,10 +22,14 @@ export function controlsFor(def, kind = 'keys') {
 export function touchButtons(def) {
   return def?.touchButtons ?? (def?.drives === false ? null : ['jump', 'run']);
 }
-/** The CSS that hides the others ('' : none hidden). */
-export function touchButtonsCss(keep) {
+/**
+ * The CSS that hides the others ('' : none hidden); `show`: kept ones shown even where the world would hide them (the
+ * pirates' missile on the guard's ◇, whether the guard is had or not: issue #224).
+ */
+export function touchButtonsCss(keep, show = []) {
   if (!keep) return '';
-  return `body.minigame #touch button${keep.map((k) => `:not(.b-${k})`).join('')} { display: none !important; }`;
+  const hide = `body.minigame #touch button${keep.map((k) => `:not(.b-${k})`).join('')} { display: none !important; }`;
+  return show.length ? `${hide} ${show.map((k) => `body.minigame #touch .b-${k}`).join(', ')} { display: inline-block !important; }` : hide;
 }
 
 /** Where Quit goes: the world the game was entered from (its saved place), else the worlds list. */

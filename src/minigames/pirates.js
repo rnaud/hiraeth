@@ -381,6 +381,10 @@ function shooterSounds(sound) {
     hull() { if (!on()) return; const t = now(); sound.burst(t, { dur: 0.28, type: 'bandpass', freq: 900, q: 0.6, vol: 0.16, rate: 0.8 }); sound.sweep(t, 160, 48, 0.32, 0.12, 'triangle'); sound.pluck(196, t + 0.05, 0.08, 'square', sound.fx); },
     /** A bolt that tells (the reticle's hit mark): a dry tick. */
     hit() { if (on()) sound.pluck(1568, now(), 0.025, 'triangle', sound.fx); },
+    /** A missile loosed (issue #224): a hiss down and a rising whine as its motor lights. */
+    missile() { if (!on()) return; const t = now(); sound.burst(t, { dur: 0.35, type: 'highpass', freq: 1800, q: 0.6, vol: 0.07, rate: 1.2 }); sound.sweep(t + 0.05, 260, 900, 0.45, 0.03, 'sawtooth'); },
+    /** None left: a dry click. */
+    dry() { if (on()) sound.pluck(220, now(), 0.04, 'square', sound.fx); },
     /** The tally: a chime as the points become chimes. */
     tally(k = 0) { if (on()) sound.pluck(1047 * Math.pow(1.122, k % 6), now(), 0.06, 'sine', sound.fx); },
   };
@@ -402,6 +406,8 @@ body.touch #minigame .pirates-comms { bottom: auto; top: 64px; }
 #minigame .pirates-tally .ch { color: #3f8f88; }
 #minigame .pirates-tally i { font-style: normal; opacity: .6; }
 #minigame .pirates-tally small { grid-column: 1 / -1; font-weight: 400; opacity: .7; }
+#minigame .mg-hints .pirates-missiles i { display: inline-block; width: 7px; height: 14px; margin-left: 3px; border: 2px solid #2b211f; border-radius: 4px 4px 1px 1px; background: #ef9479; vertical-align: -2px; }
+#minigame .mg-hints .pirates-missiles i.gone { background: transparent; opacity: .45; }
 `;
 
 function makeHud(root) {
@@ -528,6 +534,17 @@ function start(ctx) {
         case 'roll': sfx.whoosh(); break;
         case 'lock': snd.lock(); break;
         case 'charged': snd.charge(); break;
+        // the missiles (issue #224): loosed with a hiss and a flare under the ship, burst where they hit, a click when none is left
+        case 'missile': {
+          snd.missile(); ctx.kick(0.25);
+          const at = world(1.5, S.ship.u, S.ship.v - 0.6, V());
+          spark(at, 6, '#ffd27a'); smoke.emit(at, V(0, -3, -FLY.speed * 0.4), 1.1, 0.8, '#8a7a9a');
+          if (!e.locked) ctx.flash('Missile: no lock', '', 0.8);
+          break;
+        }
+        case 'missileHit': boom(e.at, e.n ? 1.5 : 0.9); if (e.n) hitMark(true); break;
+        case 'dry': snd.dry(); ctx.flash('No missiles left', 'bad', 0.9); break;
+        case 'rearm': ctx.flash('Missile +1', 'good', 1.1); break;
         case 'say': say(e.id); break;
         case 'win': {
           say(e.sunk ? 'won' : 'fled');
@@ -652,6 +669,15 @@ function start(ctx) {
       else D.put(_p, _p2, 0.13, 2.2, '#c8fff4');
     }
     for (const b of S.shots) { world(b.ds, b.u, b.v, _p); _p2.set(b.vu, b.vv, -b.vds).normalize(); D.put(_p, _p2, b.big ? 0.75 : 0.5, b.big ? 0.9 : 1.1, b.big ? '#ff5a3c' : '#ff8a5c'); }
+    // the missiles: a pale body with a coral head, a flame at its tail and a trail of smoke behind (issue #224)
+    for (const m of S.missiles) {
+      world(m.ds, m.u, m.v, _p);
+      _p2.set(m.vu, m.vv, -m.vds).normalize();
+      D.put(_p, _p2, 0.3, 2.6, '#efe6d2');
+      _p3.copy(_p).addScaledVector(_p2, 0.9); D.put(_p3, _p2, 0.34, 0.8, '#ef9479');
+      _p3.copy(_p).addScaledVector(_p2, -1.1); D.put(_p3, _p2, 0.26 + 0.12 * Math.random(), 1.2, '#ffd27a');
+      if ((m.trailT = (m.trailT ?? 0) - dt) <= 0) { m.trailT = 0.03; smoke.emit(_p3, _d.set(0, 0, -FLY.speed * 0.6), 0.55, 0.7, '#cfc6d8'); }
+    }
     for (let i = sparks.length - 1; i >= 0; i--) {
       const s = sparks[i];
       s.age += dt; if (s.age >= s.life) { sparks.splice(i, 1); continue; }
@@ -767,6 +793,18 @@ function start(ctx) {
         }
       }
     }
+    // the missile's mark (issue #224): what a missile would lock now, a teal diamond round it, only while there is
+    // one to loose (and not where the charge's LOCK already is)
+    if (P.aim && P.missiles > 0 && !(P.lock && P.aim.foe === P.lock.foe && P.aim.part === P.lock.part)) {
+      const at = P.aim.part ? (S.boss ? partAt(S.boss, P.aim.part) : null) : P.aim.foe;
+      if (at) {
+        const p = project(world(at.ds, at.u, at.v, _p));
+        if (p.front) {
+          const x = p.x * W, y = p.y * H, r = Math.max(9, 900 / Math.max(10, at.ds + CAM.back)) * (at.r ?? 2.5) / 2 + 4;
+          for (const [lw, c] of [[4.5, INK], [2, '#9ff2e6']]) { g.lineWidth = lw; g.strokeStyle = c; g.beginPath(); g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath(); g.stroke(); }
+        }
+      }
+    }
     // the captain's bar: the two guns and the bridge
     const B = S.boss;
     if (B && B.age > 1 && !B.dying && !B.fled) {
@@ -828,6 +866,9 @@ function start(ctx) {
     run.redT = Math.max(0, run.redT - dt); run.shake = Math.max(0, run.shake - dt);
     run.pipT = Math.max(0, run.pipT - dt); run.lostT = Math.max(0, run.lostT - dt); run.hitT = Math.max(0, run.hitT - dt);
     run.onTarget = phase === 'play' && !!aimTarget(S);   // (the reticle tightens on what the line of fire runs through)
+    // the missiles left, under the hints at the bottom right (issue #224)
+    const mk = `${S.ship.missiles}/${FLY.missile.count}`;
+    if (mk !== run.missileNote) { run.missileNote = mk; ctx.hintNote?.(`<span class="pirates-missiles">MISSILES${Array.from({ length: FLY.missile.count }, (_, i) => `<i class="${i < S.ship.missiles ? '' : 'gone'}"></i>`).join('')}</span>`); }
     run.aimK += ((run.onTarget ? 1 : 0) - run.aimK) * Math.min(1, dt * 14);
     drawHud(phase);
     if (phase === 'results') tally(dt);
@@ -893,7 +934,7 @@ function start(ctx) {
 }
 /** The pirates drawn larger than their shapes were made (their hit sizes in the rules match). */
 export const LOOK_SIZE = { skiff: 1.7, raider: 1.5, hauler: 1.5, mine: 1.3 };
-const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _c2 = new THREE.Color();
+const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _p3 = V(), _c2 = new THREE.Color();
 
 /** A pip of hull lost (issue #206): the edge's flash (s), the camera's shake (s, and its size at the start, m), the pips shown under the ship (s), the lost one's burst (s). */
 export const HURT = { flash: 0.7, shake: 0.45, amp: 2.4, pips: 2.2, lost: 0.8 };
@@ -905,7 +946,7 @@ export const RETICLE = { near: 26, far: 80, r: 11, tight: 7.5 };
 export const TALLY = { secs: 1.6 };
 /** The save's flag once the pirates have been beaten anywhere: from then on the start card offers the stick's pitch. */
 export const BEATEN = 'minigame.pirates.beaten';
-let pitchShown = 'dive', ownPitch = 'dive';
+let pitchShown = 'dive';
 
 /**
  * The stick's pitch for this run (issue #230): until the pirates are beaten the card offers no choice, and the game's
@@ -913,9 +954,12 @@ let pitchShown = 'dive', ownPitch = 'dive';
  * one is made, the jets setting again.
  */
 export function piratePitch(ctx) {
-  const own = ownPitch = ctx.settings?.invertFlight ? 'climb' : 'dive';
+  const own = ctx.settings?.invertFlight ? 'climb' : 'dive';
   if (!ctx.state?.flag?.(BEATEN)) return own;
-  const kept = ctx.state.flag(optionKey('pirates', 'pitch'));
+  // (no start card since issue #224: Settings → Game, "Chime pirates: push up to", shown once beaten)
+  const set = ctx.settings?.piratePitch;
+  if (set === 'climb' || set === 'dive') return set;
+  const kept = ctx.state.flag(optionKey('pirates', 'pitch'));   // (chosen on the start card, before v1.64)
   return kept === 'climb' || kept === 'dive' ? kept : own;
 }
 
@@ -929,9 +973,18 @@ export function tallyHtml(score) {
 export function pirateControls(pitch = 'dive') {
   const up = pitch === 'climb' ? 'climb' : 'dive', down = up === 'dive' ? 'climb' : 'dive';
   return {
-    pad: [['Left stick', `steer and aim: push up to ${up}, pull back to ${down}`], ['A / ×', 'fire; hold to charge, let go to loose it'], ['RT / R2, held', 'a steady stream of fire'], ['B / ○ or LB / L1', 'barrel roll'], ['Menu', 'pause']],
-    keys: [['W A S D  or  arrows', `steer and aim: W or ↑ to ${up}, S or ↓ to ${down}`], ['Space', 'fire; hold to charge, let go to loose it'], ['Shift  or  E', 'barrel roll'], ['Esc', 'pause']],
-    touch: [['Stick', `steer and aim: push up to ${up}`], ['✺', 'fire; hold to charge, let go to loose it'], ['↶', 'barrel roll']],
+    pad: [['Left stick', `steer and aim: push up to ${up}, pull back to ${down}`], ['A / ×', 'fire; hold to charge, let go to loose it'], ['RT / R2, held', 'a steady stream of fire'], ['LT / L2', `a missile: it locks the pirate nearest the aim (${FLY.missile.count} a run)`], ['B / ○ or LB / L1', 'barrel roll'], ['Menu', 'pause']],
+    keys: [['W A S D  or  arrows', `steer and aim: W or ↑ to ${up}, S or ↓ to ${down}`], ['Space', 'fire; hold to charge, let go to loose it'], ['F', `a missile: it locks the pirate nearest the aim (${FLY.missile.count} a run)`], ['Shift  or  E', 'barrel roll'], ['Esc', 'pause']],
+    touch: [['Stick', `steer and aim: push up to ${up}`], ['✺', 'fire; hold to charge, let go to loose it'], ['◇', 'a missile'], ['↶', 'barrel roll']],
+  };
+}
+/** The same, short: the hints at the bottom right while it runs (no start card since issue #224). */
+export function pirateHints(pitch = 'dive') {
+  const up = pitch === 'climb' ? 'climb' : 'dive';
+  return {
+    pad: [['Left stick', `steer · up to ${up}`], ['A / ×', 'fire · hold to charge'], ['RT / R2', 'stream fire'], ['LT / L2', 'missile'], ['B / ○', 'roll'], ['Menu', 'pause']],
+    keys: [['W A S D', `steer · W to ${up}`], ['Space', 'fire · hold to charge'], ['F', 'missile'], ['Shift', 'roll'], ['Esc', 'pause']],
+    touch: [['✺', 'fire'], ['◇', 'missile'], ['↶', 'roll']],
   };
 }
 
@@ -939,13 +992,14 @@ export default {
   id: 'pirates', order: 11,
   name: 'Chime pirates',
   blurb: 'Between worlds, pirates come after the family ship. Fly through the dark and fight them off; their wrecks are worth chimes.',
-  rules: 'Shoot the pirates down; your shots go where the nose points, so steer to aim. Roll to turn their fire aside; hold fire to charge a shot that locks on and bursts. Rocks and shots cost hull, teal rings patch it. Beat their captain’s gunship at the end. On the way to a world, your points become chimes.',
+  rules: 'Shoot the pirates down; your shots go where the nose points, so steer to aim. Roll to turn their fire aside; hold fire to charge a shot that locks on and bursts, or loose one of your four missiles at the pirate nearest the aim. Rocks and shots cost hull, teal rings patch it and give a missile back. Beat their captain’s gunship at the end. On the way to a world, your points become chimes.',
   get controls() { return pirateControls(pitchShown); },
-  // (the stick's pitch: push up to dive, as a plane's, as in Star Fox 64 and on the jets; the card offers the other way
-  // only once the pirates have been beaten: issue #206, "don't let me switch controls at first")
-  // (its default: the game's jets setting, as the run read it: piratePitch)
-  options: [{ id: 'pitch', label: 'Push up to', choices: [['dive', 'Dive'], ['climb', 'Climb']], get default() { return ownPitch; }, when: (state) => !!state?.flag?.(BEATEN) }],
-  touchButtons: ['fire', 'evade'],
+  // (no start card, issue #224: the run counts in after the take-off, the controls as small hints at the bottom right;
+  // the stick's pitch, push up to dive by default, is chosen in Settings → Game once the pirates have been beaten:
+  // issue #206, "don't let me switch controls at first"; piratePitch)
+  direct: true,
+  get hints() { return pirateHints(pitchShown); },
+  touchButtons: ['fire', 'evade', 'guard'], touchShow: ['guard'],   // (the missile on the guard's ◇, guard or not)
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: true, score: true },
   color: '#ef9479',
