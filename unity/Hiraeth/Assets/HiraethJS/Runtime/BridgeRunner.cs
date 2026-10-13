@@ -420,6 +420,11 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Flag("-no-water-contact")) Hiraeth.Rendering.HiraethFeature.Settings.waterContact = false;
             if (BridgeArgs.Arg("-gclear-depth") is string gcd && float.TryParse(gcd, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float gcv)) Hiraeth.Rendering.HiraethFeature.Settings.gDepthClear = gcv;
             BridgeRenderer.cullTest = BridgeArgs.Arg("-cull");
+            // (tests of the GPU's frame, issue #262: -hide kinds not drawn (skinned, mesh, inst, grass, crowd, puffs, points),
+            // -census what is drawn by kind, -skin-cull the skinned meshes skinned only when seen)
+            if (BridgeArgs.Arg("-hide") is string hk) foreach (var k in hk.Split(',')) BridgeRenderer.hide.Add(k.Trim());
+            BridgeRenderer.census = BridgeArgs.Flag("-census");
+            BridgeRenderer.skinCull = BridgeArgs.Flag("-skin-cull");
             // (the Surface shader's lean variants for the materials that need none of its rare paths, or only the ground's or the
             // water's: the Linux player's and the Xbox's (their GPU's time), -lean elsewhere, -no-lean off)
             if (BridgeArgs.Flag("-lean")) BridgeRenderer.lean = true;

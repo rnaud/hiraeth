@@ -176,6 +176,11 @@ namespace Hiraeth.Bridge
         public static readonly Dictionary<string, int> Made = new();
         public static bool oneVariant, uniformLayout, fullLayout, zTestAlways, noVeil;
         public static string cullTest;
+        /// <summary>Tests of the GPU's frame (issue #262): -hide kinds (skinned, mesh, inst, grass, crowd, puffs, points: not drawn),
+        /// -census (what is drawn, by kind, logged every 300 frames).</summary>
+        public static HashSet<string> hide = new();
+        public static bool census;
+        static bool Hidden(string kind) => hide.Count > 0 && hide.Contains(kind);
         /// <summary>The vertex data -uniform-layout added (bytes, on the CPU and again on the GPU).</summary>
         public static long uniformBytes;
         /// <summary>The shader variants the scene's materials ask for: materials, distinct (shader, keywords), the commonest.</summary>
@@ -535,7 +540,7 @@ namespace Hiraeth.Bridge
                 n.smr = n.go.AddComponent<SkinnedMeshRenderer>();
                 var bones = Skeleton(d.I("skeleton"), nb);
                 n.smr.sharedMesh = bm; n.smr.bones = bones; n.smr.rootBone = bones[0];
-                n.smr.updateWhenOffscreen = true;
+                SkinBounds(n.smr);
                 n.r = n.smr;
             }
             else if (md != null && n.kind == "skinned" && d.I("bones") > 0)
@@ -546,7 +551,7 @@ namespace Hiraeth.Bridge
                 for (int i = 0; i < nb; i++) { var b = new GameObject("b" + i).transform; b.SetParent(n.go.transform, false); n.bones[i] = b; }
                 n.smr = n.go.AddComponent<SkinnedMeshRenderer>();
                 n.smr.sharedMesh = md.mesh; n.smr.bones = n.bones; n.smr.rootBone = n.go.transform;
-                n.smr.updateWhenOffscreen = true;
+                SkinBounds(n.smr);
                 n.r = n.smr;
             }
             else if (md != null && (n.kind == "mesh" || n.kind == "skinned" || n.kind == "instanced"))
@@ -555,6 +560,7 @@ namespace Hiraeth.Bridge
                 n.mf.sharedMesh = n.kind == "instanced" ? null : md.mesh;
                 n.r = n.go.AddComponent<MeshRenderer>();
             }
+            if (n.r != null && Hidden(n.smr ? "skinned" : n.kind)) n.r.enabled = false;
             if (n.r != null && md != null)
             {
                 var mats = new Material[md.subMat.Length];
@@ -600,6 +606,15 @@ namespace Hiraeth.Bridge
             bool big = n.kind == "mesh" && md != null && md.mesh && md.mesh.bounds.extents.magnitude >= R;
             var L = Hiraeth.Rendering.HiraethFeature.Settings.OccluderLayer;
             n.r.renderingLayerMask = big ? n.r.renderingLayerMask | L : n.r.renderingLayerMask & ~L;
+        }
+
+        /// <summary>-skin-cull: a skinned mesh skinned only when a camera sees it (fixed bounds round its root bone, 4 m each way),
+        /// not every frame wherever it is (a test of the skinning's GPU time, issue #262).</summary>
+        public static bool skinCull;
+        static void SkinBounds(SkinnedMeshRenderer smr)
+        {
+            smr.updateWhenOffscreen = !skinCull;
+            if (skinCull) smr.localBounds = new Bounds(Vector3.zero, Vector3.one * 8f);
         }
 
         /// <summary>The mesh with this node's bind matrix as every bone's bind pose (one per mesh and bind, shared).</summary>
@@ -955,13 +970,14 @@ namespace Hiraeth.Bridge
         /// <summary>The crowd's draws for the cameras about to render (each frame, and before a shot's own render), the prints', the motes'.</summary>
         public void DrawCrowds()
         {
+            if (census && Time.frameCount % 300 == 0) Census();
             PointQuads();
             var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
             foreach (var n in nodes.Values)
             {
                 if (!n.go.activeInHierarchy) continue;
-                if (n.puffs != null) n.puffs.Draw(around.center, 500);
-                if (n.im == null || n.rawN == 0) continue;
+                if (n.puffs != null && !Hidden("puffs")) n.puffs.Draw(around.center, 500);
+                if (n.im == null || n.rawN == 0 || Hidden("inst")) continue;
                 // (each instance's world matrix: the node's, then its own; again when either moved)
                 if (n.imDirty || n.go.transform.hasChanged)
                 {
@@ -974,7 +990,7 @@ namespace Hiraeth.Bridge
             }
             foreach (var (id, g) in grass)
             {
-                if (g.n == 0 || !g.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf) continue;
+                if (g.n == 0 || !g.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf || Hidden("grass")) continue;
                 if (g.buf == null || g.buf.count < g.insts.Length) { g.buf?.Release(); g.buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(g.insts.Length, 1), System.Runtime.InteropServices.Marshal.SizeOf<GrassInst>()); g.mat.SetBuffer("_GrassInst", g.buf); g.dirty = true; }
                 if (g.dirty) { g.buf.SetData(g.insts, 0, 0, Mathf.Min(g.n, g.insts.Length)); g.dirty = false; }
                 if (!g.said) { g.said = true; Debug.Log($"Hiraeth bridge: grass {id}: {g.n} tufts, mesh {g.mesh.name}"); }
@@ -983,13 +999,34 @@ namespace Hiraeth.Bridge
             }
             foreach (var (id, c) in crowds)
             {
-                if (c.n == 0 || !c.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf) continue;
+                if (c.n == 0 || !c.mesh || !nodes.TryGetValue(id, out var nd) || !nd.go.activeSelf || Hidden("crowd")) continue;
                 if (c.buf == null || c.buf.count < c.insts.Length) { c.buf?.Release(); c.buf = new GraphicsBuffer(GraphicsBuffer.Target.Structured, Mathf.Max(c.insts.Length, 1), System.Runtime.InteropServices.Marshal.SizeOf<CrowdInst>()); c.mpb.SetBuffer("_CrowdInst", c.buf); c.dirty = true; }
                 if (c.dirty) { c.buf.SetData(c.insts, 0, 0, c.n); c.dirty = false; }
                 c.mat.SetFloat("_CrowdTime", c.time);
                 var rp = new RenderParams(c.mat) { worldBounds = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f), shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true, matProps = c.mpb };
                 Graphics.RenderMeshPrimitives(rp, c.mesh, 0, c.n);
             }
+        }
+
+        /// <summary>-census: what is drawn this frame, by kind: renderers on (and seen by a camera last frame) with their vertices,
+        /// the GPU instances, the grass tufts and the crowd's figures with theirs.</summary>
+        void Census()
+        {
+            var by = new SortedDictionary<string, long[]>();
+            void Add(string k, long n, long v, bool seen) { if (!by.TryGetValue(k, out var a)) by[k] = a = new long[4]; a[0] += n; a[1] += v; if (seen) { a[2] += n; a[3] += v; } }
+            foreach (var n in nodes.Values)
+            {
+                if (!n.go || !n.go.activeInHierarchy) continue;
+                if (n.im != null) { if (n.rawN > 0) Add("inst", n.rawN, (long)n.rawN * (n.im.mesh ? n.im.mesh.vertexCount : 0), true); continue; }
+                if (n.r == null || !n.r.enabled) continue;
+                var m = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
+                Add(n.smr ? "skinned" : n.kind, 1, m ? m.vertexCount : 0, n.r.isVisible);
+            }
+            foreach (var g in grass.Values) if (g.mesh) Add("grass", g.n, (long)g.n * g.mesh.vertexCount, true);
+            foreach (var c in crowds.Values) if (c.mesh) Add("crowd", c.n, (long)c.n * c.mesh.vertexCount, true);
+            var sb = new System.Text.StringBuilder("Hiraeth bridge: census (on / vertices, seen / vertices):");
+            foreach (var kv in by) sb.Append($" {kv.Key} {kv.Value[0]}/{kv.Value[1]}, {kv.Value[2]}/{kv.Value[3]};");
+            Debug.Log(sb.ToString());
         }
 
         void OnDestroy()

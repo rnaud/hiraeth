@@ -379,6 +379,17 @@ Shader "Hiraeth/Surface"
 
       Varyings vert(Attributes v)
       {
+        // (-surface-debug 12: the vertex stage's plain transform and nothing else, the fragment's plain values (9): what the
+        // GPU spends on the vertices' own work, a test of issue #262; the instanced kinds then all stand at their mesh's origin)
+        UNITY_BRANCH if (_MSurfaceDebug > 11.5)
+        {
+          Varyings q = (Varyings)0;
+          float3 pw = TransformObjectToWorld(v.positionOS.xyz);
+          q.positionCS = TransformWorldToHClip(pw);
+          q.normal = toThree(TransformObjectToWorldNormal(v.normalOS));
+          q.viewDepth = -TransformWorldToView(pw).z;
+          return q;
+        }
         Varyings o;
         #if defined(HIRAETH_VMAT)
           float3 posWS = TransformObjectToWorld(v.positionOS.xyz);
@@ -747,7 +758,7 @@ Shader "Hiraeth/Surface"
         #endif
         // (-surface-debug 9: nothing of the shader but its plain colour, normal and view depth, at once: whether a surface that
         // goes missing on the Xbox is drawn at all)
-        UNITY_BRANCH if (_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5)
+        UNITY_BRANCH if ((_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5) || _MSurfaceDebug > 11.5)
         {
           GBufferOut d;
           d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(normalize(i.normal), i.viewDepth); d.hatch = 0;
