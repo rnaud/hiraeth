@@ -694,6 +694,16 @@ The count is said every 5 ink.
   mineral basin under the lavender cliffs (src/desert-vistas.js `BASIN`, opposite the fishing sign), its lamp turned
   out over the water: the one deep water the dunes hold.
 
+- **The Givers' watcher** (v1.64, issue #245; `src/temples/pieces.js` `Sentry`, `SENTRY`): a temple foe, not one of
+  the roster's archetypes (no hearts, no lock-on, never spawned by `Foes`). A squat bronze bell on a rose-stone foot,
+  one amber glass eye under a hood, three vanes down its back, about 2.1 m. It stands on the Rose House's far landing
+  by the east doorway and wakes once the Givers' guard is in hand: it turns its head to you, its eye brightens and a
+  beam holds on you, narrowing (1.3 s; it follows you for 70 % of it, then locks and flickers), then a bolt flies down
+  it at 12 m/s. **Answer: any block** (`player.guard`, perfect or not) sends the bolt back into its eye at 20 m/s and
+  breaks it (its head droops, its eye goes grey), which opens the east door; a sidestep after the lock dodges it; a bolt
+  that gets through costs ½ heart (spared) and knocks you back. Its first wake says so in one line: "Hold up your
+  guard (LB / L1) as it fires." Broken is saved (`temple.desert.lit.sentry`).
+
 ## Controls and the lock-on
 
 - **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").

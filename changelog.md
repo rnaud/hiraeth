@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.65 — 2026-10-13
 
+- In the Rose House, the Givers’ guard no longer holds back a wind. Once you have it, a bronze watcher wakes by the far landing’s east door: its eye holds a narrowing beam on you, then fires a bolt. Raise your guard as it comes and the bolt flies back into its eye; the watcher breaks and the door opens onto the Hall of Channels. A save already past the old wind finds it broken.
 - Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. Climbing a wall tires you as before.
 - The Elder’s new body, still a preview and not yet in the Aerie, is closer to ready: her head faces ahead instead of turned to one side, her legs bend cleanly without wobbling at the knees, and when she takes to the air she rises over a moment, folds her legs up under her and lets them down again to land.
 - The Keeper of the cistern in the Rose House has its new body, drawn from its approved design: a ribbed shell on six long legs that walks one foot at a time and breaks into a trot of three legs at a time when it comes for you, rears on its hind legs to stamp and lowers its long neck to pant and drink. The glyphs on its shell still glow brighter as it calms, and the fight is the same as before. It is the one you spar with in the Arena too.

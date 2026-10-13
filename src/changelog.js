@@ -64,6 +64,10 @@ export const CHANGELOG = [
     { text: 'Climbing a ladder no longer tires you: the Overnight Train’s ladders to the roof walk, the cage ladders up the Moon Foundry’s pillars and the rungs up the Signal Market’s antenna mast cost no stamina, and you can take hold of one even when winded. Climbing a wall tires you as before.',
       see: 'On the Overnight Train, climb a porch ladder to the roof walk: the stamina wheel never shows. Then climb a carriage’s side wall: it shows and empties as before.' },
 
+    // the Rose House's bellows' wind gone: the Givers' watcher, a sentry whose bolt the guard sends back (src/temples/pieces.js
+    // Sentry, src/temples/desert.js sentry / dw, src/temples/migrate.js LAYOUTS.desert; docs/systems/temples.md; issue #245)
+    { text: 'In the Rose House, the Givers’ guard no longer holds back a wind. Once you have it, a bronze watcher wakes by the far landing’s east door: its eye holds a narrowing beam on you, then fires a bolt. Raise your guard as it comes and the bolt flies back into its eye; the watcher breaks and the door opens onto the Hall of Channels. A save already past the old wind finds it broken.',
+      see: 'In the Rose House, cross the bridge in the Hall of Fires and open the guard’s chest on the far landing. The watcher by the east door wakes; hold LB / L1 as its beam narrows.' },
   ] },
   { v: '1.64', date: '2026-10-12', items: [
     // the Unity build's menus: the title, the Start menu and the game menu from the game's own menu state

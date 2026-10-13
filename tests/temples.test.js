@@ -765,7 +765,7 @@ test('a temple door is solid until it opens, and the doorway is free after', () 
 });
 
 // ------------------------------------------------------------------ on foot: the desert temple, room by room
-test('the Rose House on foot, with nothing in hand: the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, the blade and its chamber’s doors, the thorns cut, the ball too slow by hand and in time when cut, the guard, the bellows’ wind broken, the eye struck and the relay, the keepers’ door, the Keeper calmed with the guard and the tank’s water, out', () => {
+test('the Rose House on foot, with nothing in hand: the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, the blade and its chamber’s doors, the thorns cut, the ball too slow by hand and in time when cut, the guard, the watcher’s bolt sent back, the eye struck and the relay, the keepers’ door, the Keeper calmed with the guard and the tank’s water, out', () => {
   game.reset();
   own('backpack', 'doublejump');
   const { level, physics, rt } = world('desert');
@@ -900,17 +900,33 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   assert.equal(rt.logic.isLit('b4'), false, 'the far door’s bowl is hooded');
   assert.equal(walk(L(0, 7, 160), { max: 4 }), false, 'the far door is shut');
 
-  // ---- the Hall of Winds: bare-handed the bellows' wind shoves you back; behind the guard you lean on into it
-  assert.equal(walk(L(12, 7, 149)), true, `to the far landing's east doorway (${where()})`);
-  const east = L(1, 0, 0).sub(L(0, 0, 0)).normalize();
+  // ---- the Givers' watcher (issue #245): the guard taken, it wakes by the east doorway; bare-handed its bolt burns,
+  // taken on the guard it flies back into its eye, and the doorway's door sinks open
+  assert.equal(rt.logic.isOpen('dw'), false, 'the east doorway is shut');
+  assert.equal(rt.logic.next(), 'sentry', 'the watcher is next');
+  const sentry = rt.piece('sentry');
   let guarding = false;
-  P.guarding = () => guarding; P.guardDir = () => east;
-  for (let i = 0; i < 9 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, toward(L(37, 7, 152)));
-  assert.ok(lx(P.pos) < 30 && said(/bellows’ wind shoves you back/), `bare-handed, the wind holds you off (${where()})`);
+  P.guard = () => guarding;   // (the blade's block: tests/fluid-sword.test.js has the guard itself)
+  assert.equal(walk(L(1, 7, 153)), true, `onto the far landing (${where()})`);
+  const hearts0 = P.hearts;
+  let aimed = false;
+  for (let i = 0; i < 8 / DT && P.hearts >= hearts0; i++) { frame(); aimed ||= sentry.beam.visible; }
+  assert.ok(said(/watcher by the east door wakes/), 'it wakes, and says how to meet it');
+  assert.ok(aimed, 'its beam holds on you before it fires');
+  assert.ok(P.hearts < hearts0 && said(/bolt burns/), `bare-handed, its bolt gets through (${P.hearts} of ${hearts0})`);
+  assert.equal(rt.logic.isLit('sentry'), false);
+  walk(L(1, 7, 153), { tol: 0.6, max: 4 });
   guarding = true;
-  assert.equal(walk(L(37, 7, 152), { max: 40 }), true, `behind the guard, on into the wind to the far end (${where()})`);
-  assert.ok(said(/breaks on the Givers’ guard/));
+  for (let i = 0; i < 10 / DT && !rt.logic.isLit('sentry'); i++) frame();
+  assert.equal(rt.logic.isLit('sentry'), true, 'taken on the guard, its bolt flies back and breaks it');
+  assert.ok(said(/glances off your guard/) && said(/cracks its eye/), 'and says so');
   guarding = false;
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dw'), true, 'the east door sinks open');
+  const heartsAfter = P.hearts;
+  wait(4);
+  assert.equal(P.hearts, heartsAfter, 'broken, it fires no more');
+  assert.equal(walk(L(37, 7, 152), { max: 40 }), true, `through the doorway, down the Hall of Channels to its far end (${where()})`);
   // the ball cut down the long groove burns out short; the eye lifts the relay's lid, and the next one gets there
   const ball4 = rt.piece('ball4');
   cut(ball4, 1);
@@ -934,14 +950,12 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   assert.equal(rt.logic.isLit('b4'), true, 'past the relay it catches again, and burns on into the far door’s bowl');
   wait(2.5);
   assert.equal(rt.logic.isOpen('d3'), true, 'the far door opens');
-  // the shortcut: with the wind down the hall, through the keepers' door to the near ledge, and back behind the guard
-  assert.equal(walk(L(20, 7, 124)), true, `down the Hall of Winds (${where()})`);
+  // the shortcut: down the hall, through the keepers' door to the near ledge, and back
+  assert.equal(walk(L(20, 7, 124)), true, `down the Hall of Channels (${where()})`);
   assert.equal(walk(L(9, 7, 124)), true, `through the keepers’ door onto the near ledge (${where()})`);
-  guarding = true;
   assert.equal(walk(L(20, 7, 124), { max: 30 }), true);
   assert.equal(walk(L(20, 7, 149), { max: 30 }), true);
   assert.equal(walk(L(8, 7, 149)), true, `back onto the far landing (${where()})`);
-  guarding = false;
   assert.equal(walk(L(0, 7, 162)), true, `through the far door (${where()})`);
 
   // ---- the Cistern: the Keeper wakes; light its bowls, guard its charge and give it water, then by a fire cut to it
@@ -1013,7 +1027,7 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   wait(1);
   assert.ok(rt.change.root.visible, 'the water runs and the fields come up');
   assert.ok(notes.some((s) => /water/i.test(s)), 'it says so');
-  delete P.guarding; delete P.guardDir;
+  delete P.guard;
   game.reset();
   own();
 });
@@ -1024,7 +1038,7 @@ test('the Rose House is solved with the backpack and the double jump, the blade 
   assert.equal(r.done, true, r.log.join(' / '));
   assert.ok(r.log.indexOf('take chest (sword)') > 1 && r.log.indexOf('find guard (shield)') > r.log.indexOf('take chest (sword)'), 'the blade half-way, the guard after it');
   assert.equal(solve(L, { items: ['backpack'] }).done, false, 'the pier wants the double jump');
-  assert.ok(!solve(L, { items: ['backpack', 'doublejump'], withhold: ['shield'] }).stuck.includes('wing'), 'the wind wants the guard');
+  assert.ok(!solve(L, { items: ['backpack', 'doublejump'], withhold: ['shield'] }).stuck.includes('wing'), 'the watcher wants the guard');
   assert.equal(L.elements.keeper.needs.includes('shield') && L.elements.keeper.needs.includes('sword'), true, 'the Keeper asks for both');
   // nothing in the house asks for the gun, or a gun mode
   for (const [id, e] of Object.entries(L.elements)) assert.ok(!(e.needs ?? []).some((n) => ['gun', 'fire', 'stun', 'bloom'].includes(n)), `${id}: no gun`);

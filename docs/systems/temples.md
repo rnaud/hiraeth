@@ -267,7 +267,15 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
     says what moves it (logic.js `rolls`; left out, the gun's push, as before);
   - a `Bramble` with `cut` falls to the sword (its element `needs: ['sword']`); a `Switch` with `blade` wakes only to
     a cut (a splash says it wants striking); a `Gust` with `guard` breaks on the shield raised into it
-    (`player.guarding()`, `player.guardDir()` from src/fluid-blade.js), and you walk on into it at `guardPace`;
+    (`player.guarding()`, `player.guardDir()` from src/fluid-blade.js), and you walk on into it at `guardPace`
+    (no temple uses it since issue #245);
+  - a `Sentry` (the Givers' watcher, issue #245): a bronze eye on a stone foot, a latched `switch` element with
+    `needs: ['shield']`. Asleep until it can be used and you stand in its `zone`, then it turns to you, holds a beam
+    on you that narrows (`SENTRY.aim` s, following you `track` of it, then locked) and fires a bolt down it
+    (`SENTRY.speed`). The bolt is taken by `player.guard(from)` (any block, perfect or not: the shield's own cost and
+    feedback); blocked, it flies back into the eye and the element is lit, which opens its door. Not blocked, it hurts
+    (`DAMAGE.blow`, spared) and knocks you back; stepped away from once the beam locks, it misses. Its first wake says
+    how to meet it in one line (`woke`);
   - a `Flame` with `when` (and `lid`) burns only while its condition holds, under a stone lid until then;
   - a hooded `Brazier` catches from its burning ball as the ball rolls in slow (where it is, not where it last lay);
   - a `find` element: a second chest (`{ type: 'find', item, box }`, logic.js `find` / `isFound`, the layout's
@@ -283,9 +291,11 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   jump 13), its side walls glazed against climbing (`Glazed`), and a plate on the pier's head (`pp`) wakes the
   chamber's door at the top of the gallery (`dc`, across the pit); the Sword Chamber holds the blade, its north door
   (`dk`) sinks for the blade in hand, the thorns over the chest ball's groove (`bw0`) are the blade alone, and its ball (`ball3`, a fire on its groove) leaned on goes out before the Hall of
-  Fires' bowl (`b3`) while a cut gets it there burning (`CHEST_BALL`); the far landing holds the guard (`guard`); the
-  Hall of Winds' bellows blow west down it (a `Gust` `guard`, out to `WING.lee`), and at its far end, out of the
-  wind, a ball cut down the long groove burns out short of the far door's bowl (`b4`) unless the eye high on the end
+  Fires' bowl (`b3`) while a cut gets it there burning (`CHEST_BALL`); the far landing holds the guard (`guard`), and
+  with it in hand the Givers' watcher (`sentry`, `SENTRY_AT`) wakes by the east doorway: its bolt sent back off the
+  guard breaks it and opens the doorway's door (`dw`) into the Hall of Channels (the old Hall of Winds: its bellows'
+  wind is gone, issue #245; `src/temples/migrate.js` `LAYOUTS.desert` breaks the watcher for a save already past
+  it). At the hall's far end a ball cut down the long groove burns out short of the far door's bowl (`b4`) unless the eye high on the end
   wall (`e10`, struck from a double jump) has lifted the relay fire's lid, and woken the keepers' door `sc`; the
   Keeper's spokes run from the basin out to hooded bowls on the rim, a fire half-way (`HEARTH_FIRE`): cut out, a
   ball lights its bowl (its first phase); a guard against its charge jars it and it pants, and water from your tank

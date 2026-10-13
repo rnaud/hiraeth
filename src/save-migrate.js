@@ -421,7 +421,7 @@ export function migrateGunChest(flags) {
 }
 
 /** The remade Givers' House's doors and fires (src/temples/desert.js LOGIC): open and lit for a save that had calmed the Keeper. */
-export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'br1', 'sc', 'd3'], lit: ['b0', 'bw0', 'b3', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'] };
+export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'br1', 'dw', 'sc', 'd3'], lit: ['b0', 'bw0', 'b3', 'sentry', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'] };
 /** Step 13 (pure, in place): the sword and the shield kept, the house's old state cleared or settled. */
 export function migrateGivers(flags) {
   flags['item.sword'] ??= true;

@@ -5,7 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { magicMaterial, magicPool, setMagic } from '../story/magic-water.js';
 import { STORY } from '../desert-sites.js';
 import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
-import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Gust, Switch, Plate } from './pieces.js';
+import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { keeperGuardian } from './guardian-generated.js';
 import { chestMound } from '../boxes/mound.js';
@@ -22,7 +22,7 @@ import { chestMound } from '../boxes/mound.js';
 // catches again. Since v1.44 the house is walked into with nothing in your hands (the progression: the backpack and
 // the lift valve's double jump, docs/systems/progression.md): you lean on its first ball by hand, cross its sand on
 // the double jump, and find the Givers' blade half-way, then their guard: a cut sends a ball rolling far faster than
-// hands can, through a fire and on before it burns out; the guard breaks the wind of their bellows.
+// hands can, through a fire and on before it burns out; the guard sends their watcher's bolt back into its eye.
 //
 // Inside (built far overhead, through its door), in order:
 //   the Threshold        a stair hall under an oculus: the first mark, the way back out
@@ -40,9 +40,11 @@ import { chestMound } from '../boxes/mound.js';
 //                        cut, it is there in time
 //   the Hall of Fires    a chasm; the hooded bowl on the near lip wakes the bridge. On the far landing, the Givers'
 //                        second chest: THEIR GUARD (src/items.js 'shield', a `find`)
-//   the Hall of Winds    east of the far landing, the old Hall of Channels: the Givers' bellows blow down it, too hard
-//                        to walk into (a Gust `guard`: the shield raised into it breaks it). At its far end, out of
-//                        the wind, a ball and a fire; the long groove runs out through the doorway to the bowl by the
+//                        The guard taken, the Givers' watcher by the east doorway wakes (a Sentry, issue #245): its
+//                        eye holds a beam on you and fires a bolt down it; taken on the guard, the bolt flies back
+//                        into its eye, it breaks, and the doorway's door sinks open
+//   the Hall of Channels east of the far landing, the old channels in its floor. At its far end
+//                        a ball and a fire; the long groove runs out through the doorway to the bowl by the
 //                        far door, and a ball cut down it burns out short, unless the relay's lid is off: the eye high
 //                        on the end wall, struck from a double jump (a Switch `blade`), lifts it, and wakes the
 //                        keepers' door back to the near ledge (the shortcut, from the far side)
@@ -83,7 +85,7 @@ export const PALETTE = {
 
 // ------------------------------------------------------------------ the puzzle, as logic (src/temples/logic.js)
 // (a drum's `roll`: what moves it, `hand` a shove, `sword` a cut: logic.js solve; the bowls a cut ball reaches `need` the
-// sword, the rooms past the wind the shield)
+// sword, the rooms past the watcher the shield)
 const SPOKES = ['kb1', 'kb2', 'kb3', 'kb4'], RIM = ['b6', 'b7', 'b8', 'b9'];
 export const LOGIC = {
   id: 'desert', entry: 'threshold', gadget: 'sword',
@@ -98,7 +100,7 @@ export const LOGIC = {
     { a: 'landing', b: 'chest', door: 'dc' },     // up the gallery's wall, to the chamber's door the pier's plate wakes
     { a: 'chest', b: 'fires', door: 'dk' },       // the chamber's north door: it sinks for the blade in your hand
     { a: 'fires', b: 'firesFar', door: 'br1' },   // the bridge
-    { a: 'firesFar', b: 'wing', needs: ['shield'] },   // into the bellows' wind: only behind the guard
+    { a: 'firesFar', b: 'wing', door: 'dw' },     // the east doorway: shut until the watcher is broken
     { a: 'fires', b: 'wing', door: 'sc' },        // the keepers' door: the shortcut, woken from the wing's side
     { a: 'firesFar', b: 'ante', door: 'd3' },
     { a: 'ante', b: 'cistern', door: 'd4' },
@@ -124,7 +126,10 @@ export const LOGIC = {
     br1: { type: 'bridge', opens: { lit: 'b3' }, latch: true },
     // the far landing: the Givers' guard
     guard: { type: 'find', room: 'firesFar', item: 'shield', box: 'desert.temple.shield' },
-    // the Hall of Winds: the eye that lifts the relay's lid (and wakes the keepers' door), the ball, the far door's bowl
+    // the Givers' watcher by the east doorway: it wakes with the guard in hand; its bolt sent back breaks it, and the door opens
+    sentry: { type: 'switch', room: 'firesFar', needs: ['shield'] },
+    dw: { type: 'door', opens: { lit: 'sentry' }, latch: true },
+    // the Hall of Channels: the eye that lifts the relay's lid (and wakes the keepers' door), the ball, the far door's bowl
     e10: { type: 'switch', room: 'wing', needs: ['sword'] },
     sc: { type: 'door', opens: { lit: 'e10' }, latch: true },
     pb4: { type: 'plate', room: 'firesFar' },
@@ -175,10 +180,12 @@ export const KEEPER_GUARD = { open: 2.8, water: 0.1 };
 // tangle's face, 118.2); the keepers' door and the far landing's doorway in the Hall of Fires' east wall (z); the Hall
 // of Winds' groove (z), and its ball: how freely it rolls, how long it burns (cut at the start it goes out about 6 m
 // short of the bowl), and where its relay fire lies (x: burning there, it carries the ball on to the bowl); where the
-// bellows' wind stops (x: the far end is out of it)
+// hall's far end begins (x: its ball and fire)
 const CHEST_THORNS = (117.35 - 110) / 14.6;
 const SC_Z = 123.8, WING_Z = 150.3, WING_GROOVE = 151.4;
 export const WING = { friction: 0.2, burns: 4.6, relay: 18, lee: 33 };
+/** The Givers' watcher (issue #245): its foot on the far landing, south of the east doorway by the chasm's edge. */
+export const SENTRY_AT = [10.6, 7, 146.6];
 /** The Sword Chamber's ball: rolls freely, burns briefly (leaned on, at a walk, it goes out before the bowl; cut, it is there). */
 export const CHEST_BALL = { friction: 0.25, burns: 3.8, flame: 112.6 };
 /**
@@ -344,7 +351,7 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 3.6, 0, 14, 118.8));
   // (the thorns over the ball's groove alone, by the corridor's east wall: you walk past them, the ball can't)
   add(Bramble, { id: 'bw0', at: [1.9, 7, 118.8], w: 2.4, h: 1.8, seed: 7, cut: true });
-  // (its east wall: the keepers' door off the near ledge, and the far landing's doorway into the Hall of Winds)
+  // (its east wall: the keepers' door off the near ledge, and the far landing's doorway into the Hall of Channels)
   K.hall({ x: 0, z: 139.6, w: 26, d: 37, y: -3.5, h: 26, floor: false, roof: 'oculus', oculus: 0.2, columns: 0, doors: [{ side: 's', w: 5, h: 6.6, y0: 10.5 }, { side: 'n', w: 5, h: 6, y0: 10.5 }, { side: 'e', at: SC_Z - 139.6, w: 4, h: 6, y0: 10.5 }, { side: 'e', at: WING_Z - 139.6, w: 5, h: 6.4, y0: 10.5 }] });
   K.slab(-13, 121, 13, 126.5, 7, 10.5);          // the near side
   K.slab(-13, 144.5, 13, 158.1, 7, 10.5);        // the far side
@@ -354,23 +361,28 @@ function layout(rt) {
   add(Brazier, { id: 'b3', at: [1.6, 7, 126.0], scale: 1.1, hood: { ball: 'ball3', yaw: Math.PI } });
   add(Door, { id: 'sc', at: [13.6, 7, SC_Z], yaw: Math.PI / 2, w: 4, h: 6, t: 1.3, lamps: [{ lit: 'e10' }] });
   K.column(-10, 155.5, 7, 15, 0.9); K.column(10, 155.5, 7, 15, 0.9);
-  // the far door, and the hooded bowl by it at the end of the Hall of Winds' groove
+  // the far door, and the hooded bowl by it at the end of the Hall of Channels' groove
   add(Door, { id: 'd3', at: [0, 7, 158.1], w: 5, h: 6, lamps: [{ lit: 'e10' }, { lit: 'b4' }] });
   add(Brazier, { id: 'b4', at: [6.2, 7, WING_GROOVE], scale: 1.1, hood: { ball: 'ball4', yaw: Math.PI / 2 } });
+  // the east doorway into the Hall of Channels, and the Givers' watcher by it (issue #245): the guard taken, it wakes;
+  // its bolt sent back off the guard breaks it, and the door sinks open
+  add(Door, { id: 'dw', at: [13.6, 7, WING_Z], yaw: Math.PI / 2, w: 5, h: 6.4, t: 1.3, lamps: [{ lit: 'sentry' }] });
+  add(Sentry, { id: 'sentry', at: SENTRY_AT, yaw: -Math.PI * 0.4, zone: { min: [-13, 6, 144.6], max: [13, 13, 158] },
+    woke: 'The watcher by the east door wakes. Hold up your guard (LB / L1) as it fires.',
+    reflected: 'The bolt glances off your guard, back down its beam.',
+    broken: 'Its own bolt cracks its eye. The east door sinks open.',
+    hit: 'The bolt burns. Guard (LB / L1) when the beam narrows.' });
   // the Givers' guard: a second chest on a low plinth by the far landing's west wall (src/boxes/placements.js)
   K.both(M.trim, ...chestMound(-9, 7, 150, { h: 0.3, top: 1.3, foot: 2.1, seg: 24 }));   // (the guard's: a low ramped mound, issue #162)
   add(Mark, { room: 'fires', at: [-8, 7, 123.5], yaw: 0 });
 
-  // ---- the Hall of Winds (x 14..40, z 121..158, floor 7): the Givers' old water channels in its floor, the bellows'
-  // vents in its side walls at x 33 blowing west down it, too hard to walk into but behind the guard; at the far end, out
-  // of the wind, the ball and its fire; its long groove out through the doorway to the bowl by the far door, a fire under
+  // ---- the Hall of Channels (x 14..40, z 121..158, floor 7): the Givers' old water channels in its floor, the bellows'
+  // cold vents in its side walls at x 33; at the far end the ball and its fire; its long groove out through the doorway to the bowl by the far door, a fire under
   // a lid half-way (the relay) that the eye high on the end wall lifts
   K.hall({ x: 27.2, z: 139.6, w: 26, d: 37, y: 7, h: 14, roof: 'oculus', oculus: 0.25, columns: 0, omit: ['w'] });
   groove(36.5, WING_GROOVE, 7.6, WING_GROOVE, 7);
   for (const z of [128, 136, 144]) K.add(M.dark, box(20, 0.04, 1.2, 27.4, 7.02, z));   // the dry channels
   for (const z of [121.1, 158.1]) for (const y of [8.4, 11.2]) K.add(M.dark, box(2.6, 1.6, 0.1, WING.lee, y, z + (z < 140 ? 1 : -1) * (0.03 + 0.05)));   // the vents
-  add(Gust, { min: [14.4, 6.5, 121.4], max: [WING.lee, 16, 157.8], dir: [-1, 0, 0], calm: 0.9, blow: 4.2, warn: 0.5, push: 7.5, guard: true, guardPace: 2.4,
-    notice: 'The bellows’ wind shoves you back down the hall. Nothing stands against it bare-handed.', guarded: 'The wind breaks on the Givers’ guard, and you lean on into it.' });
   add(Flame, { at: [35, 7, WING_GROOVE - 1.1], r: 0.6 });
   add(Flame, { at: [WING.relay, 7, WING_GROOVE + 1.2], r: 0.6, when: { lit: 'e10' }, lid: true });
   add(Ball, { id: 'ball4', a: [36.5, 7.04, WING_GROOVE], b: [7.6, 7.04, WING_GROOVE], r: 0.85, friction: WING.friction, shove: true, blade: true, tar: { ...TAR, burns: WING.burns } });

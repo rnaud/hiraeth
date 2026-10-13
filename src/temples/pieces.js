@@ -36,6 +36,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 //   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
 //   Updraft  a column of rising wind: it lifts the fluid wings, round and up, and lets you go at its top
 //   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
+//   Sentry   the Givers' watcher: a bronze eye that fires a telegraphed bolt; taken on the guard it flies back and breaks it
 //   Vane     a vane of the makers' bellows: it drives its machine only while it turns (a splash, or the bellows' wash)
 //   Iris     an iris in a ceiling: blades round a hole that slide back into the ceiling when it opens
 //   Hammer   a piston-hammer of the engine slamming down on a walkway; a ball jammed in its crank stops it
@@ -1529,6 +1530,183 @@ export class Gust {
     if (P.climbing) P.climbing = false;
     this.rt.notice?.(this.o.notice ?? 'The gust shoves you back down the hall. Wait it out behind a screen.', 'gust');
   }
+}
+
+// ---------------------------------------------------------------------------------------- the watcher (a sentry)
+/**
+ * The Givers' watcher (the Rose House's far landing, issue #245): a squat bronze sentry on a stone foot, one glass eye
+ * under a hood. Asleep until its element can be used (its `needs`: the guard in hand), then it turns its head to you and
+ * fires, again and again: its eye brightens and a beam holds on you and narrows (`aim` s; it follows you `track` of that
+ * time, then locks), and a bolt flies down it (`speed` m/s). Taken on the guard (any block: P.guard, src/fluid-blade.js),
+ * the bolt flies back into its eye and it is broken: its element (a latched 'switch', logic.js) is lit, for good, and the
+ * door it held opens. Not blocked, it hurts (DAMAGE.blow, spared) and knocks you back; dodged, it bursts on whatever is
+ * behind you. It fires only while you stand in its `zone` (local min, max).
+ * o: { id, at (its foot), yaw (the way it faces), zone: { min, max }, rest, aim, track, speed, back (the bolt's speed
+ *      back), range, woke (said once, the first time it wakes), reflected (said once, the first bolt sent back),
+ *      broken (said when it breaks), hit (said the first time a bolt gets through) }
+ */
+export const SENTRY = { rest: 1.5, aim: 1.3, track: 0.7, speed: 12, back: 20, range: 26, eye: 1.75, hitR: 0.95, damage: DAMAGE.blow, knock: 7 };
+const _se = new THREE.Vector3(), _st = new THREE.Vector3(), _sd = new THREE.Vector3();
+export class Sentry {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M;
+    this.cfg = { ...SENTRY, ...o };
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    const bronze = own({ color: '#a8854e', flat: true, metal: 'brass' });
+    const dark = own({ color: rt.P.dark ?? '#5a3640', flat: true });
+    this.eyeMat = own({ color: '#ffb36a', glow: 0.1, flat: true });
+    this.boltMat = own({ color: '#ffd28a', glow: 1, flat: true });
+    // its foot: a round of the house's stone, a bronze collar
+    this.group.add(mesh([lathe([[0.95, 0], [0.95, 0.25], [0.78, 0.35], [0.7, 0.7], [0.01, 0.7]], 16)], M.trimMat));
+    this.group.add(mesh([T(new THREE.TorusGeometry(0.66, 0.06, 4, 20), [0, 0.72, 0], [Math.PI / 2, 0, 0])], bronze));
+    // its head turns on the foot: a bronze bell, a hood over the eye, three vanes down its back
+    this.head = new THREE.Group();
+    this.head.position.set(0, 0.75, 0);
+    this.group.add(this.head);
+    const E = this.cfg.eye - 0.75;
+    this.head.add(mesh([lathe([[0.62, 0], [0.66, 0.35], [0.58, 0.8], [0.42, 1.15], [0.18, 1.32], [0.01, 1.36]], 16)], bronze));
+    this.head.add(mesh([T(new THREE.CylinderGeometry(0.42, 0.46, 0.24, 14, 1, true, -Math.PI * 0.55, Math.PI * 1.1), [0, E + 0.18, 0.18], [0.35, 0, 0])], bronze));
+    for (const a of [-0.5, 0, 0.5]) this.head.add(mesh([T(new THREE.BoxGeometry(0.05, 0.7, 0.34), [Math.sin(Math.PI + a) * 0.55, 0.7, Math.cos(Math.PI + a) * 0.55], [0, a, 0])], dark));
+    this.head.add(mesh([T(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 16), [0, E, 0.52], [Math.PI / 2, 0, 0])], dark));
+    this.eye = mesh([T(new THREE.SphereGeometry(0.27, 14, 8).scale(1, 1, 0.55), [0, E, 0.6])], this.eyeMat);
+    this.head.add(this.eye);
+    this.eyeAt = V(0, E, 0.66);
+    // the beam it aims down (narrowing as it locks), and its bolt
+    this.beam = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, 0.5, 0).rotateX(Math.PI / 2), this.eyeMat);
+    this.beam.visible = false;
+    this.bolt = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 6), this.boltMat);
+    this.tail = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 5).scale(1, 1, 4).translate(0, 0, -0.5), this.boltMat);
+    this.bolt.add(this.tail);
+    this.bolt.visible = false;
+    rt.root.add(this.beam, this.bolt);
+    noCollide(this.group); noCollide(this.beam); noCollide(this.bolt);
+    this.zone = o.zone ? new THREE.Box3(V(...o.zone.min), V(...o.zone.max)) : null;
+    this.state = 'sleep'; this.t = 0; this.yawK = 0; this.droop = 0; this.flash = 0;
+    this.aimAt = V(); this.vel = V(); this.flight = null;
+    this.broken = rt.logic.isLit(o.id);
+    if (this.broken) { this.state = 'broken'; this.droop = 1; }
+    this.place();
+  }
+  /** Its eye in the world now. */
+  eyeWorld(out = V()) { this.head.updateWorldMatrix(true, false); return out.copy(this.eyeAt).applyMatrix4(this.head.matrixWorld); }
+  /** You stand where it watches (its zone), up and about. */
+  sees(P) { return !!P && !P.dead && !P.down && (!this.zone || this.zone.containsPoint(this.rt.kit.local(P.pos))); }
+  chest(P, out = _st) { return out.copy(P.pos).addScaledVector(UP, 1.15); }
+  place() {
+    this.head.rotation.set(this.droop * 0.55, this.yawK, this.droop * 0.25);
+    this.head.position.y = 0.75 - this.droop * 0.12;
+  }
+  /** Turn its head toward a world point, at most `rate` rad a second. */
+  turnTo(p, dt, rate = 3) {
+    this.group.updateWorldMatrix(true, false);
+    const l = this.group.worldToLocal(_sd.copy(p));
+    let d = Math.atan2(l.x, l.z) - this.yawK;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    this.yawK += THREE.MathUtils.clamp(d, -rate * dt, rate * dt);
+  }
+  fire() {
+    const from = this.eyeWorld(V());
+    this.vel.copy(this.aimAt).sub(from).normalize().multiplyScalar(this.cfg.speed);
+    this.flight = { pos: from, back: false, life: this.cfg.range / this.cfg.speed + 0.5 };
+    this.bolt.position.copy(from); this.bolt.visible = true;
+    this.rt.sound?.critter?.('flash', 0.6);
+  }
+  burst() { this.flight = null; this.bolt.visible = false; this.rt.sound?.critter?.('clack', 0.4); }
+  /** Its own bolt back in its eye: broken, for good. */
+  breakNow() {
+    this.flight = null; this.bolt.visible = false; this.beam.visible = false;
+    if (this.rt.logic.light(this.id)) { this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+    this.broken = true; this.state = 'broken'; this.flash = 1;
+    this.rt.sound?.critter?.('clank', 0.8);
+    this.rt.rumble?.(0.3, 0.3);
+    if (this.o.broken) this.rt.notice?.(this.o.broken, `broken.${this.id}`);
+  }
+  update(dt, t) {
+    const P = this.rt.player, L = this.rt.logic, c = this.cfg;
+    this.broken ||= L.isLit(this.id);
+    this.flash = Math.max(0, this.flash - dt);
+    if (this.broken) {
+      this.state = 'broken'; this.beam.visible = false;
+      if (this.flight) this.burst();
+      this.droop = Math.min(1, this.droop + dt * 1.5);
+      this.place();
+      this.eyeMat.uniforms.uGlow.value = this.flash * 0.8;
+      this.eyeMat.uniforms.uColor.value.set(this.flash > 0 ? '#ffb36a' : '#6a5a52');
+      return;
+    }
+    // asleep until the guard is in hand (its element's needs) and you stand where it watches
+    if (this.state === 'sleep') {
+      this.eyeMat.uniforms.uGlow.value = 0.05;
+      if (!L.canUse(this.id) || !this.sees(P)) return;
+      this.state = 'rest'; this.t = 0;
+      this.rt.sound?.critter?.('whirr', 0.5);
+      if (this.o.woke) this.rt.notice?.(this.o.woke, `woke.${this.id}`);
+    }
+    this.updateBolt(dt, P);
+    if (this.broken) return;
+    const seen = this.sees(P);
+    if (seen) this.turnTo(P.pos, dt, this.state === 'aim' && this.t > c.aim * c.track ? 0 : 3);
+    this.place();
+    this.t += dt;
+    if (this.state === 'rest') {
+      this.beam.visible = false;
+      this.eyeMat.uniforms.uGlow.value = 0.25 + 0.05 * Math.sin(t * 3);
+      if (seen && !this.flight && this.t > c.rest) { this.state = 'aim'; this.t = 0; this.rt.sound?.critter?.('blip', 0.4); }
+    } else if (this.state === 'aim') {
+      const k = Math.min(1, this.t / c.aim);
+      if (!seen) { this.state = 'rest'; this.t = 0; this.beam.visible = false; return; }
+      if (k < c.track) this.chest(P, this.aimAt);
+      // the beam: from its eye to where it aims, narrowing as it locks; the eye brightening
+      const from = this.eyeWorld(_se), len = from.distanceTo(this.aimAt);
+      this.beam.visible = true;
+      this.beam.position.copy(from); this.beam.lookAt(this.aimAt);
+      const r = THREE.MathUtils.lerp(0.14, 0.025, k) * (k > c.track ? 0.8 + 0.2 * Math.sin(t * 40) : 1);
+      this.beam.scale.set(r, r, len + 2);
+      this.eyeMat.uniforms.uGlow.value = 0.3 + 0.7 * k;
+      if (k >= 1) { this.beam.visible = false; this.fire(); this.state = 'rest'; this.t = 0; }
+    }
+  }
+  updateBolt(dt, P) {
+    const F = this.flight, c = this.cfg;
+    if (!F) return;
+    F.life -= dt;
+    F.pos.addScaledVector(this.vel, dt);
+    this.bolt.position.copy(F.pos);
+    this.bolt.lookAt(_se.copy(F.pos).add(this.vel));
+    this.boltMat.uniforms.uGlow.value = 0.9 + 0.1 * Math.sin(F.life * 50);
+    if (F.back) {
+      // back down its own beam, into its eye
+      const eye = this.eyeWorld(_se);
+      this.vel.copy(eye).sub(F.pos);
+      if (this.vel.length() < 0.45 || F.life < 0) { this.breakNow(); return; }
+      this.vel.normalize().multiplyScalar(c.back);
+      return;
+    }
+    if (F.life < 0) { this.burst(); return; }
+    if (P && !P.dead && this.chest(P).distanceTo(F.pos) < c.hitR) {
+      // taken on the guard: it flies back (any block, perfect or not)
+      if (P.guard?.(F.pos)) {
+        F.back = true; F.life = 3;
+        if (this.o.reflected) this.rt.notice?.(this.o.reflected, `reflected.${this.id}`);
+        return;
+      }
+      const push = _sd.copy(this.vel).setY(0).normalize().multiplyScalar(c.knock);
+      P.vel.x += push.x; P.vel.z += push.z;
+      P.hurt?.(sparing(heartsOf(P), c.damage), 'foe');
+      this.rt.rumble?.(0.4, 0.3);
+      if (this.o.hit) this.rt.notice?.(this.o.hit, `hit.${this.id}`);
+      this.burst();
+      return;
+    }
+    // past you: it bursts on whatever it meets
+    const ph = this.rt.physics, sp = this.vel.length() * dt;
+    if (ph?.rayDistance && ph.rayDistance(F.pos, _sd.copy(this.vel).normalize(), sp + 0.1) < sp + 0.1) this.burst();
+  }
+  dispose() { this.beam.removeFromParent(); this.bolt.removeFromParent(); }
 }
 
 // ---------------------------------------------------------------------------------------- the bellows (the City-Shaft)
