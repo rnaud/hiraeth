@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-13",
+  "job": "d19ba4ab-8c9d-48b4-b0ac-0e98de111e84",
+  "url": "https://studio.tripo3d.ai/workspace/generate/d19ba4ab-8c9d-48b4-b0ac-0e98de111e84",
+  "status": "rejected-by-user",
+  "sourceReference": "references/guardians/elder/reference-v2-openai-b.png",
+  "userApproved": true,
+  "inputMode": "Multiview",
+  "views": {
+    "Front": "references/guardians/elder/reference-v2-front.png",
+    "Right": "references/guardians/elder/reference-v2-side.png"
+  },
+  "model": "H3.1 Best Quality",
+  "credits": 50,
+  "balanceBefore": 2775,
+  "balanceAfter": 2725,
+  "settings": {
+    "ultraMeshQuality": true,
+    "texture": true,
+    "textureSize": "4K",
+    "removeLighting": true,
+    "pbr": false,
+    "topology": "Triangle",
+    "targetPolycount": 50000,
+    "generateInParts": false,
+    "privacy": "Sharing Only"
+  },
+  "sourceExport": "output/character-tripo/elder-v2/source.glb",
+  "liveGameIntegrated": false,
+  "animationVerified": false,
+  "rejection": "User observed a second bird-like form on the back. Halt rigging and integration; redo front, side, back and three-quarter references before any new Tripo job."
+}

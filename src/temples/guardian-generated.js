@@ -1,5 +1,6 @@
+import {createElderCreature, loadElderV3} from '../characters/elder-v3-creature.js';
 import * as THREE from 'three';
-import { keeperModel } from './guardians.js';
+import { keeperModel, elderModel } from './guardians.js';
 import { createKeeperCreature, loadKeeperV1 } from '../characters/keeper-creature.js';
 
 // A temple guardian drawn by a generated, fitted skin (docs/systems/characters.md "The Keeper in the Rose House"), with
@@ -77,7 +78,7 @@ export function generatedGuardian({ name, fallback, load, make, sizes }) {
       next.group.updateMatrixWorld(true);
       mouth.copy(next.mouth);
     },
-    dispose() { disposed = true; inner.dispose?.(); inner.group.removeFromParent(); },
+    dispose() { disposed = true; pending?.dispose?.(); pending = null; inner.dispose?.(); inner.group.removeFromParent(); },
   };
   adopt(fallback());
   W.ready = Promise.resolve().then(load).then((gltf) => {
@@ -101,4 +102,11 @@ export function keeperGuardian({ load = loadKeeperV1 } = {}) {
     // (the fitted body's: its shell 3 m across and 7.8 long, the mouth's hit sphere as generous as the old one's)
     sizes: { radius: 2.9, height: 4.4, mouthR: 1.3 },
   });
+}
+
+/** The approved natural-wing Elder, in the Aerie, on its crown and in the Arena. */
+export function elderGuardian({load=loadElderV3}={}) {
+ return generatedGuardian({name:'Elder of Vael',fallback:()=>elderModel(),load,
+  make:gltf=>createElderCreature(gltf,{gameMaterial:true}),
+  sizes:{radius:3,height:7,mouthR:1.1,bodyR:2.6,touchR:1}});
 }

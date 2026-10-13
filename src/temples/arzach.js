@@ -4,7 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
 import { Door, Ball, Plate, Gust, Updraft, Platform, Mark, Pit, Key, Coffer } from './pieces.js';
-import { elderModel } from './guardians.js';
+import { elderGuardian } from './guardian-generated.js';
 import { items } from '../items.js';
 import { shiftAt } from '../levels/names.js';
 import { chestMound } from '../boxes/mound.js';
@@ -455,7 +455,7 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, RY, CL + HR + 10.5]));
   K.solid(box(4, 5, 0.5, 0, RY + 2.5, CL + HR + 10.9));
 
-  const model = elderModel();
+  const model = elderGuardian();
   model.pos.copy(K.world(0, RY, CL + 6));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
@@ -539,7 +539,7 @@ function change(scene, level, rt) {
   rt.root.add(root);
   root.visible = false;
   // the Elder on the crown
-  const perched = O ? elderModel() : null;
+  const perched = O ? elderGuardian() : null;
   if (perched) {
     perched.pos.copy(O.perch);
     perched.heading = SITE.heading;
@@ -566,6 +566,7 @@ function change(scene, level, rt) {
   const apply = () => { root.visible = k > 0.01; };
   return {
     root, flock, perched,
+    dispose() { perched?.dispose?.(); },
     set(on, { instant = false } = {}) { want = on ? 1 : 0; if (instant) { k = want; apply(); } },
     update(dt, t) {
       if (k !== want) { k = THREE.MathUtils.clamp(k + (want ? dt / 4 : -dt / 2), 0, 1); apply(); }

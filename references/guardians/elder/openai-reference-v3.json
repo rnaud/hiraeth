@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-13",
+  "service": "OpenAI Images",
+  "status": "user-approved",
+  "approval": "looks great, let's build",
+  "source": "reference-v3-natural-wings.png",
+  "sha256": "3a2c338562dd21ccf8362daa3f8da709f15de25f22f049f6aaed3e0368a49c11",
+  "views": {
+    "front": {
+      "left": 30,
+      "top": 0,
+      "width": 710,
+      "height": 460
+    },
+    "side": {
+      "left": 920,
+      "top": 0,
+      "width": 280,
+      "height": 460
+    },
+    "back": {
+      "left": 30,
+      "top": 500,
+      "width": 710,
+      "height": 475
+    },
+    "quarter": {
+      "left": 790,
+      "top": 500,
+      "width": 670,
+      "height": 475
+    }
+  },
+  "preparation": "Exact crops with plain margins; no resynthesis. Front, side and back are model inputs. Three-quarter is a visual cross-check, not mislabeled as an orthographic side."
+}

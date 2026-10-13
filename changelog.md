@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.67 — 2026-10-13
+
+- The Elder of Vael now has her new feathered body in the Aerie: natural wings, a centred neck, a closed beak at rest, small head movements as she walks and legs that tuck up in flight. She returns to the rooftop perch after you calm her, and the Arena uses the same bird.
+
 ## v1.66 — 2026-10-13
 
 - The game menu’s Map fills its page now instead of sitting in a square with empty paper either side: it shows a wider stretch of the world, east and west of the places you know, on a desktop screen and on a handheld alike, with the compass, the scale bar and the zoom buttons in its corners.

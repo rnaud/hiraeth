@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-13",
+  "service": "OpenAI Images",
+  "tool": "built-in image_gen",
+  "selected": "B",
+  "status": "superseded-pending-four-view-redesign",
+  "approval": "OpenAI B is good let\u2019s do that",
+  "file": "reference-v2-openai-b.png",
+  "sha256": "f1c5b5762284f701cef3bc405df8ed55b9f3621c7c67d232a5e86d4a5d72a800",
+  "sourceIdentity": "sheet-1.jpg",
+  "derivedViews": [
+    "reference-v2-front.png",
+    "reference-v2-side.png"
+  ],
+  "preparation": "Exact separate front/profile crops with 48-pixel cream margins; no resynthesis. Front anchors symmetry; profile guides neck and bill. Uploaded in Tripo multiview Front and Right slots.",
+  "note": "Originally approved as OpenAI B; generated mesh rejected. Use only the front image for visual identity in the new four-view reference proposal."
+}

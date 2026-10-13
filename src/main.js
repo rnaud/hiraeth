@@ -658,7 +658,7 @@ await slice();
 // a context; startReview runs after world loading and is too late for this.
 setStep('sound, tool');
 // (behind the title, the game's sound waits for its first frame: the title's music plays meanwhile)
-const sound = new Sound(levelId, { muted: query.has('cinematicReview') ? true : undefined, autoStart: !titleHold });
+const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') ? true : undefined, autoStart: !titleHold });
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)
@@ -2676,3 +2676,8 @@ window.contactAudit = async (o = {}) => {
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
+
+if (['keeper','elder'].includes(query.get('guardianReview'))) {
+  const {startGuardianReview} = await import('./guardian-review.js');
+  startGuardianReview({level,player,sound,rig,kind:query.get('guardianReview')});
+}

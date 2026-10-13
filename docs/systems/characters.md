@@ -1413,3 +1413,58 @@ Checked in the studio (front, three-quarter, side, close-up, face, bust, full an
 happy, angry and sad tones and talking) and in a Desert conversation (two-shot and his
 portrait chip) against the reference; `tests/portrait-face-ink.test.js` (since #266 also each stroke against
 the mesh's landmarks, at rest and in each expression).
+
+
+### Elder natural-wing replacement (13 October 2026)
+
+The user approved the four-view OpenAI natural-wing sheet in
+`references/guardians/elder/reference-v3-natural-wings.png`. The front, true
+profile and back are exact crops; the three-quarter image is only a cross-check.
+The first multiview Tripo run and its free retry put frontal features on the
+nape. With this asset, moving the left-facing profile from Right to Left while
+keeping Front and Back unchanged removed that conflict. The reviewed source is
+job `908b4352-b947-48e5-9502-d490428eb922`, preserved untouched as
+`references/guardians/elder/source-v3.glb`; provenance and its SHA-256 are in
+`tripo-v3-corrected.json`. No service auto-rig was used.
+
+`node scripts/tripo/rig-elder-v3.mjs` reproduces the 23-bone skin from that source.
+The mesh already faces +Z and has a centred frontal neck with a curved profile;
+no corrective neck warp is applied. `elder-v3-fit.js` measures the new joints,
+and `elder-v3-creature.js` applies that fit. Main’s separately maintained v1
+checkpoint remains unchanged.
+The lower bill is split and capped at its actual seam. Connected lower-body
+surface islands keep the tail, legs and rear toes independent; proximity alone
+had incorrectly blended neighbouring surfaces during flight tuck.
+
+The shipped review asset is 2,657,108 bytes, 47,784 triangles, 28,724 vertices, one material/draw
+call and a 2K JPEG colour map (about 21.33 MiB RGBA with mipmaps on the GPU).
+The untouched source has 47,610 triangles and 28,540 vertices. Fifteen v3 tests
+check actual skinned deformation, planted feet, head gestures, stable leg bends,
+flight tuck/landing and closed/open bill poses. Front/back/profile and motion
+were also reviewed in the game's ink shader in the Codex in-app browser.
+`tools/elder-review.html` now loads v3. The rejected v2 derivative and failed test
+are archived under ignored `output/character-tripo/elder-v2`, outside shipping.
+
+The user approved the animated result and requested temple replacement. The
+Aerie encounter, restored rooftop perch and Arena now use `elderGuardian()`
+from `guardian-generated.js`. It shares the Keeper’s asynchronous wrapper: the
+procedural fallback remains playable while the bundled GLB loads, or if loading
+fails/stalls. No game startup awaits it. The model’s position, mouth target,
+phase marks and gameplay sizes remain stable through replacement. Per-instance
+materials are disposed on exit without disposing shared cached skin geometry.
+
+`tests/elder-guardian.test.js` constructs the actual elevated Aerie and verifies
+loading, shader/skin selection, flight tuck, calming by flying alongside, final
+touch beyond body collision, resolved perch and disposal. The silent temporary
+progress review is `/?level=arzach&guardianReview=elder`; audio is muted at
+construction. The Keeper’s existing real-cistern tests still cover water, guard
+and final touch. No changes replace its newer main-branch integration.
+Texture-lighting neutrality and device performance remain separate follow-up
+checks under [issue #237](https://github.com/rnaud/hiraeth/issues/237).
+
+The live temple’s heavier shadow hatching obscured the authored feather ink,
+which was clear in the isolated preview’s lighting. V3 sets a local material
+shade profile (12% hatch, 25% shade lift, 80% hue retention) through
+`inkShade`; it still receives world lighting, shadows and contours. The profile
+is shared by the preview and gameplay. It does not alter the Keeper or other
+characters. The v3 runtime stays separate from main’s v1 repair checkpoint.

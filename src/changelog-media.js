@@ -762,6 +762,15 @@ const REVEAL242 = 'Issue #242: muted headless Chrome (High, 10:00) against this 
 // (v1.66, issue #272: a scratch shooter, the game menu opened on the Map by journal.toggle(true, 'map'))
 const MAP272 = 'Issue #272: muted headless Chrome (Medium, 10:00, the Desert) against this branch’s own Vite (port 5981), before on the tree before it (cfcb5f41), the game menu opened on the Map once its ground was drawn; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.67': [
+    { match: 'The Elder of Vael now has her new feathered body in the Aerie', tags: ['characters', 'vael'], shots: [
+      { name: 'elder-aerie-ground', title: 'Inside the Aerie', only: 'after', size: [1280, 720], caption: 'The approved bird in the real elevated roost, settling for the final touch. Her feather colours remain readable in temple shade.', from: 'Codex in-app browser, actual Vael game, temporary-progress silent Elder temple review, 13 October 2026.' },
+      { name: 'elder-natural-front', title: 'Natural feathered wings', only: 'after', size: [1280, 720], caption: 'The replacement mesh has a centred frontal neck and single feathered wing surfaces.', from: 'Codex in-app browser, Elder review, Game ink, Spread wings at 3 s, Front, 13 October 2026.' },
+      { name: 'elder-natural-back', title: 'A clean back', only: 'after', size: [1280, 720], caption: 'Rear feathers and nape, without the duplicate face in the rejected generation.', from: 'Codex in-app browser, Elder review, Game ink, Spread wings at 3 s, Back, 13 October 2026.' },
+      { name: 'elder-natural-flight', title: 'Legs tucked in flight', only: 'after', size: [1280, 720], caption: 'Both legs fold under the body while the tail keeps its own shape.', from: 'Codex in-app browser, Elder review, Game ink, Hover at 3 s, Side, 13 October 2026.' },
+      { name: 'elder-natural-beak', title: 'A hinged lower bill', only: 'after', size: [1280, 720], caption: 'The lower bill opens separately; the upper bill stays with the skull. The bill closes at rest.', from: 'Codex in-app browser, Elder review, Game ink, Beak open at 3 s, Head close-up, 13 October 2026.' },
+    ], see: 'Open /tools/elder-review.html. Compare Front, Side and Back; play Walk and Takeoff / landing cycle, and compare Beak closed with Beak open. This new model uses a fitted 23-bone skeleton and procedural motion. The same model is in the Aerie encounter, its restored rooftop perch and the Arena. Review the real temple silently with temporary progress at /?level=arzach&guardianReview=elder. Device profiling remains pending.' },
+  ],
   '1.66': [
     { match: 'The Elder’s new body, still a preview', tags: ['characters', 'vael'], shots: [
       { name: 'elder-head', title: 'Facing ahead', caption: 'Standing in the Aerie, from in front (top) and the side: before, her beak turned well to her left; after, ahead of her.', from: GUARD237 },

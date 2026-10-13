@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-13",
+  "job": "2be7a95e-831f-44fe-a3c9-72553b7aef16",
+  "url": "https://studio.tripo3d.ai/workspace/generate/2be7a95e-831f-44fe-a3c9-72553b7aef16",
+  "status": "rejected-source-anatomy",
+  "sourceReference": "references/guardians/elder/reference-v3-natural-wings.png",
+  "userApproved": true,
+  "inputMode": "Multiview",
+  "views": {
+    "Front": "references/guardians/elder/reference-v3-front.png",
+    "Right": "references/guardians/elder/reference-v3-side.png",
+    "Back": "references/guardians/elder/reference-v3-back.png"
+  },
+  "model": "H3.1 Best Quality",
+  "credits": 50,
+  "balanceBefore": 2725,
+  "balanceAfter": 2675,
+  "settings": {
+    "ultraMeshQuality": true,
+    "texture": true,
+    "textureSize": "4K",
+    "removeLighting": true,
+    "pbr": false,
+    "topology": "Triangle",
+    "targetPolycount": 50000,
+    "generateInParts": false,
+    "privacy": "Sharing Only"
+  },
+  "sourceExport": "output/character-tripo/elder-v3/source.glb",
+  "liveGameIntegrated": false,
+  "animationVerified": false,
+  "sourceSha256": "d15c42caf335e22e3524cfaf678b4c80246470fcd4ed7c6834638838cbd795dc",
+  "finding": "Front and rear inspection found facial markings on the back of the head; a free retry also had inconsistent head anatomy. No rigging performed.",
+  "freeRetriesUsed": 1,
+  "retryExport": "output/character-tripo/elder-v3/retry1.glb"
+}

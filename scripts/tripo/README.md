@@ -344,3 +344,25 @@ Its measured surface paths are in `data/characters/traveller-v1/ink/cloth-stroke
 the original model/colour texture are unchanged. Runtime loads one shared R8 mask
 for the body and GPU overshirt. See `docs/systems/characters.md`, “Traveller face and
 cloth ink study”, for the approved references, budget, captures and remaining limits.
+
+
+## Elder v3: natural wings
+
+Rebuild with `node scripts/tripo/rig-elder-v3.mjs`, then run
+`node --test tests/elder-v3-creature.test.js tests/elder-creature.test.js`.
+The default input is the untouched, hash-checked
+`references/guardians/elder/source-v3.glb` from Tripo job
+`908b4352-b947-48e5-9502-d490428eb922`. The approved OpenAI four-view sheet and
+exact crops are beside it. For this source the left-facing profile belongs in
+Tripo's Left slot, with Front and Back populated; Right caused conflicting head
+anatomy. Inspect the nape as well as the bill before accepting a multiview mesh.
+
+The new fit has 23 influential bones, a separated bill seam and topology-based
+lower-body island weights to avoid pulling toes or tail into the wrong limb.
+Review `/tools/elder-review.html` in all directions and through complete flight
+and gait cycles. The v1 checkpoint remains available; rejected v2 output is
+archived outside public assets. The user approved v3; `elderGuardian()` now loads it in the Aerie, restored perch
+and Arena. Review the actual encounter silently with temporary progress at
+`/?level=arzach&guardianReview=elder`. Run `tests/elder-guardian.test.js` too.
+Device profiling remains pending #237; see the natural-wing replacement section in
+`docs/systems/characters.md` for budgets and validation limits.

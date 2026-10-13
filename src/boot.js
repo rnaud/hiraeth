@@ -1,3 +1,7 @@
+if (['keeper','elder'].includes(new URLSearchParams(location.search).get('guardianReview'))) {
+  const {seedGuardianReview} = await import('./guardian-review.js');
+  await seedGuardianReview();
+}
 // Seed a temporary cinematic review before the game loads any progress.
 if (new URLSearchParams(location.search).has('cinematicReview')) {
   const { seedReview } = await import('./cinematics-page/runtime.js');

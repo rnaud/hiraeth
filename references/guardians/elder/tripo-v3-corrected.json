@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-13",
+  "job": "908b4352-b947-48e5-9502-d490428eb922",
+  "url": "https://studio.tripo3d.ai/workspace/generate/908b4352-b947-48e5-9502-d490428eb922",
+  "status": "rigged-review-ready",
+  "sourceReference": "references/guardians/elder/reference-v3-natural-wings.png",
+  "userApproved": true,
+  "inputMode": "Multiview",
+  "views": {
+    "Front": "references/guardians/elder/reference-v3-front.png",
+    "Left": "references/guardians/elder/reference-v3-side.png",
+    "Back": "references/guardians/elder/reference-v3-back.png"
+  },
+  "model": "H3.1 Best Quality",
+  "credits": 50,
+  "balanceBefore": 2675,
+  "balanceAfter": 2625,
+  "settings": {
+    "ultraMeshQuality": true,
+    "texture": true,
+    "textureSize": "4K",
+    "removeLighting": true,
+    "pbr": false,
+    "topology": "Triangle",
+    "targetPolycount": 50000,
+    "generateInParts": false,
+    "privacy": "Sharing Only"
+  },
+  "sourceExport": "references/guardians/elder/source-v3.glb",
+  "liveGameIntegrated": true,
+  "animationVerified": true,
+  "freeRetriesUsed": 0,
+  "change": "Move unchanged left-facing profile from Right to Left to test front/back orientation conflict. Front and Back unchanged.",
+  "sourceSha256": "dfc099830284fff48127cbe003998b7170c2a1b67fd67ffee107014ff36388d9",
+  "sourceTriangles": 47610,
+  "sourceVertices": 28540,
+  "derivedAsset": "public/guardians/elder-v3/model.glb",
+  "animationVerificationScope": "15 v3 skin/controller tests plus real elevated Aerie integration: flight, calming, final touch, restored perch and disposal. Device profiling and lighting-neutrality follow-up remain.",
+  "modelApprovedByUser": true,
+  "orientationResult": "This asset generated a clean head and nape with the left-facing profile in Left. The prior Right-slot run and one free retry produced conflicting head/back anatomy and were rejected.",
+  "modelApproval": "looks great, push to main (and replace in the temple)"
+}

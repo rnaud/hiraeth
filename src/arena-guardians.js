@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from './materials.js';
 import { Guardian } from './temples/boss.js';
 import { game as sharedGame } from './game-state.js';
-import { elderModel, whaleModel, signModel, sentinelModel, gardenerModel, foremanModel, snapperModel, mothModel, echoModel } from './temples/guardians.js';
+import { whaleModel, signModel, sentinelModel, gardenerModel, foremanModel, snapperModel, mothModel, echoModel } from './temples/guardians.js';
 import { KEEPER } from './temples/desert.js';
-import { keeperGuardian } from './temples/guardian-generated.js';
+import { keeperGuardian, elderGuardian } from './temples/guardian-generated.js';
 import { ELDER } from './temples/arzach.js';
 import { MOTHER as CLOUD_MOTHER } from './temples/arzach2.js';
 import { FIRST_SIGN } from './temples/bazaar.js';
@@ -39,7 +39,7 @@ import { TITLES } from './levels/names.js';
 export const GUARDIANS = [
   { id: 'desert', def: KEEPER, model: () => keeperGuardian() },
   { id: 'incal', def: WARDEN, model: () => sentinelModel() },
-  { id: 'arzach', def: ELDER, model: () => elderModel() },
+  { id: 'arzach', def: ELDER, model: () => elderGuardian() },
   { id: 'arzach2', def: CLOUD_MOTHER, model: () => whaleModel() },
   { id: 'perdide', def: SNAPPER, model: () => snapperModel({ reach: 12 }) },
   { id: 'perdide2', def: LAMPLESS, model: () => mothModel() },
@@ -128,6 +128,7 @@ export class ArenaGuardians {
     const c = this.current;
     if (!c) return;
     c.guardian.dispose();
+    c.guardian.model.dispose?.();
     c.root.traverse((o) => o.geometry?.dispose());
     c.root.removeFromParent();
     releaseMaterial(c.mat);

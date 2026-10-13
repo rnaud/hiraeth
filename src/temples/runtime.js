@@ -284,6 +284,8 @@ export class TempleRuntime {
     for (const f of this.offs) f?.();
     for (const p of this.pieces) p.dispose?.();
     this.guardian?.dispose();
+    this.guardian?.model.dispose?.();
+    this.change?.dispose?.();
     this.root.removeFromParent();
   }
 }
