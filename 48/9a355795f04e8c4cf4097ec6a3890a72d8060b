@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_63b92714feb611 7
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_cde5cb0dcfd8e8 59-61
+src/changelog.js
+  s_9ca76055a220ed::t_2a4bc7b03818f6 18-20
+src/story/desert-data.js
+  s_9ca76055a220ed::t_2a47af3084b166 738-739,741
+tests/fragments.test.js
+  s_9ca76055a220ed::t_55f5339b2b555d 504-512
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "489a355795f04e8c4cf4097ec6a3890a72d8060b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
