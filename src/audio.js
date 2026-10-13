@@ -1500,6 +1500,29 @@ export class Sound {
   }
 
   /**
+   * Calling the hoverbike from your pack (issue #249: "it shouldn't be a whistle to call the hover bike"): the pack's
+   * socket sends it a pulse, a soft knock in the glass and two notes of fluid rising a fifth, and a breath later the
+   * bike answers from far off, its engine winding up under them. No whistle: the bike is paired to the pack it ran on.
+   */
+  packCall() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.02;
+    this.burst(t, { dur: 0.05, type: 'bandpass', freq: 1400, q: 2, vol: 0.05, rate: 1.4 });   // (the socket's click)
+    this.sweep(t, 180, 120, 0.22, 0.05, 'sine');                                            // (a soft knock in the glass)
+    for (const [at, f, d] of [[0.04, 659.3, 0.32], [0.17, 987.8, 0.5]]) {                    // E5, B5: the pulse
+      this.pluck(f, t + at, 0.045, 'sine', this.fx);
+      this.sweep(t + at, f * 0.98, f * 1.02, d, 0.012, 'triangle');
+    }
+    // the bike, far off, answers: a low engine note winding up and settling, filtered by distance
+    const o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
+    o.type = 'sawtooth'; lp.type = 'lowpass'; lp.frequency.value = 520;
+    const a = t + 0.55;
+    o.frequency.setValueAtTime(70, a); o.frequency.exponentialRampToValueAtTime(150, a + 0.5); o.frequency.exponentialRampToValueAtTime(118, a + 1.0);
+    g.gain.setValueAtTime(0, a); g.gain.linearRampToValueAtTime(0.022, a + 0.25); g.gain.exponentialRampToValueAtTime(0.0005, a + 1.15);
+    o.connect(lp).connect(g).connect(this.fx); o.start(a); o.stop(a + 1.2);
+  }
+
+  /**
    * Someone calling you over (src/story/desert.js, "calling you over"): a breathy "psst" at their place
    * (a hiss through the teeth, stopped short), then a little rising hum in the throat, "mm-hm?".
    */

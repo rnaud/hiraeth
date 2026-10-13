@@ -1427,6 +1427,22 @@ export class FluidTool {
     this.state.emit('tool:fire', { mode, point: point.clone(), ...extra });
   }
 
+  /**
+   * The pack calls the hoverbike (issue #249: no whistle, main.js onWhistle): the tank's rings blink out and light again one
+   * after another, quickly, and a little ring of light goes out round the tank, the pulse its socket sends the bike.
+   */
+  signal() {
+    this.ringLit = this.ringLit.map((v, i) => Math.min(v, -i * 0.22));
+    this.flash = Math.max(this.flash, 0.35);
+    if (!this.tank || this.player?.object?.visible === false) return;
+    const tones = this.modeTones, at = this.tank.group.localToWorld(_o.set(0, TANK.height * 0.6, 0)), up = this.player.frame.up;
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      _t1.set(Math.cos(a), 0, Math.sin(a)).addScaledVector(up, -_t1.dot(up)).normalize();
+      this.glow.add({ pos: at, vel: _a.copy(_t1).multiplyScalar(1.8).addScaledVector(up, 0.25), drag: 3, size: 0.03, life: 0.55, color: tones[i % tones.length], grow: true });
+    }
+  }
+
   onRefilled(added) {
     this.wave = 1; this.flash = 0.6; this.slosh = Math.max(this.slosh, 0.7);
     this.ringLit = this.ringLit.map((v, i) => Math.min(v, -i * 0.6));   // the rings light up one after another

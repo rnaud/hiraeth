@@ -161,7 +161,7 @@ export const QUESTS = [
     // tank has been filled at the giant's pool. Whoever tells of it says where it is (it was "ask Marrow" first,
     // one person sending you to another: the author's playthrough, issue #63; src/story/desert-bike.js migrates a save there)
     id: 'desert.bike', title: 'Something Faster Than Walking', world: 'desert',
-    outro: 'The hoverbike hums under you. Whistle, and it comes.',
+    outro: 'The hoverbike hums under you. Your pack calls it, and it comes.',
     stages: [
       { id: 'find', text: 'Find the tarp in the red-rag hollow', label: 'The tarp in the hollow', flag: 'desert.bike.uncovered', at: 'bike' },
       { id: 'wake', text: 'Wake the hoverbike with a full tank', label: 'The hoverbike', flag: 'desert.bike.found', at: 'bike' },

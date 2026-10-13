@@ -65,3 +65,17 @@ test('in each riding world the bike is parked by the ship’s ramp, on open grou
     assert.equal(bike.dormant, false, `${id}: awake`);
   }
 });
+
+test('#249: the hoverbike is called from your pack, not whistled for; the bird keeps her call, a taxi its whistle', async () => {
+  const { callKind } = await import('../src/bike-worlds.js');
+  assert.equal(callKind('mount', 'hoverbike', true), 'pack', 'the bike: a pulse from the pack');
+  assert.equal(callKind('mount', 'hoverbike', false), null, 'no pack, no call: it runs on it (the notice says it needs power)');
+  assert.equal(callKind('mount', 'bird', true), 'rider', 'Vael’s bird: the rider’s call on the flute');
+  assert.equal(callKind('taxi', 'hoverbike', true), 'whistle', 'a cab is hailed with a whistle');
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /callKind\(kind, level\.mountName/, 'main.js sounds the call as callKind says');
+  const audio = readFileSync(new URL('../src/audio.js', import.meta.url), 'utf8');
+  assert.match(audio, /\n {2}packCall\(\) \{/, 'the pack’s call has its own sound');
+  const en = readFileSync(new URL('../src/i18n/en.js', import.meta.url), 'utf8');
+  for (const key of ['teach.bikeCall', 'ctl.k.use.how']) assert.doesNotMatch(en.match(new RegExp(`'${key}': '[^\\n]*`))[0], /whistl/i, `${key}: no whistle`);
+});

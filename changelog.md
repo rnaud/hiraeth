@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.64 — 2026-10-12
 
+- You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.
 - Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.
 - Fixed: coming back to Qanat’s tree with the spark-stone, there are no longer two prompts in front of the roots, one of them the wrong one. There is one, and it sets the stone, even with Hessa sweeping right beside you.
 - In the Unity preview the people you talk to move as they speak, as in the game: a talking hand, a shrug, a wave, a sad look away by the line’s tone, and a nod now and then while they listen.

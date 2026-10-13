@@ -93,7 +93,7 @@ import { routeChart, findableNote } from './story/signature-search.js';
 import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
-import { bikeComes, parkedBike } from './bike-worlds.js';
+import { bikeComes, parkedBike, callKind } from './bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
@@ -384,8 +384,8 @@ await stage('waking the people…');
 // the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
 setStep('player');
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
-// the hoverbike, found in the desert, comes out of the ship in the worlds made for riding (src/bike-worlds.js): the
-// whistle's, unless the bird answers there; then it stands by the ramp to be boarded
+// the hoverbike, found in the desert, comes out of the ship in the worlds made for riding (src/bike-worlds.js): called from
+// your pack, unless the bird answers there; then it stands by the ramp to be boarded
 const bikeHere = bikeComes(levelId, level, (k) => game.flag(k));
 if (bikeHere && !level.mount) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
 const player = new Player(physics, {
@@ -399,7 +399,9 @@ const player = new Player(physics, {
   onDrink: (got) => { sound.potion('heal'); hpShown = 3; potionGlow(got); rumblePlay('potion'); },
   onKnockdown: (dead, why) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
   onKnockout: (why) => { knockedOut = why; },
-  onWhistle: (kind) => (kind === 'mount' && level.mountName === 'bird' ? sound.tune(RIDER_CALL, RIDER_CALL_BEAT) : sound.whistle(kind)),   // calling the bike, the bird (the rider's call, on the flute) or a taxi
+  // calling the mount or a taxi: the bird with the rider's call on the flute; the hoverbike from your pack (its socket sends
+  // it a pulse, the tank's rings blinking: no whistle, issue #249; nothing without the pack it runs on); a taxi, a whistle
+  onWhistle: (kind) => { const how = callKind(kind, level.mountName, items.has('backpack')); if (how === 'rider') sound.tune(RIDER_CALL, RIDER_CALL_BEAT); else if (how === 'pack') { sound.packCall(); tool.signal(); } else if (how) sound.whistle(kind); },
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the hearts, the magic bar and the potion (index.html #health): while a heart is missing, the bar spends or
@@ -1771,7 +1773,7 @@ const controller = new Controller({
     if (name === 'capture') photo.capture = true;
     if (name === 'potion') drinkPotion();   // D-pad ←: drink a healing potion
     if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the Arena's foes, the Arcade's board, the References' views: D-pad ↓ opens the level's list; there is no mount to call there)
-    else if (name === 'call' && !ship.playing) player.callMount();   // D-pad ↓: whistle for the mount or hail a taxi (the keyboard's E still falls back to it)
+    else if (name === 'call' && !ship.playing) player.callMount();   // D-pad ↓: call the mount (the bike from your pack, the bird with her call) or hail a taxi (the keyboard's E still falls back to it)
     if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
     else if (name === 'lock' && !ship.playing) {
       // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js); with no foe in reach, the scout

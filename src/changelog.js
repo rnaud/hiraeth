@@ -54,6 +54,10 @@ export const CHANGELOG = [
     // keepOff and a refused step taken back; docs/systems/living-world.md "Off the ship"; issue #246)
     { text: 'Fixed: the desert’s lizards, crabs and jerboas no longer wander onto your ship. None climbs the ramp, walks under the hull or ends up on it, even when you chase them past it.',
       see: 'In the Desert, stand by your ship’s ramp a while, or chase the creatures near it: they go round the ship, never onto it.' },
+    // the hoverbike called from the pack, not whistled for (src/bike-worlds.js callKind, src/audio.js packCall,
+    // src/fluid-tool.js signal; docs/systems/movement.md "Mounts come to you"; issue #249)
+    { text: 'You no longer whistle for the hoverbike: your pack calls it. Press the same button and the tank’s rings blink one after another as the pack sends it a pulse, and far off you hear the bike’s engine answer as it comes. The bird and the cabs keep their calls.',
+      see: 'In the Desert, once the hoverbike is awake, walk away from it and press D-pad ↓ (E on a keyboard): the rings on your tank blink, two soft notes, and the bike’s engine answers from far off.' },
   ] },
   { v: '1.63', date: '2026-10-12', items: [
     // the Steam Deck's main thread: three's Skeleton.update from the bones' arrays, the frame's matrices from the

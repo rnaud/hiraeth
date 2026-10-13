@@ -255,9 +255,18 @@ method (outermost call only) and reads per-frame sums.
 
 ## Mounts come to you
 
-- **Hoverbike:** whistle (E) and it drives over on autopilot. If it's
+- **Hoverbike:** called from your pack (E, or the pad's call button) and it drives over on autopilot. If it's
   further than 220 m away, it first comes in from 140 m off to the side of
   the view. It brakes into a spot beside you.
+  **No whistle** (issue #249, the author: "it shouldn't be a whistle to call the hover bike"). The bike is paired to the
+  backpack: it woke when the pack clicked into its socket, and it runs on it. So the pack calls it: the tank's three
+  rings blink out and light again one after another, a little ring of light goes out round the tank
+  (`FluidTool.signal`), and you hear the socket's click and two notes of fluid rising a fifth, then, a breath later and
+  far off, the bike's engine winding up as it answers (`Sound.packCall`). Without the pack there is no call, only "It
+  needs power." Which call a mount gets is `callKind` (`src/bike-worlds.js`): the bike the pack's, Vael's bird the
+  rider's call on the flute, the skiff and a taxi a whistle. Still one button (`call`), and nothing in a save changes
+  (the bike was never an item; its call was only a sound and its words: the errand's outro, the teaching line, the
+  keyboard's controls row). `tests/bike-worlds.test.js`.
 - **Bird:** whistle in the air (falling, gliding, jumping off something
   high) and it swoops in from behind and below, faster than you fall,
   catches you and flies on. On the ground it lands beside you as before.
@@ -267,8 +276,8 @@ method (outermost call only) and reads per-frame sums.
 Found in the desert (`desert.bike.found`), the hoverbike rides along in the ship's hold. `src/bike-worlds.js`
 `BIKE_WORLDS` lists the worlds made for riding, where it is brought out and parked by the ramp when you land
 (`parkingSpot`: 5 m out and 4 m to the right of the way out): Viridel's meadows, the Glass Dunes' valley, the dunes and
-trench of the Buried Machine, the Garden of Spheres. There the whistle brings it over as in the desert; where Vael's
-bird has promised to answer (Viridel, the Garden of Spheres: `birdAnswers`), she keeps the whistle and the bike
+trench of the Buried Machine, the Garden of Spheres. There your pack calls it over as in the desert; where Vael's
+bird has promised to answer (Viridel, the Garden of Spheres: `birdAnswers`), she keeps the call and the bike
 stands by the ship to be boarded (`player.vehicles`). Everywhere else you walk, and the module says why for each world:
 the Underwater City's domes, the City-Shaft's terraces and the Signal Market's streets (cabs carry you), the Moon
 Foundry's workshop floor, the floating city's islands, Home's village, the Lantern's island, the Arena, the train; a

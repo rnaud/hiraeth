@@ -3,9 +3,9 @@ import { Hoverbike } from './bike.js';
 // The hoverbike in the worlds after the desert (issue #86: "the hover bike should be available on other planets if I
 // get it"). Found in the desert (desert.bike.found: Marrow's, under the tarp in the red-rag hollow, woken with a full
 // tank: src/story/desert-bike.js), it comes along in the ship's hold, and in a world where riding makes sense it is
-// brought out and stands by the ramp when you land: the whistle (E, or the pad's call button) brings it over as in the
-// desert. Where Vael's bird has promised to answer (src/bird.js birdAnswers: open sky, no mount of the world's own),
-// she keeps the whistle and the bike stands by the ship to be boarded. docs/systems/vehicles.md, "The hoverbike in
+// brought out and stands by the ramp when you land: called from your pack (E, or the pad's call button) it comes over as
+// in the desert. Where Vael's bird has promised to answer (src/bird.js birdAnswers: open sky, no mount of the world's own),
+// she keeps the call and the bike stands by the ship to be boarded. docs/systems/vehicles.md, "The hoverbike in
 // other worlds"; tests/bike-worlds.test.js.
 //
 // World by world (the route, src/levels/names.js ORDER, and the places off it a player reaches):
@@ -21,7 +21,7 @@ import { Hoverbike } from './bike.js';
 //   bazaar       no: streets and stairs, its cabs to carry you
 //   home, lantern, arena, the train, the worlds still being made: no (a village and a hill, one small island, a ring,
 //   a train's roofs; the unfinished worlds are not shown to players)
-// Interiors anywhere (rooms off the map) refuse the whistle already (main.js canSummon).
+// Interiors anywhere (rooms off the map) refuse the call already (main.js canSummon).
 
 /** The worlds the bike is brought out in, and why (the rest walk: see above). */
 export const BIKE_WORLDS = {
@@ -36,13 +36,26 @@ export function bikeComes(levelId, level, flag) {
   return !!flag?.('desert.bike.found') && Object.hasOwn(BIKE_WORLDS, levelId) && !level?.features?.mount;
 }
 
+/**
+ * How calling the mount sounds (main.js onWhistle; issue #249, "it shouldn't be a whistle to call the hover bike"): Vael's
+ * bird, the rider's call on the flute ('rider'); the hoverbike, from your pack ('pack': its socket sends the bike a pulse,
+ * the tank's rings blink, sound.packCall and tool.signal; nothing without the pack it runs on, null); a taxi or the
+ * skiff, a whistle ('whistle').
+ */
+export function callKind(kind, mountName, hasPack) {
+  if (kind !== 'mount') return 'whistle';
+  if (mountName === 'bird') return 'rider';
+  if (mountName === 'hoverbike') return hasPack ? 'pack' : null;
+  return 'whistle';
+}
+
 /** Where it stands by the ship: beside the ramp's foot, a little to the right of the way out, facing out. */
 export function parkingSpot(spawn, heading = 0) {
   const fx = Math.sin(heading), fz = Math.cos(heading);   // (the way out of the ship: the spawn's heading)
   return { x: (spawn?.x ?? 0) + fx * 5 - fz * 4, z: (spawn?.z ?? 0) + fz * 5 + fx * 4, heading };
 }
 
-/** The hoverbike, parked by the ship (it is whistled for as in the desert when it is the world's mount). */
+/** The hoverbike, parked by the ship (called from your pack as in the desert when it is the world's mount). */
 export function parkedBike(physics, spawn, heading = 0) {
   const b = new Hoverbike(physics);
   const at = parkingSpot(spawn, heading);
