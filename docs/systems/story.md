@@ -647,9 +647,9 @@ giving me access to the quest for the temple first."
   |---|---|---|
   | the Desert | Marrow, by your ship (the ship's power: the tank is empty, the temple can wait) | Sabri at Qanat's camps: the Rose House, the desert's boxes |
   | Vael | Lark, by the Aerie (the wings) | Oïa (the bird); Ysel by the Founders' Belfry and Sister Aube on the sky stones |
-  | Lorn | Teasel, by the Hush-House | Wendel (the crystal); Tamsy by the Lamp-House and Hollin in the Deep Wood |
+  | Lorn | Teasel, by the Hush-House | Wendel (the crystal); Briony by the Lamp-House and Hollin in the Deep Wood |
   | Viridel | Sorrel, by the Builders' Greenhouse | Mira |
-  | the Underwater City | Anselme, by the Whale-House | Bastien |
+  | the Underwater City | Achille, by the Whale-House | Bastien |
   | the City-Shaft | Vell, by the Warden's Well (the bellows) | Nima |
   | the Glass Dunes | Wim, by the Clock-House | Oren |
   | the Buried Machine | Brann, by the Engine-House | Wen |
@@ -809,7 +809,7 @@ giving me access to the quest for the temple first."
   docs/audits/dialogue-v1.48.md): the desert's temple, the Givers' House, is **the Rose House**
   (the Givers' Hearth is a few minutes away; the pilgrims already called it "the rose-stone
   house"); the Underwater City's Mireille is **Brune** (beside Maelle), the eclipse's Ansel
-  **Yusuf** (beside Anselme; the city speaks the desert's tongue, and no other name starts Yu),
+  **Yusuf** (beside Anselme, Achille since v1.73; the city speaks the desert's tongue, and no other name starts Yu),
   the Glass Dunes' Oren **Halden** (Oro), the Moon Foundry's Ilse **Petra** (Ilen, Ilo) and
   Ottilie **Liesel** (Ottla), the floating city's Tamar **Ines** (Tamra, Tamsy, Tam). Ids, flags
   and quest ids are kept (`mireille`, `ansel`, `oren`, `ilse`, `ottilie`, `tamar`,
@@ -820,6 +820,18 @@ giving me access to the quest for the temple first."
   `garage` for the looks drawn for them. `tests/names.test.js` fails if an old name comes back
   in the game's code outside comments (the dismissed Hangar, the save migrations and the
   changelog's history aside), or if the three mention the Hangar again.
+- **No two names alike in one world** (v1.73, issue #281, the dialogue review v1.66's findings 2
+  and 3): the games' hosts (docs/systems/minigames.md, "The hosts") were renamed where they nearly
+  matched someone of their world, and so were three others: the Whale-House's Anselme is
+  **Achille** (Anselm Thrum is aboard in every world), Lorn's lamp-counter Tamsy **Briony** (Tansy
+  stops in Lorn) and the Welcome-Shelf's Rowan **Burdock** (Robin). Their ids went with them
+  (`achille`, `briony`, `burdock`; src/save-migrate.js step 28 moves a save's `met.`, `talks.`,
+  `said.` flags and `perdide2.rowan.welcome`). `tests/names.test.js` gathers everyone a player
+  meets in each world (its parts together, a sub-level with its world, the hosts, Tansy at her
+  stops, Anselm everywhere) and fails if two share their first three letters, or are two edits
+  apart or fewer where that is a look-alike: they share their first two letters, or both have
+  five letters or more (Calix and Felix, Idris and Faris; two edits turn a three-letter name into
+  any other, Ama and Rima, and those read apart).
 
 ## Quests played out of order (the story pass, October 2026)
 

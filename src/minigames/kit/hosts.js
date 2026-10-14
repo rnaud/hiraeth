@@ -34,7 +34,7 @@ export function hostStand(at, heading = 0, { side = 1, ahead = 0.5 } = {}, out =
 
 /**
  * The host's talk (a src/story/dialogue.js person): their lines, then Play (`play`, once the talk has closed: `later`)
- * or Not now. `name`: the game's, for the prompt ("ask Darro about the canyon run").
+ * or Not now. `name`: the game's, for the prompt ("ask Kamal about the canyon run").
  */
 export function hostTalk(host, play, { later = (f) => f(), name = '', lacks = null } = {}) {
   const { say, lines, object, prompt, stand, ...person } = host;
@@ -52,7 +52,7 @@ export function hostTalk(host, play, { later = (f) => f(), name = '', lacks = nu
   return {
     ...person,
     lines: lines ?? ['~neutral~ …'],
-    // ("ask Darro about the canyon run", "ask Yusra about fishing": a game named for what you do takes no "the")
+    // ("ask Kamal about the canyon run", "ask Yusra about fishing": a game named for what you do takes no "the")
     prompt: prompt ?? (game ? `ask ${host.name} about ${/^the /.test(game) ? game : /ing$/i.test(game) ? game.toLowerCase() : `the ${game.toLowerCase()}`}` : undefined),
     talk: {
       nodes: {

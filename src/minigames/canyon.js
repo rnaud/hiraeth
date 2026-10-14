@@ -521,7 +521,7 @@ function* buildCanyon(scene) {
 
   const start = frameAt(K, 6);
   return arenaLevel({
-    ground: terrain, name: 'The Rose Canyon', hour: 15.2,
+    ground: terrain, name: 'The Two Chasms', hour: 15.2,
     spawn: new THREE.Vector3(start.x, H(start.x, start.z) + 1, start.z),
     features: { mount: false, wind: true, jetpack: false, climb: false },
     canyon: { K, H, gates, pads: padMeshes, cloth, chevM, chevGlow },
@@ -747,7 +747,7 @@ function start(ctx) {
 export default {
   id: 'canyon', order: 3,
   name: 'Canyon run',
-  blurb: 'The hoverbike round the Rose Canyon: three laps through its bends, over its two chasms, against your best.',
+  blurb: 'The hoverbike round the Two Chasms: three laps through its bends, over its two chasms, against your best.',
   rules: 'Three laps; every checkpoint shows your split against your best run. The sand banks and the drifts slow you, the cliffs throw you back, the ink chevrons boost you. Hit the kickers fast to clear the chasms (a fall costs 2 s).',
   controls: {
     pad: [['Left stick', 'steer'], ['RT / R2', 'throttle'], ['LT / L2', 'brake'], ['A / ×', 'hop (over a drift)'], ['Menu', 'pause']],

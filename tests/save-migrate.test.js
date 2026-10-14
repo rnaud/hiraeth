@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 27);   // (27: the night mail done at Solange's answer, issue #279)
+  assert.equal(MIGRATED(), 28);   // (28: three people renamed with their ids, issue #281)
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -438,4 +438,24 @@ test('the night mail is done at Solange’s answer (issue #279, step 27): a save
   const done = run({ 'quest.bazaar.nightmail': 'done' });
   assert.equal(done['nightmail.read'], true, 'brought under the old steps: she has read it');
   assert.equal(run({ 'quest.bazaar.nightmail': 'mireille', 'item.letter': 1 })['quest.bazaar.nightmail'], 'mireille', 'a save on the roof’s step stays');
+});
+
+test('three renamed, and their ids (issue #281, step 28): Anselme → Achille, Tamsy → Briony, Rowan → Burdock', async () => {
+  const run = (flags) => { const f = { 'save.migrated': 27, ...flags }; migrateFlags(f); return f; };
+  const f = run({ 'met.anselme': true, 'talks.anselme': 3, 'met.tamsy': true, 'said.tamsy.go': true, 'met.rowan': true, 'perdide2.rowan.welcome': true, 'met.ansel': true, 'met.robin': true });
+  assert.equal(f['met.achille'], true);
+  assert.equal(f['talks.achille'], 3);
+  assert.equal(f['met.briony'], true);
+  assert.equal(f['said.briony.go'], true);
+  assert.equal(f['met.burdock'], true);
+  assert.equal(f['perdide2.burdock.welcome'], true);
+  for (const k of ['met.anselme', 'talks.anselme', 'met.tamsy', 'said.tamsy.go', 'met.rowan', 'perdide2.rowan.welcome']) assert.equal(f[k], undefined, `${k} moved`);
+  assert.equal(f['met.ansel'], true, 'the eclipse’s Yusuf keeps his id');
+  assert.equal(f['met.robin'], true, 'nobody else is touched');
+  const { PEOPLE: WHALE } = await import('../src/temples/underwater-data.js');
+  const { PEOPLE: LAMP } = await import('../src/temples/perdide2-data.js');
+  const { SHOPKEEPERS } = await import('../src/story/shop-data.js');
+  assert.equal(WHALE.achille.name, 'Achille');
+  assert.equal(LAMP.briony.name, 'Briony');
+  assert.equal(SHOPKEEPERS.burdock.name, 'Burdock');
 });

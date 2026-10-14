@@ -372,7 +372,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   it spreads its great ear, sound the horn close by; from its second phase it shuts its ear to anything near and only the
   hall's dishes reach it (`ARENA_DISHES`, a ball on a footstone each); shifting into its last it knocks the balls off.
   After: the lamps in the house's horns and along its seam are lit (`change`), and the whales come back to the glass
-  (`src/story/underwater.js`, `level.whalesNear`). Anselme, who keeps its door, is its local.
+  (`src/story/underwater.js`, `level.whalesNear`). Achille, who keeps its door, is its local.
 - **The lens shows where the walker set things down** (the Footprint, from the same audit). What is real carries the
   walker's print (`printGeometry(toes)`: three toes, like the Footprint itself); look-alikes carry two or four. The
   Lens Chamber's `Mural` (lens only, the element `mural` of type `clue`, which a gate names in `clue` so the audit

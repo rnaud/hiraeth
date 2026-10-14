@@ -105,6 +105,11 @@
 // halt, bring Edda the answer) went. Step 27 moves a save on either to done, the answer kept for Edda to read when you
 // pass; a save that had brought it already has had her read it (`nightmail.read`).
 //
+// Three renamed so that no two names in one world blur (issue #281, v1.73): the Whale-House's Anselme is Achille (beside
+// Anselm Thrum, aboard in every world), Lorn's lamp-counter Tamsy is Briony (beside Tansy) and the Welcome-Shelf's Rowan
+// is Burdock (beside Robin). Their ids went with their names: step 28 moves each one's `met.`, `talks.` and `said.` flags
+// (and Burdock's `perdide2.rowan.welcome`) to the new id (RENAMED_281).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -277,7 +282,22 @@ const STEPS = [
   (flags) => migrateQuestGivers273(flags),
   // 27: the night mail done at Solange's answer (issue #279, v1.69): a save stepping off or bringing it back is done
   (flags) => migrateNightMail279(flags),
+  // 28: three people renamed, and their ids (issue #281, v1.73): Anselme → Achille, Tamsy → Briony, Rowan → Burdock
+  (flags) => migrateRenamed281(flags),
 ];
+/** Step 28's ids, old → new, and the other flags named after them (issue #281). */
+export const RENAMED_281 = { ids: { anselme: 'achille', tamsy: 'briony', rowan: 'burdock' }, flags: { 'perdide2.rowan.welcome': 'perdide2.burdock.welcome' } };
+/** Step 28 (pure, in place): each renamed person's flags under their new id (a flag already there is kept). */
+export function migrateRenamed281(flags) {
+  for (const k of Object.keys(flags)) {
+    const m = k.match(/^(met|said|talks)\.([a-z]+)(\..*)?$/), to = m && RENAMED_281.ids[m[2]];
+    const nk = to ? `${m[1]}.${to}${m[3] ?? ''}` : RENAMED_281.flags[k];
+    if (!nk) continue;
+    flags[nk] ??= flags[k];
+    delete flags[k];
+  }
+  return flags;
+}
 /** The night mail's steps removed in v1.69 (issue #279): step 27. */
 export const QUEST_STAGE_MOVES_279 = { 'bazaar.nightmail': { off: 'done', home: 'done' } };
 /** Step 27 (pure, in place): the answer stays in his coat until Edda reads it; brought already, she has. */

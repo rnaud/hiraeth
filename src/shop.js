@@ -53,7 +53,7 @@ export const SHOPS = {
   windshelf: { id: 'windshelf', keeper: 'brin', world: 'arzach', style: 'hoodoo', name: 'The Wind-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   almonry: { id: 'almonry', keeper: 'perpetue', world: 'arzach2', style: 'almonry', name: 'The Almonry', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   float: { id: 'float', keeper: 'nettle', world: 'perdide', style: 'raft', name: 'Nettle’s Float', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }, { id: 'magic', stock: 1 }] },
-  welcome: { id: 'welcome', keeper: 'rowan', world: 'perdide2', style: 'mossdome', name: 'The Welcome-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  welcome: { id: 'welcome', keeper: 'burdock', world: 'perdide2', style: 'mossdome', name: 'The Welcome-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   potting: { id: 'potting', keeper: 'clover', world: 'edena', style: 'potting', name: 'Clover’s Potting House', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   basket: { id: 'basket', keeper: 'fausta', world: 'incal', style: 'basket', name: 'Fausta’s Basket-Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }, { id: 'magic', stock: 1 }] },
   // (the Sealed Hangar's, kept with its world, dismissed in October 2026: src/levels/names.js DISMISSED; not counted)

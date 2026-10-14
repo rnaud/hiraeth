@@ -81,13 +81,17 @@ A sign in a world asks for its host instead of registering a button: `placeGameM
 heading, play, enabled, whileRiding })`. The level is built before the story, so main.js hands the queue to the story
 once both are up (`takeHosts()`, `storyRt.host(spot)`): a person is spawned beside the sign (`hostStand`: 1.5 m to its
 side and half a metre toward you, or the host's own `stand: { side, ahead }`; on the ground there), with the prompt
-"ask Darro about the canyon run" (a def's `prompt`, src/story/index.js `talkable`); a thing (`object: true`) is an
+"ask Kamal about the canyon run" (a def's `prompt`, src/story/index.js `talkable`); a thing (`object: true`) is an
 interactable on the sign itself ("read the makers' post"), its talk shown over the shoulder as a trace's is. Either
 way the talk is `hostTalk`: the host's one or two toned lines (`say`), then **Play** (called once the panel has
 closed) or **Not now**. Without a host (node's tests: `createTrials` with no `host`) the sign's button opens the card
 as before. Each host talks in their own voice (v1.68, issue #280, the dialogue review v1.66's findings 1 and 9): the
-first page starts in the middle of their own work (Yusra's catch, Darro's bike, Ostra's cab fare), not in the place's
-custom told in the third person, and the rules are said the way that person would say them. Tests: `tests/hosts.test.js`
+first page starts in the middle of their own work (Yusra's catch, Kamal's bike, Dagny's cab fare), not in the place's
+custom told in the third person, and the rules are said the way that person would say them. Their names are their own
+in their world (v1.73, issue #281): Ysolt, Brother Felix, Ostra, Nadir, Ilka, Ansgar and Darro, too near Mother Ysolde,
+Brother Calix, Ossa, Naji and Idris, Ilo, Anselm and Marrow, are Elva, Brother Amos, Dagny, Bilal, Aziza, Rudi and
+Kamal, and the canyon race is the Two Chasms (the Rose House and Qanat's rose-stone house keep the roses; the region
+is still the Rose canyons): `tests/names.test.js` fails if two people met in one world nearly share a name. Tests: `tests/hosts.test.js`
 (every game, trial and makers' run in a world has one; their lines, names, no two first pages opening alike and each
 one somebody talking, Play / Not now; a hosted sign has no button; where the persons stand in the desert, the market
 and Vael),
@@ -101,26 +105,26 @@ refused a moment later by the notice. Once had, the lines and Play / Not now as 
 | game | world, where | host | what they say |
 |---|---|---|---|
 | Fishing | Desert, the mineral basin's shore | Yusra, who fishes the basin | Six this morning, and one had legs. Whatever lives in the giants' water, it bites my hook. / Take the rod. Three minutes on my pier. When the float goes under, strike. Snap my line and you're mending it. |
-| Canyon run | Desert, under the lavender cliffs | Darro, who races the Rose Canyon | Rebuilt my bike twice this week. The canyon keeps the bits it likes. Three laps, two chasms. Fancy it? / Hit the kickers flat out, or you'll meet the chasm floor. The drifts and the banks eat your speed. |
-| Ring race | Desert, the hanging bridge's east shelf | Ilka, who keeps the brass hoops | I polish those brass hoops every week, and I still don't know what the makers hung them for. Do you? / So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little. |
+| Canyon run | Desert, under the lavender cliffs | Kamal, who races the Two Chasms | Rebuilt my bike twice this week. The canyon keeps the bits it likes. Three laps, two chasms. Fancy it? / Hit the kickers flat out, or you'll meet the chasm floor. The drifts and the banks eat your speed. |
+| Ring race | Desert, the hanging bridge's east shelf | Aziza, who keeps the brass hoops | I polish those brass hoops every week, and I still don't know what the makers hung them for. Do you? / So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little. |
 | Wing drop | Desert, the hanging bridge's west shelf | Zayd, who painted the mesa | I mixed the paint for the pilgrims' bird mark up on the mesa. No bird's landed on it. So we do. / Three drops. Wings open, find the warm air, ride it up, and come down soft on the middle. Soft. It chips. |
 | Drum circle | Desert, the pilgrims' small fire | Hamid, who keeps the camps' drums | I stretched these skins the night the procession set out. Every night since, the old song, round the fire. / Sit with us. When a beat rolls into the ring, strike it. Keep up and the whole camp gets dancing. |
 | Dune skiing | Desert, the Long Dune's crest | Tarek, who made the sand-skis | The children slide down the Long Dune on boards. Boards! So I made skis. Nobody's thanked me yet. / Between every pair of poles. Tuck to go faster, and land your spins. |
 | The shooting gallery | Signal Market, the west pavement | Fitz, who calls the shooting gallery | Roll up, roll up! Fish, ink blots and bells, all painted by my own hand! One minute on the clock! / Splash all you can. A miss breaks your streak, and so does a parasol. Those are my customers. |
 | Sketch hunt | Signal Market, the pavement | Vesna, who draws the market | That stall sold tea yesterday. The market changes faster than its signs, so I draw it first. / My list: six things, three minutes. Frame each one nicely, then sketch it. You can borrow my pencil. |
 | Sky steps | Vael (the sky stones), the start plateau's west rim | Sister Clem, who counts the fallen-up stones | I count them each morning: the small stones that fell up with the cloud. They make a path to the makers' gate. / Step from stone to stone to the gate. A fall costs a life. Those I don't count. |
-| Dune line (trial) | Desert | Nadir, who rides the dune line | Sand in your teeth yet? You will. We ride the dunes down into the basin and up out. Most of us come back. / Every gate in order, down and back up. Stay on the bike: the clock won't stop to pick you up. |
-| Wind ladder (trial) | Vael | Ysolt, who watches the wind ladder | (whispers) Hear it? Wind, climbing in two columns. I watch them. The riders went up them once, with their birds. / Wings open in the first. Up. Then the rings, in order. The second lifts you again. |
-| Stone circuit (trial) | Vael, the sky stones | Brother Felix, who keeps the riders' round | I sweep the riders' gates each morning. Nobody has flown their round since they crossed the cloud. / Take the bird round the Needles, the Table and the Monastery, every gate in order. It knows the way. |
+| Dune line (trial) | Desert | Bilal, who rides the dune line | Sand in your teeth yet? You will. We ride the dunes down into the basin and up out. Most of us come back. / Every gate in order, down and back up. Stay on the bike: the clock won't stop to pick you up. |
+| Wind ladder (trial) | Vael | Elva, who watches the wind ladder | (whispers) Hear it? Wind, climbing in two columns. I watch them. The riders went up them once, with their birds. / Wings open in the first. Up. Then the rings, in order. The second lifts you again. |
+| Stone circuit (trial) | Vael, the sky stones | Brother Amos, who keeps the riders' round | I sweep the riders' gates each morning. Nobody has flown their round since they crossed the cloud. / Take the bird round the Needles, the Table and the Monastery, every gate in order. It knows the way. |
 | Reed race (trial) | Lorn, the shore by its buoy | Wil, who races the reed-cutters | Crystal's quiet, the reeds are cut, and my skiff's faster than my mother's. Race you round the makers' buoys? / Every gate in order, round the lake and back. A gust of your fan in the sail and she flies. |
 | Lagoon laps (trial) | Lorn, the Deep Wood's lagoon | the race buoy (read, from the skiff) | (A keepers' bell hangs in the buoy, the lamp-mark cut under it: two laps of the lagoon, rung off from here.) / (A tally is scratched below. The newest time is forty years old.) |
 | Eye garden (trial) | Viridel | Linden, who waters the sleeping eyes | I water the beds, and the eyes in them open where the water lands. Only for a moment. The white builders left them. / Wake all eight, any order, as quick as you can. A few sleep high up: climb for those. |
-| Shaft climb (trial) | City-Shaft, the rim | Ostra, a courier who won't pay for cabs | A cab up to the rim? Robbery. I take the air pillar from the middle terrace. Free, and faster. / Wings open, into the pillar, up through every ring. Steer out of its top and glide the rim for the last. |
+| Shaft climb (trial) | City-Shaft, the rim | Dagny, a courier who won't pay for cabs | A cab up to the rim? Robbery. I take the air pillar from the middle terrace. Free, and faster. / Wings open, into the pillar, up through every ring. Steer out of its top and glide the rim for the last. |
 | Glass slalom (trial) | Glass Dunes | Opal, a glassworker who flies the waves | Kiln's banked, so I'm flying. The slalom runs between the glass waves. They've never fallen on anyone. / Ride the first column up, then the rings in order. Sinking? Find the next column. Then home down the valley. |
 | Canyon dive (trial) | Buried Machine | Tibor, who dives the canyon on Tooth Day | Tooth Day. Wings on, and down the canyon for luck. My father did it every year. Once with a goat. / Through every gate to the bottom, then ride the column up and out. Don't stop to look at the pipes. |
 | Garden round (trial) | Garden of Spheres | Aurel, who walks the round of the spheres | Hush. This one remembers rain. I walk the round each day, so someone remembers with them. / Gate to gate, round the garden and back. Climb, jump, glide. The spheres don't hurry, but the clock does. |
 | Tube run (trial) | Underwater City | Gil, who races the sealed tubes | Lamps trimmed, so we race the tubes. We wait till the whales are quiet. Lately that's every night. / Every ring, hall to hall through the glass. Take the bends tight, and don't miss one. |
-| Floor round (trial) | Moon Foundry | Ansgar, who ran the pour times | Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round. / Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it. |
+| Floor round (trial) | Moon Foundry | Rudi, who ran the pour times | Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round. / Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it. |
 | Courier's round (trial) | City Floating in Space | Pia, who runs the oil bills | Oil bills, island to island, every evening. Late oil, dark lamps, cross customers. So I run. / Every ring in order over the bridges. Mind your feet: step off, and the dark is a long way down. |
 | Avenue run (trial) | Signal Market | Quill, who hangs the signs | Hung thirty signs today and every one's crooked! Market night: we fly the avenue under the lot! / Ride the column at the avenue's head, then the rings in order. Halfway there's another column. Use it. |
 | the makers' runs (16) | each in its world (docs/systems/challenges.md) | the makers' post, read | (Under the makers' mark:) what the run is in the house it was stood out from (the wind kept in a hall, the Hush over the causeway, the Belfry's fallen-up bridges…) / what to do, in one line |
@@ -261,7 +265,7 @@ and require the gate with no fall.
 ## Canyon run (`canyon.js`)
 
 The hoverbike (`src/bike.js` `buildBike`, the desert's own model; the rider posed as `animateRiding` does) round
-the Rose Canyon, three laps. The canyon is one closed loop (`makeTrack`: a ring of 172 m wobbled by three sines,
+the Two Chasms, three laps. The canyon is one closed loop (`makeTrack`: a ring of 172 m wobbled by three sines,
 1024 samples, about 1.24 km round) and `nearest(track, x, z)` gives any place's `s` along it and `d` across it
 (> 0 outward). On it `profileHeight(K, s, d)`: a floor 20–32 m wide that rises and falls, a sand bank 4.5 m wide,
 then cliffs 7 m out to a plateau 20–35 m up; two chasms right across (13 and 15 m) each after a wooden kicker

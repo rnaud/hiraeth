@@ -11,15 +11,15 @@ export const QUEST = {
 };
 
 export const PEOPLE = {
-  tamsy: {
-    id: 'tamsy', name: 'Tamsy', title: 'who counts the lamps', color: '#f0927a', voice: 1.14, kind: 'f',
+  briony: {
+    id: 'briony', name: 'Briony', title: 'who counts the lamps', color: '#f0927a', voice: 1.14, kind: 'f',
     palette: { cloak: '#4a4f7a', lining: '#f0927a', cloth: '#c9b8d8', legs: '#2f3560', hat: '#ece2f2', hair: '#2a2030' }, head: 'wrap', cape: 1.0,
     lines: ["~neutral~ Forty-one pools. One dark tower. I count it separately.", "~whisper~ Grandfather remembered the tower’s light.", '~curious~ Did you hear wings?'],
     talk: {
       entry: [
         { if: { flag: 'temple.perdide2.done' }, node: 'after' },
         { if: { flag: 'temple.perdide2.entered' }, node: 'inside' },
-        { if: { flag: 'met.tamsy' }, node: 'again' },
+        { if: { flag: 'met.briony' }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -27,7 +27,7 @@ export const PEOPLE = {
           say: ["~curious~ Forty-one pool lamps, every night, and each one written down. Hollin calls it thorough. I call it knowing which ones went out.",
             "~solemn~ That tower in the water is *the Lamp-House*. Grandfather said its light once reached the whole wood. Nobody living has seen it burn.",
             "~whisper~ When three pools went dark, something pale flew out of the tower and back in. A moth as big as a skiff. I checked that measurement twice."],
-          do: { set: { 'met.tamsy': true } },
+          do: { set: { 'met.briony': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide2' }, goto: 'go' },
             { text: '~curious~ A moth?', goto: 'moth' },
@@ -60,7 +60,7 @@ export const PEOPLE = {
             '~solemn~ Forty-two. I wrote it down.'],
           choices: [
             { text: '~solemn~ It took the light a little at a time.', goto: 'light' },
-            { text: '~happy~ Keep counting, Tamsy.', end: true },
+            { text: '~happy~ Keep counting, Briony.', end: true },
           ],
         },
         light: { say: ['~happy~ A little at a time. Like counting. It’s the only way I know to do anything.'], choices: [{ text: '~happy~ Forty-two, then.', end: true }] },

@@ -17,7 +17,7 @@ believe about the makers. On a repeat visit, put the next action first.
 | Sorrel / Builders' Greenhouse, Viridel | Sows its beds. | Patient with seedlings, less patient with visitors who mistake old stone for dead stone. Gentle specificity; knows what needs watering. |
 | Tessa / Footprint, Garden of Spheres | Walks the rim. | Has noticed changes by returning to the same route. Curious, spatial, quietly playful; look from here, then compare. |
 | Teasel / Hush-House, Lorn | Cuts reeds. | Has a worker's reasons to want the snappers calm. Dry swamp humour; unromantic about teeth. The cold gift affects the flowers/snappers, separate from the eggs' hatching quest. |
-| Tamsy / Lamp-House, Lorn II | Counts the lamps. | Counting is a way of making sure nobody disappears into an unlit patch. Bright, attentive, explicit about missing lights. |
+| Briony / Lamp-House, Lorn II | Counts the lamps. | Counting is a way of making sure nobody disappears into an unlit patch. Bright, attentive, explicit about missing lights. |
 | Hobb / Undertower, Signal Market | Listens at old stones. | The market's oldest things deserve to finish a sentence. Spare, wry, able to distinguish noise from a reply. |
 
 Do not promise that finishing a house will explain the Singer or reunite an

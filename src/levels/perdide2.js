@@ -846,7 +846,7 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < DEEP && p.y < WATER + 0.5;
   const spawnY = H(ISLAND.x, ISLAND.z);
 
-  // Rowan's Welcome-Shelf (src/shop-world.js, src/shop-fronts.js 'mossdome'): a moss dome on the lit path's west
+  // Burdock's Welcome-Shelf (src/shop-world.js, src/shop-fronts.js 'mossdome'): a moss dome on the lit path's west
   // bank, a third of the way to the first dark pool, its door and stall turned to the path and the landing
   // (in Lorn its room takes the second slot over the map: Lorn's own Float has the first, src/interior-kit.js interiorSlot)
   const shop = placeShop(scene, { def: SHOPS.welcome, at: new THREE.Vector3(-10 + OX, H(-10 + OX, -65 + OZ), -65 + OZ), heading: Math.PI / 4, slot: merged ? 1 : 0 });

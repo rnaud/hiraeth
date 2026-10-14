@@ -1,6 +1,6 @@
 // The Underwater City's people with something to do (on the route since v1.40: src/levels/names.js ORDER), placed by
 // src/levels/underwater.js (UNDERWATER_CONTENT npcs), their side quests defined by src/story/underwater.js. The world's
-// thread is its temple, the Whale-House (src/temples/underwater.js, Anselme at its door): Maelle in the Whale Gallery
+// thread is its temple, the Whale-House (src/temples/underwater.js, Achille at its door): Maelle in the Whale Gallery
 // tells you why the whales keep away, and what they sang once they came back (the way on: the City-Shaft). The cutting's
 // errand ends where its goal is, in the Crown (issue #137); Fabre thanks you and Maelle hears of his lamps when you pass,
 // no step of either. Every line carries a tone; a talk's answers stay at three a node at most.
@@ -185,7 +185,7 @@ export const PEOPLE = {
         },
         why: { say: ['~whisper~ Something in the Whale-House calls them off. It used to call them in. The makers built it to talk to them, long before the city.'], choices: [{ text: '~curious~ The Whale-House?', goto: 'house' }] },
         house: {
-          say: ['~neutral~ *The Whale-House*, the makers’ old sounding-house on the sea floor north of the Plaza. *The last tube runs out to its door.* Old Anselme sits by it.',
+          say: ['~neutral~ *The Whale-House*, the makers’ old sounding-house on the sea floor north of the Plaza. *The last tube runs out to its door.* Old Achille sits by it.',
             '~solemn~ Whatever listens in there has been singing the light’s note back to the whales for months. Go and ask it to stop.'],
           choices: [{ text: '~neutral~ I’ll go.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~curious~ I’ll listen at its door first.', end: true }],
         },

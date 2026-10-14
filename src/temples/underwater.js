@@ -513,7 +513,7 @@ function exterior(scene, level, rt) {
   for (let i = 0; i < 10; i++) { const s = i < 5 ? -1 : 1, a = 1.0 + (i % 5) * 0.4; ports.push(V(s * Math.sin(a) * 13.95, 7, -3 + Math.cos(a) * 14.95)); }
   // coral rocks and kelp-coloured knobs round its foot (drawn)
   for (const [x, z, r] of [[-12, 8, 1.6], [12.5, 7, 1.3], [-15, -6, 2.0], [15.5, -9, 1.7], [-6, -17, 1.4], [8, -16, 1.9]]) K.add(coral, new THREE.SphereGeometry(r, 9, 6).scale(1, 0.6, 1).translate(x, -0.4, z));
-  // Anselme's bench, inside the tube by the door
+  // Achille's bench, inside the tube by the door
   K.both(teal, box(0.6, 0.45, 1.8, 3.9, 0.22, DZ + 4.5));
   K.flush();
 
@@ -572,7 +572,7 @@ export const UNDERWATER_TEMPLE = {
   origin: [0, 1600, -150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
-  local: { person: 'anselme', out: 7, side: 1.2 },
+  local: { person: 'achille', out: 7, side: 1.2 },
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
   pitLine: 'You climb back up, to the last glyph stone.',
   onResolved(rt) { rt.notice('The whales are coming back. The way out comes up in the divers’ court.', 'resolved.out'); },

@@ -1,5 +1,5 @@
 // The Underwater City's story ("The Song Through the Glass"; on the route since v1.40, the fifth world: src/levels/names.js).
-// Its thread is its temple, the Whale-House (src/temples/underwater.js; Anselme at its door, src/temples/underwater-data.js);
+// Its thread is its temple, the Whale-House (src/temples/underwater.js; Achille at its door, src/temples/underwater-data.js);
 // Maelle in the Whale Gallery tells why the whales keep away (src/story/underwater-people.js). When the Whale-House's
 // keeper is calmed (`temple.underwater.done`) the world is done on the route (`world.underwater.done`), its keepsake given
 // (the whales' answer) and its page closes (src/levels/underwater.js UNDERWATER_CONTENT.story); out of the house, the

@@ -111,3 +111,78 @@ test('Lune, Ottla and Zazie come from worlds the route reaches, not the dismisse
   assert.match(lineOf('ottla'), /Glass Dunes/);
   assert.match(lineOf('pip.garage'), /City-Shaft/);
 });
+
+// Issue #281 (the dialogue review v1.66, findings 2 and 3): the hosts brought names that nearly matched people already in
+// their world (Ysolt and Mother Ysolde, Brother Felix and Brother Calix, Ostra and Ossa, Nadir and Naji, Ilka and Ilo),
+// and the scientist aboard in every world, Anselm, stood beside the Whale-House's Anselme. Within one world (its parts
+// together, a sub-level with the world it leaves from), with the hosts, the fellow traveller at her stops and the
+// scientist aboard everywhere: no two people a player meets share their first three letters, or lie within two edits of
+// each other where that is a look-alike (they share their first two letters, or both have five letters or more: two
+// edits make a three-letter name another name, Ama and Rima, Teo and Ilo, and those read apart).
+/** A name as a player reads it: no honorific, no accents, lower case, its first word. */
+const plain = (n) => bare(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(' ')[0];
+/** Levenshtein distance. */
+function edits(a, b) {
+  const d = [...Array(b.length + 1).keys()];
+  for (let i = 1; i <= a.length; i++) {
+    let prev = d[0];
+    d[0] = i;
+    for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; }
+  }
+  return d[b.length];
+}
+/** Do these two names blur? → why, or ''. */
+function alike(x, y) {
+  const a = plain(x), b = plain(y);
+  if (a === b) return '';   // (one name, one person is the test above's)
+  if (a.slice(0, 3) === b.slice(0, 3)) return 'the same first three letters';
+  const d = edits(a, b);
+  if (d <= 2 && (a.slice(0, 2) === b.slice(0, 2) || Math.min(a.length, b.length) >= 5)) return `${d} edit${d > 1 ? 's' : ''} apart`;
+  return '';
+}
+/** The games' signs a level puts up itself (src/levels/desert.js, bazaar.js), and the games' markers: the world of each host. */
+const SIGNS = { fishing: 'desert', canyon: 'desert', rings: 'desert', wingdrop: 'desert', gallery: 'bazaar' };
+
+test('within a world, no two people’s names look or sound alike (issue #281)', async () => {
+  await import('./register-gadgets.js');
+  const { partOf, SUB, ORDER, SIDE } = await import('../src/levels/names.js');
+  const { EVERYONE } = await import('../src/story/people-book.js');
+  const { HOSTS } = await import('../src/minigames/kit/hosts.js');
+  const { THRUM } = await import('../src/story/scientist-data.js');
+  const { TANSY, STOPS } = await import('../src/story/fellow-data.js');
+  const files = readdirSync(new URL('../src/minigames/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'index.js');
+  const markers = Object.fromEntries((await Promise.all(files.map((f) => import(`../src/minigames/${f}`))))
+    .flatMap((m) => Object.values(m)).filter((g) => g?.id && g.markers?.length).map((g) => [g.id, g.markers[0].level]));
+  const fileWorld = { 'night-train': 'overnighttrain' };
+  const worldOf = (w) => { const p = partOf(fileWorld[w] ?? w); return SUB[p] ?? p; };
+  const by = new Map();
+  const meet = (w, name) => { if (!name || /^(The|A|An) /.test(name)) return; w = worldOf(w); if (!by.has(w)) by.set(w, new Set()); by.get(w).add(name); };
+  for (const p of await everyone()) meet(p.world, p.name);
+  for (const p of EVERYONE) meet(p.world, p.name);
+  for (const [id, H] of Object.entries(HOSTS)) {
+    if (H.object) continue;
+    const w = SIGNS[id] ?? markers[id] ?? id.replace(/^trial-/, '');
+    assert.ok([...ORDER, ...SIDE, 'arzach2', 'perdide2'].includes(w), `${id}: the host’s world (${w})`);
+    meet(w, H.name);
+  }
+  for (const w of STOPS) meet(w, TANSY.name);
+  for (const w of [...ORDER, ...SIDE]) meet(w, THRUM.name);   // (aboard in every world once met: src/story/scientist.js)
+  assert.ok(by.get('desert').size > 30, `${by.get('desert').size} people in the desert`);
+  const bad = [];
+  for (const [w, set] of by) {
+    const l = [...set];
+    for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) { const why = alike(l[i], l[j]); if (why) bad.push(`${w}: ${l[i]} and ${l[j]} (${why})`); }
+  }
+  assert.deepEqual(bad, []);
+  // the check sees what the review found, and lets through what reads apart
+  for (const [a, b] of [['Ysolt', 'Mother Ysolde'], ['Brother Felix', 'Brother Calix'], ['Ostra', 'Ossa'], ['Nadir', 'Naji'], ['Faris', 'Idris'], ['Darro', 'Marrow'], ['Ilka', 'Ilo'], ['Anselme', 'Anselm Thrum'], ['Ansgar', 'Anselm Thrum'], ['Tamsy', 'Tansy']]) assert.ok(alike(a, b), `${a} and ${b} blur`);
+  for (const [a, b] of [['Ama', 'Rima'], ['Teo', 'Ilo'], ['Wen', 'Dun'], ['Rosa', 'Joss'], ['Madame Sel', 'Teb']]) assert.equal(alike(a, b), '', `${a} and ${b} read apart`);
+});
+
+test('the Desert’s canyon race is not a third rose (issue #281)', async () => {
+  const { readFileSync: read } = await import('node:fs');
+  const { HOSTS } = await import('../src/minigames/kit/hosts.js');
+  const said = JSON.stringify(Object.values(HOSTS)) + uncommented(read(new URL('../src/minigames/canyon.js', import.meta.url), 'utf8'));
+  assert.ok(!/Rose Canyon/i.test(said), 'the Rose House and the rose-stone house keep the roses');
+  assert.match(HOSTS.canyon.title, /the Two Chasms/);
+});

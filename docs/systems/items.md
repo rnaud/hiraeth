@@ -325,7 +325,7 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   | Vael | the Wind-Shelf | Brin | 1 | |
   | Vael II | the Almonry | Sister Perpetue | 1 | |
   | Lorn | Nettle's Float | Nettle | 1 | 1 |
-  | Lorn II | the Welcome-Shelf | Rowan | 1 | |
+  | Lorn II | the Welcome-Shelf | Burdock | 1 | |
   | Viridel | Clover's Potting House | Clover | 1 | |
   | The City-Shaft | Fausta's Basket-Shop | Fausta | 2 | 1 |
   | The Sealed Hangar | the Quartermaster's Hatch | Odo | 1 | |

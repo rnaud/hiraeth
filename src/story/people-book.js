@@ -345,9 +345,9 @@ export const BOOK = {
       [f('clue.perdide2.edena'), 'Odile drew a garden with white pyramids inside the saucer, so as not to forget it.'],
       [f('perdide2.skiff.home'), 'You brought the skiff home under his old lamp. He will keep it lit this time.'],
     ], ['In the far dome, on the deep water.']),
-    P('rowan', 'Rowan', 'Keeps the Welcome-Shelf on the lit path', [
-      'Rowan, Hollin’s cousin, has kept a shop stocked for travellers in a moss dome on the lit path for thirty years. You were his first customer. Everything is dusted daily.',
-      [f('perdide2.rowan.welcome'), 'Three lamps over a door are the Welcome: a traveller may knock. He never took them down, though nobody came.'],
+    P('burdock', 'Burdock', 'Keeps the Welcome-Shelf on the lit path', [
+      'Burdock, Hollin’s cousin, has kept a shop stocked for travellers in a moss dome on the lit path for thirty years. You were his first customer. Everything is dusted daily.',
+      [f('perdide2.burdock.welcome'), 'Three lamps over a door are the Welcome: a traveller may knock. He never took them down, though nobody came.'],
     ], ['In the Welcome-Shelf, his moss dome on the lit path.']),
   ],
   edena: [
@@ -388,7 +388,7 @@ export const BOOK = {
       [f('edena.clover.hearts'), 'Once a season a red heart grows in the moss under the umbrella trees. She takes one and leaves the rest, and digs up nothing.'],
     ], ['In her potting house under the umbrella tree.']),
   ],
-  // (the three worlds that joined the route in v1.40; their temples' locals, Anselme, Petra and Joss, are not listed,
+  // (the three worlds that joined the route in v1.40; their temples' locals, Achille, Petra and Joss, are not listed,
   // as Wim isn't, and the visitors from other worlds are listed under their own)
   underwater: [
     P('bastien', 'Bastien', 'Keeps the lock', [

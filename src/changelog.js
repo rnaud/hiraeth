@@ -9,6 +9,10 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.73', date: '2026-10-14', items: [
+    // names alike in one world (issue #281): src/story/hosts-data.js, src/temples/{underwater,perdide2}-data.js,
+    // src/story/shop-data.js, src/minigames/canyon.js, src/save-migrate.js step 28; tests/names.test.js
+    { text: 'No two people you meet in a world have names that look alike any more. The games’ hosts are the Desert’s Kamal, Aziza and Bilal, Vael’s Elva and Brother Amos, the City-Shaft’s Dagny and the Moon Foundry’s Rudi; the Whale-House’s door-keeper is old Achille, Lorn’s lamp-counter is Briony and the Welcome-Shelf’s keeper is Burdock. The Desert’s hoverbike race is run round the Two Chasms.',
+      see: 'In the Desert, walk up to the canyon run’s sign: “ask Kamal about the canyon run”, and its card reads The Two Chasms. In the Underwater City, Achille sits by the Whale-House’s door; in Lorn, Briony counts the lamps by the Lamp-House and Burdock keeps the Welcome-Shelf.' },
     // the recordings' closing angle (issue #297): src/ship/cinematics.js callFrame, CALL_EASE; tests/ship.test.js
     { text: 'In the recordings at the ship’s console, the view no longer jumps in to the close-up from the same spot: it glides across into it.',
       numbers: [{ title: 'Jumps in the picture the cinematics QC finds in a recording', unit: 'jumps', better: 'lower', device: 'Mac, muted headless Chrome, High, 1280 × 720 (scripts/cinematics-qc.mjs)', rows: [

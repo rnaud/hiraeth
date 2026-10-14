@@ -567,7 +567,7 @@ export const PERDIDE2_TEMPLE = {
   origin: [-140 + OX, 1800, -300 + OZ], yaw: 0,   // (its rooms over the wood, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
-  local: { person: 'tamsy', out: 33, side: 2 },
+  local: { person: 'briony', out: 33, side: 2 },
   enterLine: 'Inside the Lamp-House it is very dark, and it smells of moss and old oil. Somewhere above, wings.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Out over the wood, the Lamp-House’s lamp catches and its beam turns.', 'resolved.out'); },

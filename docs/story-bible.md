@@ -364,7 +364,7 @@ Market and Zazie in the City-Shaft; none of them mentions the Hangar.)*
 - **Quests**: the city's own, *The Wrong Note* (v1.48): Bastien at the lock, by
   the ship, hears the wrong note in the glass; an ear on the window over the deep
   in the Whale Gallery hears it come up through the sea floor from the north; then
-  in at the Whale-House's door. The temple, **the Whale-House** (Anselme at its
+  in at the Whale-House's door. The temple, **the Whale-House** (Achille at its
   door; Maelle in the Whale Gallery tells why the whales keep away): find the
   makers' **whale-horn** inside and calm its keeper. An errand of the city's
   own: Brune's glow-kelp cutting up the lift to Fabre's window box in the Crown
@@ -851,6 +851,13 @@ gadget at its heart; half the makers' gifts wait inside them, half in the open
 | Lorn II | the Welcome: three lamps over a hull | Robin saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper) |
 | City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
+
+**Names a player keeps apart.** One name is one person in the whole game, and in one world no two people a player
+meets begin alike or nearly spell alike (issue #281, `tests/names.test.js`; Anselm Thrum counts in every world, he is
+aboard). So the games' hosts are the desert's Kamal (the canyon race, which is *the Two Chasms*: the roses are the
+Rose House's and Qanat's rose-stone house's), Aziza (the brass hoops) and Bilal (the dune line), Vael's Elva (the wind
+ladder) and Brother Amos (the riders' round), the City-Shaft's Dagny and the Moon Foundry's Rudi; the Whale-House's
+door-keeper is old **Achille**, Lorn's lamp-counter **Briony** and the Welcome-Shelf's keeper **Burdock**.
 
 Built details beyond the bible: the bird's promise (`bird.promise`) could later
 let her answer a whistle in other worlds; Vael II's clapper "fell up"; the

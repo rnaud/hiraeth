@@ -25,13 +25,13 @@ export const HOSTS = {
     lines: ['~neutral~ They bite at dusk. And at noon. And whenever.'],
   }),
   canyon: P({
-    id: 'host.canyon', name: 'Darro', title: 'who races the Rose Canyon', color: '#c9703e', kind: 'm',
+    id: 'host.canyon', name: 'Kamal', title: 'who races the Two Chasms', color: '#c9703e', kind: 'm',
     palette: { cloak: '#c9703e', lining: '#2b211f', cloth: '#3f4f5a', legs: '#4a3a2a', hat: '#e8c66a', hair: '#3a2a20' }, head: 'bandana', look: { mask: 'browgoggles', body: 'toolbelt' },
     say: ['~playful~ Rebuilt my bike twice this week. The canyon keeps the bits it likes. Three laps, two chasms. Fancy it?', '~neutral~ Hit the kickers flat out, or you’ll meet the chasm floor. The drifts and the banks eat your speed.'],
     lines: ['~playful~ The canyon’s faster than it looks.'],
   }),
   rings: P({
-    id: 'host.rings', name: 'Ilka', title: 'who keeps the brass hoops', color: '#d8a24a', kind: 'f',
+    id: 'host.rings', name: 'Aziza', title: 'who keeps the brass hoops', color: '#d8a24a', kind: 'f',
     palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#6b4a36', legs: '#3a3330', hat: '#71d7cf', hair: '#4a3226' }, head: 'wrap', look: { mask: 'glasses' },
     say: ['~curious~ I polish those brass hoops every week, and I still don’t know what the makers hung them for. Do you?', '~neutral~ So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little.'],
     lines: ['~curious~ Twenty hoops. I’ve counted twice.'],
@@ -75,19 +75,19 @@ export const HOSTS = {
 
   // ---------------------------------------------------------------- the trials (src/trials/data.js)
   'trial-desert': P({
-    id: 'host.trial-desert', name: 'Nadir', title: 'who rides the dune line', color: '#f0a54a', kind: 'm',
+    id: 'host.trial-desert', name: 'Bilal', title: 'who rides the dune line', color: '#f0a54a', kind: 'm',
     palette: { cloak: '#f0a54a', lining: '#2b211f', cloth: '#5a3640', legs: '#4a3a2a', hat: '#e8d9b8', hair: '#2b211f' }, head: 'wrap', look: { mask: 'browgoggles' },
     say: ['~playful~ Sand in your teeth yet? You will. We ride the dunes down into the basin and up out. Most of us come back.', '~neutral~ Every gate in order, down and back up. Stay on the bike: the clock won’t stop to pick you up.'],
     lines: ['~playful~ Sand in the teeth means you’re fast.'],
   }),
   'trial-arzach': P({
-    id: 'host.trial-arzach', name: 'Ysolt', title: 'who watches the wind ladder', color: '#9fd6ee', kind: 'f',
+    id: 'host.trial-arzach', name: 'Elva', title: 'who watches the wind ladder', color: '#9fd6ee', kind: 'f',
     palette: { cloak: '#9fd6ee', lining: '#2b211f', cloth: '#e6e2d8', legs: '#5a5a6a', hat: '#e6e2d8', hair: '#d8d0c0' }, head: 'hood',
     say: ['~whisper~ Hear it? Wind, climbing in two columns. I watch them. The riders went up them once, with their birds.', '~whisper~ Wings open in the first. Up. Then the rings, in order. The second lifts you again.'],
     lines: ['~whisper~ …'],
   }),
   'trial-arzach2': P({
-    id: 'host.trial-arzach2', name: 'Brother Felix', title: 'who keeps the riders’ round', color: '#c9b08a', kind: 'm',
+    id: 'host.trial-arzach2', name: 'Brother Amos', title: 'who keeps the riders’ round', color: '#c9b08a', kind: 'm',
     palette: { cloak: '#c9b08a', lining: '#2b211f', cloth: '#f4efe2', legs: '#6b5a4a', hat: '#c9b08a', hair: '#6b5a4a' }, head: 'bald', look: { prop: 'staff' },
     say: ['~solemn~ I sweep the riders’ gates each morning. Nobody has flown their round since they crossed the cloud.', '~neutral~ Take the bird round the Needles, the Table and the Monastery, every gate in order. It knows the way.'],
     lines: ['~solemn~ The bird remembers the way.'],
@@ -109,7 +109,7 @@ export const HOSTS = {
     lines: ['~neutral~ We tend the garden. Mostly it tends itself.'],
   }),
   'trial-incal': P({
-    id: 'host.trial-incal', name: 'Ostra', stand: { side: -1 }, title: 'a courier who won’t pay for cabs', color: '#ffd36a', kind: 'f',
+    id: 'host.trial-incal', name: 'Dagny', stand: { side: -1 }, title: 'a courier who won’t pay for cabs', color: '#ffd36a', kind: 'f',
     palette: { cloak: '#ffd36a', lining: '#2b211f', cloth: '#3a4a5a', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'cap', look: { body: 'satchel' },
     say: ['~playful~ A cab up to the rim? Robbery. I take the air pillar from the middle terrace. Free, and faster.', '~neutral~ Wings open, into the pillar, up through every ring. Steer out of its top and glide the rim for the last.'],
     lines: ['~playful~ Cabs are for people with time.'],
@@ -139,7 +139,7 @@ export const HOSTS = {
     lines: ['~sad~ The whales used to watch us race.'],
   }),
   'trial-moonfoundry': P({
-    id: 'host.trial-moonfoundry', name: 'Ansgar', title: 'who ran the pour times', color: '#e89a5a', kind: 'm',
+    id: 'host.trial-moonfoundry', name: 'Rudi', title: 'who ran the pour times', color: '#e89a5a', kind: 'm',
     palette: { cloak: '#e89a5a', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#d98c58', hair: '#6b5a4a' }, head: 'skullcap', look: { body: 'toolbelt' },
     say: ['~tired~ Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round.', '~neutral~ Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it.'],
     lines: ['~tired~ My knees remember every pour.'],

@@ -1,5 +1,5 @@
 // The Whale-House's words (src/temples/underwater.js builds it, in the Underwater City): the local who sends you in,
-// and what he says after. Old Anselme, a diver once, keeps the Whale-House's door at the end of the last tube. He
+// and what he says after. Old Achille, a diver once, keeps the Whale-House's door at the end of the last tube. He
 // speaks the city's tongue (src/levels/underwater.js). Maelle in the Whale Gallery gives the world's lead and its clue
 // after (src/story/underwater-people.js): his after-dialogue sets none. Conversation format: src/story/dialogue.js.
 // Every line carries a tone.
@@ -13,15 +13,15 @@ export const QUEST = {
 };
 
 export const PEOPLE = {
-  anselme: {
-    id: 'anselme', name: 'Anselme', title: 'who keeps the Whale-House’s door', color: '#3f8a8a', voice: 0.82, kind: 'm', lang: 'underwater',
+  achille: {
+    id: 'achille', name: 'Achille', title: 'who keeps the Whale-House’s door', color: '#3f8a8a', voice: 0.82, kind: 'm', lang: 'underwater',
     palette: { cloak: '#3f8a8a', lining: '#e0806a', cloth: '#efe2c8', legs: '#2e4a52', hat: '#c9973f', hair: '#d8d2c4' }, head: 'wrap', cape: 0.5,
     lines: ['~neutral~ Forty years on this door. It mostly keeps itself.', '~sad~ Listen. That hum in the glass. That’s not theirs.', '~playful~ Mind the step. It’s older than the city, and so am I.'],
     talk: {
       entry: [
         { if: { flag: 'temple.underwater.done' }, node: 'after' },
         { if: { flag: 'temple.underwater.entered' }, node: 'inside' },
-        { if: { flag: 'met.anselme' }, node: 'again' },
+        { if: { flag: 'met.achille' }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -29,7 +29,7 @@ export const PEOPLE = {
           say: ['~neutral~ Mind the step: this is the Whale-House’s door, and I keep it. I dived, once. Now I sit.',
             '~solemn~ The makers built that house to talk to the whales. Shell and glass, and horns out into the sea. The whales came right up to it.',
             '~sad~ Since the night the whales went quiet, something in there sings the light’s note back at them. Every time they come near, it sends them off.'],
-          do: { set: { 'met.anselme': true } },
+          do: { set: { 'met.achille': true } },
           choices: [
             { text: '~neutral~ I’ll go in and stop it.', do: { start: 'temple.underwater' }, goto: 'go' },
             { text: '~curious~ Something in there?', goto: 'who' },
@@ -48,7 +48,7 @@ export const PEOPLE = {
         },
         again: {
           say: ['~neutral~ *The door at the end of the tube.* Listen for the deep note in there.'],
-          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.underwater', done: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ Keep the door, Anselme.', end: true }],
+          choices: [{ text: '~neutral~ I’m going.', if: { quest: 'temple.underwater', done: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~neutral~ Keep the door, Achille.', end: true }],
         },
         inside: {
           say: ['~surprised~ You’ve been in. Does it still smell of brass and salt?', '~curious~ And the Listener? Did it hear you?'],

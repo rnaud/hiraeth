@@ -41,7 +41,7 @@ test('a host says one or two toned lines, then offers Play or Not now', () => {
   }
   let played = 0;
   const def = hostTalk(HOSTS.canyon, () => played++, { name: 'Canyon run' });
-  assert.equal(def.prompt, 'ask Darro about the canyon run');
+  assert.equal(def.prompt, 'ask Kamal about the canyon run');
   assert.equal(hostTalk(HOSTS.gallery, () => {}, { name: 'The shooting gallery' }).prompt, 'ask Fitz about the shooting gallery');
   assert.equal(hostTalk(HOSTS.fishing, () => {}, { name: 'Fishing' }).prompt, 'ask Yusra about fishing');
   assert.equal(hostTalk(HOSTS.ski, () => {}, { name: 'Dune skiing' }).prompt, 'ask Tarek about dune skiing');
