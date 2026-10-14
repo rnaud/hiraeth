@@ -784,7 +784,8 @@ function change(scene, level, rt) {
 
 /**
  * A save from before issue #336's house, standing inside the old rooms (src/temples/migrate.js LAYOUTS.desert v4 sets
- * temple.desert.relaid): its first frame inside, the traveller is taken to the last mark, in the new rooms.
+ * temple.desert.relaid): its first frame inside, the traveller is taken to the last mark, in the new rooms (src/temples/
+ * runtime.js update: every house's `temple.<id>.relaid`, since the Warden's Well was remade too).
  */
 export const RELAID = 'temple.desert.relaid';
 
@@ -803,14 +804,7 @@ export const DESERT_TEMPLE = {
   // the braziers round the cistern calm it, a fifth each (two end its first phase): lit before it woke, or before a knockout, they still count
   onLit(rt, id) { if (RIM.includes(id)) syncLight(rt.guardian); },
   onWake(rt) { syncLight(rt.guardian); },
-  onUpdate(rt) {
-    // (a save that stood in the old rooms: to the last mark, once)
-    const P = rt.player;
-    if (P?.pos && rt.game.flag(RELAID)) {
-      rt.game.set(RELAID, null);
-      if (rt.inside(P.pos) || rt.below(P.pos)) rt.toCheckpoint();
-    }
-  },
+  // (a save that stood in the old rooms: to the last mark, once: src/temples/runtime.js, RELAID)
   onConnect(rt) {
     // the blade taken from its chest here: the Givers' machines wake in the hall beyond (src/foes.js places them the moment he is armed)
     rt.offs.push(rt.game.on('temple:gadget', ({ id } = {}) => { if (id === 'desert' && !rt.logic.isLit('arM')) rt.notice('Beyond the chamber’s north door, something in the walls is waking.', 'machines.wake'); }));

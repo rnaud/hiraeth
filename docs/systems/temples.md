@@ -239,7 +239,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   you over the vane, and rising air holds you still enough to aim (player.js `hovering`, fluid-tool.js `bodyFree`).
   The way up is a draught over the chest's plinth (`when: { gadget: true }`), rising on through each iris as it opens
   (`heights`, the Updraft's: the first condition that holds sets its top). The Turning Floors' discs ride
-  on the far door's vane; the Climb's ball crosses a slot (`Ball` `gap`, the slot a `Bridge`) only while the vane in
+  on the vane on its pillar beside the island (over the far door until v1.77); the Climb's ball crosses a slot (`Ball` `gap`, the slot a `Bridge`) only while the vane in
   the well's floor turns (the gap's `lip` says why it stops); the gallery's eye has stone lids (`Switch` `lids`:
   shut while its `when` fails) that the great vane in the floor lifts, and opens the `Iris` in the ceiling (blades
   that slide back into it, solid while shut); the loft's ball is pushed over a gap from the air, hovering over the
@@ -326,6 +326,24 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   in the old rooms is taken to its last mark (`migrate.js` desert v4, `desert.js` `RELAID`). Tests:
   `tests/temple-rules.test.js` (no rule broken), the on-foot walk and the play-through in `tests/temples.test.js` and
   `tests/temple-playthrough.test.js`, `tests/door-bypass.test.js`, `tests/zfight.test.js`.
+- **The Warden's Well as shrines** (v1.77, issue #336, the second house redone to the rules). The Turning Floors 30 m
+  across (its depth and the discs as they were), the Climb a round well 34 m across, the Ash Store and the Vane Room
+  30 m square under 18 m, the Bellows Chamber's round hall 20 m, the drum of the gallery, the loft and the crown 36 m
+  across with each floor 17 m over the last and the crown 18 m high, the Flue 35 m across, every door 7 by 9 (`ROOMS`,
+  `FLOORS`, `VANES.ceil` / `crown`, `CLIMB`). Every puzzle stands in the middle of its room: the Turning Floors' vane on
+  a pillar out of the drop beside the island (it was over the far door), the Vane Room's on a post in its chasm (it was
+  on the far wall), the Climb's block a chord north of the well's middle (`CLIMB.face`: its vane at the face's foot
+  within 20 m of the door it opens), the two lidded eyes on pillars in the drum's floors beside their great vanes, a
+  shelf under each eye hiding it from the floor (`eyePillar`; they were on the drum's wall), the loft's ball on a raised
+  walk on two piers (it was a shelf on the east wall), the crown's little vane on an arm off a post at the first iris's
+  rim, out under the second iris on the high door's side (seen from the high ledge), the Flue's little vane on a post
+  beside its draught, its great key on a pier off no wall, and a landing under the crown's doorway (the flue too wide to
+  glide across from its middle). The rooms are tagged (`LOGIC.rooms` `kind`): the Ash Store is the house's one fight,
+  its machines round its middle (`Mark` `foes`) among four columns; none stand by a puzzle, nor by the high door's stone
+  (`src/foes.js`: in a tagged house a mark of no room of its logic has none). The warden, its hall and its fight, the
+  story's lines, the two ways up from the gallery, the keys and every vane's timing as they were. Old saves: one that
+  stood in the old rooms is taken to its last mark (`migrate.js` incal v4; `runtime.js` reads `temple.<id>.relaid` for
+  every house now). Temple design audit: 4.56 before and after.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -531,7 +549,7 @@ Shell Chamber (`dK`) takes both keys.
 
 The **Warden's Well** (`incal.js`, 4.22, structure 2): its Climb is the hub, its ways west and east south of the block
 (`WING.a`). West the **Ash Store** (an arena in the tower's old ash), east the **Vane Room** (a chasm whose stones stand
-only while the small vane on its far wall turns, `VANES.wing` s: splash it from this side and cross before it slows; the
+only while the small vane on its post in the chasm turns, on its far wall until v1.77, `VANES.wing` s: splash it from this side and cross before it slows; the
 key on the far side, and back the same way). The door at the balcony's end (`d1`) takes both keys and the ball on its plate.
 
 Round 2 (issue #23) varies the shape, so the reworked houses stop sharing one template (two wings off a hub before the
@@ -696,10 +714,10 @@ the far door, the great key is in it.
 
 The **Warden's Well** (`incal.js` `FLUE`): **two ways up from the gallery, meeting at the crown**. The **Flue**, the tower's
 old breath-way, is a round shaft outside the Lamp Gallery's west wall from the gallery's floor to over the crown's, a
-doorway into each (gaps in both drums, their walls overlapping between). A little vane high on its south wall (`vT`, 14 s)
+doorway into each (gaps in both drums, their walls overlapping between). A little vane on a post beside its draught (`vT`, 14 s; on its south wall until v1.77)
 sends a draught up its middle while it turns (`draught`, a gate on `{ lit: 'vT' }`; an `Updraft` with that `when`): splash
-it from the floor and ride up; half-way, a ledge off its west wall holds the great key (`kG`); the vane slows while you
-take it, so it is splashed again from the ledge, and the draught carries you on up to the crown's west doorway. The high
+it from the floor and ride up; half-way, a pier west of the draught holds the great key (`kG`); the vane slows while you
+take it, so it is splashed again from the pier, and the draught carries you on up to the landing under the crown's west doorway. The high
 door (`d3`) takes the great key with the eye's two vanes, so both ways are needed and either goes first: the irises' for
 the eye's little vane in the loft, the flue's for the key. Down from the crown into the flue is a drop (a `oneWay` link,
 no item: the wings make it a glide). `migrate.js LAYOUTS.incal` v3: past the high door, the great key is in it.

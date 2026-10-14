@@ -849,6 +849,8 @@ const LANDMARKS76 = "Muted headless Chrome, High, 1280 × 720, clear at 10:00; 4
 const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this branch (port 6341), High, 1280 × 720, a save with the sword and the shield; the run played by a script that walks to the nearest foe and cuts; 14 October';
 /** (v1.77, issue #336: the Rose House's rooms, shot by hand before and after) */
 const SHRINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6436, at 9f1142fa7 (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Warden's Well's rooms, shot by hand before and after) */
+const SHRINE336W = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6441, at d56726fdb with the redesign rules (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72 (the Climb’s pair -q 64)';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -861,6 +863,18 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Rose House’s machines no longer stand', shots: [
       { name: 'rose-chest', title: 'The Sword Chamber', caption: 'Before, a machine by the mark beside the blade’s dais, the chamber’s doors held when you took it; after, the chamber holds the blade alone, the machines waiting in the hall past its north door', from: SHRINE336 },
       { name: 'rose-machines', title: 'The Machines’ Hall', only: 'after', caption: 'The house’s one fight: the Givers’ machines round the middle of an empty hall, four columns to fight round', from: SHRINE336 },
+    ] },
+    { match: 'The Warden’s Well is rebuilt like a shrine too', shots: [
+      { name: 'well-turning', title: 'The Turning Floors', caption: 'From the way in: before, 24 m across, the vane over the far door; after, 30 m across, the vane on a pillar out of the drop beside the island, facing the discs', from: SHRINE336W },
+      { name: 'well-climb', title: 'The Climb', caption: 'The well 18 m across before, 34 m after; the block’s face north of its middle, the vane at its foot, the doors 7 by 9', from: SHRINE336W },
+      { name: 'well-vane', title: 'The Vane Room', caption: 'Before, a 16 by 14 m room, the vane on its far wall; after, 30 m square under 18 m, the vane on a post in the chasm across its middle', from: SHRINE336W },
+      { name: 'well-gallery', title: 'The Lamp Gallery', caption: 'Before, the lidded eye high on the drum’s west wall over a shelf; after, the drum 36 m across, the eye on a pillar in the floor beside its great vane, a shelf under it hiding it from the floor', from: SHRINE336W },
+      { name: 'well-loft', title: 'The loft', caption: 'Before, the ball on a shelf high on the east wall; after, on a raised walk on two piers east of the middle, the crown’s little vane on its post and arm beside it', from: SHRINE336W },
+      { name: 'well-crown', title: 'The crown', caption: 'Before, the eye on the east wall, 10 m under the roof; after, on a pillar beside the great vane, 18 m under the roof, the high door’s ledge beyond', from: SHRINE336W },
+      { name: 'well-flue', title: 'The Flue', caption: 'Looking up: before, a shaft 11 m across, the vane on its wall; after, 35 m across, the little vane on a post beside the draught, the great key on a pier', from: SHRINE336W },
+    ] },
+    { match: 'The Warden’s Well’s machines no longer stand', shots: [
+      { name: 'well-store', title: 'The Ash Store', caption: 'Before, a 16 by 14 m room, its keepers by the door; after, 30 m square, the house’s one fight round its middle among four columns', from: SHRINE336W },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
   ],

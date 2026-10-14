@@ -2075,8 +2075,10 @@ export class Foes {
       if (arena && m.pos.distanceTo(arena) < 14) return;
       // (a house redone to issue #336's rules tags its rooms: machines stand only in a fight's room, round its middle
       // (the mark's `foes`), never in a puzzle's: docs/design/temple-redesign.md)
-      const kind = rt.def?.logic?.rooms?.[m.room]?.kind;
-      if (kind && kind !== 'combat') return;
+      // (in a tagged house a mark of no room of its logic, a passage's stone such as the Warden's Well's by its high door,
+      // has none either)
+      const rooms = rt.def?.logic?.rooms, kind = rooms?.[m.room]?.kind;
+      if (kind ? kind !== 'combat' : rooms && Object.values(rooms).some((r) => r.kind)) return;
       const c = m.foes ?? m.pos;
       // (broken, or standing already: placed again for an encounter)
       if (!this.game.flag(id) && !this.list.some((f) => f.id === id && f.alive)) for (const a of [0.9, -0.9, 2.2, -2.2, Math.PI]) {

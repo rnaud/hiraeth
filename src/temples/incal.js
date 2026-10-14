@@ -70,6 +70,14 @@ import { chestMound } from '../boxes/mound.js';
 //                          until its draught lifts the hatch, and shoot down into it
 // After: the warden's hum stops, and the shaft's old breath comes back: a column of rising air from
 // the bottom terrace to the rim, beside the Upward Shrine, that carries anyone up (the world change).
+//
+// Since v1.77 (issue #336, docs/design/temple-redesign.md) the rooms are shrines': the Turning Floors 30 m across, the
+// Climb, the gallery's drum and the Flue round halls 34 to 36 m across, the wings 30 m square, the gallery and the loft
+// 17 m high each and the crown 18 (ROOMS, VANES), every door 7 by 9 (ROOMS.door). Each puzzle stands in the middle of its
+// room: the Turning Floors' vane on a pillar in the drop beside the island, the Vane Room's on a post in its chasm, the
+// two lidded eyes on pillars in the drum's floors, the loft's ball on a raised walk over its floor, the Flue's little vane
+// on a post beside its draught and its great key on a pier. The rooms are tagged with their kind (LOGIC.rooms): the Ash
+// Store is the house's one fight (its machines round its middle, four columns to fight round); none stand by a puzzle.
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
@@ -108,18 +116,41 @@ export const PALETTE = {
  * long its hatch stays up in its last two phases (s: time to fly to the vane and hover); `breath`: how high the thin breath
  * through a great vane rises (m: it bears open wings and holds you over the vane, within its reach).
  */
-export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15, breath: 9, wing: 12, flue: 14 };
+export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 17, shelf: 6, iris: 5.6, crown: 34, iris2: 7, small: 15, breath: 9, wing: 12, flue: 14 };
 /**
- * The Flue (issue #23's last round, local m): its middle (x; z the gallery's), radius, the ledge half-way up (its floor
- * over the gallery's, its radii, how far round either side of west), the great key on it (radius), the little vane on
- * its south wall (over the gallery's floor), the draught up its middle (radius) to 3 m over the crown's floor.
+ * The rooms (issue #336, docs/design/temple-redesign.md; local m): the Turning Floors' width (its depth 33.4 as it was,
+ * so the discs ride as they did), the Climb's round well (its middle's z, radius, height), the wings' halls (30 m
+ * square, 18 m high), the Bellows Chamber (a chest's round hall: 20 m across), the drum of the gallery, the loft and the
+ * crown (its radius; the floors over each other VANES.ceil and VANES.crown), the Flue's radius; every door between two
+ * rooms 7 by 9.
  */
-export const FLUE = { x: -21.5, r: 5.5, ledge: { y: 14, r0: 3, r1: 5.6, half: 1.0 }, key: 4.3, vane: 21.4, column: 2.2, door: 4.4 };
+export const ROOMS = { turning: { w: 30 }, climb: { z: 66.6, r: 17, h: 28 }, wing: { w: 30, d: 30, h: 18 }, chest: { z: 97.4, r: 10 }, drum: { r: 18, h: VANES.crown + 18 }, flue: { r: 17.5 }, door: { w: 7, h: 9 } };
+/**
+ * The Climb's block (issue #336, local m off the well's middle): its straight face's z (north of the middle, so the vane
+ * at its foot is within 20 m of the door it opens), the balcony's groove's z.
+ */
+export const CLIMB = { face: 6, groove: 9.4 };
+/** The gallery's floor, the loft's and the crown's (over the gallery's), the high door's and the Warden's Hall's (local y). */
+export const FLOORS = { gallery: 34.6, loft: 34.6 + VANES.ceil, crown: 34.6 + VANES.crown, hall: 34.6 + VANES.crown + 4 };
+/**
+ * The Flue (issue #23's last round, local m): its middle (x, outside the drum's west wall; z the gallery's), radius, the
+ * ledge half-way up (a pier: its top over the gallery's floor, its slab's x from the middle and half its depth), the
+ * great key on it (how far west of the middle), the little vane on its post (over the gallery's floor; the post's z off
+ * the middle), the draught up its middle (radius) to 3 m over the crown's floor, the doorways' width, the landing by the
+ * crown's doorway (from x off the middle, half its depth).
+ */
+export const FLUE = { x: -(ROOMS.drum.r + ROOMS.flue.r + 2), r: ROOMS.flue.r, ledge: { y: 14, x0: 3, x1: 7.5, half: 3.5 }, key: 4.6, vane: 21.4, post: -7, column: 2.2, door: ROOMS.door.w, landing: { x0: 5, half: 4.5 } };
 export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7], breath: 10 };
 
 export const LOGIC = {
   id: 'incal', entry: 'threshold', gadget: 'wardenbellows',
-  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, store: { checkpoint: true }, vane: { checkpoint: true }, vaneFar: {}, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, flue: { checkpoint: true }, flueLedge: {}, warden: { boss: true }, out: {} },
+  // (each room's kind, issue #336: src/foes.js puts machines only in the combat room, the Ash Store)
+  rooms: {
+    threshold: { checkpoint: true, kind: 'passage' }, turning: { checkpoint: true, kind: 'puzzle' }, climb: { checkpoint: true, kind: 'puzzle' },
+    store: { checkpoint: true, kind: 'combat' }, vane: { checkpoint: true, kind: 'puzzle' }, vaneFar: { kind: 'passage' }, jets: { checkpoint: true, kind: 'chest' },
+    gallery: { checkpoint: true, kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, crown: { checkpoint: true, kind: 'puzzle' },
+    flue: { checkpoint: true, kind: 'puzzle' }, flueLedge: { kind: 'passage' }, warden: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+  },
   links: [
     { a: 'threshold', b: 'turning' },
     { a: 'turning', b: 'climb', door: 'discs' },    // the riding discs, only while the vane over the far door turns
@@ -283,12 +314,14 @@ class UpGuide {
 /** The Climb's wings (local m): the Ash Store west (an arena), the Vane Room east (a gap the vane across it stands). */
 export const WING = {
   a: Math.PI / 2 + 0.4,                     // the ways west and east out of the well, south of its block (rotunda angles ±a)
-  z: 58.6 + Math.cos(Math.PI / 2 + 0.4) * 9, // their z (55.1)
-  store: { x: -21, w: 16, d: 14 },
-  vane: { x: 21, w: 16, d: 14 },
-  gap: [19, 23],                            // the Vane Room's chasm, x
+  z: ROOMS.climb.z + Math.cos(Math.PI / 2 + 0.4) * ROOMS.climb.r, // their z (60.0)
+  // (issue #336: each hall 30 m square, its east or west wall's outer face where the way out of the well ends)
+  store: { x: -36, w: ROOMS.wing.w, d: ROOMS.wing.d },
+  vane: { x: 36, w: ROOMS.wing.w, d: ROOMS.wing.d },
+  gap: [32, 40],                            // the Vane Room's chasm, x (across its middle)
+  post: 6,                                  // its vane's post, in the chasm: z off the middle
 };
-WING.zone = { min: [-29, -1, WING.z - 7], max: [-13, 9, WING.z + 7] };
+WING.zone = { min: [WING.store.x - WING.store.w / 2, -1, WING.z - WING.store.d / 2], max: [WING.store.x + WING.store.w / 2, 12, WING.z + WING.store.d / 2] };
 
 /** The Ash Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
@@ -305,29 +338,36 @@ export const ARENAS = [{
  */
 function wings(rt, K, M, { blue }) {
   const add = (P, o) => rt.add(P, o);
-  const Z = WING.z, S = WING.store, R = WING.vane, [G0, G1] = WING.gap;
-  // ---- the Ash Store
-  K.corridor([-12.4, Z], [-8.6, Z], 0, { w: 5, h: 6 });
-  K.hall({ x: S.x, z: Z, w: S.w, d: S.d, y: 0, h: 10, roof: 'oculus', oculus: 0.25, doors: [{ side: 'e', at: 0, w: 5, h: 6 }] });
-  add(Door, { id: 'dW', at: [-11.4, 0, Z], yaw: Math.PI / 2, w: 5, h: 6 });   // (open: it shuts behind you while they stand)
-  for (const [x, z, s] of [[-27, Z - 5.2, 1.4], [-27.2, Z + 4.6, 1.8], [-21, Z + 5.6, 1.1], [-16, Z - 5.4, 1.2]]) K.both(M.dark, T(new THREE.SphereGeometry(s, 9, 6, 0, TAU, 0, Math.PI / 2).scale(1.4, 0.5, 1), [x, 0, z]));   // (ash banked by the walls)
-  add(Key, { id: 'kW', at: [-27.4, 0, Z], yaw: Math.PI / 2 });
-  add(Mark, { room: 'store', at: [S.x + 2, 0, Z - 2.6], yaw: Math.PI / 2 });
+  const Z = WING.z, S = WING.store, R = WING.vane, [G0, G1] = WING.gap, D = ROOMS.door, H = ROOMS.wing.h;
+  // (the ways out of the well: from inside its wall to the hall's wall's outer face)
+  const inner = Math.sin(WING.a) * ROOMS.climb.r + 0.3, outer = S.w / 2 + 0.6;
+  // ---- the Ash Store (issue #336: the house's one fight, 30 m square, its machines round its middle, four columns)
+  K.corridor([S.x + outer, Z], [-inner, Z], 0, { w: D.w, h: D.h + 0.4 });
+  K.hall({ x: S.x, z: Z, w: S.w, d: S.d, y: 0, h: H, roof: 'oculus', oculus: 0.25, doors: [{ side: 'e', at: 0, w: D.w, h: D.h }] });
+  add(Door, { id: 'dW', at: [S.x + outer + 1, 0, Z], yaw: Math.PI / 2, w: D.w, h: D.h });   // (open: it shuts behind you while they stand)
+  for (const [x, z, s] of [[-11.5, -11, 1.8], [-12, 10.4, 2.4], [-1, 12.4, 1.5], [9.5, -12, 1.6], [-12.4, -5.6, 1.2], [11.6, 11.4, 1.4]]) K.both(M.dark, T(new THREE.SphereGeometry(s, 9, 6, 0, TAU, 0, Math.PI / 2).scale(1.4, 0.5, 1), [S.x + x, 0, Z + z]));   // (ash banked by the walls)
+  for (const [x, z] of [[-6.5, -6.5], [6.5, -6.5], [-6.5, 6.5], [6.5, 6.5]]) K.column(S.x + x, Z + z, 0, H - 4, 0.9);
+  add(Key, { id: 'kW', at: [S.x - S.w / 2 + 1.6, 0, Z], yaw: Math.PI / 2 });
+  add(Mark, { room: 'store', at: [S.x + S.w / 2 - 3.5, 0, Z - 4.5], yaw: Math.PI / 2, foes: [S.x, 0, Z] });
 
-  // ---- the Vane Room: a chasm across it, stones standing in it only while the far wall's vane turns
-  K.corridor([8.6, Z], [12.4, Z], 0, { w: 5, h: 6 });
-  K.hall({ x: R.x, z: Z, w: R.w, d: R.d, y: -9, h: 21, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: 5, h: 6, y0: 9 }] });
+  // ---- the Vane Room: a chasm across its middle, stones standing in it only while the vane on its post in the chasm turns
+  K.corridor([inner, Z], [R.x - outer, Z], 0, { w: D.w, h: D.h + 0.4 });
+  K.hall({ x: R.x, z: Z, w: R.w, d: R.d, y: -9, h: H + 9, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: D.w, h: D.h, y0: 9 }] });
   K.slab(R.x - R.w / 2, Z - R.d / 2, G0, Z + R.d / 2, 0, 9);
   K.slab(G1, Z - R.d / 2, R.x + R.w / 2, Z + R.d / 2, 0, 9);
   K.both(M.dark, box(G1 - G0, 1, R.d, (G0 + G1) / 2, -9, Z));
   add(Pit, { room: 'vane', min: [G0, -10, Z - R.d / 2], max: [G1, -1.5, Z + R.d / 2] });
-  add(Bridge, { id: 'vb', a: [G0 - 0.1, 0, Z], b: [G1 + 0.1, 0, Z], w: 3, n: 3 });
-  add(Vane, { id: 'vR', at: [R.x + R.w / 2 - 0.18, 5.5, Z + 3.5], wall: true, yaw: -Math.PI / 2, r: 1.5, coast: VANES.wing,
-    turning: 'The vane across the chasm spins, and stones grind up out of the dark. Already it is slowing.',
+  add(Bridge, { id: 'vb', a: [G0 - 0.1, 0, Z], b: [G1 + 0.1, 0, Z], w: 3, n: 5 });
+  // (its post out of the chasm's floor, the vane on its west face: splashed from this side)
+  const px = (G0 + G1) / 2, pz = Z + WING.post;
+  K.both(M.wall, box(1.6, 16.5, 1.6, px, -9 + 16.5 / 2, pz));
+  K.add(blue, box(1.9, 0.5, 1.9, px, 7.65, pz));
+  add(Vane, { id: 'vR', at: [px - 0.82, 5.5, pz], wall: true, yaw: -Math.PI / 2, r: 1.5, coast: VANES.wing,
+    turning: 'The vane on its post in the chasm spins, and stones grind up out of the dark. Already it is slowing.',
     fading: 'The vane is slowing: the stones will sink with it.' });
-  K.add(blue, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [R.x + R.w / 2 - 0.05, 5.5, Z + 3.5]));
-  add(Key, { id: 'kE', at: [R.x + 5.4, 0, Z - 3.2], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'vane', at: [R.x - 5.4, 0, Z - 4], yaw: Math.PI / 2 });
+  K.add(blue, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [px - 0.69, 5.5, pz]));
+  add(Key, { id: 'kE', at: [R.x + 10, 0, Z - 4], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'vane', at: [R.x - 10, 0, Z - 4], yaw: Math.PI / 2 });
 }
 
 // ------------------------------------------------------------------ the Flue (issue #23's last round)
@@ -337,27 +377,32 @@ function wings(rt, K, M, { blue }) {
  * (splash it from the floor, ride it up; splash it again from the ledge). Half-way up, a ledge off its west wall: the
  * great key, for the high door.
  */
-function flue(rt, K, M, { C3, G0, GK, GR, blue }) {
+function flue(rt, K, M, { C3, G0, GK, blue }) {
   const add = (P, o) => rt.add(P, o);
-  const F = FLUE, X = F.x, Lg = F.ledge, H = GK - G0 + 6;
-  K.rotunda({ x: X, z: C3, y: G0, r: F.r, h: H, seg: 24, gaps: [{ a: Math.PI / 2, w: F.door, h: 5.5 }, { a: Math.PI / 2, w: F.door, h: 6, y0: GK - G0 - 0.15 }], oculus: 0.35 });
+  const F = FLUE, X = F.x, Lg = F.ledge, D = ROOMS.door, H = GK - G0 + D.h + 2;
+  K.rotunda({ x: X, z: C3, y: G0, r: F.r, h: H, seg: 40, gaps: [{ a: Math.PI / 2, w: F.door, h: D.h }, { a: Math.PI / 2, w: F.door, h: D.h, y0: GK - G0 - 0.15 }], oculus: 0.3 });
   // (the way into the crown: the two walls' sills under their doorways, which meet between them: the flue's a step under
-  // the crown's floor, so the two never lie in one plane)
-  // the ledge half-way up, off its west wall, and the great key on it
-  const rotA = (a) => Math.PI / 2 - a;
-  K.both(M.floor, T(sector(Lg.r0, Lg.r1, rotA(-Math.PI / 2 + Lg.half), rotA(-Math.PI / 2 - Lg.half), 0.7), [X, G0 + Lg.y, C3]));
-  K.add(M.trim, T(sector(Lg.r0 - 0.05, Lg.r0 + 0.3, rotA(-Math.PI / 2 + Lg.half), rotA(-Math.PI / 2 - Lg.half), 0.2), [X, G0 + Lg.y + 0.12, C3]));
-  K.both(M.wall, T(new THREE.ConeGeometry(2.2, 3, 4, 1, true).rotateY(Math.PI / 4), [X - (Lg.r0 + Lg.r1) / 2 - 0.4, G0 + Lg.y - 2.2, C3], [Math.PI, 0, 0]));   // (its corbel)
+  // the crown's floor, so the two never lie in one plane; issue #336: a landing in the flue under the doorway, the flue
+  // 35 m across, too far to glide from its middle)
+  K.slab(X + F.landing.x0, C3 - F.landing.half, X + F.r + 0.3, C3 + F.landing.half, GK - 0.3, 0.7);
+  K.add(M.trim, box(0.3, 0.2, 2 * F.landing.half, X + F.landing.x0 + 0.15, GK - 0.2, C3));
+  for (const z of [-F.landing.half + 1.2, F.landing.half - 1.2]) K.both(M.wall, T(new THREE.ConeGeometry(1.6, 3, 4, 1, true).rotateY(Math.PI / 4), [X + F.r - 1.4, GK - 2.5, C3 + z], [Math.PI, 0, 0]));   // (its corbels)
+  // the ledge half-way up: a pier west of the draught, and the great key on it (issue #336: in the flue's middle, off no wall)
+  K.slab(X - Lg.x1, C3 - Lg.half, X - Lg.x0, C3 + Lg.half, G0 + Lg.y, 0.7);
+  K.add(M.trim, box(0.3, 0.2, 2 * Lg.half, X - Lg.x0 - 0.15, G0 + Lg.y + 0.1, C3));
+  K.column(X - (Lg.x0 + Lg.x1) / 2, C3, G0, Lg.y - 0.7, 1.1, { mat: M.wall });
   add(Key, { id: 'kG', big: true, at: [X - F.key, G0 + Lg.y, C3], yaw: 0 });
-  // the little vane high on its south wall, a ring of steel blue round it
-  const vz = C3 - F.r + 0.18;
+  // the little vane on a post beside the draught, on the post's north face, a ring of steel blue round it
+  const pz = C3 + F.post, vz = pz + 0.82;
+  K.both(M.wall, box(1.6, F.vane + 2.1, 1.6, X, G0 - 0.3 + (F.vane + 2.1) / 2, pz));
+  K.add(blue, box(1.9, 0.5, 1.9, X, G0 + F.vane + 1.95, pz));
   add(Vane, { id: 'vT', at: [X, G0 + F.vane, vz], wall: true, yaw: 0, r: 1.4, coast: VANES.flue,
-    turning: 'The little vane high in the flue spins, and a draught rises up the flue’s middle. Already it is slowing.',
+    turning: 'The little vane on its post in the flue spins, and a draught rises up the flue’s middle. Already it is slowing.',
     fading: 'The little vane is slowing: the draught will die with it.' });
   K.add(blue, T(annulus(1.8, 2.2, 0.3, 32).rotateX(Math.PI / 2), [X, G0 + F.vane, vz - 0.13]));
   // the draught up its middle while the vane turns, to over the crown's floor
   add(Updraft, { at: [X, G0, C3], r: F.column, h: GK + 3 - G0, lift: 8, when: { lit: 'vT' },
-    still: 'Still air: the little vane high on the flue’s wall is still.', hint: 'A draught rises up the flue’s middle. Open your wings in it.' });
+    still: 'Still air: the little vane on its post in the flue is still.', hint: 'A draught rises up the flue’s middle. Open your wings in it.' });
 }
 
 // ------------------------------------------------------------------ inside
@@ -367,7 +412,7 @@ function layout(rt) {
   const rotA = (a) => Math.PI / 2 - a;    // rotunda angle (0 = +z, toward +x) -> sector angle (0 = +x, toward +z)
 
   // ---- the Threshold (z 0..12)
-  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
+  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 11, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
   K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
   K.glyph([0, 6.2, 0.05], 1.5, 0);
@@ -393,63 +438,75 @@ function layout(rt) {
     K.add(slitM, T(new THREE.BoxGeometry(0.43, 0.43, 0.06), [px, y + h, pz], [0, a, Math.PI / 4], 1, 'YXZ'));
   };
 
-  // ---- the Turning Floors (z 12.6..46): a drop, an island, two riding discs that ride while the vane over the far
-  // door turns (a splash spins it; it slows, and stops)
-  K.wall(-13.2, 12.6, 13.2, 12.6, -14, 32, { t: 1.2, holes: [{ at: 13.2, w: 6, h: 7, y0: 14 }] });
-  K.hall({ x: 0, z: 29.3, w: 24, d: 33.4, y: -14, h: 32, floor: false, roof: 'oculus', oculus: 0.22, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6, y0: 14 }] });
-  K.slab(-12, 12.6, 12, 18, 0, 14);
-  K.slab(-12, 40, 12, 46, 0, 14);
+  // ---- the Turning Floors (z 12.6..46, 30 m across): a drop, an island, two riding discs that ride while the vane on
+  // the pillar beside the island turns (a splash spins it; it slows, and stops). Issue #336: the vane was over the far
+  // door; it stands in the middle of the drop now, on a pillar of its own out of the dark
+  const D = ROOMS.door, TW = ROOMS.turning.w / 2;
+  K.wall(-TW - 1.2, 12.6, TW + 1.2, 12.6, -14, 32, { t: 1.2, holes: [{ at: TW + 1.2, w: D.w, h: D.h, y0: 14 }] });
+  K.hall({ x: 0, z: 29.3, w: 2 * TW, d: 33.4, y: -14, h: 32, floor: false, roof: 'oculus', oculus: 0.22, omit: ['s'], doors: [{ side: 'n', w: D.w, h: D.h, y0: 14 }] });
+  K.slab(-TW, 12.6, TW, 18, 0, 14);
+  K.slab(-TW, 40, TW, 46, 0, 14);
   K.both(M.stone, lathe([[2.4, -14], [2.4, -0.6], [2.8, -0.3], [2.8, 0.01], [0.01, 0.01]], 20).translate(0, 0, 29), new THREE.CylinderGeometry(2.6, 2.6, 14, 14).translate(0, -7, 29));
-  K.both(M.dark, box(24, 1, 22, 0, -14.5, 29));
-  add(Pit, { room: 'turning', min: [-13, -16, 18], max: [13, -4, 40] });
+  K.both(M.dark, box(2 * TW, 1, 22, 0, -14.5, 29));
+  add(Pit, { room: 'turning', min: [-TW - 1, -16, 18], max: [TW + 1, -4, 40] });
   // (the far disc starts at the far side: one splash, and the two meet you at the island together)
   add(Platform, { path: [[0, 0, 20.3], [0, 0, 24.3]], r: 2.2, speed: 1.6, pause: 1.4, when: { lit: 'v1' } });
   add(Platform, { path: [[0, 0, 33.6], [0, 0, 37.8]], r: 2.2, speed: 1.6, pause: 1.4, phase: 1, when: { lit: 'v1' } });
-  add(Vane, { id: 'v1', at: [0, 9.5, 45.82], wall: true, yaw: Math.PI, r: 1.9, coast: VANES.floors,
-    turning: 'The vane over the far door spins, and below it the discs wake and ride. Already it is slowing.',
+  // the vane's pillar, out of the drop's dark east of the island, the vane on its west face (toward the island and the discs: in sight from both ledges)
+  const VX = 6.5, VZ = 29;
+  K.both(M.wall, box(1.8, 27, 1.8, VX, -1.5, VZ));
+  K.add(blue, box(2.1, 0.6, 2.1, VX, 12.2, VZ));
+  add(Vane, { id: 'v1', at: [VX - 0.92, 9.5, VZ], wall: true, yaw: -Math.PI / 2, r: 1.9, coast: VANES.floors,
+    turning: 'The vane on the pillar spins, and below it the discs wake and ride. Already it is slowing.',
     fading: 'The vane is slowing: the discs will stop with it.' });
-  K.add(blue, T(annulus(2.3, 2.75, 0.3, 32).rotateX(Math.PI / 2), [0, 9.5, 45.95]));
+  K.add(blue, T(annulus(2.3, 2.75, 0.3, 32).rotateZ(Math.PI / 2), [VX - 0.8, 9.5, VZ]));
   add(Mark, { room: 'turning', at: [-4.8, 0, 15.2], yaw: Math.PI / 2 });
-  for (let i = 0; i < 4; i++) K.glyph([-11.95, 4 + i * 2.6, 22 + i * 5], 1.2, Math.PI / 2);
-  for (let i = 0; i < 3; i++) { K.add(slitM, box(0.06, 7, 0.6, 11.9, 6.5, 20 + i * 9)); K.add(slitM, T(new THREE.BoxGeometry(0.06, 0.43, 0.43), [11.9, 10, 20 + i * 9], [Math.PI / 4, 0, 0])); }
+  for (let i = 0; i < 4; i++) K.glyph([-TW + 0.05, 4 + i * 2.6, 22 + i * 5], 1.2, Math.PI / 2);
+  for (let i = 0; i < 3; i++) { K.add(slitM, box(0.06, 7, 0.6, TW - 0.1, 6.5, 20 + i * 9)); K.add(slitM, T(new THREE.BoxGeometry(0.06, 0.43, 0.43), [TW - 0.1, 10, 20 + i * 9], [Math.PI / 4, 0, 0])); }
 
-  // ---- the corridor and the Climb (a round well, floor at 0, the balcony at 11)
-  K.slab(-3.2, 46, 3.2, 48.4, 0, 0.8);
-  K.wall(-3.2, 46.6, -3.2, 48.4, 0, 6.5, { t: 0.8 }); K.wall(3.2, 48.4, 3.2, 46.6, 0, 6.5, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.9, 47.4));
-  const C2 = 58.6;
+  // ---- the corridor and the Climb (a round well 34 m across, floor at 0, the balcony at 11)
+  const C2 = ROOMS.climb.z, R2 = ROOMS.climb.r, CS = C2 - R2 - 1.2;   // (CS: the corridor's end, in the well's wall)
+  const cw = D.w / 2 + 0.7, ch = D.h + 0.5;
+  K.slab(-cw, 46, cw, CS, 0, 0.8);
+  K.wall(-cw, 46.6, -cw, CS, 0, ch, { t: 0.8 }); K.wall(cw, CS, cw, 46.6, 0, ch, { t: 0.8 });
+  K.both(M.wall, box(2 * cw + 0.8, 0.8, CS - 45.8, 0, ch + 0.4, (45.8 + CS) / 2));
   // (the house's hub since v1.48: a way west into the Ash Store and east into the Vane Room, south of the block)
-  K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 11 }, { a: -WING.a, w: 5, h: 6 }, { a: WING.a, w: 5, h: 6 }], oculus: 0.35 });
-  band(0, C2, 9, 17.5, 1.1, 0.4, [[0, 0.4]]);
-  // the north half of the well is a block of stone eleven metres high: climb its straight face to the top
-  // (the house's one climb: its other walls are not climbed, issue #115)
-  K.climbable('the Climb: the block\'s straight face, from the well\'s floor to the balcony', () => K.both(M.wallGlyph, T(sector(0.01, 9.2, rotA(0) - Math.PI / 2, rotA(0) + Math.PI / 2, 11), [0, 11, C2])));
-  K.add(M.trim, box(18.2, 0.3, 0.5, 0, 11.05, C2 + 0.1));   // its lip
-  for (let i = 0; i < 4; i++) K.add(M.trim, box(3.2, 0.22, 0.3, (i % 2 ? 1.6 : -1.6), 2.4 + i * 2.2, C2 - 0.12));   // handholds up the face
-  // the ball's groove along the balcony, to the plate by the north door; a slot across it near its start, whose
-  // stones stand only while the vane in the well's floor turns (splash it from up here, or before you climb)
-  const S0 = -3.8, S1 = 2.6, SL = [-2.75, -0.85];
-  K.add(M.dark, box(SL[0] - S0 + 0.45, 0.04, 0.9, (S0 - 0.45 + SL[0]) / 2, 11.02, C2 + 6.4));
-  K.add(M.dark, box(S1 + 0.45 - SL[1], 0.04, 0.9, (SL[1] + S1 + 0.45) / 2, 11.02, C2 + 6.4));
-  K.add(M.voidM, box(SL[1] - SL[0], 0.02, 1.5, (SL[0] + SL[1]) / 2, 11.01, C2 + 6.4));
-  add(Bridge, { id: 'slot', a: [SL[0], 11.06, C2 + 6.4], b: [SL[1], 11.06, C2 + 6.4], w: 1.5, n: 2 });
-  add(Ball, { id: 'ball1', a: [S0, 11.04, C2 + 6.4], b: [S1, 11.04, C2 + 6.4], r: 0.9,
+  K.rotunda({ x: 0, z: C2, y: 0, r: R2, h: ROOMS.climb.h, seg: 40, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h, y0: 11 }, { a: -WING.a, w: D.w, h: D.h }, { a: WING.a, w: D.w, h: D.h }], oculus: 0.3 });
+  band(0, C2, R2, 19.5, 1.1, 0.3, [[0, 0.3]]);
+  // the north of the well is a block of stone eleven metres high, its straight face CLIMB.face north of the middle (issue
+  // #336: the well 34 m across; the face north of the middle keeps the vane at its foot near the door it opens): climb
+  // the face to the top (the house's one climb: its other walls are not climbed, issue #115)
+  const F = CLIMB.face, RB = R2 + 0.2, half = Math.sqrt(RB * RB - F * F), fa = Math.asin(F / RB);
+  const seg = new THREE.Shape();
+  seg.moveTo(half, -F); seg.absarc(0, 0, RB, -fa, -Math.PI + fa, true); seg.closePath();
+  K.climbable('the Climb: the block\'s straight face, from the well\'s floor to the balcony', () => K.both(M.wallGlyph, T(new THREE.ExtrudeGeometry(seg, { depth: 11, bevelEnabled: false, curveSegments: 40 }).rotateX(-Math.PI / 2), [0, 0, C2])));
+  K.add(M.trim, box(2 * half - 0.4, 0.3, 0.5, 0, 11.05, C2 + F + 0.1));   // its lip
+  for (let i = 0; i < 4; i++) K.add(M.trim, box(3.2, 0.22, 0.3, (i % 2 ? 1.6 : -1.6), 2.4 + i * 2.2, C2 + F - 0.12));   // handholds up the face
+  // the ball's groove along the balcony, the plate at its end; a slot across it near its start, whose stones stand only
+  // while the vane in the well's floor at the face's foot turns (splash it from up here, or before you climb)
+  const GZ = C2 + CLIMB.groove, S0 = -3.2, S1 = 3.2, SL = [-2.15, -0.25];
+  K.add(M.dark, box(SL[0] - S0 + 0.45, 0.04, 0.9, (S0 - 0.45 + SL[0]) / 2, 11.03, GZ));
+  K.add(M.dark, box(S1 + 0.45 - SL[1], 0.04, 0.9, (SL[1] + S1 + 0.45) / 2, 11.03, GZ));
+  K.add(M.voidM, box(SL[1] - SL[0], 0.02, 1.5, (SL[0] + SL[1]) / 2, 11.02, GZ));
+  add(Bridge, { id: 'slot', a: [SL[0], 11.06, GZ], b: [SL[1], 11.06, GZ], w: 1.5, n: 2 });
+  add(Ball, { id: 'ball1', a: [S0, 11.04, GZ], b: [S1, 11.04, GZ], r: 0.9,
     gap: { bridge: 'slot', from: (SL[0] - S0) / (S1 - S0), to: (SL[1] - S0) / (S1 - S0), lip: 'The ball stops at the slot’s lip: its stones are down. Something below drives them.' },
     dropped: 'The slot’s stones sink from under the ball, and it drops. Another rolls out of the wall where the groove begins.' });
-  add(Plate, { id: 'p1', at: [S1, 11, C2 + 6.4], r: 1.1 });
-  add(Door, { id: 'd1', at: [0, 11, C2 + 9.7], w: 5, h: 6, lamps: [{ pressed: 'p1' }] });   // (and two keyholes: logic `lock`)
-  add(Vane, { id: 'v2', at: [0, 0, C2 - 3.4], r: 1.8, coast: VANES.climb,
+  add(Plate, { id: 'p1', at: [S1, 11, GZ], r: 1.1 });
+  add(Door, { id: 'd1', at: [0, 11, C2 + R2 + 0.7], w: D.w, h: D.h, lamps: [{ pressed: 'p1' }] });   // (and two keyholes: logic `lock`)
+  add(Vane, { id: 'v2', at: [0, 0, C2 + F - 3.4], r: 1.8, coast: VANES.climb,
     turning: 'The vane in the floor spins, and up on the balcony stones grind up into the slot across the groove.',
     fading: 'The vane below is slowing.' });
   add(Mark, { room: 'climb', at: [5.5, 0, C2 - 4.5], yaw: -Math.PI * 0.8 });
   wings(rt, K, M, { blue });
 
   // ---- the corridor and the Bellows Chamber (floor 11, an oculus in its ceiling at 33)
-  K.slab(-3.2, C2 + 9.6, 3.2, C2 + 12.4, 11, 0.8);
-  K.wall(-3.2, C2 + 10.3, -3.2, C2 + 12.4, 11, 6.5, { t: 0.8 }); K.wall(3.2, C2 + 12.4, 3.2, C2 + 10.3, 11, 6.5, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 17.9, C2 + 11.4));
-  const C3 = C2 + 22.8;   // 81.4
-  K.rotunda({ x: 0, z: C3, y: 11, r: 10, h: 22, gaps: [{ a: Math.PI, w: 5, h: 6 }], oculus: 0.35 });
+  const E2 = C2 + R2;   // (the well's north wall)
+  K.slab(-cw, E2 + 0.6, cw, E2 + 3.4, 11, 0.8);
+  K.wall(-cw, E2 + 1.3, -cw, E2 + 3.4, 11, ch, { t: 0.8 }); K.wall(cw, E2 + 3.4, cw, E2 + 1.3, 11, ch, { t: 0.8 });
+  K.both(M.wall, box(2 * cw + 0.8, 0.8, 2.6, 0, 11 + ch + 0.4, E2 + 2.4));
+  const C3 = ROOMS.chest.z;   // 97.4 (E2 + 13.8)
+  K.rotunda({ x: 0, z: C3, y: 11, r: ROOMS.chest.r, h: 22, gaps: [{ a: Math.PI, w: D.w, h: D.h }], oculus: 0.35 });
   K.both(M.trim, ...chestMound(0, 11, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   K.add(M.glyph, T(new THREE.TorusGeometry(2.75, 0.06, 4, 48), [0, 11.33, C3], [Math.PI / 2, 0, 0]));
   // the light falls down the oculus: a ring of glyphs round it on the floor
@@ -461,22 +518,26 @@ function layout(rt) {
 
   // ---- the Lamp Gallery: a tall drum over the chamber (floor 34.6, round the oculus below), after the picked
   // reference: cream stone banded in steel blue, slit windows, stone shelves jutting from the wall with carved eyes
-  // over them, rings round the floor's middle. An iris in a ceiling halfway up; the loft over it
-  const G0 = 34.6, GR = 14, GC = G0 + VANES.ceil;
+  // over them, rings round the floor's middle. An iris in a ceiling 17 m up; the loft over it, the crown over that
+  // (issue #336: the drum 36 m across, each floor 17 m high, the crown 18)
+  const G0 = FLOORS.gallery, GR = ROOMS.drum.r, GC = FLOORS.loft, GK = FLOORS.crown, H0 = FLOORS.hall;
   // (and since issue #23's last round two ways west into the Flue: at the floor, and into the crown at its floor)
-  K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: 34, floor: false, seg: 32, gaps: [{ a: 0, w: 5, h: 6, y0: 28 }, { a: -Math.PI / 2, w: FLUE.door, h: 5.5 }, { a: -Math.PI / 2, w: FLUE.door, h: 6, y0: VANES.crown }], oculus: 0.25 });
-  K.both(M.floor, T(annulus(3.9, GR + 1.4, 0.6, 48), [0, G0, C3]));
+  K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: ROOMS.drum.h, floor: false, seg: 40, gaps: [{ a: 0, w: D.w, h: D.h, y0: H0 - G0 }, { a: -Math.PI / 2, w: FLUE.door, h: D.h }, { a: -Math.PI / 2, w: FLUE.door, h: D.h, y0: VANES.crown }], oculus: 0.25 });
+  K.both(M.floor, T(annulus(3.9, GR + 1.4, 0.6, 56), [0, G0, C3]));
   K.add(M.trim, T(annulus(3.6, 4.2, 0.8, 32), [0, G0 + 0.25, C3]));
-  for (const r of [5.6, 7.4]) K.add(blue, T(annulus(r, r + 0.3, 0.02, 48), [0, G0 + 0.012, C3]));
-  band(0, C3, GR, G0 + 4.2, 1.3, 0.26, [[-Math.PI / 2, 0.22]]);
-  band(0, C3, GR, GC - 2.6, 1.0, 0.26);
-  band(0, C3, GR, GC + 3.4, 1.3, 0.26, [[Math.PI / 2, 0.5]]);
-  band(0, C3, GR, G0 + 31, 1.3, 0.26, [[0, 0.3]]);
-  for (let i = 0; i < 10; i++) { const a = (i + 0.5) / 10 * TAU; if (Math.abs(Math.atan2(Math.sin(a + Math.PI / 2), Math.cos(a + Math.PI / 2))) < 0.5) continue; slit(0, C3, GR, a, G0 + 6.8, 4.6); }
-  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.4 || Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.55) continue; slit(0, C3, GR, a, GC + 0.9, 4.8); }
-  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.5 || Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.45 || Math.abs(Math.atan2(Math.sin(a + Math.PI / 2), Math.cos(a + Math.PI / 2))) < 0.35) continue; slit(0, C3, GR, a, G0 + VANES.crown + 2.4, 5.2); }
+  for (const r of [5.6, 7.4, 13.2]) K.add(blue, T(annulus(r, r + 0.3, 0.02, 56), [0, G0 + 0.012, C3]));
+  const W0 = [[-Math.PI / 2, 0.3]], N0 = [[0, 0.3]];   // (the bands and windows stop short of the doorways west and north)
+  band(0, C3, GR, G0 + 4.2, 1.3, 0.22, W0);
+  band(0, C3, GR, GC - 2.6, 1.0, 0.22);
+  band(0, C3, GR, GC + 3.4, 1.3, 0.22);
+  band(0, C3, GR, GK + 3.4, 1.3, 0.22, W0);
+  band(0, C3, GR, GK + 14.5, 1.3, 0.22);
+  const skip = (a, list) => list.some(([c, w]) => Math.abs(Math.atan2(Math.sin(a - c), Math.cos(a - c))) < w + 0.25);
+  for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; if (skip(a, W0)) continue; slit(0, C3, GR, a, G0 + 6.8, 4.6); }
+  for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; slit(0, C3, GR, a, GC + 6.4, 4.8); }
+  for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; if (skip(a, [...W0, ...N0])) continue; slit(0, C3, GR, a, GK + 6.6, 5.2); }
   /** A stone shelf jutting from the wall at angle a, its top at y, and a carved eye over it (blind: a carving). */
-  const shelf = (a, y, deep = 2.6, wide = 0.2) => {
+  const shelf = (a, y, deep = 2.6, wide = 0.16) => {
     K.both(M.floor, T(sector(GR - deep, GR + 0.2, rotA(a) - wide, rotA(a) + wide, 0.6), [0, y, C3]));
     K.both(M.wall, T(new THREE.ConeGeometry(deep * 0.42, 1.6, 4, 1, true).rotateY(Math.PI / 4), [Math.sin(a) * (GR - deep * 0.35), y - 1.4, C3 + Math.cos(a) * (GR - deep * 0.35)], [Math.PI, 0, 0]));
   };
@@ -487,83 +548,101 @@ function layout(rt) {
   };
   // the blind ones: shelves at other heights, eyes carved over them that wake to nothing
   for (const [a, y] of [[0.9, G0 + 6.5], [2.3, G0 + 10.5], [-2.4, G0 + 5.5]]) { shelf(a, y); carved(a, y + 1.25); }
-  // the eye over the west shelf: hidden from the floor by its shelf, stone lids shut over it until the great vane
-  // in the floor turns; and that is too heavy for a splash
-  const ea = -Math.PI / 2, ey = G0 + 9.5;
-  shelf(ea, ey - 1.25);
-  add(Switch, { id: 's2', at: [Math.sin(ea) * (GR - 0.15), ey, C3 + Math.cos(ea) * (GR - 0.15)], yaw: ea + Math.PI, size: 1.0, lids: true,
+  /**
+   * A lidded eye on a pillar in the floor (issue #336: the eyes were on the drum's wall): the eye at `at` looking along
+   * `yaw`, the pillar behind it from the floor y0 to over the eye, a shelf under the eye jutting toward where it looks
+   * (it hides the eye from the floor), a corbel under the shelf.
+   */
+  const eyePillar = (at, yaw, y0) => {
+    const f = [Math.sin(yaw), Math.cos(yaw)], back = 1.05, [ex, ey, ez] = at;
+    const px = ex - f[0] * back, pz = ez - f[1] * back, top = ey + 1.7;
+    K.both(M.wall, T(new THREE.BoxGeometry(1.8, top - y0 + 0.3, 1.8), [px, (y0 - 0.3 + top) / 2, pz], [0, yaw, 0]));
+    K.add(blue, T(new THREE.BoxGeometry(2.1, 0.5, 2.1), [px, top + 0.15, pz], [0, yaw, 0]));
+    K.add(blue, T(new THREE.BoxGeometry(2.1, 0.6, 2.1), [px, y0 + 0.2, pz], [0, yaw, 0]));
+    const sx = ex + f[0] * 1.0, sz = ez + f[1] * 1.0;
+    K.both(M.floor, T(new THREE.BoxGeometry(4, 0.6, 2.9), [sx, ey - 1.25 - 0.3, sz], [0, yaw, 0]));
+    K.both(M.wall, T(new THREE.ConeGeometry(1.1, 1.6, 4, 1, true).rotateY(Math.PI / 4), [ex + f[0] * 0.5, ey - 2.35, ez + f[1] * 0.5], [Math.PI, 0, 0]));
+  };
+  // the eye on the west pillar: hidden from the floor by its shelf, stone lids shut over it until the great vane in the
+  // floor beside it turns; and that is too heavy for a splash
+  const EG = [-9.3, G0 + 9.5, C3 + 5.2], vGat = [-8.2, G0, C3], yG = Math.atan2(vGat[0] - EG[0], vGat[2] - EG[2]);
+  eyePillar(EG, yG, G0);
+  add(Switch, { id: 's2', at: EG, yaw: yG, size: 1.0, lids: true,
     wrong: 'The splash patters on the eye’s stone lids. They are shut: they lift only while the great vane in the floor turns.' });
-  add(Vane, { id: 'vG', at: [-8.2, G0, C3], r: 2.3, great: true, reach: VANES.reach,
-    washed: 'The bellows’ wash off your wings catches the great vane, and it turns under you; over the west shelf an eye’s stone lids lift. The rising air holds you: aim from here.' });
+  add(Vane, { id: 'vG', at: vGat, r: 2.3, great: true, reach: VANES.reach,
+    washed: 'The bellows’ wash off your wings catches the great vane, and it turns under you; on the pillar beside it an eye’s stone lids lift. The rising air holds you: aim from here.' });
   // the thin breath through its frame: it bears open wings, and holds you over the vane (too thin to turn it)
-  add(Updraft, { at: [-8.2, G0, C3], r: 2.6, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.', ride: 'The breath through the vane’s frame bears your wings, and holds you over it.' });
+  add(Updraft, { at: vGat, r: 2.6, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.', ride: 'The breath through the vane’s frame bears your wings, and holds you over it.' });
   // the iris in the ceiling, over the oculus: it opens on the west eye
-  K.both(M.floor, T(annulus(VANES.iris + 0.1, GR + 0.4, 0.6, 48), [0, GC, C3]));
+  K.both(M.floor, T(annulus(VANES.iris + 0.1, GR + 0.4, 0.6, 56), [0, GC, C3]));
   K.add(M.trim, T(annulus(VANES.iris + 0.1, VANES.iris + 0.7, 0.04, 40), [0, GC + 0.02, C3]));
   add(Iris, { id: 'iris', at: [0, GC, C3], r: VANES.iris, t: 0.6, lamps: [{ lit: 's2' }] });
   add(Mark, { room: 'gallery', at: [0, G0, C3 - 11.5], yaw: 0 });
 
-  // ---- the loft (over the ceiling): a shelf high on the east wall, its ball, a gap in it whose stones stand only
-  // while the loft's great vane turns; the high ledge by the north door
+  // ---- the loft (over the ceiling): a raised walk on two piers east of the middle (issue #336: it was a shelf high on
+  // the east wall), its ball, a gap in it whose stones stand only while the loft's great vane turns
   add(Mark, { room: 'loft', at: [-7, GC, C3 - 8.5], yaw: Math.PI * 0.75 });
-  const SX = 10.8, SY = GC + VANES.shelf, B0 = C3 - 5.4, B1 = C3 + 4.6, GA = C3 - 2.6, GB = C3 + 0.6;
-  K.slab(9.2, C3 - 6.4, 12.6, GA, SY, 0.8);
-  K.slab(9.2, GB, 12.6, C3 + 6.2, SY, 0.8);
-  for (const z of [C3 - 4.6, C3 + 3.6]) K.both(M.wall, T(new THREE.ConeGeometry(1.7, 3, 4, 1, true).rotateY(Math.PI / 4), [11.6, SY - 2.3, z], [Math.PI, 0, 0]));
+  const SX = 6, SY = GC + VANES.shelf, B0 = C3 - 3.4, B1 = C3 + 6.6, GA = C3 - 0.6, GB = C3 + 2.6;
+  K.slab(SX - 1.7, B0 - 1, SX + 1.7, GA, SY, 0.8);
+  K.slab(SX - 1.7, GB, SX + 1.7, B1 + 1, SY, 0.8);
+  for (const z of [B0 + 0.4, B1 - 1.2]) K.column(SX, z, GC, VANES.shelf - 0.5, 0.55, { mat: M.wall });
   K.add(M.dark, box(1.0, 0.04, GA - B0 + 0.5, SX, SY + 0.02, (B0 - 0.5 + GA) / 2));
   K.add(M.dark, box(1.0, 0.04, B1 + 0.5 - GB, SX, SY + 0.02, (GB + B1 + 0.5) / 2));
   add(Bridge, { id: 'span', a: [SX, SY, GA], b: [SX, SY, GB], w: 2.2, n: 3 });
   add(Ball, { id: 'ball3', a: [SX, SY + 0.04, B0], b: [SX, SY + 0.04, B1], r: 1.0, friction: 0.9, lock: true,
     gap: { bridge: 'span', from: (GA - B0) / (B1 - B0), to: (GB - B0) / (B1 - B0), lip: 'The ball stops at the gap: the stones that bridge it are down, and something in the floor below drives them.' },
-    dropped: 'The stones sink from under the ball, and it drops. Another rolls out of the wall where the groove begins.' });
+    dropped: 'The stones sink from under the ball, and it drops. Another rolls out where the groove begins.' });
   add(Plate, { id: 'p3', at: [SX, SY, B1], r: 1.2 });
-  add(Vane, { id: 'vE', at: [6.4, GC, C3 - 9.4], r: 2.1, great: true, reach: VANES.reach,
-    washed: 'The great vane turns under the bellows’ wash, and up on the east shelf stones grind up into the gap.' });
-  add(Updraft, { at: [6.4, GC, C3 - 9.4], r: 2.5, h: VANES.breath - 1, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
-  // the second iris, over the loft: it opens on the shelf's ball, home on its plate
-  const GK = G0 + VANES.crown;
-  // the crown's little vane, on a post in the loft under the second iris's rim: seen from the crown down through the
-  // iris, splashed from the loft (or from above); it turns the crown eye's second lid
-  const VSx = -6.3, VSy = GK - 2.6;
-  K.both(M.wall, T(new THREE.CylinderGeometry(0.45, 0.7, VSy - GC - 0.2, 10), [VSx, (GC + VSy - 0.2) / 2, C3]));
-  K.add(blue, T(new THREE.CylinderGeometry(1.5, 1.5, 0.25, 20), [VSx, VSy - 0.25, C3]));
-  add(Vane, { id: 'vS', at: [VSx, VSy, C3], r: 1.2, coast: VANES.small,
+  const vEat = [SX, GC, C3 - 7.4];
+  add(Vane, { id: 'vE', at: vEat, r: 2.1, great: true, reach: VANES.reach,
+    washed: 'The great vane turns under the bellows’ wash, and up on the raised walk stones grind up into the gap.' });
+  add(Updraft, { at: vEat, r: 2.5, h: VANES.breath - 1, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
+  // the second iris, over the loft: it opens on the walk's ball, home on its plate
+  // the crown's little vane, on an arm off a post at the first iris's rim, out under the second iris on the high door's
+  // side: seen from the crown's high ledge down through the iris, splashed from the loft (or from above); it turns the
+  // crown eye's second lid (issue #336: the drum wider, the door further out: near enough the door to be seen from it)
+  const VS = [-1, GK - 1.2, C3 + 4.4], post = [-1.5, C3 + 6.5], ptop = VS[1] - 0.45;
+  K.both(M.wall, T(new THREE.CylinderGeometry(0.5, 0.8, ptop - GC + 0.3, 10), [post[0], (GC - 0.3 + ptop) / 2, post[1]]));
+  K.both(M.wall, T(new THREE.BoxGeometry(0.6, 0.5, Math.hypot(post[0] - VS[0], post[1] - VS[2]) + 0.6), [(post[0] + VS[0]) / 2, ptop, (post[1] + VS[2]) / 2], [0, Math.atan2(post[0] - VS[0], post[1] - VS[2]), 0]));
+  K.add(blue, T(new THREE.CylinderGeometry(1.5, 1.5, 0.25, 20), [VS[0], VS[1] - 0.25, VS[2]]));
+  add(Vane, { id: 'vS', at: VS, r: 1.2, coast: VANES.small,
     turning: 'The little vane on its post spins, and up in the crown one of the eye’s two lids lifts a little. It is slowing.',
     fading: 'The little vane is slowing.' });
-  K.both(M.floor, T(annulus(VANES.iris2 + 0.1, GR + 0.4, 0.6, 48), [0, GK, C3]));
+  K.both(M.floor, T(annulus(VANES.iris2 + 0.1, GR + 0.4, 0.6, 56), [0, GK, C3]));
   K.add(M.trim, T(annulus(VANES.iris2 + 0.1, VANES.iris2 + 0.7, 0.04, 40), [0, GK + 0.02, C3]));
   add(Iris, { id: 'iris2', at: [0, GK, C3], r: VANES.iris2, t: 0.6, lamps: [{ pressed: 'p3' }] });
 
-  // ---- the crown (over the second iris): the high ledge by the north door, the eye over the east shelf whose lids
-  // lift only while two vanes turn at once: the great one in the floor, and the small one in the loft below, on its post
-  // under the second iris (it stands in the loft: the loft's own piece, above)
+  // ---- the crown (over the second iris): the high ledge by the north door, the eye on its pillar east of the middle
+  // whose lids lift only while two vanes turn at once: the great one in the floor, and the small one in the loft below,
+  // on its post under the second iris (it stands in the loft: the loft's own piece, above)
   add(Mark, { room: 'crown', at: [-8, GK, C3 - 7.5], yaw: Math.PI * 0.7 });
-  K.both(M.floor, T(sector(GR - 4.5, GR + 0.2, rotA(0) - 0.32, rotA(0) + 0.32, 0.8), [0, G0 + 28, C3]));
-  const ca = Math.PI / 2, cy = GK + 6.8;
-  shelf(ca, cy - 1.25);
-  add(Switch, { id: 's4', at: [Math.sin(ca) * (GR - 0.15), cy, C3 + Math.cos(ca) * (GR - 0.15)], yaw: ca + Math.PI, size: 1.0, lids: true,
+  K.both(M.floor, T(sector(GR - 5.5, GR + 0.2, rotA(0) - 0.3, rotA(0) + 0.3, 0.8), [0, H0, C3]));
+  K.both(M.wall, T(new THREE.ConeGeometry(2.4, 3, 4, 1, true).rotateY(Math.PI / 4), [0, H0 - 2.3, C3 + GR - 1.8], [Math.PI, 0, 0]));   // (its corbel)
+  const EC = [9.8, GK + 6.8, C3 + 3.5], vCat = [5, GK, C3 + 8.6], yC = Math.atan2(vCat[0] - EC[0], vCat[2] - EC[2]);
+  eyePillar(EC, yC, GK);
+  add(Switch, { id: 's4', at: EC, yaw: yC, size: 1.0, lids: true,
     wrong: 'The splash patters on the eye’s lids. They lift only while two vanes turn at once: the great one in the floor, and a little one somewhere below.' });
-  add(Vane, { id: 'vC', at: [6.2, GK, C3 + 5.4], r: 2.2, great: true, reach: VANES.reach,
-    washed: 'The great vane turns under the bellows’ wash. Over the east shelf, the eye’s lids stir.' });
-  add(Updraft, { at: [6.2, GK, C3 + 5.4], r: 2.5, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
+  add(Vane, { id: 'vC', at: vCat, r: 2.2, great: true, reach: VANES.reach,
+    washed: 'The great vane turns under the bellows’ wash. On the pillar, the eye’s lids stir.' });
+  add(Updraft, { at: vCat, r: 2.5, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
   // the draught the chest unstops: from the plinth up through the oculus, on up through each iris as it opens
   add(Updraft, { at: [0, 11.62, C3], r: 2.5, h: G0 + 3 - 11.62, heights: [[{ open: 'iris2' }, GK + 3 - 11.62], [{ open: 'iris' }, GC + 3 - 11.62]], lift: 12, when: { gadget: true },
     hint: 'The draught rushes up past you. Open your wings in it.', ride: 'The draught off the plinth fills your wings and carries you straight up.' });
-  add(Door, { id: 'd3', at: [0, G0 + 28, C3 + GR + 0.7], w: 5, h: 6, lamps: [{ lit: 's4' }] });
+  add(Door, { id: 'd3', at: [0, H0, C3 + GR + 0.7], w: D.w, h: D.h, lamps: [{ lit: 's4' }] });
 
-  flue(rt, K, M, { C3, G0, GK, GR, blue });
+  flue(rt, K, M, { C3, G0, GK, blue });
 
-  // ---- the Warden's Hall (floor 62.6, a great drum), its corridor from the high door
-  const H0 = G0 + 28, CW = C3 + GR + 1.4 + 3 + 21.4;   // 121.2
-  K.slab(-3.2, C3 + GR + 0.6, 3.2, CW - 20.6, H0, 0.8);
-  K.wall(-3.2, C3 + GR + 1.4, -3.2, CW - 20.6, H0, 7, { t: 0.8 }); K.wall(3.2, CW - 20.6, 3.2, C3 + GR + 1.4, H0, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, CW - 20.6 - C3 - GR - 0.6, 0, H0 + 7.4, (C3 + GR + 0.6 + CW - 20.6) / 2));
+  // ---- the Warden's Hall (floor 72.6, a great drum), its corridor from the high door
+  const CW = C3 + GR + 1.4 + 3 + 21.4;   // 141.2
+  K.slab(-cw, C3 + GR + 0.6, cw, CW - 20.6, H0, 0.8);
+  K.wall(-cw, C3 + GR + 1.4, -cw, CW - 20.6, H0, ch, { t: 0.8 }); K.wall(cw, CW - 20.6, cw, C3 + GR + 1.4, H0, ch, { t: 0.8 });
+  K.both(M.wall, box(2 * cw + 0.8, 0.8, CW - 20.6 - C3 - GR - 0.6, 0, H0 + ch + 0.4, (C3 + GR + 0.6 + CW - 20.6) / 2));
   add(Mark, { room: 'hall', at: [2.2, H0, C3 + GR + 2.6], yaw: -Math.PI / 2 });
   const HR = 20;
-  K.rotunda({ x: 0, z: CW, y: H0, r: HR, h: 30, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
+  K.rotunda({ x: 0, z: CW, y: H0, r: HR, h: 30, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.3 });
   K.both(M.stone, lathe([[6.5, 0], [6.5, 0.6], [5.8, 0.8], [0.01, 0.8]], 32).translate(0, H0, CW), new THREE.CylinderGeometry(6.3, 6.5, 0.8, 24).translate(0, H0 + 0.4, CW));
   K.add(M.glyph, T(new THREE.TorusGeometry(6.1, 0.08, 4, 56), [0, H0 + 0.83, CW], [Math.PI / 2, 0, 0]));
-  band(0, CW, HR, H0 + 9, 1.4, 0.22, [[0, 0.25], [Math.PI, 0.25]]);
+  band(0, CW, HR, H0 + 11, 1.4, 0.22, [[0, 0.25], [Math.PI, 0.25]]);
   // four stone discs on columns round the hall, eight metres up: somewhere to stand over it
   for (let i = 0; i < 4; i++) {
     const a = (i + 0.5) / 4 * TAU, x = Math.sin(a) * 13, z = CW + Math.cos(a) * 13;
@@ -579,12 +658,12 @@ function layout(rt) {
     // (the breath through each: open wings ride it up over the warden's crown, and hover there to shoot down)
     add(Updraft, { at: [Math.sin(a) * HALL.vane, H0, CW + Math.cos(a) * HALL.vane], r: 2.5, h: HALL.breath, lift: 9, hint: 'A breath rises through the vane’s frame. Open your wings in it.' });
   }
-  add(Door, { id: 'd5', at: [0, H0, CW + HR + 0.7], w: 5, h: 6 });
+  add(Door, { id: 'd5', at: [0, H0, CW + HR + 0.7], w: D.w, h: D.h });
   // the way out: a corridor to a dark doorway
-  K.slab(-3.2, CW + HR + 0.6, 3.2, CW + HR + 10, H0, 0.8);
-  K.wall(-3.2, CW + HR + 1.4, -3.2, CW + HR + 10, H0, 7, { t: 0.8 }); K.wall(3.2, CW + HR + 10, 3.2, CW + HR + 1.4, H0, 7, { t: 0.8 });
-  K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, H0, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, H0 + 7.4, CW + HR + 5.7));
+  K.slab(-cw, CW + HR + 0.6, cw, CW + HR + 10, H0, 0.8);
+  K.wall(-cw, CW + HR + 1.4, -cw, CW + HR + 10, H0, ch, { t: 0.8 }); K.wall(cw, CW + HR + 10, cw, CW + HR + 1.4, H0, ch, { t: 0.8 });
+  K.wall(cw, CW + HR + 10, -cw, CW + HR + 10, H0, ch, { t: 0.8, holes: [{ at: cw, w: 3.4, h: 5 }] });
+  K.both(M.wall, box(2 * cw + 0.8, 0.8, 9.4, 0, H0 + ch + 0.4, CW + HR + 5.7));
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, H0, CW + HR + 10.5]));
   K.solid(box(4, 5, 0.5, 0, H0 + 2.5, CW + HR + 10.9));
   // the warden, standing still on its plinth
@@ -597,14 +676,14 @@ function layout(rt) {
   const arena = { center: K.world(0, H0, CW), r: HR, y: K.world(0, H0, 0).y };
 
   // (the Flue's mark last: after the others, so the machines' ids by mark stay as they were)
-  add(Mark, { room: 'flue', at: [FLUE.x + 2.6, G0, C3 + 2.6], yaw: Math.PI / 2 });
-  const W = (x, y, z) => K.world(x, y, z);
+  add(Mark, { room: 'flue', at: [FLUE.x + 12, G0, C3 + 2.6], yaw: Math.PI / 2 });
+  const W = (x, y, z) => K.world(x, y, z), FX = FLUE.x;
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-31, -17, -3), V(31, 100, CW + HR + 12)),
+    bounds: new THREE.Box3(V(FX - FLUE.r - 3, -17, -3), V(WING.vane.x + WING.vane.w / 2 + 3, H0 + 34, CW + HR + 12)),
     gadget: { at: W(0, 11.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, H0 + 0.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[FLUE.x, G0 + 6, C3, 12], [FLUE.x, G0 + FLUE.ledge.y + 4, C3, 12], [FLUE.x, G0 + VANES.crown + 3, C3, 10], [0, 6, 6, 14], [0, 6, 18, 20], [0, 6, 40, 20], [0, 8, C2, 16], [WING.store.x, 6, WING.z, 12], [WING.vane.x, 6, WING.z, 12], [0, 16, C2, 14], [0, 18, C3, 18], [0, G0 + 8, C3, 20], [0, G0 + 22, C3, 20], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
+    lights: [[FX, G0 + 6, C3, 22], [FX, G0 + FLUE.ledge.y + 4, C3, 18], [FX, GK + 3, C3, 18], [0, 6, 6, 14], [0, 6, 18, 24], [0, 6, 40, 24], [0, 8, C2, 26], [WING.store.x, 8, WING.z, 24], [WING.vane.x, 8, WING.z, 24], [0, 16, C2, 22], [0, 18, C3, 18], [0, G0 + 8, C3, 28], [0, GC + 8, C3, 26], [0, GK + 8, C3, 26], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
     guardian: { def: { ...WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }

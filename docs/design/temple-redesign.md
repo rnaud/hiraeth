@@ -61,6 +61,28 @@ were), the shortcut back, the way out. A save that stood in the old rooms is tak
 chamber's fight has the Machines' Hall won (`src/temples/migrate.js` `LAYOUTS.desert` v4). No small keys in this house:
 the key chests (#274) are the other houses'.
 
+## The second: the Warden's Well (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Turning Floors 24 × 33, the Climb 18 m across, the wings 16 × 14, the drum 28 m, the Flue 11 m | the Turning Floors **30 × 33**, the Climb **34 m**, the wings **30 × 30**, the drum **36 m**, the Flue **35 m**; the Bellows Chamber 20 m (a chest's) |
+| ceilings | the wings 10 and 12 m, the crown 10 (the gallery and the loft 15 and 9 under their irises) | the wings **18**, the gallery and the loft **17** each, the crown **18**, the Climb 28 |
+| doors | 5 by 6 | **7 by 9** |
+| fights | a machine by every mark (the Turning Floors, the Climb, the Vane Room, the Bellows Chamber, the gallery, the loft, the crown, the Flue, the high door's stone), and the Ash Store's arena | **the Ash Store only**, its machines round its middle among four columns |
+| against the walls | the Turning Floors' vane over the far door, the Vane Room's on its far wall, the two lidded eyes on the drum's wall, the loft's ball on a shelf on the east wall, the Flue's vane on its south wall | each in the middle of its room: on a pillar out of the drop, on a post in the chasm, on pillars in the drum's floors (a shelf under each eye), on a raised walk on two piers, on a post beside the draught |
+| the rules broken | **41** (both 7, size 9, ceiling 3, door 4, centred 10, foes 8) | **0** |
+| the temple design audit | 4.56: structure 5, teach/test/twist 5, combination 5, non-obvious 4 (mean 3.17), decoupling 5, item 5, guardian 4, identity 3, curve 5 | 4.56, the same scores (mean obviousness 3.11: the high door's eye's great vane is out of its sight now, below the high ledge) |
+
+What it took beyond the sizes: the drum's three floors stand 17 m over each other, so its three rooms are 17 to 18 m high
+for real (the rules measure the drum to its top); the Climb's block is a chord 6 m north of the well's middle
+(`CLIMB.face`), so the vane at its foot stays within 20 m of the door it opens; the crown's little vane hangs on an arm
+off a post at the first iris's rim, out under the second iris on the high door's side, where it is seen from the high
+ledge (the drum wider, the door 4 m further out); the Flue, 35 m across, has a pier for its great key and a landing under
+the crown's doorway (too far to glide to from its middle). What stayed: the warden and its fight (and what the bellows
+reveal there), the story's lines, the two ways up from the gallery (the irises' and the Flue's), the two small keys and
+the great one, the pits, every vane's timing and every jump. A save that stood in the old rooms is taken to its last
+mark (`LAYOUTS.incal` v4; `runtime.js` does it for every house now).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -75,7 +97,6 @@ counts, and a house may not get worse). Ranked worst first:
 | Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
 | Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
-| Warden's Well (incal) | 41 | 7 | 9 | 3 | 4 | 10 | 0 | 8 | |
 | Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
 | Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
@@ -101,6 +122,6 @@ What repeats, and how the Rose House answered each:
   and its lens, the Clock-House's coil): a puzzle room after the chest that asks only for older verbs, or only one room
   that asks for it. Each wants a step with the gadget in it.
 
-The next houses to redo, by how much the player meets them and how much they break: the **Warden's Well** (the second
-house, small and full of machines), the **Founders' Belfry** and the **Aerie** (the first after the Rose House on the
-route, fewest broken), then the **Builders' Greenhouse** and the **Undertower** (most broken).
+The next houses to redo, by how much the player meets them and how much they break: the Warden's Well was the second
+(above), then the **Founders' Belfry** and the **Aerie** (the first after the Rose House on the route, fewest broken),
+then the **Builders' Greenhouse** and the **Undertower** (most broken).

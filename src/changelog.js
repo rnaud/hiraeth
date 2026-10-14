@@ -15,6 +15,11 @@ export const CHANGELOG = [
     // the machines in their own hall (issue #336): desert.js ARENAS (arM, dm), pieces.js Mark `foes`, src/foes.js placeMachinesIn
     // (a tagged house's machines only in its combat rooms, round the middle); migrate.js desert v4, RELAID; tests/foes.test.js
     'The Rose House’s machines no longer stand by its puzzles: they wait in a hall of their own past the Sword Chamber, the Machines’ Hall, round its middle, and its doors hold behind you until they are broken. If you were inside the old house you start at its last glyph stone, and a fight you had won in the old Sword Chamber counts as won.',
+    // the Warden's Well as shrines (issue #336): src/temples/incal.js (ROOMS, FLOORS, CLIMB, LOGIC.rooms kinds, the layout:
+    // the vanes on a pillar and posts, the eyes on pillars, the loft's raised walk, the Flue's pier and landing);
+    // migrate.js incal v4, runtime.js relaid; foes.js (no machine by a tagged house's untagged stone); tests/temples.test.js
+    'The Warden’s Well is rebuilt like a shrine too: its rooms are far bigger and taller (the Climb and the tower’s drum over 34 m across, each floor of the drum 17 m high), its doors twice the size, and every puzzle stands in the middle of its room. The Turning Floors’ vane is on a pillar beside the island, the Vane Room’s on a post in its chasm, the two lidded eyes on pillars beside their great vanes, the loft’s ball on a raised walk, and the Flue’s little vane on a post by its draught, its great key on a pier.',
+    'The Warden’s Well’s machines no longer stand by its puzzles: they wait only in the Ash Store, round its middle among four columns. If you were inside the old tower you start at its last glyph stone.',
     // the arena's won line (src/temples/runtime.js updateArenas: the doors let go the moment the last foe fell, before it was won)
     'When you win a temple’s arena, the house says so as its doors sink open: that line never showed.',
   ] },

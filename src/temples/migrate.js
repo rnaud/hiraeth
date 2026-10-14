@@ -66,11 +66,14 @@ export const LAYOUTS = {
   // v1.48: the Warden's Well round its Climb. Past the door at the balcony's end (or with the bellows): its two small keys
   // in it, the Ash Store won, the Vane Room's key taken
   // v1.74 (issue #23's last round): the high door takes the great key too, from the Flue's ledge. Past it: the key in it
+  // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved (the same pieces, the same
+  // state). A save that entered the house: taken to its last mark if it stood inside the old rooms (runtime.js RELAID)
   incal: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d1', 'gadget', 'lit.s2', 'open.iris', 'open.iris2', 'lit.s4', 'open.d3', 'boss'], set: { 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true } },
       { if: ['open.d3', 'boss'], set: { 'unlocked.d3': 1, 'found.kG': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.48: the Undertower round its Cable Well. Up the second disc (or with the shell): the Shell Chamber's door has its

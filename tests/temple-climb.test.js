@@ -60,7 +60,7 @@ function probes(rt, physics) {
     for (const side of [1, -1]) for (const s of [1, -1]) {
       const along = t.clone().multiplyScalar(s * (p.w / 2 + 1.8));
       const wall = o.clone().add(along);
-      out.push({ what: `${p.id} (${s > 0 ? 'right' : 'left'}, ${side > 0 ? 'front' : 'back'})`, door: p.id, from: wall.clone().addScaledVector(n, side * 1.7), to: wall });
+      out.push({ what: `${p.id} (${s > 0 ? 'right' : 'left'}, ${side > 0 ? 'front' : 'back'})`, door: p.id, from: wall.clone().addScaledVector(n, side * 1.7), from2: wall.clone().addScaledVector(n, side * 2.4), to: wall });
     }
   }
   for (const p of rt.pieces) {
@@ -99,7 +99,8 @@ test('a temple\'s walls are not climbed past its puzzles: not beside any lock\'s
       // Each probe independently checks the glass's slip response. The runtime deliberately
       // tells this hint only once, so a previous probe must not suppress this one's evidence.
       w.rt.told.delete('glass.slip');
-      const r = push(w, P, pr.from, pr.to);
+      // (a round hall's wall curves away from a wide door's side: a step further out when 1.7 m stands in its stones, issue #336)
+      const r = push(w, P, pr.from, pr.to) ?? (pr.from2 ? push(w, P, pr.from2, pr.to) : null);
       if (!r) continue;
       tried++;
       if (pr.door) doors[`${id}.${pr.door}`] = true;

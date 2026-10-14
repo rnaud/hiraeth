@@ -32,7 +32,7 @@ import { VOLLEY, FROM_FOUR, CUPBOARD } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA, SUN, VAULT } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
-import { BELLOWS_NEXT, upUsed, VANES, FLUE } from '../src/temples/incal.js';
+import { BELLOWS_NEXT, upUsed, VANES, FLUE, ROOMS as WELL, FLOORS, CLIMB, WING as WELL_WING } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
 import { HOLD as BELFRY_HOLD, FallUpStone, RING } from '../src/temples/arzach2.js';
 const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR = BELFRY_HOLD.stair, HOLD_CHAMBER = BELFRY_HOLD.chamber;
@@ -1247,6 +1247,32 @@ test('a save from the Rose House before issue #336: past the old chamber’s fig
   own();
 });
 
+test('a save from the Warden’s Well before issue #336: its state as it was (the same pieces), and one that stood in the old rooms is taken to its last mark', () => {
+  const past = new GameState(null);
+  for (const [k, v] of Object.entries({ layout: 3, entered: true, 'drum.ball1': 1, 'open.d1': true, 'unlocked.d1': 2, gadget: true, checkpoint: 'gallery' })) past.set(`temple.incal.${k}`, v);
+  migrateTempleLayouts(past);
+  assert.equal(past.flag('temple.incal.layout'), LAYOUTS.incal.v);
+  assert.equal(past.flag('temple.incal.relaid'), true, 'inside the old house: to its mark');
+  assert.equal(past.flag('temple.incal.checkpoint'), 'gallery', 'its place kept');
+  const outside = new GameState(null);
+  outside.set('temple.incal.layout', 3);
+  migrateTempleLayouts(outside);
+  assert.equal(outside.flag('temple.incal.relaid'), undefined, 'never inside: nothing to move');
+  // standing where the old Lamp Gallery's floor was (by the new drum's middle, under its floor): to the gallery's mark
+  game.reset();
+  own('backpack', 'gun', 'glider');
+  const { level, physics, rt } = world('incal');
+  game.set('temple.incal.checkpoint', 'gallery'); game.set('temple.incal.relaid', true);
+  const P = new Player(physics, { spawn: rt.kit.world(-6, 34.7, 73.4), dynamic: level.dynamic, health: true });
+  rt.connect({ player: P, toast: () => {} });
+  rt.update(DT, DT);
+  const mark = rt.marks.find((m) => m.room === 'gallery');
+  assert.ok(P.pos.distanceTo(mark.spot) < 0.5, `at the gallery's mark (${rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(!game.flag('temple.incal.relaid'), 'once');
+  game.reset();
+  own();
+});
+
 test('the Rose House is solved with the backpack and the double jump, the blade and the guard found inside: no gun; not without the double jump, the blade or the guard', () => {
   const L = TEMPLES.desert.def.logic;
   const r = solve(L, { items: ['backpack', 'doublejump'] });
@@ -1264,6 +1290,8 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   game.reset();
   own('backpack', 'gun', 'glider');
   const { level, physics, rt } = world('incal');
+  // (the rooms since issue #336: the Climb's middle, the Bellows Chamber's, the gallery's floor, the Warden's Hall's floor and middle)
+  const C2 = WELL.climb.z, C3 = WELL.chest.z, G0 = FLOORS.gallery, H0 = FLOORS.hall, CW = C3 + WELL.drum.r + 25.8;
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, killY: level.killY });
   const notes = [];
   rt.connect({ player: P, toast: (s) => notes.push(s) });
@@ -1349,13 +1377,13 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.ok(said(/slowing/), 'it says it is slowing');
 
   // ---- the Climb: up the block's face; the ball stops at the slot, until the vane in the well's floor turns
-  assert.equal(walk(L(0, 0, 57)), true, `into the well (${where()})`);
+  assert.equal(walk(L(0, 0, C2 - 1.6)), true, `into the well (${where()})`);
   // ---- the Ash Store, west off the hub (an arena): its door shuts behind you while its keepers stand
-  const WZ = 58.6 + Math.cos(Math.PI / 2 + 0.4) * 9;
+  const WZ = WELL_WING.z, WS = WELL_WING.store.x, WV = WELL_WING.vane.x, [CH0, CH1] = WELL_WING.gap;
   const keepers = [{ room: 'store', alive: true }, { room: 'store', alive: true }];
   rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(walk(L(-3, 0, WZ)) && walk(L(-9, 0, WZ)), true, `to the way west (${where()})`);
-  assert.equal(walk(L(-19, 0, WZ)), true, `into the Ash Store (${where()})`);
+  assert.equal(walk(L(-5, 0, WZ)) && walk(L(-17, 0, WZ)), true, `to the way west (${where()})`);
+  assert.equal(walk(L(WS + 10, 0, WZ)), true, `into the Ash Store (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isOpen('dW'), false, 'the door shuts behind you');
   for (const k of keepers) k.alive = false;
@@ -1366,8 +1394,8 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   openChest(rt, 'kW', P);
   assert.equal(rt.logic.isFound('kW'), true, 'a small key');
   // ---- the Vane Room, east: the chasm's stones stand only while the vane on its far wall turns
-  assert.equal(walk(L(-9, 0, WZ)) && walk(L(9, 0, WZ)), true, `back across the hub (${where()})`);
-  assert.equal(walk(L(17.6, 0, WZ)), true, `to the chasm's edge (${where()})`);
+  assert.equal(walk(L(-17, 0, WZ)) && walk(L(17, 0, WZ)), true, `back across the hub (${where()})`);
+  assert.equal(walk(L(CH0 - 1.4, 0, WZ)), true, `to the chasm's edge (${where()})`);
   assert.equal(rt.logic.isOpen('vb'), false, 'no stones in the chasm');
   const vR = rt.piece('vR');
   vR.hit('shoot');
@@ -1375,7 +1403,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(vR.turning, true, 'the vane across the chasm spins');
   wait(2.5);
   assert.equal(rt.logic.isOpen('vb'), true, 'and the stones stand');
-  assert.equal(walk(L(25, 0, WZ)), true, `across before it slows (${where()})`);
+  assert.equal(walk(L(CH1 + 1.5, 0, WZ)), true, `across before it slows (${where()})`);
   assert.ok(ly() > -1, 'over the chasm, not in it');
   assert.equal(walk(rt.piece('kE').pos, { tol: 1.2 }), true, `to the key (${where()})`);
   wait(0.3);
@@ -1385,10 +1413,10 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(rt.logic.isOpen('vb'), false, 'the vane runs down, and the stones sink: stranded');
   vR.hit('shoot');
   wait(2.5);
-  assert.equal(walk(L(16, 0, WZ)), true, `a splash from this side, and back across (${where()})`);
-  assert.equal(walk(L(9, 0, WZ)) && walk(L(0, 0, 57)), true, `back into the well (${where()})`);
+  assert.equal(walk(L(CH1 + 1.5, 0, WZ)) && walk(L(CH0 - 3, 0, WZ)), true, `a splash from this side, and back across (${where()})`);
+  assert.equal(walk(L(17, 0, WZ)) && walk(L(0, 0, C2 - 1.6)), true, `back into the well (${where()})`);
   let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, 62))); if (P.onGround && ly() > 10.5) { up = true; break; } }
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, C2 + CLIMB.face + 3.4))); if (P.onGround && ly() > 10.5) { up = true; break; } }
   assert.ok(up, `up the face (${where()})`);
   const ball = rt.piece('ball1'), gap = ball.o.gap;
   let most = 0;
@@ -1399,7 +1427,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   // from the lip, the vane far below: a splash, and the slot's stones stand while it turns
   const v2 = rt.piece('v2');
   {
-    const eyeAt = L(0, 12.6, 58.9), to = v2.center.clone().add(V(0, 0.1, 0)), l = to.distanceTo(eyeAt);
+    const eyeAt = L(0, 12.6, C2 + CLIMB.face + 0.3), to = v2.center.clone().add(V(0, 0.1, 0)), l = to.distanceTo(eyeAt);
     assert.ok(physics.rayDistance(eyeAt, to.clone().sub(eyeAt).normalize(), l) >= l - 0.3, 'the vane in sight from the balcony’s lip');
   }
   v2.hit('shoot');
@@ -1407,13 +1435,13 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(rt.logic.isOpen('slot'), true, 'the slot stands');
   push(ball, 8, () => rt.logic.drumOn('ball1', 'p1'));
   assert.ok(rt.logic.drumOn('ball1', 'p1'), `over the slot, onto its plate (${ball.t.toFixed(2)})`);
-  assert.equal(walk(L(0, 11, 66.4), { tol: 0.5 }), true, `to the door at the balcony's end (${where()})`);
+  assert.equal(walk(L(0, 11, C2 + WELL.climb.r - 1.3), { tol: 0.5 }), true, `to the door at the balcony's end (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.keysIn('d1'), 2, 'both small keys go in');
   assert.equal(rt.logic.isOpen('d1'), true);
 
   // ---- the Bellows Chamber: the chest; the only way on is up through the oculus, on the draught it unstops
-  assert.equal(walk(L(0, 11, 75)), true, `into the chamber (${where()})`);
+  assert.equal(walk(L(0, 11, C3 - 6.4)), true, `into the chamber (${where()})`);
   for (let i = 0; i < 2 / DT; i++) frame({ Space: true }, 0);
   assert.ok(ly() < 16, 'before the chest the plinth is still: the wings go nowhere up');
   items.grant('wardenbellows'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
@@ -1428,10 +1456,10 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   const draft = rt.pieces.find((p) => p.lift && p.o.when?.gadget);
   assert.ok(draft?.on, 'the draught rises over the plinth');
   assert.equal(upUsed(rt), false);
-  assert.equal(walk(L(0, 11, 81.4), { tol: 0.8 }), true, `onto the plinth (${where()})`);
+  assert.equal(walk(L(0, 11, C3), { tol: 0.8 }), true, `onto the plinth (${where()})`);
   assert.equal(rise(), true, `up the draught, held at its top (${where()})`);
-  assert.ok(ly() > 34.6 + 1.5, `up through the oculus (${where()})`);
-  assert.equal(glideTo([0, 34.6, 81.4 - 7.5]), true, `off it onto the gallery floor (${where()})`);
+  assert.ok(ly() > G0 + 1.5, `up through the oculus (${where()})`);
+  assert.equal(glideTo([0, G0, C3 - 7.5]), true, `off it onto the gallery floor (${where()})`);
   assert.equal(upUsed(rt), true, 'up: the draught was the way');
 
   // ---- the Lamp Gallery: the eye over the west shelf, hidden from the floor, its lids shut
@@ -1467,11 +1495,11 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(rt.logic.isLit('s2'), true, 'and the eye stays awake');
 
   // ---- up through the iris to the loft
-  const GC = 34.6 + 15;
-  assert.equal(walk(L(0, 34.6, 81.4 - 4.3), { tol: 0.4 }), true, `to the oculus' rim (${where()})`);
-  assert.ok(draft.h > 34.6 + 15 - 11.62, 'the draught rises on through the open iris');
-  assert.equal(leapInto([0, 81.4]), true, `off the rim into the draught, and up through the iris (${where()})`);
-  assert.equal(glideTo([-6, GC, 81.4 - 8]), true, `off it onto the loft (${where()})`);
+  const GC = FLOORS.loft;
+  assert.equal(walk(L(0, G0, C3 - 4.3), { tol: 0.4 }), true, `to the oculus' rim (${where()})`);
+  assert.ok(draft.h > GC - 11.62, 'the draught rises on through the open iris');
+  assert.equal(leapInto([0, C3]), true, `off the rim into the draught, and up through the iris (${where()})`);
+  assert.equal(glideTo([-6, GC, C3 - 8]), true, `off it onto the loft (${where()})`);
   assert.ok(Math.abs(ly() - GC) < 0.5, `standing in the loft (${where()})`);
   // the shelf's ball stops at the gap: its stones are down, and the great vane is too heavy for a splash
   const ball3 = rt.piece('ball3'), vE = rt.piece('vE'), g3 = ball3.o.gap;
@@ -1484,7 +1512,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   wait(0.2);
   assert.equal(rt.logic.isOpen('span'), false, 'a splash does not turn it');
   // the way: hover over the loft's great vane, and push the ball over the gap from the air
-  P.teleport(L(-7, GC + 0.1, 81.4 - 8.5), V(0, 1, 0), V(0, 0, 1));
+  P.teleport(L(-7, GC + 0.1, C3 - 8.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   assert.equal(walk(vE.center, { tol: 0.6 }), true, `onto the loft's vane (${where()})`);
   assert.equal(rise(), true, `held over it (${where()})`);
@@ -1502,15 +1530,15 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(rt.logic.isOpen('iris2'), true, 'the second iris opens');
 
   // ---- up through the second iris to the crown: the eye whose lids lift only while two vanes turn at once
-  const GK = 34.6 + 24;
-  P.teleport(L(0, GC + 0.1, 81.4 - 6.2), V(0, 1, 0), V(0, 0, 1));
+  const GK = FLOORS.crown;
+  P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
-  assert.equal(leapInto([0, 81.4]), true, `into the draught, and up through the second iris (${where()})`);
-  assert.equal(glideTo([-8, GK, 81.4 - 6]), true, `off it onto the crown (${where()})`);
+  assert.equal(leapInto([0, C3]), true, `into the draught, and up through the second iris (${where()})`);
+  assert.equal(glideTo([-8, GK, C3 - 6]), true, `off it onto the crown (${where()})`);
   assert.ok(Math.abs(ly() - GK) < 0.5, `standing in the crown (${where()})`);
   const s4 = rt.piece('s4'), vS = rt.piece('vS'), vC = rt.piece('vC');
   // the great vane alone: the lids stay shut (round the open iris, not across it)
-  for (const [x, z] of [[0, -10.2], [9.6, -3.6], [9.6, 2.4]]) walk(L(x, GK, 81.4 + z), { tol: 1 });
+  for (const [x, z] of [[0, -10], [8, -6], [8, 0]]) walk(L(x, GK, C3 + z), { tol: 1 });
   assert.equal(walk(vC.center, { tol: 0.6 }), true, `onto the crown's great vane (${where()})`);
   assert.equal(rise(), true, `held over it (${where()})`);
   assert.equal(vC.turning, true);
@@ -1524,11 +1552,11 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   // the little vane is not in the crown: it stands on a post in the loft below, seen down through the second iris
   assert.ok(rt.kit.local(vS.center).y < GK - 1 && rt.logic.el('vS').room === 'loft', 'the little vane stands in the loft');
   {
-    const f2 = L(0, GK + 1.7, 81.4 + 8.5), d2 = vS.center.clone().sub(f2), l2 = d2.length();
+    const f2 = L(0, GK + 1.7, C3 + 8.5), d2 = vS.center.clone().sub(f2), l2 = d2.length();
     assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, 'seen from the crown by the high door, down through the iris');
   }
   // the small one alone: down in the loft, its splash, and it slows and stops before long
-  P.teleport(L(0, GC + 0.1, 81.4 - 6.2), V(0, 1, 0), V(0, 0, 1));
+  P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   vS.hit('shoot');
   assert.equal(vS.turning, true, 'the little vane spins');
@@ -1538,19 +1566,19 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   // too slow: splashed, then a long look round before flying up; it has stopped by the time the great one turns
   vS.hit('shoot');
   wait(VANES.small - 3);
-  assert.equal(leapInto([0, 81.4]), true, `into the draught, up through the second iris (${where()})`);
-  assert.equal(glideTo([6.2, GK, 81.4 + 5.4]), true, `over onto the great vane (${where()})`);
+  assert.equal(leapInto([0, C3]), true, `into the draught, up through the second iris (${where()})`);
+  assert.equal(glideTo([5, GK, C3 + 8.6]), true, `over onto the great vane (${where()})`);
   assert.equal(rise(), true);
   holding(1);
   assert.ok(!vS.turning && s4.lidK < 0.05, 'the little one stopped on the way up: the lids stay shut');
   land();
   for (let i = 0; i < 3 / DT && vC.turning; i++) frame();
   // the way: splash the small one in the loft, then fly straight up to the great one and hover while it still turns
-  P.teleport(L(0, GC + 0.1, 81.4 - 6.2), V(0, 1, 0), V(0, 0, 1));
+  P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   vS.hit('shoot');
-  assert.equal(leapInto([0, 81.4]), true, `into the draught, up through the second iris (${where()})`);
-  assert.equal(glideTo([6.2, GK, 81.4 + 5.4]), true, `over onto the great vane (${where()})`);
+  assert.equal(leapInto([0, C3]), true, `into the draught, up through the second iris (${where()})`);
+  assert.equal(glideTo([5, GK, C3 + 8.6]), true, `over onto the great vane (${where()})`);
   assert.equal(rise(), true);
   assert.ok(holding(1.2, () => s4.lidK > 0.95), `both turn: the lids lift (${vS.left.toFixed(1)} s of the little one left)`);
   {
@@ -1565,17 +1593,17 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   // ---- the Flue (issue #23's last round): back down to the gallery (the irises stand open), and west out of it into the
   // flue at its floor; its little vane, the draught up its middle while it turns, the great key on the ledge half-way, and
   // up into the crown by its west doorway
-  const vT = rt.piece('vT'), kG = rt.piece('kG'), FX = FLUE.x, FL = 34.6 + FLUE.ledge.y;
-  P.teleport(L(-6, 34.6 + 0.1, 81.4 - 8), V(0, 1, 0), V(0, 0, 1));
+  const vT = rt.piece('vT'), kG = rt.piece('kG'), FX = FLUE.x, FL = G0 + FLUE.ledge.y;
+  P.teleport(L(-6, G0 + 0.1, C3 - 8), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
-  assert.ok([[-11, 34.6, 81.4], [-15.5, 34.6, 81.4], [FX + 2.6, 34.6, 81.4]].every((q) => walk(L(...q), { tol: 0.8, max: 8 })), `west through the gallery's doorway into the flue (${where()})`);
+  assert.ok([[-14, G0, C3], [-19.5, G0, C3], [FX + 12, G0, C3], [FX + 4, G0, C3]].every((q) => walk(L(...q), { tol: 0.8, max: 8 })), `west through the gallery's doorway into the flue (${where()})`);
   assert.ok(!vT.turning && !rt.logic.isOpen('draught'), 'its air still: the little vane high on its wall is still');
   vT.hit('shoot');
   assert.equal(vT.turning, true, 'splashed from the floor, the little vane spins');
-  assert.equal(leapInto([FX, 81.4]), true, `into the draught and up the flue (${where()})`);
+  assert.equal(leapInto([FX, C3]), true, `into the draught and up the flue (${where()})`);
   assert.ok(ly() > FL + 6, `carried past the ledge (${where()})`);
   // off it west onto the ledge (the wings folded over it)
-  const ledge = L(FX - FLUE.key, FL, 81.4 + 1.6);
+  const ledge = L(FX - FLUE.key, FL, C3 + 1.6);
   for (let i = 0; i < 6 / DT && !P.onGround; i++) { P.heading = P.frame.headingOf(ledge.clone().sub(P.pos).setY(0)); frame(flat(ledge) < 1.2 ? {} : { Space: inAir(), KeyW: true }, toward(ledge)); }
   assert.ok(P.onGround && Math.abs(ly() - FL) < 0.6, `onto the ledge (${where()})`);
   assert.equal(walk(kG.pos, { tol: 1.2, max: 4 }), true, `to the great key (${where()})`);
@@ -1586,16 +1614,17 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.ok(!rt.logic.isOpen('draught'), 'the vane has slowed and stopped: the draught gone');
   vT.hit('shoot');
   assert.equal(vT.turning, true, 'splashed again from the ledge');
-  assert.equal(leapInto([FX, 81.4]), true, `back into the draught, up to the crown's doorway (${where()})`);
-  assert.equal(glideTo([-11.5, GK, 81.4]), true, `east through the doorway onto the crown's floor (${where()})`);
-  assert.ok([[-8, GK, 81.4 - 6.4], [0, GK, 81.4 - 10.2], [9.6, GK, 81.4 - 3.6]].every((q) => walk(L(...q), { tol: 1, max: 8 })), `round the open iris (${where()})`);
+  assert.equal(leapInto([FX, C3]), true, `back into the draught, up to the crown's doorway (${where()})`);
+  assert.equal(glideTo([FX + FLUE.landing.x0 + 2, GK - 0.3, C3]), true, `east onto the landing under the crown's doorway (${where()})`);
+  assert.equal(walk(L(-14, GK, C3), { tol: 0.8, max: 12 }), true, `through the doorway onto the crown's floor (${where()})`);
+  assert.ok([[-9.5, GK, C3 - 5], [0, GK, C3 - 10], [8, GK, C3 - 6], [8, GK, C3]].every((q) => walk(L(...q), { tol: 1, max: 8 })), `round the open iris (${where()})`);
 
   // ---- the Warden's Hall
   // up the breath over the crown's great vane, and off it onto the high ledge by the door
   assert.equal(walk(vC.center, { tol: 0.6 }), true, `back onto the crown's great vane (${where()})`);
   assert.equal(rise(), true);
-  assert.equal(glideTo([0, 62.6, 81.4 + 14 - 2.4]), true, `up to the high ledge (${where()})`);
-  assert.equal(walk(L(0, 62.6, 104)), true, `into the hall (${where()})`);
+  assert.equal(glideTo([0, H0, C3 + WELL.drum.r - 2.4]), true, `up to the high ledge (${where()})`);
+  assert.equal(walk(L(0, H0, CW - 17.2)), true, `into the hall (${where()})`);
   assert.equal(rt.logic.keysIn('d3'), 1, 'the great key went into the high door');
   const K = rt.guardian;
   wait(0.4);
@@ -1616,7 +1645,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
     if (K.phaseIndex >= 1) {
       // guarded: only from above
       const below = K.meter;
-      P.teleport(L(0, 62.6, 104), V(0, 1, 0), V(0, 0, 1));
+      P.teleport(L(0, H0, CW - 17.2), V(0, 1, 0), V(0, 0, 1));
       K.hit('mouth', 'shoot');
       assert.equal(K.meter, below, 'from the floor its shut sides take nothing');
       wait(2.5);   // (it backs onto its nearest vane)

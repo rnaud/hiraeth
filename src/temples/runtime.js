@@ -203,6 +203,10 @@ export class TempleRuntime {
     if (inside && !this.game.flag(`temple.${this.id}.entered`)) { this.game.set(`temple.${this.id}.entered`, true); this.notice(this.def.enterLine); }
     if (inside || this.time < 0.5) for (const p of this.pieces) p.update(dt, t);
     else for (const p of this.pieces) if (p.solid || p.flames) p.update?.(dt, t);
+    // a save from before its house was remade (issue #336), standing in the old rooms (src/temples/migrate.js sets
+    // temple.<id>.relaid): its first frame here, the traveller is taken to the last mark, in the new rooms
+    const relaid = `temple.${this.id}.relaid`;
+    if (P?.pos && this.game.flag(relaid)) { this.game.set(relaid, null); if (inside || this.below(P.pos)) this.toCheckpoint(); }
     this.def.onUpdate?.(this, dt, t);
     this.updateArenas(dt);
     this.applyDoors();
