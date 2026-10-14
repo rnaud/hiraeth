@@ -33,6 +33,8 @@ export const CHANGELOG = [
     // her turns gathered (turnTo, turnAccel, turnRate 3), the thighs framed on their bend plane (no half-turn flip), the
     // rump, throat and wing weights (elder-v3-fit.js elderWeights, ELDER_FOLD); scripts/tripo/elder-cycles.mjs
     'The Elder no longer jerks: her whole body jumped at the start of every blow, she shot 3.5 m into the air in a single frame when she took off (and dropped back the same way), spun round to face you in an instant, and a leg flipped round when she sank down worn out. Her throat, rump and shoulders no longer stretch out of shape as she bends.',
+    // her colour map (issue #237): scripts/tripo/elder-delight.mjs in scripts/tripo/rig-elder-v3.mjs; tests/elder-cycles.test.js
+    'The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her.',
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

@@ -861,6 +861,9 @@ export const CHANGELOG_MEDIA = {
         { where: 'worn out (a leg flipping)', before: 39.7, after: 0.1 },
       ], source: 'scripts/tripo/elder-cycles.mjs; a snap is a part gaining or losing over half its top speed in a frame. Left: the stamp’s foot stopping on the floor, its blow', note: 'Her edges stretched or squeezed most, a frame: peck 30 → 12 cm, sleep 24 → 10, worn out 24 → 9, the whole fight 30 → 13.' },
     ] },
+    { match: 'The Elder’s feathers lost the grey shadows painted into them', tags: ['vael'], shots: [
+      { name: 'elder-feathers-close', title: 'Her breast and wing, close', caption: 'Left, her colours alone (no light); right, in the game’s ink. Before, grey shading baked into the feathers’ undersides and creases; after, an even cream, the painted feather lines kept.', from: ELDER237 },
+    ] },
   ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [

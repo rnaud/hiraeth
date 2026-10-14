@@ -1576,6 +1576,13 @@ take-offs eased. The combat review's guardian run (`.claude/skills/combat-review
 before (every blow on her body, the lock on her beak). The calm by flight, the vents' wind, the final touch and the
 perch: `tests/elder-guardian.test.js` (the elevated Aerie, round 5's new loop in it).
 
+**Her colour map** (`scripts/tripo/elder-delight.mjs`, run by the rig script): Tripo's Remove Lighting left broad grey
+shading and darkened creases; each pixel is sorted (softly, on its neighbourhood's colour: a hard sort patched the JPEG's
+blocks) into cream, pink and tan; within each colour the slow brightness (a blur of that colour's pixels alone, so the
+atlas's islands don't bleed) is brought 80 % of the way to its lit value, and creases 2–10 px wide are lifted by 60 %;
+lines under 2 px, the eye and the pink wing ends (painted pink to mauve: their 5 % spread is not light) are left as they
+were. The slow brightness's spread (10th–90th percentile over the median): cream 0.15 → 0.03, tan 0.14 → 0.04.
+
 ## Traveller B3 body (13 October 2026)
 
 The user approved the OpenAI B3 slender-young-adult proportions and matching left
