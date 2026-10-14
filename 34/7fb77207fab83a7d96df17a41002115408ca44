@@ -1,0 +1,47 @@
+engine/unity/game.js
+  s_9ca76055a220ed::t_8fc03fde3118a2 215-221,283-289
+scripts/bench/unity-shimmer.mjs
+  s_9ca76055a220ed::t_3fe430b5e5ffde 1-60
+unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs
+  s_9ca76055a220ed::t_369c35511a3d00 14-15,25-27,31,53-64,69,75,85-87,335,347-381,434-435,437,445,458-459
+unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader
+  s_9ca76055a220ed::t_6c84a30e92cf01 52,543-551
+unity/Hiraeth/Assets/Hiraeth/Shaders/HiraethCommon.hlsl
+  s_9ca76055a220ed::t_053c180bbeb2e6 55,61-64
+unity/Hiraeth/Assets/Hiraeth/Shaders/SMAA.shader
+  s_9ca76055a220ed::t_465a69a6c81358 1-55
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_a3dd274c6452e6 169-171
+unity/Hiraeth/Assets/Settings/PC_Renderer.asset
+  s_9ca76055a220ed::t_9b70600ec88478 74-76
+unity/Hiraeth/ProjectSettings/GraphicsSettings.asset
+  s_9ca76055a220ed::t_c78ec548a6d596 49
+unity/Hiraeth/Assets/Hiraeth/Shaders/SMAA.shader.meta
+  s_a1eeeb84bcec31::t_dbecbf6d6d020f 1-9
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_a1eeeb84bcec31::t_0ed48ad5932d86 367-374,750-760
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "347fb77207fab83a7d96df17a41002115408ca44",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_a1eeeb84bcec31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5fa6458ca7ac530d",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
