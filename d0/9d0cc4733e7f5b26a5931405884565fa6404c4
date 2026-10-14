@@ -55,6 +55,14 @@ docs/design/temple-redesign.md
         "model": "claude-opus-5-5"
       },
       "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d5fe68a1d6c86e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad491b7bf13c6d481",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
     }
   }
 }
