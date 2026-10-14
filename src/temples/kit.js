@@ -461,7 +461,8 @@ export class TempleKit {
       let from = 0;
       // (a sill under a gap off the floor: its top Z_GAP under the gap's foot, so the floor laid through it is the face you see)
       for (const [c0, c1] of cut) { spans.push([from, c0 > 1e-3 ? c0 - Z_GAP : c0]); from = Math.max(from, c1); }
-      spans.push([from, h]);
+      // (open at the top, a shaft: the stones stop inside the trim that caps them, so its top is the only face up there)
+      spans.push([from, oculus < 0 ? h - 0.25 : h]);
       for (const [s0, s1] of spans) if (s1 - s0 > 0.05) this.banded(this.M.wall, s0, s1 - s0, h, (yy, hh) => T(new THREE.BoxGeometry(chord, hh, t), [px, y + yy + hh / 2, pz], [0, a, 0]));
     }
     // the trim at the top, round the hall (solid: it overhangs the wall's outer face by 0.4 m, and a

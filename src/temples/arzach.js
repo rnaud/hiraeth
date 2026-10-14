@@ -29,8 +29,10 @@ import { chestMound } from '../boxes/mound.js';
 //                        corridor's mouth) and the hall falls calm, and the wind rises up the well, and the feather
 //                        raft by the east wall rides up on it to the Wing Chamber's balcony
 //                        (since v1.49, issue #23, the well is a stack, rooms off it at its foot and up its height:)
-//   the Moult            (west off its floor, an arena) where the birds raised here shed their first stone feathers;
-//                        its door shuts behind you while its keepers stand. Won, the small key's cage sinks
+//   the Moult            (west off its floor, an arena) where the birds raised here shed their first stone feathers.
+//                        Its door onto the well is shut from the other side: the way in is from above, down the
+//                        Eyrie's vent (since issue #23's last round, below). Won, the small key's cage sinks and the
+//                        door onto the well lets go
 //   the Wing Chamber     the makers' chest: the FLUID WINGS (src/items.js 'glider'). Step back out onto the
 //                        balcony and into the column of wind: it lifts open wings, round and up, to the high
 //                        balcony over the well, the great carved eye beside it (the wind you sent, a room away).
@@ -40,7 +42,11 @@ import { chestMound } from '../boxes/mound.js';
 //                        the gap, so the wind comes out of the ledge's own, a column beside a shelf with a coffer;
 //                        the great key's perch six metres over the ledge across the gap, out of a glide's reach.
 //                        Roll the stone into the other throat: the ledge's column dies, and the wind rises out of the
-//                        gap's foot past the perch (the Roost's lesson, a house early). The Roost's door's key
+//                        gap's foot past the perch (the Roost's lesson, a house early). The Roost's door's key.
+//                        The vent at the gap's foot is a shaft down into the Moult: while the stone stops it (as it
+//                        starts) its air is still and you glide down it, into the arena; won, its door lets you out
+//                        onto the well's floor, and the raft and the column take you up again. A circuit round the
+//                        stack, flown down and ridden up, its way decided by where the one stone sits
 //   the Gulf             two crossings, each on a wind you send. Forty-six metres of nothing to a stone perch
 //                        four lower: on still air no glide carries so far. A vent's mouth over the door, its stone
 //                        in the throat in the ledge's floor: push it out and the wind pours out over the gulf in
@@ -94,11 +100,14 @@ export const LOGIC = {
     // the well is a stack (v1.49, issue #23): a room off it at its foot, the chest's at 16 m, the high balcony at 32 m and a
     // room off that. The Moult, west off its floor, an arena: the small key; the Eyrie, west off the high balcony: two
     // winds and one stone, the great key
-    { a: 'well', b: 'moult', door: 'dM' },                              // (open: it shuts behind you while its keepers stand)
+    { a: 'well', b: 'moult', door: 'dM' },                              // (shut till the Moult is won: its way out, onto the well's floor)
     { a: 'well', b: 'wings', door: 'raft' },                            // the feather raft rides up on the well's wind
     { a: 'wings', b: 'top', needs: ['glider'] },                        // the column (the raft's wind) lifts only open wings
     { a: 'top', b: 'eyrie' },                                           // along the ledge round the well's west wall
     { a: 'eyrie', b: 'eyrieKey', door: 'lift', needs: ['glider'] },     // over the gap and up to the great key's perch, on the column out of its foot
+    // (issue #23, the last round: the Moult is entered from above, down the shaft of the vent at the gap's foot while its
+    // stone stops it, and left by its door onto the well's floor: a circuit round the stack, its way the one stone's)
+    { a: 'eyrie', b: 'moult', door: 'chute', needs: ['glider'], oneWay: true },
     { a: 'top', b: 'gulf', door: 'dG' },                                // the way north off the balcony: the small key
     // (the Gulf's crossings go one way: no glide comes back 46 m to a lip four metres higher, nor up to the higher ledge.
     // Issue #275: over there without the great key you were stranded; the way back is the passage outside its east wall,
@@ -127,10 +136,11 @@ export const LOGIC = {
     pP: { type: 'plate', room: 'perch' },
     pQ: { type: 'plate', room: 'perch' },
     rise: { type: 'door', opens: { not: { drumOn: ['ballP', 'pP'] } } },
-    // the Moult: its keepers beaten, the small key's cage sinks
+    // the Moult: its keepers beaten, the small key's cage sinks, and its door onto the well lets go (shut from the other side
+    // till then: the way in is down the Eyrie's vent)
     arM: { type: 'arena', room: 'moult' },
     kM: { type: 'key', kind: 'small', room: 'moult', when: { lit: 'arM' } },
-    dM: { type: 'door', opens: null },
+    dM: { type: 'door', opens: { lit: 'arM' } },
     // the Eyrie: two vents and one stone, both throats on its ledge (the Roost's lesson, a house early). The stone starts in
     // the gap-vent's throat (pU): the wind comes out of the ledge's own vent, a column beside the coffer's shelf. Rolled into
     // that vent's throat (pC), the ledge's column dies and the wind comes out of the vent at the gap's foot instead, a
@@ -139,6 +149,7 @@ export const LOGIC = {
     pU: { type: 'plate', room: 'eyrie' },
     pC: { type: 'plate', room: 'eyrie' },
     lift: { type: 'door', opens: { drumOn: ['bE', 'pC'] } },
+    chute: { type: 'door', opens: { drumOn: ['bE', 'pU'] } },          // the vent's shaft, still while its stone stops it: a way down
     kE: { type: 'key', kind: 'big', room: 'eyrieKey' },
     dG: { type: 'door', lock: 'small' },
     d3: { type: 'door', lock: 'big' },                                   // the great key's door (and the arena's: it shuts behind you)
@@ -239,24 +250,29 @@ function elderHit(g, part, mode) {
  * perch.
  */
 export const STACK = {
-  moult: { x: -25, w: 14, d: 14 },
+  // (the Moult under the Eyrie's gap since issue #23's last round: its middle under the vent at the gap's foot, its roof's
+  // opening the foot of that vent's shaft, `chute`)
+  moult: { x: -28.8, w: 14, d: 14 },
   eyrie: { x: -28, w: 20, d: 16, y: 32, floor: 20 },
   ledge: [-24, -18],                          // the Eyrie's ledge (x), level with the high balcony
   perch: { x: [-38, -33], z: [63.5, 72.5], y: 38 },
-  column: { x: -29.6, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
+  column: { x: -28.8, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
+  // the vent's shaft down from the gap's foot through the Moult's roof (r inside, t its wall; `hole` the square cut for it
+  // in the gap's floor and the Moult's roof, half its side): still while the stone stops the vent, a way down
+  chute: { r: 3.4, t: 1.6, hole: 3.4, top: 21.6, foot: 9.95 },
   shelf: { x: [-21.6, -18], z: [72.8, 76], y: 39.5 },
   vent: { x: -20.2, z: 71.2, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
   // the stone's: the gap-vent's throat at its south end (pU), the ledge vent's at its north (pC). (Since issue #275 off the
   // gap's lip and off the south wall: it started in the corner, and you pushed it from the edge over the dark)
   groove: { x: -21.2, z: [63.6, 68.0] },
 };
-STACK.zone = { min: [-32, -1, 68 - 7], max: [-18, 10, 68 + 7] };
+STACK.zone = { min: [STACK.moult.x - STACK.moult.w / 2, -1, 68 - 7], max: [STACK.moult.x + STACK.moult.w / 2, 10, 68 + 7] };
 
 /** The Moult's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
   el: 'arM', room: 'moult', zone: STACK.zone, doors: ['dM'], extra: 2,
-  shut: 'The door grinds shut behind you. Among the moulted feathers something stirs that is not a bird.',
-  won: 'The last of them falls among the stone feathers. The key’s cage sinks, and the door lets go.',
+  shut: 'You come down among the moulted feathers, and something stirs in them that is not a bird.',
+  won: 'The last of them falls among the stone feathers. The key’s cage sinks, and the door onto the well lets go.',
 }];
 
 /**
@@ -267,16 +283,21 @@ export const ARENAS = [{
  */
 function stack(rt, K, M, { C2, WR, feather }) {
   const add = (P, o) => rt.add(P, o);
-  const Mo = STACK.moult, E = STACK.eyrie, [L0, L1] = STACK.ledge, Pp = STACK.perch;
-  // ---- the Moult
-  K.corridor([-17.4, C2], [-11.6, C2], 0, { w: 5, h: 6.4 });
-  K.hall({ x: Mo.x, z: C2, w: Mo.w, d: Mo.d, y: 0, h: 10, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
-  add(Door, { id: 'dM', at: [-16.4, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  const Mo = STACK.moult, E = STACK.eyrie, [L0, L1] = STACK.ledge, Pp = STACK.perch, Cl0 = STACK.column;
+  // ---- the Moult (under the Eyrie's gap: its roof's opening is the foot of the vent's shaft, the way in)
+  const Ch = STACK.chute, mx = Mo.x, dx = mx + 25;   // (dx: the feathers where they lay, with the room moved west)
+  K.corridor([mx + Mo.w / 2 + 0.6, C2], [-11.6, C2], 0, { w: 5, h: 6.4 });
+  K.hall({ x: mx, z: C2, w: Mo.w, d: Mo.d, y: 0, h: 10, roof: 'oculus', oculus: (2 * Ch.hole) / Mo.w, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
+  // (shut till its keepers are beaten: then the way out onto the well's floor. Its lamp shows it from the well)
+  add(Door, { id: 'dM', at: [-16.4, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'arM' }] });
   // stone feathers moulted and heaped by the walls, a nest of them in the far corner
   for (const [x, z, a, len] of [[-30, C2 - 5.6, 0.3, 4.4], [-28.4, C2 - 5.9, -0.2, 3.6], [-23, C2 + 5.8, 1.4, 4], [-20.4, C2 + 5.6, 1.9, 3.2], [-30.6, C2 + 4.4, 2.6, 3.8]]) {
-    K.both(M.wall, T(new THREE.SphereGeometry(1, 10, 6).scale(0.9, len / 2, 0.22), [x, 0.25, z], [Math.PI / 2, a, 0], 1, 'YXZ'));
+    K.both(M.wall, T(new THREE.SphereGeometry(1, 10, 6).scale(0.9, len / 2, 0.22), [x + dx, 0.25, z], [Math.PI / 2, a, 0], 1, 'YXZ'));
   }
-  K.both(M.trim, T(annulus(1.6, 2.4, 0.5, 20), [-29.2, 0.5, C2 - 4.2]));
+  K.both(M.trim, T(annulus(1.6, 2.4, 0.5, 20), [-29.2 + dx, 0.5, C2 - 4.2]));
+  // the vent's shaft, from the Moult's roof up to the gap's foot (its rim a kerb round the vent there, standing proud of the
+  // gap's dark floor: no face of it in that floor's plane)
+  K.shaft(Cl0.x, C2, Ch.r, Ch.foot, Ch.top, { t: Ch.t, seg: 24 });
   add(Key, { id: 'kM', at: [Mo.x - Mo.w / 2 + 1.6, 0, C2], yaw: Math.PI / 2 });
   add(Mark, { room: 'moult', at: [Mo.x + 3.4, 0, C2 - 2.6], yaw: Math.PI / 2 });
 
@@ -292,8 +313,13 @@ function stack(rt, K, M, { C2, WR, feather }) {
   K.slab(Pp.x[0], Pp.z[0], Pp.x[1], Pp.z[1], Pp.y, 1.2);
   K.both(M.wall, T(new THREE.ConeGeometry(3.2, 5, 4, 1, true).rotateY(Math.PI / 4), [(Pp.x[0] + Pp.x[1]) / 2 - 0.6, Pp.y - 3.7, C2], [Math.PI, 0, 0]));   // (its corbel, down the wall)
   for (const s of [-1, 1]) feather(M.trim, Pp.x[1] - 0.2, Pp.y, C2 + s * 4.2, 3.4, -Math.PI / 2 + s * 0.5, 0.35);
-  K.both(M.dark, box(L0 - ex0, 1, E.d, (ex0 + L0) / 2, E.floor + 0.5, C2));
-  add(Pit, { room: 'eyrie', min: [ex0, E.floor - 2, ez0], max: [L0, E.y - 3, ez1] });
+  // the gap's dark floor, and the pit over it, round the vent's mouth at its foot (a square cut for the shaft: the shaft's
+  // rim stands in it), so a fall into the vent goes on down into the Moult and a fall anywhere else is the pit's
+  const hx0 = Cl0.x - Ch.hole, hx1 = Cl0.x + Ch.hole, hz0 = C2 - Ch.hole, hz1 = C2 + Ch.hole;
+  for (const [x0, x1, z0, z1] of [[ex0, hx0, ez0, ez1], [hx1, L0, ez0, ez1], [hx0, hx1, ez0, hz0], [hx0, hx1, hz1, ez1]]) {
+    K.both(M.dark, box(x1 - x0, 1, z1 - z0, (x0 + x1) / 2, E.floor + 0.5, (z0 + z1) / 2));
+    add(Pit, { room: 'eyrie', min: [x0, E.floor - 1, z0], max: [x1, E.y - 3, z1] });
+  }
   // the coffer's shelf over the door, and the ledge's own vent under it
   const Sh = STACK.shelf, Vt = STACK.vent;
   K.slab(Sh.x[0], Sh.z[0], Sh.x[1], Sh.z[1], Sh.y, 0.6);
@@ -301,8 +327,7 @@ function stack(rt, K, M, { C2, WR, feather }) {
   add(Updraft, { at: [Vt.x, E.y, Vt.z], r: Vt.r, h: Vt.h, lift: 7, when: { drumOn: ['bE', 'pU'] }, still: 'Still air over the grate: its stone has gone from the other throat, and the wind out of the dark beyond.' });
   // the column out of the vent at the gap's foot, past the perch (while the stone stops the ledge's vent)
   const Cl = STACK.column;
-  add(Updraft, { at: [Cl.x, E.floor + 1, C2], r: Cl.r, h: Cl.h, lift: 7.5, when: { drumOn: ['bE', 'pC'] }, still: 'Still air: the stone sits in the throat of the vent down there.' });
-  K.add(M.trim, T(annulus(Cl.r + 0.1, Cl.r + 0.6, 0.2, 32), [Cl.x, E.floor + 1.1, C2]));
+  add(Updraft, { at: [Cl.x, E.floor + 1, C2], r: Cl.r, h: Cl.h, lift: 7.5, when: { drumOn: ['bE', 'pC'] }, still: 'Still air: the stone sits in the throat of the vent down there, and its shaft goes on down into the dark.' });
   // the stone's groove on the ledge between its two throats
   const [Z0, Z1] = STACK.groove.z, GX = STACK.groove.x;
   K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 0.6, GX, E.y + 0.02, (Z0 + Z1) / 2));

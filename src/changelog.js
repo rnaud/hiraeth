@@ -15,6 +15,10 @@ export const CHANGELOG = [
     // the wisps' stroke (issue #348): src/wind.js WISP, wispPx (a share of the frame's render rows, coverage under a
     // pixel, pointed ends, at most 0.8 of the ink); tests/wind-wisps.test.js; docs/systems/rendering.md
     'The wisps of sand the wind blows across the Desert are light pen strokes on handhelds and small screens, pointed at their ends: on the Retroid far ones were drawn as heavy black dashes on the dunes.',
+    // the temples' last loops (issue #23, round 5): src/temples/arzach.js STACK.chute; tests/temples.test.js
+    'In the Aerie the Moult is entered from above now: in the Eyrie, while the stone sits in the vent at the foot of the gap, that vent is still and its shaft goes down into the Moult. Drop in, open your wings, win the fight, and its door lets you out onto the Wind Well’s floor. Roll the stone into the other throat and the same vent blows you up to the great key.',
+    // Vael's level init (src/levels/arzach.js): the falling-up edge's risers got no collider in the game
+    'Past the riders’ gate on Vael, the stones that rise under you are solid again: you no longer fall through them.',
   ] },
   { v: '1.73', date: '2026-10-14', items: [
     // the City-Shaft's main quest waits for the wings too (issue #328, reopened): src/story/incal-data.js needs; tests/quest-needs.test.js

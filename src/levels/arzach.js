@@ -6,7 +6,7 @@ import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
 import { attachTemple, templeOf } from '../temples/index.js';
-import { stepped } from '../load-steps.js';
+import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildBirdTracks, buildRidersRoost, buildRidersMast, buildPlainSights } from '../vael-ways.js';
@@ -575,7 +575,12 @@ function finishVael(scene, terrain, S, V) {
     const d = dial.sun.dir(new THREE.Vector3());
     if (d) dir.copy(d);
   };
-  level.init = (physics) => edge.init(physics);
+  // (the stones that rise collide once the physics is up: after the temples' own, in the steps the game runs, and in
+  // init for the tests. It replaced init, which the game never calls when a level has steps: the risers had no collider in
+  // the game, and the two temples' doors and bridges none in the tests)
+  const initSteps = level.initSteps;
+  level.initSteps = function* (physics, o) { yield* initSteps.call(level, physics, o); edge.init(physics); };
+  level.init = (physics) => runSteps(level.initSteps(physics));
   const floraAvoid = level.floraAvoid;
   level.floraAvoid = (x, z, r = 0) => floraAvoid(x, z, r) || inRoad(x, z, r) || dial.hours.some((h) => Math.hypot(h.at.x - x, h.at.z - z) < 3 + r);
   // (the caption down in the road, under the plain)

@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.74 — 2026-10-14
 
+- Past the riders’ gate on Vael, the stones that rise under you are solid again: you no longer fall through them.
+- In the Aerie the Moult is entered from above now: in the Eyrie, while the stone sits in the vent at the foot of the gap, that vent is still and its shaft goes down into the Moult. Drop in, open your wings, win the fight, and its door lets you out onto the Wind Well’s floor. Roll the stone into the other throat and the same vent blows you up to the great key.
 - The wisps of sand the wind blows across the Desert are light pen strokes on handhelds and small screens, pointed at their ends: on the Retroid far ones were drawn as heavy black dashes on the dunes.
 - No rain falls inside your ship any more in the Unity version (it rained in its rooms in Lorn), and no wisps of blown sand drift through the ship, the shops or the temples in any world: the weather stays outside.
 

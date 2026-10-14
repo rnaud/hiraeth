@@ -256,7 +256,10 @@ export class TempleLogic {
       if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it))) return id;
       // (a ball with several stops: worth pushing when one it isn't on is awaited)
       // (or when the one it is on holds a door shut: the Aerie's gulf vent, its stone in the throat)
-      if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => (!this.drumOn(id, p) && this.awaited(p)) || (this.drumOn(id, p) && this.holdsShut(p)))) return id;
+      // (a stop is worth it only for a door that leads somewhere not in reach now: the Aerie's one stone opens the vent's
+      // shaft down into the Moult in one throat and the column to the great key in the other, and once the Moult's own door
+      // is open the shaft is no way anywhere new: issue #23)
+      if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => (!this.drumOn(id, p) && this.awaitedStop(p, reach)) || (this.drumOn(id, p) && this.holdsShut(p)))) return id;
       if (e.type === 'boss' && !this.resolved) return id;
     }
     // a plate still worth standing on: one a shut door is waiting for
@@ -269,6 +272,19 @@ export class TempleLogic {
   lockReachable(id, reach = this.reachable()) { return this.def.links.some((l) => l.door === id && (reach.has(l.a) || (reach.has(l.b) && !l.oneWay))); }
   /** A shut door or bridge is waiting for this element (a plate, a held bell: worth going to), or an unlit eye's `when` is. */
   awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => (isGate(g) && !this.isOpen(d) && mentions(g.opens, id)) || (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id))); }
+  /**
+   * As awaited, for a ball's stop (`reach`: the rooms in reach now): a shut door waiting for it counts only if it leads to a
+   * room out of reach, if no link goes through it, or if another shut door opens with it ({ open }).
+   */
+  awaitedStop(id, reach = this.reachable()) {
+    const els = Object.entries(this.def.elements);
+    return els.some(([d, g]) => {
+      if (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id)) return true;
+      if (!isGate(g) || this.isOpen(d) || !mentions(g.opens, id)) return false;
+      const ls = this.def.links.filter((l) => l.door === d);
+      return !ls.length || ls.some((l) => !reach.has(l.a) || !reach.has(l.b)) || els.some(([o, h]) => o !== d && isGate(h) && !this.isOpen(o) && opensWith(h.opens, d));
+    });
+  }
 }
 
 /**
@@ -326,6 +342,8 @@ export function rolls(e, has) {
 }
 /** Does a condition name this element inside a `not` (it wants it let go)? */
 const mentionsNot = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentionsNot(x, id)) : mentions(c.not, id) || mentionsNot(c.all, id) || mentionsNot(c.any, id));
+/** Does a condition wait for this door to be open ({ open: door })? */
+const opensWith = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => opensWith(x, id)) : c.open === id || opensWith(c.all, id) || opensWith(c.any, id) || opensWith(c.not, id));
 /** Does a condition name this element (a plate, a brazier…)? */
 const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x, id)) : c.pressed === id || c.lit === id || c.drumOn?.includes(id) || mentions(c.all, id) || mentions(c.any, id) || mentions(c.not, id));
 
@@ -392,7 +410,10 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
         // (and a lock a key in hand fits, brought within reach: the Mooring-House's great lock past the west door, v1.53)
         const fits = lockIds.filter((x) => L.canUnlock(x) && L.lockReachable(x, rooms)).length;
-        return usable * 1e6 + fits * 1e5 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
+        // (a room never reached before counts more than one left behind: the Aerie's one stone, its vent's shaft down into the
+        // Moult while it sits in one throat, the column up to the great key's perch in the other, issue #23)
+        const fresh = [...rooms].filter((r) => !order.includes(r)).length;
+        return usable * 1e6 + fits * 1e5 + fresh * 1e4 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
       };
       // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
       const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));

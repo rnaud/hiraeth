@@ -643,6 +643,23 @@ has it back in hand for the grille. Each house's on-foot test in `tests/temples.
 off the landings cost nothing: under `FALL.tumble`), and the logic tests check the loop's links and that the keepers'
 doors open only with the gadget.
 
+Round 5 (issue #23, v1.74) takes the three houses the v1.66 report still found without a loop (the Aerie, the Founders'
+Belfry, the Warden's Well; `structure.cycles` 0, or only the way back over the Aerie's Gulf), each in a shape of its own,
+neither two wings off a hub nor the great key in a room off the last hall:
+
+The **Aerie** (`arzach.js` `STACK.chute`): **a circuit round the stack, flown down and ridden up, its way the one stone's**.
+The vent at the Eyrie's gap's foot is the top of a shaft (`K.shaft`, round, open at the top: its stones stop inside its
+capping trim) down through the Moult's roof, the Moult moved west under it (`STACK.moult.x`). While the Eyrie's stone sits
+in that vent's throat (`pU`, as it starts) its air is still, and the shaft is a way down (`chute`, a gate on `{ drumOn: [bE,
+pU] }`, a `oneWay` link that needs the wings: drop into its mouth, open the wings in the shaft); in the other throat
+(`pC`) the wind rises out of it past the great key's perch, as before. The Moult's door onto the well's floor (`dM`) is
+shut till the Moult is won (`{ lit: 'arM' }`, the arena's way out), so its small key comes after the wings, and the raft
+and the column take you up again. The gap's dark floor and its pit are four pieces round the vent's mouth. `solve` scores
+a ball's stop that brings a room never reached before over one that only trades a room for another, and the marker points
+at a ball's stop only for a door that leads somewhere out of reach now (`awaitedStop`), so it no longer sends you back to
+the stone once the Moult's door is open. (Vael's level init now runs the temples' and the stones that rise both, in the
+game's steps and in `init`: the game had never made the risers solid, nor the tests the Aerie's doors.)
+
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
 The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake
