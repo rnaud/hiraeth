@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
-import { CameraRig, roomFit, ROOM_FIT, TIGHT_DIST } from '../src/player.js';
+import { CameraRig, roomFit, ROOM_FIT, TIGHT_DIST, CLIMB, BODY_CLEAR, bodyGap, heroCut } from '../src/player.js';
 import { TempleKit, ANTE } from '../src/temples/kit.js';
 import { CEIL, WALL_IN, HALF_W, LENGTH, HATCH } from '../src/ship/hull.js';
 import { ROOMS, DOORWAY, FRAME_HALF, ALCOVE } from '../src/ship/interior.js';
@@ -191,7 +191,11 @@ test('the ship\'s cockpit, hatch and bunk (issue #234): turning round and walkin
   }
 });
 
-test('aboard, a wall a metre behind him: the camera climbs over his shoulder instead of crushing in (CLIMB)', () => {
+// Issue #324, the author: "walking in my ship the camera keeps tilting up and clipping through my character". With his back
+// a metre from the bunk's alcove and the camera held toward it, the climb went to its steepest (1.2 rad), the lens over his
+// head looking straight down, and the arm crushed into him there. Now a climb only counts where it keeps the lens out of
+// his body (BODY_CLEAR), never steeper than CLIMB.max (0.95 rad), and where the lens must be in him he is left out of the view.
+test('aboard, a wall a metre behind him: the camera stays behind him at shoulder height, never over his head nor seen from inside him (CLIMB, issue #324)', () => {
   const { physics, ship, m } = shipRig();
   // by the bunk's alcove (where he stood up until issue #234), his back to it, the camera turned toward it by hand and held
   const p = ship.world(m, V(1.98, 0, -1.7));
@@ -199,15 +203,23 @@ test('aboard, a wall a metre behind him: the camera climbs over his shoulder ins
   m.group.updateMatrixWorld(true);
   const arm = V(Math.sin(Math.PI / 2 + 0.3), 0, Math.cos(Math.PI / 2 + 0.3)).transformDirection(m.group.matrixWorld);   // (ship-local: toward the alcove)
   rig.yaw = Math.atan2(arm.x, arm.z); rig.target.copy(p); rig.snapTight(p);
-  for (let i = 0; i < 180; i++) { rig._lastMouse = rig._now; rig.update(p, 1 / 60); }
-  assert.ok(rig._climb > 0.3, `it climbs: ${rig._climb.toFixed(2)} rad over the pitch`);
-  assert.ok(rig._curDist >= 0.95, `the arm ${rig._curDist.toFixed(2)} m (0.41 before)`);
-  const cam = ship.local(m, camera.position.clone());
-  assert.ok(cam.y > 2 && cam.y < CEIL - 0.25, `up under the ceiling: ${cam.y.toFixed(2)} m`);
-  // and turned to the room, where the arm has its room: level again
+  let steepest = 0, high = -Infinity, cut = false, seen = Infinity;
+  for (let i = 0; i < 180; i++) {
+    rig._lastMouse = rig._now; rig.update(p, 1 / 60);
+    steepest = Math.max(steepest, rig.pitch + rig._climb);
+    high = Math.max(high, ship.local(m, camera.position.clone()).y);
+    cut = heroCut(cut, camera.position, p);
+    if (!cut) seen = Math.min(seen, bodyGap(camera.position, p));
+  }
+  assert.ok(steepest <= CLIMB.max + 1e-6, `never steeper than ${CLIMB.max} rad: ${steepest.toFixed(2)} (1.2 + before)`);
+  assert.ok(high < 2.5, `the lens at a sensible height, not up under the ceiling over his head: ${high.toFixed(2)} m`);
+  assert.ok(seen >= 0.5, `drawn, he is never seen from inside: the lens ${seen.toFixed(2)} m from his axis at the nearest`);
+  console.log(`  (the bunk's alcove: steepest ${steepest.toFixed(2)} rad, lens up to ${high.toFixed(2)} m, arm ${rig._curDist.toFixed(2)} m, gap ${bodyGap(camera.position, p).toFixed(2)} m, cut ${cut})`);
+  // and turned to the room, where the arm has its room: level again, the whole arm, drawn
   rig.yaw += Math.PI;
   for (let i = 0; i < 240; i++) { rig._lastMouse = rig._now; rig.update(p, 1 / 60); }
   assert.ok(rig._climb < 0.05, `level again with room behind him: ${rig._climb.toFixed(2)}`);
+  assert.ok(bodyGap(camera.position, p) >= BODY_CLEAR && !heroCut(false, camera.position, p), 'out of his body, and he is drawn');
 });
 
 test('the prologue\'s waking by the bunk: he stands a step out from the alcove, the camera has its room behind him', () => {

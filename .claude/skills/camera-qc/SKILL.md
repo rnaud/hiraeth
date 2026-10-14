@@ -39,7 +39,7 @@ worst frames, captioned with what happened and how much: the arm's change, the m
 point's, the turn nobody asked for, the lens's room) and `<scenario>.json` (the raw samples). It exits 1 if a scenario
 is red.
 `SHOT_AT=13.97[,…]` (seconds into each scenario) keeps a picture of those frames too, whatever happened there: the
-same moment before and after a fix, for the changelog.
+same moment before and after a fix, for the changelog; each is also written whole at the frame's own size, `<scenario>-at-<t>.png`.
 
 **Without a browser** (seconds, for trying a fix): `node scripts/camera-qc/sim-lock.mjs [runs] [jitter]` walks ante-lock
 (the market's collision, the blot held, the lock camera as main.js turns it: `lockFollow`, src/foes.js; `RUN=k DUMP=t0-t1`
@@ -63,6 +63,7 @@ the real player's physics, frame times and crowd differ.
 | train-deck | overnighttrain | round the ship on the landing wagon |
 | desert-open | desert | running across the sand: turns, jumps, a fast spin of the camera |
 | desert-shop | desert | inside Qanat's shop: wandering against its walls and counter |
+| ship-walk | desert | aboard the parked ship (`SHIP_WAY`, ship-local): round the main room, the cockpit, past the bunk, through the cabin to the hold and back, then the stick alone toward the camera into the walls (issue #324) |
 | bazaar-streets | bazaar | wandering the market's street with the camera after the way |
 | ante-lock | bazaar | in the Undertower's antechamber (8 × 6.9 m), locked on to an ink blot held in its middle, by points (`ANTE_WAY`): half round it each way, twice backed into the corner by the passage to the hall on purpose; three runs |
 | guardian-lock | bazaar | in the First Sign's Hall, locked on to the guardian awake (its blows held): circling it, backing to the wall, running round it |
@@ -86,7 +87,8 @@ line, as the game does).
 | **spins** | the view turning > 90°/s more than the hands asked, in one frame, 3× its neighbours | ≤ 2 a minute |
 | **clip** | the lens nearer a surface than its near plane (0.3 m: rays round it and ahead) | ≤ 1 % of frames |
 | **hidden** | the head behind collision from the lens | ≤ 3 % |
-| **out** | the head or the chest off the screen | ≤ 1 % |
+| **out** | the head or the chest off the screen (not while he is left out of the view, `cut`) | ≤ 1 % |
+| **in body** | the lens nearer his axis (feet + 0.2-1.75 m) than 0.5 m while he is drawn: the camera through the traveller (left out, `cut`, he isn't drawn: not counted) | ≤ 1 % |
 | **reversals** | the arm going in and out (moves > 1 cm changing direction): jitter against small or moving geometry | ≤ 1.5 a second |
 | **roughness** | the kinks' root mean square, every frame | ≤ 1.5 cm |
 | **foe hidden** | locked on: the frames where the traveller's body covers half the locked foe's screen box or more (`cover`; combat-v1.47, a small foe lined up behind him) | ≤ 10 % of the locked frames |

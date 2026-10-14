@@ -2840,7 +2840,24 @@ const ARM_HOLD_TIGHT = 0.5;        // s: close in, the hold before the arm lets 
 // `arm` m of room (or all the arm wants, if less), else the one with the most; it climbs down again only once the lower
 // pitch has `down` m more (no flipping), eased at `rate`. Looked for where a turn by hand is going (`ahead` s on) and
 // every `every` s. The short arm's tip (SHORT_TILT) is for the rest of the world's tight spots; aboard this replaces it.
-export const CLIMB = { arm: 1.2, steps: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05], max: 1.2, down: 0.15, rate: 4, ahead: 0.6, every: 0.05 };
+export const CLIMB = { arm: 1.2, steps: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.85], max: 0.95, down: 0.15, rate: 4, ahead: 0.6, every: 0.05 };
+// The lens out of his own body (issue #324, aboard: "the camera keeps tilting up and clipping through my character"): a
+// point nearer his axis (his feet + BODY_AXIS[0] to [1] m) than BODY_CLEAR m has the near plane (0.3 m) in his shoulders
+// or head. The climb counts no room for a step that leaves the lens there.
+export const BODY_CLEAR = 0.6;
+export const BODY_AXIS = [0.2, 1.75];
+/** m: the lens nearer the look point than SHORT_LOOK[1] looks along the arm (fully under [0]), not at the point. */
+export const SHORT_LOOK = [0.3, 0.7];
+/** How far `p` is from the traveller's axis (feet at `feet`, up `U`): the segment from BODY_AXIS[0] to [1] m over his feet. */
+export function bodyGap(p, feet, U = Y) {
+  const h = THREE.MathUtils.clamp(_bg.subVectors(p, feet).dot(U), BODY_AXIS[0], BODY_AXIS[1]);
+  return _bg.addScaledVector(U, -h).length();
+}
+const _bg = new THREE.Vector3();
+/** m: the lens this near his axis, his own surfaces are left out of the view (materials.js uHeroCut), back past `out` (no flicker). */
+export const BODY_CUT = { in: 0.5, out: 0.58 };
+/** Whether the traveller is left out of the view this frame: the lens (`cam`) inside him, with hysteresis (`was`: last frame's). */
+export const heroCut = (was, cam, feet, U = Y) => { const g = bodyGap(cam, feet, U); return was ? g < BODY_CUT.out : g < BODY_CUT.in; };
 // Locked on with his back to a wall (issue #256, the combat review v1.61: the traveller off the screen 23-45 % in a
 // temple's antechamber and guardian hall): the lock held the camera on the line to the foe, so a wall behind him crushed
 // the arm to 0.1-0.4 m and the short arm's tip put him out of the frame. Now the line yields (CameraRig.lockRoom; main.js
@@ -3300,10 +3317,14 @@ export class CameraRig {
       this._climbT = CLIMB.every;
       const need = Math.min(want, CLIMB.arm), r = this._sweepR ?? LENS_R, P = this.physics;
       const base = Math.min(this.pitch, CLIMB.max);
+      // (a step's room counts only as far as it keeps the lens out of his own body, BODY_CLEAR: with a wall right behind
+      // him, every steeper step had a little more room up toward the ceiling than the last, so the camera climbed to the
+      // steepest and stood over his head with a 0.15 m arm, in it, looking straight down: issue #324)
       const room = (yaw, s) => {
         const p = Math.min(base + s, CLIMB.max), c = Math.cos(p);
         _hs.copy(Rt).multiplyScalar(Math.sin(yaw) * c).addScaledVector(U, Math.sin(p)).addScaledVector(Fw, Math.cos(yaw) * c);
-        return P.sweepSphere(this._look, _hs, need + CLIMB.down + 0.2, r) - 0.1;
+        const d = P.sweepSphere(this._look, _hs, need + CLIMB.down + 0.2, r) - 0.1;
+        return bodyGap(_lkC.copy(this._look).addScaledVector(_hs, Math.max(0, Math.min(d, need))), this.target, U) < BODY_CLEAR ? Math.min(d, 0) : d;
       };
       const yaws = [this.yaw];
       if (Math.abs(turnRate) > 0.3) yaws.push(this.yaw + THREE.MathUtils.clamp(turnRate * CLIMB.ahead, -0.9, 0.9));
@@ -3792,7 +3813,14 @@ export class CameraRig {
       const w = S > LOCK_ROOM.two ? Math.min(0.5, (S - LOCK_ROOM.two) / S, THREE.MathUtils.lerp(LOCK_ROOM.him, LOCK_ROOM.himUp, up) / S) : 0;
       toL.lerp(toH.multiplyScalar(1 - w).addScaledVector(toF, w).normalize(), this._twoK);
       this.camera.lookAt(_lkC.copy(cam).add(toL));
-    } else this.camera.lookAt(this._look);
+    } else {
+      // (an arm cut very short, his back to a cabin's wall: the lens a hand's breadth from the look point, where a shove
+      // off the wall of a few cm turned the view by tens of degrees in a frame, 2000°/s; there the view looks along the
+      // arm itself, as the yaw and the pitch say, not at the look point; issue #324)
+      const toL = _lkA.subVectors(this._look, cam), Ld = toL.length(), along = 1 - smoothstep(SHORT_LOOK[0], SHORT_LOOK[1], Ld);
+      if (along > 0.001 && Ld > 1e-4) this.camera.lookAt(_lkC.copy(cam).add(toL.divideScalar(Ld).lerp(_lkB.copy(this._dir).negate(), along).normalize()));
+      else this.camera.lookAt(this._look);
+    }
     (this._camPrev ??= new THREE.Vector3()).copy(cam);
     this._yawPrev = this.yaw;
   }

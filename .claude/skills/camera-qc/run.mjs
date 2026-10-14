@@ -174,8 +174,12 @@ function install(L, at = [], seed = 1) {
       pos: player.pos.toArray().map((x) => +x.toFixed(4)), fwd: _f.toArray().map((x) => +x.toFixed(5)), cmdYaw: +cmdYaw.toFixed(5), cmdPitch: +cmdPitch.toFixed(5),
       clear: +clearance().toFixed(3), occl, head: ndc(head), chest: ndc(chest), tight: +rig.tightK.toFixed(3), side: +rig._side.toFixed(3), shoulder: rig.shoulder,
       cur: +rig._curDist.toFixed(3), push: +push.toFixed(3),
+      // (how near the lens is to the traveller's own body: from his axis, feet + 0.2 m to 1.75 m; L.LIMITS.body, issue #324)
+      body: +(() => { const c = camera.position, y = Math.min(Math.max(c.y, player.pos.y + 0.2), player.pos.y + 1.75); return Math.hypot(c.x - player.pos.x, c.y - y, c.z - player.pos.z); })().toFixed(3),
+      // (the view's pitch, + looking down: the camera tipped over him)
+      pitch: +Math.asin(-_f.y).toFixed(3), cut: window.sharedUniforms?.uHeroCut?.value ?? 0,
       // (the rig's own state, for the diagnosis: the lock's turn off the line for room and its goal, the climb, the short arm's tip)
-      lockOff: +(rig._lockOff ?? 0).toFixed(3), lockGoal: +(rig._lockGoal ?? 0).toFixed(3), climb: +(rig._climb ?? 0).toFixed(3), tilt: +(rig._tilt ?? 0).toFixed(3),
+      lockOff: +(rig._lockOff ?? 0).toFixed(3), lockGoal: +(rig._lockGoal ?? 0).toFixed(3), climb: +(rig._climb ?? 0).toFixed(3), tilt: +(rig._tilt ?? 0).toFixed(3), swing: +(rig._swing ?? 0).toFixed(3), yaw: +rig.yaw.toFixed(3),
       foe: window.foes?.lock?.pos ? window.foes.lock.pos.toArray().map((x) => +x.toFixed(3)) : null,
       // locked on: how much of the foe's screen box the traveller's body covers (L.cover; combat-v1.47: a small foe hidden behind him)
       foeCover: (() => { const f = window.foes?.lock; if (!f?.pos || !f.def) return null; const r = f.def.radius ?? 0.6;
@@ -193,11 +197,12 @@ function install(L, at = [], seed = 1) {
     if (prev2 && !L.isCut(prev, s) && !L.isCut(prev2, prev)) {
       const one = L.steps([prev2, prev, s])[1];
       const sev = Math.max(Math.abs(one.dArm) / L.LIMITS.pop, one.move / (L.LIMITS.jump * 1.5), one.look / (L.LIMITS.lookJump * 1.5), one.spin / (L.LIMITS.spin * 1.5),
-        s.clear < L.LIMITS.clip ? 1 + (L.LIMITS.clip - s.clear) / L.LIMITS.clip : 0);
+        s.clear < L.LIMITS.clip ? 1 + (L.LIMITS.clip - s.clear) / L.LIMITS.clip : 0, s.body < L.LIMITS.body ? 1 + (L.LIMITS.body - s.body) / L.LIMITS.body : 0);
       const weakest = st.shots.length < 10 ? 0 : Math.min(...st.shots.map((x) => x.sev));
       // (SHOT_AT: a picture at those times as well, whatever happened, for a before and after of the same moment)
       const asked = at.some((t) => s.t >= t && s.t - s.dt < t);
-      if (asked || (sev >= 1 && sev > weakest && !st.shots.some((x) => Math.abs(x.t - s.t) < 0.6 && x.sev >= sev))) pending = { t: s.t, sev, what: `Δarm ${one.dArm.toFixed(2)} m · off-path ${one.move.toFixed(2)} m · look ${one.look.toFixed(2)} m · spin ${one.spin.toFixed(0)}°/s · lens ${s.clear.toFixed(2)} m` };
+      if (asked) st.atShots.push({ t: s.t, pend: true });   // (SHOT_AT: also kept whole, the frame's own size, for a changelog pair)
+      if (asked || (sev >= 1 && sev > weakest && !st.shots.some((x) => Math.abs(x.t - s.t) < 0.6 && x.sev >= sev))) pending = { t: s.t, sev, what: `Δarm ${one.dArm.toFixed(2)} m · off-path ${one.move.toFixed(2)} m · look ${one.look.toFixed(2)} m · spin ${one.spin.toFixed(0)}°/s · lens ${s.clear.toFixed(2)} m · body ${s.body.toFixed(2)} m` };
     }
     prev2 = prev; prev = s;
     return r;
@@ -206,6 +211,8 @@ function install(L, at = [], seed = 1) {
   const cv = document.createElement('canvas'); cv.width = 480; cv.height = 270; const cx = cv.getContext('2d');
   renderer.render = function (scene, cam) {
     const r = render(scene, cam);
+    const want = st.atShots?.find((x) => x.pend);
+    if (want && renderer.getRenderTarget() === null) { want.pend = false; want.img = renderer.domElement.toDataURL('image/png'); }
     if (pending && renderer.getRenderTarget() === null) {
       cx.drawImage(renderer.domElement, 0, 0, cv.width, cv.height);
       st.shots = st.shots.filter((x) => Math.abs(x.t - pending.t) >= 0.6);
@@ -224,7 +231,7 @@ function install(L, at = [], seed = 1) {
     let fs = (jseed * 7919) >>> 0;
     window.__cqRand = () => { fs = (fs + 0x6d2b79f5) >>> 0; let t = fs; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
   st.frames = 0;
-  st.start = (segs) => { st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.log = []; st.wa = null; st.rate = 0; rs = seed >>> 0; st.done = false; st.rec = true; prev = prev2 = null; };
+  st.start = (segs) => { st.segs = segs; st.seg = -1; st.segT = 0; st.samples = []; st.shots = []; st.atShots = []; st.log = []; st.wa = null; st.rate = 0; rs = seed >>> 0; st.done = false; st.rec = true; prev = prev2 = null; };
   return true;
 }
 
@@ -279,14 +286,15 @@ for (const [wn, world] of byWorld.entries()) {
     const total = sc.segs.reduce((s, x) => s + x.for, 0);
     const t0 = Date.now();
     while (!(await ev('window.__cq.done')) && Date.now() - t0 < (total * 6 + 60) * 1000) await sleep(250);
-    const { samples, shots, log } = await ev('(() => { const s = window.__cq; s.rec = false; return { samples: s.samples, shots: s.shots, log: s.log }; })()');
+    const { samples, shots, log, at: atShots } = await ev('(() => { const s = window.__cq; s.rec = false; return { samples: s.samples, shots: s.shots, log: s.log, at: s.atShots }; })()');
     const r = L.analyse(samples, L.LIMITS, { framing: sc.framing });
     results[key] = { world, about: sc.about, run, ...r, events: r.events.slice(0, 40) };
     logs[key] = log;
     writeFileSync(join(OUT, `${key}.json`), JSON.stringify(samples));
     const png = await sheet(key, shots.sort((a, b) => b.sev - a.sev).slice(0, 6));
     if (png) writeFileSync(join(OUT, `${key}.png`), Buffer.from(png.split(',')[1], 'base64'));
-    console.log(`${key.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
+    for (const a of atShots ?? []) if (a.img) writeFileSync(join(OUT, `${key}-at-${a.t.toFixed(2)}.png`), Buffer.from(a.img.split(',')[1], 'base64'));
+    console.log(`${key.padEnd(22)} ${r.green ? 'green' : 'RED  '} pops ${r.measures.pops} jumps ${r.measures.jumps} look ${r.measures.lookJumps} spins ${r.measures.spins} clip ${(r.measures.clip * 100).toFixed(1)}% in body ${(r.measures.inBody * 100).toFixed(1)}% hidden ${(r.measures.occluded * 100).toFixed(1)}% out ${(r.measures.out * 100).toFixed(1)}% rev ${r.measures.reversals}/s rough ${(r.measures.rms * 100).toFixed(2)} cm${r.measures.locked ? ` foe hidden ${(r.measures.lockHidden * 100).toFixed(1)}%` : ''}${log.length ? ` (${log.length} stuck)` : ''}`);
   }
   if (!CLOCK) await ev('delete window.__stepDt; true');
 }

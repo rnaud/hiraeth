@@ -41,7 +41,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
 import { fastTravel } from './fast-travel.js';
 import { fragmentPurse } from './fragment-shop.js';
-import { Player, CameraRig, jetCameraPitch, WIDE } from './player.js';
+import { Player, CameraRig, jetCameraPitch, WIDE, heroCut } from './player.js';
 import { cameraPhysics, keepLensOut } from './carriers.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
@@ -2057,7 +2057,8 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const fov0 = camera.fov;
   if (fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   const hidden = keep ? isolate(keep, scene) : [];
-  const weather = [U.uRain.value, U.uStorm.value], pr = [U.uPixelRatio.value, SU.uPixelRatio.value];
+  const weather = [U.uRain.value, U.uStorm.value], pr = [U.uPixelRatio.value, SU.uPixelRatio.value], cut = SU.uHeroCut.value;
+  SU.uHeroCut.value = 0;   // (a capture's own eye: the traveller drawn whatever the follow camera's lens was in)
   if (keep) {
     portraitShot = true;
     U.uRain.value = U.uStorm.value = 0;
@@ -2070,6 +2071,7 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
     portraitShot = false;
     [U.uRain.value, U.uStorm.value] = weather;
     [U.uPixelRatio.value, SU.uPixelRatio.value] = pr;
+    SU.uHeroCut.value = cut;
     U.uBackdrop.value.w = 0;
     if (fov) { camera.fov = fov0; camera.updateProjectionMatrix(); }
   }
@@ -2223,6 +2225,9 @@ function frame(ts) {
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
+  // the lens inside the traveller (his back to a cabin's wall, the camera pressed into him): his own surfaces left out of
+  // the view, not drawn from inside; his shadow stays (issue #324). Not in a scene, photo mode or a game that takes the camera
+  SU.uHeroCut.value = !ship.playing && !photo.on && !minigame?.drives && heroCut(SU.uHeroCut.value > 0.5, camera.position, player.pos, player.frame?.up) ? 1 : 0;
   armTool();
   tool.update(pdt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
   gadgets.update(pdt, busy() || photo.on || ship.playing || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)

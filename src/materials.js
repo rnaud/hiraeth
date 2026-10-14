@@ -104,6 +104,9 @@ export const sharedUniforms = {
   uShadeKeep: { value: 0 },
   // weathering at low detail (the handheld): the cracks without their shaded and lit edges
   uWearLite: { value: 0 },
+  // 1: the lens is inside the traveller (a wall right behind him in a cabin; main.js from player.js bodyGap): his own
+  // surfaces (uHero) are left out of the view, not drawn from inside (issue #324). His shadow is the override's: kept.
+  uHeroCut: { value: 0 },
   // where an old wall's cracks may not run: its windows, doors and what is fixed on it (wall-openings.js; main.js
   // hands the world's table in once it is built)
   uOpenings: { value: Object.assign(new THREE.DataTexture(new Uint8Array(4), 1, 1), { needsUpdate: true }) },
@@ -969,6 +972,7 @@ const fragmentShader = /* glsl */ `
   uniform float uWindows;  // façades: the share of cells with a window
   uniform float uWeather;  // weathering: hairline cracks on old walls (weatherInk), 0..1
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
+  uniform float uHeroCut;  // the lens inside the traveller: his surfaces left out (sharedUniforms, issue #324)
   uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
   uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
   uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
@@ -2088,6 +2092,9 @@ ${SHADOW_GLSL}
   #endif
 
   void main() {
+    #ifdef S_HERO_CUT
+    if (uHeroCut > 0.5) discard;   // (the traveller's own surfaces, the lens in his body: the room, not his insides)
+    #endif
     // the hover trail dissolves into dots over its last stretch
     // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
     #ifdef S_GLASS
@@ -3149,16 +3156,26 @@ export function keepHero(root, copies = new Map()) {
  */
 export const MOVER = { key: /^(foe[-.]|arch\.)/ };
 export function isMover(o) { return o.mover ?? MOVER.key.test(o.key ?? ''); }
+/** The traveller's surface (markHero's copies, his gear's fluid): compiled with S_HERO_CUT, left out of the view while the
+ * lens is in his body (uHeroCut; issue #324). Only his: a discard in every program would cost the world its early depth test. */
+function heroCut(m) {
+  if (m.defines?.S_HERO_CUT) return;
+  m.defines = { ...(m.defines ?? {}), S_HERO_CUT: 1 };
+  m.needsUpdate = true;
+}
 /** Tag only the player's materials, preserving live shared shader uniforms (skip(material): left as it is). */
 export function markHero(root, copies = new Map(), skip = null) {
   root?.traverse((o) => {
     if (!o.isMesh) return;
     const tagged = (material) => {
-      if (!material.uniforms?.uHero || material.uniforms.uHero.value === 1 || skip?.(material)) return material;
+      if (!material.uniforms?.uHero || material.uniforms.uHero.value === 1) return material;
+      // (his gear's own fluid materials stay as they are, but go with him when the lens is in him: uHeroCut)
+      if (skip?.(material)) { heroCut(material); return material; }
       if (!copies.has(material)) {
         const copy = material.clone();
         Object.assign(copy.uniforms, sharedUniforms);
         copy.uniforms.uHero.value = 1;
+        heroCut(copy);
         if (material.uniforms.uPortrait.value) {
           for (const key of ['uPortrait', 'uExpression', 'uGaze', 'uIris']) copy.uniforms[key] = material.uniforms[key];
         }

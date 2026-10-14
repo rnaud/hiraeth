@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { analyse, steps, worst, framing, LIMITS } from '../scripts/camera-qc/lib.mjs';
 import { trainWorld, runWalk } from '../scripts/camera-qc/sim-train.mjs';
 import { Physics } from '../src/physics.js';
-import { CameraRig } from '../src/player.js';
+import { CameraRig, bodyGap, heroCut, BODY_CUT } from '../src/player.js';
 import { FLOOR, car } from '../src/levels/overnight-train.js';
 
 globalThis.window ??= { addEventListener() {} };
@@ -52,6 +52,24 @@ test('the judgement: a smooth walk is green; a pop, a snap, a spin, the lens in 
   // the worst, one a moment
   const w = worst([{ t: 1, sev: 3 }, { t: 1.1, sev: 2 }, { t: 3, sev: 1 }], 6, 0.6);
   assert.deepEqual(w.map((e) => e.t), [1, 3]);
+});
+
+// Issue #324 ("walking in my ship the camera keeps tilting up and clipping through my character"): the lens in his body
+// (nearer his axis than LIMITS.body) is caught, unless he is left out of the view there (cut: materials.js uHeroCut)
+test('the lens in the traveller\'s body is caught; left out of the view (cut) it is not, nor is he out of the frame', () => {
+  const inside = analyse(track(240, (s, i) => { s.body = i >= 100 && i < 160 ? 0.2 : 1.8; }));
+  assert.ok(!inside.green && inside.measures.inBody > 0.2, `in body ${inside.measures.inBody}`);
+  assert.ok(inside.events.some((e) => e.kind === 'in body'));
+  const cut = analyse(track(240, (s, i) => { if (i >= 100 && i < 160) { s.body = 0.2; s.cut = 1; s.head = null; } else s.body = 1.8; }));
+  assert.ok(cut.green, cut.fails.join('; '));
+  assert.equal(cut.measures.inBody, 0);
+  // bodyGap: from his axis (his feet + 0.2 m to 1.75 m); heroCut with its hysteresis
+  const feet = V(0, 0, 0);
+  assert.ok(Math.abs(bodyGap(V(0.3, 1, 0), feet) - 0.3) < 1e-9 && Math.abs(bodyGap(V(0, 2.25, 0), feet) - 0.5) < 1e-9 && Math.abs(bodyGap(V(0.4, -0.1, 0), feet) - 0.5) < 1e-9);
+  assert.equal(heroCut(false, V(BODY_CUT.in + 0.03, 1, 0), feet), false);
+  assert.equal(heroCut(false, V(BODY_CUT.in - 0.03, 1, 0), feet), true);
+  assert.equal(heroCut(true, V(BODY_CUT.in + 0.03, 1, 0), feet), true, 'held until it is clear');
+  assert.equal(heroCut(true, V(BODY_CUT.out + 0.01, 1, 0), feet), false);
 });
 
 test('the framing (v1.49, Sable\'s): on foot in the open the traveller a third of the frame; riding and close in not judged', () => {

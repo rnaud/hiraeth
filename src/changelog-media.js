@@ -802,6 +802,7 @@ const ITEMS329 = 'Issues #329, #330 and #328: muted headless Chrome (Medium, 128
 // (v1.71, issues #320, #321: a scratch driver of ?level=desert&guardianReview=keeper against this branch's own Vite (port 6320) and the tree before it)
 const KEEPER320 = 'headless Chrome (muted, High, 1280 × 720), the Rose House’s cistern by ?guardianReview=keeper, the game stepped 1/60 s a frame, locked on the Keeper and strafing round it with a fake Xbox pad, 20 s in; before: the tree at 0220f777; 14 October; cwebp -q 72';
 const CREASE322 = 'Issue #322: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6322) and the tree before it (90f776a5), the camera pinned in Qanat’s shop in the desert, the traveller by the counter (14 October)';
+const CAM324 = 'Issue #324: the camera QC’s ship-walk (muted headless Chrome, Medium, 1280 × 720, the game stepped 1/60 s a frame) on this branch and on the tree before it (90f776a5), the same moment of the walk held (SHOT_AT): the stick held toward the camera, his back coming to a wall (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [
@@ -836,6 +837,16 @@ export const CHANGELOG_MEDIA = {
     { match: 'The grey, grainy shading that gathered in corners', shots: [
       { name: 'crease-shop-room', title: 'The shop', caption: 'Qanat’s shop from by the door: before, grey grain along the walls’ feet, under the counter’s edge and in the ceiling’s corner; after, clean flat colour, the spot blacks and cast shadows as they were.', from: CREASE322 },
       { name: 'crease-shop-corner', title: 'Its corner', caption: 'The bench and the pot by the window: before, dark speckled halos under the bench, round the pot and along the floor’s edge; after, none.', from: CREASE322 },
+    ] },
+    { match: 'Walking around your ship, the camera no longer climbs', shots: [
+      { name: 'ship-camera-wall', title: 'Into the wall', caption: 'Walking toward the camera until his back meets the cabin’s door frame: before, the camera up over him looking straight down, inside his head; after, at shoulder height, and he is left out of the picture while it is in against him.', from: CAM324 },
+      { name: 'ship-camera-room', title: 'Turning away', caption: 'A moment later, walking off along the wall: before, still up over his head, looking down at his hair; after, behind his shoulder, the room ahead of him.', from: CAM324 },
+    ], numbers: [
+      { title: 'The camera QC’s walk aboard the ship (ship-walk)', unit: '% of frames', better: 'lower', device: 'Mac, headless Chrome, Medium, 1280 × 720, 51 s', rows: [
+        { where: 'the camera inside him, and him drawn', before: 21.1, after: 0.2 },
+        { where: 'him off the screen', before: 1.6, after: 0.2 },
+        { where: 'the view steeper than 0.9 rad (over his head)', before: 23.3, after: 0.9 },
+      ], source: 'node .claude/skills/camera-qc/run.mjs <out> --only ship-walk (red before, green after)' },
     ] },
   ],
   '1.70': [

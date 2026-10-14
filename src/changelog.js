@@ -132,6 +132,9 @@ export const CHANGELOG = [
     // the crease shading gone (issue #322): post.js creaseAO, uAO, uCrevice out of the composite, the presets, the worlds'
     // looks, the quality presets (ao) and the Unity bridge (Composite.shader, HiraethLook.cs); docs/systems/rendering.md
     'The grey, grainy shading that gathered in corners, along the foot of every wall and under counters, benches and pots is gone. Indoors, in the desert’s shop and everywhere else, walls and floors no longer crawl with dark speckles as you walk round; the deep pockets keep their solid ink shadows.',
+    // the camera aboard (issue #324): src/player.js CameraRig.climb (BODY_CLEAR, CLIMB.max 0.95), heroCut / BODY_CUT,
+    // SHORT_LOOK; materials.js uHeroCut / uCutWith; the camera QC's ship-walk; docs/systems/movement-and-camera.md
+    'Walking around your ship, the camera no longer climbs up over the traveller and stares down through his head when a wall is close behind him: it stays behind him at shoulder height, and when it has to come right in against him he is left out of the picture for that moment instead of being seen from the inside.',
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

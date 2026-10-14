@@ -383,6 +383,33 @@ in and out summed over the walk went from 3.7 m to 0.7 m, its reversals from 0.1
 third of a second from 8 to 0. The camera QC's train walks in node are as they were (train-walk, train-sleeper,
 train-dining-turns and train-roof green; the free walk and the run red in node before and after, as noted above).
 
+## Aboard, behind him and never through him (v1.71, issue #324; `BODY_CLEAR`, `bodyGap`, `heroCut`, `SHORT_LOOK`)
+
+The author: "Walking in my ship the camera keeps tilting up and clipping through my character." The camera QC's new
+`ship-walk` (the parked ship in the desert: round the main room, the cockpit, past the bunk, through the cabin to the
+hold and back, then the stick alone toward the camera into the walls) found both: with a wall a metre behind him the
+climb over the shoulder (`CLIMB`, #234) took the steepest of its steps, because each steeper one had a little more room
+up toward the ceiling than the last, and the camera stood over his head looking straight down (the view pitched 1.2-1.4
+rad, a fifth of the run), its arm cut to 0.15 m by the ceiling: in his head. The lens was in his body 21 % of the frames.
+
+- **The climb counts only room that keeps the lens out of him**: a step whose lens (its arm as long as it has room for,
+  up to `CLIMB.arm`) would be nearer his axis (his feet + `BODY_AXIS`, 0.2-1.75 m) than `BODY_CLEAR` (0.6 m, where the
+  0.3 m near plane meets his shoulders) counts for none. And it never stands steeper than `CLIMB.max` 0.95 rad (1.2
+  before): over his shoulder at a sensible height, not up under the ceiling over his head.
+- **Where the lens must be in him** (his back to the wall, the camera between: no camera behind him has room), he is
+  left out of the view: `heroCut` (`BODY_CUT`: in under 0.5 m from his axis, out past 0.58) sets `uHeroCut`, and his
+  surfaces (compiled with `S_HERO_CUT`: markHero's copies and his gear's fluid materials, only his, so the world keeps its
+  early depth test) discard; his shadow, drawn by the override, stays.
+  Not in a scene, photo mode or a game that takes the camera; `captureView` draws him whatever.
+- **An arm cut very short looks along itself**: under `SHORT_LOOK` (0.3-0.7 m from the look point) the view turns to the
+  arm's own direction (the yaw and pitch) instead of at the look point, where a shove of a few cm off the wall turned it
+  by tens of degrees in a frame (2000°/s).
+
+`ship-walk`, before → after: the lens in his body and drawn 21.1 → 0.2 % of the frames, him out of the frame 1.6 → 0.2 %,
+the view steeper than 0.9 rad 23 → 0.9 %, the lens over his head 4.3 → 0 % (red → green; the camera QC's "in body"
+measure, `LIMITS.body`, frames he is left out of not counted). `tests/room-size.test.js` ("a wall a metre behind him")
+and `tests/camera-qc.test.js` hold it.
+
 ## The jets fly like a plane (v0.89, `src/player.js`: `JET`, `startJets`, `flyJets`, `jetSteer`, `jetStep`)
 
 The author, after the Superman jets: "R2 should make me go high fast. Joystick should be for

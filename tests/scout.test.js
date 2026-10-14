@@ -384,3 +384,20 @@ test('the ping says what the drone is off to find at once (onPing), the flare on
   assert.deepEqual(finds,['The skull']);
   assert.equal(pings.length,1);
 });
+
+test('the lens inside the traveller leaves him out of the view, his gear and its fluid with him, nothing else (issue #324)', () => {
+  // (aboard, his back to a cabin's wall, the camera pressed into him: main.js sets uHeroCut, his surfaces discard)
+  const body=makeMaterial({color:'#aabbce'}), other=makeMaterial({color:'#aabbcf'}), root=new THREE.Group(), hand=new THREE.Group();
+  root.add(new THREE.Mesh(new THREE.BoxGeometry(),body)); root.add(hand);
+  keepHero(root);
+  const glob=makeMaterial({color:'#fffffe',fluid:'glob',key:'t.cut.glob'});
+  hand.add(new THREE.Mesh(new THREE.BoxGeometry(),glob));
+  assert.equal(root.children[0].material.defines.S_HERO_CUT,1,'his body');
+  assert.equal(glob.defines.S_HERO_CUT,1,'his gear\'s fluid, left as it is otherwise');
+  assert.equal(glob.uniforms.uHero.value,0);
+  assert.ok(!other.defines.S_HERO_CUT,'the world\'s are drawn, and compiled without a discard');
+  assert.equal(root.children[0].material.uniforms.uHeroCut,sharedUniforms.uHeroCut,'one switch for all of him');
+  assert.match(body.fragmentShader,/#ifdef S_HERO_CUT\n\s*if \(uHeroCut > 0\.5\) discard;/);
+  const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+  assert.match(main,/SU\.uHeroCut\.value = !ship\.playing && !photo\.on && !minigame\?\.drives && heroCut\(/);
+});
