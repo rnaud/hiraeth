@@ -1,0 +1,33 @@
+docs/systems/temples.md
+  s_9ca76055a220ed::t_f73dbdd8ada421 714-719
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_549c8d7bb30271 430-432
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_e714fa36bc0d16 116
+tests/temple-design.test.js
+  s_82e8bc0c568d40::t_344d6964435c33 118-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "21b4a215bd1d56936658d1dd1b2d9b89a536c5ff",
+  "prompts": {},
+  "sessions": {
+    "s_82e8bc0c568d40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa72a88fb1ea41016",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
