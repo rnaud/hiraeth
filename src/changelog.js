@@ -43,6 +43,9 @@ export const CHANGELOG = [
     // molten channel), the worlds under their kill height (main.js worldVoid); docs/systems/temples.md "A deadly pit looks it"
     { text: 'A pit that puts you back at the last mark now looks it: in every temple its walls sink into a deep ink as they go down, its floor, sand or water goes dark, and slow pale rings turn on it, so you can tell from the lip that there is nothing to land on. The Rose House’s sand pit no longer looks like a floor. Drops with a floor to land on look as they did, and in the City Floating in Space faint rings turn in the void under the islands.',
       see: 'In the Rose House, look down into the Dry Channel from the near ledge, and into the chasm of the Hall of Fires. In the City Floating in Space, look over a parapet.' },
+    // three times as many fragments (issue #317): src/fragments-data.js slots 8–23, scripts/fragment-spots.mjs --count 24,
+    // tests/fragments-poi.test.js POI_MIN; the prices kept (src/items.js); docs/systems/fragments.md "Three times as many"
+    'There are three times as many fragments of the singing light: 24 hide in every world now, 288 in all, so one is never far as you explore, and half of them sit in or on the places worth reaching. Anselm’s upgrades cost what they did, and the ones you already found stay found.',
   ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27

@@ -3,7 +3,7 @@ import { ITEMS, FRAGMENT_ITEMS } from './items.js';
 
 // Anselm Thrum's shop (v1.62, issue #185: "I just want Anselm to sell me upgrades"; docs/systems/fragments.md): the
 // fragments of the singing light are a currency. He sells his seven upgrades aboard the ship, each for a price in
-// fragments (src/items.js `fragments`: 3, 5, 7, 10, 18, 23, 30, every fragment there is all told), and the ones you
+// fragments (src/items.js `fragments`: 3, 5, 7, 10, 18, 23, 30: 96, every fragment there was until v1.70, a third of the 288 since, issue #317), and the ones you
 // hold go down as you buy. Until v1.62 he fitted them free at milestones of the count (5, 10, 15, 25, 50, 75, 96).
 //
 // Nothing new is saved: what you hold is the fragments found less the prices of the upgrades you have, so a save with

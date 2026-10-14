@@ -265,8 +265,8 @@ export const ITEMS = {
   },
   // ---- the scientist's work with the fragments of the singing light (src/fragment-shop.js, src/story/scientist.js):
   // Anselm Thrum sells them aboard the ship for fragments (v1.62, issue #185: `fragments`, the price; `light`: the gear
-  // it is fitted to, for its model; `needs`: the gear it can't be fitted without). The prices add up to every fragment
-  // there is, 96, the cheapest first as the milestones were (5, 10, 15, 25, 50, 75, 96 until v1.62). Their numbers: src/trials/upgrades.js FRAGMENT_TUNES, src/boxes/effects.js,
+  // it is fitted to, for its model; `needs`: the gear it can’t be fitted without). The prices add up to 96, every fragment
+  // there was until v1.70 (a third of the 288 since: the prices kept, issue #317), the cheapest first as the milestones were (5, 10, 15, 25, 50, 75, 96 until v1.62). Their numbers: src/trials/upgrades.js FRAGMENT_TUNES, src/boxes/effects.js,
   // src/resources.js HEART_ITEMS / MAGIC_ITEMS.
   lightheart: {
     name: 'Light-stitched heart', kind: 'upgrade', fragments: 5, light: 'heart', where: 'Anselm Thrum sells it aboard your ship, for five fragments of the singing light.',

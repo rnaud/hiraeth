@@ -64,17 +64,27 @@ function talk(person, ctx, answers = []) {
   return { r, said: said.join(' ') };
 }
 
-test('the data: eight in each world on the route, ninety-six all told; his seven upgrades priced 3 to 30, ninety-six all told', () => {
+test('the data: twenty-four in each world on the route, 288 all told (issue #317); his seven upgrades priced 3 to 30 as before, 96 all told', () => {
   assert.deepEqual(Object.keys(FRAGMENTS).sort(), [...ORDER].sort(), 'every route world, and only those');
   for (const id of ORDER) {
     assert.equal(FRAGMENTS[id].length, FRAGMENTS_PER_WORLD, id);
     for (const p of FRAGMENTS[id]) assert.ok(p.length === 3 && p.every(Number.isFinite), `${id}: [x, y, z]`);
   }
   assert.equal(FRAGMENT_TOTAL, ORDER.length * FRAGMENTS_PER_WORLD);
-  assert.equal(FRAGMENT_TOTAL, 96);
-  // (v1.62, issue #185: a shop; the cheapest first, as the milestones came: 5, 10, 15, 25, 50, 75, 96)
+  assert.equal(FRAGMENTS_PER_WORLD, 24, 'eight a world until v1.70: many more, to be easier to find (issue #317)');
+  assert.equal(FRAGMENT_TOTAL, 288);
+  // spread, not heaped (issue #317: one every minute or so of exploring): no fragment with more than four others within
+  // 40 m of it (six in the Floating city, a few islands and tiers 230 × 340 m)
+  for (const id of ORDER) {
+    const l = FRAGMENTS[id], d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    const most = Math.max(...l.map((p) => l.filter((q) => q !== p && d(p, q) < 40).length));
+    assert.ok(most <= (id === 'spacecity' ? 6 : 4), `${id}: ${most} others within 40 m of one`);
+  }
+  // (v1.62, issue #185: a shop; the cheapest first, as the milestones came: 5, 10, 15, 25, 50, 75, 96. Issue #317: the
+  // prices kept as they were, so the seven come sooner, all of them for a third of the fragments there are)
   assert.deepEqual(FRAGMENT_ITEMS.map((u) => [u.id, u.price]), [['finder', 3], ['lightheart', 5], ['lightedge', 7], ['lightcell', 10], ['lightwing', 18], ['lightstep', 23], ['lightguard', 30]]);
-  assert.equal(Object.values(PRICES).reduce((a, b) => a + b, 0), FRAGMENT_TOTAL, 'every upgrade for every fragment there is');
+  assert.equal(Object.values(PRICES).reduce((a, b) => a + b, 0), 96, 'the seven for 96 fragments, as before (issue #317: the prices the same)');
+  assert.ok(Object.values(PRICES).reduce((a, b) => a + b, 0) <= FRAGMENT_TOTAL / 3, 'every upgrade for a third of the fragments there are');
   // bought the cheapest first, as soon as you could: the n-th upgrade never later than the n-th milestone was
   const OLD = [5, 10, 15, 25, 50, 75, 96];
   let paid = 0;
@@ -89,30 +99,36 @@ test('the data: eight in each world on the route, ninety-six all told; his seven
 });
 
 test('the counts: all told and world by world, with how many are left in each', () => {
-  const c = fragmentCounts({ ...found(10), [fragKey('bazaar', 7)]: true });
-  assert.equal(c.found, 11);
-  assert.equal(c.total, 96);
-  assert.deepEqual([c.worlds.desert.found, c.worlds.desert.left], [8, 0]);
-  assert.deepEqual([c.worlds.arzach.found, c.worlds.arzach.left], [2, 6]);
-  assert.deepEqual([c.worlds.bazaar.found, c.worlds.bazaar.left], [1, 7]);
-  assert.equal(c.worlds.perdide.left, 8);
+  const c = fragmentCounts({ ...found(26), [fragKey('bazaar', 7)]: true, [fragKey('bazaar', 23)]: true });
+  assert.equal(c.found, 28);
+  assert.equal(c.total, 288);
+  assert.deepEqual([c.worlds.desert.found, c.worlds.desert.left], [24, 0]);
+  assert.deepEqual([c.worlds.arzach.found, c.worlds.arzach.left], [2, 22]);
+  assert.deepEqual([c.worlds.bazaar.found, c.worlds.bazaar.left], [2, 22]);
+  assert.equal(c.worlds.perdide.left, 24);
 });
 
 test('a fragment walked into is yours: saved, counted, gone, its light out; it sings near, and only near', () => {
   const { game, items: its } = fresh();
   const player = { pos: V(), hidden: false };
   const sang = [], toasts = [], events = [];
-  const sound = { fragmentSong: (p, k) => sang.push(k), fragmentTaken: () => {}, finderBeep: () => {} };
+  // (its own song: 24 a world since v1.70, a neighbour may sing too)
+  const sound = { fragmentSong: (p, k) => { if (p === F.list[2].pos) sang.push(k); }, fragmentTaken: () => {}, finderBeep: () => {} };
   const lights = [];
   game.on('fragment', (e) => events.push(e));
   const F = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player, sound, game, items: its, toast: (t) => toasts.push(t), lights });
-  assert.equal(F.list.length, 8);
-  assert.equal(lights.length, 8, 'each glows on the ground round it');
+  assert.equal(F.list.length, 24);
+  assert.equal(lights.length, 24, 'each glows on the ground round it');
   const f = F.list[2];
-  // far off: quiet
+  // across the world: not drawn (24 a world since v1.70, issue #317: no draws for the far ones)
+  player.pos.copy(f.pos).add(V(FRAGMENT.drawTo + 20, 0, 0));
+  F.update(0.1, 0);
+  assert.equal(f.grp.visible, false, 'not drawn from across the world');
+  // far off: quiet, but drawn
   player.pos.copy(f.pos).add(V(80, 0, 0));
   F.update(0.1, 0);
   assert.equal(sang.length, 0, 'not heard from 80 m');
+  assert.equal(f.grp.visible, true, 'seen from 80 m');
   // near: its three notes, once a while
   player.pos.copy(f.pos).add(V(12, -FRAGMENT.lift, 0));
   for (let k = 0; k < 40; k++) F.update(0.1, k * 0.1);
@@ -122,13 +138,13 @@ test('a fragment walked into is yours: saved, counted, gone, its light out; it s
   F.update(0.1, 5);
   assert.equal(game.flag(fragKey('edena', 2)), true, 'saved');
   assert.equal(f.grp.visible, false);
-  assert.equal(lights.length, 7);
-  assert.deepEqual(events, [{ world: 'edena', i: 2, found: 1, total: 96, left: 7 }]);
-  assert.match(toasts[0], /fragment of the singing light · 1 of 96 · 7 left in Viridel/);
+  assert.equal(lights.length, 23);
+  assert.deepEqual(events, [{ world: 'edena', i: 2, found: 1, total: 288, left: 23 }]);
+  assert.match(toasts[0], /fragment of the singing light · 1 of 288 · 23 left in Viridel/);
   // a world built again with it found: not there
   const again = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player, game, items: its, lights: [] });
   assert.equal(again.list[2].grp.visible, false);
-  assert.equal(again.list.filter((x) => !x.found).length, 7);
+  assert.equal(again.list.filter((x) => !x.found).length, 23);
 });
 
 test('the finder: beeps from 60 m, faster and higher as a fragment comes closer; switched off from the items page', () => {
@@ -140,7 +156,10 @@ test('the finder: beeps from 60 m, faster and higher as a fragment comes closer;
   const player = { pos: V() };
   const beeps = [];
   const F = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player, sound: { finderBeep: (f) => beeps.push(f) }, game, items: its });
-  const f = F.list[0];
+  // (the one farthest from the others: the finder beeps for the nearest, 24 a world since v1.70)
+  const alone = (g) => Math.min(...F.list.filter((h) => h !== g).map((h) => h.pos.distanceTo(g.pos)));
+  const f = F.list.reduce((a, b) => (alone(b) > alone(a) ? b : a));
+  assert.ok(alone(f) > 100);
   const count = (d) => { beeps.length = 0; player.pos.copy(f.pos).add(V(d, -FRAGMENT.lift, 0)); for (let k = 0; k < 50; k++) F.update(0.1, k * 0.1); return beeps.length; };
   // (3 m off: out of reach to take)
   assert.equal(count(3), 0, 'no finder yet: no beeps');
@@ -180,8 +199,8 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   assert.equal(ctx2.game.flag('frag.met'), true);
   // aboard, with one: his count and what you hold; one answer opens his shop
   const c1 = talk(person, ctx, ['Where do they hide']);
-  assert.match(c1.said, /One of 96\. One to spend\./);
-  assert.match(c1.said, /Seven still hide here, in the Desert\./);
+  assert.match(c1.said, /One of 288\. One to spend\./);
+  assert.match(c1.said, /Twenty-three still hide here, in the Desert\./);
   assert.match(c1.said, /Up high\. Behind things\./);
   assert.equal(person.fresh(), false, 'no balloon: nothing you can buy yet');
   const opened = [];
@@ -192,9 +211,16 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   Object.assign(ctx.game.data.flags, found(3));
   assert.equal(affordable(ctx.game.data.flags, ctx.items.has), 'finder');
   assert.equal(person.fresh(), true, 'his balloon: enough for something');
-  assert.match(tallyLines(found(96), null, () => false).join(' '), /every one there is/);
+  assert.match(tallyLines(found(FRAGMENT_TOTAL), null, () => false).join(' '), /every one there is/);
+  assert.doesNotMatch(tallyLines(found(96), null, () => false).join(' '), /every one there is/, 'the old 96 is not all of them (issue #317)');
   const none = tallyLines({}, null, () => false).join(' ');
-  assert.match(none, /None of 96 yet\. None to spend\./, 'the zero count reads as words (issue #282)');
+  assert.match(none, /None of 288 yet\. None to spend\./, 'the zero count reads as words (issue #282)');
+  // (his count reads the total from the data, never a number written into his lines: issue #317)
+  assert.ok(none.includes(`of ${FRAGMENT_TOTAL} yet`));
+  assert.doesNotMatch(fs.readFileSync(new URL('../src/story/scientist-data.js', import.meta.url), 'utf8'), /\b96\b/);
+  const thirty = tallyLines({ ...found(30) }, 'arzach', () => false).join(' ');
+  assert.match(thirty, /Thirty of 288\. Thirty to spend\./);
+  assert.match(thirty, /Eighteen still hide here, in Vael\./, 'a world’s count in words, to twenty-four and more');
   assert.doesNotMatch(none, /\bNo of\b/);
   // every line he says, toned (the meeting, the count, the shop)
   const all = [...Object.values(THRUM_TALK.nodes).flatMap((n) => [n.say].flat()), ...Object.values(THRUM_TALK.nodes).flatMap((n) => (n.choices ?? []).map((c) => c.text)), ...THRUM.lines, ...Object.values(THRUM_SHOP_LINES).flat()];
@@ -206,7 +232,7 @@ test('his shop: fragments are a currency; what you hold goes down as you buy, th
   const ctx = fresh({ 'frag.met': true, ...found(12) });
   const shop = new FragmentShop({ game: ctx.game, items: ctx.items });
   const flags = ctx.game.data.flags;
-  assert.deepEqual(fragmentPurse(flags, ctx.items.has), { found: 12, total: 96, spent: 0, held: 12 });
+  assert.deepEqual(fragmentPurse(flags, ctx.items.has), { found: 12, total: 288, spent: 0, held: 12 });
   const state = () => Object.fromEntries(shop.view().map((w) => [w.id, w.state]));
   assert.deepEqual(state(), { finder: 'ok', lightheart: 'ok', lightedge: 'needs', lightcell: 'needs', lightwing: 'needs', lightstep: 'short', lightguard: 'needs' },
     'the blade, the tank, the wings and the guard not had yet: those wait for their gear');
@@ -279,7 +305,7 @@ test('his shop in the shop panel: A / × asks, A / × again buys, his lines in h
 test('an old save with his milestone upgrades keeps them; what it holds is what it found less their prices, never below none', () => {
   // (no save step: what you hold is worked out from what you found and what you have, src/fragment-shop.js)
   const at = (n, ids) => fragmentPurse({ ...found(n), ...Object.fromEntries(ids.map((id) => [`item.${id}`, true])) });
-  assert.deepEqual(at(5, ['lightheart']), { found: 5, total: 96, spent: 5, held: 0 });
+  assert.deepEqual(at(5, ['lightheart']), { found: 5, total: 288, spent: 5, held: 0 });
   assert.equal(at(10, ['lightheart', 'finder']).held, 2);
   assert.equal(at(15, ['lightheart', 'finder', 'lightedge']).held, 0);
   assert.equal(at(50, ['lightheart', 'finder', 'lightedge', 'lightcell', 'lightwing']).held, 7);
@@ -322,12 +348,12 @@ test('the menu: each world you know with how many are left, and the count all to
   const levels = ORDER.map((id) => ({ id, title: id }));
   const none = worldsData({ levels, order: ORDER, fragments: fragmentCounts({}) });
   assert.equal(none[0].fragments, null, 'nothing shown before the first');
-  const list = worldsData({ levels, order: ORDER, known: (id) => id === 'desert' || id === 'arzach', fragments: fragmentCounts({ ...found(9) }) });
-  assert.deepEqual(list.map((w) => w.fragments), [[8, 8], [1, 8]]);
+  const list = worldsData({ levels, order: ORDER, known: (id) => id === 'desert' || id === 'arzach', fragments: fragmentCounts({ ...found(25) }) });
+  assert.deepEqual(list.map((w) => w.fragments), [[24, 24], [1, 24]]);
   const { html } = worldsPanel(list);
-  assert.match(html, /Fragments of the singing light: 9 of 96/);
-  assert.match(html, /✧ all 8/);
-  assert.match(html, /✧ 7 left/);
+  assert.match(html, /Fragments of the singing light: 25 of 288/);
+  assert.match(html, /✧ all 24/);
+  assert.match(html, /✧ 23 left/);
 });
 
 test('the save: an old save starts at zero, the scientist still to meet (the fragments’ step)', () => {
@@ -360,6 +386,26 @@ function markedSlots(mark) {
   }
   return marked;
 }
+
+test('the save: a save from before v1.70 keeps its fragments where they were; the sixteen new a world start unfound (issue #317)', () => {
+  // (nothing to migrate: the first eight of each world kept their slots and their places, the new ones are slots 8–23)
+  const old = { 'save.migrated': MIGRATED(), 'frag.met': true, 'item.finder': true, 'item.lightheart': true };
+  for (const id of ORDER) for (let i = 0; i < 8; i++) old[fragKey(id, i)] = true;   // (every one there was: 96)
+  const before = Object.keys(old).filter((k) => k.startsWith('frag.')).sort();
+  migrateFlags(old);
+  assert.deepEqual(Object.keys(old).filter((k) => k.startsWith('frag.')).sort(), before, 'its found flags as they were');
+  const c = fragmentCounts(old);
+  assert.deepEqual([c.found, c.total], [96, 288]);
+  for (const id of ORDER) assert.deepEqual([c.worlds[id].found, c.worlds[id].left], [8, 16], id);
+  assert.deepEqual(fragmentPurse(old), { found: 96, total: 288, spent: 8, held: 88 }, 'what it bought stays bought, the rest to spend');
+  // a world built with that save: the old eight gone, the new sixteen there to find
+  const g = new GameState(memory());
+  Object.assign(g.data.flags, old);
+  const F = createFragments({ levelId: 'spheres', scene: new THREE.Scene(), player: { pos: V() }, game: g, items: { has: () => false }, lights: [] });
+  assert.deepEqual(F.list.map((f) => f.found), [...Array(24).keys()].map((i) => i < 8));
+  // the old places kept: the v1.66 table still the first eight's (the steps 23 and 25 move flags among those only)
+  for (const [id, slots] of Object.entries({ ...FRAGMENTS_MOVED_228, ...FRAGMENTS_MOVED_250 })) assert.ok(slots.every((i) => i < 8), id);
+});
 
 test('the save: the fragments re-placed in v1.61 keep a save’s count, its found ones off the moved slots (step 23)', () => {
   // the table is the data's: every slot marked as moved there, and no other (a slot moved again in v1.66 keeps its mark)
@@ -479,7 +525,7 @@ test('the first fragment brings him beside you; once met he is aboard, in the ho
   assert.equal(S.aboard, null, 'not met: not aboard');
   // the first fragment
   ctx.game.set(fragKey('desert', 0), true);
-  ctx.game.emit('fragment', { world: 'desert', i: 0, found: 1, total: 96, left: 7 });
+  ctx.game.emit('fragment', { world: 'desert', i: 0, found: 1, total: 288, left: 23 });
   S.update(0.1);
   assert.equal(talked.length, 1, 'the talk opens at once');
   assert.equal(talked[0][0], 'thrum');

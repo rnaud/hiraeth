@@ -563,7 +563,7 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 ## The fragments of the singing light (built: src/fragments.js, src/story/scientist-data.js; docs/systems/fragments.md)
 
 - **What they are**: splinters of the light's song. Ilen's answer sang so hard on its way, world to world, looking for the
-  voice that had called her, that it shed bits of itself wherever it passed: eight in each world on the route, 96 in all.
+  voice that had called her, that it shed bits of itself wherever it passed: twenty-four in each world on the route, 288 in all.
   Each is a small pale splinter that glows and still sings faintly, three soft notes in the light's beat of threes (the
   signature). Always "the fragments of the singing light", never a clue: Lorn's Great Crystal sings the same because a
   makers' light fell there long ago (the Singer's fallen piece), and the Lodestar's splinter is the makers' own; those

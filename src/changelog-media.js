@@ -786,8 +786,15 @@ const CHANNELS311 = 'Issue #311: muted headless Chrome (High, 1280 × 720, 11:00
 const KEEPER314 = 'headless Chrome against a dev server of this branch and of the code before it, the Rose House’s cistern, High, 13 October 2026';
 const DOORS305 = 'Issue #305: muted headless Chrome (High, 1280 × 720, 10:00, clear, the camera pinned) against this branch’s own Vite (port 6305) and the commit before it, the Desert from a save with the backpack (13 October)';
 const HINTS306 = { from: 'headless Chrome (muted) against this branch’s own dev server and the commit before the change, Medium at 1280 × 720, a new save out of the ship (13 October)' };
+// (v1.70, issue #317: three times as many fragments; a scratch driver making views for scripts/design-qc/capture.mjs)
+const FRAG317 = 'headless Chrome (muted, High, 1280 × 720, 11:00, clear) against this branch’s own Vite (port 6317), scripts/design-qc/capture.mjs, the camera pinned a few metres off one of the new spots with a clear line to it; before: the same view with that fragment found (a save holding its flag, as a save from before has none there), after: a new save; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.70': [
+    { match: 'There are three times as many fragments of the singing light', shots: [
+      { name: 'fragments-ribcage', title: 'Inside a ribcage', caption: 'The Desert, among the ribs of a ribcage in the west dunes: before, nothing there; after, one of the sixteen new fragments a world.', from: FRAG317 },
+      { name: 'fragments-water-stair', title: 'By the water stair', caption: 'Viridel, on the grass by the water stair’s terraces: before, nothing; after, a fragment.', from: FRAG317 },
+      { name: 'fragments-rim', title: 'On a rim over the void', caption: 'The City Floating in Space, at the edge of a tier over the drop: before, nothing; after, a fragment.', from: FRAG317 },
+    ] },
     { match: 'Every door, cave mouth, hatch, lift and temple door', shots: [
       { name: 'doors-cave-exit', title: 'Leaving the skull cave', caption: 'At the top of the cave’s entrance shaft, on the landing: before, a sheet of black at its end that read as a shut wall; after, the daylight up there and the way’s veil of light, its rays drifting.', from: DOORS305 },
       { name: 'doors-rose-house', title: 'A temple’s door', caption: 'The Rose House’s door from outside: before, a dark slot; after, the same dark with light rising from its sill.', from: DOORS305 },

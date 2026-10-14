@@ -1,13 +1,13 @@
-# The fragments of the singing light, the scientist and his shop (v1.55, issue #196; re-placed v1.61, #228, #229; a currency v1.62, #185; into the places of interest v1.66, #250)
+# The fragments of the singing light, the scientist and his shop (v1.55, issue #196; re-placed v1.61, #228, #229; a currency v1.62, #185; into the places of interest v1.66, #250; three times as many v1.70, #317)
 
 Where the singing light passed it shed small splinters of its song. They settled in the out-of-the-way places of every
 world on the route: up on ledges and high places, tucked behind things, at the ends of side paths; never on the way
-anyone sends you. Eight hide in each of the twelve route worlds, 96 in all. What they are in the story, and why they
+anyone sends you. Twenty-four hide in each of the twelve route worlds, 288 in all (eight, 96, until v1.70). What they are in the story, and why they
 hide: `docs/story-bible.md`, "The fragments of the singing light".
 
 ## The fragments (`src/fragments.js`, `src/fragments-data.js`)
 
-- **Where.** `FRAGMENTS` in `src/fragments-data.js`: eight `[x, y, z]` ground spots a world, in the world's own frame (a
+- **Where.** `FRAGMENTS` in `src/fragments-data.js`: `FRAGMENTS_PER_WORLD` (24) `[x, y, z]` ground spots a world, in the world's own frame (a
   merged world's parts in its frame). The fragment floats `FRAGMENT.lift` (0.9 m) over its spot.
 - **How they were placed.** `node scripts/fragment-spots.mjs [world …]` floods the ground the walker reaches from the
   world's spawn and its parts' spawns (`tests/fragments-reach.js flood`: 2 m cells, a step up at most a double jump high,
@@ -106,11 +106,49 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   cradle moon and the hoist tower's galleries (climbed), the Signal Market's antenna mast and silent tower; the desert's
   jaw and spine and the sunken leviathan lie past the flood's 700 m, and Qanat's skull is on the way to the cave.
   Step 25 of the save (`FRAGMENTS_MOVED_250`) keeps a save's count as step 23 did (below).
+- **Three times as many (v1.70, #317).** The author: "There should be many more fragments of light per world to make
+  them easier to find. Keep the professor prices the same." 8 → 24 a world, 96 → 288; Anselm's prices stay as they were
+  (3 to 30, 96 for all seven: a third of what there is now). Why 24: the ground the walker reaches (the flood's cells)
+  is 1.2 to 2.9 km² in the big worlds, so 24 leave about 0.05 to 0.12 km² of ground to each, a square 220 to 350 m
+  across: about a minute's walk (3.8 m/s) or half a minute's run (8.2 m/s) to cross, where eight left one every two
+  minutes' walk and more. The compact worlds (the Underwater City 0.35 km², the Moon Foundry 0.43, the Floating city's
+  islands) come closer (one every 15 to 35 s); nowhere fewer, so a world's count is one number on every card (✧ all 24).
+  - **The first eight kept** in their slots and places (a save's flags point at them: no save step; a save from before
+    keeps its count and finds sixteen new ones a world). Slots 8–23 are new, marked `(v1.70, #317)` with their place.
+  - **Placed** by `node scripts/fragment-spots.mjs <world> --keep all --count 24 --poi 12 --per-poi 2` (`--per-poi 3
+    --busy 8 --route 27` for the four poorest in places, `--apart 16` in the Floating city, `--avoid -32.5,-26.5` in the Signal Market: its galleries; `--above -0.5` in Lorn, out of its deeper shallows): the same rules (the walker
+    reaches it, he stands on it as written down to the centimetre, drawn ground, out of harm, 25 m off the route, 14 m off
+    the people, chests and relics, 8 in the four), at least 25 m apart (16 in the Floating city; the test's floor is 15),
+    a place of interest holding two (three) at most, each new pick the best score plus a bonus for its distance from
+    those already picked, so they spread over the world. The worlds are built for it before the play-through's gadgets
+    are registered, as the tests build them (a spot good in one build was a few centimetres off in the other).
+    `WHY_POI=1` prints, place by place, how many of the spots reached in it each rule turned down.
+  - **In or on a place of interest**: 149 of the 288 (half and more), every world 12 at least but the four whose places
+    off the route run out (Lorn 7: the rest of its sights stand in deep water, and none lies so low in its shallows that the fragment floats under the water, `--above -0.5`; the Buried Machine 9; the Floating city
+    11; the Signal Market 8: its galleries are the market in the air's way, kept clear by its own test), `tests/fragments-poi.test.js` `POI_MIN`; and no fragment has more than four others within 40 m of it (six in the Floating city), `tests/fragments.test.js`.
+
+  | World | Ground reached | In or on a place | Nearest other, median (min) | Most within 40 m of one |
+  |---|---|---|---|---|
+  | The Desert | 1.48 km² | 14 | 137 m (42) | 0 |
+  | Vael | 2.92 km² | 14 | 115 m (52) | 0 |
+  | Lorn | 2.16 km² | 7 | 235 m (21) | 1 |
+  | Viridel | 1.51 km² | 13 | 97 m (26) | 2 |
+  | The Underwater City | 0.35 km² | 21 | 44 m (26) | 2 |
+  | The City-Shaft | 1.38 km² | 14 | 104 m (45) | 0 |
+  | The Glass Dunes | 1.18 km² | 14 | 56 m (25) | 2 |
+  | The Buried Machine | 1.54 km² | 9 | 233 m (21) | 2 |
+  | The Moon Foundry | 0.43 km² | 12 | 34 m (25) | 4 |
+  | The Garden of Spheres | 1.55 km² | 12 | 173 m (28) | 2 |
+  | The City Floating in Space | 0.02 km² a layer (230 × 340 m of islands and tiers) | 11 | 21 m (16) | 6 |
+  | The Signal Market | 1.45 km² | 8 | 88 m (21) | 3 |
+
+  - **Drawn near only** (`FRAGMENT.drawTo`, 220 m): three times as many would be four draws each for every one in view
+    across a world; past 220 m (a few pixels) a fragment is hidden and not turned. Its song and the finder are as before.
 - **Seeing and hearing them.** A pale splinter (an elongated octahedron, glowing) with three motes going round it (the
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
   light's theme an octave up (`Sound.fragmentSong`, placed with `Sound.spot`, louder nearer). Muted with the game.
-- **Taking one.** Walk within `FRAGMENT.take` (1.5 m): it is yours. The toast: *A fragment of the singing light · 12 of 96 ·
+- **Taking one.** Walk within `FRAGMENT.take` (1.5 m): it is yours. The toast: *A fragment of the singing light · 12 of 288 ·
   3 left in Lorn*; the theme's rise (`Sound.fragmentTaken`); `game.emit('fragment', { world, i, found, total, left })`.
 - **The save.** `frag.<world>.<i>` for each found; `frag.met` once the scientist is met; `frag.finder.off` when the
   finder is switched off. `src/save-migrate.js` step 22 starts an older save at zero (any `frag.*` goes). Step 23
@@ -148,7 +186,7 @@ studies light, and has been on the lookout for the fragments since the night the
   over his head (the desert's crashed ship too); `tests/fragments.test.js` that he is walked to from the hatch. (The
   homecoming's opening in space plays in the ship's space copy, `ship.spaceCopy`, which has no hold scene: he is in
   the parked ship it lands as.) On the crate beside him is his jar: a glowing splinter for each fragment found (up to 24).
-- **His talk** is built from the save each time it opens (`thrumTalk`): his count, found and held (*Twelve of 96. Four
+- **His talk** is built from the save each time it opens (`thrumTalk`): his count, found and held (*Twelve of 288. Four
   to spend.*), how many still hide in this world, the three worlds with most left; then *Show me what you have* (his
   shop, below) or, asked, where they hide (*Up high. Behind things. At the ends of paths.*). His balloon shows while
   you hold enough for one you can have (`affordable`).
@@ -166,8 +204,8 @@ for each (`THRUM_SHOP_LINES`), and one as he fits each upgrade. `FragmentShop` i
 `game.emit('thrum:bought')`). Until v1.62 he fitted them free at milestones of the count, one a talk (5, 10, 15, 25,
 50, 75, 96).
 
-The prices add up to every fragment there is (96), the cheapest first, so bought in that order each comes no later
-than its milestone did (the n-th after 3, 8, 15, 25, 43, 66 and 96 found, against 5, 10, 15, 25, 50, 75, 96):
+The prices add up to 96, every fragment there was until v1.70 (a third of the 288 since: the prices kept, issue #317),
+the cheapest first, so bought in that order each comes no later than its milestone did (the n-th after 3, 8, 15, 25, 43, 66 and 96 found, against 5, 10, 15, 25, 50, 75, 96):
 
 | Price | Item | What changes |
 |---|---|---|
@@ -193,14 +231,14 @@ many you picked up (`SPLINTERS`: none, some, every one; conditions over `fragmen
 
 ## Where the count shows
 
-- **The game menu's Worlds page**: over the cards, *Fragments of the singing light: 12 of 96*; on each world's card
-  *✧ 3 left* or *✧ all 8* (once the first is found).
-- **The Start menu** (Menu / Start): under where you are, *✧ 12 of 96 fragments of the singing light · 4 to spend · 3 left here* (`fragmentsLine` in main.js; *to spend* once Anselm is met).
+- **The game menu's Worlds page**: over the cards, *Fragments of the singing light: 12 of 288*; on each world's card
+  *✧ 3 left* or *✧ all 24* (once the first is found).
+- **The Start menu** (Menu / Start): under where you are, *✧ 12 of 288 fragments of the singing light · 4 to spend · 3 left here* (`fragmentsLine` in main.js; *to spend* once Anselm is met).
 - **On the ship**: Anselm's count when you talk to him (found and held), his shop's wallet (held), and his jar (found).
 
 ## Tests
 
-- `tests/fragments.test.js`: the data and the prices (96 all told, never later than the milestones), the counts, a
+- `tests/fragments.test.js`: the data and the prices (288 all told, 24 a world; the prices as they were, 96 for all seven, never later than the milestones), his count read from the total (and in words to thirty), the counts, a
   fragment taken (saved, gone, its light out), its song only near, the finder's beeps by distance and its switch, the
   meeting, his count and his shop (held against found, buying, the gear an upgrade needs, the panel with his lines),
   an old save's upgrades and what it holds, the upgrades' numbers, the menu, the migration, the people book, his place
@@ -208,14 +246,15 @@ many you picked up (`SPLINTERS`: none, some, every one; conditions over `fragmen
 - `tests/thrum-aboard.test.js` (v1.62): Anselm aboard in every world once met (above), out of sight while the ship
   flies, met however the first talk ends.
 - `tests/contact-audit.test.js` ("every fragment of the singing light…"): in every world each stands on solid ground that
-  is drawn there (the contact audit's drawn surfaces, or the terrain), with room over it, out of harm, eight at least
+  is drawn there (the contact audit's drawn surfaces, or the terrain), with room over it, out of harm, 24 at least
   15 m apart, and the walker's flood reaches each from the world's spawn (at the world's `REACH_CELL`); in the
   Underwater City under glass or within 35 m of air.
 - `tests/fragments-route.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
   (Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market) two at least in their new
   country, one of them high (15 m over the landing, or a 10 m drop beside it).
-- `tests/fragments-poi.test.js` (v1.66, #250): in every world 4 of the 8 at least in or on a place of interest, 56 of
-  the 96 at least, spread over three places at least in each world; and the named places still found in their worlds (a
+- `tests/fragments-poi.test.js` (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of
+  interest (`POI_MIN` for the four poorer: Lorn 7, the Buried Machine 9, the Floating city 11, the Signal Market 8), 144
+  of the 288 at least (149 now), spread over three places at least in each world; and the named places still found in their worlds (a
   rename would drop them silently).
 - `tests/people-names.test.js` (v1.61): one name, one person (the people book and every world's people), and nobody you
   meet named like someone the story only tells of (Odile and Talo, the Orrins).

@@ -18,6 +18,12 @@
 //     --poi n  how many of the picks at least lie in or on a place of interest (default 4; issue #250: by a sight, up a
 //              beacon, inside a named thing or a big piece, on a summit: tests/fragments-reach.js pointsOfInterest)
 //     --by-poi with --list n: the best three spots of each of n places of interest instead
+//     --count n how many a world (default FRAGMENTS_PER_WORLD); with --keep all the world's spots stay in their slots and
+//              the rest are added after them (issue #317: 8 → 24 a world)
+//     --apart m the least distance between two picks (default 25; the contact test's floor is 15)
+//     --per-poi n how many picks one place of interest may hold (default 1)
+//     --avoid x0,x1[,z0,z1] no pick in that box (the Signal Market's galleries, x -32.5 to -26.5: tests/market-explorations)
+//     --busy m the nearest a pick may lie to the spawn's people, chests, relics and goal (default 14)
 //
 // Pure node, no browser; builds each world as the tests do (tests/built-worlds.js) and as the play-through does for
 // the route (tests/playthrough-agent.js loadWorld).
@@ -32,15 +38,25 @@ import { PLACEMENTS } from '../src/boxes/placements.js';
 import { FRAGMENTS, FRAGMENTS_PER_WORLD } from '../src/fragments-data.js';
 import { criticalPath, pathSegments, distanceToPath, arr } from './level-design/path.mjs';
 
-await import('../tests/register-gadgets.js');
-const { loadWorld } = await import('../tests/playthrough-agent.js');
-
 const args = process.argv.slice(2);
 const opt = (n) => { const i = args.indexOf(`--${n}`); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
 const keepArg = opt('keep'), newArg = opt('new'), routeArg = opt('route'), aboveArg = opt('above'), listArg = opt('list'), poiArg = opt('poi');
+// (issue #317: more a world; the spacing and how many in one place of interest)
+const countArg = opt('count'), apartArg = opt('apart'), perPoiArg = opt('per-poi'), busyArg = opt('busy');
+const BUSY = busyArg ? +busyArg : 14;
+// (--avoid x0,x1,z0,z1: no pick in that box, a way a world's own test keeps clear: the Signal Market's galleries)
+const avoidArg = opt('avoid'), AVOID = avoidArg ? avoidArg.split(',').map(Number) : null;
+const COUNT = countArg ? +countArg : FRAGMENTS_PER_WORLD, APART = apartArg ? +apartArg : 25, PER_POI = perPoiArg ? +perPoiArg : 1;
+// (WHY_POI=1: each place of interest, how many of the spots reached in it each rule turned down: to see why a world has few)
+const WHY_POI = !!process.env.WHY_POI;
 const BY_POI = args.includes('--by-poi'); if (BY_POI) args.splice(args.indexOf('--by-poi'), 1);
 const ROUTE_MIN = routeArg ? +routeArg : 30;
 const worlds = args.length ? args : ORDER;
+// (the worlds built as the contact test and the places-of-interest test build them, before the gadgets are registered:
+// the play-through's gadgets add to a world's build, and a spot good there was not always good in the tests', #317)
+for (const id of worlds) builtWorld(id);
+await import('../tests/register-gadgets.js');
+const { loadWorld } = await import('../tests/playthrough-agent.js');
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const DIRS = Array.from({ length: 8 }, (_, k) => [Math.cos((k / 8) * Math.PI * 2), Math.sin((k / 8) * Math.PI * 2)]);
 
@@ -73,18 +89,22 @@ for (const id of worlds) {
   level.openWays?.(physics, true);   // (what the player opens on the way: the floating city's drifted span reeled home)
   const reached = flood({ physics, level }, [spawn, ...Object.values(level.partSpawns ?? {})], { radius: 700, max: 1500000, cell: reachCell(id) });
   const ys = reached.map((n) => n[1]).sort((a, b) => a - b), mid = ys[ys.length >> 1];
-  const scored = [];
+  const scored = [], whyPoi = new Map();
   for (let i = 0; i < reached.length; i += reachCell(id) === 1 ? 4 : 2) {
     const [x, y, z, depth, inside] = reached[i];
-    if (inside) continue;   // (the rooms through doorways: shops, houses, the temples)
-    if (aboveArg != null && y < +aboveArg) continue;
+    const why = WHY_POI ? pois.find((p) => p.test(x, y, z))?.name : null;
+    const no = (r) => { if (why) { const m = whyPoi.get(why) ?? {}; m[r] = (m[r] ?? 0) + 1; whyPoi.set(why, m); } };
+    if (inside) { no('inside'); continue; }   // (the rooms through doorways: shops, houses, the temples)
+    if (aboveArg != null && y < +aboveArg) { no('low'); continue; }
+    if (AVOID && x > AVOID[0] && x < AVOID[1] && z > (AVOID[2] ?? -Infinity) && z < (AVOID[3] ?? Infinity)) { no('avoid'); continue; }
     const away = nearBusy(x, z);
-    if (away < 14 || Math.hypot(x - spawn.x, z - spawn.z) < 40 || level.unsafe?.(V(x, y, z))) continue;
+    if (away < BUSY || Math.hypot(x - spawn.x, z - spawn.z) < 40 || level.unsafe?.(V(x, y, z))) { no(away < BUSY ? 'busy' : 'spawn/harm'); continue; }
     const off = route(x, y, z);
-    if (off < ROUTE_MIN) continue;   // (never on the way anyone sends you)
-    if (!spotOk({ physics, level }, V(x, y, z)) || !drawnAt(x, y, z)) continue;
+    if (off < ROUTE_MIN) { no('route'); continue; }   // (never on the way anyone sends you)
+    if (!spotOk({ physics, level }, V(x, y, z)) || !drawnAt(x, y, z)) { no('spot'); continue; }
     // (a city under the sea: under a hall's glass, or out on the seabed near air, where the helmet takes you)
-    if (seaWhyNot({ physics, level }, V(x, y, z))) continue;
+    if (seaWhyNot({ physics, level }, V(x, y, z))) { no('sea'); continue; }
+    no('ok');
     // a ledge: how far the ground falls off 4 m round it; a nook: walls within 3 m at chest height
     let drop = 0, nook = 0;
     for (const [dx, dz] of DIRS) {
@@ -104,6 +124,7 @@ for (const id of worlds) {
     scored.push({ x, y, z, score, drop, nook, high, off, fresh, poi: poi?.name ?? null });
   }
   scored.sort((a, b) => b.score - a.score);
+  if (WHY_POI) { for (const p of pois) if (!whyPoi.has(p.name)) whyPoi.set(p.name, { unreached: 1 }); for (const [n, m] of whyPoi) console.log(`    ${n}: ${Object.entries(m).map(([k, v]) => `${k} ${v}`).join(', ')}`); continue; }
   if (listArg && BY_POI) {
     // (the best spot in each place of interest, the places by their best: to pick from by hand)
     const best = new Map();
@@ -121,13 +142,13 @@ for (const id of worlds) {
   }
   scored.length = Math.min(scored.length, 20000);
   // (the spots kept: their slots stay theirs)
-  const keep = new Set((keepArg ?? '').split(',').filter((s) => s !== '').map(Number));
+  const keep = new Set(keepArg === 'all' ? FRAGMENTS[id].map((_, i) => i) : (keepArg ?? '').split(',').filter((s) => s !== '').map(Number));
   const kept = [...keep].map((i) => { const [x, y, z] = FRAGMENTS[id][i]; return { i, x, y, z, off: route(x, y, z), fresh: isNew(x, y, z), poi: poiAt(pois, physics, x, y, z)?.name ?? null, kept: true }; });
   // (the best, spread over the world: each next pick the best score plus a bonus for being far from those already picked;
   // until `wantNew` are in the new country, only new country)
   const picks = [...kept];
   let wantNewLeft = wantNew, wantPoiLeft = wantPoi;
-  while (picks.length < FRAGMENTS_PER_WORLD) {
+  while (picks.length < COUNT) {
     const needNew = picks.filter((p) => p.fresh).length < wantNewLeft;
     const needPoi = !needNew && picks.filter((p) => p.poi).length < wantPoiLeft;
     let best = null, bv = -Infinity;
@@ -135,9 +156,9 @@ for (const id of worlds) {
       if (needNew && !s.fresh) continue;
       if (needPoi && !s.poi) continue;
       // (one a place of interest: two in the same ribcage is one find)
-      if (s.poi && picks.some((p) => p.poi === s.poi)) continue;
+      if (s.poi && s.poi !== 'a summit' && picks.filter((p) => p.poi === s.poi).length >= PER_POI) continue;   // (each summit its own)
       const d = picks.length ? Math.min(...picks.map((p) => Math.hypot(p.x - s.x, p.z - s.z, p.y - s.y))) : 300;
-      if (d < 25) continue;
+      if (d < APART) continue;
       const v = s.score + Math.min(d, 300) / 12;
       if (v > bv) { bv = v; best = s; }
     }
@@ -147,13 +168,20 @@ for (const id of worlds) {
     // (and the traveller can stand on it: else it is dropped and the next best taken)
     const k = scored.indexOf(best);
     scored.splice(k, 1);
-    if (standWhyNot({ physics, level }, V(best.x, best.y, best.z), Player)) continue;
-    picks.push(best);
+    // (as written down, to a decimetre and a centimetre up: a knife-edge spot good to the millimetre and not a few
+    // centimetres off is no spot, #317)
+    const r = { ...best, x: +best.x.toFixed(1), y: +best.y.toFixed(2), z: +best.z.toFixed(1) };
+    if (!spotOk({ physics, level }, V(r.x, r.y, r.z)) || !drawnAt(r.x, r.y, r.z)) continue;
+    if (standWhyNot({ physics, level }, V(r.x, r.y, r.z), Player)) continue;
+    picks.push(r);
   }
   // (the new picks into the slots not kept, in order)
-  const free = [...Array(FRAGMENTS_PER_WORLD).keys()].filter((i) => !keep.has(i));
+  const free = [...Array(COUNT).keys()].filter((i) => !keep.has(i));
   picks.filter((p) => !p.kept).forEach((p, k) => { p.i = free[k]; });
   picks.sort((a, b) => a.i - b.i);
+  // (how they spread: the ground reached, and each one's nearest other, issue #317)
+  const cellA = reachCell(id) ** 2, nn = picks.map((p) => Math.min(...picks.filter((q) => q !== p).map((q) => Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z)))).sort((a, b) => a - b);
+  console.log(`  (${id}: ${(reached.length * cellA / 1e6).toFixed(2)} km² of ground reached; ${picks.filter((p) => p.poi).length} of ${picks.length} in a place of interest; nearest other: min ${nn[0]?.toFixed(0)}, median ${nn[nn.length >> 1]?.toFixed(0)}, max ${nn.at(-1)?.toFixed(0)} m)`);
   console.log(`  ${id}: [   // (${reached.length} spots reached, ${scored.length} out of the way, ${sights.length} new-country sights)`);
   for (const p of picks) console.log(`    [${p.x.toFixed(1)}, ${p.y.toFixed(2)}, ${p.z.toFixed(1)}],   // ${p.i}${p.kept ? ' kept' : ''}: route ${p.off.toFixed(0)} m${p.fresh ? ', new country' : ''}${p.poi ? `, ${p.poi}` : ''}${p.kept ? '' : `, drop ${p.drop.toFixed(1)}, nook ${p.nook}, high ${p.high.toFixed(1)}`}`);
   console.log('  ],');

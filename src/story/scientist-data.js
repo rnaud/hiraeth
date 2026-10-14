@@ -15,8 +15,11 @@ import { fragmentCounts } from '../fragments-data.js';
 import { fragmentPurse, affordable } from '../fragment-shop.js';
 import { TITLES } from '../levels/names.js';
 
-const NUM = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-const say = (n) => (n <= 10 ? NUM[n] : String(n));
+// (in words to thirty: a world's count is 24 since v1.70, issue #317; over that, figures)
+const ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const NUM = ['no', ...ONES.slice(1), 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
+  ...ONES.map((o) => (o ? `twenty-${o}` : 'twenty')), 'thirty'];
+const say = (n) => (n < NUM.length ? NUM[n] : String(n));
 const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 /** A world's title inside a sentence (“in the Desert”). */
 const inLine = (id) => (TITLES[id] ?? id).replace(/^The /, 'the ');

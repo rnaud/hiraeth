@@ -6,6 +6,8 @@
 //
 // A part: { id, title, text: [paragraph] }; `ending: [paragraph]` is kept behind a "Show the ending" fold.
 
+import { FRAGMENTS_PER_WORLD, FRAGMENT_TOTAL } from '../fragments-data.js';
+
 /** The game's lore: the thread through every world. */
 export const THREAD = [
   { id: 'light', title: 'The singing light', text: [
@@ -27,7 +29,7 @@ export const THREAD = [
     'In every world the makers built one great house, a temple of rooms and puzzles in that world’s architecture. Half-way in waits a gadget that is the key to the rest; at the end, a guardian they left to keep the house, frightened or broken since the light went over. A guardian that lives is calmed; a machine is stopped. Either way the world outside changes.',
   ] },
   { id: 'fragments', title: 'The fragments of the singing light', text: [
-    'The light sang so hard on its way, world to world, that it shed bits of itself wherever it passed: eight small pale splinters in each world on the route, 96 in all. Each glows and still sings faintly, three soft notes in the light’s beat of threes.',
+    `The light sang so hard on its way, world to world, that it shed bits of itself wherever it passed: ${FRAGMENTS_PER_WORLD === 24 ? 'twenty-four' : FRAGMENTS_PER_WORLD} small pale splinters in each world on the route, ${FRAGMENT_TOTAL} in all. Each glows and still sings faintly, three soft notes in the light’s beat of threes.`,
     'Nobody sent the light anywhere, so nothing it shed lies on the way anyone sends you: they settled where its song rang longest, on ledges and high places, in nooks behind things, at the ends of side paths.',
     'Anselm Thrum, a thin man in a patched pale coat with a brass box that ticks near a splinter, has followed the song since the night it went over. The first fragment you take brings him at a run; he lives in the hold among the crates, keeps what you bring in a jar, and works them into your gear for a price in fragments. He never learns what the light was.',
   ], ending: [

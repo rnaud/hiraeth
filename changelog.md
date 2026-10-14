@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.70 — 2026-10-13
 
+- There are three times as many fragments of the singing light: 24 hide in every world now, 288 in all, so one is never far as you explore, and half of them sit in or on the places worth reaching. Anselm’s upgrades cost what they did, and the ones you already found stay found.
 - A pit that puts you back at the last mark now looks it: in every temple its walls sink into a deep ink as they go down, its floor, sand or water goes dark, and slow pale rings turn on it, so you can tell from the lip that there is nothing to land on. The Rose House’s sand pit no longer looks like a floor. Drops with a floor to land on look as they did, and in the City Floating in Space faint rings turn in the void under the islands.
 - You can only lock on to a foe you can see: none behind a shut door, a gate or a wall. A locked foe that goes behind one lets go of the lock a moment later, and a foe behind a shut door no longer notices you or winds up a blow at you through it.
 - Every world’s composed music is its own: the Mangrove, Salt Harbour, the Waterfall, the Forest of Antennas, the Eclipse, the Fallen Ring, the Underside and the Overnight Train played the Desert’s and now each has a score after its recording, and the Glass Dunes no longer play the Hangar’s. Several worlds have rhythms of their own too: a harp rolling in sixes, an analog arpeggio, a swung train piano, triplet drums.

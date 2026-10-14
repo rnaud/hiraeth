@@ -26,6 +26,8 @@ export const FRAGMENT = {
   sing: 26,        // m: it sings when you are this close
   singEvery: 3.4,  // s between its three notes
   finder: { range: 60, slow: 1.8, fast: 0.14 },   // the finder: beeps from `range` m, every `slow` s there, every `fast` s on top of it
+  drawTo: 220,     // m: drawn this near (a splinter 0.6 m tall is a few pixels there); 24 a world since v1.70 (issue #317), not
+                   // four draws each for every one in view across the world
 };
 
 export { fragKey, fragmentCounts };
@@ -107,6 +109,8 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
       const p = player?.pos;
       for (const f of list) {
         if (f.found) continue;
+        // (out of drawing range: hidden, and nothing to turn)
+        if (p) { const far = f.pos.distanceToSquared(p) > FRAGMENT.drawTo ** 2; f.grp.visible = !far; if (far) continue; }
         f.grp.position.y = f.base + Math.sin(t * 1.3 + f.i) * 0.07;
         f.core.rotation.y += dt * 0.8;
         f.orbit.rotation.y -= dt * 1.6;

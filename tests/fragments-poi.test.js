@@ -11,10 +11,17 @@ import { pointsOfInterest, poiAt, POI_THINGS, POI_PIECES } from './fragments-rea
 import { FRAGMENTS, FRAGMENTS_PER_WORLD } from '../src/fragments-data.js';
 import { ORDER } from '../src/levels/names.js';
 
-/** How many of a world's eight lie in or on a place of interest, at least (the Desert's two easy ones by the ship among the rest). */
-export const POI_SHARE = 4;
-/** And of the 96, at least. */
-export const POI_TOTAL = 56;
+/**
+ * How many of a world's lie in or on a place of interest, at least: half (4 of 8 in v1.66; 12 of 24 since v1.70, issue
+ * #317), the Desert's two easy ones by the ship among the rest. Four worlds have fewer places off the route than that
+ * holds (each place takes two or three at most, 20 m and more apart, or they would be one find): Lorn's keepers' country
+ * and its shroom caps (the rest of its sights stand in deep water), the Buried Machine's gangway, posts and oil fall,
+ * the Floating city's few islands, the Signal Market's towers; they hold what they have, and the other worlds more.
+ */
+export const POI_SHARE = 12;
+export const POI_MIN = { perdide: 7, buried: 9, spacecity: 11, bazaar: 8 };
+/** And of all of them, at least half (of 96 in v1.66, 56 held; of 288 since v1.70, 150). */
+export const POI_TOTAL = 144;
 
 const placed = new Map();
 const world = (id) => {
@@ -26,7 +33,7 @@ const world = (id) => {
   return placed.get(id);
 };
 
-test('every world hides half its fragments or more in or on a place of interest, and most of the 96 are', () => {
+test('every world hides half its fragments or more in or on a place of interest (or all its places hold), and over half of them all are', () => {
   const short = [], seen = [];
   let all = 0;
   for (const id of ORDER) {
@@ -34,10 +41,11 @@ test('every world hides half its fragments or more in or on a place of interest,
     const n = at.filter(Boolean).length;
     all += n;
     seen.push(`${id} ${n}/${FRAGMENTS_PER_WORLD}: ${at.map((p, i) => `${i} ${p?.name ?? '-'}`).join(', ')}`);
-    if (n < POI_SHARE) short.push(`${id}: ${n} of ${FRAGMENTS_PER_WORLD} in or on a place of interest`);
+    if (n < (POI_MIN[id] ?? POI_SHARE)) short.push(`${id}: ${n} of ${FRAGMENTS_PER_WORLD} in or on a place of interest`);
   }
   assert.deepEqual(short, [], seen.join('\n'));
-  assert.ok(all >= POI_TOTAL, `${all} of 96 in or on a place of interest (at least ${POI_TOTAL})\n${seen.join('\n')}`);
+  assert.ok(all >= POI_TOTAL, `${all} of ${FRAGMENTS_PER_WORLD * ORDER.length} in or on a place of interest (at least ${POI_TOTAL})\n${seen.join('\n')}`);
+  console.log(seen.map((l) => l.split(':')[0]).join('\n'), `\nall told: ${all}`);
 });
 
 test('a world’s fragments in places of interest are spread over three of them at least, not heaped in one', () => {
