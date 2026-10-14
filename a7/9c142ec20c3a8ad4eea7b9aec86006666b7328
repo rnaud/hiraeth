@@ -1,0 +1,35 @@
+tests/signature-search.test.js
+  s_9ca76055a220ed::t_2890809aa0e988 4,155-175
+  s_9ca76055a220ed::t_7333515b045a0c 176
+src/rumble.js
+  s_9ca76055a220ed::t_3799de20b52a9d 59
+src/story/signature-search.js
+  s_9ca76055a220ed::t_8efdbee0745c55 119-132,135-137,139,144-145
+  s_9ca76055a220ed::t_6eaa987352cd7d 118
+src/ship/starmap.js
+  s_9ca76055a220ed::t_1bb08cffa30694 49,379-380,586-587
+changelog.md
+  s_9ca76055a220ed::t_d597a4b3aeedc3 7
+docs/systems/ui.md
+  s_9ca76055a220ed::t_045b01a2f60ec4 629-630
+src/changelog-media.js
+  s_9ca76055a220ed::t_7363ecd07427be 885-896
+src/changelog.js
+  s_9ca76055a220ed::t_05a075ff4e94a5 45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a79c142ec20c3a8ad4eea7b9aec86006666b7328",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_b2769cf9be02f8 5-7,10
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_6bb299adad6a0d 526,532-541,635
+src/changelog-media.js
+  s_9ca76055a220ed::t_f814098effe940 831-832,834-839
+src/changelog.js
+  s_9ca76055a220ed::t_d402bbe91a2c13 11,22-24
+src/minigames/pirates-rules.js
+  s_9ca76055a220ed::t_bc17768b7b3370 419
+src/minigames/pirates.js
+  s_9ca76055a220ed::t_95e19ed0057966 28,484,877-883,885-897,899-901,928-929,935-937,1003-1005,1116-1121
+tests/pirates.test.js
+  s_9ca76055a220ed::t_d315db234bda82 9,329-351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f09dae511b621030dc8e798643ad91d27cca813b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

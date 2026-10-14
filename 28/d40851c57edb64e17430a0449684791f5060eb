@@ -1,0 +1,43 @@
+src/temples/underwater.js
+  s_9ca76055a220ed::t_496eee853b6d4d 433
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_db56c0a8d6ee41 452
+tests/door-bypass.test.js
+  s_9ca76055a220ed::t_6c6a867ee0a39b 1-226
+src/temples/arzach.js
+  s_9ca76055a220ed::t_70a9c158198bb5 559
+src/temples/spacecity.js
+  s_9ca76055a220ed::t_9132c70805fa92 480-481
+src/temples/edena.js
+  s_9ca76055a220ed::t_7fd017c8f9b3eb 514
+src/temples/perdide.js
+  s_9ca76055a220ed::t_75a504604d3c0c 96,303-312,459
+src/temples/pieces.js
+  s_9ca76055a220ed::t_9f3658902545f6 156-165
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_d4cbb1d2951980 432
+changelog.md
+  s_9ca76055a220ed::t_3f645c725207b1 5-8
+docs/systems/temples.md
+  s_9ca76055a220ed::t_b965ae18d4e8ed 813-828
+src/changelog-media.js
+  s_9ca76055a220ed::t_c0091887b2173f 831-832,834-841
+src/changelog.js
+  s_9ca76055a220ed::t_77802875e8c50e 11-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "28d40851c57edb64e17430a0449684791f5060eb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
