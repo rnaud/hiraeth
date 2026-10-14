@@ -249,12 +249,14 @@ namespace Hiraeth.Bridge
         {
             used = 0; tilesUsed = 0;
             foreach (var l in new[] { logo, head, sub, version, hint, note, empty, tabPrev, tabNext }) Show(l, false);
+            // (the shop's sheet sets these its own way: back to theirs)
+            tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal;
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
             strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false);
             foreach (var m in marks) { Show(m.dot, false); Show(m.name, false); }
             var kind = state.S("kind");
-            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else DrawGame();
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             // the buttons' prompts, at the foot on the right
@@ -357,6 +359,69 @@ namespace Hiraeth.Bridge
             if (total <= avail) return 0;
             float h = at < hs.Count ? hs[at] : 0;
             return Mathf.Clamp(top + h / 2 - avail / 2, 0, total - avail);
+        }
+
+        // ------------------------------------------------------------------ a shop (engine/menus.js shopView; issue #264)
+
+        /// <summary>
+        /// A keeper's sheet over the dimmed world, as the web's shop panel (src/shop-panel.js): their name and title, what
+        /// they say now, the wallet (chimes, or the fragments you hold at Anselm's) at the top right; the wares a list,
+        /// each its picture (Anselm's: the items' own), name, what it does and how many, the price or why not on the
+        /// right; the question over it all.
+        /// </summary>
+        void DrawShop()
+        {
+            float sw = Mathf.Min(900, W - 48), sx = W / 2 - sw / 2, sy = 30, sh = H - 30 - 50;
+            Sheet(sx, sy, sw, sh, true);
+            Head(state.S("head"), sx + 24, sy + 16, sw * 0.6f);
+            Show(sub, true); sub.fontStyle = FontStyle.Italic;
+            var ss = Ui.Set(sub, state.S("sub") ?? "", sw * 0.6f);
+            Ui.Place(sub.rectTransform, sx + 24, sy + 46, sw * 0.6f, ss.y);
+            var line = state.S("line") ?? "";
+            Show(empty, line.Length > 0);
+            float top = sy + 70;
+            if (line.Length > 0)
+            {
+                empty.fontSize = Body;
+                var ls = Ui.Set(empty, "“" + line + "”", sw - 48);
+                Ui.Place(empty.rectTransform, sx + 24, top, sw - 48, ls.y);
+                top += ls.y + 12;
+            }
+            // the wallet, top right
+            Show(tabNext, true);
+            tabNext.fontSize = 22;
+            Ui.Set(tabNext, state.S("wallet") ?? "", 240);
+            Ui.Place(tabNext.rectTransform, sx + sw - 24 - 240, sy + 16, 240, 30);
+            var rows = state.L("rows") ?? new List<object>();
+            var hs = new List<float>(); int at = 0;
+            for (int i = 0; i < rows.Count; i++) { var r = rows[i] as Dictionary<string, object>; hs.Add(Fit(r, sw - 48)); if (B(r, "on")) at = i; }
+            float avail = sy + sh - 16 - top, yy = top - Scroll(hs, at, avail);
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i] as Dictionary<string, object>;
+                float rh = hs[i];
+                if (yy + rh > top - 1 && yy < top + avail - 2)
+                {
+                    var pic = Picture(r.S("pic"));
+                    var cell = Entry(sx + 24, yy, sw - 48, rh - 6, (pic != null ? "" : (r.S("mark") ?? "") + " ") + r.S("text"), r.S("sub"), r.S("val"), B(r, "on"), dimmed: !B(r, "ok"), boxed: true);
+                    LinePicture(cell, pic, rh - 6);
+                }
+                yy += rh;
+            }
+            var ask = state.O("ask");
+            if (ask != null) DrawAsk(ask);
+
+            // (a ware as tall as its words: its name, then what it does and how many under it)
+            float Fit(Dictionary<string, object> r, float w)
+            {
+                float vw = Mathf.Min(w * 0.3f, 180), tw = w - 28 - vw - 8;
+                meas.fontSize = Body; meas.fontStyle = FontStyle.Bold; meas.lineSpacing = 1;
+                float th = Ui.Measure(meas, r.S("text") ?? "", tw).y;
+                meas.fontSize = Small; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.2f;
+                float sh2 = string.IsNullOrEmpty(r.S("sub")) ? 0 : Ui.Measure(meas, r.S("sub"), tw).y + 1;
+                meas.lineSpacing = 1;
+                return Mathf.Max(52, 5 + th + sh2 + 14);
+            }
         }
 
         void DrawAsk(Dictionary<string, object> a)

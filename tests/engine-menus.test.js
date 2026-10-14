@@ -429,3 +429,48 @@ test('the Items panel in an engine: as many tiles a row as fit, each with its pi
   assert.match(src('scripts/engine-bundle.mjs'), /export async function unityPictures/);
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /item-pictures/);
 });
+
+test('a shop\'s sheet (issue #264): the web\'s ShopPanel\'s wares as a list, A / × asks, Buy buys, B / ○ backs out, Anselm\'s in fragments; Photo mode on the Start menu', async () => {
+  const { ShopPanel } = await import('../src/shop-panel.js');
+  // Anselm's logic as src/fragment-shop.js has it: two upgrades, one he can sell, one too dear; what you hold
+  const owned = new Set(), held = { n: 6 };
+  const logic = {
+    get held() { return held.n; },
+    view: () => [{ id: 'coil', price: 5 }, { id: 'lightcell', price: 25 }].map((w) => ({ ...w, kind: 'upgrade', limited: true, state: owned.has(w.id) ? 'owned' : held.n < w.price ? 'short' : 'ok', stock: owned.has(w.id) ? 0 : 1 })),
+    buy: (id) => { owned.add(id); held.n -= 5; return { ok: true, state: 'ok', price: 5, ware: id }; },
+  };
+  const el = { classList: { add() {}, remove() {} }, setAttribute() {}, addEventListener() {}, querySelector: () => null, innerHTML: '' };
+  const panel = new ShopPanel({ el, doc: null, game: null, resources: { chimes: 0 }, covered: () => true });
+  let resumed = 0;
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub(), onResume: () => resumed++ });
+  assert.ok(m.openShop(panel, { kind: 'fragments', shop: { id: 'thrum', label: 'Anselm Thrum' }, logic, keeper: { id: 'thrum', name: 'Anselm Thrum', title: 'scientist' }, lines: {} }));
+  let v = m.view();
+  assert.equal(v.kind, 'shop');
+  assert.equal(v.head, 'Anselm Thrum');
+  assert.deepEqual(v.rows.map((r) => [r.id, r.ok, r.on]), [['coil', true, true], ['lightcell', false, false]]);
+  assert.match(v.wallet, /^6 /);
+  assert.equal(v.ask, null);
+  m.action('confirm');
+  v = m.view();
+  assert.ok(v.ask && v.ask.on === 1 && /5/.test(v.ask.q), JSON.stringify(v.ask));
+  m.navigate(-1, 0); assert.equal(m.view().ask.on, 0, 'left: Not now');
+  m.navigate(1, 0); m.action('confirm');
+  v = m.view();
+  assert.equal(v.ask, null);
+  assert.ok(owned.has('coil') && /^1 /.test(v.wallet), 'bought: the price off what you hold');
+  assert.equal(v.rows[0].state, 'owned');
+  // the one too dear: asked, nothing to buy (the keeper says why); B / ○ leaves the shop
+  m.navigate(0, 1); m.action('confirm');
+  assert.equal(m.view().ask, null);
+  m.action('back');
+  assert.ok(!m.open && resumed === 1 && !panel.isOpen);
+  // photo mode on the Start menu, between Controls and What's new (the web's order), closing it as it starts
+  let photo = 0;
+  const p = new EngineMenus({ store: memStore(), settings: settingsStub(), onPhoto: () => photo++ });
+  const at = START_SIDE.findIndex((e) => e.id === 'photo');
+  assert.deepEqual(START_SIDE.slice(at - 1, at + 2).map((e) => e.id), ['controls', 'photo', 'news']);
+  p.show('start');
+  for (let i = 0; i < at; i++) p.navigate(0, 1);
+  p.action('confirm');
+  assert.ok(photo === 1 && !p.open);
+});

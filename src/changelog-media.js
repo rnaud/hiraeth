@@ -836,6 +836,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'drone-talk', title: 'A talk', caption: 'Talking to Marrow by the ship: before, the drone on his back by his head; after, nothing on him but the flask.', from: DRONE294 },
       { name: 'drone-scout', title: 'Calling it', caption: 'A sixth of a second after the scout’s button: before, it hops off the flask by his shoulder; after, a small light over his shoulder that the drone grows out of.', from: DRONE294 },
     ] },
+    { match: 'In the Unity preview the shops open', tags: ['devices', 'menus'], see: 'In the Unity preview, talk to Anselm in the ship’s hold once you have met him and choose “Show me what you have”: his upgrades are listed with their prices in fragments; A on one asks, A on Buy buys.' },
     { match: 'In the Unity preview the Start menu has Photo mode', tags: ['devices', 'menus'], see: 'In the Unity preview press Start, then Photo mode: the left stick flies, L1 / R1 go down and up, A saves the picture (into the app’s photos folder), B leaves.' },
     { match: 'In the Unity preview your ship works', tags: ['devices', 'ship'], see: 'In the Unity preview, walk up the ship’s ramp in the Desert: you go aboard; A / × at the console says “No new messages.”, at the holo table the map is dark until the ship has power.' },
     { match: 'In the Unity preview a new game opens with the prologue', tags: ['devices', 'ship', 'cinematics'], see: 'In the Unity preview, New game on the title: the screen opens on the ship’s ceiling, the ship says good morning, and the console blinks for the message.' },

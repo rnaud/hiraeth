@@ -27,6 +27,8 @@ import { PAD_VERBS, BUTTON_NAME } from '../src/bindings.js';
 import { padFor, padConflicts, padRename, capturePad, RUN_MODES, GUARD_MODES } from '../src/remap.js';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 import { confirmKey, backKey } from '../src/native-pad.js';
+import { stockText, stateText } from '../src/shop-panel.js';
+import { stripTone } from '../src/story/tone.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -140,7 +142,53 @@ export class EngineMenus {
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.startAt(); }
     this.changed();
   }
-  close() { if (!this.mode) return; this.stopRebind?.(); this.mode = null; this.changed(); this.onResume(); }
+  close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.changed(); this.onResume(); }
+
+  // ------------------------------------------------------------------ a shop
+
+  /**
+   * A shop's sheet (issue #264): the web's ShopPanel (src/shop-panel.js) keeps its logic, the keeper's lines and the
+   * question; here its wares are a list the pad goes down, A / × on one asks (or the keeper says why not), A / × on Buy
+   * buys, B / ○ backs out of the question, then out of the shop. Anselm's aboard (his upgrades for fragments) and every
+   * keeper's (chimes).
+   */
+  openShop(panel, entry) {
+    if (!panel?.open?.(entry)) return false;
+    const wares = panel.view().wares;
+    this.shop = { panel, i: Math.max(0, wares.findIndex((w) => w.state === 'ok')), on: 1 };
+    this.mode = 'shop';
+    this.changed();
+    return true;
+  }
+  shopMove(x, y) {
+    const S = this.shop, P = S.panel;
+    if (P.ask) { if (x) S.on = x > 0 ? 1 : 0; return; }
+    const n = P.view().wares.length, d = y || x;
+    if (n && d) S.i = Math.max(0, Math.min(n - 1, S.i + Math.sign(d)));
+  }
+  shopAction(name) {
+    const S = this.shop, P = S.panel;
+    if (name === 'back') { if (P.ask) P.back(); else this.close(); return; }
+    if (name !== 'confirm') return;
+    if (P.ask) { if (S.on === 1) P.buy(); else P.back(); return; }
+    const w = P.view().wares[S.i];
+    if (w) { P.pick(w.id); S.on = 1; }
+  }
+  shopView() {
+    const S = this.shop, v = S.panel.view(), frag = v.money?.cls === 'fragments';
+    const rows = v.wares.map((w, i) => {
+      const { left, have } = w.note === undefined ? stockText(w) : {};
+      const flag = w.flag ?? stateText(w.state), stock = w.note === undefined ? [left, have].filter(Boolean).join(' · ') : w.note;
+      const price = w.state === 'soldout' || w.state === 'owned' ? '' : `${w.price} ${frag ? '✦' : '◆'}`;
+      return { id: w.id, text: w.name ?? t(`shop.${w.id}.name`), sub: [plain(w.effect ?? t(`shop.${w.id}.effect`)), stock].filter(Boolean).join('\n'), val: [price, flag].filter(Boolean).join('  '),
+        state: w.state, ok: w.state === 'ok', on: i === S.i, pic: frag ? w.id : '', mark: frag ? '✦' : w.kind === 'potion' ? '◒' : w.kind === 'heart' ? '♥' : '◆' };
+    });
+    const asked = v.ask ? v.wares.find((w) => w.id === v.ask) : null;
+    return { v: this.v, kind: 'shop', head: v.keeper?.name ?? '', sub: v.keeper?.title ?? '', line: plain(stripTone(v.line ?? '')),
+      wallet: `${v.wallet} ${frag ? '✦' : '◆'}`, money: v.money?.title ?? '', rows,
+      ask: asked ? { q: plain(v.money.ask(asked)), what: '', undone: '', no: t('shop.no'), yes: t('shop.yes'), on: S.on } : null,
+      hint: asked ? '◀ ▶ choose · A / × answer · B / ○ not now' : 'A / × buy · B / ○ leave' };
+  }
 
   // ------------------------------------------------------------------ input
 
@@ -149,6 +197,7 @@ export class EngineMenus {
     if (!this.mode) return;
     if (this.mode === 'title') this.titleAction(name);
     else if (this.mode === 'start') this.startAction(name);
+    else if (this.mode === 'shop') this.shopAction(name);
     else this.gameAction(name);
     this.changed();
   }
@@ -157,6 +206,7 @@ export class EngineMenus {
     if (!this.mode) return;
     if (this.mode === 'title') this.titleMove(x, y);
     else if (this.mode === 'start') this.startMove(x, y);
+    else if (this.mode === 'shop') this.shopMove(x, y);
     else this.gameMove(x, y);
     this.changed();
   }
@@ -466,7 +516,7 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
     v.hint = menuKeys(v.hint);

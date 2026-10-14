@@ -73,10 +73,14 @@ import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
 import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
 import { attachMotion } from '../src/motion-match.js';
+import { ShopPanel } from '../src/shop-panel.js';
+import { resources } from '../src/resources.js';
 
 export { page };
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
 
+/** The shop panel's element where there is no page: every call taken (its sheet is the menus', engine/menus.js). */
+const SHOP_EL = { classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, setAttribute() {}, addEventListener() {}, querySelector: () => null, innerHTML: '' };
 /** Sound where the engine has none: every call taken, nothing played. */
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
 // the Map's drawn ground: its side in pixels (BridgeMenu shows it up to ~500 units of its 720-high canvas)
@@ -305,6 +309,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
+  // the shops (main.js: talking to a keeper, "Show me what you have", or E at their counter; Anselm's aboard): the web's
+  // ShopPanel keeps their logic, its sheet is the menus' 'shop' (engine/menus.js openShop; BridgeMenu.cs DrawShop),
+  // opened once the conversation that asked for it has closed (issue #264)
+  let shopWaiting = null;
+  const shopPanel = menus?.openShop ? new ShopPanel({ el: SHOP_EL, doc: null, game: gameState, resources, sound, covered: () => true,
+    onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts?.(resources.maxHearts); player.restore?.(player.maxHearts); } } }) : null;
+  if (shopPanel) gameState.on('shop:open', ({ shop } = {}) => { shopWaiting = (shop === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(shop)) ?? null; });
   journal.markSeen(levelId);   // (after the story read its first visit, as main.js marks it)
   if (Q) for (const n of npcs) { n.lowDetail = !!Q.lowDetail; n.clothFar = Q.clothFar ?? null; }
   // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
@@ -801,6 +812,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       let handled = false;
       if (story) { try { handled = story.update(dt, simT, { camera, ePressed, paused: busy0 || (shipOn && ship.playing) }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
       if (handled) player._eHeld = true;
+      if (shopWaiting && !talking()) { const e = shopWaiting; shopWaiting = null; menus.openShop(shopPanel, e); }
       lap?.('story');
       const busy = !!story?.busy?.() || (shipOn && ship.busy());
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());

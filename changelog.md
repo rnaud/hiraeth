@@ -19,6 +19,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Unity preview your ship works: walk up its ramp and you go aboard, the console plays its messages, the holo table opens the worlds you can fly to, and flying there plays the take-off and the arrival, with their letterbox, fades and subtitles.
 - In the Unity preview the Start menu has Photo mode: fly the camera anywhere with the sticks, the screen clear but for its keys, and A saves the picture.
 - No two people you meet in a world have names that look alike any more. The games’ hosts are the Desert’s Kamal, Aziza and Bilal, Vael’s Elva and Brother Amos, the City-Shaft’s Dagny and the Moon Foundry’s Rudi; the Whale-House’s door-keeper is old Achille, Lorn’s lamp-counter is Briony and the Welcome-Shelf’s keeper is Burdock. The Desert’s hoverbike race is run round the Two Chasms.
+- In the Unity preview the shops open: Anselm sells his upgrades aboard the ship for your fragments, and every keeper their wares for chimes, on a sheet you go down with the pad, asked before you buy.
 - Plumb, the drone, no longer rides on your back by your face: it comes out of a small light over your shoulder when you call it (or when it has something to show you), does its job, and winks out again. Talks, scenes and close-ups show only you.
 - In the City-Shaft, Nima only asks you to look into the dimming light once you have the fluid wings (the way down the shaft is flown): without them she points you to the Aerie on Vael.
 

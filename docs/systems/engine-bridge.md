@@ -267,8 +267,16 @@ BridgeHost.Photo, BridgeRunner.Shot into the app's own folder (`Application.pers
 `Android/data/com.rnaud.hiraeth.unity/files/photos`, not the gallery), and the strip says "Photo saved". B / ○, View,
 Menu or Esc leave it. Test: tests/engine-ship.test.js.
 
-Left for later (issue #264): Anselm's shop (the page's ShopPanel: "Show me what you have" does
-nothing in the engine yet), the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
+**The shops** (issue #264): Anselm's aboard (his upgrades for the fragments you hold, src/fragment-shop.js) and every
+keeper's (chimes). The web's ShopPanel (src/shop-panel.js) keeps their logic, the keeper's lines (in their voice) and
+the question, over an element that takes every call (`SHOP_EL`); game 'shop:open' (talking to a keeper, "Show me what
+you have", or E at their counter) opens it once the conversation has closed, as the menus' 'shop' (`openShop`,
+`shopView`): the keeper's name, title and line, the wallet, the wares a list (Anselm's with the items' pictures), the
+price or why not; A / × on one asks (or the keeper says why not), A / × on Buy buys, ◀ ▶ between Buy and Not now,
+B / ○ out of the question, then out of the shop. BridgeMenu.cs `DrawShop`, the question its `DrawAsk`. Test:
+tests/engine-menus.test.js.
+
+Left for later (issue #264): the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
 the engine starts again as the climb ends).
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD
