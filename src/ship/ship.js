@@ -351,7 +351,7 @@ export class Ship {
   // ------------------------------------------------------------------ wiring
   /** The rest of the game, once it exists. */
   attach(deps) {
-    Object.assign(this, deps);   // player, rig, camera, sound, journal, post, story, wind, levels, order, titles, levelTitle, lib, humans, departure (to) => href | null
+    Object.assign(this, deps);   // player, rig, camera, sound, journal, post, story, wind, levels, order, titles, levelTitle, lib, humans, departure (to) => href | null, go (to): an engine's way to the next world
     // the recordings' hologram: the game's own people, drawn in light (needs the bodies and the mocap library)
     if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans });
     this.map = new StarMap({
@@ -651,7 +651,8 @@ export class Ship {
     this.cinematic = new TakeoffDirector(this, {
       to, title: this.levels.find((l) => l.id === to)?.title ?? to,
       // (the first flight to a world never visited goes by way of the chime-pirates: main.js departure, src/ambush.js)
-      onDone: () => { game.set('ship.launched', true); location.search = this.departure?.(to) ?? `?level=${to}&via=ship`; },
+      // (an engine has no page to send to the next world: `go` starts it again there, engine/game.js)
+      onDone: () => { game.set('ship.launched', true); if (this.go) this.go(to); else location.search = this.departure?.(to) ?? `?level=${to}&via=ship`; },
     });
     this.cinematic.start();
   }

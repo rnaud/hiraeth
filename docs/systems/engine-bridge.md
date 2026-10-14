@@ -236,9 +236,31 @@ as on the web; the traveller's `locoMoves` stays off (his captured moves are in 
 in the VM: docs/systems/characters.md, "What it costs" (~0.02 ms a frame while talking, nothing otherwise);
 `-js-off gestures` leaves them out.
 
-Left for later (issue #264): the photo mode (left out on purpose), the ship's interior attached in the engine (the
-console's star map, the voicemail, Anselm's shop and the hold are the page's own panels: each wants an engine
-drawing first), the prologue (a new save starts at the ramp), the keyboard's rebinding, the language setting.
+**The ship and its scenes** (issue #264). When the engine is played (with its menus; never a bench's plan, whose
+numbers stay comparable) engine/game.js attaches the ship as main.js does (`ship.attach`, `shipScenes`): its
+`input` before the traveller's (the ramp walked into takes you aboard on its autopilot, E aboard is the ship's),
+its `update` after the rig (a scene's shot replaces the rig's camera), `hud()` in the cue ("E voicemail", "E galactic
+map", "E step outside"), its `busy()` in the world's. So the rooms, the hold and the console are reached: the
+voicemail plays a waiting recording (CallDirector) or says "No new messages."; the holo table's galactic map, a page
+of its own on the web (StarMap), opens the game menu's Worlds page here (without power the ship only says the map is
+dark); its Travel here is the ship's own (`ship.travel`: the take-off, then `go(to)`, which the web does with
+`location.search`: the engine starts again at that world's landing, `boot.via` 'ship', and plays the arrival,
+ArrivalDirector). The ship's cinema (src/ship/cinema.js) has no page here (`cinema.dom` false): what it would draw
+is the screen's state as well, `cine` (the letterbox, the eyes' opening, the fade, the red wash, the hint,
+hold-to-skip, the HUD hidden but for the cue in a scene you walk through) and `sub` (the speaker's tag and the
+line; src/platform.js), and BridgeHud.cs draws them over the HUD as the page's #cine (`DrawCine`). Esc held skips a
+scene (it no longer opens the Start menu while one plays), as does B / ○ on the pad; Menu still pauses it.
+
+**The opening** (issue #264). New game on the title starts the desert's prologue, as the web's title does a save that
+has not played it (`prologue.done` unset): the ship in orbit (its space copy), the wake, the walk to the console in
+your own time, the father's message, the singing light, the landing and the step out (PrologueDirector, the same
+code), then the save goes on at the foot of the ramp. The save is not written while a scene plays (the traveller
+stands in orbit). Test: tests/engine-ship.test.js (the bundle in a bare V8 context: the opening to the walk, E at the
+console, the call, the skip; up the ramp and aboard, the table and the console; the arrival; a plan without them).
+
+Left for later (issue #264): the photo mode, Anselm's shop (the page's ShopPanel: "Show me what you have" does
+nothing in the engine yet), the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
+the engine starts again as the climb ends).
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD
 draws it in uGUI with the C# port's own pieces and layout (Hud.cs, Ui.cs: the paper, the ink, the

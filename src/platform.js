@@ -55,10 +55,14 @@ export const audio = {
  *   keys      { small, big }                     the key counter while in a temple: small keys in hand, the great key (hud.js keysHud)
  *   dialogue  { name, title, color, text, shown, done, speaker, choices: [{ text, tone, index }], more }
  *   choice    the answer a pad has picked (an engine's: the page focuses a button instead)
+ *   cine      { bars, lids, lid, fade, white, secs, red, hint, skip: { k, label, press }, hud, walk }  a ship's scene
+ *             (ship/cinema.js): the letterbox, the eyes' opening, the fade, the alarm's wash, the hint, hold-to-skip,
+ *             the game's HUD hidden (hud false) but for the cue in a scene you walk through (walk)
+ *   sub       { who, cls, text, id }             the scene's subtitle (ship/cinema.js): the speaker's tag and the line
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null },
   version: 0,
   _keys: {},
   set(part, value) {

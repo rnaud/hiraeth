@@ -78,6 +78,89 @@ namespace Hiraeth.Bridge
             wheelFill.type = Image.Type.Filled; wheelFill.fillMethod = Image.FillMethod.Radial360; wheelFill.fillOrigin = (int)Image.Origin360.Top; wheelFill.fillClockwise = false;
             Ui.Stretch(wheelFill.rectTransform, 3, 3, 3, 3);
             BuildDialogue(mono);
+            BuildCine(mono);
+        }
+
+        // the ship's scenes (src/ship/cinema.js, screen 'cine' and 'sub'; issue #264): the letterbox, the fade, the red
+        // wash, the hint under the top bar, the subtitle over the bottom one and the hold-to-skip tag, over the HUD as
+        // the page's #cine is
+        Image cineRed, cineFade, barTop, barBot;
+        Ui.Box subBox, cineHint, skipBox; Label subText, cineHintText, skipText; Image skipTrack, skipFill;
+        float fadeA, barH, redA; int subId = -1; float subT;
+        static readonly Color CineInk = Ui.Hex("#2b211f"), CinePaper = Ui.Hex("#fff6dc"), SubPaper = new Color(247 / 255f, 236 / 255f, 210 / 255f, 0.95f);
+        const int SubSize = 21;
+
+        void BuildCine(Font mono)
+        {
+            cineRed = Ui.Fill(root, new Color(170 / 255f, 30 / 255f, 25 / 255f, 1), 0, "cine red"); cineRed.raycastTarget = false;
+            cineFade = Ui.Fill(root, CineInk, 0, "cine fade"); cineFade.raycastTarget = false;
+            barTop = Ui.Rect(root, CineInk, 0, "cine bar top"); barBot = Ui.Rect(root, CineInk, 0, "cine bar bottom");
+            cineHint = Ui.Panel(root, "cine hint", HintBg, HintBg, 0, 0, 0, 4);
+            cineHintText = Ui.Label(cineHint.rt, "text", mono, 13, HintInk, TextAnchor.UpperCenter);
+            subBox = Ui.Panel(root, "cine sub", SubPaper, CineInk, 2, 3, 3);
+            subText = Ui.Label(subBox.rt, "text", mono, SubSize, CineInk, TextAnchor.UpperCenter, lineSpacing: 1.25f);
+            skipBox = Ui.Panel(root, "cine skip", new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.82f), Color.clear, 0);
+            skipText = Ui.Label(skipBox.rt, "text", mono, 12, HintInk, TextAnchor.MiddleLeft);
+            skipTrack = Ui.Rect(skipBox.rt, HintInk, 0, "track"); skipFill = Ui.Rect(skipTrack.rectTransform, Ui.Gold, 0, "fill");
+        }
+
+        void DrawCine(Dictionary<string, object> c, Dictionary<string, object> sub)
+        {
+            float dt = Time.unscaledDeltaTime;
+            // the fade, eased to its value over its seconds (the page's CSS transition), black or the paper's white
+            float fadeTo = c != null ? Mathf.Clamp01(c.F("fade")) : 0, secs = c != null ? Mathf.Max(0.01f, c.F("secs", 0.6f)) : 0.6f;
+            fadeA = Mathf.MoveTowards(fadeA, fadeTo, dt / secs);
+            var fc = c != null && c.Get("white") is bool wh && wh ? CinePaper : CineInk;
+            cineFade.color = new Color(fc.r, fc.g, fc.b, fadeA);
+            Show(cineFade, fadeA > 0.002f);
+            redA = Mathf.MoveTowards(redA, c != null ? Mathf.Clamp01(c.F("red")) : 0, dt * 4);
+            cineRed.color = new Color(170 / 255f, 30 / 255f, 25 / 255f, 0.6f * redA);
+            Show(cineRed, redA > 0.002f);
+            // the letterbox: 11 % of the height each, 50.5 % with the eyes shut, the eyelids' opening in between (eyelids(k))
+            bool lids = c != null && c.Get("lids") is bool l && l, bars = c != null && c.Get("bars") is bool b && b;
+            float lid = c != null ? Mathf.Clamp01(c.F("lid", 1)) : 1;
+            float to = lids ? 0.505f : lid < 1 ? 0.505f - (0.505f - 0.11f) * lid : bars ? 0.11f : 0;
+            barH = lids || lid < 1 ? to : Mathf.MoveTowards(barH, to, dt / 1.1f * 0.2f);
+            Show(barTop, barH > 0.001f); Show(barBot, barH > 0.001f);
+            Ui.Place(barTop.rectTransform, 0, 0, W, barH * H); Ui.Place(barBot.rectTransform, 0, H - barH * H, W, barH * H);
+            // the hint under the top bar
+            var hint = c?.S("hint") ?? "";
+            Show(cineHint, hint.Length > 0);
+            if (hint.Length > 0)
+            {
+                var s = Ui.Set(cineHintText, Text.Plain(hint), Mathf.Min(560, W - 60));
+                Ui.Place(cineHintText.rectTransform, 14, 6, s.x, s.y);
+                Ui.Place(cineHint.rt, W / 2 - (s.x + 28) / 2, Mathf.Max(barH * H, cueBottom) + 12, s.x + 28, s.y + 12);
+            }
+            // the subtitle over the bottom bar: the speaker's tag in their colour, the line, its *emphasis* bold
+            if (sub != null && sub.I("id") != subId) { subId = sub.I("id"); subT = 0; }
+            subT += dt;
+            Show(subBox, sub != null);
+            if (sub != null)
+            {
+                string who = sub.S("who") ?? "", cls = sub.S("cls") ?? "";
+                string col = cls == "father" ? "#7a3a35" : cls == "mother" ? "#277e86" : cls == "ship" ? "#c8483a" : "#2b211f";
+                var body = (who.Length > 0 ? $"<b><color={col}>{who}</color></b>  " : "") + Ui.Rich(Text.Plain(sub.S("text") ?? ""));
+                var s = Ui.Set(subText, body, Mathf.Min(46 * SubSize, W - 64));
+                Ui.Place(subText.rectTransform, 12, 5, s.x, s.y);
+                float w = s.x + 24, h = s.y + 11;
+                Ui.Place(subBox.rt, W / 2 - w / 2, H - Mathf.Max(barH * H, 26) - 14 - h, w, h);
+                Ui.Group(subBox.rt).alpha = Mathf.Clamp01(subT / 0.2f);
+            }
+            // hold to skip, in the bottom corner, its bar filling
+            var skip = c?.O("skip");
+            Show(skipBox, skip != null);
+            if (skip != null)
+            {
+                bool press = skip.Get("press") is bool p && p;
+                var s = Ui.Set(skipText, Text.Plain(skip.S("label") ?? ""), 360);
+                float tw = press ? 0 : 62;
+                Ui.Place(skipText.rectTransform, 8, 3, s.x, 18);
+                Show(skipTrack, !press);
+                if (!press) { Ui.Place(skipTrack.rectTransform, 8 + s.x + 8, 9, 60, 6); Ui.Place(skipFill.rectTransform, 0, 0, 60 * Mathf.Clamp01(skip.F("k")), 6); }
+                float w = s.x + 16 + tw;
+                Ui.Place(skipBox.rt, W - 22 - w, H - H * 0.055f - 14, w, 24);
+            }
         }
 
         void BuildDialogue(Font mono)
@@ -145,13 +228,19 @@ namespace Hiraeth.Bridge
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 3);
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
             var d = state.O("dialogue");
-            DrawCue(state.O("cue"), d == null);
-            DrawToast(state.O("toast"), d == null);
-            DrawPrompt(state.O("prompt"), d == null);
-            DrawHealth(state.O("health"));
-            DrawKeys(state.O("keys"), d == null);
-            DrawWheel(state.O("stamina"), d == null);
+            // (a ship's scene hides the game's HUD, cinema.hud(false), but for the cue in a scene you walk through,
+            // cinema.controls(true); its own pieces drawn over everything)
+            var cine = state.O("cine");
+            bool hud = !(cine != null && cine.Get("hud") is bool hs && !hs), free = d == null && hud;
+            bool walk = cine != null && cine.Get("walk") is bool wk && wk;
+            DrawCue(state.O("cue"), d == null && (hud || walk));
+            DrawToast(state.O("toast"), free);
+            DrawPrompt(state.O("prompt"), free);
+            DrawHealth(hud ? state.O("health") : null);
+            DrawKeys(state.O("keys"), free);
+            DrawWheel(state.O("stamina"), free);
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
+            DrawCine(cine, state.O("sub"));
         }
 
         void DrawToast(Dictionary<string, object> t, bool on)

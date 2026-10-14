@@ -182,7 +182,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null } = {}) {
   const T = {};
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
@@ -219,7 +219,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   quiet(() => level.init?.(physics));
   stamp('physics');
   const waters = quiet(() => new Waters(scene, { physics }));
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: false }));
+  // the opening on a new save (main.js playPrologue: the desert, no save's place, not arriving by ship): the ship in
+  // orbit too (its space copy), its scenes played by the engine (issue #264)
+  const playPrologue = !!(prologue && menus && levelId === 'desert' && !start?.pos && via !== 'ship' && !flags && !view);
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue }));
   stamp('ship');
   const player = new Player(physics, {
     mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
@@ -296,7 +299,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let story = null;
   if (people && humans && lib) {
     try {
-      gameState.data.flags['prologue.done'] = true;
+      if (!playPrologue) gameState.data.flags['prologue.done'] = true;
       story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: { complete() {}, start() {}, done: false, waitFor: null },
         capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool: null, isNight: () => false, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
@@ -373,6 +376,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, U, atmo, atmo?.script ?? script);
   updateSky();
 
+  // the ship attached, as main.js attaches it, when the engine is played (its menus; not a bench's plan): walking up the
+  // ramp takes you aboard, E at the console plays the voicemail (CallDirector), at the holo table the galactic map (the
+  // game menu's Worlds page here), and its scenes play: the prologue, the take-off, the arrival (issue #264). Its
+  // cinema draws nothing of its own (no page): its letterbox, fades and subtitles are the screen's 'cine' and 'sub'
+  // (src/platform.js), which the engine's HUD draws (BridgeHud.cs). Travel ends in `onTravel(to)`: the engine
+  // starts again at that world's landing (the page goes to ?level=<to>&via=ship).
+  const shipOn = !!(menus && ship && story && !flags && !view);
+  if (shipOn) {
+    ship.cinema.dom = false;
+    quiet(() => ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans, levels: LEVELS, order: ORDER,
+      titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), go: (to) => onTravel?.(to) }));
+  }
+
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads
   const keys = {};
   const tapped = new Set();
@@ -423,10 +439,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = nowMs; } } else rideHint.kind = null;
     const pad = controller.index !== null;
     const quiet = busy || player.dead || !!pinned;
-    const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad });
-    const place = quiet ? '' : placeName.update(atmo?.name, nowMs);
+    const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad,
+      shipHint: shipOn ? ship.hud() : null, shipPlaying: shipOn && ship.playing });
+    const place = quiet || (shipOn && ship.playing) ? '' : placeName.update(atmo?.name, nowMs);
     cue.set(text || place, text ? '' : 'place');
-    if (story && !busy && !pinned) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
+    if (story && !busy && !pinned && !(shipOn && ship.playing)) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
     // toasts: the next once the last has been read
     toasts.left -= dt;
     if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
@@ -617,9 +634,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     sectionsOn: false,
     journal,
+    /** The ship attached and its scenes played (the engine played with its menus). */
+    shipScenes: shipOn,
+    /** A ship's scene playing that is not his to walk through (Esc held skips it). */
+    get scenePlaying() { return shipOn && ship.playing && !ship.cinematic?.interactive?.(); },
     /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
     save() {
-      if (flags || pinned || player.dead) return;
+      // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
+      if (flags || pinned || player.dead || (shipOn && ship.playing)) return;
       SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray() });
     },
     /**
@@ -713,15 +735,18 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         n.update(dt, player, camera);
       }
       lap?.('people');
+      // the ship's E aboard and its autopilot (the ramp's walk in and out), as main.js filters the input before the rest
+      const busy0 = !!story?.busy?.() || (shipOn && ship.busy());
+      const ctlS = shipOn && !pinned ? (busy0 ? noInput : ship.input(ctl)) : ctl;
       // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does
-      const ePressed = !!ctl.KeyE && !eWasDown && !pinned; eWasDown = !!ctl.KeyE;
+      const ePressed = !!ctlS.KeyE && !eWasDown && !pinned; eWasDown = !!ctlS.KeyE;
       let handled = false;
-      if (story) { try { handled = story.update(dt, simT, { camera, ePressed, paused: false }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
+      if (story) { try { handled = story.update(dt, simT, { camera, ePressed, paused: busy0 || (shipOn && ship.playing) }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
       if (handled) player._eHeld = true;
       lap?.('story');
-      const busy = !!story?.busy?.();
+      const busy = !!story?.busy?.() || (shipOn && ship.busy());
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
-      player.update(dt, pinned || busy ? noInput : ctl, rig.yaw, rig.pitch);
+      player.update(dt, pinned || busy ? noInput : ctlS, rig.yaw, rig.pitch);
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');
       for (const v of player.vehicles) if (v !== player.ride) { try { v.update(dt, null, simT); } catch (e) { if (!game._vehiclesFailed) { game._vehiclesFailed = true; console.warn('[game] a vehicle failed', e?.stack ?? e); } } }
@@ -738,6 +763,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       }
       lap?.('vehicles, camera');
       try { boxes?.update(dt, simT, { camera }); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
+      if (shipOn && !pinned) {
+        // inside or out, its scenes and their camera (after the rig, as main.js: a scene's shot replaces the rig's)
+        try { ship.update(dt, simT, ctl); } catch (e) { if (!game._shipFailed) { game._shipFailed = true; console.warn('[game] the ship failed in its update', e?.stack ?? e); } }
+        // the holo table's galactic map is the page's: here the game menu's Worlds page, its Travel here the ship's take-off
+        // (without power the ship only says so: the map is dark)
+        if (ship.map?.open) { ship.map.toggle(false); if (gameState.flag('ship.powered')) menus.show('game', 'worlds'); }
+      }
       // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
       try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
       lap?.('boxes, hands');
@@ -804,7 +836,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
   };
   game.applySettings();
-  stamp('ready');
+  // the ship's first scene (main.js ship.start): a new save's opening, the arrival after a flight, else nothing
+  if (shipOn) quiet(() => ship.start({ via: via === 'ship' ? 'ship' : null, prologue: playPrologue, onReady: () => {} }));  stamp('ready');
   log(`built ${levelId}: ${JSON.stringify(T)} ms`);
   return game;
 }

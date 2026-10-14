@@ -836,6 +836,8 @@ export const CHANGELOG_MEDIA = {
       { name: 'drone-talk', title: 'A talk', caption: 'Talking to Marrow by the ship: before, the drone on his back by his head; after, nothing on him but the flask.', from: DRONE294 },
       { name: 'drone-scout', title: 'Calling it', caption: 'A sixth of a second after the scout’s button: before, it hops off the flask by his shoulder; after, a small light over his shoulder that the drone grows out of.', from: DRONE294 },
     ] },
+    { match: 'In the Unity preview your ship works', tags: ['devices', 'ship'], see: 'In the Unity preview, walk up the ship’s ramp in the Desert: you go aboard; A / × at the console says “No new messages.”, at the holo table the map is dark until the ship has power.' },
+    { match: 'In the Unity preview a new game opens with the prologue', tags: ['devices', 'ship', 'cinematics'], see: 'In the Unity preview, New game on the title: the screen opens on the ship’s ceiling, the ship says good morning, and the console blinks for the message.' },
     { match: 'In the Unity preview the list beside the Map no longer writes', tags: ['devices', 'menus'], see: 'In the Unity preview on the Retroid, Select, then R1 to the Map in the Desert: “Through the door of the Rose House” takes two lines and the Rose House sits under it, clear.' },
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
       { name: 'touchdown-incal', title: 'Landing in the City-Shaft', caption: 'Half a second into the shot of the hatch after touchdown: before, balls of dust over the ship’s feet and half its hull; after, the ship on its feet, a few small puffs going.', from: CINE295 },

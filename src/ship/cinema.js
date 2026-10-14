@@ -270,10 +270,14 @@ const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #
 // (the cue is not one: it is the first of the hints' stack at the top, issue #306: layout() places it)
 export const OBSTACLES = ['#health', '#gadget-chip.on', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
 
+/** The speakers' tags over a subtitle (the recordings' and the ship's voices). */
+const SPEAKERS = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU', ilen: 'ILEN' };
+
 export class Cinema {
   constructor() {
     this.dom = hasDOM();
     this.skipK = 0;
+    this._subN = 0;
     this.subs = new Subtitles();
     this._order = [];
     this._layoutT = 0;
@@ -284,6 +288,8 @@ export class Cinema {
     this.caption = { up: false, waiting: false };   // the region's name (main.js: src/hud.js PlaceName), the first notice
     this._held = [];         // lines said while the caption has the screen (say(): they come after it)
     this._objPending = null; // the objective card, waiting its turn
+    // what the scene shows, as data too (src/platform.js screen 'cine' and 'sub': an engine's HUD draws them, issue #264)
+    this.scr = { bars: false, lids: false, lid: 1, fade: 0, white: false, secs: 0.6, red: 0, hint: '', skip: null, hud: true, walk: false };
     if (!this.dom) return;
     if (!document.getElementById('cine-css')) {
       const st = document.createElement('style'); st.id = 'cine-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -309,22 +315,30 @@ export class Cinema {
     addEventListener('resize', () => this.layout());
   }
 
+  /** The scene's pieces as data (screen.cine), for an engine to draw; null when none shows. */
+  _cine(part) {
+    const S = Object.assign(this.scr, part);
+    screen.set('cine', S.bars || S.lids || S.lid < 1 || S.fade > 0 || S.red > 0 || S.hint || S.skip || !S.hud ? { ...S } : null);
+  }
+
   bars(on) {
+    this._cine({ bars: !!on });
     this._bars = on; if (!on) this._walk = false;   // (toasts wait for a letterboxed scene's end, unless you walk through it: dark())
     if (!this.dom) return;
     this.el.classList.toggle('on', on);
     document.body.classList.toggle('cine-on', on);
     this.layout();
   }
-  lids(closed) { this.dom && this.el.classList.toggle('lids', closed); }
+  lids(closed) { this._cine({ lids: !!closed }); this.dom && this.el.classList.toggle('lids', closed); }
   /** Eyelids opening: k = 0 closed .. 1 open (drives the bar heights directly). */
   eyelids(k) {
     this._lidK = k;
+    this._cine({ lid: +Math.max(0, Math.min(1, k)).toFixed(3) });
     if (!this.dom) return;
     const h = 50.5 - (50.5 - 11) * Math.max(0, Math.min(1, k));
     for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = 'none'; b.style.height = `${h}vh`; }
   }
-  releaseLids() { this._lidK = 1; if (this.dom) for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = ''; b.style.height = ''; } }
+  releaseLids() { this._lidK = 1; this._cine({ lid: 1 }); if (this.dom) for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = ''; b.style.height = ''; } }
 
   /**
    * A subtitle, replacing the one up. opts.secs: take it down after that long;
@@ -347,10 +361,12 @@ export class Cinema {
   _showLine() {
     speakLine(this.subs.line);   // the voice under the line now up (src/story/voice.js; null hushes it)
     if (this.subs.line?.text) this.onWords?.(this.subs.line.text);   // (words on the screen: main.js listens for the hum)
-    if (!this.dom) return;
     const line = this.subs.line;
+    // (as data too, screen.sub: the speaker's tag, its colour's class, the line with its emphasis in *stars*)
+    screen.set('sub', line?.text ? { who: SPEAKERS[line.who] ?? '', cls: line.who ?? '', text: keyText(String(line.text)), id: ++this._subN } : null);
+    if (!this.dom) return;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }
-    const who = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU', ilen: 'ILEN' }[line.who] ?? '';
+    const who = SPEAKERS[line.who] ?? '';
     this.subText.innerHTML = `${who ? `<b class="${line.who}">${who}</b>` : ''}${keyText(markKeyPhrase(line.text).replace(/\*([^*]+)\*/g, '<em>$1</em>'), { html: true })}`;   // (the key phrase lettered as itself: src/story/key-phrase.js)
     // a new line comes in over the old one's place (one box, never two)
     this.sub.classList.remove('in');
@@ -361,6 +377,7 @@ export class Cinema {
   }
 
   hint(text) {
+    this._cine({ hint: text ? keyText(String(text)) : '' });
     if (!this.dom) return;
     if (text) setText(this.hintEl, text);
     this._seen('hint', !!text);
@@ -372,6 +389,7 @@ export class Cinema {
   /** Show only the touch controls and the use prompt (the rest of the HUD stays hidden): a scene you walk through. */
   controls(show) {
     this._walk = show;
+    this._cine({ walk: !!show });
     if (!this.dom) return;
     const t = document.getElementById('touch');
     if (t) t.style.visibility = show ? '' : 'hidden';
@@ -381,19 +399,22 @@ export class Cinema {
   }
 
   fade(k, white = false, secs = 0.6) {
+    this._cine({ fade: +k, white: !!white, secs: +secs });
     if (!this.dom) return;
     this.fadeEl.classList.toggle('white', white);
     this.fadeEl.style.transition = `opacity ${secs}s`;
     this.fadeEl.style.opacity = String(k);
   }
 
-  red(k) { if (this.dom) this.redEl.style.opacity = String(k); }
+  red(k) { this._cine({ red: +(+k).toFixed(2) }); if (this.dom) this.redEl.style.opacity = String(k); }
 
   /** The skip tag: hold-to-skip with its bar (the ship's scenes), or `label` for a press (a moment, src/story/moment.js; tappable). */
   skip(k, show, label = null) {
     this.skipK = k;
+    const txt = label ?? holdToSkip();
+    this._cine({ skip: show ? { k: +(+k).toFixed(2), label: txt, press: !!label } : null });
     if (!this.dom) return;
-    const txt = label ?? holdToSkip(), node = this.skipEl.firstChild;
+    const node = this.skipEl.firstChild;
     if (node && node.nodeType === 3 && node.nodeValue !== txt && show) node.nodeValue = txt;   // (only as it shows: swapped while fading out, a moment's tag flashed "hold ESC to skip")
     this.skipEl.classList.toggle('press', !!label && show);
     const was = this.skipEl.classList.contains('show');
@@ -416,6 +437,7 @@ export class Cinema {
 
   /** Hide or show the game HUD (the cue, fps, the touch buttons) during a cinematic. */
   hud(show) {
+    this._cine({ hud: !!show });
     if (!this.dom) return;
     for (const id of ['cue', 'fps', 'gear', 'touch']) { const e = document.getElementById(id); if (e) e.style.visibility = show ? '' : 'hidden'; }
     this.layout();

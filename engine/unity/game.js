@@ -98,25 +98,28 @@ export function start(argsJson) {
  * the same save and world resume it, another reboots the engine onto it (the page's fresh page, src/title.js).
  */
 function begin(choice) {
-  let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null;
+  let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null, prologue = false;
+  const via = choice.via ?? null;
   if (choice.debug) { seedDebugSave(choice.debug, { slot, state: gameState }); slot = slots.active; level = choice.debug; arrive = true; }
   else {
     slots.setActive(slot);
     slots.touch(slot);
     gameState.reload();
     const saved = choice.fresh ? null : SaveGame.load();
-    // (a new save starts in the world the engine was started at: -level, the desert by default; the web's prologue is the page's)
+    // (a new save starts in the world the engine was started at: -level, the desert by default, with the opening there,
+    // as the web's title opens a new game: the prologue until it has been played, prologue.done; issue #264)
     level ??= saved?.level && levelById(saved.level) ? saved.level : levelById(S.args.level) ? S.args.level : 'desert';
-    if (!arrive && saved?.level === level) start = saved; else arrive = true;
+    prologue = !saved && !via && level === 'desert' && !gameState.flag('prologue.done') && S.args.prologue !== false;
+    if (!arrive && saved?.level === level) start = saved; else arrive = !prologue;
   }
   if (S.game) {
-    if (S.game.level?.id === level && S.slot === slot && !arrive) { S.menus.close(); return; }
+    if (S.game.level?.id === level && S.slot === slot && !arrive && !prologue) { S.menus.close(); return; }
     console.log(`[unity] onto save ${slot}, ${level}: the engine starts again`);
-    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, resolved: true } }));
+    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, resolved: true } }));
     return;
   }
   S.slot = slot;
-  launch({ ...S.args, level }, { start, arrive });
+  launch({ ...S.args, level }, { start, arrive, via, prologue });
 }
 
 /** The menu's state to Unity (BridgeMenu.cs) when it changed. */
@@ -134,7 +137,14 @@ function showMenu() {
   host.Menu?.(forPad(JSON.stringify(v), false));
 }
 
-function launch(args, { start: from = null, arrive = false } = {}) {
+/** Another world by the ship (its take-off done, Ship.travel's `go`): the engine starts again at that world's landing, arriving. */
+function flyTo(to) {
+  S.game?.save();
+  console.log(`[unity] the ship flies to ${to}: the engine starts again, arriving by ship`);
+  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } }));
+}
+
+function launch(args, { start: from = null, arrive = false, via = null, prologue = false } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.portraitDir = args.out ?? null;
@@ -156,7 +166,8 @@ function launch(args, { start: from = null, arrive = false } = {}) {
   const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
   const menus = S.menus ?? null;
   createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
-    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures') })
+    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to) })
     .then((game) => {
       S.game = game;
       if (menus) {
@@ -168,6 +179,8 @@ function launch(args, { start: from = null, arrive = false } = {}) {
           const no = game.travelRefusal(id);
           if (no) return no;
           game.save();
+          // (the ship's own way, as the web's: its take-off, then the next world's arrival; ship.travel's `go`, flyTo)
+          if (game.shipScenes) { menus.close(); game.ship.travel(id); return null; }
           console.log(`[unity] travel to ${id}: the engine starts again at its landing`);
           host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: id, arrive: true, resolved: true } }));
           return null;
@@ -295,7 +308,8 @@ function readInput(game) {
     // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
     // closes) and J the game menu, as the page's listeners do
     if (menus?.open) { menus.key(k); continue; }
-    if (menus && k === 'Escape' && !game.story?.dialogue?.open) { game.save(); menus.show('start'); continue; }
+    // (Esc held in a ship's scene skips it: the game's own)
+    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.scenePlaying) { game.save(); menus.show('start'); continue; }
     if (menus && k === 'KeyJ') { menus.show('game'); continue; }
     game.key(k, true);
   }
