@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_0da49c7bcb4676 7
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_de1d09499767fa 140-148
+src/boxes/card.js
+  s_9ca76055a220ed::t_9ba2ee2e2aac02 4-6,13-16,25,27,32,40,61,63-64,76,86
+src/changelog-media.js
+  s_9ca76055a220ed::t_0cc8802bbb0a86 795-796,798-802
+src/changelog.js
+  s_9ca76055a220ed::t_8d891cf30d8a9a 27-29
+src/gadgets/gun.js
+  s_9ca76055a220ed::t_df9f0f28bd0093 62
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_dfa2d0d33f58ba 57
+src/items.js
+  s_9ca76055a220ed::t_f1b73f92e397b6 15-16,55,200,213,222,270,284,308-324
+tests/box-card.test.js
+  s_9ca76055a220ed::t_166640da900bcb 6,31-44
+tests/item-cards.test.js
+  s_9ca76055a220ed::t_b8dd4498121a66 8,42,47-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a9c2a622fe75b28e12ab866e5f0b109cf662d93",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
