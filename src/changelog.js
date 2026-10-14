@@ -31,6 +31,15 @@ export const CHANGELOG = [
     // (HATCH_AA), SMAA at Handheld (SMAA.shader, HiraethFeature.cs, BridgeRunner -aa); tests/distant-shimmer.test.js;
     // docs/systems/performance.md "Unity on the Retroid: the distant shimmer"
     'In the Unity version the far distance no longer shimmers as the camera turns: far-off lines are drawn lighter, as in the web game, so distant towns, towers and dunes stop crawling (on the Retroid, a third to three quarters less flicker far off), and on handhelds the edges are smoothed more sharply. Near lines stay as crisp as before.',
+    // the gadgets and the wallet in the engines (issue #344): engine/game.js Gadgets, gadgetFoundLine, menuSources wallet/toggles,
+    // useItem; scripts/engine-bundle.mjs import.meta.glob; src/gadgets/hud.js screen 'gadget'/'gadgetWheel'/'reticle'/'gadgetMarks';
+    // BridgeHud.cs DrawGadget etc.; tests/engine-gadgets.test.js
+    { text: 'In the Unity preview the gadgets are there: chests and the makers’ courts give them, the one you find is in your hand at once, D-pad ↑ takes another (held, the wheel), and its picture sits in the top right corner. The Items page lists every one of them, and your chimes beside the count.',
+      see: 'In the Unity preview, open the chest in the Givers’ Hearth: after its card the fluid gun is in hand, its glove in the top right corner, and the Items page counts 68 slots with your chimes beside them, as the browser game does (it counted 58, with no chimes).' },
+    // the box card in the engines (issue #345): src/boxes/card.js cardState, screen 'boxCard'; engine/game.js box input, busy,
+    // its filmed opening; src/input-mode.js in the engine (the pad's names); BridgeHud.cs DrawBoxCard; tests/engine-gadgets.test.js
+    { text: 'In the Unity preview a makers’ chest ends its opening on its card, as in the game: what you found, what it does, and A to go on (B skips the opening). Once you pick up a pad, the prompts name its buttons rather than the keyboard’s.',
+      see: 'In the Unity preview, open the star’s chest in Qanat’s streets with the pad: the opening is filmed in its letterbox, then the card reads PALE STAR and its line, with an A button to continue. Walk up to someone: the prompt names the pad’s X, not the keyboard’s E.' },
   ] },
   { v: '1.73', date: '2026-10-14', items: [
     // the City-Shaft's main quest waits for the wings too (issue #328, reopened): src/story/incal-data.js needs; tests/quest-needs.test.js

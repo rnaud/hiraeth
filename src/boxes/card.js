@@ -4,10 +4,14 @@
 // longest card, the Givers' blade's, on a handheld's 800 × 450), so the item the scene holds up stays clear above it; on it
 // the name first and largest, then one line under it, what it does, its buttons inline (issue #329: no subtitle, nothing
 // of what it is, itemLine(def) in src/items.js; the card no wider than CARD_MAX_CH of its words, centred, so it reads). Also the full-screen catcher for the scene (a click or tap dismisses the
-// card) and a small "skip" button for touch. Built on demand, inert in node (no document).
+// card) and a small "skip" button for touch. Built on demand, inert in node (no document). The scene and its card are the
+// screen's state too (src/platform.js screen 'boxCard', cardState), which an engine draws where there is no page (issue
+// #345: the Unity bridge's BridgeHud.cs).
 
-import { keyText } from '../prompt-keys.js';
-import { glyph } from '../pad-glyphs.js';
+import { keyText, inputKind } from '../prompt-keys.js';
+import { glyph, GLYPH_KEYS } from '../pad-glyphs.js';
+import { confirmKey, backKey } from '../native-pad.js';
+import { screen } from '../platform.js';
 import { t } from '../i18n.js';
 import { stripTone } from '../story/tone.js';
 import { itemLine } from '../items.js';
@@ -44,6 +48,18 @@ const CSS = `
 
 /** The most of the screen's height a card takes (the longest, measured on 800 × 450): the item the scene holds up stays clear above it. */
 export const CARD_MAX_SHARE = 0.34;
+/**
+ * The card as the screen's state (an engine draws it): the scene playing (its skip's button and word), and once the item
+ * is out its name, its line (the found line, or what it does, its {key:verb} the input in hand's) and the button to go on.
+ * The buttons in Xbox / PlayStation form with a pad (native-pad.js names them as the pad in hand prints them), else the keys.
+ */
+export function cardState({ def = null, found = null, hint = null, kind = inputKind() } = {}) {
+  const pad = kind === 'pad';
+  const out = { scene: true, back: pad ? backKey() : GLYPH_KEYS.back, skipLabel: t('box.skip') };
+  if (!def) return out;
+  return { ...out, card: true, name: def.name ?? '', text: found ? stripTone(t(found)) : keyText(itemLine(def), { kind, teach: true }), ok: pad ? confirmKey() : GLYPH_KEYS.ok, okLabel: hint ?? t('box.continue') };
+}
+
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 export class BoxCard {
@@ -71,7 +87,11 @@ export class BoxCard {
     el.addEventListener('click', () => { if (this.shown) onDismiss?.(); });
   }
   /** The scene is playing (catch clicks, show the skip button). */
-  scene(on) { if (this.dom) this.el.classList.toggle('on', on); if (!on) this.hide(); }
+  scene(on) {
+    this.playing = !!on;
+    if (this.dom) this.el.classList.toggle('on', on);
+    if (!on) this.hide(); else screen.set('boxCard', cardState());
+  }
   /**
    * The card for what came out of the box: its name and what it does (itemLine(def)). `found`: an i18n key (src/i18n/en.js)
    * for a line said instead of it (the backpack's first find: short, and a mystery still; it carries a tone).
@@ -79,6 +99,8 @@ export class BoxCard {
    */
   show(def, { found = null, hint = null } = {}) {
     this.shown = true;
+    this.last = { def, found, hint };
+    screen.set('boxCard', cardState(this.last));
     if (!this.dom) return;
     this.card.querySelector('.name').textContent = def.name;
     this.card.classList.toggle('found', !!found);
@@ -88,5 +110,11 @@ export class BoxCard {
     this.el.classList.add('card');
     try { this.go.focus({ preventScroll: true }); } catch { /* old browsers */ }
   }
-  hide() { this.shown = false; if (this.dom) { this.el.classList.remove('card'); this.go.blur?.(); } }
+  hide() {
+    this.shown = false; this.last = null;
+    screen.set('boxCard', this.playing ? cardState() : null);
+    if (this.dom) { this.el.classList.remove('card'); this.go.blur?.(); }
+  }
+  /** The card's state again for the input now in hand (a pad picked up, the keys pressed): its buttons' names follow it. */
+  refresh() { if (this.playing) screen.set('boxCard', cardState(this.last ?? {})); }
 }

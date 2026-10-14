@@ -8,7 +8,8 @@ namespace Hiraeth.Bridge
     /// <summary>
     /// The HUD and the conversation, drawn in uGUI from the web game's own state (src/platform.js
     /// screen: the cue line, the toast, the floating prompt, the health bar, the stamina wheel, the
-    /// conversation and the answer a pad has picked), sent by the bundle when it changes. The pieces
+    /// conversation and the answer a pad has picked, the gadget in hand's chip, its wheel, reticle and
+    /// marks, a makers' box's card), sent by the bundle when it changes. The pieces
     /// and their layout are the C# port's (Hud.cs, Ui.cs): the same paper, ink and fonts; only where
     /// the state comes from differs. The game decides everything; this only draws it.
     /// </summary>
@@ -46,8 +47,8 @@ namespace Hiraeth.Bridge
         /// rebuilt its texture under labels already drawn: letters dropped out of a frame).</summary>
         static void Warm(Font f)
         {
-            const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦×éèàçôûâêîïüöäñ";
-            foreach (var size in new[] { 11, 12, 13, 14, 15, 16, 19, 20, 21, 25, 36, 44 })
+            const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦×éèàçôûâêîïüöäñ○□△↑↓←→⥉●☾✒◯◗◎⌇⧗∩✺♪";
+            foreach (var size in new[] { 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 24, 25, 28, 36, 44 })
                 foreach (var st in new[] { FontStyle.Normal, FontStyle.Bold, FontStyle.Italic })
                     f.RequestCharactersInTexture(chars, size, st);
         }
@@ -78,7 +79,9 @@ namespace Hiraeth.Bridge
             wheelFill.type = Image.Type.Filled; wheelFill.fillMethod = Image.FillMethod.Radial360; wheelFill.fillOrigin = (int)Image.Origin360.Top; wheelFill.fillClockwise = false;
             Ui.Stretch(wheelFill.rectTransform, 3, 3, 3, 3);
             BuildDialogue(mono);
+            BuildGadgets(mono);
             BuildCine(mono);
+            BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
         }
 
         // the ship's scenes (src/ship/cinema.js, screen 'cine' and 'sub'; issue #264): the letterbox, the fade, the red
@@ -244,7 +247,240 @@ namespace Hiraeth.Bridge
             DrawKeys(state.O("keys"), free);
             DrawWheel(state.O("stamina"), free);
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
+            DrawGadget(free ? state.O("gadget") : null);
+            DrawGadgetWheel(free ? state.O("gadgetWheel") : null);
+            DrawReticle(free ? state.O("reticle") : null);
+            DrawMarks(free ? state.L("gadgetMarks") : null);
             DrawCine(cine, state.O("sub"));
+            DrawBoxCard(state.O("boxCard"));
+        }
+
+        // ---------------------------------------------------------------- the gadgets (issue #344; src/gadgets/hud.js)
+        // the chip: the gadget in hand's picture alone in a paper disc, top right (issue #240), a thin teal ring round it
+        // filled as far as its count goes, faded when none is left, a gold ring a moment when it changes; the wheel for
+        // choosing one (D-pad ↑ or B held); the reticle on what an aim would catch; the numbered diamonds on its locks
+        class Disc { public RectTransform rt; public Image shadow, ink, paper; public RawImage pic; public Label glyph; }
+        Disc gChip; Image gGauge, gFlash; string gChipId = ""; float gFlashT = 1;
+        RectTransform gWheel; Image gWheelBack; readonly List<Disc> gSlots = new(); Ui.Box gWheelName; Label gWheelNameText;
+        Ui.Box ret; Image retH, retV; Ui.Box retTag; Label retText;
+        readonly List<(RectTransform rt, Label n)> gMarks = new();
+        static readonly Color Teal = Ui.Hex("#2f7f86"), Track = Ui.Hex("#2b211f", 0.18f), Cream = Ui.Hex("#f7ecd2");
+
+        static Image Round(Transform parent, Color c, string name)
+        {
+            var im = Ui.Rect(parent, c, 0, name); im.sprite = Ui.Round(32); im.type = Image.Type.Simple; return im;
+        }
+        /// <summary>A round slot: an ink ring on its shadow, the paper in it masking the picture (or the gadget's mark).</summary>
+        Disc MakeDisc(Transform parent, string name, Font mono, int glyphSize)
+        {
+            var d = new Disc { rt = Ui.Node(name, parent) };
+            d.shadow = Round(d.rt, Ui.Ink, "shadow");
+            d.ink = Round(d.rt, Ui.Ink, "ring");
+            d.paper = Round(d.rt, Cream, "paper");
+            d.paper.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            d.pic = new GameObject("picture", typeof(RectTransform)).AddComponent<RawImage>();
+            d.pic.rectTransform.SetParent(d.paper.rectTransform, false); Ui.Stretch(d.pic.rectTransform); d.pic.raycastTarget = false;
+            d.glyph = Ui.Label(d.rt, "mark", mono, glyphSize, Ui.Ink, TextAnchor.MiddleCenter);
+            return d;
+        }
+        static void LayDisc(Disc d, float x, float y, float size, float bw, float shadow, Color paper, Texture2D pic, string glyph)
+        {
+            Ui.Place(d.rt, x, y, size, size);
+            Ui.Place(d.shadow.rectTransform, shadow, shadow, size, size);
+            Show(d.shadow, shadow > 0);
+            Ui.Place(d.ink.rectTransform, 0, 0, size, size);
+            Ui.Place(d.paper.rectTransform, bw, bw, size - 2 * bw, size - 2 * bw);
+            d.paper.color = paper;
+            if (d.pic.texture != pic) d.pic.texture = pic;
+            Show(d.pic, pic);
+            Show(d.glyph, !pic);
+            d.glyph.text = glyph ?? "◆";
+            Ui.Place(d.glyph.rectTransform, 0, 0, size, size);
+        }
+
+        void BuildGadgets(Font mono)
+        {
+            gGauge = Round(root, Track, "gadget gauge"); gGauge.raycastTarget = false;
+            gFlash = Round(root, Ui.Gold, "gadget flash");
+            gChip = MakeDisc(root, "gadget chip", mono, 22);
+            gWheel = Ui.Node("gadget wheel", root);
+            gWheelBack = Round(gWheel, Ui.Hex("#f7ecd2", 0.35f), "ring");
+            gWheelName = Ui.Panel(gWheel, "name", Cream, Ui.Ink, 1.5f);
+            gWheelNameText = Ui.Label(gWheelName.rt, "text", mono, 14, Ui.Ink, TextAnchor.MiddleCenter); Ui.Space(gWheelNameText, 0.08f);
+            ret = Ui.Panel(root, "reticle", Color.clear, Ui.Ink, 2.5f, 0, 0, 17);
+            retH = Ui.Rect(ret.rt, Ui.Ink, 0, "h"); retV = Ui.Rect(ret.rt, Ui.Ink, 0, "v");
+            retTag = Ui.Panel(root, "reticle tag", Ui.Hex("#f7ecd2", 0.85f), Ui.Ink, 1);
+            retText = Ui.Label(retTag.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleCenter);
+        }
+
+        void DrawGadget(Dictionary<string, object> g)
+        {
+            bool on = g != null;
+            Show(gChip.rt, on); Show(gGauge, on && g.Get("k") is double); Show(gFlash, false);
+            if (!on) { gChipId = ""; return; }
+            // (the web's clamp(30px, 6vh, 42px), 12 px down from the top right, 14 px in)
+            float d = Mathf.Clamp(H * 0.06f, 30, 42), x = W - 14 - d, y = 12;
+            var id = g.S("id") ?? "";
+            if (id != gChipId) { gChipId = id; gFlashT = 0; }
+            gFlashT += Time.unscaledDeltaTime;
+            bool empty = g.Get("empty") is bool e && e;
+            if (g.Get("k") is double k)
+            {
+                // the count: a thin teal ring round the picture, filled clockwise from the top as far as there is
+                Ui.Place(gGauge.rectTransform, x - 5, y - 5, d + 10, d + 10);
+                gGauge.type = Image.Type.Filled; gGauge.fillMethod = Image.FillMethod.Radial360; gGauge.fillOrigin = (int)Image.Origin360.Top; gGauge.fillClockwise = true;
+                gGauge.fillAmount = 1; gGauge.color = Teal; gGauge.fillAmount = Mathf.Clamp01((float)k);
+            }
+            // (a new gadget in hand: a gold ring that fades, the chip a little larger a moment)
+            float f = Mathf.Clamp01(1 - gFlashT / 0.6f), grow = 1 + 0.35f * f * f;
+            if (f > 0) { Show(gFlash, true); gFlash.color = new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, f); float r = d * grow + 10; Ui.Place(gFlash.rectTransform, x + d / 2 - r / 2, y + d / 2 - r / 2, r, r); }
+            float s = d * grow;
+            LayDisc(gChip, x + d / 2 - s / 2, y + d / 2 - s / 2, s, 1.5f, 2, Ui.Hex("#fffaf0", 0.92f), BridgeMenu.Picture(id), g.S("glyph"));
+            Ui.Group(gChip.rt).alpha = empty ? 0.5f : 1;
+        }
+
+        void DrawGadgetWheel(Dictionary<string, object> w)
+        {
+            var slots = w?.L("slots");
+            Show(gWheel, slots != null);
+            if (slots == null) return;
+            // (more than eight: a wider ring of smaller slots, as the web's .many)
+            int n = slots.Count, hi = w.I("hi", -1);
+            bool many = n > 8;
+            float size = many ? 344 : 300, R = many ? 136 : 112, C = size / 2, sd = many ? 50 : 56;
+            Ui.Place(gWheel, W / 2 - C, H / 2 - C, size, size);
+            Ui.Place(gWheelBack.rectTransform, 40, 40, size - 80, size - 80);
+            while (gSlots.Count < n) { var d = MakeDisc(gWheel, "slot" + gSlots.Count, Ui.Mono, many ? 21 : 24); gSlots.Add(d); }
+            for (int i = 0; i < gSlots.Count; i++)
+            {
+                bool has = i < n;
+                Show(gSlots[i].rt, has);
+                if (!has) continue;
+                var sl = slots[i] as Dictionary<string, object>;
+                float a = i / (float)n * Mathf.PI * 2, x = C + Mathf.Sin(a) * R, y = C - Mathf.Cos(a) * R;
+                float z = i == hi ? sd * (many ? 1.18f : 1.25f) : sd;
+                LayDisc(gSlots[i], x - z / 2, y - z / 2, z, 2, 3, i == hi ? Ui.Gold : Cream, BridgeMenu.Picture(sl.S("id")), sl.S("glyph"));
+            }
+            gWheelName.rt.SetAsLastSibling();
+            var s = Ui.Set(gWheelNameText, Ui.Upper(w.S("name") ?? ""), 260);
+            Ui.Place(gWheelNameText.rectTransform, 8, 3, s.x, s.y);
+            Ui.Place(gWheelName.rt, C - (s.x + 16) / 2, C - (s.y + 6) / 2, s.x + 16, s.y + 6);
+        }
+
+        void DrawReticle(Dictionary<string, object> r)
+        {
+            Vector2? at = null;
+            if (r != null) at = r.L("at") is List<object> p ? ToCanvas(p) : r.S("kind") == "far" ? (Vector2?)new Vector2(W / 2, H / 2) : null;
+            Show(ret, at.HasValue); Show(retTag, false);
+            if (!at.HasValue) return;
+            var kind = r.S("kind") ?? "ok";
+            float sc = kind == "far" ? 0.7f : 1, sz = 34 * sc;
+            Ui.Place(ret.rt, at.Value.x - sz / 2, at.Value.y - sz / 2, sz, sz);
+            ret.border.color = kind == "anchor" ? Ui.Red : kind == "target" ? Teal : Ui.Ink;
+            ret.rt.localRotation = Quaternion.Euler(0, 0, kind == "anchor" ? 45 : 0);
+            Ui.Alpha(ret.rt, kind == "far" ? 0.55f : 1);
+            Ui.Place(retH.rectTransform, sz / 2 - 6, sz / 2 - 1, 12, 2);
+            Ui.Place(retV.rectTransform, sz / 2 - 1, sz / 2 - 6, 2, 12);
+            var label = r.S("label") ?? "";
+            if (label.Length == 0) return;
+            Show(retTag, true);
+            var s = Ui.Set(retText, label, 300);
+            Ui.Place(retText.rectTransform, 5, 1, s.x, s.y);
+            Ui.Place(retTag.rt, at.Value.x - (s.x + 10) / 2, at.Value.y + 23, s.x + 10, s.y + 2);
+        }
+
+        void DrawMarks(List<object> list)
+        {
+            int n = list?.Count ?? 0;
+            while (gMarks.Count < n)
+            {
+                var rt = Ui.Node("gadget mark" + gMarks.Count, root);
+                var dia = Ui.Panel(rt, "diamond", Ui.Hex("#f7ecd2", 0.75f), Ui.Red, 2.5f);
+                Ui.Place(dia.rt, 3, 3, 20, 20); dia.rt.localRotation = Quaternion.Euler(0, 0, 45);
+                dia.rt.pivot = new Vector2(0.5f, 0.5f); dia.rt.anchoredPosition = new Vector2(13, -13);
+                var num = Ui.Label(rt, "n", Ui.Mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                Ui.Place(num.rectTransform, 0, 0, 26, 26);
+                gMarks.Add((rt, num));
+            }
+            for (int i = 0; i < gMarks.Count; i++)
+            {
+                var m = i < n ? list[i] as Dictionary<string, object> : null;
+                var at = m != null ? ToCanvas(m.L("at")) : null;
+                Show(gMarks[i].rt, at.HasValue);
+                if (!at.HasValue) continue;
+                Ui.Place(gMarks[i].rt, at.Value.x - 13, at.Value.y - 13, 26, 26);
+                gMarks[i].n.text = m.S("label") ?? (i + 1).ToString();
+            }
+        }
+
+        // ---------------------------------------------------------------- a makers' box's card (issue #345; src/boxes/card.js)
+        // as the web's #boxcard: a low cream strip along the foot of the screen, in the letterbox's bottom band, so the item
+        // the scene holds up stays clear above it; the name first and largest, after the makers' star, one line under it
+        // (what it does, or the found line), then the button to go on, gold, its key's badge before its word. While the
+        // scene plays and before the card, the skip's tag under the top bar
+        Ui.Box bCard, bGo, bSkip; Label bName, bText, bGoKey, bGoText, bSkipKey, bSkipText; Image bStar, bGoBadge, bSkipBadge;
+        float bCardT;
+        const int CardBody = 15, CardName = 26;
+
+        void BuildBoxCard(Font mono)
+        {
+            bCard = Ui.Panel(root, "box card", Ui.Cream, Ui.Ink, 2, 4, 4);
+            bStar = Ui.Rect(bCard.rt, Ui.Hex("#25386c"), 0, "star"); bStar.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+            bName = Ui.Label(bCard.rt, "name", Ui.Heavy, CardName, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(bName, 0.04f);
+            bText = Ui.Label(bCard.rt, "text", mono, CardBody, Ui.Ink, TextAnchor.UpperCenter, lineSpacing: 1.3f);
+            bGo = Ui.Panel(bCard.rt, "go", Ui.Gold, Ui.Ink, 1.5f, 2, 2);
+            bGoBadge = Ui.Rect(bGo.rt, Ui.Ink, 4, "badge");
+            bGoKey = Ui.Label(bGoBadge.rectTransform, "key", mono, 12, Cream, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bGoKey.rectTransform);
+            bGoText = Ui.Label(bGo.rt, "label", mono, 14, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold); Ui.Space(bGoText, 0.08f);
+            bSkip = Ui.Panel(root, "box skip", Ui.Hex("#fff6dc", 0.9f), Ui.Ink, 1.5f);
+            bSkipBadge = Ui.Rect(bSkip.rt, Ui.Ink, 4, "badge");
+            bSkipKey = Ui.Label(bSkipBadge.rectTransform, "key", mono, 11, Cream, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(bSkipKey.rectTransform);
+            bSkipText = Ui.Label(bSkip.rt, "label", mono, 13, Ui.Ink, TextAnchor.MiddleLeft); Ui.Space(bSkipText, 0.08f);
+            bCard.Show(false); bSkip.Show(false);
+        }
+
+        /// <summary>A key's badge and its word laid out in a button from x0: returns the button's width.</summary>
+        static float LayButton(Image badge, Label key, Label word, string k, string w, float x0, float h)
+        {
+            key.text = k;
+            float kw = Mathf.Max(h - 8, Ui.Measure(key, k).x + 10);
+            Ui.Place(badge.rectTransform, x0, 4, kw, h - 8);
+            var s = Ui.Set(word, w);
+            Ui.Place(word.rectTransform, x0 + kw + 7, 0, s.x, h);
+            return x0 + kw + 7 + s.x + x0;
+        }
+
+        void DrawBoxCard(Dictionary<string, object> b)
+        {
+            bool card = b != null && b.Get("card") is bool c && c, scene = b != null;
+            // the skip's tag while it plays, until the card is up (the web's .skip: right 18, under the 11 % top bar)
+            bSkip.Show(scene && !card);
+            if (scene && !card)
+            {
+                float sw = LayButton(bSkipBadge, bSkipKey, bSkipText, b.S("back") ?? "", Ui.Upper(b.S("skipLabel") ?? "Skip"), 9, 30);
+                Ui.Place(bSkip.rt, W - 18 - sw, H * 0.11f + 14, sw, 30);
+                Ui.Alpha(bSkip.rt, 0.85f);
+            }
+            bCardT = card ? bCardT + Time.unscaledDeltaTime : 0;
+            bCard.Show(card);
+            if (!card) return;
+            // (no wider than 44 of its letters, centred; the name first and largest, then its line, then the button)
+            float most = Mathf.Min(44 * CardBody * 0.62f, W - 24), padX = 1.2f * CardBody, padY = 0.6f * CardBody;
+            var ns = Ui.Set(bName, Ui.Upper(Text.Plain(b.S("name") ?? "")), most - 2 * padX - 26);
+            var ts = Ui.Set(bText, Text.Plain(b.S("text") ?? ""), most - 2 * padX);
+            float gh = 32, gw = LayButton(bGoBadge, bGoKey, bGoText, b.S("ok") ?? "", Ui.Upper(b.S("okLabel") ?? "Continue"), 10, gh);
+            float inner = Mathf.Max(ns.x + 26, Mathf.Max(ts.x, gw)), w = inner + 2 * padX;
+            float y = padY;
+            float nameX = w / 2 - (ns.x + 26) / 2;
+            Ui.Place(bStar.rectTransform, nameX + 4, y + ns.y / 2 - 6, 12, 12);
+            Ui.Place(bName.rectTransform, nameX + 26, y, ns.x, ns.y); y += ns.y + 4;
+            Ui.Place(bText.rectTransform, w / 2 - ts.x / 2, y, ts.x, ts.y); y += ts.y + 0.5f * CardBody;
+            Ui.Place(bGo.rt, w / 2 - gw / 2, y, gw, gh); y += gh + padY + 2;
+            // (it slides up a little and fades in, as the page's transition)
+            float k = Mathf.Clamp01(bCardT / 0.4f), e = 1 - (1 - k) * (1 - k);
+            float bottom = Mathf.Max(6, H * 0.055f - 34);
+            Ui.Place(bCard.rt, W / 2 - w / 2, H - bottom - y + 16 * (1 - e), w, y);
+            Ui.Alpha(bCard.rt, Mathf.Clamp01(bCardT / 0.35f));
         }
 
         void DrawToast(Dictionary<string, object> t, bool on)

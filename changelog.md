@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.74 — 2026-10-14
 
+- In the Unity preview a makers’ chest ends its opening on its card, as in the game: what you found, what it does, and A to go on (B skips the opening). Once you pick up a pad, the prompts name its buttons rather than the keyboard’s.
+- In the Unity preview the gadgets are there: chests and the makers’ courts give them, the one you find is in your hand at once, D-pad ↑ takes another (held, the wheel), and its picture sits in the top right corner. The Items page lists every one of them, and your chimes beside the count.
 - In the Unity version the far distance no longer shimmers as the camera turns: far-off lines are drawn lighter, as in the web game, so distant towns, towers and dunes stop crawling (on the Retroid, a third to three quarters less flicker far off), and on handhelds the edges are smoothed more sharply. Near lines stay as crisp as before.
 - Your legs keep up with you better: the knee no longer snaps straight at every stride of a sprint, a foot no longer drops onto the slope at each step up a ramp or rises a whole stair in one go, setting off at a run starts on the foot behind, and turning round on the spot or reversing a sprint no longer twitches a foot, a knee or your arms.
 - Past the riders’ gate on Vael, the stones that rise under you are solid again: you no longer fall through them.

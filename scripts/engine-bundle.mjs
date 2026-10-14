@@ -8,6 +8,7 @@
 // with top-level await across files, so the bundle is flat; the engines' own modules ('godot',
 // 'csharp', 'puerts') stay outside it.
 import { rolldown } from 'rolldown';
+import { viteImportGlobPlugin } from 'rolldown/experimental';
 import { mkdirSync, statSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -53,7 +54,8 @@ export async function bundle(name, override = {}) {
     platform: 'neutral',
     // (vite's import.meta.env, and the module URLs the reference sheets resolve their pictures from)
     transform: { define: { 'import.meta.env.BASE_URL': '"./"', 'import.meta.env.DEV': 'false', 'import.meta.env.PROD': 'true', 'import.meta.env.MODE': '"engine"', 'import.meta.url': '"engine://hiraeth/src/module.js"' } },
-    plugins: [noIcu()],
+    // (Vite's import.meta.glob, as the web build has it: src/gadgets/all.js finds every gadget so, issue #344)
+    plugins: [noIcu(), viteImportGlobPlugin({ root: ROOT })],
     logLevel: 'warn',
   });
   const out = [];

@@ -52,7 +52,7 @@ namespace Hiraeth.Bridge
         static bool B(object o, string k) => o.Get(k) is bool b && b;
 
         /// <summary>A thing's picture (StreamingAssets/hiraeth-js/item-pictures/id.png), or null where it has none.</summary>
-        static Texture2D Picture(string id)
+        internal static Texture2D Picture(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
             if (pictures.TryGetValue(id, out var t)) return t;
