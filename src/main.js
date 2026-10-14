@@ -116,7 +116,7 @@ import { hopAxis } from './jump.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets, gadgetFoundLine } from './gadgets/index.js';
-import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft, motionState } from './feel.js';
+import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
 import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
 import { FLURRY, FlurryFx, nextFlurry } from './flurry.js';
@@ -786,7 +786,7 @@ const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
-  ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
+  ship, drone: (out) => (scout?.out ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
   cue: (text, secs) => scoutSays(text, secs),   // (a line under the view at once, not a toast in the queue: the desert's way calls out what is ahead)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 // the ship won't leave without the world's core gadgets (src/story/leave-gate.js, issue #217): the quest that leads to
@@ -852,39 +852,31 @@ const scout = new Scout({ scene, player, physics, sound,
 });
 const struggle = new Struggle();   // (the seconds in the guardian's phase: ticked in the loop)
 // Plumb's own mind (src/companion.js): it speaks up when you look lost (a line, and the ping's flight toward the goal),
-// says a few things at the start of a game (each once), and hops, looks and shivers on the dock (the "Drone hints" setting)
+// says a few things at the start of a game (each once) (the "Drone hints" setting)
 const plumb = new Companion({ state: game, setting: () => settings.droneHints });
 const droneSaid = { text: '', until: 0 };   // (its line on the cue: before the find's, a moment)
 { const said = scout.onPing; scout.onPing = (t) => { said(t); plumb.progress(); }; }   // (a ping, asked or its own: the lost clock starts over)
 for (const ev of ['quest', 'keepsake', 'dialogue:start', 'box:opened']) game.on(ev, () => plumb.progress());
-game.on('item', (e) => { if (!(e?.n < 0)) { plumb.progress(); scout.mood.hop(); } });   // (found something: a hop on the dock)
-game.on('quest', () => scout.mood.hop());
+game.on('item', (e) => { if (!(e?.n < 0)) plumb.progress(); });
 game.on('box:opened', () => plumb.note('chest'));
 game.on('ship:exit', () => { if (levelId === 'desert' && !game.flag('item.backpack')) plumb.note('out'); });   // (the first steps out of the crashed ship)
 const plumbAt = { goalT: 0, goal: null, lookT: 0 };
-/** Plumb, each frame (after the scout's own update): the lost watch and the opening's lines; what it looks at on the dock. */
-function updatePlumb(dt, Wx) {
+/** Plumb, each frame (after the scout's own update): the lost watch and the opening's lines. */
+function updatePlumb(dt) {
   const now = performance.now();
-  scout.storm = Wx ? Math.min(1, Wx.storm + Wx.rain * 0.5) : 0;
-  scout.still = motionState().reduce;
-  // what it looks at, and the first person near (the opening's line): now and then
+  // the first person near (the opening's line): now and then
   if ((plumbAt.lookT -= dt) <= 0) {
     plumbAt.lookT = 0.5;
-    let best = null, bestD = 10;
     const metAnyone = Object.keys(game.data?.flags ?? {}).some((k) => k.startsWith('met.'));
-    for (const n of npcs) {
-      if (!n.def?.id || n.pooled || !n.object?.visible || game.flag(`met.${n.def.id}`)) continue;
-      const d = n.pos.distanceTo(player.pos);
-      if (d < bestD) { bestD = d; best = n.pos; }
-      if (d < 8 && !metAnyone) plumb.note('person');
+    if (!metAnyone) for (const n of npcs) {
+      if (!n.def?.id || n.pooled || !n.object?.visible) continue;
+      if (n.pos.distanceTo(player.pos) < 8) { plumb.note('person'); break; }
     }
-    for (const b of boxes.list) { if (b.spent()) continue; const d = b.pos.distanceTo(player.pos); if (d < bestD) { bestD = d; best = b.pos; } }
-    scout.attend = best && !busy() && !player.ride ? best : null;
   }
   const canSpeak = !busy() && !photo.on && !ship.playing && !ship.inside && !player.dead && !cue.text && !ship.cinema.noticeBusy() && now >= scoutSaid.until && now >= droneSaid.until;
   const fight = !!foes.lock || !!guardianHint(level.temple) || !!minigame || !!minigameDef;
   if ((plumbAt.goalT -= dt) <= 0) { plumbAt.goalT = 1; plumbAt.goal = fight ? null : scout.getTarget()?.position ?? null; }
-  const r = plumb.update(dt, { active: !fight && scout.phase === 'docked', canSpeak, pos: player.pos, goal: plumbAt.goal });
+  const r = plumb.update(dt, { active: !fight && !scout.out, canSpeak, pos: player.pos, goal: plumbAt.goal });
   if (!r.say) return;
   if (r.point) scout.ping();   // (out toward the goal, a look, the flare, home: the find's line comes after its own)
   droneSaid.text = droneShown(r.say); droneSaid.until = now + 3200;
@@ -2237,7 +2229,7 @@ function frame(ts) {
   chemistry.update(dt, player.pos);
   trialsRt?.update(dt, t);   // the trials' wind columns and signs (src/trials/)
   scout.flare.eye = camera.position;
-  scout.update(dt, busy() || photo.on);
+  scout.update(dt, busy() || photo.on, storyRt.busy() || ship.busy() || boxes.busy());   // (a talk, a filmed scene, a box opening: it is gone, issue #294)
   if (level.temple) struggle.tick(guardianHint(level.temple)?.id, busy() ? 0 : dt);   // (how long this phase of a guardian's fight has gone on: the drone's hints open after a struggle)
   // flocks circle the player (also in photo mode, so you can fly up to them)
   // (none in orbit: the prologue's ship and a homecoming's are high above the map, and birds would circle it there)
@@ -2256,7 +2248,7 @@ function frame(ts) {
   U.uStorm.value = Wx.storm;
   U.uFogMul.value *= 1 + W.fog * 2.6 + Wx.storm * 2.2 + Wx.rain * 0.6;
   wind.boost = Wx.storm;
-  updatePlumb(dt, Wx);   // (Plumb: the lost watch, the opening's lines, its moods on the dock: src/companion.js)
+  updatePlumb(dt);   // (Plumb: the lost watch, the opening's lines: src/companion.js)
   {
     const [wx, wz] = wind.windDir;
     const k = (level.features.wind ? 2.5 : 1.2) * (1 + Wx.storm * 3.5 + Wx.rain * 0.6) * (1 - 0.8 * shelter.indoor);

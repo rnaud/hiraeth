@@ -2,16 +2,15 @@ import * as THREE from 'three';
 import { makeMaterial, markHero } from './materials.js';
 import { sweepCapsule } from './physics.js';
 import { Trail } from './trail.js';
-import { Drone, DroneFold, DOCK_ON_TOP } from './drone.js';
-import { Mood } from './companion.js';
+import { Drone, DroneFold } from './drone.js';
 
 const RADIUS = 0.25;     // the drone's collision sphere
 const CLEAR = 0.9;       // air it keeps below itself while flying
 const MIN_CLEAR = 0.35;  // never lower than this over the ground
 const STEER = 6;         // velocity response (1/s): smooth, no jitter
-// Finding the objective (ping: Q, R3 with no foe in reach, the touch "ping"): it flies a little way towards it
-// (or over it, when it is close), hovers there facing it (its own heading is the pointer: no beak,
-// no beam), drops a flare on the spot, chirps, and comes home. Nothing to find: a shrug on the dock.
+// Finding the objective (ping: Q, R3 with no foe in reach, the touch "ping"): it comes (APPEAR), flies a little
+// way towards it (or over it, when it is close), hovers there facing it (its own heading is the pointer: no beak,
+// no beam), drops a flare on the spot, chirps, and goes. Nothing to find: it comes and shakes itself, no.
 // In a guardian's fight the ping asks it for a hint instead (HINT): it rises over your shoulder,
 // turns its lens on the weak point (or the thing to use) with a short beam, chirps, and the cue says
 // what to do; asked again, it says it more plainly (src/temples/boss.js guardianHint).
@@ -33,7 +32,7 @@ export const FIND = {
   point: 2.6,     // s hovering, facing it
   max: 9,         // s from the ping to heading home, whatever happens
   say: 6,         // s the find's line stays on the cue once the drone is there (it is up from the ping: onPing)
-  shrug: 1.0,     // s: the little wobble on the dock
+  shrug: 1.0,     // s: the little shake, no (between its coming and going)
 };
 /** A hint in a guardian's fight: from just over your shoulder, the lens on the weak point for a while. */
 export const HINT = {
@@ -45,24 +44,25 @@ export const HINT = {
 };
 const PITCH = 0.4;       // the body's most nose-up or nose-down (rad); the lens (its beam, in a hint) turns the rest of the way
 const LEAN = { perSpeed: 0.03, max: 0.3 };   // it leans into its speed (rad per m/s, at most)
-// Launching and docking (the drone folds: src/drone.js). It hops off the dock
-// folded, straight out along OUT, then blooms and flies; coming home it folds
-// on the way in, waits at the end of that line until it is shut, and glides
-// back down it onto the dock.
-export const DOCKING = {
-  out: new THREE.Vector3(0, 0.55, 0.84).normalize(),   // dock frame: away from the surface (+y), the way the lens looks (+z, back from you)
-  hop: 0.42,      // m: how far off the dock the first hop goes, and where it lines up to come home
-  pop: 0.32,      // s: the hop
-  bloomAt: 0.45,  // of the hop: the petals open from here (clear of you)
-  launch: 0.85,   // s: launched, it guides from here
-  foldAt: 1.6,    // m from the line-up point: it folds on the way in
-  settle: 0.4,    // s: the last glide onto the dock
+// Coming and going (issue #294: it is not carried on you, it comes when it is needed). Out of a small
+// light over your left shoulder, a little behind you (in the camera's view), it grows, folded, its eye
+// waking, and blooms; it flies its errand; then it rises away, folds, and winks out into the light.
+export const APPEAR = {
+  side: 0.55,     // m to your left of your head
+  back: 0.35,     // m behind it
+  over: 0.5,      // m over it (less under a ceiling)
+  grow: 0.42,     // s: the light swells and the drone grows out of it
+  bloomAt: 0.5,   // of the grow: the petals open from here
+  leave: 0.8,     // s: rising away before it winks out
+  rise: 2.4,      // m/s: how fast it rises away
+  wink: 0.3,      // s: shrinking into the light, and gone
+  light: 0.17,    // m: the light's radius at its brightest
 };
 const _d = new THREE.Vector3(), _w = new THREE.Vector3(), _a = new THREE.Vector3(), _n = new THREE.Vector3(), _f = new THREE.Vector3();
 const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 const _h = new THREE.Vector3(), _ax = new THREE.Vector3(), _qt = new THREE.Quaternion(), _z = new THREE.Vector3(0, 0, 1);
 const _y1 = new THREE.Vector3(0, 1, 0), _lk = new THREE.Vector3(), _lk2 = new THREE.Vector3(), _bm = new THREE.Vector3();
-const _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion(), _out = new THREE.Vector3(), _l = new THREE.Vector3(), _lv = new THREE.Vector3(), _d2 = new THREE.Vector3(), _f2 = new THREE.Vector3(), _o2 = new THREE.Vector3(), _lean = new THREE.Vector2(), _lv2 = new THREE.Vector3(), _go = new THREE.Vector3();
+const _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion(), _lv = new THREE.Vector3(), _d2 = new THREE.Vector3(), _f2 = new THREE.Vector3(), _o2 = new THREE.Vector3(), _lean = new THREE.Vector2(), _lv2 = new THREE.Vector3(), _go = new THREE.Vector3();
 
 const objective = (id, label, position) => ({ id, label, position: position.clone() });
 
@@ -196,21 +196,23 @@ export function viaPortal(start, target, portals) {
 }
 
 /**
- * The scout: a small folding drone on your pack. ping() sends it to find the objective
- * (FIND): it hops off its dock, flies a little way towards it (or right over it), hovers
- * and faces it, drops a flare on the spot and calls onFind(target, metres) (onPing(target) at the ping: what it is off to find)
- * (main.js: a toast with the name and the distance), then comes home and docks. With
- * nothing to find it shrugs on the dock and calls onShrug().
+ * The scout: a small folding drone that is not carried on you (issue #294): it comes when it is
+ * needed. ping() calls it to find the objective (FIND): out of a small light over your left
+ * shoulder (APPEAR) it grows and blooms, flies a little way towards the objective (or right over
+ * it), hovers and faces it, drops a flare on the spot and calls onFind(target, metres)
+ * (onPing(target) at the ping: what it is off to find; main.js: a toast with the name and the
+ * distance), then rises away and winks out. With nothing to find it comes, shakes itself, no, goes,
+ * and calls onShrug().
  * getHint() (main.js: the temple's guardian in a fight, src/temples/boss.js guardianHint) returns
  * { id, lines: [first, plainer, plainest], at: () => Vector3 } or null: while it gives one, a ping is
  * a hint (HINT) and calls onHint(line, n): each ping on the same id says the next, plainer line.
- * Phases: docked → launch → seek → point → return → docked (and shrug, from the dock).
+ * Phases: away → appear → seek → point → leave → away (and shrug, from away). Away, nothing is drawn.
  */
 export class Scout {
   constructor({ scene, player, physics, getTarget, getHint = () => null, sound, onPing = () => {}, onFind = () => {}, onShrug = () => {}, onHint = () => {} }) {
     Object.assign(this, { player, physics, getTarget, getHint, sound, onPing, onFind, onShrug, onHint });
     this.hintAsked = new Map();   // hint id -> how many times asked (the next ping says it more plainly)
-    this.phase = 'docked'; this.age = 0; this.elapsed = 0;
+    this.phase = 'away'; this.age = 0; this.elapsed = 0;
     this.vel = new THREE.Vector3(); this.stuck = 0; this.over = 0; this.fade = null;
     this.object = new THREE.Group(); this.object.userData.noCollide = true; scene.add(this.object);
     // the drone (folding: src/drone.js), a glowing ring under it while it is out, and its lens' beam (hints)
@@ -229,38 +231,52 @@ export class Scout {
     this.beamLen = 0;
     for (const o of [this.ring, this.beam]) o.userData.dynamic = true;
     markHero(this.object);
+    // the light it comes out of and winks back into (APPEAR): a small inked star of its glow, in the scene (the drone scales, it does not)
+    this.light = new THREE.Mesh(new THREE.OctahedronGeometry(1, 0).scale(0.8, 1.25, 0.8), makeMaterial({ color: '#fff6dc', glow: 1, flat: true }));
+    Object.assign(this.light.userData, { noCollide: true, dynamic: true, castShadow: false });
+    this.light.visible = false; scene.add(this.light);
+    this.lightK = 0;
     // a thin glowing trail behind it, so it's easy to follow by eye
     this.trail = new Trail(scene, { radius: 0.07, life: 1.5, offset: 1.2 });
     this.trail.mesh.visible = false;
     // the flare it drops on what it found (seen from afar, gone after a few seconds)
     this.flare = new Flare(scene);
     this.previousPlayer = player.pos.clone();
-    // its moods on the dock (src/companion.js Mood): a hop on a find, a look toward something near, a shiver in a storm;
-    // main.js sets attend (a world point or null), storm (0..1) and still (Reduce motion), and calls mood.hop()
-    this.mood = new Mood(); this.attend = null; this.storm = 0; this.still = false;
-    this.dock();
+    this.hide();
   }
-  anchor() {
-    const anchor = this.player.gear?.scoutDock;
-    if (anchor) { anchor.updateWorldMatrix(true, false); return anchor.getWorldPosition(new THREE.Vector3()); }
-    return this.player.char.torso.localToWorld(new THREE.Vector3(0, 0.7, -0.3));
+  /** Out (anything but away): drawn, flying or about to. */
+  get out() { return this.phase !== 'away'; }
+  /**
+   * Where it comes out of its light (a fresh or `out` Vector3): over your left shoulder, a little behind
+   * you (in the camera's view behind you), lower under a ceiling, short of a wall.
+   */
+  appearSpot(out = new THREE.Vector3()) {
+    const p = this.player, up = p.frame.up, fwd = _f2;
+    if (p.frame.dir && p.heading != null) p.frame.dir(p.heading, fwd);
+    else if (p.char?.torso) fwd.set(0, 0, 1).applyQuaternion(p.char.torso.getWorldQuaternion(_q2));
+    else fwd.set(0, 0, 1);
+    fwd.addScaledVector(up, -fwd.dot(up));
+    if (fwd.lengthSq() < 1e-6) fwd.set(up.y, -up.x, 0);
+    fwd.normalize();
+    const left = _ax.crossVectors(up, fwd);
+    const head = _lh.copy(p.pos).addScaledVector(up, HEAD);
+    const room = this.obstacle(head, up, APPEAR.over + 0.35)?.distance ?? Infinity;
+    out.copy(head).addScaledVector(up, Math.max(0.1, Math.min(APPEAR.over, room - 0.35)));
+    const side = _ls.copy(left).multiplyScalar(APPEAR.side).addScaledVector(fwd, -APPEAR.back), len = side.length();
+    side.divideScalar(len);
+    const wall = this.obstacle(out, side, len + RADIUS)?.distance ?? Infinity;
+    return out.addScaledVector(side, Math.max(0, Math.min(len, wall - RADIUS)));
   }
-  /** The dock's orientation: the drone's up out of the surface it rests on, its lens looking back from you. */
-  dockQuaternion(out = new THREE.Quaternion()) {
-    const anchor = this.player.gear?.scoutDock;
-    if (anchor) return anchor.getWorldQuaternion(out);
-    return this.player.char.torso.getWorldQuaternion(out).multiply(DOCK_ON_TOP);
-  }
-  /** dock(): home, folded (snap: at once; false: the fold finishes where it is, after a glide in). */
-  dock(snap = true) {
-    this.phase = 'docked'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.settleT = null; this.relaunch = false; this.dockOnBody = null;
-    this.object.position.copy(this.anchor()); this.dockQuaternion(this.object.quaternion); this.object.scale.setScalar(1);
-    if (snap) this.fold.snap(false);
-    this.drone.pose(this.fold);
+  /** hide(): gone, folded, nothing drawn (away). */
+  hide() {
+    this.phase = 'away'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.leaveT = null;
+    this.appearSpot(this.object.position); this.object.scale.setScalar(1e-3);
+    this.fold.snap(false); this.drone.pose(this.fold);
     this.ring.visible = false; if (this.beam) { this.beam.visible = false; this.beamLen = 0; }
+    this.object.visible = false; this.lightK = 0; this.light.visible = false;
   }
   /**
-   * Find the objective: out, a look, a flare, home. Pressed again while it is out it starts
+   * Find the objective: it comes, a look, a flare, it goes. Pressed again while it is out it starts
    * over with the objective as it is now. Nothing to find: a shrug (false).
    */
   ping() {
@@ -268,11 +284,10 @@ export class Scout {
     const target = hint ? this.hintTarget(hint) : this.getTarget();
     if (!target) { this.shrug(); return false; }
     this.hinting = hint ?? null;
-    this.target = target; this.age = 0; this.relaunched = false; this.found = false; this.seekT = this.pointT = 0; this.returnT = 0;
-    if (this.phase === 'docked' || this.phase === 'shrug') { this.dock(false); this.launch(); }
-    else if (this.phase === 'launch') { /* already on its way out */ }
-    else if (this.settleT == null || this.settleT < DOCKING.settle * 0.5) { this.phase = 'seek'; this.settleT = null; this.object.scale.setScalar(1); }
-    else this.relaunch = true;   // nearly home: it lands, then hops straight back out
+    this.target = target; this.age = 0; this.relaunched = false; this.found = false; this.seekT = this.pointT = 0;
+    if (this.phase === 'away' || this.phase === 'shrug') this.appear();
+    else if (this.phase === 'appear') { /* already on its way */ }
+    else { this.phase = 'seek'; this.leaveT = null; this.fade = null; this.object.scale.setScalar(1); this.setLight(0); }   // (leaving: it turns back)
     this.sound?.drone?.('go');
     if (!target.hint) this.onPing(target);   // (what it is off to find, said at once: main.js puts it on the cue)
     return true;
@@ -286,15 +301,15 @@ export class Scout {
     this.hintAsked.set(hint.id, n + 1);
     return { id: `hint.${hint.id}`, label: lines[Math.min(n, lines.length - 1)], position: at.clone(), hint: true, n };
   }
-  /** Nothing to find: on the dock it wakes, hops a little and shakes itself, no; out already, it just comes home. */
+  /** Nothing to find: it comes out of its light folded, shakes itself, no, and winks out; out already, it just goes. */
   shrug() {
-    if (this.phase === 'docked') { this.phase = 'shrug'; this.shrugT = 0; }
+    if (this.phase === 'away') { this.phase = 'shrug'; this.shrugT = 0; this.object.visible = !this.player.hidden; }
     else this.home();
     this.sound?.drone?.('shrug');
     this.onShrug();
   }
-  /** Send it home now (a find cut short). */
-  home() { if (this.phase !== 'docked' && this.phase !== 'return' && this.phase !== 'shrug') { this.phase = 'return'; this.settleT = null; this.returnT = 0; } }
+  /** Send it away now (a find cut short, or done): it rises, folds and winks out. */
+  home() { if (this.phase !== 'away' && this.phase !== 'leave' && this.phase !== 'shrug') { this.phase = 'leave'; this.leaveT = 0; this.fade = null; } }
   /**
    * Where it looks from (lookoutSpot: up and down as well as out, in the open), and the way there:
    * straight to it when nothing is in between, else by the legs' corners (up the shaft first, out
@@ -351,7 +366,7 @@ export class Scout {
       want.multiplyScalar(0.35).addScaledVector(up, Math.max(4, maxSpeed * 0.7));
     }
     // terrain following: hold ~1 m of air below, here and a little ahead
-    // (less right at the destination, so it can still settle onto a low dock)
+    // (less right at the destination, so it can still settle low)
     const clear = Math.min(CLEAR, MIN_CLEAR + dist * 0.4);
     const ahead = _a.copy(pos).addScaledVector(vel, 0.35);
     const h = Math.min(this.clearance(pos, up), this.clearance(ahead, up) + 0.25);
@@ -422,93 +437,93 @@ export class Scout {
     if (this.stuck < 0.05 && !(this.over > 0)) this.overUsed = false;
     return this.stuck > 1.6;
   }
-  launch() {
-    this.phase = 'launch'; this.popT = 0; this.relaunch = false; this.origin = this.anchor(); this.object.position.copy(this.origin);
-    this.vel.copy(this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0)); this.stuck = this.over = 0; this.fade = null; this.settleT = null;
-    this.object.scale.setScalar(1);
-  }
-  /** The line home: from the dock, `hop` metres out along DOCKING.out (world). */
-  outward(q = this.dockQuaternion(_q2)) { return _out.copy(DOCKING.out).applyQuaternion(q); }
-  /** Boxed in: blink out (a short shrink) and come back to the dock, relaunching if still guiding. */
-  recall() { if (this.fade === null) this.fade = 0.3; }
-  update(dt, paused = false) {
-    const up = this.player.frame.up;
-    if (this.player.pos.distanceTo(this.previousPlayer) > 45) this.dock();
-    this.previousPlayer.copy(this.player.pos);
+  /** Out of its light over your shoulder: it grows there (carried with you), folded and waking, then blooms. */
+  appear() {
+    this.growT = this.phase === 'shrug' ? APPEAR.grow * this.object.scale.x : 0;
+    this.phase = 'appear';
+    this.appearSpot(this.object.position);
+    this.vel.copy(this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0)); this.stuck = this.over = 0; this.fade = null; this.leaveT = null;
+    if (this.growT === 0) { this.object.scale.setScalar(1e-3); this.fold.snap(false); }
+    this.uprightAlong(_f.subVectors(this.target?.position ?? this.object.position, this.player.pos), this.player.frame.up, this.object.quaternion);
     this.object.visible = !this.player.hidden;
+  }
+  /** Boxed in: wink out (a short shrink into its light) and come again, once, if still guiding. */
+  recall() { if (this.fade === null) this.fade = APPEAR.wink; }
+  /** The light it comes from and goes into: k 0..1 its size, at the drone. */
+  setLight(k) {
+    this.lightK = k;
+    this.light.visible = k > 0.01 && !this.player.hidden;
+    if (!this.light.visible) return;
+    this.light.position.copy(this.object.position);
+    this.light.scale.setScalar(APPEAR.light * k);
+    this.light.rotation.y = this.elapsed * 3;
+  }
+  /**
+   * paused: a menu, the photo mode (nothing moves). gone: a talk or a filmed scene is under way: it is no
+   * part of it (issue #294), so if it is out it is gone at once.
+   */
+  update(dt, paused = false, gone = false) {
+    const up = this.player.frame.up;
+    if (this.player.pos.distanceTo(this.previousPlayer) > 45 && this.out) this.hide();   // (a teleport: it stays behind)
+    this.previousPlayer.copy(this.player.pos);
+    if (gone && this.out) this.hide();
+    this.object.visible = this.out && !this.player.hidden;
     if (!paused) this.flare.update(dt);
-    // the trail: laid while it flies (not on the hop off the dock nor the glide back in), left to dissolve once it is home
-    const flying = this.phase !== 'docked' && this.phase !== 'shrug' && this.settleT == null && !(this.phase === 'launch' && this.popT < DOCKING.pop);
+    // the trail: laid while it flies (not while it grows, nor as it winks out), left to dissolve once it is gone
+    const flying = this.phase === 'seek' || this.phase === 'point' || (this.phase === 'leave' && this.leaveT < APPEAR.leave);
     this.trail.update(dt, flying && this.fade === null && !this.player.hidden ? this.object.position : null);
-    if (this.phase === 'docked' && !this.trail.samples.length) this.trail.mesh.visible = false;
-    if (this.phase === 'docked') {
-      const home = this.anchor(), body = this.player.humanoid?.chestAnchor;
-      // the dock itself moved on the body (the flask was found: from the rucksack's lid to the flask's upright): glide over to it, folded
-      const onBody = body ? body.worldToLocal(_l.copy(home)) : null;
-      const moved = onBody && this.dockOnBody && onBody.distanceTo(this.dockOnBody) > 0.25;   // (more than its own hops and the tank's swing make in a frame)
-      if (onBody) (this.dockOnBody ??= new THREE.Vector3()).copy(onBody);
-      if (moved && !this.player.hidden) {
-        const q = this.dockQuaternion(_q2);
-        this.phase = 'return'; this.age = DOCKING.launch; this.returnT = 0; this.settleT = 0; this.relaunch = false;
-        this.settleFrom = _l.subVectors(this.object.position, home).applyQuaternion(_q3.copy(q).invert()).clone();
-        this.settleQ = this.object.quaternion.clone();
-        return;
-      }
-      this.object.position.copy(home);
-      this.dockQuaternion(this.object.quaternion);
-      const awake = !paused && this.moodOnDock(dt);
-      this.drone.pose(this.fold.update(dt, false, awake), dt);   // (a fold still closing finishes here)
-      return;
-    }
+    if (this.phase === 'away') { if (!this.trail.samples.length) this.trail.mesh.visible = false; return; }
     if (paused) return;
+    this.elapsed += dt;
     if (this.phase === 'shrug') {
-      // nothing to find: the eye opens, it lifts a finger's breadth off the dock and shakes itself, no, and settles back
+      // nothing to find: out of its light, folded, the eye opens, it shakes itself, no, and winks back in
       this.shrugT += dt;
-      const k = Math.min(1, this.shrugT / FIND.shrug), q = this.dockQuaternion(_q2);
-      const lift = Math.sin(Math.PI * k) * 0.06, shake = Math.sin(k * Math.PI * 6) * Math.sin(Math.PI * k) * 0.42;
-      this.object.position.copy(this.anchor()).addScaledVector(this.outward(q), lift);
-      this.object.quaternion.copy(q).multiply(_qt.setFromAxisAngle(_ax.set(0, 1, 0), shake));
-      this.drone.pose(this.fold.update(dt, false, k < 0.85), dt);
-      if (k >= 1) this.dock(false);
+      const t = this.shrugT, S = APPEAR.grow + FIND.shrug + APPEAR.wink;
+      const grow = THREE.MathUtils.smoothstep(t, 0, APPEAR.grow), wink = 1 - THREE.MathUtils.smoothstep(t, S - APPEAR.wink, S);
+      this.appearSpot(this.object.position);
+      const k = THREE.MathUtils.clamp((t - APPEAR.grow) / FIND.shrug, 0, 1), shake = Math.sin(k * Math.PI * 6) * Math.sin(Math.PI * k) * 0.42;
+      this.uprightAlong(_f.subVectors(this.player.pos, this.object.position), up, this.object.quaternion);   // (looking at you)
+      this.object.quaternion.multiply(_qt.setFromAxisAngle(_ax.set(0, 1, 0), shake));
+      this.object.scale.setScalar(Math.max(1e-3, grow * wink));
+      const lit = t < APPEAR.grow ? Math.sin(Math.PI * t / APPEAR.grow) : t > S - APPEAR.wink ? Math.sin(Math.PI * (t - S + APPEAR.wink) / APPEAR.wink) : 0;
+      this.setLight(lit);
+      this.drone.pose(this.fold.update(dt, false, t < S - APPEAR.wink), dt);
+      if (t >= S) this.hide();
       return;
     }
-    this.age += dt; this.elapsed += dt;
+    this.age += dt;
     if (this.hinting) {
-      // a hint follows its weak point (the guardian moves); the fight over, it comes home
+      // a hint follows its weak point (the guardian moves); the fight over, it goes
       const h = this.getHint?.(), at = h && h.id === this.hinting.id ? h.at?.() : null;
-      if (at && this.target?.hint) this.target.position.copy(at); else if (this.phase !== 'return') this.home();
+      if (at && this.target?.hint) this.target.position.copy(at); else if (this.phase !== 'leave') this.home();
     } else this.target = this.getTarget();
-    if (this.phase !== 'return' && (this.age >= FIND.max || !this.target)) this.home();
+    if (this.phase !== 'leave' && this.phase !== 'appear' && (this.age >= FIND.max || !this.target)) this.home();
     if (this.fade !== null) {
       this.fade -= dt;
-      this.object.scale.setScalar(Math.max(0, this.fade / 0.3));
+      const k = Math.max(0, this.fade / APPEAR.wink);
+      this.object.scale.setScalar(Math.max(1e-3, k));
+      this.setLight(Math.sin(Math.PI * (1 - k)));
       if (this.fade <= 0) {
-        // once per ping it pops back out of the dock to try again from your shoulder
-        const relaunch = this.phase !== 'return' && this.target && !this.found && this.age < FIND.max - 3 && !this.relaunched;
-        this.dock();
-        if (relaunch) { this.launch(); this.relaunched = true; }
+        // once per ping it comes again from over your shoulder to try again
+        const again = this.phase !== 'leave' && this.target && !this.found && this.age < FIND.max - 3 && !this.relaunched;
+        this.hide();
+        if (again) { this.appear(); this.relaunched = true; }
       }
       return;
     }
     const pv = this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0), pSpeed = pv.length();
     const lastVel = _lv.copy(this.vel);
     this.aim = null;
-    let open = true, awake = true, beam = false;
-    if (this.phase === 'launch') {
-      if (this.popT < DOCKING.pop) {
-        // the hop: still folded, eye open, straight out from the dock (carried with you), turning upright
-        this.popT = Math.min(DOCKING.pop, this.popT + dt);
-        const e = THREE.MathUtils.smootherstep(this.popT / DOCKING.pop, 0, 1);
-        const q = this.dockQuaternion(_q2), out = this.outward(q);
-        this.object.position.copy(this.anchor()).addScaledVector(out, DOCKING.hop * e);
-        this.object.quaternion.copy(q).slerp(this.uprightAlong(out, up, _q3), e);
-        open = this.popT >= DOCKING.pop * DOCKING.bloomAt;
-        if (this.popT >= DOCKING.pop) { this.origin.copy(this.object.position); this.vel.copy(pv).addScaledVector(out, 1.2); }
-      } else {
-        this.origin.addScaledVector(pv, dt);   // it lifts off your shoulder as you go, not where you were
-        this.fly(_d2.copy(this.origin).addScaledVector(up, 1.4), 2.5 + pSpeed, up, dt, pv);
-      }
-      if (this.age >= DOCKING.launch) { this.phase = 'seek'; this.seekT = 0; }
+    let open = true, beam = false;
+    if (this.phase === 'appear') {
+      // out of its light over your shoulder (carried with you): it grows folded, its eye waking, and blooms
+      this.growT = Math.min(APPEAR.grow, this.growT + dt);
+      const e = this.growT / APPEAR.grow;
+      this.appearSpot(this.object.position);
+      this.object.scale.setScalar(Math.max(1e-3, THREE.MathUtils.smootherstep(e, 0, 1)));
+      this.setLight(Math.sin(Math.PI * Math.min(1, e * 1.15)));
+      open = e >= APPEAR.bloomAt;
+      if (e >= 1) { this.phase = 'seek'; this.seekT = 0; this.vel.copy(pv).addScaledVector(up, 1.2); this.setLight(0); }
     } else if (this.phase === 'seek' || this.phase === 'point') {
       // out to the lookout (it keeps your pace, walking, riding or flying), then a hover there,
       // the beak and the beam on the objective, up or down as well
@@ -524,38 +539,17 @@ export class Scout {
         this.pointT += dt; beam = !!this.target.hint;   // (a find has no beam: the drone faces it, the flare marks it)
         if (this.pointT >= (this.target.hint ? HINT.point : FIND.point)) this.home();
       }
-      if (this.object.position.distanceTo(this.player.pos) > FIND.near + FIND.out + 20) this.home();   // (lost you: home)
-    } else if (this.settleT != null) {
-      // the glide in: down the line onto the dock, turning to sit on it (in the dock's frame, so it keeps up as you move)
-      this.settleT = Math.min(DOCKING.settle, this.settleT + dt);
-      const e = THREE.MathUtils.smootherstep(this.settleT / DOCKING.settle, 0, 1);
-      const q = this.dockQuaternion(_q2);
-      this.object.position.copy(this.anchor()).add(_l.copy(this.settleFrom).applyQuaternion(q).multiplyScalar(1 - e));
-      this.object.quaternion.copy(this.settleQ).slerp(q, e);
-      open = false; awake = !!this.relaunch;
-      if (this.settleT >= DOCKING.settle) {
-        const again = this.relaunch && this.target && this.age < FIND.max - 2;
-        this.dock(false);
-        if (again) this.launch();
-        return;
-      }
+      if (this.object.position.distanceTo(this.player.pos) > FIND.near + FIND.out + 20) this.home();   // (lost you: gone)
     } else {
-      // home: to the end of the dock's line, folding on the way in
-      this.returnT = (this.returnT ?? 0) + dt;
-      const home = this.anchor(), q = this.dockQuaternion(_q2), line = _d2.copy(home).addScaledVector(this.outward(q), DOCKING.hop);
-      const boxed = this.fly(line, 10 + pSpeed, up, dt, pv);
-      const d = this.object.position.distanceTo(line);
-      open = d > DOCKING.foldAt;
-      if (d < 0.3 && this.fold.petals < 0.45) {
-        // shut enough: glide in from here
-        this.settleT = 0;
-        this.settleFrom = _l.subVectors(this.object.position, home).applyQuaternion(_q3.copy(q).invert()).clone();
-        this.settleQ = this.object.quaternion.clone();
-      } else if (boxed) this.recall();
-      // Recall safely if a closed doorway prevents a physical return.
-      else if (this.returnT > 6.5) { this.object.scale.setScalar(Math.max(0, (7 - this.returnT) * 2)); if (this.returnT >= 7) { this.dock(); return; } }
+      // leaving: it rises away where it is (keeping your pace), folds, and winks out into its light
+      this.leaveT += dt;
+      this.fly(_d2.copy(this.object.position).addScaledVector(up, APPEAR.rise), APPEAR.rise + pSpeed, up, dt, pv);
+      open = this.leaveT < APPEAR.leave * 0.6;
+      const w = (this.leaveT - APPEAR.leave) / APPEAR.wink;
+      if (w > 0) { this.object.scale.setScalar(Math.max(1e-3, 1 - THREE.MathUtils.smoothstep(w, 0, 1))); this.setLight(Math.sin(Math.PI * Math.min(1, w))); }
+      if (w >= 1) { this.hide(); return; }
     }
-    this.fold.update(dt, open, awake);
+    this.fold.update(dt, open, true);
     // the antenna sways with the drone's own accelerations (in its frame)
     const acc = _a.subVectors(this.vel, lastVel).divideScalar(Math.max(dt, 1e-3)).applyQuaternion(_q3.copy(this.object.quaternion).invert());
     this.drone.pose(this.fold, dt, _lean.set(acc.x, acc.z));
@@ -566,26 +560,6 @@ export class Scout {
       this.lens.quaternion.slerp(_qt.setFromUnitVectors(_z, local), 1 - Math.exp(-10 * dt));
     }
     this.updateBeam(dt, beam);
-  }
-  /**
-   * Its moods on the dock, folded (src/companion.js Mood): over the dock's pose, a little lift (a hop), a turn round its
-   * up and a tip of its top toward what it looks at, a quick shake in a storm. Returns whether the eye is open for it.
-   */
-  moodOnDock(dt) {
-    let dir = null;
-    if (this.attend && !this.still) {
-      const local = _l.subVectors(this.attend, this.object.position).applyQuaternion(_q3.copy(this.object.quaternion).invert());
-      if (Math.hypot(local.x, local.z) > 0.3) dir = local;
-    }
-    const m = this.mood;
-    m.step(dt, { dir, storm: this.storm, still: this.still });
-    if (!m.busy) return false;
-    const f = m.pose(), q = this.object.quaternion;
-    if (f.lift) this.object.position.addScaledVector(_ax.set(0, 1, 0).applyQuaternion(q), f.lift);   // (out of the surface it sits on)
-    if (f.yaw) q.multiply(_qt.setFromAxisAngle(_ax.set(0, 1, 0), f.yaw));
-    if (f.tilt) q.multiply(_qt.setFromAxisAngle(_ax.set(1, 0, 0), f.tilt));
-    if (f.shake) q.multiply(_qt.setFromAxisAngle(_ax.set(0, 0, 1), f.shake));
-    return f.awake;
   }
   /** At the lookout: the flare goes down on the objective, a chirp, and onFind (a hint: the beam on the weak point, its chirp, onHint). */
   arrive() {

@@ -21,10 +21,9 @@ practical. It points before it comments.
 **Tic:** it answers its own questions. "Lost? A little. This way." "Scenic
 route? The goal is over here." Do not overuse it: one line in three at most.
 
-**Body language:** on the dock it hops when something is found, turns its lens
-and leans toward something worth seeing nearby (an unopened chest, someone you
-have not met), and shivers in a storm. Out, it faces what it points at. With
-Reduce motion on it holds still.
+**Body language:** it is not carried on you: it comes out of a small light over
+your shoulder when it is needed, and winks out again when it is done. Out, it
+faces what it points at; with nothing to find it shakes itself, no.
 
 **When it speaks up:** a few lines at the start of a game, each once (out of the
 ship, the first person near, the first chest, the first time you are lost), and

@@ -815,6 +815,7 @@ const BOX334 = 'Issue #334: the cinematics QC’s frames (muted headless Chrome,
 const BOX292 = 'Issues #292 and #293: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6292), before and after the change, the box opened by the review page’s staging; 14 October; the QC’s own WebP';
 const CINE295 = 'Issues #295–#299: the cinematics QC script (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720, the review page’s staging) on this branch and on the tree before it (259a283d), its frames of the same cinematic at about the same second; 14 October';
 const HALO301 = 'Issue #301: the visual audit’s orbit probe (muted headless Chrome, High, 1280 × 720, 9:30) on this branch’s own Vite (port 6301), the first frame of its orbit (−32°); before, the same build with the spot blacks’ range check off (post.js SPOT_RANGE) (14 October)';
+const DRONE294 = 'Issue #294: muted headless Chrome against this branch’s own Vite (port 6294) and the tree before it (e5258ac4), High, 1280 × 720, the Desert at 10:00, a save past the prologue with the flask; the talk with the nearest person (the game’s talk view), the camera pinned over his left shoulder a sixth of a second after the scout’s button, and the cinematics QC’s frame of the Qanat’s flow at its tenth second; 14 October; cwebp -q 72';
 const EYES302 = 'Issue #302: the ink-lines audit’s portrait-10 (muted headless Chrome, 1920 × 1080, Medium), the face cropped and enlarged eight times, nearest neighbour; before, the same build with the far fade off (portrait-head.js PORTRAIT_EYES_FAR) (14 October)';
 const CORNERS322B = 'Issue #322, second look: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6340) and the tree before it (d36d18e5), the camera pinned at the same spot; 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
@@ -829,6 +830,11 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'Your ship’s rooms are shaded with pen strokes again', tags: ['ship'], shots: [
       { name: 'ship-room-hatch', title: 'The main room', caption: 'From the galley’s end: before, a flat tone over every wall and the ceiling; after, pen strokes in the shade again, 5–10 pixels apart, too wide to shimmer.', from: CORNERS322B },
+    ] },
+    { match: 'Plumb, the drone, no longer rides on your back', tags: ['cinematics'], shots: [
+      { name: 'drone-flow', title: 'A world’s ending, the close-up', caption: 'The Qanat’s water running, the last shot on his face: before, the folded drone on the flask’s upright beside his face, a quarter of the frame; after, only him.', from: DRONE294 },
+      { name: 'drone-talk', title: 'A talk', caption: 'Talking to Marrow by the ship: before, the drone on his back by his head; after, nothing on him but the flask.', from: DRONE294 },
+      { name: 'drone-scout', title: 'Calling it', caption: 'A sixth of a second after the scout’s button: before, it hops off the flask by his shoulder; after, a small light over his shoulder that the drone grows out of.', from: DRONE294 },
     ] },
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
       { name: 'touchdown-incal', title: 'Landing in the City-Shaft', caption: 'Half a second into the shot of the hatch after touchdown: before, balls of dust over the ship’s feet and half its hull; after, the ship on its feet, a few small puffs going.', from: CINE295 },

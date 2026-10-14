@@ -84,7 +84,8 @@ export class Gear {
     // ---------------------------------------------------------------- radio pack
     const pack = new THREE.Group();
     chest.add(pack);
-    // the scout drone's dock (src/scout.js): on the pack's top, its foot down, its lens looking back
+    // the scout drone's dock: on the pack's top, its foot down, its lens looking back (unused while the drone is not
+    // carried on him, issue #294: src/scout.js brings it out of a light when it is needed; the place is kept for its return)
     this.scoutDock = new THREE.Object3D();
     this.scoutDock.position.set(0, 0.7 + DRONE_BELLY, -0.29);
     this.scoutDock.quaternion.copy(DOCK_ON_TOP);

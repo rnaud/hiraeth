@@ -71,17 +71,12 @@ springs up and sways with the drone's accelerations, and the lens lights.
   once the vanes are out; closing, the rotors spin down and park with their
   blades along the petals before the petals shut, and the eye closes last. It
   can reverse at any point; `snap()` jumps (teleports, recalls).
-- **Launch and landing** (`DOCKING` in `scout.js`): it hops off the dock still
-  folded, eye open, straight out along the dock's line (`out`: away from the
-  surface and back from you), blooms once clear, then flies. Coming home it
-  folds on the way in, lines up at the end of that line, and glides down it
-  onto the dock in the dock's frame (so it keeps up as you move), turning to
-  sit flush. If the dock itself jumps on the body (the radio pack giving way to
-  the tank), it glides over, folded.
+- **Launch and landing**: until v1.73 it hopped off a dock on his back and glided back onto it
+  (`DOCKING`); now it comes out of a small light and winks out (below, "It comes when it is needed").
 - **Flying**, the body stays near level (pitch at most `PITCH`) and leans into
   its speed (the lit beak that pointed at the goal is gone, October 2026: the
   drone's heading is the only pointer).
-- **Docks** (`DOCK_ON_TOP`, `DOCK_ON_SIDE`): on the rucksack's lid (the radio pack's flat top until October 2026), foot
+- **Docks** (`DOCK_ON_TOP`, `DOCK_ON_SIDE`; unused since v1.73, kept for its return): on the rucksack's lid (the radio pack's flat top until October 2026), foot
   down, lens looking back at the camera (`kit.dock` is where the foot rests,
   `gear.js` adds `DRONE_BELLY`); once the tank is found, on top of the flask's
   left upright beside its neck (docs/systems/traveller-kit.md), above the lantern
@@ -95,7 +90,7 @@ springs up and sways with the drone's accelerations, and the lens lights.
   glass, clear of the bracket, the lantern and the antenna), no arm, hand or
   the helmet through it in every clip (idle, walk, jog, sprint, jumps, drive,
   climbing, the ledge) on the pack, the rail and the cap, the cap clear of the
-  open wings, and the launch and landing paths.
+  open wings, and its coming and going.
 
 ## Plumb's own mind (v1.51, issue #152)
 
@@ -120,7 +115,7 @@ The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
   first chest opened, said once its scene is over), `pointer` (the first time it
   finds you lost, in place of a lost line). None names a button: the R3 line
   after the first talk is the hint system's (issue #151).
-- **Moods on the dock** (`Mood`, `MOOD`; `Scout.moodOnDock`): a double hop when
+- **Moods on the dock** (`Mood`, `MOOD`; unused since v1.73, it is not carried on you): a double hop when
   an item is given or a quest moves on; a turn of the lens and a tip of its top
   toward the nearest unopened chest or unmet person within 10 m; a shiver once a
   storm (or heavy rain) passes 0.3. Its eye opens for them. All off with Reduce
@@ -131,3 +126,28 @@ off (`droneSay`) quiet the lines and the pointing; the ping on request and the
 moods stay. The lines (`DRONE_LINES`) carry their tones and show on the cue
 after the drone's ◇. `tests/companion.test.js` checks the threshold, the
 cooldown, the setting, each opening line once and the moods.
+
+## It comes when it is needed (v1.73, issue #294)
+
+The drone is no longer carried on the traveller: docked on the flask it sat by his face in every
+close-up (the cinematics QC v1.66). The author: "move the drone off the character altogether for now.
+It should just appear when I need it." So `Scout` (`src/scout.js`) is `away` (nothing drawn: play,
+talks, portraits, menus and the studio all show him without it) until it is called:
+
+- **It comes** (`APPEAR`, phase `appear`): every ping (Q, R3, the touch ping; Plumb's own when you are
+  lost; a guardian's hint; a world's nudge, `scout:ping`) brings it out of a small inked light (an
+  octahedron of its glow, `scout.light`) over your left shoulder, 0.55 m to the side, 0.35 m back and
+  0.5 m over your head (`appearSpot`: in the camera's view behind you, lower under a ceiling, short of
+  a wall). It grows there in 0.42 s, carried with you, folded, its eye waking, and blooms from half
+  grown; then it flies its errand as before (seek, point).
+- **It goes** (phase `leave`): done (or sent away, or lost), it rises where it is for 0.8 s, folding, and
+  winks out into its light (0.3 s). Boxed in, it winks out and comes again once (`recall`).
+- **Nothing to find**: it comes out of its light folded, shakes itself, no, and winks out (1.7 s).
+- **In a scene**: `update(dt, paused, gone)`; main.js passes `gone` while a talk, a filmed moment, a ship
+  scene or a box opening is under way, and a drone that is out is gone at once (it is no part of the
+  shot). A teleport leaves it behind the same way.
+
+Its lines (Plumb's, `src/companion.js`) still come on the cue with its ◇; its moods on the dock are
+unused. `tests/drone.test.js` ("off him") checks nothing of it on him or drawn while idle, the light
+and the growing by his shoulder, the bloom only once grown, the job and the going, and the scene
+hiding it; `tests/scout.test.js` the phases of a find, a shrug, a hint and a recall.

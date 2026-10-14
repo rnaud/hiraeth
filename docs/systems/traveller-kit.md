@@ -62,7 +62,7 @@ the rucksack's outer face. The look and its reasons:
   dome's middle, and the ring's rim is slim, so the sword's frog behind the right shoulder stays clear
   (`tests/sword-sheath.test.js`: 1.2 cm at the least, to the ring's rim). The jets clip under the dome. A vehicle's
   socket and the hand-off keep `TANK.scale` either way.
-- **The scout's dock**: without the flask, on the rucksack's lid (`kit.dock`,
+- **The scout's dock** (unused since v1.73: the drone is not carried on him, docs/systems/scout.md): without the flask, on the rucksack's lid (`kit.dock`,
   `Gear.packDock`); with it, clamped to the top of the flask's left upright
   (`TANK_RAIL`, `SCOUT_DOCK_*`), high enough that the arms don't swing into
   it in any clip. While the wings are open it hops onto the cap

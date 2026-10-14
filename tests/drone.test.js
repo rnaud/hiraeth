@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Drone, DroneFold, FOLD, DRONE, DRONE_BELLY, DOCK_ON_SIDE } from '../src/drone.js';
-import { Scout, DOCKING } from '../src/scout.js';
+import { Scout } from '../src/scout.js';
 import { FluidTool, TANK, TANK_RAIL, SCOUT_DOCK_Y, tankRadiusAt } from '../src/fluid-tool.js';
 import { Humanoid, prepareHuman } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
@@ -13,7 +13,8 @@ import { Gear } from '../src/gear.js';
 import { Animator } from '../src/animator.js';
 
 // The scout drone folds (src/drone.js): a round pod whose four shell petals close over its rotors
-// into a compact egg on your back, and bloom into vanes when it flies.
+// into a compact egg, and bloom into vanes when it flies. (Its docks on the pack and the tank are
+// kept, unused: it is not carried on him, issue #294.)
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const run = (f, dt, n, open, awake) => { for (let i = 0; i < n; i++) f.update(dt, open, awake); return f; };
@@ -212,34 +213,45 @@ for (const where of ['pack', 'tank']) test(`docked on the ${where}: no arm, hand
   assert.ok(worst > 0, `the drone on the ${where} touches the body in ${at} (${worst.toFixed(3)} m)`);
 });
 
-test('the scout hops off its dock folded along the dock line, blooms clear of you, and lands folded', () => {
-  const dock = new THREE.Object3D(); dock.position.set(0, 2, 0); dock.quaternion.copy(DOCK_ON_SIDE); dock.updateMatrixWorld();
-  const player = { pos: V(), vel: V(), frame: { up: V(0, 1) }, gear: { scoutDock: dock } };
-  const scout = new Scout({ scene: new THREE.Scene(), player, physics: { rayDistance: () => Infinity }, getTarget: () => ({ id: 't', label: 'T', position: V(100, 2) }) });
-  assert.equal(scout.fold.state, 'folded');
+// Issue #294: the drone is not carried on him (it sat by his face in every close-up): it comes when it is needed.
+test('off him (issue #294): idle, no drone on the traveller; pinged, it grows out of a light by his shoulder, blooms once grown, does its job and winks out', () => {
+  const w = wearer(true), scene = new THREE.Scene();
+  scene.add(w.char.root);
+  const player = { pos: V(), vel: V(), frame: { up: V(0, 1) }, gear: w.gear, humanoid: w.h, char: w.char };
+  const scout = new Scout({ scene, player, physics: { rayDistance: () => Infinity }, getTarget: () => ({ id: 't', label: 'T', position: V(100, 2) }) });
+  const onHim = () => { let o = scout.drone.object; while (o) { if (o === w.char.root) return true; o = o.parent; } return false; };
+  assert.ok(!onHim(), 'the drone is no part of him');
+  // idle: nothing drawn, anywhere (play, a talk, a portrait, a menu all film him without it)
+  for (let i = 0; i < 180; i++) { scout.update(1 / 60); assert.equal(scout.object.visible, false, 'idle, not drawn'); }
+  assert.equal(scout.light.visible, false);
+  // the ping: out of a small light over his left shoulder, a little behind him
   scout.ping();
-  const out = DOCKING.out.clone().applyQuaternion(DOCK_ON_SIDE), home = V(0, 2, 0);
-  let bloomedNear = false;
-  while (scout.popT < DOCKING.pop) {
+  assert.equal(scout.phase, 'appear'); assert.equal(scout.object.visible, true);
+  let bloomedSmall = false, lit = 0, last = 0, shrank = false;
+  while (scout.phase === 'appear') {
     scout.update(1 / 60);
-    const rel = scout.object.position.clone().sub(home), along = rel.dot(out);
-    assert.ok(rel.clone().addScaledVector(out, -along).length() < 1e-6, 'straight out along the dock line');
-    if (scout.fold.petals > 0 && along < DOCKING.hop * 0.3) bloomedNear = true;
-    assert.equal(scout.trail.samples.length, 0, 'no trail on the hop');
+    const s = scout.object.scale.x, p = scout.object.position;
+    if (s < last - 1e-6) shrank = true; last = s;
+    if (scout.fold.petals > 0 && s < 0.4) bloomedSmall = true;
+    lit = Math.max(lit, scout.lightK);
+    if (scout.phase !== 'appear') break;
+    assert.ok(Math.hypot(p.x, p.z) > 0.45 && p.y > 1.7 && p.y < 2.4, `over his shoulder, clear of him: ${p.toArray().map((x) => x.toFixed(2))}`);
+    assert.ok(V(1, 0, 0).dot(p) > 0.3, 'on his left');
   }
-  assert.ok(!bloomedNear, 'the petals only open once clear of the dock');
-  assert.ok(scout.fold.eye > 0.99, 'awake on the hop');
-  for (let i = 0; i < 60; i++) scout.update(1 / 60);
-  assert.equal(scout.phase, 'seek'); assert.equal(scout.fold.state, 'open');
-  // home: folded before the glide in, docked shut and lined up with the dock
-  scout.home();
-  let glideOpen = false;
-  for (let i = 0; i < 600 && scout.phase !== 'docked'; i++) { scout.update(1 / 60); if (scout.settleT != null && scout.fold.petals > 0.45) glideOpen = true; }
-  assert.equal(scout.phase, 'docked');
-  assert.ok(!glideOpen, 'shut before it glides onto the dock');
-  for (let i = 0; i < 60; i++) scout.update(1 / 60);
-  assert.equal(scout.fold.state, 'folded');
-  assert.ok(scout.object.position.distanceTo(home) < 1e-6 && scout.object.quaternion.angleTo(DOCK_ON_SIDE) < 1e-6);
+  assert.ok(!shrank && lit > 0.9, `it grows out of its light (${lit.toFixed(2)})`);
+  assert.ok(!bloomedSmall, 'the petals open once it has grown');
+  assert.equal(scout.phase, 'seek'); assert.equal(scout.object.scale.x, 1);
+  // its job, then gone: rises, folds, winks out into its light, and nothing is left on him or in the air
+  const seen = new Set();
+  for (let i = 0; i < 60 * 14 && !(seen.has('leave') && scout.phase === 'away'); i++) { scout.update(1 / 60); seen.add(scout.phase); }
+  assert.ok(seen.has('point') && seen.has('leave'));
+  assert.equal(scout.phase, 'away'); assert.equal(scout.object.visible, false); assert.equal(scout.light.visible, false);
+  // a talk or a filmed scene while it is out: it is gone at once
+  scout.ping(); for (let i = 0; i < 40; i++) scout.update(1 / 60);
+  assert.ok(scout.object.visible);
+  scout.update(1 / 60, true, true);
+  assert.equal(scout.phase, 'away'); assert.equal(scout.object.visible, false);
+  assert.ok(!onHim());
 });
 
 test('gliding: the scout hops off the rail onto the cap, out of the fluid wings, along an arc clear of the tank', async () => {
@@ -276,23 +288,4 @@ test('gliding: the scout hops off the rail onto the cap, out of the fluid wings,
     for (const [a, b, r] of capsules(w.h)) for (const p of pts) worst = Math.min(worst, segDist(p, a, b) - r);
   }
   assert.ok(worst > 0, `on the cap it touches the body (${worst.toFixed(3)})`);
-});
-
-test('when the flask is found, the docked scout glides over from the rucksack\'s lid to the flask\'s upright, folded', () => {
-  const w = wearer(false), scene = new THREE.Scene();
-  const player = { pos: V(), vel: V(), frame: { up: V(0, 1) }, gear: w.gear, humanoid: w.h, char: w.char };
-  const scout = new Scout({ scene, player, physics: { rayDistance: () => Infinity }, getTarget: () => null });
-  scout.update(1 / 60);
-  const onPack = scout.object.position.clone();
-  // the backpack is found: the dock goes onto the tank's rail (the real hook)
-  const tank = new THREE.Group(); tank.position.set(...TANK.at); tank.scale.setScalar(TANK.scale); w.h.chestAnchor.add(tank);
-  FluidTool.prototype.placeDock.call({ player: { gear: w.gear }, tank: { group: tank } }, true);
-  w.h.model.updateMatrixWorld(true);
-  scout.update(1 / 60);
-  assert.equal(scout.phase, 'return', 'on its way over');
-  assert.ok(scout.object.position.distanceTo(onPack) < 0.05, 'from where it was');
-  for (let i = 0; i < 40 && scout.phase !== 'docked'; i++) { scout.update(1 / 60); assert.equal(scout.fold.petals, 0, 'folded all the way'); }
-  assert.equal(scout.phase, 'docked');
-  assert.ok(scout.object.position.distanceTo(scout.anchor()) < 1e-6);
-  scout.update(1 / 60); assert.equal(scout.phase, 'docked', 'and stays');
 });

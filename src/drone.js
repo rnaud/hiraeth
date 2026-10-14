@@ -10,8 +10,8 @@ import { painted, paintMaterial } from './vehicle-kit.js';
 // the belly, the lens on its face), the upper half is four shell petals on
 // hinges round the rim. Folded, the petals close into a smooth dome over
 // four small rotors tucked inside, the whip antenna drawn in until only its
-// brass bead shows at the top: a compact egg that sits on its foot on the
-// radio pack or the tank, eye shut. Unfolded, the petals swing out and down
+// brass bead shows at the top: a compact egg, eye shut (it is not carried
+// on him: src/scout.js brings it out of a small light when it is needed, issue #294). Unfolded, the petals swing out and down
 // into four vanes (the rotors on their inner faces, now upright and spinning),
 // the antenna springs up and the eye lights.
 //

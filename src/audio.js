@@ -2264,7 +2264,7 @@ export class Sound {
   }
 
   /**
-   * The scout's voice (src/scout.js): 'go' a little rising blip as it hops off the dock;
+   * The scout's voice (src/scout.js): 'go' a little rising blip as it comes out of its light;
    * 'found' two bright chirps as it points at the objective; 'shrug' a falling "uh-uh", nothing to find;
    * 'hint' (a guardian's fight) a low "hm" then a little rising "look!", as it turns its lens on the weak point.
    */

@@ -1,17 +1,18 @@
-// Plumb, the drone on your pack (src/scout.js flies it, src/drone.js is its body; the character:
+// Plumb, the drone that comes when it is needed (src/scout.js flies it, src/drone.js is its body; the character:
 // lore/characters/plumb.md). Besides finding the objective when you ask (Q, R3), it has a little mind
 // of its own, three parts, all here so they can be tested without a scene:
 //
 //   LostWatch   notices when you are lost: no progress (a quest step, an item, a chest, a talk) and
 //               no new place for a few minutes while you walk about, sooner when you walk away from
 //               the goal. Then it says one short line and flies out toward the goal (the ping's own
-//               flight: out, a look, the flare, home). Cooldowns, so it never nags.
+//               flight: it comes, a look, the flare, it goes). Cooldowns, so it never nags.
 //   Opening     a few lines at the start of a game, each said once per save (flags drone.said.<id>):
 //               stepping out of the ship, the first person near, the first chest, the first time
 //               you are lost (the R3 line after the first talk is the hint system's, issue #151:
 //               these say nothing of the button).
 //   Mood        small moves on the dock: a hop when you find something, a lean and a look toward
 //               something worth seeing near you, a shiver in a storm. None with Reduce motion.
+//               Unused while the drone is not carried on you (issue #294: it comes when it is needed).
 //
 // The setting "Drone hints" (src/ui.js droneHints: on | fewer | off) sets how often it speaks up:
 // fewer waits twice as long and rests twice as long between two; off, it says nothing on its own

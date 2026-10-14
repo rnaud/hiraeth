@@ -55,8 +55,8 @@ function fixture(physics={rayDistance:()=>Infinity}, target=v(100)) {
   return {scout,player,finds,shrugs};
 }
 const forward=(scout)=>new THREE.Vector3(0,0,1).applyQuaternion(scout.object.quaternion);
-test('ping: the scout flies a little way towards the objective, hovers facing it (no second pointer: no beak, no beam), drops a flare, comes home and docks', () => {
-  const {scout,finds}=fixture(); assert.equal(scout.phase,'docked'); scout.ping();
+test('ping: the scout comes, flies a little way towards the objective, hovers facing it (no second pointer: no beak, no beam), drops a flare, and goes', () => {
+  const {scout,finds}=fixture(); assert.equal(scout.phase,'away'); assert.equal(scout.object.visible,false,'nothing on him, nothing drawn'); scout.ping();
   const seen=new Set(); let beamAt=0, farthest=0, flareSeen=false, facing=-1;
   assert.equal(scout.pointer,undefined,'no beak on the drone');
   for(let i=0;i<60*12;i++){
@@ -65,13 +65,13 @@ test('ping: the scout flies a little way towards the objective, hovers facing it
     if(scout.phase==='point'){ beamAt=Math.max(beamAt,scout.beamLen); facing=Math.max(facing,forward(scout).x); }
     if(scout.flare.on) flareSeen=true;
   }
-  assert.deepEqual([...seen],['launch','seek','point','return','docked']);
+  assert.deepEqual([...seen],['appear','seek','point','leave','away']);
   assert.ok(farthest>FIND.out-1.5&&farthest<FIND.out+1.5,`a little way towards it (${farthest.toFixed(1)} m), not all the way`);
   assert.equal(beamAt,0,'no beam: the drone itself points the way');
   assert.ok(facing>0.9,`it faces the objective: ${facing.toFixed(2)}`);
   assert.ok(flareSeen,'a flare on the spot');
   assert.deepEqual(finds,[['Test',100]],'found once: the toast names it and how far');
-  assert.equal(scout.phase,'docked'); assert.ok(scout.object.position.distanceTo(scout.anchor())<.01,'back on its dock');
+  assert.equal(scout.phase,'away'); assert.equal(scout.object.visible,false,'gone again');
   assert.equal(scout.beam.visible,false,'the beam off');
   // the flare fades on its own
   assert.equal(Flare.k(FLARE.life+0.1),0); assert.ok(Flare.k(FLARE.life/2)>0.99); assert.equal(Flare.k(0),0);
@@ -91,14 +91,16 @@ test('a near objective: the scout flies right over it and points down at it', ()
   assert.ok(forward(scout).y<-0.3,`nose down at it: ${forward(scout).y.toFixed(2)}`);
   assert.equal(finds.length,1);
 });
-test('nothing to find: the scout shrugs on its dock (a hop and a shake), says so, and stays home', () => {
+test('nothing to find: the scout comes out of its light over your shoulder, shakes itself, no, says so, and winks out', () => {
   const {scout,finds,shrugs}=fixture(undefined,null);
   assert.equal(scout.ping(),false);
   assert.equal(scout.phase,'shrug'); assert.equal(shrugs.length,1);
-  let far=0, turned=0; const q0=scout.dockQuaternion();
-  for(let i=0;i<60*1.5;i++){ scout.update(1/60); far=Math.max(far,scout.object.position.distanceTo(scout.anchor())); turned=Math.max(turned,scout.object.quaternion.angleTo(q0)); }
-  assert.equal(scout.phase,'docked');
-  assert.ok(far>0.02&&far<0.1,`a little hop off the dock: ${far.toFixed(3)} m`);
+  let size=0, lit=0, turned=0, far=0; const q0=new THREE.Quaternion();
+  for(let i=0;i<60*2;i++){ scout.update(1/60); if(i===30) q0.copy(scout.object.quaternion); if(i>30&&scout.phase==='shrug') turned=Math.max(turned,scout.object.quaternion.angleTo(q0));
+    size=Math.max(size,scout.object.scale.x); lit=Math.max(lit,scout.lightK); far=Math.max(far,scout.object.position.distanceTo(v(0,1.6,0))); }
+  assert.equal(scout.phase,'away'); assert.equal(scout.object.visible,false);
+  assert.ok(size>0.99&&lit>0.9,`it came (${size.toFixed(2)}) out of its light (${lit.toFixed(2)})`);
+  assert.ok(far<1.2,`by your head: ${far.toFixed(2)} m`);
   assert.ok(turned>0.2,`a shake: ${turned.toFixed(2)} rad`);
   assert.equal(finds.length,0);
   assert.equal(scout.fold.petals,0,'it never opened');
@@ -116,11 +118,11 @@ test('scout slides along walls and asks for a recall when boxed in; teleport rec
   let boxed=false;
   for(let i=0;i<120&&!boxed;i++){ boxed=scout.fly(v(10,2),7,up,1/30); assert.ok(pos.x<1,`through the wall: ${pos.x}`); }
   assert.ok(boxed,'a scout pinned against a wall gives up instead of hovering there forever');
-  // a whole ping: it blinks back to the dock, relaunches once, then stays home
-  scout.dock();scout.ping();let docks=0,was=scout.phase;
-  for(let i=0;i<200;i++){scout.update(1/30);assert.ok(pos.x<1);if(scout.phase==='docked'&&was!=='docked')docks++;was=scout.phase;}
-  assert.equal(scout.phase,'docked');assert.ok(docks>=1&&docks<=2,`recalls: ${docks}`);
-  scout.ping(); player.pos.x=100; scout.update(.01); assert.equal(scout.phase,'docked');
+  // a whole ping: it winks out, comes again once, then stays away
+  scout.hide();scout.ping();let gone=0,was=scout.phase;
+  for(let i=0;i<200;i++){scout.update(1/30);assert.ok(pos.x<1);if(scout.phase==='away'&&was!=='away')gone++;was=scout.phase;}
+  assert.equal(scout.phase,'away');assert.ok(gone>=1&&gone<=2,`recalls: ${gone}`);
+  scout.ping(); player.pos.x=100; scout.update(.01); assert.equal(scout.phase,'away');
 });
 test('scout rises over terrain instead of freezing, never dips into it, and moves smoothly', () => {
   // rolling slopes, then a 10 m rise; the destination itself is below the ground
@@ -237,7 +239,7 @@ test('in a guardian\'s fight a ping is a hint: the lens beam on the weak point, 
   const toWeak=weak.distanceTo(v(0,HINT.rise,0));
   assert.ok(r.beam>toWeak-3,`the lens beam reaches the weak point (${r.beam.toFixed(1)} of ${toWeak.toFixed(1)} m)`);
   assert.ok(r.far<HINT.out+HINT.rise+2,`it stays by you: ${r.far.toFixed(1)} m`);
-  assert.equal(scout.phase,'docked','and comes home');
+  assert.equal(scout.phase,'away','and goes');
   scout.ping(); run(8); scout.ping(); run(8); scout.ping(); run(8);
   assert.deepEqual(said.map(([l])=>l),['nudge','plainer','plainest','plainest'],'asked again: plainer, then the plainest stays');
   // a new phase starts over
@@ -345,7 +347,7 @@ test('a whole ping indoors: under a low ceiling it never presses into it nor giv
   const physics={ rayHit(o,d,far){ if(d.y<=1e-6||o.y>=ceiling) return null; const t=(ceiling-o.y)/d.y; return t<=far?{distance:t,point:o.clone().addScaledVector(d,t),normal:v(0,-1,0)}:null; } };
   const {scout,finds}=fixture(physics,v(30,6,0));
   scout.ping(); let high=0; const phases=new Set();
-  for(let i=0;i<60*6;i++){ scout.update(1/60); phases.add(scout.phase); high=Math.max(high,scout.object.position.y); assert.ok(scout.object.scale.x>0.99,'not recalled'); }
+  for(let i=0;i<60*6;i++){ scout.update(1/60); phases.add(scout.phase); high=Math.max(high,scout.object.position.y); assert.equal(scout.fade,null,'not recalled'); }
   assert.ok(high<ceiling-0.2,`under the ceiling: ${high.toFixed(2)}`);
   assert.ok(phases.has('point')&&finds.length===1);
 });
@@ -353,7 +355,6 @@ test('a whole ping up a shaft: it rises straight up it (not into its walls), nos
   // a round shaft 3 m across (its walls as rays from inside) and the goal 30 m up it
   const R=1.5, physics={ rayHit(o,d,far){ const a=d.x*d.x+d.z*d.z; if(a<1e-9) return null; const b=o.x*d.x+o.z*d.z, c=o.x*o.x+o.z*o.z-R*R; const t=(-b+Math.sqrt(Math.max(b*b-a*c,0)))/a; return t<=far?{distance:t,point:o.clone().addScaledVector(d,t),normal:v(-o.x-d.x*t,0,-o.z-d.z*t).normalize()}:null; } };
   const {scout,player,finds}=fixture(physics,v(0.4,30,0.3));
-  scout.dock(); scout.object.position.set(0,2,0);
   scout.ping(); let top=0, wide=0, up=-1;
   for(let i=0;i<60*8;i++){ scout.update(1/60); const p=scout.object.position; top=Math.max(top,p.y); wide=Math.max(wide,Math.hypot(p.x,p.z)); if(scout.phase==='point') up=Math.max(up,forward(scout).y); }
   assert.ok(top>FIND.shaft-1.5,`up the shaft: ${top.toFixed(1)} m`);
@@ -361,7 +362,7 @@ test('a whole ping up a shaft: it rises straight up it (not into its walls), nos
   assert.ok(up>0.3,`nose up: ${up.toFixed(2)}`);
   assert.equal(finds.length,1);
   for(let i=0;i<60*4;i++) scout.update(1/60);
-  assert.equal(scout.phase,'docked','and home again');
+  assert.equal(scout.phase,'away','and gone again');
 });
 test('a flare far below you rises past your feet, so it is seen from up there too', () => {
   const f=new Flare(null);

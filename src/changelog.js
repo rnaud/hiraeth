@@ -9,6 +9,9 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.73', date: '2026-10-14', items: [
+    // the drone off him (issue #294): src/scout.js (APPEAR, appearSpot, the light; phases away/appear/leave), main.js;
+    // tests/drone.test.js, tests/scout.test.js; docs/systems/scout.md
+    'Plumb, the drone, no longer rides on your back by your face: it comes out of a small light over your shoulder when you call it (or when it has something to show you), does its job, and winks out again. Talks, scenes and close-ups show only you.',
     // names alike in one world (issue #281): src/story/hosts-data.js, src/temples/{underwater,perdide2}-data.js,
     // src/story/shop-data.js, src/minigames/canyon.js, src/save-migrate.js step 28; tests/names.test.js
     { text: 'No two people you meet in a world have names that look alike any more. The games’ hosts are the Desert’s Kamal, Aziza and Bilal, Vael’s Elva and Brother Amos, the City-Shaft’s Dagny and the Moon Foundry’s Rudi; the Whale-House’s door-keeper is old Achille, Lorn’s lamp-counter is Briony and the Welcome-Shelf’s keeper is Burdock. The Desert’s hoverbike race is run round the Two Chasms.',
