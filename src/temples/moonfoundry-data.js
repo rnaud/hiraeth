@@ -14,7 +14,7 @@ export const QUEST = {
 export const PEOPLE = {
   ilse: {
     id: 'ilse', name: 'Petra', title: 'who keeps the founders’ ledger', color: '#c9703e', voice: 0.96, kind: 'f', lang: 'buried',
-    palette: { cloak: '#c9703e', lining: '#efe6d2', cloth: '#e8d2a8', legs: '#45403f', hat: '#7f93a3', hair: '#5a3a2c' }, head: 'hair', cape: 0.4,
+    palette: { cloak: '#c9703e', lining: '#efe6d2', cloth: '#e8d2a8', legs: '#45403f', hat: '#7f93a3', hair: '#5a3a2c' }, head: 'hair', cape: 0,
     lines: ['~neutral~ Moon forty-one: cracked. Moon forty-two: cracked. Very consistent.', '~tired~ The ledger is heavier than it looks. So is the house.', '~curious~ You hear it at night? The rolling?'],
     talk: {
       entry: [

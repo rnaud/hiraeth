@@ -16,7 +16,7 @@ export const QUEST = {
 export const PEOPLE = {
   wim: {
     id: 'wim', name: 'Wim', title: 'who winds the clocks', color: '#d8a24a', voice: 1.08, kind: 'f',
-    palette: { cloak: '#62c3c9', lining: '#d8a24a', cloth: '#f3ead8', legs: '#34405e', hat: '#e88fa6', hair: '#8a5638' }, head: 'hair', cape: 0.5,
+    palette: { cloak: '#62c3c9', lining: '#d8a24a', cloth: '#f3ead8', legs: '#34405e', hat: '#e88fa6', hair: '#8a5638' }, head: 'hair', cape: 0,
     lines: ['~neutral~ Tick. Tock. Tick… no, that one’s wrong too.', "~tired~ Every clock wound. Eleven different times. Excellent variety.", "~curious~ Know the time? Neither do the clocks."],
     talk: {
       entry: [

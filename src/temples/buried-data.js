@@ -13,7 +13,7 @@ export const QUEST = {
 export const PEOPLE = {
   brann: {
     id: 'brann', name: 'Fisk', title: 'who greases the Engine-House door', color: '#5fa6a0', voice: 0.92, kind: 'm',
-    palette: { cloak: '#5fa6a0', lining: '#33485a', cloth: '#c9b896', legs: '#8e3a2b', hat: '#e9dcc0', hair: '#3a2a22' }, head: 'hair', cape: 0.6,
+    palette: { cloak: '#5fa6a0', lining: '#33485a', cloth: '#c9b896', legs: '#8e3a2b', hat: '#e9dcc0', hair: '#3a2a22' }, head: 'hair', cape: 0,
     lines: ["~neutral~ One yearly greasing. Door’s ready if anyone is.", "~tired~ Grinding every night since the Tuning Star came over. You learn to sleep badly.", '~curious~ You count your age in teeth too?'],
     talk: {
       entry: [

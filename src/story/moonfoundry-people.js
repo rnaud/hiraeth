@@ -51,7 +51,7 @@ export const PEOPLE = {
   // Hedda pours the small moons on the apron, by the ship: she opens the foundry's main quest
   hedda: {
     id: 'hedda', name: 'Hedda', title: 'who pours the small moons', color: '#d9a07c', voice: 1.05, kind: 'f',
-    head: 'wrap', cape: 0.3,
+    head: 'wrap', cape: 0,
     lines: ['~happy~ A small one, for somebody’s bell-tower. Still warm. Don’t touch.', '~curious~ Every so often somebody orders a moon. We say yes before we think.'],
     talk: {
       entry: [
@@ -85,7 +85,7 @@ export const PEOPLE = {
 
   ottilie: {
     id: 'ottilie', name: 'Liesel', title: 'who mends in the quarter', color: '#c9703e', voice: 1.1, kind: 'f',
-    head: 'wrap', cape: 0.4,
+    head: 'wrap', cape: 0,
     lines: ['~neutral~ Bring it here, I’ll mend it. Kettles, hinges, hearts. Mostly kettles.', '~tired~ Every hook in the foundry bends the same way eventually.', '~playful~ The polishing drum was a kitchen before it was my workshop. It still smells of soup.'],
     talk: {
       entry: [
@@ -116,7 +116,7 @@ export const PEOPLE = {
   // Bertil at the last furnace: the light's trace (the plate he cast for a lone woman's ship), and the hook's end
   bertil: {
     id: 'bertil', name: 'Bertil', title: 'who pours at the last furnace', color: '#c8693c', voice: 0.85, kind: 'm',
-    head: 'hat', cape: 0.3,
+    head: 'hat', cape: 0,
     lines: ['~happy~ Warm your hands. The furnace does not mind.', '~whisper~ If you listen at the mouth you can hear it talking to itself.'],
     talk: {
       entry: [

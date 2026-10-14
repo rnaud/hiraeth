@@ -334,7 +334,7 @@ export const PEOPLE = {
 
   corm: {
     id: 'corm', name: 'Corm', title: 'who feeds the plants', color: '#d9506a', voice: 1.0, kind: 'm',
-    palette: { cloak: '#d9506a', lining: '#2b211f', cloth: '#5a6a3a', legs: '#4a3a2a', hat: '#6f9a5a', hair: '#4a3226' }, head: 'hat', cape: 0.55, look: { head: 'brim', under: 'locks' },
+    palette: { cloak: '#d9506a', lining: '#2b211f', cloth: '#5a6a3a', legs: '#4a3a2a', hat: '#6f9a5a', hair: '#4a3226' }, head: 'hat', cape: 0, look: { head: 'brim', under: 'locks' },
     lines: ['~shout~ Careful! That’s Margit.', '~playful~ Who’s a hungry girl, then?', '~happy~ Fish heads. They love fish heads.'],
     talk: {
       entry: [
@@ -384,7 +384,7 @@ export const PEOPLE = {
 
   ysse: {
     id: 'ysse', name: 'Ysse', title: 'keeper of the crystal cave', color: '#7fe0d0', voice: 1.1, kind: 'f',
-    palette: { cloak: '#7fe0d0', lining: '#2b211f', cloth: '#34405e', legs: '#2f3a4f', hat: '#c7a6f2', hair: '#2b211f' }, head: 'hood', cape: 1.45, look: { prop: 'lantern' },
+    palette: { cloak: '#7fe0d0', lining: '#2b211f', cloth: '#34405e', legs: '#2f3a4f', hat: '#c7a6f2', hair: '#2b211f' }, head: 'hood', cape: 0, look: { prop: 'lantern' },
     lines: ['~angry~ Mind your elbows.', '~neutral~ Dust makes them deaf.', '~playful~ Don’t touch. Unless you have to.'],
     talk: {
       entry: [

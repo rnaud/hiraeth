@@ -131,7 +131,7 @@ export const PEOPLE = {
   // Rosa chalks the bridges' ends on the Pier, by the ship: she opens the city's main quest
   rosa: {
     id: 'rosa', name: 'Rosa', title: 'who chalks the bridges', color: '#e89a7e', voice: 1.1, kind: 'f',
-    head: 'wrap', cape: 0.4,
+    head: 'wrap', cape: 0,
     lines: ['~curious~ A ship! Did you come across the dark? Nobody comes across the dark.', '~neutral~ The bridge goes north. Everything goes north from here.'],
     talk: {
       entry: [
@@ -166,7 +166,7 @@ export const PEOPLE = {
   // Ines who minds the cables (the light's trace: the ship with no name that hailed them with a sung note)
   tamar: {
     id: 'tamar', name: 'Ines', title: 'who minds the cables', color: '#d98a7a', voice: 1.0, kind: 'f',
-    head: 'wrap', cape: 0.7,
+    head: 'wrap', cape: 0,
     lines: ['~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.', '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.'],
     talk: {
       entry: [

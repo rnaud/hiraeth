@@ -35,7 +35,7 @@ export const SHOPKEEPERS = {
   haddu: {
     id: 'haddu', name: 'Haddu', title: 'chime-weigher and seller of cures', color: '#2f6f6a', voice: 0.78, kind: 'm', range: 3.8, tier: 'quest',
     palette: { cloak: '#2f6f6a', lining: '#2b211f', cloth: '#e8c66a', legs: '#4a3a2a', hat: '#b8432e', accent: '#c9974a', hair: '#2b211f' },
-    head: 'fez', cape: 0.9, look: { mask: 'monocle', body: 'satchel', prop: 'bell', robe: 0.4, trim: 'stripes', build: 'heavy', mood: 'amused' },
+    head: 'fez', cape: 0, look: { mask: 'monocle', body: 'satchel', prop: 'bell', robe: 0.4, robeOpen: 0.4, robeRole: 'cloak', robeHem: 'cloak', trim: 'stripes', build: 'heavy', mood: 'amused' },   // (his deep teal coat over saffron, issue #347; it was a cape)
     lines: ['~happy~ Come in out of the sun.', '~playful~ Every chime rings true in here. I check.', '~neutral~ Cures for the walk. Hearts for the brave.'],
     talk: {
       entry: [
@@ -87,7 +87,7 @@ export const SHOPKEEPERS = {
   brin: keeper({
     id: 'brin', shop: 'windshelf', name: 'Brin', title: 'keeper of the Wind-Shelf', color: '#dc9f52', voice: 1.04, kind: 'f',
     palette: { cloak: '#e8a07a', lining: '#c98a5a', cloth: '#e2b25e', legs: '#b07a5a', hat: '#e7b06a', accent: '#f3e6d0', hair: '#4a3328' },
-    head: 'headcloth', cape: 1.1, look: { head: 'headcloth', mask: 'scarfmask', body: 'scarf', robe: 0.12, build: 'slim', height: 1.1, mood: 'calm' },
+    head: 'headcloth', cape: 0, look: { head: 'headcloth', mask: 'scarfmask', body: 'scarf', robe: 0.12, build: 'slim', height: 1.1, mood: 'calm' },
     lines: ['~neutral~ Wind.', '~whisper~ Shelf.', '~happy~ Welcome.'],
     hello: ['~happy~ (She looks up from her tray of sand.) Trade?', '~neutral~ Cures. Hearts. Chimes. (She draws a flask in the sand, then a crystal beside it.)'],
     again: ['~happy~ Back.', '~neutral~ (She smooths the sand in her tray, ready to draw a price.)'],
@@ -101,7 +101,7 @@ export const SHOPKEEPERS = {
   perpetue: keeper({
     id: 'perpetue', shop: 'almonry', name: 'Sister Perpetue', title: 'the almoner of the Sky Stones', color: '#8d8f96', voice: 1.12, kind: 'f',
     palette: { cloak: '#8d8f96', lining: '#6f7178', cloth: '#9a9ca2', legs: '#5a5c62', hat: '#f6f2ea', accent: '#f6f2ea', hair: '#6a5040' },
-    head: 'headcloth', cape: 0.3, look: { head: 'headcloth', body: 'collar', trim: 'none', robe: 0.04, build: 'heavy', height: 0.94, mood: 'amused' },
+    head: 'headcloth', cape: 0, look: { head: 'headcloth', body: 'collar', trim: 'none', robe: 0.04, build: 'heavy', height: 0.94, mood: 'amused' },
     lines: ['~happy~ The almonry is open!', '~playful~ One bell for every sale. Ring me a tune.', '~neutral~ Sealed with the Three Notes, every one.'],
     hello: ['~happy~ A traveller from below the cloud! Come to the hatch, come. I keep what the order gives to the road, and the road is mostly you.', '~playful~ Cures, sealed in wax with the Three Notes. Now and then a heart, when the cloud brings one up. Chimes, if you please. The bells don’t ring themselves.'],
     again: [{ if: { quest: 'arzach2.bell', done: true }, text: '~happy~ The great bell rings again, and so do mine. What a noisy, happy house.' }, '~happy~ Back at the hatch! I kept the wax warm.'],
@@ -183,7 +183,7 @@ export const SHOPKEEPERS = {
   marit: keeper({
     id: 'marit', shop: 'kilnstall', name: 'Marit', title: 'who keeps the kiln-stall', color: '#5fb7ad', voice: 1.04, kind: 'f',
     palette: { cloak: '#d9b48a', lining: '#5fb7ad', cloth: '#e6d3b8', legs: '#5a4a3a', hat: '#ead6b4', accent: '#4f8a7f', hair: '#3a2a22' },
-    head: 'hair', cape: 0.4, look: { head: 'hair', body: 'scarf', trim: 'none', robe: 0.3, build: 'slim', height: 1.0, mood: 'kind' },
+    head: 'hair', cape: 0, look: { head: 'hair', body: 'scarf', trim: 'none', robe: 0.3, build: 'slim', height: 1.0, mood: 'kind' },
     lines: ['~neutral~ Cures, cooled slow. A heart, if you have the chimes.', '~happy~ Mind the counter. It’s still warm.', '~curious~ Glass floats? No. Those are for the kiln.'],
     hello: ['~happy~ Stand back from the kiln; it’s in a mood. What the kiln can spare, I sell.', '~neutral~ Cures in the green flasks, a heart in the clay jar. Priced by how long they took to cool. Chimes in the bowl.'],
     again: [{ if: { flag: 'temple.garage.done' }, text: '~surprised~ The clocks agree now. My kiln cools on time for the first time in my life. Everything costs the same, though.' }, '~happy~ Back again. The kiln’s been busy.'],
@@ -237,7 +237,7 @@ export const SHOPKEEPERS = {
   odette: keeper({
     id: 'odette', shop: 'airshop', name: 'Odette', title: 'who keeps the Air-Shop', color: '#4a8790', voice: 0.95, kind: 'f',
     palette: { cloak: '#4a8790', lining: '#f0aa98', cloth: '#efd2a6', legs: '#3d727a', hat: '#f0aa98', accent: '#d6a13e', hair: '#5a3a2a' },
-    head: 'bun', cape: 0.3, look: { head: 'bun', body: 'scarf', trim: 'none', robe: 0.2, build: 'heavy', height: 0.96, mood: 'kind' },
+    head: 'bun', cape: 0, look: { head: 'bun', body: 'scarf', trim: 'none', robe: 0.2, build: 'heavy', height: 0.96, mood: 'kind' },
     lines: ['~happy~ Cures and a heart, under glass.', '~playful~ Everything here’s been to the bottom and back.', '~neutral~ Dry inside. Mind the floats.'],
     hello: ['~happy~ Dry feet? Then you came down the lock. I dived for forty years, and now I keep the Air-Shop and let others get wet.', '~neutral~ Cures in the red flasks, a heart in the glass jar. Chimes in the shell, love.'],
     again: [{ if: { flag: 'temple.underwater.done' }, text: '~surprised~ Did you hear them this morning? The whole dome rang. I sold three cures to people who fell off their chairs.' }, '~happy~ Back again. The floats remember you.'],
@@ -263,7 +263,7 @@ export const SHOPKEEPERS = {
   amaro: keeper({
     id: 'amaro', shop: 'oillamp', name: 'Amaro', title: 'who keeps the Oil-Lamp Shop', color: '#e89a7e', voice: 1.1, kind: 'm',
     palette: { cloak: '#e89a7e', lining: '#3f6f78', cloth: '#f2e2c4', legs: '#3f6f78', hat: '#f2e2c4', accent: '#d6a13e', hair: '#2b211f' },
-    head: 'hat', cape: 0.2, look: { head: 'hat', body: 'collar', trim: 'stripes', robe: 0.1, build: 'slim', height: 1.06, mood: 'amused' },
+    head: 'hat', cape: 0, look: { head: 'hat', body: 'collar', trim: 'stripes', robe: 0.1, build: 'slim', height: 1.06, mood: 'amused' },
     lines: ['~happy~ Cures, a heart, and lamps. Mostly lamps.', '~playful~ We pay in oil here. You can pay in chimes. I’ll allow it.', '~curious~ Don’t lean on the lamps. They’re lit.'],
     hello: ['~happy~ Mind the oil; it’s money here. I sell lamp oil, so I am the bank. The cures are a sideline.', '~neutral~ Red flasks for the hurt, a heart in the basket. Chimes will do, though oil would be nicer.'],
     again: [{ if: { flag: 'temple.spacecity.done' }, text: '~surprised~ The bridges stopped creaking, and nobody needs a lamp to find their way home. Business is terrible. I’ve never been happier.' }, '~happy~ Welcome back. The lamps have missed you. I asked.'],

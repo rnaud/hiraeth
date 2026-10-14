@@ -122,7 +122,7 @@ const EARLY = { quest: Q, stage: ['nima', 'down', 'ossa'] };   // before the spl
 export const PEOPLE = {
   nima: {
     id: 'nima', name: 'Nima', title: 'who sweeps the high terrace', color: '#a99be0', voice: 0.95, kind: 'f',
-    palette: { cloak: '#a99be0', lining: '#2b211f', cloth: '#e2d3b4', legs: '#4a3a2a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 0.9, look: { prop: 'basket' },
+    palette: { cloak: '#a99be0', lining: '#2b211f', cloth: '#e2d3b4', legs: '#4a3a2a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 0, look: { prop: 'basket' },
     lines: ['~playful~ The rich live up here. Me, I just sweep.', '~neutral~ Mind the dust.', '~happy~ Look up once in a while. It’s free.'],
     talk: {
       entry: [
@@ -217,7 +217,7 @@ export const PEOPLE = {
 
   ossa: {
     id: 'ossa', name: 'Ossa', title: 'keeper of the Upward Shrine', color: '#cdb38e', voice: 0.8, kind: 'f', scale: 0.96,
-    palette: { cloak: '#8a6a4a', lining: '#2b211f', cloth: '#cdb38e', legs: '#3a3a3a', hat: '#d9c3a0', hair: '#e8dcc0' }, head: 'hood', cape: 1.4, look: { prop: 'lantern' },
+    palette: { cloak: '#8a6a4a', lining: '#2b211f', cloth: '#cdb38e', legs: '#3a3a3a', hat: '#d9c3a0', hair: '#e8dcc0' }, head: 'hood', cape: 0, look: { prop: 'lantern' },
     lines: ['~solemn~ Eyes shut, face up.', '~solemn~ The smog stings. The light doesn’t.', '~whisper~ Hum with it. It hums back.'],
     talk: {
       entry: [
@@ -282,7 +282,7 @@ export const PEOPLE = {
   pip: {
     // (a child of nine at the bottom of the shaft, in a knit cap: docs/makehuman.md stage 3)
     id: 'pip', name: 'Pip', title: 'who has seen the sky once', color: '#e6875f', voice: 1.65, kind: 'm', scale: 0.7, age: 'child', years: 9,
-    palette: { cloak: '#e6875f', lining: '#2b211f', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#d8a24a', hair: '#4a3226' }, head: 'hair', cape: 0.5, look: { head: 'beanie', under: 'crop' },
+    palette: { cloak: '#e6875f', lining: '#2b211f', cloth: '#5a4a3a', legs: '#3a3a3a', hat: '#d8a24a', hair: '#4a3226' }, head: 'hair', cape: 0, look: { head: 'beanie', under: 'crop' },
     lines: ['~curious~ Are you from the top?', '~happy~ I saw the sky once. Eleven seconds.', '~happy~ My uncle is a palace guard!'],
     talk: {
       entry: [
@@ -335,7 +335,7 @@ export const PEOPLE = {
   perrine: {
     // the middle levels' tea stall, by the cab stop (src/story/halfway.js)
     id: 'perrine', name: 'Perrine', title: 'who keeps the halfway tea stall', color: '#c8483a', voice: 1.0, kind: 'f', scale: 0.98,
-    palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#e2b9a6', hair: '#5a3a2a' }, head: 'wrap', cape: 0.7, look: { prop: 'basket', under: 'bun' },
+    palette: { cloak: '#c8483a', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#e2b9a6', hair: '#5a3a2a' }, head: 'wrap', cape: 0, look: { prop: 'basket', under: 'bun' },
     lines: ['~happy~ Halfway tea! Hot at the top, warm at the bottom.', '~tired~ Up or down? Everyone’s one or the other.', '~neutral~ Mind the cups. They’re my only ones.'],
     talk: {
       entry: [
@@ -414,7 +414,7 @@ export const PEOPLE = {
     // the bell quarter's upper terrace, by the gangway to the first mirror the light stops at (src/story/incal.js; issue #182:
     // that mirror stood 164 m from anything): no errand of his, the mirror's own starts as you come near it
     id: 'abel', name: 'Abel', title: 'who rings the bells', color: '#9c3b2e', voice: 0.8, kind: 'm',
-    palette: { cloak: '#9c3b2e', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#5f7a52', hair: '#8a7a6a' }, head: 'beanie', cape: 0.6, look: { prop: 'bell' },
+    palette: { cloak: '#9c3b2e', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#5f7a52', hair: '#8a7a6a' }, head: 'beanie', cape: 0, look: { prop: 'bell' },
     lines: ['~happy~ The air rings them. I ring them when it won’t.', '~solemn~ Listen. That’s the low one.', '~neutral~ Mind the ropes.'],
     talk: {
       entry: [
@@ -446,7 +446,7 @@ export const PEOPLE = {
 
   dov: {
     id: 'dov', name: 'Dov', title: 'guard at the palace gate', color: '#f2c54b', voice: 0.85, kind: 'm', scale: 1.06,
-    palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 1.3, look: { body: 'collar', prop: 'staff', mood: 'stern' },
+    palette: { cloak: '#34405e', lining: '#f2c54b', cloth: '#f3ead8', legs: '#2b2f45', hat: '#f2c54b', hair: '#2b211f' }, head: 'hat', cape: 0, look: { body: 'collar', prop: 'staff', mood: 'stern' },
     lines: ['~angry~ Keep to the ring.', '~neutral~ Eyes on the visitors.', '~tired~ Palace rules.'],
     talk: {
       entry: [

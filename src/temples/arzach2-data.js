@@ -13,7 +13,7 @@ export const QUEST = {
 export const PEOPLE = {
   ysel: {
     id: 'ysel', name: 'Agathe', title: 'who keeps the founders’ bridge', color: '#d99072', voice: 1.08, kind: 'f',
-    palette: { cloak: '#efe2cc', lining: '#d99072', cloth: '#f4efe2', legs: '#93abcc', hat: '#f4efe2', hair: '#4a3a2a' }, head: 'wrap', cape: 1.1,
+    palette: { cloak: '#efe2cc', lining: '#d99072', cloth: '#f4efe2', legs: '#93abcc', hat: '#f4efe2', hair: '#4a3a2a' }, head: 'wrap', cape: 0,
     lines: ['~whisper~ Hush. Listen. There: she is crying again.', "~neutral~ No rail on the cloud side. Please admire it from this side.", '~solemn~ The founders built it before the monastery.'],
     talk: {
       entry: [

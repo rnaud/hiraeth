@@ -38,7 +38,7 @@ export const QUESTS = [
 export const PEOPLE = {
   edda: {
     id: 'edda', name: 'Edda', title: 'who keeps the night halt', color: '#e8a24a', voice: 1.08, kind: 'f', scale: 0.95, lang: 'bazaar',
-    palette: { cloak: '#e8a24a', lining: '#5a4a7a', cloth: '#f4e6c8', legs: '#3e3a5a', hat: '#5a4a7a', hair: '#2a2030' }, head: 'cap', cape: 1.0,
+    palette: { cloak: '#e8a24a', lining: '#5a4a7a', cloth: '#f4e6c8', legs: '#3e3a5a', hat: '#5a4a7a', hair: '#2a2030' }, head: 'cap', cape: 0,
     lines: ['~neutral~ Night mail. Mind the lamp.', '~curious~ Is that the bell? No. Not yet.', '~tired~ Forty years of postcards. One a year.'],
     talk: {
       entry: [
@@ -108,7 +108,7 @@ export const PEOPLE = {
   },
   ambrose: {
     id: 'ambrose', name: 'Ambrose', title: 'the conductor', color: '#3a4a7a', voice: 0.82, kind: 'm', age: 'elder', scale: 1.02, lang: 'bazaar',
-    palette: { cloak: '#2e3a6a', lining: '#c89a5a', cloth: '#f4ece0', legs: '#22284a', hat: '#2e3a6a', hair: '#d8d0c0' }, head: 'cap', cape: 0.9,
+    palette: { cloak: '#2e3a6a', lining: '#c89a5a', cloth: '#f4ece0', legs: '#22284a', hat: '#2e3a6a', hair: '#d8d0c0' }, head: 'cap', cape: 0,
     lines: ['~neutral~ Tickets? No. Nobody has a ticket. Welcome aboard.', '~happy~ Mind the porches at speed.', '~solemn~ Next stop: wherever someone asks.'],
     talk: {
       entry: [

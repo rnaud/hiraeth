@@ -70,7 +70,7 @@ export const QUESTS = [
 export const PEOPLE = {
   aube: {
     id: 'aube.spheres', name: 'Linnet', title: 'the listener', color: '#9fd0c8', voice: 1.0, kind: 'f',
-    palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 1.2, look: { prop: 'parasol' },
+    palette: { cloak: '#f3efe2', lining: '#2b211f', cloth: '#9fd0c8', legs: '#7f9a90', hat: '#f6efd0', hair: '#3d2a22', face: '#e8dcc8' }, head: 'wrap', cape: 0, look: { prop: 'parasol' },
     lines: ["~neutral~ The spheres fell here long ago. Now we mow around them.", '~neutral~ *Follow the pale path*. It goes through the arch.', '~whisper~ Shh. Listen.'],
     talk: {
       entry: [
@@ -112,7 +112,7 @@ export const PEOPLE = {
 
   nell: {
     id: 'nell', name: 'Nell', title: 'who looks into the lake', color: '#a9c9c4', voice: 1.15, kind: 'f',
-    palette: { cloak: '#a9c9c4', lining: '#2b211f', cloth: '#f6efd0', legs: '#5a6a6a', hat: '#f3efe2', hair: '#2b211f' }, head: 'hood', cape: 0.9,
+    palette: { cloak: '#a9c9c4', lining: '#2b211f', cloth: '#f6efd0', legs: '#5a6a6a', hat: '#f3efe2', hair: '#2b211f' }, head: 'hood', cape: 0,
     lines: ["~happy~ Look in the lake. Twice the garden, no extra weeding.", '~playful~ Upside down is just another way up.', '~curious~ There. Did you see it glint?'],
     talk: {
       entry: [
@@ -145,7 +145,7 @@ export const PEOPLE = {
 
   ivo: {
     id: 'ivo', name: 'Emrys', title: 'who climbs everything', color: '#f2c5b0', voice: 1.25, kind: 'm',
-    palette: { cloak: '#f2c5b0', lining: '#2b211f', cloth: '#4f6b3a', legs: '#3a3a3a', hat: '#f6efd0', hair: '#4a3226' }, head: 'hair', cape: 0.5,
+    palette: { cloak: '#f2c5b0', lining: '#2b211f', cloth: '#4f6b3a', legs: '#3a3a3a', hat: '#f6efd0', hair: '#4a3226' }, head: 'hair', cape: 0,
     lines: ["~happy~ From the white hill’s middle terrace, you can reach the canopy.", '~curious~ Have you looked under a sphere?', '~shout~ The view! The VIEW.'],
     talk: { listen: [
       ['~happy~ Come up! From up here you can see the whole garden: the lake, the sphere-arch, the plaza at the end of the avenue.', '~playful~ Ume says the plaza is where everything ends. From up here it looks like where it starts.'],
@@ -200,7 +200,7 @@ export const PEOPLE = {
 
   ume: {
     id: 'ume', name: 'Ume', title: 'who keeps the pole', color: '#f6efd0', voice: 0.8, kind: 'f', scale: 0.96,
-    palette: { cloak: '#f6efd0', lining: '#2b211f', cloth: '#a9c9c4', legs: '#5a6a6a', hat: '#e0d4bc', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, look: { prop: 'staff', body: 'ruff' },
+    palette: { cloak: '#f6efd0', lining: '#2b211f', cloth: '#a9c9c4', legs: '#5a6a6a', hat: '#e0d4bc', hair: '#e8dcc0' }, head: 'wrap', cape: 0, look: { prop: 'staff', body: 'ruff' },
     lines: ["~whisper~ Listen. The pole hums when the great sphere is visible.", '~neutral~ Bring it something to sing.', '~happy~ Hm-mm-mm.'],
     talk: {
       entry: [

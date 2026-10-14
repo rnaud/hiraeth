@@ -15,7 +15,7 @@ export const PEOPLE = {
   // (Hobb was 'pell' until #251, the id of the desert's Pell: meeting one marked the other met)
   hobb: {
     id: 'hobb', name: 'Hobb', title: 'who listens at the old stones', color: '#88b4b5', voice: 0.95, kind: 'm',
-    palette: { cloak: '#3a535b', lining: '#f0a083', cloth: '#f5dfab', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hair', cape: 0.7,
+    palette: { cloak: '#3a535b', lining: '#f0a083', cloth: '#f5dfab', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hair', cape: 0,
     lines: ['~whisper~ Shh. There. Did you hear it?', '~neutral~ One word. All night. Every night.', '~curious~ You’ve got good ears. Have you been down?'],
     talk: {
       entry: [

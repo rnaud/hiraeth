@@ -36,6 +36,9 @@ export const CHANGELOG = [
     // her colour map (issue #237): scripts/tripo/elder-delight.mjs in scripts/tripo/rig-elder-v3.mjs; her levels of
     // detail (ELDER_LOD, src/skinned-lod.js min/max); scripts/bench/elder.mjs; docs/systems/performance.md "The Elder's cost"
     'The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her; and far off she is drawn with simpler copies of herself, from two thirds of her triangles down to a seventh, and sooner on handhelds.',
+    // capes on a few (issue #347): src/costumes.js caped / CAPE_ODDS / T.capeOdds / T.plain, crowd.js worldPieces, the story's
+    // cape: 0, the coats (fellow-data, shop-data, scientist-data), glass-dunes-frozen.js; scripts/cape-census.mjs, tests/cape-share.test.js
+    'Far fewer people wear capes: about one in fifteen now, where it was four in five. The elders and those who walk with a staff (pilgrims, monks, Vael’s silent riders) keep theirs; everyone else wears a tunic with trousers, a skirt or a robe, a scarf or a neckerchief where the mantle was, and in the working towns now and then an apron. The capes the character sheets draw stay (Bako, Sefa, Nour, the Speaker, Ama, Hessa, Oïa, Saba, Nettle), and Haddu, Tansy and Anselm Thrum wear open coats instead.',
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

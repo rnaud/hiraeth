@@ -126,7 +126,7 @@ export function sceneParts(def) {
     const heads = ['headcloth', 'sunhat', 'wrap', 'straw', 'headcloth'], props = ['staff', 'basket', 'staff', 'none', 'basket'];
     for (let i = 0; i < 5; i++) {
       const x = -5 + i * 2.5;
-      add('figure', put(who(i % 2 ? 'carry' : 'stride', { head: heads[i], prop: props[i], body: i === 2 ? 'mantle' : 'none', cape: 0.7 + 0.1 * (i % 3) }, 1.8 + 0.06 * (i % 2)), x, 0.6, 0.9 + 0.25 * Math.sin(i), { yaw: Math.PI / 2 }));
+      add('figure', put(who(i % 2 ? 'carry' : 'stride', { head: heads[i], prop: props[i], body: i === 2 ? 'neckerchief' : 'none', cape: 0 }, 1.8 + 0.06 * (i % 2)), x, 0.6, 0.9 + 0.25 * Math.sin(i), { yaw: Math.PI / 2 }));
     }
     // the third carries a clock tied on his back
     addClock(clock({ minute: m, kind: 'case' }), (g) => put(g, -0.3, 1.25, 0.95, { yaw: Math.PI / 2 - 0.3, roll: 0.25, s: 0.5 }));
@@ -144,11 +144,11 @@ export function sceneParts(def) {
     const turnIn = (a) => a + Math.PI;
     const people = [
       { a: 0.7, pose: 'armsUp', dress: { head: 'sunhat' }, h: 1.8 },
-      { a: 1.5, pose: 'reach', dress: { head: 'headcloth', cape: 1.0 }, h: 1.95 },
+      { a: 1.5, pose: 'reach', dress: { head: 'headcloth' }, h: 1.95 },
       { a: 2.6, pose: 'lookUp', dress: { head: 'wrap', prop: 'basket' }, h: 1.75 },
       { a: 3.3, pose: 'point', dress: { head: 'braid', cape: 0, robe: 0.45 }, h: 1.2 },
       { a: 4.4, pose: 'lookUp', dress: { head: 'straw', prop: 'staff' }, h: 1.85 },
-      { a: 5.3, pose: 'armsUp', dress: { head: 'bun', cape: 0.6 }, h: 1.7 },
+      { a: 5.3, pose: 'armsUp', dress: { head: 'bun' }, h: 1.7 },
     ];
     for (const p of people) { const [x, z] = ring(p.a); add('figure', put(who(p.pose, p.dress, p.h), x, 0.1, z, { yaw: turnIn(p.a) + 0.3 })); }
     { const [x, z] = ring(2.0, R + 0.3); add('figure', put(frozenGreatBird({ step: 0.3, look: 1 }), x, 0, z, { yaw: 2.0 + Math.PI / 2, s: 0.58 })); }

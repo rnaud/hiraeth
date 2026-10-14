@@ -31,8 +31,8 @@ export const LOCALS = {
   corin: { id: 'corin', name: 'Corin', title: 'who keeps the west camp’s kiln', kind: 'm',
     lines: ['~whisper~ My grandmother said they were asleep in there. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
   // (resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
-  // (he opens the dunes' main quest: QUESTS above)
-  oren: { id: 'oren', name: 'Halden', title: 'who carries the floats', color: '#5fb7ad', voice: 0.95, kind: 'm',
+  // (he opens the dunes' main quest: QUESTS above; his cape the carriers' long road between the camps, issue #347)
+  oren: { id: 'oren', name: 'Halden', title: 'who carries the floats', color: '#5fb7ad', voice: 0.95, kind: 'm', cape: 1.25,
     lines: ['~playful~ Discs that ride themselves over the sand. The makers never walked anywhere, I think.', '~neutral~ The Clock-House is east, past the wave. Wim will talk your ear off about the time.'],
     talk: {
       entry: [

@@ -58,8 +58,8 @@ export const TANSY = {
   // the same in every world: dressed as the harbour folk dress (src/costumes.js saltharbour), a sailcloth coat too
   // big for her, a basil-green tunic, a terracotta knitted cap over a copper braid, a satchel for her book
   palette: { cloak: '#efe2cc', lining: '#4d6a9a', cloth: '#6f8f5a', legs: '#3a3448', hat: '#c4664a', hair: '#a8532e', skin: '#e8c0a0' },
-  head: 'hair', cape: 1.1, world: 'saltharbour',
-  look: { head: 'beanie', under: 'braid', mask: 'none', body: 'satchel', prop: 'none', trim: 'none', robe: 0, mood: 'curious' },
+  head: 'hair', cape: 0, world: 'saltharbour',
+  look: { head: 'beanie', under: 'braid', mask: 'none', body: 'satchel', prop: 'none', trim: 'none', robe: 0.32, flare: 0.3, robeOpen: 0.45, robeRole: 'cloak', robeHem: 'cloak', mood: 'curious' },   // (her coat: an open robe in the sailcloth, issue #347; it was a cape)
   lines: GREETING_LINES[1],
   talk: {
     // (the meetings, by the save alone; in the game src/story/fellow.js fellowPerson builds the entries for the stop she

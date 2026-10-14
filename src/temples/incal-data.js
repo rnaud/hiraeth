@@ -15,7 +15,7 @@ export const QUEST = {
 export const PEOPLE = {
   vell: {
     id: 'vell', name: 'Vell', title: 'who lights the rim’s lamps', color: '#25386c', voice: 0.96, kind: 'f',
-    palette: { cloak: '#25386c', lining: '#f3ead8', cloth: '#9fb2c6', legs: '#34405e', hat: '#f3ead8', hair: '#5a3a2a' }, head: 'hair', cape: 0.8,
+    palette: { cloak: '#25386c', lining: '#f3ead8', cloth: '#9fb2c6', legs: '#34405e', hat: '#f3ead8', hair: '#5a3a2a' }, head: 'hair', cape: 0,
     lines: ['~neutral~ Lamps don’t light themselves. Well. These don’t.', "~curious~ Someone came to the tower? Must sweep the entrance.", '~tired~ Round and round, up there. All night.'],
     talk: {
       entry: [

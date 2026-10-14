@@ -241,7 +241,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const errors = [];
   const warn = console.warn, info = console.info, log = console.log, error = console.error; console.warn = console.info = console.log = () => {}; console.error = (...a) => errors.push(a.map(String).join(' ').slice(0, 300));
   try {
-    exports.start(JSON.stringify({ level: 'garage' }));
+    exports.start(JSON.stringify({ level: 'glassdunes' }));   // (the Sealed Hangar's successor; since issue #347 its mechanics' crowd wears no capes)
     for (let i = 0; i < 2000 && !calls.Frame; i++) { await new Promise((r) => setTimeout(r, 30)); exports.frame(1 / 30); }   // (the world builds first: up to a minute on a busy machine)
     for (let i = 0; i < 80; i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
@@ -278,7 +278,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const skeletons = [];
   assert.equal(Object.keys(cloths).length, 1, 'the overshirt done by the C# side (BridgeCloth)');
   assert.ok(calls.Keys > 0 && calls.keyVerts > 0, `the MakeHuman faces' shape keys as blend shapes: ${calls.Keys} meshes`);
-  assert.ok(Object.keys(capes).length > 3, `the capes done by the C# side (BridgeCape): ${Object.keys(capes).length}`);
+  // (since issue #347 few wear one: Halden by the ship does, the crowd near seldom)
+  assert.ok(Object.keys(capes).length >= 1, `the capes done by the C# side (BridgeCape): ${Object.keys(capes).length}`);
   while (u[o] !== 0) { const op = u[o++]; assert.ok(size[op], `op ${op}`); if (op === 7) skeletons.push(u[o]); o += size[op](); ops++; }
   assert.ok(skeletons.length > 0, 'the people\'s skeletons');
   assert.equal(new Set(skeletons).size, skeletons.length, 'each skeleton once a frame, however many meshes it moves');

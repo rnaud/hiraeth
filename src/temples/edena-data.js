@@ -14,7 +14,7 @@ export const QUEST = {
 export const PEOPLE = {
   sorrel: {
     id: 'sorrel', name: 'Sorrel', title: 'who sows the Greenhouse beds', color: '#7fcfa8', voice: 1.0, kind: 'f',
-    palette: { cloak: '#7fcfa8', lining: '#f2a7b5', cloth: '#f7f4ec', legs: '#8a5a3c', hat: '#f6c7a0', hair: '#4a3a42' }, head: 'hood', cape: 0.9,
+    palette: { cloak: '#7fcfa8', lining: '#f2a7b5', cloth: '#f7f4ec', legs: '#8a5a3c', hat: '#f6c7a0', hair: '#4a3a42' }, head: 'hood', cape: 0,
     lines: ["~neutral~ Another row sown. Come on, little seeds.", "~sad~ Nothing growing. Not even weeds. I miss weeds.", "~curious~ Green on your hands. What did you find inside?"],
     talk: {
       entry: [
