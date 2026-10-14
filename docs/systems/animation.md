@@ -759,6 +759,38 @@ pivot's frames) and the starts and stops at a run (29 cm, the stop's last step).
 slide p95 6.6 cm, pops 8.0 and jolts 6.4 a minute); matching 75 limits (76). In the game a held foot slips 5.8 cm in the
 Signal Market's street and the stop never settles there or in the Arena (issue #288).
 
+**Issue #288: a pivot that turns into a start** (2026-10-13). Not the street's kerbs nor its strollers: he stands on
+flat paving there and nobody touches him (the body's speed and its travel agree every frame). The camera starts behind
+him and he faces it, so the course's first push is a 180° start: a pivot (src/locomotion.js), which feet.js treats as
+standing, while the body runs off at 2.4 m/s. A standing foot was never let go for being out of reach, so the held one
+was dragged 6 cm with the leg at full length and the ball lifting, and the steps round touched down sliding with a
+place that ran on with the body (22 cm "steps"). In feet.js now: in a pivot a held foot steps (quickly) as soon as its
+leg comes into the soft end of its reach, once the other is coming down (`pivotOverlap`) and not twice running, and not
+when the body is already near the pivot's end speed (`pivotStepSpeed`: the stride takes it); a step lands where its
+place will be, led by the body's travel over what is left of it (`stepLead`) and following its place less and less over
+its second half; a pivot's step cut short by the pivot ending in a start lands from where it is if it is coming down
+(`pivotLand`, the foot meeting the ground's ease, `dropIn`) and otherwise goes with the stride from the air, never set
+down in mid-air; the hips come down faster in a pivot. The "never settles" was the script: the last stop stood 1.2 s,
+and a stop counts once both feet are still for 0.3 s, so one that settled in 0.93 s ran out of samples; it stands 1.8 s.
+In the Arena the waves also came whatever the Enemies setting, and one came up out of the floor beside him and shoved
+him as he stood: the scenario holds them off (`foes.setPractice('')`). A node scenario reproduces the start ("setting
+off the other way", tests/motion-qc.test.js).
+
+Node, the default way (before → after): the start the other way slide max 19.5 → 8.9 cm, held 3.6 → 0.9; pivots
+standing 14.0 → 5.4, held 2.7 → 0.1; turning round on the spot 9.4 → 4.0; down the ramp 7.0 → 4.7; the 180° pivots at a
+jog and a sprint held 2.3 → 1.8; limits failed 53 → 45, mean slide p95 7.1 → 5.8 cm, pops and jolts as they were;
+matching unchanged. In the game (Medium, this Mac; before: two runs, after: five, the range):
+
+| world | held (cm) | slide max (cm) | stop (s) | pops /min |
+|---|---|---|---|---|
+| the Signal Market's street | 6.2, 6.2 → 1.1-3.2 (median 1.7) | 21.8, 21.4 → 8.8-10.9 | never → 0.95-0.98 | 28-30 → 23-28 |
+| the Arena's floor | 1.5, 2.0 → 1.3-1.6 | 12.3, 10.2 → 9.7-10.8 | 1.05, 0.95 → 0.95-0.97 | 26-27 → 24-26 |
+| the desert's dunes | 1.5, 1.6 → 1.1-2.2 | 10.5, 10.8 → 8.5-14.3 | 0.95-1.07 → 0.95-0.97 | 30 → 28-32 |
+
+Left: a held foot drifts up to 2-3 cm at the hand-over from a pivot to a jog (the course's 90° jog start: the loops'
+contact dips for a frame and the foot is let go, skims, and is planted again; 2.0-2.1 cm before too) and once in five
+runs the desert's settling step after a tapped pivot slid 14 cm (9.5-10.8 before).
+
 **Worlds tried and left out**: the City-Shaft. From its landing every way the script runs into a railing or a house
 within the sprint, and he climbs it.
 

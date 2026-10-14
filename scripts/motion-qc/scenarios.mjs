@@ -20,6 +20,8 @@ export const COURSE = {
   'starts and stops, walk and run': { at: [0, 0, -60], about: 'setting off and stopping over and over, at a walk, a jog and a run',
     script: [[1, none, 'idle'], ...[0, 1].flatMap((i) => [[1.2, stick(0, 0.45), `walk${i}`], [1.2, none, `wstop${i}`]]),
       ...[0, 1].flatMap((i) => [[1, W, `jog${i}`], [1.2, none, `jstop${i}`]]), ...[0, 1].flatMap((i) => [[1.4, R, `run${i}`], [1.5, none, `rstop${i}`]])] },
+  'setting off the other way: a walk and a jog from standing, reversed, a jog at 90°': { at: [0, 0, -60], about: 'pushed away from the way he faces and held (a pivot that turns into a start: the Signal Market’s street, issue #288)',
+    script: [[1, none, 'idle'], [2, stick(0, -0.45), 'walk-back'], [1.8, none, 'stop'], [2, W, 'jog-back'], [1.8, none, 'stop2'], [1.6, D, 'jog-90'], [1.8, none, 'stop3']] },
   'pivots standing: 90° each way, 180°': { at: [0, 0, -60], about: 'turning on the spot by a tap of the stick',
     script: [[1, none, 'idle'], [0.15, D, 'pivot-r'], [1.6, none, 'settle'], [0.15, A, 'pivot-l'], [1.6, none, 'settle2'], [0.15, S, 'pivot-180'], [2, none, 'settle3']] },
   'pivot 180° at a jog, and at a sprint': { at: [0, 0, -60], about: 'reversing the stick while moving',
@@ -37,12 +39,18 @@ const course = (prefix = '') => [
   { for: 1, tag: `${prefix}idle` }, { for: 2, stick: [0, 0.45], tag: `${prefix}walk` }, { for: 2, stick: [0, 1], tag: `${prefix}jog` },
   { for: 2.5, stick: [0, 1], run: true, tag: `${prefix}sprint` }, { for: 1.5, stick: [0, -1], run: true, tag: `${prefix}pivot-sprint` },
   { for: 1.5, tag: `${prefix}stop` }, { for: 0.15, stick: [1, 0], tag: `${prefix}pivot-r` }, { for: 1.5, tag: `${prefix}settle` },
-  { for: 1.6, stick: [0, 1], tag: `${prefix}jog2` }, { for: 1.2, stick: [-1, 0], tag: `${prefix}turn90` }, { for: 1.2, tag: `${prefix}stop2` },
+  { for: 1.6, stick: [0, 1], tag: `${prefix}jog2` }, { for: 1.2, stick: [-1, 0], tag: `${prefix}turn90` },
+  // (the last stop stands 1.8 s: the stop's limit (1.1 s) and the 0.3 s it must stay still to count, with room. It stood 1.2 s,
+  // and a stop that settled in 0.93 s, as the Signal Market's and the Arena's did, ran out of script before it counted:
+  // "never settles", issue #288)
+  { for: 1.8, tag: `${prefix}stop2` },
 ];
 export const WORLDS = [
   { name: 'desert-dunes', world: 'desert', about: 'the open sand by the landing: every gait, a sprint reversed, a pivot, a 90° turn at a jog', segs: course() },
   { name: 'bazaar-street', world: 'bazaar', about: 'the Signal Market’s street from the landing: the same, between the stalls', yaw: Math.PI, segs: course() },
   // (the City-Shaft's terraces were tried: the landing is a terrace a few metres deep, and every way the script ran into a
   // railing or a house within the sprint, and he climbed it; the course's stairs, in node, stand in for its steps)
-  { name: 'arena-floor', world: 'arena', about: 'the Arena’s open floor (no foe called): the same on hard flat ground', segs: course() },
+  // (the Arena's waves held off: they come whatever the Enemies setting, and one came up out of the floor beside him
+  // and shoved him as he stood, so the stop never counted as settled: issue #288)
+  { name: 'arena-floor', world: 'arena', about: 'the Arena’s open floor (the waves held off): the same on hard flat ground', setup: "window.foes?.setPractice?.('');", segs: course() },
 ];

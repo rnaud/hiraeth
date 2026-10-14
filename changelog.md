@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.69 — 2026-10-13
 
+- Turning round and setting off the other way from standing, the traveller steps round cleanly: his planted foot no longer drags along the ground behind him, and his feet no longer slide as they land during the turn.
 - Locked on, stepping, hopping or dodging to the side carries you round the foe at the distance you stood, instead of drifting away from it.
 - The Keeper walks on higher, quicker steps, its shell rising and rolling over them, turns on the spot by stepping its feet round instead of sliding them, and has a shadow under it on the cistern’s floor.
 - Locked on the Keeper, you lock on its mouth, the one place water calms it: the ring sits round its head, and a shot from the gun goes into its mouth.

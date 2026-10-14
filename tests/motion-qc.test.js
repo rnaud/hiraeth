@@ -122,3 +122,25 @@ test('the gait loops through a smooth curve: each key kept, the cycle closed, no
   // the cycle closes: the end is the start
   assert.ok(Math.abs(p(T) - p(0)) < 1e-6 && Math.abs(p(T - h) - p(h)) < 0.05, 'the loop closes smoothly');
 });
+
+test('setting off the other way from standing: the pivot that turns into a start keeps its held feet and steps clean (issue #288)', { timeout: 60000 }, async () => {
+  // (the Signal Market's street: he faced the camera; pushed away and held, the 180° pivot carried the body off at a walk's
+  // speed while feet.js held on to a foot the leg could no longer reach, 5.8-6.2 cm over its hold, and the steps round
+  // touched down sliding with a place that ran on with the body: 22 cm "steps". Flat ground: no kerb, no crowd.)
+  const name = Object.keys(COURSE).find((n) => n.startsWith('setting off the other way'));
+  const { r } = await runScenario(COURSE[name], 'moves');
+  const back = (x) => x.tag === 'walk-back';
+  const held = Math.max(0, ...r.events.holds.filter(back).map((h) => h.slide)), slid = Math.max(0, ...r.events.steps.filter(back).map((s) => s.slide));
+  assert.ok(held < LIMITS.held, `the walk off: a held foot moves ${(held * 100).toFixed(1)} cm over its hold (3.6 before, limit ${LIMITS.held * 100})`);
+  assert.ok(slid < LIMITS.slideMax, `the walk off: the worst step slides ${(slid * 100).toFixed(1)} cm (19.5 before, limit ${LIMITS.slideMax * 100})`);
+  assert.ok(r.measures.stop !== null && r.measures.stop <= LIMITS.stop, `every stop settles (${r.measures.stop})`);
+});
+
+test('the worlds\' course stands long enough to see a stop settle, and the Arena keeps its waves off him (issue #288)', async () => {
+  const { WORLDS } = await import('../scripts/motion-qc/scenarios.mjs');
+  for (const sc of WORLDS) {
+    const last = sc.segs[sc.segs.length - 1];
+    assert.ok(!last.stick && last.for >= LIMITS.stop + 0.3, `${sc.name}: the last stop stands ${last.for} s (a stop counts once both feet are still for 0.3 s, within ${LIMITS.stop} s)`);
+  }
+  assert.match(WORLDS.find((s) => s.world === 'arena').setup ?? '', /setPractice/, 'the Arena: the waves held off (one came up beside him and shoved him as he stood)');
+});

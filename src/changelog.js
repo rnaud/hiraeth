@@ -92,6 +92,22 @@ export const CHANGELOG = [
         ], source: 'the keys held in the game, frame by frame, before and after this change' },
       ],
       see: 'Lock on a foe and hold left or right, then jump or dodge with it held: you circle it.' },
+    // a pivot that turns into a start (issue #288): src/feet.js (pivot steps out of reach, stepLead, pivotLand,
+    // pivotStepSpeed, the hips' drop); the motion QC's world course (the last stop 1.8 s, the Arena's waves held off);
+    // docs/systems/animation.md "Issue #288"
+    { text: 'Turning round and setting off the other way from standing, the traveller steps round cleanly: his planted foot no longer drags along the ground behind him, and his feet no longer slide as they land during the turn.',
+      numbers: [
+        { title: 'A planted foot’s slip, the motion QC (the Signal Market’s street)', unit: 'cm', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium', rows: [
+          { where: 'the worst held foot (two runs before, five after)', before: 6.2, after: '1.1–3.2' },
+          { where: 'the worst step’s slide', before: '21.4–21.8', after: '8.8–10.9' },
+        ], source: '.claude/skills/motion-qc/run.mjs --worlds bazaar (limits 2 cm held, 12 cm a step)' },
+        { title: 'Turning round to walk off, on the test course', unit: 'cm', better: 'lower', device: 'node, the gait harness’s course', rows: [
+          { where: 'the worst step’s slide', before: 19.5, after: 8.9 },
+          { where: 'a held foot’s slip', before: 3.6, after: 0.9 },
+          { where: 'pivots standing: the worst step', before: 14.0, after: 5.4 },
+        ], source: 'scripts/motion-qc/run.mjs, diff.mjs (default way)' },
+      ],
+      see: 'In the Signal Market, stand facing the camera and push the stick away from you: he turns and walks off, his feet stepping round without sliding.' },
   ] },
   { v: '1.68', date: '2026-10-13', items: [
     'The traveller has a new lighter body: narrower shoulders and arms that rest closer to his sides, with the approved face, articulated fingers, a natural neck fit and an independently moving shirt. Walking, jogging, talking and sitting use the fitted rig, with closed inner clothing and hands that clear the shirt. The body review includes the full animation library and a default body for comparison.',
