@@ -822,7 +822,10 @@ from within 10 m of it and from anywhere within 8 m of the other side. Found and
 ledge past it is a cloister now, walled on the water's side in slits of `LEDGE.slit` 0.55 m and roofed at the lintel),
 the Builders' Greenhouse's great lock (it stood in the antechamber's open end, 8.8 m wide: walked round), the
 Mooring-House's Capstan door and its other doorway, the Casting-House's arena door and the guardians' halls' ways out
-(a rotunda's gap is cut by whole stones, so up to a metre wider than its door: jumped through beside it). A door in an
+(a rotunda's gap is cut by whole stones, so up to a metre wider than its door: jumped through beside it); and the
+Capstan Floor's four windows, open over the void for the Warden's anchors, out of which the wings carried you round to
+the Capstan Hall's walkways and back in past its great lock: a second rail at 2 m and iron bars over it
+(`WINDOW_BARS`, 0.75 m apart; the anchors still go out under them and your aim reaches them). A door in an
 opening wider or taller than itself takes a `frame: { side, top }` (src/temples/pieces.js Door): stone that wide either
 side of it and that tall over it, drawn and solid.
 

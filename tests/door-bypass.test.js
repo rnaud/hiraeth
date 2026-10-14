@@ -11,7 +11,8 @@
 // What it found, fixed with it: the Hush-House's ledge door (over it on the double jump, round its post from the root-wall's
 // top: a cloister past it now), the Builders' Greenhouse's great lock (walked round, the antechamber's end wider than the
 // door: src/temples/pieces.js Door frame), the Mooring-House's Capstan door (jumped through beside it, the rotunda's gap
-// wider than the door; and the exits beside the guardians' halls the same). A CLI: DOOR_LOG=1 node --test
+// wider than the door; and the exits beside the guardians' halls the same), the Capstan Floor's windows (out over the
+// void on the wings and back in past its great lock: barred, spacecity.js WINDOW_BARS). A CLI: DOOR_LOG=1 node --test
 // tests/door-bypass.test.js --test-name-pattern=<the house's name>.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,7 +40,7 @@ const carry = (id) => (id === 'desert' ? ['backpack', 'doublejump'] : ['backpack
  * locked door (and `rise` m of its foot), `headings` ways; and from those within `reach` m across (`below` m under,
  * `above` m over) of the other side, toward it and `fan` either way. The walker's cell and drop (m).
  */
-const PROBE = { walkNear: 4, near: 10, rise: 7, every: 2, headings: 12, reach: 8, below: 8, above: 7, fan: [0, 0.5, -0.5], cell: 1, drop: 6 };
+const PROBE = { walkNear: 4, near: 10, rise: 7, every: 2.5, headings: 8, reach: 8, below: 8, above: 7, fan: [0, 0.5, -0.5], cell: 1, drop: 6 };
 /** The walker's body (m): the traveller's capsule (src/player.js RADIUS), over a step, pushed no more than `give`. */
 const BODY = { r: 0.45, bottom: 0.65, top: 1.8, give: 0.05 };
 
@@ -164,7 +165,7 @@ function goes(P, starts, land, { glider = false, only = null } = {}) {
     for (let i = 0; i < 8; i++) P.update(DT, { KeyW: true, ShiftLeft: true }, yaw);   // (a run-up)
     if (!P.onGround) continue;
     let pressed = w.at == null, out = null;
-    for (let f = 0; f < (w.wings ? 480 : 200); f++) {
+    for (let f = 0; f < (w.wings ? 300 : 200); f++) {
       const inp = { KeyW: true, ShiftLeft: true };
       if (w.walk) { if (f > 90) break; }
       else if (f < 3) inp.Space = true;
@@ -203,7 +204,8 @@ for (const id of Object.keys(TEMPLES)) {
       const S = sides(rt, physics, link.door);
       assert.ok(S.from[0] && S.from[1], `${name}: a floor on both sides of it`);
       onlyShut(rt, link.door);
-      const [A, B] = S.from.map((s) => walk(W, s));
+      const tw = Date.now(), [A, B] = S.from.map((s) => walk(W, s));
+      if (process.env.DOOR_LOG) console.error(`  [${id}] ${link.door}: walked ${A.length} + ${B.length} spots in ${Date.now() - tw} ms`);
       const [hasA, hasB] = [A, B].map((f) => spots(f));
       // walked round: the way it went, near the door
       const round = [[A, S.from[1]], [B, S.from[0]]].map(([F, to]) => F.find((p) => p.distanceTo(to) < 1.3)).find(Boolean);

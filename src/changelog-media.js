@@ -890,6 +890,7 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'perdide', player: [-104, 1709, 364.5], eye: [-100.5, 1713.5, 366.5], target: [-108.5, 1710.5, 354], fov: 70, hour: 17 } },
       { name: 'greenhouse-great-lock', title: 'The Builders’ Greenhouse, the great lock', caption: 'The antechamber’s end: before, the door stood in an opening wider than itself, a way past it on either side; after, framed in stone to its edges and up to the ceiling.', ...DOORS356,
         view: { level: 'edena', player: [303, 1727, -300], eye: [300, 1730, -301.7], target: [300, 1730.5, -294], fov: 70, hour: 17 } },
+      { name: 'capstan-windows', title: 'The Mooring-House, the Capstan Floor’s window', caption: 'From beside the capstan: before, a rail a metre high and the window open over the void, out of which (and back in past the great lock) your wings took you; after, a second rail and iron bars to the window’s head.', from: 'a scratch shooter (muted headless Chrome, High, 1280 × 720, the camera pinned) against this branch’s own Vite (port 6356), its tree with and without the bars, 14 October' },
     ] },
     { match: 'Falling or jumping into deep water swims', shots: [
       { name: 'lorn-skiff', title: 'Lorn, the landing island’s beach', caption: 'From over the channel south-west of the landing: after, the skiff waits afloat off the beach (foreground), a short wade out; before, it sat on the grass by the ship’s landing spot, out of this view behind the trees.', ...DOORS356,
