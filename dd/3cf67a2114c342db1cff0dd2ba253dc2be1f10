@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_8663f5b20a31a0 15
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_530c4ae27ae056 1154-1177
+src/changelog-media.js
+  s_9ca76055a220ed::t_92b5e682d59ca8 787,791-796
+src/changelog.js
+  s_9ca76055a220ed::t_b97ed63c0790cb 12-14
+src/desert-city.js
+  s_9ca76055a220ed::t_2bf37cd44090cb 1183-1186,1498,1500-1501,1503
+src/desert-hearth.js
+  s_9ca76055a220ed::t_c31baf91205cb0 526
+src/interiors.js
+  s_9ca76055a220ed::t_05fdfd1a8e7336 120-121,157,166,168,171,173
+src/levels/underwater.js
+  s_9ca76055a220ed::t_501ccf3c9f09fe 515-516
+src/main.js
+  s_9ca76055a220ed::t_ce5b885f1e3b88 136-137,1266-1267,2265,2273-2275,2277
+src/passage.js
+  s_9ca76055a220ed::t_6b8fe895b813e2 10-11,24,308-326,352,384,394-395,401-404,415-419
+src/temples/runtime.js
+  s_9ca76055a220ed::t_fc0cc889c33b61 66,68
+src/thresholds.js
+  s_9ca76055a220ed::t_328a79c61045d1 1-208
+src/underwater-seabed.js
+  s_9ca76055a220ed::t_1c82f912a10a08 69-71
+tests/passage.test.js
+  s_9ca76055a220ed::t_5c0573585592c7 219
+tests/thresholds.test.js
+  s_9ca76055a220ed::t_a6fd8aaab6ac40 1-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd3cf67a2114c342db1cff0dd2ba253dc2be1f10",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
