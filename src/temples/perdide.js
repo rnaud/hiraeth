@@ -93,7 +93,7 @@ export const PALETTE = {
  * stilled stand open `hold` s. The Snapping Passage's two side mouths (`mouths`: the smallest first).
  */
 export const NURSERY = { x: -23, z: 133.9, w: 14, d: 14, zone: { min: [-30, 8, 126.9], max: [-16, 18, 140.9] } };   // (z: the gallery's G0 + 30)
-export const LEDGE = { r0: 7.6, r1: 10.3, from: -1.15, to: -Math.PI - 0.16, door: -1.45, y: 9 };
+export const LEDGE = { r0: 7.6, r1: 10.3, from: -1.15, to: -Math.PI - 0.16, door: -1.45, y: 9, h: 4.4, slit: 0.55 };   // (h, slit: the cloister past the door, issue #356)
 export const BALCONY = { z0: 37, y: 9, groove: 40.5, a: 9.5, b: -6.5, wall: -3, start: 0.6, hold: 10, key: [-9.0, 38.7] };   // (the key by the parapet: seen from the Choir's floor)
 export const MOUTHS = [{ id: 'dj1', still: 'j1', side: 'w', z: 100, crown: 0.7 }, { id: 'dj2', still: 'j2', side: 'e', z: 93.4, crown: 1.2 }];
 
@@ -300,6 +300,16 @@ function wings(rt, K, M, { C2, A0, G0, spike, root }) {
   const ad = Lg.door, dx = Math.sin(ad) * rc, dz = C2 + Math.cos(ad) * rc;
   add(Door, { id: 'dL', at: [dx, Lg.y, dz], yaw: ad - Math.PI / 2, w: Lg.r1 - Lg.r0 + 0.2, h: 4.4 });
   K.both(M.wall, T(box(0.6, 5.2, 0.6, 0, 0, 0), [Math.sin(ad) * (Lg.r0 - 0.4), Lg.y + 2.6, C2 + Math.cos(ad) * (Lg.r0 - 0.4)], [0, ad, 0]));   // (its post on the water's side)
+  // (issue #356) past the door the ledge is a cloister: a wall on the water's side cut in slits too narrow to pass, and a
+  // roof at the door's lintel. Open, the double jump went over the door (4.4 m) and a jump from the root-wall's top
+  // round its post, over the water, onto the ledge beyond (tests/door-bypass.test.js)
+  const n2 = 9, da2 = (Lg.to - ad) / n2, ri = Lg.r0 + 0.25;
+  for (let i = 0; i < n2; i++) {
+    const a = ad + (i + 0.5) * da2;
+    const inner = 2 * ri * Math.sin(Math.abs(da2) / 2) - LEDGE.slit, outer = 2 * Lg.r1 * Math.sin(Math.abs(da2) / 2) + 0.3;
+    K.both(M.wall, T(box(inner, LEDGE.h + 0.1, 0.5, 0, 0, 0), [Math.sin(a) * ri, Lg.y + LEDGE.h / 2 - 0.05, C2 + Math.cos(a) * ri], [0, a, 0]));   // (its foot sunk in the ledge: no face in the floor's plane)
+    K.both(M.trim, T(box(outer, 0.6, Lg.r1 - Lg.r0 + 0.6, 0, 0, 0), [Math.sin(a) * rc, Lg.y + LEDGE.h + 0.3, C2 + Math.cos(a) * rc], [0, a, 0]));
+  }
 
   // ---- the way south at 9 m: through the well's wall over its door and the Choir's north wall, onto the balcony
   const B = BALCONY;
@@ -446,7 +456,7 @@ function layout(rt) {
   K.both(M.floor, T(new THREE.CylinderGeometry(6.5, 7, 0.3, 32), [0, 9.12, CL + 3]));
   K.both(M.trim, T(annulus(6.5, 7.2, 0.4, 36), [0, 9.2, CL + 3]));
   for (let i = 0; i < 7; i++) { const a = (i / 7) * TAU + 0.3; spike(Math.sin(a) * (HR - 1.6), 9, CL + Math.cos(a) * (HR - 1.6), 5 + (i % 3) * 2, 0.9, Math.cos(a) * 0.25, a); }
-  add(Door, { id: 'd5', at: [0, 9, CL + HR + 0.7], w: 5, h: 6 });
+  add(Door, { id: 'd5', at: [0, 9, CL + HR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   K.slab(-3.2, CL + HR + 0.6, 3.2, CL + HR + 10, 9, 0.8);
   K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, 9, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, 9, 7, { t: 0.8 });
   K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });

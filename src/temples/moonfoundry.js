@@ -429,7 +429,7 @@ function layout(rt) {
   // shelves of cooled moons, cracked, along its walls
   for (let z = A0 + 5; z < A1 - 4; z += 7) for (const s of [-1, 1]) { K.both(iron, box(0.6, 0.15, 3, s * 2.45, 1.6, z)); crackedMoon(s * 2.45, 2.05, z - 0.8, 0.35); crackedMoon(s * 2.45, 2.0, z + 0.7, 0.28); }
   add(Mark, { room: 'ante', at: [2.0, 0, A0 + 3.5], yaw: -Math.PI / 2 });
-  add(Door, { id: 'dA', at: [0, 0, A1], w: 5, h: 6 });
+  add(Door, { id: 'dA', at: [0, 0, A1], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the gap it stands in is wider than the door, issue #356)
 
   // ---- the Last Casting (a rotunda): the founder's floor, its casting cradle and the iron moon by the west wall
   K.rotunda({ x: 0, z: CW, y: 0, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });

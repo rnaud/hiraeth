@@ -477,8 +477,8 @@ function layout(rt) {
   K.add(brass, T(annulus(8.0, 8.6, 0.06, 64), [CX, FY + 0.03, CZ]));
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.3, 0.05, 1.6), [CX + Math.sin(a) * 11, FY + 0.03, CZ + Math.cos(a) * 11], [0, a, 0])); }
   add(Pit, { room: 'arena', min: [CX - HR - 30, -18, CZ - HR - 30], max: [CX + HR + 8, FY - 4, CZ + HR + 30] });
-  add(Door, { id: 'd6', at: [CX + HR + 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6 });
-  add(Door, { id: 'd7', at: [CX - HR - 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6 });
+  add(Door, { id: 'd6', at: [CX + HR + 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door: you jumped through beside it, issue #356)
+  add(Door, { id: 'd7', at: [CX - HR - 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6, frame: { side: 1.2 } });
   const X0 = CX - HR - 0.6;
   K.slab(X0 - 9.4, CZ - 3.2, X0, CZ + 3.2, FY, 0.8);
   K.wall(X0 - 0.8, CZ + 3.2, X0 - 9.4, CZ + 3.2, FY, 7, { t: 0.8 }); K.wall(X0 - 9.4, CZ - 3.2, X0 - 0.8, CZ - 3.2, FY, 7, { t: 0.8 });

@@ -449,7 +449,7 @@ function layout(rt) {
   lamp.userData.noCollide = true; lamp.userData.dynamic = true;
   rt.root.add(lamp);
   rt.lampRoom = { lamp, lampM, light: null };
-  add(Door, { id: 'd5', at: [0, 9, CL + HR + 0.7], w: 5, h: 6 });
+  add(Door, { id: 'd5', at: [0, 9, CL + HR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   K.slab(-3.2, CL + HR + 0.6, 3.2, CL + HR + 10, 9, 0.8);
   K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, 9, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, 9, 7, { t: 0.8 });
   K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });

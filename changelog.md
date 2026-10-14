@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.75 — 2026-10-14
 
+- A locked door in a temple can no longer be got round. In the Hush-House the ledge round the Bog Well past its keyhole door is a cloister now, walled on the water’s side and roofed, so neither the double jump over the door nor a jump from the top of the root-wall round its post takes you past it. In the Builders’ Greenhouse you could walk round the great lock beside it, and in the Mooring-House jump through beside the Capstan Floor’s door: their doorways are framed in stone to the door’s edges now, as are the doors out of the guardians’ halls.
 - Talking to Anselm in your ship’s hold now works: the button opened nothing there, as the ship kept every press aboard for itself. Now it opens his talk and his upgrades.
 - Aboard your ship, the button prompts float beside what they are for, like the one to talk to someone: by the voicemail button on the console, over the holo table, in the hatch, instead of at the top of the screen.
 - The marker and the drone no longer send you through a shop door for nothing: on Vael and in Lorn the way to Sister Aube, the bird, the cairn’s stones and the lamp-keeper went in at one shop’s door and out of another’s, a field away, as if the two shops were joined. They point straight at where you are going now.

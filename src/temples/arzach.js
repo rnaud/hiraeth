@@ -556,7 +556,7 @@ function layout(rt) {
     add(Updraft, { at: [-ROOST.vent, RY, CL], r: 4.5, h: 16, lift: 6, when: { drumOn: ['ballR', 'pRE'] }, hint: 'The wind rushes up out of the vent. Open your wings in it.' }),
   ];
   for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU + 0.3; if (off(a, 0) < 0.4 || off(a, Math.PI) < 0.4) continue; feather(M.trim, Math.sin(a) * (HR - 0.8), RY, CL + Math.cos(a) * (HR - 0.8), 14, a + Math.PI, 0.2); }
-  add(Door, { id: 'd5', at: [0, RY, CL + HR + 0.7], w: 5, h: 6 });
+  add(Door, { id: 'd5', at: [0, RY, CL + HR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   K.slab(-3.2, CL + HR + 0.6, 3.2, CL + HR + 10, RY, 0.8);
   K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, RY, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, RY, 7, { t: 0.8 });
   K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, RY, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });

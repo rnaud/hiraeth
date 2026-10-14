@@ -834,6 +834,8 @@ const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) agains
 const FLIGHT354 = 'Issue #354: the cinematics QC’s frames (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720 kept at 960 × 540, the review page’s staging) against this branch’s own Vite (port 6354) before and after the change, about the same second of each (14 October); the QC’s own WebP';
 /** (v1.74, issue #237: the Elder's review page, tools/elder-review.html, its cycles stepped at 60 Hz, scripts/tripo/elder-sheets.mjs) */
 const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (Vite on port 6237), the review’s motions stepped at 60 Hz by scripts/tripo/elder-sheets.mjs, in the game’s ink; before, the tree before (433459bf) with the same review page and timings; 14 October';
+/** (v1.75, issue #356: shot on a commit of this branch before its rebase, and the tree before it) */
+const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.75': [
     { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [
@@ -882,6 +884,12 @@ export const CHANGELOG_MEDIA = {
         view: studio('lineup=cast&world=desert', [1280, 720]) },
       { name: 'capes-harbour', title: 'The Salt Harbour’s crowd', caption: 'A lineup of the Salt Harbour’s crowd, full bodies in front and the GPU figures behind: every one caped before; after, a neckerchief where the mantle was, an apron now and then', commit: 'b2d4987e',
         view: studio('lineup=crowd&world=saltharbour&count=8', [1280, 720]) },
+    ] },
+    { match: 'A locked door in a temple can no longer be got round', tags: ['temples', 'contact'], shots: [
+      { name: 'hush-cloister', title: 'The Hush-House, the ledge round the Bog Well', caption: 'From the top of the root-wall: before, the keyhole door stood alone on the open ledge, a double jump over it or a jump round its post; after, the ledge past it is a cloister, walled on the water’s side in slits too narrow to pass and roofed at the door’s lintel.', ...DOORS356,
+        view: { level: 'perdide', player: [-104, 1709, 364.5], eye: [-100.5, 1713.5, 366.5], target: [-108.5, 1710.5, 354], fov: 70, hour: 17 } },
+      { name: 'greenhouse-great-lock', title: 'The Builders’ Greenhouse, the great lock', caption: 'The antechamber’s end: before, the door stood in an opening wider than itself, a way past it on either side; after, framed in stone to its edges and up to the ceiling.', ...DOORS356,
+        view: { level: 'edena', player: [303, 1727, -300], eye: [300, 1730, -301.7], target: [300, 1730.5, -294], fov: 70, hour: 17 } },
     ] },
   ],
   '1.74': [
