@@ -58,7 +58,7 @@ export const SPAWN_HEADROOM = 3;
 export const KEEP_OFF = 1.5;
 /** Half the ramp's width (m): the hatch's opening it slides out of. */
 const RAMP_HALF_W = (HATCH.z1 - HATCH.z0) / 2 + 0.2;
-const _ko = new THREE.Vector3();
+const _ko = new THREE.Vector3(), _up = new THREE.Vector3();
 const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
 const DOOR_TRAVEL = HATCH.z1 - HATCH.z0 + 0.25;   // m forward along the hull: clear of the opening (1.5 for the 1.3 m hatch)
 const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
@@ -674,6 +674,25 @@ export class Ship {
       return 'aboard the ship';
     }
     return null;   // (the ramp: walk up it, no "go aboard": issue #87)
+  }
+
+  /**
+   * What E does aboard and where its prompt floats (issue #350: it was the cue at the top of the screen, far from the
+   * machine): { text, at } beside the voicemail button, over the holo table's planet, in the hatch; null elsewhere, in
+   * a scene or walked by the ship. The story's floating prompt shows it (src/story/index.js extraPrompt), over a person's.
+   */
+  promptTag() {
+    if (this.auto || !this.player) return null;
+    const m = this.modelOf(this.player.pos);
+    if (!m) return null;
+    const P = m.interior.points;
+    // (a scene that hands you the controls and asks for E: the prologue's walk to the voicemail button, in the orbiting ship)
+    if (this.playing) return this.cinematic?.interactive?.() && /^E voicemail/.test(this.cinematic.prompt?.() ?? '') ? { text: 'voicemail', at: this.world(m, P.voicemail.clone().add(_up.set(0, 0.25, 0))) } : null;
+    if (!this.inside) return null;
+    if (this.atConsole()) return { text: 'voicemail', at: this.world(m, P.voicemail.clone().add(_up.set(0, 0.25, 0))) };
+    if (this.atTable()) return { text: game.flag('ship.powered') ? 'galactic map' : 'galactic map (no power)', at: this.world(m, P.table.clone().add(_up.set(0, 0.6, 0))) };
+    if (this.atHatchInside()) return { text: 'step outside', at: this.world(this.parked, this.parked.interior.points.threshold.clone().add(_up.set(0, 1.8, 0))) };
+    return null;
   }
 
   /** The ship whose voicemail button blinks: the prologue's, until its message plays; else the parked one while a message waits. */

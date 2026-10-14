@@ -48,6 +48,11 @@ export const CHANGELOG = [
     // toSpace/fromSpace, a temple's door and ways out); tests/interiors.test.js; docs/systems/story.md
     { text: 'The marker and the drone no longer send you through a shop door for nothing: on Vael and in Lorn the way to Sister Aube, the bird, the cairn’s stones and the lamp-keeper went in at one shop’s door and out of another’s, a field away, as if the two shops were joined. They point straight at where you are going now.',
       see: 'On Vael, once the bird has answered, stand at the riders’ gate and press Q: the drone points south over the cloud to Sister Aube, not “Through the shop door” back by the landing.' },
+    // the ship's prompts by their objects (issue #350): src/ship/ship.js promptTag, src/story/index.js extraPrompt, main.js and
+    // engine/game.js (the cue no longer says them; the prologue's walk too; the observatory's lens); tests/ship.test.js,
+    // tests/engine-ship.test.js; docs/systems/ui.md
+    { text: 'Aboard your ship, the button prompts float beside what they are for, like the one to talk to someone: by the voicemail button on the console, over the holo table, in the hatch, instead of at the top of the screen.',
+      see: 'Go aboard and walk up to the console: “E voicemail” hangs beside the machine. Step over to the holo table and the hatch: their prompts float there too.' },
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

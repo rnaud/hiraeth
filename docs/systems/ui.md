@@ -737,7 +737,13 @@ bottom. Now every one of them is the same strip and, but for the floating prompt
   it as it shows (`Cue.onChange`), so nothing slides under it. The top because most were there already, the bottom is
   the speakers' (subtitles, the conversation panel, a phone's buttons), and a phone already had the cue up there. Photo
   mode's line is there too (a pad's line instead of the keys' when one is in hand). The use prompt floats over whoever
-  it is about, in the same look.
+  it is about, in the same look, and over whatever it is about (issue #350, v1.75: "the button prompt for the voicemail
+  is at the top of the screen instead of being next to the machine"): aboard, the ship's E was the cue's line at the
+  top; now `Ship.promptTag` gives its words and the point they float at (beside the voicemail button, over the holo
+  table's planet, in the hatch; the prologue's walk to the voicemail too), and the story's floating prompt shows it
+  (`rt.extraPrompt`, src/story/index.js, over a person's: E is the ship's there), in the web game and the engines
+  (engine/game.js). The desert observatory's lens floats over its dial. The cue keeps only what has nothing to float
+  over (a scene's own E, the flute you hold). `tests/ship.test.js`, `tests/engine-ship.test.js`.
 - **The Unity bridge** (`BridgeHud.cs`) draws its toast and cue the same: the strip's colours (`HINT_ENGINE`), the
   cue at the top and the toast under it.
 - Tests: `tests/hint-look.test.js` (every kind on the variables, nothing cream left on them, the top for all but the

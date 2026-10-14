@@ -814,7 +814,11 @@ registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: 
   prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the cab' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
   // (measured to its side, not its middle: a cab is four metres long, and a passer-by at your shoulder was nearer than its centre)
   distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? Math.max(0.2, d - (v.halfWidth ?? 0)) : Infinity; }, use: () => player.interact() });
-if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
+// (the lens's prompt floats over its dial, its beams' count with it: issue #350, a world object's prompt by the object)
+const _lensAt = new THREE.Vector3();
+if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: () => expedition.hud(player).replace(/^E \(X \/ □\) /, ''),
+  at: () => { const i = expedition.nearby(player); return i >= 0 ? expedition.model.dials[i].getWorldPosition(_lensAt).add(player.frame.up) : null; },
+  distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 // the scout finds the objective (Q, R3 with no foe in reach, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
 // (src/story/quests.js QuestMarker.reveal)
@@ -1662,16 +1666,15 @@ const timer = new THREE.Timer();
 let frameNo = 0;
 
 // Nothing on the screen at rest (src/hud.js): no status box. The cue says what the use button does
-// right here when it has nothing to float over (the ship's hatch and console, a lens) and a region's
+// right here when it has nothing to float over (a scene's own E) and a region's
 // name as you cross into it; no button hints as you get into a vehicle (src/hud.js cueText).
 const cue = new Cue(), placeName = new PlaceName();
 cue.onChange = () => ship.cinema.layout();   // (the cue heads the hints' stack at the top: the notices under it move at once, issue #306)
 function updateHud() {
   const now = performance.now();
   const quiet = busy() || photo.on || player.dead;
-  const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
-  const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
-    prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
+  const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.promptTag() ? null : ship.hud(), shipPlaying: ship.playing,
+    prompt: storyRt.prompt, promptAt: storyRt.promptAt, boarding: player.boarding, controller: controllerActive });   // (the lens's line floats over its dial: issue #350)
   const indoors = interiorAt(player.pos);
   // (inside a shop: its name as you step in; back out, the street's name is not news)
   // The region's name is the first of the notices (src/ship/cinema.js NOTICE_ORDER, issue #78): settled while a scene
@@ -2316,7 +2319,10 @@ function frame(ts) {
     talkFaces.update(dt);
     updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
     player.character?.updateHands();
-    if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
+    // (a scene's own E, by what it is for: the prologue's voicemail button, issue #350)
+    const sceneTag = ship.playing && !photo.on ? ship.promptTag() : null;
+    if (sceneTag) { storyRt.prompt = sceneTag.text; storyRt.promptAt = sceneTag.at; storyRt.promptEntry = null; storyRt.placePrompt(camera, controllerActive); }
+    else if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
   // (src/fragments.js: their song, the finder, a fragment walked into; the finder quiet in a conversation or a menu, issue #231)

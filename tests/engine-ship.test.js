@@ -6,6 +6,7 @@
 // engine/game.js in a bare V8 context (the bundle the engines run).
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as THREE from 'three';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { bundle } from '../scripts/engine-bundle.mjs';
@@ -42,13 +43,15 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   assert.equal(g.ship.cinematic.stage, 'walk');
   assert.ok([...subs].some((s) => /^SHIP: Good morning/.test(s)), [...subs].join(' | '));
   assert.equal(g.save(), undefined);
-  // the walk is his: at the console E plays the message (the cue says so; the scene's walk shows the cue)
+  // the walk is his: at the console E plays the message (its prompt floats by the voicemail button, issue #350: it was the cue at the top)
   const m = g.ship.modelOf(g.player.pos);
   g.player.pos.copy(g.ship.world(m, m.interior.points.cockpit));
   run(g, 6);
   assert.match(g.ship.hud(), /^E /, 'E at the console');
   assert.ok(scr.state.cine?.walk, 'the cue shown through the scene');
-  assert.equal(scr.state.cue?.kind, '', JSON.stringify(scr.state.cue));
+  assert.equal(scr.state.prompt?.text, 'voicemail', JSON.stringify(scr.state.prompt));
+  assert.ok(new THREE.Vector3(...scr.state.prompt.at).distanceTo(g.ship.world(m, m.interior.points.voicemail)) < 0.5, 'over the button');
+  assert.ok(!scr.state.cue?.text, `not the cue at the top (${JSON.stringify(scr.state.cue)})`);
   run(g, 2, { KeyE: true }); run(g, 2, { KeyE: false });
   assert.equal(g.ship.cinematic.stage, 'call');
   run(g, 20 * 8, {}, () => { if (scr.state.sub) subs.add(`${scr.state.sub.who}: ${scr.state.sub.text}`); });

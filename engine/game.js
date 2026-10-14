@@ -546,10 +546,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const pad = padInHand();
     const quiet = busy || player.dead || !!pinned;
     const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad,
-      shipHint: shipOn ? ship.hud() : null, shipPlaying: shipOn && ship.playing });
+      shipHint: shipOn && !ship.promptTag() ? ship.hud() : null, shipPlaying: shipOn && ship.playing });
     const place = quiet || (shipOn && ship.playing) ? '' : placeName.update(atmo?.name, nowMs);
     cue.set(text || place, text ? '' : 'place');
-    if (story && !busy && !pinned && !(shipOn && ship.playing)) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
+    // (aboard, the ship's E floats by what it is for, the prologue's voicemail button too: src/ship/ship.js promptTag, issue #350)
+    const sceneTag = story && shipOn && ship.playing && !pinned ? ship.promptTag() : null;
+    if (sceneTag) { story.prompt = sceneTag.text; story.promptAt = sceneTag.at; story.promptEntry = null; story.placePrompt?.(camera, pad); }
+    else if (story && !busy && !pinned && !(shipOn && ship.playing)) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
     // toasts: the next once the last has been read
     toasts.left -= dt;
     if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }

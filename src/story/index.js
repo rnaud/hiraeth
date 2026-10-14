@@ -398,7 +398,7 @@ export function createStory(o) {
   }
 
   const rt = {
-    quests, dialogue, marker, world, temple, shops, fellow, scientist, portrait, moments, makeRoom, cabs, host, prompt: null, promptAt: null,
+    quests, dialogue, marker, world, temple, shops, fellow, scientist, portrait, moments, makeRoom, cabs, host, prompt: null, promptAt: null, extraPrompt: o.ship?.promptTag ? () => o.ship.promptTag() : null,
     busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
@@ -451,6 +451,10 @@ export function createStory(o) {
       rt.prompt = r.prompt;
       rt.promptEntry = r.entry ?? null;
       rt.promptAt = r.entry?.at?.() ?? null;
+      // (what E does aboard the ship, floating by what it is for: the voicemail, the table, the hatch; issue #350. The
+      //  ship's E comes first there, so its tag over a person's: src/ship/ship.js promptTag)
+      const extra = !paused && !dialogue.open && !player.hidden ? rt.extraPrompt?.() : null;
+      if (extra) { rt.prompt = extra.text; rt.promptAt = extra.at; rt.promptEntry = null; }
       const ob = rt.objective();
       marker.update(dt, t, ob, player, camera, paused || dialogue.open);
       if (camera) {
