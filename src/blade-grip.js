@@ -21,6 +21,10 @@ import * as THREE from 'three';
 //   bracerMount(humanoid)    { bone, position, quaternion } on the back of the hand (+z out of its back, +y to the fingers)
 //   forearmMount(humanoid)   the shield's bracer strapped round the left forearm (+z out, +y to the hand), turning with
 //                            the hand (forearmFrame each frame; issue #284)
+//   forearmWrap(humanoid, mount)   where the strap lies on the forearm's skin (issue #303): points of the skin itself,
+//                            found once on the body as it was bound, round the forearm at the strap's edges
+//   wrapFrame(wrap)          those points this frame (the skin as the bones have it now, in the forearm bone's frame)
+//   wrapLift(wrap, mount)    how far the skin stands off the bone line the strap's outside way this frame
 //   carry(object, mount)     parent `object` to the mount's bone, there (and at world size each frame: fitScale)
 
 export const GRIP = {
@@ -32,8 +36,17 @@ export const BRACER = {
   lift: 0.028,       // m off the hand's bone line, out of its back (half the hand's thickness)
 };
 export const FOREARM = {
-  along: 0.7,        // share of the way from the elbow to the wrist the shield's bracer is strapped (issue #284)
-  lift: 0.042,       // m off the forearm's bone line, out of its back (the forearm's half thickness and the strap)
+  along: 0.66,       // share of the way from the elbow to the wrist the shield's bracer is strapped (issue #284)
+  lift: 0.042,       // m off the forearm's bone line, out of its back, before the skin is read (forearmWrap: then the skin's own)
+};
+export const STRAP = {
+  // the leather's rows (m along the forearm from the bracer's middle, + toward the hand): the wide strap under the
+  // plate (its two edges and its middle, where the forearm bulges) and the narrow one nearer the elbow
+  bands: [[-0.025, 0, 0.025], [-0.07, -0.046]],
+  sectors: 24,       // points round the forearm a row
+  leather: 0.003,    // m thick
+  plate: 0.004,      // m from the strap's face up to the bracer's origin (the brass plate's underside)
+  reach: 0.12,       // m off the bone line a skin point may be (the arm's own, never the chest's beside it)
 };
 
 /** The centre of the circle through three points, or null if they are (nearly) in a line. */
@@ -185,6 +198,172 @@ export function forearmFrame(mount) {
   const x = _x.crossVectors(along, o).normalize();
   mount.quaternion.setFromRotationMatrix(_mb.makeBasis(x, along, o));
   return mount;
+}
+
+const _e1 = new THREE.Vector3(), _e2 = new THREE.Vector3(), _pv = new THREE.Vector3(), _tv = new THREE.Vector3(), _qv = new THREE.Vector3(),
+  _dir = new THREE.Vector3(), _org = new THREE.Vector3();
+/** Möller–Trumbore: the ray's distance to the triangle and its barycentric weights, or null. */
+function rayTriangle(o, d, a, b, c) {
+  _e1.subVectors(b, a); _e2.subVectors(c, a); _pv.crossVectors(d, _e2);
+  const det = _e1.dot(_pv);
+  if (Math.abs(det) < 1e-14) return null;
+  const inv = 1 / det; _tv.subVectors(o, a);
+  const u = _tv.dot(_pv) * inv;
+  if (u < -1e-6 || u > 1 + 1e-6) return null;
+  _qv.crossVectors(_tv, _e1);
+  const v = d.dot(_qv) * inv;
+  if (v < -1e-6 || u + v > 1 + 1e-6) return null;
+  return { t: _e2.dot(_qv) * inv, u, v };
+}
+
+/**
+ * Where the strap lies on the forearm (issue #303): for each of STRAP.bands' rows, STRAP.sectors points of the skin
+ * round the forearm (the outermost of every drawn skinned mesh the forearm moves: a sleeve over the arm, not the arm
+ * under it), found by rays out of the bone line on the body as it was bound (so the same wherever he stands, however
+ * posed), each a triangle of the skin and its weights: the skin's own points, which the bones carry as they carry
+ * the skin (wrapFrame). Sector 0 is the strap's outside as bound, the back of the hand's way; sector k is k/sectors
+ * of a turn round toward along × out. A sector with no skin to read is null (wrapFrame fills it from its neighbours).
+ */
+export function forearmWrap(humanoid, mount, { bands = STRAP.bands, n = STRAP.sectors, reach = STRAP.reach } = {}) {
+  const { bone: arm, hand, outHand } = mount ?? {}, root = humanoid?.model;
+  if (!arm || !hand || !root || !outHand) return null;
+  const meshes = [];
+  root.traverseVisible((o) => { if (o.isSkinnedMesh && o.skeleton?.bones.includes(arm) && o.skeleton.bones.includes(hand)) meshes.push(o); });
+  if (!meshes.length) return null;
+  arm.updateWorldMatrix(true, false);
+  arm.matrixWorld.decompose(_v, _q, _s);
+  const unit = 1 / (_s.x || 1);   // (metres in the forearm bone's own units)
+  const offs = bands.flat(), entries = [];
+  for (const mesh of meshes) {
+    const sk = mesh.skeleton, ia = sk.bones.indexOf(arm), ih = sk.bones.indexOf(hand);
+    // the forearm as the mesh was bound: its frame (the elbow at the origin, the wrist along it), the back of the hand
+    const G = new THREE.Matrix4().multiplyMatrices(sk.boneInverses[ia], mesh.bindMatrix);
+    const handBind = new THREE.Matrix4().multiplyMatrices(sk.boneInverses[ia], new THREE.Matrix4().copy(sk.boneInverses[ih]).invert());
+    const wrist = new THREE.Vector3().setFromMatrixPosition(handBind), len = wrist.length(), along = wrist.clone().normalize();
+    const out = outHand.clone().transformDirection(handBind);
+    out.addScaledVector(along, -out.dot(along)).normalize();
+    const x = new THREE.Vector3().crossVectors(along, out).normalize();
+    const g = mesh.geometry, P = g.attributes.position, J = g.attributes.skinIndex, Wt = g.attributes.skinWeight;
+    if (!J || !Wt) continue;
+    const index = g.index?.lodBase ?? g.index, count = index ? index.count : P.count;
+    const mid = len * FOREARM.along, lo = mid + (Math.min(...offs) - 0.02) * unit, hi = mid + (Math.max(...offs) + 0.02) * unit;
+    const bound = new Map(), at = (i) => {
+      let p = bound.get(i);
+      if (!p) { p = new THREE.Vector3().fromBufferAttribute(P, i).applyMatrix4(G); bound.set(i, p); }
+      return p;
+    };
+    // (the forearm's and the hand's weight on a vertex: the arm's skin, not the shirt hanging beside it)
+    const moved = (i) => { let w = 0; for (let k = 0; k < 4; k++) { const b = J.getComponent(i, k); if (b === ia || b === ih) w += Wt.getComponent(i, k); } return w; };
+    const tris = [];
+    for (let f = 0; f + 2 < count; f += 3) {
+      const i0 = index ? index.getX(f) : f, i1 = index ? index.getX(f + 1) : f + 1, i2 = index ? index.getX(f + 2) : f + 2;
+      if (Math.max(moved(i0), moved(i1), moved(i2)) < 0.5) continue;
+      const a = at(i0), b = at(i1), c = at(i2), ha = a.dot(along), hb = b.dot(along), hc = c.dot(along);
+      if (Math.max(ha, hb, hc) < lo || Math.min(ha, hb, hc) > hi) continue;
+      tris.push([i0, i1, i2]);
+    }
+    entries.push({ mesh, along, out, x, mid, tris, at });
+  }
+  if (!entries.length) return null;
+  // each row's points: the outermost hit of a ray out of the bone line, among every mesh
+  const rows = [];
+  bands.forEach((band, bi) => band.forEach((off) => {
+    const samples = [];
+    for (let k = 0; k < n; k++) {
+      const th = (k / n) * Math.PI * 2;
+      let best = null;
+      for (const E of entries) {
+        const o = _org.copy(E.along).multiplyScalar(E.mid + off * unit);
+        const d = _dir.copy(E.out).multiplyScalar(Math.cos(th)).addScaledVector(E.x, Math.sin(th));
+        for (const [i0, i1, i2] of E.tris) {
+          const r = rayTriangle(o, d, E.at(i0), E.at(i1), E.at(i2));
+          if (r && r.t > 0 && r.t < reach * unit && (!best || r.t > best.t)) best = { t: r.t, mesh: E.mesh, i: [i0, i1, i2], w: [1 - r.u - r.v, r.u, r.v] };
+        }
+      }
+      samples.push(best && { mesh: best.mesh, i: best.i, w: best.w });
+    }
+    rows.push({ off, band: bi, samples, points: samples.map(() => new THREE.Vector3()) });
+  }));
+  // the vertices to skin each frame, a mesh at a time, and the bones that move them
+  const used = new Map();
+  for (const r of rows) for (const s of r.samples) if (s) {
+    let m = used.get(s.mesh);
+    if (!m) used.set(s.mesh, m = { mesh: s.mesh, verts: new Map(), mats: new Map() });
+    const g = s.mesh.geometry, J = g.attributes.skinIndex, Wt = g.attributes.skinWeight;
+    for (const i of s.i) if (!m.verts.has(i)) {
+      const bi = [0, 1, 2, 3].map((k) => J.getComponent(i, k)), bw = [0, 1, 2, 3].map((k) => Wt.getComponent(i, k));
+      bi.forEach((b, k) => { if (bw[k] > 0 && !m.mats.has(b)) m.mats.set(b, new THREE.Matrix4()); });
+      m.verts.set(i, { bind: new THREE.Vector3().fromBufferAttribute(g.attributes.position, i).applyMatrix4(s.mesh.bindMatrix), bi, bw, now: new THREE.Vector3() });
+    }
+  }
+  return wrapFrame({ arm, along: mount.along.clone(), rows, n, unit, meshes: [...used.values()], C: new THREE.Matrix4() });
+}
+
+const _sum = new THREE.Vector3(), _one = new THREE.Vector3(), _ai = new THREE.Matrix4();
+/**
+ * The strap's skin points this frame (forearmWrap's, written in place: rows[].points, in the forearm bone's frame):
+ * each vertex skinned as the GPU skins it, from the bones as they are now. A sector with no skin to read is set
+ * between its row's nearest neighbours that have one.
+ */
+export function wrapFrame(wrap) {
+  if (!wrap) return wrap;
+  wrap.arm.updateWorldMatrix(true, false);
+  _ai.copy(wrap.arm.matrixWorld).invert();
+  for (const m of wrap.meshes) {
+    const mesh = m.mesh, bones = mesh.skeleton.bones, inv = mesh.skeleton.boneInverses;
+    for (const [b, M] of m.mats) M.multiplyMatrices(bones[b].matrixWorld, inv[b]);
+    mesh.updateWorldMatrix(true, false);
+    wrap.C.multiplyMatrices(_ai, mesh.matrixWorld).multiply(mesh.bindMatrixInverse);
+    for (const v of m.verts.values()) {
+      _sum.set(0, 0, 0);
+      for (let k = 0; k < 4; k++) if (v.bw[k] > 0) _sum.addScaledVector(_one.copy(v.bind).applyMatrix4(m.mats.get(v.bi[k])), v.bw[k]);
+      v.now.copy(_sum).applyMatrix4(wrap.C);
+    }
+  }
+  for (const r of wrap.rows) {
+    const N = r.samples.length;
+    for (let k = 0; k < N; k++) {
+      const s = r.samples[k];
+      if (!s) continue;
+      const V = wrap.meshes.find((m) => m.mesh === s.mesh).verts, p = r.points[k].set(0, 0, 0);
+      for (let j = 0; j < 3; j++) p.addScaledVector(V.get(s.i[j]).now, s.w[j]);
+    }
+    // (a hole in the skin: the sector's point turned round the bone line from the last read, its height and its
+    // distance off the line between the two either side)
+    const al = wrap.along;
+    for (let k = 0; k < N; k++) {
+      if (r.samples[k]) continue;
+      let ja = 0, jb = 0;
+      for (let j = 1; j < N && !ja; j++) if (r.samples[(k - j + N) % N]) ja = j;
+      for (let j = 1; j < N && !jb; j++) if (r.samples[(k + j) % N]) jb = j;
+      if (!ja || !jb) continue;
+      const A = r.points[(k - ja + N) % N], B = r.points[(k + jb) % N], f = ja / (ja + jb);
+      const ha = A.dot(al), hb = B.dot(al), ua = _one.copy(A).addScaledVector(al, -ha), ra = ua.length(), rb = _sum.copy(B).addScaledVector(al, -hb).length();
+      ua.normalize().applyAxisAngle(al, (ja / N) * Math.PI * 2);
+      r.points[k].copy(al).multiplyScalar(ha + (hb - ha) * f).addScaledVector(ua, ra + (rb - ra) * f);
+    }
+  }
+  return wrap;
+}
+
+/**
+ * How far the skin under the wide strap stands off the forearm's bone line the mount's way out this frame (in the
+ * forearm bone's units): where each of its rows' rings of points crosses `mount.out`, the furthest of them.
+ */
+export function wrapLift(wrap, mount) {
+  const { along, out } = mount, x = _x.crossVectors(along, out).normalize();
+  let best = 0;
+  for (const r of wrap?.rows ?? []) {
+    if (r.band !== 0) continue;
+    const N = r.points.length;
+    for (let k = 0; k < N; k++) {
+      const a = r.points[k], b = r.points[(k + 1) % N], ax = a.dot(x), bx = b.dot(x);
+      if (ax === bx || (ax > 0) === (bx > 0)) continue;
+      const s = ax / (ax - bx), o = a.dot(out) + s * (b.dot(out) - a.dot(out));
+      if (o > best) best = o;
+    }
+  }
+  return best;
 }
 
 /** Parent `object` to `mount.bone` where the mount says, at world size (fitScale). */

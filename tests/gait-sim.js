@@ -13,6 +13,7 @@ import { libraryFrom } from '../src/animator.js';
 import { Animator } from '../src/animator.js';
 import { attachMotion } from '../src/motion-match.js';
 import { createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { createTraveller } from '../src/characters/traveller.js';
 import { course, measure, timeToFace, CAM_PLUS_Z, sampleFrame } from '../src/gait-course.js';
 
 const parse = async (name) => {
@@ -56,6 +57,26 @@ export async function travellerV1() {
   return v1;
 }
 
+// the game's traveller since 1.68 (the B3 MakeHuman body, src/characters/traveller.js), without textures
+let b3 = null;
+export async function travellerB3() {
+  b3 ??= (async () => {
+    const { data } = await travellerV1();
+    const read = (f) => readFile(new URL(`../${f}`, import.meta.url));
+    const glb = async (f) => {
+      const g = await read(f), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
+      json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
+      delete json.images; delete json.textures; delete json.materials;
+      for (const m of json.meshes) for (const pr of m.primitives) delete pr.material;
+      return new GLTFLoader().parseAsync(JSON.stringify(json), '');
+    };
+    const dir = 'public/characters/traveller-b3/';
+    const [gltf, head, report, colors] = await Promise.all([glb(dir + 'model.glb'), glb('public/characters/traveller-v1/head-v3/model.glb'), read(dir + 'rig.json').then(JSON.parse), read(dir + 'colors.json').then(JSON.parse)]);
+    return { gltf, data, report, head, colors };
+  })();
+  return b3;
+}
+
 // his approved Tripo head, as the game wears it (src/characters/tripo-head.js), without its textures
 let portraitHead = null;
 export async function tripoHead() {
@@ -75,8 +96,8 @@ export { course, measure, timeToFace, CAM_PLUS_Z };
 /**
  * A traveller on the course, standing at `at` facing +z (heading 0); o.matching: motion matching on,
  * or off (the loops, the game's default); o.moves: the starts, stops and turns over the loops
- * (src/loco-moves.js; the game's default) or not; o.body: 'v1' the game's coral-shirt traveller
- * (src/characters/traveller-v1.js), else the people's plain body; o.head: with it, his approved Tripo head
+ * (src/loco-moves.js; the game's default) or not; o.body: 'b3' the game's traveller (src/characters/traveller.js),
+ * 'v1' the coral-shirt traveller before him (src/characters/traveller-v1.js), else the people's plain body; o.head: with it, his approved Tripo head
  * (public/characters/traveller-v1/head-v3, the game's) instead of the body's own.
  */
 export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matching = false, moves = false, body = 'plain', head = false } = {}) {
@@ -87,6 +108,7 @@ export async function traveller(scene, at = new THREE.Vector3(0, 0, 0), { matchi
   p.animator.matching = matching;
   p.locoMoves = moves;
   if (body === 'v1') { p.character = createTravellerV1(p.char, { ...(await travellerV1()), ...(head ? { head: await tripoHead() } : {}) }); p.humanoid = p.character.humanoid; }
+  else if (body === 'b3') { p.character = createTraveller(p.char, await travellerB3()); p.humanoid = p.character.humanoid; }
   else p.humanoid = new Humanoid(human.m, p.char, 'm');
   p.gear = { update() {}, device: { visible: true } };   // (no cloth or gear: they don't move the body)
   p._lastVel = new THREE.Vector3();

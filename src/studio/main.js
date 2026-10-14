@@ -555,7 +555,7 @@ const VIEWS = {
   full: { y: 0.92, dist: 4.6 }, bust: { y: 1.45, dist: 1.3 }, face: { y: 1.67, dist: 0.72 }, close: { y: 1.67, dist: 0.4 }, far: { y: 0.92, dist: 34 },
   hands: { y: 0.85, dist: 0.62 },   // (on the right hand)
   arms: { y: 1.2, dist: 2.1 },      // (both hands: the blade and the shield, on the chest)
-  bracer: { y: 0.85, dist: 0.5 },   // (on the left hand: the shield's disc)
+  bracer: { y: 0.85, dist: 0.5 },   // (on the left forearm: the shield's bracer and its folded hub)
 };
 const orbit = { yaw: state.yaw, pitch: state.pitch, zoom: 1 };
 function placeCamera(dt) {
@@ -582,6 +582,9 @@ function placeCamera(dt) {
     // the right hand (the left: the bracer), from the middle of the palm out to the fingers
     const side = state.view === 'bracer' ? 'l' : 'r', hb = p.h.b, mid = hb[`middle_02_${side}`] ?? hb[`hand_${side}`];
     target.copy(hb[`hand_${side}`].getWorldPosition(_v)).lerp(mid.getWorldPosition(new THREE.Vector3()), 0.6);
+    // (the shield's bracer is strapped round the forearm since issue #284: on it, where it is drawn)
+    const strap = side === 'l' ? p.tool?.blade?.device?.root : null;
+    if (strap?.parent && strap.visible) target.setFromMatrixPosition(strap.matrixWorld);
     dist = V.dist * orbit.zoom * s;
   }
   if (state.view === 'arms' && p?.h?.b?.hand_r && !state.lineup) {

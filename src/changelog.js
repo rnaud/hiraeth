@@ -19,6 +19,9 @@ export const CHANGELOG = [
           { where: 'storms an hour', before: 22, after: 5.1 },
         ], source: 'tests/weather.test.js' },
       ] },
+    // the shield's strap on the skin (issue #303): src/blade-grip.js forearmWrap / wrapFrame / wrapLift, STRAP;
+    // src/shield.js wrapStrap, bendDisc; tests/strap-skin.js; docs/systems/foes.md "The strap wraps the skin"
+    { text: 'The guard’s leather strap now wraps tight round your forearm, following its shape as you walk, run and fight, instead of standing off it like a loose tube, and the folded brass flower sits down on its plate on the outside of your arm rather than floating over it.' },
     // the lore page in the Debug menu, What's new's ◀ Debug (issue #291): src/world-picker.js PAGES, changelog.html, lore.html
     { text: 'The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.',
       see: 'Open Debug from the title: Pages → Lore. Open What’s new from the Debug menu: “◀ Debug” at the top left takes you back.' },

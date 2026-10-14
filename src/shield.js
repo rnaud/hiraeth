@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
-import { forearmMount, forearmFrame, carry, fitScale } from './blade-grip.js';
+import { forearmMount, forearmFrame, forearmWrap, wrapFrame, wrapLift, carry, fitScale, FOREARM, STRAP } from './blade-grip.js';
 import { SWORD_TONES } from './fluid-sword.js';
 import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
 
@@ -37,7 +37,7 @@ export const SHIELD = {
   open: 0.16,         // s to open (the guard is up at half of it: GUARD in src/fluid-blade.js)
   close: 0.14,        // s to fold away
   stand: 0.05,        // m the open hub stands off the bracer on its knuckled arm (folded: `folded`)
-  folded: 0.012,
+  folded: 0.008,       // m the folded hub's face stands over the plate (its drum's foot down on the plate: bendDisc)
   slack: 0.15,        // m round the rim a blow still meets it (the foe's swing is not a line)
   // raised, the arm is brought across (brace) so the bracer stands `middle` m to the left of the chest's middle line,
   // by `brace` m at most
@@ -155,6 +155,38 @@ export function shieldMaterial(key = 'fluid-shield') {
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4();
 const _Z = new THREE.Vector3(0, 0, 1), _Y = new THREE.Vector3(0, 1, 0);
+const BEND = { n: 10, step: 0.004 };   // the plate's drop across the arm, sampled every 4 mm out to 4 cm each side (bendDisc)
+
+/**
+ * The bracer's leather (issue #303): for each of STRAP.bands a band round the forearm, its rows of STRAP.sectors points
+ * (the inside on the skin at its first edge, the outside at each of its rows, the inside again at its last edge),
+ * laid each frame on the skin by ShieldDevice.wrapStrap. Until it is (no skin to read), a plain round strap.
+ */
+function strapGeometry(n = STRAP.sectors) {
+  const pos = [], uv = [], index = [];
+  let base = 0;
+  for (const band of STRAP.bands) {
+    const rows = [[band[0], 0.039], ...band.map((y) => [y, 0.042]), [band[band.length - 1], 0.039]];
+    rows.forEach(([y, r], j) => {
+      for (let k = 0; k < n; k++) {
+        const th = (k / n) * Math.PI * 2;
+        pos.push(Math.sin(th) * r, y, Math.cos(th) * r - FOREARM.lift);
+        uv.push(k / n, j / (rows.length - 1));
+      }
+    });
+    for (let j = 0; j + 1 < rows.length; j++) for (let k = 0; k < n; k++) {
+      const a = base + j * n + k, b = base + j * n + ((k + 1) % n), c = a + n, d = b + n;
+      index.push(a, b, c, b, d, c);
+    }
+    base += rows.length * n;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  return g;
+}
 
 /**
  * A flat stroke in the shield's plane, rebuilt as it flows: a line of points with a width at each,
@@ -258,23 +290,31 @@ export class ShieldDevice {
     this.fluid = shieldMaterial(key);
     this.root = new THREE.Group();
     this.root.name = 'shield bracer';
-    // the bracer: a worn leather strap round the forearm (its bone line FOREARM.lift under the root: blade-grip.js), a
-    // brass plate riveted on its outside; on the plate the folded hub: a brass drum with a raised rim, the petals' ends
-    // drawn on its face like the leaves of a closed iris, a bead of the fluid at its middle. One mesh a material (worn
-    // in every view; issue #111)
-    const strap = new THREE.CylinderGeometry(0.041, 0.039, 0.05, 18, 1, true).translate(0, 0, -0.042);
-    const strap2 = new THREE.CylinderGeometry(0.037, 0.035, 0.026, 18, 1, true).translate(0, -0.075, -0.042);
-    this.strap = new THREE.Mesh(mergeGeometries([strap, strap2]), leather);
-    const plate = new THREE.BoxGeometry(0.05, 0.062, 0.006).translate(0, -0.006, -0.001);
+    // the bracer: a worn leather strap round the forearm, wrapped on its skin (issue #303: wrapStrap, each frame, the
+    // forearm's own skin under it: blade-grip.js forearmWrap), a brass plate riveted on its outside, bent to the arm;
+    // on the plate the folded hub: a brass drum with a raised rim, its foot down on the plate however the arm curves
+    // under it, the petals' ends drawn on its face like the leaves of a closed iris, a bead of the fluid at its middle.
+    // One mesh a material (worn in every view; issue #111)
+    this.strap = new THREE.Mesh(strapGeometry(), leather);
+    this.strap.userData.ring = true;
+    const plate = new THREE.BoxGeometry(0.05, 0.062, 0.006, 10, 1, 1).translate(0, -0.006, -0.001);
+    const drum = new THREE.CylinderGeometry(SHIELD.hub, SHIELD.hub * 0.78, 0.007 + SHIELD.folded, 18).rotateX(Math.PI / 2).translate(0, 0, (0.007 + SHIELD.folded) / 2);
     const disc = new THREE.Group();
     const darkParts = [new THREE.TorusGeometry(SHIELD.hub * 0.92, 0.0035, 5, 20).translate(0, 0, 0.0085 + SHIELD.folded)];
     for (let i = 0; i < SHIELD.ribs; i++) {
       const a = (i / SHIELD.ribs) * Math.PI * 2;
       darkParts.push(new THREE.BoxGeometry(0.0025, SHIELD.hub * 0.5, 0.002).translate(0, SHIELD.hub * 0.5, 0.0078 + SHIELD.folded).rotateZ(a + 0.35));
     }
-    for (const [x, y] of [[-0.019, 0.022], [0.019, 0.022], [-0.019, -0.034], [0.019, -0.034]]) darkParts.push(new THREE.SphereGeometry(0.0035, 6, 4).translate(x, y, 0.002));   // (the plate's rivets)
-    disc.add(new THREE.Mesh(mergeGeometries([plate, new THREE.CylinderGeometry(SHIELD.hub, SHIELD.hub * 1.06, 0.01, 18).rotateX(Math.PI / 2).translate(0, 0, 0.002 + SHIELD.folded)]), brass));
-    disc.add(new THREE.Mesh(mergeGeometries(darkParts), dark));
+    const rivets = [[-0.019, 0.022], [0.019, 0.022], [-0.019, -0.034], [0.019, -0.034]].map(([x, y]) => new THREE.SphereGeometry(0.0035, 6, 4).translate(x, y, 0.002));   // (the plate's rivets)
+    const brassDisc = new THREE.Mesh(mergeGeometries([plate, drum]), brass), darkDisc = new THREE.Mesh(mergeGeometries([...darkParts, ...rivets]), dark);
+    // (what bends to the arm under it: the plate and its rivets all through, the drum at its foot; bendDisc)
+    const plateN = plate.attributes.position.count, darkN = darkParts.reduce((n, g) => n + g.attributes.position.count, 0);
+    this.bend = [[brassDisc, (i, z) => i < plateN || z < 0.0005], [darkDisc, (i) => i >= darkN]].map(([mesh, bends]) => {
+      const P = mesh.geometry.attributes.position, base = Float32Array.from(P.array), which = [];
+      for (let i = 0; i < P.count; i++) if (bends(i, P.getZ(i))) which.push(i);
+      return { mesh, base, which };
+    });
+    disc.add(brassDisc, darkDisc);
     this.bead = new THREE.Mesh(new THREE.SphereGeometry(0.014, 12, 8).scale(1, 1, 0.5).translate(0, 0, 0.008 + SHIELD.folded), this.fluid);
     disc.add(this.bead);
     this.disc = disc;
@@ -333,13 +373,90 @@ export class ShieldDevice {
     if (H && this.mount?.bone && this.mount.humanoid === H && this.root.parent === this.mount.bone) {
       forearmFrame(this.mount);
       carry(this.root, this.mount);
+      this.wrapStrap();
       return true;
     }
     const m = H?.b?.lowerarm_l && H.b.hand_l ? forearmMount(H) : null;
-    if (!m) { this.root.removeFromParent(); this.mount = null; return false; }
+    if (!m) { this.root.removeFromParent(); this.mount = null; this.wrap = null; return false; }
     this.mount = Object.assign(m, { humanoid: H });
+    // (the skin it is strapped on, read once a body: blade-grip.js forearmWrap)
+    this.wrap = forearmWrap(H, this.mount);
     carry(this.root, this.mount);
+    this.wrapStrap();
     return true;
+  }
+
+  /**
+   * The strap wrapped on the forearm's skin as it is this frame (issue #303): the bracer stood on the skin the
+   * strap's outside way (wrapLift), the leather laid on the skin's own points round the arm (wrapFrame), the plate
+   * and the drum's foot bent to the strap under them. After the pose (and again after brace moves the arm).
+   */
+  wrapStrap() {
+    const W = this.wrap, M = this.mount;
+    if (!W || !M) return false;
+    wrapFrame(W);
+    const lift = wrapLift(W, M);
+    if (lift <= 0) return false;
+    M.position.copy(M.along).multiplyScalar(M.len * FOREARM.along).addScaledVector(M.out, lift + (STRAP.leather + STRAP.plate) * W.unit);
+    this.root.position.copy(M.position);
+    this.root.updateMatrix();
+    _m.copy(this.root.matrix).invert();
+    // the leather: each band's rows of skin points (forearm frame) into the bracer's, the inside on the skin, the
+    // outside a leather's thickness off it, away from the bone line
+    const P = this.strap.geometry.attributes.position, n = W.n;
+    const centre = _c.copy(M.along).multiplyScalar(M.len * FOREARM.along).applyMatrix4(_m), axis = _d.copy(M.along).transformDirection(_m);
+    const outer = this.outer ??= W.rows.map((r) => r.points.map(() => new THREE.Vector3()));
+    let v = 0;
+    for (const band of STRAP.bands.keys()) {
+      const rows = W.rows.filter((r) => r.band === band), rings = [];
+      for (const r of rows) {
+        const o = outer[W.rows.indexOf(r)], inner = [];
+        for (let k = 0; k < n; k++) {
+          const p = _a.copy(r.points[k]).applyMatrix4(_m), rad = _b.subVectors(p, centre);
+          rad.addScaledVector(axis, -rad.dot(axis)).normalize();
+          inner.push(p.clone().addScaledVector(rad, 0.0005));
+          o[k].copy(p).addScaledVector(rad, STRAP.leather);
+        }
+        rings.push({ inner, outer: o });
+      }
+      for (const ring of [rings[0].inner, ...rings.map((r) => r.outer), rings[rings.length - 1].inner]) for (let k = 0; k < n; k++) P.setXYZ(v++, ring[k].x, ring[k].y, ring[k].z);
+    }
+    P.needsUpdate = true;
+    this.strap.geometry.computeVertexNormals();
+    this.strap.geometry.computeBoundingSphere();
+    this.bendDisc(outer.filter((_, i) => W.rows[i].band === 0), centre.z);
+    return true;
+  }
+
+  /** The plate and its rivets laid on the strap's outside across the arm, the drum's foot down to it (wrapStrap). */
+  bendDisc(rings, axisZ) {
+    // the strap's outside across the arm, its upper side: the highest of the wide strap's rows at x
+    const top = (x) => {
+      let best = -Infinity;
+      for (const ring of rings) for (let k = 0; k < ring.length; k++) {
+        const a = ring[k], b = ring[(k + 1) % ring.length];
+        if (a.z < axisZ || b.z < axisZ || (a.x - x) * (b.x - x) > 0 || a.x === b.x) continue;
+        best = Math.max(best, a.z + ((x - a.x) / (b.x - a.x)) * (b.z - a.z));
+      }
+      return best;
+    };
+    // (sampled across the plate and the drum's foot, each side out from the middle: past the arm's edge, as its edge)
+    const D = this.drop ??= new Float32Array(2 * BEND.n + 1), at0 = top(0);
+    if (!Number.isFinite(at0)) return;
+    D[BEND.n] = 0;
+    for (const s of [-1, 1]) for (let j = 1, last = 0; j <= BEND.n; j++) {
+      const z = top(s * j * BEND.step);
+      D[BEND.n + s * j] = last = Number.isFinite(z) ? Math.min(last, z - at0) : last;
+    }
+    for (const { mesh, base, which } of this.bend) {
+      const P = mesh.geometry.attributes.position;
+      for (const i of which) {
+        const f = THREE.MathUtils.clamp(base[i * 3] / BEND.step + BEND.n, 0, 2 * BEND.n), j = Math.min(Math.floor(f), 2 * BEND.n - 1);
+        P.setZ(i, base[i * 3 + 2] + THREE.MathUtils.lerp(D[j], D[j + 1], f - j));
+      }
+      P.needsUpdate = true;
+      mesh.geometry.computeBoundingSphere();
+    }
   }
 
   /**
@@ -348,7 +465,7 @@ export class ShieldDevice {
    */
   brace({ chest = null, dir = null, up = null } = {}) {
     const H = this.tool.player?.humanoid, B = H?.b, k = smooth(this.s.k, 0, 0.6);
-    if (!chest || !dir || !up || k <= 0 || !B?.upperarm_l || !B.lowerarm_l || !B.hand_l || !H.solveTwoBone || !this.attach()) return false;
+    if (!chest || !dir || !up || k <= 0 || !B?.upperarm_l || !B.lowerarm_l || !B.hand_l || !H.solveTwoBone || !this.mount || this.root.parent !== this.mount.bone) return false;
     this.root.updateWorldMatrix(true, false);
     const hub = _a.setFromMatrixPosition(this.root.matrixWorld), shift = braceShift(hub, chest, dir, up, k, _b);
     if (shift.lengthSq() < 1e-8) return false;
@@ -394,7 +511,7 @@ export class ShieldDevice {
     const on = worn && this.attach() && this.tool.player?.object?.visible !== false;
     this.root.visible = on;
     if (!on) return said;
-    if (chest && dir && up) this.brace({ chest, dir, up });
+    if (chest && dir && up && this.brace({ chest, dir, up })) this.wrapStrap();   // (the arm moved: the skin under it again)
     fitScale(this.root);
     const k = S.k;
     this.face.visible = k > 0.002;

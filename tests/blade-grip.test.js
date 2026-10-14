@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { circumcentre, gripLine, fistGrip, forearmMount, FOREARM } from '../src/blade-grip.js';
+import { circumcentre, gripLine, fistGrip, forearmMount, FOREARM, STRAP } from '../src/blade-grip.js';
 import { ShieldState, SHIELD, shieldArc, blobRadius, braceShift } from '../src/shield.js';
 import { SWINGS, WHIRL, GUARD, STANCE, attackSample, bladeDrawn, inGuard } from '../src/fluid-blade.js';
 import { DRAW, SHEATHE } from '../src/sword-sheath.js';
@@ -10,6 +10,7 @@ import { GameState } from '../src/game-state.js';
 import { items } from '../src/items.js';
 import { playerHands } from '../src/hands.js';
 import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
+import { strapSkin } from './strap-skin.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
 
@@ -110,13 +111,14 @@ async function armed(body) {
   return { p, tool, tick, scene };
 }
 
-for (const body of ['v1', 'plain']) {
+for (const body of ['b3', 'plain']) {
   test(`${body} traveller: the hilt sits in the fist and the bracer on the left hand on every frame of every combat clip`, async () => {
     const { p, tool, tick } = await armed(body);
     const H = p.humanoid, B = H.b, blade = tool.blade, grip = fistGrip(H), mount = forearmMount(H);
     // (the guard draws the blade off his back: src/sword-sheath.js, in the fist after DRAW.time)
     for (let i = 0; i < Math.ceil(DRAW.time / dt) + 2; i++) tick({ KeyZ: true });
     for (let i = 0; i < 6; i++) tick({});
+    const skin = strapSkin(H, blade.device);
     assert.equal(blade.group.parent, B.hand_r, 'carried by the right hand bone');
     assert.equal(blade.device.root.parent, B.lowerarm_l, 'the bracer strapped round the left forearm');
     assert.ok(blade.group.visible, 'drawn');
@@ -149,8 +151,10 @@ for (const body of ['v1', 'plain']) {
         const el = B.lowerarm_l.getWorldPosition(v()), wr = B.hand_l.getWorldPosition(v()), at2 = v().setFromMatrixPosition(b.matrixWorld);
         const axis2 = wr.clone().sub(el).normalize(), along = at2.clone().sub(el).dot(axis2) / wr.distanceTo(el);
         assert.ok(Math.abs(along - FOREARM.along) < 0.02, `${S.clip}: along the forearm (${along.toFixed(2)})`);
-        const off = at2.clone().sub(el).addScaledVector(axis2, -at2.clone().sub(el).dot(axis2)).length();
-        assert.ok(Math.abs(off - FOREARM.lift) < 3e-3, `${S.clip}: on its outside (${off.toFixed(3)} m off the bone line)`);
+        // the strap wrapped on this frame's skin all round, no gap and nothing sunk in, the plate on it (issue #303)
+        const m = skin.measure();
+        assert.ok(m.min > -1.5e-3 && m.max < 4.5e-3, `${S.clip} t ${s.t.toFixed(2)}: the strap ${(m.min * 1000).toFixed(1)}..${(m.max * 1000).toFixed(1)} mm off the skin`);
+        assert.ok(m.plate > STRAP.leather + STRAP.plate - 1e-3 && m.plate < STRAP.leather + STRAP.plate + 5e-3, `${S.clip}: the plate on the strap (${(m.plate * 1000).toFixed(1)} mm off the skin)`);
         const out = v(0, 0, 1).transformDirection(b.matrixWorld), back = mount.outHand.clone().transformDirection(B.hand_l.matrixWorld);
         assert.ok(Math.abs(out.dot(axis2)) < 1e-3 && out.dot(back) > 0.7, `${S.clip}: facing out, the back of the hand's way (${out.dot(back).toFixed(2)})`);
         // the swings cut edge first: the tip's motion across the blade along its edge
@@ -166,7 +170,35 @@ for (const body of ['v1', 'plain']) {
   });
 }
 
-for (const body of ['v1', 'plain']) {
+for (const body of ['b3', 'plain']) {
+  test(`${body} traveller: at rest the bracer's strap wraps the forearm's skin standing, walking, running and turning, the hub on its outside`, async () => {
+    const { p, tool, tick } = await armed(body);
+    const H = p.humanoid, B = H.b, D = tool.blade.device;
+    for (let i = 0; i < 10; i++) tick({});
+    assert.ok(D.wrap && D.wrap.rows.every((r) => r.samples.filter(Boolean).length >= STRAP.sectors - 2), 'the skin read all round the forearm');
+    const skin = strapSkin(H, D);
+    assert.ok(skin.triangles > 20, `the forearm's skin (${skin.triangles} triangles)`);
+    let lo = Infinity, hi = -Infinity;
+    for (const [what, input, secs] of [['standing', {}, 1], ['walking', { KeyW: true }, 1.5], ['running', { KeyW: true, ShiftLeft: true }, 1.5], ['turning', { KeyA: true, ShiftLeft: true }, 1], ['stopping', {}, 1]]) {
+      for (let i = 0; i < secs / dt; i++) {
+        tick(input);
+        assert.equal(D.s.k, 0, 'folded');
+        const m = skin.measure();
+        lo = Math.min(lo, m.min); hi = Math.max(hi, m.max);
+        assert.ok(m.min > -1.5e-3 && m.max < 4.5e-3, `${what}, frame ${i}: the strap ${(m.min * 1000).toFixed(1)}..${(m.max * 1000).toFixed(1)} mm off the skin`);
+        assert.ok(m.plate > STRAP.leather + STRAP.plate - 1e-3 && m.plate < STRAP.leather + STRAP.plate + 5e-3, `${what}: the plate on the strap (${(m.plate * 1000).toFixed(1)} mm)`);
+        // the folded hub on the outside of the forearm: its face the back of the hand's way, the forearm under it
+        const out = v(0, 0, 1).transformDirection(D.root.matrixWorld), back = forearmMount(H).outHand.clone().transformDirection(B.hand_l.matrixWorld);
+        const el = B.lowerarm_l.getWorldPosition(v()), at = v().setFromMatrixPosition(D.root.matrixWorld);
+        assert.ok(out.dot(back) > 0.7 && at.sub(el).dot(out) > 0, `${what}: on the outside (${out.dot(back).toFixed(2)})`);
+      }
+    }
+    console.log(`${body}: the strap ${(lo * 1000).toFixed(1)}..${(hi * 1000).toFixed(1)} mm off the skin`);
+    tool.dispose();
+  });
+}
+
+for (const body of ['b3', 'plain']) {
   test(`${body} traveller: in the block pose the shield covers both sides alike, 50–60° each way of facing, on its knuckle off the forearm`, async () => {
     const { p, tool, tick } = await armed(body);
     const blade = tool.blade, D = blade.device;
@@ -188,7 +220,7 @@ for (const body of ['v1', 'plain']) {
 }
 
 test('put away climbing, swimming, in a scene and knocked down; the bracer stays folded on the hand; the guard opens the shield', async () => {
-  const { p, tool, tick } = await armed('v1');
+  const { p, tool, tick } = await armed('b3');
   const blade = tool.blade;
   for (let i = 0; i < 20; i++) tick({ KeyZ: true });
   assert.ok(blade.device.s.k === 1 && blade.device.face.visible, 'held, the shield is open');

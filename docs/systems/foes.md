@@ -224,10 +224,24 @@ The first things in the game that fight back, and the tool's answer to them.
   the four centres (little finger to index) is the grip, the blade out on the index's side, the edge the way the
   fingers point out of the palm (`+x` of the hilt), the flat to the palm. The hilt's origin is the middle of
   its grip. On the swings the edge leads the tip's motion (|cos| 0.93–0.99), which tests check. The shield's bracer
-  (`forearmMount`, issue #284) is strapped round the left forearm, `FOREARM.along` (0.7) of the way from the elbow to
-  the wrist and `FOREARM.lift` (4.2 cm) out of its bone line, on its outside: the way the back of the hand faces as
-  the hand is turned now (`forearmFrame`, each frame: the forearm bone itself never rolls, a real forearm does near
-  the wrist).
+  (`forearmMount`, issue #284) is strapped round the left forearm, `FOREARM.along` (0.66) of the way from the elbow to
+  the wrist, on its outside: the way the back of the hand faces as the hand is turned now (`forearmFrame`, each
+  frame: the forearm bone itself never rolls, a real forearm does near the wrist).
+- **The strap wraps the skin** (issue #303; `forearmWrap`, `wrapFrame`, `wrapLift`, `STRAP`; `ShieldDevice.wrapStrap`,
+  `bendDisc`). Once a body, rays out of the forearm's bone line on the body as it was bound find, for each row of
+  the leather (`STRAP.bands`: the wide strap's two edges and middle, the narrow one's two edges nearer the elbow),
+  24 points of the outermost drawn skin round the arm (a sleeve over the arm, not the arm under it; triangles the
+  forearm or the hand move), each a skin triangle and its weights. Each frame those 120 points are skinned as the GPU
+  skins them (about 300 vertices, 0.06–0.09 ms), so the leather lies on the skin however the arm is posed: the
+  inside 0.5 mm off it, `STRAP.leather` (3 mm) thick, its outside following the arm's own section (no circle: the
+  B3 forearm is flatter than it is wide). The bracer stands where the skin crosses its outside way (`wrapLift`) plus
+  the leather and `STRAP.plate`; the plate and its rivets bend to the strap's outside across the arm and the folded
+  drum's foot comes down to it (`bendDisc`), so nothing floats off a round arm. A hole in the skin is filled round
+  the bone line from the points either side. `tests/strap-skin.js` measures it on its own (three.js's
+  `applyBoneTransform`, each strap vertex's distance to the nearest skin triangle): on the B3 traveller and the plain
+  body every strap vertex is 0–3.4 mm off the skin through standing, walking, running, turning and every combat clip,
+  never more than 1.5 mm under it (`tests/blade-grip.test.js`). Before, the strap was a round 4.1 cm tube on the bone
+  line: on the B3 forearm it stood a centimetre off the skin at the sides and the drum floated over a flat plate.
 - **Drawn or put away** (`bladeDrawn`, `STANCE`): in the fist while swinging, guarding, evading, locked on, or
   within `STANCE.linger` (2.5 s) of any of those or of a blow taken; put away at once when the tool may not act
   (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
@@ -271,8 +285,8 @@ The first things in the game that fight back, and the tool's answer to them.
   `SHIELD.brace` (0.3 m) at most, never out to the left, and the face turns on its knuckle toward the guard's way, at
   most `SHIELD.swivel` (1.3 rad) off the forearm's outside (a strapped shield never faces back). In the block pose
   its hub is about 6 cm left of the middle line, 0.3–0.4 m ahead and 0.25–0.3 m over the chest, the arc 52° each side
-  centred 4° from facing on the v1 traveller (58° and 3.5° on the plain body); `tests/blade-grip.test.js` checks
-  50–60° and ±5° on both bodies, and the bracer on the forearm on every frame of every combat clip. Before (v0.93 to
+  centred 4° from facing on the v1 traveller (58° and 3.5° on the plain body); `tests/blade-grip.test.js` checks it on the B3 traveller and the plain body,
+  50–60° and ±5°, and the bracer on the forearm on every frame of every combat clip. Before (v0.93 to
   v1.66) the shield's disc sat on the back of the hand and the open shield slid on a 0.42 m brass arm to the chest.
 - **Inspect:** the studio (`studio.html?backpack=true&sword=true&shield=1&view=arms`, any clip scrubbed with
   `anim=clip:mixamo_ss_slash_1&paused=true&time=0.4`; views `hands` and `bracer` for close-ups; `guard=block|
