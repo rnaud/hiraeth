@@ -307,6 +307,13 @@ export class Physics {
     const i = this.extras?.indexOf(handle) ?? -1;
     if (i >= 0) this.extras.splice(i, 1);
   }
+  /** A collider set aside by removeCollider back (a moving one where its object stands now: a crate carried and put down, src/carry.js). */
+  restoreCollider(handle) {
+    if (!handle) return;
+    this.composite();
+    if (!this.extras.includes(handle)) this.extras.push(handle);
+    if (handle.moving) syncMover(handle, 0, true);
+  }
 
   /** Height of the first surface below (x, fromY, z), or -Infinity. */
   groundAt(x, fromY, z, maxDrop = 600) {

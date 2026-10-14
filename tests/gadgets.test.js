@@ -7,6 +7,7 @@ import hook, { HOOK, reelTarget, reelVelocity, inReach } from '../src/gadgets/ho
 import bomb, { BOMB, refillPouch } from '../src/gadgets/bomb.js';
 import { assistPick, throwVelocity, arcPoints, bounce, blastFalloff, blastDamage, blast, traceAim } from '../src/gadgets/kit.js';
 import { GadgetWorld, Prop, stepProp } from '../src/gadgets/world.js';
+import { CARRY, IN_HANDS } from '../src/carry.js';
 import { Gadgets, gadgetInput, WHEEL_HOLD, EQUIPPED_FLAG } from '../src/gadgets/index.js';
 import { pips } from '../src/gadgets/hud.js';
 import { ITEMS, items } from '../src/items.js';
@@ -296,17 +297,29 @@ test('jump while reeling lets go with the reel\'s speed; caught on nothing the h
   assert.equal(Q.pos.length(), 0, 'the traveller never moved');
 });
 
-test('the hook drags a loose crate to you, and stuns a foe it pulls in', () => {
+test('the hook drags a loose crate into your hands (one too big to carry at your feet), and stuns a foe it pulls in', () => {
   clearTargets();
   const ph = physicsOf();
   const P = player(v(0, 0, 0));
+  P.physics = ph;
   const crate = new Prop({ object: Object.assign(new THREE.Group(), {}), r: 0.5, h: 0.45 });
   crate.pos.set(0, 0.45, -15);
   const H = hook.create(hookCtx(P, ph));
   H.fire({ kind: 'target', ok: true, target: { kind: 'prop', prop: crate, position: () => crate.pos }, point: crate.pos.clone(), normal: v(0, 0, 1), reach: 15 });
   for (let i = 0; i < 400 && H.state !== 'back' && H.state !== 'idle'; i++) { H.update(DT); stepProp(crate, DT, ph); }
-  assert.ok(Math.hypot(crate.pos.x, crate.pos.z) < HOOK.dragTo + 0.6, `at your feet: ${crate.pos.toArray().map((x) => x.toFixed(1))}`);
-  assert.equal(crate.held, null, 'let go');
+  assert.ok(Math.hypot(crate.pos.x, crate.pos.z) < HOOK.dragTo + 0.6, `come to you: ${crate.pos.toArray().map((x) => x.toFixed(1))}`);
+  assert.equal(P.carrying?.thing, crate, 'small enough: it lands in your hands (src/carry.js)');
+  assert.equal(crate.held, IN_HANDS, 'held by your hands, no longer by the hook');
+  P.carrying = null; crate.held = null;
+  // (a big crate, wider than CARRY.maxR: let go at your feet)
+  const big = new Prop({ object: new THREE.Group(), r: CARRY.maxR + 0.2, h: 0.6 });
+  big.pos.set(0, 0.6, -15);
+  const B = hook.create(hookCtx(P, ph));
+  B.fire({ kind: 'target', ok: true, target: { kind: 'prop', prop: big, position: () => big.pos }, point: big.pos.clone(), normal: v(0, 0, 1), reach: 15 });
+  for (let i = 0; i < 400 && B.state !== 'back' && B.state !== 'idle'; i++) { B.update(DT); stepProp(big, DT, ph); }
+  assert.ok(Math.hypot(big.pos.x, big.pos.z) < HOOK.dragTo + 0.9, `at your feet: ${big.pos.toArray().map((x) => x.toFixed(1))}`);
+  assert.equal(big.held, null, 'let go');
+  assert.equal(P.carrying, null, 'not carried');
   const foe = { kind: 'foe', foe: { alive: true, pos: v(0, 0, -10), vel: v(), stunned: 0, flash: 0, def: { height: 0.5 } } };
   const F = hook.create(hookCtx(player(v()), ph));
   F.fire({ kind: 'target', ok: true, target: foe, point: v(0, 0.5, -10), normal: v(0, 0, 1), reach: 10 });

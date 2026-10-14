@@ -672,6 +672,18 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
         ?? (Object.keys(e.stops).some((p) => L.drumOn(id, p) && L.holdsShut(p)) ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p)) : null) : null;
       L.moveDrum(id, stop ? stop[1] : (e.plateAt ?? 1)); log.push(`roll ${id}${stop ? ` onto ${stop[0]}` : ''}`);
     }
+    else if (e.type === 'weight') {
+      // (a weight, issue #337: picked up where it lies with the use button, set on its plate; the real carry is
+      // tests/temple-playthrough.test.js's)
+      const w = T.piece(id), P = W.player;
+      const pick = w?.prop ? allInteractables().find((x) => x.id === `carry.${w.prop.id}`) : null;
+      if (pick && pick.enabled() && pick.distance(P) <= pick.range) pick.use(P);
+      if (P.carrying?.thing !== w?.prop) issue('temple', `${T.def.name}: by the weight ${id}, and it was not picked up`);
+      const { dropCarried } = await import('../src/carry.js');
+      dropCarried(P);
+      L.placeWeight(id, e.plate); w?.place?.();
+      log.push(`carry ${id} onto ${e.plate}`);
+    }
     else if (e.type === 'plate') { L.press(id, 'player'); T.applyDoors(); W.step(2); L.release(id, 'player'); log.push(`stand on ${id}`); }
     else if (e.type === 'boss') { if (T.guardian?.resolve) T.guardian.resolve(); else T.onBossResolved(); log.push(`guardian ${id}`); }
     T.applyDoors(); W.step(4);

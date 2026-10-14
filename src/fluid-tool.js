@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { throwCarried } from './carry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, markHero, MODE_RIBBON } from './materials.js';
 import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targets.js';
@@ -1036,6 +1037,13 @@ export class FluidTool {
     if (!this.gunInHand) { input.aim = input.shoot = input.fire = input.quick = input.mode = false; }
     if (this.swordOn === false) input.blade = false;
     if (this.shieldOn === false) input.guard = false;
+    // something carried in both hands (src/carry.js): no gun, blade or guard; the blade's button throws it
+    // (the press that threw it is no swing: the blade waits until that button is let go)
+    if (p?.carrying) {
+      if (!paused && input.blade && !this._carryBlade) throwCarried(p);
+      this._carryBlade = input.blade; this._bladeLock = true;
+      input.aim = input.shoot = input.fire = input.quick = input.blade = input.guard = input.evade = false;
+    } else if (this._bladeLock) { if (input.blade) input.blade = false; else this._bladeLock = this._carryBlade = false; }
     const ok = this.allowed(paused), bodyOk = this.bodyFree(paused);
     // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
     const quickPress = input.quick && !this.held.quick;

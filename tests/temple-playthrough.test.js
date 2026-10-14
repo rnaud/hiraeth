@@ -17,7 +17,8 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
-import { Ball, Brazier, Bramble, Switch, Vane, Bank, Seed, Swing } from '../src/temples/pieces.js';
+import { Ball, Brazier, Bramble, Switch, Vane, Bank, Seed, Swing, Weight } from '../src/temples/pieces.js';
+import { CARRY as CARRYING } from '../src/carry.js';
 import { held } from '../src/temples/logic.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
@@ -356,6 +357,33 @@ export function playTemple(id, o = {}) {
     return null;
   };
 
+  // ---------------------------------------------------------------- a weight carried (issue #337)
+  /** Walk to the weight, pick it up (the use button's own entry), carry it to its plate and put it down on it. */
+  const carryOnto = (eid) => {
+    const w = rt.piece(eid), e = L.el(eid), plate = rt.piece(e.plate);
+    if (!(w instanceof Weight) || !plate?.pos) { fail(`${eid}: no weight, or no plate ${e.plate}`); return null; }
+    const foot = w.prop.pos.clone().addScaledVector(UP, -w.size / 2);
+    const s = near(foot, w.size / 2 + 0.8);
+    if (!s) { fail(`${eid}: nowhere to stand by it`); return null; }
+    goTo(s, w.prop.pos.clone().sub(s).setY(0));
+    const pick = bestInteractable(P);
+    if (pick?.entry?.id !== `carry.${w.prop.id}`) { fail(`${eid}: the use button offers ${pick?.entry?.id ?? 'nothing'} beside it, not to pick it up`); return null; }
+    pick.entry.use(P);
+    wait(0.6);
+    if (P.carrying?.thing !== w.prop) { fail(`${eid}: not in his hands`); return null; }
+    // (to the plate, from the side he stands on: its middle the length of a put in front of him)
+    const dir = plate.pos.clone().sub(P.pos).setY(0).normalize();
+    const at = standAt(plate.pos.clone().addScaledVector(dir, -(CARRYING.put + w.size / 2 + 0.05)), plate.pos.y);
+    if (!at) { fail(`${eid}: nowhere to stand before ${e.plate}`); return null; }
+    goTo(at, dir);
+    if (P.carrying?.thing !== w.prop) { fail(`${eid}: dropped on the way`); return null; }
+    const put = bestInteractable(P);
+    if (put?.entry?.id !== 'carry.put') { fail(`${eid}: the use button offers ${put?.entry?.id ?? 'nothing'}, not to put it down`); return null; }
+    put.entry.use(P);
+    wait(1);
+    return L.weightOn(eid) === e.plate ? 'carried onto its plate' : (fail(`${eid}: put down, but not on ${e.plate} (on ${L.weightOn(eid)})`), null);
+  };
+
   // ---------------------------------------------------------------- the house, as its logic asks
   const LATCH = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane', 'arena']);
   const arenaNext = () => {
@@ -381,6 +409,7 @@ export function playTemple(id, o = {}) {
     if (k > (held(e) ? 12 : 4)) { fail(`${e.type} ${eid}: asked for again and again (${k} times)`); break; }
     let how = null;
     if (e.type === 'drum') how = roll(eid) ? 'rolled' : null;
+    else if (e.type === 'weight') how = carryOnto(eid);
     else if (e.type === 'gadget' || e.type === 'find') {
       const item = e.item ?? def.gadget, box = e.type === 'find' ? e.box : def.gadgetBox;
       items.grant(item); game.set(`box.${box}`, true); game.emit('box:opened', { id: box, item });
@@ -445,6 +474,9 @@ for (const id of Object.keys(TEMPLES)) {
     assert.equal(r.done, true, `${id}: the guardian reached and resolved (${r.steps.map((s) => `${s.id}: ${s.how}`).join(' / ')})`);
     const balls = Object.entries(TEMPLES[id].def.logic.elements).filter(([, e]) => e.type === 'drum').map(([b]) => b);
     for (const b of balls) assert.ok(!r.logical.includes(b), `${id}: ${b} was rolled for real`);
+    // (every weight on the way carried for real: picked up, carried and put down on its plate; issue #337)
+    const weights = Object.entries(TEMPLES[id].def.logic.elements).filter(([, e]) => e.type === 'weight' && !e.optional).map(([w]) => w);
+    for (const w of weights) assert.ok(r.steps.some((s) => s.id === w && s.how === 'carried onto its plate'), `${id}: ${w} carried onto its plate`);
     if (process.env.TEMPLE_LOG) console.error(`  [${id}] margins: ${r.margins.map((m) => `${m.id} → ${m.lights} ${m.spare.toFixed(2)} s`).join(', ') || 'none'}; done through the logic: ${r.logical.join(', ') || 'nothing'}`);
     for (const m of r.margins) assert.ok(m.spare >= SPARE, `${id}: ${m.id} lit ${m.lights} with ${m.spare.toFixed(2)} s to spare (at least ${SPARE})`);
   });

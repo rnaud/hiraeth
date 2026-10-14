@@ -3,6 +3,7 @@ import { registerTarget } from '../targets.js';
 import { bounce } from './kit.js';
 import { sfx } from './sfx.js';
 import { gainInk } from '../ink.js';
+import { registerCarryable, registerSnap, canCarry, IN_HANDS } from '../carry.js';
 
 // The things in a world the gadgets play with (docs/systems/gadgets.md, "The gadgets' world"): loose things
 // (crates, pots, metal crates: they fall, slide, tumble, can be pushed by walking into them, thrown by a blast,
@@ -26,8 +27,8 @@ export const PROPS = { gravity: 24, friction: 5, restitution: 0.3, push: { light
  * would want; light: the hook can pull it.
  */
 export class Prop {
-  constructor({ object, r = 0.45, h = r, mass = 1, metal = false, light = mass <= 1.5, kind = 'crate', name = 'crate' }) {
-    Object.assign(this, { object, r, h, mass, metal, light, kind, name });
+  constructor({ object, r = 0.45, h = r, mass = 1, metal = false, light = mass <= 1.5, kind = 'crate', name = 'crate', carry = true }) {
+    Object.assign(this, { object, r, h, mass, metal, light, kind, name, carry });   // (carry: small and light enough, it may be picked up: src/carry.js)
     this.pos = object.position;
     this.vel = new THREE.Vector3();
     this.resting = false;
@@ -44,6 +45,7 @@ export class Prop {
 /** One step of a loose thing (gravity along -up, its footing, walls). physics: groundAt, pushCapsule. */
 export function stepProp(p, dt, physics, up = _Y) {
   if (p.resting && !p.held) return false;
+  if (p.held === IN_HANDS) return false;   // (carried: where the hands hold it, src/carry.js)
   if (!p.held) p.vel.addScaledVector(up, -PROPS.gravity * dt);
   const steps = Math.min(8, Math.ceil((p.vel.length() * dt) / Math.max(0.1, p.r * 0.5)) || 1), sdt = dt / steps;
   let grounded = false;
@@ -80,7 +82,12 @@ export class GadgetWorld {
     for (const a of spec?.anchors ?? []) this.addAnchor(a);
     for (const b of spec?.breakables ?? []) this.addBreakable(b);
     for (const g of spec?.gates ?? []) this.addGate(g);
-    for (const p of spec?.plates ?? []) this.plates.push({ on: false, ...p });
+    for (const p of spec?.plates ?? []) {
+      const pl = { on: false, ...p };
+      this.plates.push(pl);
+      // (a crate carried and put down by one is set on its middle: src/carry.js)
+      if (pl.pos) this.offs.push(registerSnap({ pos: pl.pos, r: pl.radius ?? 1, name: 'plate', accepts: (t) => (t.mass ?? 1) >= (pl.mass ?? 1) }));
+    }
     for (const p of spec?.props ?? []) this.addProp(p);
     for (const r of spec?.ropes ?? []) this.addRope(r);
     for (const p of spec?.pickups ?? []) this.addPickup(p);
@@ -101,6 +108,8 @@ export class GadgetWorld {
         return true;
       } });
     this.props.push(p);
+    // (a crate may be picked up and carried, src/carry.js; a metal one is too heavy)
+    if (canCarry(p)) this.offs.push(registerCarryable(p));
     return p;
   }
 
@@ -118,6 +127,7 @@ export class GadgetWorld {
     // walking into one pushes it along (a metal crate barely), as a block in an old Zelda
     if (P && !P.ride && P.onGround && P._moveDir?.lengthSq() > 0.25) {
       for (const p of this.props) {
+        if (p.held === IN_HANDS) continue;
         _v.subVectors(p.pos, P.pos); const vy = _v.dot(up); _v.addScaledVector(up, -vy);
         const d = _v.length();
         if (vy < -0.2 || vy > 1.6 || d > p.r + 0.62 || d < 1e-3) continue;
@@ -134,7 +144,7 @@ export class GadgetWorld {
       if (s > 0.4 && !p.resting) p.object.rotation.y += (p.vel.x * 0.7 - p.vel.z * 0.4) * dt * 0.6;
       p.object.updateMatrixWorld();
       // fell out of the world: back where it was placed
-      if (p.pos.y < -60) this.resetProp(p);
+      if (p.pos.y < -60 && p.held !== IN_HANDS) this.resetProp(p);
     }
   }
   resetProp(p) { p.pos.copy(p.home); p.object.quaternion.copy(p.homeQ); p.vel.set(0, 0, 0); p.resting = false; p.held = null; }

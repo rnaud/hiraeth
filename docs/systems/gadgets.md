@@ -31,7 +31,8 @@ Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); a
   shrinks away).
 - **`world.js`** (`GadgetWorld`): the things gadgets play with, from `level.gadgetYard` (any level may
   give one): loose things (`Prop`: crates, metal crates; solid through `physics.addMover`, they fall,
-  slide, bounce, are pushed by walking into them, and are fluid-tool targets of kind `prop`), cracked walls
+  slide, bounce, are pushed by walking into them, and are fluid-tool targets of kind `prop`; a crate may be picked up
+  and carried, its plates set a crate put down by them on their middle: docs/systems/carry.md), cracked walls
   (their own collider, taken away when a blast breaks them; `regrow` s later they stand again, Infinity:
   gone; `flag`: kept in the save), anchors (rings the hook finds), floor plates (pressed by the traveller or
   a crate; `things`: only by a thing of `mass` or more) and the gates they lower, ropes (`ropes`: a crate
@@ -168,8 +169,9 @@ so what stands in the way is what it bites. The head flies at 75 m/s, then:
   hook. Arrived (or stuck, or after `maxPull`), he hauls over the top (`player.tryMantle`), else takes hold
   of the wall (`startClimb`), else is pushed off it. Jump while reeling lets go: `fling` of the reel's
   speed and a hop up. Pressing again lets go too.
-- **something loose** (a light crate): dragged in at 15 m/s, a little off the ground, let go at your feet.
-  A metal crate is too heavy: you are reeled to it.
+- **something loose** (a light crate): dragged in at 15 m/s, a little off the ground; small enough to carry and your
+  hands free, it lands in them (v1.76, issue #337: docs/systems/carry.md), else it is let go at your feet. A temple's
+  weight is caught the same way. A metal crate is too heavy: you are reeled to it.
 - **a foe**: pulled in and stunned for a moment. Anything else alive (wildlife, people): a tug (the push's
   hit, toward you).
 

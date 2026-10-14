@@ -15,6 +15,8 @@ import { stopOf } from './logic.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { buildBox } from '../boxes/model.js';
 import { ChestLight, chestLamp, MOUTHS } from '../boxes/light.js';
+import { Prop, stepProp } from '../gadgets/world.js';
+import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -56,6 +58,7 @@ import { ChestLight, chestLamp, MOUTHS } from '../boxes/light.js';
 //   Coffer   a little brass-bound coffer in an optional room: open it (interact) for a purse of chimes
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
 //   Pit      a volume below a chasm: fall in and you are back at the room's mark
+//   Weight   a block of the house's stone small enough to carry (src/carry.js): set on a plate, it holds it down
 //
 // Any of Door, Switch and Bridge can be `hidden`: only the glyph lens shows it (src/items.js 'lens'): a hidden
 // door is plain wall until you carry the lens, a hidden eye and a hidden bridge are not there at all.
@@ -288,6 +291,150 @@ export class Plate {
     this.glow.uniforms.uGlow.value = 0.1 + 0.85 * this.k;
     if (this.o.hidden) this.group.visible = L.has(shownBy(this.o.hidden));
   }
+}
+
+/**
+ * A weight: a block of the house's stone, small enough to carry in both hands (src/carry.js, issue #337: "grab a box from
+ * afar with the grappling hook, then put it down on a switch so I can go through a door"). Set on one of its plates (put
+ * down near it, or thrown and come to rest on its disc), it holds that plate down while it sits there; picked up, the
+ * plate lets go. Its element { type: 'weight', room, plate } keeps the plate it sits on (saved); put down elsewhere, where
+ * it lies is saved too (`weight.<id>.at`, the kit's frame). Fallen into a pit, below `fall` m under where it lay, or come
+ * to rest outside its `zone` (the kit's frame: its room), it is back where it lay at first. The grappling hook drags it
+ * into your hands unless `hookable: false` (src/gadgets/hook.js).
+ * o: { id, at (its foot, local), yaw, size, plates (its element's `plate` first), zone: { min, max }, name, hookable,
+ *      hint (said once when you step off its plate with the weight elsewhere), back (said when it comes back) }
+ */
+export const WEIGHT = { size: 0.72, fall: 3, settle: 0.25 };
+export class Weight {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, s = (this.size = o.size ?? WEIGHT.size), h = s / 2;
+    this.home = K.world(...o.at).addScaledVector(UP, h);
+    this.homeYaw = K.heading(o.yaw ?? 0);
+    this.object = new THREE.Group();
+    this.object.name = `Weight ${o.id}`;
+    this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.25, flat: true });
+    // a block of the house's stone, banded in its trim, the makers' glyph on its top and on two sides
+    this.object.add(mesh([box(s, s, s)], M.stoneMat));
+    this.object.add(mesh([box(s + 0.05, 0.09, s + 0.05, 0, -h + 0.16, 0), box(s + 0.05, 0.09, s + 0.05, 0, h - 0.16, 0)], M.trimMat));
+    this.object.add(mesh([
+      T(glyphGeometry(s * 0.62, 0.03).rotateX(-Math.PI / 2), [0, h + 0.012, 0]),
+      T(glyphGeometry(s * 0.5, 0.03), [0, 0, h + 0.012]), T(glyphGeometry(s * 0.5, 0.03).rotateY(Math.PI), [0, 0, -h - 0.012]),
+    ], this.glow));
+    noCollide(this.object);
+    rt.root.add(this.object);
+    this.prop = new Prop({ object: this.object, r: h, h, mass: 1, kind: 'weight', name: o.name ?? 'weight' });
+    Object.assign(this.prop, { id: `temple.${rt.id}.${o.id}`, weightOf: this, hookable: o.hookable !== false });
+    this.prop.onPick = () => this.lifted();
+    this.prop.onPut = () => { this.still = 0; this.settled = false; };
+    this.plates = o.plates ?? [rt.logic.el(o.id)?.plate].filter(Boolean);
+    this.still = 0; this.settled = true;
+    this.place();
+  }
+  /** Its middle (the marker points at it: index.js nextSpot). */
+  get center() { return this.prop.pos; }
+  /** Where the save left it: on its plate, where it was put down, or where it lay at first. */
+  place() {
+    const L = this.rt.logic, on = L.weightOn(this.id), at = L.store.get(`weight.${this.id}.at`);
+    const P = this.prop;
+    P.vel.set(0, 0, 0); P.held = null;
+    const plate = on ? this.rt.piece(on) : null;
+    if (plate?.pos) { P.pos.copy(plate.pos).addScaledVector(UP, PLATE_TOP + this.size / 2); this.object.rotation.set(0, this.homeYaw, 0); }
+    else if (Array.isArray(at) && at.length === 3) { P.pos.copy(this.rt.kit.world(...at)); this.object.rotation.set(0, this.homeYaw, 0); }
+    else { P.pos.copy(this.home); this.object.rotation.set(0, this.homeYaw, 0); }
+    P.resting = true;
+    this.object.updateMatrixWorld(true);
+  }
+  init(physics) {
+    this.physics = physics;
+    this.object.updateMatrixWorld(true);
+    this.prop.collider = physics?.addMover?.(this.object, { all: true }) ?? null;
+    this.offs = [registerCarryable(this.prop)];
+    // (a loose thing the grappling hook's aim finds: src/gadgets/hook.js; nothing else moves it)
+    if (this.prop.hookable) this.offs.push(registerTarget({ kind: 'prop', prop: this.prop, radius: this.size * 0.9, position: () => this.prop.pos, enabled: () => this.object.visible && !this.prop.held, onHit: () => false }));
+    // (put down by one of its plates: set on the disc's middle)
+    for (const id of this.plates) {
+      const pl = this.rt.piece(id);
+      if (pl?.pos) this.offs.push(registerSnap({ pos: pl.pos.clone().addScaledVector(UP, PLATE_TOP), r: pl.r, name: 'plate', yaw: this.homeYaw, accepts: (t) => t === this.prop, taken: () => this.rt.logic.ofType('weight').some((w) => w !== this.id && this.rt.logic.weightOn(w) === id) }));
+    }
+  }
+  /** Picked up: off its plate (the plate lets go at once). */
+  lifted() {
+    const L = this.rt.logic;
+    if (L.placeWeight(this.id, null)) { this.rt.sound?.critter?.('clack', 0.5); this.rt.applyDoors?.(); }
+    this.settled = false; this.still = 0;
+  }
+  /** The plate whose disc it sits on now (within its rim, its foot at the disc), or null. */
+  plateUnder() {
+    const P = this.prop;
+    for (const id of this.plates) {
+      const pl = this.rt.piece(id);
+      if (!pl?.pos) continue;
+      if (Math.hypot(P.pos.x - pl.pos.x, P.pos.z - pl.pos.z) > pl.r) continue;
+      const foot = P.pos.y - this.size / 2, top = pl.pos.y + PLATE_TOP + (pl.disc?.position.y ?? 0);
+      if (foot > top - 0.35 && foot < top + 0.5) return pl;
+    }
+    return null;
+  }
+  /** Out of its room, in a pit or fallen far: back where it lay at first. */
+  lost() {
+    const P = this.prop, o = this.o;
+    if (P.pos.y < this.home.y - (o.fall ?? WEIGHT.fall)) return true;
+    if (this.rt.pits?.some((pit) => pit.contains(P.pos))) return true;
+    if (o.zone) {
+      const l = this.rt.kit.local(P.pos);
+      if (l.x < o.zone.min[0] || l.x > o.zone.max[0] || l.y < o.zone.min[1] || l.y > o.zone.max[1] || l.z < o.zone.min[2] || l.z > o.zone.max[2]) return true;
+    }
+    return false;
+  }
+  goHome() {
+    const L = this.rt.logic;
+    L.placeWeight(this.id, null);
+    L.store.set(`weight.${this.id}.at`, null);
+    this.prop.held = null;
+    this.prop.pos.copy(this.home); this.prop.vel.set(0, 0, 0); this.prop.resting = true;
+    this.object.rotation.set(0, this.homeYaw, 0);
+    this.object.updateMatrixWorld(true);
+    this.settled = true;
+    this.rt.notice(this.o.back ?? 'The weight is back where it lay.', `weight.${this.id}.back`);
+  }
+  update(dt) {
+    const P = this.prop, L = this.rt.logic;
+    // (stood on its plate and stepped off, the weight elsewhere: the plate wants a weight)
+    const stood = !!L.weights?.get(this.plates[0])?.has('player');
+    if (this._stood && !stood && L.weightOn(this.id) !== this.plates[0] && this.o.hint) this.rt.notice(this.o.hint, `weight.${this.id}.hint`);
+    this._stood = stood;
+    this.glow.uniforms.uGlow.value += ((L.weightOn(this.id) ? 0.85 : 0.25) - this.glow.uniforms.uGlow.value) * Math.min(1, dt * 6);
+    if (P.held === IN_HANDS) return;
+    if (!P.resting || P.held) {
+      // its own step, its own collider set aside (the hook's drag moves it too: held, no gravity)
+      const ex = this.physics?.extras, i = ex && P.collider ? ex.indexOf(P.collider) : -1;
+      if (i >= 0) ex.splice(i, 1);
+      try { if (this.physics) stepProp(P, dt, this.physics, UP); } finally { if (i >= 0) ex.splice(i, 0, P.collider); }
+    }
+    // on a plate's disc: it sits on its top (the disc sinks a little under it)
+    const pl = this.plateUnder();
+    if (pl && !P.held) {
+      const top = pl.pos.y + PLATE_TOP + (pl.disc?.position.y ?? 0) + this.size / 2;
+      if (P.pos.y < top) { P.pos.y = top; if (P.vel.y < 0) P.vel.y = 0; P.vel.x *= 0.8; P.vel.z *= 0.8; }
+      if (P.vel.lengthSq() < 0.04) { P.vel.set(0, 0, 0); P.resting = true; }
+      if (P.resting) P.pos.y = top;
+    }
+    this.object.updateMatrixWorld();
+    if (P.held) { this.settled = false; return; }
+    // come to rest: where it sits is the logic's (and the save's)
+    const slow = P.resting || P.vel.lengthSq() < 0.04;
+    this.still = slow ? this.still + dt : 0;
+    if (!this.settled && this.still > WEIGHT.settle) {
+      this.settled = true;
+      if (this.lost()) { this.goHome(); return; }
+      const on = pl?.id ?? null;
+      if (on) P.pos.x += (pl.pos.x - P.pos.x) * 0.5, P.pos.z += (pl.pos.z - P.pos.z) * 0.5;
+      if (L.placeWeight(this.id, on)) { this.rt.sound?.chime?.(); this.rt.applyDoors?.(); }
+      L.store.set(`weight.${this.id}.at`, on ? null : this.rt.kit.local(P.pos).toArray().map((v) => +v.toFixed(2)));
+    } else if (!this.settled && this.lost() && P.pos.y < this.home.y - (this.o.fall ?? WEIGHT.fall) - 6) this.goHome();
+  }
+  dispose() { for (const f of this.offs ?? []) f(); if (this.prop.collider) this.physics?.removeCollider?.(this.prop.collider); }
 }
 
 /**
@@ -2913,9 +3060,11 @@ export class Key {
 
 export class Coffer {
   /**
-   * o: { id, at, yaw, line }: a little coffer of the house's stone bound in brass, in an optional room; its element
+   * o: { id, at, yaw, line, cage }: a little coffer of the house's stone bound in brass, in an optional room; its element
    * { type: 'cache', room, when? }. Opened (interact), its lid swings back and a purse of chimes spills out (game
-   * event 'temple:cache': src/chimes.js drops it, once per save). Nothing waits on it.
+   * event 'temple:cache': src/chimes.js drops it, once per save). Nothing waits on it. `cage`: brass bars round it that
+   * sink into the floor while its `when` holds and rise again when it doesn't (a weight on a plate, issue #337), until
+   * it is opened.
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
@@ -2932,17 +3081,31 @@ export class Coffer {
     this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.1, flat: true });
     this.group.add(mesh([T(new THREE.SphereGeometry(0.1, 8, 6).scale(1, 1, 0.5), [0, 0.5, 0.44])], this.glow));
     this.group.add(this.lid);
+    if (o.cage) {
+      const bars = [], cw = 0.95, cd = 0.68, ch = (this.cageH = 1.25);
+      for (let i = 0; i < 7; i++) for (const z of [-cd, cd]) bars.push(T(new THREE.CylinderGeometry(0.035, 0.035, ch, 5), [-cw + (i / 6) * 2 * cw, ch / 2, z]));
+      for (let i = 1; i < 4; i++) for (const x of [-cw, cw]) bars.push(T(new THREE.CylinderGeometry(0.035, 0.035, ch, 5), [x, ch / 2, -cd + (i / 4) * 2 * cd]));
+      for (const z of [-cd, cd]) bars.push(box(2 * cw + 0.08, 0.08, 0.08, 0, ch, z));
+      for (const x of [-cw, cw]) bars.push(box(0.08, 0.08, 2 * cd + 0.08, x, ch, 0));
+      this.cage = mesh(bars, M.trimMat);
+      this.group.add(this.cage);
+      this.cageK = this.free() ? 1 : 0;
+      this.cage.position.y = -ease(this.cageK) * (this.cageH + 0.05);
+      this.cage.visible = this.cageK < 0.999;
+    }
     noCollide(this.group);
     this.k = rt.logic.isFound(o.id) ? 1 : 0;
     this.lid.rotation.x = -this.k * 1.9;
     const L = rt.logic, at = this.pos.clone().add(V(0, 1.1, 0));
     this.off = registerInteractable({
       id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.6, prompt: 'open the coffer', at: () => at,
-      enabled: () => !L.isFound(o.id) && L.check(L.el(o.id)?.when),
+      enabled: () => !L.isFound(o.id) && L.check(L.el(o.id)?.when) && (!this.cage || this.cageK > 0.9),
       distance: (p) => Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + Math.max(0, Math.abs(p.pos.y - this.pos.y) - 1.5) * 4,
       use: () => this.openIt(),
     });
   }
+  /** Its cage may sink: its `when` holds, or it is open already. */
+  free() { const L = this.rt.logic; return L.isFound(this.id) || L.check(L.el(this.id)?.when); }
   openIt() {
     if (!this.rt.logic.find(this.id)) return false;
     this.rt.sound?.critter?.('creak', 0.8); this.rt.sound?.chime?.();
@@ -2951,6 +3114,11 @@ export class Coffer {
     return true;
   }
   update(dt, t) {
+    if (this.cage) {
+      const was = this.cageK;
+      this.cageK = THREE.MathUtils.clamp(this.cageK + (this.free() ? dt / 0.9 : -dt / 0.7), 0, 1);
+      if (was !== this.cageK) { this.cage.position.y = -ease(this.cageK) * (this.cageH + 0.05); this.cage.visible = this.cageK < 0.999; }
+    }
     const want = this.rt.logic.isFound(this.id) ? 1 : 0;
     if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 0.8 : -dt), 0, 1); this.lid.rotation.x = -ease(this.k) * 1.9; }
     this.glow.uniforms.uGlow.value = this.k > 0.5 ? 0.05 : 0.1 + 0.08 * Math.sin(t * 2.2);

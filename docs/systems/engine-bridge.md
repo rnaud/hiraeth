@@ -128,7 +128,9 @@ in an engine:
   `health` and `stamina` (hud.js `healthHud` / `staminaHud`, the rules main.js draws by, now shared),
   `keys` (hud.js `keysHud`: the key counter while in a temple, `{ small, big }`; issue #274),
   `dialogue` (story/dialogue.js `publish`: name, title, colour, the line, how much is revealed,
-  the answers), `choice` (the answer a pad has picked, in an engine).
+  the answers), `choice` (the answer a pad has picked, in an engine), `carry` (src/carry.js: `{ name, how }` while
+  something is carried in both hands, issue #337; its pose and the thing itself come through the mirror as the
+  traveller's bones and the thing's object, its "pick up" / "put it down" through `prompt`).
 
 The web draws as before (the modules set their part as they draw; `tests/platform.test.js`,
 `tests/hud.test.js`); in the engine the page is engine/platform.js's stand-in and the engine draws

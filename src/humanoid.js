@@ -1648,9 +1648,10 @@ export class Humanoid {
    * The backpack hand-off (fluid-tool.js, player.js): both hands on the tank
    * at a world point as it swings off the back into a vehicle's socket (or
    * back), blended over the current pose by k (0..1). The hands hold its
-   * sides, elbows out and down; the chest turns a little toward it.
+   * sides, elbows out and down; the chest turns a little toward it. `width`: how far each hand is from its middle
+   * (a crate carried in both hands, src/carry.js: its half width).
    */
-  handOff(point, k, up) {
+  handOff(point, k, up, width = 0.2) {
     const B = this.b;
     if (k <= 0.001 || !B.upperarm_r || !B.upperarm_l || !B.hand_r || !B.hand_l) return;
     const chest = B.spine_03;
@@ -1669,7 +1670,7 @@ export class Humanoid {
     if (across.lengthSq() < 1e-6) across.crossVectors(fwd, up);
     across.normalize();   // from the traveller's view: to their right of the tank
     for (const [s, side] of [['r', 1], ['l', -1]]) {
-      const grip = point.clone().addScaledVector(across, side * 0.2);
+      const grip = point.clone().addScaledVector(across, side * width);
       const sh = B[`upperarm_${s}`].getWorldPosition(new THREE.Vector3());
       const pole = sh.clone().addScaledVector(up, -0.6).addScaledVector(across, side * 0.5);
       this.solveTwoBone(B[`upperarm_${s}`], B[`lowerarm_${s}`], B[`hand_${s}`], grip, pole, k);

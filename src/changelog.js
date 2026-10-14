@@ -23,6 +23,17 @@ export const CHANGELOG = [
     // the straps swimming: src/fluid-tool.js STRAP_SWIM, strapPath(sx, swim), the straps one mesh of their own (layStraps,
     // FluidTool.updateWorn eases them by player.swim.k); tests/backpack-straps.test.js (crawl 1.8 -> 1.0 cm, breaststroke 1.4 -> 0.7)
     'Swimming, the traveller’s backpack straps no longer vanish into his shoulders as his arm comes over: they draw in toward his neck while he swims, and lie back where they were when he climbs out.',
+    // carrying (issue #337): src/carry.js (pick up, put down on a plate's middle, throw, let go), src/player.js (the laden
+    // walk, the hop, no sprint, double jump, wings, jets or climbing; the pose: Humanoid.handOff), src/fluid-tool.js and
+    // src/gadgets/index.js (nothing else in hand meanwhile), src/gadgets/world.js (the crates carryable); tests/carry.test.js; docs/systems/carry.md
+    'You can pick up small things now and carry them in both hands: the crates in the Gadget Yard and the makers’ courts, and the stone weights in the temples. Walk up to one and press X / □ to lift it, X / □ again to put it down in front of you (on a plate if one is near), or RB / R1 to throw it a few metres. Carrying, you walk slower and only hop, and the gun, the blade and your gadgets wait; a climb, the water or a fall makes you let go.',
+    // the hook's pull into your hands (issue #337): src/gadgets/hook.js updateDrag, its aim on carryables; tests/gadgets.test.js
+    'The grappling hook pulls a crate or a weight straight into your hands now, if it is small enough to carry; a bigger one still lands at your feet.',
+    // the Rose House's weight (issue #337): src/temples/desert.js PIER, wP, dc no longer latched; pieces.js Weight; logic.js
+    // weight; migrate.js desert v3; tests/temples.test.js, tests/temple-playthrough.test.js
+    'In the Rose House the plate on the Dry Channel’s pier holds the door at the top of the gallery open only while something weighs it down: stand on it and the door opens, step off and it shuts again. The pier is longer now, and the Givers’ stone weight lies at its other end: carry it onto the plate and the door stays open.',
+    // the Mooring-House's caged coffer (issue #337): src/temples/spacecity.js CLEAT, wC, pC, cC; pieces.js Coffer cage; tests/carry.test.js
+    'In the Mooring-House a caged coffer waits on the Capstan Hall’s east side, a plate in front of it. The moorers’ weight sits on a cleat high on the wall where no jump reaches: pull it down into your hands with the grappling hook, set it on the plate, and the cage sinks.',
   ] },
   { v: '1.75', date: '2026-10-14', items: [
     // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's

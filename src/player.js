@@ -19,6 +19,7 @@ import { updateChain } from './world-read.js';
 import { HEARTS, POTION, DAMAGE, quarters, sparing } from './resources.js';
 import { hintsFor } from './hint-level.js';
 import { UPDRAFT, inColumn, columnDrift } from './updraft.js';
+import { CARRY, updateCarry, carryK, gripPoint, dropCarried } from './carry.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -624,6 +625,7 @@ export class Player {
     this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
     this.onStep = null;                            // (footPos, heading) for footprints
     this.aim = null;                               // { k, point, dir } while aiming the tool (fluid-tool.js)
+    this.carrying = null;                          // { thing, k } something small held in both hands (src/carry.js)
     this.onDoubleJump = null;                      // () => the double jump's puff of fluid (fluid-tool.js liftFx)
     this._airJumped = false;                       // the double jump spent since leaving the ground (canDoubleJump)
     this._flipAt = -Infinity;                      // when the last double jump's flip began (src/jump.js FLIP)
@@ -761,7 +763,7 @@ export class Player {
    * boots (onDoubleJump) and a front flip (src/jump.js FLIP). Returns true if it jumped.
    */
   doubleJump() {
-    if (!this.canDoubleJump || this._airJumped || this.onGround || this.climbing || this.mantle || this.swim || this.ride || this.down) return false;
+    if (!this.canDoubleJump || this._airJumped || this.onGround || this.climbing || this.mantle || this.swim || this.ride || this.down || this.carrying) return false;   // (carrying: a hop, no more: src/carry.js)
     const U = this.frame.up, fwd = this.frame.dir(this.heading, _g6);
     boostVelocity(this.vel, U, fwd);
     this._airJumped = true; this.gliding = false; this._autoGlide = false;
@@ -1365,6 +1367,8 @@ export class Player {
     this.time += dt;
     if (this._knockout) { const why = this._knockout; this._knockout = null; if (!this.down) this.knockDown(this.vel, { dead: true, why }); else this.down.dead = true; }
     this.heal(dt);
+    // (a knock-down, a mount: what was carried in both hands is let go, src/carry.js; their own frames never pose it)
+    if (this.carrying && (this.down || this.ride || this.dead || this.boarding)) dropCarried(this);
     // knocked down: no control until you are back on your feet (the dead wait for restart())
     if (this.down) { this._jumpHeld = !!input.Space; this._eHeld = !!input.KeyE; this.updateDown(dt); return; }
     // the bird caught up with you in mid-air: you're on its back
@@ -1472,7 +1476,7 @@ export class Player {
     // the double jump; not with run held when the wings are owned (A / × + L3, Shift + Space), which glides.
     const canJet = this.canJet, canGlide = this.canGlide, fuel = this.jetFuel;
     const tr = triggers(input);
-    const jetOn = canJet && fuel > 0.004;
+    const jetOn = canJet && fuel > 0.004 && !this.carrying;   // (no jets with something in both hands: src/carry.js)
     const freshJump = !!input.Space && !this._jumpHeld;
     // (on the jets already, a press is the throttle at once: there is no double jump in flight)
     const spaceT = jetOn && !this.onGround && !this._hop && input.Space && (!freshJump || !!this.jetFlight) && !(canGlide && run) ? 1 : 0;   // (not in a hop: A / × held from it)
@@ -1487,12 +1491,13 @@ export class Player {
     } else {
       this.thrusting = false; this.jetHold = false; this.jetPower = 0;
       // sprinting spends the stamina climbing does (src/stamina.js); winded, you jog
-      const sprint = run && canSprint(this) && !this.aim && !this.lockOn;   // (locked on: no sprint, you strafe)
+      const sprint = run && canSprint(this) && !this.aim && !this.lockOn && !this.carrying;   // (locked on: no sprint, you strafe; carrying: a walk)
       this.sprinting = sprint && this.onGround && !this.gliding && move.lengthSq() > 0.01;
       let speed = (sprint ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
       if (this.gliding) speed *= 1.25;
       if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
       else if (this.lockOn && !this.gliding) speed = Math.min(speed, LOCK_MOVE.speed);   // locked on: a jog at most
+      if (this.carrying) speed = Math.min(speed, WALK) * CARRY.speed;   // something in both hands: a slower walk (src/carry.js)
       if (this.onGround && this.combatMotion) speed *= this.combatMotion.scale;
       speed *= this.wadeSlow;                                                   // wading (src/swim.js)
       steering = move.lengthSq() > .001;
@@ -1540,7 +1545,7 @@ export class Player {
         this.onGround = false;
         jumped = true;
       } else if (input.Space && this.onGround && !this._jumpHeld) {
-        vu = JUMP;
+        vu = this.carrying ? JUMP * CARRY.jump : JUMP;   // (carrying: a hop)
         this.onGround = false;
         jumped = true;
         this._jumped = true;   // (the pose's take-off: src/jump.js)
@@ -1562,7 +1567,7 @@ export class Player {
       // (faster, sinks more), S flares (slow, floaty).
       const air = !this.onGround;
       const wingsBtn = ((input.Space && (run || !jetOn)) || this._autoGlide) && !this._hop;
-      const wantGlide = canGlide && air && wingsBtn;
+      const wantGlide = canGlide && air && wingsBtn && !this.carrying;
       const wasGliding = this.gliding;
       this.gliding = wantGlide && (vu < 0 || wasGliding);
       if (this.gliding) {
@@ -1704,7 +1709,7 @@ export class Player {
       if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
       // pushing into a steep wall: start climbing (immediately in the air)
       const wall = Math.abs(n.dot(U)) < 0.35 && move.dot(n) < -0.6;
-      if (this.opts.climb && wall && this._climbCooldown === 0 && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
+      if (this.opts.climb && wall && this._climbCooldown === 0 && !this.carrying && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
         this._press += dt;
         if (!this.onGround || this._press > 0.25) this.startClimb(n);
       } else this._press = 0;
@@ -1850,6 +1855,7 @@ export class Player {
       this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking, this._ridden));
     }
     this.frame.quaternion(this.heading, this.object.quaternion);
+    if (this.carrying) updateCarry(this, dt);   // (held in front of him, where the body is drawn: src/carry.js)
     // a scene's pose laid over the clip (kneeling at the stone, sitting in a window: src/story/home.js):
     // overlay(player, dt) poses the rig and may lower the body; the feet then stay where it put them
     const posed = !!this.overlay && !this.climbing && !this.mantle;
@@ -1892,6 +1898,9 @@ export class Player {
       // the hand-off: both hands on the tank while it swings between the back and the socket
       const hk = this.handoffGrip();
       if (hk > 0.01 && this.handoff?.handPoint) H.handOff?.(this.handoff.handPoint(_g1), hk, U);
+      // something small carried in both hands (src/carry.js): the hands on its sides, held in front of his chest
+      const ck = carryK(this), ct = this.carrying?.thing;
+      if (ck > 0.01 && ct?.pos && !this.climbing && !this.mantle) H.handOff?.(gripPoint(this, ct, _g1), ck, U, (ct.r ?? 0.4) + 0.03);
       // the eyes glance about and blink, as everyone's do (eyes.js); talking, on the other's face (eyeTarget: src/story/index.js)
       H.updateEyes?.(dt, this.eyeTarget ?? null, { calm: !!this.talking });
     }
