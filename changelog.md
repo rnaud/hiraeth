@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.76 — 2026-10-14
 
+- Swimming, the traveller’s backpack straps no longer vanish into his shoulders as his arm comes over: they draw in toward his neck while he swims, and lie back where they were when he climbs out.
 - In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.
 - In the Unity version the traveller’s overshirt is shaded right over his chest, shoulders and collar: the cloth there had dark and bright patches where its light faced the wrong way, as if the fabric were creased or turned inside out. It now catches the light as on the web.
 - People who only talk often tell you of something near them you haven’t found: a fragment of the singing light (“there’s a hum inside a ribcage south-west of the pilgrims’ resting stone”), someone with a game, or a place worth the walk, each in their own world’s way of putting it. Your Map then shows a soft circle round where it should be, never right on it, until you find it.

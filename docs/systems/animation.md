@@ -603,7 +603,9 @@ What looked broken on the page, and what was:
 **On B3 since 2026-10-14.** The node runs (`scripts/motion-qc/run.mjs`, `body`) drive the game's traveller, B3; until
 then they drove the coral-shirt v1, whose files went that day, and the numbers below (issue #47's among them) are v1's.
 On B3 four of the runs green on v1 are not yet: the slow walk pops 5 a minute, up the ramp 6, every gait 7 (the limit
-3), and the standing pivots' worst jolt is 5.2 cm (5); `tests/motion-qc.test.js` holds them as a todo test.
+3), and the standing pivots' worst jolt is 5.2 cm (5); `tests/motion-qc.test.js` holds them as a todo test. Every one of
+those pops is a calf: his knee straightening at the leg's reach at a step's lift-off or touchdown, 14-19 rad/s against
+the limit's 14 (one of 45 at the gaits' stop), issue #47's fault on v1's legs, now on B3's proportions.
 
 "Finish the work on motion matching with quality control." The traveller is driven by scripted hands (the stick,
 Shift) through starts, stops, every gait, turns, pivots, the ramp and the stairs, recorded every frame right after he

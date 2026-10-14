@@ -582,9 +582,51 @@ export const TANK_RAIL = { x: SPHERE_R * TANK.squash + 0.03, r: 0.012, z: -0.07,
 export const STRAP_PATH = [[0.104, 0.728, -0.157], [0.112, 0.752, -0.12], [0.115, 0.773, -0.065], [0.115, 0.76, -0.005], [0.114, 0.712, 0.066], [0.108, 0.655, 0.1], [0.102, 0.58, 0.106]];
 /** The straps' leather: width and thickness (tank frame). */
 export const STRAP = { w: 0.046, t: 0.011, at: [0, 0.4, -0.1886] };
-/** A strap's way in the tank's frame (sx: -1 his right, 1 his left). */
-export function strapPath(sx = 1) {
-  return STRAP_PATH.map(([x, y, z]) => new THREE.Vector3((sx * x - STRAP.at[0]) / TANK.scale, (y - STRAP.at[1]) / TANK.scale, (z - STRAP.at[2]) / TANK.scale));
+/**
+ * Swimming, the straps' points drawn in toward his neck (m, the chest's x, STRAP_PATH's points): the overhead stroke
+ * brings his upper arm up through the top of his shoulder, where they lie (B3: 1.8 cm in the crawl). Swimming his head
+ * is down and turned to breathe, 3.5 cm from them still; upright they keep their way, 4 cm or more from his ears (#76).
+ */
+export const STRAP_SWIM = [0, -0.006, -0.012, -0.012, -0.006, 0, 0];
+/** A strap's way in the tank's frame (sx: -1 his right, 1 his left; swim 0..1: STRAP_SWIM's share). */
+export function strapPath(sx = 1, swim = 0) {
+  return STRAP_PATH.map(([x, y, z], i) => new THREE.Vector3((sx * (x + STRAP_SWIM[i] * swim) - STRAP.at[0]) / TANK.scale, (y - STRAP.at[1]) / TANK.scale, (z - STRAP.at[2]) / TANK.scale));
+}
+
+/** The straps' pieces in the tank's frame: the leather bands along strapPath and two brass buckles a side. */
+function strapPieces(swim = 0) {
+  const out = [], Z = new THREE.Vector3(0, 0, 1);
+  for (const sx of [-1, 1]) {
+    const pts = strapPath(sx, swim);
+    for (let k = 0; k < pts.length - 1; k++) {
+      const a = pts[k], d = pts[k + 1].clone().sub(a), len = d.length();
+      const q = new THREE.Quaternion().setFromUnitVectors(Z, d.clone().normalize());
+      const piece = (geo, brass, x, y, z) => out.push({ geo: geo.applyQuaternion(q).translate(x, y, z).toNonIndexed(), brass });
+      piece(new THREE.BoxGeometry(STRAP.w, STRAP.t, len + 0.012), false, a.x + d.x / 2, a.y + d.y / 2, a.z + d.z / 2);
+      if (k === 0) piece(new THREE.BoxGeometry(0.034, 0.018, 0.022), true, a.x, a.y, a.z + 0.004);   // its buckle on the plate
+      if (k === pts.length - 2) piece(new THREE.BoxGeometry(0.056, 0.017, 0.034), true, pts[k + 1].x, pts[k + 1].y, pts[k + 1].z);   // and on his chest
+    }
+  }
+  return out;
+}
+/** The straps' geometry (leather, then brass: two groups) for a swim share; the same vertices in the same order at any. */
+function strapGeometry(swim = 0) {
+  const parts = strapPieces(swim), merge = (b) => mergeGeometries(parts.filter((p) => p.brass === b).map((p) => { p.geo.deleteAttribute('uv'); return p.geo; }));
+  const g = mergeGeometries([merge(false), merge(true)], true);
+  parts.forEach((p) => p.geo.dispose());
+  return g;
+}
+/**
+ * The straps' mesh (the tank's 'Backpack straps', its own: the tank's other parts are merged) laid for a swim share
+ * k (0 upright, 1 swimming): its points eased between the two layouts, normals made again. FluidTool.updateWorn.
+ */
+export function layStraps(mesh, k) {
+  const u = mesh.userData;
+  if (u.k === k) return;
+  u.k = k;
+  const P = mesh.geometry.attributes.position, A = u.upright, B = u.swim;
+  for (let i = 0; i < A.length; i++) P.array[i] = A[i] + (B[i] - A[i]) * k;
+  P.needsUpdate = true; mesh.geometry.computeVertexNormals();
 }
 
 const LEATHER = '#6a4a33', CANVAS = '#7d8a5a', CANVAS_DARK = '#5f6c44', CLOTH = '#3f9a92', LIGHT_OFF = '#3d6b60';
@@ -602,6 +644,7 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
   g.name = 'Round backpack';
   const add = (geo, m, x = 0, y = 0, z = 0, to = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); to.add(o); return o; };
   const R = SPHERE_R, CY = SPHERE_Y, N = TANK.neck, B = TANK.band, K = TANK.depth, PZ = PLATE_Z;
+  let straps = null;
   // (its vertices in the tank's frame, the centre CY up: the shader reads the fill height off them, and marches
   // its nebula through the dome its uniform describes)
   const glass = add(new THREE.SphereGeometry(R, 40, 22, Math.PI, Math.PI).scale(1, 1, K).translate(0, CY, 0), glassMat);
@@ -648,17 +691,14 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
     add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge.slice(0, -1), true), 72, 0.0035, 4, true), mat(CANVAS_DARK));
     for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.012, 8, 6), dark, sx * (w - 0.04), y0 + h - 0.05, PZ - 0.002);
     // the leather straps: from the plate's top corners up over his shoulders and down his chest to a buckle
-    // (STRAP_PATH: once a straight band up into his collar, whose end stood by his ears: issue #76)
-    for (const sx of [-1, 1]) {
-      const pts = strapPath(sx);
-      for (let k = 0; k < pts.length - 1; k++) {
-        const a = pts[k], d = pts[k + 1].clone().sub(a), len = d.length();
-        const strap = add(new THREE.BoxGeometry(STRAP.w, STRAP.t, len + 0.012), mat(LEATHER), a.x + d.x / 2, a.y + d.y / 2, a.z + d.z / 2);
-        strap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
-        if (k === 0) add(new THREE.BoxGeometry(0.034, 0.018, 0.022), brass, a.x, a.y, a.z + 0.004).quaternion.copy(strap.quaternion);   // its buckle on the plate
-        if (k === pts.length - 2) add(new THREE.BoxGeometry(0.056, 0.017, 0.034), brass, pts[k + 1].x, pts[k + 1].y, pts[k + 1].z).quaternion.copy(strap.quaternion);   // and on his chest
-      }
-    }
+    // (STRAP_PATH: once a straight band up into his collar, whose end stood by his ears: issue #76; one mesh of their
+    // own, laid upright or swimming, layStraps)
+    straps = new THREE.Mesh(strapGeometry(0), [mat(LEATHER), brass]);
+    straps.name = 'Backpack straps';
+    straps.userData.upright = straps.geometry.attributes.position.array.slice();
+    straps.userData.swim = strapGeometry(1).attributes.position.array;
+    straps.userData.k = 0;
+    g.add(straps);
   }
   // the stages’ parts (setStage shows them): 1 the lift valve, 2 the wings’ vanes, 3 the bellows’ valve
   const stages = [null, new THREE.Group(), new THREE.Group(), new THREE.Group()];
@@ -697,7 +737,7 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
     add(new THREE.TorusGeometry(0.022, 0.005, 4, 14).rotateX(Math.PI / 2), brass, 0.085, N.y + 0.056, -0.01, s);
   }
   setStage({ stages }, stage);
-  return { group: g, glass, lights, stages };
+  return { group: g, glass, lights, stages, straps };
 }
 
 /**
@@ -715,7 +755,7 @@ export function setStage(flask, stage = 0) {
 }
 
 function buildTank(stage = 0) {
-  const { group: g, glass, lights, stages } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: TANK.glow[1], fluidBox: [0, TANK.full, SPHERE_R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }), { stage });
+  const { group: g, glass, lights, stages, straps } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: TANK.glow[1], fluidBox: [0, TANK.full, SPHERE_R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }), { stage });
   g.name = 'Fluid tank';
   const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
   // the cradle's brass struts at the sphere's sides, bracketed to the plate: the lantern hangs off the left one
@@ -725,9 +765,9 @@ function buildTank(stage = 0) {
     for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.026, 0.024, PLATE_Z - TANK_RAIL.z), flatMat(BRASS_DARK), sx * railX, y, (TANK_RAIL.z + PLATE_Z) / 2);   // (back to the plate; short: clear of the sword's frog behind the shoulder)
     add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z);   // a brass knob on the strut's top
   }
-  mergeParts(g, [glass, ...lights, ...stages.filter(Boolean)]);
+  mergeParts(g, [glass, ...lights, ...stages.filter(Boolean), straps]);
   g.position.set(...TANK.at); g.scale.setScalar(TANK.scale);
-  return { group: noCollide(g), glass, lights, stages, top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
+  return { group: noCollide(g), glass, lights, stages, straps, top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
 }
 
 /**
@@ -1238,6 +1278,8 @@ export class FluidTool {
     const owned = this.owned, visible = owned && p.object?.visible !== false;
     const where = owned ? this.updateDock(dt) : 'back';
     this.tank.group.visible = visible;
+    // (swimming, the straps drawn in off the top of his shoulders, as he goes in and comes out: STRAP_SWIM)
+    if (this.tank.straps) { const want = p.swim ? p.swim.k ?? 1 : 0; this.strapK = Math.abs(want - (this.strapK ?? 0)) < 0.01 ? want : (this.strapK ?? 0) + (want - (this.strapK ?? 0)) * Math.min(1, dt * 6); layStraps(this.tank.straps, this.strapK); }
     // the rucksack's outer pocket shows until the flask sits in its place (and again while the flask is in a vehicle)
     for (const o of p.humanoid?.packPocket ?? []) o.visible = !(owned && where === 'back');
     // the glove is the fluid gun (src/gadgets/gun.js): worn once it is found, with the tank (it drinks from it);

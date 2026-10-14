@@ -839,6 +839,7 @@ const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (
 const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.76': [
+    { match: 'Swimming, the traveller’s backpack straps no longer vanish', tags: ['traveller'], see: 'Once you have the backpack, swim in Lorn’s deep water and watch his shoulders from behind as he crawls: the straps stay over them as each arm comes over, a little nearer his neck than on land.' },
     { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
     { match: 'In the Unity version the traveller’s overshirt is shaded right', tags: ['devices'], see: 'In the Unity build, stand the traveller in the sun and turn the camera slowly round him: the overshirt over his chest and shoulders and round his collar shades smoothly with the rest of the shirt, without the dark or bright blotches that flickered there as he walked. Compare with the web game in the same spot.' },
     { match: 'People who only talk often tell you of something near them', tags: ['story', 'menus'], shots: [

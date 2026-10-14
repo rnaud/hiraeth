@@ -106,7 +106,9 @@ test('the traveller on the course: the runs green today stay green (the default:
 
 // (todo: on the B3 body, the game's since 2026-10-13: the runs above were measured on the coral-shirt v1 until 2026-10-14,
 // when the QC moved to him (scripts/motion-qc/run.mjs body). Two that were green on v1 are not on him yet: the slow walk
-// pops 5 a minute, up the ramp 6 (the limit 3), every gait 7 (3), and the standing pivots' worst jolt is 5.2 cm (5).)
+// pops 5 a minute, up the ramp 6 (the limit 3), every gait 7 (3), and the standing pivots' worst jolt is 5.2 cm (5).
+// Every pop is a calf (his knee), 14-19 rad/s against 14 at a step's lift-off or touchdown, and one of 45 at the gaits'
+// stop: the knee straightened at the leg's reach, issue #47's fault on v1's legs, now on B3's.)
 test('on B3, the slow walk, the ramp, every gait and the standing pivots as they were on v1', { timeout: 120000, todo: 'B3: pops in the slow walk (5/min), the ramp (6), every gait (7); the pivots\' jolt 5.2 cm' }, async () => {
   const g = (await runScenario(COURSE['gaits: walk → jog → sprint → jog → walk → stop'], 'moves')).r.measures;
   assert.ok(g.popsPerMin <= 3, `every gait: pops ${g.popsPerMin}/min (34, then 14 before the sprint was looked at, 10 before its push-off, issue #47)`);

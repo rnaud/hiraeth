@@ -20,6 +20,9 @@ export const CHANGELOG = [
     // the traveller's files in the Unity players (unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs: characters/traveller-b3
     // copied into StreamingAssets, where v1's were; BridgeRunner.PublicRoots has no repository on a device); tests/unity-xbox.test.js
     'In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.',
+    // the straps swimming: src/fluid-tool.js STRAP_SWIM, strapPath(sx, swim), the straps one mesh of their own (layStraps,
+    // FluidTool.updateWorn eases them by player.swim.k); tests/backpack-straps.test.js (crawl 1.8 -> 1.0 cm, breaststroke 1.4 -> 0.7)
+    'Swimming, the traveller’s backpack straps no longer vanish into his shoulders as his arm comes over: they draw in toward his neck while he swims, and lie back where they were when he climbs out.',
   ] },
   { v: '1.75', date: '2026-10-14', items: [
     // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's

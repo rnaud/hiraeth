@@ -92,6 +92,11 @@ can be shared only between the tests of one file. The rules for a test that is s
 - **An audit samples in the suite, densely by hand.** A check of all content at a fine step (the B3 body's 209
   clips: `tests/traveller-b3.test.js`, 9 phases a clip, `B3_AUDIT_FULL=1` for 33 and its report) keeps a margin
   under its bound at the coarse step and writes its report only when asked.
+- **Rays a cheaper test can answer, answered first.** The z-fight finder (`scripts/zfight/lib.mjs` visibleSites) makes
+  its ray-free checks before any ray, and `audit.mjs` rayOver answers straight-up and -down misses from a grid of the
+  triangles' boxes before the BVH (`tests/zfight.test.js` 75 -> 50 s, the same sites byte for byte). A check of every
+  temple that needs no story goes where every temple is built already (`tests/temples.test.js`: the chests' floors,
+  moved from `tests/key-chests.test.js`, 24 -> 1.6 s).
 - **Search toward what you look for.** A reachability check with targets goes to the nearest one first and floods
   wave by wave only when one is left, for the same verdict (`tests/fragments-reach.js` flood: 155 s -> 14 s).
 - **Don't run it twice.** Read what a later test needs while an earlier one has the world built

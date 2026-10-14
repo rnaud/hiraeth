@@ -7,12 +7,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 import { Door, Key, KEY_CHEST } from '../src/temples/pieces.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { game } from '../src/game-state.js';
-import { BOX_SCALE } from '../src/boxes/model.js';
 import { allInteractables } from '../src/interact.js';
 import { keysHud, KEY_SVG, GREAT_KEY_SVG } from '../src/hud.js';
 import { screen } from '../src/platform.js';
@@ -21,6 +20,8 @@ import { AudioContext, installAudio } from '../engine/webaudio.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
 
+// (the Clock-House the opening's test built, kept for the next test to read its great key's id from)
+let opened = null;
 function world(id) {
   const scene = new THREE.Scene();
   const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
@@ -32,45 +33,12 @@ function world(id) {
 /** A sound that only writes down what it was asked to play. */
 const recorder = () => { const said = []; return { said, sound: new Proxy({}, { get: (_, k) => (...a) => { said.push([k, ...a]); } }) }; };
 
-test('every temple key is in a little makers\' chest, on flat floor, with room before it (issue #274)', () => {
-  game.reset();
-  let n = 0;
-  for (const id of Object.keys(TEMPLES)) {
-    const w = world(id), L = w.rt.logic;
-    const els = Object.entries(L.def.elements).filter(([, e]) => e.type === 'key').map(([k]) => k);
-    const keys = w.rt.pieces.filter((p) => p instanceof Key);
-    assert.deepEqual(keys.map((k) => k.id).sort(), els.sort(), `${id}: a chest for each key`);
-    for (const k of keys) {
-      n++;
-      const at = `${id}.${k.id}`;
-      assert.equal(k.chest.kind, 'makers', `${at}: the makers' chest, the same as everywhere`);
-      assert.ok(k.chest.shell.isMesh && k.chest.shell.name === 'Makers’ chest', `${at}: the chest's own model`);
-      assert.ok(k.scale < BOX_SCALE * 0.75, `${at}: little (${k.scale} of the boxes' ${BOX_SCALE})`);
-      assert.equal(k.scale, k.o.big ? KEY_CHEST.big : KEY_CHEST.small);
-      assert.equal(k.chest.root.scale.x, k.scale);
-      assert.ok(Math.abs(k.chest.mats.body.uniforms.uBoxB.value.x - k.chest.size.w / 2 * k.scale) < 1e-6, `${at}: its shader sized as drawn`);
-      // flat round it: the floor under it and out past its cage, at its own height (no step, no slope, no gap)
-      for (const r of [0.5, 0.8]) for (let i = 0; i < 12; i++) {
-        const a = (i / 12) * Math.PI * 2, x = k.pos.x + Math.sin(a) * r * k.scale, z = k.pos.z + Math.cos(a) * r * k.scale;
-        const g = w.physics.groundAt(x, k.pos.y + 0.3, z, 1.5);
-        assert.ok(Number.isFinite(g) && Math.abs(g - k.pos.y) < 0.08, `${at}: flat floor ${r} m round it (${Number.isFinite(g) ? (g - k.pos.y).toFixed(2) : 'none'})`);
-      }
-      // room to stand before it, where its front faces
-      const f = V(Math.sin(k.yaw), 0, Math.cos(k.yaw)), front = k.pos.clone().addScaledVector(f, 1.5);
-      const gf = w.physics.groundAt(front.x, k.pos.y + 0.6, front.z, 2);
-      assert.ok(Number.isFinite(gf) && Math.abs(gf - k.pos.y) < 0.15, `${at}: floor to stand on before it`);
-      // a cage round it (bars that sink once it is earned), and its key hidden inside until opened
-      assert.ok(k.cageR > Math.hypot(k.chest.size.w, k.chest.size.d) / 2 * k.scale, `${at}: the cage clears the chest`);
-      assert.equal(k.key.visible, false);
-    }
-    w.rt.dispose?.();
-  }
-  assert.ok(n >= 20, `the temples' keys (${n})`);
-});
+// (that every temple key is in a little makers' chest, on flat floor, with room before it is checked in
+// tests/temples.test.js, which builds every temple already: docs/systems/testing.md "Heavy tests")
 
 test('a key chest opens with a short scene: latch, halves, light, the key rising and ringing, then into the counter; a lock clicks softly', () => {
   game.reset();
-  const w = world('garage'), rt = w.rt, L = rt.logic;
+  const w = (opened = world('garage')), rt = w.rt, L = rt.logic;
   const { said, sound } = recorder();
   const toasts = [];
   const k = rt.pieces.find((p) => p instanceof Key && !p.o.big);
@@ -132,10 +100,11 @@ test('a key chest opens with a short scene: latch, halves, light, the key rising
 
 test('a key chest opened, on a load: open and quiet; the great key counts in the counter too', () => {
   game.reset();
-  const w0 = world('garage');
+  // (the great key's id from the Clock-House the test before built and put away, or one built here)
+  const w0 = opened ?? world('garage');
   const big = w0.rt.pieces.find((p) => p instanceof Key && p.o.big);
   w0.rt.logic.find(big.id) || game.set(`temple.garage.found.${big.id}`, true);
-  w0.rt.dispose?.();
+  if (w0 !== opened) w0.rt.dispose?.();
   const w = world('garage');
   const k = w.rt.pieces.find((p) => p.id === big.id);
   assert.ok(k.taken && k.chest.opened.visible && !k.key.visible, 'open, the key gone');

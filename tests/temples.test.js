@@ -37,6 +37,8 @@ import { HOLD as BELFRY_HOLD, FallUpStone, RING } from '../src/temples/arzach2.j
 const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR = BELFRY_HOLD.stair, HOLD_CHAMBER = BELFRY_HOLD.chamber;
 import { HOLD as UNDERTOWER_HOLD, CHOIR } from '../src/temples/bazaar.js';
 const HOLD_PILLAR = UNDERTOWER_HOLD.pillar;
+import { Key, KEY_CHEST } from '../src/temples/pieces.js';
+import { BOX_SCALE } from '../src/boxes/model.js';
 import { TempleKit } from '../src/temples/kit.js';
 import { GULF, STACK, WELL_VENT } from '../src/temples/arzach.js';
 import { KENNEL, WICK, ROOT_WAY } from '../src/temples/perdide2.js';
@@ -827,6 +829,42 @@ test('each built temple: a door in its world, solid rooms with marks, a chest si
     // the scout points at the next thing to do
     assert.ok(nextSpot(rt).isVector3);
   }
+});
+
+// (the key chests' layout, issue #274, here where every temple is built already: tests/key-chests.test.js has the rest,
+// docs/systems/testing.md "Heavy tests")
+test('every temple key is in a little makers\' chest, on flat floor, with room before it (issue #274)', () => {
+  let n = 0;
+  for (const id of BUILT) {
+    const w = world(id), L = w.rt.logic;
+    const els = Object.entries(L.def.elements).filter(([, e]) => e.type === 'key').map(([k]) => k);
+    const keys = w.rt.pieces.filter((p) => p instanceof Key);
+    assert.deepEqual(keys.map((k) => k.id).sort(), els.sort(), `${id}: a chest for each key`);
+    for (const k of keys) {
+      n++;
+      const at = `${id}.${k.id}`;
+      assert.equal(k.chest.kind, 'makers', `${at}: the makers' chest, the same as everywhere`);
+      assert.ok(k.chest.shell.isMesh && k.chest.shell.name === 'Makers’ chest', `${at}: the chest's own model`);
+      assert.ok(k.scale < BOX_SCALE * 0.75, `${at}: little (${k.scale} of the boxes' ${BOX_SCALE})`);
+      assert.equal(k.scale, k.o.big ? KEY_CHEST.big : KEY_CHEST.small);
+      assert.equal(k.chest.root.scale.x, k.scale);
+      assert.ok(Math.abs(k.chest.mats.body.uniforms.uBoxB.value.x - k.chest.size.w / 2 * k.scale) < 1e-6, `${at}: its shader sized as drawn`);
+      // flat round it: the floor under it and out past its cage, at its own height (no step, no slope, no gap)
+      for (const r of [0.5, 0.8]) for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2, x = k.pos.x + Math.sin(a) * r * k.scale, z = k.pos.z + Math.cos(a) * r * k.scale;
+        const g = w.physics.groundAt(x, k.pos.y + 0.3, z, 1.5);
+        assert.ok(Number.isFinite(g) && Math.abs(g - k.pos.y) < 0.08, `${at}: flat floor ${r} m round it (${Number.isFinite(g) ? (g - k.pos.y).toFixed(2) : 'none'})`);
+      }
+      // room to stand before it, where its front faces
+      const f = V(Math.sin(k.yaw), 0, Math.cos(k.yaw)), front = k.pos.clone().addScaledVector(f, 1.5);
+      const gf = w.physics.groundAt(front.x, k.pos.y + 0.6, front.z, 2);
+      assert.ok(Number.isFinite(gf) && Math.abs(gf - k.pos.y) < 0.15, `${at}: floor to stand on before it`);
+      // a cage round it (bars that sink once it is earned), and its key hidden inside until opened
+      assert.ok(k.cageR > Math.hypot(k.chest.size.w, k.chest.size.d) / 2 * k.scale, `${at}: the cage clears the chest`);
+      assert.equal(k.key.visible, false);
+    }
+  }
+  assert.ok(n >= 20, `the temples' keys (${n})`);
 });
 
 test('a temple door is solid until it opens, and the doorway is free after', () => {

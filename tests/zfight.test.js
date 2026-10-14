@@ -34,6 +34,12 @@ export const ZFIGHT_BASELINE = {
  * another, the storeys on the roofs' lips, the machinery's tops in the slabs' undersides, the pads and bridges on the decks.
  */
 export const WORLD_ZFIGHT_BASELINE = { spacecity: 22 };
+/** The worlds' own parts held to none of their own fights (their names in the meshes'). */
+const OWN_NONE = [['bazaar', 'The market in the air'], ['underwater', 'The canyon street'], ['spheres', 'The furrows’']];
+// (the worlds the test of the worlds' own counts audits whole: the test of the temples keeps its builds of them, unchanged,
+// for it, docs/systems/testing.md "Heavy tests")
+const WHOLE = new Set([...Object.keys(WORLD_ZFIGHT_BASELINE), ...OWN_NONE.map(([id]) => id)]);
+const kept = new Map();
 
 test('the finder: two looks in one plane overlapping fight; set apart, behind, or one look, they don’t', () => {
   const scene = new THREE.Scene();
@@ -84,14 +90,14 @@ test('the finder counts only what someone could see: a fight inside a wall or un
 test('every temple’s visible z-fights at or under its baseline; the Rose House has none', () => {
   const report = {};
   for (const id of Object.keys(TEMPLES)) {
-    const scene = new THREE.Scene();
-    const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
+    const scene = new THREE.Scene(), home = TEMPLE_HOME[id] ?? id;
+    const level = quiet(() => buildableById(home).create(scene));
     const rt = templeOf(level, id) ?? level.temple;
     const tris = trianglesOf(rt.root, { THREE });
     const ray = rayOver(tris);
     const sites = visibleSites(coplanarOverlaps(tris), ray, { stand: standing(level, ray) });
     report[id] = sites.length;
-    level.dispose?.();
+    if (WHOLE.has(home) && !kept.has(home)) kept.set(home, { scene, level }); else level.dispose?.();
     assert.ok(sites.length <= (ZFIGHT_BASELINE[id] ?? 0), `${id}: ${sites.length} z-fight sites (baseline ${ZFIGHT_BASELINE[id]}): ${sites.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${rt.kit.local(new THREE.Vector3(...s.seen.at)).toArray().map((v) => v.toFixed(1))}`).join('; ')} (node scripts/zfight/list-temple.mjs ${id})`);
   }
   assert.equal(report.desert, 0, 'the Rose House: none');
@@ -115,12 +121,14 @@ test('a merged mesh says what its pieces are: the lines that made them and their
 });
 
 test('the City Floating in Space at or under its count; the market in the air, the canyon street and the furrows none of their own (issue #286)', async () => {
+  // (a world the test of the temples built is taken as it left it, built and unchanged: else built here)
+  const whole = (id) => zfightsOf(id, { temples: false, built: kept.get(id) }).finally(() => { kept.get(id)?.level.dispose?.(); kept.delete(id); });
   for (const [id, n] of Object.entries(WORLD_ZFIGHT_BASELINE)) {
-    const r = await zfightsOf(id, { temples: false });
+    const r = await whole(id);
     assert.ok(r.total.count <= n, `${id}: ${r.total.count} z-fight sites (baseline ${n}): ${r.all.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${s.seen.at.join(', ')}`).join('; ')} (node scripts/zfight/audit.mjs --worlds ${id} --worst 20)`);
   }
-  for (const [id, name] of [['bazaar', 'The market in the air'], ['underwater', 'The canyon street'], ['spheres', 'The furrows’']]) {
-    const r = await zfightsOf(id, { temples: false });
+  for (const [id, name] of OWN_NONE) {
+    const r = await whole(id);
     const own = r.all.filter((s) => s.meshA.includes(name) && s.meshB.includes(name));
     assert.equal(own.length, 0, `${name}: ${own.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${s.seen.at.join(', ')}`).join('; ')} (node scripts/zfight/audit.mjs --worlds ${id} --worst 20)`);
   }

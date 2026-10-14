@@ -219,14 +219,15 @@ export function visibleSites(fights, ray, { reach = 24, step = 3, eye = 1.6, hea
         const down = ray(o, [0, -1, 0], floor + 2);
         if (!down || down.back || down.normal[1] < 0.6) continue;   // (no floor, or inside a wall: its bottom met from within)
         const e = [o[0], o[1] - down.distance + eye, o[2]];
-        const up = ray([e[0], e[1] - eye + 0.1, e[2]], [0, 1, 0], head);
-        if (up || (stand && !stand(e))) continue;
-        // (inside a wall drawn in stacked courses, there's no face under you to tell: any way out sideways meets a back)
-        if ([[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]].some((d) => ray(e, d, 30)?.back)) continue;
+        // (the checks without a ray first: too near, too far, or from behind; each place is kept or left out as before)
         const to = [p[0] + n[0] * 0.01 - e[0], p[1] + n[1] * 0.01 - e[1], p[2] + n[2] * 0.01 - e[2]], d = Math.hypot(...to);
         if (d < 0.3 || d > reach * 1.6) continue;
         const u = N(to);
         if (!f.two && -(u[0] * n[0] + u[1] * n[1] + u[2] * n[2]) < 0.05) continue;   // (from behind: culled)
+        const up = ray([e[0], e[1] - eye + 0.1, e[2]], [0, 1, 0], head);
+        if (up || (stand && !stand(e))) continue;
+        // (inside a wall drawn in stacked courses, there's no face under you to tell: any way out sideways meets a back)
+        if ([[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]].some((d) => ray(e, d, 30)?.back)) continue;
         const hit = ray(e, u, d);
         if (!hit || hit.distance > d - 0.05) { seen = { from: e.map((x) => +x.toFixed(2)), at: p.map((x) => +x.toFixed(2)) }; break; }
       }
