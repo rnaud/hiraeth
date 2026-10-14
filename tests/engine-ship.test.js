@@ -80,6 +80,14 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   h.player.respawn(a.pos.clone()); h.player.heading = a.heading + Math.PI; h.rig.yaw = a.heading;
   run(h, 4); run(h, 40, { KeyW: true }); run(h, 20 * 8, { KeyW: false });
   assert.ok(h.ship.inside, 'aboard by walking up the ramp');
+  // no weather aboard (issue #348: the rain fell in its rooms in Lorn in the Unity preview, the ship never registered
+  // as indoors in the engines): a downpour and a sandstorm outside, none of it drawn in here, no wisp of sand in its rooms
+  h.weather.mode = 'rain'; run(h, 20 * 3);
+  assert.ok(h.shelter.indoor > 0.99, `indoors (${h.shelter.indoor})`);
+  assert.ok(h.post.uniforms.uRain.value < 0.01, `no rain drawn aboard (${h.post.uniforms.uRain.value})`);
+  h.weather.mode = 'storm'; run(h, 20 * 3);
+  assert.ok(h.post.uniforms.uStorm.value < 0.01, `no sandstorm drawn aboard (${h.post.uniforms.uStorm.value})`);
+  h.weather.mode = 'auto';
   const P = h.ship.parked.interior.points;
   h.player.pos.copy(h.ship.world(h.ship.parked, P.table)); run(h, 4);
   assert.match(h.ship.hud(), /no power/);

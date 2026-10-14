@@ -1,12 +1,33 @@
 import * as THREE from 'three';
+import { isIndoors } from './shelter.js';
 
 // Wind-blown sand: short inked wisps that skim the ground around the player
 // in gusts. Each wisp is a camera-facing ribbon rebuilt on the CPU every frame
 // (a few thousand vertices), drawn after the composite pass. It tests itself
 // against the G-buffer depth so it hides behind dunes and rocks, and fades
 // with distance like the rest of the line work.
+//
+// The weather stays outdoors (issue #348, src/shelter.js): no wisp starts inside an interior (a room, the ship, a
+// temple: whatever is registered with addIndoors), one blowing into one is gone, and while you are indoors (`hush`,
+// the shelter's indoor 0..1) they all fade and none start.
 
 const SEGS = 10;
+
+/**
+ * How wide a wisp is drawn (issue #348). It was 1.7 CSS px whatever the frame, in full ink: on the Retroid (640 × 480
+ * CSS px at 2×, Handheld's 0.75: 960 × 720 render pixels) that is 2.5 render pixels, a share of the picture twice a
+ * desktop's, while the world's own lines thin on a small frame (post.js INK_SIZE.frame): the far wisps on the dunes
+ * were heavy black dashes. Now a share of the frame's height in render pixels (`share`: 3.6 px at 2234 rows, a
+ * DPR-2 desktop's, as before; 1.15 px at 720), never under `minPx` (a line under a pixel is drawn one pixel wide with
+ * its coverage as its ink, as post.js draws its hatching), its ends pointed (`tip`: the width at the ends, of the
+ * middle's), and its ink at most `ink` (a stroke of blown sand, lighter than an outline).
+ */
+export const WISP = { share: 0.0016, minPx: 1, tip: 0.3, ink: 0.8 };
+/** A wisp's width in render pixels and the share of its ink it keeps (coverage), on a frame `rows` render pixels tall. */
+export function wispPx(rows) {
+  const px = WISP.share * Math.max(rows, 1);
+  return { px: Math.max(px, WISP.minPx), cover: Math.min(1, px / WISP.minPx) };
+}
 
 /**
  * The ground's height under the wisps, from a grid of exact heights 0.5 m apart round the camera (filled as
@@ -112,6 +133,24 @@ export class WindStreaks {
     this._t = new THREE.Vector3();
     this._v = new THREE.Vector3();
     this._s = new THREE.Vector3();
+    this._q = new THREE.Vector3();
+    this.indoors = isIndoors;   // (p) => is this point inside an interior (src/shelter.js)
+    this.hush = 0;              // 0..1: you are indoors (the shelter's indoor), the wisps fade and none start
+    this.frame = 0;
+  }
+
+  /** Can a wisp be at (x, y, z)? Not inside an interior. */
+  outdoors(x, y, z) { return !this.indoors?.(this._q.set(x, y, z)); }
+  /**
+   * Is wisp i still outdoors? Its head each frame (it blows head first: the first of it into a room), and one of its
+   * middle and tail in turn (one spawned across a wall, one cutting a corner). Two lookups a wisp a frame: every point
+   * of every wisp would be 2 700 (0.2 ms a frame on the Mac for three, more on a handheld). A wisp grazing a wall can
+   * wiggle (its `amp`, half a metre at most) into the wall's thickness, where the wall itself hides it.
+   */
+  clear(w, i, dx, dz, ground) {
+    if (!this.outdoors(w.x, (w.y0 ?? ground.get(w.x, w.z)) + w.h, w.z)) return false;
+    const s = w.len * ((this.frame + i) & 1 ? 1 : 0.5), x = w.x - dx * s, z = w.z - dz * s;
+    return this.outdoors(x, (w.y0 ?? ground.get(x, z)) + w.h, z);
   }
 
   get windDir() {
@@ -126,6 +165,8 @@ export class WindStreaks {
   }
 
   spawn(w, x, z, vx, vz, opts = {}) {
+    // (none starts indoors, nor while you are: issue #348)
+    if (this.hush > 0.5 || !this.outdoors(x, (opts.y ?? this._groundY?.(x, z) ?? 0) + 0.5, z)) return false;
     w.x = x; w.z = z; w.vx = vx; w.vz = vz;
     w.y0 = null;   // (a height of its own instead of the ground's: edgeGust)
     w.thick = opts.thick ?? 1;
@@ -136,6 +177,7 @@ export class WindStreaks {
     w.amp = 0.15 + Math.random() * 0.4;
     w.phase = Math.random() * 10;
     w.strength = opts.strength ?? 0.55 + Math.random() * 0.4;
+    return true;
   }
 
   /** Dust kicked up by the hoverbike. */
@@ -162,21 +204,33 @@ export class WindStreaks {
       // camera would be dots), the slant turning now and then; the tangent is n turned a quarter round
       const a = (Math.sin(this.time * 0.37) >= 0 ? 1 : -1) * (0.45 + Math.random() * 0.35), c = Math.cos(a), sn = Math.sin(a);
       const dx = n.x * c - n.z * sn, dz = n.z * c + n.x * sn;
-      this.spawn(w, at.x - n.x * out - n.z * along - dx * 1.5, at.z - n.z * out + n.x * along - dz * 1.5, dx * speed, dz * speed,
-        { life: 0.5 + Math.random() * 0.6, len: 1.2 + Math.random() * 2.4, h: 0.15 + Math.random() * 2.1, strength: 0.5 + Math.random() * 0.35 * k, thick: 1.2 + Math.random() * 0.6 });
-      w.y0 = at.y;
+      if (this.spawn(w, at.x - n.x * out - n.z * along - dx * 1.5, at.z - n.z * out + n.x * along - dz * 1.5, dx * speed, dz * speed,
+        { y: at.y, life: 0.5 + Math.random() * 0.6, len: 1.2 + Math.random() * 2.4, h: 0.15 + Math.random() * 2.1, strength: 0.5 + Math.random() * 0.35 * k, thick: 1.2 + Math.random() * 0.6 })) w.y0 = at.y;
     }
   }
 
+  /**
+   * pxScale: the world size of a CSS pixel a metre away (used when the frame's size in render pixels, uRes, is unknown);
+   * the width itself follows WISP from uRes.y.
+   */
   update(dt, center, camera, terrain, pxScale, enabled = true) {
     this.time += dt;
+    this.frame++;
     this.windAngle = this.fixedAngle ?? 0.6 + Math.sin(this.time * 0.013) * 0.35;   // (a level's own: the Overnight Train's from its nose)
     const [wx, wz] = this.windDir;
     const gust = this.gust();
     const cam = camera.position;
     const p = this._p, T = this._t, V = this._v, S = this._s;
-    if (this._ground?.terrain !== terrain) this._ground = Object.assign(new GroundCache((x, z) => terrain.heightAt(x, z)), { terrain });
+    if (this._ground?.terrain !== terrain) {
+      const g = this._ground = Object.assign(new GroundCache((x, z) => terrain.heightAt(x, z)), { terrain });
+      this._groundY = (x, z) => g.get(x, z);
+    }
     const ground = this._ground; ground.check(terrain.version ?? 0);
+    // the stroke's width (WISP): a world size per render pixel a metre away, from the frame's own rows
+    const rows = this.uniforms.uRes.value.y > 1 ? this.uniforms.uRes.value.y : 0;
+    const look = rows ? wispPx(rows) : { px: 1.7, cover: 1 };
+    const perPx = rows ? (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / rows : pxScale;
+    const ink = WISP.ink * look.cover * (1 - THREE.MathUtils.clamp(this.hush, 0, 1));
 
     for (let i = 0; i < this.count; i++) {
       const w = this.wisps[i];
@@ -196,6 +250,12 @@ export class WindStreaks {
       w.z += w.vz * dt;
       const spd = Math.hypot(w.vx, w.vz) || 1;
       const dx = w.vx / spd, dz = w.vz / spd;
+      // blown into an interior (the ship, a shop, a temple): gone
+      if (!this.clear(w, i, dx, dz, ground)) {
+        w.age = w.life;
+        for (let k = 0; k <= SEGS; k++) { this.alphas[base + k * 2] = 0; this.alphas[base + k * 2 + 1] = 0; }
+        continue;
+      }
       const life = Math.sin(Math.PI * Math.min(w.age / w.life, 1));
       for (let k = 0; k <= SEGS; k++) {
         const s = (k / SEGS) * w.len;
@@ -206,12 +266,14 @@ export class WindStreaks {
         T.set(-dx, 0, -dz);
         V.subVectors(cam, p);
         const dist = V.length();
-        S.crossVectors(T, V).normalize().multiplyScalar(0.5 * w.thick * Math.max(1.7 * dist * pxScale, 0.015));
+        const taper = Math.sin(Math.PI * (k / SEGS));
+        // (pointed at its ends: a stroke of the pen, not a dash; near the lens no thinner than a centimetre × thick)
+        const wide = (WISP.tip + (1 - WISP.tip) * taper) * Math.max(look.px * dist * perPx, 0.01);
+        S.crossVectors(T, V).normalize().multiplyScalar(0.5 * w.thick * wide);
         const j = (base + k * 2) * 3;
         this.positions[j] = p.x - S.x; this.positions[j + 1] = p.y - S.y; this.positions[j + 2] = p.z - S.z;
         this.positions[j + 3] = p.x + S.x; this.positions[j + 4] = p.y + S.y; this.positions[j + 5] = p.z + S.z;
-        const taper = Math.sin(Math.PI * (k / SEGS));
-        const a = w.strength * life * taper * (1 - THREE.MathUtils.smoothstep(dist, 35, 90));
+        const a = ink * w.strength * life * taper * (1 - THREE.MathUtils.smoothstep(dist, 35, 90));
         this.alphas[base + k * 2] = a;
         this.alphas[base + k * 2 + 1] = a;
       }

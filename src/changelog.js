@@ -8,6 +8,14 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.74', date: '2026-10-14', items: [
+    // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;
+    // src/wind.js: no wisp in an interior, none while you are in one (hush); tests/wind-wisps.test.js, tests/engine-ship.test.js
+    'No rain falls inside your ship any more in the Unity version (it rained in its rooms in Lorn), and no wisps of blown sand drift through the ship, the shops or the temples in any world: the weather stays outside.',
+    // the wisps' stroke (issue #348): src/wind.js WISP, wispPx (a share of the frame's render rows, coverage under a
+    // pixel, pointed ends, at most 0.8 of the ink); tests/wind-wisps.test.js; docs/systems/rendering.md
+    'The wisps of sand the wind blows across the Desert are light pen strokes on handhelds and small screens, pointed at their ends: on the Retroid far ones were drawn as heavy black dashes on the dunes.',
+  ] },
   { v: '1.73', date: '2026-10-14', items: [
     // the City-Shaft's main quest waits for the wings too (issue #328, reopened): src/story/incal-data.js needs; tests/quest-needs.test.js
     { text: 'In the City-Shaft, Nima only asks you to look into the dimming light once you have the fluid wings (the way down the shaft is flown): without them she points you to the Aerie on Vael.',

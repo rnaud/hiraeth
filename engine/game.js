@@ -49,7 +49,13 @@ import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
 import { Weather } from '../src/weather.js';
 import { WindStreaks } from '../src/wind.js';
-import { Shelter } from '../src/shelter.js';
+import { Shelter, addIndoors } from '../src/shelter.js';
+
+// The traveller's ship is indoors for the weather, as main.js registers it (src/shelter.js): no rain, sand or wisps in
+// its rooms (issue #348: the rain fell in the ship in Lorn in the Unity preview). One registration for the module,
+// asking the game that runs now (a test may make several games one after another).
+let shipIndoors = null;
+addIndoors((p) => !!shipIndoors?.(p));
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -348,6 +354,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const wind = optional('the wind', () => new WindStreaks());
   if (wind) {
     wind.uniforms.uInk.value = new THREE.Color('#2b211f');
+    wind.uniforms.uRes.value.set(width, height);   // (the frame its strokes are measured on: wind.js WISP)
     scene.add(wind.mesh);
     (level.noShadow ??= []).push(wind.mesh);
   }
@@ -394,6 +401,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (src/platform.js), which the engine's HUD draws (BridgeHud.cs). Travel ends in `onTravel(to)`: the engine
   // starts again at that world's landing (the page goes to ?level=<to>&via=ship).
   const shipOn = !!(menus && ship && story && !flags && !view);
+  shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
   if (shipOn) {
     ship.cinema.dom = false;
     quiet(() => ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans, levels: LEVELS, order: ORDER,
@@ -622,7 +630,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, grass, wind, sky, post, T, wildlife, weather, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -890,9 +898,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('grass');
       // the wind's wisps round the traveller (their ribbons turned to the camera, a pixel's width from its field of view)
       // (none aboard the ship: its rooms, in orbit in the opening or parked, have no wind; the ribbons are drawn over
-      // the walls, issue #264)
+      // the walls, issue #264; and none in any interior, nor while you are in one: wind.js hush, issue #348)
       const aboard = shipOn && ship.inside;
-      if (wind) wind.mesh.visible = !aboard;
+      if (wind) { wind.mesh.visible = !aboard; wind.hush = shelter?.indoor ?? 0; }
       if (wind && !aboard && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
       // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
       backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));

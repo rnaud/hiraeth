@@ -137,6 +137,20 @@ The reference pages for the four v0.30 worlds are in `references/`
   gusts, plus dust behind the bike. They are drawn after the composite pass,
   and each one tests itself against the G-buffer depth so it hides behind
   dunes and rocks.
+  - *Outdoors only* (issue #348): no wisp starts inside an interior (anything
+    `src/shelter.js` knows from `addIndoors`: every room, the ship, a temple,
+    Home's houses), a wisp whose head, or its middle or tail in turn, is in one
+    dies, and while the shelter says you are indoors (`wind.hush`) they all
+    fade and none start. The engines register the ship too (engine/game.js:
+    the rain fell in its rooms in the Unity preview, in Lorn).
+  - *Their stroke* (`WISP`, `wispPx`, issue #348): a share of the frame's
+    height in render pixels (0.0016: 3.6 px at 2234 rows, 1.15 at 720), never
+    under a pixel (under it, drawn one wide with its coverage as its ink),
+    pointed at its ends and at most 0.8 of the ink. It was 1.7 CSS px in full
+    ink on any frame: on the Retroid (640 × 480 CSS px at 2×, Handheld's 0.75)
+    2.5 render pixels, twice a desktop's share of the picture while the
+    world's own lines thin on a small frame (post.js `INK_SIZE.frame`), so the
+    far wisps on the dunes were heavy black dashes. `tests/wind-wisps.test.js`.
 - **Hoverbike** (`src/bike.js`): it rides on a hover spring, drifts a little,
   banks into turns and pitches with the ground. The camera swings behind it
   unless you're moving the mouse. On a stick, `bikeSteer()` ignores sideways

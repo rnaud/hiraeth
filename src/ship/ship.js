@@ -418,7 +418,13 @@ export class Ship {
     return Math.atan2(d.x, d.z);
   }
 
-  isInside(model, p) { return inRooms(this.local(model, p)); }
+  isInside(model, p) {
+    // (far off, no: the weather asks this of every wisp of wind each frame, src/wind.js; the rooms are within 13 m of the
+    // ship's origin, 20 kept, by the same matrix worldToLocal reads)
+    const e = model.group.matrixWorld.elements, dx = p.x - e[12], dy = p.y - e[13], dz = p.z - e[14];
+    if (dx * dx + dy * dy + dz * dz > 400 * (e[0] * e[0] + e[1] * e[1] + e[2] * e[2])) return false;
+    return inRooms(this.local(model, p));
+  }
 
   /** Which ship the player is in (the parked one or the one in orbit), or null. */
   modelOf(p) {

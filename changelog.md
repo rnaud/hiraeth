@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.74 — 2026-10-14
+
+- The wisps of sand the wind blows across the Desert are light pen strokes on handhelds and small screens, pointed at their ends: on the Retroid far ones were drawn as heavy black dashes on the dunes.
+- No rain falls inside your ship any more in the Unity version (it rained in its rooms in Lorn), and no wisps of blown sand drift through the ship, the shops or the temples in any world: the weather stays outside.
+
 ## v1.73 — 2026-10-14
 
 - In the Desert rebuilt in Unity, people speak with the new voices too, as they do in the browser: one voice a line that glides from syllable to syllable, with breath, vowels and consonants, in place of the old beeps. A conversation’s words appear as they are said, turning the page hushes the voice, and the ship and the calls home sound through a speaker.

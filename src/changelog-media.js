@@ -820,7 +820,16 @@ const EYES302 = 'Issue #302: the ink-lines audit’s portrait-10 (muted headless
 const CORNERS322B = 'Issue #322, second look: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6340) and the tree before it (d36d18e5), the camera pinned at the same spot; 14 October; cwebp -q 72';
 /** (the Unity preview's lines of issue #264: the Retroid Pocket Nova's own screen, adb screencap, 1280 × 960) */
 const FROM264 = 'The Retroid Pocket Nova’s screen (adb screencap), the Unity preview: before, the testers’ build of main (v1.72, build 2229); after, this branch’s (14 October)';
+/** (v1.74, issue #348: the Retroid's own frame in headless Chrome, 640 × 480 CSS px at 2×, Handheld held at 0.75) */
+const WISPS348 = 'Issue #348: muted headless Chrome at the Retroid’s frame (640 × 480 CSS px at 2×, Handheld, render scale held at 0.75: 960 × 720 render pixels), the Desert at 10:00, clear, the gusts held strong and the same random numbers for both, against this branch’s own Vite (port 6348) before and after the change; the lower part of the frame, 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.74': [
+    { match: 'No rain falls inside your ship any more in the Unity version', tags: ['ship', 'devices'],
+      see: 'In the Unity preview in Lorn, wait for the rain (or in the Desert for a sandstorm) and walk up the ramp into your ship: inside, no streaks of rain or sand, only the drumming on the roof; step out and it falls again. On the web, in the Desert, stand in the ship or a shop while the wind gusts: no wisps of sand drift through the room.' },
+    { match: 'The wisps of sand the wind blows across the Desert are light pen strokes', tags: ['desert', 'devices'], shots: [
+      { name: 'wisps-retroid', title: 'The wind on the dunes, at the Retroid’s frame', caption: 'Before, the far wisps on the dune were broad black smears, two and a half render pixels of full ink; after, thin pointed strokes of lighter ink, about a pixel wide, as a big screen draws them.', from: WISPS348 },
+    ] },
+  ],
   '1.73': [
     { match: 'On the Steam Deck the Unity version is now called “Hiraeth (Unity)”', see: 'On the Steam Deck, open the library’s Non-Steam collection, or the desktop’s application menu, after the game has updated once with Steam closed: the Unity version reads “Hiraeth (Unity)”, its icon and pictures carry a dark UNITY plate, and the game itself is plain “Hiraeth”.' },
     { match: 'The dark, ragged patches stuck along the corners of rooms', tags: ['desert', 'ship'], shots: [

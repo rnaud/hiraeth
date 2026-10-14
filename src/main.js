@@ -2248,6 +2248,7 @@ function frame(ts) {
   U.uStorm.value = Wx.storm;
   U.uFogMul.value *= 1 + W.fog * 2.6 + Wx.storm * 2.2 + Wx.rain * 0.6;
   wind.boost = Wx.storm;
+  wind.hush = shelter.indoor;   // (no wisps of blown sand indoors either: issue #348, src/wind.js)
   updatePlumb(dt);   // (Plumb: the lost watch, the opening's lines: src/companion.js)
   {
     const [wx, wz] = wind.windDir;
