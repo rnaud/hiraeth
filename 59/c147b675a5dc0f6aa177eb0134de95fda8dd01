@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_bce15cfb7547af 7
+docs/systems/fragments.md
+  s_9ca76055a220ed::t_874996591750a6 189-194
+src/changelog.js
+  s_9ca76055a220ed::t_8ad45313e7148f 26-29
+src/ship/ship.js
+  s_9ca76055a220ed::t_46f840591502eb 562-567,573,597-599
+tests/ship.test.js
+  s_9ca76055a220ed::t_921bceda315995 151-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "59c147b675a5dc0f6aa177eb0134de95fda8dd01",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
