@@ -23,7 +23,7 @@ Shader "Hidden/Hiraeth/Composite"
       #pragma vertex vert
       #pragma fragment frag
       // the look's optional passes, compiled in only where a look asks for them (post.js inkFeatures; HiraethLook sets
-      // them): spot blacks, haze by depth and height, cast shadows lifted, cast shadows printed as ink
+      // them): cast shadows darkened, haze by depth and height, cast shadows lifted, cast shadows printed as ink
       #pragma multi_compile _ HIRAETH_INK_SPOT
       #pragma multi_compile _ HIRAETH_INK_HAZE
       #pragma multi_compile _ HIRAETH_INK_CAST
@@ -43,7 +43,7 @@ Shader "Hidden/Hiraeth/Composite"
       float _Night, _MoonVis, _Flatten, _FogMul, _FogDensity, _FogStart;
       float3 _SunDisc, _MoonDisc;
       float _LineWidth, _DepthThresh, _NormalThresh, _AlbedoEdges, _ShadowEdges, _Wobble, _Boil;
-      float _Toon, _HatchOn, _HatchSpacing, _Highlight, _Clouds, _Grain, _Proj11;
+      float _Toon, _HatchOn, _HatchSpacing, _Highlight, _Clouds, _Grain, _Proj11, _AO;
       float _SkyBands, _HazeBands, _Aerial, _LineVary, _SkyFlat, _SkyDots, _Cumulus;
       float4 _Subject;      // the player on screen: uv, view depth, radius
       float4 _Planet0, _PlanetColor0, _Planet1, _PlanetColor1, _Planet2, _PlanetColor2;
@@ -53,9 +53,9 @@ Shader "Hidden/Hiraeth/Composite"
       float4 _Backdrop;     // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait, post.js uBackdrop)
       float _TargetFlip;   // 1: writing the back buffer itself (HiraethFeature)
       float _Rain, _RainNear, _Rays;   // weather: ink rain 0..1 and the dry radius under a roof; sun rays at a low sun (post.js uRain, uRainNear, uRays)
-      // the web's newer look (post.js): each surface's shade, spot blacks, cast shadows lifted or inked, haze by depth and height
+      // the web's newer look (post.js): each surface's shade, cast shadows darkened, lifted or inked, haze by depth and height
       float3 _SunDir;
-      float _ShadowFlat, _ShadeKeep, _PostLite;
+      float _ShadowFlat, _Crevice, _ShadeKeep, _PostLite;
       float4 _Haze, _Spot, _SpotTone, _HazeLayers, _HazeTone, _HeightFog, _HeightFogTone;
       float2 _Cast, _InkShadow;
       Texture2D _LineNoise; SamplerState sampler_linear_repeat;   // the lines' noise (post.js LINE_NOISE: 128² random texels)
@@ -183,100 +183,41 @@ Shader "Hidden/Hiraeth/Composite"
         float3 r = p.xyz / p.w;
         return r / -r.z * d;
       }
-      // (the crease shading and its crevice ink are gone, as in post.js: issue #322)
-
-      // spot blacks: how enclosed a point is at the scale of a pocket (post.js enclosure): its taps lie on its surface,
-      // along axes tied to the world (level along its contour and straight up it; the world's x on level ground: post.js SPOT_FRAME),
-      // their size swelling with two slow waves across the world (SPOT_SWELL), each projected to the screen; no jitter
-      float2 spotUv(float3 S, float2 rA, float2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
-      // the plane of the surface seen at 'at' (q: normal, view depth) met along the ray r, between lo and hi (post.js planeAlong)
-      // (taken only where the ray meets it within lim of where it was seen, m: post.js SPOT_PAST.near; 0: anywhere)
-      static float3 spotP = float3(0, 0, 0), spotN = float3(0, 0, 1);   // (the point and its normal: post.js SPOT_PAST.front)
-      static float spotRm = 1.0;
-      float planeNear(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi, float lim)
+      // the crease shading (post.js creaseAO, CREASE, CREASE_TAPS): one golden-angle spiral of 48 taps shared out over the
+      // 2 x 2 quad (12 each, lane = x + 2y in the quad), the same for every quad (no random turn: that drew a grey speckle
+      // crawling in every room, issue #322), each weighing 1 - 0.6 r^2 by how far out it lies; frag averages the four
+      // lanes over the quad (quadMean), so the shading falls off smoothly from a corner
+      float creaseAO(float2 uv, float3 nW, float d, int lane)
       {
-        float3 nQ = mul(toView, q.xyz);
-        float facing = dot(nQ, r);
-        float3 Q = float3(at * rA + rB, -1.0) * q.w;
-        float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, Q) / facing : hi;
-        if (lim > 0.0 && length(r * t - Q) > lim) t = hi;
-        if (dot(spotN, Q - spotP) < 0.75 * spotRm) t = hi;   // (only a surface seen in front of the point's own)
-        return t > lo && t < hi ? t : hi;
-      }
-      float planeAlong(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi) { return planeNear(at, q, r, toView, rA, rB, lo, hi, 0.0); }
-      float enclosure(float2 uv, float3 nW, float d, float R, int taps)
-      {
-        float2 rB = viewPos(float2(0.0, 0.0), 1.0).xy, rA = viewPos(float2(1.0, 1.0), 1.0).xy - rB;
-        float3 P = float3(uv * rA + rB, -1.0) * d;
-        float3x3 toView = transpose((float3x3)_CamWorld);
-        float3 nV = normalize(mul(toView, nW));
-        float k = _Proj11 * 0.5 * _Res.y;
-        float Rm = clamp(R * k / d, 4.0, 96.0) * d / k;
-        float3 n = normalize(nW);
-        float3 wall = float3(n.z, 0.0, -n.x) * ((n.z < 0.0 ? -1.0 : 1.0) * rsqrt(max(n.x * n.x + n.z * n.z, 1e-8)));
-        float3 lvl = float3(1.0 - n.x * n.x, -n.x * n.y, -n.x * n.z) * rsqrt(max(1.0 - n.x * n.x, 1e-8));
-        float3 t1 = normalize(lerp(wall, lvl, smoothstep(0.995, 0.9995, abs(n.y))));
-        float3 t2 = cross(n, t1);
-        float3 Pw = mul(_CamWorld, float4(P, 1.0)).xyz / (R * 0.8);
-        float swell = 0.5 + 0.25 * (sin(dot(Pw, float3(5.215, 2.576, 2.325))) + sin(dot(Pw, float3(-2.502, 4.573, 6.817))));
-        Rm *= lerp(0.6, 1.4, swell);
-        t1 = mul(toView, t1) * Rm; t2 = mul(toView, t2) * Rm;
-        spotP = P; spotN = nV; spotRm = Rm;
-        float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
-        int n8 = taps == 8 ? 8 : 4;
-        // (what makes a pocket, post.js SPOT_POCKET: only what stands at the point's height or over it closes it in, but
-        // under a face turned down; on the ground, opposite taps both)
-        float ground = smoothstep(0.6, 0.8, n.y), under = smoothstep(0.6, 0.8, -n.y);
-        float tc[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-        // (each tap read where it is used, not all eight kept for the loop: the arrays held ~56 registers live across the
-        // pass, and the composite ran at 168 VGPRs, 6 waves a SIMD on the Deck's RADV; a tap on a person reads the others
-        // again, a rare path: the same reads, the same numbers)
-        for (int i = 0; i < n8; i++)
-        {
-          float ai = 0.39 + i * 6.2832 / n8, rri = (i % 2) ? 0.55 : 1.0;
-          float3 oI = (cos(ai) * t1 + sin(ai) * t2) * rri;
-          float2 tuvI = spotUv(P + oI, rA, rB);
-          float own = -(P.z + oI.z);   // (the tap's place on the point's own surface, as a view depth: post.js SPOT_RANGE)
-          float4 tqI = tN(tuvI);
-          float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);
-          float sd = tqI.w;
-          // (a tap on a person stands for what they hide: the surfaces seen two and four times as far out and the
-          // other taps' surfaces, as planes met along its ray, the nearest between the person and the point's own
-          // surface, else that surface: post.js spotBehind)
-          if (tpI < 0.5)
-          {
-            float a = ai, rr = rri;
-            float3 o = (cos(a) * t1 + sin(a) * t2) * rr, r = float3(tuvI * rA + rB, -1.0);
-            float lo = sd;
-            sd = -(P.z + o.z);
-            float2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
-            if (step(fmod(tH(p2).a, 8.0), 1.5) > 0.5) sd = planeNear(p2, tN(p2), r, toView, rA, rB, lo, sd, 1.0 * Rm);
-            if (step(fmod(tH(p4).a, 8.0), 1.5) > 0.5) sd = planeNear(p4, tN(p4), r, toView, rA, rB, lo, sd, 1.0 * Rm);
-            for (int j = 0; j < n8; j++)
-            {
-              float aj = 0.39 + j * 6.2832 / n8, rrj = (j % 2) ? 0.55 : 1.0;
-              float2 tuvJ = spotUv(P + (cos(aj) * t1 + sin(aj) * t2) * rrj, rA, rB);
-              if (step(fmod(tH(tuvJ).a, 8.0), 1.5) > 0.5) sd = planeNear(tuvJ, tN(tuvJ), r, toView, rA, rB, lo, sd, 1.5 * Rm);
-            }
-            // (and to either side of its place, along the other axis: where three planes meet, the others could all miss
-            // the one the person hides: post.js SPOT_PAST.side)
-            float3 op = (-sin(a) * t1 + cos(a) * t2) * rr * 1.5;
-            float2 s1 = spotUv(P + o + op, rA, rB), s2 = spotUv(P + o - op, rA, rB);
-            if (step(fmod(tH(s1).a, 8.0), 1.5) > 0.5) sd = planeNear(s1, tN(s1), r, toView, rA, rB, lo, sd, 2.0 * Rm);
-            if (step(fmod(tH(s2).a, 8.0), 1.5) > 0.5) sd = planeNear(s2, tN(s2), r, toView, rA, rB, lo, sd, 2.0 * Rm);
-          }
-          if (sd <= 0.0) continue;   // (the sky: open)
-          float3 v = float3(tuvI * rA + rB, -1.0) * sd - P;
+        float3 P = viewPos(uv, d);
+        float3 nV = normalize(mul(transpose((float3x3)_CamWorld), nW));
+        float R = 1.3;
+        float rpx = clamp(R * _Proj11 * 0.5 * _Res.y / d, 3.0, 48.0);
+        float ao = 0.0, seen = 0.0;
+        for (int i = 0; i < 12; i++) {
+          float k = float(i * 4 + lane);
+          float a = 0.4 + k * 2.39996;
+          float rn = sqrt((k + 0.5) / 48.0), w = 1.0 - 0.6 * rn * rn;
+          float2 suv = uv + float2(cos(a), sin(a)) * rn * rpx * _Res.zw;
+          float sd = tN(suv).w;
+          if (sd <= 0.0) { seen += w; continue; }   // (the sky: open)
+          float3 v = viewPos(suv, sd) - P;
           float dist = length(v);
-          float dy = mul((float3x3)_CamWorld, v).y;
-          // (what stands well in front of the tap's own place is a thing before the surface, not a side of its pocket: post.js SPOT_RANGE)
-          tc[i] = smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist)) * (1.0 - smoothstep(2.5 * Rm, 4.0 * Rm, own - sd)) * lerp(smoothstep(-0.3, -0.05, dy), 1.0, under) * lerp(1.0, tpI, ground);   // (on the ground a tap on a person is open)
+          float cc = max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
+          // (grass blades close nothing in; a tap on a person isn't counted at all, open or closed: post.js notPerson)
+          float t = fmod(tH(suv).a, 16.0), np = step(fmod(t, 8.0), 1.5);
+          ao += cc * step(t, 7.5) * np * w; seen += np * w;
         }
-        for (int j3 = 0; j3 < n8; j3++) occ += tc[j3];
-        float pair = 0.0;
-        for (int k = 0; k < n8 / 2; k++) pair += min(tc[k], tc[k + n8 / 2]);
-        return lerp(occ / n8, pair / (n8 / 2), ground);
+        return saturate(ao / max(seen, 0.6) * 2.2);
       }
+      // the mean of v over the pixel's 2 x 2 quad, from its derivatives (post.js quadMean): uniform control flow only
+      float quadMean(float v, float2 pos)
+      {
+        float2 q = fmod(floor(pos), 2.0);
+        float h = v + 0.5 * (q.x < 0.5 ? 1.0 : -1.0) * ddx(v);
+        return h + 0.5 * (q.y < 0.5 ? 1.0 : -1.0) * ddy(h);
+      }
+      // (the spot blacks' enclosure that was here is gone, as in post.js: issue #322)
       // the haze in layers by distance (x) and the fog by height along the ray (y): post.js hazeAt
       float2 hazeAt(float d, float3 rd)
       {
@@ -516,6 +457,14 @@ Shader "Hidden/Hiraeth/Composite"
         float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
         float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
         float depth = isSky ? 1e7 : N.w;
+        // the crease shading's occlusion (3b), here where the control flow is uniform: its quad's mean takes derivatives
+        float creaseOcc = 0.0;
+        if (_AO > 0.0)
+        {
+          float2 lq = fmod(floor(i.pos.xy), 2.0);
+          if (!isSky && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) creaseOcc = creaseAO(uv, N.xyz, depth, int(lq.x + 2.0 * lq.y));
+          creaseOcc = quadMean(creaseOcc, i.pos.xy);
+        }
         float3 rd = viewRay(uv);
         float3 camZ = _CamWorld._m02_m12_m22;
         float toRange = 1.0 / max(dot(rd, -camZ), 0.2);
@@ -683,6 +632,13 @@ Shader "Hidden/Hiraeth/Composite"
           float drawnK = lerp(lerp(0.6, 0.86, 1.0 - lit), 0.88, hero);
           col = lerp(col, _Ink, (saturate(H.b) * drawnK + saturate(H.b - 1.0) * (0.92 - drawnK)) * (1.0 - smoothstep(120.0, 600.0, depth)));
           if (hFade > 0.0) col = lerp(col, _Ink, saturate(max(H.r, H.g)) * hFade * 0.55);
+          // ---- 3b. crease shading (not between grass blades, nor on a face)
+          if (_AO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) {
+            float ao = creaseOcc * (1.0 - smoothstep(80.0, 260.0, depth)) * _AO * (1.0 - emitHere);
+            col = lerp(col, col * _ShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
+            ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
+            col = lerp(col, _Ink * 1.15, smoothstep(0.72, 0.97, ao) * _Crevice * (1.0 - L * 0.5) * innerK);
+          }
           // ---- 3b'. weathered walls: the dust splashed up the foot of the wall (one probe down to the ground)
           if (wearW > 0.5 && depth < 220.0 && abs(N.y) < 0.5) {
             const float bandH = 0.62;
@@ -715,16 +671,13 @@ Shader "Hidden/Hiraeth/Composite"
               col = lerp(col, col * float3(0.82, 0.78, 0.73), wearP * 0.88 * (1.0 - smoothstep(150.0, 220.0, depth)));
             }
           }
-          // ---- 3c. spot blacks: a shaded pocket filled with the world's darkest tone; cast shadows toward it
+          // ---- 3c. cast shadows toward the world's darkest tone (post.js 3c; the spot blacks' pockets are gone: issue #322)
           #if defined(HIRAETH_INK_SPOT)
-          if (_Spot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
+          if (_Spot.x > 0.0 && _Spot.w > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
             float3 spotC = _SpotTone.rgb * lerp(float3(1, 1, 1), clamp(albedo * 2.2, 0.0, 1.6), _SpotTone.a);
             float k = _Spot.x * spotMat * (1.0 - _Night * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - _Flatten) * (1.0 - lit);
-            float encl = enclosure(uv, N.xyz, depth, _Spot.y, _PostLite > 0.5 ? 4 : 8);
-            float spot = smoothstep(_Spot.z - 0.03, _Spot.z + 0.03, encl) * (1.0 - shadeLift);
             float castK = smoothstep(0.05, 0.2, dot(N.xyz, _SunDir)) * (1.0 - shadeLift) * _Spot.w;
             col = lerp(col, spotC, castK * k);
-            col = lerp(col, spotC, spot * k);
           }
           // ---- 3d. ink shadows: a cast shadow printed as one flat mass of the spot tone (post.js uInkShadow)
           #endif

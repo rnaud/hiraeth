@@ -23,9 +23,9 @@ export function maskOf({ pixels, channels, width, height }, pick) {
   return { data, w: width, h: height };
 }
 
-/** Debug 9 (post.js: 1 - enclosure, white open): how closed in, 1 dark. */
+/** Debug 9 (post.js: 1 - the crease shading's occlusion, white open; the spot blacks' enclosure until v1.73): how closed in, 1 dark. */
 export const enclosurePick = (r) => 1 - r / 255;
-/** Debug 10 (post.js: vec4(cast, spot, 0.2)): the spot mask where the spot tier ran (blue 0.2), 0 elsewhere. */
+/** Debug 10 (post.js: vec4(cast, spot, 0.2)): the spot mask where the spot tier ran (blue 0.2), 0 elsewhere (since v1.73 the spot is always 0: the spot blacks are gone). */
 export const spotPick = (r, g, b) => (Math.abs(b - 51) <= 3 ? g / 255 : 0);
 /** Debug 5 (the light term, white lit). */
 export const lightPick = (r) => r / 255;

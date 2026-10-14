@@ -73,7 +73,7 @@ test('the toon threshold cuts the steepened lit fraction near its half, whatever
 test("the spot tier's cast-shadow darkening follows the shade's antialiased edge, not a hard step at its middle", async () => {
   const { createPost } = await import('../src/post.js');
   const src = createPost().scene.children[0].material.fragmentShader;
-  assert.ok(src.includes('uSpot.x > 0.0 && lit < 0.99'), 'the branch takes the edge band in');
+  assert.ok(src.includes('uSpot.x > 0.0 && uSpot.w > 0.0 && lit < 0.99'), 'the branch takes the edge band in');
   assert.ok(/\* \(1\.0 - uFlatten\) \* \(1\.0 - lit\);/.test(src), 'its strength fades with the light across the edge');
   assert.ok(!src.includes('uSpot.x > 0.0 && lit < 0.5'));
 });

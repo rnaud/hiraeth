@@ -40,6 +40,9 @@ export const CHANGELOG = [
     // the Deck's two shortcuts told apart (scripts/steam-deck/deck.py UNITY_NAME, UNITY_ART, UNITY_ICON;
     // scripts/steam-art.mjs unity; docs/steam-deck.md "The Unity preview"; the old install: --remove-old-install)
     'On the Steam Deck the Unity version is now called “Hiraeth (Unity)” in Steam and in the desktop menu, with its own icon and library pictures marked UNITY, so you can tell it apart from Hiraeth at a glance. It changes with the next update, while Steam is closed; a name or icon you gave it yourself stays.',
+    // the spot blacks gone, the crease shading back without its grain (issue #322's second look): src/post.js CREASE,
+    // CREASE_TAPS, quadMean; Composite.shader; tests/occlusion-taps.test.js; docs/systems/rendering.md
+    'The dark, ragged patches stuck along the corners of rooms (where the ceiling meets the wall in the Desert’s shop, under the arch of your bunk in the ship, at the foot of walls in caves) are gone, and the soft shading that settles into corners, under counters and along the foot of walls is back, now smooth, with no grainy speckle crawling as you move.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

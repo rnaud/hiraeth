@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { QUALITY_PRESETS, resolveQuality, detectHandheld, adaptScale, engineLabel } from '../src/perf.js';
 
-const FIELDS = ['label', 'scale', 'dynamic', 'shadow', 'nearExtent', 'nearEvery', 'farEvery', 'taps', 'cloudShadows', 'lowDetail', 'crowdFar', 'crowdMid', 'propFar', 'propPx', 'postLite'];
+const FIELDS = ['label', 'scale', 'dynamic', 'shadow', 'nearExtent', 'nearEvery', 'farEvery', 'taps', 'ao', 'cloudShadows', 'lowDetail', 'crowdFar', 'crowdMid', 'propFar', 'propPx', 'postLite'];
 
 test('every preset is a complete recipe', () => {
   for (const [name, p] of Object.entries(QUALITY_PRESETS)) {
@@ -17,7 +17,7 @@ test('every preset is a complete recipe', () => {
   }
 });
 
-test('the handheld preset is the cheap one: lower resolution held by dynamic resolution, fewer and smaller shadow maps, fewer people and props, lighter ink', () => {
+test('the handheld preset is the cheap one: lower resolution held by dynamic resolution, fewer and smaller shadow maps, no AO, fewer people and props, lighter ink', () => {
   const H = QUALITY_PRESETS.handheld, M = QUALITY_PRESETS.medium;
   assert.ok(H.scale < M.scale);
   assert.ok(H.dynamic && H.dynamic.low >= 30 && H.dynamic.high <= 60, 'aims between 30 and 60 fps');
@@ -27,6 +27,7 @@ test('the handheld preset is the cheap one: lower resolution held by dynamic res
   assert.ok(maps(H).length < maps(M).length, 'fewer cascades');
   assert.ok(maps(H).reduce((s, n) => s + n * n, 0) <= maps(M).reduce((s, n) => s + n * n, 0) / 3 + 1, 'a third of the shadow texels');
   assert.ok(H.farEvery > M.farEvery, 'the far cascade refreshes less often');
+  assert.equal(H.ao, false);
   assert.equal(H.taps, 4);
   assert.ok(H.crowdFar > 0 && H.crowdFar < 420 && H.crowdMid < 65);
   assert.ok(H.propFar < M.propFar && H.propPx > M.propPx);

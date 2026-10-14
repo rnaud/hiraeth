@@ -31,7 +31,7 @@ import { gameById } from '../minigames/index.js';   // (none in node's tests: th
 //  fewer, lighter spot blacks and a finer line, so the towers' machinery in the middle distance stops reading as a
 //  black mass where the sheets keep it airy)
 export const MARKET_HAZE = { uHazeLayers: [48, 1.65, 0.13, 6], uHazeTone: [0.93, 0.92, 0.86, 0.7] };
-export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.75, uWobble: 0.1, uSpot: [0.55, 3, 0.36, 0.12], ...MARKET_HAZE };
+export const MARKET_LOOK = { uHatch: 0.18, uLineWidth: 0.75, uWobble: 0.1, uSpot: [0.55, 3, 0.36, 0.12], uCrevice: 0.4, ...MARKET_HAZE };
 /** The day's colours: aqua sky, a pale horizon, teal shade, warm light. */
 export const MARKET_DAY = ['#a4d7d1', '#e1e6c6', '#6e94ac', '#fff1cf', '#ffe1ae'];   // (v0.95: the shade a bluer teal, the sheets')
 /** How flat the walls' shade is printed in the street's teal (makeMaterial shadeFlat: a pink wall's turned side goes blue, as the sheets print it, not brown). */

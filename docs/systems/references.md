@@ -350,6 +350,10 @@ and bird too).
 
 ## Spot blacks: a third tier of value (post.js `uSpot`, `uSpotTone`)
 
+(Since v1.73 the pockets' spot blacks are gone, issue #322: their masses' torn, wobbly edges along every room's corners
+were the author's "botched dark patterns". What is left is the cast shadows' darkening toward `uSpotTone` (`uSpot.w`);
+the crease shading's soft tone does the pockets. docs/systems/rendering.md, "Crease shading back, spot blacks gone".)
+
 The sheets shade in three values, not two: the lit colour, the shadow (about ×0.55–0.7 of it) and
 spot blacks, near-black masses (dark brown, olive or indigo, never pure black) with a hard edge,
 filling the enclosed pockets: between ribs and pipes, into a hull or a machine's interior, the

@@ -1316,6 +1316,7 @@ const world = { wind: level.features.wind };
 const fBeauty = gui.addFolder('Beauty');
 fBeauty.add(quality, 'renderScale', { '1× (fast)': 1, '1.5× (smooth)': 1.5, '2× (print)': 2 }).name('antialiasing').onChange(() => resize());
 fBeauty.add(U.uLineVary, 'value', 0, 1, 0.05).name('line weight variation');
+fBeauty.add(U.uAO, 'value', 0, 1, 0.05).name('crease shading');
 fBeauty.add(sharedUniforms.uFormHatch, 'value', 0, 1, 1).name('hatching follows form');
 fBeauty.add(U.uSkyBands, 'value', 0, 1, 0.05).name('sky bands');
 fBeauty.add(U.uHazeBands, 'value', 0, 1, 0.05).name('haze layers');
@@ -1344,16 +1345,17 @@ gui.close();   // collapsed by default; click the title to open
 
 // ------------------------------------------------------------------ settings, touch
 // The graphics preset (perf.js QUALITY_PRESETS, resolveQuality): render scale and dynamic
-// resolution, shadow map sizes and refresh rates, PCF taps, cloud shadows,
+// resolution, shadow map sizes and refresh rates, PCF taps, crease shading, cloud shadows,
 // NPC detail and crowd range, how far small props are drawn, the lighter ink pass.
 let lastQuality = settings.quality;
-const baseCloudSh = sharedUniforms.uCloudShadows.value;
+const baseAO = U.uAO.value, baseCloudSh = sharedUniforms.uCloudShadows.value;
 const crowdRange = crowd ? { ...crowd.range } : null;
 const adapt = { slow: 0, fast: 0, hold: 0, dropped: false };
 // low detail: the preset's, or a desktop Auto once it has had to drop resolution
 const lowDetail = () => preset.lowDetail || ((preset.key === 'auto' || preset.key === 'xbox') && adapt.dropped);
 function applyDetail() {
   const low = lowDetail();
+  U.uAO.value = preset.ao && !low ? baseAO : 0;
   sharedUniforms.uCloudShadows.value = preset.cloudShadows && !low ? baseCloudSh : 0;
   sharedUniforms.uShadowTaps.value = preset.taps;
   U.uPostLite.value = preset.postLite ? 1 : 0;

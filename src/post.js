@@ -35,8 +35,8 @@ export const DEBUG_VIEWS = {
   'Ink lines only': 6,
   'Hatch strokes': 7,
   'Drawn detail (faces, glyphs)': 8,
-  'Spot blacks: how enclosed': 9,
-  'Spot blacks: cast / spot masks': 10,
+  'Crease shading': 9,
+  'Cast shadows darkened (uSpot.w)': 10,
   'Lines by material: owner / step / ink': 11,
   'Cast shadows: could lift / lifted / inked': 12,
   "Lines' noise: wobble x, y / pressure": 13,
@@ -51,114 +51,24 @@ export const DEBUG_VIEWS = {
 export const FACE_SHADE = { tone: 'vec3(1.13, 0.93, 0.8)', warm: '0.72', night: '0.6' };
 
 /**
- * The spot blacks' screen-space taps (enclosure), as constants (the shader used to work out a cos
- * and a sin for every tap of every pixel): n fixed directions from 0.39 rad, every other one at
- * 0.55 of the radius. tests/occlusion-taps.test.js.
+ * The crease shading (creaseAO): a small screen-space ambient occlusion, `taps` taps within `radius` metres of the
+ * point, scaled on screen by its depth, then averaged over the pixel's 2 × 2 quad (`quadMean`: each pixel of the quad
+ * takes its own quarter of one 4 × `taps` spiral, CREASE_TAPS[lane], so the mean has seen all of them). No random
+ * turn: every quad asks the same places, so the shading is a smooth function of where a pixel lies, no grain, nothing
+ * that crawls as the camera moves (until v1.73 the spiral was turned by a per-pixel random angle: a grey speckle along
+ * every wall's foot, issue #322); and 48 taps in all, not 8 or 12, so an edge in front of a surface leaves a smooth
+ * falloff, not a row of faint copies of itself. The spiral is a golden-angle one from `turn` rad, √-spaced out to the
+ * radius; each tap weighs 1 − `falloff` × r² (r its distance out, 0..1). The share of the taps that close the point in
+ * (occlusionShare), × `gain`; `minSeen` the least weight it is a share of (a point whose taps all fall on people).
+ * tests/occlusion-taps.test.js.
  */
-export const OCCLUSION_TAPS = {
-  spot: (n) => Array.from({ length: n }, (_, i) => { const a = 0.39 + (i * 6.2832) / n, r = i % 2 ? 0.55 : 1; return [Math.cos(a) * r, Math.sin(a) * r]; }),
-};
-/**
- * The spot blacks' taps lie on the surface, in its tangent plane, along axes tied to the world (enclosure): the
- * first axis is level, along the surface's contour, and the second runs straight up (or down) it, so every wall,
- * riser and terrace face, whichever way it looks, asks the same places (as many below as above); only on level
- * ground, where a contour has no direction, the first is the world's x axis laid on the surface (blended in over
- * |n.y| from `blend[0]` to `blend[1]`: slopes under 6°). The tap patterns are the same turned half a turn
- * (SPOT_TAPS8, SPOT_TAPS4: tap i and tap i + n/2 are opposite), so an axis's sign doesn't matter. The one place the
- * frame jumps (a field of contours can't close smoothly over the top of a hill) is inside that blend, on slopes
- * of 2-6° facing along x, where nothing makes a pocket. tests/occlusion-taps.test.js.
- */
-export const SPOT_FRAME = { blend: [0.995, 0.9995] };
-/**
- * The spot taps' slow swell: their radius × `range[0]`…`range[1]`, by two sine waves across the world (`waves`:
- * their directions × 2π, over a length of `scale` × R), the same at a point whatever the view (enclosure).
- */
-export const SPOT_SWELL = { range: [0.6, 1.4], scale: 0.8, waves: [[5.215, 2.576, 2.325], [-2.502, 4.573, 6.817]] };
-/** The swell at world point p ([x, y, z]) for a pocket of R metres, as the shader works it out (0..1). */
-export function spotSwell(p, R) {
-  const q = p.map((x) => x / (R * SPOT_SWELL.scale));
-  return 0.5 + 0.25 * (Math.sin(_dot(q, SPOT_SWELL.waves[0])) + Math.sin(_dot(q, SPOT_SWELL.waves[1])));
-}
-const _cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const _dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const _unit = (a) => { const l = Math.max(Math.hypot(...a), 1e-4); return a.map((x) => x / l); };
-/** The tangent axes [t1, t2] of a unit world normal n, as the shader builds them (enclosure's spotFrame). */
-export function spotFrame(n) {
-  const [lo, hi] = SPOT_FRAME.blend;
-  const wall = _unit(_cross([0, 1, 0], n));                                  // level, along the face
-  const flat = _unit([1 - n[0] * n[0], -n[0] * n[1], -n[0] * n[2]]);         // x laid on the surface
-  const s = _dot(wall, flat) < 0 ? -1 : 1;
-  const t = Math.min(1, Math.max(0, (Math.abs(n[1]) - lo) / (hi - lo))), w = t * t * (3 - 2 * t);
-  const t1 = _unit(wall.map((x, i) => x * s * (1 - w) + flat[i] * w));
-  return [t1, _cross(n, t1)];
-}
-/**
- * What a spot tap's ray meets behind a person standing on it (mirrors post.js enclosure's spotLoop and
- * planeAlong): `own` is the view depth of the point's own surface along the ray (the tap's place on it, P + o),
- * `person` the person's depth there, `ray` the ray at view depth 1 ([x, y, -1]), `planes` the surfaces seen round
- * it ({ n: view-space normal, p: a view-space point on it, lim: how far from p it may be met, m }). The nearest plane met between the person and `own`,
- * else `own` (the point's own surface goes on behind them: open).
- */
-export function spotBehind(own, person, ray, planes, front = null) {
-  let sd = own;
-  for (const { n, p, lim } of planes) {
-    // (front: { P, n, reach }, the point and its normal: a plane seen behind the point's own surface is not taken)
-    if (front && _dot(front.n, p.map((x, i) => x - front.P[i])) < SPOT_PAST.front * front.reach) continue;
-    const facing = _dot(n, ray);
-    if (!(facing < 0)) continue;
-    const t = _dot(n, p) / facing;
-    // (lim: met no further than this from where the plane was seen, m: SPOT_PAST.near × the pocket's radius)
-    if (lim > 0 && Math.hypot(ray[0] * t - p[0], ray[1] * t - p[1], ray[2] * t - p[2]) > lim) continue;
-    if (t > person && t < sd) sd = t;
-  }
-  return sd;
-}
-
-/**
- * The spot blacks' loop over n taps (post.js enclosure), as GLSL. A first pass reads every tap (its pixel, normal
- * and depth, and whether a person stands there); a tap on a person then asks what the person hides (spotBehind):
- * the surfaces seen two and four times as far out along its offset, to either side of its place (SPOT_PAST.side) and
- * every other tap's surface, each taken as a plane and met along the hidden tap's own ray near where it was seen (SPOT_PAST.near); the nearest in front of the point's own surface (P + o) and behind
- * the person is what the tap sees, else the point's own surface (open).
- */
-/**
- * What a hidden tap may take for what a person hides (visual audit v1.21, findings 3 and 4; issue #28): where three planes
- * meet (two walls and the floor, a corner's foot), the planes seen two and four times as far out and the other taps' could
- * all miss the one the person hides, and the tap read open: a small pale notch beside him in the corner's dark band. So
- * two more looks past him, `side` × the tap's offset to either side of its place, along the other axis; and each plane
- * is only taken where the hidden tap's ray meets it within `near` × the pocket's radius of where it was seen (`past`
- * for the looks along the tap's own way, `side` for the looks to the side, `taps` for the other taps): a plane carried
- * far beyond where it was seen (a wall met past a wide hem) closed the floor in where nothing stands.
- */
-export const SPOT_PAST = { side: 1.5, near: { past: 1, side: 2, taps: 1.5 }, front: 0.75 };
-// front (the author's Shadow Room view, October 2026): a plane is only taken if it was seen in front of the point's own
-// surface by this × the pocket's radius. The house's north face, seen behind its narrow west end, carried on past the
-// corner behind the traveller, filled that end face with spot black in his shape; a room corner's other wall, seen in
-// front of the point, is taken as before.
-/**
- * What makes a pocket (the author, October 2026: "it makes sense under the roof or at the top, but this is at the
- * bottom on the floor"). A wall standing on open ground stands in front of the ground's face for half the taps, and
- * the ground in front of the wall's foot: every wall's foot, every riser (the steps below it stand in front of it)
- * and every room's floor corner was filled with the spot black, a band along the bottom of each building that slid
- * as the camera moved. So what closes a point in must stand at its height or over it, a cover and not a footing
- * (`below`: m under the point over which a tap's surface stops counting), except on a face turned down (`under`:
- * -n.y, a ramp: an eave's underside, a ceiling, closed in by the wall it meets below it); and on the ground (`up`:
- * n.y, a ramp) a pocket must close in from opposite sides (tap i and tap i + n/2: the patterns are their own half
- * turn), as an alley between two walls or a cave's floor does, not along one wall. Walls keep the share of their
- * taps: a recess between ribs, the wall under a balcony. spotShare is the same in JS.
- */
-/**
- * What stands well in front of a surface is no side of a pocket in it (visual audit v1.21 finding 1, v1.66 findings 1-2;
- * issue #301): the Lorn temple hall's crystal on its ring 3 m before the wall, the rocks by the Underwater City's ramp
- * before the floor and the walls far behind them. A tap landing on the near thing counted it as closing in the surface
- * behind it, a halo of spot black round its outline as wide as the taps' reach, which slid over the far surface as the
- * camera turned (the outline moves across it, the thing doesn't). So a tap's surface counts only up to `gap[0]` × the
- * taps' radius (the pocket's radius on screen, Rm) in front of the tap's own place on the point's surface (its view depth
- * along the same ray), fading out by `gap[1]` ×. A pocket's sides rise from the surface within that reach (an alley's
- * walls, a balcony over a wall, a riser's step); a thing standing farther out is open. tests/occlusion-taps.test.js.
- */
-export const SPOT_RANGE = { gap: [2.5, 4] };
-export const SPOT_POCKET = { up: [0.6, 0.8], under: [0.6, 0.8], below: [-0.3, -0.05] };
+export const CREASE = { radius: 1.3, taps: 12, lanes: 4, turn: 0.4, falloff: 0.6, gain: 2.2, minSeen: 0.6 };
+/** The quad's four lanes' taps: lane l (0..3: x + 2y in the quad) takes taps l, l + 4, l + 8… of the whole spiral. */
+export const CREASE_TAPS = Array.from({ length: CREASE.lanes }, (_, l) => Array.from({ length: CREASE.taps }, (_, i) => {
+  const k = i * CREASE.lanes + l, n = CREASE.taps * CREASE.lanes;
+  const a = CREASE.turn + k * 2.39996, r = Math.sqrt((k + 0.5) / n);
+  return [Math.cos(a) * r, Math.sin(a) * r, 1 - CREASE.falloff * r * r];
+}));
 /**
  * The dust band at a weathered wall's foot (3b') finds the ground with one probe down the screen; where that lands on
  * a person standing before the wall (the author, October 2026: "still seeing my character's outline on the building,
@@ -166,72 +76,22 @@ export const SPOT_POCKET = { up: [0.6, 0.8], under: [0.6, 0.8], below: [-0.3, -0
  * of the frame's height, to the ground at their feet.
  */
 export const DUST_PAST = { steps: 8, minStep: 0.04 };
-const _ss = ([a, b], x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 /**
- * The enclosure from its taps (mirrors post.js spotLoop): c, how much each tap closes the point in (0..1, in the
- * pattern's order: tap i and tap i + n/2 opposite); dy, how far above the point (world m) the surface each tap
- * sees stands; ny, the point's normal's y; person, which taps land on a person (on the ground those are open).
+ * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js creaseAO): taps =
+ * [{ c (0..1, how much this one closes in), person, w (its weight, CREASE_TAPS' z; 1 if not said) }]. A tap on a
+ * person is left out (neither open nor closed: the person hides what stands behind); none left: 0 (open).
  */
-export function spotShare(c, dy, ny, person = []) {
-  const ground = _ss(SPOT_POCKET.up, ny), under = _ss(SPOT_POCKET.under, -ny), n = c.length;
-  const k = c.map((v, i) => v * (under + (1 - under) * _ss(SPOT_POCKET.below, dy[i])) * (person[i] ? 1 - ground : 1));
-  let any = 0, pair = 0;
-  for (let i = 0; i < n; i++) any += k[i];
-  for (let i = 0; i < n / 2; i++) pair += Math.min(k[i], k[i + n / 2]);
-  return any / n + (pair / (n / 2) - any / n) * ground;
-}
-const spotLoop = (n) => `{
-      vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}]; float tc[${n}];
-      float ground = smoothstep(${SPOT_POCKET.up[0].toFixed(2)}, ${SPOT_POCKET.up[1].toFixed(2)}, n.y), under = smoothstep(${SPOT_POCKET.under[0].toFixed(2)}, ${SPOT_POCKET.under[1].toFixed(2)}, -n.y);
-      for (int i = 0; i < ${n}; i++) { tuv[i] = spotUv(P + SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, rA, rB); tq[i] = texture(tNormal, tuv[i]); tp[i] = notStanding(tuv[i], self); }
-      float occ = 0.0;
-      for (int i = 0; i < ${n}; i++) {
-        float sd = tq[i].w;
-        if (tp[i] < 0.5) {   // (on a person: what they hide)
-          vec3 o = SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, r = vec3(tuv[i] * rA + rB, -1.0);
-          float lo = sd;
-          sd = -(P.z + o.z);
-          vec2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
-          if (notStanding(p2, self) > 0.5) sd = planeNear(p2, texture(tNormal, p2), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.past.toFixed(2)});
-          if (notStanding(p4, self) > 0.5) sd = planeNear(p4, texture(tNormal, p4), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.past.toFixed(2)});
-          for (int j = 0; j < ${n}; j++) if (tp[j] > 0.5) sd = planeNear(tuv[j], tq[j], r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.taps.toFixed(2)});
-          ${SPOT_PAST.side ? `{ vec3 op = (-SPOT_TAPS${n}[i].y * t1 + SPOT_TAPS${n}[i].x * t2) * ${SPOT_PAST.side.toFixed(2)};
-            vec2 s1 = spotUv(P + o + op, rA, rB), s2 = spotUv(P + o - op, rA, rB);
-            if (notStanding(s1, self) > 0.5) sd = planeNear(s1, texture(tNormal, s1), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.side.toFixed(2)});
-            if (notStanding(s2, self) > 0.5) sd = planeNear(s2, texture(tNormal, s2), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.side.toFixed(2)}); }` : ''}
-        }
-        // (a footing closes nothing in, only what stands at the point's height or over it, but under a face turned down:
-        //  SPOT_POCKET; the height of what the tap sees, in the world, from its view-space offset)
-        vec3 tv = vec3(tuv[i] * rA + rB, -1.0) * sd - P;
-        float dy = uCamWorld[0].y * tv.x + uCamWorld[1].y * tv.y + uCamWorld[2].y * tv.z;
-        // (and on the ground a tap on a person is open: a person never makes a pocket of open ground; what the look past
-        //  them guesses there, a wall's plane carried on past its end behind them, drew a dark copy of the traveller on
-        //  the shaded ground beside a wall's end in the Shadow Room)
-        // (and what stands well in front of the tap's own place is no pocket's side but a thing before it: SPOT_RANGE)
-        tc[i] = spotTapAt(tuv[i], sd, -(P.z + SPOT_TAPS${n}[i].x * t1.z + SPOT_TAPS${n}[i].y * t2.z), P, nV, rA, rB, r1, r2) * mix(smoothstep(${SPOT_POCKET.below[0].toFixed(2)}, ${SPOT_POCKET.below[1].toFixed(2)}, dy), 1.0, under) * mix(1.0, tp[i], ground);
-      }
-      for (int i = 0; i < ${n}; i++) occ += tc[i];
-      // (on the ground, a pocket closes in from opposite sides: tap i and tap i + n/2)
-      float pair = 0.0;
-      for (int i = 0; i < ${n / 2}; i++) pair += min(tc[i], tc[i + ${n / 2}]);
-      return mix(occ / ${n}.0, pair / ${n / 2}.0, ground);
-    }`;
-
-/**
- * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js enclosure, the spot
- * blacks'): taps = [{ c (0..1, how much this one closes in), person }]. A tap on a person is left out (neither
- * open nor closed: the person hides what stands behind); none left: 0 (open).
- */
-export function occlusionShare(taps) {
+export function occlusionShare(taps, minSeen = 1) {
   let occ = 0, seen = 0;
-  for (const t of taps) if (!t.person) { occ += t.c; seen++; }
-  return occ / Math.max(seen, 1);
+  for (const t of taps) if (!t.person) { const w = t.w ?? 1; occ += t.c * w; seen += w; }
+  return occ / Math.max(seen, minSeen);
 }
 
 /** A GLSL vec3 literal. */
 export const glslVec3 = ([x, y, z]) => `vec3(${x.toFixed(4)}, ${y.toFixed(4)}, ${z.toFixed(4)})`;
 /** A GLSL constant array of vec2s. */
 export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = vec2[${list.length}](${list.map(([x, y]) => `vec2(${x.toFixed(7)}, ${y.toFixed(7)})`).join(', ')});`;
+export const glslVec3s = (name, list) => `const vec3 ${name}[${list.length}] = vec3[${list.length}](${list.map(([x, y, z]) => `vec3(${x.toFixed(7)}, ${y.toFixed(7)}, ${z.toFixed(7)})`).join(', ')});`;
 
 /**
  * Haze in layers by depth and fog by height (4b; docs/systems/rendering.md, "Haze by depth and height").
@@ -324,10 +184,10 @@ export function inkMass(ndl, ny, L, lit, [ground, other]) {
 /** A vec4 uniform's component, whether its value is an array or a THREE.Vector4. */
 const comp = (u, i) => { const v = u?.value; return v == null ? 0 : Array.isArray(v) ? v[i] ?? 0 : [v.x, v.y, v.z, v.w][i] ?? 0; };
 /**
- * The sky's and the spot blacks' parts, compiled in only where a world's look uses them (docs/systems/performance.md,
+ * The sky's parts and the cast shadows' darkening, compiled in only where a world's look uses them (docs/systems/performance.md,
  * "The ink pass"): each is decided inside by its uniform, so leaving it out where that is 0 changes nothing, and once
  * compiled in it stays (INK_STICKY: a zone or a preset turning it off again doesn't recompile). On the Xbox's D3D
- * compiler the eclipse, space and the planets were 4.6 of the pass's 10.8 s, the spot blacks' enclosure 2 s.
+ * compiler the eclipse, space and the planets were 4.6 of the pass's 10.8 s, the spot blacks' enclosure (gone since v1.73) 2 s.
  */
 export const INK_STICKY = ['INK_ECLIPSE', 'INK_SPACE', 'INK_PLANETS', 'INK_SKYDOTS', 'INK_CUMULUS', 'INK_SPOT', 'INK_LANTERN'];
 /** The composite's optional parts, as defines, from the uniforms the look set: the haze (4b) and the cast shadows (2). */
@@ -340,13 +200,13 @@ export function inkFeatures(U) {
   if (comp(U.uLantern, 3) > 0) f.INK_LANTERN = '';   // (the Lantern's light, from the seventh world on: src/story/lantern-sky.js)
   if (U.uSkyDots && U.uSkyDots.value > 0) f.INK_SKYDOTS = '';
   if (U.uCumulus && U.uCumulus.value > 0) f.INK_CUMULUS = '';
-  if (comp(U.uSpot, 0) > 0) f.INK_SPOT = '';
+  if (comp(U.uSpot, 0) > 0 && comp(U.uSpot, 3) > 0) f.INK_SPOT = '';   // (the cast shadows' darkening: the spot blacks are gone)
   if (U.uHazeLayers.value[3] > 0) f.INK_LAYERS = '';
   if (U.uHeightFog.value[3] > 0) f.INK_HFOG = '';
   if (f.INK_LAYERS !== undefined || f.INK_HFOG !== undefined) f.INK_HAZE = '';
   if (U.uCast.value[0] > 0 || U.uCast.value[1] > 0) f.INK_CAST = '';
   if (U.uInkShadow.value[0] > 0 || U.uInkShadow.value[1] > 0) f.INK_SHADOW = '';
-  if (U.uPostLite && U.uPostLite.value > 0.5) f.INK_LITE = '';   // (the handheld's one-kernel lines, 4 spot taps)
+  if (U.uPostLite && U.uPostLite.value > 0.5) f.INK_LITE = '';   // (the handheld's one-kernel lines)
   if (U.uDebug && U.uDebug.value) f.INK_DEBUG = '';                // (a debug view: ?debug=N, the debug menu)
   return f;
 }
@@ -461,6 +321,7 @@ const fragmentShader = /* glsl */ `
   uniform float uClouds;
   uniform int uDebug;
   uniform float uProj11;      // projection[1][1] = 1 / tan(fov / 2)
+  uniform float uAO;          // crease shading + ink accents
   uniform float uSkyBands;    // posterised sky gradient
   uniform float uHazeBands;   // distance haze in flat layers
   uniform float uRays;        // sun rays at low sun
@@ -510,12 +371,13 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uSpaceSun;
   uniform vec4 uSpaceNight;
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
+  uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
   uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
   uniform vec4 uHaze;             // the far ground's haze colour, a = how much (0: the sky's horizon)
   uniform float uShadeKeep;       // how much of its own hue a shade keeps where its material doesn't say (materials.js SHADE)
-  // spot blacks (SPOT): x how much (0 off), y the pocket's size (m), z how enclosed a shaded point must be
-  // to go black (0..1), w how far cast shadows darken toward the spot tone (0..1); the tone: rgb, a how much
-  // of the surface's own colour it keeps
+  // the darkest tone's tier (SPOT): x how much (0 off), w how far cast shadows darken toward the tone (0..1); y and z
+  // were the spot blacks' pocket size and threshold, unused since they went (v1.73, issue #322: blotchy dark patches
+  // with torn edges along every room's corners); the tone: rgb, a how much of the surface's own colour it keeps
   uniform vec4 uSpot;
   uniform vec4 uSpotTone;
   // haze in layers by depth, fog by height (HAZE, 4b)
@@ -654,18 +516,17 @@ const fragmentShader = /* glsl */ `
     return vec4(dEdge, nEdge, aEdge, sEdge);
   }
 
-  // A pixel's point in view space, from its depth (the spot blacks' taps).
-  // (The crease shading that was here, a small screen-space ambient occlusion with the deepest crevices filled with ink,
-  // is gone: per-pixel noise in every room, artifacts as you walked round the desert's shop; issue #322.)
+  // ---------------------------------------------------------------- crease shading
+  // Small screen-space ambient occlusion from the depth/normal buffer: where
+  // nearby geometry closes in (building bases, crevices, under canopies) the
+  // inker adds darker tone and a few accent strokes.
   vec3 viewPos(vec2 uv, float d) {
     vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
     vec3 r = p.xyz / p.w;
     return r / -r.z * d;
   }
-  ${glslVec2s('SPOT_TAPS8', OCCLUSION_TAPS.spot(8))}
-  ${glslVec2s('SPOT_TAPS4', OCCLUSION_TAPS.spot(4))}
   // 0 where a tap lands on a person (gHatch.a: glow + 2 hero + 4 figure + 8 soft + 16 face + 32 drift): people
-  // stand in front of a wall or the ground, they don't make a pocket of it (the spot blacks and the crease
+  // stand in front of a wall or the ground, they don't make a pocket of it (the spot blacks, gone since, and the crease
   // shading drew a dark ragged halo round a climber on his wall and blobs round people's feet that slid as you
   // turned). Such a tap is left out of the share altogether (occlusionShare): counted as open, it drew the
   // reverse, pale copies of a person in the dark masses behind them (a white "shadow" of Marrow on the shaded
@@ -674,77 +535,43 @@ const fragmentShader = /* glsl */ `
   // the same for a mover (gHatch.a + 64: a foe, the drone; materials.js MOVER): seen past like a person, unless the
   // point itself is on one (self = 1: its own pockets are its own)
   float notStanding(vec2 suv, float self) { float a = texture(tHatch, suv).a; return step(mod(a, 8.0), 1.5) * max(step(a, 63.5), self); }
-
-  // ---------------------------------------------------------------- spot blacks
-  // How enclosed a point is, at the scale of a pocket (R metres): the share of its neighbours standing in front
-  // of its face. The neighbours are looked for at fixed points round it ON ITS SURFACE, in a frame tied to the
-  // world (SPOT_FRAME: level and up the face on a wall, the world's x on level ground), each projected
-  // to the screen where the depth buffer says what stands there. Taps fixed on the screen (before) put every
-  // tap offset's copy of an edge in a different place on the surface as the view turned: on stepped geometry
-  // (the tree's stairs, a terrace's face, a room's corners) the masses came in blocks that slid and changed
-  // shape with every camera move, worst with the handheld's 4 taps. Anchored to the surface, a point asks
-  // the same places whatever the view (the masses stay put; only what the depth buffer can see changes), and
-  // the estimate is still smooth from pixel to pixel (no jitter: a hard threshold of it is a clean-edged mass).
-  // The radius is R metres, kept between 4 and 96 pixels on the screen as before. A person never counts
-  // (notPerson: a tap landing on one stands for what they hide, spotBehind: a person in front of a dark area
-  // leaves it as dark as without them, no pale ghost and no dark copy). taps: 8, or 4 (handheld). The in-plane
-  // offsets are constants (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a perspective camera: ray(uv) = (uv * rA + rB, -1),
-  // so a view-space point S is at uv = (S.xy / -S.z - rB) / rA), and a tap on the sky weighs 0 instead of a
-  // skip (docs/systems/performance.md, docs/systems/rendering.md "Spot blacks anchored to the surface").
-  vec2 spotUv(vec3 S, vec2 rA, vec2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
-  float spotReach = 1.0;   // (the enclosure's tap radius this pixel, m)
-  // (own: the view depth of the tap's place on the point's own surface; what the tap sees more than SPOT_RANGE.gap × the
-  //  taps' radius in front of it is a thing standing before the surface, not a side of its pocket: open)
-  float spotTapAt(vec2 suv, float sd, float own, vec3 P, vec3 nV, vec2 rA, vec2 rB, float r1, float r2) {
-    vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
-    float dist = length(v);
-    return step(0.0, sd) * sign(sd)   // (the sky: open)
-      * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist))
-      * (1.0 - smoothstep(${SPOT_RANGE.gap[0].toFixed(2)} * spotReach, ${SPOT_RANGE.gap[1].toFixed(2)} * spotReach, own - sd));
+  // The taps (CREASE_TAPS: a golden-angle spiral shared out over the 2 x 2 quad, the same for every quad, no random
+  // turn) weigh less the further out they lie (CREASE.falloff); the quad's mean (quadMean, in main) has seen all 48, so
+  // the shading falls off smoothly from a corner: no grain, nothing that crawls as the camera moves, no row of an
+  // edge's copies (the per-pixel random turn it had drew a grey speckle in every room: issue #322).
+  ${CREASE_TAPS.map((t, l) => glslVec3s(`CREASE_TAPS${l}`, t)).join('\n  ')}
+  float creaseAO(vec2 uv, vec3 nW, float d, float self, int lane) {
+    vec3 P = viewPos(uv, d);
+    vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
+    float R = ${CREASE.radius.toFixed(2)};
+    float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 3.0, 48.0);
+    float ao = 0.0, seen = 0.0;
+    for (int i = 0; i < ${CREASE.taps}; i++) {
+      vec3 tap = lane == 0 ? CREASE_TAPS0[i] : lane == 1 ? CREASE_TAPS1[i] : lane == 2 ? CREASE_TAPS2[i] : CREASE_TAPS3[i];   // (x, y: the offset in the radius; z: its weight)
+      vec2 suv = uv + tap.xy * rpx / uRes;
+      float sd = texture(tNormal, suv).w;
+      vec3 v = viewPos(suv, sd) - P;
+      float dist = length(v);
+      float c = step(0.0, sd) * sign(sd)   // (not the sky)
+        * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
+      // (grass blades close nothing in: no grey speckle round them)
+      // (nor does a person: no grey halo round a climber on his wall, round people's feet)
+      // (and a tap on a person isn't counted at all, open or closed: the share is of the taps that saw what
+      // stands behind, so a person in front of a recess leaves no pale ghost of themselves in its shading)
+      // (the flags only read for a tap that would close something in, or that stands nearer than the point:
+      // a person hiding what is behind them is nearer; most other taps skip the read, docs/systems/performance.md)
+      float np = 1.0;
+      if (c > 0.0 || (sd > 0.0 && sd < d)) { float a = texture(tHatch, suv).a, t = mod(a, 16.0); np = step(mod(t, 8.0), 1.5) * max(step(a, 63.5), self); c *= step(t, 7.5) * np; }
+      ao += c * tap.z; seen += np * tap.z;
+    }
+    return clamp(ao / max(seen, ${CREASE.minSeen.toFixed(2)}) * ${CREASE.gain.toFixed(2)}, 0.0, 1.0);
   }
-  // what a tap's ray meets behind a person standing on it (spotBehind): the plane of the surface seen at pixel
-  // 'at' (q: its normal and view depth) met along the ray r (view space, z = -1), as a view depth; hi where it
-  // doesn't meet it between lo (the person) and hi
-  vec3 spotP = vec3(0.0), spotN = vec3(0.0, 0.0, 1.0);   // (the point and its normal, view space: SPOT_PAST.front)
-  float planeNear(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi, float lim) {
-    vec3 nQ = toView * q.xyz;
-    float facing = dot(nQ, r);
-    vec3 Q = vec3(at * rA + rB, -1.0) * q.w;
-    float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, Q) / facing : hi;
-    if (lim > 0.0 && length(r * t - Q) > lim * spotReach) t = hi;
-    // (only a surface seen in front of the point's own: one seen behind it, round a convex edge, carried on past the
-    //  edge stood in front of the point where nothing does: SPOT_PAST.front)
-    if (dot(spotN, Q - spotP) < ${SPOT_PAST.front.toFixed(3)} * spotReach) t = hi;
-    return t > lo && t < hi ? t : hi;
-  }
-  float planeAlong(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi) { return planeNear(at, q, r, toView, rA, rB, lo, hi, 0.0); }
-  float enclosure(vec2 uv, vec3 nW, float d, float R, int taps, float self) {
-    vec2 rB = viewPos(vec2(0.0), 1.0).xy, rA = viewPos(vec2(1.0), 1.0).xy - rB;
-    vec3 P = vec3(uv * rA + rB, -1.0) * d;
-    mat3 toView = transpose(mat3(uCamWorld));
-    vec3 nV = normalize(toView * nW);
-    float k = uProj11 * 0.5 * uRes.y;
-    float Rm = clamp(R * k / d, 4.0, 96.0) * d / k;
-    // the surface's own axes, tied to the world (SPOT_FRAME: level and up a wall, x on level ground, blended
-    // between), in view space, R metres long (4 to 96 px on screen)
-    // (level along a wall: cross(up, n) = (n.z, 0, -n.x); x laid on the ground: x - n n.x; their dot is n.z, so
-    // the wall's axis is turned to agree with the ground's before they blend)
-    vec3 n = normalize(nW);
-    vec3 wall = vec3(n.z, 0.0, -n.x) * ((n.z < 0.0 ? -1.0 : 1.0) * inversesqrt(max(n.x * n.x + n.z * n.z, 1e-8)));
-    vec3 level = vec3(1.0 - n.x * n.x, -n.x * n.y, -n.x * n.z) * inversesqrt(max(1.0 - n.x * n.x, 1e-8));
-    vec3 t1 = normalize(mix(wall, level, smoothstep(${SPOT_FRAME.blend[0].toFixed(4)}, ${SPOT_FRAME.blend[1].toFixed(4)}, abs(n.y))));
-    vec3 t2 = cross(n, t1);
-    // the pattern's size breathes with two slow waves across the world (SPOT_SWELL): the same at a point whatever
-    // the view, continuous over a surface, so the edge a tap's copy of a rib or a jamb draws waves with it instead
-    // of stacking into rectangular blocks with its neighbours' (the directions stay: a riser keeps its taps below)
-    vec3 Pw = (uCamWorld * vec4(P, 1.0)).xyz / (R * ${SPOT_SWELL.scale.toFixed(2)});
-    float swell = 0.5 + 0.25 * (sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[0])})) + sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[1])})));
-    Rm *= mix(${SPOT_SWELL.range[0].toFixed(2)}, ${SPOT_SWELL.range[1].toFixed(2)}, swell);
-    t1 = toView * t1 * Rm; t2 = toView * t2 * Rm;
-    spotReach = Rm; spotP = P; spotN = nV;
-    float r1 = R * 1.5, r2 = R * 3.0;
-    if (taps == 8) ${spotLoop(8)}
-    ${spotLoop(4)}
+  // The mean of v over the pixel's 2 x 2 quad, from its derivatives (the left / bottom pixel of a pair adds its
+  // difference to the other, the right / top one takes it off): called in uniform control flow only.
+  float quadMean(float v) {
+    vec2 q = mod(floor(gl_FragCoord.xy), 2.0);
+    float h = v + 0.5 * (q.x < 0.5 ? 1.0 : -1.0) * dFdx(v);
+    return h + 0.5 * (q.y < 0.5 ? 1.0 : -1.0) * dFdy(h);
   }
 
   // ---------------------------------------------------------------- haze by depth and height (4b)
@@ -1168,6 +995,14 @@ const fragmentShader = /* glsl */ `
     float heroNear = max(hero, max(max(hm.x, hm.y), max(hm.z, hm.w)));
     float heroBoundary = heroNear - min(hero, min(min(hm.x, hm.y), min(hm.z, hm.w)));
     float depth = isSky ? 1e7 : N.w;
+    // the crease shading's occlusion (3b), here where the control flow is uniform: its mean over the 2 x 2 quad
+    // (quadMean) takes derivatives (not between grass blades: they'd go grey; a face's sockets are hatched instead)
+    float creaseOcc = 0.0;
+    if (uAO > 0.0) {
+      vec2 lq = mod(floor(gl_FragCoord.xy), 2.0);
+      if (!isSky && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) creaseOcc = creaseAO(uv, N.xyz, depth, mover, int(lq.x + 2.0 * lq.y));
+      creaseOcc = quadMean(creaseOcc);
+    }
     vec3 rd = viewRay(uv);
     // view depth to distance from the eye (the fog, the haze: by distance, so they stay put as the view turns)
     float toRange = 1.0 / max(dot(rd, -uCamWorld[2].xyz), 0.2);
@@ -1192,7 +1027,7 @@ const fragmentShader = /* glsl */ `
     if (DEBUG_VIEW(3)) { fragColor = vec4(isSky ? vec3(0.0) : N.rgb * 0.5 + 0.5, 1.0); return; }
     if (DEBUG_VIEW(4)) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
     if (DEBUG_VIEW(5)) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
-    if (DEBUG_VIEW(9)) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8, mover)), 1.0); return; }   // spot blacks: how enclosed
+    if (DEBUG_VIEW(9)) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - creaseOcc), 1.0); return; }   // the crease shading's occlusion
     // (the strokes and the detail with their packed steps taken off, above)
     if (DEBUG_VIEW(8)) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - surface.b), 1.0); return; }
     if (DEBUG_VIEW(7)) { vec3 H = isSky ? vec3(0.0) : surface.rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
@@ -1435,6 +1270,15 @@ const fragmentShader = /* glsl */ `
         col = mix(col, uInk, max(h1, h2) * hFade * 0.55);
       }
 
+      // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
+      if (uAO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) {   // (not between grass blades: they'd go grey; a face's sockets are hatched instead)
+        float ao = creaseOcc * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
+        col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
+        ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
+        // the deepest crevices (between ribs, into a hull's machinery) filled solid, as an inker does
+        col = mix(col, uInk * 1.15, smoothstep(0.72, 0.97, ao) * uCrevice * (1.0 - L * 0.5) * innerK);
+      }
+
       // ---- 3b'. weathered walls: a flat band of darker dust splashed up the foot of the wall, its top a
       // little ragged. Found from the G-buffer: a probe the band's height below this pixel (on screen) that
       // lands on the ground (facing up) less than the band's height under it (in the world). One tap.
@@ -1477,23 +1321,20 @@ const fragmentShader = /* glsl */ `
         }
       }
 
-      // ---- 3c. spot blacks: the third tier of value. A shaded point enclosed at the scale of a pocket
-      // (between ribs or pipes, into a hull, a city's recesses) is filled with a near-black mass of the
-      // world's darkest tone, hard-edged; cast shadows darken toward it (uSpot.w). Never on a face, a
-      // person, grass or a light; never in the light (the sheets keep their lit areas clean). It follows the
-      // shade's own antialiased edge (1 - lit): switched on at lit < 0.5 it cut a hard, unfiltered step into
+      // ---- 3c. the darkest tone's tier: cast shadows (facing the sun, yet dark) darken toward the world's darkest
+      // tone (uSpot.w), keeping their strokes. Never on a face, a person, grass or a light; never in the light. It
+      // follows the shade's own antialiased edge (1 - lit): switched on at lit < 0.5 it cut a hard, unfiltered step into
       // the darkened cast shadows' edges, a staircase that crawled as the camera moved.
+      // (The spot blacks that were here, every shaded pocket enclosed at the scale of R metres filled with a hard-edged
+      // near-black mass, are gone: blotches with torn, wobbly edges along every room's wall-ceiling corner and under
+      // every arch, the author's "botched dark patterns", issue #322. The crease shading's soft tone does the pockets.)
       #ifdef INK_SPOT
-      if (uSpot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
+      if (uSpot.x > 0.0 && uSpot.w > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
         vec3 spotC = uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a);
         float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten) * (1.0 - lit);
-        float encl = enclosure(uv, N.xyz, depth, uSpot.y, POST_LITE ? 4 : 8, mover);
-        float spot = smoothstep(uSpot.z - 0.03, uSpot.z + 0.03, encl) * (1.0 - shadeLift);
-        // in cast shadow (facing the sun, yet dark): toward the spot tone, keeping its strokes
         float castK = smoothstep(0.05, 0.2, dot(N.xyz, uSunDir)) * (1.0 - shadeLift) * uSpot.w;
         col = mix(col, spotC, castK * k);
-        col = mix(col, spotC, spot * k);
-        if (DEBUG_VIEW(10)) { fragColor = vec4(castK * k, spot * k, 0.2, 1.0); return; }   // spot blacks: the cast (red) and spot (green) masks
+        if (DEBUG_VIEW(10)) { fragColor = vec4(castK * k, 0.0, 0.2, 1.0); return; }   // the cast shadows' darkening (red)
       }
       #endif
 
@@ -1671,6 +1512,7 @@ export function createPost() {
     uFlatten: { value: 0 },
     uFogMul: { value: 1 },
     uProj11: { value: 1 },
+    uAO: { value: 1 },
     uSkyBands: { value: 0.7 },
     uHazeBands: { value: 0.6 },
     uRays: { value: 1 },
@@ -1722,6 +1564,7 @@ export function createPost() {
     uHalftone: sharedUniforms.uHalftone,
     uBounce: sharedUniforms.uBounce,
     uShadeKeep: sharedUniforms.uShadeKeep,
+    uCrevice: { value: 0 },
     uShadowFlat: { value: 0 },
     uHaze: { value: [1, 1, 1, 0] },
     uSpot: { value: [0, 2.5, 0.5, 0] },
@@ -1886,7 +1729,7 @@ export const PRESETS = {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
@@ -1894,7 +1737,7 @@ export const PRESETS = {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
@@ -1905,8 +1748,8 @@ export const PRESETS = {
     uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
     // the shade in three tones: a form turned from the sun a half-tone, faces turned down lifted by
     // the ground's light, cast shadows the full tint; shades keep some of their own hue
-    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
-    // a third tier of value: spot blacks in the shaded pockets, cast shadows a little deeper
+    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    // a third tier of value: cast shadows a little deeper
     uSpot: [1, 3, 0.3, 0.2], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
@@ -1915,7 +1758,7 @@ export const PRESETS = {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
@@ -1923,7 +1766,7 @@ export const PRESETS = {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
@@ -1931,14 +1774,14 @@ export const PRESETS = {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
 };

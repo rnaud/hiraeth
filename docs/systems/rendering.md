@@ -150,14 +150,13 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - the default is 1× on Retina screens, which are already dense.
 - **Hatching that follows form:** on slopes the strokes become height
   contours, and on smooth objects the cross-hatch wraps round them as rings.
-- **Crease shading: gone (v1.71, issue #322).** A small screen-space ambient occlusion (eight taps turned by a
-  per-pixel hash) darkened building bases, crevices and canopy undersides, added ink accents and, on the print
-  preset, filled the deepest crevices solid (`uCrevice`). The author: "It adds too much noise in all rooms. In the
-  desert shop as I'm walking around I'm seeing artifacts everywhere": a grey grain along every wall's foot, under
-  counters and benches, round pots, crawling as the camera moved. It is taken out of the pipeline, not turned down:
-  no taps, no `uAO` or `uCrevice` uniform, no preset, world or graphics setting asking for it (`ao` left the quality
-  presets), in the web composite and the Unity bridge's (`Composite.shader`, `HiraethLook.cs`). The spot blacks
-  (their own, anchored taps) are the dark pockets now. `tests/occlusion-taps.test.js` holds it gone.
+- **Crease shading:**
+  - small screen-space ambient occlusion from the depth and normal buffers;
+  - it darkens building bases, crevices and canopy undersides, and adds ink
+    accents where geometry closes in;
+  - smooth and still: its taps are the same for every 2 × 2 quad and averaged
+    over it (post.js `CREASE`, `quadMean`; "Crease shading back, spot blacks
+    gone", below).
 - **Skies:**
   - posterised gradient bands and sun rays at low sun;
   - per-level planets: toon-lit, cratered, hatched on the night side, with
@@ -567,6 +566,9 @@ Keeper in its ring) were clean, and so are the studio, the items' gallery and th
 
 ## Spot blacks anchored to the surface; cave seams (October 2026)
 
+(The spot blacks are gone since v1.73, issue #322: "Crease shading back, spot blacks gone", at the end. The cave seams'
+fix below stands.)
+
 The playtest: on the tree's stairs and the terraces the spot blacks came in blocks that shifted as the camera
 moved, worst on Handheld's 4 taps; and "shadow artifacts in caves and interiors". Looked at in headless Chrome
 (the light term, debug 5; the spot masks, debug 10) in the desert's two caves, the ship's deck, the City-Shaft's
@@ -609,6 +611,8 @@ villas, temple halls (the Signal Market's, the Buried Machine's) and the Machine
   The Unity port's Composite.shader takes the same estimate (and the look past a person it lacked).
 
 ## Spot blacks only in pockets; the shadow QC's phantom casters (October 2026, v1.59)
+
+(The spot blacks are gone since v1.73, issue #322; the shadow QC's fix below stands.)
 
 The author: "botchy shadows and shadows that move while the camera is moving", "the issues started when I said I wanted
 deeper darks", and of a near-black band at a Qanat house's foot, "it makes sense under the roof or at the top, but this
@@ -669,6 +673,9 @@ on the desert's light term, and the visual probes over Qanat and the desert's ca
   The Unity port's Composite.shader takes the same rule.
 
 ## No spot-black halo round a thing standing before a surface (`SPOT_RANGE`; issue #301, v1.72)
+
+(The spot blacks, and `SPOT_RANGE` with them, are gone since v1.73, issue #322: "Crease shading back, spot blacks gone",
+at the end. The orbit probe's and the bench views' fixes below stand.)
 
 The visual audit at v1.66 (findings 1-2, v1.21's finding 1 still open): a jagged halo of spot black round the Lorn
 temple hall's crystal on its ring against the far wall (orbit p95 0.60 at High), round the rocks and the stone figure
@@ -878,7 +885,8 @@ three things sat on the screen while the world slid under them.
 
 0 final, 1 raw, 2 albedo, 3 normals, 4 depth, 5 light term (the line step taken off), 6 ink only, 7 hatch
 strokes and 8 drawn detail (their packed steps taken off, so a shaded or spotted surface no longer reads as
-solid black), 9 spot blacks' enclosure, 10 the spot tier's cast and spot masks, 11 lines by material, 12 cast
+solid black), 9 the crease shading's occlusion (the spot blacks' enclosure until v1.73), 10 the cast shadows'
+darkening toward the spot tone (red; green was the spot mask), 11 lines by material, 12 cast
 shadows lifted or inked, 13 the lines' noise (it must turn with the world, never sit on the screen), 14 the
 lines as drawn (blue: after the fog, the haze and the grass's and lights' own fades; the ink-lines audit reads it).
 
@@ -1448,3 +1456,33 @@ Measured (muted headless Chrome, High, 1280 × 720, the camera pinned at six clo
 side: the share of pixels changing by more than a step): the bunk's alcove 3.3 → 1.9 %, the cockpit bulkhead 3.8 →
 2.4 %; the other views (the doorway, the console, the sofa, the main room) 1.4-1.9 % before and after, their ink lines'
 own steps.
+
+## Crease shading back, spot blacks gone (v1.73, issue #322)
+
+The author, after #322 and #325: "I don't like what we did here, we removed the shadows which were helpful, but we kept
+the botched dark patterns which I wanted to remove." His crops: irregular dark patches with torn, wobbly edges under the
+ship's bunk arch and along the desert shop's wall-ceiling corner. Toggled in the running game at those views (muted
+headless Chrome, High, 1280 × 720, the camera pinned): the patches went with the spot blacks' pocket term alone
+(`uSpot.z` past any enclosure, cast-shadow darkening kept), and with nothing else. So:
+
+- **The spot blacks are gone**, web and Unity (`enclosure`, `spotLoop`, `planeNear`, `SPOT_FRAME`, `SPOT_SWELL`,
+  `SPOT_POCKET`, `SPOT_PAST` and their JS mirrors; Composite.shader's `enclosure`). A hard threshold of a screen-space
+  enclosure drew a hard-edged mass wherever a pocket's estimate crossed it, and its edge followed the taps' copies of
+  every edge nearby: torn and wobbly. What is left of the tier is the cast shadows' darkening toward the world's
+  darkest tone (`uSpot.x` × `uSpot.w`, compiled in only where `w` > 0: `INK_SPOT`, `HIRAETH_INK_SPOT`); `uSpot.y` and
+  `.z` are unused. Debug 9 now shows the crease shading's occlusion, 10 the cast darkening.
+- **The crease shading is back** (`creaseAO`, `uAO`, the print's `uCrevice`, the Market's 0.4; `ao` in the graphics
+  presets: on for Auto, High, Medium, the Deck and the Xbox, off on Low and Handheld), its grain fixed. Its eight taps
+  were turned by a per-pixel random angle: a grey speckle along every wall's foot that crawled as the camera moved.
+  Taps fixed on the screen instead (tried first: twelve on one spiral) drew a row of faint copies of every edge in front
+  of a surface (a rail across the ship's ceiling, three or four parallel ghosts). Now (`CREASE`, `CREASE_TAPS`): one
+  golden-angle spiral of 48 taps, shared out over the pixel's 2 × 2 quad (12 each, lane = x + 2y in the quad), each
+  weighing 1 − 0.6 r² by how far out it lies, and the four lanes' results averaged over the quad from the derivatives
+  (`quadMean`, taken at the top of `main` where the control flow is uniform). Every quad asks the same places, so the
+  shading is a smooth function of where a pixel lies: a soft falloff from a corner or under a rail, no speckle, no
+  crawl. The cost is the old one (12 taps a pixel against 8, the spot blacks' 8 and their looks past people gone).
+  The Unity port's Composite.shader takes the same spiral, lanes, weights and quad mean (`ddx`, `ddy`).
+
+Checked against the author's two crops and six more views (the ship's main room, the shop from the door, Qanat's
+tree stairs, the desert's cave, the Buried Machine's crowd, the Signal Market's street): changelog v1.73.
+`tests/occlusion-taps.test.js` holds the crease shading's taps stable and the spot blacks gone.

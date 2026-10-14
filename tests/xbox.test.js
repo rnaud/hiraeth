@@ -120,7 +120,7 @@ test('the Xbox family of prompts on the console, whatever pad id WebView2 report
 test('the Xbox preset: High\'s recipe at the TV\'s resolution with the Deck\'s shadows, adapting; Auto picks it only in the app', () => {
   const x = QUALITY_PRESETS.xbox;
   assert.deepEqual(x.shadow, QUALITY_PRESETS.deck.shadow, 'the Deck\'s shadows: its main thread is the limit (docs/systems/xbox.md)');
-  for (const k of ['cloudShadows', 'taps', 'propFar', 'floraFar', 'floraDensity', 'lowDetail', 'postLite']) assert.deepEqual(x[k], QUALITY_PRESETS.high[k], k);
+  for (const k of ['ao', 'cloudShadows', 'taps', 'propFar', 'floraFar', 'floraDensity', 'lowDetail', 'postLite']) assert.deepEqual(x[k], QUALITY_PRESETS.high[k], k);
   assert.equal(x.scale, 1);
   assert.ok(x.dynamic && x.dynamic.max === 1 && x.dynamic.min < 1);
   assert.equal(resolveQuality('auto', { xbox: true, hiDPI: true }).key, 'xbox');
