@@ -65,7 +65,8 @@ of Spheres' `leaves` canopies at 25 and 80 m), `pack` (three blots and a makers'
 valley), and a busy view in each of the three worlds that joined the route in v1.40, for the frame's ink and the
 shimmer: `uw-avenue` (the Underwater City's avenue), `mf-floor` (the Moon Foundry's floor), `sc-bridges` (the City
 Floating in Space's bridges). The portraits
-are aimed from the head's own skinning (its face, not his heading), the camera kept over the ground; a 1 m portrait
+are aimed from the head's own skinning (its face, not his heading; by the head's own fit, and again at the instant of
+the picture: his idle turns his head while the world settles), the camera kept over the ground; a 1 m portrait
 frames head and shoulders (face ~125 px tall at desk1080), 4 m ~22 px, 10 m ~9 px, 25 m ~3 px. Each picture is shot four ways: the final frame,
 debug 14 (the lines as drawn, after the fog, the haze and the grass's and lights' own fades), the albedo (debug 2) with
 and without the object (its mask, without its shadow), and debug 14 again with the camera half a render pixel to the side.
@@ -78,7 +79,9 @@ and without the object (its mask, without its shadow), and debug 14 again with t
 - **Ink share** (`inkShare`): the ink inside the object's mask grown by the line's reach (2 px × DPR), weighted.
 - **Near-black share** (`darkShare`): the share of the same area under luminance 48 in the final frame: the lines, the
   spot blacks, crevices and black eyes together, as a player sees them.
-- **The eyes** (`eyeMarks`): each eye projected from the head's rest coordinates (`HEAD_INK.eye`, `HEAD_FIT`) to the
+- **The eyes** (`eyeMarks`): each eye projected from the head's rest coordinates (its eyes in the portrait's source space by
+  the head's own fit, `mesh.userData.portraitHeadFit`: `B3_HEAD_FIT` on the B3 body; issue #335, a fit written into the
+  capture put the boxes on his brow) to the
   screen with its drawn opening (half width, half height), a cheek point under it, and the face's height (brow to
   chin). The eye's dark against the cheek (∑ max(0, cheek − L) / cheek over a box 1.4 × the opening and half a pixel):
   over the face's area it is the eye's **share** of the face, which a drawn eye keeps at every size: read as × the

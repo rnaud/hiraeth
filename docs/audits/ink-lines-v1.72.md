@@ -44,6 +44,11 @@ The eye measure on faces of 8-13 px (above); `veg-mid` on Handheld at the near c
 change: `portrait-1` at 1080p 5.00 → 3.75, its left eye's density 0.77 → 1.8-2.0 (over the 1.3 limit) in every run
 here, with the far fade off as with it on (the fade is 0 on a 179 px face): something on main since v1.66 opens or
 darkens his near eye (the talking face of #323, or the arrival's framing of #327, are the changes to his head since).
+**Found since (#335): not his eye but the measure's aim.** Bisected to de4c7e58 (the B3 body): it wears the portrait
+head by its own fit (`B3_HEAD_FIT`: scale 0.280, set 2.3 cm lower), and the capture had the v1 body's fit written
+out, so its eye boxes sat 1.5 cm up, on the brow and the hair over it; the eye is drawn as before. The capture now
+reads the head's fit off the mesh, and aims the portrait again at the instant of the picture (his idle turned his head
+three-quarters in some runs): `portrait-1` at 1080p 5.00, the eyes' density 0.80 and 0.79 (0.80-1.0 over four runs).
 
 ## The measures
 

@@ -151,9 +151,12 @@ const EYES = `(() => {
   if (!mesh) return null;
   const sk = mesh.skeleton, bi = sk.bones.findIndex((b) => b.name === 'Head'); if (bi < 0) return null;
   const M = new THREE.Matrix4().multiplyMatrices(sk.bones[bi].matrixWorld, sk.boneInverses[bi]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld);
-  // PORTRAIT_HEAD (portrait-head.js, the head since v1.6x; was tripo-head.js's HEAD_FIT and head-ink.js's eye): bind =
-  // offset + scale × source; its eyes in source units (each its own x: the portrait's face is not quite symmetric)
-  const S = 0.264, O = [-0.001, 1.510, -0.006], E = { xs: [-0.118, 0.125], y: 0.522, w: 0.056, up: 0.0125, lo: 0.0125, brow: 0.588, chin: 0.134 };
+  // the head's own fit (portrait-head.js makePortraitHead: bind = offset + scale × source; PORTRAIT_HEAD on the v1 body,
+  // B3_HEAD_FIT on the B3 body since v1.68, a bigger head set lower), its eyes in source units (each its own x: the
+  // portrait's face is not quite symmetric). Issue #335: the v1 fit written out here put the B3 head's eye boxes
+  // 1.5 cm up, on the brow and the hair over it: a "dark eye" of 1.8 that was the hair.
+  const F = mesh.userData.portraitHeadFit; if (!F) return null;
+  const S = F.scale, O = F.offset, E = { xs: F.eyes.map((e) => e[0]), y: F.eyes[0][1], w: F.eyeWidth, up: F.eyeHeight / 2, lo: F.eyeHeight / 2, brow: F.browY, chin: F.chinY };
   const pos = mesh.geometry.attributes.position;
   // the skin's front at a source point: the vertex nearest it in x, y with the largest z (the face)
   const front = (sx, sy) => { const bx = O[0] + S * sx, by = O[1] + S * sy; let best = null, bz = -1e9;
@@ -180,17 +183,24 @@ function hideExpr(what, on) {
 }
 
 /** Where to stand and look for a scene: in-page, returns { eye, target, fov, info }. */
-function camExpr(name, sc) {
+// (aimOnly: a portrait's camera put on his face again as he stands at that instant, nothing stepped: his idle turns his
+// head while the world settles, and a face aimed 12 frames earlier could be shot three-quarters, the far eye
+// foreshortened against his hair; issue #335)
+function camExpr(name, sc, aimOnly = false) {
   if (sc.portrait) return `(() => {
     const { THREE, player } = window;
     if (!window.__spot) window.__spot = player.pos.clone();
-    player.teleport?.(window.__spot.clone(), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)); player.pos.copy(window.__spot); player.vel?.set(0, 0, 0); player.heading = 0;
-    for (let i = 0; i < 4; i++) window.__vt.step(1 / 30);
+    if (!${aimOnly}) {
+      player.teleport?.(window.__spot.clone(), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)); player.pos.copy(window.__spot); player.vel?.set(0, 0, 0); player.heading = 0;
+      for (let i = 0; i < 4; i++) window.__vt.step(1 / 30);
+    }
     // the face's middle and the way it looks, from the head's skinning (tripo-head.js face.at / facing)
     let mesh = null; player.object.traverse((o) => { if (o.name === 'TravellerPortraitHead') mesh = o; });
     const sk = mesh.skeleton, bi = sk.bones.findIndex((b) => b.name === 'Head');
     const M = new THREE.Matrix4().multiplyMatrices(sk.bones[bi].matrixWorld, sk.boneInverses[bi]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld);
-    const h = new THREE.Vector3(0, 1.629, 0.06).applyMatrix4(M);   // (the portrait head's face, its eyes' height: PORTRAIT_HEAD)
+    // (the portrait head's face a little under its eyes, source (0, 0.451, 0.25), by the head's own fit: (0, 1.629, 0.06) on the v1 body, a millimetre aside)
+    const F = mesh.userData.portraitHeadFit;
+    const h = new THREE.Vector3(F.offset[0], F.offset[1] + F.scale * 0.4508, F.offset[2] + F.scale * 0.25).applyMatrix4(M);
     const f = new THREE.Vector3(0, 0, 1).transformDirection(M).setY(0).normalize();
     const eye = h.clone().addScaledVector(f, ${sc.d}).add(new THREE.Vector3(0, ${sc.d * 0.03 + 0.02}, 0));
     const gy = window.physics.groundAt(eye.x, eye.y + 30, eye.z, 80);   // (never inside a dune)
@@ -301,6 +311,7 @@ for (const world of WORLDS) {
         await steps(name === 'pack' ? 4 : sc.world === 'temple' ? 90 : 24);   // (the temple's lamps wake as he comes in; the flora's cells, the LODs and the shadows round the new view)
         await ev(camExpr(name, sc));   // (again: the first frames moved people as the world streamed in)
         await steps(8);
+        if (sc.portrait) await ev(camExpr(name, sc, true));
         await debugView(0);
         const finalRaw = await grabRaw(), fin = decodePNG(finalRaw);
         writeFileSync(join(OUT, rk, `${name}.png`), finalRaw);

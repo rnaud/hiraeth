@@ -86,3 +86,16 @@ test('grade: the rubric passes thin lines on a small plant and fails a black one
   assert.equal(grade(eyes(1.4, 0.006), ref).checks.eyeGrowth.verdict, 0);
   assert.equal(grade(eyes(1.4, 0.006), ref).checks.eyeDensity.verdict, 0);
 });
+
+test('the capture finds his eyes by the head\'s own fit, not one written out (#335)', async () => {
+  // (the v1 body's fit written into the capture put the B3 head's eye boxes 1.5 cm up, on the brow and the hair: a
+  // "dark eye" of 1.8 against the 1.3 limit that was the hair; the eye was drawn as before)
+  const { readFileSync } = await import('node:fs');
+  const capture = readFileSync(new URL('../.claude/skills/ink-lines/capture.mjs', import.meta.url), 'utf8');
+  const head = readFileSync(new URL('../src/characters/portrait-head.js', import.meta.url), 'utf8');
+  const b3 = readFileSync(new URL('../src/characters/traveller-b3.js', import.meta.url), 'utf8');
+  assert.match(head, /userData\.portraitHeadFit\s*=\s*fit/, 'makePortraitHead keeps its fit on the mesh');
+  assert.match(b3, /makePortraitHead\([^)]*B3_HEAD_FIT\)/, 'the B3 body wears the head by its own fit');
+  assert.ok((capture.match(/userData\.portraitHeadFit/g) ?? []).length >= 2, 'the eye boxes and the portrait camera read the fit');
+  assert.doesNotMatch(capture, /\b0\.264\b|\b1\.510\b|\b1\.487\b/, 'no head fit written out in the capture');
+});
