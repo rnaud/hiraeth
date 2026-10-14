@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_54f2287f1f9229 7-8
+docs/systems/characters.md
+  s_9ca76055a220ed::t_bc432461ca77da 1508,1517-1577
+public/guardians/elder-v3/rig.json
+  s_9ca76055a220ed::t_b68911ea703dd2 8,12-13,23,25,28
+scripts/bench/elder.mjs
+  s_9ca76055a220ed::t_51a61a9e7c0fd9 1-142
+scripts/tripo/elder-cycles.mjs
+  s_9ca76055a220ed::t_b5492983559d11 1-113
+scripts/tripo/elder-sheets.mjs
+  s_9ca76055a220ed::t_2876ce0ac3fc92 1-103
+src/changelog-media.js
+  s_9ca76055a220ed::t_9b90576f591efc 831-832,835-851
+src/characters/elder-v3-creature.js
+  s_9ca76055a220ed::t_c857088b8d2ccf 8,13-26,28-66,72-77,86-89,95-99,103,110-126,128,130-131,133-150,153-155,159-166,173-176,182-184,186-195,202,204
+src/characters/elder-v3-fit.js
+  s_9ca76055a220ed::t_4fe6715e87708c 24-27,32-33
+src/temples/boss.js
+  s_9ca76055a220ed::t_c729c492040162 7,77-79,643-644,646-656,732-740,1109-1112
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_b2fd33b0b7b66f 1,46-48,121-122
+tests/elder-cycles.test.js
+  s_9ca76055a220ed::t_252e0e0dc78030 1-86
+tools/elder-drive.js
+  s_9ca76055a220ed::t_0ec74ec205f656 1-35
+tools/elder-review.js
+  s_9ca76055a220ed::t_e8561efd71930e 9-10,27,31-32,34-44,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "05ebc9910b79c606ff10436734bf8318d60d6aab",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
