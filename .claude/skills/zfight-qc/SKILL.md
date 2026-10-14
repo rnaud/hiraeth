@@ -35,6 +35,7 @@ paint over a course of stone): it shows.
 
 ```sh
 node scripts/zfight/audit.mjs --worlds desert,arzach --worst 10 [--out report.json]
+node scripts/zfight/audit.mjs --ship              # the ship alone (main.js builds it, not the level): held at none
 node scripts/zfight/list-temple.mjs desert
 ```
 

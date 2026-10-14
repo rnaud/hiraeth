@@ -257,7 +257,8 @@ export function buildInterior(batch, group, o = {}) {
     }
     // (the bulkhead's top follows the cockpit's skin: up the walls, along the shoulders, under the roof)
     const r = innerRing(z).filter((p) => p.y > CEIL), sh = new THREE.Shape();
-    sh.moveTo(-WALL_IN, CEIL); sh.lineTo(WALL_IN, CEIL);
+    // (from 2 cm under the ceiling, inside the walls and the lintel: its underside in the ceiling's plane shimmered, #325)
+    sh.moveTo(-WALL_IN, CEIL - 0.02); sh.lineTo(WALL_IN, CEIL - 0.02);
     for (const p of r) sh.lineTo(p.x, p.y + 0.02);
     sh.closePath();
     batch.add('wall', new THREE.ExtrudeGeometry(sh, { depth: 0.16, bevelEnabled: false }).translate(0, 0, z - 0.08));
@@ -267,7 +268,8 @@ export function buildInterior(batch, group, o = {}) {
   for (const z of [ROOMS.cabin.z0, ROOMS.hold.z0]) {
     for (const s of [-1, 1]) {
       batch.add('wall', box(WALL_IN - DOORWAY.half, CEIL, 0.14, s * (WALL_IN + DOORWAY.half) / 2, DECK, z));
-      batch.add('trim', box(0.1, DOORWAY.h, 0.18, s * (DOORWAY.half + 0.05), DECK, z));
+      // (the jamb's trim 1 cm proud of the wall's end: in its plane, the two shimmered on the jamb; issue #325)
+      batch.add('trim', box(0.1, DOORWAY.h, 0.18, s * (DOORWAY.half + 0.04), DECK, z));
     }
     batch.add('wall', box(DOORWAY.half * 2, CEIL - DOORWAY.h, 0.14, 0, H(DOORWAY.h), z));
     batch.add('trim', box(DOORWAY.half * 2 + 0.2, 0.06, 0.18, 0, H(DOORWAY.h) - 0.03, z));
@@ -402,7 +404,7 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('dark', box(th * 2 + 0.07, 0.06, tl, cx, H(h - 0.06), tz0 + tl / 2));
     batch.add('dark', new THREE.CylinderGeometry(th + 0.035, th + 0.035, 0.06, 20, 1, false, -PI / 2, PI).translate(cx, H(h - 0.03), tailZ));
     batch.add('panel', box(th * 2 - 0.06, 0.006, tl, cx, H(h), tz0 + tl / 2));
-    batch.add('teal', box(th * 2 + 0.024, 0.12, tl, cx, DECK, tz0 + tl / 2));
+    batch.add('teal', box(th * 2 + 0.024, 0.117, tl - 0.004, cx, H(0.003), tz0 + tl / 2));   // (off the deck and its ends inside the locker's: in their planes, #325)
     for (const s of [-1, 1]) for (let k = 0; k < 3; k++) P(box(0.02, h - 0.24, 0.02, cx + s * (th + 0.005), 0.14, tz0 + 0.2 + k * (tl - 0.3) / 2), C.ink);   // its doors
     for (const s of [-1, 1]) P(box(0.03, 0.03, 0.14, cx + s * (th + 0.02), h - 0.2, tz0 + tl / 2), C.steel);
     // instruments along the ring's top: buttons, little tilted screens facing the table, dials
@@ -548,7 +550,9 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('teal', archPanel(ax - 0.012, 0.012, roundedRect(open, 0.5, 0.07), open, 0.5));
     // the cheeks and the hood inside, lined teal
     for (const z of [az0 + 0.05, az1 - 0.05]) batch.add('wall', box(w, CEIL, 0.1, ax + w / 2, DECK, z));
-    batch.add('cream', box(w, CEIL - top, az1 - az0, ax + w / 2, H(top), (az0 + az1) / 2));
+    // (the hood behind the arched front and between the cheeks, under the ceiling: its faces in their planes shimmered
+    // cream against the wall over the opening, issue #325)
+    batch.add('cream', box(w - 0.1, CEIL - top - 0.01, az1 - az0 - 0.18, ax + 0.1 + (w - 0.1) / 2, H(top), (az0 + az1) / 2));
     for (const [z, d] of [[az0 + 0.105, 1], [az1 - 0.105, -1]]) batch.add('teal', box(w - 0.12, top - 0.6, 0.01, ax + 0.06 + w / 2, H(0.58), z + d * 0.0));
     batch.add('teal', box(0.01, 0.6, az1 - az0 - 0.2, WALL_IN - 0.012, H(0.58), (az0 + az1) / 2));
     // the bed
@@ -627,8 +631,8 @@ export function buildInterior(batch, group, o = {}) {
   at(0.6, () => {   // (the back room is 0.6 m further aft)
     const xw = -WALL_IN, sz0 = 2.95, sz1 = 4.45;
     batch.add('wood', box(0.78, 0.3, sz1 - sz0, xw + 0.39, DECK, (sz0 + sz1) / 2));
-    batch.add('cushion', box(0.72, 0.16, sz1 - sz0 - 0.1, xw + 0.42, H(0.3), (sz0 + sz1) / 2));
-    batch.add('cushion', box(0.2, 0.62, sz1 - sz0, xw + 0.1, H(0.3), (sz0 + sz1) / 2));
+    batch.add('cushion', box(0.71, 0.16, sz1 - sz0 - 0.1, xw + 0.415, H(0.3), (sz0 + sz1) / 2));   // (1 cm behind the arms' fronts, #325)
+    batch.add('cushion', box(0.2, 0.62, sz1 - sz0 - 0.02, xw + 0.1, H(0.3), (sz0 + sz1) / 2));   // (its ends inside the arms', #325)
     for (const z of [sz0 + 0.06, sz1 - 0.06]) batch.add('wood', box(0.78, 0.6, 0.12, xw + 0.39, DECK, z));
     batch.add('blanket', box(0.8, 0.05, 0.5, xw + 0.4, H(0.6), sz1 - 0.3).rotateY(0.04));
     batch.add('pillow', box(0.14, 0.4, 0.4, xw + 0.25, H(0.46), sz0 + 0.4).rotateY(0.3));

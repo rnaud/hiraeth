@@ -135,6 +135,9 @@ export const CHANGELOG = [
     // the camera aboard (issue #324): src/player.js CameraRig.climb (BODY_CLEAR, CLIMB.max 0.95), heroCut / BODY_CUT,
     // SHORT_LOOK; materials.js uHeroCut / uCutWith; the camera QC's ship-walk; docs/systems/movement-and-camera.md
     'Walking around your ship, the camera no longer climbs up over the traveller and stares down through his head when a wall is close behind him: it stays behind him at shoulder height, and when it has to come right in against him he is left out of the picture for that moment instead of being seen from the inside.',
+    // the ship's rooms still (issue #325): src/ship/model.js SHIP_ROOM_HATCH (a flat tone in shade), src/ship/interior.js
+    // (12 z-fight sites -> 0), scripts/zfight/audit.mjs --ship; docs/systems/rendering.md "The ship's rooms, shimmering"
+    'The rooms of your ship no longer shimmer as you walk through them: walls, ceiling, floor and furniture are a flat colour in shade instead of fine hatching that crawled, and the places where two surfaces flickered through each other (the panel over the bunk’s arch, the doorways’ frames, the console, the sofa) are fixed.',
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

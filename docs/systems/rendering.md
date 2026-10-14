@@ -1381,3 +1381,25 @@ on every preset (drawn 88–93 %, spill 12–17 %, gap 0–4 cm). The reds are t
 High at 35° (10.7 %), the far props, arch and stair pops on High at 12°, the far props on the Deck at 12° (with 2.8 %
 of casters off screen, a quick turn by the boards), the balcony on Handheld at 35° (23 %), his spill by the poles and
 1.2 % off screen on the stair on Handheld at 12°.
+
+## The ship's rooms, shimmering (v1.71, issue #325)
+
+The author: "I see a lot of textures shimmering in my ship." Two causes, both fixed where they start:
+
+- **Hatching in a room that is always in shade.** The rooms are inside the hull's shadow, so every wall, the ceiling,
+  the floor and the furniture carried the print preset's hatching, strokes 2-4 px apart close up (`uHatchSpacing` 3.6
+  × 0.78 near the eye, then the powers of two of `strokes`): right at `HATCH_AA`'s edge, crawling and beating under the
+  pixels as you walked. The rooms' materials (`src/ship/model.js` `INTERIOR`) already had a little self-light "to keep
+  them from going to hatching"; it never did. Their shade is a flat tone now (`hatch: SHIP_ROOM_HATCH`, 0); the hull
+  outside keeps its strokes.
+- **Z-fighting aboard.** The ship is built by main.js, not by a level, so the z-fight audit never saw it:
+  `node scripts/zfight/audit.mjs --ship` builds it alone. 12 sites, 7 m² → none: the bunk alcove's hood in the arched
+  front's plane and between its cheeks (the white patches over the opening), the doorways' trims in their jambs, the
+  console's kick band under its locker, the sofa's cushions in its arms, the cockpit bulkhead's underside in the
+  ceiling. `tests/zfight.test.js` holds the ship at none.
+- The crease shading's grain (issue #322, above) was the third, in every room.
+
+Measured (muted headless Chrome, High, 1280 × 720, the camera pinned at six close views aboard, then moved 2 mm to the
+side: the share of pixels changing by more than a step): the bunk's alcove 3.3 → 1.9 %, the cockpit bulkhead 3.8 →
+2.4 %; the other views (the doorway, the console, the sofa, the main room) 1.4-1.9 % before and after, their ink lines'
+own steps.

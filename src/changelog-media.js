@@ -803,6 +803,7 @@ const ITEMS329 = 'Issues #329, #330 and #328: muted headless Chrome (Medium, 128
 const KEEPER320 = 'headless Chrome (muted, High, 1280 × 720), the Rose House’s cistern by ?guardianReview=keeper, the game stepped 1/60 s a frame, locked on the Keeper and strafing round it with a fake Xbox pad, 20 s in; before: the tree at 0220f777; 14 October; cwebp -q 72';
 const CREASE322 = 'Issue #322: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6322) and the tree before it (90f776a5), the camera pinned in Qanat’s shop in the desert, the traveller by the counter (14 October)';
 const CAM324 = 'Issue #324: the camera QC’s ship-walk (muted headless Chrome, Medium, 1280 × 720, the game stepped 1/60 s a frame) on this branch and on the tree before it (90f776a5), the same moment of the walk held (SHOT_AT): the stick held toward the camera, his back coming to a wall (14 October)';
+const SHIP325 = 'Issue #325: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 6322) and the tree before it (90f776a5, so the before has the crease shading too, issue #322), the camera pinned at close views aboard the parked ship in the desert (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [
@@ -847,6 +848,20 @@ export const CHANGELOG_MEDIA = {
         { where: 'him off the screen', before: 1.6, after: 0.2 },
         { where: 'the view steeper than 0.9 rad (over his head)', before: 23.3, after: 0.9 },
       ], source: 'node .claude/skills/camera-qc/run.mjs <out> --only ship-walk (red before, green after)' },
+    ] },
+    { match: 'The rooms of your ship no longer shimmer', shots: [
+      { name: 'ship-alcove', title: 'Over the bunk', caption: 'The bunk’s arch and the ceiling: before, fine hatching over everything and pale patches flickering on the panel over the arch (two surfaces in one plane); after, flat colour, the panel whole.', from: SHIP325 },
+      { name: 'ship-room', title: 'The main room', caption: 'From the galley’s end toward the cockpit: before, the ceiling and the walls hatched with strokes a few pixels apart that crawl as you move; after, a flat tone in the shade.', from: SHIP325 },
+    ], numbers: [
+      { title: 'Z-fighting aboard the ship', unit: 'sites', better: 'lower', device: 'node scripts/zfight/audit.mjs --ship (geometry, no GPU)', rows: [
+        { where: 'sites where two surfaces share a plane', before: 12, after: 0 },
+        { where: 'their area (m²)', before: 7.01, after: 0 },
+      ], source: 'node scripts/zfight/audit.mjs --ship' },
+      { title: 'Pixels flipping when the camera moves 2 mm', unit: '%', better: 'lower', device: 'Mac, headless Chrome, High, 1280 × 720, the camera pinned', rows: [
+        { where: 'over the bunk', before: 3.26, after: 1.93 },
+        { where: 'the cockpit’s bulkhead', before: 3.82, after: 2.39 },
+        { where: 'the main room', before: 1.73, after: 1.87 },
+      ], source: 'a scratch measure: the share of pixels changing by over 60 (of 765) between two frames 2 mm apart; the main room’s are its ink lines’ own steps' },
     ] },
   ],
   '1.70': [

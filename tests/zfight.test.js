@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { trianglesOf, coplanarOverlaps, visibleSites, overlapArea, clipPolygon } from '../scripts/zfight/lib.mjs';
-import { rayOver, standing, zfightsOf } from '../scripts/zfight/audit.mjs';
+import { rayOver, standing, zfightsOf, shipZfights } from '../scripts/zfight/audit.mjs';
 import { nameParts, partOf, describe } from '../scripts/zfight/names.mjs';
 import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 import { buildableById } from '../src/levels/buildable.js';
@@ -124,4 +124,18 @@ test('the City Floating in Space at or under its count; the market in the air, t
     const own = r.all.filter((s) => s.meshA.includes(name) && s.meshB.includes(name));
     assert.equal(own.length, 0, `${name}: ${own.slice(0, 4).map((s) => `${s.matA} × ${s.matB} at ${s.seen.at.join(', ')}`).join('; ')} (node scripts/zfight/audit.mjs --worlds ${id} --worst 20)`);
   }
+});
+
+// Issue #325, the author: "I see a lot of textures shimmering in my ship". The ship (every world's, built by main.js, not
+// the level: node scripts/zfight/audit.mjs --ship) had 12 sites, 7 m² (the alcove's hood in the arched front and between
+// its cheeks, the doorways' trims in their jambs, the console's kick band, the sofa's cushions in its arms, the cockpit
+// bulkhead's underside in the ceiling): none now. Its rooms' shade is a flat tone, no hatching (src/ship/model.js).
+test('the ship has no z-fighting, and its rooms no hatching to crawl (issue #325)', async () => {
+  const r = await shipZfights();
+  assert.equal(r.total.count, 0, r.total.worst.map((f) => `${f.area} m² ${f.meshA} × ${f.meshB} at ${f.at}`).join('; '));
+  const { shipMaterials, SHIP_ROOM_HATCH } = await import('../src/ship/model.js');
+  const M = shipMaterials('zf-test');
+  assert.equal(SHIP_ROOM_HATCH, 0);
+  for (const k of ['wall', 'wallIn', 'ceiling', 'floor', 'locker', 'wood', 'cream']) assert.equal(M[k].uniforms.uShade.value.z, 0, `${k}: a flat tone in shade`);
+  assert.ok(M.hull.uniforms.uShade.value.z > 0, 'the hull outside keeps its hatching');
 });

@@ -65,11 +65,15 @@ export function shipMaterials(tag, { space = false } = {}) {
     lamp: { color: '#fff1c8', glow: 1, tag: `${tag}-lamp` },
     collider: { color: '#ffffff' },
   };
-  // the rooms are always in the hull's shadow: a little self-light keeps them from going to hatching
-  for (const k of INTERIOR) o[k] = { ...o[k], glow: Math.max(o[k].glow ?? 0, 0.18) };
+  // the rooms are always in the hull's shadow: a little self-light keeps them from going dark, and their shade is a
+  // flat tone, no hatching (issue #325, "a lot of textures shimmering in my ship": every wall, the ceiling and the floor
+  // were hatched at the print's spacing, strokes 2-4 px apart close up, crawling under the pixels as you walked)
+  for (const k of INTERIOR) o[k] = { ...o[k], glow: Math.max(o[k].glow ?? 0, 0.18), hatch: SHIP_ROOM_HATCH };
   return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, makeMaterial(v)]));
 }
 
+/** How many hatch strokes the rooms' shade gets (materials.js o.hatch: 0, a flat tone). */
+export const SHIP_ROOM_HATCH = 0;
 const INTERIOR = ['wallIn', 'floor', 'floorDark', 'ceiling', 'wall', 'wood', 'cream', 'blanket', 'pillow', 'cushion', 'toy', 'crate', 'rug', 'rugInner', 'fruitA', 'fruitB', 'panel', 'locker', 'metal', 'pot', 'leaf'];
 
 // thin, small or decorative: drawn, not collided with

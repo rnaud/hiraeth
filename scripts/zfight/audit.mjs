@@ -2,6 +2,8 @@
 // no GPU), every visible static mesh's triangles, and the sites where two looks share a plane (scripts/zfight/lib.mjs).
 //
 //   node scripts/zfight/audit.mjs [--worlds desert,incal] [--temples] [--out report.json] [--worst 8] [--within x0,y0,z0,x1,y1,z1] [--no-names]
+//   node scripts/zfight/audit.mjs --ship [--worst 8]        the ship alone, parked (src/ship/ship.js: its hull and its rooms;
+//                                                          every world's ship is the same one, built by main.js, not the level)
 //
 // A site between two meshes merged of many pieces says which pieces (scripts/zfight/names.mjs: the lines of src/ that
 // made them and the comment over the line); --no-names leaves that out (a little faster).
@@ -69,7 +71,32 @@ export async function zfightsOf(id, { temples = true, within = null, names = fal
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+/** The ship's z-fights (issue #325, "a lot of textures shimmering in my ship"): the parked ship built as main.js builds it,
+ * on flat ground, its hull and its rooms; sites seen from where someone can stand aboard or round it. */
+export async function shipZfights({ names = false } = {}) {
+  if (names) await nameParts();
+  const { Physics } = await import('../../src/physics.js');
+  const { Ship } = await import('../../src/ship/ship.js');
+  globalThis.window ??= { addEventListener() {} };
+  const scene = new THREE.Scene(), V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2));
+  ground.userData.zfightIgnore = true;   // (the stand-in ground: not the ship's)
+  scene.add(ground);
+  const physics = new Physics(scene);
+  const level = { spawn: V(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
+  const ship = await quiet(() => new Ship({ scene, physics, level, levelId: 'audit', content: { npcs: [], relics: { spots: [] } } }));
+  const tris = trianglesOf(ship.parked.group, { THREE, partOf: names ? partOf : null });
+  const all = visibleSites(coplanarOverlaps(tris), rayOver(tris));
+  if (names) for (const f of all) { if (f.parts) f.parts = f.parts.map(describe); }
+  return { world: 'ship', total: summarise(all), all, temples: {} };
+}
+
+if (import.meta.url === `file://${process.argv[1]}` && args.includes('--ship')) {
+  const r = await shipZfights({ names: !args.includes('--no-names') });
+  console.log(`ship         ${String(r.total.count).padStart(4)} sites, ${String(r.total.area).padStart(8)} m² shared`);
+  for (const f of r.total.worst.slice(0, +arg('worst', 8))) console.log(`    ${String(f.area).padStart(7)} m²  ${f.matA} × ${f.matB}  at ${f.seen?.at.join(', ')}  n ${f.normal.join(',')}  (${f.meshA} × ${f.meshB})` + (f.parts ? f.parts.map((p, i) => `\n             ${i ? 'B' : 'A'}: ${p || '?'}`).join('') : ''));
+  if (arg('out')) writeFileSync(arg('out'), JSON.stringify([r], null, 1));
+} else if (import.meta.url === `file://${process.argv[1]}`) {
   const names = !args.includes('--no-names');
   if (names) await nameParts();
   const { LEVELS } = await import('../../src/levels/index.js');

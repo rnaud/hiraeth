@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.71 — 2026-10-13
 
+- The rooms of your ship no longer shimmer as you walk through them: walls, ceiling, floor and furniture are a flat colour in shade instead of fine hatching that crawled, and the places where two surfaces flickered through each other (the panel over the bunk’s arch, the doorways’ frames, the console, the sofa) are fixed.
 - Walking around your ship, the camera no longer climbs up over the traveller and stares down through his head when a wall is close behind him: it stays behind him at shoulder height, and when it has to come right in against him he is left out of the picture for that moment instead of being seen from the inside.
 - The grey, grainy shading that gathered in corners, along the foot of every wall and under counters, benches and pots is gone. Indoors, in the desert’s shop and everywhere else, walls and floors no longer crawl with dark speckles as you walk round; the deep pockets keep their solid ink shadows.
 - When a creature or a guardian hits you, you stagger back on your feet instead of falling limp to the ground, and nothing else hits you for a moment while you recover. You still fall when your last heart goes, or from a great height.
