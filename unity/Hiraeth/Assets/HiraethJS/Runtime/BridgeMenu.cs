@@ -526,7 +526,21 @@ namespace Hiraeth.Bridge
             float RowH(List<object> row)
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
-                return panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" || k == "empty" ? side + 42 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
+                float baseH = panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" || k == "empty" ? side + 42 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
+                return panel == "map" || panel == "worlds" ? Fit(row, baseH) : baseH;
+            }
+            // (a line as tall as its words: on the Retroid's 4:3 the Map's list is narrow, and a long mark's name ran onto
+            // the next line's, issue #264; measured as Entry lays it out, its name in Body bold, the line under in Small)
+            float Fit(List<object> row, float baseH)
+            {
+                if (row.Count != 1 || row[0] is not Dictionary<string, object> c) return baseH;
+                float tw = w - 6 - 36;
+                meas.fontSize = Body; meas.fontStyle = FontStyle.Bold; meas.lineSpacing = 1;
+                float th = Ui.Measure(meas, c.S("text") ?? "", tw).y, sh = 0;
+                var u = c.S("sub");
+                if (!string.IsNullOrEmpty(u)) { meas.fontSize = Small; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.2f; sh = Ui.Measure(meas, u, tw).y + 1; }
+                meas.fontSize = Small; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1;
+                return Mathf.Max(baseH, 5 + th + sh + 12);
             }
             var hs = new List<float>(); int at = 0;
             for (int r = 0; r < rows.Count; r++) { var row = rows[r] as List<object>; hs.Add(RowH(row)); foreach (var c in row) if (B(c, "on")) at = r; }

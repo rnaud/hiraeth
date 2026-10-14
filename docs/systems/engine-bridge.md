@@ -213,7 +213,9 @@ once, before the state that names it (`game.mapPicture(key)`, `BridgeHost.MapIma
 texture (`SetMap`) under the marks, with the scale bar (`map.scale`). The drawing is one call of ~40-120 ms on the
 Mac (the desert's whole map, rays and drawing: 63 ms in the VM), once a map, while the world is paused under the
 menu. Tests: tests/engine-raster.test.js, tests/engine-unity.test.js (the bundle's Map: one 512 × 512 picture sent
-before it shows).
+before it shows). The marks' list beside it is narrow on the Retroid's 4:3: each line is as tall as its words
+(BridgeMenu `Fit`, the Map's and the Worlds' rows measured as `Entry` lays them out), where a fixed 36 units let a
+long name ("Through the door of the Rose House") run onto the next line's.
 
 **What's new and the Controls page's rebinding** (issue #264). The Start menu's sidebar has What's new after
 Controls (the web's order, without Photo mode): the newest `NEWS_VERSIONS` (4) versions of src/changelog.js, a
