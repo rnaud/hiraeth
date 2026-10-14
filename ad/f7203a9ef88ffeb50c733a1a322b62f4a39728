@@ -1,0 +1,85 @@
+changelog.md
+  s_7302cf3b9e772b::t_c983948510150b 7-10
+docs/README.md
+  s_7302cf3b9e772b::t_7f4e1083cde971 69
+docs/systems/carry.md
+  s_7302cf3b9e772b::t_a2c99cbdc3576e 1-77
+docs/systems/engine-bridge.md
+  s_7302cf3b9e772b::t_6eb05a63a35b06 131-133
+docs/systems/gadgets.md
+  s_7302cf3b9e772b::t_2e6c28e3e1f5aa 34-35,172-174
+docs/systems/temples.md
+  s_7302cf3b9e772b::t_dc9cbf888727ff 46,832-842
+engine/game.js
+  s_7302cf3b9e772b::t_291f10d46b2fd8 93,318
+src/carry.js
+  s_7302cf3b9e772b::t_6d9f134f85065f 1-257
+src/changelog-media.js
+  s_7302cf3b9e772b::t_fe18d442e01998 837,846-855
+src/changelog.js
+  s_7302cf3b9e772b::t_5e2672593077b4 26-36
+src/fluid-tool.js
+  s_7302cf3b9e772b::t_729db780be169f 2,1040-1046
+src/gadgets/hook.js
+  s_7302cf3b9e772b::t_fe3410618bb3af 5,55-62,168-169,173,351-352
+src/gadgets/index.js
+  s_7302cf3b9e772b::t_8e4eff202278d7 213-214
+src/gadgets/world.js
+  s_7302cf3b9e772b::t_8071314f158680 6,30-31,48,85-90,111-112,130,147
+src/hands.js
+  s_7302cf3b9e772b::t_9bc863829e3813 420
+src/humanoid.js
+  s_7302cf3b9e772b::t_8a077d10421806 1651-1652,1654,1673
+src/i18n/en.js
+  s_7302cf3b9e772b::t_7c006bafabac90 298
+src/i18n/fr.js
+  s_7302cf3b9e772b::t_265040617659d3 296
+src/main.js
+  s_7302cf3b9e772b::t_c856fd451517d2 96,696-698
+src/physics.js
+  s_7302cf3b9e772b::t_64244afdc464e7 310-316
+src/platform.js
+  s_7302cf3b9e772b::t_63e4cda44dc5f4 68-70,76
+src/player.js
+  s_7302cf3b9e772b::t_b939792503daff 22,628,766,1370-1371,1479,1494,1500,1548,1570,1712,1858,1901-1903
+src/save-migrate.js
+  s_7302cf3b9e772b::t_8cf8667c1ddf62 506,516,520
+src/temples/desert.js
+  s_7302cf3b9e772b::t_d827dfcab46bdd 8,34-36,65-67,120-122,124,363-366,368-371
+src/temples/logic.js
+  s_7302cf3b9e772b::t_23ef1902fa661a 41-44,48,101-102,105-114,201,280-281,284-285,368,410-411
+src/temples/migrate.js
+  s_7302cf3b9e772b::t_83d990acfbbbb2 159-167
+src/temples/pieces.js
+  s_7302cf3b9e772b::t_846396a5a6328d 18-19,61,296-439,3063,3065-3067,3084-3095,3102,3107-3108,3117-3121
+src/temples/spacecity.js
+  s_7302cf3b9e772b::t_b599e085720769 6,23-27,169-173,177-180,331-344
+tests/carry.test.js
+  s_7302cf3b9e772b::t_da59586bc7c858 1-316
+tests/gadgets.test.js
+  s_7302cf3b9e772b::t_e4f3f75766cd73 10,300,304,310-322
+tests/playthrough-agent.js
+  s_7302cf3b9e772b::t_64c28c6fbeb306 675-686
+tests/sentry.test.js
+  s_7302cf3b9e772b::t_b557ffddf7ca2c 10,94
+tests/temple-playthrough.test.js
+  s_7302cf3b9e772b::t_0d2e735d7d4cb9 20-21,360-386,412,477-479
+tests/temples.test.js
+  s_7302cf3b9e772b::t_99ec8e865ed4f6 7-8,959-999,1001
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "adf7203a9ef88ffeb50c733a1a322b62f4a39728",
+  "prompts": {},
+  "sessions": {
+    "s_7302cf3b9e772b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afb104e2-2832-4f8f-a4b9-c0da88b6a4f7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
