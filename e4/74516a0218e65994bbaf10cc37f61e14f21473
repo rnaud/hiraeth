@@ -1,0 +1,81 @@
+changelog.md
+  s_9ca76055a220ed::t_c6a480c82c226a 12
+docs/design/shop-prompts.md
+  s_9ca76055a220ed::t_ddf113d2884df2 36
+docs/systems/challenges.md
+  s_9ca76055a220ed::t_a8318175e733d4 14
+docs/systems/items.md
+  s_9ca76055a220ed::t_a691234ab60aef 328
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_d46fa0eb05ca56 84,89-94,108-109,116-118,122,127,268
+docs/systems/temples.md
+  s_9ca76055a220ed::t_0ce96b1d8cdc40 375
+lore/characters/temple-guides.md
+  s_9ca76055a220ed::t_e6b0110f5c2aae 20
+src/changelog.js
+  s_9ca76055a220ed::t_ffc5447d1dc889 12-15
+src/levels/perdide2.js
+  s_9ca76055a220ed::t_3c036fff07847f 849
+src/minigames/canyon.js
+  s_9ca76055a220ed::t_b52b4308df55db 524,750
+src/minigames/kit/hosts.js
+  s_9ca76055a220ed::t_f6869126df3cb2 37,55
+src/save-migrate.js
+  s_9ca76055a220ed::t_17d6970a9ce1d6 108-112,285-286,288-300
+src/shop.js
+  s_9ca76055a220ed::t_999d3c2a583755 56
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_3ed4907a4559be 28,34,78,84,90,112,142
+src/story/index.js
+  s_9ca76055a220ed::t_4450bd10455194 211
+src/story/people-book.js
+  s_9ca76055a220ed::t_fc8fe203e38272 348-350,391
+src/story/shop-data.js
+  s_9ca76055a220ed::t_28b981c8128e16 126,129-130,136,321
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_80e0bbd56c521f 3,188
+src/story/underwater.js
+  s_9ca76055a220ed::t_211486836251d8 2
+src/temples/perdide2-data.js
+  s_9ca76055a220ed::t_265317fa4193d9 14-15,22,30,63
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_8951fb334d9818 570
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_ab72638ce2ebfa 2,16-17,24,32,51
+src/temples/underwater.js
+  s_9ca76055a220ed::t_5286d5d7ca86f3 516,575
+tests/hosts.test.js
+  s_9ca76055a220ed::t_2d6c6e260492e6 44
+tests/names.test.js
+  s_9ca76055a220ed::t_3f49c79dc9d818 114-188
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_d5e08b79739c36 90,442-461
+docs/story-bible.md
+  s_53376a2c17f3c6::t_2a5f580ba2edda 367,855-861
+docs/systems/story.md
+  s_53376a2c17f3c6::t_3ea817940b9bc7 650,652,812,823-834
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e474516a0218e65994bbaf10cc37f61e14f21473",
+  "prompts": {},
+  "sessions": {
+    "s_53376a2c17f3c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a828027fa19bf892b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
