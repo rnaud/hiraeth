@@ -834,6 +834,8 @@ const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) agains
 const FLIGHT354 = 'Issue #354: the cinematics QC’s frames (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720 kept at 960 × 540, the review page’s staging) against this branch’s own Vite (port 6354) before and after the change, about the same second of each (14 October); the QC’s own WebP';
 /** (v1.74, issue #237: the Elder's review page, tools/elder-review.html, its cycles stepped at 60 Hz, scripts/tripo/elder-sheets.mjs) */
 const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (Vite on port 6237), the review’s motions stepped at 60 Hz by scripts/tripo/elder-sheets.mjs, in the game’s ink; before, the tree before (433459bf) with the same review page and timings; 14 October';
+/** (v1.75, issues #356 and #355: shot on a commit of this branch before its rebase, and the tree before it) */
+const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.75': [
     { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [
@@ -872,6 +874,42 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
     { match: 'In the Unity version the traveller’s overshirt is shaded right', tags: ['devices'], see: 'In the Unity build, stand the traveller in the sun and turn the camera slowly round him: the overshirt over his chest and shoulders and round his collar shades smoothly with the rest of the shirt, without the dark or bright blotches that flickered there as he walked. Compare with the web game in the same spot.' },
+    // (issue #347, taken at 8d472bed before the rebase, the same tree: the crowds of the Desert's camps and the Signal Market, the Salt Harbour's and the lake folk's in the studio, a world's cast and a crowd lineup in the studio; scripts/changelog-shots.mjs)
+    { match: 'Far fewer people wear capes', tags: ['characters'], shots: [
+      { name: 'capes-camps', title: 'The Desert’s camps', caption: 'The pilgrims round the camp fires: before, nearly everyone in a cape or a mantle; after, a few elders and staff-bearers, the rest in tunics and robes', commit: 'b2d4987e',
+        view: { level: 'desert', player: [157.951, 1.246, 280.515], heading: 0.7188, eye: [154, 4.246, 276], target: [168, 2.446, 292], fov: 55 } },
+      { name: 'capes-market', title: 'The Signal Market', caption: 'The market’s street: the capes gone from most of the crowd, its turbans, fezzes and patterned tunics kept', commit: 'b2d4987e',
+        view: { level: 'bazaar', player: [-2.36, 0, -296.96], eye: [-2.32, 4, -291.36], target: [-2.41, 1.2, -305.36], fov: 55 } },
+      { name: 'capes-lake', title: 'The White Mangrove’s lake folk', caption: 'A lineup of the lake folk, full bodies in front and the GPU figures behind: a cape and a mantle on everyone before; after, their robes and hoods with a scarf at the neck', commit: 'b2d4987e',
+        view: studio('lineup=crowd&world=mangrove&count=8', [1280, 720]) },
+      { name: 'capes-cast', title: 'The Desert’s people', caption: 'The Desert’s named people in the studio: the capes their sheets draw kept (Bako, Sefa, Nour, the Speaker, Ama, Hessa), the others in their tunics', commit: 'b2d4987e',
+        view: studio('lineup=cast&world=desert', [1280, 720]) },
+      { name: 'capes-harbour', title: 'The Salt Harbour’s crowd', caption: 'A lineup of the Salt Harbour’s crowd, full bodies in front and the GPU figures behind: every one caped before; after, a neckerchief where the mantle was, an apron now and then', commit: 'b2d4987e',
+        view: studio('lineup=crowd&world=saltharbour&count=8', [1280, 720]) },
+    ] },
+    { match: 'A locked door in a temple can no longer be got round', tags: ['temples', 'contact'], shots: [
+      { name: 'hush-cloister', title: 'The Hush-House, the ledge round the Bog Well', caption: 'From the top of the root-wall: before, the keyhole door stood alone on the open ledge, a double jump over it or a jump round its post; after, the ledge past it is a cloister, walled on the water’s side in slits too narrow to pass and roofed at the door’s lintel.', ...DOORS356,
+        view: { level: 'perdide', player: [-104, 1709, 364.5], eye: [-100.5, 1713.5, 366.5], target: [-108.5, 1710.5, 354], fov: 70, hour: 17 } },
+      { name: 'greenhouse-great-lock', title: 'The Builders’ Greenhouse, the great lock', caption: 'The antechamber’s end: before, the door stood in an opening wider than itself, a way past it on either side; after, framed in stone to its edges and up to the ceiling.', ...DOORS356,
+        view: { level: 'edena', player: [303, 1727, -300], eye: [300, 1730, -301.7], target: [300, 1730.5, -294], fov: 70, hour: 17 } },
+      { name: 'capstan-windows', title: 'The Mooring-House, the Capstan Floor’s window', caption: 'From beside the capstan: before, a rail a metre high and the window open over the void, out of which (and back in past the great lock) your wings took you; after, a second rail and iron bars to the window’s head.', from: 'a scratch shooter (muted headless Chrome, High, 1280 × 720, the camera pinned) against this branch’s own Vite (port 6356), its tree with and without the bars, 14 October' },
+    ] },
+    { match: 'Falling or jumping into deep water swims', shots: [
+      { name: 'lorn-skiff', title: 'Lorn, the landing island’s beach', caption: 'From over the channel south-west of the landing: after, the skiff waits afloat off the beach (foreground), a short wade out; before, it sat on the grass by the ship’s landing spot, out of this view behind the trees.', ...DOORS356,
+        view: { level: 'perdide', eye: [-24, 32, -52], target: [-4, 0, -14], fov: 55, hour: 17 } },
+    ], see: 'In Lorn, run off the landing island’s shore and jump into the open channel (or drop in from the cave island’s rocks): you land in the water and swim, and climb out where the bank is low. Before, you were put back on the bank before you touched the water. The skiff floats off the beach south-west of the landing: wade out to it and board.' },
+    { match: 'On the galactic map the scanner no longer shakes', tags: ['menus'], numbers: [
+      { title: 'How far the scanner jumps from one frame to the next', unit: 'px', better: 'lower', device: 'this Mac, muted headless Chrome, 1280 × 720, the Desert’s map with two worlds to find', rows: [
+        { where: 'Signal 1 (faint)', before: 0.21, after: 0.009 },
+        { where: 'Signal 2', before: 2.31, after: 0.023 },
+        { where: 'Signal 4 (strong)', before: 6.08, after: 0.074 },
+      ], source: 'the scanner held still, where it was drawn read every frame for 3 s (180 frames), before (84b40324d) and after on this branch', note: 'A shake is the jump from frame to frame: before, a fresh random offset every frame; after, a slow drift.' },
+      { title: 'How far it strays from where you hold it', unit: 'px', better: 'lower', device: 'the same', rows: [
+        { where: 'Signal 1 (faint)', before: 0.12, after: 0.26 },
+        { where: 'Signal 2', before: 1.31, after: 0.49 },
+        { where: 'Signal 4 (strong)', before: 3.45, after: 1.12 },
+      ], source: 'the same 3 s', note: 'Faint, it now drifts a quarter of a pixel where it stood still before (and shook from 0.2 of the strength): too little to see.' },
+    ], see: 'Open the galactic map with a world still to find and sweep toward an uncharted region: the scanner ring stays steady under the cursor, with a slow, small drift as the signal grows, and the pad’s three pulses barely touch while the signal is faint.' },
   ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [

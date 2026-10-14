@@ -128,6 +128,7 @@
  "tests/dialogue-voices.test.js": 1,
  "tests/dialogue.test.js": 0.8,
  "tests/distant-shimmer.test.js": 0.3,
+ "tests/door-bypass.test.js": 79,
  "tests/drone.test.js": 0.8,
  "tests/dunes.test.js": 1.1,
  "tests/eclipse-world.test.js": 0.9,

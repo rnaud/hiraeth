@@ -13,7 +13,7 @@ export const QUEST = {
 export const PEOPLE = {
   briony: {
     id: 'briony', name: 'Briony', title: 'who counts the lamps', color: '#f0927a', voice: 1.14, kind: 'f',
-    palette: { cloak: '#4a4f7a', lining: '#f0927a', cloth: '#c9b8d8', legs: '#2f3560', hat: '#ece2f2', hair: '#2a2030' }, head: 'wrap', cape: 1.0,
+    palette: { cloak: '#4a4f7a', lining: '#f0927a', cloth: '#c9b8d8', legs: '#2f3560', hat: '#ece2f2', hair: '#2a2030' }, head: 'wrap', cape: 0,
     lines: ["~neutral~ Forty-one pools. One dark tower. I count it separately.", "~whisper~ Grandfather remembered the tower’s light.", '~curious~ Did you hear wings?'],
     talk: {
       entry: [

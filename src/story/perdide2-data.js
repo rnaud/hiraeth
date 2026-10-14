@@ -61,7 +61,7 @@ export const QUESTS = [
       // (the boat seen is the end, issue #172: Hollin, walked down to the root cave, asks what was in it when you pass, and
       //  his promise and keepsake wait with him; a save at the old 'tell' goes back to 'answer', so the end runs as you
       //  arrive: src/save-migrate.js step 20. The water-way home is lit when it ends: src/story/perdide2.js)
-      { id: 'answer', text: 'Take the skiff to what answered', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', home: 'the water-way' },
+      { id: 'answer', text: 'Take the skiff to what answered; look inside', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', home: 'the water-way' },
     ],
   },
   {
@@ -274,7 +274,7 @@ export const KEEPERS = [
 export const PEOPLE = {
   wick: {
     id: 'wick', name: 'Robin', title: 'a young lamp-keeper', color: '#ffd6a0', voice: 1.35, kind: 'f', age: 'teen', years: 15,
-    palette: { cloak: '#ffd6a0', lining: '#2b211f', cloth: '#3a6a58', legs: '#2f3a4f', hat: '#f2a07a', hair: '#2b211f' }, head: 'hair', cape: 0.55, look: { prop: 'lantern' },
+    palette: { cloak: '#ffd6a0', lining: '#2b211f', cloth: '#3a6a58', legs: '#2f3a4f', hat: '#f2a07a', hair: '#2b211f' }, head: 'hair', cape: 0, look: { prop: 'lantern' },
     lines: ['~angry~ It won’t take my light.', '~shout~ Splash it! Go on!', '~neutral~ Mind the eggs.'],
     talk: {
       entry: [

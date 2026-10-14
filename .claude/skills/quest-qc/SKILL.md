@@ -31,7 +31,12 @@ like this, it goes back in here.
 5. **Every answer follows from what was just said.** An answer asks about something the speaker has just named, or
    answers what they asked: "Who are the Givers?" only after someone has said "the Givers". Check each node's last
    page against its answers, and each answer against the node it leads to.
-6. **Short talks.** A quest giver's talk is a few pages in their own voice, the essentials only (Nour from the open
+6. **A marker reached moves on.** Where the marker points, getting there does the step, or moves the marker on for
+   good, or the step's words name what to do there (issue #349: at Vael's riders' gate only a "look at" prompt, and
+   40 m back the marker pointed at the gate again; "Climb to the crown" done only by reading the note there). A way
+   through a door leads somewhere in that room, never out of another room's door (issue #351: "go through the shop
+   door", and nothing inside). `tests/marker-walk.test.js`.
+7. **Short talks.** A quest giver's talk is a few pages in their own voice, the essentials only (Nour from the open
    chest to the skull: three nodes, five pages, `tests/dialogue-playtest.test.js`). Lore is for whoever asks.
 
 ## Run
@@ -39,16 +44,20 @@ like this, it goes back in here.
 ```sh
 node .claude/skills/quest-qc/check.mjs                 # every quest, the flagged steps
 node .claude/skills/quest-qc/check.mjs --worlds desert --all
+node .claude/skills/quest-qc/check.mjs --worlds arzach --walk   # and walk to every marker (marker-walk.mjs, ~15 s for all)
 node .claude/skills/dialogue-review/extract.mjs <scratch>/dialogue --worlds desert   # the script, to read the answers
 ```
 
 `check.mjs` flags long steps, buttons in a step, hand-offs (a talk step to one person right after one to another),
-steps that send you to ask someone, steps with no goal the game can see (they can't be passed over), and item steps
-with no gate. It reads the temples' steps (`src/temples/*-data.js` `QUEST`) and the boxes' hints
+steps that send you to ask someone, steps with no goal the game can see (they can't be passed over), item steps
+with no gate, and steps only a thing's page finishes whose words don't name it (`look only`). `--walk` puts the
+traveller where the marker points in every world, for every quest at every step and every quest still to be given
+(`marker-walk.mjs`, the test's own): a marker that points back at a place reached (`back again`), a door whose way on is
+straight back out or another room's door (`in and out`), a step finished only by a prompt it doesn't name (`unnamed`). It reads the temples' steps (`src/temples/*-data.js` `QUEST`) and the boxes' hints
 (`src/boxes/placements.js`) too, with the flags a line alone can have (long, keys, ask-someone). Rule 5 has a test,
 `tests/answers-follow.test.js`: an answer naming a thing (a proper noun, "the singing") is offered only where the node,
 or one leading to it, names it, with its exceptions listed and each given a reason. Read the conversations themselves
-for rules 2, 5 and 6: the numbers only say where to look.
+for rules 2, 5 and 7: the numbers only say where to look.
 
 ## Fix, then record
 

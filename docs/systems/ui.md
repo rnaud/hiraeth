@@ -626,8 +626,8 @@ searching), the left stick (half a field-diagonal a second at full tilt) or W A 
 through the charted worlds; on a pad the D-pad does, and the scanner over a charted world selects it, so A
 travels). The **cues**, from `cueStrength` (0 beyond 0.45 of the diagonal, 1 on the world) through `cues()`: the
 scanner's colour (violet, gold, then the route's orange), its glow, its three rings pinging on the beat (2.2 s
-far, 0.75 s on it), a little jitter (none with reduced motion), the light's notes every 1.7 s at most (by
-strength), the rumble's `search` beat, and the **meter** at the top right of the chart (the foot of the chart on
+far, 0.75 s on it), a slow wander, never a shake (`wander`, `WANDER`: a smooth curve of up to 0.3 px faint to 1.6 px locking, at 0.2–0.45 Hz; it was a fresh random offset every frame, up to 4 px, issue #353; none with reduced motion), the light's notes every 1.7 s at most (by
+strength), the rumble's `search` beat (soft while the signal is faint: its strength grows with the square of it), and the **meter** at the top right of the chart (the foot of the chart on
 a phone held upright): SIGNAL, five bars and a word (silent, faint, warmer, strong, locking). The **lock**: within
 `lockRadius` (6 % of the diagonal, at least 30 px or 0.6 of a planet's disc) it fills in half a second (a gold arc
 round the scanner), and leaks away at 1.2 a second outside. Full: the planet resolves where it was (blur to sharp,
@@ -737,7 +737,13 @@ bottom. Now every one of them is the same strip and, but for the floating prompt
   it as it shows (`Cue.onChange`), so nothing slides under it. The top because most were there already, the bottom is
   the speakers' (subtitles, the conversation panel, a phone's buttons), and a phone already had the cue up there. Photo
   mode's line is there too (a pad's line instead of the keys' when one is in hand). The use prompt floats over whoever
-  it is about, in the same look.
+  it is about, in the same look, and over whatever it is about (issue #350, v1.75: "the button prompt for the voicemail
+  is at the top of the screen instead of being next to the machine"): aboard, the ship's E was the cue's line at the
+  top; now `Ship.promptTag` gives its words and the point they float at (beside the voicemail button, over the holo
+  table's planet, in the hatch; the prologue's walk to the voicemail too), and the story's floating prompt shows it
+  (`rt.extraPrompt`, src/story/index.js, over a person's: E is the ship's there), in the web game and the engines
+  (engine/game.js). The desert observatory's lens floats over its dial. The cue keeps only what has nothing to float
+  over (a scene's own E, the flute you hold). `tests/ship.test.js`, `tests/engine-ship.test.js`.
 - **The Unity bridge** (`BridgeHud.cs`) draws its toast and cue the same: the strip's colours (`HINT_ENGINE`), the
   cue at the top and the toast under it.
 - Tests: `tests/hint-look.test.js` (every kind on the variables, nothing cream left on them, the top for all but the

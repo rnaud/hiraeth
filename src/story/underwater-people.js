@@ -80,7 +80,7 @@ export const PEOPLE = {
 
   mireille: {
     id: 'mireille', name: 'Brune', title: 'who grows the glow-kelp', color: '#5f8f7a', voice: 1.05, kind: 'f',
-    head: 'wrap', cape: 0.6,
+    head: 'wrap', cape: 0,
     lines: ['~happy~ Glow-kelp. It lights the troughs and it lights the soup.', '~tired~ Every trough watered, every frond counted. Twice.', '~curious~ Mind the troughs. The kelp likes a visitor, not a boot.'],
     talk: {
       entry: [
@@ -119,7 +119,7 @@ export const PEOPLE = {
 
   fabre: {
     id: 'fabre', name: 'Fabre', title: 'who keeps the Crown’s lamps', color: '#e3b06a', voice: 0.8, kind: 'm',
-    head: 'hat', cape: 0.4,
+    head: 'hat', cape: 0,
     lines: ['~neutral~ Six lamps round the Crown. I light them at dusk so the city can see where its top is.', '~curious~ Look up. That’s the surface. I’ve never been through it.', '~tired~ The lift again. Up and down, up and down.'],
     talk: {
       entry: [
@@ -162,7 +162,7 @@ export const PEOPLE = {
 
   maelle: {
     id: 'maelle', name: 'Maelle', title: 'who listens to the whales', color: '#2f8a8f', voice: 1.0, kind: 'f',
-    head: 'hood', cape: 1.0,
+    head: 'hood', cape: 0,
     lines: ['~whisper~ Shh. Listen. That far hum, under the hum of the glass.', '~sad~ They keep away now. They used to come so close the glass shook.', '~solemn~ The deep is listening. It always is.'],
     talk: {
       entry: [

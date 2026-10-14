@@ -43,7 +43,7 @@ export const FROZEN_POSES = {
 };
 
 /** What a frozen person wears (the desert costume's own pieces: src/costumes.js ids), and how its cape and robe hang. */
-export const FROZEN_DRESS = { head: 'headcloth', prop: 'none', body: 'none', cape: 0.85, wide: 1, robe: 0.62, flare: 0.3 };
+export const FROZEN_DRESS = { head: 'headcloth', prop: 'none', body: 'none', cape: 0, wide: 1, robe: 0.62, flare: 0.3 };   // (no cape unless its scene gives one: issue #347)
 
 const _figure = new Map();
 const figure = (world) => { if (!_figure.has(world)) _figure.set(world, figureGeometry('mid', world)); return _figure.get(world); };

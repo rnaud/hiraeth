@@ -75,7 +75,7 @@ const ON_AIR = { flag: 'bazaar.broadcast.on' };
 export const PEOPLE = {
   sel: {
     id: 'sel', name: 'Madame Sel', title: 'who kept the silent tower', color: '#88b4b5', voice: 0.75, kind: 'f',  age: 'elder', scale: 0.96,
-    palette: { cloak: '#88b4b5', lining: '#465c65', cloth: '#f5dfab', legs: '#465c65', hat: '#f0a083', hair: '#e8dcc0' }, head: 'wrap', cape: 1.4, look: { body: 'badge', robe: 0.12, mask: 'glasses' },
+    palette: { cloak: '#88b4b5', lining: '#465c65', cloth: '#f5dfab', legs: '#465c65', hat: '#f0a083', hair: '#e8dcc0' }, head: 'wrap', cape: 0, look: { body: 'badge', robe: 0.12, mask: 'glasses' },
     lines: ['~happy~ Mind the cables, love.', '~sad~ Forty years I ran that tower.', '~solemn~ Listen. No. Listen properly.'],
     talk: {
       entry: [
@@ -187,7 +187,7 @@ export const PEOPLE = {
   kip: {
     // (a child of eleven, running messages across the bridges: docs/makehuman.md stage 3)
     id: 'kip', name: 'Kip', title: 'courier of the skybridges', color: '#f0a083', voice: 1.5, kind: 'f', scale: 0.78, age: 'child', years: 11,
-    palette: { cloak: '#f0a083', lining: '#465c65', cloth: '#88b4b5', legs: '#465c65', hat: '#ebce98', hair: '#4a3226' }, head: 'hair', cape: 0.5, look: { head: 'peak', under: 'bob', body: 'neckerchief' },
+    palette: { cloak: '#f0a083', lining: '#465c65', cloth: '#88b4b5', legs: '#465c65', hat: '#ebce98', hair: '#4a3226' }, head: 'hair', cape: 0, look: { head: 'peak', under: 'bob', body: 'neckerchief' },
     lines: ['~playful~ Fastest feet in the market!', '~playful~ I’m not in trouble. I’m resting.', '~shout~ Messages! Messages for fruit!'],
     talk: {
       entry: [
@@ -224,7 +224,7 @@ export const PEOPLE = {
 
   ferro: {
     id: 'ferro', name: 'Ferro', title: 'who rigs the antenna', color: '#c99758', voice: 1.0, kind: 'f',
-    palette: { cloak: '#c99758', lining: '#3a535b', cloth: '#3a535b', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hat', cape: 0.4, look: { prop: 'wrench', mask: 'browgoggles', head: 'bandana', under: 'tail', body: 'toolbelt' },
+    palette: { cloak: '#c99758', lining: '#3a535b', cloth: '#3a535b', legs: '#465c65', hat: '#88b4b5', hair: '#2b211f' }, head: 'hat', cape: 0, look: { prop: 'wrench', mask: 'browgoggles', head: 'bandana', under: 'tail', body: 'toolbelt' },
     lines: ['~angry~ Don’t touch that. That’s live.', '~angry~ Three bulbs. Three!', '~playful~ Hold still, you beautiful idiot of an antenna.'],
     talk: {
       entry: [{ if: { flag: 'bazaar.antenna.tuned' }, node: 'tuned' }, { node: 'hello' }],

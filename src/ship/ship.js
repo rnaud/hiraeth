@@ -58,7 +58,7 @@ export const SPAWN_HEADROOM = 3;
 export const KEEP_OFF = 1.5;
 /** Half the ramp's width (m): the hatch's opening it slides out of. */
 const RAMP_HALF_W = (HATCH.z1 - HATCH.z0) / 2 + 0.2;
-const _ko = new THREE.Vector3();
+const _ko = new THREE.Vector3(), _up = new THREE.Vector3();
 const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
 const DOOR_TRAVEL = HATCH.z1 - HATCH.z0 + 0.25;   // m forward along the hull: clear of the opening (1.5 for the 1.3 m hatch)
 const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
@@ -559,14 +559,18 @@ export class Ship {
       this._eHeld = !!ctl.KeyE;
       return { ...ctl, KeyE: false };
     }
-    // E belongs to the ship inside it; at the ramp you walk in (its "go aboard" button was one press for what your
-    // feet already meant, issue #87: E at the ramp's foot is yours, to talk or pick up)
-    if (this.inside && ctl.KeyE) {
+    // E belongs to the ship inside it where it has something to use (the console, the holo table, the hatch); elsewhere
+    // aboard it is yours, to talk to Anselm in the hold (issue #352: the ship took every E aboard, so his prompt did
+    // nothing). At the ramp you walk in (its "go aboard" button was one press for what your feet already meant, issue
+    // #87: E at the ramp's foot is yours, to talk or pick up)
+    if (this.inside && ctl.KeyE && (this._eShip || this.hasUse())) {
+      this._eShip = true;
       if (!this._eHeld) this.use();
       this._eHeld = true;
       return { ...ctl, KeyE: false };
     }
     this._eHeld = !!ctl.KeyE;
+    this._eShip = false;
     if (!this.inside && this.walksIntoRamp()) { this.walkAboard(); return { ...ctl, KeyW: false, stick: null }; }
     return ctl;
   }
@@ -589,6 +593,9 @@ export class Ship {
     sfx.hatch(this.sound);
     this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, this.parked.interior.points.aboard)]);
   }
+
+  /** Whether E aboard is the ship's here: by the voicemail button, the holo table or the hatch. */
+  hasUse() { return this.atConsole() || this.atTable() || this.atHatchInside(); }
 
   /** E aboard: the voicemail button, the holo table (the map), the hatch. */
   use() {
@@ -674,6 +681,25 @@ export class Ship {
       return 'aboard the ship';
     }
     return null;   // (the ramp: walk up it, no "go aboard": issue #87)
+  }
+
+  /**
+   * What E does aboard and where its prompt floats (issue #350: it was the cue at the top of the screen, far from the
+   * machine): { text, at } beside the voicemail button, over the holo table's planet, in the hatch; null elsewhere, in
+   * a scene or walked by the ship. The story's floating prompt shows it (src/story/index.js extraPrompt), over a person's.
+   */
+  promptTag() {
+    if (this.auto || !this.player) return null;
+    const m = this.modelOf(this.player.pos);
+    if (!m) return null;
+    const P = m.interior.points;
+    // (a scene that hands you the controls and asks for E: the prologue's walk to the voicemail button, in the orbiting ship)
+    if (this.playing) return this.cinematic?.interactive?.() && /^E voicemail/.test(this.cinematic.prompt?.() ?? '') ? { text: 'voicemail', at: this.world(m, P.voicemail.clone().add(_up.set(0, 0.25, 0))) } : null;
+    if (!this.inside) return null;
+    if (this.atConsole()) return { text: 'voicemail', at: this.world(m, P.voicemail.clone().add(_up.set(0, 0.25, 0))) };
+    if (this.atTable()) return { text: game.flag('ship.powered') ? 'galactic map' : 'galactic map (no power)', at: this.world(m, P.table.clone().add(_up.set(0, 0.6, 0))) };
+    if (this.atHatchInside()) return { text: 'step outside', at: this.world(this.parked, this.parked.interior.points.threshold.clone().add(_up.set(0, 1.8, 0))) };
+    return null;
   }
 
   /** The ship whose voicemail button blinks: the prologue's, until its message plays; else the parked one while a message waits. */

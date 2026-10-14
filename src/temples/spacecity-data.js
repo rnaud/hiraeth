@@ -16,7 +16,7 @@ export const QUEST = {
 export const PEOPLE = {
   joss: {
     id: 'joss', name: 'Joss', title: 'the moorer', color: '#4f9a98', voice: 0.98, kind: 'f',
-    palette: { cloak: '#4f9a98', lining: '#e39a7f', cloth: '#efe7da', legs: '#2e3550', hat: '#d2a648', hair: '#3a2a22' }, head: 'wrap', cape: 0.7,
+    palette: { cloak: '#4f9a98', lining: '#e39a7f', cloth: '#efe7da', legs: '#2e3550', hat: '#d2a648', hair: '#3a2a22' }, head: 'wrap', cape: 0,
     lines: ['~neutral~ A hand’s width a night. I measure it every morning.', '~tired~ The Towers bridge creaked again. It has opinions about the Market.', '~playful~ Don’t lean on the cables. They lean back.'],
     talk: {
       entry: [

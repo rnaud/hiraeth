@@ -112,7 +112,7 @@ export const QUESTS = [
 export const PEOPLE = {
   mira: {
     id: 'mira', name: 'Mira', title: 'who keeps the water clock', color: '#62c3c9', voice: 1.05, kind: 'f',
-    palette: { cloak: '#f7f4ec', lining: '#2b211f', cloth: '#62c3c9', legs: '#7f9a90', hat: '#9fd6c9', hair: '#3d2a22', face: '#dfe8ec' }, head: 'wrap', cape: 1.1, look: { body: 'garland' },
+    palette: { cloak: '#f7f4ec', lining: '#2b211f', cloth: '#62c3c9', legs: '#7f9a90', hat: '#9fd6c9', hair: '#3d2a22', face: '#dfe8ec' }, head: 'wrap', cape: 0, look: { body: 'garland' },
     lines: ['~solemn~ We tend the garden. The garden tends us.', "~playful~ Tea time. The clock is occasionally right by accident.", '~playful~ Mind the flowers. They mind you.'],
     talk: {
       entry: [
@@ -203,7 +203,7 @@ export const PEOPLE = {
 
   sol: {
     id: 'sol', name: 'Sol', title: 'who remembers them', color: '#9fd6c9', voice: 0.85, kind: 'm',
-    palette: { cloak: '#9fd6c9', lining: '#2b211f', cloth: '#f7f4ec', legs: '#5a6a6a', hat: '#f2a7b5', hair: '#e8dcc0' }, head: 'hat', cape: 0.9,
+    palette: { cloak: '#9fd6c9', lining: '#2b211f', cloth: '#f7f4ec', legs: '#5a6a6a', hat: '#f2a7b5', hair: '#e8dcc0' }, head: 'hat', cape: 0,
     lines: ['~curious~ Odile? Talo? They left in the little saucer.', '~happy~ They’ll be back for the tea.', '~surprised~ Every flower turned east. Every one.'],
     talk: {
       entry: [
@@ -245,7 +245,7 @@ export const PEOPLE = {
 
   oro: {
     id: 'oro', name: 'Oro', title: 'who grows pyramids', color: '#f2a7b5', voice: 0.95, kind: 'm',
-    palette: { cloak: '#f2a7b5', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#2b211f' }, head: 'wrap', cape: 0.7,
+    palette: { cloak: '#f2a7b5', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#2b211f' }, head: 'wrap', cape: 0,
     lines: ['~neutral~ The pyramids are older than the androids.', '~tired~ Slowly. Pyramids grow slowly.', '~scared~ Have you seen a little white seed?'],
     talk: {
       entry: [
@@ -286,7 +286,7 @@ export const PEOPLE = {
 
   lio: {
     id: 'lio.edena', name: 'Rue', title: 'who climbs', color: '#b5a7e6', voice: 1.4, kind: 'f', scale: 0.86, age: 'child', years: 9,
-    palette: { cloak: '#b5a7e6', lining: '#2b211f', cloth: '#f2c54b', legs: '#4a3a2a', hat: '#f2a7b5', hair: '#6e4a32' }, head: 'hair', cape: 0.5,
+    palette: { cloak: '#b5a7e6', lining: '#2b211f', cloth: '#f2c54b', legs: '#4a3a2a', hat: '#f2a7b5', hair: '#6e4a32' }, head: 'hair', cape: 0,
     lines: ['~happy~ Climb the trees. The view is worth it.', '~happy~ I’ve been to the second canopy. Twice!', '~surprised~ The crown floats. It FLOATS.'],
     talk: {
       entry: [
@@ -323,7 +323,7 @@ export const PEOPLE = {
 
   vey: {
     id: 'vey', name: 'Vey', title: 'who tends the vines', color: '#7fcfa8', voice: 0.8, kind: 'f', scale: 1.02,
-    palette: { cloak: '#7fcfa8', lining: '#2b211f', cloth: '#f7f4ec', legs: '#4a5a3a', hat: '#f7f4ec', hair: '#e8dcc0' }, head: 'hood', cape: 1.4, look: { prop: 'flower' },
+    palette: { cloak: '#7fcfa8', lining: '#2b211f', cloth: '#f7f4ec', legs: '#4a5a3a', hat: '#f7f4ec', hair: '#e8dcc0' }, head: 'hood', cape: 0, look: { prop: 'flower' },
     lines: ['~angry~ Don’t cut anything.', '~solemn~ It fell. It belongs to the ground now.', '~whisper~ Gently.'],
     talk: {
       entry: [
@@ -368,7 +368,7 @@ export const PEOPLE = {
   // the tea terraces (src/story/terraces.js): the quest you try, and fail
   esk: {
     id: 'esk', name: 'Esk', title: 'who keeps the tea terraces', color: '#9a7a4a', voice: 0.9, kind: 'f', scale: 0.98,
-    palette: { cloak: '#c9a46a', lining: '#2b211f', cloth: '#5f8f5a', legs: '#5a4a3a', hat: '#f3ead8', hair: '#8a8a8a' }, head: 'wrap', cape: 0.8, look: { prop: 'basket', head: 'straw', under: 'bun' },
+    palette: { cloak: '#c9a46a', lining: '#2b211f', cloth: '#5f8f5a', legs: '#5a4a3a', hat: '#f3ead8', hair: '#8a8a8a' }, head: 'wrap', cape: 0, look: { prop: 'basket', head: 'straw', under: 'bun' },
     lines: ['~tired~ Mind the bushes. They’re thirsty.', '~neutral~ Top row first. Always top row first.', '~sad~ The tips are going brown.'],
     linesAfter: ['~tired~ …', '~sad~ The sides held. The sides held.', '~solemn~ It belongs to the ground now.'],   // (after the flood: src/story/terraces.js)
     talk: {

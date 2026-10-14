@@ -93,6 +93,8 @@ export const BALANCE = { north: 6, south: 11, x: -30, a: 39.5, b: 29.0, home: 38
 export const DRIFT = { far: 6, z: 72, a: -7.6, b: -17.8, plate: -8.6, lip: -12.4 };
 /** The Capstan Floor: its middle, radius, floor. */
 export const FLOOR = { x: -74, z: 38, r: 19, y: 6 };
+/** (issue #356) The bars across the Capstan Floor's four windows: a rail at `rail` m and `n` bars `gap` m apart over it (the window's gap is cut by whole stones: wider than its 9 m). */
+export const WINDOW_BARS = { rail: 2.0, gap: 0.75, n: 17 };
 /** (v1.53) The Rope Store, south off the Moorers' Gallery (an arena); the balcony's cable-rail round the Capstan Hall's
  * wall (angles off the moorers' gate's, MOOR_A, at `r` from the hall's middle: the footstone's end and the far end). */
 export const STORE = { x: -38, z: 11.4, w: 12.4, d: 14.8, zone: { min: [-44.2, 10, 4], max: [-31.8, 20, 18.8] } };   // (its north side the Balance's south wall)
@@ -468,6 +470,14 @@ function layout(rt) {
     const ox = CX + Math.sin(a) * (HR + 0.5), oz = CZ + Math.cos(a) * (HR + 0.5);
     K.both(M.trim, T(new THREE.BoxGeometry(9.6, 0.25, 0.3), [ox, FY + 1.0, oz], [0, a, 0]));
     for (const s of [-1, 0, 1]) K.both(M.trim, T(new THREE.BoxGeometry(0.2, 1.0, 0.2), [ox + Math.cos(a) * s * 4.4, FY + 0.5, oz - Math.sin(a) * s * 4.4]));
+    // (issue #356) a second rail at 2 m and bars over it to the window's head, too close to pass: open, the wings took you
+    // out over the void and round to the Capstan Floor's walkways, and back in past its great lock (tests/door-bypass.test.js);
+    // under the bars the anchors still go out over the void and your aim reaches them
+    K.both(M.trim, T(new THREE.BoxGeometry((WINDOW_BARS.n - 1) * WINDOW_BARS.gap + 0.4, 0.25, 0.3), [ox, FY + WINDOW_BARS.rail, oz], [0, a, 0]));
+    for (let i = 0; i < WINDOW_BARS.n; i++) {
+      const s = (i - (WINDOW_BARS.n - 1) / 2) * WINDOW_BARS.gap, h = 7 - WINDOW_BARS.rail;
+      K.both(iron, T(new THREE.CylinderGeometry(0.07, 0.07, h + 0.1, 6), [ox + Math.cos(a) * s, FY + WINDOW_BARS.rail + h / 2, oz - Math.sin(a) * s]));
+    }
     const bx = CX + Math.sin(a) * (HR - 3.2), bz = CZ + Math.cos(a) * (HR - 3.2);
     K.both(iron, T(new THREE.CylinderGeometry(0.6, 0.75, 1.5, 12), [bx, FY + 0.75, bz]));
     K.add(brass, T(new THREE.CylinderGeometry(0.85, 0.85, 0.2, 12), [bx, FY + 1.55, bz]));
@@ -477,8 +487,8 @@ function layout(rt) {
   K.add(brass, T(annulus(8.0, 8.6, 0.06, 64), [CX, FY + 0.03, CZ]));
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.3, 0.05, 1.6), [CX + Math.sin(a) * 11, FY + 0.03, CZ + Math.cos(a) * 11], [0, a, 0])); }
   add(Pit, { room: 'arena', min: [CX - HR - 30, -18, CZ - HR - 30], max: [CX + HR + 8, FY - 4, CZ + HR + 30] });
-  add(Door, { id: 'd6', at: [CX + HR + 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6 });
-  add(Door, { id: 'd7', at: [CX - HR - 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6 });
+  add(Door, { id: 'd6', at: [CX + HR + 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door: you jumped through beside it, issue #356)
+  add(Door, { id: 'd7', at: [CX - HR - 0.7, FY, CZ], yaw: Math.PI / 2, w: 5, h: 6, frame: { side: 1.2 } });
   const X0 = CX - HR - 0.6;
   K.slab(X0 - 9.4, CZ - 3.2, X0, CZ + 3.2, FY, 0.8);
   K.wall(X0 - 0.8, CZ + 3.2, X0 - 9.4, CZ + 3.2, FY, 7, { t: 0.8 }); K.wall(X0 - 9.4, CZ - 3.2, X0 - 0.8, CZ - 3.2, FY, 7, { t: 0.8 });

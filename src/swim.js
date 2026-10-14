@@ -58,6 +58,7 @@ export const SWIM = {
   breath: 22,        // s of air
   refill: 2.2,       // s to breathe back to full at the surface
   every: 1.2,        // s between hurts once out of air
+  dropIn: 1.5,       // m: dropping into water deep enough to float, the feet this close over it, it already counts as swum (player.swimmable, issue #355)
   bite: 0.25,        // each hurt (hearts: a quarter), never the last quarter
   hop: 7.5,          // m/s: Space at the surface kicks you up (onto a low ledge, out of the water)
   stroke: { tread: 0.55, breast: 0.85, crawl: 1.05 },   // strokes per second

@@ -15,7 +15,7 @@ export const QUEST = {
 export const PEOPLE = {
   achille: {
     id: 'achille', name: 'Achille', title: 'who keeps the Whale-House’s door', color: '#3f8a8a', voice: 0.82, kind: 'm', lang: 'underwater',
-    palette: { cloak: '#3f8a8a', lining: '#e0806a', cloth: '#efe2c8', legs: '#2e4a52', hat: '#c9973f', hair: '#d8d2c4' }, head: 'wrap', cape: 0.5,
+    palette: { cloak: '#3f8a8a', lining: '#e0806a', cloth: '#efe2c8', legs: '#2e4a52', hat: '#c9973f', hair: '#d8d2c4' }, head: 'wrap', cape: 0,
     lines: ['~neutral~ Forty years on this door. It mostly keeps itself.', '~sad~ Listen. That hum in the glass. That’s not theirs.', '~playful~ Mind the step. It’s older than the city, and so am I.'],
     talk: {
       entry: [

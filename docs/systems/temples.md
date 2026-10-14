@@ -810,6 +810,25 @@ out 2 m short with the lid on); the Footprint's stilling stone, from whose middl
 ran into the ledge's edge (only its last 20 cm worked): the stone at the ledge's edge and the sphere a little farther out
 (`POOL`).
 
+## No way round a shut door (issue #356, `tests/door-bypass.test.js`)
+
+The author: "In the Hush-House there is a locked door but I can just jump around it?" Every door of a house's links (a
+door of stone, one the logic can't go round by another link) is shut with every other door open, and from each side of
+it the walker's flood (steps, the double jump's climbs, falls that don't hurt, never into a pit, with room for the
+traveller's capsule) must not reach the other; from within 4 m the real traveller walks on every way; and round a
+locked door (a key's) he also jumps, double jumps (at its highest and late) and, after the Rose House, opens the wings,
+from within 10 m of it and from anywhere within 8 m of the other side. Found and fixed: the Hush-House's ledge door
+(`LEDGE`: the double jump went over its 4.4 m, a jump from the root-wall's top round its post onto the ledge beyond; the
+ledge past it is a cloister now, walled on the water's side in slits of `LEDGE.slit` 0.55 m and roofed at the lintel),
+the Builders' Greenhouse's great lock (it stood in the antechamber's open end, 8.8 m wide: walked round), the
+Mooring-House's Capstan door and its other doorway, the Casting-House's arena door and the guardians' halls' ways out
+(a rotunda's gap is cut by whole stones, so up to a metre wider than its door: jumped through beside it); and the
+Capstan Floor's four windows, open over the void for the Warden's anchors, out of which the wings carried you round to
+the Capstan Hall's walkways and back in past its great lock: a second rail at 2 m and iron bars over it
+(`WINDOW_BARS`, 0.75 m apart; the anchors still go out under them and your aim reaches them). A door in an
+opening wider or taller than itself takes a `frame: { side, top }` (src/temples/pieces.js Door): stone that wide either
+side of it and that tall over it, drawn and solid.
+
 ## A deadly pit looks it (issue #312, `src/pit-void.js`)
 
 The author: "Make it clearer when the pit is deadly when I fall … like in the Rose House": the Dry Channel's sand looked

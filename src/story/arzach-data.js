@@ -57,7 +57,7 @@ export const QUESTS = [
       { id: 'watcher', text: 'Sit with the watcher on the plain', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia', via: 'the bird’s tracks' },
       // (from the white house the riders' way: past the bones and the shrine, down the riders' road to the tower's pit, src/vael-canyon.js)
       { id: 'tower', text: 'Ride the wind up the lone tower', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind', via: 'the riders’ way' },
-      { id: 'window', text: 'Climb the steps to the tower’s window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
+      { id: 'window', text: 'Take the rider’s flute from the tower’s window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
       { id: 'promise', text: 'Wait for her answer over the haze', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
       // the ship won't leave Vael without the fluid wings (src/story/leave-gate.js): the quest's last step while they're

@@ -46,7 +46,7 @@ import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
 import { padIndex } from '../native-pad.js';
 import { glyph } from '../pad-glyphs.js';
-import { isCharted, searchStep, scanStart, searchArmed, cues, regionFor, lockRadius, signatureNotes, SEARCH, SEARCH_LABEL, SEARCH_LEGEND, SEARCH_LEGEND_SHORT } from '../story/signature-search.js';
+import { isCharted, searchStep, scanStart, searchArmed, cues, regionFor, lockRadius, signatureNotes, wander, WANDER, SEARCH, SEARCH_LABEL, SEARCH_LEGEND, SEARCH_LEGEND_SHORT } from '../story/signature-search.js';
 import { rumblePlay } from '../rumble.js';
 
 /**
@@ -376,8 +376,8 @@ export class StarMap {
     const sc = this.el?.querySelector('.scanner');
     if (!sc || !this.scan) return;
     const still = typeof document !== 'undefined' && document.documentElement.classList.contains('reduce-motion');
-    const j = still ? 0 : c.jitter;
-    const jx = j ? (Math.random() - 0.5) * 2 * j : 0, jy = j ? (Math.random() - 0.5) * 2 * j : 0;
+    // (a slow wander, issue #353: its phase and amplitude advance in searchUpdate, so a pointer's moves don't shake it)
+    const [jx, jy] = still ? [0, 0] : wander(this._wPhase ?? 0, this._wAmp ?? 0);
     sc.style.transform = `translate(${this.scan[0] + jx}px, ${this.scan[1] + jy}px)`;
     const col = scanColour(c.warmth);
     for (const el of [sc, this.el.querySelector('.meter')]) {
@@ -583,6 +583,8 @@ export class StarMap {
     const r = searchStep(this.search, { at: this.scan, targets: this.targets, dt, diag, disc: this.layout?.box?.disc ?? 0, armed: searchArmed(this._moved ?? 0, diag) });
     const c = cues(r.strength);
     this._cue = c; this._lock = r.lock;
+    this._wPhase = ((this._wPhase ?? 0) + dt * Math.PI * 2 * c.wander) % (Math.PI * 200);
+    this._wAmp = (this._wAmp ?? 0) + (c.jitter - (this._wAmp ?? 0)) * (1 - Math.exp(-WANDER.ease * dt));
     this.drawScanner(c, r.lock);
     // the beat: the scanner pings (three rings), the pad rumbles the three pulses, the light's notes now and then
     this._beatT = (this._beatT ?? 0) - dt;

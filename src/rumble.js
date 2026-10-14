@@ -56,7 +56,7 @@ export const PATTERNS = {
   search: ({ s = 0 } = {}) => {
     const k = clamp(s);
     if (k < 0.12) return [];
-    const gap = 150 - 60 * k, dur = 45 + 35 * k, m = 0.08 + 0.5 * k;
+    const gap = 150 - 60 * k, dur = 45 + 35 * k, m = 0.05 + 0.53 * k * k;   // (faint, barely a touch: issue #353)
     return [0, 1, 2].map((i) => pulse(i * gap, dur, m * 0.6, m));
   },
   found: () => [pulse(0, 120, 0.4, 0.6), pulse(170, 120, 0.4, 0.6), pulse(340, 320, 0.8, 0.9)],

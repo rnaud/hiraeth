@@ -76,7 +76,7 @@ export const QUESTS = [
 export const PEOPLE = {
   wen: {
     id: 'wen', name: 'Wen', title: 'who counts the teeth', color: '#e8b896', voice: 1.0, kind: 'f',
-    palette: { cloak: '#e8b896', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#f3ead2', hair: '#3d2a22' }, head: 'wrap', cape: 1.1, look: { mask: 'breather', body: 'pauldrons' },
+    palette: { cloak: '#e8b896', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#f3ead2', hair: '#3d2a22' }, head: 'wrap', cape: 0, look: { mask: 'breather', body: 'pauldrons' },
     lines: ['~neutral~ Tooth Day. Mind the sand.', '~happy~ Forty-one teeth, and every one counted.', '~neutral~ Watch the city when it turns.'],
     talk: {
       entry: [
@@ -157,7 +157,7 @@ export const PEOPLE = {
 
   hask: {
     id: 'hask.buried', name: 'Hask', title: 'keeper of the Wick', color: '#7f93a3', voice: 0.7, kind: 'm', scale: 0.96,
-    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 1.3, look: { prop: 'lantern', head: 'helmet' },
+    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#4a3a2a', hat: '#e9dcc0', hair: '#e8dcc0' }, head: 'hat', cape: 0, look: { prop: 'lantern', head: 'helmet' },
     lines: ['~tired~ Mm.', '~tired~ Fifty-two Tooth Days.', '~neutral~ (he watches the sky)'],
     talk: {
       entry: [
@@ -212,7 +212,7 @@ export const PEOPLE = {
 
   dun: {
     id: 'dun', name: 'Dun', title: 'who keeps the domes breathing', color: '#c8643f', voice: 1.15, kind: 'm',
-    palette: { cloak: '#c8643f', lining: '#2b211f', cloth: '#34405e', legs: '#3a3a3a', hat: '#5f7488', hair: '#2b211f' }, head: 'hood', cape: 0.6,
+    palette: { cloak: '#c8643f', lining: '#2b211f', cloth: '#34405e', legs: '#3a3a3a', hat: '#5f7488', hair: '#2b211f' }, head: 'hood', cape: 0,
     lines: ['~shout~ Mind the sand on my chimneys!', '~neutral~ Every dome has to breathe on Tooth Day.', '~scared~ Up there. Up there!'],
     talk: {
       entry: [
@@ -253,7 +253,7 @@ export const PEOPLE = {
   pim: {
     // (a small boy: nine teeth old is about six)
     id: 'pim', name: 'Jot', title: 'nine teeth old', color: '#e9c9a8', voice: 1.7, kind: 'm', scale: 0.72, age: 'child', years: 6,
-    palette: { cloak: '#e9c9a8', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#c8643f', hair: '#4a3226' }, head: 'hair', cape: 0.4,
+    palette: { cloak: '#e9c9a8', lining: '#2b211f', cloth: '#5f7488', legs: '#3a3a3a', hat: '#c8643f', hair: '#4a3226' }, head: 'hair', cape: 0,
     lines: ["~neutral~ The domes are chimneys. Most of the machine is beneath us.", "~neutral~ Follow the sandy ramp. Those canyon walls are pipes.", '~shout~ I’m nine teeth old!'],
     talk: { listen: [
       { if: { not: { flag: 'world.buried.done' } }, say: ["~curious~ Are you a person? You arrived in a ball. I’m Jot. Nine teeth old. For now.", '~scared~ If the wheel turns today I’ll be ten teeth. Wen says it might not. If it doesn’t, I’ll be nine forever.'] },
@@ -269,7 +269,7 @@ export const PEOPLE = {
 
   ossa: {
     id: 'ossa.buried', name: 'Ket', title: 'who listens to the walls', color: '#7f93a3', voice: 0.9, kind: 'f',
-    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#2b2f45', hat: '#d8dcc8', hair: '#2b211f' }, head: 'hood', cape: 1.2,
+    palette: { cloak: '#7f93a3', lining: '#2b211f', cloth: '#c8643f', legs: '#2b2f45', hat: '#d8dcc8', hair: '#2b211f' }, head: 'hood', cape: 0,
     lines: ['~whisper~ Listen. The walls are still warm.', "~neutral~ Two oval doors. The open-roofed room is beyond them.", '~whisper~ Shh.'],
     talk: {
       entry: [
@@ -317,7 +317,7 @@ export const PEOPLE = {
 
   tull: {
     id: 'tull', name: 'Tull', title: 'who oils the oval doors', color: '#c9d4b8', voice: 1.2, kind: 'm',
-    palette: { cloak: '#c9d4b8', lining: '#2b211f', cloth: '#2f5a5e', legs: '#4a3a2a', hat: '#c8643f', hair: '#6e4a32' }, head: 'hat', cape: 0.8,
+    palette: { cloak: '#c9d4b8', lining: '#2b211f', cloth: '#2f5a5e', legs: '#4a3a2a', hat: '#c8643f', hair: '#6e4a32' }, head: 'hat', cape: 0,
     lines: ['~neutral~ Inside, look up. The lit window is on the balcony.', '~neutral~ The city up there? It has always hung like that.', '~playful~ Squeak. No squeak. Good.'],
     talk: {
       entry: [

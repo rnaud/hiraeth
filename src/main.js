@@ -396,7 +396,7 @@ if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => pro
 const bikeHere = bikeComes(levelId, level, (k) => game.flag(k));
 if (bikeHere && !level.mount) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
 const player = new Player(physics, {
-  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
+  mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
@@ -814,7 +814,11 @@ registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: 
   prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the cab' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
   // (measured to its side, not its middle: a cab is four metres long, and a passer-by at your shoulder was nearer than its centre)
   distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? Math.max(0.2, d - (v.halfWidth ?? 0)) : Infinity; }, use: () => player.interact() });
-if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: 'turn the lens', distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
+// (the lens's prompt floats over its dial, its beams' count with it: issue #350, a world object's prompt by the object)
+const _lensAt = new THREE.Vector3();
+if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: () => expedition.hud(player).replace(/^E \(X \/ □\) /, ''),
+  at: () => { const i = expedition.nearby(player); return i >= 0 ? expedition.model.dials[i].getWorldPosition(_lensAt).add(player.frame.up) : null; },
+  distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
 // the scout finds the objective (Q, R3 with no foe in reach, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
 // (src/story/quests.js QuestMarker.reveal)
@@ -889,7 +893,16 @@ function updatePlumb(dt) {
 const scoutTeach = { left: 0, at: 0 };
 const scoutHint = installScoutHint({ game, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
   usable: () => !ship.inside && !ship.playing && !minigame && !minigameDef && game.flag('prologue.done') && !!scout.getTarget?.() });
-game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });   // (a nudge is the last of the notices: not over another, issue #78)
+// (a nudge that `wait`s, the way on from a place reached (Vael's riders' gate, issue #349), comes once the notices
+//  and the talk are done, within 30 s, instead of not at all)
+const pingLater = { until: 0 };
+game.on('scout:ping', (e) => { if (e?.wait && hintsFor('nudge')) pingLater.until = performance.now() + 30000; });   // (kept until it is shown)
+game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) { scout.ping(); pingLater.until = 0; } });   // (a nudge is the last of the notices: not over another, issue #78)
+function pingWhenFree() {
+  if (!pingLater.until) return;
+  if (performance.now() > pingLater.until) { pingLater.until = 0; return; }
+  if (!ship.playing && !storyRt.dialogue.open && !ship.cinema.noticeBusy() && !busy()) { pingLater.until = 0; scout.ping(); }
+}
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
@@ -1653,16 +1666,15 @@ const timer = new THREE.Timer();
 let frameNo = 0;
 
 // Nothing on the screen at rest (src/hud.js): no status box. The cue says what the use button does
-// right here when it has nothing to float over (the ship's hatch and console, a lens) and a region's
+// right here when it has nothing to float over (a scene's own E) and a region's
 // name as you cross into it; no button hints as you get into a vehicle (src/hud.js cueText).
 const cue = new Cue(), placeName = new PlaceName();
 cue.onChange = () => ship.cinema.layout();   // (the cue heads the hints' stack at the top: the notices under it move at once, issue #306)
 function updateHud() {
   const now = performance.now();
   const quiet = busy() || photo.on || player.dead;
-  const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
-  const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
-    prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
+  const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.promptTag() ? null : ship.hud(), shipPlaying: ship.playing,
+    prompt: storyRt.prompt, promptAt: storyRt.promptAt, boarding: player.boarding, controller: controllerActive });   // (the lens's line floats over its dial: issue #350)
   const indoors = interiorAt(player.pos);
   // (inside a shop: its name as you step in; back out, the street's name is not news)
   // The region's name is the first of the notices (src/ship/cinema.js NOTICE_ORDER, issue #78): settled while a scene
@@ -2307,7 +2319,10 @@ function frame(ts) {
     talkFaces.update(dt);
     updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
     player.character?.updateHands();
-    if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
+    // (a scene's own E, by what it is for: the prologue's voicemail button, issue #350)
+    const sceneTag = ship.playing && !photo.on ? ship.promptTag() : null;
+    if (sceneTag) { storyRt.prompt = sceneTag.text; storyRt.promptAt = sceneTag.at; storyRt.promptEntry = null; storyRt.placePrompt(camera, controllerActive); }
+    else if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
   // (src/fragments.js: their song, the finder, a fragment walked into; the finder quiet in a conversation or a menu, issue #231)
@@ -2346,6 +2361,7 @@ function frame(ts) {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
+  pingWhenFree();
   if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t, TEACH); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
   updateHealth(dt);
   updateKeys();

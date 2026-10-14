@@ -96,6 +96,7 @@ export const COSTUMES = {
     masks: { none: 5, veil: 2 }, body: { mantle: 2, none: 3 }, props: { none: 6, staff: 2, basket: 1 }, trim: { sash: 3, none: 2, stripes: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { straw: 1.68 }, headsF: { kerchief: 1.23, straw: 1.02 }, masks: { facewrap: 1.1, scarfmask: 0.5, glasses: 0.25 }, body: { neckerchief: 0.6 } },
+    capeOdds: { meant: 0.22 }, plain: { body: 'neckerchief', apron: 0.15 },
     capes: [0, 0, 0.9, 1.25, 1.45], wide: [1, 1.25], robe: 0.85, robes: [0.1, 0.22, 0.38], flare: [0.3, 0.4], size: [0.95, 1.06],
     palette: {
       cloaks: ['#c8483a', '#b5562f', '#d8a24a', '#e6c48a', '#3b4f8a', '#2f437a', '#e6875f', '#f3ead8', '#a8552e', '#8a6fb8'],
@@ -117,6 +118,7 @@ export const COSTUMES = {
       masks: { none: 1 }, body: { collar: 5, none: 1 }, props: { none: 5, parasol: 2 }, trim: { yoke: 1 },
       // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
       more: { heads: { bowler: 1.5, trilby: 1 }, headsF: { bowler: 0.8 }, masks: { glasses: 0.13, monocle: 0.07 }, body: { muffler: 0.5 } },
+      capeOdds: { meant: 0.25 },
       capes: [0, 0, 0.55, 0.9], wide: [0.9, 1], robe: 0.5, robes: [0.45], flare: [0.24, 0.26], size: [1.0, 1.08],
       palette: {
         cloaks: ['#e88fa6', '#a99be0', '#9fd6c9', '#f2c5b0', '#f3ead8', '#b9d4f0'],
@@ -135,6 +137,7 @@ export const COSTUMES = {
       masks: { none: 3, browgoggles: 2 }, body: { none: 2, tatters: 1 }, props: { none: 5, lantern: 1 }, trim: { none: 1, patches: 1 },
       // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
       more: { heads: { peak: 1.6, beanie: 1.2, hooddown: 1 }, masks: { goggles: 0.8, glasses: 0.6 }, body: { muffler: 0.8, neckgoggles: 0.6 } },
+      capeOdds: { meant: 0.3 }, plain: { body: 'muffler', apron: 0.15 },
       capes: [0.55, 0.9, 1.25], robe: 0.4, robes: [0.35], flare: [0.27, 0.3], size: [0.93, 1.02],
       palette: {
         cloaks: ['#8a7a66', '#697a98', '#b0705a', '#84bab3', '#a88a6a'],
@@ -154,6 +157,7 @@ export const COSTUMES = {
       masks: { goggles: 3, browgoggles: 2, none: 2 }, body: { tatters: 3, none: 2 }, props: { none: 5, lantern: 1 }, trim: { patches: 3, none: 1 },
       // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
       more: { heads: { beanie: 1.5, trapper: 1, bandana: 1 }, masks: { scarfmask: 1.2 }, body: { muffler: 1, neckgoggles: 0.8 } },
+      capeOdds: { meant: 0.3 }, plain: { body: 'muffler', apron: 0.1 },
       capes: [0.9, 1.25, 1.45], wide: [1, 1.15], robe: 0.5, robes: [0.3, 0.45], flare: [0.28, 0.33], size: [0.88, 0.98],
       palette: {
         cloaks: ['#6e6450', '#5a5248', '#7a6a58', '#4f5a52', '#8a7660'],
@@ -174,6 +178,8 @@ export const COSTUMES = {
     masks: { beak: 4, none: 1 }, body: { scarf: 4, none: 1 }, props: { staff: 2, none: 2 }, trim: { none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { hooddown: 0.6 }, body: { muffler: 1 } },
+    // (the riders of the great birds: their elders and staff-bearers caped, the rest in their long robes)
+    capeOdds: { meant: 0.14 },
     capes: [1.25, 1.45], wide: [1, 1.15], robe: 1, robes: [0.06, 0.14], flare: [0.32, 0.4], size: [1.04, 1.12],
     palette: {
       cloaks: ['#f4efe2', '#ece4d2', '#e8dfcb', '#d8c7a6'],
@@ -194,6 +200,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { scarf: 3, none: 1 }, props: { bell: 2, staff: 1, none: 2 }, trim: { hem: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { skullcap: 1.2 }, headsF: { kerchief: 1.62 }, masks: { glasses: 0.12 } },
+    capeOdds: { meant: 0.25 },
     capes: [0, 0.55, 1.45], robe: 1, robes: [0.08, 0.16], flare: [0.34, 0.42], size: [0.98, 1.06],
     palette: {
       cloaks: ['#f3ead8', '#e9d7b0', '#d8c7a6', '#b9a7d8'],
@@ -214,6 +221,7 @@ export const COSTUMES = {
     masks: { goggles: 2, browgoggles: 1, none: 3 }, body: { toolbelt: 4, pauldrons: 2 }, props: { wrench: 3, none: 3 }, trim: { bib: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { aviator: 2, peak: 1.5, bandana: 1 }, masks: { glasses: 0.5, monocle: 0.3 }, body: { neckerchief: 1, neckgoggles: 1 } },
+    capeOdds: { meant: 0.1, other: 0 },
     capes: [0, 0, 0, 0.55], robe: 0, size: [0.86, 0.97], bulk: 1,
     palette: {
       cloaks: ['#e63b2e', '#2f6fd6', '#f2c54b', '#3f8f8a'],
@@ -233,6 +241,7 @@ export const COSTUMES = {
     masks: { breather: 4, goggles: 1, none: 1 }, body: { pauldrons: 3, none: 2 }, props: { none: 4, lantern: 1 }, trim: { stripes: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { helmet: 2, beanie: 1.2, trapper: 1 }, masks: { scarfmask: 0.8 }, body: { muffler: 1 } },
+    capeOdds: { meant: 0.15, other: 0 }, plain: { apron: 0.2 },
     capes: [0, 0.6, 0.9, 1.2], robe: 0, size: [0.94, 1.02], bulk: 2,
     palette: {
       cloaks: ['#c8643f', '#a8502a', '#2f5a5e', '#5f7488', '#7f93a3'],
@@ -253,6 +262,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { garland: 3, none: 2 }, props: { flower: 1, basket: 1, none: 3 }, trim: { hem: 1, none: 2 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { straw: 1.5, circlet: 1, brim: 0.6 }, body: { neckerchief: 0.6 } },
+    capeOdds: { meant: 0.3 }, plain: { apron: 0.25 },
     capes: [0, 0, 0.5, 0.9], robe: 0.7, robes: [0.36, 0.5], flare: [0.26, 0.32], size: [1.0, 1.06], sleeveless: true,
     palette: {
       cloaks: ['#f7f4ec', '#9fd6c9', '#f2a7b5', '#b5a7e6', '#7fcfa8', '#f6efd0'],
@@ -273,6 +283,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { ruff: 2, none: 3 }, props: { parasol: 2, none: 4 }, trim: { dots: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { circlet: 1.2, skullcap: 0.8, bowler: 0.5 }, masks: { glasses: 0.1 } },
+    capeOdds: { meant: 0.35 },
     capes: [0, 0.9, 1.3], robe: 1, robes: [0.07, 0.14], flare: [0.38, 0.46], size: [0.96, 1.04],
     palette: {
       cloaks: ['#f6efd0', '#f3efe2', '#f3e3a0', '#e8d890', '#f2c5b0', '#b7c46a'],
@@ -293,6 +304,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { reedcape: 5, none: 1 }, props: { staff: 1, lantern: 1, none: 3 }, trim: { none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { brim: 1.2, hooddown: 1, bandana: 0.8 }, body: { neckerchief: 0.6 } },
+    capeOdds: { meant: 0.22 }, plain: { body: 'neckerchief', apron: 0.1 },
     capes: [0, 0.9, 1.45], robe: 0.4, robes: [0.3], flare: [0.28, 0.33], size: [0.95, 1.04],
     palette: {
       cloaks: ['#8a6fb8', '#6f5a9a', '#4a6a4a', '#5a7a4a', '#7a6a9a'],
@@ -311,6 +323,7 @@ export const COSTUMES = {
     heads: { hood: 3, wrap: 3, hat: 1, hair: 1 }, as: { hat: 'hood' },
     hair: { m: { short: 2, tail: 1 }, f: { long: 2, braid: 2, bun: 1 } },
     masks: { none: 3, goggles: 1 }, body: { mantle: 2, none: 2 }, props: { none: 3, basket: 1.5 }, trim: { none: 1 },
+    capeOdds: { meant: 0.4 }, plain: { body: 'neckerchief', apron: 0.2 },
     capes: [0.8, 1.1, 1.3], robe: 0.6, robes: [0.2, 0.3], flare: [0.28, 0.34], size: [0.96, 1.04],
     palette: {
       cloaks: ['#efe2cc', '#e2c8a8', '#c4664a', '#a0644a', '#d8d0c4'],
@@ -329,6 +342,7 @@ export const COSTUMES = {
     heads: { hood: 4, lamphat: 1, hair: 1 }, as: { hat: 'hood', wrap: 'hood' },
     hair: { m: { tail: 2, locks: 1 }, f: { long: 3, braid: 2 } },
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lantern: 2, lamppole: 1, none: 2 }, trim: { none: 1 },
+    capeOdds: { meant: 0.4 }, plain: { body: 'scarf' },
     capes: [0.9, 1.2, 1.4], robe: 0.7, robes: [0.2, 0.32], flare: [0.3, 0.36], size: [0.97, 1.05],
     palette: {
       cloaks: ['#e9e2f2', '#c9c2e6', '#8a8ed0', '#d8b8d8'],
@@ -348,6 +362,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lamppole: 3, lantern: 2, none: 1 }, trim: { none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { hooddown: 1, beanie: 1, trapper: 0.6 }, body: { muffler: 1 } },
+    capeOdds: { meant: 0.4 }, plain: { body: 'muffler' },
     capes: [0.9, 1.25, 1.45], robe: 0.6, robes: [0.15, 0.3], flare: [0.3, 0.36], size: [0.98, 1.06],
     palette: {
       cloaks: ['#3a6a58', '#4a4f7a', '#3e5a6a', '#6f5a9a'],
@@ -369,6 +384,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { badge: 4, none: 1 }, props: { basket: 2, none: 4 }, trim: { diamonds: 2, stripes: 2 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { flatcap: 1.3, beanie: 1, peak: 1, hooddown: 0.8 }, headsF: { kerchief: 1.5, beanie: 0.8, hooddown: 0.8 }, masks: { glasses: 0.12, browgoggles: 0.09, scarfmask: 0.06 }, body: { muffler: 1, neckerchief: 1 } },
+    capeOdds: { meant: 0.35 },
     capes: [0, 0.5, 0.9], robe: 0.6, robes: [0.4, 0.5], flare: [0.26, 0.29], size: [0.95, 1.05],
     palette: {
       cloaks: ['#f0a083', '#88b4b5', '#e4bd83', '#2fa8a0', '#ff7a5c', '#c8483a', '#5fb7ad', '#f2c54b', '#8a6fb8'],
@@ -390,6 +406,7 @@ export const COSTUMES = {
     hair: { m: { crop: 2, curls: 2, bald: 0.8 }, f: { braid: 2.5, bun: 2, flow: 1.5 } },
     masks: { none: 1 }, body: { none: 3, badge: 1 }, props: { basket: 3, none: 3 }, trim: { stripes: 2, none: 2 },
     more: { heads: { beanie: 1, hooddown: 1.2 }, headsF: { kerchief: 1.5, hooddown: 0.8 }, body: { muffler: 1 } },
+    capeOdds: { meant: 0.35 }, plain: { apron: 0.2 },
     capes: [0, 0.6, 1.0], robe: 0.7, robes: [0.3, 0.45], flare: [0.3, 0.36], size: [0.95, 1.05],
     palette: {
       cloaks: ['#c46b4e', '#4f7f86', '#d9a35e', '#7a6e9e', '#b5523e', '#e0c08a', '#5f8f7a', '#2f8a8f'],
@@ -474,6 +491,7 @@ export const COSTUMES = {
     heads: { antenna: 2, hood: 2, hair: 1.5 }, as: { hat: 'hood', wrap: 'hood' },
     hair: { m: { tail: 2, swept: 1 }, f: { long: 2, twin: 2 } },
     masks: { browgoggles: 2, none: 3 }, body: { toolbelt: 3, mantle: 1, none: 1 }, props: { wrench: 2, lantern: 1, none: 3 }, trim: { none: 1 },
+    capeOdds: { meant: 0.4 }, plain: { body: 'toolbelt' },
     capes: [0.6, 0.9, 1.1], robe: 0.4, robes: [0.18, 0.28], flare: [0.28, 0.34], size: [0.95, 1.04],
     palette: {
       cloaks: ['#b8a6d8', '#8a7ab8', '#d8a184', '#e9bab4'],
@@ -492,6 +510,7 @@ export const COSTUMES = {
     heads: { hood: 2, hair: 2 }, as: { hat: 'hood', wrap: 'hood' },
     hair: { m: { tail: 1, swept: 2 }, f: { long: 2, twin: 1 } },
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lantern: 1, none: 3 }, trim: { none: 1 },
+    capeOdds: { meant: 0.4 }, plain: { body: 'neckerchief', apron: 0.1 },
     capes: [0.7, 1, 1.2], robe: 0.6, robes: [0.2, 0.3], flare: [0.28, 0.34], size: [0.96, 1.05],
     palette: {
       cloaks: ['#f0e2c4', '#e8b48c', '#9c9e58', '#d8c9a0'],
@@ -618,7 +637,53 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   s.eyes = palette.eyes ?? look.eyes ?? irisFor(mulberry32(hashSeed(`${s.skin}|${s.hair}|${s.cloak}|${s.height}|${s.capeWide}`)));
   // their face and the mood it rests in (the same way: their own stream, the others' looks untouched)
   Object.assign(s, faceFor(T, mulberry32(hashSeed(`face|${s.eyes}|${s.skin}|${s.cloak}|${s.height}|${s.flare}`)), look));
+  // who wears a cape (issue #347): a cape the story sets is theirs; otherwise only a few, where it means something
+  caped(T, s, look, cape);
+  // a coat (the family's open coats: humanoid.js robeOptions), when the story asks for one
+  for (const k of ['robeOpen', 'robeRole', 'robeLining', 'robeHem']) if (look[k] !== undefined) s[k] = look[k];
   return s;
+}
+
+/**
+ * Capes (issue #347, the author: "Too many characters wear capes, it shouldn't be more than 10%. Simplify the
+ * outfits for everyone else"). A cape, a mantle or a cape of reeds over the shoulders is worn where it means
+ * something: by the elders (a face of the `elder` type) and by those who walk with a staff (the pilgrims, the
+ * processions, the monks), each with the tribe’s odds (`T.capeOdds.meant`), and by hardly anyone else
+ * (`T.capeOdds.other`). Everyone else wears their tunic and trousers (or skirt, or robe), with the tribe's plain
+ * neck piece instead of a shoulder cape (`T.plain.body`) and, in the tribes that work with their hands, now and
+ * then an apron’s bib (`T.plain.apron`, the share of those who lost a cape and wear a plain tunic). Drawn from no random number
+ * (a hash of the look already drawn), so nobody's other pieces change; the length is the one drawn from
+ * `T.capes` (a list of lengths), or its longest when the draw was none.
+ */
+export const CAPE_ODDS = { meant: 0.4, other: 0.02 };
+/** The pieces over the shoulders that are a cape (costumes.js BODIES: the desert's mantle, Lorn's reeds, the shaft's rags). */
+export const CAPELETS = ['mantle', 'reedcape', 'tatters'];
+/** The props of those who walk with a staff (a cape means a long road). */
+const STAFFS = ['staff', 'bellstaff', 'discstaff'];
+/** Does this look wear a cape (a cloth cape, or a cape over the shoulders)? */
+export const wearsCape = (s) => (s.capeLen ?? 0) > 0 || CAPELETS.includes(s.body);
+function caped(T, s, look, cape) {
+  if (look.capeLen !== undefined) { s.capeLen = look.capeLen; return; }
+  // (the story's cape: theirs; none, and no cape over the shoulders either unless the story puts one there)
+  if (cape != null) { if (!cape) plainly(T, s, look); return; }
+  const odds = { ...CAPE_ODDS, ...T.capeOdds };
+  const meant = s.faceType === 'elder' || STAFFS.includes(s.prop);
+  const u = (hashSeed(`cape|${s.cloak}|${s.cloth}|${s.skin}|${s.hair}|${s.height}|${s.prop}`) % 100003) / 100003;
+  const lengths = T.capes.filter((l) => l > 0);
+  if (u < (meant ? odds.meant : odds.other) && (lengths.length || CAPELETS.includes(s.body))) {
+    if (!s.capeLen && !CAPELETS.includes(s.body)) s.capeLen = Math.max(...lengths);
+    return;
+  }
+  plainly(T, s, look);
+}
+/** No cape: the tribe's plain neck piece instead of a cape over the shoulders, now and then a working apron. */
+function plainly(T, s, look) {
+  const lost = (s.capeLen ?? 0) > 0 || (CAPELETS.includes(s.body) && !look.body);
+  s.capeLen = 0;
+  if (CAPELETS.includes(s.body) && !look.body) s.body = T.plain?.body ?? 'none';
+  // (only those who had a cape: everyone without one before keeps their look)
+  const v = (hashSeed(`apron|${s.accent}|${s.hat}|${s.legs}|${s.height}`) % 100003) / 100003;
+  if (lost && !look.trim && (s.trim ?? 'none') === 'none' && v < (T.plain?.apron ?? 0)) s.trim = 'bib';
 }
 
 /**

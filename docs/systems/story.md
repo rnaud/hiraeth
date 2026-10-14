@@ -954,6 +954,28 @@ idea." "All quests should be solvable by just going to the end if you can."
   known everywhere; the rest are listed in its `EXCEPTIONS`, each with its reason (what he hears or sees, what he
   found and tells, a person of the same world's quest). Marrow's "What's that singing out on the sand?" is offered at
   the ship (`wreck`, and `hello` once the bike is asked about) instead of after a page about Qanat's fire or the mark.
+- **A marker reached moves on, and stays moved on** (#349, v1.75; the author: "my marker tells me to go to the riders'
+  gate, but [there] I don't know where to go after, and if I walk back from the gate, the marker tells me to go back to
+  the gate"). Vael's way to Sister Aube is a way-point (`aubeWay`): from the plain the scout finds the riders' gate
+  first. Standing by it (18 m, `GATE_REACH`) sets `arzach2.gate.reached` and pings the scout once (`scout:ping`,
+  `why: 'waypoint', wait: true`: a nudge that waits, main.js `pingWhenFree`, for the region's name or a card to go,
+  where other nudges are dropped); from then on the marker is Aube, "by the smoke over the cloud", wherever you walk. The same sweep
+  found steps done only by a prompt their words did not name: "Climb to the tallest tree's crown" was done only by
+  reading Talo's note (the crown reached is the climb now, `src/story/edena.js`), "Climb the steps to the tower's window"
+  only by taking the flute ("Take the rider's flute from the tower's window"), the cave's "Carry the splinter" only by
+  holding it up ("Hold up the splinter …"), the saucer's "Take the skiff to what answered" only by looking in ("…; look
+  inside"). `tests/marker-walk.test.js` (`.claude/skills/quest-qc/marker-walk.mjs`) puts the traveller where the marker
+  points, in every world, for every quest at every step and every quest still to be given, and fails on a marker that
+  points back at a place reached, a door whose way on is straight back out or another room's door (#351, below), and a
+  step finished only by a prompt it doesn't name; the quest QC's `check.mjs --walk` prints the same, and `check.mjs`
+  flags a step only a thing's page finishes whose words don't name it (`look only`).
+- **The way through a door stays in its room** (#351, v1.75; "a quest tells me to go through the shop door but not why
+  and there is nothing inside"). The scout's route (`src/scout.js viaPortal`) walked from one room built off the map to
+  another built 90 m from it: from the riders' gate the way to Aube went in at the landing's shop door and out of the
+  Belfry shop's, a field away. A walk now joins two ends only in the same space: `portalPair` tags its ways
+  (`toSpace` in, `fromSpace` out: the room), a temple's door leads into `temple:<id>` and its ways out leave it; you are
+  in a room when one of its ways out is within 40 m, and a find more than 400 m above or below a room is not in it.
+  `tests/interiors.test.js` (two rooms side by side are no way through).
 
 ## Places to stop on the way (the second story pass, October 2026)
 

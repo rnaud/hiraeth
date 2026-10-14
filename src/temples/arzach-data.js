@@ -14,7 +14,7 @@ export const QUEST = {
 export const PEOPLE = {
   lark: {
     id: 'lark', name: 'Lark', title: 'who sweeps the steps', color: '#b98f9a', voice: 1.05, kind: 'f',
-    palette: { cloak: '#e6dcc6', lining: '#b98f9a', cloth: '#f4efe2', legs: '#8a7a66', hat: '#f4efe2', hair: '#4a3a42' }, head: 'hood', cape: 1.2,
+    palette: { cloak: '#e6dcc6', lining: '#b98f9a', cloth: '#f4efe2', legs: '#8a7a66', hat: '#f4efe2', hair: '#4a3a42' }, head: 'hood', cape: 0,
     lines: ['~neutral~ (she sweeps)', '~whisper~ Wings.', '~sad~ (she looks up at the stone wings, and sweeps)'],
     talk: {
       entry: [

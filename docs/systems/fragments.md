@@ -186,6 +186,12 @@ studies light, and has been on the lookout for the fragments since the night the
   over his head (the desert's crashed ship too); `tests/fragments.test.js` that he is walked to from the hatch. (The
   homecoming's opening in space plays in the ship's space copy, `ship.spaceCopy`, which has no hold scene: he is in
   the parked ship it lands as.) On the crate beside him is his jar: a glowing splinter for each fragment found (up to 24).
+- **E to him aboard** (issue #352, v1.75: "Talking to Anselm in my ship does nothing. I see the prompt but it does
+  nothing"). The ship took every press of E aboard (`Ship.input`), so his talk prompt showed in the hold and E went to
+  the ship, which had nothing there. E is the ship's now only where it has something to use (`Ship.hasUse`: the
+  voicemail button, the holo table, the hatch; held, it stays the ship's as you walk off); in the hold it is yours,
+  and his talk opens, his shop with it. The web game and the engines share the ship (engine/game.js filters E
+  through `ship.input` too). `tests/ship.test.js` (E in the hold passes through; by the table it opens the map).
 - **His talk** is built from the save each time it opens (`thrumTalk`): his count, found and held (*Twelve of 288. Four
   to spend.*), how many still hide in this world, the three worlds with most left; then *Show me what you have* (his
   shop, below) or, asked, where they hide (*Up high. Behind things. At the ends of paths.*). His balloon shows while

@@ -369,7 +369,7 @@ export const PEOPLE = {
   // he stands (tests/desert-lookout.test.js), and says so: the step's own goal, never somebody else to go and ask
   zahir: {
     id: 'zahir', name: 'Zahir', title: 'who watches the dunes', color: '#d8a24a', voice: 1.4, kind: 'm', age: 'child', years: 12, scale: 0.84,
-    palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a3a', hat: '#c8483a', hair: '#2b211f' }, head: 'wrap', cape: 0.9,
+    palette: { cloak: '#d8a24a', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a3a', hat: '#c8483a', hair: '#2b211f' }, head: 'wrap', cape: 0,
     lines: ['~curious~ Nothing moves out there I don’t see.', '~playful~ Marrow’s hollow. Red rag. Not a secret.', '~neutral~ Wind from the south. Sand by noon.'],
     talk: { listen: [
       { if: { not: { flag: 'desert.bike.uncovered' } }, say: '~playful~ See the red rag, down there? Marrow’s hollow. He dragged something under a tarp and thinks nobody watched.' },
@@ -397,7 +397,7 @@ export const PEOPLE = {
 
   ilo: {
     id: 'ilo', name: 'Ilo', title: 'too curious', color: '#f2c54b', voice: 1.7, kind: 'f', scale: 0.7, age: 'child', years: 8,
-    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55,
+    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0,
     lines: ["~curious~ Were the clouds soft?", "~sad~ They won’t let me past the back gate alone.", "~playful~ Bet I can get there first!"],
     talk: {
       entry: [
@@ -513,7 +513,7 @@ export const PEOPLE = {
 
   oum: {
     id: 'oum', name: 'Oum', title: 'who fell behind', color: '#b7a0cf', voice: 0.85, kind: 'f', age: 'elder', scale: 0.94,
-    palette: { cloak: '#b7a0cf', lining: '#2b211f', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, look: { prop: 'staff' },
+    palette: { cloak: '#b7a0cf', lining: '#2b211f', cloth: '#e2d3b4', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 0, look: { prop: 'staff' },
     lines: ['~surprised~ Eh? Who’s there?', '~tired~ My feet are older than the city.', '~shout~ Wait for me!'],
     talk: {
       entry: [
@@ -1092,12 +1092,12 @@ export const LINES = {
 
 /** The people of Qanat who gather when the chest opens (desert.js places them; they share a short conversation). */
 export const VILLAGERS = [
-  { id: 'qanat.weaver', name: 'Tamra', title: 'a weaver of Qanat', kind: 'f', palette: { cloak: '#e88fa6', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#4a3226' }, head: 'wrap', cape: 0.9, lines: ['~whisper~ Don’t touch the Givers’ things, they say.', '~curious~ Cloth hums too, if you pull it tight enough.'] },
+  { id: 'qanat.weaver', name: 'Tamra', title: 'a weaver of Qanat', kind: 'f', palette: { cloak: '#e88fa6', lining: '#2b211f', cloth: '#f3ead8', legs: '#4a3a2a', hat: '#f3ead8', hair: '#4a3226' }, head: 'wrap', cape: 0, lines: ['~whisper~ Don’t touch the Givers’ things, they say.', '~curious~ Cloth hums too, if you pull it tight enough.'] },
   { id: 'qanat.potter', name: 'Idris', title: 'a potter of Qanat', kind: 'm', palette: { cloak: '#dca273', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#d8a24a', hair: '#2b211f' }, head: 'hat', cape: 0, lines: ['~solemn~ Sixty years Nour has sat there.', '~playful~ No lid, no seam, no handle. As a pot, that chest is a disgrace.'] },
-  { id: 'qanat.boy', name: 'Kito', title: 'who follows Ilo about', kind: 'm', scale: 0.78, age: 'child', years: 9, palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0.55, lines: ['~curious~ Ilo says she went inside the giant. Did she really?', '~playful~ Ilo says you’re from the sky.'] },
-  { id: 'qanat.baker', name: 'Lula', title: 'who bakes for the pilgrims', kind: 'f', palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hood', cape: 1.25, lines: ['~happy~ Flour on my hands, mind.', '~tired~ Eleven days of pilgrims, and they all want bread at once.'] },
-  { id: 'qanat.guard', name: 'Haro', title: 'who guards the steps', kind: 'm', palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#c8483a', hair: '#4a3226' }, head: 'hat', cape: 1.25, look: { mood: 'stern' }, lines: ['~neutral~ Steady, stranger.', '~tired~ I only guard the steps.', '~neutral~ Mind the steps. That’s the whole message.'] },
-  { id: 'qanat.sweeper', name: 'Mim', title: 'who sweeps the terraces', kind: 'f', palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 1.45, lines: ['~tired~ Every day I sweep these steps.', '~surprised~ Look at the tree!'] },
+  { id: 'qanat.boy', name: 'Kito', title: 'who follows Ilo about', kind: 'm', scale: 0.78, age: 'child', years: 9, palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#c8483a', legs: '#4a3a2a', hat: '#e6875f', hair: '#6e4a32' }, head: 'hair', cape: 0, lines: ['~curious~ Ilo says she went inside the giant. Did she really?', '~playful~ Ilo says you’re from the sky.'] },
+  { id: 'qanat.baker', name: 'Lula', title: 'who bakes for the pilgrims', kind: 'f', palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#5a4a3a', legs: '#2b2f45', hat: '#f3ead8', hair: '#b0a89a' }, head: 'hood', cape: 0, lines: ['~happy~ Flour on my hands, mind.', '~tired~ Eleven days of pilgrims, and they all want bread at once.'] },
+  { id: 'qanat.guard', name: 'Haro', title: 'who guards the steps', kind: 'm', palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#c8483a', hair: '#4a3226' }, head: 'hat', cape: 0, look: { mood: 'stern' }, lines: ['~neutral~ Steady, stranger.', '~tired~ I only guard the steps.', '~neutral~ Mind the steps. That’s the whole message.'] },
+  { id: 'qanat.sweeper', name: 'Mim', title: 'who sweeps the terraces', kind: 'f', palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#f3ead8', legs: '#5a4a40', hat: '#f3ead8', hair: '#e8dcc0' }, head: 'wrap', cape: 0, lines: ['~tired~ Every day I sweep these steps.', '~surprised~ Look at the tree!'] },
 ];
 /**
  * Qanat repays you (the main quest's last stage, src/story/desert-repay.js): you put the tree's water and fire back

@@ -430,7 +430,7 @@ function layout(rt) {
       dark: 'The dish on the wall is dark and deaf: its footstone is bare.' });
   }
   for (const a of [0.6, 2.3, 3.9, 5.6]) whorl(Math.sin(a) * (AR - 2), AY, AZ + Math.cos(a) * (AR - 2), 1.0, true, 6);
-  add(Door, { id: 'd5', at: [0, AY, AZ + AR + 0.7], w: 5, h: 6 });
+  add(Door, { id: 'd5', at: [0, AY, AZ + AR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   const E0 = AZ + AR + 0.6, E1 = AZ + AR + 10;
   K.slab(-3.2, E0, 3.2, E1, AY, 0.8);
   K.wall(-3.2, E0 + 0.8, -3.2, E1, AY, 7, { t: 0.8 }); K.wall(3.2, E1, 3.2, E0 + 0.8, AY, 7, { t: 0.8 });

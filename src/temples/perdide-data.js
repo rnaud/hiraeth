@@ -13,7 +13,7 @@ export const QUEST = {
 export const PEOPLE = {
   teasel: {
     id: 'teasel', name: 'Teasel', title: 'who cuts the reeds', color: '#a99be0', voice: 0.92, kind: 'm',
-    palette: { cloak: '#4f6a5e', lining: '#a99be0', cloth: '#d8c8e8', legs: '#3a4a46', hat: '#c9b8d8', hair: '#3a2a30' }, head: 'hood', cape: 0.9,
+    palette: { cloak: '#4f6a5e', lining: '#a99be0', cloth: '#d8c8e8', legs: '#3a4a46', hat: '#c9b8d8', hair: '#3a2a30' }, head: 'hood', cape: 0,
     lines: ["~neutral~ Reeds for roofs. Reeds for mats. None from that shore.", '~whisper~ Do you hear it snapping, in there?', '~curious~ You came by skiff? Or did you swim it?'],
     talk: {
       entry: [

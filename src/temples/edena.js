@@ -511,7 +511,7 @@ function layout(rt) {
   const H0 = G0 + 44;
   const AE = K.vestibule(H0, 27);   // (the antechamber, ANTE: issue #195)
   add(Mark, { room: 'ante', at: [ANTE.half - 1, 27, (H0 + AE) / 2], yaw: -Math.PI / 2 });
-  add(Door, { id: 'dB', at: [0, 27, AE - 0.4], w: 5, h: 6.4 });   // the great key's door (v1.49): its lock plate is its logic's
+  add(Door, { id: 'dB', at: [0, 27, AE - 0.4], w: 5, h: 6.4, frame: { side: ANTE.half - 2.5 + 0.1, top: ANTE.h - 6.4 } });   // the great key's door (v1.49): its lock plate is its logic's; (its frame fills the antechamber's end: you walked round it, issue #356)
   const HR = 20, CW = AE + 1.2 + HR;
   K.rotunda({ x: 0, z: CW, y: 27, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.55 });
   for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU + 0.26; pane(Math.sin(a) * (HR - 0.05), 41, CW + Math.cos(a) * (HR - 0.05), 6, 8, a + Math.PI); }

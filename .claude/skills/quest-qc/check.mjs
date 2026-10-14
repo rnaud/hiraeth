@@ -12,7 +12,14 @@
 //   ask-someone    a step whose words send you to a person ("Ask X", "Tell X", "Find X, who…") that isn't the last
 //   can't skip     a step with no goal the game can see done (no flag, when, goto, talk or bring): going past it never counts
 //   gate?          a step whose flag is an item (item.*) with no gate (nor ahead: false): later steps may pass it without the item
-import { readdirSync } from 'node:fs';
+//   look only      a step whose flag only a thing's page sets (its look prompt, E there) and whose words don't name the
+//                  thing: reaching the place does nothing, and the marker stays (issue #349: "Climb to the crown" done
+//                  only by reading the note on the post)
+//
+//   --walk         and walk every marker in the game (marker-walk.mjs, as tests/marker-walk.test.js does): a marker
+//                  that points back at a place reached (the riders' gate on the way to Aube), a door whose way on is
+//                  straight back out or another room's door (issue #351), a step finished only by a prompt it doesn't name
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -25,7 +32,16 @@ const ASK = /^(Ask|Tell|Talk to|Speak with|Find|Go and see|Go down to|Meet)\b/;
 
 const dir = join(ROOT, 'src/story');
 let n = 0, flagged = 0;
-for (const f of readdirSync(dir).filter((x) => /-(data|people)\.js$/.test(x))) {
+// the flags things' pages set (`do: { set }` in a THINGS talk), and the flags the game's code sets itself
+const STOPS = new Set(['the', 'from', 'with', 'into', 'onto', 'over', 'under', 'your', 'their', 'that', 'this', 'what', 'then', 'back', 'down', 'there', 'here', 'little', 'old', 'its']);
+const stems = (t) => new Set((String(t).toLowerCase().match(/[\p{L}]+/gu) ?? []).filter((w) => w.length >= 4 && !STOPS.has(w)).map((w) => w.slice(0, 4)));
+const setsOf = (x, out = new Set()) => { if (x && typeof x === 'object') { if (x.set && typeof x.set === 'object') Object.keys(x.set).forEach((k) => out.add(k)); Object.values(x).forEach((v) => setsOf(v, out)); } return out; };
+const dataFiles = readdirSync(dir).filter((x) => /-(data|people)\.js$/.test(x));
+const thingSets = new Map();
+for (const f of dataFiles) for (const t of Object.values((await import(pathToFileURL(join(dir, f)))).THINGS ?? {})) for (const k of setsOf(t.talk)) thingSets.set(k, t);
+const code = readdirSync(join(ROOT, 'src'), { recursive: true }).filter((x) => x.endsWith('.js') && !dataFiles.some((d) => x.endsWith(d))).map((x) => readFileSync(join(ROOT, 'src', x), 'utf8')).join('\n');
+const codeSets = (flag) => code.includes(`set('${flag}'`) || code.includes(`'${flag}': true`);
+for (const f of dataFiles) {
   const m = await import(pathToFileURL(join(dir, f)));
   for (const q of m.QUESTS ?? []) {
     if (only && !only.has(q.world)) continue;
@@ -39,6 +55,8 @@ for (const f of readdirSync(dir).filter((x) => /-(data|people)\.js$/.test(x))) {
       if (ASK.test(s.text) && i < q.stages.length - 1 && (s.talk || /^(Ask|Tell|Talk|Speak)/.test(s.text))) fl.push('ask-someone');
       if (!s.flag && !s.when && !s.goto && !s.talk && !s.bring) fl.push('can’t skip');   // (talk and bring steps are done by doing them: docs/systems/story.md)
       if (s.flag?.startsWith('item.') && !s.gate && s.ahead !== false && i < q.stages.length - 1) fl.push('gate?');
+      const thing = s.flag && thingSets.get(s.flag);
+      if (thing && !codeSets(s.flag) && ![...stems(thing.name)].some((w) => stems(s.text).has(w)) && !/\b(look|read|listen|watch|hear|touch|lay)\b/i.test(s.text)) fl.push(`look only (${thing.name})`);
       n++;
       if (fl.length) flagged++;
       if (fl.length || all) lines.push(`  ${s.id.padEnd(10)} ${s.text}${fl.length ? `  ⚑ ${fl.join(', ')}` : ''}`);
@@ -82,3 +100,12 @@ for (const [world, list] of Object.entries(PLACEMENTS)) {
   for (const b of list) if (b.hint) { boxes++; report(`box.${b.id}  boxes/placements.js`, [['find', b.hint]]); }
 }
 console.log(`\n${n} steps (${story} in the story, ${n - story - boxes} in ${temples} temples, ${boxes} boxes’ hints), ${flagged} flagged`);
+
+if (process.argv.includes('--walk')) {
+  process.chdir(ROOT);
+  const { walkMarkers } = await import('./marker-walk.mjs');
+  const found = walkMarkers(only ? [...only] : null);
+  console.log(`\nthe markers walked: ${found.length ? '' : 'nothing loops'}`);
+  for (const f of found) console.log(`  ${f.world} ${f.at}  ⚑ ${f.kind}: ${f.text}`);
+  process.exit(0);
+}

@@ -471,6 +471,35 @@ MakeHuman): within the runs' spread, as in stage 3.
   The two-shot keeps its last good line between you when you stand too close for
   one. `tests/close-contact.test.js` and `tests/cape.test.js` cover them.
 
+## Capes on a few (issue #347)
+
+The author: "Too many characters wear capes, it shouldn't be more than 10%. Simplify the outfits for everyone
+else." Counted over everyone the game dresses (`node scripts/cape-census.mjs`: the story's and the temples'
+people, the hosts, the shopkeepers, the walkers, a 240-person sample of each world's crowd), 81 % wore a cloth
+cape or a cape over the shoulders (the desert's `mantle`, Lorn's `reedcape`, the shaft's `tatters`: `CAPELETS`);
+every crowd of the Salt Harbour, the lake, the ring and the silent ones. Now 6 % (the most, the silent ones of
+Vael, 14 %).
+
+- **Who wears one** (`caped` in `dressFor`, `src/costumes.js`): the elders (a face of the `elder` type) and
+  those who walk with a staff (pilgrims, processions, monks), at the tribe's odds (`T.capeOdds.meant`, 0.1 for
+  the Major's mechanics to 0.4; default `CAPE_ODDS`), anyone else hardly ever (`other`, 0.02; none among the
+  mechanics and the dome people). The length is the one drawn from `T.capes`, or its longest. It is decided
+  from a hash of the look already drawn, not the stream, so nobody's other pieces move.
+- **Everyone else** wears their tunic and trousers, skirt or robe: a cape over the shoulders becomes the tribe's
+  plain neck piece (`T.plain.body`: the desert's and the harbour's neckerchief, the lake's scarf, the lamp-keepers'
+  muffler, the mast-menders' tool belt; the crowd's figure carries it, `worldPieces`), and in the tribes that work
+  with their hands a share of those who lost a cape wear an apron's bib (`T.plain.apron`, the `bib` trim).
+- **The story's capes**: a person's `cape:` is theirs. Kept where a sheet or the story draws one: Bako, Sefa,
+  Nour, the Speaker and the desert's two keepers Ama and Hessa, Halden who carries the Glass Dunes' floats from camp to camp, the quest references that wear one (Oïa, Kesh,
+  Sister Aube, Ondine, Cael, Saba, Fen: `quest-looks.js`), Nettle (her shop's design) and Solange, who rides the
+  roofs. Everyone else's went to 0 (the dismissed Sealed Hangar's left as they were) (and a cape over the shoulders with it, unless their `look.body` names one).
+  Haddu, Tansy and Anselm Thrum wear the coats their notes describe instead (`look.robeOpen`, `robeRole`,
+  `robeHem`: the family's open coats, now passed through `dressFor`).
+- The Glass Dunes' frozen figures: only the glassworker (her sheet) and the carrier in the storm keep theirs.
+- `tests/cape-share.test.js`: capes on ≤ 10 % of everyone and ≤ 15 % in any world, the sheets' capes kept,
+  the plain looks and the streams unchanged, the capes on the elders and staff-bearers. The cape tests' Sel and
+  Hask fixtures carry their own capes (their reference designs wear robes); `tests/engine-unity.test.js` runs the Glass Dunes (Halden's cape reaches BridgeCape) instead of the Hangar, whose mechanics wear none now.
+
 ## Seated capes fall onto the seat
 
 Seated people's capes used to fan out round them like wings: the cloth's floor was a plane at

@@ -1,7 +1,7 @@
 // The signature search on the galactic map (src/story/signature-search.js, src/ship/starmap.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cueStrength, searchStep, scanStart, searchArmed, cues, lockRadius, routeChart, chartedWorlds, isCharted, foundFlag, regionFor, findableNote, signatureNotes, SEARCH, SEARCH_LINE, foundLine } from '../src/story/signature-search.js';
+import { cueStrength, searchStep, scanStart, searchArmed, cues, wander, WANDER, lockRadius, routeChart, chartedWorlds, isCharted, foundFlag, regionFor, findableNote, signatureNotes, SEARCH, SEARCH_LINE, foundLine } from '../src/story/signature-search.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { migrateFlags } from '../src/save-migrate.js';
 import { ORDER, WIP, CHARTED_SIDE } from '../src/levels/names.js';
@@ -151,4 +151,26 @@ test('opening the map never finds a world by itself: the scanner starts clear of
   let found = null;
   for (let k = 0; k < 20 && !found; k++) found = searchStep(st, { at: [500, 320], targets, dt: 0.05, diag, disc: 58, armed: true }).found;
   assert.equal(found, 'spheres');
+});
+
+test('the scanner wanders calmly (issue #353): a smooth drift, never a tremble, smaller the fainter the signal', () => {
+  // its pace and amplitude as starmap.js advances them, 60 frames a second, at each strength
+  const run = (s, secs = 6) => {
+    const c = cues(s);
+    let ph = 0, amp = c.jitter, max = 0, step = 0, last = wander(0, amp);
+    for (let i = 0; i < secs * 60; i++) {
+      ph += (1 / 60) * Math.PI * 2 * c.wander;
+      const p = wander(ph, amp);
+      max = Math.max(max, Math.hypot(...p));
+      step = Math.max(step, Math.hypot(p[0] - last[0], p[1] - last[1]));
+      last = p;
+    }
+    return { max, step };
+  };
+  const faint = run(0.2), weak = run(0.4), strong = run(1);
+  assert.equal(run(0.05).max, 0, 'silent: still');
+  assert.ok(faint.max < weak.max && weak.max < strong.max, `smaller the fainter (${faint.max.toFixed(2)} < ${weak.max.toFixed(2)} < ${strong.max.toFixed(2)} px)`);
+  assert.ok(weak.max <= 0.8, `signal 1 or 2: under a pixel (${weak.max.toFixed(2)} px)`);
+  assert.ok(strong.max <= WANDER.max * 1.01, `never more than ${WANDER.max} px (${strong.max.toFixed(2)})`);
+  for (const [s, r] of [[0.2, faint], [0.4, weak], [1, strong]]) assert.ok(r.step < 0.12, `${s}: a drift, no frame-to-frame shake (${r.step.toFixed(3)} px a frame)`);
 });

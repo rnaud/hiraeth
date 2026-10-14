@@ -43,6 +43,36 @@ export const CHANGELOG = [
     // the traveller's files in the Unity players (unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs: characters/traveller-b3
     // copied into StreamingAssets, where v1's were; BridgeRunner.PublicRoots has no repository on a device); tests/unity-xbox.test.js
     'In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.',
+    // capes on a few (issue #347): src/costumes.js caped / CAPE_ODDS / T.capeOdds / T.plain, crowd.js worldPieces, the story's
+    // cape: 0, the coats (fellow-data, shop-data, scientist-data), glass-dunes-frozen.js; scripts/cape-census.mjs, tests/cape-share.test.js
+    'Far fewer people wear capes: about one in fifteen now, where it was four in five. The elders and those who walk with a staff (pilgrims, monks, Vael’s silent riders) keep theirs; everyone else wears a tunic with trousers, a skirt or a robe, a scarf or a neckerchief where the mantle was, and in the working towns now and then an apron. The capes the character sheets draw stay (Bako, Sefa, Nour, the Speaker, Ama, Hessa, Oïa, Saba, Nettle), and Haddu, Tansy and Anselm Thrum wear open coats instead.',
+    // the marker reached moves on (issue #349): src/story/arzach2.js (arzach2.gate.reached, GATE_REACH, the scout's ping),
+    // src/story/edena.js (the crown reached), the steps' words (arzach-data.js window, perdide-data.js cave, perdide2-data.js
+    // answer); tests/marker-walk.test.js (.claude/skills/quest-qc/marker-walk.mjs), check.mjs --walk; docs/systems/story.md
+    { text: 'In Vael, reaching the riders’ gate on the way to Sister Aube counts now: the drone flies on to her smoke over the cloud, and the marker stays on her when you walk away, instead of sending you back to the gate. In Viridel, reaching the tallest tree’s crown is the climb done, note read or not, and a few steps now say what to do when you get there: take the rider’s flute from the tower’s window, hold up the splinter in the crystal cave, look inside what answered across Lorn’s water.',
+      see: 'On Vael, once the bird has answered, walk to the riders’ gate at the plain’s edge: the drone comes out and points south to Sister Aube’s smoke. Walk back toward the tower and press Q: it still finds Sister Aube, not the gate.' },
+    // the way through a door stays in its room (issue #351): src/scout.js viaPortal (spaces: src/interiors.js portalPair
+    // toSpace/fromSpace, a temple's door and ways out); tests/interiors.test.js; docs/systems/story.md
+    { text: 'The marker and the drone no longer send you through a shop door for nothing: on Vael and in Lorn the way to Sister Aube, the bird, the cairn’s stones and the lamp-keeper went in at one shop’s door and out of another’s, a field away, as if the two shops were joined. They point straight at where you are going now.',
+      see: 'On Vael, once the bird has answered, stand at the riders’ gate and press Q: the drone points south over the cloud to Sister Aube, not “Through the shop door” back by the landing.' },
+    // the ship's prompts by their objects (issue #350): src/ship/ship.js promptTag, src/story/index.js extraPrompt, main.js and
+    // engine/game.js (the cue no longer says them; the prologue's walk too; the observatory's lens); tests/ship.test.js,
+    // tests/engine-ship.test.js; docs/systems/ui.md
+    { text: 'Aboard your ship, the button prompts float beside what they are for, like the one to talk to someone: by the voicemail button on the console, over the holo table, in the hatch, instead of at the top of the screen.',
+      see: 'Go aboard and walk up to the console: “E voicemail” hangs beside the machine. Step over to the holo table and the hatch: their prompts float there too.' },
+    // E to Anselm aboard (issue #352): src/ship/ship.js input, hasUse (the ship's E only by the console, the table, the hatch;
+    // the engines share it); tests/ship.test.js; docs/systems/fragments.md
+    { text: 'Talking to Anselm in your ship’s hold now works: the button opened nothing there, as the ship kept every press aboard for itself. Now it opens his talk and his upgrades.',
+      see: 'Once you have met Anselm, go aboard and walk aft to the hold: press X / □ (E) beside him and he tells you his count, then “Show me what you have” opens his shop.' },
+    // no way round a shut door (issue #356): src/temples/perdide.js LEDGE (the cloister), pieces.js Door `frame` (edena.js dB,
+    // spacecity.js d6 d7 and WINDOW_BARS, moonfoundry.js dA, the guardians' exits d5); tests/door-bypass.test.js; docs/systems/temples.md
+    'A locked door in a temple can no longer be got round. In the Hush-House the ledge round the Bog Well past its keyhole door is a cloister now, walled on the water’s side and roofed, so neither the double jump over the door nor a jump from the top of the root-wall round its post takes you past it. In the Builders’ Greenhouse you could walk round the great lock beside it, and in the Mooring-House jump through beside the Capstan Floor’s door: their doorways are framed in stone to the door’s edges now, as are the doors out of the guardians’ halls, and the Capstan Floor’s windows are barred, so your wings no longer carry you out over the void and back in past its great lock.',
+    // Lorn's deep water (issue #355): src/player.js swimmable (SWIM.dropIn), the tumble into deep water; src/levels/perdide.js
+    // SKIFF_AT, player.js / main.js mountAt; tests/swim.test.js, tests/lorn-route.test.js; docs/systems/movement.md
+    'Falling or jumping into deep water swims, in Lorn and wherever there is water deep enough to float in: you are no longer put back on the bank before you even touch it. Lorn’s skiff waits afloat off the landing island’s beach, a short wade from the shore, ready to board.',
+    // the galactic map's scanner (issue #353): src/story/signature-search.js WANDER, wander, cues; src/ship/starmap.js
+    // drawScanner, searchUpdate; src/rumble.js search; tests/signature-search.test.js, tests/rumble.test.js
+    'On the galactic map the scanner no longer shakes as you sweep for a world: it drifts gently, barely at all while the signal is faint, a little more as it locks on, and the pad’s pulses are softer while the signal is weak.',
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

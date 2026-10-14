@@ -153,6 +153,16 @@ export class Door {
       return { cond, m, on: false, mesh: lm };
     });
     noCollide(this.group);
+    // (issue #356) a frame, where the doorway it stands in is wider or taller than the slab (an antechamber's open end):
+    // stone `side` m wide either side of it and `top` m over it, drawn and solid, so there is no way round it shut
+    if (o.frame) {
+      const { side = 0, top = 0 } = o.frame, yaw = o.yaw ?? 0, c = Math.cos(yaw), sn = Math.sin(yaw), [ax, ay, az] = o.at;
+      const at = (dx, dy) => [ax + c * dx, ay + dy, az - sn * dx];
+      const parts = [];
+      if (side > 0) for (const s of [-1, 1]) parts.push(T(new THREE.BoxGeometry(side, h + top + 0.05, t), at(s * (w / 2 + side / 2), (h + top) / 2 - 0.05), [0, yaw, 0]));
+      if (top > 0) parts.push(T(new THREE.BoxGeometry(w, top, t), at(0, h + top / 2), [0, yaw, 0]));
+      for (const g of parts) K.both(M.wall, g);
+    }
     // solid while shut: an invisible block filling the doorway (added to the physics in init)
     this.block = new THREE.Mesh(box(w, h, t + 0.2, 0, h / 2, 0), new THREE.MeshBasicMaterial());
     this.block.position.copy(this.group.position); this.block.rotation.copy(this.group.rotation);

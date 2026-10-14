@@ -52,8 +52,8 @@ export const THRUM = {
   tier: 'quest',   // (src/costumes.js PROMINENCE: he keeps all his colours)
   // a patched pale coat with too many pockets, goggles pushed up on his brow, a tool belt; grey curls
   palette: { cloak: '#e8e2d0', lining: '#3d5a80', cloth: '#c98b4a', legs: '#3a3448', hair: '#d6d2c8', skin: '#d9a982' },
-  head: 'curls', cape: 0.9, world: 'incal',
-  look: { head: 'curls', under: 'none', mask: 'browgoggles', body: 'toolbelt', prop: 'none', trim: 'patches', robe: 0.06, mood: 'curious' },
+  head: 'curls', cape: 0, world: 'incal',
+  look: { head: 'curls', under: 'none', mask: 'browgoggles', body: 'toolbelt', prop: 'none', trim: 'patches', robe: 0.3, flare: 0.3, robeOpen: 0.45, robeRole: 'cloak', robeHem: 'cloak', mood: 'curious' },   // (his pale coat, open: issue #347; it was a cape)
   lines: GREETING_LINES,
 };
 

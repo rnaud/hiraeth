@@ -8,7 +8,7 @@ import { inTightRoom } from './interiors.js';
 import { Knockdown, toppleVelocities, getUpPlacement, GET_UP } from './ragdoll.js';
 import { LocoMoves } from './loco-moves.js';
 import { AirMoves } from './air-moves.js';
-import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
+import { SWIM, swimFrame, swimPose, leaveSwim, waterHere } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 import { triggers } from './controller.js';
 import { JumpLayer, FLIP, flipPose, boostVelocity, HOP, hopKind } from './jump.js';
@@ -602,6 +602,8 @@ export class Player {
     this.mount = this.opts.mount ? this.opts.mount(physics) : null;   // summonable (bike, bird, skiff)
     this.bike = this.mount;                                            // backwards-compatible name
     this.vehicles = this.mount ? [this.mount] : [];
+    // (where the level keeps it till it is first called: Lorn's skiff afloat off the landing, issue #355)
+    if (this.mount && this.opts.mountAt && this.mount.place) { const A = this.opts.mountAt; this.mount.place(A.x, A.z, A.heading ?? 0); }
     this.ride = null;
 
     this.fuel = 1;
@@ -771,7 +773,9 @@ export class Player {
   get jetFuel() { return this.fuelSource ? this.fuelSource.jetLevel() : this.fuel; }
   notice(text) { this.lastNotice = text; this.onNotice?.(text); }
   /** In the world's water (src/swim.js): a level's "unsafe" deep water isn't, now that you can swim. */
-  get swimmable() { return !!this.swim || (this.inWater?.over ?? 0) > 0.05; }
+  // (issue #355: and dropping into it, the feet still over the surface: a level's unsafe band starts half a metre over its
+  // deep water, so a jump or a fall in put you back on the bank before the water was reached; deep enough to swim, you swim)
+  get swimmable() { const w = this.inWater; return !!this.swim || (w?.over ?? 0) > 0.05 || (!!w && w.depth >= SWIM.float && w.over > -SWIM.dropIn); }
   /** Water under you deep enough to break a fall (src/swim.js SWIM.cushion). */
   get cushioned() { return !!this.swim || (this.inWater?.depth ?? 0) >= SWIM.cushion; }
 
@@ -977,6 +981,8 @@ export class Player {
       // tumbling on down a long fall (off a ledge, a cliff): its landing hurts like any (landHard), the dead stay down
       const landed = H ? D.rag.takeLanding() : 0;
       if (landed > FALL.tumble * (this.fallGuard ?? 1) && !this.cushioned) this.fallHurt(landed / (this.fallGuard ?? 1));
+      // (tumbled into deep water: up out of the tumble, swimming, issue #355)
+      if (this.opts.unsafe?.(this.pos) && this.pos.dot(U) >= this.opts.killY && this.health > 0 && this.water && ((this.inWater = waterHere(this)), this.swimmable)) { this.down = null; return; }
       if (this.pos.dot(U) < this.opts.killY || (this.opts.unsafe && this.opts.unsafe(this.pos))) {
         // (into deep water, off the world): back where you last stood safely, as anywhere
         this.down = null;
