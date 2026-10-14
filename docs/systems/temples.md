@@ -717,6 +717,20 @@ Weighing Hall's, and it is shut from the floor. Measured from the floor it read 
 its keys a room away behind the door); from the hall, 2.5. (The audit's skeleton writes the chest's `C` before the first
 step that wants the gadget, wherever its rooms are, so such a door is not written before the chest.)
 
+The **Aerie** (`arzach.js` `WELL_VENT`): **a catch at the start, and the Moult's air**. The Wind Well's column lifts open
+wings off the chest's balcony and lets them go just over it (`WELL_VENT.low`, 17.5 m: its `low` line says why): the
+well's floor has a second vent by the Moult's door, its stone (`bF`) beside it on a short groove, and while its throat is
+open half the wind breathes out there, in a low column of its own. Glide down, roll the stone into its throat (`pF`), and
+the whole wind rises to the crown (an `Updraft`'s `heights`): `{ a: 'well', b: 'top', door: 'column', needs: ['glider'] }`
+(the main column's piece has the id), where the wings alone took you up before (the audit's most obvious step, 5). And
+the column out of the vent at the Eyrie's gap's foot comes up the shaft out of the Moult: it rises only while the
+Moult's door onto the well is open too (`lift` and its `Updraft` want `{ open: 'dM' }`; an `Updraft`'s `still` may be a
+list of `[condition, line]`, the first that holds said: here why it is still). So the circuit has its order: down the
+still shaft into the Moult, out by its door, up again, and the stone into the other throat for the great key. The glide
+from the higher ledge back down onto the perch is no link any more (no way back, nothing there to go back for; the audit
+counted it as a step, the house's most obvious). `migrate.js LAYOUTS.arzach` v3: a save already up there has the floor's
+stone in its throat.
+
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
 The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake

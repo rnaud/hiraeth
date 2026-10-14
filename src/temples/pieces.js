@@ -1354,7 +1354,8 @@ export class Swing {
  * you go straight up its middle (src/updraft.js) and hang near its top until you steer off (the stick drifts you; the
  * glide takes up again out of it). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift, when (a
  * condition: it rises only while that holds, the Aerie's vents: a stone in another mouth), heights ([[condition, h]]:
- * the first that holds sets how high it rises), still (said when you open your wings over it while it is still) }
+ * the first that holds sets how high it rises), still (said when you open your wings over it while it is still), low (said
+ * when it lets you go at its top short of its highest: the Aerie's well while its floor's second vent breathes) }
  */
 export class Updraft {
   constructor(rt, o) {
@@ -1404,7 +1405,9 @@ export class Updraft {
     }
     this.mat.uniforms.uGlow.value = 0.3 + 0.1 * Math.sin(t * 1.7);
     const P = this.rt.player;
-    if (P && !this.on && this.o.still && P.gliding && this.inside(P.pos)) this.rt.notice?.(this.o.still, `updraft.still.${this.o.id ?? ''}`);
+    // (still: what it says, or [[condition, what it says]…], the first whose condition holds: why it is still)
+    const still = Array.isArray(this.o.still) ? (this.o.still.find(([c]) => this.rt.logic?.check(c)) ?? this.o.still[this.o.still.length - 1])[1] : this.o.still;
+    if (P && !this.on && still && P.gliding && this.inside(P.pos)) this.rt.notice?.(still, `updraft.still.${this.o.id ?? ''}.${still.length}`);
     if (!P || P.dead || P.down || !this.contains(P.pos)) { this.rideT = 0; return; }
     if (!P.gliding) {
       if (!P.onGround && P.vel.y < 0) this.rt.notice?.(this.o.hint ?? 'The wind rushes up past you. Open your wings in it.', 'updraft.hint');
@@ -1413,6 +1416,7 @@ export class Updraft {
     // the wings catch it: straight up, settling onto its middle (src/updraft.js); at its top it eases and holds you
     // there until you steer off it
     rideColumn(P, dt, { x: this.foot.x, z: this.foot.z, top: this.foot.y + this.h, lift: this.lift, r: this.r });
+    if (this.o.low && h < this.hMax && P.pos.y > this.foot.y + h - 1.2) this.rt.notice?.(this.o.low, `updraft.low.${this.o.id ?? ''}`);
     if ((this.rideT += dt) > 0.4) this.rt.notice?.(this.o.ride ?? 'The wind fills your wings and lifts you, round and up.', 'updraft.ride');
   }
 }

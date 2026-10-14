@@ -101,11 +101,14 @@ export const LAYOUTS = {
   // v1.49: the Aerie's stack, the Moult off the Wind Well's floor and the Eyrie off its high balcony. Past the balcony's
   // way north (its gulf vent's stone moved, or further): the small key in it and the Moult won; past the perch: the great
   // key in the Roost's door too (before it, the Eyrie is a flight back)
+  // v1.74 (issue #23, round 6): the well's column reaches the high balcony only with the floor's second vent stopped. Up
+  // there already (or anything done up there or after): its stone in its throat
   arzach: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['drum.ballB', 'drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.dG': 1, 'found.kM': true, 'lit.arM': true } },
       { if: ['drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.d3': 1, 'found.kE': true, 'drum.bE': 1 } },
+      { if: ['checkpoint=top', 'checkpoint=eyrie', 'checkpoint=moult', 'checkpoint=gulf', 'checkpoint=perch', 'checkpoint=gulfFar', 'checkpoint=roost', 'drum.bE', 'drum.ballB', 'drum.ballP', 'drum.ballR', 'lit.arM', 'found.kM', 'found.kE', 'found.cache', 'unlocked.dG', 'boss', 'done'], set: { 'drum.bF': 1 } },
     ],
   },
   // v1.49: the Lamp-House's Kennel off the Hall of Dark Pools and its Wick Room off the Dark Gallery's far side. Past the
