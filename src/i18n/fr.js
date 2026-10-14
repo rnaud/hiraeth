@@ -293,6 +293,7 @@ export const FR = {
   'potion.none': 'Plus de potions : une boutique en vend, et les ennemis en laissent parfois une.',
   'potion.found': 'Une potion de soin ! Dans votre sac.',
   'potion.hint': 'Les cœurs ne reviennent pas seuls : buvez une potion avec {key:potion} (deux cœurs).',
+  'hint.carry': 'Porté à deux mains : {key:interact} le pose, {key:blade} le lance.',
   'hint.hop': 'Verrouillé : {key:jump} avec le stick en arrière fait un salto arrière, sur le côté un saut de côté.',
   'hint.flurry': 'Une esquive parfaite : le temps ralentit autour de vous. Frappez tant qu\'il dure.',
   'hint.lift': 'Appuyez de nouveau sur {key:jump} en l\'air pour un second saut.',

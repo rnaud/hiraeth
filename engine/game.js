@@ -90,6 +90,7 @@ import { syncUpgrades } from '../src/trials/upgrades.js';
 import { createItemEffects } from '../src/boxes/effects.js';
 import { hintsFor } from '../src/hint-level.js';
 import { keyText } from '../src/prompt-keys.js';
+import { carryHooks } from '../src/carry.js';
 import { InputMode } from '../src/input-mode.js';
 
 export { page };
@@ -314,6 +315,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the toasts, one at a time for their reading time (as ship/cinema.js shows them on the page)
   const toasts = { queue: [], left: 0 };
   const toast = (text) => { if (text && toasts.queue.at(-1) !== text) toasts.queue.push(String(text)); };
+  carryHooks.notice = (t) => toast(keyText(t, { teach: true }));   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
   const sound = audio ? makeSound(levelId, audio) : SILENT;

@@ -38,10 +38,14 @@ import { meetsWith } from '../resources.js';
 //           (if any) holds. `keys: n` keyholes (a small lock: n keys, put in one at a time). A small key is any small key:
 //           the ones found less the ones put in a lock, as in Zelda)
 //          key { kind: 'small' | 'big', when? }   a key on a plinth, taken when you reach it (once its `when` holds)
+//          weight { plate, needs?, optional? }   a block of the house's stone carried in both hands (src/carry.js) and set
+//           on a plate: it holds the plate down while it sits there (saved: weight.<id> is the plate it sits on). It stays in
+//           its room (`room`). needs: what brings it within reach (the hook, off a ledge nobody stands on); optional: for
+//           a reward (a coffer), not on the way (the marker leaves it alone; issue #337)
 //          arena { }   a room that shuts behind you until its foes are beaten (the runtime's `arenas`): lit once won
 //          cache { when? }   a coffer of chimes in an optional room (a reward, nothing waits on it)
 //   conditions: { all: [] } · { any: [] } · { pressed: plate } · { lit: id } · { item: id }
-//               · { drumOn: [drum, plate] } · { open: door } · { gadget: true } · { resolved: true }
+//               · { drumOn: [drum, plate] } · { open: door } · { gadget: true } · { resolved: true } · { weightOn: [weight, plate] }
 
 export const DONE = 'done';
 
@@ -94,7 +98,19 @@ export class TempleLogic {
     if ((this.weights.get(plate)?.size ?? 0) > 0) return true;
     // a drum resting on it holds it down (and is saved: it is still there after a reload)
     for (const d of this.ofType('drum')) if (this.drumOn(d, plate)) return true;
+    // and so does a weight set on it (saved too)
+    for (const w of this.ofType('weight')) if (this.weightOn(w) === plate) return true;
     return false;
+  }
+  /** The plate a carried weight sits on now, or null (picked up, or put down elsewhere). */
+  weightOn(id) { return this.el(id)?.type === 'weight' ? this.store.get(`weight.${id}`) || null : null; }
+  /** A weight set on a plate (or taken off it: null). Returns true if that changed. Call update() after. */
+  placeWeight(id, plate = null) {
+    if (this.el(id)?.type !== 'weight') return false;
+    if (plate && this.el(plate)?.type !== 'plate') return false;
+    if ((this.weightOn(id) ?? null) === (plate ?? null)) return false;
+    this.store.set(`weight.${id}`, plate ?? '');
+    return true;
   }
   drumT(drum) { return this.store.get(`drum.${drum}`) ?? this.el(drum)?.start ?? 0; }
   moveDrum(drum, t) {
@@ -182,6 +198,7 @@ export class TempleLogic {
     if (c.lit) return this.isLit(c.lit);
     if (c.item) return this.has(c.item);
     if (c.drumOn) return this.drumOn(c.drumOn[0], c.drumOn[1]);
+    if (c.weightOn) return this.weightOn(c.weightOn[0]) === c.weightOn[1];
     if (c.open) return this.isOpen(c.open);
     if (c.gadget) return this.gadget;
     if (c.resolved) return this.resolved;
@@ -260,10 +277,12 @@ export class TempleLogic {
       // shaft down into the Moult in one throat and the column to the great key in the other, and once the Moult's own door
       // is open the shaft is no way anywhere new: issue #23)
       if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => (!this.drumOn(id, p) && this.awaitedStop(p, reach)) || (this.drumOn(id, p) && this.holdsShut(p)))) return id;
+      // (a weight worth carrying onto its plate: one a shut door waits for; a reward's, `optional`, the marker leaves alone)
+      if (e.type === 'weight' && !e.optional && e.plate && this.weightOn(id) !== e.plate && (e.needs ?? []).every((it) => this.has(it)) && this.awaited(e.plate)) return id;
       if (e.type === 'boss' && !this.resolved) return id;
     }
-    // a plate still worth standing on: one a shut door is waiting for
-    for (const [id, e] of Object.entries(this.def.elements)) if (e.type === 'plate' && reach.has(e.room) && !this.pressed(id) && this.awaited(id)) return id;
+    // a plate still worth standing on: one a shut door is waiting for (not one a weight of its own is for: that is carried)
+    for (const [id, e] of Object.entries(this.def.elements)) if (e.type === 'plate' && reach.has(e.room) && !this.pressed(id) && this.awaited(id) && !this.ofType('weight').some((w) => this.el(w).plate === id)) return id;
     return null;
   }
   /** A shut door or bridge waits for this plate to be let go (its `opens` wants it `not` pressed: a stone out of a throat). */
@@ -346,7 +365,7 @@ const mentionsNot = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions
 /** Does a condition wait for this door to be open ({ open: door })? */
 const opensWith = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => opensWith(x, id)) : c.open === id || opensWith(c.all, id) || opensWith(c.any, id) || opensWith(c.not, id));
 /** Does a condition name this element (a plate, a brazier…)? */
-const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x, id)) : c.pressed === id || c.lit === id || c.drumOn?.includes(id) || mentions(c.all, id) || mentions(c.any, id) || mentions(c.not, id));
+const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x, id)) : c.pressed === id || c.lit === id || c.drumOn?.includes(id) || c.weightOn?.includes(id) || mentions(c.all, id) || mentions(c.any, id) || mentions(c.not, id));
 
 /**
  * Solve a temple through its state machine, as a player would: walk to every
@@ -388,6 +407,8 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
       if ((e.type === 'key' || e.type === 'cache') && !L.isFound(id) && L.find(id)) { note(`${e.type === 'key' ? 'take' : 'open'} ${id}`); did = true; break; }
       if (LATCHED.has(e.type) && !L.isLit(id) && L.canUse(id)) { L.light(id); note(`${e.type} ${id}`); did = true; break; }
       if (e.type === 'drum' && e.plate && !e.stops && !L.drumOn(id, e.plate) && rolls(e, has) && (e.needs ?? []).every(has)) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
+      // (a weight carried onto its plate, in its room: issue #337)
+      if (e.type === 'weight' && e.plate && L.weightOn(id) !== e.plate && (e.needs ?? []).every(has)) { L.placeWeight(id, e.plate); note(`carry ${id} onto ${e.plate}`); did = true; break; }
       if (e.type === 'boss' && !L.resolved && (e.needs ?? []).every(has) && L.check(e.requires)) { L.resolve(); note(`resolve ${id}`); did = true; break; }
     }
     if (did) continue;

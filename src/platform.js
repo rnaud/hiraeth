@@ -65,12 +65,15 @@ export const audio = {
  *   gadgetWheel { slots: [{ id, glyph, name }], hi, name }   the wheel for choosing one (gadgets/hud.js)
  *   reticle   { at: [x, y, z] | null, kind, label }   where an aiming gadget would catch (kind ok, anchor, target, far)
  *   gadgetMarks [{ at, label }]                  the numbered diamonds on what a gadget has locked on to (the boomerang)
+ *   carry     { name, how }                      something carried in both hands (src/carry.js): its name, how it came
+ *             ('hand', or 'hook': the grappling hook pulled it in); its pose and the thing itself reach a renderer
+ *             through the scene (the traveller's bones, the thing's object)
  *   boxCard   { name, text, ok, okLabel, scene, back, skipLabel }   a makers' box opening (boxes/card.js): scene while it
  *             plays (the skip's button), and its card once the item is out (name, what it does, the button to go on)
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, boxCard: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null },
   version: 0,
   _keys: {},
   set(part, value) {

@@ -7,7 +7,7 @@ import { Sentry, SENTRY } from '../src/temples/pieces.js';
 import { TempleLogic, memoryStore, solve } from '../src/temples/logic.js';
 import { makeMaterial } from '../src/materials.js';
 import { TEMPLES } from '../src/temples/index.js';
-import { migrateTempleLayouts } from '../src/temples/migrate.js';
+import { migrateTempleLayouts, LAYOUTS } from '../src/temples/migrate.js';
 import { GameState } from '../src/game-state.js';
 
 const def = { id: 't', entry: 'a', rooms: { a: {}, b: {} }, links: [{ a: 'a', b: 'b', door: 'dw' }],
@@ -91,7 +91,7 @@ test('old saves past the wind find the watcher broken and its door open; a save 
   fresh.set('temple.desert.found.guard', true);
   migrateTempleLayouts(fresh);
   assert.equal(fresh.flag('temple.desert.lit.sentry'), undefined);
-  assert.equal(fresh.flag('temple.desert.layout'), 2, 'brought up to date once');
+  assert.equal(fresh.flag('temple.desert.layout'), LAYOUTS.desert.v, 'brought up to date once');
 });
 
 test('awake, the guard turns to it from across the landing (a lock target with its own reach); a cut only rings it', async () => {

@@ -5,7 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { magicMaterial, magicPool, setMagic } from '../story/magic-water.js';
 import { STORY } from '../desert-sites.js';
 import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
-import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate } from './pieces.js';
+import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate, Weight } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { keeperGuardian } from './guardian-generated.js';
 import { chestMound } from '../boxes/mound.js';
@@ -31,7 +31,9 @@ import { chestMound } from '../boxes/mound.js';
 //                        bowl by the door before it burns out (pieces.js Ball `tar`, Brazier `hood`)
 //   the Dry Channel      a sand pit, one pier of the old channel standing in it: too far for one jump either side, a
 //                        double jump each (its side walls glazed smooth by the old water: no climbing round it); a
-//                        plate on the pier's head wakes the chamber's door at the top of the gallery; a wall to climb
+//                        plate on the pier's head holds the chamber's door at the top of the gallery open while it is
+//                        weighed down: stood on, it opens, stepped off, it shuts; the Givers' weight at the pier's
+//                        other end, carried onto it, holds it (issue #337: the house's first carry); a wall to climb
 //   the Sword Chamber    the makers' chest on a dais under the oculus: THE GIVERS' BLADE (src/items.js 'sword').
 //                        Taken, the chamber's machines wake and its two doors hold until they are broken (the
 //                        `encounter`, src/foes.js). The way on: the corridor, thorns over the ball's groove (cut them,
@@ -59,6 +61,9 @@ import { chestMound } from '../boxes/mound.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
+
+/** The Dry Channel's pier (the kit's x): its middle and width, and where the Givers' weight lies at its west end (issue #337). */
+export const PIER = { x: -0.5, w: 8.6, weight: -3.3 };
 
 /** Where the house stands in the dunes (world x, z) and which way its door looks (toward Qanat). */
 export const SITE = { x: 550, z: 376, r: 34 };
@@ -112,9 +117,11 @@ export const LOGIC = {
     ball1: { type: 'drum', room: 'flame', plate: 'pb0', plateAt: 1, start: 0, roll: 'hand' },
     b0: { type: 'brazier', room: 'flame', when: { drumOn: ['ball1', 'pb0'] } },     // hooded: only the ball lights it
     d1: { type: 'door', opens: { lit: 'b0' }, latch: true },
-    // the Dry Channel's pier: a plate on its head wakes the chamber's door at the top of the gallery, across the pit
+    // the Dry Channel's pier: a plate on its head holds the chamber's door at the top of the gallery open while weighed down,
+    // across the pit; the Givers' weight at the pier's other end, carried onto it, holds it (issue #337)
+    wP: { type: 'weight', room: 'channel', plate: 'pp' },
     pp: { type: 'plate', room: 'channel' },
-    dc: { type: 'door', opens: { pressed: 'pp' }, latch: true },
+    dc: { type: 'door', opens: { pressed: 'pp' } },
     // the Sword Chamber: the blade; its north door sinks for it in your hand; both held while its machines stand
     chest: { type: 'gadget', room: 'chest', item: 'sword' },
     dk: { type: 'door', opens: { item: 'sword' }, latch: true },
@@ -353,10 +360,15 @@ function layout(rt) {
   K.both(M.sand, box(26, 1, 22, 0, -9.5, 69));  // the pit's sand
   for (let i = 0; i < 7; i++) if (i !== 3) sandDrift(-10 + i * 3.4, 62 + (i % 3) * 6.5, 2.6, 3.4, 0.8 + (i % 2) * 0.5, i, -9);
   add(Pit, { room: 'channel', min: [-14, -14, 58.5], max: [14, -2.5, 80] });
-  // the pier: 9 m of air either side (one jump is 6; the double jump 13), its head a step under the ledges'
-  K.both(M.wallGlyph, box(4.6, 9.2, 3.4, 1.5, -4.9, 69.25));
-  K.both(M.trim, box(5, 0.3, 3.8, 1.5, -0.15, 69.25));
+  // the pier: 9 m of air either side (one jump is 6; the double jump 13), its head a step under the ledges'; long enough
+  // east to west for the plate and, at its west end, the Givers' weight that holds it down (issue #337)
+  K.both(M.wallGlyph, box(PIER.w, 9.2, 3.4, PIER.x, -4.9, 69.25));
+  K.both(M.trim, box(PIER.w + 0.4, 0.3, 3.8, PIER.x, -0.15, 69.25));
   add(Plate, { id: 'pp', at: [1.5, 0, 69.25], r: 1.2 });
+  add(Weight, { id: 'wP', at: [PIER.weight, 0, 69.25], name: 'Givers’ weight',
+    zone: { min: [PIER.x - PIER.w / 2 - 0.4, -1, 67.2], max: [PIER.x + PIER.w / 2 + 0.4, 6, 71.3] },
+    hint: 'Off the plate, the door at the top of the gallery sinks shut again. Something heavier must hold it down.',
+    back: 'The weight tumbles into the sand, and is back on the pier where it lay.' });
   // (its side walls glazed: no climbing round the pit; the gallery's face, past it, is the climb)
   add(Glazed, { min: [-14.5, -10, 58.4], max: [14.5, 18, 80.2], said: 'The channel’s walls are glazed smooth by the water that once ran here. Nothing to hold.' });
   // handholds: a row of glyph ledges up the gallery's face (the house's one climb: its other walls are not, issue #115)

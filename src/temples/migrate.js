@@ -156,7 +156,15 @@ export const LAYOUTS = {
   // v1.65: the Rose House's bellows' wind gone (issue #245); the Givers' watcher by the far landing's east doorway, its
   // door shut till it is broken. Past it in the old house (in the Hall of Channels, or anything done there or after):
   // the watcher broken, its door open
-  desert: { v: 2, steps: [{ if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } }] },
+  // v1.76 (issue #337): the Dry Channel's plate holds the chamber's door only while weighed down, the Givers' weight on it
+  // (it latched open for good when stood on). Past it (its door opened once, or anything after): the weight on the plate
+  desert: {
+    v: 3,
+    steps: [
+      { if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } },
+      { if: ['open.dc', 'gadget', 'checkpoint=chest', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'boss', 'done'], set: { 'weight.wP': 'pp' } },
+    ],
+  },
   // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won
   // v1.74 (issue #23's last round): the far door takes the great key, from the Ringers' Walk's ledge high in the Stone Stair.
   // Past the far door: the great key in it

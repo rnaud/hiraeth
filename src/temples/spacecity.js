@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, paint } from './kit.js';
-import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit, Key } from './pieces.js';
+import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit, Key, Weight, Coffer } from './pieces.js';
 import { anchorModel, anchorGeometry } from './guardian-anchor.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -20,7 +20,11 @@ import { chestMound } from '../boxes/mound.js';
 //   the Landing Stage    the first mark, the way out
 //   the Capstan Hall     the hub: a tall round hall round the dead great capstan, its cables slack. Ways off it to
 //                        the two wings, south-west and south-east, the great door north (its lamp waits on an eye
-//                        nobody can see from the hall), and high up the moorers' gate, the way back at the end
+//                        nobody can see from the hall), and high up the moorers' gate, the way back at the end.
+//                        (v1.76, issue #337) On its east side a coffer caged by the wall, a plate before it that sinks
+//                        the cage while weighed down, and the moorers' weight high on a cleat where a cable meets the
+//                        wall, out of reach: the grappling hook pulls it down into your hands; set on the plate, it
+//                        holds the cage down (a reward, nothing waits on it)
 //   the Winch Room       (south-west) the counterweight, a stone ball rolled along its groove into its socket at the
 //                        winch's mouth: the Lamp Shaft's gate, across the hall, rises (its pawl holds it after)
 //   the Lamp Shaft       (south-east) a tall well whose grating breathes the void's air up: open the wings over it
@@ -162,8 +166,17 @@ export const LOGIC = {
     kB: { type: 'key', kind: 'big', room: 'perch', when: { all: [{ drumOn: ['bK', 'pK'] }, { lit: 'r5' }] } },
     warden: { type: 'boss', room: 'arena', needs: ['gun', 'tether'] },
     d7: { type: 'door', opens: { resolved: true } },
+    // (v1.76, issue #337) the Capstan Hall's caged coffer: the plate before it sinks the cage while weighed down; the moorers'
+    // weight on its cleat high on the wall, pulled down into your hands by the grappling hook (a reward: `optional`)
+    wC: { type: 'weight', room: 'hall', plate: 'pC', needs: ['hook'], optional: true },
+    pC: { type: 'plate', room: 'hall' },
+    cC: { type: 'cache', room: 'hall', when: { pressed: 'pC' } },
   },
 };
+
+/** (v1.76, issue #337) The Capstan Hall's coffer, east: the hall's angle and radius of the coffer, its plate, the cleat's
+ * weight (its foot at `y`, `r` from the hall's middle: out of any jump's reach), the cleat under it. */
+export const CLEAT = { coffer: [Math.PI / 2 - 0.35, 12.1], plate: [Math.PI / 2 + 0.12, 7.4], weight: [Math.PI / 2 + 0.12, 12.85], y: 8.6 };
 
 /** The Rope Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
@@ -315,6 +328,20 @@ function layout(rt) {
     add(Platform, { id: 'cradle', room: 'moor', path: [[px, 11, pz], [px, 0.2, pz]], r: 1.8, speed: 2.2, pause: 2.6, when: { open: 'sc' } });   // (the Gallery's way back)
   }
   add(Mark, { room: 'hall', at: [6.5, 0, C1 - 7], yaw: -Math.PI * 0.75 });
+  // the caged coffer on the hall's east side, the plate before it, and the moorers' weight up on its cleat (issue #337)
+  {
+    const [ca, cr] = CLEAT.coffer, [pa, pr] = CLEAT.plate, [wa, wr] = CLEAT.weight;
+    const [cx, cz] = hallAt(ca, cr), [px, pz] = hallAt(pa, pr), [wx, wz] = hallAt(wa, wr);
+    add(Coffer, { id: 'cC', at: [cx, 0, cz], yaw: ca + Math.PI, cage: true, line: 'The cage sinks under the weight, and the coffer’s lid swings back. The moorers’ chimes.' });
+    add(Plate, { id: 'pC', at: [px, 0, pz], r: 1.2 });
+    // the cleat: a stone shelf out of the wall on an iron bracket, where a slack cable from the capstan ends
+    const [sx, sz] = hallAt(wa, 13.35), [bx, bz] = hallAt(wa, 13.6);
+    K.both(M.trim, box(1.5, 0.3, 1.5, sx, CLEAT.y - 0.15, sz, wa));
+    K.add(iron, box(0.3, 1.4, 0.9, bx, CLEAT.y - 1.0, bz, wa));
+    cable([Math.sin(wa) * 2.8, 3, C1 + Math.cos(wa) * 2.8], [Math.sin(wa) * 13.0, CLEAT.y + 0.05, C1 + Math.cos(wa) * 13.0], 2.6);
+    add(Weight, { id: 'wC', at: [wx, CLEAT.y, wz], yaw: wa, name: 'moorers’ weight', fall: 20, zone: { min: [-R1, -1, C1 - R1], max: [R1, 12, C1 + R1] },
+      hint: 'Off the plate, the cage rises round the coffer again. It wants a weight.', back: 'The moorers’ weight is back on its cleat.' });
+  }
 
   // ---- the Winch Room (south-west): the counterweight's groove runs out through the corridor into the hall
   corridor(...hallAt(SW, 15.0), ...hallAt(SW, 18.6), 0);

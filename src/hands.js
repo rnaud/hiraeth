@@ -417,7 +417,7 @@ export function playerHands(p) {
     : p.gliding ? 'glide' : p.onJets ?? p.thrusting ? 'jet' : !p.onGround && !p.overlay ? 'air' : 'ground';
   const U = p.frame?.up ?? _v.set(0, 1, 0);
   const speed = p.vel ? Math.sqrt(Math.max(0, p.vel.lengthSq() - p.vel.dot(U) ** 2)) : 0;
-  return { mode, ride: p.ride?.kind, speed, aim: p.aim?.k ?? 0, handoff: p.handoffGrip?.() ?? 0, sword: p.swordGrip ?? 0, shield: p.shieldGrip ?? 0, offer: p.offer?.k ?? 0 };
+  return { mode, ride: p.ride?.kind, speed, aim: p.aim?.k ?? 0, handoff: Math.max(p.handoffGrip?.() ?? 0, p.carrying ? Math.min(1, p.carrying.k ?? 0) : 0), sword: p.swordGrip ?? 0, shield: p.shieldGrip ?? 0, offer: p.offer?.k ?? 0 };   // (a thing carried: both hands grip it, src/carry.js)
 }
 
 /** Someone's hands (src/npc.js state, read only): a story person, or a crowd person's pooled body. */

@@ -295,6 +295,7 @@ export const EN = {
   'potion.none': 'No potions left: a shop sells more, and foes sometimes leave one.',
   'potion.found': 'A healing potion! Into your pack.',
   'potion.hint': 'Hearts don’t come back by themselves: drink a potion with {key:potion} (two hearts).',
+  'hint.carry': 'Carried in both hands: {key:interact} puts it down, {key:blade} throws it.',
   'hint.hop': 'Locked on: {key:jump} with the stick back flips away, to a side hops aside.',
   'hint.flurry': 'A perfect dodge: time slows round you. Cut while it lasts.',
   'hint.lift': 'Press {key:jump} again in the air for a second jump.',

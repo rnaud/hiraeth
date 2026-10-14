@@ -503,7 +503,7 @@ export function migrateGunChest(flags) {
 }
 
 /** The remade Givers' House's doors and fires (src/temples/desert.js LOGIC): open and lit for a save that had calmed the Keeper. */
-export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'br1', 'dw', 'sc', 'd3'], lit: ['b0', 'bw0', 'b3', 'sentry', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'] };
+export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'br1', 'dw', 'sc', 'd3'], lit: ['b0', 'bw0', 'b3', 'sentry', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'], weight: { wP: 'pp' } };   // (weight: the Dry Channel's on its plate, issue #337)
 /** Step 13 (pure, in place): the sword and the shield kept, the house's old state cleared or settled. */
 export function migrateGivers(flags) {
   flags['item.sword'] ??= true;
@@ -513,10 +513,11 @@ export function migrateGivers(flags) {
   // ember mode: the house's old chest held it; it waits in the Hearth now
   if (flags['item.fire'] || flags['box.desert.temple.fire']) { flags['item.fire'] ??= true; flags['box.desert.hearth.fire'] ??= true; }
   const done = flags['temple.desert.boss'] === 'done' || !!flags['temple.desert.done'];
-  for (const k of Object.keys(flags)) if (/^temple\.desert\.(open|lit|drum)\./.test(k) || k === 'temple.desert.checkpoint') delete flags[k];
+  for (const k of Object.keys(flags)) if (/^temple\.desert\.(open|lit|drum|weight)\./.test(k) || k === 'temple.desert.checkpoint') delete flags[k];
   if (done) {
     for (const id of GIVERS_DONE.open) flags[`temple.desert.open.${id}`] = true;
     for (const id of GIVERS_DONE.lit) flags[`temple.desert.lit.${id}`] = true;
+    for (const [id, plate] of Object.entries(GIVERS_DONE.weight)) flags[`temple.desert.weight.${id}`] = plate;
   }
   return flags;
 }

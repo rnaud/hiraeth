@@ -4,7 +4,8 @@
 // in the real level geometry, pushing, riding, climbing, lighting, calming.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { HEARTH_FIRE } from '../src/temples/desert.js';
+import { HEARTH_FIRE, PIER } from '../src/temples/desert.js';
+import { CARRY } from '../src/carry.js';
 import { keyText } from '../src/prompt-keys.js';
 import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them, src/finds/courts.js)
 import * as THREE from 'three';
@@ -917,8 +918,49 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   assert.ok(P.onGround && Math.abs(lz(P.pos) - 69.25) < 2 && rt.kit.local(P.pos).y > -0.2, `the double jump lands on the pier (${where()})`);
   walk(L(1.5, 0, 69.25), { tol: 0.3, max: 3 });
   wait(0.5);
-  assert.equal(rt.logic.isOpen('dc'), true, 'the plate on the pier’s head wakes the chamber’s door at the top of the gallery, for good');
+  assert.equal(rt.logic.isOpen('dc'), true, 'stood on, the plate on the pier’s head opens the chamber’s door at the top of the gallery');
+  // ---- the Givers' weight (issue #337): off the plate the door shuts again; the weight carried onto it holds it open
+  const wP = rt.piece('wP');
+  walk(L(PIER.weight + 1.25, 0, 69.25), { tol: 0.25, max: 4, run: false });
+  wait(1.2);
+  assert.equal(rt.logic.isOpen('dc'), false, 'stepped off, the door shuts again');
+  assert.ok(said(/Something heavier must hold it down/), 'and the house says it wants a weight');
+  assert.equal(rt.logic.next(), 'wP', 'the next thing: the weight');
+  assert.ok(nextSpot(rt).distanceTo(wP.prop.pos) < 1e-6, 'the marker points at it');
+  const pick = bestInteractable(P);
+  assert.equal(pick?.entry.id, 'carry.temple.desert.wP', `beside the Givers' weight, the use button picks it up (${pick?.entry.id})`);
+  assert.match(pick.entry.prompt(), /^pick up the Givers’ weight$/);
+  pick.entry.use(P);
+  wait(0.5);
+  assert.equal(P.carrying?.thing, wP.prop, 'in both hands');
+  assert.equal(wP.prop.held?.carry, true, 'held by them: it weighs nothing on a plate meanwhile');
+  // carried: a slower walk, and a hop for a jump (no double jump)
+  const x0 = P.pos.clone();
+  for (let i = 0; i < 0.8 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, toward(L(4, 0, 69.25)));
+  const sp = Math.hypot(P.pos.x - x0.x, P.pos.z - x0.z) / 0.8;
+  assert.ok(sp < 3.8 * CARRY.speed + 0.2, `a slower walk, no sprint (${sp.toFixed(2)} m/s)`);
+  const y0 = P.pos.y;
+  let top = y0;
+  frame({ Space: true });
+  for (let i = 0; i < 0.25 / DT; i++) { frame(); top = Math.max(top, P.pos.y); }
+  frame({ Space: true });
+  for (let i = 0; i < 1 / DT; i++) { frame(); top = Math.max(top, P.pos.y); }
+  assert.ok(top - y0 > 0.2 && top - y0 < 1.0, `a hop, and no double jump (${(top - y0).toFixed(2)} m up)`);
+  assert.equal(P.carrying?.thing, wP.prop, 'still carried');
+  walk(L(1.5 - (CARRY.put + wP.size / 2 + 0.05), 0, 69.25), { tol: 0.2, max: 6, run: false });
+  wait(0.3);
+  const put = bestInteractable(P);
+  assert.equal(put?.entry.id, 'carry.put', 'carrying, the use button puts it down');
+  assert.match(put.entry.prompt(), /set it on the plate/, 'by the plate: on it');
+  put.entry.use(P);
+  wait(1.2);
+  assert.equal(P.carrying, null, 'put down');
+  assert.equal(rt.logic.weightOn('wP'), 'pp', `on the plate (${rt.kit.local(wP.prop.pos).toArray().map((v) => v.toFixed(2))})`);
+  assert.equal(rt.logic.isOpen('dc'), true, 'the weight holds the door open');
+  assert.equal(game.flag('temple.desert.weight.wP'), 'pp', 'and the save keeps it there');
+  walk(L(0.2, 0, 67.9), { tol: 0.4, max: 3 });
   walk(L(1.5, 0, 67.8), { tol: 0.4, max: 3 });
+  assert.equal(rt.logic.isOpen('dc'), true, 'still open with him off it');
   leap([1.5, 0, 82], { edge: 71.1 });
   assert.ok(P.onGround && lz(P.pos) > 80 && rt.kit.local(P.pos).y > -0.2, `and again onto the far landing (${where()})`);
   let climbed = false;

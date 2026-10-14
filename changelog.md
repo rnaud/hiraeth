@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.76 — 2026-10-14
 
+- In the Mooring-House a caged coffer waits on the Capstan Hall’s east side, a plate in front of it. The moorers’ weight sits on a cleat high on the wall where no jump reaches: pull it down into your hands with the grappling hook, set it on the plate, and the cage sinks.
+- In the Rose House the plate on the Dry Channel’s pier holds the door at the top of the gallery open only while something weighs it down: stand on it and the door opens, step off and it shuts again. The pier is longer now, and the Givers’ stone weight lies at its other end: carry it onto the plate and the door stays open.
+- The grappling hook pulls a crate or a weight straight into your hands now, if it is small enough to carry; a bigger one still lands at your feet.
+- You can pick up small things now and carry them in both hands: the crates in the Gadget Yard and the makers’ courts, and the stone weights in the temples. Walk up to one and press X / □ to lift it, X / □ again to put it down in front of you (on a plate if one is near), or RB / R1 to throw it a few metres. Carrying, you walk slower and only hop, and the gun, the blade and your gadgets wait; a climb, the water or a fall makes you let go.
 - In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.
 - In the Unity version the traveller’s overshirt is shaded right over his chest, shoulders and collar: the cloth there had dark and bright patches where its light faced the wrong way, as if the fabric were creased or turned inside out. It now catches the light as on the web.
 - People who only talk often tell you of something near them you haven’t found: a fragment of the singing light (“there’s a hum inside a ribcage south-west of the pilgrims’ resting stone”), someone with a game, or a place worth the walk, each in their own world’s way of putting it. Your Map then shows a soft circle round where it should be, never right on it, until you find it.

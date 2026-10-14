@@ -43,6 +43,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   `NOTES` low / mid / high each have a degree and a colour). `Bank` takes any
   number of eyes and a window, with its own words (`full`, `fade`): six in 4.6 s
   is the First Garage's (two tanks in one breath, the quick coil's refill).
+  `Weight` (a block of the house's stone carried in both hands onto a plate: below, "Weights on the plates"),
   `Vane` (a vane of the makers' bellows, lit only while it turns) and `Iris` (blades in a ceiling) are the Warden's
   Well's, `Hammer` (an engine's piston-hammer over a walkway) the Engine-House's (below). Moving parts are `userData.dynamic` (no tiling or levels of detail).
 - **`logic.js`**: the puzzle as pure state (`TempleLogic`): plates and what
@@ -828,6 +829,17 @@ the Capstan Hall's walkways and back in past its great lock: a second rail at 2 
 (`WINDOW_BARS`, 0.75 m apart; the anchors still go out under them and your aim reaches them). A door in an
 opening wider or taller than itself takes a `frame: { side, top }` (src/temples/pieces.js Door): stone that wide either
 side of it and that tall over it, drawn and solid.
+## Weights on the plates (v1.76, issue #337, `Weight`)
+
+The author: "I should be able to pick up and put down small objects, that should be put to use for puzzles. Like grab a
+box from afar with the grappling hook, then put it down on a switch so I can go through a door." A `Weight` (pieces.js)
+is a block of the house's stone the traveller carries in both hands (src/carry.js); its logic element `{ type: 'weight',
+room, plate, needs?, optional? }` holds its plate down while it sits on it, saved (`weight.<id>`), and a plate's door
+without a latch is open only so long. Two houses have the pattern: the Rose House's Dry Channel (its pier longer, the
+plate at one end and the Givers' weight at the other: the plate no longer latches the chamber's door, the weight holds it;
+`migrate.js` desert v3 puts it there for a save past that door) and the Mooring-House's Capstan Hall (a coffer caged by
+the east wall, its plate, and the moorers' weight high on a cleat where only the grappling hook reaches it: a reward,
+`optional`). The playthrough test carries every weight on the way for real. docs/systems/carry.md has the rules.
 
 ## A deadly pit looks it (issue #312, `src/pit-void.js`)
 

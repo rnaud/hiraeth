@@ -210,6 +210,8 @@ export class Gadgets {
       return;
     }
     const g = gadgetInput(input), cur = this.current;
+    // something carried in both hands (src/carry.js): the gadget in hand waits (an aim taken is put away)
+    if (this.player?.carrying) { g.use = false; g.aim = false; }
     // the choose button: a tap, the next one; held, the wheel
     if (g.pick && !this.held.pick) { this.pickT = 0; }
     if (g.pick) {

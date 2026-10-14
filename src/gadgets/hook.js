@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { inkMat, INK, InkLine, traceAim, aimRay, assistPick } from './kit.js';
 import { rayWorld } from '../fluid-tool.js';
 import { sfx } from './sfx.js';
+import { carryables, canCarry, pickUp } from '../carry.js';
 
 // The grappling hook (docs/systems/gadgets.md, "The grappling hook"): hold the use button to aim (the camera
 // comes over the shoulder, a reticle shows what the hook would catch within HOOK.range), let go to fire.
@@ -49,6 +50,14 @@ export function reelVelocity(pos, target, { speed = HOOK.pull, ease = HOOK.ease 
   const d = out.length();
   if (d < 1e-4) return out.set(0, 0, 0);
   return out.multiplyScalar(Math.min(speed, Math.max(3, d * ease)) / d);
+}
+
+/** fn() with a loose thing's own collider set aside (the line to it must not stop on its own faces). */
+function clearOf(physics, item, fn) {
+  const ex = physics?.extras, own = item?.collider, i = ex && own ? ex.indexOf(own) : -1;
+  if (i < 0) return fn();
+  ex.splice(i, 1);
+  try { return fn(); } finally { ex.splice(i, 0, own); }
 }
 
 /** Can the hook reach a point d metres from the glove? */
@@ -156,11 +165,12 @@ class Hook {
     }
     // nothing loose under the crosshair: a light thing near the line, in plain sight, is caught instead (aim assist)
     if (hit.kind === 'world' || hit.kind === 'none') {
-      const props = (world?.props ?? []).filter((p) => p.light && p.object.visible && !p.held);
+      // (the world's loose things, and whatever else may be carried: a temple's weights, src/carry.js)
+      const props = [...new Set([...(world?.props ?? []), ...carryables().filter((p) => p.hookable !== false)])].filter((p) => p.light && p.object?.visible !== false && !p.held);
       const a = assistPick(this.ray.origin, this.ray.dir, props, { range: Math.min(far, hit.kind === 'world' ? hit.distance + 1.5 : far), cone: 0.05, near: 0.5 });
       if (a) {
         const to = _w.subVectors(a.item.pos, hand), d = to.length();
-        if (inReach(d) && !rayWorld(physics, hand, to.divideScalar(d), d - a.item.r)) Object.assign(hit, { kind: 'target', target: { kind: 'prop', prop: a.item, position: () => a.item.pos }, point: a.item.pos.clone(), reach: d });
+        if (inReach(d) && !clearOf(physics, a.item, () => rayWorld(physics, hand, to.divideScalar(d), d - a.item.r))) Object.assign(hit, { kind: 'target', target: { kind: 'prop', prop: a.item, position: () => a.item.pos }, point: a.item.pos.clone(), reach: d });
       }
     }
     hit.ok = hit.kind !== 'none' && inReach(hit.reach);
@@ -338,7 +348,8 @@ class Hook {
     const to = _v.subVectors(P.pos, thing); to.y = 0;
     const d = to.length();
     if (d < HOOK.dragTo) {
-      if (D.prop) { D.prop.held = null; D.prop.vel.copy(to.normalize()).multiplyScalar(1.2); }
+      // (small enough to carry, and his hands free: it lands in them, src/carry.js; else let go at his feet)
+      if (D.prop) { D.prop.held = null; if (!(canCarry(D.prop) && !P.carrying && P.onGround && pickUp(P, D.prop, { from: 'hook' }))) D.prop.vel.copy(to.normalize()).multiplyScalar(1.2); }
       if (D.foe) { D.foe.vel.set(0, 0, 0); D.foe.stunned = Math.max(D.foe.stunned, 1.2); D.foe.flash = 1; }
       this.dragged = null; this.state = 'back';
       return;

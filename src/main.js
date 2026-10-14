@@ -93,6 +93,7 @@ import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
 import { routeChart, findableNote } from './story/signature-search.js';
 import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
+import { carryHooks } from './carry.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
 import { bikeComes, parkedBike, callKind } from './bike-worlds.js';
@@ -692,6 +693,9 @@ const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)
+// (carrying, src/carry.js: the first time, how to put it down and throw it; a thud as it is set down)
+carryHooks.notice = (t) => showToast(keyText(t, { teach: true }), TEACH);
+carryHooks.sound = (t) => sound.land?.({ speed: 2.5, pos: t?.pos ?? player.pos });
 waters.sound = sound;
 player.onSwim = (kind, info) => waters.event(kind, info);   // splashes, strokes, a gasp
 // hoverbikes and skiffs skim over any water (bike.js groundAt)
