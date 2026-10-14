@@ -6,6 +6,8 @@ import * as fit from '../src/characters/elder-v3-fit.js';
 import {createReviewInk} from './tripo-render.js';
 import {Guardian} from '../src/temples/boss.js';
 import {ELDER} from '../src/temples/arzach.js';
+import {driveElder} from './elder-drive.js';
+import {simplify,triCount} from '../src/lod.js';
 const $=id=>document.getElementById(id);
 try{
  const gltf=await new GLTFLoader().loadAsync('/guardians/elder-v3/model.glb');
@@ -22,28 +24,28 @@ try{
  rebuild();skeleton=new T.SkeletonHelper(model.group);skeleton.material.depthTest=false;helper.add(skeleton);const legGeo=new T.BufferGeometry();legGeo.setAttribute('position',new T.BufferAttribute(new Float32Array(24),3));legLines=new T.LineSegments(legGeo,new T.LineBasicMaterial({color:0xd17535,depthTest:false}));helper.add(legLines);
  $('rig').onchange=()=>helper.visible=$('rig').checked;
  $('phase').onchange=()=>rebuild();
- function angle(a){const close=a==='head'||a==='face';viewOffset.set(0,close?5.9:3.6,close?.8:0);const d={face:[0,0,1],head:[1,0,.08],front:[0,.05,1],side:[1,.05,0],back:[0,.05,-1],quarter:[.85,.20,1]}[a];controls.target.copy(model.pos).add(viewOffset);camera.position.copy(new T.Vector3(...d).normalize().multiplyScalar((close?5.3:22)*Math.max(1,.9*innerHeight/innerWidth))).add(controls.target);controls.update();}
+ function angle(a,zoom=1){const close=a==='head'||a==='face';viewOffset.set(0,close?5.9:3.6,close?.8:0);const d={face:[0,0,1],head:[1,0,.08],front:[0,.05,1],side:[1,.05,0],back:[0,.05,-1],quarter:[.85,.20,1],under:[.6,-.35,.75],above:[.3,1.1,.6]}[a];controls.target.copy(model.pos).add(viewOffset);camera.position.copy(new T.Vector3(...d).normalize().applyAxisAngle(new T.Vector3(0,1,0),model.heading).multiplyScalar(zoom*(close?5.3:22)*Math.max(1,.9*innerHeight/innerWidth))).add(controls.target);controls.update();}
  document.querySelectorAll('[data-angle]').forEach(b=>b.onclick=()=>angle(b.dataset.angle));angle('quarter');$('light').onclick=()=>{$('mode').value='lit';light.position.x*=-1;light.position.z*=-1;};
  $('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};$('step').onclick=()=>{playing=false;$('play').textContent='Play';advance(1/30);};$('reset').onclick=()=>rebuild();$('motion').onchange=()=>{$('phase').value=$('motion').value==='hover'?'1':'0';rebuild();};const seekTo=target=>{rebuild();playing=false;$('play').textContent='Play';for(let i=0;i<Math.round(target*60);i++)advance(1/60);};$('headMotion').onchange=()=>{const target=t,wasPlaying=playing;seekTo(target);playing=wasPlaying;$('play').textContent=playing?'Pause':'Play';};$('go').onclick=()=>{const target=Math.max(0,Math.min(30,Number($('seek').value)||0));rebuild();playing=false;$('play').textContent='Play';for(let i=0;i<Math.round(target*60);i++)advance(1/60);};
  function advance(dt){t+=dt;const motion=$('motion').value;runtime.root.visible=motion==='encounter';
-  if(motion==='encounter'){const phase=Number($('phase').value);if(phase>0)guard.meter=guard.floor=phase===1?.46:.76;guard.update(dt,t);return;}
-  const states=['sleep','wake','open','weary','resolved'];const state=states.includes(motion)?motion:'fight';const attack=ELDER.attacks[motion]&&t%6<2.4?{...ELDER.attacks[motion],id:motion}:null;
-  const k=(t%6)/1.8;model.pos.set(0,0,0);model.heading=0;
-  if(motion==='walk')model.pos.z=t*.9;
-  if(motion==='turn'){model.heading=t*.22;model.pos.set(Math.sin(model.heading)*4,0,Math.cos(model.heading)*4);}
-  const flightTime=t%12;const phase=motion==='flightCycle'?(flightTime<6?1:0):motion==='hover'?1:Number($('phase').value);if(motion==='flightCycle')$('phase').value=String(phase);if(motion==='flightCycle')model.pos.y=3.5*Math.min(1,flightTime/2,Math.max(0,(8-flightTime)/2));else if(phase>0&&!states.includes(motion))model.pos.y=3.5;
-  model.group.position.copy(model.pos);model.group.rotation.y=model.heading;
-  // Use the real encounter telegraph driver in isolated attack reviews too.
-  guard.state=state;guard.attack=attack;guard.attackK=k;guard.struck=k>=1;guard.poseRig(dt,t);
-  model.animate(dt,t,{state,attack,k,headMotion:$('headMotion').checked,jawOpen:motion==='jawClosed'?0:motion==='jawOpen'?1:undefined,speed:motion==='walk'?.9:0,meter:state==='resolved'?1:0,phase,wingsSpread:motion==='wingsFolded'?0:motion==='wingsSpread'?1:undefined,kit:{ground:()=>0}});
+  const shown=driveElder({model,guard,t,dt,motion,phase:Number($('phase').value),headMotion:$('headMotion').checked});
+  if(motion==='flightCycle')$('phase').value=String(shown);
  }
- function frame(now){const elapsed=last?(now-last)/1000:1/60;last=now;frameMs+=(elapsed*1000-frameMs)*.06;if(playing){const dt=Math.min(.1,elapsed),steps=Math.max(1,Math.ceil(dt/(1/60)));for(let i=0;i<steps;i++)advance(dt/steps);}
+ function draw(){const mode=$('mode').value;floor.position.x=model.pos.x;floor.position.z=model.pos.z;for(const x of materials)x.mesh.material=x[mode==='ink'?'lit':mode];runtime.root.visible=false; // encounter logic runs; its effect meshes need separate material review
+  if(mode==='ink')ink.render(camera,t);else renderer.render(scene,camera);}
+ // Scripted review (scripts/tripo/elder-sheets.mjs): contact sheets of whole cycles, each frame from several angles and
+ // renderings. stop() ends the page's own loop; start() resets to a motion, step() advances at 60 Hz, view() draws one.
+ let stopped=false;
+ window.elderReview={stop(){stopped=true;playing=false;},start(motion,phase){$('motion').value=motion;$('phase').value=String(phase??(motion==='hover'?1:0));playing=false;rebuild();},
+  step(seconds){for(let i=0;i<Math.round(seconds*60);i++)advance(1/60);},size(w,h){renderer.setPixelRatio(1);renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();cssWidth=innerWidth;cssHeight=innerHeight;},
+  view(a,mode,zoom){$('mode').value=mode;angle(a,zoom);draw();return renderer.domElement;},
+  // (her levels of detail, as the game's ELDER_LOD builds them: j the cell 2^j m; -Infinity: whole)
+  lod(j){const m=model.meshes[0];m.userData.full??=m.geometry;m.geometry=j===-Infinity||j==null?m.userData.full:simplify(m.userData.full,2**j);return triCount(m.geometry);},get t(){return t;},get model(){return model;},get guard(){return guard;}};
+ function frame(now){if(stopped)return;const elapsed=last?(now-last)/1000:1/60;last=now;frameMs+=(elapsed*1000-frameMs)*.06;if(playing){const dt=Math.min(.1,elapsed),steps=Math.max(1,Math.ceil(dt/(1/60)));for(let i=0;i<steps;i++)advance(dt/steps);}
   const focus=model.pos.clone().add(viewOffset),delta=focus.clone().sub(controls.target);camera.position.add(delta);controls.target.copy(focus);controls.update();
   if(cssWidth!==innerWidth||cssHeight!==innerHeight){cssWidth=innerWidth;cssHeight=innerHeight;renderer.setSize(cssWidth,cssHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
   if(helper.visible){const p=legLines.geometry.attributes.position;let at=0;for(let i=0;i<2;i++)for(const names of [['thigh','shin'],['shin','foot']])for(const role of names){const v=model.bones[`leg${i}_${role}`].getWorldPosition(new T.Vector3());p.setXYZ(at++,v.x,v.y,v.z);}p.needsUpdate=true;legLines.geometry.computeBoundingSphere();}
-  const mode=$('mode').value;for(const x of materials)x.mesh.material=x[mode==='ink'?'lit':mode];runtime.root.visible=false; // encounter logic runs; its effect meshes need separate material review
-  if(mode==='ink')ink.render(camera,t);else renderer.render(scene,camera);
-  floor.position.x=model.pos.x;floor.position.z=model.pos.z;
+  draw();
   $('status').textContent=`${$('motion').selectedOptions[0].text}${$('motion').value==='encounter'?' ('+guard.state+(guard.attack?' / '+guard.attack.id:'')+'; effects hidden)':''} · ${t.toFixed(2)} s · Aerie guardian · Natural wings · 23 fitted bones · ${Number($('phase').value)>0?'airborne phase · ':''}mouth height ${model.mouth.y.toFixed(2)} m · ${playing?'playing':'paused'} · ${Math.round(1000/frameMs)} fps`;
   requestAnimationFrame(frame);
  }

@@ -21,12 +21,16 @@ export function elderWeights([x,y,z],region=0){
  if(wing){const a=Math.abs(x),side=x<0?0:1;let j=0;const knots=[.10,.22,.34,.48];while(j<2&&a>knots[j+1])j++;const k=smooth(knots[j],knots[j+1],a);overlay([[`wing${side}_${j}`,1-k],[`wing${side}_${j+1}`,k]],wing);}
  const toes=1-smooth(.08,.12,y),width=.002+.037*smooth(.14,.22,y);
  const leg=(1-smooth(.21,.30,y))*(toes+(1-toes)*smooth(-.125,-.085,z))*(1-smooth(.085+.07*toes,.145+.07*toes,Math.abs(x)))*(1-smooth(.21,.27,y)+smooth(.21,.27,y)*smooth(0,.035,Math.abs(x)));
- if(leg){const side=smooth(-width,width,x),parts=[];for(let i=0;i<2;i++){const L=ELDER_LEGS[i],shin=1-smooth(.15,.205,y),foot=1-smooth(.035,.065,y),share=i?side:1-side;parts.push([`leg${i}_thigh`,(1-shin)*share],[`leg${i}_shin`,shin*(1-foot)*share],[`leg${i}_foot`,shin*foot*share]);}overlay(parts,leg);}
+ // (where the tail hangs over the backs of the thighs, the body holds them: tail and thigh pulled one surface 4-5x
+ // apart as a foot rose, #237)
+ const rump=(1-smooth(-.115,-.06,z))*(1-smooth(.075,.14,Math.abs(x)))*smooth(.085,.13,y);
+ if(leg){const side=smooth(-width,width,x),parts=[];for(let i=0;i<2;i++){const L=ELDER_LEGS[i],shin=1-smooth(.15,.205,y),foot=1-smooth(.035,.065,y),share=i?side:1-side;parts.push([`leg${i}_thigh`,(1-shin)*share],[`leg${i}_shin`,shin*(1-foot)*share],[`leg${i}_foot`,shin*foot*share]);}overlay(parts,leg*(1-.85*rump));}
  const tail=smooth(.085,.13,y)*(1-smooth(-.12,-.075,z))*(1-smooth(.26,.34,y))*(1-smooth(.075,.14,Math.abs(x)));
  if(tail){const k=1-smooth(.225,.31,y);overlay([['tail0',1-k],['tail1',k]],tail);}
  const neck=smooth(.424,.49,y)*(1-smooth(.035,.080,Math.abs(x)));
  if(neck){const ys=[.44,.50,.55,.598,.635];let i=0;while(i<3&&y>ys[i+1])i++;const k=smooth(ys[i],ys[i+1],y);overlay([[`neck${i}`,1-k],[i===3?'head':`neck${i+1}`,k]],neck);}
- const head=Math.max(smooth(.604,.63,y),smooth(.045,.062,z)*smooth(.51,.535,y));
+ // (the skull over a wider band of the neck's top, #237: the throat sheared 3.4-3.9x where the head bowed asleep)
+ const head=Math.max(smooth(.592,.638,y),smooth(.035,.078,z)*smooth(.51,.55,y));
  if(head)overlay([['head',1]],head);
  // Keep detached toe/leg surfaces and the tail on their own chains, even where
  // their silhouettes overlap. Only the feathered attachment blends back to body.

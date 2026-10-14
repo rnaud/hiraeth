@@ -24,6 +24,15 @@ export const CHANGELOG = [
     'Your ship takes off like a lander now: it rises straight up on its jets in a cloud of dust, hangs there a moment, then tips forward and roars away. Landing is the reverse: it flies in nose first, slows to a hover over its spot and comes straight down onto its feet. The same in the Unity version.',
     // the pirates' one reticle (issue #357): src/minigames/pirates.js drawHud, RETICLE; tests/pirates.test.js; docs/systems/minigames.md
     'In the chime pirates you aim with one reticle now, a ring round a dot where your shots will go: it tightens and turns coral when the aim assist has a pirate, sliding onto it, and the charge fills a gold ring round it. The second, distant mark is gone, and a missile’s target has a small teal pip over it instead of a big diamond round it.',
+    // the Elder's moves and states (issue #237): src/characters/elder-v3-creature.js ELDER_POSE (each move's own wind-up
+    // and blow, MOVE_POSE for the links), restPose (sleep, wake, weary, open, resolved), BREATH, RUFFLE, the stamp's lifted
+    // foot (STAMP_FOOT), ELDER_NOD; tests/elder-cycles.test.js; docs/systems/characters.md "The Elder, accepted"
+    'The Elder in the Aerie moves like a great bird now: her peck stretches her neck out and stabs down at you (it curled her head under her breast, the beak pointing back between her feet), her stamp lifts one foot high and brings it down (she leapt off the floor with both), the gale and the feather volley have wind-ups of their own (both were the buffet’s), she wakes with a stretch of both wings, and between blows she breathes, ruffles her feathers and looks about.',
+    // her motion without jolts (issue #237): springs and a crossfade on her pose (ELDER_SPRING, ELDER_FADE), the kit's
+    // generic strike and tell rig off for her (tellWeight 0), her take-off and landing eased (boss.js place, model.rises),
+    // her turns gathered (turnTo, turnAccel, turnRate 3), the thighs framed on their bend plane (no half-turn flip), the
+    // rump, throat and wing weights (elder-v3-fit.js elderWeights, ELDER_FOLD); scripts/tripo/elder-cycles.mjs
+    'The Elder no longer jerks: her whole body jumped at the start of every blow, she shot 3.5 m into the air in a single frame when she took off (and dropped back the same way), spun round to face you in an instant, and a leg flipped round when she sank down worn out. Her throat, rump and shoulders no longer stretch out of shape as she bends.',
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

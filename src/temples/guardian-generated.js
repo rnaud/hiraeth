@@ -1,4 +1,4 @@
-import {createElderCreature, loadElderV3} from '../characters/elder-v3-creature.js';
+import {createElderCreature, loadElderV3, ELDER_TURN} from '../characters/elder-v3-creature.js';
 import * as THREE from 'three';
 import { keeperModel, elderModel } from './guardians.js';
 import { createKeeperCreature, loadKeeperV1, KEEPER_GAIT } from '../characters/keeper-creature.js';
@@ -43,6 +43,9 @@ export function generatedGuardian({ name, fallback, load, make, sizes }) {
     get hover() { return inner.hover; },
     get rooted() { return inner.rooted; },
     get marks() { return inner.marks; },
+    get tellWeight() { return inner.tellWeight; },
+    get rises() { return inner.rises; },
+    get turnAccel() { return inner.turnAccel; },
     part(n, out, side) { return inner.part?.(n, out, side) ?? null; },
     // (the body's own: its blows on its bones and its weak point for the lock, src/temples/boss.js, src/foes.js GuardianLock;
     // a body without them is struck and locked as before, by its moves' shapes and its middle)
@@ -115,5 +118,6 @@ export function keeperGuardian({ load = loadKeeperV1 } = {}) {
 export function elderGuardian({load=loadElderV3}={}) {
  return generatedGuardian({name:'Elder of Vael',fallback:()=>elderModel(),load,
   make:gltf=>createElderCreature(gltf,{gameMaterial:true}),
-  sizes:{radius:3,height:7,mouthR:1.1,bodyR:2.6,touchR:1}});
+  // (turnRate: her feet step her round, #237: she spun 12 rad/s to face you as a move began)
+  sizes:{radius:3,height:7,mouthR:1.1,bodyR:2.6,touchR:1,turnRate:ELDER_TURN}});
 }
