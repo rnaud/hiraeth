@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import './register-gadgets.js';
-import { ITEMS } from '../src/items.js';
+import { ITEMS, itemLine, CARD_LINE_MAX } from '../src/items.js';
 import { keyText } from '../src/prompt-keys.js';
 
 export const MAX_DESC = 180;
@@ -39,8 +39,26 @@ test('the card, the items page and the trials show the one description, no headi
   const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
   const card = read('boxes/card.js');
   assert.doesNotMatch(card, /What it is|What it does|grid-template-columns/);
-  assert.match(card, /querySelector\('\.desc'\)\.innerHTML = keyText\(esc\(def\.text\), \{ html: true, teach: true \}\)/);
+  assert.match(card, /querySelector\('\.desc'\)\.innerHTML = keyText\(esc\(itemLine\(def\)\), \{ html: true, teach: true \}\)/);
   for (const p of ['boxes/card.js', 'items-page/view.js', 'items-page/main.js', 'trials/index.js', 'game-menu.js', 'game-menu-data.js', 'items.js', 'gadgets/registry.js']) {
     assert.doesNotMatch(read(p), /\b(it|def|d|g|reward|ITEMS\[\w+\]|ITEMS\.\w+\??)\.use\b/, `${p}: no use field read`);
   }
+});
+
+// issue #329: the chest's card says the name and what it does, one line, not what it is
+test('the card\'s line says what the item does, short, never its first sentence of what it is', () => {
+  for (const [id, it] of Object.entries(ITEMS)) {
+    const line = itemLine(it);
+    assert.ok(line.length >= 20, `${id}: says something (“${line}”)`);
+    assert.ok(line.length <= CARD_LINE_MAX, `${id}: ${line.length} letters, at most ${CARD_LINE_MAX}: “${line}”`);
+    assert.match(line, /^[A-Z{]/, `${id}: a sentence (“${line}”)`);
+    assert.match(line, /[.!?]$/, `${id}: ends as a sentence`);
+    const first = it.text.split(/(?<=[.!?])\s+(?=[A-Z{])/);
+    if (first.length > 1) assert.ok(!line.includes(first[0]), `${id}: not what it is`);
+    assert.doesNotMatch(line, /here on the items page/, `${id}: nothing that only reads on another page`);
+    if (it.kind === 'gadget' || it.kind === 'mode') assert.match(line, /\{key:(fire|use|aim|mode)\}/, `${id}: its button on the card`);
+    for (const kind of ['pad', 'keys', 'touch']) assert.ok(!keyText(line, { kind, teach: true }).includes('{key:'), `${id} (${kind})`);
+  }
+  assert.equal(itemLine(ITEMS.sword), '{key:blade} cuts, three in a row; hold it for a sweeping cut. It clears thorns and wakes the makers’ eyes.');
+  assert.equal(itemLine(ITEMS.doublejump), 'Press {key:jump} again in the air for a second jump.');
 });

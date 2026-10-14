@@ -12,7 +12,8 @@ import { game } from './game-state.js';
 //   items.grant('jetpack')                // found it (persists; emits 'item' { id, def })
 //   items.revoke('jetpack')               // (dev menu)
 //   items.on((id, owned) => …)            // any change; returns an unsubscribe function
-//   ITEMS.jetpack.name / .text / .kind    // for the box-opening card and the dev menu (text: the one description)
+//   ITEMS.jetpack.name / .text / .kind    // for the items page and the dev menu (text: the one description)
+//   itemLine(ITEMS.jetpack)               // the box-opening card's one line: what it does (issue #329)
 //
 // Stored as game flags `item.<id>` = true. Systems read items.has() every
 // frame (cheap), so a grant takes effect at once.
@@ -51,6 +52,7 @@ export const ITEMS = {
     // (it comes with ember mode, `with`: one chest for the gun and its two modes, issue #83)
     name: 'Fluid gun', kind: 'gadget', needs: 'backpack', with: ['fire'], where: 'In the Givers’ Hearth, the desert’s old fire-house, in the Givers’ room off the hall.',
     text: 'The makers’ glove, fed by the backpack. Aim with {key:aim} and push with {key:fire}; {key:mode} turns it to ember, which lights lamps, braziers and fuses, or to a shot of fluid.',
+    does: 'Aim with {key:aim} and push with {key:fire}; {key:mode} turns it to ember, which lights fires, or to a shot.',
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
   // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it
@@ -195,6 +197,7 @@ export const ITEMS = {
   dunefins: {
     name: 'Dune fins', kind: 'upgrade', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',
     text: 'Two brass fins for the hoverbike’s skirt; the sand slips past them. Its top speed is 42 m/s instead of 34.',
+    does: 'The hoverbike’s top speed is 42 m/s instead of 34.',
   },
   clearglass: {
     name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
@@ -207,6 +210,7 @@ export const ITEMS = {
   fourthcoil: {
     name: 'Fourth coil', kind: 'upgrade', needs: 'springs', trial: 'arzach2', where: 'The first finish of the Stone circuit, the Sky Stones’ bird race.',
     text: 'A spare spring for each boot, wound tighter than the rest. It hums when it is happy. The spring boots bounce four times in a chain instead of three.',
+    does: 'The spring boots bounce four times in a chain instead of three.',
   },
   widevane: {
     name: 'Wide vane', kind: 'upgrade', needs: 'fan', trial: 'perdide', where: 'The first finish of the Reed race, Lorn’s skiff run.',
@@ -215,6 +219,7 @@ export const ITEMS = {
   fourthnotch: {
     name: 'Fourth notch', kind: 'upgrade', needs: 'boomerang', trial: 'perdide2', where: 'The first finish of the Lagoon laps, the Deep Wood’s skiff run.',
     text: 'A fourth notch cut in the boomerang’s elbow by a careful hand. It locks on to four things instead of three.',
+    does: 'The boomerang locks on to four things instead of three.',
   },
   longbreath: {
     name: 'Long breath', kind: 'upgrade', needs: 'bubble', trial: 'edena', where: 'The first finish of the Eye garden, Viridel’s game of eyes.',
@@ -262,6 +267,7 @@ export const ITEMS = {
   star: {
     name: 'Pale star', kind: 'cosmetic',
     text: 'A pale enamel star, the makers’ sign for a traveller far from home. Pinned to your overshirt, or your brow under a hood. It does nothing at all, and looks very good.',
+    does: 'It does nothing at all, and looks very good.',
   },
   // ---- the scientist's work with the fragments of the singing light (src/fragment-shop.js, src/story/scientist.js):
   // Anselm Thrum sells them aboard the ship for fragments (v1.62, issue #185: `fragments`, the price; `light`: the gear
@@ -275,6 +281,7 @@ export const ITEMS = {
   finder: {
     name: 'Fragment finder', kind: 'charm', fragments: 3, toggle: true, where: 'Anselm Thrum sells it aboard your ship, for three fragments of the singing light.',
     text: 'Anselm’s brass box with a splinter of the light inside. It beeps faster as a fragment comes within 60 m. Switch it off or on here on the items page.',
+    does: 'It beeps faster as a fragment comes within 60 m; the items page switches it off or on.',
   },
   lightedge: {
     name: 'Light-tempered edge', kind: 'upgrade', fragments: 7, light: 'sword', needs: 'sword', where: 'Anselm Thrum sells it aboard your ship, for seven fragments of the singing light.',
@@ -297,6 +304,23 @@ export const ITEMS = {
     text: 'Fragments round the guard’s rim. A blow you block with {key:guard} takes half a unit of magic instead of a whole one.',
   },
 };
+
+/**
+ * What it does, in one line: the box-opening card's words under the name (issue #329, the author: "It should just tell
+ * me the name of the item and what it does"). An item's own `does`, else its description without its first sentence
+ * (what it is), else, one sentence with a colon, what follows the colon. At most CARD_LINE_MAX letters (tests/item-cards.test.js).
+ */
+export function itemLine(def) {
+  if (!def) return '';
+  if (def.does) return def.does;
+  const text = def.text ?? '';
+  const parts = text.split(/(?<=[.!?])\s+(?=[A-Z{])/);
+  if (parts.length > 1) return parts.slice(1).join(' ');
+  const c = text.indexOf(': ');
+  return c > 0 ? text.charAt(c + 2).toUpperCase() + text.slice(c + 3) : text;
+}
+/** The longest the card's line is (letters, with its {key:…} placeholders). */
+export const CARD_LINE_MAX = 125;
 
 /** The scientist's upgrades, the cheapest first, and their price in fragments (src/fragment-shop.js, issue #185). */
 export const FRAGMENT_ITEMS = Object.entries(ITEMS).filter(([, d]) => d.fragments).sort((a, b) => a[1].fragments - b[1].fragments).map(([id, d]) => ({ id, price: d.fragments }));

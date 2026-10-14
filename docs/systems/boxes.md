@@ -137,6 +137,15 @@ as `{key:verb}` (the player's own, in teal); before, two columns headed "What it
 (`tests/item-cards.test.js`). The longest card (the Givers' blade's) takes 35 % of an 800 × 450 screen
 (`CARD_MAX_SHARE`); the makers' "left for one who has come a long way" line is gone from it.
 
+**The name and what it does** (issue #329, the author: "The new item dialog when I open a chest has too much on it. It
+should just tell me the name of the item and what it does. No subtitle. And it shouldn't be 100% width"). The card is
+the name, one line under it and Continue under that, centred, no wider than its words or `CARD_MAX_CH` (44 ch of them,
+`max-width: min(44ch, 100vw - 24px)`), no longer a strip the width of the screen; the "AN ARTIFACT OF THE MAKERS"
+kicker is gone. The line is what the item does (`itemLine(def)`, src/items.js): an item's own `does`, else its
+description without its first sentence (what it is, which the items page still shows), else, one sentence with a colon,
+what follows the colon; at most `CARD_LINE_MAX` (125) letters, a gadget's or a mode's naming its button
+(`tests/item-cards.test.js`, `tests/box-card.test.js`).
+
 **The closing beat** (`beats.js`, v1.3): after the card, a short beat that depends on what the box held
 (`beatFor(id, def)`: `ITEM_BEATS`, then `KIND_BEATS` by the item's kind), on a closing shot that keeps
 to the plan (`closingShot`: mirrored for **left**, swung toward his side for **side**, raised for

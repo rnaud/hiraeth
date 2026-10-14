@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CARD_MAX_SHARE } from '../src/boxes/card.js';
+import { CARD_MAX_SHARE, CARD_MAX_CH } from '../src/boxes/card.js';
 
 const card = readFileSync(new URL('../src/boxes/card.js', import.meta.url), 'utf8');
 const rule = (sel) => card.match(new RegExp(`\\n${sel.replace(/[.#]/g, (c) => `\\${c}`)} \\{([^}]*)\\}`))?.[1] ?? '';
@@ -27,4 +27,18 @@ test('on the strip the item\'s name comes first and largest, the words after it,
   assert.doesNotMatch(card, /grid-template-columns|What it is|What it does/, 'one description, no columns');
   assert.equal((card.match(/class="desc"/g) ?? []).length, 1);
   assert.doesNotMatch(card, /Left by the makers for one who has come a long way/, 'one line fewer');
+});
+
+// issue #329: "too much on it … just the name of the item and what it does. No subtitle … not 100% width"
+test('the card is the name and one line, no subtitle, no wider than a readable measure, centred', () => {
+  assert.doesNotMatch(card, /AN ARTIFACT OF THE MAKERS|class="k"/, 'no subtitle');
+  const html = card.match(/<div id="boxcard"[\s\S]*?<\/div><\/div>`/)?.[0] ?? '';
+  assert.deepEqual([...html.matchAll(/class="(name|found|desc|go)"/g)].map((m) => m[1]), ['name', 'found', 'desc', 'go'], 'the name, the line (or the find\'s line), the button');
+  assert.ok(CARD_MAX_CH >= 36 && CARD_MAX_CH <= 44, `a measure of ${CARD_MAX_CH} ch`);
+  const box = rule('#boxcard');
+  assert.ok(box.includes(`max-width: min(${CARD_MAX_CH}ch, calc(100vw - 24px))`), 'at most the measure, never the screen\'s width');
+  assert.match(box, /width: max-content/, 'as narrow as its words');
+  assert.doesNotMatch(box, /900px/, 'not the old full strip');
+  assert.match(box, /left: 50%/);
+  assert.match(card, /translate\(-50%, 0\)/, 'centred');
 });

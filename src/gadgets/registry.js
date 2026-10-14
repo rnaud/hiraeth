@@ -54,7 +54,7 @@ export function registerGadget(def) {
   GADGETS.sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.id.localeCompare(b.id));
   // (as items in the registry's order, whatever order the files were found in: the menu and the items page list them so)
   for (const g of GADGETS) delete ITEMS[g.id];
-  for (const g of GADGETS) ITEMS[g.id] = { name: g.name, kind: 'gadget', needs: g.needs, text: g.text, where: g.where ?? 'In a makers’ court, in one of the worlds on the way home.', ...(g.with ? { with: g.with } : {}) };   // (with: what comes with it, the gun's ember mode)
+  for (const g of GADGETS) ITEMS[g.id] = { name: g.name, kind: 'gadget', needs: g.needs, text: g.text, where: g.where ?? 'In a makers’ court, in one of the worlds on the way home.', ...(g.with ? { with: g.with } : {}), ...(g.does ? { does: g.does } : {}) };   // (with: what comes with it, the gun's ember mode; does: the box card's line, src/items.js itemLine)
   registerItemModel(def.id, () => def.model());
   return def;
 }

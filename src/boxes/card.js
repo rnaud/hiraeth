@@ -1,15 +1,19 @@
 // The box-opening card, in the game's paper-and-ink UI. The item comes first (issue #82: on a handheld the card
 // sat over the lift valve, its words above the thing you had just found): the card is a low strip along the foot
 // of the screen, in the letterbox's bottom band and just over it (CARD_MAX_SHARE of the height, measured: the
-// longest card, the Givers' blade's, on a handheld's 800 × 450), so the item the scene holds up stays clear above it; on the strip its name first and largest, then one
-// short description under it, what it is and what it does together, its buttons inline (issue #165: no columns, no
-// "what it is / what it does" headings; ITEMS[id].text, a line or two). Also the full-screen catcher for the scene (a click or tap dismisses the
+// longest card, the Givers' blade's, on a handheld's 800 × 450), so the item the scene holds up stays clear above it; on it
+// the name first and largest, then one line under it, what it does, its buttons inline (issue #329: no subtitle, nothing
+// of what it is, itemLine(def) in src/items.js; the card no wider than CARD_MAX_CH of its words, centred, so it reads). Also the full-screen catcher for the scene (a click or tap dismisses the
 // card) and a small "skip" button for touch. Built on demand, inert in node (no document).
 
 import { keyText } from '../prompt-keys.js';
 import { glyph } from '../pad-glyphs.js';
 import { t } from '../i18n.js';
 import { stripTone } from '../story/tone.js';
+import { itemLine } from '../items.js';
+
+/** The card's widest (in ch of its words, issue #329: not the screen's width, a measure easy to read), centred. */
+export const CARD_MAX_CH = 44;   // (the CSS below writes it out: tests/box-card.test.js)
 
 const CSS = `
 #boxscene { position: fixed; inset: 0; z-index: 8100; pointer-events: none; }
@@ -18,17 +22,14 @@ const CSS = `
   background: rgba(255, 246, 220, .9); border: 1.5px solid #2b211f; padding: 6px 12px; opacity: 0; transition: opacity .3s; pointer-events: none; }
 #boxscene.on .skip { opacity: .85; pointer-events: auto; }
 #boxscene.card .skip { opacity: 0; pointer-events: none; }
-#boxcard { position: absolute; left: 50%; bottom: max(6px, calc(5.5vh - 34px)); width: min(max(900px, 66em), calc(100vw - 24px)); box-sizing: border-box;
+#boxcard { position: absolute; left: 50%; bottom: max(6px, calc(5.5vh - 34px)); width: max-content; max-width: min(44ch, calc(100vw - 24px)); box-sizing: border-box;
   transform: translate(-50%, 16px); opacity: 0; transition: opacity .35s, transform .45s cubic-bezier(.2,.9,.3,1.3); pointer-events: none;
-  font: var(--type-s)/1.4 var(--face); color: #2b211f; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; padding: 0.6em 1.2em; }
+  font: var(--type-s)/1.4 var(--face); color: #2b211f; background: #fff6dc; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; padding: 0.6em 1.2em; text-align: center; }
 #boxscene.card #boxcard { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-#boxcard .head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 14px; }
 #boxcard h2 { margin: 0; font: 900 1.75em/1.15 var(--face-title); letter-spacing: .04em; }
 #boxcard h2 .star { display: inline-block; width: 0.7em; height: 0.7em; margin-right: 0.35em; vertical-align: -1px; background: #25386c;
   clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
-#boxcard .k { font-size: 0.8em; letter-spacing: .26em; opacity: .7; }
-#boxcard .k svg { width: 1.8em; height: 1.2em; vertical-align: -2px; margin-right: 6px; fill: #25386c; stroke: #25386c; }
-#boxcard p.desc { margin: 4px 0 0; max-width: 52em; font-size: 1.08em; }
+#boxcard p.desc { margin: 4px 0 0; font-size: 1.08em; }
 #boxcard p.desc kbd.kp { color: #277e86; }
 #boxcard p { margin: 0; }
 #boxcard p.found { font-size: 1.08em; margin: 4px 0 0; opacity: 1; }
@@ -36,13 +37,11 @@ const CSS = `
 #boxcard .go, #boxscene .skip { display: inline-flex; align-items: center; }
 #boxcard .go { font: 700 0.92em var(--face); letter-spacing: .08em; color: #2b211f; background: #f2c54b;
   border: 1.5px solid #2b211f; box-shadow: 2px 2px 0 #2b211f; padding: 0.35em 0.9em; cursor: pointer; }
-#boxcard .gorow { margin-left: auto; align-self: center; }
+#boxcard .gorow { margin-top: 0.5em; }
 #boxcard .go:focus { outline: 2px dashed #2b211f; outline-offset: 2px; }
 @media (max-width: 640px) { #boxcard h2 { font-size: 1.5em; } #boxcard { padding: 6px 12px; } }
 `;
 
-// the glyph (three dots over an arch, as in src/story/dialogue.js MOTIFS)
-const GLYPH = '<svg viewBox="0 0 24 16" aria-hidden="true"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="3.2" r="2"/><circle cx="19" cy="5" r="2"/><path d="M3 15 Q12 6 21 15" fill="none" stroke-width="2"/></svg>';
 /** The most of the screen's height a card takes (the longest, measured on 800 × 450): the item the scene holds up stays clear above it. */
 export const CARD_MAX_SHARE = 0.34;
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -59,10 +58,10 @@ export class BoxCard {
     el.id = 'boxscene';
     // (the buttons name what to press: the pad's A / × and B / ○, or the keys, drawn by src/pad-glyphs.js; nothing on touch)
     el.innerHTML = `<button class="skip" type="button">${glyph('back', { key: 'Esc' })}<span class="lbl"></span></button>
-      <div id="boxcard" role="dialog" aria-live="polite"><div class="head"><h2><i class="star"></i><span class="name"></span></h2><div class="k">${GLYPH}AN ARTIFACT OF THE MAKERS</div>
-      <div class="gorow"><button class="go" type="button">${glyph('ok')}<span class="lbl"></span></button></div></div>
+      <div id="boxcard" role="dialog" aria-live="polite"><h2><i class="star"></i><span class="name"></span></h2>
       <p class="found"></p>
-      <p class="desc"></p></div>`;
+      <p class="desc"></p>
+      <div class="gorow"><button class="go" type="button">${glyph('ok')}<span class="lbl"></span></button></div></div>`;
     document.body.appendChild(el);
     this.card = el.querySelector('#boxcard');
     this.go = el.querySelector('.go');
@@ -74,7 +73,7 @@ export class BoxCard {
   /** The scene is playing (catch clicks, show the skip button). */
   scene(on) { if (this.dom) this.el.classList.toggle('on', on); if (!on) this.hide(); }
   /**
-   * The card for what came out of the box: its one description (def.text). `found`: an i18n key (src/i18n/en.js)
+   * The card for what came out of the box: its name and what it does (itemLine(def)). `found`: an i18n key (src/i18n/en.js)
    * for a line said instead of it (the backpack's first find: short, and a mystery still; it carries a tone).
    * The button names its key or button (A / × and Enter); a click or a tap goes on too.
    */
@@ -84,7 +83,7 @@ export class BoxCard {
     this.card.querySelector('.name').textContent = def.name;
     this.card.classList.toggle('found', !!found);
     this.card.querySelector('.found').textContent = found ? stripTone(t(found)) : '';
-    this.card.querySelector('.desc').innerHTML = keyText(esc(def.text), { html: true, teach: true });   // (a {key:verb}: the player's own key or button)
+    this.card.querySelector('.desc').innerHTML = keyText(esc(itemLine(def)), { html: true, teach: true });   // (what it does; a {key:verb}: the player's own key or button)
     this.go.querySelector('.lbl').textContent = hint ?? t('box.continue');
     this.el.classList.add('card');
     try { this.go.focus({ preventScroll: true }); } catch { /* old browsers */ }
