@@ -71,3 +71,6 @@ MonoBehaviour:
   compositeShader: {fileID: 4800000, guid: eb976d595dd994e35b091d534458b557, type: 3}
   fxaa: 1
   bloom: 1
+  smaaShader: {fileID: 4800000, guid: a3516e052227488b86f4f5f048b01b00, type: 3}
+  smaaArea: {fileID: 2800000, guid: d1f1048909d55cd4fa1126ab998f617e, type: 3}
+  smaaSearch: {fileID: 2800000, guid: 51eee22c2a633ef4aada830eed57c3fd, type: 3}

@@ -49,6 +49,7 @@ Shader "Hidden/Hiraeth/Composite"
       float4 _Planet0, _PlanetColor0, _Planet1, _PlanetColor1, _Planet2, _PlanetColor2;
       float4 _PlanetCraters;   // per planet: 1 cratered, 0 a plain printed disc
       float _Debug;
+      float _NoInkFar;      // 1: the far lines' fade (1c) off, a test (the bridge's -no-ink-far; issue #218)
       float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
       float4 _Backdrop;     // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait, post.js uBackdrop)
       float _TargetFlip;   // 1: writing the back buffer itself (HiraethFeature)
@@ -538,6 +539,15 @@ Shader "Hidden/Hiraeth/Composite"
         float gapN = vnoise(float2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
         float broken = lerp(1.0, smoothstep(0.22, 0.34, gapN), _LineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
         float ink = saturate(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8 * (1.0 - face) * (1.0 - castPot))));
+
+        // ---- 1c. lines on detail under a pixel (post.js INK_FAR; rendering.md "Far lines that would alias", issues #225, #218):
+        // where the worlds' finest drawn detail (0.25 m) is a pixel or two across, its lines are drawn lighter (silhouettes
+        // less so), so they no longer flip whole pixels from paper to black as the camera moves. By the size on screen
+        if (ink > 0.02 && hero < 0.5 && _NoInkFar < 0.5) {
+          float detailPx = 0.250 * _Proj11 * 0.5 * _Res.y / max(nearD, 1e-3);
+          float sil = smoothstep(0.0, 0.25, eS.x - max(max(eI.y, eI.z * 0.85), eI.w * 0.8));
+          ink *= 1.0 - (1.0 - smoothstep(1.20, 3.00, detailPx)) * (1.0 - lerp(0.350, 0.600, sil));
+        }
 
         // people far away: lines redrawn by the figure's height on screen
         float innerK = figure > 0.5 && hero < 0.5 ? smoothstep(70.0, 260.0, 1.8 * _Res.y * 0.5 * _Proj11 / max(depth, 0.1)) : 1.0;

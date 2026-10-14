@@ -8,6 +8,7 @@ import { createGame } from '../game.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 import { fullGcWatch } from './gc-watch.js';
+import { panSteps } from './pan.js';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
@@ -212,6 +213,10 @@ function makePlan(args) {
     steps.push({ kind: 'pin', view: v }, { kind: 'wait', frames: 12, secs: args.settle ?? 1.5 });
     if (args.bench) steps.push({ kind: 'measure', view: v, secs: args.bench });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-${v.name}.png` });
+    // (-pan N [-pan-step deg]: the distant shimmer's frames, issue #218: the view turned by a fixed step a frame (0.025°, a
+    // third of a render pixel on the Retroid at Handheld), a picture of each of N + 1 frames; scripts/bench/unity-shimmer.mjs
+    // counts the pixels that flick and come back; -pan-step 0 is the world's own motion; -pan-live no pictures, to watch)
+    if (args.pan) steps.push(...panSteps(v, { n: args.pan, stepDeg: args.panStep, out: args.out, live: !!args.panLive }));
   }
   if (args.talk) {
     // walk up to someone (args.talk: their id, or 'any'), press E, and photograph the conversation as it goes

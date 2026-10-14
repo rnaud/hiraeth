@@ -364,6 +364,14 @@ namespace Hiraeth.Bridge
             // (-no-bloom, -no-fxaa: the ink look's glow and its smoothing off, tests of the GPU's frame)
             if (BridgeArgs.Flag("-no-bloom")) Hiraeth.Rendering.HiraethFeature.Settings.bloom = false;
             if (BridgeArgs.Flag("-no-fxaa")) Hiraeth.Rendering.HiraethFeature.Settings.fxaa = false;
+            // the distant shimmer (issue #218; docs/systems/rendering.md "Far lines that would alias"): SMAA in place of FXAA at
+            // Handheld, as the web's Handheld (-aa fxaa|smaa|none another); -no-ink-far, -no-hatch-aa: the far lines' fade and
+            // the hatching's fade to its tone off, tests of what each takes out of the flicker
+            var aa = BridgeArgs.Arg("-aa", BridgeArgs.Quality == "handheld" ? "smaa" : "fxaa");
+            Hiraeth.Rendering.HiraethFeature.Settings.smaa = aa == "smaa";
+            if (aa == "none") Hiraeth.Rendering.HiraethFeature.Settings.fxaa = false;
+            Shader.SetGlobalFloat("_NoInkFar", BridgeArgs.Flag("-no-ink-far") ? 1 : 0);
+            Shader.SetGlobalFloat("_NoHatchAA", BridgeArgs.Flag("-no-hatch-aa") ? 1 : 0);
             // the opaques' depth drawn first, so the G-buffer shades each pixel once (HiraethFeature.Settings.prepass): on the
             // Linux player (the Deck: the City-Shaft's GPU 24 -> 20 ms in its wide view), -prepass elsewhere, -no-prepass off
 #if (UNITY_STANDALONE_LINUX || UNITY_ANDROID) && !UNITY_EDITOR
@@ -739,6 +747,17 @@ namespace Hiraeth.Bridge
             tex.Apply();
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllBytes(path, tex.EncodeToPNG());
+            // (a pan's first frame, -pan: its depth too, the composite's debug view 4 (pow(depth / 3000, 0.4), the sky white),
+            // the mask of what is far off for scripts/bench/unity-shimmer.mjs; issue #218)
+            if (path.EndsWith("-000.png") && Path.GetFileName(path).StartsWith("pan-"))
+            {
+                Shader.SetGlobalFloat("_Debug", 4);
+                scene.DrawCrowds(); cam.Render();
+                tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+                tex.Apply();
+                File.WriteAllBytes(path.Replace("-000.png", "-depth.png"), tex.EncodeToPNG());
+                Shader.SetGlobalFloat("_Debug", look.debugView);
+            }
             RenderTexture.active = null;
             cam.targetTexture = prev;
             Destroy(rt); Destroy(tex);

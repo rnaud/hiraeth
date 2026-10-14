@@ -52,12 +52,16 @@ void biomeGround(float2 w, out float3 c1, out float3 c2, out float3 c3) {
 }
 
 // ---------------------------------------------------------------- strokes (materials.js)
+float _NoHatchAA;   // 1: HATCH_AA off, a test (the bridge's -no-hatch-aa; issue #218)
 float strokesLevel(float c, float fw, float s, float wob, float widthPx) {
   float v = c / s + wob;
   float f = fw / s;
   float d = abs(frac(v + 0.5) - 0.5);
   float hw = 0.5 * widthPx * f;
-  return 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+  float ln = 1.0 - smoothstep(hw - 0.6 * f, hw + 0.6 * f, d);
+  // (too fine to draw: its tone, HATCH_AA (materials.js): strokes under ~4 -> 2.2 px apart fade to their mean darkness
+  // instead of crawling under the pixels, as the web's do; the hatching of far walls flickered in the Unity build, #218)
+  return _NoHatchAA > 0.5 ? ln : lerp(ln, min(2.0 * hw, 1.0), smoothstep(0.250, 0.450, f));
 }
 float strokes(float2 ce, float fw, float spacingPx, float widthPx) {
   float lvl = log2(max(fw * spacingPx * _PixelRatio, 1e-5));

@@ -1137,11 +1137,11 @@ contrast.
   measured (no device this round): at the ~3× the Mac measured for the machines (performance.md, round 5), 0.2-0.5 ms.
 - **The look**: near, nothing changes (on the Retroid the fade starts 50 m off); far towns and facades are
   drawn in lighter lines, the haze's own direction. Pictures in the changelog (v1.59).
-- **Unity** (not changed here; its own ink shader, `Composite.shader`, and URP): the same rule is a multiply on the
-  composite's line value, `ink *= 1 - (1 - smoothstep(1.2, 3, 0.25 · P11 / 2 · _ScreenHeight / nearDepth)) · (1 -
-  lerp(0.35, 0.6, silhouette))` after its line kernels, before the fog; and on the handhelds (the Android build, the
-  Deck measured first) URP's SMAA (the camera's Anti-aliasing: SMAA, quality Medium) in place of FXAA, on the
-  final colour after the composite, the render scale as the web's.
+- **Unity** (issue #218, October 2026): the same rule in its own ink shader (Composite.shader 1c, after the line
+  kernels, before the fog; `_NoInkFar` a test), the hatching's `HATCH_AA` in HiraethCommon.hlsl, and at Handheld SMAA
+  (Hidden/Hiraeth/SMAA, URP's own, in HiraethFeature after the composite at the render size) in place of FXAA. On the
+  Retroid the far flicker of a slow pan fell by a third to three quarters, nearly all of it the far lines' fade
+  (performance.md, "Unity on the Retroid: the distant shimmer").
 - `tests/distant-shimmer.test.js`: the fade's ends and floor, by size on screen (the Retroid fades at 150 m, Retina
   doesn't), 1c's place in the shader and no taps; SMAA on Handheld only (Auto on a handheld too), FXAA elsewhere;
   main.js's last pass by the preset.

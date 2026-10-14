@@ -166,6 +166,10 @@ namespace Hiraeth.Bridge
             if (outDir != null) args["out"] = (Path.IsPathRooted(outDir) ? outDir : Path.GetFullPath(Path.Combine(root ?? Environment.GetEnvironmentVariable("PWD") ?? Directory.GetCurrentDirectory(), outDir))).Replace('\\', '/');
             if (Arg("-bench") != null) args["bench"] = double.Parse(Arg("-bench"), CultureInfo.InvariantCulture);
             if (Flag("-split")) args["split"] = true;
+            // (-pan N, -pan-step deg: each view's pictures as it turns a fixed step a frame, the distant shimmer's: issue #218)
+            if (Arg("-pan") != null) args["pan"] = double.Parse(Arg("-pan"), CultureInfo.InvariantCulture);
+            if (Arg("-pan-step") != null) args["panStep"] = double.Parse(Arg("-pan-step"), CultureInfo.InvariantCulture);
+            if (Flag("-pan-live")) args["panLive"] = true;   // (no pictures: one step a drawn frame, to watch or record)
             if (Arg("-talk") != null) args["talk"] = Arg("-talk");
             // (-shop thrum: Anselm's shop, or a keeper's by its id, opened once the world is ready: a test of the shop's sheet)
             if (Arg("-shop") != null) args["shop"] = Arg("-shop");

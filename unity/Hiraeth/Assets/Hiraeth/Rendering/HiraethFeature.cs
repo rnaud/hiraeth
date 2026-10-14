@@ -11,7 +11,8 @@ namespace Hiraeth.Rendering
     /// every "HiraethGBuffer" pass draws into three render targets (albedo + light, normal +
     /// view depth, hatching + flags); the glowing surfaces are gathered and blurred at a quarter and
     /// an eighth of the resolution (post.js createBloom); one full-screen pass (Hidden/Hiraeth/
-    /// Composite, the port of src/post.js) inks the page; FXAA smooths it into the camera's target.
+    /// Composite, the port of src/post.js) inks the page; FXAA (or SMAA on the handheld: Settings.smaa) smooths it into the
+    /// camera's target, at the render size, before URP scales it to the screen.
     /// The G-buffer's normal + depth stays bound as _GNormalTex for what is drawn after (the
     /// hologram, the wind's wisps test themselves against the scene with it).
     /// The water (its materials in WaterQueue, writing no depth: WorldLoader.MakeMaterial) is drawn last, over
@@ -21,10 +22,13 @@ namespace Hiraeth.Rendering
     {
         public Shader compositeShader;
         public bool fxaa = true, bloom = true;
+        /// <summary>SMAA's shader (Hidden/Hiraeth/SMAA) and URP's two lookup textures for it (its package's Textures/SMAA).</summary>
+        public Shader smaaShader;
+        public Texture2D smaaArea, smaaSearch;
         GBufferPass gbuffer;
         ShadowPass shadows;
         CompositePass composite;
-        Material compositeMaterial, bloomMaterial, fxaaMaterial;
+        Material compositeMaterial, bloomMaterial, fxaaMaterial, smaaMaterial;
         static bool logged;
 
         public override void Create()
@@ -46,17 +50,29 @@ namespace Hiraeth.Rendering
             // (made here if Create ran before the shaders were imported)
             if (bloomMaterial == null) { var bs = Shader.Find("Hidden/Hiraeth/Bloom"); if (bs != null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs); }
             if (fxaaMaterial == null) { var fs = Shader.Find("Hidden/Hiraeth/FXAA"); if (fs != null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs); }
-            if (!logged) { logged = true; Debug.Log($"Hiraeth: ink feature: bloom {(bloom && bloomMaterial != null)}, fxaa {(fxaa && fxaaMaterial != null)}"); }
+            if (smaaMaterial == null && Settings.smaa && smaaArea != null && smaaSearch != null)
+            {
+                var ss = smaaShader != null ? smaaShader : Shader.Find("Hidden/Hiraeth/SMAA");
+                if (ss != null && ss.isSupported)
+                {
+                    smaaMaterial = CoreUtils.CreateEngineMaterial(ss);
+                    smaaMaterial.SetTexture("_AreaTexture", smaaArea); smaaMaterial.SetTexture("_SearchTexture", smaaSearch);
+                    smaaMaterial.SetFloat("_StencilRef", 64); smaaMaterial.SetFloat("_StencilMask", 64);
+                }
+            }
+            bool useSmaa = fxaa && Settings.fxaa && Settings.smaa && smaaMaterial != null;
+            if (!logged) { logged = true; Debug.Log($"Hiraeth: ink feature: bloom {(bloom && bloomMaterial != null)}, fxaa {(fxaa && Settings.fxaa && !useSmaa && fxaaMaterial != null)}, smaa {useSmaa}{(Settings.smaa && !useSmaa ? " (asked, missing: shader " + (smaaShader != null) + ", textures " + (smaaArea != null) + "/" + (smaaSearch != null) + ")" : "")}"); }
             composite.material = compositeMaterial;
             gbuffer.copy = bloomMaterial;   // (its third pass copies the scene's depth for the water's contact foam)
             composite.bloom = bloom && Settings.bloom ? bloomMaterial : null;
             composite.fxaa = fxaa && Settings.fxaa ? fxaaMaterial : null;
+            composite.smaa = useSmaa ? smaaMaterial : null;
             renderer.EnqueuePass(shadows);
             renderer.EnqueuePass(gbuffer);
             renderer.EnqueuePass(composite);
         }
 
-        protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); }
+        protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); }
 
         /// <summary>Switches the game can flip (the settings: FXAA). `waterContact`: the water's contact foam, on (seen working
         /// in batch renders, October 2026, issue #53) except on mobile players, as the web's Handheld (perf.js waterContactOn);
@@ -66,6 +82,9 @@ namespace Hiraeth.Rendering
         public static class Settings
         {
             public static bool fxaa = true, bloom = true;   // (bloom: the glow, a test switch: the bridge's -no-bloom)
+            /// <summary>SMAA in place of FXAA (when fxaa is on): the handheld's (the bridge's Handheld preset; -aa smaa|fxaa),
+            /// as the web's Handheld (perf.js aa: 'smaa'); the far lines flickered less with it at the Retroid's frame (#225, #218).</summary>
+            public static bool smaa;
             /// <summary>The depth the G-buffer's depth is cleared to (1: far, Unity turning it for a reversed depth); the bridge's
             /// -gclear-depth, a test for the Xbox's missing surfaces; under 0 the depth is not cleared here.</summary>
             public static float gDepthClear = 1f;
@@ -313,7 +332,7 @@ namespace Hiraeth.Rendering
 
         class CompositePass : ScriptableRenderPass
         {
-            public Material material, bloom, fxaa;
+            public Material material, bloom, fxaa, smaa;
             class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; public float flip; }
             // (each pass its own property block: a material's properties are read when the command buffer
             // runs, so five passes sharing one material would all see the last pass's source)
@@ -325,6 +344,41 @@ namespace Hiraeth.Rendering
             static readonly int IdA = Shader.PropertyToID("_GAlbedo"), IdN = Shader.PropertyToID("_GNormal"), IdH = Shader.PropertyToID("_GHatch");
             static readonly int IdB1 = Shader.PropertyToID("_GBloom"), IdB2 = Shader.PropertyToID("_GBloom2"), IdSrc = Shader.PropertyToID("_BloomSrc"), IdStep = Shader.PropertyToID("_BloomStep");
             static readonly int IdFx = Shader.PropertyToID("_FxaaSrc"), IdTexel = Shader.PropertyToID("_FxaaTexel");
+            static readonly int IdMetrics = Shader.PropertyToID("_Metrics"), IdBlendTex = Shader.PropertyToID("_BlendTexture");
+            class SmaaData { public Material mat; public TextureHandle src, blend; public Vector4 metrics; public int pass; }
+
+            /// <summary>SMAA from the page `src` into `dst` (URP's SmaaPostProcessPass, its three passes, at the render size):
+            /// the edges into a cleared target and the stencil, the blend weights where the stencil marks one, the neighbours
+            /// blended. Not straight into a back buffer (the composite falls back to FXAA there: no flip here).</summary>
+            void Smaa(RenderGraph rg, TextureHandle src, TextureHandle dst, int W, int H)
+            {
+                var ed = new TextureDesc(W, H) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, clearBuffer = true, clearColor = Color.clear, name = "_HiraethSmaaEdges" };
+                var edges = rg.CreateTexture(ed);
+                ed.name = "_HiraethSmaaBlend"; ed.filterMode = FilterMode.Point;
+                var blend = rg.CreateTexture(ed);
+                var sd = new TextureDesc(W, H) { format = GraphicsFormatUtility.GetDepthStencilFormat(24, 8), clearBuffer = true, name = "_HiraethSmaaStencil" };
+                var stencil = rg.CreateTexture(sd);
+                var metrics = new Vector4(1f / W, 1f / H, W, H);
+                for (int p = 0; p < 3; p++)
+                {
+                    string name = p == 0 ? "Hiraeth SMAA edges" : p == 1 ? "Hiraeth SMAA weights" : "Hiraeth SMAA blend";
+                    using var b = rg.AddRasterRenderPass<SmaaData>(name, out var d, Sampler(name));
+                    d.mat = smaa; d.metrics = metrics; d.pass = p;
+                    d.src = p == 1 ? edges : src; d.blend = blend;
+                    b.UseTexture(d.src);
+                    if (p == 2) b.UseTexture(blend);
+                    if (p == 0) { b.SetRenderAttachment(edges, 0, AccessFlags.Write); b.SetRenderAttachmentDepth(stencil, AccessFlags.Write); }
+                    else if (p == 1) { b.SetRenderAttachment(blend, 0, AccessFlags.Write); b.SetRenderAttachmentDepth(stencil, AccessFlags.Read); }
+                    else b.SetRenderAttachment(dst, 0, AccessFlags.WriteAll);   // (every pixel written: nothing to load)
+                    b.AllowGlobalStateModification(true);
+                    b.SetRenderFunc((SmaaData x, RasterGraphContext ctx) =>
+                    {
+                        x.mat.SetVector(IdMetrics, x.metrics);
+                        if (x.pass == 2) x.mat.SetTexture(IdBlendTex, x.blend);
+                        Blitter.BlitTexture(ctx.cmd, x.src, new Vector4(1, 1, 0, 0), x.mat, x.pass);
+                    });
+                }
+            }
 
             /// <summary>Writing a player's own back buffer (the window): the page the other way up. Not into a texture (the
             /// batch shots, the portraits), not in the editor (its game view is a texture too).</summary>
@@ -377,9 +431,10 @@ namespace Hiraeth.Rendering
                     b1 = qa; b2 = ea;
                 }
 
-                // ---- the page (into its own target when FXAA follows)
+                // ---- the page (into its own target when FXAA or SMAA follows; SMAA never straight into the back buffer)
+                var useSmaa = smaa != null && !ToScreen(res, cam);
                 TextureHandle target = res.activeColorTexture;
-                if (fxaa != null)
+                if (fxaa != null || useSmaa)
                 {
                     var cd = cam.cameraTargetDescriptor; cd.msaaSamples = 1; cd.depthBufferBits = 0; cd.depthStencilFormat = GraphicsFormat.None;
                     target = UniversalRenderer.CreateRenderGraphTexture(rg, cd, "_HiraethPage", false, FilterMode.Bilinear);
@@ -387,7 +442,7 @@ namespace Hiraeth.Rendering
                 using (var builder = rg.AddRasterRenderPass<PassData>("Hiraeth ink composite", out var pass, Sampler("Hiraeth ink composite")))
                 {
                     pass.mat = material; pass.a = g.albedo; pass.n = g.normal; pass.h = g.hatch; pass.b1 = b1; pass.b2 = b2; pass.hasBloom = b1.IsValid();
-                    pass.flip = fxaa == null && ToScreen(res, cam) ? 1 : 0;
+                    pass.flip = fxaa == null && !useSmaa && ToScreen(res, cam) ? 1 : 0;
                     builder.UseTexture(g.albedo); builder.UseTexture(g.normal); builder.UseTexture(g.hatch);
                     if (pass.hasBloom) { builder.UseTexture(b1); builder.UseTexture(b2); }
                     builder.SetRenderAttachment(target, 0, AccessFlags.WriteAll);   // (every pixel written, no blend: nothing to load)
@@ -400,7 +455,8 @@ namespace Hiraeth.Rendering
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1);
                     });
                 }
-                if (fxaa != null)
+                if (useSmaa) Smaa(rg, target, res.activeColorTexture, W, H);
+                else if (fxaa != null)
                 {
                     using (var builder = rg.AddRasterRenderPass<FxaaData>("Hiraeth FXAA", out var pass, Sampler("Hiraeth FXAA")))
                     {

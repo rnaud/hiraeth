@@ -2708,6 +2708,52 @@ every material, where the web compiles a program per set of features); then the 
 the meshes' vertices. **The Xbox and the Deck** get the shared parts (the instances' view cull, the surfaces' sunk work,
 one varying fewer, the overwritten targets not loaded), not the Android prepass default; not measured on them here.
 
+### Unity on the Retroid: the distant shimmer (2026-10-14, issue #218)
+
+"I see a lot of aliasing far in the distance or shimmering" (the author, on the Retroid). The web game had its fix in
+round 6 (#225: the far lines' fade, SMAA at Handheld; rendering.md "Far lines that would alias"); the Unity build had
+neither, nor the hatching's fade to its tone (`HATCH_AA`).
+
+**Measured on the device** (the testers' APK of this branch, build 2265, Handheld at 0.75 of 1280 × 960, muted, the frame
+readout on): the bridge's new `-pan N [-pan-step deg]` (engine/unity/pan.js) pins each bench view, then turns it 0.025° a
+frame (a third of a render pixel) and saves every frame (BridgeRunner.Shot: the camera's own pipeline at the render scale,
+upscaled to the screen; the first frame's depth too, debug view 4). `scripts/bench/unity-shimmer.mjs` counts, as the web's
+motion check does, the pixels whose luma goes one way by over 20 and straight back, per 10 000 px, over the whole frame and
+over what is more than 60 m off. "Before" is the same build with the old pipeline (`-aa fxaa -no-ink-far -no-hatch-aa`);
+"still" the view not turned (`-pan-step 0`: the world's own motion, people, smoke, traffic). Far flicker, 41 frames:
+
+| view (far share of the frame) | before | after | still | FXAA instead of SMAA | far lines' fade off | hatching's fade off |
+|---|---|---|---|---|---|---|
+| Desert, the dunes (52 %) | 60.5 | **15.4** | 0.9 | 13.6 | 40.2 | 15.7 |
+| Desert, the camps (20 %) | 105.0 | **62.9** | 31.3 | 61.2 | 87.7 | 62.4 |
+| Desert, the ramp's foot (19 %) | 94.7 | **60.0** | 12.0 | 52.9 | 97.1 | 45.3 |
+| City-Shaft, wide (55 %) | 106.9 | **36.9** | 31.7 | 38.6 | 97.1 | 36.6 |
+| Signal Market, wide (68 %) | 90.4 | **40.7** | 8.3 | 39.5 | 93.1 | 41.3 |
+
+- **The source: the ink lines on far detail**, as on the web: every line is at least a render pixel, so where a window's
+  frame or a strut is a pixel or two across its lines are a lattice of black pixels the pan resamples each frame (the
+  heat maps: the City-Shaft's far facades and rings and its tall shaft, the Market's far towers and bridges, Qanat's
+  roofs). The far lines' fade (Composite.shader 1c, `post.js` INK_FAR's numbers, `_NoInkFar` its test switch) takes out
+  most of what the turn adds (City-Shaft 75 → 5 over its still floor, the dunes 60 → 15). Not the sources here: the
+  hatching (its fade, `HATCH_AA` in HiraethCommon.hlsl strokesLevel, ported for parity, changes nothing measurable), the
+  textures (the world's surfaces are procedural: no mipmaps to miss), FXAA's place (already after the composite, at the
+  render size, before URP's upscale). What is left is the geometry itself under the pixels (a train's windows, Qanat's
+  finials, the City-Shaft's shaft) and the world's own motion.
+- **SMAA at Handheld** (Hidden/Hiraeth/SMAA: URP's own SMAA, Medium, its three passes in HiraethFeature after the
+  composite at the render size, in place of FXAA; never straight into a back buffer, FXAA there; `-aa fxaa|smaa|none`):
+  the far flicker the same as FXAA's (within run-to-run noise), but the near ink is cleaner (FXAA's stair-steps and
+  smear on the traveller's outline gone), as the web found.
+- **Cost** (`-views -bench 6`, the same sitting, fps / GPU ms): the desert's ramp foot 47.5 / 21.7 → 46.6 / 22.1, the camps
+  48.1 → 48.3, the dunes 60.1 → 60.1, the City-Shaft start 41.3 → 41.2 and wide 28.5 / 35.8 → 28.2 / 36.2, the Signal Market
+  start 42.6 → 42.1 and wide 42.8 → 42.5. With FXAA instead the GPU is 0.1–0.4 ms lower: that is SMAA's whole cost; the
+  fade and the hatching's rule cost nothing measurable.
+- **GeckoView** (the web game on the Retroid) already has all three since v1.59 (round 6 above).
+
+To repeat: `gh workflow run unity-android.yml --ref <branch>`, `adb install -r` the run's APK, start it with
+`-e unity "'-mute -metrics -level bazaar -views <file> -only wide -pan 40 -out <dir>'"` (add `-aa fxaa -no-ink-far
+-no-hatch-aa` for the old pipeline, `-pan-step 0` for the floor, `-pan-live` to watch it turn), pull the folder and
+`node scripts/bench/unity-shimmer.mjs <dir>`.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.74 — 2026-10-14
 
+- In the Unity version the far distance no longer shimmers as the camera turns: far-off lines are drawn lighter, as in the web game, so distant towns, towers and dunes stop crawling (on the Retroid, a third to three quarters less flicker far off), and on handhelds the edges are smoothed more sharply. Near lines stay as crisp as before.
 - Your legs keep up with you better: the knee no longer snaps straight at every stride of a sprint, a foot no longer drops onto the slope at each step up a ramp or rises a whole stair in one go, setting off at a run starts on the foot behind, and turning round on the spot or reversing a sprint no longer twitches a foot, a knee or your arms.
 - Past the riders’ gate on Vael, the stones that rise under you are solid again: you no longer fall through them.
 - In the Warden’s Well a second way climbs to the crown: the Flue, a shaft off the Lamp Gallery’s west wall. Splash the little vane high on its wall and a draught rises up its middle; half-way up a ledge holds the house’s great key, which the warden’s door now wants as well as its eye. Splash the vane again from the ledge and ride on up into the crown.

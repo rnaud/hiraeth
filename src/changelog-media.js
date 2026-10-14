@@ -825,8 +825,32 @@ const WISPS348 = 'Issue #348: muted headless Chrome at the Retroid’s frame (64
 // (v1.74, issue #23's last round: the three houses' loops, shot by hand in muted headless Chrome against this branch's Vite and
 // the tree before it, the same view of each, the traveller out of frame)
 const LOOPS74 = { from: 'scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720), Vite on port 6423, at origin/main 2aa3f356 (before) and this branch (after), 14 October' };
+/** (v1.74, issue #218: the Unity build on the Retroid, its own pictures of a slow pan, scripts/bench/unity-shimmer.mjs) */
+const SHIMMER218 = 'Issue #218: the Retroid Pocket Nova, the Unity preview (branch build 2265), Handheld at 0.75, muted; the bridge’s -pan 40 (the view turned 0.025° a frame, a picture of each frame); before, the same build with the old pipeline (-aa fxaa -no-ink-far -no-hatch-aa); 14 October';
 export const CHANGELOG_MEDIA = {
   '1.74': [
+    { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [
+      { name: 'unity-shimmer-shaft', title: 'The City-Shaft from above, what flickers', caption: 'Red: the pixels that flipped and flipped back over a slow 1° turn. Before, the far facades, the rings and the tall shaft crawled; after, most of it is gone (what is left round the people is the crowd walking).', from: SHIMMER218 },
+      { name: 'unity-shimmer-market', title: 'The Signal Market’s street, what flickers', caption: 'The same slow turn over the street: before, the far towers’ window lines and the bridges flickered; after, much less.', from: SHIMMER218 },
+      { name: 'unity-farlines-market', title: 'The Signal Market’s street', caption: 'The far end of the street is drawn in lighter lines (the haze’s own direction); the stalls, rails and cables near are as before.', from: SHIMMER218 },
+    ], numbers: [
+      { title: 'Flicker far off (over 60 m) in a slow pan', unit: 'per 10 000 px', better: 'lower', device: 'Retroid Pocket Nova, Unity, Handheld 0.75, 41 frames', rows: [
+        { where: 'Desert, the dunes', before: 60.5, after: 15.4 },
+        { where: 'Desert, the camps', before: 105.0, after: 62.9 },
+        { where: 'Desert, the ramp’s foot', before: 94.7, after: 60.0 },
+        { where: 'City-Shaft, wide', before: 106.9, after: 36.9 },
+        { where: 'Signal Market, wide', before: 90.4, after: 40.7 },
+      ], source: 'scripts/bench/unity-shimmer.mjs; the world’s own motion alone (no turn): 0.9 / 31 / 12 / 32 / 8', note: 'Before: the same build with -aa fxaa -no-ink-far -no-hatch-aa.' },
+      { title: 'Frames a second', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova, Unity, Handheld 0.75, -bench 6', rows: [
+        { where: 'Desert, the ramp’s foot', before: 47.5, after: 46.6 },
+        { where: 'Desert, the camps', before: 48.1, after: 48.3 },
+        { where: 'Desert, the dunes', before: 60.1, after: 60.1 },
+        { where: 'City-Shaft, start', before: 41.3, after: 41.2 },
+        { where: 'City-Shaft, wide', before: 28.5, after: 28.2 },
+        { where: 'Signal Market, start', before: 42.6, after: 42.1 },
+        { where: 'Signal Market, wide', before: 42.8, after: 42.5 },
+      ], source: 'the bridge’s -views -bench 6 (BridgeArgs), the same sitting', note: 'SMAA costs 0.1–0.4 ms of GPU over FXAA; the far lines’ fade and the hatching’s nothing measurable.' },
+    ] },
     { match: 'No rain falls inside your ship any more in the Unity version', tags: ['ship', 'devices'],
       see: 'In the Unity preview in Lorn, wait for the rain (or in the Desert for a sandstorm) and walk up the ramp into your ship: inside, no streaks of rain or sand, only the drumming on the roof; step out and it falls again. On the web, in the Desert, stand in the ship or a shop while the wind gusts: no wisps of sand drift through the room.' },
     { match: 'The wisps of sand the wind blows across the Desert are light pen strokes', tags: ['desert', 'devices'], shots: [
