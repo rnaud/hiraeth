@@ -1,0 +1,56 @@
+src/player.js
+  s_9ca76055a220ed::t_1e03456cd68440 2803-2820,3277-3279,3283-3284,3770-3777
+tests/room-size.test.js
+  s_9ca76055a220ed::t_a41b5ec49f1897 8,194-198,206-218,222
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_ec7165b89282a5 42,66,90-91
+scripts/camera-qc/lib.mjs
+  s_9ca76055a220ed::t_98025195ba9abe 17-18,29-30,34,133,139-141,164,171,196,200
+src/materials.js
+  s_9ca76055a220ed::t_5f0cd173631060 107-109,975,2095-2097,3159-3165,3171
+  s_9ca76055a220ed::t_195ebfc69d0ea6 3172-3173,3178
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_3dee05ccb9094f 34-41,68-80
+src/main.js
+  s_9ca76055a220ed::t_a3e2f52ca3027d 44,2059-2060,2073,2227-2229
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_8dafdaff0c9dcd 360-385
+  s_9ca76055a220ed::t_6b11d11453dd00 386
+tests/scout.test.js
+  s_9ca76055a220ed::t_3f1f889b5d30bc 387-403
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_5736c11b3f00a2 177-180,182,200,204-205,214-215,234,289,296-297
+tests/camera-qc.test.js
+  s_9ca76055a220ed::t_9d6627686245ae 12,57-72
+  s_9ca76055a220ed::t_02106d44e486e7 73-74
+changelog.md
+  s_d90e781943a193::t_df15274600558a 7
+src/changelog-media.js
+  s_d90e781943a193::t_e16036a478cbe6 798,818-827
+src/changelog.js
+  s_d90e781943a193::t_19d1150a265280 64-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e9dcdbff6c93ea8ecd7dce5714c9765362104d6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d90e781943a193": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8112150eaf08050b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
