@@ -1,0 +1,45 @@
+tests/keeper-second-pass.test.js
+  s_9ca76055a220ed::t_656b7984aa26bb 1-241
+src/arena-guardians.js
+  s_9ca76055a220ed::t_72eec46d5ae540 6,119
+src/temples/hints.js
+  s_9ca76055a220ed::t_9a5ce9efb5d1d3 61
+src/temples/boss.js
+  s_9ca76055a220ed::t_bd18a4be370562 26,49-50,167-173,408,472-477,482,485-492,497-502,508-523,550,559,586-589,592,635,691,723,741-745,751,770,793-799,838-839
+  s_9ca76055a220ed::t_ef84505179f402 59-60,580-582,690,724
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_be5884d1987399 48-54,57,61-64,66-71,86-88,90-91,102,104,133-142,144-145,159
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_08f8e0a27018d5 64-67
+src/temples/desert.js
+  s_9ca76055a220ed::t_f158c5a0e2c225 160-162,164,166,169-174,180-182,185-187,194-200,203-204,206,235-236,246,258-261,264-266,484-486,500,755
+  s_9ca76055a220ed::t_695b7796cc051f 190
+src/player.js
+  s_9ca76055a220ed::t_39f614c02cd643 136-143,1049-1067,1382-1384,1479,2546-2548,2557,2802-2808,2972-2974,3409-3410,3495-3498,3559,3568,3640,3721
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_b91a9e609fd187 166
+src/main.js
+  s_9ca76055a220ed::t_5be13447bb348a 2365-2369,2373,2379-2381,2387-2388,2390
+.claude/skills/combat-review/guardian.mjs
+  s_9ca76055a220ed::t_2bf000b374a4f1 202,209,213
+src/motion-kit/gait.js
+  s_9ca76055a220ed::t_feef7a5417bb89 85,92-97,174-176,191,197-198,252,271,278-320,326
+src/foes.js
+  s_9ca76055a220ed::t_a74f75339880e6 1639-1658,1670-1672,1797-1811,2652-2653,2702-2706
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76997b4102721cd6dc5bc4d9db05982a900b5165",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
