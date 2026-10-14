@@ -94,6 +94,11 @@ const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
 const _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _c = new THREE.Vector3(), _p = new THREE.Vector3(), _lk = new THREE.Vector3();
 const _Y = new THREE.Vector3(0, 1, 0), _m = new THREE.Vector3();
+const _ld = new THREE.Vector3(), _cf = new THREE.Vector3(), _of = new THREE.Vector3();
+/** The lens's room (issue #292): it stands LENS_GAP m short of a surface between him and it, and no nearer
+ *  his chest than LENS_NEAR m where a swing round him (SWINGS steps of SWING_STEP rad each way) finds the room;
+ *  it eases to a new swing at SWING_RATE (1/s). */
+export const LENS_GAP = 0.25, LENS_NEAR = 1.3, SWING_STEP = 0.3, SWINGS = 10, SWING_RATE = 3;
 /** How far over 1 the chest's glow goes at its light's full (uBoxA.y: the linings glow with the light out of it). */
 export const LINING_GLOW = 0.75;
 
@@ -414,7 +419,8 @@ export class BoxScene {
       fov = sh.fov;
       // moved on from the card's shot where the two are near, else a cut (the card's press is the edit)
       const b = smooth(t / 0.5);
-      if (b < 1 && this.beatCamFrom.lengthSq() > 0 && this.beatCamFrom.distanceTo(pos) < 2.2) {
+      this.beatBlend = this.beatCamFrom.lengthSq() > 0 && this.beatCamFrom.distanceTo(pos) < 2.2;
+      if (b < 1 && this.beatBlend) {
         pos.lerpVectors(this.beatCamFrom, pos, b);
         fov = this.beatFovFrom + (fov - this.beatFovFrom) * b;
       }
@@ -446,21 +452,60 @@ export class BoxScene {
     const aspect = typeof innerWidth === 'number' && innerHeight > 0 ? innerWidth / innerHeight : 1.6;
     fov = Math.min(80, Math.max(fov, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(27)) / aspect))));
     if (aspect < 1) { pos.lerp(look, -0.12); look.y -= 0.6; }   // and step back, aiming low so the subject sits above the card
-    // keep out of walls and dunes: pull in to whatever stands between the subject and the lens
-    if (this.physics) {
-      // (from the traveller's chest, which stands clear in front of the box, not from the aim point)
-      const from = this.P(0, 1.3, STAND_AT);
-      const dir = _d.subVectors(pos, from), d = dir.length();
-      dir.divideScalar(d);
-      const hit = this.physics.rayDistance(from, dir, d);
-      if (hit < d) pos.copy(from).addScaledVector(dir, Math.max(0.9, hit - 0.25));
-      const g = this.physics.groundAt(pos.x, pos.y + 2, pos.z, 6);
-      if (Number.isFinite(g) && pos.y < g + 0.35) pos.y = g + 0.35;
-    }
+    // keep out of walls, roofs and dunes (issue #292)
+    if (this.physics) this.clearLens(pos, dt, this.phase === 'beat' && this.t <= dt * 1.5 && !this.beatBlend);
     // a breath of handheld drift
     pos.x += Math.sin(time * 0.7) * 0.012; pos.y += Math.sin(time * 0.9) * 0.01;
     this.camPos.copy(pos); this.camFov = fov;
     cam.shot({ pos, look, fov });
+  }
+
+  /**
+   * The lens out of the way of the room (issue #292), in place. Seen from his chest (which stands clear in
+   * front of the box): where a wall, a roof or a gate stands between him and the lens, the lens comes in to just short
+   * of it; where that would bring it nearer him than LENS_NEAR, it swings round him (about his upright, the aim kept)
+   * to the nearest side where the room is clear, eased there (a cut, `snap`, takes it at once). Then it is lifted
+   * off the floor under it, never past a roof over it. Until then the lens was pulled to max(0.9, hit - 0.25): behind
+   * any wall nearer than 1.15 m (the yards' alcoves: a blank frame), and a ground probe from 2 m over the lens found
+   * the alcove's roof and lifted the lens onto it.
+   */
+  clearLens(pos, dt = 0, snap = false) {
+    const ph = this.physics, from = this.P(0, 1.3, STAND_AT, _cf);
+    const off = _of.subVectors(pos, from), d = off.length();
+    if (!(d > 1e-3)) return pos;
+    const reach = (a) => {
+      const c = Math.cos(a), s = Math.sin(a);
+      _ld.set(off.x * c + off.z * s, off.y, -off.x * s + off.z * c).divideScalar(d);
+      return Math.min(d, ph.rayDistance(from, _ld, d + LENS_GAP) - LENS_GAP);
+    };
+    // the swing it wants: none if the lens stands clear enough; else the one it has if that still does; else the nearest that does
+    const enough = Math.min(d, LENS_NEAR);
+    let want = this.swingWant ?? 0;
+    if (reach(0) >= enough) want = 0;
+    else if (reach(want) < enough) {
+      let best = 0, bestReach = -Infinity;
+      for (let i = 1; i <= SWINGS && bestReach < enough; i++) {
+        for (const a of [i * SWING_STEP, -i * SWING_STEP]) {
+          const r = reach(a);
+          if (r > bestReach + 0.05) { best = a; bestReach = r; }
+        }
+      }
+      if (bestReach > reach(0) + 0.05) want = best;
+      else want = 0;
+    }
+    this.swingWant = want;
+    this.swing = snap || this.swing === undefined ? want : this.swing + (want - this.swing) * (1 - Math.exp(-SWING_RATE * dt));
+    // the lens at the swing, brought in to just short of whatever stands between him and it (never past it)
+    const c = Math.cos(this.swing), s = Math.sin(this.swing);
+    const dir = _ld.set(off.x * c + off.z * s, off.y, -off.x * s + off.z * c).divideScalar(d);
+    const hit = ph.rayDistance(from, dir, d + LENS_GAP);
+    const far = hit < d + LENS_GAP ? Math.max(Math.min(d, hit - LENS_GAP), Math.min(0.35, hit * 0.5)) : d;
+    pos.copy(from).addScaledVector(dir, far);
+    // off the floor under it: probed from as high over the lens as stands clear (at most 2 m: under a roof, the floor)
+    const up = Math.min(2, ph.rayDistance(pos, _Y, 2) - 0.05);
+    const g = ph.groundAt(pos.x, pos.y + Math.max(0, up), pos.z, 6);
+    if (Number.isFinite(g) && pos.y < g + 0.35) pos.y = Math.min(g + 0.35, pos.y + Math.max(0, up));
+    return pos;
   }
 
   /** The open chest's mouth (world): its middle at the height its halves part (the band; the temple chest's foot). */

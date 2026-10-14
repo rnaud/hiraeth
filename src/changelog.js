@@ -35,6 +35,9 @@ export const CHANGELOG = [
     'Every sound of the pirate fight is new: punchier bolts, explosions with a deep thump and crackling debris, a whine before a pirate fires, a whoosh for the roll, a horn as the captain arrives and the engine humming under it all. You can hear each one on the music page.',
     'The pirate fight feels better: a downed pirate shakes the view a little and holds the action for a split second, its wreck flies apart, the guns flash as they fire, hits spark, quick kills count up a combo, and your ship leaves a short engine trail as it banks.',
     'Steering in the pirate fight is tighter: a small push makes a fine correction, letting go stops the ship where you leave it, and your shots bend onto a pirate close to your aim.',
+    // the box camera kept in front of every wall, roof and gate (issue #292): src/boxes/scene.js clearLens (LENS_NEAR, the
+    // swing round him, the floor probe under the roof); the review holding a yard's gate open; tests/boxes.test.js
+    'The chests behind the yards’ gates (the founders’, the moorers’ and the divers’) open seen from inside their alcove: no longer through the gate’s bars with his tank filling the screen, and no more blank picture as he takes what was in them.',
   ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,

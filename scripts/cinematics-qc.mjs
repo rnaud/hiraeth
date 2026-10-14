@@ -33,8 +33,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /** The catalog entries asked for: --only ids (a trailing '*' is a prefix), --group a collection name. */
 export function pickEntries(catalog, { only = null, group = null } = {}) {
   return catalog.filter((e) => (!group || e.group === group)
-    && (!only || only.some((o) => (o.endsWith('*') ? e.id.startsWith(o.slice(0, -1)) : e.id === o))));
+    && (!only || only.some((o) => glob(o).test(e.id))));
 }
+/** An --only pattern as a whole-id match: `*` any run of letters, anywhere (`box.*.court`, `box.desert*`). */
+const glob = (o) => new RegExp('^' + o.split('*').map((s) => s.replace(/[.+?^$()|[\]\\{}]/g, '\\$&')).join('.*') + '$');
 
 /** How long to wait for one to finish (s): the prologue and homecomings are long and partly interactive. */
 export function timeoutFor(entry) {

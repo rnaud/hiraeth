@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.72 — 2026-10-14
 
+- The chests behind the yards’ gates (the founders’, the moorers’ and the divers’) open seen from inside their alcove: no longer through the gate’s bars with his tank filling the screen, and no more blank picture as he takes what was in them.
 - Steering in the pirate fight is tighter: a small push makes a fine correction, letting go stops the ship where you leave it, and your shots bend onto a pirate close to your aim.
 - The pirate fight feels better: a downed pirate shakes the view a little and holds the action for a split second, its wreck flies apart, the guns flash as they fire, hits spark, quick kills count up a combo, and your ship leaves a short engine trail as it banks.
 - Every sound of the pirate fight is new: punchier bolts, explosions with a deep thump and crackling debris, a whine before a pirate fires, a whoosh for the roll, a horn as the captain arrives and the engine humming under it all. You can hear each one on the music page.

@@ -689,3 +689,56 @@ test('the major chests stand on a ramped mound: walked up to from in front, the 
   for (const id of ['desert.backpack', 'desert.lift', 'desert.gun', 'desert.temple.sword', 'buried.temple.cell', 'bazaar.temple.echo']) assert.ok(seen.includes(id), `${id} checked`);
   assert.ok(seen.length >= 14, `${seen.length} chests`);
 });
+
+/**
+ * A walled room round a box at the origin facing +z (he stands at z = STAND_AT): walls either side and behind, a roof
+ * at 2.8 m, and across its mouth, `gate` m behind him, a slab (a yard's gate, its bars as one); `round`: a closed room
+ * 4.4 m across instead (the lift valve's, the Givers' rooms).
+ */
+function walledRoom({ gate = null, round = false } = {}) {
+  const s = new THREE.Scene(), ph = new Physics(s, { heightAt: () => 0 });
+  const add = (w, h, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d)); m.position.set(x, y, z); m.updateMatrixWorld(); s.add(m); ph.addCollider(m); };
+  const back = round ? 2.2 : 1.8, front = round ? 2.2 : 1.8, half = round ? 2.2 : 2, mid = (front - back) / 2;
+  add(0.6, 2.8, back + front, -half - 0.3, 1.4, mid); add(0.6, 2.8, back + front, half + 0.3, 1.4, mid);
+  add(2 * half + 1.2, 2.8, 0.6, 0, 1.4, -back - 0.3);
+  add(2 * half + 1.2, 0.4, back + front + 1.2, 0, 3.0, mid);
+  if (round) add(2 * half + 1.2, 2.8, 0.6, 0, 1.4, front + 0.3);
+  if (gate !== null) add(2 * half, 2.6, 0.25, 0, 1.3, STAND_AT + gate + 0.125);
+  ph.roof = { x: half + 0.6, z0: -back - 0.6, z1: front + 0.6, y: 2.8 };   // (its footprint and underside)
+  return ph;
+}
+/** Plays a box's scene in `ph` under a forced plan, through its card and closing beat: every shot, with its phase. */
+function playInRoom(ph, plan, item, pl = player(V())) {
+  const shots = [];
+  let sc = null;
+  const cam = { shot: (o) => shots.push({ pos: o.pos.clone(), look: o.look.clone(), fov: o.fov, phase: sc.phase }), release() {}, hud() {}, bars() {} };
+  sc = new BoxScene({ box: { id: 'room', pos: V(), yaw: 0, parts: { mats: {} }, scene: null }, def: ITEMS[item], item, player: pl, cam, physics: ph,
+    groundAt: (x, z, y) => ph.groundAt(x, y, z, 6), pointAt: () => V(3, 0, -4), onGrant() {}, onEnd() {} });
+  globalThis.location = { search: `?boxPlan=${plan}` };
+  try {
+    quiet(() => sc.start());
+    for (let i = 0; i < 30 * 20 && !sc.done; i++) { quiet(() => sc.update(1 / 30)); if (sc.phase === 'card' && sc.cardT > 0.6) sc.dismiss(); }
+  } finally { delete globalThis.location; }
+  return shots;
+}
+
+test('a box’s lens is never left behind a wall, a roof or a gate: in a yard’s alcove, every plan (issue #292)', async () => {
+  const { BOX_PLANS } = await import('../src/boxes/scene.js');
+  const chest = V(0, 1.3, STAND_AT);
+  for (const room of [{ gate: 0.45 }, { gate: 0.9 }, { gate: null }, { round: true }]) {
+    const ph = walledRoom(room);
+    for (const plan of Object.keys(BOX_PLANS)) {
+      for (const item of ['keeper', 'gun', 'doublejump']) {
+        const shots = playInRoom(ph, plan, item), label = `${JSON.stringify(room)} ${plan} ${item}`;
+        assert.ok(shots.length > 100, `${label}: filmed`);
+        for (const [i, s] of shots.entries()) {
+          const d = s.pos.distanceTo(chest), seen = ph.rayDistance(chest, s.pos.clone().sub(chest).normalize(), d);
+          assert.ok(seen >= d - 0.02, `${label}: frame ${i} (${s.phase}) the lens behind a surface (${seen.toFixed(2)} of ${d.toFixed(2)} m)`);
+          const R = ph.roof, under = Math.abs(s.pos.x) < R.x && s.pos.z > R.z0 && s.pos.z < R.z1;
+          assert.ok(!under || s.pos.y < R.y - 0.1, `${label}: frame ${i} (${s.phase}) the lens under the roof (${s.pos.toArray().map((v) => v.toFixed(2))})`);
+          assert.ok(!ph.embedded(s.pos), `${label}: frame ${i} (${s.phase}) the lens in the open`);
+        }
+      }
+    }
+  }
+});

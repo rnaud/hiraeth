@@ -810,6 +810,8 @@ const ARRIVAL327 = 'Issue #327: muted headless Chrome (High, 1280 × 720) agains
 const SLOPE332 = 'Issue #332: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6332) and the tree before it (259a283d), the camera pinned on the 12° dune by the ship in the Desert, the foes placed on it by Foes.add and their minds held (14 October)';
 // (v1.72, issue #326: a scratch shooter against this branch's own Vite (port 6326) and the tree before the change (63e266d0))
 const PIRATES326 = 'Issue #326: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6326) and the tree before it (63e266d0), ?game=pirates&to=edena, the run flown ahead by the game’s pilot to the same second for both (14 October); cwebp -q 72';
+// (v1.72, issues #292, #293: frames of the cinematics QC, scripts/cinematics-qc.mjs, on this branch and on the tree before it)
+const BOX292 = 'Issues #292 and #293: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6292), before and after the change, the box opened by the review page’s staging; 14 October; the QC’s own WebP';
 export const CHANGELOG_MEDIA = {
   '1.72': [
     { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [
@@ -835,6 +837,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'pirates-fight', title: 'Two fighters downed', caption: 'The first wave at 12 s: before, the wrecks a puff of fire and “+10”; after, a ball of light, the shards of the wreck, a combo’s “×2” over the points, and the ship’s short engine trail.', from: `${PIRATES326}, the pilot flying the last 0.6 s live` },
     ] },
     { match: 'Steering in the pirate fight is tighter', see: 'In the pirate fight, nudge the stick: the ship slides a little; let go: it stops. Fire with a pirate just off the aim ring: the bolts bend onto it.' },
+    { match: 'The chests behind the yards’ gates', tags: ['moonfoundry', 'spacecity'], shots: [
+      { name: 'yard-box-open', title: 'The opening', caption: 'The founders’ chest on the Moon Foundry’s apron, a second in: before, the lens pressed behind him at the bars, his tank and the bars filling the picture; after, from inside the alcove, him and the chest.', from: BOX292 },
+      { name: 'yard-box-close', title: 'As he takes it', caption: 'The same chest as he takes the keeper: before, a blank picture (the lens had been set on the alcove’s roof); after, him with it in his hand.', from: BOX292 },
+    ] },
   ],
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [

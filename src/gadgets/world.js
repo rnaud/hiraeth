@@ -222,7 +222,8 @@ export class GadgetWorld {
       if (pl.object) pl.object.position.y = pl.pos.y - 0.08 * pl.k;
     }
     for (const g of this.gates) {
-      const want = g.plates ? (g.plates.some((i) => this.plates[i]?.on) ? 1 : 0) : g.want ?? 0;
+      // (`held`: kept open whatever its plates say: the cinematics review staging a box behind it, as play leaves it)
+      const want = g.held ?? (g.plates ? (g.plates.some((i) => this.plates[i]?.on) ? 1 : 0) : g.want ?? 0);
       g.open = THREE.MathUtils.clamp(g.open + Math.sign(want - g.open) * g.speed * dt / g.travel, 0, 1);
       g.object.position.copy(g.base).addScaledVector(_Y, -g.travel * g.open);
       g.object.updateMatrixWorld();

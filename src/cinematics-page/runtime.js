@@ -89,6 +89,12 @@ export async function stageCinematic(w, e) {
     const box = w.boxes.list.find(b => b.id === e.boxId);
     if (!box) throw new Error('No unopened box');
     w.items.revoke(box.item); game.set(`box.${box.id}`, false);
+    // (a box behind a yard's gate: in play its puzzle holds the gate open as you walk in, so open it here too; it
+    //  opened through the bars, QC v1.66, issue #292)
+    for (const g of w.gadgets?.world?.gates ?? []) {
+      if (g.object.getWorldPosition(V()).distanceTo(box.pos) > 6) continue;
+      g.held = 1; g.open = 1; g.object.position.copy(g.base).addScaledVector(up, -g.travel); g.object.updateMatrixWorld();
+    }
     place(box.at ?? box.pos ?? box.parts.root.position, V(0, 0, 2)); await settle();
     ok = w.boxes.open(box.id);
   } else if (e.id === 'lantern.arrive') { place(w.level.lantern.spots.isle); if (!W.state.arrived) W.arrive(); }
