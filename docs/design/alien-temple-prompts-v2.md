@@ -1,5 +1,8 @@
 # Alien-built temples, house by house: reference prompts (v2)
 
+> Superseded for twelve houses by [alien-temple-prompts-v3.md](alien-temple-prompts-v3.md) (text only, no base
+> picture: the base made these batches variants of the existing hall). The Casting-House and Whale-House picks stay.
+
 2026-10-14, issue #342, second pass. The first pass ([alien-temple-prompts.md](alien-temple-prompts.md), six generic
 directions) was dismissed by the author: "the references don't make sense … we should make references that are based
 on the existing temples from each world. The prompt needs to focus on what these temples are about." Its six lab
