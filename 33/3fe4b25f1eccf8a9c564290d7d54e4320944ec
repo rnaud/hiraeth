@@ -1,0 +1,37 @@
+src/studio/main.js
+  s_9ca76055a220ed::t_424bda8d7833dd 558,585-587
+tests/gait-sim.js
+  s_9ca76055a220ed::t_d84ae1e81ef7ad 16,60-79,99-100,111
+src/shield.js
+  s_9ca76055a220ed::t_ebf4f13877e899 4,40,158-189,293-301,308-317,376,380,382-383,385,389-461,468,514
+src/blade-grip.js
+  s_9ca76055a220ed::t_c795f104c227b7 24-27,39-49,203-368
+tests/blade-grip.test.js
+  s_9ca76055a220ed::t_0961025ae85495 4,13,114,121,154-157,173-201,223
+tests/strap-skin.js
+  s_9ca76055a220ed::t_9ff1c78e8cad0d 1-64
+changelog.md
+  s_9ca76055a220ed::t_109ab7a400c660 14
+docs/systems/foes.md
+  s_9ca76055a220ed::t_97cfe7ae71e2b1 227-244,288-289
+src/changelog-media.js
+  s_9ca76055a220ed::t_4667804059bbf7 788-789,792-796
+src/changelog.js
+  s_9ca76055a220ed::t_e2fdcbb6c3134d 12-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "333fe4b25f1eccf8a9c564290d7d54e4320944ec",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
