@@ -1,3 +1,5 @@
+import { SITE as GREENHOUSE } from '../temples/edena.js';
+import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
@@ -374,7 +376,9 @@ export function* buildEdena(scene) {
   // out standing on top of a canopy.
   yield;
   const kit = { scene, terrain, rng, pick };
-  const tree = (x, z, s) => edenaTree(kit, x, z, s);
+  const greenhouseVista = templeVista(GREENHOUSE, { width: 170, front: 270, back: 240 });
+  const ambientKit = (x, z, pad) => greenhouseVista(x, z, pad) ? { ...kit, scene: { add() {} } } : kit;
+  const tree = (x, z, s) => edenaTree(ambientKit(x, z, 65 * s), x, z, s);
   tree(60, -80, 0.6);
   tree(-60, 70, 0.8);
   yield;
@@ -387,7 +391,7 @@ export function* buildEdena(scene) {
 
   // ---------------------------------------------------------- step pyramids
   yield;
-  const pyramid = (x, z, size) => edenaPyramid(kit, x, z, size);
+  const pyramid = (x, z, size) => edenaPyramid(ambientKit(x, z, size * .7), x, z, size);
   pyramid(-200, 220, 90);
   yield;
   for (let i = 0; i < 8; i++) pyramid((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200, 50 + rng() * 90);
@@ -398,7 +402,7 @@ export function* buildEdena(scene) {
   const accent = makeMaterial({ color: '#62c3c9', flat: true, grid: 3 });
   const ruinSlabs = [];
   const ruins = (cx, cz) => edenaRuins({ ...kit, ruinMat, accent, ruins: ruinSlabs }, cx, cz);
-  ruins(180, 120);
+  ruins(350, 120);
   yield;
   for (let i = 0; i < 7; i++) ruins((rng() * 2 - 1) * 1200, (rng() * 2 - 1) * 1200);
 
@@ -482,7 +486,7 @@ export function* buildEdena(scene) {
       const x = Math.cos(a) * r, z = Math.sin(a) * r, R = 9 + rng() * 16;
       const m = new THREE.Mesh(new THREE.SphereGeometry(R, 40, 24), rng() < 0.5 ? white : pick(accent));
       m.position.set(x, terrain.heightAt(x, z) + R * (0.15 + rng() * 0.5), z);
-      scene.add(m);
+      if (!greenhouseVista(x, z, R)) scene.add(m);
     }
     const byMat = new Map();
     const add = (mat, g) => { if (!byMat.has(mat)) byMat.set(mat, []); byMat.get(mat).push(g.index ? g.toNonIndexed() : g); };
@@ -492,7 +496,7 @@ export function* buildEdena(scene) {
       const ca = (row / 7) * Math.PI * 2 + 0.4, cr = 120 + row * 45;
       const x = Math.cos(ca) * cr + (k - 4.5) * 9 * Math.sin(ca), z = Math.sin(ca) * cr - (k - 4.5) * 9 * Math.cos(ca);
       // (the second row stood where the pyramid nursery is grown now, issue #189: its draws are still taken)
-      if (row === 1) { rng(); pick(accent); rng(); continue; }
+      if (row === 1 || greenhouseVista(x, z, 3)) { rng(); pick(accent); rng(); continue; }
       const base = terrain.baseAt(x, z, 2), ph = 1.5 + rng() * 2.5;
       add(white, new THREE.CylinderGeometry(1.1, 1.4, ph, 16).translate(x, base + ph / 2, z));
       const mat = pick(accent), top = base + ph, kind = rng();

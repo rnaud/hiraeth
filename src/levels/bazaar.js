@@ -149,7 +149,7 @@ export function* buildBazaar(scene) {
   // (`streetTowers`: each one's { x, z, w, h, side }, the fragments' places of interest: their service balconies, issue #250)
   const streetTowers = [];
   for(let row=0;row<9;row++) for(const side of [-1,1]) {
-    const z=105-row*60, x=side*(54+(row%3)*3), h=125+rng()*130, w=34+rng()*7;
+    const z=105-row*60, x=side*(54+(row%3)*3+(row >= 7 ? 64 : 0)), h=125+rng()*130, w=34+rng()*7;
     streetTowers.push({ x, z, w, h, side });
     const body = row%3===0 ? coral : row%3===1 ? teal : mat(colors[(row+(side+1))%5],{grid:11,weathered:0.7,...PRINT});
     // (issue #44, the level design audit since v1.5: the two towers either side of Signal Square stand on legs, a
@@ -180,6 +180,10 @@ export function* buildBazaar(scene) {
     }
     // Narrow service balconies give climbers somewhere to rest.
     for(let k=0;k<4;k++) box(face-side*2.5,8+k*8,z-(arch?15:6),6,.65,11,teal);   // (beside the passage, not across its mouth)
+    // The cleared rear stalls used to be the first step onto these balconies.
+    // Low service steps keep their fragments reachable beside the set-back towers.
+    if (side === 1 && (row === 6 || row === 7)) for (let k=0;k<3;k++)
+      box(face-side*2.5, (k+1)*1.05, z-(arch?15:6)-15+k*4, 4, (k+1)*2.1, 4, teal);
     // the back alleys between the towers: their side walls, near the street, dense with the sheets' small machinery
     // (greeble-kit.js: pipe runs, valves, conduits, casings, cables), the spot blacks' pockets; solid as drawn (you
     // climb these walls). Its own numbers, so the street keeps its layout.
@@ -192,7 +196,7 @@ export function* buildBazaar(scene) {
   }
   // A second row creates a skyline above side streets.
   for(let i=0;i<22;i++) {
-    const side=i%2?1:-1, x=side*(108+rng()*95),z=140-Math.floor(i/2)*62,h=160+rng()*150;
+    const side=i%2?1:-1, x=side*(108+rng()*95+(i >= 12 ? 90 : 0)),z=140-Math.floor(i/2)*62,h=160+rng()*150;
     box(x,h/2,z,25+rng()*18,h,34,mat(colors[i%5],{grid:14,weathered:0.7,...PRINT}));
     box(x,h+19,z,2,38,2,cream,false);
   }
@@ -209,7 +213,7 @@ export function* buildBazaar(scene) {
     const body=shop[i%5], yaw=-side*Math.PI/2;
     // (issue #44: the stall in front of a passage under the towers either side of Signal Square is not built, so the
     // passage looks straight out at the silent tower; its goods' dice are thrown all the same, and the rest stay put)
-    skip = Math.abs(z - SIGNAL.z) < ARCADE.w / 2 + 6;
+    skip = Math.abs(z - SIGNAL.z) < ARCADE.w / 2 + 6 || z < -275;
     box(x,2,z,8,4,12,body);
     box(x-side*4.05,2,z,.12,2.9,10,dark);   // (the fascia stands 0.11 m proud of the shop front you climb)
     for(let q=0;q<6;q++) gr();   // (the six draws the stain round the opening once made: the goods stay where they were)
@@ -275,7 +279,7 @@ export function* buildBazaar(scene) {
     }
     for(let x=-40;x<=40;x+=8) box(x,y-1.3,z,1.1,1.5,7.5,ink,false);
   }
-  for(let i=0;i<9;i++) {
+  for(let i=0;i<6;i++) {
     const z=85-i*57,y=12+(i%3)*5;
     // (the one over the sign painters' gallery is tied to its rail, not to the tower behind it: src/market-air.js)
     tube([i===2?[AIR.x1,26.1,z]:[-39,y+4,z],[-13,y,z+4],[16,y-1,z+5],[39,y+6,z+8]],.075,ink);

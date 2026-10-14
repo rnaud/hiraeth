@@ -1,3 +1,5 @@
+import { templeVista } from '../temples/vistas.js';
+import { SITE as LAMP_HOUSE } from '../temples/perdide2.js';
 import { attachTemple } from '../temples/index.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -156,6 +158,10 @@ export function deepWoodHeight(x, z) {
   // dense wooded hills close the world
   const edge = Math.hypot(lx, (lz + 200) * 0.85);
   h += smoothstep(560, 820, edge) * (55 + fbm(noise, lx * 0.006, lz * 0.006, 3) * 40);
+  // Open water around the Lamp-House's splayed stone feet. The causeway crosses
+  // this shallow basin; its far bank meets the existing lit path before the cave.
+  const lampPool=Math.hypot(x-LAMP_HOUSE.x,z-LAMP_HOUSE.z);
+  h=THREE.MathUtils.lerp(h,-1.45,smoothstep(62,39,lampPool));
   return h;
 }
 const height = deepWoodHeight;
@@ -246,7 +252,9 @@ export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   const inLorn = (x, z) => merged && deepWoodWeight(x, z) < 0.5;
   // (in Lorn, the keepers' village and the drowned clearings, src/lorn-wood-data.js: the trunks and giants that would
   // stand in them are left out, their dice thrown all the same, so the rest of the wood grows where it always did)
-  const keptOut = (x, z, r, o) => merged && woodKeepOut(x, z, r, o);
+  const lampClearing = templeVista(LAMP_HOUSE, { width: 210, front: 310, back: 280 });
+  // Keep the original scatter's admission draws; the vista only suppresses scenery at emission.
+  const keptOut = (x, z, r, o) => lampClearing(x,z,r) || (merged && woodKeepOut(x, z, r, o));
   const trunkList = [];   // (every trunk drawn: { x, z, r, h }; Lorn's drowned wood keeps clear of them, src/lorn-flood.js)
   const lights = [];
   const dummy = new THREE.Object3D(), col = new THREE.Color();

@@ -1,3 +1,4 @@
+import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
@@ -12,6 +13,7 @@ import { Banner, BannerSet, Puffs, waveBanners } from '../life.js';
 import { buildRoom } from '../interiors.js';
 import { glyphGeometry, textGeometry } from '../story/sign-text.js';
 import { LINES } from '../story/incal-data.js';
+import { SITE as WARDENS_WELL } from '../temples/incal.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
@@ -147,6 +149,8 @@ export function* buildIncal(scene) {
   const buckets = new Map();
   let curGroup = 'misc', curY = TOP;
   let skip = false;            // a house in one of the story's clearings: built (same random draws) but not kept
+  const wellVista = templeVista(WARDENS_WELL, { width: 100, front: 190, back: 150 });
+  const wellForecourt = (x, y, z, pad = 0) => Math.abs(y - TOP) < 18 && wellVista(x, z, pad);
   const clearZones = [];
   const clearEnds = [];   // { y, a, w }: no house within w m of a terrace's end at angle a (the red stair's landing, STAIR)
   const beamZones = [];   // the lit square and the mirrors' gangways (src/shaft-mirrors.js): no house, stall or washing line on them
@@ -175,6 +179,7 @@ export function* buildIncal(scene) {
 
   /** A villa: block walls with a window grid, a hipped roof, a dome on a drum, or a roof garden. */
   function house(x, y, z) {
+    const previousSkip=skip; skip ||= wellForecourt(x,y,z,8);
     const w = 5 + rng() * 6, d = 5 + rng() * 6, h = 5 + rng() * 9, rot = rng() * TAU, wi = Math.floor(rng() * 6), ri = Math.floor(rng() * 4);
     bucket('wall' + wi, wallMat(wi)).push(placed(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), x, y, z, rot));
     const kind = rng();
@@ -216,6 +221,7 @@ export function* buildIncal(scene) {
       bucket('wall' + wi, wallMat(wi)).push(placed(new THREE.BoxGeometry(0.7, 3.2, 0.7).translate(cx, h + 1.6, cz), x, y, z, rot));
       bucket('roof' + ri, roofMat(ri)).push(placed(new THREE.BoxGeometry(1.0, 0.25, 1.0).translate(cx, h + 3.3, cz), x, y, z, rot));
     }
+    skip=previousSkip;
   }
   const trees = [];   // [x, y, z, scale, group]
   const _push = trees.push.bind(trees);
@@ -612,17 +618,20 @@ export function* buildIncal(scene) {
     scene.add(lake);
   }
 
+  const wellSkyline = templeVista(WARDENS_WELL, { width: 210, front: 250, back: 350 });
   // ---------------------------------------------------------- skyline around the rim
   yield;
   for (let i = 0; i < 90; i++) {
     yield;
     const a = rng() * TAU, rad = R + 40 + Math.pow(rng(), 0.7) * 900;
     const h = 30 + rng() * rng() * 260;
+    const previousSkip = skip; skip ||= wellSkyline(Math.cos(a) * rad, Math.sin(a) * rad, 35);
     if (rng() < 0.5) {   // tall white slab towers with ribbed faces
       const w = 14 + rng() * 22, hh = 60 + rng() * 220;
       bucket('slab', strata('#f4f0e6', '#e3e8ee', '#d7dee8', 4, { grid: 3.5, flat: true }))
         .push(placed(new THREE.BoxGeometry(w, hh, w * (0.6 + rng() * 0.6)).translate(0, hh / 2, 0), Math.cos(a) * rad, TOP, Math.sin(a) * rad, rng() * TAU));
     } else tower(Math.cos(a) * rad, Math.sin(a) * rad, TOP, h, 6 + rng() * 16, PASTELS, { roof: true });
+    skip = previousSkip;
   }
   // the towers, one mesh for each terrace's eighth of the ring (and the rim's), every tower in it keeping its own
   // colours, bands, grid and facets (a mesh and a material a tower: some 200 draws across the shaft)
@@ -1105,6 +1114,7 @@ export function* buildIncal(scene) {
     if (Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 8) continue;   // and round the makers' pillar
     trees.push([x, TOP, z, 0.8 + rng() * 0.8]);
   }
+  for(const t of trees) if(wellForecourt(t[0],t[1],t[2],5)) t[3]=0;
   // ---------------------------------------------------------- trees: cypresses and round olives
   yield;
   const treeMeshes = [];   // (init drops the ones a clump put inside a house)

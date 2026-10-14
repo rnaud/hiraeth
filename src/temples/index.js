@@ -1,3 +1,4 @@
+import { templeVista } from './vistas.js';
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items } from '../items.js';
@@ -124,11 +125,20 @@ export function attachTemple(id, scene, level, { game = sharedGame } = {}) {
   if (level.navigationPortals && level.navigationPortals !== level.portals) level.navigationPortals = [...rt.portals.map(navigationPortal), ...level.navigationPortals];
   // the ground round the building is kept clear: no tree, rock or tuft of the world's own grows through it
   const keep = rt.outside?.clear ?? [];
+  const site = T.def.site;
+  const vista = site ? templeVista(site) : () => false;
   if (keep.length) {
     clearInstances(scene, keep, rt.root);
     const avoid = level.floraAvoid;
-    level.floraAvoid = (x, z, r = 0) => keep.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || !!avoid?.(x, z, r);
+    level.floraAvoid = (x, z, r = 0) => vista(x, z, r) || keep.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || !!avoid?.(x, z, r);
   }
+  // Background passers-by leave the forecourt open; named keepers and quest actors keep their places.
+  const crowdSpots = level.crowdSpots;
+  if (crowdSpots && site) level.crowdSpots = (...args) => {
+    const spots = crowdSpots.apply(level, args);
+    // The market's listening square is part of the broadcast quest, beside the Undertower.
+    return { ...spots, clear: [...(spots.clear ?? []), { x: site.x, z: site.z, r: id === 'bazaar' ? 24 : 76 }] };
+  };
   const init = level.init, initSteps = level.initSteps, dynamic = level.dynamic, update = level.update;
   // (in steps when the level's own are: src/load-steps.js; init runs them straight through)
   level.initSteps = function* (physics, o) { if (initSteps) yield* initSteps.call(level, physics, o); else init?.call(level, physics); rt.init(physics); };

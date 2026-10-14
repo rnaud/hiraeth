@@ -88,7 +88,7 @@ export const GLASS_RIDGES = [
     silhouettes: [{ shape: 'giant', u: 120, y: 0, s: 28 }, { shape: 'head', u: 215, y: 6, s: 22 }, { shape: 'beast', u: 300, y: 10, s: 30 }],
     passages: [{ at: [-171, 70], w: 7, h: 10 }] },
   // the billows, east (reference-2), facing west
-  { name: 'billows', path: [[205, -150], [190, -60], [175, 30], [168, 120], [150, 205]], height: 58, depth: 150, profile: 'dome', taper: [1.2, 0.6],
+  { name: 'billows', path: [[265, -150], [250, -60], [235, 30], [228, 120], [210, 205]], height: 58, depth: 150, profile: 'dome', taper: [1.2, 0.6],
     folds: { width: 26, amp: 10, lean: 0.25, crest: 0.05 }, colours: { mid: '#62c48c', top: '#3f9c7a' } },
   // the frozen wave in the valley's middle (reference-1), facing south
   { name: 'wave', path: [[-90, 70], [-40, 46], [20, 40], [80, 56]], height: 34, depth: 50, profile: 'wave',
@@ -112,13 +112,16 @@ export const GLASS_RIDGES = [
     name: `mound ${k}`, path: [[x - 10, z + 6], [x, z], [x + 12, z - 4]], height: h, depth: 22, profile: 'dome', ends: 6,
     folds: { width: 8, amp: 1.2, lean: 0.3, crest: 0 } })),
 ];
+// The carriers remain beside the walking route in a low outcrop; the tall billows stand farther back.
+GLASS_RIDGES.push({ name: 'carriers', path: [[174, 85], [166, 145]], height: 16, depth: 20,
+  profile: 'cliff', ends: 8, folds: { width: 18, amp: .8, lean: .1, crest: 0 } });
 /** The green flows over the sand (low glass bands, walkable), east of the valley. */
 export const GLASS_FLOWS = [
   [[30, 190], [80, 170], [130, 176]], [[20, 120], [70, 100], [140, 108]], [[60, 10], [110, -10], [150, 0]],
   [[-100, 180], [-60, 196], [-20, 186]],
 ];
 /** Archways in the walls' feet, drawn only (lit from beyond): [x, z, yaw (the way out), width, height]. The two you walk through are the ridges' `passages`. */
-export const GLASS_ARCHES = [[177, -20, -Math.PI / 2, 9, 12], [-70, -222, 0, 10, 16], [60, -218, 0, 8, 12], [0, -600, 0, 30, 60]];
+export const GLASS_ARCHES = [[237, -20, -Math.PI / 2, 9, 12], [-70, -222, 0, 10, 16], [60, -218, 0, 8, 12], [0, -600, 0, 30, 60]];
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildGlassDunes(scene) {

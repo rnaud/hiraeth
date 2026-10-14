@@ -31,6 +31,15 @@ const { level, physics, scene } = W, E = level.edena, ground = (x, z) => level.g
 const door = level.temple.outside.door.at;
 test.after(() => W.dispose());
 
+test('the widened Greenhouse plinth is bedded into the hill all around its perimeter', () => {
+  const O=level.temple.outside;
+  for(let i=0;i<32;i++){
+    const a=i*Math.PI/16,p=O.gardenFrame.world(Math.sin(a)*48*1.04,0,Math.cos(a)*20*1.04);
+    assert.ok(ground(p.x,p.z)>=p.y-.2,`no floating edge at side ${i}`);
+    assert.ok(ground(p.x,p.z)<O.door.at.y+.1,'the glass floor stays above the hill');
+  }
+});
+
 /** As the level design audit sees: nothing the collision holds between the eye and the point, and no ground over the ray. */
 function sees(eye, at, near = 3) {
   const d = eye.distanceTo(at), dir = at.clone().sub(eye).normalize();

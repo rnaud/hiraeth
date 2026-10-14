@@ -1,3 +1,5 @@
+import { landmark } from './landmarks.js';
+import { ceramic, metal, glazing, glaze } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
@@ -389,7 +391,7 @@ function cupboard(rt, K, M, { dial }) {
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
-  const brass = { paint: new THREE.Color('#d8a24a'), smooth: false, side: THREE.FrontSide };
+  const brass = metal('#d8a24a');
   const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
   /** A clock face on a wall: a cream dial, twelve ticks, two stopped hands (facing `yaw`). */
   const dial = (x, y, z, r, yaw, hands = [-0.6, 2.3]) => {
@@ -555,38 +557,28 @@ function exterior(scene, level, rt) {
   const base = level.ground?.baseAt ? level.ground.baseAt(SITE.x, SITE.z, R + 5) - 0.3 : 0;
   const K = new TempleKit(rt.root, 'The Clock-House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M;
-  const brass = { paint: new THREE.Color('#d8a24a'), smooth: false, side: THREE.FrontSide };
+  const brass = metal('#d8a24a');
   const teal = { paint: new THREE.Color('#62c3c9'), smooth: true, side: THREE.FrontSide };
   const tin = { paint: new THREE.Color('#62c3c9'), smooth: false, side: THREE.DoubleSide };
   const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
-  // a broad flagged apron round it, a round stair-house of pale stone, bands of brass, a teal cap. In the dunes it
-  // is the open sand's one tall thing, a clock tower seen from the ship's flat (the level design audit: a drum of
-  // 23 m and its cap stand 25 m and more over the dunes, a landmark over the way to it)
-  const HW = 23;
-  K.both(M.floor, new THREE.CylinderGeometry(R + 5, R + 5, 1.0, 32).translate(0, sill - 0.5, 0));
-  K.both(M.wall, new THREE.CylinderGeometry(R, R + 0.4, HW, 28).translate(0, sill + HW / 2, 0));
-  for (const y of [5, 10.5, 16.5, 22]) K.both(brass, new THREE.CylinderGeometry(R + 0.2, R + 0.2, 0.6, 28).translate(0, sill + y, 0));
-  K.both(teal, new THREE.SphereGeometry(R + 0.3, 28, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.55, 1).translate(0, sill + HW, 0));
-  K.both(brass, new THREE.CylinderGeometry(0.4, 0.6, 3.2, 8).translate(0, sill + HW + 4.4, 0));
-  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.6) continue; K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [Math.sin(a) * (R + 0.42), sill + 19.2, Math.cos(a) * (R + 0.42)], [0, a, 0])); }
+  landmark(K, 'garage', { y: sill, R });
   // the great clock over the door: a cream dial in a brass ring, twelve ticks, two hands (the change turns them)
-  const cy = sill + 11.4, cz = R + 0.55, cr = 2.6;
-  K.both(cream, T(new THREE.CylinderGeometry(cr, cr, 0.3, 40).rotateX(Math.PI / 2), [0, cy, cz]));
+  const cy = sill + 37, cz = 5.2, cr = 8;
+  K.both(ceramic('#245c68'), T(new THREE.CylinderGeometry(cr, cr, 0.3, 40).rotateX(Math.PI / 2), [0, cy, cz]));
   K.both(brass, T(new THREE.TorusGeometry(cr + 0.1, 0.28, 6, 40), [0, cy, cz + 0.1]));
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.2, 0.5, 0.1).translate(0, cr * 0.8, 0).rotateZ(-a), [0, cy, cz + 0.2])); }
-  // the doorway: a porch of two pillars and a lintel, the glyph over it
-  const z0 = R - 1.2, z1 = R + 2.6;
-  for (const s of [-1, 1]) K.both(M.wall, box(2.4, 8, z1 - z0, s * 3.6, sill + 4, (z0 + z1) / 2));
-  K.both(M.wall, box(9.6, 1.6, z1 - z0, 0, sill + 7.6, (z0 + z1) / 2));
-  K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [0, sill + 7.6, z1 + 0.06]));
-  // the arched doorway of its reference: a round arch of pale stone ringed in brass over the dark
-  K.both(M.wall, T(new THREE.TorusGeometry(2.75, 0.35, 6, 24, Math.PI), [0, sill + 4.2, z1 - 0.2]));
-  K.add(brass, T(new THREE.TorusGeometry(2.4, 0.12, 5, 24, Math.PI), [0, sill + 4.2, z1 + 0.18]));
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(brass, T(new THREE.BoxGeometry(0.24, 1.1, 0.1).translate(0, cr * 0.8, 0).rotateZ(-a), [0, cy, cz + 0.2])); }
   // and round the great clock, a second ring of brass and four bosses (the clock's frame, as drawn)
   K.add(brass, T(new THREE.TorusGeometry(cr + 0.7, 0.12, 5, 40), [0, cy, cz + 0.05]));
   for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; K.add(brass, T(new THREE.SphereGeometry(0.28, 8, 6), [Math.sin(a) * (cr + 0.7), cy + Math.cos(a) * (cr + 0.7), cz + 0.15])); }
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
   K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
+  // The reference's small golden door, with recessed bronze leaves and a narrow centre seam.
+  for(const sign of [-1,1]){
+    K.both(brass,box(.34,6.8,.3,sign*1.5,sill+3.4,R+1));
+    K.add(brass,box(1.35,6.3,.18,sign*.74,sill+3.15,R+.48));
+    K.add(metal('#a66f2e'),box(.9,4.8,.1,sign*.74,sill+3.3,R+.59));
+  }
+  K.both(brass,box(3.35,.4,.3,0,sill+6.8,R+1));
   // a lean-to against the drum: a tin roof on posts, a bench, a painted board (the glassworkers' clock-bench)
   const sx = -(R + 3.4), sz = 1.4;
   for (const [x, z] of [[sx - 2.4, sz - 2.6], [sx - 2.4, sz + 2.6]]) K.both(M.trim, box(0.3, 3.6, 0.3, x, sill + 1.8, z));
@@ -594,7 +586,10 @@ function exterior(scene, level, rt) {
   K.both({ paint: new THREE.Color('#8a5a3a'), smooth: false, side: THREE.FrontSide }, box(3.2, 0.16, 1.1, sx + 0.4, sill + 1.0, sz - 1.8));
   K.add({ paint: new THREE.Color('#e88fa6'), smooth: false, side: THREE.FrontSide }, box(2.6, 1.0, 0.1, sx, sill + 3.1, sz + 3.25));
   K.add(cream, box(2.0, 0.18, 0.12, sx, sill + 3.2, sz + 3.32)); K.add(cream, box(1.4, 0.18, 0.12, sx - 0.2, sill + 2.9, sz + 3.32));
+  const dialGlass = glazing('#c5e3df', K.world(0,cy,cz+.8));
+  K.both(dialGlass,new THREE.SphereGeometry(1,48,16,0,TAU,0,Math.PI/2).scale(cr,.55,cr).rotateX(Math.PI/2).translate(0,cy,cz+.8));
   K.flush();
+  glaze(K, rt.veils, dialGlass, {color:'#9bcbd0',alpha:.10});
 
   // the makers' clockwork: great cogs half sunk in the sand round the house, standing on edge, facing out (they turn after)
   const cogM = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass', key: 'temple.garage.cogs' });
@@ -622,12 +617,13 @@ function exterior(scene, level, rt) {
     cogs.push({ g, m, dir: i % 2 ? -1 : 1, rate: 3.2 / r });
   }
   // the clock's hands (separate: they turn)
-  const handsM = makeMaterial({ color: '#34405e', flat: true, key: 'temple.garage.hands' });
+  const handsM = metal('#efd29a');
   const hands = new THREE.Group();
   hands.position.copy(K.world(0, cy, cz + 0.35));
   hands.rotation.y = yaw;
   const hourH = new THREE.Mesh(new THREE.BoxGeometry(0.34, 1.5, 0.12).translate(0, 0.65, 0), handsM);
   const minH = new THREE.Mesh(new THREE.BoxGeometry(0.22, 2.2, 0.12).translate(0, 1.0, 0.08), handsM);
+  hourH.scale.set(1.7, 3.1, 1); minH.scale.set(1.7, 3.1, 1);
   hands.add(hourH, minH);
   hands.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
   rt.root.add(hands);

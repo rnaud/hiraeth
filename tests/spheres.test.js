@@ -140,6 +140,7 @@ test('climbing an olive’s trunk you stop under its crown or climb its leaves, 
   let climbed = 0;
   for (const i of [0, 7, 40, 90, 150]) {
     trunks.getMatrixAt(i, m); m.decompose(c, q, sc);
+    if (sc.x < 0.001) continue; // A tree cleared for the Footprint's approach has no trunk to climb.
     const k = sc.x, inBlob = (p) => Math.hypot((p.x - c.x) / (2.0 * k), (p.y - c.y - 5 * k) / (1.3 * k), (p.z - c.z) / (2.0 * k));
     for (const [dx, dz, yaw] of [[3, 0, Math.PI / 2], [0, 3, 0]]) {
       const P = new Player(physics, { health: false, climb: true });

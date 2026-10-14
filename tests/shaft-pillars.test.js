@@ -168,7 +168,9 @@ test('steered off on the way: the halfway pillar sets you down on the middle ter
   const { P } = fly(V(c.x, mid - 40, c.z), (P) => {
     if (phase === 'up') { if (P.pos.y > mid + 6) phase = 'off'; return { input: { Space: true } }; }
     if (P.onGround) return null;
-    return { input: { Space: true, KeyW: P.updraft && P.time - P.updraft.at < 0.2 }, yaw: toward(P, target) };
+    // Steer onto the landing before letting go; a fixed 0.2 s tap can leave the
+    // wings inside the column, where they rise past the terrace instead.
+    return { input: { Space: true, KeyW: A.flat(P.pos, target) > 2 }, yaw: toward(P, target) };
   }, 40);
   assert.ok(P.onGround && Math.abs(P.pos.y - mid) < 1, `on the middle terrace (${P.pos.toArray().map((v) => v.toFixed(1))})`);
 });

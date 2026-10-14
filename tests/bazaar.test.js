@@ -36,7 +36,8 @@ test('taxis initialize and the crowd walks the avenue, sidewalks and skybridges'
  for(const route of routes) for(const p of route.pts) assert.ok(Math.abs(physics.groundAt(p.x,p.y+1,p.z,3)-p.y)<1e-6);
  // (the back alleys' small machinery, climbed as drawn, greeble-kit.js: ~27 k → ~52 k, docs/systems/references.md; issue #191,
  // the market in the air, the old market and the screen lanes, solid as drawn: ~56 k → ~75 k, tests/market-explorations.test.js)
- const triangles=physics.triangles;assert.ok(triangles<78000,`static collision budget: ${triangles}`);
+ // The reference-matched Undertower adds its solid stepped feet and arched doorway: ~80 k.
+ const triangles=physics.triangles;assert.ok(triangles<82000,`static collision budget: ${triangles}`);
 });
 
 test('the broadcast page closes with the story (the quest), not on arriving at the balcony', async()=>{

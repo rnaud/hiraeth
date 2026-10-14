@@ -1,3 +1,5 @@
+import { landmark } from './landmarks.js';
+import { stone, ceramic, metal } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
@@ -551,20 +553,15 @@ function exterior(scene, level, rt) {
   const yaw = SITE.heading, R = 8, sill = 0.4, HW = 24;
   const K = new TempleKit(rt.root, 'The Mooring-House', V(SITE.x, SITE.y, SITE.z), yaw, rt.M);
   const M = rt.M;
-  const adobe = paint('#efe2cc'), salmon = paint('#e8a38a'), coral = paint('#d9776a'), teal = paint('#4f9a98'), brass = paint('#d2a648'), iron = paint('#3d3f4c');
+  const adobe = stone('#efe2cc'), coral = ceramic('#d9776a'), teal = ceramic('#4f9a98'), brass = metal('#d2a648'), iron = metal('#3d3f4c','iron');
   const lit = makeMaterial({ color: '#ffe2a8', glow: 0.7, flat: true, key: 'temple.spacecity.windows' });
-  // a round apron of paving, the drum of rounded adobe (salmon at its foot, teal bands), a rounded cornice and a roof deck
-  K.both(M.floor, new THREE.CylinderGeometry(R + 6, R + 6, 1.0, 36).translate(0, sill - 0.5, 0));
-  K.both(adobe, new THREE.CylinderGeometry(R, R + 0.5, HW, 28).translate(0, sill + HW / 2, 0));
-  K.add(salmon, new THREE.CylinderGeometry(R + 0.52, R + 0.56, 3.2, 28).translate(0, sill + 1.6, 0));
-  for (const y of [9, 16.5]) K.both(teal, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 0.6, 28).translate(0, sill + y, 0));
-  K.both(adobe, new THREE.TorusGeometry(R + 0.2, 0.7, 6, 28).rotateX(Math.PI / 2).translate(0, sill + HW, 0));
-  K.both(coral, new THREE.CylinderGeometry(R + 0.2, R + 0.2, 0.8, 28).translate(0, sill + HW + 0.2, 0));
-  // round windows up the drum, lit
-  for (let i = 0; i < 10; i++) { const a = (i + 0.5) / 10 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.5) continue; for (const y of [12.4, 20]) K.add(lit, T(new THREE.CircleGeometry(0.7, 14), [Math.sin(a) * (R + 0.08), sill + y, Math.cos(a) * (R + 0.08)], [0, a, 0])); }
-  for (let i = 0; i < 12; i++) { const a = (i + 0.25) / 12 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.7) continue; K.add(M.glyph, T(glyphGeometry(1.3, 0.12), [Math.sin(a) * (R + 0.4), sill + 6, Math.cos(a) * (R + 0.4)], [0, a, 0])); }
-  // the capstan's housing on the roof: an iron drum and a brass rim (the capstan turns on it: dynamic, below)
-  K.both(iron, new THREE.CylinderGeometry(4.6, 5.2, 1.6, 20).translate(0, sill + HW + 1.4, 0));
+  // Set the broad apron just under the island deck, so their shared surface cannot flicker.
+  K.both(M.floor, new THREE.CylinderGeometry(R + 18, R + 18, 1, 48).translate(0, -0.54, 0));
+  K.both(M.floor, new THREE.CylinderGeometry(R + 5, R + 5, sill, 48).translate(0, sill / 2, 0));
+  K.both(adobe, new THREE.CylinderGeometry(R, R + 0.5, 9, 32).translate(0, sill + 4.5, 0));
+  K.both(coral, new THREE.CylinderGeometry(R + 18, R + 18, 1.2, 48).translate(0, sill + 9.4, 0));
+  landmark(K, 'spacecity', { y: sill, R });
+  // The capstan hangs from the tripod's central spindle at its original cable height.
   K.both(brass, new THREE.CylinderGeometry(5.4, 5.4, 0.3, 24).translate(0, sill + HW + 2.3, 0));
   // the porch: a rounded adobe arch over the door, teal-framed, the glyph over it; lamps on posts either side
   const z0 = R - 1.2, z1 = R + 2.6;
@@ -588,15 +585,16 @@ function exterior(scene, level, rt) {
   const capstan = new THREE.Group();
   capstan.position.copy(K.world(0, sill + HW + 2.45, 0));
   capstan.rotation.y = yaw;
-  const parts = [new THREE.CylinderGeometry(3.4, 3.6, 4.2, 20).translate(0, 2.1, 0), new THREE.SphereGeometry(3.4, 18, 6, 0, TAU, 0, Math.PI / 2).scale(1, 0.4, 1).translate(0, 4.2, 0), new THREE.CylinderGeometry(0.4, 0.5, 2.4, 8).translate(0, 5.6, 0)];
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; parts.push(new THREE.BoxGeometry(0.4, 0.4, 5).translate(0, 3.4, 5.6).rotateY(a)); }
+  const parts = [new THREE.TorusGeometry(5.6, .4, 8, 48).rotateX(Math.PI / 2).translate(0, 2.1, 0),
+    new THREE.CylinderGeometry(.7, .8, 7.2, 12).translate(0, 3.6, 0)];
+  for (let i = 0; i < 6; i++) parts.push(new THREE.BoxGeometry(.35, .3, 5.6).translate(0, 2.1, 2.8).rotateY(i * TAU / 6));
   const capstanMesh = new THREE.Mesh(mergeAll(parts), capM);
   capstan.add(capstanMesh);
   capstan.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
   rt.root.add(capstan);
   const at = K.world(0, sill, R + 1.4);
   const front = K.world(0, sill, R + 9);
-  return { door: { at, heading: yaw }, kit: K, R, sill, HW, capstan, top: K.world(0, sill + HW + 4.6, 0), clear: [{ x: SITE.x, z: SITE.z, r: R + 6 }, { x: front.x, z: front.z, r: 5 }] };
+  return { door: { at, heading: yaw }, kit: K, R, sill, HW, capstan, top: K.world(0, sill + HW + 4.6, 0), clear: [{ x: SITE.x, z: SITE.z, r: R + 12 }, { x: front.x, z: front.z, r: 5 }] };
 }
 
 function mergeAll(list) {

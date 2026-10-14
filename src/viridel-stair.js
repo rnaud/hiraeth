@@ -57,8 +57,12 @@ export const flightDir = (k) => (k % 2 ? -1 : 1);
  * through), the ground beside it let rise again 0.7 m a metre out past a margin, and in front a step down to the meadow.
  */
 export function shapeHill(h, x, z, L) {
-  const r = Math.hypot(x - HILL.x, z - HILL.z);
-  if (r < HILL.rOut) h = THREE.MathUtils.lerp(h, L.plateau, smoothstep(HILL.rOut, HILL.rIn, r));
+  const dx=x-HILL.x, dz=z-HILL.z, r=Math.hypot(dx,dz);
+  // The glasshouse is now 130 m across. Broaden the crown across its facade,
+  // while retaining the old outer hill and the water stair's cut below.
+  const yaw=Math.atan2(40,-220), across=dx*Math.cos(yaw)-dz*Math.sin(yaw);
+  const inner=HILL.rIn+36*(r>0?across*across/(r*r):0);
+  if (r < HILL.rOut) h = THREE.MathUtils.lerp(h, L.plateau, smoothstep(HILL.rOut, inner, r));
   // (a cell and more of the ground's grid, 9.5 m, held low round the footprint before it may rise: a triangle that
   // spans the side wall leans no higher than the bed inside it)
   const { u, s } = toStair(x, z), back = 14, out = Math.abs(u) - STAIR.w / 2 - 11;

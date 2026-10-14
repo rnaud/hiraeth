@@ -302,13 +302,14 @@ export function* buildMoonFoundry(scene) {
   // ---------------------------------------------------------------- the roof: girders and its dark ceiling, by cell; the pillars holding it
   yield;
   for (let x = HALL.x0; x < HALL.x1 - 1; x += 85) for (let z = HALL.z0; z < HALL.z1 - 1; z += 84.5) {
+    if (x >= 85 && z >= -292 && z < -38) continue; // open casting bay above the temple
     const P = roof({ x0: x, x1: x + 85, z0: z, z1: z + 84.5, y: HALL.roof, bay: 21.25, depth: 3.6, web: 4, cables: 7, seed: x * 3 + z, detail: 0.8 });
     put(x + 42, z + 42, P, { solid: false, shadow: false });
     yield;
   }
   // (the roof's front: a deep fascia girder over the mouth)
   put(0, MOUTH, { steel: [beam(V(HALL.x0, HALL.roof - 1.6, MOUTH), V(HALL.x1, HALL.roof - 1.6, MOUTH), 1.2, 4.5)] }, { solid: false, shadow: false });
-  const stations = [HUNG, CRADLE, { x: COURT.x, z: COURT.z, R: COURT.R + 8 }, { x: BOWL.x, z: BOWL.z, R: BOWL.R + 6 }, { x: PMOON.x, z: PMOON.z, R: 14 }, { x: FURNACE.x, z: FURNACE.z, R: 16 }, { x: QUARTER.x, z: QUARTER.z, R: QUARTER.r }, HUNG2, { x: CASTING_HOUSE.x, z: CASTING_HOUSE.z, R: 16 }];   // (the Casting-House: src/temples/moonfoundry.js)
+  const stations = [HUNG, CRADLE, { x: COURT.x, z: COURT.z, R: COURT.R + 8 }, { x: BOWL.x, z: BOWL.z, R: BOWL.R + 6 }, { x: PMOON.x, z: PMOON.z, R: 14 }, { x: FURNACE.x, z: FURNACE.z, R: 16 }, { x: QUARTER.x, z: QUARTER.z, R: QUARTER.r }, HUNG2, { x: CASTING_HOUSE.x, z: CASTING_HOUSE.z, R: 108 }];   // (the Casting-House: src/temples/moonfoundry.js)
   const pillars = [];
   const ladders = [];   // (the pillars' cage ladders: climbed without tiring, issue #252)
   for (const x of [-150, -100, -50, 50, 100, 150]) for (const z of [30, -50, -128, -206, -280]) {

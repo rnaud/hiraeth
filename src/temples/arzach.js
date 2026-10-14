@@ -1,3 +1,4 @@
+import { landmark, landmarkFrame } from './landmarks.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -590,50 +591,22 @@ function exterior(scene, level, rt) {
   const yaw = SITE.heading, R = 14;
   const base = level.ground.baseAt(SITE.x, SITE.z, SITE.r + 6) - 0.6;
   const K = new TempleKit(rt.root, 'The Aerie', V(SITE.x, base, SITE.z), yaw, rt.M);
-  const M = rt.M, sill = 4;
+  const M = rt.M, sill = 10;
   const glyphM = makeMaterial({ color: PALETTE.glow, glow: 0.2, flat: true, key: 'temple.vael.glyph' });
-  // a broad plinth, a great drum, a narrower drum on it, bands of ochre between
-  K.both(M.floor, new THREE.CylinderGeometry(R + 7, R + 8, sill, 40).translate(0, sill / 2, 0));
-  K.both(M.wall, new THREE.CylinderGeometry(R, R + 0.6, 18, 32).translate(0, sill + 9, 0));
-  K.add(M.trim, new THREE.CylinderGeometry(R + 0.35, R + 0.35, 0.8, 32).translate(0, sill + 18, 0));
-  K.both(M.wall, new THREE.CylinderGeometry(R - 4.5, R - 4, 12, 28).translate(0, sill + 24.4, 0));
-  K.both(M.floor, T(annulus(R - 4.5, R + 0.3, 0.6, 32), [0, sill + 18.6, 0]));
-  K.add(M.trim, new THREE.CylinderGeometry(R - 4.2, R - 4.2, 0.7, 28).translate(0, sill + 30.4, 0));
-  K.both(M.floor, new THREE.CylinderGeometry(R - 4.5, R - 4.5, 0.6, 28).translate(0, sill + 30.7, 0));
-  // the crown: tall stone feathers round the top, leaning out, and the perch in its middle
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * TAU, len = 16 + (i % 3) * 3;
-    K.add(i % 3 === 1 ? M.trim : M.wall, T(new THREE.SphereGeometry(1, 10, 6).scale(1.5, len / 2, 0.35).translate(0, len / 2, 0), [Math.sin(a) * (R - 5.5), sill + 30.6, Math.cos(a) * (R - 5.5)], [0.42, a, 0], 1, 'YXZ'));
-  }
-  K.both(M.trim, new THREE.CylinderGeometry(1.2, 1.6, 6, 10).translate(0, sill + 34, 0));
-  K.both(M.floor, new THREE.CylinderGeometry(3.4, 3, 0.8, 16).translate(0, sill + 37.4, 0));
-  // glyph lines on the drum, like the lines on a wing
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU + TAU / 16; K.add(glyphM, T(new THREE.BoxGeometry(0.25, 12, 0.2), [Math.sin(a) * (R + 0.35), sill + 9, Math.cos(a) * (R + 0.35)], [0, a, 0])); }
-  // the doorway, after the picked entrance: a tall round-topped arch set in the drum, framed in ochre, the glyph over it
-  const z0 = R - 1.5, z1 = R + 1.6, dw = 5.4, dh = 6.4;
-  {
-    // the porch's face: a slab of the drum's stone with the arch cut through it
-    const W = dw + 6.8, H = 11, f = new THREE.Shape();
-    f.moveTo(-W / 2, 0); f.lineTo(-dw / 2, 0); f.lineTo(-dw / 2, dh);
-    f.absarc(0, dh, dw / 2, Math.PI, 0, true);
-    f.lineTo(dw / 2, 0); f.lineTo(W / 2, 0); f.lineTo(W / 2, H); f.lineTo(-W / 2, H); f.closePath();
-    K.both(M.wall, new THREE.ExtrudeGeometry(f, { depth: z1 - z0, bevelEnabled: false, curveSegments: 16 }).translate(0, sill, z0));
-  }
-  const ochre = { paint: new THREE.Color(PALETTE.trim), smooth: false, side: THREE.FrontSide };
-  K.add(ochre, T(new THREE.TorusGeometry(dw / 2 + 0.15, 0.2, 5, 24, Math.PI), [0, sill + dh, z1 + 0.06]));
-  for (const s of [-1, 1]) K.add(ochre, box(0.4, dh, 0.3, s * (dw / 2 + 0.15), sill + dh / 2, z1 + 0.06));
-  K.add(ochre, T(new THREE.TorusGeometry(dw / 2 + 0.75, 0.12, 4, 24, Math.PI), [0, sill + dh, z1 + 0.05]));
-  K.add(M.glyph, T(glyphGeometry(2.0, 0.15), [0, sill + dh + dw / 2 + 1.4, z1 + 0.06]));
-  // (the dark in the doorway stands in front of the drum, which widens toward its foot)
-  K.add(M.voidM, T(new THREE.PlaneGeometry(dw, dh).translate(0, dh / 2, 0), [0, sill, R + 1.0]));
-  K.add(M.voidM, T(new THREE.CircleGeometry(dw / 2, 16, 0, Math.PI), [0, sill + dh, R + 1.0]));
-  K.solid(box(dw, dh + dw / 2, 0.3, 0, sill + (dh + dw / 2) / 2, R + 0.9));
+  landmark(K, 'arzach', { y: sill, R, accent: glyphM });
+  // The tall blue pointed arch is part of the swept shell. Its dark recess stays
+  // behind the retained portal, so approaching the new door takes the same route in.
+  const recess = new THREE.Shape();
+  recess.moveTo(-3, 0); recess.lineTo(3, 0); recess.lineTo(3, 8.5);
+  recess.quadraticCurveTo(2.7, 15.7, 0, 17.8); recess.quadraticCurveTo(-2.7, 15.7, -3, 8.5); recess.closePath();
+  K.add(M.voidM, new THREE.ShapeGeometry(recess, 24).translate(0, sill, R + 1));
+  K.solid(box(6, 17.8, .3, 0, sill + 8.9, R + .9));
   // the great steps down to the plain
-  const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 16); return [p.x, p.z]; })()) - base;
-  K.stairs([0, sill, R + 7.2], [0, Math.max(0.2, foot), R + 16], 9, { rise: 0.4 });
+  const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 34); return [p.x, p.z]; })()) - base;
+  K.stairs([0, sill, R + 10], [0, Math.max(0.2, foot), R + 34], 22, { rise: 0.4, sides: false, mat: { paint: new THREE.Color('#ebb083'), smooth: false } });
   K.flush();
   const at = K.world(0, sill, R + 1.4);
-  return { door: { at, heading: yaw }, kit: K, base, R, sill, glyphM, perch: K.world(0, sill + 37.8, 0), clear: [{ x: SITE.x, z: SITE.z, r: R + 12 }] };
+  return { door: { at, heading: yaw }, kit: K, base, R, sill, glyphM, perch: landmarkFrame(K, 'arzach', sill).world(0, sill + 37.8, -4), clear: [{ x: SITE.x, z: SITE.z, r: 82 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the birds come back

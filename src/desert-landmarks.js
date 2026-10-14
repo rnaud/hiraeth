@@ -1,3 +1,4 @@
+import { ROSE_SITE } from './desert-sites.js';
 import * as THREE from 'three';
 import { wallOpenings } from './wall-openings.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -99,8 +100,15 @@ const groundHeight = (x, z) => lagoonHeight(x, z, drifts(x, z, flatten(x, z, bas
 /** The salt pan where the dry wash ends, east of the camps (src/desert-sites.js SALT_PAN, src/desert-water.js). */
 export const PAN = pan(SALT_PAN, (x, z) => SAND_RUN.height(x, z, WASH.height(x, z, groundHeight(x, z))));
 /** The desert's full height field: dunes, the mineral basin, level landmark floors, drifts, the salt lagoons, the dry wash, the sand river and the salt pan. */
+const unshapedHeight = (x, z) => PAN.height(x, z, SAND_RUN.height(x, z, WASH.height(x, z, groundHeight(x, z))));
+let roseFloor;
 export function desertHeight(x, z) {
-  return PAN.height(x, z, SAND_RUN.height(x, z, WASH.height(x, z, groundHeight(x, z))));
+  const h = unshapedHeight(x, z), d = Math.hypot(x - ROSE_SITE.x, z - ROSE_SITE.z);
+  if (d >= 200) return h;
+  // A level sand terrace under the entire stair ring and approach, blending into the dunes.
+  roseFloor ??= unshapedHeight(ROSE_SITE.x, ROSE_SITE.z);
+  const t = smoothstep(112, 200, d);
+  return roseFloor * (1 - t) + h * t;
 }
 
 // ------------------------------------------------------------------ helpers

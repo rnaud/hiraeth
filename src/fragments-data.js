@@ -42,7 +42,7 @@ export const FRAGMENTS_PER_WORLD = 24;
 export const FRAGMENTS = {
   desert: [
     [166.8, -16.97, -204.4],   // (v1.66, #250) under the old ribcage’s ribs
-    [558.0, 43.93, 345.9],
+    [558.00, 43.67, 345.90],
     [658.0, 24.45, 51.9],
     [-166.0, 27.03, 745.9],
     [-324.0, 7.61, 395.9],
@@ -55,7 +55,7 @@ export const FRAGMENTS = {
     [-256.0, -9.21, 491.9],   // (v1.70, #317) inside a ribcage
     [-418.0, 3.72, 619.9],   // (v1.70, #317) inside a ribcage
     [-52.0, 3.89, 771.9],   // (v1.70, #317) by the crashed hull
-    [582.0, 40.35, 379.9],   // (v1.70, #317) on the Rose House’s walls
+    [582.00, 43.67, 379.90],   // (v1.70, #317) on the Rose House’s raised stone terrace
     [562.0, 7.83, 99.9],   // (v1.70, #317) a boat stranded in the dry wash
     [-34.0, 28.91, -440.1],   // (v1.70, #317) a ledge, a 6 m drop by it
     [482.0, 21.46, -132.1],   // (v1.70, #317) a ledge, a 8 m drop by it
@@ -78,7 +78,7 @@ export const FRAGMENTS = {
     [220.0, 37.48, -164.0],   // (v1.70, #317) on a summit
     [218.0, 40.00, -844.0],   // (v1.70, #317) on a summit
     [212.0, 40.00, -372.0],   // (v1.70, #317) on a summit
-    [294.0, 37.74, -292.0],   // (v1.70, #317) on a summit
+    [294.00, 42.93, -292.00],   // (v1.70, #317) on the relocated needle plateau’s summit
     [218.0, 40.00, -474.0],   // (v1.70, #317) on a summit
     [-20.0, 53.30, -1372.0],   // (v1.70, #317) by the hour stone toward the landing (new country)
     [270.0, 37.38, -180.0],   // (v1.70, #317) on a summit
@@ -110,7 +110,7 @@ export const FRAGMENTS = {
     [344.0, 0.69, -590.0],   // (v1.70, #317) tucked in among walls
     [214.0, 2.92, 208.0],   // (v1.70, #317) tucked in among walls
     [-410.0, 6.04, -160.0],   // (v1.70, #317) tucked in among walls
-    [192.0, -0.36, -976.0],   // (v1.70, #317) tucked in among walls
+    [-62.0, -1.47, -820.0],   // (v1.70, #317) beneath the cap square, in the shallows
     [448.0, 1.56, -176.0],   // (v1.70, #317) tucked in among walls
     [430.0, 2.36, 422.0],   // (v1.70, #317) out at the end of the way
     [-148.0, 1.60, 204.0],   // (v1.70, #317) tucked in among walls
@@ -130,7 +130,7 @@ export const FRAGMENTS = {
     [30.0, 19.29, 254.0],   // (v1.70, #317) among the pyramid nursery’s terrace trees (new country)
     [28.0, 19.29, 226.0],   // (v1.70, #317) among the pyramid nursery’s terrace trees (new country)
     [60.0, 7.79, 154.0],   // (v1.70, #317) on a cap of the pyramid nursery (new country)
-    [70.0, 17.43, 294.0],   // (v1.70, #317) on the water stair (new country)
+    [70.00, 18.11, 294.00],   // (v1.70, #317) on the water stair (new country)
     [136.0, -17.10, -58.0],   // (v1.70, #317) on the round ship’s hill (new country)
     [56.0, 0.99, 112.0],   // (v1.70, #317) by the pyramid nursery’s seedling beds (new country)
     [-50.0, -0.06, -88.0],   // (v1.70, #317) on the runnel’s basin
@@ -150,7 +150,7 @@ export const FRAGMENTS = {
     [136.2, -0.60, 27.1],   // (v1.61, #228) out on the seabed, at a pod tower’s foot
     [157.6, -64.00, -72.0],   // (v1.66, #250) among the whale bones on the canyon’s floor
     [138.2, -26.25, -68.9],   // (v1.61, #228) a pod tower’s ring down the canyon’s wall
-    [48.2, -0.97, -168.9],   // (v1.61, #228) out on the seabed, by a tower’s round door
+    [45.20, -0.69, -163.70],   // (v1.61, #228) on the seabed by the relocated tower, within reach of air
     [146.2, -7.20, -50.9],   // (v1.61, #228) on the white bridge over the canyon
     [-38.0, 0.08, -112.0],
     [168.2, -6.52, -32.9],   // (v1.70, #317) on a tower of pods (new country)
@@ -159,12 +159,12 @@ export const FRAGMENTS = {
     [-153.8, -0.37, 73.1],   // (v1.70, #317) on a tower of pods
     [-45.8, 4.38, 77.1],   // (v1.70, #317) on a tower of pods
     [-139.8, -0.55, -36.9],   // (v1.70, #317) on a tower of pods
-    [58.2, -0.66, 181.1],   // (v1.70, #317) on a tower of pods
+    [56.47, 3.86, 180.10],   // (v1.70, #317) on the relocated pod tower’s lower ledge
     [131.6, -54.36, -194.0],   // (v1.70, #317) on a tower of pods
     [40.2, -0.47, -60.9],   // (v1.70, #317) on a tower of pods
     [173.6, -64.00, -112.0],   // (v1.70, #317) on a tower of pods (new country)
     [-87.8, -0.50, 89.1],   // (v1.70, #317) on a tower of pods
-    [-57.8, -0.62, -158.9],   // (v1.70, #317) on a tower of pods
+    [-51.80, -0.52, -158.90],   // (v1.70, #317) on the seabed by the relocated tower, within reach of air
     [171.6, -63.76, -174.0],   // (v1.70, #317) on a tower of pods
     [-47.8, -0.60, 175.1],   // (v1.70, #317) on a tower of pods
     [64.2, -0.70, -28.9],   // (v1.70, #317) on a tower of pods
@@ -197,13 +197,13 @@ export const FRAGMENTS = {
     [758.0, 200.00, -362.0],   // (v1.70, #317) tucked in among walls
   ],
   glassdunes: [
-    [218.0, 43.33, 62.0],
+    [-62.00, 64.38, -290.00],   // on a ledge behind the breaking wave
     [82.0, 42.74, -284.0],
     [12.0, 27.32, 36.0],   // (v1.66, #250) by the wave’s cairn, on the frozen wave’s crest
-    [228.0, 35.91, -122.0],
+    [46.00, 46.93, -288.00],   // on a ledge behind the breaking wave
     [-78.0, 90.99, -242.0],   // (v1.66, #250) by the breaker’s cairn, 91 m up on the breaking wave
-    [298.0, 50.41, -26.0],
-    [170.0, 12.17, 118.0],   // (v1.66, #250) on the glass that holds the carriers
+    [-28.00, 60.18, -288.00],   // on a ledge behind the breaking wave
+    [116.00, 40.32, -270.00],   // (v1.66, #250) on the eastern shoulder of the breaking wave
     [-36.0, 6.03, -246.0],   // (v1.66, #250) on the glass that holds the moment in the wave
     [130.0, 17.50, -192.0],   // (v1.70, #317) on a summit
     [-178.0, 3.18, -8.0],   // (v1.70, #317) on the glass that holds a stopped minute (the dust)
@@ -215,12 +215,12 @@ export const FRAGMENTS = {
     [48.0, 2.68, 38.0],   // (v1.70, #317) on the glass that holds a stopped minute (the flock)
     [-156.0, 2.71, 4.0],   // (v1.70, #317) by the dust in the cliff
     [104.0, 2.51, 18.0],   // (v1.70, #317) by the carriers’ float-sledge
-    [214.0, 42.97, -18.0],   // (v1.70, #317) a ledge, a 44 m drop by it
+    [24.00, 57.29, -278.00],   // (v1.70, #317) on a ledge behind the breaking wave
     [2.0, 48.86, -300.0],   // (v1.70, #317) a ledge, a 49 m drop by it
-    [228.0, 57.81, -70.0],   // (v1.70, #317) a ledge, a 57 m drop by it
-    [260.0, 38.84, 144.0],   // (v1.70, #317) a ledge, a 38 m drop by it
-    [300.0, 58.97, -94.0],   // (v1.70, #317) a ledge, a 58 m drop by it
-    [284.0, 41.50, 18.0],   // (v1.70, #317) a ledge, a 44 m drop by it
+    [-84.00, 76.89, -288.00],   // (v1.70, #317) on the high western shoulder of the breaking wave
+    [344.00, 2.00, 182.00],   // (v1.70, #317) in a nook beneath the eastern glass billows
+    [-160.00, 11.95, 198.00],   // (v1.70, #317) on a ledge at the western glass cliff
+    [-46.00, 66.81, -276.00],   // (v1.70, #317) on a ledge behind the breaking wave
   ],
   buried: [
     [-44.0, -32.63, -274.0],   // (v1.61, #228; v1.66, #250) behind the oil fall, at the canyon’s foot
@@ -318,14 +318,14 @@ export const FRAGMENTS = {
     [-56.0, -1.68, -63.0],   // (v1.70, #317) on a summit
     [-47.0, 0.45, 29.0],   // (v1.70, #317) on a summit
     [-95.0, -4.00, -59.0],   // (v1.70, #317) by the sapling in its pot
-    [115.0, 14.00, -191.0],   // (v1.70, #317) at the edge, over the drop
+    [115.00, 14.00, -191.00],   // (v1.70, #317) at the Mooring-House’s outer apron, over the drop
     [27.0, -0.00, -101.0],   // (v1.70, #317) at the edge, over the drop
     [-92.0, -0.00, 21.0],   // (v1.70, #317) at the edge, over the drop
     [-88.0, -4.00, -76.0],   // (v1.70, #317) at the edge, over the drop
     [28.0, -0.00, -44.0],   // (v1.70, #317) at the edge, over the drop
     [-105.0, -4.00, -44.0],   // (v1.70, #317) at the edge, over the drop
     [-68.0, -0.00, 15.0],   // (v1.70, #317) at the edge, over the drop
-    [77.0, 14.00, -190.0],   // (v1.70, #317) at the edge, over the drop
+    [77.00, 14.00, -190.00],   // (v1.70, #317) at the Mooring-House’s outer apron, over the drop
     [-75.0, -0.00, 45.0],   // (v1.70, #317) at the edge, over the drop
   ],
   bazaar: [
@@ -338,7 +338,7 @@ export const FRAGMENTS = {
     [34.0, 8.32, -274.0],   // (v1.66, #250) on a tower’s service balcony over Signal Square
     [-74.0, 0.00, -64.0],   // (v1.66, #250) by the radio-mender’s table in the listeners’ lane
     [12.0, 25.00, -88.0],   // (v1.70, #317) on a summit (new country)
-    [36.0, 8.32, -324.0],   // (v1.70, #317) on a tower over the street
+    [100.0, 8.32, -324.0],   // (v1.70, #317) on a tower over the street
     [30.0, 8.32, -78.0],   // (v1.70, #317) on a tower over the street (new country)
     [190.0, 0.00, -306.0],   // (v1.70, #317) tucked in among walls
     [-190.0, 0.00, -374.0],   // (v1.70, #317) tucked in among walls
@@ -350,7 +350,7 @@ export const FRAGMENTS = {
     [-218.0, 0.00, -60.0],   // (v1.70, #317) out at the end of the way
     [-146.0, 0.00, -182.0],   // (v1.70, #317) out at the end of the way
     [-38.0, 3.34, 170.0],   // (v1.70, #317) out at the end of the way
-    [134.0, 0.00, -370.0],   // (v1.70, #317) out at the end of the way
+    [104.00, 0.00, -392.00],   // (v1.70, #317) beside the set-back market towers
     [-110.0, 0.00, -400.0],   // (v1.70, #317) out at the end of the way
     [-150.0, 0.00, 60.0],   // (v1.70, #317) out at the end of the way
   ],

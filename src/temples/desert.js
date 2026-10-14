@@ -1,9 +1,11 @@
+import { landmark } from './landmarks.js';
+import { stone } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { magicMaterial, magicPool, setMagic } from '../story/magic-water.js';
-import { STORY } from '../desert-sites.js';
+import { STORY, ROSE_SITE } from '../desert-sites.js';
 import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
 import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate, Weight } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
@@ -11,7 +13,7 @@ import { keeperGuardian } from './guardian-generated.js';
 import { chestMound } from '../boxes/mound.js';
 
 // The desert's temple: the Rose House, the great drum of rose stone the
-// people of Qanat call the house of the Givers, half sunk in the dunes east
+// people of Qanat call the house of the Givers, standing above the dunes east
 // of the city. The Givers kept the water there: a cistern under a dome,
 // fed by channels that once ran to Qanat's fields. The water stopped long
 // ago; the fields went to sand; the beast the Givers left to keep the cistern
@@ -66,7 +68,7 @@ const UP = V(0, 1, 0);
 export const PIER = { x: -0.5, w: 8.6, weight: -3.3 };
 
 /** Where the house stands in the dunes (world x, z) and which way its door looks (toward Qanat). */
-export const SITE = { x: 550, z: 376, r: 34 };
+export const SITE = { ...ROSE_SITE };
 SITE.heading = Math.atan2(STORY.city.x - SITE.x, STORY.city.z - SITE.z);
 
 /**
@@ -532,67 +534,36 @@ function exterior(scene, level, rt) {
   const H = (x, z) => level.ground?.heightAt?.(x, z) ?? 0;
   const yaw = SITE.heading;
   const f = V(Math.sin(yaw), 0, Math.cos(yaw));
-  let lo = Infinity, hi = -Infinity;
+  let lo = Infinity;
   for (let a = 0; a < 16; a++) for (const r of [0, 12, 24, 30, 36]) {
     const x = SITE.x + Math.sin(a / 16 * Math.PI * 2) * r, z = SITE.z + Math.cos(a / 16 * Math.PI * 2) * r;
-    lo = Math.min(lo, H(x, z)); hi = Math.max(hi, H(x, z));
+    lo = Math.min(lo, H(x, z));
   }
   const R = 30;
   const foot = V(SITE.x, 0, SITE.z).addScaledVector(f, R + 6);
-  const doorY = Math.max(H(foot.x, foot.z), H(SITE.x + f.x * (R + 1), SITE.z + f.z * (R + 1))) + 0.3;
+  const doorY = Math.max(H(foot.x, foot.z), H(SITE.x + f.x * (R + 1), SITE.z + f.z * (R + 1))) + 6.3;
   const base = lo - 7;
   const K = new TempleKit(rt.root, 'The Rose House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, dy = doorY - base;
-  const top = Math.max(hi - base + 22, dy + 28);
-  const rose = { paint: new THREE.Color('#dd8f86'), smooth: true };
-  // the drum, its cornice, an upper drum and a low dome
-  // (the drum collides as its own lathe: a smooth cylinder lay up to 3.4 m inside the flared foot and the cornice)
-  K.both(M.wall, lathe([[R + 3, 0], [R + 2.2, 3], [R, 5], [R, top - 3], [R + 1.4, top - 2.4], [R + 1.4, top], [R - 1, top + 0.4]], 48));
-  const r2 = 21;
-  K.both(M.wall, T(annulus(r2 - 0.2, R + 0.2, 0.6, 48), [0, top + 0.35, 0]));
-  K.both(M.wallGlyph, new THREE.CylinderGeometry(r2, r2, 11, 40).translate(0, top + 5.5, 0));
-  K.add(M.trim, T(annulus(r2 - 0.5, r2 + 1.4, 0.6, 48), [0, top + 11.3, 0]));
-  K.both(rose, new THREE.SphereGeometry(r2, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.55, 1).translate(0, top + 11, 0));
-  K.add(M.trim, lathe([[3.8, 0], [3.8, 1.4], [2.9, 1.8], [0.01, 2.6]], 20).translate(0, top + 11 + r2 * 0.55 - 0.4, 0));
-  // twelve tall fins round the drum, their tops rounded, glyphs between them
-  for (let i = 0; i < 12; i++) {
-    const a = (i + 0.5) / 12 * Math.PI * 2;
-    if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.4) continue;   // (not over the door)
-    const h = top + 6 + (i % 2) * 4;
-    const fin = new THREE.BoxGeometry(1.8, h, 5).translate(0, h / 2, R + 1.6);
-    const cap = new THREE.CylinderGeometry(2.5, 2.5, 1.8, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).translate(0, h, R + 1.6);
-    K.both(M.wall, T(fin, [0, 0, 0], [0, a, 0])); K.both(M.wall, T(cap, [0, 0, 0], [0, a, 0]));
-    const ga = a + Math.PI / 12;
-    K.add(M.glyph, T(glyphGeometry(2.8, 0.15), [Math.sin(ga) * (R + 0.08), top - 8, Math.cos(ga) * (R + 0.08)], [0, ga, 0]));
-  }
-  // the doorway (after the picked entrance, references/temples/givers-house/sheet-2.jpg): a tall dark opening in a
-  // frame of carved stone, stepped out from the drum in three bands, and over it a panel with the makers' mark cut
-  // deep: three round holes over an arc rising
-  const z0 = R - 0.6, z1 = R + 5;
-  for (const s of [-1, 1]) {
-    K.both(M.wall, box(5, 16, z1 - z0, s * 4.6, dy + 8 - 0.0, (z0 + z1) / 2));
-    K.add(M.trim, box(5.4, 1, z1 - z0 + 0.4, s * 4.6, dy + 16, (z0 + z1) / 2));
-    // the frame's bands round the opening, each a step proud of the last
-    for (let k = 0; k < 3; k++) K.both(M.trim, box(0.55, 9.4 - k * 0.4, 0.4, s * (2.55 + k * 0.55), dy + (9.4 - k * 0.4) / 2, z1 + 0.15 + k * 0.12));
-  }
-  K.both(M.wall, box(4.2, 16 - 7.5, z1 - z0, 0, dy + 7.5 + (16 - 7.5) / 2, (z0 + z1) / 2));
-  for (let k = 0; k < 3; k++) K.both(M.trim, box(5.6 + k * 1.1, 0.5, 0.4, 0, dy + 7.85 + k * 0.5, z1 + 0.15 + k * 0.12));
-  K.add(M.trim, box(19, 1.4, 2.4, 0, dy + 14.7, z1 + 0.2));
-  // the panel: three deep round holes over an arc
-  K.both(M.trim, box(6.2, 4.4, 0.5, 0, dy + 11.1, z1 + 0.2));
-  for (const x of [-1.7, 0, 1.7]) K.add(M.voidM, T(new THREE.CircleGeometry(0.62, 16), [x, dy + 12.0, z1 + 0.47]));
-  K.both(M.dark, T(new THREE.TorusGeometry(1.9, 0.18, 4, 20, Math.PI * 0.8), [0, dy + 9.1, z1 + 0.47], [0, 0, Math.PI * 0.1]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.3, 7.6).translate(0, 3.8, 0), [0, dy, R + 1.0]));
-  K.solid(box(4.4, 7.6, 0.6, 0, dy + 3.8, R + 0.6));
+  const landmarkTop = landmark(K, 'desert', { y: dy, R });
+  // Low dark pointed entrance between the red feet, as in the selected drawing.
+  const doorShape = new THREE.Shape();
+  doorShape.moveTo(-3.4, 0); doorShape.lineTo(3.4, 0); doorShape.lineTo(3.4, 4.5);
+  doorShape.quadraticCurveTo(3, 8.8, 0, 10); doorShape.quadraticCurveTo(-3, 8.8, -3.4, 4.5); doorShape.closePath();
+  K.add(M.voidM, new THREE.ShapeGeometry(doorShape, 20).translate(0, dy, R + 2));
+  K.solid(box(6.8, 10, .3, 0, dy + 5, R + 1.8));
   // the forecourt and its steps down into the sand
-  K.both(M.floor, box(20, dy, 17.5, 0, dy / 2, R - 1 + 8.75));
-  K.both(M.trim, box(20.6, 0.4, 0.6, 0, dy, R + 16.4));
+  const red = stone('#ef5845',{course:5.5,width:10,wear:.65});
+  K.both(red, box(12, dy, 6, 0, dy / 2, R + 3));
+  const end = K.world(0,0,R+38), sand = H(end.x,end.z)-base+.12;
+  K.stairs([0,dy,R+6],[0,sand,R+38],10.4,{rise:.32,mat:red,sides:false});
+  for(const side of [-1,1])K.ramp([side*5.7,dy+.25,R+6],[side*5.7,sand+.25,R+38],.7,{t:.5,mat:red});
   // (the Givers' dry channel out from the door toward Qanat is the world's: src/levels/desert.js, the same path)
   K.flush();
   // the door: its threshold (world), looking out toward Qanat
   const at = K.world(0, dy, R + 2.4);
   const front = K.world(0, dy, R + 14);
-  return { door: { at, heading: yaw }, kit: K, base, top, doorY, R, front, clear: [{ x: SITE.x, z: SITE.z, r: R + 6 }, { x: front.x, z: front.z, r: 14 }] };
+  return { door: { at, heading: yaw }, kit: K, base, top: base + landmarkTop, doorY, R, front, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
 }
 
 // ------------------------------------------------------------------ the world change: water runs, fields grow

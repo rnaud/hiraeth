@@ -1,3 +1,5 @@
+import { landmark } from './landmarks.js';
+import { pearl, metal } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -232,8 +234,8 @@ function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
   const ivory = { paint: new THREE.Color('#f4ead6'), smooth: true, side: THREE.FrontSide };
-  const coral = { paint: new THREE.Color('#e0806a'), smooth: true, side: THREE.FrontSide };
-  const brass = { paint: new THREE.Color('#c9973f'), smooth: false, side: THREE.FrontSide };
+  const coral = pearl('#fa7356');
+  const brass = metal('#c9973f');
   const water = makeMaterial({ color: '#3f9aa6', glow: 0.35, flat: true, key: 'temple.underwater.water' });
   const deepM = makeMaterial({ color: '#2a6f86', glow: 0.25, flat: true, key: 'temple.underwater.deep' });
   /** A groove: a dark strip with brass rails (drawn). */
@@ -465,33 +467,19 @@ function layout(rt) {
 function exterior(scene, level, rt) {
   const K = new TempleKit(rt.root, 'The Whale-House', V(SITE.x, 0, SITE.z), 0, rt.M);
   const M = rt.M;
-  const ivory = { paint: new THREE.Color('#efe2c8'), smooth: true, side: THREE.FrontSide };
-  const pale = { paint: new THREE.Color('#f7eedc'), smooth: true, side: THREE.FrontSide };
-  const coral = { paint: new THREE.Color('#e0806a'), smooth: true, side: THREE.FrontSide };
+  const ivory = pearl('#fff2d3');
+  const coral = pearl('#fa7356');
   const teal = { paint: new THREE.Color('#3f8a8a'), smooth: false, side: THREE.FrontSide };
-  const brass = { paint: new THREE.Color('#c9973f'), smooth: false, side: THREE.FrontSide };
+  const brass = metal('#c9973f');
   const dark = { paint: new THREE.Color('#1f3d44'), smooth: false, side: THREE.DoubleSide };
   const DZ = SITE.door - SITE.z, FZ = DZ - 0.3;   // the door (local z 14) and the facade's face (13.7: it seals the tube's end)
-  // the facade: a flat wall of shell across the tube's end, 20 m wide and 11 tall, the doorway in it; a coral arch round
-  // the doorway, brass studs, the glyph over it; a teal course at its foot
-  K.wall(-10, FZ - 0.6, 10, FZ - 0.6, -0.8, 10.4, { t: 1.2, holes: [{ at: 10, w: 4.4, h: 7.0, y0: 0.8 }] });
-  K.both(teal, box(20.4, 1.0, 1.5, 0, -0.3, FZ - 0.6));
-  K.add(coral, T(new THREE.TorusGeometry(2.9, 0.42, 6, 28, Math.PI), [0, 4.6, FZ + 0.1]));
-  for (let i = 0; i < 9; i++) { const a = (i / 8) * Math.PI; K.add(brass, T(new THREE.SphereGeometry(0.13, 6, 4), [Math.cos(a) * 2.9, 4.6 + Math.sin(a) * 2.9, FZ + 0.45])); }
-  K.add(M.glyph, T(glyphGeometry(1.6, 0.14), [0, 8.4, FZ + 0.06]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.4, 6.6).translate(0, 3.3, 0), [0, 0, FZ - 0.9]));
-  K.solid(box(4.4, 6.6, 0.1, 0, 3.3, FZ - 0.9));
-  // the shell itself: a great body of ivory lying on the bed behind the facade, its whorl rising to a spire 30 m up
-  K.both(ivory, new THREE.SphereGeometry(1, 28, 16).scale(14, 11, 15).translate(0, 5, -3));
-  K.add(coral, new THREE.TorusGeometry(1, 0.02, 4, 48).rotateX(Math.PI / 2).scale(14.1, 1, 15.1).translate(0, 7, -3));
-  K.add(coral, new THREE.TorusGeometry(1, 0.02, 4, 48).rotateX(Math.PI / 2).scale(12.0, 1, 12.9).translate(0, 11, -3));
-  for (let i = 0; i < 12; i++) {
-    const k = i / 11, a = i * 1.1, r = 9 * (1 - k * 0.82), rad = 5.5 * (1 - k * 0.75);
-    const p = [Math.sin(a) * rad, 12 + k * 20, -5 + Math.cos(a) * rad - k * 3];
-    K.add(i % 2 ? ivory : pale, new THREE.SphereGeometry(r, 18, 10).scale(1, 0.8, 1).translate(...p));
-    if (i % 2 === 0 && i < 10) K.add(coral, T(new THREE.TorusGeometry(r * 0.99, 0.12 + 0.2 * (1 - k), 4, 28), p, [Math.PI / 2 + 0.25, 0, a * 0.2]));
-  }
-  K.add(coral, new THREE.ConeGeometry(1.0, 4.0, 10).translate(0, 34.5, -8));
+  // The approach tube enters a small coral throat at the foot of the immense open mouth.
+  for (const sign of [-1,1]) K.both(coral,new THREE.SphereGeometry(1,20,16).scale(2.8,5.8,3.1).translate(sign*4.8,4.2,FZ-.8));
+  K.both(coral,new THREE.SphereGeometry(1,24,12).scale(5.8,2.5,3.1).translate(0,8.4,FZ-.8));
+  K.add(M.glyph,T(glyphGeometry(1.1,.14),[0,9.1,FZ+2.2]));
+  K.add(M.voidM,T(new THREE.PlaneGeometry(4.4,6.6).translate(0,3.3,0),[0,0,FZ-.9]));
+  K.solid(box(4.4,6.6,.1,0,3.3,FZ-.9));
+  landmark(K, 'underwater', { R: 14 });
   // the ear to the deep: a conch's mouth at its back, facing north, dark inside, ringed in coral
   K.add(ivory, T(lathe([[1.5, 0], [2.4, 1.6], [4.2, 3.0], [6.0, 3.7], [6.3, 3.9]], 24).rotateX(-Math.PI / 2), [0, 6, -17]));
   K.add(dark, T(new THREE.CircleGeometry(5.6, 24), [0, 6, -20.2], [0, Math.PI, 0]));
@@ -499,7 +487,7 @@ function exterior(scene, level, rt) {
   // two great brass horns curling out of its sides, up and out into the sea: lamps in their mouths (the change lights them)
   const mouths = [];
   for (const s of [-1, 1]) {
-    const pts = [V(s * 9, 8, -3), V(s * 14, 11, -2), V(s * 17.5, 16, 1), V(s * 19, 21, 3)];
+    const pts = [V(s * 29, 11, 16), V(s * 29, 11, 19), V(s * 29, 11, 22), V(s * 29, 11, 25)];
     K.add(brass, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, 0.9, 10));
     const end = pts[3], dir = end.clone().sub(pts[2]).normalize();
     const bell = lathe([[0.9, 0], [1.3, 1.0], [2.2, 2.0], [3.4, 2.6], [3.6, 2.7]], 20);
@@ -527,7 +515,7 @@ function exterior(scene, level, rt) {
   lm.position.copy(K.world(0, 0, 0));
   lm.userData.noCollide = true; lm.userData.dynamic = true;
   rt.root.add(lm);
-  return { door: { at: K.world(0, 0, DZ), heading: 0 }, kit: K, glowM, clear: [{ x: SITE.x, z: SITE.z - 2, r: 24 }] };
+  return { door: { at: K.world(0, 0, DZ), heading: 0 }, kit: K, glowM, clear: [{ x: SITE.x, z: SITE.z - 2, r: 68 }] };
 }
 
 function mergeAll(list) {

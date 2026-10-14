@@ -1,3 +1,4 @@
+import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { FORM_ATTRS, formAxis, padForm } from '../form.js';
@@ -17,6 +18,8 @@ import { printGeometry } from '../temples/pieces.js';
 import { Z_GAP } from '../temples/kit.js';
 import { furrowsAt, fallsGround, buildExplorations, inCrater, CRATERS, PILLARS, SPIRAL } from './spheres-explorations.js';
 import { buildDetours } from './spheres-detours.js';
+
+const footprintVista = templeVista(FOOTPRINT, { width: 150, front: 260, back: 190 });
 
 // ---------------------------------------------------------------------------
 // The Garden of Spheres: a calm meadow under
@@ -239,6 +242,11 @@ export function* buildSpheres(scene) {
   };
   function umbrella(x, z, Rc, Ht, o = {}) {
     const seed = rng() * 50, base = o.base ?? terrain.baseAt(x, z, Rc * 0.15) - 0.5;
+    if (o.base === undefined && footprintVista(x, z, Rc)) {
+      for (let b = 0; b < 30; b++) rng(); // preserve the branch draws and the rest of the meadow
+      avoid.push([x, z, Rc * .14 * 2.2]);
+      return { base, top: base + Ht + 2.3 + Rc * (o.dome ?? .09) };
+    }
     const dome = Rc * (o.dome ?? 0.09);
     const rT = Rc * 0.085, rB = Rc * 0.14, yJ = Ht - Rc * 0.2;
     const prof = [
@@ -922,7 +930,7 @@ export function* buildSpheres(scene) {
     instanced(g, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), shrubs.map((s) => ({
       x: s.x, y: s.y + s.s * 0.45 * (s.sy ?? 1), z: s.z, s: s.s, sy: s.s * (s.sy ?? 0.85), ry: rng() * 6,
       color: s.color ?? (s.dark ? pick(DARK) : pick(MID)),
-    })).filter((it) => !cleared(it.x, it.z, it.s)));
+    })).filter((it) => !cleared(it.x, it.z, it.s) && !footprintVista(it.x, it.z, it.s)));
     instanced(hedge(0, 3.4, 1.6, 1.9).hedge, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), hedges.map((h) => ({ ...h, color: pick(['#4f6f38', '#55763c', '#4a6a36']) })));
     instanced(new THREE.IcosahedronGeometry(0.2, 0), makeMaterial({ color: '#ffffff', glow: 0.3 }), fruit.map(([x, y, z]) => ({ x, y, z, s: 1, color: pick(['#e8872f', '#f0a040', '#e27428']) })));
   }
@@ -938,6 +946,9 @@ export function* buildSpheres(scene) {
       return it;
     };
     const items = olives.map(([x, z, s, dark]) => ({ x, y: H(x, z) - 0.2, z, s, ry: rng() * 6, dark })).map(stepOut);
+    // Keep each surviving tree's instance number as well as its random draws: clearing the
+    // Footprint's view must not reshuffle the grove's persistent collision samples.
+    const clearOlive = (it) => footprintVista(it.x, it.z, it.s * 3) ? { ...it, s: 0 } : it;
     const trunk = mergeGeometries([
       new THREE.CylinderGeometry(0.22, 0.4, 3.4, 6).rotateZ(0.12).translate(0.1, 1.7, 0).toNonIndexed(),
       new THREE.CylinderGeometry(0.12, 0.2, 1.8, 5).rotateZ(-0.7).translate(0.7, 3.4, 0).toNonIndexed(),
@@ -949,13 +960,13 @@ export function* buildSpheres(scene) {
     ]);   // (round and layered, as the sheets' olives: 800 faces, the four lumps' 720)
     // (the trunk and its two boughs collide as drawn, leaning and turned as each is: an upright 0.4 m post stood
     // in for them, out of the drawn bark at the top and turned the other way; the crown stays walk-through)
-    instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })),
+    instanced(trunk, makeMaterial({ color: '#ffffff', detail: 'organic' }), items.map((it) => ({ ...it, color: it.dark ? '#6a5a4a' : pick(['#a0593a', '#94523a', '#8a5a40']) })).map(clearOlive),
       { solid: true }).name = 'olive trunks';
     // (the crown is leaves, brushed past; but climbed up its trunk you came out inside it: a convex blob of its
     // core, 20 faces, inside the drawn leaves, is a ceiling the climb stops under (Player.updateClimb) and
     // holds you on top; the whole crown as drawn would be ~640 faces a tree, 155 k for the 243)
     const blob = new THREE.IcosahedronGeometry(1, 0).scale(2.0, 1.3, 2.0).translate(0, 5, 0);
-    const cm = instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })),
+    const cm = instanced(crown, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), items.map((it) => ({ ...it, color: it.dark ? pick(['#3f6b45', '#345e3c', '#4a7346']) : pick(['#7f9a4a', '#8fa85a', '#6f8a44', '#869e4c']) })).map(clearOlive),
       { collideGeo: blob });
     cm.name = 'olive crowns';
     cm.userData.standIn = true;   // (drawn, with a collider standing in for it: src/contact-audit.js)
@@ -969,7 +980,7 @@ export function* buildSpheres(scene) {
     const own = mulberry32(19071), O = (a, b) => a + own() * (b - a);
     instanced(g, makeMaterial({ color: '#ffffff', pattern: 'leaves' }), cypresses.map(([x, z, s]) => ({
       x, y: H(x, z) - 0.3, z, s, sx: s * R(0.85, 1.1), sz: s * R(0.85, 1.1), sy: s * R(0.9, 1.25), ry: rng() * 6, color: pick(['#4f6b3a', '#43603a', '#587542']),
-    })).filter((it) => !cleared(it.x, it.z, 2)).concat(EX.cypresses.map(([x, z, s]) => ({
+    })).filter((it) => !cleared(it.x, it.z, 2) && !footprintVista(it.x, it.z, 3)).concat(EX.cypresses.map(([x, z, s]) => ({
       x, y: H(x, z) - 0.3, z, s, sx: s * O(0.85, 1.1), sz: s * O(0.85, 1.1), sy: s * O(1.0, 1.4), ry: own() * 6, color: ['#4f6b3a', '#43603a', '#587542'][Math.floor(own() * 3)],
     }))), { solid: true }).name = 'cypresses';   // (a dense flame of a tree: it collides as drawn, where a 0.9 m post 6 m tall stood inside it)
   }
@@ -1184,7 +1195,7 @@ export function* buildSpheres(scene) {
     lights: [...shop.lights],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     paved: pavedMask({ discs: [{ x: plaza.x, z: plaza.z, r: plaza.r + 1 }], ways }),   // the white paths, the avenue and the plaza: no flowers on them (src/paved.js)
-    floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1) || cleared(x, z, r)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
+    floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1) || cleared(x, z, r) || footprintVista(x, z, r)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
     // what the level design audit reads (scripts/level-design/audit.mjs): the white paths, leading lines: from the lake
     // (the spheres that remember) to the grove's path, through the sphere-arch and down the avenue to the plaza
     lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) },

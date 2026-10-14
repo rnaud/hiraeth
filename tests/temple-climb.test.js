@@ -96,6 +96,9 @@ test('a temple\'s walls are not climbed past its puzzles: not beside any lock\'s
     let tried = 0;
     for (const pr of probes(w.rt, w.physics)) {
       said.length = 0;
+      // Each probe independently checks the glass's slip response. The runtime deliberately
+      // tells this hint only once, so a previous probe must not suppress this one's evidence.
+      w.rt.told.delete('glass.slip');
       const r = push(w, P, pr.from, pr.to);
       if (!r) continue;
       tried++;

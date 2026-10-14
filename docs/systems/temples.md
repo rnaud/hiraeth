@@ -901,3 +901,132 @@ house. Now each temple's `PALETTE` (its world file) carries, besides its colours
 The pieces and the puzzles are untouched: the same rooms, collision and logic (the Lamp-House's six lamps sit lower
 and reach farther, light only). Cost: two to seven draw calls more in a frame (paint and bands share the house's paint
 mesh), frame time within the machine's spread (the audit's "Cost"). `tests/temple-visuals.test.js`.
+
+## Landmarks seen from the approach (14 October 2026)
+
+All fourteen current temples now use the author's Midjourney favourites in
+`references/temples/landmarks-2026-10-14/`. Its manifest preserves each full-size
+selected image, original prompt, job URL/index and checksum. These exterior
+references guide the full exterior forms, foundations, entrances and ornament;
+the earlier interior references and puzzles remain in place. Both houses in each merged world are included,
+and the Clock-House is built in the Glass Dunes, under its saved `garage` id.
+
+`landmarks.js` builds the structural silhouettes in each exterior's existing
+`TempleKit` frame. The individual exterior keeps its portal connection, approach and live
+story props. The Aerie's threshold and staircase rise together onto its broader
+terraces. Its surrounding random spires are kept outside the 82 m wing clearance;
+named quest spires remain. The crane hook, returning bird and capstan attach to
+their new supports. Solid geometry uses `K.both`: the drawn curves and openings match the
+collision. Parts merge per material: two to six surface batches per landmark.
+`landmark-materials.js` separates cut stone (staggered joints, block tone variation and fine worn edges),
+glazed ceramic, brushed brass/copper/iron and pearly shell. These reuse the game's
+surface shader and flat reflection tones, with a material-owned shadow print so
+coral, cobalt and teal remain visible under each world's atmosphere. No bitmap
+textures are loaded.
+
+The Greenhouse, Footprint and clock cover use `glass` rims in the G-buffer and a
+translucent tint in `Veils`, tested against the scene depth. `glaze` marks the source
+mesh `noBatch` so the wash follows its visibility after static batching. Its glass
+collision is unchanged. The Greenhouse contains planting benches, plants and
+trusses at different depths; restored growth follows the new elliptical windows
+and interior beds instead of the old dome's spherical coordinates.
+
+The Lamp-House has an amber glass chimney, brass lamp holders and a smaller
+self-lit core. A warm pilot lights the saucer before restoration; the existing
+world-change hook raises it to a near-white lamp, expands its existing local light
+from 18 to 100 m (reaching the water) and starts the sweeping beam. There is no
+additional per-frame updater or additional local-light slot. The core and glass
+wash retain separate intensities.
+
+| Temple | Selected silhouette |
+| --- | --- |
+| Rose House | Rose fins with a turquoise oculus above a stepped cistern |
+| Aerie | Continuous swept stone wings, split needle, tall turquoise arch and broad ochre terraces |
+| Founders' Belfry | Two rose pylons framing a suspended bronze bell |
+| Hush-House | Four tall pale lavender choir fins around a crystal |
+| Lamp-House | Dark buttressed tower, broad ivory saucer and amber lantern cage |
+| Builders' Greenhouse | Tall glass bud between swept ivory ribs above a wide glasshouse and coral eaves |
+| Warden's Well | Cream terraces, cobalt flues and a brass-rimmed pale aperture |
+| Clock-House | Giant working teal clock between cream uprights |
+| Engine-House | Ivory exhaust blades around an edge-on copper flywheel |
+| Footprint | Three sage prongs and a tall amber lens with a turquoise crescent inlay |
+| Undertower | Pale stepped pylons and a large bronze receiving dish |
+| Casting-House | Ivory split chimney and open ochre crescent mould |
+| Mooring-House | Low coral house under three teal mooring legs |
+| Whale-House | Solid nautilus shell with spiral chambers, broad coral lip and an open vaulted mouth |
+
+The clock's original hands still tell time; the capstan, cables, casting crane,
+lamps, returning bird, growing greenhouse and water channels keep their existing
+story hooks. The Belfry's founders' lamp is mounted on its left pylon. Wider
+crowns have wider flora clearances where needed. `temple-landmarks.test.js` checks
+asset coverage, finite/bounded geometry, visible-to-solid surface agreement and
+the Belfry's open sky gap; the existing temple playthroughs check the journeys.
+
+The second reference pass measures scale against the retained entrances. `LANDMARK_SCALE`
+and `landmarkFrame` enlarge the structural shells around the walking plane without
+scaling the portals: the Belfry is 1.7 times taller, the Footprint 1.65, the Warden's
+Well 1.5, and the Greenhouse 1.35. Door frames stay at their original scale and
+horizontal location; the Rose House's threshold rises with its new steps. The Greenhouse's windows, planting benches and restored growth share its
+larger frame; its stairs are 28 m wide. Hush-House's wider canopy has an open colonnade,
+and the Undertower has stepped blue-grey shoulders and three recessed arch frames.
+The Clock-House has bronze door leaves. Rose House is vermilion stone; the Engine-House
+combines ivory stone, navy iron and red riveted metal with copper machinery.
+
+The Whale-House uses continuous rounded shell sweeps, a flared folded lip and a
+scalloped whorl with spiral sutures. Surface lines follow the curved skin, and the
+structural collision uses those same sweeps. All shells stay below 24,000 triangles.
+
+Approaches are part of this pass: local clouds surround the Belfry's plinth; the
+Lamp-House stands farther east in the shallows with a longer continuous line of
+stepping stones and a clearing through the forest. The Warden's rim forecourt
+excludes ambient villas and trees while retaining its named paths and places.
+The underwater city's two flanking pod towers sit farther to the side of its temple view. The existing root cave, travel tubes,
+quests and interior rooms stay connected.
+
+The foundation pass gives the Rose House twelve full elliptical stair tiers,
+with its threshold 6 m higher and a central flight down to sampled sand. Its fins
+meet the top terrace; no outer drum hides the treads. The Greenhouse hill widens
+across the facade within its existing outer boundary, retaining the playable water
+stair's terrain cut. The exterior stair samples its actual far landing, and the
+garden beds are short, grounded terraces placed clear of the water stair.
+
+Lorn's terrain supports the Hush-House's whole colonnade on a level moss island.
+The Lamp-House has three splayed stone feet sunk into a shallow basin, with its
+front pair flanking the causeway and a solid apron joining the original threshold.
+The Engine-House's ten thick red elbows start outside the enlarged drum, have
+flanged joints and end below sampled sand. The Footprint replaces its old small
+heel-sphere and projecting porch with a broad rounded entrance mass and six low
+lobed roots under the wings; its original doorway and three water-filled toes remain.
+Regression checks cover exposed stair treads on every side, dry foundation contact,
+submerged feet, the connected causeway, outer pipe/root collision and all fourteen
+temple thresholds.
+
+
+The surroundings pass uses `temples/vistas.js` for entrance-oriented clearings,
+with prop radii included so a tree's canopy cannot hang into the opening. Natural
+worlds omit ambient scenery before batching; their procedural draws are retained
+where possible. Flora and background crowds also leave the forecourts clear.
+Named paths, caves, garden stairs, travel tubes and quest structures remain.
+
+The Belfry's decorative start-plateau stacks move onto the needle plateau. The
+Warden's nearby skyline towers are omitted. The Glass Dunes' tall eastern billows
+stand 60 m farther back; the carriers' stopped minute remains beside the route in
+a low glass outcrop. The Engine-House's court moves to the side of its approach, on a level sand pad protected from drifts.
+The market's two rear tower rows step back, the Casting-House gains an open roof
+bay and fewer surrounding pillars, and scenic islands and pod towers move away
+from the Mooring-House and Whale-House. Attached bridges and affected collectible
+positions move with their scenery, retaining the existing save slots.
+
+The clearings preserve the forest's random sequence and the garden's tree instance
+numbers, keeping distant climbing routes stable. Authored sandfall mesas and the
+market's listening crowd remain. The keepers' stakes go around the wider Hush-House,
+service steps connect the rear market balconies, and the Glass slalom passes west
+of the enlarged Clock-House. The Mooring-House's outer apron meets the island deck;
+only its inner doorway platform is raised. Collectibles keep their save slots and
+are checked for footing, reachability and separation from quest routes.
+
+The Rose House shares `ROSE_SITE` with the desert height field. A flat terrace
+extends 112 m from its centre and blends into the dunes by 200 m; the drift mask
+also excludes its foundation. The real-world threshold test samples the outer
+stair ring against the final terrain after drift accumulation, rather than only
+testing the model on an artificial flat plane.

@@ -1,3 +1,4 @@
+import { landmark } from './landmarks.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -567,58 +568,18 @@ function exterior(scene, level, rt) {
   const foot = V(SITE.x, 0, SITE.z).addScaledVector(f, R + 6);
   const dy = Math.max(H(foot.x, foot.z), H(SITE.x + f.x * (R + 1), SITE.z + f.z * (R + 1))) + 0.3 - base;
   const K = new TempleKit(rt.root, 'The Engine-House', V(SITE.x, base, SITE.z), yaw, rt.M);
-  const M = rt.M, top = dy + 52;
-  const blue = { paint: new THREE.Color(PALETTE.stone), smooth: false, side: THREE.FrontSide };
-  const teal = { paint: new THREE.Color(PALETTE.accent), smooth: true, side: THREE.FrontSide };
-  // a riveted drum of rust iron in bands, a teal cap, a ring window high on its face
-  // (the lathe itself collides: a straight cylinder inside it let a climber into its flared foot and crown, src/contact-audit.js)
-  K.both(M.wall, lathe([[R + 2, 0], [R + 2, 4], [R, 5], [R, top - 2], [R + 1.2, top - 1.6], [R + 1.2, top], [R - 2, top + 0.6]], 40));
-  for (let y = 12; y < top - 4; y += 9) K.both(blue, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 1.0, 40).translate(0, y, 0));
-  K.both(teal, new THREE.SphereGeometry(R - 1.5, 32, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.45, 1).translate(0, top + 0.4, 0));
-  K.both(M.trim, T(new THREE.TorusGeometry(7, 0.7, 8, 40), [0, top - 14, R + 0.3]));
-  K.both({ paint: new THREE.Color('#f3c39a'), smooth: true }, T(new THREE.CircleGeometry(6.4, 36), [0, top - 14, R + 0.35]));
-  for (let i = 0; i < 18; i++) { const a = (i + 0.5) / 18 * TAU; K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [Math.sin(a) * (R + 0.35), top - 4, Math.cos(a) * (R + 0.35)], [0, a, 0])); }
-  // pipe elbows round its foot, going into the sand
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * TAU + 0.9;
-    if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.6) continue;
-    const g = new THREE.TorusGeometry(5, 1.4, 10, 20, Math.PI / 2).rotateY(a + Math.PI / 2);
-    K.both(blue, g.translate(Math.sin(a) * (R + 4.6), dy + 1, Math.cos(a) * (R + 4.6)));
-  }
-  // the oval door on the face toward the start hollow, in a teal frame, a lintel with the glyph
-  const z0 = R - 0.5, z1 = R + 4.2;
-  for (const s of [-1, 1]) K.both(M.wall, box(3.8, 11, z1 - z0, s * 4.1, dy + 5.5, (z0 + z1) / 2));
-  K.both(M.wall, box(4.4, 4, z1 - z0, 0, dy + 9, (z0 + z1) / 2));
-  K.both(teal, T(new THREE.TorusGeometry(3.4, 0.5, 8, 32), [0, dy + 4.0, z1 + 0.2], [0, 0, 0], [0.75, 1.15, 1]));   // (4.1 x 6.8 m clear: the way in stays open)
-  K.glyph([0, dy + 9.4, z1 + 0.05], 2.6, 0);
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.3, 7).translate(0, 3.5, 0), [0, dy, R + 0.2]));
-  // after the picked entrance (references/temples/engine-house/sheet-2.jpg): the doorway an oval in an iron plate,
-  // rivets round it, and the door itself swung back against the face on two great greased hinges
-  const iron = { paint: new THREE.Color(PALETTE.wall2), smooth: false, side: THREE.FrontSide };
-  const rivet = { paint: new THREE.Color('#d9a441'), smooth: false, side: THREE.FrontSide };
-  const ow = 2.15, oh = 3.35, oy = dy + 4.0;
-  {
-    const f = new THREE.Shape();
-    f.moveTo(-2.2, 0); f.lineTo(2.2, 0); f.lineTo(2.2, 7); f.lineTo(-2.2, 7); f.closePath();
-    const hole = new THREE.Path(); hole.absellipse(0, oy - dy, ow, oh, 0, Math.PI * 2, true);
-    f.holes.push(hole);
-    K.add(iron, new THREE.ExtrudeGeometry(f, { depth: 0.3, bevelEnabled: false, curveSegments: 24 }).translate(0, dy, z1 - 0.32));
-    for (let i = 0; i < 22; i++) { const a = (i / 22) * TAU; K.add(rivet, T(new THREE.SphereGeometry(0.09, 6, 4), [Math.cos(a) * (ow + 0.32), oy + Math.sin(a) * (oh + 0.32), z1 + 0.62])); }
-    // the leaf: an oval of riveted iron, hinged at the doorway's left, swung back almost flat against the face
-    const leaf = new THREE.Shape(); leaf.absellipse(ow, 0, ow, oh, 0, Math.PI * 2, false);
-    const g = new THREE.ExtrudeGeometry(leaf, { depth: 0.22, bevelEnabled: false, curveSegments: 24 });
-    K.both(iron, T(g, [-ow - 0.1, oy, z1 + 0.75], [0, Math.PI - 0.55, 0]));
-    for (const y of [oy - 2, oy + 2]) {
-      K.add(M.dark, T(new THREE.BoxGeometry(2.4, 0.34, 0.12), [-ow - 1.1, y, z1 + 1.35], [0, -0.55, 0]));
-      K.add(M.dark, new THREE.CylinderGeometry(0.2, 0.2, 0.8, 10).translate(-ow - 0.1, y, z1 + 0.75));
-    }
-  }
+  const M = rt.M;
+  const landmarkTop = landmark(K, 'buried', { y: dy, R, ground: H });
+  // A dark furnace arch grows out of the riveted red plinth.
+  const opening = new THREE.Shape();opening.moveTo(-2.2,0);opening.lineTo(-2.2,5.3);
+  opening.quadraticCurveTo(-2,9,0,11);opening.quadraticCurveTo(2,9,2.2,5.3);opening.lineTo(2.2,0);opening.closePath();
+  K.add(M.voidM,new THREE.ShapeGeometry(opening).translate(0,dy,R+.2));
   K.solid(box(4.4, 7, 0.6, 0, dy + 3.5, R - 0.2));
   K.both(M.floor, box(12, dy, 9, 0, dy / 2, R + 3.5));
   K.flush();
   const at = K.world(0, dy, R + 1.6);
   const front = K.world(0, dy, R + 10);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: base + dy, R, top: base + top, clear: [{ x: SITE.x, z: SITE.z, r: R + 10 }, { x: front.x, z: front.z, r: 10 }] };
+  return { door: { at, heading: yaw }, kit: K, base, doorY: base + dy, R, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 55 }, { x: front.x, z: front.z, r: 10 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the engine runs, the pipe-cart rides again

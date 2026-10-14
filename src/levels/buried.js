@@ -1,3 +1,6 @@
+import { COURTS } from '../finds/courts.js';
+import { templeVista } from '../temples/vistas.js';
+import { SITE as ENGINE_HOUSE } from '../temples/buried.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis, padForm } from '../form.js';
@@ -17,6 +20,8 @@ import { buildMachineBreath, breathMaterials, wallClear, breathSand } from '../b
 import { greebles } from './greeble-kit.js';
 import { ghostBridge, hiddenWriting } from '../gadgets/hidden.js';
 import { glyphGeometry } from '../story/sign-text.js';
+
+const engineVista = templeVista(ENGINE_HOUSE, { width: 100, front: 180, back: 150 });
 
 // ---------------------------------------------------------------------------
 // The Buried Machine (after Moebius): pale cream dunes under a sage sky, with
@@ -122,7 +127,9 @@ function canyonMask(x, z) {
 function height(x, z) {
   const hc = dunes(x, z) + (floorAt(z) - dunes(x, z)) * canyonMask(x, z);
   const mo = 1 - smoothstep(OR + 4, OR + 10, Math.hypot(x - OX, z - OZ));
-  return hc + (FLOOR - hc) * mo;
+  const h = hc + (FLOOR - hc) * mo, court = COURTS.buried;
+  const pad = 1 - smoothstep(24, 42, Math.hypot(x - court.at[0], z - court.at[1]));
+  return h * (1 - pad) + court.y * pad;
 }
 // canyon walls: a leaning surface from the floor (d = W + 3) up to the dune rim (d = W + 13)
 const rimY = (z, s) => Math.max(dunes(cx(z) + s * (W + 16), z), floorAt(z) + 0.5);
@@ -315,16 +322,18 @@ export function* buildBuried(scene) {
     for (const h of huts) { h.y = terrain.baseAt(h.x, h.z, 4 * h.s) - (h === huts[0] ? 0.4 : 0.4 + rng() * 1.6); h.rot = rng() * TAU; h.c = pick(COLORS); }
     for (const p of pods) { p.y = terrain.baseAt(p.x, p.z, 4 * p.s) - 1.5 - rng() * 1.5; p.rot = rng() * TAU; p.c = pick(COLORS); }
     const placeHut = (h, d) => { d.position.set(h.x, h.y, h.z); d.rotation.set(0, h.rot, 0); d.scale.setScalar(h.s); };
-    for (const h of huts.slice(0, 11)) {
+    const shownHuts = huts.filter((h, i) => i === 0 || !engineVista(h.x, h.z, h.s * 7));
+    const shownPods = pods.filter((h) => !engineVista(h.x, h.z, h.s * 6));
+    for (const h of huts.slice(0, 11).filter(h => shownHuts.includes(h))) {
       const c = Math.cos(h.rot), s = Math.sin(h.rot);
       chimneys.push(new THREE.Vector3(h.x + (CH[0] * c + CH[2] * s) * h.s, h.y + CH[1] * h.s, h.z + (-CH[0] * s + CH[2] * c) * h.s));
     }
-    inst(hutGeo, M.white, huts, placeHut, (h) => h.c);
-    inst(winGeo, M.hatch, huts, placeHut).userData.noCollide = true;
-    const ant = inst(antGeo, M.ink, huts.filter((h) => h.ant), placeHut);
+    inst(hutGeo, M.white, shownHuts, placeHut, (h) => h.c);
+    inst(winGeo, M.hatch, shownHuts, placeHut).userData.noCollide = true;
+    const ant = inst(antGeo, M.ink, shownHuts.filter((h) => h.ant), placeHut);
     ant.userData.noCollide = true;
-    inst(podGeo, M.white, pods, (p, d) => { d.position.set(p.x, p.y, p.z); d.rotation.set(0, p.rot, 0); d.scale.set(p.s, p.s * 0.8, p.s); }, (p) => p.c);
-    const pw = inst(podWin, M.hatch, pods, (p, d) => { d.position.set(p.x, p.y, p.z); d.rotation.set(0, p.rot, 0); d.scale.set(p.s, p.s * 0.8, p.s); });
+    inst(podGeo, M.white, shownPods, (p, d) => { d.position.set(p.x, p.y, p.z); d.rotation.set(0, p.rot, 0); d.scale.set(p.s, p.s * 0.8, p.s); }, (p) => p.c);
+    const pw = inst(podWin, M.hatch, shownPods, (p, d) => { d.position.set(p.x, p.y, p.z); d.rotation.set(0, p.rot, 0); d.scale.set(p.s, p.s * 0.8, p.s); });
     pw.userData.noCollide = true;
   }
 
@@ -1165,7 +1174,7 @@ export function* buildBuried(scene) {
   // (none round the keepers' stair or in the oil's pool: src/buried-breath.js; none round the great wheel: its sand slides away, story/buried.js; none across the ways through the
   // cross-walls' openings, which you walk through: the wall and the rim round the opening stand on the floor
   // either side of it, and their footprints' drifts banked sand across it)
-  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) * passageMask(passages, x, z) * breathSand(x, z, cx) }).addScene(scene);
+  const sand = new SandDrifts({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 7, mask: (x, z) => smoothstep(24, 42, Math.hypot(x - COURTS.buried.at[0], z - COURTS.buried.at[1])) * smoothstep(WHEEL.R + 25, WHEEL.R + 40, Math.hypot(x - WHEEL.x, z - WHEEL.z)) * passageMask(passages, x, z) * breathSand(x, z, cx) }).addScene(scene);
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)

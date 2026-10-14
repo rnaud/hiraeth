@@ -199,8 +199,9 @@ export function newCountry(level, id) {
 //     in most directions (the top of something tall, not a ledge under a cliff).
 export const SIGHT_R = 12, SIGHT_DY = 8, BEACON_R = 8, SUMMIT_DROP = 15, SUMMIT_OUT = [12, 24];
 /** The scene's named things that count as places, world by world (their names: the scene's object names). */
+// Match the Rose House’s exterior group: its reference rebuild replaces the old wall batch.
 export const POI_THINGS = {
-  desert: /^(Ribcage|Sunken leviathan|Fallen giant|Crashed hull|The giant’s (hand|arm|spine|jaw)|Givers’ Hearth butte|Radio dishes|Umbrella grove|Petal station|Sail tents|Lavender butte|The Rose House \(wall, 25\))$/,
+  desert: /^(Ribcage|Sunken leviathan|Fallen giant|Crashed hull|The giant’s (hand|arm|spine|jaw)|Givers’ Hearth butte|Radio dishes|Umbrella grove|Petal station|Sail tents|Lavender butte|The Rose House)$/,
   arzach: /^(The rider’s roost|The riders’ gate|The great bird’s bones|The slabs tipped out of the plain|The stones that fell up|The tables of the plain over the cloud|The riders’ road: the niches)$/,
   perdide: /^(The cave’s crown|Wendel’s lookout|shroom-top|The keepers’ (stalks|light|canopy \(hut\))|The cap square|The flooded wood \(mound\))$/,
   edena: /^(The round ship’s (hill|tree’s crown)|The dish pond|The split meteor.*|The builders’ machine|The pyramid nursery’s (caps|terrace trees)|The water stair)$/,

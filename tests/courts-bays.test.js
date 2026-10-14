@@ -51,3 +51,20 @@ test('the courts’ charms: each a little more for its gadget while owned, on a 
   syncUpgrades(() => false);
   for (const [id, [t, k]] of Object.entries(CHARM_TUNES)) assert.equal(t[k], was[id], `${id}: off again`);
 });
+
+
+test('the relocated Engine-House court rests on level sand, with its box above the pavement', async () => {
+  const A = await import('./playthrough-agent.js');
+  globalThis.location = { search: '?level=buried' };
+  const W = A.loadWorld('buried');
+  try {
+    const C = W.level.finds.court, F = C.frame;
+    for (const x of [-10, 0, 10]) for (const z of [-14, -4, 10]) {
+      const p = V(x, 0, z).applyAxisAngle(V(0, 1, 0), F.yaw).add(F.origin);
+      const gap = p.y - W.level.ground.heightAt(p.x, p.z);
+      assert.ok(gap > .15 && gap < .5, 'sand meets the plinth without burying or floating a corner');
+    }
+    const [x, y, z] = C.box.at;
+    assert.ok(Math.abs(W.physics.groundAt(x, y + .8, z, 2) - y) < .05, 'box on the court floor');
+  } finally { W.dispose(); }
+});

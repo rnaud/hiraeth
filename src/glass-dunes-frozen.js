@@ -55,7 +55,7 @@ export const FROZEN_SCENES = [
     line: '~whisper~ (A glassworker, reaching for a falling float. The clock behind her says twelve minutes to.)' },
   { id: 'flock', read: [45.9, 50.7], kind: 'wall', ridge: 'wave', from: [46, 62], dir: [0, -1], minute: 15, label: 'the birds in the wave',
     line: '~curious~ (Birds, held mid-wingbeat. A clock hangs among them: fifteen minutes to.)' },
-  { id: 'carriers', read: [161.6, 112.2], kind: 'wall', ridge: 'billows', from: [140, 110], dir: [1, 0], minute: 9, label: 'the carriers in the glass',
+  { id: 'carriers', read: [163.1, 109.3], kind: 'wall', ridge: 'carriers', from: [140, 110], dir: [1, 0], minute: 9, label: 'the carriers in the glass',
     line: '~solemn~ (Five carriers, mid-step under their loads. One carries a clock: nine minutes to.)' },
   { id: 'dust', read: [-166.7, 1.6], kind: 'wall', ridge: 'giants', from: [-140, 2], dir: [-1, 0], minute: 19, label: 'the dust in the cliff',
     line: '~whisper~ (The storm’s dust, held in a curl. A tall clock tumbles through it: nineteen minutes to.)' },

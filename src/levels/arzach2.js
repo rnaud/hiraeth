@@ -361,8 +361,8 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
     add(mat, place(mound, cx, cy - 0.5, cz, 0, mr, mh, mr));
     return nd;
   };
-  // on the start plateau
-  cluster(-48, START.top, -30, 74, 7.5, 5, 1);
+  // the smaller cluster joins the needle plateau, leaving the Belfry approach open
+  cluster(NEEDLES.x + 70, NEEDLES.top, NEEDLES.z - 30, 52, 7.5, 5, 1);
   // the great needle forest on the needle plateau
   cluster(NEEDLES.x + 10, NEEDLES.top, NEEDLES.z - 8, 175, 15, 7, 2);
   cluster(NEEDLES.x - 42, NEEDLES.top, NEEDLES.z + 40, 96, 9, 5, 3);
@@ -393,9 +393,9 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
     }
     return yy;
   };
-  // on the start plateau: a teetering column of pebbles
-  stack(36, START.top - 0.5, -42, [[5.5, 0.62, 0.05, 0.2], [4.6, 0.72, 0.1], [3.8, 0.8, 0.15, 0.24], [3.2, 0.68, 0.05], [2.4, 0.9, 0.2, 0.18]], 1);
-  stack(58, START.top - 0.5, 20, [[3.2, 0.6, 0], [2.6, 0.8, 0.1], [1.8, 0.85, 0.2]], 2);
+  // teetering columns on the needle plateau
+  stack(NEEDLES.x + 38, NEEDLES.top - 0.5, NEEDLES.z + 58, [[5.5, 0.62, 0.05, 0.2], [4.6, 0.72, 0.1], [3.8, 0.8, 0.15, 0.24], [3.2, 0.68, 0.05], [2.4, 0.9, 0.2, 0.18]], 1);
+  stack(NEEDLES.x + 70, NEEDLES.top - 0.5, NEEDLES.z + 12, [[3.2, 0.6, 0], [2.6, 0.8, 0.1], [1.8, 0.85, 0.2]], 2);
   // on the needle plateau
   stack(NEEDLES.x - 40, NEEDLES.top - 0.5, NEEDLES.z - 50, [[7, 0.6, 0, 0.22], [6, 0.75, 0.1], [4.6, 0.85, 0.1, 0.26], [3.2, 0.95, 0.25, 0.2]], 3);
   // on the plain
@@ -764,7 +764,8 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
       const s = 0.25 + Math.pow(rng(), 3) * 1.7;
       dummy.position.set(x, y + s * 0.2, z);
       dummy.rotation.set(rng() * 6, rng() * 6, rng() * 6);
-      dummy.scale.set(s, s * 0.6, s * 0.9);
+      const visible = Math.hypot(x + 128, z + 6) > 200;
+      dummy.scale.set(visible ? s : 0, visible ? s * .6 : 0, visible ? s * .9 : 0);
       dummy.updateMatrix();
       rocks.setMatrixAt(i, dummy.matrix);
       rocks.setColorAt(i, color.set(z < PLAIN_EDGE - 30 ? ['#e9b090', '#e2a585', '#f1e4d0'][i % 3] : ['#efe4cf', '#e2d4b8', '#f4ecdc'][i % 3]));

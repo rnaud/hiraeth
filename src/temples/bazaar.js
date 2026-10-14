@@ -1,3 +1,4 @@
+import { landmark } from './landmarks.js';
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -547,12 +548,7 @@ function exterior(scene, level, rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 7.6).translate(0, 3.8, 0), [0, sill, 0.35]));
   K.solid(box(4.8, 7.6, 0.1, 0, sill + 3.8, 0.35));
   K.both(M.floor, box(9.6, sill, 5.4, 0, sill / 2, 2.7));
-  // the round face over the door: a shallow dish of old stone ringed in brass, its feed a brass boss
-  const prof = []; for (let i = 0; i <= 8; i++) { const q = (i / 8) * 1.3; prof.push([Math.max(0.01, q), q * q / 5]); }
-  K.add(M.trim, T(lathe(prof, 24), [0, 10.1, 3.12], [Math.PI / 2, 0, 0]));
-  K.add(brass, T(new THREE.TorusGeometry(1.32, 0.09, 4, 32), [0, 10.1, 3.46]));
-  K.add(brass, T(new THREE.SphereGeometry(0.22, 10, 8), [0, 10.1, 3.5]));
-  K.add(lampM, T(new THREE.SphereGeometry(0.38, 10, 8), [-4.6, 10.3, 4.38])); K.add(lampM, T(new THREE.SphereGeometry(0.38, 10, 8), [4.6, 10.3, 4.38]));
+  landmark(K, 'bazaar', { y: sill });
   // cables coming out from under the monolith's foot, through dark slots, into the paving
   for (const x of [-3.6, 3.8]) K.add(M.dark, box(1.4, 0.4, 0.6, x, 0.2, 4.2));
   for (const [x, k] of [[-3.9, 1.4], [-3.4, 1.9], [3.6, 1.5], [4.1, 2.2]]) K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(x, 0.18, 4.0), V(x * k * 0.8, 0.12, 6.5), V(x * k, 0.05, 9.5)]), 12, 0.15, 5));

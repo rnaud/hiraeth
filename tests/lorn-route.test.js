@@ -25,6 +25,29 @@ const pathDist = (x, z) => Math.min(...PATH_POINTS.map((p) => Math.hypot(p.x - x
 const W = builtWorld('perdide');
 const { level, physics } = W;
 
+test('the Hush-House colonnade has dry ground beneath its entire widened foundation', () => {
+  const O=level.temples.find(t=>t.id==='perdide').outside;
+  for(let i=0;i<32;i++){
+    const a=i*Math.PI/16,p=O.kit.world(Math.sin(a)*42.5,0,Math.cos(a)*30.2);
+    assert.ok(level.ground.heightAt(p.x,p.z)>=O.base-.2,`island supports column ${i}`);
+  }
+});
+
+test('Lamp-House feet enter open water, and the causeway joins its dry threshold', () => {
+  const O=level.temples.find(t=>t.id==='perdide2').outside,K=O.kit;
+  for(const a of [-Math.PI/6,-5*Math.PI/6,Math.PI/2]){
+    const p=K.world(Math.cos(a)*24.7,0,-Math.sin(a)*24.7);
+    assert.ok(level.ground.heightAt(p.x,p.z)<-1,'water surrounds every foot');
+    const support=physics.groundAt(p.x,.2,p.z,12);
+    assert.ok(Number.isFinite(support)&&support<0,'stone foot continues below the waterline');
+  }
+  const dy=K.local(O.door.at).y;
+  for(let z=O.R+2;z<=O.R+12;z+=.5){
+    const p=K.world(0,dy,z),g=physics.groundAt(p.x,p.y+.5,p.z,2);
+    assert.ok(Number.isFinite(g)&&Math.abs(g-p.y)<.35,'dry connection from portal to stepping stones');
+  }
+});
+
 /** The traveller walking: each frame toward aim(P) (a point, or null to stop); → the frames' positions. */
 function walk(from, aim, { seconds = 60, sprint = false } = {}) {
   const P = new Player(physics, { health: false, unsafe: level.unsafe });

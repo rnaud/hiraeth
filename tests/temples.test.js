@@ -808,6 +808,18 @@ test('each built temple: a door in its world, solid rooms with marks, a chest si
     const d = rt.outside.door.at;
     assert.ok(Math.abs(physics.groundAt(d.x, d.y + 1, d.z, 4) - d.y) < 0.4, `${id}: the door's threshold is on the ground`);
     for (const o of outs) assert.ok(Math.abs(physics.groundAt(o.to.x, o.to.y + 1.5, o.to.z, 6) - o.to.y) < 1.2, `${id}: out onto the ground`);
+    if (id === 'desert') {
+      const K = rt.outside.kit;
+      for (let i = 0; i < 24; i++) {
+        const a = (i + .2) * Math.PI / 12;
+        const p = K.world(Math.sin(a) * 52.7 * 1.3, 0, Math.cos(a) * 50.7);
+        const sand = level.ground.heightAt(p.x, p.z);
+        const tread = physics.groundAt(p.x, d.y + 1, p.z, 12);
+        assert.ok(tread > sand + .12, `Rose House outer stair exposed above sand at sector ${i}`);
+        if (Math.abs(Math.sin(a) * 52.7 * 1.3) > 8 || Math.cos(a) < 0)
+          assert.ok(tread < d.y - 4, 'the lowest stair is visible, not buried beneath a raised dune');
+      }
+    }
     // the rooms: you arrive on a floor; every mark stands on one, with room above
     const g = physics.groundAt(rt.arrival.pos.x, rt.arrival.pos.y + 1, rt.arrival.pos.z, 3);
     assert.ok(Math.abs(g - rt.arrival.pos.y) < 0.2, `${id}: a floor where you come in`);

@@ -1,3 +1,5 @@
+import { landmark, landmarkFrame } from './landmarks.js';
+import { glazing, glaze } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -475,36 +477,26 @@ function exterior(scene, level, rt) {
     pads.push({ a, len, w, base, dir });
   }
   for (const g of rim) K.both(M.stone, g);
-  // the heel: a great pale sphere half sunk, a ring of white steps round it, a round door toward the grove
-  K.both({ paint: new THREE.Color('#f7f3ea'), smooth: true }, new THREE.SphereGeometry(R, 48, 24, 0, TAU, 0, Math.PI * 0.62).translate(0, -R * 0.36, 0));   // (as drawn: a 24-sided stand-in lay inside the heel you climb)
-  K.both(M.floor, T(annulus(R * 0.9, R + 4, 0.8, 48), [0, 0.6, 0]));
-  K.both(M.trim, T(annulus(R + 3.6, R + 5.2, 0.5, 48), [0, 0.2, 0]));
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; K.add(M.glyph, T(glyphGeometry(2.2, 0.15), [Math.sin(a) * (R * 0.93), R * 0.33, Math.cos(a) * (R * 0.93)], [-0.35, a, 0])); }
-  K.add(M.glyph, T(glyphGeometry(5, 0.2).rotateX(-Math.PI / 2), [0, R * 0.64 - 0.05, 0]));
-  // the doorway: a round-headed porch cut into the sphere's south side
-  const z0 = R * 0.78, z1 = R + 3.4;
-  for (const s of [-1, 1]) K.both(M.wall, box(3.4, 9, z1 - z0, s * 3.9, 4.5 + 0.6, (z0 + z1) / 2));
-  K.both(M.wall, T(new THREE.CylinderGeometry(5.6, 5.6, z1 - z0, 24, 1, false, Math.PI / 2, Math.PI), [0, 8.1, (z0 + z1) / 2], [Math.PI / 2, 0, 0]));
+  // The broad rounded heel and lobed roots are built with the landmark. Keep
+  // the same human doorway, without the old small porch protruding through it.
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.4, 7.4).translate(0, 3.7, 0), [0, 0.6, 16.4]));
   K.solid(box(4.4, 7.4, 0.6, 0, 4.3, 16.1));
-  // the round-headed door after the picked entrance (references/temples/footprint/sheet-2.jpg): a band of sage green
-  // round the opening, the door's round boss over it, and a path of white slabs along the print's rim to the porch
-  const sage = { paint: new THREE.Color('#8fb39c'), smooth: false };
-  for (const s of [-1, 1]) K.both(sage, box(0.5, 5.2, 0.3, s * 2.45, 3.2, z1 + 0.18));
-  K.both(sage, T(new THREE.TorusGeometry(2.45, 0.26, 5, 20, Math.PI), [0, 5.8, z1 + 0.18]));
-  K.both(M.trim, T(new THREE.CylinderGeometry(0.62, 0.62, 0.3, 18), [0, 9.2, z1 + 0.2], [Math.PI / 2, 0, 0]));
-  K.add(sage, T(new THREE.TorusGeometry(0.62, 0.1, 4, 18), [0, 9.2, z1 + 0.36]));
   for (let i = 0; i < 9; i++) {
     const a = 0.2 + i * 0.075, r = R + 7.5 + i * 0.9, x = Math.sin(a) * r * 0.6 + 2 + i * 1.4, z = R + 8.4 + i * 2.6;
     const gy = H(...K.world(x, 0, z).toArray().filter((_, k) => k !== 1)) - y0;
     K.add(M.floor, box(2.6, 0.25, 2.2, x, gy + 0.1, z, a));
   }
-  K.both(M.floor, box(9, 0.6, 7, 0, 0.3, R + 4.6));
+  K.both(M.floor, box(12, 1.2, 9, 0, 0, R + 3));
+  const foot=K.world(0,0,R+14);
+  K.stairs([0,.6,R+7.5],[0,H(foot.x,foot.z)-y0+.08,R+14],16,{rise:.24,sides:false});
+  const lens = glazing('#edc478', landmarkFrame(K,'spheres',.6).world(0,35.6,2));
+  const landmarkTop = landmark(K, 'spheres', { y: 0.6, R, glass: lens });
   K.flush();
+  glaze(K, rt.veils, lens, {color:'#efa72f',alpha:.64,glow:.25});
   const at = K.world(0, 0.6, 17.4);
   const front = K.world(0, 0, R + 9);
-  return { door: { at, heading: yaw }, kit: K, base: y0, doorY: y0 + 0.6, R, pads, top: y0 + R,
-    clear: [{ x: SITE.x, z: SITE.z, r: R + 10 }, ...pads.map((p) => { const c = K.world(p.base[0] + p.dir[0] * p.len * 0.5, 0, p.base[1] + p.dir[1] * p.len * 0.5); return { x: c.x, z: c.z, r: p.len * 0.55 }; }), { x: front.x, z: front.z, r: 10 }] };
+  return { door: { at, heading: yaw }, kit: K, base: y0, doorY: y0 + 0.6, R, pads, top: y0 + landmarkTop,
+    clear: [{ x: SITE.x, z: SITE.z, r: 80 }, ...pads.map((p) => { const c = K.world(p.base[0] + p.dir[0] * p.len * 0.5, 0, p.base[1] + p.dir[1] * p.len * 0.5); return { x: c.x, z: c.z, r: p.len * 0.55 }; }), { x: front.x, z: front.z, r: 38 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the Footprint fills, the spheres ring

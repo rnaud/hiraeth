@@ -5,6 +5,8 @@ import { CatmullRomCurve3, Vector3 } from 'three';
 // flagged `calm` get level ground (the dune and ridge relief fades out).
 // Golden dunes: carcass, wreck, camp, sails. Rose canyons: canyon, umbrellas.
 // Salt flats: petals, lagoons, dishes.
+export const ROSE_SITE = { x: 550, z: 376, r: 34 };
+
 export const SITES = {
   carcass: { x: -700, z: -660, r: 100, yaw: 0.55 },
   wreck: { x: -110, z: 760, r: 85, yaw: -0.5 },

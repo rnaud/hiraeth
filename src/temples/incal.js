@@ -1,3 +1,4 @@
+import { landmark } from './landmarks.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -613,52 +614,19 @@ function exterior(scene, level, rt) {
   const TOP = 200, yaw = SITE.heading;
   const K = new TempleKit(rt.root, 'The Warden’s Well', V(SITE.x, TOP, SITE.z), yaw, rt.M);
   const M = rt.M, R = 16;
-  const blue = makeMaterial({ color: PALETTE.accent, flat: true, key: 'incal.temple.blue' });
   const pale = makeMaterial({ color: '#9fbfdc', flat: true, glow: 0.25, key: 'incal.temple.carve' });
-  // a stepped stone drum, a blue steel band at each step, and a dark blue crown with the glyph ring
-  const tiers = [[R + 4, 0, 4], [R, 4, 34], [R - 3, 38, 22], [R - 6, 60, 16]];
-  for (const [r, y, h] of tiers) {
-    K.both(M.wall, new THREE.CylinderGeometry(r, r, h, 40).translate(0, y + h / 2, 0));
-    K.add({ paint: new THREE.Color(PALETTE.stone), smooth: false, side: THREE.FrontSide }, new THREE.CylinderGeometry(r + 0.35, r + 0.35, 0.9, 40).translate(0, y + h - 0.45, 0));
-  }
-  K.both(blue, lathe([[R - 5, 76], [R - 3.5, 77.5], [R - 3.5, 80], [R - 6.5, 82], [3, 84], [1, 92], [0.01, 92.5]], 40));
-  K.add(pale, T(new THREE.TorusGeometry(R - 3.3, 0.14, 4, 64), [0, 78.8, 0], [Math.PI / 2, 0, 0]));
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.add(pale, T(glyphGeometry(2.2, 0.15), [Math.sin(a) * (R - 3.45), 78.8, Math.cos(a) * (R - 3.45)], [0, a, 0])); }
-  // ribs up the drum, between them tall slit windows (dark), glyphs over each
-  for (let i = 0; i < 16; i++) {
-    const a = (i + 0.5) / 16 * TAU;
-    if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.3) continue;
-    K.both(M.trim, T(new THREE.BoxGeometry(1.2, 34, 1.6), [Math.sin(a) * (R + 0.4), 4 + 17, Math.cos(a) * (R + 0.4)], [0, a, 0]));
-    const b = a + TAU / 32;
-    K.add(M.dark, T(new THREE.BoxGeometry(1.4, 9, 0.3), [Math.sin(b) * (R + 0.05), 24, Math.cos(b) * (R + 0.05)], [0, b, 0]));
-    K.add(M.glyph, T(glyphGeometry(1.6, 0.12), [Math.sin(b) * (R + 0.08), 31, Math.cos(b) * (R + 0.08)], [0, b, 0]));
-  }
+  landmark(K, 'incal', { R });
   // the doorway, after the picked entrance (references/temples/wardens-well/sheet-2.jpg): a porch of the drum's
   // stone out past the plinth, a tall pointed arch cut through it at the top of a short flight of steps, banded in
   // steel blue at its foot, an unlit lamp on a post beside the steps
-  const P0 = R + 4, z0 = P0 - 0.4, z1 = P0 + 3.2, sill = 1.8, dw = 4.6, dh = 6.4, apex = dh + dw * 0.85;
+  const P0 = R + 4, z0 = P0 - 0.4, z1 = P0 + 3.2, sill = 1.8, dw = 4.6;
   const steel = { paint: new THREE.Color(PALETTE.stone), smooth: false, side: THREE.FrontSide };
-  {
-    const W = 13, H = 17, f = new THREE.Shape();
-    f.moveTo(-W / 2, 0); f.lineTo(-dw / 2, 0); f.lineTo(-dw / 2, dh);
-    f.quadraticCurveTo(-dw / 2, dh + dw * 0.6, 0, apex);
-    f.quadraticCurveTo(dw / 2, dh + dw * 0.6, dw / 2, dh);
-    f.lineTo(dw / 2, 0); f.lineTo(W / 2, 0); f.lineTo(W / 2, H); f.lineTo(-W / 2, H); f.closePath();
-    K.both(M.wall, new THREE.ExtrudeGeometry(f, { depth: z1 - z0, bevelEnabled: false, curveSegments: 12 }).translate(0, sill, z0));
-    // its frame: a second, shallower arch round the opening, proud of the face
-    const o = new THREE.Shape(), m = 0.55;
-    o.moveTo(-dw / 2 - m, 0); o.lineTo(-dw / 2 - m, dh); o.quadraticCurveTo(-dw / 2 - m, dh + dw * 0.66, 0, apex + m * 1.4); o.quadraticCurveTo(dw / 2 + m, dh + dw * 0.66, dw / 2 + m, dh); o.lineTo(dw / 2 + m, 0);
-    o.lineTo(dw / 2, 0); o.lineTo(dw / 2, dh); o.quadraticCurveTo(dw / 2, dh + dw * 0.6, 0, apex); o.quadraticCurveTo(-dw / 2, dh + dw * 0.6, -dw / 2, dh); o.lineTo(-dw / 2, 0); o.closePath();
-    K.add(M.wall, new THREE.ExtrudeGeometry(o, { depth: 0.35, bevelEnabled: false, curveSegments: 12 }).translate(0, sill, z1));
-    // the dark in the doorway, deep in the porch, pointed as the arch
-    const d = new THREE.Shape();
-    d.moveTo(-dw / 2, 0); d.lineTo(-dw / 2, dh); d.quadraticCurveTo(-dw / 2, dh + dw * 0.6, 0, apex); d.quadraticCurveTo(dw / 2, dh + dw * 0.6, dw / 2, dh); d.lineTo(dw / 2, 0); d.closePath();
-    K.add(M.voidM, new THREE.ShapeGeometry(d, 12).translate(0, sill, P0 + 1.6));
-    K.solid(box(dw, apex, 0.6, 0, sill + apex / 2, P0 + 1.45));
-  }
-  K.both(steel, box(13.6, 1.6, z1 - z0 + 0.5, 0, sill + 0.8 - 1.6, (z0 + z1) / 2 + 0.1));   // its blue foot
-  K.add(steel, box(13.6, 0.9, 0.4, 0, sill + 13.2, z1 + 0.2));
-  K.add(pale, T(glyphGeometry(2.6, 0.15), [0, sill + apex + 1.6, z1 + 0.05], [0, 0, 0]));
+  const recess = new THREE.Shape();
+  recess.moveTo(-2.75,0);recess.lineTo(-2.75,8);recess.quadraticCurveTo(-2.4,15,0,17);
+  recess.quadraticCurveTo(2.4,15,2.75,8);recess.lineTo(2.75,0);recess.closePath();
+  K.add(M.voidM,new THREE.ShapeGeometry(recess).translate(0,sill,P0+1.1));
+  K.solid(box(5.5,17,.1,0,sill+8.5,P0+1));
+  K.add(pale,T(glyphGeometry(1.6,.1),[0,sill+21,P0+3.6]));
   K.both(M.floor, box(dw + 0.4, sill, z1 - z0, 0, sill / 2, (z0 + z1) / 2));
   K.both(M.floor, box(16, 0.3, 14, 0, 0.15, P0 + 8));
   K.stairs([0, sill, z1], [0, 0.3, z1 + 5.4], 7, { rise: 0.3 });
@@ -675,8 +643,8 @@ function exterior(scene, level, rt) {
   K.flush();
   const at = K.world(0, sill, P0 + 1.6);
   const f = V(Math.sin(yaw), 0, Math.cos(yaw)), front = at.clone().addScaledVector(f, 9);
-  return { door: { at, heading: yaw }, kit: K, base: TOP, doorY: TOP + sill, R, top: TOP + 92, lampM,
-    clear: [{ x: SITE.x, z: SITE.z, r: R + 7 }, { x: front.x, z: front.z, r: 11 }] };
+  return { door: { at, heading: yaw }, kit: K, base: TOP, doorY: TOP + sill, R, top: TOP + 134, lampM,
+    clear: [{ x: SITE.x, z: SITE.z, r: 58 }, { x: front.x, z: front.z, r: 48 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the shaft breathes again

@@ -1,3 +1,4 @@
+import { landmark } from './landmarks.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -499,32 +500,17 @@ function exterior(scene, level, rt) {
   const K = new TempleKit(rt.root, 'The Hush-House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, sill = 1.8;
   const crystalM = makeMaterial({ color: PALETTE.glow, glow: 0.5, flat: true, key: 'temple.lorn.spire' });
-  // a ring plinth, a low dome of violet stone, ribs over it, an oculus ring at the top
-  K.both(M.floor, new THREE.CylinderGeometry(R + 3, R + 4, sill, 36).translate(0, sill / 2, 0));
-  K.both(M.wall, new THREE.SphereGeometry(R, 32, 12, 0, TAU, 0, Math.PI / 2).scale(1, 0.78, 1).translate(0, sill, 0));   // (as drawn: a cone stand-in lay a metre inside it, src/contact-audit.js)
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * TAU + TAU / 16;
-    const pts = []; for (let k = 0; k <= 8; k++) { const e = (k / 8) * (Math.PI / 2 - 0.2); pts.push(V(Math.sin(a) * Math.cos(e) * (R + 0.35), sill + Math.sin(e) * R * 0.78 + 0.3, Math.cos(a) * Math.cos(e) * (R + 0.35))); }
-    K.both(M.trim, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.45, 6, false));   // (drawn proud of the dome: solid)
-  }
-  K.both(M.trim, T(annulus(R * 0.18, R * 0.3, 0.8, 28), [0, sill + R * 0.78 - 0.1, 0]));
-  K.add(crystalM, T(new THREE.OctahedronGeometry(1, 0), [0, sill + R * 0.78 + 3.2, 0], [0, 0.3, 0], [1.8, 4.2, 1.8]));
-  // the swamp's crystals grow up through it and round it
-  for (const [a, d, h, r, tilt] of [[0.9, R * 0.75, 22, 2.2, 0.15], [2.1, R * 0.55, 28, 2.6, -0.1], [3.4, R + 2, 16, 1.7, 0.25], [4.3, R * 0.7, 24, 2.3, -0.2], [5.4, R + 1.5, 12, 1.4, 0.3]])
-    K.both(crystalM, T(new THREE.ConeGeometry(r, h, 5).translate(0, h / 2, 0), [Math.sin(a) * d, 0, Math.cos(a) * d], [tilt * Math.cos(a), a, tilt * Math.sin(a)]));   // (as drawn)
-  // the doorway, a porch of stone out of the dome toward the channel, the Hush over it
-  const z0 = R - 2.5, z1 = R + 3.2;
-  for (const s of [-1, 1]) K.both(M.wall, box(3.2, 8, z1 - z0, s * 3.8, sill + 4, (z0 + z1) / 2));
-  K.both(M.wall, box(10.8, 2.2, z1 - z0, 0, sill + 7.1, (z0 + z1) / 2));
-  K.both({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11.4, 0.8, 1.2, 0, sill + 8.4, z1 + 0.1));
-  K.both(M.wall, box(7, 3.6, z1 - z0, 0, sill + 10.6, (z0 + z1) / 2));
-  K.add(M.glyph, T(glyphGeometry(2.6, 0.15), [0, sill + 10.6, z1 + 0.06]));
-  K.both(M.voidM, box(4.3, 6, 0.9, 0, sill + 3, R - 0.35));   // (drawn and solid as one: the dark of the doorway, back to the dome's shell)
+  const landmarkTop = landmark(K, 'perdide', { y: sill, R, accent: crystalM });
+  // A small recess under the broad canopy leaves the organ facade uninterrupted.
+  const z1 = R + 3.2;
+  K.add(M.voidM,new THREE.PlaneGeometry(4.3,6).translate(0,sill+3,R+.325));
+  K.solid(box(4.3,6,.25,0,sill+3,R+.2));
+  for(const side of [-1,1]) K.both(M.wall,box(.65,6.8,2,side*2.5,sill+3.4,R+.5));
   // steps down from the porch to the island's moss
   K.both(M.floor, box(6.4, sill * 0.5, 2, 0, sill * 0.25, z1 + 1));
   K.flush();
   const at = K.world(0, sill, R + 1.2);
-  return { door: { at, heading: yaw }, kit: K, base, R, sill, crystalM, top: base + sill + R + 8, clear: [{ x: SITE.x, z: SITE.z, r: R + 9 }] };
+  return { door: { at, heading: yaw }, kit: K, base, R, sill, crystalM, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 54 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the swamp flowers

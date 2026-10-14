@@ -43,7 +43,7 @@ export const COURTS = {
   incal: { gadget: 'bridge', at: [362, 10], y: 200 },
   // (the Sealed Hangar's, at [-86, 120] on its plain until October 2026: it went to the Glass Dunes with the First Garage)
   glassdunes: { gadget: 'magnet', at: [60, -140], y: null, toward: [10, -60] },
-  buried: { gadget: 'monocle', at: [-88, 38], y: 6.4 },
+  buried: { gadget: 'monocle', at: [-200, 12], y: 3 },
   spheres: { gadget: 'bomb', at: [-58, -70], y: 1.1 },
   bazaar: { gadget: 'recall', at: [86, 66], y: 0 },
   // (v1.48, issue #101: the three of v1.40, a gadget you have by then, a bay of their own and the box behind its gate)

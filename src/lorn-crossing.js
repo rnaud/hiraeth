@@ -19,7 +19,7 @@ import { makeMaterial } from './materials.js';
 //
 //   the keepers' stakes  (level design audit v1.49, issue #135: from the crystal cave's heart to Hollin was 631 m with
 //                        nothing to steer by) the keepers' old boat-way up to the cave, when they came for its crystals:
-//                        tall poles every forty metres, each with a coral float lashed at its top, from the cave's south
+//                        tall poles every thirty metres, each with a coral float lashed at its top, from the cave's south
 //                        mouth round the Hush-House to its steps (v1.54, issue #179), down the channel and across the
 //                        open water, past the keepers' light, to Hollin's island.
 //
@@ -155,8 +155,8 @@ export function buildWaterWaySouth(scene, terrain) {
  * side, to the shallows off Hollin's island.
  */
 /** Beside the Hush-House's steps (src/temples/perdide.js SITE: its door looks east, the steps down off its porch). */
-export const STEPS_STAKE = { x: -113.5, z: 100.5 };
-export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 74], [-182, 66], [-145, 74], [-120, 89], [STEPS_STAKE.x, STEPS_STAKE.z, true], [-100, 64], [-112, 0], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 40 };
+export const STEPS_STAKE = { x: -98.5, z: 100.5 };
+export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 50], [-182, 42], [-145, 44], [-105, 55], [-88, 82], [STEPS_STAKE.x, STEPS_STAKE.z, true], [-80, 64], [-90, 0], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 30 };
 
 /**
  * Where the stakes stand along their way, [x, z]: one every `every` metres from its start, the last at its end, and one

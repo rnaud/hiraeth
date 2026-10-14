@@ -1,3 +1,4 @@
+import { landmark } from './landmarks.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
@@ -476,41 +477,21 @@ function exterior(scene, level, rt) {
   const base = level.ground?.heightAt ? level.ground.heightAt(SITE.x, SITE.z) : 0;
   const K = new TempleKit(rt.root, 'The Casting-House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M;
-  const ironW = { paint: new THREE.Color('#5b524c'), smooth: false, side: THREE.FrontSide };
   const iron = { paint: new THREE.Color('#3f393a'), smooth: false, side: THREE.FrontSide };
   const rust = { paint: new THREE.Color('#b5653a'), smooth: false, side: THREE.FrontSide };
-  const ochre = { paint: new THREE.Color('#d39a4a'), smooth: false, side: THREE.FrontSide };
   const ivory = { paint: new THREE.Color('#efe6d2'), smooth: true, side: THREE.FrontSide };
-  // a round casting tower of riveted iron on a flared foot, ochre courses round it, a shoulder and a cap, and the
-  // chimney going up out of it toward the girders (the hangar's roof at 88): a landmark down the floor from the aisle
-  const HT = 30;
-  K.both(M.floor, new THREE.CylinderGeometry(R + 4, R + 4.4, 0.6, 32).translate(0, sill - 0.3, 0));
-  K.both(M.wall, lathe([[R + 1.6, 0], [R + 1.6, 2.4], [R, 3.6], [R, HT], [R + 1.0, HT + 0.6], [R + 1.0, HT + 1.6], [R - 2.6, HT + 4], [3.2, HT + 5]], 32).translate(0, sill, 0));
-  for (const y of [8, 15, 22]) K.both(rust, new THREE.CylinderGeometry(R + 0.25, R + 0.25, 0.9, 32).translate(0, sill + y, 0));
-  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; for (const y of [7.4, 8.6, 21.4, 22.6]) K.add(ochre, T(new THREE.SphereGeometry(0.12, 5, 3), [Math.sin(a) * (R + 0.3), sill + y, Math.cos(a) * (R + 0.3)])); }
-  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.5) continue; K.add(M.glyph, T(glyphGeometry(1.5, 0.12), [Math.sin(a) * (R + 0.32), sill + 18.5, Math.cos(a) * (R + 0.32)], [0, a, 0])); }
-  // the chimney: an iron stack banded in rust, its mouth ringed (the change lights it steady)
-  const CH = 47;
-  K.both(iron, new THREE.CylinderGeometry(2.2, 2.7, CH, 16).translate(0, sill + HT + 4 + CH / 2, 0));
-  for (const y of [12, 24, 36]) K.add(rust, new THREE.CylinderGeometry(2.55 - y * 0.008, 2.55 - y * 0.008, 0.6, 16).translate(0, sill + HT + 4 + y, 0));
-  K.add(rust, new THREE.CylinderGeometry(2.6, 2.6, 0.9, 16).translate(0, sill + HT + 4 + CH - 0.4, 0));
-  // the jib at the shoulder, out over the door's left, its hook (the change hangs a new moon on it)
-  const JA = -0.7, JL = 13, jy = sill + HT + 3;
-  const jx = Math.sin(JA) * (R + JL / 2 - 1), jz = Math.cos(JA) * (R + JL / 2 - 1);
-  K.both(iron, T(new THREE.BoxGeometry(0.8, 1.0, JL), [jx, jy, jz], [0, JA, 0]));
-  K.add(iron, T(new THREE.BoxGeometry(0.1, 0.1, JL * 0.75), [Math.sin(JA) * (R + JL * 0.35), jy + 2.2, Math.cos(JA) * (R + JL * 0.35)], [0.28, JA, 0]));
-  const hook = V(Math.sin(JA) * (R + JL - 1.6), jy - 0.5, Math.cos(JA) * (R + JL - 1.6));
-  K.add(iron, box(0.08, 3.2, 0.08, hook.x, hook.y - 1.6, hook.z));
-  K.add(iron, T(new THREE.TorusGeometry(0.35, 0.08, 4, 10, Math.PI * 1.4), [hook.x, hook.y - 3.4, hook.z], [0, 0, 2.4]));
-  // the doorway: a porch of two iron piers and a lintel, the glyph over it, an arch of rust iron round the dark
-  const z0 = R - 1.2, z1 = R + 2.6;
-  for (const s of [-1, 1]) K.both(ironW, box(2.4, 8, z1 - z0, s * 3.6, sill + 4, (z0 + z1) / 2));
-  K.both(ironW, box(9.6, 1.6, z1 - z0, 0, sill + 7.6, (z0 + z1) / 2));
-  K.add(M.glyph, T(glyphGeometry(2.0, 0.14), [0, sill + 7.6, z1 + 0.06]));
-  K.both(rust, T(new THREE.TorusGeometry(2.75, 0.35, 6, 24, Math.PI), [0, sill + 4.2, z1 - 0.2]));
-  for (let i = 0; i < 9; i++) { const a = (i / 8) * Math.PI; K.add(ochre, T(new THREE.SphereGeometry(0.11, 5, 3), [Math.cos(a) * 2.75, sill + 4.2 + Math.sin(a) * 2.75, z1 + 0.2])); }
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
-  K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
+  K.both(M.floor, new THREE.CylinderGeometry(R + 9, R + 9.4, .6, 40).scale(1, 1, .75).translate(0, sill - .3, 0));
+  landmark(K, 'moonfoundry', { y: sill, R });
+  // The broad right-hand jib carries the same story hook and its rising moon.
+  const hook = V(38, sill + 36, -1);
+  K.add(iron, box(.16,4,.16,hook.x,hook.y-2,hook.z));
+  K.add(iron,T(new THREE.TorusGeometry(.6,.12,6,18,Math.PI*1.4),[hook.x,hook.y-4.2,hook.z],[0,0,2.4]));
+  const z1 = R + 2.6;
+  const opening = new THREE.Shape();
+  opening.moveTo(-3.7, 0); opening.lineTo(3.7, 0); opening.lineTo(3.7, 8);
+  opening.quadraticCurveTo(3.2, 14, 0, 16); opening.quadraticCurveTo(-3.2, 14, -3.7, 8); opening.closePath();
+  K.add(M.voidM, new THREE.ShapeGeometry(opening, 24).translate(0, sill, R + .3));
+  K.solid(box(7.4, 16, .1, 0, sill + 8, R + .25));
   // Petra's ledger desk by the door, under a little tin roof; two cracked moons lying on the apron
   const dx = -(R + 3.0), dz = 3.2;
   K.both({ paint: new THREE.Color('#8a5a3a'), smooth: false, side: THREE.FrontSide }, box(2.2, 0.15, 1.0, dx, sill + 1.0, dz));
@@ -529,15 +510,15 @@ function exterior(scene, level, rt) {
   // the lit slits round the tower's top course, and the chimney's mouth: a pour's glow (the change makes it steady)
   const glowM = makeMaterial({ color: '#f08a3c', glow: 0.4, flat: true, key: 'temple.moonfoundry.slits' });
   const slits = [];
-  for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; slits.push(T(new THREE.BoxGeometry(0.5, 1.6, 0.1), [Math.sin(a) * (R + 0.06), sill + 26, Math.cos(a) * (R + 0.06)], [0, a, 0])); }
-  slits.push(T(annulus(1.6, 2.15, 0.1, 18), [0, sill + HT + 4 + CH + 0.06, 0]));
+  for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; slits.push(T(new THREE.BoxGeometry(0.5, 1.6, 0.1), [Math.sin(a) * (R + 0.06), sill + 18, Math.cos(a) * (R + 0.06)], [0, a, 0])); }
+  slits.push(box(1.1, 16, 0.12, 0, sill + 35, 4.6));
   const sm = new THREE.Mesh(mergeAll(slits), glowM);
   sm.position.copy(K.world(0, 0, 0)); sm.rotation.y = yaw;
   sm.userData.noCollide = true; sm.userData.dynamic = true;
   rt.root.add(sm);
   const at = K.world(0, sill, R + 1.4);
   const front = K.world(0, sill, R + 10);
-  return { door: { at, heading: yaw }, kit: K, R, sill, glowM, hook: K.world(hook.x, hook.y - 3.4, hook.z), foot: K.world(Math.sin(JA) * (R + JL - 1.6), sill, Math.cos(JA) * (R + JL - 1.6)),
+  return { door: { at, heading: yaw }, kit: K, R, sill, glowM, hook: K.world(hook.x, hook.y - 4.2, hook.z), foot: K.world(hook.x, sill, hook.z),
     clear: [{ x: SITE.x, z: SITE.z, r: R + 8 }, { x: front.x, z: front.z, r: 7 }] };
 }
 

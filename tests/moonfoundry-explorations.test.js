@@ -134,7 +134,10 @@ test('the high walk runs from the crown’s deck down to the signal box’s door
   assert.ok(Math.abs(physics.groundAt(53, BOX.y + 2, BOX.z1 - 0.2, 4) - BOX.y) < 0.05, 'the balcony where the hoist’s rungs come out');
   assert.equal(box.levers.length, 6, 'six levers');
   for (const h of [HUNG]) assert.ok(sees(V(BOX.x0 + 0.6, BOX.y + 1.6, -181), V(h.x, h.y, h.z), h.R), `the hung moon at ${h.x}, ${h.z} seen from the box`);
-  assert.ok(sees(V(BOX.x1 - 0.6, BOX.y + 1.6, BOX.z1 - 0.5), door.clone().add(V(0, 6, 0)), 4), 'the Casting-House seen from the box');
+  const houseEye = V(BOX.x1 - .6, BOX.y + 1.6, BOX.z1 - .5), houseDir = door.clone().add(V(0, 6, 0)).sub(houseEye).normalize();
+  const shell = new THREE.Raycaster(houseEye, houseDir).intersectObjects(level.temple.outside.kit.group.children, true)[0];
+  const first = physics.rayHit(houseEye, houseDir, houseEye.distanceTo(door) + 10);
+  assert.ok(shell && first && first.point.distanceTo(shell.point) < .05, 'the first visible surface is the Casting-House itself');
   assert.ok(eye.y > CRADLE.yc + CRADLE.R, 'over the moon in the claws');
 });
 

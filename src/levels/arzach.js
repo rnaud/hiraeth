@@ -1,3 +1,4 @@
+import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
@@ -6,6 +7,7 @@ import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
 import { attachTemple, templeOf } from '../temples/index.js';
+import { SITE as AERIE_SITE } from '../temples/arzach.js';
 import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
@@ -97,7 +99,8 @@ const inEdgeField = (x, z, r = 0) => x > -95 - r && x < 65 + r && z > -1080 - r 
  * Where the plain's scattered shapes are left out (their draws from the rng kept, so the rest stand where they always
  * stood): in the riders' road, round the tower where the riders set their own rings, and on the broken edge.
  */
-const cleared = (x, z, r = 0) => inRoad(x, z, r) || Math.hypot(x - TOWER_AT.x, z - TOWER_AT.z) < SUNDIAL_R + r || inEdgeField(x, z, r);
+const aerieVista = templeVista(AERIE_SITE, { width: 165, front: 320, back: 210 });
+const cleared = (x, z, r = 0) => aerieVista(x, z, r) || inRoad(x, z, r) || Math.hypot(x - TOWER_AT.x, z - TOWER_AT.z) < SUNDIAL_R + r || inEdgeField(x, z, r);
 /** Over the cloud (or its cliff), where Vael's plain has nothing of its own: (x, z) in the world. */
 const overCloud = (x, z) => z > SKY_STONES.plainEdge(x) - 45 || Math.hypot(x - SKY_STONES.AQ2.b[0], z - SKY_STONES.AQ2.b[1]) < 45;
 

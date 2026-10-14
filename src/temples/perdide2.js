@@ -1,3 +1,5 @@
+import { landmark, LAMP_CROWN_LIFT } from './landmarks.js';
+import { glazing, glaze, metal } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { LightShaft } from '../veil.js';
@@ -63,7 +65,7 @@ const TAU = Math.PI * 2;
 /** In the shallow water east of the root cave; its door looks west, down the causeway to the path's end. */
 // (the Deep Wood's own coordinates, moved to where the wood lies in Lorn: src/levels/names.js PART_OFFSET)
 const [OX, , OZ] = offsetOf('perdide2');
-export const SITE = { x: 46 + OX, z: -424 + OZ, r: 14, path: [6 + OX, -414 + OZ] };
+export const SITE = { x: 102 + OX, z: -452 + OZ, r: 14, path: [6 + OX, -414 + OZ] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
@@ -487,39 +489,39 @@ function exterior(scene, level, rt) {
   const yaw = SITE.heading, base = -2.5, R = 9;
   const K = new TempleKit(rt.root, 'The Lamp-House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, door = 3.4;   // (the door's sill, above the water on a stone apron)
-  const ink = { paint: new THREE.Color(PALETTE.dark), smooth: false, side: THREE.FrontSide };
-  // a stone apron in the water, a tall tapering tower, a gallery, a glass lamp-room and a cap
-  K.both(M.floor, new THREE.CylinderGeometry(R + 6, R + 7, door, 32).translate(0, door / 2, 0));
-  // (the lathe itself collides: a straight cylinder inside it let a climber into its flared foot and crown, src/contact-audit.js)
-  K.both(M.wall, lathe([[R + 1.2, door], [R, door + 4], [R - 2.2, door + 40], [R - 1.6, door + 41], [R - 1.6, door + 42]], 32));
-  for (let y = door + 8; y < door + 40; y += 8) K.both(M.trim, new THREE.CylinderGeometry(R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, R - 2.2 + (1 - (y - door) / 40) * 2.2 + 0.3, 0.6, 32).translate(0, y, 0));
-  K.both(M.floor, T(annulus(R - 3, R + 1.5, 0.6, 32), [0, door + 42.6, 0]));
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.both(M.trim, T(new THREE.BoxGeometry(0.5, 7, 0.5), [Math.sin(a) * (R - 2.6), door + 46, Math.cos(a) * (R - 2.6)])); }
-  K.both(ink, T(new THREE.ConeGeometry(R - 1.6, 5, 16), [0, door + 52, 0]));
-  K.add(M.glyph, T(glyphGeometry(2.8, 0.15), [0, door + 30, R - 2.2 + 0.25 + 0.6], [0.05, 0, 0]));
+  landmark(K, 'perdide2', { y: door, R });
+  const crown = door + LAMP_CROWN_LIFT;
+  const glassM = glazing('#ffd18b', K.world(0, crown + 46, 0));
+  K.both(glassM, lathe([[6.15,crown+39],[6.15,crown+49.8],[5.7,crown+51.5],[4.6,crown+53.3]],64));
+  const brass = metal('#b18346');
+  K.both(brass, lathe([[.01,crown+39],[4.6,crown+39],[3.3,crown+40],[2,crown+41]],40));
+  K.both(brass, lathe([[3.5,crown+51],[4.6,crown+52],[.01,crown+52]],40));
   // the doorway on the apron, toward the causeway
   const z0 = R - 0.6, z1 = R + 3;
   for (const s of [-1, 1]) K.both(M.wall, box(3.4, 9, z1 - z0, s * 3.9, door + 4.5, (z0 + z1) / 2));
   K.both(M.wall, box(4.4, 2.4, z1 - z0, 0, door + 8.2, (z0 + z1) / 2));
   K.both({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11, 1, 1.2, 0, door + 9.6, z1 + 0.1));
   K.both(M.voidM, box(4.3, 7, 0.9, 0, door + 3.5, R + 0.85));   // (drawn and solid as one: the dark of the doorway, back to the tower's wall)
+  K.both(M.stone, box(5.8,door+1,11,0,(door-1)/2,R+4));
   // the causeway: flat stones from the apron to the end of the lit path
   const pathL = K.local(V(SITE.path[0], 0, SITE.path[1]));
-  const n = 9;
+  const n = Math.ceil(Math.hypot(pathL.x, pathL.z - R - 7) / 3.8);
   for (let i = 0; i < n; i++) {
     const k = (i + 0.5) / n, z = R + 7 + (pathL.z - (R + 7)) * k, x = pathL.x * k;
     const top = THREE.MathUtils.lerp(door, 0.6 - base, k);
     K.both(M.stone, T(new THREE.CylinderGeometry(2.2, 2.4, top + 1.2, 10), [x, (top - 1.2) / 2, z]));
   }
   K.flush();
-  // the lamp up there, dark until the Lampless is calm (the world change lights it)
-  const lampM = makeMaterial({ color: PALETTE.lamp, glow: 0.04, flat: true, key: 'temple.p2.outlamp' });
-  const lamp = new THREE.Mesh(new THREE.SphereGeometry(R - 3.6, 20, 14), lampM);
-  lamp.position.copy(K.world(0, door + 46, 0));
+  const glassWashes = glaze(K, rt.veils, glassM, { color: '#ffae52', alpha: .26, glow: .45 });
+  // A small pilot burns within a glass chimney. Restoring the house feeds the
+  // full lamp and its sweeping beam, rather than turning a solid ball yellow.
+  const lampM = makeMaterial({ color: '#ffb34f', glow: .72, hatch: 0, key: 'temple.p2.outlamp' });
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(1,32,24).scale(3.3,5.2,3.3), lampM);
+  lamp.position.copy(K.world(0, crown + 45.6, 0));
   lamp.userData.noCollide = true; lamp.userData.dynamic = true;
   rt.root.add(lamp);
   const at = K.world(0, door, R + 2.2);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: base + door, R, lamp, lampM, top: base + door + 55, clear: [{ x: SITE.x, z: SITE.z, r: R + 9 }] };
+  return { door: { at, heading: yaw }, kit: K, base, doorY: base + door, R, lamp, lampM, glassM, glassWashes, top: base + door + 56 + LAMP_CROWN_LIFT, clear: [{ x: SITE.x, z: SITE.z, r: 44 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the lamp burns again
@@ -534,7 +536,7 @@ function change(scene, level, rt) {
   // LightShaft, the skull cave's way: issue #116; it was a solid glowing cone, inked)
   const beam = O ? new LightShaft(rt.veils, rt.root, { color: '#ffe2b0', alpha: [0.14, 0.17], near: 4 }) : null;
   if (beam) beam.visible = false;
-  const tip = new THREE.Vector3();
+  const tip = new THREE.Vector3(), pilotColor = new THREE.Color('#ffb34f'), fullColor = new THREE.Color('#fff1bb');
   const light = new THREE.Vector4(0, -1e5, 0, 0);
   rt.lights.push(light);
   let k = 0, want = 0;
@@ -544,13 +546,15 @@ function change(scene, level, rt) {
       k += (want - k) * Math.min(1, dt / 4);
       const on = k > 0.02;
       if (O) {
-        O.lampM.uniforms.uGlow.value = 0.04 + 0.96 * k * (0.92 + 0.08 * Math.sin(t * 3));
+        O.lampM.uniforms.uGlow.value = .72 + .28 * k * (.96 + .04 * Math.sin(t * 3));
+        O.lampM.uniforms.uColor.value.copy(pilotColor).lerp(fullColor, k);
+        for (const wash of O.glassWashes) wash.material.uniforms.uWash.value.y = .45 + .5 * k;
         beam.visible = on;
         // (turning slowly, a little over the level: 140 m out, 9 m across at its end)
         const a = t * 0.25;
         tip.set(-Math.cos(0.08) * Math.cos(a), Math.sin(0.08), Math.cos(0.08) * Math.sin(a)).multiplyScalar(140).add(O.lamp.position);
         if (on) beam.set(O.lamp.position, 0.4, tip, 9).fade(k);
-        if (on) light.set(O.lamp.position.x, O.lamp.position.y, O.lamp.position.z, 60 * k); else light.set(0, -1e5, 0, 0);
+        light.set(O.lamp.position.x, O.lamp.position.y, O.lamp.position.z, 18 + 82 * k);
       }
       const L = rt.lampRoom;
       if (L) {

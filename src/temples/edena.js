@@ -1,3 +1,6 @@
+import { landmark, landmarkFrame } from './landmarks.js';
+import { glazing, glaze, ceramic } from './landmark-materials.js';
+import { toStair, STAIR } from '../viridel-stair.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -561,42 +564,44 @@ function exterior(scene, level, rt) {
   const base = level.ground.baseAt(SITE.x, SITE.z, SITE.r) - 0.6;
   const K = new TempleKit(rt.root, 'The Builders’ Greenhouse', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, sill = 2.4;
-  const glassM = makeMaterial({ color: GLASS, glow: 0.18, flat: true, key: 'temple.edena.dome' });
+  const G = landmarkFrame(K, 'edena', sill);
+  const glassM = glazing('#b3dfe5', G.world(0, sill + 20, 0));
   const ribs = { paint: new THREE.Color('#fbf8f0'), smooth: false, side: THREE.FrontSide };
-  const teal = { paint: new THREE.Color('#62c3c9'), smooth: true, side: THREE.FrontSide };
   // a white plinth, a drum of the builders' gridded stone, a ribbed dome of glass on it
-  K.both(M.floor, new THREE.CylinderGeometry(R + 4, R + 5, sill, 40).translate(0, sill / 2, 0));
-  K.both(M.wallGlyph, new THREE.CylinderGeometry(R, R, 7, 36).translate(0, sill + 3.5, 0));
-  K.both(M.trim, new THREE.CylinderGeometry(R + 0.3, R + 0.3, 0.6, 36).translate(0, sill + 7.1, 0));
-  // (the dome collides as it is drawn, ribs and all: it used to be a 20-sided sphere 0.2 m inside the glass)
-  K.both(glassM, new THREE.SphereGeometry(R, 32, 12, 0, TAU, 0, Math.PI / 2).translate(0, sill + 7, 0));
-  for (let i = 0; i < 16; i++) K.both(ribs, T(new THREE.TorusGeometry(R + 0.05, 0.22, 4, 32, Math.PI / 2), [0, sill + 7, 0], [0, (i / 16) * TAU, 0]));
-  for (const k of [0.35, 0.65, 0.88]) { const a = k * Math.PI / 2; K.both(ribs, T(new THREE.TorusGeometry(R * Math.cos(a) + 0.05, 0.2, 4, 40), [0, sill + 7 + R * Math.sin(a), 0], [Math.PI / 2, 0, 0])); }
-  K.both(teal, new THREE.CylinderGeometry(0.9, 1.4, 2.2, 12).translate(0, sill + 7 + R, 0));
-  K.both(teal, new THREE.SphereGeometry(1.0, 12, 8).translate(0, sill + 9.3 + R, 0));
-  for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.5) continue; K.add(M.glyph, T(glyphGeometry(1.6, 0.12), [Math.sin(a) * (R + 0.05), sill + 4.5, Math.cos(a) * (R + 0.05)], [0, a, 0])); }
-  // panes gone from the dome here and there (the reference's broken glass): dark gaps between the ribs
-  const gap = makeMaterial({ color: '#3f5a52', flat: true, side: THREE.DoubleSide, key: 'temple.edena.domegap' });
-  for (const [a, up, w, h] of [[0.25, 0.32, 2.4, 1.8], [-0.62, 0.48, 1.8, 2.2], [0.9, 0.62, 2.0, 1.4], [-1.3, 0.28, 2.6, 1.6], [2.2, 0.4, 2.2, 2.0], [-2.5, 0.55, 1.6, 1.6], [1.6, 0.22, 1.4, 1.8], [3.0, 0.7, 1.8, 1.2]]) {
-    const p = V(Math.sin(a) * Math.cos(up), Math.sin(up), Math.cos(a) * Math.cos(up)).multiplyScalar(R + 0.06);
-    const g = new THREE.CircleGeometry(1, 5).scale(w / 2, h / 2, 1);
-    g.lookAt(p); g.translate(p.x, p.y + sill + 7, p.z);
-    K.add(gap, g);
+  G.both(M.floor, new THREE.CylinderGeometry(1, 1.04, sill, 48).scale(48,1,20).translate(0, sill / 2, 0));
+  G.both(glassM, lathe([[45, sill], [43, sill + 8], [39, sill + 12]], 64).scale(1, 1, .33));
+  for (let i = 0; i < 32; i++) {
+    const a = i * TAU / 32;
+    G.both(ribs, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+      V(Math.sin(a) * 45, sill, Math.cos(a) * 45 * .33),
+      V(Math.sin(a) * 43, sill + 8, Math.cos(a) * 43 * .33),
+      V(Math.sin(a) * 39, sill + 12, Math.cos(a) * 39 * .33),
+    ]), 12, .08, 4));
   }
-  // the doorway, after the picked entrance: a tall white porch out of the drum between two pilasters that rise past
-  // its rim, a tall narrow door, and over it the builders' frieze: three round holes over an arc
-  const z0 = R - 1.5, z1 = R + 3.2;
-  for (const s of [-1, 1]) {
-    K.both(M.wall, box(2.2, 11.6, z1 - z0 + 0.6, s * 4.1, sill + 5.8, (z0 + z1) / 2 + 0.3));      // the pilasters
-    K.both(M.trim, box(2.5, 0.4, z1 - z0 + 0.9, s * 4.1, sill + 11.7, (z0 + z1) / 2 + 0.3));
+  for (const [h,r] of [[4,44],[8,43]]) G.add(ribs,T(new THREE.TorusGeometry(r,.08,4,64),[0,sill+h,0],[Math.PI/2,0,0],[1,.33,1]));
+  // Through the windows: planting benches and roof trusses at different depths.
+  const earth = { paint: new THREE.Color('#705b48') }, leaf = { paint: new THREE.Color('#76936c'), smooth: true };
+  const pots = ceramic('#bd7863');
+  for (const side of [-1, 1]) for (let row = 0; row < 2; row++) {
+    const z = row ? -6 : 5;
+    G.add(ribs, box(30, 1, 4.2, side * 22, sill + .8, z));
+    G.add(earth, box(29.5, .2, 3.7, side * 22, sill + 1.4, z));
+    for (let i = 0; i < 6; i++) {
+      const x = side * (10 + i * 4.7), h = 2.3 + (i % 3) * 1.3;
+      G.add(pots, new THREE.CylinderGeometry(.85,.6,1.1,12).translate(x,sill+1.9,z));
+      G.add(ribs, box(.1,h,.1,x,sill+2+h/2,z));
+      for (let j = 0; j < 4; j++) G.add(leaf,T(new THREE.SphereGeometry(1,10,6),[x+Math.sin(j*2.4)*.65,sill+2+h-j*.7,z+Math.cos(j*2.4)*.5],[0,j*2.4,.35],[1.3,.28,.65]));
+    }
   }
-  K.both(M.wall, box(6.2, 4.6, z1 - z0, 0, sill + 8.9, (z0 + z1) / 2));                        // the face over the door
-  for (const s of [-1, 1]) K.both(M.wall, box(0.7, 6.6, z1 - z0, s * 2.85, sill + 3.3, (z0 + z1) / 2));
-  K.add(M.trim, box(4.6, 0.3, 0.3, 0, sill + 6.75, z1 + 0.1));                                  // the lintel's line
-  for (const x of [-1.1, 0, 1.1]) K.add(M.voidM, T(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 14), [x, sill + 9.9, z1 + 0.02], [Math.PI / 2, 0, 0]));
-  K.add(M.voidM, T(new THREE.TorusGeometry(1.5, 0.13, 4, 20, Math.PI), [0, sill + 8.2, z1 + 0.05]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4, 6.6).translate(0, 3.3, 0), [0, sill, R + 0.3]));
-  K.solid(box(4, 6.6, 0.1, 0, sill + 3.3, R + 0.3));
+  for (const x of [-32,-20,20,32]) {
+    G.add(ribs, box(.18,10,.18,x,sill+5,-7));
+    G.add(ribs, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(x,sill+9,-9),V(x,sill+11,0),V(x,sill+9,9)]),12,.1,5));
+  }
+  // The narrow entrance pier belongs to the broad glasshouse; its recess stays at the portal.
+  const recess = new THREE.Shape(); recess.moveTo(-2.2,0); recess.lineTo(-2.2,6.8);
+  recess.quadraticCurveTo(0,11.2,2.2,6.8); recess.lineTo(2.2,0); recess.closePath();
+  K.add(M.voidM, new THREE.ShapeGeometry(recess).translate(0,sill,R+.3));
+  K.solid(box(4.4,6.8,.1,0,sill+3.4,R+.3));
   // dry creepers already on it (brown: the garden grows over everything, even this, but it has stopped)
   const twig = { paint: new THREE.Color('#9a7448'), smooth: false, side: THREE.FrontSide };
   for (let i = 0; i < 9; i++) {
@@ -605,36 +610,34 @@ function exterior(scene, level, rt) {
     K.both(twig, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.18, 4));
   }
   // the steps down to the meadow
-  const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 12); return [p.x, p.z]; })()) - base;
-  K.stairs([0, sill, R + 4.4], [0, Math.max(0.2, foot), R + 11], 8, { rise: 0.4 });
+  const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 28); return [p.x, p.z]; })()) - base;
+  K.stairs([0, sill, R + 3], [0, Math.max(0.2, foot), R + 28], 28, { rise: 0.24 });
+  for(const sign of [-1,1]) K.ramp([sign*15.2,sill+.45,R+3],[sign*15.2,Math.max(.2,foot)+.45,R+28],1.6,{t:.6,mat:M.trim});
   // the sown beds in rows either side of the path, where nothing has come up: brown earth in white kerbs
   const soil = { paint: new THREE.Color('#8a5f3e'), smooth: false, side: THREE.FrontSide };
-  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) {
-    const x = s * (5.4 + i * 4.6), z = R + 15;
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) for(let row=0;row<3;row++) {
+    const x = s * ((s>0?40:20) + i * 9), z = R + 10 + row*6;
     const w = K.world(x, 0, z), gy = level.ground.heightAt(w.x, w.z) - base;
     if (!Number.isFinite(gy)) continue;
-    K.add(M.trim, box(3.6, 0.5, 9, x, gy + 0.1, z));
-    K.add(soil, box(3.0, 0.5, 8.4, x, gy + 0.2, z));
-    for (let j = 0; j < 4; j++) K.add(M.trim, box(0.06, 0.6, 0.06, x + (j % 2 ? 0.6 : -0.6), gy + 0.7, z - 3 + j * 2));   // the little marker sticks
+    let low=gy, overlapsStair=false;
+    for(const dx of [-3.7,0,3.7])for(const dz of [-2.8,0,2.8]){
+      const p=K.world(x+dx,0,z+dz), q=toStair(p.x,p.z);
+      low=Math.min(low,level.ground.heightAt(p.x,p.z)-base);
+      overlapsStair ||= Math.abs(q.u)<STAIR.w/2+5 && q.s<STAIR.len+14 && q.s>0;
+    }
+    if(overlapsStair)continue;
+    const bottom=low-.6, top=gy+.35;
+    K.both(M.trim, box(7.4, top-bottom, 5.6, x, (top+bottom)/2, z));
+    K.add(soil, box(6.8, .14, 5, x, top+.025, z));
+    for (let j = 0; j < 2; j++) K.add(M.trim, box(.06,.6,.06,x+(j?1:-1),gy+.7,z));
   }
-  // the glass spire (level design audit v1.49, issue #131: from Mira's the meadow's crest hid all but the dome's cap, so
-  // the walk there was blind): out of the teal finial a slender white mast, ringed, carries a lantern of glass ribbed in
-  // white, and on it a glass bud, the reference's bud over the Bud Passage at the meadow's scale. It shows whole over the
-  // crest from the water clock, and the lantern's glass catches the sun. Drawn only, as the creepers.
-  const S0 = sill + 7 + R + 2.2, { mast, lantern, r } = SPIRE, L0 = S0 + mast;
-  const spireGlass = makeMaterial({ color: '#e8f4ff', glow: 0.8, flat: true, key: 'temple.edena.spire' });
-  const budGlass = makeMaterial({ color: '#f4c9d3', color2: '#9fd6c9', glow: 0.3, flat: true, key: 'temple.edena.bud' });
-  K.add(ribs, new THREE.CylinderGeometry(0.45, 0.9, mast + 0.6, 10).translate(0, S0 - 0.3 + (mast + 0.6) / 2, 0));
-  for (const k of [0.3, 0.6, 0.85]) K.add(ribs, T(new THREE.TorusGeometry(1.1 - k * 0.4, 0.16, 4, 14), [0, S0 + mast * k, 0], [Math.PI / 2, 0, 0]));
-  K.add(ribs, new THREE.CylinderGeometry(r + 0.4, r, 0.4, 8).translate(0, L0, 0));
-  K.add(spireGlass, new THREE.CylinderGeometry(r, r, lantern, 8, 1, true).translate(0, L0 + lantern / 2, 0));
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.add(ribs, box(0.22, lantern, 0.22, Math.sin(a) * (r + 0.02), L0 + lantern / 2, Math.cos(a) * (r + 0.02))); }
-  K.add(ribs, new THREE.CylinderGeometry(r - 0.4, r + 0.4, 0.45, 8).translate(0, L0 + lantern + 0.2, 0));
-  K.add(budGlass, new THREE.SphereGeometry(r * 0.85, 14, 10).scale(1, 1.75, 1).translate(0, L0 + lantern + 0.4 + r * 1.45, 0));
-  K.add(ribs, new THREE.ConeGeometry(0.28, 3, 8).translate(0, L0 + lantern + 0.4 + r * 2.9 + 1.2, 0));
+  const landmarkTop = landmark(K, 'edena', { y: sill, R, glass: glassM });
   K.flush();
+  glaze(K, rt.veils, glassM, { color: '#74afbb', alpha: .28 });
   const at = K.world(0, sill, R + 1.4);
-  return { door: { at, heading: yaw }, kit: K, base, R, sill, glassM, spire: { top: K.world(0, L0 + lantern + r * 2.9 + 3.1, 0), lantern: K.world(0, L0 + lantern / 2, 0), height: mast + lantern + r * 2.9 + 3.1 }, clear: [{ x: SITE.x, z: SITE.z, r: R + 9 }, { x: K.world(0, 0, R + 9).x, z: K.world(0, 0, R + 9).z, r: 7 }, { x: K.world(0, 0, R + 15).x, z: K.world(0, 0, R + 15).z, r: 18 }] };
+  // Sightline targets sit on the front of the enlarged glazing, not several
+  // metres inside its solid shell (where the world's visibility audit cannot see).
+  return { door: { at, heading: yaw }, kit: K, gardenFrame: G, base, R, sill, glassM, spire: { top: K.world(0, landmarkTop, 4.2), lantern: G.world(0, sill + 52, 4.2), height: 94 }, clear: [{ x: SITE.x, z: SITE.z, r: 70 }, { x: K.world(0, 0, R + 9).x, z: K.world(0, 0, R + 9).z, r: 32 }, { x: K.world(0, 0, R + 15).x, z: K.world(0, 0, R + 15).z, r: 45 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the white ruins flower
@@ -684,13 +687,19 @@ function change(scene, level, rt) {
     flowers.push({ at: V(b.at.x + fx * 0.6, b.at.y + 0.5, b.at.z + fz * 0.6), s: 1.4, c: i % 5 });
     if (i % 2) flowers.push({ at: V(b.at.x - fx * 1.4, b.at.y + 0.45, b.at.z - fz * 1.4), s: 1.2, c: (i + 2) % 5 });
   }
-  // the dome: leaves and blossom over the glass
+  // the glasshouse: leaves and blossom around its panes and within its beds
   const O = rt.outside;
   if (O) {
-    for (let i = 0; i < 160; i++) {
-      const a = i * 2.39996, up = Math.acos(1 - (i / 160) * 0.95), r = O.R + 0.3;
-      const p = O.kit.world(Math.sin(a) * Math.sin(up) * r, O.sill + 7 + Math.cos(up) * r, Math.cos(a) * Math.sin(up) * r);
-      if (i % 3) leaves.push({ at: p, s: 1.6, r: i }); else flowers.push({ at: p, s: 1.8, c: i % 5 });
+    // New growth follows the low elliptical glazing and the beds inside it;
+    // the old spherical dome's positions floated above the coral eave.
+    for (let i = 0; i < 120; i++) {
+      const a = i * 2.39996, h = .8 + (i % 7) * .65, r = 45.3 - h * .25;
+      const p = O.gardenFrame.world(Math.sin(a) * r, O.sill + h, Math.cos(a) * r * .33);
+      if (i % 3) leaves.push({ at: p, s: 1.1, r: i }); else flowers.push({ at: p, s: 1.3, c: i % 5 });
+    }
+    for (const side of [-1, 1]) for (let i = 0; i < 24; i++) {
+      const p = O.gardenFrame.world(side * (9 + (i % 6) * 4.7), O.sill + 2.4 + (i % 3) * 1.3, i < 12 ? 5 : -6);
+      leaves.push({at:p,s:2.1,r:i}); flowers.push({at:p.clone().add(V(0,.5,0)),s:1.3,c:i%5});
     }
   }
   const FL = ['#f2a7b8', '#f6d36a', '#ffffff', '#b7a0cf', '#ef7e62'].map((c) => new THREE.Color(c));
@@ -705,7 +714,10 @@ function change(scene, level, rt) {
   for (const im of [fm, lm]) { im.userData.noCollide = true; im.userData.dynamic = true; im.frustumCulled = false; root.add(im); }
   let k = 0, want = 0;
   // (they come up a few at a time: the instance counts grow with k)
-  const apply = () => { root.visible = k > 0.01; fm.count = Math.round(k * flowers.length); lm.count = Math.round(Math.min(1, k * 1.3) * leaves.length); };
+  const apply = () => {
+    root.visible = k > 0.01; fm.count = Math.round(k * flowers.length); lm.count = Math.round(Math.min(1, k * 1.3) * leaves.length);
+    if (O) O.glassM.uniforms.uGlow.value = 0.12 + 0.08 * k;
+  };
   return {
     root, count: { flowers: flowers.length, leaves: leaves.length, slabs: slabs.length, beds: level.edena?.seedRow?.beds.length ?? 0 },
     set(on, { instant = false } = {}) { want = on ? 1 : 0; if (instant) { k = want; apply(); } },
@@ -713,7 +725,6 @@ function change(scene, level, rt) {
       if (k === want) return;
       k = THREE.MathUtils.clamp(k + (want ? dt / 5 : -dt), 0, 1);
       apply();
-      if (O) O.glassM.uniforms.uGlow.value = 0.18 + 0.15 * k;
     },
   };
 }

@@ -85,7 +85,8 @@ export const TRIALS = {
     rules: 'Open your wings in the first column and ride it up, then glide through every ring in order; each column on the way lifts you again. Round the walls of glass and back down the valley to the ship.',
     marker: [14, 212], start: [18, null, 204], heading: 3.1, speed: 12,
     winds: [[18, 204, 7, 58, 9], [140, 0, 7, 60, 9], [-60, -130, 7, 56, 9], [-118, 66, 7, 52, 9]],
-    gates: [[18, 56, 204, 7], [60, 44, 150, 8], [96, 32, 104, 8], [140, 58, 0, 7], [90, 44, -70, 8], [20, 26, -120, 8], [-60, 54, -130, 7], [-125, 31, -20, 8], [-118, 51, 66, 7], [-60, 33, 150, 8], [5, 17, 195, 9]],
+    // Give the enlarged Clock-House's western wall room on the way to the second column.
+    gates: [[18, 56, 204, 7], [60, 44, 150, 8], [80, 32, 100, 8], [140, 58, 0, 7], [90, 44, -70, 8], [20, 26, -120, 8], [-60, 54, -130, 7], [-125, 31, -20, 8], [-118, 51, 66, 7], [-60, 33, 150, 8], [5, 17, 195, 9]],
     reward: 'lodestone',
   },
   // (on the wings since v1.43: down into the canyon on a glide, and out on the column of rising air at its end)

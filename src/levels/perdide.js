@@ -1,3 +1,4 @@
+import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
@@ -17,6 +18,9 @@ import { FLORA_WORLDS } from '../flora.js';
 import { buildCrystalVeins } from '../lorn-veins.js';
 import { buildFloodedWood, floodWeight } from '../lorn-flood.js';
 import { buildKeepersCanopy } from '../lorn-canopy.js';
+import { SITE as HUSH_HOUSE } from '../temples/perdide.js';
+
+const hushVista = templeVista(HUSH_HOUSE, { width: 100, front: 170, back: 130 });
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -66,6 +70,11 @@ export function lornHeight(x, z, far = 1200) {
   h = Math.max(h, THREE.MathUtils.lerp(-10, 2.2, smoothstep(70, 15, Math.hypot(x, z))));
   const cd = Math.hypot(x - CAVE.x, z - CAVE.z);
   h = THREE.MathUtils.lerp(h, 1.6, smoothstep(110, 70, cd));
+  // A level moss island supports the whole widened colonnade, with a low shore
+  // beyond it. Do not leave the outer columns suspended over the old island edge.
+  const hx=x-HUSH_HOUSE.x, hz=z-HUSH_HOUSE.z, hs=Math.sin(HUSH_HOUSE.heading), hc=Math.cos(HUSH_HOUSE.heading);
+  const house=Math.hypot((hx*hc-hz*hs)/50,(hx*hs+hz*hc)/38);
+  h = Math.max(h, THREE.MathUtils.lerp(-10,1.6,smoothstep(1.3,1,house)));
   // the fireflies' isle: a low hummock in the channel, only reached by skiff
   const di = Math.hypot(x - ISLE.x, z - ISLE.z);
   h = Math.max(h, THREE.MathUtils.lerp(-6, 1.3 + noise(x * 0.05, z * 0.05) * 0.3, smoothstep(ISLE.r + 12, ISLE.r - 3, di)));
@@ -274,7 +283,8 @@ export function* buildPerdide(scene) {
       g.rotateX((rng() - 0.5) * 0.5).rotateZ((rng() - 0.5) * 0.5);
       g.translate(x, terrain.heightAt(x, z) - 0.5, z);
       const c = pick(CRYSTAL);
-      (parts[c] ??= []).push(g.toNonIndexed());
+      if (!hushVista(x, z, r + h * .2)) (parts[c] ??= []).push(g.toNonIndexed());
+      else g.dispose();
     }
     if (skip) return;   // (its draws taken all the same: the rest of the swamp grows where it always did)
     for (const [c, list] of Object.entries(parts))

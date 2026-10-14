@@ -1,3 +1,4 @@
+import { ROSE_SITE } from '../desert-sites.js';
 import { buildDesertVistas, BASIN } from '../desert-vistas.js';
 import { buildDesertLandmarks, desertHeight } from '../desert-landmarks.js';
 import * as THREE from 'three';
@@ -56,7 +57,7 @@ export function* buildDesert(scene) {
   // sand banked against what stands on it: the landmarks', the city's and the camps' solids feed it
   // (none inside Qanat's walls: its streets and plaza are paved)
   const inQanat = (x, z) => Math.hypot(x - STORY.city.x, z - STORY.city.z);
-  const sand = SandDrifts.open({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 3, mask: (x, z) => smoothstep(57, 61, inQanat(x, z)) });
+  const sand = SandDrifts.open({ heightAt: (x, z) => terrain.heightAt(x, z), seed: 3, mask: (x, z) => smoothstep(112, 155, Math.hypot(x - ROSE_SITE.x, z - ROSE_SITE.z)) * smoothstep(57, 61, inQanat(x, z)) });
   const landmarks = buildDesertLandmarks(scene, terrain);
   yield;
   // inside the masked head: a glyph-carved chamber under an oculus, built high above the map

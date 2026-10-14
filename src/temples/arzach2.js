@@ -1,3 +1,4 @@
+import { landmark, LANDMARK_SCALE } from './landmarks.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -559,21 +560,10 @@ function exterior(scene, level, rt) {
   const K = new TempleKit(rt.root, 'The Founders’ Belfry', V(SITE.x, 0, SITE.z), yaw, rt.M);
   const M = rt.M, R = 15;
   const rose = { paint: new THREE.Color(PALETTE.accent), smooth: true };
-  // a round tower out of the cloud: a fluted shaft, a gallery ring at the door, an open belfry on top
-  // (the shaft's own lathe collides: a straight cylinder stood out from its waist and sank into its foot)
-  K.both(M.wall, lathe([[R + 3, base], [R + 1, base + 30], [R, door - 6], [R, door + 34], [R + 2.4, door + 35], [R + 2.4, door + 36.5], [R - 0.5, door + 37]], 40));
-  K.both(M.floor, T(annulus(R - 0.5, R + 5, 1.2, 48), [0, door, 0]));                                 // the gallery round the door
-  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.3) continue; K.both(M.trim, T(new THREE.BoxGeometry(0.4, 1.0, 0.4), [Math.sin(a) * (R + 4.7), door + 0.5, Math.cos(a) * (R + 4.7)])); }
-  // the belfry: eight piers, a dome of rose stone, a great bell inside
+  landmark(K, 'arzach2', { y: door, R, bottom: base });
+  // Keep the gallery and the arrival bridge on the same walking plane.
+  K.both(M.floor, T(annulus(R - 0.5, R + 5, 1.2), [0, door + .04, 0]));
   const B0 = door + 37;
-  for (let i = 0; i < 8; i++) { const a = (i + 0.5) / 8 * TAU; K.both(M.wall, T(new THREE.BoxGeometry(3, 16, 3), [Math.sin(a) * (R - 2), B0 + 8, Math.cos(a) * (R - 2)], [0, a, 0])); }
-  K.both(M.wall, T(annulus(4, R + 1, 1.4, 40), [0, B0 + 17.4, 0]));
-  K.both(rose, new THREE.SphereGeometry(R, 32, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.6, 1).translate(0, B0 + 17, 0));
-  K.add(M.trim, lathe([[2.6, 0], [2.6, 1], [1.8, 1.4], [0.01, 2.2]], 16).translate(0, B0 + 17 + R * 0.6 - 0.4, 0));
-  K.both(BRONZE(), T(lathe([[0.02, 0], [5, 0.3], [5.4, 3], [3.8, 8.5], [3.1, 12], [0.02, 12.8]], 32), [0, B0 + 2, 0]));
-  K.add(M.dark, box(0.6, 3.4, 0.6, 0, B0 + 15.5, 0));
-  // glyphs round the shaft, between flutes
-  for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; K.add(M.glyph, T(glyphGeometry(2.4, 0.14), [Math.sin(a) * (R + 0.06), door + 18, Math.cos(a) * (R + 0.06)], [0, a, 0])); }
   // the portico and the dark doorway on the gallery, toward the plateau
   const z0 = R - 0.6, z1 = R + 3.2;
   for (const s of [-1, 1]) K.both(M.wall, box(3.6, 11, z1 - z0, s * 4, door + 5.5, (z0 + z1) / 2));
@@ -599,23 +589,41 @@ function exterior(scene, level, rt) {
   // the founders' lamp (level design audit v1.49, issue #133: from Calix by the monastery's bell the walk to this door had
   // nothing to steer by): the dome's finial carried on as a bronze needle with a glass lamp on it, over the monastery's
   // roofs from the foot of its bell tower; cold until the bell rings, then lit (src/story/arzach2.js)
-  const F0 = B0 + 17 + R * 0.6 + 1.6, bronze = BRONZE();
-  K.add(bronze, new THREE.CylinderGeometry(0.28, 0.5, 9.4, 8).translate(0, F0 + 4.5, 0));
-  for (const y of [2.5, 5.5]) K.add(bronze, T(new THREE.TorusGeometry(0.62, 0.1, 4, 14), [0, F0 + y, 0], [Math.PI / 2, 0, 0]));
-  K.add(bronze, new THREE.CylinderGeometry(1.2, 0.6, 0.5, 10).translate(0, F0 + 9.3, 0));
-  K.add(bronze, new THREE.ConeGeometry(0.9, 2.6, 10).translate(0, F0 + 12.9, 0));
-  for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + 0.4; K.add(bronze, box(0.14, 2.2, 0.14, Math.sin(a) * 1.05, F0 + 10.6, Math.cos(a) * 1.05)); }
+  const F0 = door + 77 * LANDMARK_SCALE.arzach2[1], bronze = BRONZE();
+  K.add(bronze, new THREE.CylinderGeometry(0.28, 0.5, 9.4, 8).translate(-19.8, F0 + 4.5, 0));
+  for (const y of [2.5, 5.5]) K.add(bronze, T(new THREE.TorusGeometry(0.62, 0.1, 4, 14), [-19.8, F0 + y, 0], [Math.PI / 2, 0, 0]));
+  K.add(bronze, new THREE.CylinderGeometry(1.2, 0.6, 0.5, 10).translate(-19.8, F0 + 9.3, 0));
+  K.add(bronze, new THREE.ConeGeometry(0.9, 2.6, 10).translate(-19.8, F0 + 12.9, 0));
+  for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + 0.4; K.add(bronze, box(0.14, 2.2, 0.14, -19.8 + Math.sin(a) * 1.05, F0 + 10.6, Math.cos(a) * 1.05)); }
   const lampGeo = new THREE.SphereGeometry(1.0, 14, 10).scale(1, 1.2, 1).translate(0, 0, 0);
-  const lampAt = K.world(0, F0 + 10.6, 0);
+  const lampAt = K.world(-19.8, F0 + 10.6, 0);
   const cold = new THREE.Mesh(lampGeo, makeMaterial({ color: '#8a7a62', flat: true, key: 'temple.arzach2.lamp.cold' }));
   const warm = new THREE.Mesh(lampGeo, makeMaterial({ color: '#ffd9a0', glow: 1, key: 'temple.arzach2.lamp.lit' }));
   for (const m of [cold, warm]) { m.position.copy(lampAt); m.userData.noCollide = true; m.userData.dynamic = true; m.name = 'The founders’ lamp'; rt.root.add(m); }
   warm.visible = false;
-  const lamp = { at: lampAt, top: K.world(0, F0 + 14.2, 0), height: 14.2, lit: (on) => { warm.visible = !!on; cold.visible = !on; }, isLit: () => warm.visible };
+  const lamp = { at: lampAt, top: K.world(-19.8, F0 + 14.2, 0), height: 14.2, lit: (on) => { warm.visible = !!on; cold.visible = !on; }, isLit: () => warm.visible };
+  // Banks of cloud lap against the plinth, below the bridge's walking plane.
+  // They leave the doorway and the complete bridge visible from its approach.
+  const cloudM=makeMaterial({color:'#fff4eb',shadeFlat:.75,shade:.15,line:.3,lineTint:1,hatch:0});
+  for(let i=0;i<44;i++){
+    const a=i*2.39996,r=28+(i%5)*6,x=Math.sin(a)*r,z=Math.cos(a)*r*.62-9;
+    if(z>0 && Math.abs(x)<13)continue;
+    const size=7+(i%4)*2.1;
+    const puff=new THREE.SphereGeometry(1,24,16),p=puff.attributes.position;
+    for(let j=0;j<p.count;j++){
+      const x=p.getX(j),y=p.getY(j),z=p.getZ(j),k=1+.07*Math.sin(x*7+y*4)*Math.cos(z*9+y*3);
+      p.setXYZ(j,x*k,y*k,z*k);
+    }
+    puff.computeVertexNormals();
+    K.add(cloudM,puff.scale(size,size*.55,size*.8).translate(x,door+2-(i%3)*2,z));
+  }
   K.flush();
+  // The cloud bank shares the kit's batching, but remains vapour, like the
+  // world's cloud sea. Contact audits must not mistake it for a stone ledge.
+  for (const mesh of K.group.children) if (mesh.material === cloudM) mesh.userData.floats = true;
   const at = K.world(0, door, R + 1.6);
   const front = K.world(0, door, R + 9);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: door, R, top: B0 + 30, hang, clear: [] , front, lamp };
+  return { door: { at, heading: yaw }, kit: K, base, doorY: door, R, top: door + 77 * LANDMARK_SCALE.arzach2[1] + 14.2, hang, clear: [] , front, lamp };
 }
 
 // ------------------------------------------------------------------ the world change: the stones come down
