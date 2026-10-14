@@ -91,7 +91,7 @@ export const PALETTE = {
 // ------------------------------------------------------------------ the puzzle, as logic (src/temples/logic.js)
 // (a drum's `roll`: what moves it, `hand` a shove, `sword` a cut: logic.js solve; the bowls a cut ball reaches `need` the
 // sword, the rooms past the watcher the shield)
-const SPOKES = ['kb1', 'kb2', 'kb3', 'kb4'], RIM = ['b6', 'b7', 'b8', 'b9'];
+export const SPOKES = ['kb1', 'kb2', 'kb3', 'kb4'], RIM = ['b6', 'b7', 'b8', 'b9'];
 export const LOGIC = {
   id: 'desert', entry: 'threshold', gadget: 'sword',
   rooms: {

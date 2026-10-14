@@ -24,14 +24,18 @@ export const MODES = {
   bloom: { item: 'bloom', name: 'bloom', label: 'Bloom', tones: ['#7fcf72', '#f2a7b8', '#4f9a5a', '#f6d36a', '#fff1f4'], rate: 0.55, css: 'bloom', glow: '#c6eba8' },
   // the City Floating in Space's: a cone like the push's that pulls toward you (src/temples/spacecity.js: balls, the moorers' rings)
   tether: { item: 'tether', name: 'tether', label: 'Tether', tones: ['#f4e9c8', '#c9b48a', '#e8c66a', '#fffaf0'], rate: 1.4, css: 'push', glow: '#f4e9c8', cone: true, pull: true },
+  // the water cannon (issue #339, a prototype): no item of its own, lent by an encounter (FluidTool.lent: the Rose House's
+  // cistern helped, src/guardian-help/keeper.js); held, the trigger pours one strong arc of water (FluidTool.pourStream)
+  cannon: { item: 'cannon', name: 'water cannon', label: 'Cannon', tones: ['#7fd3e8', '#3f9fd0', '#bff0f6', '#ffffff'], rate: 2.2, css: 'stun', glow: '#bff0f6', stream: true, lent: true },
 };
-export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom', 'tether'];
+export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom', 'tether', 'cannon'];
 export const STUN_SECONDS = 3.5;
 
 /** The owned modes in order (has: id -> bool). Without the fluid gun (a gadget, src/gadgets/gun.js) and the backpack it drinks from: none. */
-export function ownedModes(has) {
+export function ownedModes(has, lent = null) {
   if (!has('gun') || !has('backpack')) return [];
-  return MODE_ORDER.filter((m) => has(MODES[m].item));
+  if (lent) return MODE_ORDER.filter((m) => (MODES[m].lent ? lent.has(m) : has(MODES[m].item)));
+  return MODE_ORDER.filter((m) => !MODES[m].lent && has(MODES[m].item));
 }
 /**
  * The gun's mode on taking it up (issue #307, the author: "The fluid gun should default to push mode"): the mode the

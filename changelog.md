@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.76 — 2026-10-14
 
+- Two guardian encounters to try where you help instead of fight, in the Debug menu under Prototypes: fly beside the Elder round the Aerie’s roost, riding her wake and catching the stone feathers she sheds before they shatter on the floor; or take a water cannon into the Rose House’s dry cistern and fill its jars, the wheel’s trough and the Givers’ great tank, while the Keeper drinks, lifts the tank’s lid for you, and the water and the light come back. They play in a sandbox and change nothing in your game: the fights are as they were.
 - Some temple walls that were half missing are whole now: the Hush-House’s side mouths have their side walls and lintels, the Lamp-House’s lamp niches and the great key’s alcove their sides and roofs, and you can no longer walk through a niche wall you can see. The drums in the Mooring-House’s Rope Store stand on both their irons.
 - In the Mooring-House a caged coffer waits on the Capstan Hall’s east side, a plate in front of it. The moorers’ weight sits on a cleat high on the wall where no jump reaches: pull it down into your hands with the grappling hook, set it on the plate, and the cage sinks.
 - In the Rose House the plate on the Dry Channel’s pier holds the door at the top of the gallery open only while something weighs it down: stand on it and the door opens, step off and it shuts again. The pier is longer now, and the Givers’ stone weight lies at its other end: carry it onto the plate and the door stays open.

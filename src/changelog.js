@@ -47,6 +47,11 @@ export const CHANGELOG = [
     // multi-box walls (issue #358): src/temples/kit.js both() takes an array; perdide.js, perdide2.js, spacecity.js;
     // tests/temple-kit-both.test.js
     'Some temple walls that were half missing are whole now: the Hush-House’s side mouths have their side walls and lintels, the Lamp-House’s lamp niches and the great key’s alcove their sides and roofs, and you can no longer walk through a niche wall you can see. The drums in the Mooring-House’s Rope Store stand on both their irons.',
+    // helping a guardian instead of fighting it (issue #339, prototypes): src/guardian-help/ (elder.js, keeper.js,
+    // index.js attachHelp, pose.js, hud.js, seed.js), fluid-kit.js MODES.cannon (lent), fluid-tool.js pourStream /
+    // streamCatch / lent, world-picker.js Prototypes, boot.js + main.js ?guardianHelp; tests/guardian-help.test.js;
+    // docs/design/helper-guardians.md, docs/systems/foes.md "Helping instead of fighting"
+    'Two guardian encounters to try where you help instead of fight, in the Debug menu under Prototypes: fly beside the Elder round the Aerie’s roost, riding her wake and catching the stone feathers she sheds before they shatter on the floor; or take a water cannon into the Rose House’s dry cistern and fill its jars, the wheel’s trough and the Givers’ great tank, while the Keeper drinks, lifts the tank’s lid for you, and the water and the light come back. They play in a sandbox and change nothing in your game: the fights are as they were.',
   ] },
   { v: '1.75', date: '2026-10-14', items: [
     // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's

@@ -724,6 +724,24 @@ it lands) and the gadget taking. The temples' walkthroughs (`tests/temples.test.
 A combo's links no longer count as moves of the phase's rotation (`Guardian.begin`, v1.63): a three-move combo in a
 list of three moves had locked the rotation on that combo (the First Sign stuttered and cried, never beamed).
 
+### Helping instead of fighting (prototypes, v1.76, issue #339: `src/guardian-help/`)
+
+Two encounters on the shipped guardians, played only from their own page (`?level=arzach&guardianHelp=elder`,
+`?level=desert&guardianHelp=keeper`, Debug → Prototypes) until the author picks: docs/design/helper-guardians.md has how
+each plays, its numbers and one idea for each of the other twelve. `attachHelp(rt, kind)` (`index.js`) takes the
+temple's guardian over: its `update` is the encounter's, its state `'help'` (no lock-on, no blows, its targets off), its
+body posed by hand (`pose.js` `poseGuardian`: the tail of `Guardian.update` without the fight), its meter the
+encounter's progress; calmed, it is `'weary'` and the shipped hand on its brow (`final: 'touch'`) resolves the temple.
+The Elder's (`elder.js` `ElderFlight`): she rises with you in the vent's wind and flies three flights round the Roost
+(`FLIGHT`, `routeAt`), her wake holding and carrying open wings (`wake`), her stone feathers shaking loose on a wingtip
+then falling (`shed`, `loosed`), caught on the wing; two lost in a flight and she falters, that flight again. The
+Keeper's (`keeper.js` `KeeperFlow`): the gun lends the water cannon (`fluid-kit.js` MODES.cannon `lent`,
+`FluidTool.lent`, `pourStream`, `streamCatch`) to fill the cistern's cracked jars and the wheel's trough (`VESSELS`,
+`LEAK`), the Keeper drinking at each runnel, lifting the tank's lid once the three are full; the stream in its face
+startles it and spills a jar by it (`FRIGHT`). `tests/guardian-help.test.js`: each played through by a scripted player
+in its arena with a real Player (and the Keeper's with a real FluidTool), each failing gently, and the shipped fights
+waking and fighting without the page.
+
 ### The guardians’ last phases (v1.15, v1.16, v1.19, v1.24)
 
 In the temples reworked round one idea (docs/audits/temple-design-v1.12.md, v1.16, v1.19), the guardian's last phase asks

@@ -842,6 +842,8 @@ const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (
 const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 /** (v1.76, issue #358: shot on a commit of this branch before its rebase, and the tree before it) */
 const KIT358 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (ff32ac8d9), Vite on port 6358, 14 October' };
+/** (v1.76, issue #339: the prototypes in muted headless Chrome, a scripted player through each, the game stepped 1/60 s a frame) */
+const HELP339 = 'muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6339), ?guardianHelp=elder and ?guardianHelp=keeper played through by a scripted player, the game stepped 1/60 s a frame; 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.76': [
     { match: 'Swimming, the traveller’s backpack straps no longer vanish', tags: ['traveller'], see: 'Once you have the backpack, swim in Lorn’s deep water and watch his shoulders from behind as he crawls: the straps stay over them as each arm comes over, a little nearer his neck than on land.' },
@@ -882,6 +884,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'rope-irons', title: 'The Mooring-House, the Rope Store’s drums', caption: 'Before, each drum stood on one iron, its other end in the air; after, an iron under either end.', ...KIT358,
         view: { level: 'spacecity', player: [-168, 1511, -102], heading: 3.14, eye: [-166, 1515.5, -103], target: [-168, 1511, -110], fov: 70, hour: 17 } },
     ] },
+    { match: 'Two guardian encounters to try where you help instead of fight', tags: ['foes', 'vael', 'desert'], shots: [
+      { name: 'help-elder', only: 'after', title: 'Beside the Elder', caption: 'Her first flight round the roost: the traveller in her wake (the motes off her wingtips), a stone feather shaking loose on her wing, the count of the flight’s feathers at the top left.', from: HELP339 },
+      { name: 'help-cannon', only: 'after', title: 'The water cannon', caption: 'Aimed and held, one strong arc of water into the high jar on its corbel; the jar’s gauge rising, the leak’s bar running down at the top left.', from: HELP339 },
+      { name: 'help-keeper', only: 'after', title: 'The water back', caption: 'The jars and the wheel’s trough full, their runnels into the basin, the braziers and the lamps lit; the Keeper lifted the tank’s lid, and the tank filled, the Givers’ muzzle pours again.', from: HELP339 },
+    ], see: 'Open the Debug menu (L, or Debug on the title) and pick Prototypes → Fly with the Elder: open your wings in the vent’s rising wind (the rings) and she rises with you; at the top follow her, stay in her wake, and fly through each feather as it falls from the wing it loosened on. Let two of a flight fall and she sits shaking, then flies it again. Prototypes → Water for the Keeper: aim (LT / L2) and hold RT / R2 to pour; fill the floor jar, the high jar and the wheel’s trough before they leak back down, keep the stream off the Keeper, then fill the tank once it lifts the lid. Each ends on a hand on the guardian’s brow. Without the Debug entry the guardians fight as before.' },
   ],
   '1.75': [
     { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [
