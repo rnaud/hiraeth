@@ -382,6 +382,27 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   nearest; mean obviousness 3.38 → 3.44). Tests: `tests/temple-rules.test.js`,
   the on-foot walk and the old saves in `tests/temples.test.js`, the play-through, door-bypass, way-back, ball-room,
   pit-void, zfight, contact audit.
+
+
+- **The Aerie as shrines** (v1.77, issue #336, the fifth house redone to the rules, after the Founders' Belfry and the Builders' Greenhouse). The Hall of Winds 30 by 66 m under 18
+  (`HALL`): its stone's groove as long as it was (37.8 m, every push in the calms as it was), down the middle of the floor
+  to the vent's throat, a grate short of the far wall (`pH`; it was in the corridor's mouth, through the hall's door), the
+  vent's mouth over the far door, six rows of screens 9.4 m apart. The Wind Well a round hall 36 m across and 50 high
+  (`WELL`), the raft by its east wall, the floor's second vent by the Moult's door 9 m off its middle; the Wing Chamber's
+  round hall 26 m (`WING`, a chest's). The gulf vent's stone moved off the high balcony (against the well's wall) into a
+  room of its own past it, the **Vent Hall** (`TOP`, 30 m square under 18, the `top` room's mark there now): its grate in
+  the middle, a hood over it and a pipe along the roof to the vent's mouth over the gulf's door; the small key's door in
+  its north wall. The balcony reaches out over the well to two metres from the column's edge (`BALCONY.depth` 11.4), so
+  the glide off the column is as short as it was. The Moult and the Eyrie 30 m square (`STACK`), the Moult's middle under
+  the vent's shaft, four columns to fight round, 18 m high; the Eyrie's ledge reaches out to 4 m short of the gap's vent
+  (the gap, the column and the perch six metres over the ledge as they were), the stone's groove on it in the middle of the
+  hall, the coffer's shelf by the door, the perch against the west wall on a buttress out of the dark. The Gulf 30 m
+  across (`GULF.half`, its way back's passage outside it with it), every door 7 by 9 (`DOOR`), each of the Moult's, the
+  small key's and the great key's in a hall's wall. The rooms are tagged: the Moult is the house's one fight, its keepers
+  round its middle (`Mark` `foes`); the Gulf's lips are passages, the perch a puzzle. The Elder and her Roost, the story's
+  lines, the circuit round the stack (down the vent's shaft, out by the Moult's door), the keys, every vent and every
+  crossing as they were. Old saves: one that stood in the old rooms is taken to its last mark (`migrate.js` arzach v4).
+  Rules broken: 35 before, none now. Temple design audit: 4.33 before and after (mean obviousness 3.08 both).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

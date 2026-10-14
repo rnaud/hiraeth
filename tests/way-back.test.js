@@ -110,7 +110,7 @@ test('the Aerie’s way back, walked: off the higher ledge through its east door
   // over there, the great lock shut
   stand(4, GULF.farY, zF);
   assert.ok(P.onGround && Math.abs(local().y - GULF.farY) < 0.3, `on the higher ledge (${where()})`);
-  assert.equal(walk(W(13.4, GULF.farY, zF)), true, `through the east doorway onto the sill (${where()})`);
+  assert.equal(walk(W(GULF.half + 2.4, GULF.farY, zF)), true, `through the east doorway onto the sill (${where()})`);
   assert.equal(walk(W(xm + 1, WB.y, zF), { dy: 0.8 }), true, `down off the sill into the passage (${where()})`);
   for (let i = 0; i < 90 && !P.onGround; i++) frame();
   assert.ok(P.onGround && Math.abs(local().y - WB.y) < 0.3, `on its floor (${where()})`);

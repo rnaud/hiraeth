@@ -855,6 +855,8 @@ const SHRINE336W = 'Issue #336: scripts/design-qc/capture.mjs in muted headless 
 const BELFRY336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6442, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Builders' Greenhouse's rooms, shot the same way before and after) */
 const GREENHOUSE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6443, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Aerie's rooms, shot by hand before and after) */
+const SHRINE336A = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6442, at the Warden’s Well’s commit (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -901,6 +903,15 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Greenhouse’s keepers wait only in the Shade House', shots: [
       { name: 'greenhouse-shade', title: 'The Shade House', caption: 'From its door: before, a room 16 by 14 m; after, the house’s one fight, its keepers round the middle of a hall 30 m square among four columns, the small key at its far end', from: GREENHOUSE336 },
+    ] },
+    { match: 'The Aerie is rebuilt like a shrine too', shots: [
+      { name: 'aerie-hall', title: 'The Hall of Winds', caption: 'From the way in: before, 16 m wide, the stone’s groove running out of the far door into the corridor; after, 30 m wide and 66 long, the groove down its middle to a grate short of the far wall, the vent’s mouth over the door', from: SHRINE336A },
+      { name: 'aerie-well', title: 'The Wind Well', caption: 'From its south door, looking up: 24 m across before, 36 m and 50 high after, the high balcony reaching out over the floor', from: SHRINE336A },
+      { name: 'aerie-stone', title: 'The gulf vent’s stone', caption: 'Before, on the high balcony against the well’s wall; after, in the middle of the Vent Hall past it, the hood over its grate, the small key’s door beyond', from: SHRINE336A },
+      { name: 'aerie-eyrie', title: 'The Eyrie', caption: 'Before, a 20 by 16 m room, the stone in a groove along the ledge by the wall; after, 30 m square, the ledge reaching out to the middle with the stone on it, the great key’s perch on a buttress across the gap', from: SHRINE336A },
+    ] },
+    { match: 'The Aerie’s machines no longer stand', shots: [
+      { name: 'aerie-moult', title: 'The Moult', caption: 'Before, a 14 m square room, its keepers by the door; after, 30 m square, the house’s one fight round its middle among four columns', from: SHRINE336A },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
   ],

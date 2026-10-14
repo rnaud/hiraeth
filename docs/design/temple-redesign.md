@@ -121,6 +121,26 @@ What stayed: the Gardener and its fight, the story's lines, the two small keys a
 the Seed Vault's keepers' door, the pits, every groove's length and every climb. A save that stood in the old rooms is
 taken to its last mark (`LAYOUTS.edena` v5).
 
+## The Aerie (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Hall of Winds 16 × 39, the Wind Well 24 m across, the Moult 14 × 14, the Eyrie 20 × 16, the Gulf 22 × 90; the Wing Chamber's round hall 17 m | the Hall of Winds **30 × 66**, the Wind Well **36 m** (50 high), the Moult and the Eyrie **30 × 30**, the **Vent Hall** 30 × 30 (new), the Gulf **30 × 90**; the Wing Chamber 26 m (a chest's) |
+| ceilings | the Hall of Winds 12, the Moult 10, the Eyrie 14 over its ledge, the high balcony 14 under the well's top, the Wing Chamber 12 | the Hall of Winds **18**, the Moult **18**, the Eyrie **18**, the Vent Hall **18**, the Wing Chamber 16 |
+| doors | 5 by 6 to 6.4 | **7 by 9** |
+| fights | a machine by every mark (the Hall of Winds, the well, the Wing Chamber, the high balcony, the Eyrie, both lips of the Gulf, the perch), and the Moult's arena | **the Moult only**, its keepers round its middle among four columns |
+| against the walls | the Hall of Winds' groove running into the corridor's mouth, the well floor's second vent, the Eyrie's stone along its ledge by the wall, the gulf vent's stone on the balcony against the well's wall | each in the middle of its room: the groove down the hall's middle to a grate, the Eyrie's on a ledge that reaches out to the hall's middle, the gulf vent's in the middle of the Vent Hall past the balcony |
+| the rules broken | **35** (both 5, size 8, ceiling 4, unmeasured 1, door 4, centred 7, foes 6) | **0** |
+| the temple design audit | 4.33: structure 5, teach/test/twist 5, combination 5, non-obvious 4 (mean 3.08), decoupling 5, item 4, guardian 4, identity 3, curve 4 | 4.33, the same scores (mean obviousness 3.08) |
+
+What it took beyond the sizes: the stone's groove in the Hall of Winds is as long as it was, so the hall is 66 m long to
+hold it in its middle 60 % (a sixth row of screens for the walk past the vent to the well); the gulf vent's stone needed
+a room of its own, since the well's middle 60 % is 11 m round its column, and the high balcony now reaches out to two
+metres from the column's edge; the Eyrie's ledge reaches out to keep the gap as wide as it was; the perch stands against
+the west wall on a buttress (on a pillar in the middle of the gap a glide to it overshot, and one short of it landed on
+its corbel). What stayed: the Elder and her fight, the story's lines, the circuit round the stack, the keys, every vent's
+wind and every crossing. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.arzach` v4).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -139,7 +159,6 @@ counts, and a house may not get worse). Ranked worst first:
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
 | Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
 | Footprint (spheres) | 36 | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |
-| Aerie (arzach) | 35 | 5 | 8 | 4 | 4 | 7 | 0 | 6 | 1 unmeasured |
 
 What repeats, and how the Rose House answered each:
 
@@ -161,5 +180,5 @@ What repeats, and how the Rose House answered each:
   that asks for it. Each wants a step with the gadget in it.
 
 The next houses to redo, by how much the player meets them and how much they break: the Warden's Well was the second
-(above), then the **Founders' Belfry** and the **Aerie** (the first after the Rose House on the route, fewest broken),
-then the **Builders' Greenhouse** and the **Undertower** (most broken).
+(above), then the Founders' Belfry, the Builders' Greenhouse and the Aerie (above), then the **Undertower** (most
+broken).

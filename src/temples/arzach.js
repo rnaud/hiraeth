@@ -26,8 +26,8 @@ import { chestMound } from '../boxes/mound.js';
 //                        behind the stone screens, screen to screen
 //   the Wind Well        the hub: a tall round shaft open to the sky through a crown of stone feathers, bands of
 //                        ochre, glyph lines up its walls like the lines on a wing. Its air is still: the stone sits
-//                        in the floor's vent. Roll it along its groove into the hall's vent (behind you, in the
-//                        corridor's mouth) and the hall falls calm, and the wind rises up the well, and the feather
+//                        in the floor's vent. Roll it along its groove into the hall's vent (behind you: its throat a
+//                        grate in the middle of the hall's floor since v1.77) and the hall falls calm, and the wind rises up the well, and the feather
 //                        raft by the east wall rides up on it to the Wing Chamber's balcony
 //                        (since v1.49, issue #23, the well is a stack, rooms off it at its foot and up its height:)
 //   the Moult            (west off its floor, an arena) where the birds raised here shed their first stone feathers.
@@ -40,7 +40,9 @@ import { chestMound } from '../boxes/mound.js';
 //                        vent by the Moult's door, its stone beside it: while it is open, half the wind breathes out
 //                        of it there. Glide down, roll its stone into its throat, and the whole wind rises up the
 //                        well, to the high balcony over it, the great carved eye beside it (the wind you sent, a room
-//                        away). The way north off it wants the small key
+//                        away)
+//   the Vent Hall        (v1.77, north off the high balcony) the gulf vent's throat, a grate in the middle of its
+//                        floor, its stone in it; the way north off it wants the small key
 //   the Eyrie            (west at the high balcony's height, along a ledge round the well's wall) two vents and one
 //                        stone, both throats on its ledge: the stone starts in the throat of the vent at the foot of
 //                        the gap, so the wind comes out of the ledge's own, a column beside a shelf with a coffer;
@@ -53,7 +55,7 @@ import { chestMound } from '../boxes/mound.js';
 //                        stack, flown down and ridden up, its way decided by where the one stone sits
 //   the Gulf             two crossings, each on a wind you send. Forty-six metres of nothing to a stone perch
 //                        four lower: on still air no glide carries so far. A vent's mouth over the door, its stone
-//                        in the throat in the ledge's floor: push it out and the wind pours out over the gulf in
+//                        in the throat in the Vent Hall's floor: push it out and the wind pours out over the gulf in
 //                        gusts; leap as one comes, and it carries your wings to the perch (the gust that shoved you
 //                        back in the hall, with the wings and the push). Then a ledge six metres HIGHER than the
 //                        perch: no glide climbs. A vent far below beside the perch, its throat on the perch with
@@ -97,7 +99,13 @@ export const PALETTE = {
 
 export const LOGIC = {
   id: 'arzach', entry: 'threshold', gadget: 'glider',
-  rooms: { threshold: { checkpoint: true }, gusts: { checkpoint: true }, well: { checkpoint: true }, wings: { checkpoint: true }, top: { checkpoint: true }, moult: { checkpoint: true }, eyrie: { checkpoint: true }, eyrieKey: {}, gulf: { checkpoint: true }, perch: { checkpoint: true }, gulfFar: { checkpoint: true }, gulfWay: {}, roost: { boss: true }, out: {} },
+  // (v1.77, issue #336: each room tagged with its kind, docs/design/temple-redesign.md; the Moult is the house's one fight)
+  rooms: {
+    threshold: { checkpoint: true, kind: 'passage' }, gusts: { checkpoint: true, kind: 'puzzle' }, well: { checkpoint: true, kind: 'puzzle' },
+    wings: { checkpoint: true, kind: 'chest' }, top: { checkpoint: true, kind: 'puzzle' }, moult: { checkpoint: true, kind: 'combat' },
+    eyrie: { checkpoint: true, kind: 'puzzle' }, eyrieKey: { kind: 'passage' }, gulf: { checkpoint: true, kind: 'passage' }, perch: { checkpoint: true, kind: 'puzzle' },
+    gulfFar: { checkpoint: true, kind: 'passage' }, gulfWay: { kind: 'passage' }, roost: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+  },
   links: [
     { a: 'threshold', b: 'gusts' },
     { a: 'gusts', b: 'well' },                                          // through the gusts, screen to screen
@@ -227,20 +235,22 @@ export const ELDER = {
  * (carry, m/s, while it blows); the perch's radius and height; the second leg up to a ledge higher than the perch;
  * the column beside the perch (its x and top).
  */
-export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, carry: 10, column: 8, top: 46, stone: [-1.4, 2.6],
+export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, carry: 10, column: 8, top: 46, stone: [-1.4, 2.6], half: 15,
   // the way back (issue #275: over on the higher ledge without the great key, nothing took you back across): a doorway in
   // the gulf's east wall off the higher ledge (`far` m along it), onto a sill over a passage outside the wall, `drop` m
   // down (no jump climbs it: a way back only); the passage runs back along the wall, `y` its floor, `x` its width, and
   // stairs at its end climb to a doorway onto the near lip (`near` m along it), beside the door you came in by
-  way: { door: 3, near: 3, far: 6, y: 27, x: [12.2, 16.2], stairs: 11.6 } };
+  // (v1.77: the gulf 30 m across, `half` each side of its middle; it was 22)
+  way: { door: 3, near: 3, far: 6, y: 27, x: [16.2, 20.2], stairs: 11.6 } };
 /**
- * The high balcony over the well: how far it reaches out from the wall (m), and the gulf vent's stone's groove along it
- * (x: its throat, pB, and its cup, pX). The perch's stone's groove across the perch is GULF.stone. (Issue #275: both
- * grooves ran from near an edge, with a stride of floor behind the stone, over the dark: tests/ball-room.test.js.)
+ * The high balcony over the well: how far it reaches out from the wall (m); the gulf vent's stone's groove (x: its throat,
+ * pB, and its cup, pX), on the balcony until v1.77 and in the middle of the Vent Hall beyond it since. The perch's stone's
+ * groove across the perch is GULF.stone. (Issue #275: both grooves ran from near an edge, with a stride of floor behind
+ * the stone, over the dark: tests/ball-room.test.js.)
  */
-export const BALCONY = { depth: 6.0, groove: [-2.1, 5.1] };
+export const BALCONY = { depth: 11.4, groove: [-3.6, 3.6] };
 /** (v1.74) The Wind Well floor's second vent (local m off the well's middle, its groove along z) and how high the column rises while it breathes. */
-export const WELL_VENT = { x: -7, z0: -2, z1: 4.5, low: 17.5 };
+export const WELL_VENT = { x: -9, z0: -2, z1: 4.5, low: 17.5 };
 export const ROOST = { vent: 8, near: 12, ride: 0.7, wind: [0.15, 0.3, 0.075], still: [0.15, 0.15, 0], open: [null, 5.2, 6.6], miss: 1.4, over: 4.5, drift: 3 };
 /** Is p (the traveller) in the wind out of one of the roost's vents? */
 const inWind = (rt, p) => !!rt.roostWinds?.some((w) => w.contains(p));
@@ -258,35 +268,52 @@ function elderHit(g, part, mode) {
   return true;
 }
 
+// ------------------------------------------------------------------ the rooms as shrines (v1.77, issue #336)
+/**
+ * The house's rooms (local m) since it was redone to the redesign's rules (docs/design/temple-redesign.md): every puzzle
+ * room 30 m across or more under 16 m and more, every door between two rooms 7 by 9 (DOOR), each puzzle in the middle of
+ * its room. The Hall of Winds 30 by 66 (its stone's groove as long as it was, down its middle, the vent's throat at its
+ * end and its mouth over the far door); the Wind Well a round hall 36 m across and 50 high (the hub, its rooms off it at
+ * its foot and up its height); the Wing Chamber's round hall 26 m (the chest's); the Vent Hall north of the high balcony
+ * 30 m square under 18 (the gulf vent's stone in its middle: it was on the balcony, against the well's wall); the Moult
+ * and the Eyrie 30 m square, one over the other west of the well.
+ */
+export const DOOR = { w: 7, h: 9 };
+export const HALL = { z0: 12.6, d: 66, w: 30, h: 18, groove: [26.8, 64.6], screens: [22, 31.4, 40.8, 50.2, 59.6, 69] };
+export const WELL = { z: HALL.z0 + HALL.d + 4.4 + 18, r: 18, h: 50, raft: 18 - 4.1 };
+export const WING = { r: 13, h: 16 };
+export const TOP = { z0: WELL.z + WELL.r + 4, w: 30, d: 30, h: 18 };
+TOP.z = TOP.z0 + TOP.d / 2;
+
 // ------------------------------------------------------------------ the stack's rooms (v1.49, issue #23)
 /**
  * The Wind Well's rooms off it (local m): the Moult west off its floor (an arena); a ledge round the well's west wall
  * from the high balcony's west end (32 m up) to the Eyrie west at that height. The Eyrie: its ledge (the floor you come
- * in on), a gap over the dark, the great key's perch six metres higher on the far side; one stone in a groove on the
- * ledge between two throats. In the up-throat (where it starts) the wind comes out of the ledge's own vent, a column to
- * the coffer's shelf over the door; in the ledge vent's throat, out of the vent at the gap's foot, a column past the
- * perch.
+ * in on), a gap over the dark, the great key's perch six metres higher on the far side, on a pillar out of the dark; one
+ * stone in a groove on the ledge between two throats, in the middle of the hall (v1.77: the ledge reaches out to it). In
+ * the up-throat (where it starts) the wind comes out of the ledge's own vent, a column to the coffer's shelf by the door;
+ * in the ledge vent's throat, out of the vent at the gap's foot, a column past the perch.
  */
 export const STACK = {
   // (the Moult under the Eyrie's gap since issue #23's last round: its middle under the vent at the gap's foot, its roof's
-  // opening the foot of that vent's shaft, `chute`)
-  moult: { x: -28.8, w: 14, d: 14 },
-  eyrie: { x: -28, w: 20, d: 16, y: 32, floor: 20 },
-  ledge: [-24, -18],                          // the Eyrie's ledge (x), level with the high balcony
-  perch: { x: [-38, -33], z: [63.5, 72.5], y: 38 },
-  column: { x: -28.8, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
+  // opening the foot of that vent's shaft, `chute`; v1.77 30 m square under 18, four columns to fight round)
+  moult: { x: -38.8, w: 30, d: 30, h: 18 },
+  eyrie: { x: -38, w: 30, d: 30, y: 32, floor: 20, h: 30 },
+  ledge: [-34, -23],                          // the Eyrie's ledge (x), level with the high balcony
+  perch: { x: [-53, -43], z: [WELL.z - 4.5, WELL.z + 4.5], y: 38 },   // (against the west wall, as it was: a glide to it stops there)
+  column: { x: -38.8, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
   // the vent's shaft down from the gap's foot through the Moult's roof (r inside, t its wall; `hole` the square cut for it
   // in the gap's floor and the Moult's roof, half its side): still while the stone stops the vent, a way down
-  chute: { r: 3.4, t: 1.6, hole: 3.4, top: 21.6, foot: 9.95 },
-  shelf: { x: [-21.6, -18], z: [72.8, 76], y: 39.5 },
-  vent: { x: -20.2, z: 71.2, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
+  chute: { r: 3.4, t: 1.6, hole: 3.4, top: 21.6, foot: 17.95 },
+  shelf: { x: [-26.6, -23], z: [WELL.z + 7, WELL.z + 10.2], y: 39.5 },
+  vent: { x: -25.2, z: WELL.z + 5.4, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
   // the stone's: the gap-vent's throat at its south end (pU), the ledge vent's at its north (pC). (Since issue #275 off the
-  // gap's lip and off the south wall: it started in the corner, and you pushed it from the edge over the dark)
-  groove: { x: -21.2, z: [63.6, 68.0] },
+  // gap's lip and off the south wall; v1.77 in the middle of the hall, 6.8 m in from the ledge's edge as it was)
+  groove: { x: -31.2, z: [WELL.z - 4.4, WELL.z] },
 };
-STACK.zone = { min: [STACK.moult.x - STACK.moult.w / 2, -1, 68 - 7], max: [STACK.moult.x + STACK.moult.w / 2, 10, 68 + 7] };
+STACK.zone = { min: [STACK.moult.x - STACK.moult.w / 2, -1, WELL.z - STACK.moult.d / 2], max: [STACK.moult.x + STACK.moult.w / 2, STACK.moult.h - 1, WELL.z + STACK.moult.d / 2] };
 
-/** The Moult's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+/** The Moult's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark's `foes`). */
 export const ARENAS = [{
   el: 'arM', room: 'moult', zone: STACK.zone, doors: ['dM'], extra: 2,
   shut: 'You come down among the moulted feathers, and something stirs in them that is not a bird.',
@@ -297,39 +324,42 @@ export const ARENAS = [{
  * The Moult (west off the Wind Well's floor, an arena: where the birds raised here shed their first feathers, stone ones
  * heaped by the walls; its door shuts behind you while its keepers stand, and won, the small key's cage sinks) and the
  * Eyrie (west at the high balcony's height, along a ledge round the well's wall: two winds and one stone, the great key).
- * The small key is for the way north off the high balcony, the great key for the Roost's door.
+ * The small key is for the way north off the Vent Hall, the great key for the Roost's door.
  */
 function stack(rt, K, M, { C2, WR, feather }) {
   const add = (P, o) => rt.add(P, o);
   const Mo = STACK.moult, E = STACK.eyrie, [L0, L1] = STACK.ledge, Pp = STACK.perch, Cl0 = STACK.column;
   // ---- the Moult (under the Eyrie's gap: its roof's opening is the foot of the vent's shaft, the way in)
-  const Ch = STACK.chute, mx = Mo.x, dx = mx + 25;   // (dx: the feathers where they lay, with the room moved west)
-  K.corridor([mx + Mo.w / 2 + 0.6, C2], [-11.6, C2], 0, { w: 5, h: 6.4 });
-  K.hall({ x: mx, z: C2, w: Mo.w, d: Mo.d, y: 0, h: 10, roof: 'oculus', oculus: (2 * Ch.hole) / Mo.w, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });
+  const Ch = STACK.chute, mx = Mo.x;
+  K.corridor([mx + Mo.w / 2 + 0.6, C2], [-WR, C2], 0, DOOR);
+  K.hall({ x: mx, z: C2, w: Mo.w, d: Mo.d, y: 0, h: Mo.h, roof: 'oculus', oculus: (2 * Ch.hole) / Mo.w, doors: [{ side: 'e', at: 0, ...DOOR }] });
   // (shut till its keepers are beaten: then the way out onto the well's floor. Its lamp shows it from the well)
-  add(Door, { id: 'dM', at: [-16.4, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'arM' }] });
-  // stone feathers moulted and heaped by the walls, a nest of them in the far corner
-  for (const [x, z, a, len] of [[-30, C2 - 5.6, 0.3, 4.4], [-28.4, C2 - 5.9, -0.2, 3.6], [-23, C2 + 5.8, 1.4, 4], [-20.4, C2 + 5.6, 1.9, 3.2], [-30.6, C2 + 4.4, 2.6, 3.8]]) {
-    K.both(M.wall, T(new THREE.SphereGeometry(1, 10, 6).scale(0.9, len / 2, 0.22), [x + dx, 0.25, z], [Math.PI / 2, a, 0], 1, 'YXZ'));
+  add(Door, { id: 'dM', at: [mx + Mo.w / 2 + 0.6, 0, C2], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'arM' }] });
+  // four columns to fight round, and stone feathers moulted and heaped by the walls, a nest of them in the far corner
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) K.column(mx + sx * 8, C2 + sz * 8, 0, Mo.h, 0.9);
+  for (const [x, z, a, len] of [[-10, -13.2, 0.3, 4.4], [-7, -13.4, -0.2, 3.6], [6, 13.3, 1.4, 4], [9.4, 13.1, 1.9, 3.2], [-13.3, 10, 2.6, 3.8], [13.2, -9, 0.8, 4.2]]) {
+    K.both(M.wall, T(new THREE.SphereGeometry(1, 10, 6).scale(0.9, len / 2, 0.22), [mx + x, 0.25, C2 + z], [Math.PI / 2, a, 0], 1, 'YXZ'));
   }
-  K.both(M.trim, T(annulus(1.6, 2.4, 0.5, 20), [-29.2 + dx, 0.5, C2 - 4.2]));
+  K.both(M.trim, T(annulus(1.6, 2.4, 0.5, 20), [mx - 11, 0.5, C2 - 11]));
   // the vent's shaft, from the Moult's roof up to the gap's foot (its rim a kerb round the vent there, standing proud of the
   // gap's dark floor: no face of it in that floor's plane)
   K.shaft(Cl0.x, C2, Ch.r, Ch.foot, Ch.top, { t: Ch.t, seg: 24 });
   add(Key, { id: 'kM', at: [Mo.x - Mo.w / 2 + 1.6, 0, C2], yaw: Math.PI / 2 });
-  add(Mark, { room: 'moult', at: [Mo.x + 3.4, 0, C2 - 2.6], yaw: Math.PI / 2 });
+  add(Mark, { room: 'moult', at: [Mo.x + 11, 0, C2 - 6], yaw: Math.PI / 2, foes: [Mo.x + 3, 0, C2 + 3] });
 
   // ---- the ledge round the well's west wall, from the high balcony's west end to the Eyrie's way in
   const rotA = (a) => Math.PI / 2 - a;
-  K.both(M.floor, T(sector(9.2, WR - 0.6, rotA(-0.48), rotA(-Math.PI / 2 - 0.3), 0.7), [0, E.y, C2]));
-  K.both(M.trim, T(sector(9.15, 9.4, rotA(-0.48), rotA(-Math.PI / 2 - 0.3), 0.25), [0, E.y + 0.25, C2]));   // (a kerb along its edge)
+  K.both(M.floor, T(sector(WR - 2.8, WR - 0.6, rotA(-0.4), rotA(-Math.PI / 2 - 0.3), 0.7), [0, E.y, C2]));
+  K.both(M.trim, T(sector(WR - 2.85, WR - 2.6, rotA(-0.4), rotA(-Math.PI / 2 - 0.3), 0.25), [0, E.y + 0.25, C2]));   // (a kerb along its edge)
   // ---- the Eyrie: its ledge, the gap, the perch higher on the far side
-  K.corridor([-17.4, C2], [-11.6, C2], E.y, { w: 5, h: 6.4 });
-  K.hall({ x: E.x, z: C2, w: E.w, d: E.d, y: E.floor, h: 26, floor: false, roof: 'oculus', oculus: 0.35, doors: [{ side: 'e', at: 0, w: 5, h: 6.4, y0: E.y - E.floor }] });
+  K.corridor([E.x + E.w / 2 + 0.6, C2], [-WR, C2], E.y, DOOR);
+  K.hall({ x: E.x, z: C2, w: E.w, d: E.d, y: E.floor, h: E.h, floor: false, roof: 'oculus', oculus: 0.35, doors: [{ side: 'e', at: 0, ...DOOR, y0: E.y - E.floor }] });
   const ez0 = C2 - E.d / 2, ez1 = C2 + E.d / 2, ex0 = E.x - E.w / 2;
   K.slab(L0, ez0, L1, ez1, E.y, E.y - E.floor);
   K.slab(Pp.x[0], Pp.z[0], Pp.x[1], Pp.z[1], Pp.y, 1.2);
-  K.both(M.wall, T(new THREE.ConeGeometry(3.2, 5, 4, 1, true).rotateY(Math.PI / 4), [(Pp.x[0] + Pp.x[1]) / 2 - 0.6, Pp.y - 3.7, C2], [Math.PI, 0, 0]));   // (its corbel, down the wall)
+  // (its pillar out of the dark: the perch stood on a corbel down the west wall, and is five metres out from it now)
+  // (its buttress, straight up out of the dark from the west wall: a glide short of the perch meets its face and falls)
+  K.both(M.wall, box(Pp.x[1] - 1.2 - ex0, Pp.y - 1.2 - E.floor, 7.2, (ex0 + Pp.x[1] - 1.2) / 2, (Pp.y - 1.2 + E.floor) / 2, C2));
   for (const s of [-1, 1]) feather(M.trim, Pp.x[1] - 0.2, Pp.y, C2 + s * 4.2, 3.4, -Math.PI / 2 + s * 0.5, 0.35);
   // the gap's dark floor, and the pit over it, round the vent's mouth at its foot (a square cut for the shaft: the shaft's
   // rim stands in it), so a fall into the vent goes on down into the Moult and a fall anywhere else is the pit's
@@ -338,7 +368,7 @@ function stack(rt, K, M, { C2, WR, feather }) {
     K.both(M.dark, box(x1 - x0, 1, z1 - z0, (x0 + x1) / 2, E.floor + 0.5, (z0 + z1) / 2));
     add(Pit, { room: 'eyrie', min: [x0, E.floor - 1, z0], max: [x1, E.y - 3, z1] });
   }
-  // the coffer's shelf over the door, and the ledge's own vent under it
+  // the coffer's shelf by the door, and the ledge's own vent under it
   const Sh = STACK.shelf, Vt = STACK.vent;
   K.slab(Sh.x[0], Sh.z[0], Sh.x[1], Sh.z[1], Sh.y, 0.6);
   add(Coffer, { id: 'cache', at: [(Sh.x[0] + Sh.x[1]) / 2 + 0.3, Sh.y, (Sh.z[0] + Sh.z[1]) / 2 + 0.2], yaw: -Math.PI / 2 });
@@ -357,10 +387,8 @@ function stack(rt, K, M, { C2, WR, feather }) {
   add(Plate, { id: 'pC', at: [GX, E.y, Z1], r: 1.3 });
   for (const z of [Z0, Z1]) K.add(M.trim, T(annulus(1.5, 2.0, 0.05, 28), [GX, E.y + 0.02, z]));
   add(Key, { id: 'kE', big: true, at: [Pp.x[0] + 1.8, Pp.y, C2], yaw: Math.PI / 2 });
-  // the way north off the high balcony, toward the Gulf: the small key's door
-  add(Door, { id: 'dG', at: [0, E.y, C2 + WR + 2], w: 5, h: 6.4 });
-  // (by the way in: taken as you come; against the wall since the stone's groove moved east, issue #275, its spot north of it, clear of the stone)
-  add(Mark, { room: 'eyrie', at: [L1 - 0.9, E.y, C2 - 3.6], yaw: 0 });
+  // (by the way in: taken as you come, its spot south of the door, clear of the stone)
+  add(Mark, { room: 'eyrie', at: [L1 - 1.5, E.y, C2 - 6], yaw: 0 });
 }
 
 // ------------------------------------------------------------------ inside
@@ -369,57 +397,68 @@ function layout(rt) {
   const add = (P, o) => rt.add(P, o);
   /** A stone feather: a long flat blade, its quill at p, leaning out. */
   const feather = (mat, x, y, z, len, yaw, tilt, solid = false) => K[solid ? 'both' : 'add'](mat, T(new THREE.SphereGeometry(1, 10, 6).scale(0.9, len / 2, 0.22).translate(0, len / 2, 0), [x, y, z], [tilt, yaw, 0], 1, 'YXZ'));
+  /** A vent's mouth in a wall facing +z (or -z, back): a dark round, a ring of trim, stone feathers round it. */
+  const mouth = (x, y, z, back = false) => {
+    const yaw = back ? Math.PI : 0, s = back ? -1 : 1;
+    K.add(M.voidM, T(new THREE.CircleGeometry(2.4, 24), [x, y, z + s * 0.05], [0, yaw, 0]));
+    K.both(M.trim, T(new THREE.TorusGeometry(2.6, 0.3, 6, 28), [x, y, z + s * 0.1]));
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; feather(M.wall, x + Math.sin(a) * 3.2, y + Math.cos(a) * 3.2, z + s * 0.3, 2.2, 0, 0, true); }
+  };
 
   // ---- the Threshold (z 0..12)
-  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
+  const H = HALL, HZ1 = H.z0 + H.d, HX = H.w / 2;
+  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 10, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
   K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
   K.glyph([0, 6.2, 0.05], 1.5, 0);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
-  K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: 6, h: 7 }] });
+  K.wall(-HX - 0.6, H.z0, HX + 0.6, H.z0, 0, H.h, { t: 1.2, holes: [{ at: HX + 0.6, ...DOOR }] });
 
-  // ---- the Hall of Winds (z 12.6..52): gusts down it; stone screens to wait behind
-  K.hall({ x: 0, z: 32.3, w: 16, d: 39.4, y: 0, h: 12, roof: true, columns: 0, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }] });
+  // ---- the Hall of Winds (30 by 66): gusts down it out of the vent's mouth over its far door; stone screens to wait behind
+  K.hall({ x: 0, z: H.z0 + H.d / 2, w: H.w, d: H.d, y: 0, h: H.h, roof: true, columns: 0, omit: ['s'], doors: [{ side: 'n', ...DOOR }] });
   const shelters = [];
-  for (const [i, z] of [22, 31, 40].entries()) {
+  for (const [i, z] of H.screens.entries()) {
     for (const x of [-4.2, 4.2]) {
       K.both(M.wallGlyph, box(3.4, 7, 1.0, x, 3.5, z));
-      K.add(M.trim, box(3.6, 0.4, 1.2, x, 7.2, z));
+      K.both(M.trim, box(3.6, 0.4, 1.2, x, 7.2, z));   // (solid: its top is what you stand on up there, v1.77)
       shelters.push([[x - 1.5, -1, z - 2.6], [x + 1.5, 9, z - 0.45]]);
     }
-    if (i < 2) for (const x of [-7.2, 7.2]) feather(M.trim, x, 0, z + 4.5, 7, 0, 0);
+    if (i < H.screens.length - 2) for (const x of [-9.6, 9.6]) feather(M.trim, x, 0, z + 4.5, 9, 0, 0);
   }
-  // (the hall's wind comes up through the vent in its mouth, by the well: it blows while no stone sits in it)
+  // (the hall's wind comes out of the vent's mouth over the far door; its throat is the grate at the groove's end, in the
+  // hall's middle: it blows while no stone sits in it)
   // (lee: behind a screen or any wall the wind can't reach you, and its streaks stop there: issue #216)
-  add(Gust, { min: [-8, -1, 13], max: [8, 12, 51.6], dir: [0, 0, -1], shelters, lee: 3.5, floor: 0, streaks: 64, calm: 3.2, blow: 2.2, warn: 0.8, push: 7.5, when: { not: { drumOn: ['ballW', 'pH'] } } });
-  // the stone, too heavy for the gusts: up its groove the length of the hall into the vent's socket in the corridor's
-  // mouth (pH), a push at a time in the calms. Seated, it stops the hall's wind, and the wind rises in the well instead
-  K.add(M.dark, box(1.0, 0.04, 53.4 - 15, 0, 0.02, (53.4 + 15) / 2));
-  add(Ball, { id: 'ballW', a: [0, 0.04, 15.6], b: [0, 0.04, 53.4], r: 1.1, friction: 0.6 });
-  add(Plate, { id: 'pH', at: [0, 0, 53.4], r: 1.3 });
+  mouth(0, DOOR.h + 4, HZ1, true);
+  add(Gust, { min: [-HX, -1, H.z0 + 0.4], max: [HX, H.h, HZ1 - 0.4], dir: [0, 0, -1], shelters, lee: 3.5, floor: 0, streaks: 80, calm: 3.2, blow: 2.2, warn: 0.8, push: 7.5, when: { not: { drumOn: ['ballW', 'pH'] } } });
+  // the stone, too heavy for the gusts: up its groove down the hall's middle into the vent's throat (pH), a push at a time
+  // in the calms. Seated, it stops the hall's wind, and the wind rises in the well instead
+  const [GA, GB] = H.groove;
+  K.add(M.dark, box(1.0, 0.04, GB - GA + 0.6, 0, 0.02, (GA + GB) / 2));
+  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [0, 0.02, GB]));
+  for (let i = 0; i < 3; i++) K.add(M.dark, box(2.6, 0.05, 0.3, 0, 0.04, GB - 0.9 + i * 0.9));
+  add(Ball, { id: 'ballW', a: [0, 0.04, GA], b: [0, 0.04, GB], r: 1.1, friction: 0.6 });
+  add(Plate, { id: 'pH', at: [0, 0, GB], r: 1.3 });
   add(Mark, { room: 'gusts', at: [-6, 0, 16], yaw: Math.PI / 2 });
 
   // ---- the corridor and the Wind Well (the hub: a tall round shaft open to the sky through a crown of stone feathers)
-  K.slab(-3.2, 51.8, 3.2, 56.4, 0, 0.8);
-  K.wall(-3.2, 52.6, -3.2, 56.2, 0, 6.4, { t: 0.8 }); K.wall(3.2, 56.2, 3.2, 52.6, 0, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 4.4, 0, 6.8, 54.4));
-  const C2 = 68, WR = 12, WH = 46;
+  const C2 = WELL.z, WR = WELL.r, WH = WELL.h;
+  K.corridor([0, HZ1 + 0.6], [0, C2 - WR], 0, DOOR);
   // (since v1.49 a way west off its floor into the Moult, and another at the high balcony's height into the Eyrie)
-  K.rotunda({ x: 0, z: C2, y: 0, r: WR, h: WH, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4, y0: 16 }, { a: 0, w: 5, h: 6.4, y0: 32 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 5, h: 6.4, y0: 32 }], oculus: 0.66 });
+  K.rotunda({ x: 0, z: C2, y: 0, r: WR, h: WH, seg: 32, gaps: [{ a: Math.PI, ...DOOR }, { a: Math.PI / 2, ...DOOR, y0: 16 }, { a: 0, ...DOOR, y0: 32 }, { a: -Math.PI / 2, ...DOOR }, { a: -Math.PI / 2, ...DOOR, y0: 32 }], oculus: 0.66 });
   // bands of ochre round it, glyph lines up its walls like the lines on a wing, carved ledges low down, the crown
-  for (const y of [8, 24, 40]) K.both(M.trim, T(annulus(WR - 0.35, WR + 0.1, 0.7, 72), [0, y, C2]));
+  for (const y of [10, 26, 42]) K.both(M.trim, T(annulus(WR - 0.35, WR + 0.1, 0.7, 80), [0, y, C2]));
   const wingLines = makeMaterial({ color: PALETTE.glow, glow: 0.35, flat: true, key: 'temple.vael.winglines' });
   const off = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * TAU + 0.11;
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * TAU + 0.11;
     if (off(a, Math.PI) < 0.35) continue;
-    for (const [y0, y1] of [[1.5, 7.2], [9, 23], [25, 39]]) {
-      if ((off(a, Math.PI / 2) < 0.35 && y1 > 15 && y0 < 23) || (off(a, 0) < 0.35 && y1 > 31) || (off(a, -Math.PI / 2) < 0.35 && (y0 < 7.2 || (y1 > 31 && y0 < 39)))) continue;
+    for (const [y0, y1] of [[1.5, 9.4], [10.6, 25.4], [26.6, 41.4], [42.6, 48]]) {
+      if ((off(a, Math.PI / 2) < 0.35 && y1 > 15 && y0 < 25.5) || (off(a, 0) < 0.35 && y1 > 31 && y0 < 41.5) || (off(a, -Math.PI / 2) < 0.35 && (y0 < 9.5 || (y1 > 31 && y0 < 41.5)))) continue;
       K.add(wingLines, T(new THREE.BoxGeometry(0.16, y1 - y0, 0.08), [Math.sin(a) * (WR - 0.05), (y0 + y1) / 2, C2 + Math.cos(a) * (WR - 0.05)], [0, a, Math.sin(i * 1.7) * 0.05]));
     }
   }
-  for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; if (off(a, Math.PI) < 0.4 || off(a, Math.PI / 2) < 0.5 || off(a, -Math.PI / 2) < 0.5) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU + 0.2, len = 14 + (i % 3) * 4; feather(i % 4 === 1 ? M.trim : M.wall, Math.sin(a) * (WR + 0.6), WH + 0.9, C2 + Math.cos(a) * (WR + 0.6), len, a, 0.45, true); }   // (solid: a climber up the well meets them as drawn)
+  for (let i = 0; i < 30; i++) { const a = (i / 30) * TAU; if (off(a, Math.PI) < 0.4 || off(a, Math.PI / 2) < 0.5 || off(a, -Math.PI / 2) < 0.5) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
+  for (let i = 0; i < 20; i++) { const a = (i / 20) * TAU + 0.2, len = 14 + (i % 3) * 4; feather(i % 4 === 1 ? M.trim : M.wall, Math.sin(a) * (WR + 0.6), WH + 0.9, C2 + Math.cos(a) * (WR + 0.6), len, a, 0.45, true); }   // (solid: a climber up the well meets them as drawn)
   // the vent in the well's floor: the wind rises out of it while the hall's vent is stopped (its grate, still till then)
   K.add(M.trim, T(annulus(4.4, 5, 0.05, 40), [0, 0.02, C2]));
   for (let i = 0; i < 6; i++) K.add(M.dark, box(8.6, 0.05, 0.3, 0, 0.04, C2 - 3.75 + i * 1.5));
@@ -427,8 +466,8 @@ function layout(rt) {
   // open wings go just over the chest's balcony (the gate of the way up: its id)
   add(Updraft, { id: 'column', at: [0, 0, C2], r: 4.5, h: WELL_VENT.low, heights: [[{ drumOn: ['bF', 'pF'] }, 36]], lift: 7, when: { drumOn: ['ballW', 'pH'] }, still: 'Still air over the grate: the wind goes down the hall. Nothing rises here.',
     low: 'The wind thins out over the balcony and lets your wings go. Down on the floor, by the Moult’s door, the other vent is breathing half of it away.' });
-  // the floor's second vent, by the Moult's door, and its stone beside it on a short groove; open, the wind breathes out of
-  // it in a low column
+  // the floor's second vent, toward the Moult's door, and its stone beside it on a short groove; open, the wind breathes
+  // out of it in a low column
   {
     const [vx, vz0, vz1] = [WELL_VENT.x, C2 + WELL_VENT.z0, C2 + WELL_VENT.z1];
     K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [vx, 0.02, vz1]));
@@ -440,71 +479,79 @@ function layout(rt) {
     add(Updraft, { at: [vx, 0, vz1], r: 1.4, h: 6, lift: 5, when: { all: [{ drumOn: ['ballW', 'pH'] }, { not: { drumOn: ['bF', 'pF'] } }] }, hint: 'The wind breathes up out of the little vent by the Moult’s door.' });
   }
   // the feather raft by the east wall: the well's wind lifts it to the Wing Chamber's balcony
-  add(Platform, { id: 'raft', path: [[7.9, 0.3, C2], [7.9, 16, C2]], r: 2.2, speed: 1.6, pause: 2.2, when: { drumOn: ['ballW', 'pH'] } });
-  K.add(M.trim, T(annulus(2.4, 2.9, 0.05, 32), [7.9, 0.02, C2]));
-  K.slab(10.2, C2 - 2.8, WR + 0.8, C2 + 2.8, 16, 0.7);
-  for (const s of [-1, 1]) feather(M.trim, 10.6, 16, C2 + s * 2.6, 4, Math.PI / 2, s * 0.3);
-  add(Mark, { room: 'well', at: [-6.5, 0, C2 - 7], yaw: Math.PI * 0.75 });
+  const RX = WELL.raft;
+  add(Platform, { id: 'raft', path: [[RX, 0.3, C2], [RX, 16, C2]], r: 2.2, speed: 1.6, pause: 2.2, when: { drumOn: ['ballW', 'pH'] } });
+  K.add(M.trim, T(annulus(2.4, 2.9, 0.05, 32), [RX, 0.02, C2]));
+  K.slab(RX + 2.3, C2 - DOOR.w / 2, WR, C2 + DOOR.w / 2, 16, 0.7);
+  for (const s of [-1, 1]) feather(M.trim, RX + 2.7, 16, C2 + s * 3.3, 4, Math.PI / 2, s * 0.3);
+  add(Mark, { room: 'well', at: [-6.5, 0, C2 - 10], yaw: Math.PI * 0.75 });
 
   // ---- the Wing Chamber (east, floor 16): the chest
-  K.slab(WR + 0.6, C2 - 3.2, WR + 4.2, C2 + 3.2, 16, 0.8);
-  K.wall(WR + 0.8, C2 - 3.2, WR + 4.2, C2 - 3.2, 16, 6.4, { t: 0.8 }); K.wall(WR + 4.2, C2 + 3.2, WR + 0.8, C2 + 3.2, 16, 6.4, { t: 0.8 });
-  K.both(M.wall, box(3.6, 0.8, 7.2, WR + 2.5, 22.8, C2));
-  const C3x = WR + 4 + 8.6;
-  K.rotunda({ x: C3x, z: C2, y: 16, r: 8.6, h: 12, gaps: [{ a: -Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });
+  const C3x = WR + 4 + WING.r;
+  K.corridor([WR, C2], [WR + 4 - 1.4, C2], 16, DOOR);
+  K.rotunda({ x: C3x, z: C2, y: 16, r: WING.r, h: WING.h, seg: 24, gaps: [{ a: -Math.PI / 2, ...DOOR }], oculus: 0.35 });
   K.both(M.trim, ...chestMound(C3x, 16, C2));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
-  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) feather(M.wall, C3x - 2 + i * 2.2, 16, C2 + s * (5.6 - i * 0.4), 6 + i, Math.PI / 2 + s * 0.4, s * 0.25);
-  add(Mark, { room: 'wings', at: [C3x + 4, 16, C2 - 5], yaw: -Math.PI * 0.75 });
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) feather(M.wall, C3x - 3 + i * 3, 16, C2 + s * (8.4 - i * 0.6), 7 + i * 1.5, Math.PI / 2 + s * 0.4, s * 0.25);
+  add(Mark, { room: 'wings', at: [C3x + 5, 16, C2 - 6], yaw: -Math.PI * 0.75 });
 
-  // ---- the high balcony over the well (floor 32): the great carved eye beside it, the way north to the gulf
-  // (issue #275: a metre deeper over the well than it was, and the stone's groove east along it, so there is room
-  // behind the stone where it starts and in front of it by the edge: you got behind it along the lip, or not at all)
-  const BE = C2 + WR - BALCONY.depth, [BX0, BX1] = BALCONY.groove;
-  K.slab(-6.4, BE, 6.4, C2 + WR + 1, 32, 0.7);
-  K.add(M.trim, box(12.8, 0.35, 0.35, 0, 33.1, BE + 0.05));
-  for (const s of [-1, 1]) K.add(M.trim, box(0.35, 1.1, 0.35, s * 6.3, 32.55, BE + 0.05));
-  // the gulf vent's throat: a grate in the balcony, its stone in it (pB); its cup at the groove's end (pX)
-  K.add(M.dark, box(BX1 - BX0 + 0.8, 0.04, 1.0, (BX0 + BX1) / 2, 32.02, C2 + WR - 3.2));
-  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [BX0, 32.02, C2 + WR - 3.2]));
-  add(Ball, { id: 'ballB', a: [BX0, 32.04, C2 + WR - 3.2], b: [BX1, 32.04, C2 + WR - 3.2], r: 1.1 });
-  add(Plate, { id: 'pB', at: [BX0, 32, C2 + WR - 3.2], r: 1.3 });
-  add(Plate, { id: 'pX', at: [BX1, 32, C2 + WR - 3.2], r: 1.3 });
-  K.both(M.wall, T(new THREE.ConeGeometry(3.2, 6, 4, 1, true).rotateY(Math.PI / 4), [0, 28.6, C2 + WR - 1.4], [Math.PI, 0, 0]));   // its corbel, down the wall
+  // ---- the high balcony over the well (floor 32): the great carved eye beside it, the way north to the Vent Hall
+  // (issue #275: deep enough for room behind a stone and before it; v1.77 its stone in the Vent Hall beyond, and the
+  // balcony reaches out over the well to two metres from the column's edge)
+  const BE = C2 + WR - BALCONY.depth;
+  K.slab(-7, BE, 7, C2 + WR, 32, 0.7);
+  K.add(M.trim, box(14, 0.35, 0.35, 0, 33.1, BE + 0.05));
+  for (const s of [-1, 1]) K.add(M.trim, box(0.35, 1.1, 0.35, s * 6.9, 32.55, BE + 0.05));
+  K.both(M.wall, T(new THREE.ConeGeometry(6, 10, 4, 1, true).rotateY(Math.PI / 4), [0, 26.6, C2 + WR - 3.2], [Math.PI, 0, 0]));   // its corbel, down the wall
   {
     // the eye: a great carved lid and iris in the wall to the balcony's left, as the makers carved their birds
     const a = -0.42, ex = Math.sin(a) * (WR - 0.2), ez = C2 + Math.cos(a) * (WR - 0.2);
     // (solid as drawn: a climber up the well meets it)
-    K.both(M.trim, T(new THREE.TorusGeometry(2.2, 0.28, 6, 28).scale(1.4, 0.8, 1), [ex, 36, ez], [0, a, 0]));
-    K.both(M.stone, T(new THREE.SphereGeometry(1.3, 16, 10).scale(1, 1, 0.35), [ex, 36, ez], [0, a, 0]));
-    K.add(M.dark, T(new THREE.SphereGeometry(0.55, 12, 8).scale(1, 1, 0.3), [ex - Math.sin(a) * 0.35, 36, ez - Math.cos(a) * 0.35], [0, a, 0]));
-    K.both(M.trim, T(new THREE.TorusGeometry(2.6, 0.18, 4, 24, Math.PI).scale(1.5, 0.9, 1), [ex, 36.7, ez], [0, a, 0]));
+    K.both(M.trim, T(new THREE.TorusGeometry(2.2, 0.28, 6, 28).scale(1.4, 0.8, 1), [ex, 37, ez], [0, a, 0]));
+    K.both(M.stone, T(new THREE.SphereGeometry(1.3, 16, 10).scale(1, 1, 0.35), [ex, 37, ez], [0, a, 0]));
+    K.add(M.dark, T(new THREE.SphereGeometry(0.55, 12, 8).scale(1, 1, 0.3), [ex - Math.sin(a) * 0.35, 37, ez - Math.cos(a) * 0.35], [0, a, 0]));
+    K.both(M.trim, T(new THREE.TorusGeometry(2.6, 0.18, 4, 24, Math.PI).scale(1.5, 0.9, 1), [ex, 37.7, ez], [0, a, 0]));
   }
-  add(Mark, { room: 'top', at: [5.2, 32, C2 + WR - 0.4], yaw: -Math.PI / 2 });
+
+  // ---- the Vent Hall (v1.77; the gulf vent's stone was on the balcony against the well's wall): 30 m square at the
+  // balcony's height, the vent's throat a grate in its middle, its stone in it (pB), its cup at the groove's end (pX); a
+  // pipe from the hood over the grate along the roof to the vent's mouth over the gulf's door; the way north wants the
+  // small key
+  const TZ = TOP.z, T1 = TOP.z0 + TOP.d, [BX0, BX1] = BALCONY.groove;
+  K.corridor([0, C2 + WR], [0, TOP.z0 - 0.6], 32, DOOR);
+  K.hall({ x: 0, z: TZ, w: TOP.w, d: TOP.d, y: 32, h: TOP.h, roof: true, doors: [{ side: 's', ...DOOR }, { side: 'n', ...DOOR }] });
+  K.add(M.dark, box(BX1 - BX0 + 0.8, 0.04, 1.0, (BX0 + BX1) / 2, 32.02, TZ));
+  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [BX0, 32.02, TZ]));
+  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [BX1, 32.02, TZ]));
+  add(Ball, { id: 'ballB', a: [BX0, 32.04, TZ], b: [BX1, 32.04, TZ], r: 1.1 });
+  add(Plate, { id: 'pB', at: [BX0, 32, TZ], r: 1.3 });
+  add(Plate, { id: 'pX', at: [BX1, 32, TZ], r: 1.3 });
+  K.add(M.trim, T(new THREE.ConeGeometry(2.2, 2.6, 16, 1, true), [BX0, 43.3, TZ]));
+  K.add(M.trim, T(new THREE.CylinderGeometry(0.7, 0.7, 4.6, 12), [BX0, 46.8, TZ]));
+  K.add(M.trim, T(new THREE.CylinderGeometry(0.7, 0.7, T1 - TZ + 0.6, 12), [BX0, 48.4, (TZ + T1) / 2 + 0.3], [Math.PI / 2, 0, 0]));
+  for (const [x, z] of [[-11, TOP.z0 + 4], [11, TOP.z0 + 4], [-11, T1 - 4], [11, T1 - 4]]) feather(M.trim, x, 32, z, 8, Math.atan2(-x, TZ - z), 0.15, true);
+  add(Mark, { room: 'top', at: [6, 32, TOP.z0 + 3], yaw: -Math.PI / 2 });
 
   // ---- the corridor and the Gulf: two crossings, each on a wind you send. First, forty-six metres of nothing to
   // a stone perch four lower: on still air no glide carries so far; the vent over the door does, its stone rolled out
   // of its throat (a tailwind, in gusts). Then from the perch to a ledge six HIGHER: no glide climbs; the vent far
   // below beside the perch does, its throat on the perch, its stone in it (a column, as in the well)
-  K.slab(-3.2, C2 + WR + 0.4, 3.2, C2 + WR + 3.6, 32, 0.8);
-  K.wall(-3.2, C2 + WR + 1, -3.2, C2 + WR + 3.6, 32, 6.4, { t: 0.8 }); K.wall(3.2, C2 + WR + 3.6, 3.2, C2 + WR + 1, 32, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.2, 0, 38.8, C2 + WR + 2.2));
-  const G0 = C2 + WR + 3.6, { leg1, perchR, leg2, perchY, farY } = GULF;
+  const G0 = T1 + 5, GX = GULF.half, { leg1, perchR, leg2, perchY, farY } = GULF;
+  K.corridor([0, T1 + 0.6], [0, G0 - 0.6], 32, DOOR);
+  // the way north off the Vent Hall, toward the Gulf: the small key's door
+  add(Door, { id: 'dG', at: [0, 32, T1 + 0.6], ...DOOR });
   const PZ = G0 + 6 + leg1 + perchR, FZ = PZ + perchR + leg2, GD = FZ + 12 - G0;
   const WB = GULF.way, wayDoor = (z, y) => ({ side: 'e', at: z - (G0 + GD / 2), w: WB.door, h: 4.4, y0: y - 2 });
-  K.hall({ x: 0, z: G0 + GD / 2, w: 22, d: GD, y: 2, h: 52, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 30 }, { side: 'n', w: 5, h: 6.4, y0: farY - 2 }, wayDoor(G0 + WB.near, 32), wayDoor(FZ + WB.far, farY)] });
-  K.slab(-11, G0, 11, G0 + 6, 32, 30);
-  K.slab(-11, FZ, 11, FZ + 12, farY, farY - 2);
-  K.both(M.dark, box(22, 1, FZ - G0 - 6, 0, 1.5, (G0 + 6 + FZ) / 2));
-  add(Pit, { room: 'gulf', min: [-12, -2, G0 + 6], max: [12, 24, FZ] });
-  K.add(M.trim, box(22, 0.5, 1.4, 0, 31.8, G0 + 6.4));
-  for (let i = 0; i < 8; i++) feather(M.trim, (i % 2 ? -1 : 1) * (4 + (i % 3) * 2.4), 53.4, G0 + 10 + i * 7.5, 9, 0, Math.PI);   // stone feathers hanging over the gulf
-  // the tail vent: its mouth high over the door, feathers round it (its throat is the grate on the balcony behind you,
-  // a pipe along the corridor's roof between them)
-  K.add(M.voidM, T(new THREE.CircleGeometry(2.4, 24), [0, 41.5, G0 + 0.05]));
-  K.both(M.trim, T(new THREE.TorusGeometry(2.6, 0.3, 6, 28), [0, 41.5, G0 + 0.1]));
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; feather(M.wall, Math.sin(a) * 3.2, 41.5 + Math.cos(a) * 3.2, G0 + 0.3, 2.2, 0, 0, true); }
-  K.add(M.trim, T(new THREE.CylinderGeometry(0.7, 0.7, G0 - (C2 + WR) + 1.4, 12), [0, 40.2, (G0 + C2 + WR) / 2 - 0.2], [Math.PI / 2, 0, 0]));
-  add(Gust, { min: [-11, 16, G0 + 6.6], max: [11, 48, PZ - perchR], dir: [0, 0, 1], calm: 1.8, warn: 0.6, blow: 3.6, push: 6, carry: GULF.carry,
+  K.hall({ x: 0, z: G0 + GD / 2, w: 2 * GX, d: GD, y: 2, h: 52, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', ...DOOR, y0: 30 }, { side: 'n', ...DOOR, y0: farY - 2 }, wayDoor(G0 + WB.near, 32), wayDoor(FZ + WB.far, farY)] });
+  K.slab(-GX, G0, GX, G0 + 6, 32, 30);
+  K.slab(-GX, FZ, GX, FZ + 12, farY, farY - 2);
+  K.both(M.dark, box(2 * GX, 1, FZ - G0 - 6, 0, 1.5, (G0 + 6 + FZ) / 2));
+  add(Pit, { room: 'gulf', min: [-GX - 1, -2, G0 + 6], max: [GX + 1, 24, FZ] });
+  K.add(M.trim, box(2 * GX, 0.5, 1.4, 0, 31.8, G0 + 6.4));
+  for (let i = 0; i < 8; i++) feather(M.trim, (i % 2 ? -1 : 1) * (4 + (i % 3) * 3.4), 53.4, G0 + 10 + i * 7.5, 9, 0, Math.PI);   // stone feathers hanging over the gulf
+  // the tail vent: its mouth high over the door, feathers round it (its throat is the grate in the Vent Hall behind you,
+  // the pipe along its roof between them)
+  mouth(0, 32 + DOOR.h + 4.5, G0);
+  add(Gust, { min: [-GX, 16, G0 + 6.6], max: [GX, 48, PZ - perchR], dir: [0, 0, 1], calm: 1.8, warn: 0.6, blow: 3.6, push: 6, carry: GULF.carry,
     when: { not: { drumOn: ['ballB', 'pB'] } },
     notice: 'The gust shoves you out toward the gulf.', carried: 'The wind out of the vent fills your wings and carries you out over the gulf.' });
   add(Mark, { room: 'gulf', at: [7, 32, G0 + 3], yaw: 0 });
@@ -526,27 +573,25 @@ function layout(rt) {
   // (a drop no jump climbs back), along it, and up its stairs through the doorway onto the near lip
   {
     const [X0, X1] = WB.x, xm = (X0 + X1) / 2, Y = WB.y, zN = G0 + WB.near, zF = FZ + WB.far, zS = zN + 2.2 + WB.stairs, top = farY + 7;
-    K.slab(11, zN - 2.2, X1, zN + 2.2, 32, 0.8);                 // the near landing, through its doorway
+    K.slab(GX, zN - 2.2, X1, zN + 2.2, 32, 0.8);                 // the near landing, through its doorway
     K.stairs([xm, Y, zS], [xm, 32, zN + 2.2], X1 - X0, { sides: false });
     K.slab(X0, zS - 0.4, X1, zF + 2.4, Y, 0.8);                  // the passage's floor
-    K.slab(11, zF - 1.6, X0 + 2, zF + 1.6, farY, 0.8);           // the sill off the higher ledge, over the drop
+    K.slab(GX, zF - 1.6, X0 + 2, zF + 1.6, farY, 0.8);           // the sill off the higher ledge, over the drop
     K.wall(X1 + 0.4, zN - 2.6, X1 + 0.4, zF + 2.8, Y - 0.8, top - Y + 0.8, { t: 0.8 });
     K.wall(X0, zF + 2.8, X1 + 0.8, zF + 2.8, Y - 0.8, top - Y + 0.8, { t: 0.8 });
     K.wall(X1 + 0.8, zN - 2.6, X0, zN - 2.6, 31.2, top - 31.2, { t: 0.8 });
     K.both(M.wall, box(X1 - X0 + 1.2, 0.8, zF - zN + 6.2, xm + 0.2, top + 0.4, (zN + zF) / 2 + 0.1));
     // a stone feather over each doorway, as over the house's other ways (the way back reads as a way)
-    for (const [z, y] of [[zN, 32], [zF, farY]]) feather(M.trim, 10.7, y + 4.9, z, 2.2, Math.PI / 2, 0.15);
+    for (const [z, y] of [[zN, 32], [zF, farY]]) feather(M.trim, GX - 0.3, y + 4.9, z, 2.2, Math.PI / 2, 0.15);
   }
 
   // ---- the corridor, and the Roost (floor farY): a round hall under the open sky; two vents in its floor, one stone
   const RY = farY, F0 = FZ + 12;
-  K.slab(-3.2, F0 - 0.6, 3.2, F0 + 3.4, RY, 0.8);
-  K.wall(-3.2, F0 + 0.2, -3.2, F0 + 3.4, RY, 7, { t: 0.8 }); K.wall(3.2, F0 + 3.4, 3.2, F0 + 0.2, RY, 7, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 3.6, 0, RY + 7.4, F0 + 1.6));
-  add(Door, { id: 'd3', at: [0, RY, F0 + 1.2], w: 5, h: 6.4, locked: 'A great lock. It wants the house’s great key. The doorway in the ledge’s east wall goes back to the near side.' });
+  K.corridor([0, F0 + 0.6], [0, F0 + 3.4], RY, DOOR);
+  add(Door, { id: 'd3', at: [0, RY, F0 + 0.6], ...DOOR, locked: 'A great lock. It wants the house’s great key. The doorway in the ledge’s east wall goes back to the near side.' });
   add(Mark, { room: 'ante', at: [2.2, RY, F0 - 0.2], yaw: -Math.PI / 2 });
-  const HR = 19, CL = F0 + 3.2 + HR + 0.2;
-  K.rotunda({ x: 0, z: CL, y: RY, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.6 });
+  const HR = 19, CL = F0 + 3.4 + HR;
+  K.rotunda({ x: 0, z: CL, y: RY, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, ...DOOR }, { a: 0, ...DOOR }], oculus: 0.6 });
   // the roost's stone: in the west vent the wind rises from the east one, and the other way round
   K.add(M.dark, box(ROOST.vent * 2 + 1.6, 0.04, 1.0, 0, RY + 0.02, CL));
   add(Ball, { id: 'ballR', a: [-ROOST.vent, RY + 0.04, CL], b: [ROOST.vent, RY + 0.04, CL], r: 1.1, friction: 0.3 });   // (one push carries it across)
@@ -557,13 +602,12 @@ function layout(rt) {
     add(Updraft, { at: [-ROOST.vent, RY, CL], r: 4.5, h: 16, lift: 6, when: { drumOn: ['ballR', 'pRE'] }, hint: 'The wind rushes up out of the vent. Open your wings in it.' }),
   ];
   for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU + 0.3; if (off(a, 0) < 0.4 || off(a, Math.PI) < 0.4) continue; feather(M.trim, Math.sin(a) * (HR - 0.8), RY, CL + Math.cos(a) * (HR - 0.8), 14, a + Math.PI, 0.2); }
-  add(Door, { id: 'd5', at: [0, RY, CL + HR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
-  K.slab(-3.2, CL + HR + 0.6, 3.2, CL + HR + 10, RY, 0.8);
-  K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, RY, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, RY, 7, { t: 0.8 });
-  K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, RY, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, RY + 7.4, CL + HR + 5.7));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, RY, CL + HR + 10.5]));
-  K.solid(box(4, 5, 0.5, 0, RY + 2.5, CL + HR + 10.9));
+  add(Door, { id: 'd5', at: [0, RY, CL + HR + 0.7], ...DOOR, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
+  const XZ = CL + HR + 10;
+  K.corridor([0, CL + HR + 0.6], [0, XZ], RY, DOOR);
+  K.wall(4.2, XZ, -4.2, XZ, RY, DOOR.h, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
+  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, RY, XZ + 0.5]));
+  K.solid(box(4, 5, 0.5, 0, RY + 2.5, XZ + 0.9));
 
   const model = elderGuardian();
   model.pos.copy(K.world(0, RY, CL + 6));
@@ -576,12 +620,13 @@ function layout(rt) {
   // (the stack's rooms last: their marks after the others, so the machines' ids by mark stay as they were)
   stack(rt, K, M, { C2, WR, feather });
   const W = (x, y, z) => K.world(x, y, z);
+  const Mo = STACK.moult, E = STACK.eyrie;
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-40, -6, -3), V(C3x + 12, Math.max(WH, GULF.top, RY + 24) + 22, CL + HR + 12)),
+    bounds: new THREE.Box3(V(Mo.x - Mo.w / 2 - 4, -6, -3), V(C3x + WING.r + 4, Math.max(WH, GULF.top, RY + 24) + 22, XZ + 2)),
     gadget: { at: W(C3x, 16.62, C2).toArray(), face: K.heading(-Math.PI / 2) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, RY + 0.5, CL + HR + 9.6), r: 1.5 }],
-    lights: [[0, 5, 6, 10], [0, 6, 32, 14], [0, 10, C2, 16], [STACK.moult.x, 6, C2, 12], [0, 34, C2, 16], [STACK.eyrie.x, 38, C2, 16], [C3x, 20, C2, 10], [0, 36, G0 + 20, 22], [0, 36, PZ + 10, 22], [0, RY + 6, CL, 18], [14.2, 31, G0 + 30, 20], [14.2, 31, FZ - 16, 20]],
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, RY + 0.5, XZ - 0.4), r: 1.5 }],
+    lights: [[0, 5, 6, 10], [0, 8, H.z0 + 16, 24], [0, 8, HZ1 - 16, 24], [0, 10, C2, 22], [Mo.x, 8, C2, 22], [0, 36, C2, 22], [E.x, 38, C2, 22], [C3x, 22, C2, 16], [0, 40, TZ, 22], [0, 36, G0 + 20, 24], [0, 36, PZ + 10, 24], [0, RY + 6, CL, 18], [GX + 3.2, 31, G0 + 30, 20], [GX + 3.2, 31, FZ - 16, 20]],
     guardian: { def: { ...ELDER, onHit: elderHit, openFor: elderOpenFor }, model, arena },
   };
 }

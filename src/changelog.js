@@ -20,6 +20,11 @@ export const CHANGELOG = [
     // migrate.js incal v4, runtime.js relaid; foes.js (no machine by a tagged house's untagged stone); tests/temples.test.js
     'The Warden’s Well is rebuilt like a shrine too: its rooms are far bigger and taller (the Climb and the tower’s drum over 34 m across, each floor of the drum 17 m high), its doors twice the size, and every puzzle stands in the middle of its room. The Turning Floors’ vane is on a pillar beside the island, the Vane Room’s on a post in its chasm, the two lidded eyes on pillars beside their great vanes, the loft’s ball on a raised walk, and the Flue’s little vane on a post by its draught, its great key on a pier.',
     'The Warden’s Well’s machines no longer stand by its puzzles: they wait only in the Ash Store, round its middle among four columns. If you were inside the old tower you start at its last glyph stone.',
+    // the Aerie as shrines (issue #336): src/temples/arzach.js (DOOR, HALL, WELL, WING, TOP, STACK, LOGIC.rooms kinds, the
+    // layout: the Hall of Winds' groove down its middle, the Vent Hall, the Eyrie's ledge out to its middle, the perch's
+    // buttress, the Moult's columns); migrate.js arzach v4 (relaid); tests/temples.test.js, ball-room, way-back, aerie-lee
+    'The Aerie is rebuilt like a shrine too: the Hall of Winds is 30 m wide and 66 long, its stone rolled up the middle of the floor to a grate, the Wind Well is 36 m across and 50 high, and its doors are twice the size. The gulf vent’s stone has a room of its own past the high balcony, the Vent Hall, in the middle of its floor, and the Eyrie’s stone sits in the middle of the Eyrie on a ledge that reaches out over the gap.',
+    'The Aerie’s machines no longer stand by its puzzles: they wait only in the Moult, round its middle among four columns. If you were inside the old house you start at its last glyph stone.',
     // the arena's won line (src/temples/runtime.js updateArenas: the doors let go the moment the last foe fell, before it was won)
     'When you win a temple’s arena, the house says so as its doors sink open: that line never showed.',
     // the Founders' Belfry as shrines (issue #336): src/temples/arzach2.js (ROOMS, DOOR, UP, RING, LOGIC.rooms kinds, the

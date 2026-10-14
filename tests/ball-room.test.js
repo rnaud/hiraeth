@@ -10,7 +10,7 @@ import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLES } from '../src/temples/index.js';
 import { Ball } from '../src/temples/pieces.js';
-import { STACK, BALCONY, GULF } from '../src/temples/arzach.js';
+import { STACK, BALCONY, GULF, WELL } from '../src/temples/arzach.js';
 import { ballRoom, courseBallRoom, ballPath, wantedOn, measure, templeWorld, NEED } from '../scripts/ball-room.mjs';
 
 /** The balls nobody stands behind, by design: where each is pushed from instead. */
@@ -38,7 +38,8 @@ test('a ball’s path: from its start to its plate; to the stops something wants
 test('the check finds the Aerie’s balls as they were: the Eyrie’s stone in its corner by the gap, the perch’s with a stride of floor behind it over the dark', () => {
   const { physics, rt } = templeWorld('arzach');
   const was = {
-    bE: [[-22.6, 61.8], [-22.6, 66.2], STACK.eyrie.y],
+    // (as they lay against the ledge's edge and the south wall; v1.77 the Eyrie 30 m across, the same corner in it)
+    bE: [[STACK.ledge[0] + 1.4, WELL.z - STACK.eyrie.d / 2 + 1.8], [STACK.ledge[0] + 1.4, WELL.z - STACK.eyrie.d / 2 + 6.2], STACK.eyrie.y],
 
     ballP: [[-2.6, null], [3, null], GULF.perchY],
   };

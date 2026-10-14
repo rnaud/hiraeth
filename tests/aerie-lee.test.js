@@ -8,6 +8,7 @@ import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { game } from '../src/game-state.js';
+import { HALL } from '../src/temples/arzach.js';
 
 // The Aerie's Hall of Winds (#216): behind anything solid the wind can't reach you (it used to only behind the screens'
 // narrow shelter boxes), and its streaks stop there; the marks (the glyph stones) say what they are.
@@ -38,11 +39,11 @@ test('the Aerie (#216): a gust passes you by in the lee of a screen or the far w
     return P.pos.distanceTo(a);
   };
   // 3 m behind a screen (outside its old shelter box, 2 m deep), and by the far wall off the doorway: still
-  assert.ok(blown(4.2, 27.4) < 0.2, 'in a screen’s lee');
-  assert.ok(blown(-5.5, 50.4) < 0.2, 'in the far wall’s lee');
+  assert.ok(blown(4.2, 27.8) < 0.2, 'in a screen’s lee');   // (v1.77: the hall 30 by 66, the screens 9.4 m apart from z 22)
+  assert.ok(blown(-5.5, HALL.z0 + HALL.d - 1.6) < 0.2, 'in the far wall’s lee');
   // in the open, and beside a screen, out of its lee: shoved down the hall
-  assert.ok(blown(7, 35) > 3, 'in the open');
-  assert.ok(blown(0, 26) > 3, 'in the hall’s middle');
+  assert.ok(blown(7, 36) > 3, 'in the open');
+  assert.ok(blown(0, 18) > 3, 'in the hall’s middle');   // (short of its stone, at z 26.8)
   // the streaks: in the lee none (at their own height), in the open some
   const lanes = gust.leeLanes();
   assert.ok(lanes && lanes.length === gust.streaks.length, 'every streak has its lane');
