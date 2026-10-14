@@ -1,0 +1,37 @@
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_1bb5dd41264198 294-299
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_c94a6bdccbb681 24,379
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_50392031bf329a 153-174,782
+tests/ship.test.js
+  s_9ca76055a220ed::t_5725cf6f650223 541-576
+changelog.md
+  s_ba14917e09c732::t_5a1ca505b791d7 7
+src/changelog.js
+  s_ba14917e09c732::t_b24f9fdccf3e3c 26-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d36d3f75917595bc3d03d6bac409a635bbbdb144",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ba14917e09c732": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a503a51e50bd72e99",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
