@@ -839,6 +839,8 @@ const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (
 const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.76': [
+    { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
+    { match: 'In the Unity version the traveller’s overshirt is shaded right', tags: ['devices'], see: 'In the Unity build, stand the traveller in the sun and turn the camera slowly round him: the overshirt over his chest and shoulders and round his collar shades smoothly with the rest of the shirt, without the dark or bright blotches that flickered there as he walked. Compare with the web game in the same spot.' },
     { match: 'People who only talk often tell you of something near them', tags: ['story', 'menus'], shots: [
       { name: 'rumour-talk', title: 'A rumour in Qanat', caption: 'Zahir, by the landing, tells of a fragment on the open sand near your ramp: a line in the Desert’s voice instead of one of his own.', only: 'after', from: RUMOURS340 },
       { name: 'rumour-map', title: 'Its circle on the Map', caption: 'The Map zoomed in: a soft plum circle round where he said, its middle off the fragment’s spot, named “Something singing, they say”; the cursor on it says whose word it is and how far.', only: 'after', from: RUMOURS340 },
@@ -879,8 +881,6 @@ export const CHANGELOG_MEDIA = {
         { where: '90 m off', before: 83.6, after: 11.9 },
       ], source: 'scripts/bench/elder.mjs --preset handheld', note: 'Her GPU time is in the Mac’s noise (0.1–0.3 ms); her fight and pose 0.02 ms of CPU a frame. Her colour map is 2048² (21 MiB with mipmaps on the GPU).' },
     ] },
-    { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
-    { match: 'In the Unity version the traveller’s overshirt is shaded right', tags: ['devices'], see: 'In the Unity build, stand the traveller in the sun and turn the camera slowly round him: the overshirt over his chest and shoulders and round his collar shades smoothly with the rest of the shirt, without the dark or bright blotches that flickered there as he walked. Compare with the web game in the same spot.' },
     // (issue #347, taken at 8d472bed before the rebase, the same tree: the crowds of the Desert's camps and the Signal Market, the Salt Harbour's and the lake folk's in the studio, a world's cast and a crowd lineup in the studio; scripts/changelog-shots.mjs)
     { match: 'Far fewer people wear capes', tags: ['characters'], shots: [
       { name: 'capes-camps', title: 'The Desert’s camps', caption: 'The pilgrims round the camp fires: before, nearly everyone in a cape or a mantle; after, a few elders and staff-bearers, the rest in tunics and robes', commit: 'b2d4987e',

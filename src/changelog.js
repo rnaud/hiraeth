@@ -13,6 +13,13 @@ export const CHANGELOG = [
     // rumour-places.js (each fragment's place), dialogue.js (listen talk, the keepers' again), world-map.js mapMarks
     // `rumours`, game-menu.js / .css (.gm-area), engine/menus.js, engine/map-marks.js, BridgeMenu.cs; tests/rumours.test.js
     'People who only talk often tell you of something near them you haven’t found: a fragment of the singing light (“there’s a hum inside a ribcage south-west of the pilgrims’ resting stone”), someone with a game, or a place worth the walk, each in their own world’s way of putting it. Your Map then shows a soft circle round where it should be, never right on it, until you find it.',
+    // the overshirt's shading in the engines (B3's fit: preservePinNormals, detailCollisions false): engine/cloth.js
+    // (packClothDesc's flags and map.pin, clothFrame's pinned normals), BridgeCloth.cs (PinNormal, EaseNormal), tripo-cloth.js
+    // offload.init; tests/cloth-offload.test.js; docs/systems/engine-bridge.md
+    'In the Unity version the traveller’s overshirt is shaded right over his chest, shoulders and collar: the cloth there had dark and bright patches where its light faced the wrong way, as if the fabric were creased or turned inside out. It now catches the light as on the web.',
+    // the traveller's files in the Unity players (unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs: characters/traveller-b3
+    // copied into StreamingAssets, where v1's were; BridgeRunner.PublicRoots has no repository on a device); tests/unity-xbox.test.js
+    'In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.',
   ] },
   { v: '1.75', date: '2026-10-14', items: [
     // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's
@@ -42,13 +49,6 @@ export const CHANGELOG = [
     // her colour map (issue #237): scripts/tripo/elder-delight.mjs in scripts/tripo/rig-elder-v3.mjs; her levels of
     // detail (ELDER_LOD, src/skinned-lod.js min/max); scripts/bench/elder.mjs; docs/systems/performance.md "The Elder's cost"
     'The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her; and far off she is drawn with simpler copies of herself, from two thirds of her triangles down to a seventh, and sooner on handhelds.',
-    // the overshirt's shading in the engines (B3's fit: preservePinNormals, detailCollisions false): engine/cloth.js
-    // (packClothDesc's flags and map.pin, clothFrame's pinned normals), BridgeCloth.cs (PinNormal, EaseNormal), tripo-cloth.js
-    // offload.init; tests/cloth-offload.test.js; docs/systems/engine-bridge.md
-    'In the Unity version the traveller’s overshirt is shaded right over his chest, shoulders and collar: the cloth there had dark and bright patches where its light faced the wrong way, as if the fabric were creased or turned inside out. It now catches the light as on the web.',
-    // the traveller's files in the Unity players (unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs: characters/traveller-b3
-    // copied into StreamingAssets, where v1's were; BridgeRunner.PublicRoots has no repository on a device); tests/unity-xbox.test.js
-    'In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.',
     // capes on a few (issue #347): src/costumes.js caped / CAPE_ODDS / T.capeOdds / T.plain, crowd.js worldPieces, the story's
     // cape: 0, the coats (fellow-data, shop-data, scientist-data), glass-dunes-frozen.js; scripts/cape-census.mjs, tests/cape-share.test.js
     'Far fewer people wear capes: about one in fifteen now, where it was four in five. The elders and those who walk with a staff (pilgrims, monks, Vael’s silent riders) keep theirs; everyone else wears a tunic with trousers, a skirt or a robe, a scarf or a neckerchief where the mantle was, and in the working towns now and then an apron. The capes the character sheets draw stay (Bako, Sefa, Nour, the Speaker, Ama, Hessa, Oïa, Saba, Nettle), and Haddu, Tansy and Anselm Thrum wear open coats instead.',
