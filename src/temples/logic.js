@@ -271,7 +271,8 @@ export class TempleLogic {
   /** A side of the lock's doorway can be walked to. */
   lockReachable(id, reach = this.reachable()) { return this.def.links.some((l) => l.door === id && (reach.has(l.a) || (reach.has(l.b) && !l.oneWay))); }
   /** A shut door or bridge is waiting for this element (a plate, a held bell: worth going to), or an unlit eye's `when` is. */
-  awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => (isGate(g) && !this.isOpen(d) && mentions(g.opens, id)) || (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id))); }
+  // (or a key still caged waits for it: the Belfry's great key, whose cage sinks only while the founders' bell rings)
+  awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => (isGate(g) && !this.isOpen(d) && mentions(g.opens, id)) || (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id)) || (FINDS.has(g.type) && g.when && !this.isFound(d) && mentions(g.when, id))); }
   /**
    * As awaited, for a ball's stop (`reach`: the rooms in reach now): a shut door waiting for it counts only if it leads to a
    * room out of reach, if no link goes through it, or if another shut door opens with it ({ open }).

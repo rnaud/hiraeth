@@ -660,6 +660,20 @@ at a ball's stop only for a door that leads somewhere out of reach now (`awaited
 the stone once the Moult's door is open. (Vael's level init now runs the temples' and the stones that rise both, in the
 game's steps and in `init`: the game had never made the risers solid, nor the tests the Aerie's doors.)
 
+The **Founders' Belfry** (`arzach2.js` `RING`): **a ring through both halves of the house, back over the first from the
+second**. Half-way over the Hall of Echoes a spur of the same stones runs off the bridge to a doorway in its west wall
+(`spur`, a bridge on `{ lit: 'e2' }`: the ball on the far plate holds the bridge for good, and nothing but the bell holds
+the spur: ring, and run). Through it the **Ringers' Walk** goes back south outside the house past the porch and the Bell
+Chamber, up a stair, and east through the Stone Stair's west wall (the stair 31 m high now) onto a ledge round its
+north-west wall 8 m over the landing (out of any jump's reach from it or from the great stone). On it the great key, in a
+tall cage (`cageH`) whose top shows over the ledge's edge from the way into the stair at the start; it sinks only while
+the founders' bell at the stair's foot rings (`when: { lit: 'e0' }`), the bell the house's first ball strikes: with that
+ball still in its mouth it hears the whistle now from anywhere in the stair (`RING.hear`), so it is rung from the ledge,
+the first room's own bell met again from above. (The marker counts a caged key as waiting for what its `when` names.) A parapet runs along the ledge but where the landing is under it: drop onto
+the landing (a `oneWay` link), and climb the house again in its new state, the porch's bell rung, the bridge held by the
+ball, to the far door (`d4`), which takes the great key with its ball and its bell. `migrate.js LAYOUTS.arzach2` v3: past
+the far door, the great key is in it.
+
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
 The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake

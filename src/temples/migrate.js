@@ -153,10 +153,13 @@ export const LAYOUTS = {
   // the watcher broken, its door open
   desert: { v: 2, steps: [{ if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } }] },
   // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won
+  // v1.74 (issue #23's last round): the far door takes the great key, from the Ringers' Walk's ledge high in the Stone Stair.
+  // Past the far door: the great key in it
   arzach2: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['open.d1', 'drum.ballS', 'lit.s1', 'open.d2', 'gadget', 'open.br1', 'boss'], set: { 'unlocked.d1': 1, 'found.kW': true, 'lit.arW': true } },
+      { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true } },
     ],
   },
 };

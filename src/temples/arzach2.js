@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
+import { TempleKit, ANTE, T, box, lathe, annulus, sector } from './kit.js';
 import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit, Key } from './pieces.js';
 import { whaleModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
@@ -41,6 +41,13 @@ import { chestMound } from '../boxes/mound.js';
 //                          groove that runs over the bridge: ring, then roll the ball across while the
 //                          stones are down (it stops at the lip while they hang, and drops if they rise
 //                          under it). On its plate its weight holds the stones down for good.
+//                          Half-way over, a spur of the same stones runs off the bridge to a doorway in the west wall,
+//                          and no ball holds it: ring, and run (since issue #23's last round)
+//   the Ringers' Walk      through that doorway: a long passage back south outside the house, the ringers' way, and up
+//                          a stair to a ledge high in the Stone Stair, over the landing. On it, the house's great key,
+//                          seen from the stair at the start and out of reach from there. Drop onto the landing, and
+//                          climb the house again with the whistle: the porch's bell, the stones held for good, to the
+//                          far door (it takes the great key). A ring through both halves of the house
 //   the Cloud-Mother's Hall the guardian (organic: you calm her). She swims high and fearful, gusts and dives;
 //                          each time she cries, low, her mouth open, sound the bell near her. Stones that fell
 //                          up hang under the dome: a ring as she rises to dive brings one down where she will
@@ -81,7 +88,7 @@ export const LOGIC = {
   id: 'arzach2', entry: 'threshold', gadget: 'bell',
   // (the Bell Chamber and the Bell Porch are one room: the way between them is open, and nothing past the porch
   // opens without the whistle)
-  rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, storeW: {}, storeE: {}, stair: { checkpoint: true }, landing: {}, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, storeW: {}, storeE: {}, stair: { checkpoint: true }, landing: {}, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, ringers: { checkpoint: true }, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'stones' },
     { a: 'stones', b: 'storeW', door: 'dSW' },      // (open: it shuts behind you while its keepers stand)
@@ -90,6 +97,10 @@ export const LOGIC = {
     { a: 'stair', b: 'landing', door: 'lift' },     // the great stone: rung down, it falls up again with you on it
     { a: 'landing', b: 'bell', door: 'd2' },
     { a: 'bell', b: 'echoes', door: 'd3' },         // the Bell Porch's held door, a room on from the chest
+    // (issue #23's last round: a ring through both halves. Off the bridge's middle a spur of stones the bell alone holds, to
+    // the Ringers' Walk back south and up to a ledge high in the Stone Stair, the great key's, a drop over the landing)
+    { a: 'echoes', b: 'ringers', door: 'spur' },
+    { a: 'ringers', b: 'landing', oneWay: true },
     { a: 'echoes', b: 'echoesFar', door: 'br1' },
     { a: 'echoesFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
@@ -116,11 +127,16 @@ export const LOGIC = {
     e1: { type: 'bell', room: 'bell', needs: ['bell'], hold: 8 },   // the porch's bell
     d3: { type: 'door', opens: { lit: 'e1' } },
     e2: { type: 'bell', room: 'echoes', needs: ['bell'], hold: 10 },
+    // the spur off the bridge's middle to the Ringers' Walk: held by the bell alone (no ball holds it). At the walk's end,
+    // on the ledge high in the Stone Stair, the great key in a tall cage (seen from the stair's floor at the start) that
+    // sinks only while the founders' bell far below rings: the ball still in its mouth, the whistle sounded from the ledge
+    spur: { type: 'bridge', opens: { lit: 'e2' } },
+    kB: { type: 'key', kind: 'big', room: 'ringers', when: { lit: 'e0' } },
     ball3: { type: 'drum', room: 'echoes', plate: 'p3', plateAt: 1, start: 0 },
     p3: { type: 'plate', room: 'echoesFar' },
     br1: { type: 'bridge', opens: { any: [{ lit: 'e2' }, { drumOn: ['ball3', 'p3'] }] } },
     e3: { type: 'bell', room: 'echoesFar', needs: ['bell'] },
-    d4: { type: 'door', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
+    d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
     mother: { type: 'boss', room: 'hall', needs: ['gun', 'bell'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
@@ -135,6 +151,18 @@ export const ARENAS = [{
 
 /** The held notes: how long the founders' bells hold their door and their stones (s). */
 export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold, stair: LOGIC.elements.e0.hold, chamber: LOGIC.elements.eT.hold };
+/**
+ * The Ringers' Walk (issue #23's last round, local m): its doorway in the Hall of Echoes' west wall half-way over (z, the
+ * spur's), the walk's middle (x) and half its width, its doorways' width; its floor 16 m up to its stair (`stairs`: foot
+ * and head, z), then RING.y to its south end, where it turns east through the Stone Stair's west wall onto a ledge round
+ * its north-west wall at RING.y (`ledge`: radii, rotunda angles; a parapet along it but over the landing, `drop`), the
+ * great key on it (`key`: angle, radius; `cage` its cage's height, seen over the ledge's edge from the stair's floor, sunk
+ * only while the founders' bell at the stair's foot rings, which hears the whistle from the ledge: `hear` its reach); the Stone Stair `stairH` high now.
+ */
+export const RING = {
+  z: 119.4, x: -15.6, half: 2, w: 3.6, y: 24, stairH: 31, stairs: [86, 68], south: 52.4,
+  ledge: { r0: 6, r1: 9.4, a0: -Math.PI / 2 - 0.25, a1: -0.12 }, drop: -0.55, key: { a: -0.38, r: 7.6 }, cage: 3.2, hear: 28,
+};
 /** How long the Cloud-Mother lies on a held stone she dived onto, crying (s): the bell calms her then. */
 export const GROUNDED = 4.5;
 
@@ -362,7 +390,9 @@ function layout(rt) {
   K.wall(-3.2, 44.6, -3.2, 46.4, 0, 6.6, { t: 0.8 }); K.wall(3.2, 46.4, 3.2, 44.6, 0, 6.6, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 7, 45.4));
   const C2 = 56.4;
-  K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 25, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 16.2 }], oculus: 0.35 });
+  // (since issue #23's last round taller, a ledge round its north-west wall at RING.y, the Ringers' Walk's end, through a
+  // doorway in its west wall)
+  K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: RING.stairH, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 16.2 }, { a: -Math.PI / 2, w: RING.w, h: 5, y0: RING.y }], oculus: 0.35 });
   K.both(M.floor, box(7.2, 16, 3.2, 0, 8, C2 + 7.2));                    // the top landing, by the high door
   K.both(M.trim, box(7.4, 0.3, 3.4, 0, 16.05, C2 + 7.2));
   // the great stone: down while the bell rings, up again (with you) when it falls quiet
@@ -372,13 +402,15 @@ function layout(rt) {
   const BX = -6.2, BZ = C2 - 3;
   const bellS = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);
   K.add(BRONZE(), T(bellS, [BX, 2.5, BZ]));
-  K.add(M.trim, box(0.2, 19, 0.2, BX, 15.6, BZ));
+  K.add(M.trim, box(0.2, RING.stairH - 6.1, 0.2, BX, (RING.stairH + 6.1) / 2, BZ));
   K.add(M.trim, T(new THREE.TorusGeometry(1.48, 0.08, 4, 28).rotateX(Math.PI / 2), [BX, 2.6, BZ]));
   K.add(M.dark, box(5.8, 0.04, 1.0, -3.6, 0.02, BZ));
   for (const sd of [-1, 1]) K.both(M.trim, box(4.4, 0.12, 0.25, -3.2, 0.06, BZ + sd * 0.75));
   add(Ball, { id: 'ballS', a: [-1.0, 0.04, BZ], b: [BX, 0.04, BZ], r: 1.0, strike: { at: [BX, 3.4, BZ] } });
   add(Plate, { id: 'pS', at: [BX, 0, BZ], r: 1.2 });
-  add(BellEar, { id: 'e0', at: [BX, 1.6, BZ], reach: 6, heard: 'The founders’ bell booms, and high over the well the great stone comes down to the floor. It stays only while the bell sounds.', heardKey: 'e0.heard', fading: 'The bell’s hum is fading: the great stone stirs.' });
+  // (it hears the whistle too, once the ball lies in its mouth: from anywhere in the stair, the Ringers' Walk's ledge high
+  // over it as well, where the great key's cage sinks only while it rings: RING.hear)
+  add(BellEar, { id: 'e0', at: [BX, 1.6, BZ], reach: RING.hear, heard: 'The founders’ bell booms, and high over the well the great stone comes down to the floor. It stays only while the bell sounds.', heardKey: 'e0.heard', fading: 'The bell’s hum is fading: the great stone stirs.' });
   add(Mark, { room: 'stair', at: [5, 0, C2 - 3], yaw: -Math.PI / 2 });
   // the high door, and its eye on the landing's face: under your feet once you are up, seen on the way
   add(Door, { id: 'd2', at: [0, 16.2, C2 + 9.7], w: 5, h: 6, lamps: [{ lit: 's1' }] });
@@ -414,7 +446,7 @@ function layout(rt) {
   const E0 = A0 + 12 + 1.2;   // 103.4
   K.slab(-3.2, E0 - 1.6, 3.2, E0 + 0.6, 16, 0.8);
   add(Door, { id: 'd3', at: [0, 16, E0 - 0.6], w: 5, h: 6.4, bell: true, lamps: [{ lit: 'e1' }] });
-  K.hall({ x: 0, z: E0 + 17.2, w: 22, d: 34.4, y: 6, h: 22, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 10 }, { side: 'n', w: 5, h: 6.4, y0: 10 }] });
+  K.hall({ x: 0, z: E0 + 17.2, w: 22, d: 34.4, y: 6, h: 22, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 10 }, { side: 'n', w: 5, h: 6.4, y0: 10 }, { side: 'w', at: RING.z - (E0 + 17.2), w: RING.w, h: 5, y0: 10 }] });
   K.slab(-11, E0, 11, E0 + 6, 16, 10);
   K.slab(-11, E0 + 26, 11, E0 + 34.4, 16, 10);
   K.both(M.dark, box(22, 1, 20, 0, 5.5, E0 + 16));
@@ -422,6 +454,8 @@ function layout(rt) {
   // the stones come down while the bell rings, and fall up again when it stops; a ball's weight on the far
   // plate holds them down for good. The ball's groove runs from the near edge over the bridge to that plate.
   add(Bridge, { id: 'br1', a: [0, 16, E0 + 5.9], b: [0, 16, E0 + 26.1], w: 6, n: 8, from: 'above' });
+  // the spur off its middle, west to the Ringers' Walk's doorway: the same stones, held by the bell alone
+  add(Bridge, { id: 'spur', a: [-3.05, 16, RING.z], b: [-10.95, 16, RING.z], w: RING.w - 0.4, n: 3, from: 'above' });
   add(BellEar, { id: 'e2', at: [0, 16, E0 + 4], reach: 32, heard: 'The hanging stones answer the note and come down into a bridge. They stay only while it sounds.', heardKey: 'e2.heard', fading: 'The note is fading: the stones begin to tremble.' });
   const BA = [1.6, 16.04, E0 + 2.6], BB = [1.6, 16.04, E0 + 30.5], BL = BB[2] - BA[2];
   add(Ball, { id: 'ball3', a: BA, b: BB, r: 1.0, friction: 0.2, lock: true, gap: { bridge: 'br1', from: (E0 + 5.9 - BA[2]) / BL, to: (E0 + 26.1 - BA[2]) / BL } });
@@ -434,6 +468,8 @@ function layout(rt) {
   add(BellEar, { id: 'e3', at: [-1.8, 16, E0 + 32], reach: 9 });
   add(Mark, { room: 'echoes', at: [-7, 16, E0 + 3], yaw: 0 });
   for (let i = 0; i < 4; i++) K.glyph([-10.95, 22 + (i % 2) * 2, E0 + 6 + i * 6], 1.3, Math.PI / 2);
+
+  ringersWalk(rt, K, M, C2);
 
   // ---- the corridor, and the Cloud-Mother's hall (a great rotunda, open to the sky)
   const H0 = E0 + 35;      // 125.2
@@ -463,15 +499,58 @@ function layout(rt) {
 
   // (the west store's mark last: after the others, so the machines' ids by mark stay as they were)
   add(Mark, { room: 'storeW', at: [-15.2, 0, 20.2], yaw: Math.PI / 2 });
+  add(Mark, { room: 'ringers', at: [RING.x, 16, RING.z - 6], yaw: Math.PI });   // (and the Ringers' Walk's after it)
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-26, -2, -3), V(26, 60, CH + HR + 12)),
     gadget: { at: W(0, 16.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 16.5, CH + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [-17.7, 5, 23, 11], [17.7, 5, 23, 11], [0, 8, C2, 16], [0, 20, C3, 16], [0, 21, A0 + 6, 12], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
+    lights: [[RING.x, 20, RING.z - 14, 14], [RING.x, 27, RING.south + 8, 14], [-5, 27, C2 + 4, 12], [0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [-17.7, 5, 23, 11], [17.7, 5, 23, 11], [0, 8, C2, 16], [0, 20, C3, 16], [0, 21, A0 + 6, 12], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
     guardian: { def: { ...MOTHER, onHit: motherHit, onStrike: motherStrike, openFor: motherOpen, onReset: (g) => { g.grounded = false; rt.hallStones?.reset(); } }, model, arena },
   };
+}
+
+/**
+ * The Ringers' Walk: off the Hall of Echoes through its west wall half-way over (the spur of stones the bell alone holds),
+ * back south outside the house past the porch and the Bell Chamber, up a stair, and east through the Stone Stair's west
+ * wall onto a ledge round its north-west wall high over the landing: the great key's, seen from the stair below at the start.
+ * A parapet along the ledge but where the landing is under it: the drop down onto it.
+ */
+function ringersWalk(rt, K, M, C2) {
+  const { x: X, half, w, y: Y, z: Z, south: S } = RING, [s0, s1] = RING.stairs;
+  const xe = X + half + 0.4, xw = X - half - 0.4, fx0 = xw - 0.4, fx1 = xe + 0.4, low = 16, lowTop = 22.8, highTop = 30.8;
+  // the doorway's sill through the hall's west wall, and the walk's floors and stair
+  // (the floors end inside the walls, and the sill 2 cm proud of the hall's wall: no face in another's plane)
+  K.slab(xe, Z - w / 2 - 0.2, -10.98, Z + w / 2 + 0.2, low, 0.8);
+  K.slab(xw, s0, xe, Z + w / 2 + 1.2, low, 0.8);
+  K.stairs([X, low, s0], [X, Y, s1], 2 * half, { sides: false });
+  K.slab(xw, S, xe, s1, Y, 0.8);
+  // its walls: low over the floor at 16, high over the stair and the upper floor; the gable between the two roofs
+  const zN = Z + w / 2 + 1.2, wt = { t: 0.8 };
+  K.wall(xw, s0, xw, zN, low - 0.8, lowTop - low + 0.8, wt);
+  K.wall(xw, S - 0.4, xw, s0, low - 0.8, highTop - low + 0.8, wt);
+  K.wall(xe, zN, xe, s0, low - 0.8, lowTop - low + 0.8, { ...wt, holes: [{ at: zN - Z, w, y0: 0.8, h: 5 }] });
+  K.wall(xe, s0, xe, S - 0.4, low - 0.8, highTop - low + 0.8, { ...wt, holes: [{ at: s0 - C2, w, y0: Y - low + 0.8, h: 5 }] });
+  K.wall(fx0, zN, fx1, zN, low - 0.8, lowTop - low + 0.8, wt);
+  K.wall(fx1, S - 0.4, fx0, S - 0.4, Y - 0.8, highTop - Y + 0.8, wt);
+  K.wall(fx0 + 0.4, s0, fx1 - 0.4, s0, lowTop, highTop - lowTop, wt);
+  K.both(M.wall, box(fx1 - fx0, 0.8, zN - s0, X, lowTop + 0.42, (zN + s0) / 2));
+  K.both(M.wall, box(fx1 - fx0, 0.8, s0 - S + 0.4, X, highTop + 0.42, (s0 + S - 0.4) / 2));
+  // the way east into the Stone Stair, through its west wall at Y
+  const pz = w / 2 + 0.7;
+  K.slab(-9.4, C2 - w / 2 - 0.2, xe, C2 + w / 2 + 0.2, Y, 0.8);
+  K.wall(xe, C2 - pz, -10.0, C2 - pz, Y, 5.6, { ...wt, cap: false });
+  K.wall(-10.0, C2 + pz, xe, C2 + pz, Y, 5.6, { ...wt, cap: false });
+  K.both(M.wall, box(-10.0 - xe + 0.4, 0.8, 2 * pz + 0.8, (xe - 10.0) / 2, Y + 5.62 + 0.4, C2));
+  // the ledge round the stair's north-west wall, and its parapet but over the landing (the drop down onto it)
+  const rotA = (a) => Math.PI / 2 - a, Lg = RING.ledge;
+  K.both(M.floor, T(sector(Lg.r0, Lg.r1, rotA(Lg.a1), rotA(Lg.a0), 0.7), [0, Y, C2]));
+  K.both(M.trim, T(sector(Lg.r0 - 0.02, Lg.r0 + 0.35, rotA(RING.drop), rotA(Lg.a0), 1.05), [0, Y + 1.0, C2]));
+  K.add(M.trim, T(sector(Lg.r0 - 0.05, Lg.r0 + 0.3, rotA(Lg.a1), rotA(RING.drop), 0.2), [0, Y + 0.12, C2]));   // (a lip where it drops)
+  // the great key on it, over the landing
+  const ka = RING.key.a, kr = RING.key.r;
+  rt.add(Key, { id: 'kB', big: true, cageH: RING.cage, at: [Math.sin(ka) * kr, Y, C2 + Math.cos(ka) * kr], yaw: Math.atan2(Math.cos(ka), -Math.sin(ka)) });
 }
 
 // ------------------------------------------------------------------ outside: the Founders' Belfry over the cloud

@@ -17,6 +17,8 @@ export const CHANGELOG = [
     'The wisps of sand the wind blows across the Desert are light pen strokes on handhelds and small screens, pointed at their ends: on the Retroid far ones were drawn as heavy black dashes on the dunes.',
     // the temples' last loops (issue #23, round 5): src/temples/arzach.js STACK.chute; tests/temples.test.js
     'In the Aerie the Moult is entered from above now: in the Eyrie, while the stone sits in the vent at the foot of the gap, that vent is still and its shaft goes down into the Moult. Drop in, open your wings, win the fight, and its door lets you out onto the Wind Well’s floor. Roll the stone into the other throat and the same vent blows you up to the great key.',
+    // src/temples/arzach2.js RING (the Ringers' Walk), migrate.js arzach2 v3; tests/temples.test.js
+    'In the Founders’ Belfry the far door takes a great key now. Half-way over the Hall of Echoes the bell brings down a spur off the bridge to a doorway in the west wall, and no ball holds it: ring, and run. Behind it the Ringers’ Walk leads back round to a ledge high in the Stone Stair, where the key’s cage shows from the stair’s floor at the start: it sinks only while the founders’ bell far below rings, and with its ball still in its mouth that bell hears your whistle from up there. Drop onto the landing and climb the house again.',
     // Vael's level init (src/levels/arzach.js): the falling-up edge's risers got no collider in the game
     'Past the riders’ gate on Vael, the stones that rise under you are solid again: you no longer fall through them.',
   ] },
