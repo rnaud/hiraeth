@@ -177,7 +177,7 @@ const quiet = (fn) => { const w = console.warn, l = console.log, i = console.inf
 /** The look the engines draw with, from post.js's uniforms and the shared ones: plain numbers. */
 export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLightTint', 'uToon', 'uHatch', 'uHatchSpacing', 'uFogDensity', 'uFogStart', 'uFogMul',
   'uLineWidth', 'uLineVary', 'uDepthThresh', 'uNormalThresh', 'uAlbedoEdges', 'uShadowEdges', 'uWobble', 'uHaze', 'uAerial', 'uSkyFlat', 'uSkyBands', 'uHazeBands',
-  'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround',
+  'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uEnvGround',
   'uSunColor', 'uMoonDisc', 'uMoonVis'];
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
@@ -358,12 +358,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     for (const [k, v] of Object.entries(level.defaults?.look ?? {})) if (U[k]) U[k].value = v;
   };
   applyPreset();
-  // the graphics preset's look (main.js applyDetail): the lighter weathering, no cloud shadows or crease shading where it
+  // the graphics preset's look (main.js applyDetail): the lighter weathering, no cloud shadows where it
   // says, its shadow filter's taps
   if (Q) {
     sharedUniforms.uWearLite.value = Q.lowDetail || Q.postLite ? 1 : 0;
     if (!Q.cloudShadows) sharedUniforms.uCloudShadows.value = 0;
-    if (!Q.ao && U.uAO) U.uAO.value = 0;
     if (U.uPostLite) U.uPostLite.value = Q.postLite ? 1 : 0;
     if (Q.taps) sharedUniforms.uShadowTaps.value = Q.taps;
   }

@@ -56,7 +56,6 @@ const TOG = {
   cast: POSTU('uCast', '[0, 0]'),
   inkShadow: POSTU('uInkShadow', '[0, 0]'),
   spot: POSTU('uSpot', '[0, 3, 0.3, 0.2]'),
-  ao: POSTU('uAO', '0'),
   wobble: POSTU('uWobble', '0'),
   albedoEdges: POSTU('uAlbedoEdges', '0'),
   shadowEdges: POSTU('uShadowEdges', '0'),

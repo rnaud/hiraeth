@@ -372,7 +372,7 @@ export class InteriorCuller {
 /**
  * The Graphics setting. Each preset is the whole recipe: render scale (and a dynamic
  * resolution range, if any), the shadow maps (size per cascade, 0 = off; how often
- * the near and far ones refresh), PCF taps, crease shading, cloud shadows, people
+ * the near and far ones refresh), PCF taps, cloud shadows, people
  * (NPC detail, how far the crowd is drawn) and props (how far / how small).
  *  - scale: render resolution × device pixels (0.75 = 75 %)
  *  - dynamic: { min, max, low, high } adapt the scale between min and max, aiming
@@ -400,19 +400,19 @@ export class InteriorCuller {
 // (cpuBound's probe, adaptScale: a step of 0.1 tried where the main thread looks like the limit, judged over
 //  5 windows, kept for 3 fps more or 2 missed refreshes fewer a window, else not tried again for 240 windows, 2 min)
 const PROBE = { step: 0.1, windows: 5, fps: 3, missed: 2, hold: 240 };
-const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1, lodPx: 1, waterContact: true };
+const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1, lodPx: 1, waterContact: true };
 /** Whether a preset draws the water's contact foam (water.js renderGBuffer). */
 export const waterContactOn = (preset) => preset?.waterContact !== false;
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
   handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
     shadow: { fine: 0, hero: 1024, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
-    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false, aa: 'smaa' },
+    cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false, aa: 'smaa' },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
-    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
+    cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
   // the Steam Deck at its own 1280×800: the handheld's lighter recipe where the Deck's CPU pays for
-  // it (crowd, props, flora, people's cloth), the full image otherwise (native resolution, crease
-  // shading, both ink passes), adapting down to 0.6 when a scene is too much. Its main thread is the
+  // it (crowd, props, flora, people's cloth), the full image otherwise (native resolution,
+  // both ink passes), adapting down to 0.6 when a scene is too much. Its main thread is the
   // limit everywhere (docs/systems/performance.md, "The Steam Deck, round 2"): no fine cascade (a whole
   // pass of the scene a frame), a sharper near map over a smaller square instead (the GPU has room);
   // capes simulated within 14 m (clothFar; further off they hang on the body). Its own resolution always (issue #111:
@@ -420,7 +420,7 @@ export const QUALITY_PRESETS = {
   // the far map every 8th frame (the most of the shadow draws; what it shows is over 120 m off and moves little)
   deck:     { label: 'Steam Deck', scale: 1, dynamic: null,
     shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 8, taps: 4,
-    ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
+    cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
   // reports a pixel ratio of 1.5 at 1080p), adapting down to 0.6 when a scene is too much. Its main thread is the
   // limit (docs/systems/xbox.md, "Why 20 fps": every WebGL call costs ~5 µs there), so the Deck's shadows (no fine

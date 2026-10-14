@@ -129,6 +129,9 @@ export const CHANGELOG = [
         { where: 'knocked to the ground', before: 2, after: 0 },
       ], source: 'the same scratch driver' }],
       see: 'Stand in front of any creature that knocks you (the Arena’s horn lizard, the Keeper’s stamp) and let it hit you.' },
+    // the crease shading gone (issue #322): post.js creaseAO, uAO, uCrevice out of the composite, the presets, the worlds'
+    // looks, the quality presets (ao) and the Unity bridge (Composite.shader, HiraethLook.cs); docs/systems/rendering.md
+    'The grey, grainy shading that gathered in corners, along the foot of every wall and under counters, benches and pots is gone. Indoors, in the desert’s shop and everywhere else, walls and floors no longer crawl with dark speckles as you walk round; the deep pockets keep their solid ink shadows.',
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

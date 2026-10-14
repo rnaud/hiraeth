@@ -150,10 +150,14 @@ Each of these can be toggled or tuned in the panel's **Beauty** folder.
   - the default is 1× on Retina screens, which are already dense.
 - **Hatching that follows form:** on slopes the strokes become height
   contours, and on smooth objects the cross-hatch wraps round them as rings.
-- **Crease shading:**
-  - small screen-space ambient occlusion from the depth and normal buffers;
-  - it darkens building bases, crevices and canopy undersides, and adds ink
-    accents where geometry closes in.
+- **Crease shading: gone (v1.71, issue #322).** A small screen-space ambient occlusion (eight taps turned by a
+  per-pixel hash) darkened building bases, crevices and canopy undersides, added ink accents and, on the print
+  preset, filled the deepest crevices solid (`uCrevice`). The author: "It adds too much noise in all rooms. In the
+  desert shop as I'm walking around I'm seeing artifacts everywhere": a grey grain along every wall's foot, under
+  counters and benches, round pots, crawling as the camera moved. It is taken out of the pipeline, not turned down:
+  no taps, no `uAO` or `uCrevice` uniform, no preset, world or graphics setting asking for it (`ao` left the quality
+  presets), in the web composite and the Unity bridge's (`Composite.shader`, `HiraethLook.cs`). The spot blacks
+  (their own, anchored taps) are the dark pockets now. `tests/occlusion-taps.test.js` holds it gone.
 - **Skies:**
   - posterised gradient bands and sun rays at low sun;
   - per-level planets: toon-lit, cratered, hatched on the night side, with

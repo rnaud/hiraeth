@@ -206,8 +206,8 @@ const spotLoop = (n) => `{
     }`;
 
 /**
- * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js enclosure and
- * creaseAO): taps = [{ c (0..1, how much this one closes in), person }]. A tap on a person is left out (neither
+ * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js enclosure, the spot
+ * blacks'): taps = [{ c (0..1, how much this one closes in), person }]. A tap on a person is left out (neither
  * open nor closed: the person hides what stands behind); none left: 0 (open).
  */
 export function occlusionShare(taps) {
@@ -449,7 +449,6 @@ const fragmentShader = /* glsl */ `
   uniform float uClouds;
   uniform int uDebug;
   uniform float uProj11;      // projection[1][1] = 1 / tan(fov / 2)
-  uniform float uAO;          // crease shading + ink accents
   uniform float uSkyBands;    // posterised sky gradient
   uniform float uHazeBands;   // distance haze in flat layers
   uniform float uRays;        // sun rays at low sun
@@ -499,7 +498,6 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uSpaceSun;
   uniform vec4 uSpaceNight;
   uniform vec4 uBackdrop;         // rgb, a = 1: one flat colour instead of the sky (a conversation's portrait)
-  uniform float uCrevice;         // the deepest crevices filled with ink (0..1)
   uniform float uShadowFlat;      // shadows printed in their own colour (0: albedo × tint .. 1: the tint at the surface's value)
   uniform vec4 uHaze;             // the far ground's haze colour, a = how much (0: the sky's horizon)
   uniform float uShadeKeep;       // how much of its own hue a shade keeps where its material doesn't say (materials.js SHADE)
@@ -644,10 +642,9 @@ const fragmentShader = /* glsl */ `
     return vec4(dEdge, nEdge, aEdge, sEdge);
   }
 
-  // ---------------------------------------------------------------- crease shading
-  // Small screen-space ambient occlusion from the depth/normal buffer: where
-  // nearby geometry closes in (building bases, crevices, under canopies) the
-  // inker adds darker tone and a few accent strokes.
+  // A pixel's point in view space, from its depth (the spot blacks' taps).
+  // (The crease shading that was here, a small screen-space ambient occlusion with the deepest crevices filled with ink,
+  // is gone: per-pixel noise in every room, artifacts as you walked round the desert's shop; issue #322.)
   vec3 viewPos(vec2 uv, float d) {
     vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
     vec3 r = p.xyz / p.w;
@@ -665,39 +662,6 @@ const fragmentShader = /* glsl */ `
   // the same for a mover (gHatch.a + 64: a foe, the drone; materials.js MOVER): seen past like a person, unless the
   // point itself is on one (self = 1: its own pockets are its own)
   float notStanding(vec2 suv, float self) { float a = texture(tHatch, suv).a; return step(mod(a, 8.0), 1.5) * max(step(a, 63.5), self); }
-  float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc, float self) {
-    vec3 P = viewPos(uv, d);
-    vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
-    float R = 1.3;
-    float rpx = clamp(R * uProj11 * 0.5 * uRes.y / d, 3.0, 48.0);
-    // (the spiral's steps turned by one rotation, the random angle's: a cos and a sin per pixel, not
-    // per tap; a tap that doesn't count weighs 0; the surface flags only read for a tap that would
-    // count, to rule out a grass blade: most taps close nothing in. docs/systems/performance.md)
-    float a0 = hash(fc) * 6.2832;
-    vec2 cs = vec2(cos(a0), sin(a0));
-    mat2 turn = mat2(cs.x, cs.y, -cs.y, cs.x);
-    float ao = 0.0, seen = 0.0;
-    for (int i = 0; i < 8; i++) {
-      float b = float(i) * 2.39996;
-      float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
-      vec2 suv = uv + turn * vec2(cos(b), sin(b)) * rr / uRes;
-      float sd = texture(tNormal, suv).w;
-      vec3 v = viewPos(suv, sd) - P;
-      float dist = length(v);
-      float c = step(0.0, sd) * sign(sd)   // (not the sky)
-        * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
-      // (grass blades close nothing in: no grey speckle round them)
-      // (nor does a person: no grey halo round a climber on his wall, round people's feet)
-      // (and a tap on a person isn't counted at all, open or closed: the share is of the taps that saw what
-      // stands behind, so a person in front of a recess leaves no pale ghost of themselves in its shading)
-      // (the flags only read for a tap that would close something in, or that stands nearer than the point:
-      // a person hiding what is behind them is nearer; most other taps skip the read, docs/systems/performance.md)
-      float np = 1.0;
-      if (c > 0.0 || (sd > 0.0 && sd < d)) { float a = texture(tHatch, suv).a, t = mod(a, 16.0); np = step(mod(t, 8.0), 1.5) * max(step(a, 63.5), self); c *= step(t, 7.5) * np; }
-      ao += c; seen += np;
-    }
-    return clamp(ao / max(seen, 1.0) * 2.2, 0.0, 1.0);
-  }
 
   // ---------------------------------------------------------------- spot blacks
   // How enclosed a point is, at the scale of a pocket (R metres): the share of its neighbours standing in front
@@ -1456,15 +1420,6 @@ const fragmentShader = /* glsl */ `
         col = mix(col, uInk, max(h1, h2) * hFade * 0.55);
       }
 
-      // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
-      if (uAO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) {   // (not between grass blades: they'd go grey; a face's sockets are hatched instead)
-        float ao = creaseAO(uv, N.xyz, depth, fc, mover) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
-        col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
-        ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
-        // the deepest crevices (between ribs, into a hull's machinery) filled solid, as an inker does
-        col = mix(col, uInk * 1.15, smoothstep(0.72, 0.97, ao) * uCrevice * (1.0 - L * 0.5) * innerK);
-      }
-
       // ---- 3b'. weathered walls: a flat band of darker dust splashed up the foot of the wall, its top a
       // little ragged. Found from the G-buffer: a probe the band's height below this pixel (on screen) that
       // lands on the ground (facing up) less than the band's height under it (in the world). One tap.
@@ -1701,7 +1656,6 @@ export function createPost() {
     uFlatten: { value: 0 },
     uFogMul: { value: 1 },
     uProj11: { value: 1 },
-    uAO: { value: 1 },
     uSkyBands: { value: 0.7 },
     uHazeBands: { value: 0.6 },
     uRays: { value: 1 },
@@ -1753,7 +1707,6 @@ export function createPost() {
     uHalftone: sharedUniforms.uHalftone,
     uBounce: sharedUniforms.uBounce,
     uShadeKeep: sharedUniforms.uShadeKeep,
-    uCrevice: { value: 0 },
     uShadowFlat: { value: 0 },
     uHaze: { value: [1, 1, 1, 0] },
     uSpot: { value: [0, 2.5, 0.5, 0] },
@@ -1918,7 +1871,7 @@ export const PRESETS = {
     uLineWidth: 1.5, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.22, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5.5, uHighlight: 0, uClouds: 0.6,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // Sable: a fine, almost uniform pen line, flat colour, sparse dotting
@@ -1926,7 +1879,7 @@ export const PRESETS = {
     uLineWidth: 1.25, uLineVary: 0.25, uDepthThresh: 0.07, uNormalThresh: 0.3, uAlbedoEdges: 0, uShadowEdges: 0,
     uWobble: 0.0, uBoil: 0, uHatch: 0.6, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.05, uClouds: 0.5,
     uFogDensity: 0.0009, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // a Moebius print: flat stippled sky, cumulus on the horizon, dotted ground,
@@ -1937,7 +1890,7 @@ export const PRESETS = {
     uFogDensity: 0.0009, uSkyFlat: 1, uSkyDots: 1, uCumulus: 1, uSkyBands: 0, uHazeBands: 0.5, uRays: 0, uDots: 1,
     // the shade in three tones: a form turned from the sun a half-tone, faces turned down lifted by
     // the ground's light, cast shadows the full tint; shades keep some of their own hue
-    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uCrevice: 0.85, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
+    uHalftone: 0.35, uBounce: 0.4, uShadeKeep: 0.3, uShadowFlat: 0, uHaze: [1, 1, 1, 0],
     // a third tier of value: spot blacks in the shaded pockets, cast shadows a little deeper
     uSpot: [1, 3, 0.3, 0.2], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
@@ -1947,7 +1900,7 @@ export const PRESETS = {
     uLineWidth: 1.35, uLineVary: 0.9, uDepthThresh: 0.08, uNormalThresh: 0.35, uAlbedoEdges: 0.4, uShadowEdges: 1,
     uWobble: 1.2, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 4.5, uHighlight: 0, uClouds: 0.25,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // Moebius at his cleanest: flat colour, thin lines, light dotting only
@@ -1955,7 +1908,7 @@ export const PRESETS = {
     uLineWidth: 1.05, uLineVary: 0.6, uDepthThresh: 0.07, uNormalThresh: 0.28, uAlbedoEdges: 1, uShadowEdges: 0.4,
     uWobble: 0.4, uBoil: 0, uHatch: 0.5, uShadeStyle: 1, uHatchSpacing: 8, uHighlight: 0.06, uClouds: 0.7,
     uFogDensity: 0.0008, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   // twilight swamp: dense hatching, glowing crystals carry the light
@@ -1963,14 +1916,14 @@ export const PRESETS = {
     uLineWidth: 1.45, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.24, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.0, uBoil: 0, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uClouds: 0.5,
     uFogDensity: 0.0012, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
   'Animated ink': {
     uLineWidth: 1.7, uLineVary: 1, uDepthThresh: 0.07, uNormalThresh: 0.2, uAlbedoEdges: 1, uShadowEdges: 1,
     uWobble: 1.6, uBoil: 1, uHatch: 1, uShadeStyle: 0, uHatchSpacing: 5, uHighlight: 0, uClouds: 0.7,
     uFogDensity: 0.0011, uSkyFlat: 0, uSkyDots: 0, uCumulus: 0, uDots: 0,
-    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uCrevice: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
+    uHalftone: 0, uBounce: 0, uShadeKeep: 0, uShadowFlat: 0, uHaze: [1, 1, 1, 0], uSpot: [0, 2.5, 0.5, 0], uSpotTone: [0.17, 0.15, 0.19, 0.4],
     ...hazeOff(),
   },
 };

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.71 — 2026-10-13
 
+- The grey, grainy shading that gathered in corners, along the foot of every wall and under counters, benches and pots is gone. Indoors, in the desert’s shop and everywhere else, walls and floors no longer crawl with dark speckles as you walk round; the deep pockets keep their solid ink shadows.
 - When a creature or a guardian hits you, you stagger back on your feet instead of falling limp to the ground, and nothing else hits you for a moment while you recover. You still fall when your last heart goes, or from a great height.
 - The Keeper has three clear phases of two: light two braziers, then give it water twice, then twice more. While it pants it drinks as long as you keep the water coming, so one good opening can end a phase. No more glowing spark shape before its blows: its body’s wind-up shows what is coming.
 - The Keeper stays inside its cistern: its shell and neck no longer pass through the walls. In its last phase it leaps at you instead of burrowing into the stone floor, its shadow running ahead to where it will land, then lies winded.

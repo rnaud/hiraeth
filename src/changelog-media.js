@@ -801,6 +801,7 @@ const KEEPER287 = 'Issue #287: muted headless Chrome against this branch’s own
 const ITEMS329 = 'Issues #329, #330 and #328: muted headless Chrome (Medium, 1280 × 720, 10:00) against this branch’s own Vite (port 6329) and the tree before the three (8d6b8c22), a Vael save from the debug saves (the desert played through, the gun in hand), the hook’s chest opened by boxes.open and Oïa talked to by dialogue.start; 14 October; cwebp -q 72';
 // (v1.71, issues #320, #321: a scratch driver of ?level=desert&guardianReview=keeper against this branch's own Vite (port 6320) and the tree before it)
 const KEEPER320 = 'headless Chrome (muted, High, 1280 × 720), the Rose House’s cistern by ?guardianReview=keeper, the game stepped 1/60 s a frame, locked on the Keeper and strafing round it with a fake Xbox pad, 20 s in; before: the tree at 0220f777; 14 October; cwebp -q 72';
+const CREASE322 = 'Issue #322: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6322) and the tree before it (90f776a5), the camera pinned in Qanat’s shop in the desert, the traveller by the counter (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [
@@ -831,6 +832,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'Nobody gives you a quest you can’t do yet', tags: ['story'], shots: [
       { name: 'bird-no-wings', title: 'Oïa, without the wings', caption: 'Vael on arrival, talking to Oïa without the wings: before, she began the Waiting Bird, whose wind lifts only wings; after, she points west to the house with stone wings, and the Aerie’s quest starts instead.', from: ITEMS329 },
       { name: 'bird-wings', only: 'after', title: 'With the wings', caption: 'The same talk with the wings had: she gives the Waiting Bird as before.', from: ITEMS329 },
+    ] },
+    { match: 'The grey, grainy shading that gathered in corners', shots: [
+      { name: 'crease-shop-room', title: 'The shop', caption: 'Qanat’s shop from by the door: before, grey grain along the walls’ feet, under the counter’s edge and in the ceiling’s corner; after, clean flat colour, the spot blacks and cast shadows as they were.', from: CREASE322 },
+      { name: 'crease-shop-corner', title: 'Its corner', caption: 'The bench and the pot by the window: before, dark speckled halos under the bench, round the pot and along the floor’s edge; after, none.', from: CREASE322 },
     ] },
   ],
   '1.70': [

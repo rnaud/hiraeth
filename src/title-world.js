@@ -216,10 +216,9 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   for (const [k, v] of Object.entries(PRESETS[level.defaults?.preset ?? 'Moebius print'] ?? PRESETS['Moebius print'])) if (U[k]) U[k].value = v;
   for (const [k, v] of Object.entries(level.defaults?.look ?? {})) if (U[k]) U[k].value = v;
   for (const [k, v] of Object.entries(shot.look ?? {})) if (U[k]) U[k].value = v;
-  const baseAO = U.uAO.value, baseCloud = level.defaults?.cloudShadows ?? 1;
+  const baseCloud = level.defaults?.cloudShadows ?? 1;
   const applyDetail = () => {
     const low = !!preset.lowDetail;
-    U.uAO.value = preset.ao && !low ? baseAO : 0;
     SU.uCloudShadows.value = preset.cloudShadows && !low ? baseCloud : 0;
     SU.uShadowTaps.value = preset.taps ?? 9;
     SU.uShadowHero.value = 0;   // (its own fine map holds everything: main.js heroPass is the game's)

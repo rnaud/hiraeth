@@ -43,7 +43,7 @@ Shader "Hidden/Hiraeth/Composite"
       float _Night, _MoonVis, _Flatten, _FogMul, _FogDensity, _FogStart;
       float3 _SunDisc, _MoonDisc;
       float _LineWidth, _DepthThresh, _NormalThresh, _AlbedoEdges, _ShadowEdges, _Wobble, _Boil;
-      float _Toon, _HatchOn, _HatchSpacing, _Highlight, _Clouds, _Grain, _Proj11, _AO;
+      float _Toon, _HatchOn, _HatchSpacing, _Highlight, _Clouds, _Grain, _Proj11;
       float _SkyBands, _HazeBands, _Aerial, _LineVary, _SkyFlat, _SkyDots, _Cumulus;
       float4 _Subject;      // the player on screen: uv, view depth, radius
       float4 _Planet0, _PlanetColor0, _Planet1, _PlanetColor1, _Planet2, _PlanetColor2;
@@ -55,7 +55,7 @@ Shader "Hidden/Hiraeth/Composite"
       float _Rain, _RainNear, _Rays;   // weather: ink rain 0..1 and the dry radius under a roof; sun rays at a low sun (post.js uRain, uRainNear, uRays)
       // the web's newer look (post.js): each surface's shade, spot blacks, cast shadows lifted or inked, haze by depth and height
       float3 _SunDir;
-      float _ShadowFlat, _Crevice, _ShadeKeep, _PostLite;
+      float _ShadowFlat, _ShadeKeep, _PostLite;
       float4 _Haze, _Spot, _SpotTone, _HazeLayers, _HazeTone, _HeightFog, _HeightFogTone;
       float2 _Cast, _InkShadow;
       Texture2D _LineNoise; SamplerState sampler_linear_repeat;   // the lines' noise (post.js LINE_NOISE: 128² random texels)
@@ -183,29 +183,7 @@ Shader "Hidden/Hiraeth/Composite"
         float3 r = p.xyz / p.w;
         return r / -r.z * d;
       }
-      float creaseAO(float2 uv, float3 nW, float d, float2 fc)
-      {
-        float3 P = viewPos(uv, d);
-        float3 nV = normalize(mul(transpose((float3x3)_CamWorld), nW));
-        float R = 1.3;
-        float rpx = clamp(R * _Proj11 * 0.5 * _Res.y / d, 3.0, 48.0);
-        float a0 = hash(fc) * 6.2832;
-        float ao = 0.0, seen = 0.0;
-        for (int i = 0; i < 8; i++) {
-          float a = a0 + float(i) * 2.39996;
-          float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
-          float2 suv = uv + float2(cos(a), sin(a)) * rr * _Res.zw;
-          float sd = tN(suv).w;
-          if (sd <= 0.0) { seen += 1.0; continue; }   // (the sky: open)
-          float3 v = viewPos(suv, sd) - P;
-          float dist = length(v);
-          float cc = max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
-          // (grass blades close nothing in; a tap on a person isn't counted at all, open or closed: post.js notPerson)
-          float t = fmod(tH(suv).a, 16.0), np = step(fmod(t, 8.0), 1.5);
-          ao += cc * step(t, 7.5) * np; seen += np;
-        }
-        return saturate(ao / max(seen, 1.0) * 2.2);
-      }
+      // (the crease shading and its crevice ink are gone, as in post.js: issue #322)
 
       // spot blacks: how enclosed a point is at the scale of a pocket (post.js enclosure): its taps lie on its surface,
       // along axes tied to the world (level along its contour and straight up it; the world's x on level ground: post.js SPOT_FRAME),
@@ -702,13 +680,6 @@ Shader "Hidden/Hiraeth/Composite"
           float drawnK = lerp(lerp(0.6, 0.86, 1.0 - lit), 0.88, hero);
           col = lerp(col, _Ink, (saturate(H.b) * drawnK + saturate(H.b - 1.0) * (0.92 - drawnK)) * (1.0 - smoothstep(120.0, 600.0, depth)));
           if (hFade > 0.0) col = lerp(col, _Ink, saturate(max(H.r, H.g)) * hFade * 0.55);
-          // ---- 3b. crease shading (not between grass blades, nor on a face)
-          if (_AO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) {
-            float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * _AO * (1.0 - emitHere);
-            col = lerp(col, col * _ShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
-            ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
-            col = lerp(col, _Ink * 1.15, smoothstep(0.72, 0.97, ao) * _Crevice * (1.0 - L * 0.5) * innerK);
-          }
           // ---- 3b'. weathered walls: the dust splashed up the foot of the wall (one probe down to the ground)
           if (wearW > 0.5 && depth < 220.0 && abs(N.y) < 0.5) {
             const float bandH = 0.62;

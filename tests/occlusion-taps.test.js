@@ -1,11 +1,11 @@
-// The composite's two screen-space occlusion estimates (post.js: crease shading's creaseAO, the spot
-// blacks' enclosure) made cheaper without changing what they compute: constant tap directions, the
-// view ray taken as affine in uv, no branch inside the loops (docs/systems/performance.md).
+// The composite's screen-space occlusion estimate (post.js: the spot blacks' enclosure; the crease shading's creaseAO
+// is gone, issue #322) made cheaper without changing what it computes: constant tap directions, the view ray taken as
+// affine in uv, no branch inside the loops (docs/systems/performance.md).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
-import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_SWELL, spotBehind, spotFrame, spotShare, spotSwell, glslVec3, SPOT_POCKET, DUST_PAST } from '../src/post.js';
+import { createPost, PRESETS, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_SWELL, spotBehind, spotFrame, spotShare, spotSwell, glslVec3, SPOT_POCKET, DUST_PAST } from '../src/post.js';
 
 const shader = createPost().scene.children[0].material.fragmentShader;
 const body = (name) => {
@@ -33,7 +33,7 @@ test('the spot taps are the directions the shader used to work out per pixel', (
 });
 
 test('no skip (continue / break), cos or sin inside the occlusion loops', () => {
-  for (const name of ['enclosure', 'spotTapAt', 'planeAlong', 'planeNear', 'creaseAO']) {
+  for (const name of ['enclosure', 'spotTapAt', 'planeAlong', 'planeNear']) {
     const b = body(name);
     assert.ok(!/\bcontinue\b|\bbreak\b/.test(b), `${name}: a tap that doesn't count weighs 0, it isn't skipped`);
   }
@@ -43,12 +43,19 @@ test('no skip (continue / break), cos or sin inside the occlusion loops', () => 
   assert.ok(!/\bcos\(/.test(enc));
   assert.ok(enc.indexOf('sin(') < enc.indexOf('for ('), 'the swell is worked out once, not per tap');
   assert.ok(!/viewPos\(/.test(enc.slice(enc.indexOf('float r1')) + body('spotTapAt')), 'the tap positions from the affine ray');
-  const ao = body('creaseAO');
-  assert.equal((ao.match(/\bcos\(/g) ?? []).length, 2, 'crease shading: one turn per pixel (and the spiral\'s own constant steps)');
-  // the surface flags (is the tap on a grass blade, or a person?) only read for a tap that would close something in,
-  // or one nearer than the point (a person hiding what stands behind them)
-  assert.ok(ao.includes('if (c > 0.0 || (sd > 0.0 && sd < d)) { float a = texture(tHatch, suv).a, t = mod(a, 16.0); np = step(mod(t, 8.0), 1.5) * max(step(a, 63.5), self); c *= step(t, 7.5) * np; }'));
-  assert.equal((ao.match(/texture\(tHatch/g) ?? []).length, 1);
+});
+
+// Issue #322, the author: "We should disable the dark crevice shadows we added. It adds too much noise in all rooms. In the
+// desert shop as I'm walking around I'm seeing artifacts everywhere." The crease shading (a small screen-space ambient
+// occlusion, its deepest crevices filled with ink) is gone from the pipeline, not turned down: no taps, no uniform, no
+// preset or world asking for it, in the web composite and the Unity bridge's.
+test('the crease shading and its crevice ink are gone, web and Unity (issue #322)', () => {
+  assert.ok(!/creaseAO|uAO\b|uCrevice/.test(shader), 'the composite has no crease shading');
+  for (const [k, v] of Object.entries(PRESETS)) assert.ok(!('uCrevice' in v) && !('uAO' in v), `${k} asks for none`);
+  const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader', import.meta.url), 'utf8');
+  assert.ok(!/creaseAO|_AO\b|_Crevice/.test(unity), 'nor the Unity bridge\'s');
+  const look = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs', import.meta.url), 'utf8');
+  assert.ok(!/uAO|uCrevice/.test(look));
 });
 
 test('a person closes nothing in: no spot-black or crease halo round a climber or round people’s feet', () => {
@@ -102,7 +109,7 @@ test('a mover (a foe, the drone) is seen past as a person is: no dark halo on th
   // every reader of gHatch.a takes the mover's 64 off first (the main decode, the line kernel's drift test)
   assert.ok(shader.indexOf('surface.a -= 64.0 * mover;') < shader.indexOf('float drift = step(31.5, surface.a);'));
   assert.ok(shader.includes('vec4 fa = mod(vec4(t1.a, t2.a, t3.a, t4.a), 64.0);'));
-  assert.ok(shader.includes('enclosure(uv, N.xyz, depth, uSpot.y, POST_LITE ? 4 : 8, mover)') && shader.includes('creaseAO(uv, N.xyz, depth, fc, mover)'));
+  assert.ok(shader.includes('enclosure(uv, N.xyz, depth, uSpot.y, POST_LITE ? 4 : 8, mover)'));
 });
 
 test('a person in front leaves no pale ghost in the shading behind them (Marrow by the ship, the tree’s stairs)', () => {
@@ -121,12 +128,7 @@ test('a person in front leaves no pale ghost in the shading behind them (Marrow 
   // open ground with a person in front: still open; every tap on the person: open
   assert.equal(occlusionShare(Array.from({ length: 8 }, (_, i) => ({ c: 0, person: i < 5 }))), 0);
   assert.equal(occlusionShare(Array.from({ length: 4 }, () => ({ c: 1, person: true }))), 0);
-  // crease shading takes the same share (the clamp x 2.2 over it)
-  assert.match(body('creaseAO'), /return clamp\(ao \/ max\(seen, 1\.0\) \* 2\.2, 0\.0, 1\.0\);/);
-  // and so does the Unity port's composite (it had no person test at all)
   const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader', import.meta.url), 'utf8');
-  assert.equal((unity.match(/return saturate\(ao \/ max\(seen, 1\.0\)/g) ?? []).length, 1);
-  assert.equal((unity.match(/np = step\(fmod\(t, 8\.0\), 1\.5\)/g) ?? []).length, 1);
   // (the spot blacks: what a person hides, as post.js spotBehind)
   // (each tap read where it is used: a tap on a person reads the others again)
   assert.ok(unity.includes('float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);') && unity.includes('return lerp(occ / n8, pair / (n8 / 2), ground);'));
@@ -155,18 +157,6 @@ test('the view ray is affine in uv, so a tap can be placed without the inverse p
       assert.ok(Math.abs(u * a.x + b.x - want.x) < 1e-6 && Math.abs(v * a.y + b.y - want.y) < 1e-6, `${cam.fov}° at ${u}, ${v}`);
     }
   }
-});
-
-test('crease shading turns its spiral with one rotation: the same directions as a cos and a sin per tap', () => {
-  // GLSL mat2(c, s, -s, c) is column-major: turn * (x, y) = (c x - s y, s x + c y)
-  for (const a0 of [0, 0.7, 2.9, 6.1]) {
-    const c = Math.cos(a0), s = Math.sin(a0);
-    for (let i = 0; i < 8; i++) {
-      const b = i * 2.39996, x = Math.cos(b), y = Math.sin(b);
-      assert.ok(Math.abs(c * x - s * y - Math.cos(a0 + b)) < 1e-12 && Math.abs(s * x + c * y - Math.sin(a0 + b)) < 1e-12);
-    }
-  }
-  assert.ok(body('creaseAO').includes('mat2 turn = mat2(cs.x, cs.y, -cs.y, cs.x);'));
 });
 
 // ---------------------------------------------------------------- spot blacks anchored to the surface

@@ -71,7 +71,7 @@ namespace Hiraeth
 
         static readonly string[] SharedKeys = { "uToon:_Toon", "uHatch:_HatchOn", "uHatchSpacing:_HatchSpacing", "uShadeStyle:_ShadeStyle", "uClouds:_Clouds", "uCloudShadows:_CloudShadows", "uFormHatch:_FormHatch", "uDots:_Dots" };
         static readonly string[] PostKeys = { "uFogDensity:_FogDensity", "uFogStart:_FogStart", "uLineWidth:_LineWidth", "uDepthThresh:_DepthThresh", "uNormalThresh:_NormalThresh",
-            "uAlbedoEdges:_AlbedoEdges", "uShadowEdges:_ShadowEdges", "uWobble:_Wobble", "uBoil:_Boil", "uHighlight:_Highlight", "uGrain:_Grain", "uAO:_AO", "uSkyBands:_SkyBands",
+            "uAlbedoEdges:_AlbedoEdges", "uShadowEdges:_ShadowEdges", "uWobble:_Wobble", "uBoil:_Boil", "uHighlight:_Highlight", "uGrain:_Grain", "uSkyBands:_SkyBands",
             "uHazeBands:_HazeBands", "uAerial:_Aerial", "uLineVary:_LineVary", "uSkyFlat:_SkyFlat", "uSkyDots:_SkyDots", "uCumulus:_Cumulus", "uFogMul:_FogMul" };
 
         /// <summary>Another of post.js's presets laid over the world's own (the Hangar's quarters: "Animated ink" upside
@@ -111,7 +111,6 @@ namespace Hiraeth
             // the web's newer look (post.js): each surface's shade (materials.js SHADE), spot blacks, cast shadows lifted
             // or printed as ink, haze in layers and fog by height (absent from an older export: all off)
             Shader.SetGlobalFloat("_ShadowFlat", post.F("uShadowFlat", 0));
-            Shader.SetGlobalFloat("_Crevice", post.F("uCrevice", 0));
             Shader.SetGlobalFloat("_ShadeKeep", shared.F("uShadeKeep", post.F("uShadeKeep", 0)));
             Shader.SetGlobalFloat("_Halftone", shared.F("uHalftone", post.F("uHalftone", 0)));
             Shader.SetGlobalFloat("_Bounce", shared.F("uBounce", post.F("uBounce", 0)));
