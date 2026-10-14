@@ -895,6 +895,18 @@ export const CHANGELOG_MEDIA = {
       { name: 'lorn-skiff', title: 'Lorn, the landing island’s beach', caption: 'From over the channel south-west of the landing: after, the skiff waits afloat off the beach (foreground), a short wade out; before, it sat on the grass by the ship’s landing spot, out of this view behind the trees.', ...DOORS356,
         view: { level: 'perdide', eye: [-24, 32, -52], target: [-4, 0, -14], fov: 55, hour: 17 } },
     ], see: 'In Lorn, run off the landing island’s shore and jump into the open channel (or drop in from the cave island’s rocks): you land in the water and swim, and climb out where the bank is low. Before, you were put back on the bank before you touched the water. The skiff floats off the beach south-west of the landing: wade out to it and board.' },
+    { match: 'On the galactic map the scanner no longer shakes', tags: ['menus'], numbers: [
+      { title: 'How far the scanner jumps from one frame to the next', unit: 'px', better: 'lower', device: 'this Mac, muted headless Chrome, 1280 × 720, the Desert’s map with two worlds to find', rows: [
+        { where: 'Signal 1 (faint)', before: 0.21, after: 0.009 },
+        { where: 'Signal 2', before: 2.31, after: 0.023 },
+        { where: 'Signal 4 (strong)', before: 6.08, after: 0.074 },
+      ], source: 'the scanner held still, where it was drawn read every frame for 3 s (180 frames), before (84b40324d) and after on this branch', note: 'A shake is the jump from frame to frame: before, a fresh random offset every frame; after, a slow drift.' },
+      { title: 'How far it strays from where you hold it', unit: 'px', better: 'lower', device: 'the same', rows: [
+        { where: 'Signal 1 (faint)', before: 0.12, after: 0.26 },
+        { where: 'Signal 2', before: 1.31, after: 0.49 },
+        { where: 'Signal 4 (strong)', before: 3.45, after: 1.12 },
+      ], source: 'the same 3 s', note: 'Faint, it now drifts a quarter of a pixel where it stood still before (and shook from 0.2 of the strength): too little to see.' },
+    ], see: 'Open the galactic map with a world still to find and sweep toward an uncharted region: the scanner ring stays steady under the cursor, with a slow, small drift as the signal grows, and the pad’s three pulses barely touch while the signal is faint.' },
   ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [

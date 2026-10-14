@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.75 — 2026-10-14
 
+- On the galactic map the scanner no longer shakes as you sweep for a world: it drifts gently, barely at all while the signal is faint, a little more as it locks on, and the pad’s pulses are softer while the signal is weak.
 - Falling or jumping into deep water swims, in Lorn and wherever there is water deep enough to float in: you are no longer put back on the bank before you even touch it. Lorn’s skiff waits afloat off the landing island’s beach, a short wade from the shore, ready to board.
 - A locked door in a temple can no longer be got round. In the Hush-House the ledge round the Bog Well past its keyhole door is a cloister now, walled on the water’s side and roofed, so neither the double jump over the door nor a jump from the top of the root-wall round its post takes you past it. In the Builders’ Greenhouse you could walk round the great lock beside it, and in the Mooring-House jump through beside the Capstan Floor’s door: their doorways are framed in stone to the door’s edges now, as are the doors out of the guardians’ halls.
 - Talking to Anselm in your ship’s hold now works: the button opened nothing there, as the ship kept every press aboard for itself. Now it opens his talk and his upgrades.

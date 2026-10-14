@@ -63,6 +63,9 @@ export const CHANGELOG = [
     // Lorn's deep water (issue #355): src/player.js swimmable (SWIM.dropIn), the tumble into deep water; src/levels/perdide.js
     // SKIFF_AT, player.js / main.js mountAt; tests/swim.test.js, tests/lorn-route.test.js; docs/systems/movement.md
     'Falling or jumping into deep water swims, in Lorn and wherever there is water deep enough to float in: you are no longer put back on the bank before you even touch it. Lorn’s skiff waits afloat off the landing island’s beach, a short wade from the shore, ready to board.',
+    // the galactic map's scanner (issue #353): src/story/signature-search.js WANDER, wander, cues; src/ship/starmap.js
+    // drawScanner, searchUpdate; src/rumble.js search; tests/signature-search.test.js, tests/rumble.test.js
+    'On the galactic map the scanner no longer shakes as you sweep for a world: it drifts gently, barely at all while the signal is faint, a little more as it locks on, and the pad’s pulses are softer while the signal is weak.',
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

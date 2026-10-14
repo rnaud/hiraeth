@@ -116,16 +116,33 @@ export function scanStart({ targets = [], box = [0, 0, 800, 600], diag = 1000, d
 export const searchArmed = (moved, diag, S = SEARCH) => moved >= S.arm * diag;
 
 /**
- * What the cues do at a strength (0..1): the scanner's warmth (0 cool violet .. 1 gold), the beat
- * (s between the three pulses: the signature's own rhythm, faster nearer), the interference (px of
- * jitter), the light's notes' volume (0: silent), and a word for the meter.
+ * The scanner's interference (issue #353: "the finder is shaking too much, and much too much when it's far away"): no
+ * more a fresh random offset every frame, but a slow wander along a smooth curve, `amp` px at most (cues().jitter), its
+ * pace in Hz (cues().wander); faint, it barely drifts, and it never trembles. `ease`: how fast (1/s) the amplitude
+ * follows the strength.
  */
-export function cues(s) {
+export const WANDER = { min: 0.3, max: 1.6, hz: 0.2, hzStrong: 0.45, ease: 2.5 };
+
+/** The wander's offset [x, y] px at `phase` (rad, advanced by 2π·hz a second) and amplitude `amp` px: within amp. */
+export function wander(phase, amp) {
+  const x = Math.sin(phase) * 0.7 + Math.sin(1.73 * phase + 1.3) * 0.3;
+  const y = Math.cos(1.31 * phase + 0.4) * 0.7 + Math.sin(2.07 * phase + 2.1) * 0.3;
+  return [x * amp * Math.SQRT1_2, y * amp * Math.SQRT1_2];
+}
+
+/**
+ * What the cues do at a strength (0..1): the scanner's warmth (0 cool violet .. 1 gold), the beat
+ * (s between the three pulses: the signature's own rhythm, faster nearer), the interference (px the
+ * scanner wanders: the fainter the smaller; `wander` its pace in Hz), the light's notes' volume
+ * (0: silent), and a word for the meter.
+ */
+export function cues(s, W = WANDER) {
   const k = Math.min(1, Math.max(0, s));
   return {
     warmth: k,
     beat: 2.2 - 1.45 * k,
-    jitter: k < 0.2 ? 0 : (k - 0.2) * 4,
+    jitter: k < 0.12 ? 0 : W.min + (W.max - W.min) * k * k,
+    wander: W.hz + (W.hzStrong - W.hz) * k,
     notes: k < 0.12 ? 0 : 0.25 + 0.75 * k,
     bars: Math.round(k * 5),
     word: k < 0.12 ? 'silent' : k < 0.4 ? 'faint' : k < 0.7 ? 'warmer' : k < 0.9 ? 'strong' : 'locking',

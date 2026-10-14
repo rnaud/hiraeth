@@ -626,8 +626,8 @@ searching), the left stick (half a field-diagonal a second at full tilt) or W A 
 through the charted worlds; on a pad the D-pad does, and the scanner over a charted world selects it, so A
 travels). The **cues**, from `cueStrength` (0 beyond 0.45 of the diagonal, 1 on the world) through `cues()`: the
 scanner's colour (violet, gold, then the route's orange), its glow, its three rings pinging on the beat (2.2 s
-far, 0.75 s on it), a little jitter (none with reduced motion), the light's notes every 1.7 s at most (by
-strength), the rumble's `search` beat, and the **meter** at the top right of the chart (the foot of the chart on
+far, 0.75 s on it), a slow wander, never a shake (`wander`, `WANDER`: a smooth curve of up to 0.3 px faint to 1.6 px locking, at 0.2–0.45 Hz; it was a fresh random offset every frame, up to 4 px, issue #353; none with reduced motion), the light's notes every 1.7 s at most (by
+strength), the rumble's `search` beat (soft while the signal is faint: its strength grows with the square of it), and the **meter** at the top right of the chart (the foot of the chart on
 a phone held upright): SIGNAL, five bars and a word (silent, faint, warmer, strong, locking). The **lock**: within
 `lockRadius` (6 % of the diagonal, at least 30 px or 0.6 of a planet's disc) it fills in half a second (a gold arc
 round the scanner), and leaks away at 1.2 a second outside. Full: the planet resolves where it was (blur to sharp,
