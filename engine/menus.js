@@ -239,7 +239,7 @@ export class EngineMenus {
     if (T.screen === 'saves') {
       const rows = [{ id: 'back', text: t('title.back'), back: true }];
       for (const x of s.list()) {
-        if (x.empty) rows.push({ id: `slot.${x.n}`, slot: x.n, text: t('title.save', { n: x.n }), sub: t('title.new'), sub2: 'Starts at your ship', empty: true });
+        if (x.empty) rows.push({ id: `slot.${x.n}`, slot: x.n, text: t('title.save', { n: x.n }), sub: t('title.new'), sub2: t('title.startsPrologue'), empty: true });
         else {
           const when = [x.playtime >= 60 && t('title.played', { time: formatPlaytime(x.playtime) }), formatDate(x.lastPlayed)].filter(Boolean).join(' · ');
           rows.push({ id: `slot.${x.n}`, slot: x.n, text: t('title.save', { n: x.n }), sub: x.world, sub2: progressLine(x), when, del: true, thumb: x.level });

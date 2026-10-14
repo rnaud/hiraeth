@@ -273,8 +273,9 @@ the question, over an element that takes every call (`SHOP_EL`); game 'shop:open
 you have", or E at their counter) opens it once the conversation has closed, as the menus' 'shop' (`openShop`,
 `shopView`): the keeper's name, title and line, the wallet, the wares a list (Anselm's with the items' pictures), the
 price or why not; A / × on one asks (or the keeper says why not), A / × on Buy buys, ◀ ▶ between Buy and Not now,
-B / ○ out of the question, then out of the shop. BridgeMenu.cs `DrawShop`, the question its `DrawAsk`. Test:
-tests/engine-menus.test.js.
+B / ○ out of the question, then out of the shop. BridgeMenu.cs `DrawShop`, the question its `DrawAsk`. `-shop thrum`
+(or a keeper's shop id) opens one as soon as the world is ready, to see the sheet on a device. Tests:
+tests/engine-menus.test.js, tests/engine-ship.test.js. A new save's slot on the title says it starts with the prologue.
 
 Left for later (issue #264): the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
 the engine starts again as the climb ends).

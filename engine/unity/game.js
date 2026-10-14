@@ -188,6 +188,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
         };
         if (menus.mode === 'title') menus.close();
         game.save();
+        // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
+        if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
       if (args.freeze !== undefined) game.mirror.freeze = !!args.freeze;   // (-freeze: still subtrees frozen, mirror-freeze.js; off by default)
       console.log(`[unity] ready in ${(now() - t0).toFixed(0)} ms (in the VM: ${JSON.stringify(game.T)})`);

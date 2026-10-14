@@ -16,7 +16,7 @@ import { tempPath } from '../scripts/temp-dirs.mjs';
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then']);
 const photos = [];
 const backend = new Proxy({}, { get: (t, k) => (k === 'photo' ? (n) => photos.push(n) : UNSET.has(k) ? undefined : () => {}) });
-const menusStub = () => { const shown = []; return { shown, open: false, mode: null, show(m, p) { shown.push([m, p]); }, changed() {}, action() {}, navigate() {} }; };
+const menusStub = () => { const shown = [], shops = []; return { shown, shops, open: false, mode: null, show(m, p) { shown.push([m, p]); }, openShop(panel, e) { shops.push(e); return true; }, changed() {}, action() {}, navigate() {} }; };
 
 async function makeGame(file, o) {
   const warn = console.warn, info = console.info, log = console.log, error = console.error; console.warn = console.info = console.log = console.error = () => {};
@@ -67,7 +67,13 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   assert.ok(g.camera.position.distanceTo(before) > 1, 'the camera follows him');
 
   // the ship as it stands: up the ramp and in; the table without power, the console with nothing waiting
-  const h = await makeGame(file, { menus: menusStub() });
+  const hm = menusStub();
+  const h = await makeGame(file, { menus: hm });
+  // Anselm's shop asked for (his "Show me what you have", or -shop thrum): the menus' sheet opened on his wares
+  assert.ok(h.openShop('thrum'));
+  run(h, 2);
+  assert.equal(hm.shops[0]?.kind, 'fragments', JSON.stringify(hm.shops[0]?.shop));
+  assert.ok(hm.shops[0].logic.view().length >= 5, 'his upgrades');
   const S = h.screen();
   assert.ok(h.shipScenes && !h.ship.playing);
   const a = h.ship.arrivalSpot();

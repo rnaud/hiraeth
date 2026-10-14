@@ -682,6 +682,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     sectionsOn: false,
     journal,
+    /** A shop opened by its id ('thrum': Anselm's aboard; else a keeper's), as talking to its keeper does (-shop, a test). */
+    openShop(id) { if (shopPanel) shopWaiting = (id === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(id)) ?? null; return !!shopWaiting; },
     /** The ship attached and its scenes played (the engine played with its menus). */
     shipScenes: shipOn,
     /** A ship's scene playing that is not his to walk through (Esc held skips it). */

@@ -167,6 +167,8 @@ namespace Hiraeth.Bridge
             if (Arg("-bench") != null) args["bench"] = double.Parse(Arg("-bench"), CultureInfo.InvariantCulture);
             if (Flag("-split")) args["split"] = true;
             if (Arg("-talk") != null) args["talk"] = Arg("-talk");
+            // (-shop thrum: Anselm's shop, or a keeper's by its id, opened once the world is ready: a test of the shop's sheet)
+            if (Arg("-shop") != null) args["shop"] = Arg("-shop");
             if (Arg("-play") != null) args["play"] = Arg("-play");
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
