@@ -174,10 +174,29 @@ export function findText(target, d) {
   return `${far}, ${roughDistance(Math.abs(rise))} ${rise > 0 ? 'above' : 'below'}`;
 }
 
-/** Use doorways / gravity portals when they shorten the route. */
+/**
+ * The closed space a portal's end lies in (a room built off the map, a temple's rooms), or null for the open world.
+ * portalPair tags its two ways (src/interiors.js: `toSpace` in, `fromSpace` out); a temple's door leads into
+ * `temple:<id>` and its ways out (toUp) leave it.
+ */
+const spaceFrom = (p) => p.fromSpace ?? (p.temple && p.toUp ? `temple:${p.temple}` : null);
+const spaceTo = (p) => p.toSpace ?? (p.temple && !p.toUp ? `temple:${p.temple}` : null);
+/** How far up or down a find may be from a closed space's door and still be in it (the rooms are built far over the map). */
+const IN_SPACE = 400;
+/** How near one of a room's ways out you are to be in that room (the shops' rooms are a few metres, a slot 90 m apart). */
+const ROOM_NEAR = 40;
+
+/**
+ * Use doorways / gravity portals when they shorten the route. A walk joins two ends only in the same space: out of a
+ * room you go back through its own door, never across the void to another room built near it (issue #351: from Vael's
+ * riders' gate the way to Sister Aube went in at one shop's door and out of the other shop's, a field away).
+ */
 export function viaPortal(start, target, portals) {
-  const links = portals.map((p) => ({ from: p.at ?? p.pos, to: p.to, label: p.label ?? 'doorway' })).filter((p) => p.from && p.to);
+  const links = portals.map((p) => ({ from: p.at ?? p.pos, to: p.to, label: p.label ?? 'doorway', fromSpace: spaceFrom(p), toSpace: spaceTo(p) })).filter((p) => p.from && p.to);
   const nodes = [start, ...links.map((p) => p.to)];
+  // (where you stand now: in a room when one of its ways out is near, else anywhere, as before the spaces)
+  const near = links.filter((p) => p.fromSpace != null).sort((a, b) => a.from.distanceTo(start) - b.from.distanceTo(start))[0];
+  const spaces = [near && near.from.distanceTo(start) < ROOM_NEAR ? near.fromSpace : undefined, ...links.map((p) => p.toSpace)];
   const costs = nodes.map(() => Infinity), first = nodes.map(() => -1), visited = new Set(); costs[0] = 0;
   let bestCost = start.distanceTo(target.position), best = -1;
   for (let k = 0; k < nodes.length; k++) {
@@ -185,9 +204,11 @@ export function viaPortal(start, target, portals) {
     for (let i = 0; i < nodes.length; i++) if (!visited.has(i) && (n < 0 || costs[i] < costs[n])) n = i;
     if (n < 0 || !Number.isFinite(costs[n])) break;
     visited.add(n);
+    const inside = spaces[n] != null && Math.abs(target.position.y - nodes[n].y) > IN_SPACE;   // (the find is out in the world, not in this room)
     const finish = costs[n] + nodes[n].distanceTo(target.position);
-    if (finish < bestCost) { bestCost = finish; best = first[n]; }
+    if (!inside && finish < bestCost) { bestCost = finish; best = first[n]; }
     links.forEach((p, i) => {
+      if (spaces[n] !== undefined && (spaces[n] ?? null) !== p.fromSpace) return;
       const cost = costs[n] + nodes[n].distanceTo(p.from) + 5;
       if (cost < costs[i + 1]) { costs[i + 1] = cost; first[i + 1] = n === 0 ? i : first[n]; }
     });

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.75 — 2026-10-14
 
+- The marker and the drone no longer send you through a shop door for nothing: on Vael and in Lorn the way to Sister Aube, the bird, the cairn’s stones and the lamp-keeper went in at one shop’s door and out of another’s, a field away, as if the two shops were joined. They point straight at where you are going now.
 - Far fewer people wear capes: about one in fifteen now, where it was four in five. The elders and those who walk with a staff (pilgrims, monks, Vael’s silent riders) keep theirs; everyone else wears a tunic with trousers, a skirt or a robe, a scarf or a neckerchief where the mantle was, and in the working towns now and then an apron. The capes the character sheets draw stay (Bako, Sefa, Nour, the Speaker, Ama, Hessa, Oïa, Saba, Nettle), and Haddu, Tansy and Anselm Thrum wear open coats instead.
 - The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her; and far off she is drawn with simpler copies of herself, from two thirds of her triangles down to a seventh, and sooner on handhelds.
 - The Elder no longer jerks: her whole body jumped at the start of every blow, she shot 3.5 m into the air in a single frame when she took off (and dropped back the same way), spun round to face you in an instant, and a leg flipped round when she sank down worn out. Her throat, rump and shoulders no longer stretch out of shape as she bends.

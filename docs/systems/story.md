@@ -954,6 +954,13 @@ idea." "All quests should be solvable by just going to the end if you can."
   known everywhere; the rest are listed in its `EXCEPTIONS`, each with its reason (what he hears or sees, what he
   found and tells, a person of the same world's quest). Marrow's "What's that singing out on the sand?" is offered at
   the ship (`wreck`, and `hello` once the bike is asked about) instead of after a page about Qanat's fire or the mark.
+- **The way through a door stays in its room** (#351, v1.75; "a quest tells me to go through the shop door but not why
+  and there is nothing inside"). The scout's route (`src/scout.js viaPortal`) walked from one room built off the map to
+  another built 90 m from it: from the riders' gate the way to Aube went in at the landing's shop door and out of the
+  Belfry shop's, a field away. A walk now joins two ends only in the same space: `portalPair` tags its ways
+  (`toSpace` in, `fromSpace` out: the room), a temple's door leads into `temple:<id>` and its ways out leave it; you are
+  in a room when one of its ways out is within 40 m, and a find more than 400 m above or below a room is not in it.
+  `tests/interiors.test.js` (two rooms side by side are no way through).
 
 ## Places to stop on the way (the second story pass, October 2026)
 

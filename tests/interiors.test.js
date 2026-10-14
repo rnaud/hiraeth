@@ -112,6 +112,20 @@ test('the scout routes a find through the door either way', () => {
   assert.equal(r2.label, 'Through the shop door');
 });
 
+test('two rooms built side by side are not a way through (issue #351)', () => {
+  // Vael's two shops: one by the landing, one by the Belfry, their rooms a slot apart over the map. From the riders'
+  // gate the way to Sister Aube went in at the first shop's door and out of the second's, a field away.
+  const scene = new THREE.Scene();
+  const a = buildInterior(scene, { id: 'test.a', doorLabel: 'shop door', slot: 0, door: { at: v(-100, 0, -250), heading: 0 } });
+  const b = buildInterior(scene, { id: 'test.b', doorLabel: 'shop door', slot: 1, door: { at: v(-180, 0, 740), heading: 0 } });
+  const aube = { id: 'aube', label: 'Sister Aube', position: v(30, 20, 970) };
+  assert.equal(viaPortal(v(0, 0, 0), aube, [...a.portals, ...b.portals]), aube, 'straight there, not in at one door and out of the other');
+  // in a room the way out is its own door
+  const out = viaPortal(a.inside, aube, [...a.portals, ...b.portals]);
+  assert.equal(out.label, 'Through the door');
+  assert.ok(out.position.distanceTo(a.portals[1].at) < 0.01, 'the room you are in');
+});
+
 test('a shopfront alone: a door on the ground, facing its heading, its lantern among the lights', () => {
   const scene = new THREE.Scene();
   const f = buildShopfront(scene, { at: v(5, 2, 5), heading: Math.PI / 2, sign: 'CHIMES' });

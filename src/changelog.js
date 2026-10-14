@@ -39,6 +39,10 @@ export const CHANGELOG = [
     // capes on a few (issue #347): src/costumes.js caped / CAPE_ODDS / T.capeOdds / T.plain, crowd.js worldPieces, the story's
     // cape: 0, the coats (fellow-data, shop-data, scientist-data), glass-dunes-frozen.js; scripts/cape-census.mjs, tests/cape-share.test.js
     'Far fewer people wear capes: about one in fifteen now, where it was four in five. The elders and those who walk with a staff (pilgrims, monks, Vael’s silent riders) keep theirs; everyone else wears a tunic with trousers, a skirt or a robe, a scarf or a neckerchief where the mantle was, and in the working towns now and then an apron. The capes the character sheets draw stay (Bako, Sefa, Nour, the Speaker, Ama, Hessa, Oïa, Saba, Nettle), and Haddu, Tansy and Anselm Thrum wear open coats instead.',
+    // the way through a door stays in its room (issue #351): src/scout.js viaPortal (spaces: src/interiors.js portalPair
+    // toSpace/fromSpace, a temple's door and ways out); tests/interiors.test.js; docs/systems/story.md
+    { text: 'The marker and the drone no longer send you through a shop door for nothing: on Vael and in Lorn the way to Sister Aube, the bird, the cairn’s stones and the lamp-keeper went in at one shop’s door and out of another’s, a field away, as if the two shops were joined. They point straight at where you are going now.',
+      see: 'On Vael, once the bird has answered, stand at the riders’ gate and press Q: the drone points south over the cloud to Sister Aube, not “Through the shop door” back by the landing.' },
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;
