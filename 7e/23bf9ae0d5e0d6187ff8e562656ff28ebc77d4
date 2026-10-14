@@ -1,0 +1,85 @@
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_2fd4b4596c7523 41,81-84,87-88
+.claude/skills/combat-review/guardian.mjs
+  s_9ca76055a220ed::t_8328f938214a39 22,120,125-135,198-199,204-205,224-226,229,254,257,260-261,283
+docs/systems/foes.md
+  s_9ca76055a220ed::t_f3a282ad508336 568-607
+src/characters/elder-v3-creature.js
+  s_9ca76055a220ed::t_8ef351b9c95b2f 11-22,26,48,56,64,84
+src/foes.js
+  s_9ca76055a220ed::t_084bf182ff5ae2 1633-1635,1638-1640
+src/hitboxes.js
+  s_9ca76055a220ed::t_9268d07bfef3cf 213-222,227
+src/temples/arzach.js
+  s_9ca76055a220ed::t_60f1a0287fc7b0 165-169,171-175,179-183,185-188
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_b7e577a9740137 161,164-168,170,198,210-216,218-220
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_567ca3b0fff295 192-194,197-199
+src/temples/boss.js
+  s_9ca76055a220ed::t_f48df0a54e6d51 58-64,69-70,242,244,261,264-273,292-449,481-483,493,580,638-642,691,702-703,723,740-741,743,828-833,841-843,846-888,897-898,906,1037
+src/temples/buried.js
+  s_9ca76055a220ed::t_336645ef00f6ec 179,182-187
+src/temples/desert.js
+  s_9ca76055a220ed::t_2ee2f30c6ee7b2 178
+src/temples/edena.js
+  s_9ca76055a220ed::t_ebc36e42b8314d 199-203,205
+src/temples/garage.js
+  s_9ca76055a220ed::t_df6f1d80c9ace1 183-187,190
+src/temples/guardian-anchor.js
+  s_9ca76055a220ed::t_ec8bafeafd36c6 68
+src/temples/guardian-founder.js
+  s_9ca76055a220ed::t_3dcaf6f1c4681d 70-73
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_0ca5c5549bede4 64-65
+src/temples/guardians.js
+  s_9ca76055a220ed::t_9b282f7e1f4ac4 714-717,826-829
+src/temples/incal.js
+  s_9ca76055a220ed::t_955f670c5e924d 177-180,182-183,185,189-196
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_507765741aa35e 187-190,193
+src/temples/perdide.js
+  s_9ca76055a220ed::t_278f5b821c195f 182-190
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_e3da4cf41e3353 187-192,194-195
+src/temples/spacecity.js
+  s_9ca76055a220ed::t_9b00010442c30f 190-191,194-195
+src/temples/spheres.js
+  s_9ca76055a220ed::t_c6360536f39e71 153-158,160
+src/temples/underwater.js
+  s_9ca76055a220ed::t_1f24ca4a660f43 193-196,199-200
+tests/guardian-asks.js
+  s_9ca76055a220ed::t_34055c79833cc6 15-16,28-30,34-35
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_ab2b291a63bc56 29,232-239,241,245
+tests/keeper-fairness.test.js
+  s_9ca76055a220ed::t_cb3ad667f2770a 126,139,145
+tests/telegraphs.test.js
+  s_9ca76055a220ed::t_a8d71681bf974b 157,162-164
+tests/guardian-fairness.test.js
+  s_149aedaceac946::t_d3df21173254a4 1-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7e23bf9ae0d5e0d6187ff8e562656ff28ebc77d4",
+  "prompts": {},
+  "sessions": {
+    "s_149aedaceac946": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8b4a5caaaccf6876",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
