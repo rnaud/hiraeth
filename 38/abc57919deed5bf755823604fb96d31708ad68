@@ -1,0 +1,39 @@
+src/temples/spacecity.js
+  s_9ca76055a220ed::t_b00981cc090f77 96-97,473-480
+changelog.md
+  s_9ca76055a220ed::t_2298e6d332c7b2 9
+tests/door-bypass.test.js
+  s_9ca76055a220ed::t_9104b1ec94d711 14-15,43,168,207-208
+src/changelog.js
+  s_9ca76055a220ed::t_5d5a1a8f1c62b9 61-62
+docs/systems/temples.md
+  s_9ca76055a220ed::t_c5125eb2d6eded 825-828
+src/changelog-media.js
+  s_21bbab49205eab::t_f43ba989ef911d 893
+tests/shard-timings.json
+  s_9ca76055a220ed::t_b3e0ab87433d18 131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "38abc57919deed5bf755823604fb96d31708ad68",
+  "prompts": {},
+  "sessions": {
+    "s_21bbab49205eab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7393a4e33f54bbe6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
