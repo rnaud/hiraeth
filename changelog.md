@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.73 — 2026-10-14
 
+- On the Steam Deck the Unity version is now called “Hiraeth (Unity)” in Steam and in the desktop menu, with its own icon and library pictures marked UNITY, so you can tell it apart from Hiraeth at a glance. It changes with the next update, while Steam is closed; a name or icon you gave it yourself stays.
 - Seen from ten metres or more, the traveller’s eyes no longer show as two pale or dark dots on his face: they soften into one warm mark, as a drawing does. Close up he looks as before.
 - No more dark ragged halo round things that stand in front of a wall or a floor further back, like the crystal on its ring in the Lorn temple hall or the stone figure by the Underwater City’s ramp: it used to slide over the wall behind them as you turned the camera.
 - Three worlds’ endings show what they are about. In the Underwater City a whale comes right up against the Whale Gallery’s glass and you see it there; in the Moon Foundry the last moon rises onto its hook over the Casting-House’s door, and every hung moon over the floor turns slowly round toward it; in the City Floating in Space, over the roof, every cable runs taut out of the great capstan and its lamps light one by one out along them.

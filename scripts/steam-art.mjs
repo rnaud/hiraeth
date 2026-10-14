@@ -2,7 +2,9 @@
 // views, docs/systems/app-icon.md) and the title's own lettering (src/title-logo.js):
 //
 //   node scripts/steam-art.mjs capture [--only hero]       → docs/steam/capture-<art>.png (committed)
-//   node scripts/steam-art.mjs build                        → desktop/steam/{portrait,wide,hero,logo}.png
+//   node scripts/steam-art.mjs build                        → desktop/steam/{portrait,wide,hero,logo}.png (and unity/)
+//   node scripts/steam-art.mjs unity                        → desktop/steam/unity/{portrait,wide,hero,logo,icon}.png:
+//                                                             the Unity preview's, the same with a UNITY badge
 //   node scripts/steam-art.mjs all                          (both)
 //   node scripts/steam-art.mjs survey --views a,b --size 1920x620 --out <dir>   (to choose views)
 //
@@ -148,8 +150,37 @@ async function build() {
   }
 }
 
+// ------------------------------------------------------------------ the Unity preview's own art
+/** The Unity preview's shortcut beside the game's (deck.py UNITY_ART, UNITY_ICON): the same pictures with a badge,
+ *  "UNITY" in white on a dark plate in a corner (across the foot of the icon), so the two read apart in Steam's
+ *  library and the desktop's menu. Each badge's size and place, as fractions of its picture. */
+export const UNITY_BADGE = {
+  portrait: { w: 0.52, h: 0.085, x: 0.5, y: 0.93 },
+  wide: { w: 0.3, h: 0.16, x: 0.83, y: 0.86 },
+  hero: { w: 0.16, h: 0.13, x: 0.9, y: 0.86 },
+  logo: { w: 0.34, h: 0.24, x: 0.5, y: 0.86 },
+  icon: { w: 0.86, h: 0.24, x: 0.5, y: 0.84 },
+};
+export const badgeSvg = (W, H, b) => {
+  const w = Math.round(b.w * W), h = Math.round(b.h * H), x = Math.round(b.x * W - w / 2), y = Math.round(b.y * H - h / 2);
+  const r = Math.round(h * 0.22), stroke = Math.max(2, Math.round(h * 0.06)), size = Math.round(h * 0.62);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#1b2a30" stroke="#f4ead6" stroke-width="${stroke}"/>`
+    + `<text x="${x + w / 2}" y="${y + h / 2}" dy="0.35em" text-anchor="middle" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-weight="bold" font-size="${size}" letter-spacing="${Math.round(size * 0.12)}" fill="#f4ead6">UNITY</text></svg>`;
+};
+
+async function unityArt() {
+  const { default: sharp } = await import('sharp');
+  const from = { portrait: join(OUT, 'portrait.png'), wide: join(OUT, 'wide.png'), hero: join(OUT, 'hero.png'), logo: join(OUT, 'logo.png'), icon: join(ROOT, 'public/icons/icon-512.png') };
+  for (const [name, file] of Object.entries(from)) {
+    const { width, height } = await sharp(file).metadata();
+    const data = await sharp(file).composite([{ input: Buffer.from(badgeSvg(width, height, UNITY_BADGE[name])) }]).png().toBuffer();
+    out(join(OUT, 'unity', `${name}.png`), data);
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const step = process.argv[2] ?? 'all';
+  if (step === 'unity') { await unityArt(); process.exit(0); }
   if (step === 'survey') {
     const [w, h] = arg('size', '1920x620').split('x').map(Number), dir = resolve(arg('out', 'output/steam-survey'));
     await capture(arg('views').split(',').map((view) => ({ view, size: [w, h], zoom: Number(arg('zoom', 1)), to: join(dir, `${view}-${w}x${h}.png`) })));
@@ -158,6 +189,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (step === 'capture' || step === 'all') {
       await capture(Object.entries(ART).filter(([name]) => !only || name === only).map(([name, a]) => ({ ...a, to: join(CAPTURES, `capture-${name}.png`) })));
     }
-    if (step === 'build' || step === 'all') await build();
+    if (step === 'build' || step === 'all') { await build(); await unityArt(); }
   }
 }

@@ -37,6 +37,9 @@ export const CHANGELOG = [
     // the portrait head's eyes from afar (issue #302): portrait-head.js PORTRAIT_EYES_FAR; docs/systems/faces.md;
     // docs/audits/ink-lines-v1.72.md; tests/portrait-head.test.js
     'Seen from ten metres or more, the traveller’s eyes no longer show as two pale or dark dots on his face: they soften into one warm mark, as a drawing does. Close up he looks as before.',
+    // the Deck's two shortcuts told apart (scripts/steam-deck/deck.py UNITY_NAME, UNITY_ART, UNITY_ICON;
+    // scripts/steam-art.mjs unity; docs/steam-deck.md "The Unity preview"; the old install: --remove-old-install)
+    'On the Steam Deck the Unity version is now called “Hiraeth (Unity)” in Steam and in the desktop menu, with its own icon and library pictures marked UNITY, so you can tell it apart from Hiraeth at a glance. It changes with the next update, while Steam is closed; a name or icon you gave it yourself stays.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

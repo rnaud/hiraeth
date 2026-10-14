@@ -91,8 +91,16 @@ test('Steam\'s library artwork: every image at Steam\'s size, in the package, na
   for (const a of Object.values(ART)) assert.ok(refs.includes(`'${a.view}'`), a.view);
   // deck.py writes the same files under the same names
   const deck = read('../scripts/steam-deck/deck.py');
-  const py = Object.fromEntries([...deck.matchAll(/'([p_a-z]*\.png)': '([\w/-]+\.png)'/g)].map((m) => [m[1], m[2]]));
-  assert.deepEqual(py, GRID);
+  const dict = (name) => Object.fromEntries([...deck.match(new RegExp(`^${name} = \\{[^}]*\\}`, 'm'))[0].matchAll(/'([p_a-z]*\.png)': '([\w/-]+\.png)'/g)].map((m) => [m[1], m[2]]));
+  assert.deepEqual(dict('STEAM_ART'), GRID);
+  // the Unity preview's own, the same pictures badged (steam-art.mjs unity): the same names in Steam's grid, the same sizes
+  const unity = dict('UNITY_ART');
+  assert.deepEqual(Object.keys(unity).sort(), Object.keys(GRID).sort());
+  for (const [suffix, file] of Object.entries(unity)) {
+    assert.match(file, /^steam\/unity\//);
+    if (suffix !== '_icon.png') assert.deepEqual(size(file.slice('steam/'.length)), size(GRID[suffix].slice('steam/'.length)), file);
+  }
+  assert.deepEqual(size('unity/icon.png'), [512, 512]);
   assert.deepEqual(Object.keys(GRID).sort(), ['.png', '_hero.png', '_icon.png', '_logo.png', 'p.png']);
   assert.match(read('../scripts/package-steam-deck.mjs'), /cp\('desktop\/steam', `\$\{output\}\/source\/steam`/);
 });

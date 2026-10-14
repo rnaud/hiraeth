@@ -56,8 +56,13 @@ UNITY_PLAYER = 'hiraeth-js.x86_64'
 # (the build's own leftovers, not for shipping: never unpacked)
 UNITY_SKIP = ('_BackUpThisFolder_ButDontShipItWithYourGame', '_BurstDebugInformation_DoNotShip')
 # The two Steam shortcuts, each known by its launcher (its Exe): the game, and the Unity preview
-MAIN_NAME, UNITY_NAME = 'Hiraeth', 'Hiraeth (Unity preview)'
+MAIN_NAME, UNITY_NAME = 'Hiraeth', 'Hiraeth (Unity)'
 OLD_NAMES = (None, '')   # (a shortcut without a name gets the game's)
+# (the preview's shortcut under the name it had, or none: renamed; a name the player chose stays. Until 1.73 both
+#  shortcuts showed the game's icon and art, and the two were told apart only by "(Unity preview)")
+OLD_UNITY_NAMES = (None, '', 'Hiraeth (Unity preview)')
+# The preview's own icon, beside the game's (write_launchers: the runtime's steam/unity/icon.png, a Unity badge on it)
+UNITY_ICON = 'icon-unity.png'
 
 
 def atomic_write(path, data, mode=0o644):
@@ -185,11 +190,12 @@ def add_shortcut(config, root, preview=True):
         add_entry(entries, shortcut_exe(root), root, MAIN_NAME, shortcut_appid(root))
         changed = True
     previews = our_entries(entries, shortcut_exe(root, 'launch-unity'))
+    unity_icon = str(root / UNITY_ICON)
     for entry in previews:
-        changed |= set_field(entry, 'AppName', UNITY_NAME, lambda name: not name)
-        changed |= set_field(entry, 'icon', icon, lambda icon: not icon)
+        changed |= set_field(entry, 'AppName', UNITY_NAME, lambda name: name in OLD_UNITY_NAMES)
+        changed |= set_field(entry, 'icon', unity_icon, lambda old: not old or old == icon)
     if not previews and preview:
-        add_entry(entries, shortcut_exe(root, 'launch-unity'), root, UNITY_NAME, unity_appid(root))
+        add_entry(entries, shortcut_exe(root, 'launch-unity'), root, UNITY_NAME, unity_appid(root), UNITY_ICON)
         changed = True
     if not changed:
         return False
@@ -215,10 +221,10 @@ def set_field(entry, key, value, replace):
     return True
 
 
-def add_entry(entries, exe, root, name, appid):
+def add_entry(entries, exe, root, name, appid, icon='icon.png'):
     entries.append((str(len(entries)), [
         ('appid', appid), ('AppName', name), ('Exe', exe),
-        ('StartDir', f'"{root}"'), ('icon', str(root / 'icon.png')),
+        ('StartDir', f'"{root}"'), ('icon', str(root / icon)),
         ('ShortcutPath', ''), ('LaunchOptions', ''), ('IsHidden', 0),
         ('AllowDesktopConfig', 1), ('AllowOverlay', 1), ('OpenVR', 0),
         ('Devkit', 0), ('DevkitGameID', ''), ('LastPlayTime', 0), ('tags', []),
@@ -228,7 +234,7 @@ def add_entry(entries, exe, root, name, appid):
 
 def shortcut_stale(config, root, preview=True):
     """Whether this account lacks our shortcut, or has it under the old name or without an icon; or
-    (preview) lacks the Unity preview's, or has it without a name or an icon."""
+    (preview) lacks the Unity preview's, or has it under its old name (or none) or the game's icon (or none)."""
     try:
         entries = field(parse_vdf((config / 'shortcuts.vdf').read_bytes()), 'shortcuts')
     except (OSError, ValueError):
@@ -236,7 +242,8 @@ def shortcut_stale(config, root, preview=True):
     ours = our_entries(entries, shortcut_exe(root))
     previews = our_entries(entries, shortcut_exe(root, 'launch-unity'))
     return (not ours or any(field(value, 'AppName') in OLD_NAMES or not field(value, 'icon') for value in ours)
-            or (preview and not previews) or any(not field(value, 'AppName') or not field(value, 'icon') for value in previews))
+            or (preview and not previews)
+            or any(field(value, 'AppName') in OLD_UNITY_NAMES or field(value, 'icon') in (None, '', str(root / 'icon.png')) for value in previews))
 
 
 def fetch_manifest(url):
@@ -759,6 +766,10 @@ def update_unity(root):
 # the logo laid over it, the icon.
 STEAM_ART = {'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png': 'steam/hero.png',
              '_logo.png': 'steam/logo.png', '_icon.png': 'game/icons/icon-512.png'}
+# ... and the Unity preview's: the same with a Unity badge (scripts/steam-art.mjs unity), the game's where a runtime
+# has none yet
+UNITY_ART = {'p.png': 'steam/unity/portrait.png', '.png': 'steam/unity/wide.png', '_hero.png': 'steam/unity/hero.png',
+             '_logo.png': 'steam/unity/logo.png', '_icon.png': 'steam/unity/icon.png'}
 
 
 def shortcut_appid(root):
@@ -784,7 +795,7 @@ def shortcut_appids(config, root, launchers=('launch', 'launch-unity')):
 
 
 def install_art(root, configs, app=None):
-    """Steam's library artwork for our shortcuts (the Unity preview takes the game's), in each account's
+    """Steam's library artwork for our shortcuts (the Unity preview's own, badged: UNITY_ART), in each account's
     config/grid/: files only, never
     shortcuts.vdf, so it is safe while Steam runs (it shows them once it restarts). Artwork the player
     chose in Steam (a file there that isn't one we wrote) is kept. @return how many files changed"""
@@ -796,9 +807,13 @@ def install_art(root, configs, app=None):
         ours = set()
     changed = 0
     for config in configs:
-        for appid in shortcut_appids(config, root):
-            for suffix, name in STEAM_ART.items():
+        targets = [(appid, STEAM_ART) for appid in shortcut_appids(config, root, ('launch',))]
+        targets += [(appid, UNITY_ART) for appid in shortcut_appids(config, root, ('launch-unity',))]
+        for appid, art in targets:
+            for suffix, name in art.items():
                 source = app / name
+                if not source.is_file():
+                    source = app / STEAM_ART[suffix]   # (a runtime from before the preview's own art)
                 if not source.is_file():
                     continue
                 data = source.read_bytes()
@@ -933,6 +948,82 @@ def update_all(root, runtime=None, content=None, art=None, unity=None, with_unit
     return failures
 
 
+# ---------------------------------------------------------------- the install from before the rename
+
+# The Deck's install from before the game was renamed (moebius-deck, its feeds on memento's site, which is gone: frozen
+# at its last build), with its own two shortcuts and desktop entries, the same names and icon as ours. Taken away on
+# request (--remove-old-install), never by an update: its two Steam shortcuts (known by their launchers, as ours are)
+# leave shortcuts.vdf, and their library artwork, its two desktop entries and its folder are moved into one backup
+# folder with the shortcuts.vdf as it was (nothing deleted: removing the backup is the player's choice).
+LEGACY_DIR = '.local/share/moebius-deck'
+LEGACY_DESKTOP = ('moebius.desktop', 'moebius-unity.desktop')
+
+
+def remove_old_install(root, home=None, configs=None, stamp=None):
+    """The old install's shortcuts, art, desktop entries and folder, into a backup (only while Steam is closed: it
+    rewrites shortcuts.vdf from memory as it exits). @return what was taken away and where the backup is"""
+    home = home or Path.home()
+    legacy = home / LEGACY_DIR
+    if steam_running():
+        raise RuntimeError('Exit Steam completely first (it rewrites its shortcuts as it exits), then run this again.')
+    backup = root / f'removed-moebius-deck-{stamp or time.strftime("%Y%m%d-%H%M%S")}'
+    report = {'backup': str(backup), 'shortcuts': [], 'art': [], 'desktop': [], 'folder': None}
+    exes = {shortcut_exe(legacy), shortcut_exe(legacy, 'launch-unity')}
+
+    def old(value):
+        return isinstance(value, list) and field(value, 'exe') in exes
+
+    for config in (steam_configs(home) if configs is None else configs):
+        path = config / 'shortcuts.vdf'
+        try:
+            original = path.read_bytes()
+            document = parse_vdf(original)
+        except (OSError, ValueError):
+            continue
+        entries = field(document, 'shortcuts')
+        if not isinstance(entries, list) or not any(old(value) for _, value in entries):
+            continue
+        account = backup / config.parent.name
+        atomic_write(account / 'shortcuts.vdf', original)
+        for _, value in entries:
+            if not old(value):
+                continue
+            appid = field(value, 'appid')
+            report['shortcuts'].append({'account': config.parent.name, 'name': field(value, 'AppName'), 'appid': appid, 'exe': field(value, 'exe')})
+            if type(appid) is int:
+                art = re.compile(rf'^{appid}(p|_hero|_logo|_icon)?\.(png|jpe?g|webp|ico)$')
+                for file in sorted((config / 'grid').glob(f'{appid}*')):
+                    if art.match(file.name):
+                        (account / 'grid').mkdir(parents=True, exist_ok=True)
+                        shutil.move(str(file), str(account / 'grid' / file.name))
+                        report['art'].append(f'{config.parent.name}/grid/{file.name}')
+        kept = [value for _, value in entries if not old(value)]
+        entries[:] = [(str(i), value) for i, value in enumerate(kept)]
+        # (checked again just before writing: Steam started, or the file changed meanwhile, and nothing is written)
+        if steam_running() or path.read_bytes() != original:
+            raise RuntimeError('Steam shortcuts changed meanwhile; nothing written for this account. Close Steam and run this again.')
+        atomic_write(path, encode_vdf(document))
+    applications = home / '.local/share/applications'
+    for name in LEGACY_DESKTOP:
+        entry = applications / name
+        try:
+            text = entry.read_text()
+        except OSError:
+            continue
+        if str(legacy) in text:   # (only an entry that launches the old install)
+            (backup / 'applications').mkdir(parents=True, exist_ok=True)
+            shutil.move(str(entry), str(backup / 'applications' / name))
+            report['desktop'].append(name)
+    if legacy.is_dir() and not legacy.is_symlink():
+        backup.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(legacy), str(backup / 'moebius-deck'))
+        report['folder'] = str(legacy)
+    if any(report[key] for key in ('shortcuts', 'art', 'desktop', 'folder')):
+        backup.mkdir(parents=True, exist_ok=True)
+        atomic_write(backup / 'removed.json', json.dumps(report, indent=1).encode())
+    return report
+
+
 def local_package(directory):
     """A package downloaded by hand (gh release download steam-deck): its steam-deck.json and archive."""
     directory = Path(directory).expanduser()
@@ -951,14 +1042,18 @@ def desktop_entry(name, command, icon):
 
 
 def write_launchers(root, home=None):
-    """launch (the game's shortcut) and launch-unity (the Unity preview's), their icon and desktop entries."""
+    """launch (the game's shortcut) and launch-unity (the Unity preview's), their icons and desktop entries."""
     applications = (home or Path.home()) / '.local/share/applications'
     deck = shlex.quote(str(root / 'current/resources/app/deck.py'))
-    for launcher, flag, name, entry in (('launch', '--launch', MAIN_NAME, 'hiraeth.desktop'),
-                                        ('launch-unity', '--launch-unity', UNITY_NAME, 'hiraeth-unity.desktop')):
+    app = root / 'current/resources/app'
+    atomic_write(root / 'icon.png', (app / 'game/icons/icon-512.png').read_bytes())
+    # (the preview's own icon, a Unity badge on the game's: the game's where a runtime has none yet)
+    badged = app / UNITY_ART['_icon.png']
+    atomic_write(root / UNITY_ICON, (badged if badged.is_file() else app / 'game/icons/icon-512.png').read_bytes())
+    for launcher, flag, name, entry, icon in (('launch', '--launch', MAIN_NAME, 'hiraeth.desktop', 'icon.png'),
+                                              ('launch-unity', '--launch-unity', UNITY_NAME, 'hiraeth-unity.desktop', UNITY_ICON)):
         atomic_write(root / launcher, f'#!/bin/sh\nexec python3 {deck} {flag} "$@"\n'.encode(), 0o755)
-        atomic_write(applications / entry, desktop_entry(name, root / launcher, root / 'icon.png'), 0o755)
-    atomic_write(root / 'icon.png', (root / 'current/resources/app/game/icons/icon-512.png').read_bytes())
+        atomic_write(applications / entry, desktop_entry(name, root / launcher, root / icon), 0o755)
 
 
 # ---------------------------------------------------------------- launching
@@ -1244,6 +1339,8 @@ def main():
     parser.add_argument('--status-local', action='store_true', help='print only what is here (no network), as JSON')
     parser.add_argument('--progress', metavar='FILE', help='with --update: follow the downloads in FILE')
     parser.add_argument('--root', metavar='DIR', help='the install (default ~/.local/share/hiraeth-deck)')
+    parser.add_argument('--remove-old-install', action='store_true',
+                        help='take away the install from before the rename (~/.local/share/moebius-deck): its Steam shortcuts leave shortcuts.vdf, its art, desktop entries and folder go to a backup (Steam closed)')
     args, extra = parser.parse_known_args()
     root = Path(args.root).expanduser() if args.root else ROOT
     # (--status and --update on an explicit --root run anywhere: the settings' tests on a Mac)
@@ -1259,6 +1356,13 @@ def main():
         parser.error('Unknown arguments: ' + ' '.join(extra))
     if args.status or args.status_local:
         print(json.dumps(status(root) if args.status else local_state(root)), flush=True)
+        return
+    if args.remove_old_install:
+        try:
+            print(json.dumps(remove_old_install(root), indent=1), flush=True)
+        except RuntimeError as error:
+            print(error, file=sys.stderr, flush=True)
+            sys.exit(1)
         return
     if args.update:
         global PROGRESS

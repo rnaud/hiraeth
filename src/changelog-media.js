@@ -818,6 +818,7 @@ const HALO301 = 'Issue #301: the visual audit’s orbit probe (muted headless Ch
 const EYES302 = 'Issue #302: the ink-lines audit’s portrait-10 (muted headless Chrome, 1920 × 1080, Medium), the face cropped and enlarged eight times, nearest neighbour; before, the same build with the far fade off (portrait-head.js PORTRAIT_EYES_FAR) (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.73': [
+    { match: 'On the Steam Deck the Unity version is now called “Hiraeth (Unity)”', see: 'On the Steam Deck, open the library’s Non-Steam collection, or the desktop’s application menu, after the game has updated once with Steam closed: the Unity version reads “Hiraeth (Unity)”, its icon and pictures carry a dark UNITY plate, and the game itself is plain “Hiraeth”.' },
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
       { name: 'touchdown-incal', title: 'Landing in the City-Shaft', caption: 'Half a second into the shot of the hatch after touchdown: before, balls of dust over the ship’s feet and half its hull; after, the ship on its feet, a few small puffs going.', from: CINE295 },
     ] },

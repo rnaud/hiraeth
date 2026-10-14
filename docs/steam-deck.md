@@ -89,7 +89,7 @@ that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appi
 
 ## The Unity preview (issue #146)
 
-A second shortcut, **Hiraeth (Unity preview)**, starts the Unity bridge's Linux player (IL2CPP,
+A second shortcut, **Hiraeth (Unity)** ("Hiraeth (Unity preview)" until 1.73), starts the Unity bridge's Linux player (IL2CPP,
 Vulkan; `docs/systems/unity.md`, measured in `docs/systems/performance.md`, "The Steam Deck, round
 6") beside the game. It is for testers: no menus, conversations or pages yet, its own saves. The web
 build stays the main shortcut, unchanged.
@@ -117,12 +117,35 @@ build stays the main shortcut, unchanged.
   which SteamOS clears at boot) and `XDG_CONFIG_HOME` to `unity-data/` (its `persistentDataPath` and
   PlayerPrefs; never `~/.config/hiraeth`).
 - **Steam.** Each shortcut is known by its own Exe (`launch`, `launch-unity`). The preview's appid is
-  Steam's scheme from its own Exe and name (`unity_appid`); the game's stays as it was. It takes the
-  game's icon and library artwork. Accounts that have the game's shortcut get the preview's at
+  Steam's scheme from its own Exe and name (`unity_appid`); the game's stays as it was. Its icon and
+  library artwork are the game's with a UNITY badge (`scripts/steam-art.mjs unity` →
+  `desktop/steam/unity/`, the runtime's `steam/unity/`; deck.py `UNITY_ART`, and `icon-unity.png` next
+  to `icon.png` for the shortcut and `hiraeth-unity.desktop`), so the two read apart in the library and
+  the menu. A preview shortcut still under its old name (or none) or the game's icon (or none) is
+  renamed and given its own at the next install, `--register-steam` or update that finds Steam closed
+  (`shortcut_stale`), keeping its app id; a name or icon the player chose stays. Accounts that have the game's shortcut get the preview's at
   install or `--register-steam`, or from a background update that finds Steam closed (`steam_entry`),
   with the same backup first; the update offers it once per account (`unity-shortcut.json`), so a
   preview the player removed stays removed until the installer runs again. As Steam runs whenever a
   game launches from it, an existing install gets the preview by rerunning the installer.
+
+### The install from before the rename
+
+Decks set up before the game was renamed may still have `~/.local/share/moebius-deck`: its own two
+shortcuts ("Hiraeth", "Hiraeth (Unity preview)"), `moebius.desktop` and `moebius-unity.desktop`, the
+same names and icon as the current install's. Its updater reads the old site's feeds, which are gone,
+so it stays at its last build (1.50 on the author's Deck). With Steam closed,
+
+```sh
+python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --remove-old-install
+```
+
+takes it away (`remove_old_install`): the two shortcuts whose Exe is the old install's `launch` /
+`launch-unity` leave `shortcuts.vdf`, and their library artwork, the two desktop entries and the
+folder are moved into `~/.local/share/hiraeth-deck/removed-moebius-deck-<time>/`, with the
+`shortcuts.vdf` as it was (per account) and `removed.json` listing what went. Nothing is deleted, and
+nothing else is touched (the current install, the saves in `~/.config/hiraeth`, other shortcuts). It
+refuses while Steam runs. Never part of an update.
 
 ## Install by hand
 

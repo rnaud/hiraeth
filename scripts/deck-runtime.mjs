@@ -20,6 +20,7 @@ import { SITE, UPDATES, MAX_FILE, checkLimits } from './web-update.mjs';
 export const PART = 20 * 1024 * 1024;
 export const KEY_FILES = ['desktop/main.mjs', 'desktop/deck-updates.mjs', 'scripts/steam-deck/deck.py', 'scripts/package-steam-deck.mjs', 'desktop/package-lock.json',
   ...['portrait', 'wide', 'hero', 'logo'].map((art) => `desktop/steam/${art}.png`),   // (Steam's artwork, scripts/steam-art.mjs)
+  ...['portrait', 'wide', 'hero', 'logo', 'icon'].map((art) => `desktop/steam/unity/${art}.png`),   // (the Unity preview's, badged)
   'scripts/site-only.mjs'];   // (what the package leaves out of the game: the site's own files, the themes fetched on demand)
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');

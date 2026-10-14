@@ -698,7 +698,7 @@ class LaunchTests(unittest.TestCase):
 
 
 class PreviewShortcutTests(unittest.TestCase):
-    """The second Steam shortcut, "Hiraeth (Unity preview)", beside the game's (issue #146)."""
+    """The second Steam shortcut, "Hiraeth (Unity)" ("Hiraeth (Unity preview)" before 1.73), beside the game's (issue #146)."""
 
     setUp_base = SteamDeckTests.setUp
     bundle = SteamDeckTests.bundle
@@ -718,12 +718,12 @@ class PreviewShortcutTests(unittest.TestCase):
         main, preview = self.by_exe('launch'), self.by_exe('launch-unity')
         self.assertEqual((len(main), len(preview), len(self.entries())), (1, 1, 2))
         self.assertEqual(deck.field(main[0], 'AppName'), 'Hiraeth')
-        self.assertEqual(deck.field(preview[0], 'AppName'), 'Hiraeth (Unity preview)')
-        self.assertEqual(deck.field(preview[0], 'icon'), str(self.root / 'icon.png'))
+        self.assertEqual(deck.field(preview[0], 'AppName'), 'Hiraeth (Unity)')
+        self.assertEqual(deck.field(preview[0], 'icon'), str(self.root / 'icon-unity.png'))
         # the game's id exactly as before; the preview's from its own launcher and name
         self.assertEqual(deck.field(main[0], 'appid'), zlib.crc32((f'"{self.root / "launch"}"' + 'Hiraeth').encode()) | 0x80000000)
         self.assertEqual(deck.field(preview[0], 'appid'),
-                         zlib.crc32((f'"{self.root / "launch-unity"}"' + 'Hiraeth (Unity preview)').encode()) | 0x80000000)
+                         zlib.crc32((f'"{self.root / "launch-unity"}"' + 'Hiraeth (Unity)').encode()) | 0x80000000)
         self.assertNotEqual(deck.shortcut_appid(self.root), deck.unity_appid(self.root))
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
@@ -734,7 +734,7 @@ class PreviewShortcutTests(unittest.TestCase):
         self.vdf.write_bytes(original)
         self.assertTrue(deck.add_shortcut(self.config, self.root))
         self.assertEqual(self.entries()[0], other)
-        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Other', 'Hiraeth', 'Hiraeth (Unity preview)'])
+        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Other', 'Hiraeth', 'Hiraeth (Unity)'])
         self.assertEqual(next(self.config.glob('*.bak')).read_bytes(), original)
 
     def test_an_account_with_only_the_game_gets_the_preview_once(self):
@@ -780,9 +780,127 @@ class PreviewShortcutTests(unittest.TestCase):
         self.assertTrue(script.rstrip().endswith('--launch-unity "$@"'))
         self.assertTrue((self.root / 'launch').read_text().rstrip().endswith(' --launch "$@"'))
         entry = (self.home / '.local/share/applications/hiraeth-unity.desktop').read_text()
-        self.assertIn('Name=Hiraeth (Unity preview)\n', entry)
+        self.assertIn('Name=Hiraeth (Unity)\n', entry)
         self.assertIn(f'Exec="{self.root / "launch-unity"}"', entry)
         self.assertIn('Name=Hiraeth\n', (self.home / '.local/share/applications/hiraeth.desktop').read_text())
+        # each its own icon: the game's, and the preview's badged one (the game's where a runtime has none)
+        self.assertIn(f'Icon={self.root / "icon-unity.png"}\n', entry)
+        self.assertIn(f'Icon={self.root / "icon.png"}\n', (self.home / '.local/share/applications/hiraeth.desktop').read_text())
+        self.assertEqual((self.root / 'icon-unity.png').read_bytes(), b'icon')
+        badged = self.root / 'current/resources/app/steam/unity/icon.png'
+        badged.parent.mkdir(parents=True)
+        badged.write_bytes(b'icon with a Unity badge')
+        deck.write_launchers(self.root, home=self.home)
+        self.assertEqual((self.root / 'icon-unity.png').read_bytes(), b'icon with a Unity badge')
+        self.assertEqual((self.root / 'icon.png').read_bytes(), b'icon')
+
+    def test_the_preview_under_its_old_name_and_the_games_icon_is_renamed_and_given_its_own(self):
+        deck.add_shortcut(self.config, self.root)
+        document = deck.parse_vdf(self.vdf.read_bytes())
+        preview = [value for _, value in deck.field(document, 'shortcuts') if deck.field(value, 'Exe') == f'"{self.root / "launch-unity"}"'][0]
+        appid = deck.field(preview, 'appid')
+        deck.set_field(preview, 'AppName', 'Hiraeth (Unity preview)', lambda _old: True)
+        deck.set_field(preview, 'icon', str(self.root / 'icon.png'), lambda _old: True)
+        self.vdf.write_bytes(deck.encode_vdf(document))
+        self.assertTrue(deck.shortcut_stale(self.config, self.root, preview=False))
+        with patch.object(deck, 'steam_running', return_value=True):   # (Steam open: left for the next update)
+            deck.steam_entry(self.root, [self.config])
+        self.assertEqual(deck.field(self.by_exe('launch-unity')[0], 'AppName'), 'Hiraeth (Unity preview)')
+        self.assertTrue(deck.steam_entry(self.root, [self.config]))
+        renamed = self.by_exe('launch-unity')[0]
+        self.assertEqual((deck.field(renamed, 'AppName'), deck.field(renamed, 'icon')), ('Hiraeth (Unity)', str(self.root / 'icon-unity.png')))
+        self.assertEqual(deck.field(renamed, 'appid'), appid, 'the same id: its artwork and playtime stay')
+        self.assertEqual(deck.field(self.by_exe('launch')[0], 'AppName'), 'Hiraeth')
+        self.assertFalse(deck.shortcut_stale(self.config, self.root))
+
+    def test_a_name_and_icon_the_player_gave_the_preview_are_kept(self):
+        deck.add_shortcut(self.config, self.root)
+        document = deck.parse_vdf(self.vdf.read_bytes())
+        preview = [value for _, value in deck.field(document, 'shortcuts') if deck.field(value, 'Exe') == f'"{self.root / "launch-unity"}"'][0]
+        deck.set_field(preview, 'AppName', 'Unity test', lambda _old: True)
+        deck.set_field(preview, 'icon', '/my/icon.png', lambda _old: True)
+        self.vdf.write_bytes(deck.encode_vdf(document))
+        self.assertFalse(deck.shortcut_stale(self.config, self.root))
+        self.assertFalse(deck.add_shortcut(self.config, self.root))
+        kept = self.by_exe('launch-unity')[0]
+        self.assertEqual((deck.field(kept, 'AppName'), deck.field(kept, 'icon')), ('Unity test', '/my/icon.png'))
+
+    def test_the_preview_shows_its_own_badged_art_the_game_its_own(self):
+        app = self.home / 'app'
+        for name in [*deck.STEAM_ART.values(), *deck.UNITY_ART.values()]:
+            (app / name).parent.mkdir(parents=True, exist_ok=True)
+            (app / name).write_bytes(f'art {name}'.encode())
+        deck.add_shortcut(self.config, self.root)
+        game, preview = deck.shortcut_appid(self.root), deck.unity_appid(self.root)
+        self.assertEqual(deck.install_art(self.root, [self.config], app), 10)
+        for suffix in deck.STEAM_ART:
+            self.assertEqual((self.config / f'grid/{game}{suffix}').read_bytes(), f'art {deck.STEAM_ART[suffix]}'.encode())
+            self.assertEqual((self.config / f'grid/{preview}{suffix}').read_bytes(), f'art {deck.UNITY_ART[suffix]}'.encode())
+
+
+class RemoveOldInstallTests(unittest.TestCase):
+    """--remove-old-install: the install from before the rename (moebius-deck), its shortcuts, art, entries, folder."""
+
+    setUp_base = SteamDeckTests.setUp
+
+    def setUp(self):
+        self.setUp_base()
+        self.legacy = self.home / '.local/share/moebius-deck'
+        (self.legacy / 'versions/1903001').mkdir(parents=True)
+        (self.legacy / 'unity-data').mkdir()
+        (self.legacy / 'unity-data/prefs').write_text('old preview saves')
+        self.vdf = self.config / 'shortcuts.vdf'
+        other = ('0', [('appid', 7), ('AppName', 'Other game'), ('Exe', '"/other"')])
+        old_game = ('1', [('appid', 2165417005), ('AppName', 'Hiraeth'), ('Exe', f'"{self.legacy / "launch"}"')])
+        old_preview = ('2', [('appid', 4192644511), ('AppName', 'Hiraeth (Unity preview)'), ('Exe', f'"{self.legacy / "launch-unity"}"')])
+        self.vdf.write_bytes(deck.encode_vdf([('shortcuts', [other, old_game, old_preview])]))
+        self.original = self.vdf.read_bytes()
+        deck.add_shortcut(self.config, self.root)   # (ours, beside them)
+        self.before = self.vdf.read_bytes()
+        grid = self.config / 'grid'
+        grid.mkdir()
+        for name in ('2165417005p.png', '2165417005_hero.png', '4192644511.png', '21654170050.png', '7p.png'):
+            (grid / name).write_bytes(name.encode())
+        self.apps = self.home / '.local/share/applications'
+        self.apps.mkdir(parents=True)
+        (self.apps / 'moebius.desktop').write_text(f'[Desktop Entry]\nExec="{self.legacy / "launch"}"\n')
+        (self.apps / 'moebius-unity.desktop').write_text(f'[Desktop Entry]\nExec="{self.legacy / "launch-unity"}"\n')
+        (self.apps / 'hiraeth.desktop').write_text(f'[Desktop Entry]\nExec="{self.root / "launch"}"\n')
+
+    def names(self):
+        return [deck.field(value, 'AppName') for _, value in deck.field(deck.parse_vdf(self.vdf.read_bytes()), 'shortcuts')]
+
+    def test_only_the_old_installs_things_go_into_one_backup(self):
+        report = deck.remove_old_install(self.root, home=self.home, configs=[self.config], stamp='t')
+        backup = self.root / 'removed-moebius-deck-t'
+        self.assertEqual(report['backup'], str(backup))
+        self.assertEqual(self.names(), ['Other game', 'Hiraeth', 'Hiraeth (Unity)'], 'the old two gone; ours and the other kept')
+        self.assertEqual([s['appid'] for s in report['shortcuts']], [2165417005, 4192644511])
+        self.assertEqual((backup / '123/shortcuts.vdf').read_bytes(), self.before, 'shortcuts.vdf as it was')
+        self.assertEqual(sorted(p.name for p in (self.config / 'grid').iterdir()), ['21654170050.png', '7p.png'], 'only those two ids\' art moved')
+        self.assertEqual(sorted(p.name for p in (backup / '123/grid').iterdir()), ['2165417005_hero.png', '2165417005p.png', '4192644511.png'])
+        self.assertEqual(sorted(p.name for p in self.apps.iterdir()), ['hiraeth.desktop'])
+        self.assertEqual(report['desktop'], ['moebius.desktop', 'moebius-unity.desktop'])
+        self.assertFalse(self.legacy.exists())
+        self.assertEqual((backup / 'moebius-deck/unity-data/prefs').read_text(), 'old preview saves', 'moved, not deleted')
+        self.assertEqual(json.loads((backup / 'removed.json').read_text())['folder'], str(self.legacy))
+        again = deck.remove_old_install(self.root, home=self.home, configs=[self.config], stamp='u')
+        self.assertEqual((again['shortcuts'], again['art'], again['desktop'], again['folder']), ([], [], [], None), 'a second run: nothing')
+        self.assertFalse((self.root / 'removed-moebius-deck-u').exists())
+
+    def test_never_while_steam_runs(self):
+        with patch.object(deck, 'steam_running', return_value=True):
+            with self.assertRaises(RuntimeError):
+                deck.remove_old_install(self.root, home=self.home, configs=[self.config], stamp='t')
+        self.assertEqual(self.vdf.read_bytes(), self.before)
+        self.assertTrue(self.legacy.is_dir())
+        self.assertTrue((self.apps / 'moebius.desktop').exists())
+
+    def test_a_desktop_entry_of_that_name_for_something_else_stays(self):
+        (self.apps / 'moebius.desktop').write_text('[Desktop Entry]\nExec="/opt/other"\n')
+        report = deck.remove_old_install(self.root, home=self.home, configs=[self.config], stamp='t')
+        self.assertEqual(report['desktop'], ['moebius-unity.desktop'])
+        self.assertTrue((self.apps / 'moebius.desktop').exists())
 
 
 class UnityPlayerTests(unittest.TestCase):
