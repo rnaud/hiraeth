@@ -620,6 +620,50 @@ Elder's skins were found facing away from the fight. Now, for all fourteen (`tes
 The run itself: hitboxes are measured on the hall's floor (a body that hung aloft no longer stays there without a
 floor under it in node), its drawn blow counted as what it strikes with, its body sampled as densely as the fight's.
 
+### The first guardian, a second pass (v1.71, issues #320, #321, #331)
+
+The author played the Keeper again after it was made fair: "his feet get tangled … the camera angle is too close …
+he clips into the walls … the burrow makes no sense in a closed space … his attack tell looks like a weird triangle
+… I need to hit him too many times … Ocarina of Time bosses, 3 phases"; "strafing left and right … I still see the
+bug, and the camera moves around too much"; "enemies hitting me shouldn't ragdoll me". Measured in node
+(`tests/keeper-second-pass.test.js`, the combat review's `guardian.mjs`) and in the real game (headless Chrome).
+
+- **It faced the other way** (the root of the tangle, of much of the swing and of the strafe "bug"): its skin was
+  turned π − heading (`src/temples/guardian-generated.js` swap; fixed by #319's `Guardian.place`, found here too). Its feet were
+  planted for the fight's heading under a body turned elsewhere, so every leg crossed every other; locked on and
+  strafing, its head swung away from you as it turned to you (its mouth 2.0–2.2 rad off the line to him, median; now
+  0.7–1.0), the reticle and the aim with it.
+- **Its legs apart** (`src/characters/keeper-creature.js` `KEEPER_GAIT`, `src/motion-kit/gait.js` `clear`): its feet
+  set out to the side (`stance`), its knees turned out of the bend's way back onto the next hip (`knees`), a foot
+  stepping sooner (`reach`), and no foot landing within `clear` (a fraction of its leg, about 0.7 m) of another (along
+  the body on its side, `CLEAR_TRIPOD` of it in the tripods so a group keeps in phase; across it, out to its side) nor
+  past the body's middle line, its swing bowed out round the feet it passes (`BOW`), a crowded foot stepping first; a
+  charge's dash a bound and its leap off the floor, the feet tucked, landing at their homes; the sweep's body twist
+  0.55 → 0.18 rad (`twist`), its neck carrying the swing. Pushed off a wall or post its braced feet may step
+  (GuardianLegs `pushed`); turning on the spot its feet step sooner, the middle ones too. The closest two legs' bones
+  come: 0.36 m walking, 0.37 turning, 0.48 charging, 0.11 in a minute's fight with the traveller circling it (its
+  legs are about 0.14 m thick); before 0.02, 0.08, 0.07 and 0.01, through each other.
+- **Inside its cistern** (`boss.js` `keepIn`, `KEEP_IN`; `arena.posts`): a body with `hitParts` is kept in by its shell
+  and head spheres as posed, every frame, off the wall and the basin's spout, at once while it walks and at
+  `KEEP_IN.speed` m/s in a move (its feet braced); a leap's spot no nearer the wall than it may stand. Its skin reached
+  19.4–20.1 m from the middle of a cistern 18 m round; now 18.3 at most for a moment in a move by the wall, 17.9
+  charging, 17.1 walking.
+- **A leap, not a burrow** (`desert.js` `KEEPER.attacks.leap`, `boss.js` `a.leap`, `a.late`): in its last phase it
+  crouches, springs over the last third of its wind-up to where you stood when it sprang (its shadow running ahead),
+  lands with its shell (live `late` 0.06 s after, as the shell comes down: `KEEPER_POSE.slam`) and lies winded 3.2 s.
+- **No spark** (`def.glow: false`): the ChargeGlow (an octahedron and its rays on the striking part, the "triangle")
+  is not drawn for it; its body's wind-ups are its tells.
+- **Three phases of two**: two of the four braziers lit (`KEEPER_LIGHT` 0.2 each), two drinks, two more; an opening
+  holds while it drinks, a gulp each `KEEPER_GUARD.gulp` 0.6 s, so one opening may end a phase (its gasp in the dark,
+  1.8 s, holds both; a drink there is a full one, `KEEPER_DARK.water` 1). Calming acts 10 → 6 (4 braziers, 2 drinks,
+  4 sips), openings to earn 6 → 2 (at most 4).
+- **It faces you** (`def.faceYou`, `Guardian.walk(…, face)`): between its moves it steps round sideways at
+  `FACE_WALK` of its pace with its head on you (it walked its circle head first, turning its tail to you).
+- **The boss framing and the steady lock**: docs/systems/movement-and-camera.md "A guardian's fight". Locked on and
+  strafing round it 50 s (the real game): its mouth on the screen 32 → 75 % of the time, the camera's sharpest turn
+  4.5 → 2.9 rad/s, its turn's change (p95) 8.8 → 4.6 rad/s², the arm 3.05 → 9.26 m.
+- **A blow staggers him** (`player.stagger`): docs/systems/movement.md, every foe and guardian.
+
 ### A second verb (v1.63, `phase.asks`; issue #257)
 
 The temple design audit's guardian exam was 3 in six houses: their fights asked for the gadget and nothing else.

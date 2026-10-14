@@ -23,7 +23,7 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 // (src/telegraph.js): its pose (the model's own, and a `rig` motion: rear, crouch, coil, spin, lean, rise, swell),
 // a glow gathering on the striking part, a deep sound rising with it, a stillness before it lands; never a disc,
 // a fan or a lane on the floor. Only a lobbed or thrown projectile (a seed, a cog, a mortar, a clod) marks where it
-// will land. A strike that catches you knocks you down (the ragdoll, src/ragdoll.js) and takes a bite of the
+// will land. A strike that catches you knocks you back on your feet (src/player.js stagger; before v1.71 the ragdoll) and takes a bite of the
 // health bar, but never the last of it from a healthy bar: only when you are already low does it knock you out,
 // and then you wake at the temple's mark outside the arena and it is back where its current phase began.
 // Openings are read from the body (it pants, a vent opens, it is stuck after a missed slam): that is when
@@ -46,7 +46,8 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //                          part: where its glow gathers ('mouth' | 'head' | 'eye' | 'feet' | 'arms' | 'wings' |
 //                          'core' | 'tail'), rig, pose (the model's pose, else the id), side (±1: a mirrored swing),
 //                          track (share of the wind-up it keeps aiming), lob + volley (a thrown projectile and its
-//                          landing marks), over (its body travels to hang over the spot: a dive, a burrow),
+//                          landing marks), over (its body travels to hang over the spot: a dive, a burrow; leap
+//                          [from, to]: only over those shares of the wind-up, a spring onto the spot),
 //                          dash (m it charges through the strike), wave { speed, reach, width, damage } (a ring
 //                          running out along the floor: jump it), reachUp (m: it reaches the air over it),
 //                          then (the next move of a combo), link (a move only met inside a combo), gap (s before
@@ -61,7 +62,8 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //                          `from` part, aimed at you, `r` round, `sweep` rad swept across, `len` m) | 'front' (a
 //                          front running out from its body over the floor, the move's own shape: a ring, a fan of
 //                          `angle`, a lane of `width`; from `r0` to `r1` m, `h` m high) }; over `active` s from the
-//                          strike, landing where it is drawn, once; with `parts` too, either lands) } },
+//                          strike, landing where it is drawn, once; with `parts` too, either lands), late (s after
+//                          the strike before its body blow is live: a leap's shell coming down) } },
 //        onHit(g, part ('mouth' | 'body' | 'vent'), mode, info) -> handled, final: 'touch' | 'break',
 //        onStrike(g, a), onCatch(g, a), onReset(g), openFor(g, a, s, missed) -> s (how long a combo's end leaves it open),
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
@@ -169,6 +171,13 @@ export class Telegraph {
 const PAIRED = new Set(['arms', 'wings', 'feet']);
 /** The traveller as a guardian's body blow meets him (m): a column this high over his feet, this far round (Guardian.touches). */
 export const COLUMN = { h: 1.8, r: 0.45 };
+/**
+ * A body kept in by its bones (Guardian.keepIn): its `parts` (model.hitParts) at `r` of their size, `wall` m short of the
+ * arena's wall (its stones' own depth, and a little room).
+ */
+export const KEEP_IN = { parts: ['body', 'head'], r: 0.8, wall: 0.6, speed: 1 };
+/** A guardian that faces you as it circles (def.faceYou) walks at this share of its speed: sideways and back. */
+export const FACE_WALK = 0.7;
 /** How long a phase change takes (s): it staggers, changes, and comes on again. */
 export const SHIFT = 2.4;
 /**
@@ -574,7 +583,7 @@ export class Guardian {
       this.rt.sound?.guardianWarn?.(this.def.kind, this.def.shiftTime ?? SHIFT, true);
     }
   }
-  enter(state) { this.state = state; this.t = 0; }
+  enter(state) { this.state = state; this.t = 0; if (state === 'open') this.opened = (this.opened ?? 0) + 1; }   // (opened: openings so far, each its own)
   /** Whatever it was winding up or chaining is broken off (stilled, knocked out, a phase change). */
   stop() {
     this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null; this.live = null; this.blast?.draw(false);
@@ -642,27 +651,65 @@ export class Guardian {
     m.group.rotation.set(0, m.heading, 0);
   }
 
-  /** Walk toward `to` (on the floor), turning; returns the speed. */
-  walk(dt, to, speed = 2.2, keep = 0) {
+  /**
+   * Walk toward `to` (on the floor), turning; returns the speed. `face` (a point, or null): it steps there sideways or
+   * back, turned to face it all the while (def.faceYou: the Keeper keeps its head on you as it circles, issue #321), at
+   * FACE_WALK of its speed.
+   */
+  walk(dt, to, speed = 2.2, keep = 0, face = null) {
     const m = this.model;
     _a.subVectors(to, m.pos).setY(0);
     const d = _a.length();
     let sp = 0;
+    if (face) this.face(dt, face, 2.5);
     if (d > keep + 0.3) {
       _a.normalize();
-      this.turnTo(dt, Math.atan2(_a.x, _a.z), 2.5);
-      sp = Math.min(speed, (d - keep) * 2);
-      m.pos.x += Math.sin(m.heading) * sp * dt; m.pos.z += Math.cos(m.heading) * sp * dt;
+      if (face) {
+        sp = Math.min(speed * FACE_WALK, (d - keep) * 2);
+        m.pos.x += _a.x * sp * dt; m.pos.z += _a.z * sp * dt;
+      } else {
+        this.turnTo(dt, Math.atan2(_a.x, _a.z), 2.5);
+        sp = Math.min(speed, (d - keep) * 2);
+        m.pos.x += Math.sin(m.heading) * sp * dt; m.pos.z += Math.cos(m.heading) * sp * dt;
+      }
     }
     this.keepIn();
     return sp;
   }
-  /** Inside the arena. */
+  /**
+   * Inside the arena. A body with its blows on its bones (model.hitParts) is kept in by them, as posed last frame: every
+   * sphere of its shell and head inside the wall (KEEP_IN.wall m short of it) and off the arena's posts (arena.posts
+   * [{ x, z, r }]: the cistern's spout), its middle pushed back by as much as the furthest is past (issue #320: "he
+   * clips into the walls at times": its middle was kept its radius off the wall, its 7.8 m shell and its neck were not).
+   */
   keepIn() {
     const m = this.model, A = this.arena;
     _b.subVectors(m.pos, A.center).setY(0);
     const r = A.r - (m.radius ?? 2.6) - 1;
     if (_b.length() > r) { _b.setLength(r); m.pos.x = A.center.x + _b.x; m.pos.z = A.center.z + _b.z; }
+    // (fighting only: weary, it lays its head by the spout, as it should)
+    // (a body without hitParts that asks to be kept in, def.keepIn: by its mouth, the Keeper's procedural body)
+    if (!(m.hitParts || this.def.keepIn) || !this._posed || !(this.state === 'fight' || this.state === 'open' || this.state === 'shift')) return;
+    const S = this._keepS ??= [];
+    S.length = 0;
+    if (m.hitParts) { for (const n of KEEP_IN.parts) for (const s of m.hitParts(n, this._one ??= [])) S.push(s); }
+    else S.push({ c: m.mouth, r: m.mouthR ?? 1 });
+    let px = 0, pz = 0;
+    for (const s of S) {
+      // (each sphere where it would be with its middle moved since it was posed)
+      const cx = s.c.x + m.pos.x - this._posed.x, cz = s.c.z + m.pos.z - this._posed.z;
+      const dx = cx - A.center.x, dz = cz - A.center.z, d = Math.hypot(dx, dz), over = d + s.r * KEEP_IN.r - (A.r - KEEP_IN.wall);
+      if (over > 0 && d > 1e-3 && over * over > px * px + pz * pz) { px = (-dx / d) * over; pz = (-dz / d) * over; }
+      for (const o of A.posts ?? []) {
+        const ox = cx - o.x, oz = cz - o.z, od = Math.hypot(ox, oz), need = o.r + s.r * KEEP_IN.r - od;
+        if (need > 0 && od > 1e-3 && s.c.y - A.y < (o.h ?? Infinity) + s.r && need * need > px * px + pz * pz) { px = (ox / od) * need; pz = (oz / od) * need; }
+      }
+    }
+    // (in a move never faster than KEEP_IN.speed m/s: a push all at once slid its body off its braced feet, which crossed under it)
+    const L = Math.hypot(px, pz), cap = this.attack ? KEEP_IN.speed * (this._dt ?? 1 / 60) : Infinity;   // (in a move: walking, its feet step with it)
+    if (L > cap) { px *= cap / L; pz *= cap / L; }
+    m.pos.x += px; m.pos.z += pz;
+    if (px || pz) this._pushed = true;   // (its feet may step under it then, braced or not: GuardianLegs, `pushed`)
   }
   face(dt, p, rate = 4) {
     const m = this.model;
@@ -676,7 +723,7 @@ export class Guardian {
 
   update(dt, t) {
     const P = this.rt.player, m = this.model, A = this.arena;
-    this.t += dt;
+    this.t += dt; this._dt = dt;
     let speed = 0;
     const inArena = P && Math.hypot(P.pos.x - A.center.x, P.pos.z - A.center.z) < A.r - 1.5 && Math.abs(P.pos.y - A.y) < 6;
     if (this.state === 'sleep' && inArena && !P.dead) this.wake();
@@ -690,6 +737,7 @@ export class Guardian {
     }
     this.frame = (this.frame ?? 0) + 1;
     this.updateWaves(dt, P);
+    if (m.hitParts || this.def.keepIn) this.keepIn();   // (turning on the spot by a wall swings its head and shell too: kept in every frame)
     this.place();
     this.solid.vel.subVectors(m.pos, this.prev).divideScalar(Math.max(dt, 1e-4));
     this.prev.copy(m.pos);
@@ -697,7 +745,9 @@ export class Guardian {
     // (the locomotion kit's view of the world, src/temples/guardians.js: where you are for its detail tiers, the floor under a step)
     const kit = (this.motionKit ??= { eye: null, ground: (x, y, z) => { const g = this.rt.physics?.groundAt?.(x, y, z, 6); return Number.isFinite(g) ? g : null; } });
     kit.eye = P?.pos ?? null;
-    m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit });
+    m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit, pushed: !!this._pushed });
+    this._pushed = false;
+    (this._posed ??= V()).copy(m.pos);   // (where its middle was as its bones were posed: keepIn reads them from there)
     this.ground.update();
     this._meshFrame = this._mesh = null;   // (posed anew: a body blow's mesh is sampled again when next asked, meshParts)
     this.blast.draw(!!this.live?.blast && this.state === 'fight');
@@ -721,13 +771,19 @@ export class Guardian {
         const aiming = this.at < wind * (a.track ?? 0.5);
         if (a.at === 'player' && aiming) this.attackAt.set(P.pos.x, A.y, P.pos.z);
         if (aiming) (this.aimP ??= V()).copy(P.pos);   // (where you were as its aim held: a beam's pitch)
+        // (a body that travels over the spot comes no nearer the wall than it may stand: keepIn; else it landed in the
+        // wall and was pushed off it again, its blow struck from where it never stood)
+        if (a.over && aiming) { _b.subVectors(this.attackAt, A.center).setY(0); const r = A.r - (m.radius ?? 2.6) - 1; if (_b.length() > r) this.attackAt.set(A.center.x, A.y, A.center.z).addScaledVector(_b.setLength(r), 1); }
         if (a.shape !== 'ring' || a.at === 'front') { if (aiming && !m.rooted) this.face(dt, P.pos, 5); else if (aiming) this.face(dt, P.pos, 3); this.attackH = m.heading; }
         if (a.at === 'self') this.attackAt.copy(m.pos).setY(A.y);
         if (a.at === 'front') this.attackAt.set(m.pos.x + Math.sin(m.heading) * (a.ahead ?? 4), A.y, m.pos.z + Math.cos(m.heading) * (a.ahead ?? 4));
-        if (a.over && !m.rooted && dt > 0) {
+        // (a.leap [from, to]: it springs over only between those shares of the wind-up, the spot fixed by then: the Keeper's
+        // leap, issue #320, in place of a burrow its cistern's stone floor made no sense of)
+        const [u0, u1] = a.leap ?? [0, 0.7];
+        if (a.over && !m.rooted && dt > 0 && this.at >= wind * u0) {
           // its body travels to hang over (or plough under the sand to) the spot, there by 70 % of the wind-up
           _a.subVectors(this.attackAt, m.pos).setY(0);
-          const left = Math.max(dt, wind * 0.7 - this.at), d = _a.length();
+          const left = Math.max(dt, wind * u1 - this.at), d = _a.length();
           if (d > 0.05) { m.pos.addScaledVector(_a.normalize(), Math.min(d, (d / left) * dt, 14 * dt)); this.keepIn(); }
         }
         if (a.lob && a.volley > 1) this.spreadMarks(a);
@@ -771,7 +827,7 @@ export class Guardian {
       if (d <= this.closing.reach * 0.9 || this.closing.t > 3) { const id = this.closing.id; this.closing = null; this.begin(P, null, id); }
       return sp;
     }
-    const speed = m.rooted ? 0 : this.walk(dt, want, this.def.speed ?? 2.4, 1);
+    const speed = m.rooted ? 0 : this.walk(dt, want, this.def.speed ?? 2.4, 1, this.def.faceYou ? P.pos : null);
     if (speed < 0.2) this.face(dt, P.pos, 2);
     this.cool -= dt;
     if (this.cool <= 0 && !P.dead) this.begin(P);
@@ -828,10 +884,10 @@ export class Guardian {
     // a blow on its bones (a.parts) or drawn (a.blast): live over its active window, landing where it meets you (contact)
     if (this.bodyBlow(a) || a.blast) {
       const S = a.blast, blast = S ? this.blast.aim(this, a, this.partAt(S.from ?? a.part ?? 'core', V(), a.side ?? 1), this.aimP) : null;
-      this.live = { a, for: a.active ?? (S ? (S.kind === 'beam' ? (S.sweep ? BLAST.sweep : BLAST.beam) : BLAST.front) : 0.15), done: false, blast: !!blast };
+      this.live = { a, for: (a.active ?? (S ? (S.kind === 'beam' ? (S.sweep ? BLAST.sweep : BLAST.beam) : BLAST.front) : 0.15)) + (a.late ?? 0), done: false, blast: !!blast };
       return this.contact(P);
     }
-    if (P.dead || P.down) return false;
+    if (P.dead || P.down || P.staggered) return false;   // (staggered by a blow a moment ago: src/player.js STAGGER.guard)
     if (P.untouchable?.()) { this.answer('dodge'); return false; }   // (a perfect dodge's flurry: src/flurry.js; the phase's second verb, asks)
     if (P.pos.y - this.arena.y > (a.reachUp ?? (a.shape === 'lane' ? 3.5 : HIT.airborne))) return false;   // jumped clear (a beam reaches a little higher)
     const at = this.points(a).find((p) => inArea(a, p, this.attackH, P.pos));
@@ -907,7 +963,8 @@ export class Guardian {
   /** Over a body blow's active window: its parts meet you now? Lands once. */
   contact(P) {
     const L = this.live;
-    if (!L || L.done || !P || P.dead || P.down) return false;
+    if (!L || L.done || !P || P.dead || P.down || P.staggered) return false;
+    if (this.at < this.windFor + (L.a.late ?? 0)) return false;   // (a.late s: live only once its body has come down on you)
     if (!this.touches(L.a, P.pos)) return false;
     L.done = true;
     if (P.untouchable?.()) { this.answer('dodge'); return false; }   // (in a perfect dodge's flurry it passes through)
@@ -924,13 +981,17 @@ export class Guardian {
     this.catch(a, P, from, a.damage, a.knock);
     return true;
   }
-  /** It catches you: knocked down, away from `from`, and a bite of the bar (never the last of a healthy one). */
+  /**
+   * It catches you: knocked back, away from `from`, and a bite of the bar (never the last of a healthy one). On his feet
+   * (src/player.js stagger, issue #331: the ragdoll every blow, "enemies hitting me shouldn't ragdoll me"); a traveller
+   * without one (the tests' stand-ins) is knocked down as before.
+   */
   catch(a, P, from, damage, knock) {
     const dmg = strikeDamage(heartsOf(P), quarters(damage ?? DAMAGE.heavy));
     _a.subVectors(P.pos, from).setY(0);
     if (_a.lengthSq() < 1e-4) _a.set(Math.sin(this.model.heading), 0, Math.cos(this.model.heading));
     _a.normalize().multiplyScalar(knock ?? 9).addScaledVector(UP, 4);
-    P.knockDown?.(_a, { why: 'guardian' });
+    if (P.stagger) P.stagger(_a, { why: 'guardian' }); else P.knockDown?.(_a, { why: 'guardian' });
     P.hurt?.(dmg, 'guardian');
     this.def.onCatch?.(this, a);
   }
@@ -949,7 +1010,7 @@ export class Guardian {
       w.r += w.W.speed * dt;
       w.mesh.scale.set(w.r, 1 + 6 * (1 - w.r / (w.W.reach + 0.01)) * 0.3, w.r);
       const d = P ? Math.hypot(P.pos.x - w.at.x, P.pos.z - w.at.z) : Infinity;
-      if (!w.hit && P && !P.dead && !P.down && !P.untouchable?.() && Math.abs(d - w.r) < (w.W.width ?? 0.6) && P.pos.y - this.arena.y < 0.6) { w.hit = true; this.catch(w.a, P, w.at, w.W.damage ?? 0.5, w.W.knock ?? 7); }
+      if (!w.hit && P && !P.dead && !P.down && !P.staggered && !P.untouchable?.() && Math.abs(d - w.r) < (w.W.width ?? 0.6) && P.pos.y - this.arena.y < 0.6) { w.hit = true; this.catch(w.a, P, w.at, w.W.damage ?? 0.5, w.W.knock ?? 7); }
       if (w.r > w.W.reach) { w.mesh.removeFromParent(); this.waves.splice(this.waves.indexOf(w), 1); }
     }
   }
@@ -972,8 +1033,13 @@ export class Guardian {
     const a = this.attack, live = a && (this.state === 'fight') && (!this.struck || this.at < this.windFor + 0.12);
     if (!live) { for (const g of this.glows) g.hide(); this.tele.hide(); for (const T of this.teles) T.hide(); for (const b of this.balls) b.visible = false; return; }
     const k = this.struck ? 1 : this.attackK, part = a.part ?? 'core';
-    this.glows[0].set(k, this.partAt(part, _e, 1), t);
-    if (PAIRED.has(part)) this.glows[1].set(k, this.partAt(part, _e, -1), t); else this.glows[1].hide();
+    // (def.glow false: no spark on the striking part, its body's wind-up the whole tell; the Keeper's, issue #320: "his
+    // attack tell looks like a weird triangle shape, there's no need for it since he telegraphs his attacks better now")
+    if (this.def.glow === false) for (const g of this.glows) g.hide();
+    else {
+      this.glows[0].set(k, this.partAt(part, _e, 1), t);
+      if (PAIRED.has(part)) this.glows[1].set(k, this.partAt(part, _e, -1), t); else this.glows[1].hide();
+    }
     // a lob: its landing marks through the wind-up, and the thrown thing in the air over its last half
     const pts = this.points(a);
     for (let i = 0; i < Math.max(pts.length, 1 + this.teles.length); i++) {
@@ -1012,7 +1078,8 @@ export class Guardian {
     switch (a?.rig) {
       case 'rear': if (winding) { x = -0.3 * u; y = 0.12 * H * u; } else if (struck) { x = 0.12; y = -0.04 * H; rate = 18; } break;
       case 'crouch': if (winding) { y = -0.1 * H * u; sy = 1 - 0.12 * u; s = 1 + 0.06 * u; } else if (struck) { x = 0.1; sy = 1.05; rate = 16; } break;
-      case 'coil': if (winding) ry = -s0 * 0.55 * u; else if (struck) { ry = s0 * 0.6; rate = 14; } break;
+      // (a.twist: how far its body turns, rad; the Keeper's own neck carries its sweep, its six feet planted under it)
+      case 'coil': if (winding) ry = -s0 * (a.twist ?? 0.55) * u; else if (struck) { ry = s0 * (a.twist != null ? a.twist * 1.1 : 0.6); rate = 14; } break;
       case 'spin': spin = winding ? 2 + 14 * u : struck ? 16 : 0; break;
       case 'lean': if (winding) { x = -0.15 * u; z = -0.08 * H * u; } else if (struck) { x = 0.08; z = 0.06 * H; rate = 16; } break;
       case 'rise': if (winding) y = 0.4 * H * u; else if (struck) { y = -0.1 * H; rate = 14; } break;

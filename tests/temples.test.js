@@ -998,11 +998,12 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
   K.def.onBlock(K, K.def.attacks.charge, false);
   assert.equal(K.state, 'open', 'a charge your guard took jars it, and it pants');
   water();
-  let open = false;
-  for (let i = 0; i < 40 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } if (P.dead) P.restart(); }
-  assert.ok(open, 'it pants again');
+  // (it drinks on while it pants, a gulp each KEEPER_GUARD.gulp s: one opening, two drinks, v1.71 issue #320)
+  for (let i = 0; i < 0.7 / DT; i++) frame();
+  assert.equal(K.state, 'open', 'it pants on');
   water();
   assert.equal(K.phaseIndex, 2, 'its last phase');
+  let open = false;
   // its last: in the dark only a gasp (a sip of water, v1.69); a ball cut down the spoke nearest it from its lit bowl rolls burning to it, and by it it pants long
   for (let n = 0; n < 2; n++) {
     open = false;
@@ -1012,7 +1013,8 @@ test('the Rose House on foot, with nothing in hand: the ball leaned on through t
       for (let i = 0; i < 1 / DT; i++) frame();
       assert.ok(ball.burn > 0, 'lying in its lit bowl, it burns');
       ball.hit('blade', ball.dir.clone(), {});
-      for (let i = 0; i < 12 / DT; i++) { frame(); if (K.state === 'open' && K.openFor === HEARTH_FIRE.open) { open = true; break; } if (P.dead) P.restart(); }
+      // (his hearts kept up: standing still by it, its leap finds him, and knocked out he would wake outside its shut doors)
+      for (let i = 0; i < 12 / DT; i++) { P.hearts = P.maxHearts; frame(); if (K.state === 'open' && K.openFor === HEARTH_FIRE.open) { open = true; break; } if (P.dead) P.restart(); }
     }
     assert.ok(open, `a fire cut to it: it pants (${n})`);
     water();

@@ -58,7 +58,7 @@ export const BOSS_HINTS = {
   desert: {
     phases: [
       ['It is afraid of the dark round the walls.',
-        'Light the four braziers round the rim: a ball cut out through its spoke’s little fire lights one.',
+        'Light two of the braziers round the rim: a ball cut out through its spoke’s little fire lights one.',
         'Cut each spoke’s ball out: it rolls through its little fire into the hooded bowl. Each bowl lit calms it.'],
       ['It is thirsty. Watch for it to pant.',
         'When it pants with its mouth open, give it water. A fire rolled to it makes it pant too.',

@@ -63,7 +63,8 @@ export class GuardianLegs {
     c.landHome = !!extra.landHome;   // (landing: its feet planted where they hang, under it: src/characters/elder-creature.js)
     c.recovery = opts.state === 'open' ? 1 : 0;
     // (still aiming: the feet may step round as it turns to you; then they brace and hold)
-    c.free = f.state === 'wind' && (opts.k ?? 0) < (a?.track ?? 0.5);
+    // (or pushed off a wall or a post, src/temples/boss.js keepIn: braced feet left behind crossed under it)
+    c.free = (f.state === 'wind' && (opts.k ?? 0) < (a?.track ?? 0.5)) || !!opts.pushed;
     return this.rig.update(f, dt, c);
   }
   write() { this.rig.write(); }

@@ -133,6 +133,14 @@ export function jetCameraPitch(pitch) {
 const JET_PIVOT = 1.0;
 // a flinch as a foe's strike lands (Player.flinch): the Sword and Shield pack's impact, its first 0.6 s
 const FLINCH = { clip: 'mixamo_ss_impact_1', from: 0, for: 0.6 };
+/**
+ * A foe's blow that lands hard (Player.stagger; issue #331, "enemies hitting me shouldn't ragdoll me"): knocked back on
+ * his feet, not down. The blow's push along the floor at `carry` of it (at most `max` m/s), slowing at `slide` /s; no
+ * hands for `time` s while the whole body plays the impact (FLINCH.clip, `anim` s of it); nothing else lands on him for
+ * `guard` s (Player.staggered: the foes and guardians hold their blows). The ragdoll is kept for a knockout and a fall.
+ */
+export const STAGGER = { carry: 0.6, max: 5.5, slide: 4, time: 0.5, anim: 0.75, guard: 0.9 };
+const NO_HANDS = Object.freeze({});
 // locked on (main.js sets player.lockOn = { dir }): you face the foe and the stick strafes round it or backs
 // away, at a jog at most; sideways and backwards play captured steps (the Sword and Shield pack), m/s each covers
 export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe_1', speed: 1.14 }, right: { clip: 'mixamo_ss_strafe_2', speed: 1.01 }, back: { clip: 'mixamo_ss_walk_2', speed: 1.08 },
@@ -1038,6 +1046,25 @@ export class Player {
   /** Hit (a foe's strike that didn't knock you down): the upper body flinches, from motion capture (FLINCH). */
   flinch() { if (!this.down && !this.ride) this._flinch = { t: 0 }; }
 
+  /**
+   * A hard blow (STAGGER): knocked back along the floor by `vel` (m/s; its part along up is left out), the impact played
+   * whole, the hands taken a moment. In the air, climbing or on the jets it is the same knock back, the hold or the
+   * flight let go. Riding, nothing. Returns true if it staggered him.
+   */
+  stagger(vel, { why = 'foe' } = {}) {
+    if (this.ride || this.down) return false;
+    const U = this.frame.up, flat = _g1.copy(vel).addScaledVector(U, -vel.dot(U)), L = flat.length();
+    if (L > 1e-3) flat.multiplyScalar(Math.min(L * STAGGER.carry, STAGGER.max) / L);
+    this.endJets(); this.gliding = this.climbing = false; this.mantle = null; this._hang = null;
+    if (this.onGround) this.vel.copy(flat); else this.vel.add(flat);
+    this._stagger = { t: 0, why };
+    this._flinch = null;
+    this.opts.onStagger?.(why);
+    return true;
+  }
+  /** Just staggered (STAGGER.guard s): no other blow lands on him yet. */
+  get staggered() { return !!this._stagger && this._stagger.t < STAGGER.guard; }
+
   gesture(kind, { hold = kind === 'pet' ? 1.8 : 1.1 } = {}) {
     const A = this.animator;
     if (this.locoMoves === false || !A?.moveClip(GESTURES.kneel.clip) || !this.onGround || this.ride || this.swim || this.climbing) return false;
@@ -1352,6 +1379,9 @@ export class Player {
     if (this.opts.gravityAt) F.turnToward(this.opts.gravityAt(this.pos), 5, dt);
     const U = F.up;
 
+    // staggered by a blow (STAGGER): no hands until he has his feet again
+    const St = this._stagger;
+    if (St) { St.t += dt; if (St.t >= Math.max(STAGGER.guard, STAGGER.anim)) this._stagger = null; else if (St.t < STAGGER.time) { this._jumpHeld = !!input.Space; input = NO_HANDS; } }
     let f = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
     let s = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
     const run = input.ShiftLeft || input.ShiftRight;
@@ -1446,7 +1476,7 @@ export class Player {
       if (this.onGround || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
       // (in a locked-on hop, none: it carries you its own way)
       if (this._hop && this.onGround && this.time - this._hop.at > 0.1) { this._hop = null; this._hopReady = this.time + HOP.rest; }
-      const accel = this.onGround ? (steering ? 8 : 16) : this._hop ? 0 : this._carry ? 0.5 : 2.5;
+      const accel = this._stagger && this._stagger.t < STAGGER.time ? (this.onGround ? STAGGER.slide : 0.5) : this.onGround ? (steering ? 8 : 16) : this._hop ? 0 : this._carry ? 0.5 : 2.5;
       // (the motion matcher predicts the body's path with this same spring: animateClips)
       this._wantSpeed = move.lengthSq() > 0 ? speed : 0;
       this._accel = accel;
@@ -2513,6 +2543,9 @@ export class Player {
     const Sw = this.swingMove, Fl = this._flinch;
     if (Fl) { Fl.t += dt; if (Fl.t >= FLINCH.for || this.down) this._flinch = null; }
     if (!Sw && this._flinch && !R) A.playUpper(FLINCH.clip, FLINCH.from + Fl.t, THREE.MathUtils.clamp(Math.min(Fl.t / 0.05, (FLINCH.for - Fl.t) / 0.2), 0, 1));
+    // staggered (STAGGER): the impact, whole, as he is knocked back on his feet
+    const Stg = this._stagger;
+    if (Stg && !R && Stg.t < STAGGER.anim) A.play(FLINCH.clip, FLINCH.from + Stg.t, THREE.MathUtils.clamp(Math.min(Stg.t / 0.06, (STAGGER.anim - Stg.t) / 0.25), 0, 1), { full: true });
     // jumps, drops, the kick off a wall and a hard landing's stumble from motion capture (src/air-moves.js)
     const captured = this.locoMoves !== false && !!A.lib.motion?.clips?.length && !A.matching;
     // (talking: held still, no looking about: TALK_CALM)
@@ -2521,7 +2554,7 @@ export class Player {
     A.idleMoves = captured && !this.talking;
     const air = (this.airMoves ??= new AirMoves());
     air.update(dt, { onGround: this.onGround, airT: this._clipAirT, tLand: J.phase?.tLand ?? Infinity, jumped: !!this._jumpedNow, wallKick: !!this._wallKick, speed: hs, impact: this._impact ?? 0,
-      free: captured && !R && !this._gesture && !this.ride && !this.swim && !this.gliding && !this.onJets && !this.aim && this.flipping == null && !this._hop });   // (the flip is procedural: src/jump.js)
+      free: captured && !R && !this._gesture && !this.ride && !this.swim && !this.gliding && !this.onJets && !this.aim && this.flipping == null && !this._hop && !this._stagger });   // (the flip is procedural: src/jump.js)
     this._jumpedNow = this._wallKick = false;
     if (!R) air.play(A);
     // starts, stops, turns on the spot and the pivot at a run from motion capture (src/loco-moves.js),
@@ -2766,6 +2799,13 @@ export const TIGHT_DIST = 1.9;     // m, at the default zoom (scaled with the wh
 export const TIGHT_LOOK = 1.5;     // m over the feet: close in, at the shoulders
 export const HALL_DIST = 2.6;      // m: close in, but in a hall (hallness): a little further back (the close arm before v0.82), the room round him
 export const ZOOM = [3, 60];       // m: the wheel's and the pad's range for the open arm
+/**
+ * A guardian's fight (CameraRig.boss, set by main.js from its def.camera: Foes.bossFight; issue #320, "the camera angle
+ * is too close when fighting him … I like the Zelda Ocarina of Time bosses"): never close in over the shoulder, the
+ * open arm `arm` m longer and `pitch` rad steeper, the look point `look` m higher, eased in and out at `rate` /s; a
+ * guardian's def.camera may give its own of each.
+ */
+export const BOSS_CAM = { arm: 3.8, pitch: 0.16, look: 0.5, rate: 1.4 };
 const TIGHT_SIDE = 0.7;            // m: the look point off the shoulder when close
 const AIM_DIST = [3.4, 2.4];       // m: the arm while aiming, in the open and close in
 const SHOULDER = { room: 2.4, margin: 0.6, cramped: 0.3, gain: 0.8, hold: 0.6, rest: 1.6, rate: 2.2 };   // pickShoulder
@@ -2929,6 +2969,9 @@ export class CameraRig {
     this._lastMouse = -1e9;
     this._now = 0;
     this._distBoost = 0;
+    this.boss = null;        // a guardian's fight: its boss framing (BOSS_CAM, main.js)
+    this.bossK = 0;          // eased
+    this._boss = BOSS_CAM;
     this.aimK = 0;           // set by the fluid tool while aiming (0..1)
     this.down = false;       // the traveller knocked down (main.js): the view follows the body on the ground, lower and softer
     this.downK = 0;
@@ -3363,8 +3406,8 @@ export class CameraRig {
   get lockOff() { return this._lockOff ?? 0; }
 
   /** The arm's length before walls pull it in: open, tight (over the shoulder) or aiming. */
-  armLength(tk = this.tightK, ak = this.aimK ?? 0) {
-    const open = this.dist + this._distBoost;
+  armLength(tk = this.tightK * (1 - this.bossK), ak = this.aimK ?? 0) {
+    const open = this.dist + this._distBoost + this.bossK * this._boss.arm;
     // the close arm follows the wheel too (zoomed out a little further, in a little nearer)
     let close = THREE.MathUtils.clamp(THREE.MathUtils.lerp(TIGHT_DIST, HALL_DIST, this.hallK) * this.dist / OPEN_DIST, 1.5, 4.5);
     // (in a small room, no longer than the room allows most ways round: ROOM_FIT, issue #195)
@@ -3449,7 +3492,10 @@ export class CameraRig {
     const ak = this.aimK ?? 0;   // aiming the tool: in close, over the right shoulder
     this.indoorK += ((this.indoor ? 1 : 0) - this.indoorK) * (1 - Math.exp(-5 * dt));
     const ik = this.indoorK;
-    const tk = this.updateTight(playerPos, dt, U, Fw, Rt);
+    // a guardian's fight: the boss framing (BOSS_CAM), eased in; the close-in framing given way to it
+    if (this.boss) this._boss = { ...BOSS_CAM, ...this.boss };
+    this.bossK += ((this.boss ? 1 : 0) - this.bossK) * (1 - Math.exp(-this._boss.rate * dt));
+    const tk = this.updateTight(playerPos, dt, U, Fw, Rt) * (1 - this.bossK);
     const k = Math.max(ik, tk);   // how close-quarters the framing is
     // closing in (a doorway, an alley), or done aiming: a steep look up eases back down to what fits
     // (with the aim's own easing: aimK)
@@ -3510,7 +3556,7 @@ export class CameraRig {
     this.climb(dt, climbs, dist, turnRate, U, Fw, Rt);
     // under a roof, in the open framing (not close in, not aiming), Sable's higher, steeper view indoors (ROOF_TILT)
     this._roofPitch = this.roofK * (1 - k) * (1 - ak) * (1 - this.downK) * ROOF_TILT;
-    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT + this._climb + this._roofPitch, PITCH_DOWN);
+    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT + this._climb + this._roofPitch + this.bossK * (1 - ak) * this._boss.pitch, PITCH_DOWN);
     // (in the ship's rooms, and close in anywhere the walls cut the arm: a vestibule, a corridor's end; never aiming)
     if (Math.max(ik, this.physics.sweepSphere ? tk : 0) > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
@@ -3519,7 +3565,7 @@ export class CameraRig {
     // close in; looking up from low down, higher, so the sky and clouds fill the view
     // (never over whatever is overhead: on a table by a carriage's curved wall, the look point rose through the ceiling,
     // and the camera behind it ended up outside the train looking at its hull; the cap eased, down quickly, up slowly)
-    let lh = this.lookHeight(k, ak, pitch);
+    let lh = this.lookHeight(k, ak, pitch) + this.bossK * (1 - ak) * this._boss.look;
     if (k > 0.05 && U.y > 0.999) {
       const roof = Math.min(this.physics.rayDistance(_pv.copy(this.target).addScaledVector(U, 0.9), U, lh + 0.3), 10) + 0.9 - 0.25;
       this._lookCap = this._jumped || this._lookCap == null ? roof : this._lookCap + (roof - this._lookCap) * (1 - Math.exp(-(roof < this._lookCap ? 12 : 2) * dt));
@@ -3591,7 +3637,7 @@ export class CameraRig {
     // .claude/skills/camera-qc: the Overnight Train's carriages); and the lens keeps its room by itself (no shove off a
     // wall afterwards). The ball is as big as the room round the look point allows, so a look point near a wall still
     // finds its arm. In the open, the one ray as before.
-    const swept = !rolling && k > 0.05 && this.physics.sweepSphere;
+    const swept = !rolling && (k > 0.05 || this.bossK > 0.3) && this.physics.sweepSphere;   // (and in a guardian's fight: its long arm swept too)
     let hit, margin = THREE.MathUtils.lerp(0.6, 0.4, k);
     if (swept) {
       const r = this._sweepR = THREE.MathUtils.clamp(this.physics.roomAt(this._look, LENS_R) - 0.02, 0.12, LENS_R);
@@ -3672,7 +3718,7 @@ export class CameraRig {
     if (cut > 0.02) {
       // (locked on, in on the spring too where the room is part open: standing by a doorway into a hall, the arm reached
       // 4.4 m out through it, and the lock's turn brought its edge across the arm, a cut of 2.4 m in a frame; issue #289)
-      const close = (k > 0.5 || (this.locked && k > 0.05)) && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
+      const close = (k > 0.5 || (this.locked && k > 0.05) || this.bossK > 0.3) && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
       // (not locked on: the lock turns the camera, and holding the old spot turned the view 0.3 rad in a frame and back,
       // or back toward the wall it had turned off for room, LOCK_ROOM; the camera QC's ante-lock and guardian-lock)
       if (close && !hands && !this.locked && cut > ARM_HOLD_CUT && this.holdSpot(dist, U, Fw, Rt)) this._armV = 0;   // (held: yaw, pitch and the arm turned to where it was)

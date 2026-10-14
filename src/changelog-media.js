@@ -799,8 +799,13 @@ const DEFEAT304 = 'Issue #304: muted headless Chrome (High, 1280 × 720, 10:00, 
 const KEEPER287 = 'Issue #287: muted headless Chrome against this branch’s own Vite (port 6287), the Keeper’s review page (tools/keeper-review.html) in game ink, side on, its walk from 4 s, eight frames a quarter of a second apart; the before with its gait and the planner as they were; 13 October; cwebp -q 72';
 // (v1.71, issues #329, #330, #328: a scratch shooter against this branch's own Vite (port 6329) and the tree before the three)
 const ITEMS329 = 'Issues #329, #330 and #328: muted headless Chrome (Medium, 1280 × 720, 10:00) against this branch’s own Vite (port 6329) and the tree before the three (8d6b8c22), a Vael save from the debug saves (the desert played through, the gun in hand), the hook’s chest opened by boxes.open and Oïa talked to by dialogue.start; 14 October; cwebp -q 72';
+// (v1.71, issues #320, #321: a scratch driver of ?level=desert&guardianReview=keeper against this branch's own Vite (port 6320) and the tree before it)
+const KEEPER320 = 'headless Chrome (muted, High, 1280 × 720), the Rose House’s cistern by ?guardianReview=keeper, the game stepped 1/60 s a frame, locked on the Keeper and strafing round it with a fake Xbox pad, 20 s in; before: the tree at 0220f777; 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.71': [
+    { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [
+      { name: 'keeper-camera', title: 'Locked on, strafing round it', caption: 'The same moment of the same fight: before, the camera close over his shoulder, the Keeper’s legs and belly filling the frame and its head off it; after, further back and higher, the whole Keeper facing him and the traveller beside it.', from: KEEPER320 },
+    ] },
     { match: 'The warden and the Elder fight fairly', tags: ['combat', 'temples'], shots: [
       { name: 'guardians-warden-beam', title: 'The warden’s beam', caption: 'Its beam as it lands, the hitbox overlay on: before, nothing drawn and a strip of floor starting at the traveller and running away from it took the hit; after, a beam out of its eye, down to where he stood (the red spheres: where it hits).', from: GUARD319 },
       { name: 'guardians-elder-peck', title: 'The Elder’s peck', caption: 'Her peck as it lands: before, she faced away and threw her head back while a strip of floor 6 m off knocked the traveller down; after, she faces him and her beak comes down in front of her (the red spheres: her head and neck, where the blow lands).', from: GUARD319 },

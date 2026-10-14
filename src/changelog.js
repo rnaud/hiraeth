@@ -83,6 +83,52 @@ export const CHANGELOG = [
     // nobody gives a quest before it can be done (issue #328): src/story/quest-needs.js, quests.blocked / heldBack,
     // dialogue.js start / startsHeld; docs/systems/story.md "Nothing given before it can be done"
     'Nobody gives you a quest you can’t do yet. In Vael, Oïa waits until you have the fluid wings before she asks you to wait with her for the bird: until then she points you to the Aerie, and its quest starts. Sister Aube waits until the bird has answered your call, Sabri until you have the lift valve, and the masked head and the hoverbike until you have the gun and the backpack. Until then they aren’t marked on the map.',
+    // the Keeper's second pass (issues #320, #321, #331): src/characters/keeper-creature.js KEEPER_GAIT (stance, knees,
+    // reach, clear, turn), src/motion-kit/gait.js clear / keepClear / BOW, src/temples/boss.js keepIn KEEP_IN, a.leap,
+    // a.late, def.glow, def.faceYou, def.camera; src/temples/desert.js KEEPER (leap, KEEPER_LIGHT, KEEPER_GUARD.gulp);
+    // src/player.js BOSS_CAM, stagger STAGGER; src/foes.js GuardianLock.steady, STEADY, bossFight; docs/systems/foes.md
+    // "The first guardian, a second pass"; tests/keeper-second-pass.test.js
+    { text: 'The Keeper’s six legs no longer tangle: its feet stand wider, its knees bend out to its sides, and no foot lands on another as it walks, turns or charges. Its charge is a bound, its feet off the floor.',
+      tags: ['combat', 'temples'],
+      numbers: [{ title: 'The Keeper’s legs: the closest two of its six come (their bones, its legs about 0.14 m thick)', unit: 'm', better: 'higher', device: 'node, the Rose House’s cistern, its fitted skin', rows: [
+        { where: 'walking across its cistern', before: 0.02, after: 0.36 },
+        { where: 'turning on the spot', before: 0.08, after: 0.37 },
+        { where: 'its charge', before: 0.07, after: 0.48 },
+        { where: 'a minute’s fight, the traveller circling it', before: 0.01, after: 0.11 },
+      ], source: 'a scratch run of the fight’s own code in node over the real cistern (each pair of legs, the least distance between their thigh and shin bones, every frame), the tree before the change and after' }] },
+    { text: 'Fighting the Keeper, the camera stands back and higher, so you see the whole of it and yourself. Locked on, it stays steady: it follows the Keeper’s body calmly, not its swinging head, while your aim stays on its mouth.',
+      tags: ['combat', 'temples'],
+      numbers: [{ title: 'Locked on the Keeper and strafing round it (50 s, a pad pushed one way then the other)', unit: '', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720, the cistern, stepped 1/60 s a frame', rows: [
+        { where: 'the camera’s sharpest turn (rad/s)', before: 4.48, after: 2.92 },
+        { where: 'how sharply its turn changes, 95th percentile (rad/s²)', before: 8.8, after: 4.6 },
+        { where: 'the Keeper’s mouth off the screen (%)', before: 68, after: 25 },
+      ], source: 'a scratch driver of ?level=desert&guardianReview=keeper (a fake Xbox pad and the keyboard), the camera recorded each frame, before and after' },
+      { title: 'How far back the camera stands', unit: 'm', better: 'higher', device: 'the same run', rows: [
+        { where: 'from the traveller, the median', before: 3.05, after: 9.26 },
+        { where: 'over his feet', before: 1.36, after: 3.4 },
+      ], source: 'the same' }] },
+    { text: 'Strafing round the Keeper locked on, it turns to face you and keeps its head on you as it steps round, instead of turning its back.',
+      tags: ['combat', 'temples'],
+      see: 'In the Rose House’s cistern, wake the Keeper, lock on (R3 / Tab) and walk left and right with the stick: it sidesteps round with you, its head toward you.' },
+    { text: 'The Keeper stays inside its cistern: its shell and neck no longer pass through the walls. In its last phase it leaps at you instead of burrowing into the stone floor, its shadow running ahead to where it will land, then lies winded.',
+      tags: ['combat', 'temples'],
+      numbers: [{ title: 'The farthest the Keeper’s body reached from its cistern’s middle (the wall at 18 m)', unit: 'm', better: 'lower', device: 'node, the cistern, a minute’s fight and its moves', rows: [
+        { where: 'in a fight', before: 19.4, after: 18.3 },
+        { where: 'charging', before: 20.1, after: 17.9 },
+        { where: 'walking', before: 18.8, after: 17.1 },
+      ], source: 'the same scratch run, its skin’s vertices every sixth frame' }] },
+    { text: 'The Keeper has three clear phases of two: light two braziers, then give it water twice, then twice more. While it pants it drinks as long as you keep the water coming, so one good opening can end a phase. No more glowing spark shape before its blows: its body’s wind-up shows what is coming.',
+      tags: ['combat', 'temples'],
+      numbers: [{ title: 'What it takes to calm the Keeper', unit: '', better: 'lower', device: 'its fight’s rules (src/temples/desert.js)', rows: [
+        { where: 'calming acts (braziers lit, drinks given)', before: 10, after: 6 },
+        { where: 'openings to earn, at least', before: 6, after: 2 },
+      ], source: 'tests/keeper-second-pass.test.js' }] },
+    { text: 'When a creature or a guardian hits you, you stagger back on your feet instead of falling limp to the ground, and nothing else hits you for a moment while you recover. You still fall when your last heart goes, or from a great height.',
+      tags: ['combat'],
+      numbers: [{ title: 'Locked on the Keeper, strafing round it for 50 s', unit: 'times', better: 'lower', device: 'headless Chrome, the cistern, the same run', rows: [
+        { where: 'knocked to the ground', before: 2, after: 0 },
+      ], source: 'the same scratch driver' }],
+      see: 'Stand in front of any creature that knocks you (the Arena’s horn lizard, the Keeper’s stamp) and let it hit you.' },
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

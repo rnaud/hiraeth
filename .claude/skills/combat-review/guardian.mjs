@@ -214,7 +214,7 @@ function hitboxes(S) {
       if (!g.attack || g.attack.id !== id) break;
       if (g.struck) {
         const since = g.at - g.windFor;
-        if (!wasStruck || g.live) {
+        if ((!wasStruck || g.live) && since >= (g.attack.late ?? 0)) {   // (a.late: its body blow live a moment after the strike, Guardian.contact)
           // the game's test, at every cell of the floor round it (a traveller standing there, on the floor)
           for (let x = -R; x <= R; x += GRID) for (let z = -R; z <= R; z += GRID) {
             const p = V(c.x + x, A.y, c.z + z);

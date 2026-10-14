@@ -121,7 +121,8 @@ test('a combo: each move winds up in full before it strikes, the links at least 
 
 test('a move told by the body: the glow on its part grows, it rears, the sound rises over the wind-up; only a lob marks the floor; a miss can open it; Gentle is slower', () => {
   clearTargets();
-  const K = GUARDIANS.find((G) => G.id === 'desert').def;
+  // (the glow itself, on the Keeper's moves: its own def draws none since v1.71, def.glow false, issue #320)
+  const K = { ...GUARDIANS.find((G) => G.id === 'desert').def, glow: undefined };
   const { g, rt, sounds, m } = stub(K);
   const P = { pos: V(20, 0, 20), health: 3, dead: false, down: null, hurt() {}, knockDown() {} };
   rt.player = P; g.state = 'fight';

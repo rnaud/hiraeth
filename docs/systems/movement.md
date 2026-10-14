@@ -349,6 +349,14 @@ put away and the camera follows the body on the ground, lower and softer
 (`rig.down`). Physics tests that drop the player from great heights pass
 `health: false` (no hurts, no knockdowns).
 
+**A blow staggers, it does not knock down** (v1.71, issue #331: "enemies hitting me shouldn't ragdoll me";
+`player.stagger`, `STAGGER`). A foe's knocking strike (`src/foes.js` `strike`, its `knock`) and a guardian's blow
+(`src/temples/boss.js` `Guardian.catch`) knock him back on his feet: the push along the floor at `carry` (0.6) of the
+blow, at most `max` 5.5 m/s, sliding to a stop at `slide` /s; no hands for `time` 0.5 s while the whole body plays
+the Sword and Shield pack's impact (`FLINCH.clip`, its first `anim` 0.75 s); `player.staggered` for `guard` 0.9 s, in
+which no foe's strike nor guardian's blow lands. The ragdoll (`knockDown`) is kept for a knockout (the last of the
+hearts) and a fall; a temple's trap that throws you off its walkway (`src/temples/pieces.js`) still does.
+
 ## Finding the hoverbike, and the vehicles redrawn
 - **The hoverbike has to be found** (`src/story/desert-bike.js`): a new game starts on
   foot. Marrow the salvager hid the bike under a tarp in a hollow between the ship and the

@@ -2364,26 +2364,32 @@ function frame(ts) {
   // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
   // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
-  if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
-  if (player.lockOn) (player.lockOn.at ??= new THREE.Vector3()).copy(foes.lock.pos);   // (what a sidestep circles: Player.orbitLock)
+  // (a guardian as the lock camera and the strafe follow it: its steady stand-in, GuardianLock.steady, issue #321; its
+  // lunges and sways no longer swing the line the stick is read against, nor the camera)
+  const lockView_ = foes.lock?.steady ? foes.lock.steady(busy() || photo.on ? 0 : realDt) : foes.lock;
+  if (player.lockOn) player.lockOn.dir.set(lockView_.pos.x - player.pos.x, 0, lockView_.pos.z - player.pos.z).normalize();
+  if (player.lockOn) (player.lockOn.at ??= new THREE.Vector3()).copy(lockView_.pos);   // (what a sidestep circles: Player.orbitLock)
   // (a hop read against the camera's look with the foe at his feet, where the camera stops turning after it: src/jump.js hopAxis)
   if (player.lockOn) {
     camera.getWorldDirection(_hopView);
-    const a = hopAxis(player.lockOn.dir, _hopView.setY(0).normalize(), Math.hypot(foes.lock.pos.x - player.pos.x, foes.lock.pos.z - player.pos.z), LOCK_NEAR);
+    const a = hopAxis(player.lockOn.dir, _hopView.setY(0).normalize(), Math.hypot(lockView_.pos.x - player.pos.x, lockView_.pos.z - player.pos.z), LOCK_NEAR);
     (player.lockOn.hop ??= new THREE.Vector3()).set(a.x, 0, a.z);
   }
   if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
   if (!foes.lock || busy() || photo.on) lockView.vel = 0;
   rig.locked = !!(foes.lock && !busy() && !photo.on);
-  rig.lockAt = rig.locked ? (foes.lock.chest ?? foes.lock.pos) : null;
+  rig.lockAt = rig.locked ? (lockView_.chest ?? lockView_.pos) : null;
+  // (in a guardian's arena, awake, the boss framing it asks for: further back and higher, both of you in the frame)
+  rig.boss = busy() || photo.on ? null : foes.bossFight()?.def.camera ?? null;
   if (!rig.locked) rig.lockRoom(realDt, null);
   if (foes.lock && !busy() && !photo.on) {
     const f = foes.lock, F = player.frame;
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
     // where it stands over the shoulder, not from the traveller (lockAim; v1.41, the author: "gun aim stays on the locked target")
-    const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, f.aim ?? f.chest, F) : null;   // (a guardian's weak point: GuardianLock.aim)
+    // (a guardian's weak point, GuardianLock.aim: the camera turned after its steady stand-in, the gun on the real one)
+    const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, lockView_.aim ?? lockView_.chest, F) : null;
     // (not aiming: the line to the foe, its stand-off swing, the room behind him, the turn after it: src/foes.js lockFollow)
-    if (!aim) lockFollow(lockView, rig, f, player.pos, F, realDt);
+    if (!aim) lockFollow(lockView, rig, lockView_, player.pos, F, realDt);
     else {
       rig.lockRoom(realDt, null);
       rig.yaw += Math.atan2(Math.sin(aim.yaw - rig.yaw), Math.cos(aim.yaw - rig.yaw)) * (1 - Math.exp(-LOCK_AIM.rate * realDt)); lockView.vel = 0;

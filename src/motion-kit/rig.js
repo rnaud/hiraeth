@@ -163,6 +163,7 @@ export class Rig {
       homes: legs.map((l) => ({ x: l.home.x * scale, y: 0, z: l.home.z * scale })),
       gait: typeof G.gait === 'function' ? G.gait(legs.length) : G.gait, drift: G.drift * L, stepTime: G.stepTime, height: G.height * L, arc: G.arc, seed,
       reach: G.reach ? G.reach * L : undefined, maxStance: G.maxStance, fast: G.fast ?? null,   // (maxStance: a big slow walker stands longer before a settling step)
+      clear: G.clear ? G.clear * L : 0,   // (the room kept between two feet, in leg lengths: off unless the plan asks)
     });
     const B = plan.body;
     this.bodyFeet = new BodyFromFeet({ bob: B.bob * L, lean: B.lean, bank: B.bank, sway: B.sway, tilt: B.tilt, spring: B.spring, height: B.height });

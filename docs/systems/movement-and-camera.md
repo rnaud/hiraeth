@@ -154,6 +154,32 @@ view snapping in. A wall, a rock or a dune's body is thicker and still brings th
 1 → 0, jumps 2 → 0, roughness 11.64 → 0.57 cm); `tests/lock-room.test.js` (a trunk passed, a wall not) and
 `tests/route-spawn.test.js` (the desert-open run from the start, in node: on the screen).
 
+## A guardian's fight: the boss framing and the steady lock (v1.71, issues #320, #321; `BOSS_CAM`, `GuardianLock.steady`)
+
+The author on the Keeper: "the camera angle is too close when fighting him making it hard to read the scene … I like
+the Zelda Ocarina of Time bosses"; "the camera moves around too much. We should still have the lock on on his head but
+the camera should stay more stable". The cistern is a closed rotunda, so the rig came in close over the shoulder
+(1.9–2.6 m, the traveller and a slice of the Keeper's leg in the frame).
+
+- **The boss framing** (`src/player.js` `BOSS_CAM`, `CameraRig.boss` / `bossK`): main.js sets `rig.boss` to the
+  guardian fight he stands in (`Foes.bossFight`: awake, not weary, him inside its arena) when its def asks for it
+  (`def.camera`, `{}` for the defaults; the Keeper's). Eased in at `rate` /s: the close-in framing gives way (the tight
+  blend × (1 − bossK)), the open arm `arm` m longer (8.6 m at the default zoom), `pitch` rad steeper and the look point
+  `look` m higher, so both he and it read; its long arm is swept and comes in on the spring like a close one (a low
+  thing between, the cistern's spout, cut it 8.6 → 2 m in a frame).
+- **The steady lock** (`src/foes.js` `GuardianLock.steady(dt)`, `STEADY`): the lock camera (`lockFollow`), the aiming
+  camera (`lockAim`), the two-shot (`rig.lockAt`) and the strafe's line (`player.lockOn.dir` / `at`) follow a stand-in
+  whose middle, chest and weak point are critically damped springs after the guardian's own (`body` 3.2 /s, `aim` 1.8
+  /s; a jump past `jump` m, a reset, taken at once). A lunge of 3 m moves it 0.1 m in a frame. The gun's locked aim,
+  the reticle and the blade keep the real mouth and middle.
+- **Calmer after a guardian** (`lockFollow`, `STEADY.turn`, `STEADY_TURN`): the stand-in turns the lock camera at half
+  its ease and within `STEADY_TURN` (4.5 rad/s², 2 rad/s; a small foe's `LOCK_TURN` 9 and 3.2): it is big and stays in
+  the frame.
+
+Measured in the real game (headless Chrome, High, the Rose House's cistern by `?guardianReview=keeper`, locked on, a
+fake Xbox pad and the keyboard strafing 4 s each way, and 50 s strafing round it awake): see the v1.71 changelog's
+numbers; tests in `tests/keeper-second-pass.test.js`.
+
 ## The camera QC and what it fixed (v1.40, `.claude/skills/camera-qc`)
 
 The author: "in the train when I'm walking it keeps jumping around." The camera QC drives the game headless with

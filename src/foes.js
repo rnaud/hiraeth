@@ -217,7 +217,8 @@ export function lockFollow(view, rig, f, pos, F, dt) {
   // nearer it is, and not at all within LOCK_NEAR[0]; v1.49, the closer camera showed it: the camera QC's arena-lock)
   // (its turn's speed eased too, LOCK_TURN, issue #236: the line flipping as he walks past a foe no longer starts and
   // stops the camera at once)
-  view.vel = lockTurn(da, view.vel, 6 * THREE.MathUtils.smoothstep(d, LOCK_NEAR[0], LOCK_NEAR[1]), dt);
+  // (a guardian's steady stand-in turns it slower and calmer, f.turn: STEADY.turn; it is big, and stays in the frame)
+  view.vel = lockTurn(da, view.vel, 6 * (f.turn ?? 1) * THREE.MathUtils.smoothstep(d, LOCK_NEAR[0], LOCK_NEAR[1]), dt, f.turn ? STEADY_TURN : LOCK_TURN);
   rig.yaw += view.vel * dt;
   return line;
 }
@@ -1638,6 +1639,26 @@ export class GuardianLock {
   get aim() { const m = this.g.model; return m.lockAt?.(this._aim) ?? (m.mouth ? this._aim.copy(m.mouth) : this.chest); }
   /** The weak point's size for the reticle (m: at least a metre, a target its temple sets aside is a dot), or null: the reticle frames the whole body. */
   get aimR() { const m = this.g.model; return m.lockAt || m.mouth ? Math.max(1, m.mouthR ?? 1.2) : null; }
+  /**
+   * The guardian as the lock camera and the strafe follow it (issue #321: "the camera moves around too much … no need
+   * to swing the camera when his head is moving"): a stand-in whose pos, chest and aim are critically damped springs
+   * after its own (STEADY: `body` /s on its middle, `aim` /s on its weak point), so a sway, a turn, a lunge or a swung
+   * head moves the view smoothly and late, not frame by frame. The gun, the blade and the reticle keep the real ones.
+   * One stand-in per lock (lockFollow knows its foe by it); `dt` 0: as it was.
+   */
+  steady(dt) {
+    const S = (this._steady ??= { pos: new THREE.Vector3(), chest: new THREE.Vector3(), aim: new THREE.Vector3(), v: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], def: null, set: false, of: this });
+    S.def = this.def; S.turn = STEADY.turn;
+    const to = [this.pos, this.chest, this.aim], at = [S.pos, S.chest, S.aim];
+    if (!S.set || !(dt > 0) || to[0].distanceTo(S.pos) > STEADY.jump) { at.forEach((p, i) => { p.copy(to[i]); S.v[i].set(0, 0, 0); }); S.set = true; return S; }
+    for (let i = 0; i < 3; i++) {
+      const w = i === 2 ? STEADY.aim : STEADY.body, p = at[i], v = S.v[i];
+      // (x'' = w² (target - x) - 2 w x': no overshoot, no lag past where it is going)
+      v.addScaledVector(_stA.subVectors(to[i], p), w * w * dt).multiplyScalar(Math.max(0, 1 - 2 * w * dt));
+      p.addScaledVector(v, dt);
+    }
+    return S;
+  }
   get state() { const g = this.g; return g.state === 'fight' && g.attack ? (g.struck ? 'strike' : 'wind') : 'chase'; }
   get k() { return this.g.attackK ?? 0; }
   get stunned() { return this.g.state === 'open' ? 1 : 0; }
@@ -1649,7 +1670,11 @@ export class GuardianLock {
   }
   get hp() { const n = this.def.hp; return Math.max(0, n - Math.min(this.g.phaseIndex, n)); }
 }
-const _guardLocks = new WeakMap();
+const _guardLocks = new WeakMap(), _stA = new THREE.Vector3();
+/** /s: how quickly the lock camera's stand-in for a guardian follows its middle and its weak point (GuardianLock.steady); m: a jump it takes at once (a knockout, a reset). */
+export const STEADY = { body: 3.2, aim: 1.8, jump: 6, turn: 0.5 };
+/** The lock camera's turn after a guardian (lockTurn's limits: rad/s², rad/s), calmer than after a small foe (LOCK_TURN). */
+export const STEADY_TURN = { acc: 4.5, max: 2 };
 /** The lock's stand-in for guardian g (one each). */
 export const guardianLock = (g) => { let L = _guardLocks.get(g); if (!L) _guardLocks.set(g, (L = new GuardianLock(g))); return L; };
 
@@ -1774,6 +1799,21 @@ export class Foes {
   }
 
   /** The locked foe as a target the blade turns to (fluid-blade.js lockTarget), or null. */
+  /**
+   * The guardian fight he stands in, or null: one awake (not weary, not resolved), whose arena he is inside, that asks
+   * for the boss framing (def.camera: CameraRig.boss, issue #320 "the camera angle is too close when fighting him").
+   */
+  bossFight() {
+    const P = this.player;
+    if (!P?.pos) return null;
+    for (const g of GUARDIANS_LIVE) {
+      const A = g.arena;
+      if (!g.def?.camera || !g.awake || g.state === 'weary' || !g.model?.group?.parent) continue;
+      if (Math.hypot(P.pos.x - A.center.x, P.pos.z - A.center.z) < A.r && Math.abs(P.pos.y - A.y) < 6) return g;
+    }
+    return null;
+  }
+
   lockTarget() {
     if (!this.lock) return null;
     const T = (this._lockT ??= { position: () => this.lock?.chest ?? T.last, aim: () => this.lock?.aim ?? this.lock?.chest ?? T.last, enabled: () => true, lock: true });
@@ -2615,6 +2655,8 @@ export class Foes {
   /** A strike that caught the traveller: a bite of the bar (never all of a healthy one), a shove, a machine knocks you down. */
   strike(f, a = f.atk ?? f.def.attack) {
     const P = this.player;
+    // (staggered by a blow a moment ago, src/player.js STAGGER.guard: the next waits)
+    if (P.staggered) return false;
     // a flash only blinds whoever looks at it: turned away (the camera), it is nothing
     if (a.blind && !this.facing(f)) return false;
     // roots running under the ground (the root knot's grip) take only feet on it: a jump clears them
@@ -2663,7 +2705,11 @@ export class Foes {
       const mate = f.def.flanks ? this.list.find((x) => x !== f && x.alive && x.dead === undefined && x.kind === f.kind && x.pos.distanceTo(P.pos) < 16) : null;   // (a heron's buffet: straight back)
       if (mate) { _w.subVectors(mate.pos, P.pos).setY(0); if (_w.lengthSq() > 1e-4) _v.copy(_w.normalize()); }
       P.vel?.addScaledVector(_v, a.shove).addScaledVector(_up, 2); P.flinch?.();
-    } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
+    } else if (a.knock) {
+      // (knocked back on his feet, not down: src/player.js stagger, issue #331; the ragdoll is a knockout's and a fall's)
+      const k = _v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5);
+      if (P.stagger) P.stagger(k, { why: 'foe' }); else P.knockDown?.(k, { why: 'foe' });
+    }
     else { P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5); P.flinch?.(); }   // (a flinch from motion capture: player.js)
     if (a.blind) this.blind(a.blind * g, f.def.tone);
     // a ray's downdraft: thrown down, the glide and the jets broken

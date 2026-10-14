@@ -157,37 +157,55 @@ export const KEEPER = {
   // (v1.69, issues #314 and #316, the first guardian made fair: a longer breath between its moves, every move ending
   // in an opening, its three-blow sweep only in its last phase, lighter blows; in its last phase the dark no longer
   // shuts its mouth, it gasps a moment (keeperOpen), and a fire by it still makes it pant longer)
+  // (v1.71, issue #320, "I need to hit him too many times … Ocarina of Time bosses, 3 phases": three phases of two
+  // each: two braziers lit (KEEPER_LIGHT), then two drinks, then two more; an opening holds while it drinks (a gulp each
+  // KEEPER_GUARD.gulp s), so one opening may end a phase: 10 calming acts over 6 openings before, 6 over 2 to 4 now)
   phases: [
-    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 2.4, hint: 'Light the four braziers: cut each spoke’s ball through its fire.' },
+    { to: 0.4, attacks: ['stamp', 'sweep'], pause: 2.4, hint: 'Light two braziers: cut a spoke’s ball out through its fire.' },
     { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 2.0, hint: 'Guard its charge, then water it. Or cut a lit ball down a spoke.' },
-    { to: 0.8, attacks: ['burrow', 'spit', 'sweep2', 'charge'], pause: 1.8, hint: 'It digs in now. Water it as it gasps, or roll a lit ball to it.' },
+    { to: 0.8, attacks: ['leap', 'spit', 'sweep2', 'charge'], pause: 1.8, hint: 'It leaps at you now. Water it as it gasps, or roll a lit ball to it.' },
     { to: 1.0, weary: true },
   ],
+  // (its body's wind-ups are its tells, issue #320: no spark on the striking part, src/temples/boss.js tells)
+  glow: false,
+  // (in its cistern, the boss framing: src/player.js BOSS_CAM, the camera further back and higher, both of you in it)
+  camera: {},
+  // (between its moves it keeps its head on you as it circles, stepping sideways: boss.js walk; it turned its tail to you)
+  faceYou: true,
+  // (its shell and head kept inside its cistern's wall and off its spout: boss.js keepIn, issue #320)
+  keepIn: true,
   // its moves (src/temples/boss.js): read from its body, never the floor, and landing with its body: each blow is its
   // posed bones (`parts`: the jaw and head, the forefeet, the shell) meeting you over its `active` s, so what you see
   // hit you is what hits you (the shapes are the procedural body's, and how far it comes for you first: `reach`).
   // The sweep swings its lowered head across and ends in a stamp (the punish to read, then it pants); in its last phase
   // the sweep swings back once first. A charge or a stamp that misses wedges it, panting; the charge and the stamp are
-  // the guard's to take (`guard`: jarred, it pants, KEEPER_GUARD); a spit leaves its mouth open.
+  // the guard's to take (`guard`: jarred, it pants, KEEPER_GUARD); a spit leaves its mouth open. Its leap (issue #320: it
+  // burrowed, in a cistern of cut stone) crouches low, springs (`leap`: over its wind-up's last third, the spot fixed
+  // when it springs: its shadow runs ahead to it) and lands on you with its shell and feet, then lies winded.
   attacks: {
     stamp: { shape: 'ring', at: 'front', ahead: 2.2, radius: 2.8, wind: 1.35, part: 'feet', rig: 'rear', parts: ['feet'], active: 0.15, reach: 4.6, damage: 0.75, knock: 7, recover: 1.1, open: 1.6, miss: 2.6, guard: true },
-    sweep: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'stampEnd' },
-    sweep2: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', pose: 'sweep', side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'sweepBack' },
-    sweepBack: { shape: 'cone', range: 6.5, angle: 0.75, wind: 0.9, track: 0.5, part: 'mouth', rig: 'coil', pose: 'sweep', side: -1, link: true, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, gap: 0.5, then: 'stampEnd' },
+    sweep: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', twist: 0.18, side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'stampEnd' },
+    sweep2: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', twist: 0.18, pose: 'sweep', side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'sweepBack' },
+    sweepBack: { shape: 'cone', range: 6.5, angle: 0.75, wind: 0.9, track: 0.5, part: 'mouth', rig: 'coil', twist: 0.18, pose: 'sweep', side: -1, link: true, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, gap: 0.5, then: 'stampEnd' },
     stampEnd: { shape: 'ring', at: 'front', ahead: 2.2, radius: 2.8, wind: 1.1, part: 'feet', rig: 'rear', pose: 'stamp', link: true, parts: ['feet'], active: 0.15, reach: 4.6, damage: 0.75, knock: 7, recover: 1.0, open: 2.6 },
     charge: { shape: 'lane', range: 13, width: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'crouch', dash: 8, parts: ['head', 'feet', 'body'], active: 0.45, reach: 13, damage: 0.75, knock: 9, recover: 1.2, open: 2.0, miss: 2.8, guard: true },
-    burrow: { shape: 'ring', at: 'player', radius: 3.0, wind: 2.0, track: 0.6, over: true, part: 'core', parts: ['body'], active: 0.4, damage: 0.75, knock: 9, recover: 1.4, open: 3.2 },
+    leap: { shape: 'ring', at: 'player', radius: 3.0, wind: 2.0, track: 0.55, over: true, leap: [0.6, 0.97], rig: 'crouch', part: 'core', parts: ['body'], late: 0.06, active: 0.35, damage: 0.75, knock: 9, recover: 1.4, open: 3.2 },
     spit: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.0, wind: 1.5, track: 0.6, part: 'mouth', rig: 'lean', damage: 0.5, knock: 5, recover: 0.8, open: 1.8 },
   },
 };
-/** s: how long it pants after a charge (or a stamp) your guard took; a drink from your tank calms it this much. */
-export const KEEPER_GUARD = { open: 2.8, water: 0.1 };
+/**
+ * s: how long it pants after a charge (or a stamp) your guard took; a drink from your tank calms it this much (half a
+ * phase); it drinks again `gulp` s after a drink, while it is open (v1.71: one drink and it shut its mouth).
+ */
+export const KEEPER_GUARD = { open: 2.8, water: 0.1, gulp: 0.6 };
+/** Its first phase: each rim brazier lit calms it this much (two of the four end it; a tenth each before v1.71). */
+export const KEEPER_LIGHT = 0.2;
 /**
  * Its last phase in the dark (v1.69, issue #316: "none in the third phase?"): its own openings (and your guard's jar)
- * come as a gasp of `open` s at most, and a drink then calms it `water` of a full one; a fire rolled to it still makes it
- * pant (HEARTH_FIRE.open) and drink deep.
+ * come as a gasp of `open` s at most, and a drink then calms it `water` of a full one (a sip, half, before v1.71: four
+ * gasps it took); a fire rolled to it still makes it pant (HEARTH_FIRE.open), long enough for both its drinks.
  */
-export const KEEPER_DARK = { open: 1.8, water: 0.5 };
+export const KEEPER_DARK = { open: 1.8, water: 1 };
 
 // where the chest's ball stops against the corridor's thorns (t along its groove, z 110 to 124.6: its front at the
 // tangle's face, 118.2); the keepers' door and the far landing's doorway in the Hall of Fires' east wall (z); the Hall
@@ -216,6 +234,8 @@ export function fireNear(g) {
   for (const b of g.rt.spokes ?? []) if (b.burn > 0 && b.rest && !b.drop && b.t > 0.5 && Math.hypot(b.center.x - m.pos.x, b.center.z - m.pos.z) < HEARTH_FIRE.near) return b;
   return null;
 }
+/** Its leap lands where it sprang for (its shadow there before it). */
+export function keeperLands(g, a) { if (a.id === 'leap') { g.model.pos.x = g.attackAt.x; g.model.pos.z = g.attackAt.z; } }
 /** Its own openings: in its last phase none in the dark, only by a fire rolled to it. */
 function keeperOpen(g, a, s) {
   if (g.phaseIndex >= 2 && s && !fireNear(g)) { g.rt.notice('It gasps in the dark, mouth open a moment. A fire by it holds it open.', 'keeper.dark2'); return Math.min(s, KEEPER_DARK.open); }
@@ -225,7 +245,7 @@ function keeperOpen(g, a, s) {
 function syncLight(g) {
   if (!g || g.phaseIndex !== 0 || !g.awake) return;
   const lit = RIM.filter((id) => g.rt.logic.isLit(id)).length;
-  if (lit * 0.1 > g.meter + 1e-6) { g.add(lit * 0.1 - g.meter, 'light'); if (g.phaseIndex === 0) g.rt.notice(['', 'It turns its head to the light, and stills a moment.', 'A second fire. It watches it, and watches you.', 'Three. Its shell’s glyphs flicker awake.'][lit] ?? null); }
+  if (lit * KEEPER_LIGHT > g.meter + 1e-6) { g.add(lit * KEEPER_LIGHT - g.meter, 'light'); if (g.phaseIndex === 0) g.rt.notice(['', 'It turns its head to the light, and stills a moment. One more fire.'][lit] ?? null); }
 }
 /** A charge (or a stamp) your guard took: it reels, and from its second phase it pants (in its last only by a fire). */
 function keeperBlocked(g) {
@@ -237,13 +257,17 @@ function keeperBlocked(g) {
   if (dark) { g.rt.notice('It reels from your guard and gasps, mouth open a moment.', 'keeper.guard2'); return; }
   g.rt.notice('It slams into your guard and reels back, panting, its mouth open.', `keeper.guard.${g.phaseIndex}`);
 }
-/** Water from your tank in its open mouth: from its second phase, it calms it. */
+/**
+ * Water from your tank in its open mouth: from its second phase, it calms it. It goes on drinking while it is open (a
+ * gulp each KEEPER_GUARD.gulp s: issue #320, the Ocarina-like opening a few good hits end), until the phase is done.
+ */
 function keeperDrinks(g) {
   if (g.state !== 'open' || g.phaseIndex < 1) return false;
-  // (in its last phase, a gasp in the dark takes a sip; panting by a fire, a full drink)
+  if (g.gulpOf === g.opened && g.t - g.gulpAt < KEEPER_GUARD.gulp) return true;   // (still swallowing the last)
+  g.gulpOf = g.opened; g.gulpAt = g.t;
+  // (in its last phase, a gasp in the dark the same drink as by a fire: the fire's long pant is room for both)
   g.add(KEEPER_GUARD.water * (g.phaseIndex >= 2 && !fireNear(g) ? KEEPER_DARK.water : 1), 'water');
   g.rt.sound?.critter?.('splash', 1);
-  if (g.state === 'open') { g.enter('fight'); g.cool = 1.4; }   // it swallows, and shakes its head (unless that was the last it needed)
   g.rt.notice('It drinks from your cupped hands. Its glyphs glow a little brighter.', null);
   return true;
 }
@@ -459,7 +483,9 @@ function layout(rt) {
   model.heading = K.heading(Math.PI);
   model.rest = K.world(C.x + 3.5, 7, C.z + 7.5);
   model.restHeading = K.heading(Math.PI + 0.6);
-  const arena = { center: K.world(C.x, 7, C.z), r: R, y: K.world(0, 7, 0).y };
+  // (its spout, a post in the basin's middle the Keeper's body is kept off: boss.js keepIn; 1.55 m over the floor)
+  const mid = K.world(C.x, 7, C.z);
+  const arena = { center: mid, r: R, y: K.world(0, 7, 0).y, posts: [{ x: mid.x, z: mid.z, r: 0.9, h: 1.55 }] };
   // (the basin is lower: the Keeper walks its rim and floor alike, at the arena's height)
 
   const W = (x, y, z) => K.world(x, y, z);
@@ -473,7 +499,7 @@ function layout(rt) {
       { at: W(0, 7.5, 213.6), r: 1.5 },
     ],
     lights: [[0, 6, 7, 16], [0, 8, 24, 20], [0, 8, 44, 20], [0, 6, 60, 22], [0, 8, 84, 22], [0, 11, 106, 16], [0, 11, 128, 22], [0, 11, 150, 22], [27, 13, 128, 22], [27, 13, 150, 22], [0, 10, 163, 9], [0, 13, 186, 28], [0, 10, 209, 9]],
-    guardian: { def: { ...KEEPER, onHit: keeperHit, openFor: keeperOpen, onBlock: keeperBlocked, onStrike: (g, a) => { if (a.id === 'burrow') { g.model.pos.x = g.attackAt.x; g.model.pos.z = g.attackAt.z; } } }, model, arena },
+    guardian: { def: { ...KEEPER, onHit: keeperHit, openFor: keeperOpen, onBlock: keeperBlocked, onStrike: keeperLands }, model, arena },
   };
 }
 
@@ -728,7 +754,7 @@ export const DESERT_TEMPLE = {
   enterLine: 'Cool air, and the smell of old water. The Rose House is dark inside, and very large.',
   pitLine: 'You climb back out of the sand, to the last glyph stone.',
   onResolved(rt) { rt.notice('Water. Above, it is already running out of the house toward Qanat.', 'resolved.out'); },
-  // the four braziers round the cistern calm it, a tenth each: lit before it woke, or before a knockout, they still count
+  // the braziers round the cistern calm it, a fifth each (two end its first phase): lit before it woke, or before a knockout, they still count
   onLit(rt, id) { if (RIM.includes(id)) syncLight(rt.guardian); },
   onWake(rt) { syncLight(rt.guardian); },
   onUpdate(rt) {

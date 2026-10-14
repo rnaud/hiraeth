@@ -181,7 +181,8 @@ test('the Keeper on its skin faces its heading past a quarter turn too', async (
   const f = m.group.getWorldDirection(V());
   const d = Math.atan2(f.x, f.z) - m.heading;
   assert.ok(Math.abs(Math.atan2(Math.sin(d), Math.cos(d))) < 0.05, 'faces its heading');
-  assert.ok((m.mouth.x - m.pos.x) * Math.sin(m.heading) + (m.mouth.z - m.pos.z) * Math.cos(m.heading) > 2, 'its mouth ahead of it');
+  // (1.5 m: v1.71, issue #321, it turns its head to the traveller behind it as it steps round, its neck lagging the turn)
+  assert.ok((m.mouth.x - m.pos.x) * Math.sin(m.heading) + (m.mouth.z - m.pos.z) * Math.cos(m.heading) > 1.5, 'its mouth ahead of it');
   g.dispose();
 });
 

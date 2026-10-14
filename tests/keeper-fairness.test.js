@@ -178,6 +178,9 @@ test('its walk and its turns: higher, quicker steps than its shuffle, the shell 
   const before = m.heading;
   g.face(1 / 60, V(0, 0, -10), 99);
   assert.ok(Math.abs(m.heading - before) <= m.turnRate / 60 + 1e-9, `no faster than ${m.turnRate} rad/s, whatever it is asked`);
+  // (only the turn it is given: open, it turns to the traveller as well, which undid most of it once it turned no
+  // faster than 0.8 rad/s, v1.71)
+  g.face = () => {};
   for (let i = 0; i < 2.2 / DT; i++) {
     m.heading += m.turnRate * DT; run(DT);
     P.forEach((f, k) => {

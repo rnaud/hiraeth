@@ -45,16 +45,29 @@ function shellGlyphs(mesh,body,material){
  * them on softer springs (bob, the springs' damping z), rolling over the feet that carry it (`roll`, rad per m of
  * sway), and a planted foot steps again sooner after a turn (maxStance). Slow, one foot at a time; at the fight's pace
  * (fast.at m/s) the tripods. (height 0.17, was 0.15: a reach span of 21 % of the leg, 19.5 % at 0.15; #287)
+ * Issue #320 ("the keeper's feet get tangled when he moves"): its skin was turned the other way to its heading (the
+ * fight's π − h, fixed in src/temples/boss.js Guardian.place, #319), so its feet were planted for a body facing
+ * elsewhere and crossed under it; and, set right, its legs still met: feet under its hips (`stance` sets them out to
+ * the side), knees bent straight back onto the next hip (`knees` turns them out), a foot left 1.9 m behind before it
+ * stepped (`reach`), none kept off another (`clear`, src/motion-kit/gait.js), turns its one-at-a-time steps could not
+ * keep up with (`turn`, and from `fast.turn` rad/s the tripods).
  */
 export const KEEPER_GAIT={
- gait:{gait:'independent',fast:{gait:'alternate',at:1.4},arc:'flowing',duty:.78,drift:.17,reach:.6,height:.17,stepTime:[.24,.4],maxStance:1},
+ gait:{gait:'independent',fast:{gait:'alternate',at:1.4,turn:.5},arc:'flowing',duty:.78,drift:.17,reach:.32,height:.23,stepTime:[.24,.4],maxStance:.8,clear:.22},
  body:{bob:.03,sway:.25,spring:{f:1.8,z:.55,r:0},height:{f:2.2,z:.5,r:0}},
  roll:.3,
  // (rad/s: the fastest it turns, src/temples/boss.js Guardian.face: past this its feet could no longer step it round)
- turn:1.5,
+ turn:.8,
+ // (its feet's homes out to the side, × its hips' width; its knees turned out to the side, of the bend's way back)
+ stance:1.15,
+ knees:.8,
 };
-/** The skin's own poses: how far the sweep bows its neck (rad at the neck's base, KEEPER_POSE.dip). */
-export const KEEPER_POSE={dip:1};
+/**
+ * The skin's own poses: how far the sweep bows its neck (rad at the neck's base, KEEPER_POSE.dip); its leap's height (m
+ * at the top); its charge's bound ([s, m]: the dash's time off the floor, and how high); its leap's landing, the shell
+ * slammed down ([s, m]).
+ */
+export const KEEPER_POSE={dip:1,leap:2.4,bound:[.42,.1],slam:[.5,.4]};
 let uid=0;
 /** One approved mesh on the existing guardian motion kit. Source stays untouched; each instance owns its bones. */
 export function createKeeperCreature(gltf,{gameMaterial=false}={}) {
@@ -69,8 +82,12 @@ export function createKeeperCreature(gltf,{gameMaterial=false}={}) {
  const kit=new GuardianLegs({plan,group,body,seed:71,legs:KEEPER_LEGS.map(L=>{
   const h=keeperPoint(L.hip),k=keeperPoint(L.knee),f=keeperPoint(L.foot),a=f.clone().setY(.2);
   const along=a.clone().sub(h),pole=k.clone().sub(h).addScaledVector(along,-k.clone().sub(h).dot(along)/along.lengthSq()).normalize();
+  // (its knees turned out to its side by `knees`, issue #320: bent straight back, a front knee came down on the middle
+  // hip as it stepped, the middle knee on the hind one)
+  pole.x+=Math.sign(h.x)*KEEPER_GAIT.knees;pole.normalize();
   // (its home a quarter of the way in under the hip: the splayed rest stance left a hind foot dragged straight behind at the fight's pace)
-  const home=f.clone();home.z+=(h.z-f.z)*.25;
+  // (and out to the side by `stance`, issue #320: under its hips, its feet crossed under its middle as it turned)
+  const home=f.clone();home.z+=(h.z-f.z)*.25;home.x*=KEEPER_GAIT.stance;
   return {hip:h.clone().sub(KEEPER_BODY),foot:home,lenA:h.distanceTo(k),lenB:k.distanceTo(a),pole,ankle:.2,radius:.04,mats:{joint:debugMat}};
  })});
  for(const L of kit.legs){const remove=[];L.root.traverse(o=>{if(o.isMesh)remove.push(o);});for(const o of remove){o.geometry.dispose();o.removeFromParent();}}
@@ -81,9 +98,9 @@ export function createKeeperCreature(gltf,{gameMaterial=false}={}) {
  const originals=meshes.map(m=>m.material);if(gameMaterial)for(const m of meshes)m.material=makeReviewInkMaterial(m);
  const glowM=makeMaterial({color:'#70e7df',glow:.15,flat:true,key:`keeper-v1.glow.${uid++}`}),glyphs=shellGlyphs(meshes[0],body,glowM);
  const M={group,body,neck,head,jaw,kit,skinLegs,tellRig,bones,meshes,materials:originals,glowM,glyphs,pos:new T.Vector3(),heading:0,home:null,rest:null,restHeading:0,
-  mouth:new T.Vector3(),mouthR:.85,radius:2.9,height:4.4,marks:{c:[0,3.8,0],r:[1.45,1.1,2.4]},shadow:{rx:1.7,rz:3.4,feet:.55},rise:1,open:0,rear:0,low:0,sink:0,sweep:0,dip:0,
+  mouth:new T.Vector3(),mouthR:.85,radius:2.9,height:4.4,marks:{c:[0,3.8,0],r:[1.45,1.1,2.4]},shadow:{rx:1.7,rz:3.4,feet:.55},rise:1,open:0,rear:0,low:0,hop:0,dash:0,land:0,sweep:0,dip:0,
   reset(){
-   Object.assign(M,{rise:1,open:0,rear:0,low:0,sink:0,sweep:0,dip:0,heading:0});M.pos.set(0,0,0);group.position.set(0,0,0);group.rotation.set(0,0,0);
+   Object.assign(M,{rise:1,open:0,rear:0,low:0,hop:0,dash:0,land:0,sweep:0,dip:0,heading:0});M.pos.set(0,0,0);group.position.set(0,0,0);group.rotation.set(0,0,0);
    tellRig.position.set(0,0,0);tellRig.rotation.set(0,0,0);tellRig.scale.setScalar(1);
    for(const x of rest){x.b.position.copy(x.p);x.b.quaternion.copy(x.q);x.b.scale.copy(x.s);}
    jaw.rotation.x=-1.04;
@@ -112,10 +129,19 @@ export function createKeeperCreature(gltf,{gameMaterial=false}={}) {
    M.open=ease(M.open,opts.jawOpen??(state==='open'?1:id==='spit'?Math.min(1,k*1.4):id==='sweep'&&k>.6?.65:0),6);
    M.rear=ease(M.rear,id==='stamp'&&k<1?k:0,id==='stamp'&&k>=1?20:4);
    M.low=ease(M.low,state==='open'||weary||id==='sweep'||id==='charge'?1:sleep?1.15:id==='spit'?-.2*Math.min(1,k):0,3);
-   M.sink=ease(M.sink,id==='burrow'&&k<1?Math.min(1,k*1.6):0,id==='burrow'&&k>=1?9:2.5);
+   // off the floor (issue #320: its feet tangled as a 20 m/s dash dragged them, and it burrowed into cut stone): its leap
+   // from the spring to the landing (KEEPER_POSE.leap m high at the top), its charge's dash a bound; its feet tucked
+   // under it as it springs and hanging to land, planted at their homes as it comes down; the landing slams its shell down
+   const u=id==='leap'&&k<1?T.MathUtils.clamp((k-.6)/.37,0,1):0;
+   M.dash=id==='charge'&&k>=1&&state==='fight'?M.dash+dt:0;
+   M.land=id==='leap'&&k>=1&&state==='fight'?M.land+dt:0;
+   const bound=M.dash>0&&M.dash<KEEPER_POSE.bound[0]?Math.sin(Math.PI*M.dash/KEEPER_POSE.bound[0]):0;
+   const slam=M.land>0&&M.land<KEEPER_POSE.slam[0]?Math.sin(Math.PI*M.land/KEEPER_POSE.slam[0])*KEEPER_POSE.slam[1]:0;
+   M.hop=u>0?Math.sin(Math.PI*u)*KEEPER_POSE.leap:bound*KEEPER_POSE.bound[1]-slam;
+   const air=u>0||bound>0?1:0;
    kit.legs.forEach((L,i)=>{L.lift=i<2?M.rear:0;L.air.set(0,M.rear*.7,M.rear*.5);});
-   const o=kit.update(M,dt,opts,{air:M.sink>.02?1+M.sink:0});
-   body.position.set(o.x,T.MathUtils.lerp(1.35,KEEPER_BODY.y-.4,M.rise)+Math.sin(t*(sleep||weary?.9:1.6))*.035-M.sink*4.5+o.y,o.z);
+   const o=kit.update(M,dt,opts,{air:air?(u>.5?1:1.4):0,landHome:true});
+   body.position.set(o.x,T.MathUtils.lerp(1.35,KEEPER_BODY.y-.4,M.rise)+Math.sin(t*(sleep||weary?.9:1.6))*.035+M.hop+o.y,o.z);
    body.rotation.set(-M.rear*.28+o.pitch,o.yaw,o.roll-o.x*KEEPER_GAIT.roll);
    M.sweep=ease(M.sweep,id==='sweep'?side*Math.sin(Math.min(1,k)*Math.PI*2.2)*(k>=1?.15:.5):0,7);
    const turn=lag.update(dt,M.heading),sway=Math.sin(t*.7)*.03+M.sweep-turn*.6;
@@ -129,7 +155,7 @@ export function createKeeperCreature(gltf,{gameMaterial=false}={}) {
    // the glyphs on its shell: dim and flickering afraid, steady and bright as it calms
    const calm=state==='resolved'?1:meter;
    glowM.uniforms.uGlow.value=.12+.75*calm+(calm<.5?Math.max(0,Math.sin(t*9))*.08:.08*Math.sin(t*1.5));
-   kit.write();skinLegs.write(M.heading,{air:M.sink>.02?1:0});
+   kit.write();skinLegs.write(M.heading,{air});
    M.updateAnchors();
   },
   dispose(){for(const m of meshes){m.material.dispose();if(m.material!==originals[meshes.indexOf(m)])originals[meshes.indexOf(m)].dispose();}glyphs.geometry.dispose();releaseMaterial(glowM);group.removeFromParent();}

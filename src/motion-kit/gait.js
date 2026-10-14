@@ -16,6 +16,10 @@ import * as THREE from 'three';
 // asks the planner anything; it only follows f.pos and f.heading (src/motion-kit/rig.js).
 
 const smoother = THREE.MathUtils.smootherstep, clamp = THREE.MathUtils.clamp;
+/** The share of `clear` two feet on one side keep along the body in the alternating gaits (GaitPlanner.keepClear). */
+const CLEAR_TRIPOD = 0.6;
+/** A foot keeping clear (`clear`) swings out to its side by this share of it at the middle of its step. */
+const BOW = 0.5;
 const _h = new THREE.Vector3(), _t = new THREE.Vector3();
 
 const GOLDEN = 0.6180339887498949;   // (the golden ratio's fraction: the most even spread of n, n+1, n+2 … over a cycle)
@@ -84,14 +88,19 @@ export function layoutLegs(homes, gait) {
  *              steps in unison (the rigs pass their serial: see init)
  */
 export class GaitPlanner {
-  constructor({ homes, gait, groups, neighbours, drift = 0.3, stepTime = [0.12, 0.4], height = 0.1, arc = 'organic', reach, maxStance = 2.5, seed = 1, fast = null } = {}) {
+  constructor({ homes, gait, groups, neighbours, drift = 0.3, stepTime = [0.12, 0.4], height = 0.1, arc = 'organic', reach, maxStance = 2.5, seed = 1, fast = null, clear = 0 } = {}) {
     const lay = layoutLegs(homes, gait);
     this.groups = groups ?? lay.groups;
     this.neighbours = neighbours ?? lay.neighbours;
     this.gait = lay.gait;
     // fast: { gait, at } another gait from `at` m/s (back below 0.8 of it), changed while every foot is down: a
     // six-legged walker's one-at-a-time steps at a walk, its tripods at the fight's pace (an insect's own change)
-    if (fast) { const f = layoutLegs(homes, fast.gait); this.layouts = { slow: { groups: this.groups, neighbours: this.neighbours, gait: this.gait }, fast: { groups: f.groups, neighbours: f.neighbours, gait: f.gait }, at: fast.at }; this.pace = 'slow'; }
+    // (and fast.turn rad/s: turning on the spot that fast, the tripods too, so its feet keep up with the turn)
+    if (fast) { const f = layoutLegs(homes, fast.gait); this.layouts = { slow: { groups: this.groups, neighbours: this.neighbours, gait: this.gait }, fast: { groups: f.groups, neighbours: f.neighbours, gait: f.gait }, at: fast.at, turn: fast.turn ?? Infinity }; this.pace = 'slow'; }
+    // clear (m): the least room kept between two feet on the floor (issue #320, "his feet get tangled"): a planted foot
+    // crowded by another's steps away, and none lands nearer another than this (0: off, as every other walker)
+    this.clear = clear;
+    this.sides = homes.map((h) => (h.x >= 0 ? 1 : -1));
     const rnd = seeded(seed);
     this.rnd = rnd; this.seed = seed;
     // (±3 % on the stride: ±6 % beat a pack of two into step within a few strides, the heron's unison 0.72; #287)
@@ -180,6 +189,9 @@ export class GaitPlanner {
     const speed = Math.hypot(vel.x, vel.z);
     const lead = speed > 0.05 ? Math.min(1, speed / 0.6) * this.drift * 0.9 : 0;
     _h.set(vel.x * dur + (speed > 1e-6 ? (vel.x / speed) * lead : 0), 0, vel.z * dur + (speed > 1e-6 ? (vel.z / speed) * lead : 0));
+    // (keeping its feet clear, never further past home than its reach: a charge's dash at 20 m/s landed a hind foot 1.1 m
+    // ahead of its hip, under the middle leg's knee)
+    if (this.clear > 0) { const L = Math.hypot(_h.x, _h.z); if (L > this.reach) _h.multiplyScalar(this.reach / L); }
     return this.homeOf(foot, root, heading + turn * dur * 1.5, out, _h);
   }
 
@@ -194,12 +206,14 @@ export class GaitPlanner {
     let turn = Math.atan2(Math.sin(heading - this.heading), Math.cos(heading - this.heading)) / Math.max(dt, 1e-4);
     if (!(dt > 0)) turn = 0;
     this.heading = heading;
+    (this.root ??= new THREE.Vector3()).copy(root);
     const speed = Math.hypot(vel.x, vel.z);
     const feet = this.feet;
     this.sinceLift += dt;
     let changing = false;
     if (this.layouts) {
-      const L = this.layouts, want = speed > L.at ? 'fast' : speed < L.at * 0.8 ? 'slow' : this.pace;
+      const L = this.layouts, fast = speed > L.at || Math.abs(turn) > L.turn, slow = speed < L.at * 0.8 && Math.abs(turn) < L.turn * 0.6;
+      const want = fast ? 'fast' : slow ? 'slow' : this.pace;
       if (want !== this.pace && feet.every((f) => f.planted)) {
         this.pace = want; Object.assign(this, L[want]);
         this.groups.forEach((g, k) => g.forEach((leg) => { feet[leg].group = k; }));
@@ -237,7 +251,7 @@ export class GaitPlanner {
     // (a new home, the dog sitting down: the stance is no longer the first one)
     if (moving || (this.fresh && feet.some((f) => !f.home.equals(f.home0)))) this.fresh = false;
     else if (this.fresh && !this.locked) return ev;   // (the first stance stands until it moves: see init)
-    const threshold = moving ? this.drift : this.drift * 0.35;   // (stopped: a settling step brings a foot home)
+    const threshold = moving ? (this.clear > 0 && speed < 0.08 ? this.drift * 0.4 : this.drift) : this.drift * 0.35;   // (stopped: a settling step brings a foot home; turning on the spot, keeping clear: sooner, the middle feet too)
     const dur = this.locked ? this.stepTime[0] : this.swingTime(speed);   // (a brace is quick: done well before the pose holds)
     if (changing || (!independent && swinging >= 0)) return ev;
     // (independent feet brace one at a time: a brace not begun within 0.3 s of the lock waits, so no foot is
@@ -256,6 +270,7 @@ export class GaitPlanner {
         let fu = f.drift / threshold;
         if (this.locked) fu = Math.max(fu, 1);
         if (f.stood > this.maxStance && f.drift > this.drift * 0.25) fu = Math.max(fu, 1);
+        if (this.clear > 0 && independent && this.crowded(i)) fu = Math.max(fu, 1.5);   // (one foot at a time: the crowded one first; tripods keep their groups)
         u = Math.max(u, fu);
       }
       if (u > bestU) { second = best; secondU = bestU; best = g; bestU = u; }
@@ -274,11 +289,56 @@ export class GaitPlanner {
     for (const i of this.groups[best]) {
       const f = feet[i];
       if (this.locked && !this.pending?.has(i)) continue;
-      if (f.drift >= min || f.stood > this.maxStance) this.lift(i, root, heading, vel, turn, swing, ground);
+      if (f.drift >= min || f.stood > this.maxStance || (this.clear > 0 && independent && this.crowded(i))) this.lift(i, root, heading, vel, turn, swing, ground);
     }
     this.lastGroup = best;
     this.sinceLift = 0;
     return ev;
+  }
+
+  /** Is planted foot i nearer another foot (where it stands, or lands) than `clear`, or across the body's middle? */
+  crowded(i) {
+    const f = this.feet[i], R = this.root;
+    if (!f.planted) return false;
+    if (R && ((f.pos.x - R.x) * Math.cos(this.heading) - (f.pos.z - R.z) * Math.sin(this.heading)) * this.sides[i] < this.clear * 0.25) return true;
+    for (let j = 0; j < this.feet.length; j++) {
+      if (j === i) continue;
+      const o = this.feet[j], at = o.planted ? o.pos : o.to;
+      if (Math.hypot(at.x - f.pos.x, at.z - f.pos.z) < this.clear) return true;
+    }
+    return false;
+  }
+  /**
+   * A landing spot `to` for foot i kept `clear` m from every other foot (where it stands, or will land), and on its own
+   * side of the body's middle line (root, heading): pushed away along the body from a foot on its side, out from one
+   * across. A few passes, so being pushed off one doesn't land it on another.
+   */
+  keepClear(i, to, root, heading) {
+    const C = this.clear, s = Math.sin(heading), c = Math.cos(heading), side = this.sides[i];
+    // (the body's right is (c, -s), its forward (s, c), as homeOf turns them)
+    for (let pass = 0; pass < 3; pass++) {
+      let moved = false;
+      for (let j = 0; j < this.feet.length; j++) {
+        if (j === i) continue;
+        const o = this.feet[j], at = o.planted ? o.pos : o.to;
+        const dx = to.x - at.x, dz = to.z - at.z, d = Math.hypot(dx, dz);
+        if (d >= C) continue;
+        if (this.sides[j] === side) {
+          const along = Math.sign((this.feet[i].home.z - o.home.z) || 1), a = dx * s + dz * c, b = dx * c - dz * s;
+          // (along the body, the way its home lies from the other's; tripods by less, CLEAR_TRIPOD, so a group stays in phase)
+          const Cs = this.gait === 'independent' ? C : C * CLEAR_TRIPOD;
+          if (d >= Cs) continue;
+          const need = Math.sqrt(Math.max(0, Cs * Cs - b * b)) * along - a;
+          to.x += s * need; to.z += c * need;
+        } else { const k = (C - d) / Math.max(d, 1e-3); to.x += dx * k; to.z += dz * k; }
+        moved = true;
+      }
+      // its own side of the middle line, by half the room
+      const lat = ((to.x - root.x) * c - (to.z - root.z) * s) * side;
+      if (lat < C * 0.5) { const push = (C * 0.5 - lat) * side; to.x += c * push; to.z -= s * push; moved = true; }
+      if (!moved) break;
+    }
+    return to;
   }
 
   /** Start a step: one ground ray at its landing spot. */
@@ -286,6 +346,11 @@ export class GaitPlanner {
     const f = this.feet[i];
     f.from.copy(f.pos);
     this.landing(f, root, heading, vel, turn, dur, f.to);
+    if (this.clear > 0) {
+      this.keepClear(i, f.to, root, heading);
+      // (and its swing bowed out to its side on the way, BOW of the room, round the feet it passes)
+      (f.bow ??= new THREE.Vector3()).set(Math.cos(heading) * this.sides[i], 0, -Math.sin(heading) * this.sides[i]).multiplyScalar(this.clear * BOW);
+    }
     const y = ground ? ground(f.to.x, root.y + 1.5, f.to.z) : null;
     this.rays++;
     f.to.y = Number.isFinite(y) ? y + f.home.y : root.y + f.home.y;
@@ -300,6 +365,7 @@ export class GaitPlanner {
       // Zero take-off/landing velocity; a fixed predicted landing avoids a mid-step target kink.
       out.lerpVectors(f.from, f.to, smoother(t, 0, 1));
       out.y += f.lift * Math.sin(Math.PI * t) ** 2;
+      if (f.bow && this.clear > 0) out.addScaledVector(f.bow, Math.sin(Math.PI * t) ** 2);   // (out only as it is up: no slide by the floor)
       return out;
     } else if (this.arc === 'machine') {
       // three straight moves: lift, translate, drop (hard stops)
