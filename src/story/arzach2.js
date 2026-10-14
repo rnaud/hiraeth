@@ -39,6 +39,7 @@ const NOTCH = Math.PI / 4;  // the signal lamp's turntable: eight notches
 const LS = 1.35;            // the signal lamp's size (it's drawn at a person's scale, then grown to read from afar)
 export const LAMP_START = 3; // the notch it stands at (0 faces the rose cliff)
 const STONES_DOWN = 6;      // m the floating stones come down
+const GATE_REACH = 18;      // m: within this of the riders’ gate it is passed on the way to Aube (issue #349)
 
 // ------------------------------------------------------------------ the bell's note, from the tank
 // A low FM bell. In Vael II it plays through the level's Sound; elsewhere the
@@ -80,8 +81,11 @@ export function setupArzach2(ctx) {
   // the main quest doesn't just appear: it starts when you talk to Sister Aube (the scout finds them till then: src/story/quests.js opensWith)
   // (in Vael the sky stones lie over the cloud south of the plain: from the plain the scout finds the riders' gate at its
   //  edge first, where the riders set off over the cloud, then Aube; src/vael-crossing.js)
-  const onPlain = () => !!A.gate && player.pos.z < (A.plainEdgeAt?.(player.pos.x) ?? A.plainEdge) - 6 && flat(player.pos, A.gate.at) > 18;
-  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube', { at: 'aubeWay', label: () => (onPlain() ? 'The riders’ gate, the way to Sister Aube' : null) });
+  // Once you have stood at the gate it is passed for good (issue #349: the marker pointed back at it as you walked off, and
+  // at the gate itself nothing said where next): the scout goes on to Aube, by her smoke over the cloud, and flies there once.
+  const gateReached = () => !!game.flag('arzach2.gate.reached');
+  const onPlain = () => !!A.gate && !gateReached() && player.pos.z < (A.plainEdgeAt?.(player.pos.x) ?? A.plainEdge) - 6 && flat(player.pos, A.gate.at) > GATE_REACH;
+  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube', { at: 'aubeWay', label: () => (onPlain() ? 'The riders’ gate, the way to Sister Aube' : A.gate ? 'Sister Aube, by the smoke over the cloud' : null) });
   if (game.flag('arzach2.cairn.placed') === undefined) game.set('arzach2.cairn.placed', 0);
   const ground = (x, z, from) => { const g = physics.groundAt(x, from, z, 60); return Number.isFinite(g) ? g : from - 3; };
   const Q = 'arzach2.bell';
@@ -479,6 +483,11 @@ export function setupArzach2(ctx) {
   const st = { landed: false };
   const update = (dt, t) => {
     const pp = player.pos;
+    // the riders' gate reached on the way to Aube: passed, and the scout shows the way on (issue #349)
+    if (A.gate && !gateReached() && !quests.isStarted(Q) && flat(pp, A.gate.at) < GATE_REACH && Math.abs(pp.y - A.gate.at.y) < 12) {
+      game.set('arzach2.gate.reached', true);
+      game.emit('scout:ping', { why: 'waypoint', wait: true });
+    }
     // the tiles fall up off the island
     if (tiles && tiles.t >= 0) {
       tiles.t += dt;

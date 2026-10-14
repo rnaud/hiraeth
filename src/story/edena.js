@@ -189,6 +189,11 @@ export function setupEdena(ctx) {
   // ---------------------------------------------------------------- per frame
   const update = (dt, t) => {
     const pp = player.pos;
+    // the crown reached is the climb done, the note read or not (issue #349: only its "read the note" prompt finished it)
+    if (!game.flag('edena.lookout.read') && flat(pp, T.lookout) < 4 && Math.abs(pp.y - T.lookout.y) < 3) {
+      game.set('edena.lookout.read', true);
+      if (!quests.isStarted('edena.tree')) quests.start('edena.tree');
+    }
     if (!game.flag('edena.cabin.seen') && pp.y > 1400 && Math.hypot(pp.x - S.panel.x, pp.z - S.panel.z) < 18) game.set('edena.cabin.seen', true);
     // the ship's flowers breathe out petals when you first come close
     const dShip = flat(pp, S.centre);

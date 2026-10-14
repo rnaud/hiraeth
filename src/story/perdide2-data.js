@@ -61,7 +61,7 @@ export const QUESTS = [
       // (the boat seen is the end, issue #172: Hollin, walked down to the root cave, asks what was in it when you pass, and
       //  his promise and keepsake wait with him; a save at the old 'tell' goes back to 'answer', so the end runs as you
       //  arrive: src/save-migrate.js step 20. The water-way home is lit when it ends: src/story/perdide2.js)
-      { id: 'answer', text: 'Take the skiff to what answered', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', home: 'the water-way' },
+      { id: 'answer', text: 'Take the skiff to what answered; look inside', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', home: 'the water-way' },
     ],
   },
   {

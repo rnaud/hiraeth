@@ -889,7 +889,16 @@ function updatePlumb(dt) {
 const scoutTeach = { left: 0, at: 0 };
 const scoutHint = installScoutHint({ game, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
   usable: () => !ship.inside && !ship.playing && !minigame && !minigameDef && game.flag('prologue.done') && !!scout.getTarget?.() });
-game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });   // (a nudge is the last of the notices: not over another, issue #78)
+// (a nudge that `wait`s, the way on from a place reached (Vael's riders' gate, issue #349), comes once the notices
+//  and the talk are done, within 30 s, instead of not at all)
+const pingLater = { until: 0 };
+game.on('scout:ping', (e) => { if (e?.wait && hintsFor('nudge')) pingLater.until = performance.now() + 30000; });   // (kept until it is shown)
+game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) { scout.ping(); pingLater.until = 0; } });   // (a nudge is the last of the notices: not over another, issue #78)
+function pingWhenFree() {
+  if (!pingLater.until) return;
+  if (performance.now() > pingLater.until) { pingLater.until = 0; return; }
+  if (!ship.playing && !storyRt.dialogue.open && !ship.cinema.noticeBusy() && !busy()) { pingLater.until = 0; scout.ping(); }
+}
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
@@ -2346,6 +2355,7 @@ function frame(ts) {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
+  pingWhenFree();
   if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t, TEACH); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
   updateHealth(dt);
   updateKeys();

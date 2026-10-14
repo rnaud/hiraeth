@@ -37,7 +37,7 @@ export const QUESTS = [
       //  at the old 'saba' goes on to 'sing', at 'listen' to 'splinter': src/save-migrate.js step 15)
       { id: 'sing', text: 'Make the crystal sing: rain, or your fluid', label: 'The Great Crystal', flag: 'perdide.crystal.sung', at: 'crystal' },
       { id: 'splinter', text: 'Pick up the splinter the song shook loose', label: 'The fallen splinter', flag: 'perdide.splinter.taken', at: 'splinter' },
-      { id: 'cave', text: 'Carry the splinter to the western island’s cave', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart', home: 'Wendel’s egg-lamps' },   // (home: the way back the ring's page sends you, for the level design audit)
+      { id: 'cave', text: 'Hold up the splinter in the western island’s cave', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart', home: 'Wendel’s egg-lamps' },   // (home: the way back the ring's page sends you, for the level design audit)
     ],
   },
   {
