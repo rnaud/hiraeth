@@ -75,7 +75,12 @@ can be shared only between the tests of one file. The rules for a test that is s
   `tests/built-worlds.js` (`builtWorld(id)`: built once per process, with the three.js warnings its build
   printed); a check of every world goes in the file that already builds them all (the push's rings and the
   build's warnings live in `tests/contact-audit.test.js` for that), not in a file that builds them again. A
-  test that plays a world's story, or needs a save's flags set before the build, builds its own.
+  test that plays a world's story, or needs a save's flags set before the build, builds its own. The same goes for
+  the play-through's worlds (`tests/playthrough-agent.js` loadWorld): the shops' walk and the fragments' route
+  check share one load of each route world in `tests/route-worlds.test.js` (65 s -> 31 s for the two). There each
+  world is measured and walked before the next one loads, because loadWorld resets the game's registries
+  (interactables, targets, listeners). The places of interest stay on the gadget-less `builtWorld`
+  (`tests/fragments-poi.test.js`): the play-through's gadgets change a world's beacons.
 - **Sample, and say why.** Where a check walks every person, frame or world and the property is the same for
   each of a kind, take one of each kind and write in a comment what it still covers. One simulation can serve
   several checks (`tests/idle-legs.test.js`: one 49 s standing for the legs, the head and talking).

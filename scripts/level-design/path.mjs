@@ -1,5 +1,5 @@
 // The level design audit's critical path through a built world (scripts/level-design/audit.mjs measures it; the fragments
-// of the singing light are kept off it, tests/fragments-route.test.js and scripts/fragment-spots.mjs): the landing, the
+// of the singing light are kept off it, tests/route-worlds.test.js and scripts/fragment-spots.mjs): the landing, the
 // route's quests stage by stage (its temple's door when it goes in), back to the ship, through the doorways that take you
 // elsewhere and along the leading lines a leg follows. `W` is a world as tests/playthrough-agent.js loadWorld builds it.
 import * as THREE from 'three';

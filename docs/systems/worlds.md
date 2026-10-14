@@ -626,7 +626,7 @@ Both walks back were the way you came (`src/vael-ways.js`, no rng):
 Small fixes from `docs/audits/level-design-v1.15.md`'s "what's left" (`docs/audits/level-design-v1.17.md`):
 - **The City-Shaft.** **Basile** (`MIDDLE.basile` in `src/story/incal-data.js`, placed in `src/levels/content.js`) waits
   at the middle levels' cab stop beside Fausta's shop with her baskets (listen-only, toned lines): the shop's door is no
-  longer a loner, and `tests/shop-worlds.test.js` again asks for a person (or the landing) near every shop. **The rim
+  longer a loner, and `tests/route-worlds.test.js` again asks for a person (or the landing) near every shop. **The rim
   posts** (`RIM_POSTS`, `rimPosts` in `src/shaft-ways.js`): the drops' red post, arm and lamp from beside the Warden's
   Well's door along the rim's edge to the red stair's gate (none on the rim's cab stop); with the stair they are a line,
   `the lamplighters’ rim posts`, from the Well to Nima. **The upper pad** (`CLIMB.upper`, `THINGS.upperPad`): a second

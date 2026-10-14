@@ -249,7 +249,7 @@ many you picked up (`SPLINTERS`: none, some, every one; conditions over `fragmen
   is drawn there (the contact audit's drawn surfaces, or the terrain), with room over it, out of harm, 24 at least
   15 m apart, and the walker's flood reaches each from the world's spawn (at the world's `REACH_CELL`); in the
   Underwater City under glass or within 35 m of air.
-- `tests/fragments-route.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
+- `tests/route-worlds.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
   (Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market) two at least in their new
   country, one of them high (15 m over the landing, or a 10 m drop beside it).
 - `tests/fragments-poi.test.js` (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of

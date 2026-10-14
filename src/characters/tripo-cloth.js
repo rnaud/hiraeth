@@ -6,6 +6,8 @@ import { runSteps } from '../load-steps.js';
 const V = () => new T.Vector3();
 const clamp = T.MathUtils.clamp;
 const COLS = 32, ROWS = 14;
+// (fit.preservePinNormals: vertices freer than this take their normals from the faces alone)
+const PIN_FREE = .4;
 const START = .40, END = Math.PI * 2 - START;
 const angleOf = p => { let a = Math.atan2(p.x, p.z + .016); return a < 0 ? a + Math.PI * 2 : a; };
 const red = isShirtColor;
@@ -315,10 +317,13 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
   {
     const A=mapArrays,[idx,wts]=detailSkin,b=new T.Vector3();A.base=new Float64Array(A.count*3);A.skinB=new Int32Array(A.count*4);A.skinW=new Float64Array(A.count*4);
     mapping.forEach((m,v)=>{if(m.free>=1)return;b.copy(m.p).applyMatrix4(skinSource.bindMatrix);A.base.set([b.x,b.y,b.z],v*3);for(let k=0;k<4;k++){A.skinB[v*4+k]=idx[m.i*4+k];A.skinW[v*4+k]=wts[m.i*4+k];}});
+    // (fit.preservePinNormals, for an engine: each pinned vertex's rest normal in the detailed mesh and how far its
+    // normal goes to it skinned, update's own 1 - smoothstep(free, 0, PIN_FREE); 0 for the rest)
+    if(fit?.preservePinNormals){const raw=detailed.attributes.normal;A.pin=new Float64Array(A.count*4);mapping.forEach((m,v)=>{if(m.free>=PIN_FREE)return;A.pin.set([raw.getX(m.i),raw.getY(m.i),raw.getZ(m.i),1-T.MathUtils.smoothstep(m.free,0,PIN_FREE)],v*4);});}
   }
   // an engine's own (CLOTH_HOST): everything it needs that never changes, once; then a packet a frame (update)
   const packet=offload?{G,simCaps,mapCaps,boneMesh:new Float64Array(boneMesh.length*16),attach:new Float64Array(16),steps:0,reset:true,simulated:false}:null;
-  if(offload)offload.init({garment,N,caps:caps.length,constants,map:mapArrays,index:garmentGeometry.index.array,vertices:garmentGeometry.attributes.position.count,bones:boneMesh.length});
+  if(offload)offload.init({garment,N,caps:caps.length,constants,map:mapArrays,index:garmentGeometry.index.array,vertices:garmentGeometry.attributes.position.count,bones:boneMesh.length,preservePinNormals:!!fit?.preservePinNormals,detailCollisions:fit?.detailCollisions!==false});
   const base=new T.Vector4(),bindMatrix=skinSource.bindMatrix;
   /** p (the mesh's local space) skinned with vertex `index`'s weights: SkinnedMesh.applyBoneTransform's own math */
   function skin([indices,weights],index,p){
@@ -419,7 +424,7 @@ export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offl
       const o=M.out[v];out[o]=x;out[o+1]=y;out[o+2]=z;
     }
     garmentGeometry.attributes.position.needsUpdate=true;vertexNormals(garmentGeometry);
-    if(fit?.preservePinNormals){const normals=garmentGeometry.attributes.normal,raw=detailed.attributes.normal;for(const m of mapping){if(m.free>=.4)continue;const normal=V(),part=V(),restN=V().fromBufferAttribute(raw,m.i);for(let k=0;k<4;k++){const w=detailSkin[1][m.i*4+k];if(w)normal.addScaledVector(part.copy(restN).transformDirection(boneMesh[detailSkin[0][m.i*4+k]]),w)}normal.normalize();part.fromBufferAttribute(normals,m.o).lerp(normal,1-T.MathUtils.smoothstep(m.free,0,.4)).normalize();normals.setXYZ(m.o,part.x,part.y,part.z)}normals.needsUpdate=true;}
+    if(fit?.preservePinNormals){const normals=garmentGeometry.attributes.normal,raw=detailed.attributes.normal;for(const m of mapping){if(m.free>=PIN_FREE)continue;const normal=V(),part=V(),restN=V().fromBufferAttribute(raw,m.i);for(let k=0;k<4;k++){const w=detailSkin[1][m.i*4+k];if(w)normal.addScaledVector(part.copy(restN).transformDirection(boneMesh[detailSkin[0][m.i*4+k]]),w)}normal.normalize();part.fromBufferAttribute(normals,m.o).lerp(normal,1-T.MathUtils.smoothstep(m.free,0,PIN_FREE)).normalize();normals.setXYZ(m.o,part.x,part.y,part.z)}normals.needsUpdate=true;}
 
     // (the regular cage itself is never drawn: its normals only when it is shown, for a debug view)
     geo.attributes.position.needsUpdate=true;if(mesh.visible)geo.computeVertexNormals();

@@ -7,6 +7,6 @@ test('native engine loading skips browser-only ink masks instead of waiting fore
  Object.defineProperty(globalThis,'location',{configurable:true,value:{protocol:'engine:'}});
  t.after(()=>{if(previous)Object.defineProperty(globalThis,'location',previous);else delete globalThis.location;});
  // No document/Image implementation is installed: either mask must resolve without requesting one.
- assert.equal(await loadClothInk('characters/traveller-v1/cloth-ink.png'),null);
+ assert.equal(await loadClothInk('characters/traveller-v1/head-v3/face-ink.png'),null);
  assert.equal(await loadClothInk('characters/traveller-v1/head-v3/hair-ink.png'),null);
 });

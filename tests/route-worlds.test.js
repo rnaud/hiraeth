@@ -1,9 +1,23 @@
-// A shop in every route world (batch 4: src/shop-fronts.js, src/shop-world.js placeShop, src/levels/<world>.js;
-// docs/systems/interiors.md "A shop in every world"): every world's front is a building you walk into (a door on
-// the ground, its way clear, a solid back), and in each world as the play-through builds it (tests/playthrough-
-// agent.js loadWorld: the level with its temple, real collision, the story) the shop stands on the ground by the
-// way, its door clear of every other thing, the keeper behind the counter, the passage in and out, the scout,
-// the camera's tight framing and the rain shelter as at every other door.
+// The route worlds as the play-through builds them (tests/playthrough-agent.js loadWorld: the level with its temple, real
+// collision, the story), each loaded once for the checks of this file (docs/systems/testing.md "Heavy tests": a world
+// takes 0.4 to 7 s to load, and the shops and the fragments each loaded all twelve):
+//
+// - A shop in every route world (batch 4: src/shop-fronts.js, src/shop-world.js placeShop, src/levels/<world>.js;
+//   docs/systems/interiors.md "A shop in every world"): every world's front is a building you walk into (a door on the
+//   ground, its way clear, a solid back), and in each world the shop stands on the ground by the way, its door clear of
+//   every other thing, the keeper behind the counter, the passage in and out, the scout, the camera's tight framing and
+//   the rain shelter as at every other door.
+// - The fragments of the singing light off the way you are sent, and in the new country (issue #228, the game audit
+//   v1.59; docs/systems/fragments.md). Each world's critical path laid as the level design audit lays it
+//   (scripts/level-design/path.mjs: the landing, the route's quests stage by stage, back to the ship, its straight legs in
+//   3D). Every fragment lies 25 m or more from it; and each of the six worlds rebuilt in v1.55–v1.57 has at least two in
+//   its new country (tests/fragments-reach.js NEW_COUNTRY), one of them high (15 m over the landing, or on a ledge with a
+//   10 m drop by it).
+//
+// (loadWorld resets the game's registries, its interactables, targets and listeners, for the world it loads: so each world
+// is loaded, what the fragments' checks read is measured off it there and then, the shops' walk goes through it, and it is
+// disposed before the next. The fragments' places of interest are counted on the contact audit's build, without the
+// play-through's gadgets, in tests/fragments-poi.test.js.)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -18,6 +32,37 @@ const { inTightRoom } = await import('../src/interiors.js');
 const { isIndoors } = await import('../src/shelter.js');
 const { viaPortal } = await import('../src/scout.js');
 const { Physics } = await import('../src/physics.js');
+const { criticalPath, pathSegments, distanceToPath } = await import('../scripts/level-design/path.mjs');
+const { newCountry } = await import('./fragments-reach.js');
+const { FRAGMENTS } = await import('../src/fragments-data.js');
+
+/** The nearest a fragment may lie to the route's line (m). */
+export const ROUTE_CLEAR = 25;
+/** The worlds rebuilt after the fragments were first placed (v1.55–v1.57): Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market. */
+const REBUILT = ['perdide', 'edena', 'underwater', 'moonfoundry', 'spacecity', 'bazaar'];
+
+/** What the fragments' checks read of each world, measured as it was loaded: { segs, country? }. */
+const measured = new Map();
+/** World `id` loaded as the play-through loads it, the fragments' measures taken off it; the caller disposes it. */
+function load(id) {
+  globalThis.location = { search: `?level=${id}` };
+  const W = A.loadWorld(id);
+  const m = { segs: pathSegments(criticalPath(W, id).path) };
+  if (REBUILT.includes(id)) {
+    const { sights, isNew } = newCountry(W.level, id);
+    const fresh = FRAGMENTS[id].filter(([x, y, z]) => isNew(x, y, z));
+    const spawnY = W.level.spawn.y;
+    const ledge = ([x, y, z]) => [0, 1, 2, 3, 4, 5, 6, 7].some((k) => {
+      const a = (k / 8) * Math.PI * 2, g = W.physics.groundAt(x + Math.cos(a) * 4, y + 1, z + Math.sin(a) * 4, 80);
+      return !Number.isFinite(g) || y - g >= 10;
+    });
+    m.country = { sights, fresh, high: fresh.filter((p) => p[1] - spawnY >= 15 || ledge(p)) };
+  }
+  measured.set(id, m);
+  return W;
+}
+/** The fragments' measures of world `id` (loaded for them alone when the shops' walk has not loaded it). */
+const measures = (id) => { if (!measured.has(id)) load(id).dispose(); return measured.get(id); };
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const fwdOf = (h) => v(Math.sin(h), 0, Math.cos(h));
@@ -54,7 +99,7 @@ test('every world\'s front: its door on the ground at the threshold, open into a
 
 test('every route world has its shop where the play-through builds it: on the ground, its way clear, in and out, the keeper behind the counter', () => {
   for (const world of ORDER) {
-    const W = A.loadWorld(world);
+    const W = load(world);
     try {
       const { level, physics } = W;
       // (a merged world has its parts' shops: Vael's Wind-Shelf and the sky stones' Almonry, src/shop.js shopsIn)
@@ -120,4 +165,24 @@ test('the shops\' rooms never leave the world: the edge (Player opts.limit) and 
   assert.match(src('src/player.js'), /!inTightRoom\(this\.pos, 0\.3\)\s*\n?\s*&& keepInside/, 'the world\'s edge holds no one in a room built past it');
   assert.match(src('src/levels/dismissed/hangar/level.js'), /Math\.hypot\(p\.x, p\.z\) > 900 && !interiorAt\(p\)/);
   assert.equal(OPEN_SHOPS.length, ROUTE_PARTS.length, 'a shop for each place on the route');
+});
+
+test('every fragment lies 25 m or more from the route’s line', () => {
+  const near = [];
+  for (const id of ORDER) {
+    const { segs } = measures(id);
+    assert.ok(segs.length > 2, `${id}: a route of ${segs.length} legs`);
+    FRAGMENTS[id].forEach((p, i) => { const d = distanceToPath(p, segs); if (d < ROUTE_CLEAR) near.push(`${id} ${i} (${p.join(', ')}): ${d.toFixed(1)} m from the route`); });
+  }
+  assert.deepEqual(near, []);
+});
+
+test('the rebuilt worlds hide at least two in their new country, one of them high', () => {
+  const short = [];
+  for (const id of REBUILT) {
+    const { sights, fresh, high } = measures(id).country;
+    assert.ok(sights.length >= 3, `${id}: ${sights.length} sights of the new country`);
+    if (fresh.length < 2 || !high.length) short.push(`${id}: ${fresh.length} in the new country, ${high.length} high`);
+  }
+  assert.deepEqual(short, []);
 });

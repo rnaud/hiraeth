@@ -12,7 +12,7 @@
 // walker reaches it from the world's spawn (a double jump high at most, falls that don't hurt, Lorn's water swum).
 //
 // v1.61 (issue #228): 29 re-picked over the rebuilt worlds' new country and off the route (the level design audit's
-// critical path: tests/fragments-route.test.js, 25 m at least), each in the slot it replaced, marked "(v1.61, #228)"
+// critical path: tests/route-worlds.test.js, 25 m at least), each in the slot it replaced, marked "(v1.61, #228)"
 // with its place. A save's found flags on those slots move to unmoved ones still to find (src/save-migrate.js step 23,
 // FRAGMENTS_MOVED_228, which must list exactly the marked slots).
 //

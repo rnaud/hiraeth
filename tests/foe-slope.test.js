@@ -12,10 +12,13 @@ import { resetFeel } from '../src/feel.js';
 import { SLOPE, planeUnder, readSlope, tiltRoot, slopeOf, slopeAlong } from '../src/enemies/slope.js';
 import { GaitPlanner } from '../src/motion-kit/gait.js';
 import { BodyFromFeet } from '../src/motion-kit/body.js';
+import { underGround, plane } from './under-ground.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60;
 const BUILT = Object.entries(ARCHETYPES).filter(([, A]) => A.status === 'built');
-const SLOPED = (x, z) => 0.2 * x + 0.15 * z;   // (a rise of 0.25 per m: 14.0°, uphill toward +x +z)
+const SLOPED = plane(0.2, 0.15);   // (a rise of 0.25 per m: 14.0°, uphill toward +x +z)
+// (the drawn parts measured: all but those flagged noGround)
+const keep = (o) => !o.userData.noGround;
 const physicsOf = (ground) => ({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
 
 /** fn with Math.random seeded and a clock run by the frames (a foe's build, its stance and its sway draw on them). */
@@ -37,29 +40,6 @@ function world(physics) {
   return foes;
 }
 
-/** How far the model's lowest drawn point is under the ground (m): every vertex of every part, as three.js draws it. */
-function underGround(group, ground) {
-  group.updateMatrixWorld(true);
-  let worst = -Infinity, who = '';
-  const p = v(), im = new THREE.Matrix4();
-  group.traverseVisible((o) => {
-    const P = o.isMesh && !o.userData.noGround && o.geometry?.attributes?.position;
-    if (!P) return;
-    for (let k = 0; k < (o.isInstancedMesh ? o.count : 1); k++) {
-      if (o.isInstancedMesh) o.getMatrixAt(k, im);
-      for (let i = 0; i < P.count; i++) {
-        p.fromBufferAttribute(P, i);
-        if (o.isSkinnedMesh) o.applyBoneTransform(i, p);
-        if (o.isInstancedMesh) p.applyMatrix4(im);
-        p.applyMatrix4(o.matrixWorld);
-        const d = ground(p.x, p.z) - p.y;
-        if (d > worst) { worst = d; who = o.parent?.name || o.name || o.type; }
-      }
-    }
-  });
-  return { worst, who };
-}
-
 /**
  * The worst any drawn part of foe `kind` goes under the ground over `frames` frames (read every 3rd, after it settles):
  * standing (its calm: it idles, grazes, paces) or walking (uphill, across the slope, then down it, at its own pace).
@@ -77,7 +57,8 @@ function worstOf(foes, kind, ground, walk, frames = 150) {
     if (i < 20 || i % 3) continue;
     // (the hound lying in wait sinks into its own shadow, its legs folding into the pool with it: its own, as the worm's)
     if (f.model.shadowy && f.model.body.scale.y < 0.98) continue;
-    const u = underGround(f.model.group, ground);
+    // (each frame measured past the worst so far only: the same worst, the same part, the same frame)
+    const u = underGround(f.model.group, ground, { floor: worst, keep });
     if (u.worst > worst) ({ worst, who } = u), at = i;
   }
   foes.remove(f);
@@ -150,7 +131,7 @@ test('the kit on a slope: a foot with no ray of its own goes on the hillside, th
 
 test('every archetype standing and walking on a 14° slope, and standing on flat ground, keeps every drawn part over the ground (issue #332)', () => pinned(() => {
   const rows = [];
-  for (const [where, ground, modes] of [['a 14° slope', SLOPED, [false, true]], ['flat ground', () => 0, [false]]]) {
+  for (const [where, ground, modes] of [['a 14° slope', SLOPED, [false, true]], ['flat ground', plane(0, 0), [false]]]) {
     const foes = world(physicsOf(ground));
     for (const [id, A] of BUILT) {
       if (A.def.burrow) continue;   // (the worm lives under its sand)
@@ -176,8 +157,8 @@ test('the brute\'s hands and its saw stay over the ground in every skin, slumped
     for (let i = 0; i < 90; i++) {
       foes.update(DT);
       if (i < 20) continue;
-      worst = Math.max(worst, underGround(f.model.group, SLOPED).worst);
-      if (saw) blade = Math.max(blade, underGround(saw, SLOPED).worst);
+      worst = Math.max(worst, underGround(f.model.group, SLOPED, { floor: worst, keep }).worst);
+      if (saw) blade = Math.max(blade, underGround(saw, SLOPED, { floor: blade, keep }).worst);
     }
     assert.ok(worst < 0.03, `the ${skin} brute: ${(worst * 100).toFixed(1)} cm under`);
     if (saw) assert.ok(blade < 0, `its saw over the ground (${(blade * 100).toFixed(1)} cm; 51 cm under before)`);

@@ -242,8 +242,8 @@ and its old head is removed from the rendered clone at runtime. See the accepted
 head section above and `docs/systems/characters.md` for the fitting contract.
 
 The runtime implementation is in `src/characters/`; the matching `tools/tripo-*.js`
-files re-export it for these experiments. After regenerating and accepting an asset,
-promote the three matching files together:
+files re-export it for these experiments. (How the v1 body was promoted, kept for its history: its shipped files
+went on 2026-10-14.) After regenerating and accepting an asset, promote the three matching files together:
 
 ```sh
 cp output/character-tripo/rig-prototype.glb data/characters/traveller-v1/model.glb
@@ -340,7 +340,8 @@ full temple acceptance in [GitHub issue #237](https://github.com/rnaud/hiraeth/i
 
 ## Traveller ink study (#198)
 
-Rebuild the authored shirt/scarf mask with `node scripts/tripo/bake-cloth-ink.mjs`.
+(The authored shirt/scarf mask was rebuilt by `scripts/tripo/bake-cloth-ink.mjs`; it and the v1 body's shipped files
+went on 2026-10-14, when B3 had become the traveller. The sources stay in `data/characters/traveller-v1/`.)
 Its measured surface paths are in `data/characters/traveller-v1/ink/cloth-strokes.json`;
 the original model/colour texture are unchanged. Runtime loads one shared R8 mask
 for the body and GPU overshirt. See `docs/systems/characters.md`, “Traveller face and

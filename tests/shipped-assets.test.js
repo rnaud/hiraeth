@@ -21,7 +21,6 @@ export const ALLOWED = [
   [/^anim\/traveller\.txt$/, 'where the old traveller body beside it (anim/traveller.glb) comes from'],
   [/^characters\/traveller-v1\/(README\.md|head-v3\/provenance\.json)$/, 'where the traveller\'s generated files come from'],
   [/^guardians\/[\w-]+\/rig\.json$/, 'the fitting report beside each guardian\'s body (scripts/tripo/rig-*.mjs)'],
-  [/^characters\/traveller-v1\/(model\.glb|rig\.json|colors\.json|cloth-ink\.png)$/, 'the coral-shirt traveller: the Unity bridge build copies it from public/ (unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs)'],
 ];
 
 /** The source files the built pages reach: their scripts and everything those import (static, dynamic, workers, globs). */

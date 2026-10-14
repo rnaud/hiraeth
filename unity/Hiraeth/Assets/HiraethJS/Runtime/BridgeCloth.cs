@@ -21,17 +21,25 @@ namespace Hiraeth.Bridge
     /// over the workers (each writes its own: `outIx` is checked to be one-to-one), then the normals over the workers,
     /// each vertex summing its triangles' face normals in the triangles' order, as the single loop added them: the same
     /// numbers. -cloth-single runs the one job as before; -no-job-kick leaves the jobs to the next flush, as before.
+    ///
+    /// The description's flags (B3's fit, traveller-b3.js): pinNormals, the pinned vertices keep the detailed mesh's
+    /// rest normal skinned by their bones, their face normal eased that far towards it (pin's fourth); no detail
+    /// collisions, no free vertex pushed out of the legs. Without them (a v1 garment) as before.
     /// </summary>
     public sealed class BridgeCloth : System.IDisposable
     {
         public int gid;
         public readonly int N, E, M, V, T, K, B;
-        NativeArray<float> pins, outwards, edgeLength, edgeK, local, weights, free, outward, baseP, skinW;
+        NativeArray<float> pins, outwards, edgeLength, edgeK, local, weights, free, outward, baseP, skinW, pin;
         NativeArray<int> edgeA, edgeB, ids, outIx, skinB, index;
         NativeArray<float> P, Q, target, D, G, simCaps, mapCaps, bones, attach;
         NativeArray<float3> pos, nrm;
         public NativeArray<Vector3> outPos, outNrm;
         NativeArray<int> triStart, tris;   // (each vertex's triangles, in their order: the normals' job)
+        NativeArray<float4> pinNrm;   // (the split jobs': each garment vertex's skinned rest normal and how far to ease to it, Map's)
+        /// <summary>engine/cloth.js CLOTH_PIN_NORMALS and CLOTH_NO_DETAIL_COLLISIONS.</summary>
+        public const int PinNormalsFlag = 1, NoDetailCollisionsFlag = 2;
+        readonly bool pinNormals, detail;
         JobHandle job; bool running;
         readonly bool split;
         public double ms;
@@ -47,16 +55,20 @@ namespace Hiraeth.Bridge
             System.Buffer.BlockCopy(b, 0, f, 0, count - count % 4);
             int o = 0;
             N = u[o++]; E = u[o++]; M = u[o++]; V = u[o++]; T = u[o++]; K = u[o++]; B = u[o++];
+            int flags = u[o++]; pinNormals = (flags & PinNormalsFlag) != 0; detail = (flags & NoDetailCollisionsFlag) == 0;
             NativeArray<float> Fa(int n) { var a = new NativeArray<float>(n, Allocator.Persistent); NativeArray<float>.Copy(f, o, a, 0, n); o += n; return a; }
             NativeArray<int> Ia(int n) { var a = new NativeArray<int>(n, Allocator.Persistent); NativeArray<int>.Copy(u, o, a, 0, n); o += n; return a; }
             pins = Fa(N); outwards = Fa(3 * N); edgeA = Ia(E); edgeB = Ia(E); edgeLength = Fa(E); edgeK = Fa(E);
             local = Fa(3 * M); ids = Ia(4 * M); weights = Fa(4 * M); free = Fa(M); outward = Fa(3 * M); outIx = Ia(M); baseP = Fa(3 * M); skinB = Ia(4 * M); skinW = Fa(4 * M);
             index = Ia(T);
             NativeArray<float> Z(int n) => new NativeArray<float>(n, Allocator.Persistent);
+            pin = pinNormals ? Fa(4 * M) : Z(4);   // (a job's arrays must all exist: a stand-in when there are none)
+            if (o * 4 != count - count % 4) Debug.LogWarning($"Hiraeth cloth: the description is {count / 4} words, its layout {o}");
             P = Z(3 * N); Q = Z(3 * N); target = Z(3 * N); D = Z(3 * N); G = Z(3 * N);
             simCaps = Z(14 * K); mapCaps = Z(14 * K); bones = Z(16 * B); attach = Z(16);
             pos = new NativeArray<float3>(V, Allocator.Persistent); nrm = new NativeArray<float3>(V, Allocator.Persistent);
             outPos = new NativeArray<Vector3>(V, Allocator.Persistent); outNrm = new NativeArray<Vector3>(V, Allocator.Persistent);
+            pinNrm = new NativeArray<float4>(pinNormals ? V : 1, Allocator.Persistent);   // (cleared: w 0, no pin, where Map writes none)
             // (split over the workers only when every garment vertex writes a vertex of its own, and every index is a vertex)
             bool ok = !Single;
             var hit = new bool[V];
@@ -99,10 +111,10 @@ namespace Hiraeth.Bridge
                 }.Schedule();
                 var map = new Map
                 {
-                    K = K, simulated = (flags & 2) != 0, local = local, ids = ids, weights = weights, free = free, outward = outward, outIx = outIx, baseP = baseP,
-                    skinB = skinB, skinW = skinW, mapCaps = mapCaps, bones = bones, attach = attach, D = D, pos = pos,
+                    K = K, simulated = (flags & 2) != 0, detail = detail, pinNormals = pinNormals, local = local, ids = ids, weights = weights, free = free, outward = outward, outIx = outIx, baseP = baseP,
+                    skinB = skinB, skinW = skinW, pin = pin, mapCaps = mapCaps, bones = bones, attach = attach, D = D, pos = pos, pinNrm = pinNrm,
                 }.Schedule(M, 128, sim);
-                job = new Normals { index = index, triStart = triStart, tris = tris, pos = pos, outPos = outPos, outNrm = outNrm }.Schedule(V, 256, map);
+                job = new Normals { pinNormals = pinNormals, index = index, triStart = triStart, tris = tris, pos = pos, pinNrm = pinNrm, outPos = outPos, outNrm = outNrm }.Schedule(V, 256, map);
                 if (!NoKick) JobHandle.ScheduleBatchedJobs();
                 running = true;
                 ms += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
@@ -110,8 +122,8 @@ namespace Hiraeth.Bridge
             }
             job = new Step
             {
-                N = N, K = K, steps = steps, reset = (flags & 1) != 0, simulated = (flags & 2) != 0,
-                pins = pins, outwards = outwards, edgeA = edgeA, edgeB = edgeB, edgeLength = edgeLength, edgeK = edgeK,
+                N = N, K = K, steps = steps, reset = (flags & 1) != 0, simulated = (flags & 2) != 0, detail = detail, pinNormals = pinNormals,
+                pins = pins, outwards = outwards, edgeA = edgeA, edgeB = edgeB, edgeLength = edgeLength, edgeK = edgeK, pin = pin,
                 local = local, ids = ids, weights = weights, free = free, outward = outward, outIx = outIx, baseP = baseP, skinB = skinB, skinW = skinW, index = index,
                 P = P, Q = Q, target = target, D = D, G = G, simCaps = simCaps, mapCaps = mapCaps, bones = bones, attach = attach,
                 pos = pos, nrm = nrm, outPos = outPos, outNrm = outNrm,
@@ -134,7 +146,8 @@ namespace Hiraeth.Bridge
         public void Dispose()
         {
             Complete();
-            foreach (var a in new[] { pins, outwards, edgeLength, edgeK, local, weights, free, outward, baseP, skinW, P, Q, target, D, G, simCaps, mapCaps, bones, attach }) if (a.IsCreated) a.Dispose();
+            foreach (var a in new[] { pins, outwards, edgeLength, edgeK, local, weights, free, outward, baseP, skinW, pin, P, Q, target, D, G, simCaps, mapCaps, bones, attach }) if (a.IsCreated) a.Dispose();
+            if (pinNrm.IsCreated) pinNrm.Dispose();
             foreach (var a in new[] { edgeA, edgeB, ids, outIx, skinB, index, triStart, tris }) if (a.IsCreated) a.Dispose();
             if (pos.IsCreated) pos.Dispose(); if (nrm.IsCreated) nrm.Dispose(); if (outPos.IsCreated) outPos.Dispose(); if (outNrm.IsCreated) outNrm.Dispose();
         }
@@ -160,10 +173,11 @@ namespace Hiraeth.Bridge
         [BurstCompile]
         struct Map : IJobParallelFor
         {
-            public int K; public bool simulated;
-            [ReadOnly] public NativeArray<float> local, weights, free, outward, baseP, skinW, mapCaps, bones, attach, D;
+            public int K; public bool simulated, detail, pinNormals;
+            [ReadOnly] public NativeArray<float> local, weights, free, outward, baseP, skinW, pin, mapCaps, bones, attach, D;
             [ReadOnly] public NativeArray<int> ids, outIx, skinB;
             [NativeDisableParallelForRestriction] public NativeArray<float3> pos;
+            [NativeDisableParallelForRestriction] public NativeArray<float4> pinNrm;
 
             public void Execute(int v)
             {
@@ -184,12 +198,13 @@ namespace Hiraeth.Bridge
                     float t = 1 - fr; x += (sx - x) * t; y += (sy - y) * t; z += (sz - z) * t;
                 }
                 if (fr > 0) for (int k = v * 4, end = k + 4; k < end; k++) { int j = ids[k]; float w = weights[k]; x += D[j] * w; y += D[j + 1] * w; z += D[j + 2] * w; }
-                if (simulated && fr > 0.95f)
+                if (simulated && detail && fr > 0.95f)
                 {
                     float ox = outward[l], oy = outward[l + 1], oz = outward[l + 2];
                     for (int k = 0; k < K; k++) { float hi = Step.PushOut(x, y, z, ox, oy, oz, mapCaps, k); if (hi != 0) { x += ox * hi; y += oy * hi; z += oz * hi; } }
                 }
                 pos[outIx[v] / 3] = new float3(x, y, z);
+                if (pinNormals && pin[v * 4 + 3] != 0) pinNrm[outIx[v] / 3] = new float4(Step.PinNormal(v, pin, skinB, skinW, bones), pin[v * 4 + 3]);
             }
         }
 
@@ -197,8 +212,10 @@ namespace Hiraeth.Bridge
         [BurstCompile]
         struct Normals : IJobParallelFor
         {
+            public bool pinNormals;
             [ReadOnly] public NativeArray<int> index, triStart, tris;
             [ReadOnly] public NativeArray<float3> pos;
+            [ReadOnly] public NativeArray<float4> pinNrm;
             public NativeArray<Vector3> outPos, outNrm;
 
             public void Execute(int i)
@@ -212,6 +229,7 @@ namespace Hiraeth.Bridge
                 }
                 float3 p = pos[i];
                 float L = math.length(n); n = L > 0 ? n / L : n;
+                if (pinNormals) { float4 q = pinNrm[i]; if (q.w != 0) n = Step.EaseNormal(n, q.xyz, q.w); }
                 outPos[i] = new Vector3(-p.x, p.y, p.z);
                 outNrm[i] = new Vector3(-n.x, n.y, n.z);
             }
@@ -220,8 +238,8 @@ namespace Hiraeth.Bridge
         [BurstCompile]
         struct Step : IJob
         {
-            public int N, K, steps; public bool reset, simulated;
-            [ReadOnly] public NativeArray<float> pins, outwards, edgeLength, edgeK, local, weights, free, outward, baseP, skinW, G, simCaps, mapCaps, bones, attach;
+            public int N, K, steps; public bool reset, simulated, detail, pinNormals;
+            [ReadOnly] public NativeArray<float> pins, outwards, edgeLength, edgeK, local, weights, free, outward, baseP, skinW, pin, G, simCaps, mapCaps, bones, attach;
             [ReadOnly] public NativeArray<int> edgeA, edgeB, ids, outIx, skinB, index;
             public NativeArray<float> P, Q, target, D;
             public NativeArray<float3> pos, nrm;
@@ -242,6 +260,28 @@ namespace Hiraeth.Bridge
                 float lo = 0, hi = radius * 3;
                 for (int i = 0; i < 14; i++) { float mid = (lo + hi) / 2; if (Dist2(mid, x, y, z, ox, oy, oz, a0, a1, a2, ax, ay, az, length2) < r2) lo = mid; else hi = mid; }
                 return hi;
+            }
+
+            /// <summary>Vertex v's rest normal (pin) turned by its bones (three's transformDirection: the 3×3, normalised), weighted, normalised (engine/cloth.js pinNormals).</summary>
+            internal static float3 PinNormal(int v, NativeArray<float> pin, NativeArray<int> skinB, NativeArray<float> skinW, NativeArray<float> bones)
+            {
+                float rx = pin[v * 4], ry = pin[v * 4 + 1], rz = pin[v * 4 + 2];
+                float3 s = 0;
+                for (int k = v * 4, end = k + 4; k < end; k++)
+                {
+                    float w = skinW[k]; if (w == 0) continue;
+                    int c = skinB[k] * 16;
+                    var d = new float3(bones[c] * rx + bones[c + 4] * ry + bones[c + 8] * rz, bones[c + 1] * rx + bones[c + 5] * ry + bones[c + 9] * rz, bones[c + 2] * rx + bones[c + 6] * ry + bones[c + 10] * rz);
+                    float L = math.length(d); if (L > 0) d /= L;
+                    s += d * w;
+                }
+                float n = math.length(s); return n > 0 ? s / n : s;
+            }
+            /// <summary>The face normal n eased t of the way to the pinned one, normalised (three's lerp, then normalize).</summary>
+            internal static float3 EaseNormal(float3 n, float3 pinned, float t)
+            {
+                n += (pinned - n) * t;
+                float L = math.length(n); return L > 0 ? n / L : n;
             }
 
             void Simulate() => Simulate(N, K, steps, pins, outwards, edgeA, edgeB, edgeLength, edgeK, G, simCaps, P, Q);
@@ -315,7 +355,7 @@ namespace Hiraeth.Bridge
                         float t = 1 - fr; x += (sx - x) * t; y += (sy - y) * t; z += (sz - z) * t;
                     }
                     if (fr > 0) for (int k = v * 4, end = k + 4; k < end; k++) { int j = ids[k]; float w = weights[k]; x += D[j] * w; y += D[j + 1] * w; z += D[j + 2] * w; }
-                    if (simulated && fr > 0.95f)
+                    if (simulated && detail && fr > 0.95f)
                     {
                         float ox = outward[l], oy = outward[l + 1], oz = outward[l + 2];
                         for (int k = 0; k < K; k++) { float hi = PushOut(x, y, z, ox, oy, oz, mapCaps, k); if (hi != 0) { x += ox * hi; y += oy * hi; z += oz * hi; } }
@@ -330,11 +370,14 @@ namespace Hiraeth.Bridge
                     float3 n = math.cross(cb, ab);
                     nrm[a] += n; nrm[b] += n; nrm[c] += n;
                 }
+                for (int i = 0; i < nrm.Length; i++) { float3 n = nrm[i]; float L = math.length(n); nrm[i] = L > 0 ? n / L : n; }
+                // (the pinned vertices' own normals, after the faces': engine/cloth.js clothFrame's last step)
+                if (pinNormals)
+                    for (int v = 0; v < M; v++) { float t = pin[v * 4 + 3]; if (t == 0) continue; int i = outIx[v] / 3; nrm[i] = EaseNormal(nrm[i], PinNormal(v, pin, skinB, skinW, bones), t); }
                 // (to Unity's frame: x mirrored)
                 for (int i = 0; i < pos.Length; i++)
                 {
                     float3 p = pos[i], n = nrm[i];
-                    float L = math.length(n); n = L > 0 ? n / L : n;
                     outPos[i] = new Vector3(-p.x, p.y, p.z);
                     outNrm[i] = new Vector3(-n.x, n.y, n.z);
                 }

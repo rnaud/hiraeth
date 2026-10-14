@@ -75,7 +75,7 @@ test('the swamp’s people and places stand on walkable or wadeable ground', () 
   assert.deepEqual(CONTENT.perdide.npcs.slice(0, 3), PERDIDE_CONTENT.npcs);
   assert.deepEqual(CONTENT.perdide.npcs.map((n) => n.id), ['wendel', 'sedge', 'ivo.perdide', 'hollin.perdide2', 'pim.perdide2', 'bram']);
   assert.equal(CONTENT.perdide.story, PERDIDE_CONTENT.story, 'the world’s page is Lorn’s');
-  // (but the keeper behind Nettle's counter, in her shop's room far over the map: tests/shop-worlds.test.js)
+  // (but the keeper behind Nettle's counter, in her shop's room far over the map: tests/route-worlds.test.js)
   // (the Deep Wood's people speak its tongue and stand where its own test checks them: tests/story-perdide2.test.js)
   for (const n of npcs) if (n.def?.lang !== 'perdide2') for (const p of n.route) if (!interiorAt(p)) stand(p, n.def.name);
   for (const id of ['saba', 'corm', 'ysse']) { const n = W.people[id]; for (const p of n.route) stand(p, n.def.name); }

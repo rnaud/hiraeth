@@ -118,10 +118,12 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   // arriving by ship (the engine started again after a flight): the arrival plays, and ends at the foot of the ramp
   const k = await makeGame(file, { menus: menusStub(), via: 'ship', arrive: true });
   assert.equal(k.ship.cinematic?.constructor?.name, 'ArrivalDirector');
-  run(k, 20 * 40);
+  // (40 s at most; it ends at about 20 s, and once it is over with him outside he stands at the ramp's foot, nothing
+  // left to play: the run stops there, the same verdict. Not before it has been seen playing: one that never started
+  // gets the whole 40 s, as before.)
+  for (let i = 0, seen = false; i < 20 * 40 && !(seen && !k.ship.playing && !k.ship.inside); i++) { run(k, 1); seen ||= k.ship.playing; }
   assert.ok(!k.ship.playing && !k.ship.inside, 'the arrival over, outside');
 
-  // a bench's plan (no menus) is as before: no ship scenes
-  const b = await makeGame(file, {});
-  assert.ok(!b.shipScenes && !b.ship.playing);
+  // (a bench's plan, no menus, is as before, no ship scenes: tests/bench-start.test.js checks it on its plan, the same
+  // game, rather than build the desert a fifth time here)
 });

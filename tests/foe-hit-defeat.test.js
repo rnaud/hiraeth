@@ -13,6 +13,7 @@ import { clearTargets, allTargets } from '../src/targets.js';
 import { FoeReact, REACT, applyReact, restoreBody, installFlash, splashTones, lightness } from '../src/foe-react.js';
 import { DEFEATS, GROUNDED, defeatPose, startDefeat, stage } from '../src/enemies/defeat.js';
 import { resetFeel } from '../src/feel.js';
+import { underGround, plane } from './under-ground.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
@@ -150,28 +151,6 @@ test('every archetype goes down its own way: 0.8-1.5 s, harmless and out of the 
   foes.dispose(); clearTargets();
 });
 
-/** How far the model's lowest point is under the ground (m), every vertex of every drawn part as three.js draws it. */
-function underGround(group, ground) {
-  group.updateMatrixWorld(true);
-  let worst = -Infinity;
-  const p = v(), im = new THREE.Matrix4();
-  group.traverseVisible((o) => {
-    const P = o.isMesh && o.geometry?.attributes?.position;
-    if (!P) return;
-    for (let k = 0; k < (o.isInstancedMesh ? o.count : 1); k++) {
-      if (o.isInstancedMesh) o.getMatrixAt(k, im);
-      for (let i = 0; i < P.count; i++) {
-        p.fromBufferAttribute(P, i);
-        if (o.isSkinnedMesh) o.applyBoneTransform(i, p);
-        if (o.isInstancedMesh) p.applyMatrix4(im);
-        p.applyMatrix4(o.matrixWorld);
-        worst = Math.max(worst, ground(p.x, p.z) - p.y);
-      }
-    }
-  });
-  return worst;
-}
-
 /**
  * fn with Math.random seeded and a clock that runs with the frames (each foes.update a frame on): a foe's build, its
  * stance and its sway draw on them, and left to them the slope's worst read 2.0-3.2 cm from one run to the next (the
@@ -188,7 +167,7 @@ function pinned(fn, seed = 12345) {
 }
 
 test('every archetype goes down on the ground, never through it, on flat ground and on a slope (issue #304)', () => pinned(() => {
-  for (const [where, ground] of [['flat ground', () => 0], ['a slope', (x, z) => 0.2 * x + 0.15 * z]]) {
+  for (const [where, ground] of [['flat ground', plane(0, 0)], ['a slope', plane(0.2, 0.15)]]) {
     const { foes } = world({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
     for (const [id, A] of BUILT) {
       if (A.def.burrow) continue;   // (the worm lives under its sand, and goes back under it)
@@ -196,7 +175,7 @@ test('every archetype goes down on the ground, never through it, on flat ground 
       for (let i = 0; i < 12; i++) foes.update(DT);
       // (what was under the ground already as the blow fell, a fist on the sand or a body square on a slope, comes up
       // over the first share of the defeat: GROUNDED.ease)
-      const before = Math.max(0, underGround(f.model.group, ground));
+      const before = Math.max(0, underGround(f.model.group, ground).worst);
       f.hp = 1; cut(foes, f, 5);
       let worst = -Infinity, at = 0, n = 0;
       while (f.dying && f.dead === undefined) {
@@ -204,7 +183,9 @@ test('every archetype goes down on the ground, never through it, on flat ground 
         const u = f.dying.u;
         if (R.sink && stage(R.sink, u) > 0) continue;   // (the worm going back under the sand, the root knot: its own)
         if (n++ % 2) continue;
-        const deep = underGround(f.model.group, ground) - before * (1 - stage({ at: GROUNDED.ease }, u));
+        // (measured past what could make it the worst so far only: the same worst, at the same moment)
+        const lift = before * (1 - stage({ at: GROUNDED.ease }, u));
+        const deep = underGround(f.model.group, ground, { floor: worst + lift }).worst - lift;
         if (deep > worst) { worst = deep; at = u; }
       }
       assert.ok(worst < 0.03, `${id} on ${where}: ${(worst * 100).toFixed(1)} cm under the ground at ${(at * 100).toFixed(0)} % of its defeat`);

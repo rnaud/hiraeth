@@ -788,6 +788,18 @@ in x). `engine/cloth.js clothFrame` is the same steps in JS, which `tests/cloth-
 the module's own path. At the camps (load ~35) the script's update went from 13.6 to 4.8 ms, the frame from
 22.9 to 11.1 ms; the dunes from 6.7 to 1.5 and 13.2 to 5.4.
 
+**B3's overshirt in the engines** (2026-10-14). B3's fit (`traveller-b3.js`: `preservePinNormals`,
+`detailCollisions: false`) keeps the pinned vertices' own normals (free under 0.4: the detailed mesh's rest
+normal turned by its bones, the face normal eased towards it by 1 − smoothstep(free, 0, 0.4)) and pushes no
+free vertex out of the legs. The engines made every normal from the faces (1266 of 6448 apart, up to 158°:
+blotches over his chest, shoulders and collar in Unity). The description now carries both: an 8th header
+word, flags (`CLOTH_PIN_NORMALS` 1, `CLOTH_NO_DETAIL_COLLISIONS` 2), and with the first `map.pin` (4 floats a
+mapped vertex: the rest normal and how far to ease, 0 for none) after the index, sent once; the packet (op 17)
+is unchanged. `clothFrame` eases the pinned normals after the faces'; `BridgeCloth.cs` does it in `Map`
+(`PinNormal`, into `pinNrm` by output vertex) and `Normals` (`EaseNormal`), or at the end of `Step`. A
+description without the flags (v1) is as before. `tests/cloth-offload.test.js` checks the module, `clothFrame`
+and the description read back through its buffer (`unpackClothDesc`, as the C# reads it) frame by frame.
+
 **The rest of the gaps, closed** (2026-10-07). Hatching that follows the form: the part's axis per vertex
 (src/form.js `aFormC`, `aFormA`) rides the geometry (flag 64, TEXCOORD5 and 6) where a material says `S_FORM`,
 and Surface.shader builds materials.js's `vForm` from it: caps' strokes radiate, cylinders' wrap, a dark cap's

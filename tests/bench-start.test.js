@@ -39,6 +39,8 @@ test('the bridge\'s plans start in the desert where the web game does, at the fo
   assert.ok(near(p, a.pos), `at the foot of the ramp (${fmt(p)} against ${fmt(a.pos)})`);
   assert.ok(Math.abs(player.heading - a.heading) < 1e-6, 'facing out');
   assert.ok(Math.abs(rig.yaw - level.camYaw) < 1e-6, 'the camera behind him, as the web\'s start sets it');
+  // a plan has no menus, so no ship scenes: nothing plays (issue #264; this game for tests/engine-ship.test.js's check)
+  assert.ok(!plan.shipScenes && !ship.playing, 'no ship scenes in a plan');
   // (the web's ?level=desert: the level's spawn, which the ship has moved there)
   assert.ok(near(p, level.spawn), `the web's start (${fmt(level.spawn)})`);
   // the old start, to compare with the numbers taken there: the spot the ship covers

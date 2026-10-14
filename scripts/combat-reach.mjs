@@ -24,7 +24,7 @@ export async function reachRig() {
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
   const home = v(0, 0, -60);
-  const p = await traveller(scene, home, { moves: true, body: 'v1' });
+  const p = await traveller(scene, home, { moves: true, body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const flat = { groundAt: () => home.y, rayDistance: () => Infinity, rayHit: () => null };

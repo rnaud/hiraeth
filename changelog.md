@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.75 — 2026-10-14
 
+- In the Unity version on a handheld or a console, the traveller is the one you play on the web: his body wasn’t packed with the game there, so he came as the old explorer.
+- In the Unity version the traveller’s overshirt is shaded right over his chest, shoulders and collar: the cloth there had dark and bright patches where its light faced the wrong way, as if the fabric were creased or turned inside out. It now catches the light as on the web.
 - The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her; and far off she is drawn with simpler copies of herself, from two thirds of her triangles down to a seventh, and sooner on handhelds.
 - The Elder no longer jerks: her whole body jumped at the start of every blow, she shot 3.5 m into the air in a single frame when she took off (and dropped back the same way), spun round to face you in an instant, and a leg flipped round when she sank down worn out. Her throat, rump and shoulders no longer stretch out of shape as she bends.
 - The Elder in the Aerie moves like a great bird now: her peck stretches her neck out and stabs down at you (it curled her head under her breast, the beak pointing back between her feet), her stamp lifts one foot high and brings it down (she leapt off the floor with both), the gale and the feather volley have wind-ups of their own (both were the buffet’s), she wakes with a stretch of both wings, and between blows she breathes, ruffles her feathers and looks about.

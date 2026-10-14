@@ -2,7 +2,7 @@ import { Vector4, Matrix4 } from 'three';
 import { cleanExpression, NEUTRAL_EXPRESSION } from '../expression.js';
 import { EYE_REACH } from '../eyes.js';
 
-// The coral-shirt traveller's face (src/characters/traveller-v1.js). His Tripo body came with a face
+// The coral-shirt traveller's face (his body, src/characters/traveller-v1.js, went on 2026-10-14). His Tripo body came with a face
 // painted into its texture (thick black brows, almond eyes with a dark iris, a faint mouth line) and no
 // rig for it, so he could not smile, frown, blink or talk. This draws the face in his material's
 // fragment shader instead, in the head's bind space (vBind, skinned with the head like the paint was):

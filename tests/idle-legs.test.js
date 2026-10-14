@@ -43,7 +43,8 @@ async function traveller({ moves = false } = {}) {
 
 /**
  * Stand `secs` (60 Hz), talking or not; per frame: each leg bone's world turn rate and each foot's ball and state, the
- * captured idle playing, the face's way from the chest (deg) and in the body's frame, the pelvis's sideways place.
+ * captured idle playing, the face's way from the chest (deg) and in the body's frame, its pitch (facePitch), the pelvis's
+ * sideways place.
  */
 function stand(p, secs, { talking = false } = {}) {
   p.talking = talking;
@@ -67,6 +68,7 @@ function stand(p, secs, { talking = false } = {}) {
     const b = new T.Vector3(0, 0, 1).applyQuaternion(head).applyQuaternion(p.object.getWorldQuaternion(new T.Quaternion()).invert());
     f.bodyYaw = deg(Math.atan2(b.x, b.z));
     f.hip = p.object.worldToLocal(B.pelvis.getWorldPosition(new T.Vector3())).x;
+    f.pitch = facePitch(p);
     frames.push(f);
     prev = q;
   }
@@ -79,11 +81,15 @@ const deg = (r) => r * 180 / Math.PI;
 // it, talking's as the standing to compare with over its first 30 s.
 let idles = null;
 const idleRun = async () => (idles ??= stand(await traveller({ moves: true }), 49));
+// And one without them, 20 s, read by the legs' test and, its first 6 s, by the looking ahead's standing (the same start and
+// the same frames as a run of its own, measured).
+let still = null;
+const stillRun = async () => (still ??= stand(await traveller(), 20));
 
 for (const moves of [false, true]) test(`standing still, the traveller's legs hold still: no twitch, no steps, the feet planted${moves ? ' (with the captured idles: looking about, breathing)' : ''}`, { timeout: 240000 }, async () => {
   // (20 s: two of the idle layer's weight shifts, and a look around after 7 s; with the captured
   // idles 36 s: Mixamo's looking about from 7 s, its breathing idle from 23 s: the shared run's first 36 s)
-  const frames = (moves ? (await idleRun()).filter((f) => f.t < 36) : stand(await traveller(), 20)).filter((f) => f.t > 0.5);
+  const frames = (moves ? (await idleRun()).filter((f) => f.t < 36) : await stillRun()).filter((f) => f.t > 0.5);
   if (moves) for (const n of ['mixamo_looking_around', 'mixamo_breathing_idle']) assert.ok(frames.some((f) => f.move === n && f.moveW > 0.9), `${n} played`);
   let fastest = { rate: 0 }, jolt = { d: 0 };
   for (let i = 1; i < frames.length; i++) {
@@ -123,8 +129,13 @@ test('the traveller looks ahead, standing and running, not at the ground', { tim
   // while the clip's head stays up, so the face looked 35 deg down jogging and 48 sprinting; standing,
   // the idle clip holds it 15 deg down)
   for (const [input, most, label] of [[{}, 10, 'standing'], [{ KeyW: true }, 26, 'jogging'], [{ KeyW: true, ShiftLeft: true }, 28, 'sprinting']]) {
-    const p = await traveller(), dt = 1 / 60, pitches = [];
-    for (let i = 0; i < 360; i++) { p.update(dt, input, CAM_PLUS_Z); p.object.updateMatrixWorld(true); if (i > 120) pitches.push(facePitch(p)); }
+    let pitches = [];
+    // (standing: the shared standing's frames 121-359, as this loop would make them)
+    if (label === 'standing') pitches = (await stillRun()).filter((f) => f.i > 120 && f.i < 360).map((f) => f.pitch);
+    else {
+      const p = await traveller(), dt = 1 / 60;
+      for (let i = 0; i < 360; i++) { p.update(dt, input, CAM_PLUS_Z); p.object.updateMatrixWorld(true); if (i > 120) pitches.push(facePitch(p)); }
+    }
     const mean = pitches.reduce((a, b) => a + b, 0) / pitches.length;
     assert.ok(mean < most && mean > -10, `${label}: the face ${mean.toFixed(1)} deg down on average`);
   }

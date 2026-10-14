@@ -121,7 +121,7 @@ counter (Vael's shelf in the hoodoo's opening, the almonry's hatch, the quarterm
 a door beside them as well; their rooms are the kit's box room (the hoodoo's, the domes' and the pavilion's round
 rooms are suggested by curved counters, ribs, arches and niches). No keeper has four arms (Pashka) or holds their
 prop (Brin's stick, Hale's fork, Mott's abacus is on the counter); the Market's board does not light up at a sale;
-Lorn's front has no pick (its interior's) and follows its prompt. Tests: `tests/shop-worlds.test.js` (every
+Lorn's front has no pick (its interior's) and follows its prompt. Tests: `tests/route-worlds.test.js` (every
 front, and every world as the play-through builds it: on the ground, the way clear, in and out, the keeper, the
 scout, no rain), `tests/shop.test.js` (one shop a world, the stock under the caps, the prices against the packs,
 every keeper's lines toned, every room's counter).

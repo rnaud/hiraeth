@@ -23,7 +23,7 @@ import { sheetSVG } from './sheet.mjs';
 export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false } };
 
 /** One scenario one way: { samples, meta, r (lib.analyse) }. */
-export async function runScenario(sc, way, { body = 'v1', fps = 60, onFrame = null } = {}) {
+export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null } = {}) {
   const p = await traveller(course(), new THREE.Vector3(...sc.at), { ...WAYS[way], body });
   timeAnimator(p.animator);
   const dt = 1 / fps, S = [], st = {};
@@ -51,7 +51,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (process.env.MM) Object.assign((await import('../../src/motion-match.js')).MATCH, JSON.parse(process.env.MM));
   // (tuning without editing: TUNE='{"feet.js":{"FEET":{"toeOff":0.7}}}' assigns into src/<module>'s exported objects)
   if (process.env.TUNE) for (const [mod, o] of Object.entries(JSON.parse(process.env.TUNE))) { const M = await import(`../../src/${mod}`); for (const [k, v] of Object.entries(o)) Object.assign(M[k], v); }
-  const ways = arg('ways', 'moves,mm').split(','), only = arg('only')?.split(','), body = arg('body', 'v1');
+  const ways = arg('ways', 'moves,mm').split(','), only = arg('only')?.split(','), body = arg('body', 'b3');
   const names = Object.keys(COURSE).filter((n) => !only || only.some((o) => n.includes(o)));
   const rows = [], out = {};
   for (const name of names) for (const way of ways) {

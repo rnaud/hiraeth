@@ -1,13 +1,6 @@
-# Traveller v1
+# Traveller v1: his head
 
-Accepted coral-shirt, no-backpack Tripo character, promoted from the local experiment.
-Source job: 734ea223-13c2-4406-a081-ef34a5612b5d.
-
-- model.glb: fitted MakeHuman skin, 53 bones, the base-colour texture at 2048². Made by
-  scripts/tripo/slim-traveller.mjs from the untouched export in data/characters/traveller-v1/
-  (same geometry; the export's unused normal/roughness maps and 4096² texture stay there).
-- rig.json: export parameters and fit report (source/output paths are provenance only).
-- colors.json: sampled sRGB colours in the original mesh vertex order, used by garment separation and repair.
-
-These three files must be regenerated/promoted together. Runtime clothing and ink
-materials live in src/characters/. See scripts/tripo/README.md for reproduction.
+Only the approved portrait head is left here (head-v3: its model, colours, and hair and face ink masks), which the
+game's traveller, B3 (public/characters/traveller-b3, src/characters/traveller-b3.js), wears. The coral-shirt v1 body
+that once stood beside it went on 2026-10-14; its untouched exports stay in data/characters/traveller-v1/.
+See scripts/tripo/README.md for how the head was made.

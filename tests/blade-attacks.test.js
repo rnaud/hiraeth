@@ -13,6 +13,7 @@ import { items } from '../src/items.js';
 import { clearTargets, registerTarget } from '../src/targets.js';
 import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
 import { readGLB } from '../scripts/mocap/glb.js';
+import { snapshot } from './rollback.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
 const lib = readGLB(readFileSync(new URL('../public/anim/moves.glb', import.meta.url)));
@@ -48,14 +49,21 @@ test('every attack has its clip shipped, its phases and its cut inside the clip'
   assert.deepEqual(CHARGE.damage, [2, 3]);
 });
 
+// (the traveller armed is built once and rolled back to that moment for each test, tests/rollback.js: every frame of
+// every test below, his place, speed, bones and the blade's state, came out bitwise as on a fresh build's, Math.random
+// seeded alike)
+let built = null;
 async function armed() {
-  items.grant('backpack');
-  const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
-  const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
-  const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
-  const tick = (input = {}, move = null) => { if (move) p.swingMove = move; p.update(dt, input, CAM_PLUS_Z); tool.update(dt, input); };
-  return { p, tool, tick };
+  if (!built) {
+    items.grant('backpack');
+    const scene = course({ ramp: false, stairs: false });
+    const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
+    const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
+    const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
+    const tick = (input = {}, move = null) => { if (move) p.swingMove = move; p.update(dt, input, CAM_PLUS_Z); tool.update(dt, input); };
+    built = { it: { p, tool, tick }, rewind: snapshot({ p, tool, camera, scene }, items) };
+  } else built.rewind.restore();
+  return built.it;
 }
 
 test('each attack cuts on its clip\'s own swing: the blade\'s tip is fastest inside the cut, slow before and after', async () => {

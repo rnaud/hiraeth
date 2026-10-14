@@ -24,8 +24,10 @@ test('the straps’ way: from the plate’s top corners, over the shoulders besi
   assert.ok(L.every((p, i) => Math.abs(p.x + R[i].x) < 1e-9 && p.y === R[i].y), 'the right a mirror of the left');
 });
 
-// (todo: on the B3 body, swimming, the raised arm's shoulder rises through a strap: 1.8 cm under his skin in the crawl,
-// 1.4 in the breaststroke, of 1.2 allowed; upright he is clear by a hair, -0.36 of -0.4 cm at the strap's chest end)
+// (todo: on the B3 body, swimming, his upper arm (upperarm weight 1.0) comes up through a strap on the top of his
+// shoulder at the overhead stroke: 1.8 cm in the crawl, 1.4 in the breaststroke, of 1.2 allowed. The strap's own skin
+// there is the spine's, so straps skinned to him don't help (tried); its shoulder points 12 mm in toward the neck clear
+// the crawl (1.0 cm) but come 3.3 cm from his ear looking round, under the 4 cm kept since issue #76. A trade to choose.)
 test('clear of his head and ears, on his shoulders and never under his skin, in every pose he takes', { timeout: 300000, todo: 'B3: the straps sink into his shoulders swimming' }, async () => {
   const { holdStance } = await import('../src/title-world.js');
   items.grant('backpack');

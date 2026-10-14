@@ -161,7 +161,7 @@ export function standWhyNot({ physics, level }, p, Player) {
   return null;
 }
 
-// The new country, world by world (v1.61, #228; scripts/fragment-spots.mjs scores it, tests/fragments-route.test.js counts it): the level's sights (`level.sights`) whose names are its explorations' pieces (v1.55–
+// The new country, world by world (v1.61, #228; scripts/fragment-spots.mjs scores it, tests/route-worlds.test.js counts it): the level's sights (`level.sights`) whose names are its explorations' pieces (v1.55–
 // v1.57), and how near one a spot must be to count as in it (m). The places built to be found.
 export const NEW_COUNTRY = {
   arzach: { r: 40, sights: /stone ear|hour stone|broken slab|highest stone|stone that rises|table of the plain|riders’ shrine|riders’ gate/ },

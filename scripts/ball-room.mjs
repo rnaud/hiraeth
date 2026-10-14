@@ -235,7 +235,8 @@ export function ballRoom(id, { only = null, profile = false, levels = LEVELS } =
 
 /**
  * The balls of the makers' runs stood out in the worlds (src/trials/kit-courses.js: the Moon roll, the Sphere court, the
- * Long look, the Orb walk): each world built with its run, the run's start where you come in.
+ * Long look, the Orb walk): each world with a run that has a ball built once, with its runs, the run's start where you
+ * come in.
  */
 export async function courseBallRoom({ only = null, profile = false, levels = LEVELS } = {}) {
   const { LEVELS: ALL } = await import('../src/levels/index.js');
@@ -246,21 +247,38 @@ export async function courseBallRoom({ only = null, profile = false, levels = LE
   const { clearInteractables } = await import('../src/interact.js');
   const { clearTargets } = await import('../src/targets.js');
   const { clearWorkings } = await import('../src/workings.js');
-  const out = [];
-  for (const T of Object.values(KIT_TRIALS)) {
-    if (only && !only.includes(T.id)) continue;
+  const { buildKitCourse } = await import('../src/trials/kit-courses.js');
+  const player = () => ({ pos: new THREE.Vector3(), vel: new THREE.Vector3(), heading: 0, health: 1, dead: false, opts: {}, respawn(q) { this.pos.copy(q); } });
+  const items = { has: () => true, grant() {} };
+  // (a run's balls are its course's own: COURSES builds it in its own frame from nothing of the world's, so its course
+  // stood alone in an empty world says whether it has any; only the worlds with a run that has are built. One whose
+  // course can't stand alone is built anyway)
+  const rolls = (T) => {
+    try {
+      const scene = new THREE.Scene();
+      return quiet(() => buildKitCourse(T, { scene, physics: new Physics(scene, null), player: player(), items, game: new GameState() })).pieces.some((q) => q instanceof Ball);
+    } catch { return true; }
+  };
+  const trials = Object.values(KIT_TRIALS).filter((T) => !only || only.includes(T.id));
+  // (each world built once for all its runs: createChallenges stands every run of a world, its parts' too, in it
+  // anyway, and measuring only reads the floor, so a run's balls measure the same whichever runs share its build)
+  const worlds = new Map(), found = new Map();
+  for (const T of trials.filter(rolls)) { const w = partOf(T.world); if (!worlds.has(w)) worlds.set(w, []); worlds.get(w).push(T); }
+  for (const [world, runs] of worlds) {
     clearInteractables(); clearTargets(); clearWorkings();
-    const scene = new THREE.Scene(), meta = ALL.find((l) => l.id === partOf(T.world));
+    const scene = new THREE.Scene(), meta = ALL.find((l) => l.id === world);
     const level = quiet(() => meta.create(scene));
     const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
     quiet(() => level.init?.(physics));
-    const player = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), heading: 0, health: 1, dead: false, opts: {}, respawn(q) { this.pos.copy(q); } };
-    const C = quiet(() => createChallenges({ levelId: partOf(T.world), scene, physics, player, items: { has: () => true, grant() {} }, game: new GameState(), trials: {} }));
-    const course = C.byId?.(T.id)?.course;
-    if (course?.pieces?.some((q) => q instanceof Ball)) out.push(...measure(physics, { logic: course.rt.logic, pieces: course.pieces }, { where: T.id, profile, levels, arrival: () => course.start }));
+    const C = quiet(() => createChallenges({ levelId: world, scene, physics, player: player(), items, game: new GameState(), trials: {} }));
+    for (const T of runs) {
+      const course = C.byId?.(T.id)?.course;
+      if (course?.pieces?.some((q) => q instanceof Ball)) found.set(T.id, measure(physics, { logic: course.rt.logic, pieces: course.pieces }, { where: T.id, profile, levels, arrival: () => course.start }));
+    }
     C.dispose?.();
   }
-  return out;
+  // (in the runs' own order)
+  return trials.flatMap((T) => found.get(T.id) ?? []);
 }
 
 /**

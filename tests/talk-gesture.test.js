@@ -21,6 +21,7 @@ const { buildCharacter } = await import('../src/player.js');
 const { parseBody } = await import('../src/makehuman/body.js');
 const { MakeHumanPeople } = await import('../src/makehuman/people.js');
 const { readGLB } = await import('../scripts/mocap/glb.js');
+const { snapshot } = await import('./rollback.js');
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const FILE = readGLB(readFileSync('public/anim/gestures.glb'));
@@ -179,12 +180,21 @@ function play(body, A, B, step, id, secs, seated = false) {
 }
 
 const ARMS = ['excited', 'thankful', 'thinking', 'waving', 'yelling', 'talking_2', 'disappointed', 'standing_arguing', 'surprised'];
+// (the traveller is built and warmed once, then rolled back to that moment for each clip, tests/rollback.js: every
+// clip's feet, hands, face and frames at full weight came out bitwise as on a fresh build's, Math.random seeded alike)
+let travellerBuilt = null;
 const bodies = {
   async traveller() {
-    const p = await traveller(course(), V(0, 0, -60), { moves: true, body: 'b3' });
-    for (let i = 0; i < 30; i++) p.update(1 / 60, {}, Math.PI);
-    p.talking = true;
-    return { body: p, A: p.animator, B: p.humanoid.b, step: () => { p.update(1 / 60, {}, Math.PI); p.object.updateMatrixWorld(true); } };
+    travellerBuilt ??= (async () => {
+      const p = await traveller(course(), V(0, 0, -60), { moves: true, body: 'b3' });
+      for (let i = 0; i < 30; i++) p.update(1 / 60, {}, Math.PI);
+      p.talking = true;
+      const b = { body: p, A: p.animator, B: p.humanoid.b, step: () => { p.update(1 / 60, {}, Math.PI); p.object.updateMatrixWorld(true); } };
+      return { b, rewind: snapshot(b, talkGestures) };
+    })();
+    const { b, rewind } = await travellerBuilt;
+    rewind.restore();
+    return b;
   },
   async person({ human, kind = 'm', seat = null }) {
     const { lib } = await loadAssets();

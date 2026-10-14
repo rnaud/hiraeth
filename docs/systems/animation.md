@@ -600,6 +600,11 @@ What looked broken on the page, and what was:
 
 ## The motion QC (`scripts/motion-qc/`, skill `motion-qc`, October 2026)
 
+**On B3 since 2026-10-14.** The node runs (`scripts/motion-qc/run.mjs`, `body`) drive the game's traveller, B3; until
+then they drove the coral-shirt v1, whose files went that day, and the numbers below (issue #47's among them) are v1's.
+On B3 four of the runs green on v1 are not yet: the slow walk pops 5 a minute, up the ramp 6, every gait 7 (the limit
+3), and the standing pivots' worst jolt is 5.2 cm (5); `tests/motion-qc.test.js` holds them as a todo test.
+
 "Finish the work on motion matching with quality control." The traveller is driven by scripted hands (the stick,
 Shift) through starts, stops, every gait, turns, pivots, the ramp and the stairs, recorded every frame right after he
 moved and was posed, and judged: how far each planted step slides, how far a held foot moves, pops (a body bone's

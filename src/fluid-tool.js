@@ -574,7 +574,7 @@ export const TANK_RAIL = { x: SPHERE_R * TANK.squash + 0.03, r: 0.012, z: -0.07,
 
 /**
  * The shoulder straps' way (the wearer's left, +x; the right mirrors it), in the chest anchor's frame of the body
- * that wears the flask (y 0.74 at the collar, +z forward; src/characters/traveller-v1.js TRAVELLER_V1_TANK_AT):
+ * that wears the flask (y 0.74 at the collar, +z forward; the traveller's humanoid.tankAt, STRAP.at):
  * from the plate's top corner over the top of his shoulder, between his neck and the shoulder's point, and down
  * the front of his chest to a buckle, 2–3 cm off his shirt. tests/backpack-straps.test.js keeps it clear of his
  * head, his ears and his body in the poses he takes.
