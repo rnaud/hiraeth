@@ -66,8 +66,9 @@ export function lock(kit, M, brass, d, { yaw, len = 5.4, floorOut = d.y, label }
   const inAt = V(d.x + sx * (d.r - 1.3), d.y + 0.6, d.z + sz * (d.r - 1.3)), outAt = V(outer[0] + sx * 0.9, floorOut + 0.6, outer[2] + sz * 0.9);
   const inTo = V(outer[0] + sx * 3.4, floorOut + 0.1, outer[2] + sz * 3.4), outTo = V(d.x + sx * (d.r - 4.2), d.y + 0.1, d.z + sz * (d.r - 4.2));
   const portals = [
-    { at: inAt, r: 1.25, to: inTo, heading: yaw, label: `${label}: out to the sea` },
-    { at: outAt, r: 1.25, to: outTo, heading: yaw + Math.PI, label: `${label}: in from the sea` },
+    // (door: where each way's light hangs, on its door: src/thresholds.js)
+    { at: inAt, r: 1.25, to: inTo, heading: yaw, label: `${label}: out to the sea`, door: { at: V(...inner), yaw } },
+    { at: outAt, r: 1.25, to: outTo, heading: yaw + Math.PI, label: `${label}: in from the sea`, door: { at: V(...outer), yaw } },
   ];
   // (the drum's inside is dry: its two doors are shut either side of it)
   const ax = d.x + sx * d.r, az = d.z + sz * d.r;

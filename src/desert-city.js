@@ -1180,7 +1180,10 @@ export function buildDesertCity(scene, terrain) {
     cave.both(M.cave, new THREE.BoxGeometry(9.4, PH - DH, 0.6).translate(0, DH + (PH - DH) / 2, IN + 0.3));   // (over the doorway, its passage side)
     cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
     cave.both(caveStone, new THREE.BoxGeometry(5.2, LH, 5.4).translate(0, LH / 2, ROOM + 7.6));   // the landing
-    cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, LH + 2.4, ROOM + 9.9));
+    // the far end of the landing, the way up to the skull: the daylight up there, not a sheet of ink (a black panel
+    // there read as a shut wall, issue #305: "leaving the skull cave it looks like it's blocked but it works"); the
+    // way's light hangs before it (src/thresholds.js)
+    cave.add(makeMaterial({ color: '#efd6a6', glow: 0.7, flat: true }), new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, LH + 2.4, ROOM + 9.9));
     cave.solid(new THREE.BoxGeometry(6, PH, 0.5).translate(0, PH / 2, ROOM + 10.2));
     // the floor: the pool's bed in the middle, four stone steps down into it, a paved kerb round it, then sand running
     // on under the dome's roughened foot (out to 32.8 m: a floor ending at ROOM + 2 left a hairline under the wall in
@@ -1492,11 +1495,12 @@ export function buildDesertCity(scene, terrain) {
   const gd = out.giant.door, fwd = V(Math.sin(G.yaw), 0, Math.cos(G.yaw));
   portals.push(
     // (not before the backpack: the way back up wants the lift valve's double jump, and its chest a full tank: issue #68)
-    { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth',
+    { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth', door: { at: gd.clone(), yaw: G.yaw },
       when: () => items.has('backpack'), refuse: 'Below the skull’s mouth the dark drops away, deep and sheer. Not with empty hands: nothing down there would bring you back up.' },
-    { at: cv.exit.clone().add(V(0, 0.5, 0)), r: 1.6, to: gd.clone().addScaledVector(fwd, 3.2), heading: G.yaw, label: 'passage up' },
+    // (its light over the dark at the shaft's top, the landing's far end: it read as a shut wall, issue #305)
+    { at: cv.exit.clone().add(V(0, 0.5, 0)), r: 1.6, to: gd.clone().addScaledVector(fwd, 3.2), heading: G.yaw, label: 'passage up', door: { at: cv.exit.clone().add(V(0, 0, 0.3)), yaw: 0, w: 4.6, h: 4.6 } },
     // the keepers' stair up to the hatch in the back lane, coming out facing the tree (one way: the hatch only lifts from below)
-    { at: cv.stairTop.clone().add(V(0, 0.5, 0)), r: 1.4, to: out.hatch.out.clone(), heading: C.yaw, label: 'the keepers’ stair', oneWay: true },
+    { at: cv.stairTop.clone().add(V(0, 0.5, 0)), r: 1.4, to: out.hatch.out.clone(), heading: C.yaw, label: 'the keepers’ stair', oneWay: true, door: { at: cave.world(0, HATCH.stair.y, HATCH.stair.door), yaw: 0 } },
   );
 
   // ---------------------------------------------------------------- per frame

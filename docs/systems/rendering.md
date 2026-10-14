@@ -1151,6 +1151,30 @@ tube before). Not shafts of light, left as they are: the quest and box beacons, 
 beams, the sentinel's crown-vent plume (a target), the searchlights' attack cones. `tests/light-shafts.test.js`,
 `tests/veil.test.js`.
 
+## Ways through (`src/thresholds.js`; v1.70, issue #305)
+
+"Leaving the skull cave it looks like it's blocked but it works. There should be a shader to show that I can go
+through." Every way to another space in a level's `portals` (doorways, shops and rooms, the temples' doors and ways
+out, the skull's mouth and the cave's way up, the Hearth, Viridel's hatch, the Avenue's lift and sea locks, the
+sinkhole) wears one look: a veil of light hanging in its opening, brightest at the sill and fading up, its rays
+drifting across and stepped into flat bands (the chest light's washes with `uRays` on, additive), and a pale pool of it
+across the sill. Two washes a way, only within `THRESHOLD.far` (48 m) of the eye; layer 31, nothing in the G-buffer.
+A way whose `when` says no (the skull's mouth before the backpack, a sea lock before its suit) wears none and stays as
+solid as it is drawn; it comes on over `fadeIn` once it opens.
+
+Where it hangs: a portal's `door: { at (the sill's middle), yaw (the way through), w, h }`. `portalPair` gives both of a
+room's (`buildRoom` returns its hole as `door`), the temples their door and ways out (the kit's axis), the desert its
+caves, the Avenue its lift and locks; a size left out is fitted to the walls (`fitDoor`: rays across to the jambs, a
+step or two along the way through if the point stands out of the doorway, and up to the lintel). A portal with no
+`door` is measured blind (`measureDoor`: the nearest pair of opposite walls) and, in the open (the sinkhole, the
+divers' cage), wears a soft round column of the same light. The black panel at the end of the skull cave's landing,
+which read as a shut wall, is the daylight up there now.
+
+Going through (main.js): the veil flares (`flare`: ×2.6, settling over 0.9 s), and `Passage.go({ lead })` puts the
+doorway's light over the screen (`PassageCover.light`, a warm radial glow under the paper) for `THRESHOLD.lead`
+(0.2 s), the traveller still walking into it, before the paper sweeps across as before; on the far side the way back
+glows and settles (`arrive`). `tests/thresholds.test.js`.
+
 ## The eclipse (post.js `drawEclipse`, `uEclipse`; src/eclipse.js; October 2026)
 
 The City During the Eclipse's sky: the sun covered by the moon at midday, drawn as the pictures draw it.

@@ -117,6 +117,8 @@ export function buildRoom(scene, {
     inside: wp(door.x, 0.05, d / 2 - 1.6),
     doorIn: wp(door.x, 0, d / 2 - 0.3),
     doorOut: wp(door.x, 0, d / 2 + 1.1),
+    // the opening itself (its sill's middle, the way through, its size): where the way's light hangs (src/thresholds.js)
+    door: { at: wp(door.x, 0, d / 2), yaw: rot, w: door.w, h: door.h },
     lights: [new THREE.Vector4(lp.x, lp.y, lp.z, Math.max(w, d) * 0.9)],
     facingOut: rot,               // heading that walks out of the door
   };
@@ -152,7 +154,7 @@ export function doorwayPortals(scene, { at, heading, room, frame = '#e9dcc0', vo
   const glow = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.8, 0.5).translate(0, 0.3, -D - 0.28), makeMaterial({ color: '#c98f5f', flat: true, glow: 0.35 }));
   for (const o of [inner, veil, glow]) { o.userData.noCollide = true; grp.add(o); }
   scene.add(grp);
-  return portalPair({ at, heading, room });
+  return portalPair({ at, heading, room, door: { w, h } });
 }
 
 /**
@@ -161,12 +163,13 @@ export function doorwayPortals(scene, { at, heading, room, frame = '#e9dcc0', vo
  * has its hatch in its hull). `at` is the threshold on the ground, `heading`
  * points out of the door.
  */
-export function portalPair({ at, heading, room }) {
+export function portalPair({ at, heading, room, door = {} }) {
   const fwd = new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading));
+  // (door: each way's opening, where its light hangs: src/thresholds.js; the outside one's size measured when not given)
   return [
     // stepping into the doorway from outside: inside the room, facing in
-    { at: at.clone().addScaledVector(fwd, -0.2), r: 1.2, to: room.inside, heading: room.facingOut + Math.PI },
+    { at: at.clone().addScaledVector(fwd, -0.2), r: 1.2, to: room.inside, heading: room.facingOut + Math.PI, door: { at: at.clone(), yaw: heading, ...door } },
     // walking back out of the room's door: in front of the doorway, facing away
-    { at: room.doorOut.clone().addScaledVector(Y, 0.5), r: 1.4, to: at.clone().addScaledVector(fwd, 2.6), heading },
+    { at: room.doorOut.clone().addScaledVector(Y, 0.5), r: 1.4, to: at.clone().addScaledVector(fwd, 2.6), heading, door: room.door ?? { yaw: room.facingOut } },
   ];
 }

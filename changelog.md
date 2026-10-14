@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The fluid gun starts in push mode when you first get it, and its lesson says so: the trigger pushes, the D-pad changes the mode. Whichever mode you pick after that is the one it holds the next time you play.
 - The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.
 - Sandstorms come far less often in the desert: one every eight to fourteen minutes instead of every two or three, a little shorter, never one straight after another, and none in your first minutes there.
+- Every door, cave mouth, hatch, lift and temple door that takes you somewhere else now has a soft veil of light hanging in its opening, so you can see at a glance that you can go through; a way that won’t take you yet stays as it is. The way up out of the skull cave no longer looks like a shut black wall. Going through, the light flares and washes over the screen for a moment before the page turns.
 
 ## v1.69 — 2026-10-13
 

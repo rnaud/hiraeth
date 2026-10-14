@@ -9,6 +9,9 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.70', date: '2026-10-13', items: [
+    // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step
+    // through: src/passage.js lead + PassageCover.light; the skull cave's landing end no longer ink (src/desert-city.js)
+    'Every door, cave mouth, hatch, lift and temple door that takes you somewhere else now has a soft veil of light hanging in its opening, so you can see at a glance that you can go through; a way that won’t take you yet stays as it is. The way up out of the skull cave no longer looks like a shut black wall. Going through, the light flares and washes over the screen for a moment before the page turns.',
     // the desert's storms paced (issue #308): src/levels/content.js desert.weatherPace, src/weather.js first/clear/episode
     { text: 'Sandstorms come far less often in the desert: one every eight to fourteen minutes instead of every two or three, a little shorter, never one straight after another, and none in your first minutes there.',
       numbers: [

@@ -63,9 +63,9 @@ export class TempleRuntime {
     if (this.outside?.door) {
       const D = this.outside.door, f = V(Math.sin(D.heading), 0, Math.cos(D.heading));
       this.doorOut = D.at.clone().addScaledVector(f, 3);
-      this.portals.push({ at: D.at.clone().addScaledVector(f, -0.3), r: 1.6, to: this.arrival.pos.clone(), heading: this.arrival.heading, label: def.doorLabel ?? `door of ${def.name}`, temple: def.id });
+      this.portals.push({ at: D.at.clone().addScaledVector(f, -0.3), r: 1.6, to: this.arrival.pos.clone(), heading: this.arrival.heading, label: def.doorLabel ?? `door of ${def.name}`, temple: def.id, door: { at: D.at.clone(), yaw: D.heading, ...(D.w ? { w: D.w } : {}), ...(D.h ? { h: D.h } : {}) } });
       // (toUp: the ways out land in the world, not in a room off the map: main.js only counts portals without it)
-      for (const ex of L.exits ?? []) this.portals.push({ at: ex.at, r: ex.r ?? 1.5, to: (ex.to ?? this.doorOut).clone(), heading: ex.heading ?? D.heading, label: 'way out', temple: def.id, toUp: V(0, 1, 0) });
+      for (const ex of L.exits ?? []) this.portals.push({ at: ex.at, r: ex.r ?? 1.5, to: (ex.to ?? this.doorOut).clone(), heading: ex.heading ?? D.heading, label: 'way out', temple: def.id, door: ex.door ?? { yaw: this.kit.heading(0) }, toUp: V(0, 1, 0) });
     }
     // the guardian
     if (L.guardian) {

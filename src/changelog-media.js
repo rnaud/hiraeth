@@ -784,9 +784,16 @@ const GIVERS273 = 'Issue #273: muted headless Chrome (High, 1280 × 720) against
 // (v1.69, issue #311: a scratch shooter against this branch's own Vite (port 6311), the desert from a save at the Hall of Channels' far end with the eye struck, the ball cut through the page; the before with WING as it was)
 const CHANNELS311 = 'Issue #311: muted headless Chrome (High, 1280 × 720, 11:00, clear, the camera pinned by the far door’s bowl) against this branch’s own Vite (port 6311), the ball cut from the groove’s start with the relay lit, taken as it came 40 cm from its stop; the before with the hall’s ball as it burned until then (13 October)';
 const KEEPER314 = 'headless Chrome against a dev server of this branch and of the code before it, the Rose House’s cistern, High, 13 October 2026';
+const DOORS305 = 'Issue #305: muted headless Chrome (High, 1280 × 720, 10:00, clear, the camera pinned) against this branch’s own Vite (port 6305) and the commit before it, the Desert from a save with the backpack (13 October)';
 const HINTS306 = { from: 'headless Chrome (muted) against this branch’s own dev server and the commit before the change, Medium at 1280 × 720, a new save out of the ship (13 October)' };
 export const CHANGELOG_MEDIA = {
   '1.70': [
+    { match: 'Every door, cave mouth, hatch, lift and temple door', shots: [
+      { name: 'doors-cave-exit', title: 'Leaving the skull cave', caption: 'At the top of the cave’s entrance shaft, on the landing: before, a sheet of black at its end that read as a shut wall; after, the daylight up there and the way’s veil of light, its rays drifting.', from: DOORS305 },
+      { name: 'doors-rose-house', title: 'A temple’s door', caption: 'The Rose House’s door from outside: before, a dark slot; after, the same dark with light rising from its sill.', from: DOORS305 },
+      { name: 'doors-temple-exit', title: 'The way back out', caption: 'Inside the Rose House, the doorway you came in by: before, black; after, lit, so it reads as the way out.', from: DOORS305 },
+      { name: 'doors-step-through', title: 'Going through', caption: 'A tenth of a second after walking into the shop’s door: before, the paper already across the screen; after, the door’s light washing over the screen first, the traveller still walking into it, then the paper.', from: DOORS305 },
+    ] },
     { match: 'Every hint and announcement now looks the same', shots: [
       { name: 'hints-top', title: 'A first lesson', caption: 'Out of the ship in the desert: before, “Look around with the mouse” on cream paper at the bottom while the notices came at the top; after, on the notices’ dark strip at the top, the notices stacked under it.', from: HINTS306 },
       { name: 'hints-prompt', title: 'The prompt over someone', caption: 'Beside Rima with hints full: the prompt that floats over her is the same dark strip, its button a cream badge.', from: HINTS306 },

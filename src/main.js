@@ -133,6 +133,8 @@ import { lanternSky, applyLanternSky } from './story/lantern-sky.js';
 import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
+import { Thresholds, THRESHOLD } from './thresholds.js';
+import { Veils } from './veil.js';
 import { slicer, gatedSlicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
 import { warmShadersSliced as warmSliced, firstUse, settle, programKind } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
@@ -1261,6 +1263,8 @@ updateSky();
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
 const deadlyVoid = worldVoid(level);   // (the world's deadly void under its kill height, issue #312: src/pit-void.js; makes level.veils if need be)
+// every way through to another space wears its light (issue #305, src/thresholds.js): washes over the finished picture
+const thresholds = level.portals?.length ? new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics }) : null;
 level.veils?.bind({ tNormal: gbuffer.textures[1], uniforms: U });   // (the see-through surfaces' wash reads the scene's depth and the ink pass's light and haze: src/veil.js)
 const params = {
   preset: level.defaults.preset ?? 'Moebius print',
@@ -2258,6 +2262,7 @@ function frame(ts) {
   // doorways into interiors (and back out): the hand-over (src/passage.js): its destination drawn
   // ahead as you come near, then the paper sweeps across, you walk on out of the far side
   portalCool = Math.max(portalCool - dt, 0);
+  thresholds?.update(dt, t, camera.position);
   if (!portalCool && !passage.active && !player.riding && !player.dead && level.portals) {
     for (const pt of level.portals) {
       const d = player.pos.distanceTo(pt.at);
@@ -2265,9 +2270,11 @@ function frame(ts) {
       if (pt.when && !pt.when()) { if (d < pt.r) { if (!pt._refused && pt.refuse) showToast(pt.refuse); pt._refused = true; } else if (d > pt.r + 3) pt._refused = false; continue; }
       if (d < pt.r + PASSAGE.near) passage.prepare(pt.to);
       if (d < pt.r) {
-        passage.go({ to: pt.to, heading: pt.heading });
+        // (through its light: the veil flares and the light washes over the screen a moment before the paper: src/thresholds.js)
+        const lit = thresholds?.flare(pt);
+        passage.go({ to: pt.to, heading: pt.heading, lead: lit ? THRESHOLD.lead : 0, onMove: (c) => thresholds?.arrive(c.to) });
         sound.page();
-        portalCool = 1.2 + PASSAGE.cover + PASSAGE.reveal;
+        portalCool = 1.2 + THRESHOLD.lead + PASSAGE.cover + PASSAGE.reveal;
         break;
       }
     }

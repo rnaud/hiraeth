@@ -7,6 +7,8 @@ import * as THREE from 'three';
 //     tiny targets of the real passes' formats, so its geometry and textures are on the GPU and
 //     the driver has built its pipelines (a mobile driver compiles a shader for real only at its
 //     first draw). At load for every way through; again as you come near one, for anything new.
+//  1b. through a doorway's light (issue #305, src/thresholds.js): first a moment (`lead`) where the doorway's veil
+//     flares and a warm light washes over the screen, the traveller still walking into it; then the paper;
 //  2. the cover: a sheet of paper with an inked edge sweeps across the screen (PassageCover; a
 //     CSS transition, run by the compositor, so it keeps moving through a long frame);
 //  3. behind it, the move (carryAcross): the traveller lands still walking, at the speed they
@@ -19,6 +21,7 @@ import * as THREE from 'three';
 export const PASSAGE = {
   cover: 0.22,       // s: the sheet comes across
   reveal: 0.4,       // s: and goes on off the far side
+  light: 0.55,       // the warm light's strength over the screen at its height, going through a doorway's light (0..1)
   holdMin: 2,        // frames drawn at the destination, still covered, before it goes
   holdMax: 0.6,      // s: the longest it waits for the new place to settle
   calmDt: 0.042,     // s: a frame quicker than this is back to pace (two in a row, and it goes)
@@ -302,7 +305,25 @@ export class PassageCover {
       <path d="${path.left}" ${ink} stroke-width="1.2" stroke-opacity="0.5" transform="translate(-0.9 0)"/><path d="${path.right}" ${ink} stroke-width="1.2" stroke-opacity="0.5" transform="translate(0.9 0)"/>
     </svg>`;
     doc.body?.appendChild(el);
-    this._t = null;
+    // the light you step into (a doorway's, src/thresholds.js): a warm glow from the middle of the screen, under the paper
+    const lt = (this.lightEl = doc.createElement('div'));
+    lt.id = 'passage-light';
+    lt.setAttribute('aria-hidden', 'true');
+    lt.style.cssText = 'position:fixed;inset:0;z-index:7899;pointer-events:none;opacity:0;visibility:hidden;background:radial-gradient(ellipse at 50% 55%, #fff8e4 0%, #ffe9b8 38%, rgba(255,226,166,0.55) 70%, rgba(255,226,166,0) 100%);will-change:opacity';
+    doc.body?.appendChild(lt);
+    this._t = null; this._lt = null;
+  }
+
+  /** The doorway's light over the screen: up to `k` (0..1) over `secs`, or down to nothing. */
+  light(k, secs) {
+    this.lightK = k;
+    const lt = this.lightEl;
+    if (!lt) return;
+    clearTimeout(this._lt);
+    lt.style.visibility = 'visible';
+    lt.style.transition = `opacity ${secs}s ${k > 0 ? 'cubic-bezier(.3,0,.6,1)' : 'ease-out'}`;
+    lt.style.opacity = String(k);
+    if (k <= 0) this._lt = setTimeout(() => { if (!(this.lightK > 0)) lt.style.visibility = 'hidden'; }, secs * 1000 + 60);
   }
 
   _go(x, secs, ease) {
@@ -328,6 +349,7 @@ export class PassageCover {
   /** Sweep on, off the right. */
   reveal(secs = PASSAGE.reveal) {
     this.k = 0;
+    if (this.lightK > 0) this.light(0, secs);
     if (!this.el) return;
     this._go(100, secs, 'cubic-bezier(.25,0,.5,1)');
     clearTimeout(this._t);
@@ -359,7 +381,7 @@ export class Passage {
 
   get active() { return !!this.cur; }
   /** True from go() until the move (the screen is covered or coming covered). */
-  get covering() { return this.cur?.phase === 'cover'; }
+  get covering() { return this.cur?.phase === 'cover' || this.cur?.phase === 'lead'; }
 
   /** As you come near a way through: its destination drawn ahead, a slice a frame (once per place). */
   prepare(to, radius = PASSAGE.radius) {
@@ -369,14 +391,17 @@ export class Passage {
   }
 
   /**
-   * Begin a hand-over. o: { to, heading, up, fwd, speed (null: kept), radius, onMove(c) }.
+   * Begin a hand-over. o: { to, heading, up, fwd, speed (null: kept), radius, onMove(c), lead }.
+   * `lead` (s): through a doorway's light, that long of its light over the screen before the paper comes across.
    * Returns false if one is already under way.
    */
   go(o) {
     if (this.cur) return false;
     const warm = this.warm ? this.warm.near([o.to], o.radius ?? PASSAGE.radius) : [];
-    this.cur = { ...o, phase: 'cover', t: 0, frames: 0, warm };
-    this.cover?.cover(PASSAGE.cover);
+    const lead = o.lead > 0 ? o.lead : 0;
+    this.cur = { ...o, phase: lead ? 'lead' : 'cover', t: 0, frames: 0, warm };
+    if (lead) this.cover?.light?.(PASSAGE.light, lead);
+    else this.cover?.cover(PASSAGE.cover);
     return true;
   }
 
@@ -387,7 +412,11 @@ export class Passage {
     const c = this.cur;
     if (!c) return null;
     c.t += dt;
-    if (c.phase === 'cover') {
+    if (c.phase === 'lead') {
+      // (the destination drawn ahead meanwhile: the light is on the screen, the paper not yet)
+      if (c.warm.length) this.warm.draw(c.warm.splice(0, PASSAGE.perFrame));
+      if (c.t >= c.lead) { c.phase = 'cover'; c.t = 0; this.cover?.cover(PASSAGE.cover); }
+    } else if (c.phase === 'cover') {
       if (c.warm.length) this.warm.draw(c.warm.splice(0, PASSAGE.perFrame));
       // (the frame after the sheet arrives: real time runs at least as fast as the game's clamped clock)
       const covered = c.t >= PASSAGE.cover + 1 / 60;

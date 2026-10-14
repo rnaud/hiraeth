@@ -523,7 +523,7 @@ export function buildDesertHearth(scene, terrain) {
   const inside = L(...HEARTH.inside.toArray()), exitAt = L(...HEARTH.exit.toArray());
   const fwd = V(Math.sin(S.yaw), 0, Math.cos(S.yaw));
   portals.push(
-    { at: door.clone().add(V(0, 0.4, 0)), r: 1.6, to: inside.clone(), heading: Math.PI, label: 'Givers’ Hearth' },
+    { at: door.clone().add(V(0, 0.4, 0)), r: 1.6, to: inside.clone(), heading: Math.PI, label: 'Givers’ Hearth', door: { at: door.clone(), yaw: S.yaw } },
     { at: exitAt.clone().add(V(0, 0.5, 0)), r: 1.6, to: doorFront.clone().addScaledVector(fwd, 0.5), heading: S.yaw, label: 'passage out' },
   );
 
