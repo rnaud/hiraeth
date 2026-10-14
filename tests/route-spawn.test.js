@@ -32,7 +32,7 @@ async function build(id) {
     const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
     level.init?.(physics);
     const ship = new Ship({ scene, physics, level, levelId: id, content: CONTENT[id] });
-    return { level, physics, ship };
+    return { level, physics, ship, scene };
   });
 }
 
@@ -108,6 +108,46 @@ for (const [id, { views = [], paths = [] }] of Object.entries(BENCH)) {
     }
     for (const path of paths) for (const q of path.points ?? []) clearOfShip(`${id} path ${path.name}`, W, V(...q.p));
   });
+  test(`${id}: the benches' views look at the world, not at a column or a trunk at the camera (issue #301)`, async () => {
+    viewsClear(id, await world(id), views);
+  });
+}
+
+// Issue #301 (visual audit v1.66, finding 6): the views must look at their world, not at a column or a trunk the camera
+// stands against. The Underwater City's crowd2 had a flat cyan face over half its frame 2-4 m off; the City-Shaft's looked
+// through the plaza's cypresses at its traveller (Viridel's through a trunk too: that trunk is not in a node-built world,
+// its view was re-picked by eye). Each view's frame cast at 16 × 9 rays against the world's opaque meshes: nothing within
+// VIEW_NEAR.m over a third of the frame, nothing nearer than VIEW_NEAR.before of the way to the view's traveller over a
+// third of it, and the line to his chest clear (but on a wide view, where he is a speck). Glass (transparent) doesn't count.
+const VIEW_NEAR = { m: 2, before: 0.7, share: 1 / 3 };
+const BY_DESIGN = {   // (views left out, and why)
+  'glassdunes sinkhole': 'looks in through the glass that holds the stopped minute, by design',
+  'garage crowd2': 'a 16 m mound of the node-built hangar stands at its camera where the game draws open sand (checked in the game)',
+};
+function viewsClear(id, { scene }, views) {
+  scene.updateMatrixWorld(true);
+  const solid = [];
+  scene.traverse((o) => { const m = [].concat(o.material ?? []); if ((o.isMesh || o.isInstancedMesh) && o.visible !== false && !m.some((x) => x.transparent || x.opacity < 1)) solid.push(o); });
+  const ray = new THREE.Raycaster();
+  for (const v of views) {
+    if (!v.eye || !v.target || BY_DESIGN[`${id} ${v.name}`]) continue;
+    const eye = V(...v.eye), cam = new THREE.PerspectiveCamera(v.fov ?? 55, 16 / 9, 0.1, 500);
+    cam.position.copy(eye); cam.lookAt(...v.target); cam.updateMatrixWorld(true);
+    const him = v.player ? V(...v.player).add(V(0, 1.2, 0)) : null, D = him ? him.distanceTo(eye) : 0;
+    let n = 0, near = 0, before = 0;
+    for (let y = 0; y < 9; y++) for (let x = 0; x < 16; x++) {
+      ray.setFromCamera(new THREE.Vector2(((x + 0.5) / 16) * 2 - 1, ((y + 0.5) / 9) * 2 - 1), cam); n++;
+      const h = ray.intersectObjects(solid, false)[0];
+      if (h && h.distance < VIEW_NEAR.m) near++;
+      if (h && him && h.distance < VIEW_NEAR.before * D) before++;
+    }
+    assert.ok(near / n < VIEW_NEAR.share, `${id} ${v.name}: ${(near / n * 100).toFixed(0)} % of the frame within ${VIEW_NEAR.m} m of the camera`);
+    if (!him) continue;
+    assert.ok(before / n < VIEW_NEAR.share, `${id} ${v.name}: ${(before / n * 100).toFixed(0)} % of the frame stands before the traveller`);
+    if (v.name === 'wide') continue;
+    const block = new THREE.Raycaster(eye, him.clone().sub(eye).normalize(), 0.1, D - 0.6).intersectObjects(solid, false)[0];
+    assert.ok(!block, `${id} ${v.name}: the camera sees its traveller (something ${block?.distance.toFixed(1)} m off in the way)`);
+  }
 }
 
 test('a spawn under the ship goes to the foot of its ramp, facing out (the desert\'s, issue #254)', async () => {

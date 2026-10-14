@@ -147,6 +147,17 @@ export const SPOT_PAST = { side: 1.5, near: { past: 1, side: 2, taps: 1.5 }, fro
  * turn), as an alley between two walls or a cave's floor does, not along one wall. Walls keep the share of their
  * taps: a recess between ribs, the wall under a balcony. spotShare is the same in JS.
  */
+/**
+ * What stands well in front of a surface is no side of a pocket in it (visual audit v1.21 finding 1, v1.66 findings 1-2;
+ * issue #301): the Lorn temple hall's crystal on its ring 3 m before the wall, the rocks by the Underwater City's ramp
+ * before the floor and the walls far behind them. A tap landing on the near thing counted it as closing in the surface
+ * behind it, a halo of spot black round its outline as wide as the taps' reach, which slid over the far surface as the
+ * camera turned (the outline moves across it, the thing doesn't). So a tap's surface counts only up to `gap[0]` × the
+ * taps' radius (the pocket's radius on screen, Rm) in front of the tap's own place on the point's surface (its view depth
+ * along the same ray), fading out by `gap[1]` ×. A pocket's sides rise from the surface within that reach (an alley's
+ * walls, a balcony over a wall, a riser's step); a thing standing farther out is open. tests/occlusion-taps.test.js.
+ */
+export const SPOT_RANGE = { gap: [2.5, 4] };
 export const SPOT_POCKET = { up: [0.6, 0.8], under: [0.6, 0.8], below: [-0.3, -0.05] };
 /**
  * The dust band at a weathered wall's foot (3b') finds the ground with one probe down the screen; where that lands on
@@ -196,7 +207,8 @@ const spotLoop = (n) => `{
         // (and on the ground a tap on a person is open: a person never makes a pocket of open ground; what the look past
         //  them guesses there, a wall's plane carried on past its end behind them, drew a dark copy of the traveller on
         //  the shaded ground beside a wall's end in the Shadow Room)
-        tc[i] = spotTapAt(tuv[i], sd, P, nV, rA, rB, r1, r2) * mix(smoothstep(${SPOT_POCKET.below[0].toFixed(2)}, ${SPOT_POCKET.below[1].toFixed(2)}, dy), 1.0, under) * mix(1.0, tp[i], ground);
+        // (and what stands well in front of the tap's own place is no pocket's side but a thing before it: SPOT_RANGE)
+        tc[i] = spotTapAt(tuv[i], sd, -(P.z + SPOT_TAPS${n}[i].x * t1.z + SPOT_TAPS${n}[i].y * t2.z), P, nV, rA, rB, r1, r2) * mix(smoothstep(${SPOT_POCKET.below[0].toFixed(2)}, ${SPOT_POCKET.below[1].toFixed(2)}, dy), 1.0, under) * mix(1.0, tp[i], ground);
       }
       for (int i = 0; i < ${n}; i++) occ += tc[i];
       // (on the ground, a pocket closes in from opposite sides: tap i and tap i + n/2)
@@ -680,16 +692,19 @@ const fragmentShader = /* glsl */ `
   // so a view-space point S is at uv = (S.xy / -S.z - rB) / rA), and a tap on the sky weighs 0 instead of a
   // skip (docs/systems/performance.md, docs/systems/rendering.md "Spot blacks anchored to the surface").
   vec2 spotUv(vec3 S, vec2 rA, vec2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
-  float spotTapAt(vec2 suv, float sd, vec3 P, vec3 nV, vec2 rA, vec2 rB, float r1, float r2) {
+  float spotReach = 1.0;   // (the enclosure's tap radius this pixel, m)
+  // (own: the view depth of the tap's place on the point's own surface; what the tap sees more than SPOT_RANGE.gap × the
+  //  taps' radius in front of it is a thing standing before the surface, not a side of its pocket: open)
+  float spotTapAt(vec2 suv, float sd, float own, vec3 P, vec3 nV, vec2 rA, vec2 rB, float r1, float r2) {
     vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
     float dist = length(v);
     return step(0.0, sd) * sign(sd)   // (the sky: open)
-      * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+      * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist))
+      * (1.0 - smoothstep(${SPOT_RANGE.gap[0].toFixed(2)} * spotReach, ${SPOT_RANGE.gap[1].toFixed(2)} * spotReach, own - sd));
   }
   // what a tap's ray meets behind a person standing on it (spotBehind): the plane of the surface seen at pixel
   // 'at' (q: its normal and view depth) met along the ray r (view space, z = -1), as a view depth; hi where it
   // doesn't meet it between lo (the person) and hi
-  float spotReach = 1.0;   // (the enclosure's tap radius this pixel, m)
   vec3 spotP = vec3(0.0), spotN = vec3(0.0, 0.0, 1.0);   // (the point and its normal, view space: SPOT_PAST.front)
   float planeNear(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi, float lim) {
     vec3 nQ = toView * q.xyz;

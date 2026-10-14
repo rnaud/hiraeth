@@ -27,6 +27,9 @@ export const CHANGELOG = [
     // changes in src/temples/{moonfoundry,spacecity}.js, the whales' pass (src/levels/underwater-kit.js, underwater.js);
     // docs/systems/cinematics.md; tests/moments-{underwater,moonfoundry,spacecity}.test.js
     'Three worlds’ endings show what they are about. In the Underwater City a whale comes right up against the Whale Gallery’s glass and you see it there; in the Moon Foundry the last moon rises onto its hook over the Casting-House’s door, and every hung moon over the floor turns slowly round toward it; in the City Floating in Space, over the roof, every cable runs taut out of the great capstan and its lamps light one by one out along them.',
+    // the spot blacks' range (issue #301): post.js SPOT_RANGE, the Unity composite the same; docs/systems/rendering.md
+    // "No spot-black halo round a thing standing before a surface"; tests/occlusion-taps.test.js
+    'No more dark ragged halo round things that stand in front of a wall or a floor further back, like the crystal on its ring in the Lorn temple hall or the stone figure by the Underwater City’s ramp: it used to slide over the wall behind them as you turned the camera.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

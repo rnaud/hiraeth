@@ -64,6 +64,8 @@ is measured, and flagged for:
 - blown whites;
 - NaN-magenta pixels;
 - mostly one colour, or very few colours (nothing drawn).
+- the camera against something: a third of the frame or more within 2 m of it (the depth view, debug 4; a bench view
+  placed badly: re-pick it, `tests/route-spawn.test.js` holds every view's frame clear of what stands before its traveller).
 
 It also runs the clipping audit once per world (`window.clipAudit`). Then read `report.json`, open
 every flagged picture and a sample of the rest, and check them against this list.
@@ -147,7 +149,7 @@ came from: rendering.md, "How the visual probes' limits were set"):
 | probe | catches | how | flagged when |
 |---|---|---|---|
 | **3. Ghost** (`ghostCheck`) | bug 1: a pale copy of a person cut into a dark mass, or a dark halo round them | him 1.3 m before the spot's surface, the camera 5 m off; debug 9 (the enclosure, 8 taps) and 10 (the preset's spot mask) with him and with him hidden; his silhouette from debug 2 and 3; three more takes with nobody moving for the world's own noise (`noiseAcross`); `--people` the same with story people where he stood | a pale region beside him over 5 % of his size or 300 px; a dark one over 30 %; a person over a tenth of the frame is reported `close`, not judged |
-| **4. Orbit** (`stability`, `orbitScale`) | bug 2: a mask that jumps or changes shape on the same surface as the camera turns | ±32° round the spot in 8° steps, him hidden; the swing narrows in a small room (×0.75, 0.5, 0.25, reported as `swing`) until the eye keeps 85 % of its distance; the same surface points read in masks 9 and 10, kept where the albedo still matches | the frame-to-frame step's p95 over 0.3 (`unstable`); `drift` (most dark points move in small steps) is a picture to look at, not a verdict |
+| **4. Orbit** (`stability`, `orbitScale`, `seenAt`) | bug 2: a mask that jumps or changes shape on the same surface as the camera turns | ±32° round the spot in 8° steps, him hidden; the swing narrows in a small room (×0.75, 0.5, 0.25, reported as `swing`) until the eye keeps 85 % of its distance; the same surface points read in masks 9 and 10, kept where the albedo still matches and the depth view (debug 4) puts them at their own depth (a collider nothing draws, a drawn thing that doesn't collide: issue #301) | the frame-to-frame step's p95 over 0.3 (`unstable`); `drift` (most dark points move in small steps) is a picture to look at, not a verdict |
 | **5. Seams** (`floorSlits`, `litRidges`) | bug 3: a gap under a wall's foot, the sky seen through it | in every way in and known cave: level rays at 6 cm, 0.3 m and 1 m all round (a gap: the foot ray through where the metre ray meets a wall, unless the 0.3 m ray goes through too: furniture on legs); the light term (debug 5) six ways round the floor's edge | under a ceiling: one direction with a gap, or a sky-white line of 60 px or more; 30-60 px kept as `look`, a picture to look at (glowing marks pass too) |
 
 Look at the pictures each saves (`<spot>-ghost-d9with.png`, `…-d9without.png`, `…-d10…`, `…-light-<k>.png`) before

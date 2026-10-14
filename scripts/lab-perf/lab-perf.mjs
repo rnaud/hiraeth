@@ -12,7 +12,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { options, sleep, median } from '../bench/lib.mjs';
-import { PLAYWRIGHT, CHROME } from '../bench/browser.mjs';
+import { importPlaywright, CHROME } from '../bench/browser.mjs';
 
 const opt = options();
 const BASE = (opt.url ?? 'http://localhost:5250/').replace(/\/?$/, '/');
@@ -119,7 +119,7 @@ const PAGE = `(() => {
 })();`;
 
 // ---------------------------------------------------------------- run
-const { chromium } = await import(PLAYWRIGHT);
+const { chromium } = await importPlaywright();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true,
   args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });

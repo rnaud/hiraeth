@@ -814,6 +814,7 @@ const PIRATES326 = 'Issue #326: muted headless Chrome (High, 1280 × 720) agains
 const BOX334 = 'Issue #334: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6334), before and after the change, the box opened by the review page’s staging under its own plan; 14 October; the QC’s own WebP';
 const BOX292 = 'Issues #292 and #293: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6292), before and after the change, the box opened by the review page’s staging; 14 October; the QC’s own WebP';
 const CINE295 = 'Issues #295–#299: the cinematics QC script (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720, the review page’s staging) on this branch and on the tree before it (259a283d), its frames of the same cinematic at about the same second; 14 October';
+const HALO301 = 'Issue #301: the visual audit’s orbit probe (muted headless Chrome, High, 1280 × 720, 9:30) on this branch’s own Vite (port 6301), the first frame of its orbit (−32°); before, the same build with the spot blacks’ range check off (post.js SPOT_RANGE) (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.73': [
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
@@ -831,6 +832,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'climax-whales', title: 'The Underwater City', caption: 'The second panel of its ending: before, the dark water with a whale lost in it; after, inside the Whale Gallery, the whale against its glass.', from: CINE295 },
       { name: 'climax-moon', title: 'The Moon Foundry', caption: 'The second panel: before, up at the one hung moon, still; after, under the jib, the last moon rising onto its hook (the hung moons turn in the next panel).', from: CINE295 },
       { name: 'climax-cables', title: 'The City Floating in Space', caption: 'The second panel: before, out along one cable; after, over the roof, the capstan with every cable running out of it, its lamps lighting.', from: CINE295 },
+    ] },
+    { match: 'No more dark ragged halo round things that stand in front', tags: ['lorn'], shots: [
+      { name: 'spot-halo-lorn', title: 'The Lorn temple hall', caption: 'The crystal on its ring, 3 m before the hall’s wall: before, a jagged dark band round it on the wall and the floor behind; after, the wall plain behind it.', from: HALO301 },
+      { name: 'spot-halo-underwater', title: 'The Underwater City, by the ramp', caption: 'The stone figure close up: before, a dark band along its outline on the wall and floor behind it; after, none.', from: HALO301 },
     ] },
   ],
   '1.72': [

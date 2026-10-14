@@ -9,13 +9,13 @@
 // that reading on any list of frames ({ t ms, data base64 JPEG, w CSS width }) is angles() below.
 import { writeFileSync } from 'node:fs';
 import { options, sleep } from '../bench/lib.mjs';
-import { PLAYWRIGHT, CHROME } from '../bench/browser.mjs';
+import { importPlaywright, CHROME } from '../bench/browser.mjs';
 
 const opt = options();
 const BASE = (opt.url ?? 'http://localhost:6441/').replace(/\/?$/, '/');
 const cpuRate = +(opt.cpu ?? 4);
 const WORLDS = String(opt.only ?? 'desert,incal').split(',');
-const { chromium } = await import(PLAYWRIGHT);
+const { chromium } = await importPlaywright();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 
 /** the pen's angle (degrees) in each frame, decoded in a page of its own: the red nib's centroid round the pen's centre */

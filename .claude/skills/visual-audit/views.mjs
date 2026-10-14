@@ -5,11 +5,13 @@
 // screen of one colour (nothing drawn). The clipping audit (window.clipAudit) is run once per world.
 //
 //   node .claude/skills/visual-audit/views.mjs <out-dir> [--worlds desert,incal] [--hours 7,12,18.5,22]
-//        [--preset high] [--interiors 1] [--max-interiors 6] [--res 1280x720]     PORT (default 5494; Chrome's PORT + 1)
+//        [--preset high] [--interiors 1] [--max-interiors 6] [--res 1280x720] [--views crowd2,…]     PORT (default 5494; Chrome's PORT + 1)
+// Each view is also measured for what stands within NEAR.m of its camera (the depth view, debug 4): a third of the
+// frame or more is a camera against a column or a trunk (issue #301), flagged.
 // Writes <out-dir>/<world>/<view>@<hour>.png and <out-dir>/report.json (the numbers of every picture, flagged).
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,10 +29,12 @@ const names = await import(join(ROOT, 'src/levels/names.js'));
 const WORLDS = (arg('worlds') ?? [...new Set([...names.ORDER, ...names.SIDE, 'home', 'lantern'])].join(',')).split(',').filter(Boolean);
 const VW = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
 const VD = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints.json'), 'utf8')).views;
-const viewsOf = (id) => (id === 'desert' ? VD : VW[id]?.views ?? []).filter((v) => v.eye && v.target).slice(0, 3);
+const ONLY = arg('views', '').split(',').filter(Boolean);
+const viewsOf = (id) => (id === 'desert' ? VD : VW[id]?.views ?? []).filter((v) => v.eye && v.target && (!ONLY.length || ONLY.includes(v.name))).slice(0, ONLY.length ? 99 : 3);
+const { NEAR, nearShare } = await import(join(ROOT, 'scripts/visual-probes/lib.mjs'));
 
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false,
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false, cacheDir: viteCacheDir('visual-audit-vite'),
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
@@ -91,6 +95,14 @@ for (const world of WORLDS) {
   for (const v of viewsOf(world).length ? viewsOf(world) : [{ name: 'boot' }]) {
     if (v.eye) await ev(pin(v));
     for (const h of HOURS) { await ev(hour(h)); await sleep(1500); shots.push({ view: v.name, hour: h, ...(await shoot(join(OUT, world, `${v.name}@${h}.png`))) }); }
+    if (v.eye) {   // (what stands within NEAR.m of the camera: the depth view, once a view)
+      await ev('(window.params.debug = 4, true)'); await sleep(400);
+      const depthPng = Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64');
+      writeFileSync(join(OUT, world, `${v.name}-depth.png`), depthPng);
+      const near = nearShare(decodePNG(depthPng));
+      await ev('(window.params.debug = 0, true)'); await sleep(200);
+      for (const s of shots.filter((x) => x.view === v.name)) { s.near = near; if (near >= NEAR.share) s.flags.push(`the camera against something (${(near * 100).toFixed(0)} % of the frame within ${NEAR.m} m)`); }
+    }
   }
   // inside every way in (doors, caves, portals): from just past its threshold, looking further in, at noon
   if (INTERIORS) {

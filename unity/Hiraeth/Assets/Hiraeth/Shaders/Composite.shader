@@ -234,7 +234,9 @@ Shader "Hidden/Hiraeth/Composite"
         for (int i = 0; i < n8; i++)
         {
           float ai = 0.39 + i * 6.2832 / n8, rri = (i % 2) ? 0.55 : 1.0;
-          float2 tuvI = spotUv(P + (cos(ai) * t1 + sin(ai) * t2) * rri, rA, rB);
+          float3 oI = (cos(ai) * t1 + sin(ai) * t2) * rri;
+          float2 tuvI = spotUv(P + oI, rA, rB);
+          float own = -(P.z + oI.z);   // (the tap's place on the point's own surface, as a view depth: post.js SPOT_RANGE)
           float4 tqI = tN(tuvI);
           float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);
           float sd = tqI.w;
@@ -267,7 +269,8 @@ Shader "Hidden/Hiraeth/Composite"
           float3 v = float3(tuvI * rA + rB, -1.0) * sd - P;
           float dist = length(v);
           float dy = mul((float3x3)_CamWorld, v).y;
-          tc[i] = smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist)) * lerp(smoothstep(-0.3, -0.05, dy), 1.0, under) * lerp(1.0, tpI, ground);   // (on the ground a tap on a person is open)
+          // (what stands well in front of the tap's own place is a thing before the surface, not a side of its pocket: post.js SPOT_RANGE)
+          tc[i] = smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist)) * (1.0 - smoothstep(2.5 * Rm, 4.0 * Rm, own - sd)) * lerp(smoothstep(-0.3, -0.05, dy), 1.0, under) * lerp(1.0, tpI, ground);   // (on the ground a tap on a person is open)
         }
         for (int j3 = 0; j3 < n8; j3++) occ += tc[j3];
         float pair = 0.0;

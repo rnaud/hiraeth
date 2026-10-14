@@ -20,7 +20,7 @@
 // Writes <out-dir>/report.json and, for every flagged probe, its debug pictures (<world>/<preset>/...png).
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -64,7 +64,7 @@ const KNOWN = {
 // ---------------------------------------------------------------- the browser
 const { createServer } = await import(join(HERE, 'node_modules/vite/dist/node/index.js'));
 process.chdir(ROOT);   // (vite.config.js allows serving from the working directory's workspace)
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false, ...(ROOT !== HERE ? { cacheDir: join(tmpdir(), 'visual-probes-vite') } : {}),
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false, cacheDir: ROOT !== HERE ? join(ROOT, '.vite-cache') : viteCacheDir('visual-probes-vite'),   // (its own: node_modules/.vite is shared; another root's beside its own node_modules)
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
@@ -137,7 +137,8 @@ const PAGE = `(() => {
         d.subVectors(v, cam); const len = d.length();
         const h = physics.rayHit(cam, d.normalize(), len + 0.5);
         if (h && h.distance < len - 0.08) return null;
-        return [Math.round((s.x * 0.5 + 0.5) * innerWidth), Math.round((0.5 - s.y * 0.5) * innerHeight)];
+        // (and its view depth: what stands in front without colliding is found in the depth view, lib.mjs seenAt)
+        return [Math.round((s.x * 0.5 + 0.5) * innerWidth), Math.round((0.5 - s.y * 0.5) * innerHeight), -v.clone().applyMatrix4(camera.matrixWorldInverse).z];
       });
     },
     // one origin's rays at once: level hits a metre up all round, and ground profiles out along 8 directions
@@ -205,6 +206,10 @@ async function orbit(spot, dir) {
     const cols = px.map((p) => (p ? at(p) : null));
     albedo0 ??= cols;
     px = px.map((p, i) => (p && albedo0[i] && cols[i] && Math.max(...cols[i].map((c, k) => Math.abs(c - albedo0[i][k]))) <= 24 ? p : null));
+    // (and nothing nearer at its pixel than the point itself: a thing that doesn't collide, its albedo like the surface's)
+    await ev(`__probe.debug(4)`); await settle(120);
+    const dep = await grab();
+    px = px.map((p) => (p && L.seenAt(dep, p, p[2]) ? p : null));
     await ev(`__probe.debug(10)`); await settle(120); const rawS = await grabRaw(); const s = L.maskOf(decodePNG(rawS), L.spotPick);
     await ev(`__probe.debug(9)`); await settle(120); const e = L.maskOf(await grab(), L.enclosurePick);
     px.forEach((p, i) => { series.spot[i].push(valueAt(s, p)); series.encl[i].push(valueAt(e, p)); });

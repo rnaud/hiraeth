@@ -2,7 +2,8 @@
 // Each is shown the bug it was made for, drawn small: it must flag it, and pass the fixed picture.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ghostCheck, stability, unstable, litRidges, floorSlits, stairRisers, cornerOf, silhouette, blobs, maskOf, spotPick, enclosurePick } from '../scripts/visual-probes/lib.mjs';
+import { readFileSync } from 'node:fs';
+import { ghostCheck, stability, unstable, litRidges, floorSlits, stairRisers, cornerOf, silhouette, blobs, maskOf, spotPick, enclosurePick, seenAt, SEEN } from '../scripts/visual-probes/lib.mjs';
 
 const W = 120, H = 90;
 const img = (f) => { const data = new Float32Array(W * H); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) data[y * W + x] = f(x, y); return { data, w: W, h: H }; };
@@ -123,6 +124,23 @@ test('the masks are read from the debug views as post.js writes them', () => {
   const a = px([[10, 10, 10], [200, 10, 10]]), b = px([[10, 10, 10], [10, 10, 10]]);
   assert.deepEqual([...silhouette(a, b)], [0, 1]);
   assert.deepEqual(blobs(Uint8Array.from([1, 1, 0, 1]), 4, 1).map((r) => r.n), [2, 1]);
+});
+
+test('seenAt: an orbit point not drawn where it is, on a collider nothing draws or behind a thing that doesn\'t collide, is left out (issue #301)', () => {
+  // the depth view as post.js debug 4 writes it: pow(depth / 3000, 0.4) in 8 bits
+  const level = (d) => Math.round(255 * Math.pow(d / SEEN.scale, SEEN.gamma));
+  const px = (depths) => ({ pixels: Uint8Array.from(depths.flatMap((d) => [level(d), level(d), level(d)])), channels: 3, width: depths.length, height: 1 });
+  const view = px([4.2, 1.6, 40, 0.8]);
+  assert.ok(seenAt(view, [0, 0], 4.2), 'the floor where it was');
+  assert.ok(!seenAt(view, [1, 0], 4.2), 'the stone figure 1.6 m off in front of the floor 4.2 m off');
+  assert.ok(seenAt(view, [2, 0], 40) && !seenAt(view, [3, 0], 1.2), 'far and near, through the 8-bit rounding');
+  // the Underwater City's ramp: points on a collider 0.4 m before the camera, the floor and the stone figure drawn 1.4-10 m off
+  assert.ok(!seenAt(view, [1, 0], 0.4) && !seenAt(view, [0, 0], 0.4), 'a point nothing draws');
+  assert.ok(seenAt(view, [3, 0], 0.8) && seenAt(px([0.4]), [0, 0], 0.4) && seenAt(px([0.4]), [0, 0], 0.45), 'a near point where it is drawn');
+  assert.ok(!seenAt(view, null, 4) && !seenAt(view, [0, 0], 0), 'off the screen, or no depth');
+  // and the probe asks it of every point, every frame, after the albedo
+  const probes = readFileSync(new URL('../.claude/skills/visual-audit/probes.mjs', import.meta.url), 'utf8');
+  assert.ok(probes.includes('px = px.map((p) => (p && L.seenAt(dep, p, p[2]) ? p : null));'));
 });
 
 test('personBlob keeps the person and what hangs on them, not the world moving elsewhere; noiseOf finds that motion', async () => {

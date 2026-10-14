@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.73 — 2026-10-14
 
+- No more dark ragged halo round things that stand in front of a wall or a floor further back, like the crystal on its ring in the Lorn temple hall or the stone figure by the Underwater City’s ramp: it used to slide over the wall behind them as you turned the camera.
 - Three worlds’ endings show what they are about. In the Underwater City a whale comes right up against the Whale Gallery’s glass and you see it there; in the Moon Foundry the last moon rises onto its hook over the Casting-House’s door, and every hung moon over the floor turns slowly round toward it; in the City Floating in Space, over the roof, every cable runs taut out of the great capstan and its lamps light one by one out along them.
 - Coming home, at the stone: nobody stands half out of the picture any more (you, Lou and Ilen are each wholly in a shot or out of it), Lou is filmed from where her face shows, the oldest recording cuts between your parents and your face, and the view no longer jumps as the cargo check opens and closes.
 - At home, the window seat: your head stays inside the picture as you sit down and get up, and the view from beside the seat no longer has a flat white patch of wall in it.

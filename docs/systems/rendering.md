@@ -668,6 +668,38 @@ on the desert's light term, and the visual probes over Qanat and the desert's ca
   every side (as before) but no longer a mass, `spotShare` on its own, and the shader's and the Unity port's constants.
   The Unity port's Composite.shader takes the same rule.
 
+## No spot-black halo round a thing standing before a surface (`SPOT_RANGE`; issue #301, v1.72)
+
+The visual audit at v1.66 (findings 1-2, v1.21's finding 1 still open): a jagged halo of spot black round the Lorn
+temple hall's crystal on its ring against the far wall (orbit p95 0.60 at High), round the rocks and the stone figure
+by the Underwater City's ramp, along the glass column there, round the Moon Foundry's ramp rails (0.38). The taps
+round a point on the far surface landed on the near thing and counted it as closing the surface in: a band as wide as
+the taps' reach round its outline, sliding over the far surface as the camera turned (the outline moves across it, the
+thing doesn't). The distance check the taps had (1.5-3 × R, the pocket's 3 m) let in anything a few metres off,
+while the taps themselves (held to 96 px on the screen) reach under a metre at 6 m.
+
+- **Now** a tap's surface counts only up to `SPOT_RANGE.gap[0]` (2.5) × the taps' radius (Rm, after its swell) in front
+  of the tap's own place on the point's surface, along the same ray (its view depth less the seen surface's), fading
+  out by `gap[1]` (4) ×. A pocket's sides rise from the surface within that reach (an alley's walls, a balcony over a
+  wall, a riser's step); a thing standing farther out is open. The Unity port's Composite.shader the same.
+- **The twin** (`tests/occlusion-taps.test.js`): the crystal 3 m before a wall, the probe's camera 6.5 m off orbiting
+  ±32°, the wall's points round it: High's 8 taps flipped 58 times in 988 steps of 8° (one in 17), 10 now; the
+  Handheld's 4 taps 24 → 15. Tighter reaches (1.5-3 ×) clear the crystal entirely but take a 2.2 m balcony's spot black
+  under the 0.3 threshold (its front edge stands that far out): 2.5-4 keeps the balcony, the alley and the risers as
+  they were.
+- **Measured** (`probes.mjs --worlds perdide,underwater,buried,moonfoundry --presets handheld,high --spots
+  inner-wall-3,stairs-0`, the spot mask's p95 step): Lorn's crystal 0.60 → 0 (High), 0.17 → 0.02 (Handheld); the Moon
+  Foundry's ramp 0.38 → 0.22 (High), 0.24 → 0.24; the Underwater City's ramp 0.80 → not judged, the Buried Machine's
+  0.62 → 0 (Handheld): there the probe had been measuring something else, below.
+- **The probe's own miss** (`scripts/visual-probes/lib.mjs` `seenAt`): the orbit's points are found and followed with
+  rays against what collides, and what collides isn't always what is drawn. At the Underwater City's ramp they lay on a
+  collider 0.4 m before the camera that nothing draws, and the orbit read whatever showed through it (the stone
+  figure's creases, its albedo near the floor's) as the floor's mask coming and going; at the Buried Machine's ramp
+  four in five lay on the beam's collision box off its drawn faces. A point now counts in a frame only where the depth
+  view (debug 4) puts it at its own view depth (within 15 % and a level's rounding). The halos round the rocks there are
+  gone in the pictures (`docs/audits/visual-v1.66` before, this change's after); the ramp's spot itself has no drawn
+  point left for the probe to follow.
+
 ## The rule for screen-space passes (October 2026)
 
 The three bugs above (a pale ghost of a person in the spot blacks, blocks that slid with the view, a lit seam that
@@ -959,6 +991,19 @@ Per world (High, 1728 × 1117 at DPR 2; flicker per 10 000 px before → after; 
 
 (The still path is left out: with the clock running it measures who walks by; every world's showed only moving
 things. On Handheld the Buried Machine's pipe is small enough on screen that the shadow map holds its line.)
+
+**The frozen world holds its life too** (issue #301, v1.72; `scripts/motion-check/freeze.mjs`). Every frame of a path
+puts the traveller behind the camera, and the flocks circle him (life.js `Flock`: their centre is his position), the
+creatures wake, sleep and flee round him (wildlife.js), the foes and the reactive things answer him: with the clock
+stopped they still moved with the camera. They are held now (the flocks keep the centre and eye they had, the rest are
+updated as paused; `--live` leaves them). The visual audit at v1.66 put the rise of Viridel's pan (12.8 against 2.5
+here) and the Garden's and Lorn's on them; held, the numbers barely move (Viridel 12.7 → 12.5, the Garden 20.8 → 20.9,
+Lorn 6.5 → 6.5): the heat maps put the rest on the drawing of what those worlds grew since the table was made
+(Viridel's new flower beds round its start and the road's dark outline at a grazing angle, the Garden's furrows).
+The pans again (High, 1728 × 1117 at DPR 2, v1.72, the life held; the table's "after" first): the Desert 7.0 → 4.9,
+the City-Shaft 15.2, the Signal Market 3.0 → 4.2, Vael 1.6 → 3.3 (its spawn moved with the merge, v1.39), Vael II 9.0 →
+3.3 and Lorn II 5.8 → 6.5 (merged into Vael and Lorn: the same spawn now), Lorn 4.3 → 6.5, Viridel 2.5 → 12.5, the
+Sealed Hangar 8.7 → 5.1, the Buried Machine 3.1, the Garden of Spheres 15.3 → 20.9, Home 5.9 → 10.4.
 
 - **Cost** (M4 Pro, ANGLE Metal, the two builds in their own pages timed in turns: 16 `renderFrame()` closed by a
   `readPixels`, 12 rounds, the boot camera and one 25 m up; paired difference median, ms): High 1728 × 1117 at

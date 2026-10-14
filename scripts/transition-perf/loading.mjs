@@ -9,7 +9,7 @@
 //   node scripts/transition-perf/loading.mjs --pen       does the loading screen's pen keep turning through a 500 ms task?
 import { writeFileSync } from 'node:fs';
 import { options, sleep } from '../bench/lib.mjs';
-import { PLAYWRIGHT, CHROME } from '../bench/browser.mjs';
+import { importPlaywright, CHROME } from '../bench/browser.mjs';
 
 const opt = options();
 const BASE = (opt.url ?? 'http://localhost:6441/').replace(/\/?$/, '/');
@@ -27,7 +27,7 @@ const INIT = `(() => {
   console.info = function (...a) { const s = String(a[0] ?? ''); if (s.startsWith('load: ')) L.stages.push([Math.round(performance.now()), s.slice(6)]); return info.apply(this, a); };
 })();`;
 
-const { chromium } = await import(PLAYWRIGHT);
+const { chromium } = await importPlaywright();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true,
   args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });

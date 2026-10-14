@@ -5,7 +5,7 @@
 //   node scripts/bench/deck-pen.mjs [--port 5310] [--only desert,incal] [--quality deck] [--out f.json]
 import { writeFileSync } from 'node:fs';
 import { options, sleep } from './lib.mjs';
-import { PLAYWRIGHT, CHROME } from './browser.mjs';
+import { importPlaywright, CHROME } from './browser.mjs';
 
 const opt = options();
 const PORT = +(opt.port ?? 5310);
@@ -22,7 +22,7 @@ const send = (method, params = {}) => new Promise((r) => { const i = ++id; pendi
 const ev = async (expression) => (await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })).result?.result?.value;
 await send('Page.enable'); await send('Runtime.enable');
 
-const { chromium } = await import(PLAYWRIGHT);
+const { chromium } = await importPlaywright();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--mute-audio'] });
 
 /** the pen's angle (degrees) in each frame: the red nib's centroid round the pen's centre (as pen.mjs) */

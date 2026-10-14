@@ -285,3 +285,31 @@ export function cornerOf(a, b, { square = 0.35 } = {}) {
 
 /** The probes' camera orbit round a point: yaw offsets (degrees), a few at a time. */
 export const ORBIT = { yaw: [-32, -24, -16, -8, 0, 8, 16, 24, 32], distance: 6.5, lift: 1.6 };
+
+/**
+ * A surface point drawn where it is (the orbit's points; issue #301): the depth view (post.js debug 4, pow(depth / 3000,
+ * 0.4) in 8 bits) at its pixel says the point's own view depth, within `keep` (× either way) and a level's rounding.
+ * The points are found and followed by rays against what collides, and what is drawn is not always that: at the
+ * Underwater City's ramp they lay on a collider 0.4 m before the camera that nothing draws, and the orbit read whatever
+ * was seen through it (the stone figure's creases beyond, its albedo matching the floor's) as the floor's mask coming and
+ * going (p95 0.8 there); a thing drawn but not colliding would stand in front of them the same way.
+ */
+export const SEEN = { keep: 0.85, scale: 3000, gamma: 0.4 };
+/**
+ * A bench view's camera against something (issue #301; visual-v1.66 finding 6: the Underwater City's crowd2 with a flat
+ * cyan face over half its frame, Viridel's and the City-Shaft's through a trunk and big leaves): the share of the frame
+ * the depth view (debug 4) puts within `m` metres of the camera; `share` or more is flagged. The sky (white) is far.
+ */
+export const NEAR = { m: 2, share: 1 / 3 };
+export function nearShare({ pixels, channels, width, height }, T = NEAR) {
+  const top = Math.ceil(255 * Math.pow(T.m / SEEN.scale, SEEN.gamma));   // (the depth view's level at m metres)
+  let n = 0;
+  for (let i = 0; i < width * height; i++) if (pixels[i * channels] <= top) n++;
+  return +(n / (width * height)).toFixed(3);
+}
+export function seenAt({ pixels, channels, width }, px, depth, T = SEEN) {
+  if (!px || !(depth > 0)) return false;
+  const v = pixels[(px[1] * width + px[0]) * channels];
+  const at = (l) => T.scale * Math.pow(Math.min(255, Math.max(0, l)) / 255, 1 / T.gamma);
+  return depth >= at(v - 1) * T.keep && depth <= at(v + 1) / T.keep;   // (a level either side: never on its rounding)
+}

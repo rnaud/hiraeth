@@ -8,6 +8,7 @@
 //   [--save 1]                     the frames as WebM clips (half size, and a 1:1 crop of the hottest part: --crop x,y,w,h)
 //   [--frames N] [--tag t] [--hour 10] [--js file] (run in the page after setup) [--keepframes 3,4] [--heatcrop x,y,w,h]
 //   [--zoomfrom 30 --zoomto 2]     the zoom path's distances
+//   [--live]                       the flocks, creatures and foes left to move round the traveller (held by default: freeze.mjs)
 //   [--far 60]                     also the flicker of what is over 60 m off alone (farFlicker: per 10 000 of those pixels;
 //                                  the mask read once a path from debug view 4, the depth)
 //   [--gecko <dist dir>]           on the handheld over adb instead: the GeckoView test app at the device's own screen
@@ -22,10 +23,11 @@
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { tmpdir, homedir } from 'node:os';
-import { PLAYWRIGHT, CHROME } from '../bench/browser.mjs';
+import { importPlaywright, CHROME } from '../bench/browser.mjs';
+import { freezeLife } from './freeze.mjs';
 
 const A = Object.fromEntries(process.argv.slice(2).reduce((a, x, i, all) => (x.startsWith('--') ? [...a, [x.slice(2), all[i + 1] && !all[i + 1].startsWith('--') ? all[i + 1] : '1']] : a), []));
-const { chromium } = A.gecko ? {} : await import(PLAYWRIGHT);   // (not needed on the handheld: --gecko)
+const { chromium } = A.gecko ? {} : await importPlaywright();   // (not needed on the handheld: --gecko)
 const FFMPEG = process.env.FFMPEG ?? `${homedir()}/Library/Caches/ms-playwright/ffmpeg-1011/ffmpeg-mac`;
 const port = +(A.port ?? 6121), level = A.level ?? 'bazaar', build = A.build ?? 'main', preset = A.preset ?? 'high';
 const out = A.out ?? `${tmpdir()}/hiraeth-motion`;
@@ -127,7 +129,8 @@ console.log(`${level} ${build} ${preset}: booted in ${Date.now() - t0} ms`);
 await page.waitForTimeout(3000);
 
 // conditions: fixed scale, the hour, no weather, no HUD, the camera pinnable, the clock taken over
-const setup = await page.evaluate(({ hour, noPlace }) => {
+await page.evaluate(`window.__freezeLife = ${freezeLife.toString()}; 1`);
+const setup = await page.evaluate(({ hour, noPlace, live }) => {
   const { THREE, camera } = window;
   window.sound?.setVolume?.(0); window.sound?.setVolumes?.(0, 0);
   const p = window.preset(); p.dynamic = null; window.resize();
@@ -159,10 +162,14 @@ const setup = await page.evaluate(({ hour, noPlace }) => {
   };
   const d = new THREE.Vector3(); camera.getWorldDirection(d);
   window.__noPlace = noPlace;
+  // the world's life held as well (issue #301; --live leaves it): the flocks circle the traveller, whom every frame of a
+  // path moves behind the camera, so their birds flew with the camera; the creatures woke, slept and fled round him;
+  // the foes and the reactive things answered him. A frozen world's flicker is the drawing's alone (freeze.mjs).
+  window.__frozenLife = live ? [] : window.__freezeLife(window);
   window.__vt.start();
   const c = window.renderer.domElement;
-  return { eye: camera.position.toArray(), dir: d.toArray(), fov: camera.fov, player: window.player.pos.toArray(), fb: [c.width, c.height], scale: window.quality.renderScale, sky: window.sky.hour };
-}, { hour: A.hour !== undefined ? +A.hour : null, noPlace: !!A.noplace });
+  return { eye: camera.position.toArray(), dir: d.toArray(), fov: camera.fov, player: window.player.pos.toArray(), fb: [c.width, c.height], scale: window.quality.renderScale, sky: window.sky.hour, frozen: window.__frozenLife };
+}, { hour: A.hour !== undefined ? +A.hour : null, noPlace: !!A.noplace, live: !!A.live });
 console.log('setup', JSON.stringify(setup));
 if (GECKO) {   // (the handheld's speaker: silent, checked; its frame readout left showing)
   const s = await page.evaluate(() => { document.getElementById('fps')?.style.setProperty('visibility', 'visible', 'important'); return [window.sound?.musicVol, window.sound?.fxVol, window.sound?.voiceVol]; });

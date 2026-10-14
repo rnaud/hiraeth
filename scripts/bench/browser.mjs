@@ -8,10 +8,30 @@
 // EXT_disjoint_timer_query_webgl2, the GPU time of the commands each frame issues; and it records the
 // renderer's draw calls and triangles after each frame (three.js: renderer.info).
 import { mkdirSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 import { pidsOf } from './lib.mjs';
 import { tempPath } from '../temp-dirs.mjs';
 
-export const PLAYWRIGHT = process.env.PLAYWRIGHT ?? '/private/tmp/claude-501/-Users-anf-projects-moebius/79b266a7-36c4-4810-b5a3-d753e92ed428/scratchpad/node_modules/playwright-core/index.mjs';
+// Playwright (only its library: the browser is the Mac's own Chrome, CHROME): PLAYWRIGHT, a path or a module name, if
+// set; else playwright-core or playwright as Node finds them from here (node_modules, or NODE_PATH's); else the name,
+// and importPlaywright() says how to get it. (It used to default to another session's scratch folder: issue #301.)
+const require = createRequire(import.meta.url);
+export function findPlaywright(env = process.env, resolve = (m) => require.resolve(m)) {
+  if (env.PLAYWRIGHT) return env.PLAYWRIGHT;
+  for (const m of ['playwright-core', 'playwright']) { try { return pathToFileURL(resolve(m)).href; } catch { /* not there */ } }
+  return 'playwright-core';
+}
+export const PLAYWRIGHT = findPlaywright();
+export const PLAYWRIGHT_HELP = 'Playwright was not found. Install its library where Node finds it (npm i --no-save playwright-core: no browser is downloaded, '
+  + 'the scripts drive the Mac\'s Chrome) or point PLAYWRIGHT at one (PLAYWRIGHT=/path/to/node_modules/playwright-core/index.mjs).';
+/** The Playwright module (its chromium), or an error that says how to get it. */
+export async function importPlaywright(spec = PLAYWRIGHT) {
+  try { return await import(spec); } catch (e) {
+    if (e?.code === 'ERR_MODULE_NOT_FOUND' || /Cannot find (module|package)/.test(String(e?.message))) throw new Error(`${PLAYWRIGHT_HELP} (looked for ${spec})`);
+    throw e;
+  }
+}
 export const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 export const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-frame-rate-limit',
   '--force-device-scale-factor=1', '--enable-precise-memory-info', '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
@@ -19,7 +39,7 @@ export const CHROME_ARGS = ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-b
 
 /** paced: with vsync and the frame-rate limit, as a player's Chrome (for the stutter at 60 Hz) */
 export async function launch({ w, h, profile, extraArgs = [], paced = false, headless = false }) {
-  const { chromium } = await import(PLAYWRIGHT);
+  const { chromium } = await importPlaywright();
   rmSync(profile, { recursive: true, force: true });
   mkdirSync(tempPath(profile), { recursive: true });   // (removed at exit however the run ends, issue #220)
   const ctx = await chromium.launchPersistentContext(profile, {

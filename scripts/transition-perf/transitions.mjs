@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { options, sleep } from '../bench/lib.mjs';
-import { PLAYWRIGHT, CHROME } from '../bench/browser.mjs';
+import { importPlaywright, CHROME } from '../bench/browser.mjs';
 
 const opt = options();
 const BASE = (opt.url ?? 'http://localhost:6431/').replace(/\/?$/, '/');
@@ -123,7 +123,7 @@ const DRIVE = `(() => {
 })();`;
 
 // ---------------------------------------------------------------- run
-const { chromium } = await import(PLAYWRIGHT);
+const { chromium } = await importPlaywright();
 const browser = await chromium.launch({ executablePath: CHROME, headless: true,
   // paced (the default): vsync and the frame-rate limit on, as in a player's browser, so the GPU's
   // backlog is bounded as it is there (unpaced, any call that waits for the GPU process waits for

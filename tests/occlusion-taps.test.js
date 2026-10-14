@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
-import { createPost, PRESETS, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_SWELL, spotBehind, spotFrame, spotShare, spotSwell, glslVec3, SPOT_POCKET, DUST_PAST } from '../src/post.js';
+import { createPost, PRESETS, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_RANGE, SPOT_SWELL, spotBehind, spotFrame, spotShare, spotSwell, glslVec3, SPOT_POCKET, DUST_PAST } from '../src/post.js';
 
 const shader = createPost().scene.children[0].material.fragmentShader;
 const body = (name) => {
@@ -86,7 +86,7 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   // the third look past him (issue #28): to either side of the tap's place, along the other axis
   assert.equal((enc.match(new RegExp(`vec3 op = \\(-SPOT_TAPS\\d\\[i\\]\\.y \\* t1 \\+ SPOT_TAPS\\d\\[i\\]\\.x \\* t2\\) \\* ${SPOT_PAST.side.toFixed(2).replace('.', '\\.')};`, 'g')) ?? []).length, 2);
   assert.equal((enc.match(new RegExp(`sd = planeNear\\(s[12], texture\\(tNormal, s[12]\\), r, toView, rA, rB, lo, sd, ${nr('side')}\\);`, 'g')) ?? []).length, 4);
-  assert.equal((enc.match(/tc\[i\] = spotTapAt\(tuv\[i\], sd, P, nV, rA, rB, r1, r2\) \* mix\(/g) ?? []).length, 2);
+  assert.equal((enc.match(/tc\[i\] = spotTapAt\(tuv\[i\], sd, -\(P\.z \+ SPOT_TAPS\d\[i\]\.x \* t1\.z \+ SPOT_TAPS\d\[i\]\.y \* t2\.z\), P, nV, rA, rB, r1, r2\) \* mix\(/g) ?? []).length, 2);
   assert.match(body('planeNear'), /return t > lo && t < hi \? t : hi;/);
   assert.match(body('planeNear'), /if \(lim > 0\.0 && length\(r \* t - Q\) > lim \* spotReach\) t = hi;/);
   assert.ok(!/texture\(tHatch/.test(enc + body('spotTapAt')));
@@ -250,7 +250,10 @@ function stairScene() {
   return { scene, RISE, RUN };
 }
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-function spotTwin(scene, cam, P, R, taps, mode, H = 540) {
+/** What is left of a tap whose surface stands `gap` m in front of its own place, the taps' radius Rm (post.js SPOT_RANGE). */
+const spotRange = (gap, Rm) => 1 - smooth(SPOT_RANGE.gap[0] * Rm, SPOT_RANGE.gap[1] * Rm, gap);
+// (range: SPOT_RANGE's check on what a tap sees against its own place, false the rule before it)
+function spotTwin(scene, cam, P, R, taps, mode, H = 540, range = true) {
   const W = H * cam.aspect, ray = new THREE.Raycaster();
   const hit = (u, v) => {
     ray.setFromCamera(new THREE.Vector2(u * 2 - 1, v * 2 - 1), cam);
@@ -277,7 +280,8 @@ function spotTwin(scene, cam, P, R, taps, mode, H = 540) {
     if (sd <= 0) { c.push(0); dy.push(0); continue; }
     const v = new THREE.Vector3(su * rA[0] + rB[0], sv * rA[1] + rB[1], -1).multiplyScalar(sd).sub(Pv), dist = v.length();
     dy.push(v.clone().applyMatrix4(new THREE.Matrix4().extractRotation(cam.matrixWorld)).y);
-    c.push(smooth(0.12, 0.5, nV.dot(v) / dist) * (1 - smooth(R * 1.5, R * 3, dist)));
+    const own = mode === 'screen' ? sd : -Pv.clone().addScaledVector(t1, x).addScaledVector(t2, y).z;
+    c.push(smooth(0.12, 0.5, nV.dot(v) / dist) * (1 - smooth(R * 1.5, R * 3, dist)) * (range ? spotRange(own - sd, Rm) : 1));
   }
   // (the screen-fixed taps before: the plain share; on the surface now: SPOT_POCKET's rule, 'share' the plain share)
   return mode === 'surface' ? spotShare(c, dy, nW.y) : c.reduce((a, b) => a + b, 0) / taps;
@@ -355,6 +359,58 @@ test('real pockets keep their spot black: an alley’s floor between two walls, 
   }
 });
 
+// Issue #301 (visual audit v1.66, findings 1-2; v1.21 finding 1): a thing standing well before a surface is no side of a
+// pocket in it. The Lorn temple hall's crystal on its ring, 3 m before the hall's wall, the probe's camera 6.5 m off the
+// wall and orbiting it ±32°: the taps on the wall round the crystal's outline landed on the crystal and closed the wall in,
+// a halo of spot black as wide as their reach that slid over the wall as the camera turned (orbit p95 0.60 at High).
+function crystalScene(before = 3) {
+  const scene = new THREE.Scene(), mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), mat));
+  scene.add(new THREE.Mesh(new THREE.BoxGeometry(40, 8, 3).translate(0, 4, -1.5), mat));   // (the wall, its face at z = 0)
+  scene.add(new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.6, 16).translate(0, 0.3, before), mat));   // (the ring)
+  scene.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.8).scale(0.8, 1.3, 0.8).translate(0, 1.9, before), mat));
+  scene.updateMatrixWorld(true);
+  return scene;
+}
+/** The wall's spot mask round the crystal over the probe's orbit: how many of the points seen in two frames running flip. */
+function crystalOrbit(taps, range, before = 3, threshold = 0.3) {
+  const scene = crystalScene(before), H = taps === 4 ? 540 : 720, ray = new THREE.Raycaster();
+  let pairs = 0, flips = 0, most = 0;
+  for (let x = -3; x <= 3; x += 0.3) for (let y = 0.8; y <= 3.4; y += 0.4) {
+    const P = new THREE.Vector3(x, y, 0.001);
+    let last = null;
+    for (let yaw = -32; yaw <= 32; yaw += 8) {
+      const a = yaw * Math.PI / 180, cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.1, 500);
+      cam.position.set(Math.sin(a) * 6.5, 3.5, Math.cos(a) * 6.5); cam.lookAt(0, 1.9, 0); cam.updateMatrixWorld(true);
+      // (only where the wall itself is seen: a point hidden by the crystal is the crystal's)
+      const pc = P.clone().project(cam);
+      ray.setFromCamera(new THREE.Vector2(pc.x, pc.y), cam);
+      const h = ray.intersectObjects(scene.children, false)[0];
+      if (!h || h.point.distanceTo(P) > 0.05) { last = null; continue; }
+      const e = spotTwin(scene, cam, P, 3, taps, 'surface', H, range), on = e > threshold;
+      most = Math.max(most, e);
+      if (last !== null) { pairs++; if (on !== last) flips++; }
+      last = on;
+    }
+  }
+  return { pairs, flips, most: +most.toFixed(3) };
+}
+
+test('a thing standing before a wall closes no pocket in it: no spot-black halo round the Lorn hall\'s crystal sliding as the view turns (issue #301)', () => {
+  for (const taps of [8, 4]) {
+    const before = crystalOrbit(taps, false), now = crystalOrbit(taps, true);
+    // (High's 8 taps, where the probe flagged it: one wall point in 17 changed from one 8° step to the next, one in 100 now;
+    //  the Handheld's 4 reach less far round the point and the probe found the crystal steady there, fewer flips still)
+    if (taps === 8) assert.ok(before.flips > 0.04 * before.pairs, `the bug: the halo comes and goes on the wall (${JSON.stringify(before)})`);
+    assert.ok(now.flips <= (taps === 8 ? 0.015 : 0.02) * now.pairs && now.flips < before.flips, `${taps} taps: the wall round the crystal holds (${JSON.stringify(now)} against ${JSON.stringify(before)})`);
+  }
+  // the shader and the Unity port take the same range, against the tap's own place on the point's surface
+  const [g0, g1] = SPOT_RANGE.gap;
+  assert.ok(body('spotTapAt').includes(`(1.0 - smoothstep(${g0.toFixed(2)} * spotReach, ${g1.toFixed(2)} * spotReach, own - sd))`));
+  const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader', import.meta.url), 'utf8');
+  assert.ok(unity.includes(`(1.0 - smoothstep(${g0.toFixed(1)} * Rm, ${g1.toFixed(1)} * Rm, own - sd))`) && unity.includes('float own = -(P.z + oI.z);'));
+});
+
 test('spotShare: the plain share on a wall; what stands lower closes nothing (but under a ceiling); on the ground, opposite taps both', () => {
   // a wall point: two taps closed, one of them by something a metre lower
   assert.equal(spotShare([1, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], 0), 0.25);
@@ -428,7 +484,7 @@ function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H
   const k = cam.projectionMatrix.elements[5] * 0.5 * H;
   const Rm = Math.min(96, Math.max(4, R * k / h0.d)) * h0.d / k * (SPOT_SWELL.range[0] + (SPOT_SWELL.range[1] - SPOT_SWELL.range[0]) * spotSwell(P.clone().applyMatrix4(cam.matrixWorld).toArray(), R));
   const [t1, t2] = spotFrame(h0.n.toArray()).map((t) => new THREE.Vector3(...t).applyMatrix3(toView).multiplyScalar(Rm));
-  const close = (uv, sd) => { if (sd <= 0) return 0; const w = ray3(...uv).multiplyScalar(sd).sub(P), dist = w.length(); return smooth(0.12, 0.5, nV.dot(w) / dist) * (1 - smooth(R * 1.5, R * 3, dist)); };
+  const close = (uv, sd, own = sd) => { if (sd <= 0) return 0; const w = ray3(...uv).multiplyScalar(sd).sub(P), dist = w.length(); return smooth(0.12, 0.5, nV.dot(w) / dist) * (1 - smooth(R * 1.5, R * 3, dist)) * spotRange(own - sd, Rm); };
   const plane = (h, uv) => ({ n: h.n.clone().applyMatrix3(toView).toArray(), p: ray3(...uv).multiplyScalar(h.d).toArray() });
   const T = OCCLUSION_TAPS.spot(taps).map(([x, y]) => { const o = t1.clone().multiplyScalar(x).addScaledVector(t2, y), uv = uvOf(P.clone().add(o)); return { o, x, y, uv, h: hit(...uv) }; });
   const N = SPOT_PAST.near;
@@ -436,9 +492,9 @@ function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H
   let occ = 0, seen = 0;
   // ('now': the shader's whole rule, SPOT_POCKET's on the taps as spotBehind leaves them, spotShare)
   const cs = [], dys = [], persons = [], rot = new THREE.Matrix4().extractRotation(cam.matrixWorld);
-  const keep = (uv, d, person) => { cs.push(close(uv, d)); dys.push(d > 0 ? ray3(...uv).multiplyScalar(d).sub(P).applyMatrix4(rot).y : 0); persons.push(person); };
+  const keep = (uv, d, person, own = d) => { cs.push(close(uv, d, own)); dys.push(d > 0 ? ray3(...uv).multiplyScalar(d).sub(P).applyMatrix4(rot).y : 0); persons.push(person); };
   for (const { o, uv, h } of T) {
-    if (!h.person) { occ += close(uv, h.d); seen++; if (rule === 'now') keep(uv, h.d, false); continue; }
+    if (!h.person) { occ += close(uv, h.d, -(P.z + o.z)); seen++; if (rule === 'now') keep(uv, h.d, false, -(P.z + o.z)); continue; }
     const uv2 = uvOf(P.clone().addScaledVector(o, 2)), h2 = hit(...uv2);
     if (rule === 'past') { if (!h2.person) { occ += close(uv2, h2.d); seen++; } continue; }
     const uv4 = uvOf(P.clone().addScaledVector(o, 4)), h4 = hit(...uv4);
@@ -448,8 +504,8 @@ function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H
     const planes = [...[[h2, uv2], [h4, uv4]].filter(([q]) => !q.person && q.d).map(([q, quv]) => ({ ...plane(q, quv), lim: N.past * Rm })),
       ...sides.filter(([q]) => !q.person && q.d).map(([q, quv]) => ({ ...plane(q, quv), lim: N.side * Rm })), ...seenAround];
     const sd = spotBehind(-(P.z + o.z), h.d, ray3(...uv).toArray(), planes, rule === 'now' ? { P: P.toArray(), n: nV.toArray(), reach: Rm } : null);
-    occ += close(uv, sd); seen++;
-    if (rule === 'now') keep(uv, sd, true);
+    occ += close(uv, sd, -(P.z + o.z)); seen++;
+    if (rule === 'now') keep(uv, sd, true, -(P.z + o.z));
   }
   return rule === 'now' ? spotShare(cs, dys, h0.n.y, persons) : occ / Math.max(seen, 1);
 }
