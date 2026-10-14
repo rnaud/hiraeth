@@ -478,9 +478,13 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   steered as a plane is (pushing up dives, as in Star Fox 64 and on the jets, and the hints say so:
   `pirateHints(pitch)`, `pirateControls(pitch)` the long form). **No start card** (v1.65, issue #224: "we can skip the
   start screen"): the game is `direct` (the runner counts 3, 2, 1 in at once after the take-off, and flashes "On the way
-  to …" over it on the way to a world) and its controls are `hints`, short rows in Xbox / PlayStation form drawn small
-  at the bottom right while it runs (the runner's `.mg-hints`, through `keyText`, so a handheld's own names show:
-  src/native-pad.js), the missiles left under them (`ctx.hintNote`). The **pitch switch** is a setting now, since there is
+  to …" over it on the way to a world) and its controls are `hints`: since v1.72 (issue #326, "make the buttons hints much
+  smaller and minimal") **one small row** at the bottom right, a button and a word each (`[key, word, id]`: steer with
+  the pitch, fire, charge, missile, roll), in the game's dark hint look (src/hint-look.js's strip, 11 px), drawn through
+  `keyText` so a handheld's own names show (src/native-pad.js). It shows for the first `HINT_ROW.show` (7) s of play,
+  then fades; each word goes `HINT_ROW.used` s after its button is first used (`ctx.hintUsed(id)`, the row closing up
+  round it); a new input in hand shows them again (kit/flow.js `hintRow`, the runner's `drawHints`). The missiles left
+  stay beside it in the same strip (`ctx.hintNote`). The **pitch switch** is a setting now, since there is
   no card to hold it: **Settings → Game → "Chime pirates: push the stick up to"** (`piratePitch`: As the jets' setting,
   Dive, Climb), its row hidden until the pirates have been beaten anywhere (the save's `minigame.pirates.beaten`; v1.59,
   issue #206: "don't let me switch controls at first"; src/ui.js `data-pirates`, main.js `piratesBeaten`). Until then
@@ -578,6 +582,52 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   (`tests/playthrough-agent.js shipTurn`) and checks that every first flight to a new world is ambushed and none home.
   `minigame.session.forward(t)` flies the run ahead by the pilot (the screenshots); `globalThis.__piratesBot = true`
   lets the pilot fly the page.
+
+### Made better (v1.72, issue #326)
+
+The author: "Make the space pirate minigame better. Make the buttons hints much smaller and minimal. Better sound
+effects, better enemy designs. Better game feel." The hints are above (one small row that fades). The rest:
+
+- **The pirates, each its own** (`ATTACKS` in the rules, `pirateShapes` and `PIRATE_COLORS` on the page): pale flat
+  colours that read against the black, the post's ink round them, a silhouette each, an attack each and a telegraph
+  before it (`tell` s: the rules' `tell` event, and `tellK` 0..1 on the pirate or the captain while it winds up; the
+  page heats the kind's `tell` part, swells a glow where it fires from, `TELL_AT`, and plays its whine):
+
+  | kind | silhouette | attack | telegraph |
+  |---|---|---|---|
+  | fighter (skiff) | a coral needle, four cream blades swept forward in an X, a teal eye on top | one aimed shot | its eye flares, 0.4 s |
+  | gunboat (raider) | a slate hammerhead, a mustard brow wide across, a cannon slung under it, rust pods striped cream, a dorsal sail | a fan of three (`n` 3, `gap` 0.13 s, 2.6 m apart at the ship; every 3.4 s, one shot every 1.5 s before) | the muzzle glows hot, 0.6 s, a rising whine |
+  | bomber (hauler) | a lavender barrel bound in brass, plum bat wings drooping over it, a grab claw, the bomb bay under it | mines laid across the way | the bay's red lamps blink, 0.45 s before each, two blips |
+  | mine | a rust ball of spikes, a red eye | contact | its eye blinks quicker within 40 m |
+  | flagship (the captain's gunship) | as before | turret bursts; with both down, rings from the bridge | the next turret glows hot, 0.7 s, a growl rising; the bridge's lens swells, 0.9 s |
+
+  The pilot's runs are as before (1,610 points against 1,614 over six destinations, no hit taken, 40.5 kills).
+- **Sound** (`src/minigames/pirates-sfx.js` `pirateSounds`, the game's own synth): each a few layers (a body, a snap at
+  the attack, a tail), filtered noise and triangles and sines, a sawtooth only low and short, nothing ringing above
+  ~2.7 kHz: the twin bolts, a pirate's shot, each kind's telegraph, a bolt striking a hull, explosions sized by the wreck
+  (a deep thump, the rumble, a crack, the debris crackling), the clank off the armour, the roll's whoosh, a deflected
+  shot's ping, the charge, the lock, a missile, the rack empty, a ring's sparkle, a missile back, the hull's crunch, the
+  low-hull warning, the captain's horn as the gunship comes in, a chain's rising note, the comms, the tally, and the
+  engine's hum held while it flies (its pitch and filter opening as it steers). All are on the music page ("Chime
+  pirates"; tests/music-page.test.js checks every one is listed; tests/pirates-feel.test.js that each has layers and
+  nothing shrill).
+- **The feel** (`FEEL`, `KILL_SIZE`, `TRAIL`): a kill shakes the camera a little by its size (0.1 m a fighter to 0.45
+  a turret, at most 0.5 m however many come at once, fading at 9 /s; none under Reduce motion or with Camera shake at
+  0, as the hit's); a **hit-stop** holds the world 35–90 ms (not again within 0.22 s; the flashes and shards crawl on at
+  8 %); muzzle flashes at the twin guns and at a pirate's gun as it fires; sparks and a flash where a bolt strikes; a
+  hit whitens a pirate and swells it 14 % a moment; explosions with a swelling ball of light and the wreck's shards in
+  its colours flung out tumbling (one instanced mesh, 120 at most); the ship banks as before and trails two short
+  streams of glowing drops from its nozzles, drawn after it across so they curve as it steers; the flames lengthen as
+  it pushes; a hit still blinks it untouchable 1.1 s; kills within 1.8 s of each other count a **combo**, "×n" popped
+  in teal over the wreck with a note a step higher each time (the points unchanged: the chimes stay where they were).
+- **Tighter controls** (`FLY`): the stick taken up a little quicker (`response` 6 /s, 5 before), a **brake** when it
+  is let go or turned back (10 /s: it stops where it is left), a **curve** on the stick (|x|^1.3: half a push is a fine
+  correction, a full one as before), and **aim assist**: a bolt fired with a pirate within 2.6 m of the line of fire is
+  bent 70 % of the way onto it (the reticle still shows the plain line).
+- Tests: `tests/pirates-feel.test.js` (the row's size, look and fade; each kind's silhouette, colours and tell part;
+  each kind's attack after its telegraph, the fan's three shots; the sounds' layers and range; a kill's shake, hit-stop,
+  combo and shards, none of the shake under Reduce motion; the trail and the buttons marked used; the curve, the brake
+  and the assist).
 
 ### The controls, against Star Fox (v1.45, issue #88)
 

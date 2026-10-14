@@ -42,7 +42,7 @@ test('every method of Sound is a sound on the page, or named as its plumbing', (
   for (const k of Object.keys(cat.PLUMBING)) assert.ok(k in proto, `PLUMBING names ${k}, which Sound no longer has`);
 });
 
-test('every song, sample group, foe voice, instrument, voice and ship sound is listed', () => {
+test('every song, sample group, foe voice, instrument, voice and ship sound is listed', async () => {
   for (const f of new Set([...Object.values(SOUNDTRACKS), TITLE_THEME, ...Object.values(CUES)])) assert.ok(ids.has(`file:${f.replace(/\.mp3$/, '')}`) || [...ids].some((i) => i.startsWith('cue:') && CUES[i.slice(4)] === f), f);
   const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
   for (const t of manifest.tracks) assert.ok(cat.SONGS.some((s) => s.file === t.file), `manifest: ${t.file}`);
@@ -56,6 +56,9 @@ test('every song, sample group, foe voice, instrument, voice and ship sound is l
   for (const k of KINDS.colours) assert.ok(ids.has(`colour:${k}`), `colour ${k}`);
   for (const k of Object.keys(LANGUAGES)) assert.ok(ids.has(`voice:${k}`), `language ${k}`);
   for (const k of Object.keys(ship)) assert.ok(ids.has(`ship:${k}`), `src/ship/sfx.js ${k}`);
+  // the chime pirates' sounds (issue #326): every one the game makes is on the page, and named
+  const { pirateSounds, PIRATE_SOUNDS } = await import('../src/minigames/pirates-sfx.js');
+  for (const k of Object.keys(pirateSounds(null))) { assert.ok(ids.has(`pirates:${k}`), `src/minigames/pirates-sfx.js ${k}`); assert.ok(PIRATE_SOUNDS[k], `${k} is named`); }
   assert.equal(ids.size, cat.EFFECTS.length + cat.SONGS.length, 'every id once');
   assert.ok(ids.has('keyGet') && ids.has('keyTurn'), 'the keys\' chime and click (issue #274)');
 });

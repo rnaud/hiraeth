@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.72 — 2026-10-14
 
+- Steering in the pirate fight is tighter: a small push makes a fine correction, letting go stops the ship where you leave it, and your shots bend onto a pirate close to your aim.
+- The pirate fight feels better: a downed pirate shakes the view a little and holds the action for a split second, its wreck flies apart, the guns flash as they fire, hits spark, quick kills count up a combo, and your ship leaves a short engine trail as it banks.
+- Every sound of the pirate fight is new: punchier bolts, explosions with a deep thump and crackling debris, a whine before a pirate fires, a whoosh for the roll, a horn as the captain arrives and the engine humming under it all. You can hear each one on the music page.
+- The chime pirates come in kinds you can tell apart at a glance: the fighter with four blades swept forward, the gunboat with its wide brow and slung cannon, the bat-winged bomber. Each attacks its own way and warns you first: the fighter’s eye flares, the gunboat’s cannon glows before it fires a fan of three, the bomber’s bay lamps blink before a mine drops, and the captain’s turrets glow hot before a volley.
+- The chime pirates’ button hints are one small dark row at the bottom right now, a button and a word each. They fade after the first few seconds, and each one goes as soon as you have used its button.
 - Creatures and machines standing or walking on a hillside now lean with it instead of sinking into it: the crucible cart’s tracks, a lizard’s tail, the toad, the heron’s toes, the bell walker and the tripod all stay on the ground, their feet planted on the slope while the tall ones keep upright. The furnace brute’s fists and the wood cutter’s saw no longer hang into the ground when it stands still.
 - Your first step out of the ship on each world turns you toward its best view, and the camera drifts slowly in behind you with its landmarks in sight. Move or turn the camera and it is yours at once; it happens once a world.
 - The first time your ship comes down on a world, it comes down into a wide view of the whole place under a big sky: the ship small as it lands, the world’s landmarks (its temple, its town, its towers and beacons) laid out behind it. Later landings there stay short, as before.

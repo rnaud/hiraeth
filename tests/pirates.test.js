@@ -258,7 +258,7 @@ test('points through the run, no chimes popped; won on the way to a world, a tal
     for (let i = 0; i < 8000 && !S.done; i++) step();
     assert.equal(S.done, 'won');
     assert.ok(words.length > 30, `${words.length} pops`);
-    assert.ok(words.every((w) => /^\+\d+$/.test(w)), `only points: ${[...new Set(words)].join(' ')}`);
+    assert.ok(words.every((w) => /^\+\d+$|^×\d+$/.test(w)), `only points (and a chain's ×n, issue #326): ${[...new Set(words)].join(' ')}`);
     assert.ok(!words.some((w) => /chime/i.test(w)));
     const fin = calls.find((c) => c.finish)?.finish;
     assert.equal(fin.score, S.score);

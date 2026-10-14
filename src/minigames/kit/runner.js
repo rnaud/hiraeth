@@ -21,7 +21,7 @@ import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { inputKind, escapeHtml, keyText } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
 import { stripTone } from '../../story/tone.js';
-import { COUNT, FINISH_WAIT, countNumeral, controlsFor, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
+import { COUNT, FINISH_WAIT, countNumeral, controlsFor, hintRow, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
@@ -46,6 +46,7 @@ export class MinigameRunner {
     this.lives = null;
     this.prevIn = NO_INPUT;
     this.added = [];
+    this.hintAge = 0; this.hintsUsed = new Map();   // (the hint row: s of play since shown, the buttons used: hintRow)
     this.fov0 = host.camera.fov;
     this.sfx = gameSfx(host.sound);
     this.buildDom();
@@ -98,8 +99,10 @@ export class MinigameRunner {
       addScore(n = 1) { R.points += n; R.bumpScore(); },
       /** A line of the game's own in the score's box (the speed, the gates): null gives the box back to the score. */
       status(text) { R.statusText = text; },
-      /** A line under the controls' hints at the bottom right (def.hints; html), or null. */
+      /** A line beside the controls' hint row (def.hints; html), or null: it stays while the row fades (the missiles left). */
       hintNote(html) { R.hintNote = html ?? null; },
+      /** A button of the hint row was used (its id: the row's third field, or its word): its word fades (issue #326). */
+      hintUsed(id) { if (!R.hintsUsed.has(id)) R.hintsUsed.set(id, R.hintAge); },
       /** Lives (null: none shown). */
       setLives(n, max = R.livesMax ?? n) { R.lives = n; R.livesMax = max; R.drawLives(); },
       flash: (text, kind = '', secs) => R.flash(text, kind, secs),
@@ -122,7 +125,7 @@ export class MinigameRunner {
   /** main.js, each frame the world runs: dt, and the merged controls (none while a card is up). */
   update(dt, controls) {
     if (this.phase === 'intro' && inputKind() !== this.introKind) this.showIntro();   // (a pad picked up: the card lists its buttons)
-    if (this.hintsEl) this.drawHints();
+    if (this.hintsEl) this.drawHints(dt);
     const inp = readInput(controls, this.prevIn);
     this.prevIn = inp;
     if (this.phase === 'count') {
@@ -153,19 +156,23 @@ export class MinigameRunner {
     if (this.def.direct && this.host.links?.intro?.kicker) this.flash(this.host.links.intro.kicker, 'good', 2.2);
   }
   /**
-   * The game's controls as small hints at the bottom right while it runs (def.hints: { pad, keys, touch } rows as
-   * def.controls', in Xbox / PlayStation form, drawn for the input in hand: src/prompt-keys.js, native-pad.js), and a
-   * line of the game's own under them (ctx.hintNote: the missiles left).
+   * The game's controls as one small row at the bottom right while it runs (def.hints: { pad, keys, touch } rows of
+   * [key, word, id], in Xbox / PlayStation form, drawn for the input in hand: src/prompt-keys.js, native-pad.js), in the
+   * game's dark hint look (src/hint-look.js); it fades after the first seconds, each word once its button is used
+   * (kit/flow.js hintRow, issue #326). A line of the game's own beside it stays (ctx.hintNote: the missiles left).
    */
-  drawHints() {
+  drawHints(dt = 0) {
     const kind = inputKind(), live = ['count', 'play'].includes(this.phase) && !this.paused;
-    this.hintsEl.classList.toggle('off', !live);
-    const sig = `${kind}|${this.hintNote ?? ''}`;
+    if (kind !== this._hintKind) { this._hintKind = kind; this.hintAge = 0; this.hintsUsed.clear(); }   // (a new input in hand: shown again)
+    if (live && this.phase === 'play') this.hintAge += dt;
+    const row = hintRow(controlsFor({ controls: this.def.hints }, kind), { age: this.hintAge, used: this.hintsUsed, live });
+    this.hintsEl.classList.toggle('off', !live || (row.off && !this.hintNote));
+    const sig = `${kind}|${this.hintNote ?? ''}|${row.off}|${row.items.map((i) => +i.gone).join('')}`;
     if (sig === this._hintSig) return;
     this._hintSig = sig;
     const keys = (x) => keyText(h(x), { kind, html: true, teach: true });
-    const rows = controlsFor({ controls: this.def.hints }, kind).map(([k, v]) => `<dt>${keys(k)}</dt><dd>${keys(v)}</dd>`).join('');
-    this.hintsEl.innerHTML = `<dl>${rows}</dl>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
+    const items = row.items.map((i) => `<span class="${i.gone || row.off ? 'gone' : ''}" data-hint="${h(i.id)}"><b>${keys(i.k)}</b>${h(i.w)}</span>`).join('');
+    this.hintsEl.innerHTML = `<div class="mg-hint-row${row.off ? ' gone' : ''}">${items}</div>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
   }
 
   finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0 } = {}) {

@@ -808,6 +808,8 @@ const SHIP325 = 'Issue #325: muted headless Chrome (High, 1280 × 720, 10:00) ag
 const ARRIVAL327 = 'Issue #327: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6327) and the tree before it (89399eae), a fresh save arriving by ship through the cinematics review (?cinematicReview=arrival.<world>&via=ship): the landing shot at 72 % of the drop out of the clouds, and the first framing once the step out has settled (14 October)';
 // (v1.72, issue #332: a scratch shooter against this branch's own Vite (port 6332) and the tree before it)
 const SLOPE332 = 'Issue #332: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6332) and the tree before it (259a283d), the camera pinned on the 12° dune by the ship in the Desert, the foes placed on it by Foes.add and their minds held (14 October)';
+// (v1.72, issue #326: a scratch shooter against this branch's own Vite (port 6326) and the tree before the change (63e266d0))
+const PIRATES326 = 'Issue #326: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6326) and the tree before it (63e266d0), ?game=pirates&to=edena, the run flown ahead by the game’s pilot to the same second for both (14 October); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.72': [
     { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [
@@ -821,6 +823,18 @@ export const CHANGELOG_MEDIA = {
     { match: 'Your first step out of the ship on each world', tags: ['ship'], shots: [
       { name: 'arrival-incal-exit', title: 'The City-Shaft', caption: 'The first framing at the foot of the ramp: before, facing out across the plaza, the Lodestar out of the frame; after, turned to the palace with the Lodestar turning over it.', from: ARRIVAL327 },
     ] },
+    { match: 'The chime pirates’ button hints are one small dark row', tags: ['menus'], shots: [
+      { name: 'pirates-hints', title: 'The first second of the fight', caption: 'Before, a cream box of six rows at the bottom right; after, one small dark row, a button and a word each, the missiles beside it (the fire button’s word already gone: it was used).', from: `${PIRATES326}, a second after GO` },
+    ] },
+    { match: 'The chime pirates come in kinds you can tell apart', tags: ['combat'], shots: [
+      { name: 'pirates-kinds', title: 'A fighter, a gunboat, a bomber', caption: 'The three parked in front of the ship, still: before, a dark rust dart, a teal hammerhead and an aubergine barrel, small and dark against the black; after, the fighter’s cream blades in an X round its teal eye, the gunboat’s mustard brow, the lavender bomber under its bat wings.', from: `${PIRATES326}, the waves cleared at 5 s and the three placed 40–52 m ahead` },
+      { name: 'pirates-tells', only: 'after', title: 'About to fire', caption: 'The same three a moment before they fire: the fighter’s eye flaring white, a hot glow swelling at the gunboat’s muzzle.', from: `${PIRATES326}, the fighter and the gunboat set to fire 0.3 and 0.4 s later` },
+    ] },
+    { match: 'Every sound of the pirate fight is new', see: 'Open the music page from the Debug menu: the group “Chime pirates” plays every sound of the fight, the explosions by size, each kind’s warning and the engine’s hum. Or fly to a world you have not visited.' },
+    { match: 'The pirate fight feels better', tags: ['combat'], shots: [
+      { name: 'pirates-fight', title: 'Two fighters downed', caption: 'The first wave at 12 s: before, the wrecks a puff of fire and “+10”; after, a ball of light, the shards of the wreck, a combo’s “×2” over the points, and the ship’s short engine trail.', from: `${PIRATES326}, the pilot flying the last 0.6 s live` },
+    ] },
+    { match: 'Steering in the pirate fight is tighter', see: 'In the pirate fight, nudge the stick: the ship slides a little; let go: it stops. Fire with a pirate just off the aim ring: the bolts bend onto it.' },
   ],
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [

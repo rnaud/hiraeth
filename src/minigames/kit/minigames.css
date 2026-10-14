@@ -103,11 +103,16 @@ body.minigame:has(#minigame .mg-card.open) #touch { visibility: hidden; }
 #minigame .sheet .lead { padding: 7px 10px; background: #2b211f; color: #f7ecd2; transform: none; font-size: 1em; }
 #minigame .sheet .lead b { display: block; font-size: 0.77em; letter-spacing: 0.16em; text-transform: uppercase; color: #9ff2e6; }
 
-/* the controls as small hints at the bottom right while a game runs (def.hints: the pirates between worlds, issue #224) */
-#minigame .mg-hints { position: absolute; right: 16px; bottom: 16px; padding: 6px 10px 7px; background: rgba(247, 236, 210, 0.86); border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; font: 600 12px var(--face); color: #2b211f; transition: opacity .3s; pointer-events: none; max-width: 46vw; }
+/* the controls as one small row at the bottom right while a game runs (def.hints: the pirates between worlds, issue #224;
+   minimal since issue #326): a glyph and a word a button, in the game's dark hint look (src/hint-look.js, #306), fading
+   after the first seconds and each word once used (kit/flow.js hintRow); the game's own line (the missiles) stays */
+#minigame .mg-hints { position: absolute; right: 14px; bottom: calc(12px + var(--safe-bottom, 0px)); display: flex; gap: 8px; align-items: center; font: 600 11px/1 var(--face); color: var(--hint-ink, #f7ecd2); transition: opacity .4s; pointer-events: none; white-space: nowrap; }
 #minigame .mg-hints.off { opacity: 0; }
-#minigame .mg-hints dl { display: grid; grid-template-columns: auto auto; gap: 2px 9px; margin: 0; align-items: center; }
-#minigame .mg-hints dt { font-weight: 800; text-align: right; white-space: nowrap; }
-#minigame .mg-hints dd { margin: 0; white-space: nowrap; }
-#minigame .mg-hints p { margin: 5px 0 0; text-align: right; font-weight: 800; letter-spacing: 0.04em; }
+#minigame .mg-hint-row { display: flex; padding: 4px 4px; background: var(--hint-bg, rgba(18, 14, 13, 0.92)); border-radius: var(--hint-radius, 4px); transition: opacity .5s; }
+#minigame .mg-hint-row.gone { opacity: 0; }
+#minigame .mg-hint-row span { display: inline-flex; gap: 4px; align-items: center; padding: 0 5px; max-width: 14em; overflow: hidden; opacity: .9; transition: opacity .4s, max-width .5s .3s, padding .5s .3s; }
+#minigame .mg-hint-row span.gone { opacity: 0; max-width: 0; padding: 0; }
+#minigame .mg-hint-row b { color: var(--hint-accent, #f2c54b); font-weight: 800; }
+#minigame .mg-hint-row b .pad-glyph, #minigame .mg-hint-row b img, #minigame .mg-hint-row b svg { height: 13px; width: auto; vertical-align: -3px; }
+#minigame .mg-hints p { margin: 0; padding: 4px 9px; background: var(--hint-bg, rgba(18, 14, 13, 0.92)); border-radius: var(--hint-radius, 4px); font-weight: 800; letter-spacing: 0.06em; }
 body.touch #minigame .mg-hints { display: none; }

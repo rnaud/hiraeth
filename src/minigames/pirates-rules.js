@@ -9,7 +9,7 @@
 //
 //   const S = newRun({ seed, heat, gentle });
 //   const ev = runStep(S, input, dt);        // input: { x, y, fire, fireHeld, auto, roll, missile } (pirateInput below)
-//   ev: [{ kind: 'shot' | 'charged' | 'hit' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'missile' | 'missileHit' | 'dry' | 'win' | 'dead', … }]
+//   ev: [{ kind: 'shot' | 'charged' | 'hit' | 'kill' | 'hurt' | 'deflect' | 'blast' | 'say' | 'repair' | 'part' | 'lock' | 'roll' | 'missile' | 'missileHit' | 'dry' | 'tell' | 'enemyShot' | 'win' | 'dead', … }]  ('tell': a pirate winding up to fire, ATTACKS)
 //   newRun({ from, fails, score }): a lost run again from a checkpoint (CHECKPOINTS), kinder each time (MERCY)
 //
 // SCRIPT is the run, by the seconds since GO: the waves, the repair rings, the lines, the captain.
@@ -23,7 +23,12 @@ export const FLY = {
   speed: 42,                 // m/s along the rail
   boxU: 13, boxV: 7.5,       // m: how far across and up the ship may go from the rail
   steer: 19,                 // m/s across at full stick (up and down 0.8 of it)
-  response: 5,               // 1/s: how quickly the ship takes up the stick's speed (63 % in 0.2 s, nearly all in 0.6 s)
+  response: 6,               // 1/s: how quickly the ship takes up the stick's speed (70 % in 0.2 s, nearly all in 0.5 s; 5 until issue #326)
+  brake: 10,                 // 1/s: the same when the stick is let go or turned back (issue #326: it stops where you leave it, tight)
+  curve: 1.3,                // the stick's curve: |x|^curve (issue #326: a small push a fine correction, a full one as before)
+  // aim assist (issue #326, "tighter controls"): a bolt fired with a pirate within `slack` m of the line of fire is bent
+  // `k` of the way toward it (the reticle still shows the plain line; on a pad the stick is coarse)
+  assist: { slack: 2.6, k: 0.7 },
   edge: 0.22,                // the last part of the box (of its half size) over which the way out slows to nothing
   bank: { max: 0.95, rate: 9 },   // rad of bank at full sideways speed, and how fast it follows (1/s)
   aim: 0.09,                 // the nose's slope at full stick: the bolts' own way across, besides the ship's speed
@@ -59,6 +64,25 @@ export const chimesFor = (score, rate = CHIME_RATE) => Math.max(0, Math.floor((s
 export const MERCY = { fire: 0.18, least: 0.45, hull: 1, most: 2, safe: 3 };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/**
+ * The pirates' kinds as the player meets them (issue #326: "better enemy designs"): each its own silhouette (pirates.js
+ * pirateShapes), its own attack and a telegraph before it (`tell` s: the rules' `tell` event, and `tellK` 0..1 on the
+ * pirate or the captain while it winds up, which the page draws as its glow swelling and hears as a whine).
+ *  - the fighter (skiff): one aimed shot, its eye flaring first;
+ *  - the gunboat (raider): holds ahead and fires a fan of three (`n` shots `gap` s apart, `fan` m apart at the ship),
+ *    its brow cannon glowing hot before;
+ *  - the bomber (hauler): lays mines across the way, its bay lamp blinking before each drops;
+ *  - the flagship (the captain's gunship): its wingtip turrets fire bursts, each turret glowing before its volley;
+ *    once they are down, its bridge rings of slow shots, the lens swelling before each.
+ */
+export const ATTACKS = {
+  skiff: { name: 'fighter', attack: 'aimed', tell: 0.4 },
+  raider: { name: 'gunboat', attack: 'fan', tell: 0.6, n: 3, gap: 0.13, fan: 2.6 },
+  hauler: { name: 'bomber', attack: 'mines', tell: 0.45 },
+  mine: { name: 'mine', attack: 'contact', tell: 0 },
+  boss: { name: 'flagship', attack: 'bursts, then rings', tell: 0.7, ringTell: 0.9 },
+};
 
 // ------------------------------------------------------------------ the rail
 /** The rail's wander across (x) and up (y) at s (m along); it runs along -z. */
@@ -109,7 +133,7 @@ export const MISSILE_POINTS = 0.75;
 /** Each kind's health, size (m) and how often it fires (s, 0: never). */
 export const KINDS = {
   skiff: { hp: 1, r: 2.6, fire: 3.4 },
-  raider: { hp: 6, r: 3.6, fire: 1.5 },
+  raider: { hp: 6, r: 3.6, fire: 3.4 },   // (a fan of three each time, ATTACKS: one shot every 1.5 s until issue #326)
   hauler: { hp: 9, r: 6.2, fire: 0 },
   mine: { hp: 1, r: 2.0, fire: 0 },
   boss: { hp: 0, r: 0, fire: 0 },   // (its parts are hit, not it: BOSS)
@@ -259,10 +283,12 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   // the stick sets the speed across it goes at; the ship takes it up with some weight (an easing), and slows to a stop
   // over the box's last stretch instead of meeting a wall
   const soft = (pos, box, want) => (Math.sign(want) === Math.sign(pos) ? want * clamp((box - Math.abs(pos)) / (box * F.edge), 0, 1) : want);
-  const tu = soft(P.u, F.boxU, clamp(inp.x ?? 0, -1, 1) * F.steer), tv = soft(P.v, F.boxV, clamp(inp.y ?? 0, -1, 1) * F.steer * 0.8);
-  const k = 1 - Math.exp(-F.response * dt);
-  P.vu += (tu - P.vu) * k * (P.roll > 0 ? 0.4 : 1);   // (rolling, the shove carries it)
-  P.vv += (tv - P.vv) * k;
+  const curve = (x) => Math.sign(x) * Math.pow(Math.abs(clamp(x, -1, 1)), F.curve ?? 1);
+  const tu = soft(P.u, F.boxU, curve(inp.x ?? 0) * F.steer), tv = soft(P.v, F.boxV, curve(inp.y ?? 0) * F.steer * 0.8);
+  // (taken up with the response's easing; let go or turned back, the brake's, quicker: it stops where it is left)
+  const ease = (want, have) => 1 - Math.exp(-(Math.abs(want) < Math.abs(have) - 0.5 || want * have < 0 ? F.brake ?? F.response : F.response) * dt);
+  P.vu += (tu - P.vu) * ease(tu, P.vu) * (P.roll > 0 ? 0.4 : 1);   // (rolling, the shove carries it)
+  P.vv += (tv - P.vv) * ease(tv, P.vv);
   P.u += P.vu * dt; P.v += P.vv * dt;
   if (Math.abs(P.u) > F.boxU) { P.u = Math.sign(P.u) * F.boxU; if (Math.sign(P.vu) === Math.sign(P.u)) P.vu = 0; }
   if (Math.abs(P.v) > F.boxV) { P.v = Math.sign(P.v) * F.boxV; if (Math.sign(P.vv) === Math.sign(P.v)) P.vv = 0; }
@@ -278,9 +304,20 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   const shoot = (every = B.every) => {
     if (P.boltT > 0) return;
     P.boltT = every;
-    for (const side of [-1, 1]) S.bolts.push({ ds: 2, u: P.u + side * B.spread, v: P.v - 0.1, vu: P.vu * B.lead + P.aimU * B.speed, vv: P.vv * B.lead + P.aimV * B.speed, vds: B.speed, life: B.life, charged: false });
+    // (aim assist, issue #326: a pirate near the line of fire draws the bolts part of the way to it)
+    const A = F.assist, near = A ? aimTarget(S, A.slack) : null, at = near ? targetPos(S, near) : null;
+    for (const side of [-1, 1]) {
+      let vu = P.vu * B.lead + P.aimU * B.speed, vv = P.vv * B.lead + P.aimV * B.speed;
+      const u0 = P.u + side * B.spread, v0 = P.v - 0.1;
+      if (at && at.ds > 2) {
+        const t = (at.ds - 2) / B.speed;
+        vu += ((at.u + side * B.spread * 0.4 - u0) / t - vu) * A.k;
+        vv += ((at.v - v0) / t - vv) * A.k;
+      }
+      S.bolts.push({ ds: 2, u: u0, v: v0, vu, vv, vds: B.speed, life: B.life, charged: false });
+    }
     S.fired++;
-    ev.push({ kind: 'shot' });
+    ev.push({ kind: 'shot', assisted: !!at });
   };
   if (inp.fire && !P.fireHeld) { shoot(); P.heldT = 0; }
   if (inp.fire) {
@@ -417,20 +454,20 @@ export function aimTarget(S, slack = 0.6) {
   return best;
 }
 
-function fireAt(S, from, ev, { speed = S.F.enemyShot.speed * S.shotK, spread = 0, lead = 0.5 } = {}) {
+function fireAt(S, from, ev, { speed = S.F.enemyShot.speed * S.shotK, spread = 0, lead = 0.5, offset = 0, by = null } = {}) {
   const P = S.ship;
   // aimed where the ship will be (a little lead), its shots closing at `speed`
   const tx = -from.ds, d0 = Math.max(4, Math.abs(tx));
   const t = d0 / speed;
-  const du = P.u + P.vu * t * lead - from.u + spread * (S.rand() - 0.5), dv = P.v + P.vv * t * lead - from.v + spread * (S.rand() - 0.5);
+  const du = P.u + P.vu * t * lead - from.u + offset + spread * (S.rand() - 0.5), dv = P.v + P.vv * t * lead - from.v + spread * (S.rand() - 0.5);
   const d = Math.hypot(tx, du, dv) || 1;
   S.shots.push({ ds: from.ds, u: from.u, v: from.v, vds: (tx / d) * speed, vu: (du / d) * speed, vv: (dv / d) * speed, life: S.F.enemyShot.life, r: S.F.enemyShot.r });
-  ev.push({ kind: 'enemyShot' });
+  ev.push({ kind: 'enemyShot', at: { ds: from.ds, u: from.u, v: from.v }, by });
 }
 
 function moveFoe(S, e, dt, ev) {
   const F = S.F;
-  e.age += dt; e.flash = Math.max(0, e.flash - dt);
+  e.age += dt; e.flash = Math.max(0, e.flash - dt); e.tellK = 0;
   const t = e.age - (e.delay ?? 0);
   if (e.kind === 'mine') { e.ds -= F.speed * dt; if (e.ds < -15) e.gone = true; return; }
   if (t < 0) { e.hidden = true; return; }
@@ -468,8 +505,14 @@ function moveFoe(S, e, dt, ev) {
       e.ds += (95 - e.ds) * Math.min(1, dt);
       e.u -= e.side * 4.6 * dt;
       e.v = 4 + 1.5 * Math.sin(e.age * 0.7);
-      if ((e.mineT -= dt) <= 0 && Math.abs(e.u) < F.boxU + 4) {
-        e.mineT = 1.15;
+      const lays = Math.abs(e.u) < F.boxU + 4, T = ATTACKS.hauler.tell;
+      if (lays && e.mineT < T) {
+        // (its bay lamp blinks before each mine: issue #326)
+        e.tellK = clamp(1 - e.mineT / T, 0, 1);
+        if (!e.told) { e.told = true; ev.push({ kind: 'tell', foe: 'hauler', id: e.id, dur: T, at: { ds: e.ds, u: e.u, v: e.v } }); }
+      }
+      if ((e.mineT -= dt) <= 0 && lays) {
+        e.mineT = 1.15; e.told = false;
         S.foes.push({ id: S.nextId++, kind: 'mine', hp: 1, r: KINDS.mine.r, age: 0, flash: 0, ds: e.ds - 4, u: e.u, v: e.v - 3, face: 'ship' });
         ev.push({ kind: 'mine' });
       }
@@ -478,16 +521,31 @@ function moveFoe(S, e, dt, ev) {
     e.face = 'side';
   }
   // firing: aimed shots while ahead and in front of the ship
-  const K = KINDS[e.kind];
+  // each kind its own attack, after its telegraph (ATTACKS, issue #326)
+  const K = KINDS[e.kind], A = ATTACKS[e.kind];
   if (K.fire && e.ds > 18 && e.ds < 190 && !e.gone) {
     e.fireT -= dt * S.fireK;
-    if (e.fireT <= 0) { e.fireT = K.fire * (0.8 + 0.4 * S.rand()); fireAt(S, e, ev, { spread: e.kind === 'skiff' ? 5 : 2.5 }); }
+    if (e.fireT < A.tell) {
+      e.tellK = clamp(1 - e.fireT / A.tell, 0, 1);
+      if (!e.told) { e.told = true; ev.push({ kind: 'tell', foe: e.kind, id: e.id, dur: A.tell / S.fireK, at: { ds: e.ds, u: e.u, v: e.v } }); }
+    }
+    if (e.fireT <= 0) {
+      e.fireT = K.fire * (0.8 + 0.4 * S.rand()); e.told = false;
+      if (A.attack === 'fan') { e.burstLeft = A.n; e.burstT = 0; }
+      else fireAt(S, e, ev, { spread: 5, by: e.kind });
+    }
+  } else if (e.told && !e.burstLeft) { e.told = false; }
+  // the gunboat's fan: three shots, a beat apart, left of the ship, at it, right of it
+  if (e.burstLeft > 0 && !e.gone && (e.burstT -= dt) <= 0) {
+    const i = A.n - e.burstLeft;
+    fireAt(S, e, ev, { spread: 0.8, offset: (i - (A.n - 1) / 2) * A.fan, by: e.kind });
+    e.burstLeft--; e.burstT = A.gap;
   }
 }
 
 function moveBoss(S, dt, ev) {
   const B = S.boss;
-  B.age += dt;
+  B.age += dt; B.tellK = 0;
   for (const p of B.parts) p.flash = Math.max(0, p.flash - dt);
   if (B.dying) { B.dying += dt; B.ds += 6 * dt; B.v -= 2 * dt; return; }
   if (B.age < BOSS.enter) { B.ds = 260 - (260 - BOSS.at) * easeOut(B.age / BOSS.enter); return; }
@@ -506,12 +564,27 @@ function moveBoss(S, dt, ev) {
   // the guns: bursts of aimed shots, one gun then the other
   if (guns.length) {
     if (B.burstLeft > 0) {
-      if ((B.burstT -= dt) <= 0) { const g = guns[B.gun % guns.length]; fireAt(S, partAt(B, g), ev, { spread: 1.2 }); B.burstLeft--; B.burstT = 0.16; }
-    } else if ((B.volleyT -= dt * S.fireK) <= 0) { B.volleyT = BOSS.volley; B.gun++; B.burstLeft = BOSS.burst; B.burstT = 0; }
+      if ((B.burstT -= dt) <= 0) { const g = guns[B.gun % guns.length]; fireAt(S, partAt(B, g), ev, { spread: 1.2, by: g.id }); B.burstLeft--; B.burstT = 0.16; }
+    } else {
+      // (the next turret glows hot before its volley: issue #326)
+      B.volleyT -= dt * S.fireK;
+      const g = guns[(B.gun + 1) % guns.length], T = ATTACKS.boss.tell;
+      if (B.volleyT < T) {
+        B.tellK = clamp(1 - B.volleyT / T, 0, 1); B.tellPart = g.id;
+        if (!B.told) { B.told = true; ev.push({ kind: 'tell', foe: 'boss', part: g.id, dur: T / S.fireK, at: partAt(B, g) }); }
+      }
+      if (B.volleyT <= 0) { B.volleyT = BOSS.volley; B.gun++; B.burstLeft = BOSS.burst; B.burstT = 0; B.told = false; }
+    }
   } else {
     // the core open: rings of slow shots, and skiffs launched from the hold
+    const T = ATTACKS.boss.ringTell;
+    if (B.ringT - dt * S.fireK < T) {
+      // (the bridge's lens swells before each ring)
+      B.tellK = clamp(1 - B.ringT / T, 0, 1); B.tellPart = 'core';
+      if (!B.toldRing) { B.toldRing = true; ev.push({ kind: 'tell', foe: 'boss', part: 'core', dur: T / S.fireK, at: partAt(B, B.parts.find((p) => p.id === 'core')) }); }
+    }
     if ((B.ringT -= dt * S.fireK) <= 0) {
-      B.ringT = BOSS.ring;
+      B.ringT = BOSS.ring; B.toldRing = false;
       const c = partAt(B, B.parts.find((p) => p.id === 'core'));
       const sp = BOSS.ringSpeed * S.shotK, rot = S.rand() * Math.PI;
       for (let i = 0; i < BOSS.ringN; i++) {
@@ -519,7 +592,7 @@ function moveBoss(S, dt, ev) {
         const du = Math.cos(a) * 0.32, dv = Math.sin(a) * 0.32, d = Math.hypot(1, du, dv);
         S.shots.push({ ds: c.ds, u: c.u, v: c.v, vds: -sp / d, vu: (du / d) * sp + (S.ship.u - c.u) / (c.ds / sp) * 0.5, vv: (dv / d) * sp + (S.ship.v - c.v) / (c.ds / sp) * 0.5, life: 4, r: 1.0, big: true });
       }
-      ev.push({ kind: 'enemyShot', ring: true });
+      ev.push({ kind: 'enemyShot', ring: true, at: c, by: 'core' });
     }
     if ((B.skiffT -= dt) <= 0) { B.skiffT = BOSS.skiffs; spawnWave(S, { wave: 'line', n: 3, side: S.rand() < 0.5 ? -1 : 1, v: B.v }); }
   }
@@ -533,7 +606,7 @@ function damage(S, target, dmg, ev, by = 'bolt') {
     if (p.gone || B.dying) return false;
     if (p.armoured && !B.open) { ev.push({ kind: 'clank', at: partAt(B, p) }); return true; }
     p.hp -= dmg; p.flash = 0.12;
-    if (p.hp > 0) ev.push({ kind: 'hit', by, part: p.id });
+    if (p.hp > 0) ev.push({ kind: 'hit', by, part: p.id, at: partAt(B, p) });
     if (p.hp <= 0) {
       p.gone = true;
       const pts = Math.round((p.id === 'core' ? POINTS.core : POINTS.turret) * share);
@@ -547,7 +620,7 @@ function damage(S, target, dmg, ev, by = 'bolt') {
   const e = target.foe;
   if (e.dead || e.hidden) return false;
   e.hp -= dmg; e.flash = 0.12;
-  if (e.hp > 0) ev.push({ kind: 'hit', by, foe: e.kind });
+  if (e.hp > 0) ev.push({ kind: 'hit', by, foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v } });
   if (e.hp <= 0) {
     e.dead = true;
     const pts = Math.round((POINTS[e.kind] ?? 0) * share);

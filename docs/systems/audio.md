@@ -591,6 +591,7 @@ https://hiraeth.alexandria-rnaud.workers.dev/music) plays every song and every s
 - **Effects**, grouped: the traveller, the recorded takes (`src/sfx.js`, each group), water, the gun, the blade and
   the shield, calls and the scout, chests, keys and items, chimes and the shop, quests and moments, foes and guardians
   (every `FOE_VOICES` kind hurt and done, the wind-ups, the attack cues), creatures, the ship (`src/ship/sfx.js`),
+  the chime pirates (`src/minigames/pirates-sfx.js`: every one of `pirateSounds`, issue #326; the test checks each is listed),
   ambience (the continuous layers of `Sound.update` held a few seconds: wind, storm, rain, the waterfall, the masts,
   the train, the bike), voices (every language of `src/story/voice.js` and the call voices), the building blocks, and
   every instrument, hit and colour of the scores. A variant is a button. The **scale** in the header is the world

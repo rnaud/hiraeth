@@ -16,6 +16,7 @@ import { LANGUAGES, CALL_VOICES, planLine, voiceOf } from '../story/voice.js';
 import { TITLES, ORDER } from '../levels/names.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from '../story/arzach-data.js';
 import * as ship from '../ship/sfx.js';
+import { pirateSounds, PIRATE_SOUNDS } from '../minigames/pirates-sfx.js';
 
 const name = (id) => TITLES[id] ?? ({ ship: 'The ship', title: 'The title screen' }[id] ?? id);
 
@@ -223,6 +224,16 @@ const SHIP = {
   engines: ['The engines (4 s)', one((s, e) => e.hold(4, () => ship.engines(s, 1), () => ship.engines(s, 0)))],
 };
 for (const [fn, [what, variants]] of Object.entries(SHIP)) add('The ship', `ship:${fn}`, what, variants, 'the prologue, the arrivals and the takeoff (src/ship/sfx.js)');
+// the chime pirates (src/minigames/pirates-sfx.js, issue #326): every one of pirateSounds, with its variants
+const PIR = (s) => (s._pirateSfx ??= pirateSounds(s));
+const PIRATE_VARIANTS = {
+  tell: ['skiff', 'raider', 'hauler', 'turret', 'core'].map((k) => pick({ skiff: 'a fighter', raider: 'a gunboat', hauler: 'a bomber', turret: 'a turret', core: 'the bridge' }[k], (s) => PIR(s).tell(k, k === 'skiff' ? 0.4 : 0.7))),
+  boom: [pick('a mine', (s) => PIR(s).boom(0.6)), pick('a fighter', (s) => PIR(s).boom(1)), pick('a bomber', (s) => PIR(s).boom(1.6)), pick('the captain\'s turret', (s) => PIR(s).boom(2.2))],
+  combo: [2, 4, 8].map((n) => pick(`${n} in a row`, (s) => PIR(s).combo(n))),
+  tally: [0, 3, 6].map((k) => pick(`step ${k + 1}`, (s) => PIR(s).tally(k))),
+  engine: [pick('cruising, 4 s', (s, e) => e.hold(4, () => PIR(s).engine(1, 0), () => PIR(s).engine(0))), pick('pushing, 4 s', (s, e) => e.hold(4, () => PIR(s).engine(1, 1), () => PIR(s).engine(0)))],
+};
+for (const [fn, what] of Object.entries(PIRATE_SOUNDS)) add('Chime pirates', `pirates:${fn}`, what, PIRATE_VARIANTS[fn] ?? one((s) => PIR(s)[fn]()), 'the rail shooter between worlds (src/minigames/pirates-sfx.js)');
 // ambience: the continuous layers (update) and the beds' one-offs
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, altitude: 0, riding: false, thrusting: false, roar: 0, hum: 0, rails: null, rideKind: null, rideSpeed: 0, indoor: 0 };
 /** The game's state for update() with `over` changed (the page holds it a few seconds, then lets it go). */

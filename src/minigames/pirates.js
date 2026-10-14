@@ -25,7 +25,8 @@ import { stripTone } from '../story/tone.js';
 import { shakeScale } from '../feel.js';
 import { optionKey } from './kit/flow.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
-import { FLY, BOSS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget } from './pirates-rules.js';
+import { FLY, BOSS, ATTACKS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget } from './pirates-rules.js';
+import { pirateSounds } from './pirates-sfx.js';
 
 const INK = '#2b211f';
 /** The height every ground query answers (no ground in space; finite, so what the host places on the ground has a place). */
@@ -80,35 +81,76 @@ function both(g) {
   return [g, m];
 }
 
-/** The pirates, each a few parts in flat colours (the post's ink draws their lines), built along -z (the nose). */
+/** The pirates' colours (issue #326: pale, flat Moebius colours that read against the black, each kind its own). */
+export const PIRATE_COLORS = {
+  skiff: { body: '#e2725a', wing: '#f3e2c0', ink: '#3a3340', eye: '#8ff2e6', jet: '#ffb36b' },
+  raider: { body: '#6fa3a0', brow: '#e0a84a', pod: '#b4523e', ink: '#3a3340', paint: '#f3ead8', muzzle: '#ff7a4a', jet: '#ffd27a' },
+  hauler: { body: '#9b84b8', band: '#d9b05a', wing: '#5e4a72', ink: '#3a3340', bay: '#ff5a3c', lamp: '#f2c54b' },
+  mine: { body: '#9a4a3c', eye: '#ff5a3c' },
+};
+
+/**
+ * The pirates, each a few parts in flat colours (the post's ink draws their lines), built along -z (the nose); a part
+ * marked `tell` is the one that glows hotter while the pirate winds up to fire (the rules' tellK: ATTACKS). Since
+ * issue #326 each kind has a silhouette of its own, read at a glance at 100 m:
+ *  - the fighter (skiff): a needle with four long blades swept forward like pincers, set in an X, one teal eye on top
+ *    (its tell), a tail fin;
+ *  - the gunboat (raider): a hammerhead, its mustard brow wide across, a heavy cannon slung under it (its muzzle the
+ *    tell), rust outrigger pods striped cream, a tall dorsal sail;
+ *  - the bomber (hauler): a fat lavender barrel bound in brass, broad bat wings drooping over it, a grab claw in front, the bomb
+ *    bay under it with its red lamps (the tell: they blink before each mine drops);
+ *  - a mine: a rust ball of spikes round a red eye that blinks.
+ */
 export function pirateShapes() {
+  const C = PIRATE_COLORS;
+  const cylZ = (rt, rb, len, seg, x = 0, y = 0, z = 0) => new THREE.CylinderGeometry(rt, rb, len, seg).rotateX(Math.PI / 2).translate(x, y, z);
   return {
-    // the skiff: a rust dart with mustard fins swept back, a teal eye
     skiff: [
-      { color: '#b4523e', geo: merge([nose(0.95, 3.4, 5, 1.2), new THREE.CylinderGeometry(0.95, 0.7, 1.6, 5).rotateX(Math.PI / 2).translate(0, 0, 2.0)]) },
-      { color: '#e0a84a', geo: merge([...both(fin(0.5, 3.1, 0.6, 2.6, 1.6)), box(0.12, 1.3, 1.1, 0, 0.8, 2.2)]) },
-      { color: '#8ff2e6', glow: true, geo: merge([new THREE.SphereGeometry(0.42, 8, 6).scale(1, 0.7, 1.3).translate(0, 0.45, -0.3), box(0.9, 0.35, 0.2, 0, 0, 2.85)]) },
+      { color: C.skiff.body, geo: merge([nose(0.75, 3.2, 6, 0.4), cylZ(0.75, 0.6, 2.4, 6, 0, 0, 1.6), box(0.14, 1.5, 1.4, 0, 0.85, 2.3).rotateX(-0.35)]) },
+      // the blades: four, swept forward from the root (a negative sweep) in an X, so from in front it reads as a cross
+      { color: C.skiff.wing, geo: merge([...both(fin(0.45, 3.5, 1.4, 2.7, -3.1, 0.24).rotateZ(0.5)), ...both(fin(0.45, 2.9, 1.5, 2.6, -2.4, 0.24).rotateZ(-0.5))]) },
+      { color: C.skiff.ink, geo: merge([...[-1, 1].map((sx) => box(0.16, 0.16, 1.8, sx * 0.55, -0.42, -0.9)), cylZ(0.62, 0.62, 0.3, 6, 0, 0, 2.85)]) },
+      { color: C.skiff.jet, glow: true, geo: cylZ(0.45, 0.45, 0.2, 6, 0, 0, 3.0) },
+      { color: C.skiff.eye, glow: true, tell: true, geo: new THREE.SphereGeometry(0.5, 8, 6).scale(1, 0.75, 1.4).translate(0, 0.5, -0.1) },
     ],
-    // the raider: a teal hammerhead on two rust outrigger pods, a red-orange glow under the brow
     raider: [
-      { color: '#3f6f78', geo: merge([box(1.5, 1.0, 4.6, 0, 0, 0.6), box(5.2, 0.5, 1.2, 0, 0.3, -1.6), nose(0.8, 1.8, 4, -1.6)]) },
-      { color: '#b4523e', geo: merge([...[-2.6, 2.6].map((x) => new THREE.CylinderGeometry(0.55, 0.55, 3.6, 6).rotateX(Math.PI / 2).translate(x, -0.2, 0.4)), ...both(fin(0.7, 2.2, 1.6, 3.0, 0.8, 0.12, 0.2))]) },
-      { color: '#ff7a4a', glow: true, geo: merge([box(3.6, 0.22, 0.2, 0, 0.1, -2.25), ...[-2.6, 2.6].map((x) => new THREE.CylinderGeometry(0.35, 0.35, 0.2, 6).rotateX(Math.PI / 2).translate(x, -0.2, 2.25))]) },
+      { color: C.raider.body, geo: merge([box(1.9, 1.1, 5.0, 0, 0, 0.7), nose(0.85, 1.4, 4, -1.8).scale(1, 0.7, 1), box(0.22, 2.4, 2.8, 0, 1.5, 1.6).rotateX(-0.42)]) },
+      { color: C.raider.brow, geo: merge([box(6.6, 0.6, 1.4, 0, 0.35, -1.5), ...[-1, 1].map((sx) => box(0.9, 1.3, 1.5, sx * 3.3, 0.35, -1.5))]) },
+      { color: C.raider.pod, geo: merge([...[-1, 1].map((sx) => cylZ(0.6, 0.6, 3.8, 6, sx * 2.6, -0.3, 0.8)), ...both(fin(0.9, 2.3, 1.8, 3.1, 0.8, 0.12, 0.2))]) },
+      { color: C.raider.paint, geo: merge([-1, 1].flatMap((sx) => [-0.2, 0.9].map((z) => cylZ(0.64, 0.64, 0.24, 6, sx * 2.6, -0.3, z)))) },
+      { color: C.raider.ink, geo: merge([cylZ(0.42, 0.5, 3.4, 8, 0, -0.75, -2.4), cylZ(0.58, 0.58, 0.4, 8, 0, -0.75, -1.2)]) },
+      { color: C.raider.jet, glow: true, geo: merge([-1, 1].map((sx) => cylZ(0.4, 0.4, 0.2, 6, sx * 2.6, -0.3, 2.75))) },
+      { color: C.raider.muzzle, glow: true, tell: true, geo: merge([cylZ(0.36, 0.36, 0.25, 8, 0, -0.75, -4.15), box(4.4, 0.16, 0.16, 0, 0.2, -2.25)]) },
     ],
-    // the hauler: an aubergine barrel bound in brass, a grab claw in front for the chimes it means to take, lanterns
     hauler: [
-      { color: '#6a557e', geo: merge([new THREE.CylinderGeometry(2.4, 2.4, 7, 8).rotateX(Math.PI / 2), new THREE.CylinderGeometry(2.4, 1.2, 1.6, 8).rotateX(Math.PI / 2).translate(0, 0, 4.3)]) },
-      { color: '#c99d48', geo: merge([...[-2.4, 0, 2.4].map((z) => new THREE.TorusGeometry(2.45, 0.22, 4, 8).translate(0, 0, z)), ...[-1, 1].map((s) => box(0.35, 0.35, 3.6, s * 1.5, -1.6, -4.6))]) },
-      { color: '#3a3340', geo: merge([...[-1, 1].map((s) => box(0.4, 2.6, 0.4, s * 1.5, -1.4, -6.4).rotateZ(s * 0.25)), box(3.6, 0.4, 0.4, 0, -2.4, -6.5)]) },
-      { color: '#f2c54b', glow: true, geo: merge([...[[-1.8, 1.8], [1.8, 1.8], [0, 2.5]].map(([x, y]) => new THREE.SphereGeometry(0.32, 6, 4).translate(x, y, -2.8))]) },
+      { color: C.hauler.body, geo: merge([cylZ(2.4, 2.4, 7, 10), cylZ(2.4, 1.2, 1.6, 10, 0, 0, 4.3), cylZ(1.4, 2.4, 1.2, 10, 0, 0, -4.1)]) },
+      { color: C.hauler.band, geo: merge([...[-2.4, 0, 2.4].map((z) => new THREE.TorusGeometry(2.45, 0.22, 4, 10).translate(0, 0, z)), ...[-1, 1].map((sx) => box(0.35, 0.35, 3.6, sx * 1.5, -1.6, -4.6))]) },
+      // the bat wings: broad, swept back from the barrel's top and drooping to their tips (an arch from in front)
+      { color: C.hauler.wing, geo: merge([...both(fin(1.2, 7.8, -2.2, 3.2, 2.6, 0.3).rotateZ(-0.38).translate(0, 2.1, 0)), ...[-1, 1].map((sx) => box(0.3, 2.0, 1.6, sx * 7.2, -1.6, 1.4))]) },
+      { color: C.hauler.ink, geo: merge([...[-1, 1].map((sx) => box(0.4, 2.6, 0.4, sx * 1.5, -1.4, -6.4).rotateZ(sx * 0.25)), box(3.6, 0.4, 0.4, 0, -2.4, -6.5), box(2.8, 0.8, 3.2, 0, -2.45, 0.6)]) },
+      { color: C.hauler.lamp, glow: true, geo: merge([...[[-1.8, 1.8], [1.8, 1.8]].map(([x, y]) => new THREE.SphereGeometry(0.32, 6, 4).translate(x, y, -2.8))]) },
+      { color: C.hauler.bay, glow: true, tell: true, geo: merge([-0.9, 0.9].map((x) => new THREE.SphereGeometry(0.36, 6, 4).translate(x, -2.95, 0.6))) },
     ],
-    // a mine: a rust ball of spikes round a red eye that blinks
     mine: [
-      { color: '#9a4a3c', geo: merge([new THREE.IcosahedronGeometry(1.0, 0), ...[[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(([x, y, z]) => new THREE.ConeGeometry(0.25, 0.9, 4).translate(0, 1.2, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), V(x, y, z))))]) },
-      { color: '#ff5a3c', glow: true, geo: new THREE.SphereGeometry(0.55, 8, 6) },
+      { color: C.mine.body, geo: merge([new THREE.IcosahedronGeometry(1.0, 0), ...[[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(([x, y, z]) => new THREE.ConeGeometry(0.25, 0.9, 4).translate(0, 1.2, 0).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), V(x, y, z))))]) },
+      { color: C.mine.eye, glow: true, geo: new THREE.SphereGeometry(0.55, 8, 6) },
     ],
   };
 }
+/** Where on each kind its telegraph's glow swells (its shape's units: the fighter's eye, the gunboat's muzzle, the bomber's bay). */
+export const TELL_AT = { skiff: [0, 0.5, -0.4], raider: [0, -0.75, -4.4], hauler: [0, -3.1, 0.6] };
+
+/** A shard of a wreck (the debris an explosion throws out). */
+const shardShape = () => merge([new THREE.TetrahedronGeometry(0.7, 0).scale(1, 0.6, 1.5)]);
+/** What a wreck is made of: the colours its debris are drawn in. */
+export const DEBRIS_OF = {
+  skiff: [PIRATE_COLORS.skiff.body, PIRATE_COLORS.skiff.wing, PIRATE_COLORS.skiff.ink],
+  raider: [PIRATE_COLORS.raider.body, PIRATE_COLORS.raider.brow, PIRATE_COLORS.raider.pod, PIRATE_COLORS.raider.ink],
+  hauler: [PIRATE_COLORS.hauler.body, PIRATE_COLORS.hauler.band, PIRATE_COLORS.hauler.wing, PIRATE_COLORS.hauler.ink],
+  mine: [PIRATE_COLORS.mine.body, '#3a3340'],
+  part: ['#c99d48', '#9a3f35', '#3a3340', '#5e4a72'],
+  rock: ['#c9a27a', '#b98d6e', '#9c8fb0'],
+};
 
 /** A rock: a lumpy ball (its points pushed in and out by where they are, so the faces still meet), faceted. */
 function rockShape(seed) {
@@ -125,7 +167,7 @@ function rockShape(seed) {
 const ROCK_TONES = ['#c9a27a', '#b98d6e', '#d8b48c', '#9c8fb0', '#e0c3a0'];
 
 // ------------------------------------------------------------------ the instanced views
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _c = new THREE.Color(), _w = new THREE.Color('#ffffff');
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _c = new THREE.Color(), _w = new THREE.Color('#ffffff'), _hot = new THREE.Color('#fff1c8');
 const BODY = () => makeMaterial({ color: '#ffffff', key: 'pirates-body' });
 const GLOW = () => makeMaterial({ color: '#ffffff', glow: 1, key: 'pirates-glow' });
 
@@ -138,19 +180,20 @@ class Many {
       for (let i = 0; i < max; i++) mesh.setColorAt(i, _c.set(p.color));   // (always coloured per instance: one program for all of them)
       mesh.count = 0; mesh.frustumCulled = false;
       scene.add(mesh); noShadow?.push(mesh);
-      return { mesh, color: new THREE.Color(p.color), glow: !!p.glow };
+      return { mesh, color: new THREE.Color(p.color), glow: !!p.glow, tell: !!p.tell };
     });
     this.max = max; this.n = 0;
   }
   begin() { this.n = 0; }
-  /** One more: at pos, turned q, scaled s; flash 0..1 whitens it (a hit); color: the body's own colour (the rocks' tones). */
-  put(pos, q, s, flash = 0, color = null, glowK = 1) {
+  /** One more: at pos, turned q, scaled s; flash 0..1 whitens it (a hit); color: the body's own colour (the rocks' tones); tellK 0..1: its `tell` part hotter (a wind-up). */
+  put(pos, q, s, flash = 0, color = null, glowK = 1, tellK = 0) {
     if (this.n >= this.max) return;
     _m.compose(pos, q, _s.setScalar(s));
     for (const p of this.parts) {
       p.mesh.setMatrixAt(this.n, _m);
       _c.copy(color && !p.glow ? color : p.color);
       if (p.glow && glowK !== 1) _c.multiplyScalar(glowK);
+      if (p.tell && tellK > 0) _c.lerp(_hot, 0.55 * tellK).multiplyScalar(1 + 1.6 * tellK);
       if (flash > 0) _c.lerp(_w, flash);
       p.mesh.setColorAt(this.n, _c);
     }
@@ -226,7 +269,8 @@ function* buildPirates(scene) {
     hauler: new Many(scene, S.hauler, 2, noShadow), mine: new Many(scene, S.mine, 16, noShadow),
   };
   const rocks = [0, 1, 2].map((k) => new Many(scene, [{ color: ROCK_TONES[0], geo: rockShape(k) }], 90, noShadow));
-  const drops = new Drops(scene, 360, noShadow);
+  const drops = new Drops(scene, 600, noShadow);   // (the bolts, the shots, the sparks, the dust, the flashes and the ship's trail)
+  const debris = new Many(scene, [{ color: '#ffffff', geo: shardShape() }], 120, noShadow);
   yield;
   // far bodies hung along the way, for the eye: pale moons and planetoids a long way off either side
   const far = nc(new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 3), BODY(), 16));
@@ -257,7 +301,7 @@ function* buildPirates(scene) {
     sky: { script: SPACE_SCRIPT, planets: [{ az: 180, el: 7, size: 14, color: look.body, craters: false }] },
     atmo: () => ({ tint: [1, 1, 1], fog: 0.5, name: 'Between worlds' }),
     noShadow,
-    pirates: { to, seed, ship, model, flames, kinds, rocks, drops, rings, boss },
+    pirates: { to, seed, ship, model, flames, kinds, rocks, drops, debris, rings, boss },
   });
 }
 
@@ -363,32 +407,7 @@ export function buildGunship(scene, noShadow = []) {
   return { group: g, guns, lens, lensMat, shutters, core: { mat: lensMat, base: new THREE.Color(C.lens) } };
 }
 
-// ------------------------------------------------------------------ the sounds
-function shooterSounds(sound) {
-  const on = () => !!sound?.ctx && !sound.muted && sound.fx;
-  const now = () => sound.ctx.currentTime;
-  let lastShot = 0;
-  return {
-    shot() { if (!on()) return; const t = now(); if (t - lastShot < 0.05) return; lastShot = t; sound.sweep(t, 1400, 520, 0.07, 0.022, 'square'); },
-    enemy() { if (on()) sound.sweep(now(), 520, 260, 0.12, 0.018, 'sawtooth'); },
-    boom(k = 1) { if (!on()) return; const t = now(); sound.burst(t, { dur: 0.35 + 0.4 * k, type: 'lowpass', freq: 300 + 300 * k, q: 0.7, vol: 0.12 + 0.14 * k, rate: 0.6 }); sound.burst(t + 0.02, { dur: 0.2, type: 'bandpass', freq: 1500, q: 0.8, vol: 0.05 * k }); },
-    charge() { if (on()) sound.sweep(now(), 180, 1500, 0.4, 0.05, 'triangle'); },
-    lock() { if (!on()) return; const t = now(); sound.pluck(1318, t, 0.05, 'sine', sound.fx); sound.pluck(1760, t + 0.07, 0.05, 'sine', sound.fx); },
-    deflect() { if (on()) sound.pluck(2093, now(), 0.06, 'triangle', sound.fx); },
-    clank() { if (!on()) return; sound.pluck(330, now(), 0.06, 'square', sound.fx); sound.burst(now(), { dur: 0.08, type: 'highpass', freq: 2500, q: 1, vol: 0.05 }); },
-    comms() { if (!on()) return; const t = now(); sound.pluck(880, t, 0.04, 'sine', sound.fx); sound.pluck(1175, t + 0.08, 0.04, 'sine', sound.fx); },
-    /** A pip of hull lost (issue #206): a crunch and a low thud under the runner's hurt, so it is heard over the bolts. */
-    hull() { if (!on()) return; const t = now(); sound.burst(t, { dur: 0.28, type: 'bandpass', freq: 900, q: 0.6, vol: 0.16, rate: 0.8 }); sound.sweep(t, 160, 48, 0.32, 0.12, 'triangle'); sound.pluck(196, t + 0.05, 0.08, 'square', sound.fx); },
-    /** A bolt that tells (the reticle's hit mark): a dry tick. */
-    hit() { if (on()) sound.pluck(1568, now(), 0.025, 'triangle', sound.fx); },
-    /** A missile loosed (issue #224): a hiss down and a rising whine as its motor lights. */
-    missile() { if (!on()) return; const t = now(); sound.burst(t, { dur: 0.35, type: 'highpass', freq: 1800, q: 0.6, vol: 0.07, rate: 1.2 }); sound.sweep(t + 0.05, 260, 900, 0.45, 0.03, 'sawtooth'); },
-    /** None left: a dry click. */
-    dry() { if (on()) sound.pluck(220, now(), 0.04, 'square', sound.fx); },
-    /** The tally: a chime as the points become chimes. */
-    tally(k = 0) { if (on()) sound.pluck(1047 * Math.pow(1.122, k % 6), now(), 0.06, 'sine', sound.fx); },
-  };
-}
+// ------------------------------------------------------------------ the sounds: src/minigames/pirates-sfx.js (issue #326)
 
 // ------------------------------------------------------------------ the HUD: the aim, the lock, the captain's bar, the comms
 const HUD_CSS = `
@@ -438,7 +457,7 @@ const _p = V(), _p2 = V(), _d = V(), _look = V(), _up = V(), _e = new THREE.Eule
 
 function start(ctx) {
   const { camera, level, player, sfx } = ctx;
-  const L = level.pirates, snd = shooterSounds(ctx.sound);
+  const L = level.pirates, snd = pirateSounds(ctx.sound);
   const flags = ctx.state?.data?.flags ?? {};
   const heat = Math.max(0, ambushCount(flags) - (L.to ? 1 : 0));   // (the ambushes before this one: this one is marked as its page opens)
   // a lost run starts again from its last checkpoint, the chimes won up to it kept, the pirates a little kinder each time
@@ -461,7 +480,12 @@ function start(ctx) {
   const dust = Array.from({ length: 110 }, (_, i) => ({ s: Math.random() * 260, u: (Math.random() * 2 - 1) * 46, v: (Math.random() * 2 - 1) * 28, teal: i % 3 === 0 }));
   // (redT: the hit's flash at the screen's edge; shake: the camera's; pipT: the hull's pips shown under the ship, lostI
   // the pip that went; aimK: the reticle's tightening on a target, hitT its hit mark)
-  const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0, shake: 0, pipT: 0, lostI: -1, lostT: 0, aimK: 0, hitT: 0, hitBig: false, hurtN: 0 };
+  // (issue #326, the feel: jolt the small capped shake of a kill, stop the hit-stop left, combo the kills in a row)
+  const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0, shake: 0, pipT: 0, lostI: -1, lostT: 0, aimK: 0, hitT: 0, hitBig: false, hurtN: 0,
+    jolt: 0, stop: 0, stopCool: 0, stops: 0, combo: 0, comboT: 0, comboBest: 0, trailT: 0 };
+  // the flashes (a muzzle's, an impact's, an explosion's swelling ball: ship-relative, they fly with it), the debris of
+  // the wrecks and the ship's engine trail (in the world), the telegraphs' glows drawn this frame
+  const flashes = [], shards = [], trail = [], tells = [];
   // reset what the last run left
   L.boss.group.visible = false;
   for (const p of Object.values(L.boss.guns)) p.pod.visible = true;
@@ -475,8 +499,11 @@ function start(ctx) {
   const world = (ds, u, v, out = _p) => railPoint(S.s + ds, u, v, out);
   const say = (id) => { const line = AMBUSH_LINES[id]; if (!line || !hud) return; hud.say(line); snd.comms(); };
 
-  function boom(at, k = 1, rel = true) {
+  function boom(at, k = 1, rel = true, kind = null) {
     const p = rel ? world(at.ds, at.u, at.v, V()) : at;
+    // (issue #326: a ball of light that swells and goes, and the wreck's shards flung out tumbling)
+    if (rel) flashes.push({ ds: at.ds, u: at.u, v: at.v, r: 1.6 + 1.6 * k, life: 0.12 + 0.06 * k, age: 0, color: '#fff1c8', grow: true });
+    if (kind) debris(p, kind, Math.round(FEEL.debris * Math.min(2.2, k)));
     const n = Math.round(5 + 7 * k);
     for (let i = 0; i < n; i++) {
       _d.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(4 + 8 * k * Math.random());
@@ -491,6 +518,26 @@ function start(ctx) {
     spark(p, Math.round(6 * k), '#fff1c8');
     snd.boom(Math.min(1.5, k));
   }
+  /** The shards of a wreck: `n` of its colours flung out of p, tumbling, carried along with the flight a while. */
+  function debris(p, kind, n) {
+    const cols = DEBRIS_OF[kind] ?? DEBRIS_OF.part;
+    for (let i = 0; i < n; i++) {
+      const vel = V(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(8 + Math.random() * 16);
+      vel.z -= FLY.speed * 0.75;
+      shards.push({ pos: p.clone(), vel, axis: V(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(), spin: 4 + Math.random() * 10, life: 0.7 + Math.random() * 0.6, age: 0, size: 0.5 + Math.random() * 0.9, color: new THREE.Color(cols[i % cols.length]) });
+    }
+    if (shards.length > 110) shards.splice(0, shards.length - 110);
+  }
+  /** The camera's small kick (m, capped: FEEL.shake), none under Reduce motion or with Camera shake at 0. */
+  function jolt(k) { if (shakeScale() > 0) run.jolt = Math.min(FEEL.shake.cap, run.jolt + k); }
+  /** The world held still a beat on a kill (s, capped, not again at once). */
+  function hitStop(k) { if (!(k > 0) || run.stopCool > 0) return; run.stop = Math.min(FEEL.stop.max, k); run.stopCool = FEEL.stop.cool; run.stops++; }
+  /** A kill of the player's: the combo counted, its word and its note from the second in a row. */
+  function chain(p) {
+    run.combo = run.comboT > 0 ? run.combo + 1 : 1; run.comboT = FEEL.combo;
+    run.comboBest = Math.max(run.comboBest, run.combo);
+    if (run.combo >= 2) { words.pop(_p3.copy(p).add(_up.set(0, 3.2, 0)), `×${run.combo}`, 'combo', 0.8); snd.combo(run.combo); }
+  }
   function spark(p, n, color) {
     for (let i = 0; i < n; i++) {
       const vel = V(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(14 + Math.random() * 18);
@@ -503,16 +550,37 @@ function start(ctx) {
   function handle(ev) {
     for (const e of ev) {
       switch (e.kind) {
-        case 'shot': snd.shot(); break;
-        case 'enemyShot': snd.enemy(); break;
-        case 'kill': boom(e.at, e.foe === 'hauler' ? 1.6 : e.foe === 'raider' ? 1.2 : e.foe === 'mine' ? 0.6 : 0.8); if (e.pts) words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, e.foe === 'hauler' ? 'gold' : ''); if (e.by !== 'ram') hitMark(true); break;
-        case 'hit': if (e.by === 'bolt') hitMark(false); break;
+        case 'shot': {
+          snd.shot(); ctx.hintUsed?.('fire');
+          // the muzzles flash at the twin guns
+          for (const side of [-1, 1]) flashes.push({ ds: 2.4, u: S.ship.u + side * FLY.bolt.spread, v: S.ship.v - 0.1, r: 0.55, life: 0.05, age: 0, color: '#e8fff9' });
+          break;
+        }
+        case 'enemyShot': {
+          snd.enemy();
+          if (e.at) flashes.push({ ds: e.at.ds, u: e.at.u, v: e.at.v, r: e.by === 'core' ? 2.4 : 1.1, life: 0.08, age: 0, color: e.by === 'core' ? '#ff8a5c' : '#ffb36b' });
+          break;
+        }
+        case 'tell': snd.tell(e.part ? (e.part === 'core' ? 'core' : 'turret') : e.foe, e.dur); break;
+        case 'kill': {
+          const k = KILL_SIZE[e.foe] ?? 0.8, p = world(e.at.ds, e.at.u, e.at.v, V());
+          boom(e.at, k, true, e.foe);
+          if (e.pts) words.pop(p, `+${e.pts}`, e.foe === 'hauler' ? 'gold' : '');
+          if (e.by !== 'ram') { hitMark(true); chain(p); jolt(FEEL.shake[e.foe] ?? 0.1); hitStop(FEEL.stop[e.foe] ?? 0.03); }
+          break;
+        }
+        case 'hit': {
+          if (e.by === 'bolt') hitMark(false);
+          // the impact: a spit of sparks off the hull struck, a small flash
+          if (e.at) { spark(world(e.at.ds, e.at.u, e.at.v, V()), 4, e.part ? '#f2c54b' : '#fff1c8'); flashes.push({ ds: e.at.ds, u: e.at.u, v: e.at.v, r: 0.9, life: 0.06, age: 0, color: '#fff1c8' }); }
+          break;
+        }
         case 'checkpoint': ctx.flash('Checkpoint', 'good', 1.2); break;
-        case 'rock': boom(e.at, 0.5); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`); break;
+        case 'rock': boom(e.at, 0.5, true, 'rock'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`); break;
         case 'spark': spark(world(e.at.ds, e.at.u, e.at.v, V()), 2, '#e0c3a0'); break;
         case 'clank': spark(world(e.at.ds, e.at.u, e.at.v, V()), 4, '#c99d48'); snd.clank(); break;
         case 'deflect': spark(world(e.at.ds, e.at.u, e.at.v, V()), 5, '#9ff2e6'); snd.deflect(); break;
-        case 'blast': boom(e.at, 1.4); if (e.bonus) { ctx.flash(`${e.n} at once! +${e.bonus}`, 'good'); } break;
+        case 'blast': boom(e.at, 1.4); jolt(FEEL.shake.missile); if (e.bonus) { ctx.flash(`${e.n} at once! +${e.bonus}`, 'good'); } break;
         case 'hurt': {
           // (issue #206: "when I lose a health point it's not very visible": the edge flashes, the view shakes, the ship
           // sparks and blinks, the pips show under it with the lost one bursting, the corner's pip pops; a crunch)
@@ -525,26 +593,26 @@ function start(ctx) {
           spark(at, 10, '#ff8a5c'); spark(at, 6, '#fff1c8');
           smoke.emit(at, V(0, 2, -FLY.speed * 0.5), 1.4, 1.0, '#3a3340');
           popPip(e.hull);
-          if (e.hull <= 2 && e.hull > 0 && !run.lowSaid) { run.lowSaid = true; say('low'); }
+          if (e.hull <= 2 && e.hull > 0 && !run.lowSaid) { run.lowSaid = true; say('low'); snd.warning(); }
           break;
         }
-        case 'repair': sfx.checkpoint(); run.pipT = HURT.pips; run.lostI = -1; ctx.flash(e.pts ? `Hull full · +${e.pts}` : 'Hull patched', 'good'); break;
-        case 'part': boom(e.at, 2.2); hitMark(true); ctx.flash(e.id === 'core' ? 'The bridge is hit!' : 'A turret is down!', 'good'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, 'gold'); if (L.boss.guns[e.id]) L.boss.guns[e.id].pod.visible = false; if (e.id === 'core') L.boss.lens.visible = false; break;
+        case 'repair': snd.pickup(); run.pipT = HURT.pips; run.lostI = -1; ctx.flash(e.pts ? `Hull full · +${e.pts}` : 'Hull patched', 'good'); break;
+        case 'part': boom(e.at, 2.2, true, 'part'); hitMark(true); chain(world(e.at.ds, e.at.u, e.at.v, V())); jolt(FEEL.shake.part); hitStop(FEEL.stop.part); ctx.flash(e.id === 'core' ? 'The bridge is hit!' : 'A turret is down!', 'good'); words.pop(world(e.at.ds, e.at.u, e.at.v, V()), `+${e.pts}`, 'gold'); if (L.boss.guns[e.id]) L.boss.guns[e.id].pod.visible = false; if (e.id === 'core') L.boss.lens.visible = false; break;
         case 'sunk': run.sinkT = 1.6; break;
-        case 'roll': sfx.whoosh(); break;
+        case 'roll': snd.roll(); ctx.hintUsed?.('roll'); break;
         case 'lock': snd.lock(); break;
-        case 'charged': snd.charge(); break;
+        case 'charged': snd.charge(); ctx.hintUsed?.('charge'); break;
         // the missiles (issue #224): loosed with a hiss and a flare under the ship, burst where they hit, a click when none is left
         case 'missile': {
-          snd.missile(); ctx.kick(0.25);
+          snd.missile(); ctx.kick(0.25); ctx.hintUsed?.('missile');
           const at = world(1.5, S.ship.u, S.ship.v - 0.6, V());
           spark(at, 6, '#ffd27a'); smoke.emit(at, V(0, -3, -FLY.speed * 0.4), 1.1, 0.8, '#8a7a9a');
           if (!e.locked) ctx.flash('Missile: no lock', '', 0.8);
           break;
         }
-        case 'missileHit': boom(e.at, e.n ? 1.5 : 0.9); if (e.n) hitMark(true); break;
+        case 'missileHit': boom(e.at, e.n ? 1.5 : 0.9); if (e.n) hitMark(true); jolt(FEEL.shake.missile); break;
         case 'dry': snd.dry(); ctx.flash('No missiles left', 'bad', 0.9); break;
-        case 'rearm': ctx.flash('Missile +1', 'good', 1.1); break;
+        case 'rearm': snd.rearm(); ctx.flash('Missile +1', 'good', 1.1); break;
         case 'say': say(e.id); break;
         case 'win': {
           say(e.sunk ? 'won' : 'fled');
@@ -598,7 +666,20 @@ function start(ctx) {
     L.ship.quaternion.setFromEuler(_e);
     // (blinks while it cannot be hit again)
     L.ship.visible = !(P.iframe > 0 && Math.floor(P.iframe * (P.iframe > FLY.iframe - 0.35 ? 22 : 12)) % 2 === 0);   // (quicker at first: the hit)
-    L.flames.scale.set(1, 1, 0.8 + 0.4 * Math.random() + (run.outT > 0 ? 2 : 0));
+    // the flames: longer as it pushes across (its thrust), flickering
+    const push = Math.min(1, Math.hypot(P.vu, P.vv) / FLY.steer);
+    L.flames.scale.set(1, 1, 0.8 + 0.4 * Math.random() + 0.25 * push + (run.outT > 0 ? 2 : 0));
+    // the engine trail (issue #326): two short streams of glowing drops left at the nozzles (rail-relative: they fall
+    // back slowly and are drawn after the ship across, lagging, so the stream curves behind it as it steers and banks)
+    if (S.done !== 'dead' && dt > 0) {
+      run.trailT -= dt;
+      while (run.trailT <= 0) {
+        run.trailT += TRAIL.every;
+        const c = Math.cos(P.bank), sn = Math.sin(P.bank);
+        for (const x of [-0.5, 0.5]) trail.push({ ds: -TRAIL.back, u: P.u + x * c, v: P.v - 0.05 + x * sn, age: 0, life: TRAIL.life, r: 0.06 + 0.04 * push });
+      }
+      if (trail.length > TRAIL.max) trail.splice(0, trail.length - TRAIL.max);
+    }
     if (S.done === 'dead') { run.outT += dt; if (Math.random() < 0.5) smoke.emit(L.ship.position, V(0, 1, -FLY.speed * 0.3), 1, 1, '#3a3340'); }
   }
 
@@ -615,6 +696,8 @@ function start(ctx) {
     run.cam.lu += (P.vu * F.lead - run.cam.lu) * kl; run.cam.lv += (P.vv * F.lead - run.cam.lv) * kl;
     railPoint(S.s - F.back, run.cam.u, run.cam.v + F.up, camera.position);
     if (run.shake > 0) { const k = run.shake * run.shake * HURT.amp * shakeScale(); camera.position.x += (Math.random() * 2 - 1) * k; camera.position.y += (Math.random() * 2 - 1) * k; }
+    // (a kill's small kick, capped: FEEL.shake; already none under Reduce motion: jolt)
+    if (run.jolt > 0) { const j = Math.min(FEEL.shake.cap, run.jolt) * shakeScale(); camera.position.x += (Math.random() * 2 - 1) * j; camera.position.y += (Math.random() * 2 - 1) * j; }
     railPoint(S.s + F.look, run.cam.u + (P.u - run.cam.u) * 0.6 + run.cam.lu, run.cam.v + (P.v - run.cam.v) * 0.6 + 0.4 + run.cam.lv, _look);
     _d.subVectors(_look, camera.position).normalize();
     camera.up.set(0, 1, 0).applyAxisAngle(_d, run.cam.roll);
@@ -639,8 +722,12 @@ function start(ctx) {
       const q = facing(e, pos);
       if (e.kind === 'mine') { _q.setFromAxisAngle(_spin, e.age * 1.4); q.multiply(_q); }
       else { _q.setFromAxisAngle(_fwd, Math.sin(e.age * 2 + e.id) * 0.25); q.multiply(_q); }
-      const blink = e.kind === 'mine' ? 0.4 + 0.6 * (Math.sin(e.age * 9) > 0 ? 1 : 0) : 1;
-      L.kinds[e.kind].put(pos, q, LOOK_SIZE[e.kind] ?? 1, e.flash > 0 ? 0.8 : 0, null, blink);
+      // a mine blinks quicker as the ship comes near (issue #326)
+      const blink = e.kind === 'mine' ? 0.4 + 0.6 * (Math.sin(e.age * (e.ds < 40 ? 22 : 9)) > 0 ? 1 : 0) : 1;
+      // a hit whitens it and swells it a moment; a wind-up heats its tell part and swells a glow there
+      const size = (LOOK_SIZE[e.kind] ?? 1) * (1 + 0.14 * Math.max(0, e.flash) / 0.12), tk = e.tellK ?? 0;
+      L.kinds[e.kind].put(pos, q, size, e.flash > 0 ? 0.8 : 0, null, blink, tk);
+      if (tk > 0 && TELL_AT[e.kind]) tells.push({ pos: _p2.set(...TELL_AT[e.kind]).multiplyScalar(size).applyQuaternion(q).add(pos).clone(), r: (0.25 + 0.9 * tk) * (e.kind === 'hauler' ? 1.3 : 1), color: e.kind === 'skiff' ? '#c8fff4' : '#ffd27a' });
     }
     for (const k of Object.values(L.kinds)) k.end();
   }
@@ -685,6 +772,29 @@ function start(ctx) {
       _p2.copy(s.vel).normalize();
       D.put(s.pos, _p2, 0.09 * (1 - s.age / s.life) + 0.03, 0.8, s.color);
     }
+    // the flashes: muzzles, impacts, the swelling ball of an explosion (ship-relative: they fly with it)
+    for (let i = flashes.length - 1; i >= 0; i--) {
+      const f = flashes[i];
+      f.age += dt; if (f.age >= f.life) { flashes.splice(i, 1); continue; }
+      const k = f.age / f.life, r = f.grow ? f.r * Math.sin(Math.PI * Math.min(1, k * 1.1)) : f.r * (1 - 0.5 * k);
+      world(f.ds, f.u, f.v, _p);
+      if (r > 0.02) D.put(_p, fw, r, r, f.color);
+    }
+    if (flashes.length > 60) flashes.splice(0, flashes.length - 60);
+    // the telegraphs' glows (drawFoes, drawBoss put them here this frame)
+    for (const t of tells) D.put(t.pos, fw, t.r, t.r, t.color);
+    tells.length = 0;
+    // the engine trail: carried on behind the ship, shrinking from gold to coral
+    const P = S.ship, follow = 1 - Math.exp(-TRAIL.follow * dt);
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const t = trail[i];
+      t.age += dt; if (t.age >= t.life) { trail.splice(i, 1); continue; }
+      t.ds -= FLY.speed * (1 - TRAIL.carry) * dt;
+      t.u += (P.u - t.u) * follow * 0.5; t.v += (P.v - 0.05 - t.v) * follow * 0.5;
+      const k = t.age / t.life;
+      world(t.ds, t.u, t.v, _p);
+      D.put(_p, fw, t.r * (1 - k * 0.7), 0.8, k < 0.3 ? '#ffd27a' : k < 0.65 ? '#ffb36b' : '#ef9479');
+    }
     // the dust that streams past: the speed made visible
     for (const m of dust) {
       const ds = (((m.s - S.s) % 260) + 260) % 260 - 30;
@@ -692,6 +802,21 @@ function start(ctx) {
       D.put(_p, fw, 0.05, 1.6 + (run.outT > 0 ? 6 : 0), m.teal ? '#9ff2e6' : '#fff1c8');
     }
     D.end();
+  }
+
+  /** The wrecks' shards, tumbling out and shrinking away (one instanced mesh, coloured per shard). */
+  function drawDebris(dt) {
+    const M = L.debris;
+    if (!M) return;
+    M.begin();
+    for (let i = shards.length - 1; i >= 0; i--) {
+      const d = shards[i];
+      d.age += dt; if (d.age >= d.life) { shards.splice(i, 1); continue; }
+      d.pos.addScaledVector(d.vel, dt);
+      _q.setFromAxisAngle(d.axis, d.spin * d.age);
+      M.put(d.pos, _q, d.size * (1 - Math.pow(d.age / d.life, 2)), 0, d.color);
+    }
+    M.end();
   }
 
   function drawRings() {
@@ -716,9 +841,16 @@ function start(ctx) {
     // (its nose tipped down a little toward the ship, raised so its turrets stay where they are hit)
     G.group.rotateX(GUNSHIP_TILT); G.group.position.y += GUNSHIP_BACK * Math.sin(GUNSHIP_TILT);
     if (B.dying) { G.group.rotateZ(B.dying * 0.25); G.group.rotateX(B.dying * 0.1); }
+    if (!run.bossShown) { run.bossShown = true; snd.incoming(); }
     for (const p of B.parts) {
       const g = p.id === 'core' ? G.core : G.guns[p.id];
-      g.mat.uniforms.uColor.value.copy(g.base).lerp(_w, p.flash > 0 ? 0.85 : 0);
+      // a hit whitens it; the part winding up to fire glows hot first (the rules' tellK: ATTACKS.boss)
+      const tk = B.tellPart === p.id ? (B.tellK ?? 0) : 0;
+      g.mat.uniforms.uColor.value.copy(g.base).lerp(_hotBoss, 0.75 * tk).lerp(_w, p.flash > 0 ? 0.85 : 0);
+      if (tk > 0 && !p.gone) {
+        const at = partAt(B, p);
+        tells.push({ pos: world(at.ds - 3, at.u, at.v + (p.id === 'core' ? 0 : 0.6), V()), r: (p.id === 'core' ? 0.6 + 1.8 * tk : 0.4 + 1.2 * tk), color: p.id === 'core' ? '#c8fff4' : '#ffd27a' });
+      }
     }
     // the shutters slide apart once the guns are down
     const open = B.open ? Math.min(1, (run.openK = (run.openK ?? 0) + dt * 1.2)) : 0;
@@ -859,12 +991,14 @@ function start(ctx) {
   const tick = (dt, phase) => {
     drawShip(dt, phase);
     drawCamera(dt);
-    drawFoes(); drawRocks(dt); drawRings(); drawBoss(dt); drawDrops(dt);
+    drawFoes(); drawRocks(dt); drawRings(); drawBoss(dt); drawDebris(dt); drawDrops(dt);
     fire.update(dt); smoke.update(dt);
     words.update(dt);
     hud?.update(dt);
     run.redT = Math.max(0, run.redT - dt); run.shake = Math.max(0, run.shake - dt);
     run.pipT = Math.max(0, run.pipT - dt); run.lostT = Math.max(0, run.lostT - dt); run.hitT = Math.max(0, run.hitT - dt);
+    run.jolt = run.jolt > 0.004 ? run.jolt * Math.exp(-FEEL.decay * dt) : 0;
+    run.comboT = Math.max(0, run.comboT - dt); if (run.comboT <= 0) run.combo = 0;
     run.onTarget = phase === 'play' && !!aimTarget(S);   // (the reticle tightens on what the line of fire runs through)
     // the missiles left, under the hints at the bottom right (issue #224)
     const mk = `${S.ship.missiles}/${FLY.missile.count}`;
@@ -893,6 +1027,8 @@ function start(ctx) {
     get state() { return S; },
     /** (the tests: what is being shown: the hit's flash, the shake, the pips, the reticle's tightening and mark) */
     get feedback() { return run; },
+    /** (the tests: what is flying about: the flashes, the wrecks' shards, the engine trail) */
+    get fx() { return { flashes: flashes.length, shards: shards.length, trail: trail.length }; },
     /** (the screenshots: the run flown ahead by the pilot to `t` s, quietly) */
     forward(t) {
       while (!S.done && S.t < t) handle(runStep(S, botInput(S), 1 / 60).filter((e) => ['win', 'dead', 'part', 'sunk'].includes(e.kind)));
@@ -900,31 +1036,44 @@ function start(ctx) {
     },
     update(dt, inp, { live, phase, raw }) {
       dt = Math.min(dt, 0.05);
+      run.stopCool = Math.max(0, run.stopCool - dt);
+      if (live && run.stop > 0) {
+        // the hit-stop (issue #326): the world held a beat on a kill, the flashes and the shards barely moving
+        run.stop = Math.max(0, run.stop - dt);
+        tick(dt * FEEL.stop.slow, phase);
+        return;
+      }
       if (live) {
         if (!run.goSaid) { run.goSaid = true; if (S.from > 0) ctx.flash('From the checkpoint', 'good', 1.6); }
         const input = globalThis.__piratesBot ? botInput(S) : pirateInput(inp, raw, { climb });
+        if (Math.abs(input.x) > 0.4 || Math.abs(input.y) > 0.4) ctx.hintUsed?.('steer');
         handle(runStep(S, input, dt));
+        snd.engine(S.done === 'dead' ? 0 : 1, Math.min(1, Math.hypot(S.ship.vu, S.ship.vv) / FLY.steer));
         if (S.ship.hull !== run.lastHull) { run.lastHull = S.ship.hull; ctx.setLives(S.ship.hull, S.ship.hull0); }
         ctx.setScore(S.score);
         ctx.speed(S.ship.roll > 0 ? 0.5 : 0.12);
       } else if (phase === 'intro' || phase === 'count') {
         // cruising before GO: the dust streams by, nothing else moves on
         for (const m of dust) m.s -= FLY.speed * dt;
+        snd.engine(0.7, 0);
       } else if (phase === 'finishing' || phase === 'results') {
         S.s += FLY.speed * dt;
         for (const b of S.shots) b.life = 0;
         S.shots.length = 0;
         ctx.speed(run.outT > 0 ? Math.min(1, run.outT) : 0);
+        snd.engine(S.done === 'won' ? Math.max(0, 1 - run.outT * 0.4) : 0, Math.min(1, run.outT));
       }
       tick(dt, phase);
     },
     end() {
+      snd.engine(0);
       hud?.dispose();
       words.dispose();
       fire.dispose(); smoke.dispose();
       for (const m of [fire.mesh, smoke.mesh]) { const i = level.noShadow?.indexOf(m) ?? -1; if (i >= 0) level.noShadow.splice(i, 1); }
       for (const k of [...Object.values(L.kinds), ...L.rocks]) { k.begin(); k.end(); }
       L.drops.begin(); L.drops.end();
+      L.debris?.begin(); L.debris?.end();
       for (const r of L.rings) r.visible = false;
       L.boss.group.visible = false;
       player.object.visible = true;
@@ -932,9 +1081,30 @@ function start(ctx) {
     },
   };
 }
+/**
+ * The feel of a kill (issue #326): the camera's small kick per kind (m, at most `cap` however many come at once, fading
+ * at `decay` /s; none under Reduce motion or with Camera shake at 0), the hit-stop (s the world is held, at most `max`,
+ * not again within `cool` s; while held it runs at `slow` of its speed), the combo's window (s between two kills for
+ * a chain) and the shards a wreck throws (at size 1).
+ */
+export const FEEL = {
+  shake: { skiff: 0.1, raider: 0.22, hauler: 0.34, mine: 0.06, part: 0.45, missile: 0.12, cap: 0.5 },
+  decay: 9,
+  stop: { skiff: 0.035, raider: 0.055, hauler: 0.07, mine: 0, part: 0.09, max: 0.09, cool: 0.22, slow: 0.08 },
+  combo: 1.8,
+  debris: 7,
+};
+/** An explosion's size for each kind's wreck. */
+export const KILL_SIZE = { skiff: 0.85, raider: 1.25, hauler: 1.7, mine: 0.6 };
+/**
+ * The ship's engine trail: a drop at each nozzle (`back` m behind the ship's middle) every `every` s, living `life` s,
+ * carried at `carry` of the flight's speed (so it falls back slowly), drawn after the ship across at `follow` /s (half
+ * of it: the stream lags and curves); at most `max`.
+ */
+export const TRAIL = { every: 1 / 30, life: 0.32, carry: 0.9, back: 3.4, follow: 6, max: 40 };
 /** The pirates drawn larger than their shapes were made (their hit sizes in the rules match). */
-export const LOOK_SIZE = { skiff: 1.7, raider: 1.5, hauler: 1.5, mine: 1.3 };
-const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _p3 = V(), _c2 = new THREE.Color();
+export const LOOK_SIZE = { skiff: 1.9, raider: 1.5, hauler: 1.5, mine: 1.3 };
+const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _p3 = V(), _c2 = new THREE.Color(), _hotBoss = new THREE.Color('#ff8a4a');
 
 /** A pip of hull lost (issue #206): the edge's flash (s), the camera's shake (s, and its size at the start, m), the pips shown under the ship (s), the lost one's burst (s). */
 export const HURT = { flash: 0.7, shake: 0.45, amp: 2.4, pips: 2.2, lost: 0.8 };
@@ -978,13 +1148,17 @@ export function pirateControls(pitch = 'dive') {
     touch: [['Stick', `steer and aim: push up to ${up}`], ['✺', 'fire; hold to charge, let go to loose it'], ['◇', 'a missile'], ['↶', 'barrel roll']],
   };
 }
-/** The same, short: the hints at the bottom right while it runs (no start card since issue #224). */
+/**
+ * The same, minimal (issue #326: "make the buttons hints much smaller and minimal"): one small row at the bottom right
+ * while it runs, a button and one word each ([key, word, id]: the id the game marks used, ctx.hintUsed), fading after
+ * the first seconds and each word once its button is used (kit/flow.js hintRow). The stick's word says the pitch.
+ */
 export function pirateHints(pitch = 'dive') {
   const up = pitch === 'climb' ? 'climb' : 'dive';
   return {
-    pad: [['Left stick', `steer · up to ${up}`], ['A / ×', 'fire · hold to charge'], ['RT / R2', 'stream fire'], ['LT / L2', 'missile'], ['B / ○', 'roll'], ['Menu', 'pause']],
-    keys: [['W A S D', `steer · W to ${up}`], ['Space', 'fire · hold to charge'], ['F', 'missile'], ['Shift', 'roll'], ['Esc', 'pause']],
-    touch: [['✺', 'fire'], ['◇', 'missile'], ['↶', 'roll']],
+    pad: [['Left stick', `steer, ↑ ${up}s`, 'steer'], ['A / ×', 'fire', 'fire'], ['hold A / ×', 'charge', 'charge'], ['LT / L2', 'missile', 'missile'], ['B / ○', 'roll', 'roll']],
+    keys: [['W A S D', `steer, W ${up}s`, 'steer'], ['Space', 'fire', 'fire'], ['hold Space', 'charge', 'charge'], ['F', 'missile', 'missile'], ['Shift', 'roll', 'roll']],
+    touch: [['✺', 'fire', 'fire'], ['◇', 'missile', 'missile'], ['↶', 'roll', 'roll']],
   };
 }
 

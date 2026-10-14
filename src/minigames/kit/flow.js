@@ -91,3 +91,19 @@ export function resultActions(r = {}, links = null, fails = 0) {   // eslint-dis
   if (links?.mandatory) return [{ ...retry, label: links.retry?.label ?? retry.label, main: true }, ...extra];
   return [{ ...retry, main: true }, ...extra, quit];
 }
+
+/**
+ * The controls' hint row while a game runs (def.hints, issue #326: "make the button hints much smaller and minimal"):
+ * one small dark strip at the bottom right (src/hint-look.js's look), a glyph and one word a button. The whole row shows
+ * for `show` s of play, then fades; each button's word fades `used` s after the game says it was used (ctx.hintUsed),
+ * so a player who knows them sees them go at once. A new input in hand (a pad picked up) shows them again.
+ */
+export const HINT_ROW = { show: 7, used: 0.9, px: 11 };
+/**
+ * What the row shows now: `rows` the def's [key, word, id?] (id defaults to the word), `age` s of play since it was last
+ * shown, `used` a Map id → the age it was used at, `live` the run going (not paused, not a card). → { off, items }
+ */
+export function hintRow(rows = [], { age = 0, used = new Map(), live = true } = {}, R = HINT_ROW) {
+  const items = rows.map(([k, w, id = w]) => ({ k, w, id, gone: age > R.show || (used.has(id) && age - used.get(id) > R.used) }));
+  return { off: !live || items.every((i) => i.gone), items };
+}

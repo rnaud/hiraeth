@@ -28,6 +28,13 @@ export const CHANGELOG = [
     // brute.js clearGround, humanoid.js smoke, quadruped.js placeBeads, hopper.js, roller.js, skitterers.js, centipede.js;
     // docs/systems/foes.md "On a slope"; tests/foe-slope.test.js
     'Creatures and machines standing or walking on a hillside now lean with it instead of sinking into it: the crucible cart’s tracks, a lizard’s tail, the toad, the heron’s toes, the bell walker and the tripod all stay on the ground, their feet planted on the slope while the tall ones keep upright. The furnace brute’s fists and the wood cutter’s saw no longer hang into the ground when it stands still.',
+    // the chime pirates made better (issue #326): src/minigames/pirates.js, pirates-rules.js ATTACKS, pirates-sfx.js,
+    // kit/flow.js hintRow; docs/systems/minigames.md "Made better"; tests/pirates-feel.test.js
+    'The chime pirates’ button hints are one small dark row at the bottom right now, a button and a word each. They fade after the first few seconds, and each one goes as soon as you have used its button.',
+    'The chime pirates come in kinds you can tell apart at a glance: the fighter with four blades swept forward, the gunboat with its wide brow and slung cannon, the bat-winged bomber. Each attacks its own way and warns you first: the fighter’s eye flares, the gunboat’s cannon glows before it fires a fan of three, the bomber’s bay lamps blink before a mine drops, and the captain’s turrets glow hot before a volley.',
+    'Every sound of the pirate fight is new: punchier bolts, explosions with a deep thump and crackling debris, a whine before a pirate fires, a whoosh for the roll, a horn as the captain arrives and the engine humming under it all. You can hear each one on the music page.',
+    'The pirate fight feels better: a downed pirate shakes the view a little and holds the action for a split second, its wreck flies apart, the guns flash as they fire, hits spark, quick kills count up a combo, and your ship leaves a short engine trail as it banks.',
+    'Steering in the pirate fight is tighter: a small push makes a fine correction, letting go stops the ship where you leave it, and your shots bend onto a pirate close to your aim.',
   ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,
