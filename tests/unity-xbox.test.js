@@ -160,6 +160,9 @@ test('the numbers go to LocalState\\unity.log, the native side apart from the sc
   assert.match(m, /"unity\.log"/);
   assert.match(m, /#if UNITY_WSA && !UNITY_EDITOR\n\s*return true;/);
   for (const s of ['first node', 'world settled', 'first frames', 'gpu', 'script', 'wait']) assert.ok(m.includes(s), s);
+  // (the readout not drawn over a menu: it ran across the Start menu's heading and the game menu's tabs on the console)
+  assert.match(m, /runner\.menu\.Open\)\) return;/);
+  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /public bool Open => state != null;/);
   const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /if \(BridgeMetrics\.Wanted\(\)\) gameObject\.AddComponent<BridgeMetrics>\(\)\.runner = this;/);
   assert.match(runner, /scriptMsTotal \+=/);

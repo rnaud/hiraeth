@@ -419,7 +419,7 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
     edit 16.7 (15 C++ files changed, bee 52 s, msbuild 83 s, the glue a hit); nothing changed 12.7 (msbuild 28 s).
     The obj entry is about 0.7 GB (3.9 GB unpacked).
 - **The numbers** (`BridgeMetrics`, on in the UWP build, `-metrics` elsewhere): `LocalState\unity.log`, new each launch
-  (the last in `unity.prev.log`), and a readout at the top left. The load's stages apart: `script's engine made`,
+  (the last in `unity.prev.log`), and a readout at the top left (not over a menu). The load's stages apart: `script's engine made`,
   `the bundle loaded in`, `Hiraeth.start returned in`, `load: first node` (the first mirrored object), `load: world
   settled` (no new object for 2 s), the first ten frames after the first node one by one (the frame, the script's
   wait, **Unity's own part**, FrameTimingManager's CPU and GPU), and the **first frames** between (their sum, the longest, how many over 50 ms: a

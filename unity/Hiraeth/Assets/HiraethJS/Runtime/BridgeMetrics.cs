@@ -256,7 +256,8 @@ namespace Hiraeth.Bridge
         GUIStyle style;
         void OnGUI()
         {
-            if (readout.Length == 0) return;
+            // (not over a menu: it ran across the sheet's heading and the game menu's tabs on the console)
+            if (readout.Length == 0 || (runner && runner.menu && runner.menu.Open)) return;
             style ??= new GUIStyle(GUI.skin.label) { fontSize = Mathf.Max(14, Screen.height / 60) };
             var text = "UNITY " + SystemInfo.graphicsDeviceType + " · " + readout;
             var r = new Rect(Screen.width * 0.05f, Screen.height * 0.05f, Screen.width * 0.9f, style.fontSize * 2);

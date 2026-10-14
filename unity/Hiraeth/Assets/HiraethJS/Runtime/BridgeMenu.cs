@@ -69,6 +69,8 @@ namespace Hiraeth.Bridge
         string Key(string k, string or) => state.O("keys")?.S(k) is string s && s.Length > 0 ? s : or;
 
         public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object>; dirty = true; }
+        /// <summary>A menu on screen (the title, the Start menu, the game menu): BridgeMetrics leaves its readout off it.</summary>
+        public bool Open => state != null;
 
         /// <summary>The Map's ground, RGBA rows top down (BridgeHost.MapImage), kept by its key for the view that names it.</summary>
         public void SetMap(string key, byte[] rgba, int w, int h)
