@@ -1,0 +1,65 @@
+changelog.md
+  s_9ca76055a220ed::t_b545135f7a6d90 7
+docs/systems/audio.md
+  s_9ca76055a220ed::t_1daf3d94e24016 569-592
+docs/systems/unity.md
+  s_9ca76055a220ed::t_351d388aeeb827 23-24
+scripts/unity-export/export-world.mjs
+  s_9ca76055a220ed::t_d1adc7060da8a2 762-764
+scripts/unity-export/voice-reference.mjs
+  s_9ca76055a220ed::t_21c22a0bbd6151 1-115
+src/story/voice.js
+  s_9ca76055a220ed::t_68f0f0a5bf9936 84
+tests/unity-voice-reference.test.js
+  s_9ca76055a220ed::t_427f0be33d53ab 1-43
+unity/Hiraeth/Assets/Hiraeth/Editor/Tests/PortTests.cs
+  s_9ca76055a220ed::t_85bc799f167ca0 10-11
+unity/Hiraeth/Assets/Hiraeth/Editor/Tests/VoiceTests.cs
+  s_9ca76055a220ed::t_3ccdb40e6e96f9 1-375
+unity/Hiraeth/Assets/Hiraeth/Editor/Tests/VoiceTests.cs.meta
+  s_9ca76055a220ed::t_16d91ad056c2ec 1-2
+unity/Hiraeth/Assets/Hiraeth/Runtime/Hud.cs
+  s_9ca76055a220ed::t_3a41f13c6bcb57 104,335,338-339,341-343
+unity/Hiraeth/Assets/Hiraeth/Runtime/Npc.cs
+  s_9ca76055a220ed::t_690b99326281fd 176
+unity/Hiraeth/Assets/Hiraeth/Runtime/ShipScene.cs
+  s_9ca76055a220ed::t_877d016147b397 208,213-214
+unity/Hiraeth/Assets/Hiraeth/Runtime/Sounds.cs
+  s_9ca76055a220ed::t_1c4fe7839aaf80 15-16,23-24,47-49,87-91,110-117,123-127,131-134,136-137,139-141
+unity/Hiraeth/Assets/Hiraeth/Runtime/Voice.cs
+  s_9ca76055a220ed::t_a7ef1b24d7406c 1,9-17,21-23,27-38,40-41,43-53,55-57,59-60,66,68-69,71-72,74-83,86-136,138-142,145-146,148,150-151,159,162-164,167-169,171-181,184-199,203-213,216-268,271-280,282-285,287-291,296-298,300-304,307-322,324-326,328-329,331-344,348-371,375-377,379,381-386,389-416,420-438,448,454-456,458-463,465-466,468-470,472-474,477-481,483-488
+unity/Hiraeth/Assets/Hiraeth/Runtime/VoiceOut.cs
+  s_9ca76055a220ed::t_48908b638284b3 1-120
+unity/Hiraeth/Assets/Hiraeth/Runtime/VoiceOut.cs.meta
+  s_9ca76055a220ed::t_ca4b560ccefadf 1-2
+unity/Hiraeth/Assets/Hiraeth/Runtime/VoiceSynth.cs
+  s_9ca76055a220ed::t_9c3e64a977f7e8 1-376
+unity/Hiraeth/Assets/Hiraeth/Runtime/VoiceSynth.cs.meta
+  s_9ca76055a220ed::t_def7f4cca0ae68 1-2
+src/changelog.js
+  s_9124725bc60496::t_a8b4acc1c88ff9 68-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3fa8e43b0a765764da3c20e3363524bcd05c6573",
+  "prompts": {},
+  "sessions": {
+    "s_9124725bc60496": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a89b614c4d5e75e40",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
