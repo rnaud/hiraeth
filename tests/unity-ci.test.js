@@ -45,11 +45,18 @@ test('the workflow caches what makes a warm build short', () => {
   assert.equal((workflow.match(/uses: actions\/cache\/save@v4\n {8}with:\n {10}path: \$\{\{ env\.PROJECT \}\}\/Library\n {10}key: \$\{\{ steps\.librarysave\.outputs\.key \}\}/g) || []).length, 2);
   // (a failed build's Library is saved as "-partial": the next run with the same inputs misses and saves it whole)
   assert.match(workflow, /echo "key=\$KEY-partial"/);
-  // the Linux player is IL2CPP (the Mono one never ran on the Deck), and its retry starts from no Library (a start
-  // on the cached one was killed at once, exit 137, run after run), saved as -fresh (the restored one deleted)
+  // the Linux player is IL2CPP (the Mono one never ran on the Deck); its retry is on the same Library (#290: a
+  // start killed at once, exit 137, is not the Library's doing, and starting again from none cost 15-28 minutes),
+  // and only the last try starts from no Library, saved as -fresh (the restored one deleted)
   assert.doesNotMatch(workflow, /BridgeBuild\.Linux\n[^\n]*\n {10}customParameters: -mono/);
-  assert.match(workflow, /if: steps\.player\.outcome == 'failure'\n {8}run: sudo rm -rf "\$PROJECT\/Library"/);
-  assert.match(workflow, /FRESH: \$\{\{ steps\.playeragain\.outcome == 'success' && '-fresh' \|\| '' \}\}/);
+  assert.doesNotMatch(workflow, /if: steps\.player\.outcome == 'failure'\n {8}run: sudo rm -rf "\$PROJECT\/Library"/);
+  assert.match(workflow, /if: steps\.playeragain\.outcome == 'failure'\n {8}run: sudo rm -rf "\$PROJECT\/Library"/);
+  const linuxBody = workflow.split(/^ {2}linux:\n/m)[1];
+  assert.ok(linuxBody.indexOf('id: playeragain') < linuxBody.indexOf('sudo rm -rf "$PROJECT/Library"'));
+  assert.ok(linuxBody.indexOf('sudo rm -rf "$PROJECT/Library"') < linuxBody.indexOf('id: playerfresh'));
+  assert.match(workflow, /FRESH: \$\{\{ steps\.playerfresh\.outcome == 'success' && '-fresh' \|\| '' \}\}/);
+  // (the Linux player packed with every core, the same .tar.gz)
+  assert.match(workflow, /tar -I pigz -cf "\$RUNNER_TEMP\/hiraeth-unity-linux\.tar\.gz"/);
   // Gradle's downloads: keyed on Unity's version and the packages, saved when that moved, the older deleted
   assert.match(workflow, /~\/\.gradle\/caches/);
   assert.match(workflow, /key: unity-gradle-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\(/);
@@ -81,12 +88,17 @@ test('the workflow builds with GameCI on the local editor\'s Unity, licensed by 
   assert.match(workflow, /uses: game-ci\/unity-builder@v6/);
   // every GameCI step gets the account's sign-in (a Personal seat), never a licence file
   const steps = workflow.split('uses: game-ci/unity-builder@v6').slice(1);
-  assert.equal(steps.length, 8);   // (the glue and the APK; the glue and the Linux player; each retried once)
-  // an editor start is sometimes killed (exit 137): each editor run goes again once when it failed
-  for (const id of ['gluebuild', 'apk', 'player']) {
+  // (the glue and the APK, each tried up to three times; the glue, tried twice, and the Linux player, three times)
+  assert.equal(steps.length, 11);
+  // an editor start is sometimes killed (exit 137), a second one now and then too: the APK's steps and the Linux
+  // player's go up to three times, the glue's in the APK's job too
+  for (const id of ['gluebuild', 'gluebuildagain', 'apk', 'apkagain', 'player', 'playeragain']) {
     assert.match(workflow, new RegExp(`id: ${id}\\n(?: {8}if: [^\\n]*\\n)? {8}continue-on-error: true`), id);
     assert.ok(workflow.includes(`if: steps.${id}.outcome == 'failure'`), id);
   }
+  for (const id of ['apkthird', 'playerfresh']) assert.match(workflow, new RegExp(`id: ${id}\\n {8}if: [^\\n]*\\n {8}uses:`), id);
+  // what the Library is saved under and whether Gradle's are counts the last try's APK as built
+  assert.equal((workflow.match(/steps\.apkthird\.outcome == 'success'/g) || []).length, 2);
   for (const s of steps) {
     assert.match(s, /UNITY_EMAIL: \$\{\{ secrets\.UNITY_EMAIL \}\}/);
     assert.match(s, /UNITY_PASSWORD: \$\{\{ secrets\.UNITY_PASSWORD \}\}/);

@@ -35,6 +35,11 @@ on:
   schedule:
     - cron: '17 3 * * *'   # (nightly; skipped when nothing the build takes changed since the last one)
   workflow_dispatch:
+    inputs:
+      linux:
+        description: "On a branch, build the Linux player too (main always does; a branch publishes nothing)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -201,8 +206,27 @@ jobs:
           versioning: None
           allowDirtyBuild: true
 
+      # (a second start is killed too, now and then: 4 of the 45 runs before #290 failed so, a third start passes)
       - name: Puerts' IL2CPP glue (again)
+        id: gluebuildagain
         if: steps.gluebuild.outcome == 'failure'
+        continue-on-error: true   # (and a third time below)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Puerts' IL2CPP glue (a third time)
+        if: steps.gluebuildagain.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -219,7 +243,7 @@ jobs:
 
       - name: The testers' APK (IL2CPP ARM64)
         id: apk
-        continue-on-error: true   # (retried once below: an editor start is sometimes killed, exit 137)
+        continue-on-error: true   # (retried below: an editor start is sometimes killed, exit 137)
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -244,6 +268,31 @@ jobs:
       - name: The testers' APK (IL2CPP ARM64) (again)
         id: apkagain
         if: steps.apk.outcome == 'failure'
+        continue-on-error: true   # (and a third time below)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.AndroidRelease
+          versioning: Custom
+          version: ${{ steps.meta.outputs.version }}
+          androidVersionCode: ${{ steps.meta.outputs.build }}
+          androidKeystoreName: ../../.local-tools/ci-release.p12
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          androidKeyaliasName: moebius
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          customParameters: -out Builds/unity-android/hiraeth-unity.apk
+          allowDirtyBuild: true
+
+      - name: The testers' APK (IL2CPP ARM64) (a third time)
+        id: apkthird
+        if: steps.apkagain.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -269,6 +318,14 @@ jobs:
         if: always()
         run: rm -f .local-tools/ci-release.p12
 
+      # (what kills a start is not known yet; not the kernel's out-of-memory killer in run 38525814587)
+      - name: Why an editor start was killed (the kernel's log)
+        if: always() && (steps.gluebuild.outcome == 'failure' || steps.apk.outcome == 'failure')
+        continue-on-error: true
+        run: |
+          oom=$(sudo dmesg -T | grep -i -E 'out of memory|oom-kill|killed process' | tail -20)
+          [ -n "$oom" ] && echo "$oom" || echo "no out-of-memory kill in the kernel log"; sudo dmesg -T | tail -15; free -m
+
       # (saved only when its key moved; also when the build failed further on, as "-partial": what was imported
       # and compiled is not lost, and the next run with the same inputs, missing the exact key, saves it whole)
       - name: Unity Library (trim, and under which key)
@@ -276,7 +333,7 @@ jobs:
         if: always() && steps.library.outcome == 'success' && steps.library.outputs.cache-hit != 'true'
         env:
           KEY: ${{ steps.library.outputs.cache-primary-key }}
-          BUILT: ${{ steps.apk.outcome == 'success' || steps.apkagain.outcome == 'success' }}
+          BUILT: ${{ steps.apk.outcome == 'success' || steps.apkagain.outcome == 'success' || steps.apkthird.outcome == 'success' }}
         run: |
           sudo rm -rf "$PROJECT/Library/Bee/Android/Prj/IL2CPP/Il2CppBackup" "$PROJECT"/Library/Bee/artifacts/objcopy_*
           if [ "$BUILT" = true ]; then echo "key=$KEY"; else echo "key=$KEY-partial"; fi >> "$GITHUB_OUTPUT"
@@ -299,7 +356,7 @@ jobs:
       # (Gradle's downloads saved when their key moved and the APK was built: Gradle ran to its end)
       - name: Gradle (save)
         id: gradlesave
-        if: always() && steps.gradle.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true' && (steps.apk.outcome == 'success' || steps.apkagain.outcome == 'success')
+        if: always() && steps.gradle.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true' && (steps.apk.outcome == 'success' || steps.apkagain.outcome == 'success' || steps.apkthird.outcome == 'success')
         uses: actions/cache/save@v4
         with:
           path: |
@@ -333,8 +390,8 @@ jobs:
   linux:
     # (after the APK, not beside it: one Personal seat held at a time; also when the APK failed)
     needs: [check, android]
-    # (and only on main: a branch's run by hand builds the APK alone)
-    if: always() && needs.check.outputs.build == 'true' && github.ref == 'refs/heads/main'
+    # (and only on main: a branch's run by hand builds the APK alone, unless asked for the Linux player too)
+    if: always() && needs.check.outputs.build == 'true' && (github.ref == 'refs/heads/main' || inputs.linux)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -450,15 +507,13 @@ jobs:
           customParameters: -out Builds/bridge-linux/hiraeth-js.x86_64
           allowDirtyBuild: true
 
-      # (from run 38151565992 on, every start on the Library a built run had saved was killed at once, exit 137, in
-      # both attempts: the retry starts from no Library, imports it again, and that one is saved in its place)
-      - name: Unity Library (none, for the retry)
-        if: steps.player.outcome == 'failure'
-        run: sudo rm -rf "$PROJECT/Library"
-
+      # (the retry on the same Library: the start killed at once, exit 137, is not the Library's doing, and the
+      # second start passes as the APK's does, in 2-3 minutes; starting it from no Library, as until #290, imported
+      # and compiled everything again, 15-28 minutes, in nearly half the runs)
       - name: The Linux player (x86_64, Vulkan, IL2CPP) (again)
         id: playeragain
         if: steps.player.outcome == 'failure'
+        continue-on-error: true   # (a last try below, from no Library)
         uses: game-ci/unity-builder@v6
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -474,15 +529,47 @@ jobs:
           customParameters: -out Builds/bridge-linux/hiraeth-js.x86_64
           allowDirtyBuild: true
 
+      # (the last try starts from no Library, imports it again, and that one is saved in its place: in the Mono player's
+      # days, from run 38151565992 on, every start on the Library a built run had saved was killed, in both attempts)
+      - name: Unity Library (none, for the last try)
+        if: steps.playeragain.outcome == 'failure'
+        run: sudo rm -rf "$PROJECT/Library"
+
+      - name: The Linux player (x86_64, Vulkan, IL2CPP) (from no Library)
+        id: playerfresh
+        if: steps.playeragain.outcome == 'failure'
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
+        with:
+          targetPlatform: StandaloneLinux64
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Hiraeth.EditorTools.BridgeBuild.Linux
+          versioning: None
+          customParameters: -out Builds/bridge-linux/hiraeth-js.x86_64
+          allowDirtyBuild: true
+
+      # (what kills a start is not known yet; not the kernel's out-of-memory killer in run 38525814587)
+      - name: Why an editor start was killed (the kernel's log)
+        if: always() && steps.player.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          oom=$(sudo dmesg -T | grep -i -E 'out of memory|oom-kill|killed process' | tail -20)
+          [ -n "$oom" ] && echo "$oom" || echo "no out-of-memory kill in the kernel log"; sudo dmesg -T | tail -15; free -m
+
       - name: Unity Library (under which key)
         id: librarysave
-        if: always() && steps.library.outcome == 'success' && steps.library.outputs.cache-hit != 'true' || always() && steps.library.outcome == 'success' && steps.playeragain.outcome == 'success'
-        # (and after a retry from no Library, whatever was restored: the fresh one under a key of its own, the older
-        # entries, the one whose start was killed among them, deleted below)
+        if: always() && steps.library.outcome == 'success' && steps.library.outputs.cache-hit != 'true' || always() && steps.library.outcome == 'success' && steps.playerfresh.outcome == 'success'
+        # (and after the last try from no Library, whatever was restored: the fresh one under a key of its own, the
+        # older entries, the one whose starts were killed among them, deleted below)
         env:
           KEY: ${{ steps.library.outputs.cache-primary-key }}
-          BUILT: ${{ steps.player.outcome == 'success' || steps.playeragain.outcome == 'success' }}
-          FRESH: ${{ steps.playeragain.outcome == 'success' && '-fresh' || '' }}
+          BUILT: ${{ steps.player.outcome == 'success' || steps.playeragain.outcome == 'success' || steps.playerfresh.outcome == 'success' }}
+          FRESH: ${{ steps.playerfresh.outcome == 'success' && '-fresh' || '' }}
         run: if [ "$BUILT" = true ]; then echo "key=$KEY$FRESH"; else echo "key=$KEY-partial"; fi >> "$GITHUB_OUTPUT"
 
       - name: Unity Library (save)
@@ -500,12 +587,18 @@ jobs:
           KEY: ${{ steps.librarysave.outputs.key }}
         run: scripts/unity-ci-cache-prune.sh unity-library-linux- "$KEY"
 
+      # (gzip on every core, pigz: the same .tar.gz the Deck's installer reads, 300 MB, in seconds instead of 35)
+      - name: The Linux player packed
+        run: |
+          t0=$(date +%s)
+          if command -v pigz > /dev/null; then tar -I pigz -cf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
+          else tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux; fi
+          ls -l "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz"; echo "packed in $(($(date +%s) - t0)) s"
+
       - name: Publish to the release unity-linux
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.sha }}
         run: |
-          tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
-          ls -l "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz"
           scripts/unity-publish.sh linux "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" "GitHub Actions (run ${{ github.run_number }})"

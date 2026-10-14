@@ -69,7 +69,9 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   ran (Puerts' start threw `csType.GetNestedTypes is not a function`). Its build wants Unity's Linux sysroot,
   a package the job adds to the manifest for that build only (`com.unity.toolchain.linux-x86_64`); on a Mac,
   `com.unity.toolchain.macos-arm64-linux` and `com.unity.sysroot.linux-x86_64` (not committed). Its retry
-  starts from no Library: from run 38151565992 on, every start on the cached one was killed at once (exit 137).
+  is on the same Library, and only a third try starts from none (see "Retries"). Packed with `pigz` (all
+  cores, the same `.tar.gz`). A branch's run by hand builds the APK alone unless asked for the Linux player
+  too (`gh workflow run unity-android.yml --ref <branch> -f linux=true`; it publishes nothing).
   On the Deck: `scripts/bench/deck-unity.sh` (docs/systems/performance.md, "The Steam Deck, round 6").
 - Both releases are prereleases and never "latest" (the app's updater and the players read the
   `vX.Y` releases); each build replaces its file, moves the tag to its commit and rewrites the notes
@@ -128,8 +130,16 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   the caches at 11 GB and evicting), the APK 2. With one entry per cache, a run that moves no C# skips
   the glue and both saves: about 6 minutes.
 - **Retries**: the first editor start in a job's container is often killed right after it loads its
-  modules (exit 137, in 4 of the last 8 jobs; the same step passes when run again): each editor run has
-  `continue-on-error` and goes again once when it failed (20 seconds lost).
+  modules (exit 137, about 1 in 2; a later start about 1 in 5; the same step passes when run again; the
+  kernel's log is printed after a kill: no out-of-memory kill in run 38525814587, 14 GB free). Each editor run has
+  `continue-on-error` and goes again on the same Library when it failed (20 seconds lost); the APK, the
+  APK job's glue and the Linux player go a third time (4 of 45 runs before #290 failed on two kills).
+  Only the Linux player's third try starts from no Library. Until #290 its first retry did (a rule from the
+  Mono player's days, run 38151565992, when starts on the cached Library were killed every time): in 13 of
+  the 28 Linux jobs of 2026-10-11 to 14 the first start was killed and the retry imported and compiled
+  everything again, 15–28 minutes (the "25 minutes" of #290), where a warm Linux job takes 5–7. In the
+  first run after (38525814587) the Linux player's first start was killed and the retry built it on the
+  same Library in 107 seconds: the Linux job 5.2 minutes where 38519467734, killed the same way, took 29.5.
 - **A local build** does the same from the Mac: `scripts/unity-android-release.sh` (the key from
   `.local-tools/android-signing/`, here or in the main checkout; it checks the APK is signed with the
   release certificate, then uploads to `unity-android`; `NO_UPLOAD=1` builds only, `CLEAN=1` deletes
