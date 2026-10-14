@@ -815,7 +815,7 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   bone that moves most of it, skinned each frame; worked out once a geometry, a dense one read every few points), with
   how far under the ground it already stood (`D.allow`: a hem, a fist on the sand, a body square on a slope). Each frame
   of the defeat (`Foes.falling`, after `defeatRoot` and the plan's own letting go) the hull's lowest point is found
-  (parts whose bounding spheres cannot reach deeper skipped) and the body lifted onto the ground by what is under it,
+  (parts whose bounding spheres cannot reach deeper skipped; a rigid part of up to 4000 points whose hull comes within 5 cm of the deepest is read whole, `REFINE`: the 98 directions alone missed a round part's lowest point by 2-3 cm on a slope, the brute's saw, the crab's shell) and the body lifted onto the ground by what is under it,
   less the recipe's own `sink` and less `D.allow` easing out over `GROUNDED.ease` (the first 30 %): it rolls over on the
   ground, no pop. The mound worm (a burrower) is left to dive back under its sand. Parts that rest on the ground
   themselves are marked `userData.noGround`: the jelly's threads and lanterns (verlet chains, put back on the ground
@@ -824,7 +824,7 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   down (`defeatPose`, `plans/glider.js`): it lands flat, not on a wing's tip. Cost: building the hull 0.1–5 ms at the
   blow (in its hit-stop), then about 0.1 ms a falling foe a frame in node (16 falling at once: 2.2 ms against 0.4).
   `tests/foe-hit-defeat.test.js` holds every archetype's defeat (but the worm's) to 3 cm under the ground at most, every
-  vertex of every drawn part, on flat ground and on a 14° slope.
+  vertex of every drawn part, on flat ground and on a 14° slope, with Math.random seeded and a clock run by the frames (`pinned`: unseeded, the slope's worst read 2.0-3.2 cm from run to run and failed pushes at random).
 - **Cost** (the Arena, High, headless Chrome on the M4 Pro): `Foes.update` for twelve foes standing 0.5 ms a frame, 0.7
   while they flinch, 0.8 while all twelve go down at once; the blade's body test 0.1 ms on a cut frame against a crab (the
   sphere's under the timer's 0.1 ms); the pack bench (`scripts/enemy-roster/bench.mjs`) the same draw calls, CPU within

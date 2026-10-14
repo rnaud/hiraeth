@@ -195,6 +195,8 @@ export function groundPlane(physics, at, r = 0.8) {
   return { x: at.x, z: at.z, y: y0, sx: k(slope(xp, xm)), sz: k(slope(zp, zm)) };
 }
 
+// (a rigid part whose hull comes within `near` m of the deepest found, with no more than `points` points, read whole)
+const REFINE = { near: 0.05, points: 4000 };
 const _p = new THREE.Vector3(), _im = new THREE.Matrix4(), _mm = new THREE.Matrix4();
 /** How far the hull's lowest point is under the plane this frame (m; negative: all of it over the ground). */
 export function belowGround(hull, plane) {
@@ -220,14 +222,24 @@ export function belowGround(hull, plane) {
     const P = mesh.geometry.attributes.position, n = mesh.isInstancedMesh ? mesh.count : 1;
     for (let k = 0; k < n; k++) {
       const M = mesh.isInstancedMesh ? _mm.multiplyMatrices(mesh.matrixWorld, (mesh.getMatrixAt(k, _im), _im)) : mesh.matrixWorld, e = M.elements;
-      for (let j = 0; j < ids.length; j++) {
-        const i = ids[j];
-        _p.fromBufferAttribute(P, i);
-        if (mesh.isSkinnedMesh) mesh.applyBoneTransform(i, _p);
-        const x = _p.x, y = _p.y, z = _p.z, w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
-        const d = under((e[0] * x + e[4] * y + e[8] * z + e[12]) * w, (e[1] * x + e[5] * y + e[9] * z + e[13]) * w, (e[2] * x + e[6] * y + e[10] * z + e[14]) * w);
-        if (d > worst) worst = d;
-      }
+      const deepest = (list, count) => {
+        let best = -Infinity;
+        for (let j = 0; j < count; j++) {
+          const i = list ? list[j] : j;
+          _p.fromBufferAttribute(P, i);
+          if (mesh.isSkinnedMesh) mesh.applyBoneTransform(i, _p);
+          const x = _p.x, y = _p.y, z = _p.z, w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+          const d = under((e[0] * x + e[4] * y + e[8] * z + e[12]) * w, (e[1] * x + e[5] * y + e[9] * z + e[13]) * w, (e[2] * x + e[6] * y + e[10] * z + e[14]) * w);
+          if (d > best) best = d;
+        }
+        return best;
+      };
+      let d = deepest(ids, ids.length);
+      // (the hull's 98 directions miss a round part's lowest point by up to a few cm when the ground's normal falls
+      //  between them, the brute's saw and the crab's shell on a slope by 2-3 cm: a rigid part that could be the
+      //  deepest is read whole, its every point; a skinned one keeps its hull, its points skinned one by one)
+      if (!mesh.isSkinnedMesh && P.count <= REFINE.points && d > worst - REFINE.near) d = Math.max(d, deepest(null, P.count));
+      if (d > worst) worst = d;
     }
   }
   return worst;

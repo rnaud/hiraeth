@@ -172,7 +172,22 @@ function underGround(group, ground) {
   return worst;
 }
 
-test('every archetype goes down on the ground, never through it, on flat ground and on a slope (issue #304)', () => {
+/**
+ * fn with Math.random seeded and a clock that runs with the frames (each foes.update a frame on): a foe's build, its
+ * stance and its sway draw on them, and left to them the slope's worst read 2.0-3.2 cm from one run to the next (the
+ * crab, the brute at about half their defeat), failing pushes at random. Returns fn's result.
+ */
+function pinned(fn, seed = 12345) {
+  const random = Math.random, now = performance.now;
+  let s = seed, clock = 1000;
+  Math.random = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  performance.now = () => clock;
+  const update = Foes.prototype.update;
+  Foes.prototype.update = function (dt, ...rest) { clock += dt * 1000; return update.call(this, dt, ...rest); };
+  try { return fn(); } finally { Math.random = random; performance.now = now; Foes.prototype.update = update; }
+}
+
+test('every archetype goes down on the ground, never through it, on flat ground and on a slope (issue #304)', () => pinned(() => {
   for (const [where, ground] of [['flat ground', () => 0], ['a slope', (x, z) => 0.2 * x + 0.15 * z]]) {
     const { foes } = world({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
     for (const [id, A] of BUILT) {
@@ -196,7 +211,7 @@ test('every archetype goes down on the ground, never through it, on flat ground 
     }
     foes.dispose(); clearTargets();
   }
-});
+}));
 
 test('a defeat\'s pose: each move over its own window, eased; a flyer comes down to the ground', () => {
   assert.equal(stage({ at: [0.2, 0.6] }, 0.1), 0); assert.equal(stage({ at: [0.2, 0.6] }, 0.7), 1);
