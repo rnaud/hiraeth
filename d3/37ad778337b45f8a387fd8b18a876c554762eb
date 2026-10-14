@@ -1,0 +1,25 @@
+.claude/skills/ink-lines/SKILL.md
+  s_9ca76055a220ed::t_ec0ec6d6485801 68-69,82-84
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_87f4fa6de4eb63 154-159,186-189,193-196,201-203,314
+docs/audits/ink-lines-v1.72.md
+  s_9ca76055a220ed::t_9a084dc3aee670 47-51
+tests/ink-lines.test.js
+  s_9ca76055a220ed::t_59cb8c1d5cd2b7 89-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d337ad778337b45f8a387fd8b18a876c554762eb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
