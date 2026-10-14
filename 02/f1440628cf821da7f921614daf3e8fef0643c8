@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_2bc184ef048d6b 10
+docs/systems/story.md
+  s_9ca76055a220ed::t_bc769391e9793b 47-53
+scripts/unity-export/export-world.mjs
+  s_9ca76055a220ed::t_6c791946a50d59 686
+src/changelog.js
+  s_9ca76055a220ed::t_5128f283729110 12-18
+src/levels/content.js
+  s_9ca76055a220ed::t_2538c6f0f6c7fb 181-183
+src/main.js
+  s_9ca76055a220ed::t_17faa6c9c36bb5 712
+src/weather.js
+  s_9ca76055a220ed::t_a0c62a61b68b4f 9-12,18,24-25,30,44
+tests/weather.test.js
+  s_9ca76055a220ed::t_b572866b7bef60 42-77
+unity/Hiraeth/Assets/Hiraeth/Runtime/Ambient.cs
+  s_9ca76055a220ed::t_cf0ee39991ef68 26-28,49-51,115,119-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "02f1440628cf821da7f921614daf3e8fef0643c8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
