@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_d1e00915b7871e 7
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_a05d5d674c20eb 128-139
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_ccb4bbf6090c42 36,38-39
+src/boxes/scene.js
+  s_9ca76055a220ed::t_b59fb8d92cc2ac 97-101,422-423,455-456,463-510
+src/changelog-media.js
+  s_9ca76055a220ed::t_ba6ce32233757d 811-812,814,826-830
+src/changelog.js
+  s_9ca76055a220ed::t_bc26d1b3bbe5e0 31-33
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_3d488d033c3b8b 92-97
+src/gadgets/world.js
+  s_9ca76055a220ed::t_cc5440c06aab0c 225-226
+tests/boxes.test.js
+  s_9ca76055a220ed::t_ff8fc64c90f84d 692-744
+tests/cinematics-qc.test.js
+  s_9ca76055a220ed::t_89a2d57ea8faef 20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "142ce7c8b10c66a87633143e36dad4941177e7b0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
