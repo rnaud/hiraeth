@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_1f28490b66e3a6 20
+engine/game.js
+  s_9ca76055a220ed::t_3445d479fb0478 889-893
+src/changelog-media.js
+  s_9ca76055a220ed::t_70a048246246c5 821
+src/changelog.js
+  s_9ca76055a220ed::t_c22a48bf514020 12-14
+src/ship/ship.js
+  s_9ca76055a220ed::t_3674fcd00f8afb 734-736
+tests/arrival-view.test.js
+  s_9ca76055a220ed::t_1bda738002b7ee 173,182
+tests/engine-ship.test.js
+  s_9ca76055a220ed::t_9ce41639615850 61-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b95eb53cb3bf2cb89ba96e566034344dfdf7abd6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
