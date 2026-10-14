@@ -1,0 +1,101 @@
+changelog.md
+  s_9ca76055a220ed::t_eadeb7115aef09 5-7,15
+docs/systems/characters.md
+  s_9ca76055a220ed::t_e802f3c550d3ea 474-502
+scripts/cape-census.mjs
+  s_9ca76055a220ed::t_ee4e57288510a5 1-96
+src/changelog.js
+  s_9ca76055a220ed::t_807ca40804b8e3 11,39-42
+src/costumes.js
+  s_9ca76055a220ed::t_95e59baaef2b79 99,121,140,160,181-182,203,224,244,265,286,307,326,345,365,387,409,494,513,640-643,647-688
+src/crowd.js
+  s_9ca76055a220ed::t_6385b32f9ce4a5 181,187
+src/glass-dunes-figures.js
+  s_9ca76055a220ed::t_02c183910d97b4 46
+src/glass-dunes-frozen.js
+  s_9ca76055a220ed::t_8c1d2795d2b289 129,147,151
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_b7ca93d695f89c 89,129
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_ab79c9813c2076 78,190,227
+src/story/buried-data.js
+  s_9ca76055a220ed::t_7d44605d00a672 79,160,215,256,272,320
+src/story/desert-data.js
+  s_9ca76055a220ed::t_09042680b066e7 372,400,516,1095,1097-1100
+src/story/edena-data.js
+  s_9ca76055a220ed::t_afdcd23f8df2be 115,206,248,289,326,371
+src/story/fellow-data.js
+  s_9ca76055a220ed::t_a6abcb2d1df097 61-62
+src/story/glassdunes-people.js
+  s_9ca76055a220ed::t_94c93ee941aa17 34-35
+src/story/incal-data.js
+  s_9ca76055a220ed::t_7f79efb119a664 125,220,285,338,417,449
+src/story/moonfoundry-people.js
+  s_9ca76055a220ed::t_fe36245e598b42 54,88,119
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_5b910493c5eeda 41,111
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_1850c28676e41e 337,387
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_f680f3af1dd945 277
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_0031b5a194b831 55-56
+src/story/shop-data.js
+  s_9ca76055a220ed::t_2d0932719a95e3 38,90,104,186,240,266
+src/story/spacecity-people.js
+  s_9ca76055a220ed::t_be173b58dc8c2f 134,169
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_5503b5ec124277 73,115,148,203
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_151481627c011f 83,122,165
+src/temples/arzach-data.js
+  s_9ca76055a220ed::t_439fdf15303a08 17
+src/temples/arzach2-data.js
+  s_9ca76055a220ed::t_2e33133d5a2a31 16
+src/temples/bazaar-data.js
+  s_9ca76055a220ed::t_729c64dd855313 18
+src/temples/buried-data.js
+  s_9ca76055a220ed::t_d0e32cf285c30c 16
+src/temples/desert-data.js
+  s_9ca76055a220ed::t_28f2db59417f51 17
+src/temples/edena-data.js
+  s_9ca76055a220ed::t_56dce2972075d8 17
+src/temples/garage-data.js
+  s_9ca76055a220ed::t_a87cada45784c9 19
+src/temples/incal-data.js
+  s_9ca76055a220ed::t_53fe19bdd85f11 18
+src/temples/moonfoundry-data.js
+  s_9ca76055a220ed::t_e40a1f179e3eb3 17
+src/temples/perdide-data.js
+  s_9ca76055a220ed::t_945c32cb788034 16
+src/temples/perdide2-data.js
+  s_9ca76055a220ed::t_ff9585e3a2e721 16
+src/temples/spacecity-data.js
+  s_9ca76055a220ed::t_06abb5a4706130 19
+src/temples/spheres-data.js
+  s_9ca76055a220ed::t_6402c1f7b89cd9 16
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_7c19f771d13337 18
+tests/cape-share.test.js
+  s_9ca76055a220ed::t_363d560e8e016a 1-79
+tests/cape.test.js
+  s_9ca76055a220ed::t_aae031792e7de8 246,249,251,274
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_27cef065fcba6f 244,281-282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b37b892e1063c50138fef356b17b22592f593dd0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
