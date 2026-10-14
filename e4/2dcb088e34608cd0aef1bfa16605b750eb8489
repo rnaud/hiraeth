@@ -1,0 +1,51 @@
+changelog.md
+  s_7302cf3b9e772b::t_9f29e0d2c9c939 7
+docs/systems/animation.md
+  s_7302cf3b9e772b::t_1fbea48e8f494d 606-608
+docs/systems/testing.md
+  s_7302cf3b9e772b::t_e28d4c880d001a 95-99
+scripts/zfight/audit.mjs
+  s_7302cf3b9e772b::t_c4b8c15e351107 26,28-30,40-92,108-113,116-117,131
+scripts/zfight/lib.mjs
+  s_1837848888d0db::t_1172ebbe3e82ce 222,227-230
+src/changelog-media.js
+  s_7302cf3b9e772b::t_c87910ad61458e 842
+src/changelog.js
+  s_7302cf3b9e772b::t_61a2b1ab07f3f5 23-25
+src/fluid-tool.js
+  s_7302cf3b9e772b::t_b900677e0b922e 585-629,647,694-701,740,758,768,770,1281-1282
+tests/backpack-straps.test.js
+  s_7302cf3b9e772b::t_7df0d6aa7614a0 27-29,43-61,108
+tests/key-chests.test.js
+  s_7302cf3b9e772b::t_9365f81938e3e8 10,23-24,36-37,41,103-104,107
+tests/motion-qc.test.js
+  s_7302cf3b9e772b::t_a894785ce8514f 109-111
+tests/temples.test.js
+  s_7302cf3b9e772b::t_ca41992c77e897 40-41,834-869
+tests/zfight.test.js
+  s_7302cf3b9e772b::t_8d0f2be0defcc7 37-42,93-94,100,124-125,127,130-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e42dcb088e34608cd0aef1bfa16605b750eb8489",
+  "prompts": {},
+  "sessions": {
+    "s_1837848888d0db": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b55-b807-7cf1-87c2-c32cc47a091f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_7302cf3b9e772b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afb104e2-2832-4f8f-a4b9-c0da88b6a4f7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
