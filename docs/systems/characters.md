@@ -36,7 +36,8 @@ converts to the game's printed RGB, independent of global Three.js colour mode.
 points while hiding the legacy helmet, belt and radio-pack meshes. Earned fluid
 equipment can still attach normally.
 
-Validation: `tests/traveller-v1.test.js` uses the shipped asset to check binding,
+Validation (until 2026-10-14, when the game's traveller had been B3 for a day and these tests went):
+`tests/traveller-v1.test.js` used the shipped asset to check binding,
 arbitrary spawn transforms, cloth following a moved/rotated root, game materials,
 equipment anchors, preservation of interaction poses and colour consistency.
 The existing `tests/tripo-*.test.js` cover fitting, fingers and garment repairs.

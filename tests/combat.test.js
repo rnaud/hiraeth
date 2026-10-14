@@ -43,7 +43,7 @@ test('guard and evade have independent keyboard, pad and touch inputs',()=>{
  assert.ok(toolInput({MouseLeft:true}).blade&&!toolInput({MouseLeft:true,MouseRight:true}).blade,'a left click swings the blade, except while aiming (then it shoots)');
 });
 async function combatPlayer(matching=false){
- items.grant('backpack');const scene=course();const p=await traveller(scene,v(0,0,-60),{moves:true,matching,body:'v1'});
+ items.grant('backpack');const scene=course();const p=await traveller(scene,v(0,0,-60),{moves:true,matching,body: 'b3'});
  const camera=new THREE.PerspectiveCamera();camera.position.set(0,2,-65);camera.lookAt(0,1,-55);camera.updateMatrixWorld();
  const tool=new FluidTool({scene,player:p,physics:p.physics,camera,rig:{aimK:0},state:new GameState(null)});
  return {p,tool,tick(input={}){p.update(dt,input,CAM_PLUS_Z);tool.update(dt,input);}};

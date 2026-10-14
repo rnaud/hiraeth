@@ -5,47 +5,43 @@
 // raised (the idle's gestures, a walk's swing) it took a roll of its own, up to 75° off the upper arm's:
 // the elbow, the forearm and the rolled sleeve wrung round like a sweet wrapper and the clip's wrist
 // (Humanoid.poseHands) sat 60–90° off the forearm, the hand turned on a pinched wrist. Measured here on the
-// shipped body over the idle (with its gestures), a walk, a run, the calm of a conversation and the
+// game's body (B3, src/characters/traveller.js) over the idle (with its gestures), a walk, a run, the calm of a conversation and the
 // title's stance: the hand stays where it is on the forearm, the sleeve's cuff round the forearm, the
 // wrist as thick as it is, the forearm's roll on the upper arm small.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { readFileSync } from 'node:fs';
 const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
 globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
-const { parseBody } = await import('../src/makehuman/body.js');
 const { Player } = await import('../src/player.js');
 const { Physics } = await import('../src/physics.js');
 const { Animator, libraryFrom } = await import('../src/animator.js');
-const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
+const { createTraveller } = await import('../src/characters/traveller.js');
+const { travellerB3 } = await import('./gait-sim.js');
 const { isShirtColor } = await import('../src/characters/tripo-garment-geometry.js');
 const { course, CAM_PLUS_Z } = await import('../src/gait-course.js');
 const { holdStance } = await import('../src/title-world.js');
 
 const parse = (file) => { const b = readFileSync(file); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
-const dir = 'public/characters/traveller-v1/';
-const colors = JSON.parse(readFileSync(dir + 'colors.json'));
-const assets = (async () => {
-  const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-  const report = JSON.parse(readFileSync(dir + 'rig.json'));
-  // (the shipped GLB without its textures: Node has no image decoder)
-  const g = readFileSync(dir + 'model.glb'), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
-  json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
-  delete json.images; delete json.textures; delete json.materials;
-  for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-  const gltf = await new GLTFLoader().parseAsync(JSON.stringify(json), '');
-  return { gltf, data, report, colors, lib: libraryFrom(await parse('public/anim/ual.glb')) };
+const assets = await travellerB3(), lib = libraryFrom(await parse('public/anim/ual.glb'));
+// (B3's body keeps only some of its source's vertices, the shirt's hem and his head cut away: each one's colour found by
+// its place in the source, which the cut leaves as it was)
+const colorOf = (() => {
+  let source = null; assets.gltf.scene.traverse((o) => { if (o.isSkinnedMesh) source = o.geometry.attributes.position; });
+  const key = (a, i) => `${a.getX(i).toFixed(5)},${a.getY(i).toFixed(5)},${a.getZ(i).toFixed(5)}`, at = new Map();
+  for (let i = 0; i < source.count; i++) at.set(key(source, i), i);
+  return (pos, i) => assets.colors[at.get(key(pos, i))];
 })();
 
+/** The game's traveller (B3, src/characters/traveller.js) on the course, standing at the origin facing +z. */
 async function traveller() {
-  const { gltf, data, report, lib } = await assets;
   const scene = course(), physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });
   p.animator = new Animator(lib, p.char);
-  p.character = createTravellerV1(p.char, { gltf, data, report, colors });
+  p.character = createTraveller(p.char, assets);
   p.humanoid = p.character.humanoid;
   p.gear = { update() {}, device: { visible: true } };
   p._lastVel = new T.Vector3();
@@ -61,10 +57,6 @@ async function traveller() {
  */
 async function arms(p) {
   const H = p.humanoid, mesh = p.character.mesh, pos = mesh.geometry.attributes.position;
-  // (the repairs append their vertices: the first are the generated body's, the ones its colours are for)
-  const source = []; (await assets).gltf.scene.traverse((o) => { if (o.isSkinnedMesh) source.push(o.geometry.attributes.position); });
-  assert.ok(pos.count >= colors.length && source[0].count === colors.length, 'the body keeps the vertices its colours are for');
-  for (let i = 0; i < colors.length; i += 997) assert.ok(Math.abs(pos.getX(i) - source[0].getX(i)) + Math.abs(pos.getY(i) - source[0].getY(i)) < 1e-6, 'in their order');
   p.char.root.updateMatrixWorld(true);
   H.update(true); mesh.skeleton.update();
   const at = (i) => mesh.applyBoneTransform(i, new T.Vector3().fromBufferAttribute(pos, i)).applyMatrix4(mesh.matrixWorld);
@@ -74,10 +66,12 @@ async function arms(p) {
     const elbow = H.b[`lowerarm_${s}`].getWorldPosition(new T.Vector3()), wrist = H.b[`hand_${s}`].getWorldPosition(new T.Vector3());
     const along = (v) => (v.x - elbow.x) * sign, reach = along(wrist);
     const near = [];
-    for (let i = 0; i < colors.length; i++) {
+    for (let i = 0; i < pos.count; i++) {
+      const c = colorOf(pos, i);
+      if (!c) continue;
       const v = at(i), a = along(v);
       if (a < 0.02 || a > reach + 0.02 || Math.hypot(v.y - wrist.y, v.z - wrist.z) > 0.07) continue;
-      near.push({ i, a, shirt: coat(colors[i]), v });
+      near.push({ i, a, shirt: coat(c), v });
     }
     const cuffAt = Math.max(...near.filter((n) => n.shirt).map((n) => n.a));
     const cuff = near.filter((n) => n.shirt && n.a > cuffAt - 0.006).map((n) => n.i);
@@ -101,8 +95,9 @@ function roll(H, parent, child, next) {
   const now = cq(parent).invert().multiply(cq(child)), was = R.get(parent).q.clone().invert().multiply(R.get(child).q);
   const d = was.invert().multiply(now);
   const axis = R.get(next).p.clone().sub(R.get(child).p).normalize().applyQuaternion(R.get(child).q.clone().invert());
-  const k = d.x * axis.x + d.y * axis.y + d.z * axis.z;
-  return Math.abs(2 * Math.atan2(k, d.w) * 180 / Math.PI);
+  // (the shorter way round, as Humanoid.shareWristRoll takes it: q and -q are the same turn; B3's left wrist read 302° for 58°)
+  const sg = d.w < 0 ? -1 : 1, k = (d.x * axis.x + d.y * axis.y + d.z * axis.z) * sg;
+  return Math.abs(2 * Math.atan2(k, d.w * sg) * 180 / Math.PI);
 }
 function measure(p, sides) {
   const H = p.humanoid, mesh = p.character.mesh;
@@ -159,7 +154,9 @@ const POSES = [
 // (the hand to the cuff: the rolled sleeve slides up to 2 cm along the forearm as the elbow bends, the skin's
 // own blend at the elbow, before and after; past 2.5 cm the hand has left the arm. The wrist out from the
 // hips' middle: 21 cm or more by the thigh; standing, the old belt hook drew it across to 13)
-const LIMIT = { handToCuff: 0.025, cuffOffArm: 0.015, wrist: 0.85, elbowRoll: 40, wristRoll: 45, out: 0.17 };
+// The rolls off the T-pose: v1's under 40° and 45°; B3's clip pronation, shared half and half by the forearm and the
+// wrist (Humanoid.shareWristRoll), is 48–67° each, the sleeve's cuff and the wrist's skin unwrung by it (above))
+const LIMIT = { handToCuff: 0.025, cuffOffArm: 0.015, wrist: 0.85, elbowRoll: 70, wristRoll: 70, out: 0.17 };
 const ok = (w) => w.out > LIMIT.out && w.handToCuff < LIMIT.handToCuff && w.cuffOffArm < LIMIT.cuffOffArm && w.wrist > LIMIT.wrist && w.elbowRoll < LIMIT.elbowRoll && w.wristRoll < LIMIT.wristRoll;
 const say = (w) => `hand to cuff ±${(w.handToCuff * 100).toFixed(1)} cm, cuff off the forearm +${(w.cuffOffArm * 100).toFixed(1)} cm, wrist ×${w.wrist.toFixed(2)}, forearm roll ${w.elbowRoll.toFixed(0)}°, wrist roll ${w.wristRoll.toFixed(0)}°, the wrist ${(w.out * 100).toFixed(0)} cm out from the hips' middle at the least`;
 

@@ -2,16 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
 import {readFileSync} from 'node:fs';
-import {travellerV1,tripoHead} from './gait-sim.js';
-import {createTravellerV1} from '../src/characters/traveller-v1.js';
+import {travellerB3} from './gait-sim.js';
+import {createTraveller} from '../src/characters/traveller.js';
+import {B3_HEAD_FIT as F} from '../src/characters/traveller-b3.js';
 import {buildCharacter} from '../src/player.js';
-import {PORTRAIT_HEAD as F,PORTRAIT_EYES_FAR as EF} from '../src/characters/portrait-head.js';
+import {PORTRAIT_EYES_FAR as EF} from '../src/characters/portrait-head.js';
 import {TalkFace} from '../src/talk-face.js';
 import {markHero} from '../src/materials.js';
 import {readGlb} from '../scripts/tripo/slim-traveller.mjs';
-const assets={...await travellerV1(),head:await tripoHead()};
+// (the head the game's traveller wears, B3: src/characters/traveller.js, fitted by B3_HEAD_FIT)
+const assets=await travellerB3();
 const source=assets.head.scene.children.find(o=>o.isMesh),raw=source.geometry.attributes.position;
-const make=()=>{const char=buildCharacter();return {char,...createTravellerV1(char,assets)}};
+const make=()=>{const char=buildCharacter();return {char,...createTraveller(char,assets)}};
 
 test('portrait source positions, indices and UVs survive preparation; 2K plus R8 mask stays within the head budget',()=>{
  const original=readGlb(readFileSync('data/characters/traveller-v1/head-v3/model.glb'));
@@ -31,7 +33,8 @@ test('portrait fit preserves the entire accepted skull, anchors the jaw rigidly 
  for(let i=0;i<p.count;i++){
   const expected=new T.Vector3().fromBufferAttribute(raw,i).multiplyScalar(F.scale).add(new T.Vector3(...F.offset));
   if(raw.getY(i)>=.19||raw.getZ(i)>=.24)assert.ok(new T.Vector3().fromBufferAttribute(p,i).distanceTo(expected)<1e-6,'skull/face unchanged');
-  if(raw.getY(i)<.015){assert.ok(p.getY(i)<1.472);extended++;}
+  // (the neck's end 3.8 cm under the fit's origin: 1.472 m on v1's fit, 1.449 on B3's)
+  if(raw.getY(i)<.015){assert.ok(p.getY(i)<F.offset[1]-.038);extended++;}
   if(raw.getY(i)>.134&&raw.getZ(i)>.20){assert.equal(w.getX(i),1,'jaw belongs to skull');jaw++;}
   assert.ok(Math.abs(w.getX(i)+w.getY(i)-1)<1e-6);
  }
@@ -64,8 +67,9 @@ test('measured blink closes the original eyes; speech leaves nose, hair and thro
 
 test('the visible jaw and skull stay rigid through combined head yaw/pitch and reset without drift',()=>{
  const c=make(),{head,char}=c,bone=c.humanoid.b.Head,p=head.geometry.attributes.position,rest=bone.quaternion.clone(),index=head.geometry.index;
- const edges=new Set(),pairs=[];
- for(let i=0;i<index.count;i+=3)for(let k=0;k<3;k++){const a=index.getX(i+k),b=index.getX(i+(k+1)%3),key=Math.min(a,b)+','+Math.max(a,b);if(edges.has(key)||p.getY(a)<1.545||p.getY(b)<1.545)continue;edges.add(key);const len=new T.Vector3().fromBufferAttribute(p,a).distanceTo(new T.Vector3().fromBufferAttribute(p,b));if(len>1e-5)pairs.push([a,b,len]);}
+ // (above the chin, source y .1326: 1.545 m on v1's fit, 1.524 on B3's)
+ const edges=new Set(),pairs=[],chin=F.offset[1]+.1326*F.scale;
+ for(let i=0;i<index.count;i+=3)for(let k=0;k<3;k++){const a=index.getX(i+k),b=index.getX(i+(k+1)%3),key=Math.min(a,b)+','+Math.max(a,b);if(edges.has(key)||p.getY(a)<chin||p.getY(b)<chin)continue;edges.add(key);const len=new T.Vector3().fromBufferAttribute(p,a).distanceTo(new T.Vector3().fromBufferAttribute(p,b));if(len>1e-5)pairs.push([a,b,len]);}
  assert.ok(pairs.length>20000);
  for(const [pitch,yaw] of [[.4,.8],[-.35,-.8],[0,0]]){
   bone.quaternion.copy(rest).multiply(new T.Quaternion().setFromEuler(new T.Euler(pitch,yaw,0)));char.root.updateMatrixWorld(true);head.skeleton.update();

@@ -226,7 +226,7 @@ test('on the real traveller: the blade is drawn red exactly on the frames it cut
   const { FluidTool } = await import('../src/fluid-tool.js');
   const { items } = await import('../src/items.js');
   items.grant('backpack');
-  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const strike = tool.blade.strike.bind(tool.blade);

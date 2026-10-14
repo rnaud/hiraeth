@@ -49,7 +49,7 @@ opening rather than a cavity. These runtime operations are not baked into the GL
 The shared traveller loader serves game, studio and motion review. Open
 `studio.html?view=bust&blink=false&gaze=fixed&yaw=0&bg=flat&paused=true&wind=0`.
 Face view provides close inspection; turn through both profiles and the back.
-Run `node --test tests/portrait-head.test.js tests/traveller-v1.test.js tests/traveller-lod.test.js`
+Run `node --test tests/portrait-head.test.js tests/traveller-lod.test.js`
 and `npx vite build --configLoader runner`. The changelog contains bust, Lula and
 hair-mask before/after views. Native VMs skip browser-decoded masks and use sampled
 vertex colours; matching their separate shaders remains future work. Device GPU
@@ -102,7 +102,7 @@ preserved original GLB. Native engine facial shader parity is not yet validated.
 Reproduce the integration by loading the tracked assets in Character Studio:
 `studio.html?view=bust&blink=false&gaze=fixed&yaw=0&bg=flat`.
 Use face/front/side/back views, expression presets, Talking and the walk/jog/sit
-animation controls. Run `node --test tests/traveller-v1.test.js tests/tripo-*.test.js`
+animation controls. Run `node --test tests/tripo-*.test.js`
 and `npx vite build`. Do not reuse the old `TRIPO_FACE` eye coordinates: the new
 head's face is drawn over its paint in its own rest coordinates (`src/characters/head-ink.js`,
 `HEAD_INK`, measured off a front orthographic render of this texture), and the gaze moves only the
@@ -250,7 +250,7 @@ cp output/character-tripo/rig-prototype.glb data/characters/traveller-v1/model.g
 cp output/character-tripo/rig-prototype.glb.json public/characters/traveller-v1/rig.json
 cp output/character-tripo/baseline/vertex-colors.json public/characters/traveller-v1/colors.json
 node scripts/tripo/slim-traveller.mjs     # the shipped model.glb: unused maps out, texture at 2048²
-node --test tests/traveller-v1.test.js tests/traveller-lod.test.js tests/tripo-*.test.js
+node --test tests/traveller-lod.test.js tests/tripo-*.test.js
 ```
 
 `data/characters/traveller-v1/` keeps the untouched exports (the body's and the head's, with

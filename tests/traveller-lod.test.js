@@ -1,86 +1,27 @@
-// The traveller's shipped files (scripts/tripo/slim-traveller.mjs) and his levels of detail (src/characters/traveller-lod*.js).
+// The traveller's levels of detail (src/characters/traveller-lod*.js), on the game's traveller (B3, src/characters/traveller.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import * as T from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptSimplifier } from 'three/addons/libs/meshopt_simplifier.module.js';
-import { readGlb, usedParts, TRAVELLER_FILES, SLIM } from '../scripts/tripo/slim-traveller.mjs';
 import { TRAVELLER_LOD, pickTravellerLevel } from '../src/characters/traveller-lod-core.js';
 import { buildTravellerLod, combineLevels, TravellerLod } from '../src/characters/traveller-lod.js';
 const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
 globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
-const { parseBody } = await import('../src/makehuman/body.js');
 const { buildCharacter } = await import('../src/player.js');
-const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
+const { createTraveller } = await import('../src/characters/traveller.js');
+const { travellerB3 } = await import('./gait-sim.js');
 
-const SIZE = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4 }, N = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16 };
-/** an accessor's bytes (tightly packed views, as Tripo's exports and the slim files have) */
-const bytesOf = ({ json, bin }, i) => {
-  const a = json.accessors[i], v = json.bufferViews[a.bufferView], at = (v.byteOffset ?? 0) + (a.byteOffset ?? 0);
-  return bin.subarray(at, at + a.count * N[a.type] * SIZE[a.componentType]);
-};
-/** a JPEG's width and height (its first start-of-frame marker) */
-function jpegSize(b) {
-  assert.equal(b.readUInt16BE(0), 0xffd8, 'a JPEG');
-  for (let at = 2; at < b.length;) {
-    const marker = b.readUInt16BE(at), len = b.readUInt16BE(at + 2);
-    if (marker >= 0xffc0 && marker <= 0xffcf && ![0xffc4, 0xffc8, 0xffcc].includes(marker)) return [b.readUInt16BE(at + 7), b.readUInt16BE(at + 5)];
-    at += 2 + len;
-  }
-  return null;
-}
-
-test('the shipped traveller files keep the export\'s geometry byte for byte, and drop what nothing reads', () => {
-  for (const [src, dst] of TRAVELLER_FILES) {
-    const a = readGlb(readFileSync(src)), b = readGlb(readFileSync(dst));
-    assert.deepEqual(b.json.meshes.map((m) => m.primitives.map((p) => Object.keys(p.attributes))), a.json.meshes.map((m) => m.primitives.map((p) => Object.keys(p.attributes))));
-    a.json.meshes.forEach((m, mi) => m.primitives.forEach((p, pi) => {
-      const q = b.json.meshes[mi].primitives[pi];
-      for (const k of Object.keys(p.attributes)) assert.ok(bytesOf(a, p.attributes[k]).equals(bytesOf(b, q.attributes[k])), `${dst} ${k} unchanged`);
-      assert.ok(bytesOf(a, p.indices).equals(bytesOf(b, q.indices)), `${dst} indices unchanged`);
-    }));
-    for (const [si, s] of (a.json.skins ?? []).entries()) {
-      assert.deepEqual(b.json.skins[si].joints, s.joints);
-      assert.ok(bytesOf(a, s.inverseBindMatrices).equals(bytesOf(b, b.json.skins[si].inverseBindMatrices)), 'inverse binds unchanged');
-    }
-    assert.deepEqual(b.json.nodes, a.json.nodes, 'the same nodes (the skeleton)');
-    // nothing left that nothing reads
-    const used = usedParts(b.json);
-    assert.equal(used.accessors.size, b.json.accessors.length, `${dst}: every accessor is read`);
-    assert.equal(used.images.size, b.json.images.length, `${dst}: every image is a material's`);
-    for (const img of b.json.images) {
-      const v = b.json.bufferViews[img.bufferView], size = jpegSize(b.bin.subarray(v.byteOffset, v.byteOffset + v.byteLength));
-      assert.equal(img.mimeType, 'image/jpeg');
-      assert.deepEqual(size, [SLIM.maxTexture, SLIM.maxTexture], `${dst}: the base colour at ${SLIM.maxTexture}²`);
-    }
-    assert.ok(readFileSync(dst).length < readFileSync(src).length * 0.7, `${dst} is smaller`);
-  }
-  // the head's untouched export is the one its provenance describes
-  const prov = JSON.parse(readFileSync('data/characters/traveller-v1/head-v2/provenance.json'));
-  assert.equal(createHash('sha256').update(readFileSync(prov.source_file)).digest('hex'), prov.sha256);
-});
-
-// the character as the game makes him, from the shipped files (images left out: Node decodes none)
-const dir = 'public/characters/traveller-v1/';
-const glb = (f) => {
-  const g = readFileSync(f), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
-  json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
-  delete json.images; delete json.textures; delete json.materials; for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-  return new GLTFLoader().parseAsync(JSON.stringify(json), '');
-};
-const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-const asset = { gltf: await glb(dir + 'model.glb'), head: await glb(dir + 'head-v3/model.glb'), data, report: JSON.parse(readFileSync(dir + 'rig.json')), colors: JSON.parse(readFileSync(dir + 'colors.json')) };
+// the character as the game makes him (images left out: Node decodes none)
+const asset = await travellerB3();
 await MeshoptSimplifier.ready;
 
 test('his levels: coarser index lists over the same vertices, drawn by the draw range', async () => {
-  const c = createTravellerV1(buildCharacter(), asset);
+  const c = createTraveller(buildCharacter(), asset);
   const before = new Map([c.mesh, c.head, c.cloth.garment].map((m) => [m, { index: m.geometry.index, attrs: { ...m.geometry.attributes }, morph: m.geometry.morphAttributes.position }]));
   const lod = await buildTravellerLod(c, { simplifier: MeshoptSimplifier });
   assert.ok(lod instanceof TravellerLod);
-  assert.deepEqual(lod.entries.map((e) => e.mesh.name).sort(), ['TravellerOvershirt', 'TravellerPortraitHead', 'TravellerV1']);
+  assert.deepEqual(lod.entries.map((e) => e.mesh.name).sort(), ['TravellerB3Body', 'TravellerB3Overshirt', 'TravellerPortraitHead']);
   for (const e of lod.entries) assert.equal(e.mesh.geometry.index, before.get(e.mesh).index, 'nothing changes until a frame picks a level');
   const pxPerRad = 810 / (2 * Math.tan(T.MathUtils.degToRad(55) / 2));
   // up close (the conversation's shots) always full
@@ -100,8 +41,9 @@ test('his levels: coarser index lists over the same vertices, drawn by the draw 
       assert.ok(L[i].error >= L[i - 1].error && L[i].error <= TRAVELLER_LOD.maxError);
       assert.ok(g.index.array.subarray(L[i].start, L[i].start + L[i].count).every((v) => v < n), 'only the mesh\'s own vertices');
     }
-    // the first level halves him for under 2 mm, the coarsest is a sixth or less
-    assert.ok(L[1].count <= was.index.count * 0.55 && L[1].error < 0.002, `${e.mesh.name}: ${L[1].count / 3} triangles at ${L[1].error}`);
+    // the first level halves him for under 4 mm, the coarsest is a sixth or less (v1's 64k-triangle body halved for
+    // 1.4 mm, under 2; B3's body has 31k and its overshirt 9k: 3.2 and 3.3 mm, the head 1.0)
+    assert.ok(L[1].count <= was.index.count * 0.55 && L[1].error < 0.004, `${e.mesh.name}: ${L[1].count / 3} triangles at ${L[1].error}`);
     assert.ok(L[L.length - 1].count <= was.index.count * 0.15);
   }
   // the overshirt's shadow draws the same geometry, so the same level

@@ -3,7 +3,7 @@ import { TRAVELLER_PALETTE } from './traveller-style.js';
 import * as THREE from 'three';
 import { questPieces, questCloth } from './characters/quest-pieces.js';
 import { plantFeet, resetFeet } from './feet.js';
-import { POSE, worldPos, worldQuat, updateChain } from './world-read.js';
+import { worldPos, worldQuat, updateChain } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { makeMaterial, MODE_OUTFIT, MODE_EYE } from './materials.js';
@@ -1318,11 +1318,10 @@ export class Humanoid {
       return;
     }
     // the rig's matrices (the model's are all made again at the end); the rig read as it now is (world-read.js)
-    if (POSE.exact) root.updateMatrixWorld(true);
-    else { root.updateWorldMatrix(false, false); for (const ch of root.children) if (ch !== this.model) ch.updateMatrixWorld(true); }
+    root.updateWorldMatrix(false, false); for (const ch of root.children) if (ch !== this.model) ch.updateMatrixWorld(true);
     const rootQi = worldQuat(root, _qp).invert(), rootInv = _m4i.copy(root.matrixWorld).invert();
     const charQOf = (o, out) => worldQuat(o, out).premultiply(rootQi);
-    const charPosOf = POSE.exact ? (o, out) => root.worldToLocal(o.getWorldPosition(out)) : (o, out) => worldPos(o, out).applyMatrix4(rootInv);
+    const charPosOf = (o, out) => worldPos(o, out).applyMatrix4(rootInv);
 
     // pelvis position: the rig's hip midpoint, keeping the model's hip→pelvis offset
     const hipMid = charPosOf(c.legs[0], _a).add(charPosOf(c.legs[1], _b)).multiplyScalar(0.5);
@@ -1338,7 +1337,7 @@ export class Humanoid {
       if (ch) {
         // minimal rotation of the bone's rest direction onto the rig limb
         const from = charPosOf(ch.from(), _a);
-        const to = ch.hand !== undefined ? (POSE.exact ? c.elbows[ch.hand].localToWorld(_b.set(0, -0.31, 0)) : _b.set(0, -0.31, 0).applyMatrix4(c.elbows[ch.hand].matrixWorld)).applyMatrix4(rootInv) : charPosOf(ch.to(), _b);
+        const to = ch.hand !== undefined ? _b.set(0, -0.31, 0).applyMatrix4(c.elbows[ch.hand].matrixWorld).applyMatrix4(rootInv) : charPosOf(ch.to(), _b);
         const want = to.sub(from).normalize();
         if (R.hinge) {
           // the forearm: swung from where the upper arm carries it, not from the T-pose. Swung from the
@@ -1358,8 +1357,7 @@ export class Humanoid {
       if (bone === this.b.pelvis && !atRest) {
         // (the pelvis's parent and the model above it, not made above: the parent alone, its subtree is the model's walk
         // below, which nothing reads before it; issue #111, the traveller's 300 bones multiplied here for nothing)
-        if (POSE.exact) bone.parent.updateMatrixWorld(true);
-        else { bone.parent.updateWorldMatrix(true, false); if (POSE.walks) bone.parent.updateMatrixWorld(true); }
+        bone.parent.updateWorldMatrix(true, false);
         _m4.copy(bone.parent.matrixWorld).invert().multiply(root.matrixWorld);
         bone.position.copy(pelvisChar).applyMatrix4(_m4);
       }
@@ -1376,8 +1374,7 @@ export class Humanoid {
         .multiply(animator.restHands[s].clone().invert()).multiply(this.rest.get(hand).q).premultiply(rootQ);
       hand.quaternion.copy(hand.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(q));
       // (the hand alone when shareWristRoll walks it again after turning the forearm: its fingers and what it holds once)
-      if (POSE.walks) { hand.updateMatrixWorld(true); this.shareWristRoll(s); }
-      else { updateChain(hand, hand); if (!this.shareWristRoll(s)) hand.updateMatrixWorld(true); }
+      updateChain(hand, hand); if (!this.shareWristRoll(s)) hand.updateMatrixWorld(true);
     }
   }
 
@@ -1399,7 +1396,7 @@ export class Humanoid {
     if (Math.abs(angle) < 1e-4) return false;
     const handWorld = hand.getWorldQuaternion(_wq2);
     lower.quaternion.multiply(_wq3.setFromAxisAngle(_w2.copy(hand.position).normalize(), angle * share));
-    if (POSE.walks) lower.updateMatrixWorld(true); else updateChain(lower, lower);   // (the hand's walk just below makes the rest)
+    updateChain(lower, lower);   // (the hand's walk just below makes the rest)
     hand.quaternion.copy(lower.getWorldQuaternion(_wq4).invert().multiply(handWorld));
     hand.updateMatrixWorld(true);
     return true;

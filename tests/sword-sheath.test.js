@@ -103,7 +103,7 @@ test('a swing pressed with the sword on the back: the hilt in the fist in DRAW.q
 async function armed() {
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, v(0, 0, -60), { body: 'v1' });
+  const p = await traveller(scene, v(0, 0, -60), { body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const tick = (input = {}) => { p.update(dt, input, CAM_PLUS_Z); tool.update(dt, input); p.humanoid.hands.update(dt, playerHands(p)); };
@@ -221,8 +221,9 @@ test('clear of the flask and of his body in every pose he takes', { timeout: 300
     worst.set(label, Math.min(worst.get(label) ?? Infinity, gap));
   }
   if (process.env.SAY) console.log([...worst].map(([k, g]) => `${k} ${(g * 100).toFixed(1)} cm`).join(', '));
-  // (2 cm off his skin: the overshirt over his back and arm stands about 1–1.5 cm off it)
-  for (const [label, gap] of worst) assert.ok(gap > 0.02, `${label}: the hilt ${(gap * 100).toFixed(1)} cm off him`);
+  // (1 cm off the mesh: on B3 it is his coat itself over the back and arm, no overshirt stands off it there, as v1's
+  // did 1–1.5 cm over his skin, which wanted 2 cm; measured on B3: ClimbLedge's raised arm 1.5 cm, Jump_Loop 3.6, the gaits 4.0)
+  for (const [label, gap] of worst) assert.ok(gap > 0.01, `${label}: the hilt ${(gap * 100).toFixed(1)} cm off him`);
   assert.equal(worst.size, 17, 'every pose looked at');
   tool.dispose();
 });

@@ -1,27 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import * as T from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // The overshirt drawn by its vertex shader (src/characters/tripo-cloth.js garmentShader, the game's path):
 // the shader's inputs, run through the same sums here (the shader's own steps, written out in JS), put every
 // vertex where the main-thread path (tests, a page without WebGL) puts it, frame after frame, the cloth swinging.
+// On the game's traveller (B3, src/characters/traveller.js), whose overshirt goes through the same paths. (B3 turns
+// the shader's leg capsules off, detailCollisions: false, so their push is skipped here as it is in the game.)
 
 const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
 globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
-const { parseBody } = await import('../src/makehuman/body.js');
-const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
+const { createTraveller } = await import('../src/characters/traveller.js');
+const { travellerB3 } = await import('./gait-sim.js');
 const { buildCharacter } = await import('../src/player.js');
 const { GARMENT_GLSL } = await import('../src/characters/tripo-cloth.js');
-const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-const dir = 'public/characters/traveller-v1/';
-const report = JSON.parse(readFileSync(dir + 'rig.json')), colors = JSON.parse(readFileSync(dir + 'colors.json'));
-const g = readFileSync(dir + 'model.glb'), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
-json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
-delete json.images; delete json.textures; delete json.materials; for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-const load = async () => new GLTFLoader().parseAsync(JSON.stringify(json), '');
+const assets = await travellerB3();
 
 /** The vertex shader's sums for vertex v (GARMENT_GLSL and the body garmentShader adds), from the garment's own inputs. */
 function shaderVertex(garment, v, out = new T.Vector3()) {
@@ -50,7 +44,7 @@ function shaderVertex(garment, v, out = new T.Vector3()) {
 }
 
 test('the shader puts the overshirt where the main thread did, the cloth swinging and the legs pushing it', async () => {
-  const make = async (gpu) => { const char = buildCharacter(); return { char, ...createTravellerV1(char, { gltf: await load(), data, report, colors }, { gpu }) }; };
+  const make = async (gpu) => { const char = buildCharacter(); return { char, ...createTraveller(char, assets, { gpu, useWorker: false }) }; };
   const cpu = await make(false), gpu = await make(true);
   assert.equal(gpu.cloth.gpu, true); assert.equal(cpu.cloth.gpu, false);
   assert.ok(gpu.cloth.garment.isSkinnedMesh && gpu.cloth.garment.material.defines.GARMENT, 'skinned, its material patched');

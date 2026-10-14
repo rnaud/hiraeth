@@ -1,4 +1,4 @@
-// The world debug menu in every route world (src/world-debug.js; docs/systems/dev-tools.md "The world debug menu"):
+// The world debug menu in the route worlds (src/world-debug.js; docs/systems/dev-tools.md "The world debug menu"):
 // each world built as the play-through builds it (tests/playthrough-agent.js loadWorld: the level and its temple,
 // the collision, the story with its people, quests and locators, the makers' boxes; it needs the story, so it
 // builds its own instead of tests/built-worlds.js), its points gathered as main.js gathers them, and every one
@@ -10,9 +10,13 @@ import { loadWorld, ORDER } from './playthrough-agent.js';
 import { gatherPoints, groupPoints, landingSpot, questList, cinematicsFor, debugSections } from '../src/world-debug.js';
 import { CONTENT } from '../src/levels/content.js';
 
-test('every route world: teleports of every main kind, each one set down on the ground or in its room; its quests and films listed', () => {
+// (two worlds unlike each other, the debug menu being a developer's tool: the desert's open ground over its terrain, the
+// floating city's stacked platforms. WORLD_DEBUG_ALL=1 for every route world, ~30 s more)
+const WORLDS = process.env.WORLD_DEBUG_ALL ? ORDER : ['desert', 'spacecity'];
+
+test('route worlds: teleports of every main kind, each one set down on the ground or in its room; its quests and films listed', () => {
   const counts = [];
-  for (const id of ORDER) {
+  for (const id of WORLDS) {
     const W = loadWorld(id);
     try {
       const pts = gatherPoints({ levelId: id, level: W.level, quests: W.quests, npcs: W.npcs, boxes: W.boxes, content: CONTENT[id] });

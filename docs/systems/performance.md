@@ -818,7 +818,7 @@ main thread's time a frame):
   the same as three's (`tests/matrix-cache.test.js` checks them against three's walk over frames of changes).
   `updateMatrix()` refreshes the remembered numbers (a rig posed for a moment by `updateRig` and put back), a
   walk entered below the scene's root and an object given another parent are forced (issue #105; the Unity
-  bridge installs the same cache: `tests/pose-exact-web.test.js` and `tests/pose-exact.test.js` check every bone).
+  bridge installs the same cache: `tests/pose-exact-web.test.js` checks every bone).
   33.6 → 32.3 ms. (At the City-Shaft's start it saved nothing measurable: 97 groups there move or are flagged every
   frame, so most of the walk's multiplies are real.)
 - **Shadow maps drawn unsorted** (`Cascade.render`: a depth map needs no draw order): 32.4 → 31.7 ms.
@@ -931,7 +931,7 @@ too, which Humanoid.update makes again from the rig straight after. Now (src/wor
 - Humanoid.update keeps a record a bone (its rest, what drives it, its parent's record, its turn) instead of five
   map lookups and a new quaternion a bone a frame.
 
-The poses are the same to the float: tests/pose-exact.test.js runs two copies of the game in lockstep (the Unity
+The poses were the same to the float (since then the `__POSE_EXACT__` path and its test are gone): tests/pose-exact.test.js ran two copies of the game in lockstep (the Unity
 bundle in two bare V8 contexts, the same clock and random numbers) through the camps (people walking, seated round
 the fires, carrying their staffs and instruments, their capes' colliders), a conversation and a walk, one with
 `__POSE_EXACT__` (every read recomputed as three does), and compares every bone's world matrix every frame; once
@@ -2058,8 +2058,9 @@ each in turn on the script thread's CPU clock (`process.threadCpuUsage`), compar
   read his feet), his scarf, his arms' walk styling, his wrists, Animator.apply (each joint's subtree walked after it
   turned: the legs three times, the arms four; now each joint's parents for its read and the rig walked once at the
   end), the pelvis's parent's subtree in Humanoid.update (300 bones multiplied for nothing), and the people's walks
-  right after Humanoid.update. The City-Shaft's crowd 6 040 objects visited a frame → 3 520. `__POSE_WALKS__` walks as
-  before; tests/pose-walks.test.js: every world matrix and every frame's command stream to Unity bit for bit.
+  right after Humanoid.update. The City-Shaft's crowd 6 040 objects visited a frame → 3 520. `__POSE_WALKS__` walked as
+  before for tests/pose-walks.test.js (every world matrix and every frame's command stream to Unity bit for bit); both
+  went once the change had shipped.
 - **Fires and air pillars out of view held** (Flames.update, ShaftPillars.lay; src/motion-kit/view.js `sphereInView`):
   tongues out of the camera's last view (a margin round their sway) are left as they are and moved the frame they are
   seen, as the clock puts them; a pillar out of view lays no pieces. engine/game.js now sets the view after the mirror's

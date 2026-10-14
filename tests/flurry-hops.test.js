@@ -255,7 +255,7 @@ test('the traveller, locked on: jump with back is the back flip, with a side the
   const { traveller, course, CAM_PLUS_Z } = await import('./gait-sim.js');
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
   const hops = [];
   p.onHop = (kind, win) => hops.push([kind, win]);
   const settle = () => { p.lockOn = null; for (let i = 0; i < 90; i++) p.update(DT, {}, CAM_PLUS_Z); };

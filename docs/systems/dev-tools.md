@@ -68,8 +68,8 @@ beacon's foot, the fallen-up tiles over the cloud) takes the floor under it or t
 mark and a door's far side are landed on as they are, which needs nothing from the passage: the rooms are real
 geometry off the map, and the temple notices you inside by itself. Nowhere to stand: a toast, and you stay.
 `tests/world-debug.test.js` (the gathering, the landing, the quest jump, the films, the rows, the controller) and
-`tests/world-debug-worlds.test.js` (every route world built with its story: every kind there and every point landed
-on; desert 122 points, the others 49–71).
+`tests/world-debug-worlds.test.js` (the desert and the floating city built with their story, `WORLD_DEBUG_ALL=1` for every
+route world: every kind there and every point landed on; desert 122 points, the others 49–71).
 
 ## The Lab (v0.39)
 

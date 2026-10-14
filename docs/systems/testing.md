@@ -57,6 +57,14 @@ Regenerate the table when a file's time changes a lot or many new files came in 
 of the files are missing from it). A runner has 4 cores, `node --test` runs about 2.4 files at a time there,
 so a shard takes about its seconds / 2.4, or its longest file if that is longer: keep files under a minute.
 
+## Nightly (`tests/nightly/`)
+
+Slow tests of developer tools, not of the game players get, run once a night and by hand
+(`.github/workflows/nightly-tests.yml`, `node --test tests/nightly/*.test.js`); no deploy waits for them, and the
+shards and the pre-commit hook leave the folder out (both read `tests/*.test.js` only). There now: the art-reference
+gallery (`tests/nightly/references.test.js`, every reference world built). A tool's check that builds every world
+on each push samples instead (`tests/world-debug-worlds.test.js`: two worlds, `WORLD_DEBUG_ALL=1` for all).
+
 ## Heavy tests
 
 Most of the suite's time is building worlds (about 30%: a level and its collision, 0.1 to 2.5 s each), long
@@ -82,13 +90,15 @@ can be shared only between the tests of one file. The rules for a test that is s
 - **Search toward what you look for.** A reachability check with targets goes to the nearest one first and floods
   wave by wave only when one is left, for the same verdict (`tests/fragments-reach.js` flood: 155 s -> 14 s).
 - **Don't run it twice.** Read what a later test needs while an earlier one has the world built
-  (`tests/temple-climb.test.js` climbWhy, `tests/ball-room.test.js` measured); one A/B lockstep a scene
-  (`tests/pose-exact.test.js` covers the desert's camps for `pose-walks` too).
+  (`tests/temple-climb.test.js` climbWhy, `tests/ball-room.test.js` measured).
+- **An A/B check of a refactor goes when the refactor has shipped.** Keeping the old code behind a flag to compare
+  against costs every run and keeps dead code alive (the `__POSE_EXACT__` / `__POSE_WALKS__` lockstep tests, 95 s on
+  CI, went: the matrix cache's own check against three, `tests/pose-exact-web.test.js`, stays).
 - **Measure** before and after: `node --test --test-reporter=spec tests/x.test.js` prints each test's time.
 
 A bare V8 context (`engine/vm-run.mjs`, the engine bundles' tests) hands the bundle the context's built-ins as
 locals: a free name in a context made from an object is looked up through its interceptor on every read, and
-that made a world's build 15-20 times slower there than in Node (`tests/pose-exact.test.js` took 75 s, now 15).
+that made a world's build 15-20 times slower there than in Node (the old `tests/pose-exact.test.js` took 75 s, then 15).
 
 ## TODO.md against the closed issues (`tests/todo-done.test.js`)
 

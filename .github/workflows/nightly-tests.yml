@@ -1,0 +1,25 @@
+name: Nightly tests
+
+# The unit tests too slow for every push that guard tools, not what players get (tests/nightly/*.test.js:
+# the art-reference gallery). Nightly and by hand; nothing waits for them. docs/systems/testing.md, "Nightly".
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/nightly/*.test.js

@@ -51,7 +51,7 @@ test('every attack has its clip shipped, its phases and its cut inside the clip'
 async function armed() {
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const tick = (input = {}, move = null) => { if (move) p.swingMove = move; p.update(dt, input, CAM_PLUS_Z); tool.update(dt, input); };

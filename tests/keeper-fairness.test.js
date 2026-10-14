@@ -199,7 +199,7 @@ test('the traveller’s sidestep, locked on: the strafe and the side hop circle 
   const { items } = await import('../src/items.js');
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, V(0, 0, -60), { moves: true, body: 'v1' });
+  const p = await traveller(scene, V(0, 0, -60), { moves: true, body: 'b3' });
   const foe = V(0, 0, -53);
   const lock = () => { p.lockOn = { dir: V(foe.x - p.pos.x, 0, foe.z - p.pos.z).normalize(), at: foe }; };
   const d = () => Math.hypot(foe.x - p.pos.x, foe.z - p.pos.z);

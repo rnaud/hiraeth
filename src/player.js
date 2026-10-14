@@ -15,7 +15,7 @@ import { JumpLayer, FLIP, flipPose, boostVelocity, HOP, hopKind } from './jump.j
 import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
 import { standGround, moverCarrier } from './carriers.js';
-import { POSE, updateChain } from './world-read.js';
+import { updateChain } from './world-read.js';
 import { HEARTS, POTION, DAMAGE, quarters, sparing } from './resources.js';
 import { hintsFor } from './hint-level.js';
 import { UPDRAFT, inColumn, columnDrift } from './updraft.js';
@@ -849,7 +849,7 @@ export class Player {
       });
     }
     if (!this.tails) return;
-    if (POSE.walks) this.object.updateMatrixWorld(true); else updateChain(this.object, this.object);   // (the root's matrix is all it reads)
+    updateChain(this.object, this.object);   // (the root's matrix is all it reads)
     const up = _cu.set(0, 1, 0).applyQuaternion(this.object.quaternion);
     const side = _cs.set(1, 0, 0).applyQuaternion(this.object.quaternion);
     const back = _cb.set(0, 0, -1).applyQuaternion(this.object.quaternion);
@@ -2707,8 +2707,7 @@ export class Player {
   standUnder(k) {
     const c = this.char, root = this.object;
     // (what it reads: the root, the body, the legs down to the feet; not the whole body of 363 objects, issue #111)
-    if (POSE.walks) root.updateMatrixWorld(true);
-    else { updateChain(c.feet[0], root); updateChain(c.feet[1], root); }
+    updateChain(c.feet[0], root); updateChain(c.feet[1], root);
     const rootQ = root.getWorldQuaternion(_sq1);
     // (legs brought upright reach lower: the body rises by what the less lowered ankle went down,
     // so the knees keep the clip's bend instead of folding to keep the feet on the ground)

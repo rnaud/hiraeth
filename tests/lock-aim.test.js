@@ -29,7 +29,7 @@ test('locked on, the crosshair near the foe\'s chest takes it; far off, or with 
   clearTargets();
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0.6, 1.9, -63); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const chest = v(0.4, 1.3, -52);

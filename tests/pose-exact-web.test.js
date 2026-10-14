@@ -2,7 +2,7 @@
 // rigs: two copies of the same skinned people, one walked by three, the other by the cache, posed the same way every
 // frame as the game poses them (bones turned, the rig posed for a moment by world-read.js updateRig and its numbers
 // put back, a rig's walk entered below the scene's root after its vehicle moved, a carried thing changing hands), and
-// every bone's world matrix and every skeleton's bone matrices compared every frame. (tests/pose-exact.test.js does
+// every bone's world matrix and every skeleton's bone matrices compared every frame. (tests/pose-exact.test.js did
 // the same with the whole game through the Unity bundle.) Issue #105.
 import test from 'node:test';
 import assert from 'node:assert/strict';

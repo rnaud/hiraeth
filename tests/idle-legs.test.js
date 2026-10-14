@@ -10,37 +10,29 @@
 // (once tests/talk-still.test.js).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { readFileSync } from 'node:fs';
 const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
 globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
-const { parseBody } = await import('../src/makehuman/body.js');
 const { Player } = await import('../src/player.js');
 const { Physics } = await import('../src/physics.js');
 const { Animator, libraryFrom } = await import('../src/animator.js');
-const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
+const { createTraveller } = await import('../src/characters/traveller.js');
+const { travellerB3 } = await import('./gait-sim.js');
 const { course, CAM_PLUS_Z } = await import('../src/gait-course.js');
 const { attachMotion } = await import('../src/motion-match.js');
 
 const parse = (file) => { const b = readFileSync(file); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
+/** The game's traveller (B3, src/characters/traveller.js) on the course, standing at the origin facing +z. */
 async function traveller({ moves = false } = {}) {
-  const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-  const dir = 'public/characters/traveller-v1/';
-  const report = JSON.parse(readFileSync(dir + 'rig.json')), colors = JSON.parse(readFileSync(dir + 'colors.json'));
-  // (the shipped GLB without its textures: Node has no image decoder)
-  const g = readFileSync(dir + 'model.glb'), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
-  json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
-  delete json.images; delete json.textures; delete json.materials;
-  for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-  const gltf = await new GLTFLoader().parseAsync(JSON.stringify(json), '');
   const lib = libraryFrom(await parse('public/anim/ual.glb'));
   if (moves) attachMotion(lib, await parse('public/anim/moves.glb'));   // (the captured idles: Animator idleMoves)
   const scene = course(), physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });
   p.animator = new Animator(lib, p.char);
-  p.character = createTravellerV1(p.char, { gltf, data, report, colors });
+  p.character = createTraveller(p.char, await travellerB3());
   p.humanoid = p.character.humanoid;
   p.gear = { update() {}, device: { visible: true } };
   p._lastVel = new T.Vector3();

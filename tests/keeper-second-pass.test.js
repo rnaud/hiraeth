@@ -232,7 +232,7 @@ test('the boss framing and the steady lock: further back and higher in its arena
 
 test('a blow knocks the traveller back on his feet, not down; nothing lands again a moment; a knockout still drops him', async () => {
   const { traveller, course, CAM_PLUS_Z } = await import('./gait-sim.js');
-  const p = await quiet(() => traveller(course({ ramp: false, stairs: false }), V(0, 0, -60), { moves: true, body: 'v1' }));
+  const p = await quiet(() => traveller(course({ ramp: false, stairs: false }), V(0, 0, -60), { moves: true, body: 'b3' }));
   for (let i = 0; i < 30; i++) p.update(DT, {}, CAM_PLUS_Z);
   const m = keeperGuardian({ load: () => Promise.reject(new Error('offline')) });
   await m.ready;

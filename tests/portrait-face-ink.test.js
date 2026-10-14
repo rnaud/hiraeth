@@ -7,16 +7,17 @@ import assert from 'node:assert/strict';
 import * as T from 'three';
 import sharp from 'sharp';
 import { readFileSync, statSync } from 'node:fs';
-import { travellerV1, tripoHead } from './gait-sim.js';
-import { createTravellerV1 } from '../src/characters/traveller-v1.js';
+import { travellerB3 } from './gait-sim.js';
+import { createTraveller } from '../src/characters/traveller.js';
+import { B3_HEAD_FIT as F } from '../src/characters/traveller-b3.js';
 import { buildCharacter } from '../src/player.js';
-import { PORTRAIT_HEAD as F, PORTRAIT_FACE_INK as FI } from '../src/characters/portrait-head.js';
+import { PORTRAIT_FACE_INK as FI } from '../src/characters/portrait-head.js';
 import { loadClothInk } from '../src/characters/traveller-cloth-ink.js';
 import { TONE_EXPRESSIONS } from '../src/expression.js';
 import { faceLandmarks } from '../scripts/tripo/face-landmarks.mjs';
 
 const FILE = 'public/characters/traveller-v1/head-v3/face-ink.png';
-const assets = { ...await travellerV1(), head: await tripoHead() };
+const assets = await travellerB3();   // (the head the game's traveller wears, B3: src/characters/traveller.js, fitted by B3_HEAD_FIT)
 const source = assets.head.scene.children.find((o) => o.isMesh), raw = source.geometry.attributes.position, hair = source.geometry.attributes._portrait_hair;
 const { data, info } = await sharp(FILE).raw().toBuffer({ resolveWithObject: true });
 const at = (i, j) => [FI.box[0] + ((i + 0.5) / info.width) * (FI.box[2] - FI.box[0]), FI.box[3] - ((j + 0.5) / info.height) * (FI.box[3] - FI.box[1])];
@@ -130,7 +131,7 @@ test('the nose’s side line gives way in profile on its own side, where it woul
     return (1 - t * t * (3 - 2 * t)) * s * s * (3 - 2 * s); };
   for (const deg of [0, -20, -45, -60]) assert.equal(gone(deg), 0, `kept at ${deg}°`);
   assert.ok(gone(-90) > 0.99, 'gone in profile'); assert.equal(gone(90), 0, 'the far side: hidden by the nose itself, not faded');
-  const { head } = createTravellerV1(buildCharacter(), { ...assets, faceInk: new T.DataTexture(new Uint8Array(4), 1, 1, T.RGFormat) });
+  const { head } = createTraveller(buildCharacter(), { ...assets, faceInk: new T.DataTexture(new Uint8Array(4), 1, 1, T.RGFormat) });
   assert.match(head.material.fragmentShader, /phMajor=[^;]*\(1\.0-phSideLine\)/);
 });
 
@@ -147,7 +148,7 @@ test('under the mouth: the lower lip’s stroke on its lower edge, the chin’s 
 
 test('in every expression the mouth line stays on the lips: talking, happy, sad, angry', () => {
   // the face's shape keys (portrait-head.js) moved over the source mesh, the ink carried on the skin it was laid on
-  const { head, humanoid: h } = createTravellerV1(buildCharacter(), assets);
+  const { head, humanoid: h } = createTraveller(buildCharacter(), assets);
   const keys = head.geometry.morphAttributes.position;
   const atRest = red.filter(([x, y]) => Math.abs(y - L.mouth.stomion) < 0.03).map(([x, y]) => L.surface(x, y)).filter(Boolean);
   for (const [name, e] of [['talking', { open: 0.45 }], ['happy', TONE_EXPRESSIONS.happy], ['sad', TONE_EXPRESSIONS.sad], ['angry', TONE_EXPRESSIONS.angry]]) {
@@ -170,7 +171,7 @@ test('in every expression the mouth line stays on the lips: talking, happy, sad,
 
 test('the face shader draws the mask and the jaw into the detail channel; without the mask (native VMs) it is off', () => {
   const ink = new T.DataTexture(new Uint8Array(4), 1, 1, T.RGFormat);
-  const { head, humanoid: h } = createTravellerV1(buildCharacter(), { ...assets, faceInk: ink });
+  const { head, humanoid: h } = createTraveller(buildCharacter(), { ...assets, faceInk: ink });
   const u = head.material.uniforms, fs = head.material.fragmentShader;
   assert.equal(u.uPortraitFaceInk.value, ink); assert.equal(u.uPortraitFaceAmount.value, 1);
   for (const s of ['texture(uPortraitFaceInk', 'phMajor', 'phMinor', 'phJaw', 'phHatch', 'float detail = max(']) assert.ok(fs.includes(s), s);
@@ -189,7 +190,7 @@ test('the face shader draws the mask and the jaw into the detail channel; withou
   h.setExpression({ smile: 1 }); assert.ok(head.morphTargetInfluences[1] > 0);
   h.drawnFace.eyes(1, 0, null); assert.equal(head.morphTargetInfluences[0], 1);
   h.setExpression({}); h.drawnFace.eyes(0, 0, null); assert.ok(head.morphTargetInfluences.every((v) => v === 0));
-  const bare = createTravellerV1(buildCharacter(), assets).head.material.uniforms;
+  const bare = createTraveller(buildCharacter(), assets).head.material.uniforms;
   assert.equal(bare.uPortraitFaceAmount.value, 0);
 });
 

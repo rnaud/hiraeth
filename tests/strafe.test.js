@@ -43,7 +43,7 @@ test('a change of side fades the old step out before the new one comes in: never
 
 test('locked on, stepping left and right in turn: no bone jumps in a frame, no start, stop or pivot under the steps', async () => {
   const scene = course({ ramp: false, stairs: false });
-  const p = await traveller(scene, new THREE.Vector3(0, 0, -60), { moves: true, body: 'v1' });
+  const p = await traveller(scene, new THREE.Vector3(0, 0, -60), { moves: true, body: 'b3' });
   const A = p.animator, foe = new THREE.Vector3(0, 0, -54);
   const bones = ['pelvis', 'spine_02', 'thigh_l', 'thigh_r', 'calf_l', 'calf_r', 'upperarm_l', 'upperarm_r'].filter((b) => A.bone(b));
   let prev = null, worst = 0, worstAt = '', moves = 0;

@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import { buildFlask, setStage, TANK, TANK_RAIL, tankRadiusAt } from '../src/fluid-tool.js';
 import { makeMaterial } from '../src/materials.js';
 import { buildItemModel } from '../src/boxes/model.js';
-import { TRAVELLER_V1_TANK_AT } from '../src/characters/traveller-v1.js';
 import { BACKPACK_STAGES, backpackStage } from '../src/items.js';
 
 // The round backpack (v1.38, references/Core Objects/Round Backpack/: the sheet's first pick, the states sheets):
@@ -77,7 +76,14 @@ test('the stages: the lift valve, the wings and the Warden\'s bellows each add t
   assert.ok(visibleBox(f.group).max.y > TANK.neck.y + TANK.neck.h + 0.03, 'the valve\'s wheel over the cap');
 });
 
-test('the struts stand over the neck; the coral-shirt traveller wears the jar on his back', () => {
+test('the struts stand over the neck; the game\'s traveller (B3) wears the jar on his back', async () => {
   assert.ok(TANK_RAIL.top > TANK.neck.y + TANK.neck.h, 'over the neck');
-  assert.ok(TRAVELLER_V1_TANK_AT[2] > TANK.at[2] && TRAVELLER_V1_TANK_AT[1] === TANK.at[1], 'closer in: no rucksack under it');
+  const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
+  globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
+  globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
+  const { createTraveller } = await import('../src/characters/traveller.js');
+  const { travellerB3 } = await import('./gait-sim.js');
+  const { buildCharacter } = await import('../src/player.js');
+  const at = createTraveller(buildCharacter(), await travellerB3()).humanoid.tankAt;   // (FluidTool.tankAt reads it)
+  assert.ok(at[2] > TANK.at[2] && at[1] === TANK.at[1], `closer in: no rucksack under it (${at})`);
 });

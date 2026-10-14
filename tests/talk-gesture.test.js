@@ -181,7 +181,7 @@ function play(body, A, B, step, id, secs, seated = false) {
 const ARMS = ['excited', 'thankful', 'thinking', 'waving', 'yelling', 'talking_2', 'disappointed', 'standing_arguing', 'surprised'];
 const bodies = {
   async traveller() {
-    const p = await traveller(course(), V(0, 0, -60), { moves: true, body: 'v1' });
+    const p = await traveller(course(), V(0, 0, -60), { moves: true, body: 'b3' });
     for (let i = 0; i < 30; i++) p.update(1 / 60, {}, Math.PI);
     p.talking = true;
     return { body: p, A: p.animator, B: p.humanoid.b, step: () => { p.update(1 / 60, {}, Math.PI); p.object.updateMatrixWorld(true); } };
@@ -202,7 +202,9 @@ const mhData = (() => { const b = readFileSync('public/anim/mh/body.bin'); retur
 // (`clear`: how far a hand stays off the trunk's line, m. The Quaternius body, the people's old one (?mh=0), is the
 // slimmest: Excited's fists come 6.6 cm from its line, in front of the robe in the game's pictures)
 for (const [name, make, clips, clear = 0.085] of [
-  ['the traveller', () => bodies.traveller(), ALL],
+  // (the B3 traveller is slimmer than the coral-shirt body this was measured on: Thinking's hand at his chin comes 7.4 cm
+  // from his line, every other gesture 10.5 or more; his hands against his real mesh and clothes: tests/traveller-b3.test.js)
+  ['the traveller', () => bodies.traveller(), ALL, 0.07],
   ['a MakeHuman man (the people)', () => bodies.person({ human: new MakeHumanPeople(mhData).template('m'), kind: 'm' }), ARMS],
   ['a MakeHuman woman', () => bodies.person({ human: new MakeHumanPeople(mhData).template('f'), kind: 'f' }), ARMS],
   ['a Quaternius man', async () => bodies.person({ human: (await loadAssets()).human.m, kind: 'm' }), ARMS, 0.06],

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { POSE, worldPos, worldQuat, updateRig, updateChain } from './world-read.js';
+import { worldPos, worldQuat, updateChain } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import { MotionMatcher, MATCH, mirrorClip } from './motion-match.js';
@@ -896,13 +896,10 @@ export class Animator {
     // (the rig's matrices current from here: the root's update, then each joint's own after it turns. Walking each
     // joint's subtree after it turned made the joints below it again and again, the legs three times, the arms four;
     // each joint's parent made for its read instead (updateChain), and the rig walked once at the end, issue #111)
-    if (POSE.walks) updateRig(root);
-    else {
-      // (as updateRig: the root made, and the rig under it, not the body's model, to be made again: flagged, made as
-      // the joints are read and by the walk at the end)
-      root.updateWorldMatrix(false, false);
-      for (const ch of root.children) if (!ch.userData.poseSkip) ch.matrixWorldNeedsUpdate = true;
-    }
+    // (as updateRig: the root made, and the rig under it, not the body's model, to be made again: flagged, made as
+    // the joints are read and by the walk at the end)
+    root.updateWorldMatrix(false, false);
+    for (const ch of root.children) if (!ch.userData.poseSkip) ch.matrixWorldNeedsUpdate = true;
     const rootQ = worldQuat(root, _qp);
     for (const m of this.map) {
       // limbs follow the library bone's absolute direction (both rigs face +Z,
@@ -912,7 +909,7 @@ export class Animator {
       const desiredChar = m.foot ? cur.clone().applyQuaternion(_q.setFromUnitVectors(m.rest, FWD)) : cur.clone();
       // character space → world → the joint's parent space
       const world = desiredChar.applyQuaternion(rootQ);
-      if (!POSE.walks) updateChain(m.j.parent, root);
+      updateChain(m.j.parent, root);
       worldQuat(m.j.parent, _q2);
       const local = world.applyQuaternion(_q2.invert());
       if (m.foot) {
@@ -928,7 +925,7 @@ export class Animator {
       } else {
         m.j.quaternion.setFromUnitVectors(m.axis, local.normalize());
       }
-      if (POSE.walks) m.j.updateMatrixWorld(true); else updateChain(m.j, root);
+      updateChain(m.j, root);
     }
     // the head: the rig's head joint takes the neck's line (above), and the skull the clip's own turn on
     // it. Running, the neck leans 35-50 deg forward while the clip's head stays up (20 deg down): with the
@@ -940,11 +937,10 @@ export class Animator {
       for (const key of HEAD_NOD) k += this.actions[key]?.getEffectiveWeight() ?? 0;
       k = Math.min(1, k + this.headW);
       const want = worldQuat(this.bone('Head'), _q).multiply(_q2.copy(this.restHead).invert()).premultiply(rootQ);
-      if (!POSE.walks) updateChain(C.head, root);
+      updateChain(C.head, root);
       limitHeadTurn(C.headNod.quaternion.copy(worldQuat(C.head, _q2).invert().multiply(want))).slerp(_q.identity(), 1 - k);
-      if (POSE.walks) C.headNod.updateMatrixWorld(true);
     }
     // the rig as the walks left it (what the joints' reads did not make: what hangs under them)
-    if (!POSE.walks) for (const ch of root.children) if (!ch.userData.poseSkip) ch.updateMatrixWorld(true);
+    for (const ch of root.children) if (!ch.userData.poseSkip) ch.updateMatrixWorld(true);
   }
 }

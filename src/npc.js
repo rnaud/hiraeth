@@ -19,7 +19,6 @@ import { cleanExpression, PEOPLE_REST } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER, getUpPlacement, GET_UP } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
-import { POSE } from './world-read.js';
 import { layWave, WAVE } from './wave.js';
 
 // the upper body over a step aside (NPC.sidestep): Mixamo's breathing idle
@@ -650,8 +649,7 @@ export class NPC {
     const H = this.humanoid;
     if (!H) return;
     if (!on || !this.animator || dt <= 0) { if (H._feet && (H._feet.l.locked || H._feet.r.locked || H._feet.l.step || H._feet.r.step)) H.resetFeet(); return; }
-    // (called right after Humanoid.update, which left every matrix under the root made: its walk again was for nothing)
-    if (POSE.walks) this.object.updateMatrixWorld(true);
+    // (called right after Humanoid.update, which left every matrix under the root made: no walk again here)
     const o = gaitFeet(this.animator, speed, this._feetO ??= {});
     o.pivot = false;   // (people step round as they turn: the feet keep their way until they step)
     o.scale = this.object.scale.y;
@@ -757,7 +755,6 @@ export class NPC {
     this._clothTick = !this._clothTick;
     if (this.cape && (camD < 5 || this._clothTick || !this.cape.ready)) {
       // (Humanoid.update and the feet, just above, walked what they moved; the eyes are uniforms)
-      if (POSE.walks) this.object.updateMatrixWorld(true);
       // (the way they really go: stepping aside or back that isn't the way they face)
       if (this._step?.side) this.vel.set(Math.sin(this.heading), 0, Math.cos(this.heading)).applyAxisAngle(Y, { left: Math.PI / 2, right: -Math.PI / 2, back: Math.PI }[this._step.side] ?? 0).multiplyScalar(p.speed);
       else this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);

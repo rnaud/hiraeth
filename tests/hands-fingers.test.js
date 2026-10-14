@@ -9,46 +9,36 @@
 //     on both hands): the hand poses, laid over them, bent some joints back and curled others double;
 //   - on the pages that don't drive the hands (the title, the Motion page, the trailer) his fingers sank
 //     into that rest, bent back: a "softening" pulled them 20% toward it on every frame.
-// Measured: each finger joint's bend (src/hands.js fingerFlex: + toward the palm, the same sign on both
-// hands) over the idle, a walk, a run, a conversation, the title's stance, the blade, the shield, the
-// glove's aim; and how far the fingertips sit from the palm, relaxed.
+// Measured on the game's body (B3, src/characters/traveller.js; v1's bent rest, the second fault, went with v1):
+// each finger joint's bend (src/hands.js fingerFlex: + toward the palm, the same sign on both hands) over the
+// idle, a walk, a run, a conversation, the title's stance, the blade, the shield, the glove's aim; and how far
+// the fingertips sit from the palm, relaxed.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { readFileSync } from 'node:fs';
 const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
 globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
-const { parseBody } = await import('../src/makehuman/body.js');
 const { Player } = await import('../src/player.js');
 const { Physics } = await import('../src/physics.js');
 const { Animator, libraryFrom } = await import('../src/animator.js');
-const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
+const { createTraveller } = await import('../src/characters/traveller.js');
+const { travellerB3 } = await import('./gait-sim.js');
 const { course, CAM_PLUS_Z } = await import('../src/gait-course.js');
 const { holdStance } = await import('../src/title-world.js');
 const { fingerFlex, playerHands, FINGERS, HANDS } = await import('../src/hands.js');
 
 const parse = (file) => { const b = readFileSync(file); return new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), ''); };
-const dir = 'public/characters/traveller-v1/';
-const assets = (async () => {
-  const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-  const report = JSON.parse(readFileSync(dir + 'rig.json')), colors = JSON.parse(readFileSync(dir + 'colors.json'));
-  // (the shipped GLB without its textures: Node has no image decoder)
-  const g = readFileSync(dir + 'model.glb'), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
-  json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
-  delete json.images; delete json.textures; delete json.materials;
-  for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-  const gltf = await new GLTFLoader().parseAsync(JSON.stringify(json), '');
-  return { gltf, data, report, colors, lib: libraryFrom(await parse('public/anim/ual.glb')) };
-})();
+const assets = await travellerB3(), lib = libraryFrom(await parse('public/anim/ual.glb'));
 
+/** The game's traveller (B3, src/characters/traveller.js) on the course, standing at the origin facing +z. */
 async function traveller() {
-  const { gltf, data, report, colors, lib } = await assets;
   const scene = course(), physics = new Physics(scene);
   const p = new Player(physics, { climb: false, health: false });
   p.animator = new Animator(lib, p.char);
-  p.character = createTravellerV1(p.char, { gltf, data, report, colors });
+  p.character = createTraveller(p.char, assets);
   p.humanoid = p.character.humanoid;
   p.gear = { update() {}, device: { visible: true } };
   p._lastVel = new T.Vector3();
@@ -84,22 +74,14 @@ test('his hand poses are each joint\'s bend from a straight finger, the same on 
   const p = await traveller(), H = p.humanoid;
   H.update(true);
   H.hands.set(new Float32Array(16));
-  for (const s of ['l', 'r']) for (const a of flat(fingerFlex(H, s))) assert.ok(Math.abs(a) < 1, `${s}: straight at zero, ${say(fingerFlex(H, s))}`);
+  // (within 1.5°: v1's under 1; B3's pinky reads 1.0° and its index 0.8 at zero)
+  for (const s of ['l', 'r']) for (const a of flat(fingerFlex(H, s))) assert.ok(Math.abs(a) < 1.5, `${s}: straight at zero, ${say(fingerFlex(H, s))}`);
   for (const pose of ['relaxed', 'open', 'grip', 'fist', 'hold', 'hook', 'cup', 'limp', 'talk']) {
     H.hands.set(pose);
     const l = fingerFlex(H, 'l'), r = fingerFlex(H, 'r');
     flat(l).forEach((a, i) => assert.ok(Math.abs(a - flat(r)[i]) < 1.5, `${pose}: left (${say(l)}) and right (${say(r)}) alike`));
     for (const a of [...flat(l), ...flat(r)]) assert.ok(a > -1, `${pose}: no joint bent back (${say(l)} / ${say(r)})`);
   }
-});
-
-test('the measure sees the old fault: his rig\'s rest, with the poses laid over it as they were, bends fingers back', { timeout: 120000 }, async () => {
-  const p = await traveller(), H = p.humanoid;
-  for (const S of H.hands.sides) for (const J of S.joints) J.zero = 0;
-  H.update(true);
-  H.hands.set('open');
-  const worst = Math.min(...flat(fingerFlex(H, 'l')), ...flat(fingerFlex(H, 'r')));
-  assert.ok(worst < -10, `the old open hand: ${say(fingerFlex(H, 'l'))} / ${say(fingerFlex(H, 'r'))}`);
 });
 
 // Every joint's bend over each context, at the worst: relaxed ones never bent back; any (a startled
@@ -187,7 +169,8 @@ test('relaxed, his fingertips come in toward the palm: nearer it than a straight
       if (process.env.SAY) console.log(k, `straight ${(s0.d * 100).toFixed(1)} (${(s0.side * 100).toFixed(1)} out on the palm's side), relaxed ${(r.d * 100).toFixed(1)} (${(r.side * 100).toFixed(1)}), fist ${(fi.d * 100).toFixed(1)} cm`);
       assert.ok(r.d <= s0.d + 0.002, `${k}: relaxed, the tip ${(r.d * 100).toFixed(1)} cm from the palm's middle, further than straight (${(s0.d * 100).toFixed(1)})`);
       assert.ok(r.d > fi.d + 0.008, `${k}: relaxed (${(r.d * 100).toFixed(1)} cm) is no fist (${(fi.d * 100).toFixed(1)})`);
-      assert.ok(r.side > s0.side + 0.02 && r.side < 0.07, `${k}: the tip ${(r.side * 100).toFixed(1)} cm out on the palm's side, straight ${(s0.side * 100).toFixed(1)}`);
+      // (under 8 cm out: v1's under 7; B3's longer fingers, 12-13 cm from the palm's middle straight, put his ring finger's 7.2 out)
+      assert.ok(r.side > s0.side + 0.02 && r.side < 0.08, `${k}: the tip ${(r.side * 100).toFixed(1)} cm out on the palm's side, straight ${(s0.side * 100).toFixed(1)}`);
       nearer += s0.d - r.d;
     }
     // (round its knuckle, a curling finger's tip keeps much of its distance to the palm's middle; the index

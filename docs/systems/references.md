@@ -139,7 +139,7 @@ neighbours stay over 3 km apart.
   cropped with CSS (`cropStyle`).
 - `?look=desert` draws every view in the desert's own palette and plain Moebius print preset
   (blue-grey shadow tint, cumulus bank, clouds), to see what the shaders do unaided.
-- `tests/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
+- `tests/nightly/references.test.js`: the level registers as a dev level, the four sheets have their 6, 6, 8 and 7 views (in order, not overlapping), whose
   cameras put the horizon where the panel has it, each sun comes from its side, `[ ]` and `\` work.
 
 ### The quick menu of views (v0.68)
@@ -222,7 +222,7 @@ One new file and one registry line (the views keep their numbers: a new world go
    `{ id: '<world>', name: '<World name>', count: <its views>, load: () => import('./reference-<world>.js') }`.
    `name` must be the start of its sheets' names (the quick menu groups by it).
 3. Open `?level=references&world=<world>` (`&view=<n>` for its n-th view). `node --test
-   tests/reference-worlds.test.js tests/references.test.js` checks the count, the sheets and the
+   tests/reference-worlds.test.js tests/nightly/references.test.js` checks the count, the sheets and the
    build; add the world's own checks there.
 
 Adding views to a world: add them to its module and raise its `count` (the test fails until it is).
@@ -895,7 +895,7 @@ the narrowest creases.
   made the pillars and cranes lean in like a fisheye. With `shift` the camera looks level and the screen is a window
   of a taller frame centred on eye level (`camera.setViewOffset`, as the title vista's tall screens use): eye level
   crosses the panel's box at its `horizon`, verticals stay vertical. Released with the held camera (the offset
-  cleared); views without `shift` are unchanged. tests/references.test.js applies it when it checks the horizon.
+  cleared); views without `shift` are unchanged. tests/nightly/references.test.js applies it when it checks the horizon.
 - **The shapes** (the kit): `moon` (an ivory sphere; craters are shallow rimmed dents laid on it, each vertex on the
   sphere, so their inner wall shades as the sheets' crescents; `cut` breaks it open: a ragged hole, the shell's
   thickness, its inside in its own tone), `courtyard` (a floor across a broken moon just over the hole's lip, so the

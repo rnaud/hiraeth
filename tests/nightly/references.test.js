@@ -1,13 +1,15 @@
+// Nightly, not on every push (.github/workflows/nightly-tests.yml): the art-reference gallery (a developer world,
+// never on the route) builds every reference world, ~40 s of each run, for a tool, not the game players get.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { LEVELS } from '../src/levels/index.js';
-import { ORDER, CONTENT } from '../src/levels/content.js';
-import { createReferences, viewCamera, frameBox, lensShift, sunHour, sunTurn, cropStyle, worldPeople, VIEW_EXTENT } from '../src/levels/references.js';
-import { REFERENCE_VIEWS, REFERENCE_SHEETS } from '../src/levels/reference-views.js';
-import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../src/levels/reference-worlds.js';
-import { COSTUMES } from '../src/costumes.js';
-import { applyTimeOfDay } from '../src/timeofday.js';
+import { LEVELS } from '../../src/levels/index.js';
+import { ORDER, CONTENT } from '../../src/levels/content.js';
+import { createReferences, viewCamera, frameBox, lensShift, sunHour, sunTurn, cropStyle, worldPeople, VIEW_EXTENT } from '../../src/levels/references.js';
+import { REFERENCE_VIEWS, REFERENCE_SHEETS } from '../../src/levels/reference-views.js';
+import { REFERENCE_WORLDS, loadWorld, worldIndex } from '../../src/levels/reference-worlds.js';
+import { COSTUMES } from '../../src/costumes.js';
+import { applyTimeOfDay } from '../../src/timeofday.js';
 
 // one world's views at a time, as the level builds them (each built once, then shared by the tests)
 const built = new Map();
@@ -212,8 +214,8 @@ test('Vael II\'s sheets after the City-Shaft\'s, panel by panel, framed and labe
   // its views build (the scene builder's pieces: needles, tables, stones, islands, monasteries, aqueducts, cloud, the tower, the bird)
   const { level } = await refs('vael2');
   for (const v of level.views.filter((x) => vael.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
-  const { WORLD_LOOKS } = await import('../src/levels/references.js');
-  const { SKY_STONES_LOOK, SKY_STONES_DAY } = await import('../src/levels/arzach2.js');
+  const { WORLD_LOOKS } = await import('../../src/levels/references.js');
+  const { SKY_STONES_LOOK, SKY_STONES_DAY } = await import('../../src/levels/arzach2.js');
   assert.equal(WORLD_LOOKS.vael2.sky, SKY_STONES_DAY);
   assert.ok(WORLD_LOOKS.vael2.look.uShadowFlat > 0 && WORLD_LOOKS.vael2.look.uCumulus === SKY_STONES_LOOK.uCumulus, 'the world\'s own look, its flat print carried for the views');
   assert.ok(WORLD_LOOKS.desert, '?look=desert still');
@@ -249,7 +251,7 @@ test('the Buried Machine\'s sheets after Vael II\'s, panel by panel, framed and 
   for (const v of buried) assert.ok(v.look.uSpot[0] > 0 && v.look.uSpot[3] > 0.3, `${v.id}: the sheets' spot blacks and dark cast shadows`);
   const { level } = await refs('buried');
   for (const v of level.views.filter((x) => buried.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
-  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  const { WORLD_LOOKS } = await import('../../src/levels/references.js');
   assert.ok(WORLD_LOOKS.buried.look.uSpot, '?look=buried');
 });
 
@@ -269,12 +271,12 @@ test('the Garden of Spheres\' sheets after the Buried Machine\'s, panel by panel
   assert.deepEqual([...new Set(world)].slice(0, 5), ['The Desert', 'The City-Shaft', 'Vael II, the Sky Stones', 'The Buried Machine', 'The Garden of Spheres']);
   const garden = REFERENCE_VIEWS.filter((v, i) => world[i] === 'The Garden of Spheres');
   assert.equal(garden.length, 22);
-  const { SPHERES_LOOK } = await import('../src/levels/spheres.js');
+  const { SPHERES_LOOK } = await import('../../src/levels/spheres.js');
   assert.ok(SPHERES_LOOK.uBounce === 0 && SPHERES_LOOK.uSpotTone[1] > SPHERES_LOOK.uSpotTone[0], 'dark canopy undersides, green spot blacks');
   for (const v of garden) assert.equal(v.look.uSpotTone, SPHERES_LOOK.uSpotTone, `${v.id}: the world's look`);
   const { level } = await refs('spheres');
   for (const v of level.views.filter((x) => garden.includes(x.def))) assert.ok(v.group.children.length > 1, `${v.def.id}: something stands in it`);
-  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  const { WORLD_LOOKS } = await import('../../src/levels/references.js');
   assert.ok(WORLD_LOOKS.spheres, '?look=spheres');
 });
 
@@ -296,7 +298,7 @@ test('Lorn II\'s sheets after the Garden of Spheres\', panel by panel, named for
   const { level } = await refs('lorn');
   assert.ok(level.lights.length > 20, 'the views\' glowing eggs, pools and doors light what is near');
   for (const l of level.lights) assert.ok(level.viewAt(l.x, l.z), 'each light in its own view (turned with it)');
-  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  const { WORLD_LOOKS } = await import('../../src/levels/references.js');
   assert.ok(WORLD_LOOKS.lorn2, '?look=lorn2');
 });
 
@@ -316,11 +318,11 @@ test('the Signal Market\'s sheets after Lorn II\'s, every panel, and the world\'
   const worlds = [...new Set(world)];   // (after Lorn II's; the new worlds' sheets come after it)
   assert.equal(worlds[worlds.indexOf('Lorn II') + 1], 'The Signal Market');
   assert.equal(world.filter((w) => w === 'The Signal Market').length, 21);
-  const { MARKET_FLAT } = await import('../src/levels/bazaar.js');
+  const { MARKET_FLAT } = await import('../../src/levels/bazaar.js');
   assert.ok(MARKET_FLAT > 0.5);
   const { readFile } = await import('node:fs/promises');
-  const src = await readFile(new URL('../src/levels/bazaar.js', import.meta.url), 'utf8');
+  const src = await readFile(new URL('../../src/levels/bazaar.js', import.meta.url), 'utf8');
   assert.ok((src.match(/\.\.\.PRINT/g) ?? []).length >= 5, 'the walls and shops print their shade flat');
-  const { WORLD_LOOKS } = await import('../src/levels/references.js');
+  const { WORLD_LOOKS } = await import('../../src/levels/references.js');
   assert.ok(WORLD_LOOKS.bazaar, '?look=bazaar');
 });

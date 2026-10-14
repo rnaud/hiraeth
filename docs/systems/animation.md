@@ -292,7 +292,7 @@ reference views: spread (fold 0) they beat; folded (fold 1, `FOLD`) each arm rol
 sweeps back along her flank, its feathers drawn in to half their depth and the hand to a third of its size,
 so the folded wing lies against her side and ends at her tail (the shoulder turns in YXZ order for that:
 roll first, then sweep). Vael's bow (`src/story/arzach.js`) opens the fold the same way. `tests/birds.test.js`
-holds a standing bird's wings within a hand of her side and her feet on the ground; `tests/references.test.js`
+holds a standing bird's wings within a hand of her side and her feet on the ground; `tests/nightly/references.test.js`
 holds every Vael II view's bird either on its feet (standing) or well clear of the ground (flying), never a
 flying pose hovering just over it.
 

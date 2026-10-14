@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { readFile as readFileP } from 'node:fs/promises';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -133,21 +132,14 @@ test('the glove\'s knuckles light for the charges left, its plate in the mode\'s
   tool.dispose();
 });
 
-test('the coral-shirt traveller (the game\'s) wears the glove on his own mesh', async () => {
+test('the game\'s traveller (B3, src/characters/traveller.js) wears the glove on his own mesh', async () => {
   const element = () => ({ classList: { add() {}, remove() {}, toggle() {} }, style: {}, dataset: {}, addEventListener() {}, appendChild() {}, remove() {}, querySelector: () => null });
   globalThis.document ??= { createElement: element, body: element(), getElementById: () => null, querySelector: () => null };
-  const { parseBody } = await import('../src/makehuman/body.js');
-  const { createTravellerV1 } = await import('../src/characters/traveller-v1.js');
-  const b = readFileSync('public/anim/mh/body.bin'), data = parseBody(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-  const dir = 'public/characters/traveller-v1/';
-  const report = JSON.parse(readFileSync(dir + 'rig.json')), colors = JSON.parse(readFileSync(dir + 'colors.json'));
-  const g = readFileSync(dir + 'model.glb'), n = g.readUInt32LE(12), json = JSON.parse(g.toString('utf8', 20, 20 + n)), bin = g.subarray(28 + n);
-  json.buffers = [{ uri: 'data:application/octet-stream;base64,' + bin.toString('base64'), byteLength: bin.length }];
-  delete json.images; delete json.textures; delete json.materials; for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-  const gltf = await new GLTFLoader().parseAsync(JSON.stringify(json), '');
+  const { createTraveller } = await import('../src/characters/traveller.js');
+  const { travellerB3 } = await import('./gait-sim.js');
   const char = buildCharacter();
   char.root.position.set(40, 3, -20); char.root.rotation.y = 2;
-  const { humanoid: h, mesh } = createTravellerV1(char, { gltf, data, report, colors });
+  const { humanoid: h, mesh } = createTraveller(char, await travellerB3());
   const G = h.glove;
   assert.ok(G && G.meshes.length === 8 && G.vial && G.meshes.every((m) => m.skeleton === mesh.skeleton && !m.visible));
   char.root.updateMatrixWorld(true); mesh.skeleton.update();

@@ -41,7 +41,7 @@ test('a fresh match moves as the body does: standing, a standing frame; walking,
 test('matching takes over from the loops on their own copy in the database, in step', async () => {
   const THREE = await import('three');
   const { course, traveller, drive } = await import('./gait-sim.js');
-  const p = await traveller(course(), new THREE.Vector3(0, 0, -60), { matching: false, body: 'v1' });
+  const p = await traveller(course(), new THREE.Vector3(0, 0, -60), { matching: false, body: 'b3' });
   drive(p, [[1, {}], [1.5, { KeyW: true }]]);
   const A = p.animator, db = A.lib.motion.db, f = A.gameLoopFrame(db), seg = db.segments[db.segOf[f]];
   assert.match(seg.name, /^game:(jog|jog-walk)$/, `jogging at the game's walk: the jog's copy (${seg.name})`);

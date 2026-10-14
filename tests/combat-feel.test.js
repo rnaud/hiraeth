@@ -137,7 +137,7 @@ test('the cut meets you halfway: a foe just out of reach is stepped to, one in r
 test('a press during an evade is kept, and the blade swings as the evade ends', async () => {
   clearTargets();
   items.grant('backpack');
-  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const tick = (input = {}) => { p.update(DT, input, CAM_PLUS_Z); tool.update(DT, input); };
@@ -233,7 +233,7 @@ test('the rising cut: a swing from the ground at a foe hovering over you leaps u
   assert.ok(riseTo(9, 2, 0.4).up ** 2 / (2 * GRAVITY) <= RISE.max + 1e-9, 'never past RISE.max');
   clearTargets();
   items.grant('backpack');
-  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'v1' });
+  const scene = course(), p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'b3' });
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 2, -65); camera.lookAt(0, 1, -55); camera.updateMatrixWorld();
   const tool = new FluidTool({ scene, player: p, physics: p.physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
   const tick = (input = {}) => { p.update(DT, input, CAM_PLUS_Z); tool.update(DT, input); };

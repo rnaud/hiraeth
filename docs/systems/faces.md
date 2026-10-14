@@ -312,7 +312,7 @@ uniforms a frame.
 - **Cost**: at the Handheld preset in headless Chrome on the Mac, the GPU time with the face on and
   off was the same within noise (about 6.9 against 7.1 ms over the normal follow camera). The CPU
   work is a few multiplies a frame with no allocation, and none of it touches the cloth worker.
-- `tests/tripo-face.test.js` checks each channel on the state, the blink and gaze, and the shader's
+- `tests/tripo-face.test.js` checked (until the v1 body's tests went, 2026-10-14) each channel on the state, the blink and gaze, and the shader's
   uniforms. On the real body it checks the expression, the blink and the talking mouth reaching his
   material, through `markHero`.
 
@@ -422,5 +422,5 @@ and a matrix inverse per draw of the head (`onBeforeRender`). Nothing on the CPU
 texture, no new draw.
 
 `tests/head-ink.test.js` (the eye against the paint's, the channels, the gaze, the camera's side, the
-shader's parts); `tests/traveller-v1.test.js` (the drawn face on the real head, through `markHero`:
+shader's parts); `tests/traveller-v1.test.js` (gone with the v1 body's tests, 2026-10-14: the drawn face on the real head, through `markHero`:
 the blink shuts the drawn lids, the gaze moves no skin, the side for a camera on either side).
