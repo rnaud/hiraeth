@@ -12,6 +12,7 @@ import { Physics } from '../src/physics.js';
 import { Player, CameraRig, OPEN_DIST, OPEN_LOOK } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
 import { ArrivalDirector, APPROACH } from '../src/ship/cinematics.js';
+import { LANDING, landingDur } from '../src/ship/flight.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { ORDER } from '../src/levels/names.js';
 import { game } from '../src/game-state.js';
@@ -67,6 +68,11 @@ for (const id of ORDER) {
       assert.ok(AV.inFrame(low), `${id}: the ship in the frame as it comes down (${low.x.toFixed(2)}, ${low.y.toFixed(2)})`);
       assert.ok(los(view.pos, [v.ship[0], v.ship[1] + 12, v.ship[2]]), `${id}: nothing between the lens and the ship`);
     }
+    // (issue #354) it glides in nose first along its bow from well back, in the frame for the last 60 % of the way
+    // (the bow: the hatch faces the ship's left, so the bow is the ramp's way turned a quarter round)
+    const o = [v.stand[0] - v.ship[0], v.stand[2] - v.ship[2]], n = Math.hypot(...o), fwd = [-o[1] / n, 0, o[0] / n];
+    const back = AV.wideBack(v.wide, v.ship, fwd);
+    assert.ok(back >= 150, `${id}: it glides in from ${back} m back`);
   });
 
   test(`${id}: the first step out faces the world's best view, its main landmarks in the rig's frame`, async () => {
@@ -132,7 +138,7 @@ test('the establishing descent and the first step out play once per world per sa
   // again in the same save: the short arrival, no drift
   const again = new ArrivalDirector(ship);
   assert.equal(again.steps[2].dur, APPROACH.sky, 'the short drop out of the clouds');
-  assert.equal(again.steps[3].dur, 4.2);
+  assert.ok(Math.abs(again.steps[3].dur - (landingDur(LANDING) - APPROACH.sky)) < 1e-9, 'the rest of the way in, the hover and the drop');
   play(ship);
   assert.equal(ship.reveal, null, 'no drift the second time');
   // another world: its own first time

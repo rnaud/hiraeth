@@ -150,9 +150,12 @@ the same entries in the same order, moved through by the web's own rules, and `v
   of the ship's ramp (`ship.arrivalSpot()`, a new save, another world) in the world `-level` names (the desert).
 - **the Start menu** (Menu / Esc): Resume, Items, Quests, Map, Settings, Controls, Quit to title on a sidebar,
   its page beside it (`sideStep`, issue #210: right into the page, left back, up / down round each; a slider's,
-  a switch's or a choice's left / right its value; B / ○ in the page back to the sidebar first). Settings:
-  music, effects, voices, mute, the camera's sensitivity and Y, hints, Graphics (read by BridgeArgs.Quality at
-  the next start). Controls: the pad's list (ui.js `controlsList`).
+  a switch's or a choice's left / right its value; B / ○ in the page back to the sidebar first), the save under
+  its heading as the web's ("Save 1 · The Desert · 12 min played", `saveLine`). Settings: music, effects, voices,
+  mute, the camera's sensitivity and Y, Reduce motion and Camera shake (src/feel.js through `applyAccess`), the
+  controller buttons, Rumble and its strength, hints, Graphics (read by BridgeArgs.Quality at the next start),
+  Text size, the plain speech background and Show FPS (issue #346; below, "The title and the settings"); the web's
+  Language is left out (no other language for now). Controls: the pad's list (ui.js `controlsList`).
 - **the game menu** (View / Select, J): the five panels (`PANELS`, Quests first), their rows from game-menu.js's
   own builders fed by `game.menuSources()` (src/game-menu-data.js `menuSources` with the engine's parts: the
   journal's record from the save, `engineJournal`; the quests, the charge, the items owned, the boxes; the Map's
@@ -203,6 +206,40 @@ and the slots still to find follow the gear as faint, unnamed tiles that the cur
 `.slot`: the picture on its paper in an ink frame up to 132 units, the name under it in two lines, the pad's in
 gold on its shadow with a red ring; the full view shows the picture large at its top right.
 
+**The title and the settings** (issue #346). The title is the web's: one of its painted worlds (src/title-paint.js:
+`chooseShot`, a different shot each opening, never the one shown last, the view's `shot`), the lettered name across the
+top and the entries a short column low at the left, placed by the web's own src/title-layout.js on the menus' canvas (the
+view's `layout`: logo and menu rectangles, the buttons' height, gap and type). `node scripts/engine-bundle.mjs unity`
+makes the pictures once, as the items' (`unityTitle`, sharp, not committed): each shot's vector drawing at 1920 × 1080 with
+the cover's cream print multiplied over it (title/<id>.jpg, 90-300 kB each, 2.4 MB in all with the rest), the name as
+src/title-logo.js letters it (title/logo.png, 2048 wide), and the Map's marks below. BridgeMenu crops the picture to the
+screen's shape (object-fit: cover) and draws the entries as the web's #title buttons (paper, a thin ink line, a vermilion
+shadow; the pad's in vermilion; Continue's vermilion edge). The settings the HUD honours go with the screen's state
+(engine/unity/game.js `access`: `ts` from src/ui.js TEXT_SIZES, `solid`, `fps`): BridgeHud's conversation, hints, toasts,
+prompts and subtitles take their type × ts (the panel in em grows with it); the plain background turns the panel white
+with black words and no ruled lines, the hints black and white, as the page's .speech-solid; Show FPS puts the readout
+bottom right ("UNITY D3D12 · 60 fps · 16.7 ms (cpu, gpu)"), or BridgeMetrics' own where it measures (always on the
+Xbox: its line now shows only with Show FPS on or `-metrics` given). Rumble: the bundle's pad carries a
+`vibrationActuator` (src/rumble.js plays its patterns on it) that calls BridgeHost.Rumble, Unity's
+`Gamepad.SetMotorSpeeds` for the pulse's length (nothing where Unity's pad has no motors); engine/game.js plays the
+web's hurt, potion, landing and knockdown patterns as main.js does. Tests: tests/engine-menus.test.js.
+
+**The Map** (issue #343). The web's (#244, #272): the whole sheet, no list beside it, as wide as BridgeMenu's room for it
+(BridgeHost.MenuMapBox, `mapShape`: src/world-map.js mapAspect, 2.4 on 16:9, 1.7 on the Retroid's 4:3), a cursor
+(src/world-map.js MapView) the left stick moves smoothly (the controller's `menuAnalog`, EngineMenus `analog`) and the
+D-pad a step, RT / LT zooming round it, A / × twice as close (at the closest the whole map again), B / ○ the whole map
+first, then out. The view sends the marks already placed on the sheet (`x`, `y`, the traveller's `deg`), the cursor, the
+zoom (`z`, `u0`, `v0`), the name and line of the mark under the cursor (`tip`, also the strip's), the scale for the zoom,
+the note; BridgeMenu draws the ground on a plane the view scales and moves (clipped to the sheet), the marks as the web's
+own pictures (engine/map-marks.js: MARK_SYM and game-menu.css's colours, made PNGs by the bundle), the ring round the one
+under the cursor, the world's name, north, the scale bar, the zoom's triggers. Zoomed in twice or more and at rest 0.4 s,
+the part in view is drawn again sharper (`detailWindow`, `MAP.zoomCells`), sent and laid over the whole; BridgeMenu keeps
+the last 8 pictures. The ground is drawTerrain's smooth one now: engine/raster.js has `offscreen`, `putImageData` and
+`drawImage` (bilinear, weighed by cover), so the grid's colours are spread over the map as the page's canvas does instead
+of cell by cell (the blocks seen on the Xbox at 1440p), at MAP.size (640 px) its short side: ~100 ms for a 1508 × 640 map
+(a synthetic grid's drawing in Node on the Mac). The engine's map source has the web's quests (kind 'quest'), the people with a word for you left out
+of those met, and the note.
+
 **The Map's ground** (issue #264). As on the web (src/world-map.js, main.js `mapSource`), engine/game.js keeps a
 `WorldMap` whose rays sample the world's collision straight down (`physics.groundAt`, the open water by
 `waters.surfaceAt`), `MAP.budget` ms a frame while the Map is open (the menu told every eighth frame how far, for its
@@ -210,7 +247,8 @@ gold on its shadow with a red ring; the full view shows the picture large at its
 (512 px: fillRect, the paths' strokes as a coverage mask blended once, strokeRect, '#hex' / 'rgb' / 'rgba'), kept by
 its key for the session (the whole map and each zoom). The view's `map.ground` names it; the bundle sends the RGBA
 once, before the state that names it (`game.mapPicture(key)`, `BridgeHost.MapImage`), and BridgeMenu makes it a
-texture (`SetMap`) under the marks, with the scale bar (`map.scale`). The drawing is one call of ~40-120 ms on the
+texture (`SetMap`) under the marks, with the scale bar (`map.scale`). (Since issue #343: at the map's shape and smoothed,
+above.) The drawing is one call of ~40-120 ms on the
 Mac (the desert's whole map, rays and drawing: 63 ms in the VM), once a map, while the world is paused under the
 menu. Tests: tests/engine-raster.test.js, tests/engine-unity.test.js (the bundle's Map: one 512 × 512 picture sent
 before it shows). The marks' list beside it is narrow on the Retroid's 4:3: each line is as tall as its words

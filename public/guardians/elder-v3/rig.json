@@ -2,15 +2,15 @@
   "input": "references/guardians/elder/source-v3.glb",
   "sourceSha256": "dfc099830284fff48127cbe003998b7170c2a1b67fd67ffee107014ff36388d9",
   "output": "public/guardians/elder-v3/model.glb",
-  "bytes": 2657108,
+  "bytes": 2673832,
   "vertices": 28724,
   "bones": {
-    "body": 6792,
+    "body": 6868,
     "neck0": 753,
     "neck1": 844,
     "neck2": 502,
-    "neck3": 584,
-    "head": 1104,
+    "neck3": 595,
+    "head": 1154,
     "jaw": 219,
     "wing0_0": 2227,
     "wing0_1": 5509,
@@ -20,15 +20,35 @@
     "wing1_1": 4906,
     "wing1_2": 5280,
     "wing1_3": 2090,
-    "tail0": 614,
+    "tail0": 612,
     "tail1": 1467,
-    "leg0_thigh": 519,
+    "leg0_thigh": 438,
     "leg0_shin": 297,
     "leg0_foot": 695,
-    "leg1_thigh": 516,
+    "leg1_thigh": 419,
     "leg1_shin": 314,
     "leg1_foot": 730
   },
   "animation": "Runtime shared motion kit; no baked clips",
-  "texture": "2K JPEG, original ink retained; lighting neutrality remains under review"
+  "texture": "2K JPEG, original ink retained; baked light lifted (scripts/tripo/elder-delight.mjs)",
+  "delight": {
+    "cream": {
+      "pixels": 3354603,
+      "lit": 211.1,
+      "before": 0.148,
+      "after": 0.034
+    },
+    "pink": {
+      "pixels": 335391,
+      "lit": 170.2,
+      "before": 0.05,
+      "after": 0.05
+    },
+    "tan": {
+      "pixels": 469343,
+      "lit": 178.7,
+      "before": 0.141,
+      "after": 0.039
+    }
+  }
 }

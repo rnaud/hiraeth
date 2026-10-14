@@ -31,13 +31,23 @@ namespace Hiraeth.Bridge
         Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText;
         readonly List<(Ui.Box box, Label num, Label text, Image line)> dlgChoices = new();
         /// <summary>The panel's type in canvas px (the canvas is 720 tall: index.html #dialogue's --dlg, 2.9 % of the
-        /// screen's height, issue #147), and the sizes the rest of the panel takes from it (in em, as the page's).</summary>
-        const int Body = 21, AnswerSize = 20, NameSize = 22, TitleSize = 16, LetterSize = 44;
-        const float Em = Body, ChipD = 4.6f * Em;
+        /// screen's height, issue #147), and the sizes the rest of the panel takes from it (in em, as the page's):
+        /// × the Text size setting (src/ui.js TEXT_SIZES, the page's --ts; issue #346): the
+        /// conversation's panel grows with its words (its sizes are in em), as do the hints and the subtitles.</summary>
+        float ts = 1;
+        int Sz(float px) => Mathf.RoundToInt(px * ts);
+        int Body => Sz(21); int AnswerSize => Sz(20); int NameSize => Sz(22);
+        const int TitleSize = 16, LetterSize = 44;
+        float Em => Body;
+        const float ChipD = 4.6f * 21;   // (the portrait's chip keeps its size)
         static readonly Color Muted = Ui.Hex("#5e4b45");
         /// <summary>Every hint one look, one place (issue #306, src/hint-look.js HINT_ENGINE): a near-black strip, cream
-        /// letters, at the top centre; the cue first, the toast under it.</summary>
-        static readonly Color HintBg = new Color(18 / 255f, 14 / 255f, 13 / 255f, 0.92f), HintInk = Ui.Hex("#f7ecd2");
+        /// letters, at the top centre; the cue first, the toast under it. With the plain speech background (the page's
+        /// .speech-solid, issue #346): black and white, the conversation's panel plain white with black words.</summary>
+        static readonly Color HintBg0 = new Color(18 / 255f, 14 / 255f, 13 / 255f, 0.92f), HintInk0 = Ui.Hex("#f7ecd2");
+        bool solid, showFps;
+        Color HintBg => solid ? Color.black : HintBg0;
+        Color HintInk => solid ? Color.white : HintInk0;
         const float HintTop = 12, HintGap = 8;
         float cueBottom;   // (where the cue ends this frame: the toast stacks under it)
 
@@ -48,7 +58,9 @@ namespace Hiraeth.Bridge
         static void Warm(Font f)
         {
             const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦×éèàçôûâêîïüöäñ○□△↑↓←→⥉●☾✒◯◗◎⌇⧗∩✺♪";
-            foreach (var size in new[] { 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 24, 25, 28, 36, 44 })
+            var sizes = new HashSet<int> { 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 24, 25, 28, 36, 44 };
+            foreach (var k in new[] { 0.85f, 1.2f, 1.45f }) foreach (var px in new[] { 12, 13, 20, 21, 22 }) sizes.Add(Mathf.RoundToInt(px * k));   // (the Text size setting's)
+            foreach (var size in sizes)
                 foreach (var st in new[] { FontStyle.Normal, FontStyle.Bold, FontStyle.Italic })
                     f.RequestCharactersInTexture(chars, size, st);
         }
@@ -59,15 +71,15 @@ namespace Hiraeth.Bridge
             root = Hud.MakeCanvas(cam, "HUD (JS bridge)", 100);
             root.SetParent(transform, false);
             var mono = Ui.Mono;
-            toast = Ui.Panel(root, "toast", HintBg, HintBg, 0, 0, 0, 4);
-            toastText = Ui.Label(toast.rt, "text", mono, 13, HintInk, TextAnchor.UpperCenter);
-            cue = Ui.Panel(root, "cue", HintBg, HintBg, 0, 0, 0, 4);
-            cueText = Ui.Label(cue.rt, "text", mono, 13, HintInk, TextAnchor.MiddleCenter);
-            prompt = Ui.Panel(root, "prompt", HintBg, HintBg, 0, 0, 0, 12);
-            promptKey = Ui.Rect(prompt.rt, HintInk, 11, "key");
+            toast = Ui.Panel(root, "toast", HintBg0, HintBg0, 0, 0, 0, 4);
+            toastText = Ui.Label(toast.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);
+            cue = Ui.Panel(root, "cue", HintBg0, HintBg0, 0, 0, 0, 4);
+            cueText = Ui.Label(cue.rt, "text", mono, 13, HintInk0, TextAnchor.MiddleCenter);
+            prompt = Ui.Panel(root, "prompt", HintBg0, HintBg0, 0, 0, 0, 12);
+            promptKey = Ui.Rect(prompt.rt, HintInk0, 11, "key");
             promptKeyText = Ui.Label(promptKey.rectTransform, "k", mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Stretch(promptKeyText.rectTransform);
-            promptText = Ui.Label(prompt.rt, "text", mono, 12, HintInk, TextAnchor.MiddleLeft);
+            promptText = Ui.Label(prompt.rt, "text", mono, 12, HintInk0, TextAnchor.MiddleLeft);
             health = Ui.Panel(root, "health", Ui.Page, Ui.Ink, 2, 2, 2, 6);
             healthFill = Ui.Rect(health.fill.rectTransform, Ui.Hp, 0, "hp");
             healthEdge = Ui.Rect(health.fill.rectTransform, Ui.Ink, 0, "edge");
@@ -82,6 +94,33 @@ namespace Hiraeth.Bridge
             BuildGadgets(mono);
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
+            fpsBox = Ui.Panel(root, "fps", new Color(1, 250 / 255f, 240 / 255f, 0.8f), Ui.Ink, 1.5f);
+            fpsText = Ui.Label(fpsBox.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleLeft);
+            fpsBox.Show(false);
+        }
+
+        // the frame readout (Settings > Show FPS and frame time; the page's #fps, src/main.js frameReadout): the engine, the
+        // frames a second and their ms, the script's and the GPU's, bottom right; BridgeMetrics' own while it measures
+        Ui.Box fpsBox; Label fpsText;
+        float fpsT; int fpsN; double fpsCpu, fpsGpu;
+        /// <summary>Is the player's readout on (BridgeMetrics shows its own then, and only then, unless -metrics asks).</summary>
+        public static bool ShowFps;
+        void DrawFps()
+        {
+            ShowFps = showFps;
+            bool on = showFps && !BridgeMetrics.Overlay;
+            fpsBox.Show(on);
+            fpsN++; fpsT += Time.unscaledDeltaTime;
+            var r = BridgeHost.Runner;
+            if (r) { fpsCpu += r.cpuMs; fpsGpu += r.gpuMs; }
+            if (fpsT < 0.5f) return;
+            float fps = fpsN / fpsT;
+            var text = $"UNITY {SystemInfo.graphicsDeviceType} · {fps:0} fps · {1000 / fps:0.0} ms (cpu {fpsCpu / fpsN:0.0} gpu {fpsGpu / fpsN:0.0})";
+            fpsN = 0; fpsT = 0; fpsCpu = 0; fpsGpu = 0;
+            if (!on) return;
+            var s = Ui.Set(fpsText, text, 900);
+            Ui.Place(fpsText.rectTransform, 7, 3, s.x, 16);
+            Ui.Place(fpsBox.rt, W - 64 - (s.x + 14), H - 22 - 22, s.x + 14, 22);
         }
 
         // the ship's scenes (src/ship/cinema.js, screen 'cine' and 'sub'; issue #264): the letterbox, the fade, the red
@@ -98,12 +137,12 @@ namespace Hiraeth.Bridge
             cineRed = Ui.Fill(root, new Color(170 / 255f, 30 / 255f, 25 / 255f, 1), 0, "cine red"); cineRed.raycastTarget = false;
             cineFade = Ui.Fill(root, CineInk, 0, "cine fade"); cineFade.raycastTarget = false;
             barTop = Ui.Rect(root, CineInk, 0, "cine bar top"); barBot = Ui.Rect(root, CineInk, 0, "cine bar bottom");
-            cineHint = Ui.Panel(root, "cine hint", HintBg, HintBg, 0, 0, 0, 4);
-            cineHintText = Ui.Label(cineHint.rt, "text", mono, 13, HintInk, TextAnchor.UpperCenter);
+            cineHint = Ui.Panel(root, "cine hint", HintBg0, HintBg0, 0, 0, 0, 4);
+            cineHintText = Ui.Label(cineHint.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);
             subBox = Ui.Panel(root, "cine sub", SubPaper, CineInk, 2, 3, 3);
             subText = Ui.Label(subBox.rt, "text", mono, SubSize, CineInk, TextAnchor.UpperCenter, lineSpacing: 1.25f);
             skipBox = Ui.Panel(root, "cine skip", new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.82f), Color.clear, 0);
-            skipText = Ui.Label(skipBox.rt, "text", mono, 12, HintInk, TextAnchor.MiddleLeft);
+            skipText = Ui.Label(skipBox.rt, "text", mono, 12, HintInk0, TextAnchor.MiddleLeft);
             skipTrack = Ui.Rect(skipBox.rt, HintInk, 0, "track"); skipFill = Ui.Rect(skipTrack.rectTransform, Ui.Gold, 0, "fill");
         }
 
@@ -131,7 +170,8 @@ namespace Hiraeth.Bridge
             Show(cineHint, hint.Length > 0);
             if (hint.Length > 0)
             {
-                var s = Ui.Set(cineHintText, Text.Plain(hint), Mathf.Min(560, W - 60));
+                cineHint.SetFill(HintBg); cineHintText.color = HintInk; cineHintText.fontSize = Sz(13);
+                var s = Ui.Set(cineHintText, Text.Plain(hint), Mathf.Min(560 * ts, W - 60));
                 Ui.Place(cineHintText.rectTransform, 14, 6, s.x, s.y);
                 Ui.Place(cineHint.rt, W / 2 - (s.x + 28) / 2, Mathf.Max(barH * H, cueBottom) + 12, s.x + 28, s.y + 12);
             }
@@ -144,7 +184,9 @@ namespace Hiraeth.Bridge
                 string who = sub.S("who") ?? "", cls = sub.S("cls") ?? "";
                 string col = cls == "father" ? "#7a3a35" : cls == "mother" ? "#277e86" : cls == "ship" ? "#c8483a" : "#2b211f";
                 var body = (who.Length > 0 ? $"<b><color={col}>{who}</color></b>  " : "") + Ui.Rich(Text.Plain(sub.S("text") ?? ""));
-                var s = Ui.Set(subText, body, Mathf.Min(46 * SubSize, W - 64));
+                subText.fontSize = Sz(SubSize);
+                subBox.SetFill(solid ? Color.white : SubPaper); subText.color = solid ? Color.black : CineInk;
+                var s = Ui.Set(subText, body, Mathf.Min(46 * Sz(SubSize), W - 64));
                 Ui.Place(subText.rectTransform, 12, 5, s.x, s.y);
                 float w = s.x + 24, h = s.y + 11;
                 Ui.Place(subBox.rt, W / 2 - w / 2, H - Mathf.Max(barH * H, 26) - 14 - h, w, h);
@@ -230,6 +272,12 @@ namespace Hiraeth.Bridge
             var canvas = root.GetComponent<Canvas>();
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 3);
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
+            // the accessibility settings sent with the screen's state (engine/unity/game.js access)
+            var acc = state.O("access");
+            ts = Mathf.Clamp(acc?.F("ts", 1) ?? 1, 0.6f, 2f);
+            solid = acc != null && acc.Get("solid") is bool so && so;
+            showFps = acc != null && acc.Get("fps") is bool fp && fp;
+            DrawFps();
             var d = state.O("dialogue");
             // (a ship's scene hides the game's HUD, cinema.hud(false), but for the cue in a scene you walk through,
             // cinema.controls(true); its own pieces drawn over everything)
@@ -492,6 +540,7 @@ namespace Hiraeth.Bridge
             if (!on) return;
             float k = toastT / toastSecs;
             float a = k < 0.08f ? k / 0.08f : k < 0.8f ? 1 : 1 - (k - 0.8f) / 0.2f;
+            toast.SetFill(HintBg); toastText.color = HintInk; toastText.fontSize = Sz(13);
             var s = Ui.Set(toastText, Text.Plain(t.S("text")), Mathf.Min(900, W - 60));
             Ui.Place(toastText.rectTransform, 14, 8, s.x, s.y);
             float w = s.x + 28, h = s.y + 16;
@@ -508,8 +557,9 @@ namespace Hiraeth.Bridge
             bool place = c.S("kind") == "place";
             cueText.fontStyle = place ? FontStyle.Italic : FontStyle.Normal;
             // (a region's name: letters on the land, no strip, as the page's #cue.place)
-            cue.SetFill(place ? Color.clear : HintBg);
-            cueText.color = place ? Ui.Ink : HintInk;
+            cue.SetFill(place ? (solid ? Color.white : Color.clear) : HintBg);
+            cueText.color = place ? (solid ? Color.black : Ui.Ink) : HintInk;
+            cueText.fontSize = Sz(13);
             var s = Ui.Set(cueText, c.S("text"), Mathf.Min(900, W - 60));
             float w = s.x + 24, h = s.y + 12;
             Ui.Place(cueText.rectTransform, 12, 6, s.x, s.y);
@@ -523,12 +573,16 @@ namespace Hiraeth.Bridge
             Show(prompt, at.HasValue);
             if (!at.HasValue) return;
             var key = p.S("key", "E");
+            prompt.SetFill(HintBg); promptKey.color = HintInk; promptText.color = HintInk;
+            promptText.fontSize = Sz(12); promptKeyText.fontSize = Sz(11);
             promptKeyText.text = key;
             float kw = Mathf.Max(21, Ui.Measure(promptKeyText, key).x + 10);
             Ui.Place(promptKey.rectTransform, 4, 3, kw, 21);
             var s = Ui.Set(promptText, p.S("text"), 360);
-            Ui.Place(promptText.rectTransform, 4 + kw + 6, 3, s.x, 21);
-            float w = 4 + kw + 6 + s.x + 10, h = 27;
+            float lh = Mathf.Max(21, Sz(12) * 1.6f);
+            Ui.Place(promptKey.rectTransform, 4, 3, kw, lh);
+            Ui.Place(promptText.rectTransform, 4 + kw + 6, 3, s.x, lh);
+            float w = 4 + kw + 6 + s.x + 10, h = lh + 6;
             Ui.Place(prompt.rt, Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), Mathf.Clamp(at.Value.y - h, 8, H - h - 8), w, h);
         }
 
@@ -576,6 +630,11 @@ namespace Hiraeth.Bridge
             var shown = text.Substring(0, done ? text.Length : n);
             if (System.Linq.Enumerable.Count(shown, ch => ch == '*') % 2 == 1) { int i = shown.LastIndexOf('*'); shown = shown.Remove(i, 1); }
             var choices = d.L("choices") ?? new List<object>();
+            // (the words at the Text size setting's size, the panel in em with them; the plain background: white, black words, no ruled lines)
+            dlgText.fontSize = Body; dlgName.fontSize = NameSize;
+            dlgPanel.SetFill(solid ? Color.white : Ui.Paper);
+            dlgText.color = solid ? Color.black : Ui.Ink;
+            Show(dlgLines, !solid);
             // (the page whole at once, issue #147: the bundle sends it all, shown = its length; the panel 46 em wide)
             float pw = Mathf.Min(46 * Em, W - 32);
             float padL = 6.3f * Em, padR = 1.3f * Em, padT = 1.95f * Em, padB = 0.85f * Em, cw = pw - padL - padR;
@@ -593,10 +652,11 @@ namespace Hiraeth.Bridge
                 if (!has) continue;
                 bool hi = i == sel;
                 num.text = (i + 1).ToString();
+                num.fontSize = AnswerSize; tx.fontSize = AnswerSize;
                 Ui.Place(num.rectTransform, 0, 2, keyW, AnswerSize * 1.4f);
                 var s = Ui.Set(tx, Ui.Rich(Text.Plain((choices[i] as Dictionary<string, object>).S("text"))), cw - keyW);
                 Ui.Place(tx.rectTransform, keyW, 2, s.x, s.y);
-                tx.color = hi ? Ui.Ink : Muted;
+                tx.color = hi ? (solid ? Color.black : Ui.Ink) : (solid ? Ui.Hex("#333333") : Muted);
                 Show(line, hi);
                 Ui.Place(line.rectTransform, keyW, 2 + s.y + 1, s.x, 2.2f);
                 float bh = Mathf.Max(AnswerSize * 1.4f, s.y) + 6;
@@ -608,7 +668,7 @@ namespace Hiraeth.Bridge
             Ui.Place(dlg, W / 2 - pw / 2, H - 26 - ph, pw, ph);
             Ui.Place(dlgPanel.rt, 0, 0, pw, ph);
             dlgLines.Clear();
-            for (float ly = 1.7f * Em; ly < ph; ly += 1.7f * Em + 1) dlgLines.Box(new Rect(-pw / 2, ph / 2 - ly - 1, pw, 1), Ui.Hex("#2b211f", 0.05f));
+            if (!solid) for (float ly = 1.7f * Em; ly < ph; ly += 1.7f * Em + 1) dlgLines.Box(new Rect(-pw / 2, ph / 2 - ly - 1, pw, 1), Ui.Hex("#2b211f", 0.05f));
             Show(dlgMore, d.Get("more") is bool m && m);
             dlgMore.rectTransform.anchoredPosition = new Vector2(-1.4f * Em, 0.7f * Em + 3 * (0.5f - 0.5f * Mathf.Cos(Time.unscaledTime * Mathf.PI * 2)));
             Ui.Place(chip, 0.8f * Em, -2.1f * Em, ChipD, ChipD);

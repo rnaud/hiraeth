@@ -474,3 +474,79 @@ test('a shop\'s sheet (issue #264): the web\'s ShopPanel\'s wares as a list, A /
   p.action('confirm');
   assert.ok(photo === 1 && !p.open);
 });
+
+test('the Map in an engine (issue #343): the whole sheet at its room\'s shape, the cursor on the traveller, the stick and the D-pad move it, the triggers and A / × zoom round it, B back to the whole map, then out', () => {
+  const asked = [];
+  const src0 = sources();
+  const m = new EngineMenus({ store: memStore(), sources: { ...src0, map: (o) => { asked.push(o); return { ...src0.map(o), aspect: o.aspect, span: 400, scale: { frac: 0.2, label: '80 m' }, note: 'a note' }; } }, mapBox: () => ({ w: 1198, h: 508 }) });
+  m.show('game', 'map');
+  let v = m.view();
+  assert.equal(asked.at(-1).aspect, 2.4, 'the map as wide as the room lets it be (mapAspect)');
+  assert.deepEqual(v.rows, [], 'no list');
+  assert.deepEqual(v.map.cursor, [0.5, 0.5], 'the cursor on the traveller');
+  assert.equal(v.map.tip.name, 'You', 'what is under the cursor named beside it');
+  assert.equal(v.strip.name, 'You');
+  const you = v.map.marks.find((k) => k.kind === 'you');
+  assert.deepEqual([you.x, you.y, you.deg], [0.5, 0.5, 90]);
+  m.navigate(1, 0);
+  v = m.view();
+  assert.ok(v.map.cursor[0] > 0.5 && v.map.cursor[1] === 0.5, 'the D-pad: a step');
+  assert.ok(m.analog({ x: 0, y: 1, lt: 0, rt: 0 }, 0.2), 'the Map takes the stick');
+  assert.ok(m.view().map.cursor[1] > 0.5, 'the stick: smoothly');
+  m.analog({ rt: 1 }, 0.5);
+  assert.ok(m.view().map.z > 2, 'RT zooms in');
+  m.action('confirm');
+  assert.ok(m.view().map.z > 4, 'A / × twice as close');
+  m.mapMoved = 0; m.view();
+  assert.ok(asked.at(-1).detail, 'zoomed in and at rest: a sharper part asked for');
+  m.action('back');
+  assert.equal(m.view().map.z, 1, 'B: the whole map first');
+  m.action('back');
+  assert.equal(m.mode, null, 'then out of the menu');
+  // elsewhere the stick is the menu's steps
+  m.show('game', 'quests');
+  assert.equal(m.analog({ x: 1 }, 0.1), false);
+});
+
+test('the title in an engine (issue #346): one of the covers\' worlds behind it, the name and the entries laid out as the web\'s', () => {
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub(), screen: () => ({ w: 960, h: 720 }), shots: () => ({ id: 'H1' }) });
+  m.show('title');
+  const v = m.view();
+  assert.equal(v.shot, 'H1');
+  assert.ok(v.layout.logo.w > 700 && v.layout.logo.y < 80, JSON.stringify(v.layout.logo));
+  assert.ok(v.layout.menu.x < 60 && v.layout.menu.y > 500, 'the entries small, low at the left');
+  // the pictures the bridge shows: the bundle makes them from the web's drawings and lettering
+  assert.match(src('scripts/engine-bundle.mjs'), /export async function unityTitle/);
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /"title\/" \+ shot \+ "\.jpg"/);
+});
+
+test('the engine\'s settings (issue #346): the web\'s text size, plain speech background, frame readout, reduced motion, camera shake and rumble', () => {
+  const s = { ...settingsStub(), textSize: 'normal', speechBg: false, showFps: false, reduceMotion: null, shake: 1, rumble: true, rumbleLevel: 'medium' };
+  const m = new EngineMenus({ store: memStore(), settings: s });
+  for (const k of ['textSize', 'speechBg', 'showFps', 'reduceMotion', 'shake', 'rumble', 'rumbleLevel']) assert.ok(SETTINGS_ROWS.some((r) => r.k === k), k);
+  assert.ok(!SETTINGS_ROWS.some((r) => r.k === 'lang'), 'no language for now');
+  m.show('title'); m.navigate(0, 1); m.navigate(0, 1); m.action('confirm');
+  assert.equal(m.title.screen, 'settings');
+  const at = (k) => SETTINGS_ROWS.findIndex((r) => r.k === k);
+  const go = (k) => { while (m.title.at.i !== at(k)) m.navigate(0, 1); };
+  go('textSize'); m.navigate(1, 0);
+  assert.equal(s.textSize, 'large');
+  go('reduceMotion');
+  assert.equal(m.view().page.rows[at('reduceMotion')].val, 'Off', 'unset: as the system asks (here: no)');
+  m.action('confirm');
+  assert.equal(s.reduceMotion, true);
+  go('rumbleLevel'); m.navigate(-1, 0);
+  assert.equal(s.rumbleLevel, 'low');
+  // BridgeHud honours them: the words' size, the plain background, the readout (engine/unity/game.js access)
+  const g = src('engine/unity/game.js'), hud = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
+  assert.match(g, /state = \{ ts: TEXT_SIZES\[s\.textSize\] \?\? 1, solid: !!s\.speechBg, fps: !!s\.showFps \}/);
+  assert.match(hud, /ts = Mathf\.Clamp\(acc\?\.F\("ts", 1\)/);
+  assert.match(g, /playEffect\(kind, o = \{\}\) \{ host\.Rumble\(/, 'the pad\'s motors through BridgeHost.Rumble');
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs'), /g\.SetMotorSpeeds\(/);
+});
+
+test('the Start menu says the save under its heading, as the web\'s (issue #346)', () => {
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub(), where: () => 'The Desert', saveLine: () => 'Save 1 · The Desert · 10 min played' });
+  m.show('start');
+  assert.equal(m.view().line, 'Save 1 · The Desert · 10 min played');
+});

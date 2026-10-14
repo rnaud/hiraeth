@@ -254,10 +254,17 @@ namespace Hiraeth.Bridge
         static string Ms(float at) => at < 0 ? "?" : $"{at * 1000:0} ms";
 
         GUIStyle style;
+        /// <summary>
+        /// Is this readout on the screen: asked for (-metrics), or the player's Show FPS setting on (BridgeHud.ShowFps, issue
+        /// #346; the Xbox measures always, its readout shown only so); BridgeHud leaves its own off while it is.
+        /// </summary>
+        public static bool Overlay;
+        static readonly bool asked = BridgeArgs.Flag("-metrics");
         void OnGUI()
         {
+            Overlay = readout.Length > 0 && (asked || BridgeHud.ShowFps);
             // (not over a menu: it ran across the sheet's heading and the game menu's tabs on the console)
-            if (readout.Length == 0 || (runner && runner.menu && runner.menu.Open)) return;
+            if (!Overlay || (runner && runner.menu && runner.menu.Open)) return;
             style ??= new GUIStyle(GUI.skin.label) { fontSize = Mathf.Max(14, Screen.height / 60) };
             var text = "UNITY " + SystemInfo.graphicsDeviceType + " · " + readout;
             var r = new Rect(Screen.width * 0.05f, Screen.height * 0.05f, Screen.width * 0.9f, style.fontSize * 2);

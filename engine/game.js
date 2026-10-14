@@ -67,6 +67,8 @@ import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
 import { PixelCanvas } from './raster.js';
+import { GIVERS_NOTE } from '../src/story/signature.js';
+import { rumblePlay } from '../src/rumble.js';
 import { items as gear, ITEMS } from '../src/items.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
@@ -98,8 +100,6 @@ export { Raycaster } from 'three';   // (for the tests and the tools that probe 
 const SHOP_EL = { classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, setAttribute() {}, addEventListener() {}, querySelector: () => null, innerHTML: '' };
 /** Sound where the engine has none: every call taken, nothing played. */
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
-// the Map's drawn ground: its side in pixels (BridgeMenu shows it up to ~500 units of its 720-high canvas)
-const MAP_PX = 512;
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
 
 /** The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. */
@@ -247,6 +247,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
     killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
+    // (the pad shakes as on the web, main.js's: a hit by the hearts it cost, the potion, a hard landing or a knockdown;
+    // src/rumble.js, nothing without a pad that can, issue #346)
+    onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); },
+    onDrink: () => rumblePlay('potion'),
+    onKnockdown: (dead, why) => rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }),
   });
   const lib = await animLib;
   const gestureClips = await gesturesP;
@@ -523,6 +528,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     stickTaken: () => !!gadgets?.wheelOn,
     // (where the printed letters are: a Retroid's Nintendo letters, reported by letter, moved to positions; native-pad.js)
     faces: () => padFaces(),
+    // (the game menu's Map reads the left stick and the triggers itself: its cursor and zoom, engine/menus.js analog)
+    menuAnalog: (a, dt) => !!menus?.open && !!menus.analog?.(a, dt),
   });
 
   const noInput = {};
@@ -590,46 +597,62 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     return `engine:portrait:${n}`;
   }
   let simT = 0, frames = 0, saveIn = 10;
-  // the game menu's Map (main.js mapSource, src/world-map.js): the marks over the world's square, and its ground drawn
-  // as the web draws it, the world's collision sampled straight down a few milliseconds a frame while the Map is open
-  // (WorldMap.pump), then drawn by drawTerrain into a picture of its own (engine/raster.js PixelCanvas, MAP_PX square),
-  // which the engine shows (game.mapPicture(key): the Unity bridge's BridgeHost.MapImage)
-  let mapWhole = null, mapTop = 0, mapPics = 0;
-  const pictures = new Map();   // key → the drawn ground
+  // the game menu's Map (main.js mapSource, src/world-map.js): the marks over the world's rectangle (as wide as the
+  // engine's sheet for it, issue #272), and its ground drawn as the web draws it, the world's collision sampled straight
+  // down a few milliseconds a frame while the Map is open (WorldMap.pump), then drawn by drawTerrain into a picture of its
+  // own (engine/raster.js PixelCanvas, MAP.size its short side, smoothed as the page's canvas is), which the engine shows
+  // (game.mapPicture(key): the Unity bridge's BridgeHost.MapImage); zoomed in, a part of it drawn again sharper (detail)
+  let mapWhole = null, mapPics = 0;
+  const pictures = new Map();   // key → the drawn ground (those WorldMap still keeps)
   const worldMap = new WorldMap({
-    size: MAP_PX,
-    canvas: () => { const c = new PixelCanvas(MAP_PX); c.key = `map${++mapPics}`; pictures.set(c.key, c); return c; },
+    size: MAP.size,
+    canvas: () => { const c = new PixelCanvas(1); c.key = `map${++mapPics}`; pictures.set(c.key, c); return c; },
     sample: (x, z) => {
-      const h = physics.groundAt(x, mapTop, z, MAP.drop);
+      const h = physics.groundAt(x, mapWhole.top, z, MAP.drop);
       const w = Number.isFinite(h) ? waters?.surfaceAt?.(x, z, h, 1) : null;
       return { h, water: w && !w.body?.sea && w.y > h + 0.15 ? w.y : null };
     },
   });
-  worldMap.onReady = () => menus?.changed?.();
+  worldMap.onReady = () => {
+    // (the pictures WorldMap has let go of let go here too: a zoom's part each, a few MB apiece)
+    const kept = new Set([...worldMap.maps.values()].map((m) => m.canvas?.key).filter(Boolean));
+    for (const k of pictures.keys()) if (!kept.has(k)) pictures.delete(k);
+    menus?.changed?.();
+  };
   const temples = () => (level.temples ?? []).filter((t) => t.outside?.door?.at).map((t) => ({ id: t.id, name: t.def?.name, x: t.outside.door.at.x, z: t.outside.door.at.z, y: t.outside.door.at.y }));
-  function mapSource({ zoom = null } = {}) {
-    if (!mapWhole) {
-      const pts = [level.spawn, level.ship?.pos, ...temples(), ...npcs.map((n) => n.pos), ...(boxes?.list ?? []).map((b) => b.pos), player.pos].filter(Boolean);
-      mapWhole = mapBounds(pts, { limit: level.limit ?? Infinity });
-      mapTop = Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up;
+  function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
+    if (!mapWhole || mapWhole.aspect !== aspect) {
+      const pts = mapWhole?.pts ?? [level.spawn, level.ship?.pos, ...temples(), ...npcs.map((n) => n.pos), ...(boxes?.list ?? []).map((b) => b.pos), player.pos].filter(Boolean).map((p) => ({ x: p.x, y: p.y, z: p.z }));
+      mapWhole = { bounds: mapBounds(pts, { limit: level.limit ?? Infinity, aspect }), pts, aspect, top: mapWhole?.top ?? Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up };
     }
     const dir = player.frame.dir(player.heading, new THREE.Vector3());
     const goal = nextObjective({ player, story: null, ship: level.ship, level: { navigationPortals: [] }, quest: () => story?.objective?.() });
+    // (the people with a quest waiting for their talk: issue #273, as main.js mapSource)
+    const givers = (story?.quests?.giverMarks?.() ?? []).map((g) => ({ id: g.person, name: npcs.find((n) => n.def?.id === g.person)?.def?.name ?? null, label: g.label, x: g.position.x, z: g.position.z }));
     const raw = {
       you: { x: player.pos.x, z: player.pos.z, dx: dir.x, dz: dir.z },
-      ship: level.ship?.pos ?? null,
+      ship: level.ship?.pos && levelId !== 'home' ? level.ship.pos : null,
       goal: goal?.position ? { x: goal.position.x, z: goal.position.z, label: goal.label } : null,
-      // (the people with a quest waiting for their talk: issue #273, as main.js mapSource)
-      givers: (story?.quests?.giverMarks?.() ?? []).map((g) => ({ id: g.person, name: npcs.find((n) => n.def?.id === g.person)?.def?.name ?? null, label: g.label, x: g.position.x, z: g.position.z })),
+      // (the other quests under way, at their steps: issue #244, the marks of kind 'quest')
+      quests: (story?.quests?.objectives?.() ?? []).filter((q) => !q.tracked && q.position).map((q) => ({ id: q.quest, title: q.title, label: q.label, x: q.position.x, z: q.position.z })),
+      givers,
       temples: temples(),
-      people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
+      people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`) && !givers.some((g) => g.id === n.def.id)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
       boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, x: b.pos.x, z: b.pos.z })),
     };
+    const whole = mapWhole.bounds;
     // (a mark zoomed on: a third of the whole map round it, its own ground drawn, as main.js mapSource)
-    const focus = zoom && mapMarks({ ...raw, bounds: mapWhole }).find((m) => m.id === zoom);
-    const bounds = focus ? zoomBounds(mapWhole, { x: mapWhole.x0 + focus.u * mapWhole.w, z: mapWhole.z0 + focus.v * mapWhole.h }) : mapWhole;
+    const focus = zoom && mapMarks({ ...raw, bounds: whole }).find((m) => m.id === zoom);
+    const bounds = focus ? zoomBounds(whole, { x: whole.x0 + focus.u * whole.w, z: whole.z0 + focus.v * whole.h }) : whole;
     const v = worldMap.view(bounds, focus ? MAP.zoomCells : MAP.cells);
-    return { world: TITLES[levelId] ?? level.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: v.canvas, progress: v.progress, zoom: focus ? zoom : null, scale: scaleBar(bounds.w), note: '' };
+    // (the Map zoomed in round its cursor: a part of it drawn again sharper once the whole is in, { u0, v0, s } of the whole)
+    let part = null;
+    if (detail && v.done && !focus) {
+      const d = worldMap.view({ x0: whole.x0 + detail.u0 * whole.w, z0: whole.z0 + detail.v0 * whole.h, w: detail.s * whole.w, h: detail.s * whole.h }, MAP.zoomCells);
+      part = { ...detail, canvas: d.canvas, done: d.done, progress: d.progress };
+    }
+    return { world: TITLES[levelId] ?? level.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: v.canvas, progress: v.progress, zoom: focus ? zoom : null,
+      scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part, note: givers.length ? GIVERS_NOTE : '' };
   }
   /** The Map's ground being drawn: its rays for `ms` this frame (the Map open), as main.js pausedFrame does. */
   function pumpMap(ms = MAP.budget) {
@@ -792,7 +815,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
     mapPicture: (key) => pictures.get(key) ?? null,
     /** Fill and draw the Map's ground now (a test's, a tool's), `ms` at most. */
-    drawMap(ms = 1e5) { if (!mapWhole) mapSource(); worldMap.view(mapWhole, MAP.cells); pumpMap(ms); return worldMap.want?.canvas ?? null; },
+    drawMap(ms = 1e5) { if (!mapWhole) mapSource(); worldMap.view(mapWhole.bounds, MAP.cells); pumpMap(ms); return worldMap.want?.canvas ?? null; },
     /** Why the ship won't take you to `id` (null: it will; src/fast-travel.js). */
     travelRefusal(id) { return fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
     /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */

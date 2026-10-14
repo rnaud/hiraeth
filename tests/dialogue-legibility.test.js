@@ -119,7 +119,7 @@ test('answers are words on the paper: no box, no border, no shadow; a cue on the
 });
 
 test('the Unity bridge\'s panel: the same sizes (a 720-tall canvas), answers without boxes', () => {
-  const body = +HUD.match(/const int Body = (\d+)/)[1];
+  const body = +HUD.match(/int Body => Sz\((\d+)\)/)[1];   // (× the Text size setting, issue #346)
   assert.ok(body / 720 >= 0.028, `${body} px of 720`);
   assert.match(HUD, /Ui\.Panel\(dlgPanel\.rt, "choice" \+ i, Color\.clear, Ui\.Ink, 0\)/);
   assert.ok(!/SetShadow\(hi/.test(HUD), 'no lifted box on the picked answer');

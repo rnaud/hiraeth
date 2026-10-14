@@ -8,6 +8,35 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.75', date: '2026-10-14', items: [
+    // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's
+    // line), scripts/engine-bundle.mjs unityTitle, BridgeMenu.cs (DrawTitle, TitleEntry), BridgeHud.cs (access: the text
+    // size, the plain background, the readout), BridgeHost.Rumble; tests/engine-menus.test.js; docs/systems/engine-bridge.md
+    { text: 'The Unity version opens on the web game’s title now: one of its painted worlds behind the lettered HIRAETH, the entries small at the bottom left. Its settings gain Text size, the plain speech background, Show FPS, Reduce motion, Camera shake and controller rumble, and the Start menu names your save and the time played under its heading.',
+      see: 'Start the Unity build: a painted world (a different one each time) with the cream-and-red HIRAETH across the top. In Settings, set Text size to Larger and talk to someone: the conversation’s words grow; turn on the plain background and the panel goes white with black words.' },
+    // the Unity Map (issue #343): engine/raster.js (offscreen, putImageData, drawImage: drawTerrain's smooth ground),
+    // engine/game.js mapSource (the shape, the quests, the sharper part), engine/menus.js (MapView: the cursor, the zoom),
+    // engine/map-marks.js, BridgeMenu.cs DrawMap; tests/engine-menus.test.js, tests/engine-raster.test.js; docs/systems/engine-bridge.md
+    { text: 'The Map in the Unity version is the web game’s: it fills the page, its ground drawn smooth with every mesa’s and building’s inked edge (no more blocky squares), the web’s marks for you, the ship, temples, people and quests, a north arrow and the scale; the list beside it is gone for a cursor you move with the left stick, zooming with the triggers or A, with the name of whatever it rests on beside it.',
+      see: 'In the Unity build press View, then RB to the Map: move the ring with the left stick onto the ship and its name shows beside it; hold RT to zoom in, and after a moment the close view sharpens. B goes back to the whole map, then out.' },
+    // take-off and landing (issue #354): src/ship/flight.js, cinematics.js TakeoffDirector / ArrivalDirector, arrival-view.js
+    // wideBack; Unity: export-world.mjs ship.flight, ShipTravel.cs; tests/cutscenes.test.js, tests/arrival-view.test.js
+    'Your ship takes off like a lander now: it rises straight up on its jets in a cloud of dust, hangs there a moment, then tips forward and roars away. Landing is the reverse: it flies in nose first, slows to a hover over its spot and comes straight down onto its feet. The same in the Unity version.',
+    // the pirates' one reticle (issue #357): src/minigames/pirates.js drawHud, RETICLE; tests/pirates.test.js; docs/systems/minigames.md
+    'In the chime pirates you aim with one reticle now, a ring round a dot where your shots will go: it tightens and turns coral when the aim assist has a pirate, sliding onto it, and the charge fills a gold ring round it. The second, distant mark is gone, and a missile’s target has a small teal pip over it instead of a big diamond round it.',
+    // the Elder's moves and states (issue #237): src/characters/elder-v3-creature.js ELDER_POSE (each move's own wind-up
+    // and blow, MOVE_POSE for the links), restPose (sleep, wake, weary, open, resolved), BREATH, RUFFLE, the stamp's lifted
+    // foot (STAMP_FOOT), ELDER_NOD; tests/elder-cycles.test.js; docs/systems/characters.md "The Elder, accepted"
+    'The Elder in the Aerie moves like a great bird now: her peck stretches her neck out and stabs down at you (it curled her head under her breast, the beak pointing back between her feet), her stamp lifts one foot high and brings it down (she leapt off the floor with both), the gale and the feather volley have wind-ups of their own (both were the buffet’s), she wakes with a stretch of both wings, and between blows she breathes, ruffles her feathers and looks about.',
+    // her motion without jolts (issue #237): springs and a crossfade on her pose (ELDER_SPRING, ELDER_FADE), the kit's
+    // generic strike and tell rig off for her (tellWeight 0), her take-off and landing eased (boss.js place, model.rises),
+    // her turns gathered (turnTo, turnAccel, turnRate 3), the thighs framed on their bend plane (no half-turn flip), the
+    // rump, throat and wing weights (elder-v3-fit.js elderWeights, ELDER_FOLD); scripts/tripo/elder-cycles.mjs
+    'The Elder no longer jerks: her whole body jumped at the start of every blow, she shot 3.5 m into the air in a single frame when she took off (and dropped back the same way), spun round to face you in an instant, and a leg flipped round when she sank down worn out. Her throat, rump and shoulders no longer stretch out of shape as she bends.',
+    // her colour map (issue #237): scripts/tripo/elder-delight.mjs in scripts/tripo/rig-elder-v3.mjs; her levels of
+    // detail (ELDER_LOD, src/skinned-lod.js min/max); scripts/bench/elder.mjs; docs/systems/performance.md "The Elder's cost"
+    'The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her; and far off she is drawn with simpler copies of herself, from two thirds of her triangles down to a seventh, and sooner on handhelds.',
+  ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;
     // src/wind.js: no wisp in an interior, none while you are in one (hush); tests/wind-wisps.test.js, tests/engine-ship.test.js

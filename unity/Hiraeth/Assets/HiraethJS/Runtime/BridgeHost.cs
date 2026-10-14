@@ -124,6 +124,7 @@ namespace Hiraeth.Bridge
         public static void Snapshot()
         {
             keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName();
+            RumbleTick();
             if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; }
             clock0 = Time.realtimeSinceStartupAsDouble * 1000 - clock.Elapsed.TotalMilliseconds;
         }
@@ -205,6 +206,32 @@ namespace Hiraeth.Bridge
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
         public static float MenuWidth() => menuWidth;
         public static volatile float menuWidth = 1280;
+        /// <summary>The room BridgeMenu's game menu has for the Map, "w,h" in its units (the map is drawn as wide as it, issue #272/#343).</summary>
+        public static string MenuMapBox() => menuMapBox;
+        public static volatile string menuMapBox = "";
+
+        // ---------------------------------------------------------------- the pad's motors (src/rumble.js through engine/unity/game.js, issue #346)
+        static double rumbleUntil = -1;
+        /// <summary>The pad's motors at (strong: the heavy one, weak: the light one, 0..1) for ms; 0, 0 stops them. Nothing on a pad without motors.</summary>
+        public static void Rumble(double strong, double weak, double ms) => On(() =>
+        {
+            var g = Gamepad.current;
+            if (g == null) return;
+            try
+            {
+                g.SetMotorSpeeds(Mathf.Clamp01((float)strong), Mathf.Clamp01((float)weak));
+                rumbleUntil = ms > 0 && (strong > 0 || weak > 0) ? Time.realtimeSinceStartupAsDouble + ms / 1000.0 : -1;
+                if (rumbleUntil < 0) g.ResetHaptics();
+            }
+            catch (Exception e) { UnityEngine.Debug.Log($"Hiraeth bridge: no rumble here ({e.Message})"); }
+        });
+        /// <summary>The main thread, each frame: a pulse's motors stopped once its time is up.</summary>
+        static void RumbleTick()
+        {
+            if (rumbleUntil < 0 || Time.realtimeSinceStartupAsDouble < rumbleUntil) return;
+            rumbleUntil = -1;
+            try { Gamepad.current?.ResetHaptics(); } catch (Exception) { }
+        }
         /// <summary>The Map's drawn ground (engine/game.js mapPicture: RGBA, w × h, rows top down) for BridgeMenu, by its key.</summary>
         public static void MapImage(string key, object buffer, int w, int h) { var b = JsRuntime.Bytes(buffer, out int n); var copy = new byte[n]; System.Buffer.BlockCopy(b, 0, copy, 0, n); On(() => { if (Runner && Runner.menu) Runner.menu.SetMap(key, copy, w, h); }); }
         public static void Menu(string json) => On(() => { if (Runner && Runner.menu) Runner.menu.Set(json); });

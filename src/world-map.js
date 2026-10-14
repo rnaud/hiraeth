@@ -162,8 +162,9 @@ export function drawTerrain(ctx, grid, size = MAP.size) {
   ctx.fillStyle = `rgb(${PAPER.join(',')})`;
   ctx.fillRect(0, 0, W, H);
   // the ground, a cell at a time: its height's band, shaded from the north-west in four steps (as the game's ink is);
-  // drawn at the grid's size and spread over the map smoothed where the page can (an OffscreenCanvas), else cell by cell
-  const small = typeof OffscreenCanvas !== 'undefined' && ctx.drawImage ? new OffscreenCanvas(nx, ny) : null;
+  // drawn at the grid's size and spread over the map smoothed where the page can (an OffscreenCanvas; an engine's canvas,
+  // engine/raster.js, its own `offscreen`), else cell by cell
+  const small = typeof OffscreenCanvas !== 'undefined' && ctx.drawImage ? new OffscreenCanvas(nx, ny) : ctx.drawImage && ctx.offscreen ? ctx.offscreen(nx, ny) : null;
   const sctx = small?.getContext('2d') ?? null, img = sctx ? sctx.createImageData(nx, ny) : null;
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const k = j * nx + i, v = h[k];

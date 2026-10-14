@@ -1506,8 +1506,7 @@ touch beyond body collision, resolved perch and disposal. The silent temporary
 progress review is `/?level=arzach&guardianReview=elder`; audio is muted at
 construction. The Keeper’s existing real-cistern tests still cover water, guard
 and final touch. No changes replace its newer main-branch integration.
-Texture-lighting neutrality and device performance remain separate follow-up
-checks under [issue #237](https://github.com/rnaud/hiraeth/issues/237).
+Texture-lighting neutrality and device performance: "The Elder, accepted" below (issue #237).
 
 The live temple’s heavier shadow hatching obscured the authored feather ink,
 which was clear in the isolated preview’s lighting. V3 sets a local material
@@ -1516,6 +1515,79 @@ shade profile (12% hatch, 25% shade lift, 80% hue retention) through
 is shared by the preview and gameplay. It does not alter the Keeper or other
 characters. The v3 runtime stays separate from main’s v1 repair checkpoint.
 
+
+### The Elder, accepted (14 October 2026, issue #237)
+
+The rest of #237's checklist, on the live `elder-v3` skin (the Aerie, its crown perch and the Arena since 45599a95).
+
+**How she was looked at.** `tools/elder-drive.js` is the review's motions (the review page, the sheets and the audit
+share it): an attack runs as the fight times it (its own `wind`, `active`, `recover`; `view.move` as the fight hands
+it over), from her guard. `node scripts/tripo/elder-sheets.mjs --out <dir> [--root <tree>] [motion…]` draws a contact
+sheet per cycle (a column a moment; rows front, side and back in the game's ink, three-quarters in clay and unlit;
+`--rows`, `--zoom`; `lod` / `lodFar` her levels side by side). `node scripts/tripo/elder-cycles.mjs [motion…]` measures
+each cycle in node on the shipped skin: per part (body, neck, head, each wing, tail, each leg) the worst change of a
+vertex's speed in a frame (a **pop** when it is over half the part's top speed), how far the part moves (frozen under
+5 cm), the floor, and the tearing (the most a sampled edge is off its length, cm). Before / after: the peck's head
+82 → 10 m/s in a frame, buffet 46 → 5, gale 47 → 10, feathers 47 → 3, dive 76 → 7, take-off 40 → 6, worn out 40 → 0.1
+(a thigh flipping); tears: peck 30 → 12 cm, sleep 24 → 10, worn out 24 → 9, the fight 30 → 13; no pops left but the
+stamp's foot stopping on the floor (its blow). `tests/elder-cycles.test.js` holds them.
+
+**What was wrong, and what she does now** (`src/characters/elder-v3-creature.js`):
+- **Her moves were the kit's and the fight's, not hers.** The kit's generic strike pose (a spring with `r` 1.2) jolted
+  her whole body 0.4 m in a frame at every blow; the fight's tell rig reared her 0.8 m for the stamp and lifted her
+  2.8 m for the dive (her legs tucked as if flying); the gale and the feathers were posed as the buffet (`pose:
+  'buffet'`). Now her plan keeps only the kit's braced stance, `tellWeight` 0 (boss.js poseRig), and `ELDER_POSE` holds
+  each move's wind-up (reached by 80 % of it, held) and blow (`ELDER_RAMP` 0.22 s after it leaves her); the links pose as
+  their moves (`MOVE_POSE`).
+- **The peck** stretches the neck out (`reach`: the lower neck forward, the upper back), tips her over her feet and lifts
+  the skull against it: the beak 1.1 m up, 3.5 m ahead, 50° down (it was 128°: curled under her breast).
+- **The stamp** raises her left foot alone (the kit's per-leg `lift`, `STAMP_FOOT` in the body's frame from where it
+  stands), her body over the other leg, and brings it down faster and faster (an ease-in), wings flared.
+- **Gale**: reared back, wings high, then hard beats through the blow (`gust`: deeper, quicker, on a wing phase of its
+  own, so a change of rate never jumps). **Feathers**: spread wide and shivering, then flung forward. **Buffet**: cupped
+  forward, clapped down. **Dive**: rises beating, then stoops, wings swept back, beak first.
+- **States**: `restPose` (wake: head up, a stretch of both wings with a hiss, folded to her guard over `ELDER.wakeTime`;
+  sleep, the bill bowed with the neck; worn out, hunched with her wings half open and panting; afraid and open, looking
+  up, trembling). Her breath (`BREATH`, a period and depth per state), a ruffle every 6.7 s at rest, glances.
+- **No target jumps**: every pose key on a critically damped spring (`ELDER_SPRING`; the blow's slightly underdamped), and
+  a crossfade of the targets over `ELDER_FADE` 0.35 s whenever her move or state changes; her pose starts at her guard
+  (a reset spread her wings flat for a frame).
+- **Take-off and landing**: the fight put her 3.5 m up in a frame when her phase took her aloft; `Guardian.place` eases
+  a body with `rises` (Hz) up and down (a jump over 6 m, a teleport, is still at once); her feet hang as her `air`
+  eases in (they hung in a frame).
+- **Turns**: `turnRate` 3 rad/s (she spun 12 rad/s to face you as a move began) and `turnAccel` 7 rad/s² (boss.js
+  turnTo: from still to full speed over 0.4 s, her wingtips 13 m/s at once before).
+- **The legs' frames**: each segment is framed about the leg's bend-plane normal (from the pole), not toward the pole:
+  worn out, her lowered breast swung a thigh back along its pole and it flipped half a turn in a frame.
+- **Deformation** (`elder-v3-fit.js elderWeights`, rebuilt by `scripts/tripo/rig-elder-v3.mjs`): where the tail hangs
+  over the backs of the thighs the body holds them (`rump`: thigh and tail pulled one surface 4–5× apart as a foot rose);
+  the skull over a wider band of the neck's top and the throat; a nod shared over the upper neck (`ELDER_NOD`: the skull
+  alone tore the throat 60 cm open at the peck's blow); a fold shared along the wing (`ELDER_FOLD`, more at the elbow and
+  wrist). Left: linear blending's own stretch round the rump in the tuck (15 cm in the hover and the dive) and the
+  shoulders when folded (9 cm).
+- **Anchors on her skin**: `part('wings')` and `part('feet')` are vertices of her skin as drawn (the farthest of each
+  wing's last joint; the foot's nearest where it stands), skinned from her whole mesh's own arrays whatever level is
+  drawn (the joints lay 0.43 and 0.26 m off her surface); the mouth rides the jaw (0.11 m inside the bill, the lock's
+  target and the peck's hit sphere).
+
+**In the real Aerie** (`scripts/bench/elder.mjs`, the game at `?level=arzach&guardianReview=elder`, the build served on
+6237): 60 s of the fight on her skin, every move of all three phases seen (peck, peck2, buffetEnd, stamp, gale, diveEnd,
+buffet, dive), 5 blows landing on the traveller, the fronts and the stamp's shock drawn where her body strikes, her phases'
+take-offs eased. The combat review's guardian run (`.claude/skills/combat-review/guardian.mjs --ids arzach`): ok, as
+before (every blow on her body, the lock on her beak). The calm by flight, the vents' wind, the final touch and the
+perch: `tests/elder-guardian.test.js` (the elevated Aerie, round 5's new loop in it).
+
+**Her colour map** (`scripts/tripo/elder-delight.mjs`, run by the rig script): Tripo's Remove Lighting left broad grey
+shading and darkened creases; each pixel is sorted (softly, on its neighbourhood's colour: a hard sort patched the JPEG's
+blocks) into cream, pink and tan; within each colour the slow brightness (a blur of that colour's pixels alone, so the
+atlas's islands don't bleed) is brought 80 % of the way to its lit value, and creases 2–10 px wide are lifted by 60 %;
+lines under 2 px, the eye and the pink wing ends (painted pink to mauve: their 5 % spread is not light) are left as they
+were. The slow brightness's spread (10th–90th percentile over the median): cream 0.15 → 0.03, tan 0.14 → 0.04.
+
+**Levels of detail**: `src/skinned-lod.js` takes any skinned body now (`{ model, char: { root } }`, its own `min` /
+`max`): hers, `ELDER_LOD` cells of 1/16 to 1/4 m, 47.8k triangles whole, 32.5k, 18.4k, 6.8k (thin toes break up at the
+last: only past ~120 m on Handheld, ~240 m on High, where she is a few dozen pixels tall). Only the game's skin
+registers them (`lod: true` in `elderGuardian`). Cost: `docs/systems/performance.md`, "The Elder's cost".
 
 ## Traveller B3 body (13 October 2026)
 

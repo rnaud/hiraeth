@@ -35,16 +35,32 @@ namespace Hiraeth.Bridge
         // the items' pictures (public/item-pictures as PNGs: scripts/engine-bundle.mjs unityPictures), each read once
         static readonly Dictionary<string, Texture2D> pictures = new();
         RawImage cardPic; Label cardMark;
-        // the Map's drawn ground (engine/game.js: the world's collision sampled straight down, drawn as the web's map), by key
+        // the Map's drawn ground (engine/game.js: the world's collision sampled straight down, drawn as the web's map) and
+        // its sharper parts zoomed in, by key (the last few kept: each a few MB)
         readonly Dictionary<string, Texture2D> grounds = new();
-        RawImage mapGround; Label mapDrawing, mapScale; Image mapBar;
+        readonly Dictionary<string, int> groundUsed = new();
+        // the Map as the web's (issue #343): the whole sheet, its ground on a plane the view scales and moves (z, u0, v0),
+        // the marks as the web's pictures (StreamingAssets/hiraeth-js/map-marks, engine/map-marks.js), the cursor and the
+        // name of the mark under it beside it, the world's name, north, the scale bar, the zoom's buttons, the note
+        RectTransform mapClip, mapPlane; RawImage mapGround, mapDetail, mapCursor, mapNorth; Image mapEdge;
+        Label mapDrawing, mapScale, mapNone, mapNote, mapName, zoomIn, zoomOut; Image mapBar; Ui.Box mapTip, mapNameBox, mapScaleBox, mapNoteBox, zoomInBox, zoomOutBox; Label mapTipName, mapTipSub;
+        readonly List<(RawImage pic, RawImage ring)> markPics = new();
+        static readonly Dictionary<string, Texture2D> markTex = new();
+        // the title (issue #346): the painted world behind it (title/<shot>.jpg, scripts/engine-bundle.mjs unityTitle: the web's
+        // drawing of the shot, src/title-paint.js), the lettered name (title/logo.png, src/title-logo.js), the entries small,
+        // low at the left as the web's (src/title-layout.js, the view's layout)
+        RawImage titleArt, titleLogo; Ui.Box versionBox; Label line;
+        static readonly Dictionary<string, Texture2D> titleTex = new();
+        class TitleButton { public Ui.Box box; public Label text, sub; public Image accent; }
+        readonly List<TitleButton> titleButtons = new();
+        int titleUsed;
         // the game menu's tabs, the strip at the foot, a thing full screen, a question, the map's marks
         readonly List<Label> tabs = new();
         Label tabPrev, tabNext; Image tabLine;
         Ui.Box strip; Label stripName, stripSub, stripDesc, stripAct;
         Ui.Box card; Label cardTitle, cardSub, cardText, cardFacts, cardUse, cardSteps;
         Ui.Box ask; Label askQ, askWhat, askNo, askYes;
-        Ui.Box mapBox; readonly List<(Image dot, Label name)> marks = new();
+        Ui.Box mapBox;
 
         static readonly Color Muted = Ui.Hex("#5e4b45"), Band = Ui.Hex("#f2dfb4"), Dim = Ui.Hex("#1d1614", 0.62f);
         const int Body = 19, Small = 14, Tiny = 12;
@@ -65,6 +81,21 @@ namespace Hiraeth.Bridge
             pictures[id] = t;
             return t;
         }
+        /// <summary>A picture of StreamingAssets/hiraeth-js (the title's, the Map's marks), read once; null where there is none.</summary>
+        static Texture2D Streamed(Dictionary<string, Texture2D> cache, string rel)
+        {
+            if (cache.TryGetValue(rel, out var t)) return t;
+            var bytes = StreamingFile.Read(System.IO.Path.Combine(Application.streamingAssetsPath, "hiraeth-js", rel));
+            if (bytes != null)
+            {
+                t = new Texture2D(2, 2, TextureFormat.RGBA32, true) { name = rel, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Trilinear };
+                if (!t.LoadImage(bytes, true)) { Destroy(t); t = null; }
+            }
+            cache[rel] = t;
+            return t;
+        }
+        static Texture2D Mark(string kind) => Streamed(markTex, "map-marks/" + kind + ".png");
+
         /// <summary>A button's name as the pad in hand prints it (the view's keys: ok, back, prev, next; the script names them, src/native-pad.js).</summary>
         string Key(string k, string or) => state.O("keys")?.S(k) is string s && s.Length > 0 ? s : or;
 
@@ -77,7 +108,15 @@ namespace Hiraeth.Bridge
         {
             if (rgba == null || rgba.Length < w * h * 4 || grounds.ContainsKey(key)) return;   // (a key is drawn once)
             var t = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "map " + key, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-            grounds[key] = t;
+            // (the last few kept: the whole map is named at every look, a zoom's part while it is in view)
+            while (grounds.Count >= 8)
+            {
+                string old = null; int at = int.MaxValue;
+                foreach (var k in grounds.Keys) { int u = groundUsed.TryGetValue(k, out var f) ? f : 0; if (u < at) { at = u; old = k; } }
+                if (old == null) break;
+                Destroy(grounds[old]); grounds.Remove(old); groundUsed.Remove(old);
+            }
+            grounds[key] = t; groundUsed[key] = Time.frameCount;
             t.LoadRawTextureData(rgba);
             t.Apply(false, true);
             dirty = true;
@@ -89,12 +128,16 @@ namespace Hiraeth.Bridge
             root.SetParent(transform, false);
             var mono = Ui.Mono;
             dim = Ui.Fill(root, Dim, 0, "dim");
+            titleArt = Ui.Node("title art", root).gameObject.AddComponent<RawImage>(); titleArt.raycastTarget = false;
+            titleLogo = Ui.Node("title logo", root).gameObject.AddComponent<RawImage>(); titleLogo.raycastTarget = false;
+            versionBox = Ui.Panel(root, "version box", Ui.Hex("#f7ecd2", 0.7f), Ui.Ink, 0);
             sheet = Ui.Panel(root, "sheet", Ui.Page, Ui.Ink, 2.5f, 6, 6);
             logo = Ui.Label(root, "logo", Ui.Heavy, 76, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Space(logo, 0.18f);
             head = Ui.Label(root, "head", mono, 22, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             sub = Ui.Label(root, "sub", mono, Small, Muted);
-            version = Ui.Label(root, "version", mono, Tiny, Muted);
+            version = Ui.Label(versionBox.rt, "version", mono, 11, Ui.Ink);
+            line = Ui.Label(root, "save line", mono, Small, Muted);
             hint = Ui.Label(root, "hint", mono, Small, Ui.Ink, TextAnchor.LowerRight);
             note = Ui.Label(root, "note", mono, Body, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Italic);
             empty = Ui.Label(root, "empty", mono, Body, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
@@ -104,12 +147,32 @@ namespace Hiraeth.Bridge
             tabPrev = Ui.Label(root, "tabPrev", mono, Small, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             tabNext = Ui.Label(root, "tabNext", mono, Small, Ui.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
             tabLine = Ui.Rect(root, Ui.Red, 0, "tabLine");
-            mapBox = Ui.Panel(root, "map", Ui.Hex("#efe0bd"), Ui.Ink, 1.5f);
-            mapGround = Ui.Node("ground", mapBox.rt).gameObject.AddComponent<RawImage>(); mapGround.raycastTarget = false;
+            // the Map's sheet (src/game-menu.css .gm-mapsheet: its paper, a 2.5 ink edge, a hard ink shadow), what is on it clipped to it
+            mapBox = Ui.Panel(root, "map", Ui.Hex("#f6ecd3"), Ui.Ink, 0, 6, 6);
+            mapClip = Ui.Stretch(Ui.Node("clip", mapBox.rt)); mapClip.gameObject.AddComponent<RectMask2D>();
+            mapPlane = Ui.Node("plane", mapClip);
+            mapGround = Ui.Stretch(Ui.Node("ground", mapPlane)).gameObject.AddComponent<RawImage>(); mapGround.raycastTarget = false;
             mapGround.uvRect = new Rect(0, 1, 1, -1);   // (its rows top down: Unity's textures start at the bottom)
-            mapDrawing = Ui.Label(mapBox.rt, "drawing", mono, Small, Muted, TextAnchor.MiddleCenter, FontStyle.Italic);
-            mapBar = Ui.Rect(mapBox.rt, Ui.Ink, 0, "scaleBar");
-            mapScale = Ui.Label(mapBox.rt, "scale", mono, Tiny, Ui.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            mapDetail = Ui.Node("detail", mapPlane).gameObject.AddComponent<RawImage>(); mapDetail.raycastTarget = false;
+            mapDetail.uvRect = new Rect(0, 1, 1, -1);
+            mapDrawing = Ui.Label(mapClip, "drawing", mono, Body, Muted, TextAnchor.MiddleCenter, FontStyle.Italic);
+            mapNone = Ui.Label(mapClip, "none", mono, Small, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Italic);
+            mapNameBox = Ui.Panel(mapClip, "name", Ui.Hex("#fbf4e2", 0.85f), Ui.Ink, 0, 0, 0, 3);
+            mapName = Ui.Label(mapNameBox.rt, "text", mono, 16, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            mapNorth = Ui.Node("north", mapClip).gameObject.AddComponent<RawImage>(); mapNorth.raycastTarget = false;
+            mapScaleBox = Ui.Panel(mapClip, "scale", Ui.Hex("#fbf4e2", 0.85f), Ui.Ink, 0, 0, 0, 3);
+            mapBar = Ui.Rect(mapScaleBox.rt, Ui.Ink, 0, "scaleBar");
+            for (int i = 0; i < 2; i++) Ui.Rect(mapBar.rectTransform, Ui.Hex("#fbf4e2"), 0, "paper" + i);
+            mapScale = Ui.Label(mapScaleBox.rt, "label", mono, Tiny, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
+            mapNoteBox = Ui.Panel(mapClip, "note", Ui.Hex("#fbf4e2", 0.85f), Ui.Ink, 0, 0, 0, 3);
+            mapNote = Ui.Label(mapNoteBox.rt, "text", mono, 13, Ui.Hex("#3f8fa6"), TextAnchor.MiddleLeft, FontStyle.Bold);
+            zoomInBox = Ui.Panel(mapClip, "zoom in", Ui.Hex("#fbf4e2"), Ui.Ink, 2, 2, 2, 4); zoomIn = Ui.Label(zoomInBox.rt, "k", mono, 13, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(zoomIn.rectTransform);
+            zoomOutBox = Ui.Panel(mapClip, "zoom out", Ui.Hex("#fbf4e2"), Ui.Ink, 2, 2, 2, 4); zoomOut = Ui.Label(zoomOutBox.rt, "k", mono, 13, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Stretch(zoomOut.rectTransform);
+            mapCursor = Ui.Node("cursor", mapClip).gameObject.AddComponent<RawImage>(); mapCursor.raycastTarget = false;
+            mapTip = Ui.Panel(mapClip, "tip", new Color(31 / 255f, 24 / 255f, 22 / 255f, 0.92f), Ui.Ink, 0, 0, 0, 4);
+            mapTipName = Ui.Label(mapTip.rt, "name", mono, 15, Ui.Hex("#f7ecd2"), TextAnchor.UpperLeft, FontStyle.Bold);
+            mapTipSub = Ui.Label(mapTip.rt, "sub", mono, 13, Ui.Hex("#f7ecd2", 0.85f), TextAnchor.UpperLeft);
+            mapEdge = Ui.Fill(mapBox.rt, Ui.Ink, 0, "edge"); mapEdge.sprite = Ui.Frame(2.5f, 0); mapEdge.type = Image.Type.Sliced; mapEdge.pixelsPerUnitMultiplier = 2;
             strip = Ui.Panel(root, "strip", Ui.Paper, Ui.Ink, 1.5f, 3, 3);
             stripName = Ui.Label(strip.rt, "name", mono, Body, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             stripSub = Ui.Label(strip.rt, "sub", mono, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
@@ -236,6 +299,7 @@ namespace Hiraeth.Bridge
             if (!root) return;
             var canvas = root.GetComponent<Canvas>();
             if (W > 0) BridgeHost.menuWidth = W;
+            if (W > 0) { var (aw, ah) = MapRoom(); var box = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:0},{1:0}", aw, ah); if (BridgeHost.menuMapBox != box) BridgeHost.menuMapBox = box; }
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 2);
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
             bool open = state != null;
@@ -248,21 +312,24 @@ namespace Hiraeth.Bridge
         void Draw()
         {
             used = 0; tilesUsed = 0;
-            foreach (var l in new[] { logo, head, sub, version, hint, note, empty, tabPrev, tabNext }) Show(l, false);
+            foreach (var l in new[] { logo, head, sub, hint, note, empty, tabPrev, tabNext, line }) Show(l, false);
+            versionBox.Show(false); Show(titleArt, false); Show(titleLogo, false); titleUsed = 0;
             // (the shop's sheet sets these its own way: back to theirs)
             tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal;
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
             strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false);
-            foreach (var m in marks) { Show(m.dot, false); Show(m.name, false); }
+            foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             var kind = state.S("kind");
             if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
+            for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);
             // the buttons' prompts, at the foot on the right
             var h = state.S("hint") ?? "";
             Show(hint, h.Length > 0);
-            if (h.Length > 0) { hint.text = h; Ui.Place(hint.rectTransform, 24, H - 34, W - 48, 22); }
+            // (on the title the version takes the corner, the buttons' prompts over it)
+            if (h.Length > 0) { hint.text = h; Ui.Place(hint.rectTransform, 24, kind == "title" ? H - 52 : H - 34, W - 48, 22); }
             hint.transform.SetAsLastSibling();
         }
 
@@ -283,43 +350,109 @@ namespace Hiraeth.Bridge
 
         // ------------------------------------------------------------------ the title
 
+        /// <summary>The title's painted world over the whole canvas, cropped to its shape as the page's object-fit: cover.</summary>
+        bool TitleArt(string shot)
+        {
+            var tex = string.IsNullOrEmpty(shot) ? null : Streamed(titleTex, "title/" + shot + ".jpg");
+            Show(titleArt, tex != null);
+            if (tex == null) return false;
+            titleArt.texture = tex;
+            float ta = (float)tex.width / Mathf.Max(1, tex.height), a = W / Mathf.Max(1, H);
+            titleArt.uvRect = a < ta ? new Rect((1 - a / ta) / 2, 0, a / ta, 1) : new Rect(0, (1 - ta / a) / 2, 1, ta / a);
+            Ui.Place(titleArt.rectTransform, 0, 0, W, H);
+            return true;
+        }
+
+        /// <summary>
+        /// One of the title's entries as the web's (src/menus.css #title .main-menu button): paper, a thin ink line, a small
+        /// vermilion shadow, the words in small spaced capitals (what it continues under them); the pad's in vermilion with
+        /// the shadow in ink; the first (Continue, New game) marked by a vermilion edge at its left.
+        /// </summary>
+        void TitleEntry(float x, float y, float w, float h, float font, string text, string under, bool on, bool primary)
+        {
+            if (titleUsed >= titleButtons.Count)
+            {
+                var b = new TitleButton { box = Ui.Panel(root, "title entry" + titleButtons.Count, Ui.Hex("#fbe8c4", 0.9f), Ui.Hex("#211a17"), 1.5f, 2, 2, 3, Ui.Hex("#e27c5b")) };
+                b.accent = Ui.Rect(b.box.rt, Ui.Hex("#e27c5b"), 0, "edge");
+                b.text = Ui.Label(b.box.rt, "text", Ui.Sans, 14, Ui.Hex("#211a17"), TextAnchor.UpperLeft, FontStyle.Bold);
+                Ui.Space(b.text, 0.14f);
+                b.sub = Ui.Label(b.box.rt, "sub", Ui.Sans, 11, Ui.Hex("#211a17", 0.78f), TextAnchor.UpperLeft);
+                titleButtons.Add(b);
+            }
+            var e = titleButtons[titleUsed++];
+            e.box.Show(true);
+            float lift = on ? 1 : 0;
+            Ui.Place(e.box.rt, x - lift, y - lift, w, h);
+            e.box.SetFill(on ? Ui.Hex("#e27c5b") : Ui.Hex("#fbe8c4", 0.9f));
+            e.box.shadow.color = on ? Ui.Hex("#211a17") : Ui.Hex("#e27c5b");
+            e.box.SetShadow(on ? 3 : 2, on ? 3 : 2);
+            Show(e.accent, primary);
+            if (primary) { e.accent.color = on ? Ui.Hex("#211a17") : Ui.Hex("#e27c5b"); Ui.Place(e.accent.rectTransform, 0, 0, 4, h); }
+            var ink = on ? Ui.Hex("#fffaf0") : Ui.Hex("#211a17");
+            int fs = Mathf.RoundToInt(font);
+            e.text.fontSize = fs; e.text.color = ink;
+            e.sub.fontSize = Mathf.Max(10, Mathf.RoundToInt(font * 0.72f)); e.sub.color = new Color(ink.r, ink.g, ink.b, 0.78f);
+            bool hasSub = !string.IsNullOrEmpty(under);
+            float pad = font * 1.05f + (primary ? 4 : 0), th = fs * 1.25f, sh = hasSub ? e.sub.fontSize * 1.3f : 0, top = (h - th - sh) / 2;
+            e.text.text = Ui.Upper(text);
+            Ui.Place(e.text.rectTransform, pad, top, w - pad * 2, th);
+            Show(e.sub, hasSub);
+            if (hasSub) { e.sub.text = under; Ui.Place(e.sub.rectTransform, pad, top + th, w - pad * 2, sh); }
+        }
+
         void DrawTitle()
         {
             var screen = state.S("screen");
             Sheet(0, 0, W, H, false);
             sheet.Show(false);
             dim.color = Ui.Page;
-            Show(version, true);
-            version.text = state.S("version") ?? "";
-            Ui.Place(version.rectTransform, 24, H - 30, 200, 18);
+            bool art = TitleArt(state.S("shot"));
+            // the version, in the corner on a little paper
+            var ver = state.S("version") ?? "";
+            versionBox.Show(ver.Length > 0);
+            if (ver.Length > 0) { var vs = Ui.Set(version, ver, 200); Ui.Place(version.rectTransform, 6, 1, vs.x, 15); Ui.Place(versionBox.rt, W - 12 - (vs.x + 12), H - 8 - 17, vs.x + 12, 17); }
             var starting = state.S("starting");
+            var lay = state.O("layout");
             if (screen == "main" || starting != null)
             {
-                Show(logo, true);
-                logo.text = state.S("logo") ?? "HIRAETH";
-                Ui.Place(logo.rectTransform, 0, H * 0.16f, W, 110);
+                // the name as src/title-logo.js letters it, across the top (the layout's), or in plain capitals where its picture is missing
+                var lg = lay?.O("logo");
+                var lt = Streamed(titleTex, "title/logo.png");
+                if (lt != null && lg != null)
+                {
+                    Show(titleLogo, true); titleLogo.texture = lt;
+                    float lw = lg.F("w"), lh = lg.F("h"), k = Mathf.Min(lw / lt.width, lh / lt.height), pw = lt.width * k, ph = lt.height * k;
+                    Ui.Place(titleLogo.rectTransform, lg.F("x") + (lw - pw) / 2, lg.F("y") + (lh - ph) / 2, pw, ph);
+                }
+                else { Show(logo, true); logo.text = state.S("logo") ?? "HIRAETH"; Ui.Place(logo.rectTransform, 0, H * 0.16f, W, 110); }
+                var mn = lay?.O("menu");
+                float mx = mn?.F("x", 48) ?? 48, my = mn?.F("y", H * 0.6f) ?? H * 0.6f, mw = Mathf.Max(220, mn?.F("w", 240) ?? 240), bh = mn?.F("button", 44) ?? 44, gap = mn?.F("gap", 8) ?? 8, font = mn?.F("font", 14.5f) ?? 14.5f;
                 if (starting != null)
                 {
                     Show(note, true);
                     note.text = starting.Length > 0 ? starting + " …" : "…";
-                    Ui.Place(note.rectTransform, 0, H * 0.6f, W, 30);
+                    note.alignment = TextAnchor.MiddleLeft; note.fontSize = Body;
+                    Ui.Place(note.rectTransform, mx, my, W - mx - 24, 30);
                     return;
                 }
                 var rows = state.L("rows") ?? new List<object>();
-                float w = Mathf.Min(340, W - 80), y = H * 0.56f;
+                // (the column ends where the web's does, low on the left: taller entries, those with a line under, grow it upwards)
+                float total = 0; foreach (var o in rows) total += (string.IsNullOrEmpty(o.S("sub")) ? bh : Mathf.Max(bh, font * 2.3f + 10)) + gap;
+                float y = Mathf.Min(my, H - 56 - total);
                 foreach (var o in rows)
                 {
                     var r = o as Dictionary<string, object>;
-                    float h = B(r, "primary") && !string.IsNullOrEmpty(r.S("sub")) ? 56 : 42;
-                    Entry(W / 2 - w / 2, y, w, h, r.S("text"), r.S("sub"), null, B(r, "on"), size: B(r, "primary") ? 22 : Body);
-                    y += h + 6;
+                    float h = string.IsNullOrEmpty(r.S("sub")) ? bh : Mathf.Max(bh, font * 2.3f + 10);
+                    TitleEntry(mx, y, mw, h, font, r.S("text"), r.S("sub"), B(r, "on"), B(r, "primary"));
+                    y += h + gap;
                 }
+                note.alignment = TextAnchor.MiddleCenter;
                 return;
             }
             // Saves and Settings: a sheet with its heading and its list
             float sw = Mathf.Min(820, W - 48), sx = W / 2 - sw / 2, sy = 34, sh = H - 34 - 54;
             Sheet(sx, sy, sw, sh, false);
-            dim.color = Ui.Hex("#e9d9b3");
+            dim.color = Ui.Hex("#e9d9b3");   // (under the painted world when it shows: the sheet over it)
             Head(state.S("head"), sx + 24, sy + 18, sw - 48);
             if (screen == "settings") { DrawSettings(state.O("page")?.L("rows"), sx + 24, sy + 60, sw - 48, sh - 76); return; }
             var list = state.L("rows") ?? new List<object>();
@@ -488,6 +621,10 @@ namespace Hiraeth.Bridge
             float sx = 24, sy = 24, sw = W - 48, sh = H - 24 - 50;
             Sheet(sx, sy, sw, sh, true);
             Head(state.S("head"), sx + 24, sy + 16, sw - 48);
+            // (the save under the heading, as the web's: "Save 1 · The Desert · 12 min played")
+            var ln = state.S("line") ?? "";
+            Show(line, ln.Length > 0);
+            if (ln.Length > 0) { Ui.Set(line, ln, sw * 0.6f); Ui.Place(line.rectTransform, sx + sw - 24 - sw * 0.6f, sy + 22, sw * 0.6f, 20); line.alignment = TextAnchor.UpperRight; }
             float sideW = Mathf.Clamp(sw * 0.3f, 190, 280), top = sy + 60;
             var side = state.L("side") ?? new List<object>();
             float y = top;
@@ -636,51 +773,119 @@ namespace Hiraeth.Bridge
             }
         }
 
+        /// <summary>The room the game menu has for the Map (DrawGame's panel less the sheet's shadow), in the canvas' units.</summary>
+        (float w, float h) MapRoom() => (W - 72 - 10, H - 202 - 10);
+
+        /// <summary>
+        /// The Map as the web's (src/game-menu.js mapPanel and mapPaint, issue #343): the whole sheet at the map's own shape
+        /// (as wide as the room, issue #272), north up, the drawn ground on a plane the view zooms and moves, the sharper part
+        /// over it zoomed in, the marks as the web's at their places on the sheet (the traveller's arrow turned the way he
+        /// faces, the one under the cursor ringed in red), the cursor and that mark's name and line beside it, the world's
+        /// name, north, the scale bar, the zoom's triggers and the note. No list: the strip under it names what the cursor is on.
+        /// </summary>
         void DrawMap(float x, float y, float w, float h)
         {
             var m = state.O("map");
-            // (the map's shape, width over height: 1 a square, the engine's; a wider one as wide as the room lets it be, issue #272)
             float aspect = Mathf.Clamp(m?.F("aspect", 1) ?? 1, 0.5f, 3f);
-            float mw = Mathf.Min(h * aspect, w * 0.58f), mh = mw / aspect;
+            float mw = Mathf.Min(w - 10, (h - 10) * aspect), mh = mw / aspect;
             mapBox.Show(true);
-            Ui.Place(mapBox.rt, x, y, mw, mh);
-            // the ground under the marks (drawn once its rays are all in; until then how far they are)
+            Ui.Place(mapBox.rt, x + (w - 10 - mw) / 2, y + (h - 10 - mh) / 2, mw, mh);
+            // the view: the plane z times the sheet, its top left at (u0, v0) of the map
+            float z = Mathf.Max(1, m?.F("z", 1) ?? 1), u0 = m?.F("u0") ?? 0, v0 = m?.F("v0") ?? 0;
+            Ui.Place(mapPlane, -u0 * z * mw, -v0 * z * mh, z * mw, z * mh);
             var key = m?.S("ground") ?? "";
             var ground = key.Length > 0 && grounds.TryGetValue(key, out var gt) ? gt : null;
+            if (ground != null) groundUsed[key] = Time.frameCount;
             Show(mapGround, ground != null);
-            if (ground != null) { mapGround.texture = ground; Ui.Place(mapGround.rectTransform, 0, 0, mw, mh); mapGround.transform.SetAsFirstSibling(); mapBox.fill.transform.SetAsFirstSibling(); }
+            if (ground != null) mapGround.texture = ground;
+            var d = m?.O("detail");
+            var dk = d?.S("key") ?? "";
+            var dt = dk.Length > 0 && grounds.TryGetValue(dk, out var dtt) ? dtt : null;
+            if (dt != null) groundUsed[dk] = Time.frameCount;
+            Show(mapDetail, dt != null && ground != null);
+            if (dt != null && ground != null) { mapDetail.texture = dt; Ui.Place(mapDetail.rectTransform, d.F("u0") * z * mw, d.F("v0") * z * mh, d.F("s") * z * mw, d.F("s") * z * mh); }
             var drawing = m?.S("drawing") ?? "";
             Show(mapDrawing, ground == null && drawing.Length > 0);
-            if (ground == null && drawing.Length > 0) { mapDrawing.text = drawing; Ui.Place(mapDrawing.rectTransform, 0, mh / 2 - 12, mw, 24); }
-            // the scale bar at the foot, a round length
-            var sc = m?.O("scale");
-            Show(mapBar, sc != null); Show(mapScale, sc != null);
-            if (sc != null) { float bw = mw * Mathf.Clamp01(sc.F("frac")); Ui.Place(mapBar.rectTransform, 16, mh - 18, bw, 3); mapScale.text = sc.S("label") ?? ""; Ui.Place(mapScale.rectTransform, 16, mh - 38, 160, 18); }
+            if (ground == null && drawing.Length > 0) { mapDrawing.text = drawing; Ui.Place(mapDrawing.rectTransform, 0, mh / 2 - 16, mw, 32); }
+            var none = m?.S("none") ?? "";
+            Show(mapNone, none.Length > 0 && ground != null);
+            if (none.Length > 0) { mapNone.text = none; Ui.Place(mapNone.rectTransform, 0, mh / 2 - 12, mw, 24); }
+            // the marks (the traveller and those with a word for you over the rest), each its picture, round its place
+            float unit = 30;
             var list = m?.L("marks") ?? new List<object>();
-            while (marks.Count < list.Count)
+            var order = list.OfType<Dictionary<string, object>>().OrderBy(k => k.S("kind") == "you" ? 3 : k.S("kind") == "giver" ? 2 : B(k, "sel") ? 1 : 0).ToList();
+            while (markPics.Count < order.Count)
             {
-                var dot = Ui.Rect(mapBox.rt, Ui.Ink, 4, "mark"); var name = Ui.Label(mapBox.rt, "name", Ui.Mono, Tiny, Ui.Ink);
-                marks.Add((dot, name));
+                var ring = Ui.Node("ring", mapClip).gameObject.AddComponent<RawImage>(); ring.raycastTarget = false;
+                var pic = Ui.Node("mark", mapClip).gameObject.AddComponent<RawImage>(); pic.raycastTarget = false;
+                markPics.Add((pic, ring));
             }
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i < markPics.Count; i++)
             {
-                var k = list[i] as Dictionary<string, object>;
-                var (dot, name) = marks[i];
-                Show(dot, true); Show(name, true);
-                float u = Mathf.Clamp01(k.F("u")), v = Mathf.Clamp01(k.F("v")), s = k.S("kind") == "you" ? 12 : 9;
-                dot.color = k.S("kind") == "you" ? Ui.Red : k.S("kind") == "ship" ? Ui.Teal : k.S("kind") == "goal" ? Ui.Gold : Ui.Ink;
-                Ui.Place(dot.rectTransform, u * mw - s / 2, v * mh - s / 2, s, s);
-                bool on = B(k, "on");
-                name.text = on || k.S("kind") == "you" || k.S("kind") == "ship" ? k.S("name") : "";
-                name.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
-                Ui.Place(name.rectTransform, u * mw + 8, v * mh - 8, 180, 16);
+                var (pic, ring) = markPics[i];
+                bool has = i < order.Count;
+                var k = has ? order[i] : null;
+                var tex = has ? Mark(k.S("kind")) : null;
+                Show(pic, tex != null); Show(ring, tex != null && B(k, "sel"));
+                if (tex == null) continue;
+                float mx = k.F("x") * mw, my = k.F("y") * mh, side = unit * MarkSize(k.S("kind"));
+                pic.texture = tex;
+                Ui.PlaceC(pic.rectTransform, mx - side / 2, my - side / 2, side, side);
+                pic.rectTransform.localEulerAngles = new Vector3(0, 0, k.S("kind") == "you" ? -k.F("deg") : 0);
+                if (B(k, "sel")) { float rs = unit * 2.1f; ring.texture = Mark("sel"); Ui.PlaceC(ring.rectTransform, mx - rs / 2, my - rs / 2, rs, rs); }
             }
-            // the legend beside it: the rows
-            Show(sub, true); sub.fontStyle = FontStyle.Bold;
-            Ui.Set(sub, Ui.Upper(m?.S("world") ?? ""), w - mw - 20);
-            Ui.Place(sub.rectTransform, x + mw + 20, y - 2, w - mw - 20, 18);
-            DrawRows("map", x + mw + 14, y + 20, w - mw - 14, h - 20);
+            // the cursor, gold on a mark, and that mark's name and line beside it (left of it on the right half, under it near the top)
+            var cur = m?.L("cursor");
+            float cx = cur != null && cur.Count > 1 ? (float)Json.Num(cur[0]) * mw : mw / 2, cy = cur != null && cur.Count > 1 ? (float)Json.Num(cur[1]) * mh : mh / 2;
+            bool onMark = m != null && B(m, "on");
+            mapCursor.texture = Mark(onMark ? "cursorOn" : "cursor");
+            Show(mapCursor, mapCursor.texture != null && ground != null);
+            float cs = unit * 1.06f;
+            Ui.Place(mapCursor.rectTransform, cx - cs / 2, cy - cs / 2, cs, cs);
+            var tip = m?.O("tip");
+            mapTip.Show(tip != null);
+            if (tip != null)
+            {
+                float tw = Mathf.Min(mw * 0.46f, 420);
+                var ns = Ui.Set(mapTipName, tip.S("name") ?? "", tw - 16);
+                var ss = Ui.Set(mapTipSub, tip.S("sub") ?? "", tw - 16);
+                float bw = Mathf.Max(ns.x, ss.x) + 18, bh = ns.y + (ss.y > 0 ? ss.y + 2 : 0) + 10;
+                Ui.Place(mapTipName.rectTransform, 9, 4, bw - 16, ns.y); Ui.Place(mapTipSub.rectTransform, 9, 6 + ns.y, bw - 16, ss.y);
+                float off = 18, tx = B(tip, "left") ? cx - off - bw : cx + off, ty = B(tip, "below") ? cy + off * 0.4f : cy - bh / 2;
+                Ui.Place(mapTip.rt, Mathf.Clamp(tx, 4, mw - bw - 4), Mathf.Clamp(ty, 4, mh - bh - 4), bw, bh);
+            }
+            // the world's name, top left; north, top right
+            var world = m?.S("world") ?? "";
+            mapNameBox.Show(world.Length > 0);
+            if (world.Length > 0) { var ws = Ui.Set(mapName, world, mw * 0.6f); Ui.Place(mapName.rectTransform, 8, 2, ws.x, 22); Ui.Place(mapNameBox.rt, 12, 10, ws.x + 16, 26); }
+            mapNorth.texture = Mark("north"); Show(mapNorth, mapNorth.texture != null);
+            Ui.Place(mapNorth.rectTransform, mw - 14 - cs, 12, cs, cs);
+            // the scale bar, bottom left: a round length, its ink and paper quarters
+            var sc = m?.O("scale");
+            mapScaleBox.Show(sc != null);
+            if (sc != null)
+            {
+                float bw = Mathf.Max(40, mw * Mathf.Clamp01(sc.F("frac")));
+                Ui.Place(mapBar.rectTransform, 5, 4, bw, 7);
+                for (int i = 0; i < 2; i++) Ui.Place(mapBar.transform.GetChild(i) as RectTransform, 2 + (bw - 4) * (0.25f + 0.5f * i), 2, (bw - 4) * 0.25f, 3);
+                mapScale.text = sc.S("label") ?? "";
+                Ui.Place(mapScale.rectTransform, 5, 13, bw, 15);
+                Ui.Place(mapScaleBox.rt, 16, mh - 14 - 32, bw + 10, 32);
+            }
+            // the note over the scale (the ship hears the light on them: issue #273)
+            var nt = m?.S("note") ?? "";
+            mapNoteBox.Show(nt.Length > 0);
+            if (nt.Length > 0) { var ns2 = Ui.Set(mapNote, nt, mw - 140); Ui.Place(mapNote.rectTransform, 6, 2, ns2.x, ns2.y); Ui.Place(mapNoteBox.rt, 16, mh - 14 - 32 - 8 - (ns2.y + 4), ns2.x + 12, ns2.y + 4); }
+            // the zoom: RT in, LT out, bottom right (the pad's own names: the script's prompts)
+            zoomIn.text = "RT +"; zoomOut.text = "LT −";
+            Ui.Place(zoomInBox.rt, mw - 14 - 54, mh - 14 - 2 * 32 - 6, 54, 32);
+            Ui.Place(zoomOutBox.rt, mw - 14 - 54, mh - 14 - 32, 54, 32);
+            foreach (var t in new Component[] { mapCursor, mapNameBox.rt, mapNorth, mapScaleBox.rt, mapNoteBox.rt, zoomInBox.rt, zoomOutBox.rt, mapTip.rt }) t.transform.SetAsLastSibling();   // (over the marks)
+            mapEdge.transform.SetAsLastSibling();
         }
+
+        /// <summary>A mark's side on the sheet, of the web's mark (engine/map-marks.js MAP_MARKS size).</summary>
+        static float MarkSize(string kind) => kind switch { "you" => 1.3f, "goal" => 1.6f, "giver" => 1.5f, _ => 1f };
 
         void DrawPerson(Dictionary<string, object> p, float x, float y, float w, float h)
         {

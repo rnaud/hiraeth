@@ -1,6 +1,7 @@
 // A canvas for an engine's VM, drawn in plain JavaScript into RGBA bytes (docs/systems/engine-bridge.md, "The menus"):
 // the few calls of the 2D context the game's map uses (src/world-map.js drawTerrain: fillRect, strokeRect, the
-// paths' moveTo / lineTo and stroke, fillStyle / strokeStyle as '#rrggbb', 'rgb(…)' or 'rgba(…)', lineWidth), so the
+// paths' moveTo / lineTo and stroke, fillStyle / strokeStyle as '#rrggbb', 'rgb(…)' or 'rgba(…)', lineWidth, and the
+// ground's small picture put in and spread over the map smoothed: offscreen, putImageData, drawImage), so the
 // same drawing the web makes on its canvas becomes a picture the engine shows (the Unity bridge: BridgeMenu's Map).
 // The page's own canvas is not needed: engine/platform.js's stand-in draws nothing.
 //
@@ -85,6 +86,49 @@ class Context2D {
     }
   }
   fill() {}
+  // ---- pictures (drawTerrain's smooth ground: the grid's colours a pixel a cell, spread over the map; issue #343)
+  /** A canvas of its own, `w` × `h` (drawTerrain's small one: an OffscreenCanvas on the page). */
+  offscreen(w, h) { return new PixelCanvas(w, h); }
+  createImageData(w, h) { return { width: w, height: h, data: new Uint8ClampedArray(Math.max(1, w) * Math.max(1, h) * 4) }; }
+  /** An image's pixels put down as they are (no blending), its top left at (x, y). */
+  putImageData(img, x = 0, y = 0) {
+    const { width: W, height: H, data: d } = this.canvas, s = img.data, x0 = Math.round(x), y0 = Math.round(y);
+    for (let j = 0; j < img.height; j++) {
+      const ty = y0 + j;
+      if (ty < 0 || ty >= H) continue;
+      for (let i = 0; i < img.width; i++) {
+        const tx = x0 + i;
+        if (tx < 0 || tx >= W) continue;
+        const a = (j * img.width + i) * 4, b = (ty * W + tx) * 4;
+        d[b] = s[a]; d[b + 1] = s[a + 1]; d[b + 2] = s[a + 2]; d[b + 3] = s[a + 3];
+      }
+    }
+  }
+  /**
+   * A canvas drawn over this one at (dx, dy), dw × dh, smoothed as a page's canvas spreads a small picture (bilinear,
+   * its colours weighed by their cover, so a clear pixel's colour never bleeds in), blended over what is there.
+   */
+  drawImage(src, dx = 0, dy = 0, dw = src.width, dh = src.height) {
+    const { width: W, height: H, data: d } = this.canvas, s = src.data, sw = src.width, sh = src.height;
+    if (!s || !(dw > 0 && dh > 0)) return;
+    const x0 = Math.max(0, Math.floor(dx)), y0 = Math.max(0, Math.floor(dy)), x1 = Math.min(W, Math.ceil(dx + dw)), y1 = Math.min(H, Math.ceil(dy + dh));
+    const kx = sw / dw, ky = sh / dh, smooth = this.imageSmoothingEnabled !== false, ga = this.globalAlpha;
+    for (let j = y0; j < y1; j++) {
+      const v = (j + 0.5 - dy) * ky - 0.5, vj = Math.floor(v), fy = smooth ? v - vj : 0;
+      const ja = Math.min(sh - 1, Math.max(0, smooth ? vj : Math.round(v))), jb = Math.min(sh - 1, Math.max(0, vj + 1));
+      for (let i = x0; i < x1; i++) {
+        const u = (i + 0.5 - dx) * kx - 0.5, ui = Math.floor(u), fx = smooth ? u - ui : 0;
+        const ia = Math.min(sw - 1, Math.max(0, smooth ? ui : Math.round(u))), ib = Math.min(sw - 1, Math.max(0, ui + 1));
+        const p00 = (ja * sw + ia) * 4, p10 = (ja * sw + ib) * 4, p01 = (jb * sw + ia) * 4, p11 = (jb * sw + ib) * 4;
+        const w00 = (1 - fx) * (1 - fy) * s[p00 + 3], w10 = fx * (1 - fy) * s[p10 + 3], w01 = (1 - fx) * fy * s[p01 + 3], w11 = fx * fy * s[p11 + 3];
+        const wa = w00 + w10 + w01 + w11;
+        if (wa <= 0) continue;
+        const a = (wa / 255) * ga, q = (j * W + i) * 4, b = 1 - a;
+        for (let c = 0; c < 3; c++) d[q + c] = d[q + c] * b + ((s[p00 + c] * w00 + s[p10 + c] * w10 + s[p01 + c] * w01 + s[p11 + c] * w11) / wa) * a;
+        d[q + 3] = Math.min(255, d[q + 3] + 255 * a);
+      }
+    }
+  }
   save() {} restore() {} translate() {} scale() {} setTransform() {}
   measureText(s) { return { width: String(s ?? '').length * 6 }; }
 }

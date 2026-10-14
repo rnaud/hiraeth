@@ -828,7 +828,49 @@ const ROUND6 = { from: 'scripts/design-qc/capture.mjs (with a step to sound a no
 const LOOPS74 = { from: 'scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720), Vite on port 6423, at origin/main 2aa3f356 (before) and this branch (after), 14 October' };
 /** (v1.74, issue #218: the Unity build on the Retroid, its own pictures of a slow pan, scripts/bench/unity-shimmer.mjs) */
 const SHIMMER218 = 'Issue #218: the Retroid Pocket Nova, the Unity preview (branch build 2265), Handheld at 0.75, muted; the bridge’s -pan 40 (the view turned 0.025° a frame, a picture of each frame); before, the same build with the old pipeline (-aa fxaa -no-ink-far -no-hatch-aa); 14 October';
+/** (v1.75, issue #357: a scratch shooter against this branch's own Vite, port 6354, before and after the change) */
+const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6354) before and after the change, ?game=pirates&to=edena, the sky cleared of pirates and one raider parked 50 m ahead, 1.8 m off the line of fire (14 October); cwebp -q 72';
+/** (v1.75, issue #354: the cinematics QC's own frames before and after) */
+const FLIGHT354 = 'Issue #354: the cinematics QC’s frames (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720 kept at 960 × 540, the review page’s staging) against this branch’s own Vite (port 6354) before and after the change, about the same second of each (14 October); the QC’s own WebP';
+/** (v1.74, issue #237: the Elder's review page, tools/elder-review.html, its cycles stepped at 60 Hz, scripts/tripo/elder-sheets.mjs) */
+const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (Vite on port 6237), the review’s motions stepped at 60 Hz by scripts/tripo/elder-sheets.mjs, in the game’s ink; before, the tree before (433459bf) with the same review page and timings; 14 October';
 export const CHANGELOG_MEDIA = {
+  '1.75': [
+    { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [
+      { name: 'ship-takeoff', title: 'Leaving Vael for the Desert', caption: 'Three seconds after the hatch shuts. Before, the ship climbed straight up, faster and faster, level. After, it has risen on its jets to a hover over its dust, and tips forward to fly away along its bow.', from: `${FLIGHT354}: the take-off, 4.9 s in` },
+      { name: 'ship-landing', title: 'Out of the clouds at the Lantern', caption: 'Before, the ship dropped out of the sky straight onto the site, seen from high above. After, it flies in nose first over the coast, slowing, seen from the side; then it hovers over its spot and comes straight down.', from: `${FLIGHT354}: the arrival at the Lantern, 6.3–6.4 s in` },
+    ] },
+    { match: 'In the chime pirates you aim with one reticle now', tags: ['combat', 'menus'], shots: [
+      { name: 'pirates-reticle', title: 'Nothing in the way', caption: 'Before, a broken ring near the ship and a small diamond far down the same line: two marks that read as two reticles. After, one ring round a dot, where the shots will go.', from: `${RETICLE357}, the raider moved out of the way` },
+      { name: 'pirates-reticle-aim', title: 'A pirate just off the line', caption: 'Before, the ring and the diamond stayed on the plain line, open, beside a big teal diamond round the pirate (a missile’s mark). After, the aim assist has it: the reticle tightens, turns coral and slides onto it, and the missile’s mark is a small teal pip over it.', from: RETICLE357 },
+    ] },
+    { match: 'The Elder in the Aerie moves like a great bird now', tags: ['vael', 'foes'], shots: [
+      { name: 'elder-peck', title: 'The peck, from the side', caption: 'Her wind-up held, the blow, its end and back to her guard. Before, her head curled under her breast with the beak pointing back between her feet; after, her neck stretches out and the beak comes down at you, a metre up and three and a half ahead.', from: ELDER237 },
+      { name: 'elder-stamp', title: 'The stamp', caption: 'Before, both feet left the floor and her body rose two metres; after, one foot lifts high over the other leg and comes down.', from: ELDER237 },
+      { name: 'elder-gale', title: 'The gale', caption: 'Before, posed as the buffet; after, she rears back with her wings high, then beats them hard through the blow.', from: ELDER237 },
+      { name: 'elder-feathers', title: 'The feather volley, from the front', caption: 'Before, the buffet’s wind-up again; after, her wings spread wide and shiver, then fling forward.', from: ELDER237 },
+    ] },
+    { match: 'The Elder no longer jerks', tags: ['vael', 'foes'], numbers: [
+      { title: 'The worst change of speed of any part of her in one frame (a snap)', unit: 'm/s', better: 'lower', device: 'node scripts/tripo/elder-cycles.mjs, each motion stepped at 60 Hz', rows: [
+        { where: 'the peck', before: 81.6, after: 9.9 },
+        { where: 'the buffet', before: 45.8, after: 5.3 },
+        { where: 'the gale', before: 46.7, after: 9.9 },
+        { where: 'the feather volley', before: 46.8, after: 3.3 },
+        { where: 'the dive', before: 75.7, after: 7.2 },
+        { where: 'take-off and landing', before: 40.0, after: 5.5 },
+        { where: 'worn out (a leg flipping)', before: 39.7, after: 0.1 },
+      ], source: 'scripts/tripo/elder-cycles.mjs; a snap is a part gaining or losing over half its top speed in a frame. Left: the stamp’s foot stopping on the floor, its blow', note: 'Her edges stretched or squeezed most, a frame: peck 30 → 12 cm, sleep 24 → 10, worn out 24 → 9, the whole fight 30 → 13.' },
+    ] },
+    { match: 'The Elder’s feathers lost the grey shadows painted into them', tags: ['vael', 'devices'], shots: [
+      { name: 'elder-feathers-close', title: 'Her breast and wing, close', caption: 'Left, her colours alone (no light); right, in the game’s ink. Before, grey shading baked into the feathers’ undersides and creases; after, an even cream, the painted feather lines kept.', from: ELDER237 },
+    ], numbers: [
+      { title: 'Her triangles a frame, every pass (the G-buffer and the shadow maps)', unit: 'k', better: 'lower', device: 'Mac (M4 Pro), muted headless Chrome, Handheld 0.75, 1280 × 720, in the Aerie’s roost', rows: [
+        { where: '12 m off', before: 83.6, after: 83.6 },
+        { where: '35 m off', before: 83.6, after: 32.2 },
+        { where: '90 m off', before: 83.6, after: 11.9 },
+      ], source: 'scripts/bench/elder.mjs --preset handheld', note: 'Her GPU time is in the Mac’s noise (0.1–0.3 ms); her fight and pose 0.02 ms of CPU a frame. Her colour map is 2048² (21 MiB with mipmaps on the GPU).' },
+    ] },
+  ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [
       { name: 'unity-shimmer-shaft', title: 'The City-Shaft from above, what flickers', caption: 'Red: the pixels that flipped and flipped back over a slow 1° turn. Before, the far facades, the rings and the tall shaft crawled; after, most of it is gone (what is left round the people is the crowd walking).', from: SHIMMER218 },

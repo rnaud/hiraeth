@@ -42,10 +42,15 @@ function level(full, j, sync) {
 }
 
 export class SkinnedLod {
-  /** @param humanoid a Humanoid; o.sync builds levels at once (tests) */
-  constructor(humanoid, { sync = false } = {}) {
+  /**
+   * @param humanoid a Humanoid (or anything with a `model` to search for skinned meshes and a `char.root` placed in the
+   *        world: a guardian's skin, src/characters/elder-v3-creature.js); o.sync builds levels at once (tests);
+   *        o.min / o.max: its levels' cells (2^j of its units; a 7 m bird goes coarser than a person, issue #237)
+   */
+  constructor(humanoid, { sync = false, min = SKIN_LOD.min, max = SKIN_LOD.max } = {}) {
     this.h = humanoid;
     this.sync = sync;
+    this.min = min; this.max = max;
     this.j = -Infinity;
     this.entries = null;
     this.faceHidden = false;
@@ -86,7 +91,7 @@ export class SkinnedLod {
    */
   update(d, size, pxPerRad, px) {
     if (!this.entries) this.collect();
-    const j = (this.j = px > 0 && pxPerRad > 0 ? pickLevel(this.j, d, size, pxPerRad, px, { min: SKIN_LOD.min, max: SKIN_LOD.max }) : -Infinity);
+    const j = (this.j = px > 0 && pxPerRad > 0 ? pickLevel(this.j, d, size, pxPerRad, px, { min: this.min, max: this.max }) : -Infinity);
     let tris = 0, full = 0;
     for (const e of this.entries) {
       // someone else changed the mesh (a new build or costume): that is the full one now
@@ -94,7 +99,7 @@ export class SkinnedLod {
       let g = e.full;
       if (j !== -Infinity) {
         // the coarsest ready level at or under j
-        for (let i = j; i >= SKIN_LOD.min; i--) {
+        for (let i = j; i >= this.min; i--) {
           const l = level(e.full, i, this.sync);
           if (l) { g = l; break; }
           if (l === null) break;

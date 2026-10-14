@@ -523,17 +523,22 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   looses one at what lies nearest the reticle in a cone twice the charge's (`findLock(S, cone)`; with nothing there it
   flies straight on): it drops off the ship, its motor lights and it speeds up (55 to 115 m/s) turning after its target,
   and what it meets takes 14 (a raider or a gun pod's chunk in one) and a splash of 4 round it, their shots there gone.
-  Feedback: a teal diamond round what a missile would lock now (while one is left), a hiss and a whine and a flare under
+  Feedback: a small teal pip over what a missile would lock now (while one is left; a diamond round it until v1.75), a hiss and a whine and a flare under
   the ship as it goes, a pale body with a coral head and a flame trailing smoke, a burst and the reticle's gold mark on a
   kill, "No missiles left" and a click when the rack is empty, "Missile +1" at a ring. **Balance**: a missile's kill is
   worth `MISSILE_POINTS` (three quarters) of its points, so a run's total and its chimes stay where the bolts left them:
   the pilot scores 1,619 on average with them against 1,642 without (80–81 chimes against 82; `tests/pirates.test.js`
   holds it within 4 %).
-- **The reticle** (v1.59, issue #206: "the two boxes are confusing"): one line of fire, `aimAt` (where the bolts
-  will be), drawn as a broken ink ring 26 m down it and a small diamond 80 m down it (`RETICLE`). When the line runs
-  through a pirate or a live part of the captain (`aimTarget`: within its body and 0.6 m) the ring tightens and goes
-  coral, its four ticks closing in; a bolt that tells (the rules' `hit` event, or a kill) strikes a mark across it
-  (`HIT_MARK`, gold for a kill) with a dry tick. Until v1.59 it was two squares, 22 and 55 m down the same line.
+- **The reticle** (v1.75, issue #357: "I don't understand the double reticule. We can make one nicer single
+  reticule. Look at the recent Star Fox game"): **one**, where the bolts will be 40 m down the line of fire
+  (`aimAt`, `RETICLE.at`): a cream ink ring broken at its four points round a dot. On what the aim assist will bend
+  the bolts onto (`aimTarget` within `FLY.assist.slack`: a pirate's or a live part's body and 2.6 m) it tightens
+  (16 to 11 px at half size), turns coral and slides 70 % of the way onto it (`RETICLE.pull`, the assist's own `k`:
+  where the bolts will go); held, the charge fills a gold ring round it, and the whole reticle is gold once full; a
+  bolt that tells (the rules' `hit` event, or a kill) strikes a mark across it (`HIT_MARK`, gold for a kill) with a
+  dry tick. The charge's LOCK brackets stay on the locked pirate; a missile's target has a small teal pip over it.
+  v1.59 to v1.74 drew a broken ring 26 m down the line and a diamond 80 m down it (two marks that read as two
+  reticles), tightening only on the plain line (0.6 m); until v1.59 it was two squares, 22 and 55 m down it.
 - **Points, then chimes** (v1.59, issue #206: "don't show '+3 chimes', just have points and at the end they convert into
   chimes"): the run counts points only (`POINTS`, `S.score`: the corner's box, "+10" over each kill); won on the way to
   a world, the results' tally (`tallyHtml`, counted up by `tally()` with a chime heard each tenth) turns them into
@@ -627,7 +632,7 @@ effects, better enemy designs. Better game feel." The hints are above (one small
 - **Tighter controls** (`FLY`): the stick taken up a little quicker (`response` 6 /s, 5 before), a **brake** when it
   is let go or turned back (10 /s: it stops where it is left), a **curve** on the stick (|x|^1.3: half a push is a fine
   correction, a full one as before), and **aim assist**: a bolt fired with a pirate within 2.6 m of the line of fire is
-  bent 70 % of the way onto it (the reticle still shows the plain line).
+  bent 70 % of the way onto it (since v1.75 the reticle tightens on it and slides as far onto it, issue #357).
 - Tests: `tests/pirates-feel.test.js` (the row's size, look and fade; each kind's silhouette, colours and tell part;
   each kind's attack after its telegraph, the fan's three shots; the sounds' layers and range; a kill's shake, hit-stop,
   combo and shards, none of the shake under Reduce motion; the trail and the buttons marked used; the curve, the brake

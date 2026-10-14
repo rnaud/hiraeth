@@ -416,7 +416,7 @@ function targetAlive(S, t) {
   if (t.part) return !!S.boss && !t.part.gone && !(t.part.armoured && !S.boss.open) && !S.boss.dying;
   return !t.foe.dead && !t.foe.gone;
 }
-function targetPos(S, t) {
+export function targetPos(S, t) {
   if (!targetAlive(S, t)) return null;
   if (t.part) return partAt(S.boss, t.part);
   return t.foe;

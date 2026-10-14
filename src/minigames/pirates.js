@@ -25,7 +25,7 @@ import { stripTone } from '../story/tone.js';
 import { shakeScale } from '../feel.js';
 import { optionKey } from './kit/flow.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
-import { FLY, BOSS, ATTACKS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget } from './pirates-rules.js';
+import { FLY, BOSS, ATTACKS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget, targetPos } from './pirates-rules.js';
 import { pirateSounds } from './pirates-sfx.js';
 
 const INK = '#2b211f';
@@ -481,7 +481,7 @@ function start(ctx) {
   // (redT: the hit's flash at the screen's edge; shake: the camera's; pipT: the hull's pips shown under the ship, lostI
   // the pip that went; aimK: the reticle's tightening on a target, hitT its hit mark)
   // (issue #326, the feel: jolt the small capped shake of a kill, stop the hit-stop left, combo the kills in a row)
-  const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0, shake: 0, pipT: 0, lostI: -1, lostT: 0, aimK: 0, hitT: 0, hitBig: false, hurtN: 0,
+  const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0, shake: 0, pipT: 0, lostI: -1, lostT: 0, aimK: 0, target: null, pullX: 0, pullY: 0, reticle: null, hitT: 0, hitBig: false, hurtN: 0,
     jolt: 0, stop: 0, stopCool: 0, stops: 0, combo: 0, comboT: 0, comboBest: 0, trailT: 0 };
   // the flashes (a muzzle's, an impact's, an explosion's swelling ball: ship-relative, they fly with it), the debris of
   // the wrecks and the ship's engine trail (in the world), the telegraphs' glows drawn this frame
@@ -874,31 +874,31 @@ function start(ctx) {
     if (phase !== 'play') return;
     const P = S.ship;
     g.lineJoin = 'round';
-    // the aim (issue #206: "the two boxes are confusing"): one line of fire, a ring near and a diamond far down it,
-    // where the bolts will be (aimAt: they swing ahead as it turns). On a target (aimTarget) the ring tightens and
-    // goes coral, its ticks closing in; a bolt that tells strikes a mark across it; the charge fills an arc round it.
-    const ring = project(world(RETICLE.near, aimAt(P, RETICLE.near).u, aimAt(P, RETICLE.near).v, _p));
-    const dot = project(world(RETICLE.far, aimAt(P, RETICLE.far).u, aimAt(P, RETICLE.far).v, _p));
-    const on = run.aimK, hot = P.charge >= 1 ? '#f2c54b' : mix('#f7ecd2', '#ef9479', on);
+    // the aim (issue #357: "I don't understand the double reticule. We can make one nicer single reticule"): one
+    // reticle where the bolts will be RETICLE.at m down the line of fire (aimAt: it swings ahead as the ship turns), a
+    // ring broken at its four points round a dot. On what the aim assist will bend the bolts onto (aimTarget within
+    // FLY.assist's slack) it tightens, turns coral and slides part of the way onto it, as the bolts do; held, the charge
+    // fills a ring round it (all of it gold once full); a bolt that tells strikes a mark across it.
+    const a0 = aimAt(P, RETICLE.at), plain = project(world(RETICLE.at, a0.u, a0.v, _p));
+    const on = run.aimK, full = P.charge >= 1, hot = full ? '#f2c54b' : mix('#f7ecd2', '#ef9479', on);
     const inked = (draw, lw) => { g.strokeStyle = INK; g.lineWidth = lw + 2.2; draw(); g.strokeStyle = hot; g.lineWidth = lw; draw(); };
-    if (dot.front) {
-      const x = dot.x * W, y = dot.y * H, d = 3.6 - on;
-      inked(() => { g.beginPath(); g.moveTo(x, y - d); g.lineTo(x + d, y); g.lineTo(x, y + d); g.lineTo(x - d, y); g.closePath(); g.stroke(); }, 1.5);
-    }
-    if (ring.front) {
-      const x = ring.x * W, y = ring.y * H, R = RETICLE.r - (RETICLE.r - RETICLE.tight) * on;
-      // the ring, broken at its four points, with ticks in toward the middle (longer on a target)
-      inked(() => {
-        for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x, y, R, k * Math.PI / 2 + 0.32, (k + 1) * Math.PI / 2 - 0.32); g.stroke(); }
-        const t1 = R - 3.5 - 3 * on;
-        g.beginPath();
-        for (const [cx, cy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) { g.moveTo(x + cx * (R + 1.5), y + cy * (R + 1.5)); g.lineTo(x + cx * t1, y + cy * t1); }
-        g.stroke();
-      }, 1.6);
+    if (plain.front) {
+      const tp = run.target ? targetPos(S, run.target) : null;
+      if (tp) {
+        const q = project(world(tp.ds, tp.u, tp.v, _p));
+        if (q.front) { run.pullX = q.x * W - plain.x * W; run.pullY = q.y * H - plain.y * H; }
+      }
+      const pull = RETICLE.pull * on, x = plain.x * W + run.pullX * pull, y = plain.y * H + run.pullY * pull;
+      run.reticle = { x: x / W, y: y / H };
+      const R = RETICLE.r - (RETICLE.r - RETICLE.tight) * on, gap = RETICLE.gap;
+      inked(() => { for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x, y, R, k * Math.PI / 2 + gap, (k + 1) * Math.PI / 2 - gap); g.stroke(); } }, 2.1);
+      // the dot in the middle
+      g.beginPath(); g.arc(x, y, RETICLE.dot, 0, Math.PI * 2);
+      g.fillStyle = hot; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.2; g.stroke();
       if (P.charge > 0) {
-        g.beginPath(); g.arc(x, y, R + 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * P.charge);
-        g.strokeStyle = INK; g.lineWidth = 5; g.stroke();
-        g.strokeStyle = '#f2c54b'; g.lineWidth = 2.5; g.stroke();
+        g.beginPath(); g.arc(x, y, R + RETICLE.charge, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, P.charge));
+        g.strokeStyle = INK; g.lineWidth = 4.6; g.stroke();
+        g.strokeStyle = '#f2c54b'; g.lineWidth = full ? 2.4 : 2; g.stroke();
       }
       if (run.hitT > 0) {
         const k = run.hitT / HIT_MARK, a = R + 2.5 + (1 - k) * 2, b = a + (run.hitBig ? 7 : 4.5);
@@ -925,15 +925,16 @@ function start(ctx) {
         }
       }
     }
-    // the missile's mark (issue #224): what a missile would lock now, a teal diamond round it, only while there is
-    // one to loose (and not where the charge's LOCK already is)
+    // the missile's mark (issue #224): what a missile would lock now, a small teal pip over it (issue #357: not a
+    // second reticle round it), only while there is one to loose (and not where the charge's LOCK already is)
     if (P.aim && P.missiles > 0 && !(P.lock && P.aim.foe === P.lock.foe && P.aim.part === P.lock.part)) {
       const at = P.aim.part ? (S.boss ? partAt(S.boss, P.aim.part) : null) : P.aim.foe;
       if (at) {
         const p = project(world(at.ds, at.u, at.v, _p));
         if (p.front) {
-          const x = p.x * W, y = p.y * H, r = Math.max(9, 900 / Math.max(10, at.ds + CAM.back)) * (at.r ?? 2.5) / 2 + 4;
-          for (const [lw, c] of [[4.5, INK], [2, '#9ff2e6']]) { g.lineWidth = lw; g.strokeStyle = c; g.beginPath(); g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath(); g.stroke(); }
+          const x = p.x * W, y = p.y * H - Math.max(9, 900 / Math.max(10, at.ds + CAM.back)) * (at.r ?? 2.5) / 2 - 7;
+          g.beginPath(); g.moveTo(x - 3.6, y - 4.5); g.lineTo(x + 3.6, y - 4.5); g.lineTo(x, y); g.closePath();
+          g.fillStyle = '#9ff2e6'; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke();
         }
       }
     }
@@ -999,7 +1000,9 @@ function start(ctx) {
     run.pipT = Math.max(0, run.pipT - dt); run.lostT = Math.max(0, run.lostT - dt); run.hitT = Math.max(0, run.hitT - dt);
     run.jolt = run.jolt > 0.004 ? run.jolt * Math.exp(-FEEL.decay * dt) : 0;
     run.comboT = Math.max(0, run.comboT - dt); if (run.comboT <= 0) run.combo = 0;
-    run.onTarget = phase === 'play' && !!aimTarget(S);   // (the reticle tightens on what the line of fire runs through)
+    // (the reticle tightens on what the aim assist bends the bolts onto: issue #357)
+    run.target = phase === 'play' ? aimTarget(S, FLY.assist?.slack ?? RETICLE.slack) : null;
+    run.onTarget = !!run.target;
     // the missiles left, under the hints at the bottom right (issue #224)
     const mk = `${S.ship.missiles}/${FLY.missile.count}`;
     if (mk !== run.missileNote) { run.missileNote = mk; ctx.hintNote?.(`<span class="pirates-missiles">MISSILES${Array.from({ length: FLY.missile.count }, (_, i) => `<i class="${i < S.ship.missiles ? '' : 'gone'}"></i>`).join('')}</span>`); }
@@ -1110,8 +1113,12 @@ const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _p3 = V
 export const HURT = { flash: 0.7, shake: 0.45, amp: 2.4, pips: 2.2, lost: 0.8 };
 /** The reticle's hit mark (s). */
 export const HIT_MARK = 0.16;
-/** The reticle: the ring's distance down the line of fire and the diamond's (m), the ring's size and tightened on a target (px at half size). */
-export const RETICLE = { near: 26, far: 80, r: 11, tight: 7.5 };
+/**
+ * The reticle (issue #357: one): its distance down the line of fire (m); the ring's radius, tightened on a target, its
+ * dot's and the charge ring's distance out (px at half size); the gaps at its four points (rad); how much of the way onto
+ * the target it slides (the aim assist's own bend); the reach without the assist (m).
+ */
+export const RETICLE = { at: 40, r: 16, tight: 11, dot: 2.2, charge: 5.5, gap: 0.34, pull: FLY.assist?.k ?? 0, slack: 0.6 };
 /** The results' tally: how long the points take to count into chimes (s). */
 export const TALLY = { secs: 1.6 };
 /** The save's flag once the pirates have been beaten anywhere: from then on the start card offers the stick's pitch. */

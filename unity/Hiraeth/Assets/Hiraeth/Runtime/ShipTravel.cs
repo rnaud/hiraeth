@@ -29,6 +29,35 @@ namespace Hiraeth
         static readonly string[] Fire = { "#fff3c4", "#ffd27a", "#ff9a4a", "#f2c54b" };
         static readonly float[] Approach_ = { 2.8f, 2.1f, 1.9f };
 
+        // the take-off's and the landing's curves (src/ship/flight.js takeoffPose, landingPose; issue #354: up on the jets
+        // to a hover, then tipped forward and away along the bow; in nose first along it, a hover over the spot, then
+        // straight down). The export's ship.flight; the web game's own numbers where an older export has none.
+        float Fl(string which, string k, float d) => data?.O("flight")?.O(which)?.F(k, d) ?? d;
+        struct FlightPose { public float along, up, pitch; }   // (along: m ahead taking off, m back landing; pitch + nose up)
+        FlightPose TakeoffPose(float t)
+        {
+            float dur = Fl("takeoff", "dur", 5.2f), rise = Fl("takeoff", "rise", 2.0f), hover = Fl("takeoff", "hover", 15);
+            if (t <= rise) return new FlightPose { along = 0, up = hover * Smooth(t / rise), pitch = 0 };
+            float s = Mathf.Clamp01((t - rise) / (dur - rise));
+            float dip = s < 0.45f ? Fl("takeoff", "dip", 0.14f) * Mathf.Sin(Mathf.PI * s / 0.45f) : 0;
+            return new FlightPose { along = Fl("takeoff", "away", 340) * s * s, up = hover + Fl("takeoff", "climb", 80) * s * s * s, pitch = -dip + Fl("takeoff", "nose", 0.12f) * Smooth((s - 0.3f) / 0.5f) };
+        }
+        float LandingDur => Fl("landing", "glide", 3.6f) + Fl("landing", "hold", 0.35f) + Fl("landing", "drop", 2.6f);
+        FlightPose LandingPose(float t)
+        {
+            float glide = Fl("landing", "glide", 3.6f), hold = Fl("landing", "hold", 0.35f), drop = Fl("landing", "drop", 2.6f), hover = Fl("landing", "hover", 32);
+            if (t < glide)
+            {
+                float s = Mathf.Clamp01(t / glide), q = (1 - s) * (1 - s);
+                return new FlightPose { along = Fl("landing", "back", 300) * q, up = hover + (Fl("landing", "high", 175) - hover) * q, pitch = Fl("landing", "flare", 0.12f) * 6.75f * s * s * (1 - s) };
+            }
+            if (t < glide + hold) return new FlightPose { along = 0, up = hover, pitch = 0 };
+            float u = Mathf.Clamp01((t - glide - hold) / drop), e = u * u * u * (u * (6 * u - 15) + 10);   // (smootherstep: onto its feet at rest)
+            return new FlightPose { along = 0, up = hover * (1 - e), pitch = 0 };
+        }
+        /// <summary>The ship's turn for a pitch (rad, + nose up) about its level bow.</summary>
+        static Quaternion Pitched(float rad, Vector3 fwd) => Quaternion.AngleAxis(-rad * Mathf.Rad2Deg, Vector3.Cross(Vector3.up, fwd));
+
         void StartFlight(List<Leg> legs, System.Action done)
         {
             flight = legs; fs = -1; flightDone = done; flightSkippable = true;
@@ -159,19 +188,22 @@ namespace Hiraeth
                         ShotIn(TableShot(t), false);
                         Shake(0.25f * t);
                     } },
-                new() { id = "liftoff", dur = 3.8f,
+                new() { id = "liftoff", dur = Fl("takeoff", "dur", 5.2f),
                     enter = () => { Say(null, null); ShowPlayer(false); Sounds.Instance?.Play("ship_roar"); Sounds.Instance?.Play("ship_rumble"); FootPuffs(6); fly0 = restPos; lookSm = restPos; },
                     frame = (t, dt) =>
                     {
-                        float k = t / 3.8f;
-                        if (parked) parked.transform.position = restPos + new Vector3(0, 0.8f * t + 9 * t * t, 0);
-                        var cam = rampFoot + outDir * 34 + Side * 22; cam.y = GroundAt(cam) + 4;
+                        float dur = Fl("takeoff", "dur", 5.2f), rise = Fl("takeoff", "rise", 2.0f), k = t / dur;
+                        // up off its feet to a hover, then tipped forward and away along its bow, climbing (flight.js takeoffPose)
+                        var fwd = Bow; var p = TakeoffPose(t);
+                        if (parked) { parked.transform.position = restPos + fwd * p.along + Vector3.up * p.up; parked.transform.rotation = Pitched(p.pitch, fwd) * restRot; }
+                        // (low, out from the hatch and a little behind the stern: the lift side on, then away across the frame)
+                        var cam = rampFoot + outDir * 40 - fwd * 26; cam.y = GroundAt(cam) + 4;
                         var at = parked ? parked.transform.position : restPos;
-                        lookSm = t < 0.05f ? at : Vector3.Lerp(lookSm, at, 1 - Mathf.Exp(-4 * dt));
-                        Shot(cam, lookSm, 52 + k * 8);
+                        lookSm = t < 0.05f ? at : Vector3.Lerp(lookSm, at, 1 - Mathf.Exp(-5 * dt));
+                        Shot(cam, lookSm, 52 - 6 * Smooth((t - rise) / (dur - rise)));
                         Exhaust(dt, 1, 44);
                         Shake(0.5f * (1 - k));
-                        if (t > 3.0f && warpTitle == null) { warpTitle = title; warpT = 0; }
+                        if (t > Fl("takeoff", "warp", 4.4f) && warpTitle == null) { warpTitle = title; warpT = 0; }
                     } },
                 new() { id = "warp", dur = 1.6f, frame = (t, dt) => { warpT += dt; } },
             };
@@ -192,7 +224,6 @@ namespace Hiraeth
             var fwd = Bow; var up = Vector3.up; var across = SideOf(fwd);
             Quaternion NoseDown(float rad) => Quaternion.AngleAxis(rad * Mathf.Rad2Deg, Vector3.Cross(up, fwd));
             var centre = new Vector3(restPos.x, SpaceY, restPos.z);
-            var top = restPos + Vector3.up * 140;
             Vector3 cam = Vector3.zero, look = Vector3.zero;
             bool flashed = false, thud = false;
             void PlacePlanet(Vector3 from, float D, float drop, float ang)
@@ -252,27 +283,28 @@ namespace Hiraeth
                     enter = () => { approach?.Remove(); approach = null; if (game.look) game.look.fogOverride = -1; Fade(0, 0.7f); Sounds.Instance?.Play("ship_roar"); },
                     frame = (t, dt) =>
                     {
-                        // out of the clouds over the landing site: it comes down upright on its jets, slowing
-                        float k = Mathf.Min(1, t / Approach_[2]), e = 1 - Mathf.Pow(1 - k, 1.6f);
-                        var p = restPos - fwd * 40 * (1 - e) + up * (140 + 260 * (1 - e));
-                        if (parked) { parked.transform.position = p; parked.transform.rotation = restRot; }
+                        // out of the clouds toward the landing site: in nose first along its bow, slowing, seen from the side (flight.js landingPose)
+                        var lp = LandingPose(t); var p = restPos - fwd * lp.along + up * lp.up;
+                        if (parked) { parked.transform.position = p; parked.transform.rotation = Pitched(lp.pitch, fwd) * restRot; }
                         Exhaust(dt, 0.8f);
-                        var c = restPos + fwd * 70 + Side * 85 + up * 230;
-                        Shot(c, p + Vector3.down * 6, 44);
+                        var c = restPos + outDir * 135 - fwd * 50 + up * 80;
+                        look = t < 0.05f ? p : Vector3.Lerp(look, p, 1 - Mathf.Exp(-6 * dt));
+                        Shot(c, look, 44);
                     } },
-                new() { id = "landing", dur = 4.2f,
-                    enter = () => { look = top; Sounds.Instance?.Play("ship_rumble"); },
+                new() { id = "landing", dur = LandingDur - Approach_[2],
+                    enter = () => { Sounds.Instance?.Play("ship_rumble"); },
                     frame = (t, dt) =>
                     {
-                        float k = 1 - Mathf.Pow(1 - Mathf.Min(1, t / 4.2f), 3);
-                        var p = Vector3.Lerp(top, restPos, k);
-                        if (parked) { parked.transform.position = p; parked.transform.rotation = restRot; }
+                        // the last of the way in, a hover over its spot, then straight down on its jets onto its feet
+                        var lp = LandingPose(Approach_[2] + t); var p = restPos - fwd * lp.along + up * lp.up;
+                        if (parked) { parked.transform.position = p; parked.transform.rotation = Pitched(lp.pitch, fwd) * restRot; }
                         var c = rampFoot + outDir * 34 + Side * 20; c.y = GroundAt(c) + 5;
-                        look = Vector3.Lerp(look, p, 1 - Mathf.Exp(-5 * dt));
-                        Shot(c, look, 50);
+                        // (aimed half way down to its spot: the ground it comes down to stays in the frame; cinematics.js LAND_LOOK)
+                        look = Vector3.Lerp(look, Vector3.Lerp(p, restPos, 0.5f), 1 - Mathf.Exp(-5 * dt));
+                        Shot(c, look, 52);
                         float h = p.y - restPos.y;
                         if (!thud) Exhaust(dt, 0.75f + 0.25f * (1 - Mathf.Min(1, h / 60)));
-                        if (t > 4.0f && !thud) { thud = true; Sounds.Instance?.Play("ship_rumble", 0.3f); FootPuffs(); }   // (onto its feet: a puff from under each, no jolt)
+                        if (t > LandingDur - Approach_[2] - 0.1f && !thud) { thud = true; Sounds.Instance?.Play("ship_rumble", 0.3f); FootPuffs(); }   // (onto its feet: a puff from under each, no jolt)
                     } },
                 new() { id = "door", dur = 2.8f,
                     enter = () => Sounds.Instance?.Play("ship_hatch"),

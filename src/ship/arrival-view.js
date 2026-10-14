@@ -15,8 +15,32 @@ import { ARRIVAL_VIEWS } from './arrival-views.js';
 // are the short arrival as before. tests/arrival-view.test.js builds every route world and projects its landmarks
 // into both views.
 
-/** The establishing descent: the ship from `from` m over where it rests to `to` m, in `dur` s; then the landing's last `to` m in `land` s. */
-export const WIDE = { dur: 6.4, from: 260, to: 30, land: 2.8 };
+/**
+ * The establishing descent: the ship gliding in nose first from `from` m up and up to `back` m behind where it rests
+ * (as far as keeps it in the frame: wideBack) to a hover `to` m over its spot, in `dur` s; then, in the landing's low
+ * shot, straight down those last `to` m on its jets in `land` s (issue #354, src/ship/flight.js landingPose).
+ */
+export const WIDE = { dur: 6.4, from: 150, to: 30, land: 2.8, back: 240, hold: 0.3 };
+/** The wide's glide as src/ship/flight.js landingPose flies it, `back` m out. */
+export const wideFlight = (back = WIDE.back) => ({ back, high: WIDE.from, hover: WIDE.to, glide: WIDE.dur, hold: WIDE.hold, drop: WIDE.land - WIDE.hold, flare: 0.12 });
+/**
+ * How far behind its spot (m, along the bow `fwd`) the wide's glide starts: the longest of a few for which the ship is
+ * in the frame from 40 % of the way in (it may fly into the frame from its edge before that), in front of the lens
+ * all the way and never within 40 m of it. 40 when none does.
+ */
+export function wideBack(view, rest, fwd, aspect = ASPECT) {
+  const c = viewCamera(view, aspect), P = V(view.pos);
+  for (const b of [WIDE.back, 190, 150, 110, 80, 60]) {
+    let ok = true;
+    for (let s = 0; s <= 1.001 && ok; s += 0.05) {
+      const f = (1 - s) * (1 - s), p = [rest[0] - fwd[0] * b * f, rest[1] + WIDE.to + (WIDE.from - WIDE.to) * f, rest[2] - fwd[2] * b * f];
+      const at = screenOf(c, p);
+      ok = at.front && V(p).distanceTo(P) > 40 && (s < 0.4 || inFrame(at));
+    }
+    if (ok) return b;
+  }
+  return 40;
+}
 /** The first step out: the camera drifts from `swing` rad round and `rise` rad higher, `back` m further out, into the rig's own framing at `pitch`, over `dur` s. */
 export const REVEAL = { dur: 3.6, pitch: 0.24, rise: 0.2, back: 5, swing: 0.4 };
 /** The first framing's pitches tried, the rig's slight high angle first (src/player.js: + is the camera over him, looking down). */

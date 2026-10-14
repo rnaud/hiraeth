@@ -74,7 +74,7 @@ test('the Unity bridge draws the toast and the cue on the same strip, the cue at
   const cs = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
   const [r, g, b, a] = HINT_ENGINE.bg;
   assert.ok(cs.includes(`new Color(${Math.round(r * 255)} / 255f, ${Math.round(g * 255)} / 255f, ${Math.round(b * 255)} / 255f, ${a}f)`), 'HintBg');
-  assert.ok(cs.includes(`HintInk = Ui.Hex("${HINT_ENGINE.ink}")`));
+  assert.ok(cs.includes(`HintInk0 = Ui.Hex("${HINT_ENGINE.ink}")`));   // (HintBg0, HintInk0: the plain speech background turns them black and white, issue #346)
   assert.ok(cs.includes(`const float HintTop = ${HINT_ENGINE.top}, HintGap = ${HINT_ENGINE.gap};`));
   assert.match(cs, /toast = Ui\.Panel\(root, "toast", HintBg/);
   assert.match(cs, /cue = Ui\.Panel\(root, "cue", HintBg/);

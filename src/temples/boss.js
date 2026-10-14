@@ -4,6 +4,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { HIT, strikeDamage, heartsOf, quarters, DAMAGE } from '../resources.js';
 import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js';
+import { SecondOrder } from '../motion-kit/spring.js';
 
 // The thing at the heart of every temple. The makers were gentle: what waits
 // in their temples was left to keep them. Two kinds:
@@ -73,7 +74,9 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //          point, where the lock-on aims: src/foes.js GuardianLock.aim), turnRate? (rad/s, the fastest it turns: a big
 //          walker turns no faster than its feet can step it round), shadow? { rx, rz, feet } (its contact shadow),
 //          marks? { c, r } (where its phase marks go), tellRig? (its own frame for the moves' generic motions: a walker
-//          keeps its legs out of it, planted), animate(dt, t, { state, attack, k, speed, meter, phase, kit: { eye, ground } }) }
+//          keeps its legs out of it, planted), tellWeight? (how much of those motions it takes: 0, its own poses tell its
+//          moves), turnAccel? (rad/s², its turns gathered), rises? (Hz: taking off and landing eased, not in a frame),
+//          animate(dt, t, { state, attack, k, speed, meter, phase, kit: { eye, ground } }) }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -636,13 +639,21 @@ export class Guardian {
     if (m.floats) {
       // it swims in the air of its hall: its body (centred on pos) at the arena's height plus its hover
       m.pos.y = this.arena.y + (m.hover ?? 5);
-      this.solid.pos = m.pos;
-      this.solid.bottom = m.pos.y - (m.height ?? 3) / 2; this.solid.top = m.pos.y + (m.height ?? 3) / 2;
     } else {
-      if (ph) { const g = ph.groundAt(m.pos.x, this.arena.y + 2.5, m.pos.z, 6); if (Number.isFinite(g)) m.pos.y = Math.max(this.arena.y - 2, g); }
-      this.solid.pos = m.pos;
-      this.solid.bottom = m.pos.y; this.solid.top = m.pos.y + (m.height ?? 3);
+      const g = ph?.groundAt(m.pos.x, this.arena.y + 2.5, m.pos.z, 6);
+      if (Number.isFinite(g)) m.pos.y = Math.max(this.arena.y - 2, g); else if (m.rises) m.pos.y = this.arena.y;
     }
+    // (a body that takes off and lands as its phases change, model.rises (Hz): eased up and down, never there in a
+    // frame; the Elder jumped 3.5 m up when her phase took her aloft, and back down, #237)
+    if (m.rises) {
+      const y = m.pos.y;
+      if (!this._rise) this._rise = new SecondOrder(m.rises, 1, 0, y);
+      else if (Math.abs(y - this._rise.y) > 6) this._rise.reset(y);   // (put somewhere else: there at once)
+      m.pos.y = this._rise.update(this._dt ?? 1 / 60, y);
+    }
+    this.solid.pos = m.pos;
+    if (m.floats) { this.solid.bottom = m.pos.y - (m.height ?? 3) / 2; this.solid.top = m.pos.y + (m.height ?? 3) / 2; }
+    else { this.solid.bottom = m.pos.y; this.solid.top = m.pos.y + (m.height ?? 3); }
     m.group.position.copy(m.pos);
     // (its yaw alone, set whole: v1.70, issue #319. A fitted skin took the procedural body's turn as a quaternion when it
     // loaded, and facing away from the hall's door (a heading past a quarter turn) that read back as a half turn on x and
@@ -718,7 +729,15 @@ export class Guardian {
   /** Turn toward heading `want` at `rate` (a share a second), never faster than the body's turnRate (rad/s). */
   turnTo(dt, want, rate) {
     const m = this.model, d = Math.atan2(Math.sin(want - m.heading), Math.cos(want - m.heading)) * Math.min(1, dt * rate), cap = (m.turnRate ?? Infinity) * dt;
-    m.heading += THREE.MathUtils.clamp(d, -cap, cap);
+    let step = THREE.MathUtils.clamp(d, -cap, cap);
+    // (turnAccel, rad/s²: a big body gathers its turn and slows out of it; the Elder went from still to 3 rad/s in a
+    // frame, her wingtips 13 m/s at once, #237. A turn not asked for last frame starts from still.)
+    if (m.turnAccel && dt > 0) {
+      const v = this._turnF === this.frame - 1 || this._turnF === this.frame ? this._turnV ?? 0 : 0, a = m.turnAccel * dt;
+      this._turnV = v + THREE.MathUtils.clamp(step / dt - v, -a, a); this._turnF = this.frame;
+      step = this._turnV * dt;
+    }
+    m.heading += step;
   }
 
   update(dt, t) {
@@ -1087,6 +1106,10 @@ export class Guardian {
     }
     if (this.state === 'open') { sy = 1 + 0.03 * Math.sin(t * 5); y = -0.03 * H; }
     if (this.state === 'shift') { const k = Math.min(1, this.t / 0.4) * Math.max(0, 1 - this.t / (this.def.shiftTime ?? SHIFT)); x = -0.15 * k + 0.04 * Math.sin(t * 31); ry = 0.05 * Math.sin(t * 23); y = 0.05 * H * k; }
+    // (a body whose own poses tell its moves takes only `tellWeight` of these: the Elder's, issue #237, reared 0.8 m and
+    // rose 2.8 m out of her own poses, her legs tucked as if flying)
+    const w = this.model.tellWeight ?? 1;
+    if (w !== 1) { x *= w; y *= w; z *= w; ry *= w; spin *= w; s = 1 + (s - 1) * w; sy = 1 + (sy - 1) * w; }
     const e = Math.min(1, dt * rate);
     K.x += (x - K.x) * e; K.y += (y - K.y) * e; K.z += (z - K.z) * e; K.ry += (ry - K.ry) * e; K.s += (s - K.s) * e; K.sy += (sy - K.sy) * e;
     K.spin = spin ? K.spin + spin * dt : K.spin * Math.max(0, 1 - dt * 3);
