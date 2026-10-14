@@ -1,0 +1,43 @@
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_de92e0b86f8ffd 249-250
+src/hint-look.js
+  s_9ca76055a220ed::t_5d7b5f6209cf79 1-41
+index.html
+  s_9ca76055a220ed::t_da709e71b98524 22-24,50-53,55,57-59,63-65,67,71,157,159-161,163,202-204,351-352,378-380,382-384,386,391,443-444,501
+tests/hint-look.test.js
+  s_9ca76055a220ed::t_2e3ba919bea871 1-83
+docs/systems/ui.md
+  s_9ca76055a220ed::t_74ffb12342a678 360-361,712,722-745
+src/main.js
+  s_9ca76055a220ed::t_d7eaf1fe1d7a61 1659
+src/ship/cinema.js
+  s_9ca76055a220ed::t_208fd0fc0e19e5 20,51,53,57,59-60,121-122,270-271,529-531,535-536
+tests/notice-pace.test.js
+  s_9ca76055a220ed::t_3060d120dd4415 51-52,59-60
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_15218f5eaab1fe 37-41,61-67,69,149,169,177,181-183,187-188
+src/hud.js
+  s_9ca76055a220ed::t_b684b023fbee0d 3-4,159,175,178
+changelog.md
+  s_9ca76055a220ed::t_f4e69232b89993 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_445588f919095c 784,786-791
+src/changelog.js
+  s_9ca76055a220ed::t_d3280b47284d5d 18-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c61b8fb80ddbf307d4558ee6ad7eec0b8ddb6c0c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
