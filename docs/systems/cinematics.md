@@ -291,6 +291,12 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
   the voice: control comes back as the hiss gives way to it, and the broadcast's conversation opens
   at the moment's end, watched or skipped (bazaar.js holds the cast's own timings while it plays).
 
+### After the v1.66 pass: framing fixes (issues #296–#299)
+
+- **The recordings** (`src/ship/cinematics.js callFrame`): a cut between the push-in ('over') and the window angle,
+  both behind his right shoulder, read as a jump cut (the fov 49 → 36 from nearly the same spot); the lens now
+  moves across over `CALL_EASE.s` (0.6 s) instead.
+
 ## In-engine trailer
 
 `trailer.html` plays a 48-second trailer across the desert, City-Shaft, Vael II, Buried Machine,

@@ -151,6 +151,28 @@ export function cutAt(cuts, t) {
 }
 
 /**
+ * Angles whose lens stands near the push-in's ('over', behind his right shoulder): a cut between one of them and
+ * 'over' read as a jump cut (the same spot, the fov 49 → 36: the cinematics QC v1.66, issue #297), so the lens moves
+ * across instead, eased over `s` seconds.
+ */
+export const CALL_EASE = { s: 0.6, near: ['window'] };
+/**
+ * The recording's camera at `t`: the cut in force (callCuts), its angle (callAngle, or callShot for 'over' with the
+ * push-in `close`); a cut between 'over' and a `near` angle moves the lens from the last angle to the new one over
+ * CALL_EASE.s instead of cutting.
+ */
+export function callFrame(ship, model, cuts, t, close = 0) {
+  const shotOf = (c) => (c.angle !== 'over' && callAngle(ship, model, c.angle, t - c.t)) || callShot(ship, model, t, close);
+  let i = 0;
+  for (let j = 0; j < cuts.length; j++) if (cuts[j].t <= t) i = j;
+  const cut = cuts[i], prev = cuts[i - 1], s = shotOf(cut);
+  const pair = prev && [prev.angle, cut.angle];
+  if (!pair || t - cut.t >= CALL_EASE.s || !pair.includes('over') || !pair.some((a) => CALL_EASE.near.includes(a))) return s;
+  const a = shotOf(prev), k = smooth((t - cut.t) / CALL_EASE.s);
+  return { pos: a.pos.lerp(s.pos, k), look: a.look.lerp(s.look, k), fov: a.fov + (s.fov - a.fov) * k };
+}
+
+/**
  * Course set at the holo table: across the table from the traveller, the planet turning
  * between you, a slow push in (ship-local, then world).
  */
@@ -757,8 +779,7 @@ export class CallDirector extends Sequence {
           sfx.beep(ship.sound, true);
         },
         frame: (t) => {
-          const cut = cutAt(st.cuts, t);
-          ship.shot((cut.angle !== 'over' && callAngle(ship, m, cut.angle, t - cut.t)) || callShot(ship, m, t, st.close ?? 0));
+          ship.shot(callFrame(ship, m, st.cuts, t, st.close ?? 0));
           m.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
           playLines(ship, m, tl, t, st);
           faceRecording(ship, m);

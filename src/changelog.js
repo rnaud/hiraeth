@@ -8,6 +8,16 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.73', date: '2026-10-14', items: [
+    // the recordings' closing angle (issue #297): src/ship/cinematics.js callFrame, CALL_EASE; tests/ship.test.js
+    { text: 'In the recordings at the ship’s console, the view no longer jumps in to the close-up from the same spot: it glides across into it.',
+      numbers: [{ title: 'Jumps in the picture the cinematics QC finds in a recording', unit: 'jumps', better: 'lower', device: 'Mac, muted headless Chrome, High, 1280 × 720 (scripts/cinematics-qc.mjs)', rows: [
+        { where: 'Recording 1 · Home', before: 1, after: 0 }, { where: 'Recording 6', before: 1, after: 0 }, { where: 'Recording 8', before: 1, after: 0 },
+        { where: 'Recording 9', before: 1, after: 0 }, { where: 'Recording 11', before: 1, after: 0 }, { where: 'Ilen’s recording', before: 2, after: 0 },
+        { where: 'Lorn II’s recording', before: 1, after: 0 },
+      ], source: 'the script’s pops on this branch and on the tree before it (259a283d), 14 October' }],
+      see: 'Play a recording at the ship’s console after a few worlds: as the parents fold away, the view moves across to the close-up instead of cutting.' },
+  ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js
     // (SPEECH, prosody, revealAt), src/audio.js renderPlan, src/story/dialogue.js; docs/systems/audio.md "The voices";

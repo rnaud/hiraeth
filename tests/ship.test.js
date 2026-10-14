@@ -538,6 +538,42 @@ test('a recording cuts between angles at its lines, its words and timing untouch
   assert.equal(callAngle(ship, m, 'over', 0), null);
 });
 
+test('a recording never jump-cuts between the push-in and the window angle: the lens moves across (QC v1.66, issue #297)', async () => {
+  const { callCuts, callFrame, CALL_EASE } = await import('../src/ship/cinematics.js');
+  const { callTimeline } = await import('../src/ship/prologue.js');
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
+  const ship = quiet(() => new Ship({ scene, physics: new Physics(scene), level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const m = ship.parked;
+  const ctx = { flag: () => undefined, completed: ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'perdide', 'edena', 'spheres', 'glassdunes', 'bazaar'], lastWorld: 'bazaar' };
+  let eased = 0;
+  for (const n of [1, 3, 6, 8, 9, 11, ILEN_CALL]) {
+    const lines = callLines(n, ctx), tl = callTimeline(lines), span = recordingSpan(lines);
+    if (!span) continue;
+    const cuts = callCuts(tl, span);
+    const fold = tl.lines[span[1]].t1 + 0.15;
+    const close = (t) => (t < fold ? 1 : Math.max(0, 1 - (t - fold) / 1.6));
+    for (let i = 1; i < cuts.length; i++) {
+      const pair = [cuts[i - 1].angle, cuts[i].angle];
+      if (!pair.includes('over') || !pair.includes('window')) continue;
+      eased++;
+      const t = cuts[i].t, before = callFrame(ship, m, cuts, t - 1e-3, close(t)), after = callFrame(ship, m, cuts, t + 1e-3, close(t));
+      assert.ok(before.pos.distanceTo(after.pos) < 0.05 && Math.abs(before.fov - after.fov) < 0.5, `${n} at ${t.toFixed(1)} s: ${pair.join(' → ')} moves, it doesn't cut`);
+      // over CALL_EASE.s, at 60 fps, no frame jumps (the QC's pop: 0.3 m in a frame)
+      let p = before;
+      for (let u = 1 / 60; u <= CALL_EASE.s + 0.1; u += 1 / 60) {
+        const q = callFrame(ship, m, cuts, t + u, close(t + u));
+        assert.ok(q.pos.distanceTo(p.pos) < 0.1, `${n}: a smooth move (${q.pos.distanceTo(p.pos).toFixed(2)} m in a frame)`);
+        p = q;
+      }
+      const end = callFrame(ship, m, cuts, t + CALL_EASE.s + 0.05, close(t));
+      assert.ok(end.pos.distanceTo(callFrame(ship, m, [cuts[i]], t + CALL_EASE.s + 0.05, close(t)).pos) < 1e-6, `${n}: and lands on the new angle`);
+    }
+  }
+  assert.ok(eased > 0, 'the recordings do pass between the two');
+});
+
 test('the first recording after the desert: the people who swore they would help and never came, bitter, and no thought of his (issue #90)', () => {
   const flags = { 'desert.rumour.light': true, 'perdide.clue.ship': true, 'met.nour': true };
   const L = callLines(1, { flag: (k) => flags[k], completed: ['desert'], lastWorld: 'desert', keepsakes: [{ kind: 'thing' }, { kind: 'thing' }] });

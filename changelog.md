@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.73 — 2026-10-14
+
+- In the recordings at the ship’s console, the view no longer jumps in to the close-up from the same spot: it glides across into it.
+
 ## v1.72 — 2026-10-14
 
 - A chest’s opening keeps your head in the picture too: in the lift valve’s cave, under the hearth and in the yards’ alcoves the camera no longer sits at your back with your head cut off, it rises to look over your shoulder at the chest. After trying the gun, the camera eases back to you instead of jumping.
