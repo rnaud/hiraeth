@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.70', date: '2026-10-13', items: [
+    // the lore page in the Debug menu, What's new's ◀ Debug (issue #291): src/world-picker.js PAGES, changelog.html, lore.html
+    { text: 'The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.',
+      see: 'Open Debug from the title: Pages → Lore. Open What’s new from the Debug menu: “◀ Debug” at the top left takes you back.' },
+  ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27
     { text: 'The Night Mail is done the moment Solange hands you her answer on the last roof: nothing sends you back to report. Step off at the halt as before, and Edda reads the answer when you pass her lamp.',

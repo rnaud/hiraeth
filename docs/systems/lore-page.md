@@ -2,7 +2,7 @@
 
 `lore.html` (`src/lore-page/`) shows the game's lore in its paper and ink. It lives on the site at
 https://hiraeth.alexandria-rnaud.workers.dev/lore (the Notes site, where its notes work) and at
-https://rnaud.github.io/hiraeth/lore.html. It is linked from the Notes page and the changelog page's header.
+https://rnaud.github.io/hiraeth/lore.html. It is in the Debug menu's Pages (`src/world-picker.js` PAGES, issue #291; its "◀ Debug" button, Esc and B go back) and linked from the Notes page.
 
 ## What it shows
 

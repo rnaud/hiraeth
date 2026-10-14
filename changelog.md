@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.70 — 2026-10-13
+
+- The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.
+
 ## v1.69 — 2026-10-13
 
 - Turning round and setting off the other way from standing, the traveller steps round cleanly: his planted foot no longer drags along the ground behind him, and his feet no longer slide as they land during the turn.

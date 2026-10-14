@@ -35,6 +35,7 @@ export const PAGES = [
   { href: 'studio.html', label: 'Character studio', hint: 'the people alone, to tune them' },
   { href: 'music.html', label: 'Music & sounds', hint: 'every song, recorded and procedural, and every sound effect, with notes' },
   { href: 'motion.html', label: 'Motion', hint: 'the traveller\'s loops against motion matching' },
+  { href: 'lore.html', label: 'Lore', hint: 'the story, the traveller, each world and its people, the guardians' },
   { href: 'cinematics.html', label: 'Cinematics', hint: 'replay the films and record quality-control notes' },
   { href: 'trailer.html', label: 'Trailer', hint: 'the in-engine trailer' },
   // (reference material: the art references, read from the site: docs/systems/references.md)

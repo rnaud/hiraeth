@@ -31,12 +31,14 @@ test('the button: to the Debug menu, the back glyph, small at the top left insid
   assert.match(DEBUG_BACK_CSS, /top: calc\(env\(safe-area-inset-top, 0px\) \+ 8px\); left: calc\(env\(safe-area-inset-left, 0px\) \+ 8px\)/);
 });
 
-test('options: Esc and B are the page\'s where it already uses them; What\'s new only from the Debug menu', () => {
+test('options: Esc and B are the page\'s where it already uses them; What\'s new and the lore page back to it like the others (issue #291)', () => {
   assert.deepEqual(debugBackOptions(''), { keys: true, pad: true, fromDebugOnly: false, fade: false });
   assert.deepEqual(debugBackOptions('from-debug keys-off pad-off'), { keys: false, pad: false, fromDebugOnly: true, fade: false });
   assert.equal(debugBackOptions('fade').fade, true);
   const body = (f) => html(f).match(/<body([^>]*)>/)[1];
-  assert.match(body('changelog.html'), /data-debug-back="from-debug keys-off pad-off"/, 'its own B / Esc go back already, and players open it too');
+  assert.match(body('changelog.html'), /data-debug-back="keys-off pad-off"/, 'its own B / Esc go back already; the button however it was opened (inside the game it is embedded: none)');
+  assert.equal(body('lore.html').trim(), 'data-debug-back', 'Esc and B go back to the Debug menu (it has none of its own)');
+  assert.doesNotMatch(html('changelog.html'), /href="\.\/lore\.html"/, 'the lore page is in the Debug menu, not on What\'s new (issue #291)');
   assert.match(body('items.html'), /data-debug-back="pad-off" data-debug-busy="#full\.open"/, 'its B goes back already; Esc closes an item first');
   assert.match(body('trailer.html'), /data-debug-back="fade"/, 'nothing over the film');
 });

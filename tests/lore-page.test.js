@@ -13,6 +13,7 @@ import { ORDER } from '../src/levels/names.js';
 import { TEMPLES, templesIn } from '../src/temples/index.js';
 import { ITEMS } from '../src/items.js';
 import { BUILD_INPUT } from '../vite.config.js';
+import { PAGES } from '../src/world-picker.js';
 import { handleIssues, SOURCES as FOOTERS } from '../worker/issues.js';
 import { LORE_FILE } from '../scripts/web-update.mjs';
 import { siteOnly } from '../scripts/site-only.mjs';
@@ -32,9 +33,10 @@ test('the lore page: built by vite, its data a virtual module, its pictures the 
   assert.match(await plugin.load(id), /^export default \{/);
   assert.ok(LORE_FILE.test('lore-pictures/guardian-desert.webp') && !LORE_FILE.test('lore.html'));
   assert.ok(siteOnly('lore-pictures/traveller-portrait.webp'), 'the APK and the Deck leave its pictures out');
-  // linked from the Notes page and the changelog page
+  // linked from the Notes page, and in the Debug menu's Pages, not on What's new (issue #291)
   assert.match(readFileSync(new URL('../notes.html', import.meta.url), 'utf8'), /href="\.\/lore\.html"/);
-  assert.match(readFileSync(new URL('../changelog.html', import.meta.url), 'utf8'), /href="\.\/lore\.html"/);
+  assert.ok(PAGES.some((p) => p.href === 'lore.html' && p.label === 'Lore'), 'Debug → Pages → Lore');
+  assert.doesNotMatch(readFileSync(new URL('../changelog.html', import.meta.url), 'utf8'), /href="\.\/lore\.html"/);
 });
 
 test('every world on the route, in its order, with its lore, people, temples, guardians and gadgets', () => {

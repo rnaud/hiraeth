@@ -32,7 +32,9 @@ game in a frame (`changelog.html?embed=1`, from the game's own files, so it open
 app and on the Deck too). While it is up the game passes its controller presses to the page
 (`Changelog.pad`, `window.changelogPad`) instead of polling it twice; the page's Close, B / ○, Escape or N
 posts `changelog-close` and the panel takes the frame away. On the site the page also works by itself
-(its own controller loop).
+(its own controller loop), with the Debug pages' "◀ Debug" button at its top left however it was opened (issue
+#291; its own Close, B and Esc go back where it came from). The lore page is not in its header: it is in the
+Debug menu's Pages.
 
 ## Refresh
 
