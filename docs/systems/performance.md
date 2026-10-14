@@ -2838,3 +2838,27 @@ its folder and its name (or stem: `item-pictures/${id}.webp`, `sfx/${name}-${i}.
 (`scripts/site-only.mjs`) or it is in the test's `ALLOWED` with its reason (the licences, the provenance notes, the
 coral-shirt traveller the Unity bridge build still copies, 5.8 MB no web page loads). `size.mjs`: to the devices
 153.14 → 147.81 MB, in the APK and the Deck package 53.96 → 48.63 MB (−5.33 MB).
+
+## The Elder's cost (2026-10-14, issue #237)
+
+`node scripts/bench/elder.mjs --url http://127.0.0.1:6237/ --out <dir> --preset handheld` (the build served by
+`scripts/bench/serve.mjs`; muted headless Chrome on the GPU, CDP 6239): the game at `?level=arzach&guardianReview=elder`,
+held still at three views round her, the whole frame with her shown, hidden and drawn whole (her levels off), on the GPU
+(`EXT_disjoint_timer_query_webgl2`) and the wall, with her own draws and triangles in every pass; her CPU a frame; then
+the fight running, a picture of each of her moves.
+
+She is one skinned mesh, 47,784 triangles, 28,724 vertices, 23 bones, one draw a pass, a 2048² JPEG colour map
+(21.3 MiB on the GPU with mipmaps), a 2.7 MB file. On the Mac (M4 Pro), 1280 × 720:
+
+| view | Handheld 0.75: her level, triangles a frame (all passes) | High: her level, triangles |
+| --- | --- | --- |
+| 12 m (the fight) | whole, 83.6k (1.8 draws) | whole, 159.3k (3.3 draws: the fine cascade too) |
+| 35 m | 1/8 m, 32.2k (whole: 83.6k) | whole, 159.3k |
+| 90 m | 1/4 m, 11.9k | 1/16 m, 108.4k |
+
+Her GPU time is within the Mac's noise (shown against hidden: 0.0–0.3 ms of a 1.7–2.3 ms frame); her fight and pose
+0.02 ms of CPU a frame (the kit's two legs, 23 bones; the skinning is the GPU's). Her levels come with the people's rule
+(`lodPx`: Handheld 2 px, so on the Retroid at half the distance of High's). Not yet measured on the Retroid itself (the
+device runs its own measuring sessions). Proposed next, if its GPU shows her near: a 1024² map on Handheld (5.3 MiB,
+built at load from the 2K or shipped as a second file); Handheld already has no fine cascade, so she is drawn twice a
+frame there (the G-buffer, the hero shadow).

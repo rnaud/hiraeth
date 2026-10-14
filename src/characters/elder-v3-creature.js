@@ -6,6 +6,7 @@ import {GUARDIAN_PLANS} from '../motion-kit/plans.js';
 import {Rig,matrixTo} from '../motion-kit/rig.js';
 import {aimIn} from '../motion-kit/ik.js';
 import {SecondOrder} from '../motion-kit/spring.js';
+import {SkinnedLod,skinnedLods} from '../skinned-lod.js';
 import * as originalFit from './elder-v3-fit.js';
 import {makeReviewInkMaterial} from './tripo-material.js';
 
@@ -70,12 +71,18 @@ function lerpInto(w,P,u){if(P&&u>0)for(const k in P)w[k]+=(P[k]-w[k])*u;}
  * of her own colour, 0.67, so she read as a pale cut-out pasted on the Aerie; now the world's weight and its black).
  */
 /** How much of the fight's generic wind-up motions (boss.js poseRig: rearing, rising, swelling) her body takes: her own poses tell her moves. */
+/**
+ * Her levels of detail (cells of 2^min .. 2^max m: 47.8k triangles whole; 32.5k at 1/16 m, 18.4k at 1/8, 6.8k at 1/4),
+ * picked as the people's are, by the Graphics preset's lodPx (High 1 px, Handheld 2: on the Retroid her coarser levels
+ * come in at half the distance). Issue #237.
+ */
+export const ELDER_LOD={min:-4,max:-2};
 export const ELDER_TELL=0;
 /** The fastest she turns (rad/s, boss.js Guardian.turnTo): she spun 12 rad/s to face you as a move began, a whip of her whole body in a frame (#237). */
 export const ELDER_TURN=3,ELDER_TURN_ACCEL=7;
 /** How she takes off and lands as her phases change (Hz, boss.js Guardian.place: eased, about 1.5 s up). */
 export const ELDER_RISE=.55;
-export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}){
+export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit,lod=false}={}){
  const {ELDER_BODY,ELDER_LEGS,ELDER_JAW,ELDER_JAW_AXIS,ELDER_CLOSE,ELDER_SCALE,elderPoint}=fit;
  const group=clone(gltf.scene),bones={},meshes=[];
  group.name='Elder · generated guardian';group.traverse(o=>{o.userData.noCollide=true;o.userData.dynamic=true;if(o.isBone)bones[o.name]=o;if(o.isSkinnedMesh){o.frustumCulled=false;o.material=o.material.clone();o.userData.inkShade={hatch:.12,shade:.25,shadeHue:.8};meshes.push(o);}});
@@ -213,8 +220,12 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}
    L.foot.position.copy(foot.position).sub(L.root.position);L.foot.quaternion.copy(foot.quaternion);
   });M.updateAnchors();
  },
- dispose(){for(const m of meshes){m.material.dispose();const original=originals[meshes.indexOf(m)];if(m.material!==original)original.dispose();}group.removeFromParent();}
- };M.updateAnchors();return M;
+ dispose(){if(M.lod){skinnedLods.remove(M.lod);M.lod.reset();}for(const m of meshes){m.material.dispose();const original=originals[meshes.indexOf(m)];if(m.material!==original)original.dispose();}group.removeFromParent();}
+ };
+ // (far off, simpler copies of her skin on the same skeleton, as the people's: src/skinned-lod.js, ELDER_LOD; the game's
+ // own, registered for main.js to pick each frame; the reviews and tests draw her whole)
+ if(lod)M.lod=skinnedLods.add(new SkinnedLod({model:group,char:{root:group}},ELDER_LOD));
+ M.updateAnchors();return M;
 }
 
 let cached;

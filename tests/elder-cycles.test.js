@@ -1,7 +1,7 @@
 // The Elder's acceptance (issue #237): her whole cycles without snaps, frozen parts or tearing (scripts/tripo/elder-cycles.mjs
 // measures them); her own pose for each move (the gale and the feathers posed as the buffet); the peck's beak down at
 // you, not curled under her; her take-off and landing eased (she rose 3.5 m in a frame), her turns gathered (0 to
-// 3 rad/s in a frame, a 12 rad/s whip as a move began); her wingtips and feet on her skin; her
+// 3 rad/s in a frame, a 12 rad/s whip as a move began); her wingtips and feet on her skin; her levels of detail; her
 // colour map with its baked light lifted. Before: the peck's first frame moved her head 82 m/s in a frame, the stamp's
 // 62, the weary pose flipped a thigh half a turn, the throat tore 60 cm open at the peck's blow.
 import test from 'node:test';
@@ -10,11 +10,13 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import * as T from 'three';
 import { loadElderGltf, measure, SNAP, POP } from '../scripts/tripo/elder-cycles.mjs';
-import { createElderCreature, ELDER_POSE, ELDER_TURN } from '../src/characters/elder-v3-creature.js';
+import { createElderCreature, ELDER_POSE, ELDER_LOD, ELDER_TURN } from '../src/characters/elder-v3-creature.js';
 import * as fit from '../src/characters/elder-v3-fit.js';
 import { Guardian } from '../src/temples/boss.js';
 import { ELDER } from '../src/temples/arzach.js';
 import { driveElder } from '../tools/elder-drive.js';
+import { SkinnedLod } from '../src/skinned-lod.js';
+import { triCount } from '../src/lod.js';
 import { delight, colourOf } from '../scripts/tripo/elder-delight.mjs';
 
 globalThis.ProgressEvent ??= class { constructor(type, v) { this.type = type; Object.assign(this, v); } };
@@ -87,6 +89,21 @@ test('her wingtips and feet are points of her drawn skin, in every pose', () => 
     }
   }
   m.dispose();
+});
+
+test('far off she draws simpler copies of her skin on the same skeleton; the game\'s registers them, the reviews not', () => {
+  const m = createElderCreature(gltf, { fit }), mesh = m.meshes[0], full = mesh.geometry;
+  const lod = new SkinnedLod({ model: m.group, char: { root: m.group } }, { ...ELDER_LOD, sync: true });
+  const tris = [];
+  for (const d of [20, 80, 160, 400]) { lod.update(d, 1, 1000, 2); tris.push(triCount(mesh.geometry)); }
+  assert.equal(tris[0], triCount(full), 'near: her whole mesh');
+  assert.ok(tris[1] < tris[0] && tris[2] < tris[1] && tris[3] < 0.2 * tris[0], `coarser with distance (${tris})`);
+  assert.ok(mesh.geometry.attributes.skinIndex && mesh.geometry.attributes.skinWeight, 'a level is skinned');
+  lod.reset(); assert.equal(mesh.geometry, full);
+  assert.ok(!m.lod, 'the review\'s own has none'); m.dispose();
+  const game = createElderCreature(gltf, { fit, lod: true });
+  assert.ok(game.lod && game.lod.max === ELDER_LOD.max, 'the game\'s has its levels');
+  game.dispose();
 });
 
 test('her colour map: the baked light lifted, her colours and painted lines kept', async () => {

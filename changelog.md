@@ -4,7 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.75 — 2026-10-14
 
-- The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her.
+- The Elder’s feathers lost the grey shadows painted into them, so the game’s own light and ink shade her; and far off she is drawn with simpler copies of herself, from two thirds of her triangles down to a seventh, and sooner on handhelds.
 - The Elder no longer jerks: her whole body jumped at the start of every blow, she shot 3.5 m into the air in a single frame when she took off (and dropped back the same way), spun round to face you in an instant, and a leg flipped round when she sank down worn out. Her throat, rump and shoulders no longer stretch out of shape as she bends.
 - The Elder in the Aerie moves like a great bird now: her peck stretches her neck out and stabs down at you (it curled her head under her breast, the beak pointing back between her feet), her stamp lifts one foot high and brings it down (she leapt off the floor with both), the gale and the feather volley have wind-ups of their own (both were the buffet’s), she wakes with a stretch of both wings, and between blows she breathes, ruffles her feathers and looks about.
 - In the chime pirates you aim with one reticle now, a ring round a dot where your shots will go: it tightens and turns coral when the aim assist has a pirate, sliding onto it, and the charge fills a gold ring round it. The second, distant mark is gone, and a missile’s target has a small teal pip over it instead of a big diamond round it.

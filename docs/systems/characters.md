@@ -1583,6 +1583,11 @@ atlas's islands don't bleed) is brought 80 % of the way to its lit value, and cr
 lines under 2 px, the eye and the pink wing ends (painted pink to mauve: their 5 % spread is not light) are left as they
 were. The slow brightness's spread (10th–90th percentile over the median): cream 0.15 → 0.03, tan 0.14 → 0.04.
 
+**Levels of detail**: `src/skinned-lod.js` takes any skinned body now (`{ model, char: { root } }`, its own `min` /
+`max`): hers, `ELDER_LOD` cells of 1/16 to 1/4 m, 47.8k triangles whole, 32.5k, 18.4k, 6.8k (thin toes break up at the
+last: only past ~120 m on Handheld, ~240 m on High, where she is a few dozen pixels tall). Only the game's skin
+registers them (`lod: true` in `elderGuardian`). Cost: `docs/systems/performance.md`, "The Elder's cost".
+
 ## Traveller B3 body (13 October 2026)
 
 The user approved the OpenAI B3 slender-young-adult proportions and matching left

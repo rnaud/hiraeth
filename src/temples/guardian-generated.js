@@ -117,7 +117,7 @@ export function keeperGuardian({ load = loadKeeperV1 } = {}) {
 /** The approved natural-wing Elder, in the Aerie, on its crown and in the Arena. */
 export function elderGuardian({load=loadElderV3}={}) {
  return generatedGuardian({name:'Elder of Vael',fallback:()=>elderModel(),load,
-  make:gltf=>createElderCreature(gltf,{gameMaterial:true}),
+  make:gltf=>createElderCreature(gltf,{gameMaterial:true,lod:true}),
   // (turnRate: her feet step her round, #237: she spun 12 rad/s to face you as a move began)
   sizes:{radius:3,height:7,mouthR:1.1,bodyR:2.6,touchR:1,turnRate:ELDER_TURN}});
 }
