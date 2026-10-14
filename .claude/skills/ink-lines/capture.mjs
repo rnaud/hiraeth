@@ -13,7 +13,7 @@
 //   node .claude/skills/ink-lines/report.mjs <out-dir>/report.json [--before <dir>/report.json] [--out docs/audits/ink-lines-v<version>.md]
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from '../../../scripts/temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from '../../../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,6 +43,12 @@ export const RESOLUTIONS = {
 
 // The scenes, world by world. `kind` says which checks apply (lib.mjs grade); `hide` is the in-page code that hides the
 // object measured (its mask: the albedo with and without it); `cam` returns { eye, target, fov } (and may move people).
+// The veg scenes' view (issue #302): v1.53's, pinned. Those scenes looked at "the tallest plant under 6 m within 200 m of
+// Viridel's start" (a parasol 5.9 m tall at this place), and since Viridel's explorations (v1.62) that was another plant
+// 150 m off: another view, of other flowers. The cameras are placed from this place and height as they were (`d` m off
+// it toward the start, looking at half its height), whatever grows there now; what is measured is all the flora in the
+// view (the mask hides flora.root).
+const PLANT = { at: [83.62, -16.65, -69.25], height: 5.88, was: 'edena.parasol' };
 const FACE = (d, up = 0) => ({ kind: 'figure', world: 'desert', hide: 'player.object', portrait: true, d, up });
 export const SCENES = {
   'portrait-1': FACE(1), 'portrait-4': FACE(4), 'portrait-10': FACE(10), 'portrait-25': FACE(25),
@@ -76,7 +82,7 @@ function othersChrome() {
 for (let i = 0; othersChrome() > 0; i++) { if (i % 12 === 0) console.log('another headless Chrome is running: waiting for it'); await sleep(5000); }
 
 const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
-const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false,
+const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false, cacheDir: viteCacheDir('inklines-vite'),   // (its own, never node_modules/.vite: shared checkouts)
   server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
 await server.listen();
 const BASE = `http://127.0.0.1:${PORT}/`;
@@ -192,10 +198,10 @@ function camExpr(name, sc) {
     window.__setCam(eye.toArray(), h.toArray(), ${sc.d <= 1 ? 40 : 55});
     return { head: h.toArray() }; })()`;
   if (sc.hide === 'flora.root') return `(() => {
-    // the tallest plants within 200 m of the start, the camera ${sc.d} m off one on the side toward the start
-    const { THREE, flora, player } = window, P = flora.plants, s = player.pos;
-    if (!window.__plant) { const near = P.filter((p) => Math.hypot(p.x - s.x, p.z - s.z) < 200).sort((a, b) => b.height - a.height);
-      const p = near.find((p) => p.height < 6) ?? near[0]; window.__plant = p; }
+    // the view the audits have measured since v1.53 (PLANT, issue #302), the camera ${sc.d} m off its place on the side
+    // toward the start
+    const { THREE, player } = window, s = player.pos, PIN = ${JSON.stringify(PLANT)};
+    window.__plant ??= { x: PIN.at[0], y: PIN.at[1], z: PIN.at[2], height: PIN.height };
     const p = window.__plant, dir = new THREE.Vector3(s.x - p.x, 0, s.z - p.z); if (dir.lengthSq() < 1) dir.set(0, 0, 1); dir.normalize();
     const ex = p.x + dir.x * ${sc.d}, ez = p.z + dir.z * ${sc.d};
     const gy = window.physics.groundAt(ex, p.y + 200, ez, 600);

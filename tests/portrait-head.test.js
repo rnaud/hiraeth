@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {travellerV1,tripoHead} from './gait-sim.js';
 import {createTravellerV1} from '../src/characters/traveller-v1.js';
 import {buildCharacter} from '../src/player.js';
-import {PORTRAIT_HEAD as F} from '../src/characters/portrait-head.js';
+import {PORTRAIT_HEAD as F,PORTRAIT_EYES_FAR as EF} from '../src/characters/portrait-head.js';
 import {TalkFace} from '../src/talk-face.js';
 import {markHero} from '../src/materials.js';
 import {readGlb} from '../scripts/tripo/slim-traveller.mjs';
@@ -74,4 +74,19 @@ test('the visible jaw and skull stay rigid through combined head yaw/pitch and r
  }
  bone.quaternion.copy(rest);char.root.updateMatrixWorld(true);head.skeleton.update();
  for(let i=0;i<p.count;i+=79){const q=new T.Vector3().fromBufferAttribute(p,i);assert.ok(head.applyBoneTransform(i,q.clone()).distanceTo(q)<1e-4);}
+});
+
+// Issue #302 (the ink-lines audit v1.66): from 10 m his painted eyes were two dark dots on a 12 px face, 4.4 times the 1 m
+// portrait's share of the face at 1080p. Under PORTRAIT_EYES_FAR.face render pixels of face the eye's patch is one warm
+// tone; the 4 m portrait at 1080p (31 px) is drawn as before, the 10 m one (12-13 px, 9 on the Deck) all the far tone.
+test('the portrait head\'s eyes from afar turn to one warm tone by the face\'s size on screen, not dark dots (issue #302)',()=>{
+ const {head}=make(),fs=head.material.fragmentShader;
+ assert.ok(EF.face[1]<31&&EF.face[0]>=13,'4 m at 1080p untouched, 10 m all far');
+ assert.ok(fs.includes(`smoothstep(${EF.face[0].toFixed(1)},${EF.face[1].toFixed(1)},phFaceR)`),'faded by the face in render pixels');
+ assert.ok(fs.includes(`albedo=mix(albedo,vec3(${EF.tone.map(v=>v.toFixed(3)).join(',')}),phFar);`));
+ // after the eye's paint and the kept dark round it, before the pen lines and the blink's drawn lid
+ assert.ok(fs.indexOf('phFar);')>fs.indexOf('albedo=mix(albedo,eyePaint,phInside);')&&fs.indexOf('phFar);')<fs.indexOf('float eyeClose='));
+ // a little darker than the skin (.79, .525, .37), warm, never a dark mark (darker, it added to the eyes' dark share)
+ const L=(c)=>.2126*c[0]+.7152*c[1]+.0722*c[2];
+ assert.ok(L(EF.tone)>.8*L([.79,.525,.37])&&L(EF.tone)<.97*L([.79,.525,.37])&&EF.tone[0]>EF.tone[1]&&EF.tone[1]>EF.tone[2]);
 });

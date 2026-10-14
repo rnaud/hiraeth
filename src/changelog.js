@@ -30,6 +30,9 @@ export const CHANGELOG = [
     // the spot blacks' range (issue #301): post.js SPOT_RANGE, the Unity composite the same; docs/systems/rendering.md
     // "No spot-black halo round a thing standing before a surface"; tests/occlusion-taps.test.js
     'No more dark ragged halo round things that stand in front of a wall or a floor further back, like the crystal on its ring in the Lorn temple hall or the stone figure by the Underwater City’s ramp: it used to slide over the wall behind them as you turned the camera.',
+    // the portrait head's eyes from afar (issue #302): portrait-head.js PORTRAIT_EYES_FAR; docs/systems/faces.md;
+    // docs/audits/ink-lines-v1.72.md; tests/portrait-head.test.js
+    'Seen from ten metres or more, the traveller’s eyes no longer show as two pale or dark dots on his face: they soften into one warm mark, as a drawing does. Close up he looks as before.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

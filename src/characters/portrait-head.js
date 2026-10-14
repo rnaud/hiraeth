@@ -29,6 +29,14 @@ export const PORTRAIT_FACE_INK = Object.freeze({
  nostrils:{ridge:.01, x:.047, y:.373, size:[.013,.012], near:[.3,.55], front:[.05,.2]},
  side:{x:[.005,.024], y:[.405,.545], front:[.16,.34]},
 });
+// The eyes from afar (issue #302; the ink-lines audit v1.66: from 10 m his eyes' dark was 4.4 times the 1 m portrait's share
+// of the face at 1080p, 8 times on the Deck, two dots on a 12 px face). The painted eye (its white, iris and lash line, and
+// the dark paint kept round it) is a few texels a pixel there, and its mip and the albedo lines round it made one black
+// mark. As head-v2's drawn face did (head-ink.js HEAD_INK_FAR), as the face's height on screen falls from `face[1]` to
+// `face[0]` render pixels the eye's patch (`zone`: half-sizes round each eye, rest units) turns to one warm `tone`, the
+// white and the iris as they share it, a shade darker than the skin: a small mark in proportion to the head. Faces of
+// 1 m and 4 m at 1080p (178 and 31 px) are drawn as before.
+export const PORTRAIT_EYES_FAR = Object.freeze({ face: [14, 26], zone: [.074, .040], tone: [.72, .475, .335], brow: [.6, .4, .28] });
 // side (#276): the nose's side line lies on the mesh's own edge between the nose's narrow front and its side wall
 // (face-landmarks.mjs noseSide, x from the nostrils' ridge, y its height); seen from nearly in profile that front is
 // edge-on and the line runs a millimetre inside the nose's outline, a doubled contour, so on its own side it gives
@@ -77,7 +85,7 @@ export function makePortraitHead(asset,body,fit=PORTRAIT_HEAD){
  body.parent.add(mesh);mesh.bind(body.skeleton,body.bindMatrix);return mesh;
 }
 const SRGB='albedo=mix(albedo*12.92,1.055*pow(max(albedo,vec3(0.0)),vec3(1.0/2.4))-.055,step(vec3(.0031308),albedo));';
-const FI=PORTRAIT_FACE_INK;
+const FI=PORTRAIT_FACE_INK,EF=PORTRAIT_EYES_FAR;
 export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  const F=mesh.userData.portraitHeadFit??PORTRAIT_HEAD;
  const mat=mesh.material;if(!mat.fragmentShader.includes(SRGB))throw new Error('Portrait face needs the game material');
@@ -121,6 +129,13 @@ export function wearPortraitHeadFace(mesh,hairInk,faceInk=null){
  float phFace=phFront*(1.0-phHair)*(1.0-smoothstep(.17,.2,abs(ph.x)))*smoothstep(.15,.2,ph.y);
  float phDark=1.0-smoothstep(.2,.42,phPaint.r);
  albedo=mix(albedo,phSkin,max(phFace*(1.0-phInside)*(1.0-phKeep*phDark),(1.0-smoothstep(.28,.32,ph.y))*(1.0-phHair)));
+ // (from afar the eye's patch is one warm tone: PORTRAIT_EYES_FAR, by the face's height in render pixels)
+ float phFaceR=${FI.faceHeight.toFixed(2)}/max(max(fwidth(ph.x),fwidth(ph.y)),1e-6);
+ float phFar=(1.0-smoothstep(${EF.face[0].toFixed(1)},${EF.face[1].toFixed(1)},phFaceR))*phFront*(1.0-phHair)*(1.0-smoothstep(.8,1.0,length(phQ/vec2(${EF.zone.map((v)=>v.toFixed(3)).join(',')}))));
+ albedo=mix(albedo,vec3(${EF.tone.map((v)=>v.toFixed(3)).join(',')}),phFar);
+ // (and the brows over them, kept dark from the paint: on a 12 px face they joined the eyes into one black bar)
+ float phFarB=(1.0-smoothstep(${EF.face[0].toFixed(1)},${EF.face[1].toFixed(1)},phFaceR))*phFront*(1.0-phHair)*(1.0-smoothstep(.085,.11,abs(phB.x)))*(1.0-smoothstep(.034,.05,abs(phB.y)))*(1.0-phFar);
+ albedo=mix(albedo,vec3(${EF.brow.map((v)=>v.toFixed(3)).join(',')}),phFarB);
  // The portrait's pen lines (bake-face-ink.mjs), front-projected in rest space so they ride the
  // face's morphs. Lines narrow as they magnify, and fade out by the face's size on screen.
  vec3 phN=normalize(vObjNormal);

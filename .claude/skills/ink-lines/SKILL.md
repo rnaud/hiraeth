@@ -59,7 +59,7 @@ node .claude/skills/ink-lines/report.mjs <scratch>/ink/report.json [--before <sc
 | `phone` | a phone, 390 × 844 held sideways, DPR 3, Handheld | 1899 × 877 |
 
 **Scenes** (`SCENES`): `portrait-1/4/10/25` (the traveller facing the camera in the desert at 1, 4, 10, 25 m),
-`veg-near/mid/far/farthest` (Viridel's tallest plant near the start at 5, 18, 55, 120 m), `canopy-mid/far` (the Garden
+`veg-near/mid/far/farthest` (Viridel's meadow at 5, 18, 55, 120 m from v1.53's parasol, pinned by its place: `PLANT`), `canopy-mid/far` (the Garden
 of Spheres' `leaves` canopies at 25 and 80 m), `pack` (three blots and a makers' machine in the Arena at 14 m),
 `temple-hall` (the desert temple's arrival), `town-far` (the start of the bench's ride to Qanat, the town up the
 valley), and a busy view in each of the three worlds that joined the route in v1.40, for the frame's ink and the

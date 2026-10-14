@@ -815,6 +815,7 @@ const BOX334 = 'Issue #334: the cinematics QC’s frames (muted headless Chrome,
 const BOX292 = 'Issues #292 and #293: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6292), before and after the change, the box opened by the review page’s staging; 14 October; the QC’s own WebP';
 const CINE295 = 'Issues #295–#299: the cinematics QC script (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720, the review page’s staging) on this branch and on the tree before it (259a283d), its frames of the same cinematic at about the same second; 14 October';
 const HALO301 = 'Issue #301: the visual audit’s orbit probe (muted headless Chrome, High, 1280 × 720, 9:30) on this branch’s own Vite (port 6301), the first frame of its orbit (−32°); before, the same build with the spot blacks’ range check off (post.js SPOT_RANGE) (14 October)';
+const EYES302 = 'Issue #302: the ink-lines audit’s portrait-10 (muted headless Chrome, 1920 × 1080, Medium), the face cropped and enlarged eight times, nearest neighbour; before, the same build with the far fade off (portrait-head.js PORTRAIT_EYES_FAR) (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.73': [
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
@@ -836,6 +837,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'No more dark ragged halo round things that stand in front', tags: ['lorn'], shots: [
       { name: 'spot-halo-lorn', title: 'The Lorn temple hall', caption: 'The crystal on its ring, 3 m before the hall’s wall: before, a jagged dark band round it on the wall and the floor behind; after, the wall plain behind it.', from: HALO301 },
       { name: 'spot-halo-underwater', title: 'The Underwater City, by the ramp', caption: 'The stone figure close up: before, a dark band along its outline on the wall and floor behind it; after, none.', from: HALO301 },
+    ] },
+    { match: 'Seen from ten metres or more, the traveller’s eyes', tags: ['characters'], shots: [
+      { name: 'far-eyes', title: 'His face from 10 m, 1080p, eight times', caption: 'A 12 px face: before, two grey-blue dots for eyes; after, a soft warm mark under the hair.', from: EYES302 },
     ] },
   ],
   '1.72': [

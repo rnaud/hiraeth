@@ -395,6 +395,13 @@ pixel or two tall the whole of it was dark, so at 10 m each eye was a black dot 
 Measured (`.claude/skills/ink-lines`, the eye's dark over the face's area against the 1 m portrait):
 see the audit's table; the 1 m portrait is unchanged.
 
+**The portrait head from afar** (`PORTRAIT_EYES_FAR`, src/characters/portrait-head.js; issue #302, v1.72). The head
+he wears since v1.6x keeps its approved portrait's painted eyes (white, iris, lash line, the dark paint round them),
+and nothing faded them by size: from 10 m the eyes' dark was 4.4 times the 1 m portrait's share of the face at 1080p,
+8 times on the Deck, two dots on a 12 px face (`docs/audits/ink-lines-v1.66.md`). As the face's height on screen falls
+from 26 to 14 render pixels the eye's patch (0.074 × 0.040 round each eye, rest units) turns to one warm tone, a
+shade darker than the skin; faces of 31 px and up (4 m at 1080p) are drawn as before.
+
 **The channels** (`headInkState`, pure): the head's shape keys still move the skin, and the drawing,
 in rest coordinates, rides them as the paint did (a smile lifts the corners, raised brows stretch the
 lids, the open mouth drops the lower lip). The blink is drawn: the upper lid comes down onto the
