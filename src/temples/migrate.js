@@ -158,11 +158,17 @@ export const LAYOUTS = {
   // the watcher broken, its door open
   // v1.76 (issue #337): the Dry Channel's plate holds the chamber's door only while weighed down, the Givers' weight on it
   // (it latched open for good when stood on). Past it (its door opened once, or anything after): the weight on the plate
+  // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms; the Sword Chamber's fight moved to a hall of
+  // its own past its north door (the Machines' Hall, an arena), the Hall of Fires' ball in that hall now. Past the old
+  // chamber's fight (won, or anything after it): the hall won, its way on open. A save that entered the house: taken to its
+  // last mark if it stood inside the old rooms (desert.js RELAID)
   desert: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } },
       { if: ['open.dc', 'gadget', 'checkpoint=chest', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'boss', 'done'], set: { 'weight.wP': 'pp' } },
+      { if: ['encounter=done', 'lit.bw0', 'drum.ball3', 'lit.b3', 'open.br1', 'found.guard', 'lit.sentry', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'boss', 'done'], set: { 'lit.arM': true, 'open.dm': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won

@@ -2073,12 +2073,17 @@ export class Foes {
       if (i === 0) return;
       const id = `foes.${rt.id ?? this.levelId}.m${i}`;
       if (arena && m.pos.distanceTo(arena) < 14) return;
+      // (a house redone to issue #336's rules tags its rooms: machines stand only in a fight's room, round its middle
+      // (the mark's `foes`), never in a puzzle's: docs/design/temple-redesign.md)
+      const kind = rt.def?.logic?.rooms?.[m.room]?.kind;
+      if (kind && kind !== 'combat') return;
+      const c = m.foes ?? m.pos;
       // (broken, or standing already: placed again for an encounter)
       if (!this.game.flag(id) && !this.list.some((f) => f.id === id && f.alive)) for (const a of [0.9, -0.9, 2.2, -2.2, Math.PI]) {
-        const h = m.heading + a, x = m.pos.x + Math.sin(h) * 3.6, z = m.pos.z + Math.cos(h) * 3.6;
-        const y = phys.groundAt(x, m.pos.y + 2, z, 5);
-        if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
-        const from = _v.copy(m.pos).setY(m.pos.y + 1), to = _w.set(x, y + 1, z);
+        const h = m.heading + a, x = c.x + Math.sin(h) * 3.6, z = c.z + Math.cos(h) * 3.6;
+        const y = phys.groundAt(x, c.y + 2, z, 5);
+        if (!Number.isFinite(y) || Math.abs(y - c.y) > 1.2) continue;
+        const from = _v.copy(c).setY(c.y + 1), to = _w.set(x, y + 1, z);
         if (phys.rayDistance?.(from, to.clone().sub(from).normalize(), from.distanceTo(to)) < from.distanceTo(to) - 0.3) continue;
         const f = this.add(templeKind(world, i), new THREE.Vector3(x, y, z), { id });
         f.placed = true; f.room = m.room;
@@ -2091,9 +2096,9 @@ export class Foes {
       if (E && (E.on?.(rt) ?? true)) for (let k = 0; k < (E.extra ?? 0); k++) {
         const eid = `${id}.e${k}`;
         if (this.game.flag(eid) || this.list.some((f) => f.id === eid && f.alive)) continue;
-        const h = m.heading + Math.PI + (k - (E.extra - 1) / 2) * 1.4, x = m.pos.x + Math.sin(h) * 4.5, z = m.pos.z + Math.cos(h) * 4.5;
-        const y = phys.groundAt(x, m.pos.y + 2, z, 5);
-        if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
+        const h = m.heading + Math.PI + (k - (E.extra - 1) / 2) * 1.4, x = c.x + Math.sin(h) * 4.5, z = c.z + Math.cos(h) * 4.5;
+        const y = phys.groundAt(x, c.y + 2, z, 5);
+        if (!Number.isFinite(y) || Math.abs(y - c.y) > 1.2) continue;
         const f = this.add(templeKind(world, i + k + 1), new THREE.Vector3(x, y, z), { id: eid });
         f.placed = true; f.room = m.room;
         rt.machines.push(f);

@@ -284,30 +284,48 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   - a `Flame` with `when` (and `lid`) burns only while its condition holds, under a stone lid until then;
   - a hooded `Brazier` catches from its burning ball as the ball rolls in slow (where it is, not where it last lay);
   - a `find` element: a second chest (`{ type: 'find', item, box }`, logic.js `find` / `isFound`, the layout's
-    `finds` sites, src/boxes/placements.js `findSite`): the guard on the Hall of Fires' far landing;
+    `finds` sites, src/boxes/placements.js `findSite`): the guard in the Watcher's Hall;
   - a guardian's attack with `guard: true` is taken by the shield (boss.js `strike`, through `player.guard`), and
     `def.onBlock(g, a, perfect)` answers: the Keeper, jarred, pants;
-  - a temple's `encounter: { room, extra }` (src/foes.js placeMachinesIn: the room's mark's machine and `extra` more),
-    and `def.onUpdate(rt)` each frame: the Sword Chamber's doors `dc` and `dk` (opens: null) are held while its
-    machines stand and you are in it (`chamberHeld`), so taking the blade wakes them and the way out waits until
-    they are broken; a load puts the unbroken ones back, and nobody is shut out (the doors hold only with you inside).
-  The rooms: the Hall of the Flame leans its ball by hand through the pilot flame into the hooded bowl (`b0`, the
-  door `d1`); the Dry Channel is a sand pit with one pier, 9 m of air either side (one jump is about 6 m, the double
-  jump 13), its side walls glazed against climbing (`Glazed`), and a plate on the pier's head (`pp`) wakes the
-  chamber's door at the top of the gallery (`dc`, across the pit); the Sword Chamber holds the blade, its north door
-  (`dk`) sinks for the blade in hand, the thorns over the chest ball's groove (`bw0`) are the blade alone, and its ball (`ball3`, a fire on its groove) leaned on goes out before the Hall of
-  Fires' bowl (`b3`) while a cut gets it there burning (`CHEST_BALL`); the far landing holds the guard (`guard`), and
-  with it in hand the Givers' watcher (`sentry`, `SENTRY_AT`) wakes by the east doorway: its bolt sent back off the
-  guard breaks it and opens the doorway's door (`dw`) into the Hall of Channels (the old Hall of Winds: its bellows'
-  wind is gone, issue #245; `src/temples/migrate.js` `LAYOUTS.desert` breaks the watcher for a save already past
-  it). At the hall's far end a ball cut down the long groove burns out short of the far door's bowl (`b4`) unless the eye high on the end
-  wall (`e10`, struck from a double jump) has lifted the relay fire's lid, and woken the keepers' door `sc` (`WING`: caught
-  again at the relay it gets to the bowl with 2 s of its flame left, where it had a fifth of a second until issue #311; gone
-  out with the lid still on, it says where the fire is, Ball `tar.short`); the
+  - a temple's `encounter: { room, extra }` (src/foes.js placeMachinesIn: the room's mark's machine and `extra` more,
+    while `on(rt)` holds): the Rose House's until v1.77, its Sword Chamber's doors held while its machines stood; since
+    issue #336 its fight is an arena of its own, the Machines' Hall (`ARENAS`, below).
+  The rooms (since v1.77, issue #336: "The Rose House as shrines" below): the Hall of the Flame leans its ball by hand
+  through the pilot flame into the hooded bowl at its groove's end (`b0`, the door `d1`); the Dry Channel is a sand pit
+  with one pier, 9 m of air either side (one jump is about 6 m, the double jump 13), its side walls glazed against
+  climbing (`Glazed`), and a plate on the pier's head (`pp`) wakes the chamber's door at the top of the gallery (`dc`,
+  across the pit); the Sword Chamber holds the blade and nothing else, its north door (`dk`) sinks for the blade in hand;
+  the Machines' Hall past it is the house's one fight (`arM`, its doors `dk` and `dm` held while its machines stand); in
+  the Hall of Fires the thorns over the ball's groove (`bw0`) are the blade alone, and its ball (`ball3`, a fire on its
+  groove) leaned on goes out before the bowl on the chasm's lip (`b3`, the bridge `br1`) while a cut gets it there
+  burning (`CHEST_BALL`); over the bridge the Watcher's Hall holds the guard (`guard`), and with it in hand the Givers'
+  watcher (`sentry`, `SENTRY_AT`) in the middle of the hall wakes: its bolt sent back off the guard breaks it and opens
+  the east door (`dw`) into the Hall of Channels (the old Hall of Winds: its bellows' wind is gone, issue #245;
+  `src/temples/migrate.js` `LAYOUTS.desert` breaks the watcher for a save already past it). Down the hall's middle a ball
+  cut along the long groove burns out short of the bowl at its end (`b4`) unless the eye high on the obelisk beside the
+  groove (`e10`, struck from a double jump) has lifted the relay fire's lid, and woken the keepers' door `sc` back to the
+  Hall of Fires (`WING`: caught again at the relay it gets to the bowl with 2 s of its flame left, where it had a fifth of
+  a second until issue #311; gone out with the lid still on, it says where the fire is, Ball `tar.short`); the
   Keeper's spokes run from the basin out to hooded bowls on the rim, a fire half-way (`HEARTH_FIRE`): cut out, a
   ball lights its bowl (its first phase); a guard against its charge jars it and it pants, and water from your tank
   at its mouth (an interactable, `temple.desert.water`) calms it (its second); a ball cut back in from a lit bowl
   rolls burning to it (its last, and the only way it pants then). Ember mode comes with the fluid gun now, in the Givers' Hearth.
+- **The Rose House as shrines** (v1.77, issue #336: "The rooms should be much bigger, higher ceilings, larger doors…
+  Think shrines in Breath of the Wild"; the rules in `docs/design/temple-redesign.md`). Every hall 36 m across (the Hall
+  of Channels 36 by 75), the chest's round hall 26, ceilings 18 to 24 m (`ROOMS`), doors 7 by 9 (`DOOR`); the props as
+  they were (the balls, the bowls, the plates, the weight, the chests, the eye, the jumps and the grooves' lengths, so
+  every timing holds). Each room has its kind in `LOGIC.rooms` (`kind`: puzzle, combat, chest, passage, guardian), and
+  `src/foes.js` places machines only in a `combat` room's, round its mark's `foes` spot (`Mark` `foes`): the Machines'
+  Hall, an arena (`ARENAS`; won, its way on `dm` opens; the blade taken, "something in the walls is waking" beyond the
+  north door). Each puzzle stands in the middle of its own hall: the Hall of the Flame's groove down its middle, the
+  pier in the pit's, the Hall of Fires' ball, fire, thorns and bowl in one room (they rolled through the chamber's north
+  door before), the watcher in the middle of its hall, the Hall of Channels' groove down its middle and the eye on an
+  obelisk beside it (it was high on the end wall, the bowl through the east doorway). The Hall of Fires', the Machines'
+  Hall's and the Watcher's Hall's east walls are one wall, the Hall of Channels' west (two walls there drew their faces in
+  one plane: `tests/zfight.test.js`). Old saves: past the old chamber's fight, the Machines' Hall is won; one that stood
+  in the old rooms is taken to its last mark (`migrate.js` desert v4, `desert.js` `RELAID`). Tests:
+  `tests/temple-rules.test.js` (no rule broken), the on-foot walk and the play-through in `tests/temples.test.js` and
+  `tests/temple-playthrough.test.js`, `tests/door-bypass.test.js`, `tests/zfight.test.js`.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

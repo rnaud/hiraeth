@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.77 — 2026-10-14
+
+- When you win a temple’s arena, the house says so as its doors sink open: that line never showed.
+- The Rose House’s machines no longer stand by its puzzles: they wait in a hall of their own past the Sword Chamber, the Machines’ Hall, round its middle, and its doors hold behind you until they are broken. If you were inside the old house you start at its last glyph stone, and a fight you had won in the old Sword Chamber counts as won.
+- The Rose House is rebuilt like a shrine: every hall is far bigger and taller (36 m across under 18 to 24 m of stone), its doors are twice the size, and each puzzle stands in the middle of its own room instead of along a wall or through a doorway. The Hall of the Flame’s ball rolls down the middle of the hall; the Hall of Fires’ ball, its fire, its thorns and its bowl are all in that hall; the Givers’ guard and their watcher have a hall of their own over the bridge; and the eye in the Hall of Channels is high on an obelisk beside the groove.
+
 ## v1.76 — 2026-10-14
 
 - Clear the Sunken Hall to win its Ember colours: copper and rust for your backpack, ember water for your sword and shield. Choose each piece’s colour in Items, on the new Colours strip over your gear.

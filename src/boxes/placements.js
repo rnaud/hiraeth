@@ -75,7 +75,7 @@ export const PLACEMENTS = {
     { id: 'desert.temple.sword', item: 'sword', temple: 'desert', site: templeSite('desert'),
       note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
     { id: 'desert.temple.shield', item: 'shield', temple: 'desert', site: findSite('desert', 'guard'),
-      note: 'Inside the rose-stone house in the eastern dunes, on the far landing of the Hall of Fires.' },
+      note: 'Inside the rose-stone house in the eastern dunes, in the Watcher’s Hall over the Hall of Fires’ bridge.' },
   ],
   incal: [
     // the first jetpack world: the jets wait on the makers' pillar, a lone stone column on the rim 130 m

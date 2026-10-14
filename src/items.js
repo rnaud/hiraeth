@@ -36,7 +36,7 @@ export const ITEMS = {
     text: 'A worn brass hilt that grows a blade of fluid. {key:blade} cuts, three in a row; hold it for a sweeping cut. It clears thorns and wakes the makers’ eyes.',
   },
   shield: {
-    name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: on the far landing of the Hall of Fires, where the Givers’ watcher stands.',
+    name: 'Givers’ guard', kind: 'weapon', where: 'In the Rose House: in the Watcher’s Hall, over the Hall of Fires’ bridge, where the Givers’ watcher stands.',
     text: 'A brass flower on your forearm that opens into living fluid. Hold {key:guard}: it takes a blow from in front, turns one back if raised in time, and sends a bolt back.',
   },
   backpack: {

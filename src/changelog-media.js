@@ -847,7 +847,23 @@ const HELP339 = 'muted headless Chrome (High, 1280 × 720) against this branch�
 const LANDMARKS76 = "Muted headless Chrome, High, 1280 × 720, clear at 10:00; 433459bf before and the working tree after, 14 October 2026. Framing follows the taller structures; the Lamp-House now stands farther into the shallows.";
 /** (v1.76, issue #341: the fight temple and the kit's colours, shot by hand on this branch) */
 const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this branch (port 6341), High, 1280 × 720, a save with the sword and the shield; the run played by a script that walks to the nearest foe and cuts; 14 October';
+/** (v1.77, issue #336: the Rose House's rooms, shot by hand before and after) */
+const SHRINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6436, at 9f1142fa7 (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.77': [
+    { match: 'The Rose House is rebuilt like a shrine', shots: [
+      { name: 'rose-flame', title: 'The Hall of the Flame', caption: 'From its way in: before, a 22 m hall, the tar ball’s groove along its east side to the bowl by the door; after, 36 m across under 20 m of stone, the groove down the middle, the bowl at its end, the door past it', from: SHRINE336 },
+      { name: 'rose-fires', title: 'The Hall of Fires', caption: 'The near floor: before, a ledge, the bowl the Sword Chamber’s ball was rolled to through its door; after, the ball, its fire, its thorns and the bowl on the chasm’s lip all down the middle of this hall', from: SHRINE336 },
+      { name: 'rose-watch', title: 'The Watcher’s Hall', caption: 'Before, the guard and the watcher on the Hall of Fires’ far landing, the watcher by the east door; after, a hall of their own over the bridge, the watcher in its middle', from: SHRINE336 },
+      { name: 'rose-wing', title: 'The Hall of Channels', caption: 'Before, the groove along its south side, out through the doorway to the bowl by the far door, the eye on the end wall; after, the groove down its middle to its bowl, the eye on an obelisk beside it, the far door in the north wall', from: SHRINE336 },
+      { name: 'rose-channel', title: 'The Dry Channel', caption: 'From the near ledge: the pier in the middle of a pit 36 m across now, the gallery’s door 7 by 9 m', from: SHRINE336 },
+    ] },
+    { match: 'The Rose House’s machines no longer stand', shots: [
+      { name: 'rose-chest', title: 'The Sword Chamber', caption: 'Before, a machine by the mark beside the blade’s dais, the chamber’s doors held when you took it; after, the chamber holds the blade alone, the machines waiting in the hall past its north door', from: SHRINE336 },
+      { name: 'rose-machines', title: 'The Machines’ Hall', only: 'after', caption: 'The house’s one fight: the Givers’ machines round the middle of an empty hall, four columns to fight round', from: SHRINE336 },
+    ] },
+    { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
+  ],
   '1.76': [
     { match: 'Across all fourteen temples', shots: [
       { name: "temple-landmark-desert", title: "The Rose House", caption: "Vermilion fins and twelve exposed stair tiers above a level sand terrace.",

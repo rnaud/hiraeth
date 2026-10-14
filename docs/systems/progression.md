@@ -39,7 +39,7 @@ nothing in his hands; the order in the desert is:
 | the backpack | Qanat's chest on its dais at the tree's foot (`desert.backpack`; on the tree's ledge until v1.49) | unchanged |
 | the lift valve (the double jump) | by the giant's pool (`desert.lift`) | unchanged; the Rose House's sand pit wants it (Sabri says so if it isn't had) |
 | the Givers' blade (`sword`) | the Rose House's Sword Chamber, half-way (`desert.temple.sword`, the temple's gadget) | the house's dungeon item: thorns, a ball a cut sends far, an eye to strike, the Keeper's spokes |
-| the Givers' guard (`shield`) | the Rose House, the Hall of Fires' far landing (`desert.temple.shield`, a `find`) | the Givers' watcher's bolt, sent back into its eye (the far landing's east door), the Keeper's charge |
+| the Givers' guard (`shield`) | the Rose House, the Watcher's Hall over the Hall of Fires' bridge (`desert.temple.shield`, a `find`) | the Givers' watcher's bolt, sent back into its eye (the hall's east door), the Keeper's charge |
 | the fluid gun, with ember mode (`fire`) | the Givers' Hearth, the Givers' room off its hall (`desert.gun`; v1.45, issue #83) | its stone ball wants the push; nothing in the house needs it, before or after. Ember mode, the house's old key, comes with it (`with`, docs/systems/boxes.md): in v1.44 it had a chest of its own beside the gun's |
 
 The house is off the main quest's line (Sabri starts it), so the order is the player's: the house before the Hearth

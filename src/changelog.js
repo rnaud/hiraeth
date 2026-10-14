@@ -8,6 +8,16 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.77', date: '2026-10-14', items: [
+    // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in
+    // docs/design/temple-redesign.md, scripts/temple-design/rules.mjs + record.mjs; tests/temple-rules.test.js, tests/temples.test.js
+    'The Rose House is rebuilt like a shrine: every hall is far bigger and taller (36 m across under 18 to 24 m of stone), its doors are twice the size, and each puzzle stands in the middle of its own room instead of along a wall or through a doorway. The Hall of the Flame’s ball rolls down the middle of the hall; the Hall of Fires’ ball, its fire, its thorns and its bowl are all in that hall; the Givers’ guard and their watcher have a hall of their own over the bridge; and the eye in the Hall of Channels is high on an obelisk beside the groove.',
+    // the machines in their own hall (issue #336): desert.js ARENAS (arM, dm), pieces.js Mark `foes`, src/foes.js placeMachinesIn
+    // (a tagged house's machines only in its combat rooms, round the middle); migrate.js desert v4, RELAID; tests/foes.test.js
+    'The Rose House’s machines no longer stand by its puzzles: they wait in a hall of their own past the Sword Chamber, the Machines’ Hall, round its middle, and its doors hold behind you until they are broken. If you were inside the old house you start at its last glyph stone, and a fight you had won in the old Sword Chamber counts as won.',
+    // the arena's won line (src/temples/runtime.js updateArenas: the doors let go the moment the last foe fell, before it was won)
+    'When you win a temple’s arena, the house says so as its doors sink open: that line never showed.',
+  ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield
     // brought down), interior.js (ROOMS etc. x2, the furniture at its size moved with at/grown, DINING_Z, READING_Z,

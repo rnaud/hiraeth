@@ -3129,12 +3129,16 @@ export class Coffer {
 /** A mark's waking: its glyph flares for `flare` s; the first mark of all says what it is (once a save: the `told` flag). */
 export const MARK = { flare: 0.9, told: 'temple.markTold', line: 'The glyph stone wakes: it holds your place. Fall, and you come back to it.' };
 export class Mark {
-  /** A checkpoint: a glyph stone. o: { room, at, yaw } */
+  /**
+   * A checkpoint: a glyph stone. o: { room, at, yaw, foes } (foes: where its room's machines stand, local, the middle of
+   * a fight's room, src/foes.js placeMachinesIn; left out, round the stone, as before: issue #336)
+   */
   constructor(rt, o) {
     this.rt = rt; this.room = o.room;
     const K = rt.kit, M = rt.M;
     this.pos = K.world(...o.at);
     this.heading = K.heading(o.yaw ?? 0);
+    this.foes = o.foes ? K.world(...o.foes) : null;
     this.group = new THREE.Group();
     this.group.position.copy(this.pos);
     this.group.rotation.y = this.heading;

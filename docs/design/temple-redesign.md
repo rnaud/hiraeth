@@ -45,6 +45,7 @@ every mark) until it is redone, and the rules count each such machine in a puzzl
 | fights | a machine by every mark (the Hall of the Flame, the Dry Channel, the Sword Chamber with its encounter, the Hall of Fires, the Hall of Channels, the antechamber) | **the Machines' Hall only**, an arena past the chamber's north door, its machines round its middle |
 | threaded through doors | the Sword Chamber's ball rolled through the north door to the Hall of Fires' bowl; the Hall of Channels' ball through the east doorway to the far landing's bowl | each ball, its fire, its thorns and its bowl in the middle of one hall |
 | the rules broken | **43** | **0** |
+| the temple design audit (`temple-design-qc`) | 4.11: structure 5, teach/test/twist 5, combination 4, non-obvious 4, decoupling 4, item 5, guardian 4, identity 3, curve 3 | 4.11: non-obvious **3** (its mean 3.25 → 3.44: the chamber's door is in sight from the pier now), decoupling **5** (the bowls by their balls, out of sight of the doors they open); its skeleton gains the arena (`XTBCRAXBGXK`) and is 46 % like the next (55 %) |
 
 The rooms, in order: the Threshold (a passage); the Hall of the Flame (puzzle: the tar ball's groove down the middle, the
 pilot flame on it, the bowl at its end); the Dry Channel (puzzle: the pier in the middle of the pit, its plate and the
@@ -89,11 +90,16 @@ What repeats, and how the Rose House answered each:
   (most houses have an arena already: it becomes the house's fight, with the machines round its middle).
 - **Puzzles against the walls** ("centred"): eyes set high on end walls, grooves along a side wall, plates in corners.
   Bring the groove down the middle, the eye onto an obelisk or a pillar in the floor.
-- **Through doors**: the Undertower's low stone carried a room on, the Lamp-House's orb rolled through the Hall of Dark
-  Pools' door, the Whale-House's and the Casting-House's balls rolled from one room into the next. Put the ball, its plate
-  and what it lights in one room.
-- **The gadget unused after the chest** (the Casting-House, the Footprint, the Clock-House): a room after the chest that
-  asks only for older verbs. Each wants a step with the gadget in it.
+- **Through doors** (16 in nine houses): the Lamp-House's orb (`orb5`) rolled through the Hall of Dark Pools' door into
+  the Root Stair, the Whale-House's ball (`b2`) through its pools' door, the Casting-House's moulds (`m1`, `mH` through
+  `dP`), the Hush-House's orb (`oB` through `dJ`), and a ball rolled into the next room's plate in the Undertower
+  (`ballT` into the tuning room), the Clock-House (`ball1` into the well), the Engine-House (`ballJ`) and the Belfry
+  (`ball3`, onto the far side of its hall). Put the ball, its plate and what it lights in one room.
+- **Unmeasured** rooms (eleven, mostly the guardians' halls and antechambers built wall by wall rather than with the
+  kit's halls): build them with `hall` or `rotunda` so the rules can read them.
+- **The gadget unused after the chest** (the Casting-House's furnace and its tongs, the Footprint's Hall of the Unseen
+  and its lens, the Clock-House's coil): a puzzle room after the chest that asks only for older verbs, or only one room
+  that asks for it. Each wants a step with the gadget in it.
 
 The next houses to redo, by how much the player meets them and how much they break: the **Warden's Well** (the second
 house, small and full of machines), the **Founders' Belfry** and the **Aerie** (the first after the Rose House on the

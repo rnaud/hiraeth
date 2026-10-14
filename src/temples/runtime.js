@@ -248,12 +248,14 @@ export class TempleRuntime {
         st.clear = standing ? 0 : st.clear + dt;
         if (st.clear > (A.settle ?? 0.8) && this.logic.light(A.el)) {
           this.sound?.chime?.(); this.onLit(A.el);
-          if (st.held) this.notice(A.won ?? 'The last of them falls still, and the doors sink open.', `arena.won.${A.el}`);
+          // (fought: held shut a moment ago; the doors let go the moment the last one fell, before it was won)
+          if (st.held || st.fought) this.notice(A.won ?? 'The last of them falls still, and the doors sink open.', `arena.won.${A.el}`);
         }
       }
       const held = inside && !this.logic.isLit(A.el) && arenaFoes(this, A.room).length > 0;
       if (held !== st.held) {
         st.held = held;
+        if (held) st.fought = true;
         for (const d of A.doors ?? []) this.logic.force(d, held ? false : null);
         this.applyDoors();
         if (held) this.notice(A.shut ?? 'The doors grind shut behind you. Something in the walls is waking.', `arena.shut.${A.el}`);

@@ -173,6 +173,21 @@ test('unarmed (v1.44: the sword not found), nothing comes to fight: no pack, no 
   foes.dispose(); clearTargets();
 });
 
+test('a house redone to issue #336 tags its rooms: no machine by a puzzle room’s mark, a fight’s machines round its middle (its mark’s foes)', () => {
+  clearTargets();
+  const game = new GameState(null);
+  const tool = { swordOn: true, reserve: { level: 1, max: 3 }, drops: { add() {} }, glow: { add() {} }, modeTones: ['#fff'] };
+  const marks = [{ pos: v(0, 0, 0), heading: 0, room: 'a' }, { pos: v(0, 0, 30), heading: 0, room: 'puzzle' }, { pos: v(-12, 0, 60), heading: 0, room: 'fight', foes: v(0, 0, 75) }];
+  const rt = { id: 'desert', marks, inside: () => false, def: { logic: { rooms: { a: { kind: 'passage' }, puzzle: { kind: 'puzzle' }, fight: { kind: 'combat' } } } } };
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: rt }, levelId: 'desert', physics: flat, player: player(v(0, 0, 400)), tool, settings: { enemies: true }, game });
+  foes.update(DT);
+  assert.equal(foes.list.filter((f) => f.room === 'puzzle').length, 0, 'none in the puzzle’s room');
+  const fight = foes.list.filter((f) => f.room === 'fight');
+  assert.equal(fight.length, 1, 'one in the fight’s');
+  assert.ok(fight[0].pos.distanceTo(v(0, 0, 75)) < 4, `round its middle, not its mark (${fight[0].pos.toArray().map((x) => x.toFixed(1))})`);
+  foes.dispose(); clearTargets();
+});
+
 test('the blade: three arcs, a soft lock on the nearest foe, and only targets that list the blade feel it', () => {
   for (const n of [0, 1, 2]) {
     const a = swingArc(n, 0), b = swingArc(n, 1);
