@@ -144,7 +144,8 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
   }
   const hops = roomDistances(rooms, links);
   // (the link is passed on: whoever draws the line may open the doors you came through to reach the lock's room)
-  const seen = (a, b, l) => (los ? !!los(a, b, l) : true);
+  // (and the key looked at: its own piece never hides it, an eye's lids round it, v1.74)
+  const seen = (a, b, l, key) => (los ? !!los(a, b, l, key) : true);
 
   // the keys and the locks they go in (logic.js `lock`, `key`): a key is any key of its kind, so each lock is given the
   // keys in the order a player meets both (the first keys found to the first locks reached)
@@ -212,7 +213,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
         ...k, pos: kp, clue,
         metres: where && lockPos ? +dist(where, lockPos).toFixed(1) : 0,
         rooms: k.how !== 'item' && k.how !== 'needs' && k.room && hops[l.a]?.[k.room] != null ? hops[l.a][k.room] : 0,
-        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l) : true,
+        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l, clue ? null : k.plate ?? k.id) : true,
         before: k.room && k.how !== 'item' && k.how !== 'needs' ? roomOrder.indexOf(k.room) < roomOrder.indexOf(l.a) : false,
       };
     });

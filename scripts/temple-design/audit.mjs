@@ -85,11 +85,15 @@ for (const id of ids) {
     }
     return passed.get(link);
   };
-  const los = (a, b, link) => {
+  // (the key looked at is left out too: its own piece, an eye's lids round it, never hides it, v1.74)
+  const own = new Map();
+  const ownOf = (id) => { if (!own.has(id)) { const s = new Set(); for (const p of rt.pieces) if (p.id === id) for (const m of meshesOf(p)) s.add(m); own.set(id, s); } return own.get(id); };
+  const los = (a, b, link, key = null) => {
     const A = rt.kit.world(...a), B = rt.kit.world(...b), d = A.distanceTo(B);
     if (d < 0.5) return true;
     ray.set(A, B.clone().sub(A).normalize()); ray.far = d - 1.2;
-    return ray.intersectObjects(openBy(link) ?? solids, false).length === 0;
+    const skip = key ? ownOf(key) : null;
+    return ray.intersectObjects(openBy(link) ?? solids, false).filter((h) => !skip?.has(h.object)).length === 0;
   };
   const g = L.puzzleGraph(def.logic, pieces, { los, order: s.order });
   const guardian = rt.guardian?.def ?? null;
