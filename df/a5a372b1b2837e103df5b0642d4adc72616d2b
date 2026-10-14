@@ -1,0 +1,29 @@
+docs/systems/unity.md
+  s_9ca76055a220ed::t_5f6703e46d3254 72-74,133-142
+.github/workflows/unity-android.yml
+  s_45ddb77b972ff5::t_59be11e4d51308 321,326-327,556,561-562
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dfa5a372b1b2837e103df5b0642d4adc72616d2b",
+  "prompts": {},
+  "sessions": {
+    "s_45ddb77b972ff5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae929893862185335",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
