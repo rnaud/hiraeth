@@ -65,6 +65,12 @@ export const CHANGELOG = [
     'The dark, ragged patches stuck along the corners of rooms (where the ceiling meets the wall in the Desert’s shop, under the arch of your bunk in the ship, at the foot of walls in caves) are gone, and the soft shading that settles into corners, under counters and along the foot of walls is back, now smooth, with no grainy speckle crawling as you move.',
     // the ship's rooms hatched again, coarser (issue #325's follow-up): src/ship/model.js SHIP_ROOM_HATCH_PX, materials.js hatchPx
     'Your ship’s rooms are shaded with pen strokes again in the shade, drawn wider apart so they no longer shimmer as you walk about.',
+    // the C# port's voices (issue #333): unity/Hiraeth/Assets/Hiraeth/Runtime/Voice.cs (voice.js's plan, ported),
+    // VoiceSynth.cs (voice-synth.js's formant voice), VoiceOut.cs (streamed on the audio thread), Hud.cs (the reveal by
+    // RevealAt, the hush), ShipScene.cs (the calls' speaker); scripts/unity-export/voice-reference.mjs; VoiceTests.cs,
+    // tests/unity-voice-reference.test.js; docs/systems/audio.md "The people's voices"
+    { text: 'In the Desert rebuilt in Unity, people speak with the new voices too, as they do in the browser: one voice a line that glides from syllable to syllable, with breath, vowels and consonants, in place of the old beeps. A conversation’s words appear as they are said, turning the page hushes the voice, and the ship and the calls home sound through a speaker.',
+      see: 'In the Unity port of the Desert, talk to Ama by the fire and listen: the words come up with the voice, pausing where it pauses. Press on before she finishes and her voice fades as the page turns. Walk past the camps to hear the people around, two at most, and quiet while you talk to someone.' },
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

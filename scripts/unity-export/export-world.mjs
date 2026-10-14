@@ -759,18 +759,9 @@ const story = {
 const fnCount = JSON.stringify(story, (k, v) => (typeof v === 'function' ? '[fn]' : v)).split('[fn]').length - 1;
 if (fnCount) console.warn(`story: ${fnCount} functions left out (only data travels)`);
 
-// ---------------------------------------------------------------- reference plans for the Unity port's voice (tests: VoiceTests.cs)
-if (desert) {
-  const V = await import('../../src/story/voice.js');
-  const lines = [['~happy~ Welcome, traveller! The fire is warm.', { id: 'ama', kind: 'f', scale: 0.91 }], ['~sad~ The well has been dry for a long time…', { id: 'hessa', voice: 0.7, kind: 'f' }],
-    ['~curious~ Who are the Givers? Why a star?', { id: 'you', voice: 1.0, kind: 'm' }], ['~angry~ Hey! Mind where you push!', { seed: 'crowd:12' }], ['(She laughs.) ~solemn~ Come down, child.', { id: 'nour', name: 'Nour', title: 'the eldest' }]];
-  world.voiceReference = lines.map(([text, person]) => {
-    const plan = V.planLine(text, { voice: V.voiceOf(person), lang: 'desert' });
-    const short = V.planLine(text, { voice: V.voiceOf(person), lang: 'desert', max: 9 });
-    return { text, person, voice: V.voiceOf(person), plain: plan.text, tone: plan.tone, total: plan.total, n: plan.syllables.length, shortN: short.syllables.length,
-      syllables: plan.syllables.map((x) => ({ t: x.t, dur: x.dur, f0: x.f0, gain: x.gain, vowel: x.vowel, cons: x.cons })) };
-  });
-}
+// ---------------------------------------------------------------- the voice reference for the Unity port (tests: VoiceTests.cs)
+// (issue #333: each line's plan, and its sound as the web game's renderer sings it, measured: voice-reference.mjs)
+if (desert) world.voiceReference = (await import('./voice-reference.mjs')).voiceReference();
 // the language the world's people speak (voice.js languageOf), for Voice.cs
 try { world.language = (await import('../../src/story/voice.js')).languageOf?.(levelId) ?? levelId; } catch { world.language = levelId; }
 

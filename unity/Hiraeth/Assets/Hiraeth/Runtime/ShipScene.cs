@@ -205,12 +205,13 @@ namespace Hiraeth
         void Fade(float to, float secs) { fadeTarget = to; fadeSpeed = secs <= 0 ? 999 : 1 / secs; if (secs <= 0) fade = to; }
         public void Say(string who, string text, float secs = -1)
         {
-            if (text == null) { subtitle = null; return; }
+            if (text == null) { subtitle = null; Sounds.Instance?.Hush("call"); return; }
             var t = Text.Parse(text);
             subtitle = Text.Plain(t.text); subtitleWho = who; subtitleUntil = Time.time + (secs > 0 ? secs : Mathf.Min(6.2f, 1.4f + t.text.Length * 0.052f));
             // heard in their voice: the ship's chirp, the father's home speech (voice.js CALL_VOICES)
             var v = who == "ship" ? Voice.Of("ship", 1.0f, "f") : who == "mother" ? Voice.Of("mother", 1.02f, "f", 1, "", "at home") : who == "you" ? Voice.Of("you", 1.0f, "m") : Voice.Of("father", 0.66f, "m", 1, "", "at home");
-            Sounds.Instance?.SayIn(t.text, t.tone, v, who == "ship" ? "ship" : "home");
+            // (through the screen's speaker but your own: voice.js speakLine's radio)
+            Sounds.Instance?.SayIn(t.text, t.tone, v, who == "ship" ? "ship" : "home", who == "you" ? 0 : 0.55f);
         }
         void Shake(float k) { shakeK = Mathf.Max(shakeK, k); }
 

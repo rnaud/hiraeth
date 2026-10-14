@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Hiraeth.Tests
 {
     /// <summary>
-    /// The second pass of the port: the people (people.mjs → Figures.cs), the voices (Voice.cs against
-    /// voice.js's own plans, exported as world.json voiceReference), the recorded sounds, the box scene.
+    /// The second pass of the port: the people (people.mjs → Figures.cs), the recorded sounds, the box scene
+    /// (the voices: VoiceTests.cs).
     /// Needs the export (node scripts/unity-export/export-desert.mjs; the sounds: record-sounds.mjs).
     /// </summary>
     public class PortTests
@@ -21,55 +21,6 @@ namespace Hiraeth.Tests
             var path = Path.Combine(WorldLoader.DataPath("desert"), "world.json");
             Assume.That(File.Exists(path), "run the exporter first");
             world ??= Json.Parse(File.ReadAllText(path)) as Dictionary<string, object>;
-        }
-
-        [Test]
-        public void TheVoicesPlanTheSyllablesAsTheWebGameDoes()
-        {
-            var refs = world.L("voiceReference");
-            Assert.IsNotNull(refs, "no voiceReference in the export");
-            foreach (var r in refs)
-            {
-                var p = r.O("person");
-                var v = Voice.Of(p.S("seed") ?? p.S("id"), p.Has("voice") ? p.F("voice") : (float?)null, p.S("kind"), p.F("scale", 1), p.S("name") ?? "", p.S("title") ?? "");
-                var rv = r.O("voice");
-                Assert.AreEqual(rv.F("f0"), v.f0, 0.05f, $"f0 of {r.S("text")}");
-                Assert.AreEqual(rv.F("rate"), v.rate, 1e-3f, $"rate of {r.S("text")}");
-                Assert.AreEqual(rv.S("age"), v.age, $"age of {r.S("text")}");
-                var plan = Voice.PlanLine(r.S("plain"), v, r.S("tone"), "desert");
-                var want = r.L("syllables");
-                Assert.AreEqual(want.Count, plan.syllables.Count, $"syllables of {r.S("text")}");
-                for (int i = 0; i < want.Count; i++)
-                {
-                    var w = want[i]; var s = plan.syllables[i];
-                    Assert.AreEqual(w.F("t"), s.t, 2e-3f, $"{r.S("text")} #{i} time");
-                    Assert.AreEqual(w.F("dur"), s.dur, 2e-3f, $"{r.S("text")} #{i} length");
-                    Assert.AreEqual(w.F("f0"), s.f0, 0.1f, $"{r.S("text")} #{i} pitch");
-                    Assert.AreEqual(w.F("gain"), s.gain, 2e-4f, $"{r.S("text")} #{i} gain");
-                    Assert.AreEqual(w.L("vowel")[0] is double a ? (float)a : 0, s.vowel.x, 1.01f, $"{r.S("text")} #{i} F1");
-                    Assert.AreEqual(w.S("cons"), s.cons, $"{r.S("text")} #{i} consonant");
-                }
-                Assert.AreEqual(r.F("total"), plan.total, 3e-3f, $"length of {r.S("text")}");
-                Assert.AreEqual(r.I("shortN"), Voice.PlanLine(r.S("plain"), v, r.S("tone"), "desert", 9).syllables.Count, $"balloon of {r.S("text")}");
-            }
-        }
-
-        [Test]
-        public void ALineIsSungIntoSound()
-        {
-            var v = Voice.Of("ama", null, "f", 0.91f);
-            var plan = Voice.PlanLine("Welcome, traveller! The fire is warm.", v, "happy");
-            var data = Voice.Render(plan);
-            Assert.Greater(data.Length, Voice.Rate * plan.total);
-            float peak = data.Max(Mathf.Abs);
-            Assert.Greater(peak, 0.02f, "silent");
-            Assert.Less(peak, 1.0f, "clipping");
-            // silence between the words: the envelope closes
-            Assert.Less(Mathf.Abs(data[data.Length - 1]), 1e-3f);
-            // the mouth follows the syllables: open inside one, shut before the first
-            var s = plan.syllables[1];
-            Assert.Greater(Voice.MouthAt(plan, s.t + s.dur * 0.5f), 0.1f);
-            Assert.AreEqual(0f, Voice.MouthAt(plan, -0.01f));
         }
 
         [Test]

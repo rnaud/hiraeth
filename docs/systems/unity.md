@@ -20,7 +20,8 @@ beside it (the details, how to run it and what is missing: `unity/README.md`).
   `biome.js` and `post.js` ported to HLSL; side-by-side shots match the web closely.
 - **The play**: the traveller (glTFast, his own clips), walk / run / jump / climb / mantle,
   the camera rig, the people and the procession (Quaternius bodies in their palettes, UAL
-  clips), conversations with tones and at most three answers, quests and the journal, the
+  clips), conversations with tones and at most three answers (the people's voices: audio.md, "The people's
+  voices", the Unity port), quests and the journal, the
   father's charge, the makers' chest on the ledge, the rib, the pool and the jar, the
   hoverbike under the tarp, the burning tree's fire and its burn, falls and knock-downs.
   `scripts/unity-export/unity-batch.sh Play` plays the opening quest end to end in batch mode.

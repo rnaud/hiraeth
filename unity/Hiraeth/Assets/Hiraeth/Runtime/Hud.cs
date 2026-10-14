@@ -101,6 +101,7 @@ namespace Hiraeth
         public void EndTalk()
         {
             if (talkNpc) talkNpc.talking = false;
+            if (talk != null) Sounds.Instance?.Hush("talk");
             talk = null; talkNpc = null;
             onTalkEnd?.Invoke();
         }
@@ -326,17 +327,20 @@ namespace Hiraeth
         void UpdateTalk(float dt)
         {
             if (talk.ended) { EndTalk(); return; }
-            reveal += dt * 55f;   // letters per second (voice.js REVEAL_CPS)
             var text = talk.TextNow;
             var choices = talk.Choices();
             // a new page: said aloud in the speaker's voice (voice.js), the mouth on its syllables
             if (text != spokenText)
             {
+                Sounds.Instance?.Hush("talk");   // (the page turned: the last one's voice fades)
                 spokenText = text; spokenAt = Time.time;
                 var d = talkPerson;
-                var v = Voice.Of(d?.S("id") ?? talkName, d != null && d.Has("voice") ? d.F("voice") : (float?)null, d?.S("kind"), talkNpc ? talkNpc.scale : 1, talkName ?? "", talkTitle ?? "", d?.S("age"));
-                spokenPlan = talkNpc ? Sounds.Instance?.Say(Text.Plain(text), talk.Tone, v) : null;
+                var v = Voice.Of(d?.S("id") ?? talkName, d != null && d.Has("voice") ? d.F("voice") : (float?)null, d?.S("kind"), talkNpc ? talkNpc.scale : 1, talkName ?? "", talkTitle ?? "", d?.S("age"), d?.S("build"));
+                spokenPlan = talkNpc ? Sounds.Instance?.Say(text, talk.Tone, v) : null;
             }
+            Sounds.Instance?.HoldFloor();
+            // the reveal follows the voice (voice.js revealAt: each syllable's letter as it is said); unsaid, an even pace
+            reveal = spokenPlan != null ? Mathf.Max(reveal, Voice.RevealAt(spokenPlan, Time.time - spokenAt)) : reveal + dt * 55f;
             float? mouth = spokenPlan != null ? Voice.MouthAt(spokenPlan, Time.time - spokenAt) : (float?)null;
             // their face while they say it (talk-face.js): the line's tone, the mouth moving; the traveller looks at them
             if (talkNpc)

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.73 — 2026-10-14
 
+- In the Desert rebuilt in Unity, people speak with the new voices too, as they do in the browser: one voice a line that glides from syllable to syllable, with breath, vowels and consonants, in place of the old beeps. A conversation’s words appear as they are said, turning the page hushes the voice, and the ship and the calls home sound through a speaker.
 - Your ship’s rooms are shaded with pen strokes again in the shade, drawn wider apart so they no longer shimmer as you walk about.
 - The dark, ragged patches stuck along the corners of rooms (where the ceiling meets the wall in the Desert’s shop, under the arch of your bunk in the ship, at the foot of walls in caves) are gone, and the soft shading that settles into corners, under counters and along the foot of walls is back, now smooth, with no grainy speckle crawling as you move.
 - On the Steam Deck the Unity version is now called “Hiraeth (Unity)” in Steam and in the desktop menu, with its own icon and library pictures marked UNITY, so you can tell it apart from Hiraeth at a glance. It changes with the next update, while Steam is closed; a name or icon you gave it yourself stays.

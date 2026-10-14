@@ -12,14 +12,16 @@ namespace Hiraeth
     /// chime, the page, the desert's duduk-and-kalimba score). The continuous layers are synthesised
     /// here as audio.js builds them: the wind (band-passed noise, its pitch and loudness on the
     /// gusts and your speed), the high howl, the cloak's flutter as you run, the hoverbike's engine
-    /// (a low-passed sawtooth on its speed), and a crackle near the fires. The voices: Voice.cs.
+    /// (a low-passed sawtooth on its speed), and a crackle near the fires. The voices: Voice.cs plans a
+    /// line, VoiceSynth.cs sings it and VoiceOut.cs streams it on the audio thread.
     /// </summary>
     [RequireComponent(typeof(AudioListener))]
     public class Sounds : MonoBehaviour
     {
         public static Sounds Instance;
         readonly Dictionary<string, AudioClip> clips = new();
-        AudioSource music, fx, voice;
+        AudioSource music, fx;
+        VoiceOut voices;
         readonly List<AudioSource> spots = new();
         public float musicVol = 0.8f, fxVol = 1f, voiceVol = 1f;
         // the layers (set from the main thread, read by the audio thread)
@@ -42,7 +44,9 @@ namespace Hiraeth
             else Debug.LogWarning("Hiraeth: no recorded sounds (run scripts/unity-export/record-sounds.mjs)");
             music = gameObject.AddComponent<AudioSource>(); music.loop = true; music.playOnAwake = false; music.spatialBlend = 0;
             fx = gameObject.AddComponent<AudioSource>(); fx.playOnAwake = false; fx.spatialBlend = 0;
-            voice = gameObject.AddComponent<AudioSource>(); voice.playOnAwake = false; voice.spatialBlend = 0;
+            // the voices: a clip-less source of their own, sung as they are heard (VoiceOut)
+            var vo = new GameObject("voices"); vo.transform.SetParent(transform, false); vo.AddComponent<AudioSource>(); voices = vo.AddComponent<VoiceOut>();
+            voices.volume = voiceVol * VoiceLevel;
             if (clips.TryGetValue("music_desert", out var m)) { music.clip = m; music.volume = musicVol; music.Play(); }
         }
 
@@ -80,7 +84,11 @@ namespace Hiraeth
 #endif
             if (Silent) AudioListener.volume = 0;
         }
-        void LateUpdate() { if (Silent && AudioListener.volume != 0) AudioListener.volume = 0; }
+        void LateUpdate()
+        {
+            if (Silent && AudioListener.volume != 0) AudioListener.volume = 0;
+            if (voices) voices.volume = voiceVol * VoiceLevel;
+        }
 
         /// <summary>A recorded effect by name (2D), at a volume; variants named name, name2 alternate.</summary>
         public void Play(string name, float vol = 1)
@@ -99,24 +107,38 @@ namespace Hiraeth
             src.maxDistance = reach; src.transform.position = at; src.clip = c; src.volume = vol * fxVol; src.Play(); played++;
         }
 
-        /// <summary>A line said aloud (Voice.cs), near or far: returns its plan (the mouth follows it) or null when out of earshot.</summary>
+        /// <summary>The voices' level against the rest (× the voice volume setting: audio.js VOICE_LEVEL).</summary>
+        const float VoiceLevel = 1.25f;
+
+        /// <summary>
+        /// A line said aloud (Voice.cs), near or far: returns its plan (the mouth and the reveal follow it) or null when
+        /// it is not heard (out of earshot; a balloon while a conversation has the floor, or two balloons already).
+        /// Near (no place): a conversation's page, the channel 'dialogue'; placed: a balloon (voice.js speakBalloon).
+        /// </summary>
         public Voice.Plan Say(string text, string tone, Voice.VoiceParams v, Vector3? at = null, int max = int.MaxValue, float range = 26)
         {
             float k = 1;
             if (at.HasValue) k = Mathf.Max(0, 1 - Vector3.Distance(transform.position, at.Value) / range);
             if (k <= 0.05f) return null;
-            var (clip, plan) = Voice.Line(text, tone, v, language, max);
-            voice.PlayOneShot(clip, k * k * voiceVol * 1.25f); played++;
+            var channel = at.HasValue ? "balloon" : "dialogue";
+            if (voices && !voices.CanSpeak(channel, k * k)) return null;
+            var plan = Voice.PlanLine(text, v, tone, language, max);
+            if (voices) voices.Speak(plan, channel, k * k);
+            played++;
             return plan;
         }
 
-        public void Hush() { voice.Stop(); }
+        /// <summary>Fade a voice now: the conversation's ('talk': its page turned, the talk closed) or the call's ('call': its subtitle cleared).</summary>
+        public void Hush(string channel = "talk") { if (voices) voices.Hush(channel == "talk" ? "dialogue" : channel); }
+        /// <summary>A conversation is open: nobody around mumbles over it.</summary>
+        public void HoldFloor() { if (voices) voices.HoldFloor(); }
 
-        /// <summary>A line in a given tongue (the ship's chirp, home speech on the reel), not placed.</summary>
-        public Voice.Plan SayIn(string text, string tone, Voice.VoiceParams v, string lang)
+        /// <summary>A line in a given tongue (the ship's chirp, home speech on the reel), not placed: a call (radio: through the screen's speaker).</summary>
+        public Voice.Plan SayIn(string text, string tone, Voice.VoiceParams v, string lang, float radio = 0)
         {
-            var (clip, plan) = Voice.Line(Text.Plain(text), tone, v, lang);
-            voice.PlayOneShot(clip, voiceVol * 1.25f); played++;
+            var plan = Voice.PlanLine(Text.Plain(text), v, tone, lang);
+            if (voices) voices.Speak(plan, "call", 1, radio);
+            played++;
             return plan;
         }
 

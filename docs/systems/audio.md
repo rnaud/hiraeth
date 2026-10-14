@@ -566,7 +566,30 @@ continuous voice**, a small formant synthesiser of plain Web Audio nodes.
   every 5 ms), F1 and F2 peaks where the plan put them, no drop-out inside a word, little energy above 5 kHz in a
   vowel (no buzz), every pair of 14 worlds apart in spectrum, pace or pitch, the tone heard (a question rising),
   pauses heard, and the node count. Measured against the old renderer on the same lines: clicks 1–179 a line → 0,
-  syllables 9–13 a second → 5–7. The Unity port's `Voice.cs` still sings the old way.
+  syllables 9–13 a second → 5–7.
+- **The Unity port** (`unity/Hiraeth`, issue #333; until then its `Voice.cs` sang the old beeps): `Voice.cs` is
+  `voice.js` ported number for number (the tones and their brightness, every tongue's `LANGUAGES` and `SPEECH`,
+  `voiceOf` with build, tilt, breath and flutter, `spokenMask`, `planLine`, `revealAt`); `VoiceSynth.cs` is
+  `renderVoice`: the plan becomes the same `setTargetAtTime` events, each parameter a one-pole toward its target
+  (the levels every sample; the pitch with its flutter and vibrato, the formants and the hiss's band every 16
+  samples, where `engine/webaudio.js` sets its filters every 128), the same glottal table, resonators and frication.
+  `VoiceOut.cs` streams the lines on Unity's audio thread (`OnAudioFilterRead` on a clip-less source, at the output's
+  rate; nothing is rendered ahead): channels `dialogue` and `call` (a new line or `Sounds.Hush` fades the last),
+  `balloon` (two at most, quiet while a conversation holds the floor). The conversation's reveal follows the voice
+  (`Hud`: `Voice.RevealAt`), a page turned or the talk closed hushes it, the ship and the calls home sound through
+  a speaker (radio 0.55, as `speakLine`). Measured (14 October, the Mac): a voice costs 0.9 ms of a core a second
+  of speech at 48 kHz under .NET, 5.9 ms in the editor's Mono.
+- **Against the web**: `scripts/unity-export/voice-reference.mjs` plans 13 lines (the desert's people, then a tongue
+  of each make: the Shaft cant, the Hangar's machines, Lorn's wobble, the Vael whisper, the murmurs' chorus, the
+  spheres' ring, the ship) and sings them with `renderVoice` on the engine's Web Audio at 24 kHz; the export writes
+  each plan and its sound's measures into the desert's `world.json` (`voiceReference`): the loudness every 10 ms,
+  the pitch every 10 ms (autocorrelation), the long-term spectrum in third-octave bands. `VoiceTests.cs` checks the
+  plans syllable by syllable, then sings each line and measures it with the same code: level within 1.5 dB (it is
+  within 0.3), loudness over time r > 0.9 (0.97–1.00), pitch within a semitone in 85 % of the voiced frames (95–100 %,
+  median 0.00), spectrum within 2.5 dB from the line's lowest pitch up (0.4–2.3; the web's renderer is 0.2–1.7 dB
+  from itself with another noise). Then the checks of `tests/voice-synth.test.js` on its own sound: no clicks at
+  48 kHz in nine tongues and tones, silence before and after, no buzz above 5 kHz, every tongue sung, the hush, the
+  reveal, the cost. `tests/unity-voice-reference.test.js` keeps the reference's side honest.
 - The music page's **Voices** play every tongue.
 
 ## The music page (issue #270, October 2026)

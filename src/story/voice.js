@@ -81,7 +81,7 @@ export const VOWELS = { a: [780, 1220, 2600], e: [480, 1900, 2600], i: [300, 230
 
 /**
  * Each world's tongue: a syllable inventory and a voice colour.
- * wave: the old mumble's oscillator (until issue #323; the Unity port's Voice.cs still sings with it)
+ * wave: the old mumble's oscillator (until issue #323 here, #333 in the Unity port's Voice.cs; kept in the plan)
  * pitch / rate / len / gain: × · breath: air (0..1) · clip: 0..1
  * glide: semitones per syllable · formant: × vowel formants · density: syllables per vowel group
  * wobble: [rate Hz, semitones] (watery) · mech: a voice-box hum, pitch on a grid (machines)

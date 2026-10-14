@@ -173,7 +173,7 @@ namespace Hiraeth
         {
             var t = Text.Parse(line); shout = t.text; shoutTone = t.tone; shoutUntil = Time.time + secs;
             // heard where they stand (voice.js speakBalloon: a short version, quieter with distance)
-            var v = Voice.Of(def?.S("id") ?? (crowdIndex >= 0 ? $"crowd:{crowdIndex}" : id), def != null && def.Has("voice") ? def.F("voice") : (float?)null, def?.S("kind") ?? figure?.kind, scale, displayName ?? "", title ?? "");
+            var v = Voice.Of(def?.S("id") ?? (crowdIndex >= 0 ? $"crowd:{crowdIndex}" : id), def != null && def.Has("voice") ? def.F("voice") : (float?)null, def?.S("kind") ?? figure?.kind, scale, displayName ?? "", title ?? "", def?.S("age"), def?.S("build"));
             sayPlan = Sounds.Instance?.Say(Text.Plain(t.text), t.tone, v, pos + Vector3.up * 1.6f, 9); sayAt = Time.time;
         }
         Voice.Plan sayPlan; float sayAt;
