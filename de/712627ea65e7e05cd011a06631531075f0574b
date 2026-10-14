@@ -1,0 +1,83 @@
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_9256e6251e4dba 42
+docs/systems/ship.md
+  s_9ca76055a220ed::t_28087e4c4108bd 37-99,102-103,234-236,253-254,299-303
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_933b361dfb6351 69-70
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_30be439ddc7754 35-37,39-40,79-82
+scripts/unity-export/build-world.mjs
+  s_9ca76055a220ed::t_f6ff1009598a4f 124-125
+scripts/unity-export/export-world.mjs
+  s_9ca76055a220ed::t_22be672396753d 100-101,571-577
+src/changelog-media.js
+  s_9ca76055a220ed::t_3f85bd4d342efc 832,848-858
+src/changelog.js
+  s_9ca76055a220ed::t_945f4d3b41087c 12-21
+src/levels/underwater.js
+  s_9ca76055a220ed::t_3f058526afdbda 526-528
+src/materials.js
+  s_9ca76055a220ed::t_442e709ce65319 143-151,1860-1862,2521-2527,2564-2569,2572-2576,2906-2907,3130-3134
+src/ship/arrival-views.js
+  s_9ca76055a220ed::t_779a376dae69c1 4-15
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_482138a7ae05ef 3-4,256,484,487-488,501,529,532,550,556,565-567
+src/ship/flight.js
+  s_9ca76055a220ed::t_09d2575940b9d9 18-19
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_0d145c66c79953 4,567
+src/ship/hull.js
+  s_9ca76055a220ed::t_10fd71397741b7 17-74,76-84,87,89-91,93,95,97-98,100,102-103,105,107,109,111,117-118,120,126-128,138-139,151-154,162-166,176,246,256-260,378,385,395,428,463,497
+src/ship/interior.js
+  s_9ca76055a220ed::t_ae79ab0d267c21 4,27-35,37-38,40,44-51,53,60,62,64,66,69-81,84-95,98-127,202-203,207,215-217,220-222,397,410-411,414,420,495,511,527-528,578,581,594,596,607,661,672,681-682,684-759,762-763,765-770,776-777,789-790,804,806-807,833,838-862,864,877,880-885,887-896,898-899,901-903,908-910,912-913,915-920,922-925,929-930,955
+src/ship/landing.js
+  s_9ca76055a220ed::t_5710af05829160 12-28,38,41,48
+src/ship/model.js
+  s_9ca76055a220ed::t_2d50f1c78d34e3 5,14,68-73,78,90-92,97,130,174,191-192
+src/ship/ship.js
+  s_9ca76055a220ed::t_da882d51bff8f5 152,157,471-474
+src/ship/sites.js
+  s_9ca76055a220ed::t_b5fc79620b0b83 2,42-48,111,114-118,120-121,123,129-132,134-140,146,154-166,179-180,189,192
+src/story/scientist.js
+  s_9ca76055a220ed::t_a654e200489dd1 27
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_7f47d5bd17a778 386,396-398,408-409,417-418,425,441-442
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_977c0197a63bd1 7,75
+tests/landing.test.js
+  s_9ca76055a220ed::t_ba63e60785b62a 7,26-27
+tests/room-size.test.js
+  s_9ca76055a220ed::t_d3cd934e36ad20 10-11,50-56,58-62,70,72,205
+tests/ship-deck.test.js
+  s_9ca76055a220ed::t_60fa7c75efbcc3 8,33,53-57,99-100,128
+tests/ship-grown.test.js
+  s_9ca76055a220ed::t_1bbac0e3f1ab85 1-129
+tests/ship.test.js
+  s_9ca76055a220ed::t_afb83e107d913a 9-11,42,51-54,57,61,75,204-206
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_2546753db648b9 24,214-217,219-226
+unity/Hiraeth/Assets/Hiraeth/Runtime/ShipScene.cs
+  s_9ca76055a220ed::t_690560aeb13bca 36-37,78,189,425-426,437,464-465,487,491,501-502
+unity/Hiraeth/Assets/Hiraeth/Runtime/ShipTravel.cs
+  s_9ca76055a220ed::t_b0b1f7d9de2a9d 39
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_9ca76055a220ed::t_5b4d5b7993f7b7 244-246
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_4e339ab248fcef 34,119,1007-1014,1025-1026,1029
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de712627ea65e7e05cd011a06631531075f0574b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

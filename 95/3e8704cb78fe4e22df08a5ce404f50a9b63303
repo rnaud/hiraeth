@@ -1,0 +1,67 @@
+changelog.md
+  s_9ca76055a220ed::t_fef4abaac34c0d 7-8
+docs/README.md
+  s_9ca76055a220ed::t_253b0ff2b20194 28,67,83
+docs/design/fight-temples.md
+  s_9ca76055a220ed::t_93c1590445e4ff 1-96
+docs/systems/items.md
+  s_9ca76055a220ed::t_2dbb2a302095e9 277-287
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_130312b9847b15 129,388-401
+src/changelog-media.js
+  s_9ca76055a220ed::t_a5d00b31c4d410 845-846,861-876
+src/changelog.js
+  s_9ca76055a220ed::t_8fbb615e0fcddd 50-56
+src/fight-temples/desert.js
+  s_9ca76055a220ed::t_ed5a28c3666675 1-39
+src/fight-temples/index.js
+  s_9ca76055a220ed::t_89788662e9f86d 1-65
+src/fight-temples/rooms.js
+  s_9ca76055a220ed::t_bffdd4724b0b86 1-181
+src/fight-temples/rules.js
+  s_9ca76055a220ed::t_7a12e5e86e7c51 1-209
+src/fight-temples/session.js
+  s_9ca76055a220ed::t_7fac2e248f6695 1-364
+src/game-menu-data.js
+  s_9ca76055a220ed::t_c732e201383047 22,38,115
+src/game-menu.css
+  s_9ca76055a220ed::t_378715cf54b399 118-124
+src/game-menu.js
+  s_9ca76055a220ed::t_2ec758d13cf374 160,163-166,169,183,374,419-420,876
+src/i18n/en.js
+  s_9ca76055a220ed::t_acfd6aa01fd9be 368-369,394
+src/i18n/fr.js
+  s_9ca76055a220ed::t_72d2e645fbfeb3 366-367,392
+src/kit-colours.js
+  s_9ca76055a220ed::t_a892adb8dbc3a8 1-126
+src/main.js
+  s_9ca76055a220ed::t_ddcf8e9715ec31 148,717-718,974,979-980,2657,2665
+src/minigames/fight-desert.js
+  s_9ca76055a220ed::t_33b68c96b3c305 1-7
+src/minigames/kit/marker.js
+  s_9ca76055a220ed::t_3e4c80e4154bd7 83-84,92
+src/minigames/kit/minigames.css
+  s_9ca76055a220ed::t_06a1941f19c080 119-122
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_9bc7a57672a94e 116-117
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_71eaa2e121fa01 63-69
+tests/fight-temples.test.js
+  s_9ca76055a220ed::t_717440831a88d4 1-349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "953e8704cb78fe4e22df08a5ce404f50a9b63303",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
