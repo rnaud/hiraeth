@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.75 — 2026-10-14
 
+- Talking to Anselm in your ship’s hold now works: the button opened nothing there, as the ship kept every press aboard for itself. Now it opens his talk and his upgrades.
 - Aboard your ship, the button prompts float beside what they are for, like the one to talk to someone: by the voicemail button on the console, over the holo table, in the hatch, instead of at the top of the screen.
 - The marker and the drone no longer send you through a shop door for nothing: on Vael and in Lorn the way to Sister Aube, the bird, the cairn’s stones and the lamp-keeper went in at one shop’s door and out of another’s, a field away, as if the two shops were joined. They point straight at where you are going now.
 - In Vael, reaching the riders’ gate on the way to Sister Aube counts now: the drone flies on to her smoke over the cloud, and the marker stays on her when you walk away, instead of sending you back to the gate. In Viridel, reaching the tallest tree’s crown is the climb done, note read or not, and a few steps now say what to do when you get there: take the rider’s flute from the tower’s window, hold up the splinter in the crystal cave, look inside what answered across Lorn’s water.

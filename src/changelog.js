@@ -53,6 +53,10 @@ export const CHANGELOG = [
     // tests/engine-ship.test.js; docs/systems/ui.md
     { text: 'Aboard your ship, the button prompts float beside what they are for, like the one to talk to someone: by the voicemail button on the console, over the holo table, in the hatch, instead of at the top of the screen.',
       see: 'Go aboard and walk up to the console: “E voicemail” hangs beside the machine. Step over to the holo table and the hatch: their prompts float there too.' },
+    // E to Anselm aboard (issue #352): src/ship/ship.js input, hasUse (the ship's E only by the console, the table, the hatch;
+    // the engines share it); tests/ship.test.js; docs/systems/fragments.md
+    { text: 'Talking to Anselm in your ship’s hold now works: the button opened nothing there, as the ship kept every press aboard for itself. Now it opens his talk and his upgrades.',
+      see: 'Once you have met Anselm, go aboard and walk aft to the hold: press X / □ (E) beside him and he tells you his count, then “Show me what you have” opens his shop.' },
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

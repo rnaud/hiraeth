@@ -559,14 +559,18 @@ export class Ship {
       this._eHeld = !!ctl.KeyE;
       return { ...ctl, KeyE: false };
     }
-    // E belongs to the ship inside it; at the ramp you walk in (its "go aboard" button was one press for what your
-    // feet already meant, issue #87: E at the ramp's foot is yours, to talk or pick up)
-    if (this.inside && ctl.KeyE) {
+    // E belongs to the ship inside it where it has something to use (the console, the holo table, the hatch); elsewhere
+    // aboard it is yours, to talk to Anselm in the hold (issue #352: the ship took every E aboard, so his prompt did
+    // nothing). At the ramp you walk in (its "go aboard" button was one press for what your feet already meant, issue
+    // #87: E at the ramp's foot is yours, to talk or pick up)
+    if (this.inside && ctl.KeyE && (this._eShip || this.hasUse())) {
+      this._eShip = true;
       if (!this._eHeld) this.use();
       this._eHeld = true;
       return { ...ctl, KeyE: false };
     }
     this._eHeld = !!ctl.KeyE;
+    this._eShip = false;
     if (!this.inside && this.walksIntoRamp()) { this.walkAboard(); return { ...ctl, KeyW: false, stick: null }; }
     return ctl;
   }
@@ -589,6 +593,9 @@ export class Ship {
     sfx.hatch(this.sound);
     this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, this.parked.interior.points.aboard)]);
   }
+
+  /** Whether E aboard is the ship's here: by the voicemail button, the holo table or the hatch. */
+  hasUse() { return this.atConsole() || this.atTable() || this.atHatchInside(); }
 
   /** E aboard: the voicemail button, the holo table (the map), the hatch. */
   use() {

@@ -148,6 +148,31 @@ test('aboard, the ship’s prompts float by what they are for: the voicemail but
   assert.equal(cueText({ shipHint: tag ? null : ship.hud(), prompt: tag.text, promptAt: tag.at, words: true }), '');
 });
 
+test('aboard, E is the ship’s only where it has something to use: in the hold it is yours, to talk to Anselm (issue #352)', async () => {
+  const { physics, ship } = flatWorld();
+  const m = ship.parked;
+  ship.player = new Player(physics);
+  ship.attach({ order: ORDER, levels: LEVELS, journal: { storyDone: () => false, seen: () => false }, titles: {} });
+  ship.inside = true;
+  const { ABOARD } = await import('../src/story/scientist.js');
+  // in the hold, a step in front of Anselm by the crate: nothing of the ship's here, E goes on to him
+  ship.placePlayer(ship.world(m, v(ABOARD.at[0] - 1, 0, ABOARD.at[2] - 1)), 0, true);
+  assert.ok(!ship.hasUse(), 'nothing of the ship’s in the hold');
+  const out = ship.input({ KeyE: true });
+  assert.equal(out.KeyE, true, 'E passes through to the talk');
+  assert.ok(!ship.map.open);
+  ship.input({});
+  // at the table it is the ship's, and held E stays the ship's as you walk off
+  ship.placePlayer(ship.world(m, m.interior.points.tableFoot.clone().add(v(1.1, 0, 0.3))), 0, true);
+  assert.equal(ship.input({ KeyE: true }).KeyE, false, 'by the table E opens the map');
+  assert.ok(ship.map.open);
+  ship.map.toggle(false);
+  ship.placePlayer(ship.world(m, v(ABOARD.at[0] - 1, 0, ABOARD.at[2] - 1)), 0, true);
+  assert.equal(ship.input({ KeyE: true }).KeyE, false, 'still held: still the ship’s');
+  assert.equal(ship.input({}).KeyE, undefined);
+  assert.equal(ship.input({ KeyE: true }).KeyE, true, 'a fresh press in the hold is yours');
+});
+
 test('the ramp reaches the ground and the hatch is open to walk through', () => {
   const { physics, ship } = flatWorld();
   assert.ok(Math.abs(ship.rampFoot.y) < 0.2, `ramp foot on the ground: ${ship.rampFoot.y.toFixed(2)}`);
