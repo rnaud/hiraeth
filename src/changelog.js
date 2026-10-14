@@ -28,6 +28,13 @@ export const CHANGELOG = [
     // (the machines only in the west store, round its middle: LOGIC.rooms kinds, Mark `foes`; the great key's ledge 16 m over
     // the stair's floor, the founders' bell straight below it: RING.bell, RING.key; migrate.js arzach2 v4, RELAID)
     'The Belfry’s keepers wait only in the west store now, round its middle, the house’s one fight: no machine stands by its puzzles any more. From the great key’s ledge high in the Stone Stair you can now see the founders’ bell right below you. If you were inside the old Belfry, you start at its last glyph stone.',
+    // the Builders' Greenhouse as shrines (issue #336): src/temples/edena.js (ROOMS, DOOR, WING, VAULT, LOGIC.rooms kinds, the
+    // Bud Passage a room of its own past dS, the eyes on a pillar and posts and the landing's face, the vault's glass out in the
+    // room, the layout); tests/temple-rules.test.js REDONE, tests/temples.test.js
+    'The Builders’ Greenhouse is rebuilt like a shrine too: its rooms are far bigger and taller (every hall 30 to 36 m across under 18 m of stone and glass, the Glass Stair and the Seed Chamber 34 m round), its doors twice the size, and every puzzle stands in the middle of its room. The Potting Hall’s eye is on a pillar behind the benches, the Cold Frame’s two eyes on posts behind their seed trays, the Glass Stair’s eye on the face of the landing the disc rides past, the Seed Vault’s wall of glass stands out in the room with its two seeds before it, and the Bud Passage is a hall of its own past the Seed Chamber, whose far door opens for the bloom in your hand.',
+    // (the machines only in the Shade House, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; the pots
+    // solid as drawn; migrate.js edena v5, runtime.js relaid)
+    'The Greenhouse’s keepers wait only in the Shade House now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Greenhouse, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

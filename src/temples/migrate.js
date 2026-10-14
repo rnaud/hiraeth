@@ -55,12 +55,16 @@ export const LAYOUTS = {
   // top of the glass: the great key in the door beyond it, the vault's seeds grown
   // v1.60: the Seed Vault moved north off the Shade House (its door opens with the arena won), its keepers' door onto the
   // Glass Stair's root-wall opening with its vine. With its great key already found, or past the bud: the vine up
+  // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Bud Passage a room of its
+  // own (the same pieces, the same state). A save that entered the house: taken to its last mark if it stood inside the
+  // old rooms (runtime.js RELAID)
   edena: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['open.d1', 'lit.s2', 'open.d2', 'gadget', 'lit.bud1', 'open.d3', 'lit.seed1', 'boss'], set: { 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.sC1': true, 'lit.sC2': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.dB': 1, 'found.kB': true, 'lit.sdA': true, 'lit.sdB': true } },
       { if: ['found.kB', 'open.d4', 'boss'], set: { 'lit.sdA': true, 'lit.sdB': true, 'open.vineV': true, 'lit.arW': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.48: the Warden's Well round its Climb. Past the door at the balcony's end (or with the bellows): its two small keys

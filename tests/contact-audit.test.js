@@ -161,7 +161,11 @@ const KNOWN = {
   // (v1.49: the Engine-House's wings moved the samples: 26 → 46 feet sink, all but one on the canyon's banked sand, the
   // other in the shutter's doorway; climbs inside 45 → 40)
   buried: { sink: 46, hover: 1, inside: 40, walk: 4 },
-  edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
+  // (v1.77, issue #336: the Builders' Greenhouse rebuilt as shrines moved the samples: on the tree before it 14 feet sink and
+  // 34 walked through, 20 and 53 after, nearly all outside it, on the sown beds' kerbs round its steps and the long seed
+  // row's earth; inside, a bed's rim in the Glasshouse and the jungle in the Vine Gulf's pit, as before. The pots solid as
+  // drawn now: their rims stood over nothing)
+  edena: { sink: 20, hover: 0, inside: 18, walk: 53 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },
   // (perdide: v1.54, walk 7 -> 22, the drawn tops sampled afresh once the keepers' stakes ran round the Hush-House, issue #179:
   // the same seams in the Hush-House's and the Lamp-House's rooms far overhead, none by the stakes)
   // (v1.59: sink 3 -> 8, the samples moved again once the crystal's veins went under the water (issue #188): 7 on the tree

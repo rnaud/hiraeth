@@ -30,7 +30,7 @@ import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY, FROM_FOUR, CUPBOARD } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
-import { SITE as SITE_EDENA, SUN, VAULT } from '../src/temples/edena.js';
+import { SITE as SITE_EDENA, SUN, VAULT, ROOMS as GREENHOUSE } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { BELLOWS_NEXT, upUsed, VANES, FLUE, ROOMS as WELL, FLOORS, CLIMB, WING as WELL_WING } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
@@ -448,6 +448,17 @@ test('the Builders’ Greenhouse is a hub (issue #23): either wing alone gives i
   assert.ok(L.links.some((l) => l.door === 'dV' && l.a === 'shade' && l.b === 'vault') && L.links.some((l) => l.door === 'dV2' && l.a === 'vaultTop' && l.b === 'stair'), 'the vault between the Shade House and the Glass Stair');
   const noShade = solve(L, { items, forbid: ['arW'] });
   assert.ok(!noShade.stuck.includes('vault'), 'without the Shade House won, the vault stays shut');
+  // (v1.77, issue #336: the house rebuilt as shrines, the Bud Passage a room of its own past the chamber's open way. A save
+  // that had been inside is taken to its last mark in the new rooms; one that never went in is left alone)
+  assert.ok(L.links.some((l) => l.a === 'seed' && l.b === 'bud' && l.door === 'dS') && L.elements.dS.opens.item === 'bloom' && L.links.some((l) => l.a === 'bud' && l.b === 'gulf' && l.door === 'd3') && ['ballB', 'pB', 'bud1'].every((id) => L.elements[id].room === 'bud'), 'the passage a room of its own past the chamber’s north door (the bloom in hand), its ball, plate and bud in it');
+  for (const entered of [true, false]) {
+    const g3 = new GameState(null);
+    g3.set('temple.edena.layout', 4);
+    if (entered) for (const [k, v] of Object.entries({ entered: true, 'open.d1': true, checkpoint: 'seed' })) g3.set(`temple.edena.${k}`, v);
+    migrateTemples(g3);
+    assert.equal(!!g3.flag('temple.edena.relaid'), entered, entered ? 'inside the old house: to its last mark' : 'never inside: nothing to move');
+    assert.equal(g3.flag('temple.edena.layout'), 5);
+  }
 });
 
 test('the Warden’s Well is a hub (issue #23): either wing alone gives its key, the balcony’s door takes both, solved either way round; old saves past it find it open', () => {
@@ -3944,6 +3955,8 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
+  // (the rooms since v1.77, issue #336: the stair's and the chamber's middles, the passage's and the gulf's south walls, its lips and its glass)
+  const C2 = GREENHOUSE.stair.z, C3 = GREENHOUSE.seed.z, A0 = GREENHOUSE.bud.z0, G0 = GREENHOUSE.gulf.z0, LIP = G0 + GREENHOUSE.gulf.lip, FAR = G0 + GREENHOUSE.gulf.far, GL = G0 + GREENHOUSE.gulf.glass, HZ = GREENHOUSE.hall.z - GREENHOUSE.hall.r, PZ1 = GREENHOUSE.potting.z1;
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
@@ -3989,8 +4002,8 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   // ---- the Shade House, west off the hub (an arena): its door shuts behind you while its keepers stand
   const keepers = [{ room: 'shade', alive: true }, { room: 'shade', alive: true }];
   rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(walk(L(-8, 0, 40)), true, `to the way west (${where()})`);
-  assert.equal(walk(L(-20, 0, 40)), true, `into the Shade House (${where()})`);
+  assert.equal(walk(L(-12, 0, 41)), true, `to the way west (${where()})`);
+  assert.equal(walk(L(-26, 0, 41)), true, `into the Shade House (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isOpen('dW'), false, 'the door shuts behind you');
   for (const k of keepers) k.alive = false;
@@ -4003,16 +4016,16 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   // ---- (v1.60) won, the Shade House's north door: the Seed Vault, beside the Glass Stair; its seeds in the shade, and
   // nothing here grows without the bloom
   assert.equal(rt.logic.isOpen('dV'), true, 'the arena won, its north door opens');
-  assert.equal(walk(L(-22, 0, 45)) && walk(L(-22, 0, 52.5)), true, `north into the Seed Vault (${where()})`);
+  assert.equal(walk(L(-36, 0, 50)) && walk(L(-36, 0, 64)), true, `north into the Seed Vault (${where()})`);
   { const kB = rt.piece('kB');
     assert.ok(kB && Math.abs(rt.kit.local(kB.pos).y - VAULT.ledge - 0.2) < 0.1, 'the great key up on the ledge (its chest on the trim along it)');
     rt.piece('sdA').hit('bloom');
     assert.equal(rt.logic.isLit('sdA'), false, 'without bloom mode, a bloom glob is only fluid'); }
   assert.equal(rt.logic.isOpen('dV2'), false, 'the keepers’ door up by the key is shut');
-  assert.equal(walk(L(-22, 0, 45)) && walk(L(-20, 0, 40)), true, `back into the Shade House (${where()})`);
+  assert.equal(walk(L(-36, 0, 50)) && walk(L(-26, 0, 41)), true, `back into the Shade House (${where()})`);
   // ---- the Cold Frame, east: one louvre, one ball, two plates, an eye over each tray; the key wants both awake
-  assert.equal(walk(L(-8, 0, 40)) && walk(L(8, 0, 40)), true, `back across the hub (${where()})`);
-  assert.equal(walk(L(18, 0, 40)), true, `into the Cold Frame (${where()})`);
+  assert.equal(walk(L(-12, 0, 41)) && walk(L(12, 0, 41)), true, `back across the hub (${where()})`);
+  assert.equal(walk(L(26, 0, 41)), true, `into the Cold Frame (${where()})`);
   rt.piece('sC1').hit('shoot');
   assert.equal(rt.logic.isLit('sC1'), false, 'in the shade');
   assert.equal(roll('ballC', 'pC1', 1), true, `the ball north (${where()})`);
@@ -4029,14 +4042,14 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   wait(0.3);
   openChest(rt, 'kE', P);
   assert.equal(rt.logic.isFound('kE'), true, 'the second small key');
-  assert.equal(walk(L(8, 0, 40)), true, `back into the hub (${where()})`);
-  assert.equal(walk(L(0, 0, 43), { tol: 0.4 }), true, `to the door (${where()})`);
+  assert.equal(walk(L(12, 0, 41)), true, `back into the hub (${where()})`);
+  assert.equal(walk(L(0, 0, PZ1 - 1), { tol: 0.4 }), true, `to the door (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.keysIn('d1'), 2, 'both keys go in');
   assert.equal(rt.logic.isOpen('d1'), true, 'two keys and the eye in the sun: the door opens');
   // ---- the Glass Stair: one ball, two plates. East: the disc rides, but the landing's door wants the eye; west: the eye
-  assert.equal(walk(L(0, 0, 42)), true, `to the door (${where()})`);
-  assert.equal(walk(L(-2, 0, 51)), true, `into the stair (${where()})`);
+  assert.equal(walk(L(0, 0, PZ1 - 2)), true, `to the door (${where()})`);
+  assert.equal(walk(L(-2, 0, C2 - 8)), true, `into the stair (${where()})`);
   const disc = rt.piece('lift');
   const s0 = disc.s;
   wait(4);
@@ -4055,19 +4068,19 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(roll('ball2', 'pE', 1), true, `and back east (${where()})`);
   assert.equal(rt.logic.isLit('s2'), true, 'the eye stays open with the sun gone');
   let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 63))); if (P.onGround && local().y > 8.5) { up = true; break; } }
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, C2 + 5.8))); if (P.onGround && local().y > 8.5) { up = true; break; } }
   assert.ok(up, `up the root-wall (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.ok(local().y > 17.5, `carried up (${where()})`);
-  assert.equal(walk(L(0, 18, 66.8), { tol: 0.8 }), true, `onto the landing (${where()})`);
+  assert.equal(walk(L(0, 18, C2 + 11), { tol: 0.8 }), true, `onto the landing (${where()})`);
   wait(1.5);
   assert.equal(rt.logic.isOpen('d2'), true, 'the landing’s door, open on the eye');
-  assert.equal(walk(L(0, 18, 76)), true, `into the seed chamber (${where()})`);
+  assert.equal(walk(L(0, 18, C3 - 6)), true, `into the seed chamber (${where()})`);
   // ---- the Seed Chamber: the chest; its way on is open, and a seed in the oculus's sun is a try
   const seed0 = rt.piece('seed0'), bud = rt.piece('d3');
-  assert.ok(bud.group.position.distanceTo(L(0, 18, 82)) > 20, 'the bud is a room on, not by the chest');
+  assert.ok(bud.group.position.distanceTo(L(0, 18, C3 + 2.2)) > 20, 'the bud is a room on, not by the chest');
   seed0.hit('bloom');
   assert.equal(rt.logic.isLit('seed0'), false, 'without bloom mode, a bloom glob is only fluid');
   items.grant('bloom'); game.emit('box:opened', { id: 'edena.temple.bloom' });
@@ -4076,10 +4089,10 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(rt.logic.isLit('seed0'), true, 'in the sun the seed flowers');
   assert.equal(rt.logic.isOpen('d3'), false, 'and nothing waits on it');
   // ---- the Bud Passage: the flower-door in its sunbeam: water runs off it, fire curls it shut; a bloom glob opens it
-  assert.equal(walk(L(0, 18, 96)), true, `through the open way into the passage (${where()})`);
+  assert.equal(walk(L(0, 18, A0 + 4)), true, `through the open way into the passage (${where()})`);
   bud.hit('shoot'); bud.hit('fire');
   assert.equal(rt.logic.isLit('bud1'), false, 'water and ember do nothing');
-  assert.equal(walk(L(0, 18, 105.2), { max: 4 }), false, 'the bud keeps the way');
+  assert.equal(walk(L(0, 18, G0 + 1.3), { max: 8 }), false, 'the bud keeps the way');
   if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
   assert.ok(local().y < 18.5, `back on the floor before the bud (${where()})`);
   bud.hit('bloom');
@@ -4095,7 +4108,7 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true, 'bloomed in the sun, it opens');
   // ---- the Vine Gulf: the seed at the lip is in the shade; the sun-ball turns the great louvre onto it
-  assert.equal(walk(L(0, 18, 106.9)), true, `to the gulf's edge (${where()})`);
+  assert.equal(walk(L(0, 18, LIP - 4)), true, `to the gulf's edge (${where()})`);
   const seed1 = rt.piece('seed1');
   seed1.hit('shoot');
   seed1.hit('bloom');
@@ -4109,11 +4122,11 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   seed1.hit('bloom');
   wait(3.5);
   assert.equal(rt.logic.isOpen('vine1'), true, 'in the sun the seed grows the bridge');
-  assert.equal(walk(L(0, 18, 108.8)), true, `back to the lip (${where()})`);
-  assert.equal(walk(L(0, 18, 134.7)), true, `over the vine bridge (${where()})`);
+  assert.equal(walk(L(0, 18, LIP - 1.1)), true, `back to the lip (${where()})`);
+  assert.equal(walk(L(0, 18, FAR + 2.8)), true, `over the vine bridge (${where()})`);
   assert.ok(local().y > 17, 'on it, not in the chasm');
   // the glass: too smooth to climb; the seed-ball beside it lies in the shade
-  for (let i = 0; i < 5 / DT; i++) frame({ KeyW: true }, toward(L(0, 27, 145.2)));
+  for (let i = 0; i < 5 / DT; i++) frame({ KeyW: true }, toward(L(0, 27, GL + 1.8)));
   assert.ok(local().y < 22, `you can't get up the glass (${where()})`);
   assert.ok(said(/too smooth/i), 'and you slip off it');
   if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
@@ -4129,14 +4142,13 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   wait(3);
   assert.equal(rt.logic.isOpen('d4'), true, 'its vine climbs into the bud, and the bud opens');
   // ---- (v1.60) the bud's far door wants the great key: back to the Seed Vault, off the Shade House, down the house
-  const G0 = 103.9;
   assert.equal(rt.logic.el(rt.logic.next()).room, 'vault', 'the marker sends you back to the Seed Vault');
-  assert.equal(walk(L(0, 18, G0 + 27.5)) && walk(L(0, 18, G0 + 4)) && walk(L(0, 18, 96)) && walk(L(0, 18, 76)) && walk(L(0, 18, 66.4), { tol: 0.6 }), true, `back over the vine to the landing (${where()})`);
+  assert.equal(walk(L(0, 18, FAR - 0.5)) && walk(L(0, 18, LIP - 2)) && walk(L(0, 18, A0 + 4)) && walk(L(0, 18, C3 - 6)) && walk(L(0, 18, C2 + 10.6), { tol: 0.6 }), true, `back over the vine to the landing (${where()})`);
   const hearts0 = P.hearts;
-  assert.equal(walk(L(0, 9, 61), { max: 16, dy: 1 }), true, `down off the landing onto the root-wall (${where()})`);
-  assert.equal(walk(L(0, 0, 55), { max: 6 }), true, `and down to the floor (${where()})`);
+  assert.equal(walk(L(0, 9, C2 + 3.8), { max: 16, dy: 1 }), true, `down off the landing onto the root-wall (${where()})`);
+  assert.equal(walk(L(0, 0, C2 - 2.2), { max: 6 }), true, `and down to the floor (${where()})`);
   assert.equal(P.hearts, hearts0, 'the drops cost nothing');
-  assert.equal(walk(L(0, 0, 47)) && walk(L(-8, 0, 40)) && walk(L(-20, 0, 40)) && walk(L(-22, 0, 45)) && walk(L(-22, 0, 52.5)), true, `through the hub and the Shade House into the Seed Vault (${where()})`);
+  assert.equal(walk(L(0, 0, C2 - 17.4)) && walk(L(-12, 0, 41)) && walk(L(-26, 0, 41)) && walk(L(-36, 0, 50)) && walk(L(-36, 0, 64)), true, `through the hub and the Shade House into the Seed Vault (${where()})`);
   // two seeds at the glass's foot, one ball for the louvre's beam
   const sdA = rt.piece('sdA'), sdB = rt.piece('sdB'), kB = rt.piece('kB');
   sdA.hit('bloom'); sdB.hit('bloom');
@@ -4157,27 +4169,27 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(rt.logic.isOpen('vineV'), true, 'from both, the vine climbs the glass');
   assert.equal(rt.logic.isOpen('dV2'), true, 'and the keepers’ door up on the ledge opens with it');
   const VX1 = VAULT.x + VAULT.w / 2;
-  assert.equal(walk(L(VX1 - 4.4, 0, VAULT.z)), true, `to the glass's foot (${where()})`);
+  assert.equal(walk(L(VAULT.face - 1.2, 0, VAULT.z)), true, `to the glass's foot (${where()})`);
   up = false;
-  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(VX1 - 1, VAULT.ledge, VAULT.z))); if (P.onGround && local().y > VAULT.ledge - 0.5) { up = true; break; } }
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(VAULT.face + 2.2, VAULT.ledge, VAULT.z))); if (P.onGround && local().y > VAULT.ledge - 0.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
   assert.equal(walk(kB.pos, { tol: 1.2, max: 4 }), true, `to the great key (${where()})`);
   wait(0.3);
   openChest(rt, 'kB', P);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
   // the way back up: through the keepers' door onto the Glass Stair's root-wall, and the disc
-  assert.equal(walk(L(VX1 - 1.4, VAULT.ledge, VAULT.z)) && walk(L(-11.6, VAULT.ledge, VAULT.z)) && walk(L(-8.6, VAULT.ledge, VAULT.z)) && walk(L(-5, VAULT.ledge, 62)), true, `through the keepers' door onto the root-wall (${where()})`);
+  assert.equal(walk(L(VX1 - 1.4, VAULT.ledge, VAULT.z)) && walk(L(VX1 + 1.9, VAULT.ledge, VAULT.z)) && walk(L(-15, VAULT.ledge, VAULT.z)) && walk(L(-8, VAULT.ledge, C2 + 5)), true, `through the keepers' door onto the root-wall (${where()})`);
   assert.ok(Math.abs(local().y - VAULT.ledge) < 0.6, 'up at the root-wall’s height, by the disc');
   for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
-  assert.equal(walk(L(0, 18, 66.8), { tol: 0.8 }) && walk(L(0, 18, 76)) && walk(L(0, 18, 96)) && walk(L(0, 18, G0 + 4)) && walk(L(0, 18, G0 + 30)), true, `back up through the chamber and over the vine (${where()})`);
-  assert.equal(walk(L(1.5, 18, 139.6), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
+  assert.equal(walk(L(0, 18, C2 + 11), { tol: 0.8 }) && walk(L(0, 18, C3 - 6)) && walk(L(0, 18, A0 + 4)) && walk(L(0, 18, LIP - 2)) && walk(L(0, 18, FAR + 2)), true, `back up through the chamber and over the vine (${where()})`);
+  assert.equal(walk(L(1.5, 18, GL - 2.2), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
   up = false;
-  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 145.2))); if (P.onGround && local().y > 26.5) { up = true; break; } }
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, GL + 1.8))); if (P.onGround && local().y > 26.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
   // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels: in the sun
-  assert.equal(walk(L(0, 27, 158.2)), true, `through the great lock into the glasshouse (${where()})`);
+  assert.equal(walk(L(0, 27, HZ + 1.7)), true, `through the great lock into the glasshouse (${where()})`);
   assert.equal(rt.logic.keysIn('dB'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);

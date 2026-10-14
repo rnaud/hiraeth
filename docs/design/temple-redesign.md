@@ -100,6 +100,27 @@ over the stair's floor (the key within 20 m of the bell it waits on) and still 8
 antechamber became rooms of their own; her hall is measured by her hanging stones (`HallStones` carries her element's
 id: the rules measure a room by its mark or its element's pieces, and a guardian's hall has no mark).
 
+## The Builders' Greenhouse (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Potting Hall 22 × 31, the wings and the Seed Vault 16 × 14, the Bud Passage 12 × 12, the Vine Gulf 22 × 44, the Glass Stair and the Seed Chamber round halls 20 and 19 m across | the Potting Hall **36 × 41**, the wings, the vault and the Bud Passage **30 × 30**, the Vine Gulf **36 × 60**, the stair and the chamber **34 m** across; the Glasshouse 40 as it was |
+| ceilings | 10 (the wings) to 13 m (the chamber 13, the Potting Hall 12) | **18 m** or more (the vault 20, the gulf 20 over its lips, the stair 30) |
+| doors | 4.8 to 5 m by 6 to 6.4 | **7 by 9** (the buds too) |
+| fights | a machine by every mark (the Potting Hall, the Glass Stair, the landing, the Seed Chamber, the Vine Gulf both sides, the Seed Vault, the antechamber) and the Shade House's arena | **the Shade House only**, its keepers round its middle among four columns |
+| against the walls | the Potting Hall's eye on its east wall, the Cold Frame's eyes on its end walls and its groove by the east wall, the Glass Stair's eye high on its wall, the Seed Vault's seeds along its east wall, the gulf's balls and seeds at its lips by the walls | each in the middle of its room: on a pillar behind the benches, on posts behind the seed trays, on the face of the landing, before a wall of glass out in the room, on lips 16 m out from the gulf's walls |
+| the rules broken | **58** (both 7, size 10, ceiling 6, door 7, centred 20, foes 8) | **0** |
+| the temple design audit | 4.11: structure 5, teach/test/twist 5, combination 5, non-obvious 3 (mean 3.38), decoupling 4, item 5, guardian 4, identity 3, curve 3 | 4.11, the same scores: `XALBXCRXXXXLK` (the chamber's north door for the bloom in hand, `dS`: 62 % like the Warden's Well, 67 % like the Casting-House before); mean obviousness 3.44 (the Bud Passage's ball over 20 m from its bud) |
+
+What it took beyond the sizes: the Bud Passage became a room of its own past the chamber's north door, which sinks for
+the bloom in hand (`bud`, `dS`: the chamber with the chest and its try `seed0`, the passage with its ball, its plate and
+its bud); the Glass Stair's landing is a block from the root-wall's back
+up to the north door, its eye on its face where the disc passes it; the Seed Vault's glass is the face of a ledge 9 m deep
+out in the room, so its seeds and its groove stand in the middle; the gulf is 60 m deep, its lips 16 m out from its walls.
+What stayed: the Gardener and its fight, the story's lines, the two small keys and the great one, the loop back through
+the Seed Vault's keepers' door, the pits, every groove's length and every climb. A save that stood in the old rooms is
+taken to its last mark (`LAYOUTS.edena` v5).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -107,7 +128,7 @@ counts, and a house may not get worse). Ranked worst first:
 
 | House | Broken | both | size | ceiling | door | centred | through doors | foes | other |
 |---|---|---|---|---|---|---|---|---|---|
-| Builders' Greenhouse (edena) | 58 | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
+| Builders' Greenhouse (edena) | 58 → **0** (v1.77, above) | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
 | Undertower (bazaar) | 55 | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
 | Mooring-House (spacecity) | 54 | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
 | Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |

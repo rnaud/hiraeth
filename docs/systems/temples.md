@@ -362,6 +362,26 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (`HallStones`, her element's id). Old saves: one that stood in the old rooms is taken to its last mark (`migrate.js`
   arzach2 v4, `arzach2.js` `RELAID`). Tests: `tests/temple-rules.test.js` (no rule broken), the on-foot walk in
   `tests/temples.test.js`, the play-through, door-bypass, way-back, ball-room, zfight.
+- **The Builders' Greenhouse as shrines** (v1.77, issue #336). The Potting Hall 36 by 41 m, the Shade House, the Cold
+  Frame, the Seed Vault and the Bud Passage 30 m square, the Vine Gulf 36 by 60, the Glass Stair and the Seed Chamber
+  round halls 34 m across (the Glasshouse 40 as it was), every ceiling 18 m or more, doors 7 by 9 and the buds too
+  (`edena.js` `ROOMS`, `DOOR`, `WING`, `VAULT`). The props, the climbs (the root-wall and both glasses 9 m), the vine
+  bridge's chasm (22 m), every groove's length and every timing as they were. Tagged rooms (`LOGIC.rooms` `kind`): the
+  Threshold, the landing, the vault's top, the antechamber and the way out are passages, the Shade House the one fight
+  (`arW`, its keepers round its middle among four columns: its mark's `foes`), the rest puzzles; the Bud Passage is a room
+  of its own (`bud`, past the Seed Chamber's north door, which sinks for the bloom in hand: `dS`, as the Belfry's `dP`;
+  `ballB`, `pB`, `bud1` its own, the chamber keeps the bloom and its try `seed0`). Each puzzle in the middle of its room: the Potting Hall's eye `s1` on a pillar behind the benches (it was
+  on the east wall), the Cold Frame's eyes on posts behind their seed trays (they were on its end walls), the Glass Stair's
+  eye `s2` on the south face of the landing, a block from the root-wall's back up to the north door (it was high on the
+  wall), passed by the disc on its way up; the Seed Vault's glass the face of a ledge 9 m deep out in the room
+  (`VAULT.face`), its seeds and its ball's groove before it (they were by the east wall); the Bud Passage's ball over 20 m
+  from its bud; the Vine Gulf's lips 16 m out from its walls (`ROOMS.gulf` `lip`, `far`, `glass`), the sun-ball and the
+  seed on the near one, the seed-ball before the glass on the far one. The pots are solid as drawn (their rims stood over
+  nothing). Old saves: one that stood in the old rooms is taken to its last mark (`migrate.js` edena v5, `runtime.js`
+  relaid). Temple design audit: 4.11 before and after (the skeleton `XALBXCXXXXLK` → `XALBXCRXXXXLK`, 67 % → 62 % like the
+  nearest; mean obviousness 3.38 → 3.44). Tests: `tests/temple-rules.test.js`,
+  the on-foot walk and the old saves in `tests/temples.test.js`, the play-through, door-bypass, way-back, ball-room,
+  pit-void, zfight, contact audit.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
