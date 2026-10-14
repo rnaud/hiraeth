@@ -312,14 +312,14 @@
    "updated": "2026-10-13T18:00:00.000Z"
   },
   "box.desert.lift": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4/5, interest 4/5. First look (new in v1.38): in the small round room the first frame is his back at arm's length, and the closing frame is the open lid against the wall, him out of it. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan (shoulder, left, side, high): tech 5/5, interest 4/5. The opening had his back at arm’s length and his head above the frame: the lens now rises over his shoulder until his head and the chest are both in (keepHead with a subject); the close keeps him in (#293). Fixed: the opening’s framing, the closing shot.",
+   "updated": "2026-10-14T06:00:00.000Z"
   },
   "box.desert.gun": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4.5/5, interest 4/5. First look: the closing shot has him at the frame's edge behind the lid; skip ends it in 3.0 s. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "Re-run 2026-10-14 (issues #293, #334) under every boxPlan: tech 5/5, interest 4/5. The opening’s head was at the top edge; the cut back to play after trying it was a 0.7–0.9 m jump (a pop under shoulder, side and high): now a 0.6 s blend where play’s lens is that near. Fixed: the opening’s framing, the hand-back.",
+   "updated": "2026-10-14T06:00:00.000Z"
   },
   "box.desert.star": {
    "verdict": "Pass",
@@ -487,9 +487,9 @@
    "updated": "2026-10-09T22:00:00.000Z"
   },
   "box.moonfoundry.court": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 3/5, interest 4 → 3/5. The opening shots through the yard's bars with his tank filling half the frame; 7 s a top-down cut across by a bar; ~8 s a blank frame (the lens behind the yard's wall); the close behind bars. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan: tech 5/5, interest 4/5. Opens from inside the alcove (#292), no blank frame; his head kept in the opening (#334); a forced side plan, which had framed only the chest’s flank, now has him in profile with the chest. Fixed: the lens and the room, the opening’s framing.",
+   "updated": "2026-10-14T06:00:00.000Z"
   },
   "box.moonfoundry.bellows": {
    "verdict": "Pass",
@@ -502,9 +502,9 @@
    "updated": "2026-10-13T18:00:00.000Z"
   },
   "box.spacecity.court": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 3/5, interest 4 → 3/5. As the founders' court: through the bars, his tank filling the frame, ~8 s a flat blank frame (the lens inside the wall) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan: tech 5/5, interest 4/5. As the founders’ court: from inside the alcove, his head kept in the opening. Fixed: the lens and the room, the opening’s framing.",
+   "updated": "2026-10-14T06:00:00.000Z"
   },
   "box.spacecity.starthread": {
    "verdict": "Pass",
@@ -517,9 +517,9 @@
    "updated": "2026-10-13T18:00:00.000Z"
   },
   "box.underwater.court": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 3/5, interest 4 → 3/5. As the founders' court: the whole opening through the bars, then his tank filling the frame, ~8 s a blank frame. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan: tech 5/5, interest 4/5. As the founders’ court: from inside the alcove, his head kept in the opening. Fixed: the lens and the room, the opening’s framing.",
+   "updated": "2026-10-14T06:00:00.000Z"
   },
   "box.underwater.pearl": {
    "verdict": "Needs work",

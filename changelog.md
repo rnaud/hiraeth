@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.72 — 2026-10-14
 
+- A chest’s opening keeps your head in the picture too: in the lift valve’s cave, under the hearth and in the yards’ alcoves the camera no longer sits at your back with your head cut off, it rises to look over your shoulder at the chest. After trying the gun, the camera eases back to you instead of jumping.
 - A chest’s last shot keeps you in the picture in a small room: the lift valve’s no longer ends on the open lid against the wall, the Givers’ guard on an empty corner, or the gun with you at the edge of the screen.
 - The chests behind the yards’ gates (the founders’, the moorers’ and the divers’) open seen from inside their alcove: no longer through the gate’s bars with his tank filling the screen, and no more blank picture as he takes what was in them.
 - Steering in the pirate fight is tighter: a small push makes a fine correction, letting go stops the ship where you leave it, and your shots bend onto a pirate close to your aim.

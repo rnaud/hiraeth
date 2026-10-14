@@ -422,8 +422,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       }
       sound?.boxHum?.(current ? 0 : hum, current ? 0 : far);
       offerQuests(dt);
-      if (current) current.update(dt);
-      void camera;
+      if (current) current.update(dt, camera);   // (play's lens, where the rig has it: a hand-back near it blends, scene.js)
     },
     dispose() { dispose(); for (const f of offs) f(); offs.length = 0; },
   };

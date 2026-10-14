@@ -811,6 +811,7 @@ const SLOPE332 = 'Issue #332: muted headless Chrome (High, 1280 × 720, 10:00, c
 // (v1.72, issue #326: a scratch shooter against this branch's own Vite (port 6326) and the tree before the change (63e266d0))
 const PIRATES326 = 'Issue #326: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6326) and the tree before it (63e266d0), ?game=pirates&to=edena, the run flown ahead by the game’s pilot to the same second for both (14 October); cwebp -q 72';
 // (v1.72, issues #292, #293: frames of the cinematics QC, scripts/cinematics-qc.mjs, on this branch and on the tree before it)
+const BOX334 = 'Issue #334: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6334), before and after the change, the box opened by the review page’s staging under its own plan; 14 October; the QC’s own WebP';
 const BOX292 = 'Issues #292 and #293: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6292), before and after the change, the box opened by the review page’s staging; 14 October; the QC’s own WebP';
 export const CHANGELOG_MEDIA = {
   '1.72': [
@@ -844,6 +845,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'A chest’s last shot keeps you in the picture', shots: [
       { name: 'lift-box-close', title: 'The lift valve', caption: 'The lift valve’s chest in Qanat’s round cave, as he fits the valve to his pack: before, the open lid against the wall and him out of the picture; after, him from behind and beside, the valve going onto the pack.', from: BOX292 },
       { name: 'gun-box-close', title: 'The gun', caption: 'The gun’s chest under the hearth, as he tries it: before, him at the left edge of the picture; after, a third of the way in, the shot going off ahead of him.', from: BOX292 },
+    ] },
+    { match: 'A chest’s opening keeps your head in the picture too', shots: [
+      { name: 'lift-box-open', title: 'The lift valve', caption: 'The lift valve’s chest in Qanat’s round cave as it opens: before, the lens pressed behind his back, his head above the picture; after, risen over his shoulder, his head, the chest and the valve all in.', from: BOX334 },
+      { name: 'yard-box-head', title: 'A yard’s alcove', caption: 'The founders’ chest in its alcove on the Moon Foundry’s apron, as it wakes: before, his head cut off at the top; after, a little higher, his head in the picture with the chest.', from: BOX334 },
     ] },
   ],
   '1.71': [

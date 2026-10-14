@@ -21,7 +21,7 @@
 // PORT (default 5308) is Vite's; Chrome picks its own debugging port. Writes <out>/report.json and report.md.
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tempDir, ownProcess } from './temp-dirs.mjs';
+import { tempDir, ownProcess, viteCacheDir } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -378,7 +378,7 @@ async function main() {
   if (!entries.length) throw new Error('no cinematic matches');
   mkdirSync(o.out, { recursive: true });
   const { createServer } = await import('vite');
-  const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: join(ROOT, 'node_modules/.vite-cineqc'), logLevel: 'error', clearScreen: false,
+  const server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: viteCacheDir('cineqc'), logLevel: 'error', clearScreen: false,
     server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
   await server.listen();
   const c = await chrome({ size, mobile: flag('mobile') });

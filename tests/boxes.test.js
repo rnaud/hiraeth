@@ -708,7 +708,7 @@ function walledRoom({ gate = null, round = false } = {}) {
   return ph;
 }
 /** Plays a box's scene in `ph` under a forced plan, through its card and closing beat: every shot, with its phase. */
-function playInRoom(ph, plan, item, pl = player(V())) {
+function playInRoom(ph, plan, item, pl = player(V()), play = null) {
   const shots = [];
   let sc = null;
   const cam = { shot: (o) => shots.push({ pos: o.pos.clone(), look: o.look.clone(), fov: o.fov, phase: sc.phase }), release: (b) => { shots.release = b; }, hud() {}, bars() {} };
@@ -717,7 +717,7 @@ function playInRoom(ph, plan, item, pl = player(V())) {
   globalThis.location = { search: `?boxPlan=${plan}` };
   try {
     quiet(() => sc.start());
-    for (let i = 0; i < 30 * 20 && !sc.done; i++) { quiet(() => sc.update(1 / 30)); if (sc.phase === 'card' && sc.cardT > 0.6) sc.dismiss(); }
+    for (let i = 0; i < 30 * 20 && !sc.done; i++) { quiet(() => sc.update(1 / 30, play?.(shots))); if (sc.phase === 'card' && sc.cardT > 0.6) sc.dismiss(); }
   } finally { delete globalThis.location; }
   return shots;
 }
@@ -773,5 +773,58 @@ test('the closing shot keeps his head in the frame’s middle in a walled room, 
         if (room.round && beat === 'fit') assert.equal(shots.release, 0, `${label}: a cut back to play`);
       }
     }
+  }
+});
+
+test('the opening keeps his head in the frame with the chest, every plan, in walled rooms and the open; no pops (issue #334)', async () => {
+  const { BOX_PLANS, HEAD_FRAME } = await import('../src/boxes/scene.js');
+  const ASPECT = 1.6;
+  const open = () => new Physics(new THREE.Scene(), { heightAt: () => 0 });
+  const rooms = [['round', walledRoom({ round: true })], ['gate 0.45', walledRoom({ gate: 0.45 })], ['gate 0.9', walledRoom({ gate: 0.9 })], ['alcove', walledRoom()], ['open', open()]];
+  const opening = new Set(['approach', 'wake', 'rise', 'wobble', 'dissolve', 'reveal', 'card']);
+  for (const [name, ph] of rooms) {
+    for (const plan of Object.keys(BOX_PLANS)) {
+      for (const item of ['doublejump', 'gun', 'keeper']) {
+        const pl = player(V()), shots = playInRoom(ph, plan, item, pl), label = `${name} ${plan} ${item}`;
+        const head = pl.pos.clone().add(V(0, 1.62, 0)), chest = V(0, 0.5, 0);
+        const frames = shots.filter((s) => opening.has(s.phase));
+        assert.ok(frames.length > 100, `${label}: an opening`);
+        let pops = 0;
+        for (const [i, s] of frames.entries()) {
+          const c = new THREE.PerspectiveCamera(s.fov, ASPECT, 0.05, 100);
+          c.position.copy(s.pos); c.lookAt(s.look); c.updateMatrixWorld();
+          const v = head.clone().project(c), b = chest.clone().project(c);
+          assert.ok(v.z < 1 && Math.abs(v.x) <= HEAD_FRAME.x + 0.02 && Math.abs(v.y) <= HEAD_FRAME.y + 0.02, `${label}: frame ${i} (${s.phase}) his head out of the frame (${v.x.toFixed(2)}, ${v.y.toFixed(2)})`);
+          // (until the reveal: then the item over his hand is the subject, and the chest may leave the foot of the frame)
+          if (s.phase !== 'reveal' && s.phase !== 'card') assert.ok(b.z < 1 && Math.abs(b.x) <= 0.9 && Math.abs(b.y) <= 0.9, `${label}: frame ${i} (${s.phase}) the chest out of the frame (${b.x.toFixed(2)}, ${b.y.toFixed(2)})`);
+          const d = s.pos.distanceTo(head);
+          assert.ok(ph.rayDistance(head, s.pos.clone().sub(head).normalize(), d) >= d - 0.02, `${label}: frame ${i} (${s.phase}) nothing between the lens and his head`);
+          if (i > 0) { const m = s.pos.distanceTo(frames[i - 1].pos); if (m > 0.3 && m < 1.5) pops++; }
+        }
+        // (but the high plan forced in an alcove 0.9 m deep: its lens over the roof's lip, pulled in as the lip comes between;
+        //  play never picks it there, clearPlan gives the shoulder)
+        if (!(name === 'gate 0.9' && plan === 'high')) assert.equal(pops, 0, `${label}: no jump of 0.3–1.5 m in a frame`);
+      }
+    }
+  }
+});
+
+test('after a beat, a hand-back to a play lens close by and turned little blends, not cuts: the cut read as a pop (issue #334)', () => {
+  const ph = new Physics(new THREE.Scene(), { heightAt: () => 0 });
+  // play's lens: where the closing shot is, `off` m back along its aim, looking the way it looks (turned `turn` rad)
+  const lens = (off, turn = 0) => (shots) => {
+    const s = shots.at(-1);
+    if (!s) return null;
+    const c = new THREE.PerspectiveCamera();
+    const f = s.look.clone().sub(s.pos).normalize();
+    c.position.copy(s.pos).addScaledVector(f, -off);
+    c.lookAt(c.position.clone().add(f.applyAxisAngle(V(0, 1, 0), turn)));
+    return c;
+  };
+  for (const plan of ['shoulder', 'side', 'high']) {
+    assert.ok(playInRoom(ph, plan, 'gun', player(V()), lens(0.7)).release > 0, `${plan}: 0.7 m back, the same way: a blend`);
+    assert.equal(playInRoom(ph, plan, 'gun', player(V()), lens(3)).release, 0, `${plan}: 3 m away: a cut`);
+    assert.equal(playInRoom(ph, plan, 'gun', player(V()), lens(0.7, 1.2)).release, 0, `${plan}: turned 70°: a cut`);
+    assert.equal(playInRoom(ph, plan, 'gun', player(V())).release, 0, `${plan}: no play lens known: a cut, as before`);
   }
 });

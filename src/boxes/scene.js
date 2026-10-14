@@ -94,7 +94,16 @@ const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
 const _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _c = new THREE.Vector3(), _p = new THREE.Vector3(), _lk = new THREE.Vector3();
 const _Y = new THREE.Vector3(0, 1, 0), _m = new THREE.Vector3();
-const _ld = new THREE.Vector3(), _cf = new THREE.Vector3(), _of = new THREE.Vector3(), _rt = new THREE.Vector3(), _uv = new THREE.Vector3(), _hd = new THREE.Vector3(), _to = new THREE.Vector3(), _ai = new THREE.Vector3();
+const _hp = new THREE.Vector3(), _lp = new THREE.Vector3(), _fa = new THREE.Vector3();
+/** Whether point p, seen from pos aiming at aim (half-frame tangents ty, tx), is within the frame's shares F. */
+function inFrame(p, pos, aim, ty, tx, F) {
+  const f = _d.subVectors(aim, pos).normalize();
+  const right = _rt.crossVectors(f, _Y).normalize(), upv = _uv.crossVectors(right, f);
+  const h = _hd.subVectors(p, pos), z = h.dot(f);
+  if (z <= 0.05) return false;
+  return Math.abs(h.dot(right) / z) <= F.x * tx && Math.abs(h.dot(upv) / z) <= F.y * ty;
+}
+const _ld = new THREE.Vector3(), _cf = new THREE.Vector3(), _of = new THREE.Vector3(), _rt = new THREE.Vector3(), _uv = new THREE.Vector3(), _hd = new THREE.Vector3(), _ai = new THREE.Vector3();
 /** The lens's room (issues #292, #293): it stands LENS_GAP m short of a surface between him and it, and no nearer
  *  his chest than LENS_NEAR m where a swing round him (SWINGS steps of SWING_STEP rad each way) finds the room;
  *  it eases to a new swing at SWING_RATE (1/s). */
@@ -102,6 +111,12 @@ export const LENS_GAP = 0.25, LENS_NEAR = 1.3, SWING_STEP = 0.3, SWINGS = 10, SW
 /** Where his head must sit in a closing shot: within these shares of the half-frame, across and up (issue #293:
  *  the middle 80 % across; up, inside the letterbox's picture). */
 export const HEAD_FRAME = { x: 0.7, y: 0.6 };
+/** Where the opening's subject (the chest, then the item over his hand) must stay while his head is kept in (issue #334),
+ *  how far its lens may rise to fit the two (m) and widen (degrees), and how fast it eases there (1/s). */
+/** A hand-back after a beat to a play lens nearer than CUT_NEAR m and turned less than CUT_TURN degrees blends, NEAR_BLEND s,
+ *  where the way between keeps CLEAR_OF m from him (issue #334: the cut read as a pop). */
+export const CUT_NEAR = 1.6, CUT_TURN = 30, NEAR_BLEND = 0.6, CLEAR_OF = 0.35;
+export const SUBJECT_FRAME = { x: 0.8, y: 0.75 }, FIT_LIFT = 1.1, FIT_WIDEN = 10, FIT_RATE = 4;
 /** How far over 1 the chest's glow goes at its light's full (uBoxA.y: the linings glow with the light out of it). */
 export const LINING_GLOW = 0.75;
 
@@ -234,7 +249,10 @@ export class BoxScene {
       // through him: a cut back to play, and a short hand-back; 'fit' was shot from behind him, it blends
       // (and a cramped closing shot, moved by the room, cuts too: a blend from it swung through the wall and off him,
       //  the Givers' guard ending on an empty corner: issue #293)
-      const beatOut = this.beatDone ? (this.beat === 'fit' && !this.cramped ? { blend: 0.9, time: 1.0 } : { blend: 0, time: 0.5 }) : { blend: 1.2, time: OUT_TIME };
+      // (but a cut to a lens that near, turned that little, read as the camera jumping, a pop: the gun's under the side and
+      //  high plans, issue #334; a short blend there, where the way between is clear of the walls and of him)
+      let beatOut = this.beatDone ? (this.beat === 'fit' && !this.cramped ? { blend: 0.9, time: 1.0 } : { blend: 0, time: 0.5 }) : { blend: 1.2, time: OUT_TIME };
+      if (beatOut.blend === 0 && this.nearPlay()) beatOut = { blend: NEAR_BLEND, time: NEAR_BLEND };
       this.outTime = beatOut.time;
       this.cam?.release?.(beatOut.blend);
       if (!this.granted) { this.granted = true; this.onGrant?.(); }
@@ -242,6 +260,29 @@ export class BoxScene {
       this.model.visible = false; this.sparkles.visible = false;   // (granted: where it lives now, no copy flying off and shrinking)
       if (!this.acted) s?.chime?.();
     }
+  }
+
+  /**
+   * Whether play's lens (this.play, where the rig has it) stands near enough the closing shot's, and turned little
+   * enough (CUT_NEAR m, CUT_TURN degrees), that a cut to it would read as a jump; and the way between is clear of the
+   * room and of him (CLEAR_OF m from his upright), so a short blend there cannot swing through either.
+   */
+  nearPlay() {
+    const c = this.play, from = this.camPos;
+    if (!c?.position || !c.quaternion || !this.camLook || from.lengthSq() === 0) return false;
+    const to = c.position, d = from.distanceTo(to);
+    if (d > CUT_NEAR) return false;
+    const f = new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion), g = this.camLook.clone().sub(from).normalize();
+    if (f.angleTo(g) > THREE.MathUtils.degToRad(CUT_TURN)) return false;
+    if (d > 1e-3 && this.physics?.rayDistance && this.physics.rayDistance(from, to.clone().sub(from).divideScalar(d), d) < d - 0.02) return false;
+    // (his upright, feet to head, against the way: the nearest the two come)
+    const feet = this.P(...this.near(0, 0.3, 0)), head = this.P(...this.near(0, 1.7, 0));
+    const seg = new THREE.Line3(from.clone(), to.clone()), axis = new THREE.Line3(feet, head);
+    for (let i = 0; i <= 8; i++) {
+      const p = seg.at(i / 8, new THREE.Vector3()), q = axis.closestPointToPoint(p, true, new THREE.Vector3());
+      if (p.distanceTo(q) < CLEAR_OF) return false;
+    }
+    return true;
   }
 
   /** Esc / skip: straight to the card (on the card: go on, past the beat; in the beat: end it). */
@@ -288,8 +329,9 @@ export class BoxScene {
   }
 
   /** Per frame, after the player's own update. Returns true while it plays. */
-  update(dt) {
+  update(dt, play = null) {
     if (this.done) return false;
+    this.play = play;   // (the camera where play's rig has put it this frame, before the ship's shot)
     try { this.frame(dt); } catch (e) {
       console.warn('box scene failed; ending it', e);
       if (!this.granted) { this.granted = true; this.onGrant?.(); }
@@ -459,10 +501,13 @@ export class BoxScene {
     if (aspect < 1) { pos.lerp(look, -0.12); look.y -= 0.6; }   // and step back, aiming low so the subject sits above the card
     // keep out of walls, roofs and dunes, and keep him in the closing shot (issues #292, #293)
     if (this.physics) this.clearLens(pos, dt, this.phase === 'beat' && this.t <= dt * 1.5 && !this.beatBlend);
-    if (this.phase === 'beat') look = this.keepHead(pos, look, fov, aspect);
+    // (a cut: the lens a metre or more from where it was, before its rise)
+    const cut = !this.camRaw || this.camRaw.distanceTo(pos) > 1;
+    (this.camRaw ??= new THREE.Vector3()).copy(pos);
+    ({ look, fov } = this.keepHead(pos, look, fov, aspect, this.phase === 'beat' ? {} : { subject: look.clone(), dt, snap: cut }));
     // a breath of handheld drift
     pos.x += Math.sin(time * 0.7) * 0.012; pos.y += Math.sin(time * 0.9) * 0.01;
-    this.camPos.copy(pos); this.camFov = fov;
+    this.camPos.copy(pos); this.camFov = fov; (this.camLook ??= new THREE.Vector3()).copy(look);
     cam.shot({ pos, look, fov });
   }
 
@@ -516,26 +561,61 @@ export class BoxScene {
   }
 
   /**
-   * The closing shot's aim, turned toward his head where the lens (pulled in by a wall, swung round him) would leave it
-   * outside the frame's middle (HEAD_FRAME: shares of the half-frame, across and up; issue #293: the guard's ended on an
-   * empty corner, the lift valve's on the lid against the wall). Unchanged where his head is already in.
+   * His head kept in the shot (HEAD_FRAME: shares of the half-frame, across and up). In the closing shot (issue #293:
+   * the guard's ended on an empty corner, the lift valve's on the lid against the wall) the aim turns toward his head,
+   * the least turn that brings it in. In the opening (`subject`: the chest, then the item over his hand; issue #334: the
+   * lift valve's and the gun's chests, the lens pulled in behind his back, opened with his head above the frame) the
+   * lens also rises, the least that lets his head and the subject (SUBJECT_FRAME) be in the frame together (at most
+   * FIT_LIFT, never through a roof or out of his sight), and only where rising is not enough does the lens widen (at
+   * most FIT_WIDEN degrees); both eased (FIT_RATE), at once on a cut (`snap`). Unchanged where his head is already in.
+   * Returns { look, fov }; moves `pos` by the rise.
    */
-  keepHead(pos, look, fov, aspect = 16 / 9) {
-    const head = this.P(...this.near(0, 1.62, 0), _m);
+  keepHead(pos, look, fov, aspect = 16 / 9, { subject = null, dt = 0, snap = false } = {}) {
+    const head = this.P(...this.near(0, 1.62, 0), _hp);
+    if (!subject) return { look: pos.distanceTo(head) < 0.3 ? look : this.aimAt(pos, look, head, fov, aspect, new THREE.Vector3()), fov };
+    // the least rise, then the least widening, at which both fit
+    const at = (L) => _lp.copy(pos).setY(pos.y + L);
+    const ok = (L, w) => this.fits(at(L), look, head, subject, fov + w, aspect);
+    const least = (f) => { let lo = 0, hi = 1; for (let i = 0; i < 10; i++) { const m = (lo + hi) / 2; if (f(m)) hi = m; else lo = m; } return hi; };
+    let lift = 0, widen = 0;
+    if (!ok(0, 0)) {
+      const room = this.liftRoom(pos);
+      if (room > 0.02 && ok(room, 0)) lift = room * least((m) => ok(room * m, 0));
+      else { lift = room; widen = ok(room, FIT_WIDEN) ? FIT_WIDEN * least((m) => ok(room, FIT_WIDEN * m)) : FIT_WIDEN; }
+    }
+    const e = snap || this.fitLift === undefined ? 1 : 1 - Math.exp(-FIT_RATE * dt);
+    this.fitLift = (this.fitLift ?? 0) + (lift - (this.fitLift ?? 0)) * e;
+    this.fitWiden = (this.fitWiden ?? 0) + (widen - (this.fitWiden ?? 0)) * e;
+    // (eased toward a lower rise, never above the room it has now)
+    pos.y += Math.min(this.fitLift, Math.max(lift, this.liftRoom(pos)));
+    fov += this.fitWiden;
+    return { look: pos.distanceTo(head) < 0.3 ? look : this.aimAt(pos, look, head, fov, aspect, new THREE.Vector3()), fov };
+  }
+
+  /** The aim turned the least toward `head` (along the line from `look` to it) that puts his head within HEAD_FRAME. */
+  aimAt(pos, look, head, fov, aspect, out) {
     const ty = Math.tan(THREE.MathUtils.degToRad(fov) / 2), tx = ty * aspect;
-    const inside = (aim) => {
-      const f = _d.subVectors(aim, pos).normalize();
-      const right = _rt.crossVectors(f, _Y).normalize(), upv = _uv.crossVectors(right, f);
-      const h = _hd.subVectors(head, pos), z = h.dot(f);
-      if (z <= 0.05) return false;
-      return Math.abs(h.dot(right) / z) <= HEAD_FRAME.x * tx && Math.abs(h.dot(upv) / z) <= HEAD_FRAME.y * ty;
-    };
-    if (pos.distanceTo(head) < 0.3 || inside(look)) return look;
-    // the least turn toward his head (at his head's own distance along the aim) that brings it in
-    const to = _to.copy(head);
+    if (inFrame(head, pos, look, ty, tx, HEAD_FRAME)) return out.copy(look);
     let lo = 0, hi = 1;
-    for (let i = 0; i < 12; i++) { const m = (lo + hi) / 2; if (inside(_ai.lerpVectors(look, to, m))) hi = m; else lo = m; }
-    return look.clone().lerp(to, hi);
+    for (let i = 0; i < 12; i++) { const m = (lo + hi) / 2; if (inFrame(head, pos, _ai.lerpVectors(look, head, m), ty, tx, HEAD_FRAME)) hi = m; else lo = m; }
+    return out.lerpVectors(look, head, hi);
+  }
+
+  /** Whether, from `pos`, his head (aimed at the least) and the subject both fit the frame. */
+  fits(pos, look, head, subject, fov, aspect) {
+    const ty = Math.tan(THREE.MathUtils.degToRad(fov) / 2), tx = ty * aspect;
+    return inFrame(subject, pos, this.aimAt(pos, look, head, fov, aspect, _fa), ty, tx, SUBJECT_FRAME);
+  }
+
+  /** How far the lens may rise (m, at most FIT_LIFT): LENS_GAP under a roof, and still in sight of his chest. */
+  liftRoom(pos) {
+    const ph = this.physics;
+    if (!ph?.rayDistance) return FIT_LIFT;
+    let up = Math.max(0, Math.min(FIT_LIFT, ph.rayDistance(pos, _Y, FIT_LIFT + LENS_GAP) - LENS_GAP));
+    const from = this.P(0, 1.3, STAND_AT, _cf);
+    const seen = (u) => { const d = _ld.copy(pos).setY(pos.y + u).sub(from), n = d.length(); return n < 1e-3 || ph.rayDistance(from, d.divideScalar(n), n + LENS_GAP) >= n + LENS_GAP - 0.01; };
+    if (!seen(up)) { let lo = 0, hi = up; for (let i = 0; i < 8; i++) { const m = (lo + hi) / 2; if (seen(m)) lo = m; else hi = m; } up = lo; }
+    return up;
   }
 
   /** The open chest's mouth (world): its middle at the height its halves part (the band; the temple chest's foot). */

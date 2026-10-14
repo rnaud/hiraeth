@@ -41,6 +41,9 @@ export const CHANGELOG = [
     // the closing shot keeps his head in (issue #293): src/boxes/scene.js keepHead, HEAD_FRAME; beats.js the try shot's aim;
     // tests/boxes.test.js (a walled room, every beat and plan)
     'A chest’s last shot keeps you in the picture in a small room: the lift valve’s no longer ends on the open lid against the wall, the Givers’ guard on an empty corner, or the gun with you at the edge of the screen.',
+    // the opening keeps his head in too (issue #334): src/boxes/scene.js keepHead with a subject (SUBJECT_FRAME, FIT_LIFT,
+    // FIT_WIDEN, liftRoom), nearPlay (CUT_NEAR, NEAR_BLEND); src/boxes/index.js passes play's camera; tests/boxes.test.js
+    'A chest’s opening keeps your head in the picture too: in the lift valve’s cave, under the hearth and in the yards’ alcoves the camera no longer sits at your back with your head cut off, it rises to look over your shoulder at the chest. After trying the gun, the camera eases back to you instead of jumping.',
   ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,

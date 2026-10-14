@@ -141,6 +141,27 @@ judged as the player sees it. `tests/boxes.test.js`: in walled rooms (an alcove 
 him, an open one, a closed room 4.4 m across) every plan and beat keeps the lens in front of every surface, under
 the roof and in the open, and his head in the closing shot's middle 80 %.
 
+**His head in the opening too** (issue #334). `keepHead` now frames the opening as well, with a subject: the chest
+until the reveal, then the item over his hand. Where his head is outside `HEAD_FRAME`, the aim turns the least toward
+it. Where that would push the subject out of `SUBJECT_FRAME` (0.8 across, 0.75 up), the lens **rises**, the least that
+keeps both in. It rises at most `FIT_LIFT` (1.1 m), `LENS_GAP` under a roof and never out of sight of his chest
+(`liftRoom`). Only where rising is not enough does the lens widen, by at most `FIT_WIDEN` (10°). Both ease at
+`FIT_RATE` (4/s), and jump at once on a cut. The lift valve's and the gun's chests had opened with the lens pulled in
+behind his back and his head above the frame; now the shot looks over his shoulder down onto the chest. A forced
+**side** plan in a yard's alcove had shown only the chest's flank, close; now it rises over him. The open world's
+shots barely change: where his head was already in, nothing moves; where it sat high, the aim tips up a little.
+`tests/boxes.test.js`: in the walled rooms and in the open, under every plan, every opening frame has his head
+within `HEAD_FRAME`, the chest in the picture until the reveal, nothing between the lens and his head, and no jump
+of 0.3–1.5 m in a frame. One case is left out on purpose: the high plan forced in an alcove 0.9 m deep, whose lens
+sits over the roof's lip and is pulled in as the lip comes between. Play never picks that plan there (`clearPlan`
+gives the shoulder).
+
+**A hand-back near play's lens blends** (issue #334). After a beat the hand-back cuts (see above). But where play's
+lens (the camera as the rig has it this frame: `boxes.update` passes it to `scene.update`) stands within `CUT_NEAR`
+(1.6 m) of the closing shot's and turned less than `CUT_TURN` (30°), a cut reads as the camera jumping. The gun's
+read as a pop under the side plan, 0.7 m in one frame. There it blends instead, over `NEAR_BLEND` (0.6 s), as long as
+the way between is clear of the room and keeps `CLEAR_OF` (0.35 m) from his upright (`nearPlay`).
+
 **The card** (`card.js`): the item's name and its one description (`ITEMS[id].text`, issue #165), or, for a placement with `found` (an i18n key:
 the desert's backpack, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in
 `src/i18n/fr.js`). Its buttons name what to press with the menus' glyphs (`src/pad-glyphs.js`): `A / ×` (Enter on the
