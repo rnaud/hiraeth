@@ -27,7 +27,8 @@ export const PLAYWRIGHT_HELP = 'Playwright was not found. Install its library wh
   + 'the scripts drive the Mac\'s Chrome) or point PLAYWRIGHT at one (PLAYWRIGHT=/path/to/node_modules/playwright-core/index.mjs).';
 /** The Playwright module (its chromium), or an error that says how to get it. */
 export async function importPlaywright(spec = PLAYWRIGHT) {
-  try { return await import(spec); } catch (e) {
+  // (require.resolve finds the CommonJS index.js, whose import has no named `chromium`, only its `default`)
+  try { const m = await import(spec); return m.chromium ? m : (m.default ?? m); } catch (e) {
     if (e?.code === 'ERR_MODULE_NOT_FOUND' || /Cannot find (module|package)/.test(String(e?.message))) throw new Error(`${PLAYWRIGHT_HELP} (looked for ${spec})`);
     throw e;
   }

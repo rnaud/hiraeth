@@ -57,6 +57,9 @@ test('the benches find Playwright where Node does, or say how to get it (no othe
   assert.equal(findPlaywright({}, (m) => { if (m === 'playwright-core') return '/n/playwright-core/index.mjs'; throw new Error('no'); }), 'file:///n/playwright-core/index.mjs');
   assert.equal(findPlaywright({}, (m) => { if (m === 'playwright') return '/n/playwright/index.js'; throw new Error('no'); }), 'file:///n/playwright/index.js');
   assert.equal(findPlaywright({}, () => { throw new Error('no'); }), 'playwright-core');
+  // (what Node resolves is the CommonJS index.js: imported, its chromium is on `default` only)
+  assert.equal((await importPlaywright('data:text/javascript,export default { chromium: 7 }')).chromium, 7);
+  assert.equal((await importPlaywright('data:text/javascript,export const chromium = 8')).chromium, 8);
   await assert.rejects(importPlaywright('/nowhere/playwright-core/index.mjs'), (e) => e.message.startsWith(PLAYWRIGHT_HELP) && /npm i --no-save playwright-core/.test(e.message));
   // every script that drives Chrome through it asks importPlaywright
   for (const f of ['motion-check/record.mjs', 'lab-perf/lab-perf.mjs', 'bench/deck-pen.mjs', 'transition-perf/loading.mjs', 'transition-perf/transitions.mjs', 'transition-perf/pen.mjs']) {
