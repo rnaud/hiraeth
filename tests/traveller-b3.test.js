@@ -125,15 +125,38 @@ test('B3 fists oppose the thumb toward the palm instead of rolling it behind the
 const {b3MotionCatalogue,B3MotionPlayer,B3_MOTION_FILES}=await import('../src/characters/traveller-b3-motion.js');
 const auditFiles=Object.fromEntries(await Promise.all(B3_MOTION_FILES.map(async name=>[name,await load(`public/anim/${name}.glb`,true)])));
 const catalogue=b3MotionCatalogue(lib,auditFiles);
+// The mesh skinned in bulk, as SkinnedMesh.applyBoneTransform does it vertex by vertex, but with the bones'
+// matrices made once a pose and the rest positions put in bind space once: the audit's 209 clips × 33 poses
+// × every vertex took over two minutes through applyBoneTransform.
+function bulkSkin(m){
+ const p=m.geometry.attributes.position,si=m.geometry.attributes.skinIndex,sw=m.geometry.attributes.skinWeight,n=p.count,bind=m.bindMatrix.elements;
+ const rest=new Float64Array(n*3),idx=new Uint16Array(n*4),wt=new Float64Array(n*4),out=new Float64Array(n*3),bones=new Float64Array(m.skeleton.bones.length*16),mat=new T.Matrix4();
+ for(let i=0;i<n;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);rest[i*3]=bind[0]*x+bind[4]*y+bind[8]*z+bind[12];rest[i*3+1]=bind[1]*x+bind[5]*y+bind[9]*z+bind[13];rest[i*3+2]=bind[2]*x+bind[6]*y+bind[10]*z+bind[14];for(let k=0;k<4;k++){idx[i*4+k]=si.getComponent(i,k);wt[i*4+k]=sw.getComponent(i,k)}}
+ return ()=>{
+  m.skeleton.bones.forEach((b,j)=>{mat.multiplyMatrices(b.matrixWorld,m.skeleton.boneInverses[j]);bones.set(mat.elements,j*16)});
+  const inv=m.bindMatrixInverse.elements;
+  for(let i=0;i<n;i++){let x=0,y=0,z=0;const bx=rest[i*3],by=rest[i*3+1],bz=rest[i*3+2];
+   for(let k=0;k<4;k++){const w=wt[i*4+k];if(w===0)continue;const e=idx[i*4+k]*16;x+=w*(bones[e]*bx+bones[e+4]*by+bones[e+8]*bz+bones[e+12]);y+=w*(bones[e+1]*bx+bones[e+5]*by+bones[e+9]*bz+bones[e+13]);z+=w*(bones[e+2]*bx+bones[e+6]*by+bones[e+10]*bz+bones[e+14])}
+   out[i*3]=inv[0]*x+inv[4]*y+inv[8]*z+inv[12];out[i*3+1]=inv[1]*x+inv[5]*y+inv[9]*z+inv[13];out[i*3+2]=inv[2]*x+inv[6]*y+inv[10]*z+inv[14]}
+  return out;
+ };
+}
+
+test('the bulk skinning matches SkinnedMesh.applyBoneTransform',()=>{
+ const c=create(),a=new Animator(lib,c.char),driver=new B3MotionPlayer(c,a,catalogue);driver.pose(catalogue[0].id,.3,0);
+ for(const m of [c.mesh,c.head]){const p=m.geometry.attributes.position,out=bulkSkin(m)(),v=new T.Vector3();
+  for(let i=0;i<p.count;i+=7){m.applyBoneTransform(i,v.fromBufferAttribute(p,i));assert.ok(Math.hypot(v.x-out[i*3],v.y-out[i*3+1],v.z-out[i*3+2])<1e-6,`vertex ${i}`)}}
+});
+
 test('B3 complete animation-library mesh audit',()=>{
  const c=create(),a=new Animator(lib,c.char),driver=new B3MotionPlayer(c,a,catalogue),rows=[];
- const meshes=[c.mesh,c.head].map(m=>{const p=m.geometry.attributes.position,idx=m.geometry.index,edges=[],seen=new Set();for(let i=0;i<idx.count;i+=3)for(let k=0;k<3;k++){const x=idx.getX(i+k),y=idx.getX(i+(k+1)%3),key=Math.min(x,y)*p.count+Math.max(x,y);if(seen.has(key))continue;seen.add(key);const len=new T.Vector3().fromBufferAttribute(p,x).distanceTo(new T.Vector3().fromBufferAttribute(p,y));if(len>.003)edges.push([x,y,len])}return {m,p,edges,posed:Array.from({length:p.count},()=>new T.Vector3())}});
+ const meshes=[c.mesh,c.head].map(m=>{const p=m.geometry.attributes.position,idx=m.geometry.index,edges=[],seen=new Set();for(let i=0;i<idx.count;i+=3)for(let k=0;k<3;k++){const x=idx.getX(i+k),y=idx.getX(i+(k+1)%3),key=Math.min(x,y)*p.count+Math.max(x,y);if(seen.has(key))continue;seen.add(key);const len=new T.Vector3().fromBufferAttribute(p,x).distanceTo(new T.Vector3().fromBufferAttribute(p,y));if(len>.003)edges.push(x,y,len)}return {m,edges:Float64Array.from(edges),skin:bulkSkin(m)}});
  for(const entry of catalogue.filter(e=>!process.env.B3_AUDIT_MATCH||new RegExp(process.env.B3_AUDIT_MATCH).test(e.id))){let max=0,headMax=0,worst=null;
   for(let phase=0;phase<=32;phase++){
    driver.pose(entry.id,phase/32*(entry.clip.duration-1e-5),0);
-   for(const {m,p,edges,posed}of meshes){
-    for(let i=0;i<p.count;i++){m.applyBoneTransform(i,posed[i].fromBufferAttribute(p,i));assert.ok(posed[i].toArray().every(Number.isFinite),`${entry.id} nonfinite vertex`)}
-    for(const [x,y,len]of edges){const ratio=posed[x].distanceTo(posed[y])/len;if(m===c.head)headMax=Math.max(headMax,ratio);else if(ratio>max){max=ratio;worst={phase:phase/32,at:[p.getX(x),p.getY(x),p.getZ(x)]}}}
+   for(const {m,edges,skin}of meshes){
+    const s=skin(),p=m.geometry.attributes.position;for(let i=0;i<s.length;i++)if(!Number.isFinite(s[i]))assert.fail(`${entry.id} nonfinite vertex`);
+    for(let e=0;e<edges.length;e+=3){const x=edges[e]*3,y=edges[e+1]*3,ratio=Math.hypot(s[x]-s[y],s[x+1]-s[y+1],s[x+2]-s[y+2])/edges[e+2];if(m===c.head)headMax=Math.max(headMax,ratio);else if(ratio>max){max=ratio;worst={phase:phase/32,at:[p.getX(x/3),p.getY(x/3),p.getZ(x/3)]}}}
    }
   }
   rows.push({id:entry.id,group:entry.group,duration:entry.clip.duration,bodyStretch:max,headStretch:headMax,worst});

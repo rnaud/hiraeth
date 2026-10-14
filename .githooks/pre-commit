@@ -29,8 +29,9 @@ fi
 out=$(node --test "$@" 2>&1)
 status=$?
 if [ $status -ne 0 ]; then
-  printf '%s\n' "$out" | grep -E '^not ok|^ℹ (pass|fail)' | tail -20
+  printf '%s\n' "$out" | grep -E '^not ok|^[ℹ#] (pass|fail)' | tail -20
   echo "pre-commit: tests failed, commit stopped"
   exit 1
 fi
-printf '%s\n' "$out" | grep -E '^ℹ (pass|fail)'
+# (Node 22 reports in TAP when piped, "# pass"; 24 in spec, "ℹ pass". The tests passed: never fail on the summary.)
+printf '%s\n' "$out" | grep -E '^[ℹ#] (pass|fail)' || true

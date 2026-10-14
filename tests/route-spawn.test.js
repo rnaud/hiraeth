@@ -16,6 +16,7 @@ import { Ship, SPAWN_HEADROOM } from '../src/ship/ship.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { readFileSync } from 'node:fs';
+import { MeshBVH, acceleratedRaycast } from 'three-mesh-bvh';
 
 globalThis.window ??= { addEventListener() {} };
 const dom = { addEventListener() {} };
@@ -128,6 +129,9 @@ function viewsClear(id, { scene }, views) {
   scene.updateMatrixWorld(true);
   const solid = [];
   scene.traverse((o) => { const m = [].concat(o.material ?? []); if ((o.isMesh || o.isInstancedMesh) && o.visible !== false && !m.some((x) => x.transparent || x.opacity < 1)) solid.push(o); });
+  // (each mesh's rays through a BVH, the same hits: through three.js's own raycast every triangle was tried, 40-80 s a world;
+  // instanced and skinned meshes keep theirs)
+  for (const o of solid) if (!o.isInstancedMesh && !o.isSkinnedMesh && o.geometry.attributes.position && !Object.keys(o.geometry.morphAttributes).length) { o.geometry.boundsTree ??= new MeshBVH(o.geometry); o.raycast = acceleratedRaycast; }
   const ray = new THREE.Raycaster();
   for (const v of views) {
     if (!v.eye || !v.target || BY_DESIGN[`${id} ${v.name}`]) continue;
