@@ -1,0 +1,41 @@
+docs/systems/characters.md
+  s_9ca76055a220ed::t_d380777c6be9a8 702-703
+tests/motion-guardians.test.js
+  s_9ca76055a220ed::t_2bf1ec0c99dcf8 22-24,41-42
+scripts/motion-audit/metrics.mjs
+  s_9ca76055a220ed::t_e30e27242e7a90 83-85,87
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_b54add04845acc 47,50
+src/motion-kit/gait.js
+  s_9ca76055a220ed::t_7b83ff2902344d 21-22,84,96-98,128-134,137-138,151,238-239
+  s_9ca76055a220ed::t_db166bc3e579cd 136,148,192
+  s_9ca76055a220ed::t_47af8d46de3e15 145-147,237
+tests/motion-plans.test.js
+  s_9ca76055a220ed::t_e4ae03db2b14d5 53-56,62-69,85,89-92
+docs/systems/foes.md
+  s_9ca76055a220ed::t_232d8ec4cea0af 577-578
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_7767ce857dabc8 432,731-765
+changelog.md
+  s_9ca76055a220ed::t_bdf315c5f83898 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_6f247bf2ee3a51 795-797,799-803
+src/changelog.js
+  s_9ca76055a220ed::t_60f3e7233a8292 27-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5dfc52b73a3abe58eb3213946127198c56105fbb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
