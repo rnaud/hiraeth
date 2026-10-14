@@ -32,6 +32,9 @@ import { buildKeepersCanopy } from '../lorn-canopy.js';
 
 const WATER = 0;
 const DEEP = -1.6;              // deeper than this is unsafe on foot (but swimmable: player.swimmable)
+/** Where the skiff waits when you land (issue #355: "the boat by default should be in the water"): afloat off the landing
+ * island's south-west shore, a wade from the beach, in sight of the way south, its bow out over the channel. */
+export const SKIFF_AT = { x: -14.5, z: -35, heading: 3.53 };
 export const CAVE = { x: -170, z: 140, len: 130, r: 12, rot: 0.6, y: 1.6 };
 /** Along the cave's tube from its heart (m, + toward its north mouth) and out from its axis, for a point (x, z). */
 export const caveCoords = (x, z) => { const dx = x - CAVE.x, dz = z - CAVE.z, s = Math.sin(CAVE.rot), c = Math.cos(CAVE.rot); return { along: dx * s + dz * c, out: Math.abs(dx * c - dz * s) }; };
@@ -579,6 +582,7 @@ export function* buildPerdide(scene) {
     camYaw: 0,
     features: { mount: true, wind: false, jetpack: false, climb: true },
     mount: (physics) => new Hoverbike(physics, { build: buildSkiff, floor: WATER + 0.15, kind: 'skiff' }),
+    mountAt: SKIFF_AT,
     mountName: 'skiff',
     // (October 2026 colour pass: the long evening shadows a violet, not near-black stripes over the moss: cast shadows
     //  lifted a little and fewer spot blacks in them; Lorn's people are drawn in muted olive, violet and navy)

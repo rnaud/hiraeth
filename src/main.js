@@ -396,7 +396,7 @@ if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => pro
 const bikeHere = bikeComes(levelId, level, (k) => game.flag(k));
 if (bikeHere && !level.mount) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
 const player = new Player(physics, {
-  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
+  mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;

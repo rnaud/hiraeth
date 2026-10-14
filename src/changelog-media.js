@@ -834,7 +834,7 @@ const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) agains
 const FLIGHT354 = 'Issue #354: the cinematics QC’s frames (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720 kept at 960 × 540, the review page’s staging) against this branch’s own Vite (port 6354) before and after the change, about the same second of each (14 October); the QC’s own WebP';
 /** (v1.74, issue #237: the Elder's review page, tools/elder-review.html, its cycles stepped at 60 Hz, scripts/tripo/elder-sheets.mjs) */
 const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (Vite on port 6237), the review’s motions stepped at 60 Hz by scripts/tripo/elder-sheets.mjs, in the game’s ink; before, the tree before (433459bf) with the same review page and timings; 14 October';
-/** (v1.75, issue #356: shot on a commit of this branch before its rebase, and the tree before it) */
+/** (v1.75, issues #356 and #355: shot on a commit of this branch before its rebase, and the tree before it) */
 const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.75': [
@@ -891,6 +891,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'greenhouse-great-lock', title: 'The Builders’ Greenhouse, the great lock', caption: 'The antechamber’s end: before, the door stood in an opening wider than itself, a way past it on either side; after, framed in stone to its edges and up to the ceiling.', ...DOORS356,
         view: { level: 'edena', player: [303, 1727, -300], eye: [300, 1730, -301.7], target: [300, 1730.5, -294], fov: 70, hour: 17 } },
     ] },
+    { match: 'Falling or jumping into deep water swims', shots: [
+      { name: 'lorn-skiff', title: 'Lorn, the landing island’s beach', caption: 'From over the channel south-west of the landing: after, the skiff waits afloat off the beach (foreground), a short wade out; before, it sat on the grass by the ship’s landing spot, out of this view behind the trees.', ...DOORS356,
+        view: { level: 'perdide', eye: [-24, 32, -52], target: [-4, 0, -14], fov: 55, hour: 17 } },
+    ], see: 'In Lorn, run off the landing island’s shore and jump into the open channel (or drop in from the cave island’s rocks): you land in the water and swim, and climb out where the bank is low. Before, you were put back on the bank before you touched the water. The skiff floats off the beach south-west of the landing: wade out to it and board.' },
   ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [

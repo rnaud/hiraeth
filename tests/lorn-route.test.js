@@ -223,3 +223,29 @@ test('Lorn’s canopy: at the winch, letting the keepers’ lamp down lights the
     assert.equal(e.prompt(), 'wind up the lamp');
   } finally { G.dispose(); A.game.reset(); }
 });
+
+test('Lorn’s deep water is swum (issue #355): jumped or fallen into, you swim, never put back on the bank; the skiff waits afloat off the landing, a wade from the beach', async () => {
+  const { Waters } = await import('../src/water.js');
+  const { SKIFF_AT } = await import('../src/levels/perdide.js');
+  const waters = new Waters(W.scene, { physics, drops: false });
+  const deep = V(29.7, 0, 29.7);   // (off the landing island's north-east shore)
+  assert.ok(level.unsafe(deep.clone().setY(0)), 'deep water, unsafe on foot');
+  for (const h of [0.6, 4, 12]) {
+    const P = new Player(physics, { health: false, unsafe: level.unsafe, water: waters, killY: level.killY });
+    P.lastSafe.copy(level.spawn);
+    P.pos.copy(deep).setY(h); P.onGround = false;
+    let back = false;
+    for (let i = 0; i < 4 * 60; i++) { quiet(() => P.update(1 / 60, {}, 0)); if (P.pos.distanceTo(level.spawn) < 3) { back = true; break; } }
+    assert.ok(!back && P.swim, `from ${h} m over it: swimming (${P.pos.toArray().map((v) => v.toFixed(1))})`);
+  }
+  // the skiff: afloat where the level keeps it, not on the grass by the landing
+  const P = new Player(physics, { health: false, mount: level.mount, mountAt: level.mountAt });
+  const S = P.mount;
+  assert.ok(Math.hypot(S.pos.x - SKIFF_AT.x, S.pos.z - SKIFF_AT.z) < 0.01, 'where the level keeps it');
+  assert.ok(level.ground.heightAt(S.pos.x, S.pos.z) < -0.6, `in the water (its bed ${level.ground.heightAt(S.pos.x, S.pos.z).toFixed(2)} m)`);
+  assert.ok(!level.unsafe(S.pos.clone().setY(0)), 'shallow enough beside the beach to wade out to');
+  let shore = Infinity;
+  for (let r = 1; r < 15 && shore === Infinity; r += 0.5) for (let a = 0; a < 24; a++) if (level.ground.heightAt(S.pos.x + Math.sin(a / 24 * Math.PI * 2) * r, S.pos.z + Math.cos(a / 24 * Math.PI * 2) * r) > 0.1) { shore = r; break; }
+  assert.ok(shore < 8, `the beach ${shore} m off`);
+  assert.ok(S.pos.distanceTo(level.spawn) < 60, `in reach of the landing (${S.pos.distanceTo(level.spawn).toFixed(0)} m)`);
+});

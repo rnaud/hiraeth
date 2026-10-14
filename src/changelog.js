@@ -60,6 +60,9 @@ export const CHANGELOG = [
     // no way round a shut door (issue #356): src/temples/perdide.js LEDGE (the cloister), pieces.js Door `frame` (edena.js dB,
     // spacecity.js d6 d7, moonfoundry.js dA, the guardians' exits d5); tests/door-bypass.test.js; docs/systems/temples.md
     'A locked door in a temple can no longer be got round. In the Hush-House the ledge round the Bog Well past its keyhole door is a cloister now, walled on the water’s side and roofed, so neither the double jump over the door nor a jump from the top of the root-wall round its post takes you past it. In the Builders’ Greenhouse you could walk round the great lock beside it, and in the Mooring-House jump through beside the Capstan Floor’s door: their doorways are framed in stone to the door’s edges now, as are the doors out of the guardians’ halls.',
+    // Lorn's deep water (issue #355): src/player.js swimmable (SWIM.dropIn), the tumble into deep water; src/levels/perdide.js
+    // SKIFF_AT, player.js / main.js mountAt; tests/swim.test.js, tests/lorn-route.test.js; docs/systems/movement.md
+    'Falling or jumping into deep water swims, in Lorn and wherever there is water deep enough to float in: you are no longer put back on the bank before you even touch it. Lorn’s skiff waits afloat off the landing island’s beach, a short wade from the shore, ready to board.',
   ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;

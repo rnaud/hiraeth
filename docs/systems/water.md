@@ -87,7 +87,14 @@ box as it rises). Each gets its own copy of the material, drawn from both sides.
 - Where the bed rises to 1.1 m under the surface you stand up and wade out.
 - **Falls**: water 1.6 m deep or more breaks any fall (`player.cushioned`): no
   tumble, no hurt. The levels' old "unsafe" deep water (Lorn, the Garden) no
-  longer sends you back to dry ground while you are in water.
+  longer sends you back to dry ground while you are in water, nor while you drop into
+  it (issue #355: `player.swimmable` counts water deep enough to float in with the feet
+  up to `SWIM.dropIn` 1.5 m over it; Lorn's unsafe band starts half a metre over its
+  water, so a jump or a fall in put you back on the bank before you touched it), nor
+  when you tumble into it (you come out of the tumble swimming). A drop with no water
+  under it (a pit, the void) still puts you back.
+- Lorn's skiff waits afloat off the landing island's beach (`SKIFF_AT`, the level's
+  `mountAt`: where a mount is kept until it is first called).
 - Getting off a vehicle over deep water drops you in: you swim.
 - **Deep in a sea** (swim.js `SEA`, `deepSea`: more than 2.5 m under a body with `userData.sea`, the Underwater
   City): you walk its bed (0.8 of the walk); the jump kicks you off it swimming (3.6 m/s up); Space rises (3 m/s);

@@ -245,3 +245,23 @@ test('teleported out of the water while swimming (a portal, a debug jump): you a
   run(p, 0.1);
   assert.ok(!p.swim && p.pos.y > 0.5, `not pulled back down to the water: ${p.pos.toArray()}`);
 });
+
+test('jumping or falling into deep water a level calls unsafe on foot: you swim, never put back on the bank (issue #355); off an edge with no water under it, still put back', () => {
+  // (Lorn's way: unsafe from half a metre over its deep water, src/levels/perdide.js)
+  const unsafe = (q) => Math.abs(q.x) < 18 && q.y < 0.5;
+  for (const h of [0.6, 3, 9]) {
+    const p = make({ unsafe });
+    p.lastSafe.set(-28, 0.5, 0);
+    p.pos.set(0, h, 0); p.onGround = false; p.vel.set(0, 0, 0);
+    let back = false;
+    for (let i = 0; i < 3 * 60; i++) { p.update(1 / 60, {}, 0); if (p.pos.x < -20) { back = true; break; } }
+    assert.ok(!back && p.swim, `from ${h} m: swimming, not put back (${p.pos.toArray().map((x) => x.toFixed(2))})`);
+  }
+  // a deadly drop with no water under it (a pit, the void: #312) is no swim
+  const dry = make({ unsafe: (q) => q.x > 22 && q.y < -2 });
+  dry.lastSafe.set(-28, 0.5, 0);
+  dry.pos.set(26, 2, 0); dry.onGround = false;
+  let back = false;
+  for (let i = 0; i < 4 * 60; i++) { dry.update(1 / 60, {}, 0); if (dry.pos.x < -20) { back = true; break; } }
+  assert.ok(back, `into the dry drop: back where you last stood (${dry.pos.toArray().map((x) => x.toFixed(2))})`);
+});
