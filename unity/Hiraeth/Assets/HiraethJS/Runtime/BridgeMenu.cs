@@ -179,12 +179,12 @@ namespace Hiraeth.Bridge
         static void Show(Component c, bool on) { if (c && c.gameObject.activeSelf != on) c.gameObject.SetActive(on); }
 
         /// <summary>A line's small picture at its left (what you carry, a keepsake), the words moved over for it.</summary>
-        void LinePicture(Cell cell, Texture2D pic, float h)
+        void LinePicture(Cell cell, Texture2D pic, float h, float most = 26)
         {
             if (!cell.pic) { cell.pic = Ui.Node("pic", cell.box.rt).gameObject.AddComponent<RawImage>(); cell.pic.raycastTarget = false; }
             Show(cell.pic, pic != null);
             if (pic == null) return;
-            float s = Mathf.Min(h - 6, 26);
+            float s = Mathf.Min(h - 6, most);
             cell.pic.texture = pic;
             Ui.Place(cell.pic.rectTransform, 12, (h - s) / 2, s, s);
             var p = cell.text.rectTransform.anchoredPosition; cell.text.rectTransform.anchoredPosition = new Vector2(p.x + s + 6, p.y);
@@ -404,7 +404,7 @@ namespace Hiraeth.Bridge
                 {
                     var pic = Picture(r.S("pic"));
                     var cell = Entry(sx + 24, yy, sw - 48, rh - 6, (pic != null ? "" : (r.S("mark") ?? "") + " ") + r.S("text"), r.S("sub"), r.S("val"), B(r, "on"), dimmed: !B(r, "ok"), boxed: true);
-                    LinePicture(cell, pic, rh - 6);
+                    LinePicture(cell, pic, rh - 6, 44);   // (a ware's picture larger than a line's: the web's card shows it big)
                 }
                 yy += rh;
             }
@@ -414,13 +414,13 @@ namespace Hiraeth.Bridge
             // (a ware as tall as its words: its name, then what it does and how many under it)
             float Fit(Dictionary<string, object> r, float w)
             {
-                float vw = Mathf.Min(w * 0.3f, 180), tw = w - 28 - vw - 8;
+                float vw = Mathf.Min(w * 0.3f, 180), tw = w - 28 - vw - 8 - (string.IsNullOrEmpty(r.S("pic")) ? 0 : 50);
                 meas.fontSize = Body; meas.fontStyle = FontStyle.Bold; meas.lineSpacing = 1;
                 float th = Ui.Measure(meas, r.S("text") ?? "", tw).y;
                 meas.fontSize = Small; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.2f;
                 float sh2 = string.IsNullOrEmpty(r.S("sub")) ? 0 : Ui.Measure(meas, r.S("sub"), tw).y + 1;
                 meas.lineSpacing = 1;
-                return Mathf.Max(52, 5 + th + sh2 + 14);
+                return Mathf.Max(string.IsNullOrEmpty(r.S("pic")) ? 52 : 60, 5 + th + sh2 + 14);
             }
         }
 
