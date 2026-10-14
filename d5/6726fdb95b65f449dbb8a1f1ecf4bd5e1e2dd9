@@ -1,0 +1,131 @@
+changelog.md
+  s_1837848888d0db::t_86e0c4228e4f5d 17-20
+docs/systems/temples.md
+  s_1837848888d0db::t_3f054c45b29205 904-1032
+references/temples/landmarks-2026-10-14/manifest.json
+  s_1837848888d0db::t_cb82799f1db194 1-156
+src/changelog-media.js
+  s_1837848888d0db::t_92dbe01148db03 847,850-893
+src/changelog.js
+  s_1837848888d0db::t_5a00666319bb6d 22-25
+src/desert-landmarks.js
+  s_1837848888d0db::t_8a835cd1d74ced 1,103-104,106-111
+src/desert-sites.js
+  s_1837848888d0db::t_82cd9784ce83a9 8-9
+src/finds/courts.js
+  s_1837848888d0db::t_eb6242fde4b419 46
+src/fragments-data.js
+  s_1837848888d0db::t_839e519a1828ed 45,58,81,113,133,153,162,167,200,203,205-206,218,220-223,321,328,341,353
+src/glass-dunes-frozen.js
+  s_1837848888d0db::t_d290b0cd673e3a 58
+src/levels/arzach.js
+  s_1837848888d0db::t_3ef345aff86843 1,10,102-103
+src/levels/arzach2.js
+  s_1837848888d0db::t_35c688125b31fe 364-365,396-398,767-768
+src/levels/bazaar.js
+  s_1837848888d0db::t_9b73f45b0488f1 152,183-186,199,216,282
+src/levels/buried.js
+  s_1837848888d0db::t_0802bcaa4bfc39 1-3,24-25,130-132,325-327,331-333,335-336,1177
+src/levels/desert.js
+  s_1837848888d0db::t_83f0549a87f17f 1,60
+src/levels/edena.js
+  s_1837848888d0db::t_438acaa89c8505 1-2,379-381,394,405,489,499
+src/levels/glass-dunes.js
+  s_1837848888d0db::t_dd11c4bf82933d 91,115-117,124
+src/levels/incal.js
+  s_1837848888d0db::t_ffed94e394c214 1,16,152-153,182,224,621,628,634,1117
+src/levels/moon-foundry.js
+  s_1837848888d0db::t_70a868fee1ee13 305,312
+src/levels/perdide.js
+  s_1837848888d0db::t_5417b87d61b4a7 1,21-23,73-77,286-287
+src/levels/perdide2.js
+  s_1837848888d0db::t_96911af46094b4 1-2,161-164,255-257
+src/levels/space-city.js
+  s_1837848888d0db::t_c78ed735ff2ab1 354-355,363
+src/levels/spheres.js
+  s_1837848888d0db::t_94af2922fb2632 1,22-23,245-249,933,949-951,963,969,983,1198
+src/levels/underwater.js
+  s_1837848888d0db::t_09f47392672a99 380-381
+src/lorn-crossing.js
+  s_1837848888d0db::t_8ce068f0ebce8b 22,158-159
+src/temples/arzach.js
+  s_1837848888d0db::t_8f5a366c2ba660 1,594,596-603,605-606,609
+src/temples/arzach2.js
+  s_1837848888d0db::t_c7d5374b696843 1,563-565,592-597,599,604-619,621-623,626
+src/temples/bazaar.js
+  s_1837848888d0db::t_30c9deaecd17f4 1,551
+src/temples/buried.js
+  s_1837848888d0db::t_c1bfb8c9e13d79 1,571-576,582
+src/temples/desert.js
+  s_1837848888d0db::t_0caadeaf51fd1c 1-2,8,16,71,537,540,544,548-554,556-560,566
+src/temples/edena.js
+  s_1837848888d0db::t_7857b2dfd77166 1-3,567-568,571-579,581-598,600-604,613-615,618-619,622-632,634,636,638-640,690,693-702,717-720
+src/temples/garage.js
+  s_1837848888d0db::t_d7a2cb7e2b528a 1-2,394,560,564,566-567,569,575-581,589-590,592,620,626
+src/temples/incal.js
+  s_1837848888d0db::t_7fd5a0c9b83da7 1,618,622,624-629,646-647
+src/temples/index.js
+  s_1837848888d0db::t_0dabc5ed140344 1,128-129,133,135-141
+src/temples/landmark-materials.js
+  s_1837848888d0db::t_00b1d8b085b3f6 1-67
+src/temples/landmarks.js
+  s_1837848888d0db::t_43b9c9e94c2b50 1-352
+src/temples/moonfoundry.js
+  s_1837848888d0db::t_0d7626ee31e128 1,483-494,513-514,521
+src/temples/perdide.js
+  s_1837848888d0db::t_4eee4139c4ea6f 1,503-508,513
+src/temples/perdide2.js
+  s_1837848888d0db::t_e9e5eafee505f5 1-2,68,492-498,505,508,515-520,524,539,549-551,557
+src/temples/spacecity.js
+  s_1837848888d0db::t_915a7d7d38b893 1-2,556,558-564,588-590,597
+src/temples/spheres.js
+  s_1837848888d0db::t_2d46be015ae297 1-2,480-481,489-493,495,498-499
+src/temples/underwater.js
+  s_1837848888d0db::t_a6c7c7bc79f612 1-2,237-238,470-471,473,476-482,490,518
+src/temples/vistas.js
+  s_1837848888d0db::t_ee203e873603b2 1-12
+src/trials/data.js
+  s_1837848888d0db::t_704220aa49e1a5 88-89
+src/viridel-stair.js
+  s_1837848888d0db::t_af8921735b3314 60-65
+src/world.js
+  s_1837848888d0db::t_0f3efa590b9111 1-2,4,395-398
+tests/bazaar.test.js
+  s_1837848888d0db::t_311e415476efcb 39-40
+tests/courts-bays.test.js
+  s_1837848888d0db::t_28be1f358d96c7 54-70
+tests/fragments-reach.js
+  s_1837848888d0db::t_a91614d2818b2c 202,204
+tests/lorn-route.test.js
+  s_1837848888d0db::t_80504c78e0a7af 28-50
+tests/moonfoundry-explorations.test.js
+  s_1837848888d0db::t_ecd6b92b6ef09c 137-140
+tests/shaft-pillars.test.js
+  s_1837848888d0db::t_34661476417965 171-173
+tests/spheres.test.js
+  s_1837848888d0db::t_c175e0b52e30fe 143
+tests/temple-climb.test.js
+  s_1837848888d0db::t_08bfe0aa746566 99-101
+tests/temple-landmarks.test.js
+  s_1837848888d0db::t_f8a1bb6550950a 1-148
+tests/temples.test.js
+  s_1837848888d0db::t_059abd81d5f210 811-822
+tests/viridel-explorations.test.js
+  s_1837848888d0db::t_afa2f8f60e7e74 34-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d56726fdb95b65f449dbb8a1f1ecf4bd5e1e2dd9",
+  "prompts": {},
+  "sessions": {
+    "s_1837848888d0db": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b55-b807-7cf1-87c2-c32cc47a091f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
