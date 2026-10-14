@@ -1,0 +1,49 @@
+docs/systems/audio.md
+  s_9ca76055a220ed::t_6ab4ee0ef99b82 173-217,395-396,536-540
+src/music-page/player.js
+  s_9ca76055a220ed::t_0d247efcaf84a5 89-90,99,110
+src/music-store.js
+  s_9ca76055a220ed::t_848ad68283e75e 182-208
+tests/score-distinct.test.js
+  s_8b7efb486edf31::t_8090fc3d615dfe 1-93
+src/music-page/main.js
+  s_9ca76055a220ed::t_48070d4c954e0a 11,31-32,49,65,72-73,75-80,82,89
+src/music-page/catalog.js
+  s_9ca76055a220ed::t_142f1a6ee4ae90 9,66-67
+tests/music-store.test.js
+  s_9ca76055a220ed::t_119b874f8d5cfe 9,277-314
+src/score-voices.js
+  s_9ca76055a220ed::t_84bfecb43f62fb 273-286,412-439,483
+scripts/score-features.mjs
+  s_8b7efb486edf31::t_81b4038ea4ee90 1-137
+src/score.js
+  s_9ca76055a220ed::t_bb3347ceffb793 100,144-147,149-154,178,191,202-203,235-237,239-241,248-250,252,254-255,262-264,266-268,275-378,386-387,420-422,425,503-512,558,576-588,591,600
+changelog.md
+  s_9ca76055a220ed::t_a66f4bfaf4e94f 5-9
+src/changelog.js
+  s_9ca76055a220ed::t_523016c980bccf 11-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "68d14e19cf907b8baeb648085686de07eaa021d5",
+  "prompts": {},
+  "sessions": {
+    "s_8b7efb486edf31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a219af4f479fd1df3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
