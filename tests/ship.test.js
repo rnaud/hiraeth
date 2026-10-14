@@ -6,9 +6,9 @@ import { Player } from '../src/player.js';
 import { GameState } from '../src/game-state.js';
 import { Ship } from '../src/ship/ship.js';
 import { cueText } from '../src/hud.js';
-import { DECK, R, LIFT, WINDOW } from '../src/ship/hull.js';
-import { CONSOLE_R, inRooms } from '../src/ship/interior.js';
-import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
+import { DECK, LIFT, WINDOW, WALL_IN, SHIP_SCALE } from '../src/ship/hull.js';
+import { CONSOLE_R, TABLE, inRooms } from '../src/ship/interior.js';
+import { findShipSite, siteAvoid, probeSite, fromPlan, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, REEL_FROM, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
 import { holoLayout, mouthOpen, HOLO, BUST, PEOPLE, holoLook } from '../src/ship/hologram.js';
@@ -39,7 +39,7 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   const deckY = ship.world(m, v(0, DECK, 0)).y;
   assert.ok(Math.abs(deckY - LIFT) < 0.05, `the deck stands ${LIFT} m up on its legs: ${deckY.toFixed(2)}`);
   // every room has floor under it
-  for (const [name, p] of Object.entries({ bunk: m.interior.points.bunkStand, cockpit: m.interior.points.cockpit, hatch: m.interior.points.hatchIn, table: v(1.4, DECK, -3.1), galley: v(-1.9, DECK, -4.4), cabin: v(0.4, DECK, 4.4), hold: v(0, DECK, 7.4) })) {
+  for (const [name, p] of Object.entries({ bunk: m.interior.points.bunkStand, cockpit: m.interior.points.cockpit, hatch: m.interior.points.hatchIn, table: v(2.8, DECK, -6.2), galley: v(-3.8, DECK, -8.8), cabin: v(0.8, DECK, 8.8), hold: v(0, DECK, 18.5) })) {
     const w = ship.world(m, p);
     const g = physics.groundAt(w.x, w.y + 1.5, w.z, 4);
     assert.ok(Math.abs(g - deckY) < 0.05, `floor under the ${name}: ${g.toFixed(2)} vs ${deckY.toFixed(2)}`);
@@ -48,16 +48,17 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   const stand = ship.world(m, m.interior.points.cockpit).add(v(0, 0.6, 0));
   const fwd = ship.world(m, m.interior.points.projector).setY(stand.y).sub(stand).normalize();
   assert.ok(physics.rayDistance(stand, fwd, 6) < 1.6, 'the console is in front of him');
-  const high = ship.world(m, v(0.6, DECK + 2.1, -7.4));
-  const out = ship.world(m, v(0.6, WINDOW.y1, WINDOW.z0)).sub(high).normalize();
-  assert.ok(physics.rayDistance(high, out, 6) < 2.5, 'the cockpit window stops you');
+  // (from the cockpit's middle up at the windshield: the ship SHIP_SCALE times the blockout's, issue #338)
+  const high = ship.world(m, v(0.6 * SHIP_SCALE, DECK + 2.1 * SHIP_SCALE, -7.4 * SHIP_SCALE));
+  const out = ship.world(m, v(0.6 * SHIP_SCALE, WINDOW.y1, WINDOW.z0)).sub(high).normalize();
+  assert.ok(physics.rayDistance(high, out, 6 * SHIP_SCALE) < 2.5 * SHIP_SCALE, 'the cockpit window stops you');
   // the hull is closed except at the hatch: rays outward from the cabin hit it
   const bunk = ship.world(m, m.interior.points.bunkStand).add(v(0, 1.2, 0));
-  for (const d of [v(1, 0, 0), v(-1, 0, 0), v(0, 1, 0)]) assert.ok(physics.rayDistance(bunk, d.applyQuaternion(m.group.quaternion), 12) < 4.5, 'the walls round the cabin');
+  for (const d of [v(1, 0, 0), v(-1, 0, 0), v(0, 1, 0)]) assert.ok(physics.rayDistance(bunk, d.applyQuaternion(m.group.quaternion), 4 * WALL_IN) < 2 * WALL_IN, 'the walls round the cabin');
   // a walk at the wall: the traveller stays inside
   const P = new Player(physics);
   P.opts.climb = false;   // (the ship turns climbing off indoors)
-  P.pos.copy(ship.world(m, v(1.0, DECK + 0.05, 4.0)));
+  P.pos.copy(ship.world(m, v(WALL_IN - 2.8, DECK + 0.05, 8.0)));
   const h = Math.atan2(1, 0) + m.group.rotation.y;   // starboard, into the hull
   for (let i = 0; i < 180; i++) P.update(1 / 60, { KeyW: true }, h + Math.PI);
   assert.ok(ship.isInside(m, P.pos), `still inside after walking into the wall: ${P.pos.toArray().map((n) => n.toFixed(2))}`);
@@ -71,7 +72,7 @@ test('walking straight from the corridor at the console gets you to it (the pilo
   ship.player = new Player(physics);
   const P = ship.player;
   P.opts.climb = false;
-  P.pos.copy(ship.world(m, v(0.6, DECK + 0.05, -4.4)));   // (from the main room, by the holo table)
+  P.pos.copy(ship.world(m, v(TABLE.x + 0.8, DECK + 0.05, TABLE.z + 1.7)));   // (from the main room, by the holo table)
   const target = ship.world(m, m.interior.points.cockpit);
   for (let i = 0; i < 60 * 8 && !ship.atConsole(); i++) {
     const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z);
@@ -200,8 +201,9 @@ test('a flat, clear spot is found near the spawn in real levels', () => {
     const d = Math.hypot(site.x - level.spawn.x, site.z - level.spawn.z);
     assert.ok(d < 160, `${id}: near the spawn (${d.toFixed(0)} m)`);
     const probe = probeSite(physics, site.x, site.z, site.heading, { refY: level.spawn.y });
-    assert.ok(probe && probe.spread < 2.6, `${id}: flat (${probe?.spread.toFixed(2)} m)`);
-    for (const a of avoid) assert.ok(Math.hypot(site.x - a.x, site.z - a.z) > a.r + R - 0.01, `${id}: clear of ${JSON.stringify(a)}`);
+    assert.ok(probe && probe.spread < 2.6 * SHIP_SCALE, `${id}: flat (${probe?.spread.toFixed(2)} m)`);
+    // (its own plan clear of each, the legs 3 m past it: issue #338)
+    for (const a of avoid) assert.ok(fromPlan(a.x, a.z, site.x, site.z, site.heading) > a.r + 3 - 0.01, `${id}: clear of ${JSON.stringify(a)}`);
   }
 });
 

@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { CameraRig, roomFit, ROOM_FIT, TIGHT_DIST, CLIMB, BODY_CLEAR, bodyGap, heroCut } from '../src/player.js';
 import { TempleKit, ANTE } from '../src/temples/kit.js';
-import { CEIL, WALL_IN, HALF_W, LENGTH, HATCH } from '../src/ship/hull.js';
-import { ROOMS, DOORWAY, FRAME_HALF, ALCOVE } from '../src/ship/interior.js';
+import { CEIL, WALL_IN, HALF_W, LENGTH, HATCH, SHIP_SCALE } from '../src/ship/hull.js';
+import { ROOMS, DOORWAY, FRAME_HALF, ALCOVE, TABLE, CONSOLE } from '../src/ship/interior.js';
 import { Ship } from '../src/ship/ship.js';
 import { walk } from '../scripts/camera-qc/sim.mjs';
 import { analyse } from '../scripts/camera-qc/lib.mjs';
@@ -47,15 +47,19 @@ test('the antechamber before a guardian (every house that has one): a vestibule 
   assert.ok(Math.abs(physics.groundAt(0, 2, end / 2, 4)) < 1e-4, 'its floor at the door\'s height');
 });
 
-test('the ship\'s rooms (issue #195): wider, higher and longer, its doorways wide, the hull grown round them', () => {
-  assert.ok(CEIL >= 2.85, `the ceiling ${CEIL} m (2.35 before)`);
-  assert.ok(WALL_IN * 2 >= 7.5 && HALF_W - WALL_IN >= 0.35, `the rooms ${WALL_IN * 2} m across (6.4 before), the hull round them`);
-  assert.ok(DOORWAY.half * 2 >= 2 && DOORWAY.h >= 2.55, `the doorways ${DOORWAY.half * 2} x ${DOORWAY.h} m (1.6 x 2.28 before)`);
-  assert.ok(FRAME_HALF * 2 >= 3.6 && HATCH.z1 - HATCH.z0 >= 1.5 && HATCH.y1 >= 2.5, 'the cockpit frame and the hatch');
+test('the ship\'s rooms (issues #195, #338): twice the blockout\'s size, wide and high, its doorways wide, the hull grown round them, the furniture at its own size', () => {
+  // (issue #338, the author: "My space ship and its interior should be 100% bigger. So it's more spacious inside")
+  assert.equal(SHIP_SCALE, 2);
+  assert.ok(CEIL >= 5.7, `the ceiling ${CEIL} m (2.9 before #338, 2.35 before #195)`);
+  assert.ok(WALL_IN * 2 >= 15 && HALF_W - WALL_IN >= 0.7, `the rooms ${WALL_IN * 2} m across (7.6 before #338), the hull round them`);
+  assert.ok(DOORWAY.half * 2 >= 4.1 && DOORWAY.h >= 3.5, `the doorways ${DOORWAY.half * 2} x ${DOORWAY.h} m (2.1 x 2.6 before #338)`);
+  assert.ok(FRAME_HALF * 2 >= 7.5 && HATCH.z1 - HATCH.z0 >= 3.1 && HATCH.y1 >= 3.5, 'the cockpit frame and the hatch');
   const depth = Object.fromEntries(Object.entries(ROOMS).map(([k, r]) => [k, r.z1 - r.z0]));
-  assert.ok(depth.cockpit >= 2.9 && depth.main >= 10 && depth.cabin >= 4.7 && depth.hold >= 4.9, `the rooms' depths ${JSON.stringify(depth)}`);
-  assert.ok(ALCOVE.top >= 2.3 && WALL_IN - ALCOVE.x >= 1.15, 'the bunk\'s alcove');
-  assert.ok(LENGTH >= 25 && LENGTH <= 27, `the hull ${LENGTH} m long`);
+  assert.ok(depth.cockpit >= 5.7 && depth.main >= 20 && depth.cabin >= 9.5 && depth.hold >= 9.9, `the rooms' depths ${JSON.stringify(depth)}`);
+  assert.ok(ALCOVE.top >= 4 && WALL_IN - ALCOVE.x >= 1.15 && ALCOVE.z1 - ALCOVE.z0 < 3, 'the bunk\'s alcove: tall round its window, a bed long');
+  assert.ok(LENGTH >= 51 && LENGTH <= 53, `the hull ${LENGTH} m long`);
+  // the furniture keeps the traveller's size: the console, the holo table, the bunk, the seats
+  assert.ok(TABLE.r < 0.7 && TABLE.h < 1 && CONSOLE.h < 1, 'the table and the console waist high');
   // measured in the built ship: the middle of each room, across and up
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
@@ -63,9 +67,9 @@ test('the ship\'s rooms (issue #195): wider, higher and longer, its doorways wid
   const level = { spawn: V(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
   const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
   const m = ship.parked;
-  for (const [name, [x, z, across]] of Object.entries({ main: [-1.9, -0.2, 6], cabin: [0, 3.45, 5], hold: [0, 8.6, 6] })) {
+  for (const [name, [x, z, across]] of Object.entries({ main: [-3.8, -0.4, 12], cabin: [0, 6.9 * 2, 10], hold: [0, 17.2 * 1.06, 12] })) {
     const r = measure(physics, ship.world(m, V(x, 0, z)));
-    assert.ok(r.ceil >= 2.8, `${name}: the ceiling ${r.ceil.toFixed(2)} m`);
+    assert.ok(r.ceil >= 5.6, `${name}: the ceiling ${r.ceil.toFixed(2)} m`);
     assert.ok(r.narrow >= across - 1e-6 || r.wide >= across + 1, `${name}: ${r.narrow.toFixed(2)} x ${r.wide.toFixed(2)} m across`);
   }
 });
@@ -198,7 +202,7 @@ test('the ship\'s cockpit, hatch and bunk (issue #234): turning round and walkin
 test('aboard, a wall a metre behind him: the camera stays behind him at shoulder height, never over his head nor seen from inside him (CLIMB, issue #324)', () => {
   const { physics, ship, m } = shipRig();
   // by the bunk's alcove (where he stood up until issue #234), his back to it, the camera turned toward it by hand and held
-  const p = ship.world(m, V(1.98, 0, -1.7));
+  const p = ship.world(m, V(ALCOVE.x - 0.62, 0, ALCOVE.z1 + 0.2));   // ((1.98, -1.7) in the blockout's room, before issue #338)
   const { camera, rig } = aboardRig(physics);
   m.group.updateMatrixWorld(true);
   const arm = V(Math.sin(Math.PI / 2 + 0.3), 0, Math.cos(Math.PI / 2 + 0.3)).transformDirection(m.group.matrixWorld);   // (ship-local: toward the alcove)

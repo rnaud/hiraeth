@@ -828,6 +828,8 @@ const ROUND6 = { from: 'scripts/design-qc/capture.mjs (with a step to sound a no
 const LOOPS74 = { from: 'scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720), Vite on port 6423, at origin/main 2aa3f356 (before) and this branch (after), 14 October' };
 /** (v1.74, issue #218: the Unity build on the Retroid, its own pictures of a slow pan, scripts/bench/unity-shimmer.mjs) */
 const SHIMMER218 = 'Issue #218: the Retroid Pocket Nova, the Unity preview (branch build 2265), Handheld at 0.75, muted; the bridge’s -pan 40 (the view turned 0.025° a frame, a picture of each frame); before, the same build with the old pipeline (-aa fxaa -no-ink-far -no-hatch-aa); 14 October';
+/** (v1.76, issue #338: a scratch shooter against this branch's own Vite, port 6338, and the tree before it) */
+const SHIP338 = 'Issue #338: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6338) and the tree before it (81ba429), the Glass Dunes with the ship powered, the camera pinned in the ship’s own frame where each room is (the same place in its proportions before and after); cwebp -q 72 (14 October)';
 /** (v1.75, issue #357: a scratch shooter against this branch's own Vite, port 6354, before and after the change) */
 const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6354) before and after the change, ?game=pirates&to=edena, the sky cleared of pirates and one raider parked 50 m ahead, 1.8 m off the line of fire (14 October); cwebp -q 72';
 /** (v1.75, issue #354: the cinematics QC's own frames before and after) */
@@ -843,6 +845,17 @@ const KIT358 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High
 export const CHANGELOG_MEDIA = {
   '1.76': [
     { match: 'Swimming, the traveller’s backpack straps no longer vanish', tags: ['traveller'], see: 'Once you have the backpack, swim in Lorn’s deep water and watch his shoulders from behind as he crawls: the straps stay over them as each arm comes over, a little nearer his neck than on land.' },
+    { match: 'Your ship is twice the size, inside and out', tags: ['ship'], shots: [
+      { name: 'ship-grown-main', title: 'The main room, from its aft end', caption: 'The same view in each ship’s own proportions (the camera at the room’s aft end, 1.8 m up, him a few steps ahead). Before, a 7.6 m room under a 2.9 m ceiling, the galley, the console and the bunk’s arch within reach of each other. After, 15 m across and 5.8 m high, the same furniture at his size, a table by the galley and a reading corner in the room it gained.', from: SHIP338 },
+      { name: 'ship-grown-cockpit', title: 'The cockpit', caption: 'From the frame toward the dash. Before, the two seats close under a low roof; after, a big cockpit, the windshield brought down to the dash so you see out ahead from the seats.', from: SHIP338 },
+      { name: 'ship-grown-outside', title: 'Parked in the Glass Dunes', caption: 'The same camera in the world, the traveller beside the hull for scale: the ship 52 m long now, 26 before, on the same spot.', from: SHIP338 },
+      { name: 'ship-grown-cabin', title: 'The back room', caption: 'Looking aft to the hold’s doorway: the room twice the size, a big rug, a trunk, the small table and the sofa where they stood in it.', from: SHIP338 },
+    ] },
+    { match: 'The ship has real light inside now', tags: ['ship'], shots: [
+      { name: 'ship-light-port', title: 'The hatch’s side of the main room', caption: 'Before, the walls lit or hatched by the sun through the hull and the lamps washing out the ceiling round them in pale blots. After, the light from the windshield gives the walls facing it their light and the rest their shade, and each lamp hangs in its shade over a pool of light on the floor.', from: SHIP338 },
+      { name: 'ship-light-starboard', title: 'Toward the bunk', caption: 'After, the starboard wall lit, the console and the table with a lit side and a shaded one, pools under the lamps over the table, the bunk and the lockers, the floor lamp in the reading corner.', from: SHIP338 },
+      { name: 'ship-light-hold', title: 'The hold', caption: 'The crates’ fronts lit and their sides in shade, two lamps’ pools on the floor among them.', from: SHIP338 },
+    ] },
     { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
     { match: 'In the Unity version the traveller’s overshirt is shaded right', tags: ['devices'], see: 'In the Unity build, stand the traveller in the sun and turn the camera slowly round him: the overshirt over his chest and shoulders and round his collar shades smoothly with the rest of the shirt, without the dark or bright blotches that flickered there as he walked. Compare with the web game in the same spot.' },
     { match: 'You can pick up small things now and carry them in both hands', tags: ['controls'], shots: [

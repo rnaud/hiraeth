@@ -32,11 +32,12 @@ export const ANTE_SEGS = [{ for: 1, lock: true }, { for: 6, path: 'round', pace:
   { for: 2, path: 'in', pace: 0.5 }, { for: 3, path: 'corner', pace: 0.5 }, { for: 1 }, { for: 7, path: 'back', pace: 0.6, near: 0.35 }];
 
 // ------------------------------------------------------------------ aboard the ship (ship-walk, issue #324): ship-local [x, z]
-// (the main room z -6.9..3.15 and |x| < 3.8, the holo table's console round (-0.1, -3.1), the bunk's alcove at x 2.6,
-// z -4.6..-1.9, the cockpit forward of z -6.9, the cabin and the hold aft through 2.1 m doorways on the centre line)
+// (the ship twice the blockout's size since issue #338: the main room z -13.8..6.3 and |x| < 7.6, the holo table's console
+// round (-0.2, -6.2), the bunk's alcove at x 6.4, z -7.35..-4.65, the cockpit forward of z -13.8, the cabin and the hold
+// aft through 4.2 m doorways on the centre line; the blockout's way, each point twice as far out, one moved off a crate)
 export const SHIP_WAY = {
-  round: [[-2.3, -1], [-2.3, -5.6], [0, -6.6], [0, -8.2], [0.6, -6.4], [1.5, -5.4], [1.4, -1.5], [1.6, 1.8], [-1.4, 1.8], [-2.3, -1]],
-  aft: [[0, 2.4], [0, 5.5], [1.1, 5.9], [0, 7.6], [0, 9.3], [-1.6, 9.5], [0, 8.8], [0, 4], [0, 1.2], [-1.4, 0.45]],
+  round: [[-4.6, -2], [-4.6, -11.2], [0, -13.2], [0, -16.4], [1.2, -12.8], [3, -10.8], [2.8, -3], [3.2, 3.6], [-2.8, 3.6], [-4.6, -2]],
+  aft: [[0, 4.8], [0, 11], [2.2, 11.8], [0, 15.2], [0, 18.6], [-1.0, 19.6], [0, 17.6], [0, 8], [0, 2.4], [-4.4, 0.9]],
 };
 
 export const SCENARIOS = [
@@ -75,9 +76,10 @@ export const SCENARIOS = [
       player.teleport(a.add(new V(0, 0.05, 0)), new V(0, 1, 0), f); rig.yaw = Math.atan2(-f.x, -f.z); rig.pitch = 0.1; }`, settle: 2,
     // (then the stick alone, the camera left where it is: toward the camera until the wall behind it, across, away, toward it
     // again after a turn by hand: walking back into the lens is where it went up under the ceiling and through him)
-    segs: [{ for: 34, path: 'round', pace: 0.7, near: 0.4, steer: 110 }, { for: 4, turn: 90 }, { for: 18, path: 'aft', pace: 0.7, near: 0.4, steer: 110 },
-      { for: 4, stick: [0, -1] }, { for: 2, stick: [1, 0] }, { for: 3, stick: [0, -1] }, { for: 3, stick: [-1, -0.4] }, { for: 2, stick: [0, 1] }, { for: 3, stick: [0, -1] },
-      { for: 2, turn: -90 }, { for: 4, stick: [0, -1] }, { for: 3, stick: [0.6, 1] }, { for: 3, stick: [0, -1] }] },
+    // (the walks twice as long as before issue #338, the rooms twice the size; the stick held toward the camera for longer: its wall is further)
+    segs: [{ for: 64, path: 'round', pace: 0.7, near: 0.4, steer: 110 }, { for: 4, turn: 90 }, { for: 34, path: 'aft', pace: 0.7, near: 0.4, steer: 110 },
+      { for: 8, stick: [0, -1] }, { for: 2, stick: [1, 0] }, { for: 6, stick: [0, -1] }, { for: 3, stick: [-1, -0.4] }, { for: 2, stick: [0, 1] }, { for: 6, stick: [0, -1] },
+      { for: 2, turn: -90 }, { for: 8, stick: [0, -1] }, { for: 3, stick: [0.6, 1] }, { for: 6, stick: [0, -1] }] },
   { name: 'bazaar-streets', world: 'bazaar', about: 'the Signal Market’s streets from the landing: wandering between the stalls with the camera after the way',
     segs: [{ for: 30, wander: true, heading: Math.PI, steer: 90 }] },
   // ---------------------------------------------------------------- locked on in a temple (issue #236): the Signal Market's

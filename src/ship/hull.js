@@ -14,75 +14,118 @@ import { surfacePoly, surfaceRibbon, blob, arcStroke } from './geo.js';
 // middle of the hatch (port side, -x). The bow points to -z. The hull is a loft of seven points a side
 // through a few stations (STATIONS); the side walls of the main body are one vertical plane each,
 // built as a grid of panels round their openings (the door, the windows, the portholes).
+//
+// The hull is drawn at its blockout's size (the design metres below, `D`) and built SHIP_SCALE times bigger
+// (issue #338, the author: "my space ship and its interior should be 100% bigger, so it's more spacious inside"):
+// every length of the hull and its openings doubled, so the rooms are twice as wide, long and high; what is the
+// traveller's size (the furniture, the ramp, the door's handle) is built at its own size in src/ship/interior.js and
+// model.js. Everything exported here is in real (scaled) metres; buildHull and its helpers work in the design's.
 
-export const DECK = 0;              // the deck (ship-local y)
-export const CEIL = DECK + 2.9;     // the ceiling: 2.9 m clear (2.35 until issue #195: the close camera fought it), over the traveller's 2.2 m capsule
-export const LIFT = 2.6;            // the deck's height over the ground when parked on its legs
-export const HALF_W = 4.2;          // the side walls' plane (|x|) over the main body (3.6 until issue #195)
-export const WALL_IN = 3.8;         // the rooms' walls (|x|): 0.4 m of hull
-export const NOSE_Z = -10.8, STERN_Z = 15.2;   // (-10, 12.2 until issue #195)
+/** How many times the blockout's size the ship is built (issue #338: 2; 1 until v1.75). */
+export const SHIP_SCALE = 2;
+const K = SHIP_SCALE;
+
+// ---- the design (the blockout's metres, before SHIP_SCALE)
+const D = {};
+D.DECK = 0;
+D.CEIL = 2.9;           // the ceiling: 2.9 m clear in the design (2.35 until issue #195), 5.8 m built
+D.LIFT = 2.0;           // the deck over the ground parked: the belly 0.4 design (0.8 m built) off it (2.6 m until #338)
+D.HALF_W = 4.2;         // the side walls' plane (|x|) over the main body
+D.WALL_IN = 3.8;        // the rooms' walls (|x|): 0.4 m of hull
+D.NOSE_Z = -10.8; D.STERN_Z = 15.2;
+D.CENTRE_Z = (D.NOSE_Z + D.STERN_Z) / 2;
+D.R = 15.6;
+D.BELLY = -1.6;
+D.ROOF = 4.4;
+// the hatch (issue #338: 1.6 x 1.8 design, 3.2 x 3.6 m built; at the doorways' 2.6 design, 5.2 m, it was a hangar's)
+D.HATCH = { z0: -0.8, z1: 0.8, y0: 0, y1: 1.8 };
+D.HINGE_R = D.HALF_W + 0.025;
+D.LAV_Z = 2.9; D.LAV_END = 13.6;
+D.STRIPE = { y0: 1.25, y1: 1.55 };
+D.SHOULDER = 3.6;
+D.LEGS = [{ x: -3.2, z: -5.6 }, { x: 3.2, z: -5.6 }, { x: -3.05, z: 11.0 }, { x: 3.05, z: 11.0 }];
+D.BELLS = [[-1.2, -4.2], [1.2, -4.2], [-1.2, 8.0], [1.2, 8.0]].map(([x, z]) => new THREE.Vector3(x, D.BELLY - 0.5, z));
+D.SCAR = { x: -D.HALF_W, y: 0.95, z: -3.75 };
+D.OPENINGS = [
+  { kind: 'door', side: -1, ...D.HATCH },
+  { kind: 'slot', side: -1, z0: 1.25, z1: 1.55, y0: 0.55, y1: 2.8 },
+  // the bunk's window (issue #338: inside the alcove's taller arch, src/ship/interior.js ALCOVE)
+  { kind: 'window', side: 1, z0: -3.6, z1: -2.4, y0: 1.2, y1: 1.95 },
+  { kind: 'port', side: -1, z: 5.25, y: 1.5, r: 0.3 },
+  { kind: 'port', side: 1, z: 5.25, y: 1.5, r: 0.3 },
+].map((o) => (o.kind === 'port' ? { ...o, z0: o.z - o.r - 0.1, z1: o.z + o.r + 0.1, y0: o.y - o.r - 0.1, y1: o.y + o.r + 0.1 } : o));
+// The loft: at each station the seven points of the starboard side from the belly up (x, y), mirrored
+// for port: belly, lower chamfer, chine, stripe bottom, stripe top, shoulder, roof edge.
+D.MAIN = [[2.2, -1.6], [3.85, -0.95], [4.2, 0], [4.2, 1.25], [4.2, 1.55], [4.2, 3.6], [3.4, 4.4]];
+D.STATIONS = [
+  // (issue #338: the nose plate and the windshield's foot dropped, the stripe sweeping down to the nose: built twice
+  // the size, the sill at 1.55 design stood 3.1 m over the deck and the seated pilot saw the sky alone over the dash;
+  // now the panes start 1.3 m over it, just over the dash: the painted reference's long bow wedge and big panes)
+  { z: D.NOSE_Z, v: [[0.92, -0.42], [1.27, -0.3], [1.55, -0.16], [1.61, -0.04], [1.61, 0.06], [1.44, 0.1], [1.09, 0.13]] },
+  { z: -10.1, v: [[1.32, -0.7], [2.2, -0.48], [2.7, -0.22], [2.76, 0.04], [2.76, 0.14], [2.6, 0.19], [2.0, 0.24]] },
+  { z: -8.1, v: [[2.1, -1.48], [3.7, -0.88], [4.05, 0], [4.08, 1.25], [4.08, 1.55], [4.05, 3.5], [3.35, 4.23]] },
+  { z: -6.9, v: D.MAIN },
+  { z: D.LAV_Z, v: D.MAIN },
+  { z: 10.2, v: D.MAIN },
+  { z: D.LAV_END, v: [[1.9, -1.25], [3.55, -0.7], [3.9, 0.1], [3.9, 1.25], [3.9, 1.55], [3.9, 3.45], [3.15, 4.15]] },
+  { z: D.STERN_Z, v: [[1.5, -0.75], [2.85, -0.4], [3.25, 0.2], [3.25, 1.25], [3.25, 1.55], [3.2, 3.25], [2.6, 3.75]] },
+];
+D.BODY = { z0: -6.9, z1: 10.2 };
+D.WINDOW = { z0: -10.1, z1: -8.1, y0: 0.24, y1: 4.15 };
+
+// ---- built (real metres): what the rest of the game reads
+const k3 = (v) => new THREE.Vector3(v.x * K, v.y * K, v.z * K);
+const kr = (o) => Object.fromEntries(Object.entries(o).map(([key, v]) => [key, typeof v === 'number' && key !== 'side' ? v * K : v]));
+export const DECK = D.DECK;         // the deck (ship-local y)
+export const CEIL = DECK + D.CEIL * K;   // the ceiling: 5.8 m clear (2.9 until issue #338, 2.35 until #195)
+export const LIFT = D.LIFT * K;     // the deck's height over the ground when parked on its legs (4 m; 2.6 until #338)
+export const HALF_W = D.HALF_W * K; // the side walls' plane (|x|) over the main body (8.4 m; 4.2 until #338, 3.6 until #195)
+export const WALL_IN = D.WALL_IN * K;   // the rooms' walls (|x|): 0.8 m of hull (7.6 m; 3.8 until #338)
+export const NOSE_Z = D.NOSE_Z * K, STERN_Z = D.STERN_Z * K;   // (-10.8, 15.2 until #338; -10, 12.2 until #195)
 export const LENGTH = STERN_Z - NOSE_Z;
 /** The footprint's middle along the ship (ship-local z): the hatch is a little forward of it. */
-export const CENTRE_Z = (NOSE_Z + STERN_Z) / 2;
+export const CENTRE_Z = D.CENTRE_Z * K;
 /** The hull's reach from the ship's origin (m, horizontally): what keeps clear of it must be further. */
-export const R = 15.6;
-export const BELLY = -1.6;          // the belly (ship-local y)
-export const ROOF = 4.4;            // the roof (1.5 m of structure over the ceiling: the reference's tall, chunky hull)
+export const R = D.R * K;
+export const BELLY = D.BELLY * K;   // the belly (ship-local y)
+export const ROOF = D.ROOF * K;     // the roof (3 m of structure over the ceiling: the reference's tall, chunky hull)
 export const HATCH_A = -Math.PI / 2;   // the hatch faces local -x (a heading: polar(r, HATCH_A, y) is r metres out through it)
-export const HATCH = { z0: -0.8, z1: 0.8, y0: DECK, y1: DECK + 2.6 };
+export const HATCH = kr(D.HATCH);   // 3.2 m wide, 3.6 high (1.6 x 2.6 until #338)
 /** The ramp's hinge: its distance from the centre line, out through the hatch. */
-export const HINGE_R = HALF_W + 0.05;
+export const HINGE_R = D.HINGE_R * K;
 /** Where the lavender starts (ship-local z) and where the cream stern section begins. */
-export const LAV_Z = 2.9, LAV_END = 13.6;
-export const STRIPE = { y0: 1.25, y1: 1.55 };
+export const LAV_Z = D.LAV_Z * K, LAV_END = D.LAV_END * K;
+export const STRIPE = kr(D.STRIPE);
 /** The main body's shoulder: the top of its flat side walls. */
-export const SHOULDER = 3.6;
+export const SHOULDER = D.SHOULDER * K;
 /** The four legs (ship-local x, z of their hips' line). */
-export const LEGS = [{ x: -3.2, z: -5.6 }, { x: 3.2, z: -5.6 }, { x: -3.05, z: 11.0 }, { x: 3.05, z: 11.0 }];
+export const LEGS = D.LEGS.map(kr);
+
 /** Where a leg's foot stands (x, z): out from its hip. */
-export const footOf = (l) => ({ x: Math.sign(l.x) * (HALF_W - 0.05), z: l.z });
+export const footOf = (l) => ({ x: Math.sign(l.x) * (HALF_W - 0.05 * K), z: l.z });
 /** The lift jets' mouths under the belly (ship-local). */
-export const BELLS = [[-1.2, -4.2], [1.2, -4.2], [-1.2, 8.0], [1.2, 8.0]].map(([x, z]) => new THREE.Vector3(x, BELLY - 0.5, z));
+export const BELLS = D.BELLS.map(k3);
 /** The scorch on the port flank, forward of the hatch: its centre on the wall (the wall's normal is -x). */
-export const SCAR = { x: -HALF_W, y: 0.95, z: -3.75 };
+export const SCAR = kr(D.SCAR);
 /** The cockpit's windshield: its sill and head (ship-local), for what must not cover it. */
-export const WINDOW = { z0: -10.1, z1: -8.1, y0: 1.55, y1: 4.15 };
+export const WINDOW = kr(D.WINDOW);
 
 /**
  * The side openings of the main body: [{ side (-1 port, 1 starboard), z0, z1, y0, y1, kind }]; portholes are round
  * ({ z, y, r }), the rest rectangles. The door is the hatch.
  */
-export const OPENINGS = [
-  { kind: 'door', side: -1, ...HATCH },
-  { kind: 'slot', side: -1, z0: 1.25, z1: 1.55, y0: 0.55, y1: 2.8 },
-  { kind: 'window', side: 1, z0: -3.7, z1: -2.3, y0: 1.2, y1: 1.95 },
-  { kind: 'port', side: -1, z: 5.25, y: 1.5, r: 0.3 },
-  { kind: 'port', side: 1, z: 5.25, y: 1.5, r: 0.3 },
-].map((o) => (o.kind === 'port' ? { ...o, z0: o.z - o.r - 0.1, z1: o.z + o.r + 0.1, y0: o.y - o.r - 0.1, y1: o.y + o.r + 0.1 } : o));
-
-// The loft: at each station the seven points of the starboard side from the belly up (x, y), mirrored
-// for port: belly, lower chamfer, chine, stripe bottom, stripe top, shoulder, roof edge.
-const MAIN = [[2.2, -1.6], [3.85, -0.95], [4.2, 0], [4.2, 1.25], [4.2, 1.55], [4.2, 3.6], [3.4, 4.4]];
-export const STATIONS = [
-  { z: NOSE_Z, v: [[0.92, -0.05], [1.27, 0.12], [1.55, 0.45], [1.61, 0.95], [1.61, 1.22], [1.44, 1.28], [1.09, 1.32]] },
-  { z: -10.1, v: [[1.32, -0.65], [2.2, -0.32], [2.7, 0.2], [2.76, 1.05], [2.76, 1.35], [2.6, 1.45], [2.0, 1.55]] },
-  { z: -8.1, v: [[2.1, -1.48], [3.7, -0.88], [4.05, 0], [4.08, 1.25], [4.08, 1.55], [4.05, 3.5], [3.35, 4.23]] },
-  { z: -6.9, v: MAIN },
-  { z: LAV_Z, v: MAIN },
-  { z: 10.2, v: MAIN },
-  { z: LAV_END, v: [[1.9, -1.25], [3.55, -0.7], [3.9, 0.1], [3.9, 1.25], [3.9, 1.55], [3.9, 3.45], [3.15, 4.15]] },
-  { z: STERN_Z, v: [[1.5, -0.75], [2.85, -0.4], [3.25, 0.2], [3.25, 1.25], [3.25, 1.55], [3.2, 3.25], [2.6, 3.75]] },
-];
+export const OPENINGS = D.OPENINGS.map(kr);
+export const STATIONS = D.STATIONS.map((st) => ({ z: st.z * K, v: st.v.map(([x, y]) => [x * K, y * K]) }));
 /** The main body (constant section, flat side walls) runs between these stations' z. */
-export const BODY = { z0: -6.9, z1: 10.2 };
+export const BODY = kr(D.BODY);
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const Y = V(0, 1, 0);
 const lerp = THREE.MathUtils.lerp;
 
-/** The section at any z (the stations' points, interpolated): [[x, y] x 7]. */
-export function sectionAt(z) {
-  const S = STATIONS;
+/** The section at any z, in the design's metres (the stations' points, interpolated): [[x, y] x 7]. */
+function dSection(z) {
+  const S = D.STATIONS;
   if (z <= S[0].z) return S[0].v.map((p) => [...p]);
   for (let i = 0; i < S.length - 1; i++) {
     if (z <= S[i + 1].z) {
@@ -92,6 +135,8 @@ export function sectionAt(z) {
   }
   return S.at(-1).v.map((p) => [...p]);
 }
+/** The section at any z (the stations' points, interpolated): [[x, y] x 7]. */
+export const sectionAt = (z) => dSection(z / K).map(([x, y]) => [x * K, y * K]);
 /** The hull's half width at height y over the deck, at z (m; 0 outside its length or height). */
 export function halfWidthAt(z, y) {
   if (z < NOSE_Z || z > STERN_Z) return 0;
@@ -103,16 +148,21 @@ export function halfWidthAt(z, y) {
   }
   return s[6][0];
 }
-/** The underside's height at (x, z), ship-local: the belly and its chamfers (null outside the hull's plan). */
-export function undersideAt(x, z) {
-  if (z < NOSE_Z || z > STERN_Z) return null;
-  const s = sectionAt(z), ax = Math.abs(x);
+/** The underside's height at (x, z), in the design's metres (null outside the hull's plan). */
+function dUnderside(x, z) {
+  if (z < D.NOSE_Z || z > D.STERN_Z) return null;
+  const s = dSection(z), ax = Math.abs(x);
   if (ax <= s[0][0]) return s[0][1];
   for (let j = 0; j < 2; j++) {
     const [x0, y0] = s[j], [x1, y1] = s[j + 1];
     if (ax <= x1) return lerp(y0, y1, (ax - x0) / (x1 - x0));
   }
   return null;
+}
+/** The underside's height at (x, z), ship-local: the belly and its chamfers (null outside the hull's plan). */
+export function undersideAt(x, z) {
+  const u = dUnderside(x / K, z / K);
+  return u === null ? null : u * K;
 }
 
 /**
@@ -123,7 +173,7 @@ export function undersideAt(x, z) {
 export function reachAt(a, y) {
   const yy = THREE.MathUtils.clamp(y, BELLY + 0.05, ROOF - 0.1), dx = Math.sin(a), dz = Math.cos(a);
   const inside = (t) => { const z = CENTRE_Z + dz * t; return Math.abs(dx * t) < halfWidthAt(z, yy); };
-  let lo = 0, hi = 17;
+  let lo = 0, hi = 17 * K;
   if (!inside(0)) return 0;
   for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; if (inside(m)) lo = m; else hi = m; }
   return lo;
@@ -193,7 +243,7 @@ const bandOf = (e) => (e <= 5 ? e : e === 6 ? 6 : e <= 12 ? 12 - e : 7);
 const sideOf = (e) => (e <= 5 ? 1 : e >= 7 && e <= 12 ? -1 : 0);
 
 /** The side panels' colour at z: cream forward, lavender aft, cream again at the stern. */
-const sideKey = (z, y) => (z > LAV_Z && z < LAV_END ? 'lav' : y >= STRIPE.y0 && y <= STRIPE.y1 && z < LAV_Z ? 'stripe' : 'hull');
+const sideKey = (z, y) => (z > D.LAV_Z && z < D.LAV_END ? 'lav' : y >= D.STRIPE.y0 && y <= D.STRIPE.y1 && z < D.LAV_Z ? 'stripe' : 'hull');   // (design metres)
 const BAND_KEY = ['skirtDark', 'skirt', null, null, null, null, 'hull', 'belly'];
 const MID_Y = { 2: 0.6, 3: 1.4, 4: 2.5, 5: 4.0 };
 
@@ -203,6 +253,11 @@ const MID_Y = { 2: 0.6, 3: 1.4, 4: 2.5, 5: 4.0 };
  * @param o { legs: 'down' | 'up', footY(leg) -> ship-local foot height }
  */
 export function buildHull(batch, o = {}) {
+  // (drawn in the design's metres, every piece scaled SHIP_SCALE on its way into the batch)
+  const { STATIONS, BODY, NOSE_Z, ROOF, BELLS, BELLY, SCAR, LIFT, HINGE_R, WALL_IN, HATCH, DECK } = D;
+  const undersideAt = dUnderside, footOf = (l) => ({ x: Math.sign(l.x) * (D.HALF_W - 0.05), z: l.z });
+  const into = batch;
+  batch = { add: (k, g) => into.add(k, g.scale(K, K, K)) };
   const legs = o.legs ?? 'down';
   const Q = {};
   const q = (k) => (Q[k] ??= new Quads());
@@ -320,14 +375,14 @@ export function buildHull(batch, o = {}) {
 
   // ---- landing legs: a strut out and down from the lower chamfer, a knee, a leg to a round pad
   const feet = [];
-  for (const l of LEGS) {
+  for (const [i, l] of D.LEGS.entries()) {
     const s = Math.sign(l.x);
     if (legs === 'up') {
       batch.add('dark', new THREE.BoxGeometry(0.6, 0.35, 1.0).translate(s * 3.15, undersideAt(s * 3.15, l.z), l.z));   // stowed: the housings
       continue;
     }
     const f = footOf(l);
-    const fy = o.footY ? o.footY(l) : -LIFT;
+    const fy = o.footY ? o.footY(LEGS[i]) / K : -LIFT;   // (the ship's own question, in built metres)
     const uy = undersideAt(s * 3.3, l.z);   // (the hip on the lower chamfer)
     const hip = V(s * 3.3, uy - 0.05, l.z), knee = V(s * 3.95, uy - 0.6, l.z - 0.35 * Math.sign(l.z - 2));
     const foot = V(f.x, fy + 0.32, f.z);
@@ -337,7 +392,7 @@ export function buildHull(batch, o = {}) {
     batch.add('dark', strut(knee, foot, 0.15, 0.13));
     batch.add('trim', strut(V(s * 3.05, uy - 0.1, l.z), knee.clone().lerp(foot, 0.45), 0.07));      // the piston
     batch.add('dark', new THREE.CylinderGeometry(0.5, 0.6, 0.22, 12).translate(foot.x, fy + 0.11, foot.z));
-    feet.push(new THREE.Vector3(foot.x, fy, foot.z));
+    feet.push(new THREE.Vector3(foot.x * K, fy * K, foot.z * K));
   }
 
   // threshold under the hatch: from the room's wall out to the hinge, the deck carried through the hull's thickness
@@ -370,6 +425,7 @@ const inOpening = (o, z, y) => z > o.z0 && z < o.z1 && y > o.y0 && y < o.y1;
 
 /** One side of the main body (x = side * HALF_W): panels round the openings, their reveals to the rooms' wall, glass, portholes. */
 function sideWall(Q, side) {
+  const { HALF_W, OPENINGS, BODY, LAV_Z, STRIPE, SHOULDER, WALL_IN } = D;   // (design metres)
   const x = side * HALF_W, n = V(side, 0, 0);
   const ops = OPENINGS.filter((o) => o.side === side);
   const zs = new Set([BODY.z0, LAV_Z, BODY.z1]), ys = new Set([0, STRIPE.y0, STRIPE.y1, SHOULDER]);
@@ -404,6 +460,7 @@ function sideWall(Q, side) {
 }
 
 function porthole(Q, side, o, key) {
+  const { HALF_W, WALL_IN } = D;   // (design metres)
   const x = side * HALF_W;
   const sh = new THREE.Shape();
   sh.moveTo(o.z0, o.y0); sh.lineTo(o.z1, o.y0); sh.lineTo(o.z1, o.y1); sh.lineTo(o.z0, o.y1); sh.closePath();
@@ -437,6 +494,7 @@ export function addShape(Q, key, g, map, n) {
 
 /** The inked seams: the plates' joints on the flat walls, round the lavender panels, along the chine and shoulder. */
 function seams(Q) {
+  const { HALF_W, OPENINGS, BODY, LAV_Z, STRIPE, SHOULDER } = D;   // (design metres)
   const q = (Q.seam ??= new Quads()), w = 0.028, lift = 0.012;
   const vline = (side, z, y0, y1) => {
     const x = side * (HALF_W + lift);

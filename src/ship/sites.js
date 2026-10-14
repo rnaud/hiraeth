@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { LIFT, R } from './hull.js';
+import { LIFT, HALF_W, NOSE_Z, STERN_Z, CENTRE_Z, HATCH_A, ROOF, BELLY, SHIP_SCALE } from './hull.js';
 
 // Where the ship stands in each world. A level can define `shipSite`
 // ({ x, z, heading }) itself; otherwise the table below; otherwise a clear,
@@ -39,6 +39,13 @@ export const SITE_OVERRIDES = {
   // without them it would pick other spots here, so these two stay where players know them
   bazaar: { x: 19.9, z: 150.9, heading: -2.835 },
   incal: { x: 331.1, z: -10.1, heading: -1.396 },
+  // where the search put the ship before it grew to twice its size (issue #338): the search's own pick moved with the
+  // bigger plan (Perdide's 100 m off, its first view out of the ramp lost the Great Crystal), so these stay where
+  // players know them, the hull checked clear of each world (tests/contact-audit.test.js)
+  arzach: { x: -272.4, z: -1116.2, heading: 1.153 },
+  perdide: { x: 19.8, z: -128.5, heading: -0.148 },
+  edena: { x: -48.2, z: -103.3, heading: 0.437 },
+  buried: { x: -3, z: 101.5, heading: -2.662 },   // (22 m west of the search's old spot: its bow, twice as long, lay across the furnace steps' course)
 };
 
 const TAU = Math.PI * 2;
@@ -101,44 +108,60 @@ export function decorAvoid(scene, level, { near = null, reach = 260 } = {}) {
  * How well the ship fits at (x, z): the ground under its feet, hull and ramp.
  * Returns null if it doesn't fit, else { ground, spread, ... }.
  */
-export function probeSite(physics, x, z, heading, { refY = 0, tolerance = 2.6, unsafe = null } = {}) {
+export function probeSite(physics, x, z, heading, { refY = 0, tolerance = 2.6 * SHIP_SCALE, unsafe = null } = {}) {
   const from = refY + 60;
   const G = (px, pz) => physics.groundAt(px, from, pz, 400);
-  const pts = [[0, 0]];
-  for (const [r, n] of [[4, 6], [8, 10], [12, 14], [15.5, 16]]) for (let k = 0; k < n; k++) { const a = (k / n) * TAU + r; pts.push([Math.sin(a) * r, Math.cos(a) * r]); }
+  // (the hull's own plan where it would stand, its legs a little past it: the ship twice the size since issue #338, a
+  // disc of its reach round the origin, 31 m, would have asked for twice the ground it covers)
+  const W = toWorld(x, z, heading);
+  const pts = [];
+  for (let u = -1; u <= 1.001; u += 0.25) for (let w = 0; w <= 1.001; w += 1 / 12) pts.push(W(u * (HALF_W + 1), NOSE_Z + w * (STERN_Z - NOSE_Z)));
   let lo = Infinity, hi = -Infinity;
-  for (const [dx, dz] of pts) {
-    const g = G(x + dx, z + dz);
+  for (const [px, pz] of pts) {
+    const g = G(px, pz);
     if (!Number.isFinite(g) || Math.abs(g - refY) > 45) return null;
-    if (unsafe?.(new THREE.Vector3(x + dx, g, z + dz))) return null;   // deep water, lava…
+    if (unsafe?.(new THREE.Vector3(px, g, pz))) return null;   // deep water, lava…
     lo = Math.min(lo, g); hi = Math.max(hi, g);
   }
   if (hi - lo > tolerance) return null;
   // open sky over the hull (no arches, roofs or floating rocks)
   const up = new THREE.Vector3(0, 1, 0), o = new THREE.Vector3();
-  for (const [dx, dz] of [[0, 0], [9, 0], [-9, 0], [0, 9], [0, -9], [6, 6], [-6, 6], [6, -6], [-6, -6]]) {
-    o.set(x + dx, hi + 1.5, z + dz);
-    if (physics.rayDistance(o, up, LIFT + R + 12) < Infinity) return null;
+  for (const [u, w] of [[0, 0.5], [0.7, 0.5], [-0.7, 0.5], [0, 0.1], [0, 0.3], [0, 0.7], [0, 0.9], [0.6, 0.2], [-0.6, 0.8]]) {
+    const [px, pz] = W(u * HALF_W, NOSE_Z + w * (STERN_Z - NOSE_Z));
+    o.set(px, hi + 1.5, pz);
+    if (physics.rayDistance(o, up, LIFT + ROOF + 12 * SHIP_SCALE) < Infinity) return null;
   }
-  // nothing standing inside the hull's volume (trunks, pillars, overhangs)
-  const cy = hi + LIFT, d = new THREE.Vector3();
-  for (const dy of [-9, -4, 0, 5, 10]) {
-    const reach = Math.sqrt(R * R - dy * dy) + 1.5;
-    for (let k = 0; k < 12; k++) {
-      const a = (k / 12) * TAU;
-      o.set(x, cy + dy, z);
-      d.set(Math.sin(a), 0, Math.cos(a));
+  // nothing standing inside the hull's volume (trunks, pillars, overhangs): from the middle of its plan out to its sides
+  const cy = hi + LIFT, d = new THREE.Vector3(), [mx, mz] = W(0, CENTRE_Z), yaw = heading - HATCH_A, halfL = (STERN_Z - NOSE_Z) / 2;
+  for (const dy of [BELLY + 0.6, 0.5, ROOF * 0.4, ROOF * 0.75, ROOF - 0.3]) {   // (the belly to the roof)
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * TAU, reach = Math.min(Math.abs(HALF_W / (Math.sin(a) || 1e-6)), Math.abs(halfL / (Math.cos(a) || 1e-6))) + 1.5;
+      o.set(mx, cy + dy, mz);
+      d.set(Math.sin(a + yaw), 0, Math.cos(a + yaw));
       if (physics.rayDistance(o, d, reach) < reach) return null;
     }
   }
   // the ramp: from the hatch outward, the ground must be reachable and not climb
   const [hx, hz] = dirOf(heading);
-  for (let d = 12; d <= 24; d += 3) {
+  for (let d = HALF_W + 4; d <= HALF_W + 16; d += 3) {
     const g = G(x + hx * d, z + hz * d);
     if (!Number.isFinite(g) || g > hi + 1.2 || g < lo - 4) return null;
     if (unsafe?.(new THREE.Vector3(x + hx * d, g, z + hz * d))) return null;
   }
   return { ground: hi, spread: hi - lo, lo };
+}
+
+/** (x, z) of the ship's frame where it stands at (x, z) with its hatch toward `heading`, in the world: (lx, lz) -> [x, z]. */
+function toWorld(x, z, heading) {
+  const yaw = heading - HATCH_A, c = Math.cos(yaw), s = Math.sin(yaw);
+  return (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+}
+
+/** How far (x, z) is from the plan of a ship standing at (sx, sz), its hatch toward `heading` (0 inside it). */
+export function fromPlan(x, z, sx, sz, heading) {
+  const yaw = heading - HATCH_A, c = Math.cos(yaw), s = Math.sin(yaw), dx = x - sx, dz = z - sz;
+  const lx = dx * c - dz * s, lz = dx * s + dz * c;
+  return Math.hypot(Math.max(Math.abs(lx) - HALF_W, 0), Math.max(NOSE_Z - lz, 0, lz - STERN_Z));
 }
 
 /**
@@ -153,19 +176,20 @@ export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
     const probe = probeSite(physics, fixed.x, fixed.z, fixed.heading ?? 0, { refY: Number.isFinite(g) ? g : S.y, tolerance: 1e9 });
     return { ...fixed, ground: probe?.ground ?? g, source: level.shipSite ? 'level' : 'table' };
   }
-  const clear = (x, z) => avoid.every((a) => Math.hypot(x - a.x, z - a.z) > a.r + R + 3);   // (+3: the legs reach out past the hull)
+  // (+3: the legs reach out past the hull; its own plan, heading toward the spawn as below: issue #338)
+  const clear = (x, z, heading) => avoid.every((a) => fromPlan(a.x, a.z, x, z, heading) > a.r + 3);
   let best = null;
   for (let d = 34; d <= 150; d += 8) {
     const n = Math.max(12, Math.round((TAU * d) / 10));
     for (let i = 0; i < n; i++) {
       const a = (i / n) * TAU;
       const x = S.x + Math.sin(a) * d, z = S.z + Math.cos(a) * d;
-      if (!clear(x, z)) continue;
       // hatch toward the spawn, so you step out facing where you came in
       const heading = Math.atan2(S.x - x, S.z - z);
+      if (!clear(x, z, heading)) continue;
       // and nothing standing on the ramp's way down
       const [hx, hz] = dirOf(heading);
-      if (![14, 18, 22].every((k) => avoid.every((a) => Math.hypot(x + hx * k - a.x, z + hz * k - a.z) > a.r + 1.5))) continue;
+      if (![4, 8, 12].map((k) => HALF_W + 2 + k).every((k) => avoid.every((a) => Math.hypot(x + hx * k - a.x, z + hz * k - a.z) > a.r + 1.5))) continue;
       const p = probeSite(physics, x, z, heading, { refY: S.y, unsafe: level.unsafe });
       if (!p) continue;
       const score = d + p.spread * 14 + Math.abs(p.ground - S.y) * 1.5 + Math.max(0, S.y - 1.5 - p.ground) * 12;   // not down in a hollow (or a pond)

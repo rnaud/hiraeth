@@ -121,8 +121,8 @@ export async function buildWorld(levelId = 'desert') {
   const startFlags = Object.fromEntries(Object.entries(flagsAfter).filter(([k, v]) => JSON.stringify(flagsBefore[k]) !== JSON.stringify(v)));
   const shipDirector = await import('../../src/ship/cinematics.js');
   const shipHull = await import('../../src/ship/hull.js');
-  const shipTable = (await import('../../src/ship/interior.js')).TABLE;
-  return { levelId, meta, shipDirector, shipHull, shipTable, THREE, scene, level, physics, waters, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, grass, storyRoots, staticRoots,
+  const shipInterior = await import('../../src/ship/interior.js'), shipTable = shipInterior.TABLE;
+  return { levelId, meta, shipDirector, shipHull, shipInterior, shipTable, THREE, scene, level, physics, waters, ship, shipRoots, crowd, bike, player, npcs, rt, boxes, flora, grass, storyRoots, staticRoots,
     game, CONTENT, content, humans, lib, travellerTemplate, camera, startFlags, toasts, interactables: allInteractables(), targets: allTargets(), floraWorld: FLORA_WORLDS[levelId] ?? null, mounts };
 }
 

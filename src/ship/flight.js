@@ -15,7 +15,8 @@ const smooth = (x) => { x = clamp01(x); return x * x * (3 - 2 * x); };
  * it forward, and it powers away along its bow, `away` m in the remaining time, climbing `climb` m, its nose coming up
  * to `nose` rad. `dur` s in all; the warp opens at `warp` s.
  */
-export const TAKEOFF = { dur: 5.2, rise: 2.0, hover: 15, dip: 0.14, nose: 0.12, away: 340, climb: 80, warp: 4.4 };
+// (hover 22 m: the ship twice the size since issue #338, 12 m tall, its hover over its own dust; 15 m before)
+export const TAKEOFF = { dur: 5.2, rise: 2.0, hover: 22, dip: 0.14, nose: 0.12, away: 340, climb: 80, warp: 4.4 };
 
 /** Where the taking-off ship is at t s: { ahead, up (m), pitch (rad, + nose up) }. */
 export function takeoffPose(t, T = TAKEOFF) {

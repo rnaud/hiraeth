@@ -34,7 +34,72 @@ Read off the picture, in the order you notice it:
   is on the ship's port side in the picture (bow to the left, the door facing the viewer), so it is
   on the port side here too.
 
+## Twice the size (issue #338)
+
+The author: "My space ship and its interior should be 100% bigger. So it's more spacious inside when I'm walking around
+and feels less cramped." The ship is built `SHIP_SCALE` (2) times the blockout below: `src/ship/hull.js` keeps the
+blockout's numbers as its design (`D`) and builds the hull from them, every piece scaled on its way into the batch; what
+it exports (`HALF_W`, `CEIL`, `STATIONS`, `OPENINGS`, `LEGS`, `sectionAt`, `undersideAt`…) is in built metres. So every
+length of the hull, its rooms and its openings doubled: the rooms 15.2 m across, 5.8 m under the ceiling, the main room
+20 m long, the doorways 4.2 x 3.6 m, the hatch 3.2 x 3.6 m (the doorways and the hatch kept lower than twice: at 5.2 m
+they were a hangar's), the hull 52 m long, 16.8 m wide, 12 m tall, the deck 4 m up on its legs (the belly 0.8 m off
+the ground). **The furniture keeps the traveller's size**: `src/ship/interior.js` draws each block where it stood in the
+blockout's room and moves it whole (`at(dz, fn)`, `at(grown(x, z), fn)`): along a wall with its wall, by the cockpit frame
+with the frame (`BY_FRAME`), free-standing ones (the holo table, the small table, the crates) where their spot is in
+the grown room; the console, the voicemail, the projector and where he stands to play the recordings follow the table
+(`TABLE.z + …`), the seats the dash (`SEATS`).
+
+- **What the room gained**: a table to eat at with two benches by the galley (`DINING_Z`), a reading corner on the
+  starboard side (an open bookcase, an armchair, a floor lamp, a round rug: `READING_Z`), a workbench with a vice and a
+  stool aft of the coats (`BENCH_Z`), a runner down the middle; in the back room a big round rug, a trunk and a tall
+  bookcase with a ladder on the forward wall; in the hold, stacks of crates and shelves of spare parts over the lockers.
+- **The bow**: built twice the size, the windshield's sill (the stripe, 1.55 design) stood 3.1 m over the deck and the
+  seated pilot saw the sky alone over the dash; the nose plate and the windshield's foot came down (the stripe sweeping
+  down to the nose), the panes from about 1.5 m: the painted reference's long wedge and big panes.
+- **The bunk's alcove** stands round the hull's starboard window, its arch 4.25 m high; the bed is a bed long.
+- **The landings**: the site search (`src/ship/sites.js`) measures the hull's own plan where it would stand (`probeSite`,
+  `fromPlan`), not a disc of its reach round its origin (31 m now, twice the ground it covers); the worlds whose ship the
+  search placed (Arzach, Perdide, Edena) keep the spots players know (`SITE_OVERRIDES`; the Buried City's 22 m west,
+  its longer bow lay across the furnace steps' course), and the
+  Underwater City's ship stands 5.4 m east on the Dock's dome, its legs even about the crown (`underwater.js` shipSite).
+  `tests/contact-audit.test.js` lands it in every world over its whole plan (hull, sky, feet, ramp). The arrival views
+  were picked again (`scripts/arrival-views.mjs`). The take-off hovers 22 m up (15 before). Marrow waits clear of the
+  hull's plan (`landing.js planGap`); a spawn under the plan moves to the foot of the ramp (`Ship.covers`).
+- **The shots** written in the blockout's cockpit (the prologue's, the homecoming's, Unity's `ShipScene.cs`) go through
+  `cockpitZ` (the seats moved 9.8 m forward with it); the prologue's outside shots are as far off as the ship is big.
+  The Unity export carries `hull.scale` and `hull.cockpitShift`. Anselm stands in the hold by the crates at (1.55, 19.75).
+- `tests/ship-grown.test.js`: the sizes, the furniture at his size, every place you use reached on foot from the hatch
+  (the voicemail, the table, the pilot's seat, the bunk, Anselm's spot), the lamps and the room light.
+
+## The rooms' light (issue #338)
+
+"Also the lighting in the ship feels a bit flat? Do we have no light in there?" There was: six lamps under the ceiling,
+each a local light (main.js `updateLights`, the shader's `uLights`), and a self-light of 0.18 on every room material. But
+the local lights' rule (light anything within reach, a third of it even facing away, then push it most of the way to
+full light) washed out whatever stood near a lamp in a pale blot on the ceiling and the walls, and everything else sat in
+one flat shade with the same hatching; and the sun's shadow map, cast by the hull's thin skin, let the sun through onto
+whatever inside faced it, so which walls were lit depended on the hour and the ship's heading.
+
+Now each room material is made with `makeMaterial({ room })` (`materials.js ROOM_LIGHT`, `interior.js roomLook`):
+
+- **A key light in place of the sun**: from the windshield ahead, a little from the hatch's side and above
+  (`ROOM_KEY.dir`, in the ship's own frame: the shader reads the object's normal, so the light turns with the ship and
+  nothing is updated). What faces it is lit (`lit` 0.74), what faces away is in the shade (`shade` 0.28) the hatching
+  draws, across n·key `edge`; the key-lit faces take a little of the sky's colour; at night it falls to `night` of
+  itself and the lamps carry the rooms; in orbit it is weaker (`ROOM_KEY.space`).
+- **Twelve warm lamps** (`LAMPS`): pendants on cords 3.5 m up, a teal shade with a cream lining and a warm bulb, over the
+  cockpit, the holo table, the galley, the table to eat at, the bunk, the hatch, the lockers, two in the back room and two
+  in the hold, and the reading corner's floor lamp. In shades, they light what is under them and faces them (`cone`,
+  `face`), a pool of light on the floor round the furniture, warm (`lampTint`, `LAMP_COLOR`), not the ceiling over them.
+  They are drawn only, never collided with. The voicemail's light is unchanged.
+- **Engine-neutral**: the lamps are the level's local lights, so both Unity pipelines get them; the key crosses as each
+  material's `room` (the bridge's `port-format.js`, the C# exporter's `materialOf`; `WorldLoader.cs` sets `_Room`), and
+  `Surface.shader` lights a room with the same numbers (`tests/ship-grown.test.js` reads them). The export also writes
+  `ship.roomLight` (the key, its strengths, the lamps). Not yet seen in a Unity editor run from here.
+
 ## The blockout: the traveller is the unit
+
+(The blockout's numbers, the design `D` in `hull.js`; the ship is built twice this size since issue #338, above.)
 
 - **The traveller**: 1.82 m (eyes at 1.70 m, `FACE` in `src/humanoid.js`). His collision capsule
   (`src/player.js` `CAPSULE`) is 0.45 m in radius and 2.2 m tall; he steps up 0.6 m.
@@ -166,6 +231,9 @@ of the loft. The bow and the stern are the same seven points at fewer stations, 
 
 ### The interaction points (`interior.points`, ship-local)
 
+(Where they were in the blockout; built, the points follow the furniture: the console's and the table's points twice as
+far from the origin, the bunk's with its alcove, `aboard` at (-4.4, 0.9): `tests/ship-grown.test.js` walks to each.)
+
 | Point | Where | Used by |
 |---|---|---|
 | `cockpit` (heading PI) | (0.28, 0, 0.15) (`VOICE_STAND`), behind the console's tail, facing forward (the name is the old one) | the voicemail (`atConsole`, `CONSOLE_R` 1.5 m), the recordings (`cockpitFrame`) |
@@ -182,9 +250,8 @@ checks the door, the ramp and the jets, and `tests/contact-audit.test.js` lands 
 
 ## Where the ship is used
 
-- **Parked in every world** (`Ship.place`): the site search (`src/ship/sites.js`) is unchanged and still
-  uses the old ball's envelope (13 m reach, 13.5 m lift), which holds the new hull, so no world's ship
-  moved; the hatch faces the site's heading (`yaw = heading - HATCH_A`); the belly is kept 0.45 m over the
+- **Parked in every world** (`Ship.place`): the site search (`src/ship/sites.js`) measures the hull's plan where it
+  would stand (since issue #338, above; the old ball's disc before), and the worlds it placed keep their spots; the hatch faces the site's heading (`yaw = heading - HATCH_A`); the belly is kept 0.45 m over the
   terrain (the terrain's own height where the level has one: a prop under the hull no longer lifts it on
   stilts); each foot finds the ground. `tests/contact-audit.test.js` builds it in every world and checks
   nothing of the world is inside the hull (roof to belly; on the desert crash, roof to the deck), open sky
@@ -228,6 +295,11 @@ strips share the hull's materials, so they are counted outside although they are
 triangles with the rooms shown. The rooms are drawn only within 48 m, measured once the frame's camera is placed (a scene's
 shot inside the ship while the traveller stood far off drew no walls). Past 130 m (`DETAIL_FAR`) the small outside things (seams, the scorch, the running
 lights, the trim's teal) are hidden: 22 meshes far off.
+
+Twice the size (issue #338, the same count in node: every mesh of the parked ship with its ramp): 68 meshes, 25,100
+triangles before, 71 meshes, 30,900 after (the furniture the grown rooms gained, the lamps' shades and the hold's crates;
+the hull's triangles are the same, only bigger). The room light adds no draw call: a branch in the room materials'
+shader, the same eight local lights as before (twelve lamps; main.js packs the eight nearest the traveller).
 
 ## Compared with the references
 

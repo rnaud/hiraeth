@@ -140,6 +140,15 @@ export const sharedUniforms = {
 export const SPOT = { steps: 2 };
 /** The step packed for a material's spot amount (0: the world's). */
 export const spotStep = (spot) => (spot === undefined || spot === null || spot < 0 ? 0 : 1 + Math.round(Math.min(spot, 1) * SPOT.steps));
+/**
+ * A room inside a hull (makeMaterial({ room }): the ship's rooms, issue #338, "the lighting in the ship feels a bit flat?
+ * Do we have no light in there?"). In place of the sun (whose shadow map, cast by the hull's thin skin, let it through
+ * onto whatever inside faced it), a soft key from the windows (uRoomKey: its direction in the object's own frame, the ship's) lights what faces it from `shade` up to `lit` across n·key `edge`, by
+ * day (at night the key falls to `night` of it, the lamps alone); its lamps (the local lights) hang in shades: they light
+ * what is under them (`cone`: the light's height over the surface / its distance) and what faces them, the pool's light
+ * rising from `pool[0]` to `pool[1]` of the light term, to `poolTop`; key-lit faces take `sky` of the sky's colour.
+ */
+export const ROOM_LIGHT = { shade: 0.28, lit: 0.74, edge: [-0.1, 0.6], night: 0.55, cone: [0.25, 0.75], face: 0.12, pool: [0.06, 0.6], poolTop: 0.95, sky: 0.22 };
 /** A flat (faceted) surface this close to edge-on to the sun (|n·l|) is shaded whole: no lit specks on the toon threshold. */
 export const FACET_EDGE = 0.03;
 /** n·l over which a smooth surface's own shadow map is faded in from its terminator (no teeth along it: "Stable in motion"). */
@@ -1848,6 +1857,9 @@ ${SHADOW_GLSL}
     return (float(m[i]) + 0.5) / 16.0;
   }
 
+  #ifdef ROOM_LIGHT
+  uniform vec4 uRoomKey;   // a room in a hull (makeMaterial({ room }), ROOM_LIGHT): its key light's direction (the object's own frame), w its strength
+  #endif
   #ifdef LAMP_TINT
   // the local lights' own colour on this surface (makeMaterial({ lampTint })): the lamplit pools warm on the walls
   // of a world lit cold (the eclipse's city, src/levels/eclipse-kit.js): rgb, a how far the albedo goes to it
@@ -2506,6 +2518,13 @@ ${SHADOW_GLSL}
     // Cast shadows clamp the light term below the toon threshold (0.5) but keep
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
+    #ifdef ROOM_LIGHT
+      // a room in a hull (ROOM_LIGHT): the soft key from its windows gives its walls and furniture their form, in place
+      // of the sun (whose shadow map, cast by the hull's thin skin, let it through onto whatever inside faced it)
+      float roomKey = smoothstep(${ROOM_LIGHT.edge[0].toFixed(3)}, ${ROOM_LIGHT.edge[1].toFixed(3)}, dot(normalize(vObjNormal), uRoomKey.xyz)) * mix(1.0, ${ROOM_LIGHT.night.toFixed(3)}, uNight);
+      L = mix(L, mix(${ROOM_LIGHT.shade.toFixed(3)}, ${ROOM_LIGHT.lit.toFixed(3)}, roomKey), uRoomKey.w);
+      albedo *= mix(vec3(1.0), 0.72 + 0.4 * mix(uSkyHorizon, uSkyTop, 0.35), ${ROOM_LIGHT.sky.toFixed(3)} * roomKey * uRoomKey.w);
+    #endif
     L = mix(L, 1.0, max(uGlow, emit));
     #ifdef FLUID
       if (uFluidA.w < 0.5) L = max(L, 0.92);   // (the round backpack's nebula is lit from within: no shade side on it)
@@ -2542,10 +2561,19 @@ ${SHADOW_GLSL}
       float d = length(dl);
       if (d < uLights[i].w) {
         float att = pow(1.0 - d / uLights[i].w, 2.0);
-        local = max(local, att * (0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
+        #ifdef ROOM_LIGHT
+          // (a room's lamps hang in shades: what is under them and faces them, not the ceiling over them)
+          local = max(local, att * smoothstep(${ROOM_LIGHT.cone[0].toFixed(3)}, ${ROOM_LIGHT.cone[1].toFixed(3)}, dl.y / d) * (${ROOM_LIGHT.face.toFixed(3)} + ${(1 - ROOM_LIGHT.face).toFixed(3)} * max(dot(n, dl / d), 0.0)));
+        #else
+          local = max(local, att * (0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
+        #endif
       }
     }
-    L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
+    #ifdef ROOM_LIGHT
+      L = max(L, mix(L, ${ROOM_LIGHT.poolTop.toFixed(3)}, smoothstep(${ROOM_LIGHT.pool[0].toFixed(3)}, ${ROOM_LIGHT.pool[1].toFixed(3)}, local)));
+    #else
+      L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
+    #endif
     #ifdef LAMP_TINT
       albedo = mix(albedo, uLampTint.rgb * mix(0.55, 1.0, dot(albedo, vec3(0.3, 0.55, 0.15))), uLampTint.a * uLampsOn * smoothstep(0.08, 0.55, local));
     #endif
@@ -2875,6 +2903,8 @@ const cache = new Map();
  * @param {number}  [o.shadeFlat] 0..1: its shade printed flat in the world's shadow colour at its value (default:
  *                              the world's, uShadowFlat; a material saying it keeps the world's hue)
  * @param {number}  [o.spot]    0..1: how much of the world's darkest tier it takes (SPOT: its cast shadows' darkening; default the world's)
+ * @param {object}  [o.room]    a room inside a hull: its key light, a Vector4 (or the uniform { value } of one): the direction
+ *                              toward it in the object's own frame (the ship's), w its strength (ROOM_LIGHT; src/ship/model.js)
  * @param {number}  [o.hatchPx] the least spacing of its shade's strokes, px (0: the world's): a room always in shade keeps them
  *                              clear of HATCH_AA's band, where they crawl (src/ship/model.js)
  * @param {number}  [o.line]    its ink line's weight (LINE: 1 the world's ink … 0.25 a hairline; glass 0.45, leaves 0.7)
@@ -3096,6 +3126,11 @@ export function makeMaterial(o) {
     // painted one way by day and another by night (the geometry's aNight: rgb its night colour, a its glow then, mixed
     // in by uNight): the Signal Market's billboards turn into the night sheets' screens (bazaar.js, market-night-kit.js)
     mat.defines = { ...mat.defines, NIGHT_PAINT: 1 };
+  }
+  if (o.room) {
+    // a room inside a hull (ROOM_LIGHT): o.room its key, Vector4(the direction toward it in the object's frame, strength)
+    mat.defines = { ...mat.defines, ROOM_LIGHT: 1 };
+    mat.uniforms.uRoomKey = o.room.isVector4 ? { value: o.room } : o.room;
   }
   if (o.lampTint) {
     // the lamps' pools in their own colour: '#rrggbb' (most of the way to it) or [colour, how far]

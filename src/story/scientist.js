@@ -24,7 +24,7 @@ import { THRUM, THRUM_SHOP_LINES, thrumPerson } from './scientist-data.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 /** His place aboard (ship-local, src/ship/interior.js: the hold, in front of the starboard crate, facing the doorway). */
-export const ABOARD = { at: [1.55, 0, 9.45], heading: -2.4, jar: [1.2, 0.71, 10.22] };   // (the hold moved aft and grew: issue #195)
+export const ABOARD = { at: [1.55, 0, 19.75], heading: -2.4, jar: [1.2, 0.71, 20.52] };   // (the hold moved aft and grew: issue #195; the ship twice the size, #338: z 9.45 / 10.22 before)
 /** At most this many splinters in his jar. */
 export const JAR_MAX = 24;
 /** How far off the one who met you goes. */

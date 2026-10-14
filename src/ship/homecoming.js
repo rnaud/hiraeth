@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { DECK, HATCH_A } from './hull.js';
+import { cockpitZ } from './interior.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
@@ -563,7 +564,7 @@ export class HomecomingDirector {
         if (s.spaceCopy) s.spaceCopy.space.rotation.x = 0.12 * k + 0.5 * dive;
         // (eased in and out over 0.8 s: it stepped 0.6 m back in one frame, a pop at either end of the cargo check)
         const back = id === 'cargo' ? 0.6 * smooth(t / 0.8) : id === 'dive' ? 0.6 * (1 - smooth(t / 0.8)) : 0;
-        s.shot({ pos: this.W(V(-0.85 - back * 0.4, DECK + 1.95, -8.1 + (1 - k) * 1.0 + back)), look: this.W(V(-1.1, DECK + 1.75 - dive * 0.6, -16.8)), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
+        s.shot({ pos: this.W(V(-0.85 - back * 0.4, DECK + 1.95, cockpitZ(-8.1 + (1 - k) * 1.0 + back))), look: this.W(V(-1.1, DECK + 1.75 - dive * 0.6, cockpitZ(-16.8))), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
           if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }

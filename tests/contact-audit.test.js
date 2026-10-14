@@ -383,7 +383,7 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
   const { Ship } = await import('../src/ship/ship.js');
   const { LEVELS } = await import('../src/levels/index.js');
   const { CONTENT } = await import('../src/levels/content.js');
-  const { ROOF, LIFT, DECK, undersideAt, LEGS } = await import('../src/ship/hull.js');
+  const { ROOF, LIFT, DECK, undersideAt, LEGS, SHIP_SCALE: K, NOSE_Z, STERN_Z } = await import('../src/ship/hull.js');
   globalThis.window ??= { addEventListener() {} };
   const report = [], failed = [];
   const skipped = [];
@@ -393,6 +393,9 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
     try { built = builtWorld(id); } catch (e) { if (/runStepsAsync/.test(e.message)) { skipped.push(id); continue; } throw e; }
     const { scene, level, physics } = built;
     const lights = level.lights, noShadow = level.noShadow;
+    // (a start the ship covers moves to its ramp's foot, Ship.clearSpawn: put back after, the world as it was found for
+    // the tests after this one; the fragments' walker starts from the level's own spawn)
+    const spawnWas = { spawn: level.spawn?.clone(), spawnHeading: level.spawnHeading, camYaw: level.camYaw, coveredSpawn: level.coveredSpawn };
     const ship = quiet(() => new Ship({ scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [], relics: { spots: [] } } }));
     try {
       const m = ship.parked, crash = ship.crashed;
@@ -402,7 +405,8 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
       const W = (x, y, z) => ship.world(m, V(x, y, z));
       const down = V(0, -1, 0).applyQuaternion(m.group.quaternion), up = down.clone().negate();
       const bad = [];
-      for (let x = -3.3; x <= 3.31; x += 0.825) for (let z = -9.4; z <= 11.8; z += 0.8) {
+      // (the hull's whole plan, SHIP_SCALE times the blockout's since issue #338)
+      for (let x = -3.3 * K; x <= 3.31 * K; x += 0.825 * K) for (let z = NOSE_Z + 1.4 * K; z <= STERN_Z - 3.4 * K; z += 0.8 * K) {
         const u = undersideAt(x, z);
         if (u === null) continue;
         // nothing between the roof and the belly (crashed: down to the deck's underside, where the sand is heaped)
@@ -410,15 +414,15 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
         const top = W(x, ROOF + 0.3, z), span = ROOF + 0.3 - floorY;
         const d = physics.rayDistance(top, down, span);
         if (d < span - 0.02) bad.push(`(${x.toFixed(1)}, ${z.toFixed(1)}) hit ${(ROOF + 0.3 - d).toFixed(2)} m over the deck`);
-        // open sky over the roof and the pods (6 m: the pods reach 3.8 m over it)
-        if (Math.abs(x) < 3 && physics.rayDistance(top, up, 6) < 6) bad.push(`(${x.toFixed(1)}, ${z.toFixed(1)}) something over the roof`);
+        // open sky over the roof and the pods (6 m a blockout's: the pods reach 3.8 m over it)
+        if (Math.abs(x) < 3 * K && physics.rayDistance(top, up, 6 * K) < 6 * K) bad.push(`(${x.toFixed(1)}, ${z.toFixed(1)}) something over the roof`);
       }
       // the feet stand on the ground, the legs reaching it without stretching far (a parked ship)
       if (!crash) {
         for (const f of m.hull.feet) {
           const p = ship.world(m, f), g = ship.groundAt(p.x, p.z, p.y + 3);
           if (Math.abs(g - p.y) > 0.15) bad.push(`a foot ${(p.y - g).toFixed(2)} m off the ground`);
-          if (f.y < -LIFT - 2.5) bad.push(`a leg stretched ${(-LIFT - f.y).toFixed(2)} m`);
+          if (f.y < -LIFT - 2.5 * K) bad.push(`a leg stretched ${(-LIFT - f.y).toFixed(2)} m`);   // (the legs are SHIP_SCALE times the blockout's)
         }
         if (m.hull.feet.length !== LEGS.length) bad.push('a foot missing');
       }
@@ -434,6 +438,8 @@ test('the ship lands in every world: hull clear, feet and ramp on the ground', a
       if (bad.length) failed.push(`${id}: ${bad.slice(0, 4).join('; ')}`);
     } finally {
       // the world as it was found
+      if (spawnWas.spawn) level.spawn.copy(spawnWas.spawn);
+      for (const k of ['spawnHeading', 'camYaw', 'coveredSpawn']) { if (spawnWas[k] === undefined) delete level[k]; else level[k] = spawnWas[k]; }
       for (const g of [ship.parked.group, ship.crashSite?.group, ship.smoke?.mesh, ship.flame?.mesh, ship.jets?.mesh, ship.dust?.mesh]) g?.removeFromParent();
       for (const c of ship.colliders) physics.removeCollider(c);
       for (const list of [lights, noShadow]) {

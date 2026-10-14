@@ -241,6 +241,9 @@ namespace Hiraeth
             if (metal != null && metal.Count >= 4) mat.SetVector("_Metal", new Vector4(Json.Num(metal[0]), Json.Num(metal[1]), Json.Num(metal[2]), Mathf.Max(Json.Num(metal[3]), 1e-3f)));
             var ax = m.L("brushAxis");
             if (ax != null && ax.Count >= 3) mat.SetVector("_BrushAxis", new Vector4(Json.Num(ax[0]), Json.Num(ax[1]), Json.Num(ax[2]), 0));
+            // a room inside a hull (materials.js ROOM_LIGHT, issue #338: the ship's rooms): its key's direction (three, object) and strength
+            var room = m.L("room");
+            if (room != null && room.Count >= 4) mat.SetVector("_Room", new Vector4(Json.Num(room[0]), Json.Num(room[1]), Json.Num(room[2]), Json.Num(room[3])));
             // the water (water-shader.js): its bed's colour, its options (fallback depth, printed, clarity, sparkle); Waters.cs bakes its bed
             var water = m.O("water");
             if (water != null)

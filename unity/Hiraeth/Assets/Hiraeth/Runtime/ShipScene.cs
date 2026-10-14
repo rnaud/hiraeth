@@ -33,6 +33,8 @@ namespace Hiraeth
         float R = 13, DECK = -9, HATCH_A, siteHeading;
         // the angular hull's extents (export ship.hull: src/ship/hull.js LENGTH, HALF_W, CENTRE_Z, BELLY)
         float hullLength = 26.0f, halfWidth = 4.2f, centreZ = 2.2f, belly = -1.6f;
+        /// <summary>The ship's size over its blockout's (hull.js SHIP_SCALE, issue #338: 2) and how far aft the cockpit's seats moved with it (interior.js cockpitZ): the web's shots written for the blockout follow.</summary>
+        float scale = 1, cockpitShift = 0;
         public Hologram holo;
         // the cinema
         public float fade, lids, bars, red; float fadeTarget, fadeSpeed = 99; float shakeK;
@@ -73,7 +75,7 @@ namespace Hiraeth
             hinge = data.V3("hinge"); rampFoot = data.V3("rampFoot"); outDir = data.V3("outDir");
             R = data.F("R", 13); DECK = data.F("DECK", -9); HATCH_A = data.F("HATCH_A"); siteHeading = data.F("heading");
             var hull = data.O("hull");
-            if (hull != null) { hullLength = hull.F("length", hullLength); halfWidth = hull.F("halfWidth", halfWidth); centreZ = hull.F("centreZ", centreZ); belly = hull.F("belly", belly); }
+            if (hull != null) { hullLength = hull.F("length", hullLength); halfWidth = hull.F("halfWidth", halfWidth); centreZ = hull.F("centreZ", centreZ); belly = hull.F("belly", belly); scale = hull.F("scale", 1); cockpitShift = hull.F("cockpitShift", 0); }
             else { hullLength = 2 * R; halfWidth = R; centreZ = 0; belly = DECK - 3; }   // (an export from before the angular hull: the ball)
             holo = new GameObject("Hologram").AddComponent<Hologram>();
             holo.transform.SetParent(transform, false);
@@ -184,7 +186,7 @@ namespace Hiraeth
             if (x < -1.35f || x > 1.15f || lightMats == null) return;
             float along = 165 * x * x * x + 25 * x;
             // (nearest a few metres off the hull at the window's height; the way it goes: the web's, mirrored)
-            var at = Ws(new Vector3(halfWidth + 5, DECK + 2.4f, -7.5f) + new Vector3(0.45f, -0.08f, 0.89f).normalized * along);
+            var at = Ws(new Vector3(halfWidth + 5, DECK + 2.4f * scale, -7.5f * scale) + new Vector3(0.45f, -0.08f, 0.89f).normalized * along);
             float core = 0.75f + Mathf.Abs(along) * 0.012f;
             for (int i = 0; i < 2; i++) Emit(at + Random.insideUnitSphere * core * 0.5f, Vector3.zero, core * (0.8f + Random.value * 0.4f), 0.1f + Random.value * 0.06f, lightMats[Random.Range(0, lightMats.Length)]);
         }
@@ -420,8 +422,8 @@ namespace Hiraeth
                         // planet, the light brushing past its hull (the web's cameras, mirrored)
                         const float nearAt = 2.9f, cut = 2.55f;
                         float passDur = Dur("pass", 5.4f);
-                        if (t < cut) { float k = Smooth(t / cut); Shot(Ws(new Vector3(-0.55f, DECK + 1.95f, -6.7f - 0.3f * k)), Ws(new Vector3(2.6f + 2 * k, DECK + 1.75f, -22.8f)), 56); }
-                        else { float k = Smooth((t - cut) / Mathf.Max(0.1f, passDur - cut)); Shot(Ws(new Vector3(34, DECK + 2 + 2 * k, 3 + 4 * k)), Ws(new Vector3(3 + 5 * k, DECK + 1.2f, -6 + 9 * k)), 56); }
+                        if (t < cut) { float k = Smooth(t / cut); Shot(Ws(new Vector3(-0.55f, DECK + 1.95f, -6.7f - 0.3f * k + cockpitShift)), Ws(new Vector3(2.6f + 2 * k, DECK + 1.75f, -22.8f + cockpitShift)), 56); }
+                        else { float k = Smooth((t - cut) / Mathf.Max(0.1f, passDur - cut)); Shot(Ws(new Vector3(34, 2 + 2 * k, 3 + 4 * k) * scale + Vector3.up * DECK), Ws(new Vector3(3 + 5 * k, 1.2f, -6 + 9 * k) * scale + Vector3.up * DECK), 56); }
                         LightFrame(nearAt - t);
                         if (t < nearAt + 0.4f) holo.Tear(0.25f * Smooth(t / nearAt));
                         if (t > nearAt && once.Add("drained")) { holo.Tear(1); if (holoSpace) holoSpace.state = "dead"; Fade(0.3f, 0.5f); }
@@ -432,7 +434,7 @@ namespace Hiraeth
                     {
                         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit (from his right)
                         float k = Smooth(Seg(t, 1.6f, 4.8f));
-                        Shot(Ws(new Vector3(-1.1f, DECK + 1.8f, -6.3f)), Ws(new Vector3(0.3f, DECK + 1.9f - k * 0.7f, -12.8f)), 58, k * 0.12f + Mathf.Sin(t * 1.3f) * 0.02f);
+                        Shot(Ws(new Vector3(-1.1f, DECK + 1.8f, -6.3f + cockpitShift)), Ws(new Vector3(0.3f, DECK + 1.9f - k * 0.7f, -12.8f + cockpitShift)), 58, k * 0.12f + Mathf.Sin(t * 1.3f) * 0.02f);
                         if (t > 1.3f && once.Add("reserve")) { if (holoSpace) holoSpace.state = "emergency"; Fade(0.25f, 0.8f); red = 0.18f; }
                         if (t > 2.4f && once.Add("orbit")) Say("ship", "~neutral~ Not enough to hold orbit. Taking us down.");
                         if (space) space.transform.rotation = spaceRot * Quaternion.Euler(0.76f * k * Mathf.Rad2Deg, 0, 0);
@@ -459,8 +461,8 @@ namespace Hiraeth
                             Emit(p - vel * hullLength * 0.6f + new Vector3((Random.value - 0.5f) * 4, (Random.value - 0.5f) * 3, (Random.value - 0.5f) * 4), Vector3.up * 2, 2 + Random.value * 1.5f, 1.6f + Random.value, vapourMat);
                         if (u > 0.82f && parked)
                             for (int i = 0; i < 2; i++)
-                                Emit(parked.transform.position + parked.transform.rotation * new Vector3((Random.value - 0.5f) * 3, belly - 0.4f, centreZ + (Random.value - 0.5f) * 16), Vector3.down * 14, 1.2f + Random.value, 0.3f, flameMat);
-                        var cam = restPos - N * 64 + T * 36 + Vector3.up * 8;   // (the long low hull: nearer than the ball needed)
+                                Emit(parked.transform.position + parked.transform.rotation * new Vector3((Random.value - 0.5f) * 3, belly - 0.4f, centreZ + (Random.value - 0.5f) * hullLength * 0.6f), Vector3.down * 14, 1.2f + Random.value, 0.3f, flameMat);
+                        var cam = restPos + (-N * 64 + T * 36 + Vector3.up * 8) * scale;   // (the long low hull: nearer than the ball needed; as far off as it is big)
                         if (t < dt * 1.5f) lookSm = p;
                         lookSm = Vector3.Lerp(lookSm, p, 1 - Mathf.Exp(-6 * dt));
                         Shot(cam, lookSm, 40);
@@ -482,11 +484,11 @@ namespace Hiraeth
                         for (int i = 0; i < n; i++)
                         {
                             float side = Random.value < 0.5f ? -1 : 1;
-                            var at = pos + T * 7 + N * side * (5 + Random.value * 5);
+                            var at = pos + (T * 7 + N * side * (5 + Random.value * 5)) * scale;
                             if (game.world.Ground != null) at.y = game.world.Ground.HeightAt(at.x, at.z) + 1;
                             Emit(at, N * side * (4 + Random.value * 7) + T * 6 * (1 - p) + Vector3.up * (3 + Random.value * 4), 1 + Random.value * 1.3f * (1 - p * 0.5f), 1.2f + Random.value, dustMat);
                         }
-                        var cam = restPos - N * 40 - T * 26 + Vector3.up * 5;
+                        var cam = restPos + (-N * 40 - T * 26 + Vector3.up * 5) * scale;
                         if (game.world.Ground != null) cam.y = Mathf.Max(cam.y, game.world.Ground.HeightAt(cam.x, cam.z) + 2.5f);
                         lookSm = Vector3.Lerp(lookSm, pos, 1 - Mathf.Exp(-5 * dt));
                         Shot(cam, lookSm, 52);
@@ -496,8 +498,8 @@ namespace Hiraeth
                 case "settle":
                     {
                         float k = Smooth(Seg(t, 0, 3.6f));
-                        var a = restPos - N * 40 + T * 28 + Vector3.up * 17; var b = restPos - N * 31 + T * 21 + Vector3.up * 12;
-                        Shot(Vector3.Lerp(a, b, k), restPos - T * 16 + Vector3.down * 2, 46);
+                        var a = restPos + (-N * 40 + T * 28 + Vector3.up * 17) * scale; var b = restPos + (-N * 31 + T * 21 + Vector3.up * 12) * scale;
+                        Shot(Vector3.Lerp(a, b, k), restPos + (-T * 16 + Vector3.down * 2) * scale, 46);
                         break;
                     }
                 case "hatch":

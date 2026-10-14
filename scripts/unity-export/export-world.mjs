@@ -97,6 +97,8 @@ function materialOf(m) {
   if (u.uMode === undefined && m.type === 'ShaderMaterial') e.plain = 1;
   // the metals (materials.js METALS: kind, brushed, reflectivity, highlight; the brush's axis)
   if (m.defines?.METAL && u.uMetal) { e.metal = u.uMetal.value.toArray().map((x) => +x.toFixed(4)); e.brushAxis = u.uBrushAxis?.value.toArray() ?? [0, 1, 0]; }
+  // a room inside a hull (materials.js ROOM_LIGHT, issue #338: the ship's rooms): its key's direction (three, object) and strength
+  if (m.defines?.ROOM_LIGHT && u.uRoomKey) e.room = u.uRoomKey.value.toArray().map((x) => +x.toFixed(5));
   // the water's own look (water-shader.js): its colours, options, how far its bands reach
   if (m.defines?.WATER) {
     e.water = {};
@@ -566,7 +568,13 @@ const shipOut = (() => {
     crash: ship.site.crash ? { travel: -ship.site.crash.travel, length: ship.site.crash.length } : null,
     R: W.shipHull.R, DECK: W.shipHull.DECK, HATCH_A: -W.shipHull.HATCH_A,
     // the angular hull (src/ship/hull.js, docs/systems/ship.md): its length, side walls and the middle of its plan, in its own frame
-    hull: { length: W.shipHull.LENGTH, halfWidth: W.shipHull.HALF_W, centreZ: W.shipHull.CENTRE_Z, lift: W.shipHull.LIFT, belly: W.shipHull.BELLY },
+    // (scale: its size over the blockout's, issue #338; cockpitShift: how far the seats moved with it, interior.js cockpitZ: the
+    // prologue's shots written for the blockout's cockpit follow it)
+    hull: { length: W.shipHull.LENGTH, halfWidth: W.shipHull.HALF_W, centreZ: W.shipHull.CENTRE_Z, lift: W.shipHull.LIFT, belly: W.shipHull.BELLY, scale: W.shipHull.SHIP_SCALE, cockpitShift: W.shipInterior.cockpitZ(0) },
+    // the rooms' light (issue #338, materials.js ROOM_LIGHT): the key's direction in the ship's frame (mirrored), its
+    // strengths, the lamps (ship-local, mirrored; r their reach, the same lamps the level's lights carry)
+    roomLight: { key: (() => { const d = W.shipInterior.ROOM_KEY.dir; return [-d.x, d.y, d.z]; })(), day: W.shipInterior.ROOM_KEY.day, space: W.shipInterior.ROOM_KEY.space, warm: W.shipInterior.ROOM_KEY.warm, lampColor: W.shipInterior.LAMP_COLOR,
+      lamps: W.shipInterior.LAMPS.map((l) => ({ name: l.name, at: V3(l.p), r: l.r })) },
     // the holo table's planet (src/ship/holotable.js: drawn as approach.js draws a world; its size, its look)
     holoTable: { planetR: W.shipTable.planetR, world: levelId },
     // the approach from space and the landing (cinematics.js ArrivalDirector, exhaust.js): the bells, the feet, the timings

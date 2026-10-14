@@ -4,8 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { talkAllowed, bystanderSpot, inFurrow, BYSTANDER, ReboardGate, REBOARD_AWAY } from '../src/ship/landing.js';
-import { R } from '../src/ship/hull.js';
+import { talkAllowed, bystanderSpot, inFurrow, planGap, BYSTANDER, ReboardGate, REBOARD_AWAY } from '../src/ship/landing.js';
 import { Ship } from '../src/ship/ship.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -24,8 +23,8 @@ test('whoever waits at the wreck stands well clear of the hull and out of its fu
     for (const travel of [0, Math.PI / 2, Math.PI, -Math.PI / 3, null]) {
       const hull = { x: 30, z: -12 };
       const p = bystanderSpot({ out, hull, travel });
-      const d = Math.hypot(p.x - hull.x, p.z - hull.z);
-      assert.ok(d > R + 6, `well clear of the hull (${d.toFixed(1)} m; the hull is ${R} m round)`);
+      const d = Math.hypot(p.x - hull.x, p.z - hull.z), gap = planGap(p.x - hull.x, p.z - hull.z, out);
+      assert.ok(gap >= BYSTANDER.clear - 1e-6 && gap >= 6, `well clear of the hull (${gap.toFixed(1)} m from its plan, ${d.toFixed(1)} m from its origin)`);
       if (travel !== null) assert.ok(!inFurrow(p.x - hull.x, p.z - hull.z, travel), 'not where it ploughed in');
       // seen as you step out: on the hatch's side whenever the furrow leaves room there
       if (travel === null) assert.ok(((p.x - hull.x) * out.x + (p.z - hull.z) * out.z) / d > 0.6, 'in front of the hatch');

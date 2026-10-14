@@ -39,7 +39,7 @@ The ship's cutscenes and the filmed first times.
 - **Take-off and landing as a lander flies them** (v1.75, issue #354: "When the ship flies away it should go up with
   boosters then forward. The reverse for landing. Arrive then land vertically for the final part"; `src/ship/flight.js`,
   pure numbers). **The take-off** (`TAKEOFF`, `takeoffPose`): straight up off its feet on the belly's jets to a hover
-  15 m up in 2 s, eased in and out, the dust blown out under it; then the nose dips (0.14 rad) as the jets tip it forward
+  22 m up in 2 s (15 until the ship grew to twice its size, issue #338), eased in and out, the dust blown out under it; then the nose dips (0.14 rad) as the jets tip it forward
   and it powers away along its bow, 340 m by the end of its 5.2 s, climbing 80 m, the nose coming up to 0.12 rad; the
   warp opens at 4.4 s, well away (~180 m). Filmed low, 40 m out from the hatch and 26 m behind the stern, so the lift
   reads side on and the going away crosses the frame (it used to climb straight up, faster and faster, from in front).

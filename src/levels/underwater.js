@@ -523,7 +523,9 @@ export function* buildUnderwater(scene) {
     id: 'underwater',
     ground: terrain,
     spawn, spawnHeading: Math.PI, camYaw: 0, camPitch: 0.06,
-    shipSite: { ...SHIP_SITE },
+    // (moored on the Dock's dome: 5.4 m east, its legs even about the dome's crown, its ramp over it; the ship twice the size since
+    // issue #338 hung its stern 7 m down the dome's curve on one leg)
+    shipSite: { ...SHIP_SITE, x: SHIP_SITE.x + 5.4 },
     features: { mount: false, wind: false, jetpack: false, climb: true },
     limit: LIMIT, killY: -80,
     edgeHint: 'The glass holds the sea back; there is nowhere further to go.',

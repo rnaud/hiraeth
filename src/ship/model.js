@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Batch, polar } from './geo.js';
 import { buildHull, doorGeometry, rampGeometry, R, DECK, HATCH, HATCH_A, HINGE_R, HALF_W } from './hull.js';
-import { buildInterior, BLOCK_H } from './interior.js';
+import { buildInterior, BLOCK_H, ROOM_KEY, roomLook } from './interior.js';
 import { CallScreen } from './portrait.js';
 
 // Assembles one ship (hull + interior + moving parts) in ship-local space.
@@ -11,7 +11,7 @@ let SERIAL = 0;
 /** The invisible skirting's height (m): over a step, under the camera's line of sight. */
 export const SKIRT = BLOCK_H;
 
-export function shipMaterials(tag, { space = false } = {}) {
+export function shipMaterials(tag, { space = false, room = null } = {}) {
   const o = {
     // the outside, from the selected reference: worn cream enamel, muted lavender panels, one coral stripe,
     // a khaki lower hull in two chamfers, a dark belly, dark blue glass
@@ -65,16 +65,17 @@ export function shipMaterials(tag, { space = false } = {}) {
     lamp: { color: '#fff1c8', glow: 1, tag: `${tag}-lamp` },
     collider: { color: '#ffffff' },
   };
-  // the rooms are always in the hull's shadow: a little self-light keeps them from going dark; their shade keeps its
-  // hatching, its strokes never closer than SHIP_ROOM_HATCH_PX (issue #325, "a lot of textures shimmering in my ship":
-  // at the print's spacing they were 2-4 px apart close up, right at HATCH_AA's edge, crawling under the pixels as you
-  // walked; issue #322's second look: a flat tone lost the shade the author found helpful)
-  for (const k of INTERIOR) o[k] = { ...o[k], glow: Math.max(o[k].glow ?? 0, 0.18), hatchPx: SHIP_ROOM_HATCH_PX };
+  // the rooms are always in the hull's shadow: lit by their own key from the windows and their lamps (ROOM_LIGHT, issue
+  // #338: a self-light of 0.18 lifted every face alike, and the lamps flooded whatever was near them, so the rooms read
+  // flat); their shade keeps its hatching, its strokes never closer than SHIP_ROOM_HATCH_PX (issue #325, "a lot of
+  // textures shimmering in my ship": at the print's spacing they were 2-4 px apart close up, right at HATCH_AA's edge,
+  // crawling under the pixels as you walked; issue #322's second look: a flat tone lost the shade the author found helpful)
+  for (const k of INTERIOR) o[k] = { ...o[k], ...roomLook(room) };
   return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, makeMaterial(v)]));
 }
 
 /** The least spacing of the rooms' hatch strokes, px (materials.js o.hatchPx): 5-10 px apart, clear of HATCH_AA's 2.2-4. */
-export const SHIP_ROOM_HATCH_PX = 5;
+export { SHIP_ROOM_HATCH_PX } from './interior.js';
 const INTERIOR = ['wallIn', 'floor', 'floorDark', 'ceiling', 'wall', 'wood', 'cream', 'blanket', 'pillow', 'cushion', 'toy', 'crate', 'rug', 'rugInner', 'fruitA', 'fruitB', 'panel', 'locker', 'metal', 'pot', 'leaf'];
 
 // thin, small or decorative: drawn, not collided with
@@ -86,12 +87,14 @@ const NO_COLLIDE = ['seam', 'stripe', 'glowRed', 'glowTeal', 'thrust', 'portGlas
  */
 export function buildShipModel(o = {}) {
   const tag = `ship${SERIAL++}`;
-  const mats = shipMaterials(tag, o);
+  // the rooms' key light, in the ship's own frame (it turns with the ship: nothing to update), one uniform for all the rooms' materials
+  const roomKey = { value: new THREE.Vector4(ROOM_KEY.dir.x, ROOM_KEY.dir.y, ROOM_KEY.dir.z, o.space ? ROOM_KEY.space : ROOM_KEY.day) };
+  const mats = shipMaterials(tag, { ...o, room: roomKey });
   const group = new THREE.Group();
   group.name = 'ship';
   const batch = new Batch(mats);
   const hull = buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
-  const interior = buildInterior(batch, group, { tag });
+  const interior = buildInterior(batch, group, { tag, room: roomKey });
   const flags = Object.fromEntries(NO_COLLIDE.map((k) => [k, { noCollide: true }]));
   flags.collider = { visible: false };
   const meshes = batch.build(group, flags);
@@ -124,7 +127,7 @@ export function buildShipModel(o = {}) {
     const sections = [];
     for (let i = 0; i < n; i++) {
       const len = i < n - 1 ? step + RAMP_OVERLAP : step;
-      const r = rampGeometry(len, 1.55 - 0.06 * i);
+      const r = rampGeometry(len, RAMP_W - 0.06 * i);
       if (axis < 0) for (const g of [r.plank, ...r.rails, ...r.stripes]) g.rotateY(Math.PI);
       const sec = new THREE.Group();
       sec.position.y = -0.035 * i;
@@ -168,7 +171,7 @@ export function buildShipModel(o = {}) {
   const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
   // the outside's small things (seams, the scorch, the lights, the trim): only drawn near (the far level of detail)
   const details = FAR_HIDDEN.map((k) => meshes[k]).filter(Boolean);
-  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details };
+  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey };
 }
 /** How far (m) the outside's small things are drawn; past it the hull is its panels, stripe, glass and legs. */
 export const DETAIL_FAR = 130;
@@ -185,6 +188,8 @@ function mergeAll(geos) {
   return m;
 }
 
+/** The ramp's width (m): 1.55 until issue #338, now most of the 3.2 m hatch. */
+export const RAMP_W = 2.5;
 const RAMP_OVERLAP = 0.4;   // m: how far each section stays inside the one before when out
 /** How many sections a ramp of length L telescopes in (each about 3 m). */
 export const rampSections = (L) => Math.max(2, Math.min(5, Math.round(L / 3)));

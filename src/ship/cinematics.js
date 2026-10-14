@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { game } from '../game-state.js';
-import { DECK, HATCH_A, CENTRE_Z, LENGTH, HALF_W, BELLY, LIFT } from './hull.js';
-import { CONSOLE_R } from './interior.js';
+import { DECK, HATCH_A, CENTRE_Z, LENGTH, HALF_W, BELLY, LIFT, SHIP_SCALE } from './hull.js';
+import { CONSOLE_R, cockpitZ } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
 import { callTimeline, NUDGE, nudgeText, nudgeDue, PAUSE, PAUSE_THEME_AT, PROLOGUE_STAGES } from './prologue.js';
 import { lightCues, lightEnvelope, lightBeat } from '../story/light-theme.js';
@@ -253,7 +253,7 @@ export class PrologueDirector {
     if (ship.sound?.ctx) void loadCue(ship.sound, 'singing-light');
     // the light's way past the ship (ship-local): out of the dark ahead, close past the cockpit's left (the hatch's
     // side, where it leaves its mark on the hull), away behind
-    this.LM = V(-HALF_W - 5, DECK + 2.4, -7.5);               // nearest: a few metres off the hull, at the window's height
+    this.LM = V(-HALF_W - 5, DECK + 2.4 * SHIP_SCALE, -7.5 * SHIP_SCALE);   // nearest: a few metres off the hull, at the window's height
     this.LD = V(-0.45, -0.08, 0.89).normalize();              // the way it goes
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
@@ -481,10 +481,11 @@ export class PrologueDirector {
         const nearAt = 2.9, cut = 2.55;
         if (t < cut) {
           const k = smooth(t / cut);
-          s.shot({ pos: this.W(V(0.55, DECK + 1.95, -6.7 - 0.3 * k)), look: this.W(V(-2.6 - 2 * k, DECK + 1.75, -22.8)), fov: 56 });
+          s.shot({ pos: this.W(V(0.55, DECK + 1.95, cockpitZ(-6.7 - 0.3 * k))), look: this.W(V(-2.6 - 2 * k, DECK + 1.75, cockpitZ(-22.8))), fov: 56 });
         } else {
           const k = smooth((t - cut) / (this.passDur - cut));
-          s.shot({ pos: this.W(V(-34, DECK + 2 + 2 * k, 3 + 4 * k)), look: this.W(V(-3 - 5 * k, DECK + 1.2, -6 + 9 * k)), fov: 56 });
+          const K = SHIP_SCALE;   // (outside, wide: as far off as the ship is big)
+          s.shot({ pos: this.W(V(-34 * K, DECK + (2 + 2 * k) * K, (3 + 4 * k) * K)), look: this.W(V((-3 - 5 * k) * K, DECK + 1.2 * K, (-6 + 9 * k) * K)), fov: 56 });
         }
         const pos = this.lightFrame(nearAt - t, dt);
         // everything in the cockpit is lit by it as it nears; the father's picture shivers
@@ -497,7 +498,7 @@ export class PrologueDirector {
       case 'drain': {
         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit
         const k = smooth(seg(t, 1.6, 4.8));
-        s.shot({ pos: this.W(V(1.1, DECK + 1.8, -6.3)), look: this.W(V(-0.3, DECK + 1.9 - k * 0.7, -12.8)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
+        s.shot({ pos: this.W(V(1.1, DECK + 1.8, cockpitZ(-6.3))), look: this.W(V(-0.3, DECK + 1.9 - k * 0.7, cockpitZ(-12.8))), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
         if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }
@@ -525,10 +526,10 @@ export class PrologueDirector {
         if (s.jets) carryJets(s.jets, pk);
         if (u > 0.82) for (let i = 0; i < 2; i++) {
           const size = 0.7 + Math.random() * 0.5;
-          const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.5 - size * 1.3, CENTRE_Z + (Math.random() - 0.5) * 16));
+          const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.5 - size * 1.3, CENTRE_Z + (Math.random() - 0.5) * LENGTH * 0.6));
           (s.jets ?? s.flame).emit(under, V(0, -14, 0), size, 0.3, pickOf(FIRE));
         }
-        const cam = s.restPos.clone().addScaledVector(this.N, -64).addScaledVector(this.T, 36).add(V(0, 8, 0));   // (the long low hull: nearer than the ball needed)
+        const cam = s.restPos.clone().addScaledVector(this.N, -64 * SHIP_SCALE).addScaledVector(this.T, 36 * SHIP_SCALE).add(V(0, 8 * SHIP_SCALE, 0));   // (the long low hull: nearer than the ball needed; as far off as it is big)
         if (t < dt * 1.5) this.look.copy(p);
         this.look.lerp(p, 1 - Math.exp(-6 * dt));
         s.shot({ pos: cam, look: this.look, fov: 40 });
@@ -546,13 +547,13 @@ export class PrologueDirector {
         const n = Math.round((1 - p) * 3 + 1);
         for (let i = 0; i < n; i++) {
           const side = Math.random() < 0.5 ? -1 : 1;
-          const at = pos.clone().addScaledVector(this.T, 7).addScaledVector(this.N, side * (5 + Math.random() * 5));
+          const at = pos.clone().addScaledVector(this.T, 7 * SHIP_SCALE).addScaledVector(this.N, side * (5 + Math.random() * 5) * SHIP_SCALE);
           at.y = s.groundAt(at.x, at.z) + 1;
           const v = this.N.clone().multiplyScalar(side * (4 + Math.random() * 7)).addScaledVector(this.T, 6 * (1 - p)).add(V(0, 3 + Math.random() * 4, 0));
           s.dust.emit(at, v, 1 + Math.random() * 1.3 * (1 - p * 0.5), 1.2 + Math.random(), new THREE.Color(pickOf(SAND)));
         }
         if (s.wind && Math.random() < 0.5) for (let i = 0; i < 4; i++) s.wind.emit(pos.x + (Math.random() - 0.5) * 30, pos.z + (Math.random() - 0.5) * 30, this.N.x * (Math.random() - 0.5) * 20, this.N.z * (Math.random() - 0.5) * 20);
-        const cam = s.restPos.clone().addScaledVector(this.N, -40).addScaledVector(this.T, -26).add(V(0, 5, 0));
+        const cam = s.restPos.clone().addScaledVector(this.N, -40 * SHIP_SCALE).addScaledVector(this.T, -26 * SHIP_SCALE).add(V(0, 5 * SHIP_SCALE, 0));
         cam.y = Math.max(cam.y, s.groundAt(cam.x, cam.z) + 2.5);
         this.look.lerp(pos, 1 - Math.exp(-5 * dt));
         s.shot({ pos: cam, look: this.look, fov: 52 });
@@ -561,9 +562,9 @@ export class PrologueDirector {
       }
       case 'settle': {
         const k = smooth(seg(t, 0, 3.6));
-        const a = s.restPos.clone().addScaledVector(this.N, -40).addScaledVector(this.T, 28).add(V(0, 17, 0));
-        const b = s.restPos.clone().addScaledVector(this.N, -31).addScaledVector(this.T, 21).add(V(0, 12, 0));
-        s.shot({ pos: a.lerp(b, k), look: s.restPos.clone().addScaledVector(this.T, -16).add(V(0, -2, 0)), fov: 46 });
+        const K = SHIP_SCALE, a = s.restPos.clone().addScaledVector(this.N, -40 * K).addScaledVector(this.T, 28 * K).add(V(0, 17 * K, 0));
+        const b = s.restPos.clone().addScaledVector(this.N, -31 * K).addScaledVector(this.T, 21 * K).add(V(0, 12 * K, 0));
+        s.shot({ pos: a.lerp(b, k), look: s.restPos.clone().addScaledVector(this.T, -16 * K).add(V(0, -2 * K, 0)), fov: 46 });
         if (t > 1.6 && !this.creak) { this.creak = true; s.sound?.critter?.('creak', 1); }
         break;
       }

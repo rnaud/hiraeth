@@ -5,7 +5,7 @@ import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
 import { DECK, HATCH, HALF_W, WALL_IN, halfWidthAt } from '../src/ship/hull.js';
-import { TABLE, BLOCK_H, ROOMS, inRooms, GALLEY_X, CONSOLE } from '../src/ship/interior.js';
+import { TABLE, BLOCK_H, ROOMS, inRooms, GALLEY_X, GALLEY_Z, CONSOLE } from '../src/ship/interior.js';
 import { PLANETS } from '../src/ship/planets.js';
 
 // The ship's deck, from player feedback: "the floor on the ship must be flat: the traveller moves up
@@ -30,7 +30,7 @@ test('the deck is one flat plane: nothing under a step\'s height can be walked o
   const { physics, ship } = world();
   const m = ship.parked, deckY = ship.world(m, v(0, DECK, 0)).y;
   let floor = 0, raised = 0;
-  for (let x = -3.2; x <= 3.2; x += 0.2) for (let z = ROOMS.cockpit.z0; z <= ROOMS.hold.z1; z += 0.2) {
+  for (let x = -WALL_IN + 0.4; x <= WALL_IN - 0.4; x += 0.25) for (let z = ROOMS.cockpit.z0; z <= ROOMS.hold.z1; z += 0.25) {
     if (!inRooms(v(x, DECK + 0.1, z), { margin: -0.1 })) continue;
     const p = ship.world(m, v(x, DECK, z));
     // the first surface under the traveller's step (0.6 m): the deck itself, or something low
@@ -50,11 +50,11 @@ test('walking across the deck keeps the traveller at one height: no bobbing over
   const m = ship.parked, deckY = ship.world(m, v(0, DECK, 0)).y, P0 = m.interior.points;
   const walks = [
     [P0.cockpit, P0.bunkStand],                 // the voicemail to the bed, round the console's tail
-    [P0.hatchIn, v(GALLEY_X + 0.6, DECK, -3.0)], // the hatch to the galley counter
-    [v(-1.2, DECK, -4.5), v(0, DECK, 8.6)],      // the main room to the hold, into its crates
-    [v(-0.6, DECK, -0.4), v(2.0, DECK, 1.35)],   // into the small table and its seats
-    [P0.hatchIn, v(-2.8, DECK, 1.6)],            // into the sofa
-    [v(2.0, DECK, -2.6), v(-1.2, DECK, -2.6)],   // into the holo table and round it
+    [P0.hatchIn, v(GALLEY_X + 0.6, DECK, (GALLEY_Z.z0 + GALLEY_Z.z1) / 2)],   // the hatch to the galley counter
+    [v(-2.4, DECK, -9.0), v(0, DECK, 21.0)],     // the main room to the hold, into its crates
+    [v(-0.6, DECK, 10.5), v(-3.2, DECK, 13.4)],  // into the small table and its seats
+    [P0.hatchIn, v(-WALL_IN + 0.6, DECK, 10.5)], // into the sofa
+    [v(TABLE.x + 2.2, DECK, TABLE.z + 0.5), v(TABLE.x - 1.0, DECK, TABLE.z + 0.5)],   // into the holo table and round it
   ];
   for (const [a, b] of walks) {
     const P = new Player(physics);
@@ -96,8 +96,8 @@ test('the main room is open round a small holo table, the curved console round i
     assert.equal(physics.rayDistance(from, dir, CONSOLE.ri - TABLE.r) < CONSOLE.ri - TABLE.r - 0.1, hit, `the console ${hit ? 'to port' : 'not to starboard'}`);
   }
   // the galley counter stands along the port wall, before the hull
-  const out = ship.world(m, v(-1.0, DECK + 0.8, -4.2)), dir = v(-1, 0, 0).applyQuaternion(m.group.quaternion);
-  assert.ok(Math.abs(physics.rayDistance(out, dir, 4) - (-1.0 - GALLEY_X)) < 0.08, `the galley counter: ${physics.rayDistance(out, dir, 4).toFixed(2)}`);
+  const gz = (GALLEY_Z.z0 + GALLEY_Z.z1) / 2 - 0.5, out = ship.world(m, v(GALLEY_X + 3, DECK + 0.8, gz)), dir = v(-1, 0, 0).applyQuaternion(m.group.quaternion);
+  assert.ok(Math.abs(physics.rayDistance(out, dir, 4) - 3) < 0.08, `the galley counter: ${physics.rayDistance(out, dir, 4).toFixed(2)}`);
 });
 
 test('the holo table shows the planet the ship is at, in the galactic map\'s colours', () => {
@@ -125,7 +125,7 @@ test('everything aboard stays inside the hull (nothing pokes out through it)', (
     let worst = -Infinity, at = null;
     for (let i = 0; i < p.count; i++) {
       q.fromBufferAttribute(p, i);
-      const y = THREE.MathUtils.clamp(q.y, DECK - 0.3, 3.2);   // (the deck's slab and the walls run into the hull's thickness)
+      const y = THREE.MathUtils.clamp(q.y, DECK - 0.3, 6.4);   // (the deck's slab and the walls run into the hull's thickness)
       const over = Math.abs(q.x) - halfWidthAt(q.z, y);
       if (over > worst) { worst = over; at = q.clone(); }
     }

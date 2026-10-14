@@ -36,7 +36,7 @@ namespace Hiraeth
         struct FlightPose { public float along, up, pitch; }   // (along: m ahead taking off, m back landing; pitch + nose up)
         FlightPose TakeoffPose(float t)
         {
-            float dur = Fl("takeoff", "dur", 5.2f), rise = Fl("takeoff", "rise", 2.0f), hover = Fl("takeoff", "hover", 15);
+            float dur = Fl("takeoff", "dur", 5.2f), rise = Fl("takeoff", "rise", 2.0f), hover = Fl("takeoff", "hover", 22);
             if (t <= rise) return new FlightPose { along = 0, up = hover * Smooth(t / rise), pitch = 0 };
             float s = Mathf.Clamp01((t - rise) / (dur - rise));
             float dip = s < 0.45f ? Fl("takeoff", "dip", 0.14f) * Mathf.Sin(Mathf.PI * s / 0.45f) : 0;

@@ -31,6 +31,7 @@ Shader "Hiraeth/Surface"
     _PaletteSize ("Palette size", Float) = 0
     _Metal ("Metal (kind, brushed, reflectivity, highlight; w 0: not a metal)", Vector) = (0, 0, 0, 0)
     _BrushAxis ("Brush axis (three, object)", Vector) = (0, 1, 0, 0)
+    _Room ("A room in a hull: its key's direction (three, object), strength; w 0: not a room", Vector) = (0, 0, 0, 0)
     _WaterOpt ("Water (fallback depth, printed, clarity, sparkle; x 0: the old water)", Vector) = (0, 0, 1, 1)
     _WaterBed ("Water's bed colour", Vector) = (0.9, 0.86, 0.7, 1)
     _Bed ("Bed heights (three-space map, R: height)", 2D) = "black" {}
@@ -115,6 +116,7 @@ Shader "Hiraeth/Surface"
     float4 _Palette[12];
     float _NoVertexColor;
     float4 _Metal; float4 _BrushAxis;
+    float4 _Room;          // a room in a hull (materials.js ROOM_LIGHT, the ship's rooms): its key's direction (three, object), w its strength
     float4 _WaterOpt, _WaterBed;
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
@@ -1002,6 +1004,14 @@ Shader "Hiraeth/Surface"
         if (mode != MODE_TERRAIN && _Flat < 0.5)
           sh = lerp(sh, lerp(1.0, sh, smoothstep(0.0, 0.08, ndl)), 1.0 - smoothstep(0.02, 0.06, nTurn));
         float L = lerp(min(lambert, 0.38), lambert, sh);
+        // a room in a hull (materials.js ROOM_LIGHT, issue #338): its own soft key from the windows in place of the sun, the
+        // key-lit faces a little of the sky's colour (the web's numbers; the web also lowers the key at night)
+        UNITY_BRANCH if (_Room.w > 0.0)
+        {
+          float roomKey = smoothstep(-0.1, 0.6, dot(normalize(i.objNormal), _Room.xyz));
+          L = lerp(L, lerp(0.28, 0.74, roomKey), _Room.w);
+          albedo *= lerp(float3(1, 1, 1), 0.72 + 0.4 * lerp(_SkyHorizon, _SkyTop, 0.35), 0.22 * roomKey * _Room.w);
+        }
         L = lerp(L, 1.0, max(_Glow, emit));
         float local = 0.0;
         // (the lights come nearest first, the unused after them with no radius (HiraethLook): the loop stops at the first of
@@ -1012,10 +1022,11 @@ Shader "Hiraeth/Surface"
           float d = length(dl);
           if (d < _MLights[li].w) {
             float att = pow(1.0 - d / _MLights[li].w, 2.0);
-            local = max(local, att * (0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
+            // (a room's lamps hang in shades, ROOM_LIGHT: what is under them and faces them)
+            local = max(local, att * (_Room.w > 0.0 ? smoothstep(0.25, 0.75, dl.y / d) * (0.12 + 0.88 * max(dot(n, dl / d), 0.0)) : 0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
           }
         }
-        L = max(L, lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
+        L = max(L, _Room.w > 0.0 ? lerp(L, 0.95, smoothstep(0.06, 0.6, local)) : lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
         if (mode == MODE_WATER && _WaterOpt.x > 0.0) L = lerp(L, max(L, 0.8), waterLit);
         float metalInk = 0.0;
         UNITY_BRANCH if (_Metal.w > 0.0)

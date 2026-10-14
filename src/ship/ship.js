@@ -149,12 +149,12 @@ export class Ship {
     } else {
       // on its legs, the belly clear of the ground everywhere under it
       cy = s.ground + LIFT;
-      for (let z = -9.5; z <= 12; z += 1.5) for (const x of [-2.6, -1.4, 0, 1.4, 2.6]) {
+      for (let z = NOSE_Z + 1.3; z <= STERN_Z - 3; z += 1.5) for (const x of [-2.6, -1.4, 0, 1.4, 2.6].map((v) => (v * HALF_W) / 4.2)) {
         const u = undersideAt(x, z);
         if (u === null) continue;
         const p = new THREE.Vector3(x, 0, z).applyQuaternion(q).add(base);
         // (the terrain itself where the level has one: a prop under the hull, a bush or a bone, never lifts it on stilts)
-        const g = Math.min(this.heightAt?.(p.x, p.z) ?? this.groundAt(p.x, p.z), s.ground + 2.6);
+        const g = Math.min(this.heightAt?.(p.x, p.z) ?? this.groundAt(p.x, p.z), s.ground + LIFT);
         cy = Math.max(cy, g - u + 0.45);
       }
     }
@@ -468,6 +468,10 @@ export class Ship {
   covers(p) {
     if (Math.hypot(p.x - this.restPos.x, p.z - this.restPos.z) > R + 6) return false;
     if (this.isInside(this.parked, p)) return true;
+    // (under the hull's plan, however high it stands: the ship twice the size since issue #338, its belly over a
+    // spawn by its side can be more than SPAWN_HEADROOM up, and the desert's start stood under its flank)
+    const l = _ko.set(p.x - this.restPos.x, 0, p.z - this.restPos.z).applyQuaternion(this._restQi ??= this.parked.group.quaternion.clone().invert());
+    if (Math.abs(l.x) < HALF_W + 0.5 && l.z > NOSE_Z - 0.5 && l.z < STERN_Z + 0.5 && p.y < this.restPos.y + ROOF) return true;
     return this.physics.rayDistance(new THREE.Vector3(p.x, p.y + 0.3, p.z), Y, SPAWN_HEADROOM) < SPAWN_HEADROOM;
   }
 

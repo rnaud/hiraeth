@@ -66,6 +66,8 @@ export function portMaterial(spec, id = 0) {
   const ps = v('uPaletteSize');
   if (ps > 0 && Array.isArray(u.uPalette)) for (let i = 0; i < ps; i++) e.palette.push(u.uPalette.slice(i * 3, i * 3 + 3).map(r5));
   if (spec.defines?.METAL && Array.isArray(u.uMetal)) { e.metal = u.uMetal.map((x) => +x.toFixed(4)); e.brushAxis = u.uBrushAxis ?? [0, 1, 0]; }
+  // a room inside a hull (materials.js ROOM_LIGHT: the ship's rooms): its key (three, object: the port's shader reads the object's normal in three's frame) and strength
+  if (spec.defines?.ROOM_LIGHT && Array.isArray(u.uRoomKey)) e.room = u.uRoomKey.map(r5);
   if (spec.defines?.WATER) {
     e.water = {};
     for (const [k, x] of Object.entries(u)) {

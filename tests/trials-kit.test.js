@@ -21,7 +21,7 @@ import { clearTargets } from '../src/targets.js';
 import { clearWorkings, workingsAt } from '../src/workings.js';
 import { GameState } from '../src/game-state.js';
 import { findShipSite, siteAvoid } from '../src/ship/sites.js';
-import { R as HULL } from '../src/ship/hull.js';
+import { HALF_W, NOSE_Z, STERN_Z, HATCH_A } from '../src/ship/hull.js';
 import { createEchoShell, ECHO } from '../src/echo-shell.js';
 import { COURTS, COURT } from '../src/finds/courts.js';
 
@@ -211,11 +211,19 @@ for (const T of Object.values(KIT_TRIALS)) {
     }
     // clear of the ship where it lands in this world (src/ship/sites.js: Vael's search put it on the plain)
     const site = findShipSite({ level: worlds[W0].level, physics, levelId: W0, avoid: siteAvoid({ level: worlds[W0].level, content: CONTENT[W0] }) });
-    if (site) {
-      const lo = course.kit.local(V(site.x, course.start.y, site.z));
+    // (the Underwater City's ship is moored on the Dock's dome, 20 m over the sea floor the walk crosses)
+    if (site && site.ground - course.start.y < 10) {
+      // (the hull's plan where it stands, its legs 3 m past it: the ship twice the size since issue #338, a disc of its
+      // reach round its origin was far more than it covers)
       const [[x0, , z0], [x1, , z1]] = [[-8, 0, -10], [8, 0, 105]];
-      const dx = Math.max(x0 - lo.x, 0, lo.x - x1), dz = Math.max(z0 - lo.z, 0, lo.z - z1);
-      assert.ok(Math.hypot(dx, dz) > HULL + 6, `clear of the ship (${Math.hypot(dx, dz).toFixed(0)} m from the course)`);
+      const yaw = (site.heading ?? 0) - HATCH_A, cs = Math.cos(yaw), sn = Math.sin(yaw);
+      let gap = Infinity;
+      for (let u = -1; u <= 1.001; u += 0.25) for (let w = 0; w <= 1.001; w += 0.05) {
+        const lx = u * (HALF_W + 3), lz = NOSE_Z - 3 + w * (STERN_Z - NOSE_Z + 6);
+        const lo = course.kit.local(V(site.x + lx * cs + lz * sn, course.start.y, site.z - lx * sn + lz * cs));
+        gap = Math.min(gap, Math.hypot(Math.max(x0 - lo.x, 0, lo.x - x1), Math.max(z0 - lo.z, 0, lo.z - z1)));
+      }
+      assert.ok(gap > 6, `clear of the ship (${gap.toFixed(0)} m from the course)`);
     }
     // clear of the world's makers' court (src/finds/courts.js: its pavement, its box and the ground it keeps clear)
     const court = courtOf(T.world);

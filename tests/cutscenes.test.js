@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship, doorPhases } from '../src/ship/ship.js';
-import { HALF_W, HATCH, doorGeometry } from '../src/ship/hull.js';
+import { HALF_W, HATCH, SHIP_SCALE, doorGeometry } from '../src/ship/hull.js';
 import { buildSpace, rampPhases, rampSections, poseRamp } from '../src/ship/model.js';
 import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
@@ -72,7 +72,7 @@ test('landing: the jets come out of the lift jets under the belly, and the dust 
   for (const d of dust) {
     const r = Math.hypot(d.p.x - ship.restPos.x, d.p.z - ship.restPos.z);
     const nearBell = Math.min(...THRUSTERS.map((p) => { const b = ship.world(m, p); return Math.hypot(d.p.x - b.x, d.p.z - b.z); }));
-    assert.ok(r < 12 && nearBell < 4, `the dust starts under the bells (${nearBell.toFixed(1)} m from one), not on a ring round the ship`);
+    assert.ok(r < 12 * SHIP_SCALE && nearBell < 4, `the dust starts under the bells (${nearBell.toFixed(1)} m from one), not on a ring round the ship`);
     assert.ok(d.p.y < 0.8, `on the ground (${d.p.y.toFixed(2)}), not on the hull`);
     assert.ok(Math.hypot(d.v.x, d.v.z) > 3 * Math.abs(d.v.y), 'blown flat along the ground');
   }

@@ -9,6 +9,16 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.76', date: '2026-10-14', items: [
+    // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield
+    // brought down), interior.js (ROOMS etc. x2, the furniture at its size moved with at/grown, DINING_Z, READING_Z,
+    // BENCH_Z, the back room's rug and bookcase, the hold's crates), sites.js (the hull's plan, not a disc: probeSite,
+    // fromPlan; the search worlds' sites kept), landing.js planGap, cinematics.js / homecoming.js cockpitZ, flight.js
+    // TAKEOFF.hover, underwater.js shipSite, ShipScene.cs (scale, cockpitShift); tests/ship-grown.test.js, room-size, contact-audit
+    'Your ship is twice the size, inside and out: every room is twice as wide, long and high, the doorways and the hatch wide, the cockpit’s windshield sweeping down to the dash, while the furniture stays your size, so there is room to walk round everything. The main room gains a table to eat at by the galley, a reading corner with a bookcase and an armchair, and a workbench; the back room a big rug and a tall bookcase; the hold more crates. It lands where it did in every world, but for the Buried City and the Underwater City, where it stands a little aside to fit.',
+    // the rooms' light (issue #338): materials.js ROOM_LIGHT (makeMaterial({ room }): a key in the ship's frame in place of
+    // the sun, the lamps' cone and pools), interior.js LAMPS / ROOM_KEY / roomLook, model.js; Unity: Surface.shader _Room,
+    // WorldLoader.cs, port-format.js, export-world.mjs ship.roomLight; tests/ship-grown.test.js
+    'The ship has real light inside now. Before, every room was the same flat shade and its six ceiling lamps simply washed out whatever was near them; now soft light from the windshield gives the walls and furniture a lit side and a shaded side, and twelve warm lamps (pendants over the table, the galley, the bunk and every room, a floor lamp in the reading corner) throw pools of light on the floor beneath them. At night the lamps carry the rooms.',
     // rumours (issue #340): src/story/rumours.js (offer, the circle, what is found), rumours-data.js (the lines by world),
     // rumour-places.js (each fragment's place), dialogue.js (listen talk, the keepers' again), world-map.js mapMarks
     // `rumours`, game-menu.js / .css (.gm-area), engine/menus.js, engine/map-marks.js, BridgeMenu.cs; tests/rumours.test.js
