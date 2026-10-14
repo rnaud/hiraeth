@@ -1,0 +1,41 @@
+docs/design/alien-temple-prompts-v2.md
+  s_9ca76055a220ed::t_f9919b41adeed5 1-354
+references/temples/alien/crystal-lattice/manifest.json
+  s_9ca76055a220ed::t_abe7e4e8c53ba9 1-16
+references/temples/alien/floating-stone/manifest.json
+  s_9ca76055a220ed::t_ce227c28b41d18 1-16
+references/temples/alien/grown-hall/manifest.json
+  s_9ca76055a220ed::t_c864492c356974 1-16
+references/temples/alien/machine-guts/manifest.json
+  s_9ca76055a220ed::t_66088fdca8e1cb 1-16
+references/temples/alien/mirror-metal/manifest.json
+  s_9ca76055a220ed::t_0dbab103066566 1-16
+references/temples/alien/resonant-cavern/manifest.json
+  s_9ca76055a220ed::t_d4863f71e340eb 1-16
+docs/design/alien-temple-prompts.md
+  s_d5fe68a1d6c86e::t_709ea6cc531d07 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b9c891fdce2a582650d764cb7b9ebc8b0f3b8025",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d5fe68a1d6c86e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad491b7bf13c6d481",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
