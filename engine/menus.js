@@ -64,7 +64,7 @@ export function settingStep(row, v, dir) {
   return +Math.min(row.max, Math.max(row.min, n)).toFixed(3);
 }
 
-/** The Start menu's sidebar: its entries and what each does (src/ui.js SettingsMenu render, in the game; no photo mode). */
+/** The Start menu's sidebar: its entries and what each does (src/ui.js SettingsMenu render, in the game; photo mode issue #264). */
 export const START_SIDE = [
   { id: 'resume', label: () => t('menu.resume') },
   { id: 'items', label: () => t('menu.items'), panel: 'items' },
@@ -72,6 +72,7 @@ export const START_SIDE = [
   { id: 'map', label: () => t('menu.map'), panel: 'map' },
   { id: 'settings', label: () => t('menu.settings'), page: 'settings' },
   { id: 'controls', label: () => t('menu.controls'), page: 'controls' },
+  { id: 'photo', label: () => t('menu.photo') },
   { id: 'news', label: () => t('menu.news'), page: 'news' },
   { id: 'quit', label: () => t('menu.quit') },
 ];
@@ -107,14 +108,15 @@ export class EngineMenus {
    * @param o.onStart   ({ slot, fresh } | { debug, slot }) the title's choice
    * @param o.onResume  () the Start menu or the game menu closed
    * @param o.onQuit    () Quit to title chosen (the engine saves, then shows the title)
+   * @param o.onPhoto   () Photo mode chosen (the menu closed first)
    * @param o.onTravel  (id) → null | a line why not (the Worlds page's Travel here)
    * @param o.onUse, o.onTrack  an item used, a quest tracked (the game menu's)
    * @param o.where     () → the Start menu's heading: the world you are in
    * @param o.itemCols  () → how many of the Items panel's tiles fit a row on the engine's screen (the web's grid fits
    *                    as many as its tile's size allows: src/game-menu.css --tile); GEAR_COLS without one
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, where, version, itemCols });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols });
     this.mode = null;            // null | 'title' | 'start' | 'game'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
@@ -366,6 +368,7 @@ export class EngineMenus {
     else if (e.panel) this.show('game', e.panel);
     else if (e.page) { S.page = e.page; S.at = { in: 'page', i: 0 }; }
     else if (e.id === 'quit') { this.mode = null; this.onQuit(); }
+    else if (e.id === 'photo') { this.close(); this.onPhoto(); }
   }
 
   // ------------------------------------------------------------------ the game menu

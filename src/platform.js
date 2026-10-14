@@ -59,10 +59,11 @@ export const audio = {
  *             (ship/cinema.js): the letterbox, the eyes' opening, the fade, the alarm's wash, the hint, hold-to-skip,
  *             the game's HUD hidden (hud false) but for the cue in a scene you walk through (walk)
  *   sub       { who, cls, text, id }             the scene's subtitle (ship/cinema.js): the speaker's tag and the line
+ *   photo     { hint }                           photo mode's keys (an engine's, engine/game.js)
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null },
   version: 0,
   _keys: {},
   set(part, value) {

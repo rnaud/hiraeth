@@ -71,7 +71,7 @@ import { Sound } from '../src/audio.js';
 import { createBoxes } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
-import { padFaces, setFaces } from '../src/native-pad.js';
+import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
 import { attachMotion } from '../src/motion-match.js';
 
 export { page };
@@ -397,13 +397,44 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const talk = { sel: 0 };
   const dialogue = () => story?.dialogue ?? null;
   const talking = () => !!dialogue()?.open;
+  // photo mode (main.js setPhoto, photoUpdate; issue #264): the world held still under a free camera, flown from where
+  // the view was (the left stick, LB / RB down and up, RT faster; the right stick turns it), the HUD gone but for its
+  // keys at the top; A / × saves the picture (the engine's own shot: the Unity bridge's BridgeHost.Photo, into the app's
+  // photos folder), B / ○, View or Menu leaves it. From the Start menu's Photo mode, View + D-pad ↑, or P.
+  const photo = { on: false, capture: 0, saved: 0, pos: new THREE.Vector3() };
+  const photoHint = () => (controller.index !== null
+    ? `Left stick fly · right stick look · LB / RB down / up · ${confirmKey()} save · ${backKey()} exit`
+    : 'WASD fly · mouse look · Q / E down / up · Shift faster · Enter save · P exit');
+  function setPhoto(on) {
+    if (on && (pinned || talking() || (shipOn && ship.playing) || player.dead || !backend?.photo)) return;
+    photo.on = !!on; photo.capture = 0;
+    if (on) photo.pos.copy(camera.position);
+    for (const k of ['cue', 'prompt', 'stamina', 'health', 'keys', 'toast']) screen.set(k, null);
+    screen.set('photo', on ? { hint: photoHint() } : null);
+  }
+  const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
+  function photoFly(dt, input) {
+    const up = camera.up, cp = Math.cos(rig.pitch);
+    _pf.copy(player.frame.right).multiplyScalar(-Math.sin(rig.yaw) * cp)
+      .addScaledVector(player.frame.up, -Math.sin(rig.pitch))
+      .addScaledVector(player.frame.fwd, -Math.cos(rig.yaw) * cp).normalize();
+    _pr.crossVectors(_pf, up).normalize();
+    const sp = (input.ShiftLeft || input.ShiftRight ? 60 : 14) * dt;
+    const f = (input.KeyW ? 1 : 0) - (input.KeyS ? 1 : 0), s = (input.KeyD ? 1 : 0) - (input.KeyA ? 1 : 0), v = (input.KeyE ? 1 : 0) - (input.KeyQ ? 1 : 0);
+    photo.pos.addScaledVector(_pf, f * sp).addScaledVector(_pr, s * sp).addScaledVector(up, v * sp);
+    camera.position.copy(photo.pos);
+    camera.lookAt(_pr.copy(photo.pos).add(_pf));
+  }
   const controller = new Controller({
     pads: () => navigator.getGamepads?.() ?? [],
     // (a menu open, engine/menus.js: the pad's menu context, its actions and directions the menu's)
-    context: () => (menus?.open ? 'menu' : talking() ? 'talk' : player.ride ? 'ride' : 'game'),
+    context: () => (menus?.open ? 'menu' : photo.on ? 'photo' : talking() ? 'talk' : player.ride ? 'ride' : 'game'),
     look: (x, y) => { if (x || y) rig.look(x, y); },
     action: (name, dt) => {
       if (menus?.open) { menus.action(name); return; }
+      if (name === 'photo') { setPhoto(!photo.on); return; }
+      if (name === 'capture') { if (photo.on && !photo.capture) photo.capture = 1; return; }
+      if (photo.on) return;
       // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
       if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
       if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
@@ -587,6 +618,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (down) tapped.add(code);
       const was = keys[code];
       keys[code] = down;
+      // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
+      if (down && !was && !menus?.open) {
+        if (code === 'KeyP') setPhoto(!photo.on);
+        else if (photo.on && (code === 'Enter' || code === 'NumpadEnter') && !photo.capture) photo.capture = 1;
+        else if (photo.on && code === 'Escape') setPhoto(false);
+      }
       // and as the page's events, for the modules that listen to the window (a conversation's E, Space, 1–9, Escape)
       if (down !== was) page.dispatch(down ? 'keydown' : 'keyup', { code, key: /^Digit\d$/.test(code) ? code.slice(5) : code === 'Space' ? ' ' : code, repeat: false });
     },
@@ -638,6 +675,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     shipScenes: shipOn,
     /** A ship's scene playing that is not his to walk through (Esc held skips it). */
     get scenePlaying() { return shipOn && ship.playing && !ship.cinematic?.interactive?.(); },
+    /** Photo mode on, and turned on or off (from the Start menu's Photo mode). */
+    get photoOn() { return photo.on; },
+    setPhoto(on) { setPhoto(on); },
     /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
     save() {
       // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
@@ -688,6 +728,24 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         // (the Map open: its ground drawn on, the menu told how far every few frames for its "Drawing the map… n %")
         if (menus.mode === 'game' && menus.state?.panel?.id === 'map' && pumpMap() && ++mapTick % 8 === 0) menus.changed();
         screen.set('prompt', null); screen.set('stamina', null);
+        const tB0 = performance.now();
+        mirror.time = simT;
+        veilsFrame();
+        const stats = mirror.sync(scene, camera);
+        return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
+      }
+      if (photo.on) {
+        // photo mode: the world held, the camera flown; a picture asked for is taken once its keys are off the screen
+        photoFly(dt, mergeControls(latched(), controller.update(dt, true)));
+        if (photo.capture && ++photo.capture === 2) screen.set('photo', { hint: '' });
+        else if (photo.capture >= 4) {
+          photo.capture = 0;
+          const name = `hiraeth-${levelId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
+          backend.photo(name);
+          photo.saved = 2.5;
+          screen.set('photo', { hint: `Photo saved · ${photoHint()}` });
+        }
+        if (photo.saved > 0 && (photo.saved -= dt) <= 0 && !photo.capture) screen.set('photo', { hint: photoHint() });
         const tB0 = performance.now();
         mirror.time = simT;
         veilsFrame();

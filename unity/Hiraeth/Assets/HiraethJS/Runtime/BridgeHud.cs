@@ -233,7 +233,11 @@ namespace Hiraeth.Bridge
             var cine = state.O("cine");
             bool hud = !(cine != null && cine.Get("hud") is bool hs && !hs), free = d == null && hud;
             bool walk = cine != null && cine.Get("walk") is bool wk && wk;
-            DrawCue(state.O("cue"), d == null && (hud || walk));
+            // (photo mode: its keys in the cue's strip at the top, the rest of the HUD gone; none as the picture is taken)
+            var cueState = state.O("cue");
+            if (state.O("photo") is Dictionary<string, object> ph)
+                cueState = (ph.S("hint") ?? "").Length > 0 ? new Dictionary<string, object> { ["text"] = ph.S("hint"), ["kind"] = "" } : null;
+            DrawCue(cueState, d == null && (hud || walk));
             DrawToast(state.O("toast"), free);
             DrawPrompt(state.O("prompt"), free);
             DrawHealth(hud ? state.O("health") : null);

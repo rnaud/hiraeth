@@ -14,7 +14,8 @@ import { tempPath } from '../scripts/temp-dirs.mjs';
 
 // a backend that takes every op and keeps nothing (its flags and hooks left unset)
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then']);
-const backend = new Proxy({}, { get: (t, k) => (UNSET.has(k) ? undefined : () => {}) });
+const photos = [];
+const backend = new Proxy({}, { get: (t, k) => (k === 'photo' ? (n) => photos.push(n) : UNSET.has(k) ? undefined : () => {}) });
 const menusStub = () => { const shown = []; return { shown, open: false, mode: null, show(m, p) { shown.push([m, p]); }, changed() {}, action() {}, navigate() {} }; };
 
 async function makeGame(file, o) {
@@ -74,6 +75,24 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   h.player.pos.copy(h.ship.world(h.ship.parked, P.cockpit)); run(h, 4);
   run(h, 2, { KeyE: true }); run(h, 2, { KeyE: false });
   assert.equal(S.state.sub?.text, 'No new messages.');
+
+  // photo mode (the Start menu's, P): the world held, the camera flown, the HUD gone but for its keys; Enter saves the frame
+  run(h, 20 * 4);
+  h.key('KeyP', true); h.key('KeyP', false);
+  assert.ok(h.photoOn && /fly/.test(S.state.photo?.hint ?? ''), JSON.stringify(S.state.photo));
+  assert.equal(S.state.cue, null);
+  const eye = h.camera.position.clone(), at = h.player.pos.clone();
+  run(h, 10, { KeyW: true }); run(h, 1, { KeyW: false });
+  assert.ok(h.camera.position.distanceTo(eye) > 3, 'the camera flown');
+  assert.ok(h.player.pos.distanceTo(at) < 0.01, 'the traveller left where he stood');
+  h.key('Enter', true); h.key('Enter', false);
+  run(h, 1); assert.equal(S.state.photo?.hint, '', 'its keys off the picture');
+  run(h, 4);
+  assert.equal(photos.length, 1);
+  assert.match(photos[0], /^hiraeth-desert-.*\.png$/);
+  assert.match(S.state.photo?.hint ?? '', /^Photo saved/);
+  h.key('Escape', true); h.key('Escape', false);
+  assert.ok(!h.photoOn && S.state.photo === null, 'Esc leaves it');
 
   // arriving by ship (the engine started again after a flight): the arrival plays, and ends at the foot of the ramp
   const k = await makeGame(file, { menus: menusStub(), via: 'ship', arrive: true });

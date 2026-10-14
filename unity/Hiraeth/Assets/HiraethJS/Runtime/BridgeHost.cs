@@ -329,6 +329,14 @@ namespace Hiraeth.Bridge
 
         // ---------------------------------------------------------------- a batch run's
         public static void Shot(string path) => On(() => Runner?.Shot(path));
+        /// <summary>Photo mode's picture (engine/game.js, issue #264): the frame as drawn, into the app's own photos folder
+        /// (Android: Android/data/&lt;package&gt;/files/photos), by the name the script gives it.</summary>
+        public static void Photo(string name) => On(() =>
+        {
+            var file = Path.Combine(Application.persistentDataPath, "photos", Path.GetFileName(name ?? "photo.png"));
+            Runner?.Shot(file);
+            UnityEngine.Debug.Log($"Hiraeth bridge: photo saved to {file}");
+        });
         public static void WriteText(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, text); }
         public static double LastFrameCpuMs() => OnMain ? (Runner ? Runner.cpuMs : 0) : cpuMs;
         public static double LastFrameGpuMs() => OnMain ? (Runner ? Runner.gpuMs : 0) : gpuMs;

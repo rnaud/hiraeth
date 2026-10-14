@@ -218,6 +218,9 @@ export class UnityBackend {
     this.host.Portrait?.(n, JSON.stringify({ eye: m(eye), look: m(look), up: m(up ?? [0, 1, 0]), fov, ids, backdrop, size, css, file }));
   }
 
+  /** Photo mode's picture (engine/game.js): the frame as drawn, saved as `name` in the app's photos folder (BridgeHost.Photo). */
+  photo(name) { this.host.Photo?.(name); }
+
   /** A material's colour or glow changed after it was sent (the answering plants waking, lamps, beacons): op 15. */
   materialLive(mid, color, glow) {
     const w = this.w, b0 = w.n;

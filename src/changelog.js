@@ -19,6 +19,8 @@ export const CHANGELOG = [
     // src/story/shop-data.js, src/minigames/canyon.js, src/save-migrate.js step 28; tests/names.test.js
     { text: 'No two people you meet in a world have names that look alike any more. The games’ hosts are the Desert’s Kamal, Aziza and Bilal, Vael’s Elva and Brother Amos, the City-Shaft’s Dagny and the Moon Foundry’s Rudi; the Whale-House’s door-keeper is old Achille, Lorn’s lamp-counter is Briony and the Welcome-Shelf’s keeper is Burdock. The Desert’s hoverbike race is run round the Two Chasms.',
       see: 'In the Desert, walk up to the canyon run’s sign: “ask Kamal about the canyon run”, and its card reads The Two Chasms. In the Underwater City, Achille sits by the Whale-House’s door; in Lorn, Briony counts the lamps by the Lamp-House and Burdock keeps the Welcome-Shelf.' },
+    // photo mode in the engines (engine/game.js setPhoto, photoFly; engine/menus.js START_SIDE; BridgeHost.Photo; issue #264)
+    'In the Unity preview the Start menu has Photo mode: fly the camera anywhere with the sticks, the screen clear but for its keys, and A saves the picture.',
     // the ship in the engines (engine/game.js ship.attach, input, update, hud; the cinema's screen.cine and screen.sub,
     // BridgeHud.cs DrawCine; Ship.travel's go, engine/unity/game.js flyTo; issue #264)
     'In the Unity preview your ship works: walk up its ramp and you go aboard, the console plays its messages, the holo table opens the worlds you can fly to, and flying there plays the take-off and the arrival, with their letterbox, fades and subtitles.',

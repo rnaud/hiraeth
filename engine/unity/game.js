@@ -79,6 +79,7 @@ export function start(argsJson) {
     onStart: (choice) => begin(choice),
     onResume: () => { S?.game?.applySettings?.(); },
     onQuit: () => { S.game?.save(); menus.show('title'); },
+    onPhoto: () => { S?.game?.setPhoto?.(true); },
     onSetting: () => { setFaces(settings.padFaces); S?.game?.applySettings?.(settings); },
     where: () => TITLES[S?.game?.level?.id] ?? '',
     // (the Items panel's tiles a row: as many of ~128 units as the sheet holds, BridgeMenu's canvas 720 high)
@@ -308,8 +309,8 @@ function readInput(game) {
     // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
     // closes) and J the game menu, as the page's listeners do
     if (menus?.open) { menus.key(k); continue; }
-    // (Esc held in a ship's scene skips it: the game's own)
-    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.scenePlaying) { game.save(); menus.show('start'); continue; }
+    // (Esc held in a ship's scene skips it, and leaves photo mode: the game's own)
+    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.photoOn && !game.scenePlaying) { game.save(); menus.show('start'); continue; }
     if (menus && k === 'KeyJ') { menus.show('game'); continue; }
     game.key(k, true);
   }

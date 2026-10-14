@@ -218,7 +218,7 @@ before it shows). The marks' list beside it is narrow on the Retroid's 4:3: each
 long name ("Through the door of the Rose House") run onto the next line's.
 
 **What's new and the Controls page's rebinding** (issue #264). The Start menu's sidebar has What's new after
-Controls (the web's order, without Photo mode): the newest `NEWS_VERSIONS` (4) versions of src/changelog.js, a
+Controls and Photo mode (the web's order): the newest `NEWS_VERSIONS` (4) versions of src/changelog.js, a
 heading each and its lines newest first (`newestFirst`, the tags stripped), up / down through them as the page
 scrolls; the rest is on the web's interactive changelog. The Controls page is the web's (src/ui.js `rebindHtml`,
 then `controlsList`): the pad's verbs (`REBIND_PAD`) each on its button now, A / × on one waits for the next
@@ -258,7 +258,16 @@ code), then the save goes on at the foot of the ramp. The save is not written wh
 stands in orbit). Test: tests/engine-ship.test.js (the bundle in a bare V8 context: the opening to the walk, E at the
 console, the call, the skip; up the ramp and aboard, the table and the console; the arrival; a plan without them).
 
-Left for later (issue #264): the photo mode, Anselm's shop (the page's ShopPanel: "Show me what you have" does
+**Photo mode** (issue #264): the Start menu's Photo mode (between Controls and What's new, the web's order), View +
+D-pad ↑ (the controller's own chord) or P. As main.js's: the camera flown free from where the view was (the left stick,
+LB / RB down and up, RT or L3 faster, the right stick turns it; WASD, Q / E, Shift on the keyboard), the HUD gone but for
+its keys at the top (screen `photo`, drawn in the cue's strip); the world held still meanwhile, as under a menu (the web
+lets it run). A / × (Enter) takes the picture once its keys are off the screen (two frames): `backend.photo(name)`,
+BridgeHost.Photo, BridgeRunner.Shot into the app's own folder (`Application.persistentDataPath`/photos: on Android
+`Android/data/com.rnaud.hiraeth.unity/files/photos`, not the gallery), and the strip says "Photo saved". B / ○, View,
+Menu or Esc leave it. Test: tests/engine-ship.test.js.
+
+Left for later (issue #264): Anselm's shop (the page's ShopPanel: "Show me what you have" does
 nothing in the engine yet), the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
 the engine starts again as the climb ends).
 
