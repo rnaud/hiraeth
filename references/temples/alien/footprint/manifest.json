@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Footprint in the Garden of Spheres, a giant pale sphere half sunk in a meadow where a walking giant of a vanished people once set its foot, and where half of what is built can only be seen through a lens. Its makers were never human: three-toed walkers for whom up and down meant nothing, who walked on every surface and saw by a light we cannot see. There are no floors, columns, arches, stairs or doorways of human shape. The inside is spheres nested inside spheres, like an onion cut open: thin white shells one inside the next, each open in great round holes so the eye sees through layer after layer, all curving, none level; prints of two, three and four long toes walk up, across and over every shell as if gravity meant nothing; small white stone spheres rest in some of the prints. A wide gap opens between two shells over nothing. Through a round glowing lens in the foreground the hidden half of the house appears, drawn in soft pale light: a bridge of pale glass across the gap, delicate translucent shells and spokes linking the spheres where plain sight shows only air, a hidden carved eye glowing. Floating at the centre of the innermost sphere, seen only through the lens, the Echo: a glowing core in three slowly turning glass rings trailing a long veil. Still water fills the bottom of one shell. The makers' sign, three dots over an arc that bows upward, on the innermost shell. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds a round makers' lens to one eye at the gap's edge, stepping onto the unseen bridge, dwarfed by the spheres. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white sphere stone, pale glass glow, pale blue, peach light, sage, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hands, columns.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-29-04-0c9f",
+      "candidate": "openai/1",
+      "sha256": "4197924586d50a18dee5b610ff27773513751530ec083c00c5d3a732f9b4ff2f",
+      "bytes": 225331,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-11-49-e00a",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same hall as the reference picture, the Hall of the Unseen inside the Footprint in the Garden of Spheres, a giant pale sphere half sunk in the earth where a maker's walking giant once set its three-toed foot, now drawn as if its makers were truly not human and saw a light we do not. Half the picture is seen plainly: smooth curved white walls rising into a dome, pressed all over with prints of two, three and four long toes, walking up the walls and across the dome as if gravity meant nothing to the walkers, and a deep empty chasm splitting the floor. The other half is seen through a round glowing lens: there the hall's other architecture appears, drawn in soft light, a bridge of pale glass across the chasm, tall translucent ribs and arches standing where the plain half shows only air, a hidden carved eye beside the far door glowing, a frieze of three dots over an arc that bows upward lit on the wall. Still water in a sunken pool behind, a pale riding disc. Floating near the dome inside the lens's circle only, the Echo, a glowing core in three slowly turning glass rings trailing a long veil. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds a round makers' lens to one eye at the chasm's edge, stepping onto the unseen bridge, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white sphere stone, pale glass glow, pale blue, peach light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

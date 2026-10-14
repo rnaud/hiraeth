@@ -1,0 +1,25 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the same tank hall as the reference picture, inside the Whale-House on the sea floor of the Underwater City, the makers' sounding-house where they talked with the whales, now drawn as if its makers were truly not human and lived in the sea. The hall is the inside of a grown shell: its sage green walls are smooth nacre laid in curving growth lines, banded in coral and teal, with no straight edge anywhere; the wall of glass nine metres tall holding back the sea is a living membrane in a frame of brass ribs like a jellyfish's bell, faintly iridescent, the deep blue sea behind it with the brass outline of a whale drawn in the water. Beside the glass a round receiving dish shaped like a scallop shell stands on a footstone, a stone ball rolling toward it along a groove; high on a shelf above the glass its twin dish and a listening ear of coiled shell. Brass speaking-horns curl out of the walls like the whorls of a cochlea. Far through the glass, the vast pale ear of the Listener, the makers' old shell-creature, half open. The makers' sign, three dots over an arc that bows upward, inlaid in pearl. A cloaked adult human traveller of ordinary height with a round jade fluid backpack raises a curled brass whale-horn to sound its one deep note into the dish, drawn as slow wide rings, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, sage green nacre, coral band, teal, brass, deep sea blue glass, pearl, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/alien-temple-prompts-v2.md#whale-house",
+      "refs": [
+        "references/temples/alien/base/whale-house.jpg",
+        "references/temples/landmarks-2026-10-14/underwater.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-13-41-db0b",
+      "candidate": "openai/1",
+      "sha256": "1e4647002c807ff34e3ee7719cdc9660c1ae4bd711961ea0f8105bf8b5b65303",
+      "bytes": 262132,
+      "costUSD": 0.041
+    }
+  ]
+}

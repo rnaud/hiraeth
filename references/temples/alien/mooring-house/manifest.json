@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Mooring-House in a city of islands floating in space, the house of a vanished people whose great capstan holds all the islands together by long cables, now stopped, its cables slack, the islands drifting apart. Its makers were never human: weightless drifters of the void who held what they loved with long trailing arms, and they grew their house like a jellyfish. There are no floors, columns, arches, stairs or doorways of human shape. The house is a vast translucent bell like a medusa's, afloat over the star-black void, its thin cream walls faintly glowing, veined with coral and teal canals that run down from the crown; through the bell the stars and other islands show. At its heart hangs the capstan, a round ochre and brass core like a nucleus, its lid teal, stopped; from it the cables trail out through the bell's rim like a jellyfish's long arms, slack and drifting, running away across the void to far islands. Round the inside of the bell, teal rings to catch hold of; high up where a cable leaves the wall, the moorers' weight hangs on a cleat, out of reach. Clinging to the outside of the rim, the Anchor-Warden: a machine of brass and dark iron holding a great anchor on a chain, ready to throw it out over the void. The makers' sign, three dots over an arc that bows upward, on the capstan's lid. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, holding on to a ring, aims a thin glowing tether of fluid at the weight on its cleat, dwarfed by the bell. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, coral, teal rings, ochre and brass, star-black void, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, columns, smile, knight.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-29-04-02a7",
+      "candidate": "openai/1",
+      "sha256": "7d98f1fd66a5aa2536d1df9e8735adc9cd2b797d06926f2fbb1ae8b317f730cd",
+      "bytes": 308648,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-13-12-d92d",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same round hall as the reference picture, the Capstan Hall of the Mooring-House in the City Floating in Space, where the makers' great capstan holds all the city's islands together by their cables, now drawn as if its makers were truly not human and spun their cables as a spider spins. The great capstan in the middle is a spindle, an ochre and brass drum with long bars, its lid teal, stopped; the cables leaving it are not rope but spun thread, many fine pale strands twisted into thick slack lines that sag across the hall and run out through the walls toward the other islands; the tall round walls of cream stone banded in coral and teal are woven rather than laid, their courses spiralling up like a cocoon, set with rings and hooks sized for claws, not hands. High up, the moorers' weight hangs on a cleat where a cable meets the wall, out of reach; a caged coffer stands by a plate on the floor. Through a gap in the weave, the black void full of stars. Folded on a ledge high above, the Anchor-Warden, a machine of brass and dark iron holding a great anchor, waiting. The makers' sign, three dots over an arc that bows upward, on the capstan's lid. A cloaked adult human traveller of ordinary height with a round jade fluid backpack aims a thin glowing tether of fluid at the weight on its cleat, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream stone, coral courses, teal rings, ochre and brass, star-black void, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

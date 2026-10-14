@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Founders' Belfry on the cloud stacks of Vael II, built by a vanished people to hold down the great stones that fall upward into the sky, by the sound of a bell. Its makers were never human: blind listeners who lived by hearing alone, and they did not build a tower round a bell; the hall is the inside of the bell itself. The traveller stands under an immense curved dome of thin bronze and bone, translucent where the sky shows through it, flaring out to a wide open rim far below where the cloud sea begins; its inner skin is ridged with fine growth rings like a shell, and a great clapper shaped like a seed hangs from the crown, still. Through the open rim, out in the bright air, huge stones float upward, each held in place by pale concentric rings of standing sound drawn in the air like ripples on water; a few have sunk down into a row of stepping stones while a note lasts. One narrow slit in the bronze skin has parted like a membrane while the note sounds. On a ledge of the rim lies a tiny whistle of blue-glazed clay. Far out in the clouds, the vast pale sail fin of the Cloud-Mother, a sky-whale fringed with cloud, passes. The makers' sign, three dots over an arc that bows upward, raised on the bronze like a casting mark. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the rim with the whistle at their lips, a clear note spreading from it in rings, dwarfed by the bell. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, warm bronze, blue glaze, pale sky light, rose and lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, tower, columns.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-07-3130",
+      "candidate": "openai/1",
+      "sha256": "820dbeead4073f9449227aeeabacde6fe83e5d20c1ab48ac2a63c7a8cd613e55",
+      "bytes": 232953,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-08-34-6e61",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same bell chamber as the reference picture, the heart of the Founders' Belfry on the cloud stacks of Vael II, a tower the makers built to hold down stones that fall up, now drawn as if its makers were truly not human and lived by hearing. The whole round hall is an instrument: its bone-white walls are tall tuned ribs of different lengths like the bars of a giant xylophone, curving up into the oculus; the great ancient bell hanging silent in the oculus against the sky is not cast but grown, a ribbed bronze seed-pod with a thin translucent bronze membrane for a mouth. Out in the chasm beyond the far door great stones hang in the air, each held in a cage of pale standing rings of sound instead of chains. On a low dais a tiny whistle of blue-glazed clay shaped like a bell. The tall stone door has just sunk open while a clear note spreads through the room, drawn as pale concentric rings, the lamps on its lintel lit; small bells sit in every niche like seeds in a pod. Far out through the door, the vast pale fin of the Cloud-Mother, a sky-whale fringed with cloud, passes. The makers' sign, three dots over an arc that bows upward, cut into the ribs. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands by the door with the whistle at their lips, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white stone, warm bronze, blue glaze, pale sky light, rose and lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

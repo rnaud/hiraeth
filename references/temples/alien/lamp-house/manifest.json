@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Lamp-House in the shallows of a dark swamp wood, a house a vanished people made where light wakes whatever waits for it. Its makers were never human: creatures with eyes made for the dark and bodies that glowed from within, and they grew their house like a fungus rather than building it. There are no columns, arches, stairs or doorways of human shape. The inside is the hollow of one immense fungus: from its vault hang hundreds of thin translucent gill curtains in long soft folds, faintly blue-violet, parting into lanes; the floor rises and falls in soft rounded mounds like the top of a mushroom cap. Three round pools are cupped in the floor like water in lily pads, dark and still: two unlit, one waking with a warm gold light rising from its depth that shines up through the gills above it. Little glass orbs full of dark pool water rest in a row of round sockets like eggs in a nest; moss stones in the pools show only where light falls on them. Hanging folded among the gills, the Lampless: a great pale moth with eye-spots shaped like the makers' sign. A carving of three lamps over a hull grown into the cap. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a small glowing lantern charm at their hip, walks between the curtains in a soft circle of light, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep blue-violet darkness, warm lamp gold, moss green glow, coral glints, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, columns, arches, tree roots.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-33-9169",
+      "candidate": "openai/1",
+      "sha256": "b82e6a10ee62a681d7123c7864f6d8f8c174242ca0e7fe40148f08d44fe0abb4",
+      "bytes": 245803,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-09-32-30d2",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same hall of dark pools as the reference picture, the heart of the Lamp-House in the swamp wood of Lorn II, the makers' tower where light wakes what waits for it, now drawn as if its makers were truly not human and saw in the dark. The hall is almost black and shaped like the inside of a great eye: the three round pools in the floor are retinas of still dark water ringed with soft carved irises, two dark, one just waking with a soft gold light rising from its depth; the twisted roots climbing the west wall to a high loft run like optic nerves into the walls and glow faintly where they touch the lit pool; the lamps are bulbs of living water held in stone cups like eyelids. Moss stones in the dark pools show only where the light touches them. Overhead in the dark, the folded pale wings of the Lampless, a great moth with eye-spots shaped like the glyph, hang from the vault. A glass orb of pool water rests in a groove in the floor. Friezes of three lamps over a hull. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a little glowing lantern charm at their hip, stands at a pool's rim, dwarfed by the hall, their light a soft circle round them. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep blue-violet darkness, warm lamp gold, moss green glow, coral glints, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

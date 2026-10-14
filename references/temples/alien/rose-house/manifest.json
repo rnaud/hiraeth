@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Rose House, a cistern in the high desert dunes where the walking water-giants of a vanished people came to drink, and from which the fields below once took their water. Its makers were never human: slow creatures who wept mineral and kept water inside their own bodies, and they built the house the way they were made. There are no columns, arches, stairs or doorways anywhere. The inside is one enormous pleated vessel, like a dry barrel cactus seen from within: deep accordion folds of translucent rose and ochre mineral rise all round and close overhead to a cluster of small turquoise pores letting in thin shafts of daylight; the folds once swelled full of water and are now dry, creased and cracked, with fine capillary channels running through them like veins. At the bottom lies a broad shallow drinking trough shaped for a giant's lapping tongue, its sides marked with a pale tide line, empty. Standing out of the folds on long stalks, four tall seed capsules of rose glass, three dark, one glowing ember orange inside; at the trough's edge a never-dying pilot flame burns in a knot of fused glass. Curled asleep in the dry trough, the Keeper of the cistern: a great pale beast with a shell of bone plates, six long folded legs and a heron's neck laid along the rim. The makers' sign, three dots over an arc that bows upward, grown into the mineral like a fossil. A cloaked adult human traveller of ordinary height with a round jade fluid backpack climbs along a fold, dwarfed by the vessel, a small burning ball rolling ahead of them. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose and ochre mineral, ivory bone, ember orange, turquoise light, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, columns, arches, stairs.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-07-6bc7",
+      "candidate": "openai/1",
+      "sha256": "4fb742108f1f914452afcc0d3e751b3f871e068c24ea5ce8b18142d58a258c7b",
+      "bytes": 296415,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-07-38-ac04",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same cistern hall as the reference picture, the heart of the Rose House in the desert, the place where the makers' walking water-giants came to drink, now drawn as if its makers were truly not human. The vast round drum of rose stone is not cut and stacked but laid down in thin fused layers like a reef or a termite mound, its walls rippled in long rose and ochre strata that curve without a single right angle; the dry basin in the middle is shaped like the palate of an enormous lower jaw, its pale tide line still on its sides; the spout on the far wall is a long soft muzzle of glazed rose ceramic grown out of the wall, dry. The four tall braziers round the walls are bronze stamens on slender stalks, one just caught with a small cool ember-orange flame where a burning splash struck it; a stone groove leads to a sunk ring holding the never-dying pilot flame. Doorways are tall narrow slots sized for six long legs, not for people. Curled asleep in the basin, the Keeper of the cistern: a great pale beast with a shell of bone plates carved with dim glyphs, six long folded legs, a heron's neck laid along the rim. The makers' sign, three dots over an arc that bows upward, pressed into the strata like a seal. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the rim, dwarfed by the hall, a thin stream of glowing fluid arcing to the brazier. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose and ochre stone, ivory bone, ember orange, turquoise traces, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Builders' Greenhouse in a meadow hollow of the garden world Viridel, the house where a vanished people told the garden to go on growing. Its makers were never human: gardeners who fed on light as plants do, and they built a house for steering sunlight, not for walking in. There are no columns, frames, panes, stairs or doorways of human shape. The house is a cluster of huge translucent cells like a heap of soap foam or frogspawn, each bubble-wall thin, pearly and faintly green, meeting its neighbours in soft curved seams; the sun comes through all of them. Hanging inside the cells, great round liquid lenses like drops of water slowly turn and swing beams of sunlight across the hall, one beam falling on a carved white eye. A deep chasm splits the floor of the largest cell; at its near edge a living vine bridge has just grown from a seed, leaves and pink blossoms unfurling across the gap; on the far side a second vine climbs a smooth cell wall to a great closed flower bud filling a round opening. In a shaded cell kneels the Gardener, a moss giant on root legs with a smooth white stone mask for a face, dormant. The makers' sign, three dots over an arc that bows upward, set where three cells meet. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge, a stream of leaf green and petal pink glowing fluid arcing onto the seed, dwarfed by the foam. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white, leaf green, petal pink, pearly sunlit cells, sky blue, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, glass panes, metal frame, columns.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-34-24b1",
+      "candidate": "openai/1",
+      "sha256": "89cfecb6d72ffb2c2b1d0b5cf220b4be3a4ac74f1c2a470891e3084ffaf9f53f",
+      "bytes": 274479,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-09-59-8990",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same chasm hall as the reference picture, the Vine Gulf in the Builders' Greenhouse of Viridel, where the makers told the garden to go on, now drawn as if its makers were truly not human and fed on light. The roof is not ribbed glass on a frame but one great translucent membrane veined like a leaf or a dragonfly's wing, its veins carrying faint sap-light; the louvres in it open like stomata, each a pair of lips that turn to swing a sunbeam across the hall. The clean white walls are gridded like honeycomb, the stone pots along them are seed trays with many small hollows as if for many fingers. Across the chasm a living vine bridge has just grown from a seed at the near edge, leaves and pink blossoms unfurling; on the far side a wall of smooth glass panes like a wing with a second vine climbing it to a great closed flower bud over a doorway, its petals hinged round the rim. In the shade of one corner kneels the Gardener, a moss giant on root legs with a white stone face, dormant. The makers' sign, three dots over an arc that bows upward, set in the veins. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge, a stream of leaf green and petal pink glowing fluid arcing onto the seed, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, leaf green, petal pink, sunlit glass, sky blue, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

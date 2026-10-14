@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Warden's Well on the rim of a city built down a great shaft, a well of a vanished people turned on its end, whose hidden eyes can only be reached by flying. Its makers were never human: a hive of wasp-like fliers who lived up and down, never across, and they chewed and layered their house like paper. There are no floors, stairs, columns or doorways of human shape. The well is a towering vertical comb of cream paper-stone: its walls are packed with hexagonal cell mouths of every size, stacked up and up out of sight, the stone laid in thin wavy layers banded in steel blue like a wasp's nest; some cells jut out as deep hoods hiding a carved stone eye from the floor, one eye already glowing. Between them hang great vanes of thin translucent membrane veined like insect wings, fanning slowly and moving the air up and down the shaft. Far above, the comb closes into a dark blue papery dome with a puckered opening like a nest's mouth, warm light leaking through its layers. Far below, a round stone riding disc turns. Clinging to the comb on three long legs, the warden: an old machine with a ring of vents round its body, a lamp-eye and a crown hatch, still at its post. The makers' sign, three dots over an arc that bows upward, pressed into the layers. A cloaked adult human traveller of ordinary height with a round jade fluid backpack flies up the comb on twin jets of cyan glowing fluid toward a hooded cell, dwarfed by the well. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream paper-stone, steel blue bands, dark blue dome, warm light, cyan jet glow, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, stairs, columns, windows.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-35-2d44",
+      "candidate": "openai/1",
+      "sha256": "3a60a941eeeb1c0b59068e54be216485b4f9c7e525a911a61fdb947e06079eb9",
+      "bytes": 371134,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-10-28-3c6e",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same tall drum hall as the reference picture, the Lamp Gallery of the Warden's Well on the rim of the City-Shaft, a well of the makers turned on its end, now drawn as if its makers were truly not human and breathed air in a way we do not. The drum is a lung: its cream walls rise in soft overlapping folds banded in steel blue, and the stone shelves jutting from them at different heights are gill plates, each hiding a carved stone eye from the floor, one eye already glowing; between them the makers' vanes turn like fans of thin pale stone membrane, breathing the shaft's air up and down; tall slit windows are long breathing pores letting in warm light. The dark blue crown far above closes with an iris of curved stone blades like a pupil. On the floor far below, a riding stone disc and a ball in its groove. Standing on three long legs against the wall, the warden, an old machine with a ring of vents round its body, a lamp-eye and a crown hatch, still at its post. The makers' sign, three dots over an arc that bows upward, in friezes between the folds. A cloaked adult human traveller of ordinary height with a round jade fluid backpack flies up the drum on twin jets of cyan glowing fluid, turning toward the next shelf to splash its eye, dwarfed by the well. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream stone, steel blue bands, dark blue, warm slit-window light, cyan jet glow, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

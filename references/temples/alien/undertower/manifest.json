@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Undertower deep under a crowded market city, foundations older than anything above, built by a vanished people to carry a note across what you cannot cross. Its makers were never human: a singing colony of countless small voices that grew together like a coral reef, and they grew their house as a reef of sound. There are no columns, arches, stairs, walls or doorways of human shape. The cavern is a forest of hollow pipes of blue-grey stone and brass grown up from the floor and down from the roof like a coral reef of organ pipes, from thin as reeds to wide as towers, their mouths flared, ringed and fluted; between them open sea-fan dishes of fine brass lace stand on stalks, turned to one another across a deep pit. Ancient cables hang from the roof into the pit like the roots of the city above, pale and branching, glowing faintly where a note runs through them. On the near side three round singing stones of three sizes sit in stone cups, one just splashed and humming in rings of sound; a coiled brass horn on the far side lights coral in answer; stepping stones rise out of the pit toward it. Tall among the pipes stands the First Sign: a slender mast on three legs with a listening dish for a head, turned toward the sound. Far above, through gaps in the roof, faint coloured light from the market's signs. The makers' sign, three dots over an arc that bows upward, cut into the largest pipe. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a pale spiral shell, a note flowing out of it as glowing rings toward the dish, dwarfed by the reef. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, brass, coral light, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, columns, ear.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-29-04-d419",
+      "candidate": "openai/1",
+      "sha256": "a7decbcc2a97d52d5f731b2f3e684265c9f13f628fe9f9d60c2eb806ff9edcf7",
+      "bytes": 365597,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-12-15-a42b",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same gallery as the reference picture, the Gallery of Voices in the Undertower deep under the Signal Market, the makers' foundations older than anything above, where a note is carried back, now drawn as if its makers were truly not human and spoke by sound alone. The whole gallery is an ear: its blue-grey stone walls curve in folds like the inside of an outer ear, the bundles of ancient cable running along them and down into the chasm are nerves, pale and branching, glowing faintly where a note runs through them; the great brass horn on its stand at the chasm's edge is coiled like a cochlea, its bell turned to the chasm. On the near side three singing stones of different sizes on plinths are a larynx of stone, one just splashed and humming in rings of sound; across the gap a stone door with three lamps over it. The first bridge stones rise out of the chasm in answer. Tall in the shadow by the far wall stands the First Sign, a slender mast on three legs with a listening dish for a head, turned toward the sound. Through gaps in the ceiling, faint coloured light from the market's signs far above. The makers' sign, three dots over an arc that bows upward, cut where the cables enter the stone. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a pale spiral shell, a note flowing out of it as glowing rings toward the horn, dwarfed by the gallery. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, brass, coral light, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

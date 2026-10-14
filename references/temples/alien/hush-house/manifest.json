@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Hush-House on a cave island in a twilight swamp, a house a vanished people made for keeping quiet, where four crystals still wait to be sung low to high. Its makers were never human: soft creatures who felt the world by its trembling, for whom every noise was pain, and they built a house that drinks sound. There are no columns, arches, stairs or doorways of human shape. The inside is one vast sponge of violet stone: walls, floor and vault are all pores and hollows of every size, lined with hair-fine felted crystal fibres frosted icy blue, soft as moss, swallowing every echo; tunnels wind off through the sponge in every direction. From the vault hang four great crystals of four lengths like icicles over a still black pool, the first two glowing teal and violet and singing in faint rings, the others shut and dark. Across one tunnel a gate of green leaf-jaws stands open and snapping, and beside it three crystal pendulums swing on threads. Deep in a hollow, the crowned head of the Mother Snapper, a house-sized rooted snapping plant with green leaf-jaws and a crown of crystal, lies closed. The makers' carving, three drops of rain over a shut mouth, pressed into the sponge. A cloaked adult human traveller of ordinary height with a round jade fluid backpack throws a glob of pale icy blue frost-fluid at the snapping jaws, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone, teal and violet crystal glow, icy pale blue, moss green, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, columns, ribs, dome.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-07-6268",
+      "candidate": "openai/1",
+      "sha256": "5ab325a962c43d23d58b05600154b2db5818123bc23f4795fe428494addf25fb",
+      "bytes": 326333,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-09-02-3775",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same choir hall as the reference picture, the heart of the Hush-House in the twilight swamp of Lorn, a house the makers made for keeping quiet, now drawn as if its makers were truly not human. The great low ribbed dome is not built of stone but grown, a ribcage of violet crystal whose ribs fan out like the gills of a mushroom and drink in sound, frost-pale where they meet; the four tall crystals of four heights standing in a curved row on the floor are vocal folds, paired translucent violet and teal blades that part and hum, the first and second glowing and drawn singing in faint rings, the others shut and dark. Swamp crystals grow through the floor like teeth through a gum; the oculus far above is a crystal iris open to dusk; the stone door at the far end has lamps on its lintel. Moss hangs between the ribs. In the dark beyond an arch, the crowned head of the Mother Snapper, a house-sized rooted snapping plant with green leaf-jaws and a crown of crystal, lies closed. On the ribs, carvings of three drops of rain over a shut mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack splashes the third crystal with a stream of pale icy blue fluid, dwarfed by the crystals, the tallest three times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone and crystal, teal glow, icy pale blue, moss green, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

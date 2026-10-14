@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Clock-House in the Glass Dunes, the house of a vanished people where everything takes its beat, and where every clock stopped at the count of four. Its makers were never human: they counted time by flowing sand and turning rings, never by a face with hands, and their clock is a thing you stand inside. There are no columns, arches, stairs, dials or numbers anywhere. The hall winds round and down like the inside of a snail shell, its pale stone wall spiralling inward, banded in brass inlay. At the spiral's centre, over a deep chasm, hangs the clock: a tall column of clear glass through which a slow stream of glittering dune sand falls, stopped mid-fall, wrapped by a nest of thin brass and glass rings of different sizes, each tilted on its own axis like an orrery, motionless; below them a great brass disc on a long arm swings out over the chasm like a pendulum, frozen at the end of its swing. Set into the spiral wall round the clock, a ring of six round carved stone eyes, four glowing teal, two dark. Standing silent on a ledge, the Clockwork Foreman: a brass drum on short legs with a round glass face on its chest and two hammers folded. The makers' sign, three dots over an arc that bows upward, set where the spiral begins. A cloaked adult human traveller of ordinary height with a round jade fluid backpack fires quick bright splashes of glowing fluid at the eyes, a brass coil on the backpack glowing, dwarfed by the clock. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale stone, brass, clear glass, glittering sand, teal accents, warm light, deep umber shadows in the chasm, restrained cream paper grain, clear readable construction, no lettering, no numbers. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, clock face, gears, columns.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-35-a34d",
+      "candidate": "openai/1",
+      "sha256": "0eb79e1179d02cc1f7f9429fb088add70dd4cf6bb1251183bbaf62226f4e5198",
+      "bytes": 242019,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-10-54-956d",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same clock gallery as the reference picture, the heart of the Clock-House in the Glass Dunes, the makers' house where everything takes its beat and every clock stopped at four, now drawn as if its makers were truly not human and counted time another way. The enormous clock face on the far wall is not a circle of twelve but a spiral dial of pale stone with one long brass hand, its marks counted out from the fourth turn of the spiral; round it a ring of six carved stone eyes, four glowing, two dark. Down in the chasm the gears are of brass and clear glass, nested inside each other, turning at different speeds, and the escapement is a great slow heart of brass and pale stone that swings and beats; pendulums hang in recesses like long seed pods. The walls are pale stone banded in brass inlay that runs in spirals, not lines. Standing silent to one side, the Clockwork Foreman, a brass drum on short legs with a clock face for a chest and two hammers folded. The makers' sign, three dots over an arc that bows upward, set at the spiral's start. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge firing quick bright splashes of glowing fluid at the eyes, a brass coil on the backpack glowing, dwarfed by the clock. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale stone, brass, clear glass, teal accents, warm window light, deep umber shadows in the chasm, restrained cream paper grain, clear readable construction, no lettering, no numbers. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

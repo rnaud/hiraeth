@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Aerie on the plain of Vael, the house where a vanished people gave the great birds their wings, and where a column of rising wind still lifts whoever comes. Its makers were never human: fliers who never stood on anything in their lives, and they built for bodies that hang, cling and glide. There are no floors, stairs, columns or doorways. The house is a vast hollow bone hung in the wind: its inside is a lattice of thin bone-white struts and braces crossing at every angle like the marrow of a bird's bone seen up close, banded in ochre, open to an aqua sky through the gaps; clusters of rounded nest-cups cling to the struts like swallows' nests of ochre clay, each with a round opening; thin membranes stretched between struts like kites break the gusts. Up through the middle of the lattice spirals the column of wind, drawn as pale streams of dust, loose feathers and ribbons twisting upward. Clinging to a high strut, wings half spread, the Elder: the oldest great bird, her feathers turned to pale stone, watching. The makers' sign, three dots over an arc that bows upward, carved where the struts meet. A cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the column upward on wide translucent wings of glowing fluid, dwarfed by the lattice. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, stairs, columns, floor.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-07-4ed0",
+      "candidate": "openai/1",
+      "sha256": "30c88bc72a3367430016e0c03092743479dae1d3d0664cddc21e590e14879758",
+      "bytes": 311461,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-08-07-674a",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same wind well as the reference picture, the shaft at the heart of the Aerie on Vael where the makers gave the great birds their wings, now drawn as if its makers were truly not human and flew. There are no stairs anywhere: the tall round shaft of bone-white stone is built of thousands of overlapping stone barbs like the vane of a single enormous feather, each course banded in ochre and angled so the wind combs through it; ledges are perches and shallow nest-cups, not floors; the shaft narrows and swells like a throat that breathes, and the crown of tall stone feathers round the rim leans out to an aqua sky. Up the middle rises the column of wind, drawn as pale spiralling streams of dust, feathers and ribbons; low curved stone screens like folded wingtips stand on the floor far below. High up a balcony juts from the wall like a beak beside a carved stone eye. Perched on one of the highest barbs, the Elder: the oldest great bird, her feathers gone to pale stone, watching. The makers' sign, three dots over an arc that bows upward, carved where the barbs meet like the lines on a wing. A cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the column upward on wide translucent wings of glowing fluid, dwarfed by the shaft. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

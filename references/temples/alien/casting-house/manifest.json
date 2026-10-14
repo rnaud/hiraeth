@@ -1,0 +1,25 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the same round hall as the reference picture, the Pouring Floor of the Casting-House in the Moon Foundry, the round casting tower where the makers poured the first moons, now drawn as if its makers were truly not human and made moons the way a creature lays eggs. The whole house is a scale: the round hall of dark iron-brown stone banded in ember orange hangs from its chimney like a pan from a beam, its floor very slightly tilted toward the great hooded cradle under the sealed Founders' Door; the cradles are claws of dark iron with copper talons that close round a moon; overhead, a pale cracked moon hangs from the vault in a net of iron like an egg in a sling. A rail runs across the floor through the house's pilot flame, a tall cool ember flame tended in a copper cup like a hearth-organ, to the cradle; on the rail a round iron moon waits, and beside it a little test scale with a stone moon in its small cradle. Doorways are low and wide, for broad bodies on many legs. Glimpsed below through a grating, the glow of the Last Founder, the casting machine whose crucible doors swing open when it pours. The makers' sign, three dots over an arc that bows upward, cast in relief on every cradle. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds the founders' tongs, long jointed copper pincers, ready to roll the iron moon, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, dark iron-brown stone, ember orange bands, ivory moon, ochre, copper, warm flame light, deep umber shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/alien-temple-prompts-v2.md#casting-house",
+      "refs": [
+        "references/temples/alien/base/casting-house.jpg",
+        "references/temples/landmarks-2026-10-14/moonfoundry.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-12-47-5c2c",
+      "candidate": "openai/1",
+      "sha256": "047b400272678fd6d68ae86c035ef3181e0668b68b308591af2afe5a50561fe2",
+      "bytes": 181643,
+      "costUSD": 0.041
+    }
+  ]
+}

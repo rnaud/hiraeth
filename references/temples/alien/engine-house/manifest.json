@@ -1,0 +1,34 @@
+{
+  "created": "2026-10-14",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the Engine-House under the dunes, the engine of a vanished people that once turned a great buried wheel, and is stopped. Its makers were never human: long burrowers that moved through rock the way worms do, by squeezing ring after ring of their bodies, and their engine works the same way. There are no columns, arches, stairs, beams or doorways of human shape. The hall is a vast curving tunnel of riveted rust-red iron rings, each ring a thick segment banded in blue-grey, the rings swelling and pinching along the tunnel like the body of a worm; some rings have squeezed shut, some stand wide, and the floor rises and falls over them in iron humps that serve as steps. Down the middle of the floor a long slit opens on a chasm of glowing embers far below, heat haze rising, thick ember-orange oil-light pulsing slowly through pipes that run between the rings like veins. Near the far end a great toothed iron collar is jammed, a round iron ball caught in its brass teeth, and a huge iron weight hangs over a narrow walkway. In the wall, four round carved eyes in a square, two glowing. Crouched in a hollow between two rings, the Tooth-Warden: a rust-iron machine on four legs with four vents on its back, asleep. A cool shaft of teal daylight falls from a round hole far above. The makers' sign, three dots over an arc that bows upward, stamped into the iron like a thumbprint. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, four chambers on it, one newly lit, throws four quick splashes of glowing fluid at the eyes, dwarfed by the tunnel. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust red iron, navy iron, blue-grey bands, ember orange glow, brass, cool teal daylight, deep umber shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, pistons, columns, flywheel.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-14",
+      "batch": "2026-10-14-22-28-57-c21a",
+      "candidate": "openai/1",
+      "sha256": "5ab40e5e78cf89ea613ccf9d02c84ff0f4d6414b29c3d9495194e8c11700a41e",
+      "bytes": 267042,
+      "costUSD": 0.041
+    }
+  ],
+  "rejected": [
+    {
+      "batch": "2026-10-14-22-11-22-20c1",
+      "why": "a variant of the base picture, redone from text in v3",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: the same furnace hall as the reference picture, the heart of the Engine-House in the Buried Machine, the makers' engine that turns the great buried wheel, now drawn as if its makers were truly not human and built machines the way bodies are built. The drum of rust-red iron is a gizzard: its riveted plates curve in overlapping scales banded in blue-grey, and the huge pistons standing in their cylinders round the walls are a spine of iron vertebrae, each disc stepping up from the last; the giant crank is a hinged iron jaw with teeth of brass, the connecting rods tendons, the pipes and valve wheels a tangle of veins that pulse faintly with ember light. A chasm across the floor glows with embers far below like a slow stomach fire, heat haze rising; bridge plates fold against its far lip like ribs. On the far wall a bank of four carved round eyes in a square, two glowing. Crouched in a recess, the Tooth-Warden, a rust-iron machine on four legs with four vents on its back, asleep. A ring window high above lets in a cool shaft of teal daylight. The makers' sign, three dots over an arc that bows upward, stamped like a thumbprint into the plates. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the near lip, four quick splashes of glowing fluid flying toward the eyes, a fourth chamber on the backpack lit, dwarfed by the engine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust red iron, blue-grey bands, ember orange glow, brass, cool teal daylight, deep umber shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}
