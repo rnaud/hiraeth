@@ -49,6 +49,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'motion-qc'));
   mkdirSync(OUT, { recursive: true });
   if (process.env.MM) Object.assign((await import('../../src/motion-match.js')).MATCH, JSON.parse(process.env.MM));
+  // (tuning without editing: TUNE='{"feet.js":{"FEET":{"toeOff":0.7}}}' assigns into src/<module>'s exported objects)
+  if (process.env.TUNE) for (const [mod, o] of Object.entries(JSON.parse(process.env.TUNE))) { const M = await import(`../../src/${mod}`); for (const [k, v] of Object.entries(o)) Object.assign(M[k], v); }
   const ways = arg('ways', 'moves,mm').split(','), only = arg('only')?.split(','), body = arg('body', 'v1');
   const names = Object.keys(COURSE).filter((n) => !only || only.some((o) => n.includes(o)));
   const rows = [], out = {};

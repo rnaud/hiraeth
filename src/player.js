@@ -143,6 +143,23 @@ export const STAGGER = { carry: 0.6, max: 5.5, slide: 4, time: 0.5, anim: 0.75, 
 const NO_HANDS = Object.freeze({});
 // locked on (main.js sets player.lockOn = { dir }): you face the foe and the stick strafes round it or backs
 // away, at a jog at most; sideways and backwards play captured steps (the Sword and Shield pack), m/s each covers
+/**
+ * The facing's turn this frame, its speed brought up no faster than FACE.accel (rad/s²): following the way he moves at
+ * once, a turn from standing went from still to 34 rad/s in one frame (180° in eight), and every bone of the body jumped
+ * with it, the hands 6 cm off their path (the motion QC's boundary at every pivot, issue #47). Slowing down is as before.
+ */
+export const FACE = { accel: 600 };
+/** Setting off from standing (under `gait` of the loops and `speed`, faster than `over`, within `turn` rad of the facing): the loops' phase `share` of a cycle past the front foot's touchdown. */
+export const START_STEP = { gait: 0.1, speed: 0.5, over: 2.6, share: 0, turn: 1.2 };
+export function faceStep(p, step, dt, was = 0) {
+  if (!(dt > 0)) return step;
+  const want = step / dt;
+  let rate = want;
+  if (!(Math.sign(want) === Math.sign(was) && Math.abs(want) <= Math.abs(was))) rate = was + THREE.MathUtils.clamp(want - was, -FACE.accel * dt, FACE.accel * dt);
+  p._faceRate = rate;
+  return rate * dt;
+}
+
 export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe_1', speed: 1.14 }, right: { clip: 'mixamo_ss_strafe_2', speed: 1.01 }, back: { clip: 'mixamo_ss_walk_2', speed: 1.08 },
   in: 10, out: 10, swap: 18, keep: 0.55, side: 1.0 };
 /**
@@ -1626,6 +1643,9 @@ export class Player {
     // facing
     const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
     const hs = tvel.length();
+    // (the facing's turn speed of the last frame, kept only while the next one follows the way he moves: faceStep)
+    const faceWas = this._faceRate ?? 0;
+    this._faceRate = 0;
     if (this.onJets) {
       // flying on the jets: the heading is the nose's (flyJets steers it)
     } else if (this.lockOn && !this.gliding && !this.climbing && !this.ride && !this.swim) {
@@ -1636,7 +1656,7 @@ export class Player {
     else if (hs > 0.5 && !this.gliding) {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
-      this.heading += d * (1 - Math.exp(-12 * dt));
+      this.heading += faceStep(this, d * (1 - Math.exp(-12 * dt)), dt, faceWas);
     } else if (this.edge.k > 0.15 && !this.gliding) {
       // leaning into the world's edge: turned to face it
       let d = F.headingOf(_v1.copy(this.edge.n).negate()) - this.heading;
@@ -2569,6 +2589,17 @@ export class Player {
     }
     // (the air cut, src/fluid-blade.js AIR: the whole body in the air too, its own rise off the floor left out: the controller flies it)
     if (Sw && !R && !this.down) A.playCombat(Sw.clip, Sw.t, Sw.w, { full: (Sw.full && this.onGround) || (!!Sw.air && !this.onGround), ground: !!Sw.air && !this.onGround, id: Sw.id, blend: Sw.blend ?? 0.09 });
+    // setting off from standing: the loops start on the step the feet are in, the foot ahead down and the one behind lifting
+    // first (the shared phase ran on from wherever the last stop left it: a jog set off on the foot behind, held down out of
+    // reach, dragged along the floor and planted again 19 cm on, the motion QC's start slides, issue #47)
+    if (steering && !this._startSteer && A.gaitW < START_STEP.gait && hs < START_STEP.speed && (this._wantSpeed ?? 0) > START_STEP.over && this.humanoid?._feet && this._moveDir) {
+      const F = this.humanoid._feet, d = this._moveDir;
+      const ahead = (s) => (F[s].pos.x - this.pos.x) * d.x + (F[s].pos.y - this.pos.y) * d.y + (F[s].pos.z - this.pos.z) * d.z;
+      // (setting off the way he faces, more or less: one the other way is a pivot, the feet step round first: src/feet.js)
+      const turnBy = Math.atan2(Math.sin(this.frame.headingOf(d) - this.heading), Math.cos(this.frame.headingOf(d) - this.heading));
+      if (F.l.locked && F.r.locked && Math.abs(turnBy) < START_STEP.turn) A.alignPhase(ahead('l') >= ahead('r') ? 'l' : 'r', 0, START_STEP.share, 'jog');
+    }
+    this._startSteer = steering;
     // our walk / run speeds land on the walk and sprint clips; jog in between
     A.update(dt, {
       speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,

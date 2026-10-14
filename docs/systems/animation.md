@@ -791,6 +791,88 @@ Left: a held foot drifts up to 2-3 cm at the hand-over from a pivot to a jog (th
 contact dips for a frame and the foot is let go, skims, and is planted again; 2.0-2.1 cm before too) and once in five
 runs the desert's settling step after a tapped pivot slid 14 cm (9.5-10.8 before).
 
+**Issue #47: starts, stops and turns at the game's speeds** (2026-10-14). Capturing new moves needs a person; what we
+have (the Mixamo moves of #197, the loops, feet.js) was made to follow the body at the speeds the controller really
+moves at. What the QC's frames showed, and what changed:
+
+- **A foot set down onto a slope from under it** (up the ramp, 9 pops a minute): the drawn foot rides the floor under
+  it (`gRide`), so going uphill it is still its swing's height over the slope when the clip's foot, under that floor,
+  meets the ground; planted from the clip's clearance it dropped 10-13 cm in a frame at every step. It now comes down
+  (`dropIn`) from where it is drawn: the clip's clearance plus the ride (downhill: less, so it no longer lifts 3 cm).
+- **The sprint's push-off** (10 pops a minute): the held foot stayed down until the leg was out of reach, the knee went
+  straight 30° a frame and stopped there for two frames while the release eased in. From 4.5 to 7 m/s a held foot lets
+  go once the hips, 50 ms on at the body's speed, would have its leg within 5 % of full length (`FEET.pushOff`), after
+  two frames held at least. Let go, a foot leaves its hold along the ground more slowly than it rises (`toeOff`, w^0.7)
+  and in a higher arc (`releaseArc`), so the toe isn't drawn along the floor. Rolling the held foot onto its ball instead
+  (the heel rising, the ball kept) was tried again: it pops where it lets go, as before; left out.
+- **Setting off at a jog or a run** from standing: the loops' phase ran on from the last stop, so a start often set off
+  on the foot behind, held down out of reach, dragged and planted again 19 cm on. A start the way he faces (within
+  70°) aligns the loops so the foot ahead is down and the one behind lifts first (`START_STEP`, src/player.js; a walk's
+  start keeps its captured move's own foot).
+- **The facing spun up in a frame**: following the way he moves at once, a turn from standing went from still to 34
+  rad/s in one frame (180° in eight) and every bone jumped with it, the hands 6 cm off their path: the boundary at every
+  pivot and turn move. Its speed now rises no faster than 600 rad/s² (`FACE.accel`, `faceStep`); slowing is as before
+  (400 was smoother still, but a standing turn then stepped with both feet in the air for a few frames).
+- **A pivot planted a foot in mid-air**: reversing a sprint, the speed passes under the pivot's 2.6 m/s for a frame and
+  the pivot set down a foot swinging 15 cm up where it was; it was pulled to the ground as the pivot ended (a 12.5 cm
+  jolt). A pivot plants at once only a foot within 5 cm of the ground or down by the gait (`pivotPlant`).
+- **The pivoting foot turned on its ball at once** (calf 30 rad/s): it turns no faster than 14 rad/s (`pivotYawRate`).
+  A step's foot turns round about up (it was a lerp of two vectors, which through a half turn passed near nothing and
+  flipped the foot 97 rad/s), and a settling step cut short by setting off comes down onto the ground (`dropIn`)
+  instead of 6 cm in a frame.
+- **A swinging foot rose a whole stair in a frame**: it also rises toward the floor 0.1 s ahead along its way
+  (`rideAhead`, `rideAheadRate`), so it is mostly up by the time it passes the riser (stairs: pops 12 → 8 a minute).
+- **The running turn's arms** (src/loco-moves.js): played by angle, the running 180° turn sat at its least rate while
+  the body braked and jumped to its most as the facing came round; its playback speed is eased (`rateEase`) and its
+  most is 1.8 (2.4): the arm turned 0.6 rad in a frame.
+
+Node, the default way (`node scripts/motion-qc/diff.mjs`, before on e8a03689):
+
+| scenario · way | verdict | slide p95 (cm) | slide max (cm) | held (cm) | pops /min | jolts /min | worst jolt (cm) | boundary (cm) |
+|---|---|---|---|---|---|---|---|---|
+| walk → run → 180° turn → stop | red → red | 7.1 → 8.3 | 7.3 → 10.4 | 1.6 → 0.3 | 13 → 3 | 11 → 7 | 12.3 → 4.6 | 12.3 → 4.6 |
+| walk, 90° turn, stop | green → green | 4.3 → 1.8 | 4.3 → 1.8 | 0.7 → 0.3 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.3 → 1.4 |
+| turn round on the spot | red → green | 4.0 → 4.0 | 4.0 → 4.0 | 0.2 → 0.2 | 3 → 0 | 1 → 0 | 6.3 → 0.0 | 6.3 → 1.7 |
+| up the ramp, stand | red → red | 4.3 → 2.1 | 4.3 → 2.1 | 1.4 → 1.7 | 9 → 2 | 9 → 1 | 9.1 → 3.1 | 9.1 → 3.1 |
+| stairs up, stand, down | red → red | 6.9 → 5.4 | 6.9 → 5.4 | 0.7 → 0.3 | 12 → 8 | 19 → 19 | 13.6 → 12.3 | 9.6 → 10.0 |
+| slow walk (half stick), stop | red → green | 6.1 → 2.2 | 6.1 → 2.2 | 1.3 → 1.3 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.7 → 2.5 |
+| jog, 45° and back, stop | green → green | 4.3 → 1.8 | 4.3 → 1.8 | 0.7 → 0.3 | 0 → 1 | 0 → 0 | 0.0 → 0.0 | 1.8 → 2.8 |
+| stand still 6 s | green → green | 0.0 → 0.0 | 0.0 → 0.0 | 0.0 → 0.0 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 |
+| gaits: walk → jog → sprint → jog → walk → stop | red → red | 6.8 → 7.4 | 7.2 → 9.4 | 1.6 → 1.3 | 10 → 0 | 7 → 6 | 4.1 → 4.1 | 1.7 → 1.7 |
+| starts and stops, walk and run | red → red | 10.1 → 10.8 | 15.2 → 16.1 | 1.7 → 1.7 | 14 → 7 | 5 → 5 | 8.4 → 5.0 | 8.4 → 3.0 |
+| setting off the other way | red → red | 8.4 → 8.4 | 8.9 → 11.3 | 0.9 → 1.1 | 8 → 5 | 6 → 3 | 8.0 → 4.1 | 6.6 → 4.1 |
+| pivots standing: 90° each way, 180° | red → red | 5.4 → 4.9 | 5.4 → 4.9 | 0.1 → 0.2 | 5 → 1 | 4 → 1 | 6.2 → 3.4 | 6.2 → 3.4 |
+| pivot 180° at a jog, and at a sprint | red → red | 8.5 → 9.5 | 14.1 → 21.1 | 1.8 → 1.2 | 22 → 6 | 15 → 15 | 8.5 → 7.3 | 8.5 → 5.1 |
+| curve: the stick round a circle at a jog | green → green | 4.3 → 2.2 | 4.3 → 2.2 | 0.7 → 0.3 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.6 → 2.1 |
+| down the ramp, stop on it | red → red | 4.7 → 3.3 | 4.7 → 3.3 | 0.6 → 1.1 | 13 → 5 | 9 → 6 | 6.3 → 5.8 | 6.3 → 4.9 |
+| stairs at a run | red → red | 6.9 → 9.1 | 6.9 → 9.1 | 1.4 → 0.1 | 19 → 10 | 14 → 12 | 40.4 → 22.7 | 3.6 → 7.9 |
+
+red runs 12 → 10 of 16; limits failed 45 → 34; mean slide p95 5.8 → 5.1 cm; mean pops 8.0 → 3.0 /min; mean jolts
+6.3 → 4.7 /min; mean worst boundary 5.3 → 3.7 cm. Matching (`?mm=1`): limits failed 79 → 77, pops 10.7 → 6.6, jolts
+11.7 → 10.7, boundary 9.5 → 7.7 cm, but slide p95 12.8 → 17.7 cm (two runs: standing on the ramp a foot the matched
+clip never puts down creeps 86 cm, and a standing pivot's settling step 26 cm).
+
+In the game (Mac, muted headless Chrome, Medium, two runs each, before → after):
+
+| world | pops /min | jolts /min | boundary (cm) | slide p95 (cm) | held (cm) | crossed |
+|---|---|---|---|---|---|---|
+| the desert's dunes | 31, 31 → 11, 11 | 20, 20 → 13, 15 | 8.5, 8.6 → 7.6, 7.6 | 7.5, 7.5 → 8.1, 8.1 | 2.4, 1.2 → 1.2, 1.2 | 13, 8 → 5, 5 % |
+| the Signal Market's street | 26, 27 → 7, 7 | 14, 17 → 13, 13 | 8.5, 8.7 → 7.0, 5.8 | 7.1, 7.5 → 8.4, 9.0 | 1.4, 1.4 → 1.8, 0.9 | 8, 6 → 5, 5 % |
+| the Arena's floor | 26, 27 → 8, 10 | 15, 15 → 10, 15 | 7.7, 8.2 → 6.8, 6.7 | 5.9, 7.2 → 9.8, 8.2 | 1.1, 1.1 → 1.2, 1.1 | 6, 6 → 9, 5 % |
+
+A held foot moved under 2 cm in all six runs after (the 2-3 cm slip at #288's 90° jog start not seen); every stop
+settled in 0.95-0.98 s.
+
+**Left red**, with numbers: the sprint's steps slide (p95 7.4 cm in node, 8-10 cm in the game, 5-6 before: a foot
+held two frames at 8 m/s and let go early touches down at 10 m/s and lifts with its toe on the floor; the trade for
+the knee no longer snapping, 10 pops a minute to 0); the stairs (19 jolts a minute and a 10 cm boundary: a swinging
+foot still rises 8 cm in a frame passing a riser at a jog, the legs fold to a fifth of their length climbing at 3.8
+m/s, and the stop on them never settles); the stairs at a run (10 pops a minute, a 23 cm jolt); starts and stops at a
+run (slide max 16 cm: the sprint from standing goes from 0 to 8 m/s in 0.4 s); the 180° pivots at a sprint (slide max
+21 cm, 15 jolts a minute); the standing pivots' crossed feet (10 % of the frames) and the ramp's last boundary (3.1 cm,
+the run-to-stop move's hand). In the game only, the running 180° turn flicks a forearm or a hand 180-220 rad/s in a
+frame (the game's traveller's hands; not in node's), before and after.
+
 **Worlds tried and left out**: the City-Shaft. From its landing every way the script runs into a railing or a house
 within the sprint, and he climbs it.
 

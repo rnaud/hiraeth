@@ -81,13 +81,13 @@ test('the judgement: the answer to the stick, and a pivot with crossed feet', ()
 });
 
 test('the traveller on the course: the runs green today stay green (the default: loops with captured moves)', { timeout: 120000 }, async () => {
-  for (const name of ['walk, 90° turn, stop', 'jog, 45° and back, stop', 'curve: the stick round a circle at a jog', 'stand still 6 s']) {
+  for (const name of ['walk, 90° turn, stop', 'jog, 45° and back, stop', 'curve: the stick round a circle at a jog', 'stand still 6 s', 'turn round on the spot', 'slow walk (half stick), stop']) {
     const { r } = await runScenario(COURSE[name], 'moves');
     assert.ok(r.green, `${name}: green (${r.fails.join(', ')}; slide p95 ${(r.measures.slideP95 * 100).toFixed(1)} cm, pops ${r.measures.popsPerMin}/min, jolts ${r.measures.joltsPerMin}/min)`);
   }
   // the worst before: the walk's knee and foot pops at every step, and the pivot's 20 cm jolt
   const g = (await runScenario(COURSE['gaits: walk → jog → sprint → jog → walk → stop'], 'moves')).r.measures;
-  assert.ok(g.popsPerMin <= 12, `every gait: pops ${g.popsPerMin}/min (34, then 14 before the sprint was looked at)`);
+  assert.ok(g.popsPerMin <= 3, `every gait: pops ${g.popsPerMin}/min (34, then 14 before the sprint was looked at, 10 before its push-off, issue #47)`);
   assert.ok(g.joltsPerMin <= 9, `every gait: jolts ${g.joltsPerMin}/min (13 before the sprint was looked at)`);
   const p = (await runScenario(COURSE['pivots standing: 90° each way, 180°'], 'moves')).r.measures;
   assert.ok(p.joltMax < 0.1, `pivots: the worst jolt ${(p.joltMax * 100).toFixed(1)} cm (20 before)`);
@@ -96,7 +96,33 @@ test('the traveller on the course: the runs green today stay green (the default:
   const s = (await runScenario(COURSE['starts and stops, walk and run'], 'moves')).r.measures;
   assert.ok(s.slideMax < 0.2, `starts and stops: the worst step slides ${(s.slideMax * 100).toFixed(1)} cm (29 before)`);
   const st = (await runScenario(COURSE['stairs up, stand, down'], 'moves')).r.measures;
-  assert.ok(st.joltMax < 0.16 && st.popsPerMin <= 15, `stairs: the worst jolt ${(st.joltMax * 100).toFixed(1)} cm (18 before), pops ${st.popsPerMin}/min (18 before)`);
+  assert.ok(st.joltMax < 0.16 && st.popsPerMin <= 10, `stairs: the worst jolt ${(st.joltMax * 100).toFixed(1)} cm (18 before), pops ${st.popsPerMin}/min (18, then 12 before a foot rose ahead of a step up)`);
+});
+
+test('starts, stops and turns at the game\'s speeds: the ramp\'s touchdowns, the pivots, a sprint reversed (issue #47)', { timeout: 120000 }, async () => {
+  // up the ramp a landing foot was planted from the clip's height, under the floor it rode: it dropped 10-13 cm in a frame
+  const ramp = (await runScenario(COURSE['up the ramp, stand'], 'moves')).r.measures;
+  assert.ok(ramp.popsPerMin <= LIMITS.popsPerMin && ramp.joltsPerMin <= LIMITS.joltsPerMin, `up the ramp: pops ${ramp.popsPerMin}/min, jolts ${ramp.joltsPerMin}/min (9 and 9 before)`);
+  // standing pivots: the held foot turned on its ball at once, a settling step cut short dropped 6 cm, the facing spun up in a frame
+  const p = (await runScenario(COURSE['pivots standing: 90° each way, 180°'], 'moves')).r.measures;
+  assert.ok(p.popsPerMin <= LIMITS.popsPerMin && p.joltMax < 0.05, `pivots standing: pops ${p.popsPerMin}/min (5 before), the worst jolt ${(p.joltMax * 100).toFixed(1)} cm (6.2 before)`);
+  // a sprint reversed: a foot swinging 15 cm up was planted in the air for the one frame the pivot was on
+  const v = (await runScenario(COURSE['pivot 180° at a jog, and at a sprint'], 'moves')).r;
+  const rev = Math.max(0, ...v.events.boundaries.filter((b) => b.tag === 'pivot-sprint').map((b) => b.size));
+  assert.ok(rev < 0.08, `the sprint reversed: the worst boundary ${(rev * 100).toFixed(1)} cm (12.5 with the pivot's plant in mid-air)`);
+});
+
+test('the facing turns up to speed over a few frames, and slows as before (src/player.js faceStep, issue #47)', async () => {
+  const { faceStep, FACE } = await import('../src/player.js');
+  const dt = 1 / 60, p = {};
+  let was = 0;
+  const steps = [];
+  for (let i = 0; i < 6; i++) { const s = faceStep(p, Math.PI * (1 - Math.exp(-12 * dt)), dt, was); was = p._faceRate; steps.push(s); }
+  assert.ok(steps[0] <= FACE.accel * dt * dt + 1e-9, `the first frame turns ${steps[0].toFixed(3)} rad, not 0.57 at once`);
+  for (let i = 1; i < steps.length; i++) assert.ok(steps[i] - steps[i - 1] <= FACE.accel * dt * dt + 1e-9, 'its speed rises no faster than FACE.accel');
+  // slowing down: as asked, at once
+  const q = { _faceRate: 30 };
+  assert.ok(Math.abs(faceStep(q, 0.1, dt, 30) - 0.1) < 1e-9, 'a slower turn than the last frame\'s is taken as it is');
 });
 
 test('the gait loops through a smooth curve: each key kept, the cycle closed, no step in a bone\'s speed at a key', async () => {

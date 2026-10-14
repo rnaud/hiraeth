@@ -36,7 +36,8 @@ export const MOVES = {
   start: { clips: ['start_walking'], legs: false, from: 0.25, upTo: 2.6, fade: [2.2, 3.4], minRate: 0.6, maxRate: 3, lead: 0.12 },
   stop: { legs: false, walk: 'stop_walking', run: 'run_to_stop', runFrom: 2.8, from: 0.9, brake: 16, minRate: 0.7, maxRate: 2.5 },
   turn: { legs: false, from: 0.75, maxSpeed: 2.0, outSpeed: 2.8, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], minRate: 0.9, maxRate: 3.2 },
-  pivot: { legs: false, clip: 'running_turn_180', speed: 4.2, from: 2.4, minRate: 0.8, maxRate: 2.4 },
+  // (rateEase, 1/s: the pivot's playback speed follows the body's turn toward its new rate this fast, not at once)
+  pivot: { legs: false, clip: 'running_turn_180', speed: 4.2, from: 2.4, minRate: 0.8, maxRate: 1.8, rateEase: 10 },
 };
 
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -190,6 +191,12 @@ export class LocoMoves {
     }
     const t0 = C.t;
     C.t = clamp(want, C.t + dt * M.minRate, C.t + dt * M.maxRate);
+    // (the playback's speed eased, not stepped: a running turn held at its least rate while the body braked and then at its
+    // most as the facing came round played the arms three times as fast from one frame to the next, 0.6 rad a frame, issue #47)
+    if (M.rateEase > 0 && dt > 0 && C.rate !== undefined) {
+      const r = C.rate + ((C.t - t0) / dt - C.rate) * (1 - Math.exp(-M.rateEase * dt));
+      C.t = t0 + clamp(r, M.minRate, M.maxRate) * dt;
+    }
     C.rate = dt > 0 ? (C.t - t0) / dt : 1;
     // done: past where the clip has done its move (a start: walking steadily; the others: settled)
     const end = C.kind === 'start' ? Math.min(sh.end, sh.off) - MOVES.blendOut : C.kind === 'pivot' ? sh.end - MOVES.blendOut : Math.min(sh.end, sh.off + 0.35);

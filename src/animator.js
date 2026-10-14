@@ -782,12 +782,12 @@ export class Animator {
    * Set the loops' shared phase so foot `f` came down `since` s ago (at this cadence): a start or a
    * pivot hands over to the walk or the run in step, not with the feet crossed.
    */
-  alignPhase(f, since) {
+  alignPhase(f, since, share = 0, k = null) {
     const G = this.gait;
     if (!G) return;
-    const k = ['walk', 'jog', 'sprint'].reduce((a, b) => ((this.w[b] ?? 0) > (this.w[a] ?? 0) ? b : a), 'walk');
+    k ??= ['walk', 'jog', 'sprint'].reduce((a, b) => ((this.w[b] ?? 0) > (this.w[a] ?? 0) ? b : a), 'walk');
     const c = G.clips[k];
-    this.phase = ((touchdown(c.contact[f]) - (c.phase ?? 0) + since * (this.cps ?? 1)) % 1 + 1) % 1;
+    this.phase = ((touchdown(c.contact[f]) - (c.phase ?? 0) + since * (this.cps ?? 1) + share) % 1 + 1) % 1;
   }
 
   /**

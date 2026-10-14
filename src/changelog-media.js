@@ -847,6 +847,22 @@ export const CHANGELOG_MEDIA = {
       { name: 'well-crown', title: 'The crown', caption: 'Looking west past the open iris: before, the wall; after, the doorway in from the Flue', ...LOOPS74 },
     ], see: 'In the Warden’s Well, with the bellows, go west through the Lamp Gallery’s new doorway into the Flue. Splash the little vane high on its wall and ride the draught; get off at the ledge for the great key, splash the vane again and ride on up into the crown.' },
     { match: 'Past the riders’ gate on Vael, the stones that rise under you are solid again', see: 'On Vael, go past the riders’ gate onto the stones over the cloud and stand on the first one that rises: it lifts you to the next instead of letting you fall through.' },
+    { match: 'Your legs keep up with you better', tags: ['characters'], numbers: [
+      { title: 'Pops in the game: a bone flicking in a frame (the motion QC’s course: every gait, a sprint reversed, a pivot, a 90° turn at a jog)', unit: 'a minute', better: 'lower', device: 'Mac, muted headless Chrome, Medium, 1280 × 720, two runs each', rows: [
+        { where: 'the Desert’s dunes', before: 31, after: 11 },
+        { where: 'the Signal Market’s street', before: '26–27', after: 7 },
+        { where: 'the Arena’s floor', before: '26–27', after: '8–10' },
+      ], source: 'node .claude/skills/motion-qc/run.mjs <out> --ways moves (PORT 6347), before on e8a03689' },
+      { title: 'The motion QC in node: the gait course’s 16 runs (the default way)', unit: '', better: 'lower', device: 'node scripts/motion-qc/run.mjs, the coral-shirt traveller', rows: [
+        { where: 'runs red (of 16)', before: 12, after: 10 },
+        { where: 'limits failed', before: 45, after: 34 },
+        { where: 'pops a minute (mean)', before: 8.0, after: 3.0 },
+        { where: 'jolts a minute (mean)', before: 6.3, after: 4.7 },
+        { where: 'the worst jolt at a blend boundary (mean, cm)', before: 5.3, after: 3.7 },
+        { where: 'every gait in turn: pops a minute', before: 10, after: 0 },
+        { where: 'up the ramp: pops a minute', before: 9, after: 2 },
+      ], source: 'node scripts/motion-qc/diff.mjs <before>/motion.json <after>/motion.json --way moves' },
+    ] },
   ],
   '1.73': [
     { match: 'On the Steam Deck the Unity version is now called “Hiraeth (Unity)”', see: 'On the Steam Deck, open the library’s Non-Steam collection, or the desktop’s application menu, after the game has updated once with Steam closed: the Unity version reads “Hiraeth (Unity)”, its icon and pictures carry a dark UNITY plate, and the game itself is plain “Hiraeth”.' },
