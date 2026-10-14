@@ -1,0 +1,69 @@
+.claude/skills/visual-audit/SKILL.md
+  s_9ca76055a220ed::t_c0d1c67f8158ba 67-68,152
+.claude/skills/visual-audit/probes.mjs
+  s_9ca76055a220ed::t_b823c5014198d3 23,67,140-141,209-212
+.claude/skills/visual-audit/views.mjs
+  s_9ca76055a220ed::t_ccd3fa10b0c725 8-10,14,32-34,37,98-105
+changelog.md
+  s_9ca76055a220ed::t_ed35d1d6add202 7
+scripts/bench/browser.mjs
+  s_9ca76055a220ed::t_652e9189f3ea7e 11-12,16-34,42
+scripts/bench/deck-pen.mjs
+  s_9ca76055a220ed::t_1ac4495b59fd9b 8,25
+scripts/bench/viewpoints-worlds.json
+  s_9ca76055a220ed::t_0b2df5d2a97085 50,56,58,61,63,5112,5114,5117,5119,10167,10169,10172,10174
+scripts/lab-perf/lab-perf.mjs
+  s_9ca76055a220ed::t_42f4775481cbe9 15,122
+scripts/motion-check/freeze.mjs
+  s_9ca76055a220ed::t_6114a4b3a9b743 1-29
+scripts/motion-check/record.mjs
+  s_9ca76055a220ed::t_5a0c840d42de4c 11,26-27,30,132-133,165-168,171-172
+scripts/transition-perf/loading.mjs
+  s_9ca76055a220ed::t_b2511614016d84 12,30
+scripts/transition-perf/pen.mjs
+  s_9ca76055a220ed::t_a559179e3f6298 12,18
+scripts/transition-perf/transitions.mjs
+  s_9ca76055a220ed::t_64023955d5c83f 16,126
+scripts/visual-probes/lib.mjs
+  s_9ca76055a220ed::t_e2a9402025a06f 288-315
+src/changelog-media.js
+  s_9ca76055a220ed::t_17d032365d9f0e 817,876
+src/post.js
+  s_9ca76055a220ed::t_2f7c4292bbd886 150-160,210-211,695-698,702-703
+tests/motion-check-tools.test.js
+  s_9ca76055a220ed::t_28d1188da47ffa 1-66
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_5d11934a337e5c 8,89,253-256,283-284,362-413,487,495,497,507-508
+tests/route-spawn.test.js
+  s_9ca76055a220ed::t_78736eee41bd64 35,111-150
+tests/visual-probes.test.js
+  s_9ca76055a220ed::t_915ee310ae0f13 5-6,129-145
+unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader
+  s_9ca76055a220ed::t_6de848814c58b7 237-239,272-273
+docs/systems/rendering.md
+  s_ba14917e09c732::t_d4eec35f08791e 671-702,995-1007
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e7f319d5b0b8af593dfc81757a76cb120d42a91",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ba14917e09c732": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a503a51e50bd72e99",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
