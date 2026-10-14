@@ -2642,6 +2642,100 @@ export class Bridge {
   }
 }
 
+/**
+ * The Undertower's listening pillars (issue #23, v1.74): a walkway of pillars down in a chasm's dark, each crowned on its
+ * side with a little horn ringed in its note's colour. A pillar rises while its note, played back near it (the echo shell:
+ * game event 'echo', not a stone's own song), still rings: `hold` s from the last time it heard it within `reach` (across
+ * the floor) of its top; then it sinks again, but not while someone stands on it. So the way over is carried: play the
+ * note at the edge, step out, play it again further on (the shell keeps it), and the pillars ahead rise as you go.
+ * o: { a, b: [x, y, z] the walkway's ends (its top), w, n, pillar: m deep, note, reach (m), hold (s), heard, wrong }
+ */
+export const PILLARS = { reach: 6.5, hold: 6, rise: 0.9, sink: 1.0 };
+export class Pillars {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o; this.note = o.note ?? 'high';
+    const N = NOTES[this.note] ?? NOTES.high;
+    const K = rt.kit, M = rt.M, w = o.w ?? 4, n = o.n ?? 8;
+    const a = V(...o.a), b = V(...o.b), L = a.distanceTo(b), yaw = Math.atan2(b.x - a.x, b.z - a.z);
+    this.reach = o.reach ?? PILLARS.reach; this.hold = o.hold ?? PILLARS.hold;
+    this.root = new THREE.Group();
+    rt.root.add(this.root);
+    this.ringM = own({ color: N.color, glow: 0.2, flat: true });
+    const horn = own({ color: '#d8a24a', flat: true, side: THREE.DoubleSide });
+    this.stones = [];
+    for (let i = 0; i < n; i++) {
+      const c = a.clone().lerp(b, (i + 0.5) / n), len = L / n;
+      const g = new THREE.Group();
+      g.position.copy(K.world(c.x, c.y, c.z));
+      g.rotation.y = K.heading(yaw);
+      const deep = (o.pillar ?? 12) * (0.8 + 0.4 * ((i * 7) % 5) / 4);
+      g.add(mesh([box(w, 1.0, len - 0.08, 0, -0.5, 0), box(w - 0.3, deep, len - 0.3, 0, -1 - deep / 2, 0)], M.floor));
+      g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
+      // its horn, on the pillar's side under the walkway's edge, turned up and out (by turns on either side)
+      const sd = i % 2 ? 1 : -1;
+      g.add(mesh([T(lathe([[0.08, 0], [0.12, 0.3], [0.24, 0.55], [0.5, 0.72], [0.54, 0.76]], 12), [sd * (w / 2 + 0.05), -0.9, 0], [0, 0, -sd * 1.2])], horn));
+      g.add(mesh([T(new THREE.TorusGeometry(0.52, 0.06, 4, 20), [sd * (w / 2 + 0.68), -0.62, 0], [0, 0, -sd * 1.2 + Math.PI / 2])], this.ringM));
+      noCollide(g);
+      this.root.add(g);
+      const bl = new THREE.Mesh(box(w, 1.0, len, 0, -0.5, 0), new THREE.MeshBasicMaterial());
+      bl.position.copy(g.position); bl.rotation.copy(g.rotation); bl.updateMatrixWorld(true);
+      // (where it is heard from: its top, in the temple's frame)
+      this.stones.push({ g, y: g.position.y, block: bl, local: c, half: len / 2, left: 0, k: 0, handle: null });
+    }
+    this.span = { a, b, w, yaw };
+    this.wrongSaid = false;
+    this.off = rt.game?.on?.('echo', (e = {}) => this.hear(e));
+    this.apply();
+  }
+  init(physics) { this.physics = physics; }
+  /** A note played back somewhere: the pillars within reach of it rise (their own note), or stay down (another). */
+  hear({ pos, note } = {}) {
+    if (!pos) return;
+    const l = this.rt.kit.local(pos);
+    const near = this.stones.filter((s) => Math.hypot(l.x - s.local.x, l.z - s.local.z) <= this.reach && Math.abs(l.y - s.local.y) < 8);
+    if (!near.length) return;
+    if (note !== this.note) {
+      if (typeof note === 'string' && !note.startsWith('sign.')) this.rt.notice?.(this.o.wrong ?? `The pillars stay down in the dark: their horns listen for the ${NOTES[this.note]?.name ?? this.note} note, the colour of their rings.`, 'pillars.wrong');
+      return;
+    }
+    let rose = false;
+    for (const s of near) { if (s.left <= 0 && s.k < 0.5) rose = true; s.left = this.hold; }
+    if (rose) { this.rt.rumble?.(1.2, 0.35); this.rt.sound?.chime?.(); this.rt.notice?.(this.o.heard ?? 'The pillars nearest you hear the note and rise out of the dark. Further on, they wait to hear it too.', 'pillars.heard'); }
+  }
+  /** Someone stands on stone s (it waits for them to step off before it sinks). */
+  ridden(s, p = this.rt.player) {
+    if (!p?.pos) return false;
+    const l = this.rt.kit.local(p.pos), { w, yaw } = this.span;
+    const dx = l.x - s.local.x, dz = l.z - s.local.z;
+    const along = dx * Math.sin(yaw) + dz * Math.cos(yaw), across = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    return Math.abs(along) < s.half + 0.5 && Math.abs(across) < w / 2 + 0.5 && l.y > s.local.y - 0.6 && l.y < s.local.y + 2.5;
+  }
+  /** How many stand risen now (for the tests and the scout). */
+  get up() { return this.stones.filter((s) => s.handle).length; }
+  /** Stone i stands (solid). */
+  standing(i) { return !!this.stones[i]?.handle; }
+  apply() {
+    for (const s of this.stones) {
+      s.g.position.y = s.y - (1 - ease(s.k)) * 14;
+      s.g.visible = s.k > 0.001;
+    }
+  }
+  update(dt, t) {
+    let lit = 0;
+    for (const s of this.stones) {
+      if (s.left > 0) s.left = Math.max(0, s.left - dt);
+      const want = s.left > 0 || (s.handle && this.ridden(s));
+      if (want && !s.handle && this.physics) s.handle = this.physics.addCollider?.(s.block, NO_CLIMB) ?? null;
+      if (!want && s.handle) { this.physics.removeCollider?.(s.handle); s.handle = null; }
+      s.k = THREE.MathUtils.clamp(s.k + (want ? dt / PILLARS.rise : -dt / PILLARS.sink), 0, 1);
+      if (want) lit++;
+    }
+    this.apply();
+    this.ringM.uniforms.uGlow.value = lit ? 0.85 + 0.15 * Math.sin(t * 6) : 0.2 + 0.08 * Math.sin(t * 2);
+  }
+  dispose() { this.off?.(); for (const s of this.stones) if (s.handle) this.physics?.removeCollider?.(s.handle); }
+}
+
 // ---------------------------------------------------------------------------------------- marks and pits
 // ---------------------------------------------------------------------------------------- keys and coffers
 /** A key's shape (m, the bow up, along y): a ring, a shaft and its bits; a big key is longer, with a second ring. */

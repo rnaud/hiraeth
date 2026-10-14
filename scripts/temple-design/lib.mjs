@@ -66,7 +66,7 @@ export function reversible(c, el = {}) {
 }
 
 /** The traversal a piece asks for (it stands in a room and you must get past it): null for the puzzle's own parts. */
-export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets', LensStones: 'stones' };
+export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets', LensStones: 'stones', Pillars: 'pillars' };
 /** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath), a
  * timed hold (a held bell: what it opens stays only while it rings), a key carried to its lock (the challenge is
  * what guards the key: its `when`). */

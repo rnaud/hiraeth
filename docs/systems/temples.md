@@ -122,7 +122,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   travel" below): the singing ball and the dish pair, whose note raises the
   pillars over the cable pit (v1.27: no disc), the riding well and its horn for
   the low stone, the **echo shell**, the chamber's low stone carried a room on to
-  the Listening Passage's door, the held pillar bridge, the far door that listens
+  the Listening Passage's door, the listening pillars (each rises for the high note played back near it, v1.74), the far door that listens
   through a dish, the **First Sign** (`signModel`: it cries one word of its
   line; when it lowers its dish, play the word back into it and it says the
   next); after, a lamp on the silent tower, and once a night it speaks the line.
@@ -193,9 +193,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   comes out of the far one's 0.6 s later, as the same event marked `relayed` (a dish never passes on
   another's). It carries only while `when` holds (a ball's weight on its footstone, `drumOn`); dark, it
   says so and carries nothing. An `EchoEar` may hear a stone's own song (`hears: 'note'` or `'both'`), be
-  set on a tall stand (`stand`, `size`), and hold its element for `hold` seconds like a held bell (the
-  gallery's great horns: the pillar bridge, `{ any: [e1, e3] }`, stands while either rings, so the far
-  side's own horn is the way back). A `Ball` with `sings: note` is a singing ball: a splash makes it sing.
+  set on a tall stand (`stand`, `size`), and hold its element for `hold` seconds like a held bell (until v1.74
+  the gallery's great horns held the pillar bridge so; now the pillars listen themselves: `Pillars`, round 6
+  below). A `Ball` with `sings: note` is a singing ball: a splash makes it sing.
   A `Bridge` with `pillar` rises as tall pillars; a bridge from below that shuts sinks, the far stones
   first, and waits for whoever stands on it. `EchoStone` `shape: 'egg'` is the gallery's eggs.
 - **Nothing grows in the shade** (the Builders' Greenhouse, from the v1.16 audit). A `Sunbeam` is a louvre in the roof
@@ -683,6 +683,21 @@ take it, so it is splashed again from the ledge, and the draught carries you on 
 door (`d3`) takes the great key with the eye's two vanes, so both ways are needed and either goes first: the irises' for
 the eye's little vane in the loft, the flue's for the key. Down from the crown into the flue is a drop (a `oneWay` link,
 no item: the wings make it a glide). `migrate.js LAYOUTS.incal` v3: past the high door, the great key is in it.
+
+Round 6 (issue #23, v1.74) does the rest of that report's ranked edits: the Undertower's and the Clock-House's shapes
+(identity 2: their runs after the chest read like other houses'), the two doors that scored 1.0 (obscure), and the
+Aerie's too-obvious start.
+
+The **Undertower** (`bazaar.js`, `pieces.js Pillars`): **the listening pillars**. The Gallery of Voices' great horn at the
+chasm's edge (`e1`, held 12 s) and its twin on the far side (`e3`) are gone, and with them the pillar bridge they raised
+(`br1`): each pillar listens itself now, a little horn ringed in the high note's colour on its side. A pillar rises while
+the high note, played back near it (the shell's `'echo'`, not a stone's own song), still rings: `HOLD.pillar` s (6) from
+the last time it heard it within `HOLD.reach` (6.5 m, across the floor), and it waits for whoever stands on it before it
+sinks. Another note near them and they say what they listen for. So the way over is carried, the shell in your pocket:
+play the note at the edge, step out, play it again further on, and the pillars ahead rise as you go (`{ a: 'gallery', b:
+'galleryFar', needs: ['echo'] }`, a traversal the gadget makes: the audit's `T`, its `Pillars` a traversal piece of its
+own). The far side's high egg is the way back. The middle egg now stands nearest the chasm (the high one, taller, hid it
+from the far door that wants its note).
 
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
