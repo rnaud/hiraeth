@@ -822,10 +822,13 @@ export const CHANGELOG_MEDIA = {
     { match: 'On the Steam Deck the Unity version is now called “Hiraeth (Unity)”', see: 'On the Steam Deck, open the library’s Non-Steam collection, or the desktop’s application menu, after the game has updated once with Steam closed: the Unity version reads “Hiraeth (Unity)”, its icon and pictures carry a dark UNITY plate, and the game itself is plain “Hiraeth”.' },
     { match: 'The dark, ragged patches stuck along the corners of rooms', tags: ['desert', 'ship'], shots: [
       { name: 'corners-shop', title: 'The shop’s ceiling', caption: 'Up into the corner of the Desert’s shop: before, dark patches with torn edges along the wall’s top and down the corner; after, none, a soft shade in the corner.', from: CORNERS322B },
-      { name: 'corners-ship-arch', title: 'The bunk’s arch', caption: 'Up at the arch over your bunk: before, a dark blotch with a ragged edge on the alcove’s side under the arch; after, gone, the shade soft under the rail and in the corners.', from: CORNERS322B },
+      { name: 'corners-ship-arch', title: 'The bunk’s arch', caption: 'Up at the arch over your bunk: before, a dark blotch with a ragged edge on the alcove’s side under the arch; after, gone, the shade soft under the rail and in the corners (and the rooms hatched again).', from: CORNERS322B },
       { name: 'corners-shop-room', title: 'The shop from the door', caption: 'Before: dark torn bands along the ceiling and the wall behind the counter; after, soft shading in the corners and under the counter, nothing ragged.', from: CORNERS322B },
       { name: 'corners-cave', title: 'The cave', caption: 'The cave under the skull: before, near-black bands along the walls’ foot and top; after, a soft shade there.', from: CORNERS322B },
       { name: 'corners-buried', title: 'Outdoors', caption: 'The Buried Machine’s yard: the same after as before, but for the doorway’s dark mass, now the shadow’s own tone.', from: CORNERS322B },
+    ] },
+    { match: 'Your ship’s rooms are shaded with pen strokes again', tags: ['ship'], shots: [
+      { name: 'ship-room-hatch', title: 'The main room', caption: 'From the galley’s end: before, a flat tone over every wall and the ceiling; after, pen strokes in the shade again, 5–10 pixels apart, too wide to shimmer.', from: CORNERS322B },
     ] },
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
       { name: 'touchdown-incal', title: 'Landing in the City-Shaft', caption: 'Half a second into the shot of the hatch after touchdown: before, balls of dust over the ship’s feet and half its hull; after, the ship on its feet, a few small puffs going.', from: CINE295 },

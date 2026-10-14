@@ -989,6 +989,7 @@ const fragmentShader = /* glsl */ `
     flat in float vLineFar; // 1: this instance is past its distance
   #endif
   uniform vec4 uShade;      // the material's shade: lift, hue (-1: the world's), hatch amount, strata strokes (SHADE, shadeOf)
+  uniform float uHatchPx;   // the least spacing of its shade's strokes (px; 0: the world's): makeMaterial({ hatchPx })
   uniform float uHalftone;
   uniform float uBounce;
 
@@ -2747,7 +2748,7 @@ ${SHADOW_GLSL}
     // (never finer than a pen can draw: past ~4 px they would only be a tone) and heavier, cross-hatched sooner)
     float hDense = max(uShade.z, 1.0);
     float hsp0 = uHatchSpacing * mix(0.78, 1.4, smoothstep(6.0, 260.0, vViewDepth));
-    float hsp = max(hsp0 / min(hDense, ${HATCH_DENSE.closer.toFixed(2)}), min(hsp0, ${HATCH_DENSE.minPx.toFixed(1)}));
+    float hsp = max(max(hsp0 / min(hDense, ${HATCH_DENSE.closer.toFixed(2)}), min(hsp0, ${HATCH_DENSE.minPx.toFixed(1)})), uHatchPx);
     float darkH = min(dark * (1.0 + (hDense - 1.0) * ${HATCH_DENSE.heavier.toFixed(2)}), 1.0);
     if (darkH > 0.0 && uHatch > 0.0 && uShadeStyle == 1) {
       gHatch.r = stipple(ce1, fwd, hsp * 1.15, darkH) * smoothstep(0.02, 0.15, darkH);
@@ -2873,7 +2874,9 @@ const cache = new Map();
  * @param {number}  [o.shadeHue] 0..1: how much of its own hue its shade keeps (default: the world's, uShadeKeep)
  * @param {number}  [o.shadeFlat] 0..1: its shade printed flat in the world's shadow colour at its value (default:
  *                              the world's, uShadowFlat; a material saying it keeps the world's hue)
- * @param {number}  [o.spot]    0..1: how much of the world's spot blacks it takes (SPOT; default the world's)
+ * @param {number}  [o.spot]    0..1: how much of the world's darkest tier it takes (SPOT: its cast shadows' darkening; default the world's)
+ * @param {number}  [o.hatchPx] the least spacing of its shade's strokes, px (0: the world's): a room always in shade keeps them
+ *                              clear of HATCH_AA's band, where they crawl (src/ship/model.js)
  * @param {number}  [o.line]    its ink line's weight (LINE: 1 the world's ink … 0.25 a hairline; glass 0.45, leaves 0.7)
  * @param {number}  [o.lineTint] 0..1: its line drawn in a dark shade of its own colour instead of the ink (glass 0.7, leaves 0.67)
  * @param {object}  [o.lineFar] { line, lineTint, from, to }: its line from afar, an instance at a time past its own
@@ -3008,6 +3011,7 @@ export function makeMaterial(o) {
       uFaceKit: { value: new THREE.Vector4(1, 1, 0, 1) },
       uFaceKit2: { value: new THREE.Vector4(1, 1, 0, -0.03) },   // eye size, nose width, cheeks, the ears' z
       uShade: { value: new THREE.Vector4(...shadeOf(o)) },
+      uHatchPx: { value: o.hatchPx ?? 0 },   // (a room always in shade: strokes kept clear of HATCH_AA's band, src/ship/model.js)
       uSpotStep: { value: spotStep(o.spot ?? (o.glow > 0 || o.glass ? 0 : undefined)) },   // (a self-lit or glass surface never goes black)
       uLineStep: { value: lineStep(o) },   // (glass: a thin line in its own colour, unless it says)
       uLineWhite: { value: o.lineWhite ? 1 : 0 },   // (the shade's inverted ink: white lines round a black shape)
@@ -3149,8 +3153,8 @@ export function keepHero(root, copies = new Map()) {
 
 /**
  * Things that move about near walls without being people (gHatch.a + 64; docs/systems/rendering.md, "The visual
- * probes' findings fixed"): the screen-space occlusion of the spot blacks and the crease shading sees past them as it
- * sees past a person (post.js spotBehind), so a hovering drone draws no jagged dark halo on the wall behind it that
+ * probes' findings fixed"): the screen-space occlusion of the crease shading (and the spot blacks, until v1.73) sees past them as it
+ * sees past a person (post.js notStanding), so a hovering drone draws no jagged dark halo on the wall behind it that
  * moves with it. Every foe's materials (their keys: 'foe-...' in src/foes.js, 'arch....' in the roster's kit) and any
  * material made with { mover: true }. (The scout drone is the player's: markHero, a person already.)
  */

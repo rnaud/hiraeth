@@ -43,6 +43,8 @@ export const CHANGELOG = [
     // the spot blacks gone, the crease shading back without its grain (issue #322's second look): src/post.js CREASE,
     // CREASE_TAPS, quadMean; Composite.shader; tests/occlusion-taps.test.js; docs/systems/rendering.md
     'The dark, ragged patches stuck along the corners of rooms (where the ceiling meets the wall in the Desert’s shop, under the arch of your bunk in the ship, at the foot of walls in caves) are gone, and the soft shading that settles into corners, under counters and along the foot of walls is back, now smooth, with no grainy speckle crawling as you move.',
+    // the ship's rooms hatched again, coarser (issue #325's follow-up): src/ship/model.js SHIP_ROOM_HATCH_PX, materials.js hatchPx
+    'Your ship’s rooms are shaded with pen strokes again in the shade, drawn wider apart so they no longer shimmer as you walk about.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

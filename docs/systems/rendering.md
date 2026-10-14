@@ -1443,8 +1443,10 @@ The author: "I see a lot of textures shimmering in my ship." Two causes, both fi
   the floor and the furniture carried the print preset's hatching, strokes 2-4 px apart close up (`uHatchSpacing` 3.6
   × 0.78 near the eye, then the powers of two of `strokes`): right at `HATCH_AA`'s edge, crawling and beating under the
   pixels as you walked. The rooms' materials (`src/ship/model.js` `INTERIOR`) already had a little self-light "to keep
-  them from going to hatching"; it never did. Their shade is a flat tone now (`hatch: SHIP_ROOM_HATCH`, 0); the hull
-  outside keeps its strokes.
+  them from going to hatching"; it never did. Their shade was made a flat tone (`hatch: 0`); since v1.73 (issue #322's
+  second look: that lost the shade the author found helpful) they keep their hatching with its strokes never closer
+  than `SHIP_ROOM_HATCH_PX` (5 px, `makeMaterial({ hatchPx })`, materials.js `uHatchPx`): 5-10 px apart, clear of
+  `HATCH_AA`'s band. The hull outside keeps the world's strokes.
 - **Z-fighting aboard.** The ship is built by main.js, not by a level, so the z-fight audit never saw it:
   `node scripts/zfight/audit.mjs --ship` builds it alone. 12 sites, 7 m² → none: the bunk alcove's hood in the arched
   front's plane and between its cheeks (the white patches over the opening), the doorways' trims in their jambs, the
@@ -1482,7 +1484,9 @@ headless Chrome, High, 1280 × 720, the camera pinned): the patches went with th
   shading is a smooth function of where a pixel lies: a soft falloff from a corner or under a rail, no speckle, no
   crawl. The cost is the old one (12 taps a pixel against 8, the spot blacks' 8 and their looks past people gone).
   The Unity port's Composite.shader takes the same spiral, lanes, weights and quad mean (`ddx`, `ddy`).
+- **The ship's rooms keep their hatching**, coarser (above, "The ship's rooms, shimmering"); the z-fight fixes stay.
 
 Checked against the author's two crops and six more views (the ship's main room, the shop from the door, Qanat's
 tree stairs, the desert's cave, the Buried Machine's crowd, the Signal Market's street): changelog v1.73.
-`tests/occlusion-taps.test.js` holds the crease shading's taps stable and the spot blacks gone.
+`tests/occlusion-taps.test.js` holds the crease shading's taps stable and the spot blacks gone; `tests/zfight.test.js`
+the rooms' strokes clear of `HATCH_AA`.

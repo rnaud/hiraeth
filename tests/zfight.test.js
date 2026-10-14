@@ -129,13 +129,20 @@ test('the City Floating in Space at or under its count; the market in the air, t
 // Issue #325, the author: "I see a lot of textures shimmering in my ship". The ship (every world's, built by main.js, not
 // the level: node scripts/zfight/audit.mjs --ship) had 12 sites, 7 m² (the alcove's hood in the arched front and between
 // its cheeks, the doorways' trims in their jambs, the console's kick band, the sofa's cushions in its arms, the cockpit
-// bulkhead's underside in the ceiling): none now. Its rooms' shade is a flat tone, no hatching (src/ship/model.js).
-test('the ship has no z-fighting, and its rooms no hatching to crawl (issue #325)', async () => {
+// bulkhead's underside in the ceiling): none now. Its rooms keep their hatching in shade (issue #322's second look: the
+// flat tone lost the shade the author found helpful), its strokes never closer than SHIP_ROOM_HATCH_PX, clear of the
+// band where strokes alias and crawl (materials.js HATCH_AA: 4 to 2.2 px apart).
+test('the ship has no z-fighting, and its rooms\' hatching is too coarse to crawl (issues #325, #322)', async () => {
   const r = await shipZfights();
   assert.equal(r.total.count, 0, r.total.worst.map((f) => `${f.area} m² ${f.meshA} × ${f.meshB} at ${f.at}`).join('; '));
-  const { shipMaterials, SHIP_ROOM_HATCH } = await import('../src/ship/model.js');
+  const { shipMaterials, SHIP_ROOM_HATCH_PX } = await import('../src/ship/model.js');
+  const { HATCH_AA } = await import('../src/materials.js');
   const M = shipMaterials('zf-test');
-  assert.equal(SHIP_ROOM_HATCH, 0);
-  for (const k of ['wall', 'wallIn', 'ceiling', 'floor', 'locker', 'wood', 'cream']) assert.equal(M[k].uniforms.uShade.value.z, 0, `${k}: a flat tone in shade`);
-  assert.ok(M.hull.uniforms.uShade.value.z > 0, 'the hull outside keeps its hatching');
+  assert.ok(SHIP_ROOM_HATCH_PX >= 1 / HATCH_AA[0], `${SHIP_ROOM_HATCH_PX} px: clear of the aliasing band (${1 / HATCH_AA[0]} px)`);
+  for (const k of ['wall', 'wallIn', 'ceiling', 'floor', 'locker', 'wood', 'cream']) {
+    assert.ok(M[k].uniforms.uShade.value.z > 0, `${k}: hatched in shade`);
+    assert.equal(M[k].uniforms.uHatchPx.value, SHIP_ROOM_HATCH_PX, `${k}: its strokes kept coarse`);
+  }
+  assert.ok(M.hull.uniforms.uShade.value.z > 0 && M.hull.uniforms.uHatchPx.value === 0, 'the hull outside keeps the world\'s strokes');
+  assert.ok(M.wall.fragmentShader.includes('uHatchPx);'), 'the spacing floor reaches the shader');
 });
