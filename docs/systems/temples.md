@@ -711,6 +711,12 @@ back along the bridge and does not hurt), swinging along it once in 6 s: its bob
 rises at either end of its swing, so you cross under it as it swings away, in its beat. The house's own traversal (its
 escapement's disc, its gallery's pendulum): the audit's identity counts two traversals of its own.
 
+The **Casting-House** (`moonfoundry.js`): its keepers' door (`dS`, the shortcut back onto the Pouring Floor) is written
+from the side it is opened from, `{ a: 'scales', b: 'floor' }`: its eye over it and its pan up on the gallery are the
+Weighing Hall's, and it is shut from the floor. Measured from the floor it read as the house's most obscure step (1.0,
+its keys a room away behind the door); from the hall, 2.5. (The audit's skeleton writes the chest's `C` before the first
+step that wants the gadget, wherever its rooms are, so such a door is not written before the chest.)
+
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
 The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake

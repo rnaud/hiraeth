@@ -113,7 +113,7 @@ export const LOGIC = {
     { a: 'tongs', b: 'furnace', door: 'dP' },       // the Pincer Passage's door, a room on from the chest (one room with it)
     { a: 'furnace', b: 'furnaceFar', door: 'brH' }, // the bridge over the molten channel: the hot moon in the hooded mould
     { a: 'furnaceFar', b: 'scales' },               // down onto the Weighing Hall's gallery
-    { a: 'floor', b: 'scales', door: 'dS' },        // the keepers' door: the shortcut back, opened from the far side
+    { a: 'scales', b: 'floor', door: 'dS' },        // the keepers' door: the shortcut back, opened from the far side (its eye and its pan are the Weighing Hall's: v1.74, it is met to be opened from there)
     { a: 'floor', b: 'ante', door: 'dF' },          // the Founders' Door: the founders' moon hot in the great cradle
     { a: 'ante', b: 'hall', door: 'dA' },
     { a: 'hall', b: 'out', door: 'd5' },

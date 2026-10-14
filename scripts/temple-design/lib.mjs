@@ -427,6 +427,9 @@ export function skeleton(g) {
     if (l.keys.length && l.keys.every((k) => k.how === 'open')) continue;   // (a door that opens with another: no step of its own)
     if (l.type === 'cage' && l.mechanics.length && l.mechanics.every((m) => m === 'fight')) continue;   // (an arena's prize: its way out is the A)
     if (l.a === g.chestRoom && !s.includes('C')) s += 'C';
+    // (a lock that wants the gadget comes after the chest, wherever its rooms are: a keepers' door opened from its far
+    // side, the Casting-House's, its near room reached long before, v1.74)
+    if (gk && l.mechanics.includes(gk) && !s.includes('C')) s += 'C';
     if (l.bossDoor) { s += 'K'; continue; }
     const base = baseOf(l.mechanics);
     if (l.type === 'traverse') s += 'T';
