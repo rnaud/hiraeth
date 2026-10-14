@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.71 — 2026-10-13
 
+- The guardians that float, the Cloud-Mother, the Lampless, the Echo and the Elder in flight, have a shadow on the floor under them, smaller the higher they hang, so you can tell where they are over you. The machines’ lit eyes cast shadows too. Every guardian now opens up in each part of its fight: the Mother Snapper hangs her head after spitting a seed, and the Cloud-Mother gasps a moment in her last phase (a ring of the bell then calms her a little; the held stone still calms her most).
+- The Elder is drawn in the same ink as the rest of the world: a full black outline instead of a faint line in her own colour that made her look pasted on.
+- Locked on any guardian, you are locked on its weak point: the warden’s vent, the Elder’s beak, the Foreman’s face, the Last Founder’s heart, where your shots count, instead of the middle of its body.
+- The Keeper and the Elder face you when they fight. Their bodies turned the wrong way in their halls, so the Keeper swept and the Elder pecked behind them while their blows came at you.
+- The warden and the Elder fight fairly, as the Keeper does now: a longer breath between their moves, an opening after every one, and a combo’s blows further apart. The warden’s eye fires a beam you can see, down to where you stood; its stomps send a ring of shock out round its feet that you can jump; the Elder brings her beak down at you when she pecks, and her wings send a wall of wind you can see coming. Every other guardian’s blows land the same way now: with its body, or with a beam or a wave you can see, never on a patch of floor far from it.
 - In the City-Shaft the first seconds after you arrive run smoother sooner: the far trees and strollers it finishes after the first frame are done in about half the time, and every collision check there is quicker. Nothing looks different.
 - The Android app and the Steam Deck download carry 5 MB less: two old bodies the game no longer uses (the Elder’s first prototype and the traveller’s earlier head) are left out.
 

@@ -210,10 +210,21 @@ export function guardianHitboxes(g, out = [], { locked = null } = {}) {
   const a = g.attack;
   if (!a) return out;
   const color = !g.struck ? HITBOX_COLORS.telegraph : g.live && !g.live.done ? HITBOX_COLORS.active : HITBOX_COLORS.spent;
+  // (a drawn blow, v1.70 #319: its beam, its front where it is now)
+  const B = a.blast && g.live?.blast ? g.blast?.B : null;
+  if (B?.kind === 'beam') {
+    out.push({ kind: 'segment', a: B.o.clone(), b: B.end.clone(), color, tag: `guardian.${a.id}.beam` });
+    for (let s = 0; s <= B.L; s += 2) out.push({ kind: 'sphere', c: B.o.clone().addScaledVector(B.dir, s), r: B.r, color, tag: `guardian.${a.id}.beam` });
+  } else if (B) {
+    const r0 = Math.max(0, B.r - B.depth / 2), c = new THREE.Vector3(B.o.x, B.o.y + 0.05, B.o.z);
+    if (B.shape === 'lane') out.push({ kind: 'lane', c: c.addScaledVector(new THREE.Vector3(Math.sin(B.yaw), 0, Math.cos(B.yaw)), r0), h: B.yaw, range: B.depth, width: B.width, back: 0, color, fill: 0.3, tag: `guardian.${a.id}.front` });
+    else out.push({ kind: 'fan', c, h: B.yaw, range: B.r + B.depth / 2, angle: B.shape === 'cone' ? B.angle : Math.PI, r0, color, fill: 0.3, tag: `guardian.${a.id}.front` });
+  }
   if (g.bodyBlow?.(a)) {
     for (const p of g.partsOf(a, [])) out.push({ kind: 'sphere', c: p.c.clone(), r: p.r, color, tag: `guardian.${a.id}` });
     return out;
   }
+  if (a.blast) return out;
   for (const o of g.points(a) ?? []) {
     if (a.shape === 'ring') out.push({ kind: 'circle', c: o.clone(), r: a.radius ?? 4, color, fill: 0.2, tag: `guardian.${a.id}` });
     else if (a.shape === 'cone') out.push({ kind: 'fan', c: o.clone(), h: g.attackH, range: a.range ?? 12, angle: a.angle ?? 0.6, r0: 0, color, fill: 0.2, tag: `guardian.${a.id}` });

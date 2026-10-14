@@ -123,7 +123,7 @@ test('its blows land with its posed bones: the sweep’s jaw where the jaw is, n
   g.dispose(); m.dispose();
 });
 
-test('the lock aims at its mouth, and its reticle rings its head; a body with no weak point is locked at its middle', async () => {
+test('the lock aims at its mouth, and its reticle rings its head; the procedural body too (v1.70, #319: every guardian on its weak point)', async () => {
   const { m, g } = await ring();
   const L = guardianLock(g);
   assert.ok(L.aim.distanceTo(m.mouth) < 1e-6, 'the lock’s aim is its mouth');
@@ -136,13 +136,13 @@ test('the lock aims at its mouth, and its reticle rings its head; a body with no
   const p = L.aim.clone().project(cam), cx = (p.x * 0.5 + 0.5) * 1600, cy = (0.5 - p.y * 0.5) * 900;
   assert.ok(Math.abs((box.x0 + box.x1) / 2 - cx) < 1 && Math.abs((box.y0 + box.y1) / 2 - cy) < 1, 'the ring round its mouth');
   g.dispose(); m.dispose();
-  // (the procedural body, a skin that never loaded: its middle, as every other guardian)
+  // (the procedural body, a skin that never loaded: its mouth all the same, as every guardian since v1.70)
   const old = keeperGuardian({ load: () => Promise.reject(new Error('offline')) });
   await old.ready;
   const rt = { def: { id: 'k-old' }, root: new THREE.Group(), logic: { resolved: false }, physics: { groundAt: () => 0 }, player: fakePlayer(), notice() {} };
   const g2 = quiet(() => new Guardian(rt, { def: KEEPER, model: old, arena: { center: V(), r: 20, y: 0 } }));
   const L2 = guardianLock(g2);
-  assert.ok(L2.aim.distanceTo(L2.chest) < 1e-6 && L2.aimR === null);
+  assert.ok(L2.aim.distanceTo(old.mouth) < 1e-6 && L2.aimR === Math.max(1, old.mouthR));
   g2.dispose();
 });
 

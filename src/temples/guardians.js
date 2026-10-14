@@ -711,7 +711,10 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   plume.position.y = 0.8; plume.visible = false;
   head.add(plume);
   head.add(new THREE.Mesh(merge(cyl(0.9, 1.1, 0.9, hull2, [0, 0, 0], null, 12)), mat));
-  head.add(new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM));
+  // (its lamp-eye is lit, but it is a lens on its head all the same: it shadows as its head does, issue #319)
+  const eyeMesh = new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM);
+  eyeMesh.name = 'sentinel eye'; eyeMesh.userData.castShadow = true;
+  head.add(eyeMesh);
   // its legs on the kit (plan 18/19): a strut out of the hull to a high knee, a long column down to a round foot, a
   // piston from the hull to each strut; a wave on three legs (one at a time), diagonal pairs on four (the Tooth-Warden)
   const tellRig = tellFrame(group);
@@ -820,7 +823,10 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
   const stepRing = new THREE.TorusGeometry(0.42, 0.07, 4, 16);
   const steps = Array.from({ length: NUM }, (_, i) => { const p = numAt(i), r = new THREE.Mesh(stepRing, stepM); r.position.set(p.x, p.y, p.z + 0.06); r.visible = false; body.add(r); return r; });
   // the eye: a lamp under the crown
-  body.add(new THREE.Mesh(merge(ell([0.32, 0.22, 0.16], '#ffffff', [0, 1.45, 2.55])), eyeM));
+  // (its lit eye is a lens on its drum all the same: it shadows, issue #319)
+  const eyeMesh = new THREE.Mesh(merge(ell([0.32, 0.22, 0.16], '#ffffff', [0, 1.45, 2.55])), eyeM);
+  eyeMesh.name = 'foreman eye'; eyeMesh.userData.castShadow = true;
+  body.add(eyeMesh);
   // the hands, on a pivot at the face's middle
   const hands = new THREE.Group(); hands.position.set(0, 0.1, 2.72); body.add(hands);
   const hour = new THREE.Mesh(merge(box([0.2, 1.05, 0.06], dark, [0, 0.45, 0])), mat), minute = new THREE.Mesh(merge(box([0.12, 1.55, 0.06], dark, [0, 0.7, 0.04]), cyl(0.16, 0.16, 0.12, brass2, [0, 0, 0.06], [Math.PI / 2, 0, 0], 10)), mat);

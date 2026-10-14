@@ -174,22 +174,26 @@ export const WARDEN = {
   openHint: 'Its vents open, glowing. Hit them.',
   resolved: 'The warden sags, its eye dark. Far below, a sound like breathing.',
   missHint: 'Its slam went wide: its vents open, glowing. Shoot them.',
+  // (v1.70, issue #319, made fair as the Keeper was: a longer breath between its moves, every move ending with its
+  // vents open, a combo's blows 1.4 s apart at least; each blow lands where it is drawn: the beam a ray out of its eye
+  // aimed down at you (swept across the floor in its second phase), the stomps and the slam a shock running out round
+  // its feet, the flare a column of fire round it; never a lane of floor 28 m long that nothing drew (boss.js Blast))
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Keep out of its eye’s line. When its side vents open, shoot them.' },
-    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.3, hint: 'Only its crown hatch opens now: get above it and shoot down.',
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 2.2, hint: 'Keep out of its eye’s line. When its side vents open, shoot them.' },
+    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.9, hint: 'Only its crown hatch opens now: get above it and shoot down.',
       openHint: 'Its crown hatch opens: ride the vane’s breath above it, shoot down.' },
-    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.1, hint: 'Hover over its vane on your wings till the hatch lifts, then shoot.',
+    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.7, hint: 'Hover over its vane on your wings till the hatch lifts, then shoot.',
       openHint: 'Hatch shut: hover over the vane, bellows going, until it lifts.' },
   ],
   attacks: {
-    beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', damage: 1, knock: 10, recover: 0.8, open: 2.8 },
-    sweepBeam: { shape: 'cone', range: 24, angle: 0.9, wind: 1.5, track: 0.6, part: 'eye', rig: 'coil', side: 1, damage: 0.75, knock: 10, recover: 0.8, open: 2.8 },
-    mortar: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', damage: 0.75, knock: 8, recover: 0.6 },
-    mortars: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', pose: 'mortar', damage: 0.5, knock: 6, recover: 0.6 },
-    stomp: { shape: 'ring', at: 'front', ahead: 4, radius: 4, wind: 1.2, part: 'feet', rig: 'rear', damage: 0.75, knock: 9, recover: 0.4, then: 'stomp2' },
-    stomp2: { shape: 'ring', at: 'front', ahead: 4, radius: 4, wind: 0.7, part: 'feet', rig: 'rear', pose: 'stomp', link: true, damage: 0.75, knock: 9, gap: 0.25, then: 'slam' },
-    slam: { shape: 'ring', at: 'self', radius: 6, wind: 1.3, part: 'feet', rig: 'rear', link: true, wave: { speed: 9, reach: 18, width: 0.7, damage: 0.5 }, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
-    flare: { shape: 'ring', at: 'self', radius: 4.5, reachUp: 9, wind: 1.2, part: 'head', rig: 'swell', damage: 0.75, knock: 10, recover: 0.6, then: 'slam' },
+    beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', blast: { kind: 'beam', r: 0.75 }, damage: 0.75, knock: 10, recover: 0.8, open: 2.8 },
+    sweepBeam: { shape: 'cone', range: 24, angle: 0.9, wind: 1.5, track: 0.6, part: 'eye', rig: 'coil', side: 1, blast: { kind: 'beam', r: 0.75, sweep: 0.9 }, damage: 0.75, knock: 10, recover: 0.8, open: 2.8 },
+    mortar: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', damage: 0.75, knock: 8, recover: 0.6, open: 1.6 },
+    mortars: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', pose: 'mortar', damage: 0.5, knock: 6, recover: 0.6, open: 1.6 },
+    stomp: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'feet', rig: 'rear', blast: { kind: 'front', r0: 1, h: 0.6 }, active: 0.3, reach: 6, damage: 0.5, knock: 9, recover: 0.4, gap: 0.7, then: 'stomp2' },
+    stomp2: { shape: 'ring', at: 'self', radius: 6, wind: 0.7, part: 'feet', rig: 'rear', pose: 'stomp', link: true, blast: { kind: 'front', r0: 1, h: 0.6 }, active: 0.3, reach: 6, damage: 0.5, knock: 9, gap: 0.25, then: 'slam' },
+    slam: { shape: 'ring', at: 'self', radius: 6.5, wind: 1.3, part: 'feet', rig: 'rear', link: true, blast: { kind: 'front', r0: 1, h: 0.8 }, active: 0.3, wave: { speed: 9, reach: 18, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 13, recover: 1.0, open: 3.0 },
+    flare: { shape: 'ring', at: 'self', radius: 5, wind: 1.2, part: 'head', rig: 'swell', blast: { kind: 'front', r0: 1, h: 10 }, active: 0.35, reach: 5, damage: 0.75, knock: 10, recover: 0.6, gap: 0.4, then: 'slam' },
   },
 };
 

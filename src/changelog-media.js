@@ -783,6 +783,8 @@ const WAYS278 = 'Issue #278: muted headless Chrome (High, 1280 × 720, 10:00, cl
 const GIVERS273 = 'Issue #273: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5993) and the tree before it (6f2a6136, port 5997): Vael from its debug save, 12 s after landing, the game menu on Quests, then on the Map zoomed round the landing; the talk on Medium; 13 October; cwebp -q 72';
 // (v1.69, issue #311: a scratch shooter against this branch's own Vite (port 6311), the desert from a save at the Hall of Channels' far end with the eye struck, the ball cut through the page; the before with WING as it was)
 const CHANNELS311 = 'Issue #311: muted headless Chrome (High, 1280 × 720, 11:00, clear, the camera pinned by the far door’s bowl) against this branch’s own Vite (port 6311), the ball cut from the groove’s start with the relay lit, taken as it came 40 cm from its stop; the before with the hall’s ball as it burned until then (13 October)';
+// (v1.71, issue #319: a scratch shooter against this branch's own Vite (port 6319) and the tree before it, 7edcecc9 git archive'd; each guardian woken in its hall, a move begun and the world frozen at its strike)
+const GUARD319 = 'Issue #319: muted headless Chrome (High, 1280 × 720, 11:00) against this branch’s own Vite (port 6319) and the tree before it (7edcecc9), each guardian in its own hall, the move frozen just after it strikes, the camera pinned at its flank; 13 October 2026; cwebp -q 72';
 const KEEPER314 = 'headless Chrome against a dev server of this branch and of the code before it, the Rose House’s cistern, High, 13 October 2026';
 const DOORS305 = 'Issue #305: muted headless Chrome (High, 1280 × 720, 10:00, clear, the camera pinned) against this branch’s own Vite (port 6305) and the commit before it, the Desert from a save with the backpack (13 October)';
 const HINTS306 = { from: 'headless Chrome (muted) against this branch’s own dev server and the commit before the change, Medium at 1280 × 720, a new save out of the ship (13 October)' };
@@ -793,6 +795,21 @@ const STRAP303 = 'Issue #303: muted headless Chrome against this branch’s own 
 // (v1.70, issue #304: a scratch shooter against this branch's own Vite (port 6303), the foes' code before the change for the before)
 const DEFEAT304 = 'Issue #304: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6303), the game stepped 1/60 s a frame: three foes placed side by side and cut down at once, the frame held 0.95 s into the lizard’s defeat (the crab 77 %, the lizard 96 %, the toad 87 % of the way), the camera pinned 9.5 m off; the before with the foes’ code as it was (333fe4b2); 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.71': [
+    { match: 'The warden and the Elder fight fairly', tags: ['combat', 'temples'], shots: [
+      { name: 'guardians-warden-beam', title: 'The warden’s beam', caption: 'Its beam as it lands, the hitbox overlay on: before, nothing drawn and a strip of floor starting at the traveller and running away from it took the hit; after, a beam out of its eye, down to where he stood (the red spheres: where it hits).', from: GUARD319 },
+      { name: 'guardians-elder-peck', title: 'The Elder’s peck', caption: 'Her peck as it lands: before, she faced away and threw her head back while a strip of floor 6 m off knocked the traveller down; after, she faces him and her beak comes down in front of her (the red spheres: her head and neck, where the blow lands).', from: GUARD319 },
+    ] },
+    { match: 'Locked on any guardian', tags: ['combat', 'temples'], shots: [
+      { name: 'guardians-elder-lock', title: 'The lock on the Elder', caption: 'Locked on (the orange diamond, drawn by the hitbox overlay): before, in the middle of her body, 2.5 m under her beak; after, on her beak.', from: GUARD319 },
+    ] },
+    { match: 'The Elder is drawn in the same ink', tags: ['vael', 'characters'], shots: [
+      { name: 'guardians-elder-ink', title: 'Her outline', caption: 'In the Aerie: before, a faint line of her own colour round her; after, the world’s black outline (and she faces the traveller, on the left).', from: GUARD319 },
+    ] },
+    { match: 'The guardians that float', tags: ['temples'], shots: [
+      { name: 'guardians-mother-shadow', title: 'The Cloud-Mother’s shadow', caption: 'Her hall has no sun: before, nothing on the floor under her; after, a shadow under her body.', from: GUARD319 },
+    ] },
+  ],
   '1.70': [
     { match: 'There are three times as many fragments of the singing light', shots: [
       { name: 'fragments-ribcage', title: 'Inside a ribcage', caption: 'The Desert, among the ribs of a ribcage in the west dunes: before, nothing there; after, one of the sixteen new fragments a world.', from: FRAG317 },

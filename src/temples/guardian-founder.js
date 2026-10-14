@@ -67,7 +67,10 @@ export function founderModel({ iron = '#45403f', iron2 = '#5b524c', rust = '#b56
   // the head: a hooded helmet of iron, its visor one slit of an eye
   const head = new THREE.Group(); head.position.set(0, 4.35, 0.2); body.add(head);
   head.add(new THREE.Mesh(merge(dome([1.05, 1.25, 1.1], iron2, [0, 0, 0], null, [12, 5]), box([1.7, 0.5, 0.3], iron, [0, 0.35, 0.95]), cyl(1.1, 1.1, 0.24, rust, [0, 0.02, 0], null, 12)), mat));
-  head.add(new THREE.Mesh(merge(box([1.1, 0.14, 0.12], '#ffffff', [0, 0.38, 1.12])), eyeM));
+  // (its lit visor slit shadows as its head does, issue #319)
+  const eyeMesh = new THREE.Mesh(merge(box([1.1, 0.14, 0.12], '#ffffff', [0, 0.38, 1.12])), eyeM);
+  eyeMesh.name = 'founder eye'; eyeMesh.userData.castShadow = true;
+  head.add(eyeMesh);
   // the left arm: a long iron arm and the founders' ladle at its end, molten in its bowl
   const ladle = new THREE.Group(); ladle.position.set(-2.9, 3.3, 0.2); body.add(ladle);
   const bowl = new THREE.LatheGeometry([[0.15, -0.55], [0.85, -0.45], [1.05, 0], [1.1, 0.35], [0.98, 0.38]].map(([r, y]) => new THREE.Vector2(r, y)), 14);

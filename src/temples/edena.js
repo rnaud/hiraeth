@@ -196,13 +196,13 @@ export const GARDENER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    sweep: { shape: 'cone', range: 11, angle: 0.75, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', side: 1, damage: 0.75, knock: 11, recover: 0.9, then: 'sweepL' },
-    sweepL: { shape: 'cone', range: 11, angle: 0.75, wind: 0.75, track: 0.5, part: 'arms', rig: 'coil', pose: 'sweep', side: -1, link: true, damage: 0.75, knock: 11, gap: 0.2, then: 'stampEnd' },
-    stamp: { shape: 'ring', at: 'self', radius: 7.5, wind: 1.4, part: 'feet', rig: 'rear', wave: { speed: 8, reach: 15, width: 0.7, damage: 0.5 }, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
-    stampEnd: { shape: 'ring', at: 'self', radius: 7.5, wind: 1.2, part: 'feet', rig: 'rear', pose: 'stamp', link: true, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
-    roots: { shape: 'lane', range: 16, width: 3, wind: 1.4, track: 0.6, part: 'arms', rig: 'crouch', damage: 0.75, knock: 9, recover: 1.0, miss: 2.8 },
+    sweep: { shape: 'cone', range: 11, angle: 0.75, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', side: 1, parts: ['arms'], splash: 0.5, active: 0.35, reach: 6.5, gap: 0.65, damage: 0.75, knock: 11, recover: 0.9, then: 'sweepL' },
+    sweepL: { shape: 'cone', range: 11, angle: 0.75, wind: 0.75, track: 0.5, part: 'arms', rig: 'coil', pose: 'sweep', side: -1, link: true, parts: ['arms'], splash: 0.5, active: 0.35, reach: 6.5, damage: 0.75, knock: 11, gap: 0.2, then: 'stampEnd' },
+    stamp: { shape: 'ring', at: 'self', radius: 7.5, wind: 1.4, part: 'feet', rig: 'rear', wave: { speed: 8, reach: 15, width: 0.7, damage: 0.5 }, parts: ['feet'], splash: 0.6, active: 0.35, blast: { kind: 'front', r0: 1, r1: 6, h: 0.6 }, reach: 6, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
+    stampEnd: { shape: 'ring', at: 'self', radius: 7.5, wind: 1.2, part: 'feet', rig: 'rear', pose: 'stamp', link: true, parts: ['feet'], splash: 0.6, active: 0.35, blast: { kind: 'front', r0: 1, r1: 6, h: 0.6 }, reach: 6, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
+    roots: { shape: 'lane', range: 16, width: 3, wind: 1.4, track: 0.6, part: 'arms', rig: 'crouch', blast: { kind: 'front', r0: 2, h: 1.0 }, active: 0.7, damage: 0.75, knock: 9, recover: 1.0, miss: 2.8 },
     clods: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', pose: 'sweep', damage: 0.75, knock: 8, recover: 0.8 },
-    crush: { shape: 'cone', range: 8, angle: 0.9, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', pose: 'roots', damage: 1, knock: 11, recover: 0.8, miss: 3.0 },
+    crush: { shape: 'cone', range: 8, angle: 0.9, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', pose: 'roots', parts: ['arms'], splash: 0.6, active: 0.35, reach: 5.5, damage: 1, knock: 11, recover: 0.8, miss: 3.0 },
   },
 };
 

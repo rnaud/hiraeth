@@ -175,7 +175,7 @@ export const KEEPER = {
     sweep2: { shape: 'cone', range: 6.5, angle: 0.75, wind: 1.3, track: 0.6, part: 'mouth', rig: 'coil', pose: 'sweep', side: 1, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, recover: 1.0, gap: 0.5, then: 'sweepBack' },
     sweepBack: { shape: 'cone', range: 6.5, angle: 0.75, wind: 0.9, track: 0.5, part: 'mouth', rig: 'coil', pose: 'sweep', side: -1, link: true, parts: ['head'], active: 0.3, reach: 6.2, damage: 0.5, knock: 8, gap: 0.5, then: 'stampEnd' },
     stampEnd: { shape: 'ring', at: 'front', ahead: 2.2, radius: 2.8, wind: 1.1, part: 'feet', rig: 'rear', pose: 'stamp', link: true, parts: ['feet'], active: 0.15, reach: 4.6, damage: 0.75, knock: 7, recover: 1.0, open: 2.6 },
-    charge: { shape: 'lane', range: 13, width: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'crouch', dash: 8, parts: ['head', 'feet'], active: 0.45, reach: 13, damage: 0.75, knock: 9, recover: 1.2, open: 2.0, miss: 2.8, guard: true },
+    charge: { shape: 'lane', range: 13, width: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'crouch', dash: 8, parts: ['head', 'feet', 'body'], active: 0.45, reach: 13, damage: 0.75, knock: 9, recover: 1.2, open: 2.0, miss: 2.8, guard: true },
     burrow: { shape: 'ring', at: 'player', radius: 3.0, wind: 2.0, track: 0.6, over: true, part: 'core', parts: ['body'], active: 0.4, damage: 0.75, knock: 9, recover: 1.4, open: 3.2 },
     spit: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.0, wind: 1.5, track: 0.6, part: 'mouth', rig: 'lean', damage: 0.5, knock: 5, recover: 0.8, open: 1.8 },
   },

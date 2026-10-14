@@ -38,7 +38,7 @@ env vars; never 5173). Results so far and why each measure exists: docs/systems/
 | `arena.mjs <out> --rescore <run>/combat.json [--moves-now]` | the scores and tables again from a run's numbers, no browser (after the rubric changed) | `--moves-now`: the times to kill re-timed with the moves as `lib.mjs movesFrom` times them now (the run's own tuning kept) | `combat.json`, `combat.md` in `<out>` |
 | `dodge.mjs <out>` | the perfect dodge, foe by foe: does a hop inside the window start a flurry? | `--kinds` `--guardians no` `--side` `--wait 9`; PORT 5335, CDP 5393 | `dodge.json` (and a summary line) |
 | `defend.mjs <out>` | guard, parry and evade at set leads, attack by attack | `--kinds` `--per 45` `--group role\|world` `--guard 0.5,0.3,…` `--evade 0.35,0.25,…`; PORT 5337, CDP 5395 | `defend.json`, `defend.md` |
-| `guardian.mjs <out>` | **the guardians played** (node, no browser: each in its own temple, its real def, hooks and body): pace, tells, recovery, openings per phase, hitboxes against its posed mesh, the lock point, its shadow; and the traveller's sidestep locked on | `--ids desert,incal` (`src/arena-guardians.js` ids) `--secs 90` `--grid 0.5` `--strict` (exit 1 on a FAIL) | `guardians.json`, `guardians.md` (FAIL lines) |
+| `guardian.mjs <out>` | **the guardians played** (node, no browser: each in its own temple, its real def, hooks and body): pace, tells, recovery, openings per phase, hitboxes against its posed mesh, the lock point, its shadow; and the traveller's sidestep locked on | `--ids desert,incal` (`src/arena-guardians.js` ids; `all`) `--secs 90` `--grid 0.5` `--strict` (exit 1 on a FAIL) | `guardians.json`, `guardians.md` (FAIL lines) |
 
 Method notes:
 - Every kind starts from the Arena's spawn (the hops walk the traveller to the wall otherwise, where foes stand idle),
@@ -78,10 +78,14 @@ Method notes:
   - an own move's **wind-up** under 0.8 s, a link under 0.6 s, a combo's next blow under 1.2 s after the last, under
     0.8 s from a strike to its next move's wind-up (the **recovery**, openings counted inside it);
   - **hitboxes against the mesh**: each move at its strike, the floor its hit takes (the game's own test,
-    `Guardian.wouldHit`: its bones' spheres for a move with `parts`, else its shape at `points()`) against the floor its
-    skinned mesh sweeps at the traveller's height over the blow: over 15 % of the hit more than 1 m from its body, or any
+    `Guardian.wouldHit`: its bones' spheres for a move with `parts`, its posed mesh's for a body without bones, its
+    `blast`'s beam or front where it is now, else its shape at `points()`) against the floor its mesh and its drawn blow
+    (`Guardian.blast.meshes()`) sweep at the traveller's height over the blow (since v1.71, issue #319, measured on the
+    hall's floor): over 15 % of the hit more than 1 m from its body, or any
     hit more than 1.5 m from it, fails; "body not hit" is what of its body strikes nothing (legs that only walk);
   - the **lock point** more than 0.6 m from its weak point (`model.mouth`; the lock aims at `GuardianLock.aim`);
+  - look for a skin **facing away** from its heading (issue #319: the Keeper's and the Elder's faced π − heading in
+    their halls): `tests/guardian-fairness.test.js` checks it; in a shot, its glow and its lowered head on your side;
   - a mesh of its body kept out of the **shadow** passes, or no contact shadow under it (`Guardian.ground`; a temple's
     hall gets no sun: look at it in its hall, not in the Arena);
   - the traveller's **sidestep**: a 2 s strafe or a side hop locked on carrying him more than 0.25 m off the foe.

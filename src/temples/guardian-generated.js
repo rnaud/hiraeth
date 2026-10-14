@@ -61,7 +61,8 @@ export function generatedGuardian({ name, fallback, load, make, sizes }) {
       if (!parent) { pending = next; return; }   // (not in the temple yet: at its first frame there)
       const rig = old.tellRig, foreign = rig ? rig.children.filter((c) => !own.has(c)) : [];
       const a = old.marks, b = next.marks;
-      next.group.position.copy(old.group.position); next.group.quaternion.copy(old.group.quaternion);
+      // (its turn as a yaw: a quaternion copied in reads back past a quarter turn as a half turn on x and z, issue #319)
+      next.group.position.copy(old.group.position); next.group.rotation.set(0, W.heading, 0);
       adopt(next);
       parent.add(next.group);
       if (rig && next.tellRig) {

@@ -1630,12 +1630,14 @@ export class GuardianLock {
   get chest() { const m = this.g.model; return this._chest.copy(m.pos).addScaledVector(_up, m.floats ? 0 : (m.height ?? 3) * 0.5); }
   /**
    * Where the lock aims (v1.69, issue #314: "lock on is on all of him vs his head so I can't shoot in his mouth"): its weak
-   * point when its body says where (model.lockAt: the Keeper's mouth), else its middle. The gun's locked aim
+   * point when its body says where (model.lockAt: the Keeper's mouth), else its weak point all the same (v1.70, issue
+   * #319: the warden's lock was 2.4 m off its vents, the Elder's 2.5 off her beak): model.mouth, the target its temple
+   * takes (a vent, a hatch, a mouth, a face, a heart); its middle only for a body with none. The gun's locked aim
    * (src/fluid-tool.js), the camera's aim and the reticle (src/lock-reticle.js) take it; the blade still turns to its body.
    */
-  get aim() { const m = this.g.model; return m.lockAt?.(this._aim) ?? this.chest; }
-  /** The weak point's size for the reticle (m), or null: the reticle frames the whole body. */
-  get aimR() { return this.g.model.lockAt ? this.g.model.mouthR ?? 1.2 : null; }
+  get aim() { const m = this.g.model; return m.lockAt?.(this._aim) ?? (m.mouth ? this._aim.copy(m.mouth) : this.chest); }
+  /** The weak point's size for the reticle (m: at least a metre, a target its temple sets aside is a dot), or null: the reticle frames the whole body. */
+  get aimR() { const m = this.g.model; return m.lockAt || m.mouth ? Math.max(1, m.mouthR ?? 1.2) : null; }
   get state() { const g = this.g; return g.state === 'fight' && g.attack ? (g.struck ? 'strike' : 'wind') : 'chase'; }
   get k() { return this.g.attackK ?? 0; }
   get stunned() { return this.g.state === 'open' ? 1 : 0; }

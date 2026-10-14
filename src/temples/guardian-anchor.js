@@ -65,6 +65,7 @@ export function anchorModel({ brass = '#d2a648', brass2 = '#b08433', iron = '#3d
     box([1.1, 0.25, 0.5], cream, [0, 4.95, 2.1]),
   ), mat));
   const eyeMesh = new THREE.Mesh(merge(ell([0.5, 0.32, 0.22], '#ffffff', [0, 4.55, 2.16])), eyeM);
+  eyeMesh.name = 'anchor eye'; eyeMesh.userData.castShadow = true;   // (lit, but a lens on its column: it shadows, issue #319)
   body.add(eyeMesh);
   const pawl = new THREE.Mesh(merge(ell([0.3, 0.3, 0.14], '#ffffff', [0, 1.9, 2.52])), pawlM);
   body.add(pawl);

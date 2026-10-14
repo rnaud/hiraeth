@@ -187,12 +187,12 @@ export const ANCHOR_WARDEN = {
     { to: 1.0, attacks: ['casts', 'spin', 'drop'], pause: 1.1, hint: 'Its anchors are out over the void: push the capstan round, then pull.' },
   ],
   attacks: {
-    bars: { shape: 'cone', range: 8.5, angle: 1.1, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', damage: 0.5, knock: 10, recover: 0.6, then: 'bars2' },
-    bars2: { shape: 'cone', range: 8.5, angle: 1.1, wind: 0.8, track: 0.5, part: 'arms', rig: 'coil', side: -1, pose: 'bars', link: true, damage: 0.5, knock: 10, gap: 0.25, then: 'castEnd' },
+    bars: { shape: 'cone', range: 8.5, angle: 1.1, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', parts: ['arms'], splash: 0.6, active: 0.35, reach: 4.2, gap: 0.6, damage: 0.5, knock: 10, recover: 0.6, then: 'bars2' },
+    bars2: { shape: 'cone', range: 8.5, angle: 1.1, wind: 0.8, track: 0.5, part: 'arms', rig: 'coil', side: -1, pose: 'bars', link: true, parts: ['arms'], splash: 0.6, active: 0.35, reach: 4.2, damage: 0.5, knock: 10, gap: 0.25, then: 'castEnd' },
     castEnd: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 2.6, wind: 1.3, track: 0.6, part: 'arms', rig: 'lean', pose: 'cast', link: true, damage: 0.75, knock: 8, recover: 0.8, open: 5.5 },
     cast: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 2.6, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', damage: 0.75, knock: 8, recover: 0.8, open: 5.5 },
-    drop: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'core', rig: 'rear', wave: { speed: 9, reach: 15, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 1.0, open: 5.5 },
-    spin: { shape: 'ring', at: 'self', radius: 7, wind: 1.3, part: 'arms', rig: 'spin', damage: 0.75, knock: 12, recover: 0.6, miss: 5 },
+    drop: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'core', rig: 'rear', wave: { speed: 9, reach: 15, width: 0.7, damage: 0.5 }, parts: ['body'], splash: 0.6, active: 0.35, blast: { kind: 'front', r0: 1, r1: 5, h: 0.6 }, reach: 5, damage: 1, knock: 12, recover: 1.0, open: 5.5 },
+    spin: { shape: 'ring', at: 'self', radius: 7, wind: 1.3, part: 'arms', rig: 'spin', parts: ['arms'], splash: 0.6, active: 0.4, reach: 4.5, damage: 0.75, knock: 12, recover: 0.6, miss: 5 },
     casts: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', pose: 'cast', damage: 0.5, knock: 6, recover: 0.8, open: 6.5 },
   },
 };

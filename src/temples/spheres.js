@@ -150,14 +150,14 @@ export const ECHO = {
   ],
   attacks: {
     note: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'core', rig: 'spin', damage: 0.75, knock: 8, recover: 0.8, open: 3.2 },
-    pulse: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'core', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.8 },
-    ripple: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', damage: 0.5, knock: 9, recover: 0.4, then: 'ripple2' },
-    ripple2: { shape: 'ring', at: 'self', radius: 6, wind: 0.7, part: 'core', rig: 'swell', pose: 'ripple', link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'pulseEnd' },
-    pulseEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', pose: 'pulse', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.8, open: 3.2 },
-    chord: { shape: 'lane', range: 26, width: 3, wind: 1.5, track: 0.7, part: 'core', rig: 'lean', damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
-    fall: { shape: 'ring', at: 'player', radius: 4, wind: 1.5, track: 0.6, over: true, part: 'core', rig: 'rise', damage: 0.75, knock: 9, recover: 0.8, miss: 3.0 },
+    pulse: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'core', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.4 }, damage: 1, knock: 12, recover: 0.8 },
+    ripple: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', blast: { kind: 'front', r0: 2, h: 0.8 }, gap: 0.7, damage: 0.5, knock: 9, recover: 0.4, then: 'ripple2' },
+    ripple2: { shape: 'ring', at: 'self', radius: 6, wind: 0.7, part: 'core', rig: 'swell', pose: 'ripple', link: true, blast: { kind: 'front', r0: 2, h: 0.8 }, damage: 0.5, knock: 9, gap: 0.25, then: 'pulseEnd' },
+    pulseEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', pose: 'pulse', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.4 }, damage: 1, knock: 12, recover: 0.8, open: 3.2 },
+    chord: { shape: 'lane', range: 26, width: 3, wind: 1.5, track: 0.7, part: 'core', rig: 'lean', blast: { kind: 'front', r0: 2, r1: 24, h: 1.6 }, active: 1.0, damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
+    fall: { shape: 'ring', at: 'player', radius: 4, wind: 1.5, track: 0.6, over: true, part: 'core', rig: 'rise', parts: ['body'], splash: 0.5, active: 0.45, damage: 0.75, knock: 9, recover: 0.8, miss: 3.0 },
     scale: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'core', rig: 'spin', pose: 'note', damage: 0.5, knock: 6, recover: 0.5, then: 'chordEnd' },
-    chordEnd: { shape: 'lane', range: 26, width: 3, wind: 1.2, track: 0.6, part: 'core', rig: 'lean', pose: 'chord', link: true, damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
+    chordEnd: { shape: 'lane', range: 26, width: 3, wind: 1.2, track: 0.6, part: 'core', rig: 'lean', pose: 'chord', link: true, blast: { kind: 'front', r0: 2, r1: 24, h: 1.6 }, active: 1.0, damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
   },
 };
 

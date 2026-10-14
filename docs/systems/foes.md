@@ -579,6 +579,46 @@ guardian run (`.claude/skills/combat-review/guardian.mjs`, the fight's own code 
   that carry it; it turns no faster than `turnRate` (1.5 rad/s, `Guardian.turnTo`; it turned up to 15 when it faced you),
   so its feet step it round on the spot (a foot dragged 0.2 m before). `tests/keeper-fairness.test.js`.
 
+### Every guardian, fair (v1.71, issue #319)
+
+The combat review's guardian run (`.claude/skills/combat-review/guardian.mjs`) over every guardian after the Keeper's:
+all thirteen others failed it (blows landing 10–19 m from their bodies, the lock 2.3–7.4 m off their weak points, a
+combo's blows 0.92–1.07 s apart, three phases with no opening, four bodies with no shadow), and the Keeper's and the
+Elder's skins were found facing away from the fight. Now, for all fourteen (`tests/guardian-fairness.test.js`):
+
+- **Every blow on its body, or drawn where it lands** (`boss.js`): a move has `parts` (its body: the model's
+  `hitParts` bones, the Keeper's; else its posed mesh, `Guardian.meshParts`: the drawn vertices up to the traveller's
+  height, one sphere a `MESH_PARTS.cell`, near the named part, `splash` m wider), or a `blast` (`Blast`): a **beam** out
+  of its eye, dish or mouth (`from`), aimed down through where you stood as its aim held, `r` m round, ending in the
+  floor (`sweep` rad: swept across its fan over its window; the warden's eye, the Tooth-Warden's, the First Sign's
+  dish), or a **front**: bands of light running out from its body over its own floor in the move's shape (a ring, a fan,
+  a lane), `r0` → `r1` m over `active` s, `h` m high (a shock under `HIT.airborne` is jumped: the stomps, the slams), the
+  gusts, gales, cries and chords. Each lands only where it is now, once; the hitbox overlay draws it. Only a lob still
+  lands on its floor marks. The farthest any hit took floor from what the guardian drew: 0.7–1.5 m (were 10–19).
+- **The lock on every weak point** (`foes.js` `GuardianLock.aim`): `model.mouth`, the target its temple takes (a vent,
+  the crown hatch, a beak, a face, a heart), for every body, the reticle at least a metre round it.
+- **A combo's blows 1.4 s apart at least** (a link's `gap` + its wind-up), every guardian.
+- **The warden and the Elder** (the second and third guardians): pauses 2.2 / 1.9 / 1.7 s, every move ending open
+  (the mortars and feathers 1.6 s), blows of ½–¾ of a heart. The warden's beam is a ray out of its eye; its stomps a
+  shock running out round its feet (from its dais); its flare a column of fire round it. What its vents and hatch
+  reveal is unchanged. The Elder's peck brings her beak down at you (`elder-v3-creature.js` `ELDER_POSE`: her body tips
+  over her feet, the head carried, so the nape's skin holds); aloft in her last phase she dives instead of pecking from
+  3.5 m up; her buffet and gale are fronts of wind.
+- **Openings in every phase**: the Mother Snapper's seeds leave her head hanging (1.6 / 2 s: at range she only threw
+  them, with no opening, in her last two phases); the Cloud-Mother's last phase, off a held stone, gasps
+  (`arzach2.js` `MOTHER_GASP`: 1.6 s, a ring then worth 0.3 of one).
+- **Facing the fight**: a fitted skin took the procedural body's turn as a quaternion when it loaded, which past a
+  quarter turn reads back as a half turn on x and z; with only the yaw set after, the Keeper and the Elder faced
+  π − heading in their halls (and in the Arena), striking behind them. `Guardian.place` sets the whole turn.
+- **Grounded and shadowed**: a guardian that swims in the air (the Cloud-Mother, the Lampless, the Echo, the Elder
+  aloft) has its contact shadow's patch on the floor under it, smaller the higher it hangs; the lit eyes of the
+  sentinels, the Foreman, the Founder and the Anchor-Warden shadow (`userData.castShadow`).
+- **The Elder's ink**: her skin was drawn with glass's hairline (0.45) in a shade of her own colour (0.67); now the
+  world's weight and black.
+
+The run itself: hitboxes are measured on the hall's floor (a body that hung aloft no longer stays there without a
+floor under it in node), its drawn blow counted as what it strikes with, its body sampled as densely as the fight's.
+
 ### A second verb (v1.63, `phase.asks`; issue #257)
 
 The temple design audit's guardian exam was 3 in six houses: their fights asked for the gadget and nothing else.

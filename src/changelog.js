@@ -24,6 +24,40 @@ export const CHANGELOG = [
         { where: 'the main thread’s time spent on it', before: 4.6, after: 2.5 },
         { where: 'the load', before: 5.4, after: 4.7 },
       ], source: 'window.deferred after ?level=incal, before and after built from archived copies, run in turn' }] },
+    // every guardian fair (issue #319): src/temples/boss.js Blast, BLAST, MESH_PARTS, meshParts; every temple's moves
+    // (parts / blast, gaps); the warden (incal.js) and the Elder (arzach.js, elder-v3-creature.js ELDER_POSE) paced and
+    // open after every move; docs/systems/foes.md "Every guardian, fair"; tests/guardian-fairness.test.js
+    { text: 'The warden and the Elder fight fairly, as the Keeper does now: a longer breath between their moves, an opening after every one, and a combo’s blows further apart. The warden’s eye fires a beam you can see, down to where you stood; its stomps send a ring of shock out round its feet that you can jump; the Elder brings her beak down at you when she pecks, and her wings send a wall of wind you can see coming. Every other guardian’s blows land the same way now: with its body, or with a beam or a wave you can see, never on a patch of floor far from it.',
+      numbers: [{ title: 'How far from what the guardian draws its blow can hit you', unit: 'm', better: 'lower', device: 'the combat review’s guardian run (node, each guardian in its own hall)', rows: [
+        { where: 'the warden', before: 18.7, after: 0.7 },
+        { where: 'the Elder', before: 16, after: 1.3 },
+        { where: 'the Cloud-Mother', before: 19.1, after: 1.5 },
+        { where: 'the First Sign', before: 14.8, after: 0.8 },
+        { where: 'the worst of all fourteen', before: 19.1, after: 1.5 },
+      ], source: 'node .claude/skills/combat-review/guardian.mjs --ids all, before (the tree at 7edcecc9) and after' },
+      { title: 'A combo’s blows, the closest two', unit: 's', better: 'higher', device: 'the same run', rows: [
+        { where: 'the warden', before: 0.97, after: 1.42 },
+        { where: 'the Elder', before: 0.92, after: 1.42 },
+        { where: 'the closest of all fourteen', before: 0.92, after: 1.42 },
+      ], source: 'node .claude/skills/combat-review/guardian.mjs --ids all' }],
+      see: 'In the Warden’s Well, stand in front of the warden as its eye flares red: the beam comes down to where you stood; step aside once it stops turning and it misses. Turn on the hitboxes (F4) to see each blow drawn where it lands.' },
+    // the skins' facing (issue #319): src/temples/boss.js Guardian.place sets the whole turn; guardian-generated.js swap
+    { text: 'The Keeper and the Elder face you when they fight. Their bodies turned the wrong way in their halls, so the Keeper swept and the Elder pecked behind them while their blows came at you.',
+      see: 'In the Aerie, wake the Elder and stand in front of her: she looks at you, and her peck comes your way.' },
+    // the lock on every weak point (issue #319): src/foes.js GuardianLock.aim / aimR
+    { text: 'Locked on any guardian, you are locked on its weak point: the warden’s vent, the Elder’s beak, the Foreman’s face, the Last Founder’s heart, where your shots count, instead of the middle of its body.',
+      numbers: [{ title: 'How far the lock aims from the weak point', unit: 'm', better: 'lower', device: 'the combat review’s guardian run', rows: [
+        { where: 'the warden', before: 2.36, after: 0 },
+        { where: 'the Elder', before: 2.51, after: 0 },
+        { where: 'the First Sign', before: 7.4, after: 0 },
+      ], source: 'node .claude/skills/combat-review/guardian.mjs --ids all' }] },
+    // the Elder's ink (issue #319): src/characters/elder-v3-creature.js (no inkLine / inkTint)
+    { text: 'The Elder is drawn in the same ink as the rest of the world: a full black outline instead of a faint line in her own colour that made her look pasted on.',
+      see: 'In the Aerie, look at the Elder against the wall.' },
+    // shadows and openings (issue #319): boss.js GroundShadow for floaters; the lit eyes' castShadow; perdide.js seeds
+    // open; arzach2.js MOTHER_GASP
+    { text: 'The guardians that float, the Cloud-Mother, the Lampless, the Echo and the Elder in flight, have a shadow on the floor under them, smaller the higher they hang, so you can tell where they are over you. The machines’ lit eyes cast shadows too. Every guardian now opens up in each part of its fight: the Mother Snapper hangs her head after spitting a seed, and the Cloud-Mother gasps a moment in her last phase (a ring of the bell then calms her a little; the held stone still calms her most).',
+      see: 'In the Cloud-Mother’s hall, look down under her as she swims.' },
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

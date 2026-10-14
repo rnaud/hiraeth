@@ -19,7 +19,7 @@
 //   sidestep    the traveller's own (the game's Player on tests/gait-sim.js's flat course, a foe 7 m off, locked on): how
 //               far a 2 s strafe each way and a side hop carry him off the foe (issue #314: 1.6 m; a fail past 0.25 m)
 //
-//   node .claude/skills/combat-review/guardian.mjs <out-dir> [--ids desert,incal] [--secs 90] [--grid 0.5]
+//   node .claude/skills/combat-review/guardian.mjs <out-dir> [--ids desert,incal | all] [--secs 90] [--grid 0.5]
 // Writes <out-dir>/guardians.json and guardians.md; exits 1 if a check fails (FAIL lines), with --strict.
 import fs from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
@@ -117,8 +117,19 @@ function bodyPoints(model, step = 7) {
     const p = o.geometry?.attributes?.position;
     if (!p || /glyph|marks|tele|glow/i.test(o.name)) return;
     if (o.isSkinnedMesh) { o.skeleton.update(); for (let i = 0; i < p.count; i += step) out.push(o.getVertexPosition(i, v).applyMatrix4(o.matrixWorld).clone()); }
-    else for (let i = 0; i < p.count; i += Math.max(1, Math.floor(p.count / 300))) out.push(v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).clone());
+    else for (let i = 0; i < p.count; i += Math.max(1, Math.floor(p.count / 900))) out.push(v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).clone());
   });
+  return out;
+}
+
+/** Its drawn blow's points (world) now (boss.js Blast: a beam's cylinder, a front's bands), every vertex: what it is drawn as. */
+function blowPoints(g) {
+  const out = [], v = V();
+  for (const o of g.blast?.meshes?.() ?? []) {
+    o.updateMatrixWorld(true);
+    const p = o.geometry.attributes.position;
+    for (let i = 0; i < p.count; i++) out.push(v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).clone());
+  }
   return out;
 }
 
@@ -184,10 +195,14 @@ function hitboxes(S) {
   for (const [id, a0] of Object.entries(def.attacks)) {
     if (a0.lob) { rows.push({ id, lob: true }); continue; }
     g.reset?.(); g.stop(); g.enter('fight'); g.meter = g.floor = 0; g.answered = new Set([0, 1, 2, 3]);
+    // (on its hall's floor, where it fights: its home may be a perch over it, the Elder's)
+    if (!g.model.rooted) g.model.pos.set(A.center.x, A.y, A.center.z);
     const h = g.model.heading, off = (g.model.radius ?? 2.6) + 3;
     P.pos.set(g.model.pos.x + Math.sin(h) * off, A.y + 50, g.model.pos.z + Math.cos(h) * off);   // (out of its way: nothing lands)
     let t = 100;
     for (let f = 0; f < 30; f++) g.update(DT, (t += DT));
+    // (here no floor holds it up: a body that hung in the air in its last phase stays up there without this)
+    if (!g.model.floats) g.model.pos.y = A.y;
     g.stop(); g.cool = 99; g.begin(P, null, id);
     g.attackAt.set(g.model.pos.x + Math.sin(g.model.heading) * off, A.y, g.model.pos.z + Math.cos(g.model.heading) * off);
     const zone = new Map(), body = new Set(), cell = (x, z) => `${Math.round(x / GRID)},${Math.round(z / GRID)}`, c = g.model.pos.clone();
@@ -206,11 +221,12 @@ function hitboxes(S) {
             if (reaches(g, g.attack, p)) { zone.set(cell(p.x, p.z), p); hitAny = true; }
           }
         }
-        if (since < (g.attack.active ?? 0.3)) for (const q of bodyPoints(g.model)) {
-          if (q.y - A.y > 1.9 + 0.3) continue;
+        // (what it strikes with: its posed body, and what it draws of its blow: v1.70, a beam, a front)
+        if (since < (g.live?.for ?? g.attack.active ?? 0.3)) for (const q of [...bodyPoints(g.model), ...blowPoints(g)]) {
+          if (q.y - A.y > 1.9 + 0.3 || q.y - A.y < -1) continue;
           for (let dx = -0.45; dx <= 0.45; dx += GRID) for (let dz = -0.45; dz <= 0.45; dz += GRID) body.add(cell(q.x + dx, q.z + dz));
         }
-        if (since > Math.max(0.35, (g.attack.active ?? 0) + 0.05)) break;
+        if (since > Math.max(0.35, (g.live?.for ?? g.attack.active ?? 0) + 0.05) && !g.live) break;
       }
     }
     const pts = [...zone.values()], bodyCells = [...body].map((k) => k.split(',').map((n) => +n * GRID));
@@ -235,13 +251,14 @@ function lockAndShadow(S) {
   // (the sun's passes draw every mesh not self-lit and not opted out, src/shadows.js selfLitSkips; indoors, where no sun
   // reaches (the Rose House's cistern is lit by its braziers), only its contact shadow grounds it: Guardian.ground)
   const casting = drawn.filter((o) => !selfLitSkips(o) && o.material?.allowOverride !== false && o.userData.castShadow !== false);
-  const skinned = drawn.filter((o) => o.isSkinnedMesh), G = g.ground;
+  const skinned = drawn.filter((o) => o.isSkinnedMesh), G = g.ground, dark = drawn.filter((o) => !casting.includes(o)).map((o) => o.name || o.parent?.name || '(unnamed)');
   const contact = !!G?.group?.parent && G.group.visible && !!G.spots?.some((x) => x.visible);
   return { lockToMouth: +at.distanceTo(mouth).toFixed(2), lockY: +(at.y - g.arena.y).toFixed(2), mouthY: +(mouth.y - g.arena.y).toFixed(2), mouthR: g.model.mouthR ?? 1.2,
-    meshes: drawn.length, casting: casting.length, skinned: skinned.length, skinnedCasting: skinned.filter((o) => casting.includes(o)).length, contact, contactSpots: G?.spots?.filter((x) => x.visible).length ?? 0 };
+    meshes: drawn.length, casting: casting.length, dark, skinned: skinned.length, skinnedCasting: skinned.filter((o) => casting.includes(o)).length, contact, contactSpots: G?.spots?.filter((x) => x.visible).length ?? 0 };
 }
 
-const ids = arg('ids', 'desert').split(',');
+// (--ids all: every guardian, in the order the temples are met)
+const ids = arg('ids', 'desert') === 'all' ? GUARDIANS.map((G) => G.id) : arg('ids', 'desert').split(',');
 const out = [];
 for (const id of ids) {
   const G = GUARDIANS.find((x) => x.id === id);
@@ -263,7 +280,7 @@ for (const id of ids) {
   }
   for (const r of hb) if (!r.lob && r.hit && (r.phantom > LIMITS.phantom || r.farthest > LIMITS.far)) fails.push(`${r.id}: its hit takes ${Math.round(r.phantom * 100)} % of its floor more than 1 m from its body, up to ${r.farthest} m`);
   if (ls.lockToMouth > LIMITS.lock) fails.push(`the lock aims ${ls.lockToMouth} m from its weak point (its mouth)`);
-  if (ls.casting < ls.meshes) fails.push(`${ls.meshes - ls.casting} of its ${ls.meshes} meshes cast no shadow`);
+  if (ls.casting < ls.meshes) fails.push(`${ls.meshes - ls.casting} of its ${ls.meshes} meshes cast no shadow (${ls.dark.join(', ')})`);
   if (!ls.contact) fails.push('no contact shadow on the floor under it (indoors, out of the sun, nothing grounds it)');
   out.push({ id, name: G.name, where: S.where, winds: Object.fromEntries(own), links: Object.fromEntries(links), play, hitboxes: hb, lock: ls, fails });
   S.rt?.dispose?.();

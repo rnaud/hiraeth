@@ -26,7 +26,7 @@ import { Player } from '../src/player.js';
 import { game } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';
 import { updateHazards } from '../src/hazards.js';
-import { GROUNDED } from '../src/temples/arzach2.js';
+import { GROUNDED, MOTHER_GASP } from '../src/temples/arzach2.js';
 import { LURE } from '../src/temples/perdide2.js';
 import { SUN } from '../src/temples/edena.js';
 import { ROOST } from '../src/temples/arzach.js';
@@ -229,16 +229,20 @@ test('the Cloud-Mother’s last phase: she never sinks to cry by herself; a ring
   const ring = () => game.emit('bell', { pos: P.pos.clone() });
   const S = rt.hallStones;
   assert.ok(S?.list.length >= 3, 'stones hang under her dome');
-  // the failure: left alone she cries and rises again, never open; a ring now brings nothing down
-  let opened = false;
-  until(() => { if (G.state === 'open') opened = true; return said(/rises again at once/); }, 40);
-  assert.equal(opened, false, 'in her last phase she never sinks to cry by herself');
-  assert.ok(said(/rises again at once/), 'it says she rises again');
+  // left alone she only gasps (v1.70, #319: an opening in every phase): a moment's cry, and a ring then calms her a
+  // little (MOTHER_GASP); a ring between her moves brings nothing down
+  let gasp = null;
+  until(() => { if (G.state === 'open' && gasp === null) gasp = G.openFor; return said(/rises again/) && G.state === 'open'; }, 40);
+  assert.ok(gasp !== null && gasp <= MOTHER_GASP.open + 1e-9, `in her last phase she only gasps by herself (${gasp})`);
+  const m0 = G.meter;
+  ring();
+  assert.ok(G.meter > m0 && G.meter - m0 <= 0.1 * MOTHER_GASP.bell + 1e-9, `a ring as she gasps calms her a little (${(G.meter - m0).toFixed(3)})`);
   until(() => G.state === 'fight' && !G.attack, 10);
+  const m1 = G.meter;
   ring();
   assert.ok(S.list.every((s) => s.held === 0), 'a ring between her moves brings no stone down');
   assert.ok(said(/rises out of its reach/), 'and says when to ring');
-  assert.equal(G.meter, 0.7, 'nothing lost');
+  assert.equal(G.meter, m1, 'nothing gained');
   // the way: ring as she rises to dive
   for (let n = 0; n < 4 && G.state !== 'weary'; n++) {
     assert.equal(until(() => G.attack?.over && !G.struck && G.at > 0.15 && G.at < G.windFor * 0.5, 40), true, `she rises to dive (${n})`);

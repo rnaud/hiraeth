@@ -162,23 +162,30 @@ export const ELDER = {
   weary: 'She folds her wings and settles. Go to her.',
   resolved: 'The Elder opens her wings and rides the wind up out of the roost.',
   missHint: 'Her beak is caught in the floor: open your wings beside her.',
+  // (v1.70, issue #319, made fair as the Keeper was: a longer breath between her moves, every move ending in an
+  // opening, a combo's blows 1.4 s apart at least; each blow lands with her body or with what she draws of it: the peck
+  // with her beak brought down to you (src/characters/elder-v3-creature.js ELDER_POSE), the stamp with her feet and the
+  // shock round them, the dive with her body where it comes down, the buffet and the gale with the wind of her wings,
+  // a front running out over the floor (boss.js Blast), never a floor 15 m off her that nothing drew)
   phases: [
-    { to: 0.45, attacks: ['peck', 'stamp', 'buffet'], pause: 1.5, hint: 'When she looks up, afraid, open your wings beside her.' },
-    { to: 0.75, attacks: ['buffet', 'dive', 'gale'], pause: 1.3, hint: 'When she hangs over a vent, ride its wind up beside her.' },
-    { to: 0.9, attacks: ['feathers', 'peck', 'gale'], pause: 1.1, hint: 'Roll the stone into the other vent, then ride its wind up by her.' },
+    { to: 0.45, attacks: ['peck', 'stamp', 'buffet'], pause: 2.2, hint: 'When she looks up, afraid, open your wings beside her.' },
+    { to: 0.75, attacks: ['buffet', 'dive', 'gale'], pause: 1.9, hint: 'When she hangs over a vent, ride its wind up beside her.' },
+    // (aloft in her last phase she pecked from 3.5 m up, a blow that could only land 8 m off on the floor: now she
+    // dives instead, beak first, where her body comes down)
+    { to: 0.9, attacks: ['feathers', 'dive', 'gale'], pause: 1.7, hint: 'Roll the stone into the other vent, then ride its wind up by her.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    peck: { shape: 'lane', range: 8, width: 2.4, wind: 1.2, track: 0.7, part: 'mouth', rig: 'lean', damage: 0.5, knock: 8, recover: 0.6, then: 'peck2' },
-    peck2: { shape: 'lane', range: 8, width: 2.4, wind: 0.65, track: 0.6, part: 'mouth', rig: 'lean', pose: 'peck', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'buffetEnd' },
-    buffet: { shape: 'cone', range: 11, angle: 0.8, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', damage: 0.75, knock: 13, recover: 0.7 },
-    buffetEnd: { shape: 'cone', range: 11, angle: 0.8, wind: 1.1, track: 0.5, part: 'wings', rig: 'lean', pose: 'buffet', link: true, damage: 0.75, knock: 13, recover: 0.8, open: 4.2 },
-    stamp: { shape: 'ring', at: 'self', radius: 7, wind: 1.4, part: 'feet', rig: 'rear', damage: 0.75, knock: 10, recover: 0.8, open: 4.2 },
+    peck: { shape: 'lane', range: 8, width: 2.4, wind: 1.2, track: 0.7, part: 'mouth', rig: 'lean', parts: ['mouth'], splash: 0.3, active: 0.35, reach: 4.6, damage: 0.5, knock: 8, recover: 0.6, gap: 0.75, then: 'peck2' },
+    peck2: { shape: 'lane', range: 8, width: 2.4, wind: 0.65, track: 0.6, part: 'mouth', rig: 'lean', pose: 'peck', link: true, parts: ['mouth'], splash: 0.3, active: 0.35, reach: 4.6, damage: 0.5, knock: 8, gap: 0.3, then: 'buffetEnd' },
+    buffet: { shape: 'cone', range: 9, angle: 0.8, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', blast: { kind: 'front', r0: 2, h: 2.2 }, reach: 8.5, damage: 0.5, knock: 13, recover: 0.7, open: 2.0 },
+    buffetEnd: { shape: 'cone', range: 9, angle: 0.8, wind: 1.1, track: 0.5, part: 'wings', rig: 'lean', pose: 'buffet', link: true, blast: { kind: 'front', r0: 2, h: 2.2 }, reach: 8.5, damage: 0.5, knock: 13, recover: 0.8, open: 4.2 },
+    stamp: { shape: 'ring', at: 'self', radius: 4.5, wind: 1.4, part: 'feet', rig: 'rear', parts: ['feet'], splash: 0.6, active: 0.4, blast: { kind: 'front', r0: 0.5, h: 0.6 }, reach: 4.2, damage: 0.75, knock: 10, recover: 0.8, open: 4.2 },
     // (a dive that misses you drives her beak into the floor: she is stuck there longer, missHint; ROOST.miss on top)
-    dive: { shape: 'ring', at: 'player', radius: 4, wind: 1.6, track: 0.6, over: true, part: 'mouth', rig: 'rise', damage: 0.75, knock: 9, recover: 0.9, open: 4.2, miss: 5.6 },
-    gale: { shape: 'lane', range: 20, width: 5, wind: 1.3, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 16, recover: 0.7, then: 'diveEnd' },
-    diveEnd: { shape: 'ring', at: 'player', radius: 4, wind: 1.2, track: 0.6, over: true, part: 'mouth', rig: 'rise', pose: 'dive', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.2, miss: 5.6 },
-    feathers: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 6, recover: 0.7 },
+    dive: { shape: 'ring', at: 'player', radius: 4, wind: 1.6, track: 0.6, over: true, part: 'mouth', rig: 'rise', parts: ['body'], splash: 0.4, active: 0.45, damage: 0.75, knock: 9, recover: 0.9, open: 4.2, miss: 5.6 },
+    gale: { shape: 'lane', range: 18, width: 4.5, wind: 1.3, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', blast: { kind: 'front', r0: 2, h: 2.6 }, active: 0.9, damage: 0.5, knock: 16, recover: 0.7, then: 'diveEnd' },
+    diveEnd: { shape: 'ring', at: 'player', radius: 4, wind: 1.2, track: 0.6, over: true, part: 'mouth', rig: 'rise', pose: 'dive', link: true, parts: ['body'], splash: 0.4, active: 0.45, damage: 0.75, knock: 9, recover: 0.9, open: 4.2, miss: 5.6 },
+    feathers: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 6, recover: 0.7, open: 1.6 },
   },
 };
 

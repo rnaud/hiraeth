@@ -55,12 +55,19 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //                          parts (v1.69, #314: the body it strikes with, model.hitParts: 'head' | 'feet' | 'body'; the
 //                          blow lands where those posed bones meet you, over `active` s from the strike, instead of
 //                          the shape's floor; a body without hitParts falls back to the shape), active (s),
-//                          reach (m from its middle the blow can land: when it comes for you first) } },
+//                          reach (m from its middle the blow can land: when it comes for you first),
+//                          splash (m: a body blow's reach past the bones it lands with: a stamp's splash),
+//                          blast (v1.70, #319: a blow drawn where it lands, Blast: { kind: 'beam' (a ray out of its
+//                          `from` part, aimed at you, `r` round, `sweep` rad swept across, `len` m) | 'front' (a
+//                          front running out from its body over the floor, the move's own shape: a ring, a fan of
+//                          `angle`, a lane of `width`; from `r0` to `r1` m, `h` m high) }; over `active` s from the
+//                          strike, landing where it is drawn, once; with `parts` too, either lands) } },
 //        onHit(g, part ('mouth' | 'body' | 'vent'), mode, info) -> handled, final: 'touch' | 'break',
 //        onStrike(g, a), onCatch(g, a), onReset(g), openFor(g, a, s, missed) -> s (how long a combo's end leaves it open),
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
 // model: { group, pos (Vector3 on the floor), heading, mouth (Vector3), radius, height, part?(name, out, side),
-//          hitParts?(name, out) → [{ c, r }] (world spheres on its posed bones: a move's `parts`), lockAt?(out) (its weak
+//          hitParts?(name, out) → [{ c, r }] (world spheres on its posed bones: a move's `parts`; without it, the
+//          posed mesh itself near the named part, Guardian.meshParts), lockAt?(out) (its weak
 //          point, where the lock-on aims: src/foes.js GuardianLock.aim), turnRate? (rad/s, the fastest it turns: a big
 //          walker turns no faster than its feet can step it round), shadow? { rx, rz, feet } (its contact shadow),
 //          marks? { c, r } (where its phase marks go), tellRig? (its own frame for the moves' generic motions: a walker
@@ -232,9 +239,9 @@ const SPOT_GEO = new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2);
  * patch, across and along), feet (m: a foot's), y (its height over the floor) }; none for a body that swims in the air.
  */
 export class GroundShadow {
-  constructor(parent, model, tone = '#4a3530') {
+  constructor(parent, model, tone = '#4a3530', floor = null) {
     const S = model.shadow ?? {}, R = model.radius ?? 2.6;
-    this.model = model; this.S = { rx: S.rx ?? R * 0.7, rz: S.rz ?? R * 0.9, feet: S.feet ?? Math.max(0.3, R * 0.16), y: S.y ?? 0.03 };
+    this.model = model; this.floor = floor; this.S = { rx: S.rx ?? R * 0.7, rz: S.rz ?? R * 0.9, feet: S.feet ?? Math.max(0.3, R * 0.16), y: S.y ?? 0.03 };
     this.mat = makeMaterial({ color: tone, flat: true, key: `guardian.shadow.${uid++}` });
     this.mat.polygonOffset = true; this.mat.polygonOffsetFactor = -2; this.mat.polygonOffsetUnits = -4;   // (over the floor it lies on: never fighting it)
     this.group = new THREE.Group(); this.group.name = 'guardian contact shadow';
@@ -251,9 +258,19 @@ export class GroundShadow {
   /** Each frame, after the body is posed. */
   update() {
     const m = this.model, S = this.S;
-    this.group.visible = !m.floats && !!m.group?.parent;
+    this.group.visible = !!m.group?.parent;
     if (!this.group.visible) return;
     const [body, ...feet] = this.spots, c = m.body?.getWorldPosition?.(_e) ?? _e.copy(m.pos);
+    if (m.floats) {
+      // (v1.70, issue #319: a body that swims in the air of its hall had nothing under it, and no sun reaches the
+      // floor of a hall: how high it hangs and where it will come down were guesses. Now a patch on the floor under
+      // it, smaller the higher it hangs, and no feet)
+      const y = this.floor?.() ?? m.pos.y - (m.hover ?? 5), k = 1 / (1 + 0.12 * Math.max(0, c.y - y));
+      body.visible = true;
+      body.position.set(c.x, y + S.y, c.z); body.rotation.y = m.heading; body.scale.set(S.rx * k, 1, S.rz * k);
+      for (const f of feet) f.visible = false;
+      return;
+    }
     // (the body's patch: under its body, on the floor it stands on; smaller as the body rises off it, none dug under)
     const up = THREE.MathUtils.clamp((c.y - m.pos.y) / Math.max(1, (m.height ?? 4) * 0.75), 0, 2), k = up < 0 ? 0 : 1 / (1 + 0.25 * Math.max(0, up - 1));
     body.visible = c.y > m.pos.y - 0.5;
@@ -270,6 +287,164 @@ export class GroundShadow {
     });
   }
   dispose() { this.group.removeFromParent(); releaseMaterial(this.mat); }
+}
+
+/**
+ * A body blow on a body with no `hitParts` of its own (v1.70, issue #319: every guardian but the Keeper struck with a
+ * shape on the floor, up to 18.7 m from its body): its posed mesh, sampled (every vertex of a built body, every
+ * `skinStep`th of a skinned one) up to the traveller's height (COLUMN.h + `top` over the floor: what is over his head
+ * meets no one on the floor), one sphere for each `cell` m cube its vertices fill, `r` m round; near a named part
+ * (model.part) within `near` x its radius ('body': all of it).
+ */
+export const MESH_PARTS = { cell: 0.7, r: 0.5, skinStep: 5, near: 0.75, max: 900, top: 0.4 };
+/**
+ * A blow drawn where it lands (v1.70, issue #319): the warden's eye-beam hit a lane 28 m long the game never drew, the
+ * Elder's gale a lane of 20, every shock and gust its whole floor at once. Now a beam is a ray of light out of its eye
+ * (or dish, or mouth), aimed down at you through the wind-up, `r` m round, swept across a fan when it `sweep`s; a front
+ * is a band of wind, sound or shock running out from its body over the floor, `h` m high (one you can jump, `h` under
+ * HIT.airborne), `depth` m thick; each lands only where it is drawn, as it is drawn, once.
+ * Defaults: `active` s (a beam's, a sweep's, a front's), the beam's radius, a front's thickness and its bands' height,
+ * the height a beam is aimed at over the floor.
+ */
+export const BLAST = { beam: 0.35, sweep: 0.75, front: 0.4, beamR: 0.7, depth: 0.5, band: 0.22, aimY: 1.0 };
+const BEAM_GEO = new THREE.CylinderGeometry(1, 1, 1, 10, 48, true).translate(0, 0.5, 0);
+const _q = new THREE.Quaternion(), _s = V(), _t = V(), _u = V();
+
+/** The shortest distance between segments p1-q1 and p2-q2 (3D). */
+export function segmentGap(p1, q1, p2, q2) {
+  const d1 = _s.subVectors(q1, p1), d2 = _t.subVectors(q2, p2), r = _u.subVectors(p1, p2);
+  const a = d1.dot(d1), e = d2.dot(d2), f = d2.dot(r);
+  let sc, tc;
+  if (a < 1e-9 && e < 1e-9) return r.length();
+  if (a < 1e-9) { sc = 0; tc = THREE.MathUtils.clamp(f / e, 0, 1); }
+  else {
+    const c = d1.dot(r);
+    if (e < 1e-9) { tc = 0; sc = THREE.MathUtils.clamp(-c / a, 0, 1); }
+    else {
+      const b = d1.dot(d2), den = a * e - b * b;
+      sc = den > 1e-9 ? THREE.MathUtils.clamp((b * f - c * e) / den, 0, 1) : 0;
+      tc = (b * sc + f) / e;
+      if (tc < 0) { tc = 0; sc = THREE.MathUtils.clamp(-c / a, 0, 1); } else if (tc > 1) { tc = 1; sc = THREE.MathUtils.clamp((b - c) / a, 0, 1); }
+    }
+  }
+  return Math.hypot(r.x + d1.x * sc - d2.x * tc, r.y + d1.y * sc - d2.y * tc, r.z + d1.z * sc - d2.z * tc);
+}
+
+/**
+ * One guardian's drawn blow (BLAST): aimed as it strikes (`aim`), moved on as it runs (`set(k)`), tested against the
+ * traveller where it is now (`touches`), and drawn the same (a beam's cylinder; a front's bands of light along its edge).
+ */
+export class Blast {
+  constructor(parent, mat) {
+    this.beam = new THREE.Mesh(BEAM_GEO, mat);
+    this.beam.name = 'guardian blow (beam)';
+    const n = 96, L = 3, pos = new Float32Array(L * (n + 1) * 2 * 3), idx = [];
+    for (let l = 0; l < L; l++) for (let i = 0; i < n; i++) {
+      const a = (l * (n + 1) + i) * 2, b = a + 2;
+      idx.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(pos.length), 3));
+    geo.setIndex(idx);
+    this.n = n; this.lines = L;
+    this.front = new THREE.Mesh(geo, mat);
+    this.front.name = 'guardian blow (front)';
+    for (const m of [this.beam, this.front]) { m.userData.noCollide = true; m.userData.dynamic = true; m.userData.castShadow = false; m.userData.blow = true; m.visible = false; m.frustumCulled = false; parent.add(m); }
+    this.B = null;
+  }
+  /**
+   * Aim move a (its `blast`) as it strikes: g the guardian, from (its part, world), at (where you stood as its aim
+   * held: the beam comes down through your chest there, along its heading). Returns this.
+   */
+  aim(g, a, from, at) {
+    // (the floor: where you stood, for a beam; the one it stands on, for a front: a dais over the hall's floor, the warden's)
+    const S = a.blast, m = g.model, y = S.kind === 'beam' ? Math.min(g.arena.y, at?.y ?? g.arena.y) : m.floats ? g.arena.y : m.pos.y;
+    if (S.kind === 'beam') {
+      const along = at ? (at.x - from.x) * Math.sin(g.attackH) + (at.z - from.z) * Math.cos(g.attackH) : 8;
+      const drop = Math.max(0.2, from.y - (y + BLAST.aimY)), d = Math.max(2, along);
+      this.B = { kind: 'beam', a, o: from.clone(), yaw: g.attackH, pitch: Math.atan2(drop, d), r: S.r ?? BLAST.beamR, len: S.len ?? a.range ?? 20, sweep: S.sweep ?? 0, side: a.side ?? 1, floor: y };
+    } else {
+      const o = a.at === 'front' ? g.attackAt.clone() : m.pos.clone();
+      const r0 = S.r0 ?? (a.shape === 'ring' && a.at === 'front' ? 0 : (m.radius ?? 3) * 0.6);
+      const r1 = S.r1 ?? (a.shape === 'ring' ? a.radius ?? 4 : a.range ?? 12);
+      this.B = { kind: 'front', a, shape: a.shape, o: o.setY(y), yaw: g.attackH, r0, r1, h: S.h ?? 1.2, angle: S.angle ?? a.angle ?? 0.6, width: S.width ?? a.width ?? 3, depth: S.depth ?? BLAST.depth };
+    }
+    this.set(0);
+    return this;
+  }
+  /** Its progress over its live window (0..1): the beam's sweep, the front's radius; a beam out of `from` now (its eye, as it moves). */
+  set(k, from = null) {
+    const B = this.B;
+    if (!B) return;
+    B.k = THREE.MathUtils.clamp(k, 0, 1);
+    if (B.kind === 'beam') {
+      if (from) B.o.copy(from);
+      const yaw = B.yaw + (B.sweep ? -B.side * B.sweep * (1 - 2 * B.k) : 0), cp = Math.cos(B.pitch), sp = Math.sin(B.pitch);
+      B.dir = (B.dir ?? V()).set(Math.sin(yaw) * cp, -sp, Math.cos(yaw) * cp);
+      // (it ends on the floor it burns, or at its length)
+      const toFloor = sp > 1e-3 ? (B.o.y - B.floor) / sp : Infinity;
+      B.L = Math.min(B.len, toFloor);
+      B.end = (B.end ?? V()).copy(B.o).addScaledVector(B.dir, B.L);
+    } else B.r = THREE.MathUtils.lerp(B.r0, B.r1, B.k);
+  }
+  /** Does it meet a traveller standing at p (his column, COLUMN) where it is now? */
+  touches(p) {
+    const B = this.B;
+    if (!B) return false;
+    if (B.kind === 'beam') return segmentGap(B.o, B.end, _c.copy(p), _d.copy(p).setY(p.y + COLUMN.h)) < B.r + COLUMN.r;
+    if (p.y - B.o.y > B.h) return false;
+    const dx = p.x - B.o.x, dz = p.z - B.o.z, gap = B.depth / 2 + COLUMN.r;
+    if (B.shape === 'lane') {
+      const f0 = Math.sin(B.yaw), f1 = Math.cos(B.yaw), along = dx * f0 + dz * f1, side = Math.abs(dx * f1 - dz * f0);
+      return Math.abs(along - B.r) < gap && side < B.width / 2 + COLUMN.r;
+    }
+    const d = Math.hypot(dx, dz);
+    if (Math.abs(d - B.r) > gap) return false;
+    if (B.shape === 'cone') { const th = Math.atan2(dx, dz) - B.yaw, da = Math.atan2(Math.sin(th), Math.cos(th)); return Math.abs(da) < B.angle + COLUMN.r / Math.max(1, d); }
+    return true;
+  }
+  /** Drawn where it is now (or hidden: off). */
+  draw(on = true) {
+    const B = this.B;
+    this.beam.visible = on && B?.kind === 'beam';
+    this.front.visible = on && B?.kind === 'front';
+    if (!on || !B) return;
+    if (B.kind === 'beam') {
+      this.beam.position.copy(B.o);
+      this.beam.quaternion.copy(_q.setFromUnitVectors(UP, B.dir));
+      this.beam.scale.set(B.r, B.L, B.r);
+      this.beam.updateMatrixWorld();
+      return;
+    }
+    // (the front's edge: up to three bands of light at heights over the floor, as wind lines or a shock's lip)
+    const pos = this.front.geometry.attributes.position, nor = this.front.geometry.attributes.normal, n = this.n;
+    const L = Math.max(1, Math.min(this.lines, Math.round(B.h / 0.9))), bh = BLAST.band;
+    for (let l = 0; l < this.lines; l++) {
+      const shown = l < L, y = B.o.y + (L === 1 ? Math.min(B.h, 0.6) * 0.5 : 0.25 + (B.h - 0.5) * (l / (L - 1)));
+      for (let i = 0; i <= n; i++) {
+        const u = i / n;
+        let x, z, nx, nz;
+        if (B.shape === 'lane') {
+          const f0 = Math.sin(B.yaw), f1 = Math.cos(B.yaw), w = (u - 0.5) * B.width;
+          x = B.o.x + f0 * B.r + f1 * w; z = B.o.z + f1 * B.r - f0 * w; nx = f0; nz = f1;
+        } else {
+          const th = B.shape === 'cone' ? B.yaw + (2 * u - 1) * B.angle : u * Math.PI * 2;
+          nx = Math.sin(th); nz = Math.cos(th); x = B.o.x + nx * B.r; z = B.o.z + nz * B.r;
+        }
+        const j = (l * (n + 1) + i) * 2;
+        // (a band not used this time folded away under the floor)
+        const lo = shown ? y - bh / 2 : B.o.y - 50, hi = shown ? y + bh / 2 : B.o.y - 50;
+        pos.setXYZ(j, x, lo, z); pos.setXYZ(j + 1, x, hi, z);
+        nor.setXYZ(j, nx, 0, nz); nor.setXYZ(j + 1, nx, 0, nz);
+      }
+    }
+    pos.needsUpdate = true; nor.needsUpdate = true;
+    this.front.geometry.computeBoundingSphere();
+  }
+  /** The meshes it is drawn with now (the combat review's QC reads them as what the blow is). */
+  meshes() { return [this.beam, this.front].filter((m) => m.visible); }
+  dispose() { for (const m of [this.beam, this.front]) m.removeFromParent(); this.front.geometry.dispose(); }
 }
 
 /**
@@ -303,6 +478,9 @@ export class Guardian {
     this.balls = [];
     this.waves = [];
     this.ballM = makeMaterial({ color: tone, glow: 0.8, flat: true, key: `guardian.ball.${uid++}` });
+    // (its drawn blows: a beam, a front of wind or shock, lit as its glow is: Blast)
+    this.blastM = makeMaterial({ color: tone, glow: 0.85, flat: true, side: THREE.DoubleSide, key: `guardian.blast.${uid++}` });
+    this.blast = new Blast(rt.root, this.blastM);
     // the generic wind-up motions act on a frame round its body (the model's own poses act inside it)
     if (!model.tellRig) {
       const rig = new THREE.Group(); rig.name = 'tell rig';
@@ -312,7 +490,7 @@ export class Guardian {
     this.rigK = { x: 0, y: 0, z: 0, ry: 0, s: 1, sy: 1, spin: 0 };
     this.marks = new PhaseMarks(model.tellRig, model, def.kind === 'robot');
     // (its contact shadow, of the floor's colour darkened: the temple's palette, else sand)
-    this.ground = new GroundShadow(rt.root, model, '#' + new THREE.Color(rt.P?.floor ?? '#d8c08e').multiplyScalar(0.58).getHexString());
+    this.ground = new GroundShadow(rt.root, model, '#' + new THREE.Color(rt.P?.floor ?? '#d8c08e').multiplyScalar(0.58).getHexString(), () => this.arena.y);
     this.solid = { pos: model.pos, r: model.radius ?? 2.6, top: 0, bottom: 0, vel: V() };
     this.prev = model.pos.clone();
     this.offs = [];
@@ -399,7 +577,7 @@ export class Guardian {
   enter(state) { this.state = state; this.t = 0; }
   /** Whatever it was winding up or chaining is broken off (stilled, knocked out, a phase change). */
   stop() {
-    this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null; this.live = null;
+    this.attack = null; this.view = null; this.attackK = 0; this.combo = 0; this.closing = null; this.live = null; this.blast?.draw(false);
     this.tele.hide(); for (const T of this.teles) T.hide();
     for (const g of this.glows) g.hide();
     for (const b of this.balls) b.visible = false;
@@ -457,7 +635,11 @@ export class Guardian {
       this.solid.bottom = m.pos.y; this.solid.top = m.pos.y + (m.height ?? 3);
     }
     m.group.position.copy(m.pos);
-    m.group.rotation.y = m.heading;
+    // (its yaw alone, set whole: v1.70, issue #319. A fitted skin took the procedural body's turn as a quaternion when it
+    // loaded, and facing away from the hall's door (a heading past a quarter turn) that read back as a half turn on x and
+    // z with the yaw mirrored; setting the yaw alone after it, the Keeper and the Elder faced π − heading, away from
+    // you, and struck behind them)
+    m.group.rotation.set(0, m.heading, 0);
   }
 
   /** Walk toward `to` (on the floor), turning; returns the speed. */
@@ -506,6 +688,7 @@ export class Guardian {
       speed = this.walk(dt, m.rest ?? A.center, 1.8, 0.2);
       if (speed < 0.1 && m.restHeading !== undefined) m.heading += Math.atan2(Math.sin(m.restHeading - m.heading), Math.cos(m.restHeading - m.heading)) * Math.min(1, dt);
     }
+    this.frame = (this.frame ?? 0) + 1;
     this.updateWaves(dt, P);
     this.place();
     this.solid.vel.subVectors(m.pos, this.prev).divideScalar(Math.max(dt, 1e-4));
@@ -516,6 +699,8 @@ export class Guardian {
     kit.eye = P?.pos ?? null;
     m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit });
     this.ground.update();
+    this._meshFrame = this._mesh = null;   // (posed anew: a body blow's mesh is sampled again when next asked, meshParts)
+    this.blast.draw(!!this.live?.blast && this.state === 'fight');
     this.marks.set(Math.min(this.phaseIndex, this.def.phases.filter((p) => !p.weary).length - 1), t, this.state);
     this.tells(t);
   }
@@ -535,6 +720,7 @@ export class Guardian {
         // the wind-up: it aims (turns to you, a lob's mark or a dive's spot follows you) for its `track`, then holds
         const aiming = this.at < wind * (a.track ?? 0.5);
         if (a.at === 'player' && aiming) this.attackAt.set(P.pos.x, A.y, P.pos.z);
+        if (aiming) (this.aimP ??= V()).copy(P.pos);   // (where you were as its aim held: a beam's pitch)
         if (a.shape !== 'ring' || a.at === 'front') { if (aiming && !m.rooted) this.face(dt, P.pos, 5); else if (aiming) this.face(dt, P.pos, 3); this.attackH = m.heading; }
         if (a.at === 'self') this.attackAt.copy(m.pos).setY(A.y);
         if (a.at === 'front') this.attackAt.set(m.pos.x + Math.sin(m.heading) * (a.ahead ?? 4), A.y, m.pos.z + Math.cos(m.heading) * (a.ahead ?? 4));
@@ -551,9 +737,10 @@ export class Guardian {
         this.attackK = 1;
         this.hitLast = this.strike(a, P);
       } else if (this.live) {
-        // (a blow on its bones: it lands where they meet you, over its active window)
+        // (a blow on its bones, or drawn: it lands where it meets you, over its active window)
+        if (this.live.blast) this.blast.set((this.at - wind) / this.live.for, a.blast.kind === 'beam' ? this.partAt(a.blast.from ?? a.part ?? 'core', (this._from ??= V()), a.side ?? 1) : null);
         if (this.contact(P)) this.hitLast = true;
-        if (this.live && this.at > wind + this.live.for) this.live = null;
+        if (this.live && this.at > wind + this.live.for) { this.live = null; this.blast.draw(false); }
       } else if (this.at > wind + (a.then ? (a.gap ?? 0.25) : (a.recover ?? 0.8))) {
         const next = a.then && !P.dead && !P.down ? this.def.attacks[a.then] : null;
         if (next) { this.begin(P, a.then); return 0; }
@@ -638,8 +825,12 @@ export class Guardian {
     this.def.onStrike?.(this, a);
     if (a.dash) this.dashing = a.dash;
     if (a.wave) this.addWave(a);
-    // a blow on its bones (a.parts): live over its active window, landing where the posed parts meet you (contact)
-    if (this.bodyBlow(a)) { this.live = { a, for: a.active ?? 0.15, done: false }; return this.contact(P); }
+    // a blow on its bones (a.parts) or drawn (a.blast): live over its active window, landing where it meets you (contact)
+    if (this.bodyBlow(a) || a.blast) {
+      const S = a.blast, blast = S ? this.blast.aim(this, a, this.partAt(S.from ?? a.part ?? 'core', V(), a.side ?? 1), this.aimP) : null;
+      this.live = { a, for: a.active ?? (S ? (S.kind === 'beam' ? (S.sweep ? BLAST.sweep : BLAST.beam) : BLAST.front) : 0.15), done: false, blast: !!blast };
+      return this.contact(P);
+    }
     if (P.dead || P.down) return false;
     if (P.untouchable?.()) { this.answer('dodge'); return false; }   // (a perfect dodge's flurry: src/flurry.js; the phase's second verb, asks)
     if (P.pos.y - this.arena.y > (a.reachUp ?? (a.shape === 'lane' ? 3.5 : HIT.airborne))) return false;   // jumped clear (a beam reaches a little higher)
@@ -647,12 +838,54 @@ export class Guardian {
     if (!at) return false;
     return this.lands(a, P, a.shape === 'ring' ? at : this.model.pos);
   }
-  /** Does move a land with its body (its `parts` on the model's posed bones)? */
-  bodyBlow(a) { return !!(a?.parts && this.model.hitParts); }
-  /** The spheres move a strikes with now (world { c, r }), its parts on the posed bones. */
+  /** Does move a land with its body (its `parts`: the model's posed bones, or its posed mesh)? */
+  bodyBlow(a) { return !!a?.parts; }
+  /** The spheres move a strikes with now (world { c, r }), its parts on the posed bones (or mesh), a.splash wider. */
   partsOf(a, out = (this._parts ??= [])) {
     out.length = 0;
-    for (const n of a.parts) for (const s of this.model.hitParts(n, this._one ??= [])) out.push(s);
+    if (!a?.parts) return out;
+    const add = a.splash ?? 0, list = this.model.hitParts ? a.parts.flatMap((n) => this.model.hitParts(n, [])) : this.meshParts(a.parts);
+    for (const s of list) out.push(add ? { c: s.c, r: s.r + add } : s);
+    return out;
+  }
+  /**
+   * Its posed mesh as spheres (MESH_PARTS), near the named parts: the body a blow lands with on a body that names no
+   * bones of its own. Sampled once a frame.
+   */
+  meshParts(names) {
+    const key = `${this.frame ?? 0}:${names.join(',')}`;
+    if (this._mesh?.key === key) return this._mesh.out;
+    const m = this.model, C = MESH_PARTS, v = _a;
+    if (this._meshFrame !== (this.frame ?? 0)) {
+      // (every drawn vertex of its body, posed now: one point a cell)
+      this._meshFrame = this.frame ?? 0;
+      // (only what is at his height: a part over his head meets no traveller on the floor)
+      const cells = new Map(), top = this.arena.y + COLUMN.h + C.top;
+      m.group.updateMatrixWorld(true);
+      m.group.traverse((o) => {
+        if (!o.isMesh || !o.visible || o.userData.noBody || o.userData.blow) return;
+        const p = o.geometry?.attributes?.position;
+        if (!p || /glyph|marks|tele|glow|shadow/i.test(o.name)) return;
+        const step = o.isSkinnedMesh ? C.skinStep : Math.max(1, Math.floor(p.count / C.max));
+        if (o.isSkinnedMesh) o.skeleton?.update();
+        for (let i = 0; i < p.count; i += step) {
+          if (o.isSkinnedMesh) o.getVertexPosition(i, v); else v.fromBufferAttribute(p, i);
+          v.applyMatrix4(o.matrixWorld);
+          if (v.y > top) continue;
+          const k = `${Math.round(v.x / C.cell)},${Math.round(v.y / C.cell)},${Math.round(v.z / C.cell)}`;
+          if (!cells.has(k)) cells.set(k, v.clone());
+        }
+      });
+      this._cells = [...cells.values()];
+    }
+    const near = [];
+    for (const n of names) {
+      if (n === 'body') { near.length = 0; break; }
+      for (const side of PAIRED.has(n) ? [1, -1] : [1]) { const q = this.partAt(n, V(), side); if (q) near.push(q); }
+    }
+    const R = (m.radius ?? 3) * C.near, out = [];
+    for (const c of this._cells) if (!near.length || near.some((q) => q.distanceTo(c) < R)) out.push({ c, r: C.r });
+    this._mesh = { key, out };
     return out;
   }
   /**
@@ -661,6 +894,8 @@ export class Guardian {
    */
   touches(a, p) {
     const C = COLUMN;
+    // (a drawn blow, where it is now)
+    if (a.blast && this.live?.blast && this.live.a.id === a.id && this.blast.touches(p)) return true;
     for (const s of this.partsOf(a)) {
       const y = THREE.MathUtils.clamp(s.c.y, p.y, p.y + C.h);
       if (Math.hypot(s.c.x - p.x, y - s.c.y, s.c.z - p.z) < s.r + C.r) return true;
@@ -668,7 +903,7 @@ export class Guardian {
     return false;
   }
   /** Would move a, struck now, reach a traveller standing at p? Its body's parts if it has them, else its area. */
-  wouldHit(a, p) { return this.bodyBlow(a) ? this.touches(a, p) : this.points(a).some((o) => inArea(a, o, this.attackH, p)); }
+  wouldHit(a, p) { return this.bodyBlow(a) || a.blast ? this.touches(a, p) : this.points(a).some((o) => inArea(a, o, this.attackH, p)); }
   /** Over a body blow's active window: its parts meet you now? Lands once. */
   contact(P) {
     const L = this.live;
@@ -799,6 +1034,6 @@ export class Guardian {
     for (const T of this.teles) T.dispose();
     for (const g of this.glows) g.dispose();
     for (const b of this.balls) { b.removeFromParent(); b.geometry.dispose(); }
-    this.clearWaves(); this.marks.dispose(); this.ground.dispose(); releaseMaterial(this.ballM);
+    this.clearWaves(); this.marks.dispose(); this.ground.dispose(); this.blast.dispose(); releaseMaterial(this.ballM); releaseMaterial(this.blastM);
   }
 }

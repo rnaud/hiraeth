@@ -154,12 +154,14 @@ test('the Lampless, the Elder and the Cloud-Mother: a dive that misses you wedge
   // combat-v1.6: they were the three guardians whose dive opened them the same whether it met you or not
   const { elderOpenFor, ROOST } = await import('../src/temples/arzach.js');
   for (const [id, move] of [['perdide2', 'swoop'], ['arzach', 'dive'], ['arzach2', 'dive']]) {
-    const D = GUARDIANS.find((G) => G.id === id).def, a = D.attacks[move];
+    const G = GUARDIANS.find((x) => x.id === id), D = G.def, a = D.attacks[move];
     assert.ok(a.miss > a.open, `${id}.${move}: a miss opens it longer (${a.miss} s) than a hit (${a.open} s)`);
     assert.ok(D.missHint && D.missHint !== D.openHint, `${id}: what a miss looks like, in words`);
     for (const [far, want] of [[true, a.miss], [false, a.open]]) {
       clearTargets();
-      const { g, rt, notes } = stub(D);
+      // (its own body: a dive lands where that body comes down on you, v1.70 #319)
+      const body = G.model(); body.ready?.catch?.(() => {}); body.pos.set(0, 0, 4);
+      const { g, rt, notes } = stub(D, body);
       // (it aims its dive at where you stand for the first part of its wind-up: far, you step well aside once it has
       // stopped aiming, and it misses; near, you stay under it, and it lands on you)
       const P = { pos: V(0, 0, 9), health: 3, dead: false, down: null, hurt() {}, knockDown() {} };

@@ -184,15 +184,15 @@ export const LAMPLESS = {
   attacks: {
     // (a swoop that misses you catches its wings on the floor: it hangs low longer, missHint; its dust beaten down runs
     // out along the floor in a ring you jump, as the Cloud-Mother's wail does: combat-v1.6)
-    swoop: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.5, track: 0.6, over: true, part: 'core', rig: 'rise', damage: 0.75, knock: 9, recover: 0.9, open: 4.0, miss: 5.4 },
-    gust: { shape: 'cone', range: 14, angle: 0.6, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', damage: 0.75, knock: 12, recover: 0.8 },
-    dust: { shape: 'ring', at: 'self', radius: 8.5, wind: 1.4, part: 'wings', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
-    flutter: { shape: 'cone', range: 8, angle: 0.8, wind: 1.2, track: 0.7, part: 'wings', rig: 'lean', damage: 0.5, knock: 9, recover: 0.5, then: 'flutter2' },
-    flutter2: { shape: 'cone', range: 8, angle: 0.8, wind: 0.65, track: 0.6, part: 'wings', rig: 'lean', pose: 'flutter', link: true, damage: 0.5, knock: 9, gap: 0.2, then: 'dustEnd' },
-    dustEnd: { shape: 'ring', at: 'self', radius: 8.5, wind: 1.2, part: 'wings', rig: 'swell', pose: 'dust', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
+    swoop: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.5, track: 0.6, over: true, part: 'core', rig: 'rise', parts: ['body'], splash: 0.5, active: 0.45, damage: 0.75, knock: 9, recover: 0.9, open: 4.0, miss: 5.4 },
+    gust: { shape: 'cone', range: 14, angle: 0.6, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', blast: { kind: 'front', r0: 2.5, h: 2.4 }, damage: 0.75, knock: 12, recover: 0.8 },
+    dust: { shape: 'ring', at: 'self', radius: 8.5, wind: 1.4, part: 'wings', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.5 }, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
+    flutter: { shape: 'cone', range: 8, angle: 0.8, wind: 1.2, track: 0.7, part: 'wings', rig: 'lean', blast: { kind: 'front', r0: 2, h: 2.2 }, active: 0.3, gap: 0.75, damage: 0.5, knock: 9, recover: 0.5, then: 'flutter2' },
+    flutter2: { shape: 'cone', range: 8, angle: 0.8, wind: 0.65, track: 0.6, part: 'wings', rig: 'lean', pose: 'flutter', link: true, blast: { kind: 'front', r0: 2, h: 2.2 }, active: 0.3, damage: 0.5, knock: 9, gap: 0.2, then: 'dustEnd' },
+    dustEnd: { shape: 'ring', at: 'self', radius: 8.5, wind: 1.2, part: 'wings', rig: 'swell', pose: 'dust', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.5 }, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
     scales: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'wings', rig: 'swell', damage: 0.5, knock: 6, recover: 0.7 },
-    spiral: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.4, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', damage: 0.75, knock: 9, recover: 0.4, then: 'spiral2' },
-    spiral2: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.0, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.0, miss: 5.4 },
+    spiral: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.4, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', parts: ['body'], splash: 0.5, active: 0.4, gap: 0.4, damage: 0.75, knock: 9, recover: 0.4, then: 'spiral2' },
+    spiral2: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.0, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', link: true, parts: ['body'], splash: 0.5, active: 0.45, damage: 0.75, knock: 9, recover: 0.9, open: 4.0, miss: 5.4 },
   },
 };
 

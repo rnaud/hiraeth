@@ -158,16 +158,16 @@ export const MOTHER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    gust: { shape: 'cone', range: 14, angle: 0.55, wind: 1.3, track: 0.6, part: 'mouth', rig: 'swell', damage: 0.75, knock: 12, recover: 0.9 },
+    gust: { shape: 'cone', range: 14, angle: 0.55, wind: 1.3, track: 0.6, part: 'mouth', rig: 'swell', blast: { kind: 'front', r0: 3, h: 2.5 }, damage: 0.75, knock: 12, recover: 0.9 },
     // (a dive that misses you wedges her on the floor a while longer: missHint. In her last phase only a held stone
     // opens her, missed or not: motherOpen)
-    dive: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.6, track: 0.55, over: true, part: 'core', rig: 'rise', damage: 1, knock: 9, recover: 1.0, open: 3.0, miss: 4.4 },
-    wail: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'mouth', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
-    roll: { shape: 'cone', range: 10, angle: 1.0, wind: 1.2, track: 0.6, part: 'wings', rig: 'coil', side: 1, damage: 0.75, knock: 11, recover: 0.6, then: 'tail' },
-    tail: { shape: 'ring', at: 'self', radius: 7, wind: 0.75, part: 'tail', rig: 'coil', side: -1, link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'wailEnd' },
-    wailEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'mouth', rig: 'swell', pose: 'wail', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
+    dive: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.6, track: 0.55, over: true, part: 'core', rig: 'rise', parts: ['body'], splash: 0.5, active: 0.45, damage: 1, knock: 9, recover: 1.0, open: 3.0, miss: 4.4 },
+    wail: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'mouth', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.4 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
+    roll: { shape: 'cone', range: 10, angle: 1.0, wind: 1.2, track: 0.6, part: 'wings', rig: 'coil', side: 1, blast: { kind: 'front', r0: 3, h: 1.6 }, gap: 0.65, damage: 0.75, knock: 11, recover: 0.6, then: 'tail' },
+    tail: { shape: 'ring', at: 'self', radius: 7, wind: 0.75, part: 'tail', rig: 'coil', side: -1, link: true, blast: { kind: 'front', r0: 3, h: 1.4 }, damage: 0.5, knock: 9, gap: 0.25, then: 'wailEnd' },
+    wailEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'mouth', rig: 'swell', pose: 'wail', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.4 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
     rain: { shape: 'ring', at: 'player', lob: true, volley: 4, radius: 2, wind: 1.5, track: 0.6, part: 'core', rig: 'swell', damage: 0.5, knock: 6, recover: 0.6, then: 'diveEnd' },
-    diveEnd: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.3, track: 0.55, over: true, part: 'core', rig: 'rise', pose: 'dive', link: true, damage: 1, knock: 9, recover: 1.0, open: 3.0, miss: 4.4 },
+    diveEnd: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.3, track: 0.55, over: true, part: 'core', rig: 'rise', pose: 'dive', link: true, parts: ['body'], splash: 0.5, active: 0.45, damage: 1, knock: 9, recover: 1.0, open: 3.0, miss: 4.4 },
   },
 };
 
@@ -195,7 +195,7 @@ export function motherBell(g, pos) {
     return;
   }
   if (pos.distanceTo(g.model.pos) > 28) { rt.notice('She is too far to hear it. Get closer.', 'mother.far'); return; }
-  g.add(g.phaseIndex === 0 ? 0.125 : 0.1, 'bell');
+  g.add((g.phaseIndex === 0 ? 0.125 : 0.1) * (g.gasp ? MOTHER_GASP.bell : 1), 'bell');
   if (g.state === 'open') { g.enter('fight'); g.cool = 2.2; }
 }
 /** A dive struck: onto a stone the bell holds under her, it takes her weight, and she lies on it. */
@@ -207,10 +207,17 @@ function motherStrike(g, a) {
   g.rt.rumble?.(1.0, 0.5);
   g.rt.notice('She dives onto the held stone and lies on it, dazed, crying.', 'mother.grounded');
 }
-/** How long a combo's end leaves her open: on a held stone, a while; in her last phase, only there. */
+/**
+ * Her last phase off a held stone (v1.70, issue #319: "an opening after every move", and her last phase had none but the
+ * stone): her cry is a gasp of `open` s, and a note then calms her `bell` of a full ring; on a held stone she lies a while
+ * (GROUNDED) and a note calms her fully.
+ */
+export const MOTHER_GASP = { open: 1.6, bell: 0.3 };
+/** How long a combo's end leaves her open: on a held stone, a while; in her last phase off one, a gasp. */
 function motherOpen(g, a, s) {
-  if (g.grounded) { g.grounded = false; return Math.max(s, GROUNDED); }
-  if (g.phaseIndex >= 2 && s) { g.rt.notice('She cries, and rises again at once, out of the bell’s reach.', 'mother.rises'); return 0; }
+  if (g.grounded) { g.grounded = false; g.gasp = false; return Math.max(s, GROUNDED); }
+  g.gasp = g.phaseIndex >= 2 && !!s;
+  if (g.gasp) { g.rt.notice('She cries a moment, and rises again, out of the bell’s reach.', 'mother.rises'); return Math.min(s, MOTHER_GASP.open); }
   return s;
 }
 

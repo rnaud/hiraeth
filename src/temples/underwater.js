@@ -190,14 +190,14 @@ export const LISTENER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    sweep: { shape: 'cone', range: 9, angle: 0.8, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', side: 1, damage: 0.75, knock: 10, recover: 0.5, then: 'sweep2' },
-    sweep2: { shape: 'cone', range: 9, angle: 0.8, wind: 0.8, track: 0.5, part: 'arms', rig: 'coil', side: -1, link: true, damage: 0.75, knock: 10, gap: 0.2, then: 'call' },
-    call: { shape: 'ring', at: 'self', radius: 5, wind: 1.1, part: 'mouth', rig: 'lean', pose: 'song', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.9, open: 4.4 },
-    slam: { shape: 'ring', at: 'self', radius: 6, wind: 1.3, part: 'core', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 3.8 },
+    sweep: { shape: 'cone', range: 9, angle: 0.8, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', side: 1, parts: ['arms'], splash: 0.5, active: 0.35, reach: 5.5, gap: 0.6, damage: 0.75, knock: 10, recover: 0.5, then: 'sweep2' },
+    sweep2: { shape: 'cone', range: 9, angle: 0.8, wind: 0.8, track: 0.5, part: 'arms', rig: 'coil', side: -1, link: true, parts: ['arms'], splash: 0.5, active: 0.35, reach: 5.5, damage: 0.75, knock: 10, gap: 0.3, then: 'call' },
+    call: { shape: 'ring', at: 'self', radius: 5, wind: 1.1, part: 'mouth', rig: 'lean', pose: 'song', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.4 }, damage: 0.75, knock: 11, recover: 0.9, open: 4.4 },
+    slam: { shape: 'ring', at: 'self', radius: 6, wind: 1.3, part: 'core', rig: 'rear', parts: ['body'], splash: 0.6, active: 0.35, blast: { kind: 'front', r0: 1, r1: 5.5, h: 0.6 }, reach: 5.5, damage: 0.75, knock: 11, recover: 0.8, open: 3.8 },
     pearl: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3, wind: 1.4, track: 0.6, part: 'mouth', rig: 'swell', damage: 0.75, knock: 8, recover: 0.6 },
     pearls: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.4, wind: 1.4, track: 0.6, part: 'mouth', rig: 'swell', pose: 'pearl', damage: 0.5, knock: 6, recover: 0.6 },
-    song: { shape: 'ring', at: 'self', radius: 5, wind: 1.3, part: 'mouth', rig: 'lean', wave: { speed: 9, reach: 17, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.9, open: 4.6 },
-    roll: { shape: 'lane', range: 16, width: 4.4, wind: 1.3, track: 0.65, part: 'feet', rig: 'crouch', dash: 10, damage: 1, knock: 12, recover: 1.0, open: 2.6, miss: 3.4 },
+    song: { shape: 'ring', at: 'self', radius: 5, wind: 1.3, part: 'mouth', rig: 'lean', wave: { speed: 9, reach: 17, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 2, h: 1.4 }, damage: 0.75, knock: 11, recover: 0.9, open: 4.6 },
+    roll: { shape: 'lane', range: 16, width: 4.4, wind: 1.3, track: 0.65, part: 'feet', rig: 'crouch', dash: 10, parts: ['body'], splash: 0.3, active: 0.45, damage: 1, knock: 12, recover: 1.0, open: 2.6, miss: 3.4 },
   },
 };
 

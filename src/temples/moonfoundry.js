@@ -184,13 +184,13 @@ export const LAST_FOUNDER = {
       openHint: 'Too hot for water: with a moon in its cradle it stops, and cools.' },
   ],
   attacks: {
-    ladle: { shape: 'cone', range: 9, angle: 0.8, wind: 1.3, track: 0.6, part: 'arms', rig: 'coil', damage: 0.75, knock: 10, recover: 0.5, then: 'ladle2' },
-    ladle2: { shape: 'cone', range: 9, angle: 0.8, wind: 0.8, track: 0.5, part: 'arms', rig: 'coil', side: -1, link: true, damage: 0.75, knock: 10, gap: 0.2, then: 'pour' },
-    pour: { shape: 'ring', at: 'front', ahead: 4, radius: 3.6, wind: 1.1, part: 'core', rig: 'lean', link: true, wave: { speed: 8, reach: 14, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.9, open: 4.6 },
-    slam: { shape: 'ring', at: 'self', radius: 5.5, wind: 1.3, part: 'arms', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 4.2 },
+    ladle: { shape: 'cone', range: 9, angle: 0.8, wind: 1.3, track: 0.6, part: 'arms', rig: 'coil', parts: ['arms'], splash: 0.5, active: 0.35, reach: 5.5, gap: 0.6, damage: 0.75, knock: 10, recover: 0.5, then: 'ladle2' },
+    ladle2: { shape: 'cone', range: 9, angle: 0.8, wind: 0.8, track: 0.5, part: 'arms', rig: 'coil', side: -1, link: true, parts: ['arms'], splash: 0.5, active: 0.35, reach: 5.5, damage: 0.75, knock: 10, gap: 0.3, then: 'pour' },
+    pour: { shape: 'ring', at: 'front', ahead: 4, radius: 3.6, wind: 1.1, part: 'core', rig: 'lean', link: true, wave: { speed: 8, reach: 14, width: 0.7, damage: 0.5 }, blast: { kind: 'front', h: 0.6 }, damage: 1, knock: 12, recover: 0.9, open: 4.6 },
+    slam: { shape: 'ring', at: 'self', radius: 5.5, wind: 1.3, part: 'arms', rig: 'rear', parts: ['arms'], splash: 0.6, active: 0.35, blast: { kind: 'front', r0: 1, r1: 4.5, h: 0.6 }, reach: 5, damage: 0.75, knock: 11, recover: 0.8, open: 4.2 },
     cast: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.2, wind: 1.4, track: 0.6, part: 'arms', rig: 'swell', damage: 0.75, knock: 8, recover: 0.6 },
     casts: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.4, wind: 1.4, track: 0.6, part: 'arms', rig: 'swell', pose: 'cast', damage: 0.5, knock: 6, recover: 0.6 },
-    charge: { shape: 'lane', range: 16, width: 4.4, wind: 1.3, track: 0.65, part: 'feet', rig: 'crouch', dash: 10, damage: 1, knock: 12, recover: 1.0, open: 2.4, miss: 3.4 },
+    charge: { shape: 'lane', range: 16, width: 4.4, wind: 1.3, track: 0.65, part: 'feet', rig: 'crouch', dash: 10, parts: ['body'], splash: 0.3, active: 0.45, damage: 1, knock: 12, recover: 1.0, open: 2.4, miss: 3.4 },
   },
 };
 

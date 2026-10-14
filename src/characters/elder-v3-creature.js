@@ -8,11 +8,22 @@ import {aimIn} from '../motion-kit/ik.js';
 import * as originalFit from './elder-v3-fit.js';
 import {makeReviewInkMaterial} from './tripo-material.js';
 
-/** Generated Elder skin, driven through the same contract as elderModel/ELDER. */
+/**
+ * Her own poses (issue #319): the peck's strike bows her neck (`neck`), tips her whole body forward over her feet
+ * (`tip` rad, the head carried with it, not held level: a head held level against it tore the skin at the nape) and
+ * drops her breast (`lower` m), so the beak comes down at the traveller's height a stride ahead of her (it stopped 4 m
+ * up, where no blow of it could land).
+ */
+export const ELDER_POSE={peck:{neck:1,tip:1.1,lower:.35}};
+/**
+ * Generated Elder skin, driven through the same contract as elderModel/ELDER. Inked as the world is (issue #319: "the
+ * Elder doesn't follow the same ink outline as the rest of the world": her line was glass's hairline, 0.45, in a shade
+ * of her own colour, 0.67, so she read as a pale cut-out pasted on the Aerie; now the world's weight and its black).
+ */
 export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}){
  const {ELDER_BODY,ELDER_LEGS,ELDER_JAW,ELDER_JAW_AXIS,ELDER_CLOSE,ELDER_SCALE,elderPoint}=fit;
  const group=clone(gltf.scene),bones={},meshes=[];
- group.name='Elder · generated guardian';group.traverse(o=>{o.userData.noCollide=true;o.userData.dynamic=true;if(o.isBone)bones[o.name]=o;if(o.isSkinnedMesh){o.frustumCulled=false;o.material=o.material.clone();o.userData.inkLine=.45;o.userData.inkTint=.67;o.userData.inkShade={hatch:.12,shade:.25,shadeHue:.8};meshes.push(o);}});
+ group.name='Elder · generated guardian';group.traverse(o=>{o.userData.noCollide=true;o.userData.dynamic=true;if(o.isBone)bones[o.name]=o;if(o.isSkinnedMesh){o.frustumCulled=false;o.material=o.material.clone();o.userData.inkShade={hatch:.12,shade:.25,shadeHue:.8};meshes.push(o);}});
  const body=bones.body,neck=Array.from({length:4},(_,i)=>bones[`neck${i}`]),head=bones.head,jaw=bones.jaw,wings=[0,1].map(i=>Array.from({length:4},(_,j)=>bones[`wing${i}_${j}`]));
  if(!body||neck.some(b=>!b)||wings.flat().some(b=>!b)||!jaw)throw new Error('Incomplete Elder skeleton');
  const tellRig=new T.Group();group.add(tellRig);tellRig.add(body);
@@ -34,7 +45,7 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}
  const mouthLocal=elderPoint(fit.ELDER_MOUTH??[-.106,.571,.272]).sub(elderPoint(ELDER_JAW));
  if(gameMaterial)for(const m of meshes)m.material=makeReviewInkMaterial(m);
  const life={bob:0,pitch:0,yaw:0,roll:0};
- const pose={fold:0,raise:0,beat:0,pitch:0,lower:0,neck:0,jaw:0,lift:0,air:0};
+ const pose={fold:0,raise:0,beat:0,pitch:0,tip:0,lower:0,neck:0,jaw:0,lift:0,air:0};
  const M={group,body,rig:body,neck,head,jaw,wings,bones,meshes,materials:originals,kit,tellRig,pos:new T.Vector3(),heading:0,home:null,rest:null,restHeading:0,
  mouth:new T.Vector3(),mouthR:1.1,radius:3,height:7,bodyR:2.6,touchR:1,hover:3.5,floats:false,marks:{c:[0,3.6,0],r:[1.25,1.6,1.5]},pose,
  updateAnchors(){group.updateMatrixWorld(true);M.mouth.copy(jaw.localToWorld(tmp.copy(mouthLocal)));},
@@ -42,7 +53,7 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}
  reset(){M.pos.set(0,0,0);M.heading=0;M.floats=false;group.position.set(0,0,0);group.rotation.set(0,0,0);tellRig.position.set(0,0,0);tellRig.rotation.set(0,0,0);tellRig.scale.setScalar(1);for(const x of rest){x.b.position.copy(x.p);x.b.quaternion.copy(x.q);}for(const k in pose)pose[k]=0;for(const k in life)life[k]=0;kit.rig=new Rig({plan,group,body,legs:kit.legs,seed:83});lag.first=true;M.updateAnchors();},
  animate(dt,t,opts){
   const {state,attack,k=0,phase=0}=opts,id=attack?.pose??attack?.id,struck=k>=1,calm=state==='resolved';M.floats=phase>=1&&(state==='fight'||state==='open');
-  const want={fold:M.floats?.08:.65,raise:0,beat:M.floats?1:0,pitch:0,lower:0,neck:.05,jaw:0,lift:0,air:M.floats?1:0};
+  const want={fold:M.floats?.08:.65,raise:0,beat:M.floats?1:0,pitch:0,tip:0,lower:0,neck:.05,jaw:0,lift:0,air:M.floats?1:0};
   if(state==='sleep'){Object.assign(want,{fold:1,lower:.75,neck:.8,pitch:.08});}
   else if(state==='wake'){Object.assign(want,{fold:.5,neck:.12,raise:.15});}
   else if(state==='weary'){Object.assign(want,{fold:.9,lower:1,neck:.8,pitch:.1});}
@@ -50,7 +61,7 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}
   else if(state==='open'){Object.assign(want,{fold:.05,neck:-.12,raise:.3,beat:M.floats?.65:.12});}
   else if(id==='buffet'||id==='gale'||id==='feathers'){Object.assign(want,{fold:0,raise:struck?-.38:.55*Math.min(k,1),neck:struck?.12:-.12,pitch:struck?.08:-.1,beat:id==='feathers'?.8:0,jaw:.25});}
   else if(id==='stamp'){Object.assign(want,{fold:.2,raise:.25,lift:struck?0:1.1*Math.sin(Math.min(1,k)*Math.PI/2),pitch:struck?.1:-.15});}
-  else if(id==='peck'){Object.assign(want,{fold:.35,neck:struck?1:-.22*Math.min(1,k),pitch:struck?.16:-.1,lower:struck?.35:0});}
+  else if(id==='peck'){const P=ELDER_POSE.peck;Object.assign(want,{fold:.35,neck:struck?P.neck:-.22*Math.min(1,k),pitch:struck?.16:-.1,tip:struck?P.tip:0,lower:struck?P.lower:0});}
   else if(id==='dive'){Object.assign(want,{fold:struck?.4:0,raise:struck?-.1:.45,lift:struck?-1:1.3*Math.min(k,1),pitch:struck?.25:-.16,neck:struck?.8:-.15,beat:struck?0:1});}
   if(opts.wingsSpread!==undefined)want.fold=1-opts.wingsSpread;
   if(opts.jawOpen!==undefined)want.jaw=opts.jawOpen;
@@ -70,7 +81,7 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit}={}
    const positions=kit.legs.map((L,i)=>bones[`leg${i}_foot`].getWorldPosition(new T.Vector3()));
    kit.rig.planner.replant(positions,M.pos);kit.rig.planner.heading=M.heading;
   }
-  body.position.set(o.x,ELDER_BODY.y-.38-pose.lower+pose.lift+o.y*(1-air)+Math.sin(t*1.3)*.015,o.z+(fit.ELDER_PRESERVE_BODY_OFFSET?ELDER_BODY.z:0));body.rotation.set(pose.pitch+o.pitch,o.yaw,o.roll);
+  body.position.set(o.x,ELDER_BODY.y-.38-pose.lower+pose.lift+o.y*(1-air)+Math.sin(t*1.3)*.015,o.z+(fit.ELDER_PRESERVE_BODY_OFFSET?ELDER_BODY.z:0));body.rotation.set(pose.pitch+pose.tip+o.pitch,o.yaw,o.roll);
   const turn=lag.update(dt,M.heading);
   // Couple the fore/aft head gesture to actual foot swings, rather than a
   // free-running walk clock. The upper neck counter-pitches to steady the gaze.

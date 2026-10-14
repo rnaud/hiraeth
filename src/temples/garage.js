@@ -180,14 +180,14 @@ export const FOREMAN = {
     { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'Only numerals hit in step count now: six, clockwise from four.' },
   ],
   attacks: {
-    hammer: { shape: 'cone', range: 10, angle: 0.7, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
-    jab: { shape: 'cone', range: 7, angle: 0.6, wind: 1.2, track: 0.7, part: 'arms', rig: 'lean', pose: 'cog', damage: 0.5, knock: 8, recover: 0.5, then: 'jab2' },
-    jab2: { shape: 'cone', range: 7, angle: 0.6, wind: 0.65, track: 0.6, part: 'arms', rig: 'lean', pose: 'cog', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'hammerEnd' },
-    hammerEnd: { shape: 'cone', range: 10, angle: 0.7, wind: 1.1, track: 0.5, part: 'arms', rig: 'rear', pose: 'hammer', link: true, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
-    chime: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'head', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 1.0, open: 5.6 },
+    hammer: { shape: 'cone', range: 10, angle: 0.7, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', parts: ['arms'], splash: 0.4, active: 0.35, reach: 4.5, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
+    jab: { shape: 'cone', range: 7, angle: 0.6, wind: 1.2, track: 0.7, part: 'arms', rig: 'lean', pose: 'cog', parts: ['arms'], splash: 0.4, active: 0.3, reach: 4.5, gap: 0.75, damage: 0.5, knock: 8, recover: 0.5, then: 'jab2' },
+    jab2: { shape: 'cone', range: 7, angle: 0.6, wind: 0.65, track: 0.6, part: 'arms', rig: 'lean', pose: 'cog', link: true, parts: ['arms'], splash: 0.4, active: 0.3, reach: 4.5, damage: 0.5, knock: 8, gap: 0.3, then: 'hammerEnd' },
+    hammerEnd: { shape: 'cone', range: 10, angle: 0.7, wind: 1.1, track: 0.5, part: 'arms', rig: 'rear', pose: 'hammer', link: true, parts: ['arms'], splash: 0.4, active: 0.35, reach: 4.5, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
+    chime: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'head', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, blast: { kind: 'front', r0: 1.5, h: 1.2 }, damage: 1, knock: 12, recover: 1.0, open: 5.6 },
     cog: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.2, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', damage: 0.75, knock: 8, recover: 0.6 },
     cogs: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', pose: 'cog', damage: 0.5, knock: 6, recover: 0.6 },
-    spin: { shape: 'ring', at: 'self', radius: 6.5, wind: 1.3, part: 'arms', rig: 'spin', damage: 0.75, knock: 12, recover: 0.6, miss: 4.0 },
+    spin: { shape: 'ring', at: 'self', radius: 6.5, wind: 1.3, part: 'arms', rig: 'spin', parts: ['arms'], splash: 0.5, active: 0.4, reach: 4.5, damage: 0.75, knock: 12, recover: 0.6, miss: 4.0 },
   },
 };
 
