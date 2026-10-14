@@ -14,6 +14,7 @@ import { CRITICAL, SOURCES, questNeeds, templeNeeds, carriedIn, missingNeed, hel
 import { TEMPLES, templeWorld } from '../src/temples/index.js';
 import { QUESTS as VAEL, PEOPLE as VAEL_PEOPLE } from '../src/story/arzach-data.js';
 import { QUESTS as DESERT, PEOPLE as DESERT_PEOPLE } from '../src/story/desert-data.js';
+import { QUESTS as INCAL, PEOPLE as INCAL_PEOPLE } from '../src/story/incal-data.js';
 
 const SRC = new URL('../src/story/', import.meta.url);
 
@@ -49,7 +50,7 @@ test('every quest\'s needs are critical items (or a quest), each with a place to
     } else assert.ok(ALL.some((o) => o.id === n.quest), `${q.id}: the quest it waits for, ${n.quest}, exists`);
   }
   const held = ALL.filter((q) => questNeeds(q).length).map((q) => q.id).sort();
-  assert.deepEqual(held, ['arzach.bird', 'arzach2.bell', 'desert.bike', 'desert.mask', 'temple.desert'].sort(), 'the quests held back');
+  assert.deepEqual(held, ['arzach.bird', 'arzach2.bell', 'desert.bike', 'desert.mask', 'incal.light', 'temple.desert'].sort(), 'the quests held back');
   assert.deepEqual(templeNeeds(TEMPLES.desert.def.logic, 'desert'), ['doublejump'], 'the Rose House wants the lift valve (over the channel)');
   assert.deepEqual(templeNeeds(TEMPLES.arzach.def.logic, 'arzach'), [], 'the Aerie holds its own wings; the gun is carried past the desert');
 });
@@ -160,6 +161,34 @@ test('Vael\'s waiting bird: without the wings Oïa is not marked and gives nothi
   assert.equal(d2.start(VAEL_PEOPLE.oia), true);
   assert.equal(quests.isActive('arzach.bird'), true, 'the Waiting Bird, given');
   assert.match(stripTone(d2.runner.text), /lone tower/, 'her own talk');
+});
+
+// (reopened, the author 2026-10-14: the City-Shaft's main quest waits for the wings too; Wren's cab at the bottom is no way
+//  through it: the way down is flown terrace by terrace, the way back up the air pillars)
+test('the City-Shaft\'s main quest waits for the wings: Nima is not marked and gives nothing, she points at the Aerie in one line; with them she gives it', () => {
+  const main = INCAL.find((q) => q.main);
+  assert.deepEqual(questNeeds(main), [{ item: 'glider' }]);
+  const { game, quests } = fresh({ 'prologue.done': true, 'item.backpack': true, 'item.gun': true, 'item.doublejump': true, 'item.sword': true, 'item.shield': true });
+  for (const q of INCAL) quests.define(q);
+  quests.locate('nima', () => new THREE.Vector3(1, 0, 2));
+  quests.opensWith(main.id, 'nima');
+  assert.equal(quests.pendingOpener(), null, 'no opener waiting');
+  assert.ok(!quests.objective()?.id?.startsWith('opener-'), 'the scout doesn\'t find Nima');
+  const d = new Dialogue({ game, quests });
+  assert.equal(d.start(INCAL_PEOPLE.nima), true);
+  const line = parseLine(main.needsLine);
+  assert.ok(line.explicit && line.text.length < 120, `one short toned line (“${main.needsLine}”)`);
+  assert.match(stripTone(d.runner.text), /the Aerie, on Vael/, 'she says where the wings are');
+  assert.doesNotMatch(stripTone(d.runner.text), /\b(talk|speak|ask) to\b/i, 'no hand-off');
+  while (d.open) d.next();
+  assert.equal(quests.isStarted(main.id), false, 'not given');
+  assert.equal(game.flag('incal.nima.heard'), undefined, 'nothing of her own talk happened');
+  game.set('item.glider', true);
+  assert.equal(quests.pendingOpener()?.id, main.id, 'the wings had: she waits for you');
+  const d2 = new Dialogue({ game, quests });
+  assert.equal(d2.start(INCAL_PEOPLE.nima), true);
+  assert.equal(quests.isActive(main.id), true, 'given');
+  assert.match(stripTone(d2.runner.text), /dust/, 'her own talk');
 });
 
 test('the generic line names the thing and its place, in the giver\'s voice', () => {

@@ -9,6 +9,9 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.73', date: '2026-10-14', items: [
+    // the City-Shaft's main quest waits for the wings too (issue #328, reopened): src/story/incal-data.js needs; tests/quest-needs.test.js
+    { text: 'In the City-Shaft, Nima only asks you to look into the dimming light once you have the fluid wings (the way down the shaft is flown): without them she points you to the Aerie on Vael.',
+      see: 'With a save that reaches the City-Shaft without the wings, talk to Nima on the high terrace: one line, “Wings first: the Aerie, on Vael”, and no quest. With them, she gives it as before.' },
     // the drone off him (issue #294): src/scout.js (APPEAR, appearSpot, the light; phases away/appear/leave), main.js;
     // tests/drone.test.js, tests/scout.test.js; docs/systems/scout.md
     'Plumb, the drone, no longer rides on your back by your face: it comes out of a small light over your shoulder when you call it (or when it has something to show you), does its job, and winks out again. Talks, scenes and close-ups show only you.',

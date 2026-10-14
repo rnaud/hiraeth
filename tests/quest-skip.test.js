@@ -110,7 +110,7 @@ test('an opening quest whose talk never came starts past what is done (issue #85
   assert.equal(quests.isDone('q'), true, 'the jar and home: done, Bob or no Bob');
   // the worlds of issue #85: straight to the goal, nobody seen first
   const worlds = [
-    ['incal-data.js', 'incal.light', { 'incal.splinter.given': true }, 'look'],
+    ['incal-data.js', 'incal.light', { 'item.glider': true, 'incal.splinter.given': true }, 'look'],   // (the wings: it waits for them, issue #328)
     ['edena-data.js', 'edena.garden', { 'edena.cabin.seen': true }, 'log'],
     ['perdide-data.js', 'perdide.crystal', { 'perdide.crystal.sung': true }, 'splinter'],
     ['bazaar-data.js', 'bazaar.signal', { 'bazaar.kip.gave': true, 'bazaar.antenna.tuned': true }, 'play'],

@@ -691,7 +691,9 @@ giving me access to the quest for the temple first."
   the ship's refusal starts it), and an answer that would start the quest is not offered (`DialogueRunner.startsHeld`).
   Once it is had, the quest is given as before; doing the thing first still starts a quest. Held back now: Vael's
   Waiting Bird (the wings: Oïa points at the Aerie, and the Aerie's quest starts), the Bell Under the Cloud (the bird:
-  Aube says she waits by the lone tower), the Rose House (the lift valve), the masked head (the gun) and the hoverbike
+  Aube says she waits by the lone tower), the City-Shaft's Light Nobody Looks At (the wings, since 14 October: the way
+  down the shaft is flown terrace by terrace and the way back up is the air pillars, Wren's cab no way through it; Nima
+  says "Wings first: the Aerie, on Vael"), the Rose House (the lift valve), the masked head (the gun) and the hoverbike
   (the backpack). `tests/quest-needs.test.js` checks every quest of every world, and that a step asking for a critical
   item in its words belongs to a quest that needs it.
 - Tests: `tests/quest-givers.test.js` (only the temple's giver known on arrival; talking unlocks, the words said; the

@@ -42,6 +42,10 @@ export const PASS_REFUSAL = {
 export const QUESTS = [
   {
     id: Q, title: 'The Light Nobody Looks At', world: 'incal', main: true,
+    // (the way down the shaft is on the wings, terrace by terrace, and the way back up is the air pillars: Nima gives it once
+    //  the wings are had, issue #328 (Wren's cab at the bottom is no way through it); till then she points at the Aerie)
+    needs: ['glider'],
+    needsLine: '~neutral~ (Nima looks down the shaft, then at your bare back.) A long way to fall. *Wings first: the Aerie, on Vael*.',
     outro: 'The Lodestar burns bright. For a moment, every level looked up.',
     stages: [
       // (Nima says where the splinter is herself; Ossa keeps it at the shrine, and Dov at the palace gate is someone

@@ -20,6 +20,7 @@ const { allTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
 
 game.reset();
+game.set('item.glider', true);   // (the wings from Vael's Aerie: the main quest waits for them, issue #328)
 const scene = new THREE.Scene();
 const level = createIncal(scene);
 const physics = new Physics(scene, null);
