@@ -56,10 +56,14 @@ test('the check finds the Aerie’s balls as they were: the Eyrie’s stone in i
   assert.ok(BALCONY.depth >= 6);
 });
 
+// (the balls the test below measures, by temple.ball: the stale names' check needs no world of its own for these)
+const measured = new Set();
+
 test('every temple’s ball has room behind it all along its path: no jumping over it, no pushing from the edge', () => {
   const short = [];
   for (const id of Object.keys(TEMPLES)) {
     for (const b of ballRoom(id, { levels: [NEED] })) {
+      measured.add(`${id}.${b.id}`);
       if (FROM_AFAR[`${id}.${b.id}`]) continue;
       if (b.clearance < NEED) short.push(`${id} ${b.id} (the ${b.room}): short at t ${b.worst.t.toFixed(2)} rolling ${b.worst.dir > 0 ? 'on' : 'back'}`);
     }
@@ -77,6 +81,7 @@ test('and the makers’ runs’ balls out in the worlds', async () => {
 
 test('the balls pushed from afar are still there to be (a stale name here is a ball moved or gone)', () => {
   for (const key of Object.keys(FROM_AFAR).filter((k) => !k.startsWith('kit-'))) {
+    if (measured.has(key)) continue;
     const [id, ball] = key.split('.');
     const { rt } = templeWorld(id);
     assert.ok(rt.pieces.some((p) => p instanceof Ball && p.id === ball), key);

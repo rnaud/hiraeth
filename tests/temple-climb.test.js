@@ -80,6 +80,9 @@ function probes(rt, physics) {
   return out;
 }
 
+// (each temple's kept climbs, read while the test before builds its world: the next test needs nothing else of it)
+const climbWhy = {};
+
 test('a temple\'s walls are not climbed past its puzzles: not beside any lock\'s doorway, nor up to a key (issue #115)', () => {
   game.reset();
   for (const id of Object.keys(ITEMS)) if (['backpack', 'gun'].includes(id)) items.grant(id); else items.revoke(id);
@@ -103,6 +106,7 @@ test('a temple\'s walls are not climbed past its puzzles: not beside any lock\'s
     }
     if (process.env.PROBES) console.log(id, tried, Object.keys(doors).filter((k) => k.startsWith(id + '.')).length);
     assert.ok(tried >= 3, `${id}: probed (${tried})`);
+    climbWhy[id] = w.rt.kit.climbWhy;
     w.rt.dispose?.();
   }
   assert.ok(Object.keys(doors).length >= 40, `the locks probed (${Object.keys(doors).length})`);
@@ -111,10 +115,9 @@ test('a temple\'s walls are not climbed past its puzzles: not beside any lock\'s
 test('the climbs a temple keeps are marked, each with its why, and are still climbed', () => {
   const kept = {};
   for (const id of Object.keys(TEMPLES)) {
-    const { rt } = world(id);
-    kept[id] = rt.kit.climbWhy;
-    for (const why of rt.kit.climbWhy) assert.ok(why.length > 20, `${id}: a climb says what it is for (${why})`);
-    rt.dispose?.();
+    if (!climbWhy[id]) { const { rt } = world(id); climbWhy[id] = rt.kit.climbWhy; rt.dispose?.(); }
+    kept[id] = climbWhy[id];
+    for (const why of kept[id]) assert.ok(why.length > 20, `${id}: a climb says what it is for (${why})`);
   }
   // (the houses whose route climbs: the rest have none)
   for (const id of ['desert', 'incal', 'garage', 'perdide', 'perdide2', 'edena', 'underwater']) assert.ok(kept[id].length > 0, `${id} keeps its climb`);

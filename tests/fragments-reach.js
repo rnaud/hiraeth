@@ -18,8 +18,37 @@ export const reachCell = (id) => REACH_CELL[id] ?? 2;
 /**
  * Every spot reached from `from` (a spot, or several: a merged world's parts' spawns): [[x, y, z, steps, inside]] (inside: through a doorway, a room of its own). With `targets` ([Vector3]) it stops once each is within
  * `near` m of a spot reached, and says which were: { reached: [bool], nodes }.
+ * (With targets it goes toward them first, the spot nearest a target not yet reached each time, by the same steps: a
+ * target it reaches is reached. Only when one is left is the whole flood run, wave by wave, for the verdict as it was:
+ * breadth first, the fragments' check walked most of each world, 67 million rays and 2.5 minutes for the twelve.)
  */
-export function flood({ physics, level }, from, { cell = 2, rise = RISE.doublejump, drop = 6, radius = 700, max = 1500000, targets = null, near = 2.5, swim = true, slope = 0.7 } = {}) {
+export function flood(world, from, options = {}) {
+  if (!options.targets) return floodFrom(world, from, options);
+  const guided = floodFrom(world, from, options, true);
+  return guided.reached.every(Boolean) ? guided : floodFrom(world, from, options);
+}
+
+/** A binary heap of items by priority, least first. */
+class Heap {
+  constructor() { this.items = []; this.keys = []; }
+  get size() { return this.items.length; }
+  push(item, key) {
+    const I = this.items, K = this.keys; let i = I.length; I.push(item); K.push(key);
+    while (i > 0) { const p = (i - 1) >> 1; if (K[p] <= key) break; I[i] = I[p]; K[i] = K[p]; i = p; }
+    I[i] = item; K[i] = key;
+  }
+  pop() {
+    const I = this.items, K = this.keys, top = I[0], item = I.pop(), key = K.pop(), n = I.length;
+    if (n) {
+      let i = 0;
+      for (;;) { let c = 2 * i + 1; if (c >= n) break; if (c + 1 < n && K[c + 1] < K[c]) c++; if (K[c] >= key) break; I[i] = I[c]; K[i] = K[c]; i = c; }
+      I[i] = item; K[i] = key;
+    }
+    return top;
+  }
+}
+
+function floodFrom({ physics, level }, from, { cell = 2, rise = RISE.doublejump, drop = 6, radius = 700, max = 1500000, targets = null, near = 2.5, swim = true, slope = 0.7 } = {}, guided = false) {
   const key = (x, y, z) => `${Math.round(x / cell)},${Math.round(z / cell)},${Math.round(y / 4)}`;
   const starts = [from].flat();
   const seen = new Set(starts.map((s) => key(s.x, s.y, s.z)));
@@ -38,8 +67,13 @@ export function flood({ physics, level }, from, { cell = 2, rise = RISE.doubleju
   };
   if (targets) for (const s of starts) touch(s.x, s.y, s.z);
   let n = 0;
-  while (n < q.length && n < max && (!targets || left > 0)) {
-    const [cx, cy, cz, d, inside] = q[n++];
+  // (guided: the spots nearest a target not yet reached first, a heap on that distance; the same steps)
+  const aim = (x, z) => { let m = Infinity; for (let i = 0; i < targets.length; i++) if (!hit[i]) m = Math.min(m, Math.hypot(targets[i].x - x, targets[i].z - z)); return m; };
+  const heap = guided ? new Heap() : null;
+  if (guided) for (const s of q.splice(0)) heap.push(s, 0);
+  const take = () => guided ? heap.pop() : q[n];
+  while ((guided ? heap.size : n < q.length) && n < max && (!targets || left > 0)) {
+    const [cx, cy, cz, d, inside] = take(); n++;
     const next = [];
     // (the rays down start under the ceiling over you: from inside a glass tube, its roof is not a floor to step onto)
     const top = Math.min(rise + 0.2, physics.rayDistance(V(cx, cy + 0.3, cz), UP, rise + 1) + 0.15);
@@ -70,8 +104,8 @@ export function flood({ physics, level }, from, { cell = 2, rise = RISE.doubleju
       const k = key(x, y, z);
       if (seen.has(k)) continue;
       seen.add(k);
-      q.push([x, y, z, d + 1, inn]);
       if (targets) touch(x, y, z);
+      if (guided) heap.push([x, y, z, d + 1, inn], aim(x, z)); else q.push([x, y, z, d + 1, inn]);
     }
   }
   return targets ? { reached: hit, nodes: n } : q;

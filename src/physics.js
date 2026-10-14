@@ -710,7 +710,9 @@ export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false,
   /** Is instance i buried (its world matrix in _dbW)? */
   const buried = (i) => {
     _dbB.copy(gb).applyMatrix4(_dbW).expandByScalar(0.15);
-    const at = (x, h, z) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return (physics.buried ?? physics.embedded).call(physics, _dbX) && !ownCollider(physics, _dbX, _dbB); };
+    // (its own collider asked first: a few short rays, where buried() casts a dozen through the world, and a point in a
+    // tree's own trunk is inside something, its own: Incal's grove took 7 s of its load)
+    const at = (x, h, z) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return !ownCollider(physics, _dbX, _dbB) && (physics.buried ?? physics.embedded).call(physics, _dbX); };
     // (on its axis; with a ring, also round it: a crown pushed through a wall beside its trunk)
     const inside = (h) => at(cx, h, cz) || (ring > 0 && (at(cx + ring, h, cz) || at(cx - ring, h, cz) || at(cx, h, cz + ring) || at(cx, h, cz - ring)));
     // (or wholly under the terrain, which is not in the BVH: a rock under a mesa)

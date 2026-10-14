@@ -148,20 +148,23 @@ test('the bulk skinning matches SkinnedMesh.applyBoneTransform',()=>{
   for(let i=0;i<p.count;i+=7){m.applyBoneTransform(i,v.fromBufferAttribute(p,i));assert.ok(Math.hypot(v.x-out[i*3],v.y-out[i*3+1],v.z-out[i*3+2])<1e-6,`vertex ${i}`)}}
 });
 
+// (every clip at nine phases in the suite: the body's worst stretch 5.12 there, 5.32 at 33, the neck's 2.31 at both, of
+// 5.6 and 2.5; B3_AUDIT_FULL=1 for the 33 phases a clip and the report in output/character-tripo/body-b3/motion-audit.json)
+const AUDIT_PHASES=process.env.B3_AUDIT_FULL?32:8;
 test('B3 complete animation-library mesh audit',()=>{
  const c=create(),a=new Animator(lib,c.char),driver=new B3MotionPlayer(c,a,catalogue),rows=[];
  const meshes=[c.mesh,c.head].map(m=>{const p=m.geometry.attributes.position,idx=m.geometry.index,edges=[],seen=new Set();for(let i=0;i<idx.count;i+=3)for(let k=0;k<3;k++){const x=idx.getX(i+k),y=idx.getX(i+(k+1)%3),key=Math.min(x,y)*p.count+Math.max(x,y);if(seen.has(key))continue;seen.add(key);const len=new T.Vector3().fromBufferAttribute(p,x).distanceTo(new T.Vector3().fromBufferAttribute(p,y));if(len>.003)edges.push(x,y,len)}return {m,edges:Float64Array.from(edges),skin:bulkSkin(m)}});
  for(const entry of catalogue.filter(e=>!process.env.B3_AUDIT_MATCH||new RegExp(process.env.B3_AUDIT_MATCH).test(e.id))){let max=0,headMax=0,worst=null;
-  for(let phase=0;phase<=32;phase++){
-   driver.pose(entry.id,phase/32*(entry.clip.duration-1e-5),0);
+  for(let phase=0;phase<=AUDIT_PHASES;phase++){
+   driver.pose(entry.id,phase/AUDIT_PHASES*(entry.clip.duration-1e-5),0);
    for(const {m,edges,skin}of meshes){
     const s=skin(),p=m.geometry.attributes.position;for(let i=0;i<s.length;i++)if(!Number.isFinite(s[i]))assert.fail(`${entry.id} nonfinite vertex`);
-    for(let e=0;e<edges.length;e+=3){const x=edges[e]*3,y=edges[e+1]*3,ratio=Math.hypot(s[x]-s[y],s[x+1]-s[y+1],s[x+2]-s[y+2])/edges[e+2];if(m===c.head)headMax=Math.max(headMax,ratio);else if(ratio>max){max=ratio;worst={phase:phase/32,at:[p.getX(x/3),p.getY(x/3),p.getZ(x/3)]}}}
+    for(let e=0;e<edges.length;e+=3){const x=edges[e]*3,y=edges[e+1]*3,ratio=Math.hypot(s[x]-s[y],s[x+1]-s[y+1],s[x+2]-s[y+2])/edges[e+2];if(m===c.head)headMax=Math.max(headMax,ratio);else if(ratio>max){max=ratio;worst={phase:phase/AUDIT_PHASES,at:[p.getX(x/3),p.getY(x/3),p.getZ(x/3)]}}}
    }
   }
   rows.push({id:entry.id,group:entry.group,duration:entry.clip.duration,bodyStretch:max,headStretch:headMax,worst});
  }
- mkdirSync('output/character-tripo/body-b3',{recursive:true});writeFileSync('output/character-tripo/body-b3/motion-audit.json',JSON.stringify({clips:rows.length,samplesPerClip:33,rows},null,2));
+ if(process.env.B3_AUDIT_FULL){mkdirSync('output/character-tripo/body-b3',{recursive:true});writeFileSync('output/character-tripo/body-b3/motion-audit.json',JSON.stringify({clips:rows.length,samplesPerClip:AUDIT_PHASES+1,rows},null,2));}
  console.log('B3 full audit',JSON.stringify({count:rows.length,bodyMax:Math.max(...rows.map(r=>r.bodyStretch)),headMax:Math.max(...rows.map(r=>r.headStretch))}));
  for(const row of rows){assert.ok(row.bodyStretch<5.6,`${row.id}: excessive body stretch ${row.bodyStretch}`);assert.ok(row.headStretch<2.5,`${row.id}: excessive neck stretch ${row.headStretch}`)}
  if(!process.env.B3_AUDIT_MATCH)assert.equal(rows.length,209,'200 runtime clips plus nine procedural motion scenarios');

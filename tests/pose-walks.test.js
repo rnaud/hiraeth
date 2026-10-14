@@ -4,8 +4,8 @@
 // Two copies of the Unity game in lockstep on the same clock and random numbers, one walking as before (__POSE_WALKS__),
 // the other as now: every object's world matrix and every frame's command stream to Unity (BridgeHost.Frame: the
 // transforms, the bones, the capes' and the overshirt's packets) compared, bit for bit, at the City-Shaft's crowd (the
-// four nearest people as full rigs, the traveller standing with the shield's bracer on his hand), walking on, and at the
-// desert's camps talking to someone.
+// four nearest people as full rigs, the traveller standing with the shield's bracer on his hand), walking on. (The
+// desert's camps, talking to someone, are tests/pose-exact.test.js's: __POSE_EXACT__ walks as before too.)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
@@ -16,7 +16,6 @@ import { loadBundle } from '../engine/vm-run.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
 const WORLDS = JSON.parse(readFileSync(new URL('../scripts/bench/viewpoints-worlds.json', import.meta.url), 'utf8')).worlds;
-const DESERT = JSON.parse(readFileSync(new URL('../scripts/bench/viewpoints.json', import.meta.url), 'utf8')).views;
 
 function game(file, walks) {
   let t = 0, done = false;
@@ -72,8 +71,3 @@ test('the City-Shaft\'s crowd, standing and walking: every matrix and every comm
   assert.ok(r.n >= 300 && r.bones > 500, JSON.stringify(r));
 });
 
-test('the desert\'s camps, talking to someone: every matrix and every command as with the walks', { timeout: 600000 }, async () => {
-  const views = DESERT.filter((v) => (v.world ?? 'desert') === 'desert' && v.name === 'camps');
-  const r = await lockstep({ level: 'desert', views, settle: 1, talk: 'any', walk: 2, sound: false }, 300);
-  assert.ok(r.n >= 300 && r.bones > 500, JSON.stringify(r));
-});

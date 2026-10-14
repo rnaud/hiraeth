@@ -76,6 +76,14 @@ can be shared only between the tests of one file. The rules for a test that is s
   time: its agent's waits let the story's timers fire, and shortening them soft-locks it.)
 - **Raycast through a BVH** (three-mesh-bvh, `indirect: true` so the geometry is left alone) when a test
   casts thousands of rays at drawn meshes: the same hits.
+- **An audit samples in the suite, densely by hand.** A check of all content at a fine step (the B3 body's 209
+  clips: `tests/traveller-b3.test.js`, 9 phases a clip, `B3_AUDIT_FULL=1` for 33 and its report) keeps a margin
+  under its bound at the coarse step and writes its report only when asked.
+- **Search toward what you look for.** A reachability check with targets goes to the nearest one first and floods
+  wave by wave only when one is left, for the same verdict (`tests/fragments-reach.js` flood: 155 s -> 14 s).
+- **Don't run it twice.** Read what a later test needs while an earlier one has the world built
+  (`tests/temple-climb.test.js` climbWhy, `tests/ball-room.test.js` measured); one A/B lockstep a scene
+  (`tests/pose-exact.test.js` covers the desert's camps for `pose-walks` too).
 - **Measure** before and after: `node --test --test-reporter=spec tests/x.test.js` prints each test's time.
 
 A bare V8 context (`engine/vm-run.mjs`, the engine bundles' tests) hands the bundle the context's built-ins as
