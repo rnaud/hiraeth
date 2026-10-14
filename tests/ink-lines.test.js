@@ -85,6 +85,10 @@ test('grade: the rubric passes thin lines on a small plant and fails a black one
   assert.equal(grade(eyes(0.55, 0.0022), ref).checks.eyeGrowth.verdict, 1);
   assert.equal(grade(eyes(1.4, 0.006), ref).checks.eyeGrowth.verdict, 0);
   assert.equal(grade(eyes(1.4, 0.006), ref).checks.eyeDensity.verdict, 0);
+  // a tiny face's eyes are not judged (#302: under 14 px the eye's box takes in the hair)
+  const tiny = eyes(1.0, 0.009); tiny.metrics.facePx = 12; tiny.metrics.eyes.forEach((e) => { e.h = 1; e.darkest = 0; });
+  const g = grade(tiny, ref).checks;
+  assert.equal(g.eyeGrowth, undefined); assert.equal(g.eyeBlack, undefined); assert.equal(g.eyeDensity, undefined);
 });
 
 test('the capture finds his eyes by the head\'s own fit, not one written out (#335)', async () => {

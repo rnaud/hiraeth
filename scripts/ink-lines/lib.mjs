@@ -17,6 +17,9 @@ export { dilate, blobs };
 
 export const lum = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
+// the smallest face (brow to chin, px) whose eyes are judged (#302: under it the eye's box takes in the hair)
+export const EYE_MIN_FACE = 14;
+
 /** Pixels that differ between an albedo picture with the object and one without it (its silhouette, no shadow). */
 export function objectMask(a, b, threshold = 14) {
   const n = a.width * a.height, out = new Uint8Array(n);
@@ -181,7 +184,7 @@ export const RUBRIC = Object.freeze({
   // a line on something under 40 px tall: at most this many px wide (median), and at most this share of its height (p90)
   smallWidth: [2, 3.5], smallWidthOfHeight: [0.06, 0.12],
   // the traveller's eyes: their dark against the opening (see eyeMarks), and their share of the face against the 1 m portrait's
-  // on a face under 12 px, its darkest eye pixel against the cheek (1 - that: a black dot is near 1)
+  // (eyeBlack: no longer judged — a face under EYE_MIN_FACE px is skipped, #302)
   eyeDensity: [0.9, 1.3], eyeGrowth: [1.5, 2.5], eyeBlack: [0.6, 0.8],
   // a person's near-black share
   figureDark: [0.18, 0.32],
@@ -216,9 +219,9 @@ export function grade(row, ref = null) {
     // (the density only where the opening is a few pixels tall: under that a pixel's worth dominates it)
     if (m.eyes[0].h >= 1.5) put('eyeDensity', avg(row, 'density'), R.eyeDensity);
     const r = ref?.metrics?.eyes?.length ? avg(ref, 'share') : null;
-    // (the share only on a face of 12 px or more: under that the eye is a pixel or less, its share a pixel's rounding)
-    if (r && ref !== row && (m.facePx ?? 99) >= 12) put('eyeGrowth', avg(row, 'share') / Math.max(r, 1e-6), R.eyeGrowth);
-    if ((m.facePx ?? 99) < 12) put('eyeBlack', 1 - Math.min(...m.eyes.map((e) => e.darkest)), R.eyeBlack);
+    // (the share only on a face of EYE_MIN_FACE px or more: under that the eye's box takes in the hair beside it and
+    // the eye is a pixel or two, so a tiny face's eyes are not judged — the author's call on #302, 2026-10-14)
+    if (r && ref !== row && (m.facePx ?? 99) >= EYE_MIN_FACE) put('eyeGrowth', avg(row, 'share') / Math.max(r, 1e-6), R.eyeGrowth);
   }
   if (m.shimmer?.n > 20) { put('shimmer', m.shimmer.change, R.shimmerChange); put('pops', m.shimmer.pops, R.shimmerPops); }
   if (row.kind === 'view') put('frameInk', m.frameInk, R.frameInk);

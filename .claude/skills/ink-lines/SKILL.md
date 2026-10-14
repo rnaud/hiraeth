@@ -87,7 +87,7 @@ and without the object (its mask, without its shadow), and debug 14 again with t
   over the face's area it is the eye's **share** of the face, which a drawn eye keeps at every size: read as × the
   1 m portrait at desk1080 (1: in proportion; a black dot on a small face is 3-20×). Over the opening (at least a
   pixel) its **density**. And the **darkest** eye pixel against the cheek (0 black: the "black eyes" of a small face).
-  Under a 12 px face the eye is a pixel or less and its share is a pixel's rounding: there the darkest pixel decides.
+  Under a 14 px face the eyes are not judged (the author's call on #302): the eye is a pixel or two and its box takes in the hair beside it.
 - **Shimmer** (`shimmer`): debug 14 a half render pixel apart: the mean change over the ink (a line that slides changes
   a little, one at the edge of its threshold comes and goes) and the share of ink pixels that pop. The nudge is half a
   render pixel at the distance the camera looks at, so a thing nearer slides more (a pole 10 m off in front of a town
@@ -108,8 +108,7 @@ Each check passes (1), is borderline (0.5) or fails (0); a picture scores 5 × t
 | line p90 against that height | plants, people, foes | 6 % | 12 % |
 | person's near-black share | the traveller (not foes: the blots are ink by design) | 18 % | 32 % |
 | eye density | portraits, an opening 1.5 px tall or more | 0.9 | 1.3 |
-| eyes' share of the face against the 1 m reference | portraits, a face of 12 px or more | × 1.5 | × 2.5 |
-| 1 − the darkest eye pixel against the cheek | portraits, a face under 12 px | 0.6 | 0.8 |
+| eyes' share of the face against the 1 m reference | portraits, a face of 14 px or more | × 1.5 | × 2.5 |
 | shimmer change / pops | every picture | 0.35 / 12 % | 0.55 / 25 % |
 | frame ink | views | 9 % | 16 % |
 
