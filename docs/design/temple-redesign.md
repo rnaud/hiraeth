@@ -1,0 +1,100 @@
+# The temples redesigned: rooms like shrines (issue #336)
+
+The author, on issue #336: *"We should redesign the temples with a few things in mind. The rooms should be much bigger,
+higher ceilings, larger doors, larger rooms. Think shrines in Breath of the Wild. Puzzles should never go through doors
+but be more centered in the rooms. Enemies should also be centered in rooms. Rooms should either be about puzzles or about
+combat but not both. Major gadgets like the grappling hook should be found in temples and should be put to use to solve
+puzzles as part of it."*
+
+This page turns that into numbers a script can check (`scripts/temple-design/rules.mjs`, run by the temple design audit
+and by `tests/temple-rules.test.js`), says how the first house was redone to them (the Rose House, v1.77), and ranks the
+other thirteen for the rounds after it.
+
+## What a shrine room is
+
+A Breath of the Wild shrine room is one idea in one space you can take in from its door: 25 to 45 m across, 12 to 25 m to
+the ceiling, the device standing in the middle of the floor where you walk round it and read it from every side, the way
+on across the room from the way in. A fight there is a room of its own (the Test of Strength shrines are a guardian on an
+empty floor). The traveller is 1.8 m tall and jumps about 6 m (the double jump 13): a room is big against him, the props
+in it (balls, bowls, plates, the weight, chests, eyes) stay at his scale.
+
+## The rules
+
+| Rule | The number | Checked as |
+|---|---|---|
+| **Room size** | a puzzle, fight or guardian room at least **28 m** on its floor's short side and **900 m²** (a round hall 28 m across); a chest room at least **20 m** | the kit's hall or round hall the room's mark stands in (`TempleKit.hall`, `rotunda`; `vestibule` and `corridor` are passages) |
+| **Ceiling** | **16 m** over the floor you stand on in a puzzle, fight or guardian room; **14 m** in a chest room; **8 m** in a passage | the hall's top less the mark's floor |
+| **Doors** | between two rooms **6 to 10 m wide, 8 to 12 m high** (they were 4.4 to 5 by 6) | every `Door` on a link |
+| **Centred** | every piece of a puzzle (a ball's groove at both ends, a plate, an eye, a bowl, thorns, a bank's eyes, a sentry) in the **middle 60 %** of its room each way: 20 % of the span from every wall; in a round hall within **0.6 r** of its middle | the piece's options against its room's hall; the guardian's own arena pieces are its fight's, not checked |
+| **Not through doors** | nothing of a puzzle rolled, carried or threaded through a doorway: a ball and its plate (or bowl), a weight and its plate, in one room; no groove running through a door; no ball's `gap` on a door | `drum` / `weight` and their plates' rooms; the groove against every link's door |
+| **One kind a room** | each room is a **puzzle**, a **combat** room, the **chest**'s, a **passage** or the **guardian**'s; never a puzzle and a fight. `LOGIC.rooms[r].kind` tags it, and the tag must be true | a room is combat if it holds an `arena`, the house's `encounter`, or a machine: `src/foes.js` puts one by every mark past the first (away from the guardian) in a room not tagged otherwise |
+| **Foes centred** | a fight's foes stand round the middle of its room | the mark's `foes` spot (or the mark) in the middle 60 % |
+| **The gadget** | found inside, not in the first room, and used in **every puzzle room after it** (at least **two**): the gadget or the house's second find | an element or link of the room that `needs` it, or a door that opens for it in hand |
+
+How the machines change: a house whose rooms are tagged gets machines only in its `combat` rooms, round the mark's
+`foes` spot (`src/temples/pieces.js` Mark, `src/foes.js` placeMachinesIn). A house not tagged keeps the old way (one by
+every mark) until it is redone, and the rules count each such machine in a puzzle room as a room that is both.
+
+## The model: the Rose House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | 22 × 38 to 26 × 40 m, the chest's round hall 20 m across | every hall **36 m** across (the Hall of Channels 36 × 75), the chest's **26 m** |
+| ceilings | 10 to 20 m (13 in the chest's hall, 14 in the Hall of the Flame) | **18 to 24 m** (16 in the chest's, 22 in the cistern) |
+| doors | 4 to 5 m by 6 to 6.6 | **7 by 9** |
+| fights | a machine by every mark (the Hall of the Flame, the Dry Channel, the Sword Chamber with its encounter, the Hall of Fires, the Hall of Channels, the antechamber) | **the Machines' Hall only**, an arena past the chamber's north door, its machines round its middle |
+| threaded through doors | the Sword Chamber's ball rolled through the north door to the Hall of Fires' bowl; the Hall of Channels' ball through the east doorway to the far landing's bowl | each ball, its fire, its thorns and its bowl in the middle of one hall |
+| the rules broken | **43** | **0** |
+
+The rooms, in order: the Threshold (a passage); the Hall of the Flame (puzzle: the tar ball's groove down the middle, the
+pilot flame on it, the bowl at its end); the Dry Channel (puzzle: the pier in the middle of the pit, its plate and the
+Givers' weight, issue #337); the Sword Chamber (the chest: the blade, nothing else); the **Machines' Hall** (combat: an
+arena, four columns to fight round); the Hall of Fires (puzzle: the thorns and the ball cut through its fire to the bowl
+on the chasm's lip, the bridge); the **Watcher's Hall** past the bridge's archway (puzzle: the guard, and the watcher in
+the middle of the floor); the Hall of Channels (puzzle: the long groove down its middle, the relay under its lid, the eye
+on an obelisk beside the groove, the keepers' door back); the antechamber; the Cistern (the Keeper, as it was). The blade
+is found half-way and asked for in every puzzle room after it (the thorns, the cut ball, the eye), the guard in the
+Watcher's Hall and the Keeper's fight. What stayed: the Keeper and its fight, the story's lines, the weight (#337), the
+pits' dark (#312), the jumps (9 m of air either side of the pier), every ball's timing (the grooves are as long as they
+were), the shortcut back, the way out. A save that stood in the old rooms is taken to its last mark; one past the old
+chamber's fight has the Machines' Hall won (`src/temples/migrate.js` `LAYOUTS.desert` v4). No small keys in this house:
+the key chests (#274) are the other houses'.
+
+## The other houses
+
+From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
+counts, and a house may not get worse). Ranked worst first:
+
+| House | Broken | both | size | ceiling | door | centred | through doors | foes | other |
+|---|---|---|---|---|---|---|---|---|---|
+| Builders' Greenhouse (edena) | 58 | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
+| Undertower (bazaar) | 55 | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
+| Mooring-House (spacecity) | 54 | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
+| Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |
+| Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
+| Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
+| Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
+| Warden's Well (incal) | 41 | 7 | 9 | 3 | 4 | 10 | 0 | 8 | |
+| Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
+| Founders' Belfry (arzach2) | 40 | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
+| Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
+| Footprint (spheres) | 36 | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |
+| Aerie (arzach) | 35 | 5 | 8 | 4 | 4 | 7 | 0 | 6 | 1 unmeasured |
+
+What repeats, and how the Rose House answered each:
+
+- **Every house is small.** Rooms 14 to 26 m across, round halls 19 to 20 m, ceilings 10 to 14 m, doors 5 by 6. Scale the
+  halls to 36 m and the ceilings to 18 to 24, keep the props and the jumps; doors 7 by 9.
+- **A machine in every room** ("both", "foes"): the marks' machines. Tag the rooms; give the fights rooms of their own
+  (most houses have an arena already: it becomes the house's fight, with the machines round its middle).
+- **Puzzles against the walls** ("centred"): eyes set high on end walls, grooves along a side wall, plates in corners.
+  Bring the groove down the middle, the eye onto an obelisk or a pillar in the floor.
+- **Through doors**: the Undertower's low stone carried a room on, the Lamp-House's orb rolled through the Hall of Dark
+  Pools' door, the Whale-House's and the Casting-House's balls rolled from one room into the next. Put the ball, its plate
+  and what it lights in one room.
+- **The gadget unused after the chest** (the Casting-House, the Footprint, the Clock-House): a room after the chest that
+  asks only for older verbs. Each wants a step with the gadget in it.
+
+The next houses to redo, by how much the player meets them and how much they break: the **Warden's Well** (the second
+house, small and full of machines), the **Founders' Belfry** and the **Aerie** (the first after the Rose House on the
+route, fewest broken), then the **Builders' Greenhouse** and the **Undertower** (most broken).

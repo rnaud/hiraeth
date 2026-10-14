@@ -131,6 +131,18 @@ or a glyph is, and the guardian's fight beyond its definition (`needs`, `require
 attacks' shapes). Play one temple through in the game (`docs/systems/dev-tools.md`) before scoring its
 guardian by more than the numbers.
 
+### The redesign's rules (issue #336)
+
+The same run checks every house against the shrine rules of `docs/design/temple-redesign.md`
+(`scripts/temple-design/rules.mjs`, from the kit's halls and round halls the layout built: `record.mjs`): room size
+(28 m on the short side and 900 m² for a puzzle, fight or guardian room, 20 m for the chest's), ceilings (16 m, the
+chest's 14, a passage's 8), doors (6-10 by 8-12 m), a puzzle's pieces in the middle 60 % of its room, nothing rolled or
+carried through a door, each room a puzzle or a fight and never both (a machine by a mark counts: `src/foes.js` puts one
+by every mark of a house whose rooms are not tagged), a fight's foes in the middle, the gadget used in every puzzle room
+after its chest. It writes `rules.json` and prints each house's count, most broken first; `node --test
+tests/temple-rules.test.js` prints each violation (a redone house must break none: `REDONE`; the rest may not get worse:
+`PENDING`). Report the counts beside the scores, and when a house is redone, lower its `PENDING` or move it to `REDONE`.
+
 ## 4. Turn findings into edits
 
 Each edit names the temple, the room, the lock and the keys (`LOGIC` ids), the change, why (principle and

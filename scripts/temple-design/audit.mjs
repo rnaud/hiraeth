@@ -28,16 +28,13 @@ globalThis.document ??= { createElement: (tag) => (tag === 'canvas' ? Object.ass
 const THREE = await import('three');
 await import(join(ROOT, 'tests/register-gadgets.js'));
 const { TEMPLES, templesIn } = await import(join(ROOT, 'src/temples/index.js'));
-const { TempleRuntime } = await import(join(ROOT, 'src/temples/runtime.js'));
+const { recordTemple } = await import(join(ROOT, 'scripts/temple-design/record.mjs'));
+const RU = await import(join(ROOT, 'scripts/temple-design/rules.mjs'));
 const { solve } = await import(join(ROOT, 'src/temples/logic.js'));
 const L = await import(join(ROOT, 'scripts/temple-design/lib.mjs'));
 const { ORDER } = await import(join(ROOT, 'src/levels/names.js'));
 
-// record what each layout places: the class and the options, before the piece is built
-let record = null;
-const add = TempleRuntime.prototype.add;
-TempleRuntime.prototype.add = function (Piece, o) { record?.push({ cls: Piece.name, o }); return add.call(this, Piece, o); };
-const quiet = (f) => { const w = console.warn, l = console.log; console.warn = console.log = () => {}; try { return f(); } finally { console.warn = w; console.log = l; } };
+// (what each layout places, the class and the options, and the kit's rooms: record.mjs)
 
 // the temples in the order the route reaches them: a merged world's own first, then its part's (the Aerie, then the
 // Founders' Belfry; Lorn's Hush-House, then the Lamp-House), the Clock-House in the Glass Dunes (src/temples/index.js
@@ -60,10 +57,7 @@ const graphs = {};
 const views = [];
 for (const id of ids) {
   const def = TEMPLES[id].def;
-  record = [];
-  const scene = new THREE.Scene();
-  const rt = quiet(() => new TempleRuntime({ scene, level: { lights: [] }, def: { ...def, exterior: null, change: null }}));
-  const pieces = record; record = null;
+  const { rt, scene, pieces, spaces } = recordTemple(def);
   scene.updateMatrixWorld(true);
   // line of sight in the temple's own frame: its walls, floors, pieces (doors shut as at the start), not the guardian
   const solids = [];
@@ -98,8 +92,11 @@ for (const id of ids) {
   const g = L.puzzleGraph(def.logic, pieces, { los, order: s.order });
   const guardian = rt.guardian?.def ?? null;
   const m = L.templeMetrics(g, { guardian });
+  // the redesign's rules (issue #336, docs/design/temple-redesign.md): room and door sizes, puzzles centred, one kind a room
+  const centre = rt.guardian?.arena?.center ? rt.kit.local(rt.guardian.arena.center).toArray() : null;
+  const rules = RU.templeRules({ logic: def.logic, pieces, spaces, order: s.order, guardian: centre ? { center: centre } : null, encounter: def.encounter ?? null });
   graphs[id] = g;
-  report.temples.push({ id, name: def.name, solved: s.done, carried: carriedInto(id), skeleton: L.skeleton(g), graph: { rooms: g.rooms, order: g.roomOrder, chestRoom: g.chestRoom, locks: g.locks.map((l) => ({ id: l.id, a: l.a, b: l.b, type: l.type, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, how: k.how, room: k.room, metres: k.metres, rooms: k.rooms, visible: k.visible, mech: k.mech })), arena: l.arena, bossDoor: l.bossDoor })), traversal: g.traversal, pieces: countBy(pieces.map((p) => p.cls)) }, metrics: m });
+  report.temples.push({ id, name: def.name, solved: s.done, carried: carriedInto(id), skeleton: L.skeleton(g), graph: { rooms: g.rooms, order: g.roomOrder, chestRoom: g.chestRoom, locks: g.locks.map((l) => ({ id: l.id, a: l.a, b: l.b, type: l.type, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, how: k.how, room: k.room, metres: k.metres, rooms: k.rooms, visible: k.visible, mech: k.mech })), arena: l.arena, bossDoor: l.bossDoor })), traversal: g.traversal, pieces: countBy(pieces.map((p) => p.cls)) }, metrics: m, rules });
   writeFileSync(join(OUT, `${id}-plan.svg`), L.planSvg(g, m, { title: `${def.name} (${id}): ${L.skeleton(g)}` }));
   // the two most obvious steps, seen from where you stand to face the lock, looking at the key
   for (const st of [...m.steps].sort((a, b) => b.obvious - a.obvious).slice(0, 2)) {
@@ -122,6 +119,9 @@ for (const t of report.temples) {
 report.alike = Object.fromEntries(report.temples.map((t) => [t.id, Object.fromEntries(report.temples.map((o) => [o.id, L.similarity(t.skeleton, o.skeleton)]))]));
 writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 2));
 writeFileSync(join(OUT, 'views.json'), JSON.stringify({ views }, null, 2));
+writeFileSync(join(OUT, 'rules.json'), JSON.stringify(Object.fromEntries(report.temples.map((t) => [t.id, t.rules])), null, 2));
+console.log('\nthe redesign’s rules (docs/design/temple-redesign.md), most broken first:');
+for (const t of [...report.temples].sort((a, b) => b.rules.count - a.rules.count)) console.log(`${t.id.padEnd(11)} ${String(t.rules.count).padStart(3)}  ${Object.entries(t.rules.by).map(([k, n]) => `${k} ${n}`).join(', ')}`);
 console.log('\nscores (1-5): structure, teach/test/twist, combination, non-obvious, decoupling, dungeon item, guardian exam, identity, curve → mean');
 for (const t of report.temples) console.log(`${t.id.padEnd(10)} ${Object.values(t.scores.criteria).map((c) => c.score).join('  ')}  → ${t.scores.total}   (most alike: ${t.mostAlike.id} ${Math.round(t.mostAlike.sim * 100)} %)`);
 console.log(`\nreport.json, plans and views.json in ${OUT}`);
