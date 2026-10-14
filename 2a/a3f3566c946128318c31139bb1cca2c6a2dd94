@@ -1,0 +1,31 @@
+docs/systems/story.md
+  s_9ca76055a220ed::t_08d4c6d8169ae5 694-696
+changelog.md
+  s_9ca76055a220ed::t_e8bd09f0afcdc5 19
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_50af11b4f68b8e 23
+tests/quest-skip.test.js
+  s_9ca76055a220ed::t_ef398259848f74 113
+src/changelog.js
+  s_9ca76055a220ed::t_791346f71c7843 12-14
+tests/quest-needs.test.js
+  s_9ca76055a220ed::t_eddd8e7b637be7 17,53,166-193
+src/story/incal-data.js
+  s_9ca76055a220ed::t_f5d8ef3ff23933 45-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2aa3f3566c946128318c31139bb1cca2c6a2dd94",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
