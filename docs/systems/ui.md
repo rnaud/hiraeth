@@ -357,8 +357,8 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
 - **No status box** (`#hud` / `#status` and `updateHud`'s status line are gone; `src/hud.js`). The
   world's name, the objective and its distance, relics x/5, the charge line and the gauges no
   longer sit in the bottom-left corner. What is left comes only when it matters, then fades:
-  - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
-    where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
+  - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the top since issue #306, first in the hints'
+    stack ("Hints: one look, one place" below) for what the use button does right
     here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
     backpack slotting in), nothing while riding (a ride's controls are in the settings), what the scout
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
@@ -709,7 +709,7 @@ draws "KEY ×N" under its health bar (BridgeHud.cs `DrawKeys`). Tests: `tests/ke
   (it comes the moment you are hurt). `layoutCinema` places a top item centred when it can, else slides
   it sideways along its row to the free span nearest the centre (`slide`: a phone's buttons down the
   right), else the next row down; `Cinema.layout` sets its `left` as well as its `top`. On a narrow
-  portrait phone the cue sits below the hearts and the magic bar (62 px down). Tests: `tests/hints.test.js`.
+  portrait phone the cue sits below the hearts and the magic bar (62 px down) until the stack places it. Tests: `tests/hints.test.js`.
 - **A quest's start looks different**: `Quests.startToast` (and the villagers' errands, `Errands`) call
   the toast with `{ kind: 'quest', head, title, step }`; the queue keeps it, and the toast is drawn as
   `questToastHtml`: **one short line** on a dark strip, the quest's mark (a gold ◆ for a main quest, a pale ◇
@@ -718,6 +718,30 @@ draws "KEY ×N" under its health bar (BridgeHud.cs `DrawKeys`). Tests: `tests/ke
   (the author's playthrough, October 2026, issue #72: "too much visual noise"). Every step of every quest is a
   few words since then (at most 9: `tests/quest-steps.test.js`; the quest QC skill). Later steps, endings and
   every other notice stay plain.
+
+## Hints: one look, one place (issue #306)
+
+The author: "All hints and quest announcements should be with a black or dark black background … sometimes I see hints
+at the top of the screen, sometimes at the bottom. They should only be one way of doing it." The notices, the quest
+card, the objective card and the scenes' hint were dark strips at the top; the cue (lessons, the scout's find, Plumb's
+word, the use button with nothing to float over), the floating prompt and photo mode's keys were cream paper at the
+bottom. Now every one of them is the same strip and, but for the floating prompt, in the same place:
+
+- **One look** (`src/hint-look.js` `HINT`, index.html's `--hint-bg` near-black at 92 %, `--hint-ink` cream,
+  `--hint-accent` gold for a button's name, `--hint-radius`): `#toast` and `#toast.quest`, `#objective .t`,
+  `#cine .hint`, `#cue`, `#prompt`, `#photo`, `#controller-hint`. A button's badge on the strip is cream with the ink
+  letter. A region's name stays letters on the land (a title, not a hint), the button alone (hints subtle) a glyph.
+  Solid speech background: white on black.
+- **One place**: the top centre. `Cinema.layout` stacks the cue first, then the notices, the scenes' hint and the
+  objective card in the order they came (`layoutCinema`, round the hearts, the buttons, the letterbox); the cue calls
+  it as it shows (`Cue.onChange`), so nothing slides under it. The top because most were there already, the bottom is
+  the speakers' (subtitles, the conversation panel, a phone's buttons), and a phone already had the cue up there. Photo
+  mode's line is there too (a pad's line instead of the keys' when one is in hand). The use prompt floats over whoever
+  it is about, in the same look.
+- **The Unity bridge** (`BridgeHud.cs`) draws its toast and cue the same: the strip's colours (`HINT_ENGINE`), the
+  cue at the top and the toast under it.
+- Tests: `tests/hint-look.test.js` (every kind on the variables, nothing cream left on them, the top for all but the
+  prompt, the stack's order, the bridge's colours).
 
 ## The notices' order (issue #78)
 

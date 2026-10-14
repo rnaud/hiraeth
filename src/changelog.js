@@ -15,6 +15,9 @@ export const CHANGELOG = [
     // the gun starts in push (issue #307): src/fluid-kit.js DEFAULT_MODE / startMode, FluidTool.setMode keeps the choice (flag tool.mode)
     { text: 'The fluid gun starts in push mode when you first get it, and its lesson says so: the trigger pushes, the D-pad changes the mode. Whichever mode you pick after that is the one it holds the next time you play.',
       see: 'Open the Givers’ chest in the desert’s Hearth and take the gun in hand: the label under the crosshair reads PUSH. Change to ember, quit and come back: still ember.' },
+    // every hint one look, one place (issue #306): src/hint-look.js, index.html --hint-*, src/ship/cinema.js layout (the cue
+    // first in the stack), BridgeHud.cs; docs/systems/ui.md "Hints: one look, one place"
+    { text: 'Every hint and announcement now looks the same and sits in the same place: a dark strip at the top of the screen. The lessons, what the scout finds, what the use button does and photo mode’s keys used to be cream at the bottom; now they head the same stack as the notices, quest cards and the objective. The prompt over a person keeps its place, in the same dark look.' },
   ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27

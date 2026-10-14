@@ -1,6 +1,7 @@
 // The screen while you play holds nothing at rest (docs/systems/ui.md, "Nothing on the screen"). What used
 // to sit in the status box comes only when it matters, then fades:
-//   - the cue (index.html #cue): one short line at the bottom for what the use button does
+//   - the cue (index.html #cue): one short line at the top, first in the hints' stack (issue #306: every hint one look,
+//     one place, src/hint-look.js), for what the use button does
 //     right here when it has no person or thing to float over (the ship's hatch and console, a
 //     lens), and a region's name as you cross into it; nothing while riding (no list of a
 //     vehicle's buttons as you get on: the settings' Controls page has them);
@@ -155,7 +156,7 @@ export function staminaHud({ stamina = 1, winded = false, quiet = false } = {}, 
   return on ? { value: +k.toFixed(3), winded: !!winded } : null;
 }
 
-/** The cue's element (index.html #cue): set only when the line changes; fades in and out. Its state goes to platform.js screen.cue. */
+/** The cue's element (index.html #cue): set only when the line changes; fades in and out; `onChange` is called when it does. Its state goes to platform.js screen.cue. */
 export class Cue {
   constructor(el = page.byId('cue')) { this.el = el; this.text = ''; this.kind = ''; }
   set(text, kind = '') {
@@ -171,8 +172,10 @@ export class Cue {
       this.el.classList.toggle('glyph', !kind && PROMPT_ALONE.test(text));   // (a prompt as its button alone: hints subtle or off)
       this.el.classList.toggle('quest', kind === 'quest');
     }
+    const moved = !!text !== !!this.text || (!!text && kind !== this.kind);   // (shown, hidden or another kind; a line's words changing wait for the stack's next layout)
     if (!!text !== !!this.text) this.el.classList.toggle('show', !!text);
     this.text = text; this.kind = kind;
+    if (moved) this.onChange?.();   // (main.js: the hints' stack laid out again at once, the notices under it: src/ship/cinema.js layout)
   }
 }
 

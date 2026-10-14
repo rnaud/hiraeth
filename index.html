@@ -19,6 +19,9 @@
         --safe-right: env(safe-area-inset-right, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
         --safe-left: env(safe-area-inset-left, 0px);
+        /* every hint and announcement: one look (a near-black strip, cream letters, gold for a button's name), one place
+           (the top centre, stacked by src/ship/cinema.js layoutCinema): issue #306, src/hint-look.js HINT */
+        --hint-bg: rgba(18, 14, 13, 0.92); --hint-ink: #f7ecd2; --hint-accent: #f2c54b; --hint-radius: 4px; --hint-top: calc(12px + var(--safe-top, 0px));
         /* the game's type (docs/systems/ui.md "Type", src/typefaces.js; issue #128): one face for everything a player reads,
            the title face for names and headings, the mono for the debug and dev panels alone. Numbers are in the face too,
            with figures of one width (tabular-nums) where they count. Sizes follow the screen's height, as the conversation
@@ -44,24 +47,28 @@
       }
       html, body { margin: 0; height: 100%; overflow: hidden; background: #f7ecd2; }
       canvas { display: block; touch-action: none; }
-      /* Nothing on the screen at rest (src/hud.js). The cue: one short line at the bottom, only for
-         what the use button does right here with nothing to float over, a ride's controls for a few
-         seconds, a region's name as you cross into it; it fades in and out */
+      /* Nothing on the screen at rest (src/hud.js). The cue: one short line, only for what the use button does right
+         here with nothing to float over, a first lesson, the scout's find, a region's name as you cross into it; it
+         fades in and out. A hint like the others (issue #306): the notices' dark strip, first in their stack at the top
+         centre (src/ship/cinema.js layout places it; this is where it starts) */
       #cue {
-        position: fixed; left: 50%; bottom: calc(22px + var(--safe-bottom, 0px)); z-index: 31; transform: translateX(-50%);
+        position: fixed; left: 50%; top: var(--hint-top); z-index: 61; transform: translateX(-50%);
         width: max-content; max-width: min(44em, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
-        font: var(--type)/1.4 var(--face); color: #2b211f; background: rgba(255, 250, 240, 0.8);
-        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 1.2em; padding: 0.15em 0.95em;
-        pointer-events: none; user-select: none; opacity: 0; transition: opacity 0.35s;
+        font: 500 var(--type)/1.4 var(--face); color: var(--hint-ink); background: var(--hint-bg);
+        border: 0; border-radius: var(--hint-radius); padding: 0.2em 0.95em 0.25em; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+        pointer-events: none; user-select: none; opacity: 0; transition: opacity 0.35s, top 0.3s;
       }
       #cue.show { opacity: 1; }
       #cue .key { font-size: var(--type-key); min-width: 1.7em; height: 1.7em; margin: -2px 1px 0 0; }
+      /* a button's badge on the dark strip: cream, the ink letter (the cue, the floating prompt) */
+      #cue:not(.glyph) .key, #prompt:not(.glyph) .key { background: var(--hint-ink); color: #1d1715; }
+      #cue kbd.kp, #prompt kbd.kp { color: var(--hint-accent); }
       /* a region's name: thin capitals on the land, no box */
-      #cue.place { background: none; border: 0; box-shadow: none; padding: 0; transition: opacity 0.9s;
+      #cue.place { background: none; border: 0; box-shadow: none; padding: 0; transition: opacity 0.9s, top 0.3s; color: #2b211f;
         font: 300 calc(clamp(13px, 2.4vh, 19px) * var(--ts, 1))/1.2 var(--face);
         letter-spacing: 0.32em; text-transform: uppercase; text-shadow: 0 0 2px #fffaf0, 0 0 6px #fffaf0, 0 0 14px rgba(255, 250, 240, 0.95); }
       /* the scout's find: the quest's goal, small, over its next step (src/hud.js findSummary) */
-      #cue.quest { padding: 4px 16px 5px; border-radius: 12px; }
+      #cue.quest { padding: 4px 16px 5px; }
       #cue.quest .goal { display: block; font: italic 500 0.85em/1.3 var(--face); letter-spacing: 0.06em; opacity: 0.75; }
       #cue.quest .step { display: block; font-weight: bold; }
       body.talking #cue, body.cine-on #cue { visibility: hidden; }
@@ -147,11 +154,13 @@
       #restart button:focus-visible, #restart button:hover { background: #ffd866; outline: none; }
       #restart button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2b211f; }
       #restart button { display: inline-flex; align-items: center; }   /* (the confirm glyph inside it: src/pad-glyphs.js) */
+      /* photo mode's keys: a hint like the others (issue #306), the dark strip at the top centre */
       #photo {
-        position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: none;
-        font: var(--type-s) var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.8);
-        border: 1.5px solid #2b211f; padding: 0.45em 0.95em; pointer-events: none; animation: fadehint 4s forwards;
+        position: fixed; left: 50%; top: var(--hint-top); transform: translateX(-50%); display: none; z-index: 60;
+        font: 500 var(--type-s) var(--face); color: var(--hint-ink); background: var(--hint-bg);
+        border: 0; border-radius: var(--hint-radius); padding: 0.3em 0.95em 0.35em; pointer-events: none; animation: fadehint 4s forwards;
       }
+      body.controller.controller-hint #photo { display: none; }   /* (a pad in hand: its buttons' line instead, #controller-hint) */
       #photo.open { display: block; }
       @keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
       #fps { position: fixed; right: 64px; bottom: 22px; z-index: 30; font: 12px var(--face-mono);   /* (a measuring readout: the mono's even columns) */ color: #2b211f;
@@ -190,9 +199,9 @@
       /* touch */
       #touch { display: none; }
       body.touch #touch { display: block; }
-      /* a phone: the buttons fill the bottom, the cue goes up top (the toasts make room for it: src/ship/cinema.js) */
-      /* (below the hearts and the magic bar: they show the moment you are hurt, top left) */
-      @media (max-width: 700px) { body.touch #cue { bottom: auto; top: calc(62px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
+      /* a phone: the cue below the hearts and the magic bar (they show the moment you are hurt, top left) until the
+         stack places it (src/ship/cinema.js) */
+      @media (max-width: 700px) { body.touch #cue { top: calc(62px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
       #touch .stick { position: fixed; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(43, 33, 31, 0.5); background: rgba(255, 250, 240, 0.25); display: none; z-index: 35; pointer-events: none; }
       #touch .stick.on { display: block; }
       #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
@@ -339,8 +348,8 @@
       /* the prompt over whoever (or whatever) the use button would use: a round button badge and the action */
       #prompt {
         position: fixed; left: 0; top: 0; z-index: 39; will-change: transform; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-        font: var(--type-s) var(--face); color: #2b211f; background: #fffaf0; border: 1.5px solid #2b211f; padding: 0.25em 0.8em 0.25em 0.3em; white-space: nowrap;
-        box-shadow: 2px 2px 0 #2b211f; border-radius: 1.2em; display: flex; align-items: center; gap: 0.5em;
+        font: 500 var(--type-s) var(--face); color: var(--hint-ink); background: var(--hint-bg); border: 0; padding: 0.25em 0.8em 0.25em 0.3em; white-space: nowrap;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); border-radius: 1.2em; display: flex; align-items: center; gap: 0.5em;   /* (the hints' dark strip, issue #306) */
       }
       #prompt.show { opacity: 1; }
       /* hints subtle or off (src/hint-level.js): the button alone, a small quiet glyph, no words */
@@ -366,19 +375,20 @@
       /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
 
       /* a notice: one short line on a dark strip, cream on ink (issue #221: the translucent cream paper was hard to read
-         over a bright world, too wide and too wordy); src/ship/cinema.js places it clear of the hearts, paces it
-         (src/notice-pace.js) and stacks it with the scenes' hint and the objective card, which look the same */
+         over a bright world, too wide and too wordy; issue #306: every hint the same strip, at the top); src/ship/cinema.js
+         places it clear of the hearts, paces it (src/notice-pace.js) and stacks it with the cue, the scenes' hint and the
+         objective card, which look the same */
       #toast {
-        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 0.3em 0.95em 0.35em;
-        font: 500 var(--type-s)/1.35 var(--face); letter-spacing: 0.01em; color: #f7ecd2; background: rgba(31, 24, 22, 0.9);
-        border: 0; border-radius: 4px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); opacity: 0; pointer-events: none; text-wrap: balance;
+        position: fixed; left: 50%; top: var(--hint-top); transform: translateX(-50%); z-index: 60; padding: 0.3em 0.95em 0.35em;
+        font: 500 var(--type-s)/1.35 var(--face); letter-spacing: 0.01em; color: var(--hint-ink); background: var(--hint-bg);
+        border: 0; border-radius: var(--hint-radius); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); opacity: 0; pointer-events: none; text-wrap: balance;
       }
-      #toast kbd.kp { color: #f2c54b; }   /* (a button named in it: the player's own, in gold) */
+      #toast kbd.kp { color: var(--hint-accent); }   /* (a button named in it: the player's own, in gold) */
       /* a quest's start: one short line, its mark and its title (the step after it with hints full), plainly a quest: the
          gold diamond for a main one (issue #72: it was a head, the title and the step on three lines) */
       #toast.quest { padding: 0.35em 1.2em 0.45em; white-space: nowrap; }
       #toast.quest span { display: inline; }
-      #toast.quest .qk { margin-right: 0.5em; color: #f2c54b; font-size: 1.05em; }
+      #toast.quest .qk { margin-right: 0.5em; color: var(--hint-accent); font-size: 1.05em; }
       #toast.quest .qk.errand { color: #d9c9a3; }
       #toast.quest .qt { font: italic 500 1.2em/1.3 var(--face); letter-spacing: 0.03em; }
       #toast.quest .qs { font-size: 1em; opacity: 0.85; }
@@ -430,7 +440,8 @@
       #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
       #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
-      #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: var(--type-s) var(--face); pointer-events: none; }
+      /* photo mode's buttons, a pad in hand: a hint like the others (issue #306) */
+      #controller-hint { display: none; position: fixed; z-index: 1000; top: var(--hint-top); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 0.3em 0.95em 0.35em; color: var(--hint-ink); background: var(--hint-bg); border: 0; border-radius: var(--hint-radius); font: 500 var(--type-s) var(--face); pointer-events: none; }
       body.controller.controller-hint #controller-hint { display: block; }
       /* holding a controller (a Retroid, a pad on a phone): no buttons on the screen at all */
       body.controller #touch, body.controller #gear { display: none; }
@@ -487,7 +498,7 @@
       html.speech-solid #dialogue .dlg-text.player { color: #1c2440; }
       html.speech-solid #dialogue .dlg-choices button { color: #000000; }
       html.speech-solid .balloon { background: #ffffff; color: #000000; border-width: 2.5px; }
-      html.speech-solid #cue { background: #ffffff; color: #000000; }
+      html.speech-solid #cue, html.speech-solid #prompt:not(.glyph), html.speech-solid #photo, html.speech-solid #controller-hint { background: #000000; color: #ffffff; }
       html.speech-solid #toast, html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
       html.speech-solid #cue.place span { background: #ffffff; color: #000000; padding: 2px 8px; }
       /* reduced motion: the panels and pages arrive without sliding, nothing blinks */

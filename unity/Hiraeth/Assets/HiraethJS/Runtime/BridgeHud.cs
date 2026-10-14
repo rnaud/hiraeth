@@ -34,6 +34,11 @@ namespace Hiraeth.Bridge
         const int Body = 21, AnswerSize = 20, NameSize = 22, TitleSize = 16, LetterSize = 44;
         const float Em = Body, ChipD = 4.6f * Em;
         static readonly Color Muted = Ui.Hex("#5e4b45");
+        /// <summary>Every hint one look, one place (issue #306, src/hint-look.js HINT_ENGINE): a near-black strip, cream
+        /// letters, at the top centre; the cue first, the toast under it.</summary>
+        static readonly Color HintBg = new Color(18 / 255f, 14 / 255f, 13 / 255f, 0.92f), HintInk = Ui.Hex("#f7ecd2");
+        const float HintTop = 12, HintGap = 8;
+        float cueBottom;   // (where the cue ends this frame: the toast stacks under it)
 
         public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object> ?? new(); }
 
@@ -53,15 +58,15 @@ namespace Hiraeth.Bridge
             root = Hud.MakeCanvas(cam, "HUD (JS bridge)", 100);
             root.SetParent(transform, false);
             var mono = Ui.Mono;
-            toast = Ui.Panel(root, "toast", Ui.Paper, Ui.Ink, 2, 4, 4);
-            toastText = Ui.Label(toast.rt, "text", mono, 13, Ui.Ink, TextAnchor.UpperCenter);
-            cue = Ui.Panel(root, "cue", Ui.Hex("#fff6dc", 0.92f), Ui.Ink, 1.5f, 2, 2);
-            cueText = Ui.Label(cue.rt, "text", mono, 13, Ui.Ink, TextAnchor.MiddleCenter);
-            prompt = Ui.Panel(root, "prompt", Ui.Paper, Ui.Ink, 1.5f, 2, 2, 12);
-            promptKey = Ui.Rect(prompt.rt, Ui.Ink, 11, "key");
-            promptKeyText = Ui.Label(promptKey.rectTransform, "k", mono, 11, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+            toast = Ui.Panel(root, "toast", HintBg, HintBg, 0, 0, 0, 4);
+            toastText = Ui.Label(toast.rt, "text", mono, 13, HintInk, TextAnchor.UpperCenter);
+            cue = Ui.Panel(root, "cue", HintBg, HintBg, 0, 0, 0, 4);
+            cueText = Ui.Label(cue.rt, "text", mono, 13, HintInk, TextAnchor.MiddleCenter);
+            prompt = Ui.Panel(root, "prompt", HintBg, HintBg, 0, 0, 0, 12);
+            promptKey = Ui.Rect(prompt.rt, HintInk, 11, "key");
+            promptKeyText = Ui.Label(promptKey.rectTransform, "k", mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Stretch(promptKeyText.rectTransform);
-            promptText = Ui.Label(prompt.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleLeft);
+            promptText = Ui.Label(prompt.rt, "text", mono, 12, HintInk, TextAnchor.MiddleLeft);
             health = Ui.Panel(root, "health", Ui.Page, Ui.Ink, 2, 2, 2, 6);
             healthFill = Ui.Rect(health.fill.rectTransform, Ui.Hp, 0, "hp");
             healthEdge = Ui.Rect(health.fill.rectTransform, Ui.Ink, 0, "edge");
@@ -140,8 +145,8 @@ namespace Hiraeth.Bridge
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 3);
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
             var d = state.O("dialogue");
-            DrawToast(state.O("toast"), d == null);
             DrawCue(state.O("cue"), d == null);
+            DrawToast(state.O("toast"), d == null);
             DrawPrompt(state.O("prompt"), d == null);
             DrawHealth(state.O("health"));
             DrawKeys(state.O("keys"), d == null);
@@ -161,7 +166,7 @@ namespace Hiraeth.Bridge
             var s = Ui.Set(toastText, Text.Plain(t.S("text")), Mathf.Min(900, W - 60));
             Ui.Place(toastText.rectTransform, 14, 8, s.x, s.y);
             float w = s.x + 28, h = s.y + 16;
-            Ui.Place(toast.rt, W / 2 - w / 2, 22, w, h);
+            Ui.Place(toast.rt, W / 2 - w / 2, cueBottom > 0 ? cueBottom + HintGap : HintTop, w, h);
             Ui.Group(toast.rt).alpha = a;
         }
 
@@ -169,13 +174,18 @@ namespace Hiraeth.Bridge
         {
             on &= c != null;
             Show(cue, on);
+            cueBottom = 0;
             if (!on) return;
             bool place = c.S("kind") == "place";
             cueText.fontStyle = place ? FontStyle.Italic : FontStyle.Normal;
+            // (a region's name: letters on the land, no strip, as the page's #cue.place)
+            cue.SetFill(place ? Color.clear : HintBg);
+            cueText.color = place ? Ui.Ink : HintInk;
             var s = Ui.Set(cueText, c.S("text"), Mathf.Min(900, W - 60));
             float w = s.x + 24, h = s.y + 12;
             Ui.Place(cueText.rectTransform, 12, 6, s.x, s.y);
-            Ui.Place(cue.rt, W / 2 - w / 2, H - 46 - h, w, h);
+            Ui.Place(cue.rt, W / 2 - w / 2, HintTop, w, h);   // (the top centre, first in the hints' stack: issue #306)
+            cueBottom = HintTop + h;
         }
 
         void DrawPrompt(Dictionary<string, object> p, bool on)

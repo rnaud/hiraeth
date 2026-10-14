@@ -17,6 +17,7 @@ import { inputKind, keyText, hasKeys, escapeHtml } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
 import { NoticePace } from '../notice-pace.js';
 import { hintLevel } from '../hint-level.js';
+import { HINT } from '../hint-look.js';   // every hint one look, one place (issue #306)
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
 const CSS = `
@@ -47,16 +48,16 @@ const CSS = `
 #cine .fade.white { background: #fff6dc; }
 #cine .red { position: absolute; inset: 0; opacity: 0; mix-blend-mode: multiply;
   background: radial-gradient(ellipse at center, rgba(255, 150, 130, .55) 30%, rgba(170, 30, 25, .95) 100%); }
-#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: 500 var(--type-s)/1.35 var(--face); color: #f7ecd2;
+#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: 500 var(--type-s)/1.35 var(--face); color: var(--hint-ink, ${HINT.ink});
   width: max-content; max-width: min(32em, calc(100vw - 40px)); box-sizing: border-box; text-align: center; text-wrap: balance;
-  padding: 0.3em 0.95em 0.35em; background: rgba(31, 24, 22, 0.9); border-radius: 4px; opacity: 0; transition: opacity .4s; }
+  padding: 0.3em 0.95em 0.35em; background: var(--hint-bg, ${HINT.bg}); border-radius: var(--hint-radius, ${HINT.radius}); opacity: 0; transition: opacity .4s; }
 #cine .hint.show { opacity: 1; transition: opacity .4s, top .3s; }
 /* the objective card: one line, the step itself, on the notices' dark strip (issue #222: no "OBJECTIVE" over it, nothing slanted) */
 #objective { position: fixed; left: 50%; top: 18vh; transform: translateX(-50%); z-index: 7900; pointer-events: none; text-align: center; opacity: 0;
-  width: max-content; max-width: min(48em, calc(100vw - 32px)); font: var(--type-s) var(--face); color: #f7ecd2; }
+  width: max-content; max-width: min(48em, calc(100vw - 32px)); font: var(--type-s) var(--face); color: var(--hint-ink, ${HINT.ink}); }
 #objective .t { padding: 0.35em 1.1em 0.4em; font: 500 max(clamp(15px, 4vw, 20px), calc(var(--type) * 1.1))/1.3 var(--face); letter-spacing: .03em;
-  background: rgba(31, 24, 22, 0.92); border-radius: 4px; box-shadow: 0 1px 0 rgba(0, 0, 0, .25); text-wrap: balance; }
-#objective .t::before { content: '◆'; margin-right: .55em; color: #f2c54b; }
+  background: var(--hint-bg, ${HINT.bg}); border-radius: var(--hint-radius, ${HINT.radius}); box-shadow: 0 1px 0 rgba(0, 0, 0, .25); text-wrap: balance; }
+#objective .t::before { content: '◆'; margin-right: .55em; color: var(--hint-accent, ${HINT.accent}); }
 #objective.show { animation: objective 6.5s forwards; transition: top .3s; }
 @keyframes objective { 0% { opacity: 0; transform: translate(-50%, 8px); } 8%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 #warp { position: fixed; inset: 0; z-index: 8400; pointer-events: none; opacity: 0; transition: opacity .5s; }
@@ -117,6 +118,8 @@ export function layoutCinema({ w, h, bars = false, items = [], obstacles = [], s
   /** r where it is, or moved sideways along its row to the free span nearest where it was (null: none wide enough). */
   const slide = (r) => {
     if (free(r)) return r;
+    // (only round the HUD and the buttons: a hint beside another hint reads as two places, issue #306; it goes under it)
+    if (placed.some((p) => hit(r, p, gap / 2))) return null;
     const iw = r.x1 - r.x0, lo = S.left + margin, hi = w - S.right - margin;
     const row = [...obstacles, ...placed].filter((o) => Math.min(r.y1, o.y1) - Math.max(r.y0, o.y0) > -gap / 2).sort((a, b) => a.x0 - b.x0);
     let best = null, a = lo;
@@ -264,7 +267,8 @@ function shown(e) {
 // (#boxscene.on: a chest opening, its card up, whatever the camera does: nothing over the card, issue #58)
 const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on, .mg-hud:not(.off), #boxscene.on';
 // (#health whether it shows or not: it comes up the moment you are hurt, and a toast must never sit on it)
-export const OBSTACLES = ['#health', '#gadget-chip.on', '#cue.show', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
+// (the cue is not one: it is the first of the hints' stack at the top, issue #306: layout() places it)
+export const OBSTACLES = ['#health', '#gadget-chip.on', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
 
 export class Cinema {
   constructor() {
@@ -522,11 +526,14 @@ export class Cinema {
   /** Measure what is showing and give each piece its place (layoutCinema). */
   layout() {
     if (!this.dom) return;
-    const els = { hint: this.hintEl, sub: this.subText, skip: this.skipEl, objective: this.obj, toast: this.toastEl };
-    const place = { hint: 'top', toast: 'top', objective: 'top', sub: 'bottom', skip: 'corner' };
+    const cue = document.getElementById('cue');
+    const els = { cue, hint: this.hintEl, sub: this.subText, skip: this.skipEl, objective: this.obj, toast: this.toastEl };
+    const place = { cue: 'top', hint: 'top', toast: 'top', objective: 'top', sub: 'bottom', skip: 'corner' };
     if (this.toastEl && this._pending !== 'toast') this._seen('toast', this.toastEl.classList.contains('show'));
     if (this._pending !== 'objective' && !this.obj.classList.contains('show')) this._seen('objective', false);
     const items = [];
+    // the cue first in the hints' stack, whatever came before it (what the use button does here, a lesson, the scout's find)
+    if (cue?.classList.contains('show') && shown(cue)) items.push({ id: 'cue', w: cue.offsetWidth, h: cue.offsetHeight, place: 'top' });
     for (const id of this._order) {
       const e = els[id];
       if (!e) continue;

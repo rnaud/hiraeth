@@ -781,7 +781,14 @@ const GIVERS273 = 'Issue #273: muted headless Chrome (High, 1280 × 720) against
 // (v1.69, issue #311: a scratch shooter against this branch's own Vite (port 6311), the desert from a save at the Hall of Channels' far end with the eye struck, the ball cut through the page; the before with WING as it was)
 const CHANNELS311 = 'Issue #311: muted headless Chrome (High, 1280 × 720, 11:00, clear, the camera pinned by the far door’s bowl) against this branch’s own Vite (port 6311), the ball cut from the groove’s start with the relay lit, taken as it came 40 cm from its stop; the before with the hall’s ball as it burned until then (13 October)';
 const KEEPER314 = 'headless Chrome against a dev server of this branch and of the code before it, the Rose House’s cistern, High, 13 October 2026';
+const HINTS306 = { from: 'headless Chrome (muted) against this branch’s own dev server and the commit before the change, Medium at 1280 × 720, a new save out of the ship (13 October)' };
 export const CHANGELOG_MEDIA = {
+  '1.70': [
+    { match: 'Every hint and announcement now looks the same', shots: [
+      { name: 'hints-top', title: 'A first lesson', caption: 'Out of the ship in the desert: before, “Look around with the mouse” on cream paper at the bottom while the notices came at the top; after, on the notices’ dark strip at the top, the notices stacked under it.', from: HINTS306 },
+      { name: 'hints-prompt', title: 'The prompt over someone', caption: 'Beside Rima with hints full: the prompt that floats over her is the same dark strip, its button a cream badge.', from: HINTS306 },
+    ] },
+  ],
   '1.69': [
     { match: 'In the Rose House’s Hall of Channels', shots: [
       { name: 'channels-ball', caption: 'The ball cut from the hall’s far end, coming into the mouth of the bowl on its stem by the far door: before, its flame almost spent (a fifth of a second of it left when the bowl caught, so any slower roll went out); after, two seconds and more of it left.', from: CHANNELS311 },

@@ -246,7 +246,8 @@ fed the engine's keys as the page's events (E, Space, 1–9, Escape) and its pad
 `Controller`'s talk context. engine/game.js runs E as main.js does (`storyRt.update` with
 `ePressed`, the traveller held while busy, the two-shot through `frameCamera`, the cue by
 `cueText`, the toasts queued for their reading time). A batch run: `-talk ama` walks up to someone
-and photographs the conversation.
+and photographs the conversation. The toast, the cue and the floating prompt are the hints' dark strip
+(issue #306, `src/hint-look.js` `HINT_ENGINE`: `HintBg`, `HintInk`), the cue at the top centre and the toast under it.
 
 | web (three.js) | Unity + Puerts (the same conversation, the port's uGUI) |
 |---|---|

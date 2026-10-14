@@ -48,15 +48,16 @@ test('the notices\' queue goes through the pace, and the strip is dark and narro
   assert.match(cine, /this\.pace\.shown\(item, now\(\)\)/);
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const rule = html.slice(html.indexOf('      #toast {'), html.indexOf('}', html.indexOf('      #toast {')));
-  assert.match(rule, /color: #f7ecd2; background: rgba\(31, 24, 22, 0\.9\)/, 'cream on ink');
+  assert.match(rule, /color: var\(--hint-ink\); background: var\(--hint-bg\)/, 'cream on ink: the hints\' strip (issue #306, src/hint-look.js)');
+  assert.match(html, /--hint-bg: rgba\(18, 14, 13, 0\.92\); --hint-ink: #f7ecd2;/);
   assert.match(html, /#toast \{ width: max-content; max-width: min\(32em/, 'narrower: 32em, it was 40');
 });
 
 test('cream on ink is easy to read: well over WCAG\'s 4.5 : 1 (and the gold of a named button too)', () => {
   const lum = ([r, g, b]) => { const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
-  // the strip at 90 % over the brightest ground (white) is at worst this
-  const strip = [31, 24, 22].map((c) => Math.round(c * 0.9 + 255 * 0.1));
+  // the strip (src/hint-look.js HINT: 92 %) over the brightest ground (white) is at worst this
+  const strip = [18, 14, 13].map((c) => Math.round(c * 0.92 + 255 * 0.08));
   assert.ok(ratio([247, 236, 210], strip) > 7, `cream: ${ratio([247, 236, 210], strip).toFixed(1)}`);
   assert.ok(ratio([242, 197, 75], strip) > 4.5, `gold: ${ratio([242, 197, 75], strip).toFixed(1)}`);
 });
