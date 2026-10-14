@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.70 — 2026-10-13
 
+- The fluid gun starts in push mode when you first get it, and its lesson says so: the trigger pushes, the D-pad changes the mode. Whichever mode you pick after that is the one it holds the next time you play.
 - The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.
 
 ## v1.69 — 2026-10-13

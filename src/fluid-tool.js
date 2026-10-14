@@ -7,7 +7,7 @@ import { game as sharedGame } from './game-state.js';
 import { items as sharedItems, backpackStage } from './items.js';
 import { triggers } from './controller.js';
 import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
-import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
+import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes, startMode } from './fluid-kit.js';
 import { FluidBlade, HIT_FX } from './fluid-blade.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
 import { boostVelocity, DOUBLE_JUMP } from './jump.js';
@@ -795,7 +795,7 @@ export class FluidTool {
     this.k = 0; this.camK = 0; this.cooldown = 0; this.quick = 0; this.quickShoot = false;
     this.pending = null; this.time = 0; this._enabled = true;
     this.held = { fire: false, quick: false, push: false, blade: false, mode: false };
-    this.mode = 'shoot'; this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
+    this.mode = this.startMode(); this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
     this.appear = items.has('backpack') ? 1 : 0; this.stage = this.stageNow(); this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
     this.globs = [];
@@ -841,13 +841,13 @@ export class FluidTool {
     // the story drives it through the shared bus too
     this.offs.push(state.on('tool:refill', (o) => this.refill(o ?? {})));
     this.offs.push(state.on('tool:enable', (o) => { this.enabled = o?.on ?? true; }));
-    // found (a box, a quest, the dev menu): the tank appears with a shimmer; a lost mode falls back to shoot
+    // found (a box, a quest, the dev menu): the tank appears with a shimmer; a lost mode falls back (startMode: the push)
     this.offs.push(items.on((id, owned) => {
       if (id === 'backpack' && owned) this.shimmer();
       // a strength found (the lift valve, the wings, the jets): the backpack's next stage, with a flash of fluid
       const stage = this.stageNow();
       if (stage !== this.stage) { const up = stage > this.stage; this.stage = stage; if (this.tank) setStage(this.tank, stage); if (up) { this.flash = 1; this.wave = 1; this.slosh = 1; } }
-      if (!owned && !this.modes.includes(this.mode)) this.mode = 'shoot';
+      if (!owned && !this.modes.includes(this.mode)) this.mode = this.startMode();
     }));
     // the double jump's puff of fluid (player.js asks for its look); the jets
     // burn the reserve (fuelSource) and boarding a vehicle swings the tank into it (handoff)
@@ -933,10 +933,13 @@ export class FluidTool {
   /** The backpack's stage (0..3): how many of its strengths are owned (items.js BACKPACK_STAGES); the tank shows it. */
   stageNow() { return backpackStage((id) => this.items.has(id)); }
   get modeName() { return MODES[this.mode]?.name ?? 'fluid'; }
+  /** The mode to hold now when the one held is not owned: the player's last choice, else the push (fluid-kit.js startMode, issue #307). */
+  startMode() { return startMode(this.modes, this.state?.flag?.('tool.mode') ?? null); }
   /** Switch to an owned mode: the tank and the glove's plate retint, the HUD says so. Returns true if it changed. */
   setMode(mode) {
     if (!this.modes.includes(mode) || mode === this.mode) return false;
     this.mode = mode;
+    if (this.state?.flag?.('tool.mode') !== mode) this.state?.set?.('tool.mode', mode);   // (the player's choice, kept: startMode)
     this.modeFlash = 1; this.flash = Math.max(this.flash, 0.8); this.slosh = Math.max(this.slosh, 0.6);
     this.sound?.fluidMode?.(mode);
     if (this.tank && this.player?.object?.visible !== false) {
@@ -1046,7 +1049,7 @@ export class FluidTool {
     this.held.fire = input.fire; this.held.quick = input.quick; this.held.mode = input.mode;
     // X / D-pad → / the touch button: the next owned gun mode, round again after the last (also while not aiming, and riding)
     if (!paused && this._enabled && this.owned && modePress) this.cycleMode(1);
-    if (!this.modes.includes(this.mode)) this.mode = 'shoot';
+    if (!this.modes.includes(this.mode)) this.mode = this.startMode();   // (no gun yet: the push waits for it, issue #307)
     this.modeFlash = Math.max(0, this.modeFlash - dt / 1.6);
     if (ok && (shootPress || pushPress)) {
       if (this.reserve.charges <= 0 || (pushPress && this.dry)) this.sputter();   // (the dregs only shoot)

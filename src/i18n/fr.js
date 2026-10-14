@@ -298,7 +298,7 @@ export const FR = {
   'hint.lift': 'Appuyez de nouveau sur {key:jump} en l\'air pour un second saut.',
   'hint.sword': 'La lame des Donateurs : frappez avec {key:blade}, trois coups d\'affilée ; maintenez pour charger. {key:evade} esquive.',
   'hint.shield': 'La garde des Donateurs : maintenez {key:guard} pour la lever contre un coup venu de face ; un trait qu’elle arrête repart d’où il vient.',
-  'hint.gun': 'Le pistolet à fluide est en main : visez avec {key:aim}, tirez avec {key:fire} ; {key:mode} prend la poussée. {key:pick} choisit un autre gadget.',
+  'hint.gun': 'Le pistolet à fluide est en main : visez avec {key:aim}, poussez avec {key:fire} ; {key:mode} change de mode. {key:pick} choisit un autre gadget.',
   'hint.bellows': 'Le soufflet du Gardien : ailes ouvertes, il souffle sous vous un vent régulier. Dans l\'air qui monte, vos ailes vous tiennent assez immobile pour viser ({key:aim}).',
   'hint.pick': 'Deux gadgets maintenant : {key:pick} choisit celui en main, {key:aim} vise avec et {key:fire} l\'utilise.',
   // la boutique (src/shop-panel.js)

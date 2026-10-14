@@ -95,6 +95,12 @@ src/minigames/kit/onfoot.js); a makers' run or a trial that wants it takes it in
 (src/trials/index.js). The modes (`stun`, `fire`, `bloom`) need it: a requirement of one is met only with the gun
 too (src/resources.js `meetsWith`).
 
+**It starts in push** (issue #307, the author: "The fluid gun should default to push mode"): first got, and on every
+load, the gun holds the mode the player last chose (the flag `tool.mode`, written by `FluidTool.setMode`) while it is
+still owned, else the push (`src/fluid-kit.js` `DEFAULT_MODE`, `startMode`); saves from before #307 never kept a
+choice and start in push. Its lesson (`hint.gun`) says so: RT pushes, D-pad → the other modes. A game on foot that
+lends the gun sets its own mode (`lendTool`'s `mode`, shoot) and puts the player's back after.
+
 ## Played together
 
 One runtime holds all ten, so what one leaves behind is everyone's problem:

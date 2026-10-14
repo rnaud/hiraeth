@@ -50,7 +50,7 @@ export const ITEMS = {
   gun: {
     // (it comes with ember mode, `with`: one chest for the gun and its two modes, issue #83)
     name: 'Fluid gun', kind: 'gadget', needs: 'backpack', with: ['fire'], where: 'In the Givers’ Hearth, the desert’s old fire-house, in the Givers’ room off the hall.',
-    text: 'The makers’ glove, fed by the backpack. Aim with {key:aim} and shoot with {key:fire}; {key:mode} turns its push to ember, which lights lamps, braziers and fuses.',
+    text: 'The makers’ glove, fed by the backpack. Aim with {key:aim} and push with {key:fire}; {key:mode} turns it to ember, which lights lamps, braziers and fuses, or to a shot of fluid.',
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
   // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it

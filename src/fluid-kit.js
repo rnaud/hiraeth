@@ -33,9 +33,19 @@ export function ownedModes(has) {
   if (!has('gun') || !has('backpack')) return [];
   return MODE_ORDER.filter((m) => has(MODES[m].item));
 }
+/**
+ * The gun's mode on taking it up (issue #307, the author: "The fluid gun should default to push mode"): the mode the
+ * player last chose (the flag tool.mode, written by FluidTool.setMode) while it is still owned, else the push, else the
+ * first owned. A save from before #307 never wrote the flag: it starts in push.
+ */
+export const DEFAULT_MODE = 'push';
+export function startMode(owned, chosen = null) {
+  if (chosen && owned.includes(chosen)) return chosen;
+  return owned.includes(DEFAULT_MODE) || !owned.length ? DEFAULT_MODE : owned[0];
+}
 /** The next owned mode after `mode` (dir +1 / -1); the same one if it is the only one. */
 export function nextMode(mode, owned, dir = 1) {
-  if (!owned.length) return 'shoot';
+  if (!owned.length) return DEFAULT_MODE;
   const i = owned.indexOf(mode);
   return owned[((i < 0 ? 0 : i + dir) % owned.length + owned.length) % owned.length];
 }

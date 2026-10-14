@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FluidTool, FLUID, FLUID_TONES, Glob, Reserve, boostVelocity, clearLine, fluidTones, shotDir, toolInput, traceShot } from '../src/fluid-tool.js';
 import { MAGIC } from '../src/resources.js';
+import { DEFAULT_MODE, startMode } from '../src/fluid-kit.js';
 import { clearTargets, hitTarget, registerTarget, targetsInCone } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
@@ -49,6 +50,7 @@ function makeTool(o = {}) {
   if (o.gun !== false) state.set('gadget.equipped', 'gun');   // (the gun in hand: only then do the triggers shoot)
   const player = o.player ?? stubPlayer();
   const tool = new FluidTool({ scene: new THREE.Scene(), player, physics: o.physics ?? open, camera, rig: { aimK: 0 }, state, level: o.level });
+  if (o.mode !== null) tool.mode = o.mode ?? 'shoot';   // (the shots' tests shoot globs; the gun starts in push since issue #307: its own test)
   return { tool, player, camera, state };
 }
 const frames = (tool, n, ctl = {}) => { for (let i = 0; i < n; i++) tool.update(DT, ctl); };
@@ -539,4 +541,22 @@ test('push: villagers stumble back a couple of metres and a parked hoverbike sli
   assert.equal(targetsInCone(v(0, 1.2, 0), v(0, 0, -1), FLUID.push.range, FLUID.push.angle).some((x) => x.target.kind === 'mount'), false, 'not while ridden');
   tool.dispose();
   if (!hadDoc) delete globalThis.document;
+});
+
+test('the gun starts in push (issue #307); the mode chosen is kept for the next time, a lost one falls back to the push', () => {
+  assert.equal(DEFAULT_MODE, 'push');
+  assert.equal(startMode(['shoot', 'push', 'fire']), 'push', 'a new save, or one from before #307 (no choice kept)');
+  assert.equal(startMode(['shoot', 'push', 'fire'], 'fire'), 'fire', 'the player\'s last choice');
+  assert.equal(startMode(['shoot', 'push'], 'fire'), 'push', 'a choice no longer owned');
+  assert.equal(startMode([]), 'push', 'no gun yet: the push waits for it');
+  const { tool, state } = makeTool({ mode: null });
+  assert.equal(tool.mode, 'push', 'first got: push');
+  assert.equal(state.flag('tool.mode'), undefined, 'nothing chosen yet');
+  tool.update(DT, { KeyX: true }); tool.update(DT, {});
+  assert.notEqual(tool.mode, 'push');
+  const chosen = tool.mode;
+  assert.equal(state.flag('tool.mode'), chosen, 'the choice is written to the save');
+  const again = new FluidTool({ scene: new THREE.Scene(), player: stubPlayer(), physics: open, camera: new THREE.PerspectiveCamera(), rig: { aimK: 0 }, state });
+  assert.equal(again.mode, chosen, 'loaded again: the mode chosen');
+  tool.dispose?.(); again.dispose?.();
 });

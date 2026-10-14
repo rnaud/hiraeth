@@ -207,12 +207,13 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   const events = [];
   state.on('tool:mode', (e) => events.push(e.mode));
   assert.deepEqual(tool.modes, ['shoot', 'push'], 'the push comes with the backpack: a mode of its own');
+  assert.equal(tool.mode, 'push', 'the gun starts in push (issue #307)');
   step(1, { KeyX: true }); step(1);
-  assert.equal(tool.mode, 'push');
+  assert.equal(tool.mode, 'shoot', 'round to the first');
   step(1, { KeyX: true }); step(1);
-  assert.equal(tool.mode, 'shoot', 'round again');
+  assert.equal(tool.mode, 'push', 'round again');
   items.grant('fire');
-  step(1, { KeyX: true }); step(1); step(1, { KeyX: true }); step(1);
+  step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'fire');
   step(1, { KeyX: true }); step(1);
   assert.equal(tool.mode, 'shoot', 'round again (stun is not owned)');
@@ -230,12 +231,12 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   // the lava nearly stops in stilling mode (the pattern changes too)
   step(90); const t0 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t0 < 0.2, 'stilling: nearly still');
   tool.setMode('fire'); step(60); const t1 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t1 > 2, 'ember: boiling');
-  assert.deepEqual(events, ['push', 'shoot', 'push', 'fire', 'shoot', 'push', 'stun', 'fire', 'shoot', 'stun', 'fire']);
+  assert.deepEqual(events, ['shoot', 'push', 'fire', 'shoot', 'push', 'stun', 'fire', 'shoot', 'stun', 'fire']);
   tool.setMode('shoot'); step(1);
   assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), TANK.base, 'the flask back to its own green');
-  // a mode lost (the dev menu) falls back to shoot
-  items.revoke('fire'); step(1);
-  assert.equal(tool.mode, 'shoot');
+  // a mode lost (the dev menu) falls back to the push
+  tool.setMode('fire'); items.revoke('fire'); step(1);
+  assert.equal(tool.mode, 'push');
   // every mode spends the same charges
   tool.setMode('stun');
   step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(20, { KeyR: true });

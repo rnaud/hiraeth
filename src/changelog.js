@@ -12,6 +12,9 @@ export const CHANGELOG = [
     // the lore page in the Debug menu, What's new's ◀ Debug (issue #291): src/world-picker.js PAGES, changelog.html, lore.html
     { text: 'The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.',
       see: 'Open Debug from the title: Pages → Lore. Open What’s new from the Debug menu: “◀ Debug” at the top left takes you back.' },
+    // the gun starts in push (issue #307): src/fluid-kit.js DEFAULT_MODE / startMode, FluidTool.setMode keeps the choice (flag tool.mode)
+    { text: 'The fluid gun starts in push mode when you first get it, and its lesson says so: the trigger pushes, the D-pad changes the mode. Whichever mode you pick after that is the one it holds the next time you play.',
+      see: 'Open the Givers’ chest in the desert’s Hearth and take the gun in hand: the label under the crosshair reads PUSH. Change to ember, quit and come back: still ember.' },
   ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27
