@@ -227,7 +227,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     Menu(json) { const v = JSON.parse(json); menus.push(v?.kind ?? null); if (v?.kind === 'game') panels[v.panel] = v; if (v?.map?.ground) grounds.push(v.map.ground); },
     // the Map's drawn ground (BridgeMenu.SetMap), before the state that names it
     MapImage(key, buf, w, h) { maps.push({ key, bytes: buf.byteLength, w, h, sentBefore: !grounds.includes(key), inked: new Uint8Array(buf).some((x, i) => i % 4 === 0 && x < 80) }); },
-    MenuWidth: () => 960, PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
+    MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
     // the sound rendered on Unity's audio thread (BridgeRunner.RunAudio, engine/unity/audio-worker.js): its batches played here as there
@@ -251,12 +251,18 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks
   assert.ok(panels.quests?.rows.length >= 1, JSON.stringify(panels.quests));
   assert.ok(panels.map?.map.marks.some((m) => m.kind === 'you'), JSON.stringify(panels.map?.map));
-  // its ground drawn from the world's collision (engine/game.js WorldMap, engine/raster.js), sent once, before it shows
+  // its ground drawn from the world's collision (engine/game.js WorldMap, engine/raster.js), sent once, before it shows; at
+  // the shape of the room BridgeMenu has for it (the Retroid's 4:3: 878 × 508, a map 1.7 times as wide as tall, issue #343)
   assert.equal(maps.length, 1, JSON.stringify(maps));
-  assert.deepEqual([maps[0].w, maps[0].h, maps[0].bytes, maps[0].sentBefore, maps[0].inked], [512, 512, 512 * 512 * 4, true, true]);
+  assert.equal(panels.map.map.aspect, 1.7);
+  assert.deepEqual([maps[0].w, maps[0].h, maps[0].bytes, maps[0].sentBefore, maps[0].inked], [1088, 640, 1088 * 640 * 4, true, true]);
+  // the whole sheet, the cursor on the traveller, no list
+  assert.deepEqual(panels.map.rows, []);
+  const you = panels.map.map.marks.find((m) => m.kind === 'you');
+  assert.ok(Math.abs(panels.map.map.cursor[0] - you.x) < 1e-3 && Math.abs(panels.map.map.cursor[1] - you.y) < 1e-3, JSON.stringify(panels.map.map));
   assert.equal(panels.map.map.ground, maps[0].key);
   // on the Retroid (BridgeHost.Platform: android): the prompts in its own names, the menus' confirm the printed A
-  assert.match(panels.map.hint, /^L1\/R1 turn · A choose · B close$/, panels.map.hint);
+  assert.match(panels.map.hint, /^L2 \/ R2 zoom · A zoom in · L1\/R1 turn · B close$/, panels.map.hint);
   assert.deepEqual(panels.map.keys, { ok: 'A', back: 'B', prev: 'L1', next: 'R1' });
   assert.ok(calls.Create > 50 && calls.Material > 5 && calls.Geometry > 20, JSON.stringify(calls));
   assert.ok(JSON.parse(look).hours[0].skyTop.length === 3, 'the look in the port\'s format');

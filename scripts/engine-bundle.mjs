@@ -88,6 +88,46 @@ export async function unityPictures({ to = UNITY_PICTURES.to, size = UNITY_PICTU
   return { n, bytes, to };
 }
 
+/**
+ * The title's painted worlds and its lettering for the Unity title (BridgeMenu.cs, issue #346), and the Map's marks
+ * (issue #343), made once as the items' pictures are, into StreamingAssets/hiraeth-js (not committed):
+ *   title/<shot>.jpg   each shot's vector drawing (public/title-vectors/<id>.svg, src/title-paint.js), the covers' cream
+ *                      print multiplied over it as the page's .print does (src/menus.css), 1920 × 1080
+ *   title/logo.png     HIRAETH as src/title-logo.js letters it, its shadow and ink, on clear, 2048 wide
+ *   map-marks/<k>.png  engine/map-marks.js's marks, 128 px
+ * Each made again only when what it comes from is newer.
+ */
+export const UNITY_TITLE = { vectors: 'public/title-vectors', to: 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-js', w: 1920, h: 1080, logo: 2048 };
+export async function unityTitle({ to = UNITY_TITLE.to } = {}) {
+  const sharp = (await import('sharp')).default;
+  const { logoSvg } = await import('../src/title-logo.js');
+  const { MAP_MARKS } = await import('../engine/map-marks.js');
+  const src = resolve(ROOT, UNITY_TITLE.vectors), dir = resolve(ROOT, to, 'title'), marks = resolve(ROOT, to, 'map-marks');
+  mkdirSync(dir, { recursive: true }); mkdirSync(marks, { recursive: true });
+  const stale = (out, ...from) => !existsSync(out) || from.some((f) => statSync(out).mtimeMs < statSync(f).mtimeMs);
+  const { w, h } = UNITY_TITLE;
+  // (the print: the cover's paper, a soft cream radial wash, multiplied over the drawing)
+  const print = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><radialGradient id="p" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#fbf1dc"/><stop offset="1" stop-color="#f1dfbb"/></radialGradient></defs><rect width="${w}" height="${h}" fill="url(#p)"/></svg>`);
+  let n = 0, bytes = 0;
+  for (const f of readdirSync(src).filter((x) => x.endsWith('.svg'))) {
+    const out = resolve(dir, f.replace(/\.svg$/, '.jpg'));
+    if (stale(out, resolve(src, f), fileURLToPath(import.meta.url))) {
+      const art = await sharp(resolve(src, f), { density: 150 }).resize(w, h, { fit: 'cover' }).png().toBuffer();
+      await sharp(art).composite([{ input: print, blend: 'multiply' }]).jpeg({ quality: 86, mozjpeg: true }).toFile(out);
+    }
+    n++; bytes += statSync(out).size;
+  }
+  const logo = resolve(dir, 'logo.png');
+  if (stale(logo, resolve(ROOT, 'src/title-logo.js'))) await sharp(Buffer.from(logoSvg()), { density: 72 }).resize({ width: UNITY_TITLE.logo }).png({ compressionLevel: 9 }).toFile(logo);
+  bytes += statSync(logo).size;
+  for (const [k, m] of Object.entries(MAP_MARKS)) {
+    const out = resolve(marks, `${k}.png`);
+    if (stale(out, resolve(ROOT, 'engine/map-marks.js'))) await sharp(Buffer.from(m.svg)).png({ compressionLevel: 9 }).toFile(out);
+    bytes += statSync(out).size;
+  }
+  return { n, marks: Object.keys(MAP_MARKS).length, bytes, to };
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const asked = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ENTRIES);
   const names = [...new Set(asked.flatMap((n) => [n, ...(WITH[n] ?? [])]))];
@@ -95,5 +135,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const r = await bundle(n);
     console.log(`${r.name}: ${r.out.map((o) => `${o.file} ${(o.bytes / 1e6).toFixed(2)} MB`).join(', ')} (${r.ms} ms)`);
   }
-  if (names.includes('unity')) { const p = await unityPictures(); console.log(`the items' pictures: ${p.n} PNGs, ${(p.bytes / 1e6).toFixed(2)} MB, in ${p.to}`); }
+  if (names.includes('unity')) {
+    const p = await unityPictures(); console.log(`the items' pictures: ${p.n} PNGs, ${(p.bytes / 1e6).toFixed(2)} MB, in ${p.to}`);
+    const q = await unityTitle(); console.log(`the title's ${q.n} pictures, its lettering and the Map's ${q.marks} marks: ${(q.bytes / 1e6).toFixed(2)} MB, in ${q.to}`);
+  }
 }

@@ -298,9 +298,11 @@ test('the map fills the page\'s box at a desktop\'s and a handheld\'s sizes (iss
   assert.equal(V.pick([{ id: 's', kind: 'ship', u: 0.5, v: 0.04 + 0.5, on: true }])?.id, 's', 'down: as near on the sheet');
 });
 
-test('an engine\'s menus: the Map\'s shape handed to the Unity bridge, which draws it at that shape', () => {
-  assert.match(src('engine/menus.js'), /aspect: \+\(p\.data\?\.aspect \?\? 1\)\.toFixed\(3\)/);
+test('an engine\'s menus: the Map\'s shape handed to the Unity bridge, which draws it at that shape and fills its room', () => {
+  // (the room BridgeMenu has for it, BridgeHost.MenuMapBox, as the map's shape: issue #272, #343)
+  assert.match(src('engine/menus.js'), /mapShape\(\) \{ const b = this\.mapBox\?\.\(\); return b && b\.w > 0 && b\.h > 0 \? mapAspect\(b\.w, b\.h\) : 1; \}/);
   const cs = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs');
   assert.match(cs, /float aspect = Mathf\.Clamp\(m\?\.F\("aspect", 1\) \?\? 1, 0\.5f, 3f\);/);
-  assert.match(cs, /Ui\.Place\(mapBox\.rt, x, y, mw, mh\);/);
+  assert.match(cs, /float mw = Mathf\.Min\(w - 10, \(h - 10\) \* aspect\), mh = mw \/ aspect;/);
+  assert.match(cs, /\(float w, float h\) MapRoom\(\) => \(W - 72 - 10, H - 202 - 10\);/);
 });

@@ -8,6 +8,18 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.75', date: '2026-10-14', items: [
+    // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's
+    // line), scripts/engine-bundle.mjs unityTitle, BridgeMenu.cs (DrawTitle, TitleEntry), BridgeHud.cs (access: the text
+    // size, the plain background, the readout), BridgeHost.Rumble; tests/engine-menus.test.js; docs/systems/engine-bridge.md
+    { text: 'The Unity version opens on the web game’s title now: one of its painted worlds behind the lettered HIRAETH, the entries small at the bottom left. Its settings gain Text size, the plain speech background, Show FPS, Reduce motion, Camera shake and controller rumble, and the Start menu names your save and the time played under its heading.',
+      see: 'Start the Unity build: a painted world (a different one each time) with the cream-and-red HIRAETH across the top. In Settings, set Text size to Larger and talk to someone: the conversation’s words grow; turn on the plain background and the panel goes white with black words.' },
+    // the Unity Map (issue #343): engine/raster.js (offscreen, putImageData, drawImage: drawTerrain's smooth ground),
+    // engine/game.js mapSource (the shape, the quests, the sharper part), engine/menus.js (MapView: the cursor, the zoom),
+    // engine/map-marks.js, BridgeMenu.cs DrawMap; tests/engine-menus.test.js, tests/engine-raster.test.js; docs/systems/engine-bridge.md
+    { text: 'The Map in the Unity version is the web game’s: it fills the page, its ground drawn smooth with every mesa’s and building’s inked edge (no more blocky squares), the web’s marks for you, the ship, temples, people and quests, a north arrow and the scale; the list beside it is gone for a cursor you move with the left stick, zooming with the triggers or A, with the name of whatever it rests on beside it.',
+      see: 'In the Unity build press View, then RB to the Map: move the ring with the left stick onto the ship and its name shows beside it; hold RT to zoom in, and after a moment the close view sharpens. B goes back to the whole map, then out.' },
+  ] },
   { v: '1.74', date: '2026-10-14', items: [
     // the weather indoors (issue #348): engine/game.js registers the ship with src/shelter.js addIndoors as main.js does;
     // src/wind.js: no wisp in an interior, none while you are in one (hush); tests/wind-wisps.test.js, tests/engine-ship.test.js

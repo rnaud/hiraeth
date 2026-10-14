@@ -13,8 +13,9 @@ import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
 import { Controller } from '../../src/controller.js';
-import { Settings, SaveGame } from '../../src/ui.js';
-import { slots } from '../../src/save-slots.js';
+import { Settings, SaveGame, TEXT_SIZES } from '../../src/ui.js';
+import { slots, DEBUG_SLOT, formatPlaytime } from '../../src/save-slots.js';
+import { setRumbleSettings, rumblePlay } from '../../src/rumble.js';
 import { game as gameState } from '../../src/game-state.js';
 import { seedDebugSave } from '../../src/debug-save.js';
 import { levelById } from '../../src/levels/index.js';
@@ -43,8 +44,18 @@ function standardPad(state, id) {
   // Gamepad's id, which src/native-pad.js reads the printed letters and the prompts' names from)
   const [b, a] = state.split('|');
   const values = b.split(',').map(Number), axes = a.split(',').map(Number);
-  return { id: id || 'unity pad', index: 0, connected: true, mapping: 'standard', timestamp: 0, buttons: values.map((v) => ({ pressed: v > 0.5, touched: v > 0, value: v })), axes, vibrationActuator: null };
+  return { id: id || 'unity pad', index: 0, connected: true, mapping: 'standard', timestamp: 0, buttons: values.map((v) => ({ pressed: v > 0.5, touched: v > 0, value: v })), axes, vibrationActuator: host.Rumble ? RUMBLE : null };
 }
+/**
+ * The pad's motors as the Gamepad API's (src/rumble.js plays its patterns on it): a pulse is Unity's
+ * Gamepad.SetMotorSpeeds for its length (BridgeHost.Rumble: the heavy motor, the light one, ms); where Unity's pad has
+ * no motors it does nothing.
+ */
+const RUMBLE = {
+  type: 'dual-rumble', effects: ['dual-rumble'],
+  playEffect(kind, o = {}) { host.Rumble(+o.strongMagnitude || 0, +o.weakMagnitude || 0, Math.round(+o.duration || 0)); return Promise.resolve('complete'); },
+  reset() { host.Rumble(0, 0, 0); return Promise.resolve('complete'); },
+};
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
 const planned = (a) => !!(a.views?.length || a.talk || a.play || a.walk || a.tour || a.idle || a.noTitle);
@@ -75,16 +86,26 @@ export function start(argsJson) {
   // BridgeArgs.Quality; a change applies from the next start)
   if (args.quality) settings.quality = args.quality;
   setFaces(settings.padFaces);
+  setRumbleSettings(settings);   // (Settings > Rumble and its strength, src/rumble.js)
   const menus = new EngineMenus({
     store: slots, settings, dev: () => devMode({ settings }), version: `v${VERSION}`,
     onStart: (choice) => begin(choice),
     onResume: () => { S?.game?.applySettings?.(); },
     onQuit: () => { S.game?.save(); menus.show('title'); },
     onPhoto: () => { S?.game?.setPhoto?.(true); },
-    onSetting: () => { setFaces(settings.padFaces); S?.game?.applySettings?.(settings); },
+    onSetting: (k) => {
+      setFaces(settings.padFaces); S?.game?.applySettings?.(settings);
+      if (k === 'rumble' || k === 'rumbleLevel') rumblePlay('hurt', { h: 0.75 });   // (a taste of the new strength, as the web's page)
+    },
     where: () => TITLES[S?.game?.level?.id] ?? '',
+    // (the save under the Start menu's heading, as the web's: "Save 1 · The Desert · 12 min played")
+    saveLine: () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`} · ${TITLES[S?.game?.level?.id] ?? ''} · ${formatPlaytime(slots.meta?.()?.playtime ?? 0)} played`,
+    // (the menus' canvas, its units: 720 high, as wide as the screen's shape; the title laid out on it)
+    screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }),
     // (the Items panel's tiles a row: as many of ~128 units as the sheet holds, BridgeMenu's canvas 720 high)
     itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))),
+    // (the room BridgeMenu's sheet has for the Map, its units: "w,h"; the map is drawn as wide as it, issue #272)
+    mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; },
   });
   S = { args, menus, settings, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, menuV: -1 };
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
@@ -124,15 +145,26 @@ function begin(choice) {
   launch({ ...S.args, level }, { start, arrive, via, prologue });
 }
 
+/**
+ * The accessibility settings the HUD honours (src/ui.js applyAccess, the page's --ts and .speech-solid; issue #346): the
+ * words' size, the plain solid background behind speech and the hints, the frame readout. BridgeHud reads them with
+ * the screen's state.
+ */
+function access() {
+  const s = S?.settings ?? {}, state = { ts: TEXT_SIZES[s.textSize] ?? 1, solid: !!s.speechBg, fps: !!s.showFps };
+  return { state, key: `${state.ts}|${state.solid}|${state.fps}` };
+}
+
 /** The menu's state to Unity (BridgeMenu.cs) when it changed. */
 function showMenu() {
   const m = S?.menus;
   if (!m || m.v === S.menuV) return;
   S.menuV = m.v;
   const v = m.view();
-  // (the Map's drawn ground, once each: its RGBA to Unity before the state that shows it, BridgeHost.MapImage)
-  const key = v?.map?.ground;
-  if (key && !(S.mapsSent ??= new Set()).has(key)) {
+  // (the Map's drawn ground and its sharper part zoomed in, once each: their RGBA to Unity before the state that shows
+  // them, BridgeHost.MapImage)
+  for (const key of [v?.map?.ground, v?.map?.detail?.key]) {
+    if (!key || (S.mapsSent ??= new Set()).has(key)) continue;
     const pic = S.game?.mapPicture?.(key);
     if (pic && host.MapImage) { host.MapImage(key, toHost(pic.data.buffer), pic.width, pic.height); S.mapsSent.add(key); }
   }
@@ -382,8 +414,8 @@ export function frame(dt) {
   if (S.frames % 4 === 0) backend.look(JSON.stringify(portLook(game.fullLook())));
   S.lookMs = (S.lookMs ?? 0) + now() - tL;
   // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI)
-  const scr = game.screen();
-  if (scr.version !== S.screenV) { S.screenV = scr.version; host.Screen(forPad(JSON.stringify(scr.state), true)); }
+  const scr = game.screen(), acc = access();
+  if (scr.version !== S.screenV || acc.key !== S.accessKey) { S.screenV = scr.version; S.accessKey = acc.key; host.Screen(forPad(JSON.stringify({ ...scr.state, access: acc.state }), true)); }
   pumpAudio(game);
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;

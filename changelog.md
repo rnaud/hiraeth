@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.75 — 2026-10-14
+
+- The Map in the Unity version is the web game’s: it fills the page, its ground drawn smooth with every mesa’s and building’s inked edge (no more blocky squares), the web’s marks for you, the ship, temples, people and quests, a north arrow and the scale; the list beside it is gone for a cursor you move with the left stick, zooming with the triggers or A, with the name of whatever it rests on beside it.
+- The Unity version opens on the web game’s title now: one of its painted worlds behind the lettered HIRAETH, the entries small at the bottom left. Its settings gain Text size, the plain speech background, Show FPS, Reduce motion, Camera shake and controller rumble, and the Start menu names your save and the time played under its heading.
+
 ## v1.74 — 2026-10-14
 
 - In the Unity preview a makers’ chest ends its opening on its card, as in the game: what you found, what it does, and A to go on (B skips the opening). Once you pick up a pad, the prompts name its buttons rather than the keyboard’s.

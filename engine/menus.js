@@ -22,20 +22,29 @@ import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
 import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
-import { controlsList, REBIND_PAD, PAD_RAW_ROWS } from '../src/ui.js';
+import { controlsList, REBIND_PAD, PAD_RAW_ROWS, TEXT_SIZES, reducedMotion } from '../src/ui.js';
 import { PAD_VERBS, BUTTON_NAME } from '../src/bindings.js';
 import { padFor, padConflicts, padRename, capturePad, RUN_MODES, GUARD_MODES } from '../src/remap.js';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 import { confirmKey, backKey } from '../src/native-pad.js';
 import { stockText, stateText } from '../src/shop-panel.js';
 import { stripTone } from '../src/story/tone.js';
+import { MapView, VIEW, mapAspect } from '../src/world-map.js';
+import { chooseShot } from '../src/title-shots.js';
+import { titleLayout } from '../src/title-layout.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
 
+/** A label of the web's split at its first " (": the words, and what is in the brackets (the row's note under it). */
+const head = (k) => () => t(k).replace(/ \(.*$/, '');
+const aside = (k) => () => t(k).match(/ \((.*)\)$/)?.[1] ?? '';
 /**
  * The settings an engine's Start menu and title show (src/ui.js SettingsMenu's, those the engines carry out): a slider
- * (min, max, step), a switch, or a choice (opts). Graphics applies at the next start (the engine's preset is read at launch).
+ * (min, max, step), a switch, or a choice (opts); `value(settings)` where the page shows something else than the saved
+ * value (reduced motion unset: as the system asks), `note` under the row while the pad is on it. Graphics applies at the
+ * next start (the engine's preset is read at launch). The web's Language is left out (no other language for now), and
+ * its rows the engines don't carry (the music's mode, the foes, the drone's hints, the developer's).
  */
 export const SETTINGS_ROWS = [
   { k: 'music', label: () => t('set.music'), kind: 'range', min: 0, max: 1, step: 0.05 },
@@ -44,10 +53,20 @@ export const SETTINGS_ROWS = [
   { k: 'mute', label: () => t('set.mute').replace(/ \(M\)$/, ''), kind: 'switch' },
   { k: 'sensitivity', label: () => t('set.sensitivity'), kind: 'range', min: 0.3, max: 3, step: 0.05 },
   { k: 'invertY', label: () => t('set.invertY'), kind: 'switch' },
+  // (no hit-stop, slow motion or camera kicks: src/feel.js, through applyAccess; issue #346)
+  { k: 'reduceMotion', label: head('set.reduceMotion'), note: aside('set.reduceMotion'), kind: 'switch', value: (s) => reducedMotion(s) },
+  { k: 'shake', label: () => t('set.shake'), kind: 'range', min: 0, max: 1, step: 0.05 },
   // (where the printed A B X Y are: the Retroid's own "Xbox style" swaps them, src/native-pad.js setFaces)
   { k: 'padFaces', label: () => t('set.padFaces'), kind: 'choice', opts: ['auto', 'xbox', 'nintendo', 'nintendo-xbox'], name: (v) => t(`set.padFaces.${v ?? 'auto'}`) },
+  // (the pad's motors: src/rumble.js, the engine's pad through BridgeHost.Rumble)
+  { k: 'rumble', label: () => t('set.rumble'), kind: 'switch' },
+  { k: 'rumbleLevel', label: () => t('set.rumbleLevel'), kind: 'choice', opts: ['low', 'medium', 'high'], name: (v) => t(`set.rumbleLevel.${v ?? 'medium'}`) },
   { k: 'hints', label: () => t('set.hints').replace(/ \(.*$/, ''), kind: 'choice', opts: ['off', 'subtle', 'full'], name: (v) => t(`set.hints.${v}`) },
   { k: 'quality', label: () => t('set.quality'), kind: 'choice', opts: ['handheld', 'low', 'medium', 'high'], name: (v) => t(`set.quality.${v}`), note: 'from the next start' },
+  // (the words on the screen, a solid plain background behind speech, the frame readout: BridgeHud, issue #346)
+  { k: 'textSize', label: head('set.textSize'), note: () => `${aside('set.textSize')()}`.replace(/, menus$/, ''), kind: 'choice', opts: Object.keys(TEXT_SIZES), name: (v) => t(`set.textSize.${v ?? 'normal'}`) },
+  { k: 'speechBg', label: () => t('set.speechBg'), kind: 'switch' },
+  { k: 'showFps', label: head('set.showFps'), kind: 'switch' },
 ];
 
 /** A setting's value as the page shows it. */
@@ -116,9 +135,15 @@ export class EngineMenus {
    * @param o.where     () → the Start menu's heading: the world you are in
    * @param o.itemCols  () → how many of the Items panel's tiles fit a row on the engine's screen (the web's grid fits
    *                    as many as its tile's size allows: src/game-menu.css --tile); GEAR_COLS without one
+   * @param o.mapBox    () → { w, h }: the room the engine's sheet has for the Map (its units), so the map is drawn as
+   *                    wide as it (issue #272, src/world-map.js mapAspect); null: a square
+   * @param o.screen    () → { w, h }: the engine's canvas for the menus (its units), the title laid out on it as the
+   *                    web's on the page (src/title-layout.js)
+   * @param o.shots     (o) → the title's shot (src/title-shots.js chooseShot): a different world each opening
+   * @param o.saveLine  () → the line under the Start menu's heading: the save, the world, the time played
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '' } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine });
     this.mode = null;            // null | 'title' | 'start' | 'game'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
@@ -126,7 +151,13 @@ export class EngineMenus {
     this.state = new MenuState(PANELS);
     this.full = null;            // the game menu's full view: { cell, list, k }
     this.person = null;          // the People panel's open page
-    this.zoom = null;            // the Map's mark zoomed on
+    this.zoom = null;            // the Map's mark zoomed on (none now: the cursor zooms, issue #343)
+    // the Map's view (src/world-map.js MapView, issue #244 on the web, #343 here): a cursor the left stick or the D-pad
+    // moves over the whole sheet, zoomed in and out round it (the triggers, A / ×), the mark under it named beside it
+    this.mapView = new MapView();
+    this.mapFresh = true;        // (opened or turned to: the whole map, the cursor on the traveller)
+    this.mapMoved = 0;           // (when the view last moved: a zoomed part is drawn again sharper once it rests)
+    this.mapDetail = null;       // (the part asked for)
     this.note = '';
   }
 
@@ -137,9 +168,16 @@ export class EngineMenus {
   show(mode, panel = null) {
     this.mode = mode;
     this.note = '';
-    if (mode === 'title') Object.assign(this.title, { screen: 'main', i: 0, ask: null, debugOpen: false, starting: null });
+    if (mode === 'title') {
+      Object.assign(this.title, { screen: 'main', i: 0, ask: null, debugOpen: false, starting: null });
+      // the painted world behind it (src/title-paint.js: one of the covers' shots, never the one shown last; the
+      // engine's picture of its drawing, StreamingAssets/hiraeth-js/title/<id>.jpg), chosen once a showing
+      let shot = null;
+      try { shot = this.shots({ storage: globalThis.localStorage ?? null, saves: this.store.list?.() ?? [] }); } catch (e) { console.warn(`[menus] the title's shot: ${e?.message ?? e}`); }
+      this.title.shot = shot ? { id: shot.id, menu: shot.menu ?? 'low' } : null;
+    }
     if (mode === 'start') this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
-    if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.startAt(); }
+    if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
     this.changed();
   }
   close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.changed(); this.onResume(); }
@@ -309,17 +347,19 @@ export class EngineMenus {
     at.at ??= { in: 'page', i: 0 };
     if (!n) return;
     if (y) { at.at.i = (at.at.i + y + n) % n; return; }
-    if (x) { const r = rows[at.at.i]; if (r) this.setSetting(r, settingStep(r, this.settings[r.k], x)); }
+    if (x) { const r = rows[at.at.i]; if (r) this.setSetting(r, settingStep(r, this.settingValue(r), x)); }
   }
   settingsAction(name, at, back) {
     const rows = this.settings ? SETTINGS_ROWS : [];
     if (name === 'back') { back(); return; }
-    if (name === 'confirm') { const r = rows[at.at?.i ?? 0]; if (r && r.kind !== 'range') this.setSetting(r, settingStep(r, this.settings[r.k], 1)); }
+    if (name === 'confirm') { const r = rows[at.at?.i ?? 0]; if (r && r.kind !== 'range') this.setSetting(r, settingStep(r, this.settingValue(r), 1)); }
   }
   setSetting(row, v) { this.settings.set(row.k, v); this.onSetting(row.k, v); }
+  /** A setting's value as the page has it (reduced motion unset: what the system asks). */
+  settingValue(r) { return r.value ? r.value(this.settings) : this.settings[r.k]; }
   settingsPage(at) {
     if (!this.settings) return [];
-    return SETTINGS_ROWS.map((r, i) => ({ text: r.label(), val: settingText(r, this.settings[r.k]), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, on: at?.in === 'page' && at.i === i, note: r.note ?? '' }));
+    return SETTINGS_ROWS.map((r, i) => ({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' }));
   }
 
   // ------------------------------------------------------------------ the Start menu
@@ -379,12 +419,16 @@ export class EngineMenus {
     this.stopRebind = () => finish(null);
   }
   /** Each frame (the engine's): a rebinding left waiting 8 s keeps the button it had. */
-  tick() { if (this.rebinding && Date.now() > this.rebinding.until) this.stopRebind?.(); }
+  tick() {
+    if (this.rebinding && Date.now() > this.rebinding.until) this.stopRebind?.();
+    // (the Map's view at rest: the part in view drawn again sharper, so the view asks for it once)
+    if (this.onMap && !this.mapRested && Date.now() - this.mapMoved >= 400) { this.mapRested = true; this.changed(); }
+  }
   startMove(x, y) {
     const S = this.start, side = START_SIDE.length;
     const pageRows = this.startPageRows(), page = pageRows.length;
     // (a slider, a switch or a choice in the page: left / right its value, as the web keeps a slider's; B goes back)
-    if (S.at.in === 'page' && x && page && this.startPage() === 'settings') { const r = SETTINGS_ROWS[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settings[r.k], x)); return; }
+    if (S.at.in === 'page' && x && page && this.startPage() === 'settings') { const r = SETTINGS_ROWS[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settingValue(r), x)); return; }
     const control = S.at.in === 'page' && x && CONTROL_ROWS.find((r) => r.k === pageRows[S.at.i]?.control);
     if (control) { this.setSetting(control, settingStep(control, this.settings[control.k], x)); return; }
     const home = START_SIDE.findIndex((e) => e.page === this.startPage());
@@ -428,9 +472,10 @@ export class EngineMenus {
     const id = this.state.panel.id, src = this.sources;
     let data = null;
     try {
-      data = id === 'people' ? src?.people?.(this.person) : id === 'map' ? src?.map?.({ zoom: this.zoom }) : src?.[id]?.();
+      data = id === 'people' ? src?.people?.(this.person) : id === 'map' ? src?.map?.({ zoom: null, detail: this.mapDetailWanted(), aspect: this.mapShape() }) : src?.[id]?.();
     } catch (e) { console.warn(`[menus] the ${id} panel's data: ${e?.message ?? e}`); }
     data ??= id === 'worlds' ? [] : id === 'map' ? { world: '', marks: [] } : {};
+    if (id === 'map') this.mapSync(data);
     const built = BUILDERS[id](data);
     const rows = id === 'items' ? this.itemRows(built.rows) : built.rows;
     return { id, data, rows, start: built.start };
@@ -449,16 +494,53 @@ export class EngineMenus {
     for (const row of rows) if (!row.some((c) => c.kind === 'item')) out.push(row.map((c) => (c.col === CARRY_COL ? { ...c, col: carry } : c)));
     return out;
   }
+  // ---- the Map's view (issue #343: the web's cursor and zoom, src/game-menu.js mapAnalog / mapPaint)
+
+  /** The map's shape for the engine's sheet: its width over its height, in the web's steps (mapAspect); 1 without one. */
+  mapShape() { const b = this.mapBox?.(); return b && b.w > 0 && b.h > 0 ? mapAspect(b.w, b.h) : 1; }
+  /** The view put on the map just read: opened (or the map at a new shape), the whole of it, the cursor on the traveller. */
+  mapSync(data) {
+    const a = data?.aspect > 0 ? data.aspect : 1;
+    if (!this.mapFresh && Math.abs(a - this.mapView.aspect) < 1e-3) return;
+    this.mapFresh = false; this.mapDetail = null;
+    const you = data?.marks?.find((m) => m.kind === 'you' && m.on);
+    this.mapView.reset(you ? [you.u, you.v] : null, a);
+  }
+  /** The part of the map to draw again sharper: the view's (zoomed in twice or more) once it has rested 0.4 s; the last one meanwhile. */
+  mapDetailWanted() {
+    if (Date.now() - this.mapMoved >= 400 || !this.mapDetail) this.mapDetail = this.mapView.detailWindow();
+    return this.mapDetail;
+  }
+  mapTouched() { this.mapMoved = Date.now(); this.mapRested = false; }
+  /** On the Map (and not a thing's full view): the menu's view is the map's. */
+  get onMap() { return this.mode === 'game' && !this.full && this.state.panel.id === 'map'; }
+  /**
+   * Each frame in a menu, the pad's left stick and triggers (src/controller.js menuAnalog): on the Map the stick moves
+   * its cursor smoothly (the view following), RT zooms in and LT out round it, as far as they are pressed. True when
+   * the Map took them (the controller then leaves the stick's steps to the D-pad).
+   */
+  analog({ x = 0, y = 0, lt = 0, rt = 0 } = {}, dt = 1 / 60) {
+    if (!this.onMap) return false;
+    const V = this.mapView, k = (rt > 0.08 ? rt : 0) - (lt > 0.08 ? lt : 0);
+    if (x || y) V.stick(x, y, dt);
+    if (k) V.zoomBy(Math.exp(k * VIEW.zoomRate * dt));
+    if (x || y || k) { this.mapTouched(); this.changed(); }
+    return true;
+  }
+  mapZoomBy(k) { this.mapView.zoomBy(k); this.mapTouched(); }
+
   startAt() {
     const p = this.panel();
     if (p.start) this.state.at[p.id] = p.start;
   }
   gameMove(x, y) {
     if (this.full) { if (x) this.fullStep(x); return; }
+    // (the Map: the D-pad, the arrows, WASD move its cursor a step; the stick moves it smoothly, analog)
+    if (this.onMap) { this.mapView.move(Math.sign(x) * VIEW.step, Math.sign(y) * VIEW.step); this.mapTouched(); return; }
     const p = this.panel();
     if (p.id === 'people' && this.person && x) { const d = p.data?.person; const to = x > 0 ? d?.nextId : d?.prevId; if (to) this.person = to; return; }
     const r = this.state.move(p.rows, x, y);
-    if (r === 'turn') { this.full = null; this.person = null; this.zoom = null; this.startAt(); }
+    if (r === 'turn') { this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
   }
   fullStep(dx) {
     const F = this.full, k = F.k + Math.sign(dx);
@@ -468,7 +550,16 @@ export class EngineMenus {
   gameAction(name) {
     if (name === 'select') { this.close(); return; }
     if (name === 'start') { this.show('start'); return; }
-    if (name === 'tabPrev' || name === 'tabNext') { this.state.turn(name === 'tabNext' ? 1 : -1); this.full = null; this.person = null; this.zoom = null; this.startAt(); return; }
+    if (name === 'tabPrev' || name === 'tabNext') { this.state.turn(name === 'tabNext' ? 1 : -1); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); return; }
+    // the Map: A / × closer round the cursor, twice as close each press, at the closest the whole map again; B / ○ the
+    // whole map first when zoomed in, then out of the menu (src/game-menu.js confirm, back)
+    if (this.onMap && (name === 'confirm' || name === 'back')) {
+      const V = this.mapView;
+      if (name === 'confirm') this.mapZoomBy(V.z >= VIEW.maxZoom - 1e-3 ? 1 / VIEW.maxZoom : 2);
+      else if (V.zoomed) this.mapZoomBy(1 / VIEW.maxZoom);
+      else this.close();
+      return;
+    }
     if (this.full) {
       if (name === 'back') { this.full = null; return; }
       if (name !== 'confirm') return;
@@ -525,13 +616,20 @@ export class EngineMenus {
   }
   titleView() {
     const T = this.title;
-    const base = { v: this.v, kind: 'title', screen: T.screen, logo: 'HIRAETH', version: this.version };
-    if (T.starting) return { ...base, rows: [], starting: this.note || '…', hint: '' };
+    const base = { v: this.v, kind: 'title', screen: T.screen, logo: 'HIRAETH', version: this.version, shot: T.shot?.id ?? '' };
+    // (where the name and the menu go on the engine's canvas: the web's layout, src/title-layout.js, the name across the
+    // top, the entries a short column low at the left so the world shows)
+    const lay = (n) => {
+      const S = this.screen?.() ?? { w: 1280, h: 720 }, L = titleLayout({ w: S.w, h: S.h, buttons: n, icons: 0, at: T.shot?.menu ?? 'low' }), r = (x) => Math.round(x * 10) / 10;
+      return { logo: { x: r(L.logo.left), y: r(L.logo.top), w: r(L.logo.width), h: r(L.logo.height) },
+        menu: { x: r(L.menu.list.left), y: r(L.menu.list.top), w: r(Math.max(L.menu.list.width, 220)), button: r(L.menu.button), gap: r(L.menu.gap), font: r(L.menu.font) } };
+    };
+    if (T.starting) return { ...base, rows: [], starting: this.note || '…', layout: lay(2), hint: '' };
     if (T.screen === 'settings') return { ...base, head: t('title.settings').toUpperCase(), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ◀ ▶ adjust · B / ○ back' };
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1) }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose';
-    return { ...base, head: T.screen === 'saves' ? t('title.savesHead') : '', rows,
+    return { ...base, head: T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null,
       ask: T.ask ? { q: T.ask.q, what: T.ask.what, undone: T.ask.kind === 'delete' ? t('title.undone') : '', no: t('title.keep'), yes: T.ask.yes, on: T.ask.on } : null, hint };
   }
   startView() {
@@ -540,7 +638,7 @@ export class EngineMenus {
     const hint = this.rebinding ? `${t('rebind.pressButton')} · Menu keeps it`
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
       : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
-    return { v: this.v, kind: 'start', head: this.where() || '', sub: '',
+    return { v: this.v, kind: 'start', head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
       side: START_SIDE.map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
       page: { title, note: page === 'controls' && this.settings ? t('rebind.padHow') : '', rows: this.startPageRows() }, hint };
   }
@@ -573,10 +671,27 @@ export class EngineMenus {
       hint: this.full ? 'B / ○ back · ◀ ▶ the next' : 'LB / RB turn · A / × choose · B / ○ close' };
     if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
     if (p.id === 'map') {
-      // (its drawn ground: the engine's picture by its key, engine/game.js mapPicture; "Drawing the map… n %" until then)
-      const ground = p.data?.canvas?.key ?? '', progress = p.data?.progress ?? 0;
-      view.map = { world: p.data?.world ?? '', marks: (p.data?.marks ?? []).filter((m) => m.on).map((m) => ({ id: m.id, kind: m.kind, name: m.name, u: +m.u.toFixed(4), v: +m.v.toFixed(4), deg: m.deg ?? null, on: cell?.id === m.id })), note: p.data?.note ?? '', zoom: this.zoom,
-        aspect: +(p.data?.aspect ?? 1).toFixed(3), ground, drawing: ground ? '' : `${t('gm.map.drawing')} ${Math.round(progress * 100)} %`, scale: p.data?.scale ? { frac: +p.data.scale.frac.toFixed(4), label: p.data.scale.label } : null };
+      // the map is the whole sheet (no list under it, issue #244): its ground (the engine's picture by its key,
+      // engine/game.js mapPicture; "Drawing the map… n %" until then) and the sharper part of it zoomed in, placed by the
+      // view (z: the zoom, u0 / v0: the view's top left on the map); the marks, the cursor and the name of the mark under
+      // it beside it, all on the sheet (0..1 across and down), as src/game-menu.js mapPaint places them
+      const V = this.mapView, d = p.data ?? {}, on = (d.marks ?? []).filter((m) => m.on), hit = V.pick(on), [cx, cy] = V.toSheet(V.u, V.v);
+      const r4 = (x) => +Number(x).toFixed(4);
+      const ground = d.canvas?.key ?? '', progress = d.progress ?? 0, part = d.detail?.canvas?.key ? d.detail : null;
+      const marks = [];
+      for (const m of on) {
+        const [x, y] = V.toSheet(m.u, m.v);
+        if (x >= -0.03 && x <= 1.03 && y >= -0.03 && y <= 1.03) marks.push({ id: m.id, kind: m.kind, x: r4(x), y: r4(y), deg: m.deg ?? null, sel: m === hit });
+      }
+      const bar = d.span ? V.scale(d.span) : d.scale;
+      view.map = { world: d.world ?? '', note: d.note ?? '', aspect: r4(d.aspect ?? 1), ground, drawing: ground ? '' : `${t('gm.map.drawing')} ${Math.round(progress * 100)} %`,
+        detail: part ? { key: part.canvas.key, u0: r4(part.u0), v0: r4(part.v0), s: r4(part.s) } : null,
+        z: r4(V.z), u0: r4(V.u0), v0: r4(V.v0), cursor: [r4(cx), r4(cy)], on: !!hit, marks, none: !(d.marks ?? []).length ? t('gm.map.none') : '',
+        tip: hit ? { name: hit.name ?? '', sub: hit.sub ?? '', left: cx > 0.58, below: cy < 0.16 } : null,
+        scale: bar ? { frac: r4(bar.frac), label: bar.label } : null, zoomed: V.zoomed };
+      view.rows = [];
+      view.strip = { name: hit?.name ?? d.world ?? '', sub: hit?.sub ?? '', desc: '', act: V.z >= VIEW.maxZoom - 1e-3 ? ACT.whole : ACT.zoom };
+      view.hint = `LT / RT zoom · A / × ${V.z >= VIEW.maxZoom - 1e-3 ? ACT.whole.toLowerCase() : ACT.zoom.toLowerCase()} · LB / RB turn · B / ○ ${V.zoomed ? ACT.whole.toLowerCase() : 'close'}`;
     }
     if (p.id === 'people' && p.data?.person) {
       const d = p.data.person;
