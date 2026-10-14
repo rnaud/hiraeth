@@ -1,0 +1,59 @@
+changelog.md
+  s_9ca76055a220ed::t_fd8b8c66a9401b 5-8
+docs/README.md
+  s_9ca76055a220ed::t_1c012caab930ec 29
+docs/design/helper-guardians.md
+  s_9ca76055a220ed::t_6ae38a279dbe2c 1-104
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_fe61d9acef28cf 18
+docs/systems/foes.md
+  s_9ca76055a220ed::t_4490e5714f4109 727-744
+src/boot.js
+  s_9ca76055a220ed::t_d2b3a8bd9b496e 5-9
+src/changelog-media.js
+  s_9ca76055a220ed::t_77f5b0e46a28c8 839-840,842-848
+src/changelog.js
+  s_9ca76055a220ed::t_44e89e197c63d1 11-17
+src/fluid-kit.js
+  s_9ca76055a220ed::t_be15b0ae5724cc 27-29,31,35,37-38
+src/fluid-tool.js
+  s_9ca76055a220ed::t_fa498e208095b8 85-88,892,1007-1008,1054-1057,1285-1326
+src/guardian-help/elder.js
+  s_9ca76055a220ed::t_58d171d6b26f72 1-502
+src/guardian-help/hud.js
+  s_9ca76055a220ed::t_72ce49dfdc0b64 1-41
+src/guardian-help/index.js
+  s_9ca76055a220ed::t_dec44d31f0ef9d 1-77
+src/guardian-help/keeper.js
+  s_9ca76055a220ed::t_ac0ada7b2a0950 1-383
+src/guardian-help/pose.js
+  s_9ca76055a220ed::t_f9d8a24cb528a7 1-32
+src/guardian-help/seed.js
+  s_9ca76055a220ed::t_272d54fae075a3 1-28
+src/main.js
+  s_9ca76055a220ed::t_ee213e5cd712bd 320-323,2401-2402,2728-2733
+src/temples/desert.js
+  s_9ca76055a220ed::t_312300ef34d258 89
+src/world-picker.js
+  s_9ca76055a220ed::t_424fc36ea1cda1 14,28,173-174
+tests/guardian-help.test.js
+  s_9ca76055a220ed::t_ff2dd362e38bd7 1-295
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_392e1f32d78a45 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9eafaf479eb12c785a6b00a00ccc967b804756e2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
