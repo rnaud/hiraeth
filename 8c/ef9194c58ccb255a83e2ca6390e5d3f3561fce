@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_babc5e897636c0 7
+docs/systems/characters.md
+  s_9ca76055a220ed::t_ddbe76a7cb3764 1585-1589
+docs/systems/performance.md
+  s_9ca76055a220ed::t_51846c69f5492c 2841-2864
+src/changelog-media.js
+  s_9ca76055a220ed::t_bc91deef38b342 864,866-871
+src/characters/elder-v3-creature.js
+  s_9ca76055a220ed::t_a026fd8dce0fa4 9,74-79,85,223-228
+src/skinned-lod.js
+  s_9ca76055a220ed::t_e3c544bb96e077 45-50,53,94,102
+src/temples/guardian-generated.js
+  s_9ca76055a220ed::t_8bdc438d45d265 120
+tests/elder-cycles.test.js
+  s_9ca76055a220ed::t_f7b9b7da4b1fc0 4,13,18-19,94-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8cef9194c58ccb255a83e2ca6390e5d3f3561fce",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
