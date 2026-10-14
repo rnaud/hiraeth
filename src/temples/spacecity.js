@@ -242,7 +242,7 @@ function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
   for (const [x, z] of [[-4.2, -3.4], [4.0, -3.0], [-4.6, 2.6], [4.4, 3.2]]) {
     K.both(brass, T(new THREE.CylinderGeometry(0.95, 0.95, 2.6, 16), [S.x + x, BS + 1.4, S.z + z], [0, 0, Math.PI / 2]));
     K.add(cableM, T(new THREE.CylinderGeometry(1.14, 1.14, 2.0, 16, 1, true), [S.x + x, BS + 1.4, S.z + z], [0, 0, Math.PI / 2]));   // (the cable wound on it, clear of the drum)
-    K.both(iron, box(0.3, 1.0, 1.6, S.x + x - 1.45, BS + 0.5, S.z + z), box(0.3, 1.0, 1.6, S.x + x + 1.45, BS + 0.5, S.z + z));
+    K.both(iron, [box(0.3, 1.0, 1.6, S.x + x - 1.45, BS + 0.5, S.z + z), box(0.3, 1.0, 1.6, S.x + x + 1.45, BS + 0.5, S.z + z)]);
   }
   add(Key, { id: 'kS', at: [S.x, BS, S.z - S.d / 2 + 1.6], yaw: 0 });
   add(Mark, { room: 'store', at: [S.x, BS, S.z + 3.8], yaw: Math.PI });

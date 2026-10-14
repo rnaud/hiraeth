@@ -838,6 +838,8 @@ const CARRY337 = 'Issue #337: muted headless Chrome (High, 1280 × 720, 10:00, c
 const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (Vite on port 6237), the review’s motions stepped at 60 Hz by scripts/tripo/elder-sheets.mjs, in the game’s ink; before, the tree before (433459bf) with the same review page and timings; 14 October';
 /** (v1.75, issues #356 and #355: shot on a commit of this branch before its rebase, and the tree before it) */
 const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
+/** (v1.76, issue #358: shot on a commit of this branch before its rebase, and the tree before it) */
+const KIT358 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (ff32ac8d9), Vite on port 6358, 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.76': [
     { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
@@ -856,6 +858,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'rumour-talk', title: 'A rumour in Qanat', caption: 'Zahir, by the landing, tells of a fragment on the open sand near your ramp: a line in the Desert’s voice instead of one of his own.', only: 'after', from: RUMOURS340 },
       { name: 'rumour-map', title: 'Its circle on the Map', caption: 'The Map zoomed in: a soft plum circle round where he said, its middle off the fragment’s spot, named “Something singing, they say”; the cursor on it says whose word it is and how far.', only: 'after', from: RUMOURS340 },
     ], see: 'Talk to someone in a crowd, or a bystander, a few times: now and then they tell of something nearby. Open the Map (View, then RB): its circle is there until you find the thing. A shopkeeper you know may tell one before showing you the wares.' },
+    { match: 'Some temple walls that were half missing are whole now', tags: ['temples', 'contact'], shots: [
+      { name: 'hush-mouth', title: 'The Hush-House, a side mouth', caption: 'Inside the smallest mouth’s niche, where its coffer waits, looking at its far corner: before, only the back of the niche was drawn, and the sky showed past it and over the jaws; after, its side wall and the lintel over the jaws.', ...KIT358,
+        view: { level: 'perdide', player: [-103, 1709, 396], heading: -0.9, eye: [-107.6, 1711.6, 398.9], target: [-110.2, 1710.6, 401.3], fov: 80, hour: 17 } },
+      { name: 'lamp-niches', title: 'The Lamp-House, the Wick Room’s east wall', caption: 'The two lamp niches either side of the grille to the great key: before, each niche had one side wall and no roof, the key’s alcove neither side; after, each is a closed niche with a roof, and the alcove behind the grille is walled.', ...KIT358,
+        view: { level: 'perdide', player: [-124, 1800, -736], heading: 1.57, eye: [-121, 1804.5, -736], target: [-110, 1801.8, -736], fov: 70, hour: 17 } },
+      { name: 'lamp-far-niche', title: 'The Lamp-House, the far door’s lamp niche', caption: 'High in the gallery’s west wall, where the pool-orb wakes the lamp: before, the back and one side; after, both sides and its roof.', ...KIT358,
+        view: { level: 'perdide', player: [-143, 1809, -647], heading: -1.57, eye: [-145.5, 1812.3, -648.5], target: [-153, 1810.8, -646.1], fov: 70, hour: 17 } },
+      { name: 'rope-irons', title: 'The Mooring-House, the Rope Store’s drums', caption: 'Before, each drum stood on one iron, its other end in the air; after, an iron under either end.', ...KIT358,
+        view: { level: 'spacecity', player: [-168, 1511, -102], heading: 3.14, eye: [-166, 1515.5, -103], target: [-168, 1511, -110], fov: 70, hour: 17 } },
+    ] },
   ],
   '1.75': [
     { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [

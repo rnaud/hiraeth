@@ -31,6 +31,9 @@ export const CHANGELOG = [
     'In the Rose House the plate on the Dry Channel’s pier holds the door at the top of the gallery open only while something weighs it down: stand on it and the door opens, step off and it shuts again. The pier is longer now, and the Givers’ stone weight lies at its other end: carry it onto the plate and the door stays open.',
     // the Mooring-House's caged coffer (issue #337): src/temples/spacecity.js CLEAT, wC, pC, cC; pieces.js Coffer cage; tests/carry.test.js
     'In the Mooring-House a caged coffer waits on the Capstan Hall’s east side, a plate in front of it. The moorers’ weight sits on a cleat high on the wall where no jump reaches: pull it down into your hands with the grappling hook, set it on the plate, and the cage sinks.',
+    // multi-box walls (issue #358): src/temples/kit.js both() takes an array; perdide.js, perdide2.js, spacecity.js;
+    // tests/temple-kit-both.test.js
+    'Some temple walls that were half missing are whole now: the Hush-House’s side mouths have their side walls and lintels, the Lamp-House’s lamp niches and the great key’s alcove their sides and roofs, and you can no longer walk through a niche wall you can see. The drums in the Mooring-House’s Rope Store stand on both their irons.',
   ] },
   { v: '1.75', date: '2026-10-14', items: [
     // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's

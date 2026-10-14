@@ -841,6 +841,16 @@ plate at one end and the Givers' weight at the other: the plate no longer latche
 the east wall, its plate, and the moorers' weight high on a cleat where only the grappling hook reaches it: a reward,
 `optional`). The playthrough test carries every weight on the way for real. docs/systems/carry.md has the rules.
 
+## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
+
+`K.both(mat, geo, proxy)` draws `geo` and makes it solid (or `proxy` instead, a stand-in). Several boxes go as an
+array, `K.both(mat, [a, b, c])`, each drawn and solid; a fourth argument throws. Five calls had passed their boxes
+loose: the first was drawn but not solid, the second solid but not drawn, the rest neither. Fixed: the Hush-House's
+side mouths (their niches' sides and lintels), the Lamp-House's lamp niches (one side and no roof each; the second
+niche's drawn wall walked through on the way to the great key), the great key's alcove (its sides) and the far
+door's lamp niche, and the Mooring-House's Rope Store (its drums on one iron each). The newly drawn sides and roofs
+sit a few centimetres into the walls round them, clear of the walls' faces (`tests/zfight.test.js`).
+
 ## A deadly pit looks it (issue #312, `src/pit-void.js`)
 
 The author: "Make it clearer when the pit is deadly when I fall … like in the Rose House": the Dry Channel's sand looked

@@ -266,7 +266,7 @@ function wings(rt, K, M, { C2, A0, G0, spike, root }) {
   for (const m of MOUTHS) {
     const s = m.side === 'w' ? -1 : 1, x0 = s * 7.2, deep = m.id === 'dj1' ? 3.2 : 1.8, x1 = s * (7.2 + deep), xc = (x0 + x1) / 2;
     K.slab(Math.min(s * 5.9, x1), m.z - 1.6, Math.max(s * 5.9, x1), m.z + 1.6, 9, 0.8);
-    K.both(M.wall, box(0.5, 3.8, 3.2, x1 + s * 0.25, 10.9, m.z), box(deep, 3.8, 0.5, xc, 10.9, m.z - 1.55), box(deep, 3.8, 0.5, xc, 10.9, m.z + 1.55), box(deep + 0.5, 0.6, 3.6, xc + s * 0.25, 13.1, m.z));
+    K.both(M.wall, [box(0.5, 3.8, 3.2, x1 + s * 0.25, 10.9, m.z), box(deep, 3.8, 0.5, xc, 10.9, m.z - 1.55), box(deep, 3.8, 0.5, xc, 10.9, m.z + 1.55), box(deep + 0.5, 0.6, 3.6, xc + s * 0.25, 13.1, m.z)]);
     add(Jaw, { id: m.id, still: m.still, at: [s * 6.6, 9, m.z], yaw: Math.PI / 2, w: 2.6, h: 3.4, seed: m.id === 'dj1' ? 3 : 5, wrong: MOUTH_WRONG,
       stilled: m.id === 'dj1' ? 'The smallest crystal rings true, low, and the little jaws stop dead, frosted, and ease open.' : 'The middling crystal rings true, a note higher, and its jaws stop dead, frosted, and ease open.' });
     K.both(M.trim, box(0.7, 0.3, 0.9, s * 5.75, 12.75, m.z));
