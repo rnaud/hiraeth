@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.71 — 2026-10-13
 
+- Nobody gives you a quest you can’t do yet. In Vael, Oïa waits until you have the fluid wings before she asks you to wait with her for the bird: until then she points you to the Aerie, and its quest starts. Sister Aube waits until the bird has answered your call, Sabri until you have the lift valve, and the masked head and the hoverbike until you have the gun and the backpack. Until then they aren’t marked on the map.
 - A gadget you find is in your hand straight away, ready to use, instead of waiting until you pick it; a line after the chest says so, and the first time you carry two, that D-pad ↑ takes the other.
 - A chest’s card now says only what you found and what it does, on a small card in the middle of the screen that is easy to read, instead of a strip across the whole screen with a line about the makers and a description of what the thing is made of.
 - Creatures of a kind that wake together no longer march in step like soldiers: each sets off on its own foot. The Cistern-Keeper lifts its feet a little higher as it walks.

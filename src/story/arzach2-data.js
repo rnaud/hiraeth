@@ -43,6 +43,9 @@ export const CAIRN_STONES = [
 export const QUESTS = [
   {
     id: Q, title: 'The Bell Under the Cloud', world: 'arzach2', main: true,
+    // (only the bird reaches the monastery: Aube gives it once she has answered your call, issue #328)
+    needs: [{ quest: 'arzach.bird', name: 'the bird' }],
+    needsLine: '~solemn~ The bell is up on the rose cliff, and only the bird flies that high. *She waits by the lone tower*, on the plain. Come back on her.',
     outro: 'The bell rang. The cloud settled a little. So did the stones.',
     // (Calix's step went, issue #118: the clapper is the goal, and he says where it lies to whoever asks; a save at it
     //  goes on to `clapper`, src/save-migrate.js QUEST_STAGE_MOVES_118)

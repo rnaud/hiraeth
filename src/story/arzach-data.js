@@ -47,6 +47,10 @@ export const RIDER_CALL_BEAT = 0.22;
 export const QUESTS = [
   {
     id: Q, title: 'The Waiting Bird', world: 'arzach', main: true,
+    // (the tower's wind lifts only open wings: Oïa gives it once they are had, issue #328; till then she points at the
+    //  Aerie and its quest starts, src/story/quest-needs.js)
+    needs: ['glider'],
+    needsLine: '~neutral~ (Oïa looks at your bare back, then points *west, up the standing stones, to the white house with stone wings*. She spreads her arms: wings first.)',
     outro: 'She comes when you call. She chose to.',
     stages: [
       // (from the Aerie, the bird's old tracks lead down to her: the way back that is not the standing stones' way up, src/vael-ways.js)

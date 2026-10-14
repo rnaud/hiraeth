@@ -823,6 +823,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'A gadget you find is in your hand straight away', shots: [
       { name: 'gadget-in-hand', title: 'After the hook’s chest', caption: 'The same chest a few seconds after its card, the fluid gun in hand before it was opened: before, the gun still in hand (the gun at the top right); after, the hook in hand and “Grappling hook in hand. B takes another gadget; held, the wheel.”', from: ITEMS329 },
     ] },
+    { match: 'Nobody gives you a quest you can’t do yet', tags: ['story'], shots: [
+      { name: 'bird-no-wings', title: 'Oïa, without the wings', caption: 'Vael on arrival, talking to Oïa without the wings: before, she began the Waiting Bird, whose wind lifts only wings; after, she points west to the house with stone wings, and the Aerie’s quest starts instead.', from: ITEMS329 },
+      { name: 'bird-wings', only: 'after', title: 'With the wings', caption: 'The same talk with the wings had: she gives the Waiting Bird as before.', from: ITEMS329 },
+    ] },
   ],
   '1.70': [
     { match: 'There are three times as many fragments of the singing light', shots: [

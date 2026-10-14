@@ -35,6 +35,7 @@ import * as UNDERWATER_WORDS from './underwater-data.js';
 import { runSteps } from '../load-steps.js';
 import { attachCourt } from '../finds/courts.js';
 import { partOf } from '../levels/names.js';
+import { templeNeeds } from '../story/quest-needs.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -231,6 +232,8 @@ function setupOneTemple(ctx, rt) {
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({
     id: Q.id, title: Q.title, world: Q.world ?? levelId, outro: Q.outro, ...(Q.main ? { main: true } : {}),
+    // (what its rooms want from outside, the Rose House's double jump: its local gives it once that is had, issue #328)
+    needs: templeNeeds(T.def.logic, templeWorld(id)),
     stages: [
       { id: 'find', text: Q.find, label: T.def.name, flag: `temple.${id}.entered`, at: `temple.${id}.door` },
       { id: 'gadget', text: Q.gadget, label: 'Inside the house', when: () => rt.logic.gadget, at: `temple.${id}.next` },

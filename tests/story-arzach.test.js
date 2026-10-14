@@ -182,14 +182,22 @@ test('the Aerie’s quest is Lark’s to give (issue #273): marked first and alo
   assert.equal(quests.opening('lark'), true);
   quests.opened();
   assert.equal(quests.isActive('temple.arzach'), true);
-  assert.ok(quests.giverMarks().some((g) => g.person === 'oia'), 'Oïa is marked once Lark has spoken');
+  // (issue #328: Oïa's quest rides the wind up the tower, so she is marked only once the wings are had)
+  assert.equal(quests.giverMarks().some((g) => g.person === 'oia'), false, 'without the wings Oïa is not marked');
+  game.set('item.glider', 1);
+  assert.ok(quests.giverMarks().some((g) => g.person === 'oia'), 'Oïa is marked once Lark has spoken and the wings are had');
+  game.set('item.glider', undefined);
   assert.equal(quests.objective()?.quest, 'temple.arzach', 'the quest she gave is the scout’s');
+  game.set('quest.temple.arzach', undefined);   // (the Aerie's quest put back: the wings given below would carry it on)
   at(V(0, 0, 0));
 });
 
 test('the main quest: Oïa, the wind up the tower, the flute on the sill, her call, the promise', () => {
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('arzach.bird'), undefined);
+  // (issue #328: the tower's wind wants the wings, so nobody gives it before they are had: tests/quest-needs.test.js)
+  assert.equal(quests.openerObjective(), null, 'without the wings Oïa gives nothing');
+  game.set('item.glider', 1);
   assert.equal(quests.openerObjective()?.id, `opener-${'arzach.bird'}`);
   // the bird is nowhere to be seen until her call is played: not drawn, not to be ridden, deaf to a plain whistle
   assert.equal(bird.dormant, true, 'not to be ridden');
@@ -242,10 +250,7 @@ test('the main quest: Oïa, the wind up the tower, the flute on the sill, her ca
   step(30 * 30, 1 / 30);
   assert.ok(bird.pos.distanceTo(A.tower.balcony) < 12, `she landed on the balcony: ${bird.pos.distanceTo(A.tower.balcony).toFixed(1)} m`);
   assert.equal(game.flag('arzach.bird.promise'), true, 'she bowed');
-  // (up the tower here without the wings: the ship won't leave Vael without them, so the quest's last step says so, issue #232)
-  assert.equal(quests.stage('arzach.bird'), 'wings');
-  assert.match(quests.current('arzach.bird').text, /fluid wings from the Aerie/);
-  game.set('item.glider', 1);
+  // (the wings had: the quest's last step, issue #232's "Take the fluid wings from the Aerie", is passed over)
   step(2);
   assert.equal(quests.isDone('arzach.bird'), true);
   assert.equal(game.flag('world.arzach.done'), true);

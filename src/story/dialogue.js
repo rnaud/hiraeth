@@ -80,6 +80,14 @@ export function formatText(text, html = true, kind = inputKind()) {
   return keyText(s, { html, kind });
 }
 
+/** `person` saying only `line` (a quest they would give is held back, issue #328): their talk for this once. */
+export function heldBackPerson(person, line) {
+  return { ...person, talk: { entry: [{ node: 'held' }], nodes: { held: { say: [line] } } } };
+}
+
+/** The quests an answer's effects (or the node it leads to) would start. */
+const startsIn = (effects) => (Array.isArray(effects) ? effects : effects ? [effects] : []).flatMap((e) => (e && typeof e === 'object' && e.start ? [e.start] : []));
+
 /** Evaluate a condition against the game state and quests. */
 export function check(cond, ctx) {
   if (cond == null) return true;
@@ -205,10 +213,16 @@ export class DialogueRunner {
   get tone() { return this.tones?.[this.page] ?? 'neutral'; }
   get speaker() { return this.node.speaker === 'player' ? 'player' : 'npc'; }
   get lastPage() { return this.page >= this.pages.length - 1; }
+  /** An answer that would give a quest held back for something it needs (issue #328: src/story/quest-needs.js): not offered. */
+  startsHeld(c) {
+    const q = this.ctx.quests;
+    if (!q?.blocked) return false;
+    return [...startsIn(c.do), ...startsIn(this.person.talk?.nodes?.[c.goto]?.do)].some((id) => !q.isStarted?.(id) && q.blocked(id));
+  }
   /** The choices to show now (only on the last page): [{ text, index }]. Always at least "(leave)" when the node ends. */
   choices() {
     if (!this.lastPage || this.ended || this.listening) return [];
-    const list = (this.node.choices ?? []).map((c, index) => ({ ...c, index, text: stripTone(c.text), tone: parseLine(c.text).tone })).filter((c) => check(c.if, this.ctx) && !(c.once && this.ctx.game.flag(`said.${this.person.id}.${this.nodeId}.${c.index}`)));
+    const list = (this.node.choices ?? []).map((c, index) => ({ ...c, index, text: stripTone(c.text), tone: parseLine(c.text).tone })).filter((c) => check(c.if, this.ctx) && !(c.once && this.ctx.game.flag(`said.${this.person.id}.${this.nodeId}.${c.index}`)) && !this.startsHeld(c));
     if (list.length) return list;
     if (this.node.next) return [];
     return [{ text: this.node.bye ?? '(leave)', end: true, index: -1 }];
@@ -383,9 +397,17 @@ export class Dialogue {
       // (each node reached, for whoever writes things down: the Sightings, src/story/sightings.js)
       onNode: (node, n) => this.game.emit('dialogue:node', { id: person.id, node, say: n.say }),
     };
+    // one who would give a quest but for a critical item it needs (issue #328): one line, where it is, instead of their
+    // talk; the quest that gets it starts if it hadn't (src/story/quest-needs.js)
+    const held = this.quests?.heldBack?.(person.id);
+    if (held) {
+      person = this.person = ctx.person = heldBackPerson(person, held.line);
+      const via = held.need?.quest;
+      if (via && via !== held.quest && this.quests.def?.(via) && !this.quests.isStarted(via) && !this.quests.blocked?.(via)) this.quests.start(via);
+    }
     // the world's opening quest, if this is one who opens it: under way before they speak (src/story/quests.js opensWith)
     // (and every quest they give, issue #273: what they say of one as they give it, a box's where, ends their first words)
-    this.quests?.opening?.(person.id);
+    else this.quests?.opening?.(person.id);
     this.runner = new DialogueRunner(person, ctx);
     this.runner.addPages(this.quests?.givenWords?.() ?? []);
     if (this.runner.ended) { this.quests?.opened?.(); return false; }

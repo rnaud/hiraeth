@@ -679,6 +679,21 @@ giving me access to the quest for the temple first."
   quest on arrival or near its door, the boxes' offered on arrival). Only the worlds it has still to reach have givers.
 - The temple locals' "I'm going." answer now shows while the quest is under way (`done: false`), since their talk has
   already given it.
+- **Nothing given before it can be done** (issue #328, the author: "In Vael, I shouldn't be able to get the quest
+  marker for the waiting bird if I don't have the wings. I should never be able to unlock a quest that requires a
+  critical item if I don't have it. The character instigator should send me to go to the other quest instead."). A
+  quest's `needs` (`src/story/quest-needs.js`) are the critical items its steps can't be done without, the core gadgets
+  (`leave-gate.js CORE`), or another quest done first; a temple's quest needs what its rooms ask for from outside
+  (`templeNeeds`, from its logic; what every traveller in that world carries, the desert's finds past the desert, aside).
+  While one is missing (`quests.blocked`) the giver is not waiting: no mark, no balloon, the scout doesn't find them,
+  their talk gives nothing; they say one toned line instead (`quests.heldBack`: the quest's `needsLine`, else "Not
+  without the lift valve. It is in the giant's cave."), the quest that gets the missing thing starts if it hadn't (as
+  the ship's refusal starts it), and an answer that would start the quest is not offered (`DialogueRunner.startsHeld`).
+  Once it is had, the quest is given as before; doing the thing first still starts a quest. Held back now: Vael's
+  Waiting Bird (the wings: Oïa points at the Aerie, and the Aerie's quest starts), the Bell Under the Cloud (the bird:
+  Aube says she waits by the lone tower), the Rose House (the lift valve), the masked head (the gun) and the hoverbike
+  (the backpack). `tests/quest-needs.test.js` checks every quest of every world, and that a step asking for a critical
+  item in its words belongs to a quest that needs it.
 - Tests: `tests/quest-givers.test.js` (only the temple's giver known on arrival; talking unlocks, the words said; the
   map's marks; the lead alone, then the rest; reaching the goal first; the migration; the lore line),
   `tests/boxes.test.js` (the boxes' quests given by the local, a box opened first is done, an old save's world),

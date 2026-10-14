@@ -183,6 +183,7 @@ export const QUESTS = [
     // tank has been filled at the giant's pool. Whoever tells of it says where it is (it was "ask Marrow" first,
     // one person sending you to another: the author's playthrough, issue #63; src/story/desert-bike.js migrates a save there)
     id: 'desert.bike', title: 'Something Faster Than Walking', world: 'desert',
+    needs: ['backpack'],   // (its tank wakes the bike: Marrow's answer that gives it waits for the backpack, issue #328)
     outro: 'The hoverbike hums under you. Your pack calls it, and it comes.',
     stages: [
       { id: 'find', text: 'Find the tarp in the red-rag hollow', label: 'The tarp in the hollow', flag: 'desert.bike.uncovered', at: 'bike' },
@@ -191,6 +192,7 @@ export const QUESTS = [
   },
   {
     id: 'desert.mask', title: 'The Mask in the Sand', world: 'desert',
+    needs: ['gun'],   // (its eyes take the gun's water: Pell's answer that gives it waits for the gun, issue #328)
     outro: 'It does not wake. But it saw you.',
     stages: [
       { id: 'go', text: 'Visit the masked head in the southern dunes', label: 'The masked head', goto: 'mask', radius: 30, at: 'mask' },

@@ -116,6 +116,10 @@ test('the sky stones are boost-jumps: a plain jump falls short, jump and boost l
 test('the main quest: Aube, the monastery, the clapper (Calix says where), the bell, the note; the cloud settles', () => {
   // it doesn't just appear: it waits for its first talk, and till then the scout finds who to ask
   assert.equal(quests.stage('arzach2.bell'), undefined);
+  // (issue #328: only the bird reaches the monastery, so Aube gives it once Vael's bird has answered)
+  assert.equal(quests.openerObjective(), null, 'before the bird, Aube gives nothing');
+  assert.match(quests.heldBack('aube').line, /lone tower/);
+  game.set('quest.arzach.bird', 'done');
   assert.equal(quests.openerObjective()?.id, `opener-${'arzach2.bell'}`);
   talk(aube, ['Why is it higher', 'I’ll go up']);
   step(2);

@@ -80,6 +80,9 @@ export const CHANGELOG = [
     // a gadget found is in hand at once (issue #330): src/items.js grant, src/gadgets/index.js inHand / gadgetFoundLine;
     // docs/systems/gadgets.md "A gadget found is in hand at once"
     'A gadget you find is in your hand straight away, ready to use, instead of waiting until you pick it; a line after the chest says so, and the first time you carry two, that D-pad ↑ takes the other.',
+    // nobody gives a quest before it can be done (issue #328): src/story/quest-needs.js, quests.blocked / heldBack,
+    // dialogue.js start / startsHeld; docs/systems/story.md "Nothing given before it can be done"
+    'Nobody gives you a quest you can’t do yet. In Vael, Oïa waits until you have the fluid wings before she asks you to wait with her for the bird: until then she points you to the Aerie, and its quest starts. Sister Aube waits until the bird has answered your call, Sabri until you have the lift valve, and the masked head and the hoverbike until you have the gun and the backpack. Until then they aren’t marked on the map.',
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

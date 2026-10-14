@@ -201,12 +201,15 @@ export const ACTIONS = {
     if (!cab.refuses(W.player, 'hail')) issue('cab', 'a cab stopped for him without a pass');
     if (!W.quests.isStarted('incal.pass')) issue('soft-lock', 'a cab refused him, and nothing says where a pass comes from');
   },
-  // Vael: Oïa, by the landing, opens the main quest and sends you up the standing stones to the Aerie for the wings
+  // Vael: Oïa, by the landing, sends you up the standing stones to the Aerie for the wings first: without them she gives
+  // nothing of the bird (issue #328, src/story/quest-needs.js), and the Aerie's quest starts
   meetOia: (W, issue) => {
     const r = A.talkTo(W, 'oia', A.goalOf(W, 'arzach.bird'));
     if (r.error) return issue('soft-lock', r.error);
-    if (!W.quests.isStarted('arzach.bird')) issue('soft-lock', 'talking to Oïa by the landing started nothing');
-    if (!r.said.some((t) => /white streamer/.test(t))) issue('lead', 'Oïa did not point the way to the Aerie');
+    if (game.flag('item.glider')) { if (!W.quests.isStarted('arzach.bird')) issue('soft-lock', 'talking to Oïa with the wings started nothing'); return; }
+    if (W.quests.isStarted('arzach.bird')) issue('early', 'Oïa gave the bird’s quest before the wings');
+    if (!W.quests.isStarted('temple.arzach')) issue('soft-lock', 'talking to Oïa by the landing started nothing');
+    if (!r.said.some((t) => /house with stone wings/.test(t))) issue('lead', 'Oïa did not point the way to the Aerie');
   },
   // Vael: with the bird's promise kept, the scout leads over the plain to the riders' gate at its edge, then on over the
   // cloud to Sister Aube, who opens the bell's quest (src/vael-crossing.js, src/story/arzach2.js aubeWay)
@@ -408,7 +411,8 @@ export const ROUTE = [
   // (Sabri in the camps sends you east to the Rose House: the way there is not the way home past its field-stone)
   // (the main quest's last step is the Rose House's blade and guard, issue #232: its solver asks Sabri and plays the house)
   { id: 'desert', play: ['desert.power'] },
-  // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
+  // (Oïa sits by the landing: she points the way to the Aerie for the wings, and gives the main quest once they are had:
+  //  the quest's play talks to her, its opener)
   // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', { act: 'crossGate', at: 'gate', label: 'the riders’ gate' }, 'arzach2.bell', { temple: 'done', id: 'arzach2' }] },   // (v1.49: and the Founders' Belfry to its guardian, its west store an arena)
   // (v1.49: and the Lamp-House to its guardian, the Kennel off its first hall and the Wick Room past the gallery: issue #23)

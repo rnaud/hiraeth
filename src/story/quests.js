@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { questGoal } from './quest-goals.js';
 import { hintsFor } from '../hint-level.js';
+import { missingNeed, heldBackLine } from './quest-needs.js';
 
 // Quests: ids, stages, objective text and a place in the world. Progress is
 // kept in the shared game state (game-state.js), so it survives reloads and
@@ -67,7 +68,8 @@ import { hintsFor } from '../hint-level.js';
 // Marrow, `opensWith(..., { lead: true })`), then every giver still waiting. Doing the thing first never waits for
 // them: a goal reached starts or ends its quest as before (a temple entered starts its quest, a box opened is its
 // quest done, openAhead). A giver whose quest waits on something else (`ready`: no box quests before the first box is
-// found) is not waiting yet.
+// found) is not waiting yet, and nor is one whose quest needs a critical item not had yet (issue #328, `needs`:
+// src/story/quest-needs.js): talked to, they say where it is instead (heldBack), and give the quest once it is had.
 //
 // A failed quest has ended like a finished one (not active, never tracked), but it
 // went wrong: the journal files it under its own heading with a ✗ stamp and its
@@ -245,7 +247,7 @@ export class Quests {
   /** The opening quest still waiting for its conversation (or null): the first of the world's whose talk has not come. */
   pendingOpener() {
     const list = this.openers ?? (this.opener ? [this.opener] : []);
-    return list.find((o) => this.def(o.id) && !this.isStarted(o.id)) ?? null;
+    return list.find((o) => this.def(o.id) && !this.isStarted(o.id) && !this.blocked(o.id)) ?? null;
   }
   /**
    * A conversation with `personId` begins (before they speak): it starts the opening quest if they are one who opens
@@ -301,8 +303,27 @@ export class Quests {
   }
   /** Who gives quest `id` (their entry), or null. */
   giverOf(id) { return this.givers.find((x) => x.id === id) ?? null; }
-  /** A giver's quest waits for their talk: defined, not started, and nothing else to wait on. */
-  waiting(x) { return !!this.def(x.id) && !this.isStarted(x.id) && (!x.ready || !!x.ready()); }
+  /** A giver's quest waits for their talk: defined, not started, nothing else to wait on, and nothing it needs missing. */
+  waiting(x) { return !!this.def(x.id) && !this.isStarted(x.id) && (!x.ready || !!x.ready()) && !this.blocked(x.id); }
+  /**
+   * What quest `id` needs and isn't had yet (issue #328: a critical item, or a quest done first; src/story/quest-needs.js):
+   * { item, name, where, quest } or null. While it is, nobody gives the quest.
+   */
+  blocked(id) {
+    const d = this.def(id);
+    return d?.needs ? missingNeed(d, { has: (item) => this.has(item), isDone: (q) => this.isDone(q) }) : null;
+  }
+  /**
+   * `personId` would give a quest but for something it needs (and gives nothing else now): { quest, need, line } (their one
+   * line, toned: where the missing thing is), or null. src/story/dialogue.js start says it instead of their talk.
+   */
+  heldBack(personId) {
+    const openers = this.openers ?? (this.opener ? [this.opener] : []);
+    const mine = [...openers, ...this.givers].filter((x) => x.who.includes(personId) && this.def(x.id) && !this.isStarted(x.id) && (!x.ready || !!x.ready()));
+    if (!mine.length || mine.some((x) => !this.blocked(x.id))) return null;
+    const x = mine[0], need = this.blocked(x.id);
+    return { quest: x.id, need, line: heldBackLine(this.def(x.id), need) };
+  }
   /** Every giver, the world's openers too, in the order they are marked: the lead first, a temple's locals, the rest. */
   allGivers() {
     const openers = (this.openers ?? (this.opener ? [this.opener] : [])).map((o) => ({ ...o, opener: true, rank: o.lead ? -1 : 1 }));
