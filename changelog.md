@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.71 — 2026-10-13
+
+- In the City-Shaft the first seconds after you arrive run smoother sooner: the far trees and strollers it finishes after the first frame are done in about half the time, and every collision check there is quicker. Nothing looks different.
+- The Android app and the Steam Deck download carry 5 MB less: two old bodies the game no longer uses (the Elder’s first prototype and the traveller’s earlier head) are left out.
+
 ## v1.70 — 2026-10-13
 
 - There are three times as many fragments of the singing light: 24 hide in every world now, 288 in all, so one is never far as you explore, and half of them sit in or on the places worth reaching. Anselm’s upgrades cost what they did, and the ones you already found stay found.

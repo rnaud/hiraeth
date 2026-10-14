@@ -1422,6 +1422,7 @@ Tried and not kept:
 - **SAH for the City-Shaft's BVH** (`collision: { strategy: 'SAH' }`, as Lorn II's): the same trees dropped and the
   queries quicker (the trees' check 2.5 → 1.36 s, the crowd's routes 0.9 → 0.48 s), but the worker's build 0.4 → 1.6 s,
   and that is waited for: 6.7 → 6.2 s. With the trees deferred, the build's cost would outweigh the crowd's gain.
+  (Since issue #300 the City-Shaft gets it without the wait: built behind the load and swapped in, see the last section.)
 
 ### The drifts' collision and the crowd's strollers, later too (October 2026, v1.49)
 
@@ -2677,3 +2678,54 @@ what), but far fewer pixels of sand, grass, Qanat and its people are shaded, and
 GPU's ms were most likely lower than at the foot of the ramp, looking out at Qanat, and the script's about the same
 (the world runs the same whatever the camera sees). The Xbox's fps there sat at the 60 Hz cap (59.4-59.9), so the
 frames a second hardly move; the GPU and frame-time columns are the ones to read as optimistic.
+
+## The City-Shaft's 13 ms, and what ships that no page loads (issue #300, 2026-10-13)
+
+The perf audit of v1.66 (`docs/audits/perf-v1.66.md`) read the City-Shaft's main thread at 13.3 ms a frame at High,
+twice the next world's, its load at 8-11 s, and found the Elder's first prototype body in every device's package.
+Measured on the Mac (M4 Pro, headless Chrome, ANGLE Metal, muted, 1280 × 720, High, hour 10, clear; the machine
+shared, so the load average goes with each number; before and after built from archived copies and run in turn).
+
+**What the 13 ms are.** A V8 profile of 5 s at the `crowd` view (`Profiler` over CDP, an unminified build), the queue
+of distant detail drained first: drawing is 56 % of the main thread (`renderFrame`: the G-buffer 21 %, the shadow
+cascades 17 %, three's object walk and draw calls), the people 12 % (`npc.update`: their puppets, poses and capes,
+about 1.7 ms a frame), the matrices' walk and the batches' ranges 6 %, the traveller 5 %, the crowd 3 %, collision
+queries 2-3 %. `scripts/bench/passes.mjs --level incal` (new: any world, at its views in `viewpoints-worlds.json`)
+times `renderFrame` alone at 7.3-12.6 ms (load 13-22), 1.8-5.1 ms of it the shadow maps (`noShadow`). The steady
+frame, the queue drained (`fps.mjs --warmup 25`, load 6-10): 8.0-12.1 ms of script, the same in both builds.
+
+The rest of the audit's 13 ms was **the queue of distant detail** ("Distant detail after the first frame", above):
+when the first view is recorded 13,600-14,200 jobs still wait, 12,600 of them the trees' check against the houses
+(fifteen points a tree: three heights, on its axis and round it), and the queue takes its 2 ms of every frame for
+18-22 s (4.4-4.8 s of rays in all). The audit's first two views were recorded inside that window.
+
+**The fix: the SAH BVH, built behind the load.** The City-Shaft's 1.15 million collision triangles build into a CENTER
+BVH in 0.4 s and an SAH one in 2.1 s, whose rays are 2.6 times quicker (in the page: 22,000 axis rays from the trees'
+points, 336 → 127 ms, the same 20,624 hits). SAH was tried before and left out because the load waited for it. Now
+`collision: { later: 'SAH' }` (`Physics.create` o.later, `Physics.refine`) builds both at once, each in a worker of its
+own (the second from a copy of the triangles, made before the first worker takes the buffers): the load goes on with
+the quick one, and the SAH one replaces it when ready, about 2 s after the bake and before the load's own near detail.
+The same triangles, so the same answers: the trees dropped once the queue has drained are the same 1,295, by index, in
+both builds. Without a Worker (node, the Unity bridge) nothing changes. Tests: `tests/physics-refine.test.js`.
+
+| City-Shaft, High, `crowd` view, two runs each (load 10-13) | before | after |
+|---|---|---|
+| distant detail left when the view is reached | 14,161 / 13,638 jobs | 11,630 / 11,549 |
+| the queue drained after | 21.9 / 17.5 s | 9.7 / 9.2 s |
+| its work in all | 4.8 / 4.4 s | 2.4 / 2.5 s |
+| the load (navigation to booted) | 5.6 / 5.1 s | 4.9 / 4.5 s |
+
+`fps.mjs` loads: 4.3-5.6 s before, 4.3-4.7 s after (load 6-13), under the 6 s budget either way on a quieter machine
+than the audit's (load 8-68). Named and left: the shadow cascades and the people's puppets are the biggest steady costs.
+
+**What ships that no page loads.** `public/` is copied whole into `dist/`, so into the APK, the Deck package and the
+over-the-air zip. Two bodies there were read only by tools and tests: the Elder's first prototype (`guardians/elder-v1`,
+3.08 MB; the Aerie wears `elder-v3`) and the traveller's second head (`characters/traveller-v1/head-v2`, 2.0 MB and its
+0.48 MB of colours; head-v3 replaced it). Both now live in `data/` (`data/guardians/elder-v1/`,
+`data/characters/traveller-v1/head-v2/`), where the tests, the motion audit and the rig scripts read them.
+`tests/shipped-assets.test.js` keeps it so: every file of `public/` must be named by the code the built pages reach
+(vite.config.js `BUILD_INPUT`, its imports followed: static, dynamic, workers, `import.meta.glob`), by its path, or by
+its folder and its name (or stem: `item-pictures/${id}.webp`, `sfx/${name}-${i}.mp3`), unless the site keeps it
+(`scripts/site-only.mjs`) or it is in the test's `ALLOWED` with its reason (the licences, the provenance notes, the
+coral-shirt traveller the Unity bridge build still copies, 5.8 MB no web page loads). `size.mjs`: to the devices
+153.14 → 147.81 MB, in the APK and the Deck package 53.96 → 48.63 MB (−5.33 MB).

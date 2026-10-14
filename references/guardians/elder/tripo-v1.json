@@ -84,8 +84,8 @@
     "elder-tripo-result.png"
   ],
   "customAnimation": {
-    "asset": "public/guardians/elder-v1/model.glb",
-    "rigReport": "public/guardians/elder-v1/rig.json",
+    "asset": "data/guardians/elder-v1/model.glb",
+    "rigReport": "data/guardians/elder-v1/rig.json",
     "rebuild": "node scripts/tripo/rig-elder.mjs",
     "review": "/tools/elder-review.html",
     "bones": 23,

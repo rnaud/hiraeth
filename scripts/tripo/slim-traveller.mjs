@@ -10,7 +10,8 @@
 //     sized frame, full body): the pictures differ by under 0.06 / 255 on average, and it saves 67 MB
 //     of GPU memory a texture, its upload and its download.
 //
-//   node scripts/tripo/slim-traveller.mjs            (writes public/characters/traveller-v1/{,head-v2/}model.glb)
+//   node scripts/tripo/slim-traveller.mjs            (writes public/characters/traveller-v1/model.glb; head-v2, retired
+//                                                     for head-v3, no longer ships: issue #300)
 //   node scripts/tripo/slim-traveller.mjs --check    (exits 1 if the shipped files aren't what this makes)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -19,7 +20,6 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const TRAVELLER_FILES = [
   ['data/characters/traveller-v1/model.glb', 'public/characters/traveller-v1/model.glb'],
-  ['data/characters/traveller-v1/head-v2/model.glb', 'public/characters/traveller-v1/head-v2/model.glb'],
 ];
 export const SLIM = { maxTexture: 2048, quality: 90 };
 

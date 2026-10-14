@@ -187,10 +187,14 @@ export function dogSubject(speed = 1.6, pace = 1) {
 }
 export const DOGS = { moustache: (pace) => dogSubject(1.6, pace), 'moustache-hurry': (pace) => dogSubject(4.2, pace) };
 
-/** A generated skin's GLB (public/guardians/<file>/model.glb) parsed in node, its materials and textures left out. */
+/**
+ * A generated skin's GLB (public/guardians/<file>/model.glb; a prototype no page loads, such as elder-v1, under
+ * data/guardians/: issue #300) parsed in node, its materials and textures left out.
+ */
 export async function loadSkin(file) {
   globalThis.ProgressEvent ??= class { constructor(type, x) { this.type = type; Object.assign(this, x); } };
-  const bytes = fs.readFileSync(new URL(`../../public/guardians/${file}/model.glb`, import.meta.url)), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
+  const at = (dir) => new URL(`../../${dir}/guardians/${file}/model.glb`, import.meta.url);
+  const bytes = fs.readFileSync(fs.existsSync(at('public')) ? at('public') : at('data')), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
   for (const m of json.meshes) for (const p of m.primitives) delete p.material;
   delete json.materials; delete json.textures; delete json.images;
   json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');

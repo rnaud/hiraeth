@@ -9,7 +9,7 @@ import {ELDER} from '../src/temples/arzach.js';
 import {ELDER_LEGS,elderPoint} from '../src/characters/elder-fit.js';
 
 globalThis.ProgressEvent ??= class {constructor(type,v){this.type=type;Object.assign(this,v);}};
-const bytes=fs.readFileSync(new URL('../public/guardians/elder-v1/model.glb',import.meta.url));
+const bytes=fs.readFileSync(new URL('../data/guardians/elder-v1/model.glb',import.meta.url));
 const len=bytes.readUInt32LE(12),json=JSON.parse(bytes.subarray(20,20+len));
 for(const m of json.meshes)for(const p of m.primitives)delete p.material;
 delete json.materials;delete json.textures;delete json.images;

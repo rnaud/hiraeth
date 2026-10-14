@@ -8,6 +8,23 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.71', date: '2026-10-13', items: [
+    // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,
+    // tests/shipped-assets.test.js; docs/systems/performance.md "The City-Shaft's 13 ms, and what ships that no page loads"
+    { text: 'The Android app and the Steam Deck download carry 5 MB less: two old bodies the game no longer uses (the Elder’s first prototype and the traveller’s earlier head) are left out.',
+      numbers: [{ title: 'What the APK and the Deck package carry', unit: 'MB', better: 'lower', device: 'the shipped build, .claude/skills/perf-audit/size.mjs', rows: [
+        { where: 'the game’s files in the APK and the Deck package', before: 53.96, after: 48.63 },
+        { where: 'everything a device can get (with the music fetched on demand)', before: 153.14, after: 147.81 },
+      ], source: 'node .claude/skills/perf-audit/size.mjs' }] },
+    // the City-Shaft's collision on an SAH BVH built behind the load (issue #300): src/physics.js Physics.create o.later,
+    // refine; src/levels/incal.js collision.later; tests/physics-refine.test.js
+    { text: 'In the City-Shaft the first seconds after you arrive run smoother sooner: the far trees and strollers it finishes after the first frame are done in about half the time, and every collision check there is quicker. Nothing looks different.',
+      numbers: [{ title: 'The City-Shaft after arriving: the work finished after the first frame', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720, load average 10-13, two runs each', rows: [
+        { where: 'until it is all done (from the first view)', before: 19.7, after: 9.5 },
+        { where: 'the main thread’s time spent on it', before: 4.6, after: 2.5 },
+        { where: 'the load', before: 5.4, after: 4.7 },
+      ], source: 'window.deferred after ?level=incal, before and after built from archived copies, run in turn' }] },
+  ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step
     // through: src/passage.js lead + PassageCover.light; the skull cave's landing end no longer ink (src/desert-city.js)

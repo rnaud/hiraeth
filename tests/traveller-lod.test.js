@@ -59,7 +59,7 @@ test('the shipped traveller files keep the export\'s geometry byte for byte, and
     assert.ok(readFileSync(dst).length < readFileSync(src).length * 0.7, `${dst} is smaller`);
   }
   // the head's untouched export is the one its provenance describes
-  const prov = JSON.parse(readFileSync('public/characters/traveller-v1/head-v2/provenance.json'));
+  const prov = JSON.parse(readFileSync('data/characters/traveller-v1/head-v2/provenance.json'));
   assert.equal(createHash('sha256').update(readFileSync(prov.source_file)).digest('hex'), prov.sha256);
 });
 

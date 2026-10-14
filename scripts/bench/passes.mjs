@@ -5,12 +5,14 @@
 //   npx vite build && node scripts/bench/serve.mjs --port 6851 &
 //   node scripts/bench/passes.mjs --url http://localhost:6851/ --preset handheld --only cave,dunes
 //        [--headless 1] [--res 1280x720] [--frames 48] [--reps 3] [--scale 2.5] [--eval snippet.js] [--toggles base,noFar,noNear,...] [--wet 1] [--shots dir] [--out file.json]
+//        [--level incal]: another world, at its views in viewpoints-worlds.json (all of them unless --only names some)
 // --wet 1: the cave's pool full and its stream running (as after the channel is cleared).
 import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { tempPath } from '../temp-dirs.mjs';
-import { options, viewpoints, sleep } from './lib.mjs';
+import { readFileSync } from 'node:fs';
+import { options, viewpoints, sleep, ROOT } from './lib.mjs';
 import { launch, glInfo } from './browser.mjs';
 import { SCALE, prepareStorage, conditions } from './web-page.mjs';
 
@@ -18,14 +20,15 @@ const opt = options();
 const BASE = (opt.url ?? 'http://localhost:6851/').replace(/\/?$/, '/');
 const preset = opt.preset ?? 'handheld';
 const [w, h] = (opt.res ?? '1280x720').split('x').map(Number);
-const VP = viewpoints();
+const level = typeof opt.level === 'string' ? opt.level : 'desert';
+const VP = level === 'desert' ? viewpoints() : { hour: 10, weather: 'clear', views: JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds[level]?.views ?? [] };
 // inside the cave's room as well (the bench's own "cave" stands in its passage): across the basin to the
 // roots, and down over the pool from its rim
-VP.views.push(
+if (level === 'desert') VP.views.push(
   { name: 'cave-room', player: [-1250, 1000, 1270], heading: Math.PI, eye: [-1250, 1002.4, 1275], target: [-1250, 999.5, 1250], fov: 60 },
   { name: 'cave-pool', player: [-1240, 1000, 1264], heading: Math.PI + 0.6, eye: [-1236.5, 1002.8, 1269], target: [-1250, 998.3, 1250], fov: 60 },
 );
-const only = typeof opt.only === 'string' ? opt.only.split(',') : ['cave', 'dunes'];
+const only = typeof opt.only === 'string' ? opt.only.split(',') : level === 'desert' ? ['cave', 'dunes'] : VP.views.map((v) => v.name);
 const frames = +(opt.frames ?? 48), reps = +(opt.reps ?? 3);
 const toggles = (typeof opt.toggles === 'string' ? opt.toggles : 'base').split(',');
 const shots = typeof opt.shots === 'string' ? resolve(opt.shots) : null;
@@ -70,7 +73,7 @@ const gl = await glInfo(page);
 console.log('GPU:', gl.renderer, 'timer query:', gl.timerQuery);
 if (/SwiftShader|llvmpipe|Software/i.test(gl.renderer ?? '')) { console.error('software rendering'); process.exit(2); }
 await prepareStorage(ev, preset);
-await page.goto(BASE + '?level=desert' + (opt.q ? '&' + opt.q : ''), { waitUntil: 'load' });
+await page.goto(BASE + `?level=${level}` + (opt.q ? '&' + opt.q : ''), { waitUntil: 'load' });
 await page.waitForFunction(() => window.__hiraethBooted && window.renderFrame && window.player, null, { timeout: 300000, polling: 100 });
 await sleep(4000);
 await conditions(ev, { hour: VP.hour, weather: VP.weather, scale });

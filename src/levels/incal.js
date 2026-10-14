@@ -1238,6 +1238,9 @@ export function* buildIncal(scene) {
   yield;
   return attachTemple('incal', scene, {
     id: 'incal',
+    // (1.15 million triangles: the load on a BVH quick to build, its rays 2.6 times quicker on the one built behind it,
+    // src/physics.js Physics.create o.later; the trees' check after the first frame was 5 s of rays, issue #300)
+    collision: { later: 'SAH' },
     portals: [...shop.portals],
     lights: [...shop.lights, ...ways.lights],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)

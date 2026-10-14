@@ -81,9 +81,10 @@ Screenshots and provenance are alongside the source under `head-v2/`.
 
 The user approved this head and requested integration. Its byte-identical GLB is
 tracked at `data/characters/traveller-v1/head-v2/model.glb` (with `reference.png`);
-the game ships `public/characters/traveller-v1/head-v2/model.glb`, made from it by
+the game shipped `public/characters/traveller-v1/head-v2/model.glb`, made from it by
 `node scripts/tripo/slim-traveller.mjs` (the same geometry, the texture at 2048²),
-beside its provenance.
+until head-v3 replaced it; since issue #300 it no longer ships, and its provenance and
+`colors.json` sit beside the source in `data/characters/traveller-v1/head-v2/`.
 Its sampled `colors.json` supplies native engine VMs that cannot decode the JPEG.
 Reproduce it from the source (a copy of `data/characters/traveller-v1/head-v2/model.glb`
 in a folder of its own) with `python3 scripts/tripo/sample-colors.py <that folder> --output colors.json`.
@@ -295,7 +296,7 @@ Remove Lighting on. The untouched 5,277,500-byte export is retained locally at
 job when rebuilding on another checkout. Its SHA-256 is checked by the builder.
 
 Run `node scripts/tripo/rig-elder.mjs` to rebuild the 23-joint skin and its report
-under `public/guardians/elder-v1/`. Landmarks and weights are measured in
+under `data/guardians/elder-v1/` (not `public/`: no game page loads it, so it stays off the devices, issue #300). Landmarks and weights are measured in
 `src/characters/elder-fit.js`; they are specific to this source. The shipped
 review derivative is 3,084,068 bytes, 48,176 triangles, 28,379 vertices, one draw
 call/material, and a 2K JPEG (~21.3 MiB decoded RGBA8 including mipmaps). Geometry

@@ -350,6 +350,7 @@ const physics = await Physics.create(scene, level.ground.heightAt ? level.ground
 physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed: the desert's cave, src/physics.js noClimbNear)
 physics.ladders = level.ladders ?? null;   // (ladders: climbed without spending stamina, src/physics.js onLadder, issue #252)
 console.info(`collision: ${physics.triangles.toLocaleString()} triangles in ${(performance.now() - t0).toFixed(0)} ms (BVH in a worker)`);
+physics.refined?.then((ok) => ok && console.info(`collision: the ${level.collision.later} BVH in use after ${(performance.now() - t0).toFixed(0)} ms`));
 setStep('level init');
 // distant detail, finished after the first frame (src/deferred.js; ?defer=0 does it all now, as before)
 const deferred = deferOn ? new DeferredWork() : null;

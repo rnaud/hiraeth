@@ -30,6 +30,13 @@ function bvhOptions({ strategy } = {}) {
   const st = { CENTER, AVERAGE, SAH }[strategy];
   return st === undefined ? {} : { strategy: st };
 }
+/** A copy of a baked geometry's positions (and index), for a second BVH built while the first is in use. */
+function copyGeometry(geo) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(geo.attributes.position.array.slice(), 3));
+  if (geo.index) g.setIndex(new THREE.BufferAttribute(geo.index.array.slice(), 1));
+  return g;
+}
 
 function isExcluded(obj) {
   for (let o = obj; o; o = o.parent) if (o.userData.noCollide) return true;
@@ -77,6 +84,9 @@ export class Physics {
    * Build the BVH in a web worker (keeps the page responsive while loading). o.strategy: how the BVH
    * splits ('CENTER', the default, quick to build; 'SAH', three times slower to build and quicker to
    * query where long thin shapes overlap: Lorn II's roots, level.collision, docs/systems/movement.md).
+   * o.later: a second strategy, built at the same time in a worker of its own and swapped in when it is ready
+   * (refine): the load waits only for the quick one. The City-Shaft's 1.15 million triangles: CENTER in 0.4 s, SAH
+   * in 2.1 s, whose rays are 2.6 times quicker (issue #300). `refined` resolves once it is in (or not).
    */
   static async create(scene, base = null, slice = null, o = {}) {
     // (baked a mesh a step when given a slicer, src/load-steps.js: the copy of every triangle in the
@@ -85,6 +95,9 @@ export class Physics {
     p.bvhOptions = bvhOptions(o);
     if (slice) await runStepsAsync(p.bake(scene, base, true), slice); else runSteps(p.bake(scene, base, true));
     if (p.geometry.attributes.position) {
+      // (the copy made before the first worker takes the geometry's buffers away)
+      const later = o.later && typeof Worker !== 'undefined' ? bvhOptions({ strategy: o.later }) : null;
+      if (later?.strategy !== undefined) p.refined = p.refine(copyGeometry(p.geometry), later);
       try {
         const worker = new GenerateMeshBVHWorker();
         p.bvh = await worker.generate(p.geometry, p.bvhOptions);
@@ -97,6 +110,27 @@ export class Physics {
       }
     }
     return p;
+  }
+
+  /**
+   * Build another BVH of the level's triangles (`geometry`: a copy of them) in a worker, then use it in place of the
+   * one in use: every query from then on goes through it, with the same triangles (so the same answers), only quicker.
+   * Resolves true once it is in, false if it could not be built (the first one stays).
+   */
+  async refine(geometry, options, make = () => new GenerateMeshBVHWorker()) {
+    let worker = null;
+    try {
+      worker = make();
+      const bvh = await worker.generate(geometry, options);
+      // (still being built, or a level with nothing solid: keep to what there is)
+      if (!this.bvh) return false;
+      this.geometry = bvh.geometry;
+      if (this.extras) this.levelBVH = bvh; else this.bvh = bvh;
+      return true;
+    } catch (e) {
+      console.warn('collision: the refined BVH failed, keeping the first', e);
+      return false;
+    } finally { worker?.dispose(); }
   }
 
   constructor(scene, base = null, deferBVH = false, o = {}) { this.bvhOptions = bvhOptions(o); runSteps(this.bake(scene, base, deferBVH)); }

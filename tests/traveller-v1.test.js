@@ -75,7 +75,7 @@ test('repair colours match between preview and game colour-management modes',()=
 });
 
 async function loadHead() {
- const b=readFileSync(dir+'head-v2/model.glb'),n=b.readUInt32LE(12),j=JSON.parse(b.toString('utf8',20,20+n)),bin=b.subarray(28+n);
+ const b=readFileSync('data/characters/traveller-v1/head-v2/model.glb'),n=b.readUInt32LE(12),j=JSON.parse(b.toString('utf8',20,20+n)),bin=b.subarray(28+n);
  j.buffers=[{uri:'data:application/octet-stream;base64,'+bin.toString('base64'),byteLength:bin.length}];
  delete j.images;delete j.textures;delete j.materials;for(const m of j.meshes)for(const p of m.primitives)delete p.material;
  return new GLTFLoader().parseAsync(JSON.stringify(j),'');

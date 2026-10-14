@@ -764,7 +764,8 @@ The playable traveller now loads the approved H3.1 head-and-hair export from
 `public/characters/traveller-v1/head-v2/model.glb`. This is a real replacement,
 Tripo job `931197c2-0e35-40a7-82d6-051783349826`, generated from the original
 character references. The untouched source, settings and hash are recorded in
-`head-v2/provenance.json`; generation details are in `scripts/tripo/README.md`.
+`head-v2/provenance.json` (now `data/characters/traveller-v1/head-v2/`: head-v3 replaced it and, since issue #300,
+the game no longer ships it); generation details are in `scripts/tripo/README.md`.
 
 `src/characters/tripo-head.js` fits a clone at runtime (uniform scale 0.32,
 offset [-0.001, 1.455, -0.006]). Only a throat cylinder inside the lower neck is widened to fill the scarf;

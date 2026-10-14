@@ -1,7 +1,7 @@
 {
   "input": "output/character-tripo/elder-v1/source.glb",
   "sourceSha256": "e1b52b576767ba51a03ad65ac3e4109e524abafc6f191425b3e78885b593c400",
-  "output": "public/guardians/elder-v1/model.glb",
+  "output": "data/guardians/elder-v1/model.glb",
   "bytes": 3084068,
   "vertices": 28379,
   "bones": {
