@@ -1,0 +1,27 @@
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_524fd69c38b32f 128-130,434
+scripts/xbox-devtools.mjs
+  s_9ca76055a220ed::t_b2ae614c1f0c42 14,17
+scripts/xbox-shaders.mjs
+  s_9ca76055a220ed::t_6018703c3d7980 15
+scripts/xbox-trace.mjs
+  s_9ca76055a220ed::t_fcc78c7d6279d6 19
+scripts/xbox-unity.mjs
+  s_9ca76055a220ed::t_ae4c0ad7f5956c 14,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3656245840780c53b8b626c59c89d8d7cdf1873",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
