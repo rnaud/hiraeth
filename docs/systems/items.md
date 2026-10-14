@@ -274,6 +274,17 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
 
 Tests: `tests/chimes.test.js` (drops, the tiers and the fewest pieces, the field, the magnet's curve and trail, the wallet, the HUD's icon, the crystal's size and shape, facets and colours, the view: each tier's colour, size and glow), `tests/crystal-shader.test.js` (the material's gate and uniforms, the outline-only ink, the edge attribute and the seam, one instanced draw for every tier and no shadow passes), `tests/chime-sound.test.js` (the ting rendered silently in memory).
 
+## The kit's colours (v1.76, issue #341)
+
+Palettes for the backpack (its brass, canvas plate, the cloth at its neck, its straps: the fluid keeps its gun mode's
+colour), the sword's water and the shield's (`src/kit-colours.js` `KIT_COLOURS`): the makers' jade always, and one a
+world's fight temple wins (the desert's Sunken Hall: Ember; docs/design/fight-temples.md). Won: the save's
+`kit.colours.<id>`, worn on every piece at once; chosen piece by piece in Items, on the Colours strip over the gear
+(A / × the next colour won: `kit.colour.<piece>`; the strip shows once a second colour is won). `applyKitColours(tool,
+state)` paints them on (main.js: at the start, when the backpack is worn, and on a choice): the backpack's parts swap
+to the palette's materials (made the traveller's own: `markHero`), the sword's and the shield's fluid materials take
+its tones. Tests: `tests/fight-temples.test.js`.
+
 ## Shops (v1.5)
 
 Shops sell for chimes what the walk takes out of you. Code: `src/shop.js` (what they sell, the prices, the

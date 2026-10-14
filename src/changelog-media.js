@@ -845,6 +845,8 @@ const KIT358 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High
 /** (v1.76, issue #339: the prototypes in muted headless Chrome, a scripted player through each, the game stepped 1/60 s a frame) */
 const HELP339 = 'muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6339), ?guardianHelp=elder and ?guardianHelp=keeper played through by a scripted player, the game stepped 1/60 s a frame; 14 October; cwebp -q 72';
 const LANDMARKS76 = "Muted headless Chrome, High, 1280 × 720, clear at 10:00; 433459bf before and the working tree after, 14 October 2026. Framing follows the taller structures; the Lamp-House now stands farther into the shallows.";
+/** (v1.76, issue #341: the fight temple and the kit's colours, shot by hand on this branch) */
+const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this branch (port 6341), High, 1280 × 720, a save with the sword and the shield; the run played by a script that walks to the nearest foe and cuts; 14 October';
 export const CHANGELOG_MEDIA = {
   '1.76': [
     { match: 'Across all fourteen temples', shots: [
@@ -903,6 +905,22 @@ export const CHANGELOG_MEDIA = {
       { name: 'ship-light-starboard', title: 'Toward the bunk', caption: 'After, the starboard wall lit, the console and the table with a lit side and a shaded one, pools under the lamps over the table, the bunk and the lockers, the floor lamp in the reading corner.', from: SHIP338 },
       { name: 'ship-light-hold', title: 'The hold', caption: 'The crates’ fronts lit and their sides in shade, two lamps’ pools on the floor among them.', from: SHIP338 },
     ] },
+    { match: 'A fight temple in the desert, the Sunken Hall', tags: ['desert', 'combat', 'foes'], shots: [
+      { name: 'fight-hall', title: 'The ink cistern', caption: 'The third room from high above: eighteen of its foes up at once round the traveller, herons, skitters and blots out of the ink springs, a pillar between him and the camera cut down to a stub so he stays in sight.', only: 'after', from: FIGHT341 },
+      { name: 'fight-last-wave', title: 'The last wave', caption: 'The sanctum: the crowd at its fullest, a chain of cuts counted over it, the chimes they leave in the corner.', only: 'after', from: FIGHT341 },
+      { name: 'fight-doorway', title: 'The way in', caption: 'The hall’s doorway half sunk in the sand west of the camps, Wafa on its step with her staff, the procession going by behind.', only: 'after', from: FIGHT341 },
+      { name: 'fight-reward', title: 'Cleared', caption: 'The results: the time, the foes felled, the longest chain, the chimes, and the colours won.', only: 'after', from: FIGHT341 },
+    ], numbers: [
+      { title: 'The Sunken Hall at Handheld: the hall empty (before) and with its crowd full, 30 foes standing (after)', unit: 'ms', better: 'lower', device: 'this Mac, muted headless Chrome (Metal), the Handheld preset, 1280 × 720, the frame readout (?fps=1), 15 s each', rows: [
+        { where: 'main thread a frame (cpu)', before: 2.2, after: 4.9 },
+        { where: 'GPU a frame', before: 3.8, after: 6.7 },
+        { where: 'frame time, 95th percentile', before: 17.0, after: 18.3 },
+      ], source: 'scratchpad bench.mjs (issue #341): the start card’s view, then session.crowd(24) on the first wave; draw calls 83 → 912 (the Desert’s own view is about 1 770)' },
+    ], see: 'In the desert, walk west from the pilgrims’ camps to the stone doorway and ask Wafa; or open it from the Debug menu’s Games. Hold the left stick up: you walk up the screen whichever way you face. Push the right stick at a blot and press RB: the cut goes to it.' },
+    { match: 'Clear the Sunken Hall to win its Ember colours', tags: ['menus', 'characters'], shots: [
+      { name: 'kit-colours', title: 'Guarding by the hall’s doorway', caption: 'Before, the makers’ jade shield and brass backpack; after, the Ember colours: the shield’s water ember-orange, the backpack’s ring copper.', from: FIGHT341 },
+      { name: 'kit-colours-menu', title: 'The Colours strip in Items', caption: 'Each piece wears its own: here the backpack and the shield in Ember, the sword back in the makers’ jade.', only: 'after', from: FIGHT341 },
+    ], see: 'Win the Sunken Hall, then open Items (View, then RB): the Colours strip is over your gear. Press A on the sword’s to change it back, and draw it.' },
     { match: 'In the Unity version on a handheld or a console, the traveller is the one', tags: ['devices'], see: 'Install the Unity build on the Retroid or the Xbox and start a game: the traveller who walks out of the ship is the one in the web game, in his coat and with his face, not the old explorer.' },
     { match: 'In the Unity version the traveller’s overshirt is shaded right', tags: ['devices'], see: 'In the Unity build, stand the traveller in the sun and turn the camera slowly round him: the overshirt over his chest and shoulders and round his collar shades smoothly with the rest of the shirt, without the dark or bright blotches that flickered there as he walked. Compare with the web game in the same spot.' },
     { match: 'You can pick up small things now and carry them in both hands', tags: ['controls'], shots: [

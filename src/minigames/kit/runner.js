@@ -113,6 +113,8 @@ export class MinigameRunner {
       setFov(f) { if (Math.abs(H.camera.fov - f) > 0.01) { H.camera.fov = f; H.camera.updateProjectionMatrix(); } },
       /** Ink streaks at the screen's edges, 0..1 (speed). */
       speed: (k) => R.speedLines(k),
+      /** Chimes scattered at a point, into the wallet as they are walked over (main.js: the world's chime field; a fight temple's loot). */
+      drop(pos, n) { if (n > 0) H.chimes?.drop?.(pos, n); },
       /** Something the session put in the scene, taken out (its geometry disposed) on Retry and when the game is left. */
       add(o) { H.scene.add(o); R.added.push(o); return o; },
       best: () => bestScore(H.state, scoreDef(this.def, H.state)),

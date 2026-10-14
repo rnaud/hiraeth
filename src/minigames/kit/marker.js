@@ -80,7 +80,8 @@ export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate 
   const def = gameById(gameId, games);
   if (!def) throw new Error(`no minigame "${gameId}"`);
   const at = Array.isArray(pos) ? new THREE.Vector3(...pos) : pos.clone();
-  const object = gameMarkerModel(def.color);
+  // (a game with a way in of its own: a fight temple's doorway, src/fight-temples/index.js entranceModel)
+  const object = def.marker?.model?.() ?? gameMarkerModel(def.color);
   object.position.copy(at);
   object.rotation.y = heading;
   if (plate !== null) {
@@ -88,6 +89,7 @@ export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate 
     if (p) { p.position.set(0, 1.32, 0.24); object.add(p); }
   }
   world.scene.add(object);
+  if (object.userData.solid) world.physics?.addCollider?.(object);   // (a doorway: walked into, not through)
   const light = new THREE.Vector4(at.x, at.y + 2.7, at.z, 5);
   world.lights?.push(light);
   const go = world.go ?? ((href) => { location.href = href; });

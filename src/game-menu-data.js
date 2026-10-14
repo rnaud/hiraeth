@@ -19,7 +19,7 @@ const MODE_OF = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' 
 const cap = (s) => String(s ?? '').replace(/^./, (c) => c.toUpperCase());
 
 /** The gear, the backpack first: { gear, slots, pack, keepsakes, chimes (the wallet: src/resources.js) } for itemsPanel. */
-export function itemsData({ owned = [], mode = null, modes = [], gadget = null, gadgets = [], carried = [], keepsakes = [], icon = () => null, titles = {}, chimes = null, toggles = {} } = {}) {
+export function itemsData({ owned = [], mode = null, modes = [], gadget = null, gadgets = [], carried = [], keepsakes = [], icon = () => null, titles = {}, chimes = null, toggles = {}, colours = null } = {}) {
   const list = owned.filter((id) => ITEMS[id]).sort((a, b) => KIND_ORDER.indexOf(ITEMS[a].kind) - KIND_ORDER.indexOf(ITEMS[b].kind));
   const choice = modes.length > 1;
   const gear = list.map((id) => {
@@ -35,7 +35,7 @@ export function itemsData({ owned = [], mode = null, modes = [], gadget = null, 
   const slots = Math.max(Object.values(ITEMS).filter((d) => !d.debug && !d.retired).length, list.length);
   const pack = carried.map((name, i) => ({ id: `pack.${i}`, name: cap(name) }));
   const keeps = keepsakes.map((k) => ({ id: k.id, name: k.name, text: k.text, world: titles[k.level] ?? '' }));
-  return { gear, slots, pack, keepsakes: keeps, chimes };
+  return { gear, slots, pack, keepsakes: keeps, chimes, colours };   // (colours: the kit's, src/kit-colours.js coloursData; null until a second is won)
 }
 
 /** The father's charge as a quest card: its goal (his words) and its next step. */
@@ -112,7 +112,7 @@ export function menuSources(o) {
   const titles = o.titles ?? Object.fromEntries((o.levels ?? []).map((L) => [L.id, L.title]));
   return {
     people: (open = null) => peopleData({ flags: o.game?.data?.flags ?? {}, errands: o.journal?.data?.errands ?? {}, keepsakes: o.game?.keepsakes?.() ?? [], titles, portrait: o.portrait ?? (() => null), open }),
-    items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles, chimes: o.wallet?.() ?? null, toggles: o.toggles?.() ?? {} }),
+    items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles, chimes: o.wallet?.() ?? null, toggles: o.toggles?.() ?? {}, colours: o.colours?.() ?? null }),
     quests: () => questsData({ quests: o.quests, charge: o.charge?.(), errands: o.journal?.data?.errands, defs: o.errandDefs ?? [], titles }),
     worlds: () => {
       const met = Object.fromEntries(metPeople(o.game?.data?.flags ?? {}).map((g) => [g.world, g.people.map((p) => p.name)]));

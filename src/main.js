@@ -145,6 +145,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
+import { applyKitColours, coloursData, cycleColour } from './kit-colours.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -716,6 +717,8 @@ const armTool = () => {
   tool.swordOn = s; tool.shieldOn = g;
 };
 armTool();
+applyKitColours(tool, game);   // (the colours chosen for the backpack, the sword and the shield: src/kit-colours.js, won in the fight temples)
+{ const wear = tool.wear.bind(tool); tool.wear = () => { wear(); applyKitColours(tool, game); }; }   // (and on the backpack worn once his body is up)
 if (level.lendTool) lendTool(tool, level.lendTool);   // (the Arena: the backpack, the blade and the shield lent for the visit, whatever the save: src/minigames/kit/onfoot.js)
 await slice();
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
@@ -971,11 +974,13 @@ Object.assign(journal.menu, {
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title,
       parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
-    fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }),
+    fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }), colours: () => coloursData(game),
     icon: (id) => itemIcons.get(id), map: (o) => mapSource(o),
     // (the Worlds page's "Travel here": a world you have been to, with the ship powered: src/fast-travel.js, issue #213)
     travel: (id) => fastTravel.can({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) }) }),
   onTrack: (id) => storyRt.quests.choose(id),
+  // the Colours row: the next colour won for that piece, worn at once (src/kit-colours.js)
+  onColour: (piece) => { cycleColour(game, piece); applyKitColours(tool, game); },
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
   onUse: (id) => { if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
   // "Travel here" (the Worlds page): the galactic map's own way (src/ship/ship.js travel: the take-off, the arrival at
@@ -2654,7 +2659,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
 if (!minigameDef) for (const g of GAMES) for (const m of g.markers ?? []) {
   if (!partsOf(levelId).includes(m.level)) continue;
   const [x, y, z] = shiftAt(m.level, m.at), gy = y ?? physics.groundAt(x, 1e4, z);
-  try { placeGameMarker({ scene, levelId, lights: levelLights }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z), { heading: m.heading ?? 0 }); } catch (e) { console.warn(e); }
+  try { placeGameMarker({ scene, levelId, lights: levelLights, physics }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z), { heading: m.heading ?? 0 }); } catch (e) { console.warn(e); }
 }
 // a minigame's page: the runner takes over, the start card up (src/minigames/kit/runner.js)
 if (minigameDef) {
@@ -2662,7 +2667,7 @@ if (minigameDef) {
   // closed tab never sends you round it again), won as it is won; every way out lands at the world
   const transit = transitLinks(query, Object.fromEntries(LEVELS.map((l) => [l.id, l.title])));
   if (transit && !game.flag(ambushKey(transit.to))) game.set(ambushKey(transit.to), 'met');
-  minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings,
+  minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings, chimes,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open,
     navigate: (href) => { if (transit && game.flag(ambushKey(transit.to)) === 'met') game.set(ambushKey(transit.to), 'skipped'); flushPlay(); location.href = href; },

@@ -157,12 +157,16 @@ export function itemUse(it) {
  * Rows: the gear's (GEAR_COLS a row), then a row a line of the pack (column 0) and of the keepsakes (column CARRY_COL).
  */
 export const CARRY_COL = 4;
-export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], chimes = null } = {}) {
+export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], chimes = null, colours = null } = {}) {
   const rows = [];
   const full = (it, sub, text) => ({ pic: `<div class="big ${esc(it.kind ?? '')}">${icon(it)}</div>`, sub, text, inUse: !!it.inUse, use: itemUse(it) });
+  // the kit's colours (src/kit-colours.js, won in the fight temples): a strip over the gear, a button a piece, A / × the next colour won
+  const tints = (colours ?? []).map((c, i) => ({ kind: 'colour', id: c.piece, col: i, name: `${c.name}: ${c.colour}`, sub: t('gm.colours'), desc: t('gm.colourNext', { n: c.of }), act: 'colour', swatch: c.swatch }));
+  if (tints.length) rows.push(tints);
+  const g0 = rows.length;
   gear.forEach((it, i) => {
     const sub = KIND_NAME[it.kind] ?? '';
-    (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub, desc: it.text ?? '', act: 'look', use: it.usable ? 'use' : null, it, full: full(it, sub, it.text ?? '') });
+    (rows[g0 + Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub, desc: it.text ?? '', act: 'look', use: it.usable ? 'use' : null, it, full: full(it, sub, it.text ?? '') });
   });
   const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: t('gm.carried'), act: 'look', it: { ...it, kind: 'quest' }, full: full({ ...it, kind: 'quest' }, KIND_NAME.quest, t('gm.carried')) }));
   const keeps = keepsakes.map((it) => {
@@ -176,6 +180,7 @@ export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], ch
   const empties = Array.from({ length: Math.max(0, slots - gear.length) }, () => '<span class="slot empty" aria-hidden="true"><span class="pic"></span></span>').join('');
   const line = (x) => `<button class="line ${x.kind}" ${where(x.kind, x.id)}>${icon(x.it)}<span>${esc(x.name)}</span></button>`;
   const html = `<div class="gm-items" data-grid-nav>
+      ${tints.length ? `<section class="gm-colours"><h2>${t('gm.colours')}</h2>${tints.map((c) => `<button class="line colour" ${where('colour', c.id)}><i class="ico swatch" style="background:${esc(c.swatch)}"></i><span>${esc(c.name)}</span></button>`).join('')}</section>` : ''}
       <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span>${chimes !== null ? `<span class="gm-wallet" title="${esc(t('hud.chimes'))}">${chimeIcon('chime')}${t('gm.chimes', { n: chimes })}</span>` : ''}</h2>
         <div class="grid">${gear.map(slot).join('')}${empties}</div></section>
       <div class="gm-carry">
@@ -366,7 +371,7 @@ const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds
 const MAP_SHADOW = 10;   // px: the map sheet's ink shadow and border, kept inside the page (src/game-menu.css)
 
 /** The verb A / × does on a cell ('' if nothing). */
-export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole', 'travel'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
+export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole', 'travel', 'colour'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
  * What the confirm button does on the picked cell, in the info strip: its glyph (a pad's printed A, the
@@ -411,8 +416,8 @@ export class GameMenu {
    * @param o.onTravel (id) "Travel here" on a world: null if the ship goes, else the line why not (shown in the full view)
    * @param o.onClose () the ✕, B / ○ or Esc (Journal.toggle(false))
    */
-  constructor(el, { sources = {}, onTrack = null, onUse = null, onTravel = null, onClose = null } = {}) {
-    Object.assign(this, { el, sources, onTrack, onUse, onTravel, onClose });
+  constructor(el, { sources = {}, onTrack = null, onUse = null, onTravel = null, onClose = null, onColour = null } = {}) {
+    Object.assign(this, { el, sources, onTrack, onUse, onTravel, onClose, onColour });
     this.note = null;       // a line in the full view (a fast travel refused: why)
     this.state = new MenuState();
     this.rows = [];
@@ -868,6 +873,7 @@ export class GameMenu {
       if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === cell.id));
     }
     else if (cell.act === 'look') this.openFull(cell);
+    else if (cell.act === 'colour') { this.onColour?.(cell.id); this.render(); }
     else if (cell.act === 'open') this.openPerson(cell.id);
     else if (cell.act === 'back') this.back();
   }

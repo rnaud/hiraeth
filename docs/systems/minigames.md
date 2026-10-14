@@ -126,6 +126,7 @@ refused a moment later by the notice. Once had, the lines and Play / Not now as 
 | Tube run (trial) | Underwater City | Gil, who races the sealed tubes | Lamps trimmed, so we race the tubes. We wait till the whales are quiet. Lately that's every night. / Every ring, hall to hall through the glass. Take the bends tight, and don't miss one. |
 | Floor round (trial) | Moon Foundry | Rudi, who ran the pour times | Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round. / Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it. |
 | Courier's round (trial) | City Floating in Space | Pia, who runs the oil bills | Oil bills, island to island, every evening. Late oil, dark lamps, cross customers. So I run. / Every ring in order over the bridges. Mind your feet: step off, and the dark is a long way down. |
+| The Sunken Hall (fight temple) | Desert, the doorway west of the pilgrims' camps | Wafa, who keeps watch on the sunken hall | Third night I've sat on this step. The ink pools down there, and the blots breed in it. Every dusk, more. / Four rooms, and a lot of them. Small ones: one cut or two. Clear them, and what the makers left on the altar is yours. |
 | Avenue run (trial) | Signal Market | Quill, who hangs the signs | Hung thirty signs today and every one's crooked! Market night: we fly the avenue under the lot! / Ride the column at the avenue's head, then the rings in order. Halfway there's another column. Use it. |
 | the makers' runs (16) | each in its world (docs/systems/challenges.md) | the makers' post, read | (Under the makers' mark:) what the run is in the house it was stood out from (the wind kept in a hall, the Hush over the causeway, the Belfry's fallen-up bridges…) / what to do, in one line |
 
@@ -383,6 +384,20 @@ to ×5, and a miss ends the run. A shot is a miss when no target takes it within
 tool's `tool:fire`). The stallkeeper, a round barker in a boater with a speaking-trumpet, calls out
 (`KEEPER_LINES`, every line toned) in the market's patter (`planLine`, lang `bazaar`), in a balloon. A bot in
 headless Chrome (hold LT, turn the rig toward the next target with a lead, pulse RT) scores about 1,500.
+
+## Fight temples (`fight-<world>.js`, `src/fight-temples/`)
+
+A Diablo-like temple in each world (issue #341; the design and the template: `docs/design/fight-temples.md`), one
+built: the desert's **Sunken Hall** (`fight-desert.js`, its table `src/fight-temples/desert.js`). Played on foot
+(`drives: false`) under a fixed isometric camera the session puts on its line after the rig every frame (the rig's
+yaw held on it, so the stick walks him on the screen's axes); walls and pillars between the camera and him come down
+to stubs. Four rooms, two or three waves each of the desert's kinds made light (a cut or two, half the harm), up to
+24 heads standing, out of the ink springs; a room cleared, its gate (a mover) sinks; the last wave brings a lamp
+tripod and two whole herons, then the reliquary on the altar wins the Ember colours (`src/kit-colours.js`, items.md
+"The kit's colours"). Hearts and chimes drop (`ctx.drop`: the runner's host passes the world's chime field). The
+right stick or the mouse's ring aims; the blade and the gun take the foe in that cone (`FluidTool.lockOn` and
+`updateAimPoint` wrapped for the run); RT / R2 alone a quick shot. Its sign is its own doorway (`marker.model`, solid:
+`kit/marker.js`), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`.
 
 ## Ink tide (`waves.js`)
 

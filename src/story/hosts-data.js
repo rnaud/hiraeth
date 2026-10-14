@@ -60,6 +60,13 @@ export const HOSTS = {
     say: ['~curious~ That stall sold tea yesterday. The market changes faster than its signs, so I draw it first.', '~playful~ My list: six things, three minutes. Frame each one nicely, then sketch it. You can borrow my pencil.'],
     lines: ['~curious~ Hold still. No, the other way.'],
   }),
+  // the desert's fight temple (issue #341, src/fight-temples/desert.js): by its doorway west of the camps
+  'fight-desert': P({
+    id: 'host.fight-desert', name: 'Wafa', title: 'who keeps watch on the sunken hall', color: '#b8613c', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#b8613c', lining: '#2b211f', cloth: '#e8d9b8', legs: '#4a3a2a', hat: '#f0c45a', hair: '#2b211f' }, head: 'wrap', look: { prop: 'staff' },
+    say: ['~tired~ Third night I’ve sat on this step. The ink pools down there, and the blots breed in it. Every dusk, more.', '~solemn~ Four rooms, and a lot of them. Small ones: one cut or two. Clear them, and what the makers left on the altar is yours.'],
+    lines: ['~tired~ Listen. They’re at it again.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

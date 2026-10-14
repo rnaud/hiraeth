@@ -1,0 +1,132 @@
+// The kit's colours (issue #341, docs/design/fight-temples.md): palettes for the backpack (its brass, its canvas plate,
+// the cloth tied round its neck, the straps), the sword's water and the shield's, won one set per world's fight
+// temple and chosen piece by piece in the Items panel (src/game-menu.js: the Colours row; main.js). The makers' own
+// (jade and brass) is always there. Kept in the save's flags: `kit.colours.<id>` won, `kit.colour.<piece>` chosen.
+//
+//   unlockColours(state, 'ember')        → true the first time (the fight temple's reward)
+//   chosenColour(state, 'sword')         → the palette's id in use for that piece (the makers' if none, or not won)
+//   cycleColour(state, 'backpack')       → the next won palette for it, chosen and returned
+//   applyKitColours(tool, state)         the worn backpack recoloured, the sword's and the shield's water retinted
+
+import { makeMaterial, markHero } from './materials.js';
+import { SWORD_TONES, swordMaterial } from './fluid-sword.js';
+import { shieldMaterial } from './shield.js';
+
+export const PIECES = ['backpack', 'sword', 'shield'];
+export const PIECE_NAME = { backpack: 'Backpack', sword: 'Sword', shield: 'Shield' };
+
+/** The backpack's own colours (src/fluid-tool.js buildFlask's and buildTank's): what a palette paints over. */
+export const PACK_BASE = { brass: '#acaa78', brassDark: '#6c806b', canvas: '#7d8a5a', canvasDark: '#5f6c44', cloth: '#3f9a92', leather: '#6a4a33' };
+const toneList = (T) => [T.cream, T.deep, T.pale, T.gold, T.base, T.light];
+
+/**
+ * The palettes: `world` the fight temple that gives it (null: always yours), `pack` the backpack's parts, `water` the
+ * sword's and the shield's fluid (base and its five tones, as SWORD_TONES).
+ */
+export const KIT_COLOURS = [
+  { id: 'makers', name: 'Makers’ jade', world: null, pack: PACK_BASE, water: SWORD_TONES },
+  // the desert's Sunken Hall: ember and saffron, the burning tree's colours (src/fight-temples/desert.js)
+  { id: 'ember', name: 'Ember', world: 'desert', pack: { brass: '#d8843e', brassDark: '#8e4a2c', canvas: '#b8613c', canvasDark: '#8c432a', cloth: '#f0c45a', leather: '#4e2f22' },
+    water: { base: '#e8703a', cream: '#ffe0a6', deep: '#a8382a', pale: '#ffc890', gold: '#f6c14a', light: '#fff2dc' } },
+];
+export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
+export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
+
+export const wonKey = (id) => `kit.colours.${id}`;
+export const choiceKey = (piece) => `kit.colour.${piece}`;
+
+/** The palettes won so far (the makers' first), in the table's order. */
+export const wonColours = (state) => KIT_COLOURS.filter((c) => !c.world || !!state?.flag?.(wonKey(c.id))).map((c) => c.id);
+
+/** The palette in use for a piece: the one chosen, if it is won; else the makers'. */
+export function chosenColour(state, piece) {
+  const id = state?.flag?.(choiceKey(piece));
+  return id && wonColours(state).includes(id) ? id : 'makers';
+}
+/** Choose a won palette for a piece (false: not won, or no such piece). */
+export function chooseColour(state, piece, id) {
+  if (!PIECES.includes(piece) || !wonColours(state).includes(id)) return false;
+  state.set(choiceKey(piece), id);
+  return true;
+}
+/** The next won palette for a piece (round again after the last), chosen. */
+export function cycleColour(state, piece, step = 1) {
+  const won = wonColours(state), i = won.indexOf(chosenColour(state, piece));
+  const id = won[(i + step + won.length) % won.length];
+  chooseColour(state, piece, id);
+  return id;
+}
+/** Win a palette (a fight temple cleared): true the first time. `wear`: chosen for every piece then. */
+export function unlockColours(state, id, { wear = true } = {}) {
+  const c = colourById(id);
+  if (!c?.world || state.flag(wonKey(id))) return false;
+  state.set(wonKey(id), true);
+  if (wear) for (const p of PIECES) chooseColour(state, p, id);
+  return true;
+}
+
+/** The Items panel's Colours row: a line a piece, what it wears and how many there are to choose from (null: only the makers'). */
+export function coloursData(state) {
+  const won = wonColours(state);
+  if (won.length < 2) return null;
+  return PIECES.map((piece) => ({ piece, name: PIECE_NAME[piece], colour: colourById(chosenColour(state, piece)).name, of: won.length, swatch: colourById(chosenColour(state, piece)).water.base }));
+}
+
+// ------------------------------------------------------------------ painting them on
+/** The backpack's material swapped for its colour in the palette (null: not one of the parts a palette paints). */
+function packMaterialFor(mat, from, to) {
+  const key = mat?.userData?.cacheKey;
+  if (!key) return null;
+  let o; try { o = JSON.parse(key); } catch { return null; }
+  const part = Object.keys(from).find((k) => from[k] === o.color);
+  if (!part || o.glow) return null;
+  return makeMaterial({ ...o, color: to[part] });
+}
+
+/**
+ * The backpack worn (FluidTool.tank.group) in a palette's colours: each part of brass, canvas, cloth or leather takes
+ * the palette's (its first material kept, so the makers' puts it back exactly).
+ */
+const heroCopies = new Map();   // (a palette's material as the traveller's own: markHero, once each)
+export function paintPack(group, palette) {
+  if (!group) return 0;
+  let n = 0;
+  // (one material, or a mesh's list of them: the straps are one mesh, leather and their brass buckles)
+  const paint = (first) => {
+    if (palette.id === 'makers') return first;
+    const plain = packMaterialFor(first, PACK_BASE, palette.pack);
+    if (!plain) return first;
+    // (worn, his gear's materials are his own copies, uHero: the palette's are made his the same way)
+    return first.uniforms?.uHero?.value === 1 ? heroOf(plain) : plain;
+  };
+  group.traverse((o) => {
+    if (!o.isMesh) return;
+    const first = o.userData.kitMat0 ?? o.material;
+    o.userData.kitMat0 = first;
+    const m = Array.isArray(first) ? first.map(paint) : paint(first);
+    const same = Array.isArray(m) ? m.every((x, i) => x === o.material[i]) : m === o.material;
+    if (!same) { o.material = m; n++; }
+  });
+  return n;
+}
+function heroOf(mat) {
+  const probe = { isMesh: true, material: mat, traverse(f) { f(this); } };
+  markHero(probe, heroCopies);
+  return probe.material;
+}
+
+/** A fluid material's tones (the sword's, the shield's) set to a palette's water. */
+export function paintWater(mat, water) {
+  const U = mat?.uniforms;
+  if (!U?.uFluidBase) return;
+  U.uFluidBase.value.set(water.base);
+  toneList(water).forEach((c, i) => U.uFluidTones?.value[i]?.set(c));
+}
+
+/** Everything on him in the colours chosen (main.js: at the start, and whenever a choice or the backpack changes). */
+export function applyKitColours(tool, state) {
+  const pal = (piece) => colourById(chosenColour(state, piece));
+  paintPack(tool?.tank?.group, pal('backpack'));
+  paintWater(swordMaterial(), pal('sword').water);
+  paintWater(shieldMaterial(), pal('shield').water);
+}

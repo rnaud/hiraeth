@@ -115,6 +115,13 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .gm-wallet .chime { display: block; width: 1.35em; height: 1.35em; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 var(--ink)); }
 #journal .gm-carry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 2vw, 28px); min-width: 0; }
 #journal .gm-carry section { min-width: 0; }
+/* the kit's colours over the gear (src/kit-colours.js): a strip of three buttons */
+#journal .gm-colours { display: flex; align-items: center; gap: clamp(6px, 1.2vw, 14px); flex-wrap: wrap; margin-bottom: clamp(6px, 1.4vh, 12px); }
+#journal .gm-colours h2 { margin: 0 6px 0 0; }
+#journal .gm-colours .line { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 6px; border: 2px solid var(--ink); border-radius: 999px; background: var(--paper, #fbf3df); font: inherit; cursor: pointer; }
+#journal .gm-colours .line span { font-weight: bold; font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); }
+#journal .gm-colours .line.at, #journal .gm-colours .line:hover { background: var(--gold); }
+#journal .gm-colours .swatch { display: inline-block; border-radius: 50%; border: 2px solid var(--ink); width: 18px; height: 18px; }
 #journal .gm-carry .line {
   display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 clamp(4px, 0.9vh, 8px); padding: 3px 12px 3px 4px; text-align: left; box-sizing: border-box;
   background: rgba(255, 250, 240, 0.75); border: 2px solid var(--ink); border-radius: 999px;

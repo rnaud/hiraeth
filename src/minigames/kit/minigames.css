@@ -116,3 +116,7 @@ body.minigame:has(#minigame .mg-card.open) #touch { visibility: hidden; }
 #minigame .mg-hint-row b .pad-glyph, #minigame .mg-hint-row b img, #minigame .mg-hint-row b svg { height: 13px; width: auto; vertical-align: -3px; }
 #minigame .mg-hints p { margin: 0; padding: 4px 9px; background: var(--hint-bg, rgba(18, 14, 13, 0.92)); border-radius: var(--hint-radius, 4px); font-weight: 800; letter-spacing: 0.06em; }
 body.touch #minigame .mg-hints { display: none; }
+
+/* a fight temple (src/fight-temples/): seen from high above, the gun's crosshair at the screen's middle means nothing;
+   the aim is on the floor (the chevron, the ring under the foe taken, the mouse's reticle) */
+body.fight-iso #tool .cross { display: none; }
