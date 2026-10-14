@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_689168439c63aa 7
+docs/systems/story.md
+  s_9ca76055a220ed::t_5999f7dab22882 682-696
+src/changelog-media.js
+  s_9ca76055a220ed::t_95ea190a80b92a 826-829
+src/changelog.js
+  s_9ca76055a220ed::t_786d747cd97f4f 83-85
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_08f94e463e2b49 50-53
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_af41e3159dc0f0 46-48
+src/story/desert-data.js
+  s_9ca76055a220ed::t_f21bc576191dff 186,195
+src/story/dialogue.js
+  s_9ca76055a220ed::t_9934b285e41c98 83-90,216-221,225,400-407,410
+src/story/quest-needs.js
+  s_9ca76055a220ed::t_a85a4347cb8851 1-81
+src/story/quests.js
+  s_9ca76055a220ed::t_e1b0b3d1051a3a 4,71-72,250,306-326
+src/temples/index.js
+  s_9ca76055a220ed::t_c8e8251b833699 38,235-236
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_7a1ef1d5567750 204-205,209-212,414-415
+tests/quest-needs.test.js
+  s_9ca76055a220ed::t_6c6863bf437512 1-170
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_8e3af81a24fcc3 185-189,191,198-200,253
+tests/story-arzach2.test.js
+  s_9ca76055a220ed::t_b96d886fd5eb74 119-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aadd5f82b9738f94c5fb271b39e19551ea9d9a73",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
