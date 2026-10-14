@@ -6,7 +6,7 @@ import fs, { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FLY, BOSS, SCRIPT, KINDS, POINTS, MISSILE_POINTS, CHIME_RATE, chimesFor, CHECKPOINTS, MERCY, BELTS, railX, railY, railPoint, courseRocks, seedOf, newRun, runStep, botInput, pirateInput, findLock, aimAt, aimTarget } from '../src/minigames/pirates-rules.js';
-import pirates, { piratePitch, pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT } from '../src/minigames/pirates.js';
+import pirates, { piratePitch, pirateShapes, rocksFor, LOOK_SIZE, buildGunship, GUNSHIP_COLORS, tallyHtml, pirateControls, BEATEN, HURT, RETICLE } from '../src/minigames/pirates.js';
 import { checkGame } from '../src/minigames/index.js';
 import { optionValue, optionOffered } from '../src/minigames/kit/flow.js';
 import { WorldLabels } from '../src/minigames/kit/labels.js';
@@ -324,6 +324,29 @@ test('the reticle: one line of fire; it tightens on what that line runs through 
   T.bolts.push({ ds: 55, u: b.u, v: b.v, vu: 0, vv: 0, vds: 170, life: 1, charged: false });
   step(2);
   assert.ok(sess.feedback.hitT > 0, 'the hit mark');
+});
+
+test('one reticle (issue #357): no second one far down the line; it tightens on what the aim assist bends the bolts onto, and slides that far onto it', () => {
+  assert.equal(RETICLE.far, undefined, 'no distant diamond');
+  assert.equal(RETICLE.near, undefined, 'one distance');
+  assert.ok(RETICLE.at > 0 && RETICLE.tight < RETICLE.r, 'one ring that tightens');
+  assert.equal(RETICLE.pull, FLY.assist.k, 'it goes as far onto the target as the bolts are bent');
+  const src = readFileSync(new URL('../src/minigames/pirates.js', import.meta.url), 'utf8');
+  assert.equal((src.match(/aimAt\(P, RETICLE\./g) ?? []).length, 1, 'the HUD draws one reticle');
+  const { sess, S: T, step } = session();
+  T.script = []; T.rocks = []; T.foes.length = 0;
+  const a = aimAt(T.ship, 50);
+  // a raider 1.8 m off the plain line: the assist's reach, not the bolts' own way
+  const foe = { id: 77, kind: 'raider', path: 'parked', hp: 40, r: KINDS.raider.r, ds: 50, u: a.u + KINDS.raider.r + 1.8, v: a.v, age: 0, flash: 0, fireT: 99 };
+  assert.equal(aimTarget(T), null, 'off the plain line');
+  T.foes.push(foe);
+  step(20);
+  assert.equal(sess.feedback.target?.foe, foe, 'the assist\'s target');
+  assert.ok(sess.feedback.aimK > 0.9, `tightened on it (${sess.feedback.aimK.toFixed(2)})`);
+  foe.u += 12;
+  step(20);
+  assert.equal(sess.feedback.target, null);
+  assert.ok(sess.feedback.aimK < 0.1, 'out of its reach: open again');
 });
 
 test('the controls: push up to dive by default; the switch is not offered at first, only once the pirates are beaten, in Settings (issue #206, #224)', () => {

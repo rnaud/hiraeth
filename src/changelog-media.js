@@ -828,7 +828,15 @@ const ROUND6 = { from: 'scripts/design-qc/capture.mjs (with a step to sound a no
 const LOOPS74 = { from: 'scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720), Vite on port 6423, at origin/main 2aa3f356 (before) and this branch (after), 14 October' };
 /** (v1.74, issue #218: the Unity build on the Retroid, its own pictures of a slow pan, scripts/bench/unity-shimmer.mjs) */
 const SHIMMER218 = 'Issue #218: the Retroid Pocket Nova, the Unity preview (branch build 2265), Handheld at 0.75, muted; the bridge’s -pan 40 (the view turned 0.025° a frame, a picture of each frame); before, the same build with the old pipeline (-aa fxaa -no-ink-far -no-hatch-aa); 14 October';
+/** (v1.75, issue #357: a scratch shooter against this branch's own Vite, port 6354, before and after the change) */
+const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6354) before and after the change, ?game=pirates&to=edena, the sky cleared of pirates and one raider parked 50 m ahead, 1.8 m off the line of fire (14 October); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.75': [
+    { match: 'In the chime pirates you aim with one reticle now', tags: ['combat', 'menus'], shots: [
+      { name: 'pirates-reticle', title: 'Nothing in the way', caption: 'Before, a broken ring near the ship and a small diamond far down the same line: two marks that read as two reticles. After, one ring round a dot, where the shots will go.', from: `${RETICLE357}, the raider moved out of the way` },
+      { name: 'pirates-reticle-aim', title: 'A pirate just off the line', caption: 'Before, the ring and the diamond stayed on the plain line, open, beside a big teal diamond round the pirate (a missile’s mark). After, the aim assist has it: the reticle tightens, turns coral and slides onto it, and the missile’s mark is a small teal pip over it.', from: RETICLE357 },
+    ] },
+  ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [
       { name: 'unity-shimmer-shaft', title: 'The City-Shaft from above, what flickers', caption: 'Red: the pixels that flipped and flipped back over a slow 1° turn. Before, the far facades, the rings and the tall shaft crawled; after, most of it is gone (what is left round the people is the crowd walking).', from: SHIMMER218 },
