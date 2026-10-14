@@ -674,6 +674,16 @@ the landing (a `oneWay` link), and climb the house again in its new state, the p
 ball, to the far door (`d4`), which takes the great key with its ball and its bell. `migrate.js LAYOUTS.arzach2` v3: past
 the far door, the great key is in it.
 
+The **Warden's Well** (`incal.js` `FLUE`): **two ways up from the gallery, meeting at the crown**. The **Flue**, the tower's
+old breath-way, is a round shaft outside the Lamp Gallery's west wall from the gallery's floor to over the crown's, a
+doorway into each (gaps in both drums, their walls overlapping between). A little vane high on its south wall (`vT`, 14 s)
+sends a draught up its middle while it turns (`draught`, a gate on `{ lit: 'vT' }`; an `Updraft` with that `when`): splash
+it from the floor and ride up; half-way, a ledge off its west wall holds the great key (`kG`); the vane slows while you
+take it, so it is splashed again from the ledge, and the draught carries you on up to the crown's west doorway. The high
+door (`d3`) takes the great key with the eye's two vanes, so both ways are needed and either goes first: the irises' for
+the eye's little vane in the loft, the flue's for the key. Down from the crown into the flue is a drop (a `oneWay` link,
+no item: the wings make it a glide). `migrate.js LAYOUTS.incal` v3: past the high door, the great key is in it.
+
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 
 The author: "Most of the temple rooms are too small … I want rooms to feel bigger so the camera doesn't move and shake

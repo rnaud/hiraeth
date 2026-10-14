@@ -55,6 +55,12 @@ import { chestMound } from '../boxes/mound.js';
 //                          here: it stands on a post in the loft below, seen down through the second iris (a splash:
 //                          it slows). Splash the small one, ride the draught up and over to the great one and hover,
 //                          and splash the eye before the small one stops
+//   the Flue               (since issue #23's last round) the tower's old breath-way, a round shaft outside the gallery's
+//                          west wall from its floor to the crown's: a little vane high on its wall, and while it turns
+//                          a draught rises up the flue's middle. Splash it from the floor and ride it up; half-way, a
+//                          ledge off it holds the house's great key (the high door takes it); splash it again from the
+//                          ledge, and on up to a doorway into the crown. Two ways up from the gallery, meeting at the
+//                          crown: the irises' for the eye's little vane, the flue's for the key, either first
 //   the Warden's Hall      the sentinel (a robot: its meter is damage). It beams and slams; its side vents open after
 //                          a beam: shoot them. Then it guards its sides and only the hatch on its crown is open: get
 //                          above it (the breath over the hall's four vanes holds open wings) and shoot down; over a
@@ -101,12 +107,18 @@ export const PALETTE = {
  * long its hatch stays up in its last two phases (s: time to fly to the vane and hover); `breath`: how high the thin breath
  * through a great vane rises (m: it bears open wings and holds you over the vane, within its reach).
  */
-export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15, breath: 9, wing: 12 };
+export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15, breath: 9, wing: 12, flue: 14 };
+/**
+ * The Flue (issue #23's last round, local m): its middle (x; z the gallery's), radius, the ledge half-way up (its floor
+ * over the gallery's, its radii, how far round either side of west), the great key on it (radius), the little vane on
+ * its south wall (over the gallery's floor), the draught up its middle (radius) to 3 m over the crown's floor.
+ */
+export const FLUE = { x: -21.5, r: 5.5, ledge: { y: 14, r0: 3, r1: 5.6, half: 1.0 }, key: 4.3, vane: 21.4, column: 2.2, door: 4.4 };
 export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7], breath: 10 };
 
 export const LOGIC = {
   id: 'incal', entry: 'threshold', gadget: 'wardenbellows',
-  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, store: { checkpoint: true }, vane: { checkpoint: true }, vaneFar: {}, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, warden: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, store: { checkpoint: true }, vane: { checkpoint: true }, vaneFar: {}, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, flue: { checkpoint: true }, flueLedge: {}, warden: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'turning' },
     { a: 'turning', b: 'climb', door: 'discs' },    // the riding discs, only while the vane over the far door turns
@@ -119,7 +131,14 @@ export const LOGIC = {
     { a: 'jets', b: 'gallery', needs: ['wardenbellows'] }, // up through the oculus, on the draught the chest unstops
     { a: 'gallery', b: 'loft', door: 'iris' },      // the iris in the gallery's ceiling: the eye whose lids the great vane lifts
     { a: 'loft', b: 'crown', door: 'iris2' },       // the ball pushed over the gap from the air, over the loft's vane
-    { a: 'crown', b: 'warden', door: 'd3' },         // the eye whose lids lift only while two vanes turn at once
+    // (issue #23's last round: the Flue, a second way up from the gallery to the crown, on the draught its little vane
+    // sends up its middle while it turns; the great key on a ledge half-way. Down it is a drop)
+    { a: 'gallery', b: 'flue' },
+    { a: 'flue', b: 'flueLedge', door: 'draught', needs: ['wardenbellows'], oneWay: true },
+    { a: 'flueLedge', b: 'flue', oneWay: true },
+    { a: 'flueLedge', b: 'crown', door: 'draught', needs: ['wardenbellows'], oneWay: true },
+    { a: 'crown', b: 'flue', oneWay: true },                        // (a drop: the wings make it a glide)
+    { a: 'crown', b: 'warden', door: 'd3' },         // the eye whose lids lift only while two vanes turn at once, and the great key
     { a: 'warden', b: 'out', door: 'd5' },
   ],
   elements: {
@@ -157,7 +176,11 @@ export const LOGIC = {
     vS: { type: 'vane', room: 'loft' },
     vC: { type: 'vane', room: 'crown', needs: ['wardenbellows'] },
     s4: { type: 'switch', room: 'crown', when: { all: [{ lit: 'vS' }, { lit: 'vC' }] } },
-    d3: { type: 'door', opens: { lit: 's4' }, latch: true },
+    d3: { type: 'door', lock: 'big', opens: { lit: 's4' }, latch: true },
+    // the Flue: its little vane (a splash spins it a while); the draught up its middle while it turns; the great key half-way
+    vT: { type: 'vane', room: 'flue' },
+    draught: { type: 'door', opens: { lit: 'vT' } },
+    kG: { type: 'key', kind: 'big', room: 'flueLedge' },
     // the hall's four vanes: in its last phase its hatch opens only to one's draught
     warden: { type: 'boss', room: 'warden', needs: ['gun', 'wardenbellows'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
     vh0: { type: 'vane', room: 'warden', needs: ['wardenbellows'] },
@@ -306,6 +329,36 @@ function wings(rt, K, M, { blue }) {
   add(Mark, { room: 'vane', at: [R.x - 5.4, 0, Z - 4], yaw: Math.PI / 2 });
 }
 
+// ------------------------------------------------------------------ the Flue (issue #23's last round)
+/**
+ * The Flue: a round shaft outside the gallery's west wall, from the gallery's floor to over the crown's, a doorway into
+ * each. A little vane high on its south wall: while it turns a draught rises up its middle to over the crown's floor
+ * (splash it from the floor, ride it up; splash it again from the ledge). Half-way up, a ledge off its west wall: the
+ * great key, for the high door.
+ */
+function flue(rt, K, M, { C3, G0, GK, GR, blue }) {
+  const add = (P, o) => rt.add(P, o);
+  const F = FLUE, X = F.x, Lg = F.ledge, H = GK - G0 + 6;
+  K.rotunda({ x: X, z: C3, y: G0, r: F.r, h: H, seg: 24, gaps: [{ a: Math.PI / 2, w: F.door, h: 5.5 }, { a: Math.PI / 2, w: F.door, h: 6, y0: GK - G0 - 0.15 }], oculus: 0.35 });
+  // (the way into the crown: the two walls' sills under their doorways, which meet between them: the flue's a step under
+  // the crown's floor, so the two never lie in one plane)
+  // the ledge half-way up, off its west wall, and the great key on it
+  const rotA = (a) => Math.PI / 2 - a;
+  K.both(M.floor, T(sector(Lg.r0, Lg.r1, rotA(-Math.PI / 2 + Lg.half), rotA(-Math.PI / 2 - Lg.half), 0.7), [X, G0 + Lg.y, C3]));
+  K.add(M.trim, T(sector(Lg.r0 - 0.05, Lg.r0 + 0.3, rotA(-Math.PI / 2 + Lg.half), rotA(-Math.PI / 2 - Lg.half), 0.2), [X, G0 + Lg.y + 0.12, C3]));
+  K.both(M.wall, T(new THREE.ConeGeometry(2.2, 3, 4, 1, true).rotateY(Math.PI / 4), [X - (Lg.r0 + Lg.r1) / 2 - 0.4, G0 + Lg.y - 2.2, C3], [Math.PI, 0, 0]));   // (its corbel)
+  add(Key, { id: 'kG', big: true, at: [X - F.key, G0 + Lg.y, C3], yaw: 0 });
+  // the little vane high on its south wall, a ring of steel blue round it
+  const vz = C3 - F.r + 0.18;
+  add(Vane, { id: 'vT', at: [X, G0 + F.vane, vz], wall: true, yaw: 0, r: 1.4, coast: VANES.flue,
+    turning: 'The little vane high in the flue spins, and a draught rises up the flue’s middle. Already it is slowing.',
+    fading: 'The little vane is slowing: the draught will die with it.' });
+  K.add(blue, T(annulus(1.8, 2.2, 0.3, 32).rotateX(Math.PI / 2), [X, G0 + F.vane, vz - 0.13]));
+  // the draught up its middle while the vane turns, to over the crown's floor
+  add(Updraft, { at: [X, G0, C3], r: F.column, h: GK + 3 - G0, lift: 8, when: { lit: 'vT' },
+    still: 'Still air: the little vane high on the flue’s wall is still.', hint: 'A draught rises up the flue’s middle. Open your wings in it.' });
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -409,7 +462,8 @@ function layout(rt) {
   // reference: cream stone banded in steel blue, slit windows, stone shelves jutting from the wall with carved eyes
   // over them, rings round the floor's middle. An iris in a ceiling halfway up; the loft over it
   const G0 = 34.6, GR = 14, GC = G0 + VANES.ceil;
-  K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: 34, floor: false, seg: 32, gaps: [{ a: 0, w: 5, h: 6, y0: 28 }], oculus: 0.25 });
+  // (and since issue #23's last round two ways west into the Flue: at the floor, and into the crown at its floor)
+  K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: 34, floor: false, seg: 32, gaps: [{ a: 0, w: 5, h: 6, y0: 28 }, { a: -Math.PI / 2, w: FLUE.door, h: 5.5 }, { a: -Math.PI / 2, w: FLUE.door, h: 6, y0: VANES.crown }], oculus: 0.25 });
   K.both(M.floor, T(annulus(3.9, GR + 1.4, 0.6, 48), [0, G0, C3]));
   K.add(M.trim, T(annulus(3.6, 4.2, 0.8, 32), [0, G0 + 0.25, C3]));
   for (const r of [5.6, 7.4]) K.add(blue, T(annulus(r, r + 0.3, 0.02, 48), [0, G0 + 0.012, C3]));
@@ -496,6 +550,8 @@ function layout(rt) {
     hint: 'The draught rushes up past you. Open your wings in it.', ride: 'The draught off the plinth fills your wings and carries you straight up.' });
   add(Door, { id: 'd3', at: [0, G0 + 28, C3 + GR + 0.7], w: 5, h: 6, lamps: [{ lit: 's4' }] });
 
+  flue(rt, K, M, { C3, G0, GK, GR, blue });
+
   // ---- the Warden's Hall (floor 62.6, a great drum), its corridor from the high door
   const H0 = G0 + 28, CW = C3 + GR + 1.4 + 3 + 21.4;   // 121.2
   K.slab(-3.2, C3 + GR + 0.6, 3.2, CW - 20.6, H0, 0.8);
@@ -539,13 +595,15 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, H0, CW), r: HR, y: K.world(0, H0, 0).y };
 
+  // (the Flue's mark last: after the others, so the machines' ids by mark stay as they were)
+  add(Mark, { room: 'flue', at: [FLUE.x + 2.6, G0, C3 + 2.6], yaw: Math.PI / 2 });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-31, -17, -3), V(31, 100, CW + HR + 12)),
     gadget: { at: W(0, 11.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, H0 + 0.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 6, 18, 20], [0, 6, 40, 20], [0, 8, C2, 16], [WING.store.x, 6, WING.z, 12], [WING.vane.x, 6, WING.z, 12], [0, 16, C2, 14], [0, 18, C3, 18], [0, G0 + 8, C3, 20], [0, G0 + 22, C3, 20], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
+    lights: [[FLUE.x, G0 + 6, C3, 12], [FLUE.x, G0 + FLUE.ledge.y + 4, C3, 12], [FLUE.x, G0 + VANES.crown + 3, C3, 10], [0, 6, 6, 14], [0, 6, 18, 20], [0, 6, 40, 20], [0, 8, C2, 16], [WING.store.x, 6, WING.z, 12], [WING.vane.x, 6, WING.z, 12], [0, 16, C2, 14], [0, 18, C3, 18], [0, G0 + 8, C3, 20], [0, G0 + 22, C3, 20], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
     guardian: { def: { ...WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }
