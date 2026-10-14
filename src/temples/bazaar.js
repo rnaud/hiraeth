@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Platform, Bridge, EchoStone, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
+import { Door, Plate, Ball, Platform, Bridge, Pillars, EchoStone, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { signModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -49,12 +49,15 @@ import { chestMound } from '../boxes/mound.js';
 //                        back by the horn (the shell's first lock, where failing costs nothing). Since v1.49 the horn
 //                        is deaf until a ball is on its footstone, a groove's length from the way in (the shell with
 //                        the push)
-//   the Gallery of Voices the key hall: three singing eggs of three sizes on plinths, a great horn at the chasm's edge
-//                        that raises the pillar bridge only while the high note rings (`hold`); the far door listens
-//                        through a dish over it, whose twin, low on this side's wall, wakes with a ball on its
-//                        footstone. Send the middle note over through the dish first, then carry the high one to
-//                        the horn and cross. Crossing first strands the middle note on this side: a high stone and
-//                        a horn of its own on the far side raise the pillars again for the way back
+//   the Gallery of Voices the key hall: three singing eggs of three sizes on plinths, and the pillars down in the
+//                        chasm's dark, each with a little horn of the high note's colour: a pillar rises while the
+//                        high note, played back near it, still rings (v1.74, issue #23: until then one great horn at
+//                        the edge raised them all). So the note is carried over: play it at the edge, step out, play
+//                        it again, and the pillars ahead rise as you go; they wait for whoever stands on them. The far
+//                        door listens through a dish over it, whose twin, low on this side's wall, wakes with a ball
+//                        on its footstone. Send the middle note over through the dish first, then carry the high one
+//                        across. Crossing first strands the middle note on this side: a high stone on the far side
+//                        gives the high note again for the way back
 //   the First Sign's Hall the guardian (a robot: its meter is damage, which here is retuning). It cries its
 //                        one word; when it lowers its dish to listen, play its word back into it, and it moves on
 //                        to the next word of its line. Its cables run out to the dishes round the hall's wall: two
@@ -95,8 +98,8 @@ const WORD_DEGREES = [1, 3, 5, 6];
 const LISTEN = 14;   // m: how close to its dish a played-back word has to be
 /** The low dishes on the First Sign's hall's wall: what is played into one reaches it down its cables, from anywhere. */
 export const SIGN_DISHES = ['signDishW', 'signDishE'];
-/** How long the gallery's great horns hold the high note (s): the pillar bridge stands as long as it rings. */
-export const HOLD = { horn: 12 };
+/** How long a gallery pillar stands after it last heard the high note (s), and how near it (m, across the floor). */
+export const HOLD = { pillar: 6, reach: 6.5 };
 
 export const LOGIC = {
   id: 'bazaar', entry: 'threshold', gadget: 'echo',
@@ -117,7 +120,7 @@ export const LOGIC = {
     { a: 'landing', b: 'choir', door: 'dG' },
     { a: 'shell', b: 'choir', door: 'dC' },
     { a: 'shell', b: 'gallery', door: 'd3' },          // the Listening Passage's door, a room on from the chest (one room with it)
-    { a: 'gallery', b: 'galleryFar', door: 'br1' },
+    { a: 'gallery', b: 'galleryFar', needs: ['echo'] },   // the listening pillars: the high note carried over (v1.74)
     { a: 'galleryFar', b: 'hall', door: 'd4' },        // (and the great key)
     { a: 'hall', b: 'out', door: 'd5' },
   ],
@@ -147,9 +150,8 @@ export const LOGIC = {
     d3: { type: 'door', opens: { lit: 'e0' }, latch: true },
     ball2: { type: 'drum', room: 'gallery', plate: 'p2', plateAt: 1, start: 0 },  // onto the near dish's footstone
     p2: { type: 'plate', room: 'gallery' },
-    e1: { type: 'switch', room: 'gallery', needs: ['echo'], hold: HOLD.horn },     // the high note, held: the pillars stand while it rings
-    e3: { type: 'switch', room: 'galleryFar', needs: ['echo'], hold: HOLD.horn },  // the far side's horn, for the way back
-    br1: { type: 'bridge', opens: { any: [{ lit: 'e1' }, { lit: 'e3' }] } },
+    // (the pillars over the chasm hear the high note played back near them, each for itself: pieces.js Pillars, v1.74; there
+    // were a great horn at each edge, e1 and e3, that held it and raised them all, br1)
     e2: { type: 'switch', room: 'galleryFar', needs: ['echo'] },     // the middle note, said by the dish over the far door
     d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball2', 'p2'] }, { lit: 'e2' }] }, latch: true },   // (the arena's door too: it shuts behind you; and the great key)
     // the Choir (v1.60: over the Cable Store; v1.49 off the gallery's far side). Its keepers' gate, off the walk round
@@ -425,9 +427,10 @@ function layout(rt) {
 
   // ---- the Gallery of Voices (the key hall, after its reference: blue-grey blocks, cable down into the chasm, the
   // market's coloured light through slots far above). Near side: three singing stones of three sizes on stepped
-  // plinths; the great horn at the chasm's edge raises the pillar bridge only while the high note rings. The far
-  // door listens through a dish over it: its near dish, low on the east wall, wakes with a ball on its footstone,
-  // and carries what is played into it. One note at a time: send the middle note over first, then carry the high
+  // plinths; the pillars down in the chasm rise while the high note, played back near them, still rings (v1.74: one
+  // great horn at the edge raised them all). The far door listens through a dish over it: its near dish, low on the
+  // east wall, wakes with a ball on its footstone, and carries what is played into it. One note at a time: send the
+  // middle note over first, then carry the high
   const G0 = A0 + 12 + 1.2;
   K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 12, 0.8);
   add(Door, { id: 'd3', at: [0, 12, G0 - 0.6], w: 5, h: 6.4, lamps: [{ lit: 'e0' }] });
@@ -439,20 +442,19 @@ function layout(rt) {
   K.slab(-11, G0 + 28, 11, G0 + 36.6, 12, 18);
   K.both(M.dark, box(22, 1, 20, 0, -6.4, G0 + 18));
   add(Pit, { room: 'gallery', min: [-12, -8, G0 + 8], max: [12, 8, G0 + 28] });
-  add(Bridge, { id: 'br1', a: [0, 12, G0 + 7.9], b: [0, 12, G0 + 28.1], w: 4, n: 8, pillar: 12 });
+  add(Pillars, { a: [0, 12, G0 + 7.9], b: [0, 12, G0 + 28.1], w: 4, n: 8, pillar: 12, note: 'high', hold: HOLD.pillar, reach: HOLD.reach,
+    heard: 'The pillars nearest you hear the high note and rise out of the dark. Further on, they wait to hear it too: play it again as you go.' });
   /** A stepped plinth (two blocks) with a singing egg on it. */
   const egg = (note, x, z, h, yaw) => {
     K.both(M.wall, box(2.4, 0.6, 2.4, x, 12.3, z)); K.both(M.trim, box(1.9, 0.6, 1.9, x, 12.9, z));
     for (const s of [-1, 1]) K.add(brass, box(0.12, 0.5, 0.5, x + s * 0.96, 12.95, z));
     return add(EchoStone, { note, at: [x, 13.2, z], yaw, h, shape: 'egg' });
   };
+  // (v1.74, issue #23: the middle egg nearest the chasm, so it is seen from the far door that wants its note; the high
+  // one, taller, stood in front of it from there)
   egg('low', -8.9, G0 + 1.5, 2.2, Math.PI / 2);
-  egg('mid', -8.9, G0 + 4.1, 3.0, Math.PI / 2);
-  egg('high', -8.7, G0 + 6.6, 4.0, Math.PI / 2 + 0.3);
-  add(EchoEar, { id: 'e1', note: 'high', at: [-3.0, 12, G0 + 7.1], yaw: Math.PI - 0.5, stand: 3.4, size: 1.6, reach: 7,
-    heard: 'The great horn takes the high note and holds it, and pillars rise out of the dark, as long as it rings.',
-    fading: 'The great horn’s note is fading: the pillars will sink.' });
-  K.both(M.trim, T(new THREE.CylinderGeometry(1.0, 1.2, 0.5, 16), [-3.0, 12.25, G0 + 7.1]));
+  egg('high', -8.9, G0 + 4.1, 4.0, Math.PI / 2);
+  egg('mid', -8.7, G0 + 6.6, 3.0, Math.PI / 2 + 0.3);
   // the far door's dish pair: the near one low on the east wall, its footstone, the ball's groove
   K.add(M.dark, box(5.6, 0.04, 1.0, 5.8, 12.02, G0 + 4.4));
   add(Ball, { id: 'ball2', a: [3.2, 12.04, G0 + 4.4], b: [8.2, 12.04, G0 + 4.4], r: 1.1 });
@@ -463,11 +465,8 @@ function layout(rt) {
   add(EchoEar, { id: 'e2', note: 'mid', lintel: true, at: [-2.9, 18.6, G0 + 35.2], yaw: Math.PI, reach: 2.6,
     heard: 'Over the far door the dish says the middle note, and the door’s horn answers.' });
   add(Door, { id: 'd4', at: [0, 12, G0 + 37.2], w: 5, h: 6.4, lamps: [{ drumOn: ['ball2', 'p2'] }, { lit: 'e2' }] });
-  // the far side: a high stone and a horn of its own, the way back over (no one is left stranded)
+  // the far side: a high stone, the way back over (no one is left stranded)
   egg('high', 8.4, G0 + 31.6, 4.0, -Math.PI / 2);
-  add(EchoEar, { id: 'e3', note: 'high', at: [3.4, 12, G0 + 29.0], yaw: Math.PI - 0.4, stand: 2.8, size: 1.2,
-    heard: 'The far horn takes the high note, and the pillars rise again for the way back.',
-    fading: 'The far horn’s note is fading: the pillars will sink.' });
   // cable in bundles down the walls into the chasm, and the market's light through slots far overhead
   for (const [x, z0, z1] of [[-10.6, G0 + 1, G0 + 10], [10.6, G0 + 6, G0 + 12], [-10.6, G0 + 26, G0 + 34], [10.6, G0 + 24, G0 + 33]]) {
     for (let k = 0; k < 3; k++) cable([x, 22 - k * 0.5, z0 + k * 0.6], [x * 0.97, 12.3, (z0 + z1) / 2 + k * 0.5], 0.2);

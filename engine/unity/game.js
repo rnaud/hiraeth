@@ -176,7 +176,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
         // the game menu's panels from the world now running (engine/game.js menuSources), its Travel here by a reboot
         menus.sources = game.menuSources({ travel: true });
         menus.onTrack = (id) => game.story?.quests?.choose?.(id);
-        menus.onUse = (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && game.tool?.modes?.includes(m)) game.tool.setMode(m); };
+        // (a gun mode taken, a gadget taken in hand, the finder switched: main.js onUse; issue #344)
+        menus.onUse = (id) => game.useItem(id);
         menus.onTravel = (id) => {
           const no = game.travelRefusal(id);
           if (no) return no;
@@ -316,8 +317,8 @@ function readInput(game) {
     // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
     // closes) and J the game menu, as the page's listeners do
     if (menus?.open) { menus.key(k); continue; }
-    // (Esc held in a ship's scene skips it, and leaves photo mode: the game's own)
-    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.photoOn && !game.scenePlaying) { game.save(); menus.show('start'); continue; }
+    // (Esc held in a ship's scene skips it, skips a box's opening, and leaves photo mode: the game's own)
+    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.photoOn && !game.scenePlaying && !game.boxPlaying) { game.save(); menus.show('start'); continue; }
     if (menus && k === 'KeyJ') { menus.show('game'); continue; }
     game.key(k, true);
   }

@@ -115,6 +115,22 @@ test('the line of sight is drawn for a lock: it is told which link it faces (doo
   assert.ok(g.locks.filter((l) => l.id !== 'd2').every((l) => l.keys.every((k) => k.visible !== false)));
 });
 
+test('the line of sight is told the key it looks at (its own piece never hides it), and a keepers’ door opened from its far side with the gadget comes after the chest (v1.74)', () => {
+  const T = structuredClone(LINEAR);
+  const told = [];
+  const los = (a, b, link, key) => { told.push(key); return true; };
+  puzzleGraph(T, LIN_PIECES, { los });
+  assert.ok(told.includes('b1') && told.includes('p1'), `the key, or the plate a ball is meant for (${told.join(', ')})`);
+  // a keepers' door back to the first room, written from the side it is opened from (its far side), wanting the gadget
+  T.links.push({ a: 'c', b: 'a', door: 'sc' });
+  T.elements.b2 = { type: 'brazier', room: 'c', needs: ['fire'] };
+  T.elements.sc = { type: 'door', opens: { lit: 'b2' }, latch: true };
+  const g = puzzleGraph(T, [...LIN_PIECES, { cls: 'Brazier', o: { id: 'b2', at: [2, 0, 38] } }]);
+  const sk = skeleton(g);
+  assert.ok(sk.indexOf('C') < sk.indexOf('G'), `the gadget's steps after the chest (${sk})`);
+  assert.equal((sk.match(/G/g) ?? []).length, 2, sk);
+});
+
 test('a loop back to the start counts, and a guardian that asks for the gadget and the push examines the temple', () => {
   const T = structuredClone(LINEAR);
   T.links.push({ a: 'c', b: 'a', door: 'sc' });

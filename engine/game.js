@@ -13,7 +13,9 @@
 // shim (engine/webaudio.js); `game.audio` is its context, which the engine renders PCM from.
 // The menus (the title, the Start menu, the game menu): engine/menus.js, as plain state the engine draws; createGame({ menus })
 // pauses the world while one is open and hands it the pad.
+// The gadgets (src/gadgets/, issue #344): every one registered as an item first, as main.js does, then made per world.
 import { page } from './boot.js';
+import '../src/gadgets/all.js';   // (first after the page's stand-ins: the gadgets become items before anything reads ITEMS)
 import * as THREE from 'three';
 import { levelById, LEVELS } from '../src/levels/index.js';
 import { CONTENT } from '../src/levels/content.js';
@@ -81,8 +83,15 @@ import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
 import { attachMotion } from '../src/motion-match.js';
 import { ShopPanel } from '../src/shop-panel.js';
 import { resources } from '../src/resources.js';
+import { Gadgets, gadgetFoundLine } from '../src/gadgets/index.js';
+import { syncUpgrades } from '../src/trials/upgrades.js';
+import { createItemEffects } from '../src/boxes/effects.js';
+import { hintsFor } from '../src/hint-level.js';
+import { keyText } from '../src/prompt-keys.js';
+import { InputMode } from '../src/input-mode.js';
 
 export { page };
+export { ITEMS, items } from '../src/items.js';   // (the tests: the bundle's items, the gadgets among them, against the web's)
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
 
 /** The shop panel's element where there is no page: every call taken (its sheet is the menus', engine/menus.js). */
@@ -325,8 +334,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   journal.markSeen(levelId);   // (after the story read its first visit, as main.js marks it)
   if (Q) for (const n of npcs) { n.lowDetail = !!Q.lowDetail; n.clothFar = Q.clothFar ?? null; }
   // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
+  // (its opening filmed by the ship's cinema where the ship is attached, as main.js: the shots, the letterbox, the HUD hidden;
+  // its card the screen's 'boxCard', src/boxes/card.js, drawn by the engine: issue #345)
   const boxes = optional('the boxes', () => createBoxes({ levelId, scene, physics, level, player, sound, quests: story?.quests ?? null, toast,
-    anchor: () => ship?.arrivalSpot?.() ?? null, quiet: () => !!story?.dialogue?.open, cam: null }));
+    anchor: () => ship?.arrivalSpot?.() ?? null, quiet: () => !!story?.dialogue?.open,
+    cam: { shot: (s) => { if (shipOn) ship.shot(s); }, release: (b) => { if (shipOn) ship.release(b); }, hud: (on) => { if (shipOn) ship.cinema.hud(on); }, bars: (on) => { if (shipOn) ship.cinema.bars(on); } } }));
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, density: Q?.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
@@ -394,6 +406,26 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, U, atmo, atmo?.script ?? script);
   updateSky();
 
+  // what the boxes' special items do (src/boxes/effects.js: the bell's note on V / Y, the lantern after dusk, the star on his
+  // lapel, the tank's upgrades…), as main.js makes them
+  const itemFx = optional('the items\' effects', () => createItemEffects({ player, tool, level, sound, camera, toast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 }));
+  // the gadgets (src/gadgets/, issue #344), made as main.js makes them, after the trials' upgrades to their tuning: the one in
+  // hand on LT / RT (R, and G or T), D-pad ↑ or B to choose another (held: the wheel), D-pad → or X its mode, Y / △ (V) the
+  // whistle; a gadget found is in hand at once (#330). Their chip, wheel, reticle and marks are the screen's state
+  // (src/gadgets/hud.js; BridgeHud.cs draws them). No foes in the engines yet: what they would do to one waits for them.
+  syncUpgrades((id) => gear.has(id));
+  gear.on(() => syncUpgrades((id) => gear.has(id)));
+  const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: null, wind, input: null, relics: null, flammables, post: U, boxes,
+    notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
+  // after a box's card, the line a gadget found says (in hand; the first time two are carried, how to pick another), or the
+  // item's own lesson, once (main.js on 'box:opened'; src/gadgets/index.js gadgetFoundLine)
+  gameState.on('box:opened', ({ item } = {}) => {
+    const found = gadgetFoundLine(item, { owned: gadgets?.owned?.() ?? [], taught: (k) => !!gameState.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
+    if (!found) return;
+    if (found.key) gameState.set(`${found.key}.taught`, true);
+    setTimeout(() => toast(keyText(found.text, { teach: true })), 4200);
+  });
+
   // the ship attached, as main.js attaches it, when the engine is played (its menus; not a bench's plan): walking up the
   // ramp takes you aboard, E at the console plays the voicemail (CallDirector), at the holo table the galactic map (the
   // game menu's Worlds page here), and its scenes play: the prologue, the take-off, the arrival (issue #264). Its
@@ -409,6 +441,18 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   }
 
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads
+  // What is in hand, as the page's InputMode keeps it (src/input-mode.js): a pad connected or pressed is, until a key is
+  // pressed; the prompts, the cue, a box's card and every {key:verb} name its buttons (the body's 'controller' class,
+  // src/prompt-keys.js inputKind), in Xbox / PlayStation form, which the bridge prints as the pad in hand does (issue #345).
+  // (Esc does not count: a handheld's back button may arrive as it)
+  const inputMode = new InputMode({ touchDevice: false, storage: { get: () => null, set() {} } });
+  let padKind = null;
+  const padInHand = () => inputMode.controller;
+  function inputFrame() {
+    inputMode.frame(controller.index !== null);
+    inputMode.apply(document.body?.classList);
+    if (padKind !== inputMode.kind) { padKind = inputMode.kind; boxes?.card?.refresh?.(); }
+  }
   const keys = {};
   const tapped = new Set();
   const latched = () => { const o = { ...keys }; for (const k of tapped) o[k] = true; tapped.clear(); return o; };
@@ -421,14 +465,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // keys at the top; A / × saves the picture (the engine's own shot: the Unity bridge's BridgeHost.Photo, into the app's
   // photos folder), B / ○, View or Menu leaves it. From the Start menu's Photo mode, View + D-pad ↑, or P.
   const photo = { on: false, capture: 0, saved: 0, pos: new THREE.Vector3() };
-  const photoHint = () => (controller.index !== null
+  const photoHint = () => (padInHand()
     ? `Left stick fly · right stick look · LB / RB down / up · ${confirmKey()} save · ${backKey()} exit`
     : 'WASD fly · mouse look · Q / E down / up · Shift faster · Enter save · P exit');
   function setPhoto(on) {
     if (on && (pinned || talking() || (shipOn && ship.playing) || player.dead || !backend?.photo)) return;
     photo.on = !!on; photo.capture = 0;
     if (on) photo.pos.copy(camera.position);
-    for (const k of ['cue', 'prompt', 'stamina', 'health', 'keys', 'toast']) screen.set(k, null);
+    for (const k of ['cue', 'prompt', 'stamina', 'health', 'keys', 'toast', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks']) screen.set(k, null);
     screen.set('photo', on ? { hint: photoHint() } : null);
   }
   const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
@@ -447,13 +491,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const controller = new Controller({
     pads: () => navigator.getGamepads?.() ?? [],
     // (a menu open, engine/menus.js: the pad's menu context, its actions and directions the menu's)
-    context: () => (menus?.open ? 'menu' : photo.on ? 'photo' : talking() ? 'talk' : player.ride ? 'ride' : 'game'),
+    // (a box opening: the menus' buttons, A / × on its card goes on, B / ○ skips; main.js busy())
+    context: () => (menus?.open ? 'menu' : photo.on ? 'photo' : talking() ? 'talk' : boxes?.busy?.() ? 'menu' : player.ride ? 'ride' : 'game'),
     look: (x, y) => { if (x || y) rig.look(x, y); },
     action: (name, dt) => {
       if (menus?.open) { menus.action(name); return; }
       if (name === 'photo') { setPhoto(!photo.on); return; }
       if (name === 'capture') { if (photo.on && !photo.capture) photo.capture = 1; return; }
       if (photo.on) return;
+      if (boxes?.busy?.()) { if (name === 'confirm') { boxes.dismiss(); return; } if (name === 'back') { boxes.skip(); return; } }
       // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
       if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
       if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
@@ -472,6 +518,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const n = screen.state.dialogue?.choices?.length ?? 0; if (n) talk.sel = Math.max(0, Math.min(n - 1, talk.sel + y));
     },
     scroll: () => {},
+    activity: () => inputMode.pad(),
+    // (the gadget wheel open: the right stick chooses, the camera holds; src/gadgets/index.js wheelStick)
+    stickTaken: () => !!gadgets?.wheelOn,
     // (where the printed letters are: a Retroid's Nintendo letters, reported by letter, moved to positions; native-pad.js)
     faces: () => padFaces(),
   });
@@ -487,7 +536,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   function hud(dt, busy) {
     const nowMs = performance.now();
     if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = nowMs; } } else rideHint.kind = null;
-    const pad = controller.index !== null;
+    const pad = padInHand();
     const quiet = busy || player.dead || !!pinned;
     const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad,
       shipHint: shipOn ? ship.hud() : null, shipPlaying: shipOn && ship.playing });
@@ -630,13 +679,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
       if (down) tapped.add(code);
       const was = keys[code];
       keys[code] = down;
+      if (down && !was && code !== 'Escape') inputMode.event({ type: 'keydown', code, isTrusted: true });
+      // (a box opening, as main.js's keys: Esc skips, E, Enter or Space on the card goes on)
+      if (down && !was && !menus?.open && boxes?.busy?.()) {
+        if (code === 'Escape') boxes.skip();
+        else if (code === 'KeyE' || code === 'Enter' || code === 'NumpadEnter' || code === 'Space') boxes.dismiss();
+      }
       // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
       if (down && !was && !menus?.open) {
         if (code === 'KeyP') setPhoto(!photo.on);
@@ -694,6 +749,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     openShop(id) { if (shopPanel) shopWaiting = (id === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(id)) ?? null; return !!shopWaiting; },
     /** The ship attached and its scenes played (the engine played with its menus). */
     shipScenes: shipOn,
+    /** A makers' box opening (Esc skips it, to its card or past it). */
+    get boxPlaying() { return !!boxes?.busy?.(); },
+    /** What is in hand: 'pad' or 'keys' (src/input-mode.js), which the prompts name the buttons of. */
+    get inputKind() { return inputMode.kind; },
+    /**
+     * A thing used from the game menu's Items (main.js onUse): the fragment finder on or off, a gun mode taken, a gadget
+     * taken in hand.
+     */
+    useItem(id) {
+      if (id === 'finder') { gameState.set('frag.finder.off', !gameState.flag('frag.finder.off')); return; }
+      const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id];
+      if (m && tool?.modes?.includes(m)) tool.setMode(m); else gadgets?.equip(id);
+    },
     /** A ship's scene playing that is not his to walk through (Esc held skips it). */
     get scenePlaying() { return shipOn && ship.playing && !ship.cinematic?.interactive?.(); },
     /** Photo mode on, and turned on or off (from the Start menu's Photo mode). */
@@ -713,10 +781,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const charge = () => chargeState({ flag: (f) => gameState.flag(f), keepsakes: gameState.keepsakes(), completed: ship?.completed?.().length ?? 0,
         failed: Object.entries(gameState.data.flags).filter(([k, v]) => k.startsWith('failed.') && v).map(([, v]) => v) });
       const seen = (w) => journal.seen(w), flag = (k) => gameState.flag(k);
-      return menuSources({ items: { owned: () => Object.keys(ITEMS).filter((id) => gear.has(id)) },
+      // (the wallet: the chimes, src/resources.js; the finder a switch, src/fragments.js finderOn; the gadgets owned and in hand)
+      return menuSources({ items: { owned: () => Object.keys(ITEMS).filter((id) => gear.has(id)) }, wallet: () => resources.chimes,
+        toggles: () => ({ finder: gear.has('finder') && !gameState.flag('frag.finder.off') }),
         quests: story?.quests ?? null, charge, keepsakes: () => gameState.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.seen(id), game: gameState,
         levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
-        mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [] }), boxes: () => boxes?.counts?.() ?? {},
+        mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
         map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }) });
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
@@ -746,6 +816,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // goes to the menu (the controller's menu context), the scene is still drawn
       if (menus?.open) {
         controller.update(dt, true);
+        inputFrame();
+        // (whatever a gadget was doing lets go, its wheel closes: main.js gadgets.control paused under a menu)
+        try { gadgets?.control(dt, noInput, true); } catch { /* said in play */ }
         // (the Map open: its ground drawn on, the menu told how far every few frames for its "Drawing the map… n %")
         if (menus.mode === 'game' && menus.state?.panel?.id === 'map' && pumpMap() && ++mapTick % 8 === 0) menus.changed();
         screen.set('prompt', null); screen.set('stamina', null);
@@ -778,6 +851,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // (the engine playing with its menus: where you stand saved every 10 s, and the save's playtime, as main.js does)
       if (menus && saveIn <= 0) { saveIn = 10; if (!flags && !pinned) { game.save(); slots.touch(slots.active, { addSeconds: 10 }); } }
       const pad = controller.update(dt, true);
+      inputFrame();
       const ctl = mergeControls(latched(), pad);
       atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
       updateSky();
@@ -815,7 +889,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       }
       lap?.('people');
       // the ship's E aboard and its autopilot (the ramp's walk in and out), as main.js filters the input before the rest
-      const busy0 = !!story?.busy?.() || (shipOn && ship.busy());
+      const busy0 = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.();
       const ctlS = shipOn && !pinned ? (busy0 ? noInput : ship.input(ctl)) : ctl;
       // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does
       const ePressed = !!ctlS.KeyE && !eWasDown && !pinned; eWasDown = !!ctlS.KeyE;
@@ -824,8 +898,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (handled) player._eHeld = true;
       if (shopWaiting && !talking()) { const e = shopWaiting; shopWaiting = null; menus.openShop(shopPanel, e); }
       lap?.('story');
-      const busy = !!story?.busy?.() || (shipOn && ship.busy());
+      const busy = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.();
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
+      // the gadgets' buttons before the traveller moves (the hook's reel sets his velocity), as main.js
+      const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing);
+      if (gadgets) { try { gadgets.control(dt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
       player.update(dt, pinned || busy ? noInput : ctlS, rig.yaw, rig.pitch);
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');
@@ -842,7 +919,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         story?.frameCamera?.(camera);   // the two-shot while talking
       }
       lap?.('vehicles, camera');
-      try { boxes?.update(dt, simT, { camera }); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
+      try { boxes?.update(dt, simT, { camera }); itemFx?.update(dt, simT); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
       if (shipOn && !pinned) {
         // inside or out, its scenes and their camera (after the rig, as main.js: a scene's shot replaces the rig's)
         try { ship.update(dt, simT, ctl); } catch (e) { if (!game._shipFailed) { game._shipFailed = true; console.warn('[game] the ship failed in its update', e?.stack ?? e); } }
@@ -860,6 +937,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the world's life, the tool and the drone (main.js's order)
       try {
         tool?.update(dt, pinned || busy ? noInput : ctl, busy || !!pinned);
+        gadgets?.update(dt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);

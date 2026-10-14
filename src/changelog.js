@@ -21,6 +21,12 @@ export const CHANGELOG = [
     'In the Founders’ Belfry the far door takes a great key now. Half-way over the Hall of Echoes the bell brings down a spur off the bridge to a doorway in the west wall, and no ball holds it: ring, and run. Behind it the Ringers’ Walk leads back round to a ledge high in the Stone Stair, where the key’s cage shows from the stair’s floor at the start: it sinks only while the founders’ bell far below rings, and with its ball still in its mouth that bell hears your whistle from up there. Drop onto the landing and climb the house again.',
     // src/temples/incal.js FLUE, migrate.js incal v3; tests/temples.test.js
     'In the Warden’s Well a second way climbs to the crown: the Flue, a shaft off the Lamp Gallery’s west wall. Splash the little vane high on its wall and a draught rises up its middle; half-way up a ledge holds the house’s great key, which the warden’s door now wants as well as its eye. Splash the vane again from the ledge and ride on up into the crown.',
+    // the listening pillars (issue #23, round 6): src/temples/pieces.js Pillars, bazaar.js; tests/temples.test.js
+    'In the Undertower the great horn at the edge of the Gallery of Voices is gone: each pillar over the chasm has a little horn of its own now, and rises only while the high note, played back near it, still rings. Play it at the edge, step out, and play it again as you go: the pillars ahead rise to meet you, and the one under you waits for you. The middle note’s egg stands nearest the chasm, where the far door can see it.',
+    // the Clock-House's mainspring in sight, the gallery's beat (issue #23, round 6): src/temples/garage.js, pieces.js Swing; tests/temples.test.js
+    'In the Clock-House the Mainspring Room is off the Escapement’s far landing now, its doorway facing the Clockmaker’s Cupboard: from the Cupboard’s shut door you can see the slack spring that stopped its little clock. Wind it once you have the quick coil, and the Cupboard wakes. Over the Clock Gallery’s bridge a great brass pendulum swings along it: cross under it as it swings away; if it meets you, it only knocks you back.',
+    // the Aerie's catch and the Moult's air (issue #23, round 6): src/temples/arzach.js WELL_VENT, migrate.js arzach v3; tests/temples.test.js
+    'In the Aerie the wind up the Wind Well no longer takes your new wings straight to the top: it lets you go just over the balcony, because a second vent by the Moult’s door breathes half of it away. Roll that vent’s stone into its throat and the whole wind rises again. In the Eyrie the column past the great key’s perch only blows once the Moult below is won and its door open: the wind comes up its shaft out of the Moult.',
     // Vael's level init (src/levels/arzach.js): the falling-up edge's risers got no collider in the game
     'Past the riders’ gate on Vael, the stones that rise under you are solid again: you no longer fall through them.',
     // the traveller's starts, stops and turns at the game's speeds (issue #47): src/feet.js (pushOff, toeOff, releaseArc,
@@ -31,6 +37,15 @@ export const CHANGELOG = [
     // (HATCH_AA), SMAA at Handheld (SMAA.shader, HiraethFeature.cs, BridgeRunner -aa); tests/distant-shimmer.test.js;
     // docs/systems/performance.md "Unity on the Retroid: the distant shimmer"
     'In the Unity version the far distance no longer shimmers as the camera turns: far-off lines are drawn lighter, as in the web game, so distant towns, towers and dunes stop crawling (on the Retroid, a third to three quarters less flicker far off), and on handhelds the edges are smoothed more sharply. Near lines stay as crisp as before.',
+    // the gadgets and the wallet in the engines (issue #344): engine/game.js Gadgets, gadgetFoundLine, menuSources wallet/toggles,
+    // useItem; scripts/engine-bundle.mjs import.meta.glob; src/gadgets/hud.js screen 'gadget'/'gadgetWheel'/'reticle'/'gadgetMarks';
+    // BridgeHud.cs DrawGadget etc.; tests/engine-gadgets.test.js
+    { text: 'In the Unity preview the gadgets are there: chests and the makers’ courts give them, the one you find is in your hand at once, D-pad ↑ takes another (held, the wheel), and its picture sits in the top right corner. The Items page lists every one of them, and your chimes beside the count.',
+      see: 'In the Unity preview, open the chest in the Givers’ Hearth: after its card the fluid gun is in hand, its glove in the top right corner, and the Items page counts 68 slots with your chimes beside them, as the browser game does (it counted 58, with no chimes).' },
+    // the box card in the engines (issue #345): src/boxes/card.js cardState, screen 'boxCard'; engine/game.js box input, busy,
+    // its filmed opening; src/input-mode.js in the engine (the pad's names); BridgeHud.cs DrawBoxCard; tests/engine-gadgets.test.js
+    { text: 'In the Unity preview a makers’ chest ends its opening on its card, as in the game: what you found, what it does, and A to go on (B skips the opening). Once you pick up a pad, the prompts name its buttons rather than the keyboard’s.',
+      see: 'In the Unity preview, open the star’s chest in Qanat’s streets with the pad: the opening is filmed in its letterbox, then the card reads PALE STAR and its line, with an A button to continue. Walk up to someone: the prompt names the pad’s X, not the keyboard’s E.' },
   ] },
   { v: '1.73', date: '2026-10-14', items: [
     // the City-Shaft's main quest waits for the wings too (issue #328, reopened): src/story/incal-data.js needs; tests/quest-needs.test.js

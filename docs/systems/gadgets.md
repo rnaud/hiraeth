@@ -513,3 +513,10 @@ pots of ink and its gate are the reward for using it.
   relics and boxes, clear of the temple); `tests/trials-worlds.test.js` checks each one.
 - **Upgrades**: each gadget has one, won in a world's trial (src/trials/upgrades.js, docs/systems/minigames.md
   "Trials in the worlds").
+
+## In the engines (issue #344)
+
+The Unity and Godot bundles register the gadgets as the web does (the bundle's own `import.meta.glob`) and make the runtime in
+engine/game.js; the HUD's chip, wheel, reticle and marks are also the screen's state (src/platform.js `gadget`,
+`gadgetWheel`, `reticle`, `gadgetMarks`), drawn by the Unity bridge's BridgeHud.cs. docs/systems/engine-bridge.md, "The
+gadgets and the wallet".

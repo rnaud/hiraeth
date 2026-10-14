@@ -8,6 +8,8 @@
 //   PORT (default 5344; never 5173, the author's own server). Chrome's debugging port: chosen by Chrome.
 //   QC_VITE_CACHE: the dev server's cache folder (default: in Chrome's throwaway profile; in a worktree whose node_modules is
 //   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
+// A view: { world, name, eye, target, player?, hour?, fov?, flags? (the save its world boots with), act? (an expression
+// run in the page before the shot) }.
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -88,6 +90,8 @@ for (const [n, world] of worlds.entries()) {
     const s = document.createElement('style'); s.textContent = 'body > *:not(canvas) { visibility: hidden !important; } canvas { visibility: visible !important; }'; document.head.appendChild(s); return true; })()`);
   for (const v of views.filter((x) => x.world === world)) {
     await ev(pin(v));
+    // (a view's `act`: an expression run in the page once the view is set, before the shot: a horn rung, a note sounded)
+    if (v.act) { await sleep(1500); const r = await ev(v.act); if (typeof r === 'string' && r.startsWith('ERR')) console.log(`${v.name}: ${r}`); }
     await ev(`(() => { if (window.sky) { window.sky.hour = ${v.hour ?? 12}; window.sky.speed = 0; window.updateSky?.(); } return true; })()`);
     await sleep(v.player ? 3500 : 2500);   // (a teleport: the world round him streams in)
     await shoot(join(OUT, `${v.name}.png`));

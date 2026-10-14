@@ -13,7 +13,15 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serve, chrome, shoot, DEFAULT_VIEW } from './changelog-shots.mjs';
+import { readdirSync } from 'node:fs';
 import { ITEMS } from '../src/items.js';
+import { registerGadget } from '../src/gadgets/registry.js';
+
+// (the gadgets are items too: src/gadgets/all.js registers them through Vite's import.meta.glob, which node lacks; issue #344)
+for (const f of readdirSync(new URL('../src/gadgets/', import.meta.url)).filter((f) => f.endsWith('.js') && f !== 'all.js').sort()) {
+  const m = await import(new URL(`../src/gadgets/${f}`, import.meta.url).href);
+  if (m.default?.id && typeof m.default.create === 'function') registerGadget(m.default);
+}
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT ?? 5430);

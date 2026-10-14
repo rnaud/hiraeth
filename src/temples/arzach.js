@@ -34,9 +34,12 @@ import { chestMound } from '../boxes/mound.js';
 //                        Eyrie's vent (since issue #23's last round, below). Won, the small key's cage sinks and the
 //                        door onto the well lets go
 //   the Wing Chamber     the makers' chest: the FLUID WINGS (src/items.js 'glider'). Step back out onto the
-//                        balcony and into the column of wind: it lifts open wings, round and up, to the high
-//                        balcony over the well, the great carved eye beside it (the wind you sent, a room away).
-//                        The way north off it wants the small key
+//                        balcony and into the column of wind: it lifts open wings, round and up, and lets them go
+//                        just over the balcony (v1.74, issue #23 round 6: the catch). The well's floor has a second
+//                        vent by the Moult's door, its stone beside it: while it is open, half the wind breathes out
+//                        of it there. Glide down, roll its stone into its throat, and the whole wind rises up the
+//                        well, to the high balcony over it, the great carved eye beside it (the wind you sent, a room
+//                        away). The way north off it wants the small key
 //   the Eyrie            (west at the high balcony's height, along a ledge round the well's wall) two vents and one
 //                        stone, both throats on its ledge: the stone starts in the throat of the vent at the foot of
 //                        the gap, so the wind comes out of the ledge's own, a column beside a shelf with a coffer;
@@ -102,7 +105,10 @@ export const LOGIC = {
     // winds and one stone, the great key
     { a: 'well', b: 'moult', door: 'dM' },                              // (shut till the Moult is won: its way out, onto the well's floor)
     { a: 'well', b: 'wings', door: 'raft' },                            // the feather raft rides up on the well's wind
-    { a: 'wings', b: 'top', needs: ['glider'] },                        // the column (the raft's wind) lifts only open wings
+    // the column (the raft's wind) lifts only open wings, and up to the high balcony only once the floor's second vent is
+    // stopped (v1.74, issue #23 round 6: until then it lets you go just over the chest's balcony, and you ride it again from
+    // the floor, where its stone is; it was { a: 'wings', b: 'top', needs: ['glider'] }, the audit's most obvious step)
+    { a: 'well', b: 'top', door: 'column', needs: ['glider'] },
     { a: 'top', b: 'eyrie' },                                           // along the ledge round the well's west wall
     { a: 'eyrie', b: 'eyrieKey', door: 'lift', needs: ['glider'] },     // over the gap and up to the great key's perch, on the column out of its foot
     // (issue #23, the last round: the Moult is entered from above, down the shaft of the vent at the gap's foot while its
@@ -114,7 +120,8 @@ export const LOGIC = {
     // tests/way-back.test.js)
     { a: 'gulf', b: 'perch', door: 'tail', needs: ['glider'], oneWay: true },   // the Gulf: too far on still air, carried by the vent's gusts
     { a: 'perch', b: 'gulfFar', door: 'rise', needs: ['glider'], oneWay: true },   // to a ledge higher than the perch: lifted by the column beside it
-    { a: 'gulfFar', b: 'perch', needs: ['glider'], oneWay: true },      // (and down onto the perch again: a glide)
+    // (v1.74: no link back down onto the perch from the higher ledge. A glide does it, but nothing is there to go back for,
+    // and it is no way back: that is the passage. The audit counted it as a step, and the house's most obvious)
     { a: 'gulfFar', b: 'gulfWay', oneWay: true },                       // the way back: off the sill in the ledge's east doorway, down into the passage
     { a: 'gulfWay', b: 'gulf' },                                        // along it under the gulf's wall, and up its stairs onto the near lip
     { a: 'gulfFar', b: 'roost', door: 'd3' },
@@ -125,6 +132,11 @@ export const LOGIC = {
     ballW: { type: 'drum', room: 'gusts', plate: 'pH', plateAt: 1, start: 0 },
     pH: { type: 'plate', room: 'gusts' },
     raft: { type: 'door', opens: { drumOn: ['ballW', 'pH'] } },
+    // (v1.74) the well floor's second vent, by the Moult's door: its stone beside it; while its throat is open half the
+    // wind breathes out there, and the column lets open wings go just over the chest's balcony
+    bF: { type: 'drum', room: 'well', plate: 'pF', plateAt: 1, start: 0 },
+    pF: { type: 'plate', room: 'well' },
+    column: { type: 'door', opens: { drumOn: ['bF', 'pF'] } },
     chest: { type: 'gadget', room: 'wings', item: 'glider' },
     // the Gulf's vent: its throat a grate on the high balcony, its stone in it (pB); rolled out to the cup (pX), the wind pours over the gulf
     ballB: { type: 'drum', room: 'top', plate: 'pB', plateAt: 0, stops: { pB: 0, pX: 1 }, start: 0 },
@@ -148,7 +160,10 @@ export const LOGIC = {
     bE: { type: 'drum', room: 'eyrie', stops: { pU: 0, pC: 1 }, start: 0 },
     pU: { type: 'plate', room: 'eyrie' },
     pC: { type: 'plate', room: 'eyrie' },
-    lift: { type: 'door', opens: { drumOn: ['bE', 'pC'] } },
+    // (v1.74, issue #23 round 6) and the wind comes up that vent's shaft out of the Moult: while the Moult's door onto the
+    // well is shut, the shaft has nothing to breathe, and the column past the perch is still. So the Moult is won first:
+    // down the still shaft, out by its door, up again, and the stone into the other throat
+    lift: { type: 'door', opens: { all: [{ drumOn: ['bE', 'pC'] }, { open: 'dM' }] } },
     chute: { type: 'door', opens: { drumOn: ['bE', 'pU'] } },          // the vent's shaft, still while its stone stops it: a way down
     kE: { type: 'key', kind: 'big', room: 'eyrieKey' },
     dG: { type: 'door', lock: 'small' },
@@ -223,6 +238,8 @@ export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, car
  * grooves ran from near an edge, with a stride of floor behind the stone, over the dark: tests/ball-room.test.js.)
  */
 export const BALCONY = { depth: 6.0, groove: [-2.1, 5.1] };
+/** (v1.74) The Wind Well floor's second vent (local m off the well's middle, its groove along z) and how high the column rises while it breathes. */
+export const WELL_VENT = { x: -7, z0: -2, z1: 4.5, low: 17.5 };
 export const ROOST = { vent: 8, near: 12, ride: 0.7, wind: [0.15, 0.3, 0.075], still: [0.15, 0.15, 0], open: [null, 5.2, 6.6], miss: 1.4, over: 4.5, drift: 3 };
 /** Is p (the traveller) in the wind out of one of the roost's vents? */
 const inWind = (rt, p) => !!rt.roostWinds?.some((w) => w.contains(p));
@@ -327,7 +344,10 @@ function stack(rt, K, M, { C2, WR, feather }) {
   add(Updraft, { at: [Vt.x, E.y, Vt.z], r: Vt.r, h: Vt.h, lift: 7, when: { drumOn: ['bE', 'pU'] }, still: 'Still air over the grate: its stone has gone from the other throat, and the wind out of the dark beyond.' });
   // the column out of the vent at the gap's foot, past the perch (while the stone stops the ledge's vent)
   const Cl = STACK.column;
-  add(Updraft, { at: [Cl.x, E.floor + 1, C2], r: Cl.r, h: Cl.h, lift: 7.5, when: { drumOn: ['bE', 'pC'] }, still: 'Still air: the stone sits in the throat of the vent down there, and its shaft goes on down into the dark.' });
+  // (v1.74: and only while the Moult's door onto the well is open, the shaft's air coming up out of the Moult)
+  add(Updraft, { at: [Cl.x, E.floor + 1, C2], r: Cl.r, h: Cl.h, lift: 7.5, when: { all: [{ drumOn: ['bE', 'pC'] }, { open: 'dM' }] },
+    still: [[{ drumOn: ['bE', 'pU'] }, 'Still air: the stone sits in the throat of the vent down there, and its shaft goes on down into the dark.'],
+      [{ not: { open: 'dM' } }, 'Barely a breath out of the vent down there: its shaft goes down into the Moult, and the Moult’s door onto the well is shut. Nothing comes up a shaft that no wind goes into.']] });
   // the stone's groove on the ledge between its two throats
   const [Z0, Z1] = STACK.groove.z, GX = STACK.groove.x;
   K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 0.6, GX, E.y + 0.02, (Z0 + Z1) / 2));
@@ -402,7 +422,22 @@ function layout(rt) {
   // the vent in the well's floor: the wind rises out of it while the hall's vent is stopped (its grate, still till then)
   K.add(M.trim, T(annulus(4.4, 5, 0.05, 40), [0, 0.02, C2]));
   for (let i = 0; i < 6; i++) K.add(M.dark, box(8.6, 0.05, 0.3, 0, 0.04, C2 - 3.75 + i * 1.5));
-  add(Updraft, { at: [0, 0, C2], r: 4.5, h: 36, lift: 7, when: { drumOn: ['ballW', 'pH'] }, still: 'Still air over the grate: the wind goes down the hall. Nothing rises here.' });
+  // (v1.74, issue #23 round 6) up to the high balcony only once the floor's second vent is stopped: until then it lets
+  // open wings go just over the chest's balcony (the gate of the way up: its id)
+  add(Updraft, { id: 'column', at: [0, 0, C2], r: 4.5, h: WELL_VENT.low, heights: [[{ drumOn: ['bF', 'pF'] }, 36]], lift: 7, when: { drumOn: ['ballW', 'pH'] }, still: 'Still air over the grate: the wind goes down the hall. Nothing rises here.',
+    low: 'The wind thins out over the balcony and lets your wings go. Down on the floor, by the Moult’s door, the other vent is breathing half of it away.' });
+  // the floor's second vent, by the Moult's door, and its stone beside it on a short groove; open, the wind breathes out of
+  // it in a low column
+  {
+    const [vx, vz0, vz1] = [WELL_VENT.x, C2 + WELL_VENT.z0, C2 + WELL_VENT.z1];
+    K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [vx, 0.02, vz1]));
+    for (let i = 0; i < 3; i++) K.add(M.dark, box(2.6, 0.05, 0.3, vx, 0.04, vz1 - 0.9 + i * 0.9));
+    K.add(M.dark, box(1.0, 0.04, vz1 - vz0, vx, 0.02, (vz0 + vz1) / 2));
+    for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, vz1 - vz0, vx + sd * 0.8, 0.06, (vz0 + vz1) / 2));
+    add(Ball, { id: 'bF', a: [vx, 0.04, vz0], b: [vx, 0.04, vz1], r: 1.1, friction: 0.8 });
+    add(Plate, { id: 'pF', at: [vx, 0, vz1], r: 1.3 });
+    add(Updraft, { at: [vx, 0, vz1], r: 1.4, h: 6, lift: 5, when: { all: [{ drumOn: ['ballW', 'pH'] }, { not: { drumOn: ['bF', 'pF'] } }] }, hint: 'The wind breathes up out of the little vent by the Moult’s door.' });
+  }
   // the feather raft by the east wall: the well's wind lifts it to the Wing Chamber's balcony
   add(Platform, { id: 'raft', path: [[7.9, 0.3, C2], [7.9, 16, C2]], r: 2.2, speed: 1.6, pause: 2.2, when: { drumOn: ['ballW', 'pH'] } });
   K.add(M.trim, T(annulus(2.4, 2.9, 0.05, 32), [7.9, 0.02, C2]));

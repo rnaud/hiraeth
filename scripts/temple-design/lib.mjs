@@ -66,7 +66,7 @@ export function reversible(c, el = {}) {
 }
 
 /** The traversal a piece asks for (it stands in a room and you must get past it): null for the puzzle's own parts. */
-export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets', LensStones: 'stones' };
+export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets', LensStones: 'stones', Pillars: 'pillars' };
 /** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath), a
  * timed hold (a held bell: what it opens stays only while it rings), a key carried to its lock (the challenge is
  * what guards the key: its `when`). */
@@ -144,7 +144,8 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
   }
   const hops = roomDistances(rooms, links);
   // (the link is passed on: whoever draws the line may open the doors you came through to reach the lock's room)
-  const seen = (a, b, l) => (los ? !!los(a, b, l) : true);
+  // (and the key looked at: its own piece never hides it, an eye's lids round it, v1.74)
+  const seen = (a, b, l, key) => (los ? !!los(a, b, l, key) : true);
 
   // the keys and the locks they go in (logic.js `lock`, `key`): a key is any key of its kind, so each lock is given the
   // keys in the order a player meets both (the first keys found to the first locks reached)
@@ -212,7 +213,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
         ...k, pos: kp, clue,
         metres: where && lockPos ? +dist(where, lockPos).toFixed(1) : 0,
         rooms: k.how !== 'item' && k.how !== 'needs' && k.room && hops[l.a]?.[k.room] != null ? hops[l.a][k.room] : 0,
-        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l) : true,
+        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l, clue ? null : k.plate ?? k.id) : true,
         before: k.room && k.how !== 'item' && k.how !== 'needs' ? roomOrder.indexOf(k.room) < roomOrder.indexOf(l.a) : false,
       };
     });
@@ -426,6 +427,9 @@ export function skeleton(g) {
     if (l.keys.length && l.keys.every((k) => k.how === 'open')) continue;   // (a door that opens with another: no step of its own)
     if (l.type === 'cage' && l.mechanics.length && l.mechanics.every((m) => m === 'fight')) continue;   // (an arena's prize: its way out is the A)
     if (l.a === g.chestRoom && !s.includes('C')) s += 'C';
+    // (a lock that wants the gadget comes after the chest, wherever its rooms are: a keepers' door opened from its far
+    // side, the Casting-House's, its near room reached long before, v1.74)
+    if (gk && l.mechanics.includes(gk) && !s.includes('C')) s += 'C';
     if (l.bossDoor) { s += 'K'; continue; }
     const base = baseOf(l.mechanics);
     if (l.type === 'traverse') s += 'T';

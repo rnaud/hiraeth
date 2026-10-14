@@ -122,7 +122,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   travel" below): the singing ball and the dish pair, whose note raises the
   pillars over the cable pit (v1.27: no disc), the riding well and its horn for
   the low stone, the **echo shell**, the chamber's low stone carried a room on to
-  the Listening Passage's door, the held pillar bridge, the far door that listens
+  the Listening Passage's door, the listening pillars (each rises for the high note played back near it, v1.74), the far door that listens
   through a dish, the **First Sign** (`signModel`: it cries one word of its
   line; when it lowers its dish, play the word back into it and it says the
   next); after, a lamp on the silent tower, and once a night it speaks the line.
@@ -193,9 +193,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   comes out of the far one's 0.6 s later, as the same event marked `relayed` (a dish never passes on
   another's). It carries only while `when` holds (a ball's weight on its footstone, `drumOn`); dark, it
   says so and carries nothing. An `EchoEar` may hear a stone's own song (`hears: 'note'` or `'both'`), be
-  set on a tall stand (`stand`, `size`), and hold its element for `hold` seconds like a held bell (the
-  gallery's great horns: the pillar bridge, `{ any: [e1, e3] }`, stands while either rings, so the far
-  side's own horn is the way back). A `Ball` with `sings: note` is a singing ball: a splash makes it sing.
+  set on a tall stand (`stand`, `size`), and hold its element for `hold` seconds like a held bell (until v1.74
+  the gallery's great horns held the pillar bridge so; now the pillars listen themselves: `Pillars`, round 6
+  below). A `Ball` with `sings: note` is a singing ball: a splash makes it sing.
   A `Bridge` with `pillar` rises as tall pillars; a bridge from below that shuts sinks, the far stones
   first, and waits for whoever stands on it. `EchoStone` `shape: 'egg'` is the gallery's eggs.
 - **Nothing grows in the shade** (the Builders' Greenhouse, from the v1.16 audit). A `Sunbeam` is a louvre in the roof
@@ -597,7 +597,8 @@ great key. Wound (its weight home, six eyes in a breath), the mainspring starts 
 Clockmaker's Cupboard's three eyes, back off the Escapement's far landing, are lidded until it runs (`when: { lit: 'k3' }`;
 a `Switch`'s `unmet` says why, a `Bank`'s `woke` says what it started), and the great key is in the cupboard now, beside
 its coffer. The way back down is the Pendulum Hall's: over the climb's ledge, down its stair. A state the whole house
-reads, and a loop back to the first half.
+reads, and a loop back to the first half. (Since v1.74 the Mainspring Room itself is in the first half, across the
+Escapement's landing from the Cupboard: round 6 below.)
 
 An arena in the three houses that had none, each its small key for a later door that keeps its own condition: the
 **Whale-House**'s Horn Store, off the Sounding Hall's south wall, a wing of the hub (`underwater.js` `STORE`; the Song
@@ -683,6 +684,52 @@ take it, so it is splashed again from the ledge, and the draught carries you on 
 door (`d3`) takes the great key with the eye's two vanes, so both ways are needed and either goes first: the irises' for
 the eye's little vane in the loft, the flue's for the key. Down from the crown into the flue is a drop (a `oneWay` link,
 no item: the wings make it a glide). `migrate.js LAYOUTS.incal` v3: past the high door, the great key is in it.
+
+Round 6 (issue #23, v1.74) does the rest of that report's ranked edits: the Undertower's and the Clock-House's shapes
+(identity 2: their runs after the chest read like other houses'), the two doors that scored 1.0 (obscure), and the
+Aerie's too-obvious start.
+
+The **Undertower** (`bazaar.js`, `pieces.js Pillars`): **the listening pillars**. The Gallery of Voices' great horn at the
+chasm's edge (`e1`, held 12 s) and its twin on the far side (`e3`) are gone, and with them the pillar bridge they raised
+(`br1`): each pillar listens itself now, a little horn ringed in the high note's colour on its side. A pillar rises while
+the high note, played back near it (the shell's `'echo'`, not a stone's own song), still rings: `HOLD.pillar` s (6) from
+the last time it heard it within `HOLD.reach` (6.5 m, across the floor), and it waits for whoever stands on it before it
+sinks. Another note near them and they say what they listen for. So the way over is carried, the shell in your pocket:
+play the note at the edge, step out, play it again further on, and the pillars ahead rise as you go (`{ a: 'gallery', b:
+'galleryFar', needs: ['echo'] }`, a traversal the gadget makes: the audit's `T`, its `Pillars` a traversal piece of its
+own). The far side's high egg is the way back. The middle egg now stands nearest the chasm (the high one, taller, hid it
+from the far door that wants its note).
+
+The **Clock-House** (`garage.js` `CUPBOARD`, `GALLERY_BEAT`): **the clock it starts in sight, and the gallery's beat**.
+The Mainspring Room moves from the Clock Gallery's near landing (four rooms from the Cupboard whose clock it starts: the
+Cupboard's door scored 1.0) to the Escapement's far landing, east, its doorway facing the Cupboard's across the landing:
+from the Cupboard's door you see the slack spring and its six eyes through both doorways (its weight waits at its way in,
+`ballM` in the room). Seen on the way in, wound on the way back with the coil; then the Cupboard's lids lift, a room away
+and in sight (its door now names all three of its eyes). The gallery's east wall has its pendulum niche back. And over
+the gallery's bridge hangs the **great pendulum** (a `Swing` with `bob: 'disc'`, a brass bob, `gentle`: it knocks you
+back along the bridge and does not hurt), swinging along it once in 6 s: its bob sweeps low over the bridge's middle and
+rises at either end of its swing, so you cross under it as it swings away, in its beat. The house's own traversal (its
+escapement's disc, its gallery's pendulum): the audit's identity counts two traversals of its own.
+
+The **Casting-House** (`moonfoundry.js`): its keepers' door (`dS`, the shortcut back onto the Pouring Floor) is written
+from the side it is opened from, `{ a: 'scales', b: 'floor' }`: its eye over it and its pan up on the gallery are the
+Weighing Hall's, and it is shut from the floor. Measured from the floor it read as the house's most obscure step (1.0,
+its keys a room away behind the door); from the hall, 2.5. (The audit's skeleton writes the chest's `C` before the first
+step that wants the gadget, wherever its rooms are, so such a door is not written before the chest.)
+
+The **Aerie** (`arzach.js` `WELL_VENT`): **a catch at the start, and the Moult's air**. The Wind Well's column lifts open
+wings off the chest's balcony and lets them go just over it (`WELL_VENT.low`, 17.5 m: its `low` line says why): the
+well's floor has a second vent by the Moult's door, its stone (`bF`) beside it on a short groove, and while its throat is
+open half the wind breathes out there, in a low column of its own. Glide down, roll the stone into its throat (`pF`), and
+the whole wind rises to the crown (an `Updraft`'s `heights`): `{ a: 'well', b: 'top', door: 'column', needs: ['glider'] }`
+(the main column's piece has the id), where the wings alone took you up before (the audit's most obvious step, 5). And
+the column out of the vent at the Eyrie's gap's foot comes up the shaft out of the Moult: it rises only while the
+Moult's door onto the well is open too (`lift` and its `Updraft` want `{ open: 'dM' }`; an `Updraft`'s `still` may be a
+list of `[condition, line]`, the first that holds said: here why it is still). So the circuit has its order: down the
+still shaft into the Moult, out by its door, up again, and the stone into the other throat for the great key. The glide
+from the higher ledge back down onto the perch is no link any more (no way back, nothing there to go back for; the audit
+counted it as a step, the house's most obvious). `migrate.js LAYOUTS.arzach` v3: a save already up there has the floor's
+stone in its throat.
 
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 

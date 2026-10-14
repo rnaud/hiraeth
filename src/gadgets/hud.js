@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { screen } from '../platform.js';
 
 // The gadgets on the screen (docs/systems/gadgets.md, "On the screen"): a small round chip in the top right
 // corner with the gadget in hand (its picture alone, issue #240), a reticle on what the aim
@@ -10,6 +11,8 @@ import * as THREE from 'three';
 //   hud.reticle(point | null, kind, label) · hud.wheel(list, highlighted | -1) · hud.wheel(null)
 //   hud.marks([{ point, label }])   numbered diamonds on what a gadget has locked on to (the boomerang), [] hides
 //   hud.onTap = () => …   (the chip tapped: the next gadget)
+// Each part is the screen's state too (src/platform.js screen: 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'), which
+// an engine draws where there is no page (issue #344: the Unity bridge's BridgeHud.cs).
 
 const CSS = `
 #gadget-chip { position: fixed; isolation: isolate; right: calc(14px + var(--safe-right, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
@@ -70,6 +73,15 @@ body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !i
 #gadget-wheel.many .slot.hi { transform: scale(1.18); }
 `;
 
+const at3 = (p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)];
+
+/** The chip as the screen's state: the gadget's id (its picture's name), name and mark, how full its count is (k), none left. */
+export function chipState(c) {
+  if (!c) return null;
+  const max = c.max ?? 0;
+  return { id: c.def.id, name: c.def.name ?? '', glyph: c.def.glyph ?? '◆', k: max ? Math.max(0, Math.min(1, (c.count ?? 0) / max)) : null, empty: !!(max && !c.count) };
+}
+
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const _p = new THREE.Vector3();
 
@@ -117,6 +129,7 @@ export class GadgetHud {
    * (a count is a thin ring round it, filled as far as there is; faded when none is left); a brief gold ring and a pop when it changes (the pad's, the keys', the wheel's).
    */
   chip(c) {
+    screen.set('gadget', chipState(c));
     if (!this.dom) return;
     const empty = !!(c?.max && !c.count);
     const key = c ? `${c.def.id}|${c.count ?? ''}|${c.max ?? ''}|${c.icon ?? ''}` : '';
@@ -140,6 +153,7 @@ export class GadgetHud {
 
   /** The reticle on a world point (kind: 'ok' | 'anchor' | 'target' | 'far'), or hidden. */
   reticle(point, kind = 'ok', label = '') {
+    screen.set('reticle', point || kind === 'far' ? { at: point ? at3(point) : null, kind, label: label ?? '' } : null);
     if (!this.dom) return;
     if (!point && kind !== 'far') { this.retEl.classList.remove('on'); return; }
     let x = innerWidth / 2, y = innerHeight / 2;
@@ -156,8 +170,9 @@ export class GadgetHud {
 
   /** Numbered red diamonds on world points (the boomerang's locks); an empty list (or null) hides them. */
   marks(list) {
-    if (!this.dom) return;
     list = list ?? [];
+    screen.set('gadgetMarks', list.length ? list.map((m, i) => ({ at: m.point ? at3(m.point) : null, label: String(m.label ?? i + 1) })) : null);
+    if (!this.dom) return;
     if (!this.marksEl) { this.marksEl = document.createElement('div'); this.marksEl.id = 'gadget-marks'; document.body.appendChild(this.marksEl); this.markEls = []; }
     while (this.markEls.length < list.length) { const e = document.createElement('div'); e.className = 'm new'; e.innerHTML = '<b></b>'; this.marksEl.appendChild(e); this.markEls.push(e); }
     this.markEls.forEach((e, i) => {
@@ -172,6 +187,7 @@ export class GadgetHud {
 
   /** The wheel: [{ glyph, name }] round a circle (clockwise from the top), one highlighted; null hides it. */
   wheel(list, hi = -1) {
+    screen.set('gadgetWheel', list ? { slots: list.map((l) => ({ id: l.id ?? '', glyph: l.glyph ?? '◆', name: l.name ?? '', none: !!l.none })), hi, name: hi >= 0 ? list[hi]?.name ?? '' : 'choose a gadget' } : null);
     if (!this.dom) return;
     const key = list ? `${list.map((l) => l.name + (l.icon ? 1 : 0)).join(',')}|${hi}` : '';
     if (key === this.last.wheel) return;

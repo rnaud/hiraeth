@@ -277,6 +277,29 @@ B / ○ out of the question, then out of the shop. BridgeMenu.cs `DrawShop`, the
 (or a keeper's shop id) opens one as soon as the world is ready, to see the sheet on a device. Tests:
 tests/engine-menus.test.js, tests/engine-ship.test.js. A new save's slot on the title says it starts with the prologue.
 
+**The gadgets and the wallet** (issue #344). The web registers the gadgets as items when main.js imports
+src/gadgets/all.js (Vite's `import.meta.glob`); the engine bundle has the same glob (scripts/engine-bundle.mjs, rolldown's
+`viteImportGlobPlugin`), and engine/game.js imports it first, so the bundle's ITEMS are the web's (68 slots on the Items
+panel, not 58). It makes `Gadgets` as main.js does (after the trials' upgrades, `syncUpgrades`; no foes in the engines yet),
+`control` before the traveller moves and `update` after the fluid tool, with the item effects (src/boxes/effects.js: the
+bell's note the whistle rings); a gadget found is in hand at once (#330) and `gadgetFoundLine` follows a box's card. The
+Items panel gets the wallet (`resources.chimes`), the finder's switch and the gadgets owned and in hand; its A / × on one
+is `game.useItem` (main.js onUse). The gadgets' HUD (src/gadgets/hud.js) is the screen's state too: `gadget` (the chip:
+its id names its picture, `k` how full its count is), `gadgetWheel`, `reticle` (a world point), `gadgetMarks`; BridgeHud.cs
+draws them (`DrawGadget`, `DrawGadgetWheel`, `DrawReticle`, `DrawMarks`) with the items' pictures (BridgeMenu.Picture; the
+gadgets' are in public/item-pictures since then, scripts/item-pictures.mjs registers them).
+
+**A box's card, and the pad's names in the prompts** (issue #345). A makers' box opening is busy as on the web (the
+traveller held, the controller's menu context: A / × on the card goes on, B / ○ skips; Esc, E, Enter, Space on the
+keyboard), filmed by the ship's cinema where the ship is attached (its shots, letterbox and hidden HUD). Its card
+(src/boxes/card.js) is the screen's `boxCard` (`cardState`: the scene and its skip's button, then the name, its line and
+the button to go on), which BridgeHud.cs `DrawBoxCard` lays out as the page's #boxcard, over the letterbox's bottom band.
+The prompts' buttons follow what is in hand as the page's do: engine/game.js keeps the web's InputMode (a pad connected or
+used is in hand until a key is pressed; Esc does not count, a handheld's back button may send it) and sets the body's
+`controller` class, which the cue, the floating prompt, a card's buttons and every `{key:verb}` read; the bundle then prints
+them as the pad does (`forPad`). A run with a plan presses keys and reads no pad, so its pictures show the keyboard's E.
+Test: tests/engine-gadgets.test.js.
+
 Left for later (issue #264): the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
 the engine starts again as the climb ends).
 

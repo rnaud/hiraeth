@@ -1264,7 +1264,9 @@ export class Jaw {
  * for `stillFor` seconds. o: { at: the pivot, len, amp (rad), period (s), phase (0..1), yaw, size (its
  * crystal's scale), id (an element a stilling wakes for good: a 'switch' that needs the stilling mode, which
  * may come `after` another: still them in turn), heard / wrong (what it says when it takes / rings flat),
- * onStill(swing) (instead of an element: something else hears its note; `taken` makes it glow on) }
+ * onStill(swing) (instead of an element: something else hears its note; `taken` makes it glow on),
+ * bob: 'disc' (a clock's brass bob instead of the crystal: the Clock-House's gallery, v1.74), gentle (it knocks you
+ * back, `knock` m/s, and does not hurt), rings (said when a splash only rings it) }
  */
 export class Swing {
   constructor(rt, o) {
@@ -1282,7 +1284,11 @@ export class Swing {
     this.arm.add(mesh([box(0.18, len - 1.6, 0.18, 0, -(len - 1.6) / 2, 0), new THREE.TorusGeometry(0.45, 0.12, 5, 14)], own({ color: rt.P.trim ?? '#fffdf4', flat: true, mover: true })));
     this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true, mover: true });
     const z = o.size ?? 1;
-    this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5 * z, 2.1 * z, 1.5 * z]), T(new THREE.OctahedronGeometry(1, 0), [0.9 * z, -len + 0.6 * z, 0.3 * z], [0, 0, 0.5], [0.6 * z, 1.0 * z, 0.6 * z])], this.mat));
+    if (o.bob === 'disc') {
+      // a clock pendulum's bob: a great disc of brass, its face across the swing, a ring of the house's light round it
+      this.arm.add(mesh([T(new THREE.CylinderGeometry(1.5 * z, 1.5 * z, 0.4 * z, 32), [0, -len, 0], [Math.PI / 2, 0, 0]), T(new THREE.CylinderGeometry(0.5 * z, 0.5 * z, 0.6 * z, 16), [0, -len, 0], [Math.PI / 2, 0, 0])], own({ color: rt.P.trim ?? '#d2a648', flat: true, metal: 'brass', mover: true })));
+      this.arm.add(mesh([T(new THREE.TorusGeometry(1.5 * z, 0.09 * z, 5, 36), [0, -len, 0])], this.mat));
+    } else this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5 * z, 2.1 * z, 1.5 * z]), T(new THREE.OctahedronGeometry(1, 0), [0.9 * z, -len + 0.6 * z, 0.3 * z], [0, 0, 0.5], [0.6 * z, 1.0 * z, 0.6 * z])], this.mat));
     noCollide(this.group);
     this.center = V(); this.still = 0; this.cool = 0; this.theta = 0; this.way = 1;
     this.place();
@@ -1333,9 +1339,9 @@ export class Swing {
     const dx = P.pos.x - this.center.x, dy = P.pos.y + 0.9 - this.center.y, dz = P.pos.z - this.center.z;
     if (dx * dx + dz * dz < 1.9 * 1.9 && Math.abs(dy) < 2.6) {
       this.cool = 1.5;
-      const out = V(this.way, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(9).addScaledVector(UP, 4);
+      const out = V(this.way, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(this.o.knock ?? 9).addScaledVector(UP, 4);
       P.knockDown?.(out, { why: 'guardian' });
-      P.hurt?.(sparing(heartsOf(P), DAMAGE.blow), 'guardian');
+      if (!this.o.gentle) P.hurt?.(sparing(heartsOf(P), DAMAGE.blow), 'guardian');
       this.rt.rumble?.(0.4, 0.4);
     }
   }
@@ -1348,7 +1354,8 @@ export class Swing {
  * you go straight up its middle (src/updraft.js) and hang near its top until you steer off (the stick drifts you; the
  * glide takes up again out of it). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift, when (a
  * condition: it rises only while that holds, the Aerie's vents: a stone in another mouth), heights ([[condition, h]]:
- * the first that holds sets how high it rises), still (said when you open your wings over it while it is still) }
+ * the first that holds sets how high it rises), still (said when you open your wings over it while it is still), low (said
+ * when it lets you go at its top short of its highest: the Aerie's well while its floor's second vent breathes) }
  */
 export class Updraft {
   constructor(rt, o) {
@@ -1398,7 +1405,9 @@ export class Updraft {
     }
     this.mat.uniforms.uGlow.value = 0.3 + 0.1 * Math.sin(t * 1.7);
     const P = this.rt.player;
-    if (P && !this.on && this.o.still && P.gliding && this.inside(P.pos)) this.rt.notice?.(this.o.still, `updraft.still.${this.o.id ?? ''}`);
+    // (still: what it says, or [[condition, what it says]…], the first whose condition holds: why it is still)
+    const still = Array.isArray(this.o.still) ? (this.o.still.find(([c]) => this.rt.logic?.check(c)) ?? this.o.still[this.o.still.length - 1])[1] : this.o.still;
+    if (P && !this.on && still && P.gliding && this.inside(P.pos)) this.rt.notice?.(still, `updraft.still.${this.o.id ?? ''}.${still.length}`);
     if (!P || P.dead || P.down || !this.contains(P.pos)) { this.rideT = 0; return; }
     if (!P.gliding) {
       if (!P.onGround && P.vel.y < 0) this.rt.notice?.(this.o.hint ?? 'The wind rushes up past you. Open your wings in it.', 'updraft.hint');
@@ -1407,6 +1416,7 @@ export class Updraft {
     // the wings catch it: straight up, settling onto its middle (src/updraft.js); at its top it eases and holds you
     // there until you steer off it
     rideColumn(P, dt, { x: this.foot.x, z: this.foot.z, top: this.foot.y + this.h, lift: this.lift, r: this.r });
+    if (this.o.low && h < this.hMax && P.pos.y > this.foot.y + h - 1.2) this.rt.notice?.(this.o.low, `updraft.low.${this.o.id ?? ''}`);
     if ((this.rideT += dt) > 0.4) this.rt.notice?.(this.o.ride ?? 'The wind fills your wings and lifts you, round and up.', 'updraft.ride');
   }
 }
@@ -2640,6 +2650,100 @@ export class Bridge {
     else if (!this.open && this.from === 'above') { if (this.rise != null) this.rise += dt; this.apply(t); }
     else if (!this.open && this.sink != null && this.sink < 4) { this.sink += dt; this.apply(t); }
   }
+}
+
+/**
+ * The Undertower's listening pillars (issue #23, v1.74): a walkway of pillars down in a chasm's dark, each crowned on its
+ * side with a little horn ringed in its note's colour. A pillar rises while its note, played back near it (the echo shell:
+ * game event 'echo', not a stone's own song), still rings: `hold` s from the last time it heard it within `reach` (across
+ * the floor) of its top; then it sinks again, but not while someone stands on it. So the way over is carried: play the
+ * note at the edge, step out, play it again further on (the shell keeps it), and the pillars ahead rise as you go.
+ * o: { a, b: [x, y, z] the walkway's ends (its top), w, n, pillar: m deep, note, reach (m), hold (s), heard, wrong }
+ */
+export const PILLARS = { reach: 6.5, hold: 6, rise: 0.9, sink: 1.0 };
+export class Pillars {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o; this.note = o.note ?? 'high';
+    const N = NOTES[this.note] ?? NOTES.high;
+    const K = rt.kit, M = rt.M, w = o.w ?? 4, n = o.n ?? 8;
+    const a = V(...o.a), b = V(...o.b), L = a.distanceTo(b), yaw = Math.atan2(b.x - a.x, b.z - a.z);
+    this.reach = o.reach ?? PILLARS.reach; this.hold = o.hold ?? PILLARS.hold;
+    this.root = new THREE.Group();
+    rt.root.add(this.root);
+    this.ringM = own({ color: N.color, glow: 0.2, flat: true });
+    const horn = own({ color: '#d8a24a', flat: true, side: THREE.DoubleSide });
+    this.stones = [];
+    for (let i = 0; i < n; i++) {
+      const c = a.clone().lerp(b, (i + 0.5) / n), len = L / n;
+      const g = new THREE.Group();
+      g.position.copy(K.world(c.x, c.y, c.z));
+      g.rotation.y = K.heading(yaw);
+      const deep = (o.pillar ?? 12) * (0.8 + 0.4 * ((i * 7) % 5) / 4);
+      g.add(mesh([box(w, 1.0, len - 0.08, 0, -0.5, 0), box(w - 0.3, deep, len - 0.3, 0, -1 - deep / 2, 0)], M.floor));
+      g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
+      // its horn, on the pillar's side under the walkway's edge, turned up and out (by turns on either side)
+      const sd = i % 2 ? 1 : -1;
+      g.add(mesh([T(lathe([[0.08, 0], [0.12, 0.3], [0.24, 0.55], [0.5, 0.72], [0.54, 0.76]], 12), [sd * (w / 2 + 0.05), -0.9, 0], [0, 0, -sd * 1.2])], horn));
+      g.add(mesh([T(new THREE.TorusGeometry(0.52, 0.06, 4, 20), [sd * (w / 2 + 0.68), -0.62, 0], [0, 0, -sd * 1.2 + Math.PI / 2])], this.ringM));
+      noCollide(g);
+      this.root.add(g);
+      const bl = new THREE.Mesh(box(w, 1.0, len, 0, -0.5, 0), new THREE.MeshBasicMaterial());
+      bl.position.copy(g.position); bl.rotation.copy(g.rotation); bl.updateMatrixWorld(true);
+      // (where it is heard from: its top, in the temple's frame)
+      this.stones.push({ g, y: g.position.y, block: bl, local: c, half: len / 2, left: 0, k: 0, handle: null });
+    }
+    this.span = { a, b, w, yaw };
+    this.wrongSaid = false;
+    this.off = rt.game?.on?.('echo', (e = {}) => this.hear(e));
+    this.apply();
+  }
+  init(physics) { this.physics = physics; }
+  /** A note played back somewhere: the pillars within reach of it rise (their own note), or stay down (another). */
+  hear({ pos, note } = {}) {
+    if (!pos) return;
+    const l = this.rt.kit.local(pos);
+    const near = this.stones.filter((s) => Math.hypot(l.x - s.local.x, l.z - s.local.z) <= this.reach && Math.abs(l.y - s.local.y) < 8);
+    if (!near.length) return;
+    if (note !== this.note) {
+      if (typeof note === 'string' && !note.startsWith('sign.')) this.rt.notice?.(this.o.wrong ?? `The pillars stay down in the dark: their horns listen for the ${NOTES[this.note]?.name ?? this.note} note, the colour of their rings.`, 'pillars.wrong');
+      return;
+    }
+    let rose = false;
+    for (const s of near) { if (s.left <= 0 && s.k < 0.5) rose = true; s.left = this.hold; }
+    if (rose) { this.rt.rumble?.(1.2, 0.35); this.rt.sound?.chime?.(); this.rt.notice?.(this.o.heard ?? 'The pillars nearest you hear the note and rise out of the dark. Further on, they wait to hear it too.', 'pillars.heard'); }
+  }
+  /** Someone stands on stone s (it waits for them to step off before it sinks). */
+  ridden(s, p = this.rt.player) {
+    if (!p?.pos) return false;
+    const l = this.rt.kit.local(p.pos), { w, yaw } = this.span;
+    const dx = l.x - s.local.x, dz = l.z - s.local.z;
+    const along = dx * Math.sin(yaw) + dz * Math.cos(yaw), across = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    return Math.abs(along) < s.half + 0.5 && Math.abs(across) < w / 2 + 0.5 && l.y > s.local.y - 0.6 && l.y < s.local.y + 2.5;
+  }
+  /** How many stand risen now (for the tests and the scout). */
+  get up() { return this.stones.filter((s) => s.handle).length; }
+  /** Stone i stands (solid). */
+  standing(i) { return !!this.stones[i]?.handle; }
+  apply() {
+    for (const s of this.stones) {
+      s.g.position.y = s.y - (1 - ease(s.k)) * 14;
+      s.g.visible = s.k > 0.001;
+    }
+  }
+  update(dt, t) {
+    let lit = 0;
+    for (const s of this.stones) {
+      if (s.left > 0) s.left = Math.max(0, s.left - dt);
+      const want = s.left > 0 || (s.handle && this.ridden(s));
+      if (want && !s.handle && this.physics) s.handle = this.physics.addCollider?.(s.block, NO_CLIMB) ?? null;
+      if (!want && s.handle) { this.physics.removeCollider?.(s.handle); s.handle = null; }
+      s.k = THREE.MathUtils.clamp(s.k + (want ? dt / PILLARS.rise : -dt / PILLARS.sink), 0, 1);
+      if (want) lit++;
+    }
+    this.apply();
+    this.ringM.uniforms.uGlow.value = lit ? 0.85 + 0.15 * Math.sin(t * 6) : 0.2 + 0.08 * Math.sin(t * 2);
+  }
+  dispose() { this.off?.(); for (const s of this.stones) if (s.handle) this.physics?.removeCollider?.(s.handle); }
 }
 
 // ---------------------------------------------------------------------------------------- marks and pits

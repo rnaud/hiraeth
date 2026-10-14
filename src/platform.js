@@ -60,10 +60,17 @@ export const audio = {
  *             the game's HUD hidden (hud false) but for the cue in a scene you walk through (walk)
  *   sub       { who, cls, text, id }             the scene's subtitle (ship/cinema.js): the speaker's tag and the line
  *   photo     { hint }                           photo mode's keys (an engine's, engine/game.js)
+ *   gadget    { id, name, glyph, k, empty }      the gadget in hand's chip, top right (gadgets/hud.js): id names its picture,
+ *             k how full its count is (null: none), empty none left
+ *   gadgetWheel { slots: [{ id, glyph, name }], hi, name }   the wheel for choosing one (gadgets/hud.js)
+ *   reticle   { at: [x, y, z] | null, kind, label }   where an aiming gadget would catch (kind ok, anchor, target, far)
+ *   gadgetMarks [{ at, label }]                  the numbered diamonds on what a gadget has locked on to (the boomerang)
+ *   boxCard   { name, text, ok, okLabel, scene, back, skipLabel }   a makers' box opening (boxes/card.js): scene while it
+ *             plays (the skip's button), and its card once the item is out (name, what it does, the button to go on)
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, boxCard: null },
   version: 0,
   _keys: {},
   set(part, value) {
