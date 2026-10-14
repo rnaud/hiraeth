@@ -298,8 +298,20 @@ export class TempleKit {
     try { fn(); } finally { this._climb = was; }
     return this;
   }
-  // (the proxy is cloned first: add() moves a non-indexed geometry into the world in place)
-  both(mat, geo, proxy) { const p = proxy ?? geo.clone(); this.add(mat, geo); this.solid(p); return this; }
+  /**
+   * Drawn and solid: geo one geometry or an array of them (several boxes: each drawn and solid), proxy an
+   * optional stand-in solid (or array) for them all. A fourth argument throws: several boxes passed loose drew
+   * only the first, made the second the invisible proxy and dropped the rest (issue #358).
+   * (the proxy is cloned first: add() moves a non-indexed geometry into the world in place)
+   */
+  both(mat, geo, proxy, ...rest) {
+    if (rest.length) throw new Error(`TempleKit.both: ${3 + rest.length} arguments; pass several geometries as an array`);
+    const geos = Array.isArray(geo) ? geo : [geo];
+    const solids = proxy == null ? geos.map((g) => g.clone()) : Array.isArray(proxy) ? proxy : [proxy];
+    for (const g of geos) this.add(mat, g);
+    for (const p of solids) this.solid(p);
+    return this;
+  }
   /**
    * A block of plain wall from y0 up hgt (from the wall's foot) made by make(y, hgt): solid whole, drawn cut
    * at the house's bands (M.bands, each drawn in its own stone or paint), over a wall of wallH.

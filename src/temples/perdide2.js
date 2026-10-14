@@ -295,7 +295,7 @@ function wings(rt, K, M, { root }) {
   const [g0, g1] = Wk.groove;
   for (const [i, zz] of Wk.niches.entries()) {
     const id = `lW${i + 1}`, orb = `oW${i + 1}`, plate = `pW${i + 1}`;
-    K.both(M.wall, box(3.4, 3.2, 0.6, x1 - 1.7, 1.6, zz - 1.9), box(3.4, 3.2, 0.6, x1 - 1.7, 1.6, zz + 1.9), box(3.4, 0.8, 4.4, x1 - 1.7, 3.6, zz));
+    K.both(M.wall, [box(3.4, 3.2, 0.6, x1 - 1.7, 1.6, zz - 1.9), box(3.4, 3.2, 0.6, x1 - 1.7, 1.6, zz + 1.9), box(3.4, 0.8, 4.4, x1 - 1.7, 3.6, zz)]);
     add(LightEar, { id, at: [x1 - 0.7, -0.3, zz], reach: 0 });   // (reach 0: your lantern can't wake it; its orb does, while it glows)
     K.add(M.dark, box(g1 - g0 + 0.6, 0.04, 1.0, (g0 + g1) / 2, 0.02, zz));
     for (const sd of [-1, 1]) K.add(M.trim, box(g1 - g0 + 0.6, 0.12, 0.25, (g0 + g1) / 2, 0.06, zz + sd * 0.75));
@@ -307,7 +307,7 @@ function wings(rt, K, M, { root }) {
   // the great key in its alcove behind the east wall, between the niches, behind a grille
   const KZ = Wk.keyZ;
   K.slab(x1, KZ - 1.6, x1 + 3.6, KZ + 1.6, 0, 0.8);
-  K.both(M.wall, box(0.6, 3.6, 3.2, x1 + 3.9, 1.8, KZ), box(3.6, 0.6, 3.2, x1 + 1.8, 3.9, KZ), box(3.6, 3.6, 0.5, x1 + 1.8, 1.8, KZ - 1.85), box(3.6, 3.6, 0.5, x1 + 1.8, 1.8, KZ + 1.85));
+  K.both(M.wall, [box(0.6, 3.6, 3.2, x1 + 3.9, 1.8, KZ), box(3.6, 0.6, 3.2, x1 + 1.8, 3.9, KZ), box(3.5, 3.7, 0.5, x1 + 1.85, 1.75, KZ - 1.85), box(3.5, 3.7, 0.5, x1 + 1.85, 1.75, KZ + 1.85)]);
   add(Door, { id: 'cW', at: [x1 + 0.6, 0, KZ], yaw: Math.PI / 2, w: 2.4, h: 3, lamps: [{ lit: 'lW1' }, { lit: 'lW2' }] });   // (a keyhole too: logic `lock`)
   add(Key, { id: 'kB', big: true, at: [x1 + 2.2, 0, KZ], yaw: -Math.PI / 2 });
   // roots down the walls, and the old wick-stands along the south wall
@@ -425,7 +425,7 @@ function layout(rt) {
   // the near end of its groove; held by your lantern it glows a while; rolled into the niche glowing, it wakes it
   const NZ = G0 + 30;
   K.slab(-14.4, NZ - 1.6, -11, NZ + 1.6, 9, 0.8);
-  K.both(M.wall, box(0.8, 3.2, 4, -14.6, 10.6, NZ), box(3.6, 0.8, 4, -12.8, 12.6, NZ), box(3.6, 3.2, 0.6, -12.8, 10.6, NZ - 1.9), box(3.6, 3.2, 0.6, -12.8, 10.6, NZ + 1.9));
+  K.both(M.wall, [box(0.8, 3.2, 4, -14.6, 10.6, NZ), box(3.6, 0.8, 4, -12.8, 12.65, NZ), box(3.6, 3.3, 0.6, -12.8, 10.65, NZ - 1.9), box(3.6, 3.3, 0.6, -12.8, 10.65, NZ + 1.9)]);
   add(LightEar, { id: 'l2', at: [-13.7, 8.7, NZ], reach: 0 });   // (reach 0: your lantern can't wake it; the orb does)
   K.add(M.dark, box(10.6, 0.04, 1.0, -7.2, 9.02, NZ));
   for (const sd of [-1, 1]) K.both(M.trim, box(10.6, 0.12, 0.25, -7.2, 9.06, NZ + sd * 0.75));

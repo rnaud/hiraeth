@@ -2857,7 +2857,8 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   wait(2.2);
   assert.equal(rt.logic.isOpen('cW'), true, 'the grille lifts');
   assert.equal(rt.logic.isOpen('dU'), true, 'and the keepers’ door on the balcony with it');
-  assert.equal(walk(rt.piece('kB').pos, { tol: 1.2 }), true, `to the great key (${where()})`);
+  // (round the second niche's wall, solid since #358, not through it)
+  assert.equal(walk(L(25, 0, WICK.keyZ)) && walk(rt.piece('kB').pos, { tol: 1.2 }), true, `to the great key (${where()})`);
   wait(0.3);
   openChest(rt, 'kB', P);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
