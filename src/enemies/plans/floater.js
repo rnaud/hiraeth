@@ -93,6 +93,8 @@ export function jellyModel(skin) {
   const wardM = M.own('ward', P.light, { glow: 1 });
   const wardRods = Array.from({ length: NL }, () => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1, 5).translate(0, 0.5, 0), wardM); m.visible = false; holder.add(m); return m; });
   finish(g);
+  // (the threads and the lanterns rest on the ground themselves as it comes down: the defeat's grounding leaves them be)
+  holder.traverse((o) => { o.userData.noGround = true; });
   const wave = new Wave(Math.random());
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p, y: p.y ?? 0 }])), style: PL.style });
   const tiltX = new SecondOrder(PL.body.spring.f, PL.body.spring.z, 0), tiltZ = new SecondOrder(PL.body.spring.f, PL.body.spring.z, 0);
@@ -129,6 +131,16 @@ export function jellyModel(skin) {
       bell.children.forEach((x) => { if (x.userData.halo) x.rotation.z += dt * 0.6; });
       // the chains, in the foes' space
       g.updateMatrix(); holder.matrix.copy(_m.copy(g.matrix).invert()); holder.matrixWorldNeedsUpdate = true;
+      // going down (src/enemies/defeat.js), the threads and the lanterns come to rest on the ground, never through it
+      // (issue #304): a point under it is put back on it (the ground read only where a point is near its footing)
+      const floor = f.dying ? (pts, over = 0.03) => {
+        for (const p of pts) {
+          if (p.y > f.pos.y + 0.8) continue;
+          const y = (c.ground?.(p.x, f.pos.y + 1.5, p.z) ?? f.pos.y) + over;
+          if (p.y < y) p.y = y;
+        }
+        return pts;
+      } : (pts) => pts;
       threads.forEach((t, i) => {
         inFoes(t.root, _b);
         // drawn up into the clench, dropped to the ground in the curtain (the links stretched to reach it), else hanging
@@ -136,7 +148,7 @@ export function jellyModel(skin) {
         t.ch.length = lerp(TH.length, Math.max(TH.length, reach / TH.links), curtain) * (1 - clench * 0.55);
         t.ch.stiffness = curtain > 0.5 ? 0.6 : 0.06;
         _d.set(Math.sin(t.a) * 0.15 - vx * 0.04, -1, Math.cos(t.a) * 0.15 - vz * 0.04);
-        place(t.rods, t.ch.update(dt, _b, curtain > 0.5 ? DOWN : _d));
+        place(t.rods, floor(t.ch.update(dt, _b, curtain > 0.5 ? DOWN : _d)));
       });
       // the lanterns: one popped is gone; the warding one swells; the wards' threads of light to the foes they guard
       const left = f.lanterns ?? NL;
@@ -145,7 +157,7 @@ export function jellyModel(skin) {
         L.lamp.visible = on; L.cord.forEach((m) => { m.visible = on; });
         if (!on) return;
         inFoes(L.root, _b);
-        const pts = L.ch.update(dt, _b, DOWN);
+        const pts = floor(L.ch.update(dt, _b, DOWN), 0.42);   // (the lamp hangs 0.12 under the chain's end, 0.26 tall below its middle)
         place(L.cord, pts);
         L.lamp.position.copy(pts.at(-1)); L.lamp.position.y -= 0.12;
         const warding = (f.wards ?? [])[i];

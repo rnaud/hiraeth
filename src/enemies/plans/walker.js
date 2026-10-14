@@ -164,17 +164,20 @@ export function crabModel(skin) {
       legs.forEach((l, k) => { l.air.set(0, flipped ? Math.sin(c.now / 60 + k) * 0.2 : 0, flipped ? Math.cos(c.now / 75 + k) * 0.14 : 0); });
       // the snap: the near (right) pincer opens wide and draws back past the stalks; then through
       const snap = id === 'snap' ? (wind ? c.wind : strike ? 1 - c.release : 0) : 0;
+      // (going down, src/enemies/defeat.js: the arms drop out to its sides and hang limp past the lip, so on its back
+      // they stick up with its legs rather than prop it off the ground on its pincers; issue #304)
+      const limp = f.dying ? THREE.MathUtils.smoothstep(f.dying.u, 0.05, 0.4) : 0;
       claws.forEach((cl, i) => {
         const near = i === 1 ? snap : snap * 0.3, s = i ? 1 : -1;
         // (tucked for the spin: the arms fold down onto the shell, the pincers pulled in over the eyes)
-        cl.shoulder.rotation.set(-near * 0.45 + tuck * 0.5, 0, s * (tuck * 0.9 - near * 0.15));
-        cl.elbow.rotation.set(-near * 0.7 + (strike && id === 'snap' && i === 1 ? 0.9 * c.release : 0) + tuck * 0.6, 0, -s * tuck * 0.5);
+        cl.shoulder.rotation.set(-near * 0.45 + tuck * 0.5, 0, s * (tuck * 0.9 - near * 0.15) - s * limp * 2.1);
+        cl.elbow.rotation.set(-near * 0.7 + (strike && id === 'snap' && i === 1 ? 0.9 * c.release : 0) + tuck * 0.6 + limp * 0.5, 0, -s * tuck * 0.5 - s * limp * 0.6);
         const open = near * 0.8 + (f.state === 'idle' ? Math.max(0, Math.sin(c.now / 400 + i * 2)) * 0.25 : 0);
         cl.upper.rotation.x = -open * 0.4; cl.lower.rotation.x = 0.3 + open;   // (a little open at rest, as drawn)
         cl.shoulder.scale.setScalar(1 - tuck * 0.3);
       });
-      // the eye stalks: sink with the tuck; swivel to you as it burrows
-      stalks.forEach((st, i) => { st.scale.y = Math.max(0.2, 1 - tuck * 0.8); st.rotation.z = (i ? -1 : 1) * buried * 0.5; st.rotation.x = -buried * 0.4 + (f.state === 'chase' ? Math.sin(c.now / 300 + i) * 0.08 : 0); });
+      // the eye stalks: sink with the tuck (and going down); swivel to you as it burrows
+      stalks.forEach((st, i) => { st.scale.y = Math.max(0.2, 1 - Math.max(tuck, limp) * 0.8); st.rotation.z = (i ? -1 : 1) * buried * 0.5; st.rotation.x = -buried * 0.4 + (f.state === 'chase' ? Math.sin(c.now / 300 + i) * 0.08 : 0); });
       // the spin: tucked into its shell, rocking back and forth, then turning faster and faster as a top
       const rock = id === 'spin' && wind ? Math.sin(c.now / 70) * 0.08 * c.wind : 0;
       spin += dt * (strike && id === 'spin' ? 26 : tuck > 0 ? tuck * 4 : 0);

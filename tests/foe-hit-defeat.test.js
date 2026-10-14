@@ -11,17 +11,17 @@ import { ARCHETYPES } from '../src/enemies/archetypes.js';
 import { GameState } from '../src/game-state.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { FoeReact, REACT, applyReact, restoreBody, installFlash, splashTones, lightness } from '../src/foe-react.js';
-import { DEFEATS, defeatPose, startDefeat, stage } from '../src/enemies/defeat.js';
+import { DEFEATS, GROUNDED, defeatPose, startDefeat, stage } from '../src/enemies/defeat.js';
 import { resetFeel } from '../src/feel.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), DT = 1 / 60;
 const flat = { groundAt: () => 0, rayDistance: () => Infinity, rayHit: () => null };
 const BUILT = Object.entries(ARCHETYPES).filter(([, A]) => A.status === 'built');
-function world() {
+function world(physics = flat) {
   clearTargets(); resetFeel();
   const P = { pos: v(0, 0, 0), vel: v(), heading: 0, onGround: true, health: 1, down: null, dead: false, frame: { up: v(0, 1, 0) }, hurt() {}, knockDown() { return true; }, flinch() {} };
   const game = new GameState(null), drops = [];
-  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: P, settings: { enemies: 'normal' }, game, tool: { drops: { add: (d) => drops.push(d) } } });
+  const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: P, settings: { enemies: 'normal' }, game, tool: { drops: { add: (d) => drops.push(d) } } });
   foes.setPractice('');
   return { foes, P, game, drops };
 }
@@ -148,6 +148,54 @@ test('every archetype goes down its own way: 0.8-1.5 s, harmless and out of the 
   }
   assert.ok(seen.size >= 12, `the plans go down in many ways (${seen.size})`);
   foes.dispose(); clearTargets();
+});
+
+/** How far the model's lowest point is under the ground (m), every vertex of every drawn part as three.js draws it. */
+function underGround(group, ground) {
+  group.updateMatrixWorld(true);
+  let worst = -Infinity;
+  const p = v(), im = new THREE.Matrix4();
+  group.traverseVisible((o) => {
+    const P = o.isMesh && o.geometry?.attributes?.position;
+    if (!P) return;
+    for (let k = 0; k < (o.isInstancedMesh ? o.count : 1); k++) {
+      if (o.isInstancedMesh) o.getMatrixAt(k, im);
+      for (let i = 0; i < P.count; i++) {
+        p.fromBufferAttribute(P, i);
+        if (o.isSkinnedMesh) o.applyBoneTransform(i, p);
+        if (o.isInstancedMesh) p.applyMatrix4(im);
+        p.applyMatrix4(o.matrixWorld);
+        worst = Math.max(worst, ground(p.x, p.z) - p.y);
+      }
+    }
+  });
+  return worst;
+}
+
+test('every archetype goes down on the ground, never through it, on flat ground and on a slope (issue #304)', () => {
+  for (const [where, ground] of [['flat ground', () => 0], ['a slope', (x, z) => 0.2 * x + 0.15 * z]]) {
+    const { foes } = world({ groundAt: (x, y, z) => ground(x, z), rayHit: () => null });
+    for (const [id, A] of BUILT) {
+      if (A.def.burrow) continue;   // (the worm lives under its sand, and goes back under it)
+      const R = DEFEATS[id], f = foes.add(A.kind, v(0, 0, 6));
+      for (let i = 0; i < 12; i++) foes.update(DT);
+      // (what was under the ground already as the blow fell, a fist on the sand or a body square on a slope, comes up
+      // over the first share of the defeat: GROUNDED.ease)
+      const before = Math.max(0, underGround(f.model.group, ground));
+      f.hp = 1; cut(foes, f, 5);
+      let worst = -Infinity, at = 0, n = 0;
+      while (f.dying && f.dead === undefined) {
+        foes.update(DT);
+        const u = f.dying.u;
+        if (R.sink && stage(R.sink, u) > 0) continue;   // (the worm going back under the sand, the root knot: its own)
+        if (n++ % 2) continue;
+        const deep = underGround(f.model.group, ground) - before * (1 - stage({ at: GROUNDED.ease }, u));
+        if (deep > worst) { worst = deep; at = u; }
+      }
+      assert.ok(worst < 0.03, `${id} on ${where}: ${(worst * 100).toFixed(1)} cm under the ground at ${(at * 100).toFixed(0)} % of its defeat`);
+    }
+    foes.dispose(); clearTargets();
+  }
 });
 
 test('a defeat\'s pose: each move over its own window, eased; a flyer comes down to the ground', () => {

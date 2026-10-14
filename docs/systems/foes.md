@@ -721,6 +721,25 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   oldest reused), one draw call. The guardians don't: they are calmed or broken, not killed, and stay in their temple after
   their final moment (a touch, the break). A foe that went out
   of the world, the roller's own last-roll shatter and the old kinds burst at once; the guardians keep their finishers.
+- **On the ground, never through it** (issue #304; `groundStart`, `groundDefeat`, `defeatHull`, `belowGround`,
+  `GROUNDED` in `src/enemies/defeat.js`). A roll, a topple or a flip turns the body about its feet and a flyer comes
+  down to its footing: left alone, a body rolled onto its side was half under the ground (the crab on its back 1.7 m,
+  the heron 1.5 m, the brute 1.6 m, the toad 1.2 m; the jelly's threads 2.9 m). At the blow (`Foes.defeat`) the ground
+  under it is read as a plane (five `groundAt` round its feet, the slope kept to 45°) and its hull is gathered: each drawn
+  part's outermost vertices along the 98 directions of a 5³ grid (26 for a part under 12 cm; a skinned part's for each
+  bone that moves most of it, skinned each frame; worked out once a geometry, a dense one read every few points), with
+  how far under the ground it already stood (`D.allow`: a hem, a fist on the sand, a body square on a slope). Each frame
+  of the defeat (`Foes.falling`, after `defeatRoot` and the plan's own letting go) the hull's lowest point is found
+  (parts whose bounding spheres cannot reach deeper skipped) and the body lifted onto the ground by what is under it,
+  less the recipe's own `sink` and less `D.allow` easing out over `GROUNDED.ease` (the first 30 %): it rolls over on the
+  ground, no pop. The mound worm (a burrower) is left to dive back under its sand. Parts that rest on the ground
+  themselves are marked `userData.noGround`: the jelly's threads and lanterns (verlet chains, put back on the ground
+  while it goes down: `plans/floater.js`). The crab's arms drop limp to its sides as it goes (`plans/walker.js`), so on
+  its back its pincers stick up with its legs instead of propping it; a ray or a moth's bank comes out as it touches
+  down (`defeatPose`, `plans/glider.js`): it lands flat, not on a wing's tip. Cost: building the hull 0.1–5 ms at the
+  blow (in its hit-stop), then about 0.1 ms a falling foe a frame in node (16 falling at once: 2.2 ms against 0.4).
+  `tests/foe-hit-defeat.test.js` holds every archetype's defeat (but the worm's) to 3 cm under the ground at most, every
+  vertex of every drawn part, on flat ground and on a 14° slope.
 - **Cost** (the Arena, High, headless Chrome on the M4 Pro): `Foes.update` for twelve foes standing 0.5 ms a frame, 0.7
   while they flinch, 0.8 while all twelve go down at once; the blade's body test 0.1 ms on a cut frame against a crab (the
   sphere's under the timer's 0.1 ms); the pack bench (`scripts/enemy-roster/bench.mjs`) the same draw calls, CPU within

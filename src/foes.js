@@ -32,7 +32,7 @@ import { hintsFor, quietOr } from './hint-level.js';
 import { keyText } from './prompt-keys.js';
 import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
-import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes } from './enemies/defeat.js';
+import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { bodyReach } from './foe-body.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
@@ -2370,6 +2370,7 @@ export class Foes {
     if (last) slowMo(0.45, 0.35);
     f.state = 'dead'; f.k = 0; f.letGo = true;
     f.dying = startDefeat(f, R);
+    if (!f.def.burrow) groundStart(f.dying, f.model.group, this.physics, f.pos, f.def.radius);   // (the ground under it, as it stood: issue #304)
     if (this.hold?.f === f) this.hold = null;
     if (f.id) this.game.set(f.id, true);   // (counted at the blow: a save taken while it falls keeps it)
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards: gone for good)
@@ -3116,6 +3117,8 @@ export class Foes {
     const M = f.model, g = M.group, D = f.dying, u = D.u;
     defeatRoot(g, P, M.size ?? 1);
     M.defeat?.(f, c, u);
+    // on the ground, never through it: its lowest point lifted onto the ground under it (issue #304)
+    if (!f.def.burrow) groundDefeat(D, g, P, this.physics, f.pos, { size: M.size ?? 1, radius: f.def.radius });   // (a burrower goes back under its sand)
     dimEyes(M, u);
     const puff = D.R.puff;
     if (puff === 'dust') { for (const at of [0.45, 0.9]) if (D.puffed < at && u >= at) { D.puffed = at; c.dust(f.pos, '#cdb89a', 8, f.def.radius); } }

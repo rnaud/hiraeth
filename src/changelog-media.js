@@ -790,6 +790,8 @@ const HINTS306 = { from: 'headless Chrome (muted) against this branch’s own de
 const FRAG317 = 'headless Chrome (muted, High, 1280 × 720, 11:00, clear) against this branch’s own Vite (port 6317), scripts/design-qc/capture.mjs, the camera pinned a few metres off one of the new spots with a clear line to it; before: the same view with that fragment found (a save holding its flag, as a save from before has none there), after: a new save; 13 October; cwebp -q 72';
 // (v1.70, issue #303: a scratch shooter against this branch's own Vite (port 6303), before on the code before the change)
 const STRAP303 = 'Issue #303: muted headless Chrome against this branch’s own Vite (port 6303), the Character studio’s Bracer view on the B3 traveller with the backpack (idle paused at 0.5 s, no wind, the camera on the bracer) from his left, the front and behind, before and after the change; 13 October; cwebp -q 72';
+// (v1.70, issue #304: a scratch shooter against this branch's own Vite (port 6303), the foes' code before the change for the before)
+const DEFEAT304 = 'Issue #304: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6303), the game stepped 1/60 s a frame: three foes placed side by side and cut down at once, the frame held 0.95 s into the lizard’s defeat (the crab 77 %, the lizard 96 %, the toad 87 % of the way), the camera pinned 9.5 m off; the before with the foes’ code as it was (333fe4b2); 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.70': [
     { match: 'There are three times as many fragments of the singing light', shots: [
@@ -802,6 +804,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'doors-rose-house', title: 'A temple’s door', caption: 'The Rose House’s door from outside: before, a dark slot; after, the same dark with light rising from its sill.', from: DOORS305 },
       { name: 'doors-temple-exit', title: 'The way back out', caption: 'Inside the Rose House, the doorway you came in by: before, black; after, lit, so it reads as the way out.', from: DOORS305 },
       { name: 'doors-step-through', title: 'Going through', caption: 'A tenth of a second after walking into the shop’s door: before, the paper already across the screen; after, the door’s light washing over the screen first, the traveller still walking into it, then the paper.', from: DOORS305 },
+    ] },
+    { match: 'Defeated creatures and machines go down on the ground', tags: ['combat'], shots: [
+      { name: 'defeat-flat', title: 'On flat ground', caption: 'A crab, a lizard and a toad cut down together in the Arena, a moment before they burst: before, the crab flipped onto its back sunk to its rim, the lizard half under the sand; after, the crab on its back, pincers and legs in the air, the lizard and the toad on their sides on the sand.', from: DEFEAT304 },
+      { name: 'defeat-slope', title: 'On a slope', caption: 'The same three on a dune’s 12° slope in the desert: before, the crab and the lizard sunk into the slope; after, on it.', from: DEFEAT304 },
     ] },
     { match: 'The guard’s leather strap now wraps tight round your forearm', tags: ['combat', 'characters'], shots: [
       { name: 'strap-outside', title: 'From his left', caption: 'The bracer at rest, standing: before, the strap a round tube standing off the forearm, the drum on a flat plate; after, the leather on the arm, the drum down on the plate.', from: STRAP303 },

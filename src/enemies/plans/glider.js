@@ -108,7 +108,8 @@ export function rayModel(skin) {
       sweepK = ease(sweepK, id === 'skim' && (wind || strike) ? (wind ? c.wind : 1) : 0, 8, dt);
       raise = ease(raise, id === 'draft' ? (wind ? c.wind : strike ? 1 - c.release : 0) : 0, 7, dt);
       lashK = ease(lashK, id === 'lash' ? (wind ? c.wind : strike ? -1 : 0) : 0, strike ? 20 : 9, dt);
-      grounded = ease(grounded, f.stunned > 0 && f.alt < 0.6 ? 1 : 0, 6, dt);
+      // (on the ground stunned, or coming down to it defeated: no banking into the defeat's spin, wings flat; issue #304)
+      grounded = ease(grounded, (f.stunned > 0 || f.dying) && f.alt < 0.6 ? 1 : 0, 6, dt);
       const B = PL.body, flying = 1 - grounded;
       const b = bank.update(dt, THREE.MathUtils.clamp(-turn * Math.max(speed, 2) * B.bank, -B.bankMax, B.bankMax) * flying + (id === 'skim' && wind ? Math.sin(c.wind * Math.PI) * 0.5 : 0));
       const pt = pitch.update(dt, THREE.MathUtils.clamp(acc * B.pitch, -0.3, 0.3) * flying);

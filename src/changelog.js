@@ -19,6 +19,10 @@ export const CHANGELOG = [
           { where: 'storms an hour', before: 22, after: 5.1 },
         ], source: 'tests/weather.test.js' },
       ] },
+    // defeats on the ground (issue #304): src/enemies/defeat.js groundStart / groundDefeat / defeatHull / belowGround,
+    // Foes.defeat and Foes.falling; the crab's arms limp (plans/walker.js), the jelly's threads and lanterns on the ground
+    // (plans/floater.js), the ray's bank out as it lands (plans/glider.js, defeatPose); tests/foe-hit-defeat.test.js
+    { text: 'Defeated creatures and machines go down on the ground instead of sinking into it: a crab flipped onto its back, a lizard or a toad rolled onto its side, a heron toppled off its stilts lie on the sand, on flat ground and on a slope. A crab’s pincers go limp, a jelly’s threads and lanterns settle on the ground and a ray lands flat. The mound worm still dives back under its sand.' },
     // the shield's strap on the skin (issue #303): src/blade-grip.js forearmWrap / wrapFrame / wrapLift, STRAP;
     // src/shield.js wrapStrap, bendDisc; tests/strap-skin.js; docs/systems/foes.md "The strap wraps the skin"
     { text: 'The guard’s leather strap now wraps tight round your forearm, following its shape as you walk, run and fight, instead of standing off it like a loose tube, and the folded brass flower sits down on its plate on the outside of your arm rather than floating over it.' },
