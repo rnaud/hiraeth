@@ -1,0 +1,44 @@
+src/ship/model.js
+  s_9ca76055a220ed::t_3392bf78ea458b 68-71,75-76
+src/ship/interior.js
+  s_9ca76055a220ed::t_4b8ed2544236f0 260-261,271-272,407,553-555,634-635
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_549e3d9559f65b 1384-1405
+tests/zfight.test.js
+  s_9ca76055a220ed::t_fa39a91bb3e82b 9,128-140
+  s_9ca76055a220ed::t_8a44803d6e4995 141
+.claude/skills/zfight-qc/SKILL.md
+  s_9ca76055a220ed::t_fed708ef9e3a87 38
+scripts/zfight/audit.mjs
+  s_9ca76055a220ed::t_f8fddf52c5cdac 5-6,74-99
+changelog.md
+  s_d90e781943a193::t_c1b5f83dac54b4 7
+src/changelog-media.js
+  s_d90e781943a193::t_109696d9b7cae5 802,835-848
+src/changelog.js
+  s_d90e781943a193::t_50737db2924ef4 83-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e0fb0c7da4cc1f1b0eb1c29d8141b79a9c12e032",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d90e781943a193": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8112150eaf08050b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
