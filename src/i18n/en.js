@@ -302,7 +302,8 @@ export const EN = {
   'hint.shield': 'The Givers’ guard: hold {key:guard} against a blow; a bolt it takes flies back.',
   'hint.gun': 'The fluid gun: {key:aim} aims, {key:fire} pushes, {key:mode} other modes. {key:pick}: gadgets.',
   'hint.bellows': 'The bellows lift your open wings. In rising air, hover and aim ({key:aim}).',
-  'hint.pick': 'Two gadgets now: {key:pick} picks one, {key:aim} aims it, {key:fire} uses it.',
+  'hint.pick': '{name} in hand. {key:pick} takes another gadget; held, the wheel.',
+  'gadget.inHand': '{name} in hand.',   // (a gadget found is in hand at once, issue #330)
   // the shop (src/shop-panel.js)
   'shop.leave': 'Leave the shop',
   'shop.potion.name': 'Healing potion',

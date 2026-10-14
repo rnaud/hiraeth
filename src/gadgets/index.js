@@ -8,6 +8,8 @@ import { InkBursts, inkMat } from './kit.js';
 import { sfx } from './sfx.js';
 import { hintsFor } from '../hint-level.js';
 import { keyText } from '../prompt-keys.js';
+import { ITEMS } from '../items.js';
+import { t as tr } from '../i18n.js';
 
 // The gadgets' runtime (docs/systems/gadgets.md): one per world, made in main.js after the foes. It holds
 // an instance of every registered gadget (src/gadgets/registry.js), the one in hand (the flag
@@ -37,6 +39,26 @@ import { keyText } from '../prompt-keys.js';
 //   gadgets.control(dt, ctl, paused)   before the traveller moves (a reel sets his velocity)
 //   gadgets.update(dt, paused)         after the fluid tool (the aim's camera and pose are set last)
 //   gadgets.equip(id | null) · gadgets.cycle(±1) · gadgets.equipped · gadgets.owned() · gadgets.instrument()
+
+/**
+ * The progression's new verbs, each taught once when its chest opens, after the card (a genuinely new verb: hints subtle
+ * or full, src/hint-level.js); src/i18n/en.js has the lines.
+ */
+export const TEACH_ON_FIND = { sword: 'hint.sword', shield: 'hint.shield', doublejump: 'hint.lift', gun: 'hint.gun', wardenbellows: 'hint.bellows' };
+
+/**
+ * The line after a chest's card (main.js on 'box:opened'): an item's own lesson (TEACH_ON_FIND, once), else for a gadget,
+ * which is in hand at once (issue #330), that it is; the first time two are carried, with how to pick another (once).
+ * Returns { text, key } (key: the lesson's, set `<key>.taught` once shown) or null. Pure.
+ */
+export function gadgetFoundLine(item, { owned = [], taught = () => false, teach = true, tip = true, t = tr } = {}) {
+  const lesson = TEACH_ON_FIND[item];
+  if (lesson) return !taught(lesson) && teach ? { text: t(lesson), key: lesson } : null;
+  if (ITEMS[item]?.kind !== 'gadget') return null;
+  const name = ITEMS[item].name;
+  if (owned.length >= 2 && !taught('hint.pick') && teach) return { text: t('hint.pick', { name }), key: 'hint.pick' };
+  return tip ? { text: t('gadget.inHand', { name }), key: null } : null;
+}
 
 /** How long the choose button is held before the wheel opens (s). */
 export const WHEEL_HOLD = 0.32;
@@ -119,11 +141,14 @@ export class Gadgets {
     }
     this.held = { use: false, pick: false, aim: false, mode: false, whistle: false }; this.pickT = 0; this.wheelOn = false; this.wheelHi = -1; this.armed = false;
     this.penT = 0;
-    // found (a box, the dev menu, ?items=): nothing in hand yet, the first one found is taken in hand
+    // found (a box, a quest, the dev menu, ?items=): the one just found is taken in hand at once, whatever was (issue #330,
+    // the author: "When I get a new gadget it should get auto equipped"; items.grant puts it in the save's hand too, so a
+    // gadget found where no runtime runs is in hand in the next world). A save's own choice is left alone: only a find moves it
+    this.inHand = this.equipped;   // (the one whose instance was told equip(): the flag can move under it, items.grant, a trial)
     this.offs = [items.on?.((id, owned) => {
       if (!this.inst.has(id)) return;
-      if (owned && !this.equipped) this.equip(id, { quiet: true });
-      if (!owned && this.equipped === id) this.equip(null);
+      if (owned) this.equip(id, { quiet: true });
+      else if (this.inHand === id) this.equip(null);
     })].filter(Boolean);
     if (!this.equipped && this.owned().length && game.flag(EQUIPPED_FLAG) === undefined) this.equip(this.owned()[0], { quiet: true });
   }
@@ -137,10 +162,12 @@ export class Gadgets {
 
   equip(id, { quiet = false } = {}) {
     if (id && (!this.items.has(id) || !this.inst.has(id))) return false;
-    const was = this.equipped;
-    if (was === id) return false;
-    if (was) this.inst.get(was)?.unequip?.();
+    const was = this.inHand ?? null;
+    if (was === (id ?? null) && this.game.flag(EQUIPPED_FLAG) === (id ?? null)) return false;
+    if (was && was !== id) this.inst.get(was)?.unequip?.();
     this.game.set(EQUIPPED_FLAG, id ?? null);
+    this.inHand = id ?? null;
+    if (was === id) return true;   // (the flag only: its instance is in hand already)
     if (id) { const g = this.inst.get(id); if (quiet) g?.equipQuiet?.(); else g?.equip?.(); }
     else if (!quiet) sfx.equip(this.sound);
     this.game.emit?.('gadget:equip', { id: id ?? null });

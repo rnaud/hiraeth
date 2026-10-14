@@ -820,6 +820,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'A chest’s card now says only what you found', shots: [
       { name: 'chest-card', title: 'The hook’s chest', caption: 'The grappling hook’s chest in Vael’s court, on its card: before, a strip across the screen with “An artifact of the makers” and what the hook is made of; after, the name and what it does, on a small card in the middle.', from: ITEMS329 },
     ] },
+    { match: 'A gadget you find is in your hand straight away', shots: [
+      { name: 'gadget-in-hand', title: 'After the hook’s chest', caption: 'The same chest a few seconds after its card, the fluid gun in hand before it was opened: before, the gun still in hand (the gun at the top right); after, the hook in hand and “Grappling hook in hand. B takes another gadget; held, the wheel.”', from: ITEMS329 },
+    ] },
   ],
   '1.70': [
     { match: 'There are three times as many fragments of the singing light', shots: [

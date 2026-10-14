@@ -338,6 +338,7 @@ export const BACKPACK_STAGES = ['doublejump', 'glider', 'wardenbellows'];
 export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id) || (id === 'wardenbellows' && has('jetpack'))).length;
 
 const key = (id) => `item.${id}`;
+const EQUIPPED = 'gadget.equipped';   // (src/gadgets/index.js EQUIPPED_FLAG: the gadget in hand)
 const listeners = new Set();
 
 export const items = {
@@ -346,6 +347,8 @@ export const items = {
   grant(id) {
     if (!ITEMS[id] || this.has(id)) return false;
     game.set(key(id), true);
+    // a gadget found is in hand at once (issue #330): the save's hand here, the world's runtime on the listeners (src/gadgets/index.js)
+    if (ITEMS[id].kind === 'gadget') game.set(EQUIPPED, id);
     game.emit('item', { id, def: ITEMS[id] });
     for (const fn of listeners) fn(id, true);
     for (const w of ITEMS[id].with ?? []) this.grant(w);

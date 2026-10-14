@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.71 — 2026-10-13
 
+- A gadget you find is in your hand straight away, ready to use, instead of waiting until you pick it; a line after the chest says so, and the first time you carry two, that D-pad ↑ takes the other.
 - A chest’s card now says only what you found and what it does, on a small card in the middle of the screen that is easy to read, instead of a strip across the whole screen with a line about the makers and a description of what the thing is made of.
 - Creatures of a kind that wake together no longer march in step like soldiers: each sets off on its own foot. The Cistern-Keeper lifts its feet a little higher as it walks.
 - The guardians that float, the Cloud-Mother, the Lampless, the Echo and the Elder in flight, have a shadow on the floor under them, smaller the higher they hang, so you can tell where they are over you. The machines’ lit eyes cast shadows too. Every guardian now opens up in each part of its fight: the Mother Snapper hangs her head after spitting a seed, and the Cloud-Mother gasps a moment in her last phase (a ring of the bell then calms her a little; the held stone still calms her most).

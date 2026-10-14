@@ -77,6 +77,9 @@ export const CHANGELOG = [
     // the chest's card: the name and what it does (issue #329): src/boxes/card.js CARD_MAX_CH, src/items.js itemLine / does;
     // docs/systems/boxes.md "The name and what it does"
     'A chest’s card now says only what you found and what it does, on a small card in the middle of the screen that is easy to read, instead of a strip across the whole screen with a line about the makers and a description of what the thing is made of.',
+    // a gadget found is in hand at once (issue #330): src/items.js grant, src/gadgets/index.js inHand / gadgetFoundLine;
+    // docs/systems/gadgets.md "A gadget found is in hand at once"
+    'A gadget you find is in your hand straight away, ready to use, instead of waiting until you pick it; a line after the chest says so, and the first time you carry two, that D-pad ↑ takes the other.',
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

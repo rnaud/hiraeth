@@ -17,7 +17,7 @@ Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); a
   (`import.meta.glob`, Vite only). main.js and the items page import it first, so the gadgets are items
   before anything reads `ITEMS`. Nothing keeps a list: a new gadget is one new file.
 - **`index.js`** (`Gadgets`, made in main.js after the foes): an instance of every gadget, the one in hand
-  (the flag `gadget.equipped`; the first found is taken in hand), the buttons, the wheel, the aim's camera
+  (the flag `gadget.equipped`; the one just found is taken in hand at once, issue #330), the buttons, the wheel, the aim's camera
   and pose, the chip. `control(dt, ctl, paused)` runs before the traveller moves (the hook's reel sets his
   velocity and his own collision carries him), `update(dt, paused)` after the fluid tool (an aiming gadget's
   over-the-shoulder camera and arm win). A menu, a scene or a conversation cancels whatever was under way.
@@ -47,6 +47,15 @@ Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); a
   motion). Below the frame readout when that is on; beside the menu's button on a touch screen (tapped: the next one).
   `chipHtml` is its inside. Also the reticle, numbered lock marks (`marks`), the wheel, and on a touch screen the ◆ use button.
 - **`sfx.js`**: the sounds, from the game's synth (`Sound.sweep` / `burst`).
+
+
+**A gadget found is in hand at once** (issue #330, the author: "When I get a new gadget it should get auto equipped").
+`items.grant` of a gadget sets `gadget.equipped` to it (src/items.js: so one found where no runtime runs, a shop on the
+ship, is in hand in the next world), and the runtime's listener takes it in hand there and then, the one before put
+away (`Gadgets.inHand`: whose instance was told `equip()`; quietly, the card is up). After the chest's card one line
+says so (`gadgetFoundLine`: the item's own lesson for the gun and the desert's finds, `TEACH_ON_FIND`; for another
+gadget "Grappling hook in hand.", and the first time two are carried, with how to take another, `hint.pick`). A save
+keeps the gadget it had in hand until something new is found (`tests/gadget-equip-on-find.test.js`).
 
 ## The buttons
 

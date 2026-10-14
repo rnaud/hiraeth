@@ -300,7 +300,8 @@ export const FR = {
   'hint.shield': 'La garde des Donateurs : maintenez {key:guard} pour la lever contre un coup venu de face ; un trait qu’elle arrête repart d’où il vient.',
   'hint.gun': 'Le pistolet à fluide est en main : visez avec {key:aim}, poussez avec {key:fire} ; {key:mode} change de mode. {key:pick} choisit un autre gadget.',
   'hint.bellows': 'Le soufflet du Gardien : ailes ouvertes, il souffle sous vous un vent régulier. Dans l\'air qui monte, vos ailes vous tiennent assez immobile pour viser ({key:aim}).',
-  'hint.pick': 'Deux gadgets maintenant : {key:pick} choisit celui en main, {key:aim} vise avec et {key:fire} l\'utilise.',
+  'hint.pick': '{name} en main. {key:pick} prend un autre gadget ; maintenu, la roue.',
+  'gadget.inHand': '{name} en main.',
   // la boutique (src/shop-panel.js)
   'shop.leave': 'Quitter la boutique',
   'shop.potion.name': 'Potion de soin',

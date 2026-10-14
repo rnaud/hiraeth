@@ -131,6 +131,7 @@ function runtime({ owned = ['hook', 'bomb'], defs = null } = {}) {
   const spy = (id) => ({ create: () => ({ press: () => log.push(`${id} press`), hold: () => log.push(`${id} hold`), release: () => log.push(`${id} release`), cancel: () => log.push(`${id} cancel`), equip: () => log.push(`${id} equip`), unequip: () => log.push(`${id} unequip`) }), id, name: id, text: '', use: '', model: () => new THREE.Group() });
   const G = new Gadgets({ defs: defs ?? [spy('hook'), spy('bomb')], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its });
   for (const id of owned) its.grant(id);
+  if (owned.length) G.equip(owned[0], { quiet: true });   // (the newest found is in hand, issue #330: these start from the first)
   return { G, game, its, log };
 }
 
@@ -145,9 +146,9 @@ test('one job per button: D-pad ↑ takes the next gadget aiming or not, and its
   G.control(DT, {});
 });
 
-test('the runtime: the first gadget found is taken in hand; the use button presses, holds and lets go; a tap of choose takes the next', () => {
+test('the runtime: a gadget in hand is kept in the save; the use button presses, holds and lets go; a tap of choose takes the next', () => {
   const { G, game, log } = runtime();
-  assert.equal(G.equipped, 'hook', 'the first found is in hand');
+  assert.equal(G.equipped, 'hook', 'the one taken in hand');
   assert.equal(game.flag(EQUIPPED_FLAG), 'hook', 'kept in the save');
   log.length = 0;
   G.control(DT, { KeyT: true }); G.control(DT, { KeyT: true }); G.control(DT, {});
@@ -189,7 +190,8 @@ test('the triggers by the gadget: an aiming one takes aim on LT, lets fly on RT,
   let rang = 0;
   const G = new Gadgets({ defs: [spy('thrower', 'aim'), spy('fan', 'use'), spy('glass', 'look'), spy('gun', 'tool'), spy('dial', 'use', { modes: ['a', 'b'], cycleMode: () => { log.push('dial mode'); return true; } })], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its, ring: () => rang++ });
   for (const id of ['thrower', 'fan', 'glass', 'gun', 'dial']) its.grant(id);
-  assert.equal(G.equipped, 'thrower');
+  assert.equal(G.equipped, 'dial', 'the newest found in hand (issue #330)');
+  G.equip('thrower');
   const run = (...frames) => { log.length = 0; for (const f of frames) G.control(DT, f); return log.slice(); };
   assert.deepEqual(run({ PadAim: true }, { PadAim: true }, { PadAim: true, PadFire: true }, { PadAim: true }, {}), ['thrower press', 'thrower hold', 'thrower hold', 'thrower release'], 'LT aims, RT lets fly');
   assert.deepEqual(run({ PadAim: true }, { PadAim: true }, {}), ['thrower press', 'thrower hold', 'thrower lower'], 'LT let go: put away unused');

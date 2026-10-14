@@ -115,7 +115,7 @@ import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
 import { hopAxis } from './jump.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
-import { Gadgets } from './gadgets/index.js';
+import { Gadgets, gadgetFoundLine } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft, motionState } from './feel.js';
 import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
@@ -454,14 +454,15 @@ function potionHint() {
   setTimeout(() => showToast(keyText(tr('potion.hint'), { teach: true })), 900);
 }
 // The progression's new verbs (v1.38: the lift valve's double jump, the fluid gun, the jets on jump held), each
-// taught once when its chest opens, after the card; and the choosing, once a second gadget is carried
-// (a genuinely new verb: hints subtle or full, src/hint-level.js)
-const TEACH_ON_FIND = { sword: 'hint.sword', shield: 'hint.shield', doublejump: 'hint.lift', gun: 'hint.gun', wardenbellows: 'hint.bellows' };
+// taught once when its chest opens, after the card (src/gadgets/index.js TEACH_ON_FIND, gadgetFoundLine)
+// A gadget found is in hand at once (issue #330: src/items.js grant, src/gadgets/index.js): after its card, one line says
+// so, gadgetFoundLine (the first time there are two, how to pick another)
 game.on('box:opened', ({ item } = {}) => {
-  const key = TEACH_ON_FIND[item] ?? (gadgets?.owned?.().length >= 2 && gadgets.owned().includes(item) ? 'hint.pick' : null);
-  if (!key || game.flag(`${key}.taught`) || !hintsFor('teach')) return;
-  game.set(`${key}.taught`, true);
-  setTimeout(() => showToast(keyText(tr(key), { teach: true })), 4200);
+  const owned = gadgets?.owned?.() ?? [];
+  const found = gadgetFoundLine(item, { owned, taught: (k) => !!game.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
+  if (!found) return;
+  if (found.key) game.set(`${found.key}.taught`, true);
+  setTimeout(() => showToast(keyText(found.text, { teach: true })), 4200);
 });
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
 hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
