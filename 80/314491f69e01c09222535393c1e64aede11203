@@ -1,0 +1,57 @@
+src/arena-guardians.js
+  s_9ca76055a220ed::t_72eec46d5ae540 6,119
+src/temples/hints.js
+  s_9ca76055a220ed::t_9a5ce9efb5d1d3 61
+src/temples/guardian-motion.js
+  s_9ca76055a220ed::t_8f296de06ea75e 66-67
+src/motion-kit/gait.js
+  s_9ca76055a220ed::t_feef7a5417bb89 89,96-101,178-180,195,201-202,282-310,315-326
+  s_9ca76055a220ed::t_393fc43728ca5d 19-20,256,311-314
+  s_9ca76055a220ed::t_f8f9ed2ad69fc8 21-22,275,332-336,351
+src/temples/desert.js
+  s_9ca76055a220ed::t_695b7796cc051f 190
+  s_9ca76055a220ed::t_f158c5a0e2c225 160-162,164,166,169-174,180-182,185-187,194-200,203-204,206,235-236,246,258-261,264-266,484-486,500,755
+docs/systems/movement.md
+  s_9ca76055a220ed::t_bdb23b1fa197fc 352-359
+src/foes.js
+  s_9ca76055a220ed::t_a74f75339880e6 1641-1660,1672-1674,1799-1813,2655-2656,2705-2709
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_be5884d1987399 48-54,57,62-64,66-71,86-88,90-91,102,104,133-142,144-145,159
+  s_9ca76055a220ed::t_75f22ae179b982 61
+docs/systems/foes.md
+  s_9ca76055a220ed::t_2f0e487b8ba44a 622-660
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_b91a9e609fd187 166
+tests/keeper-second-pass.test.js
+  s_9ca76055a220ed::t_eb8c01ed18163f 36-40,42-50,107,111-112,125-126,140-141
+  s_9ca76055a220ed::t_656b7984aa26bb 1-35,41,51-106,108-110,113-124,127-139,142-257
+src/main.js
+  s_9ca76055a220ed::t_5be13447bb348a 2366-2370,2374,2380-2382,2388-2389,2391
+src/temples/boss.js
+  s_9ca76055a220ed::t_ef84505179f402 66,771-773,964
+  s_9ca76055a220ed::t_7df29d53261d27 178,705-707,709,723,745-746
+  s_9ca76055a220ed::t_bd18a4be370562 26,49-50,174-177,179-180,586,654-659,664,667-674,679-684,690-704,708,737,747,777-780,783,827,884,887,963,981-985,991,1010,1033-1039,1078-1079
+  s_9ca76055a220ed::t_3339d878d90916 65
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_b494ff21b594a1 157-179
+src/player.js
+  s_9ca76055a220ed::t_39f614c02cd643 136-143,1049-1067,1382-1384,1479,2546-2548,2557,2802-2808,2972-2974,3409-3410,3495-3498,3559,3568,3640,3721
+.claude/skills/combat-review/guardian.mjs
+  s_9ca76055a220ed::t_2bf000b374a4f1 217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80314491f69e01c09222535393c1e64aede11203",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
