@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.70', date: '2026-10-13', items: [
+    // the desert's storms paced (issue #308): src/levels/content.js desert.weatherPace, src/weather.js first/clear/episode
+    { text: 'Sandstorms come far less often in the desert: one every eight to fourteen minutes instead of every two or three, a little shorter, never one straight after another, and none in your first minutes there.',
+      numbers: [
+        { title: 'Sandstorms in the desert, a simulated week of play', unit: 'an hour', better: 'lower', device: 'node, src/weather.js run for 7 × 24 h of play', rows: [
+          { where: 'storms an hour', before: 22, after: 5.1 },
+        ], source: 'tests/weather.test.js' },
+      ] },
     // the lore page in the Debug menu, What's new's ◀ Debug (issue #291): src/world-picker.js PAGES, changelog.html, lore.html
     { text: 'The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.',
       see: 'Open Debug from the title: Pages → Lore. Open What’s new from the Debug menu: “◀ Debug” at the top left takes you back.' },

@@ -178,6 +178,9 @@ export const CONTENT = {
     weather: ['storm'],
     // the first arrival stays clear (issue #139): no storm until the makers' chest in Qanat has been opened (src/weather.js calm)
     calmUntil: 'item.backpack',
+    // sandstorms now and then, not every other minute (issue #308): a clear spell of 8–14 min between two, a storm of
+    // 30–50 s, and 4–7 min of clear sky on arriving or once the chest lets the storms in (src/weather.js)
+    weatherPace: { clear: [480, 840], episode: [30, 50], first: [240, 420] },
     // the desert's story is a quest (src/story/desert-data.js): this page
     // opens on the first visit and closes when the ship has power again
     story: {

@@ -6,22 +6,28 @@
 // weather fades out; once it lets go, a whole clear spell passes before the first one. The desert holds its sky
 // clear until the first chest is opened (src/levels/content.js `calmUntil`, main.js): the traveller steps out of
 // the crashed ship under a clean sky, walks to Qanat and opens the makers' chest in it; the storms come after.
+//
+// A world may pace its weather (content.js `weatherPace`, issue #308 "the desert has storms too often"): `clear`, the
+// clear spell between two episodes (s), `episode`, how long one lasts, and `first`, the clear spell on arriving (and
+// after a calm lets go). The desert's sandstorms come at most one every eight minutes or so, never back to back.
 
 export const WEATHER_KINDS = ['clear', 'storm', 'rain', 'fog'];
 
 export class Weather {
   /** @param kinds the weather this level can have (besides clear) */
-  constructor(kinds = [], { clear = [70, 150], episode = [35, 70], calm = null } = {}) {
+  constructor(kinds = [], { clear = [70, 150], episode = [35, 70], first = null, calm = null } = {}) {
     this.kinds = kinds;
     this.calm = calm;               // () => true while the sky must stay clear (the first arrival)
     this.calmed = false;
     this.clearRange = clear;
     this.episodeRange = episode;
+    this.firstRange = first ?? clear.map((x) => x * 0.5);   // (by default the first episode comes a little sooner)
+    this.calmRange = first ?? clear;                          // (after a calm: a whole clear spell, or the world's first)
     this.mode = 'auto';             // or a forced kind from the panel
     this.kind = 'clear';
     this.intensity = 0;
     this.target = 0;
-    this.timer = this.rand(this.clearRange) * 0.5;   // first episode comes a little sooner
+    this.timer = this.rand(this.firstRange);
   }
 
   rand([a, b]) { return a + Math.random() * (b - a); }
@@ -35,7 +41,7 @@ export class Weather {
       this.target = 0;
     } else if (this.kinds.length) {
       // (just let go of a calm: a whole clear spell before the first episode)
-      if (this.calmed) { this.calmed = false; this.target = 0; this.timer = this.rand(this.clearRange); }
+      if (this.calmed) { this.calmed = false; this.target = 0; this.timer = this.rand(this.calmRange); }
       this.timer -= dt;
       if (this.timer <= 0) {
         if (this.target === 0) {

@@ -23,6 +23,9 @@ namespace Hiraeth
         public float Storm => kind == "storm" ? intensity : 0;
         /// <summary>Rain and fog banks (weather.js kinds): the desert has only its sandstorm; another world's weather, or the dev panel's, brings these.</summary>
         string calmUntil; bool calmed;   // (clear until this flag: the desert's first chest, weather.js calm)
+        Vector2 clearRange = new(70, 150), episodeRange = new(35, 70), firstRange = new(35, 75), calmRange = new(70, 150);   // (a world's weatherPace, issue #308)
+        static Vector2 Range(object p, string k, Vector2 d) { var l = p.L(k); return l == null || l.Count < 2 ? d : new Vector2(Json.Num(l[0]), Json.Num(l[1])); }
+        float Rand(Vector2 r) => Random.Range(r.x, r.y);
         public float Rain => kind == "rain" ? intensity : 0;
         public float Fog => kind == "fog" ? intensity : 0;
         public bool Indoors { get; private set; }
@@ -43,8 +46,9 @@ namespace Hiraeth
         {
             game = g;
             var w = g.world.World.O("weather");
-            if (w != null) { foreach (var k in w.L("kinds") ?? new List<object>()) kinds.Add(k as string); stormColor = Json.Hex(w.S("stormColor", "#e3c58f")); calmUntil = w.S("calmUntil", null); }
-            timer = Random.Range(70f, 150f) * 0.5f;
+            if (w != null) { foreach (var k in w.L("kinds") ?? new List<object>()) kinds.Add(k as string); stormColor = Json.Hex(w.S("stormColor", "#e3c58f")); calmUntil = w.S("calmUntil", null);
+                var p = w.O("pace"); if (p != null) { clearRange = Range(p, "clear", clearRange); episodeRange = Range(p, "episode", episodeRange); firstRange = calmRange = Range(p, "first", clearRange); } else { firstRange = clearRange * 0.5f; } }
+            timer = Rand(firstRange);
             Shader.SetGlobalVector("_StormColor", stormColor);
             for (int i = 0; i < wisps.Length; i++) wisps[i] = new Wisp();
             wispMesh = new Mesh { name = "wind wisps" }; wispMesh.MarkDynamic();
@@ -108,12 +112,12 @@ namespace Hiraeth
             else if (calmUntil != null && !(game.state?.Is(calmUntil) ?? true)) { calmed = true; target = 0; }   // (the first arrival held clear: weather.js calm, issue #139)
             else if (kinds.Count > 0)
             {
-                if (calmed) { calmed = false; target = 0; timer = Random.Range(70f, 150f); }
+                if (calmed) { calmed = false; target = 0; timer = Rand(calmRange); }
                 timer -= dt;
                 if (timer <= 0)
                 {
-                    if (target == 0) { kind = kinds[Random.Range(0, kinds.Count)]; target = 0.6f + Random.value * 0.4f; timer = Random.Range(35f, 70f); }
-                    else { target = 0; timer = Random.Range(70f, 150f); }
+                    if (target == 0) { kind = kinds[Random.Range(0, kinds.Count)]; target = 0.6f + Random.value * 0.4f; timer = Rand(episodeRange); }
+                    else { target = 0; timer = Rand(clearRange); }
                 }
             }
             intensity += (target - intensity) * (1 - Mathf.Exp(-dt / 6));

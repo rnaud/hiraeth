@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Every hint and announcement now looks the same and sits in the same place: a dark strip at the top of the screen. The lessons, what the scout finds, what the use button does and photo mode’s keys used to be cream at the bottom; now they head the same stack as the notices, quest cards and the objective. The prompt over a person keeps its place, in the same dark look.
 - The fluid gun starts in push mode when you first get it, and its lesson says so: the trigger pushes, the D-pad changes the mode. Whichever mode you pick after that is the one it holds the next time you play.
 - The Lore page is in the Debug menu’s Pages now, beside Cinematics, Items and Music, instead of in What’s new’s header; What’s new opened by itself has the same “◀ Debug” button back as the other pages.
+- Sandstorms come far less often in the desert: one every eight to fourteen minutes instead of every two or three, a little shorter, never one straight after another, and none in your first minutes there.
 
 ## v1.69 — 2026-10-13
 

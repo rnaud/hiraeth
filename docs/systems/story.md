@@ -44,6 +44,13 @@ Quests, the worlds' stories, the father's charge, the route and the galactic map
     Qanat and open the makers' chest under a clean sky; once it is open a whole
     clear spell (70–150 s) passes before the first sandstorm. The Unity port
     reads the same (`weather.calmUntil`, Ambient.cs). Tests: `tests/weather.test.js`.
+  - **A world's pace** (issue #308, "the desert has storms too often"): content's
+    `weatherPace: { clear, episode, first }` (seconds, `[min, max]`) sets the clear
+    spell between two episodes, an episode's length and the clear spell on arriving
+    or once a calm lets go. The desert's: 8–14 min clear, 30–50 s of storm, 4–7 min
+    on arriving, about 5 storms an hour of play against 22 at the default pace
+    (70–150 s / 35–70 s). The test counts them over a simulated week; the Unity
+    port reads it too (`weather.pace`).
   - Sandstorms: a warm haze swallows the distance, and streaks of sand race
     across the screen.
   - Rain: slanted ink strokes falling over the scene.
