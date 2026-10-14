@@ -17,6 +17,12 @@ export const CHANGELOG = [
       numbers: [{ title: 'What one 20-syllable line costs', unit: 'nodes', better: 'lower', device: 'the engine’s Web Audio (engine/webaudio.js), a Desert line', rows: [
         { where: 'audio nodes made for the line', before: 220, after: 28 },
       ], source: 'counted in a render of the line, before and after (tests/voice-synth.test.js counts the new)' }] },
+    // the first arrival in each world (issue #327): src/ship/arrival-view.js (WIDE, MARKS), src/ship/arrival-views.js
+    // (scripts/arrival-views.mjs, picked in the game), cinematics.js ArrivalDirector's wide stage; docs/systems/cinematics.md
+    // "The first arrival in each world"; tests/arrival-view.test.js
+    'The first time your ship comes down on a world, it comes down into a wide view of the whole place under a big sky: the ship small as it lands, the world’s landmarks (its temple, its town, its towers and beacons) laid out behind it. Later landings there stay short, as before.',
+    // the first step out (issue #327): ship.js Ship.revealView, arrival-view.js REVEAL, exitStops, pickExit
+    'Your first step out of the ship on each world turns you toward its best view, and the camera drifts slowly in behind you with its landmarks in sight. Move or turn the camera and it is yours at once; it happens once a world.',
   ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,

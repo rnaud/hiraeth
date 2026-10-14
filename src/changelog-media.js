@@ -804,7 +804,18 @@ const KEEPER320 = 'headless Chrome (muted, High, 1280 × 720), the Rose House’
 const CREASE322 = 'Issue #322: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6322) and the tree before it (90f776a5), the camera pinned in Qanat’s shop in the desert, the traveller by the counter (14 October)';
 const CAM324 = 'Issue #324: the camera QC’s ship-walk (muted headless Chrome, Medium, 1280 × 720, the game stepped 1/60 s a frame) on this branch and on the tree before it (90f776a5), the same moment of the walk held (SHOT_AT): the stick held toward the camera, his back coming to a wall (14 October)';
 const SHIP325 = 'Issue #325: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 6322) and the tree before it (90f776a5, so the before has the crease shading too, issue #322), the camera pinned at close views aboard the parked ship in the desert (14 October)';
+// (v1.72, issue #327: a scratch shooter of ?cinematicReview=arrival.<world> against this branch's own Vite (port 6327) and the tree before it)
+const ARRIVAL327 = 'Issue #327: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6327) and the tree before it (89399eae), a fresh save arriving by ship through the cinematics review (?cinematicReview=arrival.<world>&via=ship): the landing shot at 72 % of the drop out of the clouds, and the first framing once the step out has settled (14 October)';
 export const CHANGELOG_MEDIA = {
+  '1.72': [
+    { match: 'The first time your ship comes down on a world', tags: ['ship'], shots: [
+      { name: 'arrival-glassdunes-wide', title: 'The Glass Dunes', caption: 'The first landing, as the ship comes down: before, from high over the landing, the ship and the sand under it and a cliff; after, the valley under a big sky, the Clock-House, the wave’s cairn and the breaker’s smoke behind the ship.', from: ARRIVAL327 },
+      { name: 'arrival-spacecity-wide', title: 'The City Floating in Space', caption: 'The same moment: before, the ship over an island’s edge; after, the islands and their lamp-masts laid out under the planet, the ship small among them.', from: ARRIVAL327 },
+    ] },
+    { match: 'Your first step out of the ship on each world', tags: ['ship'], shots: [
+      { name: 'arrival-incal-exit', title: 'The City-Shaft', caption: 'The first framing at the foot of the ramp: before, facing out across the plaza, the Lodestar out of the frame; after, turned to the palace with the Lodestar turning over it.', from: ARRIVAL327 },
+    ] },
+  ],
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [
       { name: 'keeper-camera', title: 'Locked on, strafing round it', caption: 'The same moment of the same fight: before, the camera close over his shoulder, the Keeper’s legs and belly filling the frame and its head off it; after, further back and higher, the whole Keeper facing him and the traveller beside it.', from: KEEPER320 },

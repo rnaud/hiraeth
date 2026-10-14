@@ -25,6 +25,7 @@ import { padIndex } from '../native-pad.js';
 import { shakeScale } from '../feel.js';
 import { Prologue } from './prologue.js';
 import { ReboardGate } from './landing.js';
+import { REVEAL, rigView, anyInput } from './arrival-view.js';
 /** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
 export const RAMP_IN = { near: 2.4, speed: 1.2 };
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
@@ -82,6 +83,7 @@ export class Ship {
     this.inside = false;
     this.reboard = new ReboardGate();   // (stepped out: the ramp doesn't offer to take you straight back in, src/ship/landing.js)
     this.cam = null;          // a cinematic camera, or null to leave the rig alone
+    this.reveal = null;       // the first step out's drift into the rig's framing (revealView), his to cut short
     this.shakeK = 0;
     this.auto = null;
     this.busyK = false;
@@ -526,6 +528,7 @@ export class Ship {
 
   /** Filter the player's input: the ship's E, and the autopilot. Called before player.update. */
   input(ctl) {
+    if (this.reveal) this.reveal.cut ||= anyInput(ctl, this.reveal.held ??= heldKeys(ctl));
     if (this.auto) {
       const a = this.auto, P = this.player;
       let tgt = a.points[a.i];
@@ -707,6 +710,40 @@ export class Ship {
   }
   shake(k) { this.shakeK = Math.max(this.shakeK, k * shakeScale()); }   // (the motion settings: src/feel.js)
 
+  /**
+   * The first step out in a world (issue #327, src/ship/arrival-view.js): the rig turned to the world's best view
+   * (exit: { heading, pitch, swing }), the camera drifting into its framing from a little round, higher and further
+   * out over REVEAL.dur s. Control is his all the while: a move, a button or a turn of the camera cuts it short
+   * (eased back to the rig in half a second).
+   */
+  revealView(exit) {
+    this.rig.yaw = exit.heading + Math.PI; this.rig.pitch = exit.pitch;
+    this.rig.target.copy(this.player.pos);
+    this.cam = null; this.blend = null;
+    this.reveal = { t: 0, exit, yaw: this.rig.yaw, pitch: this.rig.pitch, cut: false, held: null, last: null };
+  }
+
+  /** The reveal's shot for this frame (before applyCamera: the camera stands where the rig put it). */
+  updateReveal(dt) {
+    const r = this.reveal, cam = this.camera;
+    const turned = Math.abs(this.rig.yaw - r.yaw) > 1e-3 || Math.abs(this.rig.pitch - r.pitch) > 1e-3;
+    r.t += dt;
+    if (r.cut || turned || r.t >= REVEAL.dur) {
+      this.reveal = null;
+      // (cut short: back to the rig's own framing in half a second; run its course: already there)
+      if (r.last && r.t < REVEAL.dur) this.blend = { from: r.last, t: 0, dur: 0.5 };
+      return;
+    }
+    const k = ease(r.t / REVEAL.dur), e = r.exit, P = this.player.pos;
+    const v = rigView([P.x, P.y, P.z], e.heading, e.pitch, { swing: e.swing * (1 - k), back: REVEAL.back * (1 - k), rise: REVEAL.rise * (1 - k) });
+    const look = _rl.copy(cam.position).add(_d.set(0, 0, -1).applyQuaternion(cam.quaternion).multiplyScalar(10));
+    const from = _rf.set(v.look[0], v.look[1], v.look[2]);
+    // (the start looks at his head from round and over him; the end is the rig's own lens and look, exactly)
+    const pos = new THREE.Vector3(v.pos[0], v.pos[1], v.pos[2]).lerp(cam.position, k * k);
+    r.last = { pos, look: from.clone().lerp(look, k), fov: undefined };
+    this.cam = r.last;
+  }
+
   applyCamera(dt) {
     const cam = this.camera;
     const base0 = cam.userData.baseFov ?? (cam.userData.baseFov = cam.fov);
@@ -806,6 +843,7 @@ export class Ship {
     this.dust.update(dt);
     this.flame.update(dt);
     this.jets.update(dt);
+    if (this.reveal && !photo) this.updateReveal(dt);
     if (!photo) this.applyCamera(dt);
     // rooms are only drawn when the camera is near enough to see in (measured once the camera is placed: a scene's
     // shot inside the ship while you stand far off, as the review page stages the takeoff, drew no walls)
@@ -825,6 +863,9 @@ export class Ship {
   }
 }
 
+const _rl = new THREE.Vector3(), _rf = new THREE.Vector3();
+/** The keys held as a reveal begins (the skip still held): only a new press cuts it short. */
+const heldKeys = (ctl) => new Set(Object.entries(ctl).filter(([, v]) => v === true).map(([k]) => k));
 const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector3(), _d = new THREE.Vector3(), _c = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _warm = new THREE.Color('#fff1c4'), _glowC = new THREE.Color('#ff9a66');
 /** The ship's answer to the voicemail button when nothing waits. */

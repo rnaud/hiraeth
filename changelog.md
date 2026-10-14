@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.72 — 2026-10-14
 
+- Your first step out of the ship on each world turns you toward its best view, and the camera drifts slowly in behind you with its landmarks in sight. Move or turn the camera and it is yours at once; it happens once a world.
+- The first time your ship comes down on a world, it comes down into a wide view of the whole place under a big sky: the ship small as it lands, the world’s landmarks (its temple, its town, its towers and beacons) laid out behind it. Later landings there stay short, as before.
 - People on every world speak now instead of beeping: each line is one voice that glides from syllable to syllable, with breath, real vowels and consonants, stress on its words, pauses at its commas and full stops and a question that rises. Every world’s tongue has its own sound, every speaker a voice that fits them (a child’s small and high, an old man’s wavering, a heavy one’s deep), and the tone of a line is heard: sad lines slower and darker, playful ones quicker and brighter. No more clicks between syllables, and less work for the device.
 
 ## v1.71 — 2026-10-13

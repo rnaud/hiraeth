@@ -554,6 +554,7 @@ if (desert) {
 
 // the ship's places and the prologue's path (src/ship/cinematics.js PrologueDirector)
 const { THRUSTERS } = await import('../../src/ship/exhaust.js');
+const AVIEW = await import('../../src/ship/arrival-view.js');
 const shipOut = (() => {
   const P = (m) => Object.fromEntries(Object.entries(m.interior.points).map(([k, v]) => [k, v?.isVector3 ? V3(v) : Array.isArray(v) ? v.map(V3) : -v]));
   const frame = (g) => { g.updateMatrixWorld(true); const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(); g.matrixWorld.decompose(p, q, s); return { pos: V3(p), rot: Q4(q) }; };
@@ -572,6 +573,18 @@ const shipOut = (() => {
     thrusters: THRUSTERS.map(V3),
     feet: (ship.parked.hull?.feet ?? []).map(V3),
     dust: ship.dustColors?.() ?? null,
+    // the first arrival's views (src/ship/arrival-view.js, issue #327): the establishing descent's lens (from, look, fov,
+    // its drift) and the first step out's heading, pitch and the side its drift swings in from; null where none is picked
+    arrival: (() => {
+      const v = AVIEW.arrivalViews(levelId, ship.restPos);
+      if (!v) return null;
+      const P = (a) => V3(new THREE.Vector3(a[0], a[1], a[2]));
+      return {
+        wide: v.wide && { pos: P(v.wide.pos), look: P(v.wide.look), fov: v.wide.fov, drift: P(v.wide.drift), ...AVIEW.WIDE },
+        exit: v.exit && { heading: -v.exit.heading, pitch: v.exit.pitch, swing: -v.exit.swing, ...AVIEW.REVEAL, pitch0: AVIEW.REVEAL.pitch },
+        flags: { wide: AVIEW.WIDE_FLAG(levelId), exit: AVIEW.VIEW_FLAG(levelId) },
+      };
+    })(),
   };
   if (ship.spaceCopy) {
     const d = new W.shipDirector.PrologueDirector(ship);

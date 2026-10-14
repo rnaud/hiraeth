@@ -36,6 +36,42 @@ The ship's cutscenes and the filmed first times.
   out and brakes into the air with a few pale wisps, passes the clouds in a soft white fade and
   comes down upright on its jets: a landing, not a crash (the prologue's is a forced landing on its belly;
   docs/systems/ship-consoles.md). Hold to skip, as ever.
+- **The first arrival in each world** (issue #327: "the landing view and the first exit out of the ship should show a
+  beautiful view of the landscape with points of interest visible"; `src/ship/arrival-view.js`). Two views per route
+  world, picked from its own data and kept in `src/ship/arrival-views.js`:
+  - **The establishing descent.** The first time the ship comes down in a world, the short drop out of the clouds
+    (`APPROACH.sky`) gives way to a wide shot of 6.4 s (`WIDE`): big sky, the world's landmarks laid out in depth, and
+    the ship gliding in nose first and coming down small into the frame from 260 m over its rest to 30 m, the camera
+    drifting a little. The landing's own low shot then takes the last 30 m in 2.8 s, still moving, and settles it on its feet.
+  - **The first step out.** He walks two steps out and turns toward the world's best view (`exitStops`), and the camera
+    drifts for 3.6 s (`REVEAL`) from a little round, higher and further out into the rig's own framing behind him, a
+    little high (`Ship.revealView`). Control is his all the while: a move, a new button or a turn of the camera cuts it
+    short and eases back to the rig in half a second (the skip still held from the arrival does not).
+  - **Once per world per save**: the flags `arrival.wide.<world>` (set as the arrival starts, skipped or not) and
+    `arrival.view.<world>`. Later arrivals are the short one, as before. The desert's first step out is the prologue's
+    (its `stepout` and `objective` stages, and its skip); a later arrival there by ship has the establishing descent once.
+  - **The landmarks** (`MARKS`, by world, from the level's data: its beacons, its temple's door and house, the town's
+    tree, the sundial's needles or the forest's pillars as one; `main` ones must be in both views): each aimed at down
+    its height (`AIM_AT`), seen when a point of it is in the frame with a clear line to it, and, in the step out, not
+    behind the traveller himself (`behindFigure`).
+  - **Picked in the game** by `node scripts/arrival-views.mjs` (headless, muted Chrome on port 6327 by default, never
+    5173): the ship stands where the game puts it, and the sightlines (`losOf`, `clutter`) are cast against everything
+    the game draws (`sightPhysics`: every opaque mesh, the big instanced things, less glass, water and the sky), the
+    terrain too. The wide is scored by the landmarks it shows (the main ones a must, kept off the edges for the drift),
+    the ship in the lower two thirds as it comes down, nothing standing in front of it (`blocked`), no wall of trunks or
+    towers just past it (`mass`), the share of open sky and the frame's balance; the exit by its landmarks, nothing within
+    30 m filling the frame and the rig's slight high angle (`EXIT_PITCHES`: lower only where the main landmark stands high
+    overhead, the Lodestar, the canyon stack). Per-world camera ranges where the default reads badly (`VIEW_OPTS`: nearer
+    and lower in the Underwater City's sea and the Moon Foundry's haze, over the roofs in the Signal Market). Run it again
+    when a world's landing or landmarks move: a ship that no longer stands where its views were picked arrives the short
+    way (`arrivalViews`), and `tests/arrival-view.test.js` fails first.
+  - **The Unity bridge**: `scripts/unity-export/export-world.mjs` writes the views with the ship's points
+    (`ship.arrival`: the wide's lens and drift, the exit's heading, pitch and swing, mirrored to Unity's frame, the
+    timings and the flags), so `ShipTravel.cs` can play the same first arrival (not yet wired there).
+  - `tests/arrival-view.test.js` builds every route world and projects its landmarks into both views (the wide at the
+    start and the end of its drift, the ship in its frame; the step out with the real `CameraRig` settled there), and
+    plays the arrival twice in a save (the first long, the second short; a new save long again), the skip, and the
+    drift cut short by the stick and by turning the camera.
 - **The burning tree** (`FlameBody (3D: three nested noise-displaced shells, torn open toward the top; was FlameSheet, a card)` in `src/story/flames.js`): one great flame drawn by a
   fragment shader on a card that turns to the camera: flat bands from a pale core to a red
   rim, inked, tongues scrolled up a noise field. It writes a depth that bulges toward the

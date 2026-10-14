@@ -15,6 +15,7 @@ import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD
 import { BUST } from './hologram.js';
 import { rumblePlay } from '../rumble.js';
 import { FACE } from '../humanoid.js';
+import { WIDE, WIDE_FLAG, VIEW_FLAG, arrivalViews, exitStops } from './arrival-view.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -350,19 +351,25 @@ export class PrologueDirector {
         break;
       case 'stepout': {
         prologueMusic(s.sound, 'desert');   // (the desert's music, as you step out)
-        const thr = this.P(pk.interior.points.threshold);
+        const thr = this.P(pk.interior.points.threshold), exit = this.firstExit();
         s.placePlayer(thr, s.site.heading, true);
-        s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), s.rampFoot.clone().addScaledVector(s.outDir, 2.2)]);
+        // (his first step out in the desert: two steps out and a turn toward its best view, issue #327)
+        s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), ...(exit ? exitStops(s.rampFoot, s.outDir, exit.heading) : [s.rampFoot.clone().addScaledVector(s.outDir, 2.2)])]);
         break;
       }
-      case 'objective':
-        s.rig.yaw = s.player.heading + Math.PI;
-        s.rig.pitch = 0.2;
-        s.release(1.4);
+      case 'objective': {
+        const exit = this.firstExit();
+        if (exit) { game.set(VIEW_FLAG(s.levelId), true); s.player.heading = exit.heading; s.revealView(exit); }
+        else {
+          s.rig.yaw = s.player.heading + Math.PI;
+          s.rig.pitch = 0.2;
+          s.release(1.4);
+        }
         C.bars(false); C.hud(true);
         // (no objective card: the father's charge was the one line about it, its own card, issue #222; the way on is
         // Marrow by the ship, his balloon and the scout's find, and the quest log has the step)
         break;
+      }
     }
   }
 
@@ -646,6 +653,12 @@ export class PrologueDirector {
     showChargeCard({ sound: this.s.sound });
   }
 
+  /** The desert's first step out (the prologue's), its view if not seen yet in this save, else null. */
+  firstExit() {
+    const v = arrivalViews(this.s.levelId, this.s.restPos);
+    return v?.exit && !game.flag(VIEW_FLAG(this.s.levelId)) ? v.exit : null;
+  }
+
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
     prologueMusic(s.sound, 'desert');   // (skipped before the step out: the desert's music now)
@@ -668,12 +681,19 @@ export class PrologueDirector {
       pk.lightsOff = false;
       s.setPower('emergency', pk);
       sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0);
-      const a = s.arrivalSpot();
-      s.placePlayer(a.pos, a.heading, true);
-      // over the shoulder, a little low: the city and its great dark tree stand on the horizon beside the traveller
-      s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
-      s.rig.target.copy(a.pos);
+      const a = s.arrivalSpot(), exit = this.firstExit();
       s.cam = null; s.blend = null;
+      if (exit) {
+        // his first step out, turned to the desert's best view (issue #327: src/ship/arrival-view.js), the camera drifting into it
+        s.placePlayer(exitStops(s.rampFoot, s.outDir, exit.heading)[1], exit.heading, true);
+        game.set(VIEW_FLAG(s.levelId), true);
+        s.revealView(exit);
+      } else {
+        s.placePlayer(a.pos, a.heading, true);
+        // over the shoulder, a little low: the city and its great dark tree stand on the horizon beside the traveller
+        s.rig.yaw = a.heading + Math.PI + STEP_OUT_YAW; s.rig.pitch = 0.08;
+        s.rig.target.copy(a.pos);
+      }
       // the ship's word and his answer, after the region's name (the notices' order, src/ship/cinema.js NOTICE_ORDER;
       // issue #78: they used to come up together); no objective card after the charge's (issue #222)
       setTimeout(() => this.landingLines(), Math.max(0, wait - 500));
@@ -797,6 +817,13 @@ export class ArrivalDirector extends Sequence {
     const fwd = V(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize(), up = V(0, 1, 0), across = V(-fwd.z, 0, fwd.x);
     const cam = new THREE.Vector3(), pl = new THREE.Vector3(), q = new THREE.Quaternion(), tilt = new THREE.Quaternion();
     const fog0 = () => { const U = ship.post?.uniforms; if (U) U.uFogMul.value = 0; };   // no haze in space
+    // the first time here (issue #327, src/ship/arrival-view.js): the establishing descent over the world's landmarks
+    // instead of the short drop out of the clouds, and the first step out turned to its best view; later arrivals as before
+    const id = ship.levelId, views = arrivalViews(id, ship.restPos);
+    const wide = views?.wide && !game.flag(WIDE_FLAG(id)) ? views.wide : null;
+    const exit = views?.exit && !game.flag(VIEW_FLAG(id)) ? views.exit : null;
+    if (wide) game.set(WIDE_FLAG(id), true);   // (the first arrival is this one, skipped or not)
+    const landFrom = wide ? ship.restPos.clone().add(V(0, WIDE.to, 0)) : top, landDur = wide ? WIDE.land : 4.2;
     // the planet `D` m off, `drop` rad below the ship's course, `ang` rad its angular radius (so it grows as it nears)
     const placePlanet = (a, from, D, drop, ang) => {
       D = planetDistance(D, ang);
@@ -862,7 +889,28 @@ export class ArrivalDirector extends Sequence {
           if (t > APPROACH.entry - 0.7 && !this.clouded) { this.clouded = true; C.fade(1, true, 0.6); }
         },
       },
-      {
+      wide ? {
+        // the first time: out of the clouds onto the world laid out under a big sky, its landmarks in depth, and the
+        // ship coming down small into the frame from above, gliding in nose first (the camera drifts a little)
+        dur: WIDE.dur,
+        enter: () => {
+          ship.removeApproach();
+          m.group.quaternion.copy(ship.restQuat);
+          m.mats.thrust.uniforms.uGlow.value = 1;
+          C.fade(0, true, 0.9);
+          sfx.engines(ship.sound, 0.6);
+        },
+        frame: (t, dt) => {
+          const k = Math.min(1, t / WIDE.dur), e = 0.75 * (1 - Math.pow(1 - k, 2.5)) + 0.25 * k;
+          const p = ship.restPos.clone().addScaledVector(fwd, -70 * (1 - e)).add(V(0, WIDE.from + (WIDE.to - WIDE.from) * e, 0));
+          m.group.position.copy(p);
+          m.group.quaternion.copy(ship.restQuat);
+          exhaust(ship, m, dt, { power: 0.8, palette: dust() });
+          const d = smooth(k);
+          ship.shot({ pos: V(...wide.pos).add(V(...wide.drift).multiplyScalar(d)), look: V(...wide.look).add(V(...wide.drift).multiplyScalar(d)), fov: wide.fov });
+          if (t > WIDE.dur - 2.5 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.22); }
+        },
+      } : {
         // out of the clouds over the landing site: it comes down upright on its jets, slowing
         dur: APPROACH.sky,
         enter: () => {
@@ -884,16 +932,16 @@ export class ArrivalDirector extends Sequence {
       },
       {
         // down on its jets, the dust blowing out from under it, and gently onto its feet
-        dur: 4.2,
+        dur: landDur,
         enter: () => {
           m.group.quaternion.copy(ship.restQuat);
           m.mats.thrust.uniforms.uGlow.value = 1;
           sfx.engines(ship.sound, 0.8);
-          look.copy(top);
+          look.copy(landFrom);
         },
         frame: (t, dt) => {
-          const k = landingK(t / 4.2);
-          m.group.position.copy(top).lerp(ship.restPos, k);
+          const u = t / landDur, k = wide ? 1 - (1 - Math.min(1, u)) ** 2 : landingK(u);   // (the first time it comes in from the wide's last 30 m, still moving)
+          m.group.position.copy(landFrom).lerp(ship.restPos, k);
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 34).addScaledVector(side, 20);
           cam.y = ship.groundAt(cam.x, cam.z) + 5;
           look.lerp(m.group.position, 1 - Math.exp(-5 * dt));
@@ -904,7 +952,7 @@ export class ArrivalDirector extends Sequence {
           if (h < 40 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.22); }
           // the jets out of the bells under the hull, and the dust they blow out along the ground (src/ship/exhaust.js)
           if (!this.down) exhaust(ship, m, dt, { power: 0.75 + 0.25 * (1 - Math.min(1, h / 60)), palette: dust() });
-          if (t > 4.0 && !this.down) {
+          if (t > landDur - 0.2 && !this.down) {
             // touchdown: the feet settle, a puff of dust from under each, the engines spool down (no jolt)
             this.down = true; sfx.rumble(ship.sound, 0.5, 0.15); sfx.engines(ship.sound, 0); m.mats.thrust.uniforms.uGlow.value = 0;
             footPuffs(ship, m, { palette: dust() });
@@ -928,7 +976,8 @@ export class ArrivalDirector extends Sequence {
         until: () => !ship.auto,
         enter: () => {
           ship.placePlayer(ship.world(m, m.interior.points.threshold), ship.site.heading, true);
-          ship.autopilot([ship.hinge.clone().addScaledVector(ship.outDir, 0.6), ship.rampFoot.clone(), ship.rampFoot.clone().addScaledVector(ship.outDir, 2)]);
+          // (the first time, two steps out and a turn toward the view: src/ship/arrival-view.js exitStops)
+          ship.autopilot([ship.hinge.clone().addScaledVector(ship.outDir, 0.6), ship.rampFoot.clone(), ...(exit ? exitStops(ship.rampFoot, ship.outDir, exit.heading) : [ship.rampFoot.clone().addScaledVector(ship.outDir, 2)])]);
         },
         frame: (t, dt) => {
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 5.5).addScaledVector(side, -3.2);
@@ -947,11 +996,18 @@ export class ArrivalDirector extends Sequence {
         sfx.engines(ship.sound, 0);
         ship.auto = null;
         const a = ship.arrivalSpot();
-        if (skipped || ship.player.pos.distanceTo(a.pos) > 4) ship.placePlayer(a.pos.clone().addScaledVector(ship.outDir, 2), a.heading, true);
+        if (skipped || ship.player.pos.distanceTo(a.pos) > 4) ship.placePlayer(exit ? exitStops(ship.rampFoot, ship.outDir, exit.heading)[1] : a.pos.clone().addScaledVector(ship.outDir, 2), exit ? exit.heading : a.heading, true);
         ship.showPlayer(true);
-        ship.rig.yaw = ship.player.heading + Math.PI; ship.rig.pitch = 0.2;
-        ship.rig.target.copy(ship.player.pos);
-        if (skipped) { ship.cam = null; ship.blend = null; } else ship.release(1.2);
+        if (exit) {
+          // the first step out: turned to the world's best view, the camera drifting into it (his to cut short: Ship.revealView)
+          game.set(VIEW_FLAG(id), true);
+          ship.player.heading = exit.heading;
+          ship.revealView(exit);
+        } else {
+          ship.rig.yaw = ship.player.heading + Math.PI; ship.rig.pitch = 0.2;
+          ship.rig.target.copy(ship.player.pos);
+          if (skipped) { ship.cam = null; ship.blend = null; } else ship.release(1.2);
+        }
         C.clear();
         ship.onReady?.();
       },
