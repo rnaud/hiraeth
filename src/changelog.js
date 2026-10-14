@@ -23,6 +23,11 @@ export const CHANGELOG = [
     'The first time your ship comes down on a world, it comes down into a wide view of the whole place under a big sky: the ship small as it lands, the world’s landmarks (its temple, its town, its towers and beacons) laid out behind it. Later landings there stay short, as before.',
     // the first step out (issue #327): ship.js Ship.revealView, arrival-view.js REVEAL, exitStops, pickExit
     'Your first step out of the ship on each world turns you toward its best view, and the camera drifts slowly in behind you with its landmarks in sight. Move or turn the camera and it is yours at once; it happens once a world.',
+    // living foes on slopes (issue #332): src/enemies/slope.js (SLOPE, planeUnder, readSlope, tiltRoot), Foes.look and
+    // beforeLegs; the kit's plane (gait.js rise, body.js, rig.js setSlope/upright, machines.js TrackDrive, wave-legs.js);
+    // brute.js clearGround, humanoid.js smoke, quadruped.js placeBeads, hopper.js, roller.js, skitterers.js, centipede.js;
+    // docs/systems/foes.md "On a slope"; tests/foe-slope.test.js
+    'Creatures and machines standing or walking on a hillside now lean with it instead of sinking into it: the crucible cart’s tracks, a lizard’s tail, the toad, the heron’s toes, the bell walker and the tripod all stay on the ground, their feet planted on the slope while the tall ones keep upright. The furnace brute’s fists and the wood cutter’s saw no longer hang into the ground when it stands still.',
   ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,

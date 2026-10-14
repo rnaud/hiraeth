@@ -32,7 +32,7 @@ export class BodyFromFeet {
   }
 
   /** One frame from the planner's feet. root: the body's ground spot; vel {x, z}. */
-  update(dt, planner, root, heading, vel) {
+  update(dt, planner, root, heading, vel, plane = null) {
     const s = Math.sin(heading), c = Math.cos(heading);
     let n = 0, mh = 0, mx = 0, mz = 0, homeX = 0, up = 0;
     const pts = this._pts ??= planner.feet.map(() => ({ x: 0, z: 0, h: 0 }));
@@ -41,7 +41,9 @@ export class BodyFromFeet {
       const gy = f.planted ? f.pos.y : f.from.y + (f.to.y - f.from.y) * Math.min(1, Math.max(0, f.t));
       const dx = f.pos.x - root.x, dz = f.pos.z - root.z;
       const p = pts[i];
-      p.x = dx * c - dz * s; p.z = dx * s + dz * c; p.h = gy - root.y - f.home.y;
+      // (on a slope its root is turned onto the ground's plane, src/enemies/slope.js: the feet are measured against that
+      // plane, so only the bumps beyond it tip and lift the body)
+      p.x = dx * c - dz * s; p.z = dx * s + dz * c; p.h = gy - root.y - f.home.y - (plane ? plane.sx * dx + plane.sz * dz : 0);
       if (!f.planted) up += Math.sin(Math.PI * Math.min(1, Math.max(0, f.t)));   // (deepest mid-swing)
       mh += p.h; mx += p.x; mz += p.z; homeX += f.home.x * planner.spread; n++;
     });

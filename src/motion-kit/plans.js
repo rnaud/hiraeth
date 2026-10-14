@@ -91,7 +91,7 @@ export const PLANS = {
     hop: { length: 1.15, air: 0.36, height: 0.5, crouch: 0.14, squash: 0.2, gap: 0.1, catchUp: 0.62 },   // (m, s; catchUp: m it lags before it hops, so a slower toad hops less often)
     gait: { gait: 'alternate', drift: 0.3, stepTime: [0.14, 0.32], height: 0.16, arc: 'organic', duty: 0.6, reach: 0.6 },
     knee: { lenA: 0.6, lenB: 0.62, pole: 'beast' },
-    body: { bob: 0.02, lean: 0.02, bank: 0.02, sway: 0.06, tilt: 0.2, spring: { f: 3.2, z: 0.45, r: 0 } },
+    body: { bob: 0.02, lean: 0.02, bank: 0.005, sway: 0.06, tilt: 0.2, spring: { f: 3.2, z: 0.45, r: 0 } },
     poses: {
       coil: { y: 0.04, z: -0.12, pitch: -0.32 },                      // (the lob: it rears back, the swollen throat high)
       strike: { y: 0, z: 0.1, pitch: 0.15 },

@@ -24,7 +24,7 @@ export class TrackDrive {
     this.sr = new SecondOrder(spring.f, spring.z, spring.r);
     this.sy = new SecondOrder(spring.f * 1.2, spring.z, spring.r);
     this.out = { pitch: 0, roll: 0, y: 0, dl: 0, dr: 0, speed: 0 };
-    this.frame = 0; this.ground = { pitch: 0, roll: 0, y: 0 };
+    this.frame = 0; this.ground = { pitch: 0, roll: 0, y: 0 }; this.plane = null;
   }
   /** A road wheel's angle on a side (rad): the belt's run over the wheel's radius. */
   wheelAngle(side) { return (side > 0 ? this.left : this.right) / this.wheel; }
@@ -47,7 +47,8 @@ export class TrackDrive {
     this.prev.x = pos.x; this.prev.y = pos.y; this.prev.z = pos.z; this.heading = heading;
     if (ground && (this.frame++ % 2 === 0)) {
       const s = Math.sin(heading), c = Math.cos(heading), hl = this.length / 2, hg = this.gauge / 2;
-      const at = (ax, az) => { const y = ground(pos.x + ax * c + az * s, pos.y + 1.2, pos.z - ax * s + az * c); return Number.isFinite(y) ? y - pos.y : 0; };
+      // (plane: the ground's plane its root is already turned onto, src/enemies/slope.js: only the bumps beyond it count)
+      const P = this.plane, at = (ax, az) => { const x = ax * c + az * s, z = -ax * s + az * c, y = ground(pos.x + x, pos.y + 1.2, pos.z + z); return Number.isFinite(y) ? y - pos.y - (P ? P.sx * x + P.sz * z : 0) : 0; };
       const fl = at(hg, hl), fr = at(-hg, hl), bl = at(hg, -hl), br = at(-hg, -hl);
       this.ground.pitch = clamp(Math.atan2(((bl + br) - (fl + fr)) / 2, this.length), -this.tilt, this.tilt);
       this.ground.roll = clamp(Math.atan2(((fl + bl) - (fr + br)) / 2, this.gauge), -this.tilt, this.tilt);

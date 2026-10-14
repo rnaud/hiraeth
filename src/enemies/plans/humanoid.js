@@ -3,7 +3,7 @@ import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { VerletChain } from '../../motion-kit/chain.js';
-import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, smooth, finish, V } from './kit.js';
+import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, smooth, finish, V, outerPoints, lowestIn, frameIn } from './kit.js';
 
 // Plan 9, the humanoid spirit (docs/systems/procedural-animation.md §4, the kit's `humanoid`): the shade
 // (docs/design/enemy-roster.md, archetype 19), drawn to its sheets (references/enemy-archetypes/shade/: sheet-1 Lorn II's
@@ -40,6 +40,7 @@ const DEPTH = 0.74;   // (the cloak's depth to its width: the sheet's side view)
  * knees as heavy cloth does, flaring only a little at the hem (the hem torn: jag(); hung in folds: cloakGeometry). */
 const CLOAK = [[0.12, 1.62], [0.22, 1.585], [0.28, 1.51], [0.3, 1.36], [0.32, 1.18], [0.345, 1.0], [0.37, 0.84], [0.395, 0.7], [0.42, 0.56], [0.445, 0.44]];
 const HEM = 0.44;
+const SMOKE_CLEAR = 0.04;   // (the smoke's tongues' tips over the ground, group units)
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _mr = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0);
 
 /** The torn hem: how far above its line a tatter's tip ends at angle a (rad round the body; 0 ahead), m. */
@@ -185,6 +186,7 @@ export function shadeModel(skin) {
   const smoke = pivot(drape, 0, HEM - SH.y, 0, 'smoke'), puffs = [flameGeometry({ ragged, len: 0.42 + 0.06 * ragged })];
   for (let i = 0; i < 10; i++) { const a = i * 1.7 + 0.4, r = 0.3 + (i % 2) * 0.09; puffs.push(new THREE.IcosahedronGeometry(0.04 + (i % 3) * 0.013, 1).translate(Math.sin(a) * r, -0.3 - (i % 3) * 0.07, Math.cos(a) * r * DEPTH)); }
   many(smoke, puffs, smokeB);
+  const smokePts = outerPoints(smoke);   // (its lowest points however it hangs: kept off the ground)
   // the head: a capelet over the shoulders, the hood (no face: the dark of it, two white eyes), its ribbons' roots
   const head = pivot(hull, 0, NECK, 0, 'head');
   add(head, cloakGeometry([[0.1, 0.05], [0.21, 0.0], [0.3, -0.08], [0.34, -0.17], [0.355, -0.24]], { gap: 0, ragged: 0.45, depth: 0.82, seg: 24 }), hoodB);
@@ -292,6 +294,14 @@ export function shadeModel(skin) {
       smoke.rotation.y += dt * 0.35;
       const breath = 1 + Math.sin(c.now / 300 + f.home.z) * 0.06;
       smoke.scale.set(breath, 1 + Math.sin(c.now / 410) * 0.1, breath);
+      // (its tongues hang to the ground and no further: drawn up as the hem comes down, a step, a sway, a hillside's
+      // uphill side; they went 16-19 cm through it, issue #332)
+      for (let i = 0; i < 2; i++) {
+        const low = lowestIn(g, smoke, smokePts);
+        if (low >= SMOKE_CLEAR) break;
+        const top = _v.setFromMatrixPosition(frameIn(smoke, g, _m)).y;
+        smoke.scale.y *= Math.max(0.2, (top - SMOKE_CLEAR) / Math.max(1e-3, top - low));
+      }
       // the sword: poured out of the sleeve as it comes for you, back in as it calms (and gone into the pool)
       const fighting = f.state !== 'idle' && f.state !== 'home';
       drawn = ease(drawn, fighting && !(id === 'step' && wind) ? 1 : 0, fighting ? 5 : 2, dt);

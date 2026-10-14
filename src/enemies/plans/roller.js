@@ -89,11 +89,12 @@ export function rollerModel(skin) {
     // (overlapping, flat and wide: one soft skirt wider than the shell in front, thinning to a point behind)
     const t = i / 8, z = lerp(0.78, -1.08, t), w = 0.64 * Math.sin(Math.PI * Math.min(1, 0.22 + t * 0.85)) + 0.05, h = 0.08 + 0.04 * Math.sin(Math.PI * t);
     const j = pivot(foot, 0, 0, z, `sole ${i}`);
-    add(j, new THREE.SphereGeometry(1, 16, 8).scale(w, h, 0.32), footB, 0, h * 0.55, 0);
+    // (its sole on the ground, not 5 cm into it: the segment's bottom at its joint, so the ripple's swell lifts it; #332)
+    add(j, new THREE.SphereGeometry(1, 16, 8).scale(w, h, 0.32), footB, 0, h, 0);
     segs.push(j);
   }
   const head = pivot(foot, 0, 0.06, 0.62, 'head');
-  add(head, new THREE.SphereGeometry(1, 14, 10).scale(0.24, 0.2, 0.3), footB, 0, 0.1, 0.06);
+  add(head, new THREE.SphereGeometry(1, 14, 10).scale(0.24, 0.2, 0.3), footB, 0, 0.15, 0.06);   // (its chin on the ground, not under it)
   const stalks = pair((s) => {
     const base = pivot(head, s * 0.1, 0.3, 0.12, 'stalk');
     add(base, new THREE.CylinderGeometry(0.018, 0.034, 0.74, 7).translate(0, 0.37, 0), stalkB);

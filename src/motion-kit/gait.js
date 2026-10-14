@@ -128,8 +128,16 @@ export class GaitPlanner {
     const s = Math.sin(heading), c = Math.cos(heading), hx = foot.home.x * this.spread, hz = foot.home.z * this.spread;
     out.set(root.x + hx * c + hz * s, root.y + foot.home.y, root.z - hx * s + hz * c);
     if (ahead) { out.x += ahead.x; out.z += ahead.z; }
+    out.y += this.rise(out, root);
     return out;
   }
+
+  /**
+   * How far the ground's plane under the body (`plane` { sx, sz }: its rise per m along x and z, set by its rig from the
+   * foe's slope, src/enemies/slope.js) rises at p from the root: where a foot goes with no ray of its own (its home, a
+   * replant after a hop, the canned cycle far off), so on a slope it is on the hillside, not level with the root.
+   */
+  rise(p, root) { const P = this.plane; return P ? P.sx * (p.x - root.x) + P.sz * (p.z - root.z) : 0; }
 
   /**
    * Plant every foot near its home, each group at its own point of the stride (spread evenly over a cycle, from
@@ -162,7 +170,7 @@ export class GaitPlanner {
 
   /** Plant every foot where it is now (after a hop, a tuck or a fall), at the root's height. */
   replant(positions, root) {
-    this.feet.forEach((f, i) => { f.pos.copy(positions[i]); f.pos.y = root.y + f.home.y; f.planted = true; f.t = 0; });
+    this.feet.forEach((f, i) => { f.pos.copy(positions[i]); f.pos.y = root.y + f.home.y + this.rise(f.pos, root); f.planted = true; f.t = 0; });
     this.ready = true;
   }
 
@@ -202,7 +210,7 @@ export class GaitPlanner {
   update(dt, root, heading, vel, ground) {
     const ev = this.events; ev.length = 0;
     if (!this.ready) this.init(root, heading, ground);
-    if (this.cannedLast) { for (const f of this.feet) { f.planted = true; f.t = 0; f.pos.y = root.y + f.home.y; } this.cannedLast = false; }
+    if (this.cannedLast) { for (const f of this.feet) { f.planted = true; f.t = 0; f.pos.y = root.y + f.home.y + this.rise(f.pos, root); } this.cannedLast = false; }
     let turn = Math.atan2(Math.sin(heading - this.heading), Math.cos(heading - this.heading)) / Math.max(dt, 1e-4);
     if (!(dt > 0)) turn = 0;
     this.heading = heading;
@@ -228,9 +236,10 @@ export class GaitPlanner {
       if (f.planted) { f.stood += dt; continue; }
       f.t += dt / f.dur;
       if (f.t < 0.6 && this.arc !== 'flowing') {   // (early in the swing the landing follows the body: a turn or a change of pace)
-        const y = f.to.y;
+        // (its ray's height kept, moved with the plane's rise on a slope: a turn swings the landing a metre round)
+        const y = f.to.y - this.rise(f.to, root);
         this.landing(f, root, heading, vel, turn, f.dur * (1 - f.t), _t);
-        f.to.set(_t.x, y, _t.z);
+        f.to.set(_t.x, y + this.rise(_t, root), _t.z);
       }
       if (f.t >= 1) {
         f.pos.copy(f.to); f.planted = true; f.stood = 0; f.t = 1;
@@ -353,7 +362,7 @@ export class GaitPlanner {
     }
     const y = ground ? ground(f.to.x, root.y + 1.5, f.to.z) : null;
     this.rays++;
-    f.to.y = Number.isFinite(y) ? y + f.home.y : root.y + f.home.y;
+    f.to.y = Number.isFinite(y) ? y + f.home.y : root.y + f.home.y + this.rise(f.to, root);
     f.dur = dur; f.t = 0; f.planted = false;
     const speed = Math.hypot(vel.x, vel.z);
     f.lift = this.height * (speed < 0.08 && Math.abs(turn) < 0.3 ? 0.55 : 1);
@@ -394,7 +403,7 @@ export class GaitPlanner {
       if (ph < duty) x = S / 2 - (ph / duty) * S;
       else { const u = (ph - duty) / (1 - duty); x = -S / 2 + smoother(u, 0, 1) * S; y = this.height * Math.sin(Math.PI * u); }
       this.homeOf(f, root, heading, f.pos);
-      f.pos.x += s * x; f.pos.z += c * x;
+      f.pos.x += s * x; f.pos.z += c * x; f.pos.y = root.y + f.home.y + this.rise(f.pos, root);
       f.planted = ph < duty;
       // (a swinging foot's step at the root's height: the body rides on from and to, src/motion-kit/body.js; left at the
       // last planned step they put a temple's guardian, 2400 m up, hundreds of metres under its feet)

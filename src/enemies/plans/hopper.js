@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, rod, many, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, rod, many, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
 
 // Plan 5, the hopper (docs/systems/procedural-animation.md §4): the bellows toad (docs/design/enemy-roster.md,
 // archetype 4), drawn to its sheets (references/enemy-archetypes/toad/: sheet-1 Lorn's spore toad, sheet-2 the
@@ -28,6 +28,7 @@ const PEAR = [[0.001, 0.16], [0.5, 0.2], [0.78, 0.36], [0.9, 0.62], [0.9, 0.9], 
   .map(([r, y]) => new THREE.Vector2(r, y));
 
 let toads = 0;
+const BELLY_CLEAR = 0.04;   // (group units: its belly's lowest point over the ground as it lands)
 
 export function toadModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('toad', skin);
@@ -114,6 +115,7 @@ export function toadModel(skin) {
   if (props.has('jet')) { const brassM = M.mat('brass', P.brass); const j = pivot(trunk, 0, 1.75, -0.6, 'jet'); j.rotation.x = -0.9; add(j, new THREE.CylinderGeometry(0.08, 0.14, 0.32, 10), brassM); add(j, new THREE.TorusGeometry(0.09, 0.025, 6, 12).rotateX(Math.PI / 2), brassM, 0, 0.17, 0); dress.push(j); steam = j; }
   if (props.has('flower')) { const fl = pivot(head, -0.12, 0.42, 0.0, 'flower'); rod(fl, [0, 0, 0], [0.02, 0.24, 0.02], 0.014, M.mat('stem', '#5a8a3c')); for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; add(fl, new THREE.SphereGeometry(0.06, 8, 6).scale(1, 0.4, 1.6), M.mat('flower', P.flower), Math.sin(a) * 0.07, 0.26, Math.cos(a) * 0.07).rotation.y = a; } add(fl, new THREE.SphereGeometry(0.04, 8, 6), M.mat('heart', '#f2d36b'), 0, 0.27, 0); dress.push(fl); }
   const rig = new Rig({ plan: PLANS.hopper, group: g, body, legs });
+  const bellyPts = outerPoints(trunk, (o) => o.parent === trunk);   // (its own body's outer points: its belly kept off the ground)
   const mouthTip = pivot(head, 0, 0.0, 0.6);   // (where the glob leaves, and its glow gathers)
   finish(g);
   const parts = [pear, belly, head, sac, ...haunches, ...dress, ...legs.map((l) => l.root)];
@@ -164,7 +166,11 @@ export function toadModel(skin) {
       if (leaping) { up = f.alt; air = 1.4; }
       squash = Math.max(0, squash - dt / HOP.squash);
       // the toad's spot: its drawn root (not the mind's): the group and the rig both go by it
-      g.position.x = drawn.x; g.position.z = drawn.z; g.position.y = f.pos.y + f.over + up;
+      // (its height: the ground at the mind's spot, and on a slope the plane's rise to the drawn one, src/enemies/slope.js;
+      // level with the mind's, it sat a hop's rise into a hillside)
+      const SL = f.slope;
+      drawn.y = f.pos.y + (SL ? SL.sx * (drawn.x - f.pos.x) + SL.sz * (drawn.z - f.pos.z) : 0);
+      g.position.x = drawn.x; g.position.z = drawn.z; g.position.y = drawn.y + f.over + up;
       // the wind-ups: the lob's swollen throat and rearing back; the flop's deep crouch, legs shaking
       const lob = id === 'lob' || id === 'volley';
       const flop = id === 'flop' && wind ? c.wind : 0;
@@ -179,6 +185,8 @@ export function toadModel(skin) {
       trunk.scale.set(1 + squash * 0.1 + crouch * 0.05, 1 - squash * 0.12 - crouch * 0.06 + (up > 0 ? 0.06 : 0), 1 + squash * 0.1);
       // (belly first through the leap; on its back once the air cut brings it down)
       trunk.rotation.set(o.pitch + tumble * 0.7 * Math.sin(Math.PI * Math.min(1, f.k)) - flip * 1.35, o.yaw, o.roll + shake * 2);
+      // (its belly squashes onto the ground as it lands, not into it: 5-8 cm under, issue #332; the legs reach down to it)
+      if (flip < 0.05) { const need = BELLY_CLEAR - lowestIn(g, trunk, bellyPts); if (need > 0) trunk.position.y += need; }
       // the sac: folds hanging down to the belly at rest; swelling to a great ball in front of it, glowing through
       const sw = Math.max(swell, f.stunned > 0 && !f.flipped ? 0.3 : 0);
       const ball = THREE.MathUtils.smoothstep(sw, 0.3, 0.55);

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
 
 // Plan 8, the giant slow brute (docs/systems/procedural-animation.md §4): the furnace brute (docs/design/enemy-roster.md,
 // archetype 17), drawn to its sheets (references/enemy-archetypes/brute/: sheet-1 Lorn II's wood cutter, sheet-2 the
@@ -38,6 +38,24 @@ const EGG = [[0.001, 1.36], [0.5, 1.42], [0.82, 1.58], [1.02, 1.85], [1.14, 2.2]
 const DEPTH = 0.84;   // (the egg's depth to its width: the sheet's side view)
 const radiusAt = (y) => { for (let i = 1; i < EGG.length; i++) if (EGG[i].y >= y) { const a = EGG[i - 1], b = EGG[i]; return lerp(a.x, b.x, (y - a.y) / Math.max(1e-6, b.y - a.y)); } return 0.001; };
 const _v = new THREE.Vector3();
+
+// Its arms reach the ground, and hanging straight they went through it: its fingers 37 cm under at rest, the Lorn saw's
+// blade 51-62 cm (issue #332). Each frame, once its arms are posed, the hand's lowest points (its fist, the curled
+// fingers' tips) and the blade's lowest edge are read in the root's frame (the ground's plane: y 0, src/enemies/slope.js)
+// and the elbow bends forward until they are `ARM_CLEAR` over it: its fists hang down to the ground and rest on it.
+export const ARM_CLEAR = 0.05;   // (group units over the ground)
+/** The lowest of arm a's hand and what it holds (its outer points, kit.js outerPoints), in the root's frame (y). */
+const lowest = (g, a) => lowestIn(g, a.fist, a.reach);
+/** Bend arm a's elbow forward until its hand (and blade) clear the ground (a few passes: the forearm's swing lifts it). */
+function clearGround(g, a) {
+  for (let i = 0; i < 6; i++) {
+    const need = ARM_CLEAR - lowest(g, a);
+    if (need <= 0) return;
+    const was = a.el.rotation.x;
+    a.el.rotation.x = Math.max(-1.75, was - Math.min(0.6, need * 1.2));
+    if (a.el.rotation.x === was) return;
+  }
+}
 
 export function bruteModel(skin) {
   const P = skin.palette, props = new Set(skin.props), M = materials('brute', skin);
@@ -158,6 +176,7 @@ export function bruteModel(skin) {
     extras.push(lad);
   }
   const rig = new Rig({ plan: PLANS.brute, group: g, body, legs });
+  for (const a of arms) a.reach = outerPoints(a.fist);   // (before the merge: the fingers, the blade, the ladle)
   // (one draw per material for the hull and every limb: skinned on the kit's joints)
   skinBy(g, [{ from: [hullB, jointB], into: bodyM }, { from: [brassB], into: brassM }, { from: [tarB], into: tarM }]);
   finish(g);
@@ -210,6 +229,7 @@ export function bruteModel(skin) {
       twitchT -= dt;
       if (twitchT < 0) { twitch[Math.random() < 0.5 ? 0 : 1] = 0.25; twitchT = 0.6 + Math.random() * 1.6; }
       arms.forEach((a, i) => { twitch[i] = Math.max(0, twitch[i] - dt); a.hand.rotation.x = (f.state === 'chase' || f.state === 'idle') && twitch[i] > 0 ? Math.sin(c.now / 30) * 0.12 : 0; });
+      for (const a of arms) clearGround(g, a);   // (its hands and the blade over the ground, the fingers' twitch with them)
       // the slab: torn up through the bend, held high, thrown in the last quarter (its arc onto the mark)
       slab.visible = id === 'hurl' && wind && hk > 0.3 && hk < 0.8;
       if (id === 'hurl' && wind && f.k > 0.8) c.lob(f, (f.k - 0.8) / 0.2, P.slab ?? '#8a7f70'); else c.lob(f, -1);

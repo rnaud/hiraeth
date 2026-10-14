@@ -763,6 +763,14 @@ Mac M4 Pro at load 10-18 (the review's 1.3 µs a leg for the shade was a busy ma
 Every kind at or under 1 µs a leg; the mixed scene within the runs' spread of v1.40 (the review's 92-95 and Phase 7's 71
 were the machine's load, not the kit).
 
+### On a slope (v1.72, issue #332)
+
+A foe on the ground is turned onto the ground's plane under it (`src/enemies/slope.js`); the kit takes the plane
+(`Rig.setSlope(plane, upright)`): the planner's feet with no ray of their own go on it (`GaitPlanner.plane`, `rise`), the
+body's height and tilt are measured against it (`BodyFromFeet.update(…, plane)`), a tall body stands back up by `upright`
+of it, and the tracks and the metachronal legs read it too (`TrackDrive.plane`, `WaveLegs.plane`). With no plane (the
+guardians, Moustache, the traveller's kit) nothing changes. docs/systems/foes.md, "On a slope".
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--skins] [--pack] [--cost] [--pace=0.5] [--json]` walks the archetypes

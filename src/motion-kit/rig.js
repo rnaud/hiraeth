@@ -184,6 +184,7 @@ export class Rig {
     this.shown = { ...this.out };
     this.vel = { x: 0, z: 0 };
     this.cost = 0;
+    this.slope = null; this.upright = 0;   // (the ground's plane under it and how far its body stands back up from it: setSlope)
     // the feet's rest in the body's frame: where they hang when it leaves the ground
     this.group.updateMatrixWorld(true);
     for (const l of legs) {
@@ -237,9 +238,16 @@ export class Rig {
     this.drawn = this.tier !== 'off' && (this.tier !== 'far' || !LOD.far || ++this.farN % TIERS.farEvery === 0);
     let b = this.bodyFeet.out;
     if (this.tier === 'far') this.farDt += dt;
-    if (this.drawn) { b = this.bodyFeet.update(this.tier === 'far' ? this.farDt : dt, this.planner, p, f.heading, this.vel); this.farDt = 0; }
+    if (this.drawn) { b = this.bodyFeet.update(this.tier === 'far' ? this.farDt : dt, this.planner, p, f.heading, this.vel, this.slope); this.farDt = 0; }
     const o = this.out;
     o.y = b.y + pose.y; o.x = b.x; o.z = pose.z; o.pitch = b.pitch + pose.pitch; o.roll = b.roll + pose.roll; o.yaw = pose.yaw;
+    // on a slope (its root turned onto the ground's plane: src/enemies/slope.js), a tall body stands back up toward
+    // upright by `upright` of it, on its legs (the IK reaches them down to the hillside)
+    if (this.slope && this.upright) {
+      const sn = Math.sin(f.heading), c = Math.cos(f.heading), S = this.slope;
+      o.pitch += this.upright * Math.atan(S.sx * sn + S.sz * c);
+      o.roll -= this.upright * Math.atan(S.sx * c - S.sz * sn);
+    }
     // the stepped clock: the pose shown only on its ticks (a strike on ones: it snaps; out of view, nothing to step)
     if (this.stepped > 0 && LOD.stepped && f.state !== 'strike' && this.tier !== 'off') {
       this.clock += dt * this.stepped;
@@ -251,6 +259,12 @@ export class Rig {
     if (this.stepped > 0) Object.assign(this.shown, o);
     return o;
   }
+
+  /**
+   * The ground's plane under it ({ sx, sz }: rise per m along x and z; null: level), its root turned onto it by the foe
+   * (src/enemies/slope.js); upright: the share of it the body stands back up from, on its legs.
+   */
+  setSlope(plane, upright = 0) { this.slope = plane; this.upright = upright; this.planner.plane = plane; }
 
   /** The planted (or swinging) foot of leg i in the world. */
   footOf(i) { return this.planner.feet[i].pos; }

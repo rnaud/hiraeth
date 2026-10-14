@@ -168,3 +168,40 @@ export function finish(group) {
   group.updateMatrixWorld(true);
   return group;
 }
+
+// ------------------------------------------------------------------ parts that must keep off the ground (issue #332)
+// (the directions of a 5³ grid: a part's outermost point along each is its hull's within a few millimetres)
+const DIRS = [];
+for (let x = -2; x <= 2; x++) for (let y = -2; y <= 2; y++) for (let z = -2; z <= 2; z++) if (x || y || z) DIRS.push(new THREE.Vector3(x, y, z).normalize());
+const _op = new THREE.Vector3(), _om = new THREE.Matrix4();
+/**
+ * The outermost points of every mesh under obj, in obj's frame (built once, before its parts are merged into skinned
+ * meshes): its lowest point however it is turned is one of them (a brute's fist and what it holds, a shade's smoke).
+ * keep(mesh): only those meshes (a toad's own belly, not the sac that swells under it).
+ */
+export function outerPoints(obj, keep = null) {
+  const best = DIRS.map(() => -Infinity), at = DIRS.map(() => null);
+  obj.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(obj.matrixWorld).invert(), m = new THREE.Matrix4();
+  obj.traverse((o) => {
+    const P = o.isMesh && o.geometry?.attributes?.position;
+    if (!P || (keep && !keep(o))) return;
+    m.multiplyMatrices(inv, o.matrixWorld);
+    for (let i = 0; i < P.count; i++) {
+      _op.fromBufferAttribute(P, i).applyMatrix4(m);
+      for (let k = 0; k < DIRS.length; k++) { const v = DIRS[k].dot(_op); if (v > best[k]) { best[k] = v; at[k] = _op.clone(); } }
+    }
+  });
+  const pts = [];
+  for (const p of at) if (p && !pts.some((q) => q.distanceToSquared(p) < 1e-8)) pts.push(p);
+  return pts;
+}
+/** obj's matrix in the frame of `root` (its local matrices up to it). */
+export function frameIn(obj, root, out = new THREE.Matrix4()) { out.identity(); for (let o = obj; o && o !== root; o = o.parent) { o.updateMatrix(); out.premultiply(o.matrix); } return out; }
+/** The lowest of obj's points `pts` (outerPoints) in root's frame (y: over the ground's plane in the model's root). */
+export function lowestIn(root, obj, pts) {
+  frameIn(obj, root, _om);
+  let low = Infinity;
+  for (const p of pts) low = Math.min(low, _op.copy(p).applyMatrix4(_om).y);
+  return low;
+}

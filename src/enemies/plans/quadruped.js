@@ -46,10 +46,19 @@ function quadBody(g, spec) {
 function chainBeads(parent, n, r0, r1, mat) {
   return Array.from({ length: n }, () => add(parent, new THREE.SphereGeometry(1, 10, 8), mat, 0, 0, 0)).map((m, i) => { m.scale.setScalar(lerp(r0, r1, i / Math.max(1, n - 1))); return m; });
 }
-/** Put a chain's beads (in group space) along its points (world space). */
+/**
+ * Put a chain's beads (in group space) along its points (world space). Each point is kept on the ground first (the
+ * root's frame is the ground's plane: y 0, src/enemies/slope.js), as high as its bead is thick: a tail lying along the
+ * ground lies on it, never through it (the lizard's went 6 cm under on flat ground, 22 on a slope: issue #332).
+ */
 function placeBeads(beads, points, g) {
   g.updateMatrixWorld(true);
   _m.copy(g.matrixWorld).invert();
+  for (let i = 0; i < points.length; i++) {
+    const r = beads[Math.min(i, beads.length - 1)].scale.y;
+    _p.copy(points[i]).applyMatrix4(_m);
+    if (_p.y < r) { _p.y = r; points[i].copy(_p.applyMatrix4(g.matrixWorld)); }
+  }
   beads.forEach((b, i) => { _p.lerpVectors(points[i], points[i + 1], 0.5).applyMatrix4(_m); b.position.copy(_p); });
 }
 

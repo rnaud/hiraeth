@@ -29,6 +29,7 @@ export class WaveLegs {
       phase: 0, steps: 0,
     }));
     this.touches = [];   // (this frame's touchdowns: { leg, at })
+    this.plane = null;   // (the ground's plane under the body, if it is on a slope: src/enemies/slope.js)
   }
   /** The phase of a leg whose segment has travelled s m. */
   phaseOf(i, s) { const p = s / this.stride + this.feet[i].off; return p - Math.floor(p); }
@@ -46,7 +47,9 @@ export class WaveLegs {
       const ahead = this.stride * this.duty * 0.5;
       _to.copy(rest).addScaledVector(fwd, ahead);
       F.pos.lerpVectors(F.from, _to, k);
-      F.pos.y = THREE.MathUtils.lerp(F.from.y, rest.y, k) + Math.sin(Math.PI * u) * this.height;
+      // (on a slope, `plane` { sx, sz } its rise per m: the landing half a stance ahead is that much higher or lower)
+      const P = this.plane, to = rest.y + (P ? (P.sx * fwd.x + P.sz * fwd.z) * ahead : 0);
+      F.pos.y = THREE.MathUtils.lerp(F.from.y, to, k) + Math.sin(Math.PI * u) * this.height;
     } else if (!F.planted) {
       // touchdown: on the ground under where the swing brought it (one ray)
       // (where the swing left it, all but there: no snap, so nothing slides in the last frame)

@@ -806,8 +806,14 @@ const CAM324 = 'Issue #324: the camera QC’s ship-walk (muted headless Chrome, 
 const SHIP325 = 'Issue #325: muted headless Chrome (High, 1280 × 720, 10:00) against this branch’s own Vite (port 6322) and the tree before it (90f776a5, so the before has the crease shading too, issue #322), the camera pinned at close views aboard the parked ship in the desert (14 October)';
 // (v1.72, issue #327: a scratch shooter of ?cinematicReview=arrival.<world> against this branch's own Vite (port 6327) and the tree before it)
 const ARRIVAL327 = 'Issue #327: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6327) and the tree before it (89399eae), a fresh save arriving by ship through the cinematics review (?cinematicReview=arrival.<world>&via=ship): the landing shot at 72 % of the drop out of the clouds, and the first framing once the step out has settled (14 October)';
+// (v1.72, issue #332: a scratch shooter against this branch's own Vite (port 6332) and the tree before it)
+const SLOPE332 = 'Issue #332: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6332) and the tree before it (259a283d), the camera pinned on the 12° dune by the ship in the Desert, the foes placed on it by Foes.add and their minds held (14 October)';
 export const CHANGELOG_MEDIA = {
   '1.72': [
+    { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [
+      { name: 'slope-cart-toad', title: 'The cart and the toad', caption: 'On a 12° dune, the hill rising to the left: before, the crucible cart level, its uphill track sunk into the sand, and the toad level on its feet; after, the cart tilted onto the sand on both tracks, the toad leaning with the hill.', from: SLOPE332 },
+      { name: 'slope-brute-lizard', title: 'The brute and the lizard', caption: 'The same dune: before, the lizard’s tail under the sand (only its coiled tip shows) and the wood cutter’s saw and left fist half buried; after, the tail lying on the sand, the saw and both fists over it.', from: SLOPE332 },
+    ] },
     { match: 'The first time your ship comes down on a world', tags: ['ship'], shots: [
       { name: 'arrival-glassdunes-wide', title: 'The Glass Dunes', caption: 'The first landing, as the ship comes down: before, from high over the landing, the ship and the sand under it and a cliff; after, the valley under a big sky, the Clock-House, the wave’s cairn and the breaker’s smoke behind the ship.', from: ARRIVAL327 },
       { name: 'arrival-spacecity-wide', title: 'The City Floating in Space', caption: 'The same moment: before, the ship over an island’s edge; after, the islands and their lamp-masts laid out under the planet, the ship small among them.', from: ARRIVAL327 },

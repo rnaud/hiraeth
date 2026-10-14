@@ -206,6 +206,7 @@ export function cartModel(skin) {
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';
       const P0 = pose.update(dt, { state: f.state, k: f.k, atk: f.atk, recovery: c.recovery, stunned: f.stunned });
+      drive.plane = f.slope ?? null;   // (on a slope its root is turned onto the ground: src/enemies/slope.js)
       const o = drive.update(dt, f.pos, f.heading, c.ground);
       // the ram's wind-up: backing up, its tracks spinning in place and spitting gravel off the back
       const spinning = id === 'ram' && wind ? c.wind : 0;

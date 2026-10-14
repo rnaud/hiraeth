@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, tubeGeometry, many, skinned, pivot, pair, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, tubeGeometry, many, skinned, pivot, pair, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
 
 // Plan 2, the tiny skitterers (docs/systems/procedural-animation.md §4): the skitter swarm (docs/design/enemy-roster.md,
 // archetype 2), drawn to its sheets (references/enemy-archetypes/skitter/: sheet-1 the Desert's dune skitters, sheet-2
@@ -55,6 +55,7 @@ export function skitterModel(skin) {
     legs.push(leg);
   }
   const rig = new Rig({ plan: PLANS.skitterers, group: g, body, legs });
+  const feelerPts = feelers.map((p) => outerPoints(p));   // (before the merge: their lowest points, kept off the ground)
   // (the legs and feelers: one skinned mesh on the kit's joints, the joints tinted by vertex colour)
   const limbs = [];
   for (const o of [...legs.map((l) => l.root), ...feelers]) o.traverse((x) => { if (x.isMesh) limbs.push(x); });
@@ -80,7 +81,11 @@ export function skitterModel(skin) {
       const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery: c.recovery, air: climb > 0.15 ? 1.3 : 0 });
       shell.position.set(o.x + wob * 0.3, 0.13 * K + o.y + climb * level, o.z + (R ? (R.i % 2 ? 0.06 : -0.06) * climb : 0));
       shell.rotation.set(o.pitch + (R ? 0.2 * climb : 0), o.yaw, o.roll + wob);
-      feelers.forEach((p, i) => { p.rotation.set(Math.sin(c.now / 90 + i * 2) * (0.15 + rear * 0.4) - rear * 0.5, 0, 0); });
+      feelers.forEach((p, i) => {
+        p.rotation.set(Math.sin(c.now / 90 + i * 2) * (0.15 + rear * 0.4) - rear * 0.5, 0, 0);
+        // (its feelers brush the ground and stop on it: the body's dip and nod sent their tips 4 cm under, issue #332)
+        for (let k = 0; k < 3; k++) { const need = 0.012 - lowestIn(g, p, feelerPts[i]); if (need <= 0) break; p.rotation.x -= Math.min(0.8, need / (0.2 * K)); }
+      });
       rig.write();
       if (seamM) seamM.uniforms.uGlow.value = 0.75 + Math.sin(c.now / 260 + f.home.x) * 0.15 + (wind ? 0.2 : 0);
       if (props.has('dust') && f.flash > 0.7 && Math.random() < 0.6) c.spray(f.chest, [P.dome, P.dome2], 3, 1.2, -0.5);   // (the spore mites puff when cut)

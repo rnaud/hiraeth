@@ -34,6 +34,7 @@ import { t as tr } from './i18n.js';
 import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { bodyReach } from './foe-body.js';
+import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -2384,6 +2385,7 @@ export class Foes {
   /** The look's last word on the body before an archetype's legs are solved (its rig's write): the flinch, a defeat's sag. */
   beforeLegs(f) {
     const M = f.model, P = f.dying?.pose;
+    if (f.slope && slopeOf(f)) tiltRoot(M.group, f.slope);   // (on a slope: the root onto the ground's plane, then the legs reach it)
     applyReact(f.react, M.body, P?.body ?? null);
     if (P?.curl > 0 && M.rig) {
       // its legs drawn up under it: off the ground (the rig's air), each foot pulled in toward the body's middle and up
@@ -3090,7 +3092,12 @@ export class Foes {
       // each world's own kind moves itself (src/foe-kinds.js)
       g.scale.setScalar(M.size ?? 1); g.rotation.x = 0; g.rotation.z = 0;
       const kit = this.animKit(f, dt, { t, wind, release, recovery, moving });
+      // on a slope: its root turned onto the ground's plane (src/enemies/slope.js, issue #332); a rigged body's before
+      // its legs are solved (beforeLegs), the rest after its pose. Going down, the plane it fell on holds.
+      const SL = f.dying ? f.slope ?? null : readSlope(f, this.physics, dt);
+      M.rig?.setSlope?.(SL, SL ? slopeOf(f).upright ?? 0 : 0);
       M.anim(f, kit);
+      if (SL && !M.rig) tiltRoot(g, SL);
       if (f.possessed && M.eyeMat?.uniforms?.uColor) M.eyeMat.uniforms.uColor.value.set(POSSESS_EYE);   // (driven by strings: its eyes go black)
       if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? null);   // (a body with no legs to solve: after its pose)
       if (DP) this.falling(f, DP, kit);

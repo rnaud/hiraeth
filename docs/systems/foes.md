@@ -495,6 +495,39 @@ the body sits back and down against the strike with the telegraph's own timing (
 held still), and the strike snaps through on an underdamped spring; a lunge unlocks the feet. The models' own
 wind-up moves (claws up, a crouch, an arm raised) go on top, so each attack still reads apart.
 
+### On a slope (v1.72, issue #332, `src/enemies/slope.js`)
+
+Drawn square to the world, a foe on a 14° hillside had its uphill side under the ground: the cart's tracks 27 cm, the
+toad 60-69, the lizard's tail 22, the heron's toes 18, the tripod 25, the brute 1 m (its fists and the Lorn saw were 37
+and 62 cm under even on flat ground, the shade's smoke 18, the roller's sole and chin 5).
+
+- **The plane under it** (`readSlope`, `planeUnder`): every archetype on the ground (`SLOPE.kinds`; not the flyers and
+  floaters, the worm or the guardians) reads the ground at its feet and `radius` m round them (five `groundAt`, at most
+  every `SLOPE.every` = 3 frames, staggered, and only once it has gone `moved` = 0.25 m since the last, or `stale` = 60
+  frames on: one standing still reads none; 16 walking ones about 5 rays a frame more), each axis from whichever side is ground it stands on (a side steeper than 45° is a
+  step or a drop, left out; of two that disagree by more than `kink`, a ridge, the gentler). `f.slope` eases toward it
+  (`rate` 7/s), its tilt capped at `max` (0.45 rad); a new foe is on its slope at once, one off the ground (in the air, a
+  hop, a flight, lifted) eases back to level; a falling one keeps the slope it fell on.
+- **The root turned onto it** (`tiltRoot`, `Foes.look`): premultiplied about its feet, its heading kept; a rigged body's
+  just before its legs are solved (`Foes.beforeLegs`), the rest after its pose. On the plane the model is as on flat
+  ground: tracks, soles, tails, hems and the pads of its feet lie on the hillside.
+- **The kit on the plane**: the rig carries it (`Rig.setSlope`) to the planner, whose feet with no ray of their own (a
+  home, a replant after a hop, the far tier's canned cycle, a step's landing moved by a turn) go on the hillside
+  (`GaitPlanner.rise`: a step turned a metre round kept its ray's height and planted 52 cm under), and to the body, whose
+  feet are measured against the plane (`BodyFromFeet.update(…, plane)`): only the bumps beyond it tip and lift it. A tall
+  body stands back up by `upright` of the slope on its legs (the heron 0.8, the tripod 0.6, the bell walker and the
+  brute 0.5, the shade 0.3). The cart's `TrackDrive` reads its belts' corners against the plane too; the centipede lays
+  each plate and its head on it along their own headings and its feet's landings with it (`WaveLegs.plane`).
+- **Parts that hang to the ground** keep off it, each by its own points (`kit.js outerPoints`: the outermost of a part
+  along 98 directions, taken before its meshes are merged; `lowestIn`): the brute's elbows bend until its fists, the saw
+  or the ladle are 5 cm over the ground (`clearGround`); the shade's smoke tongues shorten to it; the lizard's and the
+  hound's tails lie on it (`placeBeads`); the toad's belly lands on it, not in it; the skitter's feelers stop on it. The
+  roller's sole and chin sit on the ground; the toad banks less into its hops (`bank` 0.005).
+- Measured (`tests/foe-slope.test.js`, every archetype standing and walking on a 14° slope and standing on flat ground,
+  every vertex of every drawn part, Math.random and the clock pinned): 3 cm under at most (the toad's knee 2.1, the
+  rootknot's roots 1.8, the hound 1.6; most 0-1); every brute skin's hands and saw over the ground. The hound sinking into
+  its shadow pool is its own.
+
 ## The guardians' staged fights (v1.6, `src/temples/boss.js`)
 
 All eleven shared one template before (three attacks, two phases, 1.4-1.7 s floor telegraphs). Each is now a fight

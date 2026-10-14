@@ -6,6 +6,7 @@ import { WaveLegs } from '../../motion-kit/wave-legs.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { twoBone, aim } from '../../motion-kit/ik.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
+import { slopeAlong } from '../slope.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 
 // Plan 3, the centipede (docs/systems/procedural-animation.md §4): the ring centipede (docs/design/enemy-roster.md,
@@ -138,7 +139,11 @@ export function centipedeModel(skin) {
       // legs and rolling over onto its side in turn; the legs, solved after, stay planted and splay under it
       const dying = f.dying ? f.dying.u : 0, fall = (i) => (dying > 0 ? THREE.MathUtils.smoothstep(dying, 0.04 + i * 0.045, 0.4 + i * 0.045) : 0);
       head.position.y -= fall(-1) * RIDE * 0.6;
-      head.rotation.set(P0.pitch - lift * 0.35 + fall(-1) * 0.45, hy, fall(-1) * 2.2, 'YXZ');
+      // (on a slope, src/enemies/slope.js: the head and each plate laid on the ground's plane along its own heading; its
+      // parts are in the foes' space, so its root is left level)
+      const SL = f.slope ?? null;
+      slopeAlong(SL, hy, _sa);
+      head.rotation.set(P0.pitch - lift * 0.35 + fall(-1) * 0.45 - Math.atan(_sa.ahead), hy, fall(-1) * 2.2 + Math.atan(_sa.side), 'YXZ');
       // a lunge carries the head out along its heading (the strike pose's z); the body catches up on the path
       head.position.x += Math.sin(hy) * P0.z; head.position.z += Math.cos(hy) * P0.z;
       spine[0].copy(head.position);
@@ -152,7 +157,9 @@ export function centipedeModel(skin) {
         // the plates rock a little over their legs (a sideways roll that runs down the body with the wave)
         const r = Math.sin((walked / PL.legs.stride) * Math.PI * 2 - i * PL.legs.lag) * 0.06 * Math.min(1, (walked - lastWalked) / Math.max(dt, 1e-3) / 2);
         S.seg.position.set(p.x, y + RIDE - (i < 3 ? (1 - i / 3) * lift * -0.08 : 0) - fall(i) * RIDE * 0.6, p.z);
-        S.seg.rotation.set(0, Math.atan2(dir.x, dir.z), r + fall(i) * 2.4, 'YXZ');
+        const yaw = Math.atan2(dir.x, dir.z);
+        slopeAlong(SL, yaw, _sa);
+        S.seg.rotation.set(-Math.atan(_sa.ahead), yaw, r + fall(i) * 2.4 + Math.atan(_sa.side), 'YXZ');
         S.seg.visible = i < N - shed;
         spine[i + 1].copy(S.seg.position);
       }
@@ -164,13 +171,15 @@ export function centipedeModel(skin) {
       cerci.forEach((x) => { x.visible = shed === 0; });
       // the legs: each stepping on its segment's own distance along the path (the wave runs down the body)
       g.updateMatrixWorld(true);
-      wave.touches.length = 0;
+      wave.touches.length = 0; wave.plane = SL;
+      // (the ground's normal in the group's frame, where the legs hang: turned by its heading)
+      if (SL) _footQ.setFromUnitVectors(UP, _n.set(-SL.sx, 1, -SL.sz).normalize().applyQuaternion(_gq.copy(g.quaternion).invert())); else _footQ.identity();
       for (let k = 0; k < legs.length; k++) {
         const L = legs[k], S = segs[L.seg];
         L.root.visible = S.seg.visible;
         if (!S.seg.visible) continue;
         // its rest foot (in the foes' space) and the segment's heading
-        _b.copy(L.restLocal).applyEuler(_e.set(0, S.seg.rotation.y, 0)).add(S.seg.position); _b.y = S.seg.position.y - RIDE;
+        _b.copy(L.restLocal).applyEuler(_e.set(0, S.seg.rotation.y, 0)).add(S.seg.position); _b.y = S.seg.position.y - RIDE + (SL ? SL.sx * (_b.x - S.seg.position.x) + SL.sz * (_b.z - S.seg.position.z) : 0);
         _d.set(Math.sin(S.seg.rotation.y), 0, Math.cos(S.seg.rotation.y));
         const sArc = arc - (0.55 + L.seg * SP);
         const foot = wave.update(k, sArc, _b, _d, c.ground);
@@ -183,6 +192,7 @@ export function centipedeModel(skin) {
         _knee.sub(_a); _end.sub(_a);
         aim(L.thigh, ZERO, _knee); aim(L.shin, _knee, _end);
         L.foot.position.copy(_end); L.foot.position.y -= L.ankle;
+        L.foot.quaternion.copy(_footQ);   // (its pad flat on the ground's plane)
       }
       if (c.touch) for (const t of wave.touches) if (Math.random() < 0.08) c.touch(t.at, legLen, t.leg);
       // the antennae lag behind the head on their chains
@@ -198,7 +208,7 @@ export function centipedeModel(skin) {
     dispose: M.dispose,
   };
 }
-const ZERO = new THREE.Vector3();
+const ZERO = new THREE.Vector3(), _sa = {}, _footQ = new THREE.Quaternion(), _gq = new THREE.Quaternion(), _n = new THREE.Vector3();
 let serial = 0;
 /** obj's matrix in the group's frame (its local matrices up to the group). */
 function matrixToGroup(obj, group, out) {
