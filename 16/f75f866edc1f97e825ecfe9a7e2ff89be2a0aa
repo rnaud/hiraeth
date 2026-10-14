@@ -1,0 +1,107 @@
+changelog.md
+  s_7302cf3b9e772b::t_34c5380c5bd606 7-8
+docs/systems/animation.md
+  s_7302cf3b9e772b::t_aeaae999995e49 603-607
+docs/systems/engine-bridge.md
+  s_7302cf3b9e772b::t_c3f3983a00c5f3 791-802
+docs/systems/fragments.md
+  s_7302cf3b9e772b::t_b17291b32a0a4d 252
+docs/systems/interiors.md
+  s_7302cf3b9e772b::t_829fdb5e4ab3f2 124
+docs/systems/testing.md
+  s_1837848888d0db::t_d0ebcfb90cc928 78-83
+docs/systems/worlds.md
+  s_7302cf3b9e772b::t_bae42c14d1fede 629
+engine/cloth.js
+  s_7302cf3b9e772b::t_1c0f7f0a3281d4 9-13,43,60-85,93-94,97-99,101,104-106,109,114,117-130
+public/characters/traveller-v1/README.md
+  s_7302cf3b9e772b::t_8abfabc6be9df0 1,3-6
+scripts/ball-room.mjs
+  s_7302cf3b9e772b::t_515cbea1f8586a 238-239,250-267,269,273-277,280-281
+scripts/combat-reach.mjs
+  s_7302cf3b9e772b::t_f97059d849e830 27
+scripts/level-design/path.mjs
+  s_7302cf3b9e772b::t_2d35f7553da7f4 2
+scripts/motion-qc/run.mjs
+  s_7302cf3b9e772b::t_b64751cafb72a0 26,54
+scripts/tripo/README.md
+  s_7302cf3b9e772b::t_9d2430b4836b19 245-246,343-344
+scripts/tripo/slim-traveller.mjs
+  s_7302cf3b9e772b::t_582e160bfd62b6 13-15,22
+src/changelog-media.js
+  s_7302cf3b9e772b::t_835042d54dd9f3 873-874
+src/changelog.js
+  s_7302cf3b9e772b::t_25c50c8e3a36cc 39-45
+src/characters/tripo-cloth.js
+  s_7302cf3b9e772b::t_d54a65011c9282 9-10,320-322,326,427
+src/characters/tripo-face.js
+  s_7302cf3b9e772b::t_7ae8aa9e363b7e 5
+src/fluid-tool.js
+  s_7302cf3b9e772b::t_2bfe4fbb82e6f1 577
+src/fragments-data.js
+  s_7302cf3b9e772b::t_821083722fb537 15
+tests/backpack-straps.test.js
+  s_7302cf3b9e772b::t_3338f72fe2795a 27-30
+tests/bench-start.test.js
+  s_7302cf3b9e772b::t_53dc8f190cca23 42-43
+tests/blade-attacks.test.js
+  s_7302cf3b9e772b::t_4900c5bca6c8da 16,52-55,57-66
+tests/cloth-offload.test.js
+  s_7302cf3b9e772b::t_95c50f6b6107b1 12,22-24,26,29,33-44,67-72
+tests/engine-ship.test.js
+  s_7302cf3b9e772b::t_688d1ac1a2d68b 121-124,127-128
+tests/foe-hit-defeat.test.js
+  s_7302cf3b9e772b::t_a76285d799c996 16,170,178,186-188
+tests/foe-slope.test.js
+  s_7302cf3b9e772b::t_64517d4a6216b5 15,19-21,60-61,134,160-161
+tests/fragments-reach.js
+  s_7302cf3b9e772b::t_d4f1a6ee88dc83 164
+tests/gait-sim.js
+  s_7302cf3b9e772b::t_ae54f7af1bdd5e 41-44,46,67-68,70,77
+tests/idle-legs.test.js
+  s_1837848888d0db::t_7c462a944c7f8c 46-47,71,84-87,92,132-138
+tests/motion-qc.test.js
+  s_7302cf3b9e772b::t_9ed3b99881043a 83-87,89,95,97,107-118,122-125
+tests/rollback.js
+  s_7302cf3b9e772b::t_c3514ac2537be3 1-55
+tests/route-worlds.test.js
+  s_7302cf3b9e772b::t_f2b0e378484d20 1-20,35-65,102,169-188
+tests/story-perdide.test.js
+  s_7302cf3b9e772b::t_9ba86239a33b3d 78
+tests/talk-gesture.test.js
+  s_7302cf3b9e772b::t_f5d7bcc1839615 24,183-185,188-197
+tests/traveller-cloth-ink.test.js
+  s_7302cf3b9e772b::t_bf97a1d6a74ba8 10
+tests/under-ground.js
+  s_7302cf3b9e772b::t_7218ef6993b032 1-168
+tests/unity-xbox.test.js
+  s_7302cf3b9e772b::t_7cf66a5eb90f9a 268-273
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_7302cf3b9e772b::t_6eef71536b294a 48-50,52
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeCloth.cs
+  s_7302cf3b9e772b::t_3a7bef44bc274d 24-27,33,39-42,58,65-66,71,114-115,117,125-126,149-150,176-177,180,201,207,215,218,232,241-242,265-286,358,373-376
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "16f75f866edc1f97e825ecfe9a7e2ff89be2a0aa",
+  "prompts": {},
+  "sessions": {
+    "s_1837848888d0db": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b55-b807-7cf1-87c2-c32cc47a091f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_7302cf3b9e772b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afb104e2-2832-4f8f-a4b9-c0da88b6a4f7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

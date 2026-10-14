@@ -1,0 +1,183 @@
+.claude/skills/quest-qc/SKILL.md
+  s_7302cf3b9e772b::t_ecd5f4c5142f7d 34-39,47,52-56,60
+.claude/skills/quest-qc/check.mjs
+  s_7302cf3b9e772b::t_7d607da549308e 15-22,35-44,58-59,103-111
+.claude/skills/quest-qc/marker-walk.mjs
+  s_7302cf3b9e772b::t_06f755daf5a887 1-101
+changelog.md
+  s_7302cf3b9e772b::t_8627b591d2684d 7-14
+docs/systems/characters.md
+  s_7302cf3b9e772b::t_6cace7f308f2e7 474-502
+docs/systems/fragments.md
+  s_7302cf3b9e772b::t_ea50f022c33b3b 189-194
+docs/systems/story.md
+  s_7302cf3b9e772b::t_c0db997810a624 957-978
+docs/systems/temples.md
+  s_7302cf3b9e772b::t_1d3248d8f79578 813-831
+docs/systems/ui.md
+  s_7302cf3b9e772b::t_f5e9acc0fd24a2 629-630,740-746
+docs/systems/water.md
+  s_7302cf3b9e772b::t_00627019268649 90-97
+engine/game.js
+  s_7302cf3b9e772b::t_061750d41590b6 549,552-555
+scripts/cape-census.mjs
+  s_7302cf3b9e772b::t_1996c6bbb21019 1-96
+src/changelog-media.js
+  s_7302cf3b9e772b::t_9280f341a30c46 837-838,877-912
+src/changelog.js
+  s_7302cf3b9e772b::t_d77d85dd38df96 46-75
+src/costumes.js
+  s_7302cf3b9e772b::t_294271f08537c5 99,121,140,160,181-182,203,224,244,265,286,307,326,345,365,387,409,494,513,640-643,647-688
+src/crowd.js
+  s_7302cf3b9e772b::t_c986e40a193d47 181,187
+src/glass-dunes-figures.js
+  s_7302cf3b9e772b::t_7b2dc2c8a36edd 46
+src/glass-dunes-frozen.js
+  s_7302cf3b9e772b::t_bce63d8b0cba92 129,147,151
+src/interiors.js
+  s_7302cf3b9e772b::t_9c9f3fd70ee072 169,172,174
+src/levels/perdide.js
+  s_7302cf3b9e772b::t_16430c795da3cc 35-37,585
+src/main.js
+  s_7302cf3b9e772b::t_8b67f272082b28 399,817-821,896-905,1669,1676-1677,2322-2325,2364
+src/player.js
+  s_7302cf3b9e772b::t_d6c60e86a6868f 11,605-606,776-778,984-985
+src/rumble.js
+  s_7302cf3b9e772b::t_a1c60f8d6509ff 59
+src/scout.js
+  s_7302cf3b9e772b::t_93b5a35e32cc36 177-193,195,197-199,207,209,211
+src/ship/ship.js
+  s_7302cf3b9e772b::t_0af4779ea55a8c 61,562-567,573,597-599,686-704
+src/ship/starmap.js
+  s_7302cf3b9e772b::t_66cc5fc16c5858 49,379-380,586-587
+src/story/arzach-data.js
+  s_7302cf3b9e772b::t_f465eff36fd7d4 60
+src/story/arzach2-data.js
+  s_7302cf3b9e772b::t_a69b0a1b2d8cf5 89,129
+src/story/arzach2.js
+  s_7302cf3b9e772b::t_10e294af23dc5f 42,84-88,486-490
+src/story/bazaar-data.js
+  s_7302cf3b9e772b::t_fb0819827997b1 78,190,227
+src/story/buried-data.js
+  s_7302cf3b9e772b::t_ba3c53059e6f74 79,160,215,256,272,320
+src/story/desert-data.js
+  s_7302cf3b9e772b::t_10d4a494e81b99 372,400,516,1095,1097-1100
+src/story/edena-data.js
+  s_7302cf3b9e772b::t_92b71402f62697 115,206,248,289,326,371
+src/story/edena.js
+  s_7302cf3b9e772b::t_952357fe711360 192-196
+src/story/fellow-data.js
+  s_7302cf3b9e772b::t_24265b32d593e7 61-62
+src/story/glassdunes-people.js
+  s_7302cf3b9e772b::t_0f44ca18f0092e 34-35
+src/story/incal-data.js
+  s_7302cf3b9e772b::t_1be83a6eb4d84b 125,220,285,338,417,449
+src/story/index.js
+  s_7302cf3b9e772b::t_20a103200f9d47 401,454-457
+src/story/moonfoundry-people.js
+  s_7302cf3b9e772b::t_965a656598fe52 54,88,119
+src/story/night-train-data.js
+  s_7302cf3b9e772b::t_11f8896ed5eec5 41,111
+src/story/perdide-data.js
+  s_7302cf3b9e772b::t_d94437e345f873 40,337,387
+src/story/perdide2-data.js
+  s_7302cf3b9e772b::t_3daed02f687685 64,277
+src/story/scientist-data.js
+  s_7302cf3b9e772b::t_1d344f3d5a62f0 55-56
+src/story/shop-data.js
+  s_7302cf3b9e772b::t_3e5786c11a0102 38,90,104,186,240,266
+src/story/signature-search.js
+  s_7302cf3b9e772b::t_8550425a1444dc 118-132,135-137,139,144-145
+src/story/spacecity-people.js
+  s_7302cf3b9e772b::t_c2fb3216ebc5d9 134,169
+src/story/spheres-data.js
+  s_7302cf3b9e772b::t_2de2a07fc01949 73,115,148,203
+src/story/underwater-people.js
+  s_7302cf3b9e772b::t_00c2ea00a03fc1 83,122,165
+src/swim.js
+  s_7302cf3b9e772b::t_661fd3626d3d22 61
+src/temples/arzach-data.js
+  s_7302cf3b9e772b::t_c3d330386ed255 17
+src/temples/arzach.js
+  s_7302cf3b9e772b::t_caaf190957170e 559
+src/temples/arzach2-data.js
+  s_7302cf3b9e772b::t_cc28501e7e4414 16
+src/temples/bazaar-data.js
+  s_7302cf3b9e772b::t_0f08ae19c95c4d 18
+src/temples/buried-data.js
+  s_7302cf3b9e772b::t_0b7d8ad6e75c9c 16
+src/temples/desert-data.js
+  s_7302cf3b9e772b::t_af1eb1e989cb44 17
+src/temples/edena-data.js
+  s_7302cf3b9e772b::t_793bccb7c656d0 17
+src/temples/edena.js
+  s_7302cf3b9e772b::t_d807a569bb8bee 514
+src/temples/garage-data.js
+  s_7302cf3b9e772b::t_14206394a81eac 19
+src/temples/incal-data.js
+  s_7302cf3b9e772b::t_93b01fa2a94dba 18
+src/temples/moonfoundry-data.js
+  s_7302cf3b9e772b::t_b57d1091ea1c02 17
+src/temples/moonfoundry.js
+  s_7302cf3b9e772b::t_0729f1bf08f717 432
+src/temples/perdide-data.js
+  s_7302cf3b9e772b::t_1144e64090585e 16
+src/temples/perdide.js
+  s_7302cf3b9e772b::t_47e8d7e8007186 96,303-312,459
+src/temples/perdide2-data.js
+  s_7302cf3b9e772b::t_cc55ed83a1bffe 16
+src/temples/perdide2.js
+  s_7302cf3b9e772b::t_2f544a9d47d83b 452
+src/temples/pieces.js
+  s_7302cf3b9e772b::t_b35b871a4d55a1 156-165
+src/temples/spacecity-data.js
+  s_7302cf3b9e772b::t_98884cf9d4ca41 19
+src/temples/spacecity.js
+  s_7302cf3b9e772b::t_6976ed841f61c2 96-97,473-480,490-491
+src/temples/spheres-data.js
+  s_7302cf3b9e772b::t_9d32b77f5d55bc 16
+src/temples/underwater-data.js
+  s_7302cf3b9e772b::t_8f4da7d905ea1e 18
+src/temples/underwater.js
+  s_7302cf3b9e772b::t_b460bf02c3ba7e 433
+tests/cape-share.test.js
+  s_7302cf3b9e772b::t_a3befbbfe7f0c2 1-79
+tests/cape.test.js
+  s_7302cf3b9e772b::t_0d955770c5b0d6 246,249,251,274
+tests/door-bypass.test.js
+  s_7302cf3b9e772b::t_41ae488058cd18 1-228
+tests/engine-ship.test.js
+  s_7302cf3b9e772b::t_8441562d2b6fc3 9,46,52-54
+tests/engine-unity.test.js
+  s_7302cf3b9e772b::t_79e872bdaa4852 244,281-282
+tests/interiors.test.js
+  s_7302cf3b9e772b::t_298559a674a685 115-128
+tests/lorn-route.test.js
+  s_7302cf3b9e772b::t_58d0309a2dd613 226-251
+tests/marker-walk.test.js
+  s_7302cf3b9e772b::t_d72853cf55eed5 1-20
+tests/shard-timings.json
+  s_7302cf3b9e772b::t_49e78bcb98a662 131
+tests/ship.test.js
+  s_7302cf3b9e772b::t_ffb6ab87bec0a3 8,126-175
+tests/signature-search.test.js
+  s_7302cf3b9e772b::t_9e915e8e670c29 4,155-176
+tests/swim.test.js
+  s_7302cf3b9e772b::t_df6a0b49e2917b 248-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15ec68c3347cbb42634e22047354170c7b471ba8",
+  "prompts": {},
+  "sessions": {
+    "s_7302cf3b9e772b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afb104e2-2832-4f8f-a4b9-c0da88b6a4f7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
