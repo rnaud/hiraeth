@@ -27,7 +27,7 @@ import { updateHazards } from '../src/hazards.js';
 import { inColumn } from '../src/updraft.js';
 import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
-import { VOLLEY, FROM_FOUR } from '../src/temples/garage.js';
+import { VOLLEY, FROM_FOUR, CUPBOARD } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA, SUN, VAULT } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
@@ -3414,7 +3414,7 @@ test('the Hangar’s own portals still work, dismissed: its list kept, a copy in
   assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
 });
 
-test('the Clock-House on foot: the escapement’s three eyes in turn from its hand, the cupboard’s stopped clock, the hub: the counterweight, the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great lock, the Mainspring Room winding the house’s clocks and the great key back in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
+test('the Clock-House on foot: the escapement’s three eyes in turn from its hand, the cupboard’s stopped clock across the landing from the slack mainspring, the hub: the counterweight, the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great pendulum over the bridge crossed in its beat, the great lock, back down to the Mainspring Room winding the cupboard’s clock across the landing and the great key in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('garage');
@@ -3461,6 +3461,12 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.equal(rt.logic.isLit('c1'), false, 'its clock stopped: four does not take');
   assert.ok(notes.some((s) => /little clock has stopped/.test(s)), 'and it says why');
   assert.equal(walk(L(0, 0, 44)), true);
+  // (v1.74) across the landing from the Cupboard's door, the Mainspring Room: its spring slack, its weight at the way in
+  const ballM = rt.piece('ballM'), k3 = rt.piece('k3');
+  assert.ok(Math.abs(rt.kit.local(k3.eyes[0].center).z - CUPBOARD.z) < 5 && rt.kit.local(k3.eyes[0].center).x > 20, 'the mainspring across the landing, east, facing the Cupboard’s door');
+  const seenM = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
+  assert.ok(seenM(L(-8, 1.7, CUPBOARD.z), L(25.4, 6, CUPBOARD.z)), 'seen from the Cupboard’s door, through both doorways');
+  assert.ok(rt.kit.local(ballM.center).x < 12 && rt.kit.local(ballM.center).y < 2, 'its weight by the landing');
   // ---- the Winding Well, the hub: up the wall to a shut door with two keyholes; its counterweight is the ball left on
   // the escapement's landing
   assert.equal(walk(L(-3, 0, 58)), true, `into the well (${where()})`);
@@ -3573,6 +3579,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Clock Gallery: the six round the handless clock, in one breath and in turn from the hour it stopped
+  const F0G = 107.9;   // (the gallery's near end, garage.js layout F0)
   assert.equal(walk(L(0, 9, 110.7)), true, `to the gallery (${where()})`);
   const k2 = rt.piece('k2'), ORDER = [4, 3, 2, 1, 0, 5];   // (four, six, eight, ten, twelve, two)
   assert.deepEqual(k2.o.order, ORDER);
@@ -3588,16 +3595,45 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   tankShots(frame, 6, (i) => k2.hit(ORDER[i]));
   assert.equal(rt.logic.isLit('k2'), true, 'four, six, eight, ten, twelve, two, inside one breath');
   wait(3.5);
-  assert.equal(walk(L(0, 9, 137.2)), true, `over the bridge (${where()})`);
-  assert.ok(rt.kit.local(P.pos).y > 8, 'over it, not in the chasm');
-  // ---- the great lock: the Foreman's door wants the house's great key, and that is back in the Mainspring Room
+  // (v1.74) the great pendulum over the bridge: walked straight into as it swings back, it knocks you back, unhurt
+  const bob = rt.pieces.find((p) => p.o?.bob === 'disc');
+  assert.ok(bob && bob.period >= 5, 'a great pendulum hangs over the bridge');
+  const bz = () => rt.kit.local(bob.center).z, by = () => rt.kit.local(bob.center).y;
+  const midZ = F0G + 16;
+  // (wait till it swings toward you, low over the middle)
+  for (let i = 0; i < 12 / DT; i++) { const z0 = bz(); frame(); if (bz() < z0 && Math.abs(bz() - midZ) < 1) break; }
+  const hearts0 = P.hearts;
+  walk(L(0, 9, 137.2), { max: 3 });
+  assert.ok(rt.kit.local(P.pos).z < midZ + 4, `met, it knocks you back (${where()})`);
+  assert.equal(P.hearts, hearts0, 'and it does not hurt');
+  for (let i = 0; i < 4 / DT && !P.onGround; i++) frame();
+  assert.ok(rt.kit.local(P.pos).y > 8, `still on the bridge (${where()})`);
+  /** Over the bridge in the pendulum's beat: wait for it to swing away from you, then follow it over. */
+  const beat = (z1) => {
+    const dir = Math.sign(z1 - rt.kit.local(P.pos).z);
+    assert.equal(walk(L(0, 9, midZ - dir * 10.5), { dy: 1 }), true, `to the bridge's end (${where()})`);
+    for (let i = 0; i < 14 / DT; i++) { const z0 = bz(); frame(); if (Math.sign(bz() - z0) === dir && (bz() - midZ) * dir > -4.2 && (bz() - midZ) * dir < -2.5) break; }
+    const h = P.hearts;
+    const ok = walk(L(0, 9, z1), { dy: 1 });
+    return ok && P.hearts === h && rt.kit.local(P.pos).y > 8;
+  };
+  assert.equal(beat(137.2), true, `over the bridge in its beat (${where()})`);
+  assert.ok(by() > 0, 'over it, not in the chasm');
+  // ---- the great lock: the Foreman's door wants the house's great key, and that is back in the Cupboard
   assert.equal(walk(L(0, 9, 141.2), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);
   wait(1);
   assert.equal(rt.logic.isOpen('d4'), false, 'locked');
   assert.ok(notes.some((s) => /great lock/.test(s)), 'a great lock: it wants the great key');
-  assert.equal(walk(L(0, 9, 133)) && walk(L(0, 9, 113)) && walk(L(4, 9, 112), { tol: 0.8 }), true, `back over the bridge to the near landing (${where()})`);
-  // ---- the Mainspring Room, east off the near landing: its weight rolled in, then six eyes in a breath
-  const ballM = rt.piece('ballM'), k3 = rt.piece('k3');
+  assert.equal(walk(L(0, 9, 133)) && beat(F0G + 2.5), true, `back over the bridge in its beat to the near landing (${where()})`);
+  // ---- back down to the escapement's far landing (v1.53): out through the passage, over the climb's ledge, down the
+  // Pendulum Hall's stair, across the well
+  assert.equal(walk(L(0, 9, 110.7), { dy: 1 }) && walk(L(0, 9, 99), { dy: 1 }) && walk(L(0, 9, 79), { dy: 1 }) && walk(L(0, 9, 69.6), { tol: 0.5, dy: 1 }), true, `back past the chest to the door over the climb (${where()})`);
+  assert.equal(walk(L(-3, 9, 66), { dy: 1 }) && walk(L(-7.4, 9, 66), { dy: 1 }) && walk(L(-8.4, 9, 61.2), { dy: 1 }) && walk(L(-16, 9, 61.2), { dy: 1 }), true, `over the ledge into the Pendulum Hall's landing (${where()})`);
+  assert.equal(walk(L(-17.4, 9, 67), { dy: 1 }) && walk(L(-29.2, 0, 67), { dy: 1 }) && walk(L(-29.2, 0, 62.6)) && walk(L(-20, 0, 61.2)) && walk(L(-8, 0, 61.2)) && walk(L(-3, 0, 58)), true, `down its stair and into the well (${where()})`);
+  assert.equal(walk(L(0, 0, 50)) && walk(L(0, 0, 44)), true, `onto the far landing (${where()})`);
+  // ---- the Mainspring Room (v1.74: east off the far landing, across from the Cupboard): its weight rolled in, then six
+  // eyes in a breath
+  assert.equal(walk(L(8, 0, 45), { tol: 0.8 }), true, `to the Mainspring Room's way in (${where()})`);
   wait(5.5);
   tankShots(frame, 6, (i) => k3.hit(i));
   assert.equal(rt.logic.isLit('k3'), false, 'the spring hangs slack: its weight is not home');
@@ -3611,13 +3647,8 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(5.5);
   tankShots(frame, 6, (i) => k3.hit(i));
   assert.equal(rt.logic.isLit('k3'), true, 'six round the spring in one breath');
-  assert.ok(notes.some((s) => /a little clock begins to tick/.test(s)), 'and far below a little clock begins to tick');
-  // ---- back down to the Clockmaker's Cupboard (v1.53): out through the passage, over the climb's ledge, down the
-  // Pendulum Hall's stair, across the well to the far landing
-  assert.equal(walk(L(4, 9, 112), { tol: 0.8, dy: 1 }) && walk(L(0, 9, 110.7), { dy: 1 }) && walk(L(0, 9, 99), { dy: 1 }) && walk(L(0, 9, 79), { dy: 1 }) && walk(L(0, 9, 69.6), { tol: 0.5, dy: 1 }), true, `back past the chest to the door over the climb (${where()})`);
-  assert.equal(walk(L(-3, 9, 66), { dy: 1 }) && walk(L(-7.4, 9, 66), { dy: 1 }) && walk(L(-8.4, 9, 61.2), { dy: 1 }) && walk(L(-16, 9, 61.2), { dy: 1 }), true, `over the ledge into the Pendulum Hall's landing (${where()})`);
-  assert.equal(walk(L(-17.4, 9, 67), { dy: 1 }) && walk(L(-29.2, 0, 67), { dy: 1 }) && walk(L(-29.2, 0, 62.6)) && walk(L(-20, 0, 61.2)) && walk(L(-8, 0, 61.2)) && walk(L(-3, 0, 58)), true, `down its stair and into the well (${where()})`);
-  assert.equal(walk(L(0, 0, 50)) && walk(L(0, 0, 44)), true, `onto the far landing (${where()})`);
+  assert.ok(notes.some((s) => /over the Cupboard’s door, a little clock begins to tick/.test(s)), 'and across the landing the Cupboard’s little clock begins to tick');
+  assert.equal(walk(L(8, 0, 44.5), { tol: 0.8 }) && walk(L(-6, 0, 44)), true, `back across the landing to the Cupboard's door (${where()})`);
   // its three eyes lift their lids now; they wake round from the house's hour: four, eight, twelve
   rt.piece('c3').hit('shoot'); rt.piece('c2').hit('shoot');
   assert.equal(rt.logic.isLit('c3') || rt.logic.isLit('c2'), false, 'twelve or eight first: they only tick');
@@ -3644,8 +3675,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.equal(walk(L(-8, 0, 44)) && walk(L(0, 0, 50)) && walk(L(-3, 0, 58)), true, `back into the well (${where()})`);
   assert.ok(climb(), `up the wall (${where()})`);
   assert.equal(walk(L(0, 9, 69.6), { tol: 0.5 }) && walk(L(0, 9, 79)) && walk(L(0, 9, 99)) && walk(L(0, 9, 110.7)), true, `up past the chest to the gallery (${where()})`);
-  assert.equal(walk(L(4, 9, 112), { tol: 0.8, dy: 1 }), true, `back onto the landing (${where()})`);
-  assert.equal(walk(L(0, 9, 113), { dy: 1 }) && walk(L(0, 9, 137.2), { dy: 1 }), true, `over the bridge again (${where()})`);
+  assert.equal(walk(L(0, 9, 113), { dy: 1 }) && beat(137.2), true, `over the bridge again, in its beat (${where()})`);
   assert.equal(walk(L(0, 9, 141.2), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.isOpen('d4'), true, 'the great key turns');

@@ -597,7 +597,8 @@ great key. Wound (its weight home, six eyes in a breath), the mainspring starts 
 Clockmaker's Cupboard's three eyes, back off the Escapement's far landing, are lidded until it runs (`when: { lit: 'k3' }`;
 a `Switch`'s `unmet` says why, a `Bank`'s `woke` says what it started), and the great key is in the cupboard now, beside
 its coffer. The way back down is the Pendulum Hall's: over the climb's ledge, down its stair. A state the whole house
-reads, and a loop back to the first half.
+reads, and a loop back to the first half. (Since v1.74 the Mainspring Room itself is in the first half, across the
+Escapement's landing from the Cupboard: round 6 below.)
 
 An arena in the three houses that had none, each its small key for a later door that keeps its own condition: the
 **Whale-House**'s Horn Store, off the Sounding Hall's south wall, a wing of the hub (`underwater.js` `STORE`; the Song
@@ -698,6 +699,17 @@ play the note at the edge, step out, play it again further on, and the pillars a
 'galleryFar', needs: ['echo'] }`, a traversal the gadget makes: the audit's `T`, its `Pillars` a traversal piece of its
 own). The far side's high egg is the way back. The middle egg now stands nearest the chasm (the high one, taller, hid it
 from the far door that wants its note).
+
+The **Clock-House** (`garage.js` `CUPBOARD`, `GALLERY_BEAT`): **the clock it starts in sight, and the gallery's beat**.
+The Mainspring Room moves from the Clock Gallery's near landing (four rooms from the Cupboard whose clock it starts: the
+Cupboard's door scored 1.0) to the Escapement's far landing, east, its doorway facing the Cupboard's across the landing:
+from the Cupboard's door you see the slack spring and its six eyes through both doorways (its weight waits at its way in,
+`ballM` in the room). Seen on the way in, wound on the way back with the coil; then the Cupboard's lids lift, a room away
+and in sight (its door now names all three of its eyes). The gallery's east wall has its pendulum niche back. And over
+the gallery's bridge hangs the **great pendulum** (a `Swing` with `bob: 'disc'`, a brass bob, `gentle`: it knocks you
+back along the bridge and does not hurt), swinging along it once in 6 s: its bob sweeps low over the bridge's middle and
+rises at either end of its swing, so you cross under it as it swings away, in its beat. The house's own traversal (its
+escapement's disc, its gallery's pendulum): the audit's identity counts two traversals of its own.
 
 ## Room for the camera (issue #195, `ANTE`, `K.vestibule`)
 

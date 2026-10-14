@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Mark, Pit, Key, Coffer } from './pieces.js';
+import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Swing, Mark, Pit, Key, Coffer } from './pieces.js';
 import { foremanModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 
@@ -30,10 +30,15 @@ import { chestMound } from '../boxes/mound.js';
 //   the Escapement       a pit crossed by a disc that swings over it like a clock's escapement, still until the
 //                        three eyes round the dial over the far door wake in turn: from the one its hand points
 //                        at, round the way a clock goes (out of turn an eye only ticks)
-//   the Cupboard         (off the far landing) the Clockmaker's: the little clock over its door has lost its hand,
-//                        so its three eyes wake round from the house's hour (four, eight, twelve); a coffer. (v1.53,
-//                        issue #23) Its clock has stopped, its eyes lidded, until the house's mainspring is wound
-//                        again, far up past the chest: then they wake, and the great key is in it (a loop back)
+//   the Cupboard         (off the far landing, west) the Clockmaker's: the little clock over its door has lost its
+//                        hand, so its three eyes wake round from the house's hour (four, eight, twelve); a coffer.
+//                        (v1.53, issue #23) Its clock has stopped, its eyes lidded, until the house's mainspring is
+//                        wound again: then they wake, and the great key is in it (a loop back)
+//   the Mainspring Room  (off the far landing, east, across from the Cupboard's door: since v1.74, round 6 of issue
+//                        #23; it was off the Clock Gallery's landing, four rooms from the clock it starts) the
+//                        mainspring hangs slack until its weight, a ball on the landing, is rolled home; then six eyes
+//                        round it in one breath (the coil, past the chest: seen on the way in, wound on the way back),
+//                        and across the landing the Cupboard's little clock begins to tick
 //   the Winding Well     the hub. A wall to climb, the door at its top; the door wants two small keys and the
 //                        winding's counterweight home in its socket at the wall's foot, and the counterweight is a
 //                        stone ball still waiting on the Escapement's far landing, its groove running through into
@@ -52,9 +57,8 @@ import { chestMound } from '../boxes/mound.js';
 //                        wants all six inside one breath (the coil) and in turn, counted round from the hour the
 //                        clock stopped at, which it no longer shows: the little clock over the way in does (and
 //                        the Winding Well's, and the one over the door outside). Out of turn they all go dark.
-//                        Over the bridge the Foreman's door wants the house's great key
-//   the Mainspring Room  (east off the gallery's near landing) the mainspring hangs slack until its weight, a ball
-//                        rolled in from the landing, is home; then six eyes round it in one breath, and the great key
+//                        Over the bridge the Foreman's door wants the house's great key. (v1.74) The gallery's great
+//                        pendulum hangs over the bridge and swings along it: cross in its beat, or it knocks you back
 //   the Foreman's Workshop the guardian (a robot: its meter is damage). When its face opens, hit all six
 //                        numerals inside a breath. Open, its hands come round to four; numerals hit in the clock's
 //                        order counted from four ring in step (taught in its second phase, where any order still
@@ -91,6 +95,8 @@ export const PALETTE = {
   light: { shadow: '#b7bfc2', light: '#fff2d8', sun: '#ffe8c0' },
 };
 
+/** (v1.74) The Clock Gallery's great pendulum over the bridge (local m, s): its pivot's height, its length, its swing. */
+export const GALLERY_BEAT = { pivot: 25, len: 14, amp: 0.55, period: 6 };
 export const VOLLEY = 4.6;   // s: the six eyes (and the Foreman's six numerals) must all be hit inside this
 /** The Foreman's numerals (its model's lamps, i at 2i o'clock as you face it) in the clock's order from four. */
 export const FROM_FOUR = [2, 3, 4, 5, 0, 1];
@@ -99,13 +105,14 @@ export const LOGIC = {
   id: 'garage', entry: 'threshold', gadget: 'coil',
   rooms: {
     threshold: { checkpoint: true }, esc: { checkpoint: true }, escFar: {}, well: { checkpoint: true }, pend: { checkpoint: true }, springs: { checkpoint: true },
-    coil: { checkpoint: true }, mainspring: { checkpoint: true }, gallery: { checkpoint: true }, cupboard: {}, galleryFar: {}, hall: { boss: true }, out: {},
+    coil: { checkpoint: true }, gallery: { checkpoint: true }, mainspring: { checkpoint: true }, cupboard: {}, galleryFar: {}, hall: { boss: true }, out: {},
   },
   links: [
     { a: 'threshold', b: 'esc' },
     { a: 'esc', b: 'escFar', door: 'discs' },     // the escapement's disc, once the eye is splashed
     { a: 'escFar', b: 'well' },
-    { a: 'escFar', b: 'cupboard', door: 'dC' },   // the Clockmaker's Cupboard (optional: a coffer)
+    { a: 'escFar', b: 'cupboard', door: 'dC' },   // the Clockmaker's Cupboard (the great key since v1.53; a coffer)
+    { a: 'escFar', b: 'mainspring' },             // (v1.74) the Mainspring Room, across the landing from the Cupboard's door
     // the Winding Well is the hub (v1.48): west the Pendulum Hall (an arena), east the Striking Room, up the climb the
     // door to the chest (the ledge over the climb is the well's: the block's face is the house's one climb)
     { a: 'well', b: 'pend', door: 'dW' },         // (open: it shuts behind you while the machines stand)
@@ -113,7 +120,6 @@ export const LOGIC = {
     { a: 'well', b: 'springs' },
     { a: 'well', b: 'coil', door: 'd2' },         // at the top of the climb: the counterweight home, and two small keys
     { a: 'coil', b: 'gallery', door: 'd3' },      // the Winding Passage's door, a room on from the chest (one room with it)
-    { a: 'gallery', b: 'mainspring' },            // the Mainspring Room, east off the near landing
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'galleryFar', b: 'hall', door: 'd4' },   // the great key's door (and the arena's: shut while the Foreman fights)
     { a: 'hall', b: 'out', door: 'd5' },
@@ -141,23 +147,24 @@ export const LOGIC = {
     chest: { type: 'gadget', room: 'coil', item: 'coil' },
     k1: { type: 'switch', room: 'coil', needs: ['coil'] },        // the passage's six eyes in one breath: two tanks
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
-    // the Mainspring Room: its weight rolled in from the gallery's landing, then six eyes in a breath, and the great key
-    ballM: { type: 'drum', room: 'gallery', plate: 'pM', plateAt: 1, start: 0 },
-    pM: { type: 'plate', room: 'mainspring' },
-    k3: { type: 'switch', room: 'mainspring', needs: ['coil'], when: { drumOn: ['ballM', 'pM'] } },
-    // (v1.53: the great key is in the Clockmaker's Cupboard now, back in the first half: the mainspring wound starts its clock)
     k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', lock: 'big' },                            // the great key; and shut while the Foreman fights
     foreman: { type: 'boss', room: 'hall', needs: ['gun', 'coil'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // the Mainspring Room (v1.74: off the Escapement's far landing, east; it was off the gallery's landing): its weight
+    // rolled in from its way in, then six eyes in a breath, and the Cupboard's clock across the landing ticks again.
+    // (After the gallery's elements: the marker sends you over the bridge to the great lock first, and back for its key)
+    ballM: { type: 'drum', room: 'mainspring', plate: 'pM', plateAt: 1, start: 0 },   // (at the way in, by the landing)
+    pM: { type: 'plate', room: 'mainspring' },
+    k3: { type: 'switch', room: 'mainspring', needs: ['coil'], when: { drumOn: ['ballM', 'pM'] } },
     // the Clockmaker's Cupboard (optional, so last: the marker never points at it): the little clock over its door
     // woken round from four (four, eight, twelve)
     // (v1.53) its clock stopped, the eyes lidded, until the mainspring is wound: the great key inside
     c1: { type: 'switch', room: 'escFar', when: { lit: 'k3' } },
     c2: { type: 'switch', room: 'escFar', after: 'c1', when: { lit: 'k3' } },
     c3: { type: 'switch', room: 'escFar', after: 'c2', when: { lit: 'k3' } },
-    dC: { type: 'door', opens: { lit: 'c3' }, latch: true },
+    dC: { type: 'door', opens: { all: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }] }, latch: true },   // (all three: in turn, the last lights after the others)
     kB: { type: 'key', kind: 'big', room: 'cupboard' },
     cache: { type: 'cache', room: 'cupboard' },
   },
@@ -234,9 +241,9 @@ function galleryClockwork(rt, K, F0, brass) {
     place(g, x, y, z, ry);
     parts.push(ry === 0 ? (t) => { m.rotation.z = t * rate; } : (t) => { m.rotation.z = t * rate; });
   }
-  // arched niches on the side walls of both landings, each with a pendulum swinging in it
-  // (none on the near landing's east wall since v1.48: the way into the Mainspring Room is there)
-  for (const [x, z, s] of [[-10.95, F0 + 2.6, 1], [-10.95, F0 + 31, 1], [10.95, F0 + 31, -1]]) {
+  // arched niches on the side walls of both landings, each with a pendulum swinging in it (on the near landing's east
+  // wall again since v1.74: the way into the Mainspring Room was there from v1.48)
+  for (const [x, z, s] of [[-10.95, F0 + 2.6, 1], [10.95, F0 + 2.6, -1], [-10.95, F0 + 31, 1], [10.95, F0 + 31, -1]]) {
     K.add(rt.M.dark, box(0.12, 5.6, 2.4, x + s * 0.06, 12.0, z));
     K.add(rt.M.dark, T(new THREE.CylinderGeometry(1.2, 1.2, 0.12, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2), [x + s * 0.06, 14.8, z], [0, 0, 0]));
     K.add(brass, box(0.2, 0.25, 2.8, x + s * 0.12, 9.15, z));
@@ -327,20 +334,24 @@ function wings(rt, K, M, { C2, dial, brass, cream }) {
 }
 
 /**
- * The Mainspring Room (east of the Clock Gallery's near landing, after the chest): the house's mainspring coiled on its
- * east wall, slack until its weight is home (a ball rolled in from the landing onto its plate); then its six eyes wake,
- * inside one breath (the coil), and the great key's cage sinks.
+ * The Mainspring Room (east off the Escapement's far landing, its doorway facing the Cupboard's across the landing: v1.74,
+ * issue #23 round 6; until then east off the Clock Gallery's near landing, four rooms from the Cupboard it starts): the
+ * house's mainspring coiled on its east wall, slack until its weight is home (a ball rolled in from the landing onto its
+ * plate); then its six eyes wake, inside one breath (the coil), and the Cupboard's little clock, across the landing, ticks
+ * again: its lids lift. Seen on the way in, wound on the way back.
  */
-function mainspring(rt, K, M, { F0, copper, brass }) {
+function mainspring(rt, K, M, { brass }) {
   const add = (P, o) => rt.add(P, o);
-  const X = 20, Z = F0 + 3, Y = 9;
+  const copper = { paint: new THREE.Color('#d9643a'), smooth: false, side: THREE.FrontSide };
+  const X = 20, Z = CUPBOARD.z, Y = 0;
   K.corridor([11.6, Z], [13.4, Z], Y, { w: 5, h: 6.4 });
   K.hall({ x: X, z: Z, w: 12, d: 10, y: Y, h: 12, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
-  // the weight's groove, from the gallery's landing through the way east to its plate under the spring
+  // the weight's groove, from the way in (where the weight waits, at the corridor's mouth on the landing) east to its
+  // plate under the spring
   const GZ = Z - 1.2;
-  K.add(M.dark, box(14.4, 0.04, 1.0, 10.5, Y + 0.02, GZ));
-  for (const sd of [-1, 1]) K.both(M.trim, box(14.4, 0.12, 0.22, 10.5, Y + 0.06, GZ + sd * 0.8));
-  add(Ball, { id: 'ballM', a: [4, Y + 0.04, GZ], b: [17, Y + 0.04, GZ], r: 1.0, friction: 1.2 });
+  K.add(M.dark, box(7.4, 0.04, 1.0, 14.0, Y + 0.02, GZ));
+  for (const sd of [-1, 1]) K.both(M.trim, box(7.4, 0.12, 0.22, 14.0, Y + 0.06, GZ + sd * 0.8));
+  add(Ball, { id: 'ballM', a: [10.8, Y + 0.04, GZ], b: [17, Y + 0.04, GZ], r: 1.0, friction: 1.2 });
   add(Plate, { id: 'pM', at: [17, Y, GZ], r: 1.25 });
   // the mainspring: a great flat coil of copper on the east wall, its drum in the middle, six eyes round it
   for (let i = 0; i < 5; i++) K.add(copper, T(new THREE.TorusGeometry(1.2 + i * 0.55, 0.16, 6, 36), [X + 5.85, Y + 6, Z], [0, Math.PI / 2, 0]));
@@ -349,7 +360,7 @@ function mainspring(rt, K, M, { F0, copper, brass }) {
     unmet: 'The six eyes stay dull. The mainspring hangs slack: its weight isn’t home.',
     full: 'All six woke round the spring, and went dark again: two tanks in one breath, and this one fills too slowly.',
     fade: 'They woke, and went dark again before the rest.',
-    woke: 'The mainspring takes up with a groan, and through the house, far below, a little clock begins to tick.' });
+    woke: 'The mainspring takes up with a groan, and across the landing, over the Cupboard’s door, a little clock begins to tick.' });
   add(Mark, { room: 'mainspring', at: [X - 3.5, Y, Z + 2.8], yaw: Math.PI / 2 });
 }
 
@@ -371,7 +382,7 @@ function cupboard(rt, K, M, { dial }) {
   const stopped = 'Its lids stay shut. The little clock has stopped: whatever drives the house’s clocks hangs slack.';
   for (const [id, hr] of [['c1', 4], ['c2', 8], ['c3', 12]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-10.85, CUPBOARD.dialY + Math.cos(a) * 1.9, Z - Math.sin(a) * 1.9], yaw: Math.PI / 2, size: 0.5, wrong: tick, lids: true, unmet: stopped }); }
   add(Coffer, { id: 'cache', at: [-21.2, Y, Z - 1.8], yaw: Math.PI / 2 });
-  add(Key, { id: 'kB', big: true, at: [-21.2, Y, Z + 1.8], yaw: Math.PI / 2 });   // (v1.53: the great key, here since the mainspring moved)
+  add(Key, { id: 'kB', big: true, at: [-21.2, Y, Z + 1.8], yaw: Math.PI / 2 });   // (v1.53: the great key, here since the mainspring moved off the gallery)
 }
 
 // ------------------------------------------------------------------ inside
@@ -402,7 +413,7 @@ function layout(rt) {
   K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: 6, h: 7 }] });
 
   // ---- the Escapement (z 12.6..48): a pit, a disc that swings across it once the eye over the far door is splashed
-  K.hall({ x: 0, z: 30.3, w: 22, d: 35.4, y: -8, h: 22, floor: false, roof: 'oculus', oculus: 0.25, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4, y0: 8 }, { side: 'w', at: CUPBOARD.z - 30.3, w: 3.6, h: 5, y0: 8 }] });
+  K.hall({ x: 0, z: 30.3, w: 22, d: 35.4, y: -8, h: 22, floor: false, roof: 'oculus', oculus: 0.25, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4, y0: 8 }, { side: 'w', at: CUPBOARD.z - 30.3, w: 3.6, h: 5, y0: 8 }, { side: 'e', at: CUPBOARD.z - 30.3, w: 5, h: 6.4, y0: 8 }] });
   K.slab(-11, 12.6, 11, 18, 0, 8);
   K.slab(-11, 40, 11, 48, 0, 8);
   K.both(M.dark, box(22, 1, 22, 0, -8.5, 29));
@@ -420,6 +431,7 @@ function layout(rt) {
   for (const [id, hr] of [['s1', 8], ['s2', 12], ['s3', 4]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-Math.sin(a) * 3.6, 9.6 + Math.cos(a) * 3.6, 47.4], yaw: Math.PI, size: 0.8, wrong: tick }); }
   add(Mark, { room: 'esc', at: [-6.5, 0, 15.4], yaw: Math.PI / 2 });
   cupboard(rt, K, M, { dial });
+  mainspring(rt, K, M, { brass });   // (v1.74: east off the far landing, across from the Cupboard)
 
   // ---- the Winding Well (a rotunda): a wall to climb (its top at 9), the door at its top; the counterweight's
   // groove comes in from the Escapement's far landing to its socket at the wall's foot
@@ -470,12 +482,19 @@ function layout(rt) {
 
   // ---- the Clock Gallery: a chasm, a bridge a second bank of six raises (round a stopped clock face on the far wall)
   K.slab(-3.2, F0 - 1.6, 3.2, F0 + 0.6, 9, 0.8);
-  K.hall({ x: 0, z: F0 + 17.2, w: 22, d: 34.4, y: -6, h: 32, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 15 }, { side: 'n', w: 5, h: 6.4, y0: 15 }, { side: 'e', at: -14.2, w: 5, h: 6.4, y0: 15 }] });
+  K.hall({ x: 0, z: F0 + 17.2, w: 22, d: 34.4, y: -6, h: 32, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 15 }, { side: 'n', w: 5, h: 6.4, y0: 15 }] });
   K.slab(-11, F0, 11, F0 + 6, 9, 15);
   K.slab(-11, F0 + 26, 11, F0 + 34.4, 9, 15);
   K.both(M.dark, box(22, 1, 20, 0, -6.4, F0 + 16));
   add(Pit, { room: 'gallery', min: [-12, -8, F0 + 6], max: [12, 4, F0 + 26] });
   add(Bridge, { id: 'br1', a: [0, 9, F0 + 5.9], b: [0, 9, F0 + 26.1], w: 4, n: 8 });
+  // (v1.74, issue #23 round 6) the gallery's great pendulum, hung from a beam under the roof over the bridge's middle,
+  // swinging along it: its bob sweeps low over the middle of the bridge and rises at either end of its swing. Cross under
+  // it as it swings away, in its beat; met, it knocks you back along the bridge (it does not hurt)
+  K.both(brass, box(5.2, 0.6, 0.8, 0, GALLERY_BEAT.pivot + 0.5, F0 + 16));
+  add(Swing, { at: [0, GALLERY_BEAT.pivot, F0 + 16], len: GALLERY_BEAT.len, amp: GALLERY_BEAT.amp, period: GALLERY_BEAT.period, phase: 0.25, yaw: -Math.PI / 2,
+    bob: 'disc', size: 1.1, gentle: true, knock: 7, room: 'gallery',
+    rings: 'The brass bob rings under the splash and swings on. The great pendulum keeps the gallery’s beat: cross under it as it swings away.' });
   // the great clock face, its hands gone; six eyes round it (ring6 goes round toward +x: as you face it, that is
   // twelve, ten, eight, six, four, two), to wake in turn from four: four, six, eight, ten, twelve, two
   dial(0, 20.6, F0 + 34.1, 3.8, Math.PI, null);
@@ -489,7 +508,6 @@ function layout(rt) {
   galleryClockwork(rt, K, F0, brass);
   add(Door, { id: 'd4', at: [0, 9, F0 + 35], w: 5, h: 6.4 });
   add(Mark, { room: 'gallery', at: [-7, 9, F0 + 3], yaw: 0 });
-  mainspring(rt, K, M, { F0, copper, brass });
 
   // ---- the corridor and the Foreman's Workshop (floor 9)
   const H0 = F0 + 35;

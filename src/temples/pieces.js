@@ -1264,7 +1264,9 @@ export class Jaw {
  * for `stillFor` seconds. o: { at: the pivot, len, amp (rad), period (s), phase (0..1), yaw, size (its
  * crystal's scale), id (an element a stilling wakes for good: a 'switch' that needs the stilling mode, which
  * may come `after` another: still them in turn), heard / wrong (what it says when it takes / rings flat),
- * onStill(swing) (instead of an element: something else hears its note; `taken` makes it glow on) }
+ * onStill(swing) (instead of an element: something else hears its note; `taken` makes it glow on),
+ * bob: 'disc' (a clock's brass bob instead of the crystal: the Clock-House's gallery, v1.74), gentle (it knocks you
+ * back, `knock` m/s, and does not hurt), rings (said when a splash only rings it) }
  */
 export class Swing {
   constructor(rt, o) {
@@ -1282,7 +1284,11 @@ export class Swing {
     this.arm.add(mesh([box(0.18, len - 1.6, 0.18, 0, -(len - 1.6) / 2, 0), new THREE.TorusGeometry(0.45, 0.12, 5, 14)], own({ color: rt.P.trim ?? '#fffdf4', flat: true, mover: true })));
     this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true, mover: true });
     const z = o.size ?? 1;
-    this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5 * z, 2.1 * z, 1.5 * z]), T(new THREE.OctahedronGeometry(1, 0), [0.9 * z, -len + 0.6 * z, 0.3 * z], [0, 0, 0.5], [0.6 * z, 1.0 * z, 0.6 * z])], this.mat));
+    if (o.bob === 'disc') {
+      // a clock pendulum's bob: a great disc of brass, its face across the swing, a ring of the house's light round it
+      this.arm.add(mesh([T(new THREE.CylinderGeometry(1.5 * z, 1.5 * z, 0.4 * z, 32), [0, -len, 0], [Math.PI / 2, 0, 0]), T(new THREE.CylinderGeometry(0.5 * z, 0.5 * z, 0.6 * z, 16), [0, -len, 0], [Math.PI / 2, 0, 0])], own({ color: rt.P.trim ?? '#d2a648', flat: true, metal: 'brass', mover: true })));
+      this.arm.add(mesh([T(new THREE.TorusGeometry(1.5 * z, 0.09 * z, 5, 36), [0, -len, 0])], this.mat));
+    } else this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5 * z, 2.1 * z, 1.5 * z]), T(new THREE.OctahedronGeometry(1, 0), [0.9 * z, -len + 0.6 * z, 0.3 * z], [0, 0, 0.5], [0.6 * z, 1.0 * z, 0.6 * z])], this.mat));
     noCollide(this.group);
     this.center = V(); this.still = 0; this.cool = 0; this.theta = 0; this.way = 1;
     this.place();
@@ -1333,9 +1339,9 @@ export class Swing {
     const dx = P.pos.x - this.center.x, dy = P.pos.y + 0.9 - this.center.y, dz = P.pos.z - this.center.z;
     if (dx * dx + dz * dz < 1.9 * 1.9 && Math.abs(dy) < 2.6) {
       this.cool = 1.5;
-      const out = V(this.way, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(9).addScaledVector(UP, 4);
+      const out = V(this.way, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(this.o.knock ?? 9).addScaledVector(UP, 4);
       P.knockDown?.(out, { why: 'guardian' });
-      P.hurt?.(sparing(heartsOf(P), DAMAGE.blow), 'guardian');
+      if (!this.o.gentle) P.hurt?.(sparing(heartsOf(P), DAMAGE.blow), 'guardian');
       this.rt.rumble?.(0.4, 0.4);
     }
   }
