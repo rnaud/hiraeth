@@ -15,7 +15,8 @@ import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD
 import { BUST } from './hologram.js';
 import { rumblePlay } from '../rumble.js';
 import { FACE } from '../humanoid.js';
-import { WIDE, WIDE_FLAG, VIEW_FLAG, arrivalViews, exitStops } from './arrival-view.js';
+import { WIDE, WIDE_FLAG, VIEW_FLAG, arrivalViews, exitStops, wideBack, wideFlight } from './arrival-view.js';
+import { TAKEOFF, LANDING, takeoffPose, landingPose, landingDur } from './flight.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -804,6 +805,8 @@ export class CallDirector extends Sequence {
 
 /** Seconds of each part of the approach from space (before the landing). */
 export const APPROACH = { space: 2.8, entry: 2.1, sky: 1.9 };
+/** How far from the landing ship down to its spot the low shot aims (0 the ship, 1 its spot): the ground in the frame. */
+export const LAND_LOOK = 0.5;
 /**
  * The last of the landing, u 0..1 of its time: from 140 m up to on its feet, slowing all the way
  * and arriving at rest (no speed left at touchdown: a landing, not a crash).
@@ -824,13 +827,13 @@ export function planetDistance(D, ang, near = PLANET_NEAR) {
 /**
  * Arriving by ship: out of the jump, the destination planet grows ahead (drawn in its own
  * colours, src/ship/approach.js); the ship levels out and brakes into the air, through the
- * clouds; it comes down upright on its jets over the site and settles onto its feet (no fire,
+ * clouds; it flies in nose first, hovers over the site, comes straight down on its jets
+ * (src/ship/flight.js landingPose, issue #354) and settles onto its feet (no fire,
  * no shaking: only the prologue's arrival is a crash); then it opens, and you walk out.
  */
 export class ArrivalDirector extends Sequence {
   constructor(ship) {
     const m = ship.parked, C = ship.cinema;
-    const top = ship.restPos.clone().add(V(0, 140, 0));
     const side = V(-ship.outDir.z, 0, ship.outDir.x);
     const look = new THREE.Vector3();
     const dust = () => ship.dustColors();
@@ -844,7 +847,17 @@ export class ArrivalDirector extends Sequence {
     const wide = views?.wide && !game.flag(WIDE_FLAG(id)) ? views.wide : null;
     const exit = views?.exit && !game.flag(VIEW_FLAG(id)) ? views.exit : null;
     if (wide) game.set(WIDE_FLAG(id), true);   // (the first arrival is this one, skipped or not)
-    const landFrom = wide ? ship.restPos.clone().add(V(0, WIDE.to, 0)) : top, landDur = wide ? WIDE.land : 4.2;
+    // (issue #354: it arrives nose first along its bow, slows to a hover over its spot, then comes straight down on its
+    // jets: src/ship/flight.js landingPose. The short arrival flies the glide out of the clouds and on into the low
+    // shot; the first one flies the glide in its wide shot, from as far back as keeps it in the frame)
+    const L = wide ? wideFlight(wideBack(wide, ship.restPos.toArray(), fwd.toArray())) : LANDING;
+    const t0 = wide ? L.glide : APPROACH.sky, landDur = wide ? WIDE.land : landingDur(L) - APPROACH.sky;
+    const flyAt = (t) => {
+      const p = landingPose(t, L);
+      m.group.position.copy(ship.restPos).addScaledVector(fwd, -p.back).addScaledVector(up, p.up);
+      m.group.quaternion.copy(tilt.setFromAxisAngle(across, p.pitch)).multiply(ship.restQuat);
+      return p;
+    };
     // the planet `D` m off, `drop` rad below the ship's course, `ang` rad its angular radius (so it grows as it nears)
     const placePlanet = (a, from, D, drop, ang) => {
       D = planetDistance(D, ang);
@@ -922,17 +935,15 @@ export class ArrivalDirector extends Sequence {
           sfx.engines(ship.sound, 0.6);
         },
         frame: (t, dt) => {
-          const k = Math.min(1, t / WIDE.dur), e = 0.75 * (1 - Math.pow(1 - k, 2.5)) + 0.25 * k;
-          const p = ship.restPos.clone().addScaledVector(fwd, -70 * (1 - e)).add(V(0, WIDE.from + (WIDE.to - WIDE.from) * e, 0));
-          m.group.position.copy(p);
-          m.group.quaternion.copy(ship.restQuat);
+          const k = Math.min(1, t / WIDE.dur);
+          flyAt(t);
           exhaust(ship, m, dt, { power: 0.8, palette: dust() });
           const d = smooth(k);
           ship.shot({ pos: V(...wide.pos).add(V(...wide.drift).multiplyScalar(d)), look: V(...wide.look).add(V(...wide.drift).multiplyScalar(d)), fov: wide.fov });
           if (t > WIDE.dur - 2.5 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.22); }
         },
       } : {
-        // out of the clouds over the landing site: it comes down upright on its jets, slowing
+        // out of the clouds toward the landing site: it flies in nose first along its bow, slowing, seen from the side
         dur: APPROACH.sky,
         enter: () => {
           ship.removeApproach();
@@ -942,38 +953,38 @@ export class ArrivalDirector extends Sequence {
           sfx.engines(ship.sound, 0.6);
         },
         frame: (t, dt) => {
-          const k = Math.min(1, t / APPROACH.sky), e = 1 - Math.pow(1 - k, 1.6);
-          const p = ship.restPos.clone().addScaledVector(fwd, -40 * (1 - e)).add(V(0, 140 + 260 * (1 - e), 0));
-          m.group.position.copy(p);
-          m.group.quaternion.copy(ship.restQuat);
+          flyAt(t);
           exhaust(ship, m, dt, { power: 0.8, palette: dust() });
-          const c = ship.restPos.clone().addScaledVector(fwd, 70).addScaledVector(side, 85).add(V(0, 230, 0));
-          ship.shot({ pos: c, look: p.clone().add(V(0, -6, 0)), fov: 44 });
+          const c = ship.restPos.clone().addScaledVector(ship.outDir, 135).addScaledVector(fwd, -50).add(V(0, 80, 0));
+          look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-6 * dt));
+          ship.shot({ pos: c, look, fov: 44 });
         },
       },
       {
-        // down on its jets, the dust blowing out from under it, and gently onto its feet
+        // the last of the way in, a hover over its spot, then straight down on its jets, the dust blowing out from
+        // under it, and gently onto its feet
         dur: landDur,
         enter: () => {
-          m.group.quaternion.copy(ship.restQuat);
           m.mats.thrust.uniforms.uGlow.value = 1;
           sfx.engines(ship.sound, 0.8);
-          look.copy(landFrom);
+          flyAt(t0);
+          look.copy(m.group.position).lerp(ship.restPos, LAND_LOOK);
         },
         frame: (t, dt) => {
-          const u = t / landDur, k = wide ? 1 - (1 - Math.min(1, u)) ** 2 : landingK(u);   // (the first time it comes in from the wide's last 30 m, still moving)
-          m.group.position.copy(landFrom).lerp(ship.restPos, k);
+          flyAt(t0 + t);
+          // (low, off the ramp's side and ahead of the bow: it comes in toward the lens and stops over its spot; the lens
+          // aims a little under it, so the ground it is coming down to stays in the frame and the drop reads)
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 34).addScaledVector(side, 20);
           cam.y = ship.groundAt(cam.x, cam.z) + 5;
-          look.lerp(m.group.position, 1 - Math.exp(-5 * dt));
-          ship.shot({ pos: cam, look, fov: 50 });
+          look.lerp(_w.copy(m.group.position).lerp(ship.restPos, LAND_LOOK), 1 - Math.exp(-5 * dt));
+          ship.shot({ pos: cam, look, fov: 52 });
           const h = m.group.position.y - ship.restPos.y;
           // set every frame, so the engines come in even if the sound starts mid-scene
           if (!this.down) sfx.engines(ship.sound, 0.55 + 0.45 * (1 - Math.min(1, h / 140)));
           if (h < 40 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.22); }
           // the jets out of the bells under the hull, and the dust they blow out along the ground (src/ship/exhaust.js)
           if (!this.down) exhaust(ship, m, dt, { power: 0.75 + 0.25 * (1 - Math.min(1, h / 60)), palette: dust() });
-          if (t > landDur - 0.2 && !this.down) {
+          if (t > landDur - 0.1 && !this.down) {
             // touchdown: the feet settle, a puff of dust from under each, the engines spool down (no jolt)
             this.down = true; sfx.rumble(ship.sound, 0.5, 0.15); sfx.engines(ship.sound, 0); m.mats.thrust.uniforms.uGlow.value = 0;
             touchdownDust(ship, m, dust());   // (the blown dust settles, a small pale puff at each foot: issue #299)
@@ -1038,12 +1049,16 @@ export class ArrivalDirector extends Sequence {
 }
 const _w = new THREE.Vector3();
 
-/** Leaving: the hatch shuts, the ship lifts off in a storm of dust, then the stars rush past. */
+/**
+ * Leaving: the hatch shuts, the ship lifts straight up off its feet on its jets in a storm of dust and hangs there;
+ * then the nose dips, the jets tip it forward and it powers away along its bow, climbing (issue #354:
+ * src/ship/flight.js takeoffPose); then the stars rush past.
+ */
 export class TakeoffDirector extends Sequence {
   constructor(ship, { to, title, onDone }) {
     const m = ship.parked, C = ship.cinema;
-    const side = V(-ship.outDir.z, 0, ship.outDir.x);
-    const look = new THREE.Vector3();
+    const look = new THREE.Vector3(), tilt = new THREE.Quaternion();
+    const fwd = V(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize(), across = V(-fwd.z, 0, fwd.x);
     super(ship, [
       {
         dur: 2.0,
@@ -1062,24 +1077,27 @@ export class TakeoffDirector extends Sequence {
         },
       },
       {
-        dur: 3.8,
+        dur: TAKEOFF.dur,
         enter: () => {
           C.say(null); ship.showPlayer(false); m.mats.thrust.uniforms.uGlow.value = 1; sfx.engines(ship.sound, 1);
           footPuffs(ship, m, { palette: ship.dustColors(), speed: 6 });   // off its feet
           rumblePlay('takeoff');   // (src/rumble.js)
         },
         frame: (t, dt) => {
-          const k = t / 3.8;
-          // it lifts gently off its feet, then climbs faster and faster
-          m.group.position.copy(ship.restPos).add(V(0, 0.8 * t + 9 * t * t, 0));
-          const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 34).addScaledVector(side, 22);
+          const k = t / TAKEOFF.dur, p = takeoffPose(t);
+          // up off its feet to a hover, then tipped forward and away along its bow, climbing
+          m.group.position.copy(ship.restPos).addScaledVector(fwd, p.ahead).add(V(0, p.up, 0));
+          m.group.quaternion.copy(tilt.setFromAxisAngle(across, p.pitch)).multiply(ship.restQuat);
+          // (low, out from the hatch and a little behind the stern: the lift and the hover side on, then it goes away
+          // across and ahead of the lens rather than over it)
+          const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 40).addScaledVector(fwd, -26);
           cam.y = ship.groundAt(cam.x, cam.z) + 4;
-          look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-4 * dt));
-          ship.shot({ pos: cam, look, fov: 52 + k * 8 });
+          look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-5 * dt));
+          ship.shot({ pos: cam, look, fov: 52 - 6 * smooth((t - TAKEOFF.rise) / (TAKEOFF.dur - TAKEOFF.rise)) });
           // the jets out of the bells, and the dust they blow out along the ground until it is too high (src/ship/exhaust.js)
           exhaust(ship, m, dt, { power: 1, palette: ship.dustColors(), rate: 44 });
           ship.shake(0.5 * (1 - k));
-          if (t > 3.0 && !this.warped) { this.warped = true; ship.warp.start(title); }
+          if (t > TAKEOFF.warp && !this.warped) { this.warped = true; ship.warp.start(title); }
         },
       },
       { dur: 1.6 },

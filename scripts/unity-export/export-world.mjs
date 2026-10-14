@@ -555,6 +555,7 @@ if (desert) {
 // the ship's places and the prologue's path (src/ship/cinematics.js PrologueDirector)
 const { THRUSTERS } = await import('../../src/ship/exhaust.js');
 const AVIEW = await import('../../src/ship/arrival-view.js');
+const FLIGHT = await import('../../src/ship/flight.js');
 const shipOut = (() => {
   const P = (m) => Object.fromEntries(Object.entries(m.interior.points).map(([k, v]) => [k, v?.isVector3 ? V3(v) : Array.isArray(v) ? v.map(V3) : -v]));
   const frame = (g) => { g.updateMatrixWorld(true); const p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(); g.matrixWorld.decompose(p, q, s); return { pos: V3(p), rot: Q4(q) }; };
@@ -570,6 +571,8 @@ const shipOut = (() => {
     holoTable: { planetR: W.shipTable.planetR, world: levelId },
     // the approach from space and the landing (cinematics.js ArrivalDirector, exhaust.js): the bells, the feet, the timings
     approach: W.shipDirector.APPROACH,
+    // the take-off and the landing's curves (src/ship/flight.js, issue #354: up on the jets then forward; in forward, a hover, then straight down)
+    flight: { takeoff: FLIGHT.TAKEOFF, landing: FLIGHT.LANDING },
     thrusters: THRUSTERS.map(V3),
     feet: (ship.parked.hull?.feet ?? []).map(V3),
     dust: ship.dustColors?.() ?? null,

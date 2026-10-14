@@ -830,8 +830,14 @@ const LOOPS74 = { from: 'scripts/design-qc/capture.mjs in muted headless Chrome 
 const SHIMMER218 = 'Issue #218: the Retroid Pocket Nova, the Unity preview (branch build 2265), Handheld at 0.75, muted; the bridge’s -pan 40 (the view turned 0.025° a frame, a picture of each frame); before, the same build with the old pipeline (-aa fxaa -no-ink-far -no-hatch-aa); 14 October';
 /** (v1.75, issue #357: a scratch shooter against this branch's own Vite, port 6354, before and after the change) */
 const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6354) before and after the change, ?game=pirates&to=edena, the sky cleared of pirates and one raider parked 50 m ahead, 1.8 m off the line of fire (14 October); cwebp -q 72';
+/** (v1.75, issue #354: the cinematics QC's own frames before and after) */
+const FLIGHT354 = 'Issue #354: the cinematics QC’s frames (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720 kept at 960 × 540, the review page’s staging) against this branch’s own Vite (port 6354) before and after the change, about the same second of each (14 October); the QC’s own WebP';
 export const CHANGELOG_MEDIA = {
   '1.75': [
+    { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [
+      { name: 'ship-takeoff', title: 'Leaving Vael for the Desert', caption: 'Three seconds after the hatch shuts. Before, the ship climbed straight up, faster and faster, level. After, it has risen on its jets to a hover over its dust, and tips forward to fly away along its bow.', from: `${FLIGHT354}: the take-off, 4.9 s in` },
+      { name: 'ship-landing', title: 'Out of the clouds at the Lantern', caption: 'Before, the ship dropped out of the sky straight onto the site, seen from high above. After, it flies in nose first over the coast, slowing, seen from the side; then it hovers over its spot and comes straight down.', from: `${FLIGHT354}: the arrival at the Lantern, 6.3–6.4 s in` },
+    ] },
     { match: 'In the chime pirates you aim with one reticle now', tags: ['combat', 'menus'], shots: [
       { name: 'pirates-reticle', title: 'Nothing in the way', caption: 'Before, a broken ring near the ship and a small diamond far down the same line: two marks that read as two reticles. After, one ring round a dot, where the shots will go.', from: `${RETICLE357}, the raider moved out of the way` },
       { name: 'pirates-reticle-aim', title: 'A pirate just off the line', caption: 'Before, the ring and the diamond stayed on the plain line, open, beside a big teal diamond round the pirate (a missile’s mark). After, the aim assist has it: the reticle tightens, turns coral and slides onto it, and the missile’s mark is a small teal pip over it.', from: RETICLE357 },

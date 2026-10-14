@@ -33,16 +33,37 @@ The ship's cutscenes and the filmed first times.
   with ~7 s (`APPROACH`) out in space: the destination planet grows ahead in the galactic
   map's colours and mark (a shader writing the G-buffer: flat body, a hatched crescent,
   bands, dunes, craters, continents, windows, a ring or a moon, a rim of air), the ship levels
-  out and brakes into the air with a few pale wisps, passes the clouds in a soft white fade and
-  comes down upright on its jets: a landing, not a crash (the prologue's is a forced landing on its belly;
-  docs/systems/ship-consoles.md). Hold to skip, as ever.
+  out and brakes into the air with a few pale wisps, passes the clouds in a soft white fade, flies in nose first, hovers
+  over its spot and comes straight down on its jets: a landing, not a crash (the prologue's is a forced landing on its
+  belly; docs/systems/ship-consoles.md). Hold to skip, as ever.
+- **Take-off and landing as a lander flies them** (v1.75, issue #354: "When the ship flies away it should go up with
+  boosters then forward. The reverse for landing. Arrive then land vertically for the final part"; `src/ship/flight.js`,
+  pure numbers). **The take-off** (`TAKEOFF`, `takeoffPose`): straight up off its feet on the belly's jets to a hover
+  15 m up in 2 s, eased in and out, the dust blown out under it; then the nose dips (0.14 rad) as the jets tip it forward
+  and it powers away along its bow, 340 m by the end of its 5.2 s, climbing 80 m, the nose coming up to 0.12 rad; the
+  warp opens at 4.4 s, well away (~180 m). Filmed low, 40 m out from the hatch and 26 m behind the stern, so the lift
+  reads side on and the going away crosses the frame (it used to climb straight up, faster and faster, from in front).
+  **The landing** (`LANDING`, `landingPose`): in nose first along its bow from 300 m back and 175 m up, slowing all
+  the way with its nose flared up (0.12 rad at most), to a hover 32 m over its spot in 3.6 s; it hangs there 0.35 s;
+  then straight down in 2.6 s (smootherstep: onto its feet under 1 m/s, touchdown called 0.1 s before the end). The
+  short arrival flies the glide out of the clouds seen from the side (`APPROACH.sky`, 135 m out from the hatch side,
+  80 m up) and the rest in the low shot by the ramp, now aimed half way down to its spot (`LAND_LOOK`) so the ground it
+  comes down to stays in the frame. The first arrival's wide flies the glide in its establishing shot (`wideFlight`:
+  from 150 m up, from as far back as `wideBack` finds keeps it in the frame for the last 60 % and in front of the lens
+  all the way, 240 m in every world now) and the hover and drop (2.8 s) in the low shot. #299's touchdown dust is
+  unchanged. **Unity**: the export writes `ship.flight` (the two tables) and `ShipTravel.cs` evaluates the same
+  curves (`TakeoffPose`, `LandingPose`, its fallbacks the same numbers: tests/unity-ship-points.test.js); its first
+  arrival's wide is still not wired. Tests: `tests/cutscenes.test.js` (up first with no step forward, then away along
+  the bow; in, a hover, straight down, no speed at touchdown; the director's take-off; the flame under the bells on the
+  new curve), `tests/arrival-view.test.js` (every world's wide glides in from 150 m back or more).
 - **The first arrival in each world** (issue #327: "the landing view and the first exit out of the ship should show a
   beautiful view of the landscape with points of interest visible"; `src/ship/arrival-view.js`). Two views per route
   world, picked from its own data and kept in `src/ship/arrival-views.js`:
   - **The establishing descent.** The first time the ship comes down in a world, the short drop out of the clouds
     (`APPROACH.sky`) gives way to a wide shot of 6.4 s (`WIDE`): big sky, the world's landmarks laid out in depth, and
-    the ship gliding in nose first and coming down small into the frame from 260 m over its rest to 30 m, the camera
-    drifting a little. The landing's own low shot then takes the last 30 m in 2.8 s, still moving, and settles it on its feet.
+    the ship gliding in nose first along its bow into the frame, from 150 m up to a hover 30 m over its rest (since
+    v1.75, issue #354; before, a fall from 260 m drifting 70 m forward), the camera drifting a little. The landing's own
+    low shot then brings it straight down those last 30 m in 2.8 s and settles it on its feet.
   - **The first step out.** He walks two steps out and turns toward the world's best view (`exitStops`), and the camera
     drifts for 3.6 s (`REVEAL`) from a little round, higher and further out into the rig's own framing behind him, a
     little high (`Ship.revealView`). Control is his all the while: a move, a new button or a turn of the camera cuts it

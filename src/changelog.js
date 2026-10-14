@@ -19,6 +19,9 @@ export const CHANGELOG = [
     // engine/map-marks.js, BridgeMenu.cs DrawMap; tests/engine-menus.test.js, tests/engine-raster.test.js; docs/systems/engine-bridge.md
     { text: 'The Map in the Unity version is the web game’s: it fills the page, its ground drawn smooth with every mesa’s and building’s inked edge (no more blocky squares), the web’s marks for you, the ship, temples, people and quests, a north arrow and the scale; the list beside it is gone for a cursor you move with the left stick, zooming with the triggers or A, with the name of whatever it rests on beside it.',
       see: 'In the Unity build press View, then RB to the Map: move the ring with the left stick onto the ship and its name shows beside it; hold RT to zoom in, and after a moment the close view sharpens. B goes back to the whole map, then out.' },
+    // take-off and landing (issue #354): src/ship/flight.js, cinematics.js TakeoffDirector / ArrivalDirector, arrival-view.js
+    // wideBack; Unity: export-world.mjs ship.flight, ShipTravel.cs; tests/cutscenes.test.js, tests/arrival-view.test.js
+    'Your ship takes off like a lander now: it rises straight up on its jets in a cloud of dust, hangs there a moment, then tips forward and roars away. Landing is the reverse: it flies in nose first, slows to a hover over its spot and comes straight down onto its feet. The same in the Unity version.',
     // the pirates' one reticle (issue #357): src/minigames/pirates.js drawHud, RETICLE; tests/pirates.test.js; docs/systems/minigames.md
     'In the chime pirates you aim with one reticle now, a ring round a dot where your shots will go: it tightens and turns coral when the aim assist has a pirate, sliding onto it, and the charge fills a gold ring round it. The second, distant mark is gone, and a missile’s target has a small teal pip over it instead of a big diamond round it.',
   ] },

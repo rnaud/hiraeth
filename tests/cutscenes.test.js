@@ -10,7 +10,8 @@ import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
 import { buildApproach, planetMaterial, MARK_IDS } from '../src/ship/approach.js';
 import { PLANETS } from '../src/ship/planets.js';
-import { ArrivalDirector, APPROACH, landingK, planetDistance, PLANET_NEAR, callShot, callAngle, tableShot } from '../src/ship/cinematics.js';
+import { ArrivalDirector, TakeoffDirector, APPROACH, landingK, planetDistance, PLANET_NEAR, callShot, callAngle, tableShot } from '../src/ship/cinematics.js';
+import { TAKEOFF, LANDING, takeoffPose, landingPose, landingDur } from '../src/ship/flight.js';
 import { inRooms } from '../src/ship/interior.js';
 import { FlameBody, FIRE, COOL_FIRE } from '../src/story/flames.js';
 
@@ -89,14 +90,14 @@ test('coming down fast, the jets’ flame stays under the bells and never stands
   const m = ship.parked;
   ship.jets = new Puffs(new THREE.Scene(), { count: 400, glow: 1 });
   ship.jets.drag = 0;
-  // the landing's last stretch, as cinematics.js plays it: 140 m to the feet in 4.2 s, slowing (landingK), plus
-  // the sky's fall before it (over 200 m/s): every tongue of flame stays below the belly's bells, in the ship's frame
+  // the landing's way down, as cinematics.js plays it (src/ship/flight.js landingPose: the glide in, the hover, the drop),
+  // its heights alone (over 150 m/s at first): every tongue of flame stays below the belly's bells, in the ship's frame
   const dt = 1 / 60;
   const radius = (p) => { const k = Math.min(p.age / p.life, 1); return p.size * Math.min(1, k * 6 + 0.25) * (1 + k * 1.4) * (1 - k ** 3); };   // (as Puffs.update draws it)
   let worst = -Infinity;
-  for (let i = 0; i <= 6 * 60; i++) {
+  for (let i = 0; i <= landingDur() * 60; i++) {
     const t = i * dt;
-    const y = t < 1.9 ? 400 - 260 * (1 - Math.pow(1 - t / 1.9, 1.6)) : 140 * (1 - (1 - Math.pow(1 - Math.min(1, (t - 1.9) / 4.2), 3)));
+    const y = landingPose(t).up;
     m.group.position.copy(ship.restPos).add(v(0, y, 0));
     exhaust(ship, m, dt, { power: 1 });
     ship.jets.update(dt);
@@ -309,5 +310,70 @@ test('the shots inside the ship stay in its rooms, the lens clear of every wall 
   }
   ship.player.pos.copy(ship.rampFoot);
   check('table, him outside', tableShot(ship, m, 1));
+});
+
+// ------------------------------------------------------------------ issue #354: up on the jets, then forward; the reverse to land
+test('the take-off: straight up on its jets to a hover first, then tipped forward and away along its bow (issue #354)', () => {
+  const dt = 1 / 60;
+  let last = takeoffPose(0), most = 0;
+  for (let t = dt; t <= TAKEOFF.dur + 1e-9; t += dt) {
+    const p = takeoffPose(t);
+    if (t <= TAKEOFF.rise) assert.equal(p.ahead, 0, `t ${t.toFixed(2)}: only up while it lifts off`);
+    // (no jump anywhere: its speed changes smoothly from frame to frame)
+    most = Math.max(most, Math.hypot(p.ahead - last.ahead, p.up - last.up) / dt);
+    assert.ok(Math.abs(p.pitch - last.pitch) < 0.02, `t ${t.toFixed(2)}: the nose turns smoothly`);
+    last = p;
+  }
+  assert.ok(Math.abs(takeoffPose(TAKEOFF.rise).up - TAKEOFF.hover) < 1e-9, 'it hangs at its hover');
+  assert.ok(takeoffPose(TAKEOFF.rise + 0.3).pitch < -0.05, 'the nose dips as it tips forward');
+  assert.ok(takeoffPose(TAKEOFF.dur).pitch > 0, 'and comes up as it climbs away');
+  const end = takeoffPose(TAKEOFF.dur), atWarp = takeoffPose(TAKEOFF.warp);
+  assert.ok(end.ahead > 2 * end.up, `forward more than up (${end.ahead.toFixed(0)} m ahead, ${end.up.toFixed(0)} up)`);
+  assert.ok(atWarp.ahead > 100, `well away when the warp opens (${atWarp.ahead.toFixed(0)} m)`);
+  assert.ok(most < 250, `${most.toFixed(0)} m/s at most`);
+});
+
+test('the landing: in nose first along its bow, a hover over its spot, then straight down onto its feet (issue #354)', () => {
+  const dt = 1 / 60, T = landingDur();
+  let last = landingPose(0);
+  assert.ok(last.back > 200 && last.up > 140, 'it starts far back and high, out of the clouds');
+  for (let t = dt; t <= T + 1e-9; t += dt) {
+    const p = landingPose(t);
+    assert.ok(p.back <= last.back + 1e-9 && p.up <= last.up + 1e-9, `t ${t.toFixed(2)}: only ever in and down`);
+    if (t >= LANDING.glide) assert.equal(p.back, 0, `t ${t.toFixed(2)}: over its spot, straight down`);
+    assert.ok(Math.abs(p.pitch - last.pitch) < 0.02, 'the flare comes and goes smoothly');
+    last = p;
+  }
+  assert.ok(landingPose(LANDING.glide * 0.6).pitch > 0.1, 'its nose flared up as it brakes');
+  assert.ok(Math.abs(landingPose(LANDING.glide).up - LANDING.hover) < 1e-9 && landingPose(LANDING.glide).pitch < 1e-9, 'level, at its hover');
+  const s = (landingPose(T - 0.1).up - landingPose(T - 0.1 + dt).up) / dt;
+  assert.ok(s < 1, `onto its feet with next to no speed (${s.toFixed(2)} m/s)`);
+  assert.equal(landingPose(T).up, 0);
+});
+
+test('the take-off as the director plays it: up off its feet with no step forward, then away along its bow, and the warp (issue #354)', () => {
+  const { ship } = flatWorld('incal');
+  ship.player = new Player(ship.physics);
+  ship.rig = { yaw: 0, pitch: 0.2, target: v(), indoor: false };
+  ship.camera = new THREE.PerspectiveCamera();
+  ship.sound = {};
+  let warped = false, done = false;
+  ship.warp = { start: () => { warped = true; }, update() {} };
+  const fwd = v(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize();
+  const d = new TakeoffDirector(ship, { to: 'edena', title: 'Edena', onDone: () => { done = true; } });
+  d.start();
+  const at = () => ship.parked.group.position.clone().sub(ship.restPos);
+  let lifted = null, gone = null;
+  for (let t = 0; t < 12 && !d.done; t += 1 / 30) {
+    d.update(1 / 30, false);
+    if (d.i !== 1) continue;
+    const p = at();
+    if (d.t <= TAKEOFF.rise) assert.ok(Math.hypot(p.x, p.z) < 1e-6, `straight up while it lifts (${Math.hypot(p.x, p.z).toFixed(3)} m aside)`);
+    if (d.t >= TAKEOFF.rise - 1 / 30 && lifted === null) lifted = p.y;
+    gone = p;
+  }
+  assert.ok(lifted > TAKEOFF.hover * 0.9, `it hovered ${lifted?.toFixed(1)} m up`);
+  assert.ok(gone.dot(fwd) > 150 && gone.dot(fwd) > 2 * gone.y, `then away along its bow (${gone.dot(fwd).toFixed(0)} m ahead, ${gone.y.toFixed(0)} up)`);
+  assert.ok(warped && done, 'then the warp, and on to the next world');
 });
 
