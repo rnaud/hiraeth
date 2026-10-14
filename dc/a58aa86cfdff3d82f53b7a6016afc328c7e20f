@@ -1,0 +1,25 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_f5a2b8b5221133 72-73
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_5b6ecb5e449e9a 422
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_e307eb3bd2c416 259-260
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_2ff9e29e99fc6f 163-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dca58aa86cfdff3d82f53b7a6016afc328c7e20f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
