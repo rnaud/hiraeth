@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.73 — 2026-10-14
 
+- At home, the window seat: your head stays inside the picture as you sit down and get up, and the view from beside the seat no longer has a flat white patch of wall in it.
 - When your ship lands, the dust it blew up settles at once and only a small, pale puff rises at each foot: you see the ship standing on its feet within a second, not hidden behind big beige balls of dust.
 - In the recordings at the ship’s console, the view no longer jumps in to the close-up from the same spot: it glides across into it.
 

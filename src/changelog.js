@@ -19,6 +19,8 @@ export const CHANGELOG = [
       see: 'Play a recording at the ship’s console after a few worlds: as the parents fold away, the view moves across to the close-up instead of cutting.' },
     // the touchdown's dust (issue #299): src/ship/exhaust.js touchdownDust, src/ship/fx.js Puffs.settle; tests/cutscenes.test.js
     'When your ship lands, the dust it blew up settles at once and only a small, pale puff rises at each foot: you see the ship standing on its feet within a second, not hidden behind big beige balls of dust.',
+    // the window seat (issue #298): src/story/home.js seatWide, SEAT_RISE, seatSide; tests/home.test.js
+    'At home, the window seat: your head stays inside the picture as you sit down and get up, and the view from beside the seat no longer has a flat white patch of wall in it.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js

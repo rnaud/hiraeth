@@ -819,6 +819,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
       { name: 'touchdown-incal', title: 'Landing in the City-Shaft', caption: 'Half a second into the shot of the hatch after touchdown: before, balls of dust over the ship’s feet and half its hull; after, the ship on its feet, a few small puffs going.', from: CINE295 },
     ] },
+    { match: 'At home, the window seat', tags: ['cinematics'], shots: [
+      { name: 'window-seat-side', title: 'Beside the seat', caption: 'The second view, on his profile and the round window: before, the room’s pale wall in the sun filling the left third, flat white; after, closer on him and the window, the wall out of it.', from: CINE295 },
+      { name: 'window-seat-stand', title: 'Getting up', caption: 'Standing up again at the end: before, his head at the top of the picture, under the black bar; after, the view rises with him and his head stays clear.', from: CINE295 },
+    ] },
   ],
   '1.72': [
     { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [

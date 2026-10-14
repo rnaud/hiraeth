@@ -83,7 +83,7 @@ export function sitPose(c, k) {
 /** The stone's second angle, on his face: from `from` s in until `before` s ahead of the last lines. */
 export const HOMAGE_FACE = { from: 3.4, before: 2.6 };
 /** The window seat's second panel (s): from beside the seat, his profile and the round window, between `from` and `before` the end. */
-export const SEAT_SIDE = { from: 5.0, before: 1.5 };
+export const SEAT_SIDE = { from: 5.0, before: 1.5, side: 1.5, back: 1.3, toward: 0.7, fov: 36 };
 
 /**
  * The window seat's second angle: from the room beside the seat (on the table's side), close, his profile
@@ -93,10 +93,24 @@ export const SEAT_SIDE = { from: 5.0, before: 1.5 };
 export function seatSide(seat, win, table, floor) {
   const out = V(win.x - seat.x, 0, win.z - seat.z).normalize(), side = V(-out.z, 0, out.x);
   if ((table.x - seat.x) * side.x + (table.z - seat.z) * side.z < 0) side.negate();
-  // (his head, sat, is about 1.3 m up: framed off his chest it was cut off by the frame's top)
-  const head = V(seat.x, floor + 1.2, seat.z);
-  const pane = V(seat.x, floor + 1.35, seat.z).addScaledVector(out, 1.2);
-  return { pos: seat.clone().setY(floor + 1.5).addScaledVector(side, 1.6).addScaledVector(out, -1.0), look: head.lerp(pane, 0.4), fov: 52 };
+  // (his head, sat, is about 1.3 m up: framed off his chest it was cut off by the frame's top. Tight on him and the
+  //  pane, the room's curved wall behind him kept out: wider, its sunlit inner face filled the frame's left third as a
+  //  flat white patch: the QC pass, v1.66)
+  const head = V(seat.x, floor + 1.4, seat.z);
+  const pane = V(seat.x, floor + 1.52, seat.z).addScaledVector(out, 1.2);
+  return { pos: seat.clone().setY(floor + 1.5).addScaledVector(side, SEAT_SIDE.side).addScaledVector(out, -SEAT_SIDE.back), look: head.lerp(pane, SEAT_SIDE.toward), fov: SEAT_SIDE.fov };
+}
+
+/** How far (m) the window seat's first angle rises (lens and look) while he stands (as he walks in, as he gets up), and how much more the look tilts up: his head under the letterbox. */
+export const SEAT_RISE = { lens: 0.35, look: 0.5 };
+/**
+ * The window seat's first angle: beside him, looking past him out of the window (the ring, the ship, the sky), the
+ * look easing up from the window as he sits to keep his head clear of the top bar as he stands (the QC pass, v1.66:
+ * standing, it went under the letterbox). `t` s in, `k` how far he is sat (0 standing .. 1).
+ */
+export function seatWide(seat, win, table, floor, t = 0, k = 1) {
+  const up = 1 - smooth(k);
+  return { pos: seat.clone().lerp(table, 0.62).setY(floor + 1.5 + SEAT_RISE.lens * up), look: win.clone().setY(floor + 1.3 + Math.min(t * 0.04, 0.3) + SEAT_RISE.look * up), fov: 54 };
 }
 
 /**
@@ -349,12 +363,12 @@ export function setupHome(ctx) {
       // enough that his head stays in the frame as he sits and stands (the QC pass: it cut his head off)
       // Then, for the second line, closer from beside the seat: his profile and the round window, the ring
       // through it (the QC pass: one angle for 9.5 s); back to the first for him getting up
-      shot: (Tt) => {
+      shot: (Tt, k) => {
         if (Tt > SEAT_SIDE.from && Tt < 9.5 - SEAT_SIDE.before) {
           const c = seatSide(at, out, small.spots.table, small.floor), u = Math.min(1, (Tt - SEAT_SIDE.from) / 3);
           return { ...c, pos: c.pos.lerp(c.look, 0.08 * u), fov: c.fov - 2 * u };
         }
-        return { pos: at.clone().lerp(small.spots.table, 0.62).setY(small.floor + 1.5), look: out.clone().setY(small.floor + 1.3 + Math.min(Tt * 0.04, 0.3)), fov: 54 };
+        return seatWide(at, out, small.spots.table, small.floor, Tt, k);
       },
       onEnd: () => { st.moment = null; },
     });

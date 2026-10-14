@@ -143,7 +143,46 @@ test('the window seat’s second angle: from inside the room beside the seat, cl
   assert.ok(d > 1 && d < 2.6, `close on him (${d.toFixed(2)} m)`);
   assert.ok(physics.rayDistance(c.pos, toSeat.clone().normalize(), d) >= d - 0.3, 'nothing between the lens and him');
   const look = c.look.clone().sub(c.pos).normalize();
-  assert.ok(look.angleTo(toSeat.normalize()) < THREE.MathUtils.degToRad(c.fov / 2), 'he is in the frame');
+  // (his head and shoulders: the angle is tight on his profile since v1.66, issue #298)
+  const toHead = S.seat.clone().setY(small.floor + 1.3).sub(c.pos).normalize();
+  assert.ok(look.angleTo(toHead) < THREE.MathUtils.degToRad(c.fov / 2), 'he is in the frame');
   const toWin = S.window.clone().sub(c.pos).normalize();
   assert.ok(look.angleTo(toWin) < THREE.MathUtils.degToRad(c.fov * 0.8), 'and the window beyond him');
+});
+
+test('the window seat (QC v1.66, issue #298): his head under the letterbox as he sits and stands, and no wall of white behind him', async () => {
+  const { seatSide, seatWide, SEAT_SIDE } = await import('../src/story/home.js');
+  const scene = new THREE.Scene();
+  const level = quiet(() => createHome(scene));
+  const physics = new Physics(scene, level.ground);
+  const { small } = level.home, S = small.spots, F = small.floor;
+  // the top of his head: sat on the seat (~1.45 m up), standing beside it (~1.86 m)
+  const top = (h) => S.seat.clone().setY(F + h);
+  const ndc = (shot, p) => {
+    const cam = new THREE.PerspectiveCamera(shot.fov, 16 / 9, 0.05, 100);
+    cam.position.copy(shot.pos); cam.lookAt(shot.look); cam.updateMatrixWorld();
+    return p.clone().project(cam);
+  };
+  const BAR = 0.7;   // (the letterbox covers the frame's top 11 %: NDC 0.78; a margin under it)
+  for (const [t, k, h, what] of [[0.2, 0, 1.86, 'walking in'], [3, 1, 1.45, 'sat'], [9.4, 0, 1.86, 'stood up']]) {
+    const p = ndc(seatWide(S.seat, S.window, S.table, F, t, k), top(h));
+    assert.ok(p.y < BAR && p.y > -BAR && Math.abs(p.x) < 0.8, `the first angle, ${what}: his head in the frame, clear of the bar (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`);
+  }
+  const c = seatSide(S.seat, S.window, S.table, F);
+  const p = ndc(c, top(1.45));
+  assert.ok(p.y < BAR && Math.abs(p.x) < 0.8, `the second angle: his head clear of the bar (${p.y.toFixed(2)})`);
+  // the room's curved wall far behind him (its pale inner face, in the sun through the door and the windows, read as a
+  // flat white patch over the frame’s left third, 36 % of it): a fifth at most, most of it behind him
+  const cam = new THREE.PerspectiveCamera(c.fov, 16 / 9, 0.05, 100);
+  cam.position.copy(c.pos); cam.lookAt(c.look); cam.updateMatrixWorld();
+  const centre = small.room?.getWorldPosition?.(V(0, 0, 0)) ?? HOME_SPOTS.small;
+  let far = 0, n = 0;
+  for (let x = -0.95; x <= 0.95; x += 0.1) for (let y = -0.7; y <= 0.7; y += 0.1) {
+    const d = V(x, y, 0.5).unproject(cam).sub(c.pos).normalize();
+    const hit = physics.rayDistance(c.pos, d, 12);
+    const at = c.pos.clone().addScaledVector(d, hit);
+    n++;
+    if (hit > 3 && Math.abs(Math.hypot(at.x - centre.x, at.z - centre.z) - 4.8) < 0.6 && at.y > F + 0.3) far++;
+  }
+  assert.ok(far / n < 0.2, `the far wall ${(100 * far / n).toFixed(0)} % of the frame (fov ${SEAT_SIDE.fov})`);
 });
