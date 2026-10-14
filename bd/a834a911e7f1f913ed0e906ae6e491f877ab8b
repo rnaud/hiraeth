@@ -1,0 +1,21 @@
+tests/distant-shimmer.test.js
+  s_9ca76055a220ed::t_8b5fbbeb19665d 87
+unity/Hiraeth/Assets/Hiraeth/Shaders/HiraethCommon.hlsl
+  s_9ca76055a220ed::t_e9d7d622505ddc 61,64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bda834a911e7f1f913ed0e906ae6e491f877ab8b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

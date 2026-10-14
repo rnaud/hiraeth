@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_8735ce7bf3344a 7
+docs/systems/characters.md
+  s_9ca76055a220ed::t_0c94b5d0e63681 1578-1584
+public/guardians/elder-v3/rig.json
+  s_9ca76055a220ed::t_3addd9f11b4fc3 5,33-53
+scripts/tripo/elder-delight.mjs
+  s_9ca76055a220ed::t_24e0101c3f0c32 1-120
+scripts/tripo/rig-elder-v3.mjs
+  s_9ca76055a220ed::t_b6cf09774bac3e 8,40-43,49
+src/changelog-media.js
+  s_9ca76055a220ed::t_9788176a35258e 851-853
+src/changelog.js
+  s_9ca76055a220ed::t_3cf21bc76dc19b 43-44
+tests/elder-cycles.test.js
+  s_9ca76055a220ed::t_c38bc0e037ba78 4-5,9-10,18,91-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d0dc34ce1b087fa498a842973a6fc53cc40e0aaa",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+TODO.md
+  s_9ca76055a220ed::t_7b4b00b0636af3 84-95
+docs/audits/temple-design-v1.74.md
+  s_9ca76055a220ed::t_76e8c7302f19cf 5,9-150,157,178,223,251,257,273
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_06383ed85f112f 11-12,93-94
+src/changelog-media.js
+  s_9ca76055a220ed::t_fb00477b0bc15f 827,850-860
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_7c61ce02c364cc 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b999d66a179102f7bd0ced80e779c3cc6a7068bc",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+src/animator.js
+  s_9ca76055a220ed::t_38e3134011cf13 785,788,790
+src/player.js
+  s_9ca76055a220ed::t_20f62ea2fff16b 146-162,1646-1648,1659,2592-2602
+scripts/motion-qc/run.mjs
+  s_9ca76055a220ed::t_802ec48765bb28 52-53
+src/feet.js
+  s_9ca76055a220ed::t_2b552ecda4d15e 35-36,50-53,57,102-111,202-210,246-248,272,280,299,320-322,344-348,380,384,429-441,446,463-469
+src/loco-moves.js
+  s_55b4bc53b812ec::t_512cb112bc99e3 40
+  s_9ca76055a220ed::t_f0bfb05e42144c 194-199
+  s_9ca76055a220ed::t_7e8cd11f6c1c6e 39
+changelog.md
+  s_9ca76055a220ed::t_94734095ff43a4 7
+docs/systems/animation.md
+  s_9ca76055a220ed::t_03f6676714a1cf 794-875
+src/changelog-media.js
+  s_9ca76055a220ed::t_469423508640a9 850-865
+src/changelog.js
+  s_9ca76055a220ed::t_bfa4c232ea443c 26-29
+tests/motion-qc.test.js
+  s_9ca76055a220ed::t_06ce8cbe4221cc 84,90,99-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "33807e9c09d88840c7781d9a4b68791e38eb8de3",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
