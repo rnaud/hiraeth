@@ -1,0 +1,21 @@
+scripts/bench/browser.mjs
+  s_9ca76055a220ed::t_99df510a1209c7 30-31
+tests/motion-check-tools.test.js
+  s_9ca76055a220ed::t_203da74ec9e8b9 60-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "384b907e66ad34c6f4aa05a4949e2e74adf1b806",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
