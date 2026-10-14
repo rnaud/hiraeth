@@ -1,0 +1,87 @@
+src/humanoid.js
+  s_9ca76055a220ed::t_c306f6697be852 1651-1652,1654,1673
+tests/temple-playthrough.test.js
+  s_9ca76055a220ed::t_bdd181bf9b200d 20-21,360-386,412,477-479
+src/temples/spacecity.js
+  s_9ca76055a220ed::t_010be1afbbaae4 6,23-27,169-173,177-180,331-344
+engine/game.js
+  s_9ca76055a220ed::t_ca8e98f154caa8 93,318
+src/platform.js
+  s_9ca76055a220ed::t_d33f149abe9e07 68-70,76
+src/temples/desert.js
+  s_9ca76055a220ed::t_fd15dcfe2f2c48 8,34-36,65-67,120-122,124,363-366,368-371
+src/i18n/en.js
+  s_9ca76055a220ed::t_796236ca92c86f 298
+src/player.js
+  s_9ca76055a220ed::t_7435d063901cd6 22,628,766,1370-1371,1479,1494,1500,1548,1570,1712,1858,1901-1903
+tests/temples.test.js
+  s_9ca76055a220ed::t_4f4a0209b978c6 7-8,921-961,963
+docs/systems/carry.md
+  s_9ca76055a220ed::t_643edebade5f86 2-77
+  s_9ca76055a220ed::t_ebad32db7c5b26 1
+src/temples/migrate.js
+  s_9ca76055a220ed::t_139037cfb6a76e 160-167
+  s_9ca76055a220ed::t_22a8cac951b195 159
+src/gadgets/hook.js
+  s_9ca76055a220ed::t_1602e93a3802a2 5,55-62,168-169,173,351-352
+src/gadgets/index.js
+  s_9ca76055a220ed::t_b034251e85f4fe 213-214
+src/carry.js
+  s_9ca76055a220ed::t_f1cdb87a5b6256 1-257
+docs/systems/gadgets.md
+  s_9ca76055a220ed::t_9a6d812a77963d 34-35,172-174
+src/gadgets/world.js
+  s_9ca76055a220ed::t_6328b274497ca5 6,30-31,48,85-90,111-112,130,147
+changelog.md
+  s_9ca76055a220ed::t_796ccaedd0cc5a 7-10
+tests/carry.test.js
+  s_9ca76055a220ed::t_b7b90383fb7d4c 1-316
+src/temples/pieces.js
+  s_9ca76055a220ed::t_9735a7499988db 18-19,61,296-439,3063,3065-3067,3084-3095,3102,3107-3108,3117-3121
+src/main.js
+  s_9ca76055a220ed::t_53e0e2e664b66f 96,696-698
+src/physics.js
+  s_9ca76055a220ed::t_3129b30bae68b5 310-316
+src/save-migrate.js
+  s_9ca76055a220ed::t_196773e1590c17 506,516,520
+src/hands.js
+  s_9ca76055a220ed::t_c9292b8c8a95fe 420
+docs/systems/temples.md
+  s_9ca76055a220ed::t_7b9f9d85340dec 46,832-842
+src/changelog-media.js
+  s_9ca76055a220ed::t_74287aa1eae278 837,845-854
+src/temples/logic.js
+  s_9ca76055a220ed::t_6d4a7d1121698b 41-44,48,101-102,105-114,201,280-281,284-285,368,410-411
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_587597cfd220e0 10,300,304,310-322
+tests/sentry.test.js
+  s_9ca76055a220ed::t_a80525ffbf84d9 10,94
+src/i18n/fr.js
+  s_9ca76055a220ed::t_f5b5e7f71825ce 296
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_412b8a584a5c73 131-133
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_4c2229251c1ca0 675-686
+src/fluid-tool.js
+  s_9ca76055a220ed::t_0e77efff8464d7 2,1000-1006
+docs/README.md
+  s_9ca76055a220ed::t_dbb2406b2f838e 69
+src/changelog.js
+  s_9ca76055a220ed::t_e7cfa80068955a 23-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e5cee443bf1136e429d0b80c4c1253ebf0ed5a2f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
