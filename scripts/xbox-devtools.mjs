@@ -11,10 +11,10 @@
 //   node scripts/xbox-devtools.mjs launch | stop         → start or stop the app (POST / DELETE /api/taskmanager/app with
 //                                                           the portal's CSRF token)
 //
-// XBOX_PORTAL (default https://192.168.68.64:11443) and XBOX_PACKAGE (the installed package's full name; default:
+// XBOX_PORTAL (default https://192.168.68.54:11443) and XBOX_PACKAGE (the installed package's full name; default:
 // read from the portal) say which console. The portal's certificate is self-signed: TLS checks are off here.
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.64:11443';
+const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.54:11443';
 const [cmd = 'js', a1, a2] = process.argv.slice(2);
 const NOISE = /Program Info Log|warning X\d{4}/;
 

@@ -125,7 +125,9 @@ writes the package version `major.minor.build.0`: `1.5.4123.0`); `msbuild` (Rele
 **Developer Mode** (once): a Partner Center account (the individual developer registration), then on the console
 install the green **Xbox Dev Mode** app from the Store, sign in, follow its steps and restart into Developer Mode.
 Dev Home opens; under *Remote access* turn on the **Device Portal** (a user name and password) and note its address
-(`https://<console-ip>:11443`).
+(`https://<console-ip>:11443`). The console's address comes from the router and can move: it is
+`https://192.168.68.54:11443` since 14 October 2026 (`.64` before). The scripts (`xbox-unity.mjs`, `xbox-devtools.mjs`,
+`xbox-trace.mjs`, `xbox-shaders.mjs`) default to it; `XBOX_PORTAL` names another.
 
 **Deploy** from a PC or the Mac's browser to the Device Portal (accept its self-signed certificate):
 1. Download `hiraeth-xbox.zip` from the `xbox` prerelease and unpack it.
@@ -429,7 +431,7 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
 **Installing and measuring** (from the Mac; the portal has no password). `node scripts/xbox-unity.mjs install <dir>`,
 `launch`, `stop` and `log [prev]` do steps 2, 4 and the fetch; by hand:
 1. Download `hiraeth-unity-xbox.zip` from the `unity-xbox` prerelease and unpack it.
-2. Install: `GET https://192.168.68.64:11443/api/app/packagemanager/packages` for the `CSRF-Token` cookie, then
+2. Install: `GET https://192.168.68.54:11443/api/app/packagemanager/packages` for the `CSRF-Token` cookie, then
    `POST /api/app/packagemanager/package?package=hiraeth-unity-xbox.msix` (multipart: the `.msix` and each `.appx`)
    with the header `X-CSRF-Token`, and poll `GET /api/app/packagemanager/state` until it stops answering 204.
    The certificate is the WebView2 app's, already trusted.

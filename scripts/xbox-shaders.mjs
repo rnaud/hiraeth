@@ -12,7 +12,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';   // (the portal's certificate is self-signed)
-const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.64:11443';
+const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.54:11443';
 
 export async function connect(portal = PORTAL) {
   const tabs = await (await fetch(`${portal}/msedge`)).json();

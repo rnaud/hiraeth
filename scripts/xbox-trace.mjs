@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';   // (the portal's certificate is self-signed)
-const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.64:11443';
+const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.54:11443';
 const [cmd = 'record', ...rest] = process.argv.slice(2);
 const flags = new Set(rest.filter((a) => a.startsWith('--'))), pos = rest.filter((a) => !a.startsWith('--'));
 

@@ -11,14 +11,14 @@
 //   node scripts/xbox-unity.mjs args "<words>"  → LocalState\args.txt, the player's arguments (no command line on the
 //                                                 console: BridgeArgs reads it; "-no-tick", "-audio-js"); "" removes it
 //
-// XBOX_PORTAL (default https://192.168.68.64:11443) says which console. The portal's certificate is self-signed: TLS
+// XBOX_PORTAL (default https://192.168.68.54:11443) says which console. The portal's certificate is self-signed: TLS
 // checks are off here. The portal checks a CSRF token on writes: the CSRF-Token cookie of a first GET, sent back as
 // the X-CSRF-Token header.
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.64:11443';
+const PORTAL = process.env.XBOX_PORTAL ?? 'https://192.168.68.54:11443';
 const FAMILY = 'rnaud.HiraethUnity';
 const [cmd = 'log', a1] = process.argv.slice(2);
 
