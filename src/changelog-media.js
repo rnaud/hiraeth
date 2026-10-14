@@ -813,7 +813,13 @@ const PIRATES326 = 'Issue #326: muted headless Chrome (High, 1280 × 720) agains
 // (v1.72, issues #292, #293: frames of the cinematics QC, scripts/cinematics-qc.mjs, on this branch and on the tree before it)
 const BOX334 = 'Issue #334: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6334), before and after the change, the box opened by the review page’s staging under its own plan; 14 October; the QC’s own WebP';
 const BOX292 = 'Issues #292 and #293: the cinematics QC’s frames (muted headless Chrome, High, 1280 × 720 kept at 960 × 540) against this branch’s own Vite (port 6292), before and after the change, the box opened by the review page’s staging; 14 October; the QC’s own WebP';
+const CINE295 = 'Issues #295–#299: the cinematics QC script (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720, the review page’s staging) on this branch and on the tree before it (259a283d), its frames of the same cinematic at about the same second; 14 October';
 export const CHANGELOG_MEDIA = {
+  '1.73': [
+    { match: 'When your ship lands, the dust it blew up settles', tags: ['ship', 'cinematics'], shots: [
+      { name: 'touchdown-incal', title: 'Landing in the City-Shaft', caption: 'Half a second into the shot of the hatch after touchdown: before, balls of dust over the ship’s feet and half its hull; after, the ship on its feet, a few small puffs going.', from: CINE295 },
+    ] },
+  ],
   '1.72': [
     { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [
       { name: 'slope-cart-toad', title: 'The cart and the toad', caption: 'On a 12° dune, the hill rising to the left: before, the crucible cart level, its uphill track sunk into the sand, and the toad level on its feet; after, the cart tilted onto the sand on both tracks, the toad leaning with the hill.', from: SLOPE332 },

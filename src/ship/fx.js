@@ -37,12 +37,20 @@ export class Puffs {
     const i = this.next;
     this.next = (this.next + 1) % this.items.length;
     const p = this.items[i];
-    p.pos.copy(pos); p.vel.copy(vel); p.size = size; p.life = life; p.age = 0;
+    p.pos.copy(pos); p.vel.copy(vel); p.size = size; p.life = life; p.age = 0; p.fade = 0;
     p.rot.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
     p.spin = (Math.random() - 0.5) * 1.5;
     this.mesh.setColorAt(i, _c.set(color));
     this.mesh.instanceColor.needsUpdate = true;
     this.mesh.visible = true;
+  }
+
+  /**
+   * Every puff alive shrinks away within `s` seconds, from the size it has (no jump): the dust settling as the
+   * engines cut, so the ship's feet read within a second of touchdown (the cinematics QC v1.66, issue #299).
+   */
+  settle(s = 0.7) {
+    for (const p of this.items) if (p.age < p.life && !(p.fade > 0 && p.fadeLeft <= s)) { p.fade = s; p.fadeLeft = s; }
   }
 
   update(dt) {
@@ -57,7 +65,13 @@ export class Puffs {
       p.pos.addScaledVector(p.vel, dt);
       p.rot.x += p.spin * dt;
       // swell quickly, linger, then shrink to nothing
-      const s = k >= 1 ? 0 : p.size * Math.min(1, k * 6 + 0.25) * (1 + k * 1.4) * (1 - Math.pow(k, 3));
+      let s = k >= 1 ? 0 : p.size * Math.min(1, k * 6 + 0.25) * (1 + k * 1.4) * (1 - Math.pow(k, 3));
+      if (p.fade > 0) {   // (settling: settle())
+        p.fadeLeft -= dt;
+        const f = Math.max(0, p.fadeLeft / p.fade);
+        s *= f * f * (3 - 2 * f);
+        if (p.fadeLeft <= 0) { p.age = p.life; s = 0; }
+      }
       _m.compose(p.pos, _q.setFromEuler(p.rot), _s.set(s, s * 0.85, s));
       this.mesh.setMatrixAt(i, _m);
       any = true;

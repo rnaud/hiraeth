@@ -9,7 +9,7 @@ import { loadCue } from '../soundtracks.js';
 import { callHum, callHumLevel } from '../story/hum.js';
 import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
-import { exhaust, footPuffs, carryJets } from './exhaust.js';
+import { exhaust, footPuffs, carryJets, touchdownDust } from './exhaust.js';
 import { LANDING_LINE, FOLLOW_LINE, arrivalLine, giversLine } from '../story/signature.js';
 import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD_MS } from '../story/charge.js';
 import { BUST } from './hologram.js';
@@ -976,7 +976,7 @@ export class ArrivalDirector extends Sequence {
           if (t > landDur - 0.2 && !this.down) {
             // touchdown: the feet settle, a puff of dust from under each, the engines spool down (no jolt)
             this.down = true; sfx.rumble(ship.sound, 0.5, 0.15); sfx.engines(ship.sound, 0); m.mats.thrust.uniforms.uGlow.value = 0;
-            footPuffs(ship, m, { palette: dust() });
+            touchdownDust(ship, m, dust());   // (the blown dust settles, a small pale puff at each foot: issue #299)
           }
         },
       },

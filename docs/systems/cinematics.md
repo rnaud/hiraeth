@@ -296,6 +296,9 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
 - **The recordings** (`src/ship/cinematics.js callFrame`): a cut between the push-in ('over') and the window angle,
   both behind his right shoulder, read as a jump cut (the fov 49 → 36 from nearly the same spot); the lens now
   moves across over `CALL_EASE.s` (0.6 s) instead.
+- **Touchdown** (`src/ship/exhaust.js touchdownDust`): as the engines cut, the dust they blew settles within
+  0.7 s (`Puffs.settle`, each puff shrinking from the size it has) and a small, pale puff rises at each foot, so
+  the ship's feet read within a second (`tests/cutscenes.test.js`). Every arrival and the homecomings' landing.
 
 ## In-engine trailer
 

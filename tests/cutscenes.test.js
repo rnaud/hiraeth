@@ -229,6 +229,36 @@ test('arriving at another world is a landing, not a crash: no shaking, nothing b
   assert.ok(landingK(0) === 0 && landingK(1) === 1 && landingK(0.99) > 0.9999, 'the last of the descent arrives at rest');
 });
 
+test('touchdown: the blown dust settles and the ship’s feet read within a second (QC v1.66, issue #299)', () => {
+  const { ship } = flatWorld('incal');
+  ship.player = new Player(ship.physics);
+  ship.rig = { yaw: 0, pitch: 0.2, target: v(), indoor: false };
+  ship.camera = new THREE.PerspectiveCamera();
+  ship.sound = {};
+  const d = new ArrivalDirector(ship);
+  ship.onReady = () => {};
+  d.start();
+  const radius = (p) => { const k = Math.min(p.age / p.life, 1); return p.size * Math.min(1, k * 6 + 0.25) * (1 + k * 1.4) * (1 - k ** 3); };
+  const feet = () => (ship.parked.hull?.feet ?? []).map((f) => f.clone().applyMatrix4(ship.parked.group.matrixWorld));
+  let down = null, most = 0, after = 0;
+  for (let t = 0; t < 30 && !d.done; t += 1 / 30) {
+    d.update(1 / 30, false);
+    ship.dust.update(1 / 30);
+    if (d.down && down === null) { down = t; most = ship.dust.items.filter((p) => p.age < p.life).length; }
+    if (down !== null && t - down >= 1 && !after) {
+      after = 1;
+      const live = ship.dust.items.filter((p) => p.age < p.life);
+      for (const p of live) {
+        const near = Math.min(...feet().map((f) => f.distanceTo(p.pos)));
+        assert.ok(radius(p) < 0.45 || near > 6, `a second on, no boulder of dust by the feet (${radius(p).toFixed(2)} m, ${near.toFixed(1)} m off a foot)`);
+      }
+    }
+    if (d.down && ship.auto) ship.auto = null;
+  }
+  assert.ok(down !== null && most > 10, `it touched down in its own dust (${most} puffs)`);
+  assert.ok(after, 'and was watched a second on');
+});
+
 test('the burning tree is one great 3D flame with a living fire shader, and still flares and turns cool for the feast', () => {
   const group = new THREE.Group();
   const f = new FlameBody(group, { at: v(0, 20, 0), width: 40, height: 50 });

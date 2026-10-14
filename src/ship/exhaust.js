@@ -67,8 +67,8 @@ export function exhaust(ship, model, dt, { power = 1, palette, rate = 34 } = {})
   return most;
 }
 
-/** A puff of dust from under each landing foot (touching down, lifting off). */
-export function footPuffs(ship, model, { palette, n = 6, speed = 4 } = {}) {
+/** A puff of dust from under each landing foot (touching down, lifting off): `size` its puffs' (m), `life` theirs (s). */
+export function footPuffs(ship, model, { palette, n = 6, speed = 4, size = 0.45, life = 1.1 } = {}) {
   const feet = model.hull?.feet ?? [];
   if (!palette) return;
   model.group.updateMatrixWorld();
@@ -81,9 +81,21 @@ export function footPuffs(ship, model, { palette, n = 6, speed = 4 } = {}) {
       _v.y = 0.5 + Math.random();
       _p.set(_n.x + Math.sin(a) * 1.1, 0, _n.z + Math.cos(a) * 1.1);
       _p.y = ship.floorAt(_p.x, _p.z) + 0.25;
-      ship.dust.emit(_p, _v, 0.45 + Math.random() * 0.35, 1.1 + Math.random() * 0.6, _c.set(pick(palette)));
+      ship.dust.emit(_p, _v, size * (1 + Math.random() * 0.78), life * (1 + Math.random() * 0.55), _c.set(pick(palette)));
     }
   }
+}
+
+/**
+ * Touchdown: the engines cut, the dust they blew settles within `settle` s (Puffs.settle) and a small, pale puff rises
+ * from under each foot, short-lived: the feet read within a second (the dust had stood round them as beige boulders for
+ * two: the cinematics QC v1.66, issue #299).
+ */
+export const TOUCHDOWN = { settle: 0.7, n: 4, size: 0.28, life: 0.75, pale: 0.35 };
+export function touchdownDust(ship, model, palette, o = TOUCHDOWN) {
+  ship.dust?.settle?.(o.settle);
+  const white = new THREE.Color('#fff8ec');
+  footPuffs(ship, model, { palette: palette?.map((c) => '#' + new THREE.Color(c).lerp(white, o.pale).getHexString()), n: o.n, size: o.size, life: o.life, speed: 3 });
 }
 
 /** The jets' flame (its own pool, Ship.jets, with no drag): `speed` m/s out of the bell, at the least. */

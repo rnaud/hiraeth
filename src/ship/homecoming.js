@@ -6,7 +6,7 @@ import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
 import { glyph } from '../pad-glyphs.js';
-import { exhaust, footPuffs } from './exhaust.js';
+import { exhaust, touchdownDust } from './exhaust.js';
 import { spoken } from '../story/tone.js';
 import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
 import { HOME_SPOTS, tokenModel, REEL_AT, layTokens, laidTokens } from '../levels/home.js';
@@ -562,7 +562,7 @@ export class HomecomingDirector {
         const h = pk.group.position.y - s.restPos.y;
         // the jets out of the bells, a little dust blown off the ring from under them: home is grass, not sand (src/ship/exhaust.js)
         if (!this.thud) exhaust(s, pk, dt, { power: 0.8, palette: GRASS, rate: 18 });
-        if (t > 5.8 && !this.thud) { this.thud = true; footPuffs(s, pk, { palette: GRASS, n: 4 }); sfx.rumble(s.sound, 0.5, 0.15); sfx.engines(s.sound, 0); pk.mats.thrust.uniforms.uGlow.value = 0; }
+        if (t > 5.8 && !this.thud) { this.thud = true; touchdownDust(s, pk, GRASS); sfx.rumble(s.sound, 0.5, 0.15); sfx.engines(s.sound, 0); pk.mats.thrust.uniforms.uGlow.value = 0; }
         break;
       }
       case 'hatch': {

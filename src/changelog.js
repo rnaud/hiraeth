@@ -17,6 +17,8 @@ export const CHANGELOG = [
         { where: 'Lorn II’s recording', before: 1, after: 0 },
       ], source: 'the script’s pops on this branch and on the tree before it (259a283d), 14 October' }],
       see: 'Play a recording at the ship’s console after a few worlds: as the parents fold away, the view moves across to the close-up instead of cutting.' },
+    // the touchdown's dust (issue #299): src/ship/exhaust.js touchdownDust, src/ship/fx.js Puffs.settle; tests/cutscenes.test.js
+    'When your ship lands, the dust it blew up settles at once and only a small, pale puff rises at each foot: you see the ship standing on its feet within a second, not hidden behind big beige balls of dust.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js
