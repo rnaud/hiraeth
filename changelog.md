@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.72 — 2026-10-14
 
+- A chest’s last shot keeps you in the picture in a small room: the lift valve’s no longer ends on the open lid against the wall, the Givers’ guard on an empty corner, or the gun with you at the edge of the screen.
 - The chests behind the yards’ gates (the founders’, the moorers’ and the divers’) open seen from inside their alcove: no longer through the gate’s bars with his tank filling the screen, and no more blank picture as he takes what was in them.
 - Steering in the pirate fight is tighter: a small push makes a fine correction, letting go stops the ship where you leave it, and your shots bend onto a pirate close to your aim.
 - The pirate fight feels better: a downed pirate shakes the view a little and holds the action for a split second, its wreck flies apart, the guns flash as they fire, hits spark, quick kills count up a combo, and your ship leaves a short engine trail as it banks.

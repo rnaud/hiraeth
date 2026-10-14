@@ -77,7 +77,7 @@ export function timingFor(plan, beat, base) {
  * traveller's z; and the lens's field of view. 'point' turns with him (scene.js), seen from the side away from his turn.
  */
 const SHOTS = {
-  try: { pos: (Z) => [1.9, 1.45, Z - 1.55], look: (Z) => [0.1, 1.2, Z - 1.1], fov: 46 },
+  try: { pos: (Z) => [1.9, 1.45, Z - 1.55], look: (Z) => [0.2, 1.25, Z - 0.75], fov: 46 },   // (him a third in from the edge, the shot going off ahead: issue #293, he was at the edge)
   wear: { pos: (Z) => [0.75, 1.55, Z - 1.35], look: (Z) => [-0.03, 1.42, Z], fov: 32 },
   keep: { pos: (Z) => [1.0, 1.5, Z - 1.5], look: (Z) => [0.12, 1.2, Z - 0.2], fov: 36 },
   fit: { pos: (Z) => [1.5, 1.75, Z + 1.9], look: (Z) => [0, 1.3, Z + 0.1], fov: 40 },

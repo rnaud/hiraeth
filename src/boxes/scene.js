@@ -94,11 +94,14 @@ const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
 const _d = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _c = new THREE.Vector3(), _p = new THREE.Vector3(), _lk = new THREE.Vector3();
 const _Y = new THREE.Vector3(0, 1, 0), _m = new THREE.Vector3();
-const _ld = new THREE.Vector3(), _cf = new THREE.Vector3(), _of = new THREE.Vector3();
-/** The lens's room (issue #292): it stands LENS_GAP m short of a surface between him and it, and no nearer
+const _ld = new THREE.Vector3(), _cf = new THREE.Vector3(), _of = new THREE.Vector3(), _rt = new THREE.Vector3(), _uv = new THREE.Vector3(), _hd = new THREE.Vector3(), _to = new THREE.Vector3(), _ai = new THREE.Vector3();
+/** The lens's room (issues #292, #293): it stands LENS_GAP m short of a surface between him and it, and no nearer
  *  his chest than LENS_NEAR m where a swing round him (SWINGS steps of SWING_STEP rad each way) finds the room;
  *  it eases to a new swing at SWING_RATE (1/s). */
 export const LENS_GAP = 0.25, LENS_NEAR = 1.3, SWING_STEP = 0.3, SWINGS = 10, SWING_RATE = 3;
+/** Where his head must sit in a closing shot: within these shares of the half-frame, across and up (issue #293:
+ *  the middle 80 % across; up, inside the letterbox's picture). */
+export const HEAD_FRAME = { x: 0.7, y: 0.6 };
 /** How far over 1 the chest's glow goes at its light's full (uBoxA.y: the linings glow with the light out of it). */
 export const LINING_GLOW = 0.75;
 
@@ -229,7 +232,9 @@ export class BoxScene {
       this.card?.hide();
       // after a beat: its closing shot faces him (or he has turned), and a blend back would swing the lens
       // through him: a cut back to play, and a short hand-back; 'fit' was shot from behind him, it blends
-      const beatOut = this.beatDone ? (this.beat === 'fit' ? { blend: 0.9, time: 1.0 } : { blend: 0, time: 0.5 }) : { blend: 1.2, time: OUT_TIME };
+      // (and a cramped closing shot, moved by the room, cuts too: a blend from it swung through the wall and off him,
+      //  the Givers' guard ending on an empty corner: issue #293)
+      const beatOut = this.beatDone ? (this.beat === 'fit' && !this.cramped ? { blend: 0.9, time: 1.0 } : { blend: 0, time: 0.5 }) : { blend: 1.2, time: OUT_TIME };
       this.outTime = beatOut.time;
       this.cam?.release?.(beatOut.blend);
       if (!this.granted) { this.granted = true; this.onGrant?.(); }
@@ -452,8 +457,9 @@ export class BoxScene {
     const aspect = typeof innerWidth === 'number' && innerHeight > 0 ? innerWidth / innerHeight : 1.6;
     fov = Math.min(80, Math.max(fov, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(27)) / aspect))));
     if (aspect < 1) { pos.lerp(look, -0.12); look.y -= 0.6; }   // and step back, aiming low so the subject sits above the card
-    // keep out of walls, roofs and dunes (issue #292)
+    // keep out of walls, roofs and dunes, and keep him in the closing shot (issues #292, #293)
     if (this.physics) this.clearLens(pos, dt, this.phase === 'beat' && this.t <= dt * 1.5 && !this.beatBlend);
+    if (this.phase === 'beat') look = this.keepHead(pos, look, fov, aspect);
     // a breath of handheld drift
     pos.x += Math.sin(time * 0.7) * 0.012; pos.y += Math.sin(time * 0.9) * 0.01;
     this.camPos.copy(pos); this.camFov = fov;
@@ -461,7 +467,7 @@ export class BoxScene {
   }
 
   /**
-   * The lens out of the way of the room (issue #292), in place. Seen from his chest (which stands clear in
+   * The lens out of the way of the room (issues #292, #293), in place. Seen from his chest (which stands clear in
    * front of the box): where a wall, a roof or a gate stands between him and the lens, the lens comes in to just short
    * of it; where that would bring it nearer him than LENS_NEAR, it swings round him (about his upright, the aim kept)
    * to the nearest side where the room is clear, eased there (a cut, `snap`, takes it at once). Then it is lifted
@@ -501,11 +507,35 @@ export class BoxScene {
     const hit = ph.rayDistance(from, dir, d + LENS_GAP);
     const far = hit < d + LENS_GAP ? Math.max(Math.min(d, hit - LENS_GAP), Math.min(0.35, hit * 0.5)) : d;
     pos.copy(from).addScaledVector(dir, far);
+    this.cramped = Math.abs(this.swing) > 0.05 || far < d - 0.05;   // (the room moved it: no blend out from here)
     // off the floor under it: probed from as high over the lens as stands clear (at most 2 m: under a roof, the floor)
     const up = Math.min(2, ph.rayDistance(pos, _Y, 2) - 0.05);
     const g = ph.groundAt(pos.x, pos.y + Math.max(0, up), pos.z, 6);
     if (Number.isFinite(g) && pos.y < g + 0.35) pos.y = Math.min(g + 0.35, pos.y + Math.max(0, up));
     return pos;
+  }
+
+  /**
+   * The closing shot's aim, turned toward his head where the lens (pulled in by a wall, swung round him) would leave it
+   * outside the frame's middle (HEAD_FRAME: shares of the half-frame, across and up; issue #293: the guard's ended on an
+   * empty corner, the lift valve's on the lid against the wall). Unchanged where his head is already in.
+   */
+  keepHead(pos, look, fov, aspect = 16 / 9) {
+    const head = this.P(...this.near(0, 1.62, 0), _m);
+    const ty = Math.tan(THREE.MathUtils.degToRad(fov) / 2), tx = ty * aspect;
+    const inside = (aim) => {
+      const f = _d.subVectors(aim, pos).normalize();
+      const right = _rt.crossVectors(f, _Y).normalize(), upv = _uv.crossVectors(right, f);
+      const h = _hd.subVectors(head, pos), z = h.dot(f);
+      if (z <= 0.05) return false;
+      return Math.abs(h.dot(right) / z) <= HEAD_FRAME.x * tx && Math.abs(h.dot(upv) / z) <= HEAD_FRAME.y * ty;
+    };
+    if (pos.distanceTo(head) < 0.3 || inside(look)) return look;
+    // the least turn toward his head (at his head's own distance along the aim) that brings it in
+    const to = _to.copy(head);
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 12; i++) { const m = (lo + hi) / 2; if (inside(_ai.lerpVectors(look, to, m))) hi = m; else lo = m; }
+    return look.clone().lerp(to, hi);
   }
 
   /** The open chest's mouth (world): its middle at the height its halves part (the band; the temple chest's foot). */

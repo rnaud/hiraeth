@@ -711,7 +711,7 @@ function walledRoom({ gate = null, round = false } = {}) {
 function playInRoom(ph, plan, item, pl = player(V())) {
   const shots = [];
   let sc = null;
-  const cam = { shot: (o) => shots.push({ pos: o.pos.clone(), look: o.look.clone(), fov: o.fov, phase: sc.phase }), release() {}, hud() {}, bars() {} };
+  const cam = { shot: (o) => shots.push({ pos: o.pos.clone(), look: o.look.clone(), fov: o.fov, phase: sc.phase }), release: (b) => { shots.release = b; }, hud() {}, bars() {} };
   sc = new BoxScene({ box: { id: 'room', pos: V(), yaw: 0, parts: { mats: {} }, scene: null }, def: ITEMS[item], item, player: pl, cam, physics: ph,
     groundAt: (x, z, y) => ph.groundAt(x, y, z, 6), pointAt: () => V(3, 0, -4), onGrant() {}, onEnd() {} });
   globalThis.location = { search: `?boxPlan=${plan}` };
@@ -738,6 +738,39 @@ test('a box’s lens is never left behind a wall, a roof or a gate: in a yard’
           assert.ok(!under || s.pos.y < R.y - 0.1, `${label}: frame ${i} (${s.phase}) the lens under the roof (${s.pos.toArray().map((v) => v.toFixed(2))})`);
           assert.ok(!ph.embedded(s.pos), `${label}: frame ${i} (${s.phase}) the lens in the open`);
         }
+      }
+    }
+  }
+});
+
+test('the closing shot keeps his head in the frame’s middle in a walled room, every beat and plan (issue #293)', async () => {
+  const { BOX_PLANS, HEAD_FRAME } = await import('../src/boxes/scene.js');
+  const { beatFor } = await import('../src/boxes/beats.js');
+  // one item for each closing beat
+  const byBeat = {};
+  for (const [id, def] of Object.entries(ITEMS)) byBeat[beatFor(id, def)] ??= id;
+  assert.ok(['try', 'wear', 'keep', 'fit', 'point', 'play'].every((b) => byBeat[b]), JSON.stringify(byBeat));
+  const ASPECT = 1.6;   // (scene.js's, without a window)
+  for (const room of [{ round: true }, { gate: 0.45 }, { gate: null }]) {
+    const ph = walledRoom(room);
+    for (const plan of Object.keys(BOX_PLANS)) {
+      for (const [beat, item] of Object.entries(byBeat)) {
+        if (beat === 'none') continue;
+        const pl = player(V()), shots = playInRoom(ph, plan, item, pl), label = `${JSON.stringify(room)} ${plan} ${beat} (${item})`;
+        const closing = shots.filter((s) => s.phase === 'beat');
+        assert.ok(closing.length > 20, `${label}: a closing shot`);
+        const head = pl.pos.clone().add(V(0, 1.62, 0));
+        for (const s of [closing[Math.floor(closing.length / 2)], closing.at(-1)]) {
+          const c = new THREE.PerspectiveCamera(s.fov, ASPECT, 0.05, 100);
+          c.position.copy(s.pos); c.lookAt(s.look); c.updateMatrixWorld();
+          const v = head.clone().project(c);
+          assert.ok(v.z < 1 && Math.abs(v.x) <= 0.8 && Math.abs(v.y) <= 0.8, `${label}: his head in the middle 80 % (${v.x.toFixed(2)}, ${v.y.toFixed(2)})`);
+          assert.ok(Math.abs(v.x) <= HEAD_FRAME.x + 0.02 && Math.abs(v.y) <= HEAD_FRAME.y + 0.02, `${label}: within HEAD_FRAME (${v.x.toFixed(2)}, ${v.y.toFixed(2)})`);
+          const d = s.pos.distanceTo(head);
+          assert.ok(ph.rayDistance(head, s.pos.clone().sub(head).normalize(), d) >= d - 0.02, `${label}: nothing between the lens and his head`);
+        }
+        // (out of a closing shot the room moved, a cut back to play: a blend swung through the wall, off him)
+        if (room.round && beat === 'fit') assert.equal(shots.release, 0, `${label}: a cut back to play`);
       }
     }
   }

@@ -125,17 +125,21 @@ a cut to past where the box stood, back at the item and his face; **high**, from
 on the box, then beside him. Where a plan's lens would stand behind a wall or a cliff (`clearPlan`: rays
 from his chest), the box falls back to the first plan. (The cinematics QC pass: the same shots for all 32.)
 
-**The lens and the room** (`clearLens`, issue #292). Every frame, seen from his chest: where a wall, a roof or a
-gate stands between him and the lens, the lens comes in to `LENS_GAP` (0.25 m) short of it, and never past it; where
-that would bring it nearer him than `LENS_NEAR` (1.3 m), it swings round him about his upright (the aim kept; steps
-of 0.3 rad each way, the nearest that clears) and eases there (`SWING_RATE`), keeping the swing it has while that
-still clears. Then it is lifted off the floor under it, probed from as high over the lens as stands clear, never
-through a roof. Until then the lens was pulled to `max(0.9, hit − 0.25)`, behind any wall nearer than 1.15 m, and
-the floor probe from 2 m over the lens found the yards' alcove roofs and set the lens on top: the founders',
-moorers' and divers' boxes opened through the gate's bars and went blank at ~8 s. The review page holds a yard's
-gate open as play leaves it (`held`, src/gadgets/world.js), so the opening is judged as the player sees it.
-`tests/boxes.test.js`: in walled rooms (an alcove with its gate 0.45 and 0.9 m behind him, an open one, a closed
-room 4.4 m across) every plan keeps the lens in front of every surface, under the roof and in the open.
+**The lens and the room** (`clearLens`, issues #292 and #293). Every frame, seen from his chest: where a wall, a
+roof or a gate stands between him and the lens, the lens comes in to `LENS_GAP` (0.25 m) short of it, and never past
+it; where that would bring it nearer him than `LENS_NEAR` (1.3 m), it swings round him about his upright (the aim
+kept; steps of 0.3 rad each way, the nearest that clears) and eases there (`SWING_RATE`), keeping the swing it has
+while that still clears. Then it is lifted off the floor under it, probed from as high over the lens as stands clear,
+never through a roof. Until then the lens was pulled to `max(0.9, hit − 0.25)`, behind any wall nearer than
+1.15 m, and the floor probe from 2 m over the lens found the yards' alcove roofs and set the lens on top: the
+founders', moorers' and divers' boxes opened through the gate's bars and went blank at ~8 s. In the **closing shot**
+the aim turns toward his head (the least turn, `keepHead`) where it would be outside `HEAD_FRAME` (0.7 of the
+half-frame across, 0.6 up: inside the letterbox's picture); the Givers' guard used to end on an empty corner, the
+lift valve on the lid against the wall, the gun with him at the edge (its `try` shot now aims nearer him, a third
+in). Out of a closing shot the room moved (`cramped`), the hand-back cuts instead of blending: the blend swung through the wall and off him. The review page holds a yard's gate open as play leaves it (`held`, src/gadgets/world.js), so the opening is
+judged as the player sees it. `tests/boxes.test.js`: in walled rooms (an alcove with its gate 0.45 and 0.9 m behind
+him, an open one, a closed room 4.4 m across) every plan and beat keeps the lens in front of every surface, under
+the roof and in the open, and his head in the closing shot's middle 80 %.
 
 **The card** (`card.js`): the item's name and its one description (`ITEMS[id].text`, issue #165), or, for a placement with `found` (an i18n key:
 the desert's backpack, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in

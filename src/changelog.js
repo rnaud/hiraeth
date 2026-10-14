@@ -38,6 +38,9 @@ export const CHANGELOG = [
     // the box camera kept in front of every wall, roof and gate (issue #292): src/boxes/scene.js clearLens (LENS_NEAR, the
     // swing round him, the floor probe under the roof); the review holding a yard's gate open; tests/boxes.test.js
     'The chests behind the yards’ gates (the founders’, the moorers’ and the divers’) open seen from inside their alcove: no longer through the gate’s bars with his tank filling the screen, and no more blank picture as he takes what was in them.',
+    // the closing shot keeps his head in (issue #293): src/boxes/scene.js keepHead, HEAD_FRAME; beats.js the try shot's aim;
+    // tests/boxes.test.js (a walled room, every beat and plan)
+    'A chest’s last shot keeps you in the picture in a small room: the lift valve’s no longer ends on the open lid against the wall, the Givers’ guard on an empty corner, or the gun with you at the edge of the screen.',
   ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,

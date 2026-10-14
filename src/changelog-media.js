@@ -841,6 +841,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'yard-box-open', title: 'The opening', caption: 'The founders’ chest on the Moon Foundry’s apron, a second in: before, the lens pressed behind him at the bars, his tank and the bars filling the picture; after, from inside the alcove, him and the chest.', from: BOX292 },
       { name: 'yard-box-close', title: 'As he takes it', caption: 'The same chest as he takes the keeper: before, a blank picture (the lens had been set on the alcove’s roof); after, him with it in his hand.', from: BOX292 },
     ] },
+    { match: 'A chest’s last shot keeps you in the picture', shots: [
+      { name: 'lift-box-close', title: 'The lift valve', caption: 'The lift valve’s chest in Qanat’s round cave, as he fits the valve to his pack: before, the open lid against the wall and him out of the picture; after, him from behind and beside, the valve going onto the pack.', from: BOX292 },
+      { name: 'gun-box-close', title: 'The gun', caption: 'The gun’s chest under the hearth, as he tries it: before, him at the left edge of the picture; after, a third of the way in, the shot going off ahead of him.', from: BOX292 },
+    ] },
   ],
   '1.71': [
     { match: 'Fighting the Keeper, the camera stands back', tags: ['combat', 'temples'], shots: [
