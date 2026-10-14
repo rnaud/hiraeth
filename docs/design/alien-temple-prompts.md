@@ -1,5 +1,10 @@
 # Alien-built temples: reference prompts
 
+> **Superseded (2026-10-14)** by [alien-temple-prompts-v2.md](alien-temple-prompts-v2.md). The author dismissed all
+> six directions ("the references don't make sense … we should make references that are based on the existing
+> temples from each world"); their six lab batches (`2026-10-14-19-52-02-*`) are turned down in the lab, none picked.
+> Kept as the record of the first pass; do not run these again.
+
 2026-10-14, issue #342: "I want some of the temples to feel more futuristic like they were built from an alien
 world. Let's do some references pass to explore what that could look like." Six directions, one prompt each, for the
 author to choose from; nothing here is in the game. Each is a temple the makers did not build the way they built the

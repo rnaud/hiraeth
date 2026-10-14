@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-14",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-14-19-52-02-59a0",
+      "why": "Dismissed by the author: generic alien temples that do not grow from the game's own temples; superseded by docs/design/alien-temple-prompts-v2.md (one per existing temple, its render as base)",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: inside the hollow of a colossal alien machine the size of a mountain, a cavernous room framed by gigantic smooth curved ribs of white ceramic and dull bronze, huge slow gears and pistons half sunk into the walls, bundles of pipes and cables crossing far overhead, a slot of sky high above letting in a shaft of light. In the middle of the room hangs a great balance, two wide round plates on chains from an arm as big as a bridge, one plate low and one high; a heavy carved weight rests on a ledge high up the far wall, carved with three dots over an upward arc. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the low plate, pulling the far weight toward him on a taut grappling hook line, dwarfed by the machine. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white ceramic, bronze, rust orange, pale green sky light, deep teal shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

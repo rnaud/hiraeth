@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-14",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-14-19-52-02-7b43",
+      "why": "Dismissed by the author: generic alien temples that do not grow from the game's own temples; superseded by docs/design/alien-temple-prompts-v2.md (one per existing temple, its render as base)",
+      "date": "2026-10-14",
+      "prompt": "Concept art for a science fiction exploration game: an immense alien temple of smooth dark slate-blue stone that floats in pieces in a huge open sky, great cubes, rings and wedge-shaped wall segments hanging motionless with clean gaps of air between them, as if the building had been exploded and frozen; the segments still line up into the shape of a temple when seen from the right place. At the centre a giant hollow ring of stone turns slowly around a hanging core, a pale glowing sphere carved with three dots over an upward arc. Thin lines of light join some segments to others. A cloaked adult human traveller of ordinary height with a round jade fluid backpack swings across a gap on a taut grappling hook line toward a drifting block, dwarfed by the structure, cloak flying; far below, a sea of clouds. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, slate blue stone, pale gold light lines, peach sky, lilac clouds, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

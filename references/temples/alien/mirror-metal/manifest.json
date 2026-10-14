@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-14",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-14-19-52-02-7dce",
+      "why": "Dismissed by the author: generic alien temples that do not grow from the game's own temples; superseded by docs/design/alien-temple-prompts-v2.md (one per existing temple, its render as base)",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: a vast hall of an alien temple made entirely of fluid mirror-like metal, smooth flowing walls that melt into tall arches and slowly dripping columns, the floor a still lake of quicksilver that reflects the whole hall and a wide pale sky seen through an oval opening in the ceiling; ripples spread where anything touches it. In the middle of the floor a large silver sphere floats just above the liquid, and a low cradle of metal stands at the far end of the hall, its rim carved with three dots over an upward arc. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on a raised path, the tank glowing violet, pulling the sphere toward the cradle on a stretched violet tether of fluid, the sphere leaving a wake of rings across the mirror floor, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, silver and pale chrome drawn as flat bands, sky reflections, violet tether, peach light, cool grey-blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

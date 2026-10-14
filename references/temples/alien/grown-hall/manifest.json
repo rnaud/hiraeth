@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-14",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-14-19-52-02-a9ca",
+      "why": "Dismissed by the author: generic alien temples that do not grow from the game's own temples; superseded by docs/design/alien-temple-prompts-v2.md (one per existing temple, its render as base)",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: a vast hall of an alien temple that was grown rather than built, its walls and high vaulted ceiling made of pale ivory shell ribs like the inside of a giant seashell or a whale's ribcage, translucent amber membranes stretched between the ribs letting in soft warm light, veins of faint turquoise glow running along the floor toward the middle. At the centre of the huge round floor a great closed bud of shell and leathery petals, three times a man's height, sealed shut, its rim carved with three dots over an upward arc. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, the tank glowing leaf green, sprays a slow arc of green sap-like fluid onto the bud, which has begun to unfold one petal, dwarfed by the hall. Sprouting coral-like growths, pools of milky fluid, a far opening onto a big pale sky. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory shell, amber membrane, leaf green, turquoise glow, coral pink, deep violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, horror, gore.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

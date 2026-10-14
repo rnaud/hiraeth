@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-14",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-14-19-52-02-6e6d",
+      "why": "Dismissed by the author: generic alien temples that do not grow from the game's own temples; superseded by docs/design/alien-temple-prompts-v2.md (one per existing temple, its render as base)",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: a cathedral-sized chamber built by an alien hand from a geometric lattice of clear and pale-violet crystal beams, hexagonal and triangular cells rising in tiers to a faceted crystal dome that opens onto a bright sky; the light breaks into soft rainbow bands across the floor. A single beam of white-gold light enters through a slit high on one side and is bent by three great standing prisms on turntables in the middle of the floor; two of the prisms already pass it on, the third is turned away, and across the room a round lens set in a crystal dais waits for it, carved with three dots over an upward arc. A cloaked adult human traveller of ordinary height with a round jade fluid backpack leans against the last prism to turn it, dwarfed by the lattice. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, clear crystal, pale violet, white gold light, rainbow bands, aqua sky, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}

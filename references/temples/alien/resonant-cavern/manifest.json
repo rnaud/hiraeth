@@ -1,0 +1,16 @@
+{
+  "created": "2026-10-14",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-14-19-52-02-dfa0",
+      "why": "Dismissed by the author: generic alien temples that do not grow from the game's own temples; superseded by docs/design/alien-temple-prompts-v2.md (one per existing temple, its render as base)",
+      "date": "2026-10-14",
+      "prompt": "Interior concept art for a science fiction exploration game: an enormous alien cavern whose rock was shaped by sound, its walls carved into ribbed flaring horns, organ-pipe columns and concentric wave ripples frozen in sandstone, like the inside of a giant musical instrument; a great round opening in the roof shows a deep sky. Floating in the middle of the cavern, above a circular basin, a column of five huge stone rings hangs in the air, slightly out of line, each ring humming; one of them has just turned true. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds a large spiral shell to his mouth and plays one long note, drawn as pale expanding circles of sound that pass through the rings, dwarfed by the cavern. Carvings of three dots over an upward arc on the basin's rim. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ochre and salmon sandstone, pale cream sound rings, turquoise sky, deep plum shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}
