@@ -1,0 +1,57 @@
+docs/systems/characters.md
+  s_9ca76055a220ed::t_0d67e392f85e3d 767-768
+references/guardians/elder/tripo-v1.json
+  s_9ca76055a220ed::t_b49ecf59581c89 87-88
+scripts/bench/passes.mjs
+  s_9ca76055a220ed::t_18739e94a5f55c 8,14-15,23-24,27,31,76
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_7f7ba966708cfc 190-193,196-197
+scripts/tripo/README.md
+  s_9ca76055a220ed::t_0dc99fcd7507ff 84,86-87,299
+scripts/tripo/rig-elder.mjs
+  s_9ca76055a220ed::t_4892c8d7e14f02 6,25-26
+scripts/tripo/slim-traveller.mjs
+  s_9ca76055a220ed::t_4989de8f908ad6 13-14
+src/levels/incal.js
+  s_9ca76055a220ed::t_0008d876de0cbf 1241-1243
+src/main.js
+  s_9ca76055a220ed::t_eb457bafcea55f 353
+src/physics.js
+  s_9ca76055a220ed::t_97b3f07e5962a0 33-39,87-89,98-100,115-135
+tests/elder-creature.test.js
+  s_9ca76055a220ed::t_993dac7700bcc6 12
+tests/traveller-lod.test.js
+  s_9ca76055a220ed::t_7b7a19103997af 62
+tests/traveller-v1.test.js
+  s_9ca76055a220ed::t_87e40588cb9ef1 78
+data/guardians/elder-v1/rig.json
+  s_9810a2ba801591::t_3172be2d5583eb 4
+tests/physics-refine.test.js
+  s_9810a2ba801591::t_05da7167fb66c8 1-66
+tests/shipped-assets.test.js
+  s_9810a2ba801591::t_188d933f69be27 1-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "33eab65f388cfa36619ca0f9fefae44916d439e4",
+  "prompts": {},
+  "sessions": {
+    "s_9810a2ba801591": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2f940ec1a618af90",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
