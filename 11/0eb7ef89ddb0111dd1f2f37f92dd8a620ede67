@@ -1,0 +1,39 @@
+docs/systems/testing.md
+  s_1837848888d0db::t_5f890170bd902c 79-86
+src/physics.js
+  s_7302cf3b9e772b::t_fc623eedf606b5 713-715
+tests/ball-room.test.js
+  s_7302cf3b9e772b::t_25445593cc4825 59-61,66,84
+tests/fragments-reach.js
+  s_7302cf3b9e772b::t_562c329412eda1 21-23,25-51,70-76,108
+tests/pose-walks.test.js
+  s_7302cf3b9e772b::t_9e7d33ab5d10d6 7-8
+tests/temple-climb.test.js
+  s_7302cf3b9e772b::t_3e004a49f4605a 83-85,109,118-120
+tests/traveller-b3.test.js
+  s_7302cf3b9e772b::t_948e8474d627e2 151-153,158-159,162,167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "110eb7ef89ddb0111dd1f2f37f92dd8a620ede67",
+  "prompts": {},
+  "sessions": {
+    "s_1837848888d0db": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b55-b807-7cf1-87c2-c32cc47a091f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_7302cf3b9e772b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "afb104e2-2832-4f8f-a4b9-c0da88b6a4f7",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
