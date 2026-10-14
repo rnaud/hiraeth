@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_89baec78496243 8-9
+docs/systems/temples.md
+  s_9ca76055a220ed::t_337ad89fc34dc7 242,329-346,552,717,719-720
+src/foes.js
+  s_9ca76055a220ed::t_5f2b75c3cfb1b1 2078-2081
+src/temples/desert.js
+  s_9ca76055a220ed::t_3ac4a1dccbe3ab 787-788,807
+src/temples/incal.js
+  s_9ca76055a220ed::t_5f792012c0292c 73-80,119-127,129-130,132-142,147-153,317-322,324,341-351,353-355,360-366,368-370,380,382-383,385-393,395-398,400,405,415,441-448,450-451,455-460,462,464-465,467-472,474-492,495-497,504-509,521-523,525-526,528-538,540,551-570,572-573,575,577,582-583,585-588,594,596-608,611,615-617,619-623,625-627,631,633,635-639,642,645,661,663-666,679-680,683,686
+src/temples/migrate.js
+  s_9ca76055a220ed::t_89cacd8ceab1ac 69-70,72,76
+src/temples/runtime.js
+  s_9ca76055a220ed::t_d31122529aa5f3 206-209
+tests/temple-climb.test.js
+  s_9ca76055a220ed::t_15b35bdef602b4 63,102-103
+tests/temple-rules.test.js
+  s_9ca76055a220ed::t_41096cb120bef7 17,19
+tests/temples.test.js
+  s_9ca76055a220ed::t_46c26a1ecd2a58 35,1250-1275,1293-1294,1380,1382,1385-1386,1397-1398,1406,1416-1417,1419,1430,1438,1444,1459,1461-1462,1498-1502,1515,1533-1534,1536-1537,1541,1555,1559,1569-1570,1577,1580-1581,1596-1597,1599,1603,1606,1617-1620,1626-1627,1648
+docs/design/temple-redesign.md
+  s_02fd66995c58ad::t_f98fe6ace8b1c3 64-85,125-127
+src/changelog-media.js
+  s_02fd66995c58ad::t_3819d560f6c1b3 850-851,865-876
+src/changelog.js
+  s_02fd66995c58ad::t_5099f59358e766 18-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c750cc4fa30c9f85910475f3b3b9b5f003b254ba",
+  "prompts": {},
+  "sessions": {
+    "s_02fd66995c58ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a723bb7ec8777c8e0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
