@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.76 — 2026-10-14
+
+- People who only talk often tell you of something near them you haven’t found: a fragment of the singing light (“there’s a hum inside a ribcage south-west of the pilgrims’ resting stone”), someone with a game, or a place worth the walk, each in their own world’s way of putting it. Your Map then shows a soft circle round where it should be, never right on it, until you find it.
+
 ## v1.75 — 2026-10-14
 
 - On the galactic map the scanner no longer shakes as you sweep for a world: it drifts gently, barely at all while the signal is faint, a little more as it locks on, and the pad’s pulses are softer while the signal is weak.

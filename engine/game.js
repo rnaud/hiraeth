@@ -642,6 +642,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       temples: temples(),
       people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`) && !givers.some((g) => g.id === n.def.id)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
       boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, x: b.pos.x, z: b.pos.z })),
+      // (the rumours told and not found yet, as main.js mapSource: issue #340)
+      rumours: story?.rumours?.marks?.() ?? [],
     };
     const whole = mapWhole.bounds;
     // (a mark zoomed on: a third of the whole map round it, its own ground drawn, as main.js mapSource)

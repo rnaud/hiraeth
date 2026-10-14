@@ -17,7 +17,8 @@ export function setupShops({ level, game, spawn }) {
     // (dressed as their place's people and speaking its tongue: a merged world's second part's keeper keeps theirs,
     // the sky stones' almoner her chant: src/levels/names.js PARTS)
     const own = SHOPKEEPERS[s.def.keeper], part = s.def.world;
-    const keeper = own && part && part !== level.id && !own.lang ? { ...own, lang: part } : own;
+    // (back again, they often have a rumour between their hello and their wares: issue #340, src/story/rumours.js)
+    const keeper = own ? { ...own, ...(part && part !== level.id && !own.lang ? { lang: part } : {}), rumourNode: 'again' } : own;
     const npc = keeper && spawn ? spawn(keeper, { route: [s.keeper.at.clone()], heading: s.keeper.heading, speed: 0.4, ...(part && part !== level.id ? { world: part } : {}) }) : null;
     if (npc) npc.facing = s.keeper.heading;
     const at = s.counter.at, look = s.counter.look;

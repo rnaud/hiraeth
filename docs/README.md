@@ -54,7 +54,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [temples.md](systems/temples.md) | the makers' temples |
 | [boss-hints.md](systems/boss-hints.md) | the guardians: the bar of what is left of them, the drone's hints |
 | [hints.md](systems/hints.md) | hints off / subtle / full: the one setting every prompt, tip, nudge and the drone's help goes through; keys taken out of lines; the quiet glyph (audit: `docs/design/hints-audit.md`) |
-| [story.md](systems/story.md) | the story's systems: quests, errands, the father's charge, every world's story, the ending, the route and the galactic map, the strike's signature, the recordings, the desert reworked, quests that fail, the fellow traveller (Tansy) |
+| [story.md](systems/story.md) | the story's systems: quests, errands, the father's charge, every world's story, the ending, the route and the galactic map, the strike's signature, the recordings, the desert reworked, quests that fail, the fellow traveller (Tansy), the rumours people tell and their circles on the Map |
 | [progression.md](systems/progression.md) | progression: the route, the wings before the jets, the cab pass, Vael's bird |
 | [dialogue.md](systems/dialogue.md) | conversations and answers, listening, alien voices and the translator, the worlds' scripts, highlights, keys in lines (`{key:aim}`), the conversation camera |
 | [conversations.md](systems/conversations.md) | conversations: the camera's cut, the close shot of the traveller's face, holding still while he talks, fires kept out of the shot, who gets a balloon, the gap between two people, the translator |

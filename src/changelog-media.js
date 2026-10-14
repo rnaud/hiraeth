@@ -833,10 +833,17 @@ const RETICLE357 = 'Issue #357: muted headless Chrome (High, 1280 × 720) agains
 /** (v1.75, issue #354: the cinematics QC's own frames before and after) */
 const FLIGHT354 = 'Issue #354: the cinematics QC’s frames (scripts/cinematics-qc.mjs: muted headless Chrome, High, 1280 × 720 kept at 960 × 540, the review page’s staging) against this branch’s own Vite (port 6354) before and after the change, about the same second of each (14 October); the QC’s own WebP';
 /** (v1.74, issue #237: the Elder's review page, tools/elder-review.html, its cycles stepped at 60 Hz, scripts/tripo/elder-sheets.mjs) */
+const RUMOURS340 = 'Issue #340: muted headless Chrome against a dev server of this branch (port 6340), the Desert, High, 1280 × 720, a fresh save; the rumour forced to come on the first talk; 14 October';
 const ELDER237 = 'Issue #237: tools/elder-review.html in muted headless Chrome (Vite on port 6237), the review’s motions stepped at 60 Hz by scripts/tripo/elder-sheets.mjs, in the game’s ink; before, the tree before (433459bf) with the same review page and timings; 14 October';
 /** (v1.75, issues #356 and #355: shot on a commit of this branch before its rebase, and the tree before it) */
 const DOORS356 = { from: 'scripts/changelog-shots.mjs (muted headless Chrome, High, 1280 × 720, 17:00) on this branch’s tree and the one before it (84b40324d), Vite on port 6356, 14 October' };
 export const CHANGELOG_MEDIA = {
+  '1.76': [
+    { match: 'People who only talk often tell you of something near them', tags: ['story', 'menus'], shots: [
+      { name: 'rumour-talk', title: 'A rumour in Qanat', caption: 'Zahir, by the landing, tells of a fragment on the open sand near your ramp: a line in the Desert’s voice instead of one of his own.', only: 'after', from: RUMOURS340 },
+      { name: 'rumour-map', title: 'Its circle on the Map', caption: 'The Map zoomed in: a soft plum circle round where he said, its middle off the fragment’s spot, named “Something singing, they say”; the cursor on it says whose word it is and how far.', only: 'after', from: RUMOURS340 },
+    ], see: 'Talk to someone in a crowd, or a bystander, a few times: now and then they tell of something nearby. Open the Map (View, then RB): its circle is there until you find the thing. A shopkeeper you know may tell one before showing you the wares.' },
+  ],
   '1.75': [
     { match: 'Your ship takes off like a lander now', tags: ['ship', 'cinematics'], shots: [
       { name: 'ship-takeoff', title: 'Leaving Vael for the Desert', caption: 'Three seconds after the hatch shuts. Before, the ship climbed straight up, faster and faster, level. After, it has risen on its jets to a hover over its dust, and tips forward to fly away along its bow.', from: `${FLIGHT354}: the take-off, 4.9 s in` },

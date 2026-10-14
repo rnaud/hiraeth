@@ -324,6 +324,7 @@ const MARK_SYM = {
   ship: '<svg viewBox="-12 -8 24 16" aria-hidden="true"><path d="M-11 1 C-6 -6 6 -6 11 1 C6 6 -6 6 -11 1 Z"/><path d="M-4 -4 L0 -7 L4 -4" fill="none"/></svg>',
   goal: '<i>✦</i>', temple: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M-8 8 V-1 L0 -8 L8 -1 V8 Z"/><path d="M-3 8 V2 H3 V8" fill="none"/></svg>',
   person: '<i>●</i>', box: '<i>▣</i>', quest: '<i>◇</i>', giver: '<i>◉</i>',   // (giver: someone with a quest for you, not met yet: issue #273)
+  rumour: '<i>?</i>',   // (a rumour: in its soft circle, issue #340)
 };
 
 /**
@@ -339,11 +340,14 @@ const MARK_SYM = {
 export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, zoom = null, scale = null, note = '', detail = null, aspect = 1 } = {}) {
   const rows = marks.map((m, i) => [{ col: 0, kind: 'mark', id: m.id, name: m.name, sub: m.sub, desc: '', act: 'zoom', mark: m, r: i }]);
   const pos = (m) => `left:${(m.u * 100).toFixed(2)}%;top:${(m.v * 100).toFixed(2)}%`;
-  const markHtml = (m) => `<span class="mk mk-${m.kind}" data-mark="${esc(m.id)}" style="${pos(m)}${m.deg !== undefined ? `;--deg:${m.deg.toFixed(1)}deg` : ''}">${MARK_SYM[m.kind] ?? ''}</span>`;
+  const markHtml = (m) => `<span class="mk mk-${m.kind}" data-mark="${esc(m.id)}" style="${pos(m)}${m.deg !== undefined ? `;--deg:${m.deg.toFixed(1)}deg` : ''}">${MARK_SYM[m.kind] ?? ''}${m.kind === 'rumour' ? `<b>${esc(m.name)}</b>` : ''}</span>`;
+  // (a rumour's soft circle, on the plane: it zooms with the ground, issue #340)
+  const areaHtml = (m) => `<span class="gm-area" data-area="${esc(m.id)}" style="left:${((m.u - m.ru) * 100).toFixed(3)}%;top:${((m.v - m.rv) * 100).toFixed(3)}%;width:${(m.ru * 200).toFixed(3)}%;height:${(m.rv * 200).toFixed(3)}%"></span>`;
+  const areas = marks.filter((m) => m.on && m.kind === 'rumour' && m.ru > 0).map(areaHtml).join('');
   const d = detail?.canvas ? detail : null;
   const html = `<div class="gm-map${zoom ? ' zoomed' : ''}">
     <div class="gm-mapsheet" data-map-sheet style="--a:${(aspect > 0 ? aspect : 1).toFixed(3)}">
-      <div class="gm-mapplane"><div class="gm-mapimg">${canvas ? '' : `<p class="drawing"><span class="pen" aria-hidden="true"></span>${t('gm.map.drawing')} ${Math.round(progress * 100)}%</p>`}</div>${d ? `<div class="gm-mapdetail" style="left:${(d.u0 * 100).toFixed(3)}%;top:${(d.v0 * 100).toFixed(3)}%;width:${(d.s * 100).toFixed(3)}%;height:${(d.s * 100).toFixed(3)}%"></div>` : ''}</div>
+      <div class="gm-mapplane"><div class="gm-mapimg">${canvas ? '' : `<p class="drawing"><span class="pen" aria-hidden="true"></span>${t('gm.map.drawing')} ${Math.round(progress * 100)}%</p>`}</div>${d ? `<div class="gm-mapdetail" style="left:${(d.u0 * 100).toFixed(3)}%;top:${(d.v0 * 100).toFixed(3)}%;width:${(d.s * 100).toFixed(3)}%;height:${(d.s * 100).toFixed(3)}%"></div>` : ''}${areas}</div>
       <div class="gm-marks">${marks.filter((m) => m.on).map(markHtml).join('')}</div>
       <span class="gm-cursor" aria-hidden="true"></span>
       <div class="gm-maptip" role="status" hidden><b></b><small></small></div>
