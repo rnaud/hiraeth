@@ -1,0 +1,29 @@
+src/blade-grip.js
+  s_9ca76055a220ed::t_c795f104c227b7 24-27,39-49,203-368
+src/shield.js
+  s_9ca76055a220ed::t_ebf4f13877e899 4,40,158-189,293-301,308-317,376,380,382-383,385,389-461,468,514
+src/studio/main.js
+  s_9ca76055a220ed::t_424bda8d7833dd 558,585-587
+tests/blade-grip.test.js
+  s_9ca76055a220ed::t_0961025ae85495 4,13,114,121,154-157,173-201,223
+tests/gait-sim.js
+  s_9ca76055a220ed::t_d84ae1e81ef7ad 16,60-79,99-100,111
+tests/strap-skin.js
+  s_9ca76055a220ed::t_9ff1c78e8cad0d 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a576da46e09d8f27a88fc3aa7cb1bfd36176676f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
