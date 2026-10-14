@@ -76,19 +76,23 @@ first half (mean 4.19 → 4.28). Left:
 - [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Play the new rooms by hand: the Hush-House's thawing jaws (10 s), the
   Mooring-House's cable-rail under the tether, the Clock-House's stopped cupboard, and every arena with real keepers (the
   node tests use stand-in keepers).
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Identity 2 in the Undertower (70 % like the Casting-House) and the
-  Lamp-House (67 % like the Whale-House): another shape for each.
 (Round 4, v1.60, moved those three houses' great keys back into the first half. Round 5, v1.74,
 docs/audits/temple-design-v1.74.md, gave the last three houses without a loop one each, each its own shape: the Aerie a
 circuit round its stack, the Belfry a ring back over its first half, the Well two ways up meeting at the crown; mean 4.32 →
 4.34.) Left:
 
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Play round 5's routes by hand: the Eyrie's vent shaft down into the
-  Moult (the wings opened in the shaft), the Belfry's spur run and the Ringers' Walk, the Well's Flue ride.
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The Clock-House's identity 2 (67 % like the Aerie since round 5) and
-  the Aerie's obvious start (the wings to the high balcony, 5): a catch for the one, another run for the other.
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The two 1.0 doors (the Clock-House's cupboard `dC`, the
-  Casting-House's sand door `dS`): a key in sight of each.
+(Round 6, the same v1.74 report, did the rest of its ranked edits: the Undertower's listening pillars, the Clock-House's
+mainspring across the landing from its Cupboard and its gallery's pendulum, the Casting-House's keepers' door read from the
+side it opens from, the Aerie's catch at the start and the Moult's air; no door at 1.0 left; mean 4.32 → 4.34 by eye.) Left:
+
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Play rounds 5 and 6 by hand: the Eyrie's vent shaft down into the
+  Moult (the wings opened in the shaft), the Belfry's spur run and the Ringers' Walk, the Well's Flue ride; the Undertower's
+  pillars carried over (the note played again as you go), the Clock Gallery's pendulum beat, the Aerie's catch over the
+  chest's balcony and the floor's second vent.
+- [ ] The Founders' Belfry's great key cage (`cage:kB`, 1.0, the last step at 1.0): the founders' bell two rooms off and
+  out of sight from the ledge; put the bell in sight over the parapet's gap.
+- [ ] The Whale-House's identity, 3 measured (55 % like the Aerie's letters since round 6; 4 by eye) and the Greenhouse's
+  non-obvious 3 under the fixed sight lines (its vine door and its lift in plain sight).
 
 # Carried over
 
