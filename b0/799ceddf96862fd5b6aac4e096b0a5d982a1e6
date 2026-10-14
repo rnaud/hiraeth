@@ -1,0 +1,71 @@
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_ec7165b89282a5 42,66,90-91
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_5736c11b3f00a2 177-180,182,200,204-205,214-215,234,289,296-297
+.claude/skills/zfight-qc/SKILL.md
+  s_9ca76055a220ed::t_fed708ef9e3a87 38
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_8dafdaff0c9dcd 360-385
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_549e3d9559f65b 153-160,1384-1405
+engine/game.js
+  s_9ca76055a220ed::t_7f98d47f0e29a0 180,361
+scripts/camera-qc/lib.mjs
+  s_9ca76055a220ed::t_98025195ba9abe 17-18,29-30,34,133,139-141,164,171,196,200
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_3dee05ccb9094f 34-41,68-80
+scripts/zfight/audit.mjs
+  s_9ca76055a220ed::t_f8fddf52c5cdac 5-6,74-99
+src/levels/bazaar.js
+  s_9ca76055a220ed::t_e0e7e767210065 34
+src/main.js
+  s_9ca76055a220ed::t_a3e2f52ca3027d 44,1345,1348,2058-2059,2072,2226-2228
+src/materials.js
+  s_9ca76055a220ed::t_5f0cd173631060 107-109,975,1037,2096,2984,3164-3166,3171
+src/perf.js
+  s_9ca76055a220ed::t_e183511cd44709 375,403,410,412,414-415,423
+src/player.js
+  s_9ca76055a220ed::t_1e03456cd68440 2803-2820,3277-3279,3283-3284,3770-3777
+src/post.js
+  s_9ca76055a220ed::t_5120fd91755fa4 209-210,645-647,1874,1882,1893,1903,1911,1919,1926
+src/ship/interior.js
+  s_9ca76055a220ed::t_4b8ed2544236f0 260-261,271-272,407,553-555,634-635
+src/ship/model.js
+  s_9ca76055a220ed::t_3392bf78ea458b 68-71,75-76
+src/title-world.js
+  s_9ca76055a220ed::t_5988f4be2a82cb 219
+tests/camera-qc.test.js
+  s_9ca76055a220ed::t_9d6627686245ae 12,57-74
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_ff2902b0e58030 1-3,8,36,46-58,112
+tests/quality.test.js
+  s_9ca76055a220ed::t_5c9c2b28a33050 6,20
+tests/room-size.test.js
+  s_9ca76055a220ed::t_a41b5ec49f1897 8,194-198,206-218,222
+tests/scout.test.js
+  s_9ca76055a220ed::t_3f1f889b5d30bc 387-403
+tests/xbox.test.js
+  s_9ca76055a220ed::t_274ddd81b6c360 123
+tests/zfight.test.js
+  s_9ca76055a220ed::t_fa39a91bb3e82b 9,128-141
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs
+  s_9ca76055a220ed::t_7aa5937bb51d84 74
+unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader
+  s_9ca76055a220ed::t_b9c006a4cc5fa5 46,58,186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b0799ceddf96862fd5b6aac4e096b0a5d982a1e6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
