@@ -870,6 +870,19 @@ export const CHANGELOG_MEDIA = {
         { where: '90 m off', before: 83.6, after: 11.9 },
       ], source: 'scripts/bench/elder.mjs --preset handheld', note: 'Her GPU time is in the Mac’s noise (0.1–0.3 ms); her fight and pose 0.02 ms of CPU a frame. Her colour map is 2048² (21 MiB with mipmaps on the GPU).' },
     ] },
+    // (issue #347, taken at 8d472bed before the rebase, the same tree: the crowds of the Desert's camps and the Signal Market, the Salt Harbour's and the lake folk's in the studio, a world's cast and a crowd lineup in the studio; scripts/changelog-shots.mjs)
+    { match: 'Far fewer people wear capes', tags: ['characters'], shots: [
+      { name: 'capes-camps', title: 'The Desert’s camps', caption: 'The pilgrims round the camp fires: before, nearly everyone in a cape or a mantle; after, a few elders and staff-bearers, the rest in tunics and robes', commit: 'b2d4987e',
+        view: { level: 'desert', player: [157.951, 1.246, 280.515], heading: 0.7188, eye: [154, 4.246, 276], target: [168, 2.446, 292], fov: 55 } },
+      { name: 'capes-market', title: 'The Signal Market', caption: 'The market’s street: the capes gone from most of the crowd, its turbans, fezzes and patterned tunics kept', commit: 'b2d4987e',
+        view: { level: 'bazaar', player: [-2.36, 0, -296.96], eye: [-2.32, 4, -291.36], target: [-2.41, 1.2, -305.36], fov: 55 } },
+      { name: 'capes-lake', title: 'The White Mangrove’s lake folk', caption: 'A lineup of the lake folk, full bodies in front and the GPU figures behind: a cape and a mantle on everyone before; after, their robes and hoods with a scarf at the neck', commit: 'b2d4987e',
+        view: studio('lineup=crowd&world=mangrove&count=8', [1280, 720]) },
+      { name: 'capes-cast', title: 'The Desert’s people', caption: 'The Desert’s named people in the studio: the capes their sheets draw kept (Bako, Sefa, Nour, the Speaker, Ama, Hessa), the others in their tunics', commit: 'b2d4987e',
+        view: studio('lineup=cast&world=desert', [1280, 720]) },
+      { name: 'capes-harbour', title: 'The Salt Harbour’s crowd', caption: 'A lineup of the Salt Harbour’s crowd, full bodies in front and the GPU figures behind: every one caped before; after, a neckerchief where the mantle was, an apron now and then', commit: 'b2d4987e',
+        view: studio('lineup=crowd&world=saltharbour&count=8', [1280, 720]) },
+    ] },
   ],
   '1.74': [
     { match: 'In the Unity version the far distance no longer shimmers', tags: ['devices'], shots: [
