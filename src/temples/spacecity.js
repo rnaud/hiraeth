@@ -592,7 +592,7 @@ function change(scene, level, rt) {
   const lampM = makeMaterial({ color: '#ffe2a8', glow: 0.85, flat: true, key: 'temple.spacecity.cablelamps' });
   const N = 9;
   const lamps = new THREE.InstancedMesh(new THREE.SphereGeometry(0.45, 8, 5), lampM, CABLES.length * N);
-  const m4 = new THREE.Matrix4();
+  const m4 = new THREE.Matrix4(), at = [];
   if (O) {
     const from = O.top;
     const tube = (to, sag) => {
@@ -604,26 +604,50 @@ function change(scene, level, rt) {
       const taut = tube(to, 2.5);
       root.add(taut.mesh);
       const curve = new THREE.CatmullRomCurve3(taut.pts);
-      for (let i = 0; i < N; i++) { const p = curve.getPoint((i + 1) / (N + 1)); m4.makeTranslation(p.x, p.y - 0.5, p.z); lamps.setMatrixAt(c * N + i, m4); }
+      for (let i = 0; i < N; i++) { const p = curve.getPoint((i + 1) / (N + 1)); at.push(V(p.x, p.y - 0.5, p.z)); }
     });
   }
-  lamps.instanceMatrix.needsUpdate = true;
   root.add(lamps);
   for (const g of [root, slack]) g.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
-  let k = 0, want = 0, turn = 0;
+  let k = 0, want = 0, turn = 0, run = 0, running = false, waited = 0;
   const apply = () => { root.visible = k > 0.01; slack.visible = k < 0.99; };
+  // the lamps light one by one out along every cable from the roof (LAMP_RUN.each s apart), each swelling in over
+  // LAMP_RUN.on s: the climax films the run (run()); unfilmed, it goes after LAMP_RUN.wait s (issue #295)
+  const scale = new THREE.Vector3(), q = new THREE.Quaternion();
+  const placeLamps = () => {
+    for (let c = 0, j = 0; c < CABLES.length; c++) for (let i = 0; i < N; i++, j++) {
+      if (!at[j]) continue;
+      const u = THREE.MathUtils.clamp((run - i * LAMP_RUN.each) / LAMP_RUN.on, 0, 1);
+      m4.compose(at[j], q, scale.setScalar(Math.max(1e-4, u * u * (3 - 2 * u))));
+      lamps.setMatrixAt(j, m4);
+    }
+    lamps.instanceMatrix.needsUpdate = true;
+  };
+  placeLamps();
   return {
-    root, slack, lamps,
+    root, slack, lamps, lampAt: at,
     get on() { return want === 1; },
-    set(on, { instant = false } = {}) { want = on ? 1 : 0; if (instant) { k = want; apply(); } },
+    /** How far the lamps' run is (0 none lit .. 1 all). */
+    get lit() { return Math.min(1, run / LAMP_RUN.end); },
+    set(on, { instant = false } = {}) {
+      want = on ? 1 : 0;
+      if (instant) { k = want; run = want ? LAMP_RUN.end : 0; running = false; apply(); placeLamps(); }
+      if (!on) { run = 0; running = false; waited = 0; placeLamps(); }
+    },
+    /** The climax's film: the lamps' run out along the cables starts now (true if it still had to). */
+    run() { if (!want || running || run >= LAMP_RUN.end) return false; running = true; return true; },
     update(dt, t) {
       if (k !== want) { k = THREE.MathUtils.clamp(k + (want ? dt / 3 : -dt), 0, 1); apply(); }
+      if (want && (waited += dt) > LAMP_RUN.wait) running = true;
+      if (running && run < LAMP_RUN.end) { run = Math.min(LAMP_RUN.end, run + dt); placeLamps(); }
       turn += dt * 0.18 * k;
       if (O) O.capstan.rotation.y = SITE.heading + turn;
       lampM.uniforms.uGlow.value = 0.85 * k * (0.85 + 0.15 * Math.sin(t * 1.7));
     },
   };
 }
+/** The cable lamps' run (s): one lamp `each` s after the one before it along its cable, each swelling in over `on`. */
+export const LAMP_RUN = { each: 0.28, on: 0.3, wait: 40, get end() { return 8 * this.each + this.on; } };
 
 export const SPACECITY_TEMPLE = {
   id: 'spacecity', levelId: 'spacecity', name: 'The Mooring-House', doorLabel: 'door of the Mooring-House',

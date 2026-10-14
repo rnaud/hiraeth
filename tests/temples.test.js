@@ -2233,8 +2233,12 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
   assert.ok(rt.logic.isOpen('d5'));
   // ---- outside: the one whole moon is lifted onto the jib over the door
   assert.equal(rt.change.on, true);
+  // (it waits at the door's foot for the climax's film, src/story/moonfoundry-moments.js: issue #295)
   wait(9);
   const moon = rt.change.root.children[0];
+  assert.ok(moon.position.distanceTo(rt.outside.hook) > 10, 'still at the door\'s foot, for the film');
+  assert.equal(rt.change.show(), true);
+  wait(6);
   assert.ok(rt.change.root.visible && moon.position.distanceTo(rt.outside.hook) < 3, `the moon on the hook (${moon.position.distanceTo(rt.outside.hook).toFixed(1)} m)`);  game.reset();
   own();
 });

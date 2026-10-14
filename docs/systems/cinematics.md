@@ -290,6 +290,27 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
   white screen behind him, still. The father's theme swells as his face comes up and runs on under
   the voice: control comes back as the hiss gives way to it, and the broadcast's conversation opens
   at the moment's end, watched or skipped (bazaar.js holds the cast's own timings while it plays).
+- **The Underwater City** (`underwater.moment.whales`, 9.6 s), out of the Whale-House: A, down the last tube at
+  him small by the door; B, inside the Whale Gallery, wide from its floor: the dome's ribs and glass, and a whale
+  come up against it (`galleryWide`); C, closer at the glass, its flank sliding past; D, his face. Calmed, the
+  first whale's loop comes in to the glass (`pull`) and rises 7 m more at its glass end (`lift` in
+  `underwater-kit.js whale`), and the moment stages its pass (`level.whaleToGlass`, a jump along its loop while A
+  looks down the tube), so B and C always find it there: from 12 m off and under the Gallery's floor it was a shape
+  in the dark water (QC v1.66, issue #295).
+- **The Moon Foundry** (`moonfoundry.moment.moon`, 9.6 s), out of the Casting-House: A, wide from the floor; B,
+  under the jib, the whole moon rising from the door's foot onto the hook (`liftShot`); C, up at the hung moon as it
+  turns round on its crown; D, his face. The change (`src/temples/moonfoundry.js`) holds the lift and the turn for
+  the film (`show()`, `turn()`; unfilmed, they go after `CHANGE.wait` s): the hung moons are their own groups now
+  (`level.hungMoons`), each facing the house, and turn once round over 14 s, back to facing it ("every hung moon
+  turns to it", said and never shown before).
+- **The City Floating in Space** (`spacecity.moment.cables`, 9.6 s), out of the Mooring-House: A, wide from over the
+  void; B, high over the roof against the cables' way out, the great capstan turning with every cable leaving it
+  taut (`capstanShot`), the lamps lighting one by one out along them (the change's `run()`, `LAMP_RUN`); C, beside
+  the great cable to the Towers, its lamps running toward the city; D, his face.
+
+The three ran 7.4–7.6 s in three panels until the v1.66 pass; `tests/moments-<world>.test.js` holds each to 8–10 s,
+its fourth panel framing its beat (the whale in frame and at the glass, the moon rising onto the hook and the hung
+moons turning, the capstan and its cables in frame with the lamps lighting), and the face last.
 
 ### After the v1.66 pass: framing fixes (issues #296–#299)
 

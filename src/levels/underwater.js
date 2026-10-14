@@ -479,7 +479,9 @@ export function* buildUnderwater(scene) {
   // glass. A third passes overhead over the lip of the canyon and the end of the bells' walk, all the time: its shadow
   // goes over you)
   const whales = [
-    whale(kit, M, { at: [153, -38, -120], R: 9, ez: 4.5, len: 22, speed: 2.2, phase: 0.3, near: () => near.k, come: 1, rise: 18, pull: [-6, 12], bob: 2 }),
+    // (calmed, the first comes right up to the glass, its flank a few metres off it: from 12 m off it was a shape in the
+    //  dark water, and the climax's panels of it near empty: the cinematics QC v1.66, issue #295)
+    whale(kit, M, { at: [153, -38, -120], R: 9, ez: 4.5, len: 22, speed: 2.2, phase: 0.3, near: () => near.k, come: 1, rise: 18, lift: 7, pull: [-10, 12], bob: 2 }),
     whale(kit, M, { at: [154, -48, -150], R: 8, ez: 5.5, len: 18, speed: -2.6, phase: 2.0, near: () => near.k, come: 1, rise: 22, pull: [-5, 24], bob: 2 }),
   ];
   const overhead = whale(kit, M, { at: [110, 32, -30], R: 28, ez: 2, len: 26, speed: 3, phase: 1.2, bob: 3, shadow: true });
@@ -539,6 +541,9 @@ export function* buildUnderwater(scene) {
     uw: { ways, canyon, song, overhead, cage },
     // the whales come to the glass once the Whale-House's keeper is calmed (src/temples/underwater.js change)
     whalesNear: (k) => { near.k = k; },
+    // the first of them, the one that comes nearest the Gallery's glass, there (its loop's west end) `dt` s from now:
+    // the climax films it passing (src/story/underwater-moments.js)
+    whaleToGlass: (dt) => whales[0].userData.passAt?.(dt),
     // the great column over the Plaza and the towers of pods round the city, seen through the glass (the level design
     // audit's landmarks: the column's glass is see-through to the height grid; the Crown's bubble at its head)
     beacons: [{ name: 'the Breathing Tower', top: [COLUMN.x, D.crown.y + D.crown.r * D.crown.sy, COLUMN.z], height: 8 }, ...song.beacons],

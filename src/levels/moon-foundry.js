@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { Terrain } from '../world.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { stepped } from '../load-steps.js';
 import { RoomKit } from './lab-kit.js';
 import { mergeWithMaterials, restKey } from '../vertex-material.js';
@@ -323,9 +324,25 @@ export function* buildMoonFoundry(scene) {
 
   // ---------------------------------------------------------------- the hung moons: from the roof by their crowns
   yield;
+  // (each moon its own group, turning on its crown about the vertical: the climax turns them toward the Casting-House,
+  //  src/temples/moonfoundry.js change; issue #295. Solid as drawn at its first turn: a sphere turned is the same sphere)
+  const hungMoons = [];
   for (const [i, h] of [HUNG, HUNG2].entries()) {
     const P = moon({ R: h.R, seg: 56, craters: 38, seed: 31 + i, detail: 0.85 });
-    put(h.x, h.z, moveParts(P, (g) => g.translate(h.x, h.y, h.z)), { tones: { shell: i ? 'ivory2' : 'ivory' } });
+    const g = new THREE.Group();
+    g.name = `The hung moon ${i + 1} (turns)`;
+    g.position.set(h.x, h.y, h.z);
+    for (const [role, list] of Object.entries(P)) {
+      if (!Array.isArray(list) || !list[0]?.isBufferGeometry) continue;
+      const m = M.ivory[{ shell: i ? 'ivory2' : 'ivory', crater: 'crater', edge: 'edge' }[role] ?? 'ivory'];
+      const geo = list.length > 1 ? mergeGeometries(list.map((q) => { const n = q.index ? q.toNonIndexed() : q; for (const a of Object.keys(n.attributes)) if (a !== 'position' && a !== 'normal') n.deleteAttribute(a); if (!n.attributes.normal) n.computeVertexNormals(); return n; })) : list[0];
+      if (!geo.attributes.normal) geo.computeVertexNormals();
+      const mesh = new THREE.Mesh(geo, m);
+      mesh.userData.dynamic = true;
+      g.add(mesh);
+    }
+    root.add(g);
+    hungMoons.push({ group: g, at: V(h.x, h.y, h.z), R: h.R });
     put(h.x, h.z, moveParts(hangRig({ R: h.R, top: HALL.roof - 3.6 - h.y, cables: 2, seed: 7 + i, detail: 0.8 }), (g) => g.translate(h.x, h.y, h.z)));
   }
 
@@ -732,6 +749,8 @@ export function* buildMoonFoundry(scene) {
       ...night.lines,
     ],
     hung: { x: HUNG.x, y: HUNG.y, z: HUNG.z },
+    // the hung moons, each turning on its crown (the climax turns them toward the Casting-House: src/temples/moonfoundry.js)
+    hungMoons,
     sights: [
       { name: 'the last furnace’s pour', at: [FURNACE.x - 8, 0, FURNACE.z] },
       { name: 'the moon in the claws', at: [CRADLE.x, 0, CRADLE.z + CRADLE.R + 4] },

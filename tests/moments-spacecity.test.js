@@ -97,3 +97,43 @@ test('without the ship’s camera nothing is lost: done, kept, and no film', () 
   assert.equal(game.flag('world.spacecity.done'), true);
   assert.equal(game.flag('spacecity.moment.cables'), undefined, 'it waits for a stage to play on');
 });
+
+test('four panels in 8–10 s, the face last (QC v1.66, issue #295): over the capstan every cable runs out taut, its lamps lighting out along them', async () => {
+  const { CABLES: C, capstanShot } = await import('../src/story/spacecity-moments.js');
+  const { CABLES: ENDS, LAMP_RUN } = await import('../src/temples/spacecity.js');
+  const len = C.A + C.B + C.C + C.D;
+  assert.ok(len >= 8 && len <= 10, `the moments' 8–10 s (${len}; 7.4 s in three panels before)`);
+  const ship = fakeShip();
+  const w = world({ ship });
+  const ch = rt0.change;
+  ch.set(false);   // (the world as before its keeper: the tests before left it on)
+  game.set('temple.spacecity.done', true);
+  w.step(30 * 4);
+  assert.equal(ch.lit, 0, 'the lamps wait for the film');
+  const D = rt0.outside.door, out = V(Math.sin(D.heading), 0, Math.cos(D.heading));
+  w.player.pos.copy(D.at).addScaledVector(out, 6);
+  const rec = [];
+  for (let i = 0; i < 30 * 11; i++) {
+    const n = ship.shots.length;
+    w.step(1);
+    if (ship.shots.length > n) rec.push({ t: (rec.length + 1) / 30, shot: ship.shots.at(-1), lit: ch.lit });
+  }
+  const ndc = (s, p) => { const cam = new THREE.PerspectiveCamera(s.fov, 16 / 9, 0.1, 2000); cam.position.copy(s.pos); cam.lookAt(s.look); cam.updateMatrixWorld(); return p.clone().project(cam); };
+  const at = (t) => rec.reduce((b, r) => (Math.abs(r.t - t) < Math.abs(b.t - t) ? r : b));
+  const B0 = C.A, C0 = B0 + C.B;
+  const top = rt0.outside.top;
+  for (const t of [B0 + 0.2, C0 - 0.2]) {
+    const s = at(t).shot, q = ndc(s, rt0.outside.capstan.position);
+    assert.ok(q.z < 1 && Math.abs(q.x) < 0.6 && Math.abs(q.y) < 0.6, `B at ${t.toFixed(1)} s: the capstan in frame`);
+    // every cable leaves the capstan across the frame: a point 12 m along each is in it
+    const seen = ENDS.filter((e) => { const p = top.clone().lerp(V(...e), 12 / top.distanceTo(V(...e))); const r = ndc(s, p); return r.z < 1 && Math.abs(r.x) < 1 && Math.abs(r.y) < 0.78; });
+    assert.ok(seen.length >= 2, `B: ${seen.length} of the ${ENDS.length} cables run out across the frame`);
+    assert.ok(s.pos.y > top.y + 4, 'from over the roof');
+  }
+  assert.ok(at(B0 + 0.2).lit < 0.2 && at(C0 + C.C - 0.2).lit > 0.6, `the lamps light out along them through B and C (${at(B0 + 0.2).lit.toFixed(2)} → ${at(C0 + C.C - 0.2).lit.toFixed(2)})`);
+  assert.ok(rec.at(-1).lit > 0.99 || LAMP_RUN.end > len, 'all lit by the end');
+  const shot = capstanShot(top);
+  assert.ok(shot.from.pos.distanceTo(top) > 15, 'B far enough back to see them leave');
+  const last = rec.at(-1).shot, face = w.player.pos.clone().add(V(0, 1.62, 0));
+  assert.ok(last.look.distanceTo(face) < 0.4 && last.pos.distanceTo(face) < 2, 'the last panel on his face');
+});

@@ -103,3 +103,41 @@ test('without the ship’s camera nothing is lost: done, kept, and no film', () 
   assert.equal(game.flag('world.underwater.done'), true);
   assert.equal(game.flag('underwater.moment.whales'), undefined, 'it waits for a stage to play on');
 });
+
+test('four panels in 8–10 s, the face last (QC v1.66, issue #295): the Gallery wide with a whale against its glass, then the whale close', async () => {
+  const { WHALES, galleryOf } = await import('../src/story/underwater-moments.js');
+  const len = WHALES.A + WHALES.B + WHALES.C + WHALES.D;
+  assert.ok(len >= 8 && len <= 10, `the moments' 8–10 s (${len}; 7.6 s in three panels before)`);
+  const ship = fakeShip();
+  const w = world({ ship });
+  // (the whales swim with the level's movers: the story's steps alone leave them where they are)
+  let clock = 0;
+  const step = (n) => { for (let i = 0; i < n; i++) { w.step(1); clock += 1 / 30; level.update?.(1 / 30, clock, {}); } };
+  game.set('temple.underwater.done', true);
+  step(1);
+  w.player.pos.copy(level.spawn);
+  step(30 * 9);   // (the whales come in to the glass first)
+  const D = rt0.outside.door, out = V(Math.sin(D.heading), 0, Math.cos(D.heading));
+  w.player.pos.copy(D.at).addScaledVector(out, 6);
+  const G = galleryOf(level), gc = V(G.x, G.y, G.z);
+  const rec = [];
+  for (let i = 0; i < 30 * 11; i++) {
+    const n = ship.shots.length;
+    step(1);
+    if (ship.shots.length > n) rec.push({ t: (rec.length + 1) / 30, shot: ship.shots.at(-1), whale: level.whales[0].position.clone() });
+  }
+  assert.ok(rec.length > 30 * 8, `filmed for ${(rec.length / 30).toFixed(1)} s`);
+  const ndc = (s, p) => { const cam = new THREE.PerspectiveCamera(s.fov, 16 / 9, 0.1, 2000); cam.position.copy(s.pos); cam.lookAt(s.look); cam.updateMatrixWorld(); return p.clone().project(cam); };
+  const at = (t) => rec.reduce((b, r) => (Math.abs(r.t - t) < Math.abs(b.t - t) ? r : b));
+  const B0 = WHALES.A, C0 = B0 + WHALES.B, D0 = C0 + WHALES.C;
+  for (const t of [B0 + 0.2, C0 - 0.2, C0 + 0.2, D0 - 0.2]) {
+    const r = at(t), q = ndc(r.shot, r.whale);
+    assert.ok(q.z < 1 && Math.abs(q.x) < 0.7 && Math.abs(q.y) < 0.6, `at ${t.toFixed(1)} s the whale in frame (${q.x.toFixed(2)}, ${q.y.toFixed(2)})`);
+    const glass = Math.hypot(r.whale.x - gc.x, r.whale.z - gc.z) - G.r;
+    assert.ok(glass < 14, `and against the Gallery's glass (${glass.toFixed(1)} m off it)`);
+    assert.ok(r.whale.y > G.y - 1, `up at the glass, not under the floor (${r.whale.y.toFixed(1)} m, its floor ${G.y})`);
+    assert.ok(Math.hypot(r.shot.pos.x - gc.x, r.shot.pos.z - gc.z) < G.r - 2, 'the lens in the Gallery');
+  }
+  const last = rec.at(-1).shot, face = w.player.pos.clone().add(V(0, 1.62, 0));
+  assert.ok(last.look.distanceTo(face) < 0.4 && last.pos.distanceTo(face) < 2, 'the last panel on his face');
+});

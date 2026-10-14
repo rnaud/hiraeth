@@ -545,6 +545,9 @@ export function manta(kit, M, { at, R = 60, w = 14, speed = 3, phase = 0, bank =
   };
   place(0);
   kit.mover(place);
+  // (a film's staging: be at the loop's angle `a` (π: its -x end) `dt` s from now; a jump along the loop, so only while
+  //  it is out of the shot: src/story/underwater-moments.js)
+  g.userData.passAt = (dt, a = Math.PI) => { shift = a - phase - ((last + dt) * speed) / loop(); };
   return g;
 }
 
@@ -741,7 +744,7 @@ export function glassTube(kit, M, { a, b, R = 5, every = 4.5, into = 2.4, floor 
  * pale belly, two long flippers, flukes; drawn only, its own group, gliding round a loop (centre at, radius R, speed m/s;
  * `near`: read each frame (0..1), draws its loop in closer by `come` m: the temple's change).
  */
-export function whale(kit, M, { at, R = 90, len = 22, speed = 2.2, phase = 0, near = () => 0, come = 0, bob = 3, ez = 1, rise = 0, pull = [0, 0], shadow = false } = {}) {
+export function whale(kit, M, { at, R = 90, len = 22, speed = 2.2, phase = 0, near = () => 0, come = 0, bob = 3, ez = 1, rise = 0, lift = 0, pull = [0, 0], shadow = false } = {}) {
   const g = new THREE.Group();
   g.name = 'Whale';
   g.userData.noCollide = true;
@@ -761,10 +764,14 @@ export function whale(kit, M, { at, R = 90, len = 22, speed = 2.2, phase = 0, ne
   kit.group.add(g);
   if (!shadow) for (const m of [b, bel, fL, fR, flukes]) kit.noShadow?.push?.(m);
   // (its loop: a circle R round, or an ellipse ez times as long along z; once `near` it comes in `come` m, rises `rise` m
-  // and its loop's middle moves by `pull`: the Underwater City's whales come up to the Gallery's glass)
+  // and its loop's middle moves by `pull`, and `lift` m more at its -x end: the Underwater City's whales come up to the
+  // Gallery's glass)
+  let shift = 0, last = 0;
+  const loop = () => { const rr = R - come * near(), ax = rr, az = rr * ez; return Math.sqrt((ax * ax + az * az) / 2); };
   const place = (t) => {
-    const k = near(), rr = R - come * k, ax = rr, az = rr * ez, p = Math.sqrt((ax * ax + az * az) / 2), a = phase + (t * speed) / p;
-    g.position.set(at[0] + pull[0] * k + Math.cos(a) * ax, at[1] + rise * k + Math.sin(t * 0.21 + phase) * bob, at[2] + pull[1] * k + Math.sin(a) * az);
+    last = t;
+    const k = near(), rr = R - come * k, ax = rr, az = rr * ez, p = Math.sqrt((ax * ax + az * az) / 2), a = phase + shift + (t * speed) / p;
+    g.position.set(at[0] + pull[0] * k + Math.cos(a) * ax, at[1] + rise * k + lift * k * Math.max(0, -Math.cos(a)) ** 2 + Math.sin(t * 0.21 + phase) * bob, at[2] + pull[1] * k + Math.sin(a) * az);
     const vx = -Math.sin(a) * ax * Math.sign(speed), vz = Math.cos(a) * az * Math.sign(speed);
     g.rotation.set(Math.sin(t * 0.3 + phase) * 0.06, Math.atan2(vx, vz) + Math.PI, 0.1 * Math.sign(speed), 'YXZ');
     const sw = Math.sin(t * 0.9 + phase);
@@ -772,5 +779,8 @@ export function whale(kit, M, { at, R = 90, len = 22, speed = 2.2, phase = 0, ne
   };
   place(0);
   kit.mover(place);
+  // (a film's staging: be at the loop's angle `a` (π: its -x end) `dt` s from now; a jump along the loop, so only while
+  //  it is out of the shot: src/story/underwater-moments.js)
+  g.userData.passAt = (dt, a = Math.PI) => { shift = a - phase - ((last + dt) * speed) / loop(); };
   return g;
 }

@@ -827,6 +827,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'stone-shoulder', title: 'Setting things down', caption: 'Over his shoulder onto the stone, in the last homecoming: before, Lou cut by the left edge and Ilen by the right, his back filling the middle; after, further back, all three of them whole beside the stone.', from: CINE295 },
       { name: 'stone-reel', title: 'The oldest recording', caption: 'The reel’s recording: before, his arm and the drone filling the left third; after, low beside the slab, the three of them over the reel.', from: CINE295 },
     ] },
+    { match: 'Three worlds’ endings show what they are about', tags: ['cinematics', 'story'], shots: [
+      { name: 'climax-whales', title: 'The Underwater City', caption: 'The second panel of its ending: before, the dark water with a whale lost in it; after, inside the Whale Gallery, the whale against its glass.', from: CINE295 },
+      { name: 'climax-moon', title: 'The Moon Foundry', caption: 'The second panel: before, up at the one hung moon, still; after, under the jib, the last moon rising onto its hook (the hung moons turn in the next panel).', from: CINE295 },
+      { name: 'climax-cables', title: 'The City Floating in Space', caption: 'The second panel: before, out along one cable; after, over the roof, the capstan with every cable running out of it, its lamps lighting.', from: CINE295 },
+    ] },
   ],
   '1.72': [
     { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [

@@ -551,10 +551,15 @@ function mergeAll(list) {
 }
 
 // ------------------------------------------------------------------ the world change: one moon, whole
+/** The change's timing (s): the whole moon's lift to the hook (on its own, and filmed), the hung moons' turn, and how long
+ *  it waits for the climax to film them (src/story/moonfoundry-moments.js calls show()) before it goes on unfilmed. */
+export const CHANGE = { lift: 8, liftFilmed: 5, turn: 14, wait: 40 };
 /**
  * Once the Last Founder is stopped, the one moon it cast whole is lifted out of the Casting-House and hangs from the
- * jib over the door, turning slowly; the slits round the tower's top and the chimney's mouth glow steady (until then
- * they flicker, and at night they flare as the house pours by itself).
+ * jib over the door, turning slowly; every hung moon over the floor turns once round on its crown, slowly, and comes to
+ * rest facing the house again (issue #295: "every hung moon turns to it", told and never shown); the slits round the
+ * tower's top and the chimney's mouth glow steady (until then they flicker, and at night they flare as the house pours
+ * by itself). The lift and the turn wait for the climax's film (show(), turn()), or CHANGE.wait s.
  */
 function change(scene, level, rt) {
   const O = rt.outside;
@@ -575,23 +580,43 @@ function change(scene, level, rt) {
     moon.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
     root.add(moon);
   }
-  let k = 0, want = 0, lift = 0;
+  // the hung moons (src/levels/moon-foundry.js hungMoons), each facing the house; the turn is one round on top of that
+  const hung = (level?.hungMoons ?? []).map((h) => {
+    const toHouse = O ? Math.atan2(O.door.at.x - h.at.x, O.door.at.z - h.at.z) : 0;
+    h.group.rotation.y = toHouse;
+    return { ...h, yaw: toHouse };
+  });
+  let k = 0, want = 0, lift = 0, liftDur = CHANGE.lift, lifting = false, turn = 0, turning = false, waited = 0;
   const from = V(), to = V();
   const apply = () => { root.visible = k > 0.01; };
+  const place = (t) => {
+    if (moon && O) {
+      const e = lift * lift * (3 - 2 * lift);
+      moon.position.lerpVectors(from.copy(O.foot).setY(O.foot.y + 1.8), to.copy(O.hook).setY(O.hook.y - 2.3), e);
+      moon.rotation.y = t * 0.15;
+    }
+    const e = turn * turn * (3 - 2 * turn);
+    for (const h of hung) h.group.rotation.y = h.yaw + e * Math.PI * 2;
+  };
   return {
-    root,
+    root, moon, hung,
     get on() { return want === 1; },
-    set(on, { instant = false } = {}) { want = on ? 1 : 0; if (instant) { k = want; lift = want; apply(); } },
+    set(on, { instant = false } = {}) {
+      want = on ? 1 : 0;
+      if (instant) { k = want; lift = turn = want; lifting = turning = false; apply(); place(0); }
+      if (!on) { lift = turn = 0; lifting = turning = false; waited = 0; place(0); }
+    },
+    /** The climax's film: the whole moon lifted to the hook now, over CHANGE.liftFilmed s (true if it still had to be). */
+    show() { if (!want || lift >= 1 || lifting) return false; lifting = true; liftDur = CHANGE.liftFilmed; return true; },
+    /** ...and the hung moons' turn, now. */
+    turn() { if (!want || turn >= 1 || turning) return false; turning = true; return true; },
     update(dt, t) {
       if (k !== want) { k = THREE.MathUtils.clamp(k + (want ? dt / 2 : -dt), 0, 1); apply(); }
+      if (want && (waited += dt) > CHANGE.wait) { if (lift < 1) lifting = true; if (turn < 1) turning = true; }
+      if (lifting && lift < 1) lift = Math.min(1, lift + dt / liftDur);
+      if (turning && turn < 1) turn = Math.min(1, turn + dt / CHANGE.turn);
+      place(t);
       if (!O) return;
-      // the moon rises from the door's foot to the hook (8 s), then hangs there turning
-      if (want && lift < 1) lift = Math.min(1, lift + dt / 8);
-      if (moon) {
-        const e = lift * lift * (3 - 2 * lift);
-        moon.position.lerpVectors(from.copy(O.foot).setY(O.foot.y + 1.8), to.copy(O.hook).setY(O.hook.y - 2.3), e);
-        moon.rotation.y = t * 0.15;
-      }
       // the glow: flickering, flaring at night as it pours; steady once the founder is stopped
       const night = rt.isNight?.() ?? false;
       const g = want ? 0.55 + 0.05 * Math.sin(t * 0.8) : (night ? 0.5 : 0.25) + (night ? 0.4 : 0.15) * Math.max(0, Math.sin(t * 3.1) * Math.sin(t * 7.7));

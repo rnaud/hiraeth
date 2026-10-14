@@ -23,6 +23,10 @@ export const CHANGELOG = [
     'At home, the window seat: your head stays inside the picture as you sit down and get up, and the view from beside the seat no longer has a flat white patch of wall in it.',
     // the stone's framing (issue #296): src/ship/homecoming.js TOMB_ANGLES, TOMB_SPOTS, reelCuts; tests/ending.test.js
     'Coming home, at the stone: nobody stands half out of the picture any more (you, Lou and Ilen are each wholly in a shot or out of it), Lou is filmed from where her face shows, the oldest recording cuts between your parents and your face, and the view no longer jumps as the cargo check opens and closes.',
+    // three worlds' climaxes in four panels (issue #295): src/story/{underwater,moonfoundry,spacecity}-moments.js, the
+    // changes in src/temples/{moonfoundry,spacecity}.js, the whales' pass (src/levels/underwater-kit.js, underwater.js);
+    // docs/systems/cinematics.md; tests/moments-{underwater,moonfoundry,spacecity}.test.js
+    'Three worlds’ endings show what they are about. In the Underwater City a whale comes right up against the Whale Gallery’s glass and you see it there; in the Moon Foundry the last moon rises onto its hook over the Casting-House’s door, and every hung moon over the floor turns slowly round toward it; in the City Floating in Space, over the roof, every cable runs taut out of the great capstan and its lamps light one by one out along them.',
   ] },
   { v: '1.72', date: '2026-10-14', items: [
     // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js
