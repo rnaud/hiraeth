@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { buildFlask, setStage, TANK, TANK_RAIL, SCOUT_DOCK_Y, SCOUT_CAP, tankRadiusAt } from '../src/fluid-tool.js';
+import { buildFlask, setStage, TANK, TANK_RAIL, tankRadiusAt } from '../src/fluid-tool.js';
 import { makeMaterial } from '../src/materials.js';
 import { buildItemModel } from '../src/boxes/model.js';
 import { TRAVELLER_V1_TANK_AT } from '../src/characters/traveller-v1.js';
@@ -77,9 +77,7 @@ test('the stages: the lift valve, the wings and the Warden\'s bellows each add t
   assert.ok(visibleBox(f.group).max.y > TANK.neck.y + TANK.neck.h + 0.03, 'the valve\'s wheel over the cap');
 });
 
-test('the scout keeps its place on the body, over the jar; the coral-shirt traveller wears it on his back', () => {
-  // the dock at the same chest height as with the old tank (glass bottom 0.28, dock 0.52 × 1.2 up it, × 0.8)
-  assert.ok(Math.abs(TANK.at[1] + SCOUT_DOCK_Y * TANK.scale - (0.28 + 0.52 * 1.2 * 0.8)) < 0.002);
-  assert.ok(TANK_RAIL.top > TANK.neck.y + TANK.neck.h && SCOUT_CAP.y > TANK.neck.y + TANK.neck.h + 0.04, 'over the neck');
+test('the struts stand over the neck; the coral-shirt traveller wears the jar on his back', () => {
+  assert.ok(TANK_RAIL.top > TANK.neck.y + TANK.neck.h, 'over the neck');
   assert.ok(TRAVELLER_V1_TANK_AT[2] > TANK.at[2] && TRAVELLER_V1_TANK_AT[1] === TANK.at[1], 'closer in: no rucksack under it');
 });

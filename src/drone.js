@@ -38,16 +38,6 @@ export const DRONE = {
 const D = DRONE;
 /** Belly: the drone's centre over the surface it rests on (the foot's underside). */
 export const DRONE_BELLY = D.R * D.squat + 0.008;
-/**
- * How the drone sits on its dock (the dock's rotation in its parent's frame,
- * a chest-like frame: +y up, +z forward, +x the wearer's left): on a flat top
- * (the radio pack), foot down; on the left side of something upright (the
- * tank), foot against it. Either way its lens looks back, away from you
- * (towards the camera behind you), and its top points away from the surface.
- */
-export const DOCK_ON_TOP = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-export const DOCK_ON_SIDE = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
-  new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1)));
 /** The petals' unfolded angle: the rotor axes upright (π − mount). */
 export const PETAL_OPEN = Math.PI - D.mount;
 /** Petal azimuths: the diagonals, so the lens looks out between the two front ones. */

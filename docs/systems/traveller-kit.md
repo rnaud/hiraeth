@@ -62,11 +62,9 @@ the rucksack's outer face. The look and its reasons:
   dome's middle, and the ring's rim is slim, so the sword's frog behind the right shoulder stays clear
   (`tests/sword-sheath.test.js`: 1.2 cm at the least, to the ring's rim). The jets clip under the dome. A vehicle's
   socket and the hand-off keep `TANK.scale` either way.
-- **The scout's dock** (unused since v1.73: the drone is not carried on him, docs/systems/scout.md): without the flask, on the rucksack's lid (`kit.dock`,
-  `Gear.packDock`); with it, clamped to the top of the flask's left upright
-  (`TANK_RAIL`, `SCOUT_DOCK_*`), high enough that the arms don't swing into
-  it in any clip. While the wings are open it hops onto the cap
-  (`scoutDockPose`). The dock rides the flask into a vehicle's socket.
+- **No scout on him**: the drone is not carried (v1.73, issue #294: it comes out of a light when it is
+  needed, docs/systems/scout.md). Its old dock on the rucksack's lid and on the flask's left upright, and
+  the hop onto the cap while the wings were open, are gone.
 - **Hair** (`travellerHair`): a scalp shell plus deterministic clumps
   (`clump`): broad, flat, leaf-shaped sheets laid along the skull egg, tapering
   to a point, with a wave and a lift at the end. Each has vertex colours for its
@@ -140,7 +138,7 @@ Tests: `tests/sword-sheath.test.js` (where it sits on the back, clear of the fla
 draw and the sheathe and their timing, a swing pressed with it on the back cutting on the same frame as one
 already drawn), `tests/glove.test.js` (worn with the tank only, the skin under it, the mouth at the knuckles
 in every aim, the lights, the vial lit by the fluid, no hose anywhere), `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
-face), `tests/drone.test.js` (docks and clearance in every clip),
+face), `tests/drone.test.js` (nothing of the drone on him),
 `tests/abilities.test.js` (the pocket while the flask comes and goes).
 
 The scout now uses ivory outer petals, sage lower hull, pale green inner petals and aged

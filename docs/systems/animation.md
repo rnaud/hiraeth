@@ -195,7 +195,7 @@ below is laid over them procedurally, so no new motion data was needed (see TODO
   his feet (35° down jogging, 48° sprinting; now 21 and 23); the look-around's head turn came through
   only as the neck's. On foot only (idle, walk, jog, sprint, talk, look-around, by the actions'
   weights): on a ledge, climbing, in the air and seated the neck's line is kept, as the tipped-back
-  head would meet the scout docked behind it (`tests/drone.test.js`). Only the traveller's rig has it.
+  head would meet the pack behind it. Only the traveller's rig has it.
 - **The body** (`Locomotion`, after `Animator.apply`): the chest tips forward as the body speeds
   up and back (the hips dipping) as it brakes, banks into a curve by turn rate × speed, and the
   head and then the chest turn toward where you steer before the hips get there.

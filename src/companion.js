@@ -1,6 +1,6 @@
 // Plumb, the drone that comes when it is needed (src/scout.js flies it, src/drone.js is its body; the character:
 // lore/characters/plumb.md). Besides finding the objective when you ask (Q, R3), it has a little mind
-// of its own, three parts, all here so they can be tested without a scene:
+// of its own, two parts, all here so they can be tested without a scene:
 //
 //   LostWatch   notices when you are lost: no progress (a quest step, an item, a chest, a talk) and
 //               no new place for a few minutes while you walk about, sooner when you walk away from
@@ -10,13 +10,10 @@
 //               stepping out of the ship, the first person near, the first chest, the first time
 //               you are lost (the R3 line after the first talk is the hint system's, issue #151:
 //               these say nothing of the button).
-//   Mood        small moves on the dock: a hop when you find something, a lean and a look toward
-//               something worth seeing near you, a shiver in a storm. None with Reduce motion.
-//               Unused while the drone is not carried on you (issue #294: it comes when it is needed).
 //
 // The setting "Drone hints" (src/ui.js droneHints: on | fewer | off) sets how often it speaks up:
 // fewer waits twice as long and rests twice as long between two; off, it says nothing on its own
-// (the lines and the pointing; it still finds what you ask for, and still moves on the dock).
+// (the lines and the pointing; it still finds what you ask for).
 // Hints off (src/hint-level.js) silences it too: no help means none.
 //
 //   const plumb = new Companion({ state: game, setting: () => settings.droneHints })
@@ -164,43 +161,3 @@ export class Companion {
   }
 }
 
-/**
- * The dock's little moves (Mood): a hop when you find something, a look and a lean toward something worth
- * seeing, a shiver in a storm. step() eases them; pose() is what the dock adds this frame, in the dock's
- * frame (+y out of the surface, +z the way the lens looks): { lift (m), yaw, tilt (rad), shake (rad), awake }.
- */
-export const MOOD = {
-  hop: { time: 0.7, height: 0.07, hops: 2 },   // a find: two little hops
-  lean: { tilt: 0.28, range: 10, ease: 4 },   // toward a thing within range m: the lens on it, the top tipped toward it
-  shiver: { from: 0.3, amp: 0.06, rate: 31 },  // a storm over `from`: a quick shake
-};
-const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-export class Mood {
-  constructor() { this.hopT = Infinity; this.yaw = 0; this.k = 0; this.t = 0; this.storm = 0; this.still = false; }
-  /** Something was found: a hop (not again while one plays). */
-  hop() { if (!(this.hopT < MOOD.hop.time)) this.hopT = 0; }
-  /**
-   * dir: the thing worth seeing, in the dock's frame ({ x, z }, unnormalised; null: nothing near);
-   * storm: 0..1; still: Reduce motion (nothing moves).
-   */
-  step(dt, { dir = null, storm = 0, still = false } = {}) {
-    this.t += dt; this.hopT += dt;
-    this.still = still; this.storm = storm;
-    const e = 1 - Math.exp(-MOOD.lean.ease * dt);
-    const want = dir && Math.hypot(dir.x, dir.z) > 1e-3;
-    this.k += ((want ? 1 : 0) - this.k) * e;
-    this.yaw += wrap((want ? Math.atan2(dir.x, dir.z) : 0) - this.yaw) * e;   // (the short way round)
-    return this.pose();
-  }
-  /** What the dock adds now: lift (m, out of the surface), yaw (rad round its up), tilt (rad, the top toward the lens), shake (rad), awake (the eye open). */
-  pose() {
-    if (this.still) return { lift: 0, yaw: 0, tilt: 0, shake: 0, awake: false };
-    const H = MOOD.hop, k = this.hopT < H.time ? this.hopT / H.time : 1;
-    const lift = k < 1 ? Math.abs(Math.sin(Math.PI * H.hops * k)) * H.height * (1 - k * 0.5) : 0;
-    const S = MOOD.shiver, s = Math.max(0, (this.storm - S.from) / (1 - S.from));
-    const shake = s > 0 ? Math.sin(this.t * S.rate) * Math.sin(this.t * S.rate * 0.37 + 1) * S.amp * s : 0;
-    return { lift, yaw: this.yaw, tilt: MOOD.lean.tilt * this.k, shake, awake: k < 1 || this.k > 0.3 };
-  }
-  /** Anything to show (the dock skips its work otherwise). */
-  get busy() { return !this.still && (this.hopT < MOOD.hop.time || this.k > 0.01 || Math.abs(this.yaw) > 0.01 || this.storm > MOOD.shiver.from); }
-}

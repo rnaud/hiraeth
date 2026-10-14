@@ -82,10 +82,8 @@ the sheets' squat glass jar, about 26 × 29 cm and 14 cm deep, green living
 fluid standing at the charges, a dark collar, brass fittings and leather tabs
 over the shoulders (docs/systems/traveller-kit.md). The outer
 pocket shows while the flask is not on his back (not yet found, or in a
-vehicle's socket); the rucksack itself always stays on. Without the flask the
-scout docks on the rucksack's lid; with it, on top of the flask's left upright,
-high enough that the swinging arms never reach it (the slim pack brings the
-dock close to the body), hopping onto the cap while the wings are open. Item
+vehicle's socket); the rucksack itself always stays on. The scout is not carried on him: it
+comes out of a small light when it is needed (issue #294). Item
 ownership still controls whether the tool is worn; the redesign grants no
 equipment.
 

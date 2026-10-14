@@ -254,16 +254,14 @@ test('climbing under rotated gravity: fingers up the wall, toes into it, rolled 
   }
 });
 
-test('the gear hooks: the head and chest anchors, the scout on the pack, the glass out of shadows, nothing in the hand', () => {
+test('the gear hooks: the head and chest anchors, the rucksack pocket, the glass out of shadows, nothing in the hand', () => {
   const char = buildCharacter(), h = traveller(char);
   const g = new Gear(new THREE.Scene(), h, char);
   h.update(true); h.model.updateMatrixWorld(true); g.update(1 / 60, V(), 0, 0, true);
   assert.equal(g.springs.length, 0);
   assert.deepEqual(g.noShadow, []);
   assert.ok(at(h.headAnchor).distanceTo(boxOf(h, /^Traveller_hair$/).getCenter(V())) < 0.1, 'head anchor remains in the skull');
-  // the scout docks on the rucksack's lid; the outer pocket is apart (the flask hides it)
-  const pack = boxOf(h, /^Rucksack_lid$/), dock = at(g.scoutDock);
-  assert.ok(dock.y > pack.max.y && dock.y < pack.max.y + 0.15 && dock.z > pack.min.z && dock.z < pack.max.z, 'the scout on the lid');
+  // the rucksack's outer pocket is apart (the flask hides it)
   assert.deepEqual(h.packPocket.flatMap((m) => m.userData.pieces).sort(), ['Rucksack_pocket', 'Rucksack_pocket_flap']);
   // nothing in the hand: the old handheld device (a screen in the fist, read as a phone) is gone
   assert.equal(g.device, undefined);

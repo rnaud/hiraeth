@@ -130,7 +130,7 @@ export class Trail {
     for (let i = S.length - 1; i >= 0; i--) pts.push({ p: S[i].p, age: Math.min((this.time - S[i].t) / this.life, 1), d: S[i].d, g: S[i].g });
     const n = pts.length;
     // (nothing laid, and nothing last time either: the tube is the empty one already written, hidden; the drone's,
-    // docked, wrote its 1 200 vertices and their bounds again every frame, issue #111)
+    // at rest, wrote its 1 200 vertices and their bounds again every frame, issue #111)
     if (n === 0 && this._empty) return;
     this._empty = n === 0;
     const T = this._t, N = this._n, B = this._b;

@@ -934,7 +934,7 @@ export class Animator {
     // it. Running, the neck leans 35-50 deg forward while the clip's head stays up (20 deg down): with the
     // neck's line alone the face looked at the ground. (On foot only: hanging from a ledge, climbing,
     // in the air and seated the neck's line is kept, as before: the head tipped back there would meet
-    // the scout docked behind it.)
+    // the pack behind it.)
     if (C.headNod && this.restHead) {
       let k = 0;
       for (const key of HEAD_NOD) k += this.actions[key]?.getEffectiveWeight() ?? 0;

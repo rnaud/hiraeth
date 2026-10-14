@@ -546,7 +546,7 @@ export class Humanoid {
     this.headAnchor = anchor(B.Head, new THREE.Vector3(hf[0], restHead.y + hf[1], restHead.z + hf[2]));
     const kit = this.kit;
     if (kit) {
-      // the traveller: the chest frame behind the pack's front (the tank and the scout's dock sit there)
+      // the traveller: the chest frame behind the pack's front (the tank sits there)
       this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, kit.chestY, kit.chestZ));
     } else this.chestAnchor = anchor(B.spine_03, new THREE.Vector3(0, this.rest.get(B.neck_01).p.y - 0.74 - 0.02, 0));
     const move = (obj, parent, pos) => { parent.add(obj); if (pos) obj.position.copy(pos); obj.traverse((o) => keep.add(o)); };

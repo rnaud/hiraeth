@@ -71,31 +71,20 @@ springs up and sways with the drone's accelerations, and the lens lights.
   once the vanes are out; closing, the rotors spin down and park with their
   blades along the petals before the petals shut, and the eye closes last. It
   can reverse at any point; `snap()` jumps (teleports, recalls).
-- **Launch and landing**: until v1.73 it hopped off a dock on his back and glided back onto it
-  (`DOCKING`); now it comes out of a small light and winks out (below, "It comes when it is needed").
+- **Coming and going**: it comes out of a small light and winks out (below, "It comes when it is
+  needed"). Until v1.73 it rode a dock on his back, the rucksack's lid or the flask's left upright;
+  that dock, its moods and their clearance tests were taken out after #294 (the author's call).
 - **Flying**, the body stays near level (pitch at most `PITCH`) and leans into
   its speed (the lit beak that pointed at the goal is gone, October 2026: the
   drone's heading is the only pointer).
-- **Docks** (`DOCK_ON_TOP`, `DOCK_ON_SIDE`; unused since v1.73, kept for its return): on the rucksack's lid (the radio pack's flat top until October 2026), foot
-  down, lens looking back at the camera (`kit.dock` is where the foot rests,
-  `gear.js` adds `DRONE_BELLY`); once the tank is found, on top of the flask's
-  left upright beside its neck (docs/systems/traveller-kit.md), above the lantern
-  (`SCOUT_DOCK_*` in `fluid-tool.js`). The dock is a child of the tank's group,
-  so it rides into a vehicle's socket with it, but not the tank's growing in
-  when found. While the fluid wings are open the rail is in their way, so it
-  hops up onto the cap between their roots and back (`scoutDockPose`).
 - `tests/drone.test.js` checks the fold's order, the folded shape (rotors
-  inside the shell) and the open one (rotors upright), the docked shape inside
-  a clearance volume over the pack and beside the tank (on the rail, off the
-  glass, clear of the bracket, the lantern and the antenna), no arm, hand or
-  the helmet through it in every clip (idle, walk, jog, sprint, jumps, drive,
-  climbing, the ledge) on the pack, the rail and the cap, the cap clear of the
-  open wings, and its coming and going.
+  inside the shell, its foot `DRONE_BELLY` under its centre) and the open one
+  (rotors upright), and its coming and going.
 
 ## Plumb's own mind (v1.51, issue #152)
 
 The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
-`src/companion.js` gives it three small behaviours of its own, wired in
+`src/companion.js` gives it two small behaviours of its own, wired in
 `main.js` (`updatePlumb`, each frame after the weather):
 
 - **Lost** (`LostWatch`, `LOST`): a clock runs while you walk about in the
@@ -115,21 +104,15 @@ The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
   first chest opened, said once its scene is over), `pointer` (the first time it
   finds you lost, in place of a lost line). None names a button: the R3 line
   after the first talk is the hint system's (issue #151).
-- **Moods on the dock** (`Mood`, `MOOD`; unused since v1.73, it is not carried on you): a double hop when
-  an item is given or a quest moves on; a turn of the lens and a tip of its top
-  toward the nearest unopened chest or unmet person within 10 m; a shiver once a
-  storm (or heavy rain) passes 0.3. Its eye opens for them. All off with Reduce
-  motion (`scout.still`, from `feel.js motionState`).
 
 The setting "Drone hints" (`settings.droneHints`: on | fewer | off) and Hints
-off (`droneSay`) quiet the lines and the pointing; the ping on request and the
-moods stay. The lines (`DRONE_LINES`) carry their tones and show on the cue
+off (`droneSay`) quiet the lines and the pointing; the ping on request stays. The lines (`DRONE_LINES`) carry their tones and show on the cue
 after the drone's ◇. `tests/companion.test.js` checks the threshold, the
-cooldown, the setting, each opening line once and the moods.
+cooldown, the setting, and each opening line once.
 
 ## It comes when it is needed (v1.73, issue #294)
 
-The drone is no longer carried on the traveller: docked on the flask it sat by his face in every
+The drone is no longer carried on the traveller: on its dock on the flask it sat by his face in every
 close-up (the cinematics QC v1.66). The author: "move the drone off the character altogether for now.
 It should just appear when I need it." So `Scout` (`src/scout.js`) is `away` (nothing drawn: play,
 talks, portraits, menus and the studio all show him without it) until it is called:
@@ -147,7 +130,6 @@ talks, portraits, menus and the studio all show him without it) until it is call
   scene or a box opening is under way, and a drone that is out is gone at once (it is no part of the
   shot). A teleport leaves it behind the same way.
 
-Its lines (Plumb's, `src/companion.js`) still come on the cue with its ◇; its moods on the dock are
-unused. `tests/drone.test.js` ("off him") checks nothing of it on him or drawn while idle, the light
+Its lines (Plumb's, `src/companion.js`) still come on the cue with its ◇. `tests/drone.test.js` ("off him") checks nothing of it on him or drawn while idle, the light
 and the growing by his shoulder, the bloom only once grown, the job and the going, and the scene
 hiding it; `tests/scout.test.js` the phases of a find, a shrug, a hint and a recall.

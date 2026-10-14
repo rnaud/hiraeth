@@ -1,7 +1,7 @@
 // Plumb, the drone's own mind (src/companion.js): the lost watch, the opening's lines, the setting, its moods.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Companion, LostWatch, Opening, Mood, LOST, MOOD, DRONE_LINES, OPENING, DRONE_HINTS, droneSay, shown } from '../src/companion.js';
+import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, DRONE_HINTS, droneSay, shown } from '../src/companion.js';
 import { parseLine } from '../src/story/tone.js';
 
 /** A save's flags, as the game state keeps them. */
@@ -140,29 +140,3 @@ test('every line carries a tone, is short, and never names a button (the R3 line
   assert.ok(OPENING.length >= 3 && OPENING.length <= 5, 'three to five opening lines');
 });
 
-test('moods: a hop on a find, a look toward something, a shiver in a storm; nothing with Reduce motion', () => {
-  const m = new Mood();
-  let p = m.step(0.016);
-  assert.equal(m.busy, false, 'at rest: nothing');
-  m.hop();
-  let top = 0;
-  for (let t = 0; t < MOOD.hop.time; t += 0.016) top = Math.max(top, m.step(0.016).lift);
-  assert.ok(top > MOOD.hop.height * 0.5, 'it hops');
-  assert.equal(m.step(0.016).lift, 0, 'and lands');
-  // something behind the lens' way (in front of you): it turns round to it the short way, and tips toward it
-  for (let i = 0; i < 120; i++) p = m.step(0.016, { dir: { x: 0.2, z: -1 } });
-  assert.ok(Math.abs(Math.abs(p.yaw) - Math.abs(Math.atan2(0.2, -1))) < 0.1, `it looks at it (${p.yaw.toFixed(2)})`);
-  assert.ok(p.tilt > MOOD.lean.tilt * 0.8 && p.awake);
-  for (let i = 0; i < 200; i++) p = m.step(0.016);
-  assert.ok(Math.abs(p.yaw) < 0.05 && p.tilt < 0.02, 'back at rest');
-  // a storm
-  let shake = 0;
-  for (let i = 0; i < 60; i++) shake = Math.max(shake, Math.abs(m.step(0.016, { storm: 1 }).shake));
-  assert.ok(shake > MOOD.shiver.amp * 0.3, 'a shiver');
-  for (let i = 0; i < 60; i++) assert.equal(m.step(0.016, { storm: 0.1 }).shake, 0, 'a breeze: none');
-  // Reduce motion: still
-  m.hop();
-  p = m.step(0.016, { dir: { x: 1, z: 0 }, storm: 1, still: true });
-  assert.deepEqual([p.lift, p.yaw, p.tilt, p.shake], [0, 0, 0, 0]);
-  assert.equal(m.busy, false);
-});

@@ -48,8 +48,7 @@ test('route chooses the first of chained portals, but keeps nearby objectives di
 });
 
 function fixture(physics={rayDistance:()=>Infinity}, target=v(100)) {
-  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
-  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)}};
   const finds=[], shrugs=[];
   const scout=new Scout({scene:new THREE.Scene(),player,physics,getTarget:()=>target&&({id:'test',label:'Test',position:target}),onFind:(t,d)=>finds.push([t.label,d]),onShrug:()=>shrugs.push(1)});
   return {scout,player,finds,shrugs};
@@ -224,8 +223,7 @@ test('scout keeps your pace riding: it looks out ahead of you, stays near, and p
 
 test('in a guardian\'s fight a ping is a hint: the lens beam on the weak point, a chirp, the line, plainer each time, no flare', () => {
   const weak=v(9,4,0); let hint={id:'incal.0',lines:['nudge','plainer','plainest'],at:()=>weak};
-  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
-  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)}};
   const said=[], finds=[], chirps=[];
   const scout=new Scout({scene:new THREE.Scene(),player,physics:{rayDistance:()=>Infinity},sound:{drone:(k)=>chirps.push(k)},
     getTarget:()=>({id:'quest',label:'Quest',position:v(200)}),getHint:()=>hint,onFind:(t)=>finds.push(t.label),onHint:(line,n)=>said.push([line,n])});
@@ -261,8 +259,7 @@ test('with the game\'s physics (a capsule sweep each step) the drone still faces
   let facing=-1; for(let i=0;i<60*5;i++){ scout.update(1/60); if(scout.phase==='point') facing=Math.max(facing,new THREE.Vector3(0,0,1).applyQuaternion(scout.object.quaternion).z); }
   assert.ok(facing>0.9,`it faces the objective (+z): ${facing.toFixed(2)}`);
   const weak=v(-8,6,3);
-  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
-  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)}};
   const s2=new Scout({scene:new THREE.Scene(),player,physics,getTarget:()=>null,getHint:()=>({id:'x.0',lines:['look'],at:()=>weak})});
   s2.ping(); for(let i=0;i<60*3;i++) s2.update(1/60);
   assert.equal(s2.phase,'point');
@@ -374,8 +371,7 @@ test('a flare far below you rises past your feet, so it is seen from up there to
 // "The drone's destination hint should appear immediately, not after 1 s" (issue #65): onPing at the ping itself,
 // with what it is off to find (main.js puts its line on the cue at once, its distance worked out every frame)
 test('the ping says what the drone is off to find at once (onPing), the flare only when it is there', () => {
-  const dock=new THREE.Object3D(); dock.position.set(0,2,0);
-  const player={pos:v(),vel:v(),frame:{up:v(0,1)},gear:{scoutDock:dock}};
+  const player={pos:v(),vel:v(),frame:{up:v(0,1)}};
   const pings=[], finds=[];
   const scout=new Scout({scene:new THREE.Scene(),player,physics:{rayDistance:()=>Infinity},getTarget:()=>({id:'quest',label:'The skull',position:v(80)}),onPing:(t)=>pings.push(t.label),onFind:(t)=>finds.push(t.label)});
   scout.ping();

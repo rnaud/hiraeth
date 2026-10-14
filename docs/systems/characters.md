@@ -167,12 +167,10 @@ ragdoll) poses it exactly as it poses an NPC.
   `Humanoid.setFace`: younger and fuller than the modelled face, see *Hair, faces that
   talk*), with his own hair under the helmet's liner (`travellerHair`).
 - **Hooks:** `Humanoid.headAnchor` is the skull's centre, `chestAnchor` sits
-  0.74 below the collar and as far back as the pack moved (the fluid tank and
-  the scout's dock go there), `Humanoid.glove` is the fluid glove on the right hand
+  0.74 below the collar and as far back as the pack moved (the fluid tank goes there), `Humanoid.glove` is the fluid glove on the right hand
   (its meshes, the cuff's lit vial and the anchor of the fluid's mouth: [traveller-kit.md](traveller-kit.md)).
   `Humanoid.packPocket` (the rucksack's outer pocket; the radio pack until October 2026) shows
-  until the flask is found and while it sits in a vehicle (`fluid-tool.js`); the scout docks on
-  the rucksack's lid, then on top of the flask's left upright (docs/systems/traveller-kit.md).
+  until the flask is found and while it sits in a vehicle (`fluid-tool.js`). The scout is not carried on him (docs/systems/scout.md).
 - `tests/traveller.test.js` checks the body is the NPCs' (skeleton, weights,
   bind pose, face), the fit (helmet centred, headphones on the ears, cuffs at
   the wrists, pack on the back, feet in the boots, soles on the ground), the
@@ -550,7 +548,7 @@ a sitter's head). `tests/seated-robes.test.js`.
 
 The current character follows the [three reference sheets and visual direction](../../lore/characters/traveller-design.md): coral overshirt, cream cropped trousers, scruffy dark hair and a round satchel. `src/traveller.js` builds the clothing on the unchanged human animation rig; `src/traveller-style.js` owns its palette. `src/fluid-tool.js` fits the compact green tank and preserves its scale through vehicle handoffs. The earned star and lantern mounts live in `src/boxes/effects.js`.
 
-For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** checkbox uses isolated state and never grants items to the game save. The traveller and drone tests cover skin weights, garment fit, movement, docking clearance, and the resized pack’s handoff.
+For a complete preview, open `studio.html?backpack=1`; the **Fluid backpack** checkbox uses isolated state and never grants items to the game save. The traveller and drone tests cover skin weights, garment fit, movement, and the resized pack’s handoff.
 
 ## Generated guardian pilot: Cistern-Keeper
 

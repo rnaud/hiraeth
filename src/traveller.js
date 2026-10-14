@@ -386,7 +386,7 @@ function rucksack(chestY, chestZ) {
   const frontFlap = soft(0.215, 0.06, 0.04, 0.014, 0, R.bottom + 0.255, out - 0.01);
   const P = PAL;
   return {
-    top: R.top + 0.018, bottom: R.bottom - 0.062, dockX: -0.03, dockZ: cz - 0.04,
+    bottom: R.bottom - 0.062,
     parts: [
       ['Rucksack', body, P.canvas], ['Rucksack_lid', lid, P.canvasShade], ['Rucksack_lid_straps', mergeGeometries(straps), P.leather],
       ['Rucksack_buckles', mergeGeometries(buckles), P.dark], ['Rucksack_side_pocket', pocket, P.canvasShade],
@@ -514,8 +514,7 @@ const gloves = new WeakMap();
 /**
  * Everything the traveller wears on a body (pure data, cached per outfit scene and body geometry):
  * { pieces: [{ name, geometry (skinned to the body's bones, bind space), color, glass?, pack? }],
- *   chestZ (the chest anchor's offset), dock (where the scout's foot rests on the rucksack's lid,
- *   chest anchor frame), head: { centre, half } }. (The glove on his right hand is its own:
+ *   chestY, chestZ (the chest anchor's offset), head: { centre, half }, backZ }. (The glove on his right hand is its own:
  *   fluidGlove, Humanoid.wearGlove.)
  */
 export function travellerKit(scene, body) {
@@ -565,7 +564,7 @@ export function travellerKit(scene, body) {
   // The translator remains a small earpiece from home, almost lost in his hair.
   add('Translator', rigid(plain(new THREE.SphereGeometry(1, 8, 6).scale(0.005, 0.008, 0.006).translate(-headHalf.x + 0.006, headC.y - 0.006, headC.z - 0.004)), Head), PAL.earpiece);
 
-  // ---- the canvas rucksack on the back (the chest frame: the flask, the scout's dock and the lantern hang off it)
+  // ---- the canvas rucksack on the back (the chest frame: the flask and the lantern hang off it)
   const backPts = points(suit, (p) => p.y > neck.y - 0.24 && p.y < neck.y - 0.07 && Math.abs(p.x) < 0.1);
   const backZ = Math.min(...backPts.map((p) => p.z));
   // the chest frame's origin, 0.76 below the collar and as far behind the human's neck as the old radio
@@ -574,9 +573,6 @@ export function travellerKit(scene, body) {
   const chestY = neck.y - 0.76, chestZ = backZ - F.backGap - glbBackZ;
   const sack = rucksack(chestY, chestZ);
   for (const [name, geo, color, o] of sack.parts) add(name, rigid(geo, chest), color, o);
-  // the scout's place when there is no flask: the rucksack's lid, toward its outer side (clear of his hair) and a
-  // little to his right (from there it glides over to the flask's upright when the flask is found, scout.js)
-  const dock = new THREE.Vector3(sack.dockX, sack.top, sack.dockZ);
 
   // ---- the shoulder straps: from the rucksack's top over the shoulders, down the chest, then under
   // each arm back to its lower corners (a rucksack's, not a harness down to the belt)
@@ -753,7 +749,7 @@ export function travellerKit(scene, body) {
     add(`Rolled_sleeve_${s}`, rigid(mergeGeometries([band([gauntlet(g0, 0.016), gauntlet(g1, 0.006)]), band([gauntlet(g1, 0.006), gauntlet(g1, -0.004)]), band([gauntlet(g0, 0.0), gauntlet(g0, 0.016)])]), bi(`lowerarm_${s}`)), PAL.jacket);
   }
 
-  const kit = { pieces, chestY, chestZ, dock, head: { centre: headC, half: headHalf }, backZ };
+  const kit = { pieces, chestY, chestZ, head: { centre: headC, half: headHalf }, backZ };
   cache.set(base.uuid, kit);
   return kit;
 }
