@@ -129,6 +129,25 @@ export const POSTS = { near: 60 };
 /** The lock-on (R3 / Tab): a foe within `reach` (the nearest in front first); lost past `lose` or when it falls. */
 export const LOCK = { reach: 18, lose: 26 };
 /**
+ * The lock's line of sight (issue #313): a foe is locked on to only if the camera or the traveller's eyes see its
+ * body (a physics ray each, so a shut door, a gate or a wall between hides it); a lock held through a foe gone
+ * behind one lets go once it has been out of sight `grace` s. Looked at every `every` s, not every frame. A foe
+ * waits for a clear line to you before it begins a blow (`strike`: the same ray, as often), so none strikes
+ * through a shut door. A guardian (its own fight) and a buried foe (its fin, on the sand) are always seen.
+ */
+export const LOCK_SIGHT = { every: 0.2, grace: 0.8, eye: 1.5, strike: 0.25 };
+const _ls = new THREE.Vector3();
+/** Does any of `eyes` (points, null skipped) see `target` past the world (`physics.rayDistance`), within `radius` of it? */
+export function lockSight(physics, eyes, target, radius = 0.5) {
+  if (!physics?.rayDistance) return true;
+  for (const e of eyes) {
+    if (!e) continue;
+    const d = _ls.subVectors(target, e).length();
+    if (d < 1e-3 || physics.rayDistance(e, _ls.divideScalar(d), d) >= d - radius - 0.3) return true;
+  }
+  return false;
+}
+/**
  * The lock camera's turn off the line (combat-v1.47 rec. 3, issue #107). main.js turns the camera to keep the locked foe
  * ahead; straight down the line from the traveller to it, a small foe (a blot, a lizard, a toad 6-9 m off) stood right
  * behind his back, its tell hidden. So the camera swings round him by the least angle that sets the foe's body clear of
@@ -807,7 +826,7 @@ export class Foe {
         this.walkTo(this.home.x, this.home.z, D.speed * 0.8, dt, env, 0.5);
         this.hp = Math.min(D.hp, this.hp + dt * 0.5);
         if (away < 1) { this.state = 'idle'; if (D.calm?.wild && this.wilds) this.provoked = false; }   // (home, wildlife calms down again)
-        else if (playerOk && d < (D.calm && !this.provoked ? D.calm.provoke : D.sight * 0.6) && away < D.giveUp * 0.8) this.state = 'chase';
+        else if (playerOk && d < (D.calm && !this.provoked ? D.calm.provoke : D.sight * 0.6) && away < D.giveUp * 0.8 && (env.seen?.(this.chest, P.pos) ?? true)) this.state = 'chase';   // (in sight: not through a shut door)
         break;
       }
     }
@@ -1669,7 +1688,8 @@ export class Foes {
         // (a flock darts in one at a time: the skitters' ripple rush)
         if (f.def.flock?.one && this.list.some((x) => x !== f && x.kind === f.kind && x.alive && x.dead === undefined && (x.state === 'wind' || x.state === 'strike'))) return false;
         const busy = this.list.filter((x) => x !== f && x.alive && ['wind', 'strike'].includes(x.state)).length;
-        return busy < this.strikers && (busy === 0 || this.onScreen(f));
+        // (and it sees you: no blow through a shut door or a wall, LOCK_SIGHT.strike)
+        return busy < this.strikers && (busy === 0 || this.onScreen(f)) && this.seesYou(f);
       },
       seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
     };
@@ -1717,7 +1737,8 @@ export class Foes {
     // reticle follows its fin, dimmed: src/lock-reticle.js)
     // (a guardian in its fight too: its body's edge within reach, GuardianLock)
     const guards = [...GUARDIANS_LIVE].map(guardianLock).filter((L) => L.alive && L.pos.distanceTo(P.pos) - L.def.radius < LOCK.reach);
-    const cands = [...this.list.filter((f) => f.alive && f.dead === undefined && f.pos.distanceTo(P.pos) < LOCK.reach), ...guards]
+    // (only those you can see: none through a shut door or a wall, LOCK_SIGHT)
+    const cands = [...this.list.filter((f) => f.alive && f.dead === undefined && f.pos.distanceTo(P.pos) < LOCK.reach && this.inSight(f)), ...guards]
       .map((f) => {
         const d = f.pos.distanceTo(P.pos), dot = fwd ? _v.subVectors(f.pos, P.pos).setY(0).normalize().dot(_w.copy(fwd).setY(0).normalize()) : 1;
         return { f, d, ahead: dot > 0.2, score: d * (1.6 - dot) };
@@ -1768,9 +1789,36 @@ export class Foes {
     const f = this.lock, P = this.player;
     if (f && (!f.alive || f.dead !== undefined)) this.lock = this.nextLock(f);
     else if (f && f.pos.distanceTo(P.pos) - (f.guardian ? f.def.radius : 0) > LOCK.lose) this.lock = null;
+    else if (f && this.lockHid(f, dt)) this.lock = null;   // (gone behind a door or a wall a moment: LOCK_SIGHT)
     if (typeof document === 'undefined' || !this.camera) return;
     (this.reticle ??= new LockReticle()).update(this.lock, this.camera, dt);
   }
+  /**
+   * Can you see f to lock on to it (LOCK_SIGHT)? A ray from the camera and one from the traveller's eyes to its
+   * body; either clear will do. A guardian (GuardianLock) and a buried foe always.
+   */
+  inSight(f) {
+    if (f.guardian || f.buried) return true;
+    const P = this.player, eye = P?.pos ? (this._eye ??= new THREE.Vector3()).copy(P.pos).setY(P.pos.y + LOCK_SIGHT.eye) : null;
+    return lockSight(this.physics, [this.camera?.position ?? null, eye], f.chest, f.def?.radius ?? 0.5);
+  }
+  /** The locked f has been out of sight past LOCK_SIGHT.grace (looked at every LOCK_SIGHT.every s): let go. */
+  lockHid(f, dt) {
+    if (this._sightOf !== f) { this._sightOf = f; this._sightIn = 0; this._hidFor = 0; this._seen = true; }
+    if ((this._sightIn -= dt) <= 0) { this._sightIn = LOCK_SIGHT.every; this._seen = this.inSight(f); }
+    this._hidFor = this._seen ? 0 : this._hidFor + dt;
+    if (this._hidFor <= LOCK_SIGHT.grace) return false;
+    this._sightOf = null;
+    return true;
+  }
+  /** Does f see you (env.seen from its body), looked at every LOCK_SIGHT.strike s (Foes.env.mayStrike)? */
+  seesYou(f) {
+    const now = this.clock ?? 0;
+    if (f.buried || !this.player?.pos) return true;
+    if (f._seesAt === undefined || now - f._seesAt >= LOCK_SIGHT.strike || now < f._seesAt) { f._seesAt = now; f._sees = this.env.seen(f.chest, this.player.pos); }
+    return f._sees;
+  }
+
   /**
    * The look's sideways motion while locked (main.js wraps rig.look): px as the stick, the mouse or a drag gave
    * them, `now` in s. Past FLICK.px of quick motion the lock jumps that way (switchLock). Returns true: locked, the
@@ -1806,7 +1854,7 @@ export class Foes {
     for (const f of this.list) {
       if (f === cur || !f.alive || f.dead !== undefined || f.pos.distanceTo(P.pos) > LOCK.reach) continue;
       const p = at(f);
-      if (!p || Math.sign(p.x - c.x) !== side) continue;
+      if (!p || Math.sign(p.x - c.x) !== side || !this.inSight(f)) continue;
       const d = Math.abs(p.x - c.x) + Math.abs(p.y - c.y) * 0.5;
       if (d < bd) { bd = d; best = f; }
     }
@@ -1821,7 +1869,7 @@ export class Foes {
     for (const x of this.list) {
       if (x === gone || !x.alive || x.dead !== undefined) continue;
       const d = x.pos.distanceTo(P.pos);
-      if (d < bd) { bd = d; best = x; }
+      if (d < bd && this.inSight(x)) { bd = d; best = x; }
     }
     if (best) this.reticle?.acquire();
     return best;
@@ -2388,6 +2436,7 @@ export class Foes {
     if (!P) return;
     if (!this.on) { for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); } return; }
     if (paused) return;
+    this.clock = (this.clock ?? 0) + dt;   // (the foes' own time: seesYou's pace)
     if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();
     // the wilds: after a few seconds out there, a pack comes in (the first time, just one); a pack

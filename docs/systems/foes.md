@@ -811,6 +811,15 @@ The count is said every 5 ink.
   (its body's edge within `LOCK.reach`), through a stand-in that answers the lock's, the reticle's and the blade's fields from
   it: its chest, its model (the reticle rings it), its wind-up as `wind`, open as stunned; weary or
   calmed, the lock lets go. So the back flip and the side hop work against it.
+- **Only what you can see** (issue #313, the author: "I shouldn't be able to lock on to enemies through a locked door";
+  `LOCK_SIGHT`, `lockSight`, `Foes.inSight`, `lockHid`, `seesYou`): a foe is a candidate for the lock (`cycleLock`, the
+  flick's `switchLock`, `nextLock` after a kill) only if a physics ray from the camera or from the traveller's eyes
+  (1.5 m up) reaches its chest within its radius. A shut door's block, a gate and a wall are all in the collision
+  (`physics.addCollider`), so none is locked on through one. A lock held on a foe that goes behind one is looked at every
+  `every` (0.2 s) and lets go once it has been out of sight past `grace` (0.8 s), so a pillar it passes behind doesn't drop
+  it. A guardian (its own fight) and a buried foe (its fin) are always seen. The foes keep the same rule: one behind a
+  shut door doesn't notice you (`env.seen`, idle and coming home), and `env.mayStrike` holds a blow until it sees you
+  (its own ray, every `strike` 0.25 s), so nothing winds up at you through a door. Tests: `tests/lock-sight.test.js`.
 - **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
   right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
   instead of the camera, into a leaky sum (decay 8/s). Past `FLICK.px` (70) the lock jumps to the nearest foe on

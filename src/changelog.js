@@ -25,6 +25,10 @@ export const CHANGELOG = [
     { text: 'Every world’s composed music is its own: the Mangrove, Salt Harbour, the Waterfall, the Forest of Antennas, the Eclipse, the Fallen Ring, the Underside and the Overnight Train played the Desert’s and now each has a score after its recording, and the Glass Dunes no longer play the Hangar’s. Several worlds have rhythms of their own too: a harp rolling in sixes, an analog arpeggio, a swung train piano, triplet drums.',
       numbers: [{ title: 'How far apart the two most alike scores are', unit: '', better: 'higher', device: 'scripts/score-features.mjs: tempo, metre, mode, instruments, density, register, rhythm, drums', rows: [{ where: 'two worlds off the route', before: 0.03, after: 2.66 }, { where: 'the Hangar and the Glass Dunes', before: 0.77, after: 5.3 }], source: 'node scripts/score-features.mjs (before: the scores at 29f2810d)' }],
       see: 'Walk a while in the Mangrove, then in the Overnight Train, with Settings, Music plays: Moments (the composed score plays between the recording’s moments): a handpan over low clarinet against a swung piano and brushes.' },
+    // the lock's line of sight (issue #313): src/foes.js LOCK_SIGHT, lockSight, Foes.inSight / lockHid / seesYou;
+    // docs/systems/foes.md "Only what you can see"
+    { text: 'You can only lock on to a foe you can see: none behind a shut door, a gate or a wall. A locked foe that goes behind one lets go of the lock a moment later, and a foe behind a shut door no longer notices you or winds up a blow at you through it.',
+      see: 'In a temple, stand at a shut door with a foe in the room beyond it and press R3 (Tab): nothing locks on. Open the door and it does.' },
   ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27

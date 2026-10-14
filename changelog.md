@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.70 — 2026-10-13
 
+- You can only lock on to a foe you can see: none behind a shut door, a gate or a wall. A locked foe that goes behind one lets go of the lock a moment later, and a foe behind a shut door no longer notices you or winds up a blow at you through it.
 - Every world’s composed music is its own: the Mangrove, Salt Harbour, the Waterfall, the Forest of Antennas, the Eclipse, the Fallen Ring, the Underside and the Overnight Train played the Desert’s and now each has a score after its recording, and the Glass Dunes no longer play the Hangar’s. Several worlds have rhythms of their own too: a harp rolling in sixes, an analog arpeggio, a swung train piano, triplet drums.
 - On Android and the Steam Deck the Music & sounds page plays every recorded song, not only the Desert’s and the title’s: it plays the copy the game has already downloaded, or downloads it there and then and keeps it for the worlds too.
 - Every hint and announcement now looks the same and sits in the same place: a dark strip at the top of the screen. The lessons, what the scout finds, what the use button does and photo mode’s keys used to be cream at the bottom; now they head the same stack as the notices, quest cards and the objective. The prompt over a person keeps its place, in the same dark look.

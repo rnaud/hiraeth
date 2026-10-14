@@ -492,6 +492,8 @@ const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 't
 const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 /** A save whose temple flags have a latched way open (the pit's pillars, the Root Stair's stones, the Warden's Well's irises). */
 /** The v1.49 camera pairs (made by hand: the follow camera has to be the game's own, not a pinned view). */
+/** Issue #313: made by hand, muted headless Chrome against this branch's own Vite (port 6313) and the tree before it (268c9668), High, hour 10, the HUD shown; the traveller placed before the Rose House's door d1, a blot held still beyond it, cycleLock called; 13 October; cwebp -q 72. */
+const LOCK313 = 'headless Chrome (High, 1280 × 720, hour 10, the HUD shown) against this branch and the tree before it (268c9668): the traveller before the Rose House’s shut door into the Dry Channel, a blot held still 9 m off beyond it, the lock pressed; cwebp -q 72 (13 October)';
 const CAM49 = 'headless Chrome (High, 1280 × 720, hour 10, clear, the HUD hidden), the camera left to the game and put behind the traveller (his heading + π, the default pitch), 3 s settled; before at a1ad9e1b, after on this branch; cwebp -q 72 (11 October)';
 /** The traveller's height on the screen before and after (measured with the shots). */
 const CAM49_ROWS = [
@@ -787,6 +789,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'Every hint and announcement now looks the same', shots: [
       { name: 'hints-top', title: 'A first lesson', caption: 'Out of the ship in the desert: before, “Look around with the mouse” on cream paper at the bottom while the notices came at the top; after, on the notices’ dark strip at the top, the notices stacked under it.', from: HINTS306 },
       { name: 'hints-prompt', title: 'The prompt over someone', caption: 'Beside Rima with hints full: the prompt that floats over her is the same dark strip, its button a cream badge.', from: HINTS306 },
+    ] },
+    { match: 'You can only lock on to a foe you can see', tags: ['combat', 'temples'], shots: [
+      { name: 'lock-door', title: 'At a shut door', caption: 'The Rose House, a blot beyond the shut door into the Dry Channel, R3 pressed: before, the lock took it through the door (the arrows on the door); after, nothing locks on.', from: LOCK313 },
     ] },
   ],
   '1.69': [
