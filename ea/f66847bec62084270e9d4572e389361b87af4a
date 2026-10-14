@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_72d3e2111f0f34 15
+src/changelog-media.js
+  s_9ca76055a220ed::t_8e55cbfd57d7a0 822
+src/changelog.js
+  s_9ca76055a220ed::t_4ad57f3a376996 16-17
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_7022ca9ffe5e60 529-543
+docs/systems/engine-bridge.md
+  s_837d3bfa853177::t_0efa08f7096ee0 216-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eaf66847bec62084270e9d4572e389361b87af4a",
+  "prompts": {},
+  "sessions": {
+    "s_837d3bfa853177": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad9ffe81c6ac81ffa",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
