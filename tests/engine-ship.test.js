@@ -58,6 +58,13 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   assert.ok(g.ship.prologue.done && !g.ship.playing, 'the opening over');
   assert.ok(g.player.pos.y < 100 && !g.ship.inside, `on the ground (${g.player.pos.y.toFixed(1)})`);
   assert.equal(scr.state.cine, null);
+  // the first step out's drift into the rig's framing over, the camera his again: it follows him as he walks off
+  // (the reveal's last shot was left as the ship's camera, which held the view still for good: seen on the Retroid)
+  run(g, 20 * 5);
+  assert.equal(g.ship.cam, null, 'no shot left over the rig');
+  const before = g.camera.position.clone();
+  run(g, 30, { KeyW: true }); run(g, 2, { KeyW: false });
+  assert.ok(g.camera.position.distanceTo(before) > 1, 'the camera follows him');
 
   // the ship as it stands: up the ramp and in; the table without power, the console with nothing waiting
   const h = await makeGame(file, { menus: menusStub() });

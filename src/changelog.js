@@ -15,6 +15,9 @@ export const CHANGELOG = [
     // the drone off him (issue #294): src/scout.js (APPEAR, appearSpot, the light; phases away/appear/leave), main.js;
     // tests/drone.test.js, tests/scout.test.js; docs/systems/scout.md
     'Plumb, the drone, no longer rides on your back by your face: it comes out of a small light over your shoulder when you call it (or when it has something to show you), does its job, and winks out again. Talks, scenes and close-ups show only you.',
+    // the reveal's last shot left as the ship's camera (src/ship/ship.js updateReveal; tests/arrival-view.test.js,
+    // tests/engine-ship.test.js; found in the Unity preview, issue #264)
+    'After the first step out of your ship in a world, and after the opening, the camera follows you again once it has drifted into its view: it stayed where it was and let you walk out of the picture.',
     // the shops in the engines (engine/menus.js openShop, shopView; engine/game.js shopPanel; BridgeMenu.cs DrawShop; issue #264)
     'In the Unity preview the shops open: Anselm sells his upgrades aboard the ship for your fragments, and every keeper their wares for chimes, on a sheet you go down with the pad, asked before you buy.',
     // names alike in one world (issue #281): src/story/hosts-data.js, src/temples/{underwater,perdide2}-data.js,

@@ -170,6 +170,7 @@ test('the drift gives way at once to his input, but not to the skip still held',
   ship.updateReveal(1 / 60);
   assert.equal(ship.reveal, null, 'the stick pushed: control is his');
   assert.ok(ship.blend && ship.blend.dur <= 0.5, 'eased back to the rig quickly');
+  assert.equal(ship.cam, null, 'its last shot no longer the camera (left there, it held the view still for good: issue #264)');
   ship.revealView(exit);
   ship.updateReveal(1 / 60);
   ship.rig.yaw += 0.2;   // the camera turned by hand (the mouse, the right stick)
@@ -178,5 +179,6 @@ test('the drift gives way at once to his input, but not to the skip still held',
   ship.revealView(exit);
   for (let t = 0; t <= AV.REVEAL.dur + 0.1 && ship.reveal; t += 1 / 30) ship.updateReveal(1 / 30);
   assert.equal(ship.reveal, null, 'and it ends by itself');
+  assert.equal(ship.cam, null, 'the rig\'s camera again');
   assert.ok(AV.anyInput({ KeyW: true }) && AV.anyInput({ lookStick: { x: 0.6, y: 0 } }) && !AV.anyInput({ lookStick: { x: 0, y: 0 }, stick: null }));
 });

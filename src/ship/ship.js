@@ -731,6 +731,9 @@ export class Ship {
     r.t += dt;
     if (r.cut || turned || r.t >= REVEAL.dur) {
       this.reveal = null;
+      // (its last shot is not the ship's camera any more: left there, it held the view still for good, the traveller
+      // walking out of it; seen in the Unity preview after the opening, issue #264)
+      if (this.cam === r.last) this.cam = null;
       // (cut short: back to the rig's own framing in half a second; run its course: already there)
       if (r.last && r.t < REVEAL.dur) this.blend = { from: r.last, t: 0, dur: 0.5 };
       return;

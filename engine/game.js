@@ -887,7 +887,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       grass?.update(camera);
       lap?.('grass');
       // the wind's wisps round the traveller (their ribbons turned to the camera, a pixel's width from its field of view)
-      if (wind && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
+      // (none aboard the ship: its rooms, in orbit in the opening or parked, have no wind; the ribbons are drawn over
+      // the walls, issue #264)
+      const aboard = shipOn && ship.inside;
+      if (wind) wind.mesh.visible = !aboard;
+      if (wind && !aboard && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
       // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
       backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));
       lap?.('wind');
