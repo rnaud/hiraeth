@@ -97,7 +97,7 @@ export const SCORES = {
     title: 'The Light Nobody Looks At', root: 174.61, mode: 'lydian', level: 1.55, tempo: 80, meter: 4, bars: 4, chordBars: 2,
     prog: [0, 1, 0, 5], drone: [[0, -1]],
     pal: { drone: 'city', pad: 'strings', bass: 'pizz', pluck: 'vibes', lead: 'muted', father: 'felt', echo: 'vibes' },
-    walk: [0, 2, 4, 5],
+    walk: [0, 2, 4, 5], swing: 0.16,   // (swung: the city's late-night jazz, issue #318)
     perc: { sub: 2, pattern: 'b.h.b.hh', hits: { b: 'brush', h: 'hat' } },
     arp: [0, 2, 4, 6, 7], density: 0.38,
     color: { every: 48, at: 8, kind: 'shimmer', degree: 3, octave: 2, vol: 0.5 },
@@ -141,13 +141,17 @@ export const SCORES = {
     motif: [[0, 0.5], [1, 0.5], [2, 1], [4, 1.5], [3, 0.5], [2, 1], [null, 1], [2, 0.5], [1, 0.5], [0, 0.5], [5, 2.5]],
   },
   // The Glass Dunes (on the route since October 2026, in the Hangar's place, with its temple): the Clock-House's
-  // quarrelling clocks over warm sand. The Hangar's clockwork score carried over to the house it kept time by: a
-  // sequenced pulse in sevens, a ticking clock; whole tone, no home, until the Foreman keeps time.
+  // quarrelling clocks over warm sand. Until issue #318 it played the Hangar's score note for note; now its own, after
+  // its recording (B lydian, 56 BPM; glass harmonica, bowed vibes, harp harmonics, cello: "green crystalline dunes"):
+  // a glass lead over bowed vibes and a low cello drone, harp harmonics ringing into an echo in a slow figure, in
+  // fives, and two clocks that tick in sixes against the bar, so they never agree for long.
   glassdunes: {
-    title: 'The Clock in the Glass', root: 130.81, mode: 'wholeTone', level: 1.05, tempo: 80, meter: 7, bars: 2, chordBars: 1,
-    prog: [0, 2, 0, 1], drone: [[0, -1]],
-    pal: { drone: 'synth', pad: 'synth', bass: 'sine', pluck: 'pulse', lead: 'analog', father: 'celesta', echo: 'pulse' },
-    perc: { sub: 2, pattern: 'K.t.t.tK.t.t.t', hits: { K: 'tock', t: 'tick' } }, percAlways: 0.3,
+    title: 'The Clock in the Glass', root: 123.47, mode: 'lydian', level: 1.2, tempo: 56, meter: 5, bars: 2, chordBars: 2,
+    prog: [0, 1, 0, 4], drone: [[0, -1]],
+    pal: { drone: 'cello', pad: 'bowed', bass: 'sine', pluck: 'harmonic', lead: 'glass', father: 'celesta', echo: 'harmonic' },
+    perc: { sub: 2, pattern: 't..k.t..k...', hits: { t: 'tick', k: 'tock' } }, percAlways: 0.2,
+    figure: { sub: 1, steps: [4, null, 7, 3, null, 2, null, 4, 9, null], vol: 0.9, chance: 0.85 },
+    echo: { beats: 1.5 }, reg: { lead: 1, pluck: 1 },
     arp: [0, 2, 1, 3, 4], density: 0.45,
     // "every clock a different time": a figure that ticks round and lands on a note it did not start from
     motif: [[2, 0.5], [3, 0.5], [2, 0.5], [3, 0.5], [4, 1], [null, 0.5], [1, 1], [0, 0.5], [1, 0.5], [5, 2.5]],
@@ -171,6 +175,7 @@ export const SCORES = {
     prog: [0, 6, 3, 0], drone: [[0, -1]],
     pal: { drone: 'organ', pad: 'strings', bass: 'sine', pluck: 'harp', lead: 'flute', father: 'clarinet', echo: 'harp' },
     perc: { sub: 1, pattern: 'd..s.s', hits: { d: 'drop', s: 'shaker' } },
+    figure: { sub: 1, steps: [0, 2, 4, 7, 4, 2], vol: 0.7, chance: 0.9 },   // (the harp rolling in sixes, issue #318)
     arp: [0, 2, 4, 7, 9], density: 0.42,
     color: { every: 24, at: 5, kind: 'ding', degree: 4, octave: 2, vol: 0.5 },
     // "the garden grows over": an arpeggio unfolding like a vine, through the flat seventh to the octave
@@ -183,7 +188,7 @@ export const SCORES = {
     prog: [0, 3, 4, 1], drone: [[0, -1]],
     pal: { drone: 'hum', pad: 'glass', bass: 'sine', pluck: 'mallet', lead: 'bell', father: 'glass', echo: 'mallet' },
     perc: { sub: 2, pattern: 'D.tD.tD.Dt.D', hits: { D: 'dum', t: 'tek' } },
-    arp: [0, 1, 2, 3, 5], density: 0.36, mirror: true,
+    arp: [0, 1, 2, 3, 5], density: 0.36, mirror: true, reg: { pluck: 1 },   // (the mallets high, luminous: issue #318)
     color: { every: 32, at: 9, kind: 'voices', degree: 0, octave: 0, vol: 0.5 },
     // the glass bell's remembered phrase, then up: (and mirrored the next time: upside down is another way up)
     motif: [[4, 1.5], [2, 1.5], [0, 1.5], [5, 3.5], [null, 1], [4, 1], [5, 1], [7, 4]],
@@ -194,7 +199,8 @@ export const SCORES = {
     title: 'The Great Crystal', root: 164.81, mode: 'phrygian', level: 0.85, tempo: 54, meter: 4, bars: 4, chordBars: 2,
     prog: [0, 1, 0, 5], drone: [[0, 0], [4, 0]],
     pal: { drone: 'crystal', pad: 'reeds', bass: 'sine', pluck: 'marimba', lead: 'clarinet', father: 'glass', echo: 'marimba' },
-    perc: { sub: 2, pattern: 'L...k.k.L..k....', hits: { L: 'log', k: 'knock' } },
+    // (in triplets, the frogs' lilt, and the clarinet low, a bass clarinet: issue #318)
+    perc: { sub: 3, pattern: 'L..k.kL..k..', hits: { L: 'log', k: 'knock' } }, reg: { lead: -1 },
     arp: [0, 1, 2, 4], density: 0.24,
     color: { every: 28, at: 7, kind: 'glow', degree: 7, octave: 1, vol: 0.5, chance: 0.75 },
     // "the crystal's phrase": round the flat second, a reach to the fifth, back down
@@ -226,41 +232,149 @@ export const SCORES = {
     motif: [[0, 0.5], [2, 0.5], [4, 1], [3, 0.5], [4, 0.5], [6, 2], [null, 1], [5, 0.5], [4, 0.5], [2, 1], [1, 0.5], [2, 0.5], [0, 3]],
   },
   // The three worlds that joined the route in v1.40.
-  // The city under glass: a hum through the glass, an air-drone, a choir of the deep, vibes like drops on the dome, a
-  // clarinet that dips like a whale's song; a slow six, D dorian under the water.
+  // The city under glass: the sea pressing on the glass (a deep drone that swells), a choir of the deep, an electric
+  // piano like drops on the dome, a low cello that dips like a whale's song (issue #318: after its recording, F♯
+  // dorian, electric piano, harp, mallets, cello); a slow six under the water.
   underwater: {
-    title: 'The Song Through the Glass', root: 146.83, mode: 'dorian', level: 1.1, tempo: 58, meter: 6, bars: 2, chordBars: 2,
-    prog: [0, 3, 0, 4], drone: [[0, -1], [4, -2]],
-    pal: { drone: 'air', pad: 'choir', bass: 'sine', pluck: 'vibes', lead: 'clarinet', father: 'glass', echo: 'vibes' },
+    title: 'The Song Through the Glass', root: 185.0, mode: 'dorian', level: 1.1, tempo: 58, meter: 6, bars: 2, chordBars: 2,
+    prog: [0, 3, 0, 4], drone: [[0, -1], [4, -2]], reg: { lead: -1 },
+    pal: { drone: 'deep', pad: 'choir', bass: 'sine', pluck: 'keys', lead: 'cello', father: 'glass', echo: 'keys' },
     perc: { sub: 1, pattern: 'd.....s.....', hits: { d: 'drop', s: 'shaker' } },
     arp: [0, 2, 4, 7], density: 0.25,
     color: { every: 28, at: 9, kind: 'cry', degree: 0, octave: -1, vol: 0.5, chance: 0.7 },
     // "the song through the glass": a long fall down to the low tonic, and the rise out of it, as a whale sings
     motif: [[4, 1.5], [3, 0.5], [1, 1], [0, 2], [null, 1], [-1, 1], [0, 1], [2, 1], [4, 3]],
   },
-  // The workshop of moons: bassoon and brass under the roof, an anvil struck where the moulds go down, a muted lead;
-  // E phrygian, heavy and patient.
+  // The workshop of moons: brass under the roof, an analog arpeggio turning like the moulds' wheel, an anvil struck where
+  // the moulds go down, an electric piano carrying the tune (issue #318: after its recording, C dorian, 76 BPM,
+  // metallic mallets, brass, electric piano, analog arpeggios); patient, a working tempo.
   moonfoundry: {
-    title: 'The Moon Nobody Came For', root: 164.81, mode: 'aeolian', level: 0.9, tempo: 64, meter: 4, bars: 4, chordBars: 2,
+    title: 'The Moon Nobody Came For', root: 130.81, mode: 'dorian', level: 0.95, tempo: 76, meter: 4, bars: 4, chordBars: 2,
     prog: [0, 5, 3, 4], drone: [[0, -1]],
-    pal: { drone: 'bassoon', pad: 'brass', bass: 'pizz', pluck: 'anvil', lead: 'muted', father: 'bowl', echo: 'anvil' },
+    pal: { drone: 'brass', pad: 'brass', bass: 'pizz', pluck: 'pulse', lead: 'keys', father: 'bowl', echo: 'anvil' },
+    figure: { sub: 2, steps: [0, 2, 4, 2, 7, 4, 2, 4], vol: 0.6 },
     perc: { sub: 2, pattern: 'K.......t.....t.', hits: { K: 'clank', t: 'tink' } },
     arp: [0, 2, 4, 7], density: 0.22,
     color: { every: 32, at: 6, kind: 'toll', degree: 0, octave: -1, vol: 0.55 },
     // "thirty-two moons": a phrase that rises by fourths like a ladle lifted, and is set down unfinished
     motif: [[0, 1.5], [3, 1], [6, 1.5], [5, 1], [3, 1], [null, 1], [4, 1], [2, 1], [3, 3]],
   },
-  // The city of islands in the dark: an air drone over strings, a celesta like lamps along a cable, a flute calling
-  // across a gap, the moorers' handbell; G lydian, open and a little weightless.
+  // The city of islands in the dark: low analog strings, a warm pad, a celesta high like lamps along a cable, a French
+  // horn calling across a gap, the moorers' handbell (issue #318: after its recording, E♭ lydian, 60 BPM, analog
+  // strings, celesta, electric piano, French horn); in three, open and a little weightless.
   spacecity: {
-    title: 'The Note That Passed', root: 196.0, mode: 'lydian', level: 1.15, tempo: 70, meter: 3, bars: 4, chordBars: 2,
-    prog: [0, 1, 0, 4], drone: [[0, -1]],
-    pal: { drone: 'air', pad: 'strings', bass: 'sine', pluck: 'celesta', lead: 'flute', father: 'handbell', echo: 'celesta' },
+    title: 'The Note That Passed', root: 155.56, mode: 'lydian', level: 1.15, tempo: 62, meter: 3, bars: 4, chordBars: 2,
+    prog: [0, 1, 0, 4], drone: [[0, -1]], reg: { pluck: 1 },
+    pal: { drone: 'strings', pad: 'warm', bass: 'sine', pluck: 'celesta', lead: 'horn', father: 'handbell', echo: 'celesta' },
     perc: null,
     arp: [0, 3, 4, 6], density: 0.3,
     color: { every: 24, at: 4, kind: 'shimmer', degree: 3, octave: 1, vol: 0.4, chance: 0.7 },
     // "the note that passed": one high note held, then a line falling past it, going somewhere
     motif: [[7, 3], [null, 0.5], [6, 0.5], [4, 0.5], [3, 1], [1, 1], [0, 2], [3, 3]],
+  },
+  // ---- The worlds off the route (issue #318: until then each played the desert's score, as unknown ids do). Each
+  // after its recording's brief (public/music/manifest.json), with an instrument set, a rhythm and a register of its own.
+  // Lanterns over black water: a handpan ringing into the dark, a low bass clarinet, a flute over reeds, logs and drops
+  // in triplets. D dorian, 64.
+  mangrove: {
+    title: 'Lanterns on Black Water', root: 146.83, mode: 'dorian', level: 1.15, tempo: 64, meter: 4, bars: 4, chordBars: 2,
+    prog: [0, 6, 3, 0], drone: [[0, -1]],
+    pal: { drone: 'reeds', pad: 'reeds', bass: 'sine', pluck: 'handpan', lead: 'clarinet', father: 'flute', echo: 'handpan' },
+    perc: { sub: 3, pattern: 'L..d..L.dd..', hits: { L: 'log', d: 'drop' } },
+    echo: { beats: 1.5 }, reg: { lead: -1, pluck: 0 },
+    arp: [0, 2, 4, 6], density: 0.3,
+    color: { every: 32, at: 11, kind: 'glow', degree: 4, octave: 1, vol: 0.45, chance: 0.7 },
+    // "a lantern passes": a slow rise to the sixth, a turn round it, and down to the water
+    motif: [[0, 1.5], [2, 0.5], [4, 1], [5, 2], [4, 1], [null, 1], [3, 1], [2, 1], [0, 3]],
+  },
+  // Weathered ships in salt: a nylon guitar and a harmonium, an upright bass walking, a tin whistle's tune, a shanty's
+  // lilt in six with a creak and a shaker. F mixolydian, 66.
+  saltharbour: {
+    title: 'The Salt Keeps Everything', root: 174.61, mode: 'mixolydian', level: 1.2, tempo: 66, meter: 6, bars: 2, chordBars: 1,
+    prog: [0, 6, 0, 3], drone: [[0, -1]], walk: [0, 4, 2],
+    pal: { drone: 'organ', pad: 'organ', bass: 'pizz', pluck: 'guitar', lead: 'bone', father: 'flute', echo: 'guitar' },
+    perc: { sub: 1, pattern: 'k..s.s', hits: { k: 'knock', s: 'shaker' } }, percAlways: 0.25,
+    figure: { sub: 1, steps: [0, 4, 7, 2, 4, 7], vol: 0.65, chance: 0.8 },
+    arp: [0, 2, 4, 7], density: 0.3,
+    color: { every: 36, at: 7, kind: 'toll', degree: 0, octave: -1, vol: 0.35, chance: 0.6 },
+    // "the salt keeps everything": a sailor's tune, up through the flat seventh and home by steps
+    motif: [[0, 1], [4, 1], [6, 1], [7, 2], [6, 1], [4, 1], [2, 1], [null, 1], [1, 1], [0, 3]],
+  },
+  // A refuge behind falling water: a harp rolling in triplets like the spray, a cello's line, a bowed-vibes pad, a felt
+  // piano for the father. D♭ lydian, 62.
+  waterfall: {
+    title: 'Behind the Water', root: 138.59, mode: 'lydian', level: 1.2, tempo: 62, meter: 4, bars: 4, chordBars: 2,
+    prog: [0, 1, 4, 0], drone: [[0, -1], [4, -1]],
+    pal: { drone: 'cello', pad: 'bowed', bass: 'sine', pluck: 'harp', lead: 'cello', father: 'felt', echo: 'harp' },
+    perc: null, reg: { pluck: 1 },
+    figure: { sub: 3, steps: [0, 2, 4, 7, 4, 2], vol: 0.5, chance: 0.85 },
+    arp: [0, 2, 4, 7], density: 0.3,
+    color: { every: 32, at: 5, kind: 'ding', degree: 4, octave: 2, vol: 0.35, chance: 0.6 },
+    // "behind the water": a long note, a fall through the raised fourth, and a lift back to it
+    motif: [[4, 3], [3, 1], [2, 1], [0, 2], [null, 1], [1, 1], [3, 1], [4, 4]],
+  },
+  // The forest of antennas, calls from far off: an analog pulse ticking a signal, an electric piano, bowed vibes, an
+  // ondes singing like a voice in the static. E dorian, 68.
+  antennas: {
+    title: 'Somebody Is Listening', root: 164.81, mode: 'dorian', level: 1.15, tempo: 68, meter: 4, bars: 4, chordBars: 2,
+    prog: [0, 3, 6, 0], drone: [[0, -1]],
+    pal: { drone: 'synth', pad: 'bowed', bass: 'sine', pluck: 'keys', lead: 'ondes', father: 'keys', echo: 'pulse' },
+    perc: { sub: 4, pattern: 't..t..t...t.t...t..t....', hits: { t: 'tick' } }, percAlways: 0.3,
+    figure: { sub: 2, steps: [0, null, 0, 4, null, null, 2, null], vol: 0.7 },
+    echo: { beats: 0.75 },
+    arp: [0, 2, 4, 7], density: 0.3,
+    color: { every: 24, at: 3, kind: 'signal', vol: 0.5 },
+    // "somebody is listening": a call that climbs and waits, then the same call a step higher
+    motif: [[0, 1], [4, 1], [3, 2], [null, 2], [1, 1], [5, 1], [4, 3]],
+  },
+  // The eclipse, everything suspended: singing bowls held as the floor, muted strings, a piano note at a time, a low
+  // bass clarinet; the harmony barely moving. C♯ dorian, slow.
+  eclipse: {
+    title: 'While the Sun Is Away', root: 138.59, mode: 'dorian', level: 1.25, tempo: 50, meter: 4, bars: 4, chordBars: 4,
+    prog: [0, 3], drone: [[0, -1], [4, -1]],
+    pal: { drone: 'bowl', pad: 'strings', bass: 'sine', pluck: 'felt', lead: 'clarinet', father: 'bowl', echo: 'felt' },
+    perc: null, reg: { lead: -1, pluck: 0 },
+    arp: [0, 2, 4, 6], density: 0.18,
+    color: { every: 40, at: 13, kind: 'shimmer', degree: 4, octave: 1, vol: 0.3, chance: 0.6 },
+    // "while the sun is away": two notes a long way apart, and the slow way between them
+    motif: [[0, 3], [null, 1], [4, 3], [3, 1], [2, 1], [1, 1], [0, 4]],
+  },
+  // The fallen ring, pastoral ruins in orbit: a French horn over strings, a guitar, a frame drum walking. A mixolydian, 70.
+  fallenring: {
+    title: 'The Ring Came Down Softly', root: 220.0, mode: 'mixolydian', level: 1.05, tempo: 70, meter: 4, bars: 4, chordBars: 1,
+    prog: [0, 6, 3, 0], drone: [[0, -1]], reg: { lead: -1 },
+    pal: { drone: 'strings', pad: 'strings', bass: 'sine', pluck: 'guitar', lead: 'horn', father: 'strings', echo: 'guitar' },
+    perc: { sub: 2, pattern: 'F..fF.f.', hits: { F: 'frame', f: 'frame' } },
+    figure: { sub: 2, steps: [0, 4, 2, 4, 7, 4, 2, 4], vol: 0.55, chance: 0.8 },
+    arp: [0, 2, 4, 7], density: 0.3,
+    color: { every: 32, at: 9, kind: 'ding', degree: 4, octave: 1, vol: 0.35, chance: 0.6 },
+    // "the ring came down softly": a horn call up to the octave, and a long, kind fall
+    motif: [[0, 1], [4, 1], [7, 2], [6, 1], [4, 1], [null, 1], [3, 1], [2, 1], [1, 1], [0, 3]],
+  },
+  // A town hung over clouds: a plucked cello in three, a flute, a harmonium, a harp. G dorian, 64.
+  underside: {
+    title: 'The Town Over Nothing', root: 196.0, mode: 'dorian', level: 1.15, tempo: 64, meter: 3, bars: 4, chordBars: 2,
+    prog: [0, 3, 4, 0], drone: [[0, -1]], walk: [0, 4, 2],
+    pal: { drone: 'organ', pad: 'organ', bass: 'pizz', pluck: 'harp', lead: 'flute', father: 'harp', echo: 'harp' },
+    perc: { sub: 1, pattern: 'w..', hits: { w: 'block' } },
+    arp: [0, 2, 4, 6, 7], density: 0.32,
+    color: { every: 30, at: 4, kind: 'cry', degree: 7, octave: 1, vol: 0.35, chance: 0.6 },
+    // "the town over nothing": a waltzing climb that looks over the edge, and steps back
+    motif: [[0, 1], [2, 1], [4, 1], [6, 2], [5, 1], [4, 2], [null, 1], [2, 1], [1, 1], [0, 3]],
+  },
+  // The overnight train, a rolling nocturne: a felt piano rolling in swung eighths over a walking upright bass, brushes
+  // on the rails' rhythm, a clarinet, vibes. B♭ major, 78.
+  overnighttrain: {
+    title: 'The Night Goes By the Window', root: 116.54, mode: 'ionian', level: 1.15, tempo: 78, meter: 4, bars: 4, chordBars: 2,
+    prog: [0, 5, 1, 4], drone: [[0, -1]], walk: [0, 2, 4, 5], swing: 0.14,
+    pal: { drone: 'warm', pad: 'warm', bass: 'pizz', pluck: 'felt', lead: 'clarinet', father: 'vibes', echo: 'vibes' },
+    perc: { sub: 2, pattern: 'b.bhb.bh', hits: { b: 'brush', h: 'hat' } }, percAlways: 0.35,
+    figure: { sub: 2, steps: [0, 4, 7, 4, 2, 4, 7, 9], vol: 0.55, chance: 0.75 },
+    reg: { lead: 1, pluck: 1 },
+    arp: [0, 2, 4, 7], density: 0.3,
+    color: { every: 32, at: 7, kind: 'musicbox', degree: 4, octave: 2, vol: 0.3, chance: 0.5 },
+    // "the night goes by the window": a lazy turn round the third, and a sigh home
+    motif: [[2, 1], [1, 0.5], [2, 0.5], [4, 2], [null, 1], [5, 1], [4, 1], [2, 1], [1, 1], [0, 3]],
   },
   // The paper world and the artist at his table: a felt piano, a music box, soft strings,
   // a pencil on paper. C major.
@@ -269,6 +383,8 @@ export const SCORES = {
     prog: [0, 3, 5, 4], drone: [[0, -1]],
     pal: { drone: 'organ', pad: 'strings', bass: 'sine', pluck: 'celesta', lead: 'felt', father: 'flute', echo: 'celesta' },
     perc: null,
+    // (a music box turning a little figure, high, while the pencil works: issue #318, after its recording's brief)
+    figure: { sub: 2, steps: [7, 4, 2, 4, 0, null, 2, 4], vol: 0.55, chance: 0.75 }, reg: { pluck: 1 },
     arp: [0, 2, 4, 7], density: 0.3,
     color: { every: 20, at: 3, kind: 'pencil', vol: 0.5, chance: 0.6 },
     motif: [[0, 2], [2, 1], [4, 1], [7, 3], [6, 1], [4, 4]],
@@ -301,9 +417,12 @@ export const SCORES = {
   },
 };
 
+/** Worlds that play another's score: the Lantern, Ilen's, plays home's (as it plays home's recording). */
+export const SCORE_OF = { lantern: 'home' };
+
 /** A world's score (unknown ids, the title screen and the Lab, get the desert's). */
 export function scoreFor(id) {
-  const S = SCORES[id] ?? SCORES.desert;
+  const S = SCORES[id] ?? SCORES[SCORE_OF[id]] ?? SCORES.desert;
   if (!S.scale) S.scale = MODES[S.mode];
   return S;
 }
@@ -381,6 +500,16 @@ export function motifFor(S, n) {
   return S.motif.map(([deg, beats]) => [deg === null ? null : mirror ? 8 - deg + shift : deg + shift, beats]);
 }
 
+/**
+ * Where step s of `sub` falls in its beat: evenly, or swung (S.swing, a fraction of a beat the off-beats lean late by:
+ * 0.16 at sub 2 puts the second eighth near a triplet's third, the jazz worlds' lilt; at sub 4 the odd sixteenths half that).
+ */
+export function swungAt(S, s, sub) {
+  const at = s / sub, sw = S.swing ?? 0;
+  if (!sw || sub < 2 || s % 2 === 0) return at;
+  return at + (sub === 2 ? sw : sw / 2);
+}
+
 /** Total beats of a phrase. */
 export const phraseBeats = (p) => p.reduce((a, [, b]) => a + b, 0);
 
@@ -426,7 +555,7 @@ export function scoreBeat(id, beat, act = CALM_ACT) {
   // the leitmotif, a bar into the section (four beats in the long bars)
   if (L.has('lead') && i === Math.min(bar, 4)) {
     let at = 0;
-    const oct = sec.n % 3 === 2 ? 1 : 0;
+    const oct = (sec.n % 3 === 2 ? 1 : 0) + (S.reg?.lead ?? 0);
     for (const [deg, beats] of motifFor(S, sec.n)) {
       if (deg !== null) out.push({ layer: 'lead', kind: P.lead, degree: deg, octave: oct, at, beats, vol: LEVEL.lead * hush * (indoor ? 0.75 : 1), pan: -0.1 });
       at += beats;
@@ -444,11 +573,22 @@ export function scoreBeat(id, beat, act = CALM_ACT) {
     const half = S.motif.slice(0, Math.ceil(S.motif.length / 2));
     for (const [deg, beats] of half) { if (deg !== null) out.push({ layer: 'echo', kind: P.echo, degree: deg, octave: 1, at, beats, vol: LEVEL.echo * hush, pan: 0.3 }); at += beats; }
   }
-  // the plucked figure: sparse, more of it as you go, less at night and under a roof
-  if (L.has('pluck')) {
+  // a world's own figure (S.figure, issue #318): a written ostinato on the pluck's voice in place of the random notes,
+  // `sub` notes a beat round `steps` (degrees over the chord, null a rest), swung where the world swings; louder as you
+  // go, softer standing about, at night and under a roof; `thin` drops it to every other note in the thin sections
+  if (L.has('pluck') && S.figure) {
+    const F = S.figure, k = (0.45 + 0.55 * moving) * (settled ? 0.5 : 1) * (1 - 0.4 * night) * (indoor ? 0.7 : 1) * (sec.kind === 'thin' ? 0.7 : 1);
+    const fr = rng(hashStr(id) ^ Math.imul(beat + 7, 0x27d4eb2f));   // (its own draws: the six above stay where they were)
+    for (let s = 0; s < F.sub; s++) {
+      const n = i * F.sub + s, step = F.steps[n % F.steps.length];
+      const keep = fr() < (F.chance ?? 1) * (0.55 + 0.45 * moving);
+      if (step === null || !keep || (sec.kind === 'thin' && n % 2)) continue;
+      out.push({ layer: 'pluck', kind: P.pluck, degree: chord + step, octave: 1 + (S.reg?.pluck ?? 0), at: swungAt(S, s, F.sub), beats: F.beats ?? 0.9 / F.sub, vol: LEVEL.pluck * (F.vol ?? 0.75) * k * hush, pan: (n % 4 < 2 ? -0.25 : 0.25) * (F.pan ?? 1) });
+    }
+  } else if (L.has('pluck')) {
     const busy = sec.kind === 'thin' ? 0.45 : sec.kind === 'echo' ? 0.6 : 1;
     const chance = S.density * busy * (0.35 + 0.65 * moving) * (settled ? 0.4 : 1) * (1 - 0.4 * night) * (indoor ? 0.6 : 1);
-    if (R[1] < chance) out.push({ layer: 'pluck', kind: P.pluck, degree: chord + S.arp[Math.floor(R[2] * S.arp.length)], octave: 1, at: R[3] < 0.3 ? 0.5 : 0, beats: 0.6, vol: LEVEL.pluck * hush, pan: pan(R[4]) });
+    if (R[1] < chance) out.push({ layer: 'pluck', kind: P.pluck, degree: chord + S.arp[Math.floor(R[2] * S.arp.length)], octave: 1 + (S.reg?.pluck ?? 0), at: R[3] < 0.3 ? 0.5 : 0, beats: 0.6, vol: LEVEL.pluck * hush, pan: pan(R[4]) });
   }
   // the drums: walking brings them in (some worlds keep a little always)
   if (S.perc && L.has('perc')) {
@@ -457,7 +597,7 @@ export function scoreBeat(id, beat, act = CALM_ACT) {
       const { sub, pattern, hits } = S.perc;
       for (let s = 0; s < sub; s++) {
         const ch = pattern[(beat * sub + s) % pattern.length];
-        if (ch !== '.') out.push({ layer: 'perc', kind: hits[ch], at: s / sub, beats: 1 / sub, vol: LEVEL.perc * k * hush * (ch === ch.toUpperCase() ? 1 : 0.6), pan: 0.15 });
+        if (ch !== '.') out.push({ layer: 'perc', kind: hits[ch], at: swungAt(S, s, sub), beats: 1 / sub, vol: LEVEL.perc * k * hush * (ch === ch.toUpperCase() ? 1 : 0.6), pan: 0.15 });
       }
     }
   } else if (S.perc && S.percAlways && !indoor && !settled && (beat * S.perc.sub) % S.perc.pattern.length === 0) {

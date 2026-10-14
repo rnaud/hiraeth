@@ -18,6 +18,13 @@ export const CHANGELOG = [
     // every hint one look, one place (issue #306): src/hint-look.js, index.html --hint-*, src/ship/cinema.js layout (the cue
     // first in the stack), BridgeHud.cs; docs/systems/ui.md "Hints: one look, one place"
     { text: 'Every hint and announcement now looks the same and sits in the same place: a dark strip at the top of the screen. The lessons, what the scout finds, what the use button does and photo mode’s keys used to be cream at the bottom; now they head the same stack as the notices, quest cards and the objective. The prompt over a person keeps its place, in the same dark look.' },
+    // the music page on a device (issue #318): src/music-store.js themeToListen, src/music-page/main.js
+    { text: 'On Android and the Steam Deck the Music & sounds page plays every recorded song, not only the Desert’s and the title’s: it plays the copy the game has already downloaded, or downloads it there and then and keeps it for the worlds too.',
+      see: 'On the Retroid, open Debug, Pages, Music & sounds and play any world’s recording: it plays (the first time, after a “Downloading…” line if the game had not fetched it yet).' },
+    // each world its own score (issue #318): src/score.js SCORES (eight new, the Glass Dunes, under water, the Moon Foundry, Space City reworked; figure, swing, reg), src/score-voices.js; tests/score-distinct.test.js
+    { text: 'Every world’s composed music is its own: the Mangrove, Salt Harbour, the Waterfall, the Forest of Antennas, the Eclipse, the Fallen Ring, the Underside and the Overnight Train played the Desert’s and now each has a score after its recording, and the Glass Dunes no longer play the Hangar’s. Several worlds have rhythms of their own too: a harp rolling in sixes, an analog arpeggio, a swung train piano, triplet drums.',
+      numbers: [{ title: 'How far apart the two most alike scores are', unit: '', better: 'higher', device: 'scripts/score-features.mjs: tempo, metre, mode, instruments, density, register, rhythm, drums', rows: [{ where: 'two worlds off the route', before: 0.03, after: 2.66 }, { where: 'the Hangar and the Glass Dunes', before: 0.77, after: 5.3 }], source: 'node scripts/score-features.mjs (before: the scores at 29f2810d)' }],
+      see: 'Walk a while in the Mangrove, then in the Overnight Train, with Settings, Music plays: Moments (the composed score plays between the recording’s moments): a handpan over low clarinet against a swung piano and brushes.' },
   ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27

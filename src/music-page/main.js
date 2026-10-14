@@ -8,6 +8,7 @@ import { TITLES } from '../levels/names.js';
 import { SCORES } from '../score.js';
 import { setupNoteBox } from '../lore-page/note-box.js';
 import { MUSIC_URL, fileMusicNote } from './notes.js';
+import { themeToListen } from '../music-store.js';
 
 const $ = (s) => document.querySelector(s);
 const byId = new Map([...SONGS, ...EFFECTS].map((x) => [x.id, x]));
@@ -27,6 +28,8 @@ fetch('music/manifest.json').then((r) => (r.ok ? r.json() : null)).then((m) => {
 // the world whose scale the effects sing in
 $('#world').innerHTML = Object.keys(SCORES).map((id) => `<option value="${id}">${TITLES[id] ?? id}</option>`).join('');
 
+let fetching = null;   // the recording being fetched for its card ({ id }), on a device (themeToListen)
+const cancelFetch = () => { if (fetching) setPlaying(fetching.id, false); fetching = null; };
 const card = (id) => document.getElementById(anchorOf(id));
 const setPlaying = (id, on) => { const c = card(id), b = c?.querySelector('.play'); c?.classList.toggle('playing', on); if (b) b.textContent = on ? '■ Stop' : '▶ Play'; };
 const player = new Player({
@@ -43,7 +46,7 @@ const player = new Player({
 });
 $('#volume').addEventListener('input', (e) => player.setVolume(Number(e.target.value)));
 $('#world').addEventListener('change', (e) => player.setWorld(e.target.value));
-$('#stop').addEventListener('click', () => player.stopAll());
+$('#stop').addEventListener('click', () => { cancelFetch(); player.stopAll(); });
 
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]');
@@ -59,21 +62,31 @@ document.addEventListener('click', async (e) => {
       else status(`${entry.name}: ${entry.variants[Number(b.dataset.i)][0]}`);
       return;
     }
+    if (act === 'file' && fetching?.id === id) { fetching = null; setPlaying(id, false); status(''); return; }   // (stopped while it downloads)
     if (player.playing(id)) {
       if (act === 'file') player.stopFile(); else if (act === 'score') player.stopScore(); else player.stopLoop(id);
       return;
     }
     if (act === 'file') {
       player.stopAll();
+      cancelFetch();
+      const ask = fetching = { id };
       setPlaying(id, true);
-      await player.playFile(id, `music/${entry.file}`).catch((err) => { setPlaying(id, false); throw new Error(`${entry.file} could not play here (${err.message || err.name}): on a device only the bundled themes are there.`); });
+      // (on a device: the bundle's, the kept copy, or downloaded from the site now and kept: src/music-store.js themeToListen)
+      const theme = await themeToListen(entry.file, { onDownload: () => status(`Downloading ${c.querySelector('h3').textContent}…`) })
+        .catch((err) => { if (fetching === ask) { fetching = null; setPlaying(id, false); throw err; } return null; });
+      if (fetching !== ask) { theme?.revoke(); return; }   // (stopped, or another song asked for, while it downloaded)
+      fetching = null;
+      await player.playFile(id, theme.url, theme.revoke).catch((err) => { setPlaying(id, false); theme.revoke(); throw new Error(`${entry.file} could not play here (${err.message || err.name})`); });
     } else if (act === 'score') {
+      cancelFetch();
       player.playScore(id, entry.scoreId, {
         seed: Number(c.querySelector('.seed').value) || 0, secs: Math.max(5, Number(c.querySelector('.secs').value) || 90),
         act: c.querySelector('.act').value, ambience: c.querySelector('.amb').checked, light: !!c.querySelector('.light')?.checked,
       });
       setPlaying(id, true);
     } else {
+      cancelFetch();
       player.startLoop(id, { ...entry, mode: c.querySelector('.mode')?.value });
       setPlaying(id, true);
     }

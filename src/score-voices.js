@@ -270,6 +270,20 @@ const HELD = {
     const g = gain(V, out), lp = filt(V, 'lowpass', 760, 0.8, g), stop = held(g, t, dur, 1.6, 2.2, vol * 0.7);
     osc(V, 'square', f, t, stop, lp, -5); osc(V, 'square', f, t, stop, lp, 5);
   },
+  // ---- issue #318: voices for the worlds that had none of their own
+  // under the sea: a low sine and its octave, and a slow swell of low, dark noise like water pressing on the glass
+  deep(V, f, t, dur, vol, out) {
+    const g = gain(V, out), stop = held(g, t, dur, 5, 6, vol);
+    osc(V, 'sine', f, t, stop, gain(V, g, 0.6)); osc(V, 'sine', f * 2 + 0.4, t, stop, gain(V, g, 0.12));
+    const sw = gain(V, filt(V, 'lowpass', 160, 0.7, gain(V, g, 2.2)), 0);
+    sw.gain.setValueAtTime(0.2, t); sw.gain.linearRampToValueAtTime(1, t + Math.max(3, dur * 0.5)); sw.gain.linearRampToValueAtTime(0.25, stop);
+    noise(V, t, stop, sw, 0.5);
+  },
+  // bowed vibes: a bar's partials swelling in slowly under a bow, no strike
+  bowed(V, f, t, dur, vol, out) {
+    const g = gain(V, out), stop = held(g, t, dur, 2.4, 3, vol * 0.9);
+    osc(V, 'sine', f, t, stop, g); osc(V, 'sine', f * 1.003, t, stop, gain(V, g, 0.6)); osc(V, 'sine', f * 4, t, stop, gain(V, g, 0.05));
+  },
 };
 
 // ------------------------------------------------------------------ notes: plucked, struck, blown
@@ -395,6 +409,34 @@ const NOTES = {
     car.frequency.value = f; mod.frequency.value = f; mg.gain.setValueAtTime(f * 1.4, t); mg.gain.exponentialRampToValueAtTime(f * 0.08, t + 0.5);
     mod.connect(mg).connect(car.frequency); car.connect(g); car.start(t); mod.start(t); car.stop(e); mod.stop(e);
   },
+  // ---- issue #318
+  // a bowed cello: a saw through a body's lowpass, bowed in (a slow start), a slow wide vibrato
+  cello(V, f, t, dur, vol, out) {
+    const long = dur > 6;   // (a drone: bowed in slowly, let go slowly)
+    const g = gain(V, out), lp = filt(V, 'lowpass', Math.min(f * 5, 1600), 0.8, g), stop = held(g, t, dur, long ? 3 : 0.22, long ? 4 : 0.6, vol * 1.15);
+    const o = osc(V, 'sawtooth', f, t, stop, lp); osc(V, 'triangle', f, t, stop, lp, -5);
+    if (dur > 0.8) vibrato(V, o, t + 0.35, stop, 4.6, f * 0.007);
+  },
+  // harp harmonics: a high, glassy, thin ring of a string touched at its half, into the echo
+  harmonic(V, f, t, dur, vol, out) {
+    const g = gain(V, out), e = struck(g, t, 0.01, 2.4, vol * 0.8);
+    osc(V, 'sine', f * 2, t, e, g); osc(V, 'sine', f * 4, t, e, gain(V, g, 0.08));
+    send(V, g, 0.5);
+  },
+  // a nylon-string guitar: a soft pick, two strings a hair apart, the tone closing as it rings
+  guitar(V, f, t, dur, vol, out) {
+    const g = gain(V, out), lp = filt(V, 'lowpass', 3000, 0.9, g), e = struck(g, t, 0.003, 1.5, vol * 1.1);
+    lp.frequency.setValueAtTime(3000, t); lp.frequency.exponentialRampToValueAtTime(700, t + 0.6);
+    osc(V, 'triangle', f, t, e, lp, -3); osc(V, 'sawtooth', f, t, e, gain(V, lp, 0.25), 3);
+    noiseHit(V, t, 0.015, 'bandpass', 2400, 1.5, vol * 0.25, out);
+  },
+  // a handpan: a struck steel note with its octave and its twelfth, a soft thump, a long ring into the echo
+  handpan(V, f, t, dur, vol, out) {
+    const g = gain(V, out);
+    partials(V, f, t, [[1, 0.8, 2.6], [2, 0.3, 1.6], [3, 0.12, 0.9], [1.004, 0.3, 2.2]], vol, g, 0.006);
+    thump(V, t, f * 0.5, f * 0.45, 0.12, vol * 0.4, out);
+    send(V, g, 0.45);
+  },
 };
 
 /**
@@ -438,6 +480,7 @@ const HITS = {
   knock: (V, t, v, out) => { thump(V, t, 430, 380, 0.09, v * 0.6, out); noiseHit(V, t, 0.02, 'bandpass', 1300, 1.5, v * 0.3, out); },
   block: (V, t, v, out) => { thump(V, t, 1150, 1100, 0.06, v * 0.5, out); noiseHit(V, t, 0.012, 'highpass', 3000, 1, v * 0.3, out); },
   // the desert's slow pulse: a soft, deep beat, felt more than heard, and a grain of sand ticking high
+  frame: (V, t, v, out) => { thump(V, t, 96, 62, 0.5, v * 0.9, out); noiseHit(V, t, 0.08, 'bandpass', 900, 0.9, v * 0.35, out, 0.003); },   // a frame drum (the Fallen Ring)
   heart: (V, t, v, out) => thump(V, t, 66, 44, 1.2, v * 1.1, out),
   dust: (V, t, v, out) => noiseHit(V, t, 0.035, 'bandpass', 5200, 2.5, v * 0.3, out, 0.004),
 };

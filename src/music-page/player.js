@@ -86,7 +86,8 @@ export class Player {
   play(fn) { const s = this.sound(); return fn(s, this.e); }
 
   // ---------------------------------------------------------------- files
-  async playFile(id, url) {
+  /** Play a recording from `url`; `done` runs when it stops (a Blob URL's revoke: src/music-store.js themeToListen). */
+  async playFile(id, url, done = () => {}) {
     this.stopAll();
     const s = this.sound();
     const el = new Audio();
@@ -95,7 +96,7 @@ export class Player {
     el.preload = 'auto';
     const src = s.ctx.createMediaElementSource(el);
     src.connect(this.media);
-    this.file = { id, el, src };
+    this.file = { id, el, src, done };
     el.addEventListener('ended', () => { if (this.file?.el === el) this.stopFile(); });
     try { await el.play(); } catch (err) { if (this.file?.el === el) this.stopFile(); throw err; }
   }
@@ -106,6 +107,7 @@ export class Player {
     this.file = null;
     f.el.pause(); f.el.removeAttribute('src'); f.el.load();
     try { f.src.disconnect(); } catch { /* gone */ }
+    f.done?.();
     this.onState({ kind: 'stopped', id: f.id });
   }
 

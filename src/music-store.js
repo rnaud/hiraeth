@@ -179,6 +179,33 @@ export function themeDownloader({
   };
 }
 
+/**
+ * A theme to listen to whole (the music page, music.html: issue #318): where an <audio> element should read it.
+ * The site and the dev server: their own file (streamed). A device: the bundle's, else the kept copy, else
+ * downloaded from the site now and kept (the same copy a world then plays; `onDownload` is told first, for a
+ * "downloading…" line): a Blob URL to revoke() when done. Throws when it can't be had (offline and not kept yet).
+ * @returns {{ url: string, from: 'local'|'bundle'|'stored'|'site', revoke(): void }}
+ */
+export async function themeToListen(file, { here = globalThis.location, store, fetcher = globalThis.fetch, base, site, onDownload = () => {} } = {}) {
+  const key = themeKey(file);
+  if (!bundledGame(here)) return { url: localThemeUrl(key, base), from: 'local', revoke() {} };
+  if (store === undefined) store = pageThemeStore();
+  const asUrl = (blob, from) => {
+    const url = URL.createObjectURL(blob);
+    return { url, from, revoke: () => URL.revokeObjectURL(url) };
+  };
+  for await (const { from, blob, keep } of themeSources(key, { here, store, fetcher, base })) {
+    if (keep) void keepTheme(store, key, blob);
+    return asUrl(blob, from);
+  }
+  onDownload(key);
+  let blob = null;
+  try { blob = await audioBlob(fetcher, siteThemeUrl(key, site)); } catch (e) { throw new Error(`${key} isn't on this device yet, and the site is out of reach (${e?.message || e})`); }
+  if (!blob) throw new Error(`${key} isn't on the site`);
+  await keepTheme(store, key, blob);
+  return asUrl(blob, 'site');
+}
+
 let shared = null;
 /** The page's downloader (one per page; each world is a page), started once the page is up. */
 export function startThemeDownload(files, { first } = {}) {

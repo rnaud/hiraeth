@@ -6,7 +6,7 @@
 // touches Web Audio itself, so tests/music-page.test.js plays every entry on the engines' in-memory context and
 // checks that every method of Sound is either here or named in PLUMBING (a new sound can't be missed).
 
-import { SCORES, MODES } from '../score.js';
+import { SCORES, SCORE_OF, MODES } from '../score.js';
 import { SOUNDTRACKS, TITLE_THEME, CUES, loadCue } from '../soundtracks.js';
 import { SFX } from '../sfx.js';
 import { FOE_VOICES, CUES as FOE_CUES, GLASS } from '../foe-voices.js';
@@ -63,8 +63,8 @@ export function scoreUsers(id) {
   if (id === 'home') return 'Home, and the Lantern';
   const own = name(id);
   if (id !== 'desert') return own;
-  const others = Object.keys(TITLES).filter((w) => !SCORES[w] && w !== 'lantern').map(name);
-  return `${own}; and every world without a score of its own: ${others.join(', ')}; the title and the Lab`;
+  const others = Object.keys(TITLES).filter((w) => !SCORES[w] && !SCORE_OF[w]).map(name);
+  return `${own}; ${others.length ? `and every world without a score of its own: ${others.join(', ')}; ` : ''}the title and the Lab`;
 }
 
 /** The procedural scores (src/score.js SCORES): one each, played by the page's score player with the world's params. */

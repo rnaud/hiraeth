@@ -170,6 +170,51 @@ Chrome / WebView 109 has.
   indoors there are no drums, bass or colour; night and storms bring it all down. The
   Hangar and the Market keep a quiet pulse even standing still.
 - **Levels.** `level` evens the worlds out (each renders to about -27 dB RMS).
+
+### Each world its own (issue #318, October 2026)
+
+"The procedural score sounds too similar level to level." Eight worlds off the route (the Mangrove, Salt Harbour,
+the Waterfall, the Forest of Antennas, the Eclipse, the Fallen Ring, the Underside, the Overnight Train) had no
+`SCORES` entry and played the desert's (`scoreFor` falls back to it), and the Glass Dunes played the Hangar's note
+for note. Each now has its own, after its recording's brief (`public/music/manifest.json`); the Lantern plays
+home's on purpose (`SCORE_OF`). Every score shared one texture too (a drone, a pad, random sparse plucks, the
+motif), so a few worlds now carry rhythms of their own:
+
+- **`figure`**: a written ostinato on the pluck's voice in place of the random notes, `sub` notes a beat round
+  `steps` (degrees over the chord, `null` a rest), fuller walking, softer standing, at night and indoors (its own
+  seeded draws, so the other layers play what they did): Viridel's harp rolling in sixes, the Moon Foundry's analog
+  arpeggio, the Waterfall's harp in triplets, the train's piano in swung eighths, the Fallen Ring's guitar, Salt
+  Harbour's, the Atelier's music box, the Glass Dunes' harp harmonics, the Antennas' signal.
+- **`swing`**: the off-beats late by that fraction of a beat (`swungAt`): the City-Shaft (0.16) and the train (0.14).
+- **`reg`**: the lead's and the pluck's octaves (`{ lead, pluck }`): low bass clarinets and cellos in Lorn, the
+  Mangrove, the Eclipse, under water; the Spheres' and Space City's high mallets and celesta.
+- **New voices** (`src/score-voices.js`): `cello` (bowed; a drone bows in slowly), `harmonic` (harp harmonics into the
+  echo), `guitar` (nylon), `handpan`, the held `deep` (the sea pressing on the glass) and `bowed` (bowed vibes),
+  the `frame` drum.
+- Lorn's drums in triplets; the Glass Dunes in five with two clocks ticking in six against the bar; under water
+  F♯ dorian on a deep drone, an electric piano and a low cello; the Moon Foundry C dorian at 76; Space City E♭ lydian,
+  a French horn over a warm pad (each as its recording is).
+
+| World | Mode | Tempo | Instruments | Rhythm |
+|---|---|---|---|---|
+| Mangrove | D dorian | 64 | handpan into an echo, low bass clarinet, reeds, flute (the father) | logs and drops in triplets |
+| Salt Harbour | F mixolydian | 66, in 6 | nylon guitar, harmonium, walking upright bass, bone whistle | a shanty's lilt, knock and shaker |
+| Waterfall | D♭ lydian | 62 | cello drone and line, bowed vibes, harp, felt piano (the father) | the harp rolling in triplets, no drums |
+| Forest of Antennas | E dorian | 68 | analog drone, bowed vibes, electric piano, an ondes for the tune | a signal's ticks in sixteenths, an echo |
+| Eclipse | C♯ dorian | 50 | singing bowls held, muted strings, a felt piano, low bass clarinet | no drums, a chord every four bars |
+| Fallen Ring | A mixolydian | 70 | French horn, strings, guitar | a frame drum, the guitar in eighths |
+| Underside | G dorian | 64, in 3 | harmonium, harp, plucked walking bass, flute | a woodblock on the one |
+| Overnight Train | B♭ major | 78 | felt piano, walking upright bass, clarinet, vibes | swung: brushes on the rails' rhythm |
+
+**How alike they are** (`scripts/score-features.mjs`, `tests/score-distinct.test.js`): a feature vector per score
+from what it plays (tempo, metre, the mode's notes and the key, the instruments, notes a second, register, where in
+the beat the notes fall, drums a second) and a weighted distance between two (`DISTANCE_WEIGHTS`). Before, the
+nearest pairs were 0.03 apart (two detours, both on the desert's score) and 0.77 (the Hangar and the Glass Dunes);
+now the nearest is 2.66 (Viridel and Salt Harbour). The test holds every pair at 2.4 or more and every two scores
+to at most half their instruments in common, and renders each score offline for 8 s (`renderFeatures`, the
+in-memory Web Audio of `engine/webaudio.js`): each sounds, and none is louder (-24 dB RMS) or brighter (7 % of its
+energy above 2 kHz) than the loudest and brightest before. `node scripts/score-features.mjs [--render]` prints the
+features and the nearest pairs.
 - **Offline renders** (`scripts/render-score.mjs`): the game's own `Sound` in headless,
   muted Chrome, an `OfflineAudioContext` swapped in, along a little walk (standing, walking
   from 10 s to 36 s, standing): `PLAYWRIGHT=…/playwright-core/index.mjs node
@@ -347,6 +392,8 @@ unchanged, it reads its own `music/`).
 - **Installs from before** (every theme in the bundle): the download takes each from the bundle first
   and keeps it, without a request to the site (see `docs/systems/android.md`, "The music, downloaded
   once", for the one update that has to carry them for that).
+- **The music page** (`music.html`) reads the same: the bundle, the kept copy, else the site there and then, kept
+  (`themeToListen`; issue #318: it read only the bundle, so a device played just the desert's and the title's there).
 - **Settings > Updates** (Android and the Deck) says "Music: 18 of 25 downloaded" while some are missing
   (`themeProgressText`), nothing once all are there.
 - A device is `bundledGame()` (`src/levels/reference-sheets.js`): GeckoView's 127.0.0.1:41730, the
@@ -486,7 +533,11 @@ https://hiraeth.alexandria-rnaud.workers.dev/music) plays every song and every s
 
 - **Songs: recorded**: each file of `public/music/` the game plays (`SOUNDTRACKS`, the title's `TITLE_THEME`, the
   cues of `CUES`), in the route's order, with the worlds that play it, its Suno title, direction, prompt and link from
-  `manifest.json`; play / stop and a seek bar. On a device only the bundled themes are there.
+  `manifest.json`; play / stop and a seek bar. On a device (issue #318) a song is read like a world's theme
+  (`themeToListen`, `src/music-store.js`): the bundle's, else the copy the background download kept, else downloaded
+  from the site there and then ("Downloading …" on the status line) and kept, so the worlds have it too; offline
+  and not kept yet, the status line says so. Before, the page read only the bundle's `music/`, where a device has
+  just the desert's and the title's recordings: on the Retroid only those two played.
 - **Songs: each world's score**: every `SCORES` entry, played by the game's own scheduler (`Sound.schedule`) on a bus
   of its own (Stop cuts it at once) with the world's params shown, a **seed** (the arc it starts on: each arc draws its
   own order of sections), a **length**, what you are doing (standing, walking, riding, indoors, night, storm: the

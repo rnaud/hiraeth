@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { bundledGame, SHEET_SITE } from '../src/levels/reference-sheets.js';
 import {
   ON_DEVICE_THEMES, THEME_DB, THEME_STORE, THEME_DB_VERSION, themeKey, localThemeUrl, siteThemeUrl,
-  themeStore, themeSources, themeDownloader, themeProgressText,
+  themeStore, themeSources, themeDownloader, themeProgressText, themeToListen,
 } from '../src/music-store.js';
 import { loadSoundtrack, SOUNDTRACKS, THEME_FILES } from '../src/soundtracks.js';
 import { AudioContext } from '../engine/webaudio.js';
@@ -273,4 +273,42 @@ test('themeStore keeps Blobs in IndexedDB under the file name', async () => {
   assert.deepEqual(await b.keys(), ['incal.mp3']);
   await b.delete('incal.mp3');
   assert.equal(await a.get('incal.mp3'), null);
+});
+
+// issue #318: the music page (music.html) on a device played only the bundled themes (the desert's and the title's)
+test('the music page on a device plays every theme: the bundle\'s, the kept copy, else downloaded now and kept', async () => {
+  // the site and a dev server: their own file, streamed
+  const web = await themeToListen('incal.mp3', { here: WEB, fetcher: net().fetcher, base: './' });
+  assert.deepEqual([web.url, web.from], ['./music/incal.mp3', 'local']);
+  // a device with the theme kept: from the store, the site never asked
+  const kept = memStore({ 'incal.mp3': 'KEPT' });
+  let n = net();
+  const a = await themeToListen('incal.mp3', { here: ANDROID, store: kept, fetcher: n.fetcher });
+  assert.equal(a.from, 'stored');
+  assert.match(a.url, /^blob:/);
+  assert.equal(await (await fetch(a.url)).text(), 'KEPT');
+  a.revoke();
+  assert.deepEqual(sites(n.calls), []);
+  // in the bundle (the desert's): from the bundle
+  n = net({ [local('desert-bayati.mp3')]: 'BUNDLE' });
+  assert.equal((await themeToListen('desert-bayati.mp3', { here: ANDROID, store: memStore(), fetcher: n.fetcher })).from, 'bundle');
+  // not there yet: downloaded from the site now, told first, and kept for the worlds
+  const empty = memStore();
+  n = net({ [site('edena.mp3')]: 'SITE' });
+  const told = [];
+  const b = await themeToListen('edena.mp3', { here: ANDROID, store: empty, fetcher: n.fetcher, onDownload: (k) => told.push(k) });
+  assert.equal(b.from, 'site');
+  assert.deepEqual(told, ['edena.mp3']);
+  assert.equal(await text(await empty.get('edena.mp3')), 'SITE');
+  assert.deepEqual(sites(n.calls), [site('edena.mp3')]);
+  // offline and not kept: an error to show, not a silent nothing
+  n = net({}, { offline: true });
+  await assert.rejects(themeToListen('spheres.mp3', { here: ANDROID, store: memStore(), fetcher: n.fetcher }), /isn't on this device yet/);
+});
+
+test('the music page reads its recordings through themeToListen, never only the bundle\'s music/ folder', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const src = await readFile(new URL('../src/music-page/main.js', import.meta.url), 'utf8');
+  assert.match(src, /themeToListen\(entry\.file/);
+  assert.doesNotMatch(src, /playFile\(id, `music\//);
 });
