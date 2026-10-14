@@ -587,9 +587,12 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   people with a quest for you not talked to yet (v1.68, issue #273, `givers`: `Quests.giverMarks()`, a gold ◉ in a
   breathing ring, "the ship heard the light on them", the Map's line `GIVERS_NOTE` under them: docs/systems/story.md,
   "Quests are given"), your
-  ship, the makers' temples (at their doors), the people met here, the boxes opened. Something inside a temple's or a
-  shop's room (built far from the ground) is drawn at its door (`mapAt`). Never a fragment of the singing light, nor
-  a box still closed. No name is written on the map at rest.
+  ship, the makers' temples (at their doors), the people met here, the boxes opened, and the rumours told and not
+  found yet (v1.76, issue #340, `rumours`: a soft plum circle on the map's plane, `.gm-area`, round where the thing
+  should be but never centred on it, a small ? with the rumour's short name under it: docs/systems/story.md,
+  "Rumours"). Something inside a temple's or a shop's room (built far from the ground) is drawn at its door
+  (`mapAt`). Never a fragment of the singing light itself, nor a box still closed. No name is written on the map at
+  rest but a rumour's.
 - **No list; a cursor, a zoom** (v1.65, issue #244: "using the left stick should move around the map. There should
   be no list under it. I should be able to zoom in and out ... Hovering over an item tells me what it is"): the map is
   the whole sheet. `MapView` (src/world-map.js) holds a cursor (a small ink ring, gold over a mark) and a zoom, 1 to

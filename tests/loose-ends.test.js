@@ -62,7 +62,9 @@ test('only the City-Shaft says “the night the sky rang”, its temple guide in
   for (const f of files) {
     if (/\/incal-data\.js$/.test(f)) continue;   // (the City-Shaft's own)
     const m = await import(new URL(f, SRC));
-    for (const s of strings(Object.values(m))) if (/sky rang/i.test(s)) bad.push(`${f}: ${s.slice(0, 80)}`);
+    // (the rumours' lines are by world: the City-Shaft's are its own, issue #340)
+    const vals = /rumours-data\.js$/.test(f) ? Object.values(m).map((v) => (v?.incal ? { ...v, incal: null } : v)) : Object.values(m);
+    for (const s of strings(vals)) if (/sky rang/i.test(s)) bad.push(`${f}: ${s.slice(0, 80)}`);
   }
   assert.deepEqual(bad, []);
 });

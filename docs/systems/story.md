@@ -701,6 +701,50 @@ giving me access to the quest for the temple first."
   `tests/boxes.test.js` (the boxes' quests given by the local, a box opened first is done, an old save's world),
   `tests/story-arzach.test.js` and `tests/story-incal.test.js` (Lark and Vell first; passing the door starts nothing).
 
+## Rumours: what the people outside the quests have heard (issue #340, v1.76)
+The author: "Non quest characters in the world should often offer you a hint or a rumor about where to find fragments of
+light, where to find a mini game, where to find a point of interest on the map. We can add these to the map when that
+happens as an area marker (not a perfect marker)."
+- **Who tells them** (`src/story/rumours.js`, one `Rumours` a world in `src/story/index.js`, `rt.rumours`): the people who
+  only talk (bystanders and crowd people: `talk.listen`, `src/story/dialogue.js` `DialogueRunner`), in place of their next
+  line; and the shops' keepers back again (`rumourNode: 'again'`, `src/story/shops.js`), as a page between their hello
+  and their wares. Never news they have to tell first (`listenNews`: an `after` entry just come true), never an alien
+  (`species`), a game's host or a quest person (`tellsRumours`).
+- **How often**: a talk that could tell one does `RUMOUR.chance` (0.45) of the time; a world has `RUMOUR.active` (3) open
+  at most; a rumour is told once (found or not).
+- **What about**: something not found yet, more than 30 m from the speaker, the nearest first (within 450 m; the few
+  nearest past that): a fragment of the singing light (`src/fragments-data.js`, not taken), a game's host (the story's
+  `host`, not met nor walked by), or a place to stop for (the level's `sights`, one each: a numbered row is one place,
+  its note left off, not reached). A kind is picked by weight (fragments 0.5, hosts and places 0.25), then one of its
+  three nearest.
+- **The line** (`rumourLine`): a template of the speaker's world (`src/story/rumours-data.js` `RUMOUR_LINES`, three for
+  fragments and two each for hosts and places, a world; things for hosts that are things, `RUMOUR_OBJECT_LINES`), each
+  in that people's voice and their word for the night the light went over (lore/voice-guide.md; Vael's people point and
+  mime), filled in with the place: a fragment's from `src/story/rumour-places.js` (its own place in the people's words,
+  "inside the split meteor", or a kind of place, "on a ledge with a long drop", then which way it lies from the nearest
+  landmark: the level's sights, its beacons, its temples, your ship; else from the speaker), a host by name and title, a
+  place by its name, and which way from the speaker ("north-west of here", "close by"). The first that fits 120
+  characters is said. Examples: *"There’s a hum inside a ribcage south-west of the pilgrims’ resting stone. Not the wind.
+  The wind doesn’t keep a tune."* (the Desert), *"(Fingers walk through the air toward the first broken slab, east.
+  Eyebrows up: seen it?)"* (Vael), *"Free tip, no charge: something sings at the end of a path, south-west of your ship. Not
+  one of ours. Ours charge."* (the Signal Market).
+- **On the Map** (`marks()`, engine-neutral; `src/world-map.js` `mapMarks({ rumours })`, mark kind `rumour`; main.js and
+  engine/game.js `mapSource`): a soft plum circle (`rumourArea`: 30 to 60 m, drawn at least `RUMOUR_MIN`, 3.5 % of the
+  map's longer side, so it reads on a map a kilometre wide), its middle 0.3 to 0.7 of its radius off the thing, the way
+  picked by the rumour's key (the same circle every time), with a small ? and the rumour's short name ("Something singing,
+  they say", "Yusra’s game", "The first broken slab"); the cursor on it names whose word it is and about how far. The web
+  draws the circle on the map's plane (`.gm-area`: it zooms with the ground) and the name under the mark; the engine's
+  menu sends each circle's size on the sheet (`rx`, `ry`) and its name (engine/menus.js), BridgeMenu.cs DrawMap draws the
+  `area` picture (engine/map-marks.js) under the marks and the name under it. After the talk a toast: *On your map: …*.
+- **Found, it clears**: the fragment taken, the host met (or passed within 16 m), the place reached (16 m, its height
+  within 14 m: `update`, which marks every place and host you walk by, told or not, so none is told after).
+- **The save**: `rumours.<world>.<key>` the speaker's name once told, `rumours.<world>.seen.<key>` a place or host
+  reached; keys `frag.<i>`, `host.<id>`, `sight.<name>`. Nothing to migrate: an old save starts with none.
+- Tests: `tests/rumours.test.js` (a place for every fragment; every line toned, filled in cleanly and 120 characters at
+  most, every world, every fragment; the circle holds the thing and is not centred on it; real unfound things, near
+  first, once, three at most; cleared on finding; read back from the save; the listen talk and the keepers; the Map's
+  marks), `tests/tone.test.js`, `tests/loose-ends.test.js` (the City-Shaft's own night stays its own).
+
 ## A quest that fails, fewer fetch quests, and the lore made one story
 
 - **Quests can fail** (`src/story/quests.js`): `quests.fail(id)` ends a quest as `'failed'`

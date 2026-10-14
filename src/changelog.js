@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.76', date: '2026-10-14', items: [
+    // rumours (issue #340): src/story/rumours.js (offer, the circle, what is found), rumours-data.js (the lines by world),
+    // rumour-places.js (each fragment's place), dialogue.js (listen talk, the keepers' again), world-map.js mapMarks
+    // `rumours`, game-menu.js / .css (.gm-area), engine/menus.js, engine/map-marks.js, BridgeMenu.cs; tests/rumours.test.js
+    'People who only talk often tell you of something near them you haven’t found: a fragment of the singing light (“there’s a hum inside a ribcage south-west of the pilgrims’ resting stone”), someone with a game, or a place worth the walk, each in their own world’s way of putting it. Your Map then shows a soft circle round where it should be, never right on it, until you find it.',
+  ] },
   { v: '1.75', date: '2026-10-14', items: [
     // the Unity title and settings (issue #346): engine/menus.js (titleView's shot and layout, SETTINGS_ROWS, the save's
     // line), scripts/engine-bundle.mjs unityTitle, BridgeMenu.cs (DrawTitle, TitleEntry), BridgeHud.cs (access: the text

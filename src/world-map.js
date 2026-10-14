@@ -19,6 +19,8 @@
 //                                 (n: rays across and down, or [across, down] for a map wider than tall)
 //   drawTerrain(ctx, grid, size)  ink and paper (a canvas 2D context; size: the short side, px)
 //   new WorldMap({ sample, size }) → .view(bounds) → { canvas, done, progress }; .pump(ms) (while the menu is open)
+//   mapMarks({ …, rumours })      the marks, and the rumours' circles (issue #340, src/story/rumours.js): kind 'rumour', at the
+//                                 circle's middle (never the thing's place), its radius across (ru) and down (rv) the map
 //   new MapView()                 the Map panel's view (issue #244): a cursor the left stick moves, zoomed in and out
 //                                 round it, the window panned to keep it in sight; .pick(marks) the mark under it (pure)
 //
@@ -296,11 +298,13 @@ export class WorldMap {
  * The marks on a map and its legend's lines: `you` { x, z, dx, dz } (where he stands, the way he faces), `ship`,
  * `goal` { x, z, label }, `quests` [{ id, x, z, title, label }] (the other quests under way, at their steps), `temples`
  * [{ id, x, z, name }], `people` [{ id, x, z, name }], `boxes` [{ id, x, z, name }]
- * (opened ones only), all in world metres; `bounds` the map shown. Each mark: { id, kind, name, sub (how far and which
- * way from you), u, v (0..1 on the map), deg (the traveller's), on (inside the map) }. The traveller first, then the
- * way on, the other quests, the ship and the temples, then the people and the boxes, nearest first.
+ * (opened ones only), `rumours` [{ id, x, z, r, label, by }] (a rumour's circle: issue #340), all in world metres;
+ * `bounds` the map shown. Each mark: { id, kind, name, sub (how far and which way from you), u, v (0..1 on the map),
+ * deg (the traveller's), on (inside the map) }, a rumour's its circle's radius too, `ru` of the map's width and `rv` of
+ * its height. The traveller first, then the way on, the other quests, the ship and the temples, then the people, the
+ * boxes and the rumours, nearest first.
  */
-export function mapMarks({ you = null, ship = null, goal = null, quests = [], givers = [], temples = [], people = [], boxes = [], bounds }) {
+export function mapMarks({ you = null, ship = null, goal = null, quests = [], givers = [], temples = [], people = [], boxes = [], rumours = [], bounds }) {
   const far = (p) => (you ? Math.hypot(p.x - you.x, p.z - you.z) : 0);
   const sub = (p, what) => {
     if (!you) return what;
@@ -332,10 +336,27 @@ export function mapMarks({ you = null, ship = null, goal = null, quests = [], gi
   temples.forEach((t, i) => rest.push(mark(`temple.${t.id ?? i}`, 'temple', t, t.name || 'The makers’ temple', 'a makers’ temple')));
   people.forEach((p) => rest.push(mark(`person.${p.id}`, 'person', p, p.name, 'met')));
   boxes.forEach((b) => rest.push(mark(`box.${b.id}`, 'box', b, b.name || 'A makers’ box', 'a box you opened')));
-  const rank = { goal: 0, giver: 1, quest: 1, ship: 2, temple: 3, person: 4, box: 5 };
+  // (a rumour: somewhere in its circle, not at its middle; how far is to the circle's edge, "about")
+  for (const r of rumours) {
+    if (!Number.isFinite(r?.x) || !Number.isFinite(r?.z) || !(r.r > 0)) continue;
+    const m = mark(r.id ?? `rumour.${r.key}`, 'rumour', r, r.label || 'A rumour', '');
+    const d = Math.max(0, m.d - r.r);
+    m.sub = [r.by ? `a rumour, ${r.by}’s word` : 'a rumour', you ? (d < 4 ? 'somewhere round here' : `about ${metres(d)} ${compass(r.x - you.x, r.z - you.z)}`) : ''].filter(Boolean).join(' · ');
+    // (drawn at least RUMOUR_MIN_SPAN of the map's width across, so it reads on a map a kilometre and more wide: the
+    // same middle, so it still holds the thing and is still not centred on it)
+    const rr = Math.max(r.r, RUMOUR_MIN * Math.max(bounds.w, bounds.h));
+    m.r = rr; m.ru = rr / bounds.w; m.rv = rr / bounds.h;
+    // (on the map while any of its circle is)
+    m.on = m.u + m.ru >= 0 && m.u - m.ru <= 1 && m.v + m.rv >= 0 && m.v - m.rv <= 1;
+    rest.push(m);
+  }
+  const rank = { goal: 0, giver: 1, quest: 1, ship: 2, temple: 3, person: 4, box: 5, rumour: 6 };
   rest.sort((a, b) => rank[a.kind] - rank[b.kind] || a.d - b.d);
   return [...out, ...rest];
 }
+
+/** A rumour's circle is drawn at least this share of the map's longer side in radius (issue #340). */
+export const RUMOUR_MIN = 0.035;
 
 /** The scale bar for a map `w` m across: a round length and its share of the width. */
 export function scaleBar(w, want = 0.22) {

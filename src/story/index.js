@@ -47,6 +47,7 @@ import { setupTempleStory } from '../temples/index.js';
 import { setupShops } from './shops.js';
 import { setupFellow } from './fellow.js';
 import { setupScientist } from './scientist.js';
+import { Rumours } from './rumours.js';
 import { partsOf } from '../levels/names.js';
 import { NPC_BASE, CONTENT } from '../levels/content.js';
 
@@ -119,8 +120,11 @@ export function createStory(o) {
   const quests = new Quests({ game, toast, sound });
   let talking = null;   // { person, npc, at }
   let world = null;
+  // the rumours the people outside the quests tell (issue #340, src/story/rumours.js): a line, and a circle on the Map
+  const rumours = new Rumours({ world: levelId, game, level });
   const dialogue = new Dialogue({
     game, quests, sound, toast,
+    rumour: (person, npc, at) => rumours.offer(person, npc?.pos ?? at ?? player?.pos ?? null),
     portrait: (person, npc) => npc && capture ? portrait(npc, person) : null,
     portraitYou: (tone) => capture ? portraitYou(tone) : null,
     onOpen: (person, npc) => {
@@ -134,6 +138,8 @@ export function createStory(o) {
       if (npc) npc.talkTo = null;
       world?.onTalk?.(person, npc, false);
       talking = null;
+      const told = rumours.closed();
+      if (told) toast(`On your map: ${told}`);
       if (typeof document !== 'undefined') document.body.classList.remove('talking');
     },
   });
@@ -381,6 +387,7 @@ export function createStory(o) {
     const def = hostTalk(H, spot.play, { later, name: spot.name, lacks: spot.lacks });
     def.id ??= `host.${spot.id}`;
     if (H.object) {
+      rumours.addHost({ id: def.id, name: H.name ?? 'the makers’ post', title: '', object: true, at: spot.at });
       const at = spot.at.clone(), look = at.clone().addScaledVector(UP, 1.9);
       return registerInteractable({
         id: `host.${spot.id}`, priority: PRIORITY.use, range: spot.range ?? 3.2, prompt: def.prompt, whileRiding: !!spot.whileRiding,
@@ -389,6 +396,7 @@ export function createStory(o) {
         use: () => dialogue.start(def, null, at, look),
       });
     }
+    rumours.addHost({ id: def.id, name: H.name ?? spot.name, title: H.object ? '' : H.title ?? '', object: !!H.object, at: spot.at });
     const stand = hostStand(spot.at, spot.heading ?? 0, H.stand);
     const g = physics?.groundAt?.(stand.x, stand.y + 2.5, stand.z, 6);
     if (Number.isFinite(g)) stand.y = g;
@@ -398,7 +406,7 @@ export function createStory(o) {
   }
 
   const rt = {
-    quests, dialogue, marker, world, temple, shops, fellow, scientist, portrait, moments, makeRoom, cabs, host, prompt: null, promptAt: null, extraPrompt: o.ship?.promptTag ? () => o.ship.promptTag() : null,
+    quests, dialogue, marker, world, temple, shops, fellow, scientist, portrait, moments, makeRoom, cabs, host, rumours, prompt: null, promptAt: null, extraPrompt: o.ship?.promptTag ? () => o.ship.promptTag() : null,
     busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
@@ -413,6 +421,7 @@ export function createStory(o) {
       temple?.update(dt, t);
       scientist?.update(dt);
       shops?.update(dt);
+      rumours.update(dt, player.pos);
       world?.hold?.();
       // the person you talk to keeps facing you; a crowd person's group pauses
       if (talking?.crowd && crowd) {

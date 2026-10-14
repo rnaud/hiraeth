@@ -45,6 +45,7 @@ namespace Hiraeth.Bridge
         RectTransform mapClip, mapPlane; RawImage mapGround, mapDetail, mapCursor, mapNorth; Image mapEdge;
         Label mapDrawing, mapScale, mapNone, mapNote, mapName, zoomIn, zoomOut; Image mapBar; Ui.Box mapTip, mapNameBox, mapScaleBox, mapNoteBox, zoomInBox, zoomOutBox; Label mapTipName, mapTipSub;
         readonly List<(RawImage pic, RawImage ring)> markPics = new();
+        readonly List<(RawImage area, Label label)> areaPics = new();   // (the rumours' circles and their names: issue #340)
         static readonly Dictionary<string, Texture2D> markTex = new();
         // the title (issue #346): the painted world behind it (title/<shot>.jpg, scripts/engine-bundle.mjs unityTitle: the web's
         // drawing of the shot, src/title-paint.js), the lettered name (title/logo.png, src/title-logo.js), the entries small,
@@ -320,6 +321,7 @@ namespace Hiraeth.Bridge
             Show(tabLine, false);
             strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false);
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
+            foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
             if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
@@ -813,6 +815,32 @@ namespace Hiraeth.Bridge
             // the marks (the traveller and those with a word for you over the rest), each its picture, round its place
             float unit = 30;
             var list = m?.L("marks") ?? new List<object>();
+            // the rumours' soft circles under every mark (rx across, ry down the sheet: they zoom with the ground), and
+            // their short names under their middles (src/game-menu.css .gm-area, .mk-rumour b; issue #340)
+            var rumours = list.OfType<Dictionary<string, object>>().Where(k => k.S("kind") == "rumour").ToList();
+            while (areaPics.Count < rumours.Count)
+            {
+                var area = Ui.Node("rumour area", mapClip).gameObject.AddComponent<RawImage>(); area.raycastTarget = false;
+                var label = Ui.Label(mapClip, "rumour label", Ui.Mono, Tiny, Ui.Hex("#5b2f52"), TextAnchor.MiddleCenter, FontStyle.BoldAndItalic);
+                areaPics.Add((area, label));
+            }
+            for (int i = 0; i < areaPics.Count; i++)
+            {
+                var (area, label) = areaPics[i];
+                var k = i < rumours.Count ? rumours[i] : null;
+                var tex = k != null ? Mark("area") : null;
+                Show(area, tex != null); Show(label, k != null);
+                if (k == null) continue;
+                float ax = k.F("x") * mw, ay = k.F("y") * mh, rx = k.F("rx") * mw, ry = k.F("ry") * mh;
+                if (tex != null)
+                {
+                    area.texture = tex;
+                    Ui.PlaceC(area.rectTransform, ax - rx, ay - ry, 2 * rx, 2 * ry);
+                    area.transform.SetSiblingIndex(mapPlane.GetSiblingIndex() + 1);   // (over the ground, under the marks)
+                }
+                var ls = Ui.Set(label, k.S("label") ?? "", mw * 0.4f);
+                Ui.Place(label.rectTransform, ax - ls.x / 2, ay + unit * 0.42f, ls.x, ls.y);
+            }
             var order = list.OfType<Dictionary<string, object>>().OrderBy(k => k.S("kind") == "you" ? 3 : k.S("kind") == "giver" ? 2 : B(k, "sel") ? 1 : 0).ToList();
             while (markPics.Count < order.Count)
             {
@@ -885,7 +913,7 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>A mark's side on the sheet, of the web's mark (engine/map-marks.js MAP_MARKS size).</summary>
-        static float MarkSize(string kind) => kind switch { "you" => 1.3f, "goal" => 1.6f, "giver" => 1.5f, _ => 1f };
+        static float MarkSize(string kind) => kind switch { "you" => 1.3f, "goal" => 1.6f, "giver" => 1.5f, "rumour" => 0.8f, _ => 1f };
 
         void DrawPerson(Dictionary<string, object> p, float x, float y, float w, float h)
         {

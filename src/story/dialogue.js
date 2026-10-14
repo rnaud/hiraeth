@@ -149,6 +149,12 @@ export function apply(effects, ctx) {
 const isEntry = (e) => e && typeof e === 'object' && !Array.isArray(e) && 'say' in e;
 const hashOf = (s) => { let h = 2166136261; for (const c of String(s)) h = Math.imul(h ^ c.codePointAt(0), 16777619); return h >>> 0; };
 
+/** Has a listen-only person news to say first (an entry whose `after` has just come true)? (A rumour waits for it.) */
+export function listenNews(person, ctx) {
+  const list = person.talk?.listen ?? [], game = ctx.game ?? {}, key = `heard.${person.heard ?? person.id}`;
+  return list.some((e, k) => isEntry(e) && e.after && check(e.if, ctx) && check(e.after, ctx) && !game.flag?.(`${key}.n${k}`));
+}
+
 /** The entry a listen-only person says now ({ say, do } or null), and remember it. */
 export function pickListen(person, ctx) {
   const list = person.talk?.listen ?? [], game = ctx.game ?? {}, key = `heard.${person.heard ?? person.id}`;
@@ -178,8 +184,10 @@ export class DialogueRunner {
     this.ended = false;
     const t = person.talk;
     if (t.listen) {
-      // listen-only: one entry, said as a single node with no answers
-      const said = pickListen(person, ctx);
+      // listen-only: one entry, said as a single node with no answers; often a rumour instead (issue #340,
+      // src/story/rumours.js: something near not found yet), never over news they have to tell
+      const rumour = !listenNews(person, ctx) ? ctx.rumour?.(person) : null;
+      const said = rumour ? { say: rumour } : pickListen(person, ctx);
       if (!said) { this.ended = true; this.pages = []; this.tones = []; this.page = 0; this.node = {}; return; }
       this.talk = { nodes: { listen: { say: said.say, do: said.do, listen: true } } };
       this.goto('listen');
@@ -336,8 +344,8 @@ export function revealHtml(full, { lang = null, shown = full.length, translated 
  * @param o.onOpen/onClose  callbacks (pause the procession, let go of the pointer…)
  */
 export class Dialogue {
-  constructor({ game, quests, sound = null, portrait = null, portraitYou = null, toast = () => {}, onOpen = () => {}, onClose = () => {} }) {
-    Object.assign(this, { game, quests, sound, portrait, portraitYou, toast, onOpen, onClose });
+  constructor({ game, quests, sound = null, portrait = null, portraitYou = null, toast = () => {}, onOpen = () => {}, onClose = () => {}, rumour = null }) {
+    Object.assign(this, { game, quests, sound, portrait, portraitYou, toast, onOpen, onClose, rumour });
     this.cover = new Coverage();   // who the camera frames (src/story/coverage.js)
     this._you = new Map();   // his portraits this conversation, by tone
     this.open = false;
@@ -392,6 +400,8 @@ export class Dialogue {
     this.person = person; this.npc = npc; this.at = at; this.look = look;
     const ctx = this.ctx = {
       game: this.game, quests: this.quests, person, npc,
+      // (a rumour for a listen-only talk, issue #340: src/story/rumours.js offer)
+      rumour: this.rumour ? (p) => this.rumour(p, npc, at) : null,
       onGive: (item) => this.toast(`Received: ${this.quests.itemName?.(item) ?? item}`),
       onKeepsake: (k) => this.toast(`Keepsake: ${k.name}`),
       // (each node reached, for whoever writes things down: the Sightings, src/story/sightings.js)
@@ -410,6 +420,11 @@ export class Dialogue {
     else this.quests?.opening?.(person.id);
     this.runner = new DialogueRunner(person, ctx);
     this.runner.addPages(this.quests?.givenWords?.() ?? []);
+    // (a shop's keeper, back again: often a rumour between the hello and the wares, issue #340)
+    if (person.rumourNode && this.runner.nodeId === person.rumourNode && !this.runner.ended) {
+      const r = ctx.rumour?.(person);
+      if (r) this.runner.addPages([r]);
+    }
     if (this.runner.ended) { this.quests?.opened?.(); return false; }
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;

@@ -681,6 +681,12 @@ export class EngineMenus {
       const marks = [];
       for (const m of on) {
         const [x, y] = V.toSheet(m.u, m.v);
+        if (m.kind === 'rumour') {
+          // (a rumour: its soft circle on the sheet, rx across and ry down, and its short name: issue #340)
+          const rx = (m.ru ?? 0) * V.z, ry = (m.rv ?? 0) * V.z;
+          if (x + rx >= 0 && x - rx <= 1 && y + ry >= 0 && y - ry <= 1) marks.push({ id: m.id, kind: m.kind, x: r4(x), y: r4(y), deg: null, sel: m === hit, rx: r4(rx), ry: r4(ry), label: m.name ?? '' });
+          continue;
+        }
         if (x >= -0.03 && x <= 1.03 && y >= -0.03 && y <= 1.03) marks.push({ id: m.id, kind: m.kind, x: r4(x), y: r4(y), deg: m.deg ?? null, sel: m === hit });
       }
       const bar = d.span ? V.scale(d.span) : d.scale;

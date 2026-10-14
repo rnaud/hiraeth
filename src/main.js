@@ -1025,6 +1025,8 @@ function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
     temples: mapTemples(),
     people: npcs.filter((n) => n.def?.id && n.pos && game.flag(`met.${n.def.id}`) && !givers.some((g) => g.id === n.def.id)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, ...mapAt(n.pos) })),
     boxes: (boxes.list ?? []).filter((b) => b.opened()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...mapAt(b.pos) })),
+    // (the rumours told and not found yet: a soft circle round each, issue #340, src/story/rumours.js)
+    rumours: storyRt.rumours?.marks?.() ?? [],
   };
   const whole = mapWhole.bounds, focus = zoom && mapMarks({ ...raw, bounds: whole }).find((m) => m.id === zoom);
   const bounds = focus ? zoomBounds(whole, { x: whole.x0 + focus.u * whole.w, z: whole.z0 + focus.v * whole.h }) : whole;
