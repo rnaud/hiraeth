@@ -32,7 +32,7 @@ test('the Greenhouse\'s sunbeams fall in soft shafts from their louvres to their
   const { level, rt } = world('edena');
   const beams = rt.pieces.filter((p) => p instanceof Sunbeam);
   assert.ok(beams.length >= 9, `${beams.length} louvres`);
-  assert.equal(new Set(level.veils.list.map((w) => w.material.fragmentShader)).size, 1, 'one wash program for them all');
+  assert.equal(new Set(level.veils.list.filter((w) => !w.userData.pitVoid).map((w) => w.material.fragmentShader)).size, 1, 'one wash program for them all (the pits\' dark apart: src/pit-void.js)');
   for (const [i, b] of beams.entries()) {
     washed(level, b.shaft, `louvre ${i}`);
     assert.equal(b.rays, undefined, 'no rays');

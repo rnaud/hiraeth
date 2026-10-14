@@ -463,7 +463,7 @@ export function* buildSpaceCity(scene) {
     sky: { script: SPACECITY_SCRIPT, planets: [PLANET] },
     killY: -Infinity,
     // fallen into the void: back where you last stood
-    unsafe: (p) => p.y < UNSAFE_Y,
+    unsafe: (p) => p.y < UNSAFE_Y, voidY: UNSAFE_Y,   // (voidY: the deadly void's look under it, src/pit-void.js)
     lights,
     noShadow,
     reactions: false,   // (nothing grows out of the paving: reactive-world.js)

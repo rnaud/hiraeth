@@ -722,6 +722,24 @@ out 2 m short with the lid on); the Footprint's stilling stone, from whose middl
 ran into the ledge's edge (only its last 20 cm worked): the stone at the ledge's edge and the sphere a little farther out
 (`POOL`).
 
+## A deadly pit looks it (issue #312, `src/pit-void.js`)
+
+The author: "Make it clearer when the pit is deadly when I fall … like in the Rose House": the Dry Channel's sand looked
+like a floor to land on, and put you back at the mark. Every `Pit` now fills with the makers' dark from below
+(`pitVoid`, made for each pit by `runtime.js`): drawn as a wash over the finished picture (src/veil.js `addWash`), its
+box's inside faces, each pixel finding where its ray meets the scene inside the box. What lies flat in it (a floor,
+sand, water: whatever you would land on is where it puts you back) goes all dark, the walls darker the deeper they go
+(`PIT_VOID.fade` 7 m, in `steps` 4 flat tones, as the pictures shade), and on the floor slow pale rings in the house's
+glow colour turn round the pit's middle; the traveller falling into it sinks into the dark too. Nothing in front of the
+box (a ledge, a bridge over it, the traveller on the lip) is touched, and a pit's box ends under its lip, so its top
+metres of wall keep their stone. A pit already deadly by its own look says so (`own`) and takes none: the Casting-House's
+molten channel. A drop with a floor to land on (a stair well, Vael's cleft round the lone tower) has no pit, and no dark.
+The worlds have the same under their kill height (`level.voidY`, else a finite `killY`: `worldVoid`, main.js), seen only
+where you look down into nothing: in the City Floating in Space, rings over a lighter dark (`WORLD_VOID.dark` 0.35) under
+the islands, its stars still showing; a world with ground under every drop shows none. Cost: one draw a pit on the
+screen, a few ALU a pixel. `tests/pit-void.test.js`: every temple's pit has its dark (one each, no more), the molten one
+none, a world without a kill height none.
+
 ## Each house its own look (v1.31)
 
 The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same

@@ -131,6 +131,17 @@ export class Veils {
     this.list.push(wash);
     return wash;
   }
+  /**
+   * A wash of its own making (a ShaderMaterial reading tNormal and uRes, as this file's: src/pit-void.js), shown while
+   * `of` is (null: always). Bound already, it takes the scene's depth at once.
+   */
+  addWash(wash, of = null) {
+    wash.userData.of = of ?? wash;
+    if (this.bound) { wash.material.uniforms.tNormal = this.uniforms.tNormal; wash.material.uniforms.uRes = this.uniforms.uRes; }
+    this.scene.add(wash);
+    this.list.push(wash);
+    return wash;
+  }
   /** A wash taken away again (a chest's light, gone with its scene): out of the pass, its material freed (the geometry is its mesh's). */
   remove(wash) {
     const i = this.list.indexOf(wash);

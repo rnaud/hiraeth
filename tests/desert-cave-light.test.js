@@ -23,8 +23,10 @@ test('the light through the cracks: soft shafts drawn as washes, not bars in the
     const s = m.geometry.boundingBox.getSize(V(0, 0, 0));
     assert.ok(Math.min(s.x, s.z) > 1.0, `broad: ${Math.min(s.x, s.z).toFixed(2)} m across, not a stick`);
   }
-  assert.ok(W.level.veils?.list.length === shafts.length, 'each has its wash');
-  assert.ok(new Set(W.level.veils.list.map((w) => w.material.fragmentShader)).size === 1, 'one wash shader for them all (src/veil.js: no new program)');
+  // (the shafts' washes; the Rose House's pits have washes of their own, their dark: src/pit-void.js)
+  const washes = W.level.veils?.list.filter((w) => !w.userData.pitVoid) ?? [];
+  assert.ok(washes.length === shafts.length, 'each has its wash');
+  assert.ok(new Set(washes.map((w) => w.material.fragmentShader)).size === 1, 'one wash shader for them all (src/veil.js: no new program)');
   // the roots: the bundles' tips where the water climbs them (src/story/desert.js), and their mass: the cave's bone
   // (ribs, roots and all) has some thousands of triangles more than the ribs alone
   assert.ok(cave.rootTips.length >= 4, 'the water still has tips to climb');

@@ -9,6 +9,7 @@ import { TempleLogic, flagStore } from './logic.js';
 import { Guardian, guardianBar } from './boss.js';
 import { Mark, Pit } from './pieces.js';
 import { Veils } from '../veil.js';
+import { pitVoid, PIT_VOID } from '../pit-void.js';
 
 // One temple, alive: its rooms (built by the world's layout with the kit and
 // the pieces), its logic (saved in the save slot's flags), its marks
@@ -79,6 +80,9 @@ export class TempleRuntime {
     this.offs.push(addIndoors((p) => this.inside(p)) ?? (() => {}));
     this.logic.update();
     for (const p of this.pieces) if (p.id && p.setOpen) p.setOpen(this.logic.isOpen(p.id), true);
+    // every pit fills with the dark from below, so a deadly drop reads as one from its lip (issue #312: src/pit-void.js)
+    const deep = '#' + new THREE.Color(PIT_VOID.color).lerp(new THREE.Color(this.P.dark ?? PIT_VOID.color), 0.25).getHexString();
+    for (const pit of this.pits) if (!pit.own) pit.look = pitVoid(this.veils, { min: pit.box.min, max: pit.box.max, frame: this.kit.frame, color: deep, ring: this.P.glow ?? PIT_VOID.glow, of: this.root, name: `${def.name}: the ${pit.room} pit's dark` });
   }
 
   /** The level's washes over the finished picture (src/veil.js: the shafts of light, issue #116), made if it has none. */
@@ -192,6 +196,7 @@ export class TempleRuntime {
 
   update(dt, t) {
     this.time += dt;
+    for (const pit of this.pits) pit.look?.update(this.time);
     const P = this.player;
     const inside = P && this.inside(P.pos);
     if (P && this.def.dark) P.inDark = !!inside;   // (a dark temple: the lantern charm glows in it, day or night)
@@ -292,6 +297,7 @@ export class TempleRuntime {
     this.meterEl?.remove?.();
     for (const f of this.offs) f?.();
     for (const p of this.pieces) p.dispose?.();
+    for (const pit of this.pits) pit.look?.dispose();
     this.guardian?.dispose();
     this.guardian?.model.dispose?.();
     this.change?.dispose?.();

@@ -372,7 +372,7 @@ function layout(rt) {
   for (const s of [-1, 1]) K.both(M.wall, box(C1 - C0, 6, 0.8, (C0 + C1) / 2, 5.6, TZ + s * 13.4));
   K.both(ember, box(C1 - C0, 0.4, 26, (C0 + C1) / 2, 3.0, TZ));
   K.both(M.dark, box(C1 - C0, 1, 26, (C0 + C1) / 2, 2.3, TZ));
-  add(Pit, { room: 'furnace', min: [C0, -2, TZ - 13], max: [C1, 7.4, TZ + 13] });
+  add(Pit, { room: 'furnace', min: [C0, -2, TZ - 13], max: [C1, 7.4, TZ + 13], own: 'the molten iron glowing at its bottom' });   // (deadly by its own look: no dark of its own, issue #312)
   add(Bridge, { id: 'brH', a: [C0 - 0.1, 9, TZ - 5], b: [C1 + 0.1, 9, TZ - 5], w: 4, n: 7 });
   add(Hammer, { id: 'hm', at: [(C0 + C1) / 2, 9, TZ - 5], yaw: Math.PI / 2, w: 4.6, d: 2.4, top: 5.2, period: 3.0, knock: 9,
     hit: 'The founders’ press comes down and throws you off the bridge. It slams out of step: wait for it to rise.' });

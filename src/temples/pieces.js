@@ -2886,10 +2886,14 @@ export class Mark {
   }
 }
 
-/** Fall below a chasm's lip and you are back at the room's mark. o: { room, min: [x, y, z], max } (local) */
+/**
+ * Fall below a chasm's lip and you are back at the room's mark. o: { room, min: [x, y, z], max } (local); `own`: what
+ * already says it is deadly (molten iron), so it takes no dark of its own (runtime.js: every other pit fills with the
+ * dark from below, src/pit-void.js, issue #312).
+ */
 export class Pit {
   constructor(rt, o) {
-    this.rt = rt; this.room = o.room;
+    this.rt = rt; this.room = o.room; this.own = o.own ?? null;
     this.box = new THREE.Box3(V(...o.min), V(...o.max));
   }
   contains(p) { return this.box.containsPoint(this.rt.kit.local(p)); }

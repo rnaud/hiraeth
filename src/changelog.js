@@ -29,6 +29,10 @@ export const CHANGELOG = [
     // docs/systems/foes.md "Only what you can see"
     { text: 'You can only lock on to a foe you can see: none behind a shut door, a gate or a wall. A locked foe that goes behind one lets go of the lock a moment later, and a foe behind a shut door no longer notices you or winds up a blow at you through it.',
       see: 'In a temple, stand at a shut door with a foe in the room beyond it and press R3 (Tab): nothing locks on. Open the door and it does.' },
+    // the deadly pits' dark (issue #312): src/pit-void.js, every temple Pit (runtime.js; `own` for the Casting-House's
+    // molten channel), the worlds under their kill height (main.js worldVoid); docs/systems/temples.md "A deadly pit looks it"
+    { text: 'A pit that puts you back at the last mark now looks it: in every temple its walls sink into a deep ink as they go down, its floor, sand or water goes dark, and slow pale rings turn on it, so you can tell from the lip that there is nothing to land on. The Rose House’s sand pit no longer looks like a floor. Drops with a floor to land on look as they did, and in the City Floating in Space faint rings turn in the void under the islands.',
+      see: 'In the Rose House, look down into the Dry Channel from the near ledge, and into the chasm of the Hall of Fires. In the City Floating in Space, look over a parapet.' },
   ] },
   { v: '1.69', date: '2026-10-13', items: [
     // the night mail done at Solange's answer (issue #279): src/story/night-train-data.js, src/save-migrate.js step 27

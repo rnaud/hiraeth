@@ -1,4 +1,5 @@
 import * as shipSfx from './ship/sfx.js';
+import { worldVoid } from './pit-void.js';
 import { homecomingKind } from './story/ending.js';
 import { updateHazards, registerHazard } from './hazards.js';
 import { fireHazard } from './story/flames.js';
@@ -1259,6 +1260,7 @@ updateSky();
 
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
+const deadlyVoid = worldVoid(level);   // (the world's deadly void under its kill height, issue #312: src/pit-void.js; makes level.veils if need be)
 level.veils?.bind({ tNormal: gbuffer.textures[1], uniforms: U });   // (the see-through surfaces' wash reads the scene's depth and the ink pass's light and haze: src/veil.js)
 const params = {
   preset: level.defaults.preset ?? 'Moebius print',
@@ -2341,6 +2343,7 @@ function frame(ts) {
   updateHealth(dt);
   updateKeys();
   level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
+  deadlyVoid?.update(t);
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);

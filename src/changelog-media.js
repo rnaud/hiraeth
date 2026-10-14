@@ -494,6 +494,7 @@ const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 /** The v1.49 camera pairs (made by hand: the follow camera has to be the game's own, not a pinned view). */
 /** Issue #313: made by hand, muted headless Chrome against this branch's own Vite (port 6313) and the tree before it (268c9668), High, hour 10, the HUD shown; the traveller placed before the Rose House's door d1, a blot held still beyond it, cycleLock called; 13 October; cwebp -q 72. */
 const LOCK313 = 'headless Chrome (High, 1280 × 720, hour 10, the HUD shown) against this branch and the tree before it (268c9668): the traveller before the Rose House’s shut door into the Dry Channel, a blot held still 9 m off beyond it, the lock pressed; cwebp -q 72 (13 October)';
+const PIT312 = 'headless Chrome (High, 1280 × 720, hour 10, the HUD hidden, the camera pinned over the lip, the traveller on it) against this branch and the tree before it (268c9668); cwebp -q 72 (13 October)';
 const CAM49 = 'headless Chrome (High, 1280 × 720, hour 10, clear, the HUD hidden), the camera left to the game and put behind the traveller (his heading + π, the default pitch), 3 s settled; before at a1ad9e1b, after on this branch; cwebp -q 72 (11 October)';
 /** The traveller's height on the screen before and after (measured with the shots). */
 const CAM49_ROWS = [
@@ -792,6 +793,12 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'You can only lock on to a foe you can see', tags: ['combat', 'temples'], shots: [
       { name: 'lock-door', title: 'At a shut door', caption: 'The Rose House, a blot beyond the shut door into the Dry Channel, R3 pressed: before, the lock took it through the door (the arrows on the door); after, nothing locks on.', from: LOCK313 },
+    ] },
+    { match: 'A pit that puts you back at the last mark now looks it', tags: ['temples', 'desert'], shots: [
+      { name: 'pit-channel', title: 'The Rose House’s sand pit', caption: 'The Dry Channel from its near ledge: before, sand drifts that look like a floor to land on; after, the sand gone dark under slow pale rings, the walls sinking into ink, the pier rising out of it.', from: PIT312 },
+      { name: 'pit-fires', title: 'The Hall of Fires', caption: 'The chasm by the hooded bowl: before, its floor a plum slab far below; after, dark with rings turning on it.', from: PIT312 },
+      { name: 'pit-pool', title: 'The Footprint’s pool', caption: 'Before, pale water that looks shallow; after, dark, the rings on it: a fall here puts you back at the mark.', from: PIT312 },
+      { name: 'void-spacecity', title: 'The void under the islands', caption: 'The City Floating in Space from over the landing: after, faint rings turning far down under the islands, the stars still through them.', from: PIT312 },
     ] },
   ],
   '1.69': [
