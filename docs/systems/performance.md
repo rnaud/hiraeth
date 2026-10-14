@@ -2507,6 +2507,69 @@ ms. So while the main thread is over 16.7 ms, 90 Hz uncapped is the better rate;
 look; viewpoints-worlds.json) and measured on the Mac only so far: their JS a frame is 6-11 ms there at full speed, the
 desert's and the City-Shaft's 9-11, so they are no heavier than the City-Shaft on the main thread.
 
+### Round 9: the rest of round 8 on the Deck, 60 Hz, the Unity player, the loading pen (issue #111, #52, 2026-10-14)
+
+The same rig and the same two builds as round 8 (before e7c21f7d, after = round 8's changes, which landed as
+2b11298e), the Deck in Desktop Mode and awake this time (no game of the author's running; `DECK=deck@steamdeck.local`
+again). fps; frame ms p95 / p99; JS ms; GPU ms:
+
+| view | 90 Hz before | 90 Hz after | 60 Hz before | 60 Hz after |
+|---|---|---|---|---|
+| desert spawn | (round 8: 46.1) | (round 8: 51.9) | 48.2 · 33.4/33.5 · JS 20.2 | **52.1** · 33.4/33.4 · JS 18.7 |
+| desert camps | (42.0) | (46.3) | 41.4 · 33.5/33.5 · 23.9 | **46.4** · 33.5/33.5 · 21.4 |
+| City-Shaft rim | (46.8) | (50.2) | 47.2 · 33.5/33.5 · 20.7 · GPU 17.7 | **50.9** · 33.3/33.4 · 19.3 · 17.6 |
+| City-Shaft crowd | | (47.1) | 43.2 · 33.5/33.5 · 22.5 | **49.2** · 33.4/33.5 · 20.1 |
+| City-Shaft wide | | (47.4) | 45.8 · 33.4/33.5 · 21.6 · GPU 20.1 | **51.4** · 33.3/33.4 · 19.2 · 18.1 |
+| Signal Market start | 57.6 · 22.3/22.3 · 16.7 · GPU 12.7 | **62.9** · 22.3/22.3 · 15.3 · 12.7 | 53.5 · 33.3/33.4 · 18.2 | **59.3** · 16.8/33.3 · 15.8 |
+| Signal Market crowd | 63.8 · JS 15.1 · GPU 10.4 | **71.2** · 13.3 · 10.3 | 59.8 · 16.8/16.8 · 15.5 | **59.9** · 16.8/16.8 · 14.5 |
+| Signal Market wide | 71.4 · 13.6 · 12.2 | **74.4** · 12.7 · 11.6 | 59.9 · 16.8/16.8 · 14.3 | **60.0** · 16.8/16.8 · 14.3 |
+| Underwater City start | 65.5 · 14.5 · 13.2 | **70.4** · 13.6 · 12.4 | | **60.0** · 16.8/16.8 · 14.5 · 14.8 |
+| Underwater City crowd | 55.3 · 17.7 · 15.8 | **60.2** · 15.8 · 14.3 | | **59.9** · 16.8/16.8 · 15.2 · 15.0 |
+| Underwater City wide | 69.9 · 13.8 · 12.5 | **74.3** · 13.0 · 11.7 | | **60.0** · 16.8/16.8 · 14.3 · 14.4 |
+| Floating city start | 69.7 · 13.7 · 9.8 | **80.4** · 11.9 · 9.7 | | **60.0** · 16.8/16.8 · 14.4 · 9.9 |
+| Floating city crowd | 60.4 · 15.9 · 11.8 | **70.9** · 13.7 · 11.7 | | **60.0** · 16.8/16.8 · 14.7 · 11.7 |
+| Floating city wide | 76.1 · 12.5 · 8.9 | **84.5** · 11.3 · 8.8 | | **60.0** · 16.8/16.8 · 14.0 · 9.0 |
+
+(At 90 Hz the p95 is 22.3 ms in every view, frames showing for one or two refreshes; the scale read 1 everywhere.)
+
+**60 Hz against 90 Hz, measured.** Where the JS is under 16.7 ms (the Market, the Underwater City, the Floating
+city, after round 8) 60 Hz holds an even 60: p95 = p99 = 16.8 ms, under 0.5 % of the frames late. 90 Hz uncapped gives
+those views 60-85 fps on paper, but uneven: frames of 11.1 and 22.2 ms mixed (p95 22.3). Where the JS is 19-21 ms (the
+desert, the City-Shaft) the two rates give the same fps within a frame or two, 46-52, with p95 33 ms at 60 Hz and 22 at
+90: at 90 a late frame costs 11 ms, at 60 it costs 17. So 90 Hz uncapped is still the better choice in the desert and
+the City-Shaft and 60 Hz in the lighter worlds. The preset stays uncapped (#159); a player who wants the even 60 in
+the lighter worlds can set the refresh rate to 60 in Steam's quick-access Performance menu.
+
+**The Unity player** (the newest unity-linux publish, built from 5c942135: Xbox rounds 2 and 3, the GC stall fix
+fe9f21e1; not yet the Unity menus of c2e00d87), `deck-unity.sh` in the same sitting, the Deck preset, lean variant,
+prepass. fps from the mean frame; p95 / p99 ms; the script's ms; GPU ms. Round 7's end (0f4bbd39) for the change:
+
+| view | 90 Hz uncapped (round 7 → now) | now: p95/p99 · script · GPU | 60 Hz vsync: fps · p95/p99 |
+|---|---|---|---|
+| desert spawn | 76.7 → **84.0** | 14.8/17.0 · 11.0 · 11.1 | 60.2 · 18.9/20.3 |
+| desert camps | 62.7 → **70.7** | 16.0/17.3 · 13.1 · 12.9 | 60.0 · 19.0/20.4 |
+| City-Shaft rim | 63.9 → **70.9** | 17.3/19.2 · 12.4 · 13.2 | 62.2 · 20.6/24.0 |
+| City-Shaft crowd | 60.1 → **71.6** | 16.2/17.2 · 12.8 · 12.7 | 61.5 · 19.6/21.2 |
+| City-Shaft wide | 56.4 → **62.0** | 18.6/20.0 · 11.5 · 16.0 | 62.7 · 20.2/22.8 |
+| Signal Market start / crowd / wide | 79.5 / 87.9 / 88.2 → **92.1 / 101.5 / 103.3** | 11.3-13.3 / 12.4-15.1 · 8.8-10.1 · 8.2-10.3 | 59.5-60.1 · 18.0-18.5 |
+| Underwater City start / crowd / wide | (new) **97.9 / 86.4 / 97.6** | 12.8-13.4 / 14.5-15.2 · 9.3-10.7 · 9.7-10.4 | 59.9-60.2 · 17.5-18.1 |
+| Floating city start / crowd / wide | (new) **112.9 / 101.3 / 124.1** | 10.0-13.0 / 11.6-14.8 · 7.3-9.0 · 7.6-9.6 | 59.7-60.0 · 18.1-18.2 |
+
+What Xbox rounds 2 and 3 bought on the Deck: the City-Shaft's script 14.3-15.1 → 11.5-12.8 ms and its GPU 15.2-18.6 →
+12.7-16.0. That is the rim +7 fps, the crowd +11.5 and the wide view +5.6 uncapped. At 60 Hz with vsync every busy
+place now shows 60 (its mean frame 16.0-16.8 ms). The City-Shaft's p95 is 20-21 ms there: about one frame in twenty
+still misses its refresh. The Unity player holds 60 at native everywhere measured; the web build holds it in the
+lighter worlds only.
+
+**The loading pen** (#52, `deck-pen.mjs`, the installed runtime 2191001; the decoder now finds the nib by its hue,
+the darker red it has had since the HUD's restyle, not by r > 150; `scripts/transition-perf/pen.mjs` the same): the pen
+turns at 81-85 frames a second through a load, its median step 11 ms (the 90 Hz refresh), p95 15-22 ms, the worst gap
+134-198 ms, 3-10 gaps over 50 ms a load, the longest stall 91 ms (desert), 93 (City-Shaft), 183 (Market: one).
+
+**The Updates section** (#52, read-only: `deck.py --status-local` and `--status`, what Check runs): runtime 2191001
+(1.68), the game the next launch serves 2191; the site has game 2237 (1.73) and runtime 2237001, so Check shows an
+update. Download and Restart were not pressed (they update the author's install).
+
 ## Unity on the Retroid (2026-10-12)
 
 The Unity build (`com.rnaud.hiraeth.unity`: the web game's own script in Puerts' V8, drawn by the C# port's ink look)

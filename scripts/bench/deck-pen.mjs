@@ -38,7 +38,7 @@ async function angles(shots, pen) {
       c.width = c.height = size; g.drawImage(img, x0, y0, size, size, 0, 0, size, size);
       const d = g.getImageData(0, 0, size, size).data;
       let sx = 0, sy = 0, n = 0;
-      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const i = (y * size + x) * 4; if (d[i] > 150 && d[i + 1] < 110 && d[i + 2] < 100) { sx += x; sy += y; n++; } }
+      for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const i = (y * size + x) * 4; if (d[i] > 90 && d[i] - d[i + 1] > 40 && d[i] - d[i + 2] > 40) { sx += x; sy += y; n++; } }
       res.push(n > 10 ? Math.atan2(sx / n - size / 2, -(sy / n - size / 2)) * 180 / Math.PI : null);
     }
     return res;
