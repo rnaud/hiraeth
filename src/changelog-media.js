@@ -823,6 +823,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'window-seat-side', title: 'Beside the seat', caption: 'The second view, on his profile and the round window: before, the room’s pale wall in the sun filling the left third, flat white; after, closer on him and the window, the wall out of it.', from: CINE295 },
       { name: 'window-seat-stand', title: 'Getting up', caption: 'Standing up again at the end: before, his head at the top of the picture, under the black bar; after, the view rises with him and his head stays clear.', from: CINE295 },
     ] },
+    { match: 'Coming home, at the stone', tags: ['cinematics', 'story'], shots: [
+      { name: 'stone-shoulder', title: 'Setting things down', caption: 'Over his shoulder onto the stone, in the last homecoming: before, Lou cut by the left edge and Ilen by the right, his back filling the middle; after, further back, all three of them whole beside the stone.', from: CINE295 },
+      { name: 'stone-reel', title: 'The oldest recording', caption: 'The reel’s recording: before, his arm and the drone filling the left third; after, low beside the slab, the three of them over the reel.', from: CINE295 },
+    ] },
   ],
   '1.72': [
     { match: 'Creatures and machines standing or walking on a hillside', tags: ['combat'], shots: [

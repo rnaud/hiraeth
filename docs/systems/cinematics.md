@@ -293,6 +293,12 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
 
 ### After the v1.66 pass: framing fixes (issues #296–#299)
 
+- **The stone** (`src/ship/homecoming.js`): the setting-down's angles (`TOMB_ANGLES`) are framed on where each of
+  them stands (`TOMB_SPOTS`: him, Lou at his left, Ilen at the slab's right-hand end), and everyone is set on
+  their spot under the cut to the stone; nobody is across the frame's edge in any angle (`tests/ending.test.js`
+  projects each; the hands' insert alone may take his arms). Lou's close is from where she turns as she speaks
+  (to him), low; the hands' from the slab's front right (from its left end Ilen stood in line). The reel's recording
+  cuts between the busts and his face (`reelCuts`), and the reel's angle stands off his arm and the drone. The cargo check's step back is eased in and out (it popped 0.6 m at either end).
 - **The recordings** (`src/ship/cinematics.js callFrame`): a cut between the push-in ('over') and the window angle,
   both behind his right shoulder, read as a jump cut (the fov 49 → 36 from nearly the same spot); the lens now
   moves across over `CALL_EASE.s` (0.6 s) instead.

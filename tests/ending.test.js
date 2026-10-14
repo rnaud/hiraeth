@@ -422,3 +422,38 @@ test('the stone’s setting-down cuts between his hands, his face, Lou and over 
     assert.ok(pos.y > level.ground.heightAt(pos.x, pos.z) + 0.5, `${name}: above the ground`);
   }
 });
+
+test('at the stone nobody is cut by the frame’s edge, and the reel’s recording cuts too (QC v1.66, issue #296)', async () => {
+  const { TOMB_ANGLES, TOMB_SPOTS, reelCuts, tombTimeline } = await import('../src/ship/homecoming.js');
+  const { HOME_SPOTS } = await import('../src/levels/home.js');
+  assert.equal(TOMB_SPOTS.me[1], HOME_SPOTS.tombStand, 'he stands where the stone says');
+  // each of them: the head and shoulders (all inside, or all out), the body (inside at the sides, or under the frame)
+  // (Ilen's dress is wide: its hem hung into the hands' shot at first)
+  const fig = ([x, z], h, w) => ({ head: [[x, h + 0.13, z], [x, h, z], [x - w, h - 0.25, z], [x + w, h - 0.25, z]], body: [[x - w * 1.2, h * 0.58, z], [x + w * 1.2, h * 0.58, z], [x - w, h * 0.3, z], [x + w, h * 0.3, z], [x, 0.1, z]] });
+  const people = { him: fig(TOMB_SPOTS.me, 1.62, 0.25), lou: fig(TOMB_SPOTS.lou, 1.1, 0.2), ilen: fig(TOMB_SPOTS.ilen, 1.6, 0.3) };
+  const want = { shoulder: { him: 'in' }, face: { him: 'in' }, lou: { lou: 'in', him: 'out' }, reel: { him: 'out' } };
+  for (const [name, A] of Object.entries(TOMB_ANGLES)) {
+    const cam = new THREE.PerspectiveCamera(A.fov, 16 / 9, 0.05, 100);
+    cam.position.set(...A.pos); cam.lookAt(...A.look); cam.updateMatrixWorld();
+    for (const [who, f] of Object.entries(people)) {
+      const P = (list) => list.map((p) => new THREE.Vector3(...p).project(cam));
+      const h = P(f.head), b = P(f.body);
+      // (inside: under the letterbox, NDC 0.78, with a margin; out: past the frame's edge, or behind the lens)
+      // (the one a close-up is of: the head and shoulders in, the body may go past the frame)
+      const close = want[name]?.[who] === 'in' && (name === 'lou' || name === 'face');
+      const inside = h.every((q) => q.z < 1 && Math.abs(q.x) < 0.88 && Math.abs(q.y) < 0.74) && (close || b.every((q) => q.z > 1 || Math.abs(q.x) < 0.88 || q.y < -0.78));
+      const out = [...h, ...b].every((q) => q.z > 1 || Math.abs(q.x) > 1.15 || Math.abs(q.y) > 0.95);
+      // (the hands' shot is an insert on his hands at the slab: his arms come into it by design, the others never)
+      if (!(name === 'hands' && who === 'him')) assert.ok(inside || out, `${name}: ${who} across the frame's edge (${h[1].x.toFixed(2)}, ${h[1].y.toFixed(2)})`);
+      if (want[name]?.[who]) assert.equal(inside ? 'in' : 'out', want[name][who], `${name}: ${who} ${want[name][who]}`);
+    }
+  }
+  // the reel's recording: the busts and his face in turn, held 4.5 s at least
+  const lines = Array.from({ length: 8 }, (_, i) => ({ text: `line ${i}`, who: i % 2 ? 'father' : 'mother' }));
+  const tl = tombTimeline(lines), cuts = reelCuts(tl.lines, tl.lines[1].t0);
+  assert.ok(new Set(cuts.map((c) => c.angle)).size >= 2 && cuts.length >= 3, `the busts and his face in turn (${cuts.map((c) => c.angle)})`);
+  for (let i = 1; i < cuts.length; i++) {
+    assert.notEqual(cuts[i].angle, cuts[i - 1].angle);
+    assert.ok(cuts[i].t - cuts[i - 1].t >= 4.5 - 1e-6);
+  }
+});

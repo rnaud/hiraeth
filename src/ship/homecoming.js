@@ -124,11 +124,30 @@ export function tombTimeline(lines) {
  *   lou       from beside the slab, on Lou's face, as she speaks
  */
 export const TOMB_ANGLES = {
-  shoulder: { pos: [2.0, 2.2, 3.5], look: [-0.15, 0.5, 0], fov: 42 },
-  hands: { pos: [-2.15, 1.45, 1.2], look: [0.2, 0.42, 0.05], fov: 42 },   // (higher and further: low, the bare slab filled the frame)
-  face: { pos: [-0.85, 1.2, -0.35], look: [0, 1.45, 1.45], fov: 38 },
-  lou: { pos: [0.55, 1.05, 0.2], look: [-0.95, 0.95, 1.75], fov: 36 },
+  // (QC v1.66, issue #296: each framed so that nobody stands across the frame's edge, Lou at his left and Ilen at the
+  //  slab's right-hand end in or out whole; tests/homecoming.test.js holds them to it. Before, Lou's head sat in the face
+  //  shot's corner, his back filled the shoulder shot with Lou and Ilen cut at its sides, Ilen's dress hung in the hands')
+  shoulder: { pos: [2.1, 2.3, 3.7], look: [-0.1, 0.5, 0], fov: 46 },
+  hands: { pos: [1.1, 1.7, 1.1], look: [-0.15, 0.42, 0.05], fov: 40 },   // (down over the tokens from the slab's front right, between him and Ilen: from its left end she stood in line)
+  face: { pos: [-0.9, 1.3, -0.15], look: [0, 1.5, 1.45], fov: 32 },
+  lou: { pos: [0.3, 1.0, 2.3], look: [-0.95, 1.05, 1.75], fov: 30 },   // (low, at her height, from where she turns to as she speaks: him; from above her bowed head hid her face)
+  // the oldest recording: from beside the slab's right front corner, low, at the three busts over the reel and the
+  // stone behind them (from over his shoulder, 0.9 m off him, his arm and the drone filled a third of the frame: QC v1.66)
+  reel: { pos: [1.35, 1.0, 1.35], look: [-0.05, 0.75, 0.6], fov: 32 },
 };
+/** Where they stand at the stone (tomb-local x, z): him in front of it (HOME_SPOTS.tombStand), Lou at his left a little back, Ilen at its right-hand end. */
+export const TOMB_SPOTS = { me: [0, 1.45], lou: [-0.95, 1.75], ilen: [1.6, 0.35] };
+/** The reel's recording cuts between the busts and his face (one held shot for it before: QC v1.66, issue #296). */
+export const REEL_CUTS = { min: 4.5, order: ['reel', 'face'] };
+/** Where the reel's recording cuts: [{ t, angle }] from `from` (when the reel goes down), at line starts `min` s apart. */
+export function reelCuts(lines, from, { min = REEL_CUTS.min, order = REEL_CUTS.order } = {}) {
+  const cuts = [{ t: from, angle: order[0] }];
+  for (const l of lines) {
+    if (l.t0 < from + min || l.t0 - cuts.at(-1).t < min) continue;
+    cuts.push({ t: l.t0, angle: order[cuts.length % order.length] });
+  }
+  return cuts;
+}
 /** Shortest the stone holds an angle (s), and their order. */
 export const TOMB_CUTS = { min: 4, order: ['hands', 'face', 'shoulder'] };
 /**
@@ -409,13 +428,16 @@ export class HomecomingDirector {
       case 'tomb': {
         if (game.flag('calls.ilen.told') || this.final) game.set('ending.ilen', true);   // (named at the stone: src/story/home.js doesn't again)
         this.lines = tombLines(this.items, { final: this.final, ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, choices: choicesMade((k) => game.flag(k)), drawn: !!game.flag('home.lou.drawing') });
-        this.placeLou();
-        this.placeIlen();
+        // (each on their spot, under the cut to the stone: the angles are framed on them there, and standing where the
+        //  walk left them, up to a metre off, Lou and Ilen came across the frame's edges: QC v1.66, issue #296)
+        this.placeLou(true);
+        this.placeIlen(true);
         this.tl = tombTimeline(this.lines);
         this.cuts = tombCuts(this.tl, { lou: !!this.family?.lou });
+        this.reelCut = null;
         s.auto = null;
         const st = this.standAt();
-        if (s.player.pos.distanceTo(st) > 1.2) s.placePlayer(st, this.faceTomb(), true);
+        s.placePlayer(st, this.faceTomb(), true);
         s.player.heading = this.faceTomb();
         s.showPlayer(true);
         this._line = null;
@@ -446,7 +468,7 @@ export class HomecomingDirector {
   /** Lou and the dog (src/story/home.js), if they are here. */
   get family() { return this.s.level?.family ?? null; }
   /** Where Lou stands at the stone: at your left, a little back, looking at it. */
-  louSpot() { const T = this.tomb; return T ? T.group.localToWorld(V(-0.95, 0, 1.75)) : null; }
+  louSpot() { const T = this.tomb; return T ? T.group.localToWorld(V(TOMB_SPOTS.lou[0], 0, TOMB_SPOTS.lou[1])) : null; }
   placeLou(snap = false) {
     const F = this.family, at = this.louSpot();
     if (!F?.lou || !at) return;
@@ -461,7 +483,7 @@ export class HomecomingDirector {
   placeIlen(snap = false) {
     const F = this.family, T = this.tomb;
     if (!F?.ilen || !T) return;
-    const at = T.group.localToWorld(V(1.6, 0, 0.35));
+    const at = T.group.localToWorld(V(TOMB_SPOTS.ilen[0], 0, TOMB_SPOTS.ilen[1]));
     at.y = this.ground(at.x, at.z);
     F.ilen.object.visible = true;
     if (snap || F.ilen.pos.distanceTo(at) > 6) F.ilen.pos.copy(at);
@@ -539,7 +561,8 @@ export class HomecomingDirector {
         const k = id === 'approach' ? smooth(t / 7.5) : 1;
         const dive = id === 'dive' ? smooth(t / 2.6) : 0;
         if (s.spaceCopy) s.spaceCopy.space.rotation.x = 0.12 * k + 0.5 * dive;
-        const back = id === 'cargo' ? 0.6 : 0;
+        // (eased in and out over 0.8 s: it stepped 0.6 m back in one frame, a pop at either end of the cargo check)
+        const back = id === 'cargo' ? 0.6 * smooth(t / 0.8) : id === 'dive' ? 0.6 * (1 - smooth(t / 0.8)) : 0;
         s.shot({ pos: this.W(V(-0.85 - back * 0.4, DECK + 1.95, -8.1 + (1 - k) * 1.0 + back)), look: this.W(V(-1.1, DECK + 1.75 - dive * 0.6, -16.8)), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
@@ -615,10 +638,13 @@ export class HomecomingDirector {
           const k = smooth(this.shotT / 6);
           shot = { pos: L(5.5 + k * 1.5, 2.6 + k * 1.4, 7 + k * 2), look: L(0, 1.0, -1.5), fov: 46 };
         } else if (this.reeled) {
-          // the oldest recording: low, over his shoulder and the slab, the three busts over the reel
-          // in front of the stone, looking up at him (their faces: REEL_HOLO over the reel)
-          const push = Math.min(this.shotT * 0.03, 0.25);
-          shot = { pos: L(0.72, 1.2, 2.55 - push), look: L(-0.12, REEL_AT.y + REEL_HOLO * 0.55, REEL_AT.z - 0.05), fov: 36 };
+          // the oldest recording: the three busts over the reel in front of the stone, looking up at him (their faces:
+          // REEL_HOLO over the reel), cut with his face as they speak
+          this.reelCut ??= reelCuts(this.tl.lines, t);
+          let c = this.reelCut[0];
+          for (const x of this.reelCut) if (x.t <= t) c = x;
+          const A = TOMB_ANGLES[c.angle], push = Math.min((t - c.t) * 0.03, 0.2);
+          shot = { pos: L(...A.pos).lerp(L(...A.look), push * 0.5), look: L(...A.look), fov: A.fov - 4 * push };
         } else {
           // setting them down: over his right shoulder onto the slab, cut with his hands, his face and Lou's (tombCuts)
           let c = this.cuts?.[0];
