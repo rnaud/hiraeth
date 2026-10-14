@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_3892bf1f627342 7
+docs/systems/temples.md
+  s_9ca76055a220ed::t_f70f478432a5f5 725-742
+src/changelog-media.js
+  s_9ca76055a220ed::t_93a1d96a86028f 497,792-797
+src/changelog.js
+  s_9ca76055a220ed::t_96355f3e7562b5 16-19
+src/levels/space-city.js
+  s_9ca76055a220ed::t_3d32a0b01ed86b 466
+src/main.js
+  s_9ca76055a220ed::t_b26f221e2e47f4 2,1263,2345
+src/pit-void.js
+  s_9ca76055a220ed::t_0278af908d9af1 1-146
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_4b419a2dda97d9 375
+src/temples/pieces.js
+  s_9ca76055a220ed::t_d48acca9b1fe66 2889-2893,2896
+src/temples/runtime.js
+  s_9ca76055a220ed::t_07aa4dd66598e7 12,83-85,199,300
+src/veil.js
+  s_9ca76055a220ed::t_c1e02c3413ee0d 134-144
+tests/desert-cave-light.test.js
+  s_9ca76055a220ed::t_1dc08c44234bd1 26-29
+tests/light-shafts.test.js
+  s_9ca76055a220ed::t_be50243b423b9e 35
+tests/pit-void.test.js
+  s_9ca76055a220ed::t_6d59c4db1d6ef4 1-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cfcc51187b330e84ac1d06ff1964dce1938fd59e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
