@@ -155,7 +155,7 @@ export function buildWaterWaySouth(scene, terrain) {
  * side, to the shallows off Hollin's island.
  */
 /** Beside the Hush-House's steps (src/temples/perdide.js SITE: its door looks east, the steps down off its porch). */
-export const STEPS_STAKE = { x: -98.5, z: 100.5 };
+export const STEPS_STAKE = { x: -112.0, z: 102.5 };
 export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 50], [-182, 42], [-145, 44], [-105, 55], [-88, 82], [STEPS_STAKE.x, STEPS_STAKE.z, true], [-80, 64], [-90, 0], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 30 };
 
 /**
