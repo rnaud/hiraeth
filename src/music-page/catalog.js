@@ -250,7 +250,7 @@ const LINE = 'Hello there, traveller. The wind is kind today.';
 for (const lang of Object.keys(LANGUAGES)) add('Voices', `voice:${lang}`, `${LANGUAGES[lang].name ?? lang}`, [pick('a man', (s) => s.speak(planLine(LINE, { lang, voice: voiceOf({ id: `${lang}-m`, kind: 'm' }) }), { channel: 'call' })), pick('a woman', (s) => s.speak(planLine(LINE, { lang, voice: voiceOf({ id: `${lang}-f`, kind: 'f' }) }), { channel: 'call' }))], 'src/story/voice.js LANGUAGES');
 for (const [who, p] of Object.entries(CALL_VOICES)) add('Voices', `call:${who}`, `On the call: ${who}`, one((s) => s.speak(planLine(LINE, { lang: 'home', voice: voiceOf(p) }), { channel: 'call' })), 'src/story/voice.js CALL_VOICES');
 add('Voices', 'blip', 'The old soft blips (alien voices off)', [pick('low', (s) => s.blip(0.7)), pick('high', (s) => s.blip(1.6))]);
-add('Voices', 'syllable', 'One syllable of the letter-by-letter reveal', one((s) => { for (const x of planLine('Ah, there.', { lang: 'desert' }).syllables.slice(0, 3)) s.syllable(x); }));
+add('Voices', 'syllable', 'A conversation page, said as it comes up (its first syllable starts the voice)', one((s) => { const plan = planLine('Ah, there you are.', { lang: 'desert' }); for (const x of plan.syllables) s.syllable(x, { plan }); }));
 // the building blocks (what the sounds above are made of)
 add('Building blocks', 'burst', 'Filtered noise', [pick('low', (s) => s.burst(s.ctx.currentTime, { dur: 0.3, freq: 400 })), pick('bright', (s) => s.burst(s.ctx.currentTime, { dur: 0.3, type: 'highpass', freq: 3000 }))]);
 add('Building blocks', 'noiseGlide', 'Noise with a moving filter', one((s) => s.noiseGlide(s.ctx.currentTime, { type: 'bandpass', f: 400, f1: 2400, q: 2, dur: 0.6, vol: 0.2 })));

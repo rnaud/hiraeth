@@ -8,6 +8,16 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.72', date: '2026-10-14', items: [
+    // the people's voices as speech (issue #323): src/voice-synth.js (a formant voice, one a line), src/story/voice.js
+    // (SPEECH, prosody, revealAt), src/audio.js renderPlan, src/story/dialogue.js; docs/systems/audio.md "The voices";
+    // tests/voice-synth.test.js
+    { text: 'People on every world speak now instead of beeping: each line is one voice that glides from syllable to syllable, with breath, real vowels and consonants, stress on its words, pauses at its commas and full stops and a question that rises. Every world’s tongue has its own sound, every speaker a voice that fits them (a child’s small and high, an old man’s wavering, a heavy one’s deep), and the tone of a line is heard: sad lines slower and darker, playful ones quicker and brighter. No more clicks between syllables, and less work for the device.',
+      see: 'Talk to anyone in the Desert, then in the City-Shaft or Edena: the same kind of line sounds like a different language each time. Or open the music page (music.html), Voices, and play each world’s tongue.',
+      numbers: [{ title: 'What one 20-syllable line costs', unit: 'nodes', better: 'lower', device: 'the engine’s Web Audio (engine/webaudio.js), a Desert line', rows: [
+        { where: 'audio nodes made for the line', before: 220, after: 28 },
+      ], source: 'counted in a render of the line, before and after (tests/voice-synth.test.js counts the new)' }] },
+  ] },
   { v: '1.71', date: '2026-10-13', items: [
     // what ships that no page loads (issue #300): the Elder's first body and the traveller's second head moved to data/,
     // tests/shipped-assets.test.js; docs/systems/performance.md "The City-Shaft's 13 ms, and what ships that no page loads"

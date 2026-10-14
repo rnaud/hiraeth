@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
 import { pickTwoShot, pickLookShot, pickSingle, pullIn } from './shot.js';
 import { Coverage } from './coverage.js';
-import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote, spokenMask } from './voice.js';
+import { planLine, voiceOf, PLAYER_VOICE, LANGUAGES, REVEAL_CPS, isQuote, spokenMask, revealAt } from './voice.js';
 import { scriptOf, lineChunks, chunkSvg, setWordMeasure, wordWidth } from './scripts.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
 import { confirmKey } from '../native-pad.js';
@@ -414,6 +414,7 @@ export class Dialogue {
     this.open = true;
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.revealed = 0;   // (how far the voice has said the page: its syllables, the mouths, the camera's coverage)
+    this._plan = null;
     this._mouth.length = 0;
     this._doneAt = null; this._you.clear(); this._chip = null; this._wordsSaid = null;
     this.cover.reset(this.clock); this._framed = null;
@@ -471,7 +472,7 @@ export class Dialogue {
    * "finishes the line" (it did until issue #147): the voice of the page left behind stops with it. */
   next() {
     if (!this.open) return;
-    if (this.runner.advance()) { this.revealed = 0; this.render(); return; }
+    if (this.runner.advance()) { this.newPage(); this.render(); return; }
     if (this.runner.ended) this.close();
     else if (this.runner.choices().length === 1 && this.runner.choices()[0].end) this.close();
   }
@@ -483,13 +484,21 @@ export class Dialogue {
     this.runner.choose(i);
     this.sound?.toolClick?.(true);
     if (this.runner.ended) { this.close(); return; }
-    this.revealed = 0;
+    this.newPage();
     this.render();
+  }
+
+  /** A new page: its voice from its start, the last page's voice hushed (it is one continuous line now, issue #323). */
+  newPage() {
+    this.revealed = 0;
+    this._plan = null;
+    this.sound?.hush?.('talk');
   }
 
   close() {
     if (!this.open) return;
     this.open = false;
+    this.sound?.hush?.('talk');
     this.blend = 0;   // and cuts back to the follow camera, which has kept its place behind the traveller all along
     this.closedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.el?.classList.remove('open');
@@ -612,11 +621,13 @@ export class Dialogue {
     this.cover.update({ t: this.clock, page: `${r.nodeId}:${r.page}`, speaker: r.speaker, tone: r.tone,
       done, doneFor: done ? this.clock - this._doneAt : 0, letters: len, can: this._canSingle !== false });
     if (this.revealed < len) {
-      // the voice says the page at its own pace (the words are all shown already): each syllable as it comes up
+      // the voice says the page at its own pace (the words are all shown already): each syllable as its time
+      // comes (a voice speaking, issue #323: its pauses and long syllables are its own, so the reveal follows it)
       const plan = this.voicePlan();
-      this.revealed = Math.min(len, this.revealed + dt * (plan.cps || REVEAL));
+      plan.clock = (plan.clock ?? 0) + dt;
       const S = plan.syllables;
-      while (plan.next < S.length && S[plan.next].i < this.revealed) {
+      this.revealed = Math.min(len, Math.max(this.revealed, S.length ? revealAt(plan, plan.clock) : this.revealed + dt * (plan.cps || REVEAL)));
+      while (plan.next < S.length && S[plan.next].t <= plan.clock) {
         const syl = S[plan.next++];
         if (this.sound?.syllable) this.sound.syllable(syl, { plan });
         else this.sound?.blip?.(syl.f0 / 170);

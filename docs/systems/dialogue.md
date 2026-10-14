@@ -75,8 +75,9 @@ letters.
 
 ## Alien voices and the translator
 - `src/story/voice.js` plans each line's syllables (pitch path, formants, timing), the
-  same alien syllables for the same word in a given tongue; `src/audio.js` renders them
-  on a `voices` bus. Dialogue syllables play as the text reveals; balloons and crowd
+  same alien syllables for the same word in a given tongue; `src/voice-synth.js` sings them
+  as one continuous voice on a `voices` bus (issue #323: docs/systems/audio.md, "The people's voices"). A page's
+  voice starts with it and the reveal follows the voice (`revealAt`); balloons and crowd
   shouts play short versions (at most two at once, silent past 26 m); calls are voiced
   through the one hook in `cinema.say`.
 - **Tones** (`src/story/tone.js`): every line is tagged, `'~sad~ …'` or `{ text, tone }`,

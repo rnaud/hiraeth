@@ -526,6 +526,49 @@ Tests (`tests/foe-voices.test.js`, the last six): the fall with distance and the
 camera, behind duller and out of view louder but never under the floor, rendered left/right channels, the pan following
 a foe that walks round, the effects volume still ruling it, and the foes passing the chest.
 
+## The people's voices (issue #323, October 2026)
+
+Everyone speaks their world's tongue (the translator gives you the words: `docs/systems/dialogue.md`, "Alien
+voices"). Until v1.72 a line was a run of separate beeps, a fresh square / saw / triangle oscillator through two
+band-passes for every syllable at 48 letters a second: hard pitch steps, buzz, gaps and clicks inside words ("super
+robotic and hashed"). Now `src/story/voice.js` plans a line as speech and `src/voice-synth.js` sings it as **one
+continuous voice**, a small formant synthesiser of plain Web Audio nodes.
+
+- **The plan** (`planLine`): about six and a half syllables a second (`SYLLABLE_S`), each word's stressed syllable
+  (`SPEECH[lang].stress`: first, penult or last) longer and with a pitch accent, the sentence's tone contour
+  (`TONE_SHAPES`, a declination by default, a question rising at its end), a continuation rise before a comma, the
+  last syllable before a pause drawn out, pauses at commas, stops, dashes and trailings-off (`PAUSES`). Syllables
+  are onset + vowel (+ a coda, `SPEECH.codas`; a diphthong now and then, `diph`), `join`ed when they run on into the
+  next. Each vowel has F1–F3 (`VOWELS`), scaled by the speaker, the tongue and the tone. The plan's `timbre` is the
+  voice's make for the line: the glottal pulse's `tilt`, how breathy (`open`), the formants' bandwidths (`bw`), the
+  high resonance (`f4`, a glassy tongue's ring), `flutter` (pitch waver, cents), `mech`.
+- **The speaker** (`voiceOf`): pitch from `voice` and kind, the formants from size (`scale`) and `build`
+  ('heavy' deeper and darker, 'slim' lighter), children higher and smaller-throated, elders slower, wavering
+  (flutter 30 cents) and airy; women's and children's voices a little breathier.
+- **The tone**: speed, range, contour and loudness as before, and `TONE_BRIGHT`: a smile lifts the formants and
+  hardens the pulse (playful, happy), sadness and tiredness lower and soften them.
+- **The voice** (`renderVoice`, about 28 nodes for a whole line, whatever its length; the old one made a dozen for
+  every syllable): a glottal pulse (a `PeriodicWave` of 40 harmonics at n^-tilt) with Klatt's three-sine flutter and
+  a vibrato on its detune → voicing level, and breath noise → aspiration level, both through an F0 low-pass and F1–F4
+  band-passes in parallel, under a gentle low-pass; a separate frication noise (high-pass + band-pass, its centre
+  and Q per consonant) for hisses and bursts. Each consonant (`PHONES`) is shaped in time: a stop's closure (the
+  voice stops, a voice bar for b d g), burst and aspiration; a fricative's hiss; h as unvoiced vowel; a nasal's
+  murmur (F2 and up shut, F1 at 260 Hz); a liquid's glide; the formants bend to the consonant's place (`locus`) and
+  back. **Every parameter moves by `setTargetAtTime`**, so pitch, formants and levels glide: no step, no zipper, no
+  click where syllables meet; a voice is levelled by its own pitch (a high voice's harmonics fall on F1).
+- **Live**: balloons and calls play a whole plan (`Sound.speak` → `renderPlan`, a voice per chorus member); the
+  dialogue's first syllable sings its page from there (`Sound.syllable`), the reveal follows the voice
+  (`revealAt`: the letter being said), and turning the page or closing the talk hushes it (`hush('talk')`).
+- **The engine** (`engine/webaudio.js`) tables a `PeriodicWave` once (2048 points, peak-normalised as browsers do)
+  instead of summing its harmonics every sample.
+- Tests: `tests/voice-synth.test.js` renders lines in memory and checks no clicks (0.5 ms of energy above 14 kHz
+  ten times its neighbours'; it hears a one-sample step of 2 %), a pitch continuous within words (autocorrelation
+  every 5 ms), F1 and F2 peaks where the plan put them, no drop-out inside a word, little energy above 5 kHz in a
+  vowel (no buzz), every pair of 14 worlds apart in spectrum, pace or pitch, the tone heard (a question rising),
+  pauses heard, and the node count. Measured against the old renderer on the same lines: clicks 1–179 a line → 0,
+  syllables 9–13 a second → 5–7. The Unity port's `Voice.cs` still sings the old way.
+- The music page's **Voices** play every tongue.
+
 ## The music page (issue #270, October 2026)
 
 `music.html` (`src/music-page/`, Debug → Pages → **Music & sounds**; on the Notes site at

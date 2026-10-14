@@ -11,6 +11,7 @@
 
 import { store } from './platform.js';
 import { bindVoice, languageOf } from './story/voice.js';
+import { renderVoice } from './voice-synth.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
@@ -106,72 +107,26 @@ const VOICE_LEVEL = 1.25;
 const BALLOON_VOICES = 2;
 
 /**
- * Sing one planned syllable (src/story/voice.js) at time t into dest: a pitched
- * tone through two vowel formants (plus a little of the dry tone), with a
- * consonant at its head and some air (breath) through it. Machines ring-modulate,
- * glassy tongues add a bell partial. Used live (Sound.speak / syllable) and by an
- * OfflineAudioContext to render a line to a file.
+ * Sing planned syllables (src/story/voice.js planLine) from t0 into dest: one continuous voice for each
+ * speaker of the plan (a chorus's other voices their own), sung by src/voice-synth.js. Used live
+ * (Sound.speak / syllable) and by an OfflineAudioContext or the engine's in-memory one to render a line.
+ * `from`: start at the syllables from this time in the plan (s), sung from t0.
+ * @returns the voices ({ end, stop, fade }[])
  */
+export function renderPlan(ctx, dest, plan, t0, noise, from = 0) {
+  const groups = new Map();
+  for (const s of plan.syllables) {
+    if (s.t < from - 1e-6) continue;
+    const k = s.chorus ?? 0;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(s);
+  }
+  return [...groups.values()].map((G) => renderVoice(ctx, dest, G, t0 - from, noise, plan.timbre));
+}
+
+/** One planned syllable alone at time t (a syllable with no line around it: the music page's sample). */
 export function renderSyllable(ctx, dest, s, t, noise) {
-  const dur = s.dur, end = t + dur;
-  const nasal = s.cons === 'nasal';
-  const atk = 0.004 + 0.014 * (1 - s.clip) + (nasal ? 0.012 : 0);
-  const rel = 0.015 + 0.07 * (1 - s.clip);
-  const peak = s.gain;
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0, t);
-  env.gain.linearRampToValueAtTime(peak, t + atk);
-  env.gain.setValueAtTime(peak, Math.max(t + atk, end - rel * 0.5));
-  env.gain.exponentialRampToValueAtTime(0.0006, end + rel);
-  env.connect(dest);
-  const stop = end + rel + 0.03;
-  const voiced = 1 - 0.94 * s.breath;
-  if (voiced > 0.03) {
-    const o = ctx.createOscillator(); o.type = s.wave ?? 'triangle';
-    o.frequency.setValueAtTime(s.pitch[0][1], t);
-    for (let j = 1; j < s.pitch.length; j++) o.frequency.linearRampToValueAtTime(s.pitch[j][1], t + s.pitch[j][0]);
-    const vg = ctx.createGain(); vg.gain.value = voiced * (s.wave === 'square' || s.wave === 'sawtooth' ? 0.55 : 1);
-    const bp = (f, q, g) => { const b = ctx.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = f; b.Q.value = q; const m = ctx.createGain(); m.gain.value = g; o.connect(b).connect(m).connect(vg); };
-    bp(s.vowel[0], 4, 2.6);
-    bp(s.vowel[1], 6, 2.2 * (0.7 + 0.6 * (s.bright ?? 0.5)));
-    const dry = ctx.createBiquadFilter(); dry.type = 'lowpass'; dry.frequency.value = nasal ? 500 : 1300; o.connect(dry).connect(vg);
-    if (s.mech) {
-      // ring modulation by a low square: the clank of a voice-box
-      const rm = ctx.createGain(); rm.gain.value = 0;
-      const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 58 + 30 * (s.bright ?? 0.5);
-      lfo.connect(rm.gain); vg.connect(rm).connect(env);
-      const keepDry = ctx.createGain(); keepDry.gain.value = 0.35; vg.connect(keepDry).connect(env);
-      lfo.start(t); lfo.stop(stop);
-    } else vg.connect(env);
-    if (s.ring > 0) {
-      // a glassy overtone that rings a little past the syllable
-      const r = ctx.createOscillator(), rg = ctx.createGain();
-      r.type = 'sine'; r.frequency.value = s.f0 * 2.76;
-      rg.gain.setValueAtTime(0, t); rg.gain.linearRampToValueAtTime(peak * 0.5 * s.ring, t + 0.006); rg.gain.exponentialRampToValueAtTime(0.0005, end + 0.25);
-      r.connect(rg).connect(dest); r.start(t); r.stop(end + 0.3);
-    }
-    o.start(t); o.stop(stop);
-  }
-  // air: the consonant's click or hiss, then the breath through the vowel
-  const click = s.cons === 'stop', hiss = s.cons === 'fric';
-  if (noise && (click || hiss || s.breath > 0.03)) {
-    const n = ctx.createBufferSource(); n.buffer = noise;
-    const f = ctx.createBiquadFilter(), g = ctx.createGain(); g.gain.value = 0;
-    const c = s.consonant ?? '';
-    const cf = click ? 2600 + 1400 * (s.bright ?? 0.5) : /^(s|z|ch|ts)$/.test(c) ? 5200 : c === 'sh' ? 2800 : 1600;
-    const cdur = click ? 0.012 : hiss ? 0.035 : 0;
-    const air = Math.max(s.breath * peak * 1.6, 0.0006);
-    f.type = 'bandpass'; f.Q.value = click ? 0.9 : 1.3;
-    f.frequency.setValueAtTime(cdur ? cf : s.vowel[1], t);
-    if (cdur) f.frequency.linearRampToValueAtTime(s.vowel[1], t + cdur + 0.01);
-    g.gain.setValueAtTime(0, t);
-    if (cdur) { g.gain.linearRampToValueAtTime(peak * (click ? 1.6 : 0.9), t + 0.003); g.gain.linearRampToValueAtTime(air, t + cdur); }
-    else g.gain.linearRampToValueAtTime(air, t + atk);
-    g.gain.setValueAtTime(air, Math.max(t + cdur + 0.001, end - rel * 0.5));
-    g.gain.exponentialRampToValueAtTime(0.0005, end + rel);
-    n.connect(f).connect(g).connect(dest);
-    n.start(t, Math.random() * 1.5); n.stop(stop);
-  }
+  return renderVoice(ctx, dest, [{ ...s, t: 0, join: false }], t, noise, { ring: s.ring ?? 0, mech: s.mech ?? 0 });
 }
 
 /**
@@ -2563,19 +2518,24 @@ export class Sound {
   /**
    * Sing a planned line (src/story/voice.js planLine) from now.
    * @param o.channel 'balloon' | 'call' | 'choice' · o.gain 0..1 (distance) · o.pan -1..1 · o.radio 0..1 (a speaker grille)
+   * @param o.from  start this far into the plan (s): the dialogue's voice, begun late
    * @returns false if it was not played (no audio yet, muted, voices off, too many at once)
    */
-  speak(plan, { channel = 'balloon', gain = 1, pan = 0, radio = 0 } = {}) {
+  speak(plan, { channel = 'balloon', gain = 1, pan = 0, radio = 0, from = 0 } = {}) {
     if (!this.ctx || this.muted || !this.alienVoices || !plan?.syllables?.length) return false;
     const ctx = this.ctx, t = ctx.currentTime + 0.03;
     if (channel === 'balloon' && !this.canSpeak('balloon', gain)) return false;
     const out = this.utterance({ gain, pan, radio: Math.max(radio, plan.syllables[0].radio ?? 0) });
-    for (const s of plan.syllables) renderSyllable(ctx, out.input, s, t + s.t, this.noiseBuf);
-    const end = t + plan.total + 0.2;
+    // (one continuous voice for the line, src/voice-synth.js: issue #323)
+    const voices = renderPlan(ctx, out.input, plan, t, this.noiseBuf, from);
+    const end = t + plan.total - from + 0.2;
     out.stopAt(end + 0.5);
+    const fade = out.fade;
+    out.fade = () => { fade(); for (const v of voices) v.fade(); };
     if (channel === 'balloon') this._balloons.push({ end });
     if (channel === 'call') { this._calls?.fade(); this._calls = out; this._talkUntil = end; }
     if (channel === 'choice') this._talkUntil = Math.max(this._talkUntil, end);
+    if (channel === 'dialogue') { this._talk?.fade(); this._talk = out; this._talkUntil = Math.max(this._talkUntil, end); }
     this.trace(channel, plan, gain);
     return true;
   }
@@ -2589,23 +2549,32 @@ export class Sound {
     return t >= this._talkUntil && this._balloons.length < BALLOON_VOICES && gain >= 0.02;
   }
 
-  /** One syllable now, for the dialogue panel's letter-by-letter reveal (alien voices off: the old blip). */
+  /**
+   * A syllable of the dialogue's page as its time comes (alien voices off: the old blip). The page's voice
+   * is one continuous line (issue #323), so its first syllable sings the whole plan from there and the rest
+   * only keep the floor; the page turning or the talk closing hushes it (hush('talk')).
+   */
   syllable(s, { plan = null } = {}) {
     if (!this.ctx || this.muted || !s) return;
     if (!this.alienVoices) { this.blip(Math.max(0.5, Math.min(2.2, s.f0 / 170))); return; }
-    const ctx = this.ctx, t = ctx.currentTime + 0.01, radio = s.radio ?? 0;
-    if (!this._talk || this._talk.radio !== radio) this._talk = Object.assign(this.utterance({ radio, keep: true }), { radio });
-    renderSyllable(ctx, this._talk.input, s, t, this.noiseBuf);
-    this._talkUntil = t + s.dur + 0.4;
-    if (plan && plan !== this._talkPlan) { this._talkPlan = plan; this.trace('dialogue', plan, 1); }
+    if (!plan) {
+      // (a syllable on its own: the music page's sample)
+      const out = this.utterance({ radio: s.radio ?? 0 }), t = this.ctx.currentTime + 0.01;
+      renderSyllable(this.ctx, out.input, s, t, this.noiseBuf);
+      out.stopAt(t + s.dur + 0.6);
+      return;
+    }
+    if (plan !== this._talkPlan) { this._talkPlan = plan; this.speak(plan, { channel: 'dialogue', from: s.t }); }
+    this._talkUntil = Math.max(this._talkUntil, this.ctx.currentTime + s.dur + 0.4);
   }
 
   /** A conversation is open: the balloons around keep quiet meanwhile. */
   holdFloor(secs = 0.5) { if (this.ctx) this._talkUntil = Math.max(this._talkUntil, this.ctx.currentTime + secs); }
 
-  /** Fade the call's voice (its subtitle was cleared or skipped). */
+  /** Fade a voice: the call's (its subtitle was cleared or skipped), or the conversation's ('talk': its page turned, the talk closed). */
   hush(channel = 'call') {
     if (channel === 'call' && this._calls) { this._calls.fade(); this._calls = null; this._talkUntil = 0; }
+    if (channel === 'talk' && this._talk) { this._talk.fade(); this._talk = null; this._talkPlan = null; }
   }
 
   /** A short-lived chain for one utterance: input → (grille) → gain → pan → the voice bus. */

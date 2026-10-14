@@ -299,7 +299,26 @@ export class OscillatorNode extends Source {
 
 export class PeriodicWave {
   constructor(real, imag) { this.real = Float32Array.from(real ?? []); this.imag = Float32Array.from(imag ?? []); let m = 0; for (let k = 1; k < this.imag.length; k++) m += Math.abs(this.imag[k]) + Math.abs(this.real[k] ?? 0); this.norm = m || 1; }
-  at(ph) { let v = 0; for (let k = 1; k < this.imag.length; k++) { const a = 6.283185307179586 * k * ph; v += (this.real[k] ?? 0) * Math.cos(a) + this.imag[k] * Math.sin(a); } return v / this.norm; }
+  // (one period tabled once, read with linear interpolation: summing forty harmonics every sample cost more than the
+  // rest of a voice, src/voice-synth.js's glottal pulse)
+  at(ph) {
+    const T = this._table ??= this._tabulate(), x = ph * 2048, i = x | 0, u = x - i;
+    return T[i] + (T[i + 1] - T[i]) * u;
+  }
+  _tabulate() {
+    const T = new Float32Array(2049);
+    for (let j = 0; j < 2048; j++) {
+      const ph = j / 2048; let v = 0;
+      for (let k = 1; k < this.imag.length; k++) { const a = 6.283185307179586 * k * ph; v += (this.real[k] ?? 0) * Math.cos(a) + this.imag[k] * Math.sin(a); }
+      T[j] = v;
+    }
+    // (normalised to a peak of 1, as browsers do)
+    let m = 0;
+    for (let j = 0; j < 2048; j++) m = Math.max(m, Math.abs(T[j]));
+    for (let j = 0; j < 2048; j++) T[j] /= m || 1;
+    T[2048] = T[0];
+    return T;
+  }
 }
 
 export class AudioBuffer {

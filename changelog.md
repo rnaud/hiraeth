@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.72 — 2026-10-14
+
+- People on every world speak now instead of beeping: each line is one voice that glides from syllable to syllable, with breath, real vowels and consonants, stress on its words, pauses at its commas and full stops and a question that rises. Every world’s tongue has its own sound, every speaker a voice that fits them (a child’s small and high, an old man’s wavering, a heavy one’s deep), and the tone of a line is heard: sad lines slower and darker, playful ones quicker and brighter. No more clicks between syllables, and less work for the device.
+
 ## v1.71 — 2026-10-13
 
 - The rooms of your ship no longer shimmer as you walk through them: walls, ceiling, floor and furniture are a flat colour in shade instead of fine hatching that crawled, and the places where two surfaces flickered through each other (the panel over the bunk’s arch, the doorways’ frames, the console, the sofa) are fixed.

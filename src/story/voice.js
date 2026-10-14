@@ -1,24 +1,27 @@
-// The mumbled alien voices (Banjo-Kazooie / Animal Crossing style): every
-// line anyone says is heard as a run of short pitched syllables in their own
+// The alien voices: every line anyone says is heard spoken in their own
 // world's language, while the words you read are the translation (the
 // traveller wears a translator: docs/story-bible.md, "The translator").
+// Until issue #323 they were a run of short beeps (Banjo-Kazooie style); now
+// each line is one breath of speech, sung by a small formant synthesiser.
 //
 // This file is pure: it turns a line into a plan of syllables (no Web Audio),
-// so the tests can check the contours. src/audio.js sings the plan
-// (Sound.speak / renderSyllable).
+// so the tests can check the contours. src/voice-synth.js sings the plan
+// (through src/audio.js Sound.speak / renderPlan).
 //
 //   planLine(text, { voice: voiceOf(person), tone: 'sad', lang: 'desert' })
-//     → { syllables: [{ i, t, dur, pitch: [[dt, Hz]…], gain, vowel: [F1, F2], cons, breath, … }], total, cps, tone, lang }
+//     → { syllables: [{ i, t, dur, pitch: [[dt, Hz]…], gain, vowel: [F1, F2, F3], consonant, coda, join, … }],
+//         total, cps, tone, lang, timbre }
 //
-// Three things shape it:
-//   LANGUAGES[levelId]   the world's phonemes and voice colour (waveform, breath, speed, glide…)
+// Four things shape it:
+//   LANGUAGES[levelId]   the world's phonemes and voice colour (breath, speed, glide, wobble…)
+//   SPEECH[levelId]      its phonology and the make of its voice (stress, codas, diphthongs, tilt, bandwidths)
 //   voiceOf(person)      the speaker: pitch from `voice`, `kind` m / f, `scale` (children
-//                        higher), elders slower; a hash of the id for crowd people
-//   TONE_SHAPES[tone]    the tone (src/story/tone.js): contour, speed, loudness, syllable shape
+//                        higher), `build`, elders slower and wavering; a hash of the id for crowd people
+//   TONE_SHAPES[tone]    the tone (src/story/tone.js): contour, speed, loudness, syllable shape, brightness
 //
-// The dialogue panel triggers each syllable as the letters reach it (so the
-// voice keeps step with the text); balloons and call subtitles play a whole
-// (shorter) plan at once: speakLine / speakBalloon below.
+// The dialogue panel says each page from its first syllable and lets the reveal follow
+// the voice (revealAt); balloons and call subtitles play a whole (shorter) plan at
+// once: speakLine / speakBalloon below.
 
 import { parseLine } from './tone.js';
 
@@ -32,18 +35,23 @@ import { parseLine } from './tone.js';
  */
 export const TONE_SHAPES = {
   neutral:   { pitch: 1.0,  range: 3,   rate: 1.0,  gain: 1.0,  len: 1.0,  breath: 0,    clip: 0.2, vib: 0,    glide: -0.3, jitter: 1.4, contour: 'declin' },
-  happy:     { pitch: 1.12, range: 5,   rate: 1.08, gain: 1.05, len: 0.95, breath: 0,    clip: 0.1, vib: 0.15, glide: 0.8,  jitter: 2.2, contour: 'arch' },
-  sad:       { pitch: 0.86, range: 4,   rate: 0.74, gain: 0.72, len: 1.4,  breath: 0.18, clip: 0,   vib: 0.25, glide: -1.6, jitter: 0.7, contour: 'fall' },
-  angry:     { pitch: 0.94, range: 2.5, rate: 1.16, gain: 1.4,  len: 0.6,  breath: 0,    clip: 1,   vib: 0,    glide: -0.8, jitter: 1.8, contour: 'stab' },
+  happy:     { pitch: 1.12, range: 5,   rate: 1.08, gain: 1.05, len: 0.95, breath: 0,    clip: 0.1, vib: 0.15, glide: 0.4,  jitter: 2.2, contour: 'arch' },
+  sad:       { pitch: 0.86, range: 4,   rate: 0.74, gain: 0.72, len: 1.4,  breath: 0.18, clip: 0,   vib: 0.25, glide: -0.8, jitter: 0.7, contour: 'fall' },
+  angry:     { pitch: 0.94, range: 2.5, rate: 1.16, gain: 1.4,  len: 0.6,  breath: 0,    clip: 1,   vib: 0,    glide: -0.4, jitter: 1.8, contour: 'stab' },
   scared:    { pitch: 1.22, range: 3,   rate: 1.3,  gain: 0.82, len: 0.7,  breath: 0.12, clip: 0.5, vib: 0.7,  glide: 0.4,  jitter: 2.6, contour: 'tremble' },
-  surprised: { pitch: 1.2,  range: 7,   rate: 1.1,  gain: 1.18, len: 1.0,  breath: 0,    clip: 0.2, vib: 0,    glide: 1.2,  jitter: 1.2, contour: 'jump' },
-  curious:   { pitch: 1.05, range: 5,   rate: 0.98, gain: 0.95, len: 1.0,  breath: 0,    clip: 0.1, vib: 0,    glide: 0.6,  jitter: 1.4, contour: 'rise' },
-  tired:     { pitch: 0.84, range: 2.5, rate: 0.7,  gain: 0.7,  len: 1.3,  breath: 0.28, clip: 0,   vib: 0.1,  glide: -1.2, jitter: 0.6, contour: 'sag' },
+  surprised: { pitch: 1.2,  range: 7,   rate: 1.1,  gain: 1.18, len: 1.0,  breath: 0,    clip: 0.2, vib: 0,    glide: 0.6,  jitter: 1.2, contour: 'jump' },
+  curious:   { pitch: 1.05, range: 5,   rate: 0.98, gain: 0.95, len: 1.0,  breath: 0,    clip: 0.1, vib: 0,    glide: 0.3,  jitter: 1.4, contour: 'rise' },
+  tired:     { pitch: 0.84, range: 2.5, rate: 0.7,  gain: 0.7,  len: 1.3,  breath: 0.28, clip: 0,   vib: 0.1,  glide: -0.6, jitter: 0.6, contour: 'sag' },
   solemn:    { pitch: 0.82, range: 1.5, rate: 0.76, gain: 0.92, len: 1.5,  breath: 0.05, clip: 0,   vib: 0.18, glide: -0.2, jitter: 0.4, contour: 'flat' },
-  playful:   { pitch: 1.1,  range: 6,   rate: 1.15, gain: 1.0,  len: 0.82, breath: 0,    clip: 0.3, vib: 0,    glide: 1.5,  jitter: 1.0, contour: 'bounce' },
+  playful:   { pitch: 1.1,  range: 6,   rate: 1.15, gain: 1.0,  len: 0.82, breath: 0,    clip: 0.3, vib: 0,    glide: 0.7,  jitter: 1.0, contour: 'bounce' },
   whisper:   { pitch: 1.0,  range: 2,   rate: 0.94, gain: 0.5,  len: 0.9,  breath: 1,    clip: 0.2, vib: 0,    glide: -0.3, jitter: 1.0, contour: 'declin' },
   shout:     { pitch: 1.32, range: 4,   rate: 1.0,  gain: 1.65, len: 1.25, breath: 0.05, clip: 0.1, vib: 0,    glide: 0.4,  jitter: 1.2, contour: 'peak' },
 };
+/**
+ * How a tone colours the voice itself (issue #323), -1 dark .. 1 bright: a smile lifts the formants and
+ * hardens the pulse (playful, happy), sadness and tiredness lower them and soften it (src/voice-synth.js).
+ */
+export const TONE_BRIGHT = { neutral: 0, happy: 0.6, sad: -0.7, angry: 0.3, scared: 0.3, surprised: 0.5, curious: 0.2, tired: -0.6, solemn: -0.4, playful: 0.8, whisper: 0, shout: 0.5 };
 
 /** Contours: (u 0..1 along the sentence, k syllable index, n count) → -1..1 (× range). */
 const CONTOURS = {
@@ -66,16 +74,18 @@ const C = {
   p: 'stop', b: 'stop', t: 'stop', d: 'stop', k: 'stop', g: 'stop', q: 'stop', tk: 'stop', ts: 'fric',
   s: 'fric', sh: 'fric', f: 'fric', h: 'fric', kh: 'fric', z: 'fric', th: 'fric', ch: 'fric', x: 'fric',
   m: 'nasal', n: 'nasal', ng: 'nasal', l: 'liquid', r: 'liquid', w: 'liquid', y: 'liquid', bl: 'liquid', gl: 'liquid', '': '',
+  v: 'fric', st: 'fric',
 };
-/** Vowel formants (Hz) before the speaker's and language's shift. */
-export const VOWELS = { a: [780, 1220], e: [480, 1900], i: [300, 2300], o: [500, 880], u: [330, 780], ae: [660, 1720], oe: [420, 1500], y: [300, 1700] };
+/** Vowel formants F1, F2, F3 (Hz) before the speaker's and language's shift. */
+export const VOWELS = { a: [780, 1220, 2600], e: [480, 1900, 2600], i: [300, 2300, 3000], o: [500, 880, 2500], u: [330, 780, 2300], ae: [660, 1720, 2500], oe: [420, 1500, 2400], y: [300, 1700, 2200] };
 
 /**
  * Each world's tongue: a syllable inventory and a voice colour.
- * wave: oscillator · pitch / rate / len / gain: × · breath: air (0..1) · clip: 0..1
+ * wave: the old mumble's oscillator (until issue #323; the Unity port's Voice.cs still sings with it)
+ * pitch / rate / len / gain: × · breath: air (0..1) · clip: 0..1
  * glide: semitones per syllable · formant: × vowel formants · density: syllables per vowel group
- * wobble: [rate Hz, semitones] (watery) · mech: ring-modulated, pitch on a grid (machines)
- * radio: band-limited (a speaker grille) · ring: a glassy overtone
+ * wobble: [rate Hz, semitones] (watery) · mech: a voice-box hum, pitch on a grid (machines)
+ * radio: band-limited (a speaker grille) · ring: a glassy resonance (SPEECH f4)
  * (each tongue's writing, the glyphs the dialogue panel shows before the translation: src/story/scripts.js)
  */
 export const LANGUAGES = {
@@ -97,7 +107,7 @@ export const LANGUAGES = {
     cons: ['k', 'l', 's', 'n', 'v', 't', 'r'], vowels: ['e', 'a', 'i', 'ae'] },
   buried:   { name: 'Deep-wheel tongue', wave: 'sawtooth', pitch: 0.82, rate: 0.85, len: 1.0, gain: 0.8, breath: 0.15, clip: 0.4, glide: -0.6, formant: 0.82, density: 0.8,
     cons: ['g', 'd', 'r', 'b', 'm', 'k'], vowels: ['o', 'u', 'a', 'oe'] },
-  edena:    { name: 'Edenic', wave: 'sine', pitch: 1.1, rate: 1.02, len: 0.95, gain: 0.95, breath: 0.08, clip: 0.1, glide: 2.2, formant: 1.1, density: 0.85,
+  edena:    { name: 'Edenic', wave: 'sine', pitch: 1.1, rate: 1.02, len: 0.95, gain: 0.95, breath: 0.08, clip: 0.1, glide: 1.1, formant: 1.1, density: 0.85,
     cons: ['l', 'w', 'y', 'f', 'm', 'n', ''], vowels: ['i', 'e', 'a', 'ae', 'u'] },
   spheres:  { name: 'Sphere-song', wave: 'sine', pitch: 1.16, rate: 0.88, len: 1.25, gain: 0.85, breath: 0.05, clip: 0, glide: 0.4, formant: 1.12, density: 0.75, ring: 0.6,
     cons: ['l', 'n', 'm', 'y', ''], vowels: ['i', 'e', 'y', 'a'] },
@@ -115,7 +125,7 @@ export const LANGUAGES = {
   moonfoundry: { name: 'founders’ cant', wave: 'sawtooth', pitch: 0.9, rate: 0.96, len: 0.86, gain: 0.85, breath: 0.1, clip: 0.55, glide: -0.3, formant: 0.9, density: 0.85, ring: 0.35, mech: 0.4,
     cons: ['d', 'g', 'b', 'r', 'k', 'n', 'st'], vowels: ['o', 'a', 'oe', 'u'] },
   // the City Floating in Space: the moorers' whistle-talk, high and thin, a lift at the end of each word like a call across a gap
-  spacecity: { name: 'moorers’ whistle', wave: 'triangle', pitch: 1.14, rate: 1.1, len: 0.8, gain: 0.8, breath: 0.22, clip: 0.1, glide: 1.8, formant: 1.12, density: 0.8,
+  spacecity: { name: 'moorers’ whistle', wave: 'triangle', pitch: 1.14, rate: 1.1, len: 0.8, gain: 0.8, breath: 0.22, clip: 0.1, glide: 1.0, formant: 1.12, density: 0.8,
     cons: ['s', 'h', 'f', 'y', 't', 'w', 'l'], vowels: ['i', 'e', 'a', 'y'] },
   atelier:  { name: 'pen-and-paper', wave: 'triangle', pitch: 1.0, rate: 0.95, len: 0.9, gain: 0.8, breath: 0.3, clip: 0.2, glide: 0.3, formant: 1.0, density: 0.75,
     cons: ['s', 'f', 'sh', 'l', 't'], vowels: ['e', 'i', 'a'] },
@@ -135,8 +145,43 @@ export const LANGUAGES = {
   // the ship's own voice: a small chirping computer
   ship:     { name: 'ship', native: true, wave: 'square', pitch: 1.5, rate: 1.3, len: 0.55, gain: 0.55, breath: 0, clip: 0.9, glide: 0, formant: 1.2, density: 0.7, mech: 1,
     cons: ['t', 'p', 'd', ''], vowels: ['i', 'e'] },
-};// the Lantern (src/levels/lantern.js): Ilen speaks the home tongue; nobody else lives there
+};
+
+/**
+ * Each tongue's sound as speech (issue #323), beside its colour above: where a word's stress falls
+ * ('first' | 'penult' | 'last' syllable), the consonants a syllable may close on (`codas`, how often:
+ * `coda`), how often a vowel glides into another (`diph`), and the voice's make: `tilt` (the glottal
+ * pulse's slope, 1 pressed and bright .. 1.7 soft and dark), `open` (a breathy, open glottis), `bw`
+ * (× the formants' bandwidths: narrow rings, wide is soft), `f4` (the high resonance, Hz: a glassy
+ * tongue's ring sits there). src/voice-synth.js sings it.
+ */
+export const SPEECH = {
+  home:       { stress: 'first',  codas: ['n', 'm', 'l', 's', 't'], coda: 0.3,  diph: 0.15, tilt: 1.3,  open: 0.2,  bw: 1.0,  f4: 3400 },
+  desert:     { stress: 'penult', codas: ['n', 'r', 'kh', 's', 'm', 'q'], coda: 0.4, diph: 0.1, tilt: 1.45, open: 0.5, bw: 1.15, f4: 3200 },
+  incal:      { stress: 'first',  codas: ['k', 't', 'ts', 'n'], coda: 0.45, diph: 0,    tilt: 1.05, open: 0,    bw: 0.85, f4: 3800 },
+  arzach:     { stress: 'first',  codas: ['h', 'sh'], coda: 0.2,  diph: 0.2,  tilt: 1.7,  open: 0.8,  bw: 1.3,  f4: 3000 },
+  arzach2:    { stress: 'penult', codas: ['m', 'n', 'ng'], coda: 0.55, diph: 0.25, tilt: 1.5,  open: 0.3,  bw: 0.9,  f4: 2900 },
+  garage:     { stress: 'first',  codas: ['t', 'k', 'z'], coda: 0.35, diph: 0,    tilt: 1.1,  open: 0,    bw: 0.8,  f4: 3700 },
+  glassdunes: { stress: 'last',   codas: ['l', 'n', 's'], coda: 0.3,  diph: 0.15, tilt: 1.2,  open: 0.2,  bw: 0.85, f4: 4200 },
+  buried:     { stress: 'first',  codas: ['r', 'm', 'g', 'd'], coda: 0.45, diph: 0.1, tilt: 1.4, open: 0.3,  bw: 1.1,  f4: 2900 },
+  edena:      { stress: 'penult', codas: ['l', 'n'], coda: 0.15, diph: 0.35, tilt: 1.2,  open: 0.15, bw: 1.0,  f4: 3600 },
+  spheres:    { stress: 'penult', codas: ['n', 'l'], coda: 0.2,  diph: 0.3,  tilt: 1.3,  open: 0.1,  bw: 0.8,  f4: 4300 },
+  perdide:    { stress: 'first',  codas: ['b', 'm', 'l', 'p'], coda: 0.35, diph: 0.2, tilt: 1.45, open: 0.3, bw: 1.2,  f4: 3000 },
+  perdide2:   { stress: 'first',  codas: ['l', 'm', 'n'], coda: 0.3,  diph: 0.2,  tilt: 1.5,  open: 0.35, bw: 1.15, f4: 2900 },
+  bazaar:     { stress: 'penult', codas: ['n', 'r', 'z', 'sh'], coda: 0.4, diph: 0.15, tilt: 1.15, open: 0.1, bw: 1.0, f4: 3500 },
+  underwater: { stress: 'first',  codas: ['m', 'l', 'n'], coda: 0.35, diph: 0.3,  tilt: 1.55, open: 0.3,  bw: 1.1,  f4: 2800 },
+  moonfoundry: { stress: 'first', codas: ['d', 'g', 'k', 'n', 'r'], coda: 0.5, diph: 0.05, tilt: 1.2, open: 0.05, bw: 0.95, f4: 3100 },
+  spacecity:  { stress: 'last',   codas: ['s', 'f', 'l'], coda: 0.25, diph: 0.25, tilt: 1.2,  open: 0.35, bw: 0.9,  f4: 4400 },
+  atelier:    { stress: 'first',  codas: ['s', 'f', 'l', 't'], coda: 0.35, diph: 0.1, tilt: 1.35, open: 0.4, bw: 1.0,  f4: 3600 },
+  drifter:    { stress: 'penult', codas: ['m', 'l', 'n'], coda: 0.3,  diph: 0.45, tilt: 1.4,  open: 0.1,  bw: 0.8,  f4: 3900 },
+  stilt:      { stress: 'first',  codas: ['m', 'ng', 'h'], coda: 0.5, diph: 0.2,  tilt: 1.65, open: 0.6,  bw: 1.2,  f4: 2600 },
+  shell:      { stress: 'first',  codas: ['b', 'm', 'r'], coda: 0.4,  diph: 0.15, tilt: 1.55, open: 0.3,  bw: 1.25, f4: 2600 },
+  murmur:     { stress: 'last',   codas: ['n', 'm'], coda: 0.15, diph: 0.1,  tilt: 1.2,  open: 0.1,  bw: 0.9,  f4: 4000 },
+  ship:       { stress: 'first',  codas: ['t', 'p'], coda: 0.25, diph: 0,    tilt: 1.0,  open: 0,    bw: 0.7,  f4: 3800 },
+};
+// the Lantern (src/levels/lantern.js): Ilen speaks the home tongue; nobody else lives there
 LANGUAGES.lantern = LANGUAGES.home;
+SPEECH.lantern = SPEECH.home;
 
 /** Each language's place: the City-Shaft is the Lodestar level, the Signal Market the bazaar. */
 export const languageOf = (levelId) => (LANGUAGES[levelId] ? levelId : 'desert');
@@ -167,7 +212,16 @@ export function voiceOf(person = {}) {
   let rate = 1 + (v - 1) * 0.22, formant = (kind === 'f' ? 1.1 : 0.92) * Math.pow(1 / Math.max(scale, 0.5), 0.4), wobble = 0;
   if (age === 'child') { f0 *= 1.3; rate *= 1.15; formant *= 1.15; }
   if (age === 'elder') { f0 *= 0.93; rate *= 0.74; wobble = 0.3; }
-  return { f0, rate: Math.min(1.4, Math.max(0.6, rate)), formant, wobble, bright: h, age, kind };
+  // the body's build (issue #323): a heavy frame a little deeper and darker, a slight one a little lighter
+  const build = person.build ?? null;
+  if (build === 'heavy') { f0 *= 0.93; formant *= 0.96; }
+  if (build === 'slim') { f0 *= 1.03; formant *= 1.02; }
+  // the voice's make: how soft its pulse (tilt), how breathy (open), how much its pitch wavers (flutter, cents);
+  // women's and children's voices a little breathier, elders' wavering and airy
+  const tilt = (kind === 'f' ? 0.06 : 0) + (age === 'elder' ? 0.12 : 0) + (h2 - 0.5) * 0.16;
+  const open = (kind === 'f' ? 0.2 : 0) + (age === 'child' ? 0.15 : 0) + (age === 'elder' ? 0.35 : 0);
+  const flutter = age === 'elder' ? 30 : age === 'child' ? 10 : 14;
+  return { f0, rate: Math.min(1.4, Math.max(0.6, rate)), formant, wobble, bright: h, age, kind, tilt, open, flutter };
 }
 
 /** The voices on the calls home (and the traveller's own). */
@@ -224,21 +278,32 @@ export function spokenMask(text, narrator) {
   return m;
 }
 
+/** A syllable's length at an even pace (s): about six and a half a second, as people talk (issue #323: it was 48 letters a second, a chatter). */
+export const SYLLABLE_S = 0.14;
+/** The pauses (s, at an even pace) after a comma, a sentence, a question, an exclamation, a trailing-off, a dash. */
+export const PAUSES = { ',': 0.17, '.': 0.34, '?': 0.34, '!': 0.32, '…': 0.55, '—': 0.22 };
+
 /**
- * Plan a line's syllables.
+ * Plan a line's syllables: one breath of speech, its syllables in time, their pitch, vowels and consonants.
  * @param text   the words (a tone tag is read and removed if present)
  * @param o.voice  voiceOf(person) · o.tone (overrides the tag) · o.lang level id
  * @param o.max    at most this many syllables (balloons: a shorter version)
  * @param o.narrator  only *quoted* words are voiced (a recording, a broadcast)
- * @param o.cps    letters per second to place the syllables at (default: REVEAL_CPS × the speed)
+ *
+ * The prosody: each sentence its tone's contour (a declination by default, a question rising at its end),
+ * each word's stressed syllable (SPEECH[lang].stress) a pitch accent and a little longer, the last syllable
+ * before a pause drawn out, a pause at each comma and full stop, a continuation rise before a comma.
+ * Syllables in a breath group run on into each other (`join`: src/voice-synth.js glides from one to the next).
+ * @returns { syllables: [{ i, t, dur, f0, pitch [[dt, Hz]…], gain, vowel [F1, F2, F3], vowel2, cons, consonant, coda,
+ *   join, stress, vib [Hz, semitones], breath, clip, fscale, … }], total, cps (letters a second, for the reveal), tone,
+ *   lang, text, timbre { tilt, open, bw, f4, ring, mech, flutter } }
  */
-export function planLine(text, { voice = voiceOf({}), tone = null, lang = 'home', max = Infinity, narrator = false, cps = null } = {}) {
+export function planLine(text, { voice = voiceOf({}), tone = null, lang = 'home', max = Infinity, narrator = false } = {}) {
   const parsed = parseLine(text);
   const toneId = TONE_SHAPES[tone] ? tone : parsed.tone;
   const s = parsed.text, T = TONE_SHAPES[toneId] ?? TONE_SHAPES.neutral;
-  const L = LANGUAGES[lang] ?? LANGUAGES.home;
+  const L = LANGUAGES[lang] ?? LANGUAGES.home, SP = SPEECH[lang] ?? SPEECH.home;
   const rate = Math.min(1.5, Math.max(0.55, L.rate * voice.rate * T.rate));
-  const speed = cps ?? revealSpeed(voice, toneId, lang);
   const mask = spokenMask(s, narrator);
   // words and the punctuation after each
   const words = [];
@@ -257,45 +322,70 @@ export function planLine(text, { voice = voiceOf({}), tone = null, lang = 'home'
     sentence.forEach((x, k) => { x.u = n > 1 ? k / (n - 1) : 0.5; x.end = end; x.fromEnd = n - 1 - k; });
     sentence = [];
   };
-  const gap = { pause: 0 };
   for (const wd of words) {
     const groups = wd.w.match(VGROUP)?.length ?? 1;
     const hw = hash01(wd.w.toLowerCase() + lang);
     let n = Math.max(1, Math.min(4, Math.round(groups * L.density * Math.pow(L.rate, 0.3) + (hw - 0.5) * 0.6)));
     if (L.density < 0.5 && hw > L.density * 1.6) n = 0;   // a near-silent tongue leaves words out
+    const stressAt = SP.stress === 'last' ? n - 1 : SP.stress === 'penult' ? Math.max(0, n - 2) : 0;
     for (let k = 0; k < n; k++) {
-      const hk = hash01(`${wd.w.toLowerCase()}#${k}${lang}`);
+      const key = `${wd.w.toLowerCase()}#${k}${lang}`, hk = hash01(key);
       const cons = L.cons[Math.floor(hk * L.cons.length) % L.cons.length];
       const vowel = L.vowels[Math.floor(hash01(`${wd.w}v${k}`) * L.vowels.length) % L.vowels.length];
-      const x = { i: wd.i + Math.floor((k * wd.len) / n), cons, vowel, emph: wd.emph, wordStart: k === 0, h: hk, pause: k === 0 ? gap.pause : 0 };
-      gap.pause = 0;
+      // a coda now and then (more often on a word's last syllable), a vowel gliding into another
+      const codaP = (k === n - 1 ? 1 : 0.4) * (SP.coda ?? 0);
+      const coda = SP.codas?.length && hash01(`${key}:c`) < codaP ? SP.codas[Math.floor(hash01(`${key}:cc`) * SP.codas.length) % SP.codas.length] : '';
+      const v2 = hash01(`${key}:d`) < (SP.diph ?? 0) ? L.vowels[Math.floor(hash01(`${key}:v2`) * L.vowels.length) % L.vowels.length] : null;
+      const x = { i: wd.i + Math.floor((k * wd.len) / n), cons, vowel, vowel2: v2 !== vowel ? v2 : null, coda, emph: wd.emph, wordStart: k === 0,
+        h: hk, h2: hash01(`${key}:t`), stress: k === stressAt && (n > 1 || hw > 0.3), after: 0, brk: null };
       syl.push(x); sentence.push(x);
     }
     const t = wd.tail;
-    if (/[?!.…]/.test(t) || /—\s*$/.test(t)) { flush(/\?/.test(t) ? '?' : /!/.test(t) ? '!' : /…|\.\.\./.test(t) ? '…' : '.'); gap.pause = /…/.test(t) ? 0.3 : 0.14; }
-    else if (/[,;:—]/.test(t)) gap.pause = 0.07;
+    let brk = null;
+    if (/[?!.…]/.test(t) || /—\s*$/.test(t)) {
+      const end = /\?/.test(t) ? '?' : /!/.test(t) ? '!' : /…|\.\.\./.test(t) ? '…' : '.';
+      flush(end);
+      brk = /[?!.…]/.test(t) ? end : '—';
+    } else if (/[,;:—]/.test(t)) brk = /—/.test(t) ? '—' : ',';
+    const x = syl[syl.length - 1];
+    if (brk && x) { x.after = Math.max(x.after, PAUSES[brk]); x.brk = brk; }
   }
   flush('.');
-  // a shorter version: the first syllables, and the sentence's end kept
+  // a shorter version: the first syllables, and the sentence's end kept (a breath between)
   let list = syl;
-  if (list.length > max) list = [...syl.slice(0, Math.max(1, max - 2)), ...syl.slice(-2)];
+  if (list.length > max) {
+    list = [...syl.slice(0, Math.max(1, max - 2)), ...syl.slice(-2)];
+    const cut = list[Math.max(0, max - 3)];
+    cut.after = Math.max(cut.after, 0.18);
+  }
+  const short = list !== syl;
   const contour = CONTOURS[T.contour] ?? CONTOURS.declin;
+  const bright = TONE_BRIGHT[toneId] ?? 0;
+  const fs = voice.formant * L.formant * (1 + 0.035 * bright);
+  const D = SYLLABLE_S / Math.pow(rate, 0.8), clip = Math.min(1, Math.max(L.clip, T.clip));
   const out = [];
-  let lastI = list[0]?.i ?? 0, clock = 0;   // the first syllable at 0 (whatever went before it was silent)
+  let clock = 0;   // the first syllable at 0 (whatever went before it was silent)
   list.forEach((x, k) => {
-    // time: the reveal reaches its letter (in a shortened plan the syllables close up)
-    const di = list === syl ? x.i - lastI : Math.min(x.i - lastI, 5);
-    clock += Math.max(0, di) / speed + (list === syl ? 0 : x.pause * 0.5);
-    lastI = x.i;
-    let semi = contour(x.u, k, list.length) * T.range + (x.h - 0.5) * 2 * T.jitter;
+    // pitch: the sentence's contour, an accent on the stressed syllable, a lift before a comma, a little scatter
+    let semi = contour(x.u, k, list.length) * T.range * 1.3 + (x.h - 0.5) * 0.8 * T.jitter;
+    if (x.stress) semi += (0.4 + 0.5 * T.range + 0.5 * T.jitter) * (0.8 + 0.4 * x.h2);
+    if (x.brk === ',') semi += 1.5;
     if (x.end === '?' && x.fromEnd <= 1) semi += (x.fromEnd === 0 ? 5 : 2.5) * (toneId === 'angry' ? 0.4 : 1);
     if (x.end === '!' && x.fromEnd === 0) semi += 2;
     if (x.end === '…' && x.fromEnd === 0) semi -= 2;
     if (x.emph) semi += 2.5;
     if (L.mech) semi = Math.round(semi / 2) * 2;               // machines: on a whole-tone grid
     const f0 = voice.f0 * L.pitch * T.pitch * Math.pow(2, semi / 12);
-    const len = 0.085 * L.len * T.len * (x.emph ? 1.2 : 1) * (x.fromEnd === 0 && x.end !== '.' ? 1.35 : 1) / Math.sqrt(rate);
-    const dur = Math.min(0.32, Math.max(0.035, len));
+    // time: stressed syllables longer, the last before a pause drawn out, a closed or gliding one a little longer
+    const final = x.after > 0 || k === list.length - 1;
+    const slot = D * Math.pow(L.len * T.len, 0.45) * (x.stress ? 1.18 : 0.9) * (x.emph ? 1.15 : 1) * (0.9 + 0.2 * x.h2)
+      * (final ? 1.4 : 1) * (x.coda ? 1.12 : 1) * (x.vowel2 ? 1.12 : 1);
+    const dur = Math.min(0.55, Math.max(0.07, slot));
+    const pause = (x.after / Math.sqrt(rate)) * (short ? 0.5 : 1);
+    // (a clipped tongue, anger, the Shaft cant: a breath of air between its words)
+    const gap = k === list.length - 1 ? 0 : pause > 0 ? pause : list[k + 1].wordStart && clip >= 0.7 ? 0.035 : 0;
+    const t = clock;
+    clock += dur + gap;
     const glide = L.glide + T.glide + (x.end === '?' && x.fromEnd === 0 ? 3 : 0);
     // the pitch path: a scoop for liquids, a glide, a wobble (watery tongues, elders, fear)
     const scoop = C[x.cons] === 'liquid' ? -2.5 : 0;
@@ -308,12 +398,13 @@ export function planLine(text, { voice = voiceOf({}), tone = null, lang = 'home'
       const sm = scoop * (1 - Math.min(1, q * 4)) + glide * q + vibDepth * Math.sin(Math.PI * 2 * vibRate * q * dur + x.h * 6.28) * (q > 0 ? 1 : 0);
       pitch.push([+(q * dur).toFixed(4), +(f0 * Math.pow(2, sm / 12)).toFixed(2)]);
     }
-    const F = VOWELS[x.vowel] ?? VOWELS.a, fs = voice.formant * L.formant;
+    const scaled = (v) => { const F = VOWELS[v] ?? VOWELS.a; return [Math.round(F[0] * fs), Math.round(F[1] * fs), Math.round(F[2] * fs)]; };
     out.push({
-      i: x.i, t: +clock.toFixed(4), dur: +dur.toFixed(4), f0: +f0.toFixed(2), pitch,
-      gain: +(0.11 * L.gain * T.gain * (x.emph ? 1.25 : 1) * (x.end === '!' && x.fromEnd === 0 ? 1.15 : 1) * (0.9 + x.h * 0.2)).toFixed(4),
-      vowel: [Math.round(F[0] * fs), Math.round(F[1] * fs)], cons: C[x.cons] ?? '', consonant: x.cons,
-      breath: Math.min(1, Math.max(L.breath, T.breath)), clip: Math.min(1, Math.max(L.clip, T.clip)),
+      i: x.i, t: +t.toFixed(4), dur: +dur.toFixed(4), f0: +f0.toFixed(2), pitch,
+      gain: +(0.11 * L.gain * T.gain * (x.emph ? 1.25 : 1) * (x.end === '!' && x.fromEnd === 0 ? 1.15 : 1) * (x.stress ? 1.08 : 0.94) * (0.94 + x.h * 0.12)).toFixed(4),
+      vowel: scaled(x.vowel), vowel2: x.vowel2 ? scaled(x.vowel2) : null, cons: C[x.cons] ?? '', consonant: x.cons, coda: x.coda,
+      join: gap === 0 && k < list.length - 1, stress: x.stress ? 1 : 0, wordStart: x.wordStart, vib: [vibRate, +vibDepth.toFixed(3)],
+      breath: Math.min(1, Math.max(L.breath, T.breath)), clip, fscale: +fs.toFixed(4),
       wave: L.wave, mech: L.mech ?? 0, ring: L.ring ?? 0, radio: L.radio ?? 0, bright: voice.bright ?? 0.5,
     });
   });
@@ -326,7 +417,32 @@ export function planLine(text, { voice = voiceOf({}), tone = null, lang = 'home'
     }
   }
   const total = out.length ? Math.max(...out.slice(-4).map((x) => x.t + x.dur)) : 0;
-  return { syllables: out, total, cps: speed, tone: toneId, lang, text: s };
+  // the reveal follows the voice: letters a second over the spoken part (revealAt); with nothing said, an even pace
+  const cps = out.length ? Math.max(1, s.length - out[0].i) / Math.max(total, 0.3) : revealSpeed(voice, toneId, lang);
+  // the voice's make for the whole line: the tongue's, the speaker's, the tone's (a smile hardens it, sadness softens it)
+  const timbre = {
+    tilt: +Math.min(1.9, Math.max(0.85, (SP.tilt ?? 1.3) + (voice.tilt ?? 0) - 0.25 * bright - (toneId === 'shout' || toneId === 'angry' ? 0.15 : 0))).toFixed(3),
+    open: +Math.min(1.5, (SP.open ?? 0.2) + (voice.open ?? 0) + T.breath).toFixed(3),
+    bw: SP.bw ?? 1, f4: Math.round((SP.f4 ?? 3400) * fs), ring: L.ring ?? 0, mech: L.mech ?? 0,
+    flutter: Math.round((voice.flutter ?? 14) * (toneId === 'scared' ? 1.8 : toneId === 'tired' ? 1.3 : 1)),
+  };
+  return { syllables: out, total, cps, tone: toneId, lang, text: s, timbre };
+}
+
+/** How far the reveal is `t` s into a plan (letters): at each syllable's letter as it is said, the whole text once it is all said. */
+export function revealAt(plan, t) {
+  const S = plan?.syllables ?? [], len = plan?.text?.length ?? 0;
+  if (!S.length) return t * (plan?.cps || REVEAL_CPS);
+  if (t >= plan.total) return len;
+  let a = null, b = null;
+  for (const s of S) {
+    if (s.chorus) continue;
+    if (s.t > t) { b = s; break; }
+    a = s;
+  }
+  if (!a) return S[0].i;
+  const bi = b ? b.i : len, bt = b ? b.t : plan.total;
+  return a.i + (bi - a.i) * Math.min(1, Math.max(0, (t - a.t) / Math.max(1e-3, bt - a.t)));
 }
 
 /** A quick summary of a plan's shape, for tests and the dev trace: { n, mean, first, last, slope, span, rate, loud }. */

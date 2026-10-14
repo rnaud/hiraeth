@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { TONES, parseLine, inferTone, stripTone, UNTAGGED } from '../src/story/tone.js';
-import { planLine, contourOf, voiceOf, LANGUAGES, CALL_VOICES, TONE_SHAPES, REVEAL_CPS } from '../src/story/voice.js';
+import { planLine, contourOf, voiceOf, LANGUAGES, CALL_VOICES, TONE_SHAPES, REVEAL_CPS, revealAt } from '../src/story/voice.js';
 import { SCRIPTS } from '../src/story/scripts.js';
 
 const { CONTENT, ERRANDS } = await import('../src/levels/content.js');
@@ -218,8 +218,14 @@ test('the voice keeps step with the letters, and stage directions are silent', (
   assert.ok(p.syllables.length >= 4);
   assert.ok(p.syllables.every((s) => s.i >= '(She looks up.) '.length), 'nothing in brackets is voiced');
   for (let k = 1; k < p.syllables.length; k++) assert.ok(p.syllables[k].i >= p.syllables[k - 1].i && p.syllables[k].t >= p.syllables[k - 1].t);
-  assert.ok(Math.abs(p.syllables.at(-1).t - (p.syllables.at(-1).i - p.syllables[0].i) / p.cps) < 0.01, 'timed to the reveal');
-  assert.ok(p.cps > REVEAL_CPS * 0.6 && p.cps < REVEAL_CPS * 1.35);
+  // (the reveal follows the voice, issue #323: at each syllable's letter as it is said, the whole line once it is done)
+  for (const s of p.syllables) assert.ok(Math.abs(revealAt(p, s.t) - s.i) < 0.01, 'the reveal is at the letter being said');
+  assert.equal(revealAt(p, p.total), p.text.length);
+  for (let t = 0.01; t < p.total; t += 0.01) assert.ok(revealAt(p, t) >= revealAt(p, t - 0.01), 'and only goes on');
+  // (a voice speaking: some 4 to 8 syllables a second with its pauses, not the old 48 letters' chatter)
+  const rate = p.syllables.length / p.total;
+  assert.ok(rate > 3.5 && rate < 8.5, `${rate.toFixed(1)} syllables a second`);
+  assert.ok(p.cps > REVEAL_CPS * 0.25 && p.cps < REVEAL_CPS * 0.9, `${p.cps.toFixed(1)} letters a second`);
   const n = planLine('The panel wakes. A voice: *Odile’s log. Day ninety-one.*', { voice: AMA, lang: 'edena', narrator: true });
   assert.ok(n.syllables.length > 0 && n.syllables.every((s) => s.i > 'The panel wakes. A voice: '.length), 'a narrator voices only the quoted words');
   assert.equal(planLine('(leave)', { voice: AMA }).syllables.length, 0);
