@@ -1,0 +1,23 @@
+src/enemies/defeat.js
+  s_9ca76055a220ed::t_ae6388b0b21198 99-260
+src/foes.js
+  s_9ca76055a220ed::t_52ae0840ded15e 35,2373,3120-3121
+tests/foe-hit-defeat.test.js
+  s_9ca76055a220ed::t_b66d45889082e8 14,20,24,153-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0068e5c94099a675bddd5bced42f2f3107827d0d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
