@@ -177,11 +177,14 @@ export const LAYOUTS = {
   // v1.49: the Founders' Belfry's west store an arena. Past the Hall of Stones' door: its small key in it, the store won
   // v1.74 (issue #23's last round): the far door takes the great key, from the Ringers' Walk's ledge high in the Stone Stair.
   // Past the far door: the great key in it
+  // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the porch a room of its own, the
+  // antechamber too). A save that entered the house: taken to its last mark if it stood inside the old rooms (arzach2.js RELAID)
   arzach2: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d1', 'drum.ballS', 'lit.s1', 'open.d2', 'gadget', 'open.br1', 'boss'], set: { 'unlocked.d1': 1, 'found.kW': true, 'lit.arW': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
 };

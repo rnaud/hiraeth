@@ -83,6 +83,23 @@ reveal there), the story's lines, the two ways up from the gallery (the irises' 
 the great one, the pits, every vane's timing and every jump. A save that stood in the old rooms is taken to its last
 mark (`LAYOUTS.incal` v4; `runtime.js` does it for every house now).
 
+## The Founders' Belfry (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | 11 × 12 (the stores) to 22 × 34 m, the Stone Stair and the Bell Chamber round halls 18 and 20 m across | the stores **30 × 36**, the porch 36 × 28, the Hall of Echoes 36 × 50, the stair and the chamber **34 m** across, her hall 42 |
+| ceilings | 8 (the stores) to 15 m | **18 m** or more (the stair 28) |
+| doors | 4 to 5 m by 5.5 to 6.6 | **7 by 9** |
+| fights | a machine by every mark (the hub, the stair, the chamber, the porch, the Hall of Echoes, the antechamber, the walk) and the west store's arena | **the west store only**, its keepers round its middle |
+| threaded through doors | the Hall of Echoes' ball rolled onto a plate in the next room (`p3` the far side's) | the plate on the far lip, in the ball's room |
+| the rules broken | **40** | **0** |
+| the temple design audit | 4.22: structure 5, teach/test/twist 5, combination 4, non-obvious 4 (mean 2.75), decoupling 5, item 5, guardian 4, identity 2, curve 4; the great key's cage at 1.0 | 4.22: `LXBCRGGXXLK` (the chamber's north door for the whistle in hand, `dP`: 64 % like the Casting-House, 70 % before); non-obvious mean 2.94: the cage **1.5**, the founders' bell straight below the key's ledge, in sight and under 20 m |
+
+What it took beyond the Rose House's way: the upper house came down from 16 m to 8 (`UP`), so the walk's ledge is 16 m
+over the stair's floor (the key within 20 m of the bell it waits on) and still 8 over the landing; the Bell Porch and the
+antechamber became rooms of their own; her hall is measured by her hanging stones (`HallStones` carries her element's
+id: the rules measure a room by its mark or its element's pieces, and a guardian's hall has no mark).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -98,7 +115,7 @@ counts, and a house may not get worse). Ranked worst first:
 | Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
 | Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
-| Founders' Belfry (arzach2) | 40 | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
+| Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
 | Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
 | Footprint (spheres) | 36 | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |
 | Aerie (arzach) | 35 | 5 | 8 | 4 | 4 | 7 | 0 | 6 | 1 unmeasured |

@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.77 — 2026-10-14
 
+- The Belfry’s keepers wait only in the west store now, round its middle, the house’s one fight: no machine stands by its puzzles any more. From the great key’s ledge high in the Stone Stair you can now see the founders’ bell right below you. If you were inside the old Belfry, you start at its last glyph stone.
+- The Founders’ Belfry is rebuilt like a shrine too: its halls are far bigger and taller, its doors twice the size, and every puzzle stands in the middle of its own room. The east store’s ball rolls down the middle of the store; the founders’ bell hangs in the middle of the Stone Stair; the porch’s bell hangs in the middle of a room of its own; and the Hall of Echoes’ ball crosses the chasm to a plate on the far lip of the same hall.
 - When you win a temple’s arena, the house says so as its doors sink open: that line never showed.
 - The Warden’s Well’s machines no longer stand by its puzzles: they wait only in the Ash Store, round its middle among four columns. If you were inside the old tower you start at its last glyph stone.
 - The Warden’s Well is rebuilt like a shrine too: its rooms are far bigger and taller (the Climb and the tower’s drum over 34 m across, each floor of the drum 17 m high), its doors twice the size, and every puzzle stands in the middle of its room. The Turning Floors’ vane is on a pillar beside the island, the Vane Room’s on a post in its chasm, the two lidded eyes on pillars beside their great vanes, the loft’s ball on a raised walk, and the Flue’s little vane on a post by its draught, its great key on a pier.

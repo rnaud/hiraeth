@@ -851,6 +851,8 @@ const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this
 const SHRINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6436, at 9f1142fa7 (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Warden's Well's rooms, shot by hand before and after) */
 const SHRINE336W = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6441, at d56726fdb with the redesign rules (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72 (the Climb’s pair -q 64)';
+/** (v1.77, issue #336: the Founders' Belfry's rooms, shot the same way before and after) */
+const BELFRY336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6442, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -875,6 +877,16 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Warden’s Well’s machines no longer stand', shots: [
       { name: 'well-store', title: 'The Ash Store', caption: 'Before, a 16 by 14 m room, its keepers by the door; after, 30 m square, the house’s one fight round its middle among four columns', from: SHRINE336W },
+    ] },
+    { match: 'The Founders’ Belfry is rebuilt like a shrine', shots: [
+      { name: 'belfry-storeE', title: 'The east store', caption: 'Before, a store 11 m across, the ball’s groove along its north wall; after, 30 by 36 m under 18 m of stone, the groove down its middle to the plate', from: BELFRY336 },
+      { name: 'belfry-stair', title: 'The Stone Stair', caption: 'From its way in: before, a well 18 m across, the founders’ bell low by the wall; after, 34 m across, the bell and its ball in the middle of the floor, the landing round the north wall and the great stone hanging over it', from: BELFRY336 },
+      { name: 'belfry-porch', title: 'The Bell Porch', caption: 'Before, a 12 m room off the Bell Chamber; after, a hall of its own 36 m across, its bell hung in the middle, the held door 7 by 9 m', from: BELFRY336 },
+      { name: 'belfry-echoes', title: 'The Hall of Echoes', caption: 'Before, a keeper by the mark beside the ball, the plate in the next room’s floor; after, no machine, the ball in the middle of a hall 36 m across, its plate on the far lip of the same hall', from: BELFRY336 },
+    ] },
+    { match: 'The Belfry’s keepers wait only in the west store', shots: [
+      { name: 'belfry-storeW', title: 'The west store', caption: 'Through its archway: before, a small room, one keeper by the wall; after, the house’s one fight, its keepers round the middle of a hall 30 by 36 m, the small key at its far end', from: BELFRY336 },
+      { name: 'belfry-ledge', title: 'From the great key’s ledge', caption: 'Looking down from the ledge high in the Stone Stair: before, the founders’ bell far off by the wall; after, straight below the key, its ball beside it, the landing to drop onto', from: BELFRY336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
   ],

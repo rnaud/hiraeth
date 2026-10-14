@@ -344,6 +344,24 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   story's lines, the two ways up from the gallery, the keys and every vane's timing as they were. Old saves: one that
   stood in the old rooms is taken to its last mark (`migrate.js` incal v4; `runtime.js` reads `temple.<id>.relaid` for
   every house now). Temple design audit: 4.56 before and after.
+- **The Founders' Belfry as shrines** (v1.77, issue #336, after the Rose House). Every hall 36 m across (the stone stores
+  30 by 36, the Hall of Echoes 36 by 50), the Stone Stair and the Bell Chamber round halls 34 m across, her hall 42,
+  ceilings 18 m or more (`arzach2.js` `ROOMS`), doors 7 by 9 (`DOOR`); the upper house (the landing, the chamber, the
+  porch, the Hall of Echoes, her hall) on a floor 8 m up (`UP`, 16 before), so the Ringers' Walk's ledge (`RING.y` 16) is
+  16 m over the stair's floor and 8 over the landing. The props, the bridge's chasm (20 m), every groove's length and
+  every bell's hold as they were. Tagged rooms (`LOGIC.rooms` `kind`): the hub, the landing, the walk and the antechamber
+  are passages, the west store the one fight (`arW`, its keepers round its middle: the store's mark's `foes`), the rest
+  puzzles; the Bell Porch is a room of its own past the chamber's north door, which sinks for the whistle in hand (`dP`, as the Rose House's `dk`; `porch`, the bell `e1` hung in its middle),
+  the antechamber too (`ante`, between the far door `d4` and her hall). Each puzzle in the middle of its room: the east
+  store's groove down its middle; the founders' bell (`RING.bell`) and its ball in the middle of the stair's floor, the
+  landing a block round its north wall (`RING.landing`, the lift and the eye `s1` on its face); the Hall of Echoes' chasm
+  across its middle, the ball's plate `p3` on the far lip in the ball's own room (it was the far side's, `echoesFar`: a
+  ball rolled into another room). The great key's cage (`kB`) stands by the ledge's edge straight out from the founders'
+  bell, which it waits on: in sight below it and under 20 m (the temple design audit's last step at 1.0, two rooms off and
+  out of sight, is 1.5 now), the walk's mark in its doorway onto the ledge. Her hall is measured by her stones
+  (`HallStones`, her element's id). Old saves: one that stood in the old rooms is taken to its last mark (`migrate.js`
+  arzach2 v4, `arzach2.js` `RELAID`). Tests: `tests/temple-rules.test.js` (no rule broken), the on-foot walk in
+  `tests/temples.test.js`, the play-through, door-bypass, way-back, ball-room, zfight.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -702,10 +720,10 @@ The **Founders' Belfry** (`arzach2.js` `RING`): **a ring through both halves of 
 second**. Half-way over the Hall of Echoes a spur of the same stones runs off the bridge to a doorway in its west wall
 (`spur`, a bridge on `{ lit: 'e2' }`: the ball on the far plate holds the bridge for good, and nothing but the bell holds
 the spur: ring, and run). Through it the **Ringers' Walk** goes back south outside the house past the porch and the Bell
-Chamber, up a stair, and east through the Stone Stair's west wall (the stair 31 m high now) onto a ledge round its
+Chamber, up a stair, and east through the Stone Stair's west wall (the stair 28 m high since v1.77) onto a ledge round its
 north-west wall 8 m over the landing (out of any jump's reach from it or from the great stone). On it the great key, in a
 tall cage (`cageH`) whose top shows over the ledge's edge from the way into the stair at the start; it sinks only while
-the founders' bell at the stair's foot rings (`when: { lit: 'e0' }`), the bell the house's first ball strikes: with that
+the founders' bell in the middle of the stair's floor rings (`when: { lit: 'e0' }`), the bell the house's first ball strikes: with that
 ball still in its mouth it hears the whistle now from anywhere in the stair (`RING.hear`), so it is rung from the ledge,
 the first room's own bell met again from above. (The marker counts a caged key as waiting for what its `when` names.) A parapet runs along the ledge but where the landing is under it: drop onto
 the landing (a `oneWay` link), and climb the house again in its new state, the porch's bell rung, the bridge held by the

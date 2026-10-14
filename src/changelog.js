@@ -22,6 +22,12 @@ export const CHANGELOG = [
     'The Warden’s Well’s machines no longer stand by its puzzles: they wait only in the Ash Store, round its middle among four columns. If you were inside the old tower you start at its last glyph stone.',
     // the arena's won line (src/temples/runtime.js updateArenas: the doors let go the moment the last foe fell, before it was won)
     'When you win a temple’s arena, the house says so as its doors sink open: that line never showed.',
+    // the Founders' Belfry as shrines (issue #336): src/temples/arzach2.js (ROOMS, DOOR, UP, RING, LOGIC.rooms kinds, the
+    // porch and the antechamber rooms of their own, p3 in its ball's room, the layout); tests/temple-rules.test.js REDONE
+    'The Founders’ Belfry is rebuilt like a shrine too: its halls are far bigger and taller, its doors twice the size, and every puzzle stands in the middle of its own room. The east store’s ball rolls down the middle of the store; the founders’ bell hangs in the middle of the Stone Stair; the porch’s bell hangs in the middle of a room of its own; and the Hall of Echoes’ ball crosses the chasm to a plate on the far lip of the same hall.',
+    // (the machines only in the west store, round its middle: LOGIC.rooms kinds, Mark `foes`; the great key's ledge 16 m over
+    // the stair's floor, the founders' bell straight below it: RING.bell, RING.key; migrate.js arzach2 v4, RELAID)
+    'The Belfry’s keepers wait only in the west store now, round its middle, the house’s one fight: no machine stands by its puzzles any more. From the great key’s ledge high in the Stone Stair you can now see the founders’ bell right below you. If you were inside the old Belfry, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield
