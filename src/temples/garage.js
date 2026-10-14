@@ -491,7 +491,7 @@ function layout(rt) {
   // (v1.74, issue #23 round 6) the gallery's great pendulum, hung from a beam under the roof over the bridge's middle,
   // swinging along it: its bob sweeps low over the middle of the bridge and rises at either end of its swing. Cross under
   // it as it swings away, in its beat; met, it knocks you back along the bridge (it does not hurt)
-  K.both(brass, box(5.2, 0.6, 0.8, 0, GALLERY_BEAT.pivot + 0.5, F0 + 16));
+  K.both(brass, box(22.2, 0.7, 0.9, 0, GALLERY_BEAT.pivot + 0.55, F0 + 16));   // (wall to wall, across the oculus)
   add(Swing, { at: [0, GALLERY_BEAT.pivot, F0 + 16], len: GALLERY_BEAT.len, amp: GALLERY_BEAT.amp, period: GALLERY_BEAT.period, phase: 0.25, yaw: -Math.PI / 2,
     bob: 'disc', size: 1.1, gentle: true, knock: 7, room: 'gallery',
     rings: 'The brass bob rings under the splash and swings on. The great pendulum keeps the gallery’s beat: cross under it as it swings away.' });
