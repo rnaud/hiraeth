@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_b180af6e3ffe63 7
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_c7a866ae6335c9 299-301
+src/changelog-media.js
+  s_9ca76055a220ed::t_7f9d2fb56d0de2 809,819-821
+src/changelog.js
+  s_9ca76055a220ed::t_d9452d3cc2b8e0 34-35
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_acc57cd42d0c6f 12,979
+src/ship/exhaust.js
+  s_9ca76055a220ed::t_dbb035b13b7488 70-71,84,89-100
+src/ship/fx.js
+  s_9ca76055a220ed::t_4d5cfecaef1196 40,48-55,68-74
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_85486374a7cc01 9,565
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_fcffebd76d8b6b 232-261
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d0dd111c640c6e8af54805aca329ce5d1aa86e3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
