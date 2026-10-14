@@ -78,9 +78,17 @@ first half (mean 4.19 → 4.28). Left:
   node tests use stand-in keepers).
 - [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Identity 2 in the Undertower (70 % like the Casting-House) and the
   Lamp-House (67 % like the Whale-House): another shape for each.
-- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Three houses still keep the great key off their last puzzle hall
-  (the Greenhouse, the Undertower, the Lamp-House): a loop back to the first half, as the Hush-House, the Mooring-House and
-  the Clock-House now have.
+(Round 4, v1.60, moved those three houses' great keys back into the first half. Round 5, v1.74,
+docs/audits/temple-design-v1.74.md, gave the last three houses without a loop one each, each its own shape: the Aerie a
+circuit round its stack, the Belfry a ring back over its first half, the Well two ways up meeting at the crown; mean 4.32 →
+4.34.) Left:
+
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) Play round 5's routes by hand: the Eyrie's vent shaft down into the
+  Moult (the wings opened in the shaft), the Belfry's spur run and the Ringers' Walk, the Well's Flue ride.
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The Clock-House's identity 2 (67 % like the Aerie since round 5) and
+  the Aerie's obvious start (the wings to the high balcony, 5): a catch for the one, another run for the other.
+- [ ] [#23](https://github.com/rnaud/hiraeth/issues/23) The two 1.0 doors (the Clock-House's cupboard `dC`, the
+  Casting-House's sand door `dS`): a key in sight of each.
 
 # Carried over
 

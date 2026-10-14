@@ -822,6 +822,9 @@ const CORNERS322B = 'Issue #322, second look: muted headless Chrome (High, 1280 
 const FROM264 = 'The Retroid Pocket Nova’s screen (adb screencap), the Unity preview: before, the testers’ build of main (v1.72, build 2229); after, this branch’s (14 October)';
 /** (v1.74, issue #348: the Retroid's own frame in headless Chrome, 640 × 480 CSS px at 2×, Handheld held at 0.75) */
 const WISPS348 = 'Issue #348: muted headless Chrome at the Retroid’s frame (640 × 480 CSS px at 2×, Handheld, render scale held at 0.75: 960 × 720 render pixels), the Desert at 10:00, clear, the gusts held strong and the same random numbers for both, against this branch’s own Vite (port 6348) before and after the change; the lower part of the frame, 14 October; cwebp -q 72';
+// (v1.74, issue #23's last round: the three houses' loops, shot by hand in muted headless Chrome against this branch's Vite and
+// the tree before it, the same view of each, the traveller out of frame)
+const LOOPS74 = { from: 'scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720), Vite on port 6423, at origin/main 2aa3f356 (before) and this branch (after), 14 October' };
 export const CHANGELOG_MEDIA = {
   '1.74': [
     { match: 'No rain falls inside your ship any more in the Unity version', tags: ['ship', 'devices'],
@@ -829,6 +832,21 @@ export const CHANGELOG_MEDIA = {
     { match: 'The wisps of sand the wind blows across the Desert are light pen strokes', tags: ['desert', 'devices'], shots: [
       { name: 'wisps-retroid', title: 'The wind on the dunes, at the Retroid’s frame', caption: 'Before, the far wisps on the dune were broad black smears, two and a half render pixels of full ink; after, thin pointed strokes of lighter ink, about a pixel wide, as a big screen draws them.', from: WISPS348 },
     ] },
+    { match: 'In the Aerie the Moult is entered from above now', shots: [
+      { name: 'aerie-eyrie', title: 'The Eyrie’s gap', caption: 'Looking down from over the gap: before, all of its floor the pit’s dark; after, the vent at its foot a round shaft with a kerb, its light the Moult’s below: still while the stone sits in its throat, a way down', ...LOOPS74 },
+      { name: 'aerie-moult', title: 'The Moult', caption: 'Looking up from its floor: before, a small square opening onto the dark; after, the foot of the vent’s shaft in its roof, where you come down into the fight', ...LOOPS74 },
+    ], see: 'In the Aerie, with the wings, go round the ledge into the Eyrie and leave its stone where it starts: drop into the vent at the gap’s foot, open your wings in the shaft, and you land in the Moult. Win, and its door opens onto the Wind Well’s floor.' },
+    { match: 'In the Founders’ Belfry the far door takes a great key now', shots: [
+      { name: 'belfry-echoes', title: 'The Hall of Echoes', caption: 'Across the chasm from the near ledge: before, its west wall bare; after, a doorway in it half-way over, where the bell brings down a spur off the bridge', ...LOOPS74 },
+      { name: 'belfry-walk', title: 'The Ringers’ Walk', caption: 'In through the doorway: the walk back south outside the house, its stair at the far end up to the Stone Stair', only: 'after', ...LOOPS74 },
+      { name: 'belfry-ledge', title: 'The ledge in the Stone Stair', caption: 'At the walk’s end, high over the landing: the parapet, the gap in it over the landing, and the great key’s tall cage', only: 'after', ...LOOPS74 },
+    ], see: 'In the Founders’ Belfry, with the whistle, ring the bell at the Hall of Echoes’ near edge and run half-way over: the spur goes west to a doorway. Follow the walk round to the ledge in the Stone Stair and whistle there: the founders’ bell far below booms and the cage sinks.' },
+    { match: 'In the Warden’s Well a second way climbs to the crown', shots: [
+      { name: 'well-gallery', title: 'The Lamp Gallery', caption: 'Looking west across its floor: before, the round wall; after, the doorway into the Flue under the west shelf', ...LOOPS74 },
+      { name: 'well-flue', title: 'The Flue', caption: 'Looking up from its floor: the ledge half-way up on its corbel, the little vane in its blue ring on the far wall, the crown’s doorway near the top', only: 'after', ...LOOPS74 },
+      { name: 'well-crown', title: 'The crown', caption: 'Looking west past the open iris: before, the wall; after, the doorway in from the Flue', ...LOOPS74 },
+    ], see: 'In the Warden’s Well, with the bellows, go west through the Lamp Gallery’s new doorway into the Flue. Splash the little vane high on its wall and ride the draught; get off at the ledge for the great key, splash the vane again and ride on up into the crown.' },
+    { match: 'Past the riders’ gate on Vael, the stones that rise under you are solid again', see: 'On Vael, go past the riders’ gate onto the stones over the cloud and stand on the first one that rises: it lifts you to the next instead of letting you fall through.' },
   ],
   '1.73': [
     { match: 'On the Steam Deck the Unity version is now called “Hiraeth (Unity)”', see: 'On the Steam Deck, open the library’s Non-Steam collection, or the desktop’s application menu, after the game has updated once with Steam closed: the Unity version reads “Hiraeth (Unity)”, its icon and pictures carry a dark UNITY plate, and the game itself is plain “Hiraeth”.' },
