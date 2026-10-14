@@ -50,10 +50,22 @@ let seed = 12345;
 Math.random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const sys = foeSystem();
 const full = new Map(), half = new Map();
+// (issue #287: a pack's unison whatever order the kinds are walked in. The order only moves the serial each rig takes
+// its first stance from (src/motion-kit/gait.js init), so each kind's pack is walked after 0-3 others were made: the
+// heron walked fifth read 0.96, seventh 0.27, before the golden spread)
+const KINDS = [...new Set(SUBJECTS.map((s) => s.id.split('@')[0]))], packs = new Map();
 try {
   for (const s of SUBJECTS) {
     full.set(s.id, foeSubject(sys, s.id, s.legs, { pack: true }));
     half.set(s.id, foeSubject(sys, s.id, s.legs, { pace: 0.5 }));
+  }
+  for (const kind of KINDS) {
+    const legs = SUBJECTS.find((s) => s.id === kind).legs, us = [];
+    for (let k = 0; k < 4; k++) {
+      for (let j = 0; j < k; j++) sys.remove(sys.add(kind, new THREE.Vector3(0, 0, -50)));
+      us.push(foeSubject(sys, kind, legs, { pack: true }).unison);
+    }
+    packs.set(kind, us);
   }
 } finally { Math.random = rnd; }
 sys.dispose();
@@ -70,9 +82,13 @@ for (const s of SUBJECTS) {
     else assert.deepEqual(r.groups, s.groups, 'gait groups');
     assert.ok(h.cadence < r.cadence * 0.85, `cadence follows the speed: ${h.cadence.toFixed(2)} at half against ${r.cadence.toFixed(2)}`);
     assert.ok(h.slidePerMetre < 0.05, `at half speed too: ${h.slidePerMetre.toFixed(3)}`);
-    assert.ok(r.unison < 0.9, `two of a kind step in unison: ${r.unison.toFixed(2)}`);
+    assert.ok(r.unison < 0.5, `two of a kind step in unison: ${r.unison.toFixed(2)}`);
   });
 }
+
+test('a pack is never in step by chance: two of a kind out of step whatever order they are made in (#287)', () => {
+  for (const [kind, us] of packs) assert.ok(us.every((u) => u < 0.5), `${kind}: unison ${us.map((u) => u.toFixed(2)).join(', ')} with 0-3 foes made before`);
+});
 
 test('a wind-up on the kit: the feet brace and then hold, the body sits back against the strike, then snaps through (the crab’s snap, the machine’s slam, the tripod’s beam, the hound’s pounce)', () => {
   const sys = foeSystem();

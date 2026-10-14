@@ -574,7 +574,8 @@ guardian run (`.claude/skills/combat-review/guardian.mjs`, the fight's own code 
   and no sun reaches its floor, so nothing grounded it. A contact shadow of the floor's colour darkened (the temple's
   palette) lies under its body (following its body bone) and under each foot (shrinking as it lifts); `model.shadow`
   sizes it.
-- **Its walk and its turns** (`keeper-creature.js` `KEEPER_GAIT`; issue #287): lift 0.49 m (was 0.26), 1.13 steps a
+- **Its walk and its turns** (`keeper-creature.js` `KEEPER_GAIT`; issue #287): lift 0.55 m, 17 % of the leg (was 0.26; 0.49
+  in v1.69), a reach span of 21 % (16 %), 1.13 steps a
   second at 2.2 m/s (0.75), strides of 2 m (2.9), the shell rising and falling 0.17 m (0.08) and rolling 4° over the feet
   that carry it; it turns no faster than `turnRate` (1.5 rad/s, `Guardian.turnTo`; it turned up to 15 when it faced you),
   so its feet step it round on the spot (a foot dragged 0.2 m before). `tests/keeper-fairness.test.js`.

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.71 — 2026-10-13
 
+- Creatures of a kind that wake together no longer march in step like soldiers: each sets off on its own foot. The Cistern-Keeper lifts its feet a little higher as it walks.
 - The guardians that float, the Cloud-Mother, the Lampless, the Echo and the Elder in flight, have a shadow on the floor under them, smaller the higher they hang, so you can tell where they are over you. The machines’ lit eyes cast shadows too. Every guardian now opens up in each part of its fight: the Mother Snapper hangs her head after spitting a seed, and the Cloud-Mother gasps a moment in her last phase (a ring of the bell then calms her a little; the held stone still calms her most).
 - The Elder is drawn in the same ink as the rest of the world: a full black outline instead of a faint line in her own colour that made her look pasted on.
 - Locked on any guardian, you are locked on its weak point: the warden’s vent, the Elder’s beak, the Foreman’s face, the Last Founder’s heart, where your shots count, instead of the middle of its body.

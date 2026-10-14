@@ -19,8 +19,9 @@ await addGeneratedSkins();
 
 const WALKERS = [
   { id: 'keeper', n: 6, groups: [[0, 3, 4], [1, 2, 5]] },
-  // (the Rose House's Tripo skin, issue #267: one foot at a time at a walk, its tripods at the fight's 2.2 m/s)
-  { id: 'keeper (generated)', n: 6, groups: [[0, 3, 4], [1, 2, 5]] },
+  // (the Rose House's Tripo skin, issue #267: one foot at a time at a walk, its tripods at the fight's 2.2 m/s; #287:
+  // it shuffled, a lift of 8 % of the leg and a reach span of 16 %: now held to the procedural body's)
+  { id: 'keeper (generated)', n: 6, groups: [[0, 3, 4], [1, 2, 5]], reach: 0.2, lift: 0.12 },
   { id: 'gardener', n: 4, groups: [[0, 2], [1, 3]] },
   { id: 'foreman', n: 4, groups: [[0, 2], [1, 3]] },
   { id: 'sentinel', n: 3, groups: [[0], [1], [2]] },
@@ -37,8 +38,8 @@ for (const W of WALKERS) {
     assert.equal(full.legsN, W.n);
     assert.ok(full.slidePerMetre < 0.05, `slide ${full.slidePerMetre.toFixed(3)} m/m`);
     assert.ok(full.worstSlide < 0.1, `worst contact ${full.worstSlide.toFixed(3)} m`);
-    assert.ok(full.reachShare > 0.15, `reach span ${(full.reachShare * 100).toFixed(0)} % of the leg`);
-    assert.ok(full.liftShare >= 0.06, `lift ${(full.liftShare * 100).toFixed(0)} % of the leg`);
+    assert.ok(full.reachShare > (W.reach ?? 0.15), `reach span ${(full.reachShare * 100).toFixed(0)} % of the leg`);
+    assert.ok(full.liftShare >= (W.lift ?? 0.06), `lift ${(full.liftShare * 100).toFixed(0)} % of the leg`);
     assert.ok(full.knee.mean > 30 && full.knee.least > 20, `knees bend ${full.knee.mean.toFixed(0)}° (least ${full.knee.least.toFixed(0)}°): a bend under 20° does not read in ink`);
     assert.deepEqual(full.groups, W.groups);
     assert.ok(half.cadence < full.cadence * 0.85, `cadence ${full.cadence.toFixed(2)} → ${half.cadence.toFixed(2)} steps/s at half speed`);

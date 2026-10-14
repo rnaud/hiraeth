@@ -44,10 +44,10 @@ function shellGlyphs(mesh,body,material){
  * its feet 0.2 m. Now shorter, quicker, higher steps (drift, height, stepTime: in leg lengths and s), the shell riding
  * them on softer springs (bob, the springs' damping z), rolling over the feet that carry it (`roll`, rad per m of
  * sway), and a planted foot steps again sooner after a turn (maxStance). Slow, one foot at a time; at the fight's pace
- * (fast.at m/s) the tripods.
+ * (fast.at m/s) the tripods. (height 0.17, was 0.15: a reach span of 21 % of the leg, 19.5 % at 0.15; #287)
  */
 export const KEEPER_GAIT={
- gait:{gait:'independent',fast:{gait:'alternate',at:1.4},arc:'flowing',duty:.78,drift:.17,reach:.6,height:.15,stepTime:[.24,.4],maxStance:1},
+ gait:{gait:'independent',fast:{gait:'alternate',at:1.4},arc:'flowing',duty:.78,drift:.17,reach:.6,height:.17,stepTime:[.24,.4],maxStance:1},
  body:{bob:.03,sway:.25,spring:{f:1.8,z:.55,r:0},height:{f:2.2,z:.5,r:0}},
  roll:.3,
  // (rad/s: the fastest it turns, src/temples/boss.js Guardian.face: past this its feet could no longer step it round)

@@ -58,6 +58,22 @@ export const CHANGELOG = [
     // open; arzach2.js MOTHER_GASP
     { text: 'The guardians that float, the Cloud-Mother, the Lampless, the Echo and the Elder in flight, have a shadow on the floor under them, smaller the higher they hang, so you can tell where they are over you. The machines’ lit eyes cast shadows too. Every guardian now opens up in each part of its fight: the Mother Snapper hangs her head after spitting a seed, and the Cloud-Mother gasps a moment in her last phase (a ring of the bell then calms her a little; the held stone still calms her most).',
       see: 'In the Cloud-Mother’s hall, look down under her as she swims.' },
+    // creature motion (issue #287): src/characters/keeper-creature.js KEEPER_GAIT height; src/motion-kit/gait.js init
+    // (the first stance from the serial, kept until the foe moves); docs/systems/procedural-animation.md "Packs out of step"
+    { text: 'Creatures of a kind that wake together no longer march in step like soldiers: each sets off on its own foot. The Cistern-Keeper lifts its feet a little higher as it walks.',
+      tags: ['combat'],
+      numbers: [{ title: 'Two of a kind walking side by side: how in step (1 is in step)', unit: '', better: 'lower', device: 'node, scripts/motion-audit/run.mjs --pack, each pair walked after 0-15 others were made, the worst of sixteen', rows: [
+        { where: 'the furnace brute', before: 0.97, after: 0.00 },
+        { where: 'the root knot', before: 0.95, after: -0.16 },
+        { where: 'the bell walker', before: 0.90, after: -0.15 },
+        { where: 'the lamp tripod', before: 0.86, after: 0.25 },
+        { where: 'the shade', before: 0.85, after: 0.36 },
+        { where: 'the stilt heron', before: 0.84, after: -0.21 },
+      ], source: 'node scripts/motion-audit/run.mjs --pack (docs/systems/procedural-animation.md, “Packs out of step”)' },
+      { title: 'The Cistern-Keeper’s walk, on its skin', unit: '% of its leg', better: 'higher', device: 'node, scripts/motion-audit/run.mjs \'keeper (generated)\', 2.2 m/s', rows: [
+        { where: 'how high a foot lifts', before: 15, after: 17 },
+        { where: 'how far the leg stretches and folds', before: 19.5, after: 21 },
+      ], source: 'node scripts/motion-audit/run.mjs \'keeper (generated)\'' }] },
   ] },
   { v: '1.70', date: '2026-10-13', items: [
     // ways through lit (issue #305): src/thresholds.js (washes, src/veil.js), every portal's `door`, main.js; the step

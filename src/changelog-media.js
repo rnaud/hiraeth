@@ -794,6 +794,9 @@ const FRAG317 = 'headless Chrome (muted, High, 1280 × 720, 11:00, clear) agains
 const STRAP303 = 'Issue #303: muted headless Chrome against this branch’s own Vite (port 6303), the Character studio’s Bracer view on the B3 traveller with the backpack (idle paused at 0.5 s, no wind, the camera on the bracer) from his left, the front and behind, before and after the change; 13 October; cwebp -q 72';
 // (v1.70, issue #304: a scratch shooter against this branch's own Vite (port 6303), the foes' code before the change for the before)
 const DEFEAT304 = 'Issue #304: muted headless Chrome (High, 1280 × 720, 10:00, clear) against this branch’s own Vite (port 6303), the game stepped 1/60 s a frame: three foes placed side by side and cut down at once, the frame held 0.95 s into the lizard’s defeat (the crab 77 %, the lizard 96 %, the toad 87 % of the way), the camera pinned 9.5 m off; the before with the foes’ code as it was (333fe4b2); 13 October; cwebp -q 72';
+// (v1.71, issue #287: a scratch shooter on tools/keeper-review.html against this branch's own Vite (port 6287), the before
+// with the Keeper's gait and the kit's planner as they were)
+const KEEPER287 = 'Issue #287: muted headless Chrome against this branch’s own Vite (port 6287), the Keeper’s review page (tools/keeper-review.html) in game ink, side on, its walk from 4 s, eight frames a quarter of a second apart; the before with its gait and the planner as they were; 13 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.71': [
     { match: 'The warden and the Elder fight fairly', tags: ['combat', 'temples'], shots: [
@@ -808,6 +811,9 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The guardians that float', tags: ['temples'], shots: [
       { name: 'guardians-mother-shadow', title: 'The Cloud-Mother’s shadow', caption: 'Her hall has no sun: before, nothing on the floor under her; after, a shadow under her body.', from: GUARD319 },
+    ] },
+    { match: 'Creatures of a kind that wake together no longer march in step', shots: [
+      { name: 'keeper-walk', title: 'The Cistern-Keeper walking', caption: 'Its skin walking, side on, two seconds a quarter at a time: after, each foot clears the floor a little higher as it steps (0.55 m, was 0.49).', from: KEEPER287 },
     ] },
   ],
   '1.70': [

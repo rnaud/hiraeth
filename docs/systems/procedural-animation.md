@@ -429,7 +429,7 @@ Costs are rough working sessions for one agent, including tests and docs.
 |---|---|
 | `spring.js` | `SecondOrder` (t3ssel8r's f / ζ / r with the k2 stability clamp), `SecondOrderAngle`, `SecondOrder3`, `expDamp`, `quantise`, `deadband` |
 | `ik.js` | `twoBone(hip, target, lenA, lenB, pole, outKnee, outEnd)`: the pole is fixed to the body, so a straight leg never flips; out of reach it stops just short on the line to the target. `fabrik` for 3+ joints; `aim` points a segment modelled along +Y from joint to joint; `aimIn` does too and turns it about its length so its +Z lies toward a side (a bowed segment's bend plane) |
-| `gait.js` | `layoutLegs` sorts feet into sides and rows and gives the groups (alternate: a tripod on 6, tetrapods on 8, diagonals on 4; wave: one at a time on 3; lateral) and each foot's neighbours. `GaitPlanner`: homes in the body's frame, drift and stance-time triggers, a group lifts only when every other foot is down (most urgent first, groups take turns), the swing shortened so no waiting foot is dragged past its reach, landings a part of a stride past home (re-aimed in the first 60 % of the swing), organic (rise, then smootherstep) or machine (lift, translate, drop) arcs, one ground ray per step, touchdown events, a seeded per-foe phase and stride, the wind-up's brace and lock (`setStance`), and the far tier's canned cycle by distance walked |
+| `gait.js` | `layoutLegs` sorts feet into sides and rows and gives the groups (alternate: a tripod on 6, tetrapods on 8, diagonals on 4; wave: one at a time on 3; lateral) and each foot's neighbours. `GaitPlanner`: homes in the body's frame, drift and stance-time triggers, a group lifts only when every other foot is down (most urgent first, groups take turns), the swing shortened so no waiting foot is dragged past its reach, landings a part of a stride past home (re-aimed in the first 60 % of the swing), organic (rise, then smootherstep) or machine (lift, translate, drop) arcs, one ground ray per step, touchdown events, a per-foe first stance from its serial (the golden ratio; the parity on two groups) kept until it first moves and a seeded stride (±3 %), the wind-up's brace and lock (`setStance`), and the far tier's canned cycle by distance walked |
 | `body.js` | `BodyFromFeet`: height from the feet on the ground, pitch and roll from their plane, a dip while a group is up (deepest mid-swing), sway over the planted feet, lean into acceleration, bank into turns, all through springs |
 | `pose.js` | `PoseBlend`: a plan's rest / coil / strike / recover / hurt poses (and `coil:<attack>`, `strike:<attack>`); the coil builds with the telegraph's own timing (`coilK`: complete at `POSE_DONE` of src/telegraph.js, then held); the wind-up locks the feet and widens their homes; the strike is on a fast underdamped spring (overshoot), the recovery on a soft one; machines' yaw is quantised |
 | `rig.js` | `jointedLeg` / `planLeg` build a leg as a hip pivot on the body and a chain (thigh, shin, foot, an optional telescoping piston) hung from the model's root, so the feet stay planted while the body moves. A leg's `bow` (`{ thigh, shin }`, a share of each segment's length: `bowedGeometry`) bows its segments out toward the knee's side, and `write()` turns them into the leg's own bend plane each frame (`aimIn`, the side from the hip-to-foot line's middle to the knee): the skitters' curved bony legs. `Rig`: one `update(f, dt, ctx)` per foe (pose, planner, body; returns the body's offsets) and `write()` (IK from the drawn hip to the planted foot, segments aimed; the feet hang or tuck from the body when `ctx.air`). Tiers by distance and view (near ≤ 25 m; mid ≤ 60 m: the planner every 2nd frame; far: the canned cycle, IK and body springs one frame in four; off, out of view: nothing solved), held 30 frames (`TierHold`); the stepped clock (a plan's `stepped: 12`: the machines'); since phase 7, "Phase 7, LOD and style" |
@@ -727,6 +727,41 @@ lag and overshoot read as life), and so do the guardians (a held pose on a body 
 `tests/motion-lod.test.js` holds the view, the tiers (held, but at once back into view), out of view solving nothing, the
 far tier's one frame in four, the stepped clock holding the root and legs with the feet planted from tick to tick and a
 strike on ones, and the three machines still walking on planted feet.
+
+### Packs out of step, and the cost against v1.40 (v1.71, issue #287)
+
+A pack fell in step by chance: `GaitPlanner.init` took each foe's first stance from its seeded random, so two of a kind
+made one after the other could start in phase, and a foe standing at its spawn brought every foot home with a settling
+step, the stagger with it. Now the first stance comes from the seed (a rig's serial) times the golden ratio's fraction;
+on two groups (bipeds, trotters, the crab's and the skitter's tripods), which settle into one of two rhythms whichever
+foot leads, the serial's parity puts neighbours half a cycle apart and the golden ratio spreads them ±4 % round it. The
+stance stands until the body first moves or its homes change (`fresh`; each foot put on the ground under it at once), and
+the stride's spread is ±3 % (±6 % beat a pair into step within a
+few strides). `run.mjs --pack`, each kind's pack walked after 0-15 others were made (the order only moves the serial),
+the worst unison of sixteen:
+
+| | crab | lizard | hound | tripod | heron | skitter | rootknot | brute | bell | shade | machine |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| before | 0.62 | 0.38 | 0.61 | 0.86 | 0.84 | 0.45 | 0.95 | 0.97 | 0.90 | 0.85 | 0.78 |
+| after | -0.19 | 0.37 | -0.12 | 0.25 | -0.21 | 0.36 | -0.16 | 0.00 | -0.15 | 0.36 | -0.17 |
+
+(the centipede -0.39 and the toad 0.12 both times). `tests/motion-plans.test.js` walks every kind's pack after 0-3
+others, unison under 0.5. `gaitGroups` (metrics.mjs) reads legs swinging 0.8 alike as one group (was 0.9): the
+skitter's middle legs lift in the frame their tripod does but swing 0.87 alike, a group of their own one start in two.
+
+The cost: `cost.mjs` run back to back with v1.40's tree (an archive of the tag with its own cost.mjs), four rounds, the
+Mac M4 Pro at load 10-18 (the review's 1.3 µs a leg for the shade was a busy machine, load 7-50):
+
+| µs | v1.40 | now |
+|---|---|---|
+| the shade, a leg (10 near) | 0.90-0.93 | 0.89-0.95 |
+| the heron, a leg | 0.78-0.89 | 0.77-0.83 |
+| the lizard, a leg | 0.56-0.64 | 0.63-0.72 |
+| mixed, 10 near + 30 far, a frame | 55.8-65.6 | 58.9-67.8 |
+| a pack of 8 near + the Keeper, a frame | 29.4-32.9 | 29.8-32.2 |
+
+Every kind at or under 1 µs a leg; the mixed scene within the runs' spread of v1.40 (the review's 92-95 and Phase 7's 71
+were the machine's load, not the kit).
 
 ## Measuring
 

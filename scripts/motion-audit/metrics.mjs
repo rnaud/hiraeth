@@ -80,9 +80,11 @@ export function correlation(a, b) {
  * way walked, `dir` [x, z]; correlation over `same`) fall in one group (leg indices). Heights would not do: a
  * pendulum leg lifts its foot at both ends of its swing, so two legs half a cycle apart have the same heights.
  * A tripod gait on six legs gives two groups of alternating legs; all left legs in one group and all right in
- * the other is the "each side in phase" error. A leg that never swings is a group of its own.
+ * the other is the "each side in phase" error. A leg that never swings is a group of its own. (`same` 0.8: the
+ * skitter's middle legs lift in the frame their tripod does but swing 0.87 alike, read as a group of their own at
+ * 0.9 one start in two; #287)
  */
-export function gaitGroups(feet, hips, dir = [0, 1], same = 0.9) {
+export function gaitGroups(feet, hips, dir = [0, 1], same = 0.8) {
   const l = Math.hypot(dir[0], dir[1]) || 1, dx = dir[0] / l, dz = dir[1] / l;
   const xs = feet.map((f, k) => f.map((p, i) => (p[0] - hips[k][i][0]) * dx + (p[2] - hips[k][i][2]) * dz));
   const groups = [], seen = new Set();

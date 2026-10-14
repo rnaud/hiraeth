@@ -18,6 +18,8 @@ import * as THREE from 'three';
 const smoother = THREE.MathUtils.smootherstep, clamp = THREE.MathUtils.clamp;
 const _h = new THREE.Vector3(), _t = new THREE.Vector3();
 
+const GOLDEN = 0.6180339887498949;   // (the golden ratio's fraction: the most even spread of n, n+1, n+2 … over a cycle)
+
 /** A small seeded random (mulberry32): the same foe steps the same way every run; two foes differ. */
 export function seeded(seed) {
   let a = (seed >>> 0) || 1;
@@ -79,7 +81,7 @@ export function layoutLegs(homes, gait) {
  *   reach      the farthest a planted foot may fall from home before it lifts whatever the groups say (m)
  *   maxStance  a foot that has stood this long and drifted at all steps (s): it settles after a turn
  *   seed       per foe: the stagger of its first stance and a few per cent on its stride, so a pack never
- *              steps in unison
+ *              steps in unison (the rigs pass their serial: see init)
  */
 export class GaitPlanner {
   constructor({ homes, gait, groups, neighbours, drift = 0.3, stepTime = [0.12, 0.4], height = 0.1, arc = 'organic', reach, maxStance = 2.5, seed = 1, fast = null } = {}) {
@@ -91,8 +93,9 @@ export class GaitPlanner {
     // six-legged walker's one-at-a-time steps at a walk, its tripods at the fight's pace (an insect's own change)
     if (fast) { const f = layoutLegs(homes, fast.gait); this.layouts = { slow: { groups: this.groups, neighbours: this.neighbours, gait: this.gait }, fast: { groups: f.groups, neighbours: f.neighbours, gait: f.gait }, at: fast.at }; this.pace = 'slow'; }
     const rnd = seeded(seed);
-    this.rnd = rnd;
-    this.drift = drift * (0.94 + rnd() * 0.12);
+    this.rnd = rnd; this.seed = seed;
+    // (±3 % on the stride: ±6 % beat a pack of two into step within a few strides, the heron's unison 0.72; #287)
+    this.drift = drift * (0.97 + rnd() * 0.06);
     this.reach = reach ?? this.drift * 1.7;
     this.stepTime = stepTime; this.height = height; this.arc = arc; this.maxStance = maxStance;
     this.spread = 1; this.locked = false; this.pending = null;
@@ -122,19 +125,30 @@ export class GaitPlanner {
   /**
    * Plant every foot near its home, each group at its own point of the stride (spread evenly over a cycle, from
    * a point chosen by the seed), so the groups start out of step with each other and a pack out of step too.
+   * The point comes from the seed (a rig's serial), not its random (issue #287: two foes made one after the other
+   * could start nearly in phase, a pack's unison 0.97): the seed times the golden ratio's fraction, so neighbours
+   * start 0.38 of a cycle apart and no run of serials bunches up. Two groups (a biped, a trotter, a tripod's two
+   * tripods) settle into one of two rhythms, whichever foot leads: there the serial's parity puts neighbours half a
+   * cycle apart (on the golden spread one neighbour pair in four led with the same foot, the brute's unison 0.90) and
+   * the golden ratio spreads them ±4 % round it. The stance stands until the body first moves (`fresh`: no settling
+   * step before that), or a foe standing at its spawn would bring every foot home and the stagger with it.
    */
-  init(root, heading) {
-    const n = this.groups.length, u = this.rnd();
+  init(root, heading, ground = null) {
+    const n = this.groups.length, g = (this.seed * GOLDEN) % 1;
+    const u = n === 2 ? ((this.seed % 2) * 0.5 + (g - 0.5) * 0.08 + 1) % 1 : g;
     const s = Math.sin(heading), c = Math.cos(heading);
     for (const f of this.feet) {
       const phase = (f.group / n + u) % 1;
       const off = this.drift * 0.85 * (1 - 2 * phase) + (this.rnd() - 0.5) * this.drift * 0.1;
       this.homeOf(f, root, heading, f.pos);
       f.pos.x += s * off; f.pos.z += c * off;
-      f.planted = true; f.t = 0; f.stood = this.rnd() * this.maxStance * 0.5;
+      // (on the ground under it: the stance stands until it moves, so no settling step puts it there; not in `rays`)
+      const y = ground ? ground(f.pos.x, root.y + 1.5, f.pos.z) : null;
+      if (Number.isFinite(y)) f.pos.y = y + f.home.y;
+      f.planted = true; f.t = 0; f.stood = this.rnd() * this.maxStance * 0.5; (f.home0 ??= new THREE.Vector3()).copy(f.home);
     }
     this.heading = heading;
-    this.ready = true;
+    this.ready = true; this.fresh = true;
   }
 
   /** Plant every foot where it is now (after a hop, a tuck or a fall), at the root's height. */
@@ -175,7 +189,7 @@ export class GaitPlanner {
    */
   update(dt, root, heading, vel, ground) {
     const ev = this.events; ev.length = 0;
-    if (!this.ready) this.init(root, heading);
+    if (!this.ready) this.init(root, heading, ground);
     if (this.cannedLast) { for (const f of this.feet) { f.planted = true; f.t = 0; f.pos.y = root.y + f.home.y; } this.cannedLast = false; }
     let turn = Math.atan2(Math.sin(heading - this.heading), Math.cos(heading - this.heading)) / Math.max(dt, 1e-4);
     if (!(dt > 0)) turn = 0;
@@ -220,6 +234,9 @@ export class GaitPlanner {
       feet.forEach((f, i) => { if (f.planted && f.drift > off) this.pending.add(i); });
     }
     const moving = speed > 0.08 || Math.abs(turn) > 0.3;
+    // (a new home, the dog sitting down: the stance is no longer the first one)
+    if (moving || (this.fresh && feet.some((f) => !f.home.equals(f.home0)))) this.fresh = false;
+    else if (this.fresh && !this.locked) return ev;   // (the first stance stands until it moves: see init)
     const threshold = moving ? this.drift : this.drift * 0.35;   // (stopped: a settling step brings a foot home)
     const dur = this.locked ? this.stepTime[0] : this.swingTime(speed);   // (a brace is quick: done well before the pose holds)
     if (changing || (!independent && swinging >= 0)) return ev;
