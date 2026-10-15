@@ -6,9 +6,9 @@ import { paint } from '../kit.js';
 // ---------------------------------------------------------------------------
 // The Warden's Well in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of the
 // makers' tower redrawn after the author's picks (references/temples/future/wardens-well/sheet-1.jpg, sheet-2.jpg): a
-// shaft of dark slate built of stacked rings of chamfered slabs, thin cyan circuits climbing it, cream stone ledges and
-// courses, lens terminals in deep housings, great flat vanes turning on axles from the wall, a metal iris round the
-// light at the top. Look only: the same rooms, doors, collision, pieces, positions, timings and logic (skins/index.js;
+// shaft of dark slate built of tall curved courses of big smooth panels, few joints, thin cyan circuits climbing it,
+// lavender-grey floors, cream courses, lens terminals in recessed alcoves, many great wedge vanes turning on axles from
+// the wall, a metal iris round the light at the top. Look only: the same rooms, doors, collision, pieces, positions, timings and logic (skins/index.js;
 // tests/temple-skins.test.js).
 //   1. surfaces: the wall, the makers' marked metal (doors, the climb's face, the irises' blades: wallGlyph) and the floor
 //      swapped for the skin's: the surface shader with its albedo, its first pen lines and its glow replaced, as
@@ -17,12 +17,13 @@ import { paint } from '../kit.js';
 //      frame (uSkObj), so it moves with them.
 //   2. the glow: the circuits, the ring bands, the floors' inlays, the doors' seams are emissive in cyan (bloom carries
 //      them: post.js reads gHatch.a), breathing slowly up the shaft; the light panels, the vanes' rings, the glyphs too.
+//      Every light just over the post pass's halo start (0.62: WELL.emit), so the slits and lines stay crisp, no blobs.
 //   3. dressing, drawn only (InstancedMeshes: noCollide, keepBuried, dynamic, out of the shadow passes): lens terminals
-//      in deep housings high on the walls (none in a room with an eye to strike), great flat vanes turning on axles out
-//      of the tall drums' walls, a metal iris of blades and a glowing rim round each round room's oculus. Kept off every
-//      doorway, piece and thing drawn on the walls by boxes.
+//      in recessed alcoves over head height (none in a room with an eye to strike), tiers of great wedge vanes turning on
+//      axles out of the tall drums' walls, a metal iris of blades and a glowing rim round each round room's oculus. Kept
+//      off every doorway, piece, post, block, draught (the flight's air) and thing drawn on the walls by boxes.
 // On Low, Handheld and the Deck (uWearLite) the shader leaves out the slabs' tones and chamfers and the circuits' jogs,
-// and the vanes stand still.
+// and only half the vanes are drawn, standing still.
 // ---------------------------------------------------------------------------
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -33,17 +34,20 @@ export const WELL_ROOMS = 16;
 /** The skin's colours (sRGB) and sizes (m). */
 export const WELL = {
   cyan: '#6fe9f6',
-  /** the slate: its slabs' two tones, the grooves; courses (m), slabs (m), a ring band every n courses */
-  wall: { color: '#5b6585', a: '#535c7b', b: '#67729a', c: '#323a55', course: 2.3, slab: 3.6, ring: 3 },
+  /** the slate: its slabs' two tones (close: smooth panels), the grooves; courses (m: tall, few joints, as drawn),
+   *  slabs (m: long), a ring band every n courses, a ceiling's rings (m) */
+  wall: { color: '#5b6585', a: '#57617f', b: '#626c91', c: '#323a55', course: 4.8, slab: 6.4, ring: 2, ceil: 3.2 },
   /** the makers' machined metal: doors, the climb's face, the irises' blades (panels m) */
   metal: { color: '#465170', a: '#3f4965', b: '#52608a', c: '#262d44', panel: 1.6 },
-  /** the floors' plates (m): pale stone, its seams, the inlay */
-  floor: { color: '#c9c1ad', a: '#bfb6a1', b: '#d4ccb9', c: '#8f8a80', plate: 2.6 },
+  /** the floors' plates (m): lavender-grey stone as sheet-1's, its seams, the inlay */
+  floor: { color: '#9f9eba', a: '#9896b2', b: '#a8a7c2', c: '#6e6d87', plate: 3.2 },
   /** the bands across the walls (kit.js M.bands): the plinth, the frieze's course, cream ring courses */
   bands: [{ y: 0.4, h: 0.8, color: '#3a4360' }, { at: 0.72, h: 1.4, color: '#384160' }, { y: 6.2, h: 0.45, every: 8.4, color: '#ddd1b3' }],
   trim: '#e4d9bd', stone: '#6c7795', ledge: '#ddd1b3', capCream: '#e2d6b9',
-  lens: { housing: '#495372', back: '#232a3f', lip: '#ddd1b3', ring: '#6fe9f6', dark: '#1f4652', dim: '#2b5d6a' },
-  vane: { plate: '#3e4864', edge: '#d9cfb4', axle: '#8590ad' },
+  lens: { housing: '#56607f', reveal: '#3b4462', back: '#1d2336', lip: '#ddd1b3', core: '#d6fbff', ring: '#6fe9f6', dark: '#1f4652', dim: '#2b5d6a' },
+  vane: { plate: '#56607e', edge: '#d9cfb4', axle: '#8590ad' },
+  /** how bright the skin's lights are (makeMaterial glow; post.js haloes over 0.62: just over it keeps a halo tight) */
+  emit: { panel: 0.67, glyph: 0.72, ring: 0.7, rim: 0.74, lens: 0.76, lines: 0.78 },
   iris: { blade: '#3b4561', edge: '#cfc6ad' },
 };
 
@@ -131,11 +135,13 @@ const BODIES = {
         if (!lite) {
           float t = skH2(vec2(si, ci) + 0.37);
           albedo = mix(uColor, mix(uSkA, uSkB, t), 0.75 * near + 0.25);
-          float ch = 0.07;
-          albedo *= 1.0 + near * (0.16 * (1.0 - smoothstep(ch * 0.6, ch, (1.0 - cf) * CH)) - 0.14 * (1.0 - smoothstep(ch * 0.6, ch, cf * CH)));
-          skInk = max(skInk, skInkL(abs((1.0 - cf) * CH - ch), skPx) * 0.3 * near);
+          // (a soft fall of light down each tall panel, as the drawing's smooth stone takes it)
+          albedo *= 0.96 + 0.08 * cf * near;
+          float ch = 0.1;
+          albedo *= 1.0 + near * (0.12 * (1.0 - smoothstep(ch * 0.6, ch, (1.0 - cf) * CH)) - 0.1 * (1.0 - smoothstep(ch * 0.6, ch, cf * CH)));
+          skInk = max(skInk, skInkL(abs((1.0 - cf) * CH - ch), skPx) * 0.22 * near);
         }
-        skInk = max(skInk, max(skInkL(dv, skPx), skInkL(dh, skPx)) * 0.75 * near);
+        skInk = max(skInk, max(skInkL(dv, skPx) * 0.6, skInkL(dh, skPx) * 0.75) * near);
         // the ring groove at the foot of every uSkP.z-th course, lit cyan in most rings
         float ri = floor(ci / uSkP.z), ringHere = step(mod(ci, uSkP.z), 0.5);
         float gy = cf * CH;   // (m over this course's foot)
@@ -147,7 +153,7 @@ const BODIES = {
         // the circuits: one in some 7 m columns of the wall, climbing in stretches of 9 m, jogging between them
         float CW = 7.0, cw = A.y > 0.5 ? A.y / max(1.0, floor(A.y / CW + 0.5)) : CW;
         float k = floor(along / cw), u = fract(along / cw);
-        float SH = 9.0, sg = floor(skP.y / SH), sy = skP.y - sg * SH;
+        float SH = 13.0, sg = floor(skP.y / SH), sy = skP.y - sg * SH;
         float has = step(skH1(k * 13.37 + 4.0), 0.72);
         float on0 = has * step(0.28, skH1(k * 2.31 + sg * 7.7));
         float x0 = 0.2 + 0.6 * skH1(k * 5.17 + sg * 1.93);
@@ -158,9 +164,9 @@ const BODIES = {
           float inJog = step(min(x0, xP), u) * step(u, max(x0, xP));
           c = max(c, skLit(sy, skPx, 0.03) * inJog * on0 * onP);
           // and a short spur off it to a terminal: a small lit square
-          vec2 tq = vec2((u - x0) * cw - 0.45, sy - 4.5);
+          vec2 tq = vec2((u - x0) * cw - 0.45, sy - 6.5);
           c = max(c, on0 * step(0.6, skH1(k * 9.1 + sg * 3.3)) * (1.0 - smoothstep(0.0, skPx, max(abs(tq.x), abs(tq.y)) - 0.09)));
-          c = max(c, on0 * step(0.6, skH1(k * 9.1 + sg * 3.3)) * skLit(abs(sy - 4.5), skPx, 0.022) * step(0.0, (u - x0) * cw) * step((u - x0) * cw, 0.45));
+          c = max(c, on0 * step(0.6, skH1(k * 9.1 + sg * 3.3)) * skLit(abs(sy - 6.5), skPx, 0.022) * step(0.0, (u - x0) * cw) * step((u - x0) * cw, 0.45));
         }
         skGlow = max(skGlow, c);
       } else if (n.y < 0.0) {
@@ -168,7 +174,7 @@ const BODIES = {
         vec4 R, Y;
         if (uSkObj < 0.5 && skRoomOf(skP, R, Y) && R.w < 0.0) {
           vec2 d = skP.xz - R.xy;
-          float r = length(d), RS = uSkP.x, ri = floor(r / RS);
+          float r = length(d), RS = uSkP.w, ri = floor(r / RS);
           float nseg = max(6.0, floor(6.2831853 * (ri + 0.5) * RS / uSkP.y + 0.5));
           float aq = (atan(d.y, d.x) + 3.14159265) / 6.2831853 * nseg + skH1(ri);
           float da = min(fract(aq), 1.0 - fract(aq)) / nseg * 6.2831853 * r;
@@ -184,6 +190,7 @@ const BODIES = {
       skGlow *= pulse;
       albedo = mix(albedo, uSkG, skGlow);
       skInk *= 1.0 - skGlow;
+      skGlow *= SK_LINES;   // (the light the lines give: just over the post pass's halo, so they stay crisp)
     }
   `,
   metal: /* glsl */ `
@@ -210,6 +217,7 @@ const BODIES = {
       skGlow = skLit(dx, skPx, 0.025) * lit * (0.8 + 0.2 * sin(uTime * 1.1 + skP.y * 0.3));
       albedo = mix(albedo, uSkG, skGlow);
       skInk *= 1.0 - skGlow;
+      skGlow *= SK_LINES;
     }
   `,
   plates: /* glsl */ `
@@ -267,6 +275,7 @@ const BODIES = {
       skGlow *= 0.82 + 0.18 * sin(uTime * 0.7 + length(skP.xz) * 0.15);
       albedo = mix(albedo, uSkG, skGlow);
       skInk *= 1.0 - skGlow;
+      skGlow *= SK_LINES;
     }
   `,
 };
@@ -279,7 +288,7 @@ function skinMaterial(body, look, pat, U, key, obj = false) {
   if (m.userData.houseSkin) return m;
   m.userData.houseSkin = body;
   const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  const u = new THREE.Color(WELL.wall.color), under = `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n`;
+  const u = new THREE.Color(WELL.wall.color), under = `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${WELL.emit.lines.toFixed(3)}\n`;
   const LIGHT = 'L = mix(L, 1.0, max(uGlow, emit));';
   if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes(LIGHT)) throw new Error('skins/wardens-well.js: the surface shader changed: no albedo, light or detail line to replace');
   m.fragmentShader = SK_PARS + under + fs.slice(0, at) + SK_GLSL + fs.slice(at)
@@ -289,7 +298,7 @@ function skinMaterial(body, look, pat, U, key, obj = false) {
   Object.assign(m.uniforms, {
     uSkA: { value: new THREE.Color(pat.a ?? pat.color) }, uSkB: { value: new THREE.Color(pat.b ?? pat.color) }, uSkC: { value: new THREE.Color(pat.c ?? pat.color) },
     uSkG: { value: new THREE.Color(WELL.cyan) },
-    uSkP: { value: new THREE.Vector4(...pat.size, 0) },
+    uSkP: { value: new THREE.Vector4(...[...pat.size, 0, 0, 0, 0].slice(0, 4)) },
     uSkObj: { value: obj ? 1 : 0 },
   });
   return m;
@@ -304,29 +313,49 @@ function tinted(geo, hex) {
   g.setAttribute('color', new THREE.BufferAttribute(a, 3));
   return g;
 }
-/** A lens terminal's housing, 2.4 m square on the wall: a dark back, two cheeks, a sill and a deep cream overhang. */
+/**
+ * A lens terminal's alcove, as the drawings' (sheet-1's two, sheet-2's right): a deep square niche standing 1.3 m out of
+ * the wall, 4 m across, its frame in the wall's slate, its reveals darker, a dark back, a cream sill under it.
+ */
+export const NICHE = { half: 1.95, open: 1.3, depth: 1.3, lens: 1.05 };
 function housingGeometry(L) {
   const B = (w, h, d, x, y, z, c) => tinted(new THREE.BoxGeometry(w, h, d).translate(x, y, z), c);
+  const { half: H, open: O, depth: D } = NICHE, f = H - O;
   return mergeGeometries([
-    B(2.0, 2.0, 0.06, 0, 0, 0.05, L.back),
-    B(0.3, 2.2, 0.62, -1.1, 0, 0.31, L.housing), B(0.3, 2.2, 0.62, 1.1, 0, 0.31, L.housing),
-    B(2.5, 0.22, 0.72, 0, -1.15, 0.36, L.housing),
-    B(2.9, 0.34, 1.05, 0, 1.25, 0.52, L.lip),
+    B(2 * O, 2 * O, 0.06, 0, 0, 0.04, L.back),
+    // (the frame: a lintel and a foot the whole width, two jambs between them; their inner faces the reveals)
+    // (standing 3 cm off the wall's face: its back never in the wall's plane)
+    B(2 * H, f, D, 0, O + f / 2, D / 2 + 0.03, L.housing), B(2 * H, f, D, 0, -O - f / 2, D / 2 + 0.03, L.housing),
+    B(f, 2 * O, D, -O - f / 2, 0, D / 2 + 0.03, L.housing), B(f, 2 * O, D, O + f / 2, 0, D / 2 + 0.03, L.housing),
+    // (the reveals' shade: thin dark linings inside the opening, off the frame's faces)
+    B(2 * O - 0.04, 0.05, D - 0.12, 0, O - 0.03, D / 2 - 0.02, L.reveal), B(0.05, 2 * O - 0.12, D - 0.12, -O + 0.03, 0, D / 2 - 0.02, L.reveal), B(0.05, 2 * O - 0.12, D - 0.12, O - 0.03, 0, D / 2 - 0.02, L.reveal),
+    // (the cream sill under the opening, standing a little proud)
+    B(2 * O + 0.5, 0.22, 0.5, 0, -O - 0.11, D + 0.23, L.lip),
   ]);
 }
-/** A lens: concentric rings, lit and dark by turns (radius 1, facing +z). */
+/** A lens: a pale core in concentric cyan rings, dark between (radius 1, facing +z). */
 function lensGeometry(L) {
-  const rings = [[0, 0.22, L.ring], [0.22, 0.34, L.dark], [0.34, 0.56, L.ring], [0.56, 0.64, L.dark], [0.64, 0.86, L.ring], [0.86, 1.0, L.dark]];
-  return mergeGeometries(rings.map(([a, b, c]) => tinted(new THREE.RingGeometry(Math.max(a, 0.001), b, 24, 1), c)));
+  const rings = [[0, 0.16, L.core], [0.16, 0.26, L.dark], [0.26, 0.4, L.ring], [0.4, 0.47, L.dark], [0.47, 0.64, L.ring], [0.64, 0.71, L.dark], [0.71, 0.88, L.ring], [0.88, 1.0, L.dark]];
+  return mergeGeometries(rings.map(([a, b, c]) => tinted(new THREE.RingGeometry(Math.max(a, 0.001), b, 28, 1), c)));
 }
-/** A great flat vane on its axle out of the wall: the axle along z from the wall, the plate on it (turned about z). */
+/**
+ * A great flat vane on its axle out of the wall, as sheet-1's: the axle along z from the wall, a long wedge of plate
+ * on it widening outward (1.4 m by the axle's end, 3.6 m at its far end, 8 m long), cream along its rim; turned about z.
+ */
+export const VANE = { z0: 1.6, z1: 9.6, w0: 1.4, w1: 3.6, t: 0.2 };
 function vaneGeometry(S) {
-  const plate = tinted(new THREE.BoxGeometry(2.2, 0.14, 7).translate(0, 0, 5.1), S.plate);
-  const edges = [-1.1, 1.1].map((x) => tinted(new THREE.BoxGeometry(0.09, 0.18, 7).translate(x, 0, 5.1), S.edge));
-  const axle = tinted(new THREE.CylinderGeometry(0.15, 0.15, 8.8, 8).rotateX(Math.PI / 2).translate(0, 0, 4.4), S.axle);
-  const collar = tinted(new THREE.CylinderGeometry(0.42, 0.5, 0.5, 10).rotateX(Math.PI / 2).translate(0, 0, 0.25), S.edge);
-  const hub = tinted(new THREE.CylinderGeometry(0.3, 0.3, 0.6, 8).rotateX(Math.PI / 2).translate(0, 0, 1.6), S.axle);
-  return mergeGeometries([plate, ...edges, axle, collar, hub]);
+  const wedge = (pad, t, c) => {
+    const s = new THREE.Shape(), { z0, z1, w0, w1 } = VANE;
+    s.moveTo(-w0 / 2 - pad, z0 - pad); s.lineTo(w0 / 2 + pad, z0 - pad); s.lineTo(w1 / 2 + pad, z1 + pad); s.lineTo(-w1 / 2 - pad, z1 + pad); s.closePath();
+    // (the shape in x, y; laid flat: y becomes z out of the wall, its thickness across y)
+    return tinted(new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false }).translate(0, 0, -t / 2).rotateX(Math.PI / 2), c);
+  };
+  // (the cream rim: a thinner, slightly larger wedge inside the plate; its faces never in the plate's)
+  const plate = wedge(0, VANE.t, S.plate), rim = wedge(0.09, VANE.t * 0.45, S.edge);
+  const axle = tinted(new THREE.CylinderGeometry(0.17, 0.17, VANE.z0 + 1.2, 8).rotateX(Math.PI / 2).translate(0, 0, (VANE.z0 + 1.2) / 2), S.axle);
+  const collar = tinted(new THREE.CylinderGeometry(0.48, 0.58, 0.55, 10).rotateX(Math.PI / 2).translate(0, 0, 0.27), S.edge);
+  const hub = tinted(new THREE.CylinderGeometry(0.34, 0.34, 0.7, 8).rotateX(Math.PI / 2).translate(0, 0, VANE.z0 + 0.1), S.axle);
+  return mergeGeometries([plate, rim, axle, collar, hub]);
 }
 /** One blade of an iris round an oculus of radius 1: a long flat wedge out from its rim, skewed round it. */
 function bladeGeometry(S) {
@@ -373,7 +402,7 @@ class Keep {
   }
 }
 /** Every small thing drawn on the walls, every floor and ledge, and every piece, as boxes in the kit's frame. */
-function keepOuts(rt, surfaces) {
+function keepOuts(rt, surfaces, rooms = []) {
   const K = rt.kit, keep = new Keep(), b = new THREE.Box3();
   const local = (box) => box.clone().applyMatrix4(K.inv);
   for (const [mat, list] of K.batches) {
@@ -382,7 +411,12 @@ function keepOuts(rt, surfaces) {
       const l = local(g.boundingBox), s = l.getSize(V());
       // (a floor or a ledge: kept off in its own height; a floor's wide slab too)
       if (mat === rt.M.floor) { if (s.y < 1.6) keep.add(l.expandByScalar(0.4)); continue; }
-      if (surfaces.has(mat)) continue;
+      // (the walls' own: only what stands well inside a drum, a post, a pier, the Climb's block, never the drum's stones)
+      if (surfaces.has(mat)) {
+        const c = l.getCenter(V());
+        if (rooms.some((R) => R.kind === 'round' && s.y < R.y1 - R.y0 - 1 && Math.max(s.x, s.z) < 2 * R.r - 1 && c.y > R.y0 - 1 && c.y < R.y1 + 1 && Math.hypot(c.x - R.x, c.z - R.z) < R.r - 3)) keep.add(l.expandByScalar(0.6));
+        continue;
+      }
       if (Math.max(s.x, s.z) < 10.5 && !(s.x > 6 && s.z > 6)) keep.add(l.expandByScalar(0.3));   // (not a wall's cap or a whole ring)
     }
   }
@@ -390,6 +424,11 @@ function keepOuts(rt, surfaces) {
     const o = p.group ?? p.mesh ?? p.root;
     if (o?.isObject3D) { b.setFromObject(o); const l = local(b), s = l.getSize(V()); if (!l.isEmpty() && Math.max(s.x, s.z) < 14 && s.y < 30) keep.add(l.expandByScalar(0.8)); }
     for (const q of [p.pos, p.center]) if (q?.isVector3) keep.add(new THREE.Box3().setFromCenterAndSize(K.local(q), V(3, 3, 3)));
+    // (a draught's column, the flight's air: all of its height, its rings and a wide margin round it)
+    if (p.constructor.name === 'Updraft' && p.foot?.isVector3) {
+      const f = K.local(p.foot), r = p.r + 2.5;
+      keep.add(new THREE.Box3(V(f.x - r, f.y - 1, f.z - r), V(f.x + r, f.y + p.hMax + 4, f.z + r)));
+    }
   }
   return keep;
 }
@@ -425,25 +464,26 @@ function dress(rt, keep, rooms) {
   const boxAt = (c, half) => new THREE.Box3(c.clone().sub(half), c.clone().add(half));
   /** A lens terminal at p on a face (t along, nrm into the room): its housing and its lens, lit or dim. */
   const lens = (p, t, nrm, lit) => {
-    const c = p.clone().addScaledVector(nrm, 0.6), box = boxAt(c, V(2.2, 2.2, 2.2));
+    const c = p.clone().addScaledVector(nrm, 0.8), box = boxAt(c, V(2.5, 2.5, 2.5));
     if (keep.hits(box)) return false;
     keep.add(box);
     housings.push(basis(p, t, V(0, 1, 0), nrm));
-    lenses.push({ m: basis(p.clone().addScaledVector(nrm, 0.1), t.clone().multiplyScalar(0.78), V(0, 0.78, 0), nrm.clone()), lit });
+    const k = NICHE.lens;
+    lenses.push({ m: basis(p.clone().addScaledVector(nrm, 0.12), t.clone().multiplyScalar(k), V(0, k, 0), nrm.clone()), lit });
     return true;
   };
   for (const R of rooms) {
     if (R.kind === 'corridor' || R.y1 - R.y0 < 12) continue;
-    // lens terminals high on the walls, hidden from the floor under their overhangs: two a room, one lit (none in a
-    // room with an eye to strike: the eyes are the ones to read)
+    // lens terminals in their alcoves on the walls, over head height: two a room, lit (none in a room with an eye to
+    // strike: the eyes are the ones to read)
     let placed = eyed(R) ? 2 : 0;
-    for (let k = 0; k < 60 && placed < 2; k++) {
-      const y = R.y0 + 6.5 + rnd() * Math.min(8, R.y1 - R.y0 - 10);
+    for (let k = 0; k < 80 && placed < 2; k++) {
+      const y = R.y0 + 5 + rnd() * Math.min(9, R.y1 - R.y0 - 9);
       if (R.kind === 'round') {
         const a = rnd() * TAU;
-        if (!clearOfGaps(R, a, y - 1.6, y + 1.6, 2.5)) continue;
+        if (!clearOfGaps(R, a, y - 2.2, y + 2.2, 2.5)) continue;
         const f = roundAt(R, a, y);
-        if (lens(f.p, f.t, f.nrm, placed === 0)) placed++;
+        if (lens(f.p, f.t, f.nrm, true)) placed++;
       } else {
         // (on the long walls of a hall, never on a wall with a doorway's hole near: the plan's own walls say where)
         const side = Math.floor(rnd() * 4), u = (rnd() * 2 - 1) * 0.6;
@@ -454,25 +494,29 @@ function dress(rt, keep, rooms) {
           const d = V(e.a[0], 0, e.a[1]), dir = V(e.dir[0], 0, e.dir[1]), q = p.clone().setY(0).sub(d), s = q.dot(dir), off = Math.abs(q.dot(V(dir.z, 0, -dir.x)));
           return off < e.t + 1 && s > h.x0 - 3 && s < h.x1 + 3 && y > e.y0 + h.y0 - 3 && y < e.y0 + h.y1 + 3;
         }))) continue;
-        if (lens(p, t, nrm, placed === 0)) placed++;
+        if (lens(p, t, nrm, true)) placed++;
       }
     }
     if (R.kind !== 'round') continue;
     // the great flat vanes turning on their axles out of the tall drums' walls, between the rings, over the floors
     // (not in the Warden's Hall, the round room of the great vanes in its floor: the fight wants its air clear)
     const arena = rt.pieces.filter((p) => p.constructor.name === 'Vane' && p.o?.great && p.center && inside(R, rt.kit.local(p.center))).length >= 3;
+    // (sheet-1's: many, at every height, long wedges; a tier every 11 m, five a tier, staggered round the drum)
     if (R.y1 - R.y0 >= 24 && R.r >= 15 && !arena) {
-      const levels = Math.max(1, Math.floor((R.y1 - R.y0) / 17));
+      const TIER = 11, PER = 5, levels = Math.max(1, Math.floor((R.y1 - R.y0 - 4) / TIER));
       for (let lv = 0; lv < levels; lv++) {
         let n = 0;
-        for (let k = 0; k < 80 && n < 3; k++) {
-          const a = ((n + rnd() * 0.6) / 3) * TAU + lv * 1.1, y = R.y0 + lv * 17 + 5.5 + rnd() * 9;
-          if (y > R.y1 - 3 || !clearOfGaps(R, a, y - 3, y + 3, 4)) continue;
+        for (let k = 0; k < 160 && n < PER; k++) {
+          // (anywhere round the drum: a slot kept off by a doorway or a post never stops the tier)
+          const a = rnd() * TAU, y = R.y0 + lv * TIER + 5 + rnd() * 7;
+          if (y > R.y1 - 4 || !clearOfGaps(R, a, y - 4, y + 4, 4)) continue;
           const f = roundAt(R, a, y, -0.3);
-          // (its plate sweeps 1.1 m about the axle, 1.6 to 8.6 m out of the wall: all of it kept clear)
-          const c = f.p.clone().addScaledVector(f.nrm, 5.1), box = new THREE.Box3().setFromPoints([f.p.clone().addScaledVector(f.nrm, 0.5), f.p.clone().addScaledVector(f.nrm, 8.8)]).expandByVector(V(1.5, 1.5, 1.5));
-          if (keep.hits(box) || vanes.some((v) => v.c.distanceTo(c) < 10)) continue;
-          keep.add(box);
+          // (its plate sweeps 1.8 m about the axle, 1.6 to 9.6 m out of the wall: all of it kept clear)
+          // (as boxes along it, so a drum's middle stays clear round a diagonal one)
+          const c = f.p.clone().addScaledVector(f.nrm, (VANE.z0 + VANE.z1) / 2);
+          const boxes = [0.8, 3.2, 5.6, 8, VANE.z1].map((z) => boxAt(f.p.clone().addScaledVector(f.nrm, z), V(1 + z * 0.12, 1 + z * 0.12, 1 + z * 0.12)));
+          if (boxes.some((b) => keep.hits(b)) || vanes.some((v) => v.c.distanceTo(c) < 8.5)) continue;
+          for (const b of boxes) keep.add(b);
           vanes.push({ p: f.p, t: f.t, nrm: f.nrm, c, a0: rnd() * TAU, w: (0.12 + rnd() * 0.1) * (rnd() < 0.5 ? -1 : 1) });
           n++;
         }
@@ -488,17 +532,22 @@ function dress(rt, keep, rooms) {
       rims.push(new THREE.Matrix4().makeRotationX(Math.PI / 2).scale(V(ro + 0.05, ro + 0.05, 1)).setPosition(V(R.x, yc - 0.06, R.z)));
     }
   }
-  return { housings, lenses, vanes, blades, rims };
+  // (every other vane first: the lighter presets draw the first half, spread through every drum)
+  const order = [...vanes.filter((_, i) => i % 2 === 0), ...vanes.filter((_, i) => i % 2 === 1)];
+  return { housings, lenses, vanes: order, blades, rims };
 }
 
-/** The great vanes turning slowly (on the lighter presets they stand still), and the finest dressing's switch. */
+/** The great vanes turning slowly; on the lighter presets half of them drawn, standing still. */
 class SkinMotion {
   constructor(mesh, vanes, frame) {
     this.mesh = mesh; this.vanes = vanes; this.frame = frame; this.t = 0;
     this._m = new THREE.Matrix4(); this._r = new THREE.Matrix4();
   }
   update(dt) {
-    if (!this.mesh || sharedUniforms.uWearLite.value > 0.5) return;
+    if (!this.mesh) return;
+    const lite = sharedUniforms.uWearLite.value > 0.5;
+    this.mesh.count = lite ? Math.ceil(this.vanes.length / 2) : this.vanes.length;
+    if (lite) return;
     this.t += Math.min(dt, 0.1);
     this.vanes.forEach((v, i) => {
       this._m.multiplyMatrices(this.frame, basis(v.p, v.t, V(0, 1, 0), v.nrm)).multiply(this._r.makeRotationZ(v.a0 + this.t * v.w));
@@ -524,20 +573,21 @@ export function wardensWellSkin(rt) {
   const W = WELL.wall, Mt = WELL.metal, F = WELL.floor;
   const glowM = (k, color, glow = 0.85) => makeMaterial({ color, glow, flat: true, key: `temple.skin.${id}.${k}` });
   const mats = {
-    wall: skinMaterial('slate', look, { ...W, size: [W.course, W.slab, W.ring] }, U, `${id}.wall`),
+    wall: skinMaterial('slate', look, { ...W, size: [W.course, W.slab, W.ring, W.ceil] }, U, `${id}.wall`),
     wallGlyph: skinMaterial('metal', { ...look, glyphs: 1.6 }, { ...Mt, size: [Mt.panel, 0, 0] }, U, `${id}.wallGlyph`),
     floor: skinMaterial('plates', look, { ...F, size: [F.plate, 0, 0] }, U, `${id}.floor`),
     // (the pieces' own: a riding disc, a door's slab, an iris's blades take their pattern in their own frame)
     floorObj: skinMaterial('plates', look, { ...F, size: [F.plate, 0, 0] }, U, `${id}.floorObj`, true),
     wallGlyphObj: skinMaterial('metal', { ...look, glyphs: 1.6 }, { ...Mt, size: [Mt.panel, 0, 0] }, U, `${id}.wallGlyphObj`, true),
-    glyph: glowM('glyph', WELL.cyan, 0.85),
-    panel: glowM('panel', '#8ff0fa', 0.8),
-    ring: glowM('ring', WELL.cyan, 0.7),
+    // (the lights' glow just over the post pass's halo start: crisp lines and slits, not soft blobs)
+    glyph: glowM('glyph', WELL.cyan, WELL.emit.glyph),
+    panel: glowM('panel', '#8ff0fa', WELL.emit.panel),
+    ring: glowM('ring', WELL.cyan, WELL.emit.ring),
     housing: makeMaterial({ ...look, color: '#ffffff', vertexColors: true, flat: true, key: `temple.skin.${id}.housing` }),
-    lens: makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.9, flat: true, side: THREE.DoubleSide, key: `temple.skin.${id}.lens` }),
+    lens: makeMaterial({ color: '#ffffff', vertexColors: true, glow: WELL.emit.lens, flat: true, side: THREE.DoubleSide, key: `temple.skin.${id}.lens` }),
     vane: makeMaterial({ ...look, color: '#ffffff', vertexColors: true, flat: true, side: THREE.DoubleSide, key: `temple.skin.${id}.vane` }),
     blade: makeMaterial({ ...look, color: '#ffffff', vertexColors: true, flat: true, side: THREE.DoubleSide, key: `temple.skin.${id}.blade` }),
-    rim: glowM('rim', WELL.cyan, 0.85),
+    rim: glowM('rim', WELL.cyan, WELL.emit.rim),
   };
   for (const k of ['housing', 'vane', 'blade', 'lens']) mats[k].vertexColors = true;
   const was = { M: { wall: M.wall, wallGlyph: M.wallGlyph, floor: M.floor, bands: M.bands, trim: M.trim, stone: M.stone, glyph: M.glyph, ornament: M.ornament }, P: rt.P };
@@ -569,7 +619,7 @@ export function wardensWellSkin(rt) {
         const o = p.group ?? p.mesh ?? p.root;
         o?.traverse?.((m) => { if (m.material === mats.floor) m.material = mats.floorObj; else if (m.material === mats.wallGlyph) m.material = mats.wallGlyphObj; });
       }
-      const keep = keepOuts(rt, new Set([mats.wall, mats.wallGlyph, M.sand]));
+      const keep = keepOuts(rt, new Set([mats.wall, mats.wallGlyph, M.sand]), rooms);
       const d = dress(rt, keep, rooms);
       const F0 = K.frame;
       meshes.push(instanced('skin: lens housings', housingGeometry(WELL.lens), mats.housing, d.housings, F0));
@@ -587,8 +637,15 @@ export function wardensWellSkin(rt) {
       rt.pieces.push(new SkinMotion(vm, d.vanes, F0));
       skin.stats = { lenses: d.lenses.length, lit: d.lenses.filter((l) => l.lit).length, vanes: d.vanes.length, blades: d.blades.length, rims: d.rims.length, rooms: list.length, ms: Math.round(performance.now() - t0) };
     },
-    /** After the kit's flush: the house's own materials back for its exterior. */
-    done() { Object.assign(M, was.M); rt.P = was.P; K.plan = null; },
+    /**
+     * After the kit's flush: the house's own materials back for its exterior; the lights (their glow under the
+     * shadow passes' self-lit 0.8, to keep their halo tight) still kept out of the shadow passes, as they were.
+     */
+    done() {
+      Object.assign(M, was.M); rt.P = was.P; K.plan = null;
+      const lights = new Set([mats.glyph, mats.panel, mats.ring, mats.rim, mats.lens]);
+      K.group.traverse((o) => { if (o.isMesh && lights.has(o.material)) o.userData.castShadow = false; });
+    },
   };
   return skin;
 }

@@ -1215,39 +1215,51 @@ same rooms, doors, collision, pieces and logic (`tests/temple-skins.test.js`).
 ### The Warden's Well (`skins/wardens-well.js`)
 
 After `references/temples/future/wardens-well/sheet-1.jpg` and `sheet-2.jpg`: a shaft of dark slate rings, cyan lines,
-cream ledges, lens terminals, turning vanes, an iris at the top.
+lavender-grey floors, lens terminals in alcoves, tiers of turning vanes, an iris at the top.
 
 - **Surfaces.** The wall, `wallGlyph` and floor materials become the surface shader with its albedo, first pen lines
   and glow replaced (as `landmark-materials.js stone()` does; `emit` takes the pattern's `skGlow`, so bloom carries it):
-  - `slate` (walls): 2.3 m courses of staggered slabs, each its own tone, its top chamfer lit and its foot shaded;
-    every third course a dark ring groove, most lit cyan; cyan circuits up the walls, jogging sideways every 9 m, a lit
-    square at some; ceilings in rings of slabs round the room's middle, a cyan ring round the oculus.
+  - `slate` (walls): tall 4.8 m courses of long staggered panels (about 6.4 m, a whole number round a drum), few
+    joints, close tones, a soft fall of light down each, a soft chamfer; every second course a dark ring groove, most
+    lit cyan; cyan circuits up the walls, jogging sideways every 13 m, a lit square at some; ceilings in 3.2 m rings of
+    slabs round the room's middle (`uSkP.w`), a cyan ring round the oculus.
   - `metal` (doors, the climb's face, the irises' blades): 1.6 m machined panels, chamfered, a cyan seam down some.
-  - `plates` (floors): pale plates in rings round a round room's middle or a grid in a hall, a cyan inlay 1.6 m in from
-    the walls; a floor's underside slate rings.
+  - `plates` (floors): lavender-grey 3.2 m plates (sheet-1's) in rings round a round room's middle or a grid in a
+    hall, a cyan inlay 1.6 m in from the walls; a floor's underside slate rings.
   - The kit's rooms go to the shader (`uSkR`, up to `WELL_ROOMS`), so a drum's slabs run round it without a seam. The
     pieces' copies (`floorObj`, `wallGlyphObj`: a riding disc, a door's slab, an iris's blades) take the pattern in their
     own frame, so it moves with them.
   - The glows breathe slowly (`uTime`), rising up the shaft.
+  - **Crisp lights** (`WELL.emit`): every light sits just over the post pass's halo start (0.62, `post.js`): the slit
+    windows 0.67, glyphs 0.72, vane rings 0.7, rims 0.74, lenses 0.76, the patterns' lines 0.78 (`SK_LINES`, after the
+    line is drawn at full colour), so the halo stays a thin edge and never blooms into soft blobs.
 - **Paints.** `M.bands` a dark plinth, a dark slate frieze course and cream courses every 8.4 m. The glyphs, the
   frieze's marks, the vanes' rings and the gallery's floor rings are cyan glow, the slit windows cyan light panels, the
   caps cream, the pieces' glows (`rt.P.glow`) cyan. incal.js reads these from `rt.skin.paints`. The band's sign is
   sheet-1's (three tiny dots over a long flat arch); the frieze glyph itself is `sign-text.js glyphGeometry`, shared,
   and left as it is.
 - **Dressing**, drawn only (5 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
-  - lens terminals (a housing under a deep cream overhang, a lens of cyan rings; one in two lit), two a room, high on
-    the walls, none in a room with an eye to strike;
-  - great flat vanes on axles out of the tall drums' walls, turning slowly (`SkinMotion`), none in the Warden's Hall;
+  - lens terminals in alcoves (`NICHE`: a 3.9 m square frame standing 1.3 m out of the wall, dark reveals and back,
+    a cream sill, a lit lens of cyan rings round a pale core at its back), two a room over head height, none in a room
+    with an eye to strike;
+  - great wedge vanes (`VANE`: 8 m long, 1.4 m wide at the axle to 3.6 m at the tip, cream rimmed) on axles out of the
+    tall drums' walls, tiers every 11 m, up to five a tier, turning slowly (`SkinMotion`), none in the Warden's Hall;
+    each kept clear by boxes along its length (so a drum's middle stays clear), off the draughts' columns (the
+    flight's air, every `Updraft`'s whole height and 2.5 m round it), and off the posts, piers and the Climb's block;
   - an iris of sixteen metal blades round each round room's oculus, and a cyan rim at its lip.
   - Everything is kept off doorways, everything drawn on the walls, every floor's height and every piece, by boxes.
 - **Presets.** On Low, Handheld and the Deck (`uWearLite`) the shader leaves out the slabs' tones, the chamfers and
-  the circuits' jogs, and the vanes stand still.
+  the circuits' jogs, and only half the vanes are drawn (every other one, `mesh.count`), standing still.
 - **Cost** (this Mac, muted headless Chrome, 1280 × 720, 7 rooms, skin off → on): draw calls High 318 → 315, Low
   329 → 335; triangles 726 k → 637 k on High (the glowing glyphs leave the shadow passes); frame time within the
-  machine's spread (High 11.2 → 9.9 ms, Low 6.7 → 6.7 ms). Dressing ~20 ms to build.
-- **Unlike the pictures:** the slabs are flat-shaded, not cut in relief (the chamfers are painted); the vanes are fewer
-  and smaller than the sheets' and none hang in the drum's middle (the flight's air); the warden's ledge and the
-  tripod robot are the guardian's own model, unchanged.
+  machine's spread (High 11.2 → 9.9 ms, Low 6.7 → 6.7 ms). Dressing ~20–30 ms to build. The second pass (bigger
+  panels, crisp lights, alcoves, 21 vanes for 7) costs nothing measurable: first skin → now, calls High 318 → 315, Low
+  337 → 335, triangles 635 k → 634 k; the lights' glow went under the shadow passes' self-lit 0.8, so `done()` marks
+  their meshes `castShadow = false` to keep them out of those passes as before.
+- **Unlike the pictures:** the slabs are flat-shaded, not cut in relief (the chamfers are painted); the alcoves stand
+  out of the wall rather than being cut into it; none of the vanes hang in a drum's middle (the flight's air), and the
+  Lamp Gallery's drum has none (its puzzles fill it); the warden's ledge and the tripod robot are the guardian's own
+  model, unchanged.
 
 ### The Whale-House (`skins/whale-house.js`)
 
