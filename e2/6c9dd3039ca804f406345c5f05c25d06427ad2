@@ -1,0 +1,124 @@
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_7b227b14ebe6c9 315-323,350
+  s_9ca76055a220ed::t_8bdd5675713193 377-386,389-394,409-416,420
+  s_9ca76055a220ed::t_5c5569a65ed711 387-388
+  s_9ca76055a220ed::t_9fb03f8c621f31 111,324-349,395-408
+engine/game.js
+  s_9ca76055a220ed::t_6b05ec97faa2e6 548,889-899,984-985,1216
+  s_9ca76055a220ed::t_33b20424ab395e 78,81-82,203-222,260-261,316,318-319,514,517-522,531,655-656,665-668,696-697,699,726-732,919-922,925,986-987,1071-1072,1110-1113,1115,1118,1191,1193,1195-1196,1226,1228-1229,1233
+  s_9ca76055a220ed::t_a8599013b2c715 79,466-470,1227
+  s_9ca76055a220ed::t_28e34384f8f1b4 27-29,523-530,669-670,748-749,923-924,980-982,1117
+engine/unity/game.js
+  s_9ca76055a220ed::t_5c45b34cfc8c54 64-65,392-393,406,415-422,692
+  s_9ca76055a220ed::t_67357b7c2b2291 423-447,657-674
+  s_9ca76055a220ed::t_950f9fce3c5d3b 261,290,394-405,407-414,520-534,613,675-691
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_4dda575da79c90 31-37
+src/changelog-media.js
+  s_9ca76055a220ed::t_7ff6ebd79a9e5b 1014,1017,1070,1072
+  s_9ca76055a220ed::t_0a87831555325d 1012-1013,1058-1061
+  s_9ca76055a220ed::t_b584eba192841d 1015-1016,1062-1069,1071
+src/changelog.js
+  s_9ca76055a220ed::t_60bd4ea90b8a51 80-82
+  s_9ca76055a220ed::t_9c1491a3cac054 91-93,95-97
+  s_9ca76055a220ed::t_2d7b708df95974 94
+  s_9ca76055a220ed::t_24d23fa9bdef89 83-90
+src/ship/art.js
+  s_9ca76055a220ed::t_c99e424ea6fe2b 10-11
+src/ship/interior.js
+  s_9ca76055a220ed::t_0639fb818e8b94 192-193
+src/ship/ship.js
+  s_9ca76055a220ed::t_9ec7119a0bff26 5,69-71,425-427,429
+tests/engine-ship.test.js
+  s_9ca76055a220ed::t_ef9a0d803a2b3f 102-110,122
+  s_9ca76055a220ed::t_41c307f29673fd 111-121
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_6aa999600a5cb6 138-147,150-155
+  s_9ca76055a220ed::t_451ff9722c1377 148-149,156-198
+tests/ship.test.js
+  s_9ca76055a220ed::t_2dee6166ef0e9f 69-86
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_8dd4fc1cc64181 184-185
+  s_9ca76055a220ed::t_181ef4045a1c77 186-187
+  s_9ca76055a220ed::t_74d896b65054f6 194-195
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_2d011d4220c31b 430-441
+  s_9ca76055a220ed::t_5ff282e22b0c49 355-394,450-452
+changelog.md
+  s_9ca76055a220ed::t_9df784de6fed45 25
+  s_9ca76055a220ed::t_dd9b4edbf96d71 26
+  s_9ca76055a220ed::t_e2f10f8985c8e3 27-29
+engine/combat.js
+  s_9ca76055a220ed::t_07784ef24fdefa 1-190
+public/guardians/elder-v3/colors.json
+  s_9ca76055a220ed::t_d3dad3213b702a 1
+public/guardians/keeper-v1/colors.json
+  s_9ca76055a220ed::t_6e45b925075e9a 1
+scripts/tripo/sample-colors.mjs
+  s_9ca76055a220ed::t_9d14da2d8de99f 1-41
+src/characters/elder-v3-creature.js
+  s_9ca76055a220ed::t_fa2c76fb1a626f 2,234
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_e596316d6a3289 2,18
+src/characters/skin-colours.js
+  s_9ca76055a220ed::t_552214da316928 1-12
+src/foes.js
+  s_9ca76055a220ed::t_b185135434c301 2630-2631,2642,2890,2901-2903
+src/lock-reticle.js
+  s_9ca76055a220ed::t_bb03058836d5c9 201,226-228,233
+tests/engine-combat.test.js
+  s_9ca76055a220ed::t_c3a72c2283bc6e 1-72,76-83
+  s_9ca76055a220ed::t_dc53a1c3e7a179 84-110
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_0edb26b536104e 51-53
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_454f4222abe51e 62,76,110,327-330,482-639,1078-1127,1130-1133,1135-1219,1248-1250
+  s_9ca76055a220ed::t_12abb771d50f4d 95-99,317,1224-1239
+engine/raster.js
+  s_9ca76055a220ed::t_cbc21ef35c5a48 1-6,10-11,13-22,24-26,29-30,35-42,45-70,73-102,108-114,117-136,138-142,144-155,157-175,177-184,186,188-238,241-357,360-361,364,378,381,384-439,441-445,447-456,459-472,475,488-491,493-505,508-511,513-514,516-518,522-523,530-534,542-543,545-546,548-552
+  s_9ca76055a220ed::t_261e0b482112e9 43-44,239-240,382-383
+tests/engine-raster.test.js
+  s_9ca76055a220ed::t_9cdc7c591bf24b 77-172
+scripts/engine-glyphs.mjs
+  s_9ca76055a220ed::t_df252780e23a99 1-176
+src/foe-spawner.js
+  s_9ca76055a220ed::t_8703f43cfeda42 186,210-222,226
+src/ship/portrait.js
+  s_9ca76055a220ed::t_6634d8ffdece70 10-14,34
+src/platform.js
+  s_9ca76055a220ed::t_6eea5d105c3bb5 73
+engine/glyphs.js
+  s_9ca76055a220ed::t_1b026a66ab6b2a 1-3
+tests/engine-menus.test.js
+  s_9ca76055a220ed::t_efcfa9b7d523e6 604-655
+engine/menus.js
+  s_9ca76055a220ed::t_27565e7e0c585a 305-372,384,395,408
+engine/platform.js
+  s_9ca76055a220ed::t_21b09355e63d28 17,24-25,184-199,207-209,211
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_df2cf25e5689f7 320,729-753,925,929-944,965-967,974-982
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_6a2f5800584cce 137-138
+engine/unity/backend.js
+  s_9ca76055a220ed::t_81e45d13871762 75,79-83,87-123,421
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_60825f1c84a54f 148-150
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_7b0f1883e33b74 41-42,148,158,435-436,847
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e26c9dd3039ca804f406345c5f05c25d06427ad2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
