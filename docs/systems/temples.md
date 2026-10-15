@@ -1683,3 +1683,42 @@ The narrative descriptions now match its open shoulder and shorter upright. The 
 from initialization onward. Audio starts muted in the Sound constructor even when saved preferences
 are audible. The embedded view does not accept game input. The review page is a development entry,
 not a new production navigation item. Unit coverage: `tests/makers-mark.test.js`.
+  left as it is.
+
+## Futuristic skins: the Casting-House (v1.78, issue #342)
+
+The Casting-House wears the author's futuristic picks (`references/temples/future/casting-house/sheet-1.jpg`,
+`sheet-2.jpg`): the founders' casting hall as ancient high technology, dark iron-brown slate and ivory light, over the
+same rooms. Its skin is `src/temples/skins/casting-house.js` (`skin: castingHouseSkin` in `moonfoundry.js`); the house's
+collision, climbs, pieces and logic are vertex for vertex the same without it (`tests/temple-skins.test.js`).
+
+- **Surfaces** (the surface shader spliced, as the other skins): walls of dark iron-brown slate in slabs 1.6 m wide and
+  about 7 m tall (a tone each, a lit chamfer down one edge, a shaded one down the other), the values sampled from the
+  picks; a thin ivory line round every wall 1 m over its floor and again 1 m over the upper floor (11 m: `CASTING.up`,
+  the house's `UP`, so a tall room's walls carry two tiers), and from some slab joints a line climbing from it, stepping
+  sideways once, to a small lens terminal. The floor's height comes from that constant, not a search of the rooms per
+  pixel (the shader's cost). Floors warm brown plates, in rings round a round room's middle with ivory rings and spokes
+  inlaid, a hall's with an ivory border. The doors machined metal panels with an ivory seam down their middle (where
+  the two slabs meet). The dark plinth band stays; the rust bands and the frieze course are gone, as the picks' clear walls.
+- **The cracked moons** (the house's ivory paint, found by colour in the paint batches): a shader of their own, 3D cells
+  cracked apart in two tones of ivory, lit 0.5 (bright, no halo); the great moon over the Pouring Floor 1.35 times
+  larger, its three chains and every moon's old dark seam taken out of the paint batches. The founders' iron (claws,
+  rails, columns, chains) is warmed to the picks' dark brown metal in the same pass.
+- **The grating** (`CASTING.grate`, local m): in the Pouring Floor beside the great cradle, drawn by the floor's own
+  shader (no mesh, no draw): dark iron bars in a frame over the amber glow of the Last Founder far below, brightest at
+  its heart, the rings of its crucible doors dark in it; an ivory line round it half a metre out.
+- **Dressing**, drawn only, two draws for the whole house (`skin: machined frames and rings` in the trim's metal, `skin:
+  their lights` in ivory, instanced, out of the shadow passes): every door's slab frame (jambs and a lintel over its
+  lamps, the opening's top corners chamfered, deeper on a round room's side where its wall bows out, an ivory line up
+  each jamb and under the lintel); the great moon's floating ring, tilted, an ivory line round its inside and the
+  makers' sign on its face toward the way in; two floating rings over each pilot flame, clear of the moons on their rails.
+- **The cradles** (`skin.brazier`): each hooded cradle drawn as sheet-2's machined half-pipe open to the rail on two legs
+  and a plinth, a tall hood behind with a stepped cap, an ivory line round its mouth and the makers' sign on the hood;
+  the sign brightens (0.4 → 0.8) once the hot moon lights it (`SkinCradles`). The fire, the hood's mouth and its logic
+  are the piece's own.
+- **The sign**: the frieze's glyphs and the doors' medallions are redrawn as the picks' sign (`signGeometry`, a long low
+  arch under three small dots: a sign, not a face). The bridge stones' and the other pieces' glyph is the shared
+  `glyphGeometry`, left as it is.
+- **Lighter presets** (`uWearLite`): no tone per slab, no chamfers, no climbing circuits, the moons one tone; the foot
+  lines, inlays, grating and dressing stay. Draw calls are the house's own (−6 to +5 a view), triangles about 95k fewer
+  (the redrawn signs are lighter than the glyphs).

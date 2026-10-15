@@ -678,3 +678,89 @@ test('the Lampless in the Lamp-House’s skin: a machine of white plates, its pa
   assert.equal(after.length, groups.length + 4, 'its parts as they were, and the lenses');
   m.animate(1 / 30, 0, { state: 'fight' });
 });
+
+// ---- the Casting-House in its futuristic skin (src/temples/skins/casting-house.js, after
+// references/temples/future/casting-house/sheet-*.jpg; its names its own, c*, beside the other houses' sections)
+import { castingHouseSkin, CASTING, signGeometry as cSign } from '../src/temples/skins/casting-house.js';
+import { UP as cUP } from '../src/temples/moonfoundry.js';
+class CNoSkin extends TempleRuntime { get noSkin() { return true; } }
+const cBuild = (bare = false) => quietly(() => new (bare ? CNoSkin : TempleRuntime)({ scene: new THREE.Scene(), level: { lights: [], ground: { baseAt: () => 0, heightAt: () => 0 } }, def: TEMPLES.moonfoundry.def, game: new GameState(null) }));
+let cOn = null;
+const casting = () => (cOn ??= cBuild());
+const cSolids = (rt) => rt.kit.group.children.filter((m) => m.name.endsWith(' collision') || m.name.endsWith(' climbs')).map((m) => [m.name, Array.from(m.geometry.attributes.position.array, (v) => Math.round(v * 1000))]);
+
+test('the Casting-House wears its futuristic skin: slate slabs, ivory circuits, cracked moons, frames, rings and cradles', () => {
+  const rt = casting();
+  assert.equal(TEMPLES.moonfoundry.def.skin, castingHouseSkin);
+  assert.equal(rt.skin?.name, 'casting-house');
+  for (const [k, body] of [['wall', 'slate'], ['wallGlyph', 'metal'], ['trim', 'metal'], ['floor', 'plates'], ['moon', 'moon']]) {
+    const m = rt.skin.mats[k];
+    assert.equal(m.userData.houseSkin, body, `its ${k} the skin's ${body}`);
+    assert.ok(m.fragmentShader.includes('float detail = skInk;') && m.fragmentShader.includes('emit = max(emit, skGlow);'), `the ${k}'s pen lines and glow the pattern's`);
+  }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the slabs’ tones, chamfers and climbing circuits off on the lighter presets');
+  const s = rt.skin.stats;
+  // (every ivory moon in the moon's shader, the great one's chains and the old seams gone, the founders' iron warmed, the
+  // frieze's glyphs and the doors' medallions redrawn as the picks' sign, a frame round every door, two rings over each
+  // pilot flame, the two hooded cradles drawn by the skin)
+  assert.ok(s.moons >= 30 && s.chains === 3 && s.seams >= 30 && s.iron > 40 && s.signs > 50 && s.doorSigns >= 6 && s.frames >= 6 && s.flames === 2 && s.cradles === 2, JSON.stringify(s));
+  assert.ok(rt.kit.group.children.some((m) => m.material === rt.skin.mats.moon), 'the moons drawn cracked');
+  const dressing = rt.kit.group.children.filter((m) => m.userData.skin);
+  assert.ok(dressing.length === 2 && dressing.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false), 'two drawn-only instanced meshes, out of the shadow passes');
+  for (const m of rt.kit.group.children) if ([rt.skin.mats.glyph, rt.skin.mats.lights, rt.skin.mats.ring].includes(m.material)) assert.equal(m.userData.castShadow, false, m.name);
+  // the cradles: the skin's half-pipe and hood, their sign lit, the fire and the hood's logic the piece's own
+  for (const id of ['bG', 'bH']) {
+    const b = rt.piece(id), names = [];
+    b.group.traverse((o) => o.isMesh && names.push(o.name));
+    assert.ok(names.includes('cradle (skin)') && names.includes('cradle sign (skin)') && b.o.hood, `${id}: ${names}`);
+  }
+  // the house's own materials and palette back for the exterior; the grating handed to the floor
+  assert.ok(!rt.M.wall.userData.houseSkin && rt.M.glyph !== rt.skin.mats.glyph);
+  assert.equal(rt.P, TEMPLES.moonfoundry.def.palette);
+  assert.equal(rt.kit.plan, null);
+  assert.deepEqual(rt.skin.mats.floor.uniforms.uSkQ.value.toArray(), [CASTING.grate.x, CASTING.grate.z, CASTING.grate.hx, CASTING.grate.hz]);
+  assert.equal(CASTING.up, cUP, 'the walls’ second tier of circuits at the house’s upper floor');
+  const z = new THREE.Box3().setFromBufferAttribute(cSign(1.62).attributes.position).getSize(new THREE.Vector3());
+  assert.ok(z.x > 1.55 && z.x < 1.75 && z.y < 0.6, `the sign ${z.x.toFixed(2)} by ${z.y.toFixed(2)}`);
+});
+
+test('the Casting-House’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const on = casting(), off = cBuild(true);
+  assert.equal(off.skin, null);
+  assert.deepEqual(cSolids(on), cSolids(off), 'collision and climbs vertex for vertex');
+  const own = on.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, off.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = off.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+  });
+});
+
+test('the Casting-House’s frames and rings keep off its doorways and the moons’ rails; a lit cradle’s sign brightens', () => {
+  const rt = casting(), K = rt.kit;
+  const doors = rt.pieces.filter((d) => d instanceof Door).map((d) => ({ at: d.o.at, w: d.o.w, h: d.o.h, yaw: d.o.yaw ?? 0 }));
+  const balls = rt.pieces.filter((b) => b.constructor.name === 'Ball').map((b) => ({ a: K.local(K.world(...b.o.a)), b: K.local(K.world(...b.o.b)), r: b.o.r }));
+  const m = rt.kit.group.children.find((x) => x.name === 'skin: machined frames and rings');
+  const p = m.geometry.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).applyMatrix4(K.inv);
+    // (no point of the dressing in a doorway's opening)
+    for (const d of doors) {
+      const dx = v.x - d.at[0], dz = v.z - d.at[2], x = dx * Math.cos(d.yaw) - dz * Math.sin(d.yaw), zt = dx * Math.sin(d.yaw) + dz * Math.cos(d.yaw);
+      assert.ok(!(Math.abs(x) < d.w / 2 - 0.1 && Math.abs(zt) < 1.5 && v.y > d.at[1] + 0.1 && v.y < d.at[1] + d.h - 0.8), `the dressing in a doorway at ${v.toArray().map((q) => q.toFixed(1))}`);
+    }
+    // (none in a moon's way along its rail)
+    for (const b of balls) {
+      const ab = b.b.clone().sub(b.a), t = THREE.MathUtils.clamp(v.clone().sub(b.a).dot(ab) / ab.lengthSq(), 0, 1), q = b.a.clone().addScaledVector(ab, t);
+      assert.ok(!(Math.hypot(v.x - q.x, v.z - q.z) < b.r + 0.2 && v.y < q.y + 2 * b.r + 0.4), `the dressing over a rail at ${v.toArray().map((q) => q.toFixed(1))}`);
+    }
+  }
+  const cr = rt.pieces.find((x) => x.constructor.name === 'SkinCradles'), b = rt.piece('bG'), u = b.skinGlow.uniforms.uGlow;
+  for (let i = 0; i < 40; i++) cr.update(0.1, i * 0.1);
+  const cold = u.value;
+  b.ignite(true);
+  for (let i = 0; i < 40; i++) cr.update(0.1, i * 0.1);
+  assert.ok(u.value > cold + 0.2, `lit ${u.value.toFixed(2)} over cold ${cold.toFixed(2)}`);
+});

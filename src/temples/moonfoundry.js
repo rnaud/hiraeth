@@ -7,6 +7,7 @@ import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Brazier, Flame, Platform, Bridge, Hammer, Mark, Pit, Key } from './pieces.js';
 import { founderModel } from './guardian-founder.js';
 import { chestMound } from '../boxes/mound.js';
+import { castingHouseSkin } from './skins/casting-house.js';
 
 // The Moon Foundry's temple: the Casting-House, a round casting tower of the founders standing under the hangar's roof
 // on its east side, between the moon in its cradle's claws and the moon on its pillar, its chimney going up to the
@@ -650,6 +651,8 @@ export const MOONFOUNDRY_TEMPLE = {
   origin: [-50, 1600, -180], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (inside, its futuristic look, after the author's picks: src/temples/skins/casting-house.js; issue #342)
+  skin: castingHouseSkin,
   local: { person: 'ilse', out: 8, side: 6 },
   enterLine: 'Inside the Casting-House the air is warm and smells of hot iron. Somewhere below, something heavy rolls, and stops, and rolls.',
   pitLine: 'You climb back out of the channel, to the last glyph stone.',
