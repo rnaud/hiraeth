@@ -1,0 +1,36 @@
+changelog.md
+  s_6b38f8ed5aeddc::t_d7629b1eb6abb8 8
+docs/design/fight-temples.md
+  s_6b38f8ed5aeddc::t_8f7cd3f454fce8 62-63
+src/changelog-media.js
+  s_6b38f8ed5aeddc::t_f9f1ab157dc59b 972
+src/changelog.js
+  s_6b38f8ed5aeddc::t_ddb3cb5b9887ab 20-22
+src/fight-temples/index.js
+  s_6b38f8ed5aeddc::t_063aaec5338237 51-53,55
+src/fight-temples/session.js
+  s_6b38f8ed5aeddc::t_b1f4d9a63cc86e 12,265-269
+tests/fight-roll.test.js
+  s_6b38f8ed5aeddc::t_610232286f972c 2-3,165,170,172-174,185-188,191,195,197,199-200
+tests/fight-temples.test.js
+  s_6b38f8ed5aeddc::t_9e08298a8c626f 42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c52d765508292043ae7b8e48f485056a51a0b48",
+  "prompts": {},
+  "sessions": {
+    "s_6b38f8ed5aeddc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13f99-075a-7731-a055-4fc01f00ab40",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
