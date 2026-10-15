@@ -1,0 +1,38 @@
+tests/temples.test.js
+  s_9ca76055a220ed::t_fac7e41242bc7a 48,1353-1380,2472,2516-2517,2527-2528,2538,2541-2542,2546,2549,2551,2555-2556,2563-2564,2567-2572,2581,2584-2586,2595,2597-2598,2605,2609,2611
+changelog.md
+  s_9ca76055a220ed::t_481b5d1fbe3f13 7-8
+src/temples/migrate.js
+  s_9ca76055a220ed::t_c0ec2e064c213b 173-183
+src/changelog-media.js
+  s_9ca76055a220ed::t_154d0729feb168 864-865,946-955
+docs/design/temple-redesign.md
+  s_9ca76055a220ed::t_3346616f5a5566 187-210,220,223
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_c5bc8063dd62bd 23-39,41-43,45-50,92-111,120,122-125,133,142-144,159,163-165,245-246,251-252,254,256,258-267,292,295,303-304,306-308,310-317,320-322,324-326,329-330,332-343,345-358,360-361,363-369,371-374,376-379,381-384,386-395,397-402,404-411,413-419,423-428,430-457,459-460,462-463,465,468,470,472,475,483-488,503-504,506-507
+src/changelog.js
+  s_9ca76055a220ed::t_be5a6325f1ffcb 54-61
+docs/systems/temples.md
+  s_9ca76055a220ed::t_3733b24bf28751 446-466,490-492
+  s_9ca76055a220ed::t_6a356e1406b13e 445
+tests/temple-rules.test.js
+  s_9ca76055a220ed::t_f462fb8f09b4c3 17,19
+tests/zfight.test.js
+  s_9ca76055a220ed::t_71004c1a3005fc 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1e6c5ce7d5afac5986018102a42771d67d59bf1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
