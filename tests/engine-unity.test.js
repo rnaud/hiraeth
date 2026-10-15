@@ -272,6 +272,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
   const sound = { queued: 0, frames: 0, sumSq: 0, bad: 0, batches: 0 };
   const replay = new AudioReplay(48000), ended = [];
+  // the recorded music (BridgeMusic.cs): every file decoded at once here (a minute long), its places and gains read back
+  const music = { loads: [], natives: [], fetch: null };
   const BridgeHost = {
     Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
     Geometry(key, buf) { calls.Geometry++; calls.bytes += buf.byteLength; }, Material() { calls.Material++; },
@@ -284,7 +286,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // (on the title Enter once: New game, in the world it was started at; in the world W held, and Esc twice: the Start
     // menu open, then closed)
     // then J: the game menu (Quests), E: the Map (left open while its ground is drawn), J: closed
-    Keys: () => (!calls.Frame ? (++keyCalls === 3 ? 'Enter' : '') : calls.Frame > 3 ? ({ 8: 'KeyW,Escape', 12: 'KeyW,Escape', 14: 'KeyW,KeyJ', 16: 'KeyW,KeyE', 70: 'KeyW,KeyJ' }[calls.Frame] ?? 'KeyW') : ''),
+    Keys: () => (!calls.Frame ? (++keyCalls === 8 ? 'Enter' : '') : calls.Frame > 3 ? ({ 8: 'KeyW,Escape', 12: 'KeyW,Escape', 14: 'KeyW,KeyJ', 16: 'KeyW,KeyE', 70: 'KeyW,KeyJ' }[calls.Frame] ?? 'KeyW') : ''),
     Menu(json) { const v = JSON.parse(json); menus.push(v?.kind ?? null); if (v?.kind === 'game') panels[v.panel] = v; if (v?.map?.ground) grounds.push(v.map.ground); },
     // the Map's drawn ground (BridgeMenu.SetMap), before the state that names it
     MapImage(key, buf, w, h) { maps.push({ key, bytes: buf.byteLength, w, h, sentBefore: !grounds.includes(key), inked: new Uint8Array(buf).some((x, i) => i % 4 === 0 && x < 80) }); },
@@ -295,7 +297,9 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
     // the sound rendered on Unity's audio thread (BridgeRunner.RunAudio, engine/unity/audio-worker.js): its batches played here as there
     AudioThreaded: () => true,
-    AudioBatch(buf) { sound.batches++; const r = replay.apply(new Float64Array(buf)); if (r.pcm.length) BridgeHost.Audio(r.pcm.slice().buffer); if (r.ended.length) ended.push(...r.ended); },
+    AudioBatch(buf) { sound.batches++; const r = replay.apply(new Float64Array(buf)); if (r.pcm.length) BridgeHost.Audio(r.pcm.slice().buffer); if (r.ended.length) ended.push(...r.ended); if (replay.natives) BridgeHost.AudioNatives(replay.natives); },
+    MusicLoad(path) { music.loads.push(path); return music.loads.length; }, MusicState: () => `ok,2,${48000 * 60},48000`,
+    AudioNatives(text) { music.natives.push(text); }, MusicFetch(list, carried) { music.fetch = { list, carried }; },
     AudioEndedTake: () => { const s = ended.join(','); ended.length = 0; return s; },
   };
   // (no timers of the VM's own, as in Puerts: engine/platform.js runs them from the frame)
@@ -306,7 +310,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   try {
     exports.start(JSON.stringify({ level: 'glassdunes' }));   // (the Sealed Hangar's successor; since issue #347 its mechanics' crowd wears no capes)
     for (let i = 0; i < 2000 && !calls.Frame; i++) { await new Promise((r) => setTimeout(r, 30)); exports.frame(1 / 30); }   // (the world builds first: up to a minute on a busy machine)
-    for (let i = 0; i < 80; i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); }
+    // (the promises settled between frames, as Puerts' V8 does after each call: a recording Unity decoded comes in)
+    for (let i = 0; i < 80; i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); await new Promise((r) => setImmediate(r)); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
@@ -334,6 +339,13 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.equal(sound.bad, 0, 'every sample finite');
   assert.ok(sound.batches >= 20, `the sound recorded and played elsewhere: ${sound.batches} batches`);
   assert.ok(Math.sqrt(sound.sumSq / (sound.frames * 2)) > 1e-5, 'and something to hear (the wind)');
+  // the recorded music: the title's, then the world's theme, decoded by Unity and played where the graph says, faded in
+  assert.deepEqual(music.loads, ['music/title.mp3', 'music/glassdunes.mp3'], JSON.stringify(music.loads));
+  const lines = music.natives.flatMap((t) => (t ? t.split(';') : [])).map((l) => l.split(',').map(Number));
+  assert.ok(lines.some((l) => l[1] === 1), 'the title\'s recording played on the title');
+  const world = lines.filter((l) => l[1] === 2);
+  assert.ok(world.length > 20 && world.at(-1)[3] > 0.01 && world.at(-1)[5] === 1 && world.at(-1)[6] === 2, `the world's theme, looped, faded in: ${JSON.stringify(world.at(-1))}`);
+  assert.equal(music.fetch?.list.split(';')[0].split(' ')[0], 'glassdunes.mp3', 'the themes the package lacks fetched, this world\'s first');
   // the last frame's commands parse to the end
   const u = new Uint32Array(lastFrame);
   let o = 0, ops = 0;

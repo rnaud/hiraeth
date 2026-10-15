@@ -31,6 +31,7 @@ namespace Hiraeth.Bridge
         public BridgeHud hud;
         public BridgeMenu menu;
         public BridgeAudio audioOut;
+        public BridgeMusic music;
         /// <summary>The arguments the next start takes (a reboot's: BridgeHost.Reboot), instead of the command line's.</summary>
         public static string RebootArgs;
         /// <summary>Whether this start is a reboot's (the prewarm already done; the sound's engine disposed on its way out).</summary>
@@ -49,15 +50,19 @@ namespace Hiraeth.Bridge
         string threadError;
         public static Action<int> OnExit;
 
+        // (persistentDataPath read on the main thread at the start: the script's thread asks for the roots too)
+        static string downloadRoot;
         public string[] PublicRoots() => new[]
         {
             Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public"),
+            downloadRoot ?? Path.Combine(Application.persistentDataPath, "public"),   // (the recorded themes downloaded: BridgeMusic.Fetch)
             Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "public")),   // (the repository: unity/Hiraeth beside public/)
         };
 
         void Start()
         {
             BridgeHost.Runner = this;
+            downloadRoot = Path.Combine(Application.persistentDataPath, "public");
             // a player's plan from its command line (BridgeBuild: -views, -bench, -out …; the editor's batch run sets args itself)
             if (!Application.isEditor && BridgeArgs.Arg("-limit") is string lim) limitAt = Time.realtimeSinceStartup + float.Parse(lim, System.Globalization.CultureInfo.InvariantCulture);
             if (RebootArgs != null) { args = RebootArgs; RebootArgs = null; Debug.Log($"Hiraeth bridge: started again: {args}"); }
@@ -92,6 +97,10 @@ namespace Hiraeth.Bridge
             audioOut = new GameObject("Sound").AddComponent<BridgeAudio>();
             audioOut.transform.SetParent(transform, false);
             audioOut.Begin(mute);
+            // the recorded music, which Unity decodes and plays where the script's graph says (BridgeMusic)
+            music = new GameObject("Music").AddComponent<BridgeMusic>();
+            music.transform.SetParent(transform, false);
+            music.muted = mute; music.ring = audioOut;
             // the stage, as Game.BuildWorld sets it up
             sun = new GameObject("Sun").AddComponent<Light>();
             sun.transform.SetParent(transform, false);
@@ -894,6 +903,7 @@ namespace Hiraeth.Bridge
             exiting = true;
             quit = true; go.Set();
             if (audioOut) Debug.Log($"Hiraeth bridge: sound {audioOut.Report()}");
+            if (music) Debug.Log($"Hiraeth bridge: music {music.Report()}");
             Debug.Log($"Hiraeth bridge: exit {code}");
             if (OnExit != null) OnExit(code);
             else Application.Quit(code);

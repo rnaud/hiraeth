@@ -242,6 +242,11 @@ function response(buf, url) {
   };
 }
 
+// (each fetched file's bytes → its path under public/: the engine's audio decoder opens the file itself, fetchedPath)
+const FETCHED = new WeakMap();
+/** The public/ path a fetched file's bytes came from (the ArrayBuffer fetch gave), or null. */
+export const fetchedPath = (buf) => (buf && typeof buf === 'object' ? FETCHED.get(buf) ?? null : null);
+
 /** The path under public/ that a URL the game asks for names ('anim/ual.glb', './anim/x.glb', 'https://…/anim/x.glb'). */
 export function publicPath(url) {
   let s = String(url?.url ?? url);
@@ -341,6 +346,7 @@ export function installPlatform(host = {}) {
     const p = publicPath(url);
     let buf = null;
     try { buf = host.readFile?.(p) ?? null; } catch (e) { buf = null; }
+    if (buf && typeof buf === 'object') FETCHED.set(buf, p);
     return Promise.resolve(response(buf, String(url?.url ?? url)));
   });
   def('AbortController', class { constructor() { this.signal = { aborted: false, reason: undefined, addEventListener() {}, removeEventListener() {}, throwIfAborted() {} }; } abort(r) { this.signal.aborted = true; this.signal.reason = r; } });

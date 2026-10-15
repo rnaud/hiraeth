@@ -117,6 +117,13 @@ test('the settings: a slider steps with left / right, a switch flips with A / ×
   m.navigate(-1, 0);
   assert.equal(s.music, 0.75);
   assert.equal(m.view().page.rows[0].val, '75 %');
+  // Music plays (the recorded theme for the moments, or always: src/music-moments.js), unset reads Moments
+  m.navigate(0, 1);
+  assert.equal(m.view().page.rows[1].val, 'Moments');
+  m.action('confirm');
+  assert.equal(s.musicMode, 'always');
+  assert.deepEqual(changed.at(-1), ['musicMode', 'always']);
+  assert.equal(m.view().page.rows[1].val, 'Always');
   m.navigate(0, 1); m.navigate(0, 1); m.navigate(0, 1);   // Mute
   m.action('confirm');
   assert.equal(s.mute, true);

@@ -136,11 +136,14 @@ const SHOP_EL = { classList: { add() {}, remove() {}, toggle() {}, contains: () 
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
 
-/** The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. */
-function makeSound(levelId, { sampleRate = 48000, volume = 1, record = false } = {}) {
+/**
+ * The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. `title`: the
+ * title screen's (src/title.js: no world's score, its own recording over the menu music; engine/unity/game.js).
+ */
+export function makeSound(levelId, { sampleRate = 48000, volume = 1, record = false, title = false } = {}) {
   // (record: the graph rendered elsewhere, from what is done to it here: engine/webaudio.js, the Unity bridge's audio thread)
   installAudio(globalThis, { sampleRate, record });
-  const s = quiet(() => new Sound(levelId));
+  const s = quiet(() => (title ? new Sound('title', { score: false, titleTheme: true, autoStart: false }) : new Sound(levelId)));
   s.start();
   if (volume !== 1 && s.master) s.master.gain.value = 0.9 * volume;
   return s;
@@ -532,6 +535,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
   // after a box's card, the line a gadget found says (in hand; the first time two are carried, how to pick another), or the
   // item's own lesson, once (main.js on 'box:opened'; src/gadgets/index.js gadgetFoundLine)
+  // (a keepsake kept: the recorded theme comes back, as main.js says; src/music-moments.js)
+  if (sound !== SILENT) gameState.on('keepsake', () => sound.musicCue?.('moment', { delay: 1 }));
   gameState.on('box:opened', ({ item } = {}) => {
     const found = gadgetFoundLine(item, { owned: gadgets?.owned?.() ?? [], taught: (k) => !!gameState.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
     if (!found) return;
@@ -1059,7 +1064,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       setFaces(s.padFaces);
       rig.sensitivity = s.sensitivity ?? 1; rig.invertY = !!s.invertY;
       if (sound === SILENT) return;
-      sound.setVolumes?.(s.music, s.effects); sound.setVoices?.(s.voices, s.alienVoices);
+      sound.setVolumes?.(s.music, s.effects); sound.setVoices?.(s.voices, s.alienVoices); sound.setMusicMode?.(s.musicMode);
       if (!!s.mute !== !!sound.muted) sound.toggleMute?.();
     },
     frame(dtRaw) {

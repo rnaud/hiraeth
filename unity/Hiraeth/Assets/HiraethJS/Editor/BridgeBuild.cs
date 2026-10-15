@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -56,6 +57,7 @@ namespace Hiraeth.EditorTools
                 Directory.CreateDirectory(d);
                 foreach (var f in files) File.Copy(Path.Combine(Repo, "public", from, f), Path.Combine(d, f), true);
             }
+            Music();
             if (!File.Exists(Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs"))) throw new Exception("no bundle: node scripts/engine-bundle.mjs unity");
             AssetDatabase.Refresh();
             typeof(Batch).GetMethod("IncludeShaders", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
@@ -67,6 +69,35 @@ namespace Hiraeth.EditorTools
             PlayerSettings.stripEngineCode = false;   // (components no scene holds, added at run time)
             foreach (var t in new[] { NamedBuildTarget.Android, NamedBuildTarget.Standalone, NamedBuildTarget.WindowsStoreApps })
                 PlayerSettings.SetManagedStrippingLevel(t, ManagedStrippingLevel.Minimal);
+        }
+
+        /// <summary>The recordings every device carries (src/music-store.js ON_DEVICE_THEMES; tests/engine-music.test.js checks they agree).</summary>
+        public static readonly string[] OnDeviceThemes = { "desert-bayati.mp3", "singing-light.mp3", "title.mp3" };
+
+        /// <summary>
+        /// The recorded music (BridgeMusic decodes the MP3s as they are) into StreamingAssets/hiraeth-js/public/music: every
+        /// theme for the computers' players (the Deck's Linux one: it has the room, and plays offline from the first launch);
+        /// the APK and the Xbox's carry only OnDeviceThemes, as the web's packages do, and download the rest once
+        /// (BridgeMusic.Fetch). What another build left there and this one doesn't carry is taken out.
+        /// </summary>
+        static void Music()
+        {
+            var t = EditorUserBuildSettings.activeBuildTarget;
+            bool all = t == BuildTarget.StandaloneLinux64 || t == BuildTarget.StandaloneOSX || t == BuildTarget.StandaloneWindows64;
+            var src = Path.Combine(Repo, "public", "music");
+            var dst = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", "music");
+            Directory.CreateDirectory(dst);
+            var want = new HashSet<string>(Directory.GetFiles(src, "*.mp3").Select(Path.GetFileName).Where(f => all || OnDeviceThemes.Contains(f)));
+            foreach (var f in Directory.GetFiles(dst, "*.mp3"))
+                if (!want.Contains(Path.GetFileName(f))) { File.Delete(f); if (File.Exists(f + ".meta")) File.Delete(f + ".meta"); }
+            long bytes = 0;
+            foreach (var f in want)
+            {
+                var from = Path.Combine(src, f); var to = Path.Combine(dst, f);
+                if (!File.Exists(to) || new FileInfo(to).Length != new FileInfo(from).Length) File.Copy(from, to, true);
+                bytes += new FileInfo(to).Length;
+            }
+            Debug.Log($"Hiraeth: the recorded music, {want.Count} files ({bytes / 1e6:0.0} MB) into StreamingAssets ({(all ? "every theme" : "the ones every device carries, the rest downloaded")})");
         }
 
         /// <summary>Puerts' IL2CPP glue (Assets/Gen/Plugins/puerts_il2cpp, not committed): its menu's "Minimal Bridge, Reflection Mode".</summary>
@@ -209,6 +240,7 @@ namespace Hiraeth.EditorTools
             PlayerSettings.WSA.tileShortName = "Hiraeth (Unity)";
             PlayerSettings.WSA.applicationDescription = "Hiraeth, the Unity bridge (Developer Mode)";
             PlayerSettings.runInBackground = false;
+            PlayerSettings.WSA.SetCapability(PlayerSettings.WSACapability.InternetClient, true);   // (the themes it doesn't carry, downloaded once: BridgeMusic.Fetch)
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.WindowsStoreApps, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.WindowsStoreApps, Il2CppCompilerConfiguration.Release);
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WSAPlayer, false);

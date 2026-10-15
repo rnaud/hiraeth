@@ -1,0 +1,31 @@
+// Made by scripts/theme-levels.mjs: the gain src/soundtracks.js prepareSoundtrack gives each recording (-27 dB RMS with a
+// peak cap, its tail joined to its opening), for the engines, which decode and stream the MP3s themselves and never hold
+// their samples (engine/webaudio.js NativeAudioBuffer). Run it again when a recording is added or replaced.
+export const THEME_LEVELS = {
+  'antennas.mp3': 0.3201,
+  'arzach.mp3': 0.3734,
+  'arzach2.mp3': 0.3421,
+  'atelier.mp3': 0.3799,
+  'bazaar.mp3': 0.3351,
+  'buried.mp3': 0.3259,
+  'desert-bayati.mp3': 0.3458,
+  'eclipse.mp3': 0.3633,
+  'edena.mp3': 0.3322,
+  'fallenring.mp3': 0.3094,
+  'garage.mp3': 0.3002,
+  'glassdunes.mp3': 0.3536,
+  'home.mp3': 0.1893,
+  'incal.mp3': 0.355,
+  'mangrove.mp3': 0.3645,
+  'moonfoundry.mp3': 0.2765,
+  'overnighttrain.mp3': 0.3626,
+  'perdide.mp3': 0.3431,
+  'perdide2.mp3': 0.358,
+  'saltharbour.mp3': 0.3562,
+  'spacecity.mp3': 0.4099,
+  'spheres.mp3': 0.3205,
+  'title.mp3': 0.3619,
+  'underside.mp3': 0.3716,
+  'underwater.mp3': 0.3162,
+  'waterfall.mp3': 0.3693,
+};

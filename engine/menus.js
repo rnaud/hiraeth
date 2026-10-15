@@ -32,6 +32,7 @@ import { stripTone } from '../src/story/tone.js';
 import { MapView, VIEW, mapAspect } from '../src/world-map.js';
 import { chooseShot } from '../src/title-shots.js';
 import { titleLayout } from '../src/title-layout.js';
+import { MUSIC_MODES, musicMode } from '../src/music-moments.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -44,10 +45,12 @@ const aside = (k) => () => t(k).match(/ \((.*)\)$/)?.[1] ?? '';
  * (min, max, step), a switch, or a choice (opts); `value(settings)` where the page shows something else than the saved
  * value (reduced motion unset: as the system asks), `note` under the row while the pad is on it. Graphics applies at the
  * next start (the engine's preset is read at launch). The web's Language is left out (no other language for now), and
- * its rows the engines don't carry (the music's mode, the foes, the drone's hints, the developer's).
+ * its rows the engines don't carry (the foes, the drone's hints, the developer's).
  */
 export const SETTINGS_ROWS = [
   { k: 'music', label: () => t('set.music'), kind: 'range', min: 0, max: 1, step: 0.05 },
+  // (when the recorded theme plays: for the moments, or all the time; src/music-moments.js, Unity playing the recordings)
+  { k: 'musicMode', label: () => t('set.musicMode'), kind: 'choice', opts: MUSIC_MODES, name: (v) => t(`set.musicMode.${musicMode(v)}`).replace(/ \(.*$/, ''), note: () => `Moments: ${t('set.musicMode.moments').match(/\((.*)\)/)?.[1] ?? ''}` },
   { k: 'effects', label: () => t('set.effects'), kind: 'range', min: 0, max: 1, step: 0.05 },
   { k: 'voices', label: () => t('set.voices'), kind: 'range', min: 0, max: 1, step: 0.05 },
   { k: 'mute', label: () => t('set.mute').replace(/ \(M\)$/, ''), kind: 'switch' },

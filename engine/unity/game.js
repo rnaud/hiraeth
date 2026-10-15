@@ -4,7 +4,11 @@
 // BridgeRunner.cs loads this bundle and calls start(args) once and frame(dt) every frame; a batch
 // run (BridgeBatch.cs, scripts/unity-export/unity-batch.sh BridgeBatch.Run) passes its plan in args.
 import { pads, host, toHost } from './host.js';
-import { createGame } from '../game.js';
+import { createGame, makeSound } from '../game.js';
+import { page } from '../boot.js';
+import { setAudioDecoder } from '../webaudio.js';
+import { musicDecoder, pollMusic, themeDownloads } from './music.js';
+import { SOUNDTRACKS } from '../../src/soundtracks.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 import { fullGcWatch } from './gc-watch.js';
@@ -36,6 +40,8 @@ watchSceneEdits();
 
 let S = null;
 const now = () => host.Now();
+// (the recorded music: Unity decodes the MP3s the shim can't, BridgeMusic.cs; engine/unity/music.js)
+setAudioDecoder(musicDecoder(host));
 // the sound kept this far ahead of what Unity has played (BridgeAudio.cs's ring): frames
 const AUDIO_AHEAD = 0.12;
 // a run at fixed views starts from the web bench's save (scripts/bench/web-page.mjs prepareStorage): the backpack found
@@ -111,6 +117,7 @@ export function start(argsJson) {
     onPhoto: () => { S?.game?.setPhoto?.(true); },
     onSetting: (k) => {
       setFaces(settings.padFaces); S?.game?.applySettings?.(settings);
+      if (!S?.game && S?.titleSound) titleSettings(S.titleSound, settings);
       if (k === 'rumble' || k === 'rumbleLevel') rumblePlay('hurt', { h: 0.75 });   // (a taste of the new strength, as the web's page)
     },
     where: () => TITLES[S?.game?.level?.id] ?? '',
@@ -127,8 +134,31 @@ export function start(argsJson) {
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
   S.titlePad = new Controller({ pads: () => pads, context: () => 'menu', action: (n) => menus.action(n), navigate: (x, y) => menus.navigate(x, y), look() {}, scroll() {}, faces: () => padFaces() });
   if (args.boot) begin(args.boot);
-  else menus.show('title');
+  else { menus.show('title'); S.titleSound = titleSound(args, settings); }
   showMenu();
+}
+
+/** The sound's rate (Unity's output; 0: none) and whether it renders on Unity's audio thread (the graph recorded here). */
+const soundRate = (args) => (args.sound === false ? 0 : host.AudioRate?.() ?? 0);
+const soundRecorded = (args, rate) => !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
+
+/**
+ * The title's sound, as src/title.js makes it: the menu music, then the title's own recording over it once Unity has
+ * decoded it (src/soundtracks.js loadTitleTheme, BridgeMusic). Faded out as a save is chosen, let go once the world is up.
+ */
+function titleSound(args, settings) {
+  const rate = soundRate(args);
+  if (!rate) return null;
+  try {
+    const s = makeSound('title', { sampleRate: rate, record: soundRecorded(args, rate), title: true });
+    titleSettings(s, settings);
+    s.menuMusic(true);
+    return s;
+  } catch (e) { console.warn('[unity] the title\'s sound', e?.stack ?? e); return null; }
+}
+function titleSettings(s, settings) {
+  s.setVolumes?.(settings.music, settings.effects);
+  if (!!settings.mute !== !!s.muted) s.toggleMute?.();
 }
 
 /**
@@ -161,6 +191,7 @@ function begin(choice) {
     return;
   }
   S.slot = slot;
+  S.titleSound?.menuMusic(false);   // (the title's music fades as the world loads, as the page's does before it goes)
   launch({ ...S.args, level }, { start, arrive, via, prologue, game, came });
 }
 
@@ -242,9 +273,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (played, the title's state kept: its menus, settings and the save chosen)
   S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
-  const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
+  const rate = soundRate(args);
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
-  const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
+  const record = soundRecorded(args, rate);
   // (-trial <id>, -game <id>: a run's cards want the menus that draw them, on the debug save, the player's own untouched)
   if (!S.menus && (args.trial || args.game)) {
     slots.setActive(DEBUG_SLOT); gameState.reload();
@@ -269,6 +300,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes })
     .then((game) => {
       S.game = game;
+      // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
+      if (S.titleSound) { S.titleSound.dispose(); S.titleSound = null; }
+      if (rate && !planned(args)) { const d = themeDownloads(SOUNDTRACKS[game.level?.id] ?? null); host.MusicFetch?.(d.list, d.carried); }
       if (menus) {
         // the game menu's panels from the world now running (engine/game.js menuSources), its Travel here by a reboot
         menus.sources = game.menuSources({ travel: true });
@@ -584,9 +618,11 @@ function readTitleInput(dt) {
   S.titlePad.update(Math.min(dt, 0.1), true);
 }
 
-/** The sound's next PCM to Unity: what keeps its ring AUDIO_AHEAD seconds ahead (whole 128-frame blocks). */
-function pumpAudio(game) {
-  const ctx = game.audio;
+/**
+ * The sound's next PCM to Unity: what keeps its ring AUDIO_AHEAD seconds ahead (whole 128-frame blocks); and where the
+ * recordings Unity plays itself stand (BridgeMusic: from the audio thread when it renders there, else from here).
+ */
+function pumpAudio(ctx) {
   if (!ctx) return;
   const t0 = now();
   const want = Math.floor(ctx.sampleRate * AUDIO_AHEAD) - host.AudioQueued();
@@ -603,14 +639,23 @@ function pumpAudio(game) {
   if (want >= 128) {
     const pcm = ctx.render(want);
     if (pcm.length) host.Audio(toHost(pcm.buffer));
+    const nat = ctx.nativeText?.() ?? '';
+    if (nat || S.natives) { host.AudioNatives?.(nat); S.natives = nat; }
   }
   S.audioMs += now() - t0;
 }
 
 export function frame(dt) {
   S?.menus?.tick?.();   // (a rebinding on the Controls page left waiting: kept as it was, engine/menus.js)
-  // the title, before a world: only its menu (the world loading behind it once chosen)
-  if (S?.menus && !S.game) { if (!S.menus.title.starting && S.titlePad) readTitleInput(dt); showMenu(); return; }
+  pollMusic(host);   // (the recordings Unity has decoded since: their decodeAudioData answered)
+  // the title, before a world: only its menu (the world loading behind it once chosen) and its music
+  if (S?.menus && !S.game) {
+    if (!S.menus.title.starting && S.titlePad) readTitleInput(dt);
+    showMenu();
+    // (its timers too: the menu tune's scheduler; in a world engine/game.js runs them)
+    if (S.titleSound) { page.tick(now()); pumpAudio(S.titleSound.ctx); }
+    return;
+  }
   if (!S?.game) return;
   const { game, backend } = S;
   const tA = now();
@@ -625,7 +670,7 @@ export function frame(dt) {
   // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI)
   const scr = game.screen(), acc = access();
   if (scr.version !== S.screenV || acc.key !== S.accessKey) { S.screenV = scr.version; S.accessKey = acc.key; host.Screen(forPad(JSON.stringify({ ...scr.state, access: acc.state }), true)); }
-  pumpAudio(game);
+  pumpAudio(game.audio);
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;
   S.frames++;

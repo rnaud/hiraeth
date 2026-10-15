@@ -203,6 +203,17 @@ namespace Hiraeth.Bridge
         /// <summary>The script's thread: the ends since the last call ("" none).</summary>
         public static string AudioEndedTake() { lock (audioEnded) { var s = audioEnded.ToString(); audioEnded.Clear(); return s; } }
         public static void Audio(object buffer) { var s = Sound; if (s is null) return; var b = JsRuntime.Bytes(buffer, out int n); s.Push(b, n); }
+
+        // ---------------------------------------------------------------- the recorded music (BridgeMusic: Unity decodes the MP3s)
+        static BridgeMusic Music => (object)Runner != null && Runner.music is BridgeMusic m ? m : null;
+        /// <summary>A file of public/ (music/x.mp3) decoded by Unity: its clip's id (0: no music here); MusicState says when.</summary>
+        public static int MusicLoad(string path) => Music?.Load(path) ?? 0;
+        /// <summary>"" decoding, "ok,channels,samples,frequency", "fail,why".</summary>
+        public static string MusicState(int id) => Music?.State(id) ?? "fail,no music here";
+        /// <summary>The Web Audio shim's recordings where they stand (engine/webaudio.js nativeText), from the thread that rendered them.</summary>
+        public static void AudioNatives(string text) { var m = Music; if (m is null) return; m.Natives(text, Sound?.Queued ?? 0, Sound?.rate ?? 0); }
+        /// <summary>The themes to download where the package has none ("file url;…"), and those it carries where they can't be looked for.</summary>
+        public static void MusicFetch(string list, string carried) => Music?.Fetch(list, carried);
         public static void Screen(string json) => On(() => { if (Runner && Runner.hud) Runner.hud.Set(json); });
         /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>

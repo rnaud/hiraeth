@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.78 — 2026-10-15
 
+- The Unity versions (the Xbox and Retroid previews, and the Steam Deck’s next) now play the recorded music as the web game does: each world’s theme, the title’s music and the recorded cues. They follow your music volume, go quiet under the menus, swell on a bench, and follow Music plays, now in their settings. The Steam Deck carries every theme; the Xbox and the Retroid download the ones they lack once.
 - Worlds load a little quicker on handhelds: inside the ship, the tool boards and the engine-room hatch are now plain painted metal, which saves a moment on every load.
 - In the Unity preview, talking to someone no longer turns the world black: you see the conversation as in the game, the people gesturing as they speak, and their portrait in the panel’s circle.
 - In the Unity preview you can now go through doors as in the game: a temple’s door, a house’s doorway, a cave mouth or a hatch takes you inside, its light flaring and the sheet of paper sweeping across, and the way you came in takes you back out.
