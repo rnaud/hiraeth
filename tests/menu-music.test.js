@@ -39,7 +39,9 @@ test('the music volume changed in the menu doesn\'t bring the level\'s music bac
 
 test('the score\'s per-frame level and a new start keep it out while a menu is up; every pausing menu asks for it', () => {
   const audio = readFileSync(new URL('../src/audio.js', import.meta.url), 'utf8');
-  assert.match(audio, /this\.music\.gain\.setTargetAtTime\(this\.menuOn \? 0 : 0\.62 \* this\.musicVol \* \(1 - 0\.7/);
+  // (listen() sets the bus to musicLevel(), which is 0 under a menu: the musicians near, a moment's swell and a bench's lift after)
+  assert.match(audio, /this\.music\?\.gain\.setTargetAtTime\(this\.musicLevel\(near, t\)/);
+  assert.match(audio, /musicLevel\(near = 0[^\n]*\n[^\n]*\n[^\n]*\n\s*return this\.menuOn \? 0 : 0\.62 \* this\.musicVol \* \(1 - 0\.7/);
   assert.match(audio, /this\.music\.gain\.value = this\.menuOn \? 0 : 0\.62 \* this\.musicVol/);
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   // (the Start menu, the game menu and what's new pause the game, and each toggles the menu music by paused())

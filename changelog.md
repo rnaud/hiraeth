@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.77 — 2026-10-14
 
+- Walk up to a bench and press the interact button to sit down: the camera comes round behind you and looks out over the view, the screen clears, and the world’s music swells. Move, jump, press B / ○ or interact again to stand up, and it all comes back.
+- Every world now has a bench or two where the view is worth stopping for: Qanat and its tree from the dunes, the sky stones over the sea of cloud, the swamp from the Deep Wood’s high walk, the pyramids under Viridel’s ringed moon, the City-Shaft’s spire from its north rim, the moons hanging in the foundry, the planet over the floating city, and more. Each is made the way its world makes things: a stone slab, a wooden seat with a back, or a machined one on bent metal legs.
 - Aiming with LT / L2 while locked on now puts your crosshair right on the lock’s centre (a guardian’s weak point), and the right stick shifts the aim a little off it, as in Metroid Prime; let go and it comes back to the centre. Before, the aim drifted onto the target and the stick switched to another target.
 - Locked on to a guardian, the camera now keeps the whole fight in view: you from head to feet, the guardian and the floor between you. It stands further back and a little higher the bigger the guardian is, turns aside from a wall behind you, and only by a wall does it widen its view a little. With the Mother Snapper you were cut off at the chest and its head was out of the picture.
 - In the Sunken Hall your sword reaches further and wider: a cut takes every foe in a broad arc in front of you, a step further out than before, but never one behind a wall.

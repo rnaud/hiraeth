@@ -1079,6 +1079,53 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   roots (the shader's local lights only lift the shade); the creatures are flat spots, not a soft glow under
   the surface; the houses can't be entered; the boats pass through the stilts.
 
+## Benches (v1.77, issue #363: "sit on the bench and look at a beautiful vista")
+
+Every world on the route and off it has one or two benches (27 in all) at a spot with a long view: Qanat and its
+tree from the dunes, the sky stones over the cloud, the Deep Wood's high walk over the swamp, the pyramids under
+Viridel's ringed moon, the pod towers through the Avenue's glass, the City-Shaft's spire and saucer from the north
+rim, the moons hanging in the foundry, the planet over the floating quarters, the Mangrove's great tree across the
+lake, the valley through a slit in the falls… (`src/benches-data.js`, each with what it looks at).
+
+- **Where.** Picked from the running game: a script scored spots round the route's stops and people (flat, dry,
+  outdoors, nothing over the seat, room to stand in front, the camera's place behind clear, a long sight line, a
+  drop or a landmark the way it faces), the best few in each world were shot from the seated camera in headless
+  Chrome and looked at, and one or two kept. `tests/benches-worlds.test.js` builds every world and holds each bench
+  to it (ground within 0.3 m of where it is written, one surface under the seat and the space before it, no water,
+  no room, 4 m clear overhead, the body's capsule free in front, its seat stood on, the seated shot clear and over
+  the ground, 25 m of open view unless it looks through glass, 30 m from a race's start); `tests/route-worlds.test.js`
+  keeps each 12 m or more off the route's line (the level design audit's critical path).
+- **The bench** (`benchGeometry`, `BENCH_STYLES`): each world's own kind and colours. `slab` a stone slab on two
+  blocks (the desert's sandstone, Vael's bone-white, the Glass Dunes' sand on glass-green, the Garden's and the
+  Eclipse's white); `plank` three planks and a two-plank back on posts (Lorn's dark wood on iron, Viridel's warm
+  wood on green, the Mangrove's white wood, Salt Harbour's ship timber); `machined` a moulded seat with a rolled lip
+  on two bent hoops and a rail behind (brass under water, steel in the City-Shaft and the Market, rust and iron in
+  the machine worlds, chrome in Space City). Flat-shaded materials, inked like the rest; one draw per material.
+  Solid (`physics.addCollider`, never climbed): the seat (0.46 m, under the step) is stepped onto like a kerb, the
+  back stops you.
+- **Sitting** (`createBenches` in `src/benches.js`, wired in `src/main.js`). Walking up offers "sit" on the
+  interact button (`E`, `X / □` on a pad: the floating prompt, `native-pad.js` prints a handheld's own). Pressing
+  it slides the traveller onto the seat facing the view (0.7 s) and lays the seated pose over the clip
+  (`benchSitPose` through `player.overlay`, as Home's window seat: the hips down to the seat, thighs out, hands on
+  them, a slow breath); he takes no input while he sits (`inputFor`: only a held E, so no press comes through as a
+  fresh one to whistle the mount). The camera is a mode of its own, laid over the follow camera after the rig has
+  placed it (`frameCamera`, like the conversations' two-shot): it swings round him on an arc (2 s, smoothstep;
+  its bearing, height and distance from his head eased, never through him) to `benchFraming`,
+  7.5 m behind the seat and 3 m over it looking out level, him small in the lower part of the frame; something
+  solid behind takes a steeper, shorter arm. The HUD fades out a moment after he sits (`body.seated`: hearts,
+  keys, stamina, the tool, the gear, the cue, prompts, balloons, the lock; the touch stick stays faint). After
+  0.9 s a push of the stick, a jump, B / ○ or E stands him up: the HUD comes back at once, he steps forward off the
+  seat (a quarter of a second, while the press that stood him up does nothing else), and the camera swings back in
+  1.5 s to the follow camera, turned behind him under the seated shot so the way back is short. Knocked down,
+  riding, swimming or carried off (a doorway), he is off the bench at once.
+- **The music swells** (`Sound.seated`, `SEATED_SWELL` in `src/audio.js`): the world's music bus rises to twice its
+  level (+6 dB) with a 1.4 s time constant (+5.6 dB after 4.5 s in the game), the wind's layers step back by a
+  third, and the recorded theme is cued in as for a moment (`musicCue('moment')`, so in Music: Moments it plays,
+  not only the light layers); standing, it eases back (1.1 s). The lift multiplies the player's own music volume,
+  so the slider still sets how loud it is (at 0, nothing); a menu still takes the music out. `listen()` now sets
+  the music's level in every world, not only those with musicians. `tests/benches.test.js` plays it on the
+  in-memory Web Audio (engine/webaudio.js): the gain up, eased, within the ceiling, back after.
+
 ## Merged and dismissed worlds (October 2026)
 
 The author's rule: no temple and no character is ever deleted; a world that leaves the route is kept whole, to be

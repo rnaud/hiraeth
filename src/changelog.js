@@ -150,6 +150,10 @@ export const CHANGELOG = [
     // the locked aim (issue #362): src/lock-aim.js (AIM_NUDGE, AimNudge, lockAimStep), main.js (rig.look while aiming locked,
     // padLook), fluid-tool.js (no snap once nudged), bindings.js LT; tests/lock-aim.test.js
     'Aiming with LT / L2 while locked on now puts your crosshair right on the lock’s centre (a guardian’s weak point), and the right stick shifts the aim a little off it, as in Metroid Prime; let go and it comes back to the centre. Before, the aim drifted onto the target and the stick switched to another target.',
+    // the benches (issue #363): src/benches.js, src/benches-data.js (where, which way, each world's kind), main.js;
+    // tests/benches.test.js, tests/benches-worlds.test.js, tests/route-worlds.test.js; docs/systems/worlds.md "Benches"
+    'Every world now has a bench or two where the view is worth stopping for: Qanat and its tree from the dunes, the sky stones over the sea of cloud, the swamp from the Deep Wood’s high walk, the pyramids under Viridel’s ringed moon, the City-Shaft’s spire from its north rim, the moons hanging in the foundry, the planet over the floating city, and more. Each is made the way its world makes things: a stone slab, a wooden seat with a back, or a machined one on bent metal legs.',
+    'Walk up to a bench and press the interact button to sit down: the camera comes round behind you and looks out over the view, the screen clears, and the world’s music swells. Move, jump, press B / ○ or interact again to stand up, and it all comes back.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

@@ -13,6 +13,7 @@
 //   3D). Every fragment lies 25 m or more from it; and each of the six worlds rebuilt in v1.55–v1.57 has at least two in
 //   its new country (tests/fragments-reach.js NEW_COUNTRY), one of them high (15 m over the landing, or on a ledge with a
 //   10 m drop by it).
+// - The benches (issue #363, src/benches-data.js) off the same line, 12 m or more: you sit by the way, not on it.
 //
 // (loadWorld resets the game's registries, its interactables, targets and listeners, for the world it loads: so each world
 // is loaded, what the fragments' checks read is measured off it there and then, the shops' walk goes through it, and it is
@@ -35,6 +36,7 @@ const { Physics } = await import('../src/physics.js');
 const { criticalPath, pathSegments, distanceToPath } = await import('../scripts/level-design/path.mjs');
 const { newCountry } = await import('./fragments-reach.js');
 const { FRAGMENTS } = await import('../src/fragments-data.js');
+const { BENCHES } = await import('../src/benches-data.js');
 
 /** The nearest a fragment may lie to the route's line (m). */
 export const ROUTE_CLEAR = 25;
@@ -173,6 +175,17 @@ test('every fragment lies 25 m or more from the route’s line', () => {
     const { segs } = measures(id);
     assert.ok(segs.length > 2, `${id}: a route of ${segs.length} legs`);
     FRAGMENTS[id].forEach((p, i) => { const d = distanceToPath(p, segs); if (d < ROUTE_CLEAR) near.push(`${id} ${i} (${p.join(', ')}): ${d.toFixed(1)} m from the route`); });
+  }
+  assert.deepEqual(near, []);
+});
+
+/** The nearest a bench may stand to the route's line (m): off the way the quests send you (issue #363, src/benches-data.js). */
+export const BENCH_ROUTE_CLEAR = 12;
+test('every bench stands 12 m or more off the route’s line', () => {
+  const near = [];
+  for (const id of ORDER) {
+    const { segs } = measures(id);
+    for (const b of BENCHES[id] ?? []) { const d = distanceToPath(b.at, segs); if (d < BENCH_ROUTE_CLEAR) near.push(`${id} “${b.name}”: ${d.toFixed(1)} m from the route`); }
   }
   assert.deepEqual(near, []);
 });

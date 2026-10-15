@@ -111,6 +111,7 @@ import { createChallenges } from './trials/index.js';
 import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
+import { createBenches } from './benches.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
 import { guardianBox } from './lock-frame.js';
@@ -924,6 +925,8 @@ const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: sh
 // ---- the fragments of the singing light (src/fragments.js): hidden out of the way, they sing faintly near; walk into one.
 // The first brings the scientist (src/story/scientist.js, game 'fragment'), who sells upgrades aboard for them (src/fragment-shop.js)
 const fragments = createFragments({ levelId, scene, physics, level, player, sound, game, items, toast: (t) => showToast(t), lights: levelLights });
+// ---- the benches (src/benches.js, issue #363): sit, the camera comes round behind, the HUD fades, the music swells
+const benches = createBenches({ levelId, scene, physics, level, player, sound, rig });
 // (his light-stitched heart: one more for good, and the hearts filled, as a heart container does)
 items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); hpShown = 3; } });
 // (in the Start menu, under where you are: the fragments all told, how many you hold to spend with Anselm once he is met
@@ -2229,6 +2232,7 @@ function frame(ts) {
   // E goes to the nearest person / thing / vehicle first (src/interact.js); only then to the player's whistle
   const ePressed = !!ctl.KeyE && !eWasDown && !photo.on && !player.down; eWasDown = !!ctl.KeyE;   // (no talking while knocked down)
   const interacted = storyRt.update(dt, t, { camera, ePressed, paused: busy() || photo.on || ship.playing }).handled;
+  benches.update(dt, busy() || photo.on ? noInput : ctl, ePressed && !interacted);   // (sat on a bench: a move, a jump, B or E stands him up)
   passage.update(dt);   // a hand-over under way: the move happens here, before the traveller and the camera do
   if (deferred?.pending) deferred.run(player.pos);   // distant detail, a share a frame, nearest first (src/deferred.js)
   if (photo.on) {
@@ -2243,7 +2247,7 @@ function frame(ts) {
     if (interacted) player._eHeld = true;
     gadgets.control(pdt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
     // (locked on, the stick strafes round the foe from the lock's own line, not the camera's turn off it for room: LOCK_ROOM)
-    player.update(pdt, busy() ? noInput : ctl, rig.yaw - (rig.locked ? rig.lockOff : 0));
+    player.update(pdt, busy() ? noInput : benches.inputFor(ctl), rig.yaw - (rig.locked ? rig.lockOff : 0));
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
     const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
@@ -2254,6 +2258,7 @@ function frame(ts) {
     rig.air = !player.onGround && !player.climbing && !player.swim && !player.riding;   // a hop close in: the view rises with it softly (CameraRig.update)
     rig.update(player.pos, pdt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
+    benches.frameCamera(camera);   // sat on a bench: behind and above him, looking out (after the rig)
     if (minigame) minigame.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): its clock, targets, waves; after the rig, so it may take the camera (src/minigames/)
     shakeCamera(camera, realDt);   // a blow's jolt (src/feel.js)
   }
@@ -2758,7 +2763,7 @@ window.contactAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
 
 // a helper prototype (issue #339: ?guardianHelp=elder | keeper): the encounter on its temple's guardian, you at its start
 if (query.get('guardianHelp') && levelId === helpAsked) {

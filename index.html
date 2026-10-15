@@ -371,6 +371,10 @@
       body.talking .balloon, body.talking #prompt, body.talking #controller-hint, body.talking #gear { visibility: hidden; }
       /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
       body.talking #touch { visibility: hidden; }
+      /* sat on a bench (src/benches.js): the HUD fades away while he takes in the view (the touch stick stays, faint: a push stands him up) */
+      body.seated #health, body.seated #keys, body.seated #stamina, body.seated #tool, body.seated #gear, body.seated #cue, body.seated #prompt,
+      body.seated .balloon, body.seated #foe-lock { opacity: 0 !important; transition: opacity 1.2s ease !important; }
+      body.seated #touch { opacity: 0.25; transition: opacity 1.2s ease; }
       #touch .b-use.talk { font-size: calc(13px * var(--tk, 1)) !important; }   /* (over the inline size: src/touch-layout.js) */
       /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
 

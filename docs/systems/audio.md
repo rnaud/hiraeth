@@ -31,6 +31,11 @@ Garden's sphere song alone (`spheresSong`, the pole's tune, the score's moment).
 already; it is quiet while a conversation or a menu is up (`fragments.update(dt, t, { quiet: busy() })`).
 Test: `tests/sound-mix.test.js`.
 
+**Sat on a bench** (issue #363, `Sound.seated`, `SEATED_SWELL`): the music bus swells to twice its level (+6 dB, over
+the player's own music volume, so 0 stays silent), eased in over a few seconds, the wind steps back, the theme is cued
+in as for a moment, and all of it eases back as he stands. `listen()` sets the music's level every frame in every world
+now (before, only where there were musicians). [worlds.md](worlds.md), "Benches"; test `tests/benches.test.js`.
+
 **A temple's keys** (issue #274: "When I get a key in a temple there should be a sound effect"): `Sound.keyGet(big)`, a
 short bright chime as the key rises out of its little chest, a quick run up the world's scale (`KEY_GET.notes`, scale
 degrees, one every 75 ms) on struck bells (`keyBell`: a sine and two bright overtones, no filter dulling them), the

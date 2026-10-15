@@ -952,8 +952,32 @@ const DEVICES342 = {
       calls: [{ where: 'the Hall of Stones', before: 188, after: 189 }, { where: 'the stair', before: 191, after: 190 }, { where: 'the Bell Chamber', before: 190, after: 177 }, { where: 'the Hall of Echoes', before: 167, after: 156 }] },
   }),
 };
+/** (v1.77, issue #363: the benches) */
+const BENCH363 = 'Issue #363: muted headless Chrome (High, 1280 × 720, each world’s own hour and weather), Vite on port 6487, this branch, a fresh save past the prologue, the notices hidden; before: the traveller standing at the bench with the follow camera, its prompt showing; after: 4.5 s after sitting down, the game’s own seated camera and the HUD faded; 15 October; cwebp -q 72';
+const benchShot = (w, title, caption) => ({ name: `bench-${w}`, title, caption, from: BENCH363 });
 export const CHANGELOG_MEDIA = {
   '1.77': [
+    { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [
+      benchShot('desert', 'The Desert', 'On the dunes over Qanat: before, standing at the sandstone slab; after, sat on it, the town, its tree and the oasis below'),
+      benchShot('arzach', 'Vael', 'On the rose plateau: the sky stones and their bridges over the sea of cloud, from a bone-white slab'),
+      benchShot('perdide', 'Lorn', 'The Deep Wood’s high walk: a dark wooden bench by the lanterns, the swamp and the crystal stalks under the night sky'),
+      benchShot('edena', 'Viridel', 'On the hill: the valley of step pyramids and umbrella trees under the ringed moon, from a warm wooden bench'),
+      benchShot('underwater', 'The Underwater City', 'By the Avenue’s glass: a brass-legged seat, the towers of amber pods outside and a whale passing over'),
+      benchShot('incal', 'The City-Shaft', 'On the north rim: down the shaft to the spire, its saucer and the ringed planet, from a cream seat on steel'),
+      benchShot('glassdunes', 'The Glass Dunes', 'Before the clock-house: its wheels and the ring of hoops over it, between the glass waves'),
+      benchShot('buried', 'The Buried Machine', 'On the dunes: the ring of arches, the machine’s chimney and its pipes, from a rust-red seat on iron hoops'),
+      benchShot('moonfoundry', 'The Moon Foundry', 'On the casting floor: the half-made moons hanging in the works'),
+      benchShot('spheres', 'The Garden of Spheres', 'On the garden’s hill: the umbrella trees, the white pyramids and the tower far off'),
+      benchShot('spacecity', 'The City Floating in Space', 'At the parapet: the planet and the floating quarters on their cables, from a white seat on chrome'),
+      benchShot('bazaar', 'The Signal Market', 'On the square: the needle tower and the crowd at its foot, from a coral seat'),
+    ], see: 'Every world has one or two: look for a bench at a spot with a view, off the way the story sends you. The ones in the worlds still being made (the Mangrove, the Waterfall, Salt Harbour, the Antennas, the Eclipse, the Fallen Ring, the Underside) are there too.' },
+    { match: 'Walk up to a bench and press the interact button to sit down', tags: ['menus'], numbers: [
+      { title: 'The world’s music while sitting (the music bus’s gain, the music at 80 %)', unit: 'gain', better: 'higher', device: 'this Mac, muted headless Chrome, read from the game’s Sound 4.5 s after sitting down, every bench in every world (27)', rows: [
+        { where: 'standing at the bench', before: 0.496, after: 0.496 },
+        { where: 'sat 4.5 s (+5.6 dB, going to +6)', before: 0.496, after: 0.948 },
+        { where: 'stood up again', before: 0.496, after: 0.504 },
+      ], source: BENCH363 },
+    ], see: 'Walk up to a bench until its prompt shows, press E (X / □ on a controller): he sits, the camera swings round behind and above him over about two seconds, the screen clears and the music rises. Push the stick, jump, press B / ○ or E again to get up.' },
     { match: 'Inside, the Warden’s Well is a shaft of the makers’ old high technology', tags: ['shaft', 'perf'], shots: [
       { name: 'future-incal-climb-up', title: 'Looking up the Climb', caption: 'Before, cream stone in big blocks, a steel-blue band and slit windows round an open oculus; after, tall curved courses of big smooth slate panels, cyan circuits and ring bands, cream courses, great wedge vanes turning on their axles from the wall as in the drawing, and an iris of metal blades round a glowing rim at the top', from: FUTURE342_WELL,
         reference: { sheet: 'references/temples/future/wardens-well/sheet-1.jpg', caption: 'The Warden’s Well’s futuristic redesign: the author’s pick (issue #342)' } },

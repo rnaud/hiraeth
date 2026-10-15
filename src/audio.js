@@ -68,6 +68,12 @@ export const MENU_SCORE = {
   // a long, falling line every 32 beats, [degree, beats]; flute, answered by the bell the next time
   melody: [[4, 2], [3, 1], [2, 1], [4, 4], [null, 2], [5, 2], [4, 1], [2, 1], [1, 2], [0, 4]],
 };
+/**
+ * Sat on a bench (src/benches.js, issue #363): the world's music swells, `lift` × its level (+6 dB) eased in with a
+ * time constant of `rise` s (most of the way in three or four), the wind and the ambience step back by `duck`, and
+ * it all eases back over `fall` s as he stands. The swell scales the player's own music volume: at 0 there is none.
+ */
+export const SEATED_SWELL = { lift: 2, duck: 0.35, rise: 1.4, fall: 1.1 };
 export const MENU_HUSH = 0.16;     // the world's sound under a menu (× its usual level)
 const MENU_LEVEL = 0.9;            // the menu bus against the music volume setting
 const SPOT_FX = 0.5;               // a placed sound into the effects bus (1.6 ×): 0.8, as loud as on the music's default (spot)
@@ -602,6 +608,32 @@ export class Sound {
     this.muted = !this.muted;
     store.set('hiraeth.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
+  }
+
+  /**
+   * Sitting on a bench (on) or up again (src/benches.js): the music swells by SEATED_SWELL.lift over a few seconds
+   * and the ambience steps back; sitting brings the recorded theme in, as a moment does (src/music-moments.js).
+   */
+  seated(on) {
+    this.sitOn = !!on;
+    if (on) this.musicCue('moment');
+  }
+
+  /** How far the seated swell is in (0 standing .. 1 sat), eased on the audio clock (from listen, each frame). */
+  seatedK(t = this.ctx?.currentTime ?? 0) {
+    const last = this._sitT ?? t, dt = Math.min(0.25, Math.max(0, t - last));
+    this._sitT = t;
+    const S = SEATED_SWELL, want = this.sitOn ? 1 : 0, k = this._sitK ?? 0;
+    this._sitK = k + (want - k) * (1 - Math.exp(-dt / (want > k ? S.rise : S.fall)));
+    if (Math.abs(this._sitK - want) < 1e-3) this._sitK = want;
+    return this._sitK;
+  }
+
+  /** The music bus's level as listen() sets it: the player's music volume, the musicians near, a moment's swell, a bench's. */
+  musicLevel(near = 0, t = this.ctx?.currentTime ?? 0) {
+    const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
+    const seat = 1 + (SEATED_SWELL.lift - 1) * (this._sitK ?? 0);
+    return this.menuOn ? 0 : 0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell * seat;
   }
 
   setVolumes(music, fx) {
@@ -2354,12 +2386,13 @@ export class Sound {
   listen(pos, yaw) {
     this._ear = { x: pos.x, y: pos.y, z: pos.z, yaw };   // (the singing spheres place their notes by it, and foes their sounds)
     if (this.ctx) this.moveFoeSpots(this.ctx.currentTime);
-    if (!this.ctx || !this.bands) return;
+    if (!this.ctx) return;
     const t = this.ctx.currentTime;
     let near = 0;
-    this.bands = this.bands.filter((b) => !b.solo || b.until > t);
+    // (a world with no musicians still sets the music's level here: a bench's swell, SEATED_SWELL)
+    if (this.bands) this.bands = this.bands.filter((b) => !b.solo || b.until > t);
     const hush = this.soloing ? 0.2 : 1;
-    for (const b of this.bands) {
+    for (const b of this.bands ?? []) {
       const p = typeof b.pos === 'function' ? b.pos() : b.pos;
       if (!p) { b.level = 0; b.gain.gain.setTargetAtTime(0, t, 0.3); continue; }
       const dx = p.x - pos.x, dz = p.z - pos.z, d = Math.hypot(dx, dz, (p.y - pos.y) * 0.5);
@@ -2375,8 +2408,10 @@ export class Sound {
     }
     // the score steps back when you stand among musicians
     // (and under a moment's swell: src/story/moment.js, swell())
+    // (and swells on a bench: SEATED_SWELL, eased here so the gain follows it smoothly)
     const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
-    this.music.gain.setTargetAtTime(this.menuOn ? 0 : 0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell, t, swell < 1 ? 0.35 : 0.8);   // (a menu up: out, menuMusic)
+    this.seatedK(t);
+    this.music?.gain.setTargetAtTime(this.musicLevel(near, t), t, swell < 1 ? 0.35 : 0.8);   // (a menu up: out, menuMusic)
   }
   /** One beat of a band, scheduled with the score's beat. */
   bandBeat(b, t, spb) {
@@ -2643,7 +2678,8 @@ export class Sound {
     this.musicMomentsUpdate(s.indoor ?? 0);
     const k = Math.min(s.speed / 11, 1.5);
     // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
-    const W = AMBIENT_WIND;
+    // (sat on a bench the wind steps back under the swelling music: SEATED_SWELL)
+    const W = AMBIENT_WIND * (1 - SEATED_SWELL.duck * (this._sitK ?? 0));
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
     // (a storm rises well over the calm, but stays a darker roar under the world: not the hiss it was)
     this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
