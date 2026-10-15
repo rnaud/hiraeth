@@ -43,11 +43,16 @@ export function migrateTemples(g) {
 export const LAYOUTS = {
   // v1.48: the Clock-House round its Winding Well. Past the door over the climb (or with the coil): its two small keys
   // in it, the Pendulum Hall won and its way out open; the Foreman set right: the great lock open too
+  // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Winding Passage a room
+  // of its own behind the chamber's north door (dP: the coil in hand), the counterweight's socket on the landing (the same
+  // pieces, the same state). A save that entered the house: taken to its last mark if it stood inside the old rooms
+  // (runtime.js relaid)
   garage: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['open.d2', 'gadget', 'lit.k1', 'open.d3', 'lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d2': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'open.dWo': true, 'lit.sS': true } },
       { if: ['lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.k3': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.48: the Builders' Greenhouse round its Potting Hall. Past the Glass Stair's door: its two small keys in it, the

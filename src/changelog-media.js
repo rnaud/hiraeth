@@ -880,6 +880,8 @@ const WHALE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Ch
 const CASTING336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6450, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Lamp-House's rooms, shot the same way before and after) */
 const LAMP336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6449, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Clock-House's rooms, shot the same way before and after) */
+const CLOCK336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6451, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72 (the Winding Well’s pair -q 66, to keep under 260 KB)';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -990,6 +992,18 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Lamp-House’s keepers wait only in the Kennel', shots: [
       { name: 'lamp-kennel', title: 'The Kennel', caption: 'Before, a room 16 by 14 m, its keepers by the door; after, 30 m square, the house’s one fight round its middle among four columns', from: LAMP336 },
+    ] },
+    { match: 'The Clock-House is rebuilt like a shrine too', shots: [
+      { name: 'clock-escapement', title: 'The Escapement', caption: 'From the near landing: before, 22 m wide, the dial and its three eyes over the far door; after, 32 m wide under 22 m, the dial and its eyes on a tower out in the pit beside the disc’s way', from: CLOCK336 },
+      { name: 'clock-landing', title: 'The far landing', caption: 'Before, an 8 m strip, the Cupboard’s clock and its eyes over its door, the counterweight’s groove running off into the well; after, a floor 32 m wide, the Clockmaker’s clock a tall case in the middle of it, the counterweight’s groove and its socket on the landing', from: CLOCK336 },
+      { name: 'clock-well', title: 'The Winding Well', caption: 'From the way in: before, 20 m across, the counterweight’s socket at the climb’s foot; after, 36 m across, the climb’s face 10 m high to the door of two keyholes, the Pendulum Hall’s way out onto the balcony beside it', from: CLOCK336 },
+      { name: 'clock-striking', title: 'The Striking Room', caption: 'Before, 16 m square, the hour track and its clocks along the east wall, the striking eye over it; after, 30 m square, the track down the middle of the floor, each plate’s clock on a post, the eye on an obelisk past it', from: CLOCK336 },
+      { name: 'clock-mainspring', title: 'The Mainspring Room', caption: 'From the way in: before, a room 12 by 10 m, the spring on its east wall; after, 30 m square, the spring and its six eyes on a stele in the middle, its weight’s groove from the way in to the stele’s foot', from: CLOCK336 },
+      { name: 'clock-passage', title: 'The Winding Passage', caption: 'Before, a room 12 m square on from the chest, its six eyes round the door into the gallery; after, a room of its own 30 m square past the Coil Chamber’s north door, the six eyes round the makers’ great escape wheel on a stele in the middle', from: CLOCK336 },
+      { name: 'clock-gallery', title: 'The Clock Gallery', caption: 'From the near landing: before, 22 m wide, the great clock and its six eyes on the far wall; after, 36 m wide, the great clock hung on rods over the bridge’s far end, the chasm and the great pendulum as they were', from: CLOCK336 },
+    ] },
+    { match: 'The Clock-House’s keepers wait only in the Pendulum Hall', shots: [
+      { name: 'clock-pendulum', title: 'The Pendulum Hall', caption: 'From its door: before, 16 m square, its keepers by the walls; after, 30 m square under 22 m, the house’s one fight round its middle among four columns, the stair up the north wall to the key’s landing', from: CLOCK336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
     { match: 'Inside, the Rose House is the inside of a dry cactus now', tags: ['desert', 'perf'], shots: [

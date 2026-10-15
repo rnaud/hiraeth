@@ -512,6 +512,28 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (decoupling 5 → 4: the orb's step in its own room now; the curve 3 → 5; mean obviousness 2.83 → 3.08). Tests:
   `tests/temple-rules.test.js`, the on-foot walk and the old save in `tests/temples.test.js`, zfight, contact audit.
 
+- **The Clock-House as shrines** (v1.77, issue #336). The Escapement and its far landing one hall 32 by 59 m under 22
+  (`ESC`: the pit 22 m long as it was, the disc's ride as it was), the Winding Well a round hall 36 m across (`WELL`, the
+  climb's face 8 m north of its middle, 10 m high: `UP`, the upper house's floor, a metre higher so the Pendulum Hall's
+  way out clears the way in under it), the Pendulum Hall, the Striking Room, the Mainspring Room and the Winding Passage
+  30 m square (`WING`, `MAINSPRING`, `WIND`), the Coil Chamber 26 m round (`COIL`), the Clock Gallery 36 by 34
+  (`GALLERY`: the chasm, the bridge and the great pendulum's beat as they were, `GALLERY_BEAT.pivot` `UP + 16`), doors 7
+  by 9 (`DOOR`; the Cupboard a passage 12 m square under 10). Each puzzle in the middle of its room: the escapement's dial
+  and its three eyes on a tower out in the pit beside the disc's way (`DIAL`); the counterweight's groove up the landing's
+  east side to its socket there (`LANDING.ball`: it ran on through the well's doorway, so the plate `p1` is the landing's
+  now, a room and out of sight from the door it opens); the Clockmaker's clock a tall case standing on the landing
+  (`LANDING.clock`: its dial was over the Cupboard's door); the hour track down the Striking Room's middle, each plate's
+  clock on a post, the striking eye on an obelisk; the mainspring and its six eyes on a stele in the middle of its room
+  (`MAINSPRING.stele`), its weight's groove from the way in; the Winding Passage a room of its own past the chamber's north
+  door (`dP`, the coil in hand: every room after the chest asks for it), its six eyes round the makers' great escape
+  wheel on a stele in the middle; the gallery's great clock and its six eyes hung on rods from the roof over the bridge's
+  far end (`GALLERY.clock`: it was on the far wall). Tagged rooms: the Threshold, the far side of the gallery, the
+  Cupboard and the way out passages, the Coil Chamber the chest's, the Pendulum Hall the one fight (its keepers round its
+  middle among four columns), the rest puzzles; the Foreman's Workshop is measured by its two doors (`d4`, `d5` carry
+  `room: 'hall'`). Old saves: one that stood in the old rooms is taken to its last mark (`migrate.js` garage v3,
+  `relaid`); `dP` opens for the coil, so a save past the chest finds it open. Rules broken 49 → 0; temple design audit
+  4.22 before and after (decoupling 4 → 5: the counterweight a room from its door; curve 4 → 3: the north door's step,
+  the simplest, comes mid-way).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

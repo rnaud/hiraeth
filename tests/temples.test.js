@@ -28,7 +28,7 @@ import { updateHazards } from '../src/hazards.js';
 import { inColumn } from '../src/updraft.js';
 import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
-import { VOLLEY, FROM_FOUR, CUPBOARD } from '../src/temples/garage.js';
+import { VOLLEY, FROM_FOUR, CUPBOARD, MAINSPRING, UP as CLOCK_UP, WELL as CLOCK_WELL, COIL as CLOCK_COIL, WIND as CLOCK_WIND, GALLERY as CLOCK_GALLERY, WING as CLOCK_WING, LANDING as CLOCK_LANDING } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA, SUN, VAULT, ROOMS as GREENHOUSE } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
@@ -411,7 +411,7 @@ test('old saves in the Clock-House as it was (a chain of rooms) are brought roun
   const early = save({ 'lit.s1': true, 'open.discs': true });
   const L = logicOf(early, ['backpack', 'gun']);
   assert.ok(!L.isFound('kW') && !L.isLit('arW') && L.keysIn('d2') === 0, 'nothing given');
-  assert.equal(early.flag('temple.garage.layout'), 2);
+  assert.equal(early.flag('temple.garage.layout'), LAYOUTS.garage.v);
   early.set('temple.garage.open.d2', true); migrateTemples(early);
   assert.equal(early.flag('temple.garage.found.kW'), undefined, 'once a version: a save brought round already is left alone');
   // the Builders' Greenhouse: past the Glass Stair's door, its keys are in it
@@ -1404,6 +1404,36 @@ test('a save from the Casting-House before issue #336: its state as it was (the 
   const mark = rt.marks.find((m) => m.room === 'tongs');
   assert.ok(P.pos.distanceTo(mark.spot) < 0.5, `at the Tong Chamber's mark (${rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1))})`);
   assert.ok(!game.flag('temple.moonfoundry.relaid'), 'once');
+  game.reset();
+  own();
+});
+
+test('a save from the Clock-House before issue #336: its state as it was (the same pieces), and one that stood in the old rooms is taken to its last mark', () => {
+  const past = new GameState(null);
+  for (const [k, v] of Object.entries({ layout: 2, entered: true, 'lit.s1': true, 'lit.s2': true, 'lit.s3': true, 'open.discs': true, 'drum.ball1': 1, 'unlocked.d2': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'open.d2': true, gadget: true, checkpoint: 'coil' })) past.set(`temple.garage.${k}`, v);
+  migrateTempleLayouts(past);
+  assert.equal(past.flag('temple.garage.layout'), LAYOUTS.garage.v);
+  assert.equal(past.flag('temple.garage.relaid'), true, 'inside the old house: to its mark');
+  assert.equal(past.flag('temple.garage.checkpoint'), 'coil', 'its place kept');
+  const L = new TempleLogic(TEMPLES.garage.def.logic, { store: flagStore(past, 'garage'), has: (i) => ['backpack', 'gun', 'coil'].includes(i) });
+  L.update();
+  assert.ok(L.isOpen('d2') && L.drumOn('ball1', 'p1'), 'the door over the climb open, the counterweight home in its socket on the landing');
+  assert.equal(L.isOpen('dP'), true, 'the chamber’s new north door opens for the coil in hand');
+  const outside = new GameState(null);
+  outside.set('temple.garage.layout', 2);
+  migrateTempleLayouts(outside);
+  assert.equal(outside.flag('temple.garage.relaid'), undefined, 'never inside: nothing to move');
+  // standing where the old Coil Chamber was (in the air over the Winding Well's floor now): to the chamber's mark
+  game.reset();
+  own('backpack', 'gun', 'coil');
+  const { level, physics, rt } = world('garage');
+  game.set('temple.garage.checkpoint', 'coil'); game.set('temple.garage.relaid', true);
+  const P = new Player(physics, { spawn: rt.kit.world(0, 9.05, 83.8), dynamic: level.dynamic, health: true });
+  rt.connect({ player: P, toast: () => {} });
+  rt.update(DT, DT);
+  const mark = rt.marks.find((m) => m.room === 'coil');
+  assert.ok(P.pos.distanceTo(mark.spot) < 0.5, `at the Coil Chamber's mark (${rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(!game.flag('temple.garage.relaid'), 'once');
   game.reset();
   own();
 });
@@ -3797,7 +3827,9 @@ test('the Hangar’s own portals still work, dismissed: its list kept, a copy in
   assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
 });
 
-test('the Clock-House on foot: the escapement’s three eyes in turn from its hand, the cupboard’s stopped clock across the landing from the slack mainspring, the hub: the counterweight, the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great pendulum over the bridge crossed in its beat, the great lock, back down to the Mainspring Room winding the cupboard’s clock across the landing and the great key in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
+test('the Clock-House on foot: the escapement’s three eyes in turn from its hand on its tower in the pit, the Clockmaker’s stopped clock on the landing across from the slack mainspring, the counterweight rolled home on the landing (v1.77, issue #336: the house redone as shrines), the hub: the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil and the chamber’s north door for it, the passage’s six eyes round its spring that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great pendulum over the bridge crossed in its beat, the great lock, back down to the Mainspring Room winding the Clockmaker’s clock across the landing and the great key in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
+  const UP = CLOCK_UP, C2 = CLOCK_WELL.z, R = CLOCK_WELL.r, C3 = CLOCK_COIL.z, A = CLOCK_WIND.z, AZ0 = A - CLOCK_WIND.d / 2, F0G = CLOCK_GALLERY.z0;
+  const Z = CUPBOARD.z, stairZ = CLOCK_WING.stairZ, PX1 = CLOCK_WING.pend.x + CLOCK_WING.pend.w / 2;
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('garage');
@@ -3815,11 +3847,12 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   };
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const top = L(0, UP, C2 + R - 1.6);   // (on the ledge, before the door over the climb)
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), `standing in the Threshold (${where()})`);
   assert.ok(Math.abs(rt.outside.hourH.rotation.z + Math.PI * 2 / 3) < 0.05, 'the clock over the door stopped at four');
-  // ---- the Escapement: the disc is still until the three eyes round the dial wake in turn, from where its hand
-  // points (eight), round the way a clock goes: eight, twelve, four
+  // ---- the Escapement: the disc is still until the three eyes round the dial on its tower wake in turn, from where its
+  // hand points (eight), round the way a clock goes: eight, twelve, four
   assert.equal(walk(L(0, 0, 16.6)), true, `to the pit's edge (${where()})`);
   const disc = rt.pieces.find((p) => p.path);
   wait(2);
@@ -3837,49 +3870,49 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.equal(walk(L(0, 0, 43), { tol: 0.8 }), true, `off onto the far landing (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > -1, 'over the pit, not in it');
-  // ---- the Clockmaker's Cupboard, off the far landing: its little clock has stopped, its eyes lidded (v1.53: until
-  // the house's mainspring is wound, far up past the chest)
+  // ---- the Clockmaker's clock on the landing: stopped, its eyes lidded (v1.53: until the house's mainspring is wound)
   assert.equal(rt.logic.isOpen('dC'), false, 'the cupboard is shut');
   rt.piece('c1').hit('shoot');
   assert.equal(rt.logic.isLit('c1'), false, 'its clock stopped: four does not take');
   assert.ok(notes.some((s) => /little clock has stopped/.test(s)), 'and it says why');
-  assert.equal(walk(L(0, 0, 44)), true);
+  assert.equal(walk(L(0, 0, Z)), true);
   // (v1.74) across the landing from the Cupboard's door, the Mainspring Room: its spring slack, its weight at the way in
   const ballM = rt.piece('ballM'), k3 = rt.piece('k3');
-  assert.ok(Math.abs(rt.kit.local(k3.eyes[0].center).z - CUPBOARD.z) < 5 && rt.kit.local(k3.eyes[0].center).x > 20, 'the mainspring across the landing, east, facing the Cupboard’s door');
+  assert.ok(Math.abs(rt.kit.local(k3.eyes[0].center).z - Z) < 5 && rt.kit.local(k3.eyes[0].center).x > 20, 'the mainspring across the landing, east, facing the Cupboard’s door');
   const seenM = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
-  assert.ok(seenM(L(-8, 1.7, CUPBOARD.z), L(25.4, 6, CUPBOARD.z)), 'seen from the Cupboard’s door, through both doorways');
-  assert.ok(rt.kit.local(ballM.center).x < 12 && rt.kit.local(ballM.center).y < 2, 'its weight by the landing');
-  // ---- the Winding Well, the hub: up the wall to a shut door with two keyholes; its counterweight is the ball left on
-  // the escapement's landing
-  assert.equal(walk(L(-3, 0, 58)), true, `into the well (${where()})`);
-  const climb = () => { for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-3, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) return true; } return false; };
+  assert.ok(seenM(L(-8, 1.7, Z), L(MAINSPRING.stele - 0.9, 6, Z)), 'seen from the Cupboard’s door, through both doorways');
+  assert.ok(rt.kit.local(ballM.center).x < MAINSPRING.x - 7 && rt.kit.local(ballM.center).y < 2, 'its weight by the way in');
+  // ---- the Winding Well, the hub: up the wall to a shut door with two keyholes; its counterweight is the ball left at
+  // the foot of its groove on the landing
+  assert.equal(walk(L(0, 0, CLOCK_LANDING.ball.z1 + 6)) && walk(L(-3, 0, C2 + 4)), true, `into the well (${where()})`);
+  const climb = () => { for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-3, UP, C2 + 12))); if (P.onGround && rt.kit.local(P.pos).y > UP - 0.5) return true; } return false; };
   assert.ok(climb(), `up the wall (${where()})`);
-  assert.equal(walk(L(0, 9, 69.6), { tol: 0.5 }), true, `to the door at the top (${where()})`);
+  assert.equal(walk(top, { tol: 0.5 }), true, `to the door at the top (${where()})`);
   wait(0.5);
   assert.equal(rt.logic.isOpen('d2'), false, 'the door at the top is shut');
   assert.ok(notes.some((s) => /Locked\. A small key would turn it/.test(s)), 'locked: it wants a small key');
-  const ball = rt.piece('ball1'), plate = rt.piece('p1'), C2W = 61.2;
+  const ball = rt.piece('ball1'), plate = rt.piece('p1');
   const seenFrom = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
-  assert.ok(!seenFrom(L(0, 10.7, C2W + 6.3), plate.pos.clone().add(V(0, 0.8, 0))), 'its socket is out of sight from up here, under the wall’s lip');
-  assert.ok(rt.kit.local(ball.center).z < 48, 'the counterweight is still out on the escapement’s landing');
-  P.teleport(L(-3, 0.05, 58), V(0, 1, 0), V(0, 0, 1)); wait(0.3);   // (down again)
-  assert.equal(walk(plate.pos, { tol: 0.5 }), true, 'onto the socket');
+  assert.ok(!seenFrom(top.clone().add(V(0, 1.7, 0)), plate.pos.clone().add(V(0, 0.8, 0))), 'its socket is out of sight from up here, a room away');
+  assert.ok(rt.kit.local(ball.center).z < CLOCK_LANDING.ball.z0 + 3, 'the counterweight is still at the foot of its groove on the landing');
+  P.teleport(L(-3, 0.05, C2 - 4), V(0, 1, 0), V(0, 0, 1)); wait(0.3);   // (down again)
+  assert.equal(walk(L(3, 0, CLOCK_LANDING.ball.z1 + 4)) && walk(plate.pos, { tol: 0.5 }), true, 'out onto the landing, onto the socket');
   wait(0.5);
+  assert.equal(walk(L(3, 0, CLOCK_LANDING.ball.z0 + 6)), true, `round the groove (${where()})`);
   for (let k = 0; k < 12 && !rt.logic.drumOn('ball1', 'p1'); k++) {
     walk(ball.center.clone().addScaledVector(ball.dir, -2.2).setY(P.pos.y), { tol: 0.6 });
     ball.hit('push', ball.dir.clone(), { strength: 1 });
     for (let i = 0; i < 6 / DT && !ball.rest; i++) frame();
   }
-  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the counterweight home, through the doorway into the well (${ball.t.toFixed(2)})`);
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the counterweight home in its socket (${ball.t.toFixed(2)})`);
   wait(2.2);
   assert.equal(rt.logic.isOpen('d2'), false, 'the counterweight is home, but the door is still locked: two keyholes');
   // ---- the Pendulum Hall, west (an arena): its door shuts behind you while its keepers stand; beaten, the key's cage
   // sinks and its way out onto the ledge opens. (The house's machines come from src/foes.js; two stand in for them here)
   const keepers = [{ room: 'pend', alive: true }, { room: 'pend', alive: true }];
   rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(walk(L(-8, 0, 61.2)), true, `to the way west (${where()})`);
-  assert.equal(walk(L(-20, 0, 61.2)), true, `into the Pendulum Hall (${where()})`);
+  assert.equal(walk(L(-1, 0, CLOCK_LANDING.ball.z1 + 8)) && walk(L(0, 0, C2 - R + 2)) && walk(L(-8, 0, C2)), true, `to the way west (${where()})`);
+  assert.equal(walk(L(-35, 0, C2)), true, `into the Pendulum Hall (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isOpen('dW'), false, 'the door shuts behind you');
   assert.equal(rt.logic.isOpen('dWo'), false, 'and the way out is shut');
@@ -3891,26 +3924,26 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   keepers[1].alive = false; wait(2.5);
   assert.equal(rt.logic.isLit('arW'), true, 'both beaten: won');
   assert.ok(rt.logic.isOpen('dW') && rt.logic.isOpen('dWo'), 'the doors let go, and the way out above opens');
-  assert.equal(walk(L(-29.2, 0, 62.6)), true);
-  assert.equal(walk(L(-29.2, 0, 67), { tol: 0.4 }), true, `to the stair's foot (${where()})`);
-  assert.equal(walk(L(-17.4, 9, 67), { dy: 1 }), true, `up the stair to the landing (${where()})`);
+  assert.equal(walk(L(-48, 0, C2 + 5)), true);
+  assert.equal(walk(L(-47.6, 0, stairZ), { tol: 0.4 }), true, `to the stair's foot (${where()})`);
+  assert.equal(walk(L(PX1 - 5.5, UP, stairZ), { dy: 1 }), true, `up the stair to the landing (${where()})`);
   assert.equal(walk(kW.pos, { tol: 1.2, dy: 1 }), true, `to the key (${where()})`);
   wait(0.3);
   openChest(rt, 'kW', P);
   assert.equal(rt.logic.isFound('kW'), true, 'a small key');
   assert.equal(rt.logic.keys('small'), 1);
-  assert.equal(walk(L(-16, 9, 61.2), { dy: 1 }) && walk(L(-8.4, 9, 61.2), { dy: 1 }) && walk(L(-7.4, 9, 66), { dy: 1 }), true, `out over the way in, onto the balcony and the ledge over the climb (${where()})`);
-  assert.equal(walk(L(0, 9, 69.6), { tol: 0.5, dy: 1 }), true, `to the door (${where()})`);
+  assert.equal(walk(L(PX1 - 1, UP, C2), { dy: 1 }) && walk(L(-(R - 3), UP, C2), { dy: 1 }) && walk(L(-14, UP, C2 + 10), { dy: 1 }), true, `out over the way in, onto the balcony and the ledge over the climb (${where()})`);
+  assert.equal(walk(top, { tol: 0.5, dy: 1 }), true, `to the door (${where()})`);
   wait(1);
   assert.equal(rt.logic.keysIn('d2'), 1, 'the key goes into the first keyhole');
   assert.equal(rt.logic.isOpen('d2'), false, 'one keyhole still empty');
   // ---- the Striking Room, east: the ball on the hour track, on the house's hour (four), opens the striking eye's lids
-  assert.equal(walk(L(-3, 9, 66), { dy: 1 }), true);
-  for (let i = 0; i < 4 / DT && rt.kit.local(P.pos).y > 1; i++) frame({ KeyW: true }, toward(L(-3, 0, 58)));   // (off the ledge: nine metres, a soft landing)
+  assert.equal(walk(L(-3, UP, C2 + 12), { dy: 1 }), true);
+  for (let i = 0; i < 4 / DT && rt.kit.local(P.pos).y > 1; i++) frame({ KeyW: true }, toward(L(-3, 0, C2 - 2)));   // (off the ledge: ten metres, a soft landing)
   wait(0.5);
   assert.ok(P.onGround && rt.kit.local(P.pos).y < 1, `down on the well's floor (${where()})`);
-  assert.equal(walk(L(8, 0, 61.2)), true, `to the way east (${where()})`);
-  assert.equal(walk(L(17, 0, 61.2)), true, `into the Striking Room (${where()})`);
+  assert.equal(walk(L(8, 0, C2)), true, `to the way east (${where()})`);
+  assert.equal(walk(L(30, 0, C2)), true, `into the Striking Room (${where()})`);
   const sS = rt.piece('sS'), ballS = rt.piece('ballS');
   sS.hit('shoot');
   assert.equal(rt.logic.isLit('sS'), false, 'its lids are shut');
@@ -3932,19 +3965,21 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(0.3);
   openChest(rt, 'kE', P);
   assert.equal(rt.logic.isFound('kE'), true, 'the second small key');
-  assert.equal(walk(L(8, 0, 61.2)), true, `back into the well (${where()})`);
-  assert.equal(walk(L(-3, 0, 58)), true);
+  assert.equal(walk(L(8, 0, C2)), true, `back into the well (${where()})`);
+  assert.equal(walk(L(-3, 0, C2 + 4)), true);
   assert.ok(climb(), `up the wall again (${where()})`);
-  assert.equal(walk(L(0, 9, 69.6), { tol: 0.5 }), true, `to the door (${where()})`);
+  assert.equal(walk(top, { tol: 0.5 }), true, `to the door (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.keysIn('d2'), 2, 'the second key goes in');
   assert.equal(rt.logic.isOpen('d2'), true, 'two keys and the counterweight: it opens');
-  // ---- the Coil Chamber: the chest, its way on open; the Winding Passage a room on: six eyes in one breath round its
-  // door. The starting bar (or four units) and its refill can't
-  assert.equal(walk(L(0, 9, 79)), true, `into the chamber (${where()})`);
+  // ---- the Coil Chamber: the chest; its north door sinks for the coil in hand (v1.77), and the Winding Passage past it:
+  // six eyes in one breath round its spring. The starting bar (or four units) and its refill can't
+  assert.equal(walk(L(0, UP, C3 - 8)), true, `into the chamber (${where()})`);
   const bank = rt.piece('k1');
-  assert.ok(bank.eyes[0].center.distanceTo(L(0, 9, 83.8)) > 20, 'the bank is a room on, not by the chest');
-  assert.equal(walk(L(0, 9, 99)), true, `through the open way into the passage (${where()})`);
+  assert.ok(bank.eyes[0].center.distanceTo(L(0, UP, C3)) > 20, 'the bank is a room on, not by the chest');
+  assert.equal(walk(L(0, UP, C3 + 10)), true, `to the chamber's north door (${where()})`);
+  wait(1);
+  assert.equal(rt.logic.isOpen('dP'), false, 'the chamber’s north door is shut without the coil');
   const slow = tankShots(frame, 6, (i) => bank.hit(i));
   assert.ok(slow > VOLLEY, `without the coil the sixth comes too late (${slow.toFixed(2)} s)`);
   assert.equal(rt.logic.isLit('k1'), false, 'they went dark again');
@@ -3954,7 +3989,10 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.equal(rt.logic.next(), 'chest');
   items.grant('coil'); game.emit('box:opened', { id: 'garage.temple.coil' });
   assert.equal(rt.logic.gadget, true);
-  wait(5.5);
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dP'), true, 'the coil in hand: the door sinks');
+  assert.equal(walk(L(0, UP, AZ0 + 3)), true, `into the passage (${where()})`);
+  wait(3);
   items.revoke('cell');
   const quick = tankShots(frame, 6, (i) => bank.hit(i));
   assert.ok(quick < VOLLEY, `with the quick coil: three, a quick refill, three more (${quick.toFixed(2)} s)`);
@@ -3962,8 +4000,8 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Clock Gallery: the six round the handless clock, in one breath and in turn from the hour it stopped
-  const F0G = 107.9;   // (the gallery's near end, garage.js layout F0)
-  assert.equal(walk(L(0, 9, 110.7)), true, `to the gallery (${where()})`);
+  const toGallery = () => walk(L(-7, UP, A)) && walk(L(-7, UP, A + 9)) && walk(L(0, UP, F0G + 2.8));
+  assert.equal(toGallery(), true, `round the spring to the gallery (${where()})`);
   const k2 = rt.piece('k2'), ORDER = [4, 3, 2, 1, 0, 5];   // (four, six, eight, ten, twelve, two)
   assert.deepEqual(k2.o.order, ORDER);
   wait(5.5);
@@ -3986,37 +4024,37 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   // (wait till it swings toward you, low over the middle)
   for (let i = 0; i < 12 / DT; i++) { const z0 = bz(); frame(); if (bz() < z0 && Math.abs(bz() - midZ) < 1) break; }
   const hearts0 = P.hearts;
-  walk(L(0, 9, 137.2), { max: 3 });
+  walk(L(0, UP, F0G + 29.3), { max: 3 });
   assert.ok(rt.kit.local(P.pos).z < midZ + 4, `met, it knocks you back (${where()})`);
   assert.equal(P.hearts, hearts0, 'and it does not hurt');
   for (let i = 0; i < 4 / DT && !P.onGround; i++) frame();
-  assert.ok(rt.kit.local(P.pos).y > 8, `still on the bridge (${where()})`);
+  assert.ok(rt.kit.local(P.pos).y > UP - 1, `still on the bridge (${where()})`);
   /** Over the bridge in the pendulum's beat: wait for it to swing away from you, then follow it over. */
   const beat = (z1) => {
     const dir = Math.sign(z1 - rt.kit.local(P.pos).z);
-    assert.equal(walk(L(0, 9, midZ - dir * 10.5), { dy: 1 }), true, `to the bridge's end (${where()})`);
+    assert.equal(walk(L(0, UP, midZ - dir * 10.5), { dy: 1 }), true, `to the bridge's end (${where()})`);
     for (let i = 0; i < 14 / DT; i++) { const z0 = bz(); frame(); if (Math.sign(bz() - z0) === dir && (bz() - midZ) * dir > -4.2 && (bz() - midZ) * dir < -2.5) break; }
     const h = P.hearts;
-    const ok = walk(L(0, 9, z1), { dy: 1 });
-    return ok && P.hearts === h && rt.kit.local(P.pos).y > 8;
+    const ok = walk(L(0, UP, z1), { dy: 1 });
+    return ok && P.hearts === h && rt.kit.local(P.pos).y > UP - 1;
   };
-  assert.equal(beat(137.2), true, `over the bridge in its beat (${where()})`);
+  assert.equal(beat(F0G + 29.3), true, `over the bridge in its beat (${where()})`);
   assert.ok(by() > 0, 'over it, not in the chasm');
   // ---- the great lock: the Foreman's door wants the house's great key, and that is back in the Cupboard
-  assert.equal(walk(L(0, 9, 141.2), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);
+  assert.equal(walk(L(0, UP, F0G + 33.3), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);
   wait(1);
   assert.equal(rt.logic.isOpen('d4'), false, 'locked');
   assert.ok(notes.some((s) => /great lock/.test(s)), 'a great lock: it wants the great key');
-  assert.equal(walk(L(0, 9, 133)) && beat(F0G + 2.5), true, `back over the bridge in its beat to the near landing (${where()})`);
+  assert.equal(walk(L(0, UP, F0G + 25.1)) && beat(F0G + 2.5), true, `back over the bridge in its beat to the near landing (${where()})`);
   // ---- back down to the escapement's far landing (v1.53): out through the passage, over the climb's ledge, down the
   // Pendulum Hall's stair, across the well
-  assert.equal(walk(L(0, 9, 110.7), { dy: 1 }) && walk(L(0, 9, 99), { dy: 1 }) && walk(L(0, 9, 79), { dy: 1 }) && walk(L(0, 9, 69.6), { tol: 0.5, dy: 1 }), true, `back past the chest to the door over the climb (${where()})`);
-  assert.equal(walk(L(-3, 9, 66), { dy: 1 }) && walk(L(-7.4, 9, 66), { dy: 1 }) && walk(L(-8.4, 9, 61.2), { dy: 1 }) && walk(L(-16, 9, 61.2), { dy: 1 }), true, `over the ledge into the Pendulum Hall's landing (${where()})`);
-  assert.equal(walk(L(-17.4, 9, 67), { dy: 1 }) && walk(L(-29.2, 0, 67), { dy: 1 }) && walk(L(-29.2, 0, 62.6)) && walk(L(-20, 0, 61.2)) && walk(L(-8, 0, 61.2)) && walk(L(-3, 0, 58)), true, `down its stair and into the well (${where()})`);
-  assert.equal(walk(L(0, 0, 50)) && walk(L(0, 0, 44)), true, `onto the far landing (${where()})`);
-  // ---- the Mainspring Room (v1.74: east off the far landing, across from the Cupboard): its weight rolled in, then six
+  assert.equal(walk(L(0, UP, F0G + 2.8), { dy: 1 }) && walk(L(-7, UP, A + 9), { dy: 1 }) && walk(L(-7, UP, A), { dy: 1 }) && walk(L(0, UP, AZ0 + 3), { dy: 1 }) && walk(L(0, UP, C3 - 8), { dy: 1 }) && walk(top, { tol: 0.5, dy: 1 }), true, `back past the chest to the door over the climb (${where()})`);
+  assert.equal(walk(L(-14, UP, C2 + 10), { dy: 1 }) && walk(L(-(R - 3), UP, C2), { dy: 1 }) && walk(L(PX1 - 1, UP, C2), { dy: 1 }), true, `over the ledge into the Pendulum Hall's landing (${where()})`);
+  assert.equal(walk(L(PX1 - 5.5, UP, stairZ), { dy: 1 }) && walk(L(-47.6, 0, stairZ), { dy: 1 }) && walk(L(-48, 0, C2 + 5)) && walk(L(-35, 0, C2)) && walk(L(-8, 0, C2)) && walk(L(0, 0, C2 - R + 2)), true, `down its stair and into the well (${where()})`);
+  assert.equal(walk(L(-1, 0, CLOCK_LANDING.ball.z1 + 8)) && walk(L(0, 0, Z)), true, `onto the far landing (${where()})`);
+  // ---- the Mainspring Room (v1.74: east off the far landing, across from the Cupboard): its weight rolled home, then six
   // eyes in a breath
-  assert.equal(walk(L(8, 0, 45), { tol: 0.8 }), true, `to the Mainspring Room's way in (${where()})`);
+  assert.equal(walk(L(MAINSPRING.x - 12, 0, Z), { tol: 0.8 }), true, `to the Mainspring Room's way in (${where()})`);
   wait(5.5);
   tankShots(frame, 6, (i) => k3.hit(i));
   assert.equal(rt.logic.isLit('k3'), false, 'the spring hangs slack: its weight is not home');
@@ -4030,8 +4068,8 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   wait(5.5);
   tankShots(frame, 6, (i) => k3.hit(i));
   assert.equal(rt.logic.isLit('k3'), true, 'six round the spring in one breath');
-  assert.ok(notes.some((s) => /over the Cupboard’s door, a little clock begins to tick/.test(s)), 'and across the landing the Cupboard’s little clock begins to tick');
-  assert.equal(walk(L(8, 0, 44.5), { tol: 0.8 }) && walk(L(-6, 0, 44)), true, `back across the landing to the Cupboard's door (${where()})`);
+  assert.ok(notes.some((s) => /out on the landing the Clockmaker’s clock begins to tick/.test(s)), 'and out on the landing the Clockmaker’s clock begins to tick');
+  assert.equal(walk(L(MAINSPRING.x - 12, 0, Z), { tol: 0.8 }) && walk(L(-8, 0, Z)), true, `back across the landing to the Cupboard's door (${where()})`);
   // its three eyes lift their lids now; they wake round from the house's hour: four, eight, twelve
   rt.piece('c3').hit('shoot'); rt.piece('c2').hit('shoot');
   assert.equal(rt.logic.isLit('c3') || rt.logic.isLit('c2'), false, 'twelve or eight first: they only tick');
@@ -4041,8 +4079,8 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.equal(rt.logic.isOpen('dC'), true, 'four, eight, twelve');
   const purses = [];
   const offPurse = game.on('temple:cache', (e) => purses.push(e));
-  assert.equal(walk(L(-14, 0, 44)), true, `into the cupboard (${where()})`);
-  assert.equal(walk(L(-19.6, 0, 42.2), { tol: 0.5 }), true, `to the coffer (${where()})`);
+  assert.equal(walk(L(CUPBOARD.x + 5, 0, Z)), true, `into the cupboard (${where()})`);
+  assert.equal(walk(L(CUPBOARD.x - 0.6, 0, Z - 1.8), { tol: 0.5 }), true, `to the coffer (${where()})`);
   const coffer = bestInteractable(P);
   assert.equal(coffer?.entry.id, 'temple.garage.cache', 'the coffer offers itself');
   coffer.entry.use(P);
@@ -4055,15 +4093,15 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   openChest(rt, 'kB', P);
   assert.equal(rt.logic.isFound('kB'), true, 'the house’s great key');
   // ---- and back up: the well, the climb, the passage, the gallery
-  assert.equal(walk(L(-8, 0, 44)) && walk(L(0, 0, 50)) && walk(L(-3, 0, 58)), true, `back into the well (${where()})`);
+  assert.equal(walk(L(-8, 0, Z)) && walk(L(-1, 0, CLOCK_LANDING.ball.z1 + 8)) && walk(L(-3, 0, C2 + 4)), true, `back into the well (${where()})`);
   assert.ok(climb(), `up the wall (${where()})`);
-  assert.equal(walk(L(0, 9, 69.6), { tol: 0.5 }) && walk(L(0, 9, 79)) && walk(L(0, 9, 99)) && walk(L(0, 9, 110.7)), true, `up past the chest to the gallery (${where()})`);
-  assert.equal(walk(L(0, 9, 113), { dy: 1 }) && beat(137.2), true, `over the bridge again, in its beat (${where()})`);
-  assert.equal(walk(L(0, 9, 141.2), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);
+  assert.equal(walk(top, { tol: 0.5 }) && walk(L(0, UP, C3 - 8)) && walk(L(0, UP, AZ0 + 3)) && toGallery(), true, `up past the chest to the gallery (${where()})`);
+  assert.equal(walk(L(0, UP, F0G + 5.1), { dy: 1 }) && beat(F0G + 29.3), true, `over the bridge again, in its beat (${where()})`);
+  assert.equal(walk(L(0, UP, F0G + 33.3), { tol: 0.5 }), true, `to the Foreman's door (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.isOpen('d4'), true, 'the great key turns');
   // ---- the Foreman's Workshop: when its face opens, all six numerals in one breath
-  assert.equal(walk(L(0, 9, 153.2)), true, `into the workshop (${where()})`);
+  assert.equal(walk(L(0, UP, F0G + 45.3)), true, `into the workshop (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', 'it wakes');

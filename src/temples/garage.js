@@ -27,12 +27,13 @@ import { chestMound } from '../boxes/mound.js';
 // docs/audits/temple-design-v1.12.md): the makers' clock counts round from where its hand points, and every
 // clock in the house stopped at the same hour the night the light passed (four, as the clock over the door).
 // Since v1.48 (issue #23) a house to explore round its Winding Well, not a corridor of rooms in order
-// (docs/systems/temples.md, "Hubs, keys and arenas"):
+// (docs/systems/temples.md, "Hubs, keys and arenas"); since v1.77 (issue #336) its rooms shrines, every puzzle in the
+// middle of its room and the Pendulum Hall the one fight (docs/design/temple-redesign.md):
 //   the Threshold        an old workbench (the Major's, when the house stood in his Hangar), the first mark, the way out
 //   the Escapement       a pit crossed by a disc that swings over it like a clock's escapement, still until the
-//                        three eyes round the dial over the far door wake in turn: from the one its hand points
-//                        at, round the way a clock goes (out of turn an eye only ticks)
-//   the Cupboard         (off the far landing, west) the Clockmaker's: the little clock over its door has lost its
+//                        three eyes round the dial on its tower in the pit wake in turn: from the one its hand
+//                        points at, round the way a clock goes (out of turn an eye only ticks)
+//   the Cupboard         (off the far landing, west) the Clockmaker's: his clock standing on the landing has lost its
 //                        hand, so its three eyes wake round from the house's hour (four, eight, twelve); a coffer.
 //                        (v1.53, issue #23) Its clock has stopped, its eyes lidded, until the house's mainspring is
 //                        wound again: then they wake, and the great key is in it (a loop back)
@@ -40,22 +41,22 @@ import { chestMound } from '../boxes/mound.js';
 //                        #23; it was off the Clock Gallery's landing, four rooms from the clock it starts) the
 //                        mainspring hangs slack until its weight, a ball on the landing, is rolled home; then six eyes
 //                        round it in one breath (the coil, past the chest: seen on the way in, wound on the way back),
-//                        and across the landing the Cupboard's little clock begins to tick
+//                        and out on the landing the Clockmaker's clock begins to tick
 //   the Winding Well     the hub. A wall to climb, the door at its top; the door wants two small keys and the
-//                        winding's counterweight home in its socket at the wall's foot, and the counterweight is a
-//                        stone ball still waiting on the Escapement's far landing, its groove running through into
-//                        the well (a room away, out of sight from the door)
+//                        winding's counterweight home in its socket, and the counterweight is a stone ball still
+//                        waiting at the foot of its groove on the Escapement's far landing, its socket there (a room
+//                        away, out of sight from the door; v1.77: its groove ran on through the doorway into the well)
 //   the Pendulum Hall    (west, an arena) its door shuts behind you while the pendulums' keepers stand; beaten, the
 //                        small key's cage on the landing sinks and a door above opens onto the ledge over the climb
 //   the Striking Room    (east) the hour track: a ball and three plates, at two, four and six; on the house's hour the
 //                        striking eye's lids lift, and woken it lets the second small key out of its cage
-//   the Coil Chamber     the makers' chest: the QUICK COIL (src/items.js 'coil'). Its way on is open
-//   the Winding Passage  a room on, its walls lined with the makers' springs: the door into the gallery is ringed by
-//                        six eyes that wake only together, inside one breath (4.6 s): three shots, a refill, three
+//   the Coil Chamber     the makers' chest: the QUICK COIL (src/items.js 'coil'). Its north door sinks for it in hand
+//   the Winding Passage  a room of its own (v1.77): the makers' great escape wheel on a stele in its middle is ringed
+//                        by six eyes that wake only together, inside one breath (4.6 s): three shots, a refill, three
 //                        more; the tank refills too slowly without the coil (the coil's first lock, where failing
 //                        costs a breath)
 //   the Clock Gallery    the key hall, after its reference: a chasm with the makers' cogs turning in the dark,
-//                        a great clock face on the far wall that has lost its hands, six eyes round it. The bridge
+//                        a great clock face hung over the bridge's far end that has lost its hands, six eyes round it. The bridge
 //                        wants all six inside one breath (the coil) and in turn, counted round from the hour the
 //                        clock stopped at, which it no longer shows: the little clock over the way in does (and
 //                        the Winding Well's, and the one over the door outside). Out of turn they all go dark.
@@ -97,8 +98,23 @@ export const PALETTE = {
   light: { shadow: '#b7bfc2', light: '#fff2d8', sun: '#ffe8c0' },
 };
 
+// ------------------------------------------------------------------ the house's measures (v1.77, issue #336)
+// Redone as shrines (docs/design/temple-redesign.md): every puzzle and fight room 30 m across or more under 16 m of
+// stone and more, every door between two rooms 7 by 9 (DOOR), each puzzle in the middle of its room, the Pendulum Hall
+// the one fight. The props, the grooves, the disc's ride, the gallery's chasm and its pendulum's beat stay as they were.
+/** The upper house's floor (local m): the ledge over the climb, the chest, the passage, the gallery, the Foreman's. */
+export const UP = 10;
+export const DOOR = { w: 7, h: 9 };
+/** The Escapement and its far landing, one hall: the pit from `near` to `far`, the landing on to z1. */
+export const ESC = { w: 32, z0: 12.6, z1: 72, y: -8, h: 30, near: 18, far: 40 };
+/** The escapement's dial, on its tower out in the pit beside the disc's way: its centre, the eyes' ring. */
+export const DIAL = { x: -5.8, y: 9.6, z: 29, r: 3.2 };
+/** The landing: the counterweight's groove up its east side to its socket, the Clockmaker's clock on its west. */
+export const LANDING = { ball: { x: 7, z0: 44, z1: 60 }, clock: { x: -5, z: 59 } };
+/** The Winding Well (a round hall): its middle, its radius, the climb's face (m north of its middle). */
+export const WELL = { z: 95.2, r: 18, h: 26, face: 8 };
 /** (v1.74) The Clock Gallery's great pendulum over the bridge (local m, s): its pivot's height, its length, its swing. */
-export const GALLERY_BEAT = { pivot: 25, len: 14, amp: 0.55, period: 6 };
+export const GALLERY_BEAT = { pivot: UP + 16, len: 14, amp: 0.55, period: 6 };
 export const VOLLEY = 4.6;   // s: the six eyes (and the Foreman's six numerals) must all be hit inside this
 /** The Foreman's numerals (its model's lamps, i at 2i o'clock as you face it) in the clock's order from four. */
 export const FROM_FOUR = [2, 3, 4, 5, 0, 1];
@@ -106,8 +122,11 @@ export const FROM_FOUR = [2, 3, 4, 5, 0, 1];
 export const LOGIC = {
   id: 'garage', entry: 'threshold', gadget: 'coil',
   rooms: {
-    threshold: { checkpoint: true }, esc: { checkpoint: true }, escFar: {}, well: { checkpoint: true }, pend: { checkpoint: true }, springs: { checkpoint: true },
-    coil: { checkpoint: true }, gallery: { checkpoint: true }, mainspring: { checkpoint: true }, cupboard: {}, galleryFar: {}, hall: { boss: true }, out: {},
+    threshold: { checkpoint: true, kind: 'passage' }, esc: { checkpoint: true, kind: 'puzzle' }, escFar: { kind: 'puzzle' },
+    well: { checkpoint: true, kind: 'puzzle' }, pend: { checkpoint: true, kind: 'combat' }, springs: { checkpoint: true, kind: 'puzzle' },
+    coil: { checkpoint: true, kind: 'chest' }, wind: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' },
+    mainspring: { checkpoint: true, kind: 'puzzle' }, cupboard: { kind: 'passage' }, galleryFar: { kind: 'passage' },
+    hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'esc' },
@@ -121,7 +140,8 @@ export const LOGIC = {
     { a: 'pend', b: 'well', door: 'dWo' },        // the Pendulum Hall's way out, onto the ledge over the climb (the loop)
     { a: 'well', b: 'springs' },
     { a: 'well', b: 'coil', door: 'd2' },         // at the top of the climb: the counterweight home, and two small keys
-    { a: 'coil', b: 'gallery', door: 'd3' },      // the Winding Passage's door, a room on from the chest (one room with it)
+    { a: 'coil', b: 'wind', door: 'dP' },         // (v1.77) the chamber's north door, for the coil in your hand
+    { a: 'wind', b: 'gallery', door: 'd3' },      // the Winding Passage's door, a room of its own since v1.77
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'galleryFar', b: 'hall', door: 'd4' },   // the great key's door (and the arena's: shut while the Foreman fights)
     { a: 'hall', b: 'out', door: 'd5' },
@@ -132,8 +152,10 @@ export const LOGIC = {
     s2: { type: 'switch', room: 'esc', after: 's1' },
     s3: { type: 'switch', room: 'esc', after: 's2' },
     discs: { type: 'bridge', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
-    ball1: { type: 'drum', room: 'escFar', plate: 'p1', plateAt: 1, start: 0.07 },   // the counterweight, on the escapement's landing (issue #275: 1.5 m along its groove, off the wall: room behind it to push from)
-    p1: { type: 'plate', room: 'well' },
+    // the counterweight, on the escapement's far landing (issue #275: 1.2 m along its groove, room behind it to push
+    // from), and its socket at the groove's end on the landing (v1.77: it was in the well, the groove through its doorway)
+    ball1: { type: 'drum', room: 'escFar', plate: 'p1', plateAt: 1, start: 0.07 },
+    p1: { type: 'plate', room: 'escFar' },
     // the Pendulum Hall: its keepers beaten, the key's cage sinks and the way out onto the ledge opens
     arW: { type: 'arena', room: 'pend' },
     kW: { type: 'key', kind: 'small', room: 'pend', when: { lit: 'arW' } },
@@ -147,20 +169,21 @@ export const LOGIC = {
     hour: { type: 'clue', room: 'well' },   // (the house's hour: the well's clock, stopped at four, as the one over the door outside)
     d2: { type: 'door', lock: 'small', keys: 2, opens: { drumOn: ['ball1', 'p1'] }, latch: true },   // (the ball's weight: the winding's counterweight)
     chest: { type: 'gadget', room: 'coil', item: 'coil' },
-    k1: { type: 'switch', room: 'coil', needs: ['coil'] },        // the passage's six eyes in one breath: two tanks
+    dP: { type: 'door', opens: { item: 'coil' }, latch: true },
+    k1: { type: 'switch', room: 'wind', needs: ['coil'] },        // the passage's six eyes in one breath: two tanks
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
     k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
-    d4: { type: 'door', lock: 'big' },                            // the great key; and shut while the Foreman fights
+    d4: { type: 'door', lock: 'big', room: 'hall' },              // the great key; and shut while the Foreman fights
     foreman: { type: 'boss', room: 'hall', needs: ['gun', 'coil'] },
-    d5: { type: 'door', opens: { resolved: true } },
+    d5: { type: 'door', opens: { resolved: true }, room: 'hall' },   // (d4 and d5 carry the hall's room: the rules measure it by them)
     // the Mainspring Room (v1.74: off the Escapement's far landing, east; it was off the gallery's landing): its weight
-    // rolled in from its way in, then six eyes in a breath, and the Cupboard's clock across the landing ticks again.
+    // rolled home, then six eyes in a breath, and the Clockmaker's clock across the landing ticks again.
     // (After the gallery's elements: the marker sends you over the bridge to the great lock first, and back for its key)
-    ballM: { type: 'drum', room: 'mainspring', plate: 'pM', plateAt: 1, start: 0 },   // (at the way in, by the landing)
+    ballM: { type: 'drum', room: 'mainspring', plate: 'pM', plateAt: 1, start: 0 },   // (at the way in)
     pM: { type: 'plate', room: 'mainspring' },
     k3: { type: 'switch', room: 'mainspring', needs: ['coil'], when: { drumOn: ['ballM', 'pM'] } },
-    // the Clockmaker's Cupboard (optional, so last: the marker never points at it): the little clock over its door
+    // the Clockmaker's Cupboard (optional, so last: the marker never points at it): the Clockmaker's clock on the landing
     // woken round from four (four, eight, twelve)
     // (v1.53) its clock stopped, the eyes lidded, until the mainspring is wound: the great key inside
     c1: { type: 'switch', room: 'escFar', when: { lit: 'k3' } },
@@ -233,32 +256,31 @@ function cogGeometry(r, depth = 1.0) {
 function galleryClockwork(rt, K, F0, brass) {
   const cogM = makeMaterial({ color: '#c99a4a', flat: true, metal: 'brass', key: 'temple.garage.gallerycogs' });
   const windowM = makeMaterial({ color: '#ffe9b8', glow: 0.8, flat: true, key: 'temple.garage.windows' });
-  const parts = [];
+  const parts = [], X = GALLERY.w / 2;
   const place = (obj, x, y, z, ry = 0) => { obj.position.copy(K.world(x, y, z)); obj.rotation.y = K.heading(ry); obj.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; }); rt.root.add(obj); return obj; };
   // cogs in the chasm: two great wheels along the walls, an escapement wheel lying under the bridge
-  for (const [x, y, z, r, ry, rate] of [[-8.6, -1.5, F0 + 12, 5.2, Math.PI / 2, 0.12], [8.6, -2.5, F0 + 21, 6, Math.PI / 2, -0.09], [-1.5, -3.6, F0 + 17, 4.2, 0, 0.16]]) {
+  for (const [x, y, z, r, ry, rate] of [[-(X - 3.4), UP - 10.5, F0 + 12, 5.2, Math.PI / 2, 0.12], [X - 3.4, UP - 11.5, F0 + 21, 6, Math.PI / 2, -0.09], [-1.5, UP - 12.6, F0 + 17, 4.2, 0, 0.16]]) {
     const g = new THREE.Group(), m = new THREE.Mesh(cogGeometry(r), cogM);
     if (ry === 0) m.rotation.x = -Math.PI / 2;   // (lying flat)
     g.add(m);
     place(g, x, y, z, ry);
-    parts.push(ry === 0 ? (t) => { m.rotation.z = t * rate; } : (t) => { m.rotation.z = t * rate; });
+    parts.push((t) => { m.rotation.z = t * rate; });
   }
-  // arched niches on the side walls of both landings, each with a pendulum swinging in it (on the near landing's east
-  // wall again since v1.74: the way into the Mainspring Room was there from v1.48)
-  for (const [x, z, s] of [[-10.95, F0 + 2.6, 1], [10.95, F0 + 2.6, -1], [-10.95, F0 + 31, 1], [10.95, F0 + 31, -1]]) {
-    K.add(rt.M.dark, box(0.12, 5.6, 2.4, x + s * 0.06, 12.0, z));
-    K.add(rt.M.dark, T(new THREE.CylinderGeometry(1.2, 1.2, 0.12, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2), [x + s * 0.06, 14.8, z], [0, 0, 0]));
-    K.add(brass, box(0.2, 0.25, 2.8, x + s * 0.12, 9.15, z));
+  // arched niches on the side walls of both landings, each with a pendulum swinging in it
+  for (const [x, z, s] of [[-(X - 0.05), F0 + 2.6, 1], [X - 0.05, F0 + 2.6, -1], [-(X - 0.05), F0 + 31, 1], [X - 0.05, F0 + 31, -1]]) {
+    K.add(rt.M.dark, box(0.12, 5.6, 2.4, x + s * 0.06, UP + 3, z));
+    K.add(rt.M.dark, T(new THREE.CylinderGeometry(1.2, 1.2, 0.12, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2), [x + s * 0.06, UP + 5.8, z], [0, 0, 0]));
+    K.add(brass, box(0.2, 0.25, 2.8, x + s * 0.12, UP + 0.15, z));
     const bob = new THREE.Group();
     bob.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3.6, 6).translate(0, -1.8, 0), cogM), new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8).scale(1, 1.3, 0.6).translate(0, -3.9, 0), cogM));
-    const pv = place(bob, x + s * 0.4, 15.2, z, 0);
+    const pv = place(bob, x + s * 0.4, UP + 6.2, z, 0);
     const ph = z * 0.7;
     parts.push((t) => { pv.rotation.x = Math.sin(t * 1.9 + ph) * 0.28; });
   }
   // round windows high on the walls, warm light coming in
-  for (const [x, z] of [[-10.9, F0 + 9], [-10.9, F0 + 24], [10.9, F0 + 9], [10.9, F0 + 24]]) {
-    K.add(windowM, T(new THREE.CylinderGeometry(1.5, 1.5, 0.1, 24).rotateZ(Math.PI / 2), [x, 21.5, z]));
-    K.add(brass, T(new THREE.TorusGeometry(1.55, 0.14, 5, 28).rotateY(Math.PI / 2), [x - Math.sign(x) * 0.05, 21.5, z]));
+  for (const [x, z] of [[-(X - 0.1), F0 + 9], [-(X - 0.1), F0 + 24], [X - 0.1, F0 + 9], [X - 0.1, F0 + 24]]) {
+    K.add(windowM, T(new THREE.CylinderGeometry(1.5, 1.5, 0.1, 24).rotateZ(Math.PI / 2), [x, UP + 12.5, z]));
+    K.add(brass, T(new THREE.TorusGeometry(1.55, 0.14, 5, 28).rotateY(Math.PI / 2), [x - Math.sign(x) * 0.05, UP + 12.5, z]));
   }
   rt.add(Clockwork, { parts });
 }
@@ -266,15 +288,23 @@ function galleryClockwork(rt, K, F0, brass) {
 // ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
 /** Where the wings stand (local m): the Pendulum Hall west of the well, the Striking Room east, the way up onto the ledge. */
 export const WING = {
-  stairZ: 67,                               // the Pendulum Hall's stair, up its north wall to the landing by its way out
-  upY: 9,                                   // its way out, over the way in: onto the well's balcony and the ledge over the climb
-  pend: { x: -22, z: 61.2, w: 16, d: 16 },  // the arena
-  strike: { x: 22, z: 61.2, w: 16, d: 16 }, // the hour track
-  zone: { min: [-30, -1, 53.2], max: [-14, 13, 69.2] },
-  hours: { pS2: 2, pS4: 4, pS6: 6 },        // the hour track's plates, south to north
+  stairZ: WELL.z + 12.4,                         // the Pendulum Hall's stair, up its north wall to the landing by its way out
+  upY: UP,                                       // its way out, over the way in: onto the well's balcony and the ledge over the climb
+  pend: { x: -38, z: WELL.z, w: 30, d: 30, h: 22 },    // the arena
+  strike: { x: 38, z: WELL.z, w: 30, d: 30, h: 18 },   // the hour track
+  zone: { min: [-53, -1, WELL.z - 15], max: [-23, UP + 11, WELL.z + 15] },
+  hours: { pS2: 2, pS4: 4, pS6: 6 },             // the hour track's plates, south to north
+  track: { x: 40, z0: WELL.z - 5.6, z1: WELL.z + 5.6 },   // (v1.77: down the middle of the room; it ran along the east wall)
 };
-/** The Clockmaker's Cupboard, off the Escapement's far landing (west): its door's z, its little clock's height. */
-export const CUPBOARD = { z: 44, dialY: 7.6 };
+/** The Clockmaker's Cupboard, off the Escapement's far landing (west): its doors' z, its middle, the Clockmaker's clock's dial's height. */
+export const CUPBOARD = { z: 56, x: -26.8, dialY: 6 };
+/** The Mainspring Room, east off the landing across from the Cupboard: its middle, the spring's stele (its west face). */
+export const MAINSPRING = { x: 35.8, z: CUPBOARD.z, stele: 39.8 };
+/** The upper house, north of the well (floor UP): the Coil Chamber's middle and radius, the Winding Passage's middle. */
+export const COIL = { z: WELL.z + WELL.r + 5.2 + 13, r: 13 };
+export const WIND = { z: COIL.z + COIL.r + 5 + 15, w: 30, d: 30 };
+/** The Clock Gallery: its near end (F0), its width; the great clock hung over the bridge's far end. */
+export const GALLERY = { z0: WIND.z + WIND.d / 2 + 1.2, w: 36, d: 34.4, clock: { y: UP + 10, z: 27.2 } };
 
 /** The Pendulum Hall's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
@@ -285,106 +315,114 @@ export const ARENAS = [{
 
 /**
  * The Pendulum Hall (west, an arena: its doors shut behind you while the house's machines stand; won, the key's cage
- * sinks and its way out onto the ledge over the climb opens) and the Striking Room (east: the hour track, a ball and
- * three plates, each with its little clock; on the house's hour the eye over the track opens its lids, and woken it
- * lets the key out of its cage). Each holds one of the two small keys the door over the climb takes.
+ * sinks and its way out onto the ledge over the climb opens) and the Striking Room (east: the hour track down the middle
+ * of the floor, a ball and three plates, each with its little clock on a post; on the house's hour the eye on its
+ * obelisk opens its lids, and woken it lets the key out of its cage). Each holds one of the two small keys the door over
+ * the climb takes.
  */
-function wings(rt, K, M, { C2, dial, brass, cream }) {
+function wings(rt, K, M, { C2, dial, brass }) {
   const add = (P, o) => rt.add(P, o);
-  const Pn = WING.pend, S = WING.strike;
+  const Pn = WING.pend, S = WING.strike, D = DOOR, R = WELL.r;
+  const PX1 = Pn.x + Pn.w / 2, SX0 = S.x - S.w / 2;   // (the halls' inner faces toward the well)
   // ---- the Pendulum Hall
-  K.corridor([-13.4, C2], [-9.8, C2], 0, { w: 5, h: 6.4 });
-  K.hall({ x: Pn.x, z: Pn.z, w: Pn.w, d: Pn.d, y: 0, h: 14, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }, { side: 'e', at: 0, w: 3.6, h: 5, y0: WING.upY }] });
-  add(Door, { id: 'dW', at: [-12.2, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
-  // the stair up the north wall to the landing by the way out, the key caged on it
-  K.stairs([-28.2, 0, WING.stairZ], [-18.6, WING.upY, WING.stairZ], 3);
-  K.slab(-18.6, C2 - 2.6, -14, WING.stairZ + 2.4, WING.upY, 1.2);
-  add(Key, { id: 'kW', at: [-16.4, WING.upY, WING.stairZ - 1.3], yaw: Math.PI / 2 });
+  K.corridor([PX1 + 0.6, C2], [-(R - 0.2), C2], 0, { w: D.w, h: D.h + 0.3, roof: false });   // (the way out's floor is its roof)
+  K.hall({ x: Pn.x, z: Pn.z, w: Pn.w, d: Pn.d, y: 0, h: Pn.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: 0, ...D }, { side: 'e', at: 0, ...D, y0: WING.upY }] });
+  add(Door, { id: 'dW', at: [PX1 + 1.8, 0, C2], yaw: Math.PI / 2, ...D });   // (open: it shuts behind you while they stand)
+  // the stair up the north wall to the landing along the east wall by the way out, the key caged on it
+  K.stairs([PX1 - 23, 0, WING.stairZ], [PX1 - 7, WING.upY, WING.stairZ], 3.6);
+  K.slab(PX1 - 7, C2 - 4.6, PX1, WING.stairZ + 1.8, WING.upY, 1.2);
+  add(Key, { id: 'kW', at: [PX1 - 3, WING.upY, C2 + 8], yaw: Math.PI / 2 });
   // the way out, over the way in: a passage to a balcony inside the well, beside the ledge over the climb
-  add(Door, { id: 'dWo', at: [-13.4, WING.upY, C2], yaw: Math.PI / 2, w: 3.6, h: 5, lamps: [{ lit: 'arW' }] });
-  K.corridor([-13.4, C2], [-9.8, C2], WING.upY, { w: 3.6, h: 5 });
-  K.slab(-10.2, C2 - 2.6, -6.6, C2 + 2.8, WING.upY, 1.2);   // (the balcony, up to the climb's block)
-  // great pendulums hung still along the south wall (the hall's name), a dial over the way in
-  for (const x of [-27, -22, -17]) {
-    K.add(brass, box(0.14, 9.5, 0.14, x, 8.9, Pn.z - 7.2));
-    K.add(brass, T(new THREE.CylinderGeometry(1.1, 1.1, 0.25, 20).rotateX(Math.PI / 2), [x, 3.8, Pn.z - 7.2]));
+  add(Door, { id: 'dWo', at: [PX1 + 1.8, WING.upY, C2], yaw: Math.PI / 2, ...D, lamps: [{ lit: 'arW' }] });
+  K.corridor([PX1 + 0.6, C2], [-(R - 0.2), C2], WING.upY, D);
+  K.slab(-(R + 0.2), C2 - 4.6, -(R - 6), C2 + WELL.face, WING.upY, 1.2);   // (the balcony, up to the climb's block)
+  // four columns to fight round, and great pendulums hung still along the south wall (the hall's name)
+  for (const [dx, dz] of [[-7, -7], [7, -7], [-7, 7], [7, 7]]) K.column(Pn.x + dx, Pn.z + dz, 0, Pn.h, 0.9);
+  for (const x of [Pn.x - 10, Pn.x, Pn.x + 10]) {
+    K.add(brass, box(0.14, 13, 0.14, x, 12.5, Pn.z - Pn.d / 2 + 0.8));
+    K.add(brass, T(new THREE.CylinderGeometry(1.4, 1.4, 0.25, 20).rotateX(Math.PI / 2), [x, 5.6, Pn.z - Pn.d / 2 + 0.8]));
   }
   // (beside the ways in and out, not over them: hung in the way out's doorway, it was climbed over, issue #115)
-  dial(-14.1, 9.6, C2 + 4.6, 1.4, -Math.PI / 2, [TAU * 4 / 12, 0.4]);
-  add(Mark, { room: 'pend', at: [Pn.x, 0, Pn.z - 2.7], yaw: Math.PI / 2 });
+  dial(PX1 - 0.1, 6, C2 - 7, 1.4, -Math.PI / 2, [TAU * 4 / 12, 0.4]);
+  add(Mark, { room: 'pend', at: [PX1 - 4, 0, C2 - 6], yaw: -Math.PI / 2, foes: [Pn.x, 0, Pn.z] });
 
-  // ---- the Striking Room: the hour track along the east wall, three plates on it, each with its clock
-  K.corridor([9.8, C2], [13.4, C2], 0, { w: 5, h: 6.4 });
-  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: 12, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
-  const TX = 26.4, Z0 = S.z - 4.6, Z1 = S.z + 6.6;
+  // ---- the Striking Room: the hour track down the middle of the floor, three plates on it, each with its clock on a post
+  K.corridor([R - 0.2, C2], [SX0 - 0.6, C2], 0, D);
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: S.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, ...D }] });
+  const { x: TX, z0: Z0, z1: Z1 } = WING.track;
   K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 2.2, TX, 0.02, (Z0 + Z1) / 2));
   for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, Z1 - Z0 + 2.2, TX + sd * 0.8, 0.06, (Z0 + Z1) / 2));
-  const stops = {};
   Object.entries(WING.hours).forEach(([id, hr], i) => {
-    const t = (i + 1) / 3, z = Z0 + (Z1 - Z0) * t;
-    stops[id] = t;
+    const z = Z0 + (Z1 - Z0) * (i + 1) / 3;
     add(Plate, { id, at: [TX, 0, z], r: 1.2 });
-    dial(S.x + S.w / 2 - 0.1, 3.2, z, 0.9, -Math.PI / 2, [TAU * hr / 12, TAU * hr / 12]);   // (its hour, both hands on it)
+    K.both(M.wall, box(0.5, 4.2, 0.5, TX + 3.05, 2.1, z));
+    dial(TX + 2.72, 3.2, z, 0.9, -Math.PI / 2, [TAU * hr / 12, TAU * hr / 12]);   // (its hour, both hands on it)
   });
   add(Ball, { id: 'ballS', a: [TX, 0.04, Z0], b: [TX, 0.04, Z1], r: 1.0, friction: 2.2 });
-  // the striking eye over the track, lidded until the ball sits on the house's hour
-  add(Switch, { id: 'sS', at: [S.x + S.w / 2 - 0.25, 7.6, S.z], yaw: -Math.PI / 2, size: 1.1, lids: true, wrong: 'Its lids stay shut. The ball on the hour track is not at the house’s hour.' });
-  K.both(brass, T(new THREE.TorusGeometry(1.6, 0.16, 6, 28), [S.x + S.w / 2 - 0.15, 7.6, S.z], [0, Math.PI / 2, 0]));
-  add(Key, { id: 'kE', at: [S.x - 3.5, 0, S.z + 4.5], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'springs', at: [S.x - 4, 0, S.z - 4.5], yaw: Math.PI / 2 });
-  void cream;
+  // the striking eye on its obelisk past the track, lidded until the ball sits on the house's hour
+  const OX = TX + 5.6;
+  K.both(M.wallGlyph, box(1.4, 9.4, 1.4, OX + 0.7, 4.7, S.z));
+  K.both(M.trim, box(1.8, 0.4, 1.8, OX + 0.7, 9.5, S.z));
+  add(Switch, { id: 'sS', at: [OX - 0.15, 7.6, S.z], yaw: -Math.PI / 2, size: 1.1, lids: true, wrong: 'Its lids stay shut. The ball on the hour track is not at the house’s hour.' });
+  K.add(brass, T(new THREE.TorusGeometry(1.6, 0.16, 6, 28), [OX - 0.05, 7.6, S.z], [0, Math.PI / 2, 0]));
+  add(Key, { id: 'kE', at: [TX - 5, 0, S.z + 5], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'springs', at: [SX0 + 4, 0, S.z - 6], yaw: Math.PI / 2 });
 }
 
 /**
  * The Mainspring Room (east off the Escapement's far landing, its doorway facing the Cupboard's across the landing: v1.74,
- * issue #23 round 6; until then east off the Clock Gallery's near landing, four rooms from the Cupboard it starts): the
- * house's mainspring coiled on its east wall, slack until its weight is home (a ball rolled in from the landing onto its
- * plate); then its six eyes wake, inside one breath (the coil), and the Cupboard's little clock, across the landing, ticks
- * again: its lids lift. Seen on the way in, wound on the way back.
+ * issue #23 round 6): the house's mainspring coiled on a stele in the middle of the room, slack until its weight is home
+ * (a ball rolled from the way in onto its plate at the stele's foot); then its six eyes wake, inside one breath (the coil),
+ * and the Clockmaker's clock, out on the landing, ticks again: its lids lift. Seen on the way in, wound on the way back.
  */
 function mainspring(rt, K, M, { brass }) {
   const add = (P, o) => rt.add(P, o);
   const copper = { paint: new THREE.Color('#d9643a'), smooth: false, side: THREE.FrontSide };
-  const X = 20, Z = CUPBOARD.z, Y = 0;
-  K.corridor([11.6, Z], [13.4, Z], Y, { w: 5, h: 6.4 });
-  K.hall({ x: X, z: Z, w: 12, d: 10, y: Y, h: 12, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
-  // the weight's groove, from the way in (where the weight waits, at the corridor's mouth on the landing) east to its
-  // plate under the spring
-  const GZ = Z - 1.2;
-  K.add(M.dark, box(7.4, 0.04, 1.0, 14.0, Y + 0.02, GZ));
-  for (const sd of [-1, 1]) K.both(M.trim, box(7.4, 0.12, 0.22, 14.0, Y + 0.06, GZ + sd * 0.8));
-  add(Ball, { id: 'ballM', a: [10.8, Y + 0.04, GZ], b: [17, Y + 0.04, GZ], r: 1.0, friction: 1.2 });
-  add(Plate, { id: 'pM', at: [17, Y, GZ], r: 1.25 });
-  // the mainspring: a great flat coil of copper on the east wall, its drum in the middle, six eyes round it
-  for (let i = 0; i < 5; i++) K.add(copper, T(new THREE.TorusGeometry(1.2 + i * 0.55, 0.16, 6, 36), [X + 5.85, Y + 6, Z], [0, Math.PI / 2, 0]));
-  K.both(brass, T(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 18).rotateZ(Math.PI / 2), [X + 5.7, Y + 6, Z]));
-  add(Bank, { id: 'k3', eyes: Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return { at: [X + 5.6, Y + 6 + Math.cos(a) * 4.1, Z + Math.sin(a) * 4.1], yaw: -Math.PI / 2 }; }), window: VOLLEY,
+  const { x: X, z: Z, stele: SX } = MAINSPRING, Y = 0, X0 = X - 15;
+  K.corridor([ESC.w / 2 + 0.6, Z], [X0 - 0.6, Z], Y, DOOR);
+  K.hall({ x: X, z: Z, w: 30, d: 30, y: Y, h: 18, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, ...DOOR }] });
+  // the weight's groove, from the way in (where the weight waits) east to its plate at the stele's foot
+  const GZ = Z - 1.2, GA = X0 + 6.7, GB = SX - 4.8;
+  K.add(M.dark, box(GB - GA + 2.2, 0.04, 1.0, (GA + GB) / 2, Y + 0.02, GZ));
+  for (const sd of [-1, 1]) K.both(M.trim, box(GB - GA + 2.2, 0.12, 0.22, (GA + GB) / 2, Y + 0.06, GZ + sd * 0.8));
+  add(Ball, { id: 'ballM', a: [GA, Y + 0.04, GZ], b: [GB, Y + 0.04, GZ], r: 1.0, friction: 1.2 });
+  add(Plate, { id: 'pM', at: [GB, Y, GZ], r: 1.25 });
+  // the mainspring: a great flat coil of copper on the stele's west face, its drum in the middle, six eyes round it
+  K.both(M.wallGlyph, box(1.2, 12.4, 11, SX + 0.6, Y + 6.2, Z));
+  K.both(M.trim, box(1.6, 0.5, 11.4, SX + 0.6, Y + 12.4, Z));
+  for (let i = 0; i < 5; i++) K.both(copper, T(new THREE.TorusGeometry(1.2 + i * 0.55, 0.16, 6, 36), [SX - 0.15, Y + 6, Z], [0, Math.PI / 2, 0]));
+  K.both(brass, T(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 18).rotateZ(Math.PI / 2), [SX - 0.25, Y + 6, Z]));
+  add(Bank, { id: 'k3', eyes: Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return { at: [SX - 0.4, Y + 6 + Math.cos(a) * 4.1, Z + Math.sin(a) * 4.1], yaw: -Math.PI / 2 }; }), window: VOLLEY,
     unmet: 'The six eyes stay dull. The mainspring hangs slack: its weight isn’t home.',
     full: 'All six woke round the spring, and went dark again: two tanks in one breath, and this one fills too slowly.',
     fade: 'They woke, and went dark again before the rest.',
-    woke: 'The mainspring takes up with a groan, and across the landing, over the Cupboard’s door, a little clock begins to tick.' });
-  add(Mark, { room: 'mainspring', at: [X - 3.5, Y, Z + 2.8], yaw: Math.PI / 2 });
+    woke: 'The mainspring takes up with a groan, and out on the landing the Clockmaker’s clock begins to tick.' });
+  add(Mark, { room: 'mainspring', at: [X0 + 5, Y, Z + 4], yaw: Math.PI / 2 });
 }
 
 /**
- * The Clockmaker's Cupboard (off the Escapement's far landing, west: optional). Its door wants the little clock over it
- * woken round from the house's hour (it has no hand, as the gallery's great clock): four, eight, twelve. Inside, a
- * coffer of chimes.
+ * The Clockmaker's Cupboard (off the Escapement's far landing, west: optional). Its door wants the Clockmaker's clock
+ * on the landing woken round from the house's hour (it has no hand, as the gallery's great clock): four, eight, twelve.
+ * Inside, a coffer of chimes and the great key.
  */
-function cupboard(rt, K, M, { dial }) {
+function cupboard(rt, K, M, { dial, brass }) {
   const add = (P, o) => rt.add(P, o);
-  const Z = CUPBOARD.z, Y = 0;
-  K.corridor([-14.4, Z], [-11.6, Z], Y, { w: 3.6, h: 5 });
-  K.hall({ x: -19, z: Z, w: 8, d: 8, y: Y, h: 7, roof: true, doors: [{ side: 'e', at: 0, w: 3.6, h: 5 }] });
-  add(Door, { id: 'dC', at: [-11.6, Y, Z], yaw: Math.PI / 2, w: 3.6, h: 5, lamps: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }] });
-  // the little clock over its door, its hand gone; three eyes round it at four, eight and twelve (facing +x: as you
-  // face it, a clock's way round goes over the top toward -z)
-  dial(-10.95, CUPBOARD.dialY, Z, 1.1, Math.PI / 2, null);
+  const { z: Z, x: X } = CUPBOARD, Y = 0, X1 = X + 6;
+  K.corridor([X1 + 0.6, Z], [-(ESC.w / 2 + 0.6), Z], Y, DOOR);
+  K.hall({ x: X, z: Z, w: 12, d: 12, y: Y, h: 10, roof: true, doors: [{ side: 'e', at: 0, ...DOOR }] });
+  add(Door, { id: 'dC', at: [-(ESC.w / 2 + 0.6), Y, Z], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }] });
+  // (v1.77) the Clockmaker's clock out on the landing, a tall case standing on the floor, its hand gone; three eyes round
+  // its dial at four, eight and twelve (facing the way in, -z: as you face it, a clock's way round goes over the top toward -x)
+  const C = LANDING.clock;
+  K.both(M.wallGlyph, box(4.6, 8.6, 1.2, C.x, 4.3, C.z + 0.8));
+  K.both(M.trim, box(5.0, 0.4, 1.6, C.x, 8.7, C.z + 0.8));
+  K.both(brass, box(1.2, 2.6, 0.12, C.x, 2.4, C.z + 0.17));   // (its pendulum's window, still)
+  dial(C.x, CUPBOARD.dialY, C.z + 0.12, 1.1, Math.PI, null);
   const tick = 'It ticks once and goes still. This little clock has lost its hand: count round from the house’s hour.';
   const stopped = 'Its lids stay shut. The little clock has stopped: whatever drives the house’s clocks hangs slack.';
-  for (const [id, hr] of [['c1', 4], ['c2', 8], ['c3', 12]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-10.85, CUPBOARD.dialY + Math.cos(a) * 1.9, Z - Math.sin(a) * 1.9], yaw: Math.PI / 2, size: 0.5, wrong: tick, lids: true, unmet: stopped }); }
-  add(Coffer, { id: 'cache', at: [-21.2, Y, Z - 1.8], yaw: Math.PI / 2 });
-  add(Key, { id: 'kB', big: true, at: [-21.2, Y, Z + 1.8], yaw: Math.PI / 2 });   // (v1.53: the great key, here since the mainspring moved off the gallery)
+  for (const [id, hr] of [['c1', 4], ['c2', 8], ['c3', 12]]) { const a = TAU * hr / 12; add(Switch, { id, at: [C.x - Math.sin(a) * 1.9, CUPBOARD.dialY + Math.cos(a) * 1.9, C.z - 0.1], yaw: Math.PI, size: 0.5, wrong: tick, lids: true, unmet: stopped }); }
+  add(Coffer, { id: 'cache', at: [X - 2.2, Y, Z - 1.8], yaw: Math.PI / 2 });
+  add(Key, { id: 'kB', big: true, at: [X - 2.2, Y, Z + 1.8], yaw: Math.PI / 2 });   // (v1.53: the great key, here since the mainspring moved off the gallery)
 }
 
 // ------------------------------------------------------------------ inside
@@ -393,6 +431,7 @@ function layout(rt) {
   const add = (P, o) => rt.add(P, o);
   const brass = metal('#d8a24a');
   const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
+  const D = DOOR;
   /** A clock face on a wall: a cream dial, twelve ticks, two stopped hands (facing `yaw`). */
   const dial = (x, y, z, r, yaw, hands = [-0.6, 2.3]) => {
     K.both(cream, T(new THREE.CylinderGeometry(r, r, 0.2, 40).rotateX(Math.PI / 2), [x, y, z], [0, yaw, 0]));
@@ -412,140 +451,161 @@ function layout(rt) {
   K.add(M.dark, box(0.9, 0.5, 0.6, 3.4, 1.35, 9.6)); K.add(brass, T(new THREE.TorusGeometry(0.3, 0.06, 5, 14), [5.2, 1.3, 9.6], [Math.PI / 2, 0, 0]));
   K.add(M.accent, box(1.2, 0.08, 0.9, 5.6, 1.13, 9.4));   // a sheet of his pencilled plans
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
-  K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: 6, h: 7 }] });
+  // (the Escapement's south wall, the Threshold's north: its middle on the hall's z0 less half its thickness)
+  const EW = ESC.w / 2, EZ = (ESC.z0 + ESC.z1) / 2;
+  K.wall(-(EW + 0.6), ESC.z0 - 0.6, EW + 0.6, ESC.z0 - 0.6, 0, ESC.y + ESC.h, { t: 1.2, holes: [{ at: EW + 0.6, w: D.w, h: 8 }] });
 
-  // ---- the Escapement (z 12.6..48): a pit, a disc that swings across it once the eye over the far door is splashed
-  K.hall({ x: 0, z: 30.3, w: 22, d: 35.4, y: -8, h: 22, floor: false, roof: 'oculus', oculus: 0.25, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4, y0: 8 }, { side: 'w', at: CUPBOARD.z - 30.3, w: 3.6, h: 5, y0: 8 }, { side: 'e', at: CUPBOARD.z - 30.3, w: 5, h: 6.4, y0: 8 }] });
-  K.slab(-11, 12.6, 11, 18, 0, 8);
-  K.slab(-11, 40, 11, 48, 0, 8);
-  K.both(M.dark, box(22, 1, 22, 0, -8.5, 29));
-  add(Pit, { room: 'esc', min: [-12, -10, 18], max: [12, -2, 40] });
+  // ---- the Escapement (z 12.6..40): a pit, a disc that swings across it once the eyes round the dial on its tower are
+  // splashed; and its far landing (z 40..72), the Clockmaker's clock and the counterweight's groove on it
+  K.hall({ x: 0, z: EZ, w: ESC.w, d: ESC.z1 - ESC.z0, y: ESC.y, h: ESC.h, floor: false, roof: 'oculus', oculus: 0.25, omit: ['s'],
+    doors: [{ side: 'n', ...D, y0: -ESC.y }, { side: 'w', at: CUPBOARD.z - EZ, ...D, y0: -ESC.y }, { side: 'e', at: CUPBOARD.z - EZ, ...D, y0: -ESC.y }] });
+  K.slab(-EW, ESC.z0, EW, ESC.near, 0, 8);
+  K.slab(-EW, ESC.far, EW, ESC.z1, 0, 8);
+  K.both(M.dark, box(ESC.w, 1, ESC.far - ESC.near, 0, -8.5, (ESC.near + ESC.far) / 2));
+  add(Pit, { room: 'esc', min: [-(EW + 1), -10, ESC.near], max: [EW + 1, -2, ESC.far] });
   add(Platform, { path: [[0, 0, 20.4], [0, 0, 37.6]], r: 2.2, speed: 2.0, pause: 1.6, when: { open: 'discs' } });
   // the escapement's anchor overhead, and a great stopped wheel on each wall
-  K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [-10.4, 6, 29], [0, Math.PI / 2, 0]));
-  K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [10.4, 6, 29], [0, Math.PI / 2, 0]));
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; for (const s of [-1, 1]) K.both(brass, T(new THREE.BoxGeometry(0.4, 1.2, 1.2), [s * 10.4, 6 + Math.cos(a) * 6.6, 29 + Math.sin(a) * 6.6], [a, 0, 0])); }
-  K.both(brass, T(new THREE.BoxGeometry(14, 0.6, 0.6), [0, 12.4, 29]));
-  // the dial over the far door, its one hand at eight, and three eyes round it at twelve, four and eight (as you
-  // face it, a clock's way round goes right to left over the top: x = -sin)
-  dial(0, 9.6, 47.7, 2.3, Math.PI, [TAU * 8 / 12, TAU * 8 / 12]);
+  K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [-(EW - 0.6), 6, 29], [0, Math.PI / 2, 0]));
+  K.both(M.dark, T(new THREE.TorusGeometry(6, 0.5, 6, 40), [EW - 0.6, 6, 29], [0, Math.PI / 2, 0]));
+  for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; for (const s of [-1, 1]) K.both(brass, T(new THREE.BoxGeometry(0.4, 1.2, 1.2), [s * (EW - 0.6), 6 + Math.cos(a) * 6.6, 29 + Math.sin(a) * 6.6], [a, 0, 0])); }
+  K.both(brass, T(new THREE.BoxGeometry(ESC.w, 0.6, 0.6), [0, 17, 29]));
+  // (v1.77) the dial on its tower out in the pit, beside the disc's way (it hung over the far door), its one hand at eight,
+  // and three eyes round it at twelve, four and eight (as you face it, a clock's way round goes right to left over the
+  // top: x = -sin)
+  K.both(M.wallGlyph, box(7, DIAL.y + 3.8 - ESC.y, 1.6, DIAL.x, (DIAL.y + 3.8 + ESC.y) / 2, DIAL.z + 1.0));
+  K.both(M.trim, box(7.4, 0.4, 2.0, DIAL.x, DIAL.y + 3.9, DIAL.z + 1.0));
+  dial(DIAL.x, DIAL.y, DIAL.z + 0.12, 2.0, Math.PI, [TAU * 8 / 12, TAU * 8 / 12]);
   const tick = 'It ticks once, and goes still: the makers’ clock counts round from where its hand points, the way a clock goes.';
-  for (const [id, hr] of [['s1', 8], ['s2', 12], ['s3', 4]]) { const a = TAU * hr / 12; add(Switch, { id, at: [-Math.sin(a) * 3.6, 9.6 + Math.cos(a) * 3.6, 47.4], yaw: Math.PI, size: 0.8, wrong: tick }); }
+  for (const [id, hr] of [['s1', 8], ['s2', 12], ['s3', 4]]) { const a = TAU * hr / 12; add(Switch, { id, at: [DIAL.x - Math.sin(a) * DIAL.r, DIAL.y + Math.cos(a) * DIAL.r, DIAL.z - 0.2], yaw: Math.PI, size: 0.8, wrong: tick }); }
   add(Mark, { room: 'esc', at: [-6.5, 0, 15.4], yaw: Math.PI / 2 });
-  cupboard(rt, K, M, { dial });
+  cupboard(rt, K, M, { dial, brass });
   mainspring(rt, K, M, { brass });   // (v1.74: east off the far landing, across from the Cupboard)
+  // the winding's counterweight on the landing (v1.77: its groove up the landing's east side to its socket; it ran on
+  // through the doorway into the well)
+  const B = LANDING.ball;
+  K.add(M.dark, box(1.0, 0.04, B.z1 - B.z0 + 1.8, B.x, 0.02, (B.z0 + B.z1) / 2));
+  for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, B.z1 - B.z0 + 1.8, B.x + sd * 0.8, 0.06, (B.z0 + B.z1) / 2));
+  add(Ball, { id: 'ball1', a: [B.x, 0.04, B.z0], b: [B.x, 0.04, B.z1], r: 1.1, friction: 1.0 });
+  add(Plate, { id: 'p1', at: [B.x, 0, B.z1], r: 1.3 });
+  K.both(brass, box(3.2, 0.5, 0.6, B.x, 0.25, B.z1 + 1.6));   // (the socket's brass stop)
+  // its chain, up the stop's post and over to the well's doorway: what the socket winds
+  K.both(M.wall, box(0.8, 9, 0.8, B.x, 4.5, B.z1 + 2.4));
+  K.add(brass, box(0.18, 0.18, ESC.z1 - B.z1 - 2.4, B.x, 8.6, (ESC.z1 + B.z1 + 2.4) / 2));
 
-  // ---- the Winding Well (a rotunda): a wall to climb (its top at 9), the door at its top; the counterweight's
-  // groove comes in from the Escapement's far landing to its socket at the wall's foot
-  K.slab(-3.2, 48, 3.2, 50.6, 0, 0.8);
-  K.wall(-3.2, 48.6, -3.2, 50.6, 0, 6.4, { t: 0.8 }); K.wall(3.2, 50.6, 3.2, 48.6, 0, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 49.6));
-  const C2 = 61.2;
+  // ---- the Winding Well (a round hall): a wall to climb (its top at UP), the door at its top; the ways west and east
+  const C2 = WELL.z, R = WELL.r;
+  K.corridor([0, ESC.z1 + 0.6], [0, C2 - (R - 0.2)], 0, D);
   // (the house's hub since v1.48: a way west to the Pendulum Hall and east to the Striking Room at its floor, and over
   // the way west the Pendulum Hall's way out, onto a balcony beside the ledge over the climb)
-  K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 22, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 9 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 4.4, h: 5, y0: WING.upY }], oculus: 0.3 });
+  K.rotunda({ x: 0, z: C2, y: 0, r: R, h: WELL.h, seg: 40, gaps: [{ a: Math.PI, ...D }, { a: 0, ...D, y0: UP }, { a: -Math.PI / 2, ...D }, { a: Math.PI / 2, ...D }, { a: -Math.PI / 2, ...D, y0: WING.upY }], oculus: 0.3 });
   // (the house's one climb: its other walls are not climbed, issue #115)
+  const FZ = C2 + WELL.face, BZ = C2 + R - 0.05;
   K.climbable('the Winding Well\'s climb: the block\'s face, from the hub\'s floor to the ledge and the door of two keyholes', () => {
-    K.both(M.wallGlyph, box(20, 9, 7.2, 0, 4.5, C2 + 6.4));
-    K.both(M.trim, box(20.2, 0.3, 7.4, 0, 9.05, C2 + 6.4));
+    K.both(M.wallGlyph, box(2 * R + 0.4, UP, BZ - FZ, 0, UP / 2, (FZ + BZ) / 2));
+    K.both(M.trim, box(2 * R + 0.6, 0.3, 0.6, 0, UP - 0.1, FZ + 0.25));
   });
-  K.add(M.dark, box(1.0, 0.04, 21.6, 1.2, 0.02, 51.7));
-  for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, 21.6, 1.2 + sd * 0.8, 0.06, 51.7));
-  add(Ball, { id: 'ball1', a: [1.2, 0.04, 41.4], b: [1.2, 0.04, C2 + 1.2], r: 1.1, friction: 1.0 });
-  add(Plate, { id: 'p1', at: [1.2, 0, C2 + 1.2], r: 1.3 });
-  K.both(brass, box(3.2, 0.5, 0.6, 1.2, 0.25, C2 + 2.6));   // (the socket's brass stop at the wall's foot)
-  add(Door, { id: 'd2', at: [0, 9, C2 + 10.3], w: 5, h: 6.4, lamps: [{ drumOn: ['ball1', 'p1'] }] });   // (and two keyholes: logic `lock`)
-  dial(-9.4, 17.4, C2, 2.6, Math.PI / 2, [TAU * 4 / 12, 0.4]);   // (stopped at four, as every clock in the house: over the ways west)
-  add(Mark, { room: 'well', at: [-6, 0, C2 - 6], yaw: Math.PI * 0.75 });
-  wings(rt, K, M, { C2, dial, brass, cream });
+  add(Door, { id: 'd2', at: [0, UP, C2 + R + 0.3], ...D, lamps: [{ drumOn: ['ball1', 'p1'] }] });   // (and two keyholes: logic `lock`)
+  dial(R - 0.6, 14.2, C2, 2.6, -Math.PI / 2, [TAU * 4 / 12, 0.4]);   // (stopped at four, as every clock in the house: over the way east)
+  add(Mark, { room: 'well', at: [-8, 0, C2 - 8], yaw: Math.PI * 0.75 });
+  wings(rt, K, M, { C2, dial, brass });
 
-  // ---- the corridor and the Coil Chamber (floor 9): the chest; six eyes round the far door
-  K.slab(-3.2, C2 + 10, 3.2, C2 + 12.6, 9, 0.8);
-  K.wall(-3.2, C2 + 10.6, -3.2, C2 + 12.6, 9, 6.4, { t: 0.8 }); K.wall(3.2, C2 + 12.6, 3.2, C2 + 10.6, 9, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 15.8, C2 + 11.6));
-  const C3 = C2 + 22.6;
-  K.rotunda({ x: 0, z: C3, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, ...chestMound(0, 9, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  // ---- the corridor and the Coil Chamber (floor UP): the chest; its north door sinks for the coil in hand
+  const C3 = COIL.z, RC = COIL.r;
+  K.corridor([0, C2 + R], [0, C3 - (RC - 0.2)], UP, D);
+  K.rotunda({ x: 0, z: C3, y: UP, r: RC, h: 16, seg: 32, gaps: [{ a: Math.PI, ...D }, { a: 0, ...D }], oculus: 0.35 });
+  K.both(M.trim, ...chestMound(0, UP, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // copper coils round the walls, warm
   const copper = { paint: new THREE.Color('#d9643a'), smooth: false, side: THREE.FrontSide };
-  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) K.add(copper, T(new THREE.TorusGeometry(0.9, 0.18, 6, 18), [s * 8.6, 11 + i * 0.6, C3 + 2], [0, Math.PI / 2, 0]));
-  add(Mark, { room: 'coil', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) K.add(copper, T(new THREE.TorusGeometry(0.9, 0.18, 6, 18), [s * (RC - 0.4), UP + 2 + i * 0.6, C3 + 2], [0, Math.PI / 2, 0]));
+  add(Mark, { room: 'coil', at: [8, UP, C3 - 7], yaw: -Math.PI * 0.75 });
+  add(Door, { id: 'dP', at: [0, UP, C3 + RC + 0.3], ...D, lamps: [{ item: 'coil' }] });   // (v1.77: the coil in hand)
 
-  // ---- the Winding Passage (floor 9), a room on: six eyes round the door into the gallery
-  const A0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 9, 0.8);
-  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 9, h: 10, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
-  for (const s of [-1, 1]) for (let i = 0; i < 5; i++) K.add(copper, T(new THREE.TorusGeometry(0.7, 0.14, 6, 16), [s * 5.6, 10.4 + i * 0.5, A0 + 4], [0, Math.PI / 2, 0]));
-  const F0 = A0 + 12 + 1.2;
-  add(Door, { id: 'd3', at: [0, 9, F0 - 0.6], w: 5, h: 6.4, lamps: [{ lit: 'k1' }] });
-  add(Bank, { id: 'k1', eyes: [[-3.6, 10.6], [-3.6, 13.6], [3.6, 10.6], [3.6, 13.6], [-1.5, 16.6], [1.5, 16.6]].map(([x, y]) => ({ at: [x, y, F0 - 1.5], yaw: Math.PI })), window: VOLLEY,
+  // ---- the Winding Passage (floor UP), a room of its own (v1.77): six eyes round the makers’ great escape wheel on its stele
+  // in the middle of the floor, to wake in one breath
+  const A = WIND.z, AZ0 = A - WIND.d / 2, F0 = GALLERY.z0;
+  K.corridor([0, C3 + RC], [0, AZ0 - 0.6], UP, D);
+  K.hall({ x: 0, z: A, w: WIND.w, d: WIND.d, y: UP, h: 18, roof: 'oculus', oculus: 0.3, omit: ['n'], doors: [{ side: 's', ...D }] });
+  for (const s of [-1, 1]) for (let i = 0; i < 5; i++) K.add(copper, T(new THREE.TorusGeometry(0.7, 0.14, 6, 16), [s * (WIND.w / 2 - 0.4), UP + 1.4 + i * 0.5, A - 4], [0, Math.PI / 2, 0]));
+  K.both(M.wallGlyph, box(10.4, 12, 1.2, 0, UP + 6, A + 0.6));
+  K.both(M.trim, box(10.8, 0.5, 1.6, 0, UP + 12, A + 0.6));
+  K.both(brass, T(cogGeometry(2.0, 0.5).rotateZ(Math.PI / 6), [0, UP + 6, A - 0.4]));   // (the makers’ great escape wheel, stopped: its six teeth between the eyes)
+  K.both(brass, T(new THREE.CylinderGeometry(0.7, 0.7, 0.5, 18).rotateX(Math.PI / 2), [0, UP + 6, A - 0.2]));
+  add(Bank, { id: 'k1', eyes: ring6(0, UP + 6, A - 0.4, 4.1, Math.PI), window: VOLLEY,
     full: 'All six woke, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
     fade: 'They woke, and went dark again before the rest. Six eyes, one breath: more than one tank can do.' });
+  add(Mark, { room: 'wind', at: [-8, UP, AZ0 + 5], yaw: Math.PI / 2 });
+  add(Door, { id: 'd3', at: [0, UP, F0 - 0.6], ...D, lamps: [{ lit: 'k1' }] });
 
-  // ---- the Clock Gallery: a chasm, a bridge a second bank of six raises (round a stopped clock face on the far wall)
-  K.slab(-3.2, F0 - 1.6, 3.2, F0 + 0.6, 9, 0.8);
-  K.hall({ x: 0, z: F0 + 17.2, w: 22, d: 34.4, y: -6, h: 32, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 15 }, { side: 'n', w: 5, h: 6.4, y0: 15 }] });
-  K.slab(-11, F0, 11, F0 + 6, 9, 15);
-  K.slab(-11, F0 + 26, 11, F0 + 34.4, 9, 15);
-  K.both(M.dark, box(22, 1, 20, 0, -6.4, F0 + 16));
-  add(Pit, { room: 'gallery', min: [-12, -8, F0 + 6], max: [12, 4, F0 + 26] });
-  add(Bridge, { id: 'br1', a: [0, 9, F0 + 5.9], b: [0, 9, F0 + 26.1], w: 4, n: 8 });
+  // ---- the Clock Gallery: a chasm, a bridge a second bank of six raises (round the great clock hung over its far end)
+  const GW = GALLERY.w / 2, GD = GALLERY.d, GY = UP - 15;
+  K.hall({ x: 0, z: F0 + GD / 2, w: GALLERY.w, d: GD, y: GY, h: 33, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', ...D, y0: UP - GY }, { side: 'n', ...D, y0: UP - GY }] });
+  K.slab(-GW, F0, GW, F0 + 6, UP, 15);
+  K.slab(-GW, F0 + 26, GW, F0 + GD, UP, 15);
+  K.both(M.dark, box(GALLERY.w, 1, 20, 0, GY - 0.4, F0 + 16));
+  add(Pit, { room: 'gallery', min: [-(GW + 1), GY - 2, F0 + 6], max: [GW + 1, UP - 5, F0 + 26] });
+  add(Bridge, { id: 'br1', a: [0, UP, F0 + 5.9], b: [0, UP, F0 + 26.1], w: 4, n: 8 });
   // (v1.74, issue #23 round 6) the gallery's great pendulum, hung from a beam under the roof over the bridge's middle,
   // swinging along it: its bob sweeps low over the middle of the bridge and rises at either end of its swing. Cross under
   // it as it swings away, in its beat; met, it knocks you back along the bridge (it does not hurt)
-  K.both(brass, box(22.2, 0.7, 0.9, 0, GALLERY_BEAT.pivot + 0.55, F0 + 16));   // (wall to wall, across the oculus)
+  K.both(brass, box(GALLERY.w + 0.2, 0.7, 0.9, 0, GALLERY_BEAT.pivot + 0.55, F0 + 16));   // (wall to wall, across the oculus)
   add(Swing, { at: [0, GALLERY_BEAT.pivot, F0 + 16], len: GALLERY_BEAT.len, amp: GALLERY_BEAT.amp, period: GALLERY_BEAT.period, phase: 0.25, yaw: -Math.PI / 2,
     bob: 'disc', size: 1.1, gentle: true, knock: 7, room: 'gallery',
     rings: 'The brass bob rings under the splash and swings on. The great pendulum keeps the gallery’s beat: cross under it as it swings away.' });
-  // the great clock face, its hands gone; six eyes round it (ring6 goes round toward +x: as you face it, that is
-  // twelve, ten, eight, six, four, two), to wake in turn from four: four, six, eight, ten, twelve, two
-  dial(0, 20.6, F0 + 34.1, 3.8, Math.PI, null);
-  K.both(brass, T(new THREE.TorusGeometry(6.3, 0.22, 6, 48), [0, 20.6, F0 + 34.0], [0, Math.PI, 0]));
-  K.add(M.glyph, T(glyphGeometry(2.6, 0.12), [0, 27.2, F0 + 34.2], [0, Math.PI, 0]));
-  add(Bank, { id: 'k2', eyes: ring6(0, 20.6, F0 + 33.6, 4.9, Math.PI), size: 1.0, window: VOLLEY, order: [4, 3, 2, 1, 0, 5],
+  // (v1.77) the great clock face, its hands gone, hung on rods from the roof over the bridge's far end (it was on the far
+  // wall); six eyes round it (ring6 goes round toward +x: as you face it, that is twelve, ten, eight, six, four, two), to
+  // wake in turn from four: four, six, eight, ten, twelve, two
+  const GC = GALLERY.clock, GZ = F0 + GC.z;
+  dial(0, GC.y, GZ, 3.8, Math.PI, null);
+  K.both(brass, T(new THREE.TorusGeometry(6.3, 0.22, 6, 48), [0, GC.y, GZ - 0.1], [0, Math.PI, 0]));
+  for (const s of [-1, 1]) K.both(brass, box(0.3, GY + 33 - (GC.y + 5.8), 0.3, s * 2.2, (GY + 33 + GC.y + 5.8) / 2, GZ + 0.05));
+  K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [0, GC.y + 7.1, GZ - 0.15], [0, Math.PI, 0]));
+  add(Bank, { id: 'k2', eyes: ring6(0, GC.y, GZ - 0.5, 4.9, Math.PI), size: 1.0, window: VOLLEY, order: [4, 3, 2, 1, 0, 5],
     full: 'All six woke round the clock, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
     fade: 'They woke round the clock, and went dark again before the rest.',
     wrong: 'The eyes ring out of step and all go dark. The great clock has lost its hands: count round from the hour every clock in this house stopped at.' });
-  dial(0, 18.9, F0 + 0.3, 1.3, 0, [TAU * 4 / 12, 0.4]);   // the little clock over the way in, behind you: stopped at four
+  dial(0, UP + 11.4, F0 + 0.3, 1.3, 0, [TAU * 4 / 12, 0.4]);   // the little clock over the way in, behind you: stopped at four
   galleryClockwork(rt, K, F0, brass);
-  add(Door, { id: 'd4', at: [0, 9, F0 + 35], w: 5, h: 6.4 });
-  add(Mark, { room: 'gallery', at: [-7, 9, F0 + 3], yaw: 0 });
+  add(Door, { id: 'd4', at: [0, UP, F0 + GD + 0.6], ...D });
+  add(Mark, { room: 'gallery', at: [-7, UP, F0 + 3], yaw: 0 });
 
-  // ---- the corridor and the Foreman's Workshop (floor 9)
-  const H0 = F0 + 35;
-  const AE = K.vestibule(H0, 9);   // (the antechamber, ANTE: issue #195)
-  add(Mark, { room: 'ante', at: [ANTE.half - 1, 9, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  // ---- the corridor and the Foreman's Workshop (floor UP)
+  const H0 = F0 + GD + 0.6;
+  const AE = K.vestibule(H0, UP);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, UP, (H0 + AE) / 2], yaw: -Math.PI / 2 });
   const HR = 20, CW = AE + 1.2 + HR;
-  K.rotunda({ x: 0, z: CW, y: 9, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
+  K.rotunda({ x: 0, z: CW, y: UP, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: ANTE.h }, { a: 0, ...D }], oculus: 0.3 });
   // a great dial inlaid in the floor, a gear's teeth round it, a pendulum's rod down from the oculus
-  K.both(cream, T(annulus(8.2, 9.2, 0.25, 64), [0, 9.25, CW]));
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.35, 0.06, 1.4), [Math.sin(a) * 7.4, 9.03, CW + Math.cos(a) * 7.4], [0, a, 0])); }
-  K.add(brass, T(annulus(12.0, 12.8, 0.08, 72), [0, 9.06, CW]));
-  for (let i = 0; i < 36; i++) { const a = (i / 36) * TAU; K.add(brass, T(new THREE.BoxGeometry(0.7, 0.08, 0.7), [Math.sin(a) * 13.1, 9.04, CW + Math.cos(a) * 13.1], [0, a, 0])); }
-  for (const a of [0.9, 2.2, 4.0, 5.3]) dial(Math.sin(a) * (HR - 0.2), 21, CW + Math.cos(a) * (HR - 0.2), 2.4, a + Math.PI, [a * 2, a * 5]);
-  add(Door, { id: 'd5', at: [0, 9, CW + HR + 0.7], w: 5, h: 6 });
-  K.slab(-3.2, CW + HR + 0.6, 3.2, CW + HR + 10, 9, 0.8);
-  K.wall(-3.2, CW + HR + 1.4, -3.2, CW + HR + 10, 9, 7, { t: 0.8 }); K.wall(3.2, CW + HR + 10, 3.2, CW + HR + 1.4, 9, 7, { t: 0.8 });
-  K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CW + HR + 5.7));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 9, CW + HR + 10.5]));
-  K.solid(box(4, 5, 0.1, 0, 11.5, CW + HR + 10.5));
+  K.both(cream, T(annulus(8.2, 9.2, 0.25, 64), [0, UP + 0.25, CW]));
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.35, 0.06, 1.4), [Math.sin(a) * 7.4, UP + 0.03, CW + Math.cos(a) * 7.4], [0, a, 0])); }
+  K.add(brass, T(annulus(12.0, 12.8, 0.08, 72), [0, UP + 0.06, CW]));
+  for (let i = 0; i < 36; i++) { const a = (i / 36) * TAU; K.add(brass, T(new THREE.BoxGeometry(0.7, 0.08, 0.7), [Math.sin(a) * 13.1, UP + 0.04, CW + Math.cos(a) * 13.1], [0, a, 0])); }
+  for (const a of [0.9, 2.2, 4.0, 5.3]) dial(Math.sin(a) * (HR - 0.2), UP + 12, CW + Math.cos(a) * (HR - 0.2), 2.4, a + Math.PI, [a * 2, a * 5]);
+  // the way out, past the far door
+  const X0 = CW + HR + 0.7, X1 = CW + HR + 10;
+  add(Door, { id: 'd5', at: [0, UP, X0], ...D });
+  K.slab(-4.6, X0 - 0.1, 4.6, X1, UP, 0.8);
+  K.wall(-4.2, X0 + 0.7, -4.2, X1, UP, 10, { t: 0.8 }); K.wall(4.2, X1, 4.2, X0 + 0.7, UP, 10, { t: 0.8 });
+  K.wall(4.2, X1, -4.2, X1, UP, 10, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
+  K.both(M.wall, box(9.2, 0.8, X1 - X0 + 0.4, 0, UP + 10.4, (X0 + X1) / 2));
+  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, UP, X1 + 0.5]));
+  K.solid(box(4, 5, 0.1, 0, UP + 2.5, X1 + 0.5));
 
   const model = foremanModel();
-  model.pos.copy(K.world(0, 9, CW + 4));
+  model.pos.copy(K.world(0, UP, CW + 4));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
-  model.rest = K.world(0, 9, CW + 2);
+  model.rest = K.world(0, UP, CW + 2);
   model.restHeading = K.heading(Math.PI);
-  const arena = { center: K.world(0, 9, CW), r: HR, y: K.world(0, 9, 0).y };
+  const arena = { center: K.world(0, UP, CW), r: HR, y: K.world(0, UP, 0).y };
 
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-34, -12, -3), V(34, 40, CW + HR + 12)),
-    gadget: { at: W(0, 9.62, C3).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 9.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 6, 22, 16], [0, 6, 40, 14], [0, 12, C2, 16], [WING.pend.x, 8, C2, 16], [WING.strike.x, 8, C2, 16], [-19, 4, CUPBOARD.z, 8], [0, 14, C3, 16], [0, 14, F0 + 16, 22], [0, 16, F0 + 30, 16], [20, 15, F0 + 3, 12], [0, 16, CW, 30]],
+    bounds: new THREE.Box3(V(-56, -12, -3), V(56, UP + 32, X1 + 2)),
+    gadget: { at: W(0, UP + 0.62, C3).toArray(), face: K.heading(Math.PI) },
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, UP + 0.5, X1 - 0.4), r: 1.5 }],
+    lights: [[0, 6, 6, 12], [0, 8, 26, 22], [0, 8, 56, 22], [CUPBOARD.x, 5, CUPBOARD.z, 10], [MAINSPRING.x, 9, MAINSPRING.z, 20], [0, 14, C2, 24], [WING.pend.x, 10, C2, 22], [WING.strike.x, 9, C2, 20],
+      [0, UP + 8, C3, 18], [0, UP + 9, A, 22], [0, UP + 7, F0 + 16, 26], [0, UP + 7, F0 + 30, 18], [0, UP + 7, CW, 30]],
     guardian: { def: { ...FOREMAN, onHit: foremanHit }, model, arena },
   };
 }

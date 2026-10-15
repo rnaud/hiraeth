@@ -258,6 +258,30 @@ carries the guardian's id). What stayed: the Lampless and its fight, the story's
 the loop back up through the keepers' door, the pits, every groove's length, every orb's glow and every climb. A save
 that stood in the old rooms is taken to its last mark (`LAYOUTS.perdide2` v4).
 
+## The Clock-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Escapement and its far landing 22 × 35, the Winding Well 20 m across, the Pendulum Hall and the Striking Room 16 × 16, the Mainspring Room 12 × 10, the Clock Gallery 22 × 34; the Coil Chamber 19 m round | the Escapement and its landing **32 × 59**, the Winding Well **36 m**, the Pendulum Hall, the Striking Room, the Mainspring Room and the **Winding Passage** (a room of its own) **30 × 30**, the Clock Gallery **36 × 34**; the Coil Chamber 26 m (a chest's) |
+| ceilings | 12 to 14 m (the far landing 9 over its cupboard's eyes, the Cupboard 7) | **18 m** or more (the Escapement 22, the well 26; the Cupboard, a passage, 10) |
+| doors | 3.6 to 5 m by 5 to 6.4 | **7 by 9** |
+| fights | a machine by every mark (the Escapement, the well, the Coil Chamber, the gallery, the Striking Room, the Mainspring Room) and the Pendulum Hall's arena | **the Pendulum Hall only**, its keepers round its middle among four columns |
+| threaded through doors | the counterweight rolled from the far landing through the well's doorway to its socket | the groove and its socket on the landing, a room from the door it opens |
+| against the walls | the escapement's dial and eyes over the far door, the Cupboard's clock over its door, the hour track and its eye on the east wall, the mainspring on the east wall, the passage's six eyes round its door, the gallery's clock on the far wall | each in the middle of its room: the dial on a tower in the pit beside the disc's way, the Clockmaker's clock a tall case on the landing, the track down the middle and the eye on an obelisk, the spring on a stele, six eyes round an escape wheel on a stele, the great clock hung over the bridge's far end |
+| the rules broken | **49** (both 6, size 8, ceiling 7, unmeasured 1, door 7, centred 14, through doors 1, foes 4, gadget 1) | **0** |
+| the temple design audit | 4.22: structure 5, teach/test/twist 5, combination 4, non-obvious 4 (mean 3.08), decoupling 4, item 5, guardian 4, identity 3, curve 4 | 4.22: decoupling **5** (5 of 7 steps: the counterweight a room from its door), curve **3** (the new north door, the simplest step, comes mid-way: trend 0.31 → 0.20); mean obviousness 3.07; skeleton `BAXLCRGXXLK`, 64 % like the Founders' Belfry |
+
+What it took beyond the sizes: the gadget was used in only one puzzle room after the chest (the passage's eyes were the
+Coil Chamber's), so the Winding Passage became a room of its own behind a north door that sinks for the coil in hand
+(`dP`, as the Undertower's `dL`): every room after the chest asks for it. The upper house is a metre higher (`UP`, 10 m),
+so the Pendulum Hall's way out, 7 by 9, clears its way in under it; the climb is 10 m. The counterweight could not stay in
+the well (its groove ran through the doorway) nor come into it (in the well's middle, in sight of the door at the climb's
+top, the step was plain): its groove runs up the landing's east side instead, 16 m as it was 21. The Foreman's Workshop is
+measured by its two doors (`d4`, `d5` carry `room: 'hall'`). What stayed: the Foreman and its fight, the story's lines, the
+two small keys and the great one, the loop back over the ledge, the disc's ride, the pits, every eye's order and breath,
+the gallery's chasm and its pendulum's beat. A save that stood in the old rooms is taken to its last mark
+(`LAYOUTS.garage` v3).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -277,6 +301,8 @@ counts, and a house may not get worse). Ranked worst first:
 | Lamp-House (perdide2) | 51 → **0** (v1.77, above) | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
 | Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
+
+| Clock-House (garage) | 49 → **0** (v1.77, above) | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
 | Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
 | Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |

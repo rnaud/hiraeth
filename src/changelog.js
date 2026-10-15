@@ -78,6 +78,13 @@ export const CHANGELOG = [
     // (the machines only in the Kennel, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; migrate.js
     // perdide2 v4, runtime.js relaid)
     'The Lamp-House’s keepers wait only in the Kennel now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Lamp-House, you start at its last glyph stone.',
+    // the Clock-House as shrines (issue #336): src/temples/garage.js (UP, DOOR, ESC, DIAL, LANDING, WELL, WING, MAINSPRING,
+    // COIL, WIND, GALLERY, LOGIC.rooms kinds, the Winding Passage a room of its own behind dP, ball1's socket on the landing,
+    // the dial's tower, the Clockmaker's clock, the steles, the hung clock); tests/temple-rules.test.js REDONE, tests/temples.test.js
+    'The Clock-House is rebuilt like a shrine too: its halls are far bigger and taller (the Escapement and its landing 32 m wide under 22 m of stone, the Winding Well 36 m across, every other hall 30 m or more), its doors twice the size, and every puzzle stands in the middle of its room. The escapement’s dial and its three eyes stand on a tower in the pit beside the disc; the Clockmaker’s clock is a tall case out on the landing; the counterweight rolls up the landing to its socket there instead of through the well’s doorway; the hour track runs down the middle of the Striking Room, its eye on an obelisk; the mainspring and the Winding Passage’s six eyes each stand on a stele in the middle of their rooms; and the gallery’s great clock hangs over the far end of the bridge. The Winding Passage is a room of its own now, past a door in the Coil Chamber that opens for the quick coil.',
+    // (the machines only in the Pendulum Hall, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; migrate.js
+    // garage v3, runtime.js relaid)
+    'The Clock-House’s keepers wait only in the Pendulum Hall, round its middle among four columns: no machine stands by its puzzles any more. The Clockwork Foreman and its fight are as they were. If you were inside the old house, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield
