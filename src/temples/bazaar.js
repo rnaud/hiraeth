@@ -19,6 +19,9 @@ import { chestMound } from '../boxes/mound.js';
 // travels. The makers' dishes carry it across a hall, the echo shell carries it in your pocket, and the shell
 // holds one note at a time, so what goes where first is the puzzle.
 //
+// Since v1.77 (issue #336, docs/design/temple-redesign.md) its rooms are shrines: every hall 30 to 36 m across under 18 m
+// of stone or more, doors 7 by 9 (ROOMS, DOOR), each puzzle in the middle of its own room, the one fight in the Cable Store.
+//
 // Inside (built far overhead, through the old doorway in the tower's back):
 //   the Threshold        the first mark, the way out
 //   the Hall of Dishes   no way over the cable pit: the makers' pillars stand down in the dark, and rise only for a
@@ -30,12 +33,13 @@ import { chestMound } from '../boxes/mound.js';
 //   the Cable Well       the hub (v1.48, issue #23): two discs up; the second waits for the horn on the ledge, which
 //                        listens for the low stone on the floor (its ring is the low note's colour; the high stone
 //                        beside it is not its note); the door from the landing into the Shell Chamber takes two small keys:
-//   the Cable Store      (west, an arena) the makers' spare cable on drums; its door shuts behind you while its keepers stand
-//   the Tuning Room      (east) a pair of dishes across the room: the near one deaf until a ball (rolled in from the well)
-//                        is on its footstone, a low
-//                        and a high stone by its mouth; the far horn, too far for either alone, wants the high one
-//   the Shell Chamber    the makers' chest: the ECHO SHELL (src/items.js 'echo', src/echo-shell.js). Its way on is
-//                        open; a low singing stone stands by the dais: splash it, and the shell keeps its note. A
+//   the Cable Store      (west, down a cable tunnel under the Choir: the house's one fight, an arena) the makers' spare
+//                        cable on drums; its door shuts behind you while its keepers stand round its middle
+//   the Tuning Room      (east) a pair of dishes across the room: the near one deaf until a ball (its groove down the
+//                        middle of the room) is on its footstone, a low and a high stone by its mouth; the far horn,
+//                        too far for either alone, wants the high one
+//   the Shell Chamber    the makers' chest: the ECHO SHELL (src/items.js 'echo', src/echo-shell.js). Its north door
+//                        sinks for the shell in your hand (v1.77); a low singing stone stands by the dais: splash it, and the shell keeps its note. A
 //                        second hub (v1.60): north the Listening Passage, west the Choir
 //   the Choir            (v1.60, west off the chamber, over the Cable Store; v1.49 off the gallery's far side) two horns
 //                        and the great key caged between them: the far one hears only a stone's own low song, through
@@ -104,7 +108,15 @@ export const HOLD = { pillar: 6, reach: 6.5 };
 
 export const LOGIC = {
   id: 'bazaar', entry: 'threshold', gadget: 'echo',
-  rooms: { threshold: { checkpoint: true }, dishes: { checkpoint: true }, dishesFar: {}, well: { checkpoint: true }, store: { checkpoint: true }, tune: { checkpoint: true }, landing: {}, shell: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: { checkpoint: true }, choir: { checkpoint: true }, hall: { boss: true }, out: {} },
+  // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
+  // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js. The
+  // Shell Chamber holds the shell alone; the Listening Passage past its open way is a room of its own since v1.77)
+  rooms: {
+    threshold: { checkpoint: true, kind: 'passage' }, dishes: { checkpoint: true, kind: 'puzzle' }, dishesFar: { kind: 'puzzle' }, well: { checkpoint: true, kind: 'puzzle' },
+    store: { checkpoint: true, kind: 'combat' }, tune: { checkpoint: true, kind: 'puzzle' }, landing: { kind: 'passage' }, shell: { checkpoint: true, kind: 'chest' },
+    listen: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' }, galleryFar: { checkpoint: true, kind: 'puzzle' }, choir: { checkpoint: true, kind: 'puzzle' },
+    hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+  },
   links: [
     { a: 'threshold', b: 'dishes' },
     { a: 'dishes', b: 'dishesFar', door: 'disc' },    // the pillars over the cable pit, once their horn has heard the ball
@@ -120,7 +132,8 @@ export const LOGIC = {
     // gate (one machine), so once it is open the two hubs are a loop
     { a: 'landing', b: 'choir', door: 'dG' },
     { a: 'shell', b: 'choir', door: 'dC' },
-    { a: 'shell', b: 'gallery', door: 'd3' },          // the Listening Passage's door, a room on from the chest (one room with it)
+    { a: 'shell', b: 'listen', door: 'dL' },          // the chamber's north door, for the shell in your hand (v1.77: the Listening Passage a room of its own)
+    { a: 'listen', b: 'gallery', door: 'd3' },         // the Listening Passage's door
     { a: 'gallery', b: 'galleryFar', needs: ['echo'] },   // the listening pillars: the high note carried over (v1.74)
     { a: 'galleryFar', b: 'hall', door: 'd4' },        // (and the great key)
     { a: 'hall', b: 'out', door: 'd5' },
@@ -137,17 +150,18 @@ export const LOGIC = {
     kW: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arW' } },
     dW: { type: 'door', opens: null },
     // the Tuning Room: the ball on the near dish's footstone, the high stone sung by its mouth, the far horn hears it
-    ballT: { type: 'drum', room: 'well', plate: 'pT', plateAt: 1, start: 0 },   // (still in the well: its groove runs east)
+    ballT: { type: 'drum', room: 'tune', plate: 'pT', plateAt: 1, start: 0 },   // (its groove down the room since v1.77: it ran in from the well)
     pT: { type: 'plate', room: 'tune' },
     eT: { type: 'switch', room: 'tune' },
     kE: { type: 'key', kind: 'small', room: 'tune', when: { all: [{ drumOn: ['ballT', 'pT'] }, { lit: 'eT' }] } },
     dK: { type: 'door', lock: 'small', keys: 2, latch: true },
     chest: { type: 'gadget', room: 'shell', item: 'echo' },
+    dL: { type: 'door', opens: { item: 'echo' }, latch: true },
     // the passage's horn: the low note, carried from the chamber's stone; since v1.49 deaf until a ball's weight is on its
     // footstone (the shell with the push)
-    ballP: { type: 'drum', room: 'shell', plate: 'pP', plateAt: 1, start: 0 },
-    pP: { type: 'plate', room: 'shell' },
-    e0: { type: 'switch', room: 'shell', needs: ['echo'], when: { drumOn: ['ballP', 'pP'] } },
+    ballP: { type: 'drum', room: 'listen', plate: 'pP', plateAt: 1, start: 0 },
+    pP: { type: 'plate', room: 'listen' },
+    e0: { type: 'switch', room: 'listen', needs: ['echo'], when: { drumOn: ['ballP', 'pP'] } },
     d3: { type: 'door', opens: { lit: 'e0' }, latch: true },
     ball2: { type: 'drum', room: 'gallery', plate: 'p2', plateAt: 1, start: 0 },  // onto the near dish's footstone
     p2: { type: 'plate', room: 'gallery' },
@@ -209,82 +223,132 @@ function signHit(g, part, mode) {
   return true;
 }
 
-// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
-/** The Cable Well's wings (local m): the Cable Store west (an arena), the Tuning Room east (a dish across the room). */
-export const WING = {
-  store: { x: -22, z: 61.2, w: 16, d: 16 },
-  tune: { x: 22, z: 61.2, w: 16, d: 16 },
-  zone: { min: [-30, -1, 53.2], max: [-14, 9, 69.2] },
+// ------------------------------------------------------------------ the rooms (v1.77, issue #336)
+/**
+ * The house's doors (m: issue #336, 5 by 6.4 before) and its rooms in the kit's local frame (z into the house): each
+ * hall's floor from wall to wall (its walls stand outside it), its floor's height and its ceiling's; the round halls'
+ * middles and radii. The Hall of Dishes and the Gallery of Voices stand on their pits' floors (`y`), their landings at
+ * `floor` (`near` the near landing's depth, `pit` the pit's; the far landing the rest). The props in them (the balls,
+ * the dishes, the stones, the horns, the discs, the pillars), the pits and every groove as long as they were, so every
+ * timing and every jump holds.
+ */
+export const DOOR = { w: 7, h: 9 };
+/**
+ * The great lock into the antechamber (d4): 6 by 9, the narrowest the rules allow. (The antechamber is the camera QC's
+ * close room, scripts/camera-qc/sim-lock.mjs: the close camera reads the room through the doorway, and at 7 m it read the
+ * room wide and was pulled in off its west wall in one frame, tests/camera-qc-lock.test.js.)
+ */
+export const LOCK = { w: 6, h: 9 };
+export const ROOMS = {
+  threshold: { x0: -10, x1: 10, z0: 0, z1: 14, y: 0, top: 12 },
+  dishes: { x0: -18, x1: 18, z0: 15.2, z1: 67.2, y: -8, floor: 0, top: 20, near: 18, pit: 16 },
+  well: { x: 0, z: 88, r: 17, y: 0, top: 28 },
+  store: { x0: -85, x1: -55, z0: 73, z1: 103, y: 0, top: 18 },
+  tune: { x0: 21, x1: 51, z0: 73, z1: 103, y: 0, top: 18 },
+  shell: { x: 0, z: 123.6, r: 14, y: 12, top: 28 },
+  choir: { x0: -52, x1: -20, z0: 82, z1: 128, y: 12, top: 30 },
+  listen: { x0: -15, x1: 15, z0: 140.4, z1: 170.4, y: 12, top: 30 },
+  gallery: { x0: -18, x1: 18, z0: 173.4, z1: 229.4, y: -6, floor: 12, top: 30, near: 18, pit: 20 },
 };
+const mid = (r) => [(r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2];
 
-/** The Cable Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+/** The Cable Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round the middle of the store). */
 export const ARENAS = [{
-  el: 'arW', room: 'store', zone: WING.zone, doors: ['dW'], extra: 2,
+  el: 'arW', room: 'store', zone: { min: [ROOMS.store.x0, -1, ROOMS.store.z0], max: [ROOMS.store.x1, 10, ROOMS.store.z1] }, doors: ['dW'], extra: 2,
   shut: 'The door grinds shut behind you. Among the coils of old cable, something lifts its head.',
   won: 'The last of them falls still among the cable. The key’s cage sinks, and the door lets go.',
 }];
 
 /**
- * The Cable Store (west of the Cable Well, an arena: the makers' spare cable on drums, its door shut behind you while
- * its keepers stand; won, the small key's cage sinks) and the Tuning Room (east: a pair of dishes across the room, the
- * near one deaf until a ball's weight is on its footstone, and the ball is still in the well, its groove through the way
- * east; a low and a high stone by its mouth, and a horn at the far end too far for either to reach it on their own; it
- * listens for the high one, its ring the high note's colour, as the well's horn told the low one by its colour). Each
- * holds one of the two small keys the door to the Shell Chamber takes.
+ * A piece of the First Sign's own (its element's id, 'sign'): the dark ring at its foot and the cables out from it to the
+ * hall's wall (the redesign's rules measure the guardian's hall by its pieces, scripts/temple-design/rules.mjs: the hall
+ * has no mark). o: { id, at: its foot (local), r: the hall's radius }
  */
-function wings(rt, K, M, { C2, cable, dish }) {
+class SignFoot {
+  constructor(rt, o) {
+    const K = rt.kit, M = rt.M, [x, y, z] = o.at, r = o.r;
+    K.add(M.dark, T(annulus(3.4, 4.4, 0.06, 40), [x, y + 0.06, z]));
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * TAU + 0.2, p = [x + Math.sin(a) * 4, y + 0.2, z + Math.cos(a) * 4], q = [x + Math.sin(a) * (r - 0.5), y + 0.2, z + Math.cos(a) * (r - 0.5)];
+      K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(...p), V((p[0] + q[0]) / 2, y + 0.25, (p[2] + q[2]) / 2), V(...q)]), 16, 0.25, 5));
+    }
+  }
+  update() {}
+}
+
+// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
+/**
+ * The Cable Store (west of the Cable Well, at the end of a long way under the Choir: the house's one fight, an arena:
+ * the makers' spare cable on drums round its walls, its door shut behind you while its keepers stand round its middle;
+ * won, the small key's cage sinks) and the Tuning Room (east: a pair of dishes across the middle of the room, the near
+ * one deaf until a ball's weight is on its footstone, the ball's groove down the room; a low and a high stone by its
+ * mouth, and a horn at the far end too far for either to reach it on their own; it listens for the high one, its ring
+ * the high note's colour, as the well's horn told the low one by its colour). Each holds one of the two small keys the
+ * door to the Shell Chamber takes.
+ */
+function wings(rt, K, M, { cable, dish, stand }) {
   const add = (P, o) => rt.add(P, o);
-  const S = WING.store, U = WING.tune, TZ = C2 + 1.4;
-  // ---- the Cable Store
-  K.corridor([-13.4, C2], [-9.8, C2], 0, { w: 5, h: 6.4 });
-  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: 10, roof: true, doors: [{ side: 'e', at: 0, w: 5, h: 6.4 }] });   // (shut: the Choir stands over it since v1.60)
-  add(Door, { id: 'dW', at: [-12.2, 0, C2], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
-  // drums of spare cable along the walls
-  for (const [x, z] of [[-27.5, 55.6], [-27.5, 66.8], [-18, 66.8]]) {
+  const D = DOOR, W = ROOMS.well, S = ROOMS.store, U = ROOMS.tune, [sx, sz] = mid(S), [ux, uz] = mid(U);
+  // ---- the Cable Store, its way west under the Choir's floor
+  K.corridor([-W.r - 0.6, W.z], [S.x1 + 0.6, W.z], 0, { w: D.w, h: D.h });
+  K.hall({ x: sx, z: sz, w: S.x1 - S.x0, d: S.z1 - S.z0, y: S.y, h: S.top - S.y, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: W.z - sz, w: D.w, h: D.h }] });
+  add(Door, { id: 'dW', at: [S.x1 + 0.6, 0, W.z], yaw: Math.PI / 2, w: D.w, h: D.h });   // (open: it shuts behind you while they stand)
+  // drums of spare cable round the walls, the middle clear for the fight, two columns to fight round
+  for (const [x, z] of [[S.x0 + 4.5, S.z0 + 4], [S.x0 + 4.5, S.z1 - 4], [S.x1 - 6, S.z1 - 4], [S.x1 - 6, S.z0 + 4]]) {
     K.both(M.dark, T(new THREE.CylinderGeometry(1.4, 1.4, 1.8, 14).rotateZ(Math.PI / 2), [x, 1.4, z]));
     for (let i = 0; i < 4; i++) K.add(M.trim, T(new THREE.TorusGeometry(1.42, 0.08, 4, 18).rotateY(Math.PI / 2), [x - 0.7 + i * 0.47, 1.4, z]));
   }
-  for (let i = 0; i < 3; i++) cable([-29.4 + i * 1.4, 9.6, 53.9], [-29.4 + i * 1.4, 0.3, 53.9], 0.16);   // (cable hung down the south-west corner, off the floor)
-  add(Key, { id: 'kW', at: [-27.6, 0, S.z], yaw: Math.PI / 2 });
-  add(Mark, { room: 'store', at: [S.x + 2, 0, S.z - 3], yaw: Math.PI / 2 });
+  for (const [x, z] of [[sx - 6, sz - 6], [sx + 6, sz + 6]]) K.column(x, z, 0, S.top, 0.9);
+  for (let i = 0; i < 3; i++) cable([S.x0 + 0.6 + i * 1.4, S.top - 1, S.z0 + 0.7], [S.x0 + 0.6 + i * 1.4, 0.3, S.z0 + 0.7], 0.16);   // (hung down the south-west corner, off the floor)
+  add(Key, { id: 'kW', at: [S.x0 + 5, 0, sz], yaw: Math.PI / 2 });
+  add(Mark, { room: 'store', at: [S.x1 - 3, 0, W.z - 4], yaw: -Math.PI / 2, foes: [sx, 0, sz] });
 
-  // ---- the Tuning Room: the near dish on the north wall over its footstone, two stones by its mouth; its twin far east
-  K.corridor([9.8, C2], [13.4, C2], 0, { w: 5, h: 6.4 });
-  K.hall({ x: U.x, z: U.z, w: U.w, d: U.d, y: 0, h: 10, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
-  // the footstone's weight is a ball still in the well: its groove runs from the hub through the way east
-  K.add(M.dark, box(11.8, 0.04, 1.0, 13.3, 0.02, TZ));
-  add(Ball, { id: 'ballT', a: [7.6, 0.04, TZ], b: [19.2, 0.04, TZ], r: 1.0 });
-  add(Plate, { id: 'pT', at: [19.2, 0, TZ], r: 1.2 });
-  add(Dish, { id: 'dishT', at: [18.4, 3.2, 68.9], yaw: Math.PI, tilt: 0.15, r: 2.0, when: { drumOn: ['ballT', 'pT'] },
-    to: { at: [29.6, 3.4, 56.4], yaw: -Math.PI / 2 - 0.3, tilt: 0.3, r: 1.8 },
+  // ---- the Tuning Room: the ball's groove down the room to the near dish's footstone, two stones by the dish's mouth;
+  // its twin across the room over the far horn
+  K.corridor([W.r + 0.6, W.z], [U.x0 - 0.6, W.z], 0, { w: D.w, h: D.h });
+  K.hall({ x: ux, z: uz, w: U.x1 - U.x0, d: U.z1 - U.z0, y: U.y, h: U.top - U.y, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: W.z - uz, w: D.w, h: D.h }] });
+  const TZ = uz + 4, PX = ux + 3.6;   // (the groove 11.6 m long, as it was)
+  K.add(M.dark, box(12.6, 0.04, 1.0, PX - 5.8, 0.02, TZ));
+  add(Ball, { id: 'ballT', a: [PX - 11.6, 0.04, TZ], b: [PX, 0.04, TZ], r: 1.0 });
+  add(Plate, { id: 'pT', at: [PX, 0, TZ], r: 1.2 });
+  stand(PX - 0.8, TZ + 5.4, 0, 2.2);
+  add(Dish, { id: 'dishT', at: [PX - 0.8, 3.2, TZ + 5], yaw: Math.PI, tilt: 0.15, r: 2.0, when: { drumOn: ['ballT', 'pT'] },
+    to: { at: [PX + 5.2, 3.4, uz - 7], yaw: -Math.PI / 2 - 0.3, tilt: 0.3, r: 1.8 },
     dark: 'The dish is dark and deaf: its footstone is bare.' });
-  add(EchoStone, { note: 'low', at: [15.6, 0, 67.4], yaw: Math.PI * 0.8, h: 2.6 });
-  add(EchoStone, { note: 'high', at: [21.4, 0, 67.6], yaw: -Math.PI * 0.8, h: 3.0 });
-  add(EchoEar, { id: 'eT', note: 'high', hears: 'note', at: [27.4, 0, 55.4], yaw: -Math.PI * 0.75, reach: 5,
+  stand(PX + 5.6, uz - 7, 0, 2.4);
+  add(EchoStone, { note: 'low', at: [PX - 3.6, 0, TZ + 4.6], yaw: Math.PI * 0.8, h: 2.6 });
+  add(EchoStone, { note: 'high', at: [PX + 2.2, 0, TZ + 4.6], yaw: -Math.PI * 0.8, h: 3.0 });
+  add(EchoEar, { id: 'eT', note: 'high', hears: 'note', at: [PX + 3, 0, uz - 8], yaw: -Math.PI * 0.75, reach: 5,
     heard: 'The far dish says the high stone’s note, and the horn under it answers. The key’s cage sinks.',
     wrong: 'The horn hears the note, and stays still. Its ring is the colour of the high one.' });
-  dish(29.9, 7.4, 66.6, 1.6, -Math.PI / 2);
-  add(Key, { id: 'kE', at: [22.4, 0, 55.4], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'tune', at: [16, 0, 57], yaw: Math.PI / 2 });
+  dish(U.x1 - 0.4, 7.4, uz + 4, 1.6, -Math.PI / 2);
+  // a drum of spare cable lying across the room between the key's cage and the stones: from the cage the high stone is
+  // out of sight (the temple design audit: the far horn's stone is found, not seen from the key)
+  K.both(M.dark, T(new THREE.CylinderGeometry(1.4, 1.4, 3.2, 14).rotateZ(Math.PI / 2), [PX - 1.4, 1.4, uz + 0.5]));
+  for (let i = 0; i < 6; i++) K.add(M.trim, T(new THREE.TorusGeometry(1.42, 0.08, 4, 18).rotateY(Math.PI / 2), [PX - 2.9 + i * 0.6, 1.4, uz + 0.5]));
+  add(Key, { id: 'kE', at: [PX - 2, 0, uz - 8], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'tune', at: [U.x0 + 5, 0, W.z - 4], yaw: Math.PI / 2 });
 }
 
 /**
- * The Choir (v1.60, issue #23: west off the Shell Chamber at 12, over the Cable Store; it stood off the Gallery of Voices'
- * far side from v1.49), local m: the room round x, z (w by d, its floor at y); its way in from the chamber at z `way`
- * (its door at `door`), its keepers' gate off the walk round the Cable Well at z `gate` (the well's raised gap at angle
- * `gap`); the gate's horn on the Hall of Dishes' far landing at `hornG`, its cable from there to the gate; the near dish
- * on the north wall over its footstone, the ball's groove from the way in; the low stone by its mouth, its twin at the far
- * end over the far horn; the near horn by the way in.
+ * The Choir (v1.60, issue #23: west off the Shell Chamber at 12, over the Cable Store's way; it stood off the Gallery of
+ * Voices' far side from v1.49), local m: the room round x, z (w by d, its floor at y, h high); its way in from the
+ * chamber at z `way` (its door at `door`), its keepers' gate off the walk round the Cable Well at z `gate` (the well's
+ * raised gap at angle `gap`); the gate's horn on the Hall of Dishes' far landing at `hornG`, its cable from there to the
+ * gate; the near dish on a stand over its footstone, the ball's groove (z from, to) down the room to it; the low stone by
+ * its mouth, its twin at the far end over the far horn; the near horn, the great key between them. All in the middle of
+ * the room (issue #336).
  */
-export const CHOIR = { x: -22, z: 73.5, w: 16, d: 28, y: 12, h: 11, way: 83.8, gate: 63.5, gap: -1.354,
-  door: [-11.6, 83.8], hornG: [4.2, 44.2], dish: [-27.4, 14.6, 86.9], twin: [-29.0, 15.4, 60.6], footstone: [-27.4, 84.6],
-  groove: [76.6, 84.6], low: [-24.6, 85.6], hornA: [-27.8, 61.4], hornB: [-16.6, 79.2], key: [-22, 70.2] };
+const CR = ROOMS.choir, [CRX, CRZ] = mid(CR);
+export const CHOIR = { x: CRX, z: CRZ, w: CR.x1 - CR.x0, d: CR.z1 - CR.z0, y: CR.y, h: CR.top - CR.y, way: ROOMS.shell.z, gate: ROOMS.well.z, gap: -Math.PI / 2,
+  door: [CR.x1 + 0.6, ROOMS.shell.z], hornG: [4.2, 55.6], dish: [CRX - 5.4, 14.6, CRZ + 11.9], twin: [CRX - 7, 15.4, CRZ - 11.4], footstone: [CRX - 5.4, CRZ + 9.6],
+  groove: [CRZ + 1.6, CRZ + 9.6], low: [CRX - 2.6, CRZ + 10.6], hornA: [CRX - 5.8, CRZ - 10.6], hornB: [CRX + 5.4, CRZ + 5.7], key: [CRX, CRZ - 3.3] };
 /** The walk round the inside of the Cable Well at 12, from the Choir's gate to the landing: [x0, z0, x1, z1]. */
-export const WALK = [-9.9, 61, -1, 67];
-/** The gate's cable (local m): from its horn on the far landing, through the way into the well, up its wall west of the
- * way in, along it over the first disc's foot, and up to the gate's south jamb. */
-const GATE_CABLE = [[3.8, 0.2, 44.6], [2.6, 0.18, 47.4], [2.2, 0.18, 49.8], [0.4, 0.18, 51.0], [-2.6, 0.3, 51.9], [-2.9, 4, 51.8],
-  [-5.06, 7.5, 52.8], [-7.3, 7.5, 54.7], [-8.9, 7.8, 57.1], [-9.5, 14, 58.7], [-9.79, 18.2, 60.6]];
+export const WALK = [-ROOMS.well.r - 0.6, ROOMS.well.z - 3.4, 1, ROOMS.well.z + 5.8];
+/** The gate's cable (local m): from its horn on the far landing, through the way into the well, along its floor and up
+ * its west wall to the gate's south jamb. */
+const GATE_CABLE = [[3.8, 0.2, 56.2], [3.0, 0.18, 61], [2.4, 0.18, 66], [2.0, 0.18, 70], [0.6, 0.18, 72.6], [-3.4, 0.2, 73.8], [-8.4, 0.3, 74.8],
+  [-11.8, 2, 76.4], [-14.4, 6, 79.4], [-15.9, 10, 82.4], [-16.4, 16, 84.3], [-16.5, 20.6, 84.4]];
 
 /**
  * The Choir: its keepers' gate, high on the Cable Well's wall, listens through a horn back on the Hall of Dishes' far
@@ -295,28 +359,30 @@ const GATE_CABLE = [[3.8, 0.2, 44.6], [2.6, 0.18, 47.4], [2.2, 0.18, 49.8], [0.4
  * in the Choir sings it: the Cable Well's high stone does, on the floor below the gate. The shell keeps the last note it
  * heard: the low stone sung by the near dish is caught too, so what goes first matters.
  */
-function choir(rt, K, M, { cable, dish }) {
+function choir(rt, K, M, { cable, dish, stand }) {
   const add = (P, o) => rt.add(P, o);
-  const Cr = CHOIR, Y = Cr.y, x1 = Cr.x + Cr.w / 2, x0 = Cr.x - Cr.w / 2, z0 = Cr.z - Cr.d / 2;
-  // the way in from the chamber's west gap, and the keepers' gate's way through the well's wall (each into the walls it meets)
-  K.corridor([-9.8, Cr.way], [x1 + 0.6, Cr.way], Y, { w: 5, h: 6.4 });
-  add(Door, { id: 'dC', at: [Cr.door[0], Y, Cr.door[1]], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'hG' }] });
-  K.corridor([-9.9, Cr.gate], [x1 + 0.6, Cr.gate], Y, { w: 5, h: 6.4 });
-  K.hall({ x: Cr.x, z: Cr.z, w: Cr.w, d: Cr.d, y: Y, h: Cr.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: Cr.way - Cr.z, w: 5, h: 6.4 }, { side: 'e', at: Cr.gate - Cr.z, w: 5, h: 6.4 }] });
-  add(Door, { id: 'dG', at: [x1 + 1.9, Y, Cr.gate], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'hG' }] });
+  const D = DOOR, Cr = CHOIR, Y = Cr.y, x0 = CR.x0, z0 = CR.z0, W = ROOMS.well;
+  // the way in from the chamber's west gap, and the keepers' gate's way through the well's wall
+  K.corridor([-ROOMS.shell.r - 0.4, Cr.way], [Cr.door[0], Cr.way], Y, { w: D.w, h: D.h });
+  add(Door, { id: 'dC', at: [Cr.door[0], Y, Cr.door[1]], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 'hG' }] });
+  K.corridor([-W.r - 0.6, Cr.gate], [Cr.door[0], Cr.gate], Y, { w: D.w, h: D.h });
+  K.hall({ x: Cr.x, z: Cr.z, w: Cr.w, d: Cr.d, y: Y, h: Cr.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: Cr.way - Cr.z, w: D.w, h: D.h }, { side: 'e', at: Cr.gate - Cr.z, w: D.w, h: D.h }] });
+  add(Door, { id: 'dG', at: [Cr.door[0], Y, Cr.gate], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 'hG' }] });
   // the gate's horn on the first hall's far landing, and its cable all the way to the gate
   add(EchoEar, { id: 'hG', note: 'mid', at: [Cr.hornG[0], 0, Cr.hornG[1]], yaw: -Math.PI * 0.7,
     heard: 'The horn at the cable’s end hears the middle note. Far off up the well, a gate grinds open.',
     wrong: 'The horn at the cable’s end hears the note, and stays still: it listens for the middle one, the colour of its ring.' });
   K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(GATE_CABLE.map((p) => V(...p))), 72, 0.16, 5));
-  // the near dish on the north wall over its footstone, the ball's groove from the way in; its twin at the far end
+  // the near dish on its stand over its footstone, the ball's groove down the room to it; its twin at the far end
   const [gz0, gz1] = Cr.groove;
   K.add(M.dark, box(1.0, 0.04, gz1 - gz0 + 0.6, Cr.footstone[0], Y + 0.02, (gz0 + gz1) / 2));
   add(Ball, { id: 'ballQ', a: [Cr.footstone[0], Y + 0.04, gz0], b: [Cr.footstone[0], Y + 0.04, gz1], r: 1.0 });
   add(Plate, { id: 'pQ', at: [Cr.footstone[0], Y, Cr.footstone[1]], r: 1.2 });
+  stand(Cr.dish[0], Cr.dish[2] + 0.4, Y, 1.6);
   add(Dish, { id: 'dishQ', at: Cr.dish, yaw: Math.PI, tilt: 0.15, r: 2.0, when: { drumOn: ['ballQ', 'pQ'] },
     to: { at: Cr.twin, yaw: Math.PI / 2 - 0.5, tilt: 0.3, r: 1.8 },
     dark: 'The dish is dark and deaf: its footstone is bare.' });
+  stand(Cr.twin[0] - 0.3, Cr.twin[2] - 0.2, Y, 2.4);
   add(EchoStone, { note: 'low', at: [Cr.low[0], Y, Cr.low[1]], yaw: Math.PI * 0.85, h: 2.6 });
   add(EchoEar, { id: 'hA', note: 'low', hears: 'note', at: [Cr.hornA[0], Y, Cr.hornA[1]], yaw: Math.PI * 0.75, reach: 5,
     heard: 'The far dish says the low stone’s note, and the horn under it answers.',
@@ -326,14 +392,17 @@ function choir(rt, K, M, { cable, dish }) {
     wrong: 'The near horn hears the note, and stays still: it listens for the high one, its ring’s colour. Nothing in the Choir sings it.' });
   add(Key, { id: 'kB', big: true, at: [Cr.key[0], Y, Cr.key[1]], yaw: 0 });
   // cable down the walls, and an old dish on the west wall
-  for (let k = 0; k < 3; k++) cable([x0 + 0.6, Y + 10 - k * 0.5, z0 + 12 + k * 0.6], [x0 + 0.9, Y + 0.3, z0 + 15 + k * 0.5], 0.18);
-  dish(x0 + 0.4, Y + 7, Cr.z + 4, 2.4, Math.PI / 2, 0.2);
-  add(Mark, { room: 'choir', at: [x1 - 3.4, Y, Cr.z + 1.4], yaw: -Math.PI / 2 });
+  for (let k = 0; k < 3; k++) cable([x0 + 0.6, Y + Cr.h - 2 - k * 0.5, z0 + 16 + k * 0.6], [x0 + 0.9, Y + 0.3, z0 + 19 + k * 0.5], 0.18);
+  dish(x0 + 0.4, Y + 9, Cr.z + 4, 2.4, Math.PI / 2, 0.2);
+  add(Mark, { room: 'choir', at: [Cr.x + 4.6, Y, Cr.z + 1.4], yaw: -Math.PI / 2 });
 }
 
 // ------------------------------------------------------------------ inside
+// (issue #336: every hall 30 to 36 m across under 18 m of stone or more, the Cable Well and the First Sign's Hall round
+// halls 34 and 40 m across, the Shell Chamber 28, doors 7 by 9 m, each puzzle in the middle of its own room, the one fight
+// in the Cable Store; the props at a body's scale as they were and the pits and every groove as long as they were)
 function layout(rt) {
-  const K = rt.kit, M = rt.M;
+  const K = rt.kit, M = rt.M, D = DOOR, R0 = ROOMS;
   const add = (P, o) => rt.add(P, o);
   const brass = { paint: new THREE.Color('#c99758'), smooth: false, side: THREE.FrontSide };
   const cream = { paint: new THREE.Color('#f5dfab'), smooth: true, side: THREE.DoubleSide };
@@ -349,101 +418,118 @@ function layout(rt) {
   };
   /** A run of old cable along the floor (from a to b, sagging a little). */
   const cable = (a, b, r = 0.18) => { const m = [(a[0] + b[0]) / 2, Math.min(a[1], b[1]) + 0.05, (a[2] + b[2]) / 2]; K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(...a), V(...m), V(...b)]), 16, r, 5)); };
+  /** A stone stand for a dish in the middle of a floor (they hung on the walls before issue #336): from y, h high. */
+  const stand = (x, z, y, h) => { K.both(M.trim, box(1.1, 0.4, 1.1, x, y + 0.2, z)); K.both(M.wall, box(0.6, h - 0.4, 0.6, x, y + 0.4 + (h - 0.4) / 2, z)); };
+  /** A square pier of stone under a floor in the air (or a horn's), from y up h, w across. */
+  const pier = (x, z, y, h, w = 1.1) => K.both(M.wall, box(w, h, w, x, y + h / 2, z));
+  const hall = (r, o = {}) => { const [x, z] = mid(r); return K.hall({ x, z, w: r.x1 - r.x0, d: r.z1 - r.z0, y: r.y, h: r.top - r.y, roof: 'oculus', ...o }); };
 
-  // ---- the Threshold (z 0..12)
-  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
-  K.solid(box(4, 5, 0.1, 0, 2.5, -1.25));   // (thin, on the dark drawn in the doorway: nothing to climb in front of it)
-  K.glyph([0, 6.2, 0.05], 1.5, 0);
-  cable([-6.4, 0.2, 1], [-5, 0.2, 12]); cable([6.2, 0.2, 2], [4.6, 0.2, 12.4], 0.24);
-  add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
-  K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: 6, h: 7 }] });
+  // ---- the Threshold: the way back out behind you
+  const TH = R0.threshold;
+  hall(TH, { roof: true, doors: [{ side: 's', w: 6, h: 8 }], omit: ['n'] });
+  K.add(M.voidM, T(new THREE.PlaneGeometry(6, 8).translate(0, 4, 0), [0, 0, -1.25]));
+  K.solid(box(6.4, 8, 0.1, 0, 4, -1.25));   // (thin, on the dark drawn in the doorway: nothing to climb in front of it)
+  K.glyph([0, 9.4, 0.05], 1.8, 0);
+  cable([-8.4, 0.2, 1], [-6.6, 0.2, 14]); cable([8.2, 0.2, 2], [6.2, 0.2, 14.4], 0.24);
+  add(Mark, { room: 'threshold', at: [-5, 0, 6.5], yaw: Math.PI / 2 });
+  // the wall between the Threshold and the taller hall beyond, from the pit's floor, with the archway through it
+  const DI = R0.dishes, [, diz] = mid(DI);
+  K.wall(DI.x0 - 0.6, TH.z1 + 0.6, DI.x1 + 0.6, TH.z1 + 0.6, DI.y, DI.top - DI.y, { t: 1.2, holes: [{ at: DI.x1 + 0.6, w: 8, h: 10, y0: DI.floor - DI.y }] });
 
-  // ---- the Hall of Dishes (z 12.6..48): a singing ball, a pair of the makers' dishes, a disc over the cable pit.
-  // The disc waits for its horn on the far landing, which hears a stone's own song (no shell): too far for any
-  // note sung on this side, unless the near dish carries it. The dish is dark until the ball's weight is on its
+  // ---- the Hall of Dishes: a singing ball, a pair of the makers' dishes, the pillars over the cable pit across its
+  // middle. The pillars wait for their horn on the far landing, which hears a stone's own song (no shell): too far for
+  // any note sung on this side, unless the near dish carries it. The dish is dark until the ball's weight is on its
   // footstone; roll the ball home, splash it, and its note comes out of the far dish over the horn.
-  K.hall({ x: 0, z: 30.3, w: 22, d: 35.4, y: -8, h: 22, floor: false, roof: 'oculus', oculus: 0.25, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4, y0: 8 }] });
-  K.slab(-11, 12.6, 11, 24, 0, 8);
-  K.slab(-11, 40, 11, 48, 0, 8);
-  K.both(M.dark, box(22, 1, 18, 0, -8.5, 32));
-  for (let i = 0; i < 9; i++) cable([-10 + i * 2.4, -7.9, 25], [-9 + i * 2.2, -7.9, 39], 0.3);   // the pit full of the makers' old cable
-  add(Pit, { room: 'dishes', min: [-12, -10, 24], max: [12, -2, 40] });
-  K.add(M.dark, box(13.2, 0.04, 1.0, -0.6, 0.02, 21));
-  add(Ball, { id: 'ball1', a: [6, 0.04, 21], b: [-7, 0.04, 21], r: 1.1, sings: 'mid' });
-  add(Plate, { id: 'p1', at: [-7, 0, 21], r: 1.3 });
-  add(Dish, { id: 'dishA', at: [-10.3, 3.0, 21], yaw: Math.PI / 2, tilt: 0.12, r: 2.4, when: { drumOn: ['ball1', 'p1'] },
-    to: { at: [-10.3, 6.2, 44], yaw: Math.PI / 2 + 0.1, tilt: 0.6, r: 2.4 },
+  const P0 = DI.z0 + DI.near, P1 = P0 + DI.pit;   // (the pit's near and far edges)
+  hall(DI, { floor: false, oculus: 0.25, omit: ['s'], doors: [{ side: 'n', w: D.w, h: D.h, y0: DI.floor - DI.y }] });
+  K.slab(DI.x0, DI.z0, DI.x1, P0, 0, 8);
+  K.slab(DI.x0, P1, DI.x1, DI.z1, 0, 8);
+  K.both(M.dark, box(DI.x1 - DI.x0, 1, DI.pit, 0, DI.y - 0.5, (P0 + P1) / 2));
+  for (let i = 0; i < 9; i++) cable([-14 + i * 3.4, DI.y + 0.1, P0 + 1.2], [-13 + i * 3.2, DI.y + 0.1, P1 - 1.2], 0.3);   // the pit full of the makers' old cable
+  add(Pit, { room: 'dishes', min: [DI.x0 - 1, -10, P0], max: [DI.x1 + 1, -2, P1] });
+  const BZ = P0 - 4.2;   // (the ball's groove 13 m long across the near landing, 4 m back from the pit)
+  K.add(M.dark, box(13.6, 0.04, 1.0, 0, 0.02, BZ));
+  add(Ball, { id: 'ball1', a: [6.5, 0.04, BZ], b: [-6.5, 0.04, BZ], r: 1.1, sings: 'mid' });
+  add(Plate, { id: 'p1', at: [-6.5, 0, BZ], r: 1.3 });
+  stand(-10.1, BZ, 0, 1.6);
+  stand(-9.9, P1 + 6.2, 0, 4.4);
+  add(Dish, { id: 'dishA', at: [-9.8, 3.0, BZ], yaw: Math.PI / 2, tilt: 0.12, r: 2.4, when: { drumOn: ['ball1', 'p1'] },
+    to: { at: [-9.6, 6.2, P1 + 6.2], yaw: Math.PI / 2 + 0.1, tilt: 0.6, r: 2.4 },
     dark: 'The great dish is dark and deaf: its footstone is bare. Something heavy has to stand on it.' });
-  add(EchoEar, { id: 'eD', note: 'mid', hears: 'both', at: [-6.2, 0, 43.6], yaw: -Math.PI * 0.6, reach: 6,
+  add(EchoEar, { id: 'eD', note: 'mid', hears: 'both', at: [-5.5, 0, P1 + 5.8], yaw: -Math.PI * 0.6, reach: 6,
     heard: 'Across the pit the far dish says the ball’s note, and the horn under it answers. Something wakes in the pit.',
     wrong: 'The horn across the pit hears the note, and stays still: it listens for the middle one.' });
-  add(Bridge, { id: 'disc', a: [0, 0, 23.9], b: [0, 0, 40.1], w: 4, n: 6, pillar: 9 });   // the pillars, down in the cable
-  dish(10.4, 8, 30, 2.6, -Math.PI / 2);
-  add(Mark, { room: 'dishes', at: [-8.5, 0, 14.4], yaw: Math.PI / 2 });
+  add(Bridge, { id: 'disc', a: [0, 0, P0 - 0.1], b: [0, 0, P1 + 0.1], w: 4, n: 6, pillar: 9 });   // the pillars, down in the cable
+  dish(DI.x1 - 0.6, 8, diz, 2.6, -Math.PI / 2);
+  add(Mark, { room: 'dishes', at: [-8, 0, DI.z0 + 3.8], yaw: Math.PI / 2 });
 
-  // ---- the Cable Well (a rotunda): a disc up to a ledge at 6; the second, up to the landing at 12, waits for the
+  // ---- the Cable Well (a round hall): a disc up to a ledge at 6; the second, up to the landing at 12, waits for the
   // horn on the ledge, which listens for the low stone on the floor (its ring is the low note's colour)
-  K.slab(-3.2, 48, 3.2, 50.6, 0, 0.8);
-  K.wall(-3.2, 48.6, -3.2, 50.6, 0, 6.4, { t: 0.8 }); K.wall(3.2, 50.6, 3.2, 48.6, 0, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 49.6));
-  const C2 = 61.2;
-  // (the house's hub since v1.48: a way west into the Cable Store and east into the Tuning Room at its floor; since
-  // v1.60 the Choir's keepers' gate over the way west, at 12, onto a walk round the wall to the landing)
-  K.rotunda({ x: 0, z: C2, y: 0, r: 10, h: 26, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4, y0: 12 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }, { a: CHOIR.gap, w: 5, h: 6.4, y0: 12 }], oculus: 0.3 });
+  const WL = R0.well, C2 = WL.z;
+  K.corridor([0, DI.z1 + 0.6], [0, C2 - WL.r - 0.4], 0, { w: D.w, h: D.h });
+  // (the house's hub since v1.48: a way west under the Choir to the Cable Store and east into the Tuning Room at its
+  // floor; since v1.60 the Choir's keepers' gate over the way west, at 12, onto a walk round the wall to the landing)
+  K.rotunda({ x: 0, z: C2, y: 0, r: WL.r, h: WL.top, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h, y0: 12 }, { a: -Math.PI / 2, w: D.w, h: D.h }, { a: Math.PI / 2, w: D.w, h: D.h }, { a: CHOIR.gap, w: D.w, h: D.h, y0: 12 }], oculus: 0.3 });
   add(Platform, { path: [[-5, 0, C2 - 1], [-5, 6, C2 - 1]], r: 2.2, speed: 1.4, pause: 1.6 });
   K.slab(-9, C2 + 1.4, 1, C2 + 5.4, 6, 1.0);
+  for (const x of [-8, 0]) pier(x, C2 + 4.4, 0, 5);
   add(Platform, { id: 'wdisc', path: [[3.4, 6, C2 + 3.4], [3.4, 12, C2 + 3.4]], r: 2.2, speed: 1.4, pause: 1.6, phase: 0.5, when: { open: 'wdisc' } });
   K.slab(-3.2, C2 + 5.8, 6, C2 + 10.6, 12, 1.0);
+  K.slab(-3.6, C2 + 10.6, 3.6, C2 + WL.r + 0.4, 12, 1.0);   // (on to the north gap: the landing reaches the wall)
+  pier(4.8, C2 + 9.4, 0, 11);
   K.slab(WALK[0], WALK[1], WALK[2], WALK[3], 12, 1.0);   // (the walk from the Choir's gate: one floor with the landing)
+  pier(-12, C2 - 2.4, 0, 11);
   add(EchoStone, { note: 'low', at: [4, 0, C2 - 4.5], yaw: -Math.PI * 0.75, h: 3.0 });
   add(EchoStone, { note: 'high', at: [6.6, 0, C2 - 0.6], yaw: -Math.PI * 0.6, h: 3.4 });
   add(EchoEar, { id: 'eW', note: 'low', hears: 'note', at: [-1, 6, C2 + 4.9], yaw: 2.45, reach: 13,
     heard: 'The horn on the ledge hears the low stone, and the second disc wakes.',
     wrong: 'The horn on the ledge hears the note, and stays still. Its ring is the colour of the low one.' });
-  for (const a of [0.4, 1.97, 3.54, 5.75]) { cable([Math.sin(a) * 9.6, 24, C2 + Math.cos(a) * 9.6], [Math.sin(a) * 9.4, 0.2, C2 + Math.cos(a) * 9.4], 0.22); }
+  for (const a of [0.4, 1.97, 3.54, 5.75]) { cable([Math.sin(a) * (WL.r - 0.4), WL.top - 2, C2 + Math.cos(a) * (WL.r - 0.4)], [Math.sin(a) * (WL.r - 0.6), 0.2, C2 + Math.cos(a) * (WL.r - 0.6)], 0.22); }
   add(Mark, { room: 'well', at: [-6, 0, C2 - 6.5], yaw: Math.PI * 0.75 });
-  wings(rt, K, M, { C2, cable, dish });
+  wings(rt, K, M, { cable, dish, stand });
 
-  // ---- the corridor and the Shell Chamber (floor 12): the chest; its way on is open, a low singing stone by the dais
-  K.slab(-3.2, C2 + 10, 3.2, C2 + 12.6, 12, 0.8);
-  K.wall(-3.2, C2 + 10.6, -3.2, C2 + 12.6, 12, 6.4, { t: 0.8 }); K.wall(3.2, C2 + 12.6, 3.2, C2 + 10.6, 12, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 18.8, C2 + 11.6));
-  add(Door, { id: 'dK', at: [0, 12, C2 + 11.3], w: 5, h: 6.4 });   // (two keyholes: logic `lock`, a small key from each wing)
-  const C3 = C2 + 22.6;
-  K.rotunda({ x: 0, z: C3, y: 12, r: 9.5, h: 14, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }, { a: -Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });   // (and west into the Choir, v1.60)
+  // ---- the way up and the Shell Chamber (floor 12): the chest, nothing else; its way north open, a low singing stone by
+  // the dais
+  const SH = R0.shell, C3 = SH.z;
+  K.corridor([0, C2 + WL.r + 0.4], [0, C3 - SH.r - 0.4], 12, { w: D.w, h: D.h });
+  add(Door, { id: 'dK', at: [0, 12, (C2 + WL.r + C3 - SH.r) / 2], w: D.w, h: D.h });   // (two keyholes: logic `lock`, a small key from each wing)
+  K.rotunda({ x: 0, z: C3, y: 12, r: SH.r, h: SH.top - SH.y, seg: 24, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }, { a: -Math.PI / 2, w: D.w, h: D.h }], oculus: 0.35 });   // (and west into the Choir, v1.60)
   K.both(M.trim, ...chestMound(0, 12, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   add(EchoStone, { note: 'low', at: [-5.6, 12, C3 + 3.2], yaw: Math.PI * 0.6, h: 2.6 });
+  add(Door, { id: 'dL', at: [0, 12, C3 + SH.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'echo' }] });   // (the shell in hand)
   add(Mark, { room: 'shell', at: [6, 12, C3 - 5], yaw: -Math.PI * 0.75 });
 
-  // ---- the Listening Passage (floor 12), a room on: the door into the gallery listens for the low note
-  const A0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 12, 0.8);
-  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 12, h: 9, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
-  for (const s of [-1, 1]) cable([s * 5.6, 20.6, A0 + 1], [s * 5.4, 12.2, A0 + 10], 0.2);
-  // (v1.49) the door's horn is deaf until a ball's weight is on its footstone, a groove's length from the way in
-  K.add(M.dark, box(1.0, 0.04, 7.2, 3.7, 12.02, A0 + 5.6));
-  add(Ball, { id: 'ballP', a: [3.7, 12.04, A0 + 2.2], b: [3.7, 12.04, A0 + 8.6], r: 1.0 });
-  add(Plate, { id: 'pP', at: [3.7, 12, A0 + 8.6], r: 1.2 });
+  // ---- the Listening Passage (floor 12), a room of its own on from the chamber (issue #336): the door into the gallery
+  // listens for the low note through its horn in the middle of the room, and nothing sings it here. Since v1.49 the
+  // horn is deaf until a ball's weight is on its footstone, a groove's length from it
+  const LI = R0.listen, [, lz] = mid(LI);
+  K.corridor([0, C3 + SH.r + 0.4], [0, LI.z0 - 0.6], 12, { w: D.w, h: D.h });
+  hall(LI, { oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
+  for (const s of [-1, 1]) cable([s * (LI.x1 - 0.6), LI.top - 1.4, LI.z0 + 2], [s * (LI.x1 - 0.8), 12.2, LI.z0 + 12], 0.2);
+  K.add(M.dark, box(1.0, 0.04, 7.2, 3.7, 12.02, lz));
+  add(Ball, { id: 'ballP', a: [3.7, 12.04, lz - 3.2], b: [3.7, 12.04, lz + 3.2], r: 1.0 });
+  add(Plate, { id: 'pP', at: [3.7, 12, lz + 3.2], r: 1.2 });
+  add(EchoEar, { id: 'e0', note: 'low', at: [3.7, 12, lz + 5], yaw: Math.PI, deaf: 'The horn by the door hears nothing: it is deaf. Its footstone is bare.',
+    heard: 'The door’s horn hears the low note, and the door sinks.',
+    wrong: 'The door’s horn hears the note, and stays still: it listens for the low one, the colour of its ring.' });
+  cable([3.7, 12.2, lz + 5.4], [2.6, 12.2, LI.z1 - 0.4], 0.16);   // (from the horn to its door)
 
   // ---- the Gallery of Voices (the key hall, after its reference: blue-grey blocks, cable down into the chasm, the
   // market's coloured light through slots far above). Near side: three singing stones of three sizes on stepped
-  // plinths; the pillars down in the chasm rise while the high note, played back near them, still rings (v1.74: one
-  // great horn at the edge raised them all). The far door listens through a dish over it: its near dish, low on the
-  // east wall, wakes with a ball on its footstone, and carries what is played into it. One note at a time: send the
-  // middle note over first, then carry the high
-  const G0 = A0 + 12 + 1.2;
-  K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 12, 0.8);
-  add(Door, { id: 'd3', at: [0, 12, G0 - 0.6], w: 5, h: 6.4, lamps: [{ lit: 'e0' }] });
-  add(EchoEar, { id: 'e0', note: 'low', at: [3.7, 12, G0 - 2.8], yaw: Math.PI, deaf: 'The horn by the door hears nothing: it is deaf. Its footstone is bare.',
-    heard: 'The door’s horn hears the low note, and the door sinks.',
-    wrong: 'The door’s horn hears the note, and stays still: it listens for the low one, the colour of its ring.' });
-  K.hall({ x: 0, z: G0 + 18.3, w: 22, d: 36.6, y: -6, h: 30, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 18 }, { side: 'n', w: 5, h: 6.4, y0: 18 }] });
-  K.slab(-11, G0, 11, G0 + 8, 12, 18);
-  K.slab(-11, G0 + 28, 11, G0 + 36.6, 12, 18);
-  K.both(M.dark, box(22, 1, 20, 0, -6.4, G0 + 18));
-  add(Pit, { room: 'gallery', min: [-12, -8, G0 + 8], max: [12, 8, G0 + 28] });
-  add(Pillars, { a: [0, 12, G0 + 7.9], b: [0, 12, G0 + 28.1], w: 4, n: 8, pillar: 12, note: 'high', hold: HOLD.pillar, reach: HOLD.reach,
+  // plinths; the pillars down in the chasm across the hall's middle rise while the high note, played back near them,
+  // still rings (v1.74: one great horn at the edge raised them all). The far door listens through a dish on a pillar in
+  // the middle of the far landing (it hung over the door before issue #336): its near dish, on a stand by the near edge,
+  // wakes with a ball on its footstone, and carries what is played into it. One note at a time: send the middle note
+  // over first, then carry the high
+  const GA = R0.gallery, G0 = GA.z0, Q0 = G0 + GA.near, Q1 = Q0 + GA.pit;   // (the chasm's near and far edges)
+  K.corridor([0, LI.z1 + 0.6], [0, G0 - 0.6], 12, { w: D.w, h: D.h });
+  add(Door, { id: 'd3', at: [0, 12, G0 - 0.6], w: D.w, h: D.h, lamps: [{ lit: 'e0' }] });
+  hall(GA, { floor: false, oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h, y0: GA.floor - GA.y }, { side: 'n', w: LOCK.w, h: LOCK.h, y0: GA.floor - GA.y }] });
+  K.slab(GA.x0, G0, GA.x1, Q0, 12, 18);
+  K.slab(GA.x0, Q1, GA.x1, GA.z1, 12, 18);
+  K.both(M.dark, box(GA.x1 - GA.x0, 1, GA.pit, 0, GA.y - 0.4, (Q0 + Q1) / 2));
+  add(Pit, { room: 'gallery', min: [GA.x0 - 1, -8, Q0], max: [GA.x1 + 1, 8, Q1] });
+  add(Pillars, { a: [0, 12, Q0 - 0.1], b: [0, 12, Q1 + 0.1], w: 4, n: 8, pillar: 12, note: 'high', hold: HOLD.pillar, reach: HOLD.reach,
     heard: 'The pillars nearest you hear the high note and rise out of the dark. Further on, they wait to hear it too: play it again as you go.' });
   /** A stepped plinth (two blocks) with a singing egg on it. */
   const egg = (note, x, z, h, yaw) => {
@@ -453,40 +539,43 @@ function layout(rt) {
   };
   // (v1.74, issue #23: the middle egg nearest the chasm, so it is seen from the far door that wants its note; the high
   // one, taller, stood in front of it from there)
-  egg('low', -8.9, G0 + 1.5, 2.2, Math.PI / 2);
-  egg('high', -8.9, G0 + 4.1, 4.0, Math.PI / 2);
-  egg('mid', -8.7, G0 + 6.6, 3.0, Math.PI / 2 + 0.3);
-  // the far door's dish pair: the near one low on the east wall, its footstone, the ball's groove
-  K.add(M.dark, box(5.6, 0.04, 1.0, 5.8, 12.02, G0 + 4.4));
-  add(Ball, { id: 'ball2', a: [3.2, 12.04, G0 + 4.4], b: [8.2, 12.04, G0 + 4.4], r: 1.1 });
-  add(Plate, { id: 'p2', at: [8.2, 12, G0 + 4.4], r: 1.3 });
-  add(Dish, { id: 'dishC', at: [10.4, 14.6, G0 + 4.4], yaw: -Math.PI / 2, tilt: 0.1, r: 2.4, when: { drumOn: ['ball2', 'p2'] },
-    to: { at: [-4.4, 19.4, G0 + 36.0], yaw: Math.PI, tilt: 0.25, r: 2.2 },
-    dark: 'The dish on the wall is dark and deaf: its footstone is bare.' });
-  add(EchoEar, { id: 'e2', note: 'mid', lintel: true, at: [-2.9, 18.6, G0 + 35.2], yaw: Math.PI, reach: 2.6,
-    heard: 'Over the far door the dish says the middle note, and the door’s horn answers.' });
-  add(Door, { id: 'd4', at: [0, 12, G0 + 37.2], w: 5, h: 6.4, lamps: [{ drumOn: ['ball2', 'p2'] }, { lit: 'e2' }] });
+  egg('low', -8.9, Q0 - 6.5, 2.2, Math.PI / 2);
+  egg('high', -8.9, Q0 - 3.9, 4.0, Math.PI / 2);
+  egg('mid', -8.7, Q0 - 1.4, 3.0, Math.PI / 2 + 0.3);
+  // the far door's dish pair: the near one on its stand by the near edge, its footstone, the ball's groove
+  const BZ2 = Q0 - 3.6;
+  K.add(M.dark, box(5.6, 0.04, 1.0, 5.8, 12.02, BZ2));
+  add(Ball, { id: 'ball2', a: [3.2, 12.04, BZ2], b: [8.2, 12.04, BZ2], r: 1.1 });
+  add(Plate, { id: 'p2', at: [8.2, 12, BZ2], r: 1.3 });
+  stand(10.7, BZ2, 12, 2.6);
+  add(Dish, { id: 'dishC', at: [10.4, 14.6, BZ2], yaw: -Math.PI / 2, tilt: 0.1, r: 2.4, when: { drumOn: ['ball2', 'p2'] },
+    to: { at: [-4.4, 19.4, Q1 + 6.8], yaw: Math.PI, tilt: 0.25, r: 2.2 },
+    dark: 'The dish on its stand is dark and deaf: its footstone is bare.' });
+  // the door's horn and the far dish high on a pillar in the middle of the far landing, out of the shell's reach from the floor
+  pier(-3.6, Q1 + 6.6, 12, 5.6, 1.4);
+  add(EchoEar, { id: 'e2', note: 'mid', lintel: true, at: [-2.9, 18.6, Q1 + 6], yaw: Math.PI, reach: 2.6,
+    heard: 'On its pillar the dish says the middle note, and the door’s horn answers.' });
+  add(Door, { id: 'd4', at: [0, 12, GA.z1 + 0.6], w: LOCK.w, h: LOCK.h, lamps: [{ drumOn: ['ball2', 'p2'] }, { lit: 'e2' }] });
   // the far side: a high stone, the way back over (no one is left stranded)
-  egg('high', 8.4, G0 + 31.6, 4.0, -Math.PI / 2);
+  egg('high', 8.4, Q1 + 3.6, 4.0, -Math.PI / 2);
   // cable in bundles down the walls into the chasm, and the market's light through slots far overhead
-  for (const [x, z0, z1] of [[-10.6, G0 + 1, G0 + 10], [10.6, G0 + 6, G0 + 12], [-10.6, G0 + 26, G0 + 34], [10.6, G0 + 24, G0 + 33]]) {
-    for (let k = 0; k < 3; k++) cable([x, 22 - k * 0.5, z0 + k * 0.6], [x * 0.97, 12.3, (z0 + z1) / 2 + k * 0.5], 0.2);
+  for (const [x, z0, z1] of [[GA.x0 + 0.4, Q0 - 9, Q0 + 2], [GA.x1 - 0.4, Q0 - 4, Q0 + 2], [GA.x0 + 0.4, Q1 - 2, Q1 + 6], [GA.x1 - 0.4, Q1 - 4, Q1 + 5]]) {
+    for (let k = 0; k < 3; k++) cable([x, GA.top - 2 - k * 0.5, z0 + k * 0.6], [x * 0.97, 12.3, (z0 + z1) / 2 + k * 0.5], 0.2);
     for (let k = 0; k < 3; k++) cable([x * 0.97, 12.3, (z0 + z1) / 2 + k * 0.5], [x * 0.9, -5, z1 + k * 0.4], 0.2);
   }
-  for (const [x, z, c] of [[-6, G0 + 9, signCoral], [6.5, G0 + 14, signTeal], [-5.5, G0 + 22, signTeal], [6, G0 + 27, signCoral]]) K.add(c, box(1.4, 0.2, 5.2, x, 23.92, z));
-  dish(10.4, 20, G0 + 18, 3.2, -Math.PI / 2, 0.2);
-  add(Mark, { room: 'gallery', at: [0, 12, G0 + 1.6], yaw: 0 });
-  add(Mark, { room: 'galleryFar', at: [7.6, 12, G0 + 34.4], yaw: -Math.PI / 2 });
+  for (const [x, z, c] of [[-8, Q0 - 4, signCoral], [8.5, Q0 + 4, signTeal], [-7.5, Q1 - 4, signTeal], [8, Q1 + 4, signCoral]]) K.add(c, box(1.4, 0.2, 5.2, x, GA.top - 0.08, z));
+  dish(GA.x1 - 0.6, 20, (Q0 + Q1) / 2, 3.2, -Math.PI / 2, 0.2);
+  add(Mark, { room: 'gallery', at: [0, 12, G0 + 3], yaw: 0 });
+  add(Mark, { room: 'galleryFar', at: [7.6, 12, GA.z1 - 3], yaw: -Math.PI / 2 });
 
-  // ---- the corridor and the First Sign's Hall (floor 12)
-  const H0 = G0 + 37.2;
+  // ---- the antechamber and the First Sign's Hall (floor 12)
+  const H0 = GA.z1 + 0.6;
   const AE = K.vestibule(H0, 12);   // (the antechamber, ANTE: issue #195)
   add(Mark, { room: 'ante', at: [ANTE.half - 1, 12, (H0 + AE) / 2], yaw: -Math.PI / 2 });
   const HR = 20, CW = AE + 1.2 + HR;
-  K.rotunda({ x: 0, z: CW, y: 12, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
+  K.rotunda({ x: 0, z: CW, y: 12, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: ANTE.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.3 });
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU + 0.4; dish(Math.sin(a) * (HR - 0.6), 26, CW + Math.cos(a) * (HR - 0.6), 2.8, a + Math.PI, 0.35); }
-  for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + 0.2; cable([Math.sin(a) * 4, 12.2, CW + Math.cos(a) * 4], [Math.sin(a) * (HR - 0.5), 12.2, CW + Math.cos(a) * (HR - 0.5)], 0.25); }
-  K.add(M.dark, T(annulus(3.4, 4.4, 0.06, 40), [0, 12.06, CW]));
+  add(SignFoot, { id: 'sign', at: [0, 12, CW], r: HR });
   // two low dishes on the wall, east and west, each with its twin high over it and a cable from them to the First
   // Sign's foot: a word played into the low one reaches it down the cable, from anywhere in the hall
   for (const [id, a] of [[SIGN_DISHES[0], -Math.PI / 2], [SIGN_DISHES[1], Math.PI / 2]]) {
@@ -496,13 +585,15 @@ function layout(rt) {
     cable([sx * (HR - 0.7), 21, CW + sz * (HR - 0.7)], [sx * (HR - 0.6), 12.2, CW + sz * (HR - 0.6)], 0.22);
     cable([sx * (HR - 0.6), 12.2, CW + sz * (HR - 0.6)], [sx * 4.2, 12.2, CW + sz * 4.2], 0.25);
   }
-  add(Door, { id: 'd5', at: [0, 12, CW + HR + 0.7], w: 5, h: 6 });
-  K.slab(-3.2, CW + HR + 0.6, 3.2, CW + HR + 10, 12, 0.8);
-  K.wall(-3.2, CW + HR + 1.4, -3.2, CW + HR + 10, 12, 7, { t: 0.8 }); K.wall(3.2, CW + HR + 10, 3.2, CW + HR + 1.4, 12, 7, { t: 0.8 });
-  K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, 12, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, 19.4, CW + HR + 5.7));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 12, CW + HR + 10.5]));
-  K.solid(box(4, 5, 0.1, 0, 14.5, CW + HR + 10.5));
+  // the way out, past the far door
+  const X0 = CW + HR + 0.7, X1 = CW + HR + 10;
+  add(Door, { id: 'd5', at: [0, 12, X0], w: D.w, h: D.h });
+  K.slab(-4.6, X0 - 0.1, 4.6, X1, 12, 0.8);
+  K.wall(-4.2, X0 + 0.7, -4.2, X1, 12, 10, { t: 0.8 }); K.wall(4.2, X1, 4.2, X0 + 0.7, 12, 10, { t: 0.8 });
+  K.wall(4.2, X1, -4.2, X1, 12, 10, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
+  K.both(M.wall, box(9.2, 0.8, X1 - X0 + 0.4, 0, 22.4, (X0 + X1) / 2));
+  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 12, X1 + 0.5]));
+  K.solid(box(4, 5, 0.1, 0, 14.5, X1 + 0.5));
 
   const model = signModel();
   model.pos.copy(K.world(0, 12, CW + 3));
@@ -512,15 +603,17 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, 12, CW), r: HR, y: K.world(0, 12, 0).y };
 
-  // (the Choir last: its mark after the others, so the machines' ids by mark stay as they were)
-  choir(rt, K, M, { cable, dish });
-  const W = (x, y, z) => K.world(x, y, z);
+  // (the Choir and the Listening Passage's stones last: their marks after the others, so the machines' ids by mark stay
+  // as they were)
+  choir(rt, K, M, { cable, dish, stand });
+  add(Mark, { room: 'listen', at: [-LI.x1 + 5, 12, LI.z0 + 4], yaw: Math.PI / 2 });
+  const W = (x, y, z) => K.world(x, y, z), [sx, sz] = mid(R0.store), [ux] = mid(R0.tune);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-32, -12, -3), V(32, 44, CW + HR + 12)),
+    bounds: new THREE.Box3(V(R0.store.x0 - 4, -12, -3), V(R0.tune.x1 + 4, 44, X1 + 2)),
     gadget: { at: W(0, 12.62, C3).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 12.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 6, 18, 14], [0, 6, 42, 14], [0, 10, C2, 16], [WING.store.x, 6, C2, 12], [WING.tune.x, 6, C2, 12], [0, 17, C3, 14], [0, 17, G0 + 6, 16], [0, 17, G0 + 32, 16], [0, 20, CW, 30], [CHOIR.x, 17, CHOIR.z, 18]],
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 12.5, X1 - 0.4), r: 1.5 }],
+    lights: [[0, 6, 7, 14], [0, 6, DI.z0 + 9, 20], [0, 6, P1 + 9, 20], [0, 10, C2, 22], [sx, 7, sz, 20], [(-WL.r + R0.store.x1) / 2, 5, C2, 16], [ux, 7, C2, 20], [0, 18, C3, 18], [0, 18, lz, 20], [0, 18, G0 + 9, 20], [0, 18, Q1 + 9, 20], [0, 20, CW, 30], [CHOIR.x, 18, CHOIR.z, 26]],
     guardian: { def: { ...FIRST_SIGN, onHit: signHit }, model, arena },
   };
 }

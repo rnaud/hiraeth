@@ -40,6 +40,12 @@ export const CHANGELOG = [
     // (the machines only in the Shade House, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; the pots
     // solid as drawn; migrate.js edena v5, runtime.js relaid)
     'The Greenhouse’s keepers wait only in the Shade House now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Greenhouse, you start at its last glyph stone.',
+    // the Undertower as shrines (issue #336): src/temples/bazaar.js (ROOMS, DOOR, LOCK, LOGIC.rooms kinds, the Listening
+    // Passage a room of its own behind dL, ballT in the Tuning Room, the dishes on stands, e2 on a pier, SignFoot, the layout);
+    // tests/temple-rules.test.js REDONE, tests/temples.test.js
+    'The Undertower is rebuilt like a shrine too: its halls are far bigger and taller (30 to 36 m across under 18 m of stone or more, the Cable Well 34 m across), its doors twice the size, and every puzzle stands in the middle of its own room. The dishes stand on stone stands in the floor instead of hanging on the walls; the Tuning Room’s ball rolls down the middle of the room instead of in from the well; the Listening Passage is a hall of its own past the Shell Chamber, whose north door sinks once you hold the shell; and the far door’s horn and dish in the Gallery of Voices sit high on a pillar in the middle of the far landing.',
+    // (the machines only in the Cable Store, round its middle: LOGIC.rooms kinds, Mark `foes`; migrate.js bazaar v5, relaid)
+    'The Undertower’s keepers wait only in the Cable Store now, at the end of a long cable tunnel under the Choir, round the middle of the store among two columns: no machine stands by its puzzles any more. If you were inside the old Undertower, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

@@ -403,6 +403,25 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   lines, the circuit round the stack (down the vent's shaft, out by the Moult's door), the keys, every vent and every
   crossing as they were. Old saves: one that stood in the old rooms is taken to its last mark (`migrate.js` arzach v4).
   Rules broken: 35 before, none now. Temple design audit: 4.33 before and after (mean obviousness 3.08 both).
+- **The Undertower as shrines** (v1.77, issue #336). Every hall 30 to 36 m across under 18 m of stone or more (the Hall of
+  Dishes 36 by 52 over its cable pit, the Cable Store and the Tuning Room 30 square, the Choir 32 by 46, the Listening
+  Passage 30 square, the Gallery of Voices 36 by 56), the Cable Well a round hall 34 m across, the Shell Chamber 28, the
+  First Sign's Hall 40 as it was (`bazaar.js` `ROOMS`); doors 7 by 9 (`DOOR`), the great lock into the antechamber 6 by 9
+  (`LOCK`: the antechamber is the camera QC's close room, and through a 7 m doorway its close camera read the room wide
+  and was pulled in off the west wall in one frame, `tests/camera-qc-lock.test.js`). The props, the two pits (16 and
+  20 m), the discs, the pillars and every groove's length as they were. Tagged rooms: the Threshold and the landing
+  passages, the Shell Chamber the chest's alone, the Cable Store the one fight (`arW`, its keepers round its middle: the
+  store's mark's `foes`, at the end of a cable tunnel under the Choir's floor), the rest puzzles. The Listening Passage is
+  a room of its own (`listen`, the passage's horn `e0`, its ball and footstone in its middle) behind the chamber's north
+  door, which sinks for the shell in hand (`dL`, as the Belfry's `dP`). Each puzzle in the middle of its room: the
+  dishes on stone stands in the floor (they hung on the walls), the Tuning Room's ball down the middle of that room
+  (`ballT`, it rolled in from the well: a ball through a door), the far door's horn `e2` and the far dish on a pier in
+  the middle of the gallery's far landing (they were over the door), the Choir's horns, ball and key in the middle of
+  its floor. A drum of cable lies across the Tuning Room between the key's cage and the stones, so the far horn's stone
+  is found, not seen from the cage (the temple design audit's decoupling). The guardian's hall is measured by `SignFoot`
+  (the dark ring and the cables at the First Sign's foot, its element's id). Old saves: one that stood in the old rooms
+  is taken to its last mark (`migrate.js` bazaar v5). Tests: `tests/temple-rules.test.js` (no rule broken), the on-foot
+  walk and the old save in `tests/temples.test.js`, camera-qc-lock, the play-through, door-bypass, way-back, zfight.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

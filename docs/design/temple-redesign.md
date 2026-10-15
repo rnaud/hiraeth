@@ -140,6 +140,27 @@ metres from the column's edge; the Eyrie's ledge reaches out to keep the gap as 
 the west wall on a buttress (on a pillar in the middle of the gap a glide to it overshot, and one short of it landed on
 its corbel). What stayed: the Elder and her fight, the story's lines, the circuit round the stack, the keys, every vent's
 wind and every crossing. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.arzach` v4).
+## The Undertower (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | 16 × 16 (the wings) to 22 × 37 m, the Cable Well 20 m across, the Choir 16 × 28, the Listening Passage 12 m | every hall **30 to 36 m** across (the Hall of Dishes 36 × 52, the Choir 32 × 46, the gallery 36 × 56), the Cable Well **34 m**, the Shell Chamber 28 (a chest's), the Listening Passage a hall of its own **30 × 30** |
+| ceilings | 10 (the wings) to 14 m | **18 m** or more (the Cable Well 28) |
+| doors | 5 by 6.4 | **7 by 9** (the great lock 6 by 9, for the camera in the antechamber) |
+| fights | a machine by every mark (the Hall of Dishes, the well, the Tuning Room, the chamber, the gallery, the far landing, the Choir) and the Cable Store's arena | **the Cable Store only**, its keepers round its middle among two columns |
+| threaded through doors | the Tuning Room's ball rolled in from the well onto its footstone | the groove down the middle of the Tuning Room |
+| against the walls | the dishes on the walls, the Tuning Room's and the passage's grooves along walls, the far door's horn over its lintel, the Choir's horns at its ends | the dishes on stands, the grooves down the middle, the far door's horn and dish on a pier in the middle of the far landing |
+| the rules broken | **55** (both 7, size 9, ceiling 8, unmeasured 1, door 7, centred 16, through doors 1, foes 6) | **0** |
+| the temple design audit | 4.44: structure 5, teach/test/twist 5, combination 5, non-obvious 4 (mean 3.13), decoupling 5, item 5, guardian 4, identity 3, curve 4 | 4.44: non-obvious **3** (mean 3.39: the Tuning Room's ball in its own room, the well's horn seen from the disc, the chamber's door for the shell), curve **5**; skeleton `XXBLCRXTGXLK`, 58 % like the Rose House (64 % like the Casting-House before) |
+
+What it took beyond the sizes: the Cable Store can no longer stand under the Choir (its 18 m ceiling against the Choir's
+floor at 12), so it lies west at the end of a 37 m cable tunnel under the Choir's floor, the Choir's gate over its way in
+as before. The Listening Passage became a room of its own behind a door that sinks for the shell in hand (`dL`): every
+room after the chest must ask for the shell (`tests/temples.test.js`). The guardian's hall is measured by `SignFoot`, a
+piece with the First Sign's element id. A drum of cable between the Tuning Room's key and its stones keeps the far
+horn's stone out of the key's sight (decoupling 5). What stayed: the First Sign and its fight, the story's lines, the
+two small keys, the great key and the loop through the Choir, the pits, every disc's and pillar's timing and every
+groove's length. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.bazaar` v5).
 
 ## The other houses
 
@@ -149,7 +170,7 @@ counts, and a house may not get worse). Ranked worst first:
 | House | Broken | both | size | ceiling | door | centred | through doors | foes | other |
 |---|---|---|---|---|---|---|---|---|---|
 | Builders' Greenhouse (edena) | 58 → **0** (v1.77, above) | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
-| Undertower (bazaar) | 55 | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
+| Undertower (bazaar) | 55 → **0** (v1.77, above) | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
 | Mooring-House (spacecity) | 54 | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
 | Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |
 | Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |

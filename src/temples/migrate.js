@@ -87,12 +87,16 @@ export const LAYOUTS = {
   // v1.60: the Choir moved over the Cable Store, behind a keepers' gate off the walk round the Cable Well (its horn on the
   // first hall's far landing) and a door onto the Shell Chamber. With its great key already found, or past the far door:
   // the gate's horn answered, so both stand open and the Choir is done
+  // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the Listening Passage a room of its own, the
+  // Tuning Room's ball in that room; the same state). A save that entered the house: taken to its last mark if it stood
+  // inside the old rooms (runtime.js relaid)
   bazaar: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['lit.eW', 'open.wdisc', 'gadget', 'lit.e0', 'open.d3', 'open.d4', 'boss'], set: { 'unlocked.dK': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.eT': true, 'drum.ballT': 1 } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
       { if: ['found.kB', 'open.d4', 'boss'], set: { 'lit.hG': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.48: the Engine-House round its Fourth Chamber, past the chest. Past the Crank Passage's door: its small key in it,

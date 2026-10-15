@@ -4376,7 +4376,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), `in the Threshold (${where()})`);
   // ---- the Hall of Dishes: the far horn hears a stone's own song, but only the dishes carry it that far
-  assert.equal(walk(L(0, 0, 15)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 0, 20)), true, `into the hall (${where()})`);
   const [discA, discB] = rt.pieces.filter((p) => p.path);
   const pillars = rt.piece('disc');
   assert.ok(pillars.span && !pillars.path, 'no disc over the cable pit: the makers’ pillars');
@@ -4387,9 +4387,9 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(rt.logic.isLit('eD'), false, 'sung where it lies, the ball’s note dies in the hall: the horn across the pit is too far');
   assert.equal(dishA.awake, false, 'the dish is dark, its footstone bare');
   assert.equal(pillars.open, false, 'the pillars stay down in the cable');
-  assert.equal(walk(L(0, 0, 33), { max: 4 }), false, 'no way over the pit');
-  assert.ok(local().z < 25 || local().y < -1, 'the pit stops you');
-  P.teleport(L(0, 0.1, 20), V(0, 1, 0), V(0, 0, 1)); wait(0.3);
+  assert.equal(walk(L(0, 0, 41), { max: 4 }), false, 'no way over the pit');
+  assert.ok(local().z < 34.5 || local().y < -1, 'the pit stops you');
+  P.teleport(L(0, 0.1, 26), V(0, 1, 0), V(0, 0, 1)); wait(0.3);
   roll('ball1');
   assert.equal(dishA.awake, true, 'the ball’s weight on its footstone wakes the dish');
   assert.equal(rt.logic.isLit('eD'), false, 'rolled home, it is quiet until it is splashed');
@@ -4401,17 +4401,17 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.ok(said(/far dish says the ball’s note/), 'and the horn answers');
   wait(2.5);
   assert.equal(pillars.open, true, 'the pillars rise out of the cable');
-  assert.equal(walk(L(0, 0, 22.5)), true, `to the pit's edge (${where()})`);
-  assert.equal(walk(L(0, 0, 43)), true, `over the pillars (${where()})`);
+  assert.equal(walk(L(0, 0, 31.7)), true, `to the pit's edge (${where()})`);
+  assert.equal(walk(L(0, 0, 52)), true, `over the pillars (${where()})`);
   assert.ok(local().y > -1, 'over the cables, not in them');
   // ---- the Cable Well: the second disc waits for the horn on the ledge, which listens for the low stone
-  assert.equal(walk(L(0, 0, 52)), true, `into the well (${where()})`);
-  const C2 = 61.2;
+  assert.equal(walk(L(0, 0, 73)), true, `into the well (${where()})`);
+  const C2 = 88;
   // ---- the Cable Store, west off the hub (an arena): its door shuts behind you while its keepers stand
   const keepers = [{ room: 'store', alive: true }, { room: 'store', alive: true }];
   rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(walk(L(-3, 0, C2 - 2)) && walk(L(-9, 0, C2)), true, `to the way west (${where()})`);
-  assert.equal(walk(L(-20, 0, C2)), true, `into the Cable Store (${where()})`);
+  assert.equal(walk(L(-3, 0, C2 - 2)) && walk(L(-14, 0, C2)), true, `to the way west (${where()})`);
+  assert.equal(walk(L(-60, 0, C2), { max: 40 }), true, `along the way under the Choir into the Cable Store (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isOpen('dW'), false, 'the door shuts behind you');
   for (const k of keepers) k.alive = false;
@@ -4422,9 +4422,9 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   openChest(rt, 'kW', P);
   assert.equal(rt.logic.isFound('kW'), true, 'a small key');
   // ---- the Tuning Room, east: the far horn wants the high note, too far for the stones alone; the dish carries it
-  assert.equal(walk(L(-9, 0, C2)) && walk(L(9, 0, C2)), true, `back across the hub (${where()})`);
-  assert.equal(walk(L(17, 0, C2)), true, `into the Tuning Room (${where()})`);
-  const highT = stone('high', L(21.4, 0, 67.6)), lowT = stone('low', L(15.6, 0, 67.4));
+  assert.equal(walk(L(-14, 0, C2), { max: 40 }) && walk(L(12, 0, C2)), true, `back across the hub (${where()})`);
+  assert.equal(walk(L(25, 0, C2)), true, `into the Tuning Room (${where()})`);
+  const highT = stone('high', L(41.8, 0, 96.6)), lowT = stone('low', L(36, 0, 96.6));
   highT.sing(); wait(1.2);
   assert.equal(rt.logic.isLit('eT'), false, 'sung by the dead dish, the high note dies in the room');
   roll('ballT');
@@ -4434,11 +4434,12 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   highT.sing(); wait(1.2);
   assert.equal(rt.logic.isLit('eT'), true, 'the high one: the far dish says it over the horn');
   wait(1.5);
-  assert.equal(walk(rt.piece('kE').pos, { tol: 1.2 }), true, `to the key (${where()})`);
+  // (round the drum of cable lying between the stones and the key)
+  assert.equal(walk(L(45, 0, 90)) && walk(rt.piece('kE').pos, { tol: 1.2 }), true, `round the drum to the key (${where()})`);
   wait(0.3);
   openChest(rt, 'kE', P);
   assert.equal(rt.logic.isFound('kE'), true, 'the second small key');
-  assert.equal(walk(L(9, 0, C2)) && walk(L(-3, 0, C2 - 3)), true, `back into the well (${where()})`);
+  assert.equal(walk(L(30, 0, C2)) && walk(L(12, 0, C2)) && walk(L(-3, 0, C2 - 3)), true, `back into the well (${where()})`);
   ride(discA, L(-4, 6, C2 + 3.2), 'first disc');
   const s0 = discB.s;
   wait(2);
@@ -4452,20 +4453,20 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   ride(discB, L(1, 12, C2 + 8.4), 'second disc');
   assert.ok(Math.abs(local().y - 12) < 0.6, `up on the landing (${where()})`);
   // ---- the Shell Chamber: the chest, its way on open; a low singing stone by the dais
-  assert.equal(walk(L(0, 12, 70.2), { tol: 0.5 }), true, `to the door into the chamber (${where()})`);
+  assert.equal(walk(L(0, 12, 105), { tol: 0.5 }), true, `to the door into the chamber (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.keysIn('dK'), 2, 'both small keys go in');
-  assert.equal(walk(L(0, 12, 76)), true, `into the chamber (${where()})`);
-  const C3 = C2 + 22.6, A0 = C3 + 10.9, ear0 = ear('e0');
+  assert.equal(walk(L(0, 12, 112)), true, `into the chamber (${where()})`);
+  const C3 = 123.6, LZ = 155.4, ear0 = ear('e0');
   const lowC = stone('low', L(0, 12, C3));
   assert.ok(lowC.center.distanceTo(L(0, 12, C3)) < 9, 'a low singing stone in the chamber');
   assert.ok(ear0.at.distanceTo(L(0, 12, C3)) > 17, 'and the door’s horn a room on, in the passage');
   assert.equal(rt.logic.next(), 'chest');
   items.grant('echo'); game.emit('box:opened', { id: 'bazaar.temple.echo' });
   assert.equal(rt.logic.gadget, true);
-  // through the open way into the Listening Passage: the door's horn, and nothing to sing here
-  assert.equal(walk(L(0, 12, A0 + 4)), true, `into the passage (${where()})`);
-  assert.equal(stones.filter((s) => s.center.distanceTo(L(0, 12, A0 + 6)) < 7).length, 0, 'no singing stone in the passage');
+  // through the open way into the Listening Passage, a room of its own (v1.77): the door's horn, and nothing to sing here
+  assert.equal(walk(L(0, 12, 145)), true, `into the passage (${where()})`);
+  assert.equal(stones.filter((s) => s.center.distanceTo(L(0, 12, LZ)) < 14).length, 0, 'no singing stone in the passage');
   assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the door's horn (${where()})`);
   assert.equal(shell.play(), false, 'the shell holds nothing yet');
   // the wrong note first: the middle one, played back by the horn
@@ -4491,12 +4492,12 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Gallery of Voices
-  const G0 = A0 + 13.2;
+  const G0 = 173.4;
   assert.equal(walk(L(0, 12, G0 + 3)), true, `into the gallery (${where()})`);
-  const high = stone('high', L(0, 12, G0)), mid = stone('mid', L(0, 12, G0)), farHigh = stone('high', L(0, 12, G0 + 36));
+  const high = stone('high', L(0, 12, G0)), mid = stone('mid', L(0, 12, G0)), farHigh = stone('high', L(0, 12, G0 + 56));
   const dishC = rt.piece('dishC'), gpillars = rt.pieces.find((p) => p.stones && p.hear);
-  assert.ok(farHigh !== high && farHigh.center.distanceTo(L(0, 12, G0 + 32)) < 10, 'a high stone on the far side too');
-  assert.ok(mid.center.distanceTo(L(-3, 12, G0 + 8)) < high.center.distanceTo(L(-3, 12, G0 + 8)), 'the middle egg nearest the chasm, seen from the far door (v1.74)');
+  assert.ok(farHigh !== high && farHigh.center.distanceTo(L(0, 12, G0 + 42)) < 10, 'a high stone on the far side too');
+  assert.ok(mid.center.distanceTo(L(-3, 12, G0 + 18)) < high.center.distanceTo(L(-3, 12, G0 + 18)), 'the middle egg nearest the chasm, seen from the far door (v1.74)');
   assert.equal(gpillars.up, 0, 'the pillars stand down in the dark');
   assert.ok(!rt.def.logic.elements.br1 && !rt.def.logic.elements.e1 && !rt.def.logic.elements.e3, 'no great horn at the edge any more: the pillars listen themselves');
   /** Over the pillars to z1 (local), the held note played again every couple of metres, as a player carries it. */
@@ -4510,11 +4511,11 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
     return Math.abs(local().z - z1) <= 0.9 && local().y > 11;
   };
   // the obvious way first: carry the high note to the edge, and cross
-  assert.equal(walk(L(0, 12, G0 + 6.5)), true, `to the edge (${where()})`);
-  assert.equal(walk(L(0, 12, G0 + 14), { max: 3 }), false, 'no way over while the pillars are down');
+  assert.equal(walk(L(0, 12, G0 + 16.5)), true, `to the edge (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 24), { max: 3 }), false, 'no way over while the pillars are down');
   assert.ok(local().y < 11, `into the chasm (${where()})`);
-  P.teleport(L(0, 12.1, G0 + 5), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); wait(0.5);
-  assert.equal(walk(L(0, 12, G0 + 6.5)), true, `back at the edge (${where()})`);
+  P.teleport(L(0, 12.1, G0 + 15), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); wait(0.5);
+  assert.equal(walk(L(0, 12, G0 + 16.5)), true, `back at the edge (${where()})`);
   mid.sing(); wait(0.5); shell.play(); wait(1.2);
   assert.equal(gpillars.up, 0, 'the middle note: the pillars stay down');
   assert.ok(said(/listen for the high note/), 'their horns listen for the high one, they say');
@@ -4523,7 +4524,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   shell.update(2); shell.play(); wait(1.2);
   assert.ok(gpillars.standing(0) && gpillars.standing(1) && !gpillars.standing(4) && !gpillars.standing(7), `the pillars nearest you rise, only they (${gpillars.up} up)`);
   assert.ok(said(/pillars nearest you hear the high note/), 'and it says so');
-  assert.equal(cross(G0 + 31), true, `over the pillars, the note played again as you go (${where()})`);
+  assert.equal(cross(G0 + 41), true, `over the pillars, the note played again as you go (${where()})`);
   assert.equal(rt.logic.isOpen('d4'), false, 'the far door wants the middle note through its dish, and the dish’s ball home');
   mid.sing(); wait(0.5);
   assert.equal(shell.held.note, 'high', 'from across the chasm the shell can’t catch the middle stone');
@@ -4535,12 +4536,12 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(walk(farHigh.center.clone().add(V(-3, 0, 0)).setY(P.pos.y), { tol: 1.5 }), true, `to the far high stone (${where()})`);
   farHigh.sing(); wait(0.3);
   assert.equal(shell.held.note, 'high');
-  assert.equal(walk(L(0, 12, G0 + 29.5)), true, `to the far edge (${where()})`);
-  assert.equal(cross(G0 + 5), true, `back over (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 39.5)), true, `to the far edge (${where()})`);
+  assert.equal(cross(G0 + 15), true, `back over (${where()})`);
   // the middle note played into the dish while its footstone is bare: it hears nothing
   mid.sing(); wait(0.3);
   assert.equal(shell.held.note, 'mid');
-  assert.equal(walk(L(6.4, 12, G0 + 4.4)), true, `under the dish (${where()})`);
+  assert.equal(walk(L(6.4, 12, G0 + 14.4)), true, `under the dish (${where()})`);
   shell.update(2); shell.play(); wait(1.2);
   assert.equal(rt.logic.isLit('e2'), false, 'a dark dish carries nothing');
   assert.ok(said(/dark and deaf/), 'it says it is dark');
@@ -4548,7 +4549,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   roll('ball2');
   assert.equal(dishC.awake, true);
   wait(0.5);
-  assert.equal(walk(L(6.4, 12, G0 + 4.4), { tol: 0.8 }), true, `beside the ball, under the dish (${where()})`);
+  assert.equal(walk(L(6.4, 12, G0 + 14.4), { tol: 0.8 }), true, `beside the ball, under the dish (${where()})`);
   shell.update(2);
   assert.equal(shell.play(), true);
   wait(0.2);
@@ -4559,14 +4560,14 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.ok(rt.logic.check(rt.logic.el('d4').opens) && !rt.logic.isOpen('d4'), 'both of the far door’s lamps, across the chasm: and since v1.49 it wants the great key too');
   // then the high note over again: and a pillar waits for whoever stands on it
   high.sing(); wait(0.3);
-  assert.equal(walk(L(0, 12, G0 + 6.5)), true, `to the edge (${where()})`);
-  assert.equal(cross(G0 + 16.6), true, `out onto the middle of the pillars (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 16.5)), true, `to the edge (${where()})`);
+  assert.equal(cross(G0 + 26.6), true, `out onto the middle of the pillars (${where()})`);
   wait(HOLD_PILLAR + 2);
   const under = gpillars.stones.findIndex((s) => gpillars.ridden(s));
   assert.ok(under >= 0 && gpillars.standing(under), `the note has died away, but the pillar under you waits for you (${gpillars.up} up)`);
   assert.ok(gpillars.up < gpillars.stones.length, 'the others have sunk');
   assert.ok(local().y > 11, `still on it (${where()})`);
-  assert.equal(cross(G0 + 31), true, `on over, the note played again (${where()})`);
+  assert.equal(cross(G0 + 41), true, `on over, the note played again (${where()})`);
   wait(HOLD_PILLAR + 2);
   assert.equal(gpillars.up, 0, 'and then they sink');
   // ---- (v1.60) the great key is back in the Choir, over the Cable Store: its keepers' gate, high on the Cable Well's wall,
@@ -4574,17 +4575,17 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(rt.logic.isOpen('d4'), false, 'the far door wants the great key');
   assert.equal(walk(farHigh.center.clone().add(V(-3, 0, 0)).setY(P.pos.y), { tol: 1.5 }), true, `to the far high stone (${where()})`);
   farHigh.sing(); wait(0.3);
-  assert.equal(walk(L(0, 12, G0 + 29.5)) && cross(G0 + 5), true, `back over the pillars (${where()})`);
-  assert.equal(walk(L(0, 12, A0 + 6)) && walk(L(0, 12, C3)) && walk(L(0, 12, 69.5)), true, `back through the chamber to the landing (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 39.5)) && cross(G0 + 15), true, `back over the pillars (${where()})`);
+  assert.equal(walk(L(0, 12, LZ)) && walk(L(0, 12, C3)) && walk(L(0, 12, C2 + 12)), true, `back through the chamber to the landing (${where()})`);
   const gate = rt.piece('dG');
   assert.equal(rt.logic.isOpen('dG'), false, 'the keepers’ gate off the walk round the well is shut');
   // down off the landing, the ledge and the floor (no fall in the house hurts)
   const hearts0 = P.hearts;
-  assert.equal(walk(L(-1, 0, C2 - 3), { max: 12 }), true, `down into the well (${where()})`);
+  assert.equal(walk(L(-1, 0, C2 - 6), { max: 12 }), true, `down into the well (${where()})`);
   assert.equal(P.hearts, hearts0, 'the drop costs nothing');
-  assert.equal(walk(L(0, 0, 50)) && walk(L(3.4, 0, 45.6)), true, `along the gate's cable to the first hall's far landing (${where()})`);
+  assert.equal(walk(L(0, 0, 72)) && walk(L(3.4, 0, 57)), true, `along the gate's cable to the first hall's far landing (${where()})`);
   const hG = ear('hG');
-  assert.ok(hG.at.distanceTo(L(4.2, 2.4, 44.2)) < 1.5, 'the gate’s horn, at its cable’s end');
+  assert.ok(hG.at.distanceTo(L(4.2, 2.4, 55.6)) < 1.5, 'the gate’s horn, at its cable’s end');
   assert.equal(walk(hG.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `by the gate's horn (${where()})`);
   assert.equal(shell.held.note, 'high');
   shell.update(2); shell.play(); wait(0.3);
@@ -4597,13 +4598,13 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(rt.logic.isLit('hG'), true, 'the middle note, played back: the gate’s horn answers');
   assert.ok(rt.logic.isOpen('dG') && rt.logic.isOpen('dC'), 'the gate opens, and the Choir’s door onto the chamber with it');
   // back up the discs, along the walk round the well and through the gate
-  assert.equal(walk(L(0, 0, 50)) && walk(L(-3, 0, C2 - 3)), true, `back into the well (${where()})`);
+  assert.equal(walk(L(0, 0, 72)) && walk(L(-3, 0, C2 - 3)), true, `back into the well (${where()})`);
   ride(discA, L(-4, 6, C2 + 3.2), 'first disc');
   ride(discB, L(1, 12, C2 + 8.4), 'second disc');
-  assert.equal(walk(L(-3, 12, 63.5)) && walk(L(-8.6, 12, 63.5)), true, `onto the walk round the well (${where()})`);
+  assert.equal(walk(L(-3, 12, C2 + 2)) && walk(L(-14, 12, C2)), true, `onto the walk round the well (${where()})`);
   assert.ok(gate.open, 'the gate is down');
   const CZ = CHOIR.z, hA = ear('hA'), hB = ear('hB'), kB = rt.piece('kB');
-  assert.equal(walk(L(-12, 12, CHOIR.gate)) && walk(L(-17, 12, CHOIR.gate)), true, `through the gate into the Choir (${where()})`);
+  assert.equal(walk(L(-17, 12, CHOIR.gate)) && walk(L(-24, 12, CHOIR.gate)), true, `through the gate into the Choir (${where()})`);
   // ---- the Choir: the far horn hears the low stone through the dishes; the near one wants the high note played back
   const lowQ = stone('low', L(CHOIR.low[0], 12, CHOIR.low[1]));
   assert.ok(lowQ.center.distanceTo(L(CHOIR.low[0], 12, CHOIR.low[1])) < 2, 'the Choir’s low stone');
@@ -4620,10 +4621,10 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(rt.logic.isLit('hB'), false, 'the low note: the near horn wants the high one');
   assert.ok(said(/Nothing in the Choir sings it/), 'and nothing in the Choir sings it');
   // out through the gate: the Cable Well's high stone, on the floor below, splashed from the walk
-  assert.equal(walk(L(-17, 12, CHOIR.gate)) && walk(L(-8.6, 12, 63.5)) && walk(L(-3, 12, 63.5)), true, `back out onto the walk (${where()})`);
+  assert.equal(walk(L(-24, 12, CHOIR.gate)) && walk(L(-14, 12, C2)) && walk(L(-3, 12, C2 + 2)), true, `back out onto the walk (${where()})`);
   highW.sing(); wait(0.3);
   assert.equal(shell.held.note, 'high', 'the shell catches the high stone from the walk above it');
-  assert.equal(walk(L(-8.6, 12, 63.5)) && walk(L(-17, 12, CHOIR.gate)) && walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the near horn (${where()})`);
+  assert.equal(walk(L(-14, 12, C2)) && walk(L(-24, 12, CHOIR.gate)) && walk(hB.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the near horn (${where()})`);
   shell.update(2); shell.play(); wait(0.3);
   assert.equal(rt.logic.isLit('hB'), true, 'the high note, played back: it answers');
   wait(1.5);
@@ -4634,12 +4635,12 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
   assert.ok(hA.at.distanceTo(hB.at) > 15, 'the two horns at either end of the Choir');
   // out by the Choir's door onto the chamber, and on through the gallery to the far door
-  assert.equal(walk(L(-15, 12, CHOIR.way)) && walk(L(-6, 12, CHOIR.way)), true, `through the Choir's door into the chamber (${where()})`);
-  assert.equal(walk(L(0, 12, A0 + 4)) && walk(L(0, 12, G0 + 3)), true, `back into the gallery (${where()})`);
+  assert.equal(walk(L(-24, 12, CHOIR.way)) && walk(L(-12, 12, CHOIR.way)) && walk(L(-6, 12, CHOIR.way)), true, `through the Choir's door into the chamber (${where()})`);
+  assert.equal(walk(L(0, 12, 145)) && walk(L(0, 12, G0 + 3)), true, `back into the gallery (${where()})`);
   high.sing(); wait(0.3);
-  assert.equal(walk(L(0, 12, G0 + 6.5)) && cross(G0 + 31), true, `over the pillars to the far door (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 16.5)) && cross(G0 + 41), true, `over the pillars to the far door (${where()})`);
   // ---- the First Sign: when it lowers its dish to listen, play its word back into it; it moves on to the next
-  assert.equal(walk(L(0, 12, G0 + 48)), true, `through the great lock into the hall (${where()})`);
+  assert.equal(walk(L(0, 12, G0 + 67.4)), true, `through the great lock into the hall (${where()})`);
   assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');
   const G = rt.guardian;
   wait(0.3);
@@ -4695,6 +4696,35 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
 });
 
 // ------------------------------------------------------------------ on foot: the City Floating in Space's Mooring-House, room by room
+test('a save from the Undertower before issue #336: its state as it was (the same pieces, the passage’s horn now in a room of its own), and one that stood in the old rooms is taken to its last mark', () => {
+  const past = new GameState(null);
+  for (const [k, v] of Object.entries({ layout: 4, entered: true, 'drum.ball1': 1, 'lit.eD': true, 'open.disc': true, 'lit.eW': true, 'open.wdisc': true, 'unlocked.dK': 2, gadget: true, 'drum.ballP': 1, 'lit.e0': true, 'open.d3': true, checkpoint: 'gallery' })) past.set(`temple.bazaar.${k}`, v);
+  migrateTempleLayouts(past);
+  assert.equal(past.flag('temple.bazaar.layout'), LAYOUTS.bazaar.v);
+  assert.equal(past.flag('temple.bazaar.relaid'), true, 'inside the old house: to its mark');
+  assert.equal(past.flag('temple.bazaar.checkpoint'), 'gallery', 'its place kept');
+  const B = new TempleLogic(TEMPLES.bazaar.def.logic, { store: flagStore(past, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  B.update();
+  assert.ok(B.isOpen('d3') && B.isOpen('dK'), 'the passage’s door and the chamber’s stay open behind them');
+  const outside = new GameState(null);
+  outside.set('temple.bazaar.layout', 4);
+  migrateTempleLayouts(outside);
+  assert.equal(outside.flag('temple.bazaar.relaid'), undefined, 'never inside: nothing to move');
+  // standing where the old Gallery of Voices' near landing was (in the new Shell Chamber now): to the gallery's mark
+  game.reset();
+  own('backpack', 'gun');
+  const { level, physics, rt } = world('bazaar');
+  game.set('temple.bazaar.checkpoint', 'gallery'); game.set('temple.bazaar.relaid', true);
+  const P = new Player(physics, { spawn: rt.kit.world(0, 12.1, 111), dynamic: level.dynamic, health: true });
+  rt.connect({ player: P, toast: () => {} });
+  rt.update(DT, DT);
+  const mark = rt.marks.find((m) => m.room === 'gallery');
+  assert.ok(P.pos.distanceTo(mark.spot) < 0.5, `at the gallery's mark (${rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(!game.flag('temple.bazaar.relaid'), 'once');
+  game.reset();
+  own();
+});
+
 test('the Mooring-House on foot: the winch’s counterweight and the shaft’s gate, the void’s breath up the shaft to the lamp-eye, the great door, tether mode and its try, the passage’s ring a room on, the Drift’s ball pulled home off its cable-rail and the rising gangway, the Cable Walk, the Balance’s ball pushed out (the pan to the Gallery) and pulled home (the west door), the Gallery’s ring, the Rope Store’s arena off the Gallery and its key for the moorers’ gate, the great key pulled home on the hall’s balcony, the Anchor-Warden’s anchors pulled home (wound in over the void first), the cables taut', async () => {
   const { BALANCE, DRIFT, FLOOR, MOOR_A, STORE } = await import('../src/temples/spacecity.js');
   game.reset();

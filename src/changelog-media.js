@@ -857,6 +857,8 @@ const BELFRY336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless C
 const GREENHOUSE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6443, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Aerie's rooms, shot by hand before and after) */
 const SHRINE336A = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6442, at the Warden’s Well’s commit (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Undertower's rooms, shot the same way before and after) */
+const UNDER336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6446, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -912,6 +914,18 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Aerie’s machines no longer stand', shots: [
       { name: 'aerie-moult', title: 'The Moult', caption: 'Before, a 14 m square room, its keepers by the door; after, 30 m square, the house’s one fight round its middle among four columns', from: SHRINE336A },
+    ] },
+    { match: 'The Undertower is rebuilt like a shrine', shots: [
+      { name: 'undertower-dishes', title: 'The Hall of Dishes', caption: 'Before, a hall 22 m across, the great dish on the wall by its footstone; after, 36 m across under 28 m of stone, the ball’s groove across the middle of the near landing, the dish on a stand beside its footstone', from: UNDER336 },
+      { name: 'undertower-well', title: 'The Cable Well', caption: 'From its way in: before, a well 20 m across, the ledge against its wall; after, 34 m across, the discs, the ledge and the landing standing in the middle on piers, the walk to the Choir’s gate over them', from: UNDER336 },
+      { name: 'undertower-tune', title: 'The Tuning Room', caption: 'Before, a 16 m room, its ball rolled in from the well along the north wall; after, 30 m square, the groove down the middle of the room to the dish on its stand, a drum of cable between the key and the stones', from: UNDER336 },
+      { name: 'undertower-shell', title: 'The Shell Chamber', caption: 'Before, a round room 19 m across opening straight into the passage; after, 28 m across, the shell alone on its mound, its north door shut until you hold the shell', from: UNDER336 },
+      { name: 'undertower-listen', title: 'The Listening Passage', caption: 'Before, a 12 m room, the ball’s groove along its east wall; after, a hall of its own 30 m square, the ball, its footstone and the door’s horn in the middle of the floor', from: UNDER336 },
+      { name: 'undertower-gallery', title: 'The Gallery of Voices', caption: 'Before, a hall 22 m across, its dish on the east wall; after, 36 m across under 36 m of stone, the near dish on a stand by the chasm’s edge, the eggs and the ball in the middle of the near landing', from: UNDER336 },
+      { name: 'undertower-choir', title: 'The Choir', caption: 'Before, a room 16 m across, its near dish on the north wall and a keeper among the horns; after, 32 by 46 m, the dishes on stands and the horns and the great key in the middle of the floor, no machine', from: UNDER336 },
+    ] },
+    { match: 'The Undertower’s keepers wait only in the Cable Store', shots: [
+      { name: 'undertower-store', title: 'The Cable Store', caption: 'From its door: before, a 16 m room, its keepers by the wall; after, the house’s one fight, its keepers round the middle of a store 30 m square among two columns, the drums of cable round its walls', from: UNDER336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
   ],
