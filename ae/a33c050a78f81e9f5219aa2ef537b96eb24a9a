@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_21efd8aecf2e93 7-8
+docs/README.md
+  s_9ca76055a220ed::t_dd71ea3c519312 57
+docs/systems/temples.md
+  s_9ca76055a220ed::t_b1c4f09d28e59d 1039-1078
+src/changelog-media.js
+  s_9ca76055a220ed::t_4646ddd635cb7d 864-876,958-974,1400
+src/changelog.js
+  s_9ca76055a220ed::t_e7689fc4598792 54-57
+src/temples/desert.js
+  s_9ca76055a220ed::t_df74cab93f9f82 800-801
+src/temples/incal.js
+  s_9ca76055a220ed::t_bcdca9094e626c 819-820
+src/temples/kit.js
+  s_9ca76055a220ed::t_750ed96fdbe50d 277-278,392,425,467,512
+src/temples/pieces.js
+  s_9ca76055a220ed::t_ecbd6da59854c4 850-851,853-854,864,922
+src/temples/runtime.js
+  s_9ca76055a220ed::t_9a797df96ad0c3 8,54-55,57,59
+src/temples/skins.js
+  s_7ac358e76cb093::t_8c01e2f60fe473 1-835
+tests/temple-skins.test.js
+  s_7ac358e76cb093::t_4fdf7e03fb5e8f 1-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aea33c050a78f81e9f5219aa2ef537b96eb24a9a",
+  "prompts": {},
+  "sessions": {
+    "s_7ac358e76cb093": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af001865fe159b727",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
