@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_40cdc52d6275d0 10
+docs/systems/temples.md
+  s_9ca76055a220ed::t_c42580c4edb5ee 1435,1437,1440-1444,1446-1455
+src/changelog-media.js
+  s_9ca76055a220ed::t_28c2d07abe88ed 40,42-46,49-53,1100-1101,1103-1105,1108
+src/changelog.js
+  s_9ca76055a220ed::t_db98b74ecaba35 114
+src/temples/skins/rose-house.js
+  s_9ca76055a220ed::t_647e562fa0b85d 11-17,19-24,37-45,70-71,82-83,88-89,92-93,131-133,235-236,315,367-368,372-374,377-389,430,441-447,477-478,541-545,575-579
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eef64201279551297411b2e1c89b28962a805cb7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
