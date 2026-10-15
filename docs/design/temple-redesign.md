@@ -332,6 +332,36 @@ by its two doors (`d4`, `d5` carry `room: 'hall'`). What stayed: the Echo and it
 and the Lodge's arena, the stilling stone's push (`POOL`, issue #311), every groove's length, the stones' rows, the
 shortcut back. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.spheres` v3).
 
+## The Hush-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Threshold 14 × 12, the Choir 24 × 31, the Bog Well a round hall 20 m across, the Stilling Chamber 19 m round with the Snapping Passage 12 × 12 in its room, the Pendulum Gallery 22 × 34, the Nursery 14 × 14 | the Threshold **30 × 30**, the Choir **36 × 54**, the Bog Well **36 m**, the Stilling Chamber **34 m** with the Snapping Passage **30 × 30** in its room, the gallery **36 × 48**, the Nursery **30 × 30**; the Mother's hall 38 m as it was |
+| ceilings | the Threshold 9, the Stilling Chamber 13, the Nursery 10, the Choir 14 (the balcony 5 under its roof) | **18 m** or more (the Choir 27, the balcony 18 under it, the well 28) |
+| doors | 5 by 6 to 6.4, the ledge's door 2.9 by 4.4, the keeper's gate 2.2 by 4.4 | **7 by 9** (the gate of jaws too) |
+| fights | a machine by every mark (the Choir, the well, the chamber, the gallery, the far landing, the balcony) and the Nursery's arena | **the Nursery only**, its keepers round its middle among four seed-beds |
+| against the walls | the door's crystal by the Threshold's wall, the Snapping Passage's side mouths in its walls, the balcony's ball and footstone at the Choir's north wall | each in the middle of its room: the crystal out on the Threshold's floor, the side mouths in two shrines on the passage's floor, the balcony down the Choir's west side, its groove down its middle |
+| threaded through doors | the balcony's ball rolled through the snapper's mouth (`oB`'s `gap` on the door `dJ`) | the mouth a gate in the balcony's middle (`dJ` a `bridge`), the ball, the mouth and the footstone on one floor |
+| the rules broken | **36** (both 5, size 8, ceiling 5, unmeasured 1, door 7, centred 3, through doors 1, foes 6) | **0** |
+| the temple design audit | 4.33: structure 5, teach/test/twist 5, combination 4, non-obvious 4 (mean 3.08), decoupling 5, item 5, guardian 4, identity 3, curve 4 | 4.33, the same scores (`BBCXATLXLK` as it was, 64 % like the Aerie); mean obviousness **2.83** (the middling mouth out of the gate's sight behind its shrine, 5 of 6 keys out of their lock's room or sight) |
+
+What it took beyond the sizes: the balcony lay over the Choir's door (`d1`) at its north end, its way in through the
+well's wall over that door; with the door 9 m high and the upper floor kept at 9 m (`UP`: the root-wall's climb, the
+landings and the Mother's hall as they were) neither fits, so the balcony became a gallery down the Choir's west side
+on three piers, clear of the door, reached from the root-wall's top by a short ledge along the well's west wall to a
+door through it (`dL`, the small key's, 7 by 9 in a passage: the old ledge round the well over the water, and the
+cloister issue #356 built past its door, are gone) and a walk south outside the Choir's west wall (`WALK`). Its groove
+runs down the balcony's middle, as long as it was, the snapper's mouth 12.5 m along it as before. The Snapping Passage
+stays the chamber's room in the logic, so the Stilling Chamber is a puzzle room 34 m round (a room of its own past a
+door for the stilling mode in hand, as the Undertower's, was tried: one step more, the chest at 29 % of the steps, and
+the score fell to 4.22); the passage's side mouths stand in shrines on its floor either side of the way to the gate. The keeper's ledge along the gallery's east wall is 7.4 m wide for its gate. The Mother's hall is measured by its
+two doors (`d3`, `d5` carry `room: 'hall'`). What stayed: the Mother Snapper and her fight, the story's lines, the four
+crystals' order, the passage's three mouths in the Choir's order and the coffer, the disc's ride and the eye seen only
+from it, the root-wall's climb, the pendulums' beat over the bridge, the Nursery's small key, the great key's ball and
+its thawing mouth, the shortcut back over the keeper's ledge. A save that stood in the old rooms is taken to its last
+mark (`LAYOUTS.perdide` v3). With it every house keeps the rules (`tests/temple-rules.test.js`: all fourteen in `REDONE`,
+`PENDING` empty).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -355,8 +385,8 @@ counts, and a house may not get worse). Ranked worst first:
 | Clock-House (garage) | 49 → **0** (v1.77, above) | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
 | Engine-House (buried) | 41 → **0** (v1.77, above) | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
-| Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
 | Footprint (spheres) | 36 → **0** (v1.77, above) | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |
+| Hush-House (perdide) | 36 → **0** (v1.77, above) | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
 
 What repeats, and how the Rose House answered each:
 
@@ -368,7 +398,7 @@ What repeats, and how the Rose House answered each:
   Bring the groove down the middle, the eye onto an obelisk or a pillar in the floor.
 - **Through doors** (16 in nine houses): the Lamp-House's orb (`orb5`) rolled through the Hall of Dark Pools' door into
   the Root Stair, the Whale-House's ball (`b2`) through its pools' door (v1.77: its cradle in the Pool Room now), the Casting-House's moulds (`m1`, `mH` through
-  `dP`), the Hush-House's orb (`oB` through `dJ`), and a ball rolled into the next room's plate in the Undertower
+  `dP`), the Hush-House's orb (`oB` through `dJ`; v1.77: the mouth a gate in the balcony's middle), and a ball rolled into the next room's plate in the Undertower
   (`ballT` into the tuning room), the Clock-House (`ball1` into the well), the Engine-House (`ballJ`) and the Belfry
   (`ball3`, onto the far side of its hall). Put the ball, its plate and what it lights in one room.
 - **Unmeasured** rooms (eleven, mostly the guardians' halls and antechambers built wall by wall rather than with the

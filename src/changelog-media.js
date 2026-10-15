@@ -873,6 +873,8 @@ const CLOCK336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Ch
 const ENGINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6452, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Footprint's rooms, shot the same way before and after, the lens in hand) */
 const FOOTPRINT336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6453, on the tree before this change and on this branch, the lens in hand, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Hush-House's rooms, shot the same way before and after) */
+const HUSH336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6454, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -1017,6 +1019,17 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Footprint’s keepers wait only in the Keepers’ Lodge', shots: [
       { name: 'footprint-lodge', title: 'The Keepers’ Lodge', caption: 'From its door: before, a room 14 by 12 m under 8; after, the house’s one fight, its keepers round the middle of a hall 30 m square among four columns, the key’s cage beyond', from: FOOTPRINT336 },
       { name: 'footprint-gallery', title: 'The Keepers’ Gallery', caption: 'Before, a passage 3 m wide round the Hall of the Unseen; after, a hall 30 by 66 m, the Lodge’s door on the right', from: FOOTPRINT336 },
+    ] },
+    { match: 'The Hush-House is rebuilt like a shrine too', shots: [
+      { name: 'hush-threshold', title: 'The Threshold', caption: 'From the way in: before, a room 14 by 12 m, the door’s crystal by the wall; after, 30 m square under 18 m of stone, the crystal out on the floor, the Choir through a doorway 7 by 9', from: HUSH336 },
+      { name: 'hush-choir', title: 'The Choir', caption: 'Before, 24 m across, the balcony over the far door, a keeper by the mark; after, 36 by 54 m under 27, the three crystals out on the floor, the balcony down the west side on its piers, no machine', from: HUSH336 },
+      { name: 'hush-well', title: 'The Bog Well', caption: 'From the near landing: before, a round well 20 m across; after, 36 m across, the disc’s ride, the eye on the root-wall and the climb as they were', from: HUSH336 },
+      { name: 'hush-passage', title: 'The Snapping Passage', caption: 'Before, a passage 12 m wide, its two little mouths in its walls; after, 30 m square, the mouths in two shrines of stone either side of the way to the gate, the gate 7 by 9', from: HUSH336 },
+      { name: 'hush-gallery', title: 'The Pendulum Gallery', caption: 'From the near landing: before, 22 m across, a keeper on the far landing; after, 36 by 48 m, the bridge and the pendulums as they were, the keeper’s ledge along the east wall 7 m wide, its gate 7 by 9', from: HUSH336 },
+      { name: 'hush-balcony', title: 'The Choir’s balcony', caption: 'Before, a ledge over the Choir’s far door, the ball’s groove along it; after, a gallery 13 m wide down the Choir’s west side, the groove down its middle to the mouth in the wall across it', from: HUSH336 },
+    ] },
+    { match: 'The Hush-House’s keepers wait only in the Nursery', shots: [
+      { name: 'hush-nursery', title: 'The Nursery', caption: 'Before, a room 14 m square, the seed-beds by its walls; after, 30 m square, the house’s one fight round its middle among four seed-beds', from: HUSH336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
   ],

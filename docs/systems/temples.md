@@ -511,6 +511,34 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (`migrate.js` perdide2 v4). Rules broken: 51 before, none now. Temple design audit: 4.22 before, 4.33 after
   (decoupling 5 → 4: the orb's step in its own room now; the curve 3 → 5; mean obviousness 2.83 → 3.08). Tests:
   `tests/temple-rules.test.js`, the on-foot walk and the old save in `tests/temples.test.js`, zfight, contact audit.
+- **The Hush-House as shrines** (v1.77, issue #336, the last house). The Threshold 30 m square, the Choir 36 by 54 under
+  27, the Bog Well a round hall 36 m across (its near landing and its root-wall's face as far from its middle as they
+  were, so the disc's ride is as long), the Stilling Chamber 34 m round, the Snapping Passage 30 m square,
+  the Pendulum Gallery 36 by 48 (the chasm, the bridge and the pendulums as they were), the Nursery 30 m square; every
+  ceiling 18 m or more over its floor, doors 7 by 9 and the gate of jaws too (`perdide.js` `UP`, `DOOR`, `ROOMS`). The
+  upper floor stays at 9 m (`UP`): the balcony's way no longer runs over the Choir's door, so its 9 m clears. Tagged rooms
+  (`LOGIC.rooms` `kind`): the far landing and the way out passages, the Nursery the one fight (`arN`, its keepers round
+  its middle among four seed-beds: its mark's `foes`), the rest puzzles. The Stilling Chamber is one (the chest in its
+  middle, and the Snapping Passage beyond its open way still its room in the logic, its three mouths `j1`..`j3`, so it is
+  34 m round; a room of its own past a door for the stilling mode in hand, as the Undertower's Listening Passage, cost
+  the house's design score a step: the chest at 29 % of the steps, 4.22). Each side mouth stands in a **shrine** out on
+  the passage's floor (`SHRINE`: a block of stone either side of the
+  way to the gate, the mouth in a niche of its face, its crown's crystal on its cap; in the passage's walls before). The
+  door's crystal `c1` stands out on the Threshold's floor and the Choir's three in its middle. The way to the great key:
+  a **ledge** along the Bog Well's west wall from the root-wall's top (`LEDGE`) to the well's west door (`dL`, the small
+  key's; it stood on a ledge round the well over the water before, a cloister past it, issue #356), then a **walk** south
+  outside the Choir's west wall (`WALK`, a hall 9 m wide at 9 m) and in through the wall onto the **balcony**, a gallery
+  down the Choir's west side on three piers (`BALCONY`: it lay over the Choir's door at its north end before). Its groove
+  runs down the balcony's middle through the snapper's mouth in the wall across it (`dJ`, a `bridge` since: a gate in the
+  room's middle, not a door between rooms, so the ball's `gap` is no thread through a doorway) to the cage's footstone,
+  as long as it was (16 m; the mouth 12.5 m along it), its hold as it was. The keeper's ledge along the gallery's east wall
+  is 7.4 m wide for its 7 by 9 gate (`KEEPER`). The Mother's hall is measured by its two doors (`d3`, `d5` carry `room:
+  'hall'`). The Mother and her fight, the story's lines, the keys, every crystal's order, the pendulums' beat, the
+  disc's ride and the climbs as they were. Old saves: one that stood in the old rooms is taken to its last mark
+  (`migrate.js` perdide v3). Rules broken: 36 before, none now. Temple design audit: 4.33 before and after (mean
+  obviousness 3.08 → 2.83: the passage's middling mouth out of the gate's sight behind its shrine). Z-fights in the house
+  9 → 2. Tests: `tests/temple-rules.test.js`, the on-foot walk and the old save in `tests/temples.test.js`, zfight,
+  contact audit, door-bypass.
 
 - **The Clock-House as shrines** (v1.77, issue #336). The Escapement and its far landing one hall 32 by 59 m under 22
   (`ESC`: the pit 22 m long as it was, the disc's ride as it was), the Winding Well a round hall 36 m across (`WELL`, the
@@ -852,7 +880,9 @@ behind a wall across it, and a ball in a groove that runs through a snapper's mo
 Shut, the mouth spits the ball back (`Ball` `jaws`); stilled, it opens, but its element has `hold` (`Jaw`: the frost
 thaws, it warns, and the jaws snap shut again), so the ball has to go through before it wakes, and it is stilled again
 to walk through. The far door (`d3`) takes the great key. The great key is in the first half, reached by a loop back
-past the chest, not off the last hall.
+past the chest, not off the last hall. (Since v1.77 the side mouths stand in shrines on the passage's floor, the ledge's
+door is the well's west door at the end of a short ledge, and the balcony runs down the Choir's west side, reached by a
+walk outside its wall: "The Hush-House as shrines" above.)
 
 The **Mooring-House** (`spacecity.js`, 4.22; no arena, 78 % like the Warden's Well): south off the Moorers' Gallery the
 **Rope Store** (`STORE`) is an arena; won, its small key opens the moorers' gate (`sc`, a small lock now: the Gallery's
@@ -1091,7 +1121,8 @@ traveller's capsule) must not reach the other; from within 4 m the real travelle
 locked door (a key's) he also jumps, double jumps (at its highest and late) and, after the Rose House, opens the wings,
 from within 10 m of it and from anywhere within 8 m of the other side. Found and fixed: the Hush-House's ledge door
 (`LEDGE`: the double jump went over its 4.4 m, a jump from the root-wall's top round its post onto the ledge beyond; the
-ledge past it is a cloister now, walled on the water's side in slits of `LEDGE.slit` 0.55 m and roofed at the lintel),
+ledge past it a cloister, walled on the water's side in slits of 0.55 m and roofed at the lintel; since v1.77 the door
+is 7 by 9 in a passage through the well's west wall, nothing to go round),
 the Builders' Greenhouse's great lock (it stood in the antechamber's open end, 8.8 m wide: walked round), the
 Mooring-House's Capstan door and its other doorway, the Casting-House's arena door and the guardians' halls' ways out
 (a rotunda's gap is cut by whole stones, so up to a metre wider than its door: jumped through beside it); and the

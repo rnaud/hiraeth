@@ -157,11 +157,16 @@ export const LAYOUTS = {
   // west off the gallery's far landing and the Choir's balcony along the ledge round the Bog Well. Past the gate of jaws
   // (its stilling was `j1`): the side mouths stilled too; past the far door: its great key in it, the Nursery won, the
   // ledge's door unlocked, the balcony's ball on its footstone (before it, the wings are a walk back)
+  // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the Snapping Passage a room of its own, its
+  // side mouths in shrines on its floor; the ledge's door by the Bog Well's west wall and a walk to the balcony down the
+  // Choir's west side; the same state). A save that entered the house: taken to its last mark if it stood inside the old
+  // rooms (runtime.js relaid)
   perdide: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['open.d2', 'lit.j1', 'lit.w1', 'open.d3', 'open.ds', 'boss'], set: { 'lit.j2': true, 'lit.j3': true } },
       { if: ['open.d3', 'boss'], set: { 'unlocked.d3': 1, 'found.kB': true, 'found.kS': true, 'unlocked.dL': 1, 'lit.arN': true, 'drum.oB': 1 } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.53: the Mooring-House's Rope Store off the Moorers' Gallery (its small key now opens the moorers' gate) and the

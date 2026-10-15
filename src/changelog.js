@@ -97,6 +97,13 @@ export const CHANGELOG = [
     // (the machines only in the Lodge, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; the Keepers'
     // Gallery a hall 30 by 66 m; migrate.js spheres v3, relaid)
     'The Footprint’s keepers wait only in the Keepers’ Lodge now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. The Keepers’ Gallery is a long hall instead of a narrow passage, its hidden eye on a post before the door back to the Lens Chamber. If you were inside the old house, you start at its last glyph stone.',
+    // the Hush-House as shrines (issue #336): src/temples/perdide.js (UP, DOOR, ROOMS, LEDGE, WALK, BALCONY, SHRINE, KEEPER,
+    // LOGIC.rooms kinds, the side mouths in shrines, dJ a bridge, the layout); tests/temple-rules.test.js REDONE,
+    // tests/temples.test.js
+    'The Hush-House is rebuilt like a shrine too, the last of the makers’ houses: its rooms are far bigger and taller (every hall 30 to 36 m across under 18 m of stone or more, the Bog Well 36 m round), its doors twice the size, and every puzzle stands in the middle of its room. The door’s crystal stands out on the Threshold’s floor; the Snapping Passage’s two little mouths sit in two shrines of stone either side of the way to the gate, instead of in its walls; the Choir’s balcony runs down its west side now, the ball’s groove down its middle, and you reach it from a ledge by the Bog Well and a walk outside the Choir’s wall.',
+    // (the machines only in the Nursery, round its middle among the seed-beds: LOGIC.rooms kinds, Mark `foes`; migrate.js
+    // perdide v3, runtime.js relaid)
+    'The Hush-House’s keepers wait only in the Nursery now, round its middle among the old seed-beds, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Hush-House, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield
