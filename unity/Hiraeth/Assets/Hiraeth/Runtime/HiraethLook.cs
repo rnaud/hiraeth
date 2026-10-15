@@ -49,6 +49,8 @@ namespace Hiraeth
         /// </summary>
         public static bool CullLightsToView;
         readonly Plane[] lightPlanes = new Plane[6];
+        /// <summary>The last frame's local lights: how many went to the shader, of how many near (the bridge's shots log them).</summary>
+        public static int LightsKept, LightsNear;
 
         public void Load(Dictionary<string, object> lookData, List<object> lights)
         {
@@ -57,14 +59,20 @@ namespace Hiraeth
             atmoFog = -1; atmoTint = Color.white; lightAt = null; presetOver = null;
             foreach (var h in look.L("hours")) hours.Add(h as Dictionary<string, object>);
             hour = look.F("hour", 9.5f);
-            localLights.Clear();
-            // (exported in Unity space; sorted by distance there, handed to the shaders in three space below)
-            if (lights != null) foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
+            // (exported in Unity space; sorted by distance there, handed to the shaders in three space below). No list (the
+            // JS bridge's look, sent again whenever it changes): the lights kept as they are. Cleared here before, the
+            // Apply below sent the shader none, and the frame drawn before the next Update had no light pools: in the
+            // bridge's batch pictures, and a flicker every 4th frame in play while the look moved
+            if (lights != null)
+            {
+                localLights.Clear();
+                foreach (var l in lights) { var a = l as List<object>; localLights.Add(new Vector4(Json.Num(a[0]), Json.Num(a[1]), Json.Num(a[2]), Json.Num(a[3]))); }
+            }
             Apply();
         }
 
         /// <summary>The local lights all at once (Unity's space): the JS bridge's, as the game ranks them each frame.</summary>
-        public void SetLocalLights(List<Vector4> unitySpace) { localLights.Clear(); localLights.AddRange(unitySpace); }
+        public void SetLocalLights(List<Vector4> unitySpace) { localLights.Clear(); localLights.AddRange(unitySpace); PushLights(); }
 
         /// <summary>A local light's reach (w, m) at a place (the nearest within a metre), or a new one there: a lens lit, a relic, a lamp.</summary>
         public void SetLight(Vector3 at, float w)
@@ -196,7 +204,17 @@ namespace Hiraeth
             if (sw != null && sw.Count >= 4) { windDir = new Vector2(Json.Num(sw[0]), Json.Num(sw[1])); wind = Json.Num(sw[2]); gust = Json.Num(sw[3]); }
             Shader.SetGlobalVector("_Wind", new Vector4(windDir.x, windDir.y, wind, gust));
 
-            // the local lights nearest the subject
+            PushLights();
+            if (subject) { var s = Three(subject.position); Shader.SetGlobalVector("_Brush", new Vector4(s.x, s.y, s.z, 0)); }
+        }
+
+        /// <summary>
+        /// The local lights nearest the subject to the shaders (_MLights, three space), those off the view left out
+        /// (CullLightsToView). Called by Apply, when the lights change, and by a picture taken at another size than the
+        /// screen's (the bridge's Shot: its frustum is the picture's, not the 4:3 batch window's).
+        /// </summary>
+        public void PushLights()
+        {
             Vector3 at = subject ? subject.position : Camera.main ? Camera.main.transform.position : Vector3.zero;
             localLights.Sort((x, y) => ((Vector3)x - at).sqrMagnitude.CompareTo(((Vector3)y - at).sqrMagnitude));
             var view = CullLightsToView ? Camera.main : null;
@@ -208,9 +226,9 @@ namespace Hiraeth
                 if (view && !InView((Vector3)l, l.w + 2f + Vector3.Distance(view.transform.position, l) / 6f)) continue;
                 lightBuf[lit++] = new Vector4(-l.x, l.y, l.z, l.w);
             }
+            LightsKept = lit; LightsNear = Mathf.Min(8, localLights.Count);
             for (; lit < 8; lit++) lightBuf[lit] = new Vector4(0, -1e5f, 0, 0);
             Shader.SetGlobalVectorArray("_MLights", lightBuf);
-            if (subject) { var s = Three(subject.position); Shader.SetGlobalVector("_Brush", new Vector4(s.x, s.y, s.z, 0)); }
         }
 
         /// <summary>

@@ -427,6 +427,23 @@ namespace Hiraeth.Bridge
                 materials[mid] = vm;
                 return;
             }
+            if (m.S("port") == "pitvoid")
+            {
+                // a deadly drop's dark (src/pit-void.js: a temple's pit, a world's void): a wash over the finished picture
+                // from its box's inside faces, the scene's depth read by hand (Hiraeth/PitVoid). -no-veil: none, as the washes
+                veilMats.Add(mid);
+                var pv = new Material(Shader.Find("Hiraeth/PitVoid")) { name = "pit dark (bridge)" };
+                Vector4 L4(string k, Vector4 d) { var l = m.L(k); if (l == null) return d; for (int j = 0; j < l.Count && j < 4; j++) d[j] = Json.Num(l[j]); return d; }
+                pv.SetVector("_Color", L4("color", new Vector4(0.07f, 0.043f, 0.094f, 1))); pv.SetVector("_Ring", L4("ring", Vector4.one));
+                pv.SetVector("_BoxMin", L4("min", Vector4.zero)); pv.SetVector("_BoxMax", L4("max", Vector4.one));
+                pv.SetVector("_Look", L4("look", new Vector4(7, 0.94f, 4, 0))); pv.SetVector("_Rings", L4("rings", new Vector4(3.2f, 0.45f, 1, 0)));
+                pv.SetVector("_Mid", L4("mid", Vector4.zero));
+                var inv = m.L("inv"); var im = Matrix4x4.identity;
+                if (inv != null && inv.Count == 16) for (int j = 0; j < 16; j++) im[j] = Json.Num(inv[j]);   // (both column-major)
+                pv.SetMatrix("_Inv", im);
+                materials[mid] = pv;
+                return;
+            }
             if (m.S("port") == "planet")
             {
                 // a world as the galactic map draws it (src/ship/approach.js planetMaterial: the holo table's planet aboard)

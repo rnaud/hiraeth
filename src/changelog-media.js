@@ -897,7 +897,8 @@ const FOOTPRINT336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headles
 const HUSH336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6454, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #342: the Warden's Well's futuristic skin, shot with and without it, the same pinned camera) */
 /** (v1.78: the last of the old dots-over-arc mark, the Lantern's tower and the temple kit's frieze ornament) */
-const KITMARK = 'Muted headless Chrome (High, 1280 × 720, noon, clear) against this branch’s own Vite (port 6515), the camera pinned at the same place with the old sources (before) and the new (after), the Rose House loaded with ?noskin=1; 15 October; cwebp -q 72';
+const UNITY_LOOK = 'Issue #264: the Unity bridge’s editor batch on this Mac (BridgeBatch.Run, muted, 1280 × 720, the views pinned in world coordinates), before and after the fix on the same build, 15 October; cwebp -q 72';
+const KITMARK ='Muted headless Chrome (High, 1280 × 720, noon, clear) against this branch’s own Vite (port 6515), the camera pinned at the same place with the old sources (before) and the new (after), the Rose House loaded with ?noskin=1; 15 October; cwebp -q 72';
 /** (v1.78, issue #342: the Aerie in its futuristic skin, the same pinned views with ?noskin=1 and without) */
 const FUTURE342_AERIE = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy that adds a query) in muted headless Chrome (High, 960 × 540, noon), Vite on port 6501, the house before the skin (before) and in it (after), the camera pinned in each room, 15 October; cwebp -q 72';
 const FUTURE342_AERIE_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 960 × 540, noon, the same pinned camera in 10 views (the Hall of Winds, the Wind Well up and on its floor and from the high balcony, the Wing Chamber, the Vent Hall, the Gulf, the Roost, the Moult, the Eyrie), the median of 240 frames each, ?noskin=1 and the skin in two loads; the machine shared with other work (load 14–25), so frame times are within its spread';
@@ -1067,6 +1068,14 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Unity version’s Arena has its list of foes', tags: ['combat', 'devices'], shots: [
       { name: 'unity-arena-foes', only: 'after', title: 'The Arena’s list (Unity)', caption: 'The Signal Market’s page: its heading and Waves from here, its six foes two to a row with what they are and do, the stall crab chosen under the pad, Waves again and Clear the field at the foot, LB / RB and the page’s number at the top. Before, the Unity version had no list', from: FOES264 },
     ], see: 'In the Unity version, go to the Arena and press D-pad ↓ or K.' },
+    { match: 'In the Unity version the pools of light round flames', tags: ['temples', 'devices'], shots: [
+      { name: 'unity-pools-fires', title: 'The Rose House’s fires (Unity)', caption: 'A fire on its rail by the rows of lamps: before, the floor round it unlit, the bridge’s look having just cleared the lights; after, its pool of light on the floor and the next one on the far wall, as on the web', from: UNITY_LOOK },
+      { name: 'unity-pools-cistern', title: 'The cistern (Unity)', caption: 'The Keeper on its plinth: before, the floor round the braziers dark; after, their pools round the ringed basin', from: UNITY_LOOK },
+    ], see: 'In the Unity version, walk into the Rose House and stand by its first flame: the floor round it is lit, and stays lit as the hour moves.' },
+    { match: 'In the Unity version the deadly pits fill', tags: ['temples', 'devices'], shots: [
+      { name: 'unity-pit-footprint', title: 'The Footprint’s pool (Unity)', caption: 'From the pool’s lip: before, the pale water at the bottom in plain sight; after, deep ink with the pale rings turning on it, as on the web', from: UNITY_LOOK },
+      { name: 'unity-pit-clock', title: 'A Clock-House drop (Unity)', caption: 'Over the edge by the sand-glass column: before, the drop’s floor grey and plain; after, the dark at its bottom and its rings', from: UNITY_LOOK },
+    ], see: 'In the Unity version, look over the edge of a Footprint pool or a drop in the Clock-House.' },
     { match: 'Aboard the ship in the Unity version', tags: ['ship', 'devices'], shots: [
       { name: 'unity-ship-table', title: 'The main room (Unity)', caption: 'The holo table and the console from the room’s aft end, in the Unity build on this Mac: before, the planet and the round screen white; after, the desert’s planet in its stripes, as on the web', from: SHIP264 },
     ], see: 'In the Unity version, walk up the ramp and look at the holo table in the middle of the main room. For the hold, stand at its back wall while it rains.' },

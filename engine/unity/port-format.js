@@ -23,6 +23,13 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && 'uRes' in u && 'uInk' in u && spec.transparent && !('uMode' in u) && !('uColor' in u)) {
     return { id, name: spec.name ?? '', port: 'wisp', side: 2, plain: 1 };
   }
+  // a deadly drop's dark (src/pit-void.js: a temple's pit, a world's void; a wash over the finished picture, its box's
+  // inside faces, the scene's depth read by hand) → the bridge's Hiraeth/PitVoid: three's world into the box's frame
+  // (16, column-major, three's space: the shader mirrors x back), the box, its colours and its look
+  if (spec.type === 'shader' && Array.isArray(u.uInv) && u.uInv.length === 16 && Array.isArray(u.uLook) && Array.isArray(u.uRings) && Array.isArray(u.uMin)) {
+    return { id, name: spec.name ?? '', port: 'pitvoid', inv: u.uInv.map(r5), min: u.uMin.map(r5), max: u.uMax.map(r5), color: col(u.uColor), ring: col(u.uRing),
+      look: u.uLook.slice(0, 3).map(r5), rings: u.uRings.slice(0, 3).map(r5), mid: (u.uMid ?? [0, 0]).map(r5), side: 1, plain: 1 };
+  }
   // a see-through surface's body (src/veil.js Veils: a wash over the finished picture, tested by hand against the
   // G-buffer's depth) → the bridge's Hiraeth/Veil: its colour, alpha a layer, glow, how near the eye it fades out
   if (spec.type === 'shader' && Array.isArray(u.uWash) && u.uWash.length === 3 && Array.isArray(u.uColor) && spec.transparent && spec.depthTest === false) {

@@ -1390,6 +1390,23 @@ opaque surface (an air pillar a white column), the washes' scene was never mirro
 The blend is Unity's linear one (the camera target encodes sRGB), the web's is in display values: a pale wash over a
 dark city reads a little lighter than the web's. Android and the Deck get the same (one shader, one bridge).
 
+**A deadly drop's dark** (src/pit-void.js, issue #312: every temple pit that puts you back, the Clock-House's, the
+Footprint's pools; a world's void under its kill height) is a wash of its own making in the same scene: a shader with
+`uInv`, `uMin`/`uMax`, `uLook` and `uRings`, which went to the port's Surface and drew nothing like it. It goes as
+`port: 'pitvoid'` (three's world into the box's frame, the box, the dark and the rings' colours, the look) to
+**Hiraeth/PitVoid** (Transparent+20, Cull Front: three's BackSide through the mirror's flipped winding): the web's GLSL
+worked in three's space (x mirrored back), the scene's depth and normal read from `_GNormalTex`, the rings turned by
+`_MTime`. Its alpha is raised (1 − (1 − a)^2.2) so the near-black wash darkens a bright floor as much as the page's
+display-value blend does. No shadow; `-no-veil` leaves it out with the washes. tests/engine-unity.test.js.
+
+**The local lights** (op 11) and the look: the bridge sends its look again whenever it moves (every 4th frame at most)
+and `HiraethLook.Load` cleared the local lights with it, so the Apply there sent the shader none until the next
+Update: the Rose House's flame, fires and cistern without their pools in the batch pictures, and a frame without
+pools every so often in play. Load keeps the lights unless a list comes with it (the port's world.json). The
+off-screen cull (#262) is unchanged; a shot (`BridgeRunner.Shot`) culls against its own 16:9 picture, not the 4:3
+batch window, and logs `lights at <shot>: kept of near` (Rose House: 8/8, 6/8, 7/8, 8/8; desert bench views: spawn
+8/8, qanat-tree 7/8, camps 6/8, cave 6/6, dunes 2/3).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

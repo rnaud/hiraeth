@@ -9,6 +9,7 @@ import { skinMatrices } from '../skin.js';
 import { packClothDesc } from '../cloth.js';
 import { packCapeDesc, writeCapePacket } from '../cape-job.js';
 
+const OVER = new Set(['veil', 'pitvoid', 'wisp']);   // (drawn over the ink: no shadow)
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
 export class UnityBackend {
@@ -162,8 +163,9 @@ export class UnityBackend {
     }
     this.nodes ??= new Map();
     this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form, hidden });
-    // (a see-through surface's wash, Hiraeth/Veil, and the wind's wisps cast no shadow: the page draws them over the ink)
-    const over = d.mids.some((m) => this.ports.get(m) === 'veil' || this.ports.get(m) === 'wisp');
+    // (a see-through surface's wash, Hiraeth/Veil, a deadly drop's dark, Hiraeth/PitVoid, and the wind's wisps cast no
+    // shadow: the page draws them over the ink)
+    const over = d.mids.some((m) => OVER.has(this.ports.get(m)));
     const desc = { kind: d.kind, mesh, mids: d.mids, name: d.name, shadow: d.shadow !== false && !over && !hidden, bones: d.bones ?? 0 };
     // (a skinned mesh bound "attached": its skeleton's bones are shared, its bind matrix is its bind pose)
     if (d.kind === 'skinned' && d.skeleton && d.attached) { desc.skeleton = d.skeleton; desc.bind = Array.from(mirrorMatrix(d.bind)); }

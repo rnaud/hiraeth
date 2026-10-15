@@ -806,6 +806,8 @@ namespace Hiraeth.Bridge
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
+            // (the lights culled to the picture's own frustum, 16:9, not the 4:3 batch window's; how many kept, logged)
+            if (look) { look.PushLights(); Debug.Log($"Hiraeth bridge: lights at {Path.GetFileName(path)}: {HiraethLook.LightsKept} of {HiraethLook.LightsNear} near"); }
             // (the HUD's letters: a dynamic font rasterises new ones on a canvas rebuild, so build, draw, and again)
             scene.FinishFrame();
             Canvas.ForceUpdateCanvases();

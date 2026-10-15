@@ -397,3 +397,49 @@ test('a conversation\'s portrait goes to Unity mirrored, named for the chip, kep
   assert.equal(sent[1][1].file, '/tmp/out/unity-portrait-4.png');
   assert.deepEqual(sent[1][1].up.map(Math.abs), [0, 1, 0], 'up by default');
 });
+
+// A deadly drop's dark (src/pit-void.js, issue #312) in the Unity bridge: not drawn there before (its ShaderMaterial fell to
+// the port's Surface); now the bridge's Hiraeth/PitVoid, over the ink, with the box, its frame and its look.
+test('a deadly drop\'s dark: on Hiraeth/PitVoid with its frame, box and look, over the ink, no shadow', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+  const { pitVoid, PIT_VOID } = await import('../src/pit-void.js');
+  const frame = new THREE.Matrix4().makeRotationY(0.7).setPosition(30, 2400, -12);
+  const v = pitVoid(null, { min: [-4, -6, -3], max: [4, 0, 3], frame, color: '#120b18', ring: '#70e7df' });
+  const pm = portMaterial(inkSpec(v.mesh.material), 5);
+  assert.equal(pm.port, 'pitvoid');
+  assert.equal(pm.inv.length, 16);
+  const inv = new THREE.Matrix4().fromArray(pm.inv), p = new THREE.Vector3(1, -2, 0.5);
+  assert.ok(p.clone().applyMatrix4(frame).applyMatrix4(inv).distanceTo(p) < 1e-3, 'three\'s world into the box\'s frame');
+  assert.deepEqual(pm.min, [-4, -6, -3]); assert.deepEqual(pm.max, [4, 0, 3]);
+  assert.deepEqual(pm.look, [Math.min(PIT_VOID.fade, 6), PIT_VOID.dark, PIT_VOID.steps]);
+  assert.deepEqual(pm.rings, [PIT_VOID.ring, PIT_VOID.turn, 1]);
+  assert.equal(pm.side, 1, 'its inside faces');
+  // the mirror's node: drawn, casting no shadow (as the washes)
+  const made = [], H = { Material: () => {}, Create: (id, j) => made.push(JSON.parse(j)), Geometry: () => {} };
+  const B = new UnityBackend(H);
+  B.material(5, inkSpec(v.mesh.material));
+  B.create(9, { kind: 'mesh', gid: 0, mids: [5], name: 'pit', shadow: true });
+  assert.equal(made[0].shadow, false);
+  const sh = read('unity/Hiraeth/Assets/Hiraeth/Shaders/PitVoid.shader');
+  assert.match(sh, /Shader "Hiraeth\/PitVoid"/);
+  assert.match(sh, /Cull Front/, 'three\'s BackSide through the mirror\'s flipped winding');
+  assert.match(sh, /_GNormalTex\.Load/, 'the scene\'s depth read by hand');
+  const guid = /guid: ([0-9a-f]{32})/.exec(read('unity/Hiraeth/Assets/Hiraeth/Shaders/PitVoid.shader.meta'))[1];
+  assert.ok(read('unity/Hiraeth/ProjectSettings/GraphicsSettings.asset').includes(`guid: ${guid}, type: 3}`), 'always included: Shader.Find finds it in a player');
+  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /m\.S\("port"\) == "pitvoid"/);
+});
+
+// The light pools gone in Unity pictures (the Rose House's flame, its fires and cistern): the bridge's look, sent again
+// whenever it moves, cleared the local lights (HiraethLook.Load with no list) and sent the shader none before the next
+// op 11. The look keeps them now; the off-screen cull (#262) is measured against the picture's own frustum in a shot.
+test('the bridge\'s look keeps the local lights; a shot culls them to its own frustum', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+  const look = read('unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs');
+  const load = look.slice(look.indexOf('public void Load('), look.indexOf('public void SetLocalLights'));
+  assert.match(load, /if \(lights != null\)\s*\{\s*localLights\.Clear\(\);/, 'cleared only when a list comes with the look');
+  assert.match(look, /public void PushLights\(\)/);
+  const shot = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
+  assert.match(shot, /cam\.targetTexture = rt;\s*\n\s*\/\/[^\n]*\n\s*if \(look\) \{ look\.PushLights\(\);/, 'the shot\'s lights culled once its target is set');
+});
