@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_b97e64b2f16763 20
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_7b227b14ebe6c9 294-308,463
+engine/game.js
+  s_9ca76055a220ed::t_6b05ec97faa2e6 205,442-443,707-717,792-793,972
+engine/platform.js
+  s_9ca76055a220ed::t_65c8b817cc7318 189-191
+engine/unity/game.js
+  s_9ca76055a220ed::t_5c45b34cfc8c54 61-63,206,290-300,446
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_4dda575da79c90 31-37
+src/changelog-media.js
+  s_9ca76055a220ed::t_7ff6ebd79a9e5b 1003-1004,1045-1047
+src/changelog.js
+  s_9ca76055a220ed::t_60bd4ea90b8a51 50-53
+src/ship/art.js
+  s_9ca76055a220ed::t_c99e424ea6fe2b 10-11
+src/ship/interior.js
+  s_9ca76055a220ed::t_0639fb818e8b94 192-193
+src/ship/ship.js
+  s_9ca76055a220ed::t_9ec7119a0bff26 5,69-71,425-427,429
+tests/engine-ship.test.js
+  s_9ca76055a220ed::t_ef9a0d803a2b3f 102-111
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_6aa999600a5cb6 138-154
+tests/ship.test.js
+  s_9ca76055a220ed::t_2dee6166ef0e9f 69-86
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_8dd4fc1cc64181 177-178
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_2d011d4220c31b 390-401
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "faf7d2996c83bf16148e0b3e293ffa9a0124816a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
