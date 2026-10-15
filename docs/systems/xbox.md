@@ -178,6 +178,10 @@ Dev Home opens; under *Remote access* turn on the **Device Portal** (a user name
 
 ## The slow load (October 2026)
 
+(History. Today's Unity build, 1.78.2373, loads the Desert in 35-36 s and the City-Shaft in 41 s, cold or warm alike.
+More than half of that is the GPU's pipelines, made on one core at every launch, which the D3D12 cache does not
+shorten. See performance.md, "Cold and warm loads, Mac and Xbox (issue #16)".)
+
 A new game sat about four minutes on "mixing the inks…" (build 1660, packaged, the Desert): `shaders: 861 kinds of
 surface, 75 programs, 53228 ms`, `passage warm-up: 2472 meshes in 158965 ms`, `mixing the inks… 220788 ms`, total
 230 s. Loaded again without relaunching the app: shaders 2.5 s, passage 30-31 s, total 42 s. Three causes:

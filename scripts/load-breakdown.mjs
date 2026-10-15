@@ -29,6 +29,12 @@
 //                        hoverbike's top speed, along the camera's heading and back near the world's edge, after a
 //                        quick full turn of the camera): the frame intervals' p50/p95/p99/max and the frames over 50
 //                        and 100 ms (with --disable-gpu-vsync an interval is the frame's own work)
+//     [--profile dir]    cold and warm loads on the Mac (issue #16): each world's Chrome profile kept in dir/<world> and
+//                        reused, the GPU program cache on (Chrome's GPUCache, as a player's browser), the build served as
+//                        GitHub Pages serves it (max-age=600); a world's first run in a new profile is "cold", the
+//                        rest "warm" (Chrome relaunched each time; reported one by one, not as a median). With --salt
+//                        word every shader gets a #define of its own, so neither ANGLE's cache nor the system's Metal
+//                        cache outside the profile can answer the cold run (a new word for a new cold run)
 //     [--keys]           with --dump, each live program's three.js key and the materials using it (dir/<world>.keys.json)
 //     [--xbox https://hiraeth.example/perf-new.html]   on the Xbox instead (its page navigated there through the Device
 //                        Portal's DevTools relay, scripts/xbox-shaders.mjs connect): the app opens only its own origin,
@@ -59,6 +65,7 @@ const RUNS = Number(arg('runs', 1));
 const WARM = args.includes('--warm'), OUT = arg('json'), DUMP = arg('dump'), KEYS = args.includes('--keys'), GPU = Number(arg('gpu', 0));
 const SLOW = arg('slow') ? { base: Number(arg('slow')), perKb: Number(arg('slow-kb', 4)), par: Number(arg('slow-par', 2)) } : null;
 const LIMIT = Number(arg('limit', 400)) * 1000;
+const PROFILE = arg('profile') ? resolve(arg('profile')) : null;
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[s.length >> 1]; };
@@ -74,7 +81,7 @@ export function serveDist(dist = DIST, port = PORT, host = '127.0.0.1') {
     if (p.endsWith('/')) p += 'index.html';
     const f = join(dist, p);
     if (!f.startsWith(dist) || !existsSync(f) || !statSync(f).isFile()) { res.writeHead(404); res.end(); return; }
-    res.writeHead(200, { 'content-type': TYPES[extname(f)] ?? 'application/octet-stream', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
+    res.writeHead(200, { 'content-type': TYPES[extname(f)] ?? 'application/octet-stream', 'cache-control': PROFILE ? 'max-age=600' : 'no-store', 'access-control-allow-origin': '*' });
     createReadStream(f).pipe(res);
   });
   return new Promise((r) => server.listen(port, host, () => r(server)));
@@ -205,11 +212,11 @@ async function xboxPage() {
   return { send: c.send, ev, errors: [], close: async () => c.close() };
 }
 
-export async function chrome() {
-  const profile = tempDir('hiraeth-load-');
+export async function chrome(kept = null) {
+  const profile = kept ?? tempDir('hiraeth-load-');
   const proc = ownProcess(spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=user-gesture-required', `--remote-debugging-port=${CDP}`, `--user-data-dir=${profile}`,
     '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--no-first-run', '--no-default-browser-check',
-    '--disable-gpu-shader-disk-cache', '--disable-gpu-vsync', '--disable-frame-rate-limit', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
+    ...(kept ? [] : ['--disable-gpu-shader-disk-cache']), '--disable-gpu-vsync', '--disable-frame-rate-limit', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--force-device-scale-factor=1', '--window-size=1280,720', 'about:blank'], { stdio: 'ignore' }));
   let tabs;
   for (let i = 0; i < 80 && !tabs; i++) { try { tabs = await (await fetch(`http://127.0.0.1:${CDP}/json`)).json(); } catch { await sleep(250); } }
   if (!tabs) throw new Error('Chrome did not start');
@@ -233,7 +240,7 @@ export async function chrome() {
     const gone = new Promise((r) => proc.once('exit', r));
     proc.kill('SIGTERM');
     await Promise.race([gone, sleep(5000)]);
-    rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });   // (Chrome's helpers can still be writing into it)
+    if (!kept) rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });   // (Chrome's helpers can still be writing into it)
   };
   // the resident memory of this Chrome's renderer and GPU processes, MB (ps, by the profile's directory on their command line)
   const processes = () => {
@@ -257,7 +264,7 @@ const storage = (preset, fps = false) => `localStorage.clear();
 
 /** One world's load, in a fresh Chrome (or `page`: a page of the same shape, the handheld's, scripts/bench/gecko-load.mjs). */
 export async function measure(world, { base, preset = PRESET, slow = SLOW, dump = false, xbox = false, page: given = null } = {}) {
-  const c = given ?? (xbox ? await xboxPage() : await chrome());
+  const c = given ?? (xbox ? await xboxPage() : await chrome(PROFILE && join(PROFILE, world)));
   const gecko = !!c.gecko;
   try {
     await c.send('Page.enable');
@@ -265,7 +272,7 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     const root = page.replace(/[^/]*$/, '');
     await c.send('Page.navigate', { url: `${root}manifest.webmanifest` }); await sleep(xbox ? 1500 : 300);
     await c.ev(`${storage(xbox ? null : preset, gecko)}; true`);   // (on the handheld the frame readout on, as every measure there)
-    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox && !WARM && (arg('salt') ?? true)) });
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox ? !WARM && (arg('salt') ?? true) : (arg('salt') ?? false)) });
     if (!xbox && arg('cpu')) await c.send('Emulation.setCPUThrottlingRate', { rate: Number(arg('cpu')) });   // (the handheld recipe: the main thread slowed n times)
     const t0 = Date.now();
     await c.send('Page.navigate', { url: `${page}?level=${world}${arg('query') ? `&${arg('query')}` : ''}` });
@@ -378,15 +385,16 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     for (const w of WORLDS) for (const how of GECKO ?? [null]) {
       const runs = [];
+      const fresh = PROFILE && !existsSync(join(PROFILE, w));
       for (let i = 0; i < RUNS; i++) {
         if (how) await gecko.ensure();
         const cool = how ? await G.coolDown(`${w} ${how}`, Number(arg('cool', 48))) : null;
         const page = how ? await gecko.open(how) : null;
-        runs.push({ ...(await measure(w, { base, dump: !!DUMP && i === 0, xbox: !!XBOX, page })), ...(how ? { how, cool, after: G.temps() } : {}) });
+        runs.push({ ...(await measure(w, { base, dump: !!DUMP && i === 0, xbox: !!XBOX, page })), ...(how ? { how, cool, after: G.temps() } : PROFILE ? { how: fresh && i === 0 ? 'cold' : 'warm' } : {}) });
         if (how) await gecko.rest();   // (the game off the screen while the next one waits to cool)
       }
-      const r = runs[0];
-      if (RUNS > 1) {
+      for (const r of PROFILE ? runs : runs.slice(0, 1)) {   // (cold and warm one by one: no median of the two)
+      if (RUNS > 1 && !PROFILE) {
         r.wall = median(runs.map((x) => x.wall)); r.firstFrame = median(runs.map((x) => x.firstFrame));
         for (const k of Object.keys(r.stages)) r.stages[k] = median(runs.map((x) => x.stages[k] ?? 0));
         for (const k of Object.keys(r.gl)) r.gl[k] = median(runs.map((x) => x.gl[k]));
@@ -413,6 +421,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       if (r.errors.length) console.log(`  errors  ${r.errors.join(' | ').slice(0, 300)}`);
       delete r.list;
       all.push(r);
+      }
     }
   } finally { server?.close(); gecko?.close(); }
   if (OUT) writeFileSync(OUT, JSON.stringify(all, null, 1));

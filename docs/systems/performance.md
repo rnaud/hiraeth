@@ -3183,3 +3183,120 @@ dozen systems of 0.3-2 ms. Levers not taken because they change what is seen or 
 quarter of the frames past 30 m (src/npc.js `offView`, the Unity bridge's peopleLod), matrices skipped under hidden
 subtrees (scene-matrices `skipHidden`: a body's face shown by its level of detail after the matrices would draw a
 frame where it was), the near shadow map less often.
+
+## Cold and warm loads, Mac and Xbox (issue #16, 2026-10-15)
+
+What #16 still asked after "The load by kind of work" and the Retroid's round 6: cold first-install loads apart from warm
+repeats, on the Mac and the Xbox, for the same worlds; the load split by kind of work; the first playable frame, memory
+and traversal p95/p99; the Xbox's resource allocation; and whether the "230-second Xbox load" is still true.
+
+**How.**
+- **The Mac** (M4 Pro, headless Chrome on ANGLE Metal, High, 1280 × 720, no vsync): main at 8ca3618f, `npx vite build`,
+  served statically. `scripts/load-breakdown.mjs --profile dir --salt word --runs 3 --traverse 60` (new: `--profile`):
+  - each world gets a Chrome profile of its own, kept between runs, with Chrome's GPU program cache on and the build
+    served as GitHub Pages serves it (`max-age=600`);
+  - run 1 is **cold**: a new profile, and every shader salted with a `#define`, so neither ANGLE's cache nor macOS's
+    Metal cache outside the profile can answer;
+  - runs 2 and 3 are **warm**: Chrome relaunched on the same profile, the same salt;
+  - traversal is the harness's own: the traveller carried at 40 m/s along the view and back for 60 s.
+  Other agents' builds loaded the Mac (load 12 at the start, 36 at the end), so read these numbers for shape. Home's
+  warm runs came last and are the noisiest.
+- **The Xbox** (Series X, the Unity port `rnaud.HiraethUnity` 1.78.2373, Direct3D 12, a 4K TV with dynamic resolution,
+  muted): a launch through the Device Portal with `-level <world> -walk 60 -slow-ms 100` in `LocalState\args.txt`, read
+  from `unity.log`. The portal's `systemperf` and `processes` were sampled every 2 s. The scripts are in the session's
+  scratchpad (`loads16/xrun.mjs`; its `--cold` backs up and then removes the app's own caches).
+  - **Cold**: the app's caches removed first. That means the D3D12 shader cache in its `AC\*.dxcache*` and the bridge's
+    `LocalState\prewarm.txt`, the state a first launch after install starts from. A reinstall was not used: it can
+    reset the app type, and changing that is a console setting.
+  - **Warm**: launched again right after.
+  - **Walk**: W held for 60 s from the spawn, at walking speed. That is a different route and speed from the Mac's
+    40 m/s carry.
+- **The Retroid** was not connected (it is busy with #262). Its numbers are #364's and round 6's.
+
+**Loads**, s. First frame / first playable is the first of ten frames in a row under 50 ms apart. On the Xbox the first
+playable comes 0.3 s after the first frame (one 217 ms frame follows it). Memory: the Mac's JS heap and Chrome's GPU
+process; the Xbox's private working set and commit (the app's own process); the Retroid's tab PSS. Traversal is
+p95 / p99 / worst, ms.
+
+| world | device | cold first frame / playable | warm first frame / playable | memory | traversal cold · warm |
+|---|---|---|---|---|---|
+| Desert | Mac | 4.92 / 5.03 | 4.92 / 4.93 (one run 9.31) | heap 188 MB · GPU process 594 MB | 8.8 / 11.5 / 28 · 9.0 / 12.7 / 29 |
+| Desert | Xbox | 35.9 / 36.2 | 35.1 / 35.4 | 2.6 GB private · 2.9 GB commit | 21.2 / 26.3 / 217 · 21.0 / 27.1 / 217 |
+| Desert | Retroid (round 6, #364) | 15.4 / 16.7 | 15.2 / 15.9 (v1.77 main: 18.2; after #364: 17.2) | tab 1058 MB | 30-32 / 34-41 / 42-64 |
+| City-Shaft | Mac | 7.53 / 7.53 | 5.60-5.90 | heap 216-225 MB · GPU process 603-665 MB | 12.5 / 14.2 / 36 · 13.1 / 14.4 / 39 |
+| City-Shaft | Xbox | 41.4 / 41.4 | 40.9 / 40.9 | 2.75 GB private · 3.2 GB commit | 32.9 / 34.7 / 67 · 33.1 / 34.8 / 74 |
+| City-Shaft | Retroid (round 6, #364) | 18.3 / 19.1 | 17.9 / 18.8 (main: 20.8; after: 20.0) | tab 1296 MB | 29-35 / 40-50 / ~900 (later #255) |
+| Home | Mac | 2.60 / 2.61 | 3.34, 4.40 (load above 30) | heap 90 MB · GPU process 347 MB | 6.9 / 8.4 / 156 · 7.7 / 10.8 / 156 |
+| Home | Retroid (#364) | | 8.7 (after: 7.9) | | |
+
+**The load by kind of work**, s:
+- the Mac's are the cold run's phases;
+- the Xbox's come from its log: the bridge's boot (the player, the script's engine, the bundle), then
+  `Hiraeth.start`'s own marks in V8 (level; physics; ship, gestures, traveller, people), the mirror into Unity (to
+  the first node), and the main thread held up by the GPU pipelines (the frames before the world's first frame, less
+  the work above).
+
+| world | device | boot / modules | world | collision | characters | shaders, pipelines | GPU warm-up | mirror and rest |
+|---|---|---|---|---|---|---|---|---|
+| Desert | Mac cold | 0.53 | 1.77 | 0.22 | 0.32 | 0.44 | 0.82 | 0.80 |
+| Desert | Xbox cold | 3.3 | 3.05 | 0.25 | 2.25 (+0.7 life) | **~24** (1.8 at the start, ~22 at the first draws) | in the line before | 1.2 |
+| Desert | Xbox warm | 3.3 | 3.09 | 0.25 | 2.27 (+0.7) | **23.9** (15.3 prewarm at the start, 8.6 at the first draw) | in the line before | 1.5 |
+| City-Shaft | Mac cold | 0.39 | 2.31 | 0.67 | 0.48 | 0.96 | 2.18 | 0.51 |
+| City-Shaft | Xbox cold | 3.3 | 2.83 | **7.63** | 3.70 (+0.9) | **21.2** (1.8 + 19.4) | in the line before | 1.7 |
+| City-Shaft | Xbox warm | 3.3 | 2.89 | 7.71 | 3.74 (+0.9) | **20.4** (11.8 prewarm + 8.6) | in the line before | 1.8 |
+
+What it says:
+- **"230 seconds" is not today's Xbox number.** That was build 1660 of the WebView2 app (the web game through ANGLE):
+  its shader cache was cleared at every launch and the passage warm-up drew everything ("The slow load", xbox.md; fixed
+  then). Its last measure was 139.7 s cold and 51 s after a relaunch. **Today the Xbox's Unity build loads the Desert in
+  35-36 s and the City-Shaft in 41 s, cold or warm alike.** The WebView2 app (`rnaud.Hiraeth`) was left alone.
+- **On the Xbox, cold and warm differ by under 1 s, and more than half of every load is the GPU's pipelines.** That
+  holds with the D3D12 shader cache removed or kept, and with or without the prewarm. A warm launch with `-no-prewarm`
+  and the cache kept reached the first frame at 35.0 s, the cold one at 35.9 s. While the main thread waits, the
+  portal shows the app at 12.5 % CPU (exactly one of the 8 cores) and the GPU's 3D engine at 0 %. Each of the 8-11
+  (vertex layout, material state) pairs costs ~1.5-2.5 s of one core, every launch, and the console's cache does not
+  shorten it. **So no shader cache explains or fixes the Xbox's load.**
+  - The world itself is ~10 s of script: the bundle 0.7 s, `Hiraeth.start` 6.3 s in the Desert and 15.3 s in the
+    City-Shaft.
+  - The City-Shaft's collision is 7.6 s on the console against 0.6-0.7 s on the Mac. The bridge has no `Worker`, so the
+    BVH is built on the script's thread (src/physics.js), and the trees-in-houses and crowd-route ray checks run in V8
+    at about a fifth of the M4's speed.
+- **The prewarm buys nothing today, because it runs before the script.** BridgePrewarm draws the last launch's pairs
+  in the first frame, meant to overlap the script's world build. But the script's engine is made through the main
+  thread (`new JsRuntime(BridgeHost.OnMainThread, …)`), which sits in that 12-15 s frame. The engine came at 17.9 s in
+  the warm Desert against 4.4 s cold, so the prewarm's time is added, not hidden. The likely fix: begin the prewarm's
+  draws once the engine is made (`scriptEnvMade`), so they run beside `Hiraeth.start`. The expected result is ~28 s for
+  the Desert and ~29 s for the City-Shaft, whose 15 s script would hide the 12 s prewarm. It is not made here: it needs
+  a Unity build and a check on the console. After it, the floor is the pipelines' ~2 s each. The next things to look at
+  are Unity 6's own pipeline warm-up (`GraphicsStateCollection`) and fewer pairs.
+- **On the Mac, a warm load is no faster than a cold one.** The cold Desert loaded in 4.9 s and the warm one in 4.9 s.
+  The City-Shaft's 7.5 s cold against 5.6-5.9 s warm is the GPU warm-up's uploads (2.2 s against 0.3 s), which moved in
+  one run only. On Metal a salted, uncached program links fast (the surfaces step: 0.34 s cold). With Chrome's program
+  cache on, the warm surfaces step took 0.83-2.2 s, because reading programs back from the cache is no quicker than
+  compiling them here. The world's creation (1.8-2.3 s) and its uploads are the Mac's load. As on the Retroid (round 6:
+  cold only 0.2-0.9 s slower than warm), a first install is not the slow case on either web target.
+- **Memory.** The Mac's JS heap is 90-230 MB and its GPU process 300-670 MB. The Xbox's app peaks at 2.4-2.8 GB
+  private and 2.8-3.2 GB committed: 55-62 % of its 5 GB, so memory is not what limits it.
+- **Traversal.** The Mac's p95 is 7-13 ms and p99 8-16 ms, with no frame over 50 ms in the Desert or the City-Shaft.
+  Home has one 155 ms frame on every run (and a 406 ms one in a loaded run): left for a follow-up, it was not looked at
+  here. On the Xbox's walk, the Desert's p95 / p99 is 21 / 26-27 ms at 54-60 fps. Its frames over 50 ms are one
+  217 ms frame right after the first frame (a managed GC and script frame 4) and a 100 ms one, plus windows peaking at
+  67-83 ms. At the City-Shaft's spawn, the walk runs at 46-51 fps with p95 33 ms: vsync halves the frames that miss
+  (issue #113's rim). No stall of over 100 ms was found on either Xbox route after the first frame.
+
+**The Xbox's resource allocation (Developer Mode), confirmed:**
+- **App type Game.** The app reads its own memory limit as 5120 MB (`MemoryManager.AppMemoryUsageLimit`, logged as
+  "app type Game"). An App gets ~1 GB.
+- **D3D12 device.** "SraKmd_arden", feature level 11.0, 4096 MB of video memory, an app VRAM budget of 4147 MB, unified
+  memory.
+- **CPU.** 8 logical processors (Unity's job system takes 7 workers). Note the app CPU reading: during a pipeline wait
+  it is 12.5 %, one core.
+- **GPU share.** The 3D engine is 83-88 % busy at the 4K spawn, far above the 45 % an App gets: the game has the whole
+  GPU.
+- **What not to read from the portal.** Its own adapter figures (512 MB dedicated, 832 MB shared) are the system OS's
+  view, not the game's budget: while the game runs, "shared used" reads 1.1 GB. Engine 5 sits at 100 % from the first
+  sample (the display's, not the game's).
+
+To repeat: `load-breakdown.mjs --worlds … --profile <new dir> --salt <new word> --runs 3 --traverse 60` with `PORT` away
+from 5173. For the Xbox, the steps above, each run ending with the app stopped and `args.txt` removed
+(`node scripts/xbox-unity.mjs args ""`).
