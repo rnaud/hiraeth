@@ -1,3 +1,7 @@
+if (new URLSearchParams(location.search).has('markReview')) {
+  const { seedMarkReview } = await import('./makers-mark/runtime.js');
+  await seedMarkReview();
+}
 if (['keeper','elder'].includes(new URLSearchParams(location.search).get('guardianReview')) || new URLSearchParams(location.search).get('characterReview')==='b3') {
   const {seedGuardianReview} = await import('./guardian-review.js');
   await seedGuardianReview();
@@ -87,4 +91,8 @@ if (fromDebugMenu) installDebugBack({ keys: false, pad: false, fade: true });
 if (new URLSearchParams(location.search).has('cinematicReview')) {
   const { startReview } = await import('./cinematics-page/runtime.js');
   await startReview(window);
+}
+if (new URLSearchParams(location.search).has('markReview')) {
+  const { startMarkReview } = await import('./makers-mark/runtime.js');
+  await startMarkReview(window);
 }

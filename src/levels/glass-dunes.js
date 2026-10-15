@@ -357,7 +357,7 @@ export const GLASS_CONTENT = {
     glyph: { size: 2.2, pitch: -Math.PI / 2, lift: 0.15, color: '#70e7df' },
     person: { id: 'trace.glassdunes', name: 'A mark in the glass', title: '', color: '#70e7df',
       talk: { nodes: { look: { say: [
-        '~solemn~ (Fused into the sand from above, as though something hot had come down low and pressed it there: three dots over an arc, {glyph}, in a skin of new glass.)',
+        '~solemn~ (Fused into the sand from above, as though something hot had come down low and pressed it there: an open corner beside a shorter upright, {glyph}, in a skin of new glass.)',
         '~whisper~ (It is clearer than the old glass of the dunes, and newer. The camp takes its sand from everywhere else: round the mark the drifts lie untouched, the way you leave a grave, or a gift.)',
       ], do: { set: { 'sight.glassdunes.mark': true } } } } } },
   },

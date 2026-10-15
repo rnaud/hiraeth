@@ -1,3 +1,4 @@
+import { activeMark } from '../makers-mark/candidates.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
@@ -234,7 +235,7 @@ const ORNAMENTS = {
     at(M.a, new THREE.SphereGeometry(1, 8, 5).scale(0.28, 1.25, 0.02), 0, -2.1, 0.02);
     at(M.b, new THREE.BoxGeometry(0.04, 2.3, 0.015), 0, -2.1, 0.035);
   },
-  /** the makers' three dots over an arc, cut into the stone (the Rose House) */
+  /** the makers' an open corner beside a shorter upright, cut into the stone (the Rose House) */
   mark(at, M) {
     for (const x of [-0.42, 0, 0.42]) at(M.b, new THREE.CircleGeometry(0.13, 8), x, -1.35, 0.012);
     at(M.b, flat(new THREE.TorusGeometry(0.55, 0.06, 3, 10, Math.PI * 0.8).rotateZ(Math.PI * 0.1), 0.3), 0, -2.05, 0.02);
@@ -579,7 +580,9 @@ export class TempleKit {
   ledge(x0, z0, x1, z1, y, t = 0.9) { return this.slab(x0, z0, x1, z1, y, t, this.M.floor); }
   /** The makers' glyph, glowing, at p, facing `yaw` (0 = +z). */
   glyph(p, size = 1, yaw = 0) {
-    return this.add(this.M.glyph, T(glyphGeometry(size, 0.12), [p[0], p[1], p[2]], [0, yaw, 0]));
+    // The broad relief needs its back clear of faceted walls; avoid a cap exactly coplanar with a ledge.
+    const lift = activeMark() ? 0.18 : 0, rise = activeMark() ? 0.017 : 0;
+    return this.add(this.M.glyph, T(glyphGeometry(size, 0.12), [p[0] + Math.sin(yaw) * lift, p[1] + rise, p[2] + Math.cos(yaw) * lift], [0, yaw, 0]));
   }
   /** A row of glyphs along a wall from a to b ([x, z]) at height y, facing into the room ('n' 's' 'e' 'w' = toward +z -z +x -x). */
   frieze(a, b, y, facing = 'n', every = 4.5) {

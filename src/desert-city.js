@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { candidateGeometry, activeMark } from './makers-mark/candidates.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { SandDrifts } from './sand-drifts.js';
@@ -1550,8 +1551,10 @@ export function buildDesertCity(scene, terrain) {
   return out;
 }
 
-/** The recurring glyph: three dots over an arc, as flat shapes (facing +z). */
+/** The recurring glyph: an open corner beside a shorter upright, as flat shapes (facing +z). */
 export function glyphGeometry(s = 1) {
+  const candidate = candidateGeometry(activeMark(), s * 1.9, s * 0.08);
+  if (candidate) return candidate;
   const parts = [];
   for (const [x, y] of [[-0.62, 0.55], [0, 0.75], [0.62, 0.55]]) parts.push(new THREE.CylinderGeometry(0.17 * s, 0.17 * s, 0.08 * s, 10).rotateX(Math.PI / 2).translate(x * s, y * s, 0));
   parts.push(new THREE.TorusGeometry(0.95 * s, 0.09 * s, 4, 18, Math.PI * 0.7).rotateZ(Math.PI * 0.15).translate(0, -0.72 * s, 0));

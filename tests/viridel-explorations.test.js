@@ -193,7 +193,7 @@ test('the nursery: pyramids by age along the walk, the old one’s stair walked 
   assert.ok(by('house').filter((h) => sees(eye, V(h.x, h.top - 1, h.z))).length >= 5, 'and the arc');
   const look = A.allInteractables().find((e) => e.id === 'edena.oldpyramid');
   assert.ok(look && look.distance({ pos: O.top.clone() }) < look.range, 'a look out from the top');
-  assert.ok(THINGS.oldpyramid.talk.nodes.look.say.some((l) => /three dots over an arc/.test(l)), 'the mark named');
+  assert.ok(THINGS.oldpyramid.talk.nodes.look.say.some((l) => /open corner beside a shorter upright/.test(l)), 'the mark named');
 });
 
 test('seen from where they are met: the old pyramid and the great ones from the walk, the round ship’s tree from the water, the spire from the stair’s foot', () => {

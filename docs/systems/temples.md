@@ -1236,8 +1236,7 @@ lavender-grey floors, lens terminals in alcoves, tiers of turning vanes, an iris
 - **Paints.** `M.bands` a dark plinth, a dark slate frieze course and cream courses every 8.4 m. The glyphs, the
   frieze's marks, the vanes' rings and the gallery's floor rings are cyan glow, the slit windows cyan light panels, the
   caps cream, the pieces' glows (`rt.P.glow`) cyan. incal.js reads these from `rt.skin.paints`. The band's sign is
-  sheet-1's (three tiny dots over a long flat arch); the frieze glyph itself is `sign-text.js glyphGeometry`, shared,
-  and left as it is.
+  the shared open-corner mark, sized to fit the shallow band; the frieze glyph itself uses the same `sign-text.js glyphGeometry`.
 - **Dressing**, drawn only (5 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
   - lens terminals in alcoves (`NICHE`: a 3.9 m square frame standing 1.3 m out of the wall, dark reveals and back,
     a cream sill, a lit lens of cyan rings round a pale core at its back), two a room over head height, none in a room
@@ -1342,7 +1341,7 @@ window on the sea, brass dishes and rows of horn terminals, aquamarine lines.
   off every doorway, piece and thing drawn on the walls by boxes; their feet 5 cm into the floor (no shared plane).
 - **Lighter presets** (`uWearLite`: Low, Handheld, the Deck): no chamfers, the floors' second set of lines and the
   walls' foot lines left out, the footings' small lenses hidden.
-- Not changed: the makers' glyph (three dots over an arc) is the shared `glyphGeometry`, on the doors and friezes as
+- The makers' glyph (the open corner and shorter upright) is the shared `glyphGeometry`, on the doors and friezes as
   in every house; the pieces (dishes, ears, balls, the glass's grid) keep their own looks.
 - Cost (1280x720, this Mac, six rooms): -7 to +10 draw calls on High, -14 to +1 on Low; fewer triangles (the
   friezes' shells were heavier than the lenses); frame time no worse (within the run's noise). `tests/temple-skins.test.js`.
@@ -1654,7 +1653,7 @@ shows the house without it). After `references/temples/future/founders-belfry/sh
 - **The bells** (`arzach2.js` `hang` asks `skin.bell`): not cups but resonators, four heavy chamfered bronze rings
   a ring's height apart round a dark core seen through every gap, held by nothing (no rod), a thin cobalt band round
   each and round the lowest's underside, and
-  the makers' sign on the lowest as the sheet draws it (`belfrySign`: a long flat arch, three tiny dots over its crest).
+  the approved open-corner mark on the lowest (`belfrySign` sizes it to fit the band).
 - **Dressing**, drawn only, in the kit's batches (one draw for all the bronze, one for all the cobalt; the cobalt out
   of the shadow passes): a column of four lens terminals on a cobalt line beside every doorway 5 m or taller, on the
   face toward a room, kept off every piece and glyph. The frieze ornament a lens in a bronze ring; the frieze band dark
@@ -1665,4 +1664,22 @@ shows the house without it). After `references/temples/future/founders-belfry/sh
   under about a pixel wide, so they hold at a low resolution. Draw calls are the house's own (the bronze and cobalt
   batches take the place of the bells' and the ornaments' own).
 - The makers' glyph on the doors, the frieze and the bridge stones is the shared `glyphGeometry` (`story/sign-text.js`),
-  left as it is.
+  now using the approved open-corner design.
+
+## Makers’ mark comparison (local prototype, October 2026)
+
+Open `/makers-mark.html` on the development server to compare the five hearted Midjourney
+candidates in the Rose House. `src/makers-mark/candidates.js` contains clean relief interpretations
+of the saved drawings in `references/makers-mark/selected-2026-10-15/` (provenance in its manifest).
+The picker switches candidate; surface and distance controls keep the camera and lighting consistent.
+The door, glyph stone, wall frieze and exterior landmark use the actual world, renderer and materials.
+All candidates fit the same allotted square while retaining their own proportions. The existing mark
+is available as a baseline. The other four candidates remain archived silhouette explorations.
+
+Option 4, **Open corner**, was approved on 15 October and is now the production default.
+`?markReview=1&mark=<id>` still selects alternatives; `mark=current` preserves the previous baseline.
+Shared SVG, relief geometry, curved-surface ink and carved shader inscriptions use the chosen silhouette.
+The narrative descriptions now match its open shoulder and shorter upright. The review seeds an ephemeral save before world loading; slot storage is also isolated
+from initialization onward. Audio starts muted in the Sound constructor even when saved preferences
+are audible. The embedded view does not accept game input. The review page is a development entry,
+not a new production navigation item. Unit coverage: `tests/makers-mark.test.js`.

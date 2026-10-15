@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { Door, Flame, Switch, Sentry } from '../pieces.js';
+import { candidateGeometry, activeMark } from '../../makers-mark/candidates.js';
 
 // ---------------------------------------------------------------------------
 // The Rose House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"), after the author's
@@ -231,6 +232,8 @@ const slab = (w, h, d, x = 0, y = 0, z = 0) => bare(new THREE.BoxGeometry(w, h, 
  * is tall) and three small dots in a tight row just over its crest. `width` m across, `depth` thick, its middle at 0.
  */
 export function signGeometry(width = 1, depth = 0.06) {
+  const candidate = candidateGeometry(activeMark(), width, depth);
+  if (candidate) return bare(candidate);
   const R = width / 1.62, parts = [];
   parts.push(new THREE.TorusGeometry(R, 0.045 * R, 4, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).scale(1, 0.8, depth / (0.09 * R)).translate(0, -0.8 * R + 0.1 * R, 0));
   for (const x of [-0.2, 0, 0.2]) parts.push(new THREE.CylinderGeometry(0.055 * R, 0.055 * R, depth, 8).rotateX(Math.PI / 2).translate(x * R, 0.27 * R, 0));
@@ -465,6 +468,8 @@ function drawn(name, geos, mat, frame) {
  * the same way (the kit's own glyph, src/story/sign-text.js, is the doors', the plates' and the other houses').
  */
 function redrawSigns(K, mat) {
+  // Review glyphs already share a fixed square; measuring their different widths again would bias the comparison.
+  if (activeMark()) return K.batches.get(mat)?.filter(g => g.userData.makersMark).length ?? 0;
   const list = K.batches.get(mat);
   if (!list) return 0;
   let n = 0;

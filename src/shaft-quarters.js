@@ -246,7 +246,7 @@ export function buildShaftQuarters(scene, { terraces, R = 260, clear = [] } = {}
         const m = frameAt(a, R - 0.9, up - 9);
         put(B, t.y, M.lacquer, new THREE.PlaneGeometry(w, h).translate(0, -h / 2, 0).rotateY(-Math.PI / 2), m, WALL);
         put(B, t.y, M.gold, box(0.3, 0.5, w + 0.8, -0.2, 0, 0), m, WALL);
-        put(B, t.y, M.gold, new THREE.CircleGeometry(w * 0.32, 12).rotateY(-Math.PI / 2).translate(-0.08, -h * 0.35, 0), m, WALL);   // (a gold sun: the Three Who Look Up's)
+        put(B, t.y, M.gold, new THREE.CircleGeometry(w * 0.32, 12).rotateY(-Math.PI / 2).translate(-0.08, -h * 0.35, 0), m, WALL);   // (a gold sun: the Those Who Look Up's)
       }
     }
     // ---------------------------------------------------------------- the balcony market

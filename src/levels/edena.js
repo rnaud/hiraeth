@@ -1,3 +1,4 @@
+import { markOnSurface } from '../makers-mark/surface.js';
 import { SITE as GREENHOUSE } from '../temples/edena.js';
 import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
@@ -157,7 +158,7 @@ function overgrow(grp, crashed) {
   inst(leafGeo, leafM, leaves);
   inst(flowerGeo, leafM, flowers);
 
-  // the scorch: a halo, soot, three dots over an arch (the glyph), soot streaks running down, as on the traveller's own hull
+  // the scorch: a halo, soot, an open corner beside a shorter upright (the glyph), soot streaks running down, as on the traveller's own hull
   const uv = (u, v, lift) => { const a = SCAR.a - v / HULL_R; return at(SCAR.x + u, a, HULL_R + lift); };
   const onHull = (shape, lift, seg = 12) => {
     const g = new THREE.ShapeGeometry(shape, seg), p = g.attributes.position;
@@ -172,7 +173,7 @@ function overgrow(grp, crashed) {
   const scar = new THREE.Group();
   scar.add(new THREE.Mesh(onHull(blob(3.6, 2.7, 28, 0.3, 2.1), 0.05), makeMaterial({ color: '#9a7458', flat: true })));
   scar.add(new THREE.Mesh(mergeGeometries([onHull(blob(2.7, 2.0, 24, 0.26, 4.7), 0.08), ...[[-2.4, 2.2, 0.16], [2.2, 1.6, 0.13], [-0.5, 1.5, 0.11]].map(([u, l, w]) => onHull(streak(u, l, w), 0.09, 1))]), makeMaterial({ color: '#54433b', flat: true })));
-  scar.add(new THREE.Mesh(mergeGeometries([...[[-1.2, 1.3], [0, 1.65], [1.2, 1.3]].map(([u, v]) => onHull(disc(u, v, 0.38), 0.11)), onHull(arc(0, -1.1, 1.8, 0.45, Math.PI * 0.17, Math.PI * 0.83), 0.11, 20)]), makeMaterial({ color: '#2b211f', flat: true })));
+  scar.add(new THREE.Mesh(markOnSurface(3.8, (u,v) => uv(u,v,0.11)), makeMaterial({ color: '#2b211f', flat: true })));
   scar.traverse((o) => { o.userData.noCollide = true; });
   grp.add(scar);
 

@@ -81,7 +81,7 @@ const P = (id, name, role, story, now) => ({ id, name, role, story, now });
 export const BOOK = {
   desert: [
     P('marrow', 'Marrow', 'A salvager who sells rumours by the camps', [
-      'A salvager, and by his own account a liar. He was going over your grounded ship when you met, and saw the mark burned into its hull: three dots over an arc.',
+      'A salvager, and by his own account a liar. He was going over your grounded ship when you met, and saw the mark burned into its hull: an open corner beside a shorter upright.',
       [f('desert.bike.found'), 'He gave you the hoverbike he had hidden under a tarp. It would not run for him; it needed a full tank.'],
       [f('desert.marrow.hull'), 'Since your landing he checks every wreck for the mark. Most ships that come down just come down. Yours did not.'],
     ], [
@@ -104,7 +104,7 @@ export const BOOK = {
     ]),
     P('nour', 'Nour', 'The eldest of Qanat, keeper of the Givers’ chest', [
       'The eldest of Qanat. She sat sixty years by the Givers’ chest under the great tree, as her mother did, waiting for “one who fell from the sky”.',
-      [f('item.backpack'), 'The chest opened for you. She calls its makers the Givers: they made the giants walk and signed their work with three dots over an arc.'],
+      [f('item.backpack'), 'The chest opened for you. She calls its makers the Givers: they made the giants walk and signed their work with an open corner beside a shorter upright.'],
       [f('desert.spark.heard'), 'Her grandmother spoke of a spark-stone that first lit the tree, kept in the Givers’ Hearth in the red rocks.'],
       [f('desert.nour.ilen'), 'You told her your parents heard a singing light once. She thinks it sang over your house long before it sang over hers.'],
     ], [
@@ -180,7 +180,7 @@ export const BOOK = {
       'Sefa plays for whoever stops. When the tree drinks, the musicians play all night.',
     ], ['With the musicians at the camps.']),
     P('bako', 'Bako', 'A ney player of the procession', [
-      'He plays a ney cut from an oasis reed. He saw the burn on your ship: three dots over a curve, like the mark between the giant’s eyes.',
+      'He plays a ney cut from an oasis reed. He saw the burn on your ship: an open corner beside a shorter upright, like the mark between the giant’s eyes.',
     ], ['With the musicians at the camps.']),
     P('haddu', 'Haddu', 'Weighs chimes and sells cures by the main gate', [
       'Haddu has kept his shop between the camps and Qanat’s main gate for forty Drinkings. He weighs every chime, those little floating crystals, on his little scale and sells what the walk takes out of people: healing potions, a few hearts’ worth of courage, more room in your tank.',
@@ -202,7 +202,7 @@ export const BOOK = {
   arzach: [
     P('oia', 'Oïa', 'Watches the lone tower in Vael', [
       'Vael is quiet by choice, and Oïa says things with her hands. She watches the lone tower across the plain, where a great bird still waits.',
-      [f('arzach.glyph.drawn'), 'The bird’s rider left, nobody knows where. In the sand she drew the bird’s track: three dots over an arc, the mark on your ship.'],
+      [f('arzach.glyph.drawn'), 'The bird’s rider left, nobody knows where. In the sand she drew the bird’s track: an open corner beside a shorter upright, the mark on your ship.'],
       [done('arzach.bird'), 'The bird comes to your whistle now. Oïa drew her in the sand with a small rider, and added your hood.'],
     ], ['On her stone seat facing the lone tower.']),
     P('senn', 'Senn', 'Listens to the stones', [
@@ -283,7 +283,7 @@ export const BOOK = {
   perdide: [
     P('wendel', 'Wendel', 'Egg-warden at Lorn’s landing', [
       'Wendel keeps the glowing eggs warm and the jaw-plants hungry. He says the patient are never eaten.',
-      [f('perdide.glyph.heard'), 'Lorn calls the mark the Hush: three raindrops over a closed mouth, put on what the plants should leave alone.'],
+      [f('perdide.glyph.heard'), 'Lorn calls the mark the Hush: a tall stem bent over a smaller one, sheltering it, put on what the plants should leave alone.'],
       [done('perdide.fireflies'), 'He watched the eggs for thirty years without seeing one hatch. They hatch into fireflies.'],
       [f('perdide.wendel.patient'), 'You stood still among the jaw-plants until they opened. He gave you his saying.'],
     ], ['At the landing, by the glowing eggs.']),
@@ -318,7 +318,7 @@ export const BOOK = {
   perdide2: [
     P('hollin.perdide2', 'Hollin', 'Keeper of the lamps in the deep wood', [
       'For forty years Hollin has kept pools lit along the path, the Welcome, for two travellers who survived a sky-boat crash and asked for a light to be kept. You were his first visitor.',
-      [f('perdide2.glyph.heard'), 'The deep wood calls the mark the Welcome: three lamps above a hull, painted by the pools.'],
+      [f('perdide2.glyph.heard'), 'The deep wood calls the mark the Welcome: a doorway with someone waiting beside it, painted by the pools.'],
       [f('perdide2.hollin.told'), 'In the boat were two worn seats, Odile and Talo’s names and a drawing of their garden with white pyramids. He never knew what they were trying to get back to.'],
       [f('perdide2.hollin.ilen'), 'You told him about your sister. He thinks someone at home kept a light for her.'],
       [f('perdide2.hollin.found'), 'You told him where Odile and Talo went. They got there, and kept a light at the end of it.'],
@@ -347,7 +347,7 @@ export const BOOK = {
     ], ['In the far dome, on the deep water.']),
     P('burdock', 'Burdock', 'Keeps the Welcome-Shelf on the lit path', [
       'Burdock, Hollin’s cousin, has kept a shop stocked for travellers in a moss dome on the lit path for thirty years. You were his first customer. Everything is dusted daily.',
-      [f('perdide2.burdock.welcome'), 'Three lamps over a door are the Welcome: a traveller may knock. He never took them down, though nobody came.'],
+      [f('perdide2.burdock.welcome'), 'A doorway and a waiting figure are the Welcome: a traveller may knock. He never took them down, though nobody came.'],
     ], ['In the Welcome-Shelf, his moss dome on the lit path.']),
   ],
   edena: [
@@ -480,7 +480,7 @@ export const BOOK = {
     P('ambroise', 'Ambroise', 'Clerk of the round', [
       'Ambroise sends Major Brask’s signal round every day: from the board, to the upside-down relay, to the ring and back. Nobody knows what it says.',
       [f('garage.signal.given'), 'He let you carry the signal round.'],
-      [done('garage.signal'), 'The board stopped blinking and shows the mark now: three dots above an arc.'],
+      [done('garage.signal'), 'The board stopped blinking and shows the mark now: an open corner beside a shorter upright.'],
     ], ['At the signal board by the start.']),
     P('ottla', 'Ottla', 'Mechanic of everything', [
       'Ottla decides when things are broken. Three machines stopped the night the ring’s slit sang, with no broken parts: the windmill, the upside-down lamp pump and the ring turbine.',
@@ -621,7 +621,7 @@ export const BOOK = {
   bazaar: [
     P('sel', 'Madame Sel', 'Kept the broadcast tower', [
       'Sel ran the broadcast tower for forty years. It received voices from space, from ships, colonies and lonely stations, and played them to the square: the market’s only honest sign.',
-      [f('bazaar.rumour.light'), 'The night the singing light passed, every sign showed three dots over an arc; the tower received one last message and went silent.'],
+      [f('bazaar.rumour.light'), 'The night the singing light passed, every sign showed an open corner beside a shorter upright; the tower received one last message and went silent.'],
       [f('clue.bazaar.home'), 'The message’s header names the port it was sent from: your home. A voice you knew, saying the name Ilen.'],
       [f('bazaar.sel.ilen'), 'You told her Ilen was your sister. Some messages, she says, are poor at addresses and very good at families.'],
       [f('bazaar.sel.found'), 'You told her Ilen heard it, thirty years late. In forty years she had never learned how a message ended.'],

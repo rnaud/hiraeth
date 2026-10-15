@@ -12,7 +12,7 @@ import { FRAGMENTS_PER_WORLD, FRAGMENT_TOTAL } from '../fragments-data.js';
 export const THREAD = [
   { id: 'light', title: 'The singing light', text: [
     'One night a light crossed the worlds singing one long note, and every people names that night for what it saw: the night the light passed in Qanat, the night the sky rang in the City-Shaft, the night the whales went quiet under the sea. In every world someone saw it: it dipped low, turned “like it was looking for something”, and climbed away. It never fell.',
-    'It passed so close to the traveller’s ship that it drank its power, and the ship came down on its reserve in the desert near Qanat: a forced landing, not a crash. Where it brushed the hull it left a scorched glyph, three dots over an arc that bows upward. The traveller chose to follow it.',
+    'It passed so close to the traveller’s ship that it drank its power, and the ship came down on its reserve in the desert near Qanat: a forced landing, not a crash. Where it brushed the hull it left a scorched glyph, an open corner beside a shorter upright. The traveller chose to follow it.',
     'The scar is magnetised and beats slowly in threes. The ship charts only the worlds whose field carries the same signature: the worlds the light passed through. That is the route.',
   ], ending: [
     'The light was an answer. The makers’ lantern sends a light to bring in anyone a long way from home. When the father’s broadcast reached Ilen there, thirty years late, she sang his own message into one, put the makers’ sign on it, and sent it home. It sang over the round house, then went looking for the voice that had called her, and found the reel playing in his son’s cockpit. The glyph it scorched into the hull means *we heard you*.',

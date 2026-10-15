@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { stone, ceramic, metal, pearl, nacre, glazing } from './landmark-materials.js';
 import { T, box, lathe, paint, annulus } from './kit.js';
+import { candidateGeometry, activeMark } from '../makers-mark/candidates.js';
 
 const TAU = Math.PI * 2;
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -56,6 +57,8 @@ function arch(K, mat, { w = 16, h = 24, dw = 6, dh = 15, y = 0, z = 15, depth = 
   volume(K, mat, [['M',-w/2,0],['Q',-w*.38,h*.77,0,h],['Q',w*.38,h*.77,w/2,0],['L',dw/2,0],['L',dw/2,dh*.48],['Q',dw*.44,dh*.88,0,dh],['Q',-dw*.44,dh*.88,-dw/2,dh*.48],['L',-dw/2,0]], {y,z,depth,bevel:.15});
 }
 function symbol(K, x, y, z, scale = 1, mat = navy) {
+  const candidate = candidateGeometry(activeMark(), 3.6 * scale, .08);
+  if (candidate) { K.add(mat, candidate.translate(x, y + .4 * scale, z)); return; }
   for (const [dx,dy] of [[-1.05,0],[1.05,0],[0,-1.15]]) K.add(mat,disc(.42*scale,.08,[x+dx*scale,y+dy*scale,z]));
   K.add(mat,T(new THREE.TorusGeometry(1.8*scale,.09*scale,4,28,Math.PI),[x,y+.5*scale,z]));
 }

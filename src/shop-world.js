@@ -1,3 +1,4 @@
+import { glyphGeometry } from './story/sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
@@ -218,7 +219,7 @@ export const SHOP_STYLES = {
   },
   // Viridel: the potting house: white panelled walls under the builders' slab, a wooden workbench, shelves of
   // glass bell jars with seedlings, teal glass globes hanging with ferns, pots of plants, a watering can, the
-  // makers’ mark (three dots over an arc) drawn on the back wall
+  // makers’ mark (an open corner beside a shorter upright) drawn on the back wall
   potting: {
     room: { wall: { color: '#f1eee6', color2: '#e3dfd3', grid: 1.2 }, floor: '#e8e4da', ceiling: '#f4f2ea', lamp: '#d8f4ee',
       windows: [{ side: 'left', x: 3.5, y: 0.8, w: 2.4, h: 2.4 }, { side: 'right', x: 3.5, y: 0.8, w: 1.6, h: 2.0 }],
@@ -235,17 +236,7 @@ export const SHOP_STYLES = {
           else bottles(B, bx - 0.12, bx + 0.12, y + 0.05, z, [RED, '#cfe3c0'], { n: 1 });
         }
       }
-      // the makers’ mark: three little rings over an arc
-      for (const k of [-1, 0, 1]) B.add('#b8b2a4', new THREE.TorusGeometry(0.08, 0.018, 4, 14).translate(k * 0.24, 3.6 + (k ? 0 : 0.06), -R.d / 2 + 0.19), { soft: true });
-      B.add('#b8b2a4', new THREE.TorusGeometry(0.75, 0.022, 4, 20, Math.PI).translate(0, 2.55, -R.d / 2 + 0.19), { soft: true });
-      // hanging glass globes and ferns
-      for (const [x, z, what] of [[-1.6, 1.0, 'lamp'], [1.6, 1.0, 'lamp'], [-2.8, -2.2, 'fern'], [2.8, -2.2, 'fern'], [0, 2.2, 'fern']]) {
-        if (what === 'lamp') hang(B, R, x, z, 0.9, 'lamp', { color: '#8fe3d8', size: 0.24 });
-        else { B.add(INK, cord(x, R.h, R.h - 0.8, z), { soft: true }); B.add('#c8673f', new THREE.CylinderGeometry(0.2, 0.14, 0.18, 10).translate(x, R.h - 0.9, z), { soft: true }); B.add('#6f9a5a', new THREE.SphereGeometry(0.3, 8, 5).scale(1, 0.6, 1).translate(x, R.h - 0.72, z), { soft: true }); }
-      }
-      B.add('#8a9a8a', new THREE.CylinderGeometry(0.12, 0.13, 0.22, 10).translate(1.95, TOP + 0.11, SHOP_ROOM.counter), { soft: true });
-      B.add('#8a9a8a', stick([2.05, TOP + 0.08, SHOP_ROOM.counter], [2.35, TOP + 0.24, SHOP_ROOM.counter], 0.02), { soft: true });
-      for (const [x, c] of [[-2.35, '#e98fb0'], [2.4, '#f2c94c']]) B.add(c, new THREE.SphereGeometry(0.06, 6, 4).translate(x, TOP + 0.04, SHOP_ROOM.counter + 0.2), { soft: true });
+      B.add('#b8b2a4', glyphGeometry(1.25, 0.02).translate(0, 3.1, -R.d / 2 + 0.19), { soft: true });
     },
   },
   // The City-Shaft: Fausta's narrow shop: cream plaster, terracotta tiles, a marble counter with panels and a brass

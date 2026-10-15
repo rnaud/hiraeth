@@ -24,7 +24,7 @@ at the first homecoming, and again at the true ending, with his sister beside hi
 *word* (something a person said), *person* (someone who asks to come along, or
 a promise to return), *knowing* (an understanding of how the world works).
 
-**The glyph**: three dots over an arc that bows upward (∩), never a smile. It is scorched into the ship's hull where
+**The glyph**: an open corner beside a shorter upright. It is scorched into the ship's hull where
 the singing light brushed past it. It recurs on the reactive scenery's three apertures in every world,
 on the giants' bones, on the Lodestar's facets, on the Major's machine, on the
 android ruins of Viridel and on the oldest market sign. Locals each have a
@@ -718,7 +718,7 @@ off "anything singing out there" (after the singing light); the harbour bell
 behind them (after Vael II's bell); "ships go dark out there, it happens"
 (after Odile and Talo's ship); "if you break something out there, you say
 sorry, and you mean it, and then you go" (after the tea terraces in Viridel, the
-quest that fails); the three dots he drew on the landing ring
+quest that fails); the angular mark he drew on the landing ring
 as a boy (after the glyph); a bird's promise in a child's story; the lamp the
 mother leaves in the round window. The keepsake kinds still matter: whichever
 he brings, the recording happens to hold what his father once said about such
@@ -847,9 +847,9 @@ gadget at its heart; half the makers' gifts wait inside them, half in the open
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
 | Viridel | the Builders' mark (Oro) | the Singer (Talo's word, Sol) | Builders' gifts (Oro) |
 | Garden of Spheres | the Footprint, under every sphere (Emrys) | an Answerer (Ume) | left-behinds (Emrys) |
-| Lorn | the Hush: three drops of rain over a shut mouth | Sedge saw it pass the night it went over, and climb away; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
-| Lorn II | the Welcome: three lamps over a hull | Robin saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper) |
-| City-Shaft | the palace seal (rim), the Three Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
+| Lorn | the Hush: a tall stem sheltering a smaller one | Sedge saw it pass the night it went over, and climb away; the crystal's 213th phrase is its song | the sky-egg (Wendel) |
+| Lorn II | the Welcome: a doorway with someone waiting beside it | Robin saw it put the pools out | the traveller's chest (Hollin, the lamp-keeper) |
+| City-Shaft | the palace seal (rim), Those Who Look Up (bottom) | it passed over the shaft and the Lodestar rang back; it left "toward the deserts" | lost property (rim), a promise (bottom; Ossa) |
 | Signal Market | the First Sign (Sel), the tuning mark (Ferro) | the unsent recording "came in singing" (Kip) | (no box of its own) |
 
 **Names a player keeps apart.** One name is one person in the whole game, and in one world no two people a player

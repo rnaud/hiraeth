@@ -1000,6 +1000,7 @@ const LAMP342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 �
 const LAMP342_SOURCE = 'issue #342 scratchpad future-lamp: capture.mjs QC_MEASURE (m-high-off, m-high-on3, m-low-off, m-low-on); draw calls and triangles from renderer.info, every pass of a frame';
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'The makers now sign their work', see: 'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
     { match: 'In the Sunken Hall, B / ○ rolls and jumping is disabled', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × or Space: he stays on the floor. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The touch controls and start card offer no jump. Leave the hall to jump normally again.' },
     { match: 'On the Steam Deck every world runs 2 to 7 frames a second smoother', tags: ['perf', 'devices'], numbers: [
       { title: 'Frames a second on the Steam Deck at native resolution (the median of each world’s views)', unit: 'fps', better: 'higher', device: DECK111, source: DECK111_SOURCE, rows: [

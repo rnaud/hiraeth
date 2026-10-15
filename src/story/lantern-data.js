@@ -10,7 +10,7 @@
 // The makers built the lantern to listen for anyone a long way from home and send a light to bring
 // them in. When the father's broadcast finally reached her, thirty years on the old relays ("Come with
 // empty hands. Just come."), she answered the only way a light can carry: she sang his own message
-// back into one, with the makers' sign on it (three dots over an arc: "we heard you"), and sent it
+// back into one, with the makers' sign on it (an open corner beside a shorter upright: "we heard you"), and sent it
 // home. It sang over the round house (the father at the window), found nobody calling back, and went
 // looking for the voice that had called her: it found it on the reel playing in the father's ship's
 // cockpit, and went straight to it, singing (the traveller paused the reel to listen). It passed so close it
@@ -173,7 +173,7 @@ export const PEOPLE = {
             '~neutral~ Then Dad’s message came, crawling along the old relays. *Come with empty hands. Just come.* Thirty years on the way.',
             '~solemn~ So I sang it back. His own message, with the makers’ sign on it. I sent it home.',
           ],
-          choices: [{ text: '~curious~ The sign. Three dots over an arc.', goto: 'sign' }, { text: '~curious~ Then why did it come to my ship?', goto: 'why' }],
+          choices: [{ text: '~curious~ The sign. An open corner beside a shorter upright.', goto: 'sign' }, { text: '~curious~ Then why did it come to my ship?', goto: 'why' }],
         },
         sign: {
           say: ['~solemn~ {glyph} It’s on everything they left. Every people out there has a name for it. Odile read it as *we heard you*.', '~whisper~ She might be wrong. It’s what I wanted him to hear.'],

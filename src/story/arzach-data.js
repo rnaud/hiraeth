@@ -117,7 +117,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ And the bird is still waiting.', goto: 'track' }],
         },
         track: {
-          say: ["~solemn~ (She nods. In the sand she draws three dots over an arc.) {glyph}", "~neutral~ (She taps three toes and a curved heel, and looks up at the sky.) Her track.", "~whisper~ (Below it she draws a chest with *a star on top*. She points *north, to the needle spire*: look for the chest up there.)"],
+          say: ["~solemn~ (She nods. In the sand she draws an open corner beside a shorter upright.) {glyph}", "~neutral~ (She taps a bent leg and a shorter toe, and looks up at the sky.) Her track.", "~whisper~ (Below it she draws a chest with *a star on top*. She points *north, to the needle spire*: look for the chest up there.)"],
           do: { set: { 'arzach.glyph.drawn': true } },
           choices: [
             { text: '~surprised~ I’ve seen that mark before. On my ship.', goto: 'mark' },
@@ -230,7 +230,7 @@ export const LOCALS = [
 export const THINGS = {
   drawing: {
     id: 'drawing', name: 'A drawing in the sand', title: 'by Oïa’s stone', color: '#d9c9a8', voice: 0.6,
-    talk: { nodes: { look: { say: ["~neutral~ Oïa’s drawing: three dots over an arc. {glyph} She calls it the bird’s track.", "~sad~ The wind is already rubbing it out."], choices: [{ text: '~neutral~ (step back)', end: true }] } } },
+    talk: { nodes: { look: { say: ["~neutral~ Oïa’s drawing: an open corner beside a shorter upright. {glyph} She calls it the bird’s track.", "~sad~ The wind is already rubbing it out."], choices: [{ text: '~neutral~ (step back)', end: true }] } } },
   },
   // the fallen colossus on the plain (src/levels/arzach.js colossus): Vael says little, so the stone says it
   colossus: {

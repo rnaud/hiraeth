@@ -1,3 +1,4 @@
+import { glyphGeometry } from './sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -155,10 +156,7 @@ export function setupArzach(ctx) {
   const drawing = new THREE.Group();
   {
     const ink = makeMaterial({ color: '#8a6e52', flat: true });
-    const parts = [-0.32, 0, 0.32].map((dx) => new THREE.CylinderGeometry(0.075, 0.075, 0.02, 8).translate(dx, 0, dx ? 0 : -0.08).toNonIndexed());
-    const arc = new THREE.TorusGeometry(0.42, 0.03, 3, 14, Math.PI).rotateX(-Math.PI / 2).translate(0, 0, 0.32);
-    parts.push(arc.toNonIndexed());
-    drawing.add(new THREE.Mesh(mergeGeometries(parts), ink));
+    drawing.add(new THREE.Mesh(glyphGeometry(0.85, 0.02).rotateX(-Math.PI / 2), ink));
     const at = oiaAt.clone().addScaledVector(V(Math.sin(angleTo(oiaAt, T)), 0, Math.cos(angleTo(oiaAt, T))), 2.0);
     at.y = ground(at.x, at.z, at.y + 3) + 0.03;
     drawing.position.copy(at);

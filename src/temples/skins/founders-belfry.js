@@ -1,3 +1,4 @@
+import { glyphGeometry } from '../../story/sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from '../../materials.js';
@@ -325,14 +326,7 @@ function ringGeometry(r0, r1, y0, y1, c, seg = 40) {
  * tall, three tiny dots in a tight row resting just over its crest (a sign, not a face). Facing +z, in the xy plane.
  */
 export function belfrySign(w = 1, depth = 0.03) {
-  const parts = [], h = w / 5, seg = 14, th = w * 0.035;
-  for (let i = 0; i < seg; i++) {
-    const a0 = i / seg, a1 = (i + 1) / seg, x0 = (a0 - 0.5) * w, x1 = (a1 - 0.5) * w;
-    const y0 = h * Math.sin(Math.PI * a0), y1 = h * Math.sin(Math.PI * a1), L = Math.hypot(x1 - x0, y1 - y0);
-    parts.push(new THREE.BoxGeometry(L + th * 0.6, th, depth).rotateZ(Math.atan2(y1 - y0, x1 - x0)).translate((x0 + x1) / 2, (y0 + y1) / 2, 0));
-  }
-  for (const x of [-1, 0, 1]) parts.push(new THREE.CylinderGeometry(w * 0.035, w * 0.035, depth, 8).rotateX(Math.PI / 2).translate(x * w * 0.1, h + w * 0.085, 0));
-  return mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)));
+  return glyphGeometry(w * 0.4, depth).translate(0, w * 0.1, 0);
 }
 
 // ------------------------------------------------------------------ placing the dressing

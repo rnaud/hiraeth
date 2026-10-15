@@ -1,3 +1,4 @@
+import { MAKERS_MARK_SVG } from '../makers-mark/design.js';
 import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
@@ -58,13 +59,13 @@ function panelMeasure(el) {
 // Effects (a single one or a list): { set: { flag: value } } · { start: id } · { advance: id | [id, fromStage] }
 //   · { stage: [id, stage] } · { give: item } · { take: item } · { keepsake: {...} } · { emit: [event, payload] }
 //   · { track: id } · { fail: id } · (ctx) => {}
-// Text: {glyph} is the recurring three-dots-over-an-arc mark, {key:aim} a verb's input as the player holds
+// Text: {glyph} is the recurring open-corner mark, {key:aim} a verb's input as the player holds
 // it (src/prompt-keys.js keyText: never voiced, drawn again if the input changes), *words* are highlighted: the places
 // to go and the things to do (a span of more than eight words is a quotation: a letter, a recording).
 // A node without choices ends with "(leave)"; `next: id` continues with another node.
 
 export const MOTIFS = {
-  glyph: { plain: '⁖⌒', html: '<svg class="glyph" viewBox="0 0 24 16" aria-label="the glyph: three dots over an arc"><circle cx="5" cy="4" r="2"/><circle cx="12" cy="2.6" r="2"/><circle cx="19" cy="4" r="2"/><path d="M2 14 Q12 6 22 14" fill="none" stroke-width="2"/></svg>' },
+  glyph: { plain: '[makers’ mark]', html: MAKERS_MARK_SVG },
 };
 
 /** Expand motifs, key placeholders and emphasis for display (html) or for tests and toasts (plain); `kind`: the input in hand. */

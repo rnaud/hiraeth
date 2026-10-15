@@ -56,7 +56,7 @@ test('keys in lines: touch, an unknown verb, HTML, and {glyph} beside them', () 
   const html = formatText('~neutral~ The {glyph} mark. *Shoot it*: {key:fire}.', true, 'pad');
   assert.match(html, /<svg class="glyph"/);
   assert.match(html, /<em>Shoot it<\/em>: <kbd class="kp pad-raw">RT \/ R2<\/kbd>\./);
-  assert.equal(formatText('The {glyph}. Aim with {key:aim}.', false, 'keys'), 'The ⁖⌒. Aim with R or the right mouse button.');
+  assert.equal(formatText('The {glyph}. Aim with {key:aim}.', false, 'keys'), 'The [makers’ mark]. Aim with R or the right mouse button.');
   assert.equal(keysHtml('a < b, {key:jump}'), 'a &lt; b, <kbd class="kp pad-raw">SPACE</kbd>');
   assert.match(badgeLine('Hold {key:gadget} to draw the line out'), /<kbd class="kp pad-raw">T<\/kbd>/, 'the cue too');
 });

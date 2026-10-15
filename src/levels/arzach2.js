@@ -103,7 +103,7 @@ export const ARZACH2_CONTENT = {
     // (Ondine: out on the long aqueduct just south of the floating island, as far as she walks from the plain each day, under
     //  the church where the clapper lies: the level design audit's fifth round, 490 m from anything on the plain)
     { at: [215, -560], y: AQ2.y, radius: 2.5, palette: { cloak: '#e9a17f', lining: '#2b211f', cloth: '#343a56', legs: '#3a3a3a' },
-      lines: ['~tired~ Walk toward the tower. It does not get closer for a long time.', '~solemn~ The cracks in the plain are older than the sky.', '~curious~ The face on the tower has a mark on its brow. Three dots and an arc. Look.', '~happy~ Some evenings a lamp burns on the rose cliff. I wave. My sister pretends not to see.'], shy: true },
+      lines: ['~tired~ Walk toward the tower. It does not get closer for a long time.', '~solemn~ The cracks in the plain are older than the sky.', '~curious~ The face on the tower has a mark on its brow. An open corner and a short upright. Look.', '~happy~ Some evenings a lamp burns on the rose cliff. I wave. My sister pretends not to see.'], shy: true },
   ],
 };
 

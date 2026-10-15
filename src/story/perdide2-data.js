@@ -21,8 +21,7 @@
 // pass him he asks what was in the boat, and asks you to come back one day, so
 // that once the lamps were lit for someone who came.
 //
-// The glyph here is "the Welcome": three lamps over a hull (three dots over
-// an arc that bows up, like every other world's). They paint it beside every
+// The glyph here is "the Welcome": a doorway with someone waiting beside it. They paint it beside every
 // pool.
 //
 // Conversations: src/story/dialogue.js. Quests: src/story/quests.js.
@@ -117,7 +116,7 @@ export const KEEPERS = [
           choices: [{ text: '~curious~ The Welcome?', goto: 'glyph' }, { text: '~sad~ And they never came back.', goto: 'dark' }],
         },
         glyph: {
-          say: ["~neutral~ {glyph} *The Welcome.* Three lamps above a hull. We paint it beside the pools: someone here expects you.", "~solemn~ It’s on *the blue star-chest on the root arch* too. We dust that one. Opening it is apparently somebody else’s privilege."],
+          say: ["~neutral~ {glyph} *The Welcome.* A doorway with someone waiting beside it. We paint it beside the pools: someone here expects you.", "~solemn~ It’s on *the blue star-chest on the root arch* too. We dust that one. Opening it is apparently somebody else’s privilege."],
           do: { set: { 'perdide2.glyph.heard': true } },
           choices: [{ text: '~solemn~ I’ve seen that mark. It’s burned into my ship.', goto: 'mark' }, { text: '~sad~ And the travellers never came back.', goto: 'dark' }],
         },

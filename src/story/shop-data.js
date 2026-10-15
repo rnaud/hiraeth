@@ -130,10 +130,10 @@ export const SHOPKEEPERS = {
     id: 'burdock', shop: 'welcome', name: 'Burdock', title: 'keeper of the Welcome-Shelf', color: '#3f4f86', voice: 0.92, kind: 'm',
     palette: { cloak: '#3f4f86', lining: '#2f3a66', cloth: '#4a5a92', legs: '#3a3a4a', hat: '#2f3a66', accent: '#34437a', hair: '#b08a5a' },
     head: 'beanie', cape: 0, look: { head: 'beanie', body: 'collar', robe: 0.45, trim: 'diamonds', build: 'heavy', mood: 'curious' },
-    lines: ['~surprised~ A customer! A real one!', '~happy~ Everything dusted this morning. And yesterday.', '~playful~ Three lamps over the door. That’s the Welcome.'],
+    lines: ['~surprised~ A customer! A real one!', '~happy~ Everything dusted this morning. And yesterday.', '~playful~ An open corner and a short stroke. That’s the Welcome.'],
     hello: ['~surprised~ Oh! Oh, a customer! Thirty years I’ve kept this shelf stocked for travellers, and you’re the first. Hollin will be furious he missed it. Do come in, mind the rug.', '~happy~ Cures, all dusted. A heart in a glass jar, the only one I have. Chimes, please. I had to look up what to charge.'],
     again: [{ if: { quest: 'perdide2.lamps', done: true }, text: '~happy~ The lamps are lit all the way down the path. More travellers, Hollin says. Imagine!' }, '~happy~ You came back! Twice is a regular, you know.'],
-    topic: { ask: '~curious~ Why keep a shop nobody came to?', flag: 'perdide2.burdock.welcome', say: ['~solemn~ Because the Welcome says someone will come. Three lamps over a door mean a traveller can knock. You don’t take them down just because nobody has.', '~playful~ And I dust. A shop that’s ready is half a shop already. The other half is you.'] },
+    topic: { ask: '~curious~ Why keep a shop nobody came to?', flag: 'perdide2.burdock.welcome', say: ['~solemn~ Because the Welcome says someone will come. A figure waiting by a doorway means a traveller can knock. You don’t paint it out just because nobody has.', '~playful~ And I dust. A shop that’s ready is half a shop already. The other half is you.'] },
     bye: '~happy~ I’ll come back.',
   }),
 

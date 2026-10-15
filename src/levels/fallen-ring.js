@@ -122,7 +122,7 @@ export const RING_CONTENT = {
     glyph: { size: 1.6, yaw: RING_MARK.yaw, lift: RING_MARK.lift, color: '#70e7df' },
     person: { id: 'trace.fallenring', name: 'A mark on the fallen ring', title: '', color: '#70e7df',
       talk: { nodes: { look: { say: [
-        '~solemn~ (Burned into the plating at the tilted piece’s foot. Years old, by the moss in the scorch, but burned deeper than any weather has reached since. Three dots over an arc, {glyph}.)',
+        '~solemn~ (Burned into the plating at the tilted piece’s foot. Years old, by the moss in the scorch, but burned deeper than any weather has reached since. An open corner beside a shorter upright, {glyph}.)',
         '~whisper~ (But the arc wavers, stops, and starts again where the hand lifted. Whoever drew this did not make it. They learned it, and drew it carefully, the way you write a word in a language that isn’t yours.)',
       ], do: { set: { 'sight.fallenring.mark': true } } } } } },
   }],

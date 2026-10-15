@@ -138,7 +138,7 @@ export const MANGROVE_CONTENT = {
       talk: { listen: [
         { after: () => true, say: [
           '~curious~ Another one from the sky. Long ago a woman came down in a ship no bigger than my boat.',
-          '~neutral~ She asked about the {glyph} on the great tree’s roots. I showed her how it goes: dots, then arc.',
+          '~neutral~ She asked about the {glyph} on the roots. I drew it: a bent stroke, then a short one.',
           '~solemn~ She drew it on her knee, over and over, thanked me in words that didn’t come through, and went up.',
         ], do: { set: { 'sight.mangrove.liss': true } } },
         '~whisper~ Don’t stand up in a boat. The lake takes it personally.',

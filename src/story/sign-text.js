@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { candidateGeometry, activeMark } from '../makers-mark/candidates.js';
 
 // Words on screens and signs (the City-Shaft and the Signal Market speak to
 // you once their stories have moved), and the recurring glyph as geometry.
 //
 //   textGeometry('YOU ARE NOT ALONE', { width: 12 })   one merged block-letter geometry in the XY plane,
 //                                                       facing +z, centred; lines split on '\n'
-//   glyphGeometry(size)                                 three dots over an arc, facing +z, centred
+//   glyphGeometry(size)                                 an open corner beside a shorter upright, facing +z, centred
 
 // 3 × 5 block letters (rows top to bottom)
 const FONT = {
@@ -45,8 +46,10 @@ export function textGeometry(text, { width = 10, depth = 0.04, gap = 0.82 } = {}
   return g;
 }
 
-/** The glyph: three dots over an arc (XY plane, facing +z), `size` wide. */
+/** The glyph: an open corner beside a shorter upright (XY plane, facing +z), `size` wide. */
 export function glyphGeometry(size = 1, depth = 0.06) {
+  const candidate = candidateGeometry(activeMark(), size, depth);
+  if (candidate) return candidate;
   const s = size / 2.4, parts = [];
   for (const [x, y] of [[-0.75, 0.52], [0, 0.72], [0.75, 0.52]]) parts.push(new THREE.CylinderGeometry(0.2 * s, 0.2 * s, depth, 10).rotateX(Math.PI / 2).translate(x * s, y * s, 0));
   // the arc: a flattened half ring under the dots

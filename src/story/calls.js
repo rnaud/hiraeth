@@ -449,7 +449,7 @@ const BEATS = [
   {
     id: 'glyph', when: (f) => f.glyph,
     lines: () => [
-      F("~tired~ You’ve drawn those three dots and an arc on the landing ring again. Scrub them off before your mother sees.", { 'calls.beat.glyph': true }),
+      F("~tired~ You’ve drawn that open corner and short upright on the landing ring again. Scrub it off before your mother sees.", { 'calls.beat.glyph': true }),
       YOU('~whisper~ (I drew that before I knew what it was.)'),
     ],
   },

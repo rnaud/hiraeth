@@ -1,3 +1,4 @@
+import { glyphGeometry } from '../story/sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -221,9 +222,7 @@ function lensModel(color = '#bfe8f2', { glyph = false, ice = false } = {}) {
     g.add(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.05, 0.03).translate(0, -0.14, 0), flatM(BRASS_DARK)));   // the clip for the nozzle
   }
   if (glyph) {
-    // the recurring glyph: three dots over an arc
-    for (const x of [-0.04, 0, 0.04]) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6).translate(x, 0.035, 0.016), flatM(INK)));
-    g.add(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.007, 4, 16, Math.PI).rotateZ(Math.PI).translate(0, 0.0, 0.016), flatM(INK)));
+    g.add(new THREE.Mesh(glyphGeometry(0.12, 0.005).translate(0, 0.01, 0.02), flatM(INK)));
   }
   return g;
 }

@@ -1,3 +1,4 @@
+import { markOnSurface } from './makers-mark/surface.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
@@ -7,7 +8,7 @@ import { makeMaterial, MODE_STRATA } from './materials.js';
 // north from the seed row: beds of knee-high seedlings, a row of sprouts (one step), a row of sheds (a stair you walk up),
 // then houses in vine scaffolds (ledges to jump) on an arc, three great ones with trees on their terraces (a climb) over it,
 // and at the rows' end, by the foot of the water stair, the old one, 44 m, a steep stair up its south face. From its top
-// the rows draw the builders' mark across the meadow: three dots over an arc. White androids tend them. Everything that
+// the garden floor carries the builders' mark: an open corner beside a shorter upright. White androids tend them. Everything that
 // stands collides as drawn (scaffolds, trees and androids are drawn only); nothing goes where something already stands.
 //
 //   buildNursery(scene, terrain, { blocked }) → { pyramids, old: { top, stairFoot }, sights, avoid(x, z, r) }
@@ -30,7 +31,7 @@ export const AGES = {
   house: { size: 9, steps: 6, rise: 1.25 },
   great: { size: 16, steps: 7, rise: 1.9 },
 };
-/** The builders' mark, as on the scorch and Talo's post: three dots over an arc (u right, v up). */
+/** The old nursery’s climbing arrangement, retained when the garden’s signature changed. */
 const DOTS = [[-1.2, 1.3], [0, 1.65], [1.2, 1.3]], ARC = { v: -1.1, r: 1.8, a0: 0.17 * Math.PI, a1: 0.83 * Math.PI };
 
 const prep = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position') g.deleteAttribute(k); g.computeVertexNormals(); return g; };
@@ -114,8 +115,12 @@ export function buildNursery(scene, terrain, { blocked = () => false } = {}) {
   // ---- the sprouts, then the sheds: a row each, by age
   for (let x = N.sprouts.x0; x <= N.sprouts.x1; x += N.sprouts.step) pyramid('sprout', x, N.sprouts.z, { yaw: 0.06 });
   for (let x = N.sheds.x0; x <= N.sheds.x1; x += N.sheds.step) pyramid('shed', x, N.sheds.z, { yaw: -0.04 });
-  // ---- the builders' mark: the great ones are its dots, houses in their scaffolds its arc
+  // ---- the garden’s signature, beneath the existing climbable arrangement
   const M = N.mark, at = (u, v) => [M.x - u * M.unit, M.z - v * M.unit];
+  const seal = new THREE.Mesh(markOnSurface(M.unit * 3.2, (u,v) => {
+    const x=M.x-u,z=M.z-v;return V(x,H(x,z)+0.04,z);
+  }), makeMaterial({color:'#507e72',flat:true,side:THREE.DoubleSide}));
+  seal.userData.noCollide=true;scene.add(seal);
   const greats = DOTS.map(([u, v]) => pyramid('great', ...at(u, v), { yaw: 0.02 * u })).filter(Boolean);
   const houses = [];
   for (let i = 0; i < 7; i++) {

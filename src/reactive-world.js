@@ -1,3 +1,4 @@
+import { glyphGeometry } from './story/sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
@@ -132,7 +133,7 @@ export class ReactionField {
 // The makers' listening stones (City-Shaft, Signal Market, Hangar): a carved stone on a squat
 // plinth, a brass rim round a tall face, three brass-set lenses under it (the three apertures
 // that recur on flowers, machines and stones in every world). Waking, the face fills with light
-// and shows a glyph in the makers' manner, never a word: the mark itself (three dots over an arc:
+// and shows a glyph in the makers' manner, never a word: the mark itself (an open corner beside a shorter upright:
 // it sees you), the mark doubled (again: it knows you), or the mark under a canopy, like a hand
 // cupped to an ear (it has heard of you, from another world).
 const GLYPHS={
@@ -144,13 +145,12 @@ const GLYPHS={
 function glyph(kind,material){
   const geo=[],arc=(r,A,x,y)=>new THREE.TorusGeometry(r,.03,4,16,A).rotateZ(Math.PI/2-A/2).scale(1,1,.5).translate(x,y,0);
   for(const [part,a,b] of GLYPHS[kind]){
-    if(part==='mark'){   // the makers' mark: three dots over an arc
-      for(const [x,y] of [[-.15,.1],[0,.16],[.15,.1]])geo.push(new THREE.SphereGeometry(.052*b,8,6).scale(1,1,.5).translate(x*b,a+y*b,0));
-      geo.push(arc(.4*b,1.05,0,a-.34*b));
+    if(part==='mark'){
+      geo.push(glyphGeometry(.65*b,.03).translate(0,a,0));
     }else if(part==='stroke')geo.push(new THREE.BoxGeometry(.05,b-a,.03).translate(0,(a+b)/2,0));
     else geo.push(arc(b,1.4,0,a-b));   // a ripple over the mark: heard, from far off
   }
-  return new THREE.Mesh(mergeGeometries(geo),material);
+  return new THREE.Mesh(mergeGeometries(geo.map(g=>g.index?g.toNonIndexed():g)),material);
 }
 function reactiveMaterial(color){
   const base=makeMaterial({color,flat:true,side:THREE.DoubleSide});

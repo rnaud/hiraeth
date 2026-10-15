@@ -287,10 +287,10 @@ test('the recordings fit what happened, loosely: the bell, the bird, the glyph; 
   const bird = callLines(2, { keepsake: { id: 'arzach.person', name: 'The bird’s promise', kind: 'person' }, flag: (k) => k === 'bird.promise' });
   assert.ok(bird.some((l) => /bird/.test(l.text) && /promise/.test(l.text)));
   const glyph = callLines(2, { keepsake: GEAR_TOOTH, flag: (k) => k === 'clue.buried.mark' });
-  assert.ok(glyph.some((l) => /three dots/.test(l.text) && /landing ring/.test(l.text)));
+  assert.ok(glyph.some((l) => /open corner/.test(l.text) && /landing ring/.test(l.text)));
   // each is said once
   const heard = { 'clue.buried.mark': true, 'calls.beat.glyph': true };
-  assert.ok(!callLines(2, { keepsake: GEAR_TOOTH, flag: (k) => heard[k] }).some((l) => /three dots/.test(l.text)));
+  assert.ok(!callLines(2, { keepsake: GEAR_TOOTH, flag: (k) => heard[k] }).some((l) => /open corner/.test(l.text)));
 });
 
 test('the bird answers the whistle only under open sky, in worlds without a mount, once she has promised', () => {

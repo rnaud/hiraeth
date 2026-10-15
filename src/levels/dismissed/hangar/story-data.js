@@ -93,7 +93,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What does the board show?', goto: 'board' }, { text: '~happy~ See you, Ambroise.', end: true }],
         },
         board: { say: ["~tired~ Nine lamps blink the signal. Eleven years watching them and I know every blink. Understanding is apparently a separate department."], choices: [{ text: '~neutral~ See you.', end: true }] },
-        after: { say: ["~happy~ The board has stopped blinking. Now it shows three dots above an arc. {glyph} A doorway with three lamps. A considerable improvement in legibility.", "~happy~ We still do the round. Now we know what we’re carrying. Makes the paperwork feel almost personal."], choices: [{ text: '~happy~ Almost personal is a start.', end: true }] },
+        after: { say: ["~happy~ The board has stopped blinking. Now it shows an open corner beside a shorter upright. {glyph} A doorway with someone waiting beside it. A considerable improvement in legibility.", "~happy~ We still do the round. Now we know what we’re carrying. Makes the paperwork feel almost personal."], choices: [{ text: '~happy~ Almost personal is a start.', end: true }] },
       },
     },
   },
@@ -256,7 +256,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'garage.signal.stamped' }, node: 'again' }, { if: { has: 'signal' }, node: 'post' }, { node: 'empty' }],
       nodes: {
         post: {
-          say: ["~neutral~ The relay swallows the ticking tube. A whirr, a pause, then the heavy clunk of a stamp.", "~neutral~ The tube returns warm, stamped with three dots over an arc. A tag reads *NEXT: THE RING*."],
+          say: ["~neutral~ The relay swallows the ticking tube. A whirr, a pause, then the heavy clunk of a stamp.", "~neutral~ The tube returns warm, stamped with an open corner beside a shorter upright. A tag reads *NEXT: THE RING*."],
           do: { set: { 'garage.signal.stamped': true } },
           choices: [{ text: '~neutral~ (take the signal)', end: true }],
         },
@@ -284,8 +284,8 @@ export const THINGS = {
   },
 };
 
-/** The glyph on the signal board's nine lamps: three dots over an arc. */
-export const BOARD_GLYPH = [1, 1, 1, 0, 1, 0, 1, 0, 1];   // (the arc bows up, ∩: its top in the middle row, its feet below)
+/** The glyph on the signal board's nine lamps: an open corner beside a shorter upright. */
+export const BOARD_GLYPH = [1, 1, 1, 1, 0, 0, 1, 0, 1];   // open shoulder, tall left stroke and short reply
 /** The signal itself, as the board blinks it: nine lamps per beat, a loop of beats. */
 export const SIGNAL = [
   [1, 0, 1, 0, 1, 0, 1, 0, 1], [0, 1, 0, 1, 0, 1, 0, 1, 0], [1, 1, 0, 0, 1, 0, 0, 1, 1], [0, 0, 1, 1, 0, 1, 1, 0, 0],

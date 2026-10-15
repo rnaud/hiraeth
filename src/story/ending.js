@@ -1,3 +1,4 @@
+import { MAKERS_MARK_SVG } from '../makers-mark/design.js';
 // The ending, in two homecomings (docs/story-bible.md, "The ending"; docs/game-brief.md,
 // working decision 5).
 //
@@ -21,7 +22,7 @@
 // (finaleOpen; the relay's 'trace', src/story/relay.js): the Lantern (FINALE_ID, src/levels/lantern.js).
 // There Ilen, the sister he never knew, keeps the makers' lantern. The light was her answer: she
 // sent it back along the relays, singing her father's own message, carrying the makers' sign
-// (three dots over an arc: "we heard you"); it went looking for the voice that had called her and
+// (an open corner beside a shorter upright: "we heard you"); it went looking for the voice that had called her and
 // found it on the reel in his cockpit (src/story/lantern-data.js). She comes home with him
 // (`finale.met`).
 //
@@ -463,7 +464,7 @@ export function creditsHtml(c) {
     </section>`;
   return `<div class="roll">
     <h1>${esc(c.title)}</h1>
-    <div class="glyph">· · ·<br>⌒</div>
+    <div class="glyph">${MAKERS_MARK_SVG}</div>
     <p class="lead">A traveller went out to bring back something of value,<br>and met these people on the way.</p>
     ${c.worlds.map(world).join('')}
     <section class="home"><h3>At home</h3><ul>${c.home.map((h) => `<li class="met"><b>${esc(h)}</b></li>`).join('')}</ul></section>

@@ -682,9 +682,7 @@ export function* buildBuried(scene) {
       porthole.light = new THREE.Vector4(c.x, c.y, c.z + 4, 16);
       porthole.centre = c.clone();
       lights.push(porthole.light);
-      // the maker's mark cast in the rim, above the glass: three dots over an arc
-      for (const k of [-1, 0, 1]) put(M.tealFlat, new THREE.CylinderGeometry(0.5, 0.5, 0.5, 10).rotateX(Math.PI / 2).translate(c.x + k * 1.6, c.y + 10.5 + (k ? 0 : 0.35), c.z + 0.5));
-      put(M.tealFlat, new THREE.TorusGeometry(2.2, 0.28, 5, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).translate(c.x, c.y + 7.3, c.z + 0.5));
+      put(M.tealFlat, glyphGeometry(3.8, 0.3).translate(c.x, c.y + 9.4, c.z + 0.5));
     }
     // vertical pipes up the inner wall, tanks on the floor
     for (let k = 0; k < 16; k++) {

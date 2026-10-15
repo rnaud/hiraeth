@@ -1,3 +1,4 @@
+import { MAKERS_MARK_SVG } from '../makers-mark/design.js';
 // The galactic map: a star chart over the screen when you use the holo table
 // in the middle of the ship's deck. The worlds (ORDER) lie on their orbits round one star, the route
 // reading outward from home (src/ship/system.js, issue #129); each is a small drawn planet
@@ -102,8 +103,8 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
 // chart's edge); the footprints never overlap (chartLayout, checked by the tests at every chart size).
 export { chartLayout, worldBox, boxRect, MOON_OF, nextDestination } from './system.js';
 
-/** The light's signature as the ship draws it: the glyph, three dots over an upward arc. */
-export const SIG_GLYPH = '<svg class="glyph" viewBox="0 0 20 16" aria-hidden="true"><circle cx="4.5" cy="2.2" r="1.7"/><circle cx="10" cy="2.2" r="1.7"/><circle cx="15.5" cy="2.2" r="1.7"/><path d="M3 15 Q10 4.5 17 15" fill="none" stroke-width="2.2" stroke-linecap="round"/></svg>';
+/** The light's signature as the ship draws it: the glyph, an open corner beside a shorter upright. */
+export const SIG_GLYPH = MAKERS_MARK_SVG;
 
 const HEADER = 62;   // the title and the count, top left of the field
 

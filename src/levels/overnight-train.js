@@ -144,7 +144,7 @@ export const TRAIN_CONTENT = {
     glyph: { size: 0.9, yaw: Math.PI / 2, lift: 0.7, color: '#f3ead8', glow: 0.35 },
     person: { id: 'trace.overnighttrain', name: 'A mark on the last carriage', title: '', color: '#f3ead8',
       talk: { nodes: { look: { say: [
-        '~solemn~ (Chalked on the last carriage’s roof, at its very end, where the rails run out behind into the dark: three dots over an arc, {glyph}.)',
+        '~solemn~ (Chalked on the last carriage’s roof, at its very end, where the rails run out behind into the dark: an open corner beside a shorter upright, {glyph}.)',
         '~whisper~ (Chalk wouldn’t last a night up here in the wind. This has been drawn again over older chalk, many times, never quite on the old lines. Someone on this train keeps it.)',
       ], do: { set: { 'sight.overnighttrain.chalk': true } } } } } },
   }],

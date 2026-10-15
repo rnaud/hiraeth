@@ -1,3 +1,4 @@
+import { glyphGeometry } from '../story/sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, fbm, smoothstep } from '../noise.js';
@@ -344,11 +345,8 @@ export function* buildHome(scene) {
     add(new THREE.CylinderGeometry(17, 17.4, 0.3, 48), mat('#efe2c4', { flat: true }), x, 0.0, z);
     const mark = add(new THREE.RingGeometry(14.2, 15, 64).rotateX(-Math.PI / 2), terracotta, x, 0.17, z);
     mark.userData.noCollide = true;
-    // the glyph, painted on the ring by someone at home: three dots over an arc
-    for (const [dx, dz] of [[-2.2, 12.2], [0, 12.8], [2.2, 12.2]]) {
-      const d = add(new THREE.CircleGeometry(0.55, 16).rotateX(-Math.PI / 2), ink, x + dx, 0.18, z + dz);
-      d.userData.noCollide = true;
-    }
+    // The maker’s mark, painted beside the landing ring.
+    add(glyphGeometry(3.8, 0.025).rotateX(-Math.PI / 2), ink, x, 0.19, z + 11.5).userData.noCollide = true;
   }
   // the stone path, from the ring to the door
   yield;

@@ -12,7 +12,7 @@
 // to the tank (a new colour band): a crystal splinter that harmonises with
 // the tank.
 //
-// The glyph here is "the Hush": three drops of rain over a shut mouth. You
+// The glyph here is "the Hush": a tall stem sheltering a smaller one. You
 // paint it on anything you don't want eaten.
 //
 // Conversations: src/story/dialogue.js. Quests: src/story/quests.js.
@@ -117,7 +117,7 @@ export const LANDING = [
         },
         fell: { say: ["~neutral~ That’s Saba’s idea. She has listened at its foot forty years. I’m qualified in eggs, not enormous singing rocks."], choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }] },
         glyph: {
-          say: ["~neutral~ {glyph} *The Hush.* Three raindrops over a closed mouth. We put it on things we’d prefer the plants not to eat. Boots, eggs, small relatives.", "~solemn~ It’s carved beneath the Great Crystal too. The plants leave that alone. Mind you, it would be an ambitious meal.", "~sad~ Look for *the sky-egg on the mossy rise*: a blue star-chest covered in that mark. Plants won’t touch it. It won’t open for us."],
+          say: ["~neutral~ {glyph} *The Hush.* A tall stem bent over a smaller one, sheltering it. We put it on things we’d prefer the plants not to eat. Boots, eggs, small relatives.", "~solemn~ It’s carved beneath the Great Crystal too. The plants leave that alone. Mind you, it would be an ambitious meal.", "~sad~ Look for *the sky-egg on the mossy rise*: a blue star-chest covered in that mark. Plants won’t touch it. It won’t open for us."],
           do: { set: { 'perdide.glyph.heard': true } },
           choices: [{ text: '~happy~ Thank you, Wendel.', end: true }],
         },
@@ -445,7 +445,7 @@ export const THINGS = {
   hush: {
     id: 'hush', name: 'The root stone', title: 'under the Great Crystal', color: '#a99bb0', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ Saba’s hand has polished this stone beside the crystal. An ancient carving remains: {glyph}", "~solemn~ The Hush, they call it. The same three dots and arc burned into your ship."],
+      say: ["~neutral~ Saba’s hand has polished this stone beside the crystal. An ancient carving remains: {glyph}", "~solemn~ The Hush, they call it. The same open corner and short upright burned into your ship."],
       do: { set: { 'perdide.hush.seen': true } }, choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

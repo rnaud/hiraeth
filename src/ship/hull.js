@@ -1,5 +1,6 @@
+import { markOnSurface } from '../makers-mark/surface.js';
 import * as THREE from 'three';
-import { surfacePoly, surfaceRibbon, blob, arcStroke } from './geo.js';
+import { surfacePoly, surfaceRibbon, blob } from './geo.js';
 
 // The ship's outside: the angular exploration vessel of the selected reference
 // (references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg, docs/systems/ship.md).
@@ -8,7 +9,7 @@ import { surfacePoly, surfaceRibbon, blob, arcStroke } from './geo.js';
 // windows' sill, muted lavender panels on the aft half, a khaki lower hull in two chamfers down to a
 // dark belly, a side hatch with a telescoping ramp, a tall slot window aft of it, two slender pods
 // raked up and back off the stern, and on the port flank the scorch the singing light left as it
-// passed: three dots over an arc.
+// passed: an open corner beside a shorter upright.
 //
 // Ship-local frame: x to starboard, y up, z aft; the origin on the deck, on the centre line, at the
 // middle of the hatch (port side, -x). The bow points to -z. The hull is a loft of seven points a side
@@ -357,16 +358,13 @@ export function buildHull(batch, o = {}) {
   }
   batch.add('dark', new THREE.BoxGeometry(0.4, 0.2, 10.6).translate(0, BELLY - 0.08, 1.7));
 
-  // ---- the scar: a scorched halo, three dots over an arc (the glyph), soot streaks, on the port flank
+  // ---- the scar: a scorched halo, an open corner beside a shorter upright (the glyph), soot streaks, on the port flank
   {
     const T = (du, dv, lift = 0, out = new THREE.Vector3()) => out.set(SCAR.x - lift, SCAR.y + dv, SCAR.z + du);
     const k = 0.27, sc = (pts) => pts.map(([u, v]) => [u * k, v * k]);
     batch.add('scorch', surfacePoly(T, sc(blob(4.2, 3.1, 28, 0.32, 2.1)), 0.03));
     batch.add('soot', surfacePoly(T, sc(blob(3.1, 2.3, 24, 0.28, 4.7)), 0.04));
-    for (const [u, v] of [[-1.25, 1.0], [0, 1.45], [1.25, 1.0]]) batch.add('ink', surfacePoly(T, sc(blob(0.42, 0.42, 14, 0.12, u * 3 + 1)).map(([a, b]) => [a + u * k, b + v * k]), 0.05));
-    // the arc bows up under the dots (∩), as the glyph is drawn everywhere else, not a smile
-    const [outer, inner] = arcStroke(0, -1.6 * k, 2.1 * k, Math.PI * 0.18, Math.PI * 0.82, 0.5 * k, 24);
-    batch.add('ink', surfaceRibbon(T, outer, inner, 0.05));
+    batch.add('ink', markOnSurface(1.2, (u,v) => T(u,v,0.05)));
     for (const [u, len, w] of [[-2.6, 2.4, 0.18], [2.4, 1.8, 0.14], [-0.6, 1.6, 0.12]]) {
       const o2 = sc([[u - w, -0.8], [u - w * 0.4, -0.8 - len]]), i2 = sc([[u + w, -0.8], [u + w * 0.4, -0.8 - len]]);
       batch.add('soot', surfaceRibbon(T, o2, i2, 0.045));

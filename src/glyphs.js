@@ -1,7 +1,7 @@
 // The makers' inscriptions (makeMaterial({ glyphs }), materials.js).
 //
-// The makers marked everything they made (LORE.md, "The glyph"): three dots over an arc that
-// bows upward (∩), and their other carved signs, the rings, the two moons, the pale four-point
+// The makers marked everything they made (LORE.md, "The glyph"): an open corner beside a shorter upright,
+// and their other carved signs, the rings, the two moons, the pale four-point
 // star. On their buildings (Qanat's gate and the giant's brow, the Builders' ruins in Viridel,
 // the standing stones, the observatory, the shrines) they are cut into the stone:
 //  - laid out like an inscription: each row of the wall's grid carries a frieze between two
@@ -47,9 +47,11 @@ export const GLYPH_GLSL = /* glsl */ `
   float gDiamond(vec2 q, float a, float b) { vec2 p = abs(q); return (p.x / a + p.y / b - 1.0) / sqrt(1.0 / (a * a) + 1.0 / (b * b)); }
   // one sign: the distance (glyph units, the sign ~0.6 across) to its nearest stroke
   float glyphSignD(vec2 q, float k) {
-    if (k < 0.5) {   // the makers' mark: three dots over an arc that bows upward
-      float d = gArc(q, vec2(0.0, -0.24), 0.27);
-      return min(d, min(gDot(q, vec2(-0.21, 0.2), 0.05), min(gDot(q, vec2(0.0, 0.29), 0.05), gDot(q, vec2(0.21, 0.2), 0.05))));
+    if (k < 0.5) {   // open corner, with the shorter upright sharing its baseline
+      float stem = segDist(q, vec2(-0.12, -0.29), vec2(-0.12, 0.29));
+      float shoulder = segDist(q, vec2(-0.12, 0.29), vec2(0.15, 0.29));
+      float reply = segDist(q, vec2(0.13, -0.29), vec2(0.13, 0.02));
+      return min(stem, min(shoulder, reply));
     }
     if (k < 1.5) return min(gRing(q, vec2(0.0), 0.25), gDot(q, vec2(0.0), 0.05));                         // a ring round a dot
     if (k < 2.5) return min(gRing(q, vec2(-0.1, 0.0), 0.19), gRing(q, vec2(0.1, 0.0), 0.19));             // the two moons

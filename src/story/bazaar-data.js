@@ -105,7 +105,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Why did it go quiet?', goto: 'quiet' }, { text: '~curious~ What do the other signs say?', goto: 'others' }],
         },
         quiet: {
-          say: ["~solemn~ The night the singing light passed, every sign showed the same mark: three dots over an arc. The tower received one last message, then went silent.",
+          say: ["~solemn~ The night the singing light passed, every sign showed the same mark: an open corner beside a shorter upright. The tower received one last message, then went silent.",
             "~tired~ The antenna lost its tuning. Kip took the message cylinder to carry upstairs, but ran off with it instead."],
           do: { set: { 'bazaar.rumour.light': true } },
           choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }, { text: '~curious~ Why not take it up yourself?', goto: 'self' }],

@@ -3,7 +3,7 @@
 // The singing light passed the ship in the prologue close enough to drain its power
 // (docs/story-bible.md) and left more than the glyph scorched on the hull where it brushed
 // by: the scar is magnetised, and its
-// field beats slowly in threes, like the glyph's three dots. The ship's
+// field beats slowly in threes, like the singing light’s three notes. The ship's
 // instruments read that beat, and the galactic map charts only the worlds whose
 // own field carries it: the worlds the singing light passed through. From each
 // world you finish, the ship reads the trace a little further on (that is the

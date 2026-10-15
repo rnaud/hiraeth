@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-15",
+  "selection": "Hearted by the user in Midjourney; downloaded for the requested in-game comparison. Option 4 (corner) approved by the user for production on 2026-10-15.",
+  "sources": [
+    {
+      "id": "hand",
+      "name": "Maker’s hand",
+      "file": "hand.jpeg",
+      "url": "https://www.midjourney.com/jobs/99e27f40-417d-4b3b-a0a3-e0092926e3fe?index=0",
+      "interpretation": "Three rising strokes held by a sweep."
+    },
+    {
+      "id": "listening",
+      "name": "Listening",
+      "file": "listening.jpeg",
+      "url": "https://www.midjourney.com/jobs/7f7335c4-c2a2-4e8e-946e-a8ac3c3661b5?index=0",
+      "interpretation": "A deep crescent receiving three marks."
+    },
+    {
+      "id": "resonance",
+      "name": "Resonance",
+      "file": "resonance.jpeg",
+      "url": "https://www.midjourney.com/jobs/c8098a92-88d5-4f19-a046-67bbb3dbc6e4?index=2",
+      "interpretation": "Three broad arcs, one quiet centre."
+    },
+    {
+      "id": "corner",
+      "name": "Open corner",
+      "file": "corner.jpeg",
+      "url": "https://www.midjourney.com/jobs/f24ca4ef-8d15-499e-86b7-aa56024167a8?index=2",
+      "interpretation": "An open shoulder and a grounded answering stroke."
+    },
+    {
+      "id": "corner-soft",
+      "name": "Quiet reply",
+      "file": "corner-soft.jpeg",
+      "url": "https://www.midjourney.com/jobs/1ff9bc0a-df41-4514-a78b-78872b875715?index=2",
+      "interpretation": "A wider shoulder; the shorter stroke floats inside it."
+    }
+  ]
+}

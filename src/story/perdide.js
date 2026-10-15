@@ -1,3 +1,4 @@
+import { glyphGeometry } from './sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -34,7 +35,7 @@ const Q = 'perdide.crystal';
 const PATIENCE = 20;        // s standing in the bed, feeding nothing
 const SONG = 34;            // s the crystal sings after three splashes
 
-/** The phrase of the singing light: three bright notes (the dots) and a long arc down and up again. */
+/** The phrase of the singing light: three bright notes and a long arc down and up again. */
 export function singingLight(sound, vol = 0.1) {
   if (!sound?.ctx || !sound.instrument) return false;
   const t = sound.ctx.currentTime, f = (d, o) => sound.freq(d, o);
@@ -92,10 +93,7 @@ export function setupPerdide(ctx) {
     g.position.copy(hushAt);
     g.rotation.y = Math.atan2(toLanding.x, toLanding.z);
     g.add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.5, 1.8).translate(0, 0.15, 0), stoneMat));
-    // the glyph, three dots over an arc, set into the top
-    const parts = [-0.55, 0, 0.55].map((x, i) => new THREE.CylinderGeometry(0.13, 0.13, 0.06, 10).translate(x, 0.42, -0.25 - (i === 1 ? 0.08 : 0)).toNonIndexed());
-    parts.push(new THREE.TorusGeometry(0.75, 0.06, 4, 18, Math.PI).rotateX(-Math.PI / 2).translate(0, 0.42, 0.55).toNonIndexed());
-    g.add(new THREE.Mesh(mergeGeometries(parts), inkMat));
+    g.add(new THREE.Mesh(glyphGeometry(1.25, 0.04).rotateX(-Math.PI / 2).translate(0, 0.42, 0), inkMat));
     g.traverse((o) => { o.userData.noCollide = true; });
     scene.add(g);
   }

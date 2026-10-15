@@ -218,7 +218,7 @@ time"; "Someone who wants you back. I understand that better than you think").
 ### Things the reel cannot have known (each once)
 - **The singing light** (after two worlds' witnesses): "If you ever hear something singing out there, you turn the ship around." Later the mother: "Your father stood at the window last night a long time. He said he heard something singing."
 - **Ships that go dark** (after Odile and Talo's ship): "Ships go dark out there. It happens."
-- **The glyph** (after the Buried Machine or Lorn): "You have drawn those three dots on the landing ring again. Over an arc." He: "I drew that before I knew what it was."
+- **The glyph** (after the Buried Machine or Lorn): "You have drawn that angular mark on the landing ring again." He: "I drew that before I knew what it was."
 - **The bell** (after Vael II): the harbour bell behind them, rung when a ship comes in.
 - **The bird** (after Vael): "A bird made you a promise? You and your stories."
 - **The lamps** (after Lorn II): the mother has left the lamp on in the round window.
@@ -249,15 +249,15 @@ bell can be heard". Each world has its own name for them:
 | World | The makers | Their chest | The glyph |
 |---|---|---|---|
 | Desert | the Givers | the Givers' chest (Nour) | the Givers' mark; the Eye That Fell; "the bird" (children) |
-| City-Shaft | (not named) | lost property (palace); a promise (bottom, Ossa) | the palace seal (rim); the Three Who Look Up (bottom) |
+| City-Shaft | (not named) | lost property (palace); a promise (bottom, Ossa) | the palace seal (rim); Those Who Look Up (bottom) |
 | Vael | "nobody knows who walked here first" | a square with a star, drawn in the sand (Oïa) | the bird's track |
 | Vael II | the founders | a bell-chest (Calix) | the Three Notes |
 | Hangar | (the Major found the mark, never its makers) | "for the next one" (the Major) | the maker's rivets; the Major's thumbprint |
 | Buried Machine | the Maker | thumb-boxes (Wen) | the Maker's Thumb |
 | Viridel | the Builders: the gardeners credit the white builders (androids), who in fact found the pyramids and the spheres already there and copied them, and the mark | Builders' gifts (Oro) | the Builders' mark ("a signature, or an apology"; copied from under the spheres, Oro thinks) |
 | Spheres | something that walked through the sky putting spheres down | left-behinds, presents (Emrys, Ume): the one here is up on the grove's umbrella tree | the Footprint (under every sphere, and round the chest's sides) |
-| Lorn | (not named) | the sky-egg (Wendel) | the Hush: three drops of rain over a shut mouth |
-| Lorn II | (not named) | the traveller's chest (Hollin) | the Welcome: three lamps over a hull |
+| Lorn | (not named) | the sky-egg (Wendel) | the Hush: a tall stem sheltering a smaller one |
+| Lorn II | (not named) | the traveller's chest (Hollin) | the Welcome: a doorway with someone waiting beside it |
 | Signal Market | (not named; "here before the market") | no chest | the First Sign; the tuning mark; three listeners and the edge of the world (Brush) |
 
 **The chests.** Knee-high, dark blue paint crazed with age, corners worn
@@ -278,7 +278,7 @@ Later sources add bands: Buried Machine's oil-light (amber), the Great
 Crystal's violet, the market's lantern. By the end the tank is a record of the journey.
 
 ### The glyph
-Three dots over an arc that bows upward (∩), never a smile. Scorched into the
+An open corner beside a shorter upright. Scorched into the
 ship's hull where the singing light brushed past it. It recurs on the reactive scenery's three apertures,
 the giants' brows, the Lodestar's lower facets, the Major's machines, the
 android ruins, the bell, the great wheel, the Great Crystal's root stone, the
@@ -933,7 +933,7 @@ lantern listens for anyone a long way from home and sends a light to bring them
 in, not gently; one brought her in thirty years ago and her ship never flew
 again (the top half of it is her house); when the father's broadcast finally
 reached her she sang his own message into a light, put the makers' sign on it
-(three dots over an arc, which Odile worked out means *we heard you*), and sent
+(an open corner beside a shorter upright, which Odile worked out means *we heard you*), and sent
 it home. It sang over the round house, nobody called back ("A light can't
 knock"), and it went looking for the voice that had called her: his voice, on
 the reel, playing in the cockpit the morning it passed him (he had stopped the
@@ -988,12 +988,12 @@ she comes and stands beside him "and doesn't say anything at all, which is a fir
 
 ## 8. Recurring motifs
 
-- **Three over an arc.** The glyph; the three dots he drew as a boy; three stools in the galley; three bulbs on the antenna; three spheres; three dark pools; three stopped machines; three charges in the tank; the signature's pulse in threes.
+- **Answering.** The bent stroke and the shorter upright he drew as a boy. The separate rhythm of threes remains in three stools in the galley; three bulbs on the antenna; three spheres; three dark pools; three stopped machines; three charges in the tank; the signature's pulse in threes.
 - **It turned.** The light always turns, "like it was looking for something". Oum: ask it why it turned.
 - **Singing like a wet finger round a glass.** Every witness says it nearly the same way.
 - **Answering.** The chest, the Lodestar, the stones, the bell, the wheel, the pole, the crystal, the antenna all answer the light. Recordings never answer him.
 - **Lamps kept for someone.** Wren's call-lamp, Hollin's pools, the mother's lamp in the round window, the dark window at the end, the lantern charm that never goes out.
-- **Looking up.** Nima's once a day; the Three Who Look Up; the giants lying face up to watch the sky.
+- **Looking up.** Nima's once a day; Those Who Look Up; the giants lying face up to watch the sky.
 - **Giants who carried water** and lay down where they could go no further; big things lie down and become places.
 - **Something of value** vs. **on your own two feet**: the father's two phrases, one at the port, one on the relay, one at the grave.
 - **Come home.** Ondine's letter ("Come home for supper"), the market's signs, the last recording.
@@ -1143,7 +1143,7 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   listed as planned, not built; the glyph's witnesses saw a singing light (not a
   falling one).
 - **The words for the arc**: kept as they are. The docs and the ship say "arc";
-  the locals say "three dots over a curve". The shape is ∩ everywhere.
+  the locals say "an open corner beside a shorter upright". The shape is ∩ everywhere.
 - **Names that look alike**: were made unique in October 2026 (the second story
   pass, docs/story-audit.md): no two people share a name, and the near-misses went
   (Lorn II's young lamp-keeper is Robin, the Buried Machine's Wick is only a lamp;

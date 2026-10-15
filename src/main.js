@@ -694,7 +694,7 @@ await slice();
 // a context; startReview runs after world loading and is too late for this.
 setStep('sound, tool');
 // (behind the title, the game's sound waits for its first frame: the title's music plays meanwhile)
-const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') || query.has('characterReview') ? true : undefined, autoStart: !titleHold });
+const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') || query.has('characterReview') || query.has('markReview') ? true : undefined, autoStart: !titleHold });
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)

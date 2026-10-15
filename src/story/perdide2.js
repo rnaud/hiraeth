@@ -1,3 +1,5 @@
+import { markOnSurface } from '../makers-mark/surface.js';
+import { glyphGeometry } from './sign-text.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -101,17 +103,14 @@ export function setupPerdide2(ctx) {
     }
     const eggMesh = new THREE.Mesh(mergeGeometries(eggs), eggMat);
     eggMesh.userData.noCollide = true;
-    // the Welcome painted on a stone beside it: three lamps over a hull
+    // the Welcome painted on a stone beside it: a doorway with someone waiting beside it
     const a6 = 6 * 0.9 + i, sx = D.x + Math.cos(a6) * (D.r + 1.1), sz = D.z + Math.sin(a6) * (D.r + 1.1);
     const inkMat = makeMaterial({ color: '#4a4f63', flat: true, glow: 0.1, welcome: i });
     const stone = new THREE.Group();
     stone.position.set(sx, ground(sx, sz), sz);
     stone.rotation.y = Math.atan2(D.x - sx, D.z - sz);
     stone.add(new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.0, 0.35).translate(0, 0.4, 0), stoneMat));
-    const ink = [-0.3, 0, 0.3].map((x, k) => new THREE.SphereGeometry(0.08, 6, 4).translate(x, 0.72 + (k === 1 ? 0.05 : 0), 0.19).toNonIndexed());
-    // (the arc bows upward, ∩, like the glyph everywhere: a half torus from 0 to π is the top half)
-    ink.push(new THREE.TorusGeometry(0.36, 0.035, 3, 14, Math.PI).translate(0, 0.22, 0.19).toNonIndexed());
-    stone.add(new THREE.Mesh(mergeGeometries(ink), inkMat));
+    stone.add(new THREE.Mesh(glyphGeometry(0.7, 0.025).translate(0, 0.45, 0.19), inkMat));
     stone.traverse((o) => { o.userData.noCollide = true; });
     const props = new THREE.Group();   // drawn only within 110 m
     props.add(dark, live, eggMesh, stone);
@@ -181,14 +180,10 @@ export function setupPerdide2(ctx) {
   const S = level.saucer;
   const saucerAt = V(SAUCER.x, Math.max(ground(SAUCER.x, SAUCER.z), 0), SAUCER.z);
   {
-    // the glyph scorched across its flank, three dots over an arc, black on the teal
+    // the glyph scorched across its flank, an open corner beside a shorter upright, black on the teal
     const scorch = makeMaterial({ color: '#1d2a3a', flat: true });
     const r = SAUCER.r, onHull = (x, z, lift = 0.02) => V(x, 0.34 * Math.sqrt(Math.max(0, r * r - x * x - z * z)) + lift, z);
-    // on the flank away from the canopy: the dots toward the crown, the arch below them toward the rim
-    const parts = [-1.6, 0, 1.6].map((z, k) => new THREE.SphereGeometry(0.4, 8, 5).scale(1, 0.4, 1).translate(...onHull(k === 1 ? -3.0 : -3.35, z).toArray()).toNonIndexed());
-    const arc = new THREE.CatmullRomCurve3([-2.7, -1.35, 0, 1.35, 2.7].map((z) => onHull(-5.5 + 1.0 * (1 - (z / 2.7) ** 2), z, 0.05)));
-    parts.push(new THREE.TubeGeometry(arc, 16, 0.17, 4).toNonIndexed());
-    const m = new THREE.Mesh(mergeGeometries(parts.map((g) => { g.deleteAttribute('uv'); return g; })), scorch);
+    const m = new THREE.Mesh(markOnSurface(4.5, (u,v) => onHull(-4 + v, u, 0.06)), scorch);
     m.userData.noCollide = true;
     S.group.add(m);
   }

@@ -188,7 +188,7 @@ export const PEOPLE = {
         },
         glyph: {
           say: ["~happy~ You spotted the mark! {glyph} It’s on the light’s underside, facing the people below.",
-            "~neutral~ Up here it’s the palace seal. Down there, the Three Who Look Up. I’ve never seen a seal improve anyone’s view."],
+            "~neutral~ Up here it’s the palace seal. Down there, Those Who Look Up. I’ve never seen a seal improve anyone’s view."],
           choices: [{ text: '~playful~ I’ll look at it from below, then.', end: true }],
         },
         carry: {
@@ -243,7 +243,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ What came down?', goto: 'splinter' }, { text: '~curious~ What’s the mark on your floor?', goto: 'glyph' }],
         },
         glyph: {
-          say: ["~solemn~ {glyph} *The Three Who Look Up.* Three people standing on the curve of the world, looking up for light.",
+          say: ["~solemn~ {glyph} *Those Who Look Up.* One figure bending toward another, both waiting for light.",
             "~angry~ The palace stamps it on licences. We can see it under the Lodestar. Draw your own conclusion about who copied whom.", "~solemn~ It’s also on the blue star-box atop the lone stone pillar, up on the rim. They call it lost property. We think it’s waiting for someone."],
           choices: [{ text: '~curious~ What came down?', goto: 'splinter' }],
         },
@@ -742,7 +742,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'incal.relay.lit' }, node: 'lit' }, { node: 'dark' }],
       nodes: {
         dark: {
-          say: ["~neutral~ An old brass lamp on the ring round the spire, its glass turned up the shaft. Three small figures looking up are stamped on its foot: the Three Who Look Up.",
+          say: ["~neutral~ An old brass lamp on the ring round the spire, its glass turned up the shaft. A bent figure and a smaller upright are stamped on its foot: Those Who Look Up.",
             "~curious~ It is dark. It looks as if it was made to catch a light, not to make one."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
@@ -773,7 +773,7 @@ export const LINES = {
     rim: ['~surprised~ Did you see that?', '~happy~ The palace has outdone itself.', '~curious~ I looked up. Did you?', '~surprised~ It throws shadows again!'],
     upper: ['~surprised~ Look at it!', '~happy~ It’s so bright!', '~sad~ I’d forgotten it did that.', '~shout~ Look up, everyone!'],
     middle: ['~shout~ Look up! Look!', '~surprised~ It reaches all the way down!', '~happy~ I can see my own shadow!'],
-    lower: ['~surprised~ It sees us!', '~shout~ Light! Down here!', '~happy~ Open your eyes, it doesn’t sting!', '~solemn~ The Three Who Look Up!', '~shout~ We’re still down here!'],
+    lower: ['~surprised~ It sees us!', '~shout~ Light! Down here!', '~happy~ Open your eyes, it doesn’t sting!', '~solemn~ Those Who Look Up!', '~shout~ We’re still down here!'],
   },
   shout: ['~shout~ Look! Look up!', '~shout~ The light!', '~shout~ Up there!', '~shout~ It’s burning again!'],
 };
@@ -826,7 +826,7 @@ export const CROWD_TALK = {
     { name: 'A worshipper', title: 'of the bottom terraces', talk: { listen: [
       ['~whisper~ Shh. We’re praying. Eyes shut, face up.', '~whisper~ The smog stings, but the light can still feel you looking.'],
       '~angry~ Why eyes shut? You try keeping them open down here.',
-      '~solemn~ {glyph} Three heads over a hill: the Three Who Look Up. They’re cut into the light itself, underneath, where only we can see them.',
+      '~solemn~ {glyph} A tall figure bent toward a smaller one: Those Who Look Up. They’re cut into the light itself, underneath, where only we can see them.',
       '~solemn~ A light nobody looks at goes out. That is the whole of the teaching. The rest is singing.',
     ] } },
     { name: 'A laundry hanger', title: 'of the bottom terraces', talk: { listen: [

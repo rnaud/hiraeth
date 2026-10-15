@@ -387,7 +387,7 @@ export const PEOPLE = {
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [
       "~neutral~ You’re from the long striped ship. I saw the burn on its side.",
-      ['~curious~ Three dots over a curve, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.', '~playful~ Somebody signs their work. If I knew who, I wouldn’t need a flute. Hm-hm.'],
+      ['~curious~ An open corner beside a shorter upright, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.', '~playful~ Somebody signs their work. If I knew who, I wouldn’t need a flute. Hm-hm.'],
       { say: ["~neutral~ A ney. Cut from an oasis reed. Same tune for years. I change; it politely adjusts.", '~happy~ (He plays it for you.)'], do: { emit: ['music:solo', { who: 'bako' }] } },
       { if: { not: RISEN }, say: '~whisper~ Old keepers’ saying: where the giant’s eyes are marked, its mouth is a door. Hm.' },
       '~tired~ Hm. (He shuts his eyes. That is the end of the conversation.)',
@@ -416,7 +416,7 @@ export const PEOPLE = {
             { text: '~curious~ Wet? Where exactly?', goto: 'where' },
           ],
         },
-        where: { say: ["~happy~ Past the back gate, into the giant’s open mouth. The skull with three dots on its forehead. Hard to confuse with a normal door."], choices: [{ text: '~neutral~ Come with me, then.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~neutral~ Better ask your parents.', goto: 'parents' }] },
+        where: { say: ["~happy~ Past the back gate, into the giant’s open mouth. The skull with the angular mark on its forehead. Hard to confuse with a normal door."], choices: [{ text: '~neutral~ Come with me, then.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~neutral~ Better ask your parents.', goto: 'parents' }] },
         parents: { say: ["~angry~ Mum won’t stop walking until the tree drinks. Trees are extremely slow at making arrangements."], choices: [{ text: '~neutral~ All right. Come with me.', do: [{ start: 'desert.ilo' }, { set: { 'desert.ilo.following': true } }], goto: 'yes' }, { text: '~sad~ Sorry, Ilo.', end: true }] },
         yes: { say: ["~happy~ Yes! I’ll be quiet. Starting in a minute. Come on!"], choices: [{ text: '~neutral~ (go)', end: true }] },
         come: { say: ["~happy~ Through the city, past the tree, out the back gate! I’m following. Look how responsibly I’m following!"], choices: [{ text: '~neutral~ (go)', end: true }] },
@@ -712,7 +712,7 @@ export const PEOPLE = {
       nodes: {
         // at your ship: the scar on the hull, and the only fire that could wake it (the main quest starts in this talk)
         wreck: {
-          say: ["~playful~ Sky-person! Marrow, salvager. I was just inspecting your ship. Entirely professional curiosity. Please don’t count the loose screws while I’m here.", "~whisper~ There’s a mark burned into the hull. Three dots and an arc. {glyph} That didn’t come from landing in sand."],
+          say: ["~playful~ Sky-person! Marrow, salvager. I was just inspecting your ship. Entirely professional curiosity. Please don’t count the loose screws while I’m here.", "~whisper~ There’s a mark burned into the hull. An open corner and a short upright. {glyph} That didn’t come from landing in sand."],
           choices: [
             { text: '~neutral~ My ship has no power. Where can I find some?', goto: 'fire' },
             { text: '~curious~ What does the mark mean?', goto: 'mean' },
@@ -728,7 +728,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Qanat, the tree, the chest. Thanks.', end: true }, { text: '~curious~ And the mark?', goto: 'mean' }],
         },
         hello: {
-          say: [{ if: { not: { flag: 'desert.marrow.warned' } }, text: '~playful~ Sky-person, back again. Your ship is exactly where you left it. I checked. Twice. Purely for your peace of mind.' }, { if: { flag: 'desert.marrow.warned' }, text: '~playful~ Sky-person. I haven’t been near your ship. I’ve been near it at a respectful distance, which is a different thing.' }, "~whisper~ That mark on your hull still hasn’t cooled. Three dots and an arc. {glyph} Sand doesn’t do that."],
+          say: [{ if: { not: { flag: 'desert.marrow.warned' } }, text: '~playful~ Sky-person, back again. Your ship is exactly where you left it. I checked. Twice. Purely for your peace of mind.' }, { if: { flag: 'desert.marrow.warned' }, text: '~playful~ Sky-person. I haven’t been near your ship. I’ve been near it at a respectful distance, which is a different thing.' }, "~whisper~ That mark on your hull still hasn’t cooled. An open corner and a short upright. {glyph} Sand doesn’t do that."],
           choices: [
             { text: '~curious~ What does it mean?', goto: 'mean' },
             { text: '~curious~ Got anything faster than walking?', if: { all: [{ quest: 'desert.bike', started: false }, { not: { flag: 'desert.bike.found' } }] }, goto: 'bike' },
@@ -1162,7 +1162,7 @@ export const CROWD_TALK = {
     ] } },
     { name: 'A banner bearer', title: 'in the procession', talk: { listen: [
       "~happy~ Eighty-year-old banner. Nine new cloths, two new poles. The important bit is apparently the carrying.",
-      ['~playful~ The Givers’ mark, three dots and an arc. {glyph}', '~playful~ My father said it’s the giants’ eyes, looking up. My mother said it’s rain over a hill. They argued every circuit. Happiest couple in the oasis.'],
+      ['~playful~ The Givers’ mark, an open corner and a short upright. {glyph}', '~playful~ My father said it’s a giant bending down to listen. My mother said it’s a doorway with someone waiting. They argued every circuit. Happiest couple in the oasis.'],
       '~tired~ Carry a banner for forty circuits and you learn which way the wind blows. Today: into my face.',
       '~neutral~ *Follow the banners* and you’ll find the Speaker. Follow the drum and you’ll find him sooner.',
       { after: TEMPLE, say: '~surprised~ They say the old fields round Qanat are going green. Green! I’ll need a new banner. This one’s the colour of sand.' },

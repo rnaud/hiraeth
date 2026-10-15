@@ -11,7 +11,7 @@
 // log (a singing light paced them, turned, and struck), Talo's request ("look
 // under the flowers on the starboard side; look, and then let it be"), and
 // the veil of vines over the hull that parts when you water it rather than
-// cut it. Under it is the scorch: three dots over an arc, exactly the mark
+// cut it. Under it is the scorch: an open corner beside a shorter upright, exactly the mark
 // on the traveller's own hull. Their ship was not the first. Nobody explains
 // the light; Mira only says what the gardeners do with things that fall.
 //
@@ -179,7 +179,7 @@ export const PEOPLE = {
         tell: {
           say: ["~solemn~ You saw the mark under the flowers. Tell me."],
           choices: [
-            { text: '~neutral~ There’s a scorch on their hull: three dots over an arc.', goto: 'mark' },
+            { text: '~neutral~ There’s a scorch on their hull: an open corner beside a shorter upright.', goto: 'mark' },
             { text: '~solemn~ My ship has the same mark. The light brushed it, on the way here.', goto: 'same' },
           ],
         },
@@ -508,7 +508,7 @@ export const THINGS = {
     id: 'oldpyramid', name: 'The old pyramid’s top', title: 'over the nursery', color: '#f3ead8', voice: 1.1,
     talk: { nodes: {
       look: {
-        say: ["~surprised~ From up here the nursery’s rows draw a mark across the meadow: three dots over an arc.",
+        say: ["~surprised~ From up here the nursery’s garden floor carries a mark across the meadow: an open corner beside a shorter upright.",
           "~solemn~ Beyond them the cliffs close all the way round. The whole garden lies in a crater."],
         do: { set: { 'edena.nursery.seen': true } },
         choices: [{ text: '~curious~ (look for a while)', end: true }],
@@ -533,7 +533,7 @@ export const THINGS = {
     id: 'scar', name: 'Under the flowers', title: 'the ship’s flank', color: '#54433b', voice: 1.5,
     talk: { nodes: {
       look: {
-        say: ["~solemn~ The vines reveal scorched metal. Burned into its centre: three dots over an arc."],
+        say: ["~solemn~ The vines reveal scorched metal. Burned into its centre: an open corner beside a shorter upright."],
         next: 'mine',
       },
       mine: {
@@ -548,7 +548,7 @@ export const THINGS = {
     id: 'lookout', name: 'Talo’s lookout', title: 'on the tallest tree’s crown', color: '#b5a7e6', voice: 0.75,
     talk: { nodes: {
       note: {
-        say: ["~neutral~ A smooth bench faces east. Beside it, a folded note hangs below a carved mark: three dots over an arc.", "~solemn~ *The light came from the east. Odile says it won’t return. It turned once. It can turn again. If it does, I want to be looking. — T.*", "~sad~ From the crown you see the whole garden. Greener plants trace the furrow through the south meadow, where the ship tore the ground.", "~solemn~ All round, the cliffs close in a ring. The garden is a crater: the oldest thing that fell here."],
+        say: ["~neutral~ A smooth bench faces east. Beside it, a folded note hangs below a carved mark: an open corner beside a shorter upright.", "~solemn~ *The light came from the east. Odile says it won’t return. It turned once. It can turn again. If it does, I want to be looking. — T.*", "~sad~ From the crown you see the whole garden. Greener plants trace the furrow through the south meadow, where the ship tore the ground.", "~solemn~ All round, the cliffs close in a ring. The garden is a crater: the oldest thing that fell here."],
         // (read before Rue asked, it is her errand done all the same: issue #172)
         do: [{ set: { 'edena.lookout.read': true } }, (ctx) => { if (ctx.quests && !ctx.quests.isStarted('edena.tree')) ctx.quests.start('edena.tree'); }],
         choices: [{ text: '~curious~ (watch the east for a while)', end: true }],

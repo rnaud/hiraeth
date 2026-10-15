@@ -16,7 +16,7 @@ import { cabModel } from './taxi.js';
 //                            spire: the first rest on the climb to the palace; and the upper pad three quarters of the way,
 //                            past the relay lamp (level design audit v1.15: the relay stood 206 m from anything)
 //   the relay lamp           on the spire's ring at the 92 m level, the side that faces the bottom: an old lamp of the
-//                            Three Who Look Up, dark until the splinter passes it (src/story/incal.js)
+//                            Those Who Look Up, dark until the splinter passes it (src/story/incal.js)
 //   Tobin's view pad         a floating pad halfway down from the palace to the high terrace, a coin telescope on it
 //                            pointed up at the Lodestar ("looking up remains free")
 //   Lio's dispatch mast      behind Lio on the outer rim, a tall mast in his teal, banded in cream, his dispatch booth at

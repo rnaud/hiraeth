@@ -1,6 +1,6 @@
 // Sightings: the open threads the traveller wonders about, written down as he meets them (the
 // game menu's Sketchbook, its Sightings page; after Outer Wilds' ship log). Every trace of the
-// singing light, of the makers' sign (three dots over an arc) and of the father's signal, as a
+// singing light, of the makers' sign (an open corner beside a shorter upright) and of the father's signal, as a
 // short line with the world and who said it; the ones not met yet are "?" slots.
 //
 //   SIGHTINGS        [{ id, thread, world, who, line, heard?, flag? }]   (the route's; the detours' are in sightings-detours.js)
@@ -26,7 +26,7 @@ import { isWip, partOf } from '../levels/names.js';
 export const THREADS = [
   { id: 'light', name: 'The singing light', ask: 'What drained the ship as it passed, and why did it turn?',
     answer: 'It was my answer. I sang his own message into a light and sent it home. It found his voice on the reel instead.' },
-  { id: 'glyph', name: 'The makers’ sign', ask: 'Three dots over an arc, burned into the hull. Who signs their work like that?',
+  { id: 'glyph', name: 'The makers’ sign', ask: 'An open corner beside a shorter upright, burned into the hull. Who signs their work like that?',
     answer: 'It’s on everything the makers left. Odile read it as “we heard you”. I put it on the light so he’d know.' },
   { id: 'signal', name: 'The father’s signal', ask: 'A voice sent out a long time ago. Who was it meant for?',
     answer: 'It was for me. “Come with empty hands. Just come.” Thirty years on the old relays, and it reached me.' },
@@ -67,10 +67,10 @@ const ROUTE = [
   { id: 'desert.givers', thread: 'glyph', world: 'desert', who: 'Nour', line: 'The Givers’ mark: on the giants, the carved stones, the chests. The same signature.', heard: { who: 'nour', node: 'givers' } },
   { id: 'arzach.track', thread: 'glyph', world: 'arzach', who: 'Oïa', line: 'Drawn in the sand without a word: the bird’s track.', heard: { who: 'oia', node: 'track' } },
   { id: 'arzach2.face', thread: 'glyph', world: 'arzach2', who: 'the tower on the plain', line: 'On the brow of a sleeping face, the same as the desert’s masked head.', heard: { who: 'face', node: 'look' } },
-  { id: 'perdide.hush', thread: 'glyph', world: 'perdide', who: 'Wendel', line: 'The Hush: three raindrops over a shut mouth. Carved under the Great Crystal.', heard: { who: 'wendel', node: 'glyph' } },
-  { id: 'perdide2.welcome', thread: 'glyph', world: 'perdide2', who: 'Hollin', line: 'The Welcome: three lamps over a hull. Someone here expects you.', heard: { who: 'hollin.perdide2', node: 'glyph' } },
+  { id: 'perdide.hush', thread: 'glyph', world: 'perdide', who: 'Wendel', line: 'The Hush: a tall stem sheltering a smaller one. Carved under the Great Crystal.', heard: { who: 'wendel', node: 'glyph' } },
+  { id: 'perdide2.welcome', thread: 'glyph', world: 'perdide2', who: 'Hollin', line: 'The Welcome: a doorway with someone waiting beside it. Someone here expects you.', heard: { who: 'hollin.perdide2', node: 'glyph' } },
   { id: 'edena.scar', thread: 'glyph', world: 'edena', who: 'Odile and Talo’s ship', line: 'Under the vines, scorched metal, and the same mark burned into it.', heard: { who: 'scar', node: 'look' } },
-  { id: 'incal.three', thread: 'glyph', world: 'incal', who: 'Ossa', line: 'The Three Who Look Up, cut into the Lodestar’s underside where only the bottom can see.', heard: { who: 'ossa', node: 'glyph' } },
+  { id: 'incal.three', thread: 'glyph', world: 'incal', who: 'Ossa', line: 'Those Who Look Up, cut into the Lodestar’s underside where only the bottom can see.', heard: { who: 'ossa', node: 'glyph' } },
   // (the Glass Dunes, on the route since October 2026: the mark fused into the sand by the west camp, its own flag set by
   // its trace, src/levels/glass-dunes.js GLASS_CONTENT.traces; it was a detour's until then)
   { id: 'glassdunes.mark', thread: 'glyph', world: 'glassdunes', who: 'a mark in the glass', line: 'Fused into the sand from above, in a skin of glass newer than the dunes. The camp leaves the sand round it untouched.' },

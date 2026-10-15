@@ -426,20 +426,13 @@ function layout(rt) {
   const blue = SK?.cap ?? { paint: new THREE.Color('#7d93c4'), smooth: false, side: THREE.FrontSide };
   const ring = SK?.ring ?? blue, bandM = SK?.band ?? blue, markM = SK?.mark ?? M.trim;
   const slitM = SK?.slit ?? makeMaterial({ color: '#fff0c8', glow: 0.75, flat: true, key: 'incal.temple.slit' });
-  /** A band round a drum's inside wall (r, at y), with the makers' frieze on it: three dots over an upward arc. */
+  /** A band round a drum's inside wall (r, at y), with the makers' frieze on it: an open corner beside a shorter upright. */
   const band = (x, z, r, y, h = 1.3, every = 0.26, skip = []) => {
     K.add(bandM, T(annulus(r - 0.14, r + 0.04, h, 72), [x, y + h / 2, z]));
     for (let a = 0; a < TAU - 0.01; a += every) {
       if (skip.some(([c, w]) => Math.abs(Math.atan2(Math.sin(a - c), Math.cos(a - c))) < w)) continue;
       const px = x + Math.sin(a) * (r - 0.16), pz = z + Math.cos(a) * (r - 0.16);
-      // (in the skin the sign of sheet-1: three tiny dots in a tight row just over the crest of a long, low, flat arch)
-      if (SK?.flatArc) {
-        for (const dx of [-0.12, 0, 0.12]) K.add(markM, T(new THREE.CylinderGeometry(0.045, 0.045, 0.05, 8).rotateX(Math.PI / 2), [px - Math.cos(a) * dx, y + 0.24, pz + Math.sin(a) * dx], [0, a, 0]));
-        K.add(markM, T(new THREE.TorusGeometry(0.34, 0.03, 3, 14, Math.PI).scale(1.7, 0.6, 1), [px, y - 0.02, pz], [0, a, 0]));
-        continue;
-      }
-      for (const [dx, dy] of [[-0.24, 0.22], [0, 0.32], [0.24, 0.22]]) K.add(markM, T(new THREE.CylinderGeometry(0.09, 0.09, 0.05, 8).rotateX(Math.PI / 2), [px - Math.cos(a) * dx, y + dy, pz + Math.sin(a) * dx], [0, a, 0]));
-      K.add(markM, T(new THREE.TorusGeometry(0.34, 0.04, 3, 10, Math.PI), [px, y - 0.28, pz], [0, a, 0]));
+      K.add(markM, T(glyphGeometry(SK?.flatArc ? 0.48 : 0.7, 0.05), [px, y + 0.04, pz], [0, a, 0]));
     }
   };
   /** A tall slit window of warm light on a drum's inside wall, pointed at the top. */

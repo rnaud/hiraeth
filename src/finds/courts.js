@@ -1,3 +1,4 @@
+import { glyphGeometry } from '../story/sign-text.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { gadgetById } from '../gadgets/registry.js';
@@ -160,12 +161,10 @@ function pavement(group) {
   const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); group.add(m); return m; };
   add(new THREE.BoxGeometry(w, thick, d), M.pave, 0, -thick / 2, cz);
   add(new THREE.BoxGeometry(w - 0.3, skirt, d - 0.3), M.skirt, 0, -thick - skirt / 2 + 0.01, cz);
-  // the band (flush with the top, a hair over it so it reads as inlaid), and the glyph: three dots over an arch
+  // the band (flush with the top, a hair over it so it reads as inlaid), and the glyph: an open corner beside a shorter upright
   for (const [bw, bd, x, z] of [[w, 0.35, 0, front - 0.18], [w, 0.35, 0, -back + 0.18], [0.35, d, w / 2 - 0.18, cz], [0.35, d, -w / 2 + 0.18, cz]]) add(new THREE.BoxGeometry(bw, 0.03, bd), M.blue, x, 0.005, z).userData.noCollide = true;
   const gz = COURT.box - 2.4;
-  for (const x of [-0.7, 0, 0.7]) add(new THREE.CylinderGeometry(0.16, 0.16, 0.03, 12), M.glow, x, 0.006, gz - (x ? 0 : 0.25)).userData.noCollide = true;
-  const arch = add(new THREE.TorusGeometry(0.95, 0.07, 4, 24, Math.PI).rotateX(-Math.PI / 2), M.blue, 0, 0.006, gz + 0.9);
-  arch.userData.noCollide = true;
+  add(glyphGeometry(1.7, 0.025).rotateX(-Math.PI / 2), M.blue, 0, 0.025, gz + 0.35).userData.noCollide = true;
 }
 
 /**

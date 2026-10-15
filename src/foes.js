@@ -1,3 +1,4 @@
+import { glyphGeometry } from './story/sign-text.js';
 import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from './materials.js';
 import { batchParts } from './part-batch.js';
@@ -1567,7 +1568,7 @@ function blotModel(kind = 'blot') {
 
 function machineModel() {
   // a makers' construct gone wrong: a round brass shell on three jointed piston legs, two arms with claws, the
-  // makers' glyph (three dots over an arc) glowing on its face, plates riveted round its belly. The shell (the
+  // makers' glyph (an open corner beside a shorter upright) glowing on its face, plates riveted round its belly. The shell (the
   // hull) rides on its feet; the legs are on the locomotion kit (src/motion-kit/: a piston machine, plan 18).
   const g = new THREE.Group(), hull = new THREE.Group(); hull.name = 'hull'; g.add(hull);
   const brass = makeMaterial({ color: '#b08a4a', metal: 'brass', key: 'foe-brass' });
@@ -1578,10 +1579,9 @@ function machineModel() {
   const belt = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.07, 6, 24).rotateX(Math.PI / 2), plate); belt.position.y = 1.22; hull.add(belt);
   const cap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), dark); cap.position.y = 1.82; hull.add(cap);
   const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 4), dark); mast.position.y = 2.1; hull.add(mast);
-  // the glyph for an eye: three dots over an upturned arc
-  const heart = new THREE.Group(); heart.position.set(0, 1.42, 0.55); hull.add(heart);
-  heart.add(new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.025, 4, 16, Math.PI).rotateZ(0), core));
-  for (const x of [-0.12, 0, 0.12]) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), core); d.position.set(x, 0.22, 0); heart.add(d); }
+  // The maker’s signature on the machine’s face.
+  const heart = new THREE.Group(); heart.position.set(0, 1.52, 0.55); hull.add(heart);
+  heart.add(new THREE.Mesh(glyphGeometry(0.42, 0.025), core));
   const arms = [-1, 1].map((s) => {
     const a = new THREE.Group(); a.position.set(s * 0.66, 1.45, 0); hull.add(a);
     a.add(new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), plate));
