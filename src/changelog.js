@@ -21,6 +21,9 @@ export const CHANGELOG = [
     // the Sunken Hall's buttons (after issue #365): src/fight-temples/session.js (jump suppressed), index.js (controls
     // cards, touch jump hidden); tests/fight-roll.test.js
     'In the Sunken Hall, B / ○ rolls and jumping is disabled: A / × and Space do nothing, and the touch jump button is hidden. Jumping elsewhere works as before.',
+    // the Footprint's futuristic skin (issue #342): src/temples/skins/footprint.js, spheres.js `skin`;
+    // tests/temple-skins.test.js; docs/systems/temples.md "The Footprint"
+    'Inside, the Footprint is a white sphere of the makers’ old high technology now, after the drawing picked for it: smooth cream panels with round and octagonal plates set in them, walkways ringing every tall room with pale blue-white light along their edges, lit lines along the floors, the ledges and the walls’ foot, round lens terminals of teal glass, and thin rings of light floating under the oculi. The rooms, doors and puzzles are where they were.',
     // the Steam Deck's main thread (issue #111, round 10): src/empty-instances.js, shadows.js shadowVariants and
     // ShadowCuller.begin, ship/cinema.js holdsToasts, wind.js (wisps out of the view), perf.js cullers, static-batch.js
     // opaqueSort / Watch.holds; tests/deck-main-thread.test.js; docs/systems/performance.md "The Steam Deck, round 10"

@@ -1019,3 +1019,86 @@ test('the Mooring-House’s floating plates keep out of every doorway and well o
   } finally { mhShared.uWearLite.value = was; }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'));
 });
+
+// ---- the Footprint in its futuristic skin (src/temples/skins/footprint.js; its own names, fp*)
+const { footprintSkin, FOOT_ROOMS, walkLevels } = await import('../src/temples/skins/footprint.js');
+const { sharedUniforms: fpShared } = await import('../src/materials.js');
+const fpBuild = (noSkin = false) => quietly(() => {
+  const was = TempleRuntime.prototype.noSkin;
+  TempleRuntime.prototype.noSkin = noSkin;
+  try { return new TempleRuntime({ scene: new THREE.Scene(), level: { lights: [] }, def: TEMPLES.spheres.def, game: new GameState(null) }); } finally { TempleRuntime.prototype.noSkin = was; }
+});
+let fpBuilt = null;
+const fpHouse = () => (fpBuilt ??= fpBuild());
+const fpDressing = (rt) => rt.kit.group.children.filter((m) => m.userData.skin);
+
+test('the Footprint wears its futuristic skin: cream panels, machined doors and plates, pale lines, its dressing drawn', () => {
+  const rt = fpHouse();
+  assert.equal(TEMPLES.spheres.def.skin, footprintSkin);
+  assert.equal(rt.skin?.name, 'footprint');
+  for (const [k, body] of [['wall', 'plaster'], ['wallGlyph', 'metal'], ['floor', 'plates']]) {
+    const m = rt.skin.mats[k];
+    assert.equal(m.userData.houseSkin, body, `its ${k} the skin's ${body}`);
+    assert.ok(m.fragmentShader.includes('float detail = fpInkV;') && m.fragmentShader.includes('emit = max(emit, fpGlow);'), `the ${k}'s pen lines and glow the pattern's`);
+    assert.ok(m.uniforms.uFpN.value > 6 && m.uniforms.uFpN.value <= FOOT_ROOMS, `its rooms in the shader (${m.uniforms.uFpN.value})`);
+  }
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'floor', 'glyph']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in its ${k}`);
+  assert.ok(!rt.M.wall.userData.houseSkin && !rt.M.floor.userData.houseSkin && rt.M.ornament?.kind === 'porthole', 'rt.M the house’s own again, for its exterior');
+  assert.equal(rt.P, TEMPLES.spheres.def.palette);
+  assert.equal(rt.kit.plan, null);
+  // light and pale, as its pick: the walls' and floors' albedo cream, never dark slate
+  for (const k of ['wall', 'floor']) { const c = rt.skin.mats[k].uniforms.uColor.value; assert.ok(Math.min(c.r, c.g, c.b) > 0.6, `its ${k} pale`); }
+  const s = rt.skin.stats;
+  assert.ok(s.walks >= 10 && s.lenses >= 6 && s.rings >= 5, JSON.stringify(s));
+  const dress = fpDressing(rt);
+  assert.ok(dress.length === 5 && dress.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.castShadow === false && m.userData.castShadow === false), 'five drawn-only instanced meshes');
+  // the walkways over the doorways and the frieze, never near its glyphs nor the ceiling
+  assert.deepEqual(walkLevels({ kind: 'hall', y0: 0, y1: 18 }).map((y) => +y.toFixed(2)), [10.4, 14.76]);
+  assert.deepEqual(walkLevels({ kind: 'hall', y0: 0, y1: 12 }), []);
+});
+
+test('the Footprint’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const a = fpHouse(), b = fpBuild(true);
+  assert.equal(b.skin, null);
+  assert.equal(fpDressing(b).length, 0);
+  assert.deepEqual(solids(a), solids(b), 'collision and climbs vertex for vertex');
+  const own = a.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, b.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = b.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+    if (p.center?.isVector3) assert.ok(p.center.distanceTo(q.center) < 1e-6);
+  });
+});
+
+test('the Footprint’s dressing keeps out of every doorway; its rings turn, and are not drawn on the lighter presets', () => {
+  const rt = fpHouse();
+  const box = new THREE.Box3(), v = new THREE.Vector3(), m4 = new THREE.Matrix4();
+  const doors = rt.pieces.filter((p) => p instanceof Door);
+  assert.ok(doors.length >= 5);
+  for (const d of doors) {
+    d.group.updateMatrixWorld(true);
+    box.setFromObject(d.slab).expandByVector(new THREE.Vector3(0.5, 0.3, 0.5));
+    for (const m of fpDressing(rt)) {
+      const P = m.geometry.attributes.position;
+      for (let k = 0; k < m.count; k++) {
+        m.getMatrixAt(k, m4);
+        for (let i = 0; i < P.count; i += 3) assert.ok(!box.containsPoint(v.fromBufferAttribute(P, i).applyMatrix4(m4)), `${m.name} in the doorway of ${d.id}`);
+      }
+    }
+  }
+  const motion = rt.pieces.find((x) => x.constructor.name === 'SkinMotion'), rm = fpDressing(rt).find((m) => /rings/.test(m.name));
+  const was = fpShared.uWearLite.value, before = new THREE.Matrix4(), after = new THREE.Matrix4();
+  const tilted = rt.skin.stats.rings - 1;
+  try {
+    fpShared.uWearLite.value = 0;
+    rm.getMatrixAt(tilted, before); motion.update(1); rm.getMatrixAt(tilted, after);
+    assert.ok(!before.equals(after) && rm.visible, 'its rings turn');
+    fpShared.uWearLite.value = 1; motion.update(1);
+    assert.ok(!rm.visible, 'and are not drawn on the lighter presets');
+  } finally { fpShared.uWearLite.value = was; motion.update(0); }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the panels’ tones, chamfers and plates off on the lighter presets');
+});

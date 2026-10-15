@@ -9,6 +9,7 @@ import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, printGeometry } from './pieces.js';
 import { echoModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { footprintSkin } from './skins/footprint.js';
 
 // The Garden of Spheres' temple: the Footprint, the one Emrys speaks of. North
 // of the umbrella grove the meadow carries an enormous three-toed print, its
@@ -620,6 +621,7 @@ export const SPHERES_TEMPLE = {
   origin: [-120, 2000, -260], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  skin: footprintSkin,   // (its look inside: src/temples/skins/footprint.js, issue #342)
   local: { person: 'tessa', out: 12, side: 7 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the heel it is white and round and very quiet, the kind of quiet a sphere keeps.',
   pitLine: 'You climb back up to the last glyph stone.',

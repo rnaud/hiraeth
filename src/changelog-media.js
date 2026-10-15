@@ -1018,6 +1018,17 @@ const CLOCK342_SOURCE = 'issue #342 scratchpad future-clock/shoot.mjs --ab and -
 const MOOR342 = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon, clear), Vite on port 6509, this branch with the skin off (?noskin=1, before) and on (after), the camera pinned in each room; 15 October; cwebp -q 72';
 const MOOR342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 3 s a view, the same pinned camera in 15 views of 12 rooms (the Landing Stage, the Capstan Hall four ways, the Winch Room, the Lamp Shaft, the Cord Loft, the Drift three ways, the Balance, the Capstan Floor and its window, the Rope Store, the Cable Walk), the skin off and on in separate loads; the machine shared with other work (load 3–8)';
 const MOOR342_SOURCE = 'issue #342 scratchpad future-mooring/shoot.mjs --ab --census (ab/); draw calls from renderer.info (every pass) and scripts/bench/draw-census.js (the picture’s own pass), the means of the 15 views';
+/** (v1.78, issue #342: the Footprint in its futuristic skin) */
+const FUTURE342_FP = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy that adds a query) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6506, main (before) and this branch (after), the camera pinned in each room, 15 October; cwebp -q 72';
+const FUTURE342_FP_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 1280 × 720, noon, the same pinned camera in 10 views of 8 rooms (the Hall of Spheres twice, the Still Pool, the Lens Chamber twice, the Hall of the Unseen, the Keepers’ Gallery, the Lodge, the Echo’s Hall twice), the median of 240 frames each, the skin off (?noskin=1) and on in two loads; the machine shared with other agents (load 16 to 190 during the runs), so the frame times are within its noise';
+const FUTURE342_FP_SOURCE = 'issue #342 scratchpad future-footprint: capture.mjs QC_MEASURE, m-high-off / m-high-on / m-low-off / m-low-on (the means over the ten views); draw calls and triangles from renderer.info, every pass of a frame';
+const FUTURE342_FP_NUMBERS = [
+  { title: 'The Footprint: draw calls a frame, skin off → on', unit: 'calls', better: 'lower', device: FUTURE342_FP_DEVICE, source: FUTURE342_FP_SOURCE, rows: [{ where: 'High', before: 232.3, after: 226.4 }, { where: 'Low', before: 240.6, after: 242.3 }] },
+  { title: 'The Footprint: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342_FP_DEVICE, source: FUTURE342_FP_SOURCE, rows: [{ where: 'High', before: 496, after: 428 }, { where: 'Low', before: 422, after: 368 }],
+    note: 'Fewer: the friezes’ portholes (every one its own little relief) are gone, and the walkways, lines, lens terminals and rings are about 5,800 triangles in five instanced draws.' },
+  { title: 'The Footprint: frame time (median)', unit: 'ms', better: 'lower', device: FUTURE342_FP_DEVICE, source: FUTURE342_FP_SOURCE, rows: [{ where: 'High', before: 9.43, after: 5.94 }, { where: 'Low', before: 2.89, after: 3.21 }],
+    note: 'Both within the shared machine’s noise (the High run without the skin met a load of 50, the one with it 20 rising to 190).' },
+];
 export const CHANGELOG_MEDIA = {
   '1.78': [
     { match: 'The makers now sign their work', see: 'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
@@ -1056,6 +1067,15 @@ export const CHANGELOG_MEDIA = {
       ], source: 'the scratchpad’s shots.mjs', note: 'The machine was shared: read these as no worse, not as faster.' },
     ] },
     { match: 'In the Sunken Hall, B / ○ rolls and jumping is disabled', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × or Space: he stays on the floor. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The touch controls and start card offer no jump. Leave the hall to jump normally again.' },
+    { match: 'Inside, the Footprint is a white sphere of the makers’ old high technology', tags: ['spheres', 'temples', 'perf'], shots: [
+      { name: 'future-spheres-lens', title: 'The Lens Chamber', caption: 'Before, white plaster in a plain grid, portholes and amber glyphs under the frieze; after, cream panels with round and octagonal plates set in them, two walkways ringing the room with pale blue-white lines along their lips, a lens terminal of teal glass on the wall, rings of light under the oculus. The chest, the stele and the doors where they were', from: FUTURE342_FP,
+        reference: { sheet: 'references/temples/future/footprint/sheet-1.jpg', caption: 'The Footprint’s futuristic redesign: the author’s pick (issue #342)' } },
+      { name: 'future-spheres-echo-up', title: 'Looking up in the Echo’s Hall', caption: 'The ceiling in rings of cream plates with a lit ring round the oculus, two walkways round the drum, the makers’ glyphs in blue on the frieze', from: FUTURE342_FP },
+      { name: 'future-spheres-spheres', title: 'The Hall of Spheres', caption: 'The sphere, its groove and the prints where they were: walkways along the walls pierced by the columns, a lit line along the walls’ foot and an inlay round the floor, the walker’s print over the door in blue', from: FUTURE342_FP },
+      { name: 'future-spheres-gallery', title: 'The Keepers’ Gallery', caption: 'Two galleries of walkway down the long walls with lit lips, a ring floating under the oculus, the eye’s post where it was (no lens terminals here: the eye is the one to read)', from: FUTURE342_FP },
+      { name: 'future-spheres-pool', title: 'The Still Pool', caption: 'The pool keeps its dark (a pit reads as a drop); the ledges’ lips lit, a walkway over the frieze, a lens terminal on the wall', from: FUTURE342_FP },
+      { name: 'future-spheres-lens-up', title: 'Looking up in the Lens Chamber', caption: 'A tilted ring turning slowly inside a level one under the oculus, the ceiling in rings of plates', from: FUTURE342_FP },
+    ], numbers: FUTURE342_FP_NUMBERS },
     { match: 'On the Steam Deck every world runs 2 to 7 frames a second smoother', tags: ['perf', 'devices'], numbers: [
       { title: 'Frames a second on the Steam Deck at native resolution (the median of each world’s views)', unit: 'fps', better: 'higher', device: DECK111, source: DECK111_SOURCE, rows: [
         { where: 'the desert', before: 42.1, after: 44.6 },

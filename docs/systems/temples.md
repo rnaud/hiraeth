@@ -1588,6 +1588,35 @@ stopped sand in tilted brass orrery rings, a pendulum disc on its arm, six lens 
   clock hangs in two of them rather than being the room; the walkway of floating plates is the gallery's bridge as it
   was (its plates in the skin’s plates) and a few plates far down the chasm; the pit's dark (`pit-void.js`) keeps the
   house palette's blue; the makers' mark on the doors and friezes is the shared `glyphGeometry` (the open-corner mark), left as it is.
+### The Footprint (`skins/footprint.js`, v1.78)
+
+After `references/temples/future/footprint/sheet-1.jpg`: a white sphere of smooth cream panels, ringed walkways with
+pale blue-white lines along their lips, round lens terminals of teal glass, thin rings under the oculi. Kept light
+and pale as its pick (sampled: lit cream `#e7d7c7`, lavender shade): the house's own light (peach light, lavender
+shade) is kept.
+
+- **Surfaces** (the surface shader's albedo, first pen lines and `emit` replaced, as the Well's): `plaster` walls in
+  4.5 m courses of 4.6 m panels (a whole number round a round room), fine seams, a soft chamfer, a round or an
+  octagonal plate set in about a third of the panels above the lowest course, a lit line along the walls' foot;
+  ceilings in rings of plates with a lit ring round the oculus (a lit frame round a hall's square one: the halls'
+  oculi handed to the shader in `uFpY.zw`); `plates` floors, cream, in rings round a round room and a grid in a hall,
+  a lit inlay 1.6 m in from the walls and a lit line along every ledge's lip at the floors' height (the pits' edges);
+  `metal` doors, pale machined panels with a lit seam down some. Hatching cut to 0.15 on the walls, 0.4 on floors.
+- **The house's colours swapped**: trim, columns and fittings cream (the sage door bands and plate rims pale grey),
+  the grooves and pit floors lavender-grey, the glyphs a deeper blue (`#82c9ec`) to read on cream, the pieces' glow
+  (`rt.P.glow`: plates, door medallions, the stones the lens shows) pale blue-white. The frieze's portholes are left
+  out (`M.ornament = null`): the lens terminals stand on the walls instead. A hidden door's slab (`sc`) takes the
+  walls' own panels, so it reads as plain wall until the lens shows it.
+- **Dressing, drawn only** (5 InstancedMeshes: noCollide, keepBuried, out of the shadow passes): walkways 3 m deep
+  round every tall room (`walkLevels`: at 10.4 m over the doorways and 1.8 m over the frieze, never within 1.5 m of
+  its glyphs or 2.5 m of the ceiling), lathed rings in the round rooms, straight runs in the halls, columns piercing
+  them as a gallery's; broken only by a glyph or a piece (never over a door: a break would show the hidden one), each
+  with a lit line along its lip; two lens terminals a tall room (none where an eye is to be struck); a thin ring
+  under each oculus, and a tilted one turning inside the Lens Chamber's.
+- **Lighter presets** (`uWearLite`): no panel tones, chamfers or plates; the floating rings not drawn.
+- Not matched: the pool stays dark (the pits' void, `src/pit-void.js`, keeps a deadly drop reading as one); the Echo
+  and the makers' glyph are shared code (`guardians.js`, `glyphGeometry`), unchanged; no glass bridge is added (the
+  stones the lens shows are the house's own `LensStones`).
 
 
 ## Landmarks seen from the approach (14 October 2026)
