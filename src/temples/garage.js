@@ -8,6 +8,7 @@ import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Swing, Mark, Pit, Key, Coffer } from './pieces.js';
 import { foremanModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { clockHouseSkin } from './skins/clock-house.js';
 
 // The Glass Dunes' temple: the Clock-House, a round stair-house of the makers
 // standing in the sand east of the valley, a great clock over its door, the
@@ -592,7 +593,7 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, UP, X1 + 0.5]));
   K.solid(box(4, 5, 0.1, 0, UP + 2.5, X1 + 0.5));
 
-  const model = foremanModel();
+  const model = foremanModel(rt.skin?.foreman);   // (in the house's skin, its colours: skins/clock-house.js)
   model.pos.copy(K.world(0, UP, CW + 4));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
@@ -756,6 +757,7 @@ export const GARAGE_TEMPLE = {
   origin: [-300, 1800, -420], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  skin: clockHouseSkin,   // (issue #342: its futuristic look inside, src/temples/skins/clock-house.js)
   local: { person: 'wim', out: 7, side: 6 },
   enterLine: 'Inside the Clock-House everything ticks, but out of step, like a room full of clocks that have quarrelled.',
   pitLine: 'You climb back up to the last glyph stone.',

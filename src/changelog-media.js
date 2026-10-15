@@ -1010,6 +1010,10 @@ const LAMP342_SOURCE = 'issue #342 scratchpad future-lamp: capture.mjs QC_MEASUR
 /** (v1.78, issue #342: the Undertower's futuristic skin, shot with and without it, the same pinned camera) */
 const UNDER342 = 'Issue #342: muted headless Chrome (High, 1280 × 720, 11:00, clear) against this branch’s own Vite (port 6507), the camera pinned at the same place in each room, the house before its skin (before) and in it (after), 15 October; cwebp -q 72';
 const UNDER342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, the camera pinned, renderFrame’s wall time (the median of three runs of 20) and frameStats over 10 frames; the house with ?noskin=1 and in its skin, one load each, back to back; the machine shared with other agents (load 16 to 30)';
+/** (v1.78, issue #342: the Clock-House in its futuristic skin, shot with and without it in two loads, the same pinned camera) */
+const CLOCK342 = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6505, this branch with the skin off (window.__noHouseSkin, before) and on (after) in two loads of the Clock-House, the camera pinned in each room; 15 October; cwebp -q 72';
+const CLOCK342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 4–5 s a view, the same pinned camera, the skin off and on in two loads; the machine shared with other agents (load 15 to 35)';
+const CLOCK342_SOURCE = 'issue #342 scratchpad future-clock/shoot.mjs --ab and --ba (results.json in ab, ba, x2); draw calls and triangles from renderer.info';
 export const CHANGELOG_MEDIA = {
   '1.78': [
     { match: 'The makers now sign their work', see: 'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
@@ -1180,6 +1184,40 @@ export const CHANGELOG_MEDIA = {
       { name: 'future-moonfoundry-moulds', title: 'The Mould Room', caption: 'The dais, the hoist’s pan, the stone moon and its mould where they were: slate slabs and two tiers of ivory circuits up the walls, the stair door in its lit frame', from: FUTURE342_CASTING },
       { name: 'future-moonfoundry-hall', title: 'The Last Casting', caption: 'The Last Founder, its cradle and the iron moon where they were, in a round hall of slate slabs with ivory circuits and lens lights', from: FUTURE342_CASTING },
     ], numbers: FUTURE342_CASTING_NUMBERS },
+    { match: 'Inside, the Clock-House now looks like the makers’ high-tech clock', tags: ['glassdunes'], shots: [
+      { name: 'future-clock-escapement', title: 'The Escapement', caption: 'From the near landing: before, cream marble and a brass band; after, tall dark slate slabs with brass seams under a warm cream drum, umber slabs down into the pit, a teal line along the plinth, and the clock hung from its beam east of the disc’s way: a glass column with its sand stopped mid-fall inside tilted brass rings dashed with teal, a brass disc frozen on its arm over the deep; the dial’s tower in machined slate, the riding disc brass', from: CLOCK342,
+        reference: { sheet: 'references/temples/future/clock-house/sheet-1.jpg', caption: 'The author’s pick: the round hall of slate over the chasm, the column of stopped sand in its orrery rings, the pendulum disc, the lens terminals, the Foreman on his ledge (the reference lab, 15 October)' } },
+      { name: 'future-clock-orrery', title: 'The clock over the pit', caption: 'Looking across at it: before, the stopped wheel on a cream wall; after, the column of glass (only its rims and a streak drawn), the pale sand stopped in it and grains stopped in the air under it, its brass collars and cage, the rings each tilted its own way', from: CLOCK342 },
+      { name: 'future-clock-well-up', title: 'Looking up the Winding Well', caption: 'Before, cream stone round the oculus; after, the slate drum under its cream crown and ceiling, the second clock hung in the oculus from the ring round it, far over every walkway', from: CLOCK342 },
+      { name: 'future-clock-striking', title: 'The Striking Room', caption: 'The hour track, its clocks and the eye’s obelisk where they were: the walls in tall slate slabs, a row of lens terminals along each long wall (brass rimmed and bolted, a teal core with a pale heart, two of every six dark), floor plates with a brass and a teal border', from: CLOCK342 },
+      { name: 'future-clock-gallery', title: 'The Clock Gallery', caption: 'From the near landing: the great clock, its eyes and the pendulum where they were; the chasm’s walls narrow umber slabs darkening into the deep, a pale lip and a brass line under each landing, lens terminals between the windows', from: CLOCK342 },
+      { name: 'future-clock-workshop', title: 'The Foreman’s Workshop', caption: 'The Clockwork Foreman all brass with a pale teal dial and umber trim (it was brass with a navy trim and a teal dome), the drum round him slate with lens terminals between the clocks', from: CLOCK342 },
+    ], numbers: [
+      { title: 'The Clock-House with and without its skin: draw calls', unit: 'draws', better: 'lower', device: CLOCK342_DEVICE, rows: [
+        { where: 'High, the Escapement', before: 463, after: 475 },
+        { where: 'High, the Winding Well', before: 324, after: 327 },
+        { where: 'High, the Striking Room', before: 119, after: 121 },
+        { where: 'High, the Clock Gallery', before: 242, after: 241 },
+        { where: 'High, the Foreman’s Workshop', before: 215, after: 210 },
+        { where: 'Low, the Escapement', before: 494, after: 497 },
+        { where: 'Low, the Winding Well', before: 345, after: 348 },
+        { where: 'Low, the Striking Room', before: 138, after: 140 },
+      ], source: CLOCK342_SOURCE, note: 'The skin’s dressing is four merged meshes and the glass for the whole house; a room’s count also swings by tens with the machines awake in it (the Pendulum Hall’s keepers), so those rooms are left out.' },
+      { title: 'Triangles a frame (thousands, High)', unit: 'k', better: 'lower', device: CLOCK342_DEVICE, rows: [
+        { where: 'the Escapement', before: 539, after: 479 },
+        { where: 'the Winding Well', before: 505, after: 434 },
+        { where: 'the Striking Room', before: 463, after: 390 },
+        { where: 'the Clock Gallery', before: 438, after: 381 },
+        { where: 'the Foreman’s Workshop', before: 415, after: 358 },
+      ], source: CLOCK342_SOURCE, note: 'Fewer with the skin: the frieze’s little clocks are gone (the lens terminals are the ornament now) and the lit glyphs left the shadow passes.' },
+      { title: 'Frame time in the Winding Well (median), skin off → on', unit: 'ms', better: 'lower', device: CLOCK342_DEVICE, rows: [
+        { where: 'High', before: 5.4, after: 5.2 },
+        { where: 'High, again', before: 5.0, after: 5.0 },
+        { where: 'Low', before: 2.6, after: 2.7 },
+        { where: 'Low, again', before: 2.6, after: 2.6 },
+      ], source: CLOCK342_SOURCE, note: 'The cleanest pair, at the machine’s quietest (load 15). Over thirteen rooms the skin was within the run’s noise both ways round (High 5.5 → 5.2 ms with the skin off first, 5.2 → 4.8 with it on first).' },
+    ] },
+    { match: 'The Clockwork Foreman is all brass now', tags: ['glassdunes', 'combat'], see: 'Reach the Foreman’s Workshop at the top of the Clock-House: the Foreman is a brass drum with a pale teal dial. In the Escapement, the riding disc that swings over the pit is brass.' },
   ],
   '1.77': [
     { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [

@@ -45,6 +45,10 @@ export const CHANGELOG = [
     // the Undertower's futuristic skin (issue #342): src/temples/skins/undertower.js, bazaar.js (skin, rt.skinStands,
     // rt.skinPits, the First Sign's colours); tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins"
     'Inside, the Undertower looks like the makers’ high technology now: tall panels of dark blue-grey slate with thin coral circuits glowing in the walls and floors, polished brass dishes and horns on brass-collared stands, bronze singing balls and eggs, the cable pits full of bundled cable with coral sparks running through it, and the First Sign a brass mast with its listening dish.',
+    // the Clock-House's futuristic skin (issue #342): src/temples/skins/clock-house.js (skin: in garage.js, foremanModel's
+    // colours), after references/temples/future/clock-house/sheet-1.jpg; tests/temple-skins.test.js; docs/systems/temples.md
+    'Inside, the Clock-House now looks like the makers’ high-tech clock: tall dark slate slabs with brass seams under a warm cream drum, thin teal lines in the floors and walls, lens terminals in sixes round the great rooms, and over the Escapement’s pit and high in the Winding Well a column of sand stopped mid-fall inside tilted brass rings.',
+    'The Clockwork Foreman is all brass now, with a pale teal dial, and the Escapement’s riding disc is a brass pendulum disc.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

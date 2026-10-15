@@ -846,3 +846,102 @@ test('the Undertower’s dressing keeps out of every doorway, and the lighter pr
   } finally { wShared.uWearLite.value = was; }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the chamfers and the finer lines off on the lighter presets');
 });
+
+// ---- the Clock-House in its futuristic skin (src/temples/skins/clock-house.js, after
+// references/temples/future/clock-house/sheet-1.jpg); its own names (ch*), beside the other houses' tests in this file
+const chTHREE = await import('three');
+const { TEMPLES: chTEMPLES } = await import('../src/temples/index.js');
+const { TempleRuntime: ChRuntime } = await import('../src/temples/runtime.js');
+const { GameState: ChGame } = await import('../src/game-state.js');
+const { sharedUniforms: chShared } = await import('../src/materials.js');
+const { Door: ChDoor, Platform: ChPlatform } = await import('../src/temples/pieces.js');
+const { clockHouseSkin, CLOCK_ROOMS } = await import('../src/temples/skins/clock-house.js');
+const chBuild = (skin = true) => {
+  if (!skin) ChRuntime.prototype.noSkin = true;
+  try { return new ChRuntime({ scene: new chTHREE.Scene(), level: { lights: [] }, def: chTEMPLES.garage.def, game: new ChGame(null) }); }
+  finally { delete ChRuntime.prototype.noSkin; }
+};
+let chBuilt = null;
+const chHouse = () => (chBuilt ??= chBuild());
+const chDressing = (rt) => rt.kit.group.children.filter((m) => m.userData.skin);
+
+test('the Clock-House wears its skin: slate, cream and plates in its surfaces, teal lights, the clocks and lenses drawn', () => {
+  const rt = chHouse();
+  assert.equal(chTEMPLES.garage.def.skin, clockHouseSkin);
+  assert.equal(rt.skin?.name, 'clock-house');
+  for (const [k, body] of [['wall', 'wall'], ['floor', 'floor'], ['machine', 'machine'], ['floorObj', 'floor'], ['machineObj', 'machine']]) {
+    const m = rt.skin.mats[k];
+    assert.equal(m.userData.clockSkin, body, `its ${k} the skin's ${body}`);
+    assert.ok(m.fragmentShader.includes('float detail = skInk;') && m.fragmentShader.includes('float emit = skEmit;'), `the ${k}'s pen lines and light the pattern's`);
+    assert.ok(m.uniforms.uSkN.value >= 10 && m.uniforms.uSkN.value <= CLOCK_ROOMS, `its rooms in the shader (${m.uniforms.uSkN.value})`);
+  }
+  // the landings' walking level handed to the shader for the halls without a floor (the Escapement's pit, the gallery's chasm)
+  const walks = rt.skin.U.roomsY.value.slice(0, rt.skin.U.count.value).filter((y) => y.z - y.x > 4).map((y) => y.z);
+  assert.deepEqual(walks.sort((a, b) => a - b), [0, 10]);
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'floor', 'machine', 'trim', 'glyph', 'pillar']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in its ${k}`);
+  assert.ok(!rt.M.wall.userData.clockSkin && !rt.M.floor.userData.clockSkin && rt.M.ornament.kind === 'clock', 'rt.M the house’s own again, for its exterior');
+  assert.equal(rt.P, chTEMPLES.garage.def.palette);
+  assert.equal(rt.kit.plan, null);
+  // the escapement's riding disc brass, the doors' slabs the pattern in their own frame
+  assert.ok(rt.pieces.some((p) => p instanceof ChPlatform && p.group.children.some((o) => o.material === rt.skin.mats.disc)), 'the riding disc brass');
+  const doorMats = new Set();
+  for (const p of rt.pieces.filter((q) => q instanceof ChDoor)) p.group.traverse((o) => o.isMesh && doorMats.add(o.material));
+  assert.ok(doorMats.has(rt.skin.mats.machineObj) && !doorMats.has(rt.skin.mats.machine));
+  const s = rt.skin.stats;
+  assert.ok(s.clocks === 2 && s.lenses >= 24 && s.lit >= s.lenses / 2 && s.lit < s.lenses && s.plates === 6, JSON.stringify(s));
+  // the dressing: a handful of drawn-only merged meshes out of the shadow passes, the glass among them
+  const dress = chDressing(rt);
+  assert.ok(dress.length >= 4 && dress.length <= 6, dress.map((m) => m.name).join(', '));
+  for (const m of dress) assert.ok(m.userData.noCollide && m.userData.keepBuried && m.userData.dynamic && m.castShadow === false && m.userData.castShadow === false, m.name);
+  assert.ok(dress.some((m) => m.material === rt.skin.mats.glass), 'the clock’s glass');
+  const glyph = rt.kit.group.children.find((m) => m.material === rt.skin.mats.glyph);
+  assert.ok(glyph && glyph.castShadow === false, 'the lit glyphs out of the shadow passes');
+  // the Foreman's drum in the skin's brass
+  assert.equal(rt.skin.foreman.brass, '#c09048');
+});
+
+test('the Clock-House’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const a = chHouse(), b = chBuild(false);
+  assert.equal(b.skin, null);
+  assert.equal(chDressing(b).length, 0);
+  const verts = (m) => Array.from(m.geometry.attributes.position.array, (v) => Math.round(v * 1000));
+  for (const end of [' collision', ' climbs']) {
+    const ma = a.kit.group.children.find((m) => m.name.endsWith(end)), mb = b.kit.group.children.find((m) => m.name.endsWith(end));
+    assert.ok(ma && mb, `its${end}`);
+    assert.deepEqual(verts(ma), verts(mb), `its${end} the same, vertex for vertex`);
+  }
+  const own = a.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, b.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = b.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+    if (p.path) p.path.forEach((v, k) => assert.ok(v.distanceTo(q.path[k]) < 1e-6));
+  });
+  assert.deepEqual(a.arrival.pos.toArray(), b.arrival.pos.toArray());
+});
+
+test('the Clock-House’s dressing keeps out of every doorway, and the lighter presets leave out its finest', () => {
+  const rt = chHouse(), box = new chTHREE.Box3(), v = new chTHREE.Vector3();
+  const doors = rt.pieces.filter((p) => p instanceof ChDoor);
+  assert.ok(doors.length >= 8);
+  for (const p of doors) {
+    p.group.updateMatrixWorld(true);
+    box.setFromObject(p.slab).expandByVector(new chTHREE.Vector3(0.6, 0.3, 0.6));
+    for (const m of chDressing(rt)) {
+      const P = m.geometry.attributes.position;
+      for (let i = 0; i < P.count; i += 3) assert.ok(!box.containsPoint(v.fromBufferAttribute(P, i)), `${m.name} in the doorway of ${p.id}`);
+    }
+  }
+  const fine = chDressing(rt).filter((m) => m.userData.fine), life = rt.pieces.find((x) => x.constructor.name === 'SkinLife'), was = chShared.uWearLite.value;
+  assert.ok(fine.length >= 3 && life);
+  try {
+    chShared.uWearLite.value = 1; life.update(0, 0);
+    assert.ok(fine.every((m) => m.geometry.drawRange.count === m.userData.coarse && m.userData.coarse < m.geometry.attributes.position.count), 'the fine parts left out on Low');
+    chShared.uWearLite.value = 0; life.update(0, 0);
+    assert.ok(fine.every((m) => m.geometry.drawRange.count === Infinity), 'all drawn on High');
+  } finally { chShared.uWearLite.value = was; }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the slabs’ tones and chamfers off on the lighter presets');
+});

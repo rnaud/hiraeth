@@ -1503,6 +1503,57 @@ facing each other across a cable pit, bronze spheres, coral circuits, the First 
   to build. `tests/temple-skins.test.js`.
 
 
+### The Clock-House (`skins/clock-house.js`, v1.78)
+
+After `references/temples/future/clock-house/sheet-1.jpg`: a tall round hall of dark slate round a chasm, a column of
+stopped sand in tilted brass orrery rings, a pendulum disc on its arm, six lens terminals, warm light and teal glow.
+
+- **Surfaces** (the surface shader's albedo, first pen lines and `emit` replaced, as the other skins): the walls dark
+  slate (`#565b63`, the pick's value) in tall 2.4 m slabs, a joint across only every 9 m (staggered by column), a lit
+  and a shaded chamfer, a thin brass strip in every third joint; a dark plinth with a thin teal line along its top; a
+  brass rail and the drawing's warm cream drum above 78% of a room's height (lit a little from within, 0.36, so it keeps
+  its warmth in the shade); the ceilings cream plates. Under every landing's lip (the Escapement's pit, the gallery's
+  chasm) narrow umber slabs darkening into the deep: the kit's plan gives each hall without a floor its walking level
+  (its landings' tops, `roomsOf`), handed to the shader with the rooms (`uSkY.z`, up to `CLOCK_ROOMS`). Floors warm
+  grey plates (3 m in a hall, rings round a round room's middle), chamfered, a brass and a teal line inlaid round each
+  hall and round the middle of a round room, a teal line down each passage; a landing's face a pale lip over a brass
+  line. The machined faces (`wallGlyph`: doors, steles, the climb's block, the clock cases, the dial's tower) 1.6 by
+  4.8 m panels, a teal seam every 9.6 m (a door's between its leaves). The teal lines emit 0.74 (just over the post
+  pass's 0.62 halo start) and breathe.
+- **The house's own, swapped**: its brass darker and warmer (`#a07a42`, the frames, the dials' rims, the escape wheel:
+  the layout's own `metal('#d8a24a')` batch moved into the skin's), its columns and the chest's mound slate, its dark
+  the drawing's umber, the glyphs teal light (out of the shadow passes), no little clocks along the frieze (the lens
+  terminals are the ornament now). The pieces' surfaces in the skin's in their own frame (`floorObj`, `machineObj`:
+  the doors' slabs, the bridge's plates), the Escapement's riding disc brass (the drawing's pendulum disc). The
+  Foreman's drum all brass with a pale teal dial (`skin.foreman`, passed to `foremanModel` by `garage.js`). The rooms'
+  light warm with an umber shade (`skin.light`).
+- **Dressing**, drawn only (four merged, vertex-coloured meshes, brass, teal, dark and sand, and the glass:
+  `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes), placed from the kit's plan and kept off every
+  doorway, piece (and a moving one's path) and everything the layout drew:
+  - **the clock** twice: over the Escapement's pit (east of the riding disc's way, hung from its beam) and high in the
+    Winding Well under its oculus (hung from the ring round it, well over every walkway): a column of glass
+    (`landmark-materials.js glazing`: only its rims and a streak drawn, a pale wash over it after the flush), a stream
+    of pale sand stopped mid-fall inside it, grains stopped in the air under it, a heap on its foot, thin brass rings
+    each tilted on its own axis round it with a teal circuit dashed round each, stepped brass collars with teal rings;
+    under the pit's a stack of discs, a shaft into the dark and a brass disc on a long arm frozen at the end of its
+    swing (inside the pit, under the landings: not a floor);
+  - **lens terminals** in sixes round the great round rooms (on the stones' middles, the ring turned to miss the most
+    doorways and things) and in rows along the great halls' long walls: a bolted brass rim, a dark bezel, a teal core
+    with a pale heart, two of every six dark with a grating;
+  - square slate plates edged in brass floating deep in the gallery's chasm (7–9 m under the bridge, in the pit).
+- **Lighter presets** (`uWearLite`): the slabs' tones and chamfers left out, and the dressing's finest parts (bolts,
+  gratings, dashes, grains, the cage's rods) not drawn (each mesh's draw range stops short of them).
+- **Cost** (this Mac, muted headless Chrome, 1280 × 720, the skin off → on in two loads, the camera pinned): draw calls
+  +3 in most rooms on High and Low (−5 to +12 over thirteen rooms; the Pendulum Hall's swing with its keepers);
+  triangles 60–90 k fewer a frame on High (the frieze's little clocks gone, the lit glyphs out of the shadow passes);
+  frame time within the run's noise (the Winding Well at load 15: High 5.4 → 5.2 ms and 5.0 → 5.0, Low 2.6 → 2.7 and
+  2.6 → 2.6). The dressing takes 40–110 ms to build (the machine idle to busy).
+- **Unlike the picture**: the room is the house's shrine halls and drums, not one round hall over a chasm, so the
+  clock hangs in two of them rather than being the room; the walkway of floating plates is the gallery's bridge as it
+  was (its plates in the skin’s plates) and a few plates far down the chasm; the pit's dark (`pit-void.js`) keeps the
+  house palette's blue; the makers' mark on the doors and friezes is the shared `glyphGeometry` (the open-corner mark), left as it is.
+
+
 ## Landmarks seen from the approach (14 October 2026)
 
 All fourteen current temples now use the author's Midjourney favourites in
