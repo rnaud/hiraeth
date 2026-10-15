@@ -320,10 +320,7 @@ const resumeId = !levelParam && game.flag('prologue.done') ? SaveGame.load()?.le
 // the runner (src/minigames/kit/runner.js) takes the traveller and the camera over once all is built
 const minigameDef = gameById(query.get('game'));
 let minigame = null;
-let guardianHelp = null;   // (a helper prototype's page: src/guardian-help/, set once the world is built)
-// (a helper prototype, ?guardianHelp=elder | keeper, issue #339: its temple's world when no level is named)
-const helpAsked = ({ elder: 'arzach', keeper: 'desert' })[query.get('guardianHelp')] ?? null;
-const meta = minigameDef ? levelMetaFor(minigameDef, levelById) : levelById(levelParam) ?? levelById(helpAsked) ?? levelById(resumeId) ?? LEVELS[0];
+const meta = minigameDef ? levelMetaFor(minigameDef, levelById) : levelById(levelParam) ?? levelById(resumeId) ?? LEVELS[0];
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
@@ -2448,8 +2445,6 @@ function frame(ts) {
   rig.frameWith = rig.locked && foes.lock.guardian && foes.lock.model?.group ? guardianBox(foes.lock.model, lockView_.pos, lockBox, performance.now() / 1000) : null;
   // (in a guardian's arena, awake, the boss framing it asks for: further back and higher, both of you in the frame)
   rig.boss = busy() || photo.on ? null : foes.bossFight()?.def.camera ?? null;
-  // (a helper prototype, issue #339: its own framing, the camera turned onto both of you: src/guardian-help/index.js)
-  if (guardianHelp && !busy() && !photo.on) guardianHelp.frame(realDt, { rig });
   if (!rig.locked) rig.lockRoom(realDt, null);
   if (foes.lock && !busy() && !photo.on) {
     const f = foes.lock, F = player.frame;
@@ -2782,12 +2777,6 @@ window.contactAudit = async (o = {}) => {
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
-
-// a helper prototype (issue #339: ?guardianHelp=elder | keeper): the encounter on its temple's guardian, you at its start
-if (query.get('guardianHelp') && levelId === helpAsked) {
-  const { startGuardianHelp } = await import('./guardian-help/index.js');
-  guardianHelp = startGuardianHelp({ kind: query.get('guardianHelp'), level, player, tool, rig });
-}
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');

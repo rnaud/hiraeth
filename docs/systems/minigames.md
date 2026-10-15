@@ -8,7 +8,9 @@ platformer (`src/minigames/platformer.js`), the **Canyon run** (`src/minigames/c
 (`src/minigames/waves.js`), both played on foot with the blade and the fluid gun, the **Drum circle**, a
 rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Market
 (`src/minigames/sketchhunt.js`), and **Chime pirates**, the rail shooter in space that is also the first flight to a new
-world (`src/minigames/pirates.js`, below "Pirates between worlds").
+world (`src/minigames/pirates.js`, below "Pirates between worlds"). Two help a guardian instead of fighting it (v1.79,
+issue #339, docs/design/helper-guardians.md): **The Elder's flight** (`src/minigames/elderflight.js`) and **Cistern
+channels** (`src/minigames/cistern.js`).
 
 ## Playing one
 
@@ -118,6 +120,8 @@ refused a moment later by the notice. Once had, the lines and Play / Not now as 
 | The shooting gallery | Signal Market, the west pavement | Fitz, who calls the shooting gallery | Roll up, roll up! Fish, ink blots and bells, all painted by my own hand! One minute on the clock! / Splash all you can. A miss breaks your streak, and so does a parasol. Those are my customers. |
 | Sketch hunt | Signal Market, the pavement | Vesna, who draws the market | That stall sold tea yesterday. The market changes faster than its signs, so I draw it first. / My list: six things, three minutes. Frame each one nicely, then sketch it. You can borrow my pencil. |
 | Sky steps | Vael (the sky stones), the start plateau's west rim | Sister Clem, who counts the fallen-up stones | I count them each morning: the small stones that fell up with the cloud. They make a path to the makers' gate. / Step from stone to stone to the gate. A fall costs a life. Those I don't count. |
+| The Elder's flight | Vael, at the foot of the Aerie's great steps | Corra, who flew with the riders | I ask her each morning. She won’t fly. Not alone. / Her wing. Your wing. Through the gates. All the way to the Old Roost. |
+| Cistern channels | Desert, beside the foot of the Rose House's steps | Nuri, who digs the Givers' channels | I dig the sand out of the Givers’ channels every spring. Not one drop has come down them. / Under the house the stones turn. Turn them ahead of the water, to every trough. The Keeper’s thirsty. |
 | Dune line (trial) | Desert | Bilal, who rides the dune line | Sand in your teeth yet? You will. We ride the dunes down into the basin and up out. Most of us come back. / Every gate in order, down and back up. Stay on the bike: the clock won't stop to pick you up. |
 | Wind ladder (trial) | Vael | Elva, who watches the wind ladder | (whispers) Hear it? Wind, climbing in two columns. I watch them. The riders went up them once, with their birds. / Wings open in the first. Up. Then the rings, in order. The second lifts you again. |
 | Stone circuit (trial) | Vael, the sky stones | Brother Amos, who keeps the riders' round | I sweep the riders' gates each morning. Nobody has flown their round since they crossed the cloud. / Take the bird round the Needles, the Table and the Monastery, every gate in order. It knows the way. |
@@ -392,6 +396,70 @@ to ×5, and a miss ends the run. A shot is a miss when no target takes it within
 tool's `tool:fire`). The stallkeeper, a round barker in a boater with a speaking-trumpet, calls out
 (`KEEPER_LINES`, every line toned) in the market's patter (`planLine`, lang `bazaar`), in a balloon. A bot in
 headless Chrome (hold LT, turn the rig toward the next target with a lead, pulse RT) scores about 1,500.
+
+## The Elder's flight (`elderflight.js`, the rules in `formation.js`)
+
+Helping Vael's Elder instead of fighting her (issue #339): she flies, out of the Aerie and across the sea of cloud to
+the riders' Old Roost, as long as you fly at her wing. Its own arena: the open sky, the sky stones' tables and needles
+(`sky-stones-kit.js`, Vael's look `SKY_STONES_LOOK` and sky), the cloud sea 90 m under the route, the Aerie's crown at
+the start, the Old Roost (a great table ringed with stone feathers) at the end.
+
+- **The route** (`makeRoute`, `ROUTE_POINTS`): a centripetal Catmull-Rom curve, 2.3 km, sampled every metre (pos, its
+  level way along, its turn rate); she flies it at 17 m/s (slower climbing), at 11.5 while you are more than 16 m from
+  your slot (`herStep`: she waits), banked into its turns a little ahead of them.
+- **Your wings** (`wingStep`): the stick banks and turns, forward dives, back climbs; A / × held beats (+6 m/s²),
+  LT / L2 (Shift, the right mouse) spreads wide (−7); alone the speed settles to 15 m/s and you sink 1.3 m/s. **Her
+  wake** (`wakeAt`: 5–19 m out to either side, up to 22 m back, within 6 m of her height) holds the sink off and draws
+  you to her pace: in it you fly with her for nothing.
+- **The slot** (`slotAt`): 12 m out on her `side`, 5 m back, a ring of light (teal while you hold it). Within 5 m:
+  10 points a second × the multiplier, which climbs a step every 3 s held (×5 at most) and falls to ×1 a second after
+  you leave. Her courage comes back there (0.05 a second).
+- **The gates** (`R.gates`, `GATE_SIDES`): thirteen between 150 m in and 160 m from the end, each her ring (R 8.5) on the
+  route and yours (r 4.6) 12 m out on the side she wants you, hung from a beam between two rose needles 23 m either side.
+  Through yours (`crossGate`): 100 × the multiplier, +50 "Together!" within 0.8 s of her. Missed, or 45 m behind her
+  without you: −0.18 courage, the multiplier lost. After a gate whose next is on the other side she cries and calls it
+  (`call`), dipping that wing.
+- **Gusts** (`GUSTS`): three stretches where a crosswind of 6–7 m/s blows across her line (streaks round you); she
+  holds her line, you crab into it.
+- **Courage**: falls 0.075 a second while you are more than 28 m from her, with a gate missed, a stone hit (−0.15: you
+  bounce off it slowed, `hitAt` on the stones as columns, `skyStones`) or a fall into the cloud (−0.2: back at her wing);
+  out of it she turns back (the points kept). At the Old Roost: +300 and her courage × 500; she sets down on her own legs,
+  you beside her, and the camera comes round in front of her (the pair in the left of the picture, clear of the card).
+- **The camera**: a formation shot 23 m behind you and 4 m toward her, 7 m up, looking past you along her way, rolled a
+  quarter of her bank; a passed gate is hidden as the camera nears it (its ring would fill the lens).
+- `botInput` (the tests', the pictures': `window.__elderBot = true`) holds the slot, crosses to each called side and crabs
+  into the gusts: every gate, all together, about 2 min 15 s, at 60 and 30 fps (`tests/minigames-helpers.test.js`).
+- Unity (engine/trials.js): card, 3-2-1, run, pause and resume draw. Her wake's motes are placed from her frame on the
+  route, not from her bones (`E.part`): placed from her bones they blacked out the bridge's whole frame. Cistern channels
+  plays there as it is; the floating score words of both (kit/labels.js) are web only (docs/design/helper-guardians.md).
+
+## Cistern channels (`cistern.js`, the rules in `channels.js`)
+
+Helping the Keeper of the cistern instead of fighting it (issue #339): the Givers' sunken cistern court under the Rose
+House, a floor of channel stones eight by six (6.5 m each) round a rim walk, the spout a carved muzzle high in the north
+wall, the troughs in the rim. Seen from high over the court's south end (52 m up, 32 m back, a 44° lens), the whole
+board in view, easing a little after you.
+
+- **The stones** (`makeBoard`): straights, bends, tees, crosses and a few broken ones. The board is made with a way to
+  every trough first (a tree from the spout: each trough's shortest way by random weights to what is built, never through
+  a stone with three ways already), the rest random, then every stone that turns is turned at random (the spout's never
+  left open to it). `B.way` and `B.depth` keep the way and the order the water reaches it.
+- **You** walk the stones (the stick, on the screen's axes; the troughs and the Keeper in your way); A / × (Space) turns
+  the stone under you a quarter clockwise, X / □ (E) back (`turnStone`: not a broken one, one the water is in, or one the
+  Keeper stands on: "It’s lying on that one."). The stone under you is framed, gold if it turns, red if not.
+- **The water** (`newFlow`, `flowStep`): the spout opens after 12 s (9 on Hard; 3 s less after the first flood), then it
+  fills a stone in 3 s, each a little quicker (× 0.965) down to 1.6 s (Hard 2.2 to 1.1), drawn running in along its
+  channel from the edge it came in by and out along its exits. A tee splits it; a cross takes it straight through
+  (filled both ways: +100). Into a stone that does not open to it, or into the wall, it spills (a puddle, "spilled") and
+  that stream ends; red arrows warn where a running stream is about to spill. RT / R2 (Shift) held hurries it, the wait
+  too, three times as fast; the stones filled while it hurries count double.
+- **Three floods** (`ROUNDS`, `round`): two troughs (west and east), three, four, the water quicker each time (× 0.88,
+  × 0.78). A flood ends when its last stream has run out; then a new board. 10 a stone, 250 a trough (the Keeper goes to
+  drink there, a brazier lights), 500 when a flood reaches all its troughs (`scoreOf`).
+- **The Keeper** (the shipped model at 0.55 of its size, `keeperModel`, posed by hand): it wanders the court, curious
+  about the water, a stone at a time, rests, and goes to drink at each trough that fills; its glyphs brighten.
+- Easy and Hard keep their own bests (`bestBy: 'level'`). `botMove` (the tests', `window.__cisternBot = true` for the
+  pictures) turns the way's stones in the order the water reaches them.
 
 ## Fight temples (`fight-<world>.js`, `src/fight-temples/`)
 

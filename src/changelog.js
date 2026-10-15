@@ -8,6 +8,19 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.79', date: '2026-10-15', items: [
+    // helping a guardian instead of fighting it, as minigames (issue #339): src/minigames/elderflight.js (the sky, the
+    // camera, the Elder posed in flight), formation.js (pure: the route, her wake, the slot, the gates, the gusts, her
+    // courage, botInput); story/hosts-data.js Corra; tests/minigames-helpers.test.js; docs/design/helper-guardians.md,
+    // docs/systems/minigames.md "The Elder's flight"
+    'A new game in Vael, The Elder’s flight: the Elder won’t fly alone, so fly at her wing from the Aerie across the sea of cloud to the riders’ Old Roost. Hold the slot in her wake, go through your ring of every wind gate beside hers, cross to the side she calls, and keep her courage up. Ask Corra at the foot of the Aerie’s steps.',
+    // src/minigames/cistern.js (the court, the stones, the water, the Keeper), channels.js (pure: makeBoard with a way to
+    // every trough, flowStep, turnStone, three floods, botMove); story/hosts-data.js Nuri; docs/systems/minigames.md
+    'A new game in the desert, Cistern channels: under the Rose House, turn the Givers’ channel stones ahead of the water so it reaches the Keeper’s troughs before it spills. Three floods, each faster; hold RT / R2 to hurry the water for double points. Ask Nuri by the Rose House’s steps.',
+    // the v1.76 prototypes taken out: src/guardian-help/, tests/guardian-help.test.js, boot.js + main.js ?guardianHelp,
+    // world-picker.js Prototypes, fluid-kit.js MODES.cannon, fluid-tool.js lent / pourStream / streamCatch
+    'The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.',
+  ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',
     'The last of the makers’ old sign, three dots over an arc, is gone: the Lantern’s tower, the great stone face on the sky stones, Talo’s post in Viridel, the gauges in the buried machine, the wind-silk scarf and the makers’ pebble at Home now carry the open corner too, and so does the small sign carved under each lit one along the temple friezes.',

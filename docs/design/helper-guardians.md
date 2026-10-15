@@ -1,104 +1,119 @@
 # Helping a guardian instead of fighting it (issue #339)
 
-**Prototypes for the author to play. They replace nothing yet.** The author: "I want to create 2 prototypes of different
-guardian encounters where I help them instead of fighting them … fly alongside the large bird to grab things mid air in
-a short period of time before X happens … my fluid gun which turns into a proper water cannon to help fill up all sorts
-of recipients to open doors and restore the power and the water flow in the temple in the desert … and also give me
-ideas for all the other guardians."
+The author, after the first prototypes (v1.76: gliding round the Roost catching the Elder's feathers, a water cannon in
+the Keeper's cistern, both played on the guardian inside its fight's arena): "That's not right. What I want is proper
+mini games like we did with all the other minigames. Something that changes the way we approach the gameplay
+completely. We might have to go to a giant room or even outside."
 
-Both run in the shipped arena, on the shipped guardian, from a page of their own; without it the fights are as they
-were (`tests/guardian-help.test.js` checks both ways). Each ends on the shipped hand on the guardian's brow, which
-resolves the temple as the fight does (the world change, the door out). Progress is a sandbox: nothing is saved.
+So each helping encounter is a **minigame on the kit** (docs/systems/minigames.md): its own page (`?game=<id>`), its own
+arena, a start card, a 3-2-1, a clock or a score, a pause card, results with a best kept, and a sign with its host in
+the guardian's world. And each is played with **a different verb and a different camera from the fight**: no lock-on,
+no blows, no meter to fill by hitting the right thing at the right time. The fight asks "survive it and answer its
+openings"; these ask something the guardian needs and cannot do alone.
 
-| Prototype | Page | Debug menu |
-|---|---|---|
-| Fly with the Elder (the Aerie's Roost) | `?level=arzach&guardianHelp=elder` | Debug → Prototypes → Fly with the Elder |
-| Water for the Keeper (the Rose House's cistern) | `?level=desert&guardianHelp=keeper` | Debug → Prototypes → Water for the Keeper |
+The bar (the two games they are measured against): the **Wing drop** (`wingdrop.js`: a pure flight model, three
+rounds, a score built from several skills, its own camera for each moment, thermals and stars drawn and felt) and the
+**Shooting gallery** (`gallery.js`: a director that paces the minute, a combo that rewards keeping it clean, a host who
+talks while you play, every hit with its sound and its number).
 
-A panel at the top left says what to do now in one line, counts what is done (pips), and runs a bar down for what is
-running out (the most urgent falling feather, the vessel that is leaking). The guardian's own bar at the bottom is the
-encounter's progress.
+The first prototypes (`src/guardian-help/`, `?guardianHelp=`) are gone; these two are the one way to play each.
 
-## 1. Fly with the Elder (`src/guardian-help/elder.js`)
+| Game | Page | Where its sign is | Host |
+|---|---|---|---|
+| **The Elder's flight** (`src/minigames/elderflight.js`, rules `formation.js`) | `?game=elderflight` | Vael, at the foot of the Aerie's great steps | Corra, who flew with the riders |
+| **Cistern channels** (`src/minigames/cistern.js`, rules `channels.js`) | `?game=cistern` | the Desert, beside the Rose House's door | Nuri, who digs the channels |
 
-The Elder will not fly alone (LORE.md, "The Aerie"); her feathers have gone to stone, and the birds raised here shed
-their first stone feathers in the Moult. This is her flying again, and moulting as she goes.
+## 1. The Elder's flight: formation flying across the open sky
 
-- **Start.** She stands on the Roost's floor, trembling. Open your wings in the rising wind of the vent (the rings, on
-  the east side; the stone sits in the west one): she hops into the column beside you and rises with you to its top.
-  Leave the wind before she is up and she drops back to her floor, nothing lost.
-- **Her wake.** At the column's top she peels off and waits, slowly, until you are out of the wind, then gathers her
-  pace (11.5 m/s; your wings cruise at 15, so you close up from behind). The air behind and beside her (10 m back, 7 to
-  either side, `FLIGHT.wake`) holds your wings up level with her and carries you at her pace; let the stick go in it and
-  it turns you along her line. Out of it you sink as anywhere, and the vent's wind takes you back up. Her wake is drawn
-  as two trails of motes off her wingtips.
-- **The feathers.** Three flights round the roost (2.5 turns each, about 17 s): low and level, then swinging out over the
-  vents, then climbing toward the oculus. Five feathers a flight. Each first shakes loose on one wingtip, glowing, for
-  1.4 s (the side to fly on: "A feather loosens on her left wing"), then comes away keeping two thirds of her pace and
-  falls (2.1 m/s) behind her, tossed out of her turn: the right wing's (inside the turn) into her line, the left wing's
-  outside it. A ring on the floor under each shrinks as it nears. Fly through it (3.2 m from your chest) to catch it.
-- **Failing gently.** A feather that reaches the floor shatters and she flinches. A flight may lose one; lose a second
-  and she falters, glides down and sits shaking (3.5 s), and that flight is flown again from the vent, what was caught
-  in it let go with it. Nothing else is lost.
-- **The end.** The three flown, she spirals up out of the oculus into the open sky and back down, calm, and folds her
-  wings: lay a hand on her neck. She rides the wind up out of the roost; the birds come back to the Aerie.
-- **Camera.** While she flies the boss framing widens (`view()`: arm +7 m) and the camera turns onto the two of you.
-- A clean run is about 95 s (the scripted pilot in headless Chrome); with a falter or two, two to three minutes.
+The Elder will not fly alone (LORE.md, "The Aerie"). Here she does fly, out of the Aerie and across the sea of cloud to
+the riders' old roost, as long as somebody flies at her wing. **The verb is keeping station**: you are her wingman.
 
-## 2. Water for the Keeper (`src/guardian-help/keeper.js`)
+- **Where**: outside, the open sky over Vael's sea of cloud, sky stones (tables and needles) standing out of it, a
+  2.3 km route from the Aerie's crown to the Old Roost, a great table ringed with stone feathers. Its own arena, built
+  with the sky stones' kit and look (`sky-stones-kit.js`, `SKY_STONES_LOOK`, the cloud deck and its puffs).
+- **The camera**: a wide formation shot from behind and outside the pair, a long lens, both birds always in it,
+  rolling a little with her. Nothing like the fight's lock-on: you look at the two of you flying.
+- **Your wings** (`wingStep`, pure): the stick banks and turns, forward dives, back climbs (the Ring race's way); A / ×
+  held beats your wings (faster), LT / L2 spreads them wide (slower). Alone you glide at 15 m/s and sink; she flies at
+  17. **Her wake** (`wakeAt`): the air off her wingtip, behind and beside her, holds you up and draws you to her pace.
+  Sit in it and you fly with her for free; that is the game's feel.
+- **The slot**: a ring of light 12 m off her wingtip and 5 m back, on the side she wants you. In it (within 5 m)
+  you score harmony every second, the multiplier climbing a step every 3 s held (×1 to ×5); out of it for more than a
+  second, the multiplier falls back to ×1.
+- **Wind gates**: thirteen great rings of turning wind strung between the stones. Each gate has her ring and yours
+  beside it, on the side of her slot. Through yours: +100 × the multiplier, +50 more "Together!" when you go through
+  within 0.8 s of her. **She calls the side**: after a gate she cries and dips the wing you should come to; the next
+  gate is on that side, so you cross behind her to it. A gate missed costs her courage and your multiplier.
+- **Gusts**: three stretches between pairs of stones where a crosswind (7 m/s) blows across the route, drawn as
+  streaks: she is heavy and holds her line; you have to crab into it to stay in the slot.
+- **Her courage** (0 to 1, the bar on screen): it falls while you are far from her (more than 28 m) and when you miss a
+  gate or hit a stone; it comes back while you hold the slot. More than 16 m off your slot, she slows and waits for you. Out of
+  courage she turns back to the Aerie: the flight ends there, the points kept. Reach the Old Roost and she lands:
+  +300 for the flight, + her courage × 500.
+- **Failing gently**: flown into a stone, you bounce off it slowed; into the cloud, you come up again in her wake. Both
+  cost courage, never the run.
+- **Score**: points (harmony + gates + the landing). A clean flight is about 2 minutes 20.
 
-The Keeper was thirsty and afraid of the dark (LORE.md, "The Keeper of the cistern"); after it is calmed the cistern
-fills and the water runs out of the house to Qanat. Here you bring the water back yourself, and it helps.
+## 2. Cistern channels: routing water through a giant hall
 
-- **The water cannon.** The fluid gun lends a mode for this cistern only, `cannon` (`src/fluid-kit.js` MODES.cannon,
-  `lent`: no item; `FluidTool.lent`, `FluidTool.pourStream`). Aim (LT / L2, right mouse) and hold the trigger (RT / R2,
-  left mouse): one strong arc of water out of the glove (21 m/s, under gravity, traced against the world), the magic bar
-  draining (half a unit a second: a full bar of three pours six seconds), refilling as ever once you let go. What it is
-  poured into takes it at the first mouth it passes (`streamCatch`). X / D-pad → still cycles the other modes.
-- **The vessels** (`VESSELS`): a jar on the floor (west), a jar on a corbel high on the north wall (an arc over the
-  rim), the trough over the old water wheel on the south-east wall, and the Givers' great tank under the dry muzzle on
-  the east wall, its stone lid on. Each has a glowing gauge on its face. The three small ones are cracked: off the
-  stream for more than 1.2 s they leak back down (16 % a second), so each is filled in one go, near enough.
-- **What each does.** A jar brims, tips, and a runnel of water runs down into the basin; the Keeper walks to where it
-  comes in and drinks, and calms a little. The trough turns the wheel: the house's power is back, the four bronze
-  braziers catch, the lamps round the walls wake, and the far door sinks open. The three done, the Keeper **helps**: it
-  goes to the tank and heaves its stone lid off. Fill the tank (no crack, but more than one bar: you pour, let the bar
-  fill, pour again) and the muzzle pours into the basin, the basin fills, the Keeper drinks deep and lies down by the
-  running spout: lay a hand on its brow, and the shipped world change follows (the cistern, the channel to Qanat, the
-  fields).
-- **Failing gently.** A vessel left leaks. The Keeper paces the dry basin, and the stream in its face (0.3 s of it)
-  frightens it: it rears, stamps, and any vessel near it (9 m) spills: "Water the jars, not the Keeper." Wait for it to
-  pass, or pour from the other side. Nothing is lost for good.
-- A clean run is about 80 s (the scripted player); finding the vessels and learning the arc, two to four minutes.
+The Keeper was thirsty (LORE.md, "The Keeper of the cistern"). Under the Rose House the Givers' great cistern court is a
+floor of channel stones, eight by six, each turnable; their old spout in the north wall still holds water. **The verb
+is routing**: turn the stones so the water runs from the spout to the Keeper's four troughs, ahead of the water.
+
+- **Where**: a giant sunken court (60 × 50 m), the Rose House's stone and its channels' teal water, its roof long
+  fallen so the sun comes in; the spout a carved muzzle high in the north wall; four stone troughs round the edges.
+- **The camera**: high over the court's south end, looking down at the whole floor (the board), easing a little after
+  you. A puzzle's view: you read the channels, not a foe.
+- **You**, on foot in the court: the stick walks you across the stones. A / × turns the stone you stand on a quarter
+  turn clockwise, X / □ the other way. RT / R2 held hurries the water (three times as fast, every stone it fills worth
+  double while it hurries): to fill the troughs sooner, or to cut the wait at the start.
+- **The stones** (`channels.js`, pure): straights, bends, tees (the water splits both ways) and crosses (it runs
+  straight through; a cross filled both ways is +100), a few broken ones that never turn. A stone the water is in is
+  set: it no longer turns.
+- **The water**: the spout opens after 12 s (the card says when); then it runs along the channels a stone at a time,
+  3 s a stone at first and quicker as it goes (to 1.6 s; on Hard 2.2 s to 1.1 s). Where a stone does not open toward
+  it, or it runs into the wall, it spills and that stream ends. Every stone filled is 10 points; a trough reached is
+  +250, and the Keeper comes to drink from it. All four reached: +500.
+- **The Keeper**: it wanders the court while it is thirsty, curious about the water; a stone it stands on cannot be
+  turned ("It's lying on that one."), so you work round it, or wait. When a trough fills it goes to drink, its glyphs
+  brightening a quarter each time.
+- **The end**: when the last stream has run out (spilled or into a trough). Each board is new (a seed), made with a way
+  to reach all four troughs (`makeBoard` builds the route first, then scrambles every stone); Easy and Hard keep their
+  own bests.
+
+## Unity
+
+Both play in the Unity bridge through engine/trials.js (it reads the games from src/minigames/index.js), checked in the
+editor's batch (`scripts/unity-js-run.sh <name> -game elderflight -level arzach`, `-game cistern -level desert`): the
+start card, the 3-2-1, the run with its HUD line, the pause card and the run resumed all draw. Web only for now: the
+floating "+10" / "+250" / "×3" words over the board and the sky (kit/labels.js is DOM: docs/systems/engine-bridge.md,
+"Not drawn yet"); the flashes, the status line and the cards are the bridge's own and show. In the batch the cistern's
+start card is seen from the traveller's follow camera rather than the court's overview; from GO on, both games' own
+cameras.
 
 ## What the author decides after playing
 
-- Whether either replaces its shipped fight, sits beside it (a choice in the arena, or the second visit), or becomes
-  the shape for every guardian (the ideas below).
-- The Elder: her pace against the wings' (11.5 / 15 m/s), how strongly the wake carries you (`FLIGHT.wake.steer`,
-  `draw`), how long a feather shakes loose before it falls (`feather.tell`), the misses a flight forgives (`miss`).
-- The Keeper: whether the cannon stays a lent mode or becomes the Rose House's own gift; the leak (`LEAK`); whether the
-  Keeper should do more than drink and lift the lid (nudge a jar under the muzzle, carry water in its mouth to the high
-  jar).
-- Not done in the prototypes: the guardians' voices and the music for helping, a cinematic at the end (each ends on the
-  shipped hand on the brow), the Unity port, save and resume inside the encounter.
+- Whether either replaces its guardian's fight, sits beside it (the second visit, or a choice at the door), or becomes
+  the shape for every guardian (the pitches below).
+- The Elder: her pace against yours (17 / 15 m/s), how strongly her wake holds you (`FORMATION.wake`), the slot's size,
+  how fast her courage falls.
+- The Cistern: the water's pace, the wait at the start, the board's size, how much the Keeper gets in the way.
 
-## One idea for each of the other guardians
+## The other guardians, as minigame pitches
 
-Each uses its temple's gadget and what the guardian is, and keeps the house's idea (docs/systems/foes.md, "The
-guardians' last phases"). Help, not harm: the machines are mended or set to their old work, the living ones eased.
+Each its own page, arena, verb and camera; none a fight with a twist.
 
-| Guardian (temple, gadget) | Helping it |
+| Guardian (temple) | The minigame |
 |---|---|
-| **The warden** (the Warden's Well, the jets) | The tower's breath has stopped and the warden is choking on its own heat, its crown hatch jammed. Fly the shaft with the jets, washing each of the four great vanes in turn so the breath rises again through the irises; every vane turning cools it a phase, and at the top you hover over its crown and wash the hatch open so it can breathe out. Fail: a vane slows if you leave it too long, and the heat comes back. |
-| **The Cloud-Mother** (the Founders' Belfry, the bell) | She lost the stones she kept aloft, and the belfry's floor is falling up into the sky. Ring the bell to hold falling-up stones in the air while she gathers them back under her fins, one at a time; ring too early and they drop, too late and they are gone through the dome. A rhythm encounter: her calls are the beat. |
-| **The Mother Snapper** (the Hush-House, stilling) | Her hatchlings are loose among the pendulums over the gulf. Still each pendulum as a hatchling clings to it so she can reach it with her jaws and lift it back to the nest, smallest first (low to high, the house's idea). A stilled pendulum holds 3.5 s: chain them so her path across is never swinging. |
-| **The Lampless** (the Lamp-House, the lantern) | It is blind and lost in its own dark hall. Carry light ahead of it: hold the lantern by each dark pool so it lights, and walk the moth home pool to pool to its old roost under the oculus. It follows the last light it saw; let a pool go dark behind you before it reaches it and it wanders, circling, until you relight it. |
-| **The Gardener** (the Builders' Greenhouse, bloom) | Its back is a garden that died in the shade. Turn the louvre's sun quarter by quarter and bloom the beds on its back while it kneels in each, in the order of the seasons painted on the dome; in full bloom it stands and opens the dome. The sun moves on: a bed bloomed in the shade folds, so you race the beam, not the Gardener. |
-| **The Clockwork Foreman** (the First Garage, the quick coil) | Its spring has run down and it is stuck at four o'clock with every clock in the house. Wind it: ride the quick coil's refills to hit its six numerals in step from four within one breath, each round setting its hands an hour on; at the twelfth the house's clocks start together. A missed step and it ticks back an hour, never more. |
-| **The Tooth-Warden** (the Engine-House, the cell) | The engine is grinding itself to pieces and the Tooth-Warden is trapped at its heart. Roll balls into the cranks to stop the pistons one bank at a time, clearing it a path out across the turning gear; carry the cell to each stopped piston to restart it gently once it has passed. Too many stopped at once and the engine stalls and shudders it back a step. |
-| **The Echo** (the Footprint, the lens) | It has forgotten its song: the walker's notes are scattered on the spheres. Find each print with the lens and sing the spheres in the order the prints were set down; the Echo sings each back a little stronger, and at the last it sings the whole song. A wrong note and it falls silent a moment, then hums the last right one to help you. |
-| **The First Sign** (the Undertower, the echo shell) | It is shouting its word to someone who left long ago. Carry its word through the dishes to the far ear where the answer still waits, and bring the answer's word back to it, one word of the line each time it lowers its dish; the line whole, it falls quiet and the tower's lamp lights. Words fade from the shell: a long way round loses one. |
-| **The Listener** (the Whale-House, the whale-horn) | It is listening for whales that no longer answer. Sound the deep note into the hall's dishes so it carries out through the glass to the open sea, and set the dishes' balls so the note reaches farther each time; the third reaches the whales, whose answer comes back through the glass and the Listener sings with them. The tide moves the balls off the footstones: keep them set. |
-| **The Last Founder** (the Casting-House, the tongs) | It has been trying for ages to cast one whole moon and every one cracks. Help it cast: carry the iron moons with the tongs through the pilot flame into its moulds while it pours, and splash its overheating heart between pours so the metal cools evenly. One whole moon and it stops, looks at it, and rests. A moon carried in cold cracks, and it starts that mould again. |
-| **The Anchor-Warden** (the Mooring-House, the tether) | Its cables have snapped and the moorings are drifting off into the void. Tether each drifting island's anchor home within reach of its capstan arm, which takes it and winds it taut; three islands moored and it locks, humming. Islands drift farther the longer they wait: the order you fetch them in matters. |
+| **The warden** (the Warden's Well) | **Vane breath**: a vertical shaft seen from the side. You hover with the jets, washing the four great vanes with the gun so the tower breathes again; each vane turned holds for a while and slows; keep all four turning for three minutes while the warden's heat rises and falls. Juggling, a plate-spinner. |
+| **The Cloud-Mother** (the Founders' Belfry) | **Bell keeper**: a rhythm game under the open dome. Her calls are the beat; ring the bell on it to hold falling-up stones in the air while she gathers them under her fins; a stone rung early drops, late drifts out of the dome. The drum circle's lane, on a sky. |
+| **The Mother Snapper** (the Hush-House) | **Hatchling crossing**: a side-on view over the gulf. Still the pendulums with the stilling glob so her hatchlings can hop across them to her; each still holds 3.5 s; chain them so no hatchling ever lands on a swinging stone. Lemmings on a clock. |
+| **The Lampless** (the Lamp-House) | **Lamplighter's walk**: a top-down hall in the dark. It follows the last light it saw; carry the lantern ahead, lighting pools, and lead it home pool to pool before the ones behind go out. Leading, not fighting. |
+| **The Gardener** (the Builders' Greenhouse) | **Sun on its back**: an overview of the louvred dome. Turn the louvres to throw the sun across the beds on its back in the seasons' order painted round the dome while the sun moves on; a bed in shade folds. A light-routing puzzle, Cistern channels' cousin. |
+| **The Clockwork Foreman** (the First Garage) | **Wind the Foreman**: a dial seen face on. Hit its numerals in step from four o'clock, the quick coil's refills your breath, an hour on each round; a missed step ticks it back an hour. A rhythm and timing game, twelve rounds. |
+| **The Tooth-Warden** (the Engine-House) | **Gear runner**: an isometric engine floor. Roll balls into the cranks to stop the pistons one bank at a time and clear the Tooth-Warden a path across the turning gear; restart each bank behind it with the cell. A traffic puzzle against the engine's stall meter. |
+| **The Echo** (the Footprint) | **Song of the prints**: the Footprint's hall as a memory game. The Echo sings a phrase, you find the prints with the lens and sing the spheres back in their order; each round a note longer; a wrong note and it hums the last right one. Simon, in a sphere. |
+| **The First Sign** (the Undertower) | **Relay**: a chain of dishes across the tower, seen from above. Carry its word in the echo shell to the far ear and the answer back, one word a trip, the words fading from the shell; route the shortest way round as the dishes turn. A courier's run. |
+| **The Listener** (the Whale-House) | **Deep call**: through the glass, out to sea. Sound the whale-horn into the hall's dishes and set the dishes' balls so the note carries farther each round while the tide shifts them; three rounds and the whales answer. Aim and keep. |
+| **The Last Founder** (the Casting-House) | **One whole moon**: the casting floor from the gantry. Carry the iron moons with the tongs through the pilot flame into its moulds while it pours, splash its heart between pours so the metal cools evenly; a cold moon cracks. A cooking game, Overcooked's rush. |
+| **The Anchor-Warden** (the Mooring-House) | **Mooring run**: the void round the house, flown. Tether each drifting island's anchor home to its capstan arm; islands drift farther the longer they wait, so the order you fetch them in is the game. A route-planning race. |

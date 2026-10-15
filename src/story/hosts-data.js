@@ -60,6 +60,20 @@ export const HOSTS = {
     say: ['~curious~ That stall sold tea yesterday. The market changes faster than its signs, so I draw it first.', '~playful~ My list: six things, three minutes. Frame each one nicely, then sketch it. You can borrow my pencil.'],
     lines: ['~curious~ Hold still. No, the other way.'],
   }),
+  // the guardians' helping games (issue #339, docs/design/helper-guardians.md): by the Rose House's steps, and at the foot of
+  // the Aerie's great steps (Vael speaks in single words)
+  cistern: P({
+    id: 'host.cistern', name: 'Nuri', title: 'who digs the Givers’ channels', color: '#62c3c9', kind: 'm',
+    palette: { cloak: '#62c3c9', lining: '#2b211f', cloth: '#e8d9b8', legs: '#4a3a2a', hat: '#c47b6b', hair: '#2b211f' }, head: 'wrap', look: { prop: 'staff' },
+    say: ['~tired~ I dig the sand out of the Givers’ channels every spring. Not one drop has come down them.', '~neutral~ Under the house the stones turn. Turn them ahead of the water, to every trough. The Keeper’s thirsty.'],
+    lines: ['~tired~ Dig, sweep, wait. Dig again.'],
+  }),
+  elderflight: P({
+    id: 'host.elderflight', name: 'Corra', title: 'who flew with the riders', color: '#9fd6ee', kind: 'f',
+    palette: { cloak: '#9fd6ee', lining: '#2b211f', cloth: '#f4efe2', legs: '#5a5a6a', hat: '#d8a24a', hair: '#d8d0c0' }, head: 'hood',
+    say: ['~solemn~ I ask her each morning. She won’t fly. Not alone.', '~neutral~ Her wing. Your wing. Through the gates. All the way to the Old Roost.'],
+    lines: ['~whisper~ Together.'],
+  }),
   // the desert's fight temple (issue #341, src/fight-temples/desert.js): by its doorway west of the camps
   'fight-desert': P({
     id: 'host.fight-desert', name: 'Wafa', title: 'who keeps watch on the sunken hall', color: '#b8613c', kind: 'f', stand: { side: -1, ahead: 1.2 },

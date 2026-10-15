@@ -15,7 +15,6 @@ page in sections, each a heading with one line, in this order (`menuSections`):
 | **Test rooms** | the `dev: true` levels: the Lab, the Arena, the Gadget Yard, the Arcade, the References, the Shadow Room (`?level=shadows`: rendering.md, "The Shadow Room and the shadow QC") |
 | **Worlds in progress** | the `WIP` worlds (off the galactic map) |
 | **Games** | the minigames (`gamesRow`), each with its best |
-| **Prototypes** | encounters still to be chosen, each on its own page in a sandbox (issue #339: helping a guardian instead of fighting it, `src/guardian-help/`, docs/design/helper-guardians.md) |
 | **Pages** | `PAGES` (What's new, Audits, Items, Creatures & spirits, Character studio, Music & sounds (`music.html`, docs/systems/audio.md "The music page"), Motion, Lore (`lore.html`, docs/systems/lore-page.md), Cinematics, Trailer, and References, `references.html`, tagged "reference material"), `MAYBE_PAGES` (pages listed once they answer, `probePages`; none now) and on the dev server `DEV_PAGES` (the reference lab, tagged "dev server"; a build never lists it) |
 | **This build** | version, build number and commit (`__HIRAETH_BUILD__`, defined by `vite.config.js` `gitBuildInfo`; the Android / Deck app's build line in the app), dev server or build, and the debug save's note |
 

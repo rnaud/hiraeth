@@ -6,11 +6,6 @@ if (['keeper','elder'].includes(new URLSearchParams(location.search).get('guardi
   const {seedGuardianReview} = await import('./guardian-review.js');
   await seedGuardianReview();
 }
-// A helper prototype (issue #339, ?guardianHelp=elder | keeper: src/guardian-help/): its own sandboxed save, the same way.
-if (['elder', 'keeper'].includes(new URLSearchParams(location.search).get('guardianHelp'))) {
-  const { seedGuardianHelp } = await import('./guardian-help/seed.js');
-  await seedGuardianHelp(new URLSearchParams(location.search).get('guardianHelp'));
-}
 // Seed a temporary cinematic review before the game loads any progress.
 if (new URLSearchParams(location.search).has('cinematicReview')) {
   const { seedReview } = await import('./cinematics-page/runtime.js');

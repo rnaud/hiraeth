@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.79 — 2026-10-15
+
+- The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.
+- A new game in the desert, Cistern channels: under the Rose House, turn the Givers’ channel stones ahead of the water so it reaches the Keeper’s troughs before it spills. Three floods, each faster; hold RT / R2 to hurry the water for double points. Ask Nuri by the Rose House’s steps.
+- A new game in Vael, The Elder’s flight: the Elder won’t fly alone, so fly at her wing from the Aerie across the sea of cloud to the riders’ Old Roost. Hold the slot in her wake, go through your ring of every wind gate beside hers, cross to the side she calls, and keep her courage up. Ask Corra at the foot of the Aerie’s steps.
+
 ## v1.78 — 2026-10-15
 
 - On the galactic map the makers’ mark beside each world, in the side panel and in the legend, now draws as the mark; it showed as an empty key-cap box.

@@ -11,7 +11,6 @@
 //   Test rooms      the rooms for trying things (levels with dev: true)
 //   Worlds in progress   the worlds still being made (names.js WIP)
 //   Games           the minigames, each with its best
-//   Prototypes      encounters still to be chosen (issue #339: helping a guardian instead of fighting it), in a sandbox
 //   Pages           the game's other pages (a dev server's own marked, and only there)
 //   This build      version, build number, commit, where it runs
 //
@@ -25,7 +24,6 @@ import { scoreDef } from './minigames/kit/flow.js';
 import { InputMode } from './input-mode.js';
 import { glyph } from './pad-glyphs.js';
 import { VERSION } from './changelog.js';
-import { HELP, helpHref } from './guardian-help/seed.js';
 
 /** The game's other pages (they leave the game), in the Pages section in this order. */
 export const PAGES = [
@@ -170,8 +168,6 @@ export function menuSections({ levels, current = null, cont = null, state = null
   if (s.progress.length) out.push({ key: 'progress', title: 'Worlds in progress', line: 'still being made, off the galactic map · in your save', html: `<div class="cards">${cards(s.progress)}</div>` });
   const g = games.length ? gamesRow(games, state) : '';
   if (g) out.push({ key: 'games', title: 'Games', line: '', html: g, whole: true });
-  // (prototypes the author tries before they replace anything: src/guardian-help/, docs/design/helper-guardians.md)
-  out.push({ key: 'prototypes', title: 'Prototypes', line: 'encounters still to be chosen · a sandbox, nothing saved', html: `<div class="rows">${Object.entries(HELP).map(([k, h]) => rowHtml({ href: helpHref(k), label: esc(h.name), hint: h.blurb, q: `prototype guardian help ${k}`, tag: '<small class="tag">prototype</small>' })).join('')}</div>` });
   const pages = pagesHere(dev).map((p) => rowHtml({ href: p.href, label: esc(p.label), hint: p.hint,
     tag: p.dev ? '<small class="tag">dev server</small>' : p.ref ? '<small class="tag">reference material</small>' : '', cls: p.maybe ? 'maybe' : '', extra: p.maybe ? ' hidden data-maybe=""' : '' })).join('');
   out.push({ key: 'pages', title: 'Pages', line: 'the game\'s other pages · each has a ◀ Debug button back here', html: `<div class="rows">${pages}</div>` });

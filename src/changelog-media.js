@@ -1056,7 +1056,21 @@ const FUTURE342_FP_NUMBERS = [
   { title: 'The Footprint: frame time (median)', unit: 'ms', better: 'lower', device: FUTURE342_FP_DEVICE, source: FUTURE342_FP_SOURCE, rows: [{ where: 'High', before: 9.43, after: 5.94 }, { where: 'Low', before: 2.89, after: 3.21 }],
     note: 'Both within the shared machine’s noise (the High run without the skin met a load of 50, the one with it 20 rising to 190).' },
 ];
+/** (v1.79, issue #339: the guardians' helping games, shot by hand on this branch) */
+const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6340), each game begun from its start card and played by its scripted player (window.__elderBot, window.__cisternBot); the signs in their worlds with the traveller set beside them; 15 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.79': [
+    { match: 'A new game in Vael, The Elder’s flight', tags: ['vael'], shots: [
+      { name: 'elder-formation', only: 'after', title: 'At her wing', caption: 'In the slot off her right wingtip (the ring of light, teal while you hold it), her wake’s motes trailing off her wings; ahead, a wind gate hung between two rose needles, her great ring and yours beside it.', from: HELPGAMES339 },
+      { name: 'elder-roost', only: 'after', title: 'The Old Roost', caption: 'The flight flown: she has set down on the riders’ Old Roost among its stone feathers, calm, the results card beside her.', from: HELPGAMES339 },
+      { name: 'elder-host', only: 'after', title: 'Corra at the Aerie', caption: 'The game’s sign and its host, Corra, at the foot of the Aerie’s great steps in Vael.', from: HELPGAMES339 },
+    ], see: 'Walk to the foot of the Aerie’s great steps in Vael and ask Corra (or open ?game=elderflight). Hold the ring off her wingtip: the score climbs and the ×multiplier with it. After a gate she cries and dips a wing: cross behind her to that side for the next gate. Fall far behind and her courage bar empties.' },
+    { match: 'A new game in the desert, Cistern channels', tags: ['desert'], shots: [
+      { name: 'cistern-flood', only: 'after', title: 'The second flood', caption: 'The court from high over its south end: the water run from the spout down the west side into the first trough (+250, the Keeper drinking), the stone under the traveller framed in gold.', from: HELPGAMES339 },
+      { name: 'cistern-host', only: 'after', title: 'Nuri by the Rose House', caption: 'The game’s sign and its host, Nuri, beside the foot of the Rose House’s steps.', from: HELPGAMES339 },
+    ], see: 'Walk to the foot of the Rose House’s steps in the desert and ask Nuri (or open ?game=cistern). Stand on a stone and press A / × to turn it; before the spout opens, turn the stones under it into a channel toward a trough. Leave one wrong and the water spills there (a red arrow warns first).' },
+    { match: 'The two helping prototypes in the Debug menu', see: 'Open the Debug menu (L, or Debug on the title): the Prototypes section is gone; the two games are in its Games list.' },
+  ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [
       { name: 'unity-hud-prompt', title: 'The “talk to” tag', caption: 'The Unity testers’ build on the Retroid Pocket (1280 × 960, the frame readout on, muted), walking round Rima at the desert’s spawn: before, the tag hung 180 px to her right and jumped as the camera moved; after, it sits by her shoulder, where the game puts it', size: [1280, 960], from: HUD264 },

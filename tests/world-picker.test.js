@@ -33,7 +33,7 @@ test('every world is in exactly one section: the route in story order, the place
 test('the sections, in order, with their cards numbered as shown', () => {
   const games = [{ id: 'ski', name: 'Dune skiing', blurb: 'down the dunes' }];
   const secs = menuSections({ levels: LEVELS, cont: { id: 'incal', title: 'The City-Shaft' }, current: 'arzach', dev: false, games });
-  assert.deepEqual(secs.map((s) => s.key), ['play', 'places', 'rooms', 'progress', 'games', 'prototypes', 'pages', 'build']);
+  assert.deepEqual(secs.map((s) => s.key), ['play', 'places', 'rooms', 'progress', 'games', 'pages', 'build']);
   const play = secs[0].html;
   assert.match(play, /class="row continue" href="\?level=incal"/, 'Continue first, to the world this save was left in');
   assert.match(play, /href="\?level=desert&debugsave=1"[^>]*>[\s\S]*?<b class="num">1<\/b>/, 'the route\'s first world is number 1');

@@ -83,10 +83,6 @@ export const FLUID = {
   push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)
   boost: DOUBLE_JUMP,                                       // the double jump's burst (src/jump.js, player.js); keep: share of a rising jump's speed kept
   jet: { drain: MAGIC_COST.jets, min: 0.02 },  // units burnt per second of thrust (3 = 10 s); min: the gauge that still lights them
-  // the water cannon (issue #339, a lent mode: MODES.cannon): held, one arc of water; drain: units a second (a full bar of 3
-  // pours 6 s), speed (m/s) and gravity (m/s²) of its arc, reach (s of arc traced), step (s between its traced points),
-  // drops (a second) drawn along it
-  cannon: { drain: 0.5, speed: 21, gravity: 9.8, reach: 1.7, step: 0.06, drops: 150 },
 };
 
 // The fluid's tones, in the order bands are added (written into the shader's uFluidTones).
@@ -930,7 +926,7 @@ export class FluidTool {
   /** The tank is on the traveller's back (not in a vehicle's socket, nor swinging between). */
   get worn() { const p = this.player; return this.owned && !p?.ride && !p?.boarding && !p?.unboarding; }
   /** The gun modes the traveller owns ('shoot' first); none without the gun (and the backpack it drinks from). */
-  get modes() { return ownedModes((id) => this.items.has(id), this.lent); }
+  get modes() { return ownedModes((id) => this.items.has(id)); }
   /** The gun is found and is the gadget in hand (src/gadgets/: the flag gadget.equipped): only then do the triggers shoot. */
   get gunInHand() { return (!!this.forceGun || (this.items.has('gun') && this.state.flag('gadget.equipped') === 'gun')) && this.modes.length > 0; }   // (forceGun: a game on foot lends it in hand, src/minigames/kit/onfoot.js)
   /** The backpack's stage (0..3): how many of its strengths are owned (items.js BACKPACK_STAGES); the tank shows it. */
@@ -1053,8 +1049,7 @@ export class FluidTool {
     // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
     const quickPress = input.quick && !this.held.quick;
     // (the push is a gun mode: fired as a shot, it throws its cone instead of a glob)
-    const streamMode = !!MODES[this.mode]?.stream;   // (the water cannon: held, it pours; no glob, no quick shot)
-    const firePress = (input.shoot && !this.held.fire) || (quickPress && !streamMode), pushPress = firePress && !!MODES[this.mode]?.cone, shootPress = firePress && !pushPress && !streamMode;   // (a cone mode: the push, the tether's pull)
+    const firePress = (input.shoot && !this.held.fire) || quickPress, pushPress = firePress && !!MODES[this.mode]?.cone, shootPress = firePress && !pushPress;   // (a cone mode: the push, the tether's pull)
     const modePress = input.mode && !this.held.mode;
     const bladePress = input.blade && !this.held.blade;
     this.held.blade = input.blade;
@@ -1100,10 +1095,6 @@ export class FluidTool {
       if (this.cooldown === 0 && this.pending === 'shoot' && this.k > 0.8) { this.pending = null; this.shoot(); if (input.quick) this.quick = Math.max(this.quick, 0.5); }
       else if (this.cooldown === 0 && this.pending === 'push' && this.k > 0.45) { this.pending = null; this.push(); }
     } else if (p) p.aim = null;
-    // the water cannon: the trigger held while aiming pours its arc (FluidTool.pourStream), the bar draining as it goes
-    if (streamMode && ok && p && input.aim && input.fire && this.k > 0.8) this.pourStream(dt);
-    else { this.streaming = null; this._streamDry = false; }
-    this.streamDots?.update(dt, p?.frame.up ?? _y);
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
     // the blade swings when the arm isn't up for a shot (it takes the aim pose for its arc)
     this.blade.update(dt, bladePress && this.k < 0.3, bodyOk && this.k < 0.5 && !this.player?.swim, input.guard, input.evade, !!input.blade && this.k < 0.3);   // (the guard: held; the blade button held: the charge)
@@ -1331,48 +1322,6 @@ export class FluidTool {
     // the vial on the cuff: the tank's own fluid, so glove and tank read as one (no hose since October 2026);
     // its glow follows the level in the glass, a flash as it fires
     if (this.glove?.vial) lightGlove(this.glove.vial, tones[1 % n], 0.35 + 0.65 * THREE.MathUtils.clamp(this.fill, 0, 1), 0.75 + 0.25 * this.flash);
-  }
-
-  /**
-   * The water cannon (MODES.cannon, issue #339): a frame of its stream from the nozzle toward the crosshair, an arc
-   * under gravity traced against the world. Drains FLUID.cannon.drain units a second; with nothing left it sputters
-   * once and pours nothing. Sets `streaming`: { from, vel, points (the arc, world, to where it lands), hit ({ point,
-   * normal } or null), t (s the water takes to land), dt, at } for whatever it is poured into (src/guardian-help/
-   * keeper.js reads it), null when not pouring. Returns it.
-   */
-  pourStream(dt) {
-    const C = FLUID.cannon, p = this.player, up = p.frame?.up ?? _y;
-    const spent = this.dry ? 0 : this.reserve.drain(C.drain * dt);
-    if (!(spent > 0)) { if (!this._streamDry) this.sputter(); this._streamDry = true; this.streaming = null; return null; }
-    this._streamDry = false;
-    const from = this.muzzle(_m).clone();
-    const vel = shotDir(from, this.aimPoint, this.aimDir, _f).clone().multiplyScalar(C.speed);
-    const points = [from.clone()];
-    let hit = null, tHit = C.reach;
-    for (let t = C.step; t <= C.reach + 1e-6; t += C.step) {
-      const q = from.clone().addScaledVector(vel, t).addScaledVector(up, -0.5 * C.gravity * t * t);
-      const a = points[points.length - 1], seg = _t1.subVectors(q, a), len = seg.length();
-      const h = len > 1e-4 ? rayWorld(this.physics, a, seg.divideScalar(len), len) : null;
-      if (h) { points.push(h.point.clone()); hit = { point: h.point.clone(), normal: h.normal?.clone?.() ?? up.clone() }; tHit = t - C.step + C.step * (h.distance / len); break; }
-      points.push(q);
-    }
-    // (what it is poured into takes it there, short of the world behind: streamCatch(points, step) → { i, point, t } or
-    // null, set by whoever lent the cannon: src/guardian-help/keeper.js, its jars and the Keeper)
-    const cut = this.streamCatch?.(points, C.step);
-    if (cut) { points.length = cut.i + 1; points.push(cut.point.clone()); hit = { point: cut.point.clone(), normal: up.clone(), caught: true }; tHit = cut.t; }
-    this.streaming = { from, vel, points, hit, t: tHit, dt, at: this.time, rate: spent / Math.max(dt, 1e-4) };
-    // drawn: drops thrown along the same arc (so they follow it), gone as they reach where it lands; a spray there
-    const S = (this.streamDots ??= new Dots(this.fx, 420, flatMat('#ffffff', { glow: 0.55 })));
-    const tones = this.modeTones;
-    this._streamAcc = (this._streamAcc ?? 0) + C.drops * dt;
-    for (; this._streamAcc >= 1; this._streamAcc--) {
-      const jit = _t2.randomDirection().multiplyScalar(0.35);
-      S.add({ pos: from, vel: _a.copy(vel).add(jit), grav: C.gravity, size: 0.07 + Math.random() * 0.05, stretch: 3.2, life: Math.max(0.08, tHit), color: tones[Math.floor(Math.random() * tones.length)] });
-      if (hit && Math.random() < 0.5) this.drops.add({ pos: hit.point, vel: _a.copy(hit.normal).multiplyScalar(2 + Math.random() * 2).add(_t2.randomDirection().multiplyScalar(1.6)), grav: 9, size: 0.05, life: 0.4, color: tones[2] });
-    }
-    if (this.time - (this._streamSound ?? -9) > 0.3) { this._streamSound = this.time; this.sound?.fluidShoot?.('shoot'); }
-    this.slosh = Math.max(this.slosh, 0.4);
-    return this.streaming;
   }
 
   /** A press with the tank empty: a dribble from the nozzle and a dry click. */
