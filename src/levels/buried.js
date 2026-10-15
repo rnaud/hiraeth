@@ -1079,8 +1079,7 @@ export function* buildBuried(scene) {
       put(k >= 8 ? M.peach : M.ink, tick, { solid: false });
     }
     // the maker's mark, small, under the hub
-    for (const k of [-1, 0, 1]) put(M.ink, new THREE.CircleGeometry(0.1, 8).rotateY(-s * Math.PI / 2).translate(c.x - s * 0.09, c.y - 0.75 + (k ? 0 : 0.06), c.z + k * 0.26), { solid: false });
-    put(M.ink, new THREE.TorusGeometry(0.36, 0.04, 3, 10, Math.PI * 0.6).rotateZ(Math.PI * 0.2).rotateY(-s * Math.PI / 2).translate(c.x - s * 0.09, c.y - 1.25, c.z), { solid: false });
+    put(M.ink, glyphGeometry(0.8, 0.02).rotateY(-s * Math.PI / 2).translate(c.x - s * 0.09, c.y - 1.05, c.z), { solid: false });
     // the needle: its own mesh, pivoting at the hub (local z = the dial's axis)
     const needle = new THREE.Group();
     needle.position.set(c.x - s * 0.14, c.y, c.z);

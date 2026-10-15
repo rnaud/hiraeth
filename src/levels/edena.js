@@ -1,3 +1,4 @@
+import { glyphGeometry } from '../story/sign-text.js';
 import { markOnSurface } from '../makers-mark/surface.js';
 import { SITE as GREENHOUSE } from '../temples/edena.js';
 import { templeVista } from '../temples/vistas.js';
@@ -574,8 +575,7 @@ export function* buildEdena(scene) {
     const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.4, 0.5).translate(0, 1.2, 0), wood);
     post.position.copy(L).add(new THREE.Vector3(1.5, 0, -1));
     scene.add(post);
-    const mark = new THREE.Mesh(mergeGeometries([[-0.13, 2.14], [0, 2.21], [0.13, 2.14]].map(([u, v]) => new THREE.CylinderGeometry(0.045, 0.045, 0.05, 8).rotateX(Math.PI / 2).translate(u, v, 0.26).toNonIndexed())
-      .concat([new THREE.TorusGeometry(0.17, 0.022, 3, 12, Math.PI * 0.7).rotateZ(Math.PI * 0.15).translate(0, 1.88, 0.26).toNonIndexed()])), makeMaterial({ color: '#2b211f', flat: true }));
+    const mark = new THREE.Mesh(glyphGeometry(0.42, 0.05).translate(0, 2.04, 0.26), makeMaterial({ color: '#2b211f', flat: true }));   // the makers' mark (the shared glyph)
     mark.position.copy(post.position);
     mark.userData.noCollide = true;
     scene.add(mark);

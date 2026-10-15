@@ -991,7 +991,7 @@ export function buildDesertCity(scene, terrain) {
     for (const { s, p, d } of sockets) {
       const sag = (r, lift) => [r, -r * r / 28 + lift];   // (on the bone's curve, R ≈ 14: the ring painted on it, not stood off it)
       funnel(p, d, [[sag(6.0, 0.02), sag(5.75, 0.3)], [sag(5.75, 0.3), sag(5.2, 0.34), sag(4.6, 0.32)], [sag(4.6, 0.32), sag(4.35, 0.32), sag(4.2, 0.12)], [sag(4.2, 0.1), [4.0, -2.2], [3.3, -6.2], [0, -6.8]]], [ochre, ring, ochre, sockIn]);
-      // the marks: little ochre bars round the ring's slope, and three dots over each socket (the glyph's)
+      // the marks: little ochre bars round the ring's slope
       const { q } = frame(d), slopeN = V(0.37, 1, 0).normalize();
       for (let k = 0; k < 22; k++) {
         const a = (k / 22) * Math.PI * 2, r = 5.15, h = -r * r / 28 + 0.36;

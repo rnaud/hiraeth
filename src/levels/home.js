@@ -131,7 +131,7 @@ export function tokenModel(t) {
     tokenMesh(g, new THREE.SphereGeometry(0.025, 10, 8).scale(1, 1.5, 1), tm('#ffd27a', { glow: 1 }), 0, 0.035, 0);
   } else if (t.kind === 'knowing') {   // a smooth pebble with the glyph
     tokenMesh(g, new THREE.SphereGeometry(0.06, 14, 10).scale(1.2, 0.5, 0.9), tm('#b9a3c9'), 0, -0.03, 0);
-    for (const x of [-0.022, 0, 0.022]) tokenMesh(g, new THREE.SphereGeometry(0.008, 6, 5), INK, x, 0.0, 0.01);
+    tokenMesh(g, glyphGeometry(0.05, 0.006).rotateX(-Math.PI / 2), INK, 0, -0.001, 0);   // the makers' mark (the shared glyph)
   } else {   // a thing: a little carved figure
     tokenMesh(g, new THREE.CylinderGeometry(0.03, 0.04, 0.09, 8), tm('#a8754f'), 0, -0.01, 0);
     tokenMesh(g, new THREE.SphereGeometry(0.03, 10, 8), tm('#a8754f'), 0, 0.055, 0);

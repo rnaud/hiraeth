@@ -1837,6 +1837,13 @@ The narrative descriptions now match its open shoulder and shorter upright. The 
 from initialization onward. Audio starts muted in the Sound constructor even when saved preferences
 are audible. The embedded view does not accept game input. The review page is a development entry,
 not a new production navigation item. Unit coverage: `tests/makers-mark.test.js`.
+
+Every mark outside the shared code draws it through `glyphGeometry` (or `markOnSurface` on a curved
+face): the kit's `ORNAMENTS.mark` (the Rose House's small carved sign under each lit one, seen without
+its skin), the Lantern's tower, the stone face on the sky stones, Talo's post, the Buried gauges, the
+scarf and the Home pebble. `tests/makers-mark.test.js` fails if any source but `src/makers-mark/`, the
+review fallbacks and the skins (`src/temples/skins/`, which draw their own signs after their drawings)
+draws a run of three dots with a partial ring under it.
   left as it is.
 
 ## Futuristic skins: the Casting-House (v1.78, issue #342)

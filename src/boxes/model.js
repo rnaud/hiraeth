@@ -429,8 +429,7 @@ function scarfModel() {
   const band = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.03, 6).scale(1, 1, 0.3), flatM('#f6f2e8'));
   band.rotation.x = 0.4;
   g.add(band);
-  for (const x of [-0.02, 0, 0.02]) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.007, 6, 5).translate(0.125 + x, 0.03, 0.02), flatM(INK)));
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.004, 3, 10, Math.PI).rotateZ(Math.PI).translate(0.125, 0.012, 0.02), flatM(INK)));
+  g.add(new THREE.Mesh(glyphGeometry(0.045, 0.006).translate(0.125, 0.022, 0.02), flatM(INK)));   // the makers' mark (the shared glyph)
   return g;
 }
 

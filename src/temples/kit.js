@@ -235,10 +235,10 @@ const ORNAMENTS = {
     at(M.a, new THREE.SphereGeometry(1, 8, 5).scale(0.28, 1.25, 0.02), 0, -2.1, 0.02);
     at(M.b, new THREE.BoxGeometry(0.04, 2.3, 0.015), 0, -2.1, 0.035);
   },
-  /** the makers' an open corner beside a shorter upright, cut into the stone (the Rose House) */
+  /** the makers' mark again, smaller and cut into the stone under the lit one (the Rose House): the shared
+   * glyph (src/story/sign-text.js), an open corner beside a shorter upright */
   mark(at, M) {
-    for (const x of [-0.42, 0, 0.42]) at(M.b, new THREE.CircleGeometry(0.13, 8), x, -1.35, 0.012);
-    at(M.b, flat(new THREE.TorusGeometry(0.55, 0.06, 3, 10, Math.PI * 0.8).rotateZ(Math.PI * 0.1), 0.3), 0, -2.05, 0.02);
+    at(M.b, glyphGeometry(0.8, 0.02), 0, -1.75, 0.012);
   },
   /** a pane of glass between two white ribs (the Builders' Greenhouse) */
   pane(at, M) {

@@ -896,6 +896,8 @@ const FOOTPRINT336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headles
 /** (v1.77, issue #336: the Hush-House's rooms, shot the same way before and after) */
 const HUSH336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6454, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #342: the Warden's Well's futuristic skin, shot with and without it, the same pinned camera) */
+/** (v1.78: the last of the old dots-over-arc mark, the Lantern's tower and the temple kit's frieze ornament) */
+const KITMARK = 'Muted headless Chrome (High, 1280 × 720, noon, clear) against this branch’s own Vite (port 6515), the camera pinned at the same place with the old sources (before) and the new (after), the Rose House loaded with ?noskin=1; 15 October; cwebp -q 72';
 /** (v1.78, issue #342: the Aerie in its futuristic skin, the same pinned views with ?noskin=1 and without) */
 const FUTURE342_AERIE = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy that adds a query) in muted headless Chrome (High, 960 × 540, noon), Vite on port 6501, the house before the skin (before) and in it (after), the camera pinned in each room, 15 October; cwebp -q 72';
 const FUTURE342_AERIE_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 960 × 540, noon, the same pinned camera in 10 views (the Hall of Winds, the Wind Well up and on its floor and from the high balcony, the Wing Chamber, the Vent Hall, the Gulf, the Roost, the Moult, the Eyrie), the median of 240 frames each, ?noskin=1 and the skin in two loads; the machine shared with other work (load 14–25), so frame times are within its spread';
@@ -1034,6 +1036,10 @@ const FUTURE342_FP_NUMBERS = [
 ];
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'The last of the makers’ old sign', tags: ['temples'], shots: [
+      { name: 'old-mark-lantern', title: 'The Lantern', caption: 'The Lantern’s tower near its top: before, three round eyes over an arc; after, the open corner and its shorter upright inked onto the shaft, on all four sides', from: KITMARK },
+      { name: 'old-mark-rose-frieze', title: 'A temple frieze', caption: 'The Rose House without its skin (?noskin=1), along a hall’s frieze: before, three dots over an arc carved under each lit sign; after, the same open corner again, smaller, carved under it', from: KITMARK },
+    ], see: 'Sail to the Lantern and look up at its tower; the Builders’ Greenhouse’s friezes already wore the new sign.' },
     { match: 'The makers now sign their work', see: 'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
     { match: 'Inside, the Undertower looks like the makers’ high technology now', tags: ['bazaar', 'temples'], shots: [
       { name: 'future-undertower-dishes', title: 'The Hall of Dishes', caption: 'Across the cable pit to the far landing: before, blue blocks in courses and cream dishes; after, tall slate panels with paler monoliths, coral circuits rising up the walls to their lenses and running through the floor plates, the dishes and horns polished brass on brass-collared stands, the singing ball bronze', from: UNDER342,

@@ -50,3 +50,52 @@ test('curved ink follows its surface and keeps the gap between the two strokes',
   for(let i=0;i<p.count;i++) assert.ok(Math.abs(p.getZ(i)-.2*(p.getX(i)**2+p.getY(i)**2))<1e-6);
   assert.ok([...g.attributes.normal.array].every(Number.isFinite));g.dispose();
 });
+
+// The old mark (three dots over an arc) is drawn nowhere now but in the shared fallback a review URL can ask for
+// (?markReview=1&mark=current): a run of three dots with a partial ring under it, in any source but the shared code.
+// (The futuristic skins, src/temples/skins/, draw their own signs after their picked drawings; src/levels/dismissed/ is
+// not in the game.)
+test('no source draws the old dots-over-arc mark: every glyph is the shared one', async () => {
+  const { readdirSync, statSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = new URL('../src/', import.meta.url).pathname, files = [];
+  const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) { if (!/^(makers-mark|skins|dismissed)$/.test(f)) walk(p); } else if (p.endsWith('.js')) files.push(p); } };
+  walk(root);
+  // three dots in a row (x offsets -a, 0, a, or [x, y] pairs), each a disc, a cylinder seen end-on or a sphere
+  const dots = /(for \(const [^)]*of |\(\[)\[\s*(\[\s*)?-[\d.]+[^\n]*?\b0\b[^\n]*?(Circle|Cylinder|Sphere)Geometry/;
+  const arc = /TorusGeometry\([^\n]*Math\.PI(\s*\*\s*0?\.\d+)?\s*\)/;
+  const found = [];
+  for (const f of files) {
+    const L = readFileSync(f, 'utf8').split('\n');
+    for (let i = 0; i < L.length; i++) {
+      if (!dots.test(L[i]) || !L.slice(i, i + 3).some((l) => arc.test(l))) continue;
+      if (L.slice(Math.max(0, i - 3), i).some((l) => /if \(candidate\)/.test(l))) continue;   // (the review fallback)
+      found.push(`${f.slice(root.length)}:${i + 1}`);
+    }
+  }
+  assert.deepEqual(found, [], 'the old mark is still drawn here');
+  // the pebble token at Home (three dots alone) is the shared mark too
+  assert.doesNotMatch(readFileSync(new URL('../src/levels/home.js', import.meta.url), 'utf8'), /for \(const x of \[-0\.022, 0, 0\.022\]\)/);
+});
+
+test('the temple kit draws the shared mark along its friezes: the Greenhouse, and the Rose House’s carved one without its skin', async () => {
+  const { TempleKit, templeMaterials, prep } = await import('../src/temples/kit.js');
+  const { TEMPLES } = await import('../src/temples/index.js');
+  const shape = (g) => { g.computeBoundingBox(); const s = g.boundingBox.getSize(new THREE.Vector3()); return [g.attributes.position.count, +(s.x / s.y).toFixed(3)]; };
+  const local = (K, g) => g.clone().applyMatrix4(K.inv);
+  for (const id of ['edena', 'desert']) {
+    const M = templeMaterials(TEMPLES[id].def.palette);
+    const K = new TempleKit(new THREE.Group(), `${id} frieze`, new THREE.Vector3(), 0, M);
+    K.frieze([-9, 0], [9, 0], 5, 'n');
+    const glyphs = K.batches.get(M.glyph);
+    assert.equal(glyphs.length, 5, `${id}: one glyph each 4.5 m`);
+    const want = shape(prep(glyphGeometry(1.0, 0.12)));
+    for (const g of glyphs) assert.deepEqual(shape(local(K, g)), want, `${id}: its frieze glyphs are the shared mark`);
+    if (id !== 'desert') continue;
+    // the Rose House's ornament: the same mark again, smaller, carved under each lit one (no three dots, no arc)
+    const carved = shape(prep(glyphGeometry(0.8, 0.02)));
+    const orn = [...K.batches.values()].flat().filter((g) => !glyphs.includes(g));
+    assert.equal(orn.length, 5, 'one carved mark under each glyph');
+    for (const g of orn) assert.deepEqual(shape(local(K, g)), carved);
+  }
+});

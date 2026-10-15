@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { glyphGeometry } from '../story/sign-text.js';
 import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis, padForm } from '../form.js';
 import { fbm, mulberry32, smoothstep, lerp } from '../noise.js';
@@ -605,8 +606,7 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
       add(M.tower, place(new THREE.ConeGeometry(0.75, 2.6, 4), x, fy - 0.2, fz + 1.9, 0, 1, 1, 1, Math.PI / 2 + 0.25)); // the nose
       for (const sx of [-1, 1]) add(M.dark, place(new THREE.BoxGeometry(1.5, 0.22, 0.3), x + sx * 1.35, fy + 0.85, fz + 1.95), false); // shut eyes
       add(M.dark, place(new THREE.BoxGeometry(1.8, 0.2, 0.3), x, fy - 1.9, fz + 1.7), false);                // the mouth
-      for (const dx of [-0.9, 0, 0.9]) add(M.dark, place(new THREE.SphereGeometry(0.26, 8, 6), x + dx, fy + 2.85 + (dx ? 0 : 0.25), fz + 1.75), false);
-      add(M.dark, place(new THREE.TorusGeometry(1.2, 0.12, 4, 12, Math.PI), x, fy + 2.0, fz + 1.75, 0, 1, 0.5, 1), false);
+      add(M.dark, place(glyphGeometry(2.1, 0.14), x, fy + 2.55, fz + 1.7, 0, 1, 1, 1, -0.3), false);   // the makers' mark on its brow (the shared glyph)
       FACE.x = x; FACE.y = base; FACE.z = fz + 4;
     }
     // low ruins at its foot

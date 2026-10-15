@@ -4,6 +4,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
 import { RoomKit, put } from './lab-kit.js';
+import { markOnSurface } from '../makers-mark/surface.js';
 
 // ---------------------------------------------------------------------------
 // The Lantern (?level=lantern; src/story/ending.js FINALE_ID): the last place, where the singing
@@ -121,13 +122,13 @@ export function* buildLantern(scene) {
   // a door at its foot, facing the bar, that nobody opens
   kit.add(M.dark, put(new THREE.CylinderGeometry(0.8, 0.8, 0.2, 18, 1, false, 0, Math.PI).rotateX(Math.PI / 2), L.x, y0 + 1.1, L.z + 2.48));
   kit.add(M.dark, put(new THREE.BoxGeometry(1.6, 1.1, 0.2), L.x, y0 + 0.55, L.z + 2.48));
-  // the glyph near the top, on all four sides: three round eyes, and an arc that bows up beneath them
-  const gy = y0 + L.shaft - 4.2;
+  // the makers' mark near the top, on all four sides (the shared glyph, src/makers-mark/), inked onto the
+  // tapering shaft: an open corner beside a shorter upright
+  const gy = y0 + L.shaft - 4.3;
+  const shaftR = (y) => 2.5 - (2.5 - 1.5) * (y - y0) / L.shaft + 0.03;
   for (let k = 0; k < 4; k++) {
-    const a = k * Math.PI / 2, rr = 1.5 + (2.5 - 1.5) * (4.2 / L.shaft) - 0.02;
-    const ox = Math.sin(a), oz = Math.cos(a), tx = Math.cos(a), tz = -Math.sin(a);
-    for (const s of [-1, 0, 1]) kit.add(M.ink, put(new THREE.SphereGeometry(0.22, 10, 8).scale(1, 1, 0.4), L.x + ox * rr + tx * s * 0.55, gy + 0.65, L.z + oz * rr + tz * s * 0.55, a), LOOSE);
-    kit.add(M.ink, put(new THREE.TorusGeometry(0.75, 0.07, 6, 18, Math.PI), L.x + ox * (rr + 0.02), gy - 0.55, L.z + oz * (rr + 0.02), a), LOOSE);
+    const a = k * Math.PI / 2;
+    kit.add(M.ink, markOnSurface(1.5, (u, v) => { const y = gy + v, r = shaftR(y), f = a + u / r; return new THREE.Vector3(L.x + Math.sin(f) * r, y, L.z + Math.cos(f) * r); }), LOOSE);
   }
   // the gallery round the top, and the crown
   const top = y0 + L.shaft;
