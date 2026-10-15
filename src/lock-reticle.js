@@ -198,7 +198,7 @@ export class LockReticle {
   update(f, camera, dt = 0) {
     const R = RETICLE;
     if (f !== this.foe) { if (f) this.snap = Math.min(this.snap, 0); this.foe = f; }
-    if (!f || !camera) { if (this.shown !== false) { this.root.style.display = 'none'; this.shown = false; } return; }
+    if (!f || !camera) { this.view = null; if (this.shown !== false) { this.root.style.display = 'none'; this.shown = false; } return; }
     this.t += dt; this.snap = Math.min(1, this.snap + dt / R.snap);
     const look = reticleLook(f);
     const W = window.innerWidth, H = window.innerHeight, K = reticleScale(W, H);
@@ -223,10 +223,14 @@ export class LockReticle {
     if (opacity !== this.opacity) { this.root.style.opacity = opacity; this.opacity = opacity; }
     // the turn: steady, with an extra whirl as a new lock flies in (held still with Reduce motion)
     const turn = M.turn;
+    // (what is drawn, as numbers, for a screen with no page: the engines' HUD, engine/combat.js; px of this W × H)
+    const V = this.view ??= { arrows: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]] };
+    Object.assign(V, { cx: ring.cx, cy: ring.cy, k: K, hollow: A.hollow, opacity: A.opacity * M.fade, W, H });
     this.arrows.forEach((g, i) => {
       const a = arrowAt(ring, turn + i * Math.PI / 2, _at);
       const deg = Math.atan2(a.dy, a.dx) * 180 / Math.PI - 90;   // (drawn pointing down, +y: turned to point along dx, dy)
       g.setAttribute('transform', `translate(${a.x.toFixed(1)},${a.y.toFixed(1)}) rotate(${deg.toFixed(1)}) scale(${K.toFixed(3)})`);
+      V.arrows[i][0] = a.x; V.arrows[i][1] = a.y; V.arrows[i][2] = deg;
     });
   }
 

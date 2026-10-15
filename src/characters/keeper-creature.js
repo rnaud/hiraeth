@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {skinColours} from './skin-colours.js';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import {GuardianLegs,TurnLag} from '../temples/guardian-motion.js';
 import {GUARDIAN_PLANS} from '../motion-kit/plans.js';
@@ -14,7 +15,7 @@ import {makeMaterial,releaseMaterial} from '../materials.js';
 let cached=null;
 /** The fitted Keeper skin (public/guardians/keeper-v1/model.glb), loaded once; a failed load is tried again next time. */
 export function loadKeeperV1(base=import.meta.env?.BASE_URL??'/'){
- return cached??=new GLTFLoader().loadAsync(`${base}guardians/keeper-v1/model.glb`).catch(e=>{cached=null;throw e;});
+ return cached??=new GLTFLoader().loadAsync(`${base}guardians/keeper-v1/model.glb`).then((g)=>skinColours(g,`${base}guardians/keeper-v1/`)).catch(e=>{cached=null;throw e;});
 }
 
 /**

@@ -1,4 +1,5 @@
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {skinColours} from './skin-colours.js';
 import * as T from 'three';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import {GuardianLegs,TurnLag} from '../temples/guardian-motion.js';
@@ -230,5 +231,5 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit,lod
 
 let cached;
 export function loadElderV3(base=import.meta.env?.BASE_URL??'/'){
- return cached??=new GLTFLoader().loadAsync(`${base}guardians/elder-v3/model.glb`).catch(e=>{cached=null;throw e;});
+ return cached??=new GLTFLoader().loadAsync(`${base}guardians/elder-v3/model.glb`).then((g)=>skinColours(g,`${base}guardians/elder-v3/`)).catch(e=>{cached=null;throw e;});
 }

@@ -77,6 +77,13 @@ export const CHANGELOG = [
     // src/ship/art.js hasCanvas (engine/platform.js canvasDrawsNothing), interior.js picture's paper; the hold inside:
     // src/ship/ship.js ROOMS_R2 (isInside's far cut was 20 m, the hold reaches 26); tests/ship.test.js, engine-unity, engine-ship
     'Aboard the ship in the Unity version, the holo table shows the planet in its colours and markings, and the console’s round screen is dark. They used to be white glowing discs. The pictures on the walls show plain paper instead of white cards. On every version, the back of the hold now counts as inside the ship: rain and blowing sand no longer reach it.',
+    // the fight in Unity (issue #264): engine/combat.js (src/foes.js Foes, lockFollow, guardianBox, the drops, the potion,
+    // the hazards, low-health, the knock-out's card), BridgeHud.cs (the hearts, the reticle, the warnings, the edges, the
+    // restart card); tests/engine-combat.test.js
+    'The Unity version now has the fight: the ink blots and the makers’ machines come for you, and the temple guardians wake in their arenas. Lock on with R3 or Tab: the gold arrows turn round the foe, and the camera keeps it ahead, or frames a guardian whole with you. Cuts, hops and the perfect dodge work as on the web. Fallen foes drop chimes and potions. The hearts show their quarters beside your potions and chimes. At one heart the edges of the screen pulse red. Knocked out, A / × gets you up again.',
+    // the guardians' skins in the engines: src/characters/skin-colours.js, public/guardians/*/colors.json
+    // (scripts/tripo/sample-colors.mjs), BridgeBuild.cs copies the Elder's skin too
+    'In the Unity version, the Rose House’s Keeper and the Elder of Vael wear their own colours. The Keeper used to be white, and on a device the Elder fell back to her old body.',
     // the Aerie's futuristic skin (issue #342): src/temples/skins/aerie.js (`skin: aerieSkin` in arzach.js);
     // tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins"
     'Inside, the Aerie is the makers’ old high technology now, after the drawings picked for it: a round shaft of dark slate in tall slabs, thin pale peach circuits ringing it and climbing between the rings, warm grey floors with peach rings inlaid, a turbine of machined blades in every great vent that spins up when the wind rises, ochre sand on the ledges and balconies with a glowing rim along their edges, discs and hexagons floating high round the shafts, and a row of lit slots along every frieze. The makers’ sign on its walls is the drawings’ long low arch under three small dots. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the slabs are plainer and fewer plates float.',

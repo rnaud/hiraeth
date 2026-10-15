@@ -59,8 +59,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.noTitle);
-const planned = (a) => !!(a.views?.length || a.talk || a.play || a.walk || a.tour || a.idle || a.aboard || a.noTitle);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.noTitle);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 
@@ -206,7 +205,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   const menus = S.menus ?? null;
   createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight })
     .then((game) => {
       S.game = game;
       if (menus) {
@@ -324,6 +323,8 @@ function makePlan(args) {
     for (const [secs, n] of [[0.25, 1], [0.45, 2], [0.8, 3]]) {
       steps.push({ kind: 'wait', frames: 2, secs });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-warp-${n}.png` });
+    }
+  }
   // (-aboard: each room of the parked ship, the traveller where ?aboard= puts him on the web, the camera behind him; its
   // ship attached, scenes: the hull hidden from the sun inside, as the web's; tests/engine-ship.test.js)
   for (const room of aboardRooms(args)) {
@@ -334,6 +335,31 @@ function makePlan(args) {
       steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyE', down: false }, { kind: 'wait', frames: 45, secs: 1.5 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-aboard-console-e.png` });
     }
+  }
+  // (-fight foe,down,guardian: the fight photographed, engine/combat.js: a blot set down ahead of him, locked on (Tab), a
+  // cut (F); low on hearts, then knocked out and up again; the level's guardian woken in its arena and locked on, its
+  // framing; tests/engine-combat.test.js)
+  const fights = String(args.fight ?? '').split(',').filter(Boolean);
+  if (fights.includes('foe')) {
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'blot' }, { kind: 'wait', frames: 30, secs: 1 },
+      { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 40, secs: 1.2 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-lock.png` });
+    steps.push({ kind: 'key', code: 'KeyF', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyF', down: false }, { kind: 'wait', frames: 8 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-cut.png` });
+    steps.push({ kind: 'wait', frames: 60, secs: 2 });
+  }
+  if (fights.includes('down')) {
+    // (at a quarter of a heart: the edges' heartbeat; then knocked out: the card)
+    steps.push({ kind: 'foe', what: 'low' }, { kind: 'wait', frames: 20, secs: 0.4 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-low.png` });
+    steps.push({ kind: 'wait', frames: 60, secs: 1.6 }, { kind: 'foe', what: 'out' }, { kind: 'wait', frames: 120, secs: 2.5 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-out.png` });
+    steps.push({ kind: 'key', code: 'Enter', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Enter', down: false }, { kind: 'wait', frames: 30 });
+  }
+  if (fights.includes('guardian')) {
+    steps.push({ kind: 'foe', what: 'guardian' }, { kind: 'wait', frames: 240, secs: 6 },
+      { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 60, secs: 1.5 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-guardian.png` });
   }
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
@@ -497,6 +523,24 @@ export function frame(dt) {
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
   else if (step.kind === 'say') { console.log(step.text); next(); }
   else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }
+  else if (step.kind === 'foe') {
+    const F = game.foes;
+    if (!F) console.log('[unity] no foes here');
+    else if (step.what === 'low') { game.player.hearts = 0.5; game.player.hurt?.(0.25, 'foe'); console.log(`[unity] hearts ${game.player.hearts}`); }
+    else if (step.what === 'out') { game.player.hurt?.(1, 'foe'); console.log(`[unity] knocked out: ${!!game.player.dead}`); }
+    else if (step.what === 'guardian') {
+      // (into the arena of the level's temple guardian, two thirds of the way out from its middle: it wakes)
+      const T = (game.level.temples ?? []).find((t) => t.guardian), G = T?.guardian;
+      if (!G) console.log('[unity] no guardian here');
+      else {
+        const c = G.arena.center, V = c.constructor, at = c.clone().add(new V(0, 0.5, G.arena.r * 0.6));
+        game.player.teleport(at, new V(0, 1, 0), new V(0, 0, 1));
+        game.player.heading = Math.atan2(c.x - at.x, c.z - at.z); game.rig.yaw = game.player.heading + Math.PI;
+        console.log(`[unity] in ${T.id}'s arena (${G.state})`);
+      }
+    } else { const got = F.spawnKind(step.what, { n: 1, dist: 5 }); console.log(`[unity] a ${step.what} set down: ${got.length}`); }
+    next();
+  }
   else if (step.kind === 'aboard') { console.log(game.goAboard(step.room) ? `[unity] aboard: ${step.room}` : `[unity] no room ${step.room} aboard`); next(); }
   else if (step.kind === 'turn') { game.look(step.dx, 0); if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'approach') {

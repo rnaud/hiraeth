@@ -1009,6 +1009,8 @@ const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<wo
 const DECK111B = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800, muted, the bench’s own profile and save; every view and walk of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1 --sets), one build with the levers set off and on in the same page view by view, in two runs of opposite order (the first set after a view is placed reads 1–3 fps high), the mean of the two runs’ medians; 15 October';
 const DECK111B_SOURCE = 'issue #111 scratchpad deck111b: run1, run2 (deck-worlds.json, sum.mjs); docs/systems/performance.md, “The Steam Deck, round 11”';
 const DECK111B_SHOT = 'this Mac, muted headless Chrome (Metal) at 1280 × 800 on the Steam Deck preset, the bench’s view placed and held (scripts/bench/deck-mac.mjs, deck-worlds.mjs --shots 1 --sets), the levers off then on in the same page a few seconds apart; what differs between the two is what moves anyway (smoke, people walking, the traveller breathing), as much as between two shots with the levers off (15 October)';
+/** (v1.78, issue #264: the fight in the Unity build) */
+const FIGHT264 = 'The Unity bridge in the editor on this Mac (M4 Pro), muted batch run (scripts/unity-js-run.sh -fight guardian), 1280 × 720: the traveller set two thirds of the way into the Keeper’s arena, the Keeper woken, then locked on (Tab); the camera measured against the web’s the same way (scratchpad engine-cam.mjs, web-cam.mjs: the same distance and height to the centimetre)';
 /** (v1.78, issue #264: the ship aboard in the Unity build) */
 const SHIP264 = 'The Unity bridge in the editor on this Mac (M4 Pro), muted batch run (scripts/unity-js-run.sh -aboard main), 1280 × 720, the traveller where the web’s ?aboard=main puts him, the camera behind him; before: main at a003e033; after: this change';
 /** (v1.78, issue #113: the Xbox's Unity build at 4K) */
@@ -1051,6 +1053,10 @@ const FUTURE342_FP_NUMBERS = [
 ];
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'The Unity version now has the fight', tags: ['combat', 'devices'], shots: [
+      { name: 'unity-fight-keeper', only: 'after', title: 'The Keeper’s arena (Unity)', caption: 'The Unity build on this Mac, locked on to the Keeper in the Rose House’s cistern: the four gold arrows round its head, the camera back and high so both of you are in the frame, the hearts, potions and magic bar at the top left. Before, there was no fight in the Unity build at all', from: FIGHT264 },
+    ], see: 'In the Unity version, walk into a temple guardian’s arena, or meet the ink blots in the wilds, and press R3 or Tab to lock on.' },
+    { match: 'In the Unity version, the Rose House’s Keeper and the Elder', tags: ['temples', 'devices'], see: 'The Keeper in its own tan, its teal horns and glyph, is in the fight’s picture above; the Elder waits in Vael’s temple.' },
     { match: 'Aboard the ship in the Unity version', tags: ['ship', 'devices'], shots: [
       { name: 'unity-ship-table', title: 'The main room (Unity)', caption: 'The holo table and the console from the room’s aft end, in the Unity build on this Mac: before, the planet and the round screen white; after, the desert’s planet in its stripes and the screen dark, as on the web', from: SHIP264 },
     ], see: 'In the Unity version, walk up the ramp and look at the holo table in the middle of the main room. For the hold, stand at its back wall while it rains.' },

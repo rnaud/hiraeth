@@ -57,7 +57,7 @@ namespace Hiraeth.Bridge
         /// rebuilt its texture under labels already drawn: letters dropped out of a frame).</summary>
         static void Warm(Font f)
         {
-            const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦×éèàçôûâêîïüöäñ○□△↑↓←→⥉●☾✒◯◗◎⌇⧗∩✺♪";
+            const string chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~’‘“”…—–·▍›◆✦×éèàçôûâêîïüöäñ○□△↑↓←→⥉●☾✒◯◗◎⌇⧗∩✺♪∞";
             var sizes = new HashSet<int> { 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 24, 25, 28, 36, 44 };
             foreach (var k in new[] { 0.85f, 1.2f, 1.45f }) foreach (var px in new[] { 12, 13, 20, 21, 22 }) sizes.Add(Mathf.RoundToInt(px * k));   // (the Text size setting's)
             foreach (var size in sizes)
@@ -71,6 +71,7 @@ namespace Hiraeth.Bridge
             root = Hud.MakeCanvas(cam, "HUD (JS bridge)", 100);
             root.SetParent(transform, false);
             var mono = Ui.Mono;
+            BuildEdges();   // (first: under every other piece, as the page's vignettes are under its HUD)
             toast = Ui.Panel(root, "toast", HintBg0, HintBg0, 0, 0, 0, 4);
             toastText = Ui.Label(toast.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);
             cue = Ui.Panel(root, "cue", HintBg0, HintBg0, 0, 0, 0, 4);
@@ -94,6 +95,7 @@ namespace Hiraeth.Bridge
             BuildGadgets(mono);
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
+            BuildFight(mono);
             BuildWarp();          // (over everything but the frame readout, as the page's #warp)
             BuildPassage();   // (over everything: the paper covers the screen as it carries you through)
             fpsBox = Ui.Panel(root, "fps", new Color(1, 250 / 255f, 240 / 255f, 0.8f), Ui.Ink, 1.5f);
@@ -303,7 +305,12 @@ namespace Hiraeth.Bridge
             DrawMarks(free ? state.L("gadgetMarks") : null);
             DrawCine(cine, state.O("sub"));
             DrawBoxCard(state.O("boxCard"));
+            DrawEdges(state.O("edges"));
+            DrawLock(free ? state.O("lock") : null);
+            DrawWarn(free ? state.L("warn") : null);
+            DrawRestart(state.O("restart"));
             DrawWarp(state.O("warp"));
+            DrawPassage(state.O("passage"));
         }
 
         // ---------------------------------------------------------------- the take-off's warp (issue #264)
@@ -400,7 +407,6 @@ namespace Hiraeth.Bridge
                 Ui.Place(warpCard.rt, W / 2 - (sz.x + 44) / 2, H / 2 - (sz.y + 20) / 2, sz.x + 44, sz.y + 20);
                 Ui.Group(warpCard.rt).alpha = warpCardA;
             }
-            DrawPassage(state.O("passage"));
         }
 
         // ---------------------------------------------------------------- a way through (src/passage.js; issue #264)
@@ -454,6 +460,164 @@ namespace Hiraeth.Bridge
             passLightA = Mathf.MoveTowards(passLightA, passLightTo, dt / passLightSecs);
             passLight.color = new Color(PassLight.r, PassLight.g, PassLight.b, 0.85f * passLightA);
             Show(passLight, passLightA > 0.002f);
+        }
+
+        // ---------------------------------------------------------------- the fight (issue #264; engine/combat.js)
+        // the lock-on's reticle (src/lock-reticle.js: four gold arrowheads round the foe, tips in, turning; hollow and
+        // fainter when it is out of the blade's reach), the markers of foes winding up out of sight (Foes.warnings: an ink
+        // ring at the screen's edge filling with the foe's tone), the edges (the low-health heartbeat's red, the flurry's
+        // lavender, a moth's white flash) and the knock-out's card, all from the game's state as the page draws them
+        static Sprite triFill, triLine, vignette;
+        readonly List<(RectTransform rt, Image halo, Image ink, Image face)> lockArrows = new();
+        RectTransform lockRoot;
+        readonly List<(RectTransform rt, Image ring, Image paper, Image tone)> warnChips = new();
+        Image edgeLow, edgeFlurry, edgeBlind;
+        Ui.Box restartBox; Label restartText, restartKey;
+        static readonly Color Gold = Ui.Hex("#f2c54b"), Light = Ui.Hex("#fff6dc");
+
+        /// <summary>An arrowhead pointing down, its tip at the sprite's bottom centre (the pivot): filled, or its outline.</summary>
+        static Sprite Arrow(bool outline)
+        {
+            const int w = 34, h = 36; const float edge = 2.6f;
+            var t = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = outline ? "arrow line" : "arrow" };
+            var px = new Color32[w * h];
+            // (the triangle: the tip at (w/2, 0), the back corners at (w, h) and (0, h), texture y up)
+            Vector2 a = new(w / 2f, 0), b = new(w, h), c = new(0, h);
+            static float Side(Vector2 p, Vector2 u, Vector2 v) { var e = (v - u).normalized; return (p.x - u.x) * e.y - (p.y - u.y) * e.x; }
+            float sgn = Side(new Vector2(w / 2f, h / 2f), a, b) < 0 ? 1 : -1;   // (inside negative, whichever way the corners turn)
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    var p = new Vector2(x + 0.5f, y + 0.5f);
+                    float d = Mathf.Max(Side(p, a, b) * sgn, Mathf.Max(Side(p, b, c) * sgn, Side(p, c, a) * sgn));   // (< 0 inside, by its nearest edge)
+                    float k = outline ? Mathf.Clamp01(0.5f - (Mathf.Abs(d + edge * 0.5f) - edge * 0.5f)) : Mathf.Clamp01(0.5f - d);
+                    px[y * w + x] = new Color32(255, 255, 255, (byte)(k * 255));
+                }
+            t.SetPixels32(px); t.Apply(false, true);
+            return Sprite.Create(t, new Rect(0, 0, w, h), new Vector2(0.5f, 0), 100);
+        }
+        /// <summary>The page's vignettes: clear in the middle, darkening out to the corners (radial-gradient 46 % → 100 %).</summary>
+        static Sprite Vignette()
+        {
+            const int n = 128;
+            var t = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = "vignette" };
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float u = (x + 0.5f) / n * 2 - 1, v = (y + 0.5f) / n * 2 - 1, r = Mathf.Sqrt(u * u + v * v) / Mathf.Sqrt(2);
+                    float al = r < 0.46f ? 0 : r < 0.84f ? Mathf.Lerp(0, 0.6f, (r - 0.46f) / 0.38f) : Mathf.Lerp(0.6f, 0.9f, (r - 0.84f) / 0.16f);
+                    px[y * n + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(al) * 255));
+                }
+            t.SetPixels32(px); t.Apply(false, true);
+            return Sprite.Create(t, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100);
+        }
+
+        void BuildEdges()
+        {
+            vignette ??= Vignette();
+            Image V(string name, Color c) { var im = Ui.Fill(root, c, 0, name); im.sprite = vignette; im.type = Image.Type.Simple; im.enabled = false; return im; }
+            edgeLow = V("low health", new Color(122 / 255f, 26 / 255f, 14 / 255f, 0));
+            edgeFlurry = V("flurry", new Color(120 / 255f, 98 / 255f, 160 / 255f, 0));
+            edgeBlind = Ui.Fill(root, new Color(1, 0.98f, 0.95f, 0), 0, "blind"); edgeBlind.enabled = false;
+        }
+
+        void BuildFight(Font mono)
+        {
+            if (!triFill) triFill = Arrow(false);
+            if (!triLine) triLine = Arrow(true);
+            lockRoot = Ui.Node("lock-on", root);
+            for (int i = 0; i < 4; i++)
+            {
+                var rt = Ui.Node("arrow " + i, lockRoot);
+                rt.pivot = new Vector2(0.5f, 0);
+                Image Layer(string name, Color c, float grow)
+                {
+                    var im = Ui.Rect(rt, c, 0, name); im.sprite = triFill; im.type = Image.Type.Simple;
+                    var r = im.rectTransform; r.anchorMin = r.anchorMax = new Vector2(0.5f, 0); r.pivot = new Vector2(0.5f, 0);
+                    r.anchoredPosition = new Vector2(0, -grow * 0.6f); r.sizeDelta = new Vector2(17 + grow * 2, 18 + grow * 2);
+                    return im;
+                }
+                var halo = Layer("halo", new Color(Light.r, Light.g, Light.b, 0.45f), 6.5f);
+                var ink = Layer("ink", new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.85f), 2.6f);
+                var face = Layer("face", Gold, 0);
+                lockArrows.Add((rt, halo, ink, face));
+            }
+            lockRoot.gameObject.SetActive(false);
+            restartBox = Ui.Panel(root, "restart", Ui.Page, Ui.Ink, 2.5f, 4, 4, 6);
+            restartText = Ui.Label(restartBox.rt, "text", mono, 20, Ui.Ink, TextAnchor.UpperCenter);
+            restartKey = Ui.Label(restartBox.rt, "key", mono, 16, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold);
+            restartBox.Show(false);
+        }
+
+        void DrawEdges(Dictionary<string, object> e)
+        {
+            float low = e?.F("low") ?? 0, fl = e?.F("flurry") ?? 0, bl = e?.F("blind") ?? 0;
+            static void Set(Image im, float a, float scale) { im.enabled = a > 0.002f; var c = im.color; c.a = a * scale; im.color = c; }
+            Set(edgeLow, low, 1); Set(edgeFlurry, fl, 0.6f);
+            if (bl > 0.002f && e?.S("tone") is string tone) { var tc = Ui.Hex(tone); var bc = Color.Lerp(new Color(1, 0.98f, 0.95f), tc, 0.18f); bc.a = edgeBlind.color.a; edgeBlind.color = bc; }
+            Set(edgeBlind, bl, 1);
+        }
+
+        void DrawLock(Dictionary<string, object> l)
+        {
+            var arrows = l?.L("arrows");
+            bool on = arrows != null && arrows.Count >= 4;
+            if (lockRoot.gameObject.activeSelf != on) lockRoot.gameObject.SetActive(on);
+            if (!on) return;
+            float k = l.F("k", 1), cx = l.F("x") * W, cy = l.F("y") * H;
+            bool hollow = l.Get("hollow") is bool ho && ho;
+            Ui.Alpha(lockRoot, Mathf.Clamp01(l.F("a", 1)));
+            lockRoot.anchoredPosition = new Vector2(cx, -cy); lockRoot.sizeDelta = Vector2.zero;
+            for (int i = 0; i < 4; i++)
+            {
+                var a = arrows[i] as List<object>; var A = lockArrows[i];
+                // (the web's: translate to the tip, rotate by deg (clockwise on a y-down page), the arrow drawn pointing down;
+                // here y is up, so the turn is the other way and the sprite, its tip at the bottom, points down when upright)
+                A.rt.anchoredPosition = new Vector2((float)Json.Num(a[0]) * H, -(float)Json.Num(a[1]) * H);
+                A.rt.localRotation = Quaternion.Euler(0, 0, -(float)Json.Num(a[2]));
+                A.rt.localScale = Vector3.one * k;
+                A.face.enabled = !hollow;
+                A.ink.sprite = hollow ? triLine : triFill; A.halo.sprite = hollow ? triLine : triFill;
+            }
+        }
+
+        void DrawWarn(List<object> list)
+        {
+            int n = list?.Count ?? 0;
+            while (warnChips.Count < n)
+            {
+                var rt = Ui.Node("foe warning " + warnChips.Count, root);
+                var shadow = Round(rt, Ui.Ink, "shadow"); Ui.Place(shadow.rectTransform, 2, 2, 34, 34);
+                var ring = Round(rt, Ui.Ink, "ring"); Ui.Place(ring.rectTransform, 0, 0, 34, 34);
+                var paper = Round(rt, new Color(Cream.r, Cream.g, Cream.b, 0.85f), "paper"); Ui.Place(paper.rectTransform, 3, 3, 28, 28);
+                var tone = Round(rt, Ui.Ink, "tone");
+                warnChips.Add((rt, ring, paper, tone));
+            }
+            for (int i = 0; i < warnChips.Count; i++)
+            {
+                var C = warnChips[i]; bool on = i < n;
+                if (C.rt.gameObject.activeSelf != on) C.rt.gameObject.SetActive(on);
+                if (!on) continue;
+                var w = list[i] as Dictionary<string, object>;
+                float x = (w.F("x") * 0.5f + 0.5f) * W, y = (0.5f - w.F("y") * 0.5f) * H, k = Mathf.Clamp01(w.F("k")) * 0.7f;
+                Ui.Place(C.rt, x - 17, y - 17, 36, 36);
+                if (w.S("tone") is string t) C.tone.color = Ui.Hex(t);
+                float d = 28 * k; Ui.Place(C.tone.rectTransform, 17 - d / 2, 17 - d / 2, d, d);
+                C.tone.enabled = d > 0.5f;
+            }
+        }
+
+        void DrawRestart(Dictionary<string, object> r)
+        {
+            restartBox.Show(r != null);
+            if (r == null) return;
+            var s = Ui.Set(restartText, r.S("text") ?? "", 520);
+            var ks = Ui.Set(restartKey, $"{r.S("key") ?? ""}  {r.S("label") ?? ""}".Trim(), 520);
+            float w = Mathf.Max(s.x, ks.x) + 64, h = s.y + ks.y + 54;
+            Ui.Place(restartText.rectTransform, (w - s.x) / 2, 20, s.x, s.y);
+            Ui.Place(restartKey.rectTransform, (w - ks.x) / 2, 20 + s.y + 14, ks.x, ks.y);
+            Ui.Place(restartBox.rt, (W - w) / 2, (H - h) / 2, w, h);
         }
 
         // ---------------------------------------------------------------- the gadgets (issue #344; src/gadgets/hud.js)
@@ -739,15 +903,148 @@ namespace Hiraeth.Bridge
             Ui.Place(prompt.rt, Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), Mathf.Clamp(at.Value.y - h, 8, H - h - 8), w, h);
         }
 
+        // the hearts (src/hud.js healthHud / heartsSvg, the page's #health): a heart a container, filled by its quarters,
+        // the last one warmer when low; then the potions' flask and count, the wallet's chimes; the magic bar under them
+        // (its units, the reserve's level). Without hearts in the state, the old bar.
+        static Sprite heartFill, heartLine;
+        readonly List<(RectTransform rt, Image back, Image fill, Image line)> hearts = new();
+        RectTransform heartRow; Image potionIcon, chimeIcon; Label potionN, chimeN;
+        Ui.Box magicBox; Image magicFill;
+        static readonly Color HeartRed = Ui.Hex("#d9503f"), HeartLow = Ui.Hex("#e8643c"), ChimeTeal = Ui.Hex("#63d3e4"), MagicTeal = Ui.Hex("#3fa7b4");
+
+        /// <summary>A heart (filled, or its ink outline) from the page's own path (src/hud.js HEART, its 20 × 18.4 box, y
+        /// down), its curves cut into a polygon: 40 × 37 px, a pixel's coverage by its distance to the outline.</summary>
+        static Sprite Heart(bool outline)
+        {
+            const int w = 40, h = 37; const float s = 2, edge = 2.1f * s;
+            float[][] curves = {
+                new[] { 10f, 17.2f, 6.2f, 14.1f, 1.4f, 10.6f, 1.4f, 6.1f }, new[] { 1.4f, 6.1f, 1.4f, 3.2f, 3.6f, 1.2f, 6.1f, 1.2f },
+                new[] { 6.1f, 1.2f, 7.8f, 1.2f, 9.2f, 2.2f, 10f, 3.6f }, new[] { 10f, 3.6f, 10.8f, 2.2f, 12.2f, 1.2f, 13.9f, 1.2f },
+                new[] { 13.9f, 1.2f, 16.4f, 1.2f, 18.6f, 3.2f, 18.6f, 6.1f }, new[] { 18.6f, 6.1f, 18.6f, 10.6f, 13.8f, 14.1f, 10f, 17.2f },
+            };
+            var poly = new List<Vector2>();
+            foreach (var c in curves)
+                for (int i = 0; i < 16; i++)
+                {
+                    float t = i / 16f, u = 1 - t;
+                    float x = u * u * u * c[0] + 3 * u * u * t * c[2] + 3 * u * t * t * c[4] + t * t * t * c[6];
+                    float y = u * u * u * c[1] + 3 * u * u * t * c[3] + 3 * u * t * t * c[5] + t * t * t * c[7];
+                    poly.Add(new Vector2(x * s, (18.4f - y) * s));   // (texture y up)
+                }
+            var t2 = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = outline ? "heart line" : "heart" };
+            var px = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    var p = new Vector2(x + 0.5f, y + 0.5f);
+                    bool inside = false; float best = float.MaxValue;
+                    for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+                    {
+                        Vector2 a = poly[i], b = poly[j];
+                        if ((a.y > p.y) != (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) inside = !inside;
+                        var ab = b - a; float k = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(1e-6f, ab.sqrMagnitude));
+                        best = Mathf.Min(best, (a + ab * k - p).magnitude);
+                    }
+                    float d = inside ? -best : best;
+                    float cov = outline ? Mathf.Clamp01(0.5f - (Mathf.Abs(d) - edge * 0.5f)) : Mathf.Clamp01(0.5f - d);
+                    px[y * w + x] = new Color32(255, 255, 255, (byte)(cov * 255));
+                }
+            t2.SetPixels32(px); t2.Apply(false, true);
+            return Sprite.Create(t2, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100);
+        }
+
         void DrawHealth(Dictionary<string, object> h)
         {
-            Show(health, h != null);
+            bool hasHearts = h != null && h.Get("hearts") is double;
+            Show(health, h != null && !hasHearts);
+            if (heartRow == null && hasHearts) BuildHearts();
+            if (heartRow != null && heartRow.gameObject.activeSelf != hasHearts) heartRow.gameObject.SetActive(hasHearts);
             if (h == null) return;
-            Ui.Place(health.rt, 16, 14, 150, 11);
-            float hp = Mathf.Clamp01(h.F("value", 1)), w = 146 * hp;
-            Ui.Place(healthFill.rectTransform, 0, 0, w, 7);
-            Ui.Place(healthEdge.rectTransform, w, 0, 2, 7);
-            healthFill.color = h.Get("low") is bool low && low ? Color.Lerp(Ui.Hp, Ui.Gold, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2.5f)) : Ui.Hp;
+            if (!hasHearts)
+            {
+                Ui.Place(health.rt, 16, 14, 150, 11);
+                float hp = Mathf.Clamp01(h.F("value", 1)), w = 146 * hp;
+                Ui.Place(healthFill.rectTransform, 0, 0, w, 7);
+                Ui.Place(healthEdge.rectTransform, w, 0, 2, 7);
+                healthFill.color = h.Get("low") is bool low && low ? Color.Lerp(Ui.Hp, Ui.Gold, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2.5f)) : Ui.Hp;
+                return;
+            }
+            float hh = 21.6f * ts, hw = hh * 1.1f, q = Mathf.Max(0, Mathf.Round(h.F("hearts") * 4));
+            int max = Mathf.Max(0, h.I("max", 3));
+            bool lowNow = h.Get("low") is bool lw && lw;
+            while (hearts.Count < max)
+            {
+                var rt = Ui.Node("heart " + hearts.Count, heartRow);
+                Image L(string name, Color c, Sprite sp) { var im = Ui.Rect(rt, c, 0, name); im.sprite = sp; im.type = Image.Type.Simple; Ui.Stretch(im.rectTransform); return im; }
+                var shadow = L("shadow", new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.9f), heartFill); shadow.rectTransform.offsetMin = new Vector2(1.5f, -1.5f); shadow.rectTransform.offsetMax = new Vector2(1.5f, -1.5f);
+                var back = L("empty", Cream, heartFill);
+                var fill = L("fill", HeartRed, heartFill);
+                fill.type = Image.Type.Filled; fill.fillMethod = Image.FillMethod.Radial360; fill.fillOrigin = (int)Image.Origin360.Bottom; fill.fillClockwise = true;
+                var line = L("ink", Ui.Ink, heartLine);
+                hearts.Add((rt, back, fill, line));
+            }
+            float x = 0;
+            for (int i = 0; i < hearts.Count; i++)
+            {
+                var H_ = hearts[i]; bool on = i < max;
+                if (H_.rt.gameObject.activeSelf != on) H_.rt.gameObject.SetActive(on);
+                if (!on) continue;
+                int n = (int)Mathf.Clamp(q - i * 4, 0, 4);
+                Ui.Place(H_.rt, x, 0, hw * 0.92f, hh);
+                H_.fill.fillAmount = n / 4f;
+                bool last = lowNow && n > 0 && (i == max - 1 || q - (i + 1) * 4 <= 0);
+                H_.fill.color = last ? Color.Lerp(HeartLow, Ui.Gold, 0.35f + 0.35f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2.5f)) : HeartRed;
+                x += hw;
+            }
+            // the potions (∞ while the shop's are endless) and the chimes (none: hidden), beside the hearts
+            bool infinite = h.Get("infinite") is bool inf && inf;
+            int pots = h.I("potions", -1);
+            bool showPot = pots >= 0;
+            Show(potionIcon, showPot); Show(potionN, showPot);
+            x += hh * 0.35f;
+            if (showPot)
+            {
+                Ui.Place(potionIcon.rectTransform, x, hh * 0.05f, hh * 0.8f, hh * 0.9f);
+                Ui.Alpha(potionIcon.rectTransform, infinite || pots > 0 ? 1 : 0.4f);
+                var s = Ui.Set(potionN, infinite ? "∞" : pots.ToString(), 80);
+                potionN.fontSize = Mathf.RoundToInt(hh * 0.8f);
+                Ui.Place(potionN.rectTransform, x + hh * 0.9f, 0, s.x + 4, hh);
+                x += hh * 0.9f + s.x + hh * 0.35f;
+            }
+            int chimes = h.I("chimes", -1);
+            Show(chimeIcon, chimes > 0); Show(chimeN, chimes > 0);
+            if (chimes > 0)
+            {
+                Ui.Place(chimeIcon.rectTransform, x + hh * 0.2f, hh * 0.15f, hh * 0.65f, hh * 0.65f);
+                var s = Ui.Set(chimeN, chimes.ToString(), 120);
+                chimeN.fontSize = Mathf.RoundToInt(hh * 0.8f);
+                Ui.Place(chimeN.rectTransform, x + hh * 1.05f, 0, s.x + 4, hh);
+            }
+            // the magic bar: as long as its units, filled to the reserve's level
+            bool magic = h.Get("magic") is double;
+            magicBox.Show(magic);
+            if (magic)
+            {
+                float units = Mathf.Max(1, h.F("magicMax", 3)), bw = hh * 2.35f * units, bh = hh * 0.5f;
+                Ui.Place(magicBox.rt, 0, hh + hh * 0.22f, bw, bh);
+                Ui.Place(magicFill.rectTransform, 0, 0, Mathf.Max(0, (bw - 4) * Mathf.Clamp01(h.F("magic") / units)), bh - 4);
+            }
+            Ui.Place(heartRow, 16, 12, 400, hh * 2);
+        }
+
+        void BuildHearts()
+        {
+            if (!heartFill) heartFill = Heart(false);
+            if (!heartLine) heartLine = Heart(true);
+            heartRow = Ui.Node("hearts", root);
+            heartRow.SetSiblingIndex(health.rt.GetSiblingIndex());
+            potionIcon = Round(heartRow, HeartRed, "potion"); potionIcon.sprite = Ui.Round(8); potionIcon.type = Image.Type.Sliced;
+            potionN = Ui.Label(heartRow, "potions", Ui.Mono, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            chimeIcon = Ui.Rect(heartRow, ChimeTeal, 0, "chime"); chimeIcon.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+            chimeN = Ui.Label(heartRow, "chimes", Ui.Mono, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            magicBox = Ui.Panel(heartRow, "magic", Cream, Ui.Ink, 2, 1.5f, 1.5f, 6);
+            magicFill = Ui.Rect(magicBox.fill.rectTransform, MagicTeal, 0, "level");
+            magicBox.Show(false);
         }
 
         /// <summary>The key counter while in a temple (issue #274; src/hud.js keysHud: { small, big }): "KEY ×N", and
@@ -760,7 +1057,9 @@ namespace Hiraeth.Bridge
             var text = "KEY ×" + k.I("small") + (k.Get("big") is bool big && big ? "  + GREAT KEY" : "");
             var s = Ui.Set(keysText, text, 260);
             Ui.Place(keysText.rectTransform, 8, 3, s.x, 18);
-            Ui.Place(keys.rt, 16, 32, s.x + 16, 24);
+            // (under the hearts and the magic bar when they show, as the page's #keys is under #health)
+            float ky = heartRow != null && heartRow.gameObject.activeSelf ? 12 + 21.6f * ts * (magicBox.rt.gameObject.activeSelf ? 1.72f : 1) + 8 : 32;
+            Ui.Place(keys.rt, 16, ky, s.x + 16, 24);
         }
 
         void DrawWheel(Dictionary<string, object> s, bool on)

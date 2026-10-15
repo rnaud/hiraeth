@@ -353,10 +353,37 @@ B / ○ out of the question, then out of the shop. BridgeMenu.cs `DrawShop`, the
 (or a keeper's shop id) opens one as soon as the world is ready, to see the sheet on a device. Tests:
 tests/engine-menus.test.js, tests/engine-ship.test.js. A new save's slot on the title says it starts with the prologue.
 
+**The fight** (issue #264). When the engine is played (with its menus), or a plan asks (`fight`, the bridge's `-fight`),
+engine/game.js makes the fight as main.js wires it, in engine/combat.js: `Foes` (src/foes.js: the ink blots in the
+wilds, the makers' machines in the temples, the relics' guards; the Enemies setting), the lock-on (Tab, R3: `cycleLock`,
+the scout's ping with none in reach), its camera after the rig (`lockFollow`; a guardian framed whole with him,
+lock-frame.js `guardianBox`; the boss framing its fight asks for, `rig.boss`; the aim locked on, src/lock-aim.js), the
+traveller turned to the foe and strafing (`player.lockOn`, the hop's axis), the hops' perfect dodge and its flurry, the
+blows' feel (src/feel.js: a hit-stop and the flurry slow the world, `feelDt`, not the traveller's own step, `selfDt`; the
+camera's jolt after the rig), the drops (chimes into the wallet, potions: src/chimes.js, potion-drops.js), the potion
+(D-pad ←), the hazards' burns (src/hazards.js), the low-health heartbeat and the knock-out's card (A / ×, Enter, Space or E
+gets him up: `player.restart`). The guardians are the temples' own (src/temples/runtime.js, updated by the story): it
+adds their lock and its framing. A bench's plan has none (its numbers stay comparable). What the page draws over the
+picture for it is the screen's state, which BridgeHud.cs draws: `health` now with the hearts by their quarters, the
+potions, the wallet and the magic bar (src/hud.js healthHud, `heartsSvg`'s heart cut into a sprite), `lock` (the
+reticle's four arrows: src/lock-reticle.js keeps what it drew as numbers, its `view`), `warn` (the markers of foes
+winding up out of sight: `Foes.warnView`), `edges` (the low-health red, the flurry's lavender, a moth's white flash:
+`Foes.blindLevel`) and `restart`. Measured against the web in the desert's temple (scratchpad engine-cam.mjs and
+web-cam.mjs: into the Keeper's arena, then locked on): the camera's distance to him, its height and both in view agree
+to the centimetre, frame for frame. Not yet: the Arena's foe list (its quick menu is a page of its own) and the mastery
+trials. Test: tests/engine-combat.test.js.
+
+**The guardians' skins.** The Keeper's and the Elder's fitted skins are GLBs whose texture is a JPEG, which no engine VM
+decodes: the Keeper was white. Their colours sampled at each vertex (`colors.json` beside each model,
+scripts/tripo/sample-colors.mjs, sharp) go on as vertex colours when the loader hands the GLB over
+(src/characters/skin-colours.js; engine/game.js sets the engines' way), as the traveller's do (`engineColours`). The
+Unity players copy both models and their colours (BridgeBuild.cs); the Elder's skin was not copied before, so a device
+fell back to her procedural body.
+
 **The gadgets and the wallet** (issue #344). The web registers the gadgets as items when main.js imports
 src/gadgets/all.js (Vite's `import.meta.glob`); the engine bundle has the same glob (scripts/engine-bundle.mjs, rolldown's
 `viteImportGlobPlugin`), and engine/game.js imports it first, so the bundle's ITEMS are the web's (68 slots on the Items
-panel, not 58). It makes `Gadgets` as main.js does (after the trials' upgrades, `syncUpgrades`; no foes in the engines yet),
+panel, not 58). It makes `Gadgets` as main.js does (after the trials' upgrades, `syncUpgrades`; with the fight's foes, above),
 `control` before the traveller moves and `update` after the fluid tool, with the item effects (src/boxes/effects.js: the
 bell's note the whistle rings); a gadget found is in hand at once (#330) and `gadgetFoundLine` follows a box's card. The
 Items panel gets the wallet (`resources.chimes`), the finder's switch and the gadgets owned and in hand; its A / × on one
@@ -511,12 +538,10 @@ muted, and exits; the menu Hiraeth ▸ JS bridge rebuilds the scene.)
 
 `scripts/unity-js-run.sh <name> [BridgeBatch.Run arguments…]` does the two last in one, its log in
 `output/engine-bridge/unity-<name>.log`, the lines that say what happened printed. Its arguments:
-`-level`, `-views file [-only a,b]`, `-out dir`, `-bench secs`, `-split` (the frame's split: the
+`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms`, `-fight foe,down,guardian`, `-bench secs`, `-split` (the frame's split: the
 mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id` (with `-talk-seq N [-talk-every frames]` N
 pictures of the first line as it is said; with `-bench secs` the frame measured while they talk, the gestures' own ms
 as `split.talkGestures`), `-through way` (a door walked into and back out of), `-play tool,drone`, and
-`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms`, `-bench secs`, `-split` (the frame's split: the
-mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id`, `-play tool,drone`, and
 `-probe text [-solo]` (at each shot, the nodes whose name holds the text as Unity has them: mesh,
 bounds, materials' culling, shadows, GPU instances; `-solo` draws only those).
 

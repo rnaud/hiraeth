@@ -183,6 +183,8 @@ namespace Hiraeth.Bridge
             if (Arg("-warp") != null) args["warp"] = Arg("-warp");
             // (-aboard cockpit,main,cabin,hold: a picture of each room of the parked ship, as the web's ?aboard=: engine/unity/game.js)
             if (Arg("-aboard") != null) args["aboard"] = Arg("-aboard");
+            // (-fight foe,guardian: the fight photographed, a blot locked on and cut, the level's guardian woken and locked on)
+            if (Arg("-fight") != null) args["fight"] = Arg("-fight");
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);

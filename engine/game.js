@@ -61,6 +61,9 @@ addIndoors((p) => !!shipIndoors?.(p));
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
+import { makeCombat } from './combat.js';
+import { setSkinColours } from '../src/characters/skin-colours.js';
+import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
 import { ToolHud, SaveGame } from '../src/ui.js';
 import { screen } from '../src/platform.js';
 import { slots, slotStorage } from '../src/save-slots.js';
@@ -173,6 +176,26 @@ function engineColours(ch, { gltf, colors, headColors }) {
 }
 
 /**
+ * A guardian's generated skin (the Keeper's, the Elder's) in an engine: its texture is a JPEG no engine VM decodes, so
+ * its colours sampled at each vertex (colors.json beside it, scripts/tripo/sample-colors.mjs) go on as vertex colours,
+ * display values as the texture shows them (src/characters/skin-colours.js; it was white in the Unity build, issue #264).
+ */
+setSkinColours(async (gltf, folder) => {
+  let mesh = null;
+  gltf?.scene?.traverse((o) => { if (o.isSkinnedMesh && !mesh) mesh = o; });
+  const P = mesh?.geometry?.attributes?.position;
+  if (!P || mesh.geometry.attributes.color || mesh.material?.map?.image) return;
+  const r = await fetch(`${folder}colors.json`);
+  if (!r.ok) return;
+  const colors = await r.json();
+  if (colors?.length !== P.count) return;
+  const c = new Float32Array(P.count * 3);
+  for (let i = 0; i < P.count; i++) { const k = colors[i]; c[i * 3] = k[0] / 255; c[i * 3 + 1] = k[1] / 255; c[i * 3 + 2] = k[2] / 255; }
+  mesh.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) if (m) m.vertexColors = true;
+});
+
+/**
  * The journal's record without its page (src/quest.js Journal: the same key in the save slot, the same fields): the worlds
  * seen, the stories told, the relics and the errands; the page's parts (its sections, its element) stand-ins. `write`
  * false keeps it from the save (a bench's fixed views).
@@ -207,8 +230,10 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false } = {}) {
   const T = {};
+  // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
+  let combat = null, hpHurt = 0;
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
   // pixels hidden, the people's low detail; none (everything, as the bench's High) without one
@@ -255,9 +280,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
     // (the pad shakes as on the web, main.js's: a hit by the hearts it cost, the potion, a hard landing or a knockdown;
     // src/rumble.js, nothing without a pad that can, issue #346)
-    onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); },
+    onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); sound?.hurt?.(h, why); hpHurt = 3; if (why === 'foe') kick(0.45 + Math.min(1, h / 1.5) * 0.5); },
     onDrink: () => rumblePlay('potion'),
-    onKnockdown: (dead, why) => rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }),
+    onKnockdown: (dead, why) => { hpHurt = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
+    onKnockout: (why) => combat?.knockout(why),
   });
   const lib = await animLib;
   const gestureClips = await gesturesP;
@@ -427,10 +453,16 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the gadgets (src/gadgets/, issue #344), made as main.js makes them, after the trials' upgrades to their tuning: the one in
   // hand on LT / RT (R, and G or T), D-pad ↑ or B to choose another (held: the wheel), D-pad → or X its mode, Y / △ (V) the
   // whistle; a gadget found is in hand at once (#330). Their chip, wheel, reticle and marks are the screen's state
-  // (src/gadgets/hud.js; BridgeHud.cs draws them). No foes in the engines yet: what they would do to one waits for them.
+  // (src/gadgets/hud.js; BridgeHud.cs draws them), and what they do to a foe (the fight's foes, above).
   syncUpgrades((id) => gear.has(id));
   gear.on(() => syncUpgrades((id) => gear.has(id)));
-  const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: null, wind, input: null, relics: null, flammables, post: U, boxes,
+  // the foes and the fight (engine/combat.js: src/foes.js as main.js wires it, the lock-on and its camera, the drops, the
+  // potion, the knock-out's card; the guardians are the temples' own), when the engine is played (with its menus) or a
+  // plan asks for them (`fight`: the bridge's -fight); not in a bench's plan, whose numbers stay comparable with before
+  combat = (menus || fight) && !flags ? optional('the foes', () => makeCombat({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans, waters, screen,
+    toast: (t) => toast(t), teach: (t) => toast(keyText(t, { teach: true })) })) : null;
+  if (combat) stamp('foes');
+  const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
     notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
   // after a box's card, the line a gadget found says (in hand; the first time two are carried, how to pick another), or the
   // item's own lesson, once (main.js on 'box:opened'; src/gadgets/index.js gadgetFoundLine)
@@ -542,7 +574,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     pads: () => navigator.getGamepads?.() ?? [],
     // (a menu open, engine/menus.js: the pad's menu context, its actions and directions the menu's)
     // (a box opening: the menus' buttons, A / × on its card goes on, B / ○ skips; main.js busy())
-    context: () => (menus?.open ? 'menu' : photo.on ? 'photo' : talking() ? 'talk' : boxes?.busy?.() ? 'menu' : player.ride ? 'ride' : 'game'),
+    // (knocked out, its card: A / × gets him up, as the page's focused button)
+    context: () => (menus?.open ? 'menu' : photo.on ? 'photo' : talking() ? 'talk' : boxes?.busy?.() || combat?.restartOpen ? 'menu' : player.ride ? 'ride' : 'game'),
     look: (x, y) => { if (x || y) rig.look(x, y); },
     action: (name, dt) => {
       if (menus?.open) { menus.action(name); return; }
@@ -550,6 +583,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (name === 'capture') { if (photo.on && !photo.capture) photo.capture = 1; return; }
       if (photo.on) return;
       if (boxes?.busy?.()) { if (name === 'confirm') { boxes.dismiss(); return; } if (name === 'back') { boxes.skip(); return; } }
+      if (combat?.restartOpen) { if (name === 'confirm') combat.restart(); return; }
+      // R3: lock on to a foe, then the next, then let go; with none in reach the scout finds the objective (main.js)
+      if (name === 'lock' && combat && !pinned && !(shipOn && ship.playing)) { if (!combat.lock()) scout?.ping?.(); return; }
+      if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }
       // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
       if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
       if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
@@ -575,7 +612,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     faces: () => padFaces(),
     // (the game menu's Map reads the left stick and the triggers itself: its cursor and zoom, engine/menus.js analog)
     menuAnalog: (a, dt) => !!menus?.open && !!menus.analog?.(a, dt),
+    // (a foe near: LB blocks rather than zooms, the right stick only looks)
+    combat: () => !!combat?.near(20),
   });
+  if (combat) combat.padLook = () => controller.held?.lookStick ?? null;
 
   const noInput = {};
   let eWasDown = false, qWasDown = false;
@@ -602,7 +642,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     toasts.left -= dt;
     if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
     if (toasts.left < -6) screen.set('toast', null);
-    screen.set('health', healthHud({ health: player.health ?? 1, down: player.down, quiet: !!pinned }, hpFade, dt));
+    // (the hearts, the potions and the wallet, as main.js updateHealth; shown a while after a hurt, a drink or a chime)
+    if (combat) player.setMaxHearts?.(resources.maxHearts);
+    const pot = resources.potions, R = tool?.owned && !tool.dry ? tool.reserve : null;
+    screen.set('health', healthHud({ health: player.health ?? 1, hearts: player.hearts ?? null, max: player.maxHearts ?? 3, magic: R ? R.level : null, magicMax: R?.max ?? 3,
+      potions: pot.count, infinite: pot.infinite, chimes: resources.chimes, combat: !!combat?.foes.lock || !!combat?.near(12), down: player.down, hurt: hpHurt > 0 || (combat?.shown ?? 0) > 0,
+      quiet: !!pinned || (shipOn && ship.playing) }, hpFade, dt));
+    hpHurt = 0; if (combat) combat.shown = 0;
     // the key counter while in a temple (issue #274: as main.js updateKeys; BridgeHud.cs draws it)
     const keyT = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
     const keyN = keyT?.keyCount();
@@ -776,6 +822,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (code === 'Escape') boxes.skip();
         else if (code === 'KeyE' || code === 'Enter' || code === 'NumpadEnter' || code === 'Space') boxes.dismiss();
       }
+      // (knocked out: Enter, Space or E gets him up; Tab locks on, as the page's keys)
+      if (down && !was && !menus?.open && !photo.on && combat) {
+        if (combat.restartOpen && (code === 'Enter' || code === 'NumpadEnter' || code === 'Space' || code === 'KeyE')) { combat.restart(); return; }
+        if (code === 'Tab' && !pinned && !boxes?.busy?.() && !(shipOn && ship.playing)) combat.lock();
+      }
       // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
       if (down && !was && !menus?.open) {
         if (code === 'KeyP') setPhoto(!photo.on);
@@ -833,6 +884,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     openShop(id) { if (shopPanel) shopWaiting = (id === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(id)) ?? null; return !!shopWaiting; },
     /** In that room of the parked ship (cockpit, main, cabin, hold; or at the console), the camera behind him, as ?aboard= on the web; false: no such room. */
     goAboard(room) { const ok = goAboard(room); if (ok) rig.update(player.pos, 0, player.frame); return ok; },
+    /** The fight (engine/combat.js), and its foes (src/foes.js), when the engine plays them. */
+    combat, foes: combat?.foes ?? null,
     /** The ship attached and its scenes played (the engine played with its menus). */
     shipScenes: shipOn,
     /** The ways through to another space (src/passage.js): `active` while one carries the traveller across. */
@@ -899,7 +952,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // (a lap: the time since the last, to `name`; only when asked, a clock read each)
       const lap = on ? (name) => { const t = performance.now(); SEC.ms[name] = (SEC.ms[name] ?? 0) + t - tL; tL = t; } : null;
       if (on) SEC.frames++;
-      const dt = Math.min(dtRaw, 1 / 20);
+      const realDt = Math.min(dtRaw, 1 / 20);
+      let dt = realDt;
       page.tick(tA);
       // a menu open (engine/menus.js): the world holds still under it, as the web's menus pause the game; the pad
       // goes to the menu (the controller's menu context), the scene is still drawn
@@ -935,11 +989,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         const stats = mirror.sync(scene, camera);
         return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
       }
+      // (the fight's feel, main.js: a hit-stop freezes the world a few hundredths of a second, the flurry slows it round
+      // the traveller, whose own step (pdt: his body, his blade, the camera) is not slowed by it; src/feel.js)
+      let pdt = dt;
+      if (combat) { dt = feelDt(realDt); pdt = selfDt(); }
       simT += dt; frames++;
-      saveIn -= dt;
+      saveIn -= realDt;
       // (the engine playing with its menus: where you stand saved every 10 s, and the save's playtime, as main.js does)
       if (menus && saveIn <= 0) { saveIn = 10; if (!flags && !pinned) { game.save(); slots.touch(slots.active, { addSeconds: 10 }); } }
-      const pad = controller.update(dt, true);
+      const pad = controller.update(pdt, true);
       inputFrame();
       const ctl = mergeControls(latched(), pad);
       atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
@@ -991,10 +1049,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
       // the gadgets' buttons before the traveller moves (the hook's reel sets his velocity), as main.js
       const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing);
-      if (gadgets) { try { gadgets.control(dt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
+      if (gadgets) { try { gadgets.control(pdt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
       // a way through under way: the move happens here, before the traveller and the camera do (main.js)
       if (passage.update(dt) === 'done') passCover.clear();
-      player.update(dt, pinned || busy ? noInput : ctlS, rig.yaw, rig.pitch);
+      player.update(pdt, pinned || busy ? noInput : ctlS, rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');
       for (const v of player.vehicles) if (v !== player.ride) { try { v.update(dt, null, simT); } catch (e) { if (!game._vehiclesFailed) { game._vehiclesFailed = true; console.warn('[game] a vehicle failed', e?.stack ?? e); } } }
@@ -1004,10 +1062,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (camera.fov !== pinned.fov) { camera.fov = pinned.fov; camera.updateProjectionMatrix(); }
         player.object.visible = !pinned.hidePlayer;
       } else {
-        rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding);
+        rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding);
         rig.down = !!player.down;
-        rig.update(player.pos, dt, player.frame);
+        rig.update(player.pos, pdt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
+        // locked on: the camera keeps the foe ahead, a guardian framed with him; then a blow's jolt (main.js renderFrame)
+        if (combat) { try { combat.frame(realDt, busy || (shipOn && ship.playing)); } catch (e) { if (!game._lockFailed) { game._lockFailed = true; console.warn('[game] the lock-on failed', e?.stack ?? e); } } shakeCamera(camera, realDt); }
       }
       lap?.('vehicles, camera');
       try { boxes?.update(dt, simT, { camera }); itemFx?.update(dt, simT); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
@@ -1032,10 +1092,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (!pinned) throughPortals(dt, simT);
       level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {} });
       lap?.('level');
+      // the foes, the drops, the knock-out's card and what the page draws over the picture for them (engine/combat.js)
+      if (combat) { try { combat.update(dt, realDt, { busy: busy || !!pinned, paused: shipOn && ship.playing }); } catch (e) { if (!game._foesFailed) { game._foesFailed = true; console.warn('[game] the foes failed in their update', e?.stack ?? e); } } }
+      lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
       try {
-        tool?.update(dt, pinned || busy ? noInput : ctl, busy || !!pinned);
-        gadgets?.update(dt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
+        tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned);
+        gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);

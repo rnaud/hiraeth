@@ -48,8 +48,9 @@ namespace Hiraeth.EditorTools
             // the people's MakeHuman body (anim/mh/body.bin) and the traveller, B3 (characters/traveller-b3, and his head,
             // head-v3: without them a player on a device, which has no repository beside it, fell back to the old explorer),
             // and the Rose House's Keeper on its fitted skin
-            // (guardians/keeper-v1, issue #267: without it the bundle falls back to the procedural Keeper)
-            foreach (var (from, files) in new[] { ("anim/mh", new[] { "body.bin" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png" }), ("guardians/keeper-v1", new[] { "model.glb" }) })
+            // (guardians/keeper-v1, issue #267, and elder-v3: without them the bundle falls back to the procedural bodies; and
+            // their colors.json, the skins' colours as the engines draw them, issue #264)
+            foreach (var (from, files) in new[] { ("anim/mh", new[] { "body.bin" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }) })
             {
                 var d = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", from);
                 Directory.CreateDirectory(d);

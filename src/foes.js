@@ -2627,6 +2627,8 @@ export class Foes {
     }
     const cam = this.camera, fwd = cam.getWorldDirection(_w), out = this.list.filter((f) => f.alive && f.state === 'wind');
     let n = 0;
+    // (the markers as numbers too, for a screen with no page: the engines' HUD, engine/combat.js; x, y -1..1 as projected)
+    const view = this.warnView = [];
     for (const f of out) {
       const c = f.chest, ahead = _v.subVectors(c, cam.position).dot(fwd) > 0;
       const p = c.clone().project(cam);
@@ -2637,6 +2639,7 @@ export class Foes {
       const spot = warnSpot(p.x, p.y, ahead, hidden);
       if (!spot) continue;
       const { x, y } = spot;
+      view.push({ x, y, k: f.k, tone: f.def.tone ?? '#8e64d6' });
       const chip = this.chips[n] ?? (this.chips[n] = this.warnEl.appendChild(Object.assign(document.createElement('div'), { className: 'foe-chip' })));
       chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${f.def.tone ?? '#8e64d6'} ${Math.round(f.k * 70)}%, rgba(247,236,210,0.85) ${Math.round(f.k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
       n++;
@@ -2884,7 +2887,7 @@ export class Foes {
   /** A moth's flash: the screen goes white and fades (Gentle: shorter). */
   blind(s, tone = '#ff5fa2', strength = 0.88) {
     this.blinded = Math.max(this.blinded ?? 0, s);
-    this.blindStrength = strength;
+    this.blindStrength = strength; this.blindTone = tone; this.blindFor = s;   // (blindLevel: the engines' HUD draws it)
     if (typeof document === 'undefined') return;
     if (!this.blindEl) {
       this.blindEl = Object.assign(document.createElement('div'), { id: 'foe-blind' });
@@ -2894,6 +2897,9 @@ export class Foes {
     this.blindEl.style.background = `radial-gradient(circle at 50% 45%, #ffffff 0%, #fffaf2 45%, ${tone} 140%)`;
     this.blindFor = s;
   }
+
+  /** How white the screen is from a moth's flash now (0..1), as the page's #foe-blind is drawn. */
+  blindLevel() { return this.blinded > 0 ? Math.min(1, (this.blinded / (this.blindFor || 1)) * 1.6) * (this.blindStrength ?? 0.88) : 0; }
 
   /** The machine's ground slam: a ring of shock running out over the floor (you jump it; a guard does not hold it). */
   addWave(f, a) {
