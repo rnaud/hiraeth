@@ -192,6 +192,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (off.has('people')) backend.peopleLod = false;
   if (off.has('shape')) backend.shapeAttrs = null;
   if (off.has('copy')) backend.frameView = false;
+  if (off.has('portrait')) backend.portrait = null;   // (portrait: a conversation's chip without its picture, their initial instead)
   // (gestures: the conversations' captured gestures left unloaded, public/anim/gestures.glb, issue #197)
   // (played, the title's state kept: its menus, settings and the save chosen)
   S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };

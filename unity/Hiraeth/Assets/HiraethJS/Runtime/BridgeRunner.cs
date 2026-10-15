@@ -702,6 +702,24 @@ namespace Hiraeth.Bridge
         /// portraitPixelRatio), drawn four times the chip's size and shown through its mips (supersampled, as the web
         /// shrinks its capture by halves).
         /// </summary>
+        Camera portraitCam;
+        /// <summary>The portraits' camera: the main one's settings (its clear, planes, layers), never enabled, drawn by hand.</summary>
+        Camera PortraitCamera()
+        {
+            if (!portraitCam)
+            {
+                portraitCam = new GameObject("Portrait camera").AddComponent<Camera>();
+                portraitCam.transform.SetParent(transform, false);
+                portraitCam.enabled = false;
+                var extra = portraitCam.gameObject.AddComponent<UniversalAdditionalCameraData>();
+                extra.renderPostProcessing = false; extra.renderShadows = false;
+            }
+            portraitCam.clearFlags = cam.clearFlags; portraitCam.backgroundColor = cam.backgroundColor;
+            portraitCam.allowMSAA = false; portraitCam.allowHDR = false;
+            portraitCam.nearClipPlane = 0.05f; portraitCam.farClipPlane = 200; portraitCam.cullingMask = cam.cullingMask;
+            return portraitCam;
+        }
+
         public void Portrait(int n, string json)
         {
             var d = Json.Parse(json) as Dictionary<string, object>;
@@ -717,7 +735,10 @@ namespace Hiraeth.Bridge
             var off = scene.Isolate(keep);
             bool hudOn = hud && hud.gameObject.activeSelf;
             if (hudOn) hud.gameObject.SetActive(false);
-            var t = cam.transform; var p0 = t.position; var q0 = t.rotation; float fov0 = cam.fieldOfView; var tt0 = cam.targetTexture;
+            // (a camera of its own: the main one drawn a second time into a texture left every frame after it black, the
+            // world gone but the stars and a few lines, October 2026; its shadow maps and schedule are the main camera's)
+            var pc = PortraitCamera();
+            var t = pc.transform;
             float pr0 = Shader.GetGlobalFloat("_PixelRatio"), rain0 = Shader.GetGlobalFloat("_Rain"), near0 = Shader.GetGlobalFloat("_RainNear"), storm0 = Shader.GetGlobalFloat("_Storm");
             var bd0 = Shader.GetGlobalVector("_Backdrop");
             try
@@ -727,13 +748,13 @@ namespace Hiraeth.Bridge
                 Shader.SetGlobalFloat("_PixelRatio", Mathf.Max(pr0 > 0 ? pr0 : 1, S / css * 0.5f));
                 Shader.SetGlobalFloat("_Rain", 0); Shader.SetGlobalFloat("_RainNear", 0); Shader.SetGlobalFloat("_Storm", 0);
                 t.SetPositionAndRotation(eye, Quaternion.LookRotation(at - eye, up));
-                cam.fieldOfView = fov; cam.targetTexture = rt; cam.aspect = 1;
+                pc.fieldOfView = fov; pc.targetTexture = rt; pc.aspect = 1;
                 scene.FinishFrame();
-                cam.Render();
+                pc.Render();
             }
             finally
             {
-                t.SetPositionAndRotation(p0, q0); cam.fieldOfView = fov0; cam.targetTexture = tt0; cam.ResetAspect();
+                pc.targetTexture = null;
                 Shader.SetGlobalFloat("_PixelRatio", pr0); Shader.SetGlobalVector("_Backdrop", bd0);
                 Shader.SetGlobalFloat("_Rain", rain0); Shader.SetGlobalFloat("_RainNear", near0); Shader.SetGlobalFloat("_Storm", storm0);
                 BridgeRenderer.Restore(off);

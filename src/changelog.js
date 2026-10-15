@@ -107,6 +107,9 @@ export const CHANGELOG = [
     // (src/passage.js Passage, carryAcross; src/thresholds.js), the paper as the screen's 'passage' (BridgeHud.cs DrawPassage);
     // tests/engine-bridge.test.js ("the engines' ways through"); docs/systems/engine-bridge.md "Doors, caves and hatches"
     'In the Unity preview you can now go through doors as in the game: a temple’s door, a house’s doorway, a cave mouth or a hatch takes you inside, its light flaring and the sheet of paper sweeping across, and the way you came in takes you back out.',
+    // the bridge's conversation portrait on a camera of its own (BridgeRunner.PortraitCamera): drawing the main camera a
+    // second time into its texture left every later frame black and the chip blank (issue #264, #197)
+    'In the Unity preview, talking to someone no longer turns the world black: you see the conversation as in the game, the people gesturing as they speak, and their portrait in the panel’s circle.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

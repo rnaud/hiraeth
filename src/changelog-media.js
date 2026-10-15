@@ -1420,6 +1420,7 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Clockwork Foreman is all brass now', tags: ['glassdunes', 'combat'], see: 'Reach the Foreman’s Workshop at the top of the Clock-House: the Foreman is a brass drum with a pale teal dial. In the Escapement, the riding disc that swings over the pit is brass.' },
     { match: 'In the Unity preview you can now go through doors as in the game', see: 'In the Unity preview, walk into the Rose House’s door in the Desert: the doorway’s light flares, the paper sweeps across and you are in its first hall; walk back into the way out and you stand on its steps again.' },
+    { match: 'In the Unity preview, talking to someone no longer turns the world black', see: 'In the Unity preview, walk up to Ama by the fire in the Desert and press A / ×: the camp stays in view behind the conversation, she moves as she speaks, and her face is in the panel’s circle.' },
   ],
   '1.77': [
     { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [

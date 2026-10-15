@@ -1087,8 +1087,11 @@ The rose gorge (its walls' cracks) and the City-Shaft from the rim, the web on t
   objects (the mirror's ids) and asks the backend for a portrait (`UnityBackend.portrait`, BridgeHost.Portrait);
   BridgeRunner.Portrait takes every other node out of the picture (`BridgeRenderer.Isolate`), the HUD too, sets the
   backdrop (`_Backdrop`, the composite's sky replaced, as post.js uBackdrop), the rain off and the pixel ratio the
-  chip wants (post.js portraitPixelRatio: the lines as thick as at the chip's 84 px), draws the camera from the
-  web's eye toward its look into a 336 px texture with mips (supersampled), and puts everything back. The dialogue
+  chip wants (post.js portraitPixelRatio: the lines as thick as at the chip's 84 px), draws a camera of its own
+  (`PortraitCamera`: the main one's clear and layers, never enabled) from the web's eye toward its look into a 336 px
+  texture with mips (supersampled), and puts everything back. (It drew the main camera a second time until October
+  2026: every frame after the first portrait came out black, the world gone but its stars and a few lines, and the
+  chip blank; issue #264.) The dialogue
   publishes the portrait with the panel's data (src/story/dialogue.js `portrait`, `backdrop`: an engine's panel
   shows it), and BridgeHud shows it in the chip through a round mask, on its backdrop; their initial on their
   colour where there is none. A batch run with `-out` keeps each as `unity-portrait-<n>.png`.

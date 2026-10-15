@@ -1089,7 +1089,13 @@ line, their body above the hips takes a gesture in the line's tone, from Mixamo'
   talking, nothing out of a conversation (the layer is dropped once idle); the game's update 2.49 ms without against
   2.60 ms with over the same 190 frames (four runs each, within their noise), the world's build unchanged. The
   Xbox's script runs about 5× the VM's time on the Mac (its update ~12.5 ms at the desert spawn against ~2.5), so
-  ~0.1 ms there while talking. `-js-off gestures` leaves them out, for a before-and-after on a device.
+  ~0.1 ms there while talking. `-js-off gestures` leaves them out, for a before-and-after on a device. In the Unity
+  player itself (the editor's batch run on the Mac, Puerts' V8, the Desert, Ama's conversation, `-talk ama -bench 5
+  -split`, issue #197): `layTalk` 0.018 ms a frame (`split.talkGestures`, a gesture laid on every one of the 1 043
+  frames); the people's update 1.05 ms against 0.97 with `-js-off gestures`, the game's 2.68 against 2.49 (one run
+  each). Its frames of the conversation (`-talk ama -talk-seq 12`) beside the web's: the same two-shot, the speaker
+  in her gesture. The mouth on the syllables is the story's own talkFaces, as on the web; its face's ink (`uMood`) and
+  the MakeHuman shape keys (op 19) reach Unity live (that two-shot shows her from behind).
 - **Checked** in the running game (headless Chrome, the Desert, Marrow and the traveller, each clip held at six
   moments: no broken limbs, the feet where they stood, the hands in front of the body; Disappointed turns the
   head away and down, as captured). Tests: `tests/talk-gesture.test.js` (every tone mapped, every clip in the file
