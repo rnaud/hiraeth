@@ -93,6 +93,14 @@ export const CHANGELOG = [
     // (the machines only in the Boiler Room, round its middle among four boilers: LOGIC.rooms kinds, Mark `foes`; migrate.js
     // buried v3, runtime.js relaid)
     'The Engine-House’s keepers wait only in the Boiler Room now, round its middle among four cold boilers, the house’s one fight: no machine stands by its puzzles any more. The Tooth-Warden and its fight are as they were. If you were inside the old house, you start at its last glyph stone.',
+    // the Footprint as shrines (issue #336): src/temples/spheres.js (DOOR, ROOMS, LOGIC.rooms kinds, the layout: the prints
+    // beside the groove, the stilling stone on a deeper ledge, the mural on a stele, the far landing's eye on a pillar out
+    // of the chasm, the Keepers' Gallery a hall, the gallery's eye on a post); tests/temple-rules.test.js REDONE,
+    // tests/temples.test.js
+    'The Footprint is rebuilt like a shrine too: the Hall of Spheres, the Still Pool and the Hall of the Unseen are 32 m wide, the Lens Chamber 34 m round, every ceiling 18 m high and every door twice the size, and every puzzle stands in the middle of its room. The prints to stand on lie in a row beside the sphere’s groove, the stilling stone sits at the edge of a deeper ledge, the walker’s print shows on a stele beside the chest, and the eye that opens the far door stands on a pillar rising out of the chasm, facing the far landing.',
+    // (the machines only in the Lodge, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; the Keepers'
+    // Gallery a hall 30 by 66 m; migrate.js spheres v3, relaid)
+    'The Footprint’s keepers wait only in the Keepers’ Lodge now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. The Keepers’ Gallery is a long hall instead of a narrow passage, its hidden eye on a post before the door back to the Lens Chamber. If you were inside the old house, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

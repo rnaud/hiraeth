@@ -555,6 +555,27 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   4.33 → 4.56 (non-obvious 3 → 4, mean obviousness 3.33 → 3.08: the hammer's ball hidden behind the casing, the Crank
   Passage's ball behind its parapet from the door; curve 4 → 5; skeleton `XBCGXALXLK`, 70 % like the Casting-House
   as before); its z-fights 0 → 0.
+- **The Footprint as shrines** (v1.77, issue #336). The Hall of Spheres 32 by 40 m under 18 (`ROOMS.spheres`), the Still
+  Pool 32 m square over its pool (its near ledge 8 m deep, the pool 19.2 long as it was, `ROOMS.pool`), the Lens Chamber
+  a round hall 34 m across (`ROOMS.lens`), the Hall of the Unseen 32 by 40 over its 20 m chasm (`ROOMS.unseen`: the near
+  ledge 6 m, the far landing 14), the Keepers' Gallery a hall 30 by 66 m east of both (`ROOMS.gallery`: a passage built
+  wall by wall on the west before; east now, since the white hill's tree stands under the west side and `tests/spheres.test.js`
+  reaches its canopy from the sky), the Keepers' Lodge 30 m square (`ROOMS.lodge`, `LODGE`); every ceiling 18 m over its floor,
+  every door 7 by 9 (`DOOR`), short passages between the halls (`K.corridor`). Each puzzle in the middle of its room:
+  the Hall of Spheres' groove down its middle and its three prints to stand on in a row beside it (by the east wall
+  before), the groove as long as it was; the stilling stone at the near ledge's edge, now 8 m out into the room
+  (`POOL`: the stone, the sphere and the edge as far apart as they were, issue #311); the mural on a stele beside the
+  chest (on the chamber's wall before); the far landing's eye (`s2`) on a pillar rising out of the chasm by the near lip,
+  its face toward the far landing, so from the near ledge you see its back (high on the near wall before, and in the
+  Lens Chamber's room: now the far landing's, so that room asks for the lens too); the gallery's eye (`ssc`) on a post
+  9 m before the keepers' door, facing it. The rooms are tagged: the Lodge is the house's one fight, its keepers round
+  its middle among four columns (`Mark` `foes`); no machine by a puzzle any more (there was one by five marks: the hall's, the pool's, the chamber's, the chasm's and the antechamber's). The
+  Echo's Hall is measured by its two doors (`d4`, `d5` carry `room: 'hall'`). The Lens Chamber has 32 stones, not 28
+  (with 28 a porthole lay 2 cm from a stone by the keepers' door: a z-fight). The Echo and its fight, the story's lines,
+  the small key, every groove's length, the stones' rows and the shortcut back as they were. Old saves: one that stood
+  in the old rooms is taken to its last mark (`migrate.js` spheres v3). Rules broken: 36 before (both 3, size 5, ceiling
+  4, unmeasured 2, door 5, centred 12, foes 3, gadget 2), none now. Temple design audit: 4.33 before and after (5 5 5 4
+  5 5 4 3 3; the skeleton `XXCRRLK` as it was, mean obviousness 2.9 → 3.0).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -630,8 +651,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   only the lens shows, the walker's holding, the rest crumbling a moment after you step on one (you fall, back to the
   mark; it rises again). A `Plate` may carry a `print` and be `hidden` (only the lens shows it): on the far landing the
   sphere's `stops` are two plain prints and the walker's. Since v1.27 the Hall of Spheres opens with the idea before the
-  lens: one sphere whose `stops` are carved prints of two, three and four toes, and three prints by the wall to stand
-  on; the door wants the sphere on the walker's and you on the walker's (`solve` tries a ball's stops with you standing
+  lens: one sphere whose `stops` are carved prints of two, three and four toes, and three prints beside it to stand
+  on (by the wall until v1.77); the door wants the sphere on the walker's and you on the walker's (`solve` tries a ball's stops with you standing
   on each plate). The Still Pool's sphere floats (`Ball` `current`: the water
   draws it back unless a plate stills it, `pS`); the keepers' gallery runs from the far landing back to the Lens
   Chamber, its door (`sc`, hidden) opened by an eye on its far side. The Echo's resonant spheres wear the print on the

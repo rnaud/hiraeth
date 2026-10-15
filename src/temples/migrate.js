@@ -203,7 +203,16 @@ export const LAYOUTS = {
       { if: ['entered'], set: { relaid: true } },
     ],
   },
-  spheres: { v: 2, steps: [{ if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } }] },
+  // v1.77 (issue #336): the Footprint remade to the redesign's rules, its rooms bigger and moved, the far landing's eye on
+  // a pillar out of the chasm (the same pieces, the same state). A save that entered the house: taken to its last mark if
+  // it stood inside the old rooms (runtime.js relaid)
+  spheres: {
+    v: 3,
+    steps: [
+      { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } },
+      { if: ['entered'], set: { relaid: true } },
+    ],
+  },
   // v1.65: the Rose House's bellows' wind gone (issue #245); the Givers' watcher by the far landing's east doorway, its
   // door shut till it is broken. Past it in the old house (in the Hall of Channels, or anything done there or after):
   // the watcher broken, its door open

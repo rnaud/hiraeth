@@ -884,6 +884,8 @@ const LAMP336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chr
 const CLOCK336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6451, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72 (the Winding Well’s pair -q 66, to keep under 260 KB)';
 /** (v1.77, issue #336: the Engine-House's rooms, shot the same way before and after) */
 const ENGINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6452, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Footprint's rooms, shot the same way before and after, the lens in hand) */
+const FOOTPRINT336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6453, on the tree before this change and on this branch, the lens in hand, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -1017,6 +1019,17 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Engine-House’s keepers wait only in the Boiler Room', shots: [
       { name: 'engine-boiler', title: 'The Boiler Room', caption: 'From its door: before, 16 by 14 m, its boilers along the walls; after, 30 m square under 18, the house’s one fight round its middle among four cold boilers', from: ENGINE336 },
       { name: 'engine-governor', title: 'The Governor Room', caption: 'Before, 18 by 16 m, the pistons along the north wall; after, 30 m square, the anvil in its hammer’s frame, the ball’s groove and the pistons’ parapet in the middle of the floor, and no machine', from: ENGINE336 },
+    ] },
+    { match: 'The Footprint is rebuilt like a shrine too', shots: [
+      { name: 'footprint-hall', title: 'The Hall of Spheres', caption: 'From the threshold: before, 22 by 31 m under 13, the three prints to stand on along the east wall on the left; after, 32 by 40 m under 18, the sphere’s groove down the middle and the three prints in a row beside it', from: FOOTPRINT336 },
+      { name: 'footprint-pool', title: 'The Still Pool', caption: 'Before, 20 m wide, the stilling stone at the foot of the near wall, a keeper in the passage beyond; after, 32 m square, the stone at the edge of a ledge 8 m deep, the floating sphere before it', from: FOOTPRINT336 },
+      { name: 'footprint-lens', title: 'The Lens Chamber', caption: 'Through the lens, from its door: before, a round room 18 m across, the walker’s print on its wall; after, 34 m across, the print on a stele beside the chest, its prints leading on to the chasm, the keepers’ door on the left', from: FOOTPRINT336 },
+      { name: 'footprint-unseen', title: 'The Hall of the Unseen', caption: 'From the near ledge, through the lens: before, 22 m wide, the walker’s stones over the chasm to the far door; after, 32 m wide, a pillar rising out of the chasm beside the stones, its back to you', from: FOOTPRINT336 },
+      { name: 'footprint-landing', title: 'The far landing', caption: 'Looking back from the far landing: before, the eye high on the near wall, a keeper on the ledge; after, the eye on its pillar out of the chasm, the sphere’s groove in the middle of a landing 14 m deep', from: FOOTPRINT336 },
+    ] },
+    { match: 'The Footprint’s keepers wait only in the Keepers’ Lodge', shots: [
+      { name: 'footprint-lodge', title: 'The Keepers’ Lodge', caption: 'From its door: before, a room 14 by 12 m under 8; after, the house’s one fight, its keepers round the middle of a hall 30 m square among four columns, the key’s cage beyond', from: FOOTPRINT336 },
+      { name: 'footprint-gallery', title: 'The Keepers’ Gallery', caption: 'Before, a passage 3 m wide round the Hall of the Unseen; after, a hall 30 by 66 m, the Lodge’s door on the right', from: FOOTPRINT336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
     { match: 'Inside, the Rose House is the inside of a dry cactus now', tags: ['desert', 'perf'], shots: [

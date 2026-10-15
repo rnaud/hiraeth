@@ -309,6 +309,29 @@ Tooth-Warden, its hall, its gear and its fight, the story's lines, the small key
 flue, the pistons' heights, the walkway, the bridge, every groove's length and the stroke. A save that stood in the old
 rooms is taken to its last mark (`LAYOUTS.buried` v3).
 
+## The Footprint (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Hall of Spheres 22 × 31, the Still Pool 20 × 29, the Lens Chamber a round hall 18 m across, the Hall of the Unseen 22 × 34, the Keepers' Gallery a passage 3 m wide, the Keepers' Lodge 14 × 12 | the Hall of Spheres **32 × 40**, the Still Pool **32 × 32**, the Lens Chamber **34 m**, the Hall of the Unseen **32 × 40**, the Keepers' Gallery a hall **30 × 66**, the Lodge **30 × 30** |
+| ceilings | the Hall of Spheres 13, the pool and the chamber 14, the Lodge 8 | **18 m** everywhere (the Echo's Hall 24 as it was) |
+| doors | 4 to 5 m by 6 to 6.6 | **7 by 9** |
+| fights | a machine by every mark (the hall, the pool, the chamber, the chasm's near ledge, the antechamber) and the Lodge's arena | **the Lodge only**, its keepers round its middle among four columns |
+| against the walls | the Hall of Spheres' groove by its west side and its three prints by the east wall, the stilling stone at the pool's near wall, the mural on the chamber's wall, the far landing's eye high on the near wall, the far landing's groove at the hall's end, the gallery's eye by its door | each in the middle of its room: the groove down the hall's middle and the prints in a row beside it, the stilling stone on a ledge 8 m deep, the mural on a stele beside the chest, the eye on a pillar out of the chasm, the far landing 14 m deep, the gallery's eye on a post 9 m before its door |
+| the gadget | asked in one room after the chest (the gallery's eye): the far landing's eye was the chamber's | asked in **both**: the eye on its pillar is the far landing's |
+| the rules broken | **36** (both 3, size 5, ceiling 4, unmeasured 2, door 5, centred 12, foes 3, gadget 2) | **0** |
+| the temple design audit | 4.33: structure 5, teach/test/twist 5, combination 5, non-obvious 4 (mean 2.9), decoupling 5, item 5, guardian 4, identity 3, curve 3 | 4.33, the same scores (mean obviousness 3.0: the far landing's eye in the far door's room now, no longer one room away) |
+
+What it took beyond the sizes: the Keepers' Gallery was a corridor built wall by wall round the Hall of the Unseen (the
+rules could not measure it, and its eye was a puzzle by its door); it is a hall of its own east of the chamber and the
+chasm (the west side is over the white hill's tree, whose canopy the garden's tests reach from the sky), from the far
+landing's east door back to the keepers' door, the Lodge east off its middle. The far landing's eye
+moved from the near wall (where it was the Lens Chamber's, so the far landing asked nothing of the lens) to a pillar out
+of the chasm by the near lip, its face toward the far landing, its back to you as you cross. The Echo's Hall is measured
+by its two doors (`d4`, `d5` carry `room: 'hall'`). What stayed: the Echo and its fight, the story's lines, the small key
+and the Lodge's arena, the stilling stone's push (`POOL`, issue #311), every groove's length, the stones' rows, the
+shortcut back. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.spheres` v3).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -333,7 +356,7 @@ counts, and a house may not get worse). Ranked worst first:
 | Engine-House (buried) | 41 → **0** (v1.77, above) | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
 | Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
-| Footprint (spheres) | 36 | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |
+| Footprint (spheres) | 36 → **0** (v1.77, above) | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |
 
 What repeats, and how the Rose House answered each:
 
@@ -351,7 +374,7 @@ What repeats, and how the Rose House answered each:
 - **Unmeasured** rooms (eleven, mostly the guardians' halls and antechambers built wall by wall rather than with the
   kit's halls): build them with `hall` or `rotunda` so the rules can read them.
 - **The gadget unused after the chest** (the Casting-House's furnace and its tongs, the Footprint's Hall of the Unseen
-  and its lens, the Clock-House's coil): a puzzle room after the chest that asks only for older verbs, or only one room
+  and its lens (v1.77: its eye the far landing's now), the Clock-House's coil): a puzzle room after the chest that asks only for older verbs, or only one room
   that asks for it. Each wants a step with the gadget in it.
 
 The next houses to redo, by how much the player meets them and how much they break: the Warden's Well was the second
