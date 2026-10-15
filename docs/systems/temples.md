@@ -1173,46 +1173,6 @@ The pieces and the puzzles are untouched: the same rooms, collision and logic (t
 and reach farther, light only). Cost: two to seven draw calls more in a frame (paint and bands share the house's paint
 mesh), frame time within the machine's spread (the audit's "Cost"). `tests/temple-visuals.test.js`.
 
-## Alien skins (v1.77, issue #342, `src/temples/skins.js`)
-
-The author picked an alien redesign for every house (`references/temples/alien/<id>/sheet-1.jpg`, prompts in
-`docs/design/alien-temple-prompts-v3.md`). A house opts into a **skin** with `skin: 'cactus' | 'comb'` on its def (the
-Rose House the inside of a dry barrel cactus, the Warden's Well a vertical wasp's comb); the others wear none. A skin is
-look and feel only: the same rooms, doors, collision, pieces, timings and logic (`tests/temple-skins.test.js` builds
-each house with and without its skin: the collision and climbs vertex for vertex, every piece where it was).
-
-- **Surfaces.** `houseSkin(rt)` (runtime.js, before the layout) swaps the house's wall, climb-face (`wallGlyph`) and
-  floor materials for the skin's: the surface shader with its albedo and first pen lines replaced, as
-  `landmark-materials.js` `stone()` does. The cactus: broad pleats up the walls (a narrow deep-rose valley with a pen
-  line down it, the flank rose, the crest ochre), fine crackle in patches; on a ceiling the pleats run round the room's
-  middle and converge on its oculus; cracked flesh floors. The comb: cream in fine wavy courses, wavy steel-blue bands,
-  hex cells of which some are holes going deep (dark blue rings) inside a lighter rim, only on the room's own walls
-  (`skNearWall`: no hole on a pillar or an eye's post); hex-tiled floors. The makers' marked faces (doors, the climb's
-  face, the pier, the obelisk) are a smooth pale seal with their carvings, apart from the ribs and the cells. The kit
-  records its walls and rooms while the rooms are built (`TempleKit.plan`); the rooms go to the shader (`uSkR`, up to
-  `SKIN_ROOMS`), so a round room's ribs and cells run round its middle without a seam and its fins stand on the crests.
-  The house's own materials come back after `kit.flush()`: the exterior keeps its stone.
-- **Dressing**, drawn only (InstancedMeshes, `noCollide`, `keepBuried`, no shadow): rib fins up the walls, a fin rising
-  from the floor and one hanging from the ceiling wherever something stands on the wall (a frieze glyph, a doorway, a
-  window), their tips short of it; ribs across the ceilings to the oculus; a plate of turquoise pores in each oculus;
-  seed-capsule lamps on tall stalks by the walls (the cactus). Hooded hex cells on the walls, papery wing-pane
-  membranes high under the tall rooms' ceilings, a papery nest mouth round each round room's oculus (the comb); no
-  cell on the walls at an eye's height in its room, so the eyes to strike read against plain comb.
-  Everything is kept off by boxes: every doorway, everything else drawn on the walls (frames, friezes, glyphs, windows,
-  fittings), every piece, and (the cells) every floor and ledge where it meets the wall.
-- **Braziers**: `Brazier` asks `rt.skin.brazier`: the same hooded bowl and fire in flesh, a ribbed seed capsule over
-  it on a short stalk, wine glass that glows amber when the bowl is lit (`skin.lit`).
-- **Presets**: on Low, Handheld and the Deck (`uWearLite`) the shader leaves out its crackle and the finest dressing
-  (the cactus's ceiling ribs, the comb's small cells) is hidden (`SkinDetail`, a piece).
-- **Cost** (this Mac, muted headless Chrome, Metal, 1280 × 720, noon, the same pinned camera in six rooms of each
-  house, the skin off and on in two loads; the means): the Rose House +11 draw calls and +16 k triangles a frame on High
-  (289 → 300, 533 → 549 k), the same or fewer on Low (297 → 281: the ceiling ribs hidden); the Well +5 and +24 k on High
-  (346 → 351, 612 → 636 k), fewer on Low (348 → 331). Frame times within the machine's spread (it was shared: High 5.0 →
-  6.1 and 5.7 → 5.7 ms, Low 5.5 → 5.6 and 6.9 → 6.3 ms). The dressing is 7 instanced meshes in the Rose House and 4 in the
-  Well, about 31 000 and 23 000 triangles in all, one draw each (`userData.dynamic`: never tiled or given levels of
-  detail) and none in the shadow passes (`userData.castShadow = false`); building it takes ~20 ms. A handful more
-  shader programs (the skin's patterns: four in the Rose House, five in the Well) compile when the house is built.
-
 ## Landmarks seen from the approach (14 October 2026)
 
 All fourteen current temples now use the author's Midjourney favourites in

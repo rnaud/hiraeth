@@ -861,19 +861,6 @@ const SHRINE336A = 'Issue #336: scripts/design-qc/capture.mjs in muted headless 
 const UNDER336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6446, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Mooring-House's rooms, shot the same way before and after) */
 const MOORING336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6447, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
-/** (v1.77, issue #342: the alien skins, shot with and without the skin in one page each, the same pinned camera) */
-const ALIEN342 = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6445, this branch with the skin off (window.__noHouseSkin, before) and on (after) in two loads of the same world, the camera pinned in each room, 14 October; cwebp -q 72';
-const ALIEN342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument (scripts/bench/browser.mjs), 5 s a view, the same pinned camera in 6 rooms of each house, the skin off and on in two loads; the machine shared with other work (load 8–24), so frame times are within its spread';
-const ALIEN342_SOURCE = 'issue #342 scratchpad shoot.mjs --ab (the means over the six views of the pairs); draw calls and triangles from renderer.info';
-const alienNumbers = (house, [hb, ha, lb, la], [hcb, hca, lcb, lca], [htb, hta, ltb, lta]) => [
-  { title: `${house}: frame time (median), skin off → on`, unit: 'ms', better: 'lower', device: ALIEN342_DEVICE, rows: [{ where: 'High', before: hb, after: ha }, { where: 'Low', before: lb, after: la }], source: ALIEN342_SOURCE },
-  { title: `${house}: draw calls a frame`, unit: 'calls', better: 'lower', device: ALIEN342_DEVICE, rows: [{ where: 'High', before: hcb, after: hca }, { where: 'Low', before: lcb, after: lca }], source: ALIEN342_SOURCE },
-  { title: `${house}: triangles a frame (thousands)`, unit: 'k', better: 'lower', device: ALIEN342_DEVICE, rows: [{ where: 'High', before: htb, after: hta }, { where: 'Low', before: ltb, after: lta }], source: ALIEN342_SOURCE },
-];
-const ALIEN342_NUMBERS = {
-  desert: alienNumbers('The Rose House', [4.97, 6.12, 5.53, 5.63], [289, 300, 297, 281], [533, 549, 478, 488]),
-  incal: alienNumbers('The Warden’s Well', [5.7, 5.73, 6.87, 6.27], [346, 351, 348, 331], [612, 636, 572, 552]),
-};
 /** (v1.77, issue #336: the Whale-House's rooms, shot the same way before and after) */
 const WHALE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6448, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Casting-House's rooms, shot the same way before and after) */
@@ -1032,23 +1019,6 @@ export const CHANGELOG_MEDIA = {
       { name: 'footprint-gallery', title: 'The Keepers’ Gallery', caption: 'Before, a passage 3 m wide round the Hall of the Unseen; after, a hall 30 by 66 m, the Lodge’s door on the right', from: FOOTPRINT336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
-    { match: 'Inside, the Rose House is the inside of a dry cactus now', tags: ['desert', 'perf'], shots: [
-      { name: 'alien-rose-chest', title: 'The Sword Chamber', caption: 'Before, rose ashlar in courses; after, broad pleated ribs of rose and ochre flesh, fins hanging from the ceiling between the glyphs, the ceiling’s ribs running in to the oculus, a seed-capsule lamp by the wall; the chest’s mound, the doors and the glyphs where they were', from: ALIEN342,
-        reference: { sheet: 'references/temples/alien/rose-house/sheet-1.jpg', caption: 'The Rose House’s alien redesign: the author’s pick (issue #342)' } },
-      { name: 'alien-rose-crown', title: 'Looking up in the Hall of the Flame', caption: 'Before, a square of sky in a coffered ceiling; after, the pleats and the ribs converging on a plate of turquoise pores in the oculus', from: ALIEN342 },
-      { name: 'alien-rose-flame', title: 'The Hall of the Flame', caption: 'From its way in: the tar ball, its groove, the pilot flame and the hooded bowl as they were, under ribbed walls and a cracked flesh floor; the door at the end pale and smooth against the ribs', from: ALIEN342 },
-      { name: 'alien-rose-brazier', title: 'A fire bowl, lit', caption: 'The hooded bowl in the Hall of the Flame, lit: before, bronze and stone; after, the same bowl in flesh and a ribbed seed capsule over it glowing amber', from: ALIEN342 },
-      { name: 'alien-rose-machines', title: 'The Machines’ Hall', caption: 'The house’s one fight: its four columns where they were, pale fins standing up the ribbed walls and hanging from the ceiling, its ribs run in to the turquoise pores', from: ALIEN342 },
-      { name: 'alien-rose-cistern', title: 'The Cistern', caption: 'The Keeper’s round hall: the spokes, their balls, fires and rim bowls where they were, ribs up the drum and hanging from its crown', from: ALIEN342 },
-    ], numbers: ALIEN342_NUMBERS.desert },
-    { match: 'Inside, the Warden’s Well is a wasp’s comb now', tags: ['shaft', 'perf'], shots: [
-      { name: 'alien-well-gallery', title: 'The Lamp Gallery', caption: 'Before, cream panels banded in blue; after, a comb: wavy courses, blue bands, hooded hex cells going deep, the eye’s pillar, its shelf and the great vane as they were and clear of cells', from: ALIEN342,
-        reference: { sheet: 'references/temples/alien/wardens-well/sheet-1.jpg', caption: 'The Warden’s Well’s alien redesign: the author’s pick (issue #342)' } },
-      { name: 'alien-well-turning', title: 'The Turning Floors', caption: 'From the way in: the vane on its pillar, the discs and the far door where they were; the walls and the ceiling a comb of cells, the island hex-tiled', from: ALIEN342 },
-      { name: 'alien-well-climb', title: 'The Climb', caption: 'The block’s face still the one to climb, pale and carved with its handholds, against the comb round it', from: ALIEN342 },
-      { name: 'alien-well-nest', title: 'Looking up in the crown', caption: 'After, a papery nest mouth in grey and cream courses round the oculus, cells round it in the drum’s top', from: ALIEN342 },
-      { name: 'alien-well-hall', title: 'The Warden’s Hall', caption: 'The warden on its plinth, the four vanes and the stone discs where they were, in the comb', from: ALIEN342 },
-    ], numbers: ALIEN342_NUMBERS.incal },
   ],
   '1.76': [
     { match: 'Across all fourteen temples', shots: [
@@ -1474,7 +1444,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'You can only lock on to a foe you can see', tags: ['combat', 'temples'], shots: [
       { name: 'lock-door', title: 'At a shut door', caption: 'The Rose House, a blot beyond the shut door into the Dry Channel, R3 pressed: before, the lock took it through the door (the arrows on the door); after, nothing locks on.', from: LOCK313 },
     ] },
-    { match: 'A pit that puts you back at the last mark now looks it', tags: ['desert', 'perf'], shots: [
+    { match: 'A pit that puts you back at the last mark now looks it', tags: ['temples', 'desert'], shots: [
       { name: 'pit-channel', title: 'The Rose House’s sand pit', caption: 'The Dry Channel from its near ledge: before, sand drifts that look like a floor to land on; after, the sand gone dark under slow pale rings, the walls sinking into ink, the pier rising out of it.', from: PIT312 },
       { name: 'pit-fires', title: 'The Hall of Fires', caption: 'The chasm by the hooded bowl: before, its floor a plum slab far below; after, dark with rings turning on it.', from: PIT312 },
       { name: 'pit-pool', title: 'The Footprint’s pool', caption: 'Before, pale water that looks shallow; after, dark, the rings on it: a fall here puts you back at the mark.', from: PIT312 },
