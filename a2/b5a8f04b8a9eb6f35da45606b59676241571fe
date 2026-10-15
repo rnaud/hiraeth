@@ -1,0 +1,57 @@
+src/main.js
+  s_9ca76055a220ed::t_10ae270ee4d3a1 323
+src/temples/desert.js
+  s_9ca76055a220ed::t_8a2fe8d8aafaaf 124
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_7444145a1a56c4 161
+src/minigames/channels.js
+  s_9ca76055a220ed::t_10e251e2d4e382 1-288
+src/fluid-kit.js
+  s_9ca76055a220ed::t_80f8db6ae5b0bc 28,32,34
+tests/minigames-helpers.test.js
+  s_9ca76055a220ed::t_f2631e9e5f424f 1-2,5,7-11,13-21,23-39,43-50,52,55-120,122-123,127-142,144,147-161,163,166-184,187-200,203-207,210-215
+changelog.md
+  s_9ca76055a220ed::t_63e4317ed93690 5-10
+src/minigames/cistern.js
+  s_9ca76055a220ed::t_c685df5eac28a1 1-8,11-19,21-37,39-40,42-47,49-115,118-137,139-143,145-151,153-165,167-170,172-192,194-201,203-205,207-268,270-275,277-305,309-326,328-361,363-380,382-399,401-406,408-418,421-442,444-452,454-455,457-466,469-476,479-483,485-500,502-507,509-543,545-566
+src/changelog.js
+  s_9ca76055a220ed::t_e14f23bdd45ab2 11-23
+src/fluid-tool.js
+  s_9ca76055a220ed::t_fa9c6bad8b6a37 929,1052
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_a7156a14768277 63-76
+src/minigames/elderflight.js
+  s_9ca76055a220ed::t_35e02f223f870c 1-7,10-20,23-27,29-30,32-38,41-95,97,99-105,107-119,121-131,133-157,159-173,175-217,219-222,224-231,233-246,249-268,271-296,299-302,305-326,329-338,341-366,368-391,393-396,398-416,418-437
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_8e3de48d7f7031 11-13,123-124,400-463
+docs/design/helper-guardians.md
+  s_9ca76055a220ed::t_6ae38a279dbe2c 7,13,18,20,25,27,30,56,58
+  s_9ca76055a220ed::t_65eb66c001c66e 3-6,8-12,14-17,19,21-24,26,28-29,31-55,57,59-92,96-100,102,104,106,108-119
+docs/systems/foes.md
+  s_9ca76055a220ed::t_4490e5714f4109 745
+  s_9ca76055a220ed::t_9f103f135655c0 744,746-749
+docs/README.md
+  s_9ca76055a220ed::t_a10b44fbaaed1b 31
+src/changelog-media.js
+  s_9ca76055a220ed::t_aed6007fc16c9b 1056-1057,1059-1070
+src/minigames/formation.js
+  s_9ca76055a220ed::t_536807d0445da6 1-305
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_3d624d64e5ad0f 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a2b5a8f04b8a9eb6f35da45606b59676241571fe",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
