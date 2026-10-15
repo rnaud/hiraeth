@@ -1,0 +1,71 @@
+changelog.md
+  s_9ca76055a220ed::t_e2f10f8985c8e3 23-25
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_60825f1c84a54f 148-150,173
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_9fb03f8c621f31 111,303-328,374-387,524
+engine/game.js
+  s_9ca76055a220ed::t_28e34384f8f1b4 25-27,232,465-472,564-565,638-639,807-808,864-866,895,979
+engine/glyphs.js
+  s_9ca76055a220ed::t_1b026a66ab6b2a 1-3
+engine/menus.js
+  s_9ca76055a220ed::t_27565e7e0c585a 183,231-298,307,317,328,681
+engine/platform.js
+  s_9ca76055a220ed::t_21b09355e63d28 17,24-25,184-199,207-209,211
+engine/raster.js
+  s_9ca76055a220ed::t_cbc21ef35c5a48 1-6,10-11,13-22,24-26,29-30,35-70,73-102,108-114,117-136,138-142,144-155,157-175,177-184,186,188-357,360-361,364,378,381-439,441-445,447-456,459-472,475,488-491,493-505,508-511,513-514,516-518,522-523,530-534,542-543,545-546,548-552
+engine/unity/backend.js
+  s_9ca76055a220ed::t_81e45d13871762 75,79-83,87-123,421
+engine/unity/game.js
+  s_9ca76055a220ed::t_950f9fce3c5d3b 61,203-204,207,227,293-304,306-313,402-416,478,525-541
+scripts/engine-glyphs.mjs
+  s_9ca76055a220ed::t_df252780e23a99 1-176
+src/changelog-media.js
+  s_9ca76055a220ed::t_b584eba192841d 1007-1008,1054-1061,1063
+src/changelog.js
+  s_9ca76055a220ed::t_24d23fa9bdef89 58-65
+src/foe-spawner.js
+  s_9ca76055a220ed::t_8703f43cfeda42 186,210-222,226
+src/platform.js
+  s_9ca76055a220ed::t_6eea5d105c3bb5 73,77
+src/ship/portrait.js
+  s_9ca76055a220ed::t_6634d8ffdece70 10-14,34
+tests/engine-combat.test.js
+  s_9ca76055a220ed::t_dc53a1c3e7a179 81-107
+tests/engine-menus.test.js
+  s_9ca76055a220ed::t_efcfa9b7d523e6 553-604
+tests/engine-raster.test.js
+  s_9ca76055a220ed::t_9cdc7c591bf24b 77-172
+tests/engine-ship.test.js
+  s_9ca76055a220ed::t_41c307f29673fd 111-121
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_451ff9722c1377 148-149,156-198
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_7b0f1883e33b74 41-42,148,158,435-436,847
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_74d896b65054f6 181-182
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_6a2f5800584cce 137-138
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_12abb771d50f4d 88-92,303,905-920
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_df2cf25e5689f7 319,326,562-586,758,762-777,798-800,807-815
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_5ff282e22b0c49 355-394,450-452
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cff6f9b2b6270a92f2b9bcaa68a3ad273fbb78cd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
