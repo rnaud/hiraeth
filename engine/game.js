@@ -89,6 +89,8 @@ import { Gadgets, gadgetFoundLine } from '../src/gadgets/index.js';
 import { syncUpgrades } from '../src/trials/upgrades.js';
 import { createItemEffects } from '../src/boxes/effects.js';
 import { hintsFor } from '../src/hint-level.js';
+import { createFragments } from '../src/fragments.js';
+import { updateHazards } from '../src/hazards.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
 import { InputMode } from '../src/input-mode.js';
@@ -416,6 +418,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // what the boxes' special items do (src/boxes/effects.js: the bell's note on V / Y, the lantern after dusk, the star on his
   // lapel, the tank's upgrades…), as main.js makes them
   const itemFx = optional('the items\' effects', () => createItemEffects({ player, tool, level, sound, camera, toast, isNight: () => sky.hour < 6.4 || sky.hour > 19.3 }));
+  // the fragments of the singing light (src/fragments.js, as main.js makes them; the Unity-default plan's D3): hidden out of
+  // the way, they sing faintly near and are taken by walking into them; the first brings Anselm, who sells for them aboard
+  const fragments = optional('the fragments', () => createFragments({ levelId, scene, physics, level, player, sound, game: gameState, items: gear, toast, lights: (level.lights ??= []) }));
   // the gadgets (src/gadgets/, issue #344), made as main.js makes them, after the trials' upgrades to their tuning: the one in
   // hand on LT / RT (R, and G or T), D-pad ↑ or B to choose another (held: the wheel), D-pad → or X its mode, Y / △ (V) the
   // whistle; a gadget found is in hand at once (#330). Their chip, wheel, reticle and marks are the screen's state
@@ -709,7 +714,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -817,6 +822,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         quests: story?.quests ?? null, charge, keepsakes: () => gameState.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.seen(id), game: gameState,
         levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
+        fragments: () => fragments?.counts?.() ?? null,
         map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }) });
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
@@ -950,6 +956,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       }
       lap?.('vehicles, camera');
       try { boxes?.update(dt, simT, { camera }); itemFx?.update(dt, simT); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
+      // the fragments' song, the finder's beep and one walked into; the world's hazards (fire, spines, a temple's spike rows:
+      // src/hazards.js, registered by the levels as they build) biting while you touch them (main.js; the plan's D3)
+      try {
+        if (!(shipOn && ship.playing)) fragments?.update(dt, simT, { quiet: busy || !!pinned });
+        if (!busy && !pinned && !(shipOn && ship.playing)) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) toast(t); } });
+      } catch (e) { if (!game._fragmentsFailed) { game._fragmentsFailed = true; console.warn('[game] the fragments or hazards failed', e?.stack ?? e); } }
       if (shipOn && !pinned) {
         // inside or out, its scenes and their camera (after the rig, as main.js: a scene's shot replaces the rig's)
         try { ship.update(dt, simT, ctl); } catch (e) { if (!game._shipFailed) { game._shipFailed = true; console.warn('[game] the ship failed in its update', e?.stack ?? e); } }

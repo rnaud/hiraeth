@@ -205,6 +205,10 @@ namespace Hiraeth.Bridge
         /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
         public static float MenuWidth() => menuWidth;
+        /// <summary>How many times the player has gone away (lost the focus or been paused: BridgeRunner.Away); the script
+        /// opens the Start menu when it moves.</summary>
+        public static int AwayCount() => System.Threading.Volatile.Read(ref awayCount);
+        public static int awayCount;
         public static volatile float menuWidth = 1280;
         /// <summary>The room BridgeMenu's game menu has for the Map, "w,h" in its units (the map is drawn as wide as it, issue #272/#343).</summary>
         public static string MenuMapBox() => menuMapBox;

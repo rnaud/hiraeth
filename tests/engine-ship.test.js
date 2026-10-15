@@ -118,6 +118,14 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   h.key('Escape', true); h.key('Escape', false);
   assert.ok(!h.photoOn && S.state.photo === null, 'Esc leaves it');
 
+  // a fragment of the singing light walked into (src/fragments.js, the Unity-default plan's D3): found and saved; the Worlds
+  // page counts it
+  const fr = h.fragments.list.find((f) => !f.found);
+  assert.ok(fr, 'the desert\'s fragments placed');
+  h.player.respawn(fr.pos.clone().setY(fr.pos.y - 0.9)); run(h, 6);
+  assert.ok(fr.found && h.story.quests.game.flag(`frag.desert.${fr.i}`), 'taken');
+  assert.ok(h.menuSources().worlds().fragmentsAll?.found >= 1, 'counted on the Worlds page');
+
   // the take-off (the Worlds page's Travel here, with power and the desert's core gadgets): its warp is the screen's
   // 'warp', the next world's name on it (BridgeHud.cs DrawWarp keeps it through the restart), then the engine starts
   // again there (onTravel); the page's canvas drew it alone before

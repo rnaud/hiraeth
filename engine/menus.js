@@ -62,7 +62,9 @@ export const SETTINGS_ROWS = [
   { k: 'rumble', label: () => t('set.rumble'), kind: 'switch' },
   { k: 'rumbleLevel', label: () => t('set.rumbleLevel'), kind: 'choice', opts: ['low', 'medium', 'high'], name: (v) => t(`set.rumbleLevel.${v ?? 'medium'}`) },
   { k: 'hints', label: () => t('set.hints').replace(/ \(.*$/, ''), kind: 'choice', opts: ['off', 'subtle', 'full'], name: (v) => t(`set.hints.${v}`) },
-  { k: 'quality', label: () => t('set.quality'), kind: 'choice', opts: ['handheld', 'low', 'medium', 'high'], name: (v) => t(`set.quality.${v}`), note: 'from the next start' },
+  // (Auto: the device's own preset, BridgeArgs.Quality: Steam Deck on the Deck's player, Handheld on Android, High elsewhere;
+  // the Steam Deck's preset as on the web's Deck app; the Unity-default plan's D7)
+  { k: 'quality', label: () => t('set.quality'), kind: 'choice', opts: ['auto', 'handheld', 'deck', 'low', 'medium', 'high'], name: (v) => (v === 'auto' ? 'Auto (this device’s own)' : t(`set.quality.${v}`)), note: 'from the next start' },
   // (the words on the screen, a solid plain background behind speech, the frame readout: BridgeHud, issue #346)
   { k: 'textSize', label: head('set.textSize'), note: () => `${aside('set.textSize')()}`.replace(/, menus$/, ''), kind: 'choice', opts: Object.keys(TEXT_SIZES), name: (v) => t(`set.textSize.${v ?? 'normal'}`) },
   { k: 'speechBg', label: () => t('set.speechBg'), kind: 'switch' },

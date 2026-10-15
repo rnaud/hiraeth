@@ -50,6 +50,10 @@ export const CHANGELOG = [
     // BridgeHud.cs DrawWarp; engine/menus.js controlsRows (REBIND_KEYS), src/remap.js keyRouter, engine/unity/game.js keyChanges
     { text: 'In the Unity preview, flying to another world ends in the take-off’s warp as on the web: space opens out of the middle of the screen, streaks rush past and the next world’s name shows, and it stays while that world loads. The Controls page now lets you move each keyboard verb to another key too, with clashes marked and a reset.',
       see: 'In the Unity preview, travel from the ship’s holo table to another world and watch the end of the take-off. Then open the Start menu’s Controls, choose Jump under Your keys, press K, and jump with K.' },
+    // the Unity-default plan's D3, D7, D8 (issue #264): engine/game.js createFragments / updateHazards, engine/menus.js
+    // quality opts, BridgeRunner.Away + BridgeHost.AwayCount
+    { text: 'In the Unity preview the fragments of the singing light are in every world, singing near and taken by walking into them, so Anselm has something to sell for; fire and cactus spines hurt again. Leaving the game (the Steam button, a suspend, the home button) silences it and you come back to it paused in the Start menu. Graphics now offers Steam Deck and Auto.',
+      see: 'In the Unity preview on the Steam Deck, press the Steam button during play: the sound stops, and closing Steam’s menu finds the Start menu open. Walk to a fragment’s glow to take it, and open Settings > Graphics for Steam Deck and Auto.' },
     'The Unity preview on the Xbox now sends a 4K TV a 4K picture, still at 60 frames a second: the world is drawn as sharp as the console can keep up with, about 3520 × 1980 at the desert’s spawn and 2750 × 1550 at the City-Shaft’s rim, where it was always drawn at 2560 × 1440 and stretched by the console. The ink lines keep their weight.',
     // the Unity build's GPU on the Retroid, round 3 (issue #262): Surface.shader (each part's derivatives next to it,
     // HIRAETH_PLAIN, the lean prepass without a discard, the crowd's and grass's varyings), BridgeRenderer.Lean,

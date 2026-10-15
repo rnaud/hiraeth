@@ -227,6 +227,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     Menu(json) { const v = JSON.parse(json); menus.push(v?.kind ?? null); if (v?.kind === 'game') panels[v.panel] = v; if (v?.map?.ground) grounds.push(v.map.ground); },
     // the Map's drawn ground (BridgeMenu.SetMap), before the state that names it
     MapImage(key, buf, w, h) { maps.push({ key, bytes: buf.byteLength, w, h, sentBefore: !grounds.includes(key), inked: new Uint8Array(buf).some((x, i) => i % 4 === 0 && x < 80) }); },
+    // (gone away at frame 76, BridgeRunner.Away: the Steam button, a suspend; back, the game waits under the Start menu)
+    AwayCount: () => (calls.Frame >= 76 ? 1 : 0),
     MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
@@ -247,7 +249,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
-  assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null], JSON.stringify(menus));
+  assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null, 'start'], JSON.stringify(menus));
   // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks
   assert.ok(panels.quests?.rows.length >= 1, JSON.stringify(panels.quests));
   assert.ok(panels.map?.map.marks.some((m) => m.kind === 'you'), JSON.stringify(panels.map?.map));

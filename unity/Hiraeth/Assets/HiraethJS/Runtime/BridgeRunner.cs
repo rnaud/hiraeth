@@ -77,6 +77,9 @@ namespace Hiraeth.Bridge
             if (args.Contains("\"split\":true")) gpuSplit = new BridgeGpuSplit();
             // the sound (BridgeAudio): played, except in batch runs and with -mute, where nothing may make any
             bool mute = Application.isBatchMode || Array.IndexOf(BridgeArgs.CommandLine(), "-mute") >= 0;
+            muted = mute;
+            // (played with the pad, nothing touches the screen: kept on while the game runs, as the web's apps hold it)
+            if (!Application.isBatchMode) Screen.sleepTimeout = SleepTimeout.NeverSleep;
             if (mute)
             {
                 AudioListener.volume = 0; AudioListener.pause = true;
@@ -827,6 +830,23 @@ namespace Hiraeth.Bridge
             RebootArgs = BridgeArgs.JsonText(merged);
             exiting = true;   // (this runner's OnDestroy leaves the engine alone: disposed already)
             UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        }
+
+        // away (the Unity-default plan's D8, issue #264): the Steam button, its overlay or a suspend on the Deck, the home
+        // button or the screen off on Android, another app on the Xbox take the focus or pause the player. The sound goes
+        // silent at once (as the web's src/audio-guard.js on hiraeth:pause), and each going away is counted
+        // (BridgeHost.AwayCount): the script opens the Start menu at its next frame, which holds the world, so coming back
+        // finds the game paused. Batch runs (benches, pictures) never go away.
+        bool muted, away;
+        void OnApplicationFocus(bool focus) => Away(!focus);
+        void OnApplicationPause(bool paused) => Away(paused);
+        void Away(bool on)
+        {
+            if (Application.isBatchMode || on == away) return;
+            away = on;
+            if (on) Interlocked.Increment(ref BridgeHost.awayCount);
+            if (!muted) AudioListener.pause = on;
+            Debug.Log("Hiraeth bridge: " + (on ? "away (silent, the Start menu next)" : "back"));
         }
 
         bool exiting;

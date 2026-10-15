@@ -357,7 +357,27 @@ whole while the world loads (the web's `#loading.space`) and fades it out as the
 arrival). `-warp Vael` with `-views … -out …` pictures it over a view without flying. Test: tests/engine-ship.test.js
 (the take-off from the holo table: the warp with the destination's name, then `onTravel`).
 
-Left for later (issue #264): the language setting (on purpose). The Godot spike's keys are not routed through the
+**Fragments and hazards** (the Unity-default plan's D3, docs/plans/unity-default-portables.md). engine/game.js makes
+the fragments of the singing light as main.js does (`createFragments`: their glow among the local lights, their song,
+the finder's beep, one taken by walking into it, counted on the Worlds page), so the first brings Anselm and his shop has
+something to sell for; and calls `updateHazards` each frame (fire, the cacti's spines, a temple's spike rows, registered
+by the levels as they build), not while busy, pinned or in a ship's scene. The trials (src/trials/, a MinigameRunner)
+are still the web's only. Test: tests/engine-ship.test.js (a fragment walked into).
+
+**Graphics: Steam Deck and Auto** (D7). The Graphics setting offers `auto`, `handheld`, `deck`, `low`, `medium` and
+`high`. Auto is the device's own preset at each start (BridgeArgs.Quality: Steam Deck on the Linux player, Handheld on
+Android, High elsewhere; `SavedQuality` reads it as none), and stays Auto in the settings rather than being replaced by
+the preset it resolved to.
+
+**Away** (D8). BridgeRunner's `OnApplicationFocus` / `OnApplicationPause` (the Steam button, its overlay or a suspend
+on the Deck, the home button or the screen off on Android) pause Unity's sound at once (`AudioListener.pause`, as the
+web's src/audio-guard.js on `hiraeth:pause`) and count the going away (`BridgeHost.AwayCount`); the script, at its
+next frame, saves and opens the Start menu, which holds the world, so coming back finds the game paused. The screen is
+kept on while the player runs (`Screen.sleepTimeout`). Batch runs never go away. Test: tests/engine-unity.test.js. To
+check on the Deck: whether gamescope's Steam button and overlay take Unity's focus.
+
+Left for later (issue #264): the language setting (on purpose). The recorded music (D15: Unity decoding the MP3s
+that engine/webaudio.js refuses) and the trials want rounds of their own. The Godot spike's keys are not routed through the
 player's keys (it has no menus).
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD

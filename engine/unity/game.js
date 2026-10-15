@@ -84,8 +84,8 @@ export function start(argsJson) {
   // (Quit to title onto another save, Travel here: BridgeRunner.Reboot) comes back with its choice made (`boot`)
   const settings = new Settings();
   // (the Graphics setting as the engine started with it: the saved one, the command line's, or the platform's default,
-  // BridgeArgs.Quality; a change applies from the next start)
-  if (args.quality) settings.quality = args.quality;
+  // BridgeArgs.Quality; a change applies from the next start. Auto stays Auto: the device's own preset each start)
+  if (args.quality && settings.quality !== 'auto') settings.quality = args.quality;
   setFaces(settings.padFaces);
   setRumbleSettings(settings);   // (Settings > Rumble and its strength, src/rumble.js)
   const menus = new EngineMenus({
@@ -367,6 +367,13 @@ function keyChanges(held) {
 function readInput(game) {
   const held = new Set((host.Keys() || '').split(',').filter(Boolean));
   const menus = S.menus;
+  // (the player went away, BridgeRunner.Away: the Steam button, a suspend, the home button. Back, the game waits under the
+  // Start menu, saved, as Menu would leave it; the sound was silenced by Unity meanwhile)
+  const away = host.AwayCount?.() ?? 0;
+  if (away !== (S.away ??= away)) {
+    S.away = away;
+    if (menus && !menus.open) { if (game.photoOn) game.setPhoto?.(false); game.save(); menus.show('start'); }
+  }
   for (const [k, down] of keyChanges(held)) {
     if (!down) { game.key(k, false); continue; }
     // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
