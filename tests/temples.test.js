@@ -3285,34 +3285,54 @@ test('a rotunda’s oculus trim is solid where it lies on the ceiling, and the o
   }
 });
 
-test('a shut gate of jaws collides as its two halves are drawn, snapping with them, and its slot keeps the way when they gape', () => {
+test('a shut gate of jaws collides as its two halves are drawn (square shutters, their slabs interlocking: v1.78), snapping with them, and its slot keeps the way when they gape', () => {
   const { physics, rt } = world('perdide');
   const jaw = rt.pieces.find((p) => p.halves && p.id === 'd2');
   const wasOpen = jaw.open;
   if (wasOpen) jaw.setOpen(false, true);
   try {
     assert.equal(jaw.movers.length, 2, 'two moving halves');
+    const J = jaw.slabs, w = jaw.w, h = jaw.h;
+    // drawn as the pick's square shutters: a stack of slabs, every other one reaching past the middle (they interlock)
+    assert.ok(J.rows >= 8 && Math.abs(J.rows * J.s - h) < 1e-6, `${J.rows} slabs of ${J.s.toFixed(2)} m up the gate`);
+    for (const { g, side } of jaw.halves) {
+      const geo = g.children[0].geometry;   // (in the leaf's frame: from its hinge)
+      geo.computeBoundingBox();
+      const b = geo.boundingBox;
+      assert.ok(b.min.y < 0.01 && b.max.y > h - 0.01, 'its slabs from the floor to the lintel');
+      assert.ok(Math.abs(Math.max(Math.abs(b.min.x), Math.abs(b.max.x)) - (w / 2 + J.reach - J.gap - J.seam)) < 0.01, `side ${side}: its long slabs reach past the middle`);
+    }
     const ray = new THREE.Raycaster(), inv = jaw.group.matrixWorld.clone().invert();
     const toWorld = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(jaw.group.matrixWorld);
+    const cast = (x, y) => {
+      const o = toWorld(x, y, -4), d = toWorld(x, y, 0).sub(o).normalize();
+      ray.set(o, d); ray.far = 8;
+      return { drawn: ray.intersectObject(jaw.group, true)[0], hit: physics.rayHit(o, d, 8) };
+    };
+    // the slabs' heights: their middles and just either side of every joint (where a slab's chamfers meet the next's)
+    const ys = [];
+    for (let i = 0; i < J.rows; i++) ys.push((i + 0.5) * J.s, i * J.s + 0.03, (i + 1) * J.s - 0.03);
     for (const ang of [0.12, 0.3, 0.5]) {
       for (const { g, side } of jaw.halves) g.rotation.y = side * ang;
       jaw.group.updateMatrixWorld(true);
       physics.syncMovers(1 / 60);
       let n = 0, worst = 0, gape = 0;
-      // from the side you come at them (-z, the gallery), straight at the gate's plane (inside its jambs)
-      for (let x = -1.8; x <= 1.8; x += 0.3) for (let y = 0.8; y <= jaw.h - 0.8; y += 0.8) {
-        const o = toWorld(x, y, -4), d = toWorld(x, y, 0).sub(o).normalize();
-        ray.set(o, d); ray.far = 8;
-        const drawn = ray.intersectObject(jaw.group, true)[0];
-        const hit = physics.rayHit(o, d, 8);
+      // from the side you come at them (-z, the gallery), straight at the gate's plane, jamb to jamb
+      for (let x = -w / 2 + 0.3; x <= w / 2 - 0.3 + 1e-6; x += 0.2) for (const y of ys) {
+        const { drawn, hit } = cast(x, y);
         const atSlot = hit && !hit.mover && Math.abs(new THREE.Vector3().copy(hit.point).applyMatrix4(inv).z) < 0.1;
-        if (!drawn) { assert.ok(atSlot, `ang ${ang}: through the gape at x ${x.toFixed(1)}, y ${y.toFixed(1)} the slot stops you`); continue; }
+        if (!drawn) { assert.ok(atSlot, `ang ${ang}: through the gape at x ${x.toFixed(1)}, y ${y.toFixed(2)} the slot stops you`); continue; }
         if (atSlot && hit.distance <= drawn.distance + 0.05) { gape++; continue; }   // (the slot, in the gape, before the inside of a half)
         n++;
         worst = Math.max(worst, hit ? Math.abs(hit.distance - drawn.distance) : 8);
       }
-      assert.ok(n > 25 && worst < 0.05, `ang ${ang}: ${n} rays, the collision off the drawn halves by up to ${worst.toFixed(2)} m`);
+      assert.ok(n > 200 && worst < 0.05, `ang ${ang}: ${n} rays, the collision off the drawn halves by up to ${worst.toFixed(2)} m`);
       if (ang >= 0.3) assert.ok(gape > 0, `ang ${ang}: the slot meets rays through the gape`);
+      // square: the corners by the jambs drawn and solid, at the foot and under the lintel (round leaves left them open)
+      for (const x of [-w / 2 + 0.4, w / 2 - 0.4]) for (const y of [0.1, h - 0.1]) {
+        const { drawn, hit } = cast(x, y);
+        assert.ok(drawn && hit && Math.abs(hit.distance - drawn.distance) < 0.05, `ang ${ang}: the corner at x ${x.toFixed(1)}, y ${y.toFixed(1)} drawn and solid`);
+      }
     }
   } finally { if (wasOpen) jaw.setOpen(true, true); }
 });

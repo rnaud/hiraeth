@@ -24,8 +24,9 @@ import { ROOMS, UP } from '../perdide.js';
 //      rings of sound round them, the others dark, as drawn); a stepped plinth under each crystal grown through a floor.
 //      Kept off every doorway, piece and thing drawn on the walls.
 //   4. the house's own: the bog's water a still black pool, the roots heavy cables, the crystals teal and violet by
-//      turns; the jaws (the Snapping Passage's gate, its two mouths, the balcony's) slate shutters: their own leaves (so
-//      what is drawn is what collides) in stacked chevron slabs, a violet lit lip where they meet, pale crystal teeth.
+//      turns; the jaws (the Snapping Passage's gate, its two mouths, the balcony's) slate shutters: the piece's own
+//      square slabs (pieces.js Jaw, as the pick draws them: what is drawn is what collides), a violet lit seam on each
+//      slab's point where the leaves interlock, the stiles dark slate.
 // On Low, Handheld and the Deck (uWearLite) the shader leaves out the coffers' bevels and the slabs' tones, and the
 // dressing draws every other wedge and no rings.
 // ---------------------------------------------------------------------------
@@ -236,16 +237,13 @@ const BODIES = {
     float skInk = 0.0, skGlow = 0.0;
     vec3 albedo = uColor;
     {
-      // a jaw's leaf as the pick's shutters: heavy slate slabs stacked up it (uSkP.x m each), a chamfer lit along each
-      // slab's top and its foot in shade, the slabs' tones by turns, a pen line in every joint; each slab pointed toward
-      // the leaves' meeting (uSkP.y: its x in the leaf's frame; uSkP.z: how far in the point runs)
+      // a jaw's leaf (its slabs the piece's own, uSkP.x m each, pieces.js Jaw): a chamfer lit along each slab's top and
+      // its foot in shade, the slabs' tones by turns, a pen line in every joint
       float S = uSkP.x, q = skP.y / S, i = floor(q), f = fract(q);
       float near = 1.0 - smoothstep(S / 40.0, S / 12.0, skPx);
       albedo = uColor * (mod(i, 2.0) < 0.5 ? 1.0 : 0.9);
       if (uWearLite < 0.5) albedo *= 1.0 + near * (0.2 * (1.0 - smoothstep(0.06, 0.1, (1.0 - f) * S)) - 0.22 * (1.0 - smoothstep(0.06, 0.12, f * S)));
       skInk = skInkL(min(f, 1.0 - f) * S, skPx) * 0.85;
-      float ax = abs(skP.x - uSkP.y), tipD = abs((f - 0.5) * S) - (uSkP.z - ax) * 0.55;
-      skInk = max(skInk, skInkL(abs(tipD), skPx) * 0.5 * step(ax, uSkP.z) * near);
     }
   `,
   plates: /* glsl */ `
@@ -563,23 +561,19 @@ class SkinMotion {
 }
 
 /**
- * The jaws as the pick's slate shutters, in their own leaves' shapes (what is drawn is what collides: their colliders
- * are those leaves, physics.addMover): each leaf's shell in stacked slate slabs (its own material: it frosts), its
- * inner edge where the two meet a violet lit lip, its gums dark slate, its teeth pale crystal.
+ * The jaws as the pick's slate shutters: the piece's own square slabs (pieces.js Jaw; what is drawn is what collides:
+ * their colliders are those leaves, physics.addMover) in slate (each leaf its own material: it frosts), the seam on
+ * each slab's point lit violet where the leaves interlock, the stile at the hinge dark slate.
  */
 function shutters(rt, look, U, mats) {
   const out = [];
   for (const p of rt.pieces) {
     if (p.constructor.name !== 'Jaw' || !p.halves) continue;
-    const n = p.h > 5 ? 7 : 4;
     for (const { g, side } of p.halves) {
-      const [shell, throat, lip, teeth] = g.children;
-      // (each leaf its own: it frosts with its jaw, and its slabs point to the meeting from its side)
-      const m = skinMaterial('shutter', { ...look, hatch: 0.25 }, { color: HUSH.jaw.slate, size: [p.h / n, -side * p.w / 2, p.w * 0.22] }, U, `${rt.def.id}.jaw.${p.id}.${side}`, true);
-      if (shell) shell.material = m;
-      if (throat) throat.material = mats.gums;
-      if (lip) lip.material = mats.lip;
-      if (teeth) teeth.material = mats.teeth;
+      const [slabs, stile, seams] = g.children;
+      // (each leaf its own: it frosts with its jaw; its joints the slabs')
+      const m = skinMaterial('shutter', { ...look, hatch: 0.25 }, { color: HUSH.jaw.slate, size: [p.slabs.s, 0, 0] }, U, `${rt.def.id}.jaw.${p.id}.${side}`, true);
+      slabs.material = m; stile.material = mats.stile; seams.material = mats.lip;
       out.push({ piece: p, mat: m });
     }
   }
@@ -619,10 +613,9 @@ export function hushHouseSkin(rt) {
     cable: makeMaterial({ ...look, color: HUSH.cable, flat: true, metal: 'iron', refl: 0.25, highlight: 0.2, hatch: 0.3, key: `temple.skin.${id}.cable` }),
     slate: makeMaterial({ ...look, color: '#ffffff', vertexColors: true, flat: true, hatch: 0.2, key: `temple.skin.${id}.slate` }),
     light: makeMaterial({ color: '#ffffff', vertexColors: true, glow: HUSH.emit.crystal, flat: true, side: THREE.DoubleSide, key: `temple.skin.${id}.light` }),
-    // (the jaws': their lips lit violet where the leaves meet, their gums dark slate, their teeth pale crystal)
+    // (the jaws': the seams on their slabs' points lit violet where the leaves interlock, their stiles dark slate)
     lip: glowM('lip', HUSH.violet, HUSH.emit.ring),
-    gums: makeMaterial({ ...look, color: '#2e2f46', flat: true, key: `temple.skin.${id}.gums` }),
-    teeth: makeMaterial({ ...look, color: '#cfe6f2', flat: true, hatch: 0.2, key: `temple.skin.${id}.teeth` }),
+    stile: makeMaterial({ ...look, color: '#2e2f46', flat: true, key: `temple.skin.${id}.stile` }),
   };
   for (const k of ['slate', 'light']) mats[k].vertexColors = true;
   const was = { M: { wall: M.wall, wallGlyph: M.wallGlyph, floor: M.floor, bands: M.bands, trim: M.trim, stone: M.stone, dark: M.dark, glyph: M.glyph, ornament: M.ornament } };

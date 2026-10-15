@@ -24,7 +24,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   bell-tuned door), `Plate`, `Ball` (a stone ball in a groove the fluid's push rolls:
   the pushable block), `Brazier` (ember only), `Bramble` (thorns: burn them; they
   prick you back), `Switch` (an eye a splash wakes; `crystal: h` a singing crystal
-  instead, `wrong` what it says when it won't wake), `Jaw` (a gate of snapping jaws:
+  instead, `wrong` what it says when it won't wake), `Jaw` (a gate of snapping jaws, two leaves of square interlocking slabs:
   a stilling glob stills it open for good), `Swing` (a crystal pendulum over a
   bridge that knocks you off; a stilling glob stops it a while), `Updraft` (a
   column of rising wind that lifts the fluid wings, holds you near its middle
@@ -1368,17 +1368,26 @@ crystal resonators in slate collars over the black pool, the gates of jaws heavy
   - `metal` (doors, the root-wall's face): 2.2 m machined panels, chamfered, a violet seam down some.
   - `plates` (floors): the pick's warm grey stone in 3 m plates, rings round a round room's middle, a grid in a hall,
     a few seams lit violet in runs, a violet inlay 1.6 m in from the walls; a floor's underside coffered.
-  - `shutter` (the jaws' leaves, in their own frame): stacked slate slabs pointed toward the leaves' meeting.
+  - `shutter` (the jaws' slabs, in their own frame): the slabs' tones by turns, a chamfer lit along each one's top, a
+    pen line in every joint (its pitch the piece's own, `jaw.slabs.s`).
   - Hatching sparse (`hatch` 0.18 on the walls), every light just over the post pass's 0.62 halo start (`HUSH.emit`:
     lines 0.78, glyphs 0.72, rings 0.7, the resonators 0.68 breathing ±0.03), so lines stay crisp.
 - **The house's own drawing**, redirected while the layout runs (the skin wraps `K.add` until `done()`: drawn only, the
   solids untouched): the bog's water a still black pool, the roots (tubes in the floor's material) heavy cables, the
   crystals grown through the floors teal and violet by turns. The house's light is the pick's cool lavender
   (`rt.skin.light`), not the dusk's rose.
-- **The jaws** (the Snapping Passage's gate, its two mouths, the balcony's): their own leaves, so what is drawn is what
-  collides (their colliders are built from those leaves, `physics.addMover`), in the `shutter` pattern, a violet lit lip
-  where they meet, dark gums, pale crystal teeth; stilled, the slabs frost pale blue (`SkinMotion`, from the jaw's
-  `frost`).
+- **The jaws** (the Snapping Passage's gate, its two mouths, the balcony's), square shutters as the pick draws them
+  (v1.78): the piece itself (`pieces.js Jaw`, `jawSlabs(w, h)`) draws each leaf as a stack of square slabs about 0.9 m
+  tall and 0.8 m deep, chamfered, each pointed toward the middle, every other one reaching 8 % of the gate's width (at
+  most 0.35 m) past it so the two leaves interlock (4 cm apart at the points when shut), a thinner seam on every point,
+  a stile at the hinge. What is drawn is what collides: the leaves are their own colliders (`physics.addMover`, all
+  their meshes), and the still slot down the middle runs floor to lintel, since the points leave chinks at every joint.
+  The skin dresses them: the slabs in the `shutter` pattern, the seams violet and lit, the stiles dark slate; stilled,
+  the slabs frost pale blue (`SkinMotion`, from the jaw's `frost`). Without the skin (`?noskin=1`) they are the same
+  shutters in the house's old rose, so collision is the same either way. Opening width, timing, what stills them and
+  the logic are unchanged. `tests/temples.test.js` ("a shut gate of jaws collides as its two halves are drawn") casts
+  rays jamb to jamb at every slab and joint, at three angles of the snap, against the drawing and the collision, and
+  checks the square corners at the foot and under the lintel. No teeth: the pick shows none.
 - **Dressing**, drawn only (two merged meshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
   stepped acoustic wedges (`WEDGE`: three slabs 0.5, 1 and 1.5 m out) every 4.2 m under the vault of every hall and
   round room 14 m tall or more; eight resonators (a rod into the vault, a machined collar, a long hexagonal crystal):
@@ -1387,9 +1396,9 @@ crystal resonators in slate collars over the black pool, the gates of jaws heavy
   crystal grown through a floor. Kept off doorways, pieces and everything standing out of the walls by boxes.
 - **Lighter presets** (`uWearLite`): no coffer bevels or slab tones, the walls' coffers along the face's axis (no search
   for the round room), every other wedge and no rings (the meshes' draw ranges).
-- **Unlike the pick**: the coffers are painted, not cut in relief (the wedges are the relief); the jaws keep their
-  leaves' rounded outline (their collision) rather than the pick's square shutters; the Mother Snapper, her crown and
-  the pendulums are the guardian's and the pieces' own, unchanged; the makers' glyph is the shared `glyphGeometry`.
+- **Unlike the pick**: the coffers are painted, not cut in relief (the wedges are the relief); the jaws' slabs
+  interlock by turns rather than meeting in one zigzag; the Mother Snapper, her crown and the pendulums are the
+  guardian's and the pieces' own, unchanged; the makers' glyph is the shared `glyphGeometry`.
 - Cost: (this Mac, muted headless Chrome, 1280 × 720, 9 views, skin off → on, the machine loaded): draw calls High 305 → 304,
   Low 320 → 319; triangles 481 k → 462 k on High, 388 k → 351 k on Low (the lights leave the shadow passes); frame and
   GPU time within the run's noise (GPU High 5.1 → 5.4 ms, Low 1.6 → 1.6 ms). Dressing ~15–40 ms to build.

@@ -1300,12 +1300,29 @@ export class LightEar {
 // ---------------------------------------------------------------------------------------- living gates
 const _frost = new THREE.Color('#d6f0fa');
 
+/** A jaw's slabs (m), for a gate w wide and h tall: their number and pitch, depth, bevel, how far past the middle every
+ * other one reaches, their point, the gap left between the two leaves' points, the lit seam's width. */
+export function jawSlabs(w, h) {
+  const rows = Math.max(4, Math.round(h / 0.9)), s = h / rows;
+  return { rows, s, t: 0.8, bevel: Math.min(0.08, s * 0.1), reach: Math.min(0.35, 0.08 * w), point: Math.min(0.45, 0.3 * s, 0.12 * w), gap: 0.04, seam: 0.07 };
+}
+/** A pointed slab's outline in x (along the leaf, from its hinge) and y: from x0 to its point at x1, half-height hy. */
+function pointed(x0, x1, hy, p) {
+  const sh = new THREE.Shape();
+  sh.moveTo(x0, -hy); sh.lineTo(x1 - p, -hy); sh.lineTo(x1, 0); sh.lineTo(x1 - p, hy); sh.lineTo(x0, hy); sh.closePath();
+  return sh;
+}
+
 /**
- * A gate of jaws (Lorn's Hush): two great leaves with teeth, hinged at a doorway's jambs, that snap shut
- * and half open, shut and half open, never wide enough to pass, and bite whoever tries. A stilling glob
- * (the 'stun' mode) stills them: element `still` (a 'switch' that needs the stilling mode) is lit, and
- * the door `id` (which opens on it) eases them wide, for good. Solid while shut.
+ * A gate of jaws (Lorn's Hush): two great leaves of shutters, hinged at a doorway's jambs, that snap shut and half
+ * open, shut and half open, never wide enough to pass, and bite whoever tries. A stilling glob (the 'stun' mode)
+ * stills them: element `still` (a 'switch' that needs the stilling mode) is lit, and the door `id` (which opens on it)
+ * eases them wide, for good. Solid while shut.
  * o: { id (the door), still, at: the doorway's foot, yaw, w, h, seed }
+ * Each leaf as the Hush-House's pick draws them (references/temples/future/hush-house/sheet-1.jpg, v1.78): a stack of
+ * square slabs, each pointed toward the meeting, every other one reaching past the middle so the two leaves' slabs
+ * interlock, a lit seam on every point, a stile at the hinge. Its children: [slabs, stile, seams] (a skin dresses
+ * them: skins/hush-house.js shutters()). What is drawn is what collides (solidify: the leaves are the colliders).
  */
 export class Jaw {
   constructor(rt, o) {
@@ -1317,29 +1334,37 @@ export class Jaw {
     this.group.rotation.y = K.heading(o.yaw ?? 0);
     rt.root.add(this.group);
     this.skin = own({ color: '#c94f6a', flat: true });
-    const lip = own({ color: '#ee93a2', flat: true }), throat = own({ color: '#93304a', flat: true }), tooth = own({ color: '#f3ead8', flat: true });
+    const lip = own({ color: '#ee93a2', flat: true }), throat = own({ color: '#93304a', flat: true });
+    const J = this.slabs = jawSlabs(w, h), core = J.t - 2 * J.bevel;
     this.halves = [-1, 1].map((side) => {
       const g = new THREE.Group();
       g.position.set(side * w / 2, 0, 0);
-      const cx = -side * w / 4;
-      g.add(mesh([new THREE.SphereGeometry(1, 16, 10).scale(w / 4 + 0.15, h / 2, 0.75).translate(cx, h / 2, 0)], this.skin));
-      // the inner edge (where the two meet): pale lips, dark gums, a row of teeth
-      const edge = -side * (w / 2 - 0.1);
-      g.add(mesh([new THREE.SphereGeometry(1, 12, 8).scale(0.7, h / 2 - 0.45, 0.82).translate(edge + side * 0.45, h / 2, 0)], throat));
-      g.add(mesh([new THREE.SphereGeometry(1, 12, 8).scale(0.3, h / 2 - 0.2, 0.9).translate(edge + side * 0.1, h / 2, 0)], lip));
-      const teeth = [];
-      for (let i = 0; i < 9; i++) { const y = 0.7 + (i / 8) * (h - 1.4); teeth.push(T(new THREE.ConeGeometry(0.16, 0.7, 6), [edge, y, i % 2 ? 0.25 : -0.25], [0, 0, side * Math.PI / 2])); }
-      g.add(mesh(teeth, tooth));
+      const slabs = [], seams = [];
+      for (let i = 0; i < J.rows; i++) {
+        // (the left leaf's even slabs reach past the middle, the right's odd ones: they interlock, never meeting)
+        const long = (i + (side > 0 ? 1 : 0)) % 2 === 0, y = (i + 0.5) * J.s;
+        const L = w / 2 + (long ? J.reach : -J.reach) - J.gap;
+        const slab = new THREE.ExtrudeGeometry(pointed(0.15, L - J.seam, J.s / 2, J.point), { depth: core, bevelEnabled: true, bevelThickness: J.bevel, bevelSize: J.bevel, bevelOffset: -J.bevel, bevelSegments: 1, curveSegments: 1 });
+        slabs.push(slab.translate(0, y, -core / 2));
+        // its seam: the same point a little further on, thinner (inside the slab's faces), lit where the leaves meet
+        const hy = J.s / 2 - J.bevel - 0.03, p = J.point * hy / (J.s / 2);
+        const seam = new THREE.ExtrudeGeometry(pointed(L - J.seam - J.point - 0.12, L, hy, p), { depth: core - 0.04, bevelEnabled: false, curveSegments: 1 });
+        seams.push(seam.translate(0, y, -(core - 0.04) / 2));
+      }
+      const stile = box(0.4, h, J.t + 0.12, 0.15, h / 2, 0);
+      // (the right leaf turned about its hinge: it reaches the other way)
+      const [a, b, c] = [slabs, [stile], seams].map((list) => list.map((geo) => (side > 0 ? geo.rotateY(Math.PI) : geo)));
+      g.add(mesh(a, this.skin), mesh(b, throat), mesh(c, lip));
       this.group.add(g);
       return { g, side };
     });
     noCollide(this.group);
     // Collision while shut: each half as drawn, a moving collider that snaps with it (physics.addMover; synced
-    // each frame), and a thin still slot down the middle, inside the lips when they meet, that keeps the way
-    // when they gape (never wide enough to pass). A box the size of the doorway stood in for both: the
-    // halves' round sides lay up to 0.75 m inside it. Open (stilled), they are walk-through as before: laid
+    // each frame), and a thin still slot down the middle, inside the slabs when they meet, that keeps the way
+    // when they gape (never wide enough to pass), floor to lintel: the points leave chinks at every joint. (A box
+    // the size of the doorway once stood in for both.) Open (stilled), they are walk-through as before: laid
     // back against the jambs they would narrow the way on and stand over the next room's mark.
-    this.block = new THREE.Mesh(box(w * 0.42, h - 1, 0.12, 0, h / 2, 0), new THREE.MeshBasicMaterial());
+    this.block = new THREE.Mesh(box(w * 0.42, h, 0.12, 0, h / 2, 0), new THREE.MeshBasicMaterial());
     this.block.position.copy(this.group.position); this.block.rotation.copy(this.group.rotation);
     this.center = this.group.position.clone().addScaledVector(UP, h * 0.5);
     this.open = rt.logic.isOpen(o.id);

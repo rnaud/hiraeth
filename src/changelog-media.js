@@ -947,6 +947,7 @@ const dev342 = (house, rows) => ['retroid', 'deck'].flatMap((d) => [
   { title: `${house} on the ${d === 'deck' ? 'Steam Deck' : 'Retroid'}: frame time (mean), skin off → on`, unit: 'ms', better: 'lower', device: d === 'deck' ? DEV342_DECK : DEV342_RETROID, rows: rows[d].ms, source: DEV342_SOURCE, note: DEV342_NOTE[d] },
   { title: `${house} on the ${d === 'deck' ? 'Steam Deck' : 'Retroid'}: draw calls a frame`, unit: 'calls', better: 'lower', device: d === 'deck' ? DEV342_DECK : DEV342_RETROID, rows: rows[d].calls, source: DEV342_SOURCE },
 ]);
+const HUSH_SHUTTERS = 'Issue #342: a scratchpad script (hush-shutters/shoot.mjs) in muted headless Chrome (High, 1280 × 720, noon), its own Vite on port 6539, the camera pinned at each gate of jaws in the Hush-House in its futuristic skin, the jaws as they snap; before on the commit before the change, after with it; 15 October; cwebp -q 72';
 const FUTURE342H = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6502, this branch with the skin off (?noskin=1, before) and on (after) in two loads of Lorn, the camera pinned in each room of the Hush-House; 15 October; cwebp -q 72';
 const FUTURE342H_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 4 s a view in 9 views, the same pinned camera, the skin off then on in two loads; the machine shared with other agents (load 22 to 45)';
 const FUTURE342H_SOURCE = 'issue #342 scratchpad future-hush/shoot.mjs --ab; draw calls and triangles from renderer.info, GPU time from EXT_disjoint_timer_query';
@@ -1157,6 +1158,12 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Signal Market, wide', before: 23.1, after: 18.4 },
       ], source: 'Unity’s frame timing in the same runs' },
     ], see: 'On the Retroid, open Hiraeth (Unity) in the Signal Market or the City-Shaft: the readout at the top shows the frames a second.' },
+    { match: 'In the Hush-House the gates of jaws', tags: ['lorn', 'temples'], shots: [
+      { name: 'hush-shutters-gate', title: 'The gate of jaws', caption: 'The Snapping Passage’s gate as it snaps: before, two rounded leaves with a violet lip down the middle; after, two stacks of square slate slabs pointed toward the middle, every other one reaching past it so they interlock, a violet light on each point', from: HUSH_SHUTTERS,
+        reference: { sheet: 'references/temples/future/hush-house/sheet-1.jpg', caption: 'The author’s pick: the gate of jaws as square slab shutters, pointed toward the seam (issue #342)' } },
+      { name: 'hush-shutters-mouth', title: 'A little mouth', caption: 'The east shrine’s mouth in the Snapping Passage, the gate beyond: the rounded leaves now four square slabs a side, interlocking', from: HUSH_SHUTTERS },
+      { name: 'hush-shutters-balcony', title: 'The balcony’s mouth', caption: 'The mouth across the ball’s groove on the Choir’s balcony, the ball in front: square slabs, the points lit violet', from: HUSH_SHUTTERS },
+    ], see: 'You bump into the shutters where they are drawn: walk up to the gate of jaws in the Snapping Passage and push against it as it snaps.' },
     { match: 'Inside, the Hush-House is the makers’ sound-damping hall now', tags: ['lorn', 'temples', 'perf'], shots: [
       { name: 'future-hush-stilling', title: 'The Stilling Chamber', caption: 'Before, violet plaster walls, crystals on the bare floor; after, dark slate coffers with crisp chamfers up the drum and over the vault, violet circuits in their seams, stepped wedges under the vault, resonators hanging in slate collars round the oculus (two lit teal and violet, faint rings round them), the crystals on stepped plinths; the chest on its mound where it was', from: FUTURE342H,
         reference: { sheet: 'references/temples/future/hush-house/sheet-1.jpg', caption: 'The Hush-House as the makers’ sound-damping hall: the author’s pick (issue #342)' } },
