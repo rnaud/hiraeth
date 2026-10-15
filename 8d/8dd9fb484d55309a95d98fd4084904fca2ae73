@@ -1,0 +1,48 @@
+tests/temple-skins.test.js
+  s_9ca76055a220ed::t_2633ab967127a0 24,111-184
+src/temples/skins/whale-house.js
+  s_4628f6c11aa015::t_1c229d951ffe8c 1-589
+changelog.md
+  s_9ca76055a220ed::t_0484eafe6180a8 7
+src/changelog-media.js
+  s_ce0fd1693a486c::t_17883c3f5b198f 1085
+  s_9ca76055a220ed::t_cb72986ceabea4 887-888,1059-1084
+src/temples/underwater.js
+  s_9ca76055a220ed::t_cd7d8f2aaf717a 371,425
+  s_9ca76055a220ed::t_77ea265c542dcd 295
+  s_9ca76055a220ed::t_d1a2c2e3415824 9,125-126,273-279,281-282,294,445-450,655
+src/changelog.js
+  s_9ca76055a220ed::t_26f23b50272497 112-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8d8dd9fb484d55309a95d98fd4084904fca2ae73",
+  "prompts": {},
+  "sessions": {
+    "s_4628f6c11aa015": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a166c57c0ab77d403",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ce0fd1693a486c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9eda8bff21b76347",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
