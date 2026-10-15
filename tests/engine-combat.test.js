@@ -47,12 +47,15 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   assert.ok(S.state.lock.x > 0.2 && S.state.lock.x < 0.8 && S.state.lock.y > 0.2 && S.state.lock.y < 0.9, 'the reticle over it');
   let bursts = 0; const off = g.foes.game.on('foe:burst', () => bursts++);
   for (let k = 0; k < 40 && foe.alive && foe.dead === undefined; k++) { run(g, 2, { KeyF: true }); run(g, 10, { KeyF: false }); }
-  run(g, 120);
+  // (the wallet read as the frames go: the health HUD shows a few seconds of the real clock after a pickup, and on a
+  // slow runner 120 frames outlast it, so a read at the end alone found it hidden)
+  let walleted = 0;
+  for (let k = 0; k < 120; k++) { run(g, 1); walleted = Math.max(walleted, S.state.health?.chimes ?? 0); }
   off();
   assert.ok(!foe.alive, 'cut down');
   assert.equal(bursts, 1, 'its burst');
   assert.equal(S.state.lock, null, 'nothing locked, no reticle');
-  assert.ok(S.state.health?.chimes > 0, `the chimes it dropped walked into the wallet (${JSON.stringify(S.state.health)})`);
+  assert.ok(walleted > 0, `the chimes it dropped walked into the wallet (${JSON.stringify(S.state.health)})`);
   assert.equal(S.state.health.max, g.player.maxHearts);
 
   // knocked out: the card, then up again
