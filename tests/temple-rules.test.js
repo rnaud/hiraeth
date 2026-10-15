@@ -14,9 +14,9 @@ import { templeRules, roomKinds, inMiddle, rulesText, RULES } from '../scripts/t
 import { recordTemple } from '../scripts/temple-design/record.mjs';
 
 /** The houses redone to the rules: none broken. */
-const REDONE = ['desert', 'incal', 'arzach2', 'edena', 'arzach', 'bazaar', 'spacecity', 'underwater'];
+const REDONE = ['desert', 'incal', 'arzach2', 'edena', 'arzach', 'bazaar', 'spacecity', 'underwater', 'moonfoundry'];
 /** The houses still to redo, and how many rules each breaks today (docs/design/temple-redesign.md, "The other houses"). */
-const PENDING = { perdide2: 51, moonfoundry: 51, garage: 49, buried: 41, perdide: 36, spheres: 36 };
+const PENDING = { perdide2: 51, garage: 49, buried: 41, perdide: 36, spheres: 36 };
 
 // a made-up house: a hall with a ball rolled through its door into the next, a machine by the second hall's mark, the chest
 const LOGIC = {

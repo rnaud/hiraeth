@@ -876,6 +876,8 @@ const ALIEN342_NUMBERS = {
 };
 /** (v1.77, issue #336: the Whale-House's rooms, shot the same way before and after) */
 const WHALE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6448, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Casting-House's rooms, shot the same way before and after) */
+const CASTING336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6450, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -966,6 +968,16 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Whale-House’s keepers wait only in the Horn Store', shots: [
       { name: 'whale-store', title: 'The Horn Store', caption: 'From its door: before, a room 10 by 12 m; after, the house’s one fight, its keepers round the middle of a hall 30 m square among four columns', from: WHALE336 },
       { name: 'whale-landing', title: 'The keepers’ landing', caption: 'Before, a passage 5 m wide behind the keepers’ door, a keeper on its stair; after, a hall 30 m square, the dish and the ball in the middle, the horn that opens the keepers’ door, the stair up to the Gallery of Horns', from: WHALE336 },
+    ] },
+    { match: 'The Casting-House is rebuilt like a shrine too', shots: [
+      { name: 'casting-floor', title: 'The Pouring Floor', caption: 'From the Porch: before, 28 m across, the great cradle in the mouth of the Founders’ Door; after, 36 m across, the founders’ moon’s rail, its flame and the cradle down the middle of the floor, the door beyond', from: CASTING336 },
+      { name: 'casting-moulds', title: 'The Mould Room', caption: 'From the Pouring Floor’s doorway: before, 22 by 18 m, the stone moon’s groove running in through the doorway, the seam-eye on the far wall and the pan on a shelf; after, 34 m square, the stone moon in the room, the seam-eye on a post by the mould, the pan on a dais in the middle', from: CASTING336 },
+      { name: 'casting-furnace', title: 'The Casting Furnace', caption: 'From its west door: before, 32 by 26 m, the hot moon’s rail coming in under the door; after, 46 by 36 m, the rail along the near lip with its flame and its hooded mould', from: CASTING336 },
+      { name: 'casting-scales', title: 'The Weighing Hall', caption: 'From the furnace’s south door: before, the keepers’ pan on the gallery by the wall; after, at the end of a pier out over the middle of the hall, its eye on an iron post below', from: CASTING336 },
+    ] },
+    { match: 'The Casting-House’s keepers wait only in the Sand Room', shots: [
+      { name: 'casting-sand', title: 'The Sand Room', caption: 'From the Mould Room: before, a room 12 m square; after, the house’s one fight, its keepers round the middle of a hall 30 m square among the four sand bins', from: CASTING336 },
+      { name: 'casting-tongs', title: 'The Tong Chamber', caption: 'From its door: before, 19 m across, two of the house’s machines by the chest; after, 34 m across and no machine, the try and the east door’s cradle out on the floor, its chain up to the door', from: CASTING336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
     { match: 'Inside, the Rose House is the inside of a dry cactus now', tags: ['desert', 'perf'], shots: [

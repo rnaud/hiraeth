@@ -208,6 +208,30 @@ stayed: the Listener and its fight, the story's lines, the small key and its are
 the loop back through the keepers' door. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.underwater`
 v3).
 
+## The Casting-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Pouring Floor 28 m across, the Mould Room 22 × 18, the Sand Room 12 × 12, the Tong Chamber 19 m across with the Pincer Passage 11 × 12 beside it, the furnace 32 × 26, the Weighing Hall 24 × 37 | the Pouring Floor **36 m**, the Mould Room **34 × 34**, the Sand Room **30 × 30**, the Tong Chamber **34 m** (the passage folded into it), the furnace **46 × 36**, the Weighing Hall **34 × 42**; the Last Casting 40 m as it was |
+| ceilings | the Sand Room 9 m, the Tong Chamber 13, the Mould Room 14 | **18 m** or more (the Pouring Floor and the Weighing Hall 22) |
+| doors | 5 by 6 to 6.4 | **7 by 9** |
+| fights | a machine by every mark (the Pouring Floor, the Mould Room, the Crucible Stair, the Tong Chamber, both lips of the furnace, the Weighing Hall, the cold passage) and the Sand Room's arena | **the Sand Room only**, its keepers round its middle among the bins |
+| threaded through doors | the Pouring Floor's stone moon rolled through the west doorway into the Mould Room's mould (`m1`); the hot moon rolled from the Pincer Passage under its door into the furnace's mould (`mH` through `dP`) | each moon, its flame and its mould in one room |
+| against the walls | the seam-eye on the Mould Room's west wall, the hoist's pan on a shelf on its north wall, the test scale and the great cradle at the Pouring Floor's edge, the Tong Chamber's try and the Pincer Passage's cradle by their walls, the Weighing Hall's pan on its gallery and its eye over the keepers' door | each in the middle of its room: the eye on a post beside the mould, the pan on a dais, the cradle before the Founders' Door, the passage's cradle out on the chamber's floor, the pan at the end of a pier over the hall, the eye on an iron post |
+| the gadget after the chest | one puzzle room asked for the tongs (the Weighing Hall: the furnace's moon was the Tong Chamber's) | two: the furnace (its moon on its own lip) and the Weighing Hall |
+| the rules broken | **51** (both 5, size 8, ceiling 3, unmeasured 1, door 7, centred 15, through doors 3, foes 7, gadget 2) | **0** |
+| the temple design audit | 4.44: structure 5, teach/test/twist 5, combination 5, non-obvious 4 (mean 2.58), decoupling 5, item 5, guardian 4, identity 3, curve 4 | 4.44, the same scores (`XBCXXXLK`, 70 % like the Engine-House; mean obviousness 2.58) |
+
+What it took beyond the sizes: the upper floor came up from 9 m to 11 (`UP`), so the cold passage under the furnace's
+near lip is as tall as the Founders' Door and the Last Casting's (it was 6.4 high under a 9 m floor); the Pincer Passage,
+a room on from the chest whose door held the hot moon's rail, folded into the Tong Chamber, its cradle chained across the
+floor to the east door, and the hot moon's rail moved onto the furnace's near lip along the channel, its flame and its
+hooded mould as far along it as they were (12.8 and 18.4 m), so the moon is as hot for as long; the Weighing Hall's iron
+moon starts on a pier out from the gallery (it was rolled in from the furnace's far landing) and its eye stands on a post
+in the hall. What stayed: the Last Founder and its fight, the story's lines, the Sand Room's small key for the Founders'
+Door, the hoist and its pan (you in it, the stone moon for you), the founders' moon's and the hot moon's rails as long as they were, the press over
+the bridge, the keepers' door back. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.moonfoundry` v3).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -218,8 +242,11 @@ counts, and a house may not get worse). Ranked worst first:
 | Builders' Greenhouse (edena) | 58 → **0** (v1.77, above) | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
 | Undertower (bazaar) | 55 → **0** (v1.77, above) | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
 | Mooring-House (spacecity) | 54 | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
+
+| Mooring-House (spacecity) | 54 → **0** (v1.77, above) | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
+| Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |
 | Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
-| Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
+| Casting-House (moonfoundry) | 51 → **0** (v1.77, above) | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
 | Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |

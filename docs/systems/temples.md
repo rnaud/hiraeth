@@ -463,6 +463,28 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   the small key and its arena, every horn's hold and every climb as they were. Old saves: one that stood in the old rooms
   is taken to its last mark (`migrate.js` underwater v3). Rules broken: 52 before, none now. Temple design audit: 4.44
   before and after (5 5 5 4 5 5 4 3 4; the skeleton `BXXCLBXXK` → `XBXCLGXXK`, mean obviousness 2.86 → 2.71).
+- **The Casting-House as shrines** (v1.77, issue #336, after the Mooring-House). The Pouring Floor a round hall 36 m across under
+  22 (`FZ`, `FR`), the Mould Room 34 m square under 18 (`MX`, `MW`, `MD`), the Sand Room 30 m square under 18 (`SAND`),
+  the Tong Chamber a round hall 34 m across (`TR`), the Casting Furnace 46 by 36 m (`FX0`, `FX1`, `FD`, its channel 10 m
+  wide down its middle), the Weighing Hall 34 by 42 under 22 (`WX0`…`WZ1`), the Last Casting as it was (40 m); every
+  door 7 by 9 (`DOOR`), each doorway closed by a short `corridor`. The upper floor (the Crucible Stair's landing, the
+  chamber, the furnace's lips, the Weighing Hall's gallery) is 11 m up now (`UP`, it was 9), so the cold passage under
+  the furnace is as tall as its doors. Each puzzle in the middle of its room: the stone moon for the great mould lies in
+  the Mould Room and rolls across it (it was rolled in from the Pouring Floor through the doorway: `m1` room `moulds`),
+  the seam-eye on a post beside the mould, the hoist's pan on a dais in the middle (it was a shelf on the north wall);
+  the founders' moon's rail, its flame and the great cradle down the floor's middle, the cradle before the Founders' Door
+  (it stood in the door's mouth); the test scale off the wall. The Pincer Passage is folded into the Tong Chamber: the
+  east door into the furnace is chained to a cradle out on the chamber's floor (`mP`, `pP`); the hot moon's rail runs
+  along the furnace's near lip, its flame and its hooded mould as far along it as they were (`mH` room `furnace`, no
+  `gap`: it was rolled from the passage under the shut door). The Weighing Hall's pan stands at the end of a pier out
+  from the gallery over the middle of the hall (`mB` starts on the pier: it was rolled in from the furnace's far
+  landing), its eye on an iron post in the hall (it was over the keepers' door). The rooms are tagged: the Sand Room is
+  the house's one fight, its keepers round its middle among the bins (`Mark` `foes`); the Crucible Stair, the far lip
+  and the cold passage are passages. The Last Founder and its fight, the story's lines, the small key and the Founders'
+  Door, the founders' moon's and the hot moon's rails (their flames and their moulds as far along them), the hoist, the press
+  and the way back as they were. Old saves: one that stood in the old
+  rooms is taken to its last mark (`migrate.js` moonfoundry v3). Rules broken: 51 before, none now. Temple design audit:
+  4.44 before and after (mean obviousness 2.58 both). Z-fights in the house 20 → 0.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -486,8 +508,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   rolled at the end through its flame into the great cradle under the Founders' Door; the Mould Room's seam-eye wakes over
   the stone moon rolled in from the hub; the hoist runs while its pan holds a weight (you in it rise nothing: a `Watch`
   says so; the stone moon stands in); the Tong Chamber's try (an iron moon into a cradle nothing waits on); the Pincer
-  Passage's cradle a room on, and a second iron moon whose rail runs under that door (`gap` on the door) through the
-  furnace's pilot flame into the hooded mould (the twist); the founders' press (`Hammer`, `hm`, until the founder is
+  Passage's cradle a room on (since v1.77 on the chamber's floor, above), and a second iron moon whose rail ran under
+  that door (`gap` on the door; since v1.77 on the furnace's near lip) through the furnace's pilot flame into the hooded
+  mould (the twist); the founders' press (`Hammer`, `hm`, until the founder is
   stopped) over the bridge; the Weighing Hall's keepers' pan and lidded eye, the keepers' door back onto the hub (the
   shortcut). The **Last Founder** (`founderModel`, a robot): splash its molten heart when its crucible doors open; from
   its second phase an iron moon in its casting cradle (`mA` on `pA`) makes it stop to look (a splash counts twice); in

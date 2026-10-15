@@ -26,7 +26,7 @@ export const ZFIGHT_BASELINE = {
   // perdide 10, arzach 8, spacecity 5)
   desert: 0, incal: 39, arzach2: 10, spheres: 2, buried: 0, perdide2: 3, perdide: 9, arzach: 3,
   garage: 1, edena: 2, bazaar: 8,   // (v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
-  spacecity: 0, moonfoundry: 20, underwater: 19,   // (v1.77: the Mooring-House redone as shrines, issue #336, its doorways a little narrower than their passages: 3 -> 0)
+  spacecity: 0, moonfoundry: 0, underwater: 19,   // (v1.77: the Mooring-House redone as shrines, issue #336, its doorways a little narrower than their passages: 3 -> 0; the Casting-House, 20 -> 0: its channel's faces and its landing's trim set 2 cm proud)
 };
 /**
  * A world's own count, outside its temples, where a fix has brought it down (v1.68, issue #286; audit.mjs counts the

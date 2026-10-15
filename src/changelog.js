@@ -63,6 +63,14 @@ export const CHANGELOG = [
     // (the machines only in the Horn Store, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; the landing's
     // eye a horn now (eK needs the horn); the dishes and the horns on the floor solid; migrate.js underwater v3, relaid)
     'The Whale-House’s keepers wait only in the Horn Store now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. The keepers’ door opens to the whale-horn from the landing behind it. If you were inside the old house, you start at its last glyph stone.',
+    // the Casting-House as shrines (issue #336): src/temples/moonfoundry.js (DOOR, UP, the rooms' constants, LOGIC.rooms
+    // kinds, the layout: m1 in the Mould Room, its eye on a post, the dais; the Pincer Passage folded into the Tong Chamber;
+    // mH on the furnace's near lip; the Weighing Hall's pier and the eye's post); migrate.js moonfoundry v3 (relaid);
+    // tests/temples.test.js, temple-rules REDONE, zfight
+    'The Casting-House is rebuilt like a shrine too: its rooms are far bigger and taller (the Pouring Floor and the Tong Chamber over 34 m round, the furnace 46 m wide, every hall 18 m high or more), its doors twice the size, and every puzzle stands in the middle of its own room. The stone moon for the great mould now lies in the Mould Room and rolls across it instead of in through its doorway, the seam-eye on a post beside the mould, the hoist’s pan on a dais in the middle; the furnace’s hot moon has its whole rail on the near lip; the Weighing Hall’s pan sits at the end of a pier out over the hall, its eye on a post.',
+    // (the machines only in the Sand Room, round its middle among the bins: LOGIC.rooms kinds, Mark `foes`; the door into the
+    // furnace held by a cradle out on the Tong Chamber's floor; migrate.js moonfoundry v3, runtime.js relaid)
+    'The Casting-House’s keepers wait only in the Sand Room now, round its middle among the sand bins, the house’s one fight: no machine stands by its puzzles any more. The Pincer Passage is gone: the door into the furnace is held by an iron moon’s cradle out on the Tong Chamber’s floor. If you were inside the old house you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

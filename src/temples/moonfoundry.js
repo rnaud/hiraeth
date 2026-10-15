@@ -20,33 +20,34 @@ import { chestMound } from '../boxes/mound.js';
 // a cradle. The stone moons (the test casts) a plain push rolls; the iron moons, the true ones, only roll for the
 // founders' tongs; and an iron moon rolled through a pilot flame comes out hot, and a hot moon in a hooded mould lights
 // what no ember reaches. (Before the tongs you are a weight too: the hoist's pan takes you, but you can't stand in two
-// places at once.)
-//   the Porch             the first mark, the way out
-//   the Pouring Floor     the hub, a round hall under a cracked moon: the founders' iron moon on its rail through the
-//                         house's pilot flame to the great hooded cradle under the sealed Founders' Door (seen from the
-//                         first step, rolled at the end); a stone moon whose groove runs west through the doorway into
-//                         the Mould Room; a little test scale (a stone moon in a small cradle: it tips, and nothing);
-//                         the keepers' door, shut, on the east (it opens from the far side)
-//   the Mould Room        the stone moon from the Pouring Floor rolled into the great mould wakes the seam-eye over it
-//                         (lidded until a moon fills the mould): the door north to the Crucible Stair. On a shelf up a
-//                         stair a second stone moon waits by the hoist's counterweight pan
-//   the Sand Room         (v1.53, issue #23: south off the Mould Room, an arena) the founders' moulding sand in bins;
-//                         its door shuts behind you while its keepers stand. Won, the small key's cage sinks: the
-//                         Founders' Door takes it at the end, with the founders' moon hot in its cradle (a key carried
-//                         from the first rooms to the last door)
-//   the Crucible Stair    the hoist up to the chest: it runs only while its pan in the Mould Room holds a weight (stand
-//                         in it yourself and it rises without you; the stone moon stands in for you)
+// places at once.) Since v1.77 (issue #336) every room is a shrine's: 30 m across and more, 18 m high and more, its doors
+// 7 by 9 (DOOR), each puzzle in the middle of its own room, and the Sand Room the house's one fight.
+//   the Porch             the first mark, the way out (a passage)
+//   the Pouring Floor     the hub, a round hall 36 m across under a cracked moon: the founders' iron moon on its rail
+//                         down the middle through the house's pilot flame to the great hooded cradle, in the middle of
+//                         the floor before the sealed Founders' Door (seen from the first step, rolled at the end); a
+//                         little test scale (a stone moon in a small cradle: it tips, and nothing); the keepers' door,
+//                         shut, on the east (it opens from the far side)
+//   the Mould Room        a stone moon rolled across the room into the great mould wakes the seam-eye on its post beside
+//                         it (lidded until a moon fills the mould): the door north to the Crucible Stair. On a dais in the
+//                         middle of the room, up a stair, a second stone moon waits by the hoist's counterweight pan
+//   the Sand Room         (v1.53, issue #23: south off the Mould Room, an arena; the house's one fight since v1.77) the
+//                         founders' moulding sand in bins; its door shuts behind you while its keepers stand round its
+//                         middle. Won, the small key's cage sinks: the Founders' Door takes it at the end, with the
+//                         founders' moon hot in its cradle (a key carried from the first rooms to the last door)
+//   the Crucible Stair    (a passage) the hoist up to the chest: it runs only while its pan in the Mould Room holds a
+//                         weight (stand in it yourself and it rises without you; the stone moon stands in for you)
 //   the Tong Chamber      the makers' chest: the FOUNDERS' TONGS (src/items.js 'tongs'). A try by the dais: an iron moon
-//                         that rolls for the tongs into a little cradle, and nothing waits on it. Its way on is open
-//   the Pincer Passage    a room on: the door into the furnace is held by an iron moon's cradle (the tongs' first lock,
-//                         where a miss costs nothing); a second iron moon waits on a rail that runs under the door
+//                         that rolls for the tongs into a little cradle, and nothing waits on it. Its east door into the
+//                         furnace is held by an iron moon's cradle out on the chamber's floor, chained to the door's bar
+//                         (the tongs' first lock, where a miss costs nothing; v1.77: it was the Pincer Passage, a room on)
 //   the Casting Furnace   a channel of molten iron, the bridge over it raised by the hooded mould on the near lip: the
-//                         passage's iron moon rolled through the pilot flame comes out hot, and a hot moon in the mould's
-//                         mouth lights it (the tongs with the fire: the twist). The founders' press slams down on the
-//                         bridge, out of step
-//   the Weighing Hall     down from the furnace's far landing: the keepers' door's eye wakes once an iron moon is in its
-//                         pan on the gallery (rolled in from the far landing); the keepers' door opens onto the Pouring
-//                         Floor, the shortcut back
+//                         lip's iron moon rolled through the pilot flame comes out hot, and a hot moon in the mould's
+//                         mouth lights it (the tongs with the fire: the twist; v1.77: its rail ran from the passage under
+//                         the door). The founders' press slams down on the bridge, out of step
+//   the Weighing Hall     down from the furnace's far landing: the keepers' door's eye on a post in the hall wakes once an
+//                         iron moon is in its pan, rolled out along the gallery's pier into the middle of the hall; the
+//                         keepers' door opens onto the Pouring Floor, the shortcut back
 //   back on the Floor     the founders' iron moon, rolled with the tongs through the pilot flame into the great cradle:
 //                         the Founders' Door, and the cold passage under the furnace
 //   the Last Casting      the guardian (a robot: its meter is damage). When it pours, its crucible doors swing open:
@@ -88,11 +89,26 @@ export const PALETTE = {
   light: { shadow: '#8a6f62', light: '#ffe4c4', sun: '#ffd6a0' },
 };
 
-// the rooms' places (local metres): the hub's centre, the chest's chamber, the arena's centre
-const FZ = 28, FR = 14, TZ = 66.9, CW = 108.7, HR = 20;
-/** (v1.53) The Sand Room, south off the Mould Room (an arena): its north side the Mould Room's south wall. */
-export const SAND = { x: -27, z: 11.8, w: 12, d: 12, zone: { min: [-33, -1, 5.8], max: [-21, 9, 17.8] } };
-/** The Sand Room's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+/**
+ * (v1.77, issue #336: the house as shrines, docs/design/temple-redesign.md) Every door between two rooms 7 by 9; the
+ * upper floor (the Crucible Stair's landing, the Tong Chamber, the furnace's lips, the Weighing Hall's gallery) 11 m up,
+ * so the cold passage under the furnace is as tall as its doors (it was 9, over a passage 6.4 high).
+ */
+export const DOOR = { w: 7, h: 9 };
+export const UP = 11;
+// the rooms' places (local metres): the Pouring Floor's centre and radius, the Mould Room's centre and size, the Crucible
+// Stair's and the Tong Chamber's x, the chamber's z and radius, the furnace's west and east walls and its channel, the
+// Weighing Hall's, the Last Casting's centre and radius
+const FZ = 32, FR = 18;
+const MX = -37, MW = 34, MD = 34;
+const SX = -30, TZ = 89, TR = 17;
+const FX0 = -10.2, FX1 = 35.8, FD = 36, C0 = 7.8, C1 = 17.8;
+const WX0 = 22, WX1 = 56, WZ0 = 26.3, WZ1 = 68.3, WX = (WX0 + WX1) / 2, WZ = (WZ0 + WZ1) / 2;
+const CW = 130, HR = 20;
+/** (v1.53) The Sand Room, south off the Mould Room (an arena, the house's one fight since v1.77): its north side the Mould Room's south wall. */
+export const SAND = { x: MX, z: FZ - MD / 2 - 1.2 - 15, w: 30, d: 30, h: 18 };
+SAND.zone = { min: [SAND.x - SAND.w / 2, -1, SAND.z - SAND.d / 2], max: [SAND.x + SAND.w / 2, 12, SAND.z + SAND.d / 2] };
+/** The Sand Room's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark's `foes`). */
 export const ARENAS = [{
   el: 'arS', room: 'sand', zone: SAND.zone, doors: ['dR'], extra: 2,
   shut: 'The door grinds shut behind you. Out of the sand bins, something heavy climbs.',
@@ -101,9 +117,12 @@ export const ARENAS = [{
 
 export const LOGIC = {
   id: 'moonfoundry', entry: 'threshold', gadget: 'tongs',
+  // (v1.77, issue #336: each room tagged with its kind; the Sand Room the one fight)
   rooms: {
-    threshold: { checkpoint: true }, floor: { checkpoint: true }, moulds: { checkpoint: true }, stair: { checkpoint: true }, tongs: { checkpoint: true },
-    furnace: { checkpoint: true }, furnaceFar: {}, scales: { checkpoint: true }, sand: { checkpoint: true }, ante: { checkpoint: true }, hall: { boss: true }, out: {},
+    threshold: { checkpoint: true, kind: 'passage' }, floor: { checkpoint: true, kind: 'puzzle' }, moulds: { checkpoint: true, kind: 'puzzle' },
+    stair: { checkpoint: true, kind: 'passage' }, tongs: { checkpoint: true, kind: 'puzzle' }, furnace: { checkpoint: true, kind: 'puzzle' },
+    furnaceFar: { kind: 'passage' }, scales: { checkpoint: true, kind: 'puzzle' }, sand: { checkpoint: true, kind: 'combat' },
+    ante: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'floor' },
@@ -111,7 +130,7 @@ export const LOGIC = {
     { a: 'moulds', b: 'stair', door: 'dM' },        // the seam-eye over the great mould
     { a: 'moulds', b: 'sand', door: 'dR' },         // the Sand Room, south off the Mould Room (v1.53): an arena, the small key
     { a: 'stair', b: 'tongs', door: 'hoist' },      // the hoist, while its pan in the Mould Room holds a weight
-    { a: 'tongs', b: 'furnace', door: 'dP' },       // the Pincer Passage's door, a room on from the chest (one room with it)
+    { a: 'tongs', b: 'furnace', door: 'dP' },       // the chamber's east door (v1.77: the Pincer Passage's, a room on)
     { a: 'furnace', b: 'furnaceFar', door: 'brH' }, // the bridge over the molten channel: the hot moon in the hooded mould
     { a: 'furnaceFar', b: 'scales' },               // down onto the Weighing Hall's gallery
     { a: 'scales', b: 'floor', door: 'dS' },        // the keepers' door: the shortcut back, opened from the far side (its eye and its pan are the Weighing Hall's: v1.74, it is met to be opened from there)
@@ -120,8 +139,9 @@ export const LOGIC = {
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
-    // the Pouring Floor's stone moon, rolled west into the Mould Room's great mould: the seam-eye over it opens its lids
-    m1: { type: 'drum', room: 'floor', plate: 'pM', plateAt: 1, start: 0 },
+    // the Mould Room's stone moon, rolled across the room into its great mould: the seam-eye beside it opens its lids
+    // (v1.77: it lay on the Pouring Floor and was rolled through the doorway)
+    m1: { type: 'drum', room: 'moulds', plate: 'pM', plateAt: 1, start: 0 },
     pM: { type: 'plate', room: 'moulds' },
     eM: { type: 'switch', room: 'moulds', when: { drumOn: ['m1', 'pM'] } },
     dM: { type: 'door', opens: { lit: 'eM' }, latch: true },
@@ -136,12 +156,13 @@ export const LOGIC = {
     // the try by the dais: an iron moon into a little cradle (nothing waits on it)
     mT: { type: 'drum', room: 'tongs', plate: 'pT', plateAt: 1, start: 0, needs: ['tongs'] },
     pT: { type: 'plate', room: 'tongs' },
-    // the Pincer Passage: its door held by an iron moon's cradle
+    // the chamber's east door, held by an iron moon's cradle on its floor
     mP: { type: 'drum', room: 'tongs', plate: 'pP', plateAt: 1, start: 0, needs: ['tongs'] },
     pP: { type: 'plate', room: 'tongs' },
     dP: { type: 'door', opens: { drumOn: ['mP', 'pP'] }, latch: true },
-    // the Casting Furnace: the passage's second iron moon, under the door and through the pilot flame into the hooded mould
-    mH: { type: 'drum', room: 'tongs', plate: 'pH', plateAt: 1, start: 0, needs: ['tongs'] },
+    // the Casting Furnace: the near lip's iron moon through the pilot flame into the hooded mould (v1.77: it lay in the
+    // passage and was rolled under its door)
+    mH: { type: 'drum', room: 'furnace', plate: 'pH', plateAt: 1, start: 0, needs: ['tongs'] },
     pH: { type: 'plate', room: 'furnace' },
     bH: { type: 'brazier', room: 'furnace', when: { drumOn: ['mH', 'pH'] } },     // hooded: only the hot moon lights it
     brH: { type: 'bridge', opens: { lit: 'bH' }, latch: true },
@@ -221,20 +242,29 @@ function cradle(K, mat, x, y, z, r, n = 5) {
 
 /**
  * (v1.53, issue #23) The Sand Room, south off the Mould Room: an arena among the founders' bins of moulding sand; won,
- * the small key's cage sinks (for the Founders' Door, at the end).
+ * the small key's cage sinks (for the Founders' Door, at the end). (v1.77) 30 m square under 18, the house's one fight:
+ * its keepers round its middle among the four bins.
  */
 function sandRoom(rt, K, M, { iron }) {
   const add = (P, o) => rt.add(P, o);
   const S = SAND, z1 = S.z + S.d / 2;
-  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: 9, roof: true, omit: ['n'] });   // (its north wall the Mould Room's, the doorway in it)
-  add(Door, { id: 'dR', at: [S.x, 0, z1 + 0.6], w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: S.h, roof: true, omit: ['n'] });   // (its north wall the Mould Room's, the doorway in it)
+  add(Door, { id: 'dR', at: [S.x, 0, z1 + 0.6], ...DOOR });   // (open: it shuts behind you while they stand)
   const sand = { paint: new THREE.Color('#b98b5a'), smooth: false, side: THREE.FrontSide };
-  for (const [x, z] of [[-4, -3.6], [4, -3.6], [-4.2, 2.2], [4.2, 2.2]]) {
+  for (const [x, z] of [[-7, -6], [7, -6], [-7, 6], [7, 6]]) {
     K.both(iron, box(2.6, 1.0, 2.0, S.x + x, 0.5, S.z + z));
-    K.add(sand, T(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.15, 0.45, 0.85), [S.x + x, 1.0, S.z + z]));
+    K.both(sand, T(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.15, 0.45, 0.85), [S.x + x, 1.0, S.z + z]));   // (solid as drawn: a heap you stand on)
   }
-  add(Key, { id: 'kS', at: [S.x, 0, S.z - S.d / 2 + 1.6], yaw: 0 });
-  add(Mark, { room: 'sand', at: [S.x, 0, S.z + 3.2], yaw: Math.PI });
+  add(Key, { id: 'kS', at: [S.x, 0, S.z - S.d / 2 + 2.6], yaw: 0 });
+  add(Mark, { room: 'sand', at: [S.x + 8, 0, z1 - 4], yaw: Math.PI, foes: [S.x, 0, S.z] });
+}
+
+/** A thin iron bar (a chain) from a to b, drawn. */
+function bar(K, mat, a, b, r = 0.12) {
+  const A = V(...a), B = V(...b), L = A.distanceTo(B);
+  const g = new THREE.BoxGeometry(r, r, L);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), B.clone().sub(A).normalize()));
+  K.add(mat, g.translate((A.x + B.x) / 2, (A.y + B.y) / 2, (A.z + B.z) / 2));
 }
 
 // ------------------------------------------------------------------ inside
@@ -259,9 +289,10 @@ function layout(rt) {
     if (solid) K.both(ivory, g); else K.add(ivory, g);
     K.add(M.dark, T(new THREE.TorusGeometry(r * 1.002, 0.05, 3, 24), [x, y, z], [0.5, 0.3, 0.2]));
   };
+  const FAR = FZ + FR, A0 = FAR + 0.7, A1 = CW - HR - 0.7, FXc = (FX0 + FX1) / 2;
 
   // ---- the Porch (z 0..12)
-  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
+  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 10, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
   K.solid(box(4, 5, 0.1, 0, 2.5, -1.25));
   K.glyph([0, 6.2, 0.05], 1.5, 0);
@@ -269,171 +300,179 @@ function layout(rt) {
   K.both(iron, box(1.2, 0.2, 6, 6.2, 1.4, 6));
   for (const z of [4, 6, 8]) crackedMoon(6.2, 1.9, z, 0.4);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
-  K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: 6, h: 7 }] });
+  K.wall(-8.6, 12.6, 8.6, 12.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, ...DOOR }] });
+  K.corridor([0, 12.6], [0, FZ - FR - 0.7], 0, DOOR);
 
-  // ---- the Pouring Floor (a rotunda round FZ): the founders' moon, the pilot flame, the great cradle under the Founders' Door
-  K.rotunda({ x: 0, z: FZ, y: 0, r: FR, h: 18, gaps: [{ a: Math.PI, w: 6, h: 7 }, { a: -Math.PI / 2, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.3 });
+  // ---- the Pouring Floor (a round hall 36 m across round FZ): the founders' moon down the middle, the pilot flame, the
+  // great cradle before the Founders' Door
+  K.rotunda({ x: 0, z: FZ, y: 0, r: FR, h: 22, gaps: [{ a: Math.PI, ...DOOR }, { a: -Math.PI / 2, ...DOOR }, { a: Math.PI / 2, ...DOOR }, { a: 0, ...DOOR }], oculus: 0.3 });
   // a cracked moon hung under the oculus (drawn), on chains
-  crackedMoon(0, 13.2, FZ, 2.6);
-  for (const a of [0.3, 2.4, 4.5]) K.add(iron, T(new THREE.CylinderGeometry(0.05, 0.05, 4.4, 4), [Math.sin(a) * 1.6, 17.3, FZ + Math.cos(a) * 1.6], [Math.cos(a) * 0.35, 0, -Math.sin(a) * 0.35]));
-  // the founders' moon on its rail, through the pilot flame, into the great hooded cradle
-  groove([0, 0, 18.4], [0, 0, 33.2], 1.3);
-  add(Ball, { id: 'mG', a: [0, 0.04, 18.4], b: [0, 0.04, 33.2], r: 1.3, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.7, lock: true, tar: { ...HOT, burns: 14 } });
-  add(Flame, { at: [0, 0, 25.2], r: 0.9 });
-  add(Brazier, { id: 'bG', at: [0, 0, 35.6], scale: 1.3, hood: { ball: 'mG', yaw: Math.PI,
+  crackedMoon(0, 16, FZ, 2.6);
+  for (const a of [0.3, 2.4, 4.5]) K.add(iron, T(new THREE.CylinderGeometry(0.05, 0.05, 4.4, 4), [Math.sin(a) * 1.6, 20.3, FZ + Math.cos(a) * 1.6], [Math.cos(a) * 0.35, 0, -Math.sin(a) * 0.35]));
+  // the founders' moon on its rail, through the pilot flame, into the great hooded cradle (the rail as long as it was)
+  const GA = FZ - 9.4, GB = GA + 14.8;
+  groove([0, 0, GA], [0, 0, GB], 1.3);
+  add(Ball, { id: 'mG', a: [0, 0.04, GA], b: [0, 0.04, GB], r: 1.3, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.7, lock: true, tar: { ...HOT, burns: 14 } });
+  add(Flame, { at: [0, 0, GA + 6.8], r: 0.9 });
+  add(Brazier, { id: 'bG', at: [0, 0, GB + 2.4], scale: 1.3, hood: { ball: 'mG', yaw: Math.PI,
     said: 'The ember spatters on the cradle’s iron hood. Its mouth opens low, on the rail: only a moon hot from the fire would reach it.',
     cold: 'The moon rolls into the cradle’s mouth cold, and the cradle tips it back out. The founders cast hot.' } });
-  cradle(K, iron, 0, 0, 35.6, 2.2, 6);
-  add(Door, { id: 'dF', at: [0, 0, FZ + FR + 0.7], w: 5, h: 6.4, lamps: [{ lit: 'bG' }] });
-  K.glyph([0, 9.4, FZ + FR - 0.05], 2.0, Math.PI);
-  // the stone moon whose groove runs west through the doorway into the Mould Room's great mould
-  groove([-7, 0, FZ], [-27, 0, FZ]);
-  add(Ball, { id: 'm1', a: [-7, 0.04, FZ], b: [-27, 0.04, FZ], r: 1.0, friction: 0.9 });
+  cradle(K, iron, 0, 0, GB + 2.4, 2.2, 6);
+  add(Door, { id: 'dF', at: [0, 0, FAR + 0.7], ...DOOR, frame: { side: 1.2 }, lamps: [{ lit: 'bG' }] });
+  K.glyph([0, DOOR.h + 2.4, FAR - 0.05], 2.0, Math.PI);
   // the test scale: a stone moon and its little cradle (it tips, and nothing waits on it)
-  groove([6, 0, 21], [10, 0, 21], 0.9);
-  add(Ball, { id: 'm0', a: [6, 0.04, 21], b: [10, 0.04, 21], r: 0.9 });
-  add(Plate, { id: 'p0', at: [10, 0, 21], r: 1.1 });
+  groove([5, 0, FZ - 5], [9, 0, FZ - 5], 0.9);
+  add(Ball, { id: 'm0', a: [5, 0.04, FZ - 5], b: [9, 0.04, FZ - 5], r: 0.9 });
+  add(Plate, { id: 'p0', at: [9, 0, FZ - 5], r: 1.1 });
   add(Watch, { when: { drumOn: ['m0', 'p0'] }, say: 'The little scale tips under the stone moon, and rights itself. A test cast: whatever the founders weighed here was heavier.', key: 'm0.scale' });
   // the keepers' door on the east: shut from this side
-  add(Door, { id: 'dS', at: [FR + 0.7, 0, FZ], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'eS' }] });
-  add(Mark, { room: 'floor', at: [-8, 0, 19.5], yaw: Math.PI * 0.25 });
+  add(Door, { id: 'dS', at: [FR + 0.7, 0, FZ], yaw: Math.PI / 2, ...DOOR, frame: { side: 1.2 }, lamps: [{ lit: 'eS' }] });
+  add(Mark, { room: 'floor', at: [-8, 0, FZ - 11], yaw: Math.PI * 0.25 });
 
-  // ---- the Mould Room (x -38..-16): the great mould and its seam-eye; the shelf with the hoist's pan
-  const MX = -27;
-  K.hall({ x: MX, z: FZ, w: 22, d: 18, y: 0, h: 14, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', w: 5, h: 6.4 }, { side: 'n', at: 6, w: 5, h: 6.4 }, { side: 's', at: SAND.x - MX, w: 5, h: 6.4 }] });   // (and south into the Sand Room, v1.53)
-  add(Plate, { id: 'pM', at: [MX, 0, FZ], r: 1.2 });
-  K.add(M.dark, T(annulus(1.7, 2.6, 0.06, 32), [MX, 0.05, FZ]));
-  K.add(ember, T(annulus(2.6, 2.75, 0.04, 32), [MX, 0.06, FZ]));   // (the mould's seam)
-  add(Switch, { id: 'eM', at: [-37.7, 4.6, FZ], yaw: Math.PI / 2, size: 1.1, lids: true, wrong: 'The seam-eye’s lids stay shut. The great mould under it is empty.' });
+  // ---- the Mould Room (34 m square, west of the floor): the stone moon across the room into the great mould, its
+  // seam-eye on a post beside it; the dais in the middle with the hoist's pan
+  K.corridor([-FR - 0.7, FZ], [MX + MW / 2 + 0.6, FZ], 0, DOOR);
+  K.hall({ x: MX, z: FZ, w: MW, d: MD, y: 0, h: 18, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', ...DOOR }, { side: 'n', at: SX - MX, ...DOOR }, { side: 's', at: SAND.x - MX, ...DOOR }] });   // (and south into the Sand Room, v1.53)
+  const PM = [MX - 2, 0, FZ - 4];
+  groove([MX + 8, 0, PM[2]], PM);
+  add(Ball, { id: 'm1', a: [MX + 8, 0.04, PM[2]], b: [PM[0], 0.04, PM[2]], r: 1.0, friction: 0.9 });
+  add(Plate, { id: 'pM', at: PM, r: 1.2 });
+  K.add(M.dark, T(annulus(1.7, 2.6, 0.06, 32), [PM[0], 0.05, PM[2]]));
+  K.add(ember, T(annulus(2.6, 2.75, 0.04, 32), [PM[0], 0.06, PM[2]]));   // (the mould's seam)
+  K.column(PM[0] - 4.4, PM[2], 0, 6.4, 0.5, { mat: iron });
+  add(Switch, { id: 'eM', at: [PM[0] - 3.5, 4.6, PM[2]], yaw: Math.PI / 2, size: 1.1, lids: true, wrong: 'The seam-eye’s lids stay shut. The great mould under it is empty.' });
   // moulds sunk in the floor: dark dishes with a seam each
-  for (const [x, z] of [[-33, 22], [-21, 22.5], [-33, 32]]) { K.add(M.dark, T(new THREE.CylinderGeometry(1.4, 1.4, 0.05, 20), [x, 0.03, z])); K.add(iron, T(annulus(1.4, 1.65, 0.08, 20), [x, 0.08, z])); }
-  // the shelf (top 4.5) up a stair along the north wall; the hoist's counterweight pan in its corner, chains up through the wall
-  K.slab(-38, 33, -30, 37, 4.5, 0.8);
-  K.both(M.trim, box(0.3, 0.6, 4, -30.15, 4.3, 35));
-  K.stairs([-24.4, 0, 35.2], [-30, 4.5, 35.2], 2.6);
-  groove([-32, 4.5, 35], [-36.3, 4.5, 35]);
-  add(Ball, { id: 'm2', a: [-32, 4.54, 35], b: [-36.3, 4.54, 35], r: 1.0, lock: true });
-  add(Plate, { id: 'pK', at: [-36.3, 4.5, 35], r: 1.2 });
-  for (const s of [-1, 1]) K.add(iron, box(0.1, 9, 0.1, -36.3 + s * 1.0, 9.2, 35));
-  K.add(iron, box(9.4, 0.12, 0.12, -32.6, 13.7, 36.6));
-  K.add(iron, T(new THREE.TorusGeometry(0.7, 0.1, 5, 16), [-36.3, 13.7, 36.4]));
+  for (const [x, z] of [[MX - 11, FZ - 11], [MX + 9, FZ - 12], [MX + 10, FZ + 11]]) { K.add(M.dark, T(new THREE.CylinderGeometry(1.4, 1.4, 0.05, 20), [x, 0.03, z])); K.add(iron, T(annulus(1.4, 1.65, 0.08, 20), [x, 0.08, z])); }
+  // the dais (top 4.5) up a stair from the east; the hoist's counterweight pan at its west end, its chains up to the roof
+  // and away north to the hoist
+  const DZ = FZ + 6;
+  K.both(M.wall, box(8.8, 3.9, 5.8, MX - 5.5, 1.95, DZ));
+  K.slab(MX - 10, DZ - 3, MX - 1, DZ + 3, 4.5, 0.8);
+  K.stairs([MX + 4.6, 0, DZ], [MX - 1, 4.5, DZ], 2.6);
+  groove([MX - 3, 4.5, DZ], [MX - 7.3, 4.5, DZ]);
+  add(Ball, { id: 'm2', a: [MX - 3, 4.54, DZ], b: [MX - 7.3, 4.54, DZ], r: 1.0, lock: true });
+  add(Plate, { id: 'pK', at: [MX - 7.3, 4.5, DZ], r: 1.2 });
+  for (const s of [-1, 1]) K.add(iron, box(0.1, 12.6, 0.1, MX - 7.3 + s * 1.0, 11.1, DZ));
+  K.add(iron, box(2.2, 0.12, 0.12, MX - 7.3, 17.4, DZ));
+  bar(K, iron, [MX - 7.3, 17.4, DZ], [SX, 17.4, FZ + MD / 2 - 0.1]);
+  K.add(iron, T(new THREE.TorusGeometry(0.7, 0.1, 5, 16), [MX - 7.3, 17.4, DZ + 0.2]));
   add(Watch, { test: (r) => !!r.logic.weights.get('pK')?.has('player') && !r.logic.drumOn('m2', 'pK'), say: 'The pan sinks under you, and behind the wall a chain runs and something rises. You are the weight; but you are here, not on it.', key: 'pK.you' });
-  add(Door, { id: 'dM', at: [MX + 6, 0, FZ + 9.6], w: 5, h: 6.4, lamps: [{ lit: 'eM' }] });
-  add(Mark, { room: 'moulds', at: [-21, 0, 21.5], yaw: Math.PI * 0.75 });
+  add(Door, { id: 'dM', at: [SX, 0, FZ + MD / 2 + 0.6], ...DOOR, lamps: [{ lit: 'eM' }] });
+  add(Mark, { room: 'moulds', at: [MX + 11, 0, FZ - 10], yaw: Math.PI * 0.75 });
 
-  // ---- the Crucible Stair (x -27..-15): the hoist up to the chest's landing (9 up)
-  const SX = -21;
-  K.hall({ x: SX, z: 46, w: 12, d: 16, y: 0, h: 22, roof: 'oculus', oculus: 0.3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4, y0: 9 }] });
-  K.slab(-27, 49.8, -15, 54, 9, 0.8);
-  K.both(M.trim, box(12, 0.3, 0.3, SX, 9.05, 49.95));
-  add(Platform, { path: [[SX, 0.3, 47.4], [SX, 9, 47.4]], r: 2.2, speed: 1.4, pause: 2.0, when: { pressed: 'pK' } });
-  K.add(M.dark, T(new THREE.CylinderGeometry(2.4, 2.4, 0.1, 24), [SX, 0.05, 47.4]));
+  // ---- the Crucible Stair (a passage north of the Mould Room): the hoist up to the chest's landing (UP)
+  const S0 = FZ + MD / 2 + 1.2, S1 = S0 + 18, LZ = S0 + 9.8, HZ = LZ - 2.4;
+  K.hall({ x: SX, z: (S0 + S1) / 2, w: 20, d: S1 - S0, y: 0, h: 24, roof: 'oculus', oculus: 0.3, omit: ['s'], doors: [{ side: 'n', ...DOOR, y0: UP }] });
+  K.slab(SX - 10, LZ, SX + 10, S1, UP, 0.8);
+  K.both(M.trim, box(20, 0.3, 0.3, SX, UP + 0.05, LZ + 0.13));   // (2 cm proud of the landing's edge)
+  add(Platform, { path: [[SX, 0.3, HZ], [SX, UP, HZ]], r: 2.2, speed: 1.4, pause: 2.0, when: { pressed: 'pK' } });
+  K.add(M.dark, T(new THREE.CylinderGeometry(2.4, 2.4, 0.1, 24), [SX, 0.05, HZ]));
   // the pulley over it, its chain going over the wall toward the pan
-  K.add(iron, T(new THREE.TorusGeometry(1.4, 0.18, 6, 24), [SX, 20.4, 47.4], [0, Math.PI / 2, 0]));
-  K.add(iron, box(0.14, 11, 0.14, SX, 14.6, 46.1));
-  K.add(iron, box(0.14, 0.14, 8, SX, 20.6, 42.6));
-  add(Mark, { room: 'stair', at: [-25, 0, 41], yaw: Math.PI / 2 });
+  K.add(iron, T(new THREE.TorusGeometry(1.4, 0.18, 6, 24), [SX, 22.4, HZ], [0, Math.PI / 2, 0]));
+  K.add(iron, box(0.14, 10, 0.14, SX, 17.6, HZ - 1.3));
+  K.add(iron, box(0.14, 0.14, HZ - 1.3 - S0, SX, 22.6, (HZ - 1.3 + S0) / 2));
+  add(Mark, { room: 'stair', at: [SX - 6, 0, S0 + 3], yaw: Math.PI / 2 });
 
-  // ---- the corridor and the Tong Chamber (a rotunda, floor 9): the chest; the try by the dais
-  K.slab(SX - 3.2, 54, SX + 3.2, 57.2, 9, 0.8);
-  K.wall(SX - 3.2, 54.6, SX - 3.2, 56.6, 9, 6.4, { t: 0.8 }); K.wall(SX + 3.2, 56.6, SX + 3.2, 54.6, 9, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, SX, 15.8, 55.6));
-  K.rotunda({ x: SX, z: TZ, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: Math.PI / 2, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, ...chestMound(SX, 9, TZ));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  // ---- the Tong Chamber (a round hall 34 m across, floor UP): the chest; the try by the dais; the east door's cradle
+  K.corridor([SX, S1 + 0.6], [SX, TZ - TR - 0.7], UP, DOOR);
+  K.rotunda({ x: SX, z: TZ, y: UP, r: TR, h: 18, gaps: [{ a: Math.PI, ...DOOR }, { a: Math.PI / 2, ...DOOR }], oculus: 0.35 });
+  K.both(M.trim, ...chestMound(SX, UP, TZ));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // racks of tongs on the walls (drawn)
-  for (const a of [-0.9, -2.2, 2.6]) { const x = SX + Math.sin(a) * 9.3, z = TZ + Math.cos(a) * 9.3; for (const s of [-1, 1]) K.add(iron, T(new THREE.BoxGeometry(0.12, 2.4, 0.12), [x, 11.6, z], [0, a, s * 0.12])); }
-  groove([SX - 6.5, 9, TZ - 3.5], [SX - 6.5, 9, TZ + 3.5]);
-  add(Ball, { id: 'mT', a: [SX - 6.5, 9.04, TZ - 3.5], b: [SX - 6.5, 9.04, TZ + 3.5], r: 1.1, heavy: 'tongs', iron: true, heavyLine: HEAVY, lock: true });
-  add(Plate, { id: 'pT', at: [SX - 6.5, 9, TZ + 3.5], r: 1.3 });
+  for (const a of [-0.9, -2.2, 2.6]) { const x = SX + Math.sin(a) * (TR - 0.2), z = TZ + Math.cos(a) * (TR - 0.2); for (const s of [-1, 1]) K.add(iron, T(new THREE.BoxGeometry(0.12, 2.4, 0.12), [x, UP + 2.6, z], [0, a, s * 0.12])); }
+  groove([SX - 6.5, UP, TZ - 3.5], [SX - 6.5, UP, TZ + 3.5]);
+  add(Ball, { id: 'mT', a: [SX - 6.5, UP + 0.04, TZ - 3.5], b: [SX - 6.5, UP + 0.04, TZ + 3.5], r: 1.1, heavy: 'tongs', iron: true, heavyLine: HEAVY, lock: true });
+  add(Plate, { id: 'pT', at: [SX - 6.5, UP, TZ + 3.5], r: 1.3 });
   add(Watch, { when: { drumOn: ['mT', 'pT'] }, say: 'The iron moon rolls for the tongs, heavy as a cart, and settles in its cradle. The tongs take hold of the founders’ iron.', key: 'mT.cradle' });
-  add(Mark, { room: 'tongs', at: [SX + 4.5, 9, TZ - 5.5], yaw: -Math.PI * 0.75 });
+  // the east door's cradle out on the floor, its chain up and over to the door's bar
+  const PP = [SX + 8.7, UP, TZ - 5];
+  groove([SX + 2.5, UP, PP[2]], PP);
+  add(Ball, { id: 'mP', a: [SX + 2.5, UP + 0.04, PP[2]], b: [PP[0], UP + 0.04, PP[2]], r: 1.2, heavy: 'tongs', iron: true, heavyLine: HEAVY, lock: true });
+  add(Plate, { id: 'pP', at: PP, r: 1.4 });
+  cradle(K, iron, PP[0], UP, PP[2], 1.5, 5);
+  K.add(iron, box(0.12, 9.4, 0.12, PP[0] + 1.7, UP + 4.7, PP[2]));
+  bar(K, iron, [PP[0] + 1.7, UP + 9.4, PP[2]], [SX + TR - 0.3, UP + DOOR.h + 1.2, TZ - 2]);
+  add(Door, { id: 'dP', at: [SX + TR + 0.7, UP, TZ], yaw: Math.PI / 2, ...DOOR, frame: { side: 1.2 }, lamps: [{ drumOn: ['mP', 'pP'] }] });
+  add(Mark, { room: 'tongs', at: [SX + 5, UP, TZ - 11], yaw: -Math.PI * 0.75 });
 
-  // ---- the Pincer Passage (floor 9), a room on: the door into the furnace held by an iron moon's cradle; a second iron
-  // moon on a rail that runs under the door
-  const PX0 = -9.4, PX1 = 2;
-  K.hall({ x: (PX0 + PX1) / 2, z: TZ, w: PX1 - PX0, d: 12, y: 9, h: 10, roof: true, omit: ['e'], doors: [{ side: 'w', w: 5, h: 6.4 }] });
-  groove([-6.8, 9, TZ - 3.6], [-0.6, 9, TZ - 3.6]);
-  add(Ball, { id: 'mP', a: [-6.8, 9.04, TZ - 3.6], b: [-0.6, 9.04, TZ - 3.6], r: 1.2, heavy: 'tongs', iron: true, heavyLine: HEAVY, lock: true });
-  add(Plate, { id: 'pP', at: [-0.6, 9, TZ - 3.6], r: 1.4 });
-  for (const y of [11.5, 13.5]) K.add(iron, box(0.14, 0.14, 4.2, 1.2, y, TZ - 3.6 + 1.6));   // (its chains up to the door's bar)
-  const HA = -6.8, HB = 9.8, DX = PX1;   // the hot moon's groove, from the passage under the door to the mould
-  groove([HA, 9, TZ + 1.3], [HB, 9, TZ + 1.3]);
-  add(Ball, { id: 'mH', a: [HA, 9.04, TZ + 1.3], b: [HB, 9.04, TZ + 1.3], r: 1.0, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.55, tar: { ...HOT, burns: 12 },
-    gap: { bridge: 'dP', from: (DX - 0.45 - 1.05 - HA) / (HB - HA), to: (DX + 0.45 + 1.05 - HA) / (HB - HA), lip: 'The iron moon rolls up against the shut door and stops. Its rail runs on under it.' } });
-  add(Door, { id: 'dP', at: [DX, 9, TZ], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ drumOn: ['mP', 'pP'] }] });
-
-  // ---- the Casting Furnace (x 2..34, floor 9): the molten channel, the bridge, the hooded mould, the pilot flame, the press
-  const FX0 = 2, FX1 = 34, C0 = 13, C1 = 23;
-  K.hall({ x: (FX0 + FX1) / 2, z: TZ, w: FX1 - FX0, d: 26, y: 9, h: 20, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', w: 5, h: 6.4 }, { side: 's', at: 10, w: 5, h: 6.4 }] });
-  K.slab(PX0 - 0.6, TZ - 6.6, FX0, TZ + 6.6, 9, 0.8);   // (the passage's floor, up to the door)
-  K.slab(FX0, TZ - 13, C0, TZ + 13, 9, 0.8);
-  K.slab(C1, TZ - 13, FX1, TZ + 13, 9, 0.8);
+  // ---- the Casting Furnace (46 by 36 m, floor UP): the molten channel down its middle, the bridge, the near lip's hooded
+  // mould and pilot flame, the press
+  K.corridor([SX + TR + 0.7, TZ], [FX0 - 0.6, TZ], UP, DOOR);
+  K.hall({ x: FXc, z: TZ, w: FX1 - FX0, d: FD, y: UP, h: 20, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', ...DOOR }, { side: 's', at: 27 - FXc, ...DOOR }] });
+  K.slab(FX0, TZ - FD / 2, C0, TZ + FD / 2, UP, 0.8);
+  K.slab(C1, TZ - FD / 2, FX1, TZ + FD / 2, UP, 0.8);
   // the channel: its faces down to the molten iron, the iron glowing at the bottom
-  K.both(M.wall, box(0.8, 6, 26, C0 - 0.4, 5.6, TZ)); K.both(M.wall, box(0.8, 6, 26, C1 + 0.4, 5.6, TZ));
-  for (const s of [-1, 1]) K.both(M.wall, box(C1 - C0, 6, 0.8, (C0 + C1) / 2, 5.6, TZ + s * 13.4));
-  K.both(ember, box(C1 - C0, 0.4, 26, (C0 + C1) / 2, 3.0, TZ));
-  K.both(M.dark, box(C1 - C0, 1, 26, (C0 + C1) / 2, 2.3, TZ));
-  add(Pit, { room: 'furnace', min: [C0, -2, TZ - 13], max: [C1, 7.4, TZ + 13], own: 'the molten iron glowing at its bottom' });   // (deadly by its own look: no dark of its own, issue #312)
-  add(Bridge, { id: 'brH', a: [C0 - 0.1, 9, TZ - 5], b: [C1 + 0.1, 9, TZ - 5], w: 4, n: 7 });
-  add(Hammer, { id: 'hm', at: [(C0 + C1) / 2, 9, TZ - 5], yaw: Math.PI / 2, w: 4.6, d: 2.4, top: 5.2, period: 3.0, knock: 9,
+  // (each face 2 cm proud of its lip's end: no two faces in one plane)
+  K.both(M.wall, box(0.8, 6, FD, C0 - 0.38, UP - 3.4, TZ)); K.both(M.wall, box(0.8, 6, FD, C1 + 0.38, UP - 3.4, TZ));
+  for (const s of [-1, 1]) K.both(M.wall, box(C1 - C0, 6, 0.8, (C0 + C1) / 2, UP - 3.4, TZ + s * (FD / 2 + 0.4)));
+  K.both(ember, box(C1 - C0, 0.4, FD, (C0 + C1) / 2, UP - 6, TZ));
+  K.both(M.dark, box(C1 - C0, 1, FD, (C0 + C1) / 2, UP - 6.7, TZ));
+  add(Pit, { room: 'furnace', min: [C0, UP - 11, TZ - FD / 2], max: [C1, UP - 1.6, TZ + FD / 2], own: 'the molten iron glowing at its bottom' });   // (deadly by its own look: no dark of its own, issue #312)
+  add(Bridge, { id: 'brH', a: [C0 - 0.1, UP, TZ - 5], b: [C1 + 0.1, UP, TZ - 5], w: 4, n: 7 });
+  add(Hammer, { id: 'hm', at: [(C0 + C1) / 2, UP, TZ - 5], yaw: Math.PI / 2, w: 4.6, d: 2.4, top: 5.2, period: 3.0, knock: 9,
     hit: 'The founders’ press comes down and throws you off the bridge. It slams out of step: wait for it to rise.' });
-  // the pilot flame on the hot moon's rail, the hooded mould at its end on the near lip
-  add(Flame, { at: [6.0, 9, TZ + 1.3], r: 0.9 });
-  add(Brazier, { id: 'bH', at: [11.6, 9, TZ + 1.3], hood: { ball: 'mH', yaw: -Math.PI / 2,
+  // the near lip's iron moon on its rail along the channel, through the pilot flame into the hooded mould (each as far
+  // along it as they were)
+  const HX = 3, HA = TZ - 8.3, HB = HA + 16.6;
+  groove([HX, UP, HA], [HX, UP, HB]);
+  add(Ball, { id: 'mH', a: [HX, UP + 0.04, HA], b: [HX, UP + 0.04, HB], r: 1.0, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.55, tar: { ...HOT, burns: 12 } });
+  add(Flame, { at: [HX, UP, HA + 12.8], r: 0.9 });
+  add(Brazier, { id: 'bH', at: [HX, UP, HA + 18.4], hood: { ball: 'mH', yaw: Math.PI,
     said: 'The ember spatters on the mould’s iron hood. Its mouth opens low, on the rail: only a moon hot from the fire would reach it.',
     cold: 'The iron moon rolls into the mould’s mouth cold, and the mould tips it back out. The founders cast hot.' } });
   // the founders' casting furnace in the north wall: a dark arch, the glow of the melt inside
-  K.both(M.dark, box(7, 7, 2, 6.0, 12.5, TZ + 12.2));
-  K.add(ember, T(new THREE.CylinderGeometry(2.2, 2.2, 0.1, 18, 1, false, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2), [6.0, 12.5, TZ + 11.15]));
-  K.add(ember, box(4.4, 3.2, 0.1, 6.0, 10.9, TZ + 11.15));
-  add(Mark, { room: 'furnace', at: [5, 9, TZ - 9], yaw: Math.PI / 2 });
-  // the far landing: the third iron moon, its rail south through the doorway onto the Weighing Hall's gallery and its pan
-  groove([28, 9, TZ - 4], [28, 9, 47.6], 1.1);
-  add(Ball, { id: 'mB', a: [28, 9.04, TZ - 4], b: [28, 9.04, 47.6], r: 1.2, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.9, lock: true });
-  add(Mark, { room: 'furnaceFar', at: [31, 9, TZ + 8], yaw: Math.PI });
-  K.slab(25.4, 51.8, 30.6, 54.6, 9, 0.8);
-  K.both(M.wall, box(6.2, 0.8, 2.6, 28, 16.2, 53.2));
+  const NZ = TZ + FD / 2;
+  K.both(M.dark, box(7, 7, 2, HX, UP + 3.5, NZ - 0.8));
+  K.add(ember, T(new THREE.CylinderGeometry(2.2, 2.2, 0.1, 18, 1, false, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2), [HX, UP + 3.5, NZ - 1.85]));
+  K.add(ember, box(4.4, 3.2, 0.1, HX, UP + 1.9, NZ - 1.85));
+  add(Mark, { room: 'furnace', at: [-5, UP, TZ - 10], yaw: Math.PI / 2 });
+  add(Mark, { room: 'furnaceFar', at: [29, UP, TZ + 8], yaw: Math.PI });
 
-  // ---- the Weighing Hall (x 17..41, floor 0, a gallery at 9 along its north side): the keepers' door's pan and eye
-  const WX = 29, WZ = 33.7;
-  K.hall({ x: WX, z: WZ, w: 24, d: 37.4, y: 0, h: 20, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: FZ - WZ, w: 5, h: 6.4 }, { side: 'n', at: 28 - WX, w: 5, h: 6.4, y0: 9 }] });
-  K.slab(17, 44, 41, 52.4, 9, 0.8);
-  K.both(M.trim, box(18.5, 1.0, 0.3, 26.25, 9.5, 44.15));   // (the gallery's parapet, open at the stair's head)
-  K.stairs([38.6, 0, 18.5], [38.6, 9, 43.8], 3);
-  add(Plate, { id: 'pB', at: [28, 9, 47.6], r: 1.4 });
-  cradle(K, iron, 28, 9, 47.6, 1.5, 5);
-  // its chain up over a pulley and down to the keepers' door's bar
-  K.add(iron, T(new THREE.TorusGeometry(0.9, 0.12, 5, 18), [28, 19, 47.6], [0, Math.PI / 2, 0]));
-  K.add(iron, box(0.12, 9.6, 0.12, 28, 14.2, 47.6));
-  K.add(iron, T(new THREE.BoxGeometry(0.12, 0.12, 22), [22.6, 19.2, 37.5], [0, -0.48, 0]));
-  K.add(iron, box(0.12, 11, 0.12, 17.4, 13.6, FZ));
-  add(Switch, { id: 'eS', at: [17.3, 8.2, FZ], yaw: Math.PI / 2, size: 1.0, lids: true, wrong: 'The keepers’ eye stays lidded. Its chain runs up to an empty pan on the gallery.' });
-  // the founders' great scales: a post, a beam, two pans on chains (the middle of the hall)
-  K.column(WX, 26, 0, 9, 0.6, { mat: iron });
-  K.both(iron, box(14, 0.6, 0.6, WX, 9.3, 26));
+  // ---- the Weighing Hall (34 by 42 m, floor 0, a gallery at UP along its north side and a pier from it out over the
+  // middle of the hall): the keepers' door's pan at the pier's end, its eye on a post in the hall
+  K.corridor([27, WZ1 + 0.6], [27, TZ - FD / 2 - 0.6], UP, DOOR);
+  K.hall({ x: WX, z: WZ, w: WX1 - WX0, d: WZ1 - WZ0, y: 0, h: 22, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: FZ - WZ, ...DOOR }, { side: 'n', at: 27 - WX, ...DOOR, y0: UP }] });
+  const GZ = WZ1 - 8.3, PX = 39, PB = [PX, UP, 45.5];
+  K.slab(WX0, GZ, WX1, WZ1, UP, 0.8);
+  K.slab(PX - 3, PB[2] - 1.6, PX + 3, GZ, UP, 0.8);
+  for (const s of [-1, 1]) { K.column(PX + s * 2, PB[2] + 1, 0, UP - 0.8, 0.6, { mat: iron }); K.both(M.trim, box(0.3, 1.0, GZ - PB[2] - 3.4, PX + s * 2.85, UP + 0.5, (GZ + PB[2] + 3.4) / 2)); }
+  // (the gallery's parapet, open at the pier and at the stair's head)
+  K.both(M.trim, box(PX - 3 - WX0, 1.0, 0.3, (WX0 + PX - 3) / 2, UP + 0.5, GZ + 0.15));
+  K.both(M.trim, box(51.2 - PX - 3, 1.0, 0.3, (PX + 3 + 51.2) / 2, UP + 0.5, GZ + 0.15));
+  K.stairs([53, 0, 31], [53, UP, GZ - 0.4], 3);
+  groove([PX, UP, GZ - 1.5], PB, 1.1);
+  add(Ball, { id: 'mB', a: [PX, UP + 0.04, GZ - 1.5], b: [PX, UP + 0.04, PB[2]], r: 1.2, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.9, lock: true });
+  add(Plate, { id: 'pB', at: PB, r: 1.4 });
+  cradle(K, iron, PX, UP, PB[2], 1.5, 5);
+  // its chain up over a pulley and across to the keepers' eye's post
+  const EX = 32, EZ = 38;
+  K.add(iron, T(new THREE.TorusGeometry(0.9, 0.12, 5, 18), [PX, 20, PB[2]], [0, Math.PI / 2, 0]));
+  K.add(iron, box(0.12, 20 - UP - 2.6, 0.12, PX, (20 + UP + 2.6) / 2, PB[2]));
+  bar(K, iron, [PX, 20.2, PB[2]], [EX - 0.6, 20.2, EZ]);
+  K.add(iron, box(0.12, 20.2 - 9.6, 0.12, EX - 0.6, (20.2 + 9.6) / 2, EZ));
+  K.column(EX - 0.6, EZ, 0, 9.6, 0.5, { mat: iron });
+  add(Switch, { id: 'eS', at: [EX, 8.2, EZ], yaw: Math.PI / 2, size: 1.0, lids: true, wrong: 'The keepers’ eye stays lidded. Its chain runs up to an empty pan out on the gallery’s pier.' });
+  // the founders' great scales: a post, a beam, two pans on chains
+  const SCX = 46, SCZ = 33;
+  K.column(SCX, SCZ, 0, UP, 0.6, { mat: iron });
+  K.both(iron, box(0.6, 0.6, 14, SCX, UP + 0.3, SCZ));
   for (const s of [-1, 1]) {
-    K.add(iron, box(0.08, 5, 0.08, WX + s * 6.6, 6.6, 26));
-    K.both(rust, T(new THREE.CylinderGeometry(1.6, 1.2, 0.4, 18), [WX + s * 6.6, 4, 26]));
+    K.add(iron, box(0.08, 7, 0.08, SCX, 7.5, SCZ + s * 6.6));
+    K.both(rust, T(new THREE.CylinderGeometry(1.6, 1.2, 0.4, 18), [SCX, 4, SCZ + s * 6.6]));
   }
-  crackedMoon(WX - 6.6, 4.9, 26, 0.7);
-  add(Mark, { room: 'scales', at: [24, 0, 20], yaw: Math.PI * 0.25 });
+  crackedMoon(SCX, 4.9, SCZ - 6.6, 0.7);
+  add(Mark, { room: 'scales', at: [28, 0, 30], yaw: Math.PI * 0.25 });
   // the corridor between the keepers' door and the hall
-  K.slab(FR + 0.6, FZ - 2.6, 17.4, FZ + 2.6, 0, 0.8);
-  for (const s of [-1, 1]) K.both(M.wall, box(1.4, 6.4, 0.6, 16.0, 3.2, FZ + s * 2.9));
-  K.both(M.wall, box(2.6, 0.8, 6.4, 16.0, 6.8, FZ));
+  K.corridor([FR + 0.7, FZ], [WX0 - 0.6, FZ], 0, DOOR);
 
   // ---- the cold passage under the furnace (the ante), behind the Founders' Door
-  const A0 = FZ + FR + 1.4, A1 = CW - HR - 0.7;
-  K.slab(-3.2, A0, 3.2, A1, 0, 0.8);
-  K.wall(-3.2, A0, -3.2, A1, 0, 6.4, { t: 0.8 }); K.wall(3.2, A1, 3.2, A0, 0, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, A1 - A0, 0, 6.8, (A0 + A1) / 2));
+  K.corridor([0, A0], [0, A1], 0, DOOR);
   // shelves of cooled moons, cracked, along its walls
-  for (let z = A0 + 5; z < A1 - 4; z += 7) for (const s of [-1, 1]) { K.both(iron, box(0.6, 0.15, 3, s * 2.45, 1.6, z)); crackedMoon(s * 2.45, 2.05, z - 0.8, 0.35); crackedMoon(s * 2.45, 2.0, z + 0.7, 0.28); }
+  for (let z = A0 + 5; z < A1 - 4; z += 7) for (const s of [-1, 1]) { K.both(iron, box(0.6, 0.15, 3, s * 3.4, 1.6, z)); crackedMoon(s * 3.35, 2.05, z - 0.8, 0.35); crackedMoon(s * 3.4, 2.0, z + 0.7, 0.28); }
   add(Mark, { room: 'ante', at: [2.0, 0, A0 + 3.5], yaw: -Math.PI / 2 });
-  add(Door, { id: 'dA', at: [0, 0, A1], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the gap it stands in is wider than the door, issue #356)
+  add(Door, { id: 'dA', at: [0, 0, A1], ...DOOR, frame: { side: 1.2 } });   // (frame: the gap it stands in is wider than the door, issue #356)
 
   // ---- the Last Casting (a rotunda): the founder's floor, its casting cradle and the iron moon by the west wall
-  K.rotunda({ x: 0, z: CW, y: 0, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0.3 });
+  K.rotunda({ x: 0, z: CW, y: 0, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, ...DOOR }, { a: 0, ...DOOR }], oculus: 0.3 });
   K.add(M.dark, T(annulus(8.2, 9.2, 0.25, 64), [0, 0.25, CW]));
   K.add(ember, T(annulus(9.2, 9.4, 0.06, 64), [0, 0.27, CW]));
   for (const a of [0.7, 2.0, 4.3, 5.6]) crackedMoon(Math.sin(a) * (HR - 2.2), 1.0, CW + Math.cos(a) * (HR - 2.2), 1.0, true);
@@ -441,13 +480,12 @@ function layout(rt) {
   add(Ball, { id: 'mA', a: [-16.6, 0.04, CW], b: [-9.6, 0.04, CW], r: 1.3, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 1.2 });
   add(Plate, { id: 'pA', at: [-9.6, 0, CW], r: 1.5 });
   cradle(K, iron, -9.6, 0, CW, 1.6, 6);
-  add(Door, { id: 'd5', at: [0, 0, CW + HR + 0.7], w: 5, h: 6 });
-  K.slab(-3.2, CW + HR + 0.6, 3.2, CW + HR + 10, 0, 0.8);
-  K.wall(-3.2, CW + HR + 1.4, -3.2, CW + HR + 10, 0, 7, { t: 0.8 }); K.wall(3.2, CW + HR + 10, 3.2, CW + HR + 1.4, 0, 7, { t: 0.8 });
-  K.wall(3.2, CW + HR + 10, -3.2, CW + HR + 10, 0, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, 7.4, CW + HR + 5.7));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 0, CW + HR + 10.5]));
-  K.solid(box(4, 5, 0.1, 0, 2.5, CW + HR + 10.5));
+  const XZ = CW + HR + 10;
+  add(Door, { id: 'd5', at: [0, 0, CW + HR + 0.7], ...DOOR, frame: { side: 1.2 } });
+  K.corridor([0, CW + HR + 0.6], [0, XZ], 0, DOOR);
+  K.wall(4.6, XZ, -4.6, XZ, 0, DOOR.h, { t: 0.8, holes: [{ at: 4.6, w: 3.4, h: 5 }] });
+  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 0, XZ + 0.5]));
+  K.solid(box(4, 5, 0.1, 0, 2.5, XZ + 0.5));
 
   const model = founderModel();
   model.pos.copy(K.world(0, 0, CW + 4));
@@ -462,11 +500,11 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-41, -4, -3), V(44, 34, CW + HR + 12)),
-    gadget: { at: W(SX, 9.62, TZ).toArray(), face: K.heading(Math.PI) },
+    bounds: new THREE.Box3(V(MX - MW / 2 - 2, -4, SAND.z - SAND.d / 2 - 2), V(WX1 + 2, UP + 24, CW + HR + 12)),
+    gadget: { at: W(SX, UP + 0.62, TZ).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 0.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 8, FZ, 20], [MX, 7, FZ, 16], [SAND.x, 6, SAND.z, 11], [SX, 10, 46, 16], [SX, 14, TZ, 16], [-3.7, 13, TZ, 12], [8, 14, TZ, 20], [28, 14, TZ, 18], [18, 4, TZ, 14],
-      [WX, 10, WZ, 24], [0, 4, 65, 18], [0, 12, CW, 30]],
+    lights: [[0, 6, 6, 12], [0, 10, FZ, 28], [MX, 9, FZ, 26], [SAND.x, 8, SAND.z, 24], [SX, 12, S0 + 9, 18], [SX, UP + 6, TZ, 24], [3, UP + 6, TZ, 22], [FXc, UP + 7, TZ, 30], [28, UP + 6, TZ, 22], [13, UP - 6, TZ, 18],
+      [WX, 12, WZ, 32], [0, 4, 80, 30], [0, 12, CW, 30]],
     guardian: { def: { ...LAST_FOUNDER, onHit: founderHit, openFor: founderOpenFor }, model, arena },
   };
 }
