@@ -6,6 +6,7 @@ import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Platform, Bridge, Pillars, EchoStone, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { signModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { undertowerSkin } from './skins/undertower.js';
 
 // The Signal Market's temple: the Undertower, the foundations of the silent
 // tower, "here before the market". The makers built the first sign of all
@@ -404,8 +405,9 @@ function choir(rt, K, M, { cable, dish, stand }) {
 function layout(rt) {
   const K = rt.kit, M = rt.M, D = DOOR, R0 = ROOMS;
   const add = (P, o) => rt.add(P, o);
-  const brass = { paint: new THREE.Color('#c99758'), smooth: false, side: THREE.FrontSide };
-  const cream = { paint: new THREE.Color('#f5dfab'), smooth: true, side: THREE.DoubleSide };
+  // (in the house's futuristic skin, src/temples/skins/undertower.js: the dishes on the walls polished brass)
+  const brass = rt.skin?.mats.brass ?? { paint: new THREE.Color('#c99758'), smooth: false, side: THREE.FrontSide };
+  const cream = rt.skin?.mats.brass ?? { paint: new THREE.Color('#f5dfab'), smooth: true, side: THREE.DoubleSide };
   // the market's signs, far overhead, their light through slots in the gallery's roof
   const signCoral = makeMaterial({ color: '#f0a083', glow: 0.85, flat: true, key: 'temple.bazaar.slotCoral' });
   const signTeal = makeMaterial({ color: '#7fd6cf', glow: 0.85, flat: true, key: 'temple.bazaar.slotTeal' });
@@ -419,7 +421,7 @@ function layout(rt) {
   /** A run of old cable along the floor (from a to b, sagging a little). */
   const cable = (a, b, r = 0.18) => { const m = [(a[0] + b[0]) / 2, Math.min(a[1], b[1]) + 0.05, (a[2] + b[2]) / 2]; K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(...a), V(...m), V(...b)]), 16, r, 5)); };
   /** A stone stand for a dish in the middle of a floor (they hung on the walls before issue #336): from y, h high. */
-  const stand = (x, z, y, h) => { K.both(M.trim, box(1.1, 0.4, 1.1, x, y + 0.2, z)); K.both(M.wall, box(0.6, h - 0.4, 0.6, x, y + 0.4 + (h - 0.4) / 2, z)); };
+  const stand = (x, z, y, h) => { K.both(M.trim, box(1.1, 0.4, 1.1, x, y + 0.2, z)); K.both(M.wall, box(0.6, h - 0.4, 0.6, x, y + 0.4 + (h - 0.4) / 2, z)); rt.skinStands?.push({ x, z, y, h }); };   // (the skin dresses it: rt.skinStands)
   /** A square pier of stone under a floor in the air (or a horn's), from y up h, w across. */
   const pier = (x, z, y, h, w = 1.1) => K.both(M.wall, box(w, h, w, x, y + h / 2, z));
   const hall = (r, o = {}) => { const [x, z] = mid(r); return K.hall({ x, z, w: r.x1 - r.x0, d: r.z1 - r.z0, y: r.y, h: r.top - r.y, roof: 'oculus', ...o }); };
@@ -447,6 +449,7 @@ function layout(rt) {
   K.both(M.dark, box(DI.x1 - DI.x0, 1, DI.pit, 0, DI.y - 0.5, (P0 + P1) / 2));
   for (let i = 0; i < 9; i++) cable([-14 + i * 3.4, DI.y + 0.1, P0 + 1.2], [-13 + i * 3.2, DI.y + 0.1, P1 - 1.2], 0.3);   // the pit full of the makers' old cable
   add(Pit, { room: 'dishes', min: [DI.x0 - 1, -10, P0], max: [DI.x1 + 1, -2, P1] });
+  rt.skinPits?.push({ x0: DI.x0, x1: DI.x1, hz0: DI.z0, hz1: DI.z1, z0: P0, z1: P1, y: DI.y, floor: DI.floor });   // (the skin fills it with cable)
   const BZ = P0 - 4.2;   // (the ball's groove 13 m long across the near landing, 4 m back from the pit)
   K.add(M.dark, box(13.6, 0.04, 1.0, 0, 0.02, BZ));
   add(Ball, { id: 'ball1', a: [6.5, 0.04, BZ], b: [-6.5, 0.04, BZ], r: 1.1, sings: 'mid' });
@@ -529,6 +532,7 @@ function layout(rt) {
   K.slab(GA.x0, Q1, GA.x1, GA.z1, 12, 18);
   K.both(M.dark, box(GA.x1 - GA.x0, 1, GA.pit, 0, GA.y - 0.4, (Q0 + Q1) / 2));
   add(Pit, { room: 'gallery', min: [GA.x0 - 1, -8, Q0], max: [GA.x1 + 1, 8, Q1] });
+  rt.skinPits?.push({ x0: GA.x0, x1: GA.x1, hz0: GA.z0, hz1: GA.z1, z0: Q0, z1: Q1, y: GA.y, floor: GA.floor });
   add(Pillars, { a: [0, 12, Q0 - 0.1], b: [0, 12, Q1 + 0.1], w: 4, n: 8, pillar: 12, note: 'high', hold: HOLD.pillar, reach: HOLD.reach,
     heard: 'The pillars nearest you hear the high note and rise out of the dark. Further on, they wait to hear it too: play it again as you go.' });
   /** A stepped plinth (two blocks) with a singing egg on it. */
@@ -595,7 +599,7 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 12, X1 + 0.5]));
   K.solid(box(4, 5, 0.1, 0, 14.5, X1 + 0.5));
 
-  const model = signModel();
+  const model = signModel(rt.skin?.sign);   // (its colours the skin's: a brass mast, a brass dish, coral lamps)
   model.pos.copy(K.world(0, 12, CW + 3));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
@@ -709,6 +713,8 @@ export const BAZAAR_TEMPLE = {
   origin: [-200, 1600, -520], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // its futuristic look inside (issue #342): src/temples/skins/undertower.js
+  skin: undertowerSkin,
   local: { person: 'hobb', out: 6, side: 6 },
   enterLine: 'Under the silent tower it is cold and dry and very old. Somewhere far down, a voice says one word, and waits, and says it again.',
   pitLine: 'You climb back up out of the cables, to the last glyph stone.',

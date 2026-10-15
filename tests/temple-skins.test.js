@@ -764,3 +764,85 @@ test('the Casting-House’s frames and rings keep off its doorways and the moons
   for (let i = 0; i < 40; i++) cr.update(0.1, i * 0.1);
   assert.ok(u.value > cold + 0.2, `lit ${u.value.toFixed(2)} over cold ${cold.toFixed(2)}`);
 });
+
+// ---- the Undertower in its futuristic skin (src/temples/skins/undertower.js, after
+// references/temples/future/undertower/sheet-1.jpg and sheet-2.jpg); its own names (ut*), beside the other houses' tests
+const { undertowerSkin: utSkin, UNDERTOWER_SKIN: UT } = await import('../src/temples/skins/undertower.js');
+const { Dish: UtDish, EchoEar: UtEar, Door: UtDoor } = await import('../src/temples/pieces.js');
+const utBuild = (noSkin) => quietly(() => {
+  const def = { ...TEMPLES.bazaar.def, exterior: null, change: null };
+  const was = TempleRuntime.prototype.noSkin;
+  TempleRuntime.prototype.noSkin = noSkin;
+  try { return new TempleRuntime({ scene: new THREE.Scene(), level: { lights: [] }, def, game: new GameState(null) }); } finally { TempleRuntime.prototype.noSkin = was; }
+});
+let utBuilt = null;
+const utHouse = () => (utBuilt ??= utBuild(false));
+const utDressing = (rt) => rt.kit.group.children.filter((m) => m.userData.skin);
+
+test('the Undertower wears its futuristic skin: slate panels and coral circuits, brass, bronze, cable in its pits', () => {
+  const rt = utHouse();
+  assert.equal(TEMPLES.bazaar.def.skin, utSkin);
+  assert.equal(rt.skin?.name, 'undertower');
+  for (const k of ['wall', 'wallGlyph', 'floor', 'cable']) {
+    const m = rt.skin.mats[k];
+    assert.ok(m.userData.houseSkin && m.fragmentShader.includes('float emit = utGlow;') && m.fragmentShader.includes('float detail = utInkV;'), `its ${k}: the skin's panels, seams and lit lines`);
+  }
+  assert.equal(rt.skin.mats.wall.uniforms.uUtRoundN.value, 3, 'its three round halls handed to the shader');
+  // the lights crisp (just over the post's halo start), out of the shadow passes
+  assert.ok(UT.emit >= 0.68 && UT.emit <= 0.8 && rt.skin.mats.glow.uniforms.uGlow.value >= 0.68 && rt.skin.mats.glow.uniforms.uGlow.value <= 0.8);
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'floor', 'glyph', 'brass']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in the skin's ${k}`);
+  assert.equal('#' + rt.skin.mats.trim.paint.getHexString(), new THREE.Color(UT.trim).getHexString().replace(/^/, '#'), 'its frames a dark slate paint (in the kit’s paint mesh: no draw of their own)');
+  for (const m of rt.kit.group.children) if (m.material === rt.skin.mats.glyph || m.material === rt.skin.mats.slot) assert.ok(!m.castShadow && m.userData.castShadow === false, 'its glyphs and slits cast no shadow');
+  assert.ok(!rt.M.wall.userData.houseSkin && !rt.M.floor.userData.houseSkin && rt.M.trimMat !== rt.skin.mats.brass, 'rt.M the house’s own again, for its exterior');
+  assert.equal(rt.kit.plan, null);
+  // the dishes and horns in brass, the balls and eggs bronze (their notes' rings their own)
+  for (const p of rt.pieces.filter((q) => q instanceof UtDish || q instanceof UtEar)) {
+    const mats = new Set();
+    for (const g of p.group ? [p.group] : p.ends.map((e) => e.g)) g.traverse((o) => o.isMesh && mats.add(o.material));
+    assert.ok(mats.has(rt.skin.mats.brass) && !mats.has(p.cream), `${p.id ?? p.constructor.name} in the skin's brass`);
+    assert.ok(p.glow && mats.has(p.glow), 'its light its own');
+  }
+  const ball = rt.piece('ball1'), bm = new Set(); ball.group.traverse((o) => o.isMesh && bm.add(o.material));
+  assert.ok(bm.has(rt.skin.mats.bronze) && bm.has(ball.glow), 'the singing ball bronze, its rings its note’s');
+  const s = rt.skin.stats;
+  assert.ok(s.slabs >= 12 && s.stands >= 7 && s.lines >= 4 && s.cables === 2 * UT.cables.n, JSON.stringify(s));
+  assert.ok(utDressing(rt).length <= 5, `a handful of draws (${utDressing(rt).length})`);
+});
+
+test('the Undertower’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const a = utHouse(), b = utBuild(true);
+  assert.equal(b.skin, null);
+  assert.equal(utDressing(b).length, 0);
+  assert.deepEqual(solids(a), solids(b), 'collision and climbs vertex for vertex');
+  const own = a.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, b.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = b.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+  });
+  for (const m of utDressing(a)) assert.ok(m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false && !m.castShadow, `${m.name} drawn only`);
+});
+
+test('the Undertower’s dressing keeps out of every doorway, and the lighter presets hide its finest', () => {
+  const rt = utHouse(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(), m4 = new THREE.Matrix4();
+  const doors = rt.pieces.filter((d) => d instanceof UtDoor).map((d) => ({ at: rt.kit.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
+  assert.ok(doors.length >= 8);
+  for (const m of utDressing(rt).filter((x) => x.isInstancedMesh || x.userData.places)) for (let i = 0; i < (m.isInstancedMesh ? m.count : m.userData.places.length); i++) {
+    if (m.isInstancedMesh) m.getMatrixAt(i, m4); else m4.copy(m.userData.places[i]);
+    m4.decompose(p, q, s);
+    const l = rt.kit.local(p);
+    for (const d of doors) assert.ok(!(Math.hypot(l.x - d.at.x, l.z - d.at.z) < d.w / 2 + 0.6 && l.y > d.at.y - 0.5 && l.y < d.at.y + d.h), `${m.name} #${i} in a doorway at ${l.toArray().map((v) => v.toFixed(1))}`);
+  }
+  const fine = utDressing(rt).filter((m) => m.userData.skinFine), life = rt.pieces.find((x) => x.constructor.name === 'SkinLife'), was = wShared.uWearLite.value;
+  assert.ok(fine.length >= 1 && life);
+  try {
+    wShared.uWearLite.value = 1; life.update(0, 0);
+    assert.ok(fine.every((m) => !m.visible), 'hidden on Low');
+    wShared.uWearLite.value = 0; life.update(0, 0);
+    assert.ok(fine.every((m) => m.visible), 'shown on High');
+  } finally { wShared.uWearLite.value = was; }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the chamfers and the finer lines off on the lighter presets');
+});

@@ -1464,6 +1464,44 @@ After `references/temples/future/lamp-house/sheet-1.jpg`: a near-black hall wher
   shared-code change for every house), the pieces' own shapes. Cost (9 views, this Mac): +15 calls on High on
   average (+11 to +30), +9 on Low, triangles a little fewer, 60 fps held. `tests/temple-skins.test.js`.
 
+### The Undertower (`skins/undertower.js`)
+
+After `references/temples/future/undertower/sheet-1.jpg` and `sheet-2.jpg`: a hall of dark blue-grey slate, brass dishes
+facing each other across a cable pit, bronze spheres, coral circuits, the First Sign a mast with a listening dish.
+
+- **Surfaces** (the surface shader's albedo, pen lines and `emit` replaced, as `landmark-materials.js` `stone()`
+  does; `UNDERTOWER_SKIN`, values sampled from the sheets): the walls tall slate panels (2.6 by 9 m, each column's
+  joints set off its own way, half the joints left out: few, tall slabs), a lit and a shaded chamfer, inked seams,
+  hatching cut to 0.15; floors and ceilings 3.2 by 2.2 m plates. Thin coral lines (2.6 to 3.4 cm, never under a
+  pixel) rise up the walls from the floor with a 45° jog to a ring lens and run along the floor plates' seams with 45°
+  jogs to lensed ends; they pulse slowly and emit at 0.76 (just over the post's 0.62 halo start: crisp). The round
+  halls go to the shader (`uUtRound`), so their panels run round them.
+- **The house's own:** frames and courses dark slate paints (in the kit's paint mesh: no draw of their own), the
+  frieze's slots thin coral slits, the glyphs coral; `M.trimMat` brass and `M.stoneMat` bronze while the layout runs,
+  so the fittings are brass and the singing balls and eggs bronze (their rings keep their notes' colours); the dishes'
+  cream bowls and the horns brass after it, the dishes' lenses coral; the dishes on the walls brass (`bazaar.js` reads
+  `rt.skin.mats.brass`); the First Sign in `rt.skin.sign`'s colours (a brass mast and dish, coral lamps:
+  `signModel(colours)`). Its own light (`rt.skin.light`): a clear slate-blue shade instead of the house's deep violet.
+  Brass and bronze smooth-shaded with a low reflection (the flat-shaded bowls broke into stripes).
+- **Dressing**, drawn only (5 meshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes): paler slate
+  monoliths with a coral slit and a lens along the big halls' walls (on the landings in a pit's hall: `rt.skinPits`)
+  and between the round halls' stones (instanced); brass collars round the dishes' stands (`rt.skinStands`, recorded
+  by `bazaar.js stand()`), coral lines up their stems and out across the floor to a lens where the floor is clear of
+  grooves, plates and pieces; 46 cables in each cable pit, out of its walls, along its floor and up the far wall, kept
+  off the pillars' line, coral sparks drifting along them (the `cable` body). The lights are baked into two meshes (the
+  finest, on the floor, hidden on the lighter presets).
+- **Lighter presets** (`uWearLite`): no chamfers, no floor's second set of lines or walls' foot lines, the floor lines
+  from the stands and their lenses hidden.
+- Not changed: the makers' glyph (three dots over an arc) is the shared `glyphGeometry`, on the doors, the friezes, the
+  glyph stones and the eggs, as in every house; the pieces' notes' colours; the rooms, collision, pieces and logic.
+- **Unlike the pictures:** the monoliths stand straight (the drawings' walls lean and step); the pit is darker (the
+  rooms' lamps light the floors in pools); the stepping plates are the house's own pillars; the floors' coral lines are
+  finer than drawn and fade at a distance.
+- Cost (1280 × 720, this Mac, six rooms, skin off → on): the dressing 5 draws on High, 4 on Low; whole frames within
+  the counts' spread (-7 to +22 on High, -13 to +4 on Low); fewer triangles (the glyphs leave the shadow passes); frame
+  time no worse (High 2.9 to 4.1 ms → 2.9 to 3.4, Low 1.8 to 2.1 → 1.7 to 1.8, the quiet runs). Dressing ~25–100 ms
+  to build. `tests/temple-skins.test.js`.
+
 
 ## Landmarks seen from the approach (14 October 2026)
 

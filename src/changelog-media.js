@@ -1007,9 +1007,46 @@ const FUTURE342E_NUMBERS = [
 const LAMP342 = 'Issue #342: muted headless Chrome (High, 1280 × 720, noon, clear, the lantern carried and the first pool lit) against this branch’s own Vite (port 6504), the camera pinned at the same place in each room, main before the skin and this branch after, 15 October; cwebp -q 72';
 const LAMP342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, the same pinned camera in 9 rooms (the Threshold, the Hall of Dark Pools twice, the Root Stair, the Lantern Chamber, the Dark Gallery, the Wick Room, the Kennel, the Lamp-Room), the median of 240 frames each, the skin off (?noskin=1) and on in two loads each; the machine shared with other work (load 18–25)';
 const LAMP342_SOURCE = 'issue #342 scratchpad future-lamp: capture.mjs QC_MEASURE (m-high-off, m-high-on3, m-low-off, m-low-on); draw calls and triangles from renderer.info, every pass of a frame';
+/** (v1.78, issue #342: the Undertower's futuristic skin, shot with and without it, the same pinned camera) */
+const UNDER342 = 'Issue #342: muted headless Chrome (High, 1280 × 720, 11:00, clear) against this branch’s own Vite (port 6507), the camera pinned at the same place in each room, the house before its skin (before) and in it (after), 15 October; cwebp -q 72';
+const UNDER342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, the camera pinned, renderFrame’s wall time (the median of three runs of 20) and frameStats over 10 frames; the house with ?noskin=1 and in its skin, one load each, back to back; the machine shared with other agents (load 16 to 30)';
 export const CHANGELOG_MEDIA = {
   '1.78': [
     { match: 'The makers now sign their work', see: 'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
+    { match: 'Inside, the Undertower looks like the makers’ high technology now', tags: ['bazaar', 'temples'], shots: [
+      { name: 'future-undertower-dishes', title: 'The Hall of Dishes', caption: 'Across the cable pit to the far landing: before, blue blocks in courses and cream dishes; after, tall slate panels with paler monoliths, coral circuits rising up the walls to their lenses and running through the floor plates, the dishes and horns polished brass on brass-collared stands, the singing ball bronze', from: UNDER342,
+        reference: { sheet: 'references/temples/future/undertower/sheet-1.jpg', caption: 'The author’s pick: the brass dishes facing each other across the cable pit, the three spheres, the stepping plates and the First Sign (the reference lab, 15 October)' } },
+      { name: 'future-undertower-pit', title: 'The cable pit', caption: 'Down into the Hall of Dishes’ pit: before, a few dark cables on its floor; after, bundles of cable out of its walls and along its floor, coral sparks drifting along them', from: UNDER342 },
+      { name: 'future-undertower-tune', title: 'The Tuning Room', caption: 'The pair of dishes and the stones: slate panels, the circuits and their lenses, the dishes and the horn brass, the stones bronze with their notes’ rings', from: UNDER342 },
+      { name: 'future-undertower-gallery', title: 'The Gallery of Voices', caption: 'The three singing eggs bronze on their plinths, the dish brass, slate walls and coral lines, the market’s light in the roof’s slots', from: UNDER342,
+        reference: { sheet: 'references/temples/future/undertower/sheet-2.jpg', caption: 'The author’s second pick: the dishes on their stems with coral lines into the floor, the spheres in their cups, the plates over the pit (the reference lab, 15 October)' } },
+      { name: 'future-undertower-listen', title: 'The Listening Passage', caption: 'The ball’s groove to the horn: slate panels and monoliths with a coral slit and lens, the floor’s coral lines', from: UNDER342 },
+      { name: 'future-undertower-hall', title: 'The First Sign’s Hall', caption: 'The guardian: before, a pale blue mast with a cream dish; after, a brass mast on three legs with its brass listening dish and coral lamps, the round hall in slate panels, the dishes round its wall brass', from: UNDER342 },
+    ], numbers: [
+      { title: 'The Undertower with and without its skin: draw calls (High)', unit: 'draws', better: 'lower', device: UNDER342_DEVICE, rows: [
+        { where: 'the Hall of Dishes', before: 614, after: 636 },
+        { where: 'the Cable Well', before: 389, after: 406 },
+        { where: 'the Tuning Room', before: 168, after: 161 },
+        { where: 'the Shell Chamber', before: 301, after: 306 },
+        { where: 'the Gallery of Voices', before: 245, after: 257 },
+        { where: 'the First Sign’s Hall', before: 141, after: 138 },
+      ], source: 'the scratchpad’s shots.mjs', note: 'The dressing itself is 5 draws (4 on Low): the same frame with its meshes hidden. The rest is the counts’ own spread from one load to the next (the same view without the skin read 240 and 252 in two loads).' },
+      { title: 'Triangles (High, thousands)', unit: 'k', better: 'lower', device: UNDER342_DEVICE, rows: [
+        { where: 'the Hall of Dishes', before: 495, after: 487 },
+        { where: 'the Cable Well', before: 393, after: 368 },
+        { where: 'the Gallery of Voices', before: 296, after: 285 },
+        { where: 'the First Sign’s Hall', before: 198, after: 188 },
+      ], source: 'the scratchpad’s shots.mjs', note: 'Fewer with the skin: its glyphs and slits leave the shadow passes.' },
+      { title: 'Frame time with and without the skin', unit: 'ms', better: 'lower', device: UNDER342_DEVICE, rows: [
+        { where: 'High, the Tuning Room', before: 4.08, after: 3.08 },
+        { where: 'High, the Shell Chamber', before: 3.7, after: 3.36 },
+        { where: 'High, the Gallery of Voices', before: 3.28, after: 3.2 },
+        { where: 'High, the First Sign’s Hall', before: 2.99, after: 2.86 },
+        { where: 'Low, the Shell Chamber', before: 2.08, after: 1.81 },
+        { where: 'Low, the Gallery of Voices', before: 1.97, after: 1.68 },
+        { where: 'Low, the First Sign’s Hall', before: 1.77, after: 1.8 },
+      ], source: 'the scratchpad’s shots.mjs', note: 'The machine was shared: read these as no worse, not as faster.' },
+    ] },
     { match: 'In the Sunken Hall, B / ○ rolls and jumping is disabled', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × or Space: he stays on the floor. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The touch controls and start card offer no jump. Leave the hall to jump normally again.' },
     { match: 'On the Steam Deck every world runs 2 to 7 frames a second smoother', tags: ['perf', 'devices'], numbers: [
       { title: 'Frames a second on the Steam Deck at native resolution (the median of each world’s views)', unit: 'fps', better: 'higher', device: DECK111, source: DECK111_SOURCE, rows: [

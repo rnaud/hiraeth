@@ -42,6 +42,9 @@ export const CHANGELOG = [
     // the Casting-House's futuristic skin (issue #342): src/temples/skins/casting-house.js (`skin: castingHouseSkin` in
     // moonfoundry.js); tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins: the Casting-House"
     'Inside, the Casting-House is the founders’ old high technology now, after the drawings picked for it: tall round halls of dark iron-brown slate in big slabs, thin ivory circuits running round the foot of every wall and climbing it in steps to small lens lights, warm brown floors with ivory rings inlaid, and the cracked moon hanging in a floating ring of dark metal with nothing holding it. The pilot flames burn inside floating machined rings, every sealed door stands in a heavy frame with a lit line round it and a glowing seam down its middle, the hooded cradles are machined cups of dark metal with the makers’ sign lit over the fire, and through a grating in the Pouring Floor the Last Founder’s furnace glows far below. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the walls are plainer.',
+    // the Undertower's futuristic skin (issue #342): src/temples/skins/undertower.js, bazaar.js (skin, rt.skinStands,
+    // rt.skinPits, the First Sign's colours); tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins"
+    'Inside, the Undertower looks like the makers’ high technology now: tall panels of dark blue-grey slate with thin coral circuits glowing in the walls and floors, polished brass dishes and horns on brass-collared stands, bronze singing balls and eggs, the cable pits full of bundled cable with coral sparks running through it, and the First Sign a brass mast with its listening dish.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in
