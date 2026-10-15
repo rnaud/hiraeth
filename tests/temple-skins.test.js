@@ -174,3 +174,78 @@ test('the Rose House’s skin adds no collision and moves nothing: its solids, c
     }
   }
 });
+
+// ---- the Whale-House in its futuristic skin (src/temples/skins/whale-house.js); its own names (wh*), beside the other
+// houses' tests in this file
+const whTHREE = await import('three');
+const { TEMPLES: whTEMPLES } = await import('../src/temples/index.js');
+const { TempleRuntime: WhRuntime } = await import('../src/temples/runtime.js');
+const { GameState: WhGame } = await import('../src/game-state.js');
+const { sharedUniforms: whShared } = await import('../src/materials.js');
+const { Door: WhDoor } = await import('../src/temples/pieces.js');
+const whBuild = (skin = true) => {
+  if (!skin) WhRuntime.prototype.noSkin = true;
+  try { return new WhRuntime({ scene: new whTHREE.Scene(), level: { lights: [] }, def: whTEMPLES.underwater.def, game: new WhGame(null) }); }
+  finally { delete WhRuntime.prototype.noSkin; }
+};
+let whBuilt = null;
+const whHouse = () => (whBuilt ??= whBuild());
+const whDressing = (rt) => rt.kit.group.children.filter((m) => m.userData.skin);
+
+test('the Whale-House wears its skin: slate and lit lines on its surfaces, its machined dressing drawn', () => {
+  const rt = whHouse();
+  assert.equal(rt.skin?.name, 'whale-house');
+  for (const k of ['wall', 'wallGlyph', 'floor']) {
+    const m = rt.skin.mats[k];
+    assert.ok(m.userData.houseSkin && m.fragmentShader.includes('float emit = whGlow;') && m.fragmentShader.includes('float detail = whInkV;'), `its ${k}: the skin's slabs, seams and lit lines`);
+  }
+  assert.equal(rt.skin.mats.wall.uniforms.uWhRoundN.value, 2, 'its two round halls handed to the shader');
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'floor', 'trim', 'orb', 'ring', 'sea']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in the skin's ${k}`);
+  assert.ok(!rt.M.wall.userData.houseSkin && !rt.M.floor.userData.houseSkin && rt.M.ornament.kind === 'whorl', 'rt.M the house’s own again, for its exterior');
+  assert.equal(rt.kit.plan, null);
+  const s = rt.skin.stats;
+  assert.ok(s.horns >= 20 && s.slabs >= 12 && s.lenses >= s.horns, JSON.stringify(s));
+  assert.ok(whDressing(rt).length <= 6, 'a handful of draws');
+});
+
+test('the Whale-House’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const a = whHouse(), b = whBuild(false);
+  assert.equal(b.skin, null);
+  assert.equal(whDressing(b).length, 0);
+  const verts = (m) => Array.from(m.geometry.attributes.position.array, (v) => Math.round(v * 1000));
+  for (const end of [' collision', ' climbs']) {
+    const ma = a.kit.group.children.find((m) => m.name.endsWith(end)), mb = b.kit.group.children.find((m) => m.name.endsWith(end));
+    assert.ok(ma && mb, `its${end}`);
+    assert.deepEqual(verts(ma), verts(mb), `its${end} the same, vertex for vertex`);
+  }
+  const own = a.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, b.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = b.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+  });
+  for (const m of whDressing(a)) assert.ok(m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false, `${m.name} drawn only`);
+});
+
+test('the Whale-House’s dressing keeps out of every doorway, and the lighter presets hide its finest', () => {
+  const rt = whHouse(), p = new whTHREE.Vector3(), q = new whTHREE.Quaternion(), s = new whTHREE.Vector3(), m4 = new whTHREE.Matrix4();
+  const doors = rt.pieces.filter((d) => d instanceof WhDoor).map((d) => ({ at: rt.kit.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
+  assert.ok(doors.length >= 8);
+  for (const m of whDressing(rt)) for (let i = 0; i < m.count; i++) {
+    m.getMatrixAt(i, m4); m4.decompose(p, q, s);
+    const l = rt.kit.local(p);
+    for (const d of doors) assert.ok(!(Math.hypot(l.x - d.at.x, l.z - d.at.z) < d.w / 2 + 0.6 && l.y > d.at.y - 0.5 && l.y < d.at.y + d.h), `${m.name} #${i} in a doorway at ${l.toArray().map((v) => v.toFixed(1))}`);
+  }
+  const fine = whDressing(rt).filter((m) => m.userData.skinFine), life = rt.pieces.find((x) => x.constructor.name === 'SkinLife'), was = whShared.uWearLite.value;
+  assert.ok(fine.length >= 1 && life);
+  try {
+    whShared.uWearLite.value = 1; life.update(0, 0);
+    assert.ok(fine.every((m) => !m.visible), 'hidden on Low');
+    whShared.uWearLite.value = 0; life.update(0, 0);
+    assert.ok(fine.every((m) => m.visible), 'shown on High');
+  } finally { whShared.uWearLite.value = was; }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the chamfers and the finer lines off on the lighter presets');
+});

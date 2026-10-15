@@ -900,6 +900,8 @@ const FUTURE342_WELL_NUMBERS = [
   { title: 'The Warden’s Well: draw calls a frame', unit: 'calls', better: 'lower', device: FUTURE342_WELL_DEVICE, rows: [{ where: 'High', before: 318.4, after: 315.4 }, { where: 'Low', before: 329.1, after: 335.3 }], source: FUTURE342_WELL_SOURCE },
   { title: 'The Warden’s Well: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342_WELL_DEVICE, rows: [{ where: 'High', before: 726, after: 637 }, { where: 'Low', before: 716, after: 639 }], source: FUTURE342_WELL_SOURCE },
 ];
+/** (v1.77, issue #342: the Whale-House in its futuristic skin, the same page load's views with and without it) */
+const WHALE342 = 'Issue #342: muted headless Chrome (High, 1280 × 720, 11:00, clear) against this branch’s own Vite (port 6464), the camera pinned at the same place in each room, the house built with ?noskin=1 (before) and in its skin (after), 15 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'Inside, the Warden’s Well is a shaft of the makers’ old high technology', tags: ['shaft', 'perf'], shots: [
@@ -1080,6 +1082,33 @@ export const CHANGELOG_MEDIA = {
     ], numbers: [
       { title: 'Draw calls in the Rose House', unit: 'calls', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720', rows: ROSE342_CALLS, source: ROSE342 },
       { title: 'Frame time in the Rose House', unit: 'ms', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720, uncapped', rows: ROSE342_FRAME, source: ROSE342, note: 'The median of 3 s at each view, with and without the skin (?noskin=1) in one run; the machine was busy with other builds, so a millisecond or two either way is noise.' },
+    ] },
+    { match: 'Inside, the Whale-House looks like the makers’ high-tech sounding-house', tags: ['underwater'], shots: [
+      { name: 'future-whale-tank', title: 'The Tank Hall', caption: 'The great window: before, ivory stone, a coral course and pale glass; after, dark slate, the glass a deep sea with shafts of light and a whale far out behind dark mullions in a heavy frame, the horn terminals under their shelf of brass dishes along the far wall', from: WHALE342,
+        reference: { sheet: 'references/temples/future/whale-house/sheet-1.jpg', caption: 'The author’s pick: the hall of slate, the window on the sea, the dish and the horn terminals (the reference lab, 15 October)' } },
+      { name: 'future-whale-hall', title: 'The Sounding Hall', caption: 'Before, ivory blocks under a coral course; after, tall dark slate slabs with chamfered edges, dark metal frames, lit circuits up the walls to their lenses, the hung shell dark metal with brass bands, the pillar’s band and the floor ring glowing', from: WHALE342,
+        reference: { sheet: 'references/temples/future/whale-house/sheet-2.jpg', caption: 'The author’s second pick: the long hall, the horn terminals down the wall, the window beside the dish (the reference lab, 15 October)' } },
+      { name: 'future-whale-pool', title: 'The Pool Room', caption: 'The glass on the sea: before, pale panes; after, the deep sea behind dark mullions in a heavy frame with its lit lines, circuits up the slate walls to their lenses', from: WHALE342 },
+      { name: 'future-whale-horn', title: 'The Horn Chamber', caption: 'Round the chest’s pulpit: the round wall in tall slabs, its circuits and lenses, the shells dark metal with brass bands, a listening slab', from: WHALE342 },
+      { name: 'future-whale-landing', title: 'The keepers’ landing', caption: 'Before, ivory walls; after, dark slate, a row of big brass horn terminals under a shelf of brass dishes, a lit circuit down to each, the floor’s lines jogging at 45°', from: WHALE342 },
+      { name: 'future-whale-arena', title: 'The Listener’s Hall', caption: 'The guardian’s round hall in slate, its pool ring glowing, listening slabs between the dishes', from: WHALE342 },
+    ], numbers: [
+      { title: 'The Whale-House with and without its skin: draw calls in six of its rooms (High)', unit: 'draws', better: 'lower', device: 'this Mac, muted headless Chrome (Metal), High, 1280 × 720, the camera pinned', rows: [
+        { where: 'the Sounding Hall', before: 354, after: 355 },
+        { where: 'the Pool Room', before: 200, after: 201 },
+        { where: 'the Horn Chamber', before: 263, after: 273 },
+        { where: 'the Tank Hall', before: 253, after: 257 },
+        { where: 'the keepers’ landing', before: 185, after: 192 },
+        { where: 'the Listener’s Hall', before: 167, after: 160 },
+      ], source: 'the scratchpad’s shots.mjs (frameStats over 10 frames); triangles fewer with the skin (the Sounding Hall 638k → 479k: the friezes’ little shells were heavier than the lenses); on Low −14 to +1 calls' },
+      { title: 'Frame time with and without the skin, the same six rooms', unit: 'ms', better: 'lower', device: 'this Mac, muted headless Chrome (Metal), 1280 × 720, the camera pinned, renderFrame’s wall time (median of three runs of 20)', rows: [
+        { where: 'High, the Sounding Hall', before: 3.24, after: 2.67 },
+        { where: 'High, the Tank Hall', before: 3.31, after: 2.8 },
+        { where: 'High, the Horn Chamber', before: 3.67, after: 3.08 },
+        { where: 'Low, the Sounding Hall', before: 2.63, after: 1.96 },
+        { where: 'Low, the Tank Hall', before: 2.5, after: 1.9 },
+        { where: 'Low, the Horn Chamber', before: 2.11, after: 1.99 },
+      ], source: 'the scratchpad’s shots.mjs, the skin first then ?noskin=1, back to back', note: 'The machine was shared (load 9–15): read these as no worse, not as faster.' },
     ] },
   ],
   '1.76': [

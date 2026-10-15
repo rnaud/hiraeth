@@ -112,6 +112,9 @@ export const CHANGELOG = [
     // the Rose House's futuristic skin (issue #342): src/temples/skins/rose-house.js (desert.js `skin`), the author's picks
     // references/temples/future/rose-house; tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins: the Rose House"
     'The Rose House looks like the Givers’ high technology now, after the drawings you picked: its halls are built of great slabs of dark slate with chamfered edges and rose sand in their joints, on pale floor plates, and thin circuits run up the walls and across the floor, most of them dark, some glowing ember orange. Slate obelisks stand in the corners of the great halls, thin plates float under the ceilings, a ring floats over each of the Givers’ flames, and a spout slab with their sign hangs over the dry cistern, its basin in stepped rings. Its braziers are slate obelisks whose circuits light up with the fire, and the Givers’ sign is drawn as a long low arch under three small dots.',
+    // the Whale-House's futuristic skin (issue #342): src/temples/skins/whale-house.js, underwater.js (skin, its materials);
+    // tests/temple-skins.test.js
+    'Inside, the Whale-House looks like the makers’ high-tech sounding-house now: halls of tall dark green slate slabs with chamfered edges, thin aquamarine circuits glowing in the walls and floor plates, rows of big brass horn terminals under a shelf of brass dishes, and great windows in heavy dark metal frames onto a deep blue sea, light falling through it and a whale passing far out. Its rooms, doors and puzzles are as they were.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

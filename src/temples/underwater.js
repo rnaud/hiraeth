@@ -6,6 +6,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Platform, Glass, EchoEar, Dish, Mark, Pit, Key } from './pieces.js';
 import { listenerModel } from './guardian-listener.js';
+import { whaleHouseSkin } from './skins/whale-house.js';
 
 // The Underwater City's temple: the Whale-House, the makers' sounding-house of shell and glass on the sea floor north
 // of the Plaza, where the makers talked with the whales: a great whorled shell lying on the bed, brass horns curling
@@ -121,6 +122,8 @@ export const HOLD = { door: 10, rungs: 16 };
 export const CALM = { near: 0.12, dish: 0.11, last: 0.09 };
 /** The dishes in the Listener's Hall (their near ends low on the wall, by the footstones). */
 export const ARENA_DISHES = ['dishW', 'dishE'];
+/** (in the skin) the great windows' glass, the deep sea blue behind it (src/temples/skins/whale-house.js) */
+const SEA_GLASS = '#1d4f86';
 const LISTEN = 14;   // m: how close to its ear a horn has to be, sounded straight at it
 
 export const LOGIC = {
@@ -267,11 +270,16 @@ function store(rt, K, M, { brass, whorl }) {
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
-  const ivory = { paint: new THREE.Color('#f4ead6'), smooth: true, side: THREE.FrontSide };
-  const coral = pearl('#fa7356');
+  // (in its futuristic skin, src/temples/skins/whale-house.js: the shells' chambers dark metal and brass orbs, the coral
+  // rings and courses glowing aquamarine, the sea a deep blue; the same shapes, solids and places)
+  const S = rt.skin?.mats;
+  const ivory = S?.orb ?? { paint: new THREE.Color('#f4ead6'), smooth: true, side: THREE.FrontSide };
+  const shellM = S?.orb ?? M.wall;
+  const coral = S?.ring ?? pearl('#fa7356');
+  const whorlBand = S?.orb2 ?? coral;   // (the shells' bands: brass in the skin)
   const brass = metal('#c9973f');
-  const water = makeMaterial({ color: '#3f9aa6', glow: 0.35, flat: true, key: 'temple.underwater.water' });
-  const deepM = makeMaterial({ color: '#2a6f86', glow: 0.25, flat: true, key: 'temple.underwater.deep' });
+  const water = S?.sea ?? makeMaterial({ color: '#3f9aa6', glow: 0.35, flat: true, key: 'temple.underwater.water' });
+  const deepM = S?.deep ?? makeMaterial({ color: '#2a6f86', glow: 0.25, flat: true, key: 'temple.underwater.deep' });
   /** A groove: a dark strip with brass rails (drawn). */
   const groove = (a, b, w = 1.0) => {
     const dx = b[0] - a[0], dz = b[2] - a[2], L = Math.hypot(dx, dz), yaw = Math.atan2(dx, dz), cx = (a[0] + b[0]) / 2, cz = (a[2] + b[2]) / 2, y = Math.min(a[1], b[1]);
@@ -283,8 +291,8 @@ function layout(rt) {
     for (let i = 0; i < n; i++) {
       const k = i / (n - 1), a = i * 1.2, r = s * (1 - k * 0.8), rad = s * 0.55 * (1 - k * 0.7);
       const g = new THREE.SphereGeometry(r, 12, 8).scale(1, 0.82, 1).translate(x + Math.sin(a) * rad, y + r * 0.7 + k * s * 2.4, z + Math.cos(a) * rad);
-      if (solid === 'all' || (solid && i < 3)) K.both(i % 2 ? ivory : M.wall, g); else K.add(i % 2 ? ivory : M.wall, g);
-      if (i % 2 === 0 && i < n - 2) K.add(coral, T(new THREE.TorusGeometry(r * 0.99, 0.06 * s, 3, 20), [x + Math.sin(a) * rad, y + r * 0.7 + k * s * 2.4, z + Math.cos(a) * rad], [Math.PI / 2 + 0.25, 0, a * 0.2]));
+      if (solid === 'all' || (solid && i < 3)) K.both(i % 2 ? ivory : shellM, g); else K.add(i % 2 ? ivory : shellM, g);
+      if (i % 2 === 0 && i < n - 2) K.add(whorlBand, T(new THREE.TorusGeometry(r * 0.99, 0.06 * s, 3, 20), [x + Math.sin(a) * rad, y + r * 0.7 + k * s * 2.4, z + Math.cos(a) * rad], [Math.PI / 2 + 0.25, 0, a * 0.2]));
     }
   };
   /**
@@ -360,7 +368,7 @@ function layout(rt) {
   K.add(water, box(GX - px0 - 0.4, 0.1, Wg.d - 0.4, (px0 + GX) / 2, 0.08, HZ));
   K.add(deepM, box(GX - px0 - 0.4, 3.6, 0.1, (px0 + GX) / 2, 1.9, HZ - Wg.d / 2 + 0.25));
   K.solid(box(0.3, 4.2, Wg.d, GX, 2.1, HZ));
-  add(Glass, { at: [GX + 0.05, 0, HZ], yaw: Math.PI / 2, w: Wg.d - 0.4, h: 4.2, color: '#bfe4e6', slip: 'The glass is too smooth to hold, and the sea is on the other side of it.' });
+  const poolGlass = add(Glass, { at: [GX + 0.05, 0, HZ], yaw: Math.PI / 2, w: Wg.d - 0.4, h: 4.2, color: S ? SEA_GLASS : '#bfe4e6', slip: 'The glass is too smooth to hold, and the sea is on the other side of it.' });
   add(Switch, { id: 'eP', at: pillar(PX - 8, HZ, 7.6, 6.6, Math.PI / 2), yaw: Math.PI / 2, size: 1.2 });
   // (its cradle by the glass: the east door's)
   const B2 = [[PX + 9, 0, HZ - 8], [PX - 1, 0, HZ + 2]];
@@ -414,7 +422,7 @@ function layout(rt) {
   // (the glass: the house's one climb, held only while its rungs are out, the Glass piece slipping you off it till then;
   // its other walls are not climbed, issue #115)
   K.climbable('the Tank Hall\'s glass: its brass rungs, out while the shelf\'s ear rings, up to the shelf', () => K.solid(box(0.3, SH, TK.z1 - TK.z0, GW, SH / 2, TZ)));
-  add(Glass, { id: 'rungs', at: [GW - 0.05, 0, TZ], yaw: -Math.PI / 2, w: TK.z1 - TK.z0 - 0.4, h: SH, color: '#bfe4e6', rungs: true, when: { lit: 'e5' },
+  const tankGlass = add(Glass, { id: 'rungs', at: [GW - 0.05, 0, TZ], yaw: -Math.PI / 2, w: TK.z1 - TK.z0 - 0.4, h: SH, color: S ? SEA_GLASS : '#bfe4e6', rungs: true, when: { lit: 'e5' },
     slip: 'The tank’s glass is too smooth to hold. Its brass frame has slots all the way up, empty.' });
   K.both(brass, box(GE - GW + 0.2, 0.3, TK.z1 - TK.z0, (GW + GE) / 2, SH - 0.15, TZ));   // (the tank's lid: a brass grating)
   K.both(M.wall, box(TK.x1 - GE, SH - 0.8, TK.z1 - TK.z0, (GE + TK.x1) / 2, (SH - 0.8) / 2, TZ));   // (under the shelf: solid)
@@ -434,6 +442,12 @@ function layout(rt) {
     heard: 'Across the water the far dish says the deep note, and the shelf’s ear takes it and holds it. Brass rungs slide out of the glass’s frame, as long as it rings.',
     fading: 'The shelf’s ear is fading: the rungs will slide back.' });
   add(Mark, { room: 'tank', at: [HCX - 6, 0, TK.z0 + 3], yaw: Math.PI / 2 });
+  // (the skin's lit edges along the foot and the head of the two great windows, on their dry side: its middle, along, out)
+  // (the skin's great windows: their frames, their sea; each its foot's middle, along, length, height, into the room)
+  if (rt.skin) rt.skinGlass = [
+    { a: [GW, 0, TZ], along: [0, 0, 1], L: TK.z1 - TK.z0 - 0.4, h: SH, out: [-1, 0, 0], glass: tankGlass, header: false },
+    { a: [GX, 0, HZ], along: [0, 0, 1], L: Wg.d - 0.4, h: 4.2, out: [1, 0, 0], glass: poolGlass },
+  ];
   for (const [x, z] of [[TK.x0 + 2.5, TK.z0 + 8], [TK.x0 + 2.5, TK.z1 - 8]]) whorl(x, 0, z, 0.8, 'all', 6);
 
   // ---- the keepers' landing (x 14..44, z 53.4..83.4, behind the keepers' door): its horn (the way back), its ball and
@@ -638,6 +652,7 @@ export const UNDERWATER_TEMPLE = {
   origin: [0, 1600, -150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  skin: whaleHouseSkin,   // (its look inside: src/temples/skins/whale-house.js, issue #342)
   local: { person: 'achille', out: 7, side: 1.2 },
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
   pitLine: 'You climb back up, to the last glyph stone.',

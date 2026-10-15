@@ -1249,6 +1249,41 @@ cream ledges, lens terminals, turning vanes, an iris at the top.
   and smaller than the sheets' and none hang in the drum's middle (the flight's air); the warden's ledge and the
   tripod robot are the guardian's own model, unchanged.
 
+### The Whale-House (`skins/whale-house.js`)
+
+After `references/temples/future/whale-house/sheet-1.jpg` and `sheet-2.jpg`: a hall of dark sage slate, the great
+window on the sea, brass dishes and rows of horn terminals, aquamarine lines.
+
+- **Surfaces** (the surface shader's albedo, pen lines and `emit` replaced, as `landmark-materials.js` `stone()`
+  does), dark green slate as drawn, its shade deeper (the house's `look` with no lift): the walls tall slabs 1.9 by
+  7.5 m, few horizontal joints, set off column by column, each with a lit and a shaded chamfer and a fine pen seam
+  (round halls patterned round their middle: the kit's plan); the floors mid-dark plates 3 by 2 m; big ceiling
+  plates. Thin aquamarine lines are inlaid: up the walls from the floor with a 45° jog to a
+  ring lens, along stretches of the walls' foot, and along the floor's seams in runs with 45° jogs and lensed
+  ends. They are emissive (`emit`: lit in the dark, haloed by the post's bloom) and a slow pulse runs along them.
+- **The house's own colours, swapped**: frames, lintels and columns dark metal; the coral course a dark slate one;
+  the frieze's little shell a lens terminal (`porthole`: an aquamarine disc in brass); the whorled shells dark
+  metal with brass bands (their shape and solids as they were); the pillars' coral bands and the floor rings
+  glowing aquamarine; the water deep blue (`underwater.js` reads `rt.skin.mats`).
+- **The great windows** (`rt.skinGlass`, the Tank Hall's and the Pool Room's): a heavy dark metal frame on the
+  room's side (posts kept off doorways and the rungs' columns, a sill, a header over the Pool Room's only: the
+  tank's is climbed), lit lines along it; the Glass piece's pane drawn as the sea (`seaMaterial`: deep blue, darker
+  below, slanted shafts of light, motes, the sea floor far off, and through the tank's tall glass a whale and the
+  Listener's fan of an ear far out) and its grid dark metal mullions. Its logic and collider are untouched.
+- **Dressing, drawn only** (6 InstancedMeshes: noCollide, keepBuried, out of the shadow passes, never tiled):
+  a row of up to seven big brass horn terminals (ring mouths 1.2 m across, dark inside) on slate footings along the
+  longest clear wall of every big hall, a lit circuit down the wall to each from a slate shelf over the row, brass
+  dish horns on the shelf; tall slate listening slabs with a ring lens and a lit strip along the other walls and
+  round the round halls; the great windows' frames. Placed from `TempleKit.plan`, kept
+  off every doorway, piece and thing drawn on the walls by boxes; their feet 5 cm into the floor (no shared plane).
+- **Lighter presets** (`uWearLite`: Low, Handheld, the Deck): no chamfers, the floors' second set of lines and the
+  walls' foot lines left out, the horns' dark mouths hidden.
+- Not changed: the makers' glyph (three dots over an arc) is the shared `glyphGeometry`, on the doors and friezes as
+  in every house; the pieces (dishes, ears, balls, the glass's grid) keep their own looks.
+- Cost (1280x720, this Mac, six rooms): -7 to +10 draw calls on High, -14 to +1 on Low; fewer triangles (the
+  friezes' shells were heavier than the lenses); frame time no worse (within the run's noise). `tests/temple-skins.test.js`.
+
+
 ## Landmarks seen from the approach (14 October 2026)
 
 All fourteen current temples now use the author's Midjourney favourites in
