@@ -60,9 +60,21 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.noTitle || a.trial || a.game);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.noTitle || a.trial || a.game || a.ending);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
+
+/**
+ * -ending first|final (docs/plans/unity-finishable.md): the homecoming played as a player reaches it, on the debug save,
+ * the ship's scenes on (not a bench's flags): home arrived at by ship with six worlds done and the last recording heard
+ * (first), or after the Lantern (final: the end card and the credits). Pictures every few seconds, the scene's stage and
+ * its subtitle logged.
+ */
+const ENDING_FLAGS = (kind) => ({ 'prologue.done': true, 'ship.powered': true, 'calls.home': true,
+  ...Object.fromEntries(['desert', 'arzach', 'perdide', 'edena', 'underwater', 'incal'].map((w) => [`world.${w}.done`, true])),
+  // (the debug save keeps what the last run ended with: the ending's own flags set as each kind starts from)
+  'ending.done': kind === 'final', 'ending.final': false, 'finale.met': kind === 'final', 'home.ilen.home': false,
+  ...(kind === 'final' ? { 'ending.first': 'new', 'world.bazaar.done': true } : {}) });
 
 /**
  * The platform's pad (src/native-pad.js setEnginePad): on Android (the Retroid) the handheld's own names, A B X Y as
@@ -126,7 +138,7 @@ export function start(argsJson) {
  */
 function begin(choice) {
   let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null, prologue = false;
-  const via = choice.via ?? null, game = choice.game ?? null;
+  const via = choice.via ?? null, game = choice.game ?? null, came = choice.from ?? null;
   if (choice.debug) { seedDebugSave(choice.debug, { slot, state: gameState }); slot = slots.active; level = choice.debug; arrive = true; }
   else {
     slots.setActive(slot);
@@ -138,16 +150,18 @@ function begin(choice) {
     level ??= saved?.level && levelById(saved.level) ? saved.level : levelById(S.args.level) ? S.args.level : 'desert';
     prologue = !saved && !via && level === 'desert' && !gameState.flag('prologue.done') && S.args.prologue !== false;
     if (game) { arrive = false; prologue = false; }   // (a game's page: its own start; the world's place kept for its Quit)
+    // (come by the night train's way, choice.from: at that level's arrival, not the ship's ramp nor the save's place)
+    else if (came) { arrive = false; prologue = false; }
     else if (!arrive && saved?.level === level) start = saved; else arrive = !prologue;
   }
   if (S.game) {
     if (S.game.level?.id === level && S.slot === slot && !arrive && !prologue && !game && !S.game.trials?.def) { S.menus.close(); return; }
     console.log(`[unity] onto save ${slot}, ${level}: the engine starts again`);
-    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, resolved: true } }));
+    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, from: came, resolved: true } }));
     return;
   }
   S.slot = slot;
-  launch({ ...S.args, level }, { start, arrive, via, prologue, game });
+  launch({ ...S.args, level }, { start, arrive, via, prologue, game, came });
 }
 
 /**
@@ -203,7 +217,14 @@ function flyTo(to) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } }));
 }
 
-function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null } = {}) {
+/** A place reached by a page load on the web (the night train's halt and porch): the engine starts again there. */
+function pageTo({ level, from = null }) {
+  S.game?.save();
+  console.log(`[unity] by way of ${from ?? '?'} to ${level}: the engine starts again`);
+  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level, from, resolved: true } }));
+}
+
+function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.portraitDir = args.out ?? null;
@@ -231,12 +252,19 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     S.settings = settings;
     S.menus = new EngineMenus({ store: slots, settings, version: `v${VERSION}`, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) });
   }
-  const menus = S.menus ?? null;
+  const ending = args.ending ? String(args.ending) : null;
+  if (ending) {
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    Object.assign(gameState.data.flags, ENDING_FLAGS(ending));
+  }
+  // (the ship's scenes play only with menus: an -ending run makes its own, never opened)
+  const menus = S.menus ?? (ending ? new EngineMenus({ store: slots }) : null);
+  if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o) })
     .then((game) => {
       S.game = game;
       if (menus) {
@@ -250,7 +278,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           if (no) return no;
           game.save();
           // (the ship's own way, as the web's: its take-off, then the next world's arrival; ship.travel's `go`, flyTo)
-          if (game.shipScenes) { menus.close(); game.ship.travel(id); return null; }
+          // (game.travel: a world on the holo table's chart too, found by its signature as it is chosen: engine/chart.js)
+          if (game.shipScenes) { menus.close(); return game.travel(id); }
           console.log(`[unity] travel to ${id}: the engine starts again at its landing`);
           host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: id, arrive: true, resolved: true } }));
           return null;
@@ -424,6 +453,14 @@ function makePlan(args) {
     // (docs/systems/performance.md, "The bench's desert start")
     steps.push({ kind: 'wait', frames: 120, secs: 3 }, { kind: 'measure', view: { name: 'spawn' }, secs: args.idle }, { kind: 'hold' });
   }
+  if (args.ending) {
+    const n = args.endingShots ?? 40, every = args.endingEvery ?? 5;
+    for (let k = 0; k < n; k++) {
+      steps.push({ kind: 'wait', frames: 2, secs: every }, { kind: 'stage' });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-ending-${String(k).padStart(2, '0')}.png` });
+      steps.push({ kind: 'untilOver' });
+    }
+  }
   if (!steps.length) return null;
   if (!args.idle && !args.tour) steps.push({ kind: 'done' });
   return { steps, i: 0, wait: 0, t: 0, samples: null };
@@ -569,6 +606,16 @@ export function frame(dt) {
     next();
   }
   else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'stage') {
+    const c = game.ship?.cinematic, sub = game.screen().state.sub?.text ?? '';
+    console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);
+    next();
+  }
+  else if (step.kind === 'untilOver') {
+    // (the homecoming over: one more picture of where it leaves him, then done)
+    if (game.ship && !game.ship.playing && !P.over) { P.over = true; P.i = P.steps.length - 1; P.steps.splice(P.i, 0, { kind: 'wait', frames: 2, secs: 3 }, { kind: 'stage' }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-ending-after.png` }] : [])); return; }
+    next();
+  }
   else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }
   else if (step.kind === 'foe') {
     const F = game.foes;

@@ -10,7 +10,7 @@ import { padIndex } from '../native-pad.js';
 import { glyph } from '../pad-glyphs.js';
 import { exhaust, touchdownDust } from './exhaust.js';
 import { spoken } from '../story/tone.js';
-import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
+import { tokenList, leaveTokens, tombLines, credits, creditsHtml, creditLines, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
 import { HOME_SPOTS, tokenModel, REEL_AT, layTokens, laidTokens } from '../levels/home.js';
 import { LOU_AT_STONE } from '../story/home-data.js';
 /** The last recording's busts over the reel (1: life size). */
@@ -174,14 +174,16 @@ export function tombCuts(timeline, { lou = false, min = TOMB_CUTS.min, order = T
   return cuts;
 }
 
-const hasDOM = () => typeof document !== 'undefined' && !!document.body;
+// (a page to draw the panels on: not in the engines, whose document is a stand-in and whose ship's cinema says so,
+// `cinema.dom` false: engine/game.js)
+const hasDOM = (page = true) => page && typeof document !== 'undefined' && !!document.body;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /** The cockpit panel: everything in the hold, all of it going down. */
 class CargoPanel {
-  constructor({ items, titles, onGo }) {
+  constructor({ items, titles, onGo, page = true }) {
     Object.assign(this, { items, titles, onGo, open: false });
-    if (!hasDOM()) return;
+    if (!hasDOM(page)) return;
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
     this.el.id = 'homeward';
@@ -233,8 +235,8 @@ class CargoPanel {
 
 /** The end card: the title on dark paper, a moment, before the credits. */
 class EndCard {
-  constructor() {
-    if (!hasDOM()) return;
+  constructor(page = true) {
+    if (!hasDOM(page)) return;
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
     this.el.id = 'endcard';
@@ -247,12 +249,21 @@ class EndCard {
   remove() { this.el?.remove(); }
 }
 
-/** The credits: a paper page rolling up the screen. */
+/**
+ * The credits: a paper page rolling up the screen. Without a page (the engines), its lines said one after another as
+ * subtitles (`say`, the ship's cinema), ~3.4 s each.
+ */
 class Credits {
-  constructor(data) {
+  constructor(data, say = null, page = true) {
     this.t = 0;
     this.done = false;
-    if (!hasDOM()) { this.done = true; return; }
+    if (!hasDOM(page)) {
+      this.lines = say ? creditLines(data) : [];
+      this.say = say;
+      this.shown = -1;
+      if (!this.lines.length) this.done = true;
+      return;
+    }
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
     this.el.id = 'credits';
@@ -263,6 +274,13 @@ class Credits {
     this.el.classList.add('on');
   }
   update(dt) {
+    if (this.lines && !this.done) {
+      this.t += dt;
+      const i = Math.floor(this.t / Credits.LINE);
+      if (i !== this.shown && i < this.lines.length) { this.shown = i; this.say({ text: this.lines[i] }); }
+      if (i >= this.lines.length + 1) { this.say(null); this.done = true; }
+      return;
+    }
     if (!this.el || this.done) return;
     this.t += dt;
     const vh = innerHeight, h = this.roll.offsetHeight;
@@ -274,12 +292,14 @@ class Credits {
   }
   remove() { this.el?.remove(); }
 }
+Credits.LINE = 3.4;
 
 export class HomecomingDirector {
   constructor(ship, { kind } = {}) {
     this.s = ship;
     this.kind = kind ?? homecomingKind((k) => game.flag(k)) ?? 'first';
     this.final = this.kind === 'final';
+    this.page = ship.cinema?.dom !== false;   // (the engines draw no page: the cargo panel answered, the card and credits as lines)
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.done = false;
@@ -381,7 +401,7 @@ export class HomecomingDirector {
       case 'cargo':
         C.say({ who: 'ship', text: this.final ? 'Cargo check before descent. One passenger, and what is new in the hold.'
           : this.items.length ? 'Cargo check before descent. Everything in the hold is going down with you.' : 'Cargo check before descent. The hold is empty.' });
-        this.panel = new CargoPanel({ items: this.final ? [{ id: 'ilen', kind: 'person', name: 'Ilen', level: FINALE_ID, text: 'In the jump seat, his old cap in her lap. She has not said anything since the jump.' }, ...this.items] : this.items, titles: this.titles, onGo: () => this.choose() });
+        this.panel = new CargoPanel({ items: this.final ? [{ id: 'ilen', kind: 'person', name: 'Ilen', level: FINALE_ID, text: 'In the jump seat, his old cap in her lap. She has not said anything since the jump.' }, ...this.items] : this.items, titles: this.titles, onGo: () => this.choose(), page: this.page });
         this.panel.show();
         sfx.beep(s.sound, true);
         break;
@@ -455,14 +475,16 @@ export class HomecomingDirector {
       case 'card':
         C.say(null);
         this.s.holo?.hide();
-        this.card = new EndCard();
+        this.card = new EndCard(this.page);
+        // (no page: the card's words as a line under the picture, the engines')
+        if (!this.card.el) C.say({ text: 'SOMETHING OF VALUE · for the two of them, on the hill' });
         break;
       case 'credits':
         C.say(null);
         this.s.holo?.clear();
         this.card?.fade();
         setTimeout(() => { this.card?.remove(); this.card = null; }, 1800);
-        this.credits = new Credits(credits({ order: [...(this.s.order ?? ORDER), FINALE_ID], titles: { [FINALE_ID]: 'The Lantern', ...this.titles }, storyTitles: this.storyTitles, flag: (q) => game.flag(q), keepsake: this.chosen, tokens: this.slab }));
+        this.credits = new Credits(credits({ order: [...(this.s.order ?? ORDER), FINALE_ID], titles: { [FINALE_ID]: 'The Lantern', ...this.titles }, storyTitles: this.storyTitles, flag: (q) => game.flag(q), keepsake: this.chosen, tokens: this.slab }), (line) => C.say(line), this.page);
         s.sound?.chime?.();
         break;
     }
@@ -574,6 +596,8 @@ export class HomecomingDirector {
         }
         if (id === 'cargo') {
           this.panel?.pad();
+          // (no page for the cargo panel, the engines': its one answer, everything goes down, given once the ship has asked)
+          if (this.panel && !this.panel.el && !this.chosen && t > 3.4) this.choose();
           if (t > 3.6 && !this.chosen && !this.quiet) { this.quiet = true; C.say(null); }   // the panel asks the rest
         }
         break;

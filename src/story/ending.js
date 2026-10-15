@@ -456,6 +456,24 @@ export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTit
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+/**
+ * The credits as lines said one after another, where there is no page to roll (the engines: src/ship/homecoming.js
+ * Credits; the Unity bridge shows them as subtitles): the title, each world with the people met there, home, what was
+ * left on the stone, the last words.
+ */
+export function creditLines(c) {
+  const out = [c.title, 'A traveller went out to bring back something of value, and met these people on the way.'];
+  for (const w of c.worlds ?? []) {
+    const met = w.people.filter((p) => p.met).map((p) => p.name);
+    out.push(`${w.title}${w.story ? ` · ${w.story}` : ''}${met.length ? `: ${met.join(', ')}` : ''}`);
+  }
+  out.push(`At home: ${c.home.join('; ')}`);
+  if (c.tokens?.length) out.push(`Left on the stone: ${c.tokens.join(', ')}`);
+  else if (c.keepsake && c.keepsake.id !== 'all') out.push(`Brought home: ${c.keepsake.name}`);
+  out.push('The ship is ready whenever you are.');
+  return out;
+}
+
 /** The credits as a paper page (HTML); the people you never met are drawn in pencil. */
 export function creditsHtml(c) {
   const world = (w) => `<section class="w${w.done ? ' done' : ''}">

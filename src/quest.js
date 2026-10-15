@@ -85,8 +85,9 @@ export class Relics {
    * @param spots [x, z] | { at: [x, y, z], snap? } (see levels/content.js)
    * @param names one name per spot
    */
-  constructor(scene, physics, { levelId, spots, names, journal, sound, capture, lights }) {
+  constructor(scene, physics, { levelId, spots, names, journal, sound, capture, lights, say = toast }) {
     this.items = [];
+    this.say = say;   // (the engines' queued toast: engine/game.js; the page's #toast by default)
     this.levelId = levelId;
     this.journal = journal;
     this.sound = sound;
@@ -145,7 +146,7 @@ export class Relics {
     this.sound.chime();
     this.sound.pickup?.({ pos: it.grp.position });
     this.sound.musicCue?.('moment', { delay: 1.5 });   // (a find: the recorded theme comes back, src/music-moments.js)
-    toast(`Found: ${name} · ${this.journal.relicCount(this.levelId)}/${this.total}`);
+    this.say(`Found: ${name} · ${this.journal.relicCount(this.levelId)}/${this.total}`);
   }
 }
 

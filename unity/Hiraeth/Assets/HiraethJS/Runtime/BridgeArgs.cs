@@ -197,6 +197,9 @@ namespace Hiraeth.Bridge
             if (Flag("-tour")) args["tour"] = true;
             // (-arrive: a plan's traveller at the foot of the ship's ramp, as a player arrives, not at the level's spawn under its hull)
             if (Flag("-arrive")) args["arrive"] = true;
+            // (-ending first|final: the homecoming played on the debug save, its pictures every -ending-every secs: engine/unity/game.js)
+            if (Arg("-ending") != null) args["ending"] = Arg("-ending");
+            if (Arg("-ending-every") != null) args["endingEvery"] = double.Parse(Arg("-ending-every"), CultureInfo.InvariantCulture);
             // (-hull-spawn: a plan's traveller on the spot the ship covers, as the plans started before issue #254 moved
             // the desert's spawn to the ramp's foot: to compare with numbers taken then, issue #265)
             if (Flag("-hull-spawn")) args["hullSpawn"] = true;

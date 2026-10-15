@@ -584,7 +584,9 @@ mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id` (with `-tal
 pictures of the first line as it is said; with `-bench secs` the frame measured while they talk, the gestures' own ms
 as `split.talkGestures`), `-through way` (a door walked into and back out of), `-play tool,drone`, and
 `-probe text [-solo]` (at each shot, the nodes whose name holds the text as Unity has them: mesh,
-bounds, materials' culling, shadows, GPU instances; `-solo` draws only those).
+bounds, materials' culling, shadows, GPU instances; `-solo` draws only those), and `-ending first|final [-ending-every secs]` (a homecoming
+played on the debug save with the ship's scenes on, a picture every few seconds, its stage and subtitle logged:
+docs/plans/unity-finishable.md).
 
 ## The Godot renderer (stage 2)
 

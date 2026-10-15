@@ -60,6 +60,15 @@ import { Shelter, addIndoors } from '../src/shelter.js';
 // asking the game that runs now (a test may make several games one after another).
 let shipIndoors = null;
 addIndoors((p) => !!shipIndoors?.(p));
+// A place reached by a page load on the web (src/story/night-train.js travel: the Signal Market's halt and the Overnight
+// Train, `?level=<id>&from=<id>`, said first as 'travel:page'): the engine's `onPage({ level, from })` starts it again
+// there, at that level's arrival from where you were (level.arrivals). The page's location is a stand-in in the engines,
+// so the screen stayed black under the fade (issue #264). One listener for the module, asking the game that runs now.
+let pageGo = null;
+gameState.on('travel:page', ({ href } = {}) => {
+  const q = String(href ?? ''), to = /[?&]level=([\w-]+)/.exec(q)?.[1], from = /[?&]from=([\w-]+)/.exec(q)?.[1] ?? null;
+  if (to && pageGo) setTimeout(() => pageGo?.({ level: to, from }), 900);
+});
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -77,10 +86,15 @@ import { GIVERS_NOTE } from '../src/story/signature.js';
 import { rumblePlay } from '../src/rumble.js';
 import { items as gear, ITEMS } from '../src/items.js';
 import { chargeState } from '../src/story/charge.js';
-import { ORDER, TITLES } from '../src/levels/names.js';
+import { ORDER, TITLES, CHARTED_SIDE } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud } from '../src/hud.js';
-import { toastSeconds } from '../src/quest.js';
+import { toastSeconds, Story, Relics } from '../src/quest.js';
+import { mapEntries } from '../src/ship/starmap.js';
+import { chartTravel, chartWorlds } from './chart.js';
+import { homecomingKind, HOME_ID, FINALE_ID } from '../src/story/ending.js';
+import { routeChart, foundFlag, foundLine, findableNote } from '../src/story/signature-search.js';
+import { knownWorlds, newlyKnown } from '../src/story/route.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
 import { Sound } from '../src/audio.js';
@@ -237,7 +251,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -284,10 +298,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the opening on a new save (main.js playPrologue: the desert, no save's place, not arriving by ship): the ship in
   // orbit too (its space copy), its scenes played by the engine (issue #264)
   const playPrologue = !!(prologue && menus && levelId === 'desert' && !start?.pos && via !== 'ship' && !flags && !view && !gameDef);
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue }));
+  // coming home by ship plays a homecoming (main.js playHomecoming, src/story/ending.js homecomingKind): the first (the
+  // stone, the light over the hill), then, with Ilen, the true ending and its credits; its ship in orbit too
+  const playHomecoming = !!(menus && levelId === HOME_ID && via === 'ship' && !flags && !view && !gameDef) && homecomingKind((k) => gameState.flag(k));
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || !!playHomecoming }));
   stamp('ship');
   const player = new Player(physics, {
-    mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
+    mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
     killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
     // (the pad shakes as on the web, main.js's: a hit by the hearts it cost, the potion, a hard landing or a knockdown;
@@ -365,12 +382,33 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the journal's record (src/quest.js Journal: the worlds seen, the stories told, the relics, the errands), read from
   // the save as the page keeps it, without its page (the game menu draws from it: engine/menus.js)
   const journal = engineJournal({ write: !flags });
+  // the world's story page (src/quest.js Story, as main.js makes it): its quest's last step calls story.complete(), which
+  // keeps the world in the journal as told (journal.storyDone: a world done for the route, the ship's map, the recordings
+  // and home), says its closing words and names what the route opened. (It was a stand-in that kept nothing: no world
+  // was ever done in the engines, so the route never opened past the first two and home never came: issue #264.)
+  const worldDone = (id) => !!(gameState.flag(`world.${id}.done`) || journal.storyDone(id));
+  let knownBefore = knownWorlds({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId });
+  const revealed = () => {
+    const c = routeChart({ order: ORDER, done: worldDone, visited: (id) => journal.seen(id), current: levelId, flag: (k) => gameState.flag(k) });
+    const fresh = newlyKnown(knownBefore, c.known).filter((id) => c.findable.includes(id));
+    knownBefore = c.known;
+    return findableNote(fresh.length);
+  };
+  const storyPage = content?.story && !gameDef ? optional('the story page', () => new Story(scene, { levelId, def: { ...content.story, next: revealed }, journal, sound, capture: () => null, player, physics,
+    ground: level.ground?.heightAt ? level.ground : null, say: (t) => toast(t) })) : null;
+  // the five small things kept in each world (src/quest.js Relics, as main.js places them), into the journal
+  const relics = content?.relics?.spots?.length && !flags && !view && !gameDef ? optional('the relics', () => new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound,
+    capture: () => null, lights: (level.lights ??= []), say: (t) => toast(t) })) : null;
+  // the fluid tool before the story, as main.js makes it, which the story reads as it is set up (the desert's push on the
+  // drum and the hearth's hints, its tank's moment: src/story/desert.js toolHasPush)
+  const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
+  if (tool && level.lendTool) lendTool(tool, level.lendTool);   // (the Arena's: the backpack, the blade and the shield lent for the visit, main.js)
   let story = null;
   if (people && humans && lib) {
     try {
       if (!playPrologue) gameState.data.flags['prologue.done'] = true;
-      story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: { complete() {}, start() {}, done: false, waitFor: null },
-        capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool: null, isNight: () => false, ship, drone: () => null }));
+      story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: storyPage ?? { complete() {}, start() {}, done: false, waitFor: null },
+        capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool, isNight: () => { try { return sky.hour < 6.4 || sky.hour > 19.3; } catch { return false; } }, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
   stamp('people');
@@ -381,6 +419,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const shopPanel = menus?.openShop ? new ShopPanel({ el: SHOP_EL, doc: null, game: gameState, resources, sound, covered: () => true,
     onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts?.(resources.maxHearts); player.restore?.(player.maxHearts); } } }) : null;
   if (shopPanel) gameState.on('shop:open', ({ shop } = {}) => { shopWaiting = (shop === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(shop)) ?? null; });
+  if (storyPage) storyPage.waitFor = () => !!story?.dialogue?.open;   // (a world's words never over a conversation: main.js)
   journal.markSeen(levelId);   // (after the story read its first visit, as main.js marks it)
   if (Q) for (const n of npcs) { n.lowDetail = !!Q.lowDetail; n.clothFar = Q.clothFar ?? null; }
   // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found
@@ -420,8 +459,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     scene.add(wind.mesh);
     (level.noShadow ??= []).push(wind.mesh);
   }
-  const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
-  if (tool && level.lendTool) lendTool(tool, level.lendTool);   // (the Arena's: the backpack, the blade and the shield lent for the visit, main.js)
   // (in a guardian's fight the ping is a hint, as main.js's: the lens on the weak point, its line once the struggle has
   // gone on a while, src/temples/hints.js; the line a toast here, the page's drone bubble)
   const struggle = new Struggle();
@@ -498,7 +535,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // starts again at that world's landing (the page goes to ?level=<to>&via=ship).
   // (`scenes`: a plan that wants them without the menus: the bridge's -aboard, the rooms photographed as the web's ?aboard=)
   const shipOn = !!((menus || scenes) && ship && story && !flags && !view && !gameDef);   // (not on a game's page: the runner keeps the ship out of the picture)
+  pageGo = menus && !flags && !view && !gameDef ? onPage : null;
   shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
+  // the galactic map's entries (src/ship/starmap.js mapEntries, from the StarMap the ship made in attach) and whether he is
+  // aboard, where the Worlds page stands in for it (engine/chart.js)
+  const chart = () => (shipOn && ship.map?.o ? mapEntries(ship.map.o) : []);
+  const onBoard = () => shipOn && !!ship.inside;
   if (shipOn) {
     ship.cinema.dom = false;
     quiet(() => ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans, levels: LEVELS, order: ORDER,
@@ -804,6 +846,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     player.respawn(c.pos.clone());
     player.heading = c.heading;
     rig.yaw = c.camYaw ?? c.heading + Math.PI;
+  } else if (arrival && level.arrivals?.[arrival] && via !== 'ship' && !gameDef) {
+    // (come by a page load's way, the night train's: at the level's arrival from that place, as main.js's ?from=)
+    const a = level.arrivals[arrival];
+    player.respawn(a.pos.clone());
+    player.heading = a.heading;
+    rig.yaw = a.heading + Math.PI;
   } else if (start?.pos && start.level === levelId && !level.keepSpawn) {
     const p = new THREE.Vector3(...start.pos);
     { const moved = level.settleSaved?.(p, physics); if (moved) p.copy(moved); }
@@ -834,7 +882,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -954,18 +1002,31 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // (the wallet: the chimes, src/resources.js; the finder a switch, src/fragments.js finderOn; the gadgets owned and in hand)
       return menuSources({ items: { owned: () => Object.keys(ITEMS).filter((id) => gear.has(id)) }, wallet: () => resources.chimes,
         toggles: () => ({ finder: gear.has('finder') && !gameState.flag('frag.finder.off') }),
-        quests: story?.quests ?? null, charge, keepsakes: () => gameState.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.seen(id), game: gameState,
+        quests: story?.quests ?? null, charge, keepsakes: () => gameState.keepsakes(), journal, current: levelId, game: gameState,
         levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
         fragments: () => fragments?.counts?.() ?? null,
-        map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }) });
+        map: (o) => mapSource(o), travel: (id) => !!travel && (fastTravel.can({ to: id, from: levelId, seen, flag }) || (onBoard() && !game.travelRefusal(id))),
+        // (aboard, the holo table's chart: the worlds the route has opened, the Lantern and Home once open; engine/chart.js)
+        order: [...ORDER, ...CHARTED_SIDE, FINALE_ID, HOME_ID], known: (id) => journal.seen(id) || (onBoard() && chartWorlds(chart()).includes(id)) });
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
     mapPicture: (key) => pictures.get(key) ?? null,
     /** Fill and draw the Map's ground now (a test's, a tool's), `ms` at most. */
     drawMap(ms = 1e5) { if (!mapWhole) mapSource(); worldMap.view(mapWhole.bounds, MAP.cells); pumpMap(ms); return worldMap.want?.canvas ?? null; },
     /** Why the ship won't take you to `id` (null: it will; src/fast-travel.js). */
-    travelRefusal(id) { return fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
+    travelRefusal(id) { return chartTravel({ to: id, from: levelId, entries: onBoard() ? chart() : [], aboard: onBoard(), seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
+    /**
+     * The Worlds page's Travel here: the ship's take-off to `id` (a world on the chart aboard, else one visited), a world
+     * still to be found by its signature found first, as the StarMap's search finds it. → null, or the line why not.
+     */
+    travel(id) {
+      const r = chartTravel({ to: id, from: levelId, entries: onBoard() ? chart() : [], aboard: onBoard(), seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) });
+      if (r.text) return r.text;
+      if (r.find) { gameState.set(foundFlag(id), true); ship?.cinema?.say(foundLine(TITLES[id] ?? id), { secs: 3.6 }); }
+      if (shipOn) ship.travel(id); else onTravel?.(id);
+      return null;
+    },
     /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */
     applySettings(s = settings) {
       if (!s) return;
@@ -1116,6 +1177,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // src/hazards.js, registered by the levels as they build) biting while you touch them (main.js; the plan's D3)
       try {
         if (!(shipOn && ship.playing)) fragments?.update(dt, simT, { quiet: busy || !!pinned });
+        // (the world's words waiting for a conversation's end; a relic walked into, as main.js)
+        storyPage?.update(dt, simT, camera);
+        if (!busy && !pinned && !(shipOn && ship.playing)) relics?.update(dt, simT, player);
         if (!busy && !pinned && !(shipOn && ship.playing)) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) toast(t); } });
       } catch (e) { if (!game._fragmentsFailed) { game._fragmentsFailed = true; console.warn('[game] the fragments or hazards failed', e?.stack ?? e); } }
       if (shipOn && !pinned) {
@@ -1203,7 +1267,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   };
   game.applySettings();
   // the ship's first scene (main.js ship.start): a new save's opening, the arrival after a flight, else nothing
-  if (shipOn) quiet(() => ship.start({ via: via === 'ship' ? 'ship' : null, prologue: playPrologue, onReady: () => {} }));  stamp('ready');
+  // (then the world's opening words on a first visit, as main.js's onReady; a homecoming is its own page)
+  const ready = () => { if (!playHomecoming) storyPage?.start({ quiet: !!playPrologue }); };
+  if (shipOn) quiet(() => ship.start({ via: via === 'ship' ? 'ship' : null, prologue: playPrologue, homecoming: playHomecoming || null, onReady: ready }));
+  else if (!flags && !view && !gameDef) ready();
+  stamp('ready');
   log(`built ${levelId}: ${JSON.stringify(T)} ms`);
   return game;
 }
