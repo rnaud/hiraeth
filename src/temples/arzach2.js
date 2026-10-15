@@ -6,6 +6,7 @@ import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
 import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit, Key } from './pieces.js';
 import { whaleModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { foundersBelfrySkin } from './skins/founders-belfry.js';
 
 // Vael II's temple: the Founders' Belfry, a tower of bone-white stone that
 // rises straight out of the cloud beside the starting plateau, a bridge from
@@ -407,7 +408,9 @@ function layout(rt) {
   };
   /** A founders' bell, clapperless, its crown at `top` over its mouth at y; hung from `from` (the ceiling). */
   const bellShape = (s) => lathe([[0.02, 0], [1.4 * s, 0.1 * s], [1.5 * s, 0.8 * s], [1.05 * s, 2.4 * s], [0.85 * s, 3.4 * s], [0.02, 3.6 * s]], 24);
-  const hang = (x, y, z, s, from) => {
+  // (in the house's futuristic skin, a stack of floating bronze rings round a dark core, held by nothing: skins/founders-belfry.js)
+  const hang = (x, y, z, s, from, ear, face = 0) => {
+    if (rt.skin?.bell?.([x, y, z], s, ear, face)) return;
     K.add(BRONZE(), T(bellShape(s), [x, y, z]));
     const top = y + 3.6 * s;
     if (from > top) K.add(M.trim, box(0.2, from - top + 0.4, 0.2, x, (from + top) / 2, z));
@@ -471,8 +474,8 @@ function layout(rt) {
   // across the line from the key's ledge to the bell (in sight of each other, issue #336)
   const [BX, , BZ] = round(S2, RING.bell.a, RING.bell.r), tx = Math.cos(RING.bell.a), tz = -Math.sin(RING.bell.a), GL = 5.2;
   const GA = [BX - tx * GL, BZ - tz * GL], gyaw = Math.atan2(tx, tz);
-  hang(BX, 2.5, BZ, 1, S2.top);   // (from the vault: the oculus is small, over the middle)
-  K.add(M.trim, T(new THREE.TorusGeometry(1.48, 0.08, 4, 28).rotateX(Math.PI / 2), [BX, 2.6, BZ]));
+  hang(BX, 2.5, BZ, 1, S2.top, 'e0', Math.PI);   // (from the vault: the oculus is small, over the middle)
+  if (!rt.skin?.bell) K.add(M.trim, T(new THREE.TorusGeometry(1.48, 0.08, 4, 28).rotateX(Math.PI / 2), [BX, 2.6, BZ]));
   K.add(M.dark, box(1.0, 0.04, GL + 0.6, BX - tx * (GL + 0.6) / 2, 0.02, BZ - tz * (GL + 0.6) / 2, gyaw));
   for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, GL - 0.8, BX - tx * (GL + 0.8) / 2 + tz * sd * 0.75, 0.06, BZ - tz * (GL + 0.8) / 2 - tx * sd * 0.75, gyaw));
   add(Ball, { id: 'ballS', a: [GA[0], 0.04, GA[1]], b: [BX, 0.04, BZ], r: 1.0, strike: { at: [BX, 3.4, BZ] } });
@@ -491,10 +494,12 @@ function layout(rt) {
   const S3 = R0.bell, C3 = S3.z;
   K.corridor([0, C2 + S2.r + 1.4], [0, C3 - S3.r - 0.6], UP, { w: D.w, h: D.h });
   K.rotunda({ x: 0, z: C3, y: UP, r: S3.r, h: S3.top - UP, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.35 });
-  K.both(M.trim, ...chestMound(0, UP, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  // (in the futuristic skin a hexagonal slate pedestal with lit panels, drawn over the same collider)
+  const [moundD, moundS] = chestMound(0, UP, C3);
+  if (!rt.skin?.pedestal?.(moundD, moundS)) K.both(M.trim, moundD, moundS);   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // a bell hangs high in the oculus, without a clapper: the whistle rings it, and three stones that fell up come down
   // round the dais while it sounds (a try: nothing is locked by it)
-  hang(0, UP + 12, C3, 1, S3.top + 4);   // (up through the oculus)
+  hang(0, UP + 12, C3, 1, S3.top + 4, 'eT', Math.PI);   // (up through the oculus)
   add(BellEar, { id: 'eT', at: [0, UP + 12, C3], reach: 16, heard: 'The bell in the oculus hums with your note, and three of the stones that fell up come down round the dais. They stay only while it sounds.', heardKey: 'eT.heard', fading: 'The hum is fading: the stones tremble.' });
   add(Bridge, { id: 'heap', a: [-6.4, UP + 0.6, C3 - 3.2], b: [-6.4, UP + 0.6, C3 + 3.2], w: 2.4, n: 3, from: 'above' });
   for (let i = 0; i < 6; i++) { const a = Math.PI * (0.3 + i * 0.28); K.glyph(round(S3, a, S3.r - 0.05, UP + 6), 1.6, a + Math.PI); }
@@ -506,7 +511,7 @@ function layout(rt) {
   const PO = R0.porch, [, poz] = mid(PO);
   K.corridor([0, C3 + S3.r + 0.6], [0, PO.z0 - 1.2], UP, { w: D.w, h: D.h });
   hall(PO, { oculus: 0.3, columns: 2, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
-  hang(0, UP + 6.6, poz, 0.8, PO.top + 4);
+  hang(0, UP + 6.6, poz, 0.8, PO.top + 4, 'e1', Math.PI);
   add(BellEar, { id: 'e1', at: [0, UP + 7, poz], reach: 8.5, heard: 'The porch’s bell hums with your note, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
   add(Mark, { room: 'porch', at: [-6, UP, PO.z0 + 5], yaw: Math.PI / 2 });
   add(Door, { id: 'd3', at: [0, UP, PO.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [{ lit: 'e1' }] });
@@ -751,6 +756,8 @@ export const ARZACH2_TEMPLE = {
   origin: [80, 1600, 150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (its look inside since v1.77, issue #342: an ancient high-tech test chamber of slate, bronze and cobalt light)
+  skin: foundersBelfrySkin,
   local: { person: 'ysel', out: 29, side: 3.5 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the belfry the air is still and white, and somewhere above, something huge is crying.',
   pitLine: 'You climb back up to the last glyph stone.',

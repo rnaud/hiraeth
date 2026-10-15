@@ -902,6 +902,16 @@ const FUTURE342_WELL_NUMBERS = [
 ];
 /** (v1.77, issue #342: the Whale-House in its futuristic skin, the same page load's views with and without it) */
 const WHALE342 = 'Issue #342: muted headless Chrome (High, 1280 × 720, 11:00, clear) against this branch’s own Vite (port 6464), the camera pinned at the same place in each room, the house built with ?noskin=1 (before) and in its skin (after), 15 October; cwebp -q 72';
+/** (v1.77, issue #342: the Founders' Belfry's futuristic skin, shot with and without it in one page each, the same pinned camera) */
+const FUTURE342B = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6463, this branch with the skin off (window.__noHouseSkin, before) and on (after) in two loads of the Belfry, the camera pinned in each room; the ringing views with the bell’s note held; 15 October; cwebp -q 72';
+const FUTURE342B_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 4 s a view, the same pinned camera, the skin off and on in two loads; the machine shared with other agents (load 26 falling to 8): two runs, the skin off first (13 views) then on first (6 views), their means';
+const FUTURE342B_SOURCE = 'issue #342 scratchpad future-belfry/shoot.mjs --ab and --ba; draw calls and triangles from renderer.info, GPU time from EXT_disjoint_timer_query';
+const FUTURE342B_NUMBERS = [
+  { title: 'The Founders’ Belfry: frame time (median), skin off → on', unit: 'ms', better: 'lower', device: FUTURE342B_DEVICE, rows: [{ where: 'High, skin off first', before: 4.23, after: 5.61 }, { where: 'High, skin on first', before: 6.17, after: 5.8 }, { where: 'Low, skin off first', before: 4.42, after: 5.4 }, { where: 'Low, skin on first', before: 4.58, after: 4.23 }], source: FUTURE342B_SOURCE, note: 'The machine was shared and its load fell during the runs (from 26 to 8): whichever was measured second came out faster. Over both orders the skin costs about 0.5 ms on High and 0.3 ms on Low.' },
+  { title: 'The Founders’ Belfry: GPU time a frame (median)', unit: 'ms', better: 'lower', device: FUTURE342B_DEVICE, rows: [{ where: 'High', before: 4.37, after: 4.68 }, { where: 'Low', before: 2.52, after: 1.91 }], source: FUTURE342B_SOURCE },
+  { title: 'The Founders’ Belfry: draw calls a frame', unit: 'calls', better: 'lower', device: FUTURE342B_DEVICE, rows: [{ where: 'High', before: 220, after: 210 }, { where: 'Low', before: 242, after: 231 }], source: FUTURE342B_SOURCE },
+  { title: 'The Founders’ Belfry: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342B_DEVICE, rows: [{ where: 'High', before: 371, after: 346 }, { where: 'Low', before: 315, after: 292 }], source: FUTURE342B_SOURCE },
+];
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'Inside, the Warden’s Well is a shaft of the makers’ old high technology', tags: ['shaft', 'perf'], shots: [
@@ -914,6 +924,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'future-incal-flue', title: 'The Flue', caption: 'Looking up the old breath-way: the key’s pier and the little vane’s post where they were, great flat vanes turning on their axles out of the wall, circuits jogging up between the cream courses', from: FUTURE342_WELL },
       { name: 'future-incal-chest', title: 'The Bellows Chamber', caption: 'The chest on its mound under the oculus, the drum over it banded in dark slate, the makers’ sign in cyan along its bands', from: FUTURE342_WELL },
     ], numbers: FUTURE342_WELL_NUMBERS },
+    { match: 'Inside, the Founders’ Belfry is an ancient machine now', tags: ['vael', 'temples', 'perf'], shots: [
+      { name: 'future-belfry-stones', title: 'The Hall of Stones', caption: 'Before, bone-white ashlar, bells in lit niches; after, tall dark slate slabs edged in bronze, a ledge band part way up, lit slots at the pilasters’ feet, a cobalt circuit round the walls, lens terminals beside the door, a bronze and cobalt border on the floor and a medallion in its middle; the door, its lamp and keyhole where they were', from: FUTURE342B,
+        reference: { sheet: 'references/temples/future/founders-belfry/sheet-1.jpg', caption: 'The Founders’ Belfry as an ancient high-tech chamber: the author’s pick (issue #342)' } },
+      { name: 'future-belfry-door-close', title: 'A door', caption: 'The Hall of Stones’ north door: before, a pale slab; after, two heavy slate leaves in four slabs, a line of cobalt light down the seam between them, a bronze frame, a column of lenses either side', from: FUTURE342B },
+      { name: 'future-belfry-chamber', title: 'The Bell Chamber', caption: 'The chest on a hexagonal slate pedestal with a lit panel on each side, in the middle of rings of slate plates, bronze and cobalt rings round it; the stones that fell up and the north door where they were', from: FUTURE342B },
+      { name: 'future-belfry-echoes', title: 'The Hall of Echoes', caption: 'From the near ledge: the ball, its groove, the chasm and the hanging stones of the bridge as they were, in slate and bronze', from: FUTURE342B },
+      { name: 'future-belfry-mother', title: 'The Cloud-Mother’s hall', caption: 'Her round hall under its dome: the columns in slate, the circuit and the lit slots round the drum, rings in the floor', from: FUTURE342B },
+    ], numbers: FUTURE342B_NUMBERS },
+    { match: 'The Belfry’s bells are no longer cups', tags: ['vael', 'temples'], shots: [
+      { name: 'future-belfry-bell-close', title: 'The porch’s bell', caption: 'Before, a bronze cup on a rod; after, four heavy bronze rings floating apart round a dark core, held by nothing, a thin cobalt line round each and the makers’ sign on the lowest', from: FUTURE342B,
+        reference: { sheet: 'references/temples/future/founders-belfry/sheet-2.jpg', caption: 'The bell as a resonator of floating bronze rings: the author’s pick (issue #342)' } },
+      { name: 'future-belfry-stair-ring', title: 'The founders’ bell, ringing', caption: 'The Stone Stair while its bell rings: after, faint cobalt rings hang in the air round it and spread from it over the floor and up the landing’s face', from: FUTURE342B },
+      { name: 'future-belfry-porch-ring', title: 'The porch’s bell, ringing', caption: 'The held door open while the bell sounds: after, its note spreading over the floor round the medallion under it', from: FUTURE342B },
+    ] },
     { match: 'The Rose House is rebuilt like a shrine', shots: [
       { name: 'rose-flame', title: 'The Hall of the Flame', caption: 'From its way in: before, a 22 m hall, the tar ball’s groove along its east side to the bowl by the door; after, 36 m across under 20 m of stone, the groove down the middle, the bowl at its end, the door past it', from: SHRINE336 },
       { name: 'rose-fires', title: 'The Hall of Fires', caption: 'The near floor: before, a ledge, the bowl the Sword Chamber’s ball was rolled to through its door; after, the ball, its fire, its thorns and the bowl on the chasm’s lip all down the middle of this hall', from: SHRINE336 },

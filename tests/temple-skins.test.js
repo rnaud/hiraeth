@@ -249,3 +249,40 @@ test('the Whale-House’s dressing keeps out of every doorway, and the lighter p
   } finally { whShared.uWearLite.value = was; }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the chamfers and the finer lines off on the lighter presets');
 });
+
+// The Founders' Belfry in its futuristic skin (src/temples/skins/founders-belfry.js): its look only.
+import './register-gadgets.js';
+import { BellEar } from '../src/temples/pieces.js';
+
+const quietly = (f) => { const w = console.warn, l = console.log; console.warn = console.log = () => {}; try { return f(); } finally { console.warn = w; console.log = l; } };
+const belfry = (noSkin) => quietly(() => {
+  const def = { ...TEMPLES.arzach2.def, exterior: null, change: null };
+  // (rt.noSkin is read in houseSkin, called inside the constructor: set it on the prototype for this build)
+  const was = TempleRuntime.prototype.noSkin;
+  TempleRuntime.prototype.noSkin = noSkin;
+  try { return new TempleRuntime({ scene: new THREE.Scene(), level: { lights: [] }, def, game: new GameState(null) }); } finally { TempleRuntime.prototype.noSkin = was; }
+});
+const solids = (rt) => rt.kit.group.children.filter((m) => m.name.endsWith(' collision') || m.name.endsWith(' climbs')).map((m) => [m.name, [...m.geometry.attributes.position.array]]);
+
+test('the Founders’ Belfry wears its futuristic skin; collision, climbs and pieces as without it', () => {
+  const on = belfry(false), off = belfry(true);
+  assert.equal(on.skin?.name, 'founders-belfry');
+  assert.equal(off.skin, null);
+  assert.deepEqual(solids(on), solids(off), 'collision and climbs vertex for vertex');
+  assert.deepEqual(on.pieces.filter((p) => p.id).map((p) => [p.id, p.constructor.name]), off.pieces.filter((p) => p.id).map((p) => [p.id, p.constructor.name]));
+  // its three bells drawn as rings, a note for every ear, lens terminals beside the doorways
+  assert.equal(on.skin.stats.bells, 3);
+  assert.equal(on.skin.stats.notes, on.pieces.filter((p) => p instanceof BellEar).length);
+  assert.ok(on.skin.stats.lenses > 20, `lenses ${on.skin.stats.lenses}`);
+  // the house's own materials back for its exterior; the cobalt casts no shadow
+  assert.notEqual(on.M.wall, on.skin.mats.wall);
+  assert.equal(on.P, TEMPLES.arzach2.def.palette);
+  const cobalt = on.kit.group.children.find((m) => m.material === on.skin.mats.cobalt);
+  assert.ok(cobalt && !cobalt.castShadow && cobalt.userData.castShadow === false);
+  // a bell that rings lights its note
+  const ear = on.piece('e1');
+  on.logic.ringing.add('e1'); ear.left = 8;
+  const note = on.pieces.find((p) => p.constructor.name === 'BelfryNote');
+  for (let i = 0; i < 30; i++) note.update(1 / 30);
+  assert.ok(on.skin.U.bells.value.some((b) => b.w > 0.9), 'the porch bell rings');
+});

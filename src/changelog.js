@@ -115,6 +115,10 @@ export const CHANGELOG = [
     // the Whale-House's futuristic skin (issue #342): src/temples/skins/whale-house.js, underwater.js (skin, its materials);
     // tests/temple-skins.test.js
     'Inside, the Whale-House looks like the makers’ high-tech sounding-house now: halls of tall dark green slate slabs with chamfered edges, thin aquamarine circuits glowing in the walls and floor plates, rows of big brass horn terminals under a shelf of brass dishes, and great windows in heavy dark metal frames onto a deep blue sea, light falling through it and a whale passing far out. Its rooms, doors and puzzles are as they were.',
+    // the Founders' Belfry's futuristic skin (issue #342): src/temples/skins/founders-belfry.js (its surfaces spliced into the
+    // surface shader, the note from uSkBell, the ring bells, the lens terminals), arzach2.js hang; tests/temple-skins.test.js
+    'Inside, the Founders’ Belfry is an ancient machine now, as the makers built it: tall dark slate slabs edged in bronze, lit slots at their feet, a cobalt circuit glowing round every room, slate floors ringed in bronze and cobalt light, the chest on a lit hexagonal pedestal, and its doors two heavy slate slabs with a line of light between them.',
+    'The Belfry’s bells are no longer cups: each is four heavy bronze rings floating apart round a dark core, a thin cobalt line round every ring and the makers’ sign on the lowest. While one rings, or your whistle sounds, faint rings of light hang round it and spread from it across the floor and the walls.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

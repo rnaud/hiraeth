@@ -1442,3 +1442,38 @@ a Givers' test chamber of dark slate and ember light, over the same rooms. Its s
 
 `tests/temple-skins.test.js` checks it wears the skin, and that its collision and climbs are vertex for vertex those of
 the house without it (`rt.noSkin`), every piece where it was, and the dressing out of every doorway.
+## Futuristic skins: the Founders' Belfry (v1.77, issue #342)
+
+Its skin is `src/temples/skins/founders-belfry.js` (`skin: foundersBelfrySkin`; `?noskin=1` or `globalThis.__noHouseSkin`
+shows the house without it). After `references/temples/future/founders-belfry/sheet-1.jpg` and `sheet-2.jpg`: dark slate, warm bronze, cobalt light.
+
+- **Surfaces**: the wall, floor and door materials swapped for the skin's, their albedo, glow and first pen lines
+  spliced into the surface shader (as `landmark-materials.js` `stone()`). Walls: dark slate in tall slabs 2.6 m wide
+  (a joint across only every 6 m from the floor), each vertical seam edged with thin bronze, chamfered (a pale bevel
+  down one edge, a dark one down the other); a ledge band 4.4 m up, a bronze rail under it; a pilaster every 7.8 m with
+  a warm lit slot at its foot; a cobalt circuit round each room 1.1 m up that jogs between two heights, a lens where it
+  jogs. Hatching on walls, doors and columns is cut to a fifth (`hatch`), as the sheet's sparse shadows. Floors:
+  slate plates; round rooms in rings of plates round their middle with bronze and cobalt rings, halls with a bronze and
+  cobalt border and a medallion in the middle, passages a cobalt line down their length. Doors: two heavy slate
+  leaves in four slabs, a cobalt seam down the middle. The kit's plan (`TempleKit.plan`) hands the shader the rooms
+  (`uSkR`, `uSkY`: up to 16, the round ones first) so round walls and floors are patterned round their middle.
+- **The note**: while a founders' bell rings (its `BellEar` held or lit) or the whistle sounds, pale cobalt rings
+  spread from it over every floor and wall near it, from the shader (`uSkBell`, set each frame by `BelfryNote`), and
+  three faint cobalt rings hang in the air round the bell (one drawn-only mesh a bell, hidden while it is quiet).
+  Every cobalt surface and lit slot is a light to the post pass (it writes `emit` just over the 0.62 the halo starts
+  at, so the halo stays tight) and breathes slowly.
+- **The bells** (`arzach2.js` `hang` asks `skin.bell`): not cups but resonators, four heavy chamfered bronze rings
+  a ring's height apart round a dark core seen through every gap, held by nothing (no rod), a thin cobalt band round
+  each and round the lowest's underside, and
+  the makers' sign on the lowest as the sheet draws it (`belfrySign`: a long flat arch, three tiny dots over its crest).
+- **Dressing**, drawn only, in the kit's batches (one draw for all the bronze, one for all the cobalt; the cobalt out
+  of the shadow passes): a column of four lens terminals on a cobalt line beside every doorway 5 m or taller, on the
+  face toward a room, kept off every piece and glyph. The frieze ornament a lens in a bronze ring; the frieze band dark
+  slate; the trim (frames, caps, rims) bronze, the columns slate; the pieces' glow cobalt. The chest's mound
+  (`skin.pedestal`, its collider as it is) is drawn as the sheet's hexagonal slate pedestal, a bronze edge round its
+  top and a lit panel on each side.
+- **Lighter presets** (Low, Handheld, the Deck: `uWearLite`): no tone per panel and no chamfers. Thin lines are never
+  under about a pixel wide, so they hold at a low resolution. Draw calls are the house's own (the bronze and cobalt
+  batches take the place of the bells' and the ornaments' own).
+- The makers' glyph on the doors, the frieze and the bridge stones is the shared `glyphGeometry` (`story/sign-text.js`),
+  left as it is.
