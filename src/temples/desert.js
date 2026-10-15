@@ -270,7 +270,7 @@ export const KEEPER_DARK = { open: 1.8, water: 1 };
 // with 2 s to spare, issue #311: it had a fifth of a second), and where its relay fire lies (m along the groove: burning
 // there, it carries the ball on to the bowl); the eye's obelisk beside the groove (x, z)
 const CHEST_THORNS = 7.35 / 14.6;
-export const FIRES = { x: 5, z0: 174.2, z1: 188.8, bowl: 190.2, bridge: -5 };
+export const FIRES = { x: 0, z0: 174.2, z1: 188.8, bowl: 190.2, bridge: -5 };
 const SC_Z = 171, WING_Z = 232;
 export const WING = { friction: 0.2, burns: 6, relay: 20.5, x: 37.2, z0: 186.5, z1: 215.4, bowl: 216.8, eye: [44, 203] };
 /** The Givers' watcher (issue #245): its foot in the middle of the Watcher's Hall, east of its way in. */

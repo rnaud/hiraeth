@@ -326,7 +326,9 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   one plane: `tests/zfight.test.js`). Old saves: past the old chamber's fight, the Machines' Hall is won; one that stood
   in the old rooms is taken to its last mark (`migrate.js` desert v4, `desert.js` `RELAID`). Tests:
   `tests/temple-rules.test.js` (no rule broken), the on-foot walk and the play-through in `tests/temples.test.js` and
-  `tests/temple-playthrough.test.js`, `tests/door-bypass.test.js`, `tests/zfight.test.js`.
+  `tests/temple-playthrough.test.js`, `tests/door-bypass.test.js`, `tests/zfight.test.js`. The Hall of Fires' groove
+  (`FIRES.x`) runs down the hall's middle (x 0, it was 5 m east of it until a follow-up in v1.77), its fire, thorns and
+  hooded bowl with it; the bridge and the north door stay at `FIRES.bridge`, west of the bowl.
 - **The Warden's Well as shrines** (v1.77, issue #336, the second house redone to the rules). The Turning Floors 30 m
   across (its depth and the discs as they were), the Climb a round well 34 m across, the Ash Store and the Vane Room
   30 m square under 18 m, the Bellows Chamber's round hall 20 m, the drum of the gallery, the loft and the crown 36 m

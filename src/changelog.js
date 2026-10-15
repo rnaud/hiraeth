@@ -104,6 +104,8 @@ export const CHANGELOG = [
     // (the machines only in the Nursery, round its middle among the seed-beds: LOGIC.rooms kinds, Mark `foes`; migrate.js
     // perdide v3, runtime.js relaid)
     'The Hush-House’s keepers wait only in the Nursery now, round its middle among the old seed-beds, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Hush-House, you start at its last glyph stone.',
+    // (issue #336 follow-up: src/temples/desert.js FIRES.x 5 -> 0, the groove, fire, thorns, ball and bowl moved with it)
+    'In the Rose House’s Hall of Fires, the tar ball’s groove, its fire, its thorns and the hooded bowl now run down the middle of the hall instead of along its east side.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

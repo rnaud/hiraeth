@@ -1032,6 +1032,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'hush-nursery', title: 'The Nursery', caption: 'Before, a room 14 m square, the seed-beds by its walls; after, 30 m square, the house’s one fight round its middle among four seed-beds', from: HUSH336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
+    { match: 'In the Rose House’s Hall of Fires, the tar ball’s groove', shots: [
+      { name: 'rose-fires2', title: 'The Hall of Fires', caption: 'From the near floor, looking north: before, the ball, its fire, its thorns and the bowl 5 m east of the middle; after, all of them down the middle of the hall', from: 'Issue #336 follow-up: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6455, on the tree before this change and on this branch, the camera pinned at the same place, 14 October; cwebp -q 72' },
+    ] },
   ],
   '1.76': [
     { match: 'Across all fourteen temples', shots: [
