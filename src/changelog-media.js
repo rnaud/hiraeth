@@ -985,6 +985,15 @@ const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/a
 /** (v1.78, issue #111: the Steam Deck's main thread, round 10) */
 const DECK111 = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800 (render scale 1), muted, the bench’s own profile and save; every view of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1, viewpoints-worlds.json), main at c2f4ed6d against the same tree with the change, world by world in turn; 15 October';
 const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<world> (deck-worlds.json); docs/systems/performance.md, “The Steam Deck, round 10”';
+/** (v1.78, issue #342: the Engine-House in its futuristic skin, shot with and without it, the same pinned camera) */
+const FUTURE342E = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon, clear), Vite on port 6503, this branch with the skin off (?noskin=1, before) and on (after), the camera pinned in each room; 15 October; cwebp -q 72';
+const FUTURE342E_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 3 s a view, the same pinned camera in 10 rooms (the Threshold, the Piston Hall, the Crank Hall and its pit, the Fourth Chamber, the Crank Passage, the Furnace, the Tooth-Warden’s Hall, the Governor and Boiler Rooms), the skin off and on in separate loads; the machine shared with other agents (load 16–45), so frame times are within the noise';
+const FUTURE342E_SOURCE = 'issue #342 scratchpad future-engine/shoot.mjs --ab --census; draw calls from renderer.info (every pass) and from scripts/bench/draw-census.js (the picture’s own pass, which the shadow passes’ cadence does not blur), GPU time from EXT_disjoint_timer_query';
+const FUTURE342E_NUMBERS = [
+  { title: 'The Engine-House: draw calls a frame, the picture’s own pass', unit: 'calls', better: 'lower', device: FUTURE342E_DEVICE, rows: [{ where: 'High', before: 191.3, after: 196.2 }, { where: 'Low', before: 190.5, after: 194.2 }], source: FUTURE342E_SOURCE, note: 'Every pass (renderer.info): High 327 → 331, Low 323 → 334 (the shadow passes’ draws vary from load to load by tens either way; the census counts them the same, 210 → 209 on High).' },
+  { title: 'The Engine-House: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342E_DEVICE, rows: [{ where: 'High', before: 443, after: 435 }, { where: 'Low', before: 371, after: 357 }], source: FUTURE342E_SOURCE },
+  { title: 'The Engine-House: frame time (median), skin off → on', unit: 'ms', better: 'lower', device: FUTURE342E_DEVICE, rows: [{ where: 'High', before: 7.23, after: 5.87 }, { where: 'Low', before: 5.79, after: 4.44 }], source: FUTURE342E_SOURCE },
+];
 export const CHANGELOG_MEDIA = {
   '1.78': [
     { match: 'In the Sunken Hall, B / ○ rolls and jumping is disabled', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × or Space: he stays on the floor. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The touch controls and start card offer no jump. Leave the hall to jump normally again.' },
@@ -1072,6 +1081,19 @@ export const CHANGELOG_MEDIA = {
       { name: 'future-arzach-gulf', title: 'The Gulf', caption: 'From the near lip: the perch and the far ledge where they were, the lips’ edges lit peach, floating plates high along the walls', from: FUTURE342_AERIE },
       { name: 'future-arzach-eyrie', title: 'The Eyrie', caption: 'The ledge in ochre sand, its stone and the great key’s perch where they were; the makers’ sign over each lit slot the drawings’ long low arch under three dots', from: FUTURE342_AERIE },
     ], numbers: FUTURE342_AERIE_NUMBERS },
+    { match: 'Inside, the Engine-House is the makers’ old machine hall now', tags: ['buried', 'temples', 'perf'], shots: [
+      { name: 'future-buried-crank', title: 'The Crank Hall', caption: 'Before, rust-red riveted plates strapped in blue steel; after, tall navy slate slabs, thin amber circuits up the walls and along the floor plates, a square of four lens terminals (two lit) on the west wall, tall slabs with a lit line up each; the hammer, its casing, the walkway and the far door where they were', from: FUTURE342E,
+        reference: { sheet: 'references/temples/future/engine-house/sheet-1.jpg', caption: 'The Engine-House as an ancient machine hall: the author’s pick (issue #342)' } },
+      { name: 'future-buried-crank-pit', title: 'The Crank Hall’s pit', caption: 'Looking down from the near landing: after, the pit’s slabs warm to amber toward the embers, a lit line down each, an amber edge under the landings’ lips and lines along the floor plates to the walkway', from: FUTURE342E,
+        reference: { sheet: 'references/temples/future/engine-house/sheet-2.jpg', caption: 'The pit glowing amber under the walkway: the author’s second pick (issue #342)' } },
+      { name: 'future-buried-chamber', title: 'The Fourth Chamber', caption: 'The chest and its four eyes on their posts where they were: the round hall in navy slate, amber circuits, a thin lit ring under each sign, the makers’ sign along the frieze as a long flat arch under three small dots', from: FUTURE342E },
+      { name: 'future-buried-gov', title: 'The Governor Room', caption: 'The great key’s cage under the hammer, the ball’s groove and the pistons behind their parapet where they were; the room in slate and amber, the hammer dark metal', from: FUTURE342E },
+      { name: 'future-buried-passage', title: 'The Crank Passage', caption: 'The parapet, its pistons and the crank as they were; after, slate slabs and amber lines, the door north a dark metal leaf with a lit seam', from: FUTURE342E },
+      { name: 'future-buried-threshold', title: 'The Threshold', caption: 'The way in: after, chamfered slate slabs, a circuit up each side to a small lens, the sign over it', from: FUTURE342E },
+    ], numbers: FUTURE342E_NUMBERS, see: 'Go into the Engine-House (the Buried Machine, west of the domes) and walk to the Crank Hall: look down into the pit from the near landing.' },
+    { match: 'The Tooth-Warden wears darker rust-red plates on navy', tags: ['buried', 'temples'], shots: [
+      { name: 'future-buried-hall', title: 'The Tooth-Warden’s Hall', caption: 'Before, a bright orange-red machine in a red iron drum; after, darker rust-red plates on navy legs, the drum navy slate with amber circuits, the great gear in the floor as it was', from: FUTURE342E },
+    ] },
   ],
   '1.77': [
     { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [

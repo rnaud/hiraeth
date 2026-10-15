@@ -8,6 +8,7 @@ import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Hammer, Mark, Pit, Key } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { engineHouseSkin } from './skins/engine-house.js';
 
 // The Buried Machine's temple: the Engine-House, a drum of rust-red iron as
 // tall as the oculus, standing out of the dunes west of the domes, pipe
@@ -477,7 +478,8 @@ function layout(rt) {
   K.slab(CRANK.x0 - 0.6, CRANK.z0 - 0.6, CRANK.x1 + 0.6, W0, 7, 0.8);
   K.slab(CRANK.x0 - 0.6, W1, CRANK.x1 + 0.6, CRANK.z1 + 0.6, 7, 0.8);
   K.slab(-1.3, W0, 1.3, W1, 7, 0.6);
-  const ember = makeMaterial({ color: '#e0644a', glow: 0.55, flat: true, key: 'temple.buried.embers' });
+  // (in the house's futuristic skin, amber light: skins/engine-house.js)
+  const ember = rt.skin?.mats?.ember ?? makeMaterial({ color: '#e0644a', glow: 0.55, flat: true, key: 'temple.buried.embers' });
   K.both(ember, box(CW, 0.4, W1 - W0, 0, -2.6, (W0 + W1) / 2));
   K.both(M.dark, box(CW, 1, W1 - W0, 0, -3.4, (W0 + W1) / 2));
   // the pit's walls down to the embers (2 cm behind the landings' faces)
@@ -605,7 +607,8 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 7, O1 + 0.9]));
   K.solid(box(4, 5, 0.5, 0, 9.5, O1 + 1.3));
 
-  const model = sentinelModel({ hull: '#c4553a', hull2: '#8e3a2b', dark: '#33485a', brass: '#e2b552', eye: '#f6c84e', vents: 4, legs: 4, guarded: false });
+  // (in the futuristic skin, rust-red plates on navy: skin.warden)
+  const model = sentinelModel({ hull: '#c4553a', hull2: '#8e3a2b', dark: '#33485a', brass: '#e2b552', eye: '#f6c84e', ...rt.skin?.warden, vents: 4, legs: 4, guarded: false });
   model.mouthR = 0.01; model.bodyR = 2.0;   // (its four vents are the targets: rt.volley)
   model.pos.copy(K.world(0, 7, CWZ + 4));
   model.home = model.pos.clone();
@@ -708,6 +711,8 @@ export const BURIED_TEMPLE = {
   origin: [-150, 2200, -280], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (its futuristic skin, issue #342: the look of the author's picks over the same rooms, src/temples/skins/engine-house.js)
+  skin: engineHouseSkin,
   local: { person: 'brann', out: 8, side: 5 },
   enterLine: 'Inside the Engine-House it is warm, and everything smells of oil. Something far ahead is grinding, stuck.',
   pitLine: 'You climb back out of the furnace pit, to the last glyph stone.',

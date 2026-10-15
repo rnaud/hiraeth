@@ -1389,6 +1389,49 @@ crystal resonators in slate collars over the black pool, the gates of jaws heavy
   Low 320 → 319; triangles 481 k → 462 k on High, 388 k → 351 k on Low (the lights leave the shadow passes); frame and
   GPU time within the run's noise (GPU High 5.1 → 5.4 ms, Low 1.6 → 1.6 ms). Dressing ~15–40 ms to build.
   `tests/temple-skins.test.js`.
+### The Engine-House (`skins/engine-house.js`, v1.78)
+
+After `references/temples/future/engine-house/sheet-1.jpg` and `sheet-2.jpg`: a machine hall of navy slate and dark
+metal, thin amber circuits, a pit glowing amber under the walkway, lens terminals in a square. The values are the
+picks' (sampled: slate about L 40–60 of 255, `ENGINE_SKIN`).
+
+- **Surfaces** (the surface shader's albedo, first pen lines and `emit` replaced; the kit's rooms in `uSkR`, up to
+  `ENGINE_ROOMS`, so a round room's slabs run round it):
+  - `wall` (walls, ceilings, the casing and parapets): tall 2.4 by 6.4 m slabs, each column's joints set off its own
+    way, a lit and a shaded chamfer, hatching cut to 0.15; an amber circuit in some columns (up from the floor, a
+    chamfered corner, across, up to a small lens), a foot line along some stretches. In a pit (`uSkPitA/B`: the
+    boxes of the embers, found from the ember material's batch) the slabs warm to amber toward the embers (`emit`
+    0.5 at most, under the halo) and a lit line runs down every column.
+  - the machine (`wallGlyph`: the gantry, the doors' leaves): darker metal, 1.8 by 3.2 m panels, denser circuits; a
+    door's leaf (in its own frame, `machineObj`) a lit seam up its middle.
+  - `floor`: 2.4 by 1.6 m plates, lines along the seams with 45° jogs ending in lenses, a border line 1.5 m in from
+    each room's walls (a passage's along its length), an amber line 14 cm under every landing's lip (`uSkLips`).
+    The riding discs and the bridge take the plates in their own frame (`floorObj`), a lens in the middle.
+  - Lines emit 0.72–0.80 (a slow pulse travels along them): crisp, just over the post pass's 0.62.
+- **The house's own** (`buried.js` reads `rt.skin`): the embers' material amber light (`skin.mats.ember`; the pits'
+  dark and its spiral are `pit-void.js`'s, drawn over them as in every house, in the house's amber glow); the
+  Tooth-Warden's colours (`skin.warden`: darker rust-red plates on navy; its round body is the shared
+  `sentinelModel`, not the picks' boxy one); the hammers' heads dark metal (`rt.P.wall2`); the trims, pipes and
+  frames dark blue steel paint, the bands gone, the balls polished dark steel, the fittings brass; the frieze's
+  ornament a thin lit ring on the slate (its well is the wall's own material: a dark disc 1 cm off a round room's
+  chord z-fought); the rooms' light cool and the sun teal (`skin.light`).
+- **The sign**: the kit's glyphs (friezes, the threshold) redrawn as `engineSign` (a long arch five times wider than
+  tall, three small dots over its crest), 1.5 times as wide, on the walls only, never on a round hub (in the picks it
+  sits on the crank's hub and reads as a frowning face). The doors' medallions are `sign-text.js glyphGeometry`,
+  shared, and left as they are.
+- **Dressing**, drawn only (5 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes): in
+  each hall 14 m high or more a square of four round lens terminals on a dark plate (two lit) on its longest clear
+  wall, a lit line down to the floor; chamfered slate pilasters (1.5 m wide, 62 % of the room's height) along the halls'
+  and round rooms' walls, a lit line up each and a lens at its head. Kept off doorways, pieces and everything drawn
+  on the walls by boxes (`Keep`), their feet 5 cm into the floor.
+- **Lighter presets** (`uWearLite`: Low, Handheld, the Deck): no chamfers, panel tones, foot lines or second floor
+  lines; the pilasters' lenses hidden (`SkinLife`).
+- **Cost** (this Mac, 10 rooms, skin off → on): the picture's own pass +5 draws on High (191 → 196), +4 on Low;
+  shadow passes the same; triangles 443 k → 435 k on High, 371 k → 357 k on Low; frame time within the noise of a
+  busy machine. Built in about 30 ms.
+- **Unlike the pictures:** no teal shaft of daylight (the oculus' sun spot is teal-tinted only); the giant crank wheel,
+  the drop hammer and the pistons are the house's pieces, smaller and round; the pits read as the game's dark void with
+  amber walls rather than a bright amber floor; the warden keeps its round body.
 
 
 ## Landmarks seen from the approach (14 October 2026)

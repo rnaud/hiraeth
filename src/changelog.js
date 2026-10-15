@@ -30,6 +30,10 @@ export const CHANGELOG = [
     // the Hush-House's futuristic skin (issue #342): src/temples/skins/hush-house.js (perdide.js `skin`; the coffer,
     // metal, plates and shutter patterns, the resonators, wedges and plinths, its own light); tests/temple-skins.test.js
     'Inside, the Hush-House is the makers’ sound-damping hall now, after the drawing you picked: walls and vaults of dark indigo slate in deep square coffers with crisp chamfered edges, thin violet circuits glowing in their seams and in the warm grey floor plates, stepped slate wedges under every vault, and long hexagonal crystals hanging in machined collars over the Bog Well’s still black water, two of them lit teal and violet with faint rings round them, the others dark. Its roots are heavy cables, its crystals stand on stepped plinths, and its gates of jaws are slate shutters with a violet seam where they meet, frosting pale blue when you still them. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the walls are plainer.',
+    // the Engine-House's futuristic skin (issue #342): src/temples/skins/engine-house.js (its hooks in buried.js: the
+    // embers' material, the warden's colours, skin: engineHouseSkin); docs/systems/temples.md; tests/temple-skins.test.js
+    'Inside, the Engine-House is the makers’ old machine hall now: tall navy slate slabs and dark metal, thin amber circuits running up the walls and along the floor plates, pulsing slowly, the walls of its pits glowing amber toward the embers, squares of round lens terminals and tall slabs along the walls, and the makers’ sign drawn as a long flat arch under three small dots. Its rooms, puzzles and the way through are as they were.',
+    'The Tooth-Warden wears darker rust-red plates on navy, and the Engine-House’s drop hammers are dark metal.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in
