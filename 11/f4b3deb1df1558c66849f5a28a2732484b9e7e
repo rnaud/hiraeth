@@ -1,0 +1,47 @@
+tests/temple-skins.test.js
+  s_9ca76055a220ed::t_80c44282a43f1d 328,348,681,701,703
+tests/makers-mark.test.js
+  s_9ca76055a220ed::t_eb27723fd9818c 53,103-217
+src/changelog-media.js
+  s_bf9311718e4a36::t_59005b20bf7b91 911,1037-1040
+docs/systems/temples.md
+  s_9ca76055a220ed::t_117a34ef5d64c5 1215-1221,1290-1291,1423-1424,1772-1774,1813,1878,1880,1883-1884,1887
+src/temples/skins/engine-house.js
+  s_9ca76055a220ed::t_51fecc1677b872 4,20-21,316-317,319,584,606
+src/temples/skins/aerie.js
+  s_9ca76055a220ed::t_54ab1e768ddbd4 366-367,369,638
+src/temples/skins/casting-house.js
+  s_9ca76055a220ed::t_6e9d2c053e19bf 5,22,383-384,386,440,622,632-633,648
+src/temples/skins/rose-house.js
+  s_9ca76055a220ed::t_31373cced277fb 6,20,228-229,390,453,455-456,458,486,546
+src/changelog.js
+  s_bf9311718e4a36::t_0cc16e988f7930 14-16
+changelog.md
+  s_9ca76055a220ed::t_1489422acaccda 25
+src/temples/skins/founders-belfry.js
+  s_9ca76055a220ed::t_d9d1c193273caf 486,488
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11f4b3deb1df1558c66849f5a28a2732484b9e7e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_bf9311718e4a36": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae109297e168d2dd1",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
