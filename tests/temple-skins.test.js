@@ -250,6 +250,42 @@ test('the Whale-House’s dressing keeps out of every doorway, and the lighter p
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the chamfers and the finer lines off on the lighter presets');
 });
 
+test('the Whale-House’s skin: brass horns with dark mouths, brass dishes and ears, a few heavy mullions, its own light', async () => {
+  const rt = whHouse();
+  const horns = whDressing(rt).find((m) => m.name.endsWith('brass horns'));
+  const C = horns.geometry.attributes.color;
+  assert.ok(C && horns.material === rt.skin.mats.brassHorn && horns.material.vertexColors, 'the horns coloured by vertex');
+  const tones = new Set(Array.from({ length: C.count }, (_, i) => C.getX(i)));
+  assert.ok(Math.min(...tones) < 0.1 && Math.max(...tones) > 1.1, 'a near-black mouth and a bright lip');
+  assert.ok(!whDressing(rt).some((m) => /mouth/.test(m.name)), 'the mouths in the horns’ own draw');
+  const { Dish, EchoEar, Glass } = await import('../src/temples/pieces.js');
+  for (const p of rt.pieces.filter((q) => q instanceof Dish || q instanceof EchoEar)) {
+    const mats = new Set();
+    for (const g of p.group ? [p.group] : p.ends.map((e) => e.g)) g.traverse((o) => o.isMesh && mats.add(o.material));
+    assert.ok(mats.has(rt.skin.mats.brass), `${p.id ?? p.constructor.name} in the skin's brass`);
+  }
+  for (const g of rt.skinGlass) {
+    const bars = g.glass.group.children[1];
+    const n = bars.geometry.attributes.position.count / 36;   // (boxes, non-indexed)
+    assert.ok(n <= 6, `the window's mullions a few heavy bars (${n})`);
+    assert.ok(g.glass instanceof Glass && bars.material === rt.skin.mats.trim, 'in the frames’ dark metal');
+  }
+  // the house's light inside: the skin's own (a neutral shade), the house's palette's without it
+  const { attachTemple } = await import('../src/temples/index.js');
+  const level = (id) => ({ id, lights: [], atmo: () => ({ tint: [1, 1, 1], fog: 0.6, name: 'the sea' }) });
+  const lit = (skin) => {
+    const L = level('underwater');
+    if (!skin) WhRuntime.prototype.noSkin = true;
+    const w = console.warn, l = console.log; console.warn = console.log = () => {};
+    try { attachTemple('underwater', new whTHREE.Scene(), L); } finally { delete WhRuntime.prototype.noSkin; console.warn = w; console.log = l; }
+    const t = L.temple, p = t.kit.world(0, 1, 20);
+    assert.equal(L.atmo(p.x, p.z, p.y).script, t.lightScript, 'the house’s light inside');
+    return t.lightScript.find((k) => k[0] >= 12)[3];
+  };
+  assert.equal(lit(true), rt.skin.light.shadow, 'the skin’s shade by day');
+  assert.equal(lit(false), whTEMPLES.underwater.def.palette.light.shadow, 'the house’s own without the skin');
+});
+
 // The Founders' Belfry in its futuristic skin (src/temples/skins/founders-belfry.js): its look only.
 import './register-gadgets.js';
 import { BellEar } from '../src/temples/pieces.js';

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
-import { metal } from '../landmark-materials.js';
+import { Dish, EchoEar } from '../pieces.js';
 
 // ---------------------------------------------------------------------------
 // The Whale-House's futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' sounding-house
@@ -14,13 +14,17 @@ import { metal } from '../landmark-materials.js';
 //      travelling along them. The lines are emissive (the post's bloom gives them their halo, as lamps have).
 //   2. the house's own colours: its frames and lintels dark metal, its coral courses gone for a dark slate one, its
 //      whorled shells' chambers dark metal and brass orbs and their coral rings glowing aquamarine rings, the frieze's
-//      shell a lens terminal (an aquamarine disc in a brass ring), the sea behind the glass deep blue.
+//      shell a lens terminal (an aquamarine disc in a brass ring); its dishes and ears polished brass (their materials
+//      only); the great windows' grid a few heavy mullions; the sea behind the glass deep blue, the Listener and a
+//      whale on two planes far behind it (they slide behind the glass as you walk); the rooms' light neutral (the
+//      skin's `light`, read by index.js for the house: the slate keeps its green, the brass its gold).
 //   3. machined dressing, drawn only (InstancedMeshes: noCollide, out of the shadow passes, never cut into tiles):
-//      rows of brass horn terminals on slate footings along one wall of each big room, tall slate listening slabs with
-//      a glowing ring lens and a lit strip, a glowing edge along the foot of the great windows. Placed from the kit's
-//      record of its walls and rooms (TempleKit.plan), kept clear of every doorway, piece and thing drawn on the walls.
+//      rows of brass horn terminals (bright lips, dark mouths) on slate footings along one wall of each big room, tall
+//      slate listening slabs with a glowing ring lens and a lit strip, a glowing edge along the foot of the great
+//      windows. Placed from the kit's record of its walls and rooms (TempleKit.plan), kept clear of every doorway, piece
+//      and thing drawn on the walls.
 // On the Low, Handheld and Steam Deck presets (uWearLite) the shader leaves out the chamfers, the floors' second set of
-// lines and the walls' foot lines, and the horns' dark mouths are hidden.
+// lines and the walls' foot lines, and the footings' small lenses are hidden.
 // ---------------------------------------------------------------------------
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -30,14 +34,20 @@ const SINK = 0.05;
 
 /** The skin's colours (sRGB) and sizes (m). */
 export const WHALE_SKIN = {
-  wall: { color: '#5c7a6f', dark: '#3a524b', light: '#85a296', panel: [1.9, 7.5] },
-  floor: { color: '#73897f', dark: '#4f655d', light: '#93a99d', plate: [3.0, 2.0] },
+  wall: { color: '#6c8373', dark: '#45554a', light: '#90a595', panel: [1.9, 7.5] },
+  floor: { color: '#7a8e7f', dark: '#516257', light: '#9cae9f', plate: [3.0, 2.0] },
   line: '#63f2dc',
   trim: '#36474a',               // the frames, lintels and columns: dark metal
-  band: '#3d544d',               // a dark slate course where the coral one ran
+  band: '#45554a',               // a dark slate course where the coral one ran
   orb: '#5b6d6c', orb2: '#c9973f',
   sea: '#2b6796', deep: '#1d4a70',
-  slate: '#526b62', mouth: '#0b1213',
+  slate: '#5d7064',
+  /** polished brass (the horns, the dishes, the ears, the shells' bands): warm gold, lit a little from within so it
+   *  keeps its colour in the rooms' shade; the horns' lips this much brighter, their collars and posts darker */
+  brass: '#c8963e', brassRim: 1.3, brassDark: 0.78,
+  /** the rooms' light (index.js reads it for the house: the colour script's shade, light and sun inside): a cool grey
+   *  shade and a neutral light, so the slate keeps its own green and the brass its gold (the house's own is teal) */
+  light: { shadow: '#a5aeae', light: '#f5f2e8', sun: '#f2efe8' },
   /** the dressing: horn terminals (every m, up to n on one wall of a room), listening slabs (every m along the rest) */
   horns: { every: 2.7, n: 7, minH: 12, shelf: 6.4 },
   slabs: { every: 11, n: 4, w: 1.5, h: 6.2, d: 0.5, minH: 12 },
@@ -209,26 +219,37 @@ function skinMaterial(body, look, S, U, key) {
 }
 
 // ------------------------------------------------------------------ the dressing's shapes (unit sizes)
-/** A horn terminal's brass: a post up its footing's back, a collar, a bell opening out of the wall (z), 1 its mouth's radius. */
+/**
+ * A horn terminal: a post up its footing's back, a collar, a bell of brass opening out of the wall (z), 1 its mouth's
+ * radius, and its dark mouth a little inside the rim. Coloured by vertex (the brass material's colour times it): the
+ * bell's lip bright, the collar and post a shade darker, the mouth near black (one draw, on every preset).
+ */
 function hornGeometry() {
-  const bell = new THREE.LatheGeometry([[0.32, 0], [0.36, 0.25], [0.5, 0.5], [0.78, 0.75], [1.0, 0.9], [1.0, 1.0], [0.86, 0.96]].map(([r, y]) => new THREE.Vector2(r, y)), 14).rotateX(Math.PI / 2).translate(0, 0, 0.2);
+  const bell = new THREE.LatheGeometry([[0.32, 0], [0.36, 0.25], [0.5, 0.5], [0.78, 0.75], [0.97, 0.87], [1.0, 0.9], [1.0, 1.0], [0.86, 0.96]].map(([r, y]) => new THREE.Vector2(r, y)), 14).rotateX(Math.PI / 2).translate(0, 0, 0.2);
   const collar = new THREE.TorusGeometry(0.42, 0.1, 4, 14).translate(0, 0, 0.3);
   const post = new THREE.CylinderGeometry(0.16, 0.2, 1.2, 8).translate(0, -0.9, 0.1);
-  return merge([bell, collar, post]);
+  // (the mouth down the bell's throat: the brass inside it seen round it, as drawn)
+  const mouth = new THREE.CircleGeometry(0.6, 14).translate(0, 0, 0.88);
+  return merge([bell, collar, post, mouth], [(p) => (p.z > 1.08 ? WHALE_SKIN.brassRim : 1), WHALE_SKIN.brassDark, WHALE_SKIN.brassDark, 0.04]);
 }
-/** A horn's dark mouth, a disc a little inside its bell's rim. */
-const mouthGeometry = () => new THREE.CircleGeometry(0.88, 14).translate(0, 0, 1.12).toNonIndexed();
 /** A lens: a ring and its dot, facing z (radius 1). */
 const lensGeometry = () => merge([new THREE.RingGeometry(0.72, 1.0, 20), new THREE.CircleGeometry(0.36, 12)]);
 /** A unit box, its foot at y = 0, its back at z = 0 (out of the wall along z). */
 const blockGeometry = () => new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0.5).toNonIndexed();
 
-function merge(list) {
-  const pos = [], nor = [];
-  for (const g0 of list) { const g = g0.index ? g0.toNonIndexed() : g0; if (!g.attributes.normal) g.computeVertexNormals(); pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array); }
+/** Geometries merged into one; with tones (one a part: a grey level, or a function of the vertex), a colour attribute. */
+function merge(list, tones = null) {
+  const pos = [], nor = [], col = [], v = V();
+  list.forEach((g0, i) => {
+    const g = g0.index ? g0.toNonIndexed() : g0;
+    if (!g.attributes.normal) g.computeVertexNormals();
+    pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array);
+    if (tones) for (let j = 0; j < g.attributes.position.count; j++) { const t = tones[i], k = typeof t === 'function' ? t(v.fromBufferAttribute(g.attributes.position, j)) : t; col.push(k, k, k); }
+  });
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  if (tones) g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   return g;
 }
 
@@ -323,7 +344,7 @@ function faces(plan, rooms) {
 
 function dress(rt, mats, keep, plan, rooms, out) {
   const S = WHALE_SKIN, K = rt.kit;
-  const blocks = [], horns = [], mouths = [], lenses = [], strips = [], shelves = [], frames = [];
+  const blocks = [], horns = [], dots = [], lenses = [], strips = [], shelves = [], frames = [];
   const clear = (c, half) => !keep.hits(new THREE.Box3(c.clone().sub(half), c.clone().add(half)));
   const used = new Set();
   /** A horn terminal at foot p on a wall facing nrm: a slate footing, the brass horn on it, its lens. */
@@ -331,8 +352,7 @@ function dress(rt, mats, keep, plan, rooms, out) {
     blocks.push(basis(p.clone().setY(p.y - SINK).addScaledVector(nrm, -0.05), t.clone().multiplyScalar(1.15), V(0, 1.0 + SINK, 0), nrm.clone().multiplyScalar(0.95)));
     const m = p.clone().setY(p.y + 1.72).addScaledVector(nrm, 0.05);
     horns.push(basis(m, t.clone().multiplyScalar(0.62), V(0, 0.62, 0), nrm.clone().multiplyScalar(0.72)));
-    mouths.push(basis(m, t.clone().multiplyScalar(0.62), V(0, 0.62, 0), nrm.clone().multiplyScalar(0.72)));
-    lenses.push(basis(p.clone().setY(p.y + 0.55).addScaledVector(nrm, 0.92), t.clone().multiplyScalar(0.12), V(0, 0.12, 0), nrm.clone().multiplyScalar(1)));
+    dots.push(basis(p.clone().setY(p.y + 0.55).addScaledVector(nrm, 0.92), t.clone().multiplyScalar(0.12), V(0, 0.12, 0), nrm.clone().multiplyScalar(1)));
     // its circuit: down the wall from the shelf (or high up) to its footing
     strips.push(basis(p.clone().setY(p.y + 1.0), t.clone().multiplyScalar(0.045), V(0, (top ?? p.y + 6) - p.y - 1.0, 0), nrm.clone().multiplyScalar(0.03)));
   };
@@ -377,7 +397,6 @@ function dress(rt, mats, keep, plan, rooms, out) {
         const m = p.clone().setY(ys + 0.95).addScaledVector(f.nrm, 0.1);
         blocks.push(basis(p.clone().setY(ys - 0.02).addScaledVector(f.nrm, 0.1), f.t.clone().multiplyScalar(0.8), V(0, 0.3, 0), f.nrm.clone().multiplyScalar(0.7)));
         horns.push(basis(m, f.t.clone().multiplyScalar(0.8), V(0, 0.8, 0), f.nrm.clone().multiplyScalar(0.55)));
-        mouths.push(basis(m, f.t.clone().multiplyScalar(0.8), V(0, 0.8, 0), f.nrm.clone().multiplyScalar(0.55)));
       });
     }
     for (const [, p] of row) horn(p, f.t, f.nrm, shelf ? ys - 0.4 : y0 + 5);
@@ -416,11 +435,12 @@ function dress(rt, mats, keep, plan, rooms, out) {
   for (const g of rt.skinGlass ?? []) greatWindow(mats, g, frames, strips, keep);
   out.push(instanced('slate footings, shelves and slabs', blockGeometry(), mats.slate, [...blocks, ...shelves], K.frame));
   out.push(instanced('window frames', blockGeometry(), mats.trim, frames, K.frame));
-  out.push(instanced('brass horns', hornGeometry(), mats.brass, horns, K.frame));
-  const mm = instanced('horns’ mouths', mouthGeometry(), mats.mouth, mouths, K.frame); mm.userData.skinFine = true; out.push(mm);
+  out.push(instanced('brass horns', hornGeometry(), mats.brassHorn, horns, K.frame));
   out.push(instanced('lenses', lensGeometry(), mats.glow, lenses, K.frame));
+  // (the footings' small lenses: the finest, left out on the lighter presets)
+  const dm = instanced('footings’ lenses', lensGeometry(), mats.glow, dots, K.frame); dm.userData.skinFine = true; out.push(dm);
   out.push(instanced('lit strips', blockGeometry(), mats.glow, strips, K.frame));
-  return { horns: horns.length, slabs: strips.length, lenses: lenses.length, shelves: shelves.length, frames: frames.length };
+  return { horns: horns.length, slabs: strips.length, lenses: lenses.length + dots.length, shelves: shelves.length, frames: frames.length };
 }
 
 /**
@@ -453,7 +473,17 @@ function greatWindow(mats, g, frames, strips, keep) {
     const O = V().setFromMatrixPosition(glass.group.matrixWorld), T = V(1, 0, 0).transformDirection(glass.group.matrixWorld);
     pane.material = seaMaterial(O, T, glass.w, glass.h);
   }
-  if (bars?.isMesh) bars.material = mats.trim;
+  if (bars?.isMesh) { bars.material = mats.trim; bars.geometry.dispose(); bars.geometry = mullions(glass.w, glass.h); }
+}
+/**
+ * A great window's mullions as drawn: a few heavy dark bars, its panes large (the Glass piece's own grid is a bar every
+ * 1.6 by 2 m): posts at its ends and at a third and two thirds (where the frame's posts stand), a head and a sill.
+ * In the piece's frame (x along, y up, z out of the pane), where its grid was; drawn only, as the grid was (its group is
+ * walked through: the glass's collider is the kit's).
+ */
+function mullions(w, h) {
+  const box = (bw, bh, x, y) => new THREE.BoxGeometry(bw, bh, 0.22).translate(x, y, 0.16);
+  return merge([...[-0.5, -0.15, 0.15, 0.5].map((k) => box(Math.abs(k) === 0.5 ? 0.5 : 0.36, h, k * w - Math.sign(k) * (Math.abs(k) === 0.5 ? 0.25 : 0), h / 2)), box(w, 0.4, 0, h - 0.2), box(w, 0.3, 0, 0.15)]);
 }
 
 // the sea through a great window: deep blue, darker below, shafts of light from above, motes; through the tank's tall
@@ -475,31 +505,57 @@ const SEA = /* glsl */ `
       // motes
       vec2 mc = floor(q * 2.5);
       albedo += vec3(0.10, 0.14, 0.16) * step(0.988, hash(mc)) * (1.0 - smoothstep(0.1, 0.25, length(fract(q * 2.5) - 0.5)));
-      // the sea floor far off
-      albedo = mix(albedo, vec3(0.08, 0.20, 0.29), (1.0 - smoothstep(0.0, 0.3, q.y - Hh * 0.07)) * 0.7);
+      // the far sea, in two planes behind the glass (each point of the pane looked through to them, so they slide
+      // behind it as you walk: far out at sea): the Listener on the sea floor 10 m out, the whale 24 m out. Each drawn
+      // in the pane's own metres as an eye in the room sees them (from there, where they were drawn on it)
+      vec3 rd = normalize(vWorldPos - cameraPosition), sn = normalize(cross(uSeaT, vec3(0.0, 1.0, 0.0)));
+      sn *= sign(dot(rd, sn) + 1e-6);
+      float rn = max(dot(rd, sn), 0.08), d0 = max(8.0, W * 0.4);
+      vec2 qL = whFar(sp, rd, rn, 10.0, d0), qW = whFar(sp, rd, rn, 24.0, d0);
+      // the sea floor far off (the Listener's plane)
+      albedo = mix(albedo, vec3(0.08, 0.20, 0.29), (1.0 - smoothstep(0.0, 0.3, qL.y - Hh * 0.2)) * 0.7);
       if (Hh > 6.0) {
-        // the whale: a long body tapering to its tail, a fluke; paler than the water, inked
-        vec2 d = q - vec2(-W * 0.12, Hh * 0.72);
-        float u = d.x / 4.2;
-        float r = 0.66 * (1.0 - smoothstep(-0.5, 1.05, u)) * (0.5 + 0.5 * smoothstep(-1.12, -0.6, u)) + 0.06;
-        float yb = d.y + 0.06 * d.x;
-        float inside = step(abs(u), 1.12) * step(abs(yb), r);
-        vec2 fl = d - vec2(4.9, 0.32);
-        float fluke = step(-0.1, fl.x) * step(fl.x, 1.0) * step(abs(fl.y - 0.1 * fl.x), 0.08 + 0.55 * fl.x);
-        float whale = max(inside, fluke);
-        albedo = mix(albedo, vec3(0.28, 0.45, 0.58), whale);
-        whInkV = max(whInkV, step(abs(u), 1.12) * (1.0 - smoothstep(0.0, 1.5 * fw, abs(abs(yb) - r))) * 0.7);
+        vec2 fwW = fwidth(qW), fwL = fwidth(qL);
+        float fW = max(max(fwW.x, fwW.y), 1e-4), fL = max(max(fwL.x, fwL.y), 1e-4);
+        // the whale (its middle at d = 0, its head to the left): a long body, its back and belly curved, tapering to the
+        // stock of its tail, a forked fluke, a long flipper under its chest, an eye, the grooves along its throat;
+        // paler than the water, its belly paler again, inked round
+        vec2 d = qW - vec2(-W * 0.04, Hh * 0.64);
+        float Lh = 4.0, R = 0.68, u = d.x / Lh;
+        float tb = R * pow(max(0.0, 1.0 - u * u), 0.45) * mix(1.0, 0.16, smoothstep(-0.35, 1.0, u));
+        float yc = d.y + 0.05 * d.x + 0.12 * R * (1.0 - u * u);
+        float body = step(abs(u), 1.0) * step(abs(yc), tb);
+        vec2 fk = vec2(d.x - Lh * 0.95, d.y + 0.05 * d.x);
+        float fluke = step(0.0, fk.x) * step(fk.x, 1.3) * step(abs(fk.y), 0.07 + 0.6 * fk.x) * step(fk.x, 0.65 + 0.9 * abs(fk.y));
+        float fin = step(whSegT(vec2(d.x, yc), vec2(-0.5 * Lh, -0.55 * R), vec2(-0.2 * Lh, -1.7 * R), 0.26), 0.0);
+        float whale = max(max(body, fluke), fin);
+        vec3 back = vec3(0.34, 0.50, 0.62), belly = vec3(0.47, 0.62, 0.71);
+        albedo = mix(albedo, mix(back, belly, step(yc, -0.35 * tb) * body), whale * 0.85);   // (a little of the sea between)
+        float grooves = body * step(u, -0.25) * step(-0.97, u) * step(yc, 0.0) * max(1.0 - smoothstep(0.0, 1.2 * fW, abs(yc + 0.62 * tb)), 1.0 - smoothstep(0.0, 1.2 * fW, abs(yc + 0.82 * tb)));
+        float eye = 1.0 - smoothstep(0.08, 0.08 + fW, length(vec2(d.x + 0.8 * Lh, yc + 0.1 * R)));
+        whInkV = max(whInkV, max(min(1.0, fwidth(whale) * 1.5) * 0.8, max(grooves * 0.45, eye * 0.8)));
         // the Listener far out: a fan of plates over a stepped block, dark against the blue
-        vec2 e = q - vec2(W * 0.17, Hh * 0.1);
+        vec2 e = qL - vec2(W * 0.17, Hh * 0.22);
         float rr = length(e), ang = atan(e.y, e.x);
         float fan = step(0.0, e.y) * step(rr, 4.4) * step(1.1, rr) * step(0.3, ang) * step(ang, 2.84);
         float block = step(abs(e.x), 1.5) * step(e.y, 1.1) * step(-0.7, e.y) + step(abs(e.x), 2.3) * step(e.y, 0.2) * step(-0.7, e.y);
         float lis = min(1.0, fan + block);
         albedo = mix(albedo, vec3(0.08, 0.19, 0.30), lis * 0.85);
-        float seam = fan * (1.0 - smoothstep(0.0, 1.3 * fw, abs(fract(ang / 0.21) - 0.5) * 0.21 * rr));
-        whInkV = max(whInkV, max(seam * 0.55, fan * (1.0 - smoothstep(0.0, 1.4 * fw, abs(rr - 4.4))) * 0.6));
+        float seam = fan * (1.0 - smoothstep(0.0, 1.3 * fL, abs(fract(ang / 0.21) - 0.5) * 0.21 * rr));
+        whInkV = max(whInkV, max(seam * 0.55, fan * (1.0 - smoothstep(0.0, 1.4 * fL, abs(rr - 4.4))) * 0.6));
       }
     }
+`;
+// a point of the pane (sp: from its foot's middle) looked through along rd to a plane D m behind it (rn: rd across the
+// pane), in the pane's metres as an eye in the room (d0 m out, 4.5 m up) sees that plane
+const SEA_FAR = /* glsl */ `
+  vec2 whFar(vec3 sp, vec3 rd, float rn, float D, float d0) {
+    vec3 f = sp + rd * (D / rn);
+    vec2 c = vec2(0.0, 4.5), qf = vec2(dot(f, uSeaT), f.y);
+    return c + (qf - c) * d0 / (d0 + D);
+  }
+  // inside a segment a..b, w wide at a and narrowing to nothing at b: under 0
+  float whSegT(vec2 p, vec2 a, vec2 b, float w) { vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - w * (1.0 - h); }
 `;
 const seas = new Map();
 /** A pane's sea (its frame: O its foot's middle, T along it; w, h its size). */
@@ -509,11 +565,24 @@ function seaMaterial(O, T, w, h) {
   const m = makeMaterial({ color: '#2b6796', glow: 0.55, flat: true, key: `temple.skin.whale.sea.${key}` });
   const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
   if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;')) throw new Error('whale-house.js: the surface shader changed: no albedo or detail line to replace');
-  m.fragmentShader = 'uniform vec3 uSeaO;\nuniform vec3 uSeaT;\nuniform vec2 uSeaWH;\n' + fs.slice(0, at) + fs.slice(at).replace('vec3 albedo = uColor;', SEA).replace('float detail = 0.0;', 'float detail = whInkV;');
+  m.fragmentShader = 'uniform vec3 uSeaO;\nuniform vec3 uSeaT;\nuniform vec2 uSeaWH;\n' + fs.slice(0, at) + SEA_FAR + fs.slice(at).replace('vec3 albedo = uColor;', SEA).replace('float detail = 0.0;', 'float detail = whInkV;');
   m.userData.houseSkin = 'sea';
   Object.assign(m.uniforms, { uSeaO: { value: O.clone() }, uSeaT: { value: T.clone() }, uSeaWH: { value: new THREE.Vector2(w, h) } });
   seas.set(key, m);
   return m;
+}
+
+/**
+ * The house's dishes and ears in the skin's brass (drawn only: their materials swapped, their meshes, logic and lights as
+ * they were): a dish's cream bowl and its rim and post, an ear's bell and its stand.
+ */
+function brassPieces(rt, mats) {
+  const trim = rt.M.trimMat;
+  for (const p of rt.pieces) {
+    if (!(p instanceof Dish || p instanceof EchoEar)) continue;
+    // (a dish, at each of its ends: its bowl, its rim and post; an ear: all but its ring in the note's colour)
+    for (const g of p.group ? [p.group] : (p.ends ?? []).map((e) => e.g)) g?.traverse((o) => { if (o.isMesh && (p instanceof EchoEar ? o.material !== p.glow : o.material === trim || o.material === p.cream)) o.material = mats.brass; });
+  }
 }
 
 /** The finest dressing hidden on the lighter presets (uWearLite), and the dressing's lights breathing. */
@@ -552,16 +621,21 @@ export function whaleHouseSkin(rt) {
     glow,
     // (the house's own, for its layout: whorl(), pillar(), the sea)
     orb: own('orb', { ...look, color: S.orb, metal: 'iron', refl: 0.4, highlight: 0.3 }),
-    orb2: metal(S.orb2),
+    orb2: null,
     ring: glow,
     sea: own('sea', { color: S.sea, glow: 0.35 }),
     deep: own('deep', { color: S.deep, glow: 0.25 }),
     // the dressing's
     slate: own('slate', { ...look, color: S.slate, side: THREE.DoubleSide }),
-    brass: metal(S.orb2),
-    mouth: own('mouth', { color: S.mouth, side: THREE.DoubleSide }),
+    brass: null,
+    brassHorn: null,
   };
-  const lens = { a: metal(S.orb2), b: glow };
+  // the brass: the metal's tones (bright where it sees the horizon, dark below), lifted toward the light (glow, under a
+  // lamp's), the horns' own coloured by vertex (their lips, their mouths)
+  const brass = { color: S.brass, metal: 'brass', refl: 0.7, highlight: 0.3, glow: 0.38, shade: 0.15, shadeFlat: 0, hatch: 0.2, side: THREE.DoubleSide };
+  mats.brass = mats.orb2 = own('brass', brass);
+  mats.brassHorn = own('brassHorn', { ...brass, vertexColors: true });
+  const lens = { a: mats.brass, b: glow };
   Object.assign(M, {
     wall: mats.wall, wallGlyph: mats.wallGlyph, floor: mats.floor, trim: mats.trim, glyph: mats.glyph,
     bands: [{ at: 0.72, h: 0.6, mat: own('band', { ...look, color: S.band }) }],
@@ -570,7 +644,7 @@ export function whaleHouseSkin(rt) {
   K.plan = [];
   const meshes = [];
   const skin = {
-    name: 'whale-house', S, mats, meshes, stats: null,
+    name: 'whale-house', S, mats, meshes, stats: null, light: S.light,
     /** After the layout: the round rooms handed to the shader, the dressing placed and added. */
     dress() {
       const t0 = performance.now(), plan = K.plan, rooms = roomsOf(plan);
@@ -580,6 +654,7 @@ export function whaleHouseSkin(rt) {
       const keep = keepOuts(rt, new Set([mats.wall, mats.wallGlyph, mats.floor, M.bands[0].mat, M.sand]));
       skin.stats = { ...dress(rt, mats, keep, plan, rooms, meshes), ms: Math.round(performance.now() - t0) };
       for (const m of meshes) K.group.add(m);
+      brassPieces(rt, mats);
       rt.pieces.push(new SkinLife(meshes, glow));
     },
     /** After the kit's flush: the house's own materials back for its exterior. */

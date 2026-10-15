@@ -1255,7 +1255,7 @@ After `references/temples/future/whale-house/sheet-1.jpg` and `sheet-2.jpg`: a h
 window on the sea, brass dishes and rows of horn terminals, aquamarine lines.
 
 - **Surfaces** (the surface shader's albedo, pen lines and `emit` replaced, as `landmark-materials.js` `stone()`
-  does), dark green slate as drawn, its shade deeper (the house's `look` with no lift): the walls tall slabs 1.9 by
+  does), green slate as drawn, its shade deeper (the house's `look` with no lift): the walls tall slabs 1.9 by
   7.5 m, few horizontal joints, set off column by column, each with a lit and a shaded chamfer and a fine pen seam
   (round halls patterned round their middle: the kit's plan); the floors mid-dark plates 3 by 2 m; big ceiling
   plates. Thin aquamarine lines are inlaid: up the walls from the floor with a 45° jog to a
@@ -1264,20 +1264,32 @@ window on the sea, brass dishes and rows of horn terminals, aquamarine lines.
 - **The house's own colours, swapped**: frames, lintels and columns dark metal; the coral course a dark slate one;
   the frieze's little shell a lens terminal (`porthole`: an aquamarine disc in brass); the whorled shells dark
   metal with brass bands (their shape and solids as they were); the pillars' coral bands and the floor rings
-  glowing aquamarine; the water deep blue (`underwater.js` reads `rt.skin.mats`).
+  glowing aquamarine; the water deep blue (`underwater.js` reads `rt.skin.mats`). The house's dishes and ears
+  (`Dish`, `EchoEar`) wear the skin's brass, their materials swapped after the layout (`brassPieces`: their meshes,
+  rings, logic and lights as they were).
+- **Brass** (`mats.brass`; the horns' own `brassHorn` coloured by vertex): warm gold in the metal shader's tones (bright
+  where it sees the horizon, dark below), lifted toward the light (`glow` 0.38, under a lamp's 0.62) so it keeps its
+  gold in the rooms' shade; the horns' lips 1.3 times as bright, their collars and posts darker, their mouths near
+  black down the throat, in the horns' one draw on every preset.
+- **Its own light** (`skin.light`: `index.js` `attachTemple` reads `rt.skin?.light ?? def.palette.light` for the colour
+  script inside): a cool grey shade (`#a5aeae`) and a neutral light where the house's own palette has a teal shade, so
+  the slate keeps its green and the brass its gold. Without the skin (`?noskin=1`) the house's own.
 - **The great windows** (`rt.skinGlass`, the Tank Hall's and the Pool Room's): a heavy dark metal frame on the
   room's side (posts kept off doorways and the rungs' columns, a sill, a header over the Pool Room's only: the
   tank's is climbed), lit lines along it; the Glass piece's pane drawn as the sea (`seaMaterial`: deep blue, darker
-  below, slanted shafts of light, motes, the sea floor far off, and through the tank's tall glass a whale and the
-  Listener's fan of an ear far out) and its grid dark metal mullions. Its logic and collider are untouched.
+  below, slanted shafts of light, motes; the sea floor, the Listener's fan of an ear and a whale with its flipper,
+  fluke and throat grooves on two planes 10 and 24 m behind the pane, each pixel looked through to them, so they slide
+  behind the glass as you walk: `whFar`) and its grid (`mullions`: the piece's bars mesh given four heavy posts, at
+  its ends and a third and two thirds where the frame's posts stand, a head and a sill, for its 1.6 by 2 m grid) dark
+  metal. Its logic and collider are untouched (the piece's group is walked through).
 - **Dressing, drawn only** (6 InstancedMeshes: noCollide, keepBuried, out of the shadow passes, never tiled):
-  a row of up to seven big brass horn terminals (ring mouths 1.2 m across, dark inside) on slate footings along the
+  a row of up to seven big brass horn terminals (bells 1.2 m across, dark mouths) on slate footings along the
   longest clear wall of every big hall, a lit circuit down the wall to each from a slate shelf over the row, brass
   dish horns on the shelf; tall slate listening slabs with a ring lens and a lit strip along the other walls and
   round the round halls; the great windows' frames. Placed from `TempleKit.plan`, kept
   off every doorway, piece and thing drawn on the walls by boxes; their feet 5 cm into the floor (no shared plane).
 - **Lighter presets** (`uWearLite`: Low, Handheld, the Deck): no chamfers, the floors' second set of lines and the
-  walls' foot lines left out, the horns' dark mouths hidden.
+  walls' foot lines left out, the footings' small lenses hidden.
 - Not changed: the makers' glyph (three dots over an arc) is the shared `glyphGeometry`, on the doors and friezes as
   in every house; the pieces (dishes, ears, balls, the glass's grid) keep their own looks.
 - Cost (1280x720, this Mac, six rooms): -7 to +10 draw calls on High, -14 to +1 on Low; fewer triangles (the

@@ -150,8 +150,9 @@ export function attachTemple(id, scene, level, { game = sharedGame } = {}) {
     rt.change?.late?.(dt, t);   // (after the level's own movers: a change may move what they move)
   };
   // the house's own light inside (its palette's `light`: kit.js templeLight): the colour script handed over with the
-  // air while the traveller is in its rooms, as the Lab's rooms hand theirs (main.js updateSky)
-  const light = T.def.palette?.light;
+  // air while the traveller is in its rooms, as the Lab's rooms hand theirs (main.js updateSky); a house in a skin may
+  // bring its own (rt.skin.light: src/temples/skins/whale-house.js)
+  const light = rt.skin?.light ?? T.def.palette?.light;
   if (light && level.atmo) {
     const script = templeLight(level.sky?.script ? colourScript(level.sky.script) : KEYS, light), atmo = level.atmo, p = new THREE.Vector3();
     rt.lightScript = script;
