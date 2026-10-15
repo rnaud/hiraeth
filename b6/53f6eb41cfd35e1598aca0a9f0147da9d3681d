@@ -1,0 +1,171 @@
+LORE.md
+  s_f46756c638f7b0::t_eb5b04c5e18d04 221,252,259-260,281,936,991,996,1146
+changelog.md
+  s_f46756c638f7b0::t_782e0baec5033e 18
+docs/story-bible.md
+  s_f46756c638f7b0::t_a87553fba05e4c 27,721,850-852
+docs/systems/temples.md
+  s_f46756c638f7b0::t_a3563b6bb1ecb2 1239,1344,1656,1667-1685
+makers-mark.html
+  s_f46756c638f7b0::t_ae2fd5af9143c8 1-19
+references/makers-mark/selected-2026-10-15/manifest.json
+  s_f46756c638f7b0::t_bfe60b7e965eab 1-41
+src/boot.js
+  s_f46756c638f7b0::t_93e36494b244bf 1-4,95-98
+src/boxes/model.js
+  s_f46756c638f7b0::t_10f40c51d2ff1b 1,225
+src/changelog-media.js
+  s_f46756c638f7b0::t_0aeeb50e45ccad 1003
+src/changelog.js
+  s_f46756c638f7b0::t_1d9f19e63dd5f9 12
+src/cinematics-page/storage.js
+  s_f46756c638f7b0::t_d6fd49f83bc974 3-4
+src/desert-city.js
+  s_f46756c638f7b0::t_30237b6d4dc8c4 2,1554,1556-1557
+src/finds/courts.js
+  s_f46756c638f7b0::t_0701012663fbd9 1,164,167
+src/foes.js
+  s_f46756c638f7b0::t_fea16deffa2bbb 1,1571,1582-1584
+src/glyphs.js
+  s_f46756c638f7b0::t_6fe3ce833ae6ac 3-4,50-54
+src/levels/arzach2.js
+  s_f46756c638f7b0::t_a2af20bd652459 106
+src/levels/buried.js
+  s_f46756c638f7b0::t_3001dee6341c62 685
+src/levels/dismissed/hangar/story-data.js
+  s_f46756c638f7b0::t_7c9ba6bc173549 96,259,287-288
+src/levels/edena.js
+  s_f46756c638f7b0::t_d4bc9f522112a8 1,161,176
+src/levels/fallen-ring.js
+  s_f46756c638f7b0::t_83f52a90d8843c 125
+src/levels/glass-dunes.js
+  s_f46756c638f7b0::t_f4ef4b4ec09994 360
+src/levels/home.js
+  s_f46756c638f7b0::t_e4ab7ae433897a 1,348-349
+src/levels/mangrove.js
+  s_f46756c638f7b0::t_beb98272fbc06d 141
+src/levels/overnight-train.js
+  s_f46756c638f7b0::t_6be3ebaca11b84 147
+src/lore-page/lore-text.js
+  s_f46756c638f7b0::t_2709ffde4531ff 15
+src/main.js
+  s_f46756c638f7b0::t_a4fe47c15166c8 697
+src/makers-mark/candidates.js
+  s_f46756c638f7b0::t_8e745311c271b5 1-80
+src/makers-mark/design.js
+  s_f46756c638f7b0::t_0a4f889aa8fc9e 1-22
+src/makers-mark/page.js
+  s_f46756c638f7b0::t_4ff2ae3dea5669 1-38
+src/makers-mark/runtime.js
+  s_f46756c638f7b0::t_13b252690865a7 1-85
+src/makers-mark/style.css
+  s_f46756c638f7b0::t_a2cd001154655b 1
+src/makers-mark/surface.js
+  s_f46756c638f7b0::t_086fafd3043f84 1-26
+src/reactive-world.js
+  s_f46756c638f7b0::t_67d10c294daf9f 1,136,148-149,153
+src/shaft-quarters.js
+  s_f46756c638f7b0::t_ba2edc39d3d72c 249
+src/shaft-ways.js
+  s_f46756c638f7b0::t_a07a8e9aa4cbc9 19
+src/ship/homecoming.js
+  s_f46756c638f7b0::t_95dc249d0461cd 1,81,241
+src/ship/hull.js
+  s_f46756c638f7b0::t_3eca324d468149 1,3,12,361,367
+src/ship/starmap.js
+  s_f46756c638f7b0::t_eab43822e9629e 1,106-107
+src/shop-world.js
+  s_f46756c638f7b0::t_de074338385da5 1,222,239
+src/story/arzach-data.js
+  s_f46756c638f7b0::t_afd634b76b3a72 120,233
+src/story/arzach.js
+  s_f46756c638f7b0::t_a9a63ed97672ab 1,159
+src/story/bazaar-data.js
+  s_f46756c638f7b0::t_4ce356d439aa02 108
+src/story/calls.js
+  s_f46756c638f7b0::t_a9af0681452e38 452
+src/story/desert-data.js
+  s_f46756c638f7b0::t_aeda5f82227088 390,419,715,731,1165
+src/story/dialogue.js
+  s_f46756c638f7b0::t_0479f4fd225a1d 1,62,68
+src/story/edena-data.js
+  s_f46756c638f7b0::t_07457fe5bf7c8e 14,182,511,536,551
+src/story/ending.js
+  s_f46756c638f7b0::t_438ee59c659293 1,25,467
+src/story/incal-data.js
+  s_f46756c638f7b0::t_59b82e4b61cf7d 191,246,745,776,829
+src/story/lantern-data.js
+  s_f46756c638f7b0::t_d94e8a7d2b9422 13,176
+src/story/people-book.js
+  s_f46756c638f7b0::t_2eb83f2111fe92 84,107,183,205,286,321,350,483,624
+src/story/perdide-data.js
+  s_f46756c638f7b0::t_069219c211c211 15,120,448
+src/story/perdide.js
+  s_f46756c638f7b0::t_a021cb1299e487 1,38,96
+src/story/perdide2-data.js
+  s_f46756c638f7b0::t_e1873e9e353fce 24,119
+src/story/perdide2.js
+  s_f46756c638f7b0::t_660a73404ca63c 1-2,106,113,183,186
+src/story/shop-data.js
+  s_f46756c638f7b0::t_b19fc49d3b0a6c 133,136
+src/story/sightings.js
+  s_f46756c638f7b0::t_157cc7a173a463 3,29,70-71,73
+src/story/sign-text.js
+  s_f46756c638f7b0::t_2e7f2f1cf0a5cf 3,10,49,51-52
+src/story/signature.js
+  s_f46756c638f7b0::t_632c9c31ae8218 6
+src/temples/incal.js
+  s_f46756c638f7b0::t_f7662f05753ce7 429,435
+src/temples/kit.js
+  s_f46756c638f7b0::t_38cf660c457aef 1,238,583-585
+src/temples/landmarks.js
+  s_f46756c638f7b0::t_46e6d9a20d4633 9,60-61
+src/temples/skins/founders-belfry.js
+  s_f46756c638f7b0::t_3adea289345ffc 1,329
+src/temples/skins/rose-house.js
+  s_f46756c638f7b0::t_83e056703cf45c 6,235-236,471-472
+src/viridel-nursery.js
+  s_f46756c638f7b0::t_efd764b6ef6d41 1,11,34,118,120-123
+tests/dialogue.test.js
+  s_f46756c638f7b0::t_bbd0d7fab9f053 215
+tests/ending.test.js
+  s_f46756c638f7b0::t_f48fe5ae7fa7b9 290,293
+tests/key-placeholder.test.js
+  s_f46756c638f7b0::t_0c2d5d261b110c 59
+tests/makers-mark.test.js
+  s_f46756c638f7b0::t_2e8ead9c9988dc 1-52
+tests/viridel-explorations.test.js
+  s_f46756c638f7b0::t_964c95c7c2277a 196
+docs/design/makers-mark-distance-explorations.md
+  s_2f631b5522dcff::t_0fdca7f5d5ab94 1-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b653f6eb41cfd35e1598aca0a9f0147da9d3681d",
+  "prompts": {},
+  "sessions": {
+    "s_2f631b5522dcff": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13f98-1c5d-7bd1-9298-81455c65f157",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_f46756c638f7b0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13f97-220a-7a92-a103-c1eab7411131",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    }
+  }
+}
