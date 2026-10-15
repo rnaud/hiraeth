@@ -48,11 +48,11 @@ export function fightTempleGame(def) {
     drives: false,
     fightTemple: def.world,
     controls: {
-      pad: [['Left stick', 'walk (up the screen is up)'], ['Right stick', 'aim (the blade and the gun take the foe that way)'], ['RB / R1', 'cut (again to chain)'], ['RT / R2', 'a quick shot of fluid'], ['LB / L1', 'guard (just as a blow lands: parry)'], ['A / ×', 'roll (B / ○ too)'], ['Menu', 'pause']],
-      keys: [['W A S D', 'walk (up the screen is up)'], ['Mouse', 'aim (the ring on the floor)'], ['Left mouse or F', 'cut (again to chain)'], ['G, or right mouse + left mouse', 'shoot the fluid'], ['Ctrl or Z', 'guard (just as a blow lands: parry)'], ['Space or Alt', 'roll'], ['Esc', 'pause']],
-      touch: [['Stick', 'walk'], ['⚔', 'cut'], ['✺', 'a quick shot'], ['◇', 'guard'], ['↶', 'roll']],
+      pad: [['Left stick', 'walk (up the screen is up)'], ['Right stick', 'aim (the blade and the gun take the foe that way)'], ['RB / R1', 'cut (again to chain)'], ['RT / R2', 'a quick shot of fluid'], ['LB / L1', 'guard (just as a blow lands: parry)'], ['B / ○', 'roll'], ['A / ×', 'jump'], ['Menu', 'pause']],
+      keys: [['W A S D', 'walk (up the screen is up)'], ['Mouse', 'aim (the ring on the floor)'], ['Left mouse or F', 'cut (again to chain)'], ['G, or right mouse + left mouse', 'shoot the fluid'], ['Ctrl or Z', 'guard (just as a blow lands: parry)'], ['Alt', 'roll'], ['Space', 'jump'], ['Esc', 'pause']],
+      touch: [['Stick', 'walk'], ['⚔', 'cut'], ['✺', 'a quick shot'], ['◇', 'guard'], ['↶', 'roll'], ['⤒', 'jump']],
     },
-    touchButtons: ['run', 'fire', 'blade', 'guard', 'evade'],   // (no jump here: it rolls, as ↶ does)
+    touchButtons: ['run', 'jump', 'fire', 'blade', 'guard', 'evade'],
     score: { kind: 'time' },
     hud: { timer: true, score: true },
     color: def.palette.glyph,

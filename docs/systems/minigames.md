@@ -210,7 +210,8 @@ export default {
   circle's four face buttons, `PadJump` / `PadE` / `PadEvade` / `PadGadget`); `pause(on)` is called when the
   pause card opens and closes (the drum circle stops its song and picks it up again). A game on foot may rewrite the
   controls before the traveller and the gadget in hand read them: `input(controls)`, called in play each frame from
-  main.js through `MinigameRunner.filterInput` (the fight temples turn the jump into the evade's press: a roll).
+  main.js through `MinigameRunner.filterInput` (none does now: the fight temples' jump turned into a roll until the
+  author kept the jump, after #365).
 - `update(dt, input)`: `input` is `kit/input.js` `readInput`: `x`, `y`, `jump` / `jumpPressed` / `jumpReleased`,
   `action` / `actionPressed`, `tuck` (RT / R2 or Shift: where they mean the same), `trigger` (RT / R2 alone),
   `boost` (Shift, RB / R1, L3 on a pad, the touch screen's run toggle: the Ring race's boost), `brake` (LT / L2,
@@ -394,8 +395,7 @@ built: the desert's **Sunken Hall** (`fight-desert.js`, its table `src/fight-tem
 (`drives: false`) under a fixed isometric camera the session puts on its line after the rig every frame (the rig's
 yaw held on it, so the stick walks him on the screen's axes; 57° down, 28 m, a 31° lens, as Diablo IV's: issue #365);
 walls and pillars between the camera and him are seen through, a hole cut round him (`makeMaterial({ seeThrough })`).
-The jump button and B / ○ roll there (`ROLL`; the session's `input(controls)`, which the runner's `filterInput` calls
-before the traveller reads them, turns the jump into the evade's press) and the cut takes foes in a wider, longer cone
+B / ○ (Alt, the touch ↶) rolls there (`ROLL`, the evade made a roll; A / × still jumps, the touch jump shown) and the cut takes foes in a wider, longer cone
 (`WIDE_CUT`). Four rooms, two or three waves each of the desert's kinds made light (a cut or two, half the harm), up to
 24 heads standing, out of the ink springs; a room cleared, its gate (a mover) sinks; the last wave brings a lamp
 tripod and two whole herons, then the reliquary on the altar wins the Ember colours (`src/kit-colours.js`, items.md

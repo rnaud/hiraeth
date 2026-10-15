@@ -9,7 +9,7 @@
 // held at ISO.yaw, so the stick and WASD walk him relative to the screen). The aim: the right stick, or the mouse's
 // reticle on the floor, or the way he walks; the blade and the gun take the foe in that cone (FluidTool.lockOn and
 // updateAimPoint wrapped for the run). The walls and pillars between the camera and him are seen through (SEE: a hole with
-// a hand-cut edge opens in them round him, materials.js SEE_HOLE). The jump button and B / ○ roll (ROLL), and the blade's cut
+// a hand-cut edge opens in them round him, materials.js SEE_HOLE). B / ○ rolls (ROLL; A / × jumps, as everywhere), and the blade's cut
 // takes every foe in a wider, longer cone (WIDE_CUT); both only here (issue #365).
 
 import * as THREE from 'three';
@@ -271,15 +271,6 @@ export function startFightTemple(ctx) {
     },
     /** (the console, the checks: where the run is) */
     get run() { return { ...run, queue: queue.length, standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length }; },
-    /**
-     * (main.js, each frame before the traveller and the gadget in hand read them: the runner's filterInput) The jump
-     * button rolls here: A / × (Space, the touch ⤒) is the evade's press (B / ○, Alt, ↶), which the blade makes a roll.
-     */
-    input(c) {
-      if (!c || over) return;
-      if (c.Space || c.PadJump) c.PadEvade = true;
-      c.Space = false; c.PadJump = false;
-    },
     update(dt, inp, { live, raw }) {
       t += dt;
       // (no lock-on here: the aim takes the foe in its cone, and a lock would turn the view and the stick off the iso line)

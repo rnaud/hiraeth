@@ -17,6 +17,9 @@ export const CHANGELOG = [
     // the knees (issue #47): src/feet.js FEET.soft 0.02 -> 0.035, relockKeep, restKeep, the early touchdown only coming
     // down, a stepping foot's turn kept continuous; tests/motion-qc.test.js (the B3 test, no longer todo)
     'His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.',
+    // the Sunken Hall's buttons (after issue #365): src/fight-temples/session.js (no more input rewrite), index.js (controls
+    // cards, the touch jump back); tests/fight-roll.test.js
+    'In the Sunken Hall only B / ○ rolls now: A / × jumps again, as everywhere else, and the jump button is back on the touch screen.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

@@ -2217,7 +2217,7 @@ function frame(ts) {
   if (!mergedInput.KeyE) eBlocked = false;
   if (eBlocked) mergedInput.KeyE = false;
   const ctl = wasBusy ? noInput : ship.input(mergedInput);   // the ship's E and its autopilot
-  if (!wasBusy && minigame && !minigame.drives) minigame.filterInput?.(ctl);   // (a game on foot's own buttons: the fight temples' jump rolls)
+  if (!wasBusy && minigame && !minigame.drives) minigame.filterInput?.(ctl);   // (a game on foot's own buttons)
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)

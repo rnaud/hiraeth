@@ -966,6 +966,7 @@ const KNEES47 = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way
 const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/after.json (tools/game-strafe.mjs, tools/game-analyse.mjs), tools/strafe-node.mjs';
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'In the Sunken Hall only B / ○ rolls now', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × (Space): he jumps. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The controls card on its start screen says the same.' },
     { match: 'Locked on to a foe, moving left or right he now runs sideways', tags: ['characters'], shots: [
       { name: 'strafe-run', title: 'Strafing right round the Mother Snapper', caption: 'Locked on, 1.3 s into a long run to the right: before, his body square to the foe and his legs stepping forward and back on the spot while he slid sideways; after, his hips and legs turned the way he runs, his back turned round so his chest and head still face her', from: STRAFE47_GAME },
     ], numbers: [
