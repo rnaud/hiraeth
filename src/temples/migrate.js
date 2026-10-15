@@ -107,11 +107,15 @@ export const LAYOUTS = {
   // v1.48: the Engine-House round its Fourth Chamber, past the chest. Past the Crank Passage's door: its small key in it,
   // the Boiler Room won and its flue open, the chamber's shutters up; past the Furnace's bridge: the great key in the
   // warden's door too (before it, the Governor Room is a walk back)
+  // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Crank Hall's ball on its
+  // near landing (it lay on the Piston Hall's gantry), the Crank Passage a room of its own (the same pieces, the same
+  // state). A save that entered the house: taken to its last mark if it stood inside the old rooms (runtime.js relaid)
   buried: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['open.d3', 'lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d3': 1, 'found.kS': true, 'lit.arB': true, 'open.dBo': true, 'lit.k0': true, 'open.dS': true } },
       { if: ['open.br1', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.k3': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.49: the Aerie's stack, the Moult off the Wind Well's floor and the Eyrie off its high balcony. Past the balcony's

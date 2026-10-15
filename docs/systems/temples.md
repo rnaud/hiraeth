@@ -534,6 +534,27 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   `relaid`); `dP` opens for the coil, so a save past the chest finds it open. Rules broken 49 → 0; temple design audit
   4.22 before and after (decoupling 4 → 5: the counterweight a room from its door; curve 4 → 3: the north door's step,
   the simplest, comes mid-way).
+- **The Engine-House as shrines** (v1.77, issue #336). The Piston Hall 32 by 36 m under 20 (`PH`, its gantry 7 m up along
+  the north wall), the Crank Hall 32 by 36 under 18 (`CRANK`, the pit across it wall to wall), the Fourth Chamber a round
+  hall 34 m across (`CHAMBER`), the Boiler Room and the Governor Room 30 m square under 18 (`WING`), the Crank Passage a
+  room of its own 30 m square behind the chamber's north shutter, a third piece of `dS` (`PASSAGE`, logic room `crank`), the Furnace 34 by 58 with an
+  18 m near lip and a 20 m far lip either side of the 20 m chasm (`FURNACE`), the Tooth-Warden's hall as it was (`HALL`,
+  r 20) past a corridor antechamber; every door 7 by 9 (`DOOR`), each doorway joined by a short `corridor`. The pistons'
+  heights and steps, the walkway (6.4 m), the bridge (20.2 m), every groove's length and the stroke as they were. Each
+  puzzle in the middle of its room: the valve's eye `s1` on a post out in the Piston Hall by the way in (it was on the
+  south wall); the hammer's ball `ballJ` on the Crank Hall's near landing, its 11 m groove down the floor into the crank
+  (it lay on the Piston Hall's gantry and was rolled through the corridor), the crank wheel at the groove's end behind an
+  iron casing (`CRANK.casing`) that hides its notch from the walkway; the chamber's four eyes `k0` on iron posts round the
+  chest, two either side of the way to each shutter; the Crank Passage's pistons, parapet, crank and ball across its
+  middle (they flanked its door); the Governor Room's anvil (in an iron frame for its hammer), groove and pistons' parapet
+  round the middle of its floor; the Furnace's two balls and cranks out on the deeper near lip, its pistons 6.4 m past the
+  far lip's edge as before. Tagged rooms: the Threshold, the shutters' way, the far landing and the way out passages, the
+  Boiler Room the one fight (its keepers round its middle among four cold boilers, `Mark` `foes`), the rest puzzles; the
+  Crank Passage's mark is placed after the wings' so the machines' ids by mark stay as they were. Old saves: one that stood
+  in the old rooms is taken to its last mark (`migrate.js` buried v3, `relaid`). Rules broken 41 → 0; temple design audit
+  4.33 → 4.56 (non-obvious 3 → 4, mean obviousness 3.33 → 3.08: the hammer's ball hidden behind the casing, the Crank
+  Passage's ball behind its parapet from the door; curve 4 → 5; skeleton `XBCGXALXLK`, 70 % like the Casting-House
+  as before); its z-fights 0 → 0.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

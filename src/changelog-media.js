@@ -882,6 +882,8 @@ const CASTING336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless 
 const LAMP336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6449, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Clock-House's rooms, shot the same way before and after) */
 const CLOCK336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6451, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72 (the Winding Well’s pair -q 66, to keep under 260 KB)';
+/** (v1.77, issue #336: the Engine-House's rooms, shot the same way before and after) */
+const ENGINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6452, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -1004,6 +1006,17 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Clock-House’s keepers wait only in the Pendulum Hall', shots: [
       { name: 'clock-pendulum', title: 'The Pendulum Hall', caption: 'From its door: before, 16 m square, its keepers by the walls; after, 30 m square under 22 m, the house’s one fight round its middle among four columns, the stair up the north wall to the key’s landing', from: CLOCK336 },
+    ] },
+    { match: 'The Engine-House is rebuilt like a shrine too', shots: [
+      { name: 'engine-pistons', title: 'The Piston Hall', caption: 'From the Threshold: before, 22 by 31 m, the valve’s eye on the wall by the way in and the hammer’s ball up on the gantry; after, 32 by 36 m under 20, the valve’s eye on a post out in the hall, the three pistons up to the gantry', from: ENGINE336 },
+      { name: 'engine-crank', title: 'The Crank Hall', caption: 'From its south door: before, 16 m square, the ball’s groove running in from the Piston Hall’s gantry; after, 32 by 36 m, the ball on the hall’s own near landing, the hammer’s crank hidden in its iron casing, the walkway over the pit as long as it was', from: ENGINE336 },
+      { name: 'engine-chamber', title: 'The Fourth Chamber', caption: 'From its south door: before, a round room 19 m across, its four eyes high on the wall; after, 34 m across, the four eyes on iron posts round the chest, three shutters 7 by 9 m (the north one new, into the Crank Passage)', from: ENGINE336 },
+      { name: 'engine-passage', title: 'The Crank Passage', caption: 'Before, a passage 16 m wide, its four pistons by the door; after, a room of its own 30 m square, the pistons behind their parapet across its middle, the crank and its ball beside them, the flue’s door on the right', from: ENGINE336 },
+      { name: 'engine-furnace', title: 'The Furnace', caption: 'From its south door: before, 22 m wide, the two balls’ grooves at the lip by the door; after, 34 by 58 m, the balls and their cranks out on a lip 18 m deep, the chasm and the bridge as long as they were', from: ENGINE336 },
+    ] },
+    { match: 'The Engine-House’s keepers wait only in the Boiler Room', shots: [
+      { name: 'engine-boiler', title: 'The Boiler Room', caption: 'From its door: before, 16 by 14 m, its boilers along the walls; after, 30 m square under 18, the house’s one fight round its middle among four cold boilers', from: ENGINE336 },
+      { name: 'engine-governor', title: 'The Governor Room', caption: 'Before, 18 by 16 m, the pistons along the north wall; after, 30 m square, the anvil in its hammer’s frame, the ball’s groove and the pistons’ parapet in the middle of the floor, and no machine', from: ENGINE336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
     { match: 'Inside, the Rose House is the inside of a dry cactus now', tags: ['desert', 'perf'], shots: [

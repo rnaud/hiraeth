@@ -1323,6 +1323,34 @@ test('a save from the Aerie before issue #336: its state as it was (the same pie
   own();
 });
 
+test('a save from the Engine-House before issue #336: its state as it was (the same pieces), and one that stood in the old rooms is taken to its last mark', () => {
+  const past = new GameState(null);
+  for (const [k, v] of Object.entries({ layout: 2, entered: true, 'lit.s1': true, 'drum.ball0': 0, 'drum.ballJ': 1, gadget: true, 'lit.k0': true, 'open.dS': true, checkpoint: 'gov' })) past.set(`temple.buried.${k}`, v);
+  migrateTempleLayouts(past);
+  assert.equal(past.flag('temple.buried.layout'), LAYOUTS.buried.v);
+  assert.equal(past.flag('temple.buried.relaid'), true, 'inside the old house: to its mark');
+  assert.equal(past.flag('temple.buried.checkpoint'), 'gov', 'its place kept');
+  assert.equal(past.flag('temple.buried.drum.ballJ'), 1, 'the hammer’s ball still in its crank');
+  const outside = new GameState(null);
+  outside.set('temple.buried.layout', 2);
+  migrateTempleLayouts(outside);
+  assert.equal(outside.flag('temple.buried.relaid'), undefined, 'never inside: nothing to move');
+  // standing where the old Governor Room was (18 m east of the old chamber's middle: out in the air now, east of the
+  // Crank Hall): to the Governor Room's mark
+  game.reset();
+  own('backpack', 'gun');
+  const { level, physics, rt } = world('buried');
+  game.set('temple.buried.checkpoint', 'gov'); game.set('temple.buried.relaid', true);
+  const P = new Player(physics, { spawn: rt.kit.world(22.5, 7.05, 75.2), dynamic: level.dynamic, health: true });
+  rt.connect({ player: P, toast: () => {} });
+  rt.update(DT, DT);
+  const mark = rt.marks.find((m) => m.room === 'gov');
+  assert.ok(P.pos.distanceTo(mark.spot) < 0.5, `at the Governor Room's mark (${rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(!game.flag('temple.buried.relaid'), 'once');
+  game.reset();
+  own();
+});
+
 test('a save from the Mooring-House before issue #336: its state as it was (the same pieces), and one that stood in the old rooms is taken to its last mark', () => {
   const past = new GameState(null);
   for (const [k, v] of Object.entries({ layout: 2, entered: true, 'drum.ballW': 1, 'open.g1': true, 'lit.s1': true, 'open.d1': true, gadget: true, 'lit.r1': true, 'open.d2': true, checkpoint: 'drift' })) past.set(`temple.spacecity.${k}`, v);
@@ -2298,7 +2326,8 @@ test('the Footprint on foot: the sphere set down on the walker’s print and you
 });
 
 // ------------------------------------------------------------------ on foot: the Buried Machine's Engine-House, room by room
-test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the chamber’s four eyes and its shutters, the hub’s wings: the Boiler Room’s arena and its flue on into the passage, the Governor Room’s one ball and two cranks for the great key, the passage’s pistons held up a room on and its small lock, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
+test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the near landing’s ball (v1.77, issue #336: the house redone as shrines), the chamber’s four eyes and its shutters, the hub’s wings: the Boiler Room’s arena and its flue on into the passage, the Governor Room’s one ball and two cranks for the great key, the passage’s pistons held up a room on and its small lock, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', async () => {
+  const { PH, CRANK, CHAMBER, PASSAGE, FURNACE, HALL, WING } = await import('../src/temples/buried.js');
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('buried');
@@ -2360,7 +2389,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   wait(2);
   assert.deepEqual(pistons.map((p) => p.s), at0, 'jammed again, they stop where they are');
   assert.equal(roll(ball0, -1, () => rt.logic.drumOn('ball0', 'pY')), true, 'and out again');
-  assert.equal(walk(L(0, 0, 24.5)), true, `to the pistons (${where()})`);
+  assert.equal(walk(L(0, 0, PH.pistons[0] - 2.9)), true, `to the pistons (${where()})`);
   const board = (pis, low) => {
     // wait for it at its low end (and its neighbour level with you), then step on
     for (let i = 0; i < 30 / DT && !((low ? pis.s < 0.15 : pis.s > pis.total - 0.15) && pis.wait > 0.3); i++) frame();
@@ -2370,13 +2399,13 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   board(pistons[1], true);
   board(pistons[2], true);
   for (let i = 0; i < 20 / DT && pistons[2].s < pistons[2].total - 0.1; i++) frame();
-  assert.equal(walk(L(0, 7, 40.5), { max: 3 }), true, `onto the gantry (${where()})`);
-  // ---- the Crank Hall: the hammer over the walkway throws you off; the gantry's ball rolled into its crank stops it
+  assert.equal(walk(L(0, 7, PH.gantry + 2.5), { max: 3 }), true, `onto the gantry (${where()})`);
+  // ---- the Crank Hall: the hammer over the walkway throws you off; the near landing's ball rolled into its crank stops it
   const hammer = rt.piece('h1');
-  assert.equal(walk(L(0, 7, 50)), true, `to the walkway (${where()})`);
+  assert.equal(walk(L(0, 7, CRANK.W0 - 1.4)), true, `to the walkway (${where()})`);
   for (let i = 0; i < 6 / DT && hammer.down > 0.05; i++) frame();
   let thrown = false;
-  for (let i = 0; i < 8 / DT && !thrown; i++) { frame({ KeyW: true }, toward(L(0, 7, 60))); thrown = !!P.down || said(/throws you off/); }
+  for (let i = 0; i < 8 / DT && !thrown; i++) { frame({ KeyW: true }, toward(L(0, 7, CRANK.W1 + 2.2))); thrown = !!P.down || said(/throws you off/); }
   assert.ok(thrown, `the hammer throws you off the walkway (${where()})`);
   for (let i = 0; i < 6 / DT && (P.down || rt.kit.local(P.pos).y < 6); i++) frame();
   const ballJ = rt.piece('ballJ');
@@ -2387,16 +2416,17 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   const ph = hammer.phase;
   wait(1);
   assert.equal(hammer.phase, ph, 'and stays there');
-  P.teleport(L(0, 7.1, 49.5), V(0, 1, 0), V(0, 0, 1));
+  P.teleport(L(0, 7.1, CRANK.W0 - 1.9), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
-  assert.equal(walk(L(0, 7, 60), { run: false }), true, `over the walkway under the still hammer (${where()})`);
-  // ---- the Fourth Chamber: the chest; its way on is open, four still eyes by its two shutters
-  assert.equal(walk(L(0, 7, 70)), true, `into the chamber (${where()})`);
+  assert.equal(walk(L(0, 7, CRANK.W1 + 2.2), { run: false }), true, `over the walkway under the still hammer (${where()})`);
+  // ---- the Fourth Chamber: the chest; its way on is open, four still eyes on posts by the ways to its two shutters
+  const C3 = CHAMBER.z;
+  assert.equal(walk(L(0, 7, C3 - 5.2)), true, `into the chamber (${where()})`);
   const k0 = rt.piece('k0');
   for (let i = 0; i < 4; i++) k0.hit(i);
   assert.equal(rt.logic.isLit('k0'), false, 'four still eyes in a breath: the starting bar holds three');
   assert.ok(said(/bar holds three/), 'and it says so');
-  assert.equal(walk(L(-7, 7, 75.2), { max: 4 }) && walk(L(-13, 7, 75.2), { max: 3 }), false, 'the west shutter is down');
+  assert.equal(walk(L(-5, 7, C3), { max: 4 }) && walk(L(-13, 7, C3), { max: 4 }) && walk(L(-19, 7, C3), { max: 3 }), false, 'the west shutter is down');
   items.grant('cell'); game.emit('box:opened', { id: 'buried.temple.cell' });
   wait(3);
   for (let i = 0; i < 4; i++) k0.hit(i);
@@ -2405,11 +2435,10 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   assert.ok(rt.logic.isOpen('dS') && rt.twins.get('dS')[0].open && rt.piece('dS').open, 'both shutters roll up');
   assert.equal(rt.logic.isOpen('d3'), false, 'the passage’s door is a room on');
   // ---- the Boiler Room, west off the hub (an arena): its doors shut behind you while its keepers stand
-  const C3 = 75.2;
-  const keepers = [{ room: 'boiler', alive: true }, { room: 'boiler', alive: true }];
+    const keepers = [{ room: 'boiler', alive: true }, { room: 'boiler', alive: true }];
   rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(walk(L(-7, 7, C3)) && walk(L(-14, 7, C3)), true, `through the west shutter (${where()})`);
-  assert.equal(walk(L(-20, 7, C3)), true, `into the Boiler Room (${where()})`);
+  assert.equal(walk(L(-5, 7, C3)) && walk(L(-14, 7, C3)) && walk(L(-21, 7, C3)), true, `through the west shutter (${where()})`);
+  assert.equal(walk(L(-25, 7, C3)), true, `into the Boiler Room (${where()})`);
   wait(0.3);
   assert.ok(!rt.logic.isOpen('dB') && !rt.logic.isOpen('dBo'), 'its doors shut behind you');
   for (const k of keepers) k.alive = false;
@@ -2419,12 +2448,13 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   wait(0.3);
   openChest(rt, 'kS', P);
   assert.equal(rt.logic.isFound('kS'), true, 'a small key');
-  // up the flue and out into the Crank Passage, by its door (the loop)
-  assert.equal(walk(L(-17, 7, 80)) && walk(L(-17, 7, 95.2)) && walk(L(-9.5, 7, 95.2)) && walk(L(-7, 7, 94.6)), true, `up the flue into the passage (${where()})`);
-  assert.equal(walk(L(0, 7, 102), { max: 4 }), false, 'the passage’s door is shut');
+  // up the flue and out into the Crank Passage, by its west door (the loop)
+  const F = WING.flue;
+  assert.equal(walk(L(F.x, 7, C3 + 11)) && walk(L(F.x, 7, C3 + 19)) && walk(L(F.x, 7, F.z)) && walk(L(PASSAGE.x0 - 4, 7, F.z)) && walk(L(PASSAGE.x0 + 3, 7, F.z)), true, `up the flue into the passage (${where()})`);
+  assert.equal(walk(L(0, 7, PASSAGE.z1 + 2), { max: 6 }), false, 'the passage’s door is shut');
   assert.equal(rt.logic.keysIn('d3'), 1, 'the small key goes in, and it still wants its four eyes');
   // ---- the Governor Room, east: one ball between the hammer's crank and the pistons'
-  assert.equal(walk(L(0, 7, 88)) && walk(L(4, 7, C3 + 2)) && walk(L(12, 7, C3)) && walk(L(15, 7, C3)), true, `back through the chamber and the east shutter (${where()})`);
+  assert.equal(walk(L(8, 7, PASSAGE.QZ + 4)) && walk(L(8, 7, PASSAGE.QZ - 7)) && walk(L(0, 7, PASSAGE.z0 + 3)) && walk(L(0, 7, C3 + 14)) && walk(L(4, 7, C3)) && walk(L(13, 7, C3)) && walk(L(22, 7, C3)) && walk(L(26, 7, C3)), true, `back round the pistons, through the chamber and the east shutter (${where()})`);
   const k3 = rt.piece('k3'), bQ = rt.piece('bQ'), kB = rt.piece('kB'), h2 = rt.piece('h2');
   assert.equal(kB.free(), false, 'the great key caged on its anvil');
   wait(3);
@@ -2448,7 +2478,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   openChest(rt, 'kB', P);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
   // ---- the Crank Passage: four eyes on pistons that rise in turn; one crank holds them all up
-  assert.equal(walk(L(12, 7, C3)) && walk(L(4, 7, C3 + 2)) && walk(L(0, 7, 88)) && walk(L(0, 7, 93)), true, `back into the passage (${where()})`);
+  assert.equal(walk(L(26, 7, C3)) && walk(L(13, 7, C3)) && walk(L(4, 7, C3)) && walk(L(0, 7, C3 + 14)) && walk(L(0, 7, PASSAGE.z0 + 3)) && walk(L(-8, 7, PASSAGE.z0 + 6)), true, `back into the passage (${where()})`);
   const bank = rt.piece('k1');
   wait(3);
   assert.equal(catchAsTheyRise(bank, 10), false, 'caught as they rise, never four in one breath');
@@ -2462,7 +2492,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true, 'the small key in it, and its eyes awake');
   // ---- the Furnace: two cranks for the two west pistons; jam those, and catch the other two as they rise in turn
-  assert.equal(walk(L(0, 7, 105.2)), true, `to the furnace (${where()})`);
+  assert.equal(walk(L(-9, 7, PASSAGE.QZ + 4)) && walk(L(0, 7, PASSAGE.z1 - 2)) && walk(L(0, 7, FURNACE.z0 + 4)), true, `to the furnace (${where()})`);
   const k2 = rt.piece('k2'), bA = rt.piece('bA'), bB = rt.piece('bB');
   assert.equal(roll(bA, 1, () => rt.logic.drumOn('bA', 'pA')), true, 'one crank jammed');
   assert.equal(catchAsTheyRise(k2, 10), false, 'one piston held up is not enough: the other three rise too far apart');
@@ -2471,11 +2501,11 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   assert.ok(k2.isUp(0) && k2.isUp(1), 'the two west eyes stand up');
   assert.equal(catchAsTheyRise(k2, 10), true, 'the other two caught one after the other: four in one breath');
   wait(3.5);
-  assert.equal(walk(L(0, 7, 105.2)), true, `to the bridge's foot (${where()})`);
-  assert.equal(walk(L(0, 7, 129.2)), true, `over the bridge (${where()})`);
+  assert.equal(walk(L(0, 7, FURNACE.z0 + FURNACE.lip - 2)), true, `to the bridge's foot (${where()})`);
+  assert.equal(walk(L(0, 7, FURNACE.z0 + FURNACE.lip + FURNACE.gap + 2)), true, `over the bridge (${where()})`);
   assert.ok(P.pos.y > L(0, 6, 0).y, 'over it, not in the furnace');
   // ---- the Tooth-Warden: four vents in a breath; then on its gear
-  assert.equal(walk(L(0, 7, 147.2)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 7, HALL.z - 17.7), { max: 40 }), true, `into the hall (${where()})`);
   const G = rt.guardian, bG = rt.piece('bG');
   wait(0.3);
   assert.notEqual(G.state, 'sleep');

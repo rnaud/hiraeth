@@ -282,6 +282,33 @@ two small keys and the great one, the loop back over the ledge, the disc's ride,
 the gallery's chasm and its pendulum's beat. A save that stood in the old rooms is taken to its last mark
 (`LAYOUTS.garage` v3).
 
+## The Engine-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Piston Hall 22 × 31, the Crank Hall 16 × 16, the Fourth Chamber 19 m across, the Boiler Room 16 × 14, the Governor Room 18 × 16, the Crank Passage a 16 × 14 end of the chamber's room, the Furnace 22 × 34 | the Piston Hall and the Crank Hall **32 × 36**, the chamber **34 m** across, the Boiler Room, the Governor Room and the Crank Passage (a room of its own) **30 × 30**, the Furnace **34 × 58** |
+| ceilings | 10 (the Crank Hall, the Boiler Room, the passage) to 16 m; the furnace's lips 12 under its roof | **18 m** or more (the Piston Hall 20) |
+| doors | 5 by 6.4 (the flue 4 by 5.5, the warden's way out 5 by 6) | **7 by 9** |
+| fights | a machine by every mark (the Piston Hall, the Crank Hall, the chamber, the Governor Room, the Furnace) and the Boiler Room's arena | **the Boiler Room only**, its keepers round its middle among four cold boilers |
+| threaded through doors | the hammer's ball rolled from the Piston Hall's gantry through the corridor into the Crank Hall's crank | the ball on the Crank Hall's own near landing, its groove as long |
+| against the walls | the valve's eye on the south wall, the chamber's eyes on its wall, the passage's and the governor's pistons along walls, the furnace's balls at its lip by the door and its pistons at the far wall | the valve's eye on a post, the chamber's eyes on posts round the chest, the pistons and their parapets across the middle of their rooms, the furnace's lips 18 and 20 m deep |
+| the rules broken | **41** (both 5, size 6, ceiling 4, door 6, centred 14, through doors 1, foes 5) | **0** |
+| the temple design audit | 4.33: structure 5, teach/test/twist 5, combination 5, non-obvious 3 (mean 3.33), decoupling 5, item 5, guardian 4, identity 3, curve 4 | **4.56**: non-obvious **4** (mean 3.08), curve **5**, the rest the same; skeleton `XBACGXLXLK` → `XBCGXALXLK` (70 % like the Casting-House as before, and the Hush-House) |
+
+What it took beyond the sizes: the hammer's ball could no longer come from the gantry, so it waits on the Crank Hall's
+near landing, and the crank it jams stands in an iron casing between the groove and the walkway (`CRANK.casing`): from
+the walkway the notch is out of sight, so the step stays as hidden as it was when its ball lay a room away (it reads
+4 on the obviousness scale before and after). The Crank Passage was the chamber's room in the logic, its pieces 20 m
+from the chamber's middle; it is a room of its own (`crank`) behind a third, north shutter of the chamber's four eyes
+(`dS`, three pieces now), the flue's way in on its west wall, so every room after the chest still asks for the fourth
+chamber. (A door of its own that opens for the unit in hand, as the Undertower's, was tried: one more step, the chest
+earlier among them, and the dungeon item a point lower.) Seen from its door, the passage's ball is behind the parapet:
+that step is the house's hardest (1.5). The furnace keeps its 20 m chasm, so its lips grew instead (18 and 20 m) to
+bring the balls at the near lip and the pistons past the far one into the middle 60 % of the hall. What stayed: the
+Tooth-Warden, its hall, its gear and its fight, the story's lines, the small key and the great one, the loop through the
+flue, the pistons' heights, the walkway, the bridge, every groove's length and the stroke. A save that stood in the old
+rooms is taken to its last mark (`LAYOUTS.buried` v3).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -303,7 +330,7 @@ counts, and a house may not get worse). Ranked worst first:
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
 
 | Clock-House (garage) | 49 → **0** (v1.77, above) | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
-| Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
+| Engine-House (buried) | 41 → **0** (v1.77, above) | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |
 | Hush-House (perdide) | 36 | 5 | 8 | 5 | 7 | 3 | 1 | 6 | 1 unmeasured |
 | Footprint (spheres) | 36 | 3 | 5 | 4 | 5 | 12 | 0 | 3 | 2 unmeasured, 2 gadget |

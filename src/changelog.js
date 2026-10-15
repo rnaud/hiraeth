@@ -85,6 +85,14 @@ export const CHANGELOG = [
     // (the machines only in the Pendulum Hall, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; migrate.js
     // garage v3, runtime.js relaid)
     'The Clock-House’s keepers wait only in the Pendulum Hall, round its middle among four columns: no machine stands by its puzzles any more. The Clockwork Foreman and its fight are as they were. If you were inside the old house, you start at its last glyph stone.',
+    // the Engine-House as shrines (issue #336): src/temples/buried.js (DOOR, PH, CRANK, CHAMBER, PASSAGE, FURNACE, HALL, WING,
+    // LOGIC.rooms kinds, the Crank Passage a room of its own `crank`, ballJ in the Crank Hall behind its crank's casing, the
+    // valve's eye on a post, the chamber's eyes on posts, the governor's pieces round its floor); tests/temples.test.js,
+    // temple-rules REDONE
+    'The Engine-House is rebuilt like a shrine too: its halls are far bigger and taller (the Piston Hall and the Crank Hall 32 by 36 m, the Fourth Chamber 34 m across, the furnace 34 by 58, every room 18 m high or more), its doors twice the size, and every puzzle stands in the middle of its own room. The valve’s eye sits on a post by the way in; the ball that stops the hammer now waits on the Crank Hall’s own landing, its crank hidden in an iron casing; the chamber’s four eyes stand on posts round the chest; the Crank Passage is a room of its own behind a third shutter, its pistons across the middle; the Governor Room’s anvil, ball and pistons stand in the middle of its floor.',
+    // (the machines only in the Boiler Room, round its middle among four boilers: LOGIC.rooms kinds, Mark `foes`; migrate.js
+    // buried v3, runtime.js relaid)
+    'The Engine-House’s keepers wait only in the Boiler Room now, round its middle among four cold boilers, the house’s one fight: no machine stands by its puzzles any more. The Tooth-Warden and its fight are as they were. If you were inside the old house, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield
