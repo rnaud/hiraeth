@@ -20,6 +20,10 @@ export const CHANGELOG = [
     // the Sunken Hall's buttons (after issue #365): src/fight-temples/session.js (no more input rewrite), index.js (controls
     // cards, the touch jump back); tests/fight-roll.test.js
     'In the Sunken Hall only B / ○ rolls now: A / × jumps again, as everywhere else, and the jump button is back on the touch screen.',
+    // the Steam Deck's main thread (issue #111, round 10): src/empty-instances.js, shadows.js shadowVariants and
+    // ShadowCuller.begin, ship/cinema.js holdsToasts, wind.js (wisps out of the view), perf.js cullers, static-batch.js
+    // opaqueSort / Watch.holds; tests/deck-main-thread.test.js; docs/systems/performance.md "The Steam Deck, round 10"
+    'On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

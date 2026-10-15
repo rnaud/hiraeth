@@ -964,9 +964,38 @@ const STRAFE47_GAME = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Mediu
 const STRAFE47_NODE = 'node, the gait harness’s flat course, the game’s B3 traveller locked on to a point 10 m ahead, the stick right and left in turn, 2 s each, twice (8 s strafing), or back and back-right, 3 s each, at 60 frames a second; main at 0006cfe7 against the same tree with the change; 15 October';
 const KNEES47 = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course); main at 0006cfe7 against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
 const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/after.json (tools/game-strafe.mjs, tools/game-analyse.mjs), tools/strafe-node.mjs';
+/** (v1.78, issue #111: the Steam Deck's main thread, round 10) */
+const DECK111 = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800 (render scale 1), muted, the bench’s own profile and save; every view of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1, viewpoints-worlds.json), main at c2f4ed6d against the same tree with the change, world by world in turn; 15 October';
+const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<world> (deck-worlds.json); docs/systems/performance.md, “The Steam Deck, round 10”';
 export const CHANGELOG_MEDIA = {
   '1.78': [
     { match: 'In the Sunken Hall only B / ○ rolls now', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × (Space): he jumps. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The controls card on its start screen says the same.' },
+    { match: 'On the Steam Deck every world runs 2 to 7 frames a second smoother', tags: ['perf', 'devices'], numbers: [
+      { title: 'Frames a second on the Steam Deck at native resolution (the median of each world’s views)', unit: 'fps', better: 'higher', device: DECK111, source: DECK111_SOURCE, rows: [
+        { where: 'the desert', before: 42.1, after: 44.6 },
+        { where: 'the City-Shaft', before: 44.3, after: 46.2 },
+        { where: 'Vael', before: 49.1, after: 53.1 },
+        { where: 'Lorn', before: 51.3, after: 55.0 },
+        { where: 'the Signal Market', before: 58.1, after: 61.4 },
+        { where: 'Viridel', before: 59.6, after: 65.4 },
+        { where: 'the Underwater City', before: 59.8, after: 62.9 },
+        { where: 'the City Floating in Space', before: 58.3, after: 62.9 },
+        { where: 'the Glass Dunes', before: 65.3, after: 71.8 },
+        { where: 'the Buried Machine', before: 68.4, after: 73.7 },
+        { where: 'the Garden of Spheres', before: 71.9, after: 74.1 },
+        { where: 'Home', before: 82.2, after: 87.4 },
+      ] },
+      { title: 'The main thread’s time a frame on the Steam Deck (the median view)', unit: 'ms', better: 'lower', device: DECK111, source: DECK111_SOURCE, rows: [
+        { where: 'the desert', before: 23.4, after: 22.1 },
+        { where: 'the City-Shaft', before: 22.2, after: 21.2 },
+        { where: 'Vael', before: 20.1, after: 18.4 },
+        { where: 'Lorn', before: 19.1, after: 17.9 },
+        { where: 'the Signal Market', before: 16.9, after: 15.7 },
+        { where: 'Viridel', before: 16.4, after: 14.8 },
+        { where: 'the Underwater City', before: 16.1, after: 15.3 },
+        { where: 'the City Floating in Space', before: 16.3, after: 15.4 },
+      ], note: 'About 16 ms of the main thread gives 60 here; the desert, the City-Shaft, Vael and Lorn are still over it (issue #111).' },
+    ] },
     { match: 'Locked on to a foe, moving left or right he now runs sideways', tags: ['characters'], shots: [
       { name: 'strafe-run', title: 'Strafing right round the Mother Snapper', caption: 'Locked on, 1.3 s into a long run to the right: before, his body square to the foe and his legs stepping forward and back on the spot while he slid sideways; after, his hips and legs turned the way he runs, his back turned round so his chest and head still face her', from: STRAFE47_GAME },
     ], numbers: [

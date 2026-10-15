@@ -270,7 +270,9 @@ export class ShadowCuller {
       }
       // (a batch of a body's parts, src/part-batch.js: its bounds hold all of them, but it is as small as one of
       // them for a cascade's texel, as each part was when it drew itself)
-      items.push({ o, local, pad: o.isSkinnedMesh ? 1.4 : 1, c: new THREE.Vector3(), r: 0, part: o.userData.batch ? o.partRadius ?? null : null, size: 0 });
+      // (we: the world matrix's elements, kept: three never replaces them, and a read through the mesh, whose shape is one
+      //  of hundreds, is a megamorphic one in V8, every candidate a frame: begin())
+      items.push({ o, local, we: o.matrixWorld.elements, pad: o.isSkinnedMesh ? 1.4 : 1, c: new THREE.Vector3(), r: 0, part: o.userData.batch ? o.partRadius ?? null : null, size: 0 });
     });
     this.items = items;
     this.ground = ground;
@@ -303,12 +305,22 @@ export class ShadowCuller {
     this.light = lightDir;
     if (!this.floorAt || this.floorAt.distanceToSquared(camera.position) > 200 * 200) this.updateFloor(camera.position);
     this.vertical = vertical && lightDir.y > 0.05;
-    for (const it of this.items) {
-      const o = it.o;
-      if (!o.visible) { it.r = -1; continue; }
-      it.c.copy(it.local.center).applyMatrix4(o.matrixWorld);
-      it.r = it.local.radius * o.matrixWorld.getMaxScaleOnAxis() * it.pad + (it.pad > 1 ? 0.3 : 0);
-      it.size = it.part ? it.part * o.matrixWorld.getMaxScaleOnAxis() : it.r;
+    // (each candidate's world sphere as Vector3.applyMatrix4 and Matrix4.getMaxScaleOnAxis make it, the same numbers,
+    //  worked out here from the elements kept on the item: ~1 ms a frame of the Steam Deck's in Vael, issue #111)
+    const items = this.items;
+    for (let i = 0, n = items.length; i < n; i++) {
+      const it = items[i];
+      if (!it.o.visible) { it.r = -1; continue; }
+      const e = it.we, lc = it.local.center, c = it.c;
+      const x = lc.x, y = lc.y, z = lc.z;
+      const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+      c.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+      c.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+      c.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+      const sx = e[0] * e[0] + e[1] * e[1] + e[2] * e[2], sy = e[4] * e[4] + e[5] * e[5] + e[6] * e[6], sz = e[8] * e[8] + e[9] * e[9] + e[10] * e[10];
+      const k = Math.sqrt(Math.max(sx, sy, sz));
+      it.r = it.local.radius * k * it.pad + (it.pad > 1 ? 0.3 : 0);
+      it.size = it.part ? it.part * k : it.r;
     }
     this.sweepTo = this.floor - 1;   // nothing lies lower to receive a shadow
   }
@@ -411,4 +423,27 @@ export function selfLitSkips(o) {
   if (o.userData.castShadow === false) return true;
   const glow = Array.isArray(o.material) ? 0 : o.material?.uniforms?.uGlow?.value ?? 0;
   return glow >= 0.8 && o.userData.castShadow !== true;
+}
+
+/**
+ * The shadow passes' override material, one copy for each kind of mesh three compiles it differently for (renderObjects'
+ * `overrideFor`, scripts/three-program-keys.mjs), so three keeps each kind's program instead of looking it up again
+ * (getParameters, the cache key) whenever the kind changes from one caster to the next: plain, instanced (with or
+ * without its own colours or morphs), skinned, batched (with or without colours), and a geometry's morph targets.
+ * The copies compile the programs one material would: the same depth. (issue #111: the instanced with and without
+ * colours, and the traveller's face with its morphs between bodies without, still changed program 10-13 times a frame.)
+ */
+export function shadowVariants(base) {
+  const kinds = new Map();
+  return (o) => {
+    const m = o.geometry?.morphAttributes;
+    const morph = m ? (m.position?.length ?? 0) * 8 + (m.normal ? 2 : 0) + (m.color ? 4 : 0) : 0;
+    const key = o.isBatchedMesh ? (o._colorsTexture ? 3 : 2)
+      : o.isInstancedMesh ? 4 + (o.instanceColor ? 1 : 0) + (o.morphTexture ? 2 : 0)
+        : o.isSkinnedMesh ? 1 : 0;
+    const k = key + morph * 16;
+    let v = kinds.get(k);
+    if (!v) { v = k === 0 ? base : base.clone(); kinds.set(k, v); }
+    return v;
+  };
 }

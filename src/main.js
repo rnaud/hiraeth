@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
 import { installSkeletonUpdate } from './skeleton-update.js';
 import { watchSceneEdits, updateSceneMatrices } from '../engine/scene-matrices.js';
+import { EmptyInstances } from './empty-instances.js';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { padConfirm } from './menu-pad.js';
@@ -60,7 +61,7 @@ import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
-import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent } from './shadows.js';
+import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { JumpShadow } from './jump-shadow.js';
@@ -230,10 +231,7 @@ const gbuffer = createGBuffer({ depthTexture: true });   // (src/pipeline.js: sh
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
 // (one copy of it for each kind of mesh, so three keeps each kind's program instead of looking it up again whenever
 //  a plain mesh follows an instanced or a skinned one: scripts/three-program-keys.mjs; the same programs)
-{
-  const kinds = { mesh: shadowOverride, instanced: shadowOverride.clone(), skinned: shadowOverride.clone(), batched: shadowOverride.clone() };
-  shadowOverride.overrideFor = (o) => (o.isBatchedMesh ? kinds.batched : o.isInstancedMesh ? kinds.instanced : o.isSkinnedMesh ? kinds.skinned : kinds.mesh);
-}
+shadowOverride.overrideFor = shadowVariants(shadowOverride);
 const SU = sharedUniforms;
 const brushTrail = new BrushTrail(sharedUniforms);   // the plants and the grass feel the traveller pass (src/brush.js)
 const cascades = {
@@ -1907,6 +1905,7 @@ function glowCasters() {
 // whose shadow can't reach the view or that are smaller than about a texel of that cascade.
 const shadowCull = new ShadowCuller(scene);
 const smallCull = new SmallCuller(scene);
+const emptyInstances = new EmptyInstances(scene);   // (pooled instanced meshes holding nothing: out of the frame's passes)
 let roomCull = null;
 let statics = null;   // the still meshes' batches (src/static-batch.js), made once the world is built
 const makeRoomCull = () => new RoomCuller(scene, offMapRooms, { keep: [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object)] });
@@ -1982,6 +1981,7 @@ function renderFrame() {
   skinnedLods.update(camera, pxPerRad, preset.lodPx ?? 0);   // the people far off: simpler bodies (skinned-lod.js)
   (lod ??= makeLod()).update(camera, pxPerRad, preset.lodPx ?? 0);
   if (crowd) crowd.range.dist = preset.lodPx ? (CROWD_DIST_CELL * pxPerRad) / preset.lodPx : Infinity;   // the crowd's distant figure, by the same rule
+  emptyInstances.hide(frameHidden);   // (last: what the levels of detail left shown and holds no instance)
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
   // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.

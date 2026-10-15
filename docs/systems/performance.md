@@ -2984,3 +2984,75 @@ bench now, Desktop Mode then), not the game.
 To repeat: the scripts above, with load-breakdown's `PORT` away from the Deck's tunnel (its Chrome takes `PORT + 1` for
 DevTools: with the tunnel on that port it drove the Deck's page instead). Not measured: the Xbox; the Moon Foundry on the
 devices (no views yet: `--pick 1`); a temple's entry on the devices.
+
+## The Steam Deck, round 10: the main thread, world by world (issue #111, 2026-10-15)
+
+After #364 the Deck was still CPU-bound at native resolution (the Steam Deck preset, scale 1, 1280 × 800): 12-25 ms of
+JS a frame against 7-12 ms of GPU. **How it was measured**: the Deck in Gaming Mode, `deck-run.sh start headless <dir>`
+at `REFRESH=90` with each build copied to `~/.local/share/hiraeth-bench-games/` (the bench's own profile, muted, tunnel
+on port 6495), `deck-worlds.mjs --secs 6 --warmup 2 --settle 1`, every world's views; base (main at c2f4ed6d) and after
+interleaved world by world, each in a freshly started bench, so the Deck's drift falls on both alike. The profiles:
+`--cpuprofile 1` on an unminified build (`npx vite build --minify false`), and the frame's stages timed by a build with
+`performance.now()` marks in renderFrame (not kept). The Mac proxy (`deck-mac.mjs`, `--slow 4`) gave the same JS a
+frame as the Deck (24.7 against 22-24 ms at the desert's spawn) and was used to iterate. Note: `--profile 1`'s wrappers
+stay on the page for the `--cpuprofile` that follows and take the systems' self time; take the two in separate runs.
+
+**Where a frame goes on the Deck** (ms, the desert's spawn / the City-Shaft's start, the after build): the G-buffer pass
+7.8 / 6.5 (three's walk of the scene 0.8, the rest the draws: ~140 material changes of ~48 uniforms each, ~300 draws,
+~2 400 GL calls a frame), the shadow passes 2.5 / 2.5, the scene's matrices 2.5 / 2.1 (memory-bound: 6 900 / 5 400
+objects, each read for its position, rotation and scale), the still batches' checks 0.9 / 1.0, the cullers 0.4 / 1.4
+(the City-Shaft's rim counts as a room: InteriorCuller over ~3 000 renderables), the shadow culler 0.7 / 0.5, the
+levels of detail 0.3; outside renderFrame ~6.5 ms in ~25 systems (the traveller 2.1, the story and temples 1.2, the
+wind 1.4, people 1-2, the level 0.8, the fluid's gear 0.8).
+
+**Kept** (each the same picture and the same game):
+- **Instanced meshes holding no instance are left out of the frame's passes** (src/empty-instances.js, main.js
+  renderFrame, hidden with frameHidden after the levels of detail): the pools of gadgets' effects, the fluid's
+  splashes, the chimes, a world's responsive bits were 12-17 draws of nothing in each G-buffer pass, most in materials
+  of their own. Left alone: a mesh with an onBeforeRender (the crowd's count their own) or children.
+- **The shadow override, one copy per program three compiles for it** (shadows.js `shadowVariants`): the instanced with
+  and without their own colours, and the traveller's face with its morphs, had three look up a program 10-13 times a
+  frame (getParameters, the cache key) in the shadow passes.
+- **The toasts' hold by id** (ship/cinema.js `holdsToasts`): `dark()` ran `document.querySelector(HOLD_TOASTS)` every
+  frame a toast waited (0.6 ms on the Deck); now the six ids, and the games' HUDs only while a game's screens are up.
+- **The wind's wisps out of the view are not built** (wind.js update): each wisp's sphere against the view's frustum
+  (with 3 m of room); its strip left clear and made again the frame it is in view. Half the wisps blow behind the camera.
+- **Megamorphic reads out of the per-frame loops**: ShadowCuller.begin works out each caster's sphere from the world
+  matrix's elements kept on its item (Vector3.applyMatrix4 and getMaxScaleOnAxis, the same numbers); SmallCuller and
+  InteriorCuller.boundsAt likewise keep the elements and the kind; the opaque sort keeps each render item's material
+  sort id while it holds that material; the still batches' material watch compares without making two closures a call.
+
+**Tried, not kept**: the shared uniforms (materials.js sharedUniforms) sent to a program once a render() call instead of
+at every change of material (a patch of three's WebGLUniforms.upload): in the profiles the upload was 2.7 ms, but an A/B
+in the same page (`renderer.sharedOnce` on and off, three times each) moved the G-buffer pass by nothing (6.9-7.1 ms
+either way): the check costs what the call did. The City-Shaft's 112 tree draws (one material) hidden for a test: the
+G-buffer pass only 0.4-0.6 ms quicker: draws of one material cost ~10 µs each, a change of material ~25-30.
+
+**Before → after on the Deck** (90 Hz uncapped; fps the median of a world's views, the worst view in brackets; JS the
+median view's animation-frame time):
+
+| world | fps before → after | JS ms |
+|---|---|---|
+| Desert | 42.1 (37.0) → **44.6** (40.1) | 23.4 → 22.1 |
+| City-Shaft | 44.3 (41.3) → **46.2** (43.2) | 22.2 → 21.2 |
+| Vael | 49.1 (44.3) → **53.1** (48.7) | 20.1 → 18.4 |
+| Signal Market | 58.1 (51.8) → **61.4** (54.0) | 16.9 → 15.7 |
+| Lorn | 51.3 (47.8) → **55.0** (50.9) | 19.1 → 17.9 |
+| Viridel | 59.6 (48.2) → **65.4** (52.7) | 16.4 → 14.8 |
+| Underwater City | 59.8 (53.0) → **62.9** (55.0) | 16.1 → 15.3 |
+| Glass Dunes | 65.3 (57.0) → **71.8** (63.2) | 15.1 → 13.8 |
+| Buried Machine | 68.4 (65.0) → **73.7** (69.0) | 13.8 → 12.7 |
+| Garden of Spheres | 71.9 (64.2) → **74.1** (68.8) | 13.7 → 13.1 |
+| City Floating in Space | 58.3 (57.7) → **62.9** (61.2) | 16.3 → 15.4 |
+| Home | 82.2 (80.9) → **87.4** (86.9) | 11.3 → 10.4 |
+
+The Retroid (GeckoView test app, Handheld at 0.75, the same two builds; median view fps · JS ms): the Desert 52.4 · 18.6
+→ 53.3 · 18.0, the City-Shaft 45.3 · 19.7 → 48.2 · 18.6, Vael 59.4 · 15.3 → 59.4 · 13.9, the Market 58.7 ·
+13.9 → 59.6 · 13.3: no view slower (the City-Shaft's wide view is the GPU's, 37 either way).
+
+**Still not 60 at native**: the Desert, the City-Shaft, Vael and Lorn (JS 18-22 ms; about 16 ms gives 60 here). What
+is left is three's per-draw work for ~140 materials a pass and the matrices of a 5 000-7 000-object scene, then two
+dozen systems of 0.3-2 ms. Levers not taken because they change what is seen or done: the people off the view at a
+quarter of the frames past 30 m (src/npc.js `offView`, the Unity bridge's peopleLod), matrices skipped under hidden
+subtrees (scene-matrices `skipHidden`: a body's face shown by its level of detail after the matrices would draw a
+frame where it was), the near shadow map less often.

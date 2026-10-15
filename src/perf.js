@@ -186,7 +186,8 @@ export class SmallCuller {
       const r = (g.boundingSphere?.radius ?? Infinity) * o.matrixWorld.getMaxScaleOnAxis();
       if (!(r < this.maxRadius)) return;
       const e = o.matrixWorld.elements;
-      items.push({ o, r, c: g.boundingSphere.center.clone().applyMatrix4(o.matrixWorld), m: e[12] + e[13] * 3 + e[14] * 7 });
+      // (we: the world matrix's elements, kept: a read through the mesh is a megamorphic one, every small mesh a frame)
+      items.push({ o, r, we: e, c: g.boundingSphere.center.clone().applyMatrix4(o.matrixWorld), m: e[12] + e[13] * 3 + e[14] * 7 });
     });
     this.items = items;
     this.n = this.scene.children.length;
@@ -198,7 +199,7 @@ export class SmallCuller {
     for (const it of this.items) {
       const o = it.o;
       if (!o.visible) continue;
-      const e = o.matrixWorld.elements, m = e[12] + e[13] * 3 + e[14] * 7;
+      const e = it.we, m = e[12] + e[13] * 3 + e[14] * 7;
       if (m !== it.m) { it.m = m; it.c.copy(o.geometry.boundingSphere.center).applyMatrix4(o.matrixWorld); }   // it moved
       if (it.r * k < cam.distanceTo(it.c)) { o.visible = false; out.push(o); }
     }
@@ -293,13 +294,18 @@ export class InteriorCuller {
    * (~1 ms of the Deck's main thread, issue #111) for spheres that never move.
    */
   boundsAt(i, o) {
-    const src = o.isInstancedMesh || o.isBatchedMesh ? (o.boundingSphere ?? (o.computeBoundingSphere(), o.boundingSphere)) : o.geometry && (o.geometry.boundingSphere ?? (o.geometry.computeBoundingSphere(), o.geometry.boundingSphere));
-    if (!src || !Number.isFinite(src.radius)) return null;
-    const e = o.matrixWorld.elements, c = src.center;
-    const k = e[12] + e[13] * 3 + e[14] * 7 + e[0] * 11 + e[1] * 19 + e[2] * 23 + e[5] * 13 + e[8] * 29 + e[10] * 17 + src.radius * 31 + c.x * 37 + c.y * 41 + c.z * 43;
+    // (what never changes of a renderable, its kind and its world matrix's elements, kept on its entry: each read off
+    //  the object, whose shape is one of hundreds, is a megamorphic one in V8, ~3 000 a frame on the City-Shaft's rim)
     let it = this.cache[i];
+    const whole = it ? it.whole : o.isInstancedMesh || o.isBatchedMesh;
+    let src;
+    if (whole) src = o.boundingSphere ?? (o.computeBoundingSphere(), o.boundingSphere);
+    else { const g = o.geometry; src = g && (g.boundingSphere ?? (g.computeBoundingSphere(), g.boundingSphere)); }
+    if (!src || !Number.isFinite(src.radius)) return null;
+    const e = it ? it.we : o.matrixWorld.elements, c = src.center;
+    const k = e[12] + e[13] * 3 + e[14] * 7 + e[0] * 11 + e[1] * 19 + e[2] * 23 + e[5] * 13 + e[8] * 29 + e[10] * 17 + src.radius * 31 + c.x * 37 + c.y * 41 + c.z * 43;
     if (it && it.src === src && it.k === k) return it.s;
-    if (!it) it = this.cache[i] = { src, k, s: new THREE.Sphere(), box: null, inside: false };
+    if (!it) it = this.cache[i] = { src, k, s: new THREE.Sphere(), box: null, inside: false, whole, we: e };
     it.src = src; it.k = k; it.box = null;   // (moved: its verdict against the room taken again, hide)
     return it.s.copy(src).applyMatrix4(o.matrixWorld);
   }

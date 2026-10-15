@@ -144,6 +144,23 @@ export function numbersOf(v, out) {
   return out;
 }
 
+// (holds()'s walk: the place in the snapshot module-wide, so a frame's hundreds of calls make no closures)
+let _hi = 0, _hs = null;
+const holdsNum = (x) => { const s = _hs[_hi++]; return x === s || (x !== x && s !== s); };
+function holdsValue(v) {
+  if (typeof v === 'number') return holdsNum(v);
+  if (v === null || v === undefined) return holdsNum(NaN);
+  if (typeof v === 'boolean') return holdsNum(v ? 1 : 0);
+  if (v.isTexture) return holdsNum(v.id) && holdsNum(v.version);
+  if (v.isColor) return holdsNum(v.r) && holdsNum(v.g) && holdsNum(v.b);
+  if (v.isVector2) return holdsNum(v.x) && holdsNum(v.y);
+  if (v.isVector3) return holdsNum(v.x) && holdsNum(v.y) && holdsNum(v.z);
+  if (v.isVector4 || v.isQuaternion) return holdsNum(v.x) && holdsNum(v.y) && holdsNum(v.z) && holdsNum(v.w);
+  if (v.isMatrix3 || v.isMatrix4) { for (const x of v.elements) if (!holdsNum(x)) return false; return true; }
+  if (Array.isArray(v) || ArrayBuffer.isView(v)) { for (const x of v) if (!holdsValue(x)) return false; return true; }
+  return holdsNum(NaN);
+}
+
 /** Watches what of a material a batch copied: its non-shared uniforms and its varying values. */
 class Watch {
   constructor(m, shared) {
@@ -172,23 +189,9 @@ class Watch {
   /** Do the material's uniforms `keys` still hold the numbers `snap` took (no allocation: every frame)? */
   holds(keys, snap) {
     const U = this.m.uniforms;
-    let i = 0;
-    const eq = (x) => { const s = snap[i++]; return x === s || (x !== x && s !== s); };
-    const walk = (v) => {
-      if (typeof v === 'number') return eq(v);
-      if (v === null || v === undefined) return eq(NaN);
-      if (typeof v === 'boolean') return eq(v ? 1 : 0);
-      if (v.isTexture) return eq(v.id) && eq(v.version);
-      if (v.isColor) return eq(v.r) && eq(v.g) && eq(v.b);
-      if (v.isVector2) return eq(v.x) && eq(v.y);
-      if (v.isVector3) return eq(v.x) && eq(v.y) && eq(v.z);
-      if (v.isVector4 || v.isQuaternion) return eq(v.x) && eq(v.y) && eq(v.z) && eq(v.w);
-      if (v.isMatrix3 || v.isMatrix4) { for (const x of v.elements) if (!eq(x)) return false; return true; }
-      if (Array.isArray(v) || ArrayBuffer.isView(v)) { for (const x of v) if (!walk(x)) return false; return true; }
-      return eq(NaN);
-    };
-    for (const k of keys) if (!walk(U[k]?.value)) return false;
-    return i === snap.length;
+    _hi = 0; _hs = snap;
+    for (const k of keys) if (!holdsValue(U[k]?.value)) return false;
+    return _hi === snap.length;
   }
   static same(a, b) { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++) if (a[i] !== b[i] && !(a[i] !== a[i] && b[i] !== b[i])) return false; return true; }
 }
@@ -387,11 +390,20 @@ function batchMaterial(materials, tables) {
  * material, then front to back. A batch's material is new (a higher id than every material of the world), so it was
  * drawn after all the rest, and two coplanar surfaces (a sign's face on its board) came out the other way round.
  * renderer.setOpaqueSort(opaqueSort) (main.js).
+ * (A render item's material's sort id is kept on the item while it holds that material: three reuses its items, all of
+ *  one shape, while the materials are of hundreds, so reading the id off the material at every comparison was two
+ *  megamorphic reads; a pass's sort was ~0.9 ms of the Steam Deck's frame, issue #111. A material's id never changes,
+ *  and a batch's batchSortId is set before it is first drawn.)
  */
+function sortId(it) {
+  const m = it.material;
+  if (it.sortMat !== m) { it.sortMat = m; it.sortId = m.batchSortId ?? m.id; }
+  return it.sortId;
+}
 export function opaqueSort(a, b) {
   if (a.groupOrder !== b.groupOrder) return a.groupOrder - b.groupOrder;
   if (a.renderOrder !== b.renderOrder) return a.renderOrder - b.renderOrder;
-  const ma = a.material.batchSortId ?? a.material.id, mb = b.material.batchSortId ?? b.material.id;
+  const ma = sortId(a), mb = sortId(b);
   if (ma !== mb) return ma - mb;
   if (a.materialVariant !== b.materialVariant) return a.materialVariant - b.materialVariant;
   if (a.z !== b.z) return a.z - b.z;

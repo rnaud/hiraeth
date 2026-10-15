@@ -265,7 +265,23 @@ function shown(e) {
 }
 // (.mg-hud on: a game or a challenge is being played, its clock and goal the only words on the screen: src/minigames/kit/runner.js)
 // (#boxscene.on: a chest opening, its card up, whatever the camera does: nothing over the card, issue #58)
-const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on, .mg-hud:not(.off), #boxscene.on';
+export const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on, .mg-hud:not(.off), #boxscene.on';
+/** [id, class] pairs of HOLD_TOASTS: looked up by id (dark() runs every frame a toast waits: the selector over the whole
+ *  page was ~0.6 ms a frame on the Steam Deck, issue #111) */
+const HOLD_BY_ID = [['homeward', 'open'], ['starmap', 'open'], ['page', 'open'], ['journal', 'open'], ['warp', 'on'], ['boxscene', 'on']];
+let mgHuds = null;
+/** Is anything up that holds the toasts (HOLD_TOASTS, without a selector match over the page)? */
+export function holdsToasts(doc = document) {
+  for (const [id, cls] of HOLD_BY_ID) if (doc.getElementById(id)?.classList.contains(cls)) return true;
+  // (a game's HUD is only ever inside a game's screens, #minigame, there while it runs (src/minigames/kit/runner.js): none,
+  //  no HUD, without the walk of the page a class lookup makes again whenever the page has changed, every frame here)
+  if (!doc.getElementById('minigame')) return false;
+  if (!mgHuds || mgHuds.doc !== doc) mgHuds = { doc, list: doc.getElementsByClassName('mg-hud') };
+  for (const e of mgHuds.list) if (!e.classList.contains('off')) return true;
+  return false;
+}
+/** Is the father's charge lettered over the screen (#charge-card.on)? */
+const chargeUp = (doc = document) => !!doc.getElementById('charge-card')?.classList.contains('on');
 // (#health whether it shows or not: it comes up the moment you are hurt, and a toast must never sit on it)
 // (the cue is not one: it is the first of the hints' stack at the top, issue #306: layout() places it)
 export const OBSTACLES = ['#health', '#gadget-chip.on', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
@@ -465,7 +481,7 @@ export class Cinema {
     if (this.held) return true;   // (a moment plays: src/story/moment.js; its toasts come after)
     if (this._bars && !this._walk) return true;   // (a ship's scene, a recording: a quest's toast over it read as clutter, the cinematics QC pass)
     return this._lidK < 0.9 || this.el.classList.contains('lids') || (parseFloat(this.fadeEl.style.opacity) || 0) > 0.5
-      || !!document.querySelector(HOLD_TOASTS);
+      || holdsToasts();
   }
 
   _pumpToasts() {
@@ -525,7 +541,7 @@ export class Cinema {
     if (this.caption.up) up.push('caption');
     if (this.caption.waiting) waiting.push('caption');
     if (!this.dom) return { up, waiting };
-    if (document.querySelector('#charge-card.on')) up.push('title');
+    if (chargeUp()) up.push('title');
     if (this.subs.line && !this._bars) up.push('line');
     if (this._held.length) waiting.push('line');
     if (this.obj?.classList.contains('show')) up.push('objective');

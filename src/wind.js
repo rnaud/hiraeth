@@ -12,6 +12,8 @@ import { isIndoors } from './shelter.js';
 // the shelter's indoor 0..1) they all fade and none start.
 
 const SEGS = 10;
+// (the view's frustum, for the wisps out of it: update)
+const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
 
 /**
  * How wide a wisp is drawn (issue #348). It was 1.7 CSS px whatever the frame, in full ink: on the Retroid (640 × 480
@@ -231,6 +233,8 @@ export class WindStreaks {
     const look = rows ? wispPx(rows) : { px: 1.7, cover: 1 };
     const perPx = rows ? (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / rows : pxScale;
     const ink = WISP.ink * look.cover * (1 - THREE.MathUtils.clamp(this.hush, 0, 1));
+    camera.updateMatrixWorld();
+    _fr.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
 
     for (let i = 0; i < this.count; i++) {
       const w = this.wisps[i];
@@ -253,6 +257,15 @@ export class WindStreaks {
       // blown into an interior (the ship, a shop, a temple): gone
       if (!this.clear(w, i, dx, dz, ground)) {
         w.age = w.life;
+        for (let k = 0; k <= SEGS; k++) { this.alphas[base + k * 2] = 0; this.alphas[base + k * 2 + 1] = 0; }
+        continue;
+      }
+      // out of the view (with room for its wiggle, its width and the camera's last move before the frame is drawn): its
+      // strip is left clear this frame, and made again from where it is the frame it comes into view; it blows on as
+      // ever (issue #111: half the wisps are behind the camera, each eleven points a frame)
+      _sph.center.set(w.x - dx * w.len * 0.5, (w.y0 ?? ground.get(w.x, w.z)) + w.h, w.z - dz * w.len * 0.5);
+      _sph.radius = w.len + w.amp + 3;
+      if (!_fr.intersectsSphere(_sph)) {
         for (let k = 0; k <= SEGS; k++) { this.alphas[base + k * 2] = 0; this.alphas[base + k * 2 + 1] = 0; }
         continue;
       }

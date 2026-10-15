@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.78 — 2026-10-15
 
+- On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.
 - In the Sunken Hall only B / ○ rolls now: A / × jumps again, as everywhere else, and the jump button is back on the touch screen.
 - His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.
 - Locked on, stepping back flicks his knees far less: his steps are longer instead of three and a half times too quick, and his feet no longer drag off where they land.
