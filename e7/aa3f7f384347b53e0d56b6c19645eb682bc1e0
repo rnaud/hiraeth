@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_c30f8de69e4cba 21
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_be228c27bc4b14 343-382
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_ffdad940684e18 61-65
+engine/game.js
+  s_9ca76055a220ed::t_6fefc613ffd261 17-18,97-99,102,211,222-226,228,244,255,392,454,462-468,525,746,806-809,827,869-870,948,953,957,959-970,979,984-985,1005,1016,1019
+engine/menus.js
+  s_9ca76055a220ed::t_8633040405f061 147,183-253,309,319,327,683
+engine/trials.js
+  s_9ca76055a220ed::t_5ad139f3f701b2 1-110
+engine/unity/game.js
+  s_9ca76055a220ed::t_ca868f86234de3 15,62,126,137-138,141,143,147,176-195,203,223-229,231-233,259-260,321-329,395-397,474-478
+scripts/engine-bundle.mjs
+  s_9ca76055a220ed::t_86401298bc5cfc 48-53,64
+src/changelog.js
+  s_9ca76055a220ed::t_0d2eafe76fc72f 55-59
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_e20f25c9e7dee8 15-19,29,35-38,62-63,162,172,220,236-239,241-244,246,256-257,268-274,276-277,306-316,405-411,428-437,440-441,447,451-455,459,461-462,478-480,489-521,523,540
+tests/engine-trials.test.js
+  s_9ca76055a220ed::t_14f68a2f1ffcb3 1-207
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_ed75f6ce42541c 177-182
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_43c2e7ed3b2a06 2,13-14,99,294-297,299,304-307,313-465
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_570e3247e1a15e 196,323,327,563-728
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e7aa3f7f384347b53e0d56b6c19645eb682bc1e0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
