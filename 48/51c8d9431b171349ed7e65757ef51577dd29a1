@@ -1,0 +1,58 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_570e3247e1a15e 196,323,327,563-728
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_ffdad940684e18 61-65
+src/minigames/kit/runner.js
+  s_efb1d100d5a6fc::t_2c8b5ba3db4a23 243
+  s_efb1d100d5a6fc::t_370ea21bdf7c64 494
+  s_9ca76055a220ed::t_e20f25c9e7dee8 15-19,29,35-38,62-63,162,172,220,236-239,241-242,244,246,256-257,268-274,276-277,306-316,405-411,428-437,440-441,447,451-455,459,461-462,478-480,489-493,495-521,523,540
+engine/menus.js
+  s_9ca76055a220ed::t_8633040405f061 151,187-257,315,325,334,717
+engine/unity/game.js
+  s_9ca76055a220ed::t_ca868f86234de3 15,63,127,138-139,142,144,148,177-196,204,224-230,232-234,260-261,331-339,425-427,500-504
+tests/engine-trials.test.js
+  s_9ca76055a220ed::t_14f68a2f1ffcb3 1-207
+engine/trials.js
+  s_9ca76055a220ed::t_5ad139f3f701b2 1-110
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_ed75f6ce42541c 179-184
+scripts/engine-bundle.mjs
+  s_9ca76055a220ed::t_86401298bc5cfc 48-53,64
+changelog.md
+  s_9ca76055a220ed::t_c30f8de69e4cba 21
+src/changelog.js
+  s_9ca76055a220ed::t_0d2eafe76fc72f 63-67
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_be228c27bc4b14 379-418
+  s_9ca76055a220ed::t_4da5da94c05224 364-365,420
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_43c2e7ed3b2a06 2,13-14,99,295-298,300,305-308,411-563
+engine/game.js
+  s_9ca76055a220ed::t_6fefc613ffd261 17-18,99-101,104,213,224-228,230,246,257,394,459,467-473,530,751,811-814,832,875-876,954,959,963,965-976,985,990-991,1017,1028,1031
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_60da23b2a14a0e 161,171,224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4851c8d9431b171349ed7e65757ef51577dd29a1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_efb1d100d5a6fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca48b6ac-bf59-4b20-8c35-b88838046213",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
