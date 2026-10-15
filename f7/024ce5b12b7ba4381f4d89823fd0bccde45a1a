@@ -1,0 +1,33 @@
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_2f02caffd405ca 241
+docs/systems/performance.md
+  s_9ca76055a220ed::t_ad62000f53944c 3438-3539
+engine/unity/game.js
+  s_9ca76055a220ed::t_d0003a422bb0c5 358-364,542-550,808-813,829-830,833
+scripts/bench/deck-engines-summary.mjs
+  s_9ca76055a220ed::t_f8ee93b7241e33 1-81
+scripts/bench/deck-engines.mjs
+  s_9ca76055a220ed::t_5174c59633c5f1 1-126
+scripts/bench/deck-run.sh
+  s_9ca76055a220ed::t_81ec352a73b7c2 16-17,30-31
+scripts/bench/results/deck-engines-d18.json
+  s_9ca76055a220ed::t_cf927cd065f76c 1-1015
+scripts/bench/viewpoints-worlds.json
+  s_9ca76055a220ed::t_f77f8de8d8a1e3 11786-12621
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f7024ce5b12b7ba4381f4d89823fd0bccde45a1a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
