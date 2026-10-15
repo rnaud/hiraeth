@@ -920,6 +920,62 @@ gait, max 31.4; 11.3 in starts and stops; 9.4 at the sprint's 180° pivot, max 2
 180° → stop (slide p95 10.1, 8 jolts a minute); the standing pivots' crossed feet (9 %, mid-turn); setting off the other
 way (slide p95 10.3, a half turn's step round flicking the foot 83 rad/s); down the ramp's 4.6 cm boundary.
 
+**Issue #47 on B3, the second round** (2026-10-15). Frame by frame again, node and the game:
+
+- **A sprint's touchdown lunged on.** A landing foot was planted where the clip's foot was that frame, 5-6 cm on from
+  where it was drawn the frame before (the clip's foot still travels at touchdown), and the landing's hold-back
+  (`landBack`) stopped at 14 of the 22 cm the sprint's foot covers in its last moments. A free foot touching down within
+  22 cm of where it was drawn, drawn moving under 6 m/s, now holds there (`FEET.plantShown`: a faster one, a swing
+  through a pivot at 12 m/s, still stops on the clip's place, or it stopped dead and jolted); `landBack` 0.14 → 0.2.
+- **A foot left behind as a run set off** was let go out of the leg's reach and eased toward the clip's foot along
+  the floor, 3-10 cm a frame, its ball still on the ground. Let go out of reach under 5.5 m/s with the clip's foot still
+  down, it rises at least 3 cm as it eases off (`releaseMin`, `dragSpeed`: on the sprint's push-off too, the knee
+  popped).
+- **A stop's last step set down out of reach** was let go in the frame it landed and planted again four frames on,
+  27-36 rad/s: for its first 0.1 s, under 1 m/s, a foot lets go only past the hips' whole drop (`reachGrace`).
+- **The standing pivots' crossed feet** (9 %): the step round went in a straight line from where it was to its place
+  on the far side while the body turned over it, across the held foot. It keeps 12 cm to its own side of the other foot
+  on its way (`stepPathGap`, eased at `stepPathRate`, gone before it comes down), and its place keeps its side of a
+  foot that is stepping too.
+- **Stairs at a run.** `StepLag` eased the drawn body onto each riser at 12/s, so up a flight it trailed the climb by
+  its speed / 12: 18 cm at a jog, 38 at a sprint; the legs folded to reach the treads, the swinging foot was lifted out
+  of reach (the calf 93 rad/s) and the soles sank 4.7 cm. The flight's climb, read over 0.15 s (`STEP_LAG.climb`), now
+  carries the drawn body with it, never past the floor's height, from 4.5 to 6.5 m/s along the ground (`STEP_LAG.fast`:
+  at a jog the easing alone keeps up well enough, and carried there the hips rose less smoothly, the pelvis's jerk 2.5 →
+  4.3 km/s³). A swinging foot passing over a stair's edge eased down
+  it at 25/s from its full speed, 4-5 m/s in a frame: now a critically damped spring (`rideSpring`).
+- **The forearm turning over** in a sprint reversed and the running 180° (166-233 rad/s, the game and node):
+  `shareWristRoll` gave the forearm half the hand's roll, read in (-π, π]; passing a half turn it flipped sign and the
+  forearm went half a turn the other way and back. The roll is kept on its side from frame to frame.
+- **The walk back** (locked on): the pack's slow walk could not keep up with the lock's pace. It is now the loops' own
+  gait run backwards (`LOCK_MOVE.backRun`; `Animator.update`'s `s.reverse` runs the shared phase the other way, no
+  touchdown read ahead): the stance sweeps forward under the hips as fast as the body goes back.
+- **The recorder** (`sample.mjs`) reads the joints against the drawn body, not the controller's place, which steps a
+  riser in a frame: on the stairs every joint "jolted" by half a riser, 9 cm, where nothing on screen did. The stairs'
+  stands (1 s) were shorter than a stop's limit and the 0.3 s it must stay still: the motion QC's run of it stands 1.6
+  and 1.8 s (`scenarios.mjs`), and its stops settle in 0.9 s.
+
+Node, the default way (`diff.mjs`, before on b653f6eb): red runs 9 → 7 of 16, limits failed 29 → 16, slide p95 4.9 →
+3.4 cm, pops 2.7 → 2.2 a minute, jolts 4.4 → 1.8, boundary 3.5 → 2.9 cm. Green now: every gait (slide p95 9.7 → 5.2 cm,
+max 31.3 → 5.5, jolts 5 → 0), the standing pivots (crossed 9 → 0 %). Slides green in every run: starts and stops 11.3 →
+5.3, walk → run → 180° 10.1 → 5.4, the 180° pivots 9.4 → 5.2 (max 20.9 → 7.5), setting off the other way 10.3 → 5.3. The
+stairs at a jog: pops 8 → 7, jolts 18 → 5 (9 of them the recorder's), boundary 10.1 → 3.9, the stops settle; at a run:
+sink 4.7 → 0, worst jolt 30.6 → 7.2, pops 9 → 5. Locked on, walking back (node, 6 s): slide median 11.2 → 1.1 cm, held
+5.7 → 1.0, jolts 14 → 2 (pops 15 → 14). `tests/motion-qc.test.js` and `tests/strafe.test.js` hold these.
+
+In the game (Mac, muted headless Chrome, Medium, the desert and the Arena; before once, after twice): the Arena slide p95
+8.8 → 5.5-6.0 cm, pops 8 → 4, jolts 10 → 5-6 a minute; the desert 8.0 → 7.8-8.5, pops 7, jolts 14 → 13; crossed feet 6-7
+→ 0 % (one Arena run 7 %); the sprint reversed's forearm flip (166-182 rad/s) gone. Without it a calf shows at the
+reversal's start, 20-32 rad/s (it was hidden under the forearm's pop, the worst of a frame kept).
+
+**Left red** (node, the todo tests): the stairs (7 pops, 5 jolts a minute, a 3.9 cm boundary: a step down's touchdown
+out of reach, a held foot on the lower step let go at full stretch climbing) and at a run (5 pops, 8 jolts, a 5.9 cm
+boundary: a riser every 2-3 frames at a sprint); the 180° turns at a run and a sprint (4 jolts a minute, a 4.6 / 5.6 cm
+boundary as the running turn's move comes in, a foot planted with its weight thrown on, the calf 38 rad/s; easing it on
+instead slid the pivots' steps); the sprint's push-off calves at 14-15 rad/s (starts and stops: 4 pops); setting off the
+other way (5 pops, the half turn's step round); down the ramp a 3.2 cm boundary; the walk back's calves at each
+backwards lift-off (14 pops in 8 s); in the game the pivot into a jog at 90° (`jog2`, a calf 26-34 rad/s).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
@@ -1004,8 +1060,9 @@ share fell to nothing and the feet held on as if standing).
 
 `tests/strafe.test.js`: the side-run's pops (≤ 5), jolts, held foot (< 2 cm), median slide (< 3 cm), the hips turned
 and the chest within 25° of the foe; `strafeRate`; the bone-jump test now reads the drawn skeleton (the animator's calf
-there is the run loop's own push-off, 0.63 rad in a frame, as when running anywhere). **Left**: the walk back still
-slides (16 cm at the median: the clip's feet sweep 3.3 m/s at most), a todo test.
+there is the run loop's own push-off, 0.63 rad in a frame, as when running anywhere). The walk back slid (16 cm at the
+median: the clip's feet sweep 3.3 m/s at most); since the second round of issue #47 it is the loops' gait run backwards
+(`LOCK_MOVE.backRun`, above): 1.1 cm at the median, its calves' pops left as a todo test.
 
 ## Combat transitions (v0.89)
 

@@ -1392,7 +1392,15 @@ export class Humanoid {
     const d = _wq1.copy(restRel).invert().multiply(hand.quaternion);
     const axis = _w1.copy(hand.position).normalize().applyQuaternion(restRel.clone().invert());   // (the forearm's bone in the hand's rest frame)
     // (the shorter way round: q and -q are the same turn, and the long way spun the forearm a half turn in a frame)
-    const sg = d.w < 0 ? -1 : 1, k = (d.x * axis.x + d.y * axis.y + d.z * axis.z) * sg, angle = 2 * Math.atan2(k, d.w * sg);
+    const sg = d.w < 0 ? -1 : 1, k = (d.x * axis.x + d.y * axis.y + d.z * axis.z) * sg;
+    let angle = 2 * Math.atan2(k, d.w * sg);
+    // (and kept on the side it was on the frame before: a roll passing a half turn, the hand turned over in a sprint reversed,
+    // flipped from +π to -π, and the forearm took half of it the other way, 180 rad/s in a frame and back a few frames later,
+    // issue #47. Unwound, it goes on past the half turn and back as the hand does)
+    const last = (this._wristAng ??= {})[s];
+    if (last !== undefined && Number.isFinite(last)) { while (angle - last > Math.PI) angle -= 2 * Math.PI; while (angle - last < -Math.PI) angle += 2 * Math.PI; }
+    if (Math.abs(angle) > 1.5 * Math.PI) angle -= Math.sign(angle) * 2 * Math.PI;   // (never wound round further)
+    this._wristAng[s] = angle;
     if (Math.abs(angle) < 1e-4) return false;
     const handWorld = hand.getWorldQuaternion(_wq2);
     lower.quaternion.multiply(_wq3.setFromAxisAngle(_w2.copy(hand.position).normalize(), angle * share));

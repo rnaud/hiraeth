@@ -174,12 +174,22 @@ test('the walk back keeps up with the body at the lock\'s pace: at most LOCK_MOV
   assert.equal(fast.reach, LOCK_MOVE.reachMax, 'the step lengthened no more than reachMax');
 });
 
-// (todo, issue #47: the walk back is still the pack's slow walk, played at most LOCK_MOVE.rateMax its pace with a longer
-// step: at the lock's 3.8 m/s, 9 pops and 10 jolts in 6 s (31 and 37 before), a held foot 1.6 cm (9.0), but its steps
-// still slide 16 cm at the median, 61 at the 95th (17 and 48 before): its feet sweep 3.3 m/s at most)
-test('locked on, walking back at the lock\'s pace: the feet planted', { todo: 'issue #47: the walk back slides 16 cm at the median, 9 pops in 6 s' }, async () => {
-  const { S, meta } = await strafeRun([[1, null, 'stand'], [3, [0, -1], 'back'], [1, null, 'stand'], [3, [0.6, -0.8], 'backdiag'], [1, null, 'stand']]);
+// (issue #47, second round: the walk back was the pack's slow walk, played at most LOCK_MOVE.rateMax its pace with a
+// longer step, and at the lock's 3.8 m/s its steps slid 16 cm at the median (its feet sweep 3.3 m/s at most). It is now the
+// loops' own gait run backwards (LOCK_MOVE.backRun, Animator.update's s.reverse): the stance sweeps under the hips as fast
+// as the body goes back)
+let backRun = null;
+const walkBack = () => (backRun ??= strafeRun([[1, null, 'stand'], [3, [0, -1], 'back'], [1, null, 'stand'], [3, [0.6, -0.8], 'backdiag'], [1, null, 'stand']]));
+test('locked on, walking back at the lock\'s pace: the feet planted (issue #47)', async () => {
+  const { S, meta } = await walkBack();
   const st = steps(S.filter((s) => s.tag !== 'stand'), meta), slid = st.steps.map((x) => x.slide).sort((a, b) => a - b);
+  const held = Math.max(0, ...st.holds.map((h) => h.slide));
+  assert.ok(slid[Math.floor(slid.length / 2)] < 0.03, `the steps slide ${(slid[Math.floor(slid.length / 2)] * 100).toFixed(1)} cm at the median (16 before)`);
+  assert.ok(held < 0.02, `a held foot moves ${(held * 100).toFixed(1)} cm over its hold (1.6 before)`);
+  assert.ok(jolts(S).events.length <= 4, `${jolts(S).events.length} jolts (10 before)`);
+});
+// (todo: its calves still pop at a backwards lift-off, 15-20 rad/s, once a step: 14 in 8 s, as many as before)
+test('locked on, walking back: no pops', { todo: 'issue #47: the walk back\'s calves pop at its lift-offs, 14 in 8 s' }, async () => {
+  const { S } = await walkBack();
   assert.ok(pops(S).length <= 3, `${pops(S).length} pops`);
-  assert.ok(slid[Math.floor(slid.length / 2)] < 0.03, `the steps slide ${(slid[Math.floor(slid.length / 2)] * 100).toFixed(1)} cm at the median`);
 });

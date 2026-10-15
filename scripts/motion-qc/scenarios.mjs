@@ -15,6 +15,10 @@ const stick = (x, y, run = false) => ({ stick: { x, y }, ...(run ? { ShiftLeft: 
 export const COURSE = {
   // the harness's own runs (scripts/mocap/compare.mjs, the "Locomotion" tables)
   ...Object.fromEntries(Object.entries(RUNS).map(([k, v]) => [k, { ...v, about: 'the gait harness’s run' }])),
+  // (the harness's stairs stand 1 s each time, shorter than a stop's limit and the 0.3 s it must stay still to count: a stop
+  // that settled in 0.9 s, as on the flat, ran out of script first, "never settles", issue #47. Here they stand 1.6 and 1.8 s)
+  'stairs up, stand, down': { ...RUNS['stairs up, stand, down'], about: 'the gait harness’s run, standing longer',
+    script: RUNS['stairs up, stand, down'].script.map(([s, input, tag], i, all) => [tag === 'stand' ? (i === all.length - 1 ? 1.8 : 1.6) : s, input, tag]) },
   'gaits: walk → jog → sprint → jog → walk → stop': { at: [0, 0, -60], about: 'every gait in turn, each change of the loop that leads a blend boundary',
     script: [[1, none, 'idle'], [2, stick(0, 0.45), 'walk'], [2, W, 'jog'], [2.5, R, 'sprint'], [1.5, W, 'jog'], [1.5, stick(0, 0.45), 'walk'], [2, none, 'stop']] },
   'starts and stops, walk and run': { at: [0, 0, -60], about: 'setting off and stopping over and over, at a walk, a jog and a run',

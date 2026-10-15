@@ -38,7 +38,8 @@ export function sample(p, st, { t, dt, tag = '', stick = null, run = false }) {
     const F = H._feet?.[s];
     feet[s] = { ball: arr(ball), ankle: arr(ankle), gBall: r4(ground(ball)), gAnkle: r4(ground(ankle)), held: !!(F?.locked && (F.w ?? 0) > 0.95) };
   }
-  const joints = JOINTS.map((n) => (B[n] ? arr(B[n].getWorldPosition(_v).sub(p.pos)) : [0, 0, 0]));
+  const root = p.object?.position ?? p.pos;
+  const joints = JOINTS.map((n) => (B[n] ? arr(B[n].getWorldPosition(_v).sub(root)) : [0, 0, 0]));
   // the bones' angular velocities: q_t * q_{t-1}^-1 as a rotation vector over dt (local, rad/s)
   st.q ??= null;
   const qs = BONES.map((n) => (B[n] ? B[n].quaternion.clone() : new THREE.Quaternion()));

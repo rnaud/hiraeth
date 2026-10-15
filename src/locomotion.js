@@ -117,9 +117,14 @@ export function gaitFeet(animator, speed, out = {}) {
  * The drawn body's lag behind a sudden change of floor height (a stair, a kerb, a step down off a
  * ledge on foot): the height jumps, the body follows over ~0.1 s. Smooth slopes don't trigger it.
  */
+export const STEP_LAG = {
+  rate: 12,            // 1/s: the drawn body eases onto the floor's height after a stair
+  climb: 0.15,         // s: and keeps up with a flight's climb, read over this long (0: it lags the flight)
+  fast: [4.5, 6.5],    // m/s along the ground: from the first speed to the second, eased in (under it, the easing alone)
+};
 export class StepLag {
-  constructor() { this.lag = 0; this.last = null; }
-  reset() { this.lag = 0; this.last = null; }
+  constructor() { this.lag = 0; this.last = null; this.climb = 0; }
+  reset() { this.lag = 0; this.last = null; this.climb = 0; }
   /**
    * pos: the root (world), up: the way up there; carried: how far a moving floor took the root this
    * frame (a riding disc's rise is not a step: the body rides it as it is); returns the offset to add along up.
@@ -127,13 +132,30 @@ export class StepLag {
   update(dt, pos, up, onGround, carried = null) {
     // (the rise since the last frame along today's up: where gravity turns (the Hangar), a height
     // measured from the world's origin would jump with every turn of the up vector)
-    let jump = this.last ? (pos.x - this.last.x) * up.x + (pos.y - this.last.y) * up.y + (pos.z - this.last.z) * up.z : 0;
+    let jump = 0, along = 0;
+    if (this.last) {
+      const dx = pos.x - this.last.x, dy = pos.y - this.last.y, dz = pos.z - this.last.z;
+      jump = dx * up.x + dy * up.y + dz * up.z;
+      along = Math.sqrt(Math.max(0, dx * dx + dy * dy + dz * dz - jump * jump));   // (how far along the ground)
+    }
     if (carried && this.last) jump -= carried.x * up.x + carried.y * up.y + carried.z * up.z;
     (this.last ??= pos.clone()).copy(pos);
-    if (!onGround) { this.lag = 0; return 0; }
+    if (!onGround) { this.lag = 0; this.climb = 0; return 0; }
     // (a stair is centimetres in one frame; a slope at a run is ~1 cm; a teleport is metres)
-    if (Math.abs(jump) > 0.03 && Math.abs(jump) < 0.8) this.lag -= jump;
-    this.lag = clamp(this.lag * Math.exp(-12 * dt), -0.45, 0.45);
+    const stair = Math.abs(jump) > 0.03 && Math.abs(jump) < 0.8;
+    if (stair) this.lag -= jump;
+    // (a flight taken at a sprint: a riser every two or three frames, and eased at 12/s alone the drawn body ran its
+    // climb's speed / 12 under the treads, 38 cm: the legs folded to reach them, the swinging foot was lifted out of the
+    // leg's reach and the soles sank, issue #47. The flight's climb, read over STEP_LAG.climb, carries the drawn body up
+    // (or down) with it, never past the floor's height; from STEP_LAG.fast's speeds along the ground, eased in: at a jog
+    // the easing alone keeps up well enough, and carried there the hips rose less smoothly, the pelvis's jerk 2.5 -> 4.3 km/s³)
+    if (STEP_LAG.climb > 0 && dt > 0) {
+      this.climb += ((stair ? jump / dt : 0) - this.climb) * (1 - Math.exp(-dt / STEP_LAG.climb));
+      const ff = this.climb * dt * THREE.MathUtils.smoothstep(along / dt, STEP_LAG.fast[0], STEP_LAG.fast[1]);
+      if (this.lag < 0 && ff > 0) this.lag = Math.min(0, this.lag + ff);
+      else if (this.lag > 0 && ff < 0) this.lag = Math.max(0, this.lag + ff);
+    }
+    this.lag = clamp(this.lag * Math.exp(-STEP_LAG.rate * dt), -0.45, 0.45);
     return this.lag;
   }
 }

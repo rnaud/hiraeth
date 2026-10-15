@@ -168,6 +168,8 @@ export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe
   // sideways the loops' run with the hips and legs turned up to sideRun rad the way he goes (easing round at yawK/s) and
   // the back turned round again over `twist`, the chest to the foe
   rateMax: 2.4, reachMax: 1.9, sideRun: 1.6, yawK: 20,
+  // and back: the loops' own gait played backwards (backRun), not the pack's walk back sped up
+  backRun: true,
   twist: [['spine_01', 0.3], ['spine_02', 0.35], ['spine_03', 0.35]] };
 /**
  * Which captured step a locked-on move wants (pure: tests): 'left' / 'right' / 'back' / null (forward: the loops), from
@@ -1101,7 +1103,11 @@ export class Player {
       S.yaw = yaw + e * (x + j * dt); S.yawV = e * ((S.yawV ?? 0) - j * k * dt);
       if (!side && Math.abs(S.yaw) < 1e-3 && Math.abs(S.yawV) < 1e-2) S.yaw = S.yawV = 0;
     }
-    if (!st || side) return;
+    // (back: the loops' own gait, its phase run backwards, the feet's stance sweeping forward under the hips as fast as the
+    // body goes back. The pack's walk back, a slow walk, played at most 2.4 times its pace with a longer step, could not keep
+    // up with the lock's 3.8 m/s: its feet slid 16 cm a step at the median, 9 pops in 6 s, issue #47)
+    S.reverse = !!(LOCK_MOVE.backRun && st === 'back');
+    if (!st || side || S.reverse) return;
     const M = LOCK_MOVE[st], clip = A.moveClip?.(M.clip);
     if (!clip) return;
     const { rate, reach } = strafeRate(hs, M.speed);
@@ -2695,6 +2701,7 @@ export class Player {
       walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
       strideScale: 1,
       mm: A.matching ? this.matchInput() : null,
+      reverse: !!this._strafe?.reverse,
     });
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);

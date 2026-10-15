@@ -18,6 +18,18 @@ export const CHANGELOG = [
     // the knees (issue #47): src/feet.js FEET.soft 0.02 -> 0.035, relockKeep, restKeep, the early touchdown only coming
     // down, a stepping foot's turn kept continuous; tests/motion-qc.test.js (the B3 test, no longer todo)
     'His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.',
+    // the sprint's steps (issue #47, second round): src/feet.js FEET.plantShown, landBack 0.14 -> 0.2, releaseMin / dragSpeed,
+    // reachGrace; tests/motion-qc.test.js ("the sprint's steps, the 180° turns…")
+    'Sprinting and setting off at a run, his feet stay where they land: they no longer slide a hand’s width on as they touch down, and the foot left behind as he sets off lifts off the floor instead of dragging along it.',
+    // the pivots' crossed feet: src/feet.js FEET.stepPathGap / stepPathRate (a pivot's step round kept to its own side on its way)
+    'Turning on the spot, his feet no longer cross: the foot stepping round goes round the other one.',
+    // the stairs: src/locomotion.js STEP_LAG.climb / fast (the drawn body carried up a flight with it at a sprint), src/feet.js FEET.rideSpring;
+    // the motion QC's recorder reads the joints against the drawn body (scripts/motion-qc/sample.mjs)
+    'Running up or down stairs, his body rises and falls with the flight instead of trailing under the steps: his legs no longer fold up to reach the treads, his feet no longer sink into them, and his knees flick less as he steps down.',
+    // the forearm: src/humanoid.js shareWristRoll (the roll kept on its side from frame to frame); tests/motion-qc.test.js
+    'Turning round at a run or reversing a sprint, his forearm no longer flips over for a frame.',
+    // the walk back: src/player.js LOCK_MOVE.backRun (the loops' gait run backwards, src/animator.js s.reverse); tests/strafe.test.js
+    'Locked on, pulling back he now jogs backwards, his feet staying where they land instead of sliding most of a step each time.',
     // the Sunken Hall's buttons (after issue #365): src/fight-temples/session.js (jump suppressed), index.js (controls
     // cards, touch jump hidden); tests/fight-roll.test.js
     'In the Sunken Hall, B / ○ rolls and jumping is disabled: A / × and Space do nothing, and the touch jump button is hidden. Jumping elsewhere works as before.',

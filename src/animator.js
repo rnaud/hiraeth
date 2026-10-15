@@ -636,7 +636,8 @@ export class Animator {
       stride /= wsum; sweep /= wsum;
       // (strideScale: a longer or shorter stride than the loop's, for people's own gaits)
       cps = sp / Math.max(stride * (s.strideScale ?? 1), 0.3);
-      this.phase = (this.phase + cps * dt) % 1;
+      // (backwards, s.reverse: locked on and stepping back, the gait's cycle runs the other way: src/player.js LOCK_MOVE.backRun)
+      this.phase = (((this.phase + (s.reverse ? -1 : 1) * cps * dt) % 1) + 1) % 1;
       this.footSpeed = cps * sweep;
     }
     // (a loop's own phase: a person's walk is shifted so its feet come down when the library's do, phaseOf)
@@ -652,7 +653,7 @@ export class Animator {
       let lead = 0;
       if (G) for (const k of gaitKeys) { const p = this.phase + (G.clips[k].phase ?? 0); c += this.w[k] * contactAt(G.clips[k].contact[f], p); lead += this.w[k] * contactAt(G.clips[k].lead[f], p); }
       this.contact[f] = Math.min(c / total, 1);
-      this.toContact[f] = wsum > 0.01 && cps > 0.05 ? lead / wsum / cps : Infinity;
+      this.toContact[f] = wsum > 0.01 && cps > 0.05 && !s.reverse ? lead / wsum / cps : Infinity;   // (backwards: not read ahead)
     }
     // climbing loops: a little faster than authored, since we climb quickly
     const moving = s.mode === 'climb' && (s.climbF || s.climbS);

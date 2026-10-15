@@ -40,10 +40,17 @@ export const FEET = {
   pivotOverlap: 0.6,             // share of a pivot's step after which the other foot, out of reach, may lift (a pivot that sets off)
   stepLead: 0.4,                 // m (x size): the most a step's place is led by the body's travel (it lands where its place will be)
   stepGap: 0.05,                 // m (x size): a step sets the foot down at least this far to its own side of the other, held one
+  stepPathGap: 0.12, stepPathRate: 20,   // m (x size), 1/s: a pivot's step round keeps this far to its own side of the other foot on its way, eased
   stepRest: 0.06,                // s between two steps
+  reachGrace: [0.1, 1],          // s, m/s: a foot set down this long ago, under this speed, lets go out of reach only past the hips' whole drop
+                                 // (a stop's last step set down out of reach was let go in the frame it landed and planted again 4 frames on, 27-36 rad/s)
   maxDrop: 0.26,                 // m (x size): how far the hips may come down to reach a low foot
   landTime: 0.07, landHeight: 0.15,   // s, m (x size): a landing foot slows over the ground in its last moments before touchdown
-  landBack: 0.14,                // m (x size): by at most this much
+  landBack: 0.2,                 // m (x size): by at most this much (0.14 before issue #47's sprint: its foot travels 22 cm over the last moments)
+  plantShown: [0.22, 6],         // m (x size), m/s (x size): a free foot touching down this near where it was drawn, drawn moving slower than this,
+                                 // holds where it was drawn (planted at the clip's place, it lunged 5-6 cm on in the frame it touched down at a sprint)
+  releaseMin: 0.03, dragSpeed: 5.5,   // m (x size), m/s: a foot let go out of reach under this speed, the clip's foot still on the ground,
+                                 // rises at least this high as it eases off (dragged along the floor, 3-10 cm a frame, as a run sets off)
   // (the motion QC, .claude/skills/motion-qc: what made the legs pop)
   soft: 0.035,                   // share of the leg's length over which it eases to straight (soft IK): no knee locking straight for frames and snapping bent
                                  // (0.02 on the coral-shirt v1; B3's knee, 14-19 rad/s at a walk's and a ramp's lift-off with it, issue #47)
@@ -58,6 +65,7 @@ export const FEET = {
   relockKeep: 0.05,              // a foot planted and let go in one frame, this much or more on its old hold, goes on easing off it
   footRate: 12,                  // rad/s: the most a foot turns against the body (0: as the clip)
   rideRate: 25, rideUp: 0,       // 1/s: a free foot follows a fall / a rise of the floor's height under it (a stair) this fast (0: at once)
+  rideSpring: true,              // as a critically damped spring (false: eased at the rate, a step in its speed)
   rideAhead: 0.1, rideAheadRate: 30,   // s, 1/s: and rises toward the floor this far ahead along its way, this fast (a step up)
   clearAhead: 0.06, clearAheadMax: 0.2, clearRise: 30, clearFall: 10, clearSink: 0.03,   // a free foot's lift over a stair: s it looks ahead, 1/s it eases up and down, m (x size) it may dip under before it follows at once
 };
@@ -92,9 +100,9 @@ const _goal = new THREE.Vector3(), _side = new THREE.Vector3();
  * Where a stepping foot (side s) sets down: `place`, moved out to its own side of the other foot, `gap` beside it
  * (in the body's frame: the left foot left of the right one) when that one is held. Into `out`.
  */
-function ownSide(place, other, s, fwd, up, gap, out) {
+function ownSide(place, other, s, fwd, up, gap, out, always = false) {
   out.copy(place);
-  if (!other.locked || !(gap > 0)) return out;
+  if (!(other.locked || (always && other.step)) || !(gap > 0)) return out;
   const left = _side.crossVectors(up, fwd);
   if (left.lengthSq() < 1e-8) return out;
   left.normalize();
@@ -162,7 +170,7 @@ function legIK(H, s, target, pole, soft = FEET.soft) {
 export function resetFeet(H) {
   const S = H._feet;
   if (!S) return;
-  for (const s of ['l', 'r']) Object.assign(S[s], { locked: false, w: 0, wv: 0, dropIn: 0, shown: null, footQ: null, released: false, lastHeight: undefined, step: null, lift: 0, lastSwing: null, gRide: undefined });
+  for (const s of ['l', 'r']) Object.assign(S[s], { locked: false, w: 0, wv: 0, dropIn: 0, shown: null, shownV: 0, dragged: false, gRideV: 0, footQ: null, released: false, lastHeight: undefined, step: null, lift: 0, lastSwing: null, gRide: undefined });
   S.drop = 0; S.cool = 0; S.lastRoot = null;
 }
 
@@ -324,7 +332,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         const k = THREE.MathUtils.smootherstep(Math.min(F.step.t, 1), 0, 1);
         // (never over the other foot: turning on the spot, the clip's place for the stepping foot may lie across the held
         // one, and the legs crossed for a few frames as it stepped round (the motion QC's pivots): kept to its own side)
-        const goal = ownSide(d.place, S[s === 'l' ? 'r' : 'l'], s, fwd, up, FEET.stepGap * sc, _goal);
+        const goal = ownSide(d.place, S[s === 'l' ? 'r' : 'l'], s, fwd, up, FEET.stepGap * sc, _goal, F.step.quick && FEET.stepPathGap > 0);
         // (led by the body's travel over what is left of the step: it comes to rest as it lands, on its place then)
         const left = Math.max(0, 1 - F.step.t) * (F.step.quick ? FEET.pivotStepTime : FEET.stepTime);
         goal.addScaledVector(_c.copy(bodyV).multiplyScalar(left).clampLength(0, FEET.stepLead * sc), 1);
@@ -333,7 +341,17 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         const follow = 1 - THREE.MathUtils.smoothstep(F.step.t, 0.5, 1);
         F.step.goal = F.step.goal ? F.step.goal.lerp(goal, follow) : goal.clone();
         goal.copy(F.step.goal);
-        F.pos.lerpVectors(F.step.from, goal, k).addScaledVector(up, Math.sin(Math.PI * Math.min(F.step.t, 1)) * FEET.stepLift * sc);
+        F.pos.lerpVectors(F.step.from, goal, k);
+        // (and on its way there too, in a pivot: a straight line from where it was to its place on the far side, the body
+        // turning over it, went across the held foot, the feet crossed for 9 % of a 180° pivot, issue #47)
+        if (F.step.quick && FEET.stepPathGap > 0) {
+          // (eased, the push out to its side and its letting go, and gone by the time it lands: set at once, the foot jumped 5-6 cm as the other one lifted)
+          const want = ownSide(F.pos, S[s === 'l' ? 'r' : 'l'], s, fwd, up, FEET.stepPathGap * sc, _c, true).sub(F.pos);
+          const push = (F.step.push ??= new THREE.Vector3());
+          push.lerp(want, 1 - Math.exp(-FEET.stepPathRate * dt));
+          F.pos.addScaledVector(push, 1 - THREE.MathUtils.smoothstep(F.step.t, 0.5, 0.8));   // (gone before it comes down: no slide as it lands)
+        }
+        F.pos.addScaledVector(up, Math.sin(Math.PI * Math.min(F.step.t, 1)) * FEET.stepLift * sc);
         // (up onto a stair: the foot rises first and goes over, so its toe doesn't drag up the riser)
         const rise = _b.subVectors(goal, F.step.from).dot(up);
         if (rise > 0.02 * sc) F.pos.addScaledVector(up, rise * (THREE.MathUtils.smootherstep(Math.min(F.step.t * 1.7, 1), 0, 1) - k));
@@ -361,7 +379,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         // (it stops where it meets the ground; a foot still partly on an old hold, let go a moment ago, holds where it
         // is shown, on the ground under it: planted at the clip's place, it jumped there, half a metre in a pivot)
         // (and a pivot sets down a foot that was in the air where it is shown too: planted at the clip's place, the ball jumped 16 cm)
-        const relock = (F.w > 0.05 || pivoting) && F.shown && F.shown.distanceTo(d.place) > 0.04 * sc;
+        const relock = (F.w > 0.05 || pivoting || (FEET.plantShown && F.shown && F.shown.distanceTo(d.place) < FEET.plantShown[0] * sc && (F.shownV ?? 0) < FEET.plantShown[1] * sc)) && F.shown && F.shown.distanceTo(d.place) > 0.04 * sc;
         // (meeting the ground a few centimetres up, it stops there but comes down onto it at the speed it was falling,
         // easing in: set at 0.65 of its hold at once, the foot dropped 9 cm in a frame at every touchdown at a jog, the
         // foot bone flicking 20 rad/s; eased onto its hold altogether, it slid on with the clip's foot meanwhile)
@@ -387,7 +405,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         const other = S[s === 'l' ? 'r' : 'l'], far = F.pos.distanceTo(d.place) > 2 * FEET.release * sc;
         if (still && !far && d.finite) {
           if (!other.step) { F.step = { from: F.pos.clone(), fromYaw: F.yaw.clone(), t: 0, quick: pivoting }; F.locked = false; }
-        } else { F.locked = false; F.released = !standing; }
+        } else { F.locked = false; F.released = !standing; F.dragged = false; }
       }
       // the body has left a held foot behind, out of the leg's reach (the hips can't come down that
       // fast): it goes with the stride now rather than being dragged along the ground
@@ -403,7 +421,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
         const other = S[s === 'l' ? 'r' : 'l'];
         if (pivoting && bodyV.length() < FEET.pivotStepSpeed * sc && (!other.step || other.step.t > FEET.pivotOverlap) && (S.cool <= 0 || S.lastStep !== s) && d.finite && far > H.legLen * sc * (1 - FEET.soft / 2) + Math.min(S.drop, FEET.maxDrop * sc)) {
           F.step = { from: F.pos.clone(), fromYaw: F.yaw.clone(), t: 0, quick: true }; F.locked = false;
-        } else if (!standing && (far > H.legLen * sc + Math.min(S.drop + 0.03 * sc, FEET.maxDrop * sc) || pushOff(far, B[`thigh_${s}`], F, d, o.speed ?? 0, sc))) { F.locked = false; F.released = true; unlockNow(F); }
+        } else if (!standing && (far > H.legLen * sc + Math.min((F.heldT ?? 0) < FEET.reachGrace[0] && (o.speed ?? 0) < FEET.reachGrace[1] ? FEET.maxDrop * sc : S.drop + 0.03 * sc, FEET.maxDrop * sc) || pushOff(far, B[`thigh_${s}`], F, d, o.speed ?? 0, sc))) { F.locked = false; F.released = true; F.dragged = d.clear < FEET.releaseMin * sc && (o.speed ?? 0) < FEET.dragSpeed; unlockNow(F); }
       }
     }
     const held = F.locked || !!F.step;
@@ -451,7 +469,13 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     // passes over the edge, and the foot went up or down 18 cm in a frame, a pop at every stair: the motion QC)
     const gWant = THREE.MathUtils.clamp(d.groundH + d.hBall, -0.25 * sc, 0.3 * sc);
     const rr = gWant > (F.gRide ?? gWant) ? FEET.rideUp : FEET.rideRate;
-    F.gRide = held || F.gRide === undefined || !(rr > 0) ? gWant : F.gRide + (gWant - F.gRide) * (1 - Math.exp(-rr * dt));
+    if (held || F.gRide === undefined || !(rr > 0)) { F.gRide = gWant; F.gRideV = 0; }
+    else if (FEET.rideSpring) {
+      // (a critically damped spring: eased at a rate, the swinging foot set off down a stair's 18 cm at 4-5 m/s in a frame as
+      // it passed over the edge, the calf flicking 22-40 rad/s at every step down, issue #47)
+      const e = Math.exp(-rr * dt), x = F.gRide - gWant, j = (F.gRideV ?? 0) + x * rr;
+      F.gRide = gWant + e * (x + j * dt); F.gRideV = e * ((F.gRideV ?? 0) - j * rr * dt);
+    } else F.gRide += (gWant - F.gRide) * (1 - Math.exp(-rr * dt));
     // (and it rises ahead of a step up: the floor a moment ahead along its way, eased up to; followed at once only as it
     // passed the riser, the swinging foot went up a stair's 18 cm in a frame at every step, the calf flicking 30 rad/s, issue #47)
     if (!held && FEET.rideAhead > 0 && F.lastBall && dt > 0) {
@@ -493,6 +517,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       const gap = _d.subVectors(lockedAnkle, swing), rise = gap.dot(up);
       t = swing.clone().addScaledVector(gap.addScaledVector(up, -rise), Math.pow(F.w, FEET.toeOff)).addScaledVector(up, rise * F.w);
     } else t = swing.lerp(lockedAnkle, F.w);
+    if (!held && F.released && F.dragged && F.w > 0.01 && FEET.releaseMin > 0) t.addScaledVector(up, Math.max(0, FEET.releaseMin * sc - Math.max(d.clear, 0)) * 4 * F.w * (1 - F.w));
     let lift = 0, liftNow = 0;
     const aheadV = F.lastSwing && dt > 0 ? _a.subVectors(t, F.lastSwing).multiplyScalar(FEET.clearAhead / dt) : null;
     if (aheadV) aheadV.addScaledVector(up, -aheadV.dot(up)).clampLength(0, FEET.clearAheadMax * sc);   // (along the ground: where it is going, not how it falls)
@@ -546,6 +571,7 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     if (F.corr) fq.premultiply(F.corr);
     foot.quaternion.copy(worldQuat(foot.parent, _q3).invert().multiply(fq));
     foot.updateMatrixWorld(true);
+    if (F.shown && dt > 0) { F.shownV = _a.subVectors(worldPos(B[`ball_${s}`], _b), F.shown).addScaledVector(up, -_a.dot(up)).length() / dt; }
     worldPos(B[`ball_${s}`], (F.shown ??= new THREE.Vector3()));   // (where it is shown: a relock holds there)
   }
 }
