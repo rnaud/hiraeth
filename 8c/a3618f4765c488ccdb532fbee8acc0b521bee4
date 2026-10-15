@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_81d4d23b10db5b 7
+docs/systems/performance.md
+  s_9ca76055a220ed::t_187fc4d11ebd10 623-624,2647-2685
+src/changelog-media.js
+  s_9ca76055a220ed::t_4781f8bdfc2161 1193-1199
+src/main.js
+  s_9ca76055a220ed::t_ec77f559edc548 144,2575-2576,2578
+src/title-world.js
+  s_9ca76055a220ed::t_615e5d2c370bd1 18,406,409,411,413-414
+src/warm-shaders.js
+  s_9ca76055a220ed::t_26883eafc69158 20-36,42,45,61-62,65-66,68-69
+tests/load-awaits.test.js
+  s_9ca76055a220ed::t_f86116469e5e6e 37
+tests/warm-shaders.test.js
+  s_9ca76055a220ed::t_75e89e20fd7ffb 1-75
+src/changelog.js
+  s_9ca76055a220ed::t_3e5fce5ac6da75 78-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8ca3618f4765c488ccdb532fbee8acc0b521bee4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
