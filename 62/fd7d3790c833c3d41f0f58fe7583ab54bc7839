@@ -1,0 +1,23 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_fa76d085525fad 3186-3302
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_1ca7e268baad12 181-184
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_75b3c96bf144d6 32-37,68,84,215-216,219,243,267,275,388,393,396-397,424
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "62fd7d3790c833c3d41f0f58fe7583ab54bc7839",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
