@@ -1,0 +1,27 @@
+src/temples/kit.js
+  s_9ca76055a220ed::t_e154711012ed3f 277-278,392,425,467,512
+src/temples/pieces.js
+  s_9ca76055a220ed::t_250856d1f6233b 850-851,853-854,864,922
+src/temples/runtime.js
+  s_9ca76055a220ed::t_1d6eb536913804 8,54-55,57,59
+src/temples/skins/index.js
+  s_9ca76055a220ed::t_bca1d6e3d22345 1-17
+tests/temple-skins.test.js
+  s_9ca76055a220ed::t_a55fda7212c7b9 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6be7b90b1a34bfca7f0dc7762d772818cfd6b2d3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
