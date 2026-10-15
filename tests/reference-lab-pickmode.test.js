@@ -229,7 +229,7 @@ test('Pick mode\'s drawing: numbered candidates with a zoom corner, the header, 
   const based = pickHeadHtml(it, { refs: ['references/guardians/elder/reference-v1-4.png', 'references/guardians/elder/sheet-1.jpg'], comparison: 'references/guardians/elder/reference-v1-4.png' });
   assert.match(based, /class="pm-base"[^>]*>.*Base</s);
   assert.equal((based.match(/data-pm-base="/g) ?? []).length, 2, 'both bases shown');
-  assert.match(based, /data-pm-base="1"[^>]*>.*src="\/references\/guardians\/elder\/sheet-1\.jpg"/s);
+  assert.match(based, /data-pm-base="1"[^>]*>.*src="\/__references\/thumb\?p=references%2Fguardians%2Felder%2Fsheet-1\.jpg" data-full="\/references\/guardians\/elder\/sheet-1\.jpg"/s, 'a thumbnail in the strip (R or a click shows the full picture)');
   assert.match(based, /<small>elder\/reference-v1-4\.png<\/small>/);
   assert.equal(pickBaseHtml({ refs: [], comparison: 'references/guardians/elder/sheet-2.jpg' }).includes('data-pm-base'), false, 'text alone: no base, only what it is compared with');
   assert.match(pickBaseHtml({ refs: [], comparison: 'references/guardians/elder/sheet-2.jpg' }), /compared with/);

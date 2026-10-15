@@ -22,11 +22,11 @@ import { InputMode } from '../input-mode.js';
 import { DEBUG_MENU_HREF } from '../debug-back.js';
 import { installPickMode } from './pickmode-ui.js';
 import { pickable } from './pickmode.js';
-import { ASPECTS, PER_PAGE, batchHtml, candidateSrc, defaultChecked, esc, fileSrc, input3dRow, filterBatches, filterHtml, filterRefs, pageCount, pagerHtml, promptFor, promptOptions, providerRow, refFolders, refThumb } from './view.js';
+import { ASPECTS, PER_PAGE, batchHtml, candidateSrc, changedBatches, defaultChecked, esc, fileSrc, input3dRow, filterBatches, filterHtml, filterRefs, needsPoll, pageIds, pagerHtml, pollIds, promptFor, promptOptions, providerRow, refFolders, refThumb, refThumbSrc, thumbImg } from './view.js';
 
 const API = '/__reference-lab/';
 const $ = (s) => document.querySelector(s);
-const PAGE = 120;   // thumbnails drawn at once (more on "show more")
+const PAGE = 48;   // style-reference thumbnails drawn at once (more on "show more")
 
 installNativePad(); watchLabels(); installGlyphs();
 const inputMode = new InputMode({ touchDevice: false });
@@ -40,7 +40,7 @@ let viewer3d = null;   // (viewer3d.js, imported the first time a 3D batch shows
 const viewers = () => (viewer3d ??= import('./viewer3d.js'));
 
 async function api(path, body) {
-  const res = await fetch(API + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
+  const res = await fetch(API + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-cache' });   // (asked again each time; the server's ETag makes "nothing new" a 304)
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
   return json;
@@ -56,7 +56,7 @@ function drawRefs() {
   $('#ref-count').textContent = `${list.length} of ${state.refs.length}`;
 }
 function drawPicked() {
-  $('#picked').innerHTML = state.picked.length ? state.picked.map((p) => `<span class="chip"><img src="${esc(fileSrc(p))}" alt="">${esc(p.split('/').pop())}<button type="button" class="x" data-unpick="${esc(p)}" title="Remove">✕</button></span>`).join('') : '<small class="empty">No style reference: text alone.</small>';
+  $('#picked').innerHTML = state.picked.length ? state.picked.map((p) => `<span class="chip">${thumbImg(refThumbSrc(p), fileSrc(p), 'alt=""')}${esc(p.split('/').pop())}<button type="button" class="x" data-unpick="${esc(p)}" title="Remove">✕</button></span>`).join('') : '<small class="empty">No style reference: text alone.</small>';
   const cmp = $('#comparison'), was = cmp.value;
   cmp.innerHTML = `<option value="">(none)</option>${state.picked.map((p) => `<option value="${esc(p)}">${esc(p.split('/').pop())}</option>`).join('')}`;
   cmp.value = state.picked.includes(was) ? was : state.picked[0] ?? '';
@@ -220,31 +220,72 @@ async function generate() {
   } catch (e) { say(e.message, true); } finally { $('#go').disabled = false; }
 }
 // Every batch on one page, newest first, PER_PAGE at a time, filtered (to pick by default: #show=…&page=N);
-// polled while one of them runs.
+// polled while one of them runs (poll(): only what runs, only what changed drawn again).
+const fetchBatch = (id) => api(`batches/${encodeURIComponent(id)}`).catch(() => null);
 async function loadPage(page = state.page) {
   clearTimeout(state.poll);
-  try { state.batches = (await api('batches')).batches; } catch (e) { say(e.message, true); return; }
-  const list = filterBatches(state.batches, state.show);
-  state.page = Math.min(Math.max(1, page), pageCount(list.length));
-  const ids = list.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE).map((b) => b.batch);
-  state.open = (await Promise.all(ids.map((id) => api(`batches/${encodeURIComponent(id)}`).catch(() => null)))).filter(Boolean);
+  state.gen = (state.gen ?? 0) + 1;   // (a poll still on its way when the page is loaded again draws nothing)
+  try { ({ batches: state.batches, version: state.version } = await api('batches')); } catch (e) { say(e.message, true); return; }
+  const at = pageIds(state.batches, state.show, page);
+  state.page = at.page;
+  state.open = (await Promise.all(at.ids.map(fetchBatch))).filter(Boolean);
   const hash = new URLSearchParams({ ...(state.show !== 'open' ? { show: state.show } : {}), ...(state.page > 1 ? { page: state.page } : {}) }).toString();
   history.replaceState(null, '', hash ? `#${hash}` : location.pathname);
   drawBatches();
-  // (polled while anything runs, shown or not: a finished batch joins To pick by itself)
-  if (state.open.some((m) => m.status === 'running') || state.batches.some((b) => b.status === 'running')) state.poll = setTimeout(() => loadPage(), 2000);
+  schedulePoll();
 }
-function drawBatches() {
+// (polled while anything runs, shown or not: a finished batch joins To pick by itself)
+function schedulePoll() {
+  clearTimeout(state.poll);
+  if (needsPoll(state.open, state.batches)) state.poll = setTimeout(poll, 2000);
+}
+async function poll() {
+  const gen = state.gen;
+  let list;
+  try { list = await api('batches'); } catch { if (gen === state.gen) schedulePoll(); return; }
+  if (gen !== state.gen) return;
+  const listChanged = list.version !== state.version;
+  state.batches = list.batches; state.version = list.version;
+  // the page shows other batches now (one finished and joins To pick, or left it): the page again
+  if (pageIds(state.batches, state.show, state.page).ids.join('|') !== state.open.map((m) => m.batch).join('|')) return loadPage();
+  // else only the shown batches still running, and only those that changed drawn again
+  const again = (await Promise.all(pollIds(state.open).map(fetchBatch))).filter(Boolean);
+  if (gen !== state.gen) return;
+  for (const m of changedBatches(state.open, again)) {
+    state.open[state.open.findIndex((o) => o.batch === m.batch)] = m;
+    drawBatch(m);
+  }
+  if (listChanged) drawBatchesTop();
+  schedulePoll();
+}
+/** The filters and Pick all, above the batches. */
+function batchesTopHtml() {
+  const toPick = state.show === 'open' ? state.batches.filter(pickable).length : 0;
+  const pickAll = toPick ? `<p class="pickall"><button type="button" class="btn go" data-pickall title="Every batch to pick, one at a time, full screen: a click (or its number) picks and moves on">Pick all <small>${toPick}</small></button> <small>one batch at a time, full screen, in the prompt documents' order</small></p>` : '';
+  return `<div class="btop">${filterHtml(state.batches, state.show)}${pickAll}</div>`;
+}
+function drawBatchesTop() {
+  const top = $('#batches .btop');
+  if (top) top.outerHTML = batchesTopHtml();
+}
+// (the focused candidate kept across a redraw)
+function keepFocus(draw) {
   const f = document.activeElement?.closest?.('[data-cand]');
   const keep = f && { batch: f.closest('[data-batch-id]')?.dataset.batchId, cand: f.dataset.cand };
+  draw();
+  if (keep) document.querySelector(`[data-batch-id="${CSS.escape(keep.batch)}"] [data-cand="${CSS.escape(keep.cand)}"]`)?.focus({ preventScroll: true });
+  if (document.querySelector('#batches .viewer[data-model]') || viewer3d) viewers().then((v) => v.mountViewers($('#batches'))).catch((e) => say(`the 3D viewer: ${e.message}`, true));
+}
+function drawBatches() {
   const n = filterBatches(state.batches, state.show).length;
   const pager = pagerHtml(n, state.page);
   const empty = state.batches.length ? `<p class="empty">${state.show === 'open' ? (state.batches.some((b) => b.status === 'running') ? 'Nothing to pick yet: the rest are still generating.' : 'Nothing left to pick.') : 'No batch here.'}</p>` : batchHtml(null);
-  const toPick = state.show === 'open' ? state.batches.filter(pickable).length : 0;
-  const pickAll = toPick ? `<p class="pickall"><button type="button" class="btn go" data-pickall title="Every batch to pick, one at a time, full screen: a click (or its number) picks and moves on">Pick all <small>${toPick}</small></button> <small>one batch at a time, full screen, in the prompt documents' order</small></p>` : '';
-  $('#batches').innerHTML = `${filterHtml(state.batches, state.show)}${pickAll}${state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${n > PER_PAGE ? pager : ''}` : empty}`;
-  if (keep) document.querySelector(`[data-batch-id="${CSS.escape(keep.batch)}"] [data-cand="${CSS.escape(keep.cand)}"]`)?.focus({ preventScroll: true });
-  if (document.querySelector('#batches .viewer[data-model]') || viewer3d) viewers().then((v) => v.mountViewers($('#batches'))).catch((e) => say(`the 3D viewer: ${e.message}`, true));
+  keepFocus(() => { $('#batches').innerHTML = `${batchesTopHtml()}${state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${n > PER_PAGE ? pager : ''}` : empty}`; });
+}
+/** One batch drawn again in place (its answer changed while it ran). */
+function drawBatch(m) {
+  const el = document.querySelector(`#batches [data-batch-id="${CSS.escape(m.batch)}"]`);
+  if (el) keepFocus(() => { el.outerHTML = batchHtml(m); });
 }
 const batchOf = (el) => state.open.find((m) => m.batch === el?.closest?.('[data-batch-id]')?.dataset.batchId);
 
@@ -290,10 +331,11 @@ let zoomList = [], zoomAt = 0, zoomBatch = null;
 const zoomOpen = () => zoom.classList.contains('open');
 function openZoom(el) {
   const seen = new Set();   // (a picture once in the zoom, however often it shows)
+  const full = (i) => (i ? new URL(i.dataset.full || i.src, location.href).href : null);   // (the grid's are thumbnails: the zoom shows the full picture)
   zoomBatch = batchOf(el);
-  zoomList = [...(el.closest('[data-batch-id]') ?? document).querySelectorAll('figure img')].filter((i) => !i.closest('.viewer') && !seen.has(i.src) && seen.add(i.src))
-    .map((i) => ({ src: i.src, cap: i.closest('figure').querySelector('figcaption')?.textContent.trim() ?? '', cand: i.closest('[data-cand]')?.dataset.cand ?? null }));
-  zoomAt = Math.max(0, zoomList.findIndex((z) => z.src === el.querySelector('img')?.src));
+  zoomList = [...(el.closest('[data-batch-id]') ?? document).querySelectorAll('figure img')].filter((i) => !i.closest('.viewer') && !seen.has(full(i)) && seen.add(full(i)))
+    .map((i) => ({ src: full(i), cap: i.closest('figure').querySelector('figcaption')?.textContent.trim() ?? '', cand: i.closest('[data-cand]')?.dataset.cand ?? null }));
+  zoomAt = Math.max(0, zoomList.findIndex((z) => z.src === full(el.querySelector('img'))));
   if (!zoomList.length) return;
   showZoom(); zoom.classList.add('open'); zoom.setAttribute('aria-hidden', 'false');
   state.zoomFrom = el; zoom.querySelector('[data-close]').focus({ preventScroll: true });
@@ -402,19 +444,20 @@ requestAnimationFrame(tick);
 // ------------------------------------------------------------------ start
 $('#ar').innerHTML = ASPECTS.map((a) => `<option${a === '16:9' ? ' selected' : ''}>${a}</option>`).join('');
 try {
-  const [providers, prompts, refs, batches] = await Promise.all([api('providers'), api('prompts'), api('refs'), api('batches')]);
-  state.providers = providers.providers; state.tripo = providers.tripo ?? null; state.prompts = prompts; state.refs = refs.refs; state.batches = batches.batches;
+  // (everything is on disk: a reload shows the page it showed; the batches first, without waiting for the form's lists)
+  const h = new URLSearchParams(location.hash.slice(1));
+  state.show = ['open', 'picked', 'rejected', 'all'].includes(h.get('show')) ? h.get('show') : 'open';
+  const shown = loadPage(+h.get('page') || 1);
+  const [providers, prompts, refs] = await Promise.all([api('providers'), api('prompts'), api('refs')]);
+  state.providers = providers.providers; state.tripo = providers.tripo ?? null; state.prompts = prompts; state.refs = refs.refs;
   $('#source').innerHTML = promptOptions(prompts);
   $('#ref-folder').innerHTML = `<option value="">every folder</option>${refFolders(state.refs).map((f) => `<option>${esc(f)}</option>`).join('')}`;
   drawProviders(); drawRefs(); drawPicked(); showTripo();
   let saved = '2d'; try { saved = localStorage.getItem('refLabMode') ?? '2d'; } catch { /* private mode */ }
   setMode(new URLSearchParams(location.hash.slice(1)).get('mode') ?? saved);
+  await shown;
   const n = state.providers.filter((p) => p.available).length;
   say(`${n} of ${state.providers.length} providers have a key · ${state.refs.length} reference pictures · ${state.batches.length} batches`);
-  // (everything is on disk: a reload shows the page it showed)
-  const h = new URLSearchParams(location.hash.slice(1));
-  state.show = ['open', 'picked', 'rejected', 'all'].includes(h.get('show')) ? h.get('show') : 'open';
-  await loadPage(+h.get('page') || 1);
 } catch (e) {
   say(`The reference lab needs the dev server (npx vite): ${e.message}`, true);
 }

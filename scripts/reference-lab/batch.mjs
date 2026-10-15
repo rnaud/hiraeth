@@ -11,9 +11,9 @@
 // providers asked for to it, with the batch's own prompt and references: a provider that failed is retried in
 // the same batch, so every provider's pictures stay side by side for one pick. mergeBatches() joins batches
 // that were run apart.
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, renameSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { extOf, insideRoot, parseAspect, readRef, redact, sha256 } from './common.mjs';
 import { DEFAULT_PROVIDERS, PROVIDERS } from './providers/index.mjs';
 import { KEY_NAMES, keyFor, mainCheckout } from './env.mjs';
@@ -161,6 +161,41 @@ export function listBatches(root) {
       return { batch: b, mode: m.mode ?? '2d', kind: m.kind ?? null, created: m.created, prompt: m.prompt, from: m.from, status: m.status, target: m.target, count: m.candidates.filter((c) => c.status !== 'discarded').length, picked: m.candidates.filter((c) => c.status === 'picked').length, rejected: m.rejected ?? null, providers: Object.keys(m.providers) };
     } catch { return { batch: b, status: 'unreadable' }; }
   });
+}
+
+/**
+ * The history as the page's list wants it, fast: the summaries of listBatches with the prompt cut short (the whole
+ * one is in the batch's own answer), each batch read again only when its candidates.json changed (`cache`: batch →
+ * { sig, summary }, kept by the caller across requests), and a `version` that changes whenever any of them does
+ * (the server's ETag: a poll with nothing new is a 304). → { batches, version }
+ */
+export const LIST_PROMPT = 200;
+export function listBatchesCached(root, cache = new Map()) {
+  const dir = join(storeRoot(root), CANDIDATES_DIR);
+  if (!existsSync(dir)) return { batches: [], version: 'empty' };
+  const ids = readdirSync(dir).filter((b) => ID.test(b)).sort().reverse();
+  const seen = new Set(), hash = createHash('sha1');
+  const batches = [];
+  for (const b of ids) {
+    let st;
+    try { st = statSync(join(dir, b, 'candidates.json')); } catch { continue; }
+    const sig = `${st.size}|${st.mtimeMs}`;
+    seen.add(b); hash.update(`${b}|${sig};`);
+    let hit = cache.get(b);
+    if (!hit || hit.sig !== sig) {
+      let summary;
+      try {
+        const m = readBatch(root, b);
+        const prompt = typeof m.prompt === 'string' && m.prompt.length > LIST_PROMPT ? `${m.prompt.slice(0, LIST_PROMPT - 1)}…` : m.prompt;
+        summary = { batch: b, mode: m.mode ?? '2d', kind: m.kind ?? null, created: m.created, prompt, from: m.from, status: m.status, target: m.target, count: m.candidates.filter((c) => c.status !== 'discarded').length, picked: m.candidates.filter((c) => c.status === 'picked').length, rejected: m.rejected ?? null, providers: Object.keys(m.providers) };
+      } catch { summary = { batch: b, status: 'unreadable' }; }
+      hit = { sig, summary };
+      cache.set(b, hit);
+    }
+    batches.push(hit.summary);
+  }
+  for (const b of cache.keys()) if (!seen.has(b)) cache.delete(b);
+  return { batches, version: hash.digest('hex').slice(0, 16) };
 }
 
 /** 'batch/provider/n' or ('provider/n' with a batch) → { batch, candidate }. 'latest' finds the newest batch. */

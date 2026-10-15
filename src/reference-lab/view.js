@@ -9,6 +9,15 @@ export const fileSrc = (path) => `/${String(path).split('/').map(encodeURICompon
 
 /** A candidate's picture, through the dev server (the candidates are kept in the main checkout, not under its root). */
 export const candidateSrc = (batch, file) => `/__reference-lab/file/${encodeURIComponent(batch)}/${String(file).split('/').map(encodeURIComponent).join('/')}`;
+/** Its thumbnail (a WebP 480 px wide, the dev server's, cached): what the grid shows; the full picture is for the zoom. */
+export const candidateThumb = (batch, file) => candidateSrc(batch, file).replace('/__reference-lab/file/', '/__reference-lab/thumb/');
+/** A picture under references/ small (the references page's thumbnail, 360 px): the style references, the base strips. */
+export const refThumbSrc = (path) => `/__references/thumb?p=${encodeURIComponent(path)}`;
+/**
+ * A thumbnail that knows its full picture (data-full: the zoom shows that) and falls back to it if the thumbnail
+ * can't be had (a picture outside references/, no sharp).
+ */
+export const thumbImg = (thumb, full, attrs = '') => `<img src="${esc(thumb)}" data-full="${esc(full)}" onerror="this.onerror=null;this.src=this.dataset.full" ${attrs}>`;
 /** The base picture(s) a batch was made from: the references sent with its prompt (`--refs`), repository paths. */
 export const baseRefs = (m) => (Array.isArray(m?.refs) ? m.refs.filter(Boolean) : []);
 /** A reference's short name: its folder and file ("keeper/sheet-1.jpg"), so two guardians' sheet-1s tell apart. */
@@ -50,7 +59,7 @@ export function filterRefs(refs, { folder = '', query = '' } = {}) {
 
 export function refThumb(r, selected) {
   return `<button type="button" class="ref${selected ? ' on' : ''}" data-ref="${esc(r.path)}" title="${esc(r.path)}" aria-pressed="${selected}">
-    <img src="${esc(fileSrc(r.path))}" alt="" loading="lazy"><span>${esc(r.name)}</span></button>`;
+    ${thumbImg(refThumbSrc(r.path), fileSrc(r.path), 'alt="" loading="lazy" decoding="async"')}<span>${esc(r.name)}</span></button>`;
 }
 
 /** A provider's row in the form: a checkbox and its model, greyed with what to add when it has no key. */
@@ -72,7 +81,7 @@ const secs = (ms) => (ms == null ? '' : `${(ms / 1000).toFixed(1)} s`);
 export function candidateCard(batch, c, est = false, label = '') {
   const gone = c.status === 'discarded';
   return `<figure class="cand ${esc(c.status)}" data-cand="${esc(c.id)}" data-nav tabindex="0">
-    ${gone ? '<div class="gone">discarded</div>' : `<img src="${esc(candidateSrc(batch, c.file))}" alt="${esc(c.id)}" loading="lazy">`}
+    ${gone ? '<div class="gone">discarded</div>' : thumbImg(candidateThumb(batch, c.file), candidateSrc(batch, c.file), `alt="${esc(c.id)}" loading="lazy" decoding="async"`)}
     <figcaption><b>${esc(label || c.label || c.provider)}</b> #${esc(c.id.split('/').pop())} ${esc(secs(c.ms))} ${esc(money(c.costUSD, est))}${c.status === 'picked' ? ` <span class="picked">✓ ${esc(c.pickedAs ?? 'picked')}</span>` : ''}</figcaption>
     ${gone ? '' : `<div class="acts"><button type="button" class="btn" data-pick="${esc(c.id)}">${glyph('x', { key: 'P' })}Pick</button><button type="button" class="btn" data-discard="${esc(c.id)}">${glyph('y', { key: 'Del' })}Discard</button></div>`}
   </figure>`;
@@ -88,7 +97,7 @@ export function batchHtml(m) {
   // the base picture(s) the batch was drawn from (its --refs), else the one it is compared with: on their own above everything else
   const base = baseRefs(m), refs = base.length ? base : (m.comparison ? [m.comparison] : []);
   const word = base.length ? 'base' : 'compared with';
-  const cmp = refs.length ? `<div class="refrow">${refs.map((r) => `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(r)}" title="${esc(r)}"><img src="${esc(fileSrc(r))}" alt="the ${word}"><figcaption><b>${word}</b> ${esc(refLabel(r))}</figcaption></figure>`).join('')}</div>` : '';
+  const cmp = refs.length ? `<div class="refrow">${refs.map((r) => `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(r)}" title="${esc(r)}">${thumbImg(refThumbSrc(r), fileSrc(r), `alt="the ${word}" loading="lazy" decoding="async"`)}<figcaption><b>${word}</b> ${esc(refLabel(r))}</figcaption></figure>`).join('')}</div>` : '';
   const states = Object.entries(m.providers).map(([id, p]) => {
     const state = p.status === 'running' ? '<span class="spin">generating…</span>'
       : p.status === 'error' ? `<span class="err">${esc(p.kind)}: ${esc(p.error)}</span>`
@@ -131,6 +140,23 @@ export function filterHtml(list, show = 'open') {
 /** Every batch, newest first, a page at a time: the page's numbers, and where it is. */
 export const PER_PAGE = 5;
 export const pageCount = (n, per = PER_PAGE) => Math.max(1, Math.ceil(n / per));
+/** The batches a page shows (the filter's, newest first), and the page clamped to the ones there are. */
+export function pageIds(list, show, page, per = PER_PAGE) {
+  const kept = filterBatches(list, show);
+  const at = Math.min(Math.max(1, page), pageCount(kept.length, per));
+  return { page: at, ids: kept.slice((at - 1) * per, at * per).map((b) => b.batch) };
+}
+
+// The polling rule (while anything generates, every 2 s): the list (a 304 when nothing changed) and, of the batches
+// shown, only those still running; a card is drawn again only if its batch's answer changed, and the page again
+// only if the batches it shows changed (one finished and joins To pick).
+const running = (b) => b?.status === 'running';
+/** Whether to poll at all: a batch is running, shown or not (a finished one joins To pick by itself). */
+export const needsPoll = (open, list) => open.some(running) || list.some(running);
+/** What a poll fetches again in full: the shown batches still running (a finished one changes only when acted on). */
+export const pollIds = (open) => open.filter(running).map((m) => m.batch);
+/** The batches whose answer changed since it was drawn (by their JSON): only these are drawn again. */
+export const changedBatches = (before, after) => after.filter((m) => m && JSON.stringify(before.find((b) => b?.batch === m.batch) ?? null) !== JSON.stringify(m));
 export function pagerHtml(total, page, per = PER_PAGE) {
   const pages = pageCount(total, per);
   if (pages < 2) return `<p class="meta">${total} batch${total === 1 ? '' : 'es'}</p>`;
@@ -172,7 +198,7 @@ export function model3dCard(batch, c) {
 
 /** A 3D batch: the pictures as sent (or the prompt) above, Tripo's state, then every model in a viewer. */
 export function batch3dHtml(m) {
-  const inputs = (m.inputs ?? []).map((i) => `<figure class="cand cmp" tabindex="0" data-nav><img src="${esc(candidateSrc(m.batch, i.file))}" alt="the ${esc(i.view ?? '')} view"><figcaption><b>${esc(i.view ?? 'view')}</b> · ${esc(String(i.path).split('/').pop())}${esc(cropText(i.crop))}</figcaption></figure>`).join('');
+  const inputs = (m.inputs ?? []).map((i) => `<figure class="cand cmp" tabindex="0" data-nav>${thumbImg(candidateThumb(m.batch, i.file), candidateSrc(m.batch, i.file), `alt="the ${esc(i.view ?? '')} view" loading="lazy"`)}<figcaption><b>${esc(i.view ?? 'view')}</b> · ${esc(String(i.path).split('/').pop())}${esc(cropText(i.crop))}</figcaption></figure>`).join('');
   const refrow = inputs ? `<div class="refrow">${inputs}</div>` : '';
   const p = m.providers?.tripo ?? {};
   const stages = Object.entries(p.stages ?? {}).map(([n, s]) => `#${esc(n)} ${esc(s)}`).join(' · ');

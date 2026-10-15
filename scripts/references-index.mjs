@@ -155,13 +155,18 @@ export function buildIndex(root = ROOT) {
 export const THUMB_WIDTH = 360;
 const THUMBS = join(tmpdir(), 'hiraeth-reference-thumbs');
 let sharpMod;
-async function thumb(abs, st) {
-  const key = createHash('sha1').update(`${abs}|${st.size}|${st.mtimeMs}|${THUMB_WIDTH}`).digest('hex');
-  const file = join(THUMBS, `${key}.webp`);
+/**
+ * A small WebP of one picture, at most `width` px a side (sharp), cached in `dir` (the system's temp folder) by its
+ * path, size, date and width: a picture changed in place gets a new one. Shared with the reference lab's candidate
+ * thumbnails (scripts/reference-lab/server.mjs). Throws when sharp can't read it (the caller sends the file).
+ */
+export async function thumb(abs, st = statSync(abs), width = THUMB_WIDTH, dir = THUMBS) {
+  const key = createHash('sha1').update(`${abs}|${st.size}|${st.mtimeMs}|${width}`).digest('hex');
+  const file = join(dir, `${key}.webp`);
   if (existsSync(file)) return readFileSync(file);
   sharpMod ??= (await import('sharp')).default;
-  const buf = await sharpMod(abs).rotate().resize({ width: THUMB_WIDTH, height: THUMB_WIDTH, fit: 'inside', withoutEnlargement: true }).webp({ quality: 68 }).toBuffer();
-  mkdirSync(THUMBS, { recursive: true });
+  const buf = await sharpMod(abs).rotate().resize({ width, height: width, fit: 'inside', withoutEnlargement: true }).webp({ quality: 68 }).toBuffer();
+  mkdirSync(dir, { recursive: true });
   writeFileSync(file, buf);
   return buf;
 }

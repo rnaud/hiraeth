@@ -14,10 +14,11 @@ import { PROVIDERS, providerById, DEFAULT_PROVIDERS } from '../scripts/reference
 import { openaiSize } from '../scripts/reference-lab/providers/openai.mjs';
 import { falImageSize } from '../scripts/reference-lab/providers/fal.mjs';
 import { parseAspect, sizeFor, redact, httpJson, readRef, onHost } from '../scripts/reference-lab/common.mjs';
-import { runBatch, mergeBatches, reject, pick, discard, listBatches, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
-import { referenceLabMiddleware, sameMachine, listRefs, referenceLabPlugin } from '../scripts/reference-lab/server.mjs';
+import { runBatch, mergeBatches, reject, pick, discard, listBatches, listBatchesCached, LIST_PROMPT, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
+import { referencesMiddleware } from '../scripts/references-index.mjs';
+import { referenceLabMiddleware, sameMachine, listRefs, referenceLabPlugin, candidateFile, CAND_THUMB } from '../scripts/reference-lab/server.mjs';
 import { parseArgs, main } from '../scripts/gen-reference.mjs';
-import { batchHtml, defaultChecked, filterBatches, filterHtml, pagerHtml, providerRow, promptFor, filterRefs, fileSrc } from '../src/reference-lab/view.js';
+import { batchHtml, defaultChecked, filterBatches, filterHtml, pagerHtml, providerRow, promptFor, filterRefs, fileSrc, candidateThumb, refThumbSrc, needsPoll, pollIds, changedBatches, pageIds } from '../src/reference-lab/view.js';
 import { DEV_PAGES, pagesHere, PAGES } from '../src/world-picker.js';
 import { cameFromDebug } from '../src/debug-back.js';
 import { BUILD_INPUT } from '../vite.config.js';
@@ -466,8 +467,18 @@ function fakeReq(method, url, body, { addr = '127.0.0.1', origin = null } = {}) 
 async function call(mw, method, url, body, opts) {
   let out;
   const done = new Promise((r) => { out = r; });
-  const res = { statusCode: 200, headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(b) { out({ status: this.statusCode, body: JSON.parse(b) }); } };
+  const res = { statusCode: 200, headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(b) { out({ status: this.statusCode, body: b == null ? null : JSON.parse(b) }); } };
   await mw(fakeReq(method, url, body, opts), res, () => out({ status: 'next' }));
+  return done;
+}
+/** A GET answered as bytes, with its headers (pictures; a 304 has no body). */
+async function getRaw(mw, url, headers = {}) {
+  let out;
+  const done = new Promise((r) => { out = r; });
+  const req = fakeReq('GET', url);
+  Object.assign(req.headers, headers);
+  const res = { statusCode: 200, headers: {}, setHeader(k, v) { this.headers[k] = v; }, end(b) { out({ status: this.statusCode, headers: this.headers, body: b == null ? null : Buffer.from(b) }); } };
+  await mw(req, res, () => out({ status: 'next' }));
   return done;
 }
 
@@ -517,6 +528,101 @@ test('the store: elsewhere than the checkout when told (the main checkout from a
   rmSync(root, { recursive: true, force: true }); rmSync(store, { recursive: true, force: true });
 });
 
+test('the grid\'s thumbnails: a small WebP of a candidate, cached, nothing outside the candidates', async () => {
+  const sharp = (await import('sharp')).default;
+  const root = fakeRepo(), store = tempDir('reflab-thumbs-');
+  process.env.REFERENCE_LAB_STORE = store;
+  try {
+    const dir = join(store, CANDIDATES_DIR, 't1');
+    mkdirSync(join(dir, 'openai'), { recursive: true });
+    const big = await sharp({ create: { width: 1536, height: 1024, channels: 3, background: { r: 200, g: 150, b: 90 } } }).jpeg().toBuffer();
+    writeFileSync(join(dir, 'openai/1.jpg'), big);
+    writeFileSync(join(dir, 'candidates.json'), JSON.stringify({ batch: 't1', status: 'done', prompt: 'p', providers: { openai: { status: 'done' } }, candidates: [{ id: 'openai/1', provider: 'openai', file: 'openai/1.jpg', status: 'new' }] }));
+    const mw = referenceLabMiddleware({ root, keys: () => ({}) });
+    const t = await getRaw(mw, '/__reference-lab/thumb/t1/openai/1.jpg');
+    assert.equal(t.status, 200);
+    assert.equal(t.headers['Content-Type'], 'image/webp');
+    const meta = await sharp(t.body).metadata();
+    assert.equal(meta.format, 'webp', 'a valid picture');
+    assert.equal(meta.width, CAND_THUMB, `${CAND_THUMB} px wide`);
+    assert.ok(t.body.length < big.length / 3, `small: ${t.body.length} bytes against ${big.length}`);
+    // cached: on disk in the temp folder (made once), and the browser's copy is good while the picture is the same
+    const cached = readdirSync(join(tmpdir(), 'hiraeth-reference-lab-thumbs')).filter((f) => f.endsWith('.webp'))
+      .some((f) => readFileSync(join(tmpdir(), 'hiraeth-reference-lab-thumbs', f)).equals(t.body));
+    assert.ok(cached, 'kept in the temp folder');
+    assert.ok(t.headers.ETag);
+    assert.equal((await getRaw(mw, '/__reference-lab/thumb/t1/openai/1.jpg', { 'if-none-match': t.headers.ETag })).status, 304, 'asked again: nothing to send');
+    assert.ok((await getRaw(mw, '/__reference-lab/thumb/t1/openai/1.jpg')).body.equals(t.body), 'the same thumbnail again');
+    assert.notEqual(t.headers.ETag, (await getRaw(mw, '/__reference-lab/file/t1/openai/1.jpg')).headers.ETag, 'the full picture is another');
+    // nothing outside the candidates, nothing but pictures
+    for (const bad of ['..%2F..%2Fx/openai/1.jpg', 't1/openai/..%2F..%2F..%2Fpackage.json', 't1/..%2F..%2Flevels/rock.jpg', 't1/candidates.json', 't1/openai/2.jpg', 'nope/openai/1.jpg', '.hidden/openai/1.jpg'])
+      assert.equal((await getRaw(mw, `/__reference-lab/thumb/${bad}`)).status, 404, bad);
+    writeFileSync(join(dir, 'openai/1.glb'), 'glTF');
+    assert.equal((await getRaw(mw, '/__reference-lab/thumb/t1/openai/1.glb')).status, 404, 'a model has no thumbnail');
+    assert.equal(candidateFile(root, 't1/openai/1.jpg'), join(dir, 'openai/1.jpg'));
+    assert.equal(candidateFile(root, 't1/openai/x.txt'), null);
+    // the references page's thumbnails stay out of the candidates (the lab's are these)
+    const refs = referencesMiddleware({ root });
+    assert.equal((await getRaw(refs, `/__references/thumb?p=${encodeURIComponent('references/_candidates/t1/openai/1.jpg')}`)).status, 404);
+    assert.equal(candidateThumb('t1', 'openai/1.jpg'), '/__reference-lab/thumb/t1/openai/1.jpg');
+    assert.equal(refThumbSrc('references/a b/c.jpg'), '/__references/thumb?p=references%2Fa%20b%2Fc.jpg');
+  } finally { delete process.env.REFERENCE_LAB_STORE; }
+  rmSync(root, { recursive: true, force: true }); rmSync(store, { recursive: true, force: true });
+});
+
+test('the batches list: summaries with the prompt cut short, read again only when a batch changed, a 304 when nothing did', async () => {
+  const root = fakeRepo(), store = tempDir('reflab-list-');
+  process.env.REFERENCE_LAB_STORE = store;
+  try {
+    const write = (id, extra = {}) => {
+      mkdirSync(join(store, CANDIDATES_DIR, id), { recursive: true });
+      writeFileSync(join(store, CANDIDATES_DIR, id, 'candidates.json'), JSON.stringify({ batch: id, status: 'done', prompt: 'A long prompt. '.repeat(60), providers: { openai: {} }, candidates: [{ id: 'openai/1', status: 'new' }], ...extra }));
+    };
+    write('2026-10-01-a'); write('2026-10-02-b');
+    const cache = new Map();
+    const a = listBatchesCached(root, cache);
+    assert.deepEqual(a.batches.map((b) => b.batch), ['2026-10-02-b', '2026-10-01-a'], 'newest first');
+    assert.ok(a.batches[0].prompt.length <= LIST_PROMPT && a.batches[0].prompt.endsWith('…'), 'the prompt cut short (the batch\'s own answer has it whole)');
+    assert.deepEqual(Object.keys(a.batches[0]).sort(), Object.keys(listBatches(root)[0]).sort(), 'the same fields as listBatches');
+    assert.equal(listBatchesCached(root, cache).version, a.version, 'nothing changed: the same version');
+    assert.equal(listBatchesCached(root, cache).batches[0], a.batches[0], 'and the same summaries, not read again');
+    await new Promise((r) => setTimeout(r, 15));
+    write('2026-10-01-a', { status: 'running' });
+    const b = listBatchesCached(root, cache);
+    assert.notEqual(b.version, a.version, 'a batch changed: a new version');
+    assert.equal(b.batches[1].status, 'running');
+    assert.equal(b.batches[0], a.batches[0], 'the other one not read again');
+    rmSync(join(store, CANDIDATES_DIR, '2026-10-02-b'), { recursive: true });
+    assert.equal(listBatchesCached(root, cache).batches.length, 1, 'a discarded batch leaves the list');
+    // through the server: an ETag, and a 304 while nothing changes
+    const mw = referenceLabMiddleware({ root, keys: () => ({}) });
+    const r1 = await getRaw(mw, '/__reference-lab/batches');
+    assert.equal(r1.status, 200);
+    assert.equal(JSON.parse(r1.body).batches.length, 1);
+    assert.equal((await getRaw(mw, '/__reference-lab/batches', { 'if-none-match': r1.headers.ETag })).status, 304);
+    const d1 = await getRaw(mw, '/__reference-lab/batches/2026-10-01-a');
+    assert.ok(JSON.parse(d1.body).prompt.length > LIST_PROMPT, 'one batch: the whole prompt');
+    assert.equal((await getRaw(mw, '/__reference-lab/batches/2026-10-01-a', { 'if-none-match': d1.headers.ETag })).status, 304, 'a running batch polled with nothing new: a 304');
+  } finally { delete process.env.REFERENCE_LAB_STORE; }
+  rmSync(root, { recursive: true, force: true }); rmSync(store, { recursive: true, force: true });
+});
+
+test('the polling rule: only while something runs, only the shown batches still running, only changed cards drawn again', () => {
+  const run = { batch: 'r', status: 'running', candidates: [] }, done = { batch: 'd', status: 'done', candidates: [{ id: 'openai/1' }] };
+  assert.equal(needsPoll([done], [{ batch: 'd', status: 'done' }]), false, 'nothing runs: no polling');
+  assert.equal(needsPoll([done], [{ batch: 'x', status: 'running' }]), true, 'one runs off the page: polled (it joins To pick when done)');
+  assert.equal(needsPoll([run], []), true);
+  assert.deepEqual(pollIds([done, run, { batch: 'r2', status: 'running' }]), ['r', 'r2'], 'only the running ones fetched again, not every open one');
+  assert.deepEqual(pollIds([done]), []);
+  assert.deepEqual(changedBatches([done, run], [{ ...run }]), [], 'the same answer: not drawn again');
+  const grown = { ...run, candidates: [{ id: 'openai/1' }] };
+  assert.deepEqual(changedBatches([done, run], [grown]), [grown], 'a new picture: that batch drawn again');
+  const list = [{ batch: 'e', status: 'done' }, { batch: 'd', status: 'done' }, { batch: 'c', status: 'running' }, { batch: 'b', status: 'done' }];
+  assert.deepEqual(pageIds(list, 'open', 1, 2), { page: 1, ids: ['e', 'd'] });
+  assert.deepEqual(pageIds(list, 'open', 9, 2), { page: 2, ids: ['b'] }, 'the page clamped');
+  assert.deepEqual(pageIds(list.map((b) => ({ ...b, status: 'done' })), 'open', 2, 2).ids, ['c', 'b'], 'a batch that finished joins the page: the page is drawn again');
+});
+
 // ------------------------------------------------------------------ the page
 test('the page: not built, in the Debug menu only on the dev server, with the ◀ Debug button and controller glyphs', () => {
   const inputs = Object.values(BUILD_INPUT).map((p) => p.split('/').pop());
@@ -548,11 +654,12 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
     providers: { openai: { status: 'done', label: 'OpenAI', model: 'gpt-image-2', count: 1, ms: 12000, costUSD: 0.041 }, gemini: { status: 'error', kind: 'auth', error: 'refused' } },
     candidates: [{ id: 'openai/1', provider: 'openai', file: 'openai/1.jpg', ms: 12000, costUSD: 0.041, status: 'new' }] };
   const h = batchHtml(m);
-  assert.match(h, /src="\/references\/levels\/The%20Desert\/environment\/rock\.jpg"/, 'the reference');
+  assert.match(h, /src="\/__references\/thumb\?p=references%2Flevels%2FThe%20Desert%2Fenvironment%2Frock\.jpg" data-full="\/references\/levels\/The%20Desert\/environment\/rock\.jpg"/, 'the reference: a thumbnail that knows its full picture');
   assert.ok(h.indexOf('class="refrow"') < h.indexOf('class="bhead"') && !/class="wall">[^]*rock\.jpg/.test(h), 'the reference on its own above everything, not in the grid');
   assert.match(h, /<b>base<\/b> environment\/rock\.jpg/, 'named the base, with its folder');
   assert.match(batchHtml({ ...m, refs: [] }), /<b>compared with<\/b>/, 'a batch from text alone: the picture it is compared with, not a base');
-  assert.match(h, /src="\/__reference-lab\/file\/b1\/openai\/1\.jpg"/, 'through the dev server: the store is the main checkout');
+  assert.match(h, /src="\/__reference-lab\/thumb\/b1\/openai\/1\.jpg" data-full="\/__reference-lab\/file\/b1\/openai\/1\.jpg"/, 'through the dev server (the store is the main checkout): a thumbnail in the grid, the full picture for the zoom');
+  assert.match(h, /loading="lazy"/);
   assert.match(h, /data-pick="openai\/1"/);
   assert.match(h, /12\.0 s/);
   assert.match(h, /auth: refused/);

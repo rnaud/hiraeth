@@ -4,8 +4,12 @@
 //   GET  /__reference-lab/providers        each provider, its models, whether it has a key (never the key)
 //   GET  /__reference-lab/prompts          the prompt documents' entries and the manifests' prompts
 //   GET  /__reference-lab/refs             every picture under references/ (not the candidates), by folder
-//   GET  /__reference-lab/batches          the history; /batches/<id> one batch (polled while it runs)
+//   GET  /__reference-lab/batches          the history, summaries only (prompts cut short; cached, each batch re-read
+//                                          only when its candidates.json changed; an ETag, so a poll with nothing
+//                                          new is a 304); /batches/<id> one batch in full (polled while it runs)
 //   GET  /__reference-lab/file/<batch>/<provider>/<n>.jpg   a candidate's picture (the store is the main checkout's)
+//   GET  /__reference-lab/thumb/<batch>/<provider>/<n>.jpg  its thumbnail for the grid: a WebP at most 480 px a side
+//                                          (sharp, cached in the temp folder); the full picture only when enlarged
 //   POST /__reference-lab/generate         { prompt, refs, providers, models, n, ar, target, from, comparison } → { batch }
 //   POST /__reference-lab/pick             { batch, candidate, target, why }
 //   POST /__reference-lab/unpick           { batch, candidate }   a pick taken back (Pick mode's Back, to change it)
@@ -19,16 +23,29 @@
 // go only into the providers' request headers. Calls that spend money are refused from anything but this
 // machine (a dev server started with --host is reachable from the network) and from other origins.
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { thumb } from '../references-index.mjs';
 import { IMAGE_EXT, ROOT, mimeOf } from './common.mjs';
 import { availability, keyFor, loadKeys } from './env.mjs';
 import { PROVIDERS } from './providers/index.mjs';
 import { listPrompts } from './prompts.mjs';
-import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, readBatch, reject, runBatch, unpick } from './batch.mjs';
+import { CANDIDATES_DIR, batchDir, discard, listBatchesCached, newBatchId, readBatch, reject, runBatch, unpick } from './batch.mjs';
 import { execute3dBatch, pickAny, prepare3dBatch } from './batch3d.mjs';
 import tripo, { PREVIEW_ANIMATION, VIEWS } from './providers/tripo.mjs';
 
 export const API_BASE = '/__reference-lab/';
+/** The grid's candidate thumbnails: at most this many px a side (a card is ~300 px wide: sharp on a 2x screen), WebP. */
+export const CAND_THUMB = 480;
+const CAND_THUMBS = join(tmpdir(), 'hiraeth-reference-lab-thumbs');
+const PICTURE = /\.(?:jpe?g|png|webp)$/i;
+/** A candidate's file from `<batch>/<provider>/<file>`, checked (the batch id and each part: nothing outside the store), or null. */
+export function candidateFile(root, spec, exts = /\.(?:jpe?g|png|webp|glb|fbx)$/i) {
+  const m = String(spec).match(/^([A-Za-z0-9][\w.-]*)\/([a-z0-9-]+)\/([\w-]+\.[A-Za-z0-9]+)$/);
+  if (!m || !exts.test(m[3])) return null;
+  const file = join(batchDir(root, m[1]), m[2], m[3]);
+  return existsSync(file) ? file : null;
+}
 
 /** Every picture under references/ (but the candidates): [{ path, folder, name, bytes }]. */
 export function listRefs(root = ROOT) {
@@ -68,10 +85,19 @@ const readBody = (req, limit = 1_000_000) => new Promise((resolve, reject) => {
 /** The middleware (exported for the tests). `deps`: { root, fetch, loadKeys } to mock. */
 export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keysFn = () => loadKeys(root) } = {}) {
   const running = new Map();   // batch → promise (the page polls the file; this keeps errors from going unseen)
+  const summaries = new Map();   // the batches list's cache (listBatchesCached)
   return async (req, res, next) => {
     const url = (req.url ?? '').split('?')[0];
     if (!url.startsWith(API_BASE)) return next();
     const send = (status, data) => { res.statusCode = status; res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store'); res.end(JSON.stringify(data)); };
+    // (an answer the browser keeps and asks again for with If-None-Match: nothing new is a 304 without a body)
+    const fresh = (etag) => {
+      res.setHeader('ETag', etag); res.setHeader('Cache-Control', 'no-cache');
+      if (req.headers?.['if-none-match'] !== etag) return false;
+      res.statusCode = 304; res.end(); return true;
+    };
+    const fileTag = (st, more = '') => `"${st.size.toString(36)}-${Math.round(st.mtimeMs).toString(36)}${more}"`;
+    const sendJson = (data) => { res.statusCode = 200; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(data)); };
     if (!sameMachine(req)) return send(403, { error: 'the reference lab answers this machine only' });
     const path = url.slice(API_BASE.length);
     try {
@@ -86,17 +112,30 @@ export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keys
       }
       if (req.method === 'GET' && path === 'prompts') return send(200, listPrompts(root));
       if (req.method === 'GET' && path === 'refs') return send(200, { refs: listRefs(root) });
-      if (req.method === 'GET' && path === 'batches') return send(200, { batches: listBatches(root) });
-      if (req.method === 'GET' && path.startsWith('batches/')) return send(200, readBatch(root, decodeURIComponent(path.slice(8))));
-      if (req.method === 'GET' && path.startsWith('file/')) {
+      if (req.method === 'GET' && path === 'batches') {
+        const list = listBatchesCached(root, summaries);
+        return fresh(`"${list.version}"`) || sendJson(list);
+      }
+      if (req.method === 'GET' && path.startsWith('batches/')) {
+        const id = decodeURIComponent(path.slice(8));
+        const f = join(batchDir(root, id), 'candidates.json');
+        if (existsSync(f) && fresh(fileTag(statSync(f)))) return;
+        return sendJson(readBatch(root, id));
+      }
+      if (req.method === 'GET' && (path.startsWith('file/') || path.startsWith('thumb/'))) {
         // a candidate's picture, from wherever the store is (the main checkout: not under this server's root)
-        // (<provider>/<n>.jpg, and the 3D mode's tripo/<n>.glb, tripo/<n>-preview.webp, inputs/<i>-<view>.png…)
-        const m = decodeURIComponent(path.slice(5)).match(/^([A-Za-z0-9][\w.-]*)\/([a-z0-9-]+)\/([\w-]+\.(?:jpe?g|png|webp|glb|fbx))$/);
-        if (!m) return send(404, { error: 'not found' });
-        const file = join(batchDir(root, m[1]), m[2], m[3]);
-        if (!existsSync(file)) return send(404, { error: 'not found' });
-        res.statusCode = 200; res.setHeader('Content-Type', mimeOf(file)); res.setHeader('Cache-Control', 'no-cache');
-        return res.end(readFileSync(file));
+        // (<provider>/<n>.jpg, and the 3D mode's tripo/<n>.glb, tripo/<n>-preview.webp, inputs/<i>-<view>.png…);
+        // thumb/: pictures only, small (the grid's; the picture itself where sharp can't read it)
+        const small = path.startsWith('thumb/');
+        let file = null;
+        try { file = candidateFile(root, decodeURIComponent(path.slice(small ? 6 : 5)), small ? PICTURE : undefined); } catch { /* a bad batch id */ }
+        if (!file) return send(404, { error: 'not found' });
+        const st = statSync(file);
+        if (fresh(fileTag(st, small ? `-t${CAND_THUMB}` : ''))) return;
+        let buf = null, type = mimeOf(file);
+        if (small) { try { buf = await thumb(file, st, CAND_THUMB, CAND_THUMBS); type = 'image/webp'; } catch { /* no sharp, or it can't read it */ } }
+        res.statusCode = 200; res.setHeader('Content-Type', type);
+        return res.end(buf ?? readFileSync(file));
       }
       if (req.method !== 'POST') return send(404, { error: 'not found' });
       const body = await readBody(req, path === 'pick' ? 8_000_000 : 1_000_000);   // (a 3D pick carries its turntable)

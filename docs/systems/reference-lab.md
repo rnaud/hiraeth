@@ -172,6 +172,37 @@ own dev server too and outlives the worktree (`REFERENCE_LAB_STORE=<dir>` moves 
 reopens the page it showed (`#page=N`), and picks and discards are written straight into `candidates.json`.
 The page reads the candidates' pictures through the dev server (`/__reference-lab/file/<batch>/<provider>/<n>.jpg`).
 
+## Loading fast
+
+October 2026 (the author's "why does the lab take so long to load"). The store holds hundreds of batches (365,
+770 MB on 2026-10-15) and each picture is 0.3–1 MB, so the page never sends a full picture it doesn't show large:
+
+- **Thumbnails in the grid.** A candidate's card shows `/__reference-lab/thumb/<batch>/<provider>/<n>.jpg`: a
+  WebP at most 480 px a side (`CAND_THUMB`, sharp, about 25 KB), made once and kept in the system's temp folder
+  (`hiraeth-reference-lab-thumbs/`, keyed by the file's path, size and date: a changed picture gets a new one);
+  the style references, the base strips and the chosen chips use the references page's thumbnails
+  (`/__references/thumb?p=…`, 360 px). Each `<img>` carries its full picture in `data-full`: the zoom shows that,
+  and the thumbnail falls back to it when it can't be had. Pick mode's large pictures stay full size (only the
+  batch shown and the next one are loaded); its base strip is thumbnails, R shows the full one. The thumb route
+  takes pictures only, and only inside `_candidates/` (the batch id and each part checked, like `file/`).
+- **The batches list** sends summaries only, the prompt cut to 200 characters (`LIST_PROMPT`; one batch's own
+  answer has it whole, and Pick mode's hover uses that), about 190 KB for 370 batches instead of 650 KB. The
+  server keeps each summary and reads a batch's `candidates.json` again only when its size or date changed
+  (`listBatchesCached`); the list, one batch, a file and a thumbnail each carry an **ETag**, and the page asks with
+  `cache: 'no-cache'`, so whatever hasn't changed comes back as an empty 304.
+- **Polling** (every 2 s while any batch generates, shown or not): the list, then only the *shown batches still
+  running* (`pollIds`), and a batch's card is drawn again only if its answer changed (`changedBatches`); the whole
+  page is drawn again only when the batches it shows changed (one finished and joins To pick: `pageIds`). Before,
+  every open batch was fetched again and the whole page redrawn every 2 s, reloading every picture.
+- **Style references** come 48 at a time (`PAGE`, "show more" for the rest), lazy-loaded.
+
+Measured on this Mac against a dev server on port 6512 with the real store (370 batches), headless Chrome
+1600×1000, the To pick page's first load with the cache off: **33 MB → 4.5 MB** transferred (pictures 28.2 MB →
+0.8 MB, the list fetched once instead of twice, 0.65 → 0.19 MB; the other 3.5 MB are the page's own modules), the
+first batch's pictures painted in ~300 → ~220 ms on an idle machine (localhost moves bytes fast: the difference
+grows with the load and the screen). While a batch generates, with the browser's cache on: **14.5 MB and 72
+requests every 20 s → about 0 MB (304s) and 10 requests**.
+
 `refs` is the batch's **base**: the repository paths of the pictures sent with the prompt (each provider's
 `refsUsed` says how many it took), kept by a retry with `--into` and copied into a pick's manifest entry. Running
 a prompt over a picked sheet ("the same creature as in the reference image, redrawn as a turnaround") is just
