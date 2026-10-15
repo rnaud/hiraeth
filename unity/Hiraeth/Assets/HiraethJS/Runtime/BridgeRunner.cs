@@ -345,8 +345,11 @@ namespace Hiraeth.Bridge
             // (-upscale fsr|linear|point: URP's filter from a render scale under 1 to the screen, FSR 1 by default there)
             if (urp != null && BridgeArgs.Arg("-upscale") is string up)
                 urp.upscalingFilter = up == "linear" ? UpscalingFilterSelection.Linear : up == "point" ? UpscalingFilterSelection.Point : UpscalingFilterSelection.FSR;
+            // (Screen.SetResolution takes effect at the end of the frame: until then Screen.width is the last launch's, so the log
+            // says the size asked for)
+            string asked = null;
             if (BridgeArgs.Arg("-resolution") is string res && res.Split('x') is var wh && wh.Length == 2 && int.TryParse(wh[0], out int rw) && int.TryParse(wh[1], out int rh))
-                Screen.SetResolution(rw, rh, FullScreenMode.FullScreenWindow);
+            { Screen.SetResolution(rw, rh, FullScreenMode.FullScreenWindow); asked = $"{rw}x{rh}"; }
 #if UNITY_WSA && !UNITY_EDITOR
             // the Xbox on a 2160p TV (issue #113): a 4K swap chain, the world drawn from 1440p (render scale 2/3, the picture
             // the console scaled up before) toward native 4K as the GPU has room (DynamicResolution, 2/3 to 1), the lines kept
@@ -355,18 +358,19 @@ namespace Hiraeth.Bridge
             // console scaling it, as before
             else if (!BridgeArgs.Flag("-1440") && BridgeMetrics.HdmiHeight() >= 2160)
             {
-                Screen.SetResolution(3840, 2160, FullScreenMode.FullScreenWindow);
+                Screen.SetResolution(3840, 2160, FullScreenMode.FullScreenWindow); asked = "3840x2160";
                 Uhd.On = true;
                 if (urp != null && BridgeArgs.Arg("-render-scale") == null) urp.renderScale = Uhd.MinScale;
                 // (FSR 1 from the render scale to 4K: a little sharper than the bilinear filter or the console's own scaler,
                 // ~0.1 ms more of the GPU's frame at 2/3)
                 if (urp != null && BridgeArgs.Arg("-upscale") == null) urp.upscalingFilter = UpscalingFilterSelection.FSR;
             }
-            else Screen.SetResolution(2560, 1440, FullScreenMode.FullScreenWindow);
+            else { Screen.SetResolution(2560, 1440, FullScreenMode.FullScreenWindow); asked = "2560x1440"; }
 #endif
             if (urp != null) Uhd.SetPixelRatio(urp.renderScale);
             DynamicResolutionSettings();
-            Debug.Log($"Hiraeth bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}, upscaling {(urp ? urp.upscalingFilter.ToString() : "?")}{(Uhd.On ? $", 4K: dynamic resolution {(dynOn ? $"from {dynMin:0.###}" : "off")}, line weight {Uhd.PixelRatio:0.##}" : "")}");
+            string now = $"{Screen.width}x{Screen.height}";
+            Debug.Log($"Hiraeth bridge: the screen {asked ?? now}{(asked != null && asked != now ? $" (asked for; {now} until the frame ends)" : "")} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}, upscaling {(urp ? urp.upscalingFilter.ToString() : "?")}{(Uhd.On ? $", 4K: dynamic resolution {(dynOn ? $"from {dynMin:0.###}" : "off")}, line weight {Uhd.PixelRatio:0.##}" : "")}");
             // (-queued N: the frames the CPU may run ahead of the GPU; on the Xbox the main thread waited ~9.5 ms a frame on the present)
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-vsync N: presented on every Nth refresh, a test once the frames fit)

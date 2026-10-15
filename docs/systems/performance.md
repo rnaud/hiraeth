@@ -2366,12 +2366,25 @@ one view to the next are where the controller lags (the wide view after the crow
 3 s, frames missed meanwhile); in play the scene changes gradually. A change of scale costs a frame or two (URP makes
 its targets again), so the climb from 2/3 at a world's start shows as a few late frames, none once it settles.
 
-**Not verified on the console yet**: the defaults themselves need a build of the Unity Xbox workflow (a UWP player
-can't be built on the Mac). The rows above are the same settings as flags on 1.73.2236; the pixel ratio's change is
-new to the player (the editor compiles it; its effect is that of the portraits' own pixel ratio). To check after
-the next build: the log's `the screen 3840x2160 … 4K: dynamic resolution from 0.667, line weight 1` line, the scale
-steps, and the console's screenshot (`GET /ext/screenshot?download=true`) against a 1440p one with `-1440`.
-Left: the controller's raise rule assumes a GPU frame all pixels (×scale²), which stops the desert at 0.92 where
+**Checked on the console with the defaults (build 1.78.2373, no flags but `-mute`).** The log says `the screen
+3840x2160 … upscaling FSR, 4K: dynamic resolution from 0.667, line weight 1`, and `the picture` line once settled
+says a 3840 × 2160 swap chain. The console's screenshots at the desert spawn (settled at 0.87, a pixel ratio of 1.3)
+and the City-Shaft rim (0.67) against `-1440` ones: the outlines, the creases and the hatching's spacing the same
+weight (the share of ink-dark pixels 91 % and 89 % of the 1440p frame's, against 35 % for native 4K with a pixel
+ratio of 1 on 1.73.2236). `-idle 150`:
+
+| 1.78.2373, `-idle 150` | fps | frames on time | scale it settles at | GPU ms |
+|---|---|---|---|---|
+| desert spawn | 59.8 | 99.3 % | 0.87 (0.67 → 0.87 in 5 s) | 13.3 |
+| City-Shaft rim, two runs | 58.6 / 59.6 | 95.8 / 97.8 % | 0.72 | 14.6 / 14.1 |
+| City-Shaft rim, `-1440` | 59.9 | 98.7 % | (1440p) | 13.3 |
+
+The rim's late frames are mostly the script's (its thread at 15 ms there on this build, 13 on 1.73.2236), and at 0.72
+its GPU sits at 14.1–14.6 ms, close to the 15 ms step down: a point or two of frames on time below 1440p. Where the
+desert settles (0.87 or 0.92) depends on whether its GPU at 0.87 is just under or over 12.8 ms. The log's screen size
+was read before `Screen.SetResolution` takes effect (at the frame's end), so it showed the last launch's size (2560 ×
+1440 after a `-1440` run): it now says the size asked for.
+Left: the controller's raise rule assumes a GPU frame all pixels (×scale²), which stops the desert at 0.87–0.92 where
 native 4K holds 15.2 ms; a model with the fixed part (≈5 ms) would let it reach 1 and the rim ~0.78.
 
 ## The Retroid, round 6: the real buttons, cold and warm loads, the distant shimmer (2026-10-12, issues #50, #16, #225)
