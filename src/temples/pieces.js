@@ -847,9 +847,11 @@ export class Brazier {
     this.group.position.copy(this.pos);
     this.group.rotation.y = K.heading(o.hood?.yaw ?? 0);
     rt.root.add(this.group);
+    // (a house in a skin may draw its own brazier over the same fire and logic: src/temples/skins/)
+    const skinned = !!rt.skin?.brazier?.(this, s);
     const bowl = lathe([[0.25, 0], [0.5, 0.15], [0.9, 0.55], [1.1, 0.95], [1.0, 1.0], [0.75, 0.62], [0.2, 0.55]].map(([r, y]) => [r * s, y * s + 1.1 * s]), 18);
-    this.group.add(mesh([lathe([[0.7, 0], [0.7, 0.2], [0.35, 0.4], [0.3, 1.15], [0.5, 1.2]].map(([r, y]) => [r * s, y * s]), 14), bowl], M.trimMat));
-    if (o.tripod) {
+    if (!skinned) this.group.add(mesh([lathe([[0.7, 0], [0.7, 0.2], [0.35, 0.4], [0.3, 1.15], [0.5, 1.2]].map(([r, y]) => [r * s, y * s]), 14), bowl], M.trimMat));
+    if (o.tripod && !skinned) {
       // three bronze legs splayed round the stem, a ring binding them under the bowl (the cistern's, as drawn)
       const bronze = own({ color: '#b08a4a', flat: true }), legs = [];
       for (let i = 0; i < 3; i++) {
@@ -859,7 +861,7 @@ export class Brazier {
       legs.push(T(new THREE.TorusGeometry(0.55 * s, 0.05 * s, 4, 16), [0, 0.75 * s, 0], [Math.PI / 2, 0, 0]));
       this.group.add(mesh(legs, bronze));
     }
-    if (o.hood) {
+    if (o.hood && !skinned) {
       // the hood: a stone cap over the bowl, open only on its mouth side (+z), where the groove comes in low
       this.group.add(mesh([T(new THREE.SphereGeometry(1.25 * s, 16, 8, Math.PI * 0.75, Math.PI * 1.5, 0.45, Math.PI / 2 - 0.45), [0, 1.62 * s, 0]),
         T(new THREE.CylinderGeometry(1.3 * s, 1.3 * s, 0.25, 16, 1, false, Math.PI * 0.25, Math.PI * 1.5), [0, 1.62 * s, 0])], M.stoneMat));
@@ -917,6 +919,7 @@ export class Brazier {
     this.flames = new Flames(this.group, [{ at: V(0, this.top, 0), h: 1.6, r: 0.45 }, { at: V(0.25, this.top, 0.1), h: 1.1, r: 0.3, phase: 2 }, { at: V(-0.2, this.top, -0.15), h: 1.25, r: 0.3, phase: 4 }, { at: V(0, this.top, 0), h: 0.8, r: 0.2, core: 1, phase: 1 }], { seed: this.id.length * 3 });
     this.flames.mesh.userData.dynamic = true;   // (moved every frame: no levels of detail, src/lod.js)
     this.coals.uniforms.uColor.value.set('#e0644a'); this.coals.uniforms.uGlow.value = 0.8;
+    this.rt.skin?.lit?.(this);
     this.light = new THREE.Vector4(this.pos.x, this.pos.y + this.top + 0.8, this.pos.z, 14);
     this.rt.lights.push(this.light);
     if (!instant) { this.rt.sound?.whoosh?.(); this.rt.sound?.chime?.(); }

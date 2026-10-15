@@ -274,6 +274,8 @@ export class TempleKit {
     // solids are baked noClimb, but those built inside climbable(): the climbs its design uses, each with its why)
     this.noClimb = false;
     this.climbs = []; this.climbWhy = [];
+    // (a house in a skin records its walls and rooms here while they are built: src/temples/skins/)
+    this.plan = null;
   }
   /** local -> world */
   world(x, y, z) { return V(x, y, z).applyMatrix4(this.frame); }
@@ -387,6 +389,7 @@ export class TempleKit {
     // a block of the wall: centred s metres along it, from y up hgt, w long (thick: a little proud of the wall, for trim)
     const at = (s, y, hgt, w, thick = t) => box(w, hgt, thick, ax + dir[0] * s, y0 + y + hgt / 2, az + dir[1] * s, ry);
     const H = holes.map((o) => ({ x0: o.at - o.w / 2, x1: o.at + o.w / 2, y0: o.y0 ?? 0, y1: (o.y0 ?? 0) + o.h }));
+    this.plan?.push({ kind: 'wall', a: [ax, az], dir, L, y0, h, t, holes: H });
     const xs = [0, L, ...H.flatMap((o) => [o.x0, o.x1])].filter((x) => x >= 0 && x <= L).sort((a, b) => a - b);
     for (let i = 0; i < xs.length - 1; i++) {
       const a = xs[i], b = xs[i + 1];
@@ -419,6 +422,7 @@ export class TempleKit {
    */
   hall({ x = 0, z = 0, w, d, y = 0, h, doors = [], roof = true, oculus = 0.35, floor = true, t = 1.2, columns = 0, frieze = true, omit = [] }) {
     const x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
+    this.plan?.push({ kind: 'hall', x, z, w, d, y, h, roof, oculus, floor });
     if (floor) this.slab(x0 - t / 2, z0 - t / 2, x1 + t / 2, z1 + t / 2, y);
     const holes = (side, L) => doors.filter((o) => o.side === side).map((o) => ({ at: L / 2 + (o.at ?? 0), w: o.w, h: o.h, y0: o.y0 ?? 0 }));
     const half = t / 2;
@@ -460,6 +464,7 @@ export class TempleKit {
    * annular ceiling round an oculus (oculus: its radius as a share of r; 0 shuts it).
    */
   rotunda({ x = 0, z = 0, y = 0, r, h, gaps = [], seg = 28, t = 1.4, oculus = 0.38, floor = true, frieze = true }) {
+    this.plan?.push({ kind: 'round', x, z, y, r, h, t, seg, gaps, oculus, floor });
     if (floor) this.both(this.M.floor, T(new THREE.CylinderGeometry(r + t, r + t, 0.8, seg), [x, y - 0.4, z]));
     const step = (Math.PI * 2) / seg, chord = 2 * (r + t / 2) * Math.sin(step / 2) + 0.05;
     for (let i = 0; i < seg; i++) {
@@ -504,6 +509,7 @@ export class TempleKit {
     const alongZ = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1]);
     const [u0, u1] = alongZ ? [Math.min(a[1], b[1]), Math.max(a[1], b[1])] : [Math.min(a[0], b[0]), Math.max(a[0], b[0])];
     const c = alongZ ? a[0] : a[1], s = w / 2 + 0.3 + t / 2, L = u1 - u0;   // (its walls 0.3 m outside the doorway's w: clear of the doorways' frames, as the houses' own passages)
+    this.plan?.push(alongZ ? { kind: 'corridor', x0: c - s, x1: c + s, z0: u0, z1: u1, y, h } : { kind: 'corridor', x0: u0, x1: u1, z0: c - s, z1: c + s, y, h });
     if (alongZ) {
       this.slab(c - s - t / 2, u0, c + s + t / 2, u1, y, 0.8);
       this.wall(c - s, u0, c - s, u1, y, h, { t, cap: false });
