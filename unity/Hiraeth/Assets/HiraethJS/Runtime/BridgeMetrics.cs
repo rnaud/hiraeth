@@ -208,6 +208,27 @@ namespace Hiraeth.Bridge
             }
         }
 
+        /// <summary>The TV's current mode's height in pixels (HDMI display information, the console only; 0 when unknown):
+        /// 2160 gives the Xbox its 4K swap chain (BridgeRunner.Experiments, issue #113).</summary>
+        public static int HdmiHeight()
+        {
+#if ENABLE_WINMD_SUPPORT
+            try
+            {
+                int h = 0;
+                UnityEngine.WSA.Application.InvokeOnUIThread(() =>
+                {
+                    try { h = (int)(Windows.Graphics.Display.Core.HdmiDisplayInformation.GetForCurrentView()?.GetCurrentDisplayMode()?.ResolutionHeightInRawPixels ?? 0); }
+                    catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the TV's mode: " + e.Message); }
+                }, true);
+                return h;
+            }
+            catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the TV's mode: " + e.Message); return 0; }
+#else
+            return 0;
+#endif
+        }
+
         /// <summary>The TV's mode and the ones it offers (HDMI display information, the console only).</summary>
         static string DisplayModes()
         {

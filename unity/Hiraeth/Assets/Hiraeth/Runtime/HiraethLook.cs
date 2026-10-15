@@ -21,6 +21,9 @@ namespace Hiraeth
         Dictionary<string, object> look;
         readonly List<Dictionary<string, object>> hours = new();
         public static HiraethLook Instance;
+        /// <summary>The lines' and the hatching's pixels a pixel of the look (post.js uPixelRatio): 1, but on the Xbox's 4K swap
+        /// chain its render height over 1440 (the bridge's Uhd), so they keep their 1440p weight as the resolution moves.</summary>
+        public static float PixelRatio = 1f;
         public Vector3 SunDirThree { get; private set; }
         /// <summary>Where the sun's disc is drawn in the sky (Unity space; the light comes from a little elsewhere).</summary>
         public Vector3 SunDisc { get; private set; }
@@ -105,7 +108,7 @@ namespace Hiraeth
             Shader.SetGlobalFloat("_Clouds", post.F("uClouds", 0.45f));
             Shader.SetGlobalFloat("_Dots", post.F("uDots", 0));
             Shader.SetGlobalFloat("_Toon", post.F("uToon", 0.5f));
-            Shader.SetGlobalFloat("_PixelRatio", 1f);
+            Shader.SetGlobalFloat("_PixelRatio", PixelRatio);
             Shader.SetGlobalFloat("_Debug", debugView);
             Shader.SetGlobalVector("_Ink", post.C("ink"));
             // the web's newer look (post.js): each surface's shade (materials.js SHADE), spot blacks, cast shadows lifted

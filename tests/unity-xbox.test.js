@@ -275,11 +275,32 @@ test('the Unity players carry every character file the bundle reads (the travell
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs'), /CascadeLayer\[2\]/);
 });
 
-test('the Xbox at 1440p by default; the views and pictures of a plan in LocalState; -cull for the see-through test', () => {
+test('the Xbox at 1440p on a TV below 2160p (or -1440); the views and pictures of a plan in LocalState; -cull for the see-through test', () => {
   const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /else Screen\.SetResolution\(2560, 1440, FullScreenMode\.FullScreenWindow\)/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /root \?\?= Application\.persistentDataPath/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /cullTest == "off"/);
+});
+
+test('the Xbox on a 2160p TV: a 4K swap chain, the world from 1440p toward 4K by the GPU\'s time, the lines at their 1440p weight (issue #113)', () => {
+  const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
+  const look = read('unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs');
+  // only when the TV's mode is 2160 high (-1440 keeps the old picture), an explicit -resolution before it
+  assert.match(runner, /else if \(!BridgeArgs\.Flag\("-1440"\) && BridgeMetrics\.HdmiHeight\(\) >= 2160\)\s*\{\s*Screen\.SetResolution\(3840, 2160, FullScreenMode\.FullScreenWindow\);\s*Uhd\.On = true;/);
+  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs'), /public static int HdmiHeight\(\)/);
+  // from render scale 2/3 (1440p, the picture the console scaled up before), FSR to the screen
+  assert.match(runner, /public const float MinScale = 2f \/ 3;/);
+  assert.match(runner, /BridgeArgs\.Arg\("-render-scale"\) == null\) urp\.renderScale = Uhd\.MinScale;/);
+  assert.match(runner, /BridgeArgs\.Arg\("-upscale"\) == null\) urp\.upscalingFilter = UpscalingFilterSelection\.FSR;/);
+  // the dynamic resolution on there by default, its floor 2/3; elsewhere a test (-dyn-res) as before
+  assert.match(runner, /dynOn = Uhd\.On \? !BridgeArgs\.Flag\("-no-dyn-res"\) : BridgeArgs\.Flag\("-dyn-res"\);/);
+  assert.match(runner, /: Uhd\.On \? Uhd\.MinScale : 0\.75f;/);
+  // the look's pixel ratio the render height over 1440, at the start and at each step (1 elsewhere)
+  assert.match(runner, /HiraethLook\.PixelRatio = Mathf\.Max\(1f, 2160f \/ 1440f \* renderScale\);/);
+  assert.match(runner, /urp\.renderScale = next; dynAt = Time\.realtimeSinceStartup;\s*Uhd\.SetPixelRatio\(next\);/);
+  assert.match(look, /public static float PixelRatio = 1f;/);
+  assert.match(look, /Shader\.SetGlobalFloat\("_PixelRatio", PixelRatio\);/);
+  assert.doesNotMatch(look, /SetGlobalFloat\("_PixelRatio", 1f\)/);
 });
 
 test('the Xbox\'s shadow maps draw only what each cascade holds, and V8 takes its flags (issue #113)', () => {

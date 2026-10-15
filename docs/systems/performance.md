@@ -2301,6 +2301,77 @@ view's GPU at 17.6 ms (pixel-bound; `-dyn-res` not yet measured), the crowd view
 people full rigs in view), and the old generation's collection every ~105 s (fewer long-lived objects a frame: Puerts'
 boxes still each hold a handle until the managed collector runs).
 
+### 4K on the Xbox (issue #113, 2026-10-15)
+
+The question of #113: can the Unity build run at the TV's native 4K (3840 × 2160) and 60 fps? Measured on build
+1.73.2236 (Series X, Direct3D 12, `-vsync 1`, muted, the TV at 2160p 120 Hz) with the build's own switches
+(`-resolution 3840x2160`, `-render-scale`, `-upscale`, `-dyn-res`, `-prepass`, `-no-shadows`, `-no-bloom -no-fxaa`),
+so every row is the same build. Spawns: `-idle 90` (`-idle 150` for the new defaults), the mean of the last 30 s of
+the frames lines; views: `-bench 6` (15 with the dynamic resolution) at the City-Shaft's start, crowd and wide views
+and the desert's spawn view.
+
+**Native 4K at 60: yes in the desert, no in the City-Shaft.** The CPU side doesn't move with the resolution (the
+script 12-13 ms on its own thread, the main thread 7-10 ms); the GPU does:
+
+| GPU ms (`-bench 6`) | City-Shaft start | crowd | wide | desert spawn |
+|---|---|---|---|---|
+| 1440p (until now) | 12.2 | 9.3 | 15.2 | 7.4 |
+| native 4K | **21.1** | **17.7** | **26.8** | 13.7 |
+| native 4K, depth prepass (`-prepass`) | 18.7 | 16.1 | 24.0 | 13.6 |
+| native 4K, no shadow maps (a test) | 19.4 | 16.2 | 23.5 | |
+| native 4K, no glow and no FXAA (a test) | 18.1 | 14.6 | 23.4 | |
+| 4K screen, render scale 2/3 (1440p drawn) | 12.2 | 9.4 | 15.3 | |
+| the same, FSR 1 to the screen | 12.4 | 9.5 | 15.3 | |
+| 4K screen, render scale 1/2 | 9.2 | 6.8 | 11.8 | |
+| 1440p, depth prepass | 12.4 | 9.6 | 15.5 | 7.5 |
+
+| spawn (`-idle`) | fps | frames on time | GPU ms |
+|---|---|---|---|
+| City-Shaft rim, 1440p | 59.7 | 98.2 % | 11.4 |
+| City-Shaft rim, native 4K | **45.0** | 65.8 % | 20.0 |
+| desert spawn, 1440p | 59.9 | 99.5 % | 7.8 |
+| desert spawn, native 4K | **59.9** | 99.3 % | 15.2 |
+
+The City-Shaft's GPU is about a fixed 5-6 ms (the shadow maps, the vertices, the far map) plus ~1.9 ms (start) to
+~2.5 ms (wide) a million pixels: the G-buffer and the composite (the ink's taps), pixel-bound. Native 4K is 8.3 million
+pixels against 1440p's 3.7, so the wide view's 26.8 ms would have to lose ~12 (44 %) to fit a 60 Hz frame with its
+margin. What can go without changing the picture doesn't reach it: the depth prepass (−2.4 to −2.8 ms at 4K, nothing at
+1440p); FSR costs 0.1 ms. Even the prepass, no shadow maps and no glow or FXAA together (a different picture) leave
+the wide view at ~17 ms. **What native 4K60 in the City-Shaft would take**: about half the pixel cost of the G-buffer
+and the composite (the packed single-target G-buffer of xbox.md's design note, the composite's crease and pocket taps
+at a lower resolution), work of its own that would need its own pictures checked against the web's.
+
+**What ships (BridgeRunner `Experiments`, `Uhd`, `DynamicResolution`).** On a TV whose HDMI mode is 2160 high
+(BridgeMetrics `HdmiHeight`), the swap chain is 4K and the world is drawn from render scale 2/3 (1440p, the picture
+the console scaled up before) up to 1 (native 4K) by the GPU's time: `-dyn-res`'s controller (steps of 0.05, down
+over 15 ms of GPU averaged over half a second, up while the next step would stay under 14.3, at most a step every
+1.5 s), on by default there with its floor at 2/3 (`-no-dyn-res` holds the scale, `-1440` keeps the old 1440p swap
+chain). URP's FSR 1 takes it to the screen (a little sharper than the bilinear filter and the console's scaler, which
+looked the same as each other). The look's pixel ratio follows the scale (`HiraethLook.PixelRatio` = the render
+height over 1440, the shaders' `_PixelRatio`), so the ink lines and the hatching keep their 1440p weight at every
+scale, as the web's lines follow its render scale (main.js `resize`: `uPixelRatio` = devicePixelRatio × renderScale):
+the console's screenshots at native 4K with a pixel ratio of 1 drew the lines and the hatching two thirds as thick (the
+City-Shaft's rail a pair of hairlines). Another TV keeps 1440p. The depth prepass stays off: no gain at the scales the
+City-Shaft settles at (rim 12.8 ms without, 13.3 with).
+
+| the new defaults, as flags on 1.73.2236 | fps | frames on time | render scale it settles at | GPU ms |
+|---|---|---|---|---|
+| City-Shaft rim (`-idle 150`) | 59.8 (1440p 59.7) | 98.8 % (98.2) | 0.72: 2752 × 1548 | 13.7 |
+| desert spawn (`-idle 150`) | 59.8 (59.9) | 99.3 % (99.5) | 0.92: 3520 × 1980 | 13.2 |
+
+The bench's views, frame median (p99): start 16.64 (22.4), crowd 16.67 (30.5), wide 16.75 (33.3): its cuts from
+one view to the next are where the controller lags (the wide view after the crowd: three steps down, 0.82 → 0.67, in
+3 s, frames missed meanwhile); in play the scene changes gradually. A change of scale costs a frame or two (URP makes
+its targets again), so the climb from 2/3 at a world's start shows as a few late frames, none once it settles.
+
+**Not verified on the console yet**: the defaults themselves need a build of the Unity Xbox workflow (a UWP player
+can't be built on the Mac). The rows above are the same settings as flags on 1.73.2236; the pixel ratio's change is
+new to the player (the editor compiles it; its effect is that of the portraits' own pixel ratio). To check after
+the next build: the log's `the screen 3840x2160 … 4K: dynamic resolution from 0.667, line weight 1` line, the scale
+steps, and the console's screenshot (`GET /ext/screenshot?download=true`) against a 1440p one with `-1440`.
+Left: the controller's raise rule assumes a GPU frame all pixels (×scale²), which stops the desert at 0.92 where
+native 4K holds 15.2 ms; a model with the fixed part (≈5 ms) would let it reach 1 and the rim ~0.78.
+
 ## The Retroid, round 6: the real buttons, cold and warm loads, the distant shimmer (2026-10-12, issues #50, #16, #225)
 
 The Retroid Pocket Nova in the GeckoView test app (`com.rnaud.hiraeth.gecko`, built from e7c21f7d, the game bundled in

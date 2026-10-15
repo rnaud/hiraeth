@@ -348,10 +348,25 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-resolution") is string res && res.Split('x') is var wh && wh.Length == 2 && int.TryParse(wh[0], out int rw) && int.TryParse(wh[1], out int rh))
                 Screen.SetResolution(rw, rh, FullScreenMode.FullScreenWindow);
 #if UNITY_WSA && !UNITY_EDITOR
-            // the Xbox draws at 1440p by default (the console scales it to the TV: 4K; 54 fps against 55 at 1080p, 46 at native 4K)
+            // the Xbox on a 2160p TV (issue #113): a 4K swap chain, the world drawn from 1440p (render scale 2/3, the picture
+            // the console scaled up before) toward native 4K as the GPU has room (DynamicResolution, 2/3 to 1), the lines kept
+            // at their 1440p weight (Uhd.PixelRatio). Native 4K throughout misses 60 in the City-Shaft (its GPU 21 / 18 / 27 ms
+            // in the bench's views, ~46 fps); the desert's spawn holds it (13.7 ms). On another TV, or with -1440: 1440p, the
+            // console scaling it, as before
+            else if (!BridgeArgs.Flag("-1440") && BridgeMetrics.HdmiHeight() >= 2160)
+            {
+                Screen.SetResolution(3840, 2160, FullScreenMode.FullScreenWindow);
+                Uhd.On = true;
+                if (urp != null && BridgeArgs.Arg("-render-scale") == null) urp.renderScale = Uhd.MinScale;
+                // (FSR 1 from the render scale to 4K: a little sharper than the bilinear filter or the console's own scaler,
+                // ~0.1 ms more of the GPU's frame at 2/3)
+                if (urp != null && BridgeArgs.Arg("-upscale") == null) urp.upscalingFilter = UpscalingFilterSelection.FSR;
+            }
             else Screen.SetResolution(2560, 1440, FullScreenMode.FullScreenWindow);
 #endif
-            Debug.Log($"Hiraeth bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}, upscaling {(urp ? urp.upscalingFilter.ToString() : "?")}");
+            if (urp != null) Uhd.SetPixelRatio(urp.renderScale);
+            DynamicResolutionSettings();
+            Debug.Log($"Hiraeth bridge: the screen {Screen.width}x{Screen.height} (the display {Screen.currentResolution.width}x{Screen.currentResolution.height}), render scale {(urp ? urp.renderScale : 1)}, upscaling {(urp ? urp.upscalingFilter.ToString() : "?")}{(Uhd.On ? $", 4K: dynamic resolution {(dynOn ? $"from {dynMin:0.###}" : "off")}, line weight {Uhd.PixelRatio:0.##}" : "")}");
             // (-queued N: the frames the CPU may run ahead of the GPU; on the Xbox the main thread waited ~9.5 ms a frame on the present)
             if (BridgeArgs.Arg("-queued") is string q && int.TryParse(q, out int nq)) QualitySettings.maxQueuedFrames = nq;
             // (-vsync N: presented on every Nth refresh, a test once the frames fit)
@@ -585,10 +600,15 @@ namespace Hiraeth.Bridge
         /// -dyn-res [min]: the render scale lowered in steps of 0.05 (to min, 0.75 by default: at 1440p the web's 1080p on
         /// the console) while the GPU's frame, averaged over half a second, is over 15 ms, and raised again when the next
         /// step up would still leave it under 14.3, at most a step every 1.5 s (URP makes its targets again at a change):
-        /// the web's Xbox preset adapts its scale the same way (src/perf.js `xbox` dynamic). Issue #113.
+        /// the web's Xbox preset adapts its scale the same way (src/perf.js `xbox` dynamic). Issue #113. On by default on the
+        /// Xbox's 4K swap chain (Uhd.On), from 2/3 (1440p) to 1 (-no-dyn-res keeps the scale where it starts).
         /// </summary>
-        static readonly bool dynOn = BridgeArgs.Flag("-dyn-res");
-        static readonly float dynMin = BridgeArgs.Arg("-dyn-res-min") is string dr && float.TryParse(dr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float drv) ? Mathf.Clamp(drv, 0.5f, 1f) : 0.75f;
+        static bool dynOn; static float dynMin = 0.75f;   // (set by Experiments, once the screen is chosen)
+        static void DynamicResolutionSettings()
+        {
+            dynOn = Uhd.On ? !BridgeArgs.Flag("-no-dyn-res") : BridgeArgs.Flag("-dyn-res");
+            dynMin = BridgeArgs.Arg("-dyn-res-min") is string dr && float.TryParse(dr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float drv) ? Mathf.Clamp(drv, 0.5f, 1f) : Uhd.On ? Uhd.MinScale : 0.75f;
+        }
         double dynSum; int dynN; float dynAt;
         void DynamicResolution()
         {
@@ -604,6 +624,7 @@ namespace Hiraeth.Bridge
             else if (s < 1 && g * ((s + 0.05f) / s) * ((s + 0.05f) / s) < 14.3) next = Mathf.Min(1, s + 0.05f);
             if (Mathf.Abs(next - s) < 0.001f) return;
             urp.renderScale = next; dynAt = Time.realtimeSinceStartup;
+            Uhd.SetPixelRatio(next);
             Debug.Log($"Hiraeth bridge: render scale {s:0.00} -> {next:0.00} (the GPU {g:0.0} ms)");
         }
         /// <summary>
@@ -817,6 +838,25 @@ namespace Hiraeth.Bridge
             if (BridgeHost.Runner == this) BridgeHost.Runner = null;
             // (not on the way out: V8 tears down with the process, and disposing its isolate then aborts)
             if (!exiting) try { js?.Dispose(); } catch { }
+        }
+    }
+    /// <summary>
+    /// The Xbox's 4K swap chain on a 2160p TV (issue #113; BridgeRunner.Experiments): the world drawn at render scale 2/3
+    /// (1440p, the picture the console scaled up before) to 1 (native 4K) by the GPU's time (DynamicResolution), and the
+    /// look's pixel ratio following it (HiraethLook.PixelRatio = the render height over 1440), so that the ink lines and the
+    /// hatching keep their 1440p weight on the screen at every scale, as the web's lines follow its render scale
+    /// (main.js resize: uPixelRatio = devicePixelRatio x renderScale). Off elsewhere: the pixel ratio stays 1.
+    /// </summary>
+    public static class Uhd
+    {
+        public static bool On;
+        public const float MinScale = 2f / 3;
+        public static float PixelRatio => HiraethLook.PixelRatio;
+        public static void SetPixelRatio(float renderScale)
+        {
+            if (!On) return;
+            HiraethLook.PixelRatio = Mathf.Max(1f, 2160f / 1440f * renderScale);
+            Shader.SetGlobalFloat("_PixelRatio", HiraethLook.PixelRatio);
         }
     }
 }

@@ -1000,6 +1000,9 @@ const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/a
 /** (v1.78, issue #111: the Steam Deck's main thread, round 10) */
 const DECK111 = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800 (render scale 1), muted, the bench’s own profile and save; every view of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1, viewpoints-worlds.json), main at c2f4ed6d against the same tree with the change, world by world in turn; 15 October';
 const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<world> (deck-worlds.json); docs/systems/performance.md, “The Steam Deck, round 10”';
+/** (v1.78, issue #113: the Xbox's Unity build at 4K) */
+const XBOX113 = 'Xbox Series X, the Unity preview 1.73.2236 (Direct3D 12, vsync on, muted), the TV at 2160p 120 Hz; before: its 1440p swap chain as shipped; after: the new defaults set by the same build’s switches (-resolution 3840x2160 -render-scale 0.6667 -dyn-res -dyn-res-min 0.6667 -upscale fsr); the spawns left standing (-idle: 90 s before and for native 4K, 150 s after), the mean of the last 30 s; 15 October';
+const XBOX113_SOURCE = 'issue #113 scratchpad xbox113: r-1440-incal-idle, v-1440-desert-idle, s-4k-incal-idle, w-4k-desert-idle, x-new-desert-idle150, y-new-incal-idle150 (unity.log); docs/systems/performance.md, “4K on the Xbox”';
 /** (v1.78, issue #342: the Engine-House in its futuristic skin, shot with and without it, the same pinned camera) */
 const FUTURE342E = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon, clear), Vite on port 6503, this branch with the skin off (?noskin=1, before) and on (after), the camera pinned in each room; 15 October; cwebp -q 72';
 const FUTURE342E_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 3 s a view, the same pinned camera in 10 rooms (the Threshold, the Piston Hall, the Crank Hall and its pit, the Fourth Chamber, the Crank Passage, the Furnace, the Tooth-Warden’s Hall, the Governor and Boiler Rooms), the skin off and on in separate loads; the machine shared with other agents (load 16–45), so frame times are within the noise';
@@ -1115,6 +1118,25 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Underwater City', before: 16.1, after: 15.3 },
         { where: 'the City Floating in Space', before: 16.3, after: 15.4 },
       ], note: 'About 16 ms of the main thread gives 60 here; the desert, the City-Shaft, Vael and Lorn are still over it (issue #111).' },
+    ] },
+    { match: 'The Unity preview on the Xbox now sends a 4K TV a 4K picture', tags: ['perf', 'devices'], numbers: [
+      { title: 'The picture’s height drawn on the Xbox (a 4K TV, once the dynamic resolution settles)', unit: 'px', better: 'higher', device: XBOX113, source: XBOX113_SOURCE, rows: [
+        { where: 'the desert’s spawn', before: 1440, after: 1980 },
+        { where: 'the City-Shaft’s rim', before: 1440, after: 1548 },
+      ], note: 'Before, 2560 × 1440 stretched to the TV by the console; after, a 4K picture drawn from 1440p up to native 4K by the GPU’s time. Native 4K throughout holds 60 at the desert’s spawn (59.9 fps, GPU 15.2 ms) but not in the City-Shaft (45 fps at the rim, GPU 20 ms; 27 ms in its wide view).' },
+      { title: 'Frames a second on the Xbox', unit: 'fps', better: 'higher', device: XBOX113, source: XBOX113_SOURCE, rows: [
+        { where: 'the desert’s spawn', before: 59.9, after: 59.8 },
+        { where: 'the City-Shaft’s rim', before: 59.7, after: 59.8 },
+        { where: 'the City-Shaft’s rim, native 4K (not kept)', before: 59.7, after: 45.0 },
+      ] },
+      { title: 'Frames shown on time (within 17.5 ms)', unit: '%', better: 'higher', device: XBOX113, source: XBOX113_SOURCE, rows: [
+        { where: 'the desert’s spawn', before: 99.5, after: 99.3 },
+        { where: 'the City-Shaft’s rim', before: 98.2, after: 98.8 },
+      ] },
+      { title: 'The GPU’s time a frame on the Xbox', unit: 'ms', better: 'lower', device: XBOX113, source: XBOX113_SOURCE, rows: [
+        { where: 'the desert’s spawn', before: 7.8, after: 13.2 },
+        { where: 'the City-Shaft’s rim', before: 11.4, after: 13.7 },
+      ], note: 'The GPU spends the room it had on pixels: the dynamic resolution keeps it under ~15 ms.' },
     ] },
     { match: 'Inside, the Hush-House is the makers’ sound-damping hall now', tags: ['lorn', 'temples', 'perf'], shots: [
       { name: 'future-hush-stilling', title: 'The Stilling Chamber', caption: 'Before, violet plaster walls, crystals on the bare floor; after, dark slate coffers with crisp chamfers up the drum and over the vault, violet circuits in their seams, stepped wedges under the vault, resonators hanging in slate collars round the oculus (two lit teal and violet, faint rings round them), the crystals on stepped plinths; the chest on its mound where it was', from: FUTURE342H,
