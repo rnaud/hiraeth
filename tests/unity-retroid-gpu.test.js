@@ -12,7 +12,8 @@ const frag = surface.slice(surface.indexOf('GBufferOut frag('), surface.indexOf(
 
 test('the plain variant: a fragment keyword of its own, every wall mark behind it', () => {
   assert.match(surface, /#pragma multi_compile_local_fragment _ HIRAETH_PLAIN/);
-  assert.match(surface, /#if defined\(HIRAETH_PLAIN\)\s+#define WALLK false\s+#else\s+#define WALLK true/);
+  // (a temple skin has none of a wall's marks either: its own pattern stands for them, issue #342)
+  assert.match(surface, /#if defined\(HIRAETH_PLAIN\)( \|\| defined\(HIRAETH_SKIN\))?\s+#define WALLK false\s+#else\s+#define WALLK true/);
   assert.match(frag, /UNITY_BRANCH if \(WALLK && _Patch > 0\.0/, 'the colour patches');
   assert.match(frag, /if \(\(skip & 1\) != 0 \|\| !WALLK\) pattern = 0;/, 'the patterns');
   assert.match(frag, /UNITY_BRANCH if \(WALLK && _Weather > 0\.0/, 'the weathering');
