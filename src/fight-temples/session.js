@@ -8,17 +8,20 @@
 // The camera: CameraRig still runs (main.js), then this puts the camera on the iso line every frame (the rig's yaw is
 // held at ISO.yaw, so the stick and WASD walk him relative to the screen). The aim: the right stick, or the mouse's
 // reticle on the floor, or the way he walks; the blade and the gun take the foe in that cone (FluidTool.lockOn and
-// updateAimPoint wrapped for the run). The walls between the camera and him come down to stubs (CUT).
+// updateAimPoint wrapped for the run). The walls and pillars between the camera and him are seen through (SEE: a hole with
+// a hand-cut edge opens in them round him, materials.js SEE_HOLE). The jump button and B / ○ roll (ROLL), and the blade's cut
+// takes every foe in a wider, longer cone (WIDE_CUT); both only here (issue #365).
 
 import * as THREE from 'three';
-import { makeMaterial } from '../materials.js';
+import { makeMaterial, SEE_HOLE } from '../materials.js';
+import { ROLL, WIDE_CUT } from '../fluid-blade.js';
 import { FOES } from '../foes.js';
 import { lendTool, standAt } from '../minigames/kit/onfoot.js';
 import { WorldLabels } from '../minigames/kit/labels.js';
 import { unlockColours, colourById, applyKitColours } from '../kit-colours.js';
 import { reliquaryModel } from './rooms.js';
 import {
-  ISO, isoOffset, followIso, CUT, sightPoints, inTheWay, easeCut, AIM, pickTarget, stickToGround, screenUp, screenRight,
+  ISO, isoOffset, followIso, SEE, sightPoints, inTheWay, easeSee, seeOpen, AIM, pickTarget, stickToGround, screenUp, screenRight,
   roomAt, inRoom, roomWaves, release, CROWD, headOf, heartChance, chimesFor, pursesFor, totalFoes,
 } from './rules.js';
 
@@ -82,17 +85,19 @@ export function startFightTemple(ctx) {
     camera.lookAt(look);
     camera.updateMatrixWorld();
   }
-  // the walls and pillars as they stand (a Retry: all up again), the gates shut, their colliders movers
-  for (const c of F.cuttables) { c.k = 0; c.mesh.scale.y = 1; }
+  // the walls and pillars solid (a Retry: all of them again), the gates shut, their colliders movers
+  const setSee = (c, k) => { c.k = k; const v = seeOpen(k) * (c.kind === 'pillar' ? SEE.pillar : 1); for (const u of c.see ?? []) u.value = v; };
+  for (const c of F.cuttables) setSee(c, 0);
   const movers = F.gates.map((g) => { g.group.position.y = 0; g.open = false; g.sink = 0; g.group.updateMatrixWorld(true); return physics?.addMover?.(g.group, { all: true }) ?? null; });
-  function cutWalls(dt) {
+  /** The walls and pillars in the camera's way seen through, a hole opening round him in each (the others solid). */
+  function seeThrough(dt) {
+    SEE_HOLE.value.set(player.pos.x, player.pos.y + SEE.chest, player.pos.z, SEE.radius);
     const want = new Set(inTheWay(camera.position, F.cuttables, sightPoints(player.pos)));
-    F.cuttables.forEach((c, i) => {
-      c.k = easeCut(c.k, want.has(i), dt);
-      const s = 1 - (1 - CUT.stub) * c.k;
-      if (Math.abs(c.mesh.scale.y - s) > 1e-4) c.mesh.scale.y = s;
-    });
+    F.cuttables.forEach((c, i) => { const k = easeSee(c.k, want.has(i), dt); if (k !== c.k) setSee(c, k); });
   }
+  // the blade's dodge roll and its generous cut (fluid-blade.js ROLL, WIDE_CUT): only in here
+  const blade = tool?.blade;
+  if (blade) { blade.roll = ROLL; blade.wide = WIDE_CUT; }
 
   // ---------------------------------------------------------------- the aim
   const marks = ctx.add(aimMarks());
@@ -181,7 +186,7 @@ export function startFightTemple(ctx) {
       splash(s);
     }
   }
-  /** A walker that got up onto a pillar's top (a hop, a leap) is put down beside it: the tops are cut from the view. */
+  /** A walker that got up onto a pillar's top (a hop, a leap) is put down beside it: the fight is on the floor. */
   function offTheTop(f) {
     for (const c of F.cuttables) {
       if (c.kind !== 'pillar') continue;
@@ -265,7 +270,16 @@ export function startFightTemple(ctx) {
       return mine.filter((f) => f.alive).length;
     },
     /** (the console, the checks: where the run is) */
-    get run() { return { ...run, queue: queue.length, standing: mine.filter((f) => f.alive).length, source, cut: F.cuttables.filter((c) => c.k > 0.5).length }; },
+    get run() { return { ...run, queue: queue.length, standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length }; },
+    /**
+     * (main.js, each frame before the traveller and the gadget in hand read them: the runner's filterInput) The jump
+     * button rolls here: A / × (Space, the touch ⤒) is the evade's press (B / ○, Alt, ↶), which the blade makes a roll.
+     */
+    input(c) {
+      if (!c || over) return;
+      if (c.Space || c.PadJump) c.PadEvade = true;
+      c.Space = false; c.PadJump = false;
+    },
     update(dt, inp, { live, raw }) {
       t += dt;
       // (no lock-on here: the aim takes the foe in its cone, and a lock would turn the view and the stick off the iso line)
@@ -331,9 +345,9 @@ export function startFightTemple(ctx) {
         player.pos.x = THREE.MathUtils.clamp(player.pos.x, r.x[0] + 0.4, r.x[1] - 0.4);
         player.pos.z = THREE.MathUtils.clamp(player.pos.z, r.z[0] + 0.4, r.z[1] - 0.4);
       }
-      // the camera on its line, the walls in the way down to stubs, the aim's marks
+      // the camera on its line, the walls in the way seen through, the aim's marks
       placeCamera(Math.min(dt, 0.1));
-      cutWalls(dt);
+      seeThrough(dt);
       const p = player.pos, y = 0.06;
       marks.chevron.position.set(p.x + aimDir.x * 1.1, y, p.z + aimDir.z * 1.1);
       marks.chevron.rotation.y = Math.atan2(aimDir.x, aimDir.z);
@@ -352,7 +366,9 @@ export function startFightTemple(ctx) {
       for (const h of hearts) h.m.removeFromParent();
       hearts.length = 0;
       movers.forEach((m) => m && physics?.removeCollider?.(m));
-      for (const c of F.cuttables) { c.k = 0; c.mesh.scale.y = 1; }
+      for (const c of F.cuttables) setSee(c, 0);
+      SEE_HOLE.value.set(0, -1e4, 0, SEE.radius);
+      if (blade) { blade.roll = null; blade.wide = null; }
       if (tool) { tool.lockOn = lockOn0; if (aimOwn) tool.updateAimPoint = aimPoint0; else delete tool.updateAimPoint; }
       if (rig) { delete rig.yaw; if (yawWas) Object.defineProperty(rig, 'yaw', yawWas); else rig.yaw = yaw0; }
       globalThis.document?.body?.classList.remove('fight-iso');

@@ -125,6 +125,9 @@ export class MinigameRunner {
 
   // ---------------------------------------------------------------- the frame
   /** main.js, each frame the world runs: dt, and the merged controls (none while a card is up). */
+  /** main.js, each frame before the traveller and the gadget in hand read the controls: a game on foot may rewrite its buttons (session.input). */
+  filterInput(controls) { if (controls && this.phase === 'play') this.session.input?.(controls); }
+
   update(dt, controls) {
     if (this.phase === 'intro' && inputKind() !== this.introKind) this.showIntro();   // (a pad picked up: the card lists its buttons)
     if (this.hintsEl) this.drawHints(dt);

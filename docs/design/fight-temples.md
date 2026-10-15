@@ -26,27 +26,52 @@ export default fightTempleGame(<WORLD>_FIGHT);      // src/fight-temples/index.j
 | piece | file | what |
 |---|---|---|
 | the table | `src/fight-temples/<world>.js` | rooms (rectangles on whole metres, 2 m apart: the wall between), the doors (from a room's side, its width), each room's ink springs, pillars, waves (`[kind, n, { tough }]`), the palette of its stone and ink, the hour, the doorway in the world (`entrance`), the colours it gives (`colours`, an id of `src/kit-colours.js`) |
-| the rules | `src/fight-temples/rules.js` (pure) | the iso camera (`ISO`, `isoOffset`, `followIso`), the walls that come down (`CUT`, `inTheWay`, `easeCut`), the walls from the rooms (`wallBoxes`, `doorGap`), the aim (`AIM`, `pickTarget`, `stickToGround`), the waves (`LIGHT_HP`, `roomWaves`, `CROWD`, `release`), the loot (`LOOT`) |
-| the rooms | `src/fight-temples/rooms.js` | the level from the table: the sand (flat in the rooms, banked to the walls' tops behind the far walls, a trench behind the near ones so a cut wall opens the view), a mesh a wall and a pillar (cuttable), the springs, the gates (movers), the basin, the altar, the reliquary |
+| the rules | `src/fight-temples/rules.js` (pure) | the iso camera (`ISO`, `isoOffset`, `followIso`), the walls seen through (`SEE`, `inTheWay`, `easeSee`, `seeOpen`, `seeHoleCuts`), the walls from the rooms (`wallBoxes`, `doorGap`), the aim (`AIM`, `pickTarget`, `stickToGround`), the waves (`LIGHT_HP`, `roomWaves`, `CROWD`, `release`), the loot (`LOOT`) |
+| the rooms | `src/fight-temples/rooms.js` | the level from the table: the sand (flat in the rooms, banked to the walls' tops behind the far walls, a trench behind the near ones), a mesh a wall and a pillar, each with its own see-through materials, the springs, the gates (movers), the basin, the altar, the reliquary |
 | the run | `src/fight-temples/session.js` | the camera, the aim, the rooms and waves, the loot, the reward |
 | the doorway | `src/fight-temples/index.js` `entranceModel` | the game's sign in its world (kit/marker.js uses a game's `marker.model`; solid) |
 | the host | `src/story/hosts-data.js` | the person by the doorway who offers it (Play / Not now) |
 
-**The camera.** Fixed: from the south-east (`ISO.yaw` π/4), 0.9 rad over the horizon, 27 m out, a 30° lens (little
-perspective: the orthographic feel). It follows the traveller with a soft lead the way he moves (0.32 s of his speed,
-2.6 m at most). CameraRig still runs; the session holds its yaw on the iso line (a getter on the rig, put back at the
-end), so the stick and WASD walk him relative to the screen, and puts the camera on the line after the rig every
-frame. Walls and pillars between the camera and him (his body at two heights and a ring 1.6 m round him at his
-knees) come down to 14 % of their height, quickly, and back up slowly; the sand is banked only behind the far walls
-(behind the near ones a 3.5 m trench, then the bank), so nothing but a cuttable wall can stand in the line.
+**The camera.** Fixed, as Diablo IV's (issue #365): from the south-east (`ISO.yaw` π/4, never turned by the player),
+57° over the horizon (0.995 rad), 28 m out, a 31° lens (little perspective: the orthographic feel; about 15.5 m of
+the floor tall on the screen at him). v1.76 had 51.6° (0.9 rad), 27 m and a 30° lens (14.5 m tall). Blizzard gives
+no figures for Diablo IV's camera; players describe a fixed angle with no rotation, steeper than Diablo I–III, and a
+tight zoom, and estimate it at 55–60° down: ours sits in the middle. It follows the traveller with a soft lead the
+way he moves (0.32 s of his speed, 2.6 m at most). CameraRig still runs; the session holds its yaw on the iso line
+(a getter on the rig, put back at the end), so the stick and WASD walk him relative to the screen, and puts the
+camera on the line after the rig every frame. Its numbers live in `ISO` alone (the lock-on camera is CameraRig's,
+untouched).
+
+**Seen through** (issue #365; v1.76 cut them down to stubs). Walls and pillars between the camera and him (his body
+at two heights and a ring 1.6 m round him at his knees: `inTheWay`, `sightPoints`) have a hole cut in them round him:
+`materials.js` `makeMaterial({ seeThrough: id })` compiles `SEE_HOLE`, a cone from the eye to his chest (`SEE_HOLE`'s
+point, 1.1 m over his feet), so the hole is a circle on the screen, `SEE.radius` 3.4 m across at him, in what stands
+nearer the eye than he does only, its foot (`SEE_LOOK.foot`: below 0.3 m over the floor) kept so the wall's place still
+reads; a pillar's hole is four times as wide (`SEE.pillar`), the whole of it down to its foot (a hole through one left
+its cap's corners hanging in the air). It opens over `SEE.in` 0.2 s and closes over `SEE.out` 0.3 s (`easeSee`, `seeOpen`: each wall's and pillar's own
+`uSeeK`, one material per wall, its cap course and its glyph band, `rooms.js`), the others stay solid. A clean cut,
+its edge a little uneven as if cut by hand: the ink pass draws one line round it (a dither's dots each drew a black
+ring and the rim read as grime). Not in the sun's shadow maps (an orthographic view): the walls still shade the floor.
+`seeHoleCuts` (rules.js) mirrors the shader for the tests. The sand is banked only behind the far walls (behind the
+near ones a 3.5 m trench, then the bank), so nothing but a wall that can be seen through stands in the line.
+
+**The roll and the wide cut** (issue #365). In here the jump button (A / ×; Space; the touch ⤒ is left off) and
+B / ○ (Alt, ↶) are a dodge roll (`fluid-blade.js` `ROLL`, set on the blade by the session and taken off at the end):
+a tucked forward roll 0.42 s long, up to 9.5 m/s (about 3.3 m), along the stick or the way he faces (never the
+evade's backstep), i-frames from 0.02 to 0.34 s (Gentle 0.4), 0.75 s from one roll's start to the next; the pose is
+`jump.js` `ROLL_FLIP`, a front flip on the ground about a 0.6 m pivot, tucked hard. The session rewrites the jump into
+the evade's press (`session.input`, called by `MinigameRunner.filterInput` from main.js before the traveller and the
+tool read the controls). The blade's cut takes every foe in a wider, longer cone too (`WIDE_CUT`: 3.9 m, 1.5 rad
+either side, against the swing's own 2.9 m and 1.15 rad), the cone's line of sight keeping out any foe behind a wall.
+Outside the fight temples neither is set: the evade and the swing are as they were. Tests: `tests/fight-roll.test.js`.
 
 **The controls.** The left stick walks up and across the screen. The aim is the right stick (twin-stick), or a ring
 on the floor that the mouse moves (pointer captured), or the way he walks. The blade and the gun take the foe in the
 aim's cone (`pickTarget`: within 6.5 m for a cut, 18 m for a shot, 0.7 rad either side, nearer and more on the line
 first; anything within 1.6 m whatever way): `FluidTool.lockOn` and `updateAimPoint` are wrapped for the run, so the
 blade's soft lock, its swing's tilt and the shot's line all go to it; with nobody there a swing goes the way you aim.
-RT / R2 (or G) alone fires a quick shot (the aimed shot, LT held, as ever); the guard, the parry and the evade are
-the usual ones. On the floor: a chevron at his feet the way he aims, a warm ring under the foe taken, the mouse's ring.
+RT / R2 (or G) alone fires a quick shot (the aimed shot, LT held, as ever); the guard and the parry are the usual
+ones, the evade a roll (above). On the floor: a chevron at his feet the way he aims, a warm ring under the foe taken, the mouse's ring.
 The crosshair is hidden (`body.fight-iso`), and the lock-on is off (the cone takes its place; a lock would turn the view off the line).
 
 **The foes.** The world's own kinds (src/foe-worlds.js), as `Foes.add` makes them (their world's skins and stage:

@@ -1,6 +1,6 @@
 // A fight temple's rooms, built from its table (docs/design/fight-temples.md): the sand the hall is sunk in (flat in
 // the rooms and their doorways, banked up behind the walls to their tops, dunes beyond), the walls (one mesh each, its
-// foot at y 0, so the camera's cut can bring it down to a stub: rules.js CUT), the pillars, the ink springs the foes
+// own materials, so the one in the camera's way is seen through: rules.js SEE), the pillars, the ink springs the foes
 // come up from, a gate in every doorway (a mover: it sinks into the floor when the room before it is cleared), the
 // cistern's basin, the sanctum's altar and the reliquary that rises on it with the reward.
 
@@ -94,44 +94,50 @@ export function* buildHall(scene, def) {
   });
   scene.add(terrain.mesh);
   yield;
-  const stone = makeMaterial({ color: P.wall, color2: P.wall2, color3: P.wall3, mode: MODE_STRATA, strataSize: 1.1 });
-  const cap = makeMaterial({ color: P.cap, color2: P.wall3, color3: P.wall3, mode: MODE_STRATA, strataSize: 0.6 });
+  const STONE = { color: P.wall, color2: P.wall2, color3: P.wall3, mode: MODE_STRATA, strataSize: 1.1 };
+  const CAP = { color: P.cap, color2: P.wall3, color3: P.wall3, mode: MODE_STRATA, strataSize: 0.6 };
+  const GLYPH = { color: P.glyph, flat: true, glow: 0.6 };
+  const stone = makeMaterial(STONE);
   const ink = makeMaterial({ color: P.ink, flat: true }), inkLite = makeMaterial({ color: P.inkLite, flat: true, glow: 0.25 });
-  const glyph = makeMaterial({ color: P.glyph, flat: true, glow: 0.6 });
   const group = new THREE.Group(); group.name = def.name;
   const cuttables = [];
-  // the walls: one mesh each (its foot at 0, so a cut scales it down to a stub), a cap course along its top
-  for (const w of wallBoxes(def.rooms, def.doors)) {
+  // (each wall and pillar its own materials, seen through on their own: materials.js SEE_HOLE, session.js; `see` their shares)
+  const own = (o, id) => makeMaterial({ ...o, seeThrough: `${def.id}:${id}` });
+  const seeOf = (...mats) => mats.map((m) => m.uniforms.uSeeK);
+  // the walls: one mesh each (seen through where it stands in the way: SEE), a cap course along its top
+  for (const [wi, w] of wallBoxes(def.rooms, def.doors).entries()) {
     const sx = w.x[1] - w.x[0], sz = w.z[1] - w.z[0], h = WALL.h;
     const geo = new THREE.BoxGeometry(sx, h, sz).translate(0, h / 2, 0);
-    const m = new THREE.Mesh(geo, stone);
+    const wallMat = own(STONE, `w${wi}`), capMat = own(CAP, `w${wi}c`), glyphMat = own(GLYPH, `w${wi}g`);
+    const m = new THREE.Mesh(geo, wallMat);
     m.position.set((w.x[0] + w.x[1]) / 2, 0, (w.z[0] + w.z[1]) / 2);
-    const top = new THREE.Mesh(new THREE.BoxGeometry(sx + 0.12, 0.22, sz + 0.12).translate(0, h + 0.11, 0), cap);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(sx + 0.12, 0.22, sz + 0.12).translate(0, h + 0.11, 0), capMat);
     top.userData.noCollide = true;
     m.add(top);
     // an ember glyph band on the face toward its room, at shoulder height (the makers' mark, burnt in)
     const into = { n: [0, 1], s: [0, -1], w: [1, 0], e: [-1, 0] }[w.side];
     const len = (w.side === 'n' || w.side === 's' ? sx : sz) - 0.6;
     if (len > 2) {
-      const band = new THREE.Mesh(new THREE.BoxGeometry(w.side === 'n' || w.side === 's' ? len : 0.04, 0.12, w.side === 'n' || w.side === 's' ? 0.04 : len), glyph);
+      const band = new THREE.Mesh(new THREE.BoxGeometry(w.side === 'n' || w.side === 's' ? len : 0.04, 0.12, w.side === 'n' || w.side === 's' ? 0.04 : len), glyphMat);
       band.position.set(into[0] * (sx / 2 + 0.03), 2.2, into[1] * (sz / 2 + 0.03));
       band.userData.noCollide = true;
       m.add(band);
     }
     group.add(m);
-    cuttables.push({ mesh: m, box: footBox(w.x[0], w.x[1], w.z[0], w.z[1], h + 0.3), k: 0, kind: 'wall' });
+    cuttables.push({ mesh: m, box: footBox(w.x[0], w.x[1], w.z[0], w.z[1], h + 0.3), k: 0, kind: 'wall', see: seeOf(wallMat, capMat, glyphMat) });
   }
   yield;
-  // the pillars (solid, and cut too when they stand in the way)
+  // the pillars (solid, and seen through too when they stand in the way)
   const springs = [];
+  let pi = 0;
   def.rooms.forEach((r, i) => {
     for (const [x, z] of r.pillars ?? []) {
-      const h = WALL.h + 0.6;
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, h, 10).translate(0, h / 2, 0), stone);
+      const h = WALL.h + 0.6, pillarMat = own(STONE, `p${pi}`), capMat = own(CAP, `p${pi++}c`);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, h, 10).translate(0, h / 2, 0), pillarMat);
       m.position.set(x, 0, z);
-      const c = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.3, 1.9).translate(0, h + 0.15, 0), cap); c.userData.noCollide = true; m.add(c);
+      const c = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.3, 1.9).translate(0, h + 0.15, 0), capMat); c.userData.noCollide = true; m.add(c);
       group.add(m);
-      cuttables.push({ mesh: m, box: footBox(x - 0.95, x + 0.95, z - 0.95, z + 0.95, h + 0.4), k: 0, kind: 'pillar' });
+      cuttables.push({ mesh: m, box: footBox(x - 0.95, x + 0.95, z - 0.95, z + 0.95, h + 0.4), k: 0, kind: 'pillar', see: seeOf(pillarMat, capMat) });
     }
     // the ink springs: a dark pool ringed with stones, a pale ring on the ink
     springs[i] = (r.springs ?? []).map(([x, z]) => {

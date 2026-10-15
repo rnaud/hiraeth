@@ -11,7 +11,7 @@ import { checkGame, collectGames } from '../src/minigames/index.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { DESERT_FIGHT } from '../src/fight-temples/desert.js';
 import {
-  ISO, isoOffset, followIso, screenUp, screenRight, CUT, sightPoints, inTheWay, easeCut, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt,
+  ISO, isoOffset, followIso, screenUp, screenRight, SEE, sightPoints, inTheWay, easeSee, seeOpen, seeHoleCuts, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt,
   AIM, pickTarget, stickToGround, LIGHT_HP, roomWaves, release, CROWD, headOf, totalFoes, heartChance, chimesFor, pursesFor,
 } from '../src/fight-temples/rules.js';
 import { buildHall, hallHeight } from '../src/fight-temples/rooms.js';
@@ -39,7 +39,7 @@ test('the Sunken Hall is a complete game, played on foot, hosted by its doorway 
   assert.ok(Math.hypot(m.at[0] - 168, m.at[2] - 292) < 60, 'near the camps');
   const h = HOSTS['fight-desert'];
   assert.ok(h && h.name && h.say.length === 2, 'its host, who offers it');
-  for (const b of ['Left stick', 'Right stick', 'RB / R1', 'RT / R2', 'LB / L1', 'B / ○']) assert.ok(fightDesert.controls.pad.some(([x]) => x === b), b);
+  for (const b of ['Left stick', 'Right stick', 'RB / R1', 'RT / R2', 'LB / L1', 'A / ×']) assert.ok(fightDesert.controls.pad.some(([x]) => x === b), b);
   const model = fightDesert.marker.model();
   assert.ok(model.userData.solid, 'its doorway is walked into, not through');
 });
@@ -48,8 +48,13 @@ test('the Sunken Hall is a complete game, played on foot, hosted by its doorway 
 test('the camera: high, from the south-east, narrow; up the screen is away from it, and it follows him with a capped lead', () => {
   const o = isoOffset();
   assert.ok(Math.abs(o.length() - ISO.dist) < 1e-9);
-  assert.ok(ISO.pitch > 0.75 && ISO.pitch < 1.05, 'about 45-60° over the horizon');
-  assert.ok(ISO.fov <= 35, 'a narrow lens: little perspective');
+  // Diablo IV's (issue #365): about 55-60° down, a fixed yaw, a long narrow lens
+  const deg = THREE.MathUtils.radToDeg(ISO.pitch);
+  assert.ok(deg >= 55 && deg <= 60, `${deg.toFixed(1)}° down: Diablo IV's`);
+  assert.ok(ISO.fov >= 28 && ISO.fov <= 35, 'a narrow lens: little perspective');
+  assert.ok(ISO.dist >= 25, 'from far off');
+  const tall = 2 * ISO.dist * Math.tan(THREE.MathUtils.degToRad(ISO.fov / 2));
+  assert.ok(tall > 14 && tall < 18, `${tall.toFixed(1)} m tall on the screen at him: a room and its crowd`);
   const up = screenUp(), right = screenRight();
   assert.ok(Math.abs(up.dot(right)) < 1e-9);
   assert.ok(up.dot(new THREE.Vector3(o.x, 0, o.z).normalize()) < -0.999, 'up the screen walks away from the camera');
@@ -98,24 +103,26 @@ test('the hall: every room shut but for its doors, the walls never overlapping, 
 
 const LEVEL = runSteps(buildHall(new THREE.Scene(), D));
 
-test('the camera stays isometric and is never blocked: wherever he stands, the walls in the way come down and the sand is under the line', () => {
+test('the camera stays isometric and is never blocked: wherever he stands, the walls in the way are seen through round him and the sand is under the line', () => {
   const F = LEVEL.fight;
   const o = isoOffset();
   let checked = 0, cutSeen = 0;
   for (const r of D.rooms) for (let x = r.x[0] + 0.5; x < r.x[1]; x += 1.5) for (let z = r.z[0] + 0.5; z < r.z[1]; z += 1.5) {
     if (F.cuttables.some((c) => c.kind === 'pillar' && c.box.distanceToPoint(new THREE.Vector3(x, 0.5, z)) < 0.3)) continue;   // (inside a pillar: nobody stands there)
     const at = new THREE.Vector3(x, 0, z), cam = at.clone().setY(ISO.look).add(o);
-    // the cut, eased to where it settles
+    // the see-through, eased to where it settles
     for (const c of F.cuttables) c.k = 0;
     const way = new Set(inTheWay(cam, F.cuttables, sightPoints(at)));
-    for (let s = 0; s < 60; s++) F.cuttables.forEach((c, i) => { c.k = easeCut(c.k, way.has(i), 1 / 60); });
+    for (let s = 0; s < 60; s++) F.cuttables.forEach((c, i) => { c.k = easeSee(c.k, way.has(i), 1 / 60); });
     cutSeen += way.size;
+    const chest = at.clone().setY(SEE.chest);
     for (const h of [0.5, 1.4]) {
       const p = at.clone().setY(h);
-      // no standing wall or pillar on the line (a cut one is a stub: its box down to CUT.stub of its height)
+      // no solid wall or pillar on the line: one on it is seen through, and its hole (inside its uneven edge) is where the line meets it
       for (const c of F.cuttables) {
-        const b = c.box.clone(); b.max.y = b.min.y + (b.max.y - b.min.y) * (1 - (1 - CUT.stub) * c.k);
-        assert.ok(!segmentHitsBox(cam, p, b), `${r.id} (${x}, ${z}) h ${h}: a ${c.kind} in the way (cut ${c.k.toFixed(2)})`);
+        if (!segmentHitsBox(cam, p, c.box)) continue;
+        const hit = new THREE.Ray(cam, p.clone().sub(cam).normalize()).intersectBox(c.box, new THREE.Vector3());
+        assert.ok(hit && seeHoleCuts(hit, cam, chest, seeOpen(c.k), { dot: 1 }), `${r.id} (${x}, ${z}) h ${h}: a ${c.kind} in the way (seen through ${c.k.toFixed(2)})`);
       }
       // and the sand banked behind the walls is under the line all the way
       for (let k = 0.02; k < 1; k += 0.02) {
@@ -126,7 +133,27 @@ test('the camera stays isometric and is never blocked: wherever he stands, the w
     checked++;
   }
   assert.ok(checked > 400, `${checked} places`);
-  assert.ok(cutSeen > 20, 'by the near walls and behind the pillars, walls do come down');
+  assert.ok(cutSeen > 20, 'by the near walls and behind the pillars, walls are seen through');
+});
+
+test('the hole: a circle on the screen round him, only in what stands nearer the eye, opening with its share', () => {
+  const at = new THREE.Vector3(0, SEE.chest, 0), cam = at.clone().add(isoOffset());
+  const toward = cam.clone().sub(at).normalize();
+  const on = at.clone().addScaledVector(toward, 4);   // (a wall's face 4 m in front of him, on the line)
+  assert.ok(seeHoleCuts(on, cam, at, 1));
+  assert.ok(!seeHoleCuts(on, cam, at, 0), 'shut: solid');
+  const side = new THREE.Vector3().crossVectors(toward, new THREE.Vector3(0, 1, 0)).normalize();
+  const r4 = SEE.radius * (cam.distanceTo(on) / cam.distanceTo(at));   // (the hole's radius at that depth)
+  assert.ok(seeHoleCuts(on.clone().addScaledVector(side, r4 * 0.6), cam, at, 1, { dot: 1 }), 'inside its rim: cut');
+  assert.ok(!seeHoleCuts(on.clone().addScaledVector(side, r4 * 1.05), cam, at, 1), 'past its edge: solid');
+  assert.ok(!seeHoleCuts(on.clone().addScaledVector(side, r4 * 0.6), cam, at, 0.4), 'half open: smaller');
+  assert.ok(!seeHoleCuts(at.clone().addScaledVector(toward, -2), cam, at, 1), 'behind him: never');
+  // the share: in over SEE.in, out over SEE.out
+  let k = 0; for (let i = 0; i < Math.round(SEE.in * 60); i++) k = easeSee(k, true, 1 / 60);
+  assert.ok(k > 0.99 && SEE.in <= 0.25, `open in ${SEE.in} s`);
+  for (let i = 0; i < Math.round(SEE.out * 60); i++) k = easeSee(k, false, 1 / 60);
+  assert.ok(k < 0.01);
+  assert.equal(seeOpen(0), 0); assert.equal(seeOpen(1), 1); assert.ok(seeOpen(0.25) < 0.25);
 });
 
 // ------------------------------------------------------------------ the aim

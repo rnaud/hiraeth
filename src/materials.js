@@ -194,6 +194,14 @@ export const INK_WHITE = [0.97, 0.95, 0.9];
 export const SHADE_BLACK = [0.03, 0.026, 0.036];
 /** The shade's white contour drawn from inside (px, before the render scale), under post.js' white line. */
 export const SHADE_RIM = 1.4;
+/**
+ * The see-through hole (makeMaterial({ seeThrough }), SEE_HOLE): the point it opens round (the traveller's chest, world)
+ * in xyz, its radius there (m) in w, shared by every material that has it; `wobble`: how much of the radius its uneven
+ * edge eats in at most (a hand-cut edge); `foot`: how far under the point the hole stops (m), the thing's foot left
+ * standing so its place on the floor still reads.
+ */
+export const SEE_HOLE = { value: new THREE.Vector4(0, -1e4, 0, 3.4) };
+export const SEE_LOOK = { wobble: 0.08, foot: 0.8 };
 /** The step packed for a material's line (0: the world's ink). */
 export function lineStep(o) {
   // (glass a thin line in its own colour, foliage a lighter one in its dark green, unless they say)
@@ -1866,6 +1874,12 @@ ${SHADOW_GLSL}
   uniform vec4 uLampTint;
   uniform float uLampsOn;
   #endif
+  #ifdef SEE_HOLE
+  // A wall or pillar seen through where it stands in front of the traveller (the fight temples' iso view,
+  // src/fight-temples/session.js; makeMaterial({ seeThrough })): a print-dot cut-out round him on the screen.
+  uniform vec4 uSee;     // his chest (world) · the hole's radius there (m): shared, SEE_HOLE in materials.js
+  uniform float uSeeK;   // this one's share (0 solid … 1 the hole open), eased by the session
+  #endif
   #ifdef DISSOLVE
   // A makers' box coming apart (src/boxes/scene.js; makeMaterial({ dissolve })): noise in world
   // space, eaten from the top down as uDissolve.x goes 0 -> 1, the edge burning bright.
@@ -2117,6 +2131,22 @@ ${SHADOW_GLSL}
       vec3 od = normalize(vObjPos - uGlassCenter);
       float streak = step(abs(atan(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
       if (fr < 0.72 && streak < 0.5) discard;
+    }
+    #endif
+    #ifdef SEE_HOLE
+    // (a cone from the eye to his chest, so the hole is a circle on the screen; only what is nearer the eye than he is;
+    // a clean cut, its edge a little uneven as if cut by hand, so the ink draws one line round it: a dither's dots each
+    // drew a black ring and the rim read as dirt)
+    if (uSeeK > 0.001 && !isOrthographic) {   // (not in the sun's shadow maps: an orthographic view, they keep the whole wall)
+      vec3 sAx = uSee.xyz - cameraPosition;
+      float sL = length(sAx);
+      vec3 sRel = vWorldPos - cameraPosition;
+      float sS = dot(sRel, sAx) / max(sL, 1e-4);
+      if (sS > 0.0 && sS < sL - 0.35 && vWorldPos.y > uSee.y - ${SEE_LOOK.foot.toFixed(2)}) {   // (its foot kept: where it stands still reads)
+        float sR = uSee.w * uSeeK * sS / sL;
+        float sE = length(sRel - sAx * (sS / max(sL, 1e-4))) / max(sR, 1e-4);
+        if (sE < 1.0 - ${SEE_LOOK.wobble.toFixed(2)} * vnoise(vWorldPos.xz * 1.7 + vWorldPos.y * 1.3)) discard;
+      }
     }
     #endif
     // see-through but for its rim (makeMaterial({ veil }): Lorn II's mushrooms): where it faces the eye more squarely
@@ -2965,6 +2995,8 @@ const cache = new Map();
  *                              fade, belly, mottle, rust, grain, bands, stripes, scales, spots, spots2, drips, glow, gloss
  * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
+ * @param {string}  [o.seeThrough] compile the SEE_HOLE block (an id: one material per thing): uSeeK (0..1) opens a hole
+ *                              round SEE_HOLE's point where this stands nearer the eye (the fight temples' walls and pillars)
  * @param {number}  [o.veil]    see-through but for its rim: discarded where |n·v| is over it (compiles S_VEIL); the body
  *                              is a wash laid over the finished picture by src/veil.js (Lorn II's mushrooms, VEIL there)
  * @param {object}  [o.mirror]  { y, lake: [x, z, rx, rz], lift, over, shimmer }: drawn as its reflection in still water at
@@ -3144,6 +3176,12 @@ export function makeMaterial(o) {
     const f = o.lineFar;
     mat.defines = { ...mat.defines, LINE_FAR: 1 };
     mat.uniforms.uLineFar = { value: new THREE.Vector3(lineStep({ line: f.line, lineTint: f.lineTint }), f.from ?? 30, f.to ?? f.from ?? 30) };
+  }
+  if (o.seeThrough) {
+    // (its own share of the see-through hole: one material per wall or pillar, o.seeThrough its id, so the cache keeps them apart)
+    mat.defines = { ...mat.defines, SEE_HOLE: 1 };
+    mat.uniforms.uSee = SEE_HOLE;
+    mat.uniforms.uSeeK = { value: 0 };
   }
   if (o.dissolve) {
     mat.defines = { ...mat.defines, DISSOLVE: 1 };

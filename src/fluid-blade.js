@@ -103,6 +103,20 @@ export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored pha
  * `perfect`: the hit-stop (s) of an evade whose i-frames swallow a blow (a perfect dodge).
  */
 export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5, iframes: [0.03, 0.24], gentle: [0.02, 0.28], rest: 0.3, perfect: 0.05 };
+/**
+ * The dodge roll (the fight temples' iso view, src/fight-temples/session.js: the jump button and B / ○ roll there): the
+ * evade made a tucked forward roll along the stick (or the way he faces, never a backstep), longer and further than the
+ * evade, `duration` s at up to `speed` m/s, its i-frames `iframes` s into it (Gentle `gentle`), `cooldown` s from the start
+ * of one to the next. FluidBlade.roll set to it turns the evade into it; null (everywhere else) the evade as it is.
+ * The pose: src/jump.js ROLL (a ground flip about the hips, as long as this).
+ */
+export const ROLL = { duration: 0.42, cooldown: 0.75, speed: 9.5, iframes: [0.02, 0.34], gentle: [0.02, 0.4], rest: 0.3 };
+/**
+ * The generous cut (the fight temples): the blade's swing takes every foe in a wider, longer cone at once (`reach` m from
+ * the chest, `angle` its half angle), not only those the drawn blade passes through; a wall between still keeps a foe
+ * out of it (the cone's line of sight: targets.js targetsInCone). FluidBlade.wide set to it; null elsewhere.
+ */
+export const WIDE_CUT = { reach: 3.9, angle: 1.5 };
 /** The i-frame window [from, to] (s into an evade) for this setting. */
 export const iframeWindow = (gentle = false, E = EVADE) => (gentle ? E.gentle : E.iframes);
 /** Is an evade `age` s old invulnerable (it was given i-frames: `granted`)? */
@@ -418,6 +432,8 @@ export class FluidBlade {
     this.evadeHeld = false; this.evadeT = 0; this.evadeCool = 0; this.evadeDir = new THREE.Vector3();
     // its i-frames: how long it has run, whether it was given them, the rest before the next can be, a blow swallowed
     this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
+    // the dodge roll (ROLL: the evade made a roll; the fight temples set it) and the generous cut (WIDE_CUT); the evade under way's spec
+    this.roll = null; this.wide = null; this.evadeSpec = EVADE;
     // the locked-on hops' own dodge frames (hop(): the back flip, the side hop; src/jump.js HOP): how long it has run, its window
     this.hopAge = Infinity; this.hopWin = null; this.hopGranted = false;
     this.hitTargets = new Set(); this.previousBlade = null; this.buffered = 0; this.closeIn = 0;
@@ -488,7 +504,9 @@ export class FluidBlade {
   }
 
   /** The evade's i-frames are on now (`gentle`: the Gentle setting's longer window). */
-  iframes(gentle = this.gentle) { return (this.evadeT > 0 && evadeInvulnerable(this.evadeAge, gentle, this.evadeGranted)) || this.hopFrames(gentle); }
+  iframes(gentle = this.gentle) { return (this.evadeT > 0 && evadeInvulnerable(this.evadeAge, gentle, this.evadeGranted, this.evadeSpec)) || this.hopFrames(gentle); }
+  /** Rolling now (the evade under way is a ROLL): s into it, or null. */
+  get rolling() { return this.evadeT > 0 && this.evadeSpec !== EVADE ? this.evadeSpec.duration - this.evadeT : null; }
   /** A hop's dodge frames are on now (Gentle: to its end, as the evade's). */
   hopFrames(gentle = this.gentle) {
     const W = this.hopWin;
@@ -547,10 +565,10 @@ export class FluidBlade {
     this.sinceEvade = this.evadeT > 0 ? 0 : this.sinceEvade + dt;
     this.sinceParry += dt; this.dashCool = Math.max(0, this.dashCool - dt);
     // (the i-frames' clock: their window closing starts the rest before the next evade may have them)
-    const wasOn = this.evadeGranted && this.evadeAge < iframeWindow(this.gentle)[1];
+    const wasOn = this.evadeGranted && this.evadeAge < iframeWindow(this.gentle, this.evadeSpec)[1];
     this.evadeAge = this.evadeT > 0 ? this.evadeAge + dt : Infinity;
     this.iframeRest = Math.max(0, this.iframeRest - dt);
-    if (wasOn && !(this.evadeT > 0 && this.evadeAge < iframeWindow(this.gentle)[1])) this.iframeRest = EVADE.rest;
+    if (wasOn && !(this.evadeT > 0 && this.evadeAge < iframeWindow(this.gentle, this.evadeSpec)[1])) this.iframeRest = this.evadeSpec.rest ?? EVADE.rest;
     const hopWas = this.hopFrames();
     this.hopAge += dt;
     if (hopWas && !this.hopFrames()) this.iframeRest = EVADE.rest;
@@ -562,12 +580,15 @@ export class FluidBlade {
     this.guardHeld = held;
     const dodgePress = evade && !this.evadeHeld; this.evadeHeld = evade;
     if (ok && dodgePress && !this.evadeT && !this.evadeCool && p?.onGround && (!this.swinging || this.phase === 'recover' || this.charging)) {
-      this.stop(); this.evadeT = EVADE.duration; this.evadeCool = EVADE.cooldown;
+      const E = this.evadeSpec = this.roll ?? EVADE;
+      this.stop(); this.evadeT = E.duration; this.evadeCool = E.cooldown;
       this.evadeAge = 0; this.evadeGranted = this.iframeRest === 0; this.dodged = false;
       if (p._moveDir?.lengthSq() > 0.01) this.evadeDir.copy(p._moveDir);
+      else if (this.roll) p.frame.dir(p.heading, this.evadeDir);   // (a roll goes the way he faces: never a backstep)
       else p.frame.dir(p.heading, this.evadeDir).negate();
       p.frame.dir(p.heading, this.dir);
-      const target = lockTarget(p.pos);
+      const target = this.roll ? null : lockTarget(p.pos);
+      if (this.roll) this.dir.copy(this.evadeDir);   // (he faces the way he rolls)
       if (target) {
         _a.subVectors(target.position(), p.pos); _a.addScaledVector(p.frame.up, -_a.dot(p.frame.up));
         if (_a.lengthSq() > 1e-6) this.dir.copy(_a).normalize();
@@ -714,7 +735,8 @@ export class FluidBlade {
     if (this.evadeT && p.onGround) {
       this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
       this.pose.k = 1; this.pose.noArm = true; p.aim = this.pose;
-      p.combatMotion = { dir: this.evadeDir, speed: EVADE.speed * (0.55 + 0.45 * Math.sin(Math.PI * this.evadeT / EVADE.duration)), scale: 0, evade: this.evadeT / EVADE.duration };
+      const E = this.evadeSpec;
+      p.combatMotion = { dir: this.evadeDir, speed: E.speed * (0.55 + 0.45 * Math.sin(Math.PI * this.evadeT / E.duration)), scale: 0, evade: this.evadeT / E.duration, roll: this.rolling };
     } else if (this.charging && p.onGround) {
       p.combatMotion = { dir: this.dir, speed: 0, scale: CHARGE.move };   // (gathering: a slow step at most)
     } else if (this.swinging && p.onGround) {
@@ -878,6 +900,10 @@ export class FluidBlade {
       hits = hits.filter((h) => !h.target.body?.());
       hits.push(...bodyHits(origin, C.reach, T.physics, this.previousBlade ?? pose, pose));
       hits = hits.filter((h) => h.body || sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
+    }
+    // the generous cut (WIDE_CUT, the fight temples): every foe in its wider, longer cone, a wall between keeping one out
+    if (this.wide && !S?.down && !this.rising) {
+      for (const h of bladeHits(origin, C.dir, T.physics, { reach: this.wide.reach * (C.reach / BLADE.reach), angle: Math.max(C.angle, this.wide.angle) })) if (!hits.some((x) => x.target === h.target)) hits.push(h);
     }
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);

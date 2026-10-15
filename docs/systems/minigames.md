@@ -208,7 +208,9 @@ export default {
   each value. `hud.countdown: s` shows the time left of `s` seconds in the clock's box instead of the time taken.
 - `update`'s third argument has `raw`, the merged controls (a game reading buttons of its own: the drum
   circle's four face buttons, `PadJump` / `PadE` / `PadEvade` / `PadGadget`); `pause(on)` is called when the
-  pause card opens and closes (the drum circle stops its song and picks it up again).
+  pause card opens and closes (the drum circle stops its song and picks it up again). A game on foot may rewrite the
+  controls before the traveller and the gadget in hand read them: `input(controls)`, called in play each frame from
+  main.js through `MinigameRunner.filterInput` (the fight temples turn the jump into the evade's press: a roll).
 - `update(dt, input)`: `input` is `kit/input.js` `readInput`: `x`, `y`, `jump` / `jumpPressed` / `jumpReleased`,
   `action` / `actionPressed`, `tuck` (RT / R2 or Shift: where they mean the same), `trigger` (RT / R2 alone),
   `boost` (Shift, RB / R1, L3 on a pad, the touch screen's run toggle: the Ring race's boost), `brake` (LT / L2,
@@ -390,14 +392,17 @@ headless Chrome (hold LT, turn the rig toward the next target with a lead, pulse
 A Diablo-like temple in each world (issue #341; the design and the template: `docs/design/fight-temples.md`), one
 built: the desert's **Sunken Hall** (`fight-desert.js`, its table `src/fight-temples/desert.js`). Played on foot
 (`drives: false`) under a fixed isometric camera the session puts on its line after the rig every frame (the rig's
-yaw held on it, so the stick walks him on the screen's axes); walls and pillars between the camera and him come down
-to stubs. Four rooms, two or three waves each of the desert's kinds made light (a cut or two, half the harm), up to
+yaw held on it, so the stick walks him on the screen's axes; 57° down, 28 m, a 31° lens, as Diablo IV's: issue #365);
+walls and pillars between the camera and him are seen through, a hole cut round him (`makeMaterial({ seeThrough })`).
+The jump button and B / ○ roll there (`ROLL`; the session's `input(controls)`, which the runner's `filterInput` calls
+before the traveller reads them, turns the jump into the evade's press) and the cut takes foes in a wider, longer cone
+(`WIDE_CUT`). Four rooms, two or three waves each of the desert's kinds made light (a cut or two, half the harm), up to
 24 heads standing, out of the ink springs; a room cleared, its gate (a mover) sinks; the last wave brings a lamp
 tripod and two whole herons, then the reliquary on the altar wins the Ember colours (`src/kit-colours.js`, items.md
 "The kit's colours"). Hearts and chimes drop (`ctx.drop`: the runner's host passes the world's chime field). The
 right stick or the mouse's ring aims; the blade and the gun take the foe in that cone (`FluidTool.lockOn` and
 `updateAimPoint` wrapped for the run); RT / R2 alone a quick shot. Its sign is its own doorway (`marker.model`, solid:
-`kit/marker.js`), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`.
+`kit/marker.js`), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`, `tests/fight-roll.test.js`.
 
 ## Ink tide (`waves.js`)
 

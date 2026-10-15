@@ -161,6 +161,11 @@ export const jumpStage = (s) => jumpPhase(s).stage;
 export const FLIP = { time: 0.44, pivot: 0.95, axis: 'x', turns: 1, tuck: { legs: 1.5, knees: 2.0, arms: 1.1, elbows: 1.3, torso: 0.35, head: 0.3 } };
 /** Locked on, back + jump: the evade's back flip, the front flip turned the other way, a little longer (its hop is higher). */
 export const BACK_FLIP = { ...FLIP, time: 0.5, turns: -1, tuck: { ...FLIP.tuck, torso: -0.25, head: -0.2 } };
+/**
+ * The dodge roll's pose (src/fluid-blade.js ROLL, the fight temples): a front flip on the ground, about a low pivot (the
+ * tucked body's middle), tucked hard (knees to the chest, the head down, the back rounded), as long as the roll.
+ */
+export const ROLL_FLIP = { time: 0.42, pivot: 0.6, axis: 'x', turns: 1, tuck: { legs: 1.7, knees: 2.3, arms: 1.2, elbows: 1.5, torso: 0.95, head: 0.6 } };
 /** Locked on, left or right + jump: the side hop, a lean into the hop and back, the legs gathered (`side` set per hop: ±1, + his right). */
 export const SIDE_HOP = { time: 0.36, pivot: 0.95, axis: 'z', lean: 0.42, side: 1, tuck: { legs: 0.7, knees: 1.1, arms: 0.35, elbows: 0.6, torso: 0.12, head: 0.08 } };
 

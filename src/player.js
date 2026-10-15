@@ -11,7 +11,7 @@ import { AirMoves } from './air-moves.js';
 import { SWIM, swimFrame, swimPose, leaveSwim, waterHere } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 import { triggers } from './controller.js';
-import { JumpLayer, FLIP, flipPose, boostVelocity, HOP, hopKind } from './jump.js';
+import { JumpLayer, FLIP, ROLL_FLIP, flipPose, boostVelocity, HOP, hopKind } from './jump.js';
 import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
 import { standGround, moverCarrier } from './carriers.js';
@@ -2632,7 +2632,7 @@ export class Player {
     const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim && !this.lockOn ? this.frame.headingOf(this._moveDir) : null;   // (locked on: the chest stays on the foe)
     (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
     this.loco.pose(c);
-    if (this.combatMotion?.evade) {
+    if (this.combatMotion?.evade && this.combatMotion.roll == null) {
       const e = Math.sin(Math.PI * this.combatMotion.evade);
       c.body.position.y -= e * 0.16;
       c.body.rotation.z += e * 0.18 * this.combatMotion.dir.dot(this.frame.right);
@@ -2649,6 +2649,8 @@ export class Player {
     if (flip != null && !this.onGround && !this.climbing && !this.swim && !this.ride && !this.down) flipPose(c, flip);
     // the locked-on hop's flip: the back flip, the side hop's lean (src/jump.js BACK_FLIP, SIDE_HOP)
     else if (hop && !this.climbing && !this.swim && !this.ride && !this.down) flipPose(c, hop.s, 1, hop.spec);
+    // the dodge roll (src/fluid-blade.js ROLL, the fight temples): head over heels along the ground, tucked
+    else if (this.combatMotion?.roll != null && this.onGround && !this.climbing && !this.swim && !this.ride && !this.down) flipPose(c, this.combatMotion.roll, 1, ROLL_FLIP);
     if (this.edge?.k > 0.01 && this.onGround) this.edge.pose(c, 1 - THREE.MathUtils.smoothstep(hs, 0.6, 2.6));
     this.idleLayer(dt, hs);
     if (this.onGround && !this.humanoid) this.footIK(dt);

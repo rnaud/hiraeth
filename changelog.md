@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.77 — 2026-10-14
 
+- In the Sunken Hall your sword reaches further and wider: a cut takes every foe in a broad arc in front of you, a step further out than before, but never one behind a wall.
+- In the Sunken Hall, the jump button (A / ×) and B / ○ make a dodge roll: a quick tumble the way you push the stick, or the way you face, with a moment no blow can touch you. There is no jumping in there any more. Everywhere else, both work as before.
+- The Sunken Hall’s camera looks down the way Diablo IV’s does: steeper (57° instead of 52°) and a little further back, so a room and its crowd fit the screen better.
+- In the Sunken Hall, a wall or a pillar between you and the camera is no longer cut down to a stump: a hole opens in it round the traveller as you pass behind it and closes again once you are clear, so you always see yourself and the foes round you, and still see where the wall stands.
 - The Foreman’s hammer reaches you when you stand your ground: it comes close enough to land on your raised guard, even with your back to the Clock-House’s wall, and at a handheld’s frame rate it no longer passes through you without touching your guard.
 - The Mother Snapper’s fight can always be finished: in her second phase she no longer just throws seeds at you when you keep your distance, she still rears back to snap at you, so you can push her head and still her open mouth. Every guardian was played through from close by, from the middle of its hall and from its far side, at 60 and at 30 frames a second.
 - Locked on, stepping left and right (round the Mother Snapper, or any foe) is smooth now: the traveller’s body no longer slides a metre off him and snaps back three times a second, and his feet no longer jolt each time a step starts over.

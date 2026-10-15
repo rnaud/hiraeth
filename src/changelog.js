@@ -136,6 +136,13 @@ export const CHANGELOG = [
       see: 'In the Hush-House, calm the Mother Snapper through her first phase, then stand back by the hall’s wall: she still rears up to snap at you every few moves (“She rears back to snap”), and a push into her head as she draws back slams it down, spent.' },
     { text: 'The Foreman’s hammer reaches you when you stand your ground: it comes close enough to land on your raised guard, even with your back to the Clock-House’s wall, and at a handheld’s frame rate it no longer passes through you without touching your guard.',
       see: 'In the Clock-House, in the Foreman’s second phase, hold your guard toward it with your back to the wall: the hammer rings off your guard and its face swings open.' },
+    // the Sunken Hall played more like Diablo IV (issue #365): src/fight-temples/rules.js ISO, SEE (seeHoleCuts), rooms.js
+    // (a wall's own materials), session.js (seeThrough, input); materials.js SEE_HOLE; fluid-blade.js ROLL, WIDE_CUT;
+    // jump.js ROLL_FLIP; kit/runner.js filterInput; tests/fight-temples.test.js, tests/fight-roll.test.js
+    'In the Sunken Hall, a wall or a pillar between you and the camera is no longer cut down to a stump: a hole opens in it round the traveller as you pass behind it and closes again once you are clear, so you always see yourself and the foes round you, and still see where the wall stands.',
+    'The Sunken Hall’s camera looks down the way Diablo IV’s does: steeper (57° instead of 52°) and a little further back, so a room and its crowd fit the screen better.',
+    'In the Sunken Hall, the jump button (A / ×) and B / ○ make a dodge roll: a quick tumble the way you push the stick, or the way you face, with a moment no blow can touch you. There is no jumping in there any more. Everywhere else, both work as before.',
+    'In the Sunken Hall your sword reaches further and wider: a cut takes every foe in a broad arc in front of you, a step further out than before, but never one behind a wall.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

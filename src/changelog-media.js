@@ -863,6 +863,8 @@ const HELP339 = 'muted headless Chrome (High, 1280 × 720) against this branch�
 const LANDMARKS76 = "Muted headless Chrome, High, 1280 × 720, clear at 10:00; 433459bf before and the working tree after, 14 October 2026. Framing follows the taller structures; the Lamp-House now stands farther into the shallows.";
 /** (v1.76, issue #341: the fight temple and the kit's colours, shot by hand on this branch) */
 const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this branch (port 6341), High, 1280 × 720, a save with the sword and the shield; the run played by a script that walks to the nearest foe and cuts; 14 October';
+/** (v1.77, issue #365: the Sunken Hall more like Diablo IV, shot by hand before and after) */
+const FIGHT365 = 'Issue #365: muted headless Chrome (High, 1280 × 720) against its own Vite (port 6483), the Sunken Hall begun from its start card, the traveller set at the same spots, nothing hurting him; before, the tree at 46a9c59d8, after, this branch; 15 October; cwebp -q 72';
 /** (v1.77, issue #336: the Rose House's rooms, shot by hand before and after) */
 const SHRINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6436, at 9f1142fa7 (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Warden's Well's rooms, shot by hand before and after) */
@@ -1172,6 +1174,34 @@ export const CHANGELOG_MEDIA = {
       ], source: 'the scratchpad’s shots.mjs, the skin first then ?noskin=1, back to back', note: 'The machine was shared with a test run: read these as no worse, not as faster.' },
       ...DEVICES342.whale,
     ] },
+    { match: 'In the Sunken Hall, a wall or a pillar between you and the camera', tags: ['desert', 'combat'], shots: [
+      { name: 'fight-see-corner', title: 'The stair foot’s near corner', caption: 'He stands by the two walls between him and the camera. Before, both cut down to stumps; after, they stand, a hole cut in them round him, its edge inked like the rest, their feet left on the floor.', from: FIGHT365 },
+      { name: 'fight-see-pillar', title: 'Behind a pillar', caption: 'In the pillared hall, a pillar between him and the camera: before, a stump with its cap; after, cut away down to its foot, so the octagon on the floor still shows where it stands.', from: FIGHT365 },
+    ], see: 'In the Sunken Hall, walk behind one of the pillars in the second room, or into the stair foot’s near corner: the stone between you and the camera opens round you in a fifth of a second and closes behind you.' },
+    { match: 'The Sunken Hall’s camera looks down the way Diablo IV’s does', tags: ['desert', 'combat'], shots: [
+      { name: 'fight-camera', title: 'A crowd in the stair foot', caption: 'The same spot and the same crowd: after, the view a little steeper and wider, the near walls opened round him rather than cut down.', from: FIGHT365 },
+    ], numbers: [
+      { title: 'The Sunken Hall’s camera (Diablo IV: a fixed angle, no turning, about 55–60° down by players’ measure; Blizzard gives no figure)', unit: '', better: 'higher', device: 'the game’s own numbers (src/fight-temples/rules.js ISO)', rows: [
+        { where: 'pitch, degrees down from the horizon', before: 51.6, after: 57.0 },
+        { where: 'distance from the look point, m', before: 27, after: 28 },
+        { where: 'lens (vertical field of view), degrees', before: 30, after: 31 },
+        { where: 'floor tall on the screen at the traveller, m', before: 14.5, after: 15.5 },
+      ], source: 'ISO before (v1.76) and after; the yaw fixed at 45° in both' },
+    ] },
+    { match: 'In the Sunken Hall, the jump button (A / ×) and B / ○ make a dodge roll', tags: ['desert', 'combat', 'menus'], shots: [
+      { name: 'fight-roll', title: 'Mid-roll', caption: 'A tenth of a second into the roll: tucked, head first, the knees to the chest, on his way across the pillared hall.', only: 'after', from: FIGHT365 },
+    ], numbers: [
+      { title: 'The dodge in the Sunken Hall: the roll (after) against the evade it replaces there (before)', unit: 's', better: 'higher', device: 'the game’s own numbers (src/fluid-blade.js EVADE, ROLL)', rows: [
+        { where: 'how long it lasts', before: 0.28, after: 0.42 },
+        { where: 'untouchable for', before: 0.21, after: 0.32 },
+      ], source: 'EVADE and ROLL; the roll carries about 3.3 m, the evade about 1.8 m back' },
+    ], see: 'In the Sunken Hall, push the stick and press A / × (or B / ○, Space, Alt): he rolls that way; standing still, he rolls the way he faces. Roll through a blot’s slam just as it lands and it misses.' },
+    { match: 'In the Sunken Hall your sword reaches further and wider', tags: ['desert', 'combat'], numbers: [
+      { title: 'A cut’s reach in the Sunken Hall', unit: '', better: 'higher', device: 'the game’s own numbers (src/fluid-blade.js BLADE, WIDE_CUT)', rows: [
+        { where: 'reach from the chest, m', before: 2.9, after: 3.9 },
+        { where: 'arc, degrees either side', before: 66, after: 86 },
+      ], source: 'BLADE.reach and angle against WIDE_CUT; a wall between still keeps a foe out (the cut’s line of sight)' },
+    ], see: 'In the Sunken Hall, let a few blots come round you and cut once: those to your sides and a step further out fall too. One on the far side of a wall is never hit.' },
   ],
   '1.76': [
     { match: 'Across all fourteen temples', shots: [

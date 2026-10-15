@@ -1,19 +1,21 @@
 // The fight temples' rules (docs/design/fight-temples.md, docs/systems/minigames.md "Fight temples"), pure so the
 // tests can hold them: the fixed isometric camera's angle and follow, which walls stand between it and the traveller
-// (cut down to a stub, as Diablo's are), the auto-aim in the facing cone, the rooms' walls and doors from their
+// (seen through: a hole cut round him, issue #365), the auto-aim in the facing cone, the rooms' walls and doors from their
 // rectangles, the waves (many light foes of the world's kinds, a tougher last wave), how many stand at once, the loot.
 // The look and the run are in session.js and rooms.js; each world's temple is a table (desert.js).
 
 import * as THREE from 'three';
+import { SEE_LOOK } from '../materials.js';
 
 // ------------------------------------------------------------------ the camera
 /**
  * The isometric view: from the south-east (yaw: the camera's side of the traveller, as CameraRig's: +x +z), high
  * (pitch over the horizon), far and narrow (an orthographic feel: little perspective), a soft lead the way he moves.
  * `look`: the height looked at over his feet; `ease`: how quickly the view catches up (1/s); `lead` s of his speed
- * looked ahead, at most `leadMax` m.
+ * looked ahead, at most `leadMax` m. Diablo IV's (issue #365): a fixed yaw the player never turns, about 57° down
+ * (v1.76 here: 0.9 rad, 51.6°, 27 m, a 30° lens), a long narrow lens; about 15.5 m of floor tall on the screen at him.
  */
-export const ISO = { yaw: Math.PI / 4, pitch: 0.9, dist: 27, fov: 30, look: 0.9, ease: 5, lead: 0.32, leadMax: 2.6 };
+export const ISO = { yaw: Math.PI / 4, pitch: 0.995, dist: 28, fov: 31, look: 0.9, ease: 5, lead: 0.32, leadMax: 2.6 };
 
 /** From the look point toward the camera, `dist` long (the same frame as CameraRig: x = sin yaw, z = cos yaw). */
 export function isoOffset(I = ISO, out = new THREE.Vector3()) {
@@ -38,9 +40,15 @@ export function followIso(look, at, vel, dt, I = ISO) {
   return look;
 }
 
-// ------------------------------------------------------------------ the walls that come down
-/** How a wall in the way comes down: to `stub` of its height, quickly (`down` 1/s), back up slowly (`up`). */
-export const CUT = { stub: 0.14, down: 9, up: 2.5, ring: 1.6, heights: [0.4, 1.6] };
+// ------------------------------------------------------------------ the walls seen through
+/**
+ * A wall or pillar in the way is seen through (issue #365; it was cut down to a stub): a hole opens in it round him,
+ * `radius` m at his chest (`chest` m over his feet; a circle on the screen: materials.js SEE_HOLE, its edge a little
+ * uneven), in over `in` s, closed again over `out` s once it is clear; `ring`, `heights`: the points round him the camera
+ * must see (sightPoints). A pillar's hole is `pillar` times as wide: the whole of it down to its foot (a hole through a
+ * pillar left its cap's corners hanging in the air).
+ */
+export const SEE = { radius: 3.4, in: 0.2, out: 0.3, ring: 1.6, heights: [0.4, 1.6], chest: 1.1, pillar: 4 };
 
 const _ray = new THREE.Ray(), _hit = new THREE.Vector3(), _p = new THREE.Vector3();
 /** Does the segment from `a` to `b` pass through the box (a THREE.Box3)? */
@@ -53,8 +61,8 @@ export function segmentHitsBox(a, b, box) {
   return !!h && a.distanceTo(h) < L - 0.05;
 }
 
-/** The points the camera must see: his body (two heights) and a ring round him at his knees, `CUT.ring` out. */
-export function sightPoints(at, C = CUT) {
+/** The points the camera must see: his body (two heights) and a ring round him at his knees, `SEE.ring` out. */
+export function sightPoints(at, C = SEE) {
   const pts = C.heights.map((h) => new THREE.Vector3(at.x, at.y + h, at.z));
   for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; pts.push(new THREE.Vector3(at.x + Math.cos(a) * C.ring, at.y + C.heights[0], at.z + Math.sin(a) * C.ring)); }
   return pts;
@@ -67,9 +75,28 @@ export function inTheWay(cam, boxes, points) {
   return out;
 }
 
-/** Each cuttable's share cut down a frame on (k 0 standing … 1 a stub), toward `want` (true: in the way). */
-export function easeCut(k, want, dt, C = CUT) {
-  return want ? k + (1 - k) * (1 - Math.exp(-C.down * dt)) : k * Math.exp(-C.up * dt);
+/** Each one's share seen through a frame on (k 0 solid … 1 the hole open), toward `want` (true: in the way): steady, `in` / `out` s. */
+export function easeSee(k, want, dt, C = SEE) {
+  return want ? Math.min(1, k + dt / C.in) : Math.max(0, k - dt / C.out);
+}
+/** The hole's size for a share (eased at both ends): what the shader is given (uSeeK). */
+export const seeOpen = (k) => k * k * (3 - 2 * k);
+
+const _ax = new THREE.Vector3(), _rel = new THREE.Vector3();
+/**
+ * Is the point `p` (world) of a wall cut out by the hole at `open` (0..1, seeOpen), seen from `cam`, round `at` (his
+ * chest), `radius` m there? `dot` (0..1): the uneven edge's noise there (materials.js vnoise: 0 the hole at its full
+ * size, 1 its edge at its most eaten in). Mirrors the shader's SEE_HOLE block (src/materials.js).
+ */
+export function seeHoleCuts(p, cam, at, open, { radius = SEE.radius, dot = 0, rim = SEE_LOOK.wobble } = {}) {
+  if (!(open > 0.001)) return false;
+  _ax.subVectors(at, cam); const L = _ax.length();
+  _rel.subVectors(p, cam);
+  const s = _rel.dot(_ax) / Math.max(L, 1e-4);
+  if (!(s > 0 && s < L - 0.35) || p.y <= at.y - SEE_LOOK.foot) return false;   // (its foot kept)
+  const R = radius * open * s / L;
+  const e = _rel.addScaledVector(_ax, -s / Math.max(L, 1e-4)).length() / Math.max(R, 1e-4);
+  return e < 1 - rim * dot;
 }
 
 // ------------------------------------------------------------------ the rooms
