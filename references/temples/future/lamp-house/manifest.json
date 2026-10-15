@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Lamp-House in the shallows of a dark swamp wood, built by a vanished and far more advanced people as a place where light wakes whatever waits for it; inside it is a quiet test chamber of ancient high technology. A dark square hall of dark metal and slate, nearly black, built of monolithic slabs with crisp chamfered edges. Set in the floor are three wide circular basin terminals of dark water ringed in machined bronze, two unlit, one waking with a warm gold light rising from its depth up into the dark; thin warm gold line circuits run out from it across the floor toward the others. Along one wall a row of round machined sockets, and in it small glass spheres full of dark water. Over the basins, square stepping plates float in the air, but only where a light falls are they solid and drawn, elsewhere just a faint outline. Hanging from the ceiling, wings folded flat like two great panels, the Lampless: a great pale moth-shaped machine of thin white plates, a round lens on each wing in the shape of the makers' sign. The makers' sign on the lintel: three small lamps in a row above a long shallow hull, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a small glowing lantern charm at their hip, walks in a soft circle of gold light that makes the plates around them solid, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, deep blue-violet darkness, dark slate, warm gold glow, moss green glints, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, mushrooms, hive, shells, coral, roots, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-32-3f21",
+      "candidate": "openai/1",
+      "sha256": "c628b601140af05a0a04b081ddae47022f2082046c1b2788a1c8cfe03e64c043",
+      "bytes": 192840,
+      "costUSD": 0.041
+    }
+  ]
+}

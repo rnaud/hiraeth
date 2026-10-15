@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Warden's Well on the rim of a city built down a great shaft, a well of a vanished and far more advanced people turned on its end, whose hidden eyes can only be reached by flying; inside it is a quiet test chamber of ancient high technology. A towering vertical shaft of dark slate built of stacked rings, each ring a band of precise slabs with crisp chamfered edges, rising out of sight; thin glowing cyan line circuits climb the wall in vertical lines and ring bands. Here and there a deep ledge juts out under an overhang, and in it, hidden from the floor, a round lens terminal, one already lit cyan. Between the rings, great flat rectangular vanes of dark metal turn slowly on machined axles, moving the air up the shaft. Far above, the shaft closes in an iris of dark metal blades, half shut, warm light at its centre. Far below, a round flat riding disc with a glowing rim turns on its axle. On a wide ledge stands the warden: a tall machine on three long jointed legs, a ring of vents round its drum body, a single lamp-eye and a hatch on its crown, still at its post. The makers' sign engraved on a ring: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack flies up the shaft on twin jets of cyan glowing fluid toward a hidden ledge, dwarfed by the well. The shaft is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, steel blue metal, cyan glow, cream stone trims, warm light from above, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, honeycomb, wasp nest, shells, coral, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-53-a2f6",
+      "candidate": "openai/1",
+      "sha256": "cbcb9f8af7dcc4bdd75bbee69f7a371d32dbdfe3784c10902ee2366ff8780920",
+      "bytes": 241844,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Warden's Well on the rim of a city built down a great shaft, a well of a vanished and far more advanced people turned on its end, whose hidden eyes can only be reached by flying; inside it is a quiet test chamber of ancient high technology. A towering vertical shaft of dark slate built of stacked rings, each ring a band of precise slabs with crisp chamfered edges, rising out of sight; thin glowing cyan line circuits climb the wall in vertical lines and ring bands. Here and there a deep ledge juts out under an overhang, and in it, hidden from the floor, a round lens terminal, one already lit cyan. Between the rings, great flat rectangular vanes of dark metal turn slowly on machined axles, moving the air up the shaft. Far above, the shaft closes in an iris of dark metal blades, half shut, warm light at its centre. Far below, a round flat riding disc with a glowing rim turns on its axle. On a wide ledge stands the warden: a tall machine on three long jointed legs, a ring of vents round its drum body, a single lamp-eye and a hatch on its crown, still at its post. The makers' sign engraved on a ring: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack flies up the shaft on twin jets of cyan glowing fluid toward a hidden ledge, dwarfed by the well. The shaft is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, steel blue metal, cyan glow, cream stone trims, warm light from above, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, honeycomb, wasp nest, shells, coral, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-32-c9ea",
+      "candidate": "openai/1",
+      "sha256": "7320aed1c8e1d721f46dde0016e5b71b296d89a5c17df494cd55605fe6597dd9",
+      "bytes": 234278,
+      "costUSD": 0.041
+    }
+  ]
+}

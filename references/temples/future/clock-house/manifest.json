@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Clock-House in the Glass Dunes, built by a vanished and far more advanced people as the house where everything takes its beat, and where every clock stopped at the count of four; inside it is a quiet test chamber of ancient high technology. A tall round hall of dark slate slabs with crisp chamfered edges round a deep chasm. Over the chasm hangs the clock: a column of clear glass in which a stream of glittering pale sand has stopped mid-fall, wrapped by a nest of thin concentric metal rings of different sizes, each tilted on its own axis like an orrery, floating, motionless; thin glowing teal line circuits run round each ring. Below them a great flat disc on a long arm swings out over the chasm, frozen at the end of its swing. Set into the round wall, a ring of six round lens terminals, four glowing teal, two dark. A walkway of floating square plates crosses toward the clock. On a ledge stands the Clockwork Foreman: a squat brass drum machine on short legs with a round glass dial on its chest and two heavy hammers folded at its sides. The makers' sign engraved on the walkway's first plate: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack fires quick bright splashes of glowing fluid at the lenses, a brass coil on the backpack glowing, dwarfed by the clock. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, brass, clear glass, glittering sand, teal glow, warm light, deep umber shadows in the chasm, restrained cream paper grain, clear readable construction, no numbers. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, snail shell, shells, coral, plants as architecture, a face, clock numerals, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-34-984e",
+      "candidate": "openai/1",
+      "sha256": "467814040007f9d3b32128f4f0a26788d1cce5f91ae4ad6d49a1398294c43f40",
+      "bytes": 261142,
+      "costUSD": 0.041
+    }
+  ]
+}

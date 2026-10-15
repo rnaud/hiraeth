@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Engine-House under the dunes, the engine of a vanished and far more advanced people that once turned a great buried wheel, now stopped; inside it is a quiet test chamber of ancient high technology. A long high machine hall of dark metal and slate slabs with crisp chamfered edges, navy and blue-grey, its floor split down the middle by a straight pit glowing amber far below, heat haze rising. Across the pit stands a row of square piston slabs at different heights, rising and falling like steps; thin glowing amber line circuits run along their sides and across the floor, the oil-light pulsing slowly. Near the far end a great toothed crank wheel of machined metal is jammed, a polished dark sphere caught in its teeth. A huge rectangular drop hammer hangs over a narrow walkway. In the wall, four round lens terminals in a square, two glowing amber. Crouched in an alcove, the Tooth-Warden: a heavy machine of rust-red plates on four legs with four vents on its back, asleep. A cool shaft of teal daylight falls from a round hole far above. The makers' sign stamped on the crank's hub: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, four glowing chambers on it, one newly lit, throws four quick splashes of glowing fluid at the lenses, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, navy metal, dark slate, rust red, amber glow, brass, cool teal daylight, deep umber shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, worms, fungus, hive, shells, coral, plants as architecture, a face, steampunk clutter, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-53-e467",
+      "candidate": "openai/1",
+      "sha256": "bfde9d224aacf70fc1a08dfa0be794b7366976cf01759f4c3c2f9a801cac2416",
+      "bytes": 222380,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Engine-House under the dunes, the engine of a vanished and far more advanced people that once turned a great buried wheel, now stopped; inside it is a quiet test chamber of ancient high technology. A long high machine hall of dark metal and slate slabs with crisp chamfered edges, navy and blue-grey, its floor split down the middle by a straight pit glowing amber far below, heat haze rising. Across the pit stands a row of square piston slabs at different heights, rising and falling like steps; thin glowing amber line circuits run along their sides and across the floor, the oil-light pulsing slowly. Near the far end a great toothed crank wheel of machined metal is jammed, a polished dark sphere caught in its teeth. A huge rectangular drop hammer hangs over a narrow walkway. In the wall, four round lens terminals in a square, two glowing amber. Crouched in an alcove, the Tooth-Warden: a heavy machine of rust-red plates on four legs with four vents on its back, asleep. A cool shaft of teal daylight falls from a round hole far above. The makers' sign stamped on the crank's hub: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, four glowing chambers on it, one newly lit, throws four quick splashes of glowing fluid at the lenses, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, navy metal, dark slate, rust red, amber glow, brass, cool teal daylight, deep umber shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, worms, fungus, hive, shells, coral, plants as architecture, a face, steampunk clutter, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-12-00-3412",
+      "candidate": "openai/1",
+      "sha256": "e0e6a74376aec0657560763fba32ae859003b50f769ae1137e9dab42d9108393",
+      "bytes": 198570,
+      "costUSD": 0.041
+    }
+  ]
+}

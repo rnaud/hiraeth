@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Casting-House in the Moon Foundry, the round casting tower where a vanished and far more advanced people poured the first small moons; inside it is a quiet test chamber of ancient high technology in which every door and bridge is held by the weight of a moon. A tall round hall of dark iron-brown slate slabs with crisp chamfered edges; thin glowing ivory-white line circuits run in rings round the floor and up the wall. Overhead, a great pale cracked moon hangs in the air inside a floating ring of dark metal, held by nothing. Across the floor runs a straight machined rail; on it waits a round polished iron moon. Halfway along, the rail passes through the house's pilot flame, a tall cool ember flame held inside a floating machined ring. At the rail's end, a great hooded cradle of dark metal, a shallow machined cup on a pivot, sits under a tall sealed door of two heavy slabs, the door's seam glowing faintly; beside it a small test cradle tips under a little stone moon and its own small door has slid half open. Below, through a square grating in the floor, the glow of the Last Founder, a great casting machine with heavy crucible doors. The makers' sign engraved on the great cradle: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds the founders' tongs, long jointed copper pincers with a glowing tip, ready to roll the iron moon along the rail, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark iron-brown slate, ivory-white glow, ivory moon, ochre, copper, warm flame light, deep umber shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, claws, eggs, fungus, hive, shells, coral, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-55-fb2e",
+      "candidate": "openai/1",
+      "sha256": "f93e01b51d3c75523d11d7083bdad670a76c2538c3dd033f20bcdc21accf60ef",
+      "bytes": 263314,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Casting-House in the Moon Foundry, the round casting tower where a vanished and far more advanced people poured the first small moons; inside it is a quiet test chamber of ancient high technology in which every door and bridge is held by the weight of a moon. A tall round hall of dark iron-brown slate slabs with crisp chamfered edges; thin glowing ivory-white line circuits run in rings round the floor and up the wall. Overhead, a great pale cracked moon hangs in the air inside a floating ring of dark metal, held by nothing. Across the floor runs a straight machined rail; on it waits a round polished iron moon. Halfway along, the rail passes through the house's pilot flame, a tall cool ember flame held inside a floating machined ring. At the rail's end, a great hooded cradle of dark metal, a shallow machined cup on a pivot, sits under a tall sealed door of two heavy slabs, the door's seam glowing faintly; beside it a small test cradle tips under a little stone moon and its own small door has slid half open. Below, through a square grating in the floor, the glow of the Last Founder, a great casting machine with heavy crucible doors. The makers' sign engraved on the great cradle: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds the founders' tongs, long jointed copper pincers with a glowing tip, ready to roll the iron moon along the rail, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark iron-brown slate, ivory-white glow, ivory moon, ochre, copper, warm flame light, deep umber shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, claws, eggs, fungus, hive, shells, coral, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-12-06-d917",
+      "candidate": "openai/1",
+      "sha256": "7aac01e9843f1b4436487ba2371f4516adeaf37ecc13a8518f08a4a56230c46a",
+      "bytes": 251966,
+      "costUSD": 0.041
+    }
+  ]
+}

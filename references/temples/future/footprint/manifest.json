@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Footprint in the Garden of Spheres, a giant pale sphere half sunk in a meadow, built by a vanished and far more advanced people where one of their walking giants set its foot, and where half of what is built can only be seen through a lens; inside it is a quiet test chamber of ancient high technology. A vast spherical chamber of smooth white panels, its curved wall divided into precise hexagonal and circular plates with crisp chamfered edges; concentric ring walkways circle it at different heights, thin glowing pale blue-white line circuits running along their edges. A wide gap opens between two walkways over nothing. In the floor plates are sunk round pressure plates shaped as prints of two, three and four long toes, and on some of them rest polished white spheres. Through a round glowing lens in the foreground the hidden half of the chamber appears, drawn in soft pale light: a bridge of pale glass plates across the gap, thin floating rings and struts linking the walkways where plain sight shows only air, a hidden lens terminal glowing. Floating at the centre of the sphere, seen only through the lens, the Echo: a glowing white core inside three slowly turning glass rings, trailing a long pale veil of light. A shallow round pool lies still in the lowest plate. The makers' sign on the core's lowest ring: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds a round makers' lens to one eye at the gap's edge, stepping onto the unseen bridge, dwarfed by the sphere. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, white panels, pale blue-white glow, pale glass, peach light, sage, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, onion layers, coral, plants as architecture, human footprints, five toes, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-12-01-9b43",
+      "candidate": "openai/1",
+      "sha256": "9195a19ef670a5bbd151786850f71289969eb13081d378233b215db122a9c743",
+      "bytes": 234337,
+      "costUSD": 0.041
+    }
+  ]
+}

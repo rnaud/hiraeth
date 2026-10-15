@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Whale-House on the sea floor of an underwater city, the sounding-house where a vanished and far more advanced people talked with the whales; inside it is a quiet test chamber of ancient high technology. A long hall of dark sage-green slate slabs with crisp chamfered edges; one whole wall is a window of glass nine metres tall in a precise frame of dark metal, holding back the deep blue sea, a great whale passing far out in the water. Thin glowing aquamarine line circuits run along the frame and across the floor. Beside the glass stands a round receiving dish of machined brass on a square footstone, a polished sphere rolling toward the footstone along a straight machined groove; high on a ledge above the glass, its twin dish beside a tall listening terminal. Along the wall, a row of brass horn terminals with round mouths, dark. Through the glass, out on the sea floor, the Listener: a great listening machine of dark plates, its huge fan-shaped ear of overlapping metal panels half spread. The makers' sign engraved on the footstone: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack raises a curled brass whale-horn to sound its one deep note into the dish, drawn as slow wide aquamarine rings, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark sage slate, aquamarine glow, coral band, brass, deep sea blue glass, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, nacre, shells, fungus, hive, coral, plants as architecture, a face, a robot knight, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-15-22-4682",
+      "candidate": "openai/1",
+      "sha256": "05db80d94256ce36940885d21c59f812fa7d0b6be4018f8d492385b4967873d2",
+      "bytes": 220386,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Whale-House on the sea floor of an underwater city, the sounding-house where a vanished and far more advanced people talked with the whales; inside it is a quiet test chamber of ancient high technology. A long hall of dark sage-green slate slabs with crisp chamfered edges; one whole wall is a window of glass nine metres tall in a precise frame of dark metal, holding back the deep blue sea, a great whale passing far out in the water. Thin glowing aquamarine line circuits run along the frame and across the floor. Beside the glass stands a round receiving dish of machined brass on a square footstone, a polished sphere rolling toward the footstone along a straight machined groove; high on a ledge above the glass, its twin dish beside a tall listening terminal. Along the wall, a row of brass horn terminals with round mouths, dark. Through the glass, out on the sea floor, the Listener: a great listening machine of dark plates, its huge fan-shaped ear of overlapping metal panels half spread. The makers' sign engraved on the footstone: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack raises a curled brass whale-horn to sound its one deep note into the dish, drawn as slow wide aquamarine rings, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark sage slate, aquamarine glow, coral band, brass, deep sea blue glass, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, nacre, shells, fungus, hive, coral, plants as architecture, a face, a robot knight, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-12-30-765e",
+      "candidate": "openai/1",
+      "sha256": "f9c0acaceda12dbe71407335db08de3552222d9c6d6a0bd109d72fa68ddab14d",
+      "bytes": 213909,
+      "costUSD": 0.041
+    }
+  ]
+}

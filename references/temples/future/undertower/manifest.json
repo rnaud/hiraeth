@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Undertower deep under a crowded market city, foundations older than anything above, built by a vanished and far more advanced people to carry a note across what cannot be crossed; inside it is a quiet test chamber of ancient high technology. A deep cavernous hall of dark blue-grey slate slabs with crisp chamfered edges, across a wide square pit filled far below with bundles of ancient cable glowing faintly where a note runs through them. On both sides of the pit stand receiving dishes of fine machined brass on slender pedestals, turned to face each other, thin glowing coral line circuits running down their stems into the floor. On the near side three polished spheres of three sizes sit in machined cups, one just splashed and humming in coral rings of sound; on the far side a tall brass horn terminal lights coral in answer. Square stepping plates rise out of the pit toward it, floating. Tall beside the far dish stands the First Sign: a slender machine mast on three legs with a round listening dish for a head, turned toward the sound. Far above, through slots in the roof, faint coloured light from the market's signs. The makers' sign engraved on the largest dish's base: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a pale spiral echo shell, a note flowing out of it as glowing rings toward the dish, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, blue-grey slate, brass, coral glow, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells as architecture, coral reef, roots, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-53-8e05",
+      "candidate": "openai/1",
+      "sha256": "70e83ae1a4d95ff4a62b52925d7c8af23a2ce7b54953013e954bcaa4e39b0777",
+      "bytes": 253961,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Undertower deep under a crowded market city, foundations older than anything above, built by a vanished and far more advanced people to carry a note across what cannot be crossed; inside it is a quiet test chamber of ancient high technology. A deep cavernous hall of dark blue-grey slate slabs with crisp chamfered edges, across a wide square pit filled far below with bundles of ancient cable glowing faintly where a note runs through them. On both sides of the pit stand receiving dishes of fine machined brass on slender pedestals, turned to face each other, thin glowing coral line circuits running down their stems into the floor. On the near side three polished spheres of three sizes sit in machined cups, one just splashed and humming in coral rings of sound; on the far side a tall brass horn terminal lights coral in answer. Square stepping plates rise out of the pit toward it, floating. Tall beside the far dish stands the First Sign: a slender machine mast on three legs with a round listening dish for a head, turned toward the sound. Far above, through slots in the roof, faint coloured light from the market's signs. The makers' sign engraved on the largest dish's base: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a pale spiral echo shell, a note flowing out of it as glowing rings toward the dish, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, blue-grey slate, brass, coral glow, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells as architecture, coral reef, roots, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-12-06-d907",
+      "candidate": "openai/1",
+      "sha256": "1074c49a3ef3a9ca6edfb0684a642c74278af1ead8140cc885786df0ed739d0b",
+      "bytes": 267815,
+      "costUSD": 0.041
+    }
+  ]
+}

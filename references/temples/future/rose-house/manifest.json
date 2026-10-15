@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Rose House, a cistern in the high desert dunes built by a vanished and far more advanced people, where their walking water-giants once came to drink and from which the fields below took their water; inside it is a quiet test chamber of ancient high technology. A vast square hall of monolithic dark slate slabs with crisp chamfered edges, dusted with rose and ochre desert sand at the joints; thin glowing ember orange line circuits run in straight lines and right-angled turns across the floor and up the walls, most of them dark. In the middle, a great circular basin sunk in concentric stepped rings, dry, a pale tide line round its rim, a square spout slab overhead with a dead light in its mouth. At the four corners stand four tall brazier terminals, machined slate obelisks with a round cup at the top, three cold, one burning with an ember orange flame. By the basin, a never-dying pilot flame hangs inside a floating machined ring. A polished dark sphere rolls along a straight machined groove in the floor toward the flame. Thin slate plates float in the air above the basin, held by nothing. Folded asleep in the dry basin, the Keeper: a tall machine on six long jointed legs of dark metal with a long crane neck and a single round lens for a head, its plates still. On a low pedestal a sealed chest with a glowing seam. The makers' sign is engraved on the spout slab: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack walks beside the groove, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, rose sand, ember orange glow, warm daylight from a slot in the roof, deep lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, plants as architecture, cactus, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-24-d62e",
+      "candidate": "openai/1",
+      "sha256": "6532d1eb5a5a4731f7e629c5e39c9d804ac84d3a11fd2ead90e772b62d1d307d",
+      "bytes": 213777,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Rose House, a cistern in the high desert dunes built by a vanished and far more advanced people, where their walking water-giants once came to drink and from which the fields below took their water; inside it is a quiet test chamber of ancient high technology. A vast square hall of monolithic dark slate slabs with crisp chamfered edges, dusted with rose and ochre desert sand at the joints; thin glowing ember orange line circuits run in straight lines and right-angled turns across the floor and up the walls, most of them dark. In the middle, a great circular basin sunk in concentric stepped rings, dry, a pale tide line round its rim, a square spout slab overhead with a dead light in its mouth. At the four corners stand four tall brazier terminals, machined slate obelisks with a round cup at the top, three cold, one burning with an ember orange flame. By the basin, a never-dying pilot flame hangs inside a floating machined ring. A polished dark sphere rolls along a straight machined groove in the floor toward the flame. Thin slate plates float in the air above the basin, held by nothing. Folded asleep in the dry basin, the Keeper: a tall machine on six long jointed legs of dark metal with a long crane neck and a single round lens for a head, its plates still. On a low pedestal a sealed chest with a glowing seam. The makers' sign is engraved on the spout slab: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack walks beside the groove, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, rose sand, ember orange glow, warm daylight from a slot in the roof, deep lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, plants as architecture, cactus, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-01-3e0a",
+      "candidate": "openai/1",
+      "sha256": "b8915a6708346bc36f9abd9b403db5bd5862944ca24ddb4a15f04426df1d7bc6",
+      "bytes": 237807,
+      "costUSD": 0.041
+    }
+  ]
+}

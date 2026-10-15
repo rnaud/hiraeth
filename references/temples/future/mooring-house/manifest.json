@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Mooring-House in a city of adobe islands floating in space, the house of a vanished and far more advanced people whose great capstan holds all the islands together by long cables, now stopped, its cables slack, the islands drifting apart; inside it is a quiet test chamber of ancient high technology. A round hall of dark slate slabs with crisp chamfered edges, its far side open to the star-black void through a tall rectangular frame, other islands and a great pale planet beyond. In the middle stands the capstan: a great ring winch of machined dark metal, wide as a house, its drum banded with thin glowing teal line circuits, dark and stopped. From it run thick cables out through slots in the wall and away across the void to far islands, slack and sagging. Round the wall, teal-lit ring handles to catch hold of; high up where a cable leaves the wall, a heavy machined weight hangs on a cleat, out of reach. A few square plates float in the air between the capstan and the open frame. At the open edge stands the Anchor-Warden: a tall machine of brass and dark iron holding a great anchor on a chain, ready to throw it out over the void. The makers' sign engraved on the capstan's lid: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, holding on to a ring handle, aims a thin glowing tether of fluid at the weight on its cleat, dwarfed by the capstan. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, teal glow, ochre and brass, cream, coral glints, star-black void, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, jellyfish, tentacles, fungus, hive, shells, coral, plants as architecture, a face, a knight, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-15-21-16eb",
+      "candidate": "openai/1",
+      "sha256": "300cd8be6e755bcc4db2904ec320757c05a888b4f8f6987d9cf2a1020afbc9af",
+      "bytes": 230546,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Mooring-House in a city of adobe islands floating in space, the house of a vanished and far more advanced people whose great capstan holds all the islands together by long cables, now stopped, its cables slack, the islands drifting apart; inside it is a quiet test chamber of ancient high technology. A round hall of dark slate slabs with crisp chamfered edges, its far side open to the star-black void through a tall rectangular frame, other islands and a great pale planet beyond. In the middle stands the capstan: a great ring winch of machined dark metal, wide as a house, its drum banded with thin glowing teal line circuits, dark and stopped. From it run thick cables out through slots in the wall and away across the void to far islands, slack and sagging. Round the wall, teal-lit ring handles to catch hold of; high up where a cable leaves the wall, a heavy machined weight hangs on a cleat, out of reach. A few square plates float in the air between the capstan and the open frame. At the open edge stands the Anchor-Warden: a tall machine of brass and dark iron holding a great anchor on a chain, ready to throw it out over the void. The makers' sign engraved on the capstan's lid: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, holding on to a ring handle, aims a thin glowing tether of fluid at the weight on its cleat, dwarfed by the capstan. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, teal glow, ochre and brass, cream, coral glints, star-black void, lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, jellyfish, tentacles, fungus, hive, shells, coral, plants as architecture, a face, a knight, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-12-30-3936",
+      "candidate": "openai/1",
+      "sha256": "e8c86f4583d1ea2d8350bd3151e03828a0d7124a50cbabd1232501ad31c94f9c",
+      "bytes": 222885,
+      "costUSD": 0.041
+    }
+  ]
+}

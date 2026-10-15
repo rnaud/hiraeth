@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Founders' Belfry on the cloud stacks of Vael II, built by a vanished and far more advanced people to hold down great stones that fall upward into the sky, by sound; inside it is a quiet test chamber of ancient high technology. A tall round chamber of dark slate and dark bronze. In its centre hangs the bell, not a cup but a resonator: a stack of thick concentric bronze rings around a silent dark core, floating a hand's width apart, held by nothing; thin glowing cobalt blue line circuits run round each ring. In the far wall a tall door of two heavy slabs stands slid apart while a note sounds, the note drawn as pale concentric cobalt rings spreading through the room. Beyond the door, over open cloud, square slabs of stone hang in the air, each held in place by pale rings of standing sound; a row of them has come down level to make a bridge while the note lasts. On a low hexagonal pedestal lit from within rests a tiny whistle of blue-glazed clay. Far out in the clouds, the vast pale shape of the Cloud-Mother, a sky-whale with long sail fins and a fringe of cloud, glides past. The makers' sign is engraved on the lowest ring: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the door with the whistle at their lips, dwarfed by the chamber. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, warm bronze, cobalt blue glow, pale sky light, rose and lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, plants as architecture, a church bell tower, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-24-f536",
+      "candidate": "openai/1",
+      "sha256": "52af67e40e3dbd9a11aae542b90c1857e8886ef7c2455c54b927ad255c1c7d8a",
+      "bytes": 262344,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Founders' Belfry on the cloud stacks of Vael II, built by a vanished and far more advanced people to hold down great stones that fall upward into the sky, by sound; inside it is a quiet test chamber of ancient high technology. A tall round chamber of dark slate and dark bronze. In its centre hangs the bell, not a cup but a resonator: a stack of thick concentric bronze rings around a silent dark core, floating a hand's width apart, held by nothing; thin glowing cobalt blue line circuits run round each ring. In the far wall a tall door of two heavy slabs stands slid apart while a note sounds, the note drawn as pale concentric cobalt rings spreading through the room. Beyond the door, over open cloud, square slabs of stone hang in the air, each held in place by pale rings of standing sound; a row of them has come down level to make a bridge while the note lasts. On a low hexagonal pedestal lit from within rests a tiny whistle of blue-glazed clay. Far out in the clouds, the vast pale shape of the Cloud-Mother, a sky-whale with long sail fins and a fringe of cloud, glides past. The makers' sign is engraved on the lowest ring: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the door with the whistle at their lips, dwarfed by the chamber. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, warm bronze, cobalt blue glow, pale sky light, rose and lavender shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, plants as architecture, a church bell tower, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-01-1107",
+      "candidate": "openai/1",
+      "sha256": "2e53398d1357d8a33dcdb7bd3956f6d54dc04746f1291ebee83306b3c6d43c6a",
+      "bytes": 246864,
+      "costUSD": 0.041
+    }
+  ]
+}

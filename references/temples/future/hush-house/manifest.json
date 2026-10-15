@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Hush-House on a cave island in a twilight swamp, built by a vanished and far more advanced people for keeping quiet, where four crystals still wait to be sung low to high; inside it is a quiet test chamber of ancient high technology. A long hall lined floor to vault with dark slate acoustic panels: deep square coffers and stepped wedges with crisp chamfered edges that swallow every echo, thin glowing violet line circuits running in their seams. Over a still black pool in the middle hang four long hexagonal crystal resonators of four lengths in machined slate collars, the first two glowing teal and violet with faint rings of sound, the other two dark. Across a side passage, a gate of heavy interlocking slate shutters like closing jaws snaps open and shut; beside it three crystal pendulums swing on thin rods from a machined beam. At the far end, the Mother Snapper sleeps: a house-sized machine of great hinged slate jaw plates shut tight, a crown of pale crystal prisms on top, anchored to the floor by heavy cables. The makers' carving on a panel: three small drops in a row above a short straight line, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack throws a glob of pale icy blue frost-fluid at the snapping shutters, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, violet glow, teal crystal light, icy pale blue, deep indigo shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, sponge, leaves, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-01-6d54",
+      "candidate": "openai/1",
+      "sha256": "6e3a5a71af830bb6143b6c568d091e8cfab44c7176fbb551a533e6cee75a3567",
+      "bytes": 250455,
+      "costUSD": 0.041
+    }
+  ]
+}

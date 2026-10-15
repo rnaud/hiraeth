@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-15",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Aerie on the high grass plain of Vael, built by a vanished and far more advanced people as the place where the great birds were given their wings; inside it is a quiet test chamber of ancient high technology for learning to fly. A tall cylindrical shaft of dark slate, its wall made of precise vertical slabs with crisp chamfered edges, open at the top to a pale aqua sky. From a great circular grille in the floor, a turbine of machined blades drives a column of rising wind straight up the middle of the shaft, drawn as pale streams of dust and ribbons; thin glowing pale peach line circuits ring the grille and climb the wall in concentric bands. Round the column, flat circular and hexagonal platforms float at different heights, each with a glowing peach rim, held in the air by nothing, some tilted; across the shaft a long gap with one narrow ledge on the far side. A row of slots in the wall breathes gusts across the gap. On the highest floating ring perches the Elder: a great bird built of overlapping stone-grey metal plates like feathers, wings folded, a single calm lens for an eye, watching. The makers' sign is cut into the floor grille: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the column upward on wide translucent wings of glowing fluid, dwarfed by the shaft. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, pale peach glow, ochre sand on the ledges, aqua sky, rose-mauve shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, nests, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-14-24-7a5e",
+      "candidate": "openai/1",
+      "sha256": "2f466b98e9dda43c5cc72608eb02879b490eef048e25faa8a85eebd4a3915a2f",
+      "bytes": 240468,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for an exploration game: the Aerie on the high grass plain of Vael, built by a vanished and far more advanced people as the place where the great birds were given their wings; inside it is a quiet test chamber of ancient high technology for learning to fly. A tall cylindrical shaft of dark slate, its wall made of precise vertical slabs with crisp chamfered edges, open at the top to a pale aqua sky. From a great circular grille in the floor, a turbine of machined blades drives a column of rising wind straight up the middle of the shaft, drawn as pale streams of dust and ribbons; thin glowing pale peach line circuits ring the grille and climb the wall in concentric bands. Round the column, flat circular and hexagonal platforms float at different heights, each with a glowing peach rim, held in the air by nothing, some tilted; across the shaft a long gap with one narrow ledge on the far side. A row of slots in the wall breathes gusts across the gap. On the highest floating ring perches the Elder: a great bird built of overlapping stone-grey metal plates like feathers, wings folded, a single calm lens for an eye, watching. The makers' sign is cut into the floor grille: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the column upward on wide translucent wings of glowing fluid, dwarfed by the shaft. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, pale peach glow, ochre sand on the ledges, aqua sky, rose-mauve shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, nests, plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "from": null,
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-15",
+      "batch": "2026-10-15-02-11-01-c505",
+      "candidate": "openai/1",
+      "sha256": "ac1d34b813cfc33ebc4964647cfef12bf9d571000cd216784bb7389b57ff4dac",
+      "bytes": 237196,
+      "costUSD": 0.041
+    }
+  ]
+}

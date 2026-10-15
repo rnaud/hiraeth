@@ -1,0 +1,26 @@
+{
+  "created": "2026-10-15",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-15-02-14-24-aab4",
+      "why": "I like the original we had for this one",
+      "date": "2026-10-15",
+      "prompt": "Interior concept art for an exploration game: the Builders' Greenhouse in a meadow hollow of the garden world Viridel, built by a vanished and far more advanced people where the garden was told to go on growing; inside it is a quiet test chamber of ancient high technology that steers sunlight. A high hall of dark slate slabs with crisp chamfered edges under a roof of precise hexagonal glass panes in a dark metal lattice, the sun coming through. Hanging from the roof, rows of tall rectangular mirror louvres on machined pivots turn and swing beams of sunlight across the hall; one beam falls on a round lens terminal in the wall that glows leaf green, thin leaf green line circuits running from it. A deep straight-edged chasm splits the floor; from a small glowing seed pod on a pedestal at its near edge, a bridge of hexagonal leaf green light panels is being printed out across the gap, plate after plate. On the far side a smooth slate wall rises to a round door closed like an iris of petal-shaped metal blades. In a shaded alcove kneels the Gardener: a tall slate automaton with heavy legs, a smooth white oval mask for a face, dormant. The makers' sign above the iris door: a long, low, very flat arch, five times wider than it is tall, with three tiny dots in a tight row resting just above its crest, like three stars over the curve of a planet's horizon; an abstract geometric symbol, not a face, no eyes, no mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge, a stream of leaf green and petal pink glowing fluid arcing onto the seed pod, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, leaf green glow, petal pink, white sunbeams, sky blue through the glass, soft blue shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, foam, vines or plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    },
+    {
+      "batch": "2026-10-15-02-11-32-cd69",
+      "why": "I liked the original better",
+      "date": "2026-10-15",
+      "prompt": "Interior concept art for an exploration game: the Builders' Greenhouse in a meadow hollow of the garden world Viridel, built by a vanished and far more advanced people where the garden was told to go on growing; inside it is a quiet test chamber of ancient high technology that steers sunlight. A high hall of dark slate slabs with crisp chamfered edges under a roof of precise hexagonal glass panes in a dark metal lattice, the sun coming through. Hanging from the roof, rows of tall rectangular mirror louvres on machined pivots turn and swing beams of sunlight across the hall; one beam falls on a round lens terminal in the wall that glows leaf green, thin leaf green line circuits running from it. A deep straight-edged chasm splits the floor; from a small glowing seed pod on a pedestal at its near edge, a bridge of hexagonal leaf green light panels is being printed out across the gap, plate after plate. On the far side a smooth slate wall rises to a round door closed like an iris of petal-shaped metal blades. In a shaded alcove kneels the Gardener: a tall slate automaton with heavy legs, a smooth white oval mask for a face, dormant. The makers' sign above the iris door: three small dots in a row above a shallow arc, a symbol, not a face. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge, a stream of leaf green and petal pink glowing fluid arcing onto the seed pod, dwarfed by the hall. The room is clean, sparse and silent: the machinery is the only decoration. Clean science-fiction drawing in the manner of Moebius's Airtight Garage and the Incal, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, flat luminous pastel colours, dark slate, leaf green glow, petal pink, white sunbeams, sky blue through the glass, soft blue shadows, restrained cream paper grain, clear readable construction. Avoid: organic or biological forms, flesh, ribs, bones, fungus, hive, shells, coral, foam, vines or plants as architecture, a face, photorealism, 3d render, glossy game render, text, watermark, lettering, labels.",
+      "providers": [
+        "openai",
+        "gemini"
+      ]
+    }
+  ]
+}
