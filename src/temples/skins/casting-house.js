@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../../materials.js';
 import { paint } from '../kit.js';
+import { glyphGeometry } from '../../story/sign-text.js';
 
 // ---------------------------------------------------------------------------
 // The Casting-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of the
@@ -18,7 +19,7 @@ import { paint } from '../kit.js';
 //      does. A round room's slabs run round it without a seam (the rooms the kit recorded, uSkR). The cracked moons (the
 //      house's ivory) in a shader of their own: cells cracked apart, pale, a little lit.
 //   2. the glow: the circuits, the floors' inlays, the doors' seams and frames, the rings' inner lines, the cradles'
-//      signs, the frieze's glyphs (redrawn as the picks' sign): ivory, just over the post pass's halo start (0.62:
+//      signs, the frieze's glyphs (the shared makers' mark, as every sign in the house): ivory, just over the post pass's halo start (0.62:
 //      CASTING.emit), so lines stay crisp; the circuits breathe slowly. The grating's furnace light the pour's amber.
 //   3. dressing, drawn only (InstancedMeshes: noCollide, keepBuried, dynamic, out of the shadow passes), two draws for the
 //      whole house: the machined metal (the doors' slab frames, the moon's ring, the flames' rings) and its lights.
@@ -371,18 +372,6 @@ function skinMaterial(body, look, pat, U, key, obj = false) {
 /** Strip a geometry to positions and normals, non-indexed (for merging). */
 const bare = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); return g; };
 
-/**
- * The picks' sign (sheet-1's, on the great cradle and the moon's ring): a long low arch, about five times wider than it
- * is tall, three small dots in a tight row just over its crest; width w (m), in the x, y plane, depth d along z, its
- * middle at the origin. A sign, not a face: the dots over the curve, like three stars over a planet's horizon.
- */
-export function signGeometry(w = 1, d = 0.06) {
-  const R = w / 1.62;
-  const parts = [new THREE.TorusGeometry(R, 0.045 * R, 4, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).scale(1, 0.8, d / (0.09 * R)).translate(0, -0.7 * R, 0)];
-  for (const x of [-0.17, 0, 0.17]) parts.push(new THREE.CylinderGeometry(0.05 * R, 0.05 * R, d, 8).rotateX(Math.PI / 2).translate(x * R, 0.2 * R, 0));
-  return mergeGeometries(parts.map(bare));
-}
-
 /** A geometry's vertices in the kit's frame, and how they sit: its box, its middle. */
 function shapeOf(K, g) {
   const p = g.attributes.position, v = V(), box = new THREE.Box3(), pts = [];
@@ -391,29 +380,10 @@ function shapeOf(K, g) {
 }
 
 /**
- * The frieze's glyphs redrawn as the picks' sign, lit: each glyph's plane found from its vertices (the thin way across
- * it), the sign 1.6 times its width, at its middle, facing as it faced. The doors', the plates' and the other houses'
- * glyph is the shared one (src/story/sign-text.js), left as it is.
+ * The frieze's glyphs are the kit's own, the shared makers' mark (src/story/sign-text.js glyphGeometry), lit ivory: counted,
+ * never redrawn (tests/temple-skins.test.js). The doors' medallions are pieces.js Door's own, the same mark.
  */
-function redrawSigns(K, mat) {
-  const list = K.batches.get(mat);
-  if (!list) return 0;
-  let n = 0;
-  for (let i = 0; i < list.length; i++) {
-    const { box, s, pts } = shapeOf(K, list[i]), c = box.getCenter(V());
-    if (s.y < 0.3) continue;
-    let xx = 0, xz = 0, zz = 0;
-    for (const q of pts) { const dx = q.x - c.x, dz = q.z - c.z; xx += dx * dx; xz += dx * dz; zz += dz * dz; }
-    const a = 0.5 * Math.atan2(2 * xz, xx - zz);   // (the widest way, from +x)
-    const along = V(Math.cos(a), 0, Math.sin(a)), across = V(-along.z, 0, along.x);
-    let w = 0, t = 0;
-    for (const q of pts) { const d = q.clone().sub(c); w = Math.max(w, Math.abs(d.dot(along))); t = Math.max(t, Math.abs(d.dot(across))); }
-    if (t > 0.4 || w < 0.2) continue;
-    list[i] = signGeometry(2 * w * 1.6, Math.max(0.06, 2 * t)).rotateY(Math.atan2(across.x, across.z)).translate(c.x, c.y - s.y * 0.05, c.z).applyMatrix4(K.frame);
-    n++;
-  }
-  return n;
-}
+const countSigns = (K, mat) => K.batches.get(mat)?.filter((g) => g.userData.makersMark).length ?? 0;
 
 /** A machined ring (a lathe of a chamfered rectangle: radii r0..r1, height h), its middle at the origin. */
 function ringGeometry(r0, r1, h, seg = 64) {
@@ -467,7 +437,7 @@ function cradleBody(piece, s, mats) {
   for (const x of [-1, 1]) parts.push(new THREE.BoxGeometry(0.35 * s, 0.6 * s, 1.4 * s).translate(x * 0.75 * s, 0.7 * s, -0.2 * s));
   // the lit line round the mouth (a torus's point at u, (cos, sin, 0): u = theta - π/2), the sign on the hood over the fire
   lights.push(new THREE.TorusGeometry(r, 0.026 * s, 3, 28, 2 * open).rotateZ(-open - Math.PI / 2).translate(0, ax, z1 + 0.012));
-  lights.push(signGeometry(1.15 * s, 0.04).translate(0, 2.85 * s, z0 + 0.03));
+  lights.push(glyphGeometry(0.95 * s, 0.04).translate(0, 2.6 * s, z0 + 0.03));
   const body = new THREE.Mesh(mergeGeometries(parts.map(bare)), mats.cradle);
   const glowM = makeMaterial({ color: CASTING.ivory, glow: CASTING.emit.sign, flat: true, key: `temple.skin.casting.cradle.${piece.id}` });
   const glow = new THREE.Mesh(mergeGeometries(lights.map(bare)), glowM);
@@ -604,20 +574,6 @@ export function castingHouseSkin(rt) {
       U.count.value = list.length;
       // the doors' slabs in their own frame
       for (const p of rt.pieces) (p.group ?? p.mesh ?? p.root)?.traverse?.((m) => { if (m.material === mats.wallGlyph) m.material = mats.wallGlyphObj; });
-      // ... and their medallions the picks' sign (the shared glyph read as a face on these great slabs): the same light,
-      // the same bars, the sign where the glyph was (pieces.js Door)
-      let doorSigns = 0;
-      for (const d of rt.pieces) {
-        if (d.constructor.name !== 'Door' || !d.glowMesh || d.o?.bell) continue;
-        const { w = 4.4, h = 6, t = 0.9 } = d.o, gl = [];
-        for (const s of [1, -1]) {
-          gl.push(signGeometry(Math.min(w, h) * 0.55, 0.06).rotateY(s > 0 ? 0 : Math.PI).translate(0, h * 0.58, s * (t / 2 + 0.04)));
-          for (const y of [0.95, h - 0.95]) gl.push(new THREE.BoxGeometry(w * 0.7, 0.09, 0.06).translate(0, y, s * (t / 2 + 0.03)));
-        }
-        d.glowMesh.geometry.dispose();
-        d.glowMesh.geometry = mergeGeometries(gl.map(bare));
-        doorSigns++;
-      }
       // the paint: the ivory moons into the moon's shader (the great one larger, its chains and every moon's old seam
       // gone: the cracks are the shader's), the founders' iron warmed
       const ivory = new THREE.Color(rt.def.palette?.ornament?.color ?? '#efe6d2'), dark = new THREE.Color(rt.def.palette?.dark ?? '#2f2a2c');
@@ -663,7 +619,7 @@ export function castingHouseSkin(rt) {
         g.applyMatrix4(to);
       }
       if (moons.length) K.batches.set(mats.moon, [...(K.batches.get(mats.moon) ?? []), ...moons.map(bare)]);
-      const signs = redrawSigns(K, mats.glyph);
+      const signs = countSigns(K, mats.glyph);
       const F0 = K.frame, I = new THREE.Matrix4();
       // the dressing: the doors' slab frames, the great moon's floating ring, the pilot flames' rings, in one draw; their
       // lights in another
@@ -673,8 +629,8 @@ export function castingHouseSkin(rt) {
       if (bigOne >= 0) {
         solid.push(ringGeometry(r0, r1, rh, 96).applyMatrix4(tiltM));
         light.push(ringLine(r0, rh, 96).applyMatrix4(tiltM));
-        // (the sign on the ring's face toward the way in, as sheet-1's)
-        light.push(signGeometry(0.9, 0.04).translate(0, 0, -r1 - 0.025).applyMatrix4(tiltM));
+        // (the makers' mark on the ring's face toward the way in, as sheet-1's sign, sized to the ring's band)
+        light.push(bare(glyphGeometry(0.42, 0.04)).translate(0, 0, -r1 - 0.025).applyMatrix4(tiltM));
       }
       const flames = rt.pieces.filter((p) => p.constructor.name === 'Flame');
       for (const f of flames) {
@@ -689,7 +645,7 @@ export function castingHouseSkin(rt) {
       if (light.length) meshes.push(instanced('skin: their lights', mergeGeometries(light), mats.lights, [I], F0));
       for (const m of meshes) K.group.add(m);
       rt.pieces.push(new SkinCradles(braziers));
-      skin.stats = { rooms: list.length, doorSigns, moons: moons.length, chains, seams, iron, signs, frames: fr.n, flames: flames.length, cradles: braziers.length, ms: Math.round(performance.now() - t0) };
+      skin.stats = { rooms: list.length, moons: moons.length, chains, seams, iron, signs, frames: fr.n, flames: flames.length, cradles: braziers.length, ms: Math.round(performance.now() - t0) };
     },
     /** After the kit's flush: the house's own materials back for its exterior; the lights out of the shadow passes. */
     done() {

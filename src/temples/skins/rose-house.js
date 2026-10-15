@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { Door, Flame, Switch, Sentry } from '../pieces.js';
-import { candidateGeometry, activeMark } from '../../makers-mark/candidates.js';
+import { glyphGeometry } from '../../story/sign-text.js';
 
 // ---------------------------------------------------------------------------
 // The Rose House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"), after the author's
@@ -17,8 +17,7 @@ import { candidateGeometry, activeMark } from '../../makers-mark/candidates.js';
 //      obelisk) a finer machined slab with more circuits lit; warm sandstone floor plates split in halves and quarters
 //      with their inlays; the cistern's basin in concentric stepped rings, a pale tide line round it.
 //   2. glows: the frieze's lamps light panels (a lit slot under every other glyph), each groove a thin ember line down its
-//      floor, the makers' sign redrawn as a sign (a long low arch, three small dots in a tight row over its crest), large
-//      and lit; daylight through slots along the great halls' ceilings (a lit strip under each edge).
+//      floor, the makers' mark (the shared one: an open corner beside a shorter upright) lit; daylight through slots along the great halls' ceilings (a lit strip under each edge).
 //   3. dressing, drawn only (three merged meshes, vertex-coloured: no collision, out of the shadow passes, kept off every
 //      doorway and piece): slate obelisks with a cold cup in the corners of the great halls, thin slate plates floating
 //      high under the ceilings, a thin hoop floating over every pilot flame (its inner edge lit), the spout slab hanging
@@ -42,7 +41,6 @@ export const ROSE_SKIN = {
   trim: '#4a4251', stone: '#5c5263', fitting: '#413a45', groove: '#2e2a33', dressing: '#584e5f',
   sign: '#ff9a50', lens: '#2b2730',
   /** daylight through the slots along the halls' ceilings (drawn: a lit strip) */
-  signScale: 1.8,
   daylight: '#f4d29a', slot: { w: 1.5, off: 0.3, end: 1.4 },
   /** how many corner obelisks, floating plates a hall may have, and their sizes */
   obelisk: { inset: 2.6, h: 6.6, foot: 1.8, top: 1.15 },
@@ -227,18 +225,8 @@ function frustum(w0, w1, h, d0 = w0, d1 = w1) {
   return bare(g);
 }
 const slab = (w, h, d, x = 0, y = 0, z = 0) => bare(new THREE.BoxGeometry(w, h, d).translate(x, y, z));
-/**
- * The makers' sign as the picks draw it, a sign and not a face: a long, low, flat arch (about five times as wide as it
- * is tall) and three small dots in a tight row just over its crest. `width` m across, `depth` thick, its middle at 0.
- */
-export function signGeometry(width = 1, depth = 0.06) {
-  const candidate = candidateGeometry(activeMark(), width, depth);
-  if (candidate) return bare(candidate);
-  const R = width / 1.62, parts = [];
-  parts.push(new THREE.TorusGeometry(R, 0.045 * R, 4, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).scale(1, 0.8, depth / (0.09 * R)).translate(0, -0.8 * R + 0.1 * R, 0));
-  for (const x of [-0.2, 0, 0.2]) parts.push(new THREE.CylinderGeometry(0.055 * R, 0.055 * R, depth, 8).rotateX(Math.PI / 2).translate(x * R, 0.27 * R, 0));
-  return mergeGeometries(parts.map(bare));
-}
+/** The makers' mark (the shared one, src/story/sign-text.js glyphGeometry), `size` m square, `depth` thick, its middle at 0. */
+const markGeometry = (size = 1, depth = 0.06) => bare(glyphGeometry(size, depth));
 
 // ------------------------------------------------------------------ what the dressing keeps off
 /** Boxes (the kit's frame) round every doorway, archway and piece: the dressing stands clear of them. */
@@ -399,7 +387,7 @@ function dressing(rt, S, keep, plan) {
     slate.push(slab(2.2, by - (sy + sh) + 0.05, 2.2, r.x, (by + sy + sh) / 2, r.z));
     slate.push(slab(sw, sh, sw, r.x, sy + sh / 2, r.z));
     slate.push(slab(sw + 0.3, 0.3, sw + 0.3, r.x, sy + 0.15, r.z));
-    for (const s of [-1, 1]) glow.push(signGeometry(3.2, 0.08).rotateY(s > 0 ? 0 : Math.PI).translate(r.x, sy + sh * 0.62, r.z + s * (sw / 2 + 0.03)));
+    for (const s of [-1, 1]) glow.push(markGeometry(2.4, 0.08).rotateY(s > 0 ? 0 : Math.PI).translate(r.x, sy + sh * 0.6, r.z + s * (sw / 2 + 0.03)));
     for (const s of [-1, 1]) glow.push(bare(new THREE.BoxGeometry(sw * 0.7, 0.06, 0.05).translate(r.x, sy + 0.62, r.z + s * (sw / 2 + 0.03))));
     dead.push(bare(new THREE.CylinderGeometry(1.25, 1.25, 0.04, 24).translate(r.x, sy - 0.02, r.z)));
     n.spouts++;
@@ -462,31 +450,12 @@ function drawn(name, geos, mat, frame) {
   return m;
 }
 
-// ------------------------------------------------------------------ the makers' sign, redrawn
+// ------------------------------------------------------------------ the makers' sign
 /**
- * The kit's glyphs (its friezes', drawn in M.glyph) redrawn as the picks' sign, each in the same place and as wide, facing
- * the same way (the kit's own glyph, src/story/sign-text.js, is the doors', the plates' and the other houses').
+ * The kit's glyphs (its friezes', drawn in M.glyph) are the shared makers' mark (src/story/sign-text.js glyphGeometry),
+ * lit in the skin's ember: counted, never redrawn (tests/temple-skins.test.js).
  */
-function redrawSigns(K, mat) {
-  // Review glyphs already share a fixed square; measuring their different widths again would bias the comparison.
-  if (activeMark()) return K.batches.get(mat)?.filter(g => g.userData.makersMark).length ?? 0;
-  const list = K.batches.get(mat);
-  if (!list) return 0;
-  let n = 0;
-  for (let i = 0; i < list.length; i++) {
-    const g = list[i];
-    g.computeBoundingBox();
-    const l = g.boundingBox.clone().applyMatrix4(K.inv), s = l.getSize(V());
-    // (a glyph stands on a wall: thin one way across; the ring on the chest's mound lies flat, and stays)
-    if (s.y < 0.2 || Math.min(s.x, s.z) > 0.5 || Math.max(s.x, s.z) < 0.3) continue;
-    // (half as wide again as the glyph it stands for, its strokes bolder: the picks' sign reads from across the hall)
-    const alongX = s.x > s.z, w = Math.max(s.x, s.z) * ROSE_SKIN.signScale, c = l.getCenter(V());
-    const sign = signGeometry(w, Math.max(0.06, Math.min(s.x, s.z))).rotateY(alongX ? 0 : Math.PI / 2).translate(c.x, c.y - s.y * 0.05, c.z);
-    list[i] = sign.applyMatrix4(K.frame);
-    n++;
-  }
-  return n;
-}
+const countSigns = (K, mat) => K.batches.get(mat)?.filter((g) => g.userData.makersMark).length ?? 0;
 
 // ------------------------------------------------------------------ the braziers
 /**
@@ -514,7 +483,7 @@ function obeliskBrazier(mats, piece, s) {
     lines.push(bare(new THREE.BoxGeometry(0.05 * s, 0.05 * s, 0.04 * s).translate(x * 0.6 * s, 0.12 * s, 0.47 * s)));
   }
   lines.push(bare(new THREE.BoxGeometry(1.7 * s, 0.05 * s, 0.04 * s).translate(0, 1.92 * s, 0.86 * s)));
-  lines.push(signGeometry(0.95 * s, 0.05).translate(0, 3.55 * s, -0.9 * s));
+  lines.push(markGeometry(0.5 * s, 0.05).translate(0, 3.55 * s, -0.9 * s));
   lines.push(bare(new THREE.BoxGeometry(0.05 * s, 1.1 * s, 0.04 * s).translate(0.3 * s, 3.65 * s, -0.91 * s)), bare(new THREE.BoxGeometry(0.05 * s, 0.8 * s, 0.04 * s).translate(-0.28 * s, 3.4 * s, -0.91 * s)));
   lines.push(bare(new THREE.CylinderGeometry(0.13 * s, 0.13 * s, 0.04, 12).rotateX(Math.PI / 2).translate(0, 0.9 * s, -0.84 * s)));
   const lineMat = makeMaterial({ color: ROSE_SKIN.ember, glow: 0.18, flat: true, key: `temple.skin.rose.brazier.${piece.id}` });
@@ -574,7 +543,7 @@ export function roseHouseSkin(rt) {
         mats.basin = skinMaterial('basin', look, { ...S.basin, centre: [big.x, big.z, 6.65] }, U, 'basin');
         moveStone(K, S.stone, mats.basin, big);
       }
-      const signs = redrawSigns(K, M.glyph);
+      const signs = countSigns(K, M.glyph);
       const keep = keepOuts(rt, plan);
       const D = dressing(rt, S, keep, plan);
       // (vertex colours: the dark lenses drawn with the slate, the daylight slots with the ember lines)

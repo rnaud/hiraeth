@@ -22,6 +22,7 @@ The same release notes shown in the game (press **N** or open settings).
 - His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.
 - Locked on, stepping back flicks his knees far less: his steps are longer instead of three and a half times too quick, and his feet no longer drag off where they land.
 - Locked on to a foe, moving left or right he now runs sideways: his hips and legs turn the way he goes while his chest and head stay on the foe, and his feet stay where they land. He used to step on the spot at a frantic pace and slide across the floor, his knees and feet flicking several times a second.
+- Inside the futuristic temples the makers’ mark is the new one too: the Casting-House’s cradles, doors, friezes and moon ring, the Engine-House’s and the Aerie’s friezes now carry the open corner in each house’s own light, no longer an arch under three dots.
 - The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.
 
 ## v1.77 — 2026-10-14

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
-import { paint, prep } from '../kit.js';
+import { paint } from '../kit.js';
 
 // ---------------------------------------------------------------------------
 // The Engine-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' engine
@@ -17,8 +17,8 @@ import { paint, prep } from '../kit.js';
 //      the doors' leaves) darker metal, their circuits denser; the doors' a lit seam up their middle. The lines are
 //      emissive just over the post pass's halo start (crisp, not blurred) and a slow pulse travels along them.
 //   2. the house's own: its pipes and frames dark blue steel, its straps gone, its valves lens terminals (a thin lit ring
-//      on the slate) beside the friezes, the friezes' glyphs redrawn as the makers' sign (a long flat arch, three tiny
-//      dots over its crest: never on a round hub, where it read as a face), the pits' embers amber light, the drop
+//      on the slate) beside the friezes, the friezes' glyphs the shared makers' mark (the open corner beside a
+//      shorter upright) lit pale amber, the pits' embers amber light, the drop
 //      hammers dark metal (rt.P.wall2), the balls polished dark steel, the Tooth-Warden rust-red plates on navy
 //      (skin.warden), the rooms' light cool, the daylight teal (skin.light).
 //   3. machined dressing, drawn only (InstancedMeshes: noCollide, out of the shadow passes): in each big hall a square of
@@ -56,7 +56,6 @@ export const ENGINE_SKIN = {
   /** the dressing: a square of lens terminals in each hall this tall; pilasters every m along the walls */
   lenses: { minH: 14, y: 4.6, r: 0.62, gap: 1.7 },
   pilasters: { every: 7.2, n: 6, w: 1.5, d: 0.42, h: 0.62, minH: 14 },
-  signScale: 1.5,
 };
 
 // ------------------------------------------------------------------ the shader
@@ -314,40 +313,10 @@ function skinMaterial(body, look, S, U, key, obj = false) {
 
 // ------------------------------------------------------------------ the makers' sign
 /**
- * The makers' sign as the picks' prompt has it: a long, low, very flat arch five times wider than it is tall, three tiny
- * dots in a tight row resting just over its crest (three stars over a planet's horizon: a sign, not a face). Facing +z.
+ * The friezes' and the threshold's glyphs are the kit's own, the shared makers' mark (src/story/sign-text.js
+ * glyphGeometry), lit in the skin's pale amber: counted, never redrawn (tests/temple-skins.test.js).
  */
-export function engineSign(w = 1, depth = 0.05) {
-  const parts = [], h = w / 5, seg = 14, th = w * 0.06;
-  for (let i = 0; i < seg; i++) {
-    const a0 = i / seg, a1 = (i + 1) / seg, x0 = (a0 - 0.5) * w, x1 = (a1 - 0.5) * w;
-    const y0 = h * Math.sin(Math.PI * a0), y1 = h * Math.sin(Math.PI * a1), L = Math.hypot(x1 - x0, y1 - y0);
-    parts.push(new THREE.BoxGeometry(L + th * 0.6, th, depth).rotateZ(Math.atan2(y1 - y0, x1 - x0)).translate((x0 + x1) / 2, (y0 + y1) / 2, 0));
-  }
-  for (const x of [-1, 0, 1]) parts.push(new THREE.CylinderGeometry(w * 0.055, w * 0.055, depth, 10).rotateX(Math.PI / 2).translate(x * w * 0.14, h + w * 0.12, 0));
-  const g = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)));
-  parts.forEach((p) => p.dispose());
-  return g;
-}
-/** The kit's glyphs (its friezes' and the threshold's, in M.glyph) redrawn as the sign, each where it was, as wide again. */
-function redrawSigns(K, mat) {
-  const list = K.batches.get(mat);
-  if (!list) return 0;
-  let n = 0;
-  for (let i = 0; i < list.length; i++) {
-    const g = list[i];
-    g.computeBoundingBox();
-    const l = g.boundingBox.clone().applyMatrix4(K.inv), s = l.getSize(V());
-    if (s.y < 0.2 || Math.min(s.x, s.z) > 0.5 || Math.max(s.x, s.z) < 0.3) continue;
-    // (which way it faces: the glyph stands a few cm off its wall, on its room's side)
-    const alongX = s.x > s.z, w = Math.max(s.x, s.z) * ENGINE_SKIN.signScale, c = l.getCenter(V());
-    const sign = engineSign(w, Math.max(0.06, Math.min(s.x, s.z))).rotateY(alongX ? 0 : Math.PI / 2).translate(c.x, c.y - s.y * 0.2, c.z);
-    g.dispose();
-    list[i] = prep(sign).applyMatrix4(K.frame);
-    n++;
-  }
-  return n;
-}
+const countSigns = (K, mat) => K.batches.get(mat)?.filter((g) => g.userData.makersMark).length ?? 0;
 
 // ------------------------------------------------------------------ the dressing's shapes (unit frames: x across, y up, z out of the wall)
 /** Geometries merged into one, each part a grey level (a colour attribute: the dressing's material reads it). */
@@ -612,7 +581,7 @@ export function engineHouseSkin(rt) {
   const meshes = [];
   const skin = {
     name: 'engine-house', S, mats, U, meshes, stats: null, light: S.light, warden: S.warden,
-    /** After the layout: the rooms and pits handed to the shader, the signs redrawn, the pieces' surfaces, the dressing. */
+    /** After the layout: the rooms and pits handed to the shader, the signs counted, the pieces' surfaces, the dressing. */
     dress() {
       const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
       const plan = K.plan, rooms = roomsOf(plan), list = rooms.slice(0, ENGINE_ROOMS);
@@ -634,7 +603,7 @@ export function engineHouseSkin(rt) {
       // (the landings' lips: every floor over the lowest, where a slab's edge looks down into a pit or a hall)
       const hi = lips.filter((y) => y > lips[0] + 1).slice(0, 4);
       U.lips.value.set(...[...hi, -999, -999, -999, -999].slice(0, 4));
-      const signs = redrawSigns(K, mats.glyph);
+      const signs = countSigns(K, mats.glyph);
       for (const p of rt.pieces) {
         const o = p.group ?? p.mesh ?? p.root;
         o?.traverse?.((m) => { if (m.material === mats.floor) m.material = mats.floorObj; else if (m.material === mats.machine) m.material = mats.machineObj; });

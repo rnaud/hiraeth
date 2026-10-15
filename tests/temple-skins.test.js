@@ -325,7 +325,7 @@ test('the Founders’ Belfry wears its futuristic skin; collision, climbs and pi
 
 // ---- the Aerie in its futuristic skin (src/temples/skins/aerie.js, after references/temples/future/aerie/sheet-*.jpg;
 // its names its own, a*, so the other houses' sections beside it never clash)
-import { aerieSkin, signGeometry as aSign } from '../src/temples/skins/aerie.js';
+import { aerieSkin } from '../src/temples/skins/aerie.js';
 import { sharedUniforms as aShared } from '../src/materials.js';
 class ANoSkin extends TempleRuntime { get noSkin() { return true; } }
 const aBuild = (bare = false) => new (bare ? ANoSkin : TempleRuntime)({ scene: new THREE.Scene(), level: { lights: [], ground: { baseAt: () => 0, heightAt: () => 0 } }, def: TEMPLES.arzach.def, game: new GameState(null) });
@@ -345,7 +345,7 @@ test('the Aerie wears its futuristic skin: slate slabs, sand ledges, peach circu
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the slabs’ tones, chamfers and climbing circuits off on the lighter presets');
   const s = rt.skin.stats;
   // (the four great vents' turbines, the raised slabs' rims, the well's bands, the rings round the throats, the wing lines
-  // recoloured, every frieze glyph redrawn as the picks' sign, floating discs and hexagons)
+  // recoloured, every frieze glyph the shared makers' mark lit peach, floating discs and hexagons)
   assert.ok(s.turbines === 4 && s.rims >= 16 && s.bands >= 3 && s.rings >= 10 && s.wing > 20 && s.signs > 50 && s.floaters >= 12 && s.hexes >= 2, JSON.stringify(s));
   const dressing = rt.kit.group.children.filter((m) => m.userData.skin);
   assert.ok(dressing.length === 7 && dressing.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false), 'seven drawn-only instanced meshes, out of the shadow passes');
@@ -354,9 +354,6 @@ test('the Aerie wears its futuristic skin: slate slabs, sand ledges, peach circu
   assert.ok(!rt.M.wall.userData.houseSkin && rt.M.glyph !== rt.skin.mats.glyph);
   assert.equal(rt.P, TEMPLES.arzach.def.palette);
   assert.equal(rt.kit.plan, null);
-  // the picks' sign: a long low arch with its dots, far wider than it is tall
-  const z = new THREE.Box3().setFromBufferAttribute(aSign(1.62).attributes.position).getSize(new THREE.Vector3());
-  assert.ok(z.x > 1.55 && z.x < 1.75 && z.y < 0.6, `the sign ${z.x.toFixed(2)} by ${z.y.toFixed(2)}`);
 });
 
 test('the Aerie’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
@@ -681,7 +678,7 @@ test('the Lampless in the Lamp-House’s skin: a machine of white plates, its pa
 
 // ---- the Casting-House in its futuristic skin (src/temples/skins/casting-house.js, after
 // references/temples/future/casting-house/sheet-*.jpg; its names its own, c*, beside the other houses' sections)
-import { castingHouseSkin, CASTING, signGeometry as cSign } from '../src/temples/skins/casting-house.js';
+import { castingHouseSkin, CASTING } from '../src/temples/skins/casting-house.js';
 import { UP as cUP } from '../src/temples/moonfoundry.js';
 class CNoSkin extends TempleRuntime { get noSkin() { return true; } }
 const cBuild = (bare = false) => quietly(() => new (bare ? CNoSkin : TempleRuntime)({ scene: new THREE.Scene(), level: { lights: [], ground: { baseAt: () => 0, heightAt: () => 0 } }, def: TEMPLES.moonfoundry.def, game: new GameState(null) }));
@@ -701,9 +698,9 @@ test('the Casting-House wears its futuristic skin: slate slabs, ivory circuits, 
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the slabs’ tones, chamfers and climbing circuits off on the lighter presets');
   const s = rt.skin.stats;
   // (every ivory moon in the moon's shader, the great one's chains and the old seams gone, the founders' iron warmed, the
-  // frieze's glyphs and the doors' medallions redrawn as the picks' sign, a frame round every door, two rings over each
+  // frieze's glyphs and the doors' medallions the shared makers' mark, a frame round every door, two rings over each
   // pilot flame, the two hooded cradles drawn by the skin)
-  assert.ok(s.moons >= 30 && s.chains === 3 && s.seams >= 30 && s.iron > 40 && s.signs > 50 && s.doorSigns >= 6 && s.frames >= 6 && s.flames === 2 && s.cradles === 2, JSON.stringify(s));
+  assert.ok(s.moons >= 30 && s.chains === 3 && s.seams >= 30 && s.iron > 40 && s.signs > 50 && s.frames >= 6 && s.flames === 2 && s.cradles === 2, JSON.stringify(s));
   assert.ok(rt.kit.group.children.some((m) => m.material === rt.skin.mats.moon), 'the moons drawn cracked');
   const dressing = rt.kit.group.children.filter((m) => m.userData.skin);
   assert.ok(dressing.length === 2 && dressing.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false), 'two drawn-only instanced meshes, out of the shadow passes');
@@ -720,8 +717,6 @@ test('the Casting-House wears its futuristic skin: slate slabs, ivory circuits, 
   assert.equal(rt.kit.plan, null);
   assert.deepEqual(rt.skin.mats.floor.uniforms.uSkQ.value.toArray(), [CASTING.grate.x, CASTING.grate.z, CASTING.grate.hx, CASTING.grate.hz]);
   assert.equal(CASTING.up, cUP, 'the walls’ second tier of circuits at the house’s upper floor');
-  const z = new THREE.Box3().setFromBufferAttribute(cSign(1.62).attributes.position).getSize(new THREE.Vector3());
-  assert.ok(z.x > 1.55 && z.x < 1.75 && z.y < 0.6, `the sign ${z.x.toFixed(2)} by ${z.y.toFixed(2)}`);
 });
 
 test('the Casting-House’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {

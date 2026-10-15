@@ -321,13 +321,6 @@ function ringGeometry(r0, r1, y0, y1, c, seg = 40) {
   const pts = [[r0, y0 + c], [r0 + c, y0], [r1 - c, y0], [r1, y0 + c], [r1, y1 - c], [r1 - c, y1], [r0 + c, y1], [r0, y1 - c], [r0, y0 + c]];
   return new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
 }
-/**
- * The makers' sign as the sheet's prompt draws it on the bell: a long, low, very flat arch five times wider than it is
- * tall, three tiny dots in a tight row resting just over its crest (a sign, not a face). Facing +z, in the xy plane.
- */
-export function belfrySign(w = 1, depth = 0.03) {
-  return glyphGeometry(w * 0.4, depth).translate(0, w * 0.1, 0);
-}
 
 // ------------------------------------------------------------------ placing the dressing
 /** The kit's rooms (local): round rooms, halls and passages, as the shader takes them. */
@@ -490,8 +483,9 @@ export function foundersBelfrySkin(rt) {
       cobalt.push(new THREE.RingGeometry(low.r1 - 0.24 * s, low.r1 - 0.17 * s, 48).rotateX(Math.PI / 2).translate(x, y - 0.02, z));
       dark.push(new THREE.CylinderGeometry(0.88 * s, 0.88 * s, H + 0.6 * s, 20).translate(x, y + H / 2 + 0.1 * s, z));
       for (const sd of [0, Math.PI]) {
+        // (the shared makers' mark, src/story/sign-text.js: under the lowest ring's cobalt line)
         const a = face + sd, r = low.r1 + 0.025;
-        cobalt.push(T(belfrySign(0.95 * s, 0.03), [x + Math.sin(a) * r, low.y0 + h * 0.3, z + Math.cos(a) * r], [0, a, 0]));
+        cobalt.push(T(glyphGeometry(0.34 * s, 0.03), [x + Math.sin(a) * r, low.y0 + 0.25 * s, z + Math.cos(a) * r], [0, a, 0]));
       }
       for (const g of bronze) K.add(mats.bronze, g);
       for (const g of cobalt) K.add(mats.cobalt, g);

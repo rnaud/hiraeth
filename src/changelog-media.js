@@ -906,6 +906,7 @@ const FUTURE342_AERIE_NUMBERS = [
   { title: 'The Aerie: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 401, after: 328 }, { where: 'Low', before: 387, after: 313 }], source: FUTURE342_AERIE_SOURCE },
 ];
 /** (v1.78, issue #342: the Casting-House in its futuristic skin, the same pinned views with the skin off and on) */
+const SKINS_MARK = 'Issue #342: scripts/design-qc/capture.mjs in muted headless Chrome (High, 960 × 540, noon), Vite on port 6514, the camera pinned 4.5–5.5 m in front of the sign (placed from the built house in node), the skins with their own sign (before) and with the shared makers’ mark (after), 15 October; cwebp -q 72';
 const FUTURE342_CASTING = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy) in muted headless Chrome (High, 960 × 540, noon), Vite on port 6508, the house before the skin (its `skin:` line off, before) and in it (after), the camera pinned in each room, 15 October; cwebp -q 72';
 const FUTURE342_CASTING_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 960 × 540, noon, the same pinned camera in 11 views (the Pouring Floor along the rail, up at the moon, across it and at the great cradle; the Mould Room, the Crucible Stair, the Tong Chamber, the Casting Furnace, the Weighing Hall, the cold passage, the Last Casting), the median of 240 frames each, the skin off (two loads) and on in loads minutes apart; the machine shared with other work (load 10–24), so frame times are within its spread';
 const FUTURE342_CASTING_SOURCE = 'issue #342 scratchpad future-casting/capture.mjs QC_MEASURE (the means over the eleven views); draw calls and triangles from renderer.info, every pass of a frame';
@@ -1031,7 +1032,11 @@ const FUTURE342_FP_NUMBERS = [
 ];
 export const CHANGELOG_MEDIA = {
   '1.78': [
-    { match: 'The makers now sign their work', see: 'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
+    { match: 'Inside the futuristic temples the makers’ mark is the new one too', tags: ['temples', 'moonfoundry', 'buried'], shots: [
+      { name: 'skins-mark-cradle', title: 'The Casting-House’s cradle', caption: 'The hood over the great cradle’s mouth: before, the skin’s own sign, an arch under three dots; after, the makers’ open corner beside its shorter upright, lit ivory as before', from: SKINS_MARK },
+      { name: 'skins-mark-engine', title: 'An Engine-House frieze', caption: 'A frieze glyph on the slate: before, the arch under three dots; after, the makers’ mark in the same pale amber light', from: SKINS_MARK },
+    ] },
+    { match: 'The makers now sign their work', see:'Look at the scorched mark on your ship, then visit the Rose House: the same open corner and short upright appear on its door, glyph stones and exterior tower. In dialogue and on the star map, the makers’ sign uses the same silhouette.' },
     { match: 'Inside, the Undertower looks like the makers’ high technology now', tags: ['bazaar', 'temples'], shots: [
       { name: 'future-undertower-dishes', title: 'The Hall of Dishes', caption: 'Across the cable pit to the far landing: before, blue blocks in courses and cream dishes; after, tall slate panels with paler monoliths, coral circuits rising up the walls to their lenses and running through the floor plates, the dishes and horns polished brass on brass-collared stands, the singing ball bronze', from: UNDER342,
         reference: { sheet: 'references/temples/future/undertower/sheet-1.jpg', caption: 'The author’s pick: the brass dishes facing each other across the cable pit, the three spheres, the stepping plates and the First Sign (the reference lab, 15 October)' } },
