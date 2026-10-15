@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_9df784de6fed45 20-21
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_8bdd5675713193 335-361,365,490
+engine/combat.js
+  s_9ca76055a220ed::t_07784ef24fdefa 1-190
+engine/game.js
+  s_9ca76055a220ed::t_33b20424ab395e 64-66,173-192,228,230-231,278,280-281,448,451-457,535-536,544-547,573-574,576,603-609,783-787,845-846,910-911,947-950,952,955,1007-1008,1018,1020,1022-1023,1041-1043,1046-1047
+engine/unity/game.js
+  s_9ca76055a220ed::t_67357b7c2b2291 61,206,301-325,471-488
+public/guardians/elder-v3/colors.json
+  s_9ca76055a220ed::t_d3dad3213b702a 1
+public/guardians/keeper-v1/colors.json
+  s_9ca76055a220ed::t_6e45b925075e9a 1
+scripts/tripo/sample-colors.mjs
+  s_9ca76055a220ed::t_9d14da2d8de99f 1-41
+src/changelog-media.js
+  s_9ca76055a220ed::t_0a87831555325d 1003-1004,1047-1050
+src/changelog.js
+  s_9ca76055a220ed::t_9c1491a3cac054 59-65
+src/characters/elder-v3-creature.js
+  s_9ca76055a220ed::t_fa2c76fb1a626f 2,234
+src/characters/keeper-creature.js
+  s_9ca76055a220ed::t_e596316d6a3289 2,18
+src/characters/skin-colours.js
+  s_9ca76055a220ed::t_552214da316928 1-12
+src/foes.js
+  s_9ca76055a220ed::t_b185135434c301 2629-2630,2641,2889,2900-2902
+src/lock-reticle.js
+  s_9ca76055a220ed::t_bb03058836d5c9 201,226-228,233
+tests/engine-combat.test.js
+  s_9ca76055a220ed::t_c3a72c2283bc6e 1-80
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_0edb26b536104e 51-53
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_181ef4045a1c77 179-180
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_454f4222abe51e 60,74,98,306-467,753-802,805-808,810-894,907-909
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "44a3a4555fdae0a34dd9078a02ec0c5229ec9c93",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
