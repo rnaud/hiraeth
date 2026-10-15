@@ -184,6 +184,30 @@ is measured by its two doors (`d6`, `d7` carry `room: 'arena'`). What stayed: th
 story's lines, the small key and the great one, every groove's length, the pan, the updrafts and every jump. A save that
 stood in the old rooms is taken to its last mark (`LAYOUTS.spacecity` v3).
 
+## The Whale-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Sounding Hall 36 × 32, the wings 21 × 20, the Horn Chamber a round hall 17 m across, the Tank Hall 33 × 24, the Gallery of Horns 16 × 20, the Horn Store 10 × 12, the landing a 5 m passage | the Sounding Hall **48 × 36**, the wings and the Horn Store **30 × 30**, the Horn Chamber **34 m**, the Tank Hall **40 × 30**, the keepers' landing **30 × 30** (the gallery's room) |
+| ceilings | the Pool Room 12, the Shell Room 14, the Horn Chamber 13, the gallery and the Horn Store 9, the Listener's Hall 12 | **18 m** or more (the hall and the landing 20, the tank 22, the Listener's Hall 18), the antechamber a passage 9.6 |
+| doors | 3.2 to 5 m by 5 to 6.4 | **7 by 9** |
+| fights | a machine by every mark (the hall, both wings, the Horn Chamber, the tank, the gallery) and the Horn Store's arena | **the Horn Store only**, its keepers round its middle among four columns |
+| against the walls | the west door's cradle by its wall, the pool's eye on the far wall, the shell's eye on its end wall, the passage horn in the Song Passage, the tank's ball by the west wall, the shelf's ear by the east wall, the landing's eye, ball and dish along a 5 m passage, the Listener's ear over its door | each in the middle of its room: the west door's eye on a pillar over the cradle, the pool's on a pillar out in the water, the shell's on a pillar before the great shell, the passage horn in the Horn Chamber by its north door, the glass, the tank and the shelf down the Tank Hall's middle, the landing's horn, ball and dish out on its floor, the Listener's ear on a column of its own before its door |
+| threaded through doors | the Pool Room's ball rolled out through its door and across the hall to the east door's cradle (`b2`) | its cradle by the glass in the Pool Room, which opens the east door across the hall |
+| the rules broken | **52** (both 6, size 6, ceiling 6, unmeasured 1, door 9, centred 17, through doors 2, foes 5) | **0** |
+| the temple design audit | 4.44: structure 5, teach/test/twist 5, combination 5, non-obvious 4 (mean 2.86), decoupling 5, item 5, guardian 4, identity 3, curve 4 | 4.44, the same scores: `XBXCLGXXK` (the west door's eye and its ball one step, the east door the Pool Room's ball; the landing's horn the gadget alone: 60 % like the Engine-House, 55 % like the Aerie before); mean obviousness 2.71 |
+
+What it took beyond the sizes: the two wings' doors changed keys, so neither is threaded (the west door's eye on a pillar
+waits on the hall's ball at its foot, a shot and a push in one room; the east door on the Pool Room's ball, a room away and
+out of sight); the passage horn moved into the Horn Chamber, the Song Passage a passage (the run to its door as long as
+it was); the Listener's ear stands on a column in the hall before its door, the hall's own puzzle (its room the hall's),
+so the landing, a puzzle room after the chest, asks for the horn itself (its eye a horn); the landing's ball is under 20
+m from the Listener's Door (its step 2.0, not 1.5); the Listener's Hall is 18 m high, 24 m under the house, under the
+rooms over it. The dishes and horns standing on the floor are solid as drawn, and the whorls all their chambers. What
+stayed: the Listener and its fight, the story's lines, the small key and its arena, every horn's hold, the glass's rungs,
+the loop back through the keepers' door. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.underwater`
+v3).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -194,9 +218,6 @@ counts, and a house may not get worse). Ranked worst first:
 | Builders' Greenhouse (edena) | 58 → **0** (v1.77, above) | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
 | Undertower (bazaar) | 55 → **0** (v1.77, above) | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
 | Mooring-House (spacecity) | 54 | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
-
-| Undertower (bazaar) | 55 | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
-| Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |
 | Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
 | Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
@@ -214,7 +235,7 @@ What repeats, and how the Rose House answered each:
 - **Puzzles against the walls** ("centred"): eyes set high on end walls, grooves along a side wall, plates in corners.
   Bring the groove down the middle, the eye onto an obelisk or a pillar in the floor.
 - **Through doors** (16 in nine houses): the Lamp-House's orb (`orb5`) rolled through the Hall of Dark Pools' door into
-  the Root Stair, the Whale-House's ball (`b2`) through its pools' door, the Casting-House's moulds (`m1`, `mH` through
+  the Root Stair, the Whale-House's ball (`b2`) through its pools' door (v1.77: its cradle in the Pool Room now), the Casting-House's moulds (`m1`, `mH` through
   `dP`), the Hush-House's orb (`oB` through `dJ`), and a ball rolled into the next room's plate in the Undertower
   (`ballT` into the tuning room), the Clock-House (`ball1` into the well), the Engine-House (`ballJ`) and the Belfry
   (`ball3`, onto the far side of its hall). Put the ball, its plate and what it lights in one room.
@@ -225,5 +246,5 @@ What repeats, and how the Rose House answered each:
   that asks for it. Each wants a step with the gadget in it.
 
 The next houses to redo, by how much the player meets them and how much they break: the Warden's Well was the second
-(above), then the Founders' Belfry, the Builders' Greenhouse and the Aerie (above), then the **Undertower** (most
+(above), then the Founders' Belfry, the Builders' Greenhouse and the Aerie (above), then the Undertower, the Mooring-House and the Whale-House (above), then the **Lamp-House** (most
 broken).

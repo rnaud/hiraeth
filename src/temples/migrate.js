@@ -169,7 +169,16 @@ export const LAYOUTS = {
   // that door: its key in it, the arena won. The Whale-House's Horn Store (off the Sounding Hall's south wall) and the
   // Song Passage's door (past the chest: past the tank, its key in it); the Casting-House's Sand Room (south off the Mould Room) and the Founders' Door; the Footprint's
   // Keepers' Lodge (west off the Keepers' Gallery) and the Hall of the Unseen's far door
-  underwater: { v: 2, steps: [{ if: ['lit.e5', 'open.dK', 'open.dL', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arH': true } }] },
+  // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Pool Room's ball in a
+  // cradle of its own (the same pieces, the same state). A save that entered the house: taken to its last mark if it
+  // stood inside the old rooms (runtime.js relaid)
+  underwater: {
+    v: 3,
+    steps: [
+      { if: ['lit.e5', 'open.dK', 'open.dL', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arH': true } },
+      { if: ['entered'], set: { relaid: true } },
+    ],
+  },
   moonfoundry: { v: 2, steps: [{ if: ['open.dF', 'boss'], set: { 'unlocked.dF': 1, 'found.kS': true, 'lit.arS': true } }] },
   spheres: { v: 2, steps: [{ if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } }] },
   // v1.65: the Rose House's bellows' wind gone (issue #245); the Givers' watcher by the far landing's east doorway, its

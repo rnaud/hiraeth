@@ -55,6 +55,14 @@ export const CHANGELOG = [
     // the seed-capsule braziers), kit.js plan, runtime.js, pieces.js Brazier; desert.js / incal.js `skin`; tests/temple-skins.test.js
     'Inside, the Rose House is the inside of a dry cactus now, after the alien drawing picked for it: its walls rise in broad pleated ribs of rose and ochre flesh with fine cracks, ribs hang from the ceilings and run in to each oculus, where a cluster of turquoise pores lets the light through, wine-glass seed capsules stand on tall stalks by the walls, and every fire bowl carries a glass seed capsule that glows amber once it is lit. Its doors, the climb and the pier are pale and smooth against the ribs; every room and puzzle is where it was.',
     'Inside, the Warden’s Well is a wasp’s comb now: cream walls in fine wavy courses banded in blue, hooded hexagonal cells going deep into them, papery wing-like panes hung high under the tall rooms’ ceilings and a papery nest mouth round each oculus, over hex-tiled floors. Its doors, climb and puzzles are where they were, and stand out pale against the comb. On the Low and handheld settings both houses leave out their finest cracks and cells.',
+    // the Whale-House as shrines (issue #336): src/temples/underwater.js (DOOR, ROOMS, LOGIC.rooms kinds, the layout: the
+    // eyes on pillars, the Pool Room's ball in its own cradle for the east door, the passage horn in the Horn Chamber, the
+    // tank's ball and dish in the middle of the floor, the keepers' landing a room with its horn and its dish, the ear on
+    // the Listener's column); tests/temple-rules.test.js REDONE, tests/temples.test.js
+    'The Whale-House is rebuilt like a shrine too: the Sounding Hall is 48 m wide, its wings and the Horn Store 30 m square, the Horn Chamber 34 m round, the Tank Hall 40 m wide with the glass and the tank down its middle, its doors twice the size, and every puzzle stands in the middle of its room. The west door’s eye is on a pillar in the hall, the Pool Room’s ball rolls into a cradle of its own by the glass and opens the east door, the passage horn stands in the Horn Chamber by its north door, and the ear that opens the Listener’s Door is high on a column of its own before it.',
+    // (the machines only in the Horn Store, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; the landing's
+    // eye a horn now (eK needs the horn); the dishes and the horns on the floor solid; migrate.js underwater v3, relaid)
+    'The Whale-House’s keepers wait only in the Horn Store now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. The keepers’ door opens to the whale-horn from the landing behind it. If you were inside the old house, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

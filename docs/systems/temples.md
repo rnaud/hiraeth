@@ -442,6 +442,27 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   puzzles; the Capstan Floor is measured by its two doors (`d6`, `d7` carry `room: 'arena'`). Old saves: one that stood in
   the old rooms is taken to its last mark (`migrate.js` spacecity v3, `relaid`). Rules broken 54 → 0; temple design
   audit 4.22 before and after (mean obviousness 3.38 → 3.31); its z-fights 3 → 0.
+- **The Whale-House as shrines** (v1.77, issue #336, the eighth house redone to the rules). The Sounding Hall 48 by 36 m
+  under 20 (`ROOMS.hall`), its wings 30 m square under 18 (`ROOMS.wing`), the Horn Store 30 m square (`STORE`, a short
+  passage from the hall's south door), the Horn Chamber a round hall 34 m across (`ROOMS.horn`), the Tank Hall 40 by 30
+  under 22 with the glass, the tank and the shelf down its middle (`ROOMS.tank`), the keepers' landing behind the
+  keepers' door a hall 30 m square under 20 (`ROOMS.landing`, the gallery's room: its mark the first), the Gallery of
+  Horns over the shelf; the Throat 7 m wide down to a floor 24 m under the house (`AY`: the Listener's Hall 18 m high
+  under the rooms over it), the antechamber a passage (`K.corridor`). Every door 7 by 9 (`DOOR`). Each puzzle in the
+  middle of its room: the hall's ball rolls into the cradle at the foot of a pillar whose eye, lidded till then, opens the
+  west door (`eD`, `d1`); the Pool Room's ball (once rolled out through its door and across the hall, `b2`) rolls across
+  the dry half into a cradle by the glass, which opens the east door across the hall (`d2`, the house says so:
+  `onUpdate`); the pool's eye on a pillar out in the water, the shell's on a pillar before the great shell; the passage
+  horn (`e4`) in the Horn Chamber by its north door, the Song Passage's door at the passage's far end as long a run as it
+  was; the tank's ball and dish in the middle of the floor; the landing's ball and dish in its south-west quarter, under
+  20 m from the Listener's Door, and its eye a horn now (`eK` needs the horn: the landing is a puzzle room after the chest
+  and asks for it); the ear that opens the Listener's Door high on a column of its own before the door (`eL`, its room the
+  hall's), its dish's twin beside it. The dishes and horns standing on the floor are solid as drawn (`dishSolid`,
+  `earSolid`), and the whorls by the walls all their chambers. The rooms are tagged: the Horn Store is the house's one
+  fight, its keepers round its middle among four columns (`Mark` `foes`). The Listener and its fight, the story's lines,
+  the small key and its arena, every horn's hold and every climb as they were. Old saves: one that stood in the old rooms
+  is taken to its last mark (`migrate.js` underwater v3). Rules broken: 52 before, none now. Temple design audit: 4.44
+  before and after (5 5 5 4 5 5 4 3 4; the skeleton `BXXCLBXXK` → `XBXCLGXXK`, mean obviousness 2.86 → 2.71).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -495,14 +516,15 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   flat facade seals the tube's end, `WHALE_HOUSE`), brass horns curling out of it. Your water stops at glass; a note
   goes through glass and water. The **whale-horn** (item `horn`) sounds one fixed note, the deep one (`NOTES.deep`, an
   `'echo'` from `effects.js`), and the house's `EchoEar`s with `note: 'deep'` (elements `needs: ['horn']`) answer it.
-  Before the horn: the Sounding Hall is the hub (the west door's ball; the Pool Room's ball rolled across the whole hall
-  under the east door's lidded eye; the Horn Door wants the pool's eye, splashed over a glass wall you can't climb, and
-  the Shell Room's eye, unlidded by its ball). The Horn Chamber's try (a little horn that answers); the Song Passage's
-  door held while its horn rings (`hold`: a short run, a room on); the Tank Hall's twist: a ball on the footstone wakes a
+  Before the horn: the Sounding Hall is the hub (v1.77: the west door's eye on a pillar, lidded till the hall's ball is
+  in its cradle; the Pool Room's ball in its cradle by the glass for the east door; the Horn Door wants the pool's eye,
+  splashed over a glass wall you can't climb, and the Shell Room's eye, unlidded by its ball). The Horn Chamber's try (a
+  little horn that answers); the Song Passage's door held while the horn by the chamber's north door rings (`hold`: a
+  short run); the Tank Hall's twist: a ball on the footstone wakes a
   `Dish` whose twin on the shelf says the note to the shelf's ear across the water, and while that ear rings the tank's
   glass is climbable (`Glass` `rungs: true`: brass rungs slide out of its frame instead of a vine, and back in when its
-  `when` fails); the keepers' door from the landing (the loop back); the landing's dish, woken by its ball, carries the
-  note to its twin high over the Listener's Door, whose ear (out of the horn's reach from the floor, and deaf without
+  `when` fails); the keepers' door from the landing (the loop back, its horn); the landing's dish, woken by its ball, carries the
+  note to its twin high on the Listener's column before the Listener's Door, whose ear (out of the horn's reach from the floor, and deaf without
   that ball) opens it: the key seen from the lock, reached elsewhere. The **Listener** (`listenerModel`, organic): when
   it spreads its great ear, sound the horn close by; from its second phase it shuts its ear to anything near and only the
   hall's dishes reach it (`ARENA_DISHES`, a ball on a footstone each); shifting into its last it knocks the balls off.

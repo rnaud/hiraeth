@@ -21,37 +21,41 @@ import { listenerModel } from './guardian-listener.js';
 // ONE fixed note, the deep one, and the house's ears that listen for it answer: the doors it holds only while it
 // rings, the ear behind the tank's glass, the ear over the Listener's door that only hears the far dish.
 //   the Porch             the first mark, the way out
-//   the Sounding Hall     the hub, a long hall under a great hung shell: the west door's cradle (a ball for it); a stone
-//                         ball whose groove runs out of the Pool Room across the whole hall to the east door's cradle,
-//                         under the lidded eye over the Shell Room's door; the Horn Door on the north wall, two lamps on
-//                         its lintel (one eye in each wing); the Listener's Door beside it, its ear high over it beside
-//                         a dish's mouth (seen from the first step, opened at the end from elsewhere); the keepers' door
-//                         in the north-east corner, shut from this side
-//   the Pool Room         the west wing: a drawn pool of the sea behind a glass wall you can't climb; the pool's eye high
-//                         on the far wall, splashed over the glass. The stone ball for the east door starts here
-//   the Shell Room        the east wing: a great whorled shell; a ball rolled to its plate unlids the shell's eye
-//   the Horn Chamber      the makers' chest on a shell pulpit (a riding disc beside it): the WHALE-HORN. A try by the
-//                         pulpit: a little horn that answers the deep note, and nothing waits on it. Its way on is open
-//   the Song Passage      a room on: the door into the tank hall at its far end stays open only while the horn by the
-//                         chamber rings (`hold`): the horn's first lock, where a miss costs nothing (a short run)
-//   the Tank Hall         the sea let in behind a wall of glass nine metres tall; the shelf over it, and the ear on the
-//                         shelf, seen through the water and far out of the horn's reach. A stone ball rolled onto the
-//                         footstone of a dish by the glass wakes it; the horn sounded into it comes out of its twin
-//                         on the shelf, the shelf's ear rings, and while it rings brass rungs come out of the glass's
-//                         frame and you can climb it (the horn with the push, and the timing: the twist)
-//   the Gallery of Horns  over the shelf: the makers' speaking-horns along the wall; its stair goes down to a landing
-//                         behind the keepers' door: its eye opens the door onto the hall (the shortcut back), and the
-//                         landing's dish, woken by a ball on its footstone, carries the horn's note to its twin high over
-//                         the Listener's Door, where the ear hears it (the key decoupled from its lock)
-//   the Horn Store        (v1.53, issue #23: off the Sounding Hall's south wall, a wing of the hub, an arena) where the
-//                         makers kept their spare horns, shells stacked to the roof; its door shuts behind you while its
-//                         keepers stand. Won, the small key's cage sinks: the Song Passage's door takes it, a room past
-//                         the chest, with its horn's note
+//   the Sounding Hall     the hub, a hall 48 by 36 m under a great hung shell: a pillar in its west half, its eye lidded
+//                         till the stone ball is rolled into the cradle at its foot (the west door); the east door's lamp
+//                         that waits on the Pool Room's ball; the Horn Door on the north wall, two lamps on its lintel
+//                         (one eye in each wing); the Listener's Door beside it and before it the Listener's column, its
+//                         ear high on it beside a dish's mouth (seen from the first step, opened at the end from
+//                         elsewhere); the keepers' door in the north wall's east end, shut from this side
+//   the Pool Room         the west wing: a drawn pool of the sea behind a glass wall across its middle you can't climb;
+//                         the pool's eye on a pillar out in the water, splashed over the glass; the stone ball rolled
+//                         across the dry half into its cradle by the glass opens the east door, across the hall
+//   the Shell Room        the east wing: a great whorled shell; a ball rolled to its plate unlids the shell's eye on the
+//                         pillar before it
+//   the Horn Chamber      a round hall 34 m across: the makers' chest on a shell pulpit (a riding disc beside it): the
+//                         WHALE-HORN. A try by the pulpit: a little horn that answers the deep note, and nothing waits on
+//                         it. By its north door the passage horn: the Song Passage's door at the passage's far end stays
+//                         open only while it rings (`hold`): the horn's first lock, where a miss costs nothing
+//   the Tank Hall         the sea let in behind a wall of glass nine metres tall down its middle; the shelf over it, and
+//                         the ear on the shelf, seen through the water and far out of the horn's reach. A stone ball
+//                         rolled onto the footstone of a dish in the middle of the floor wakes it; the horn sounded into
+//                         it comes out of its twin on the shelf, the shelf's ear rings, and while it rings brass rungs
+//                         come out of the glass's frame and you can climb it (the horn with the push, and the timing)
+//   the Gallery of Horns  over the shelf: the makers' speaking-horns along the wall; its stair goes down to the keepers'
+//                         landing behind the keepers' door: its horn opens the door onto the hall (the shortcut back), and
+//                         the landing's dish, woken by a ball on its footstone, carries the horn's note to its twin on the
+//                         Listener's column in the hall, where the ear hears it (the key decoupled from its lock)
+//   the Horn Store        (v1.53, issue #23: off the Sounding Hall's south wall, the house's one fight) where the makers
+//                         kept their spare horns, shells stacked in the corners; its door shuts behind you while its
+//                         keepers stand among four columns. Won, the small key's cage sinks: the Song Passage's door takes
+//                         it, a room past the chest, with its horn's note
 //   the Throat            down from the Listener's Door, a long stair under the house
 //   the Listener's Hall   the guardian (organic: its meter is calm). When it stops and spreads its great ear, sound the
 //                         horn close by. From its second phase it shuts its ear to anything near it, and only the hall's
 //                         dishes reach it: a ball on a dish's footstone, the horn into the dish while its ear is open. As
 //                         it shifts into its last it knocks the balls off the footstones: roll one back
+// (v1.77, issue #336: the house remade as shrines, docs/design/temple-redesign.md: every room 30 m across or more, every
+// door 7 by 9 (DOOR), each puzzle in the middle of its room, the Horn Store the one fight; ROOMS.)
 // After: the Listener sings the whales' own song again; the lamps in the Whale-House's horns are lit, its seams glow,
 // and the whales come back to the glass (src/story/underwater.js draws them in: level.whalesNear).
 
@@ -90,8 +94,27 @@ export const PALETTE = {
   light: { shadow: '#8fb3ac', light: '#f6f1e2', sun: '#e6f2ea' },
 };
 
-// the rooms' places (local metres): the hub's middle, the Horn Chamber's, the arena's floor and middle
-const HZ = 30, HCX = -13.8, HCZ = 58, AY = -15, AZ = 106, AR = 18;
+/** (v1.77, issue #336) Every door between two rooms, as the redesign's rules want them (docs/design/temple-redesign.md). */
+export const DOOR = { w: 7, h: 9 };
+/**
+ * (v1.77, issue #336: the house as shrines) The rooms (local metres): the Sounding Hall (the hub, 48 by 36 m under 20),
+ * its wings (30 m square under 18, the Pool Room's glass across its middle), the Horn Chamber's round hall (34 m across),
+ * the Tank Hall (40 by 30 under 22: the glass, the tank and the shelf down its middle), the Gallery of Horns over the
+ * shelf, the keepers' landing (30 m square under 20, behind the keepers' door: the gallery's room, its mark the first),
+ * the Throat (from the Listener's Door down under the house) and the Listener's Hall.
+ */
+export const ROOMS = {
+  hall: { w: 48, d: 36, h: 20 },
+  wing: { w: 30, d: 30, h: 18, x: 43 },          // the Pool Room at -x, the Shell Room at +x
+  glass: -46,                                    // the Pool Room's glass (x): the sea behind it, the pool's eye on a pillar in it
+  horn: { r: 17, h: 18 },
+  tank: { x0: -36, x1: 4, z0: 98, z1: 128, h: 22, gw: -12, ge: -6, shelf: 9 },
+  gallery: { x: 18, z: 114, w: 20, d: 24, h: 12 },
+  landing: { x: 29, z: 68.4, w: 30, d: 30, h: 20 },
+};
+// the rooms' places (local metres): the hub's middle, the Horn Chamber's, the keepers' door's x, the Throat's and the
+// arena's x, floor and middle
+const HZ = 32, HCX = -16, HCZ = 71, KX = 19.5, AX = 8, AY = -24, AZ = 122, AR = 18;
 /** How long the horns hold their note (s): the passage's door, the tank's ear (the rungs). */
 export const HOLD = { door: 10, rungs: 16 };
 /** How much the horn calms it: close by in its first phase, through a dish in its second, in its last. */
@@ -102,14 +125,17 @@ const LISTEN = 14;   // m: how close to its ear a horn has to be, sounded straig
 
 export const LOGIC = {
   id: 'underwater', entry: 'threshold', gadget: 'horn',
+  // (each room's kind, issue #336: src/foes.js puts machines only in the combat room, the Horn Store)
   rooms: {
-    threshold: { checkpoint: true }, hall: { checkpoint: true }, pools: { checkpoint: true }, shells: { checkpoint: true }, horn: { checkpoint: true },
-    tank: { checkpoint: true }, gallery: { checkpoint: true }, store: { checkpoint: true }, ante: { checkpoint: true }, arena: { boss: true }, out: {},
+    threshold: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, pools: { checkpoint: true, kind: 'puzzle' },
+    shells: { checkpoint: true, kind: 'puzzle' }, horn: { checkpoint: true, kind: 'puzzle' }, tank: { checkpoint: true, kind: 'puzzle' },
+    gallery: { checkpoint: true, kind: 'puzzle' }, store: { checkpoint: true, kind: 'combat' }, ante: { checkpoint: true, kind: 'passage' },
+    arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'hall' },
-    { a: 'hall', b: 'pools', door: 'd1' },        // the west door: the stone ball in its cradle
-    { a: 'hall', b: 'shells', door: 'd2' },       // the east door: its eye, lidded until the pool's ball is in its cradle
+    { a: 'hall', b: 'pools', door: 'd1' },        // the west door: its eye on a pillar, lidded until the hall's ball is in its cradle
+    { a: 'hall', b: 'shells', door: 'd2' },       // the east door: the Pool Room's ball in its cradle
     { a: 'hall', b: 'horn', door: 'dH' },         // the Horn Door: an eye in each wing
     { a: 'horn', b: 'tank', door: 'd4' },         // the Song Passage's door, held while its horn rings (a room on from the chest)
     { a: 'hall', b: 'gallery', door: 'dK' },      // the keepers' door: the shortcut back, opened from the landing
@@ -120,15 +146,17 @@ export const LOGIC = {
     { a: 'arena', b: 'out', door: 'd5' },
   ],
   elements: {
-    // the Sounding Hall: the stone ball into the west door's cradle
+    // the Sounding Hall: the stone ball into the cradle at the pillar's foot, and the pillar's eye unlids: the west door
+    // (v1.77, issue #336: the west door once opened for the ball alone, and the east door's eye waited on the Pool
+    // Room's ball, rolled out through its door and across the hall)
     b1: { type: 'drum', room: 'hall', plate: 'p1', plateAt: 1, start: 0 },
     p1: { type: 'plate', room: 'hall' },
-    d1: { type: 'door', opens: { drumOn: ['b1', 'p1'] }, latch: true },
-    // the Pool Room's ball, rolled out across the hall into the east door's cradle: the eye over the door unlids
+    eD: { type: 'switch', room: 'hall', when: { drumOn: ['b1', 'p1'] } },
+    d1: { type: 'door', opens: { lit: 'eD' }, latch: true },
+    // the Pool Room's ball, rolled across its floor into its cradle by the glass: the east door, across the hall
     b2: { type: 'drum', room: 'pools', plate: 'p2', plateAt: 1, start: 0 },
-    p2: { type: 'plate', room: 'hall' },
-    eD: { type: 'switch', room: 'hall', when: { drumOn: ['b2', 'p2'] } },
-    d2: { type: 'door', opens: { lit: 'eD' }, latch: true },
+    p2: { type: 'plate', room: 'pools' },
+    d2: { type: 'door', opens: { drumOn: ['b2', 'p2'] }, latch: true },
     // the Horn Door: the pool's eye over the glass, and the shell's eye, unlidded by the Shell Room's ball
     eP: { type: 'switch', room: 'pools' },
     bS: { type: 'drum', room: 'shells', plate: 'pS', plateAt: 1, start: 0 },
@@ -146,12 +174,13 @@ export const LOGIC = {
     // the Tank Hall: the shelf's ear, through the dish (awake with the ball on its footstone), held: the glass's rungs
     e5: { type: 'switch', room: 'tank', needs: ['horn'], hold: HOLD.rungs, when: { drumOn: ['b5', 'p5'] } },
     rungs: { type: 'bridge', opens: { lit: 'e5' } },
-    // the landing behind the keepers' door: its eye (the way back); its dish, woken by the ball, to the Listener's Door
-    eK: { type: 'switch', room: 'gallery' },
+    // the landing behind the keepers' door: its horn (the way back, v1.77: an eye shot once); its dish, woken by the
+    // ball, to the ear on the Listener's column in the hall (heard there: its room the hall's, issue #336)
+    eK: { type: 'switch', room: 'gallery', needs: ['horn'] },
     dK: { type: 'door', opens: { lit: 'eK' }, latch: true },
     bL: { type: 'drum', room: 'gallery', plate: 'pL', plateAt: 1, start: 0 },
     pL: { type: 'plate', room: 'gallery' },
-    eL: { type: 'switch', room: 'gallery', needs: ['horn'], when: { drumOn: ['bL', 'pL'] } },
+    eL: { type: 'switch', room: 'hall', needs: ['horn'], when: { drumOn: ['bL', 'pL'] } },
     dL: { type: 'door', opens: { lit: 'eL' }, latch: true },
     // the Horn Store: its keepers beaten, the small key's cage sinks (v1.53)
     arH: { type: 'arena', room: 'store' },
@@ -168,8 +197,11 @@ export const LOGIC = {
   },
 };
 
-/** (v1.53) The Horn Store, off the Sounding Hall's south wall east of the porch (an arena): its north side the hall's wall. */
-export const STORE = { x: 13.8, z: 7.4, w: 10, d: 12, zone: { min: [8.8, -1, 1.4], max: [18.8, 9, 13.4] } };
+/**
+ * (v1.53) The Horn Store, off the Sounding Hall's south wall east of the porch (an arena; v1.77: 30 m square under 18, a
+ * short passage from the hall's door at `door`, its keepers round its middle among four columns).
+ */
+export const STORE = { x: 25, z: -5, w: 30, d: 30, h: 18, door: 16, zone: { min: [10, -1, -20], max: [40, 18, 10] } };
 
 /** The Horn Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
@@ -211,22 +243,24 @@ function listenerHit(g, part, mode) {
 
 /**
  * (v1.53, issue #23) The Horn Store, off the Sounding Hall's south wall: an arena among the makers' spare horns and their
- * shells; won, the small key's cage sinks (for the Song Passage's door, past the chest, with its horn's note).
+ * shells; won, the small key's cage sinks (for the Song Passage's door, past the chest, with its horn's note). (v1.77,
+ * issue #336: the house's one fight, 30 m square, its keepers round its middle among four columns.)
  */
 function store(rt, K, M, { brass, whorl }) {
-  const SH = 0;
   const add = (P, o) => rt.add(P, o);
-  const S = STORE;
-  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: SH, h: 9, roof: true, omit: ['n'] });   // (its north wall the hall's, the doorway in it)
-  add(Door, { id: 'dS', at: [S.x, SH, 14], w: 3.2, h: 5 });   // (open: it shuts behind you while they stand)
-  // spare horns on racks along the walls, shells stacked in the corners
-  for (const z of [S.z - 3.2, S.z + 1.6]) {
-    K.both(brass, box(0.3, 2.6, 0.3, S.x + S.w / 2 - 1.2, SH + 1.3, z));
-    K.add(brass, T(lathe([[0.12, 0], [0.25, 0.6], [0.6, 1.1], [1.1, 1.4], [1.15, 1.45]], 14).rotateZ(-Math.PI / 2), [S.x + S.w / 2 - 1.6, SH + 2.6, z]));
+  const S = STORE, x0 = S.x - S.w / 2, x1 = S.x + S.w / 2, z0 = S.z - S.d / 2, z1 = S.z + S.d / 2;
+  K.corridor([S.door, z1 + 0.6], [S.door, 13.4], 0, DOOR);   // (from its north wall to the hall's)
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: S.h, roof: true, doors: [{ side: 'n', at: S.door - S.x, ...DOOR }] });
+  add(Door, { id: 'dS', at: [S.door, 0, z1 + 0.6], ...DOOR });   // (open: it shuts behind you while they stand)
+  // four columns to fight round; spare horns on racks along the east wall, shells stacked in the corners
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) K.column(S.x + sx * 8, S.z + sz * 8, 0, S.h, 0.9);
+  for (const z of [S.z - 8, S.z - 3, S.z + 2, S.z + 7]) {
+    K.both(brass, box(0.3, 2.6, 0.3, x1 - 1.2, 1.3, z));
+    K.add(brass, T(lathe([[0.12, 0], [0.25, 0.6], [0.6, 1.1], [1.1, 1.4], [1.15, 1.45]], 14).rotateZ(-Math.PI / 2), [x1 - 1.6, 2.6, z]));
   }
-  for (const [x, z] of [[-3.6, -4.2], [-3.8, 3.4]]) whorl(S.x + x, SH, S.z + z, 0.9, true, 6);
-  add(Key, { id: 'kS', at: [S.x, SH, S.z - S.d / 2 + 1.6], yaw: 0 });
-  add(Mark, { room: 'store', at: [S.x - 0.5, SH, S.z + 2.6], yaw: Math.PI });
+  for (const [x, z] of [[x0 + 2.4, z0 + 2.4], [x0 + 2.6, z1 - 2.6], [x1 - 2.6, z0 + 2.4]]) whorl(x, 0, z, 0.9, 'all', 6);
+  add(Key, { id: 'kS', at: [S.x, 0, z0 + 1.6], yaw: 0 });
+  add(Mark, { room: 'store', at: [S.door, 0, z1 - 3], yaw: Math.PI, foes: [S.x, 0, S.z] });
 }
 
 // ------------------------------------------------------------------ inside
@@ -244,221 +278,265 @@ function layout(rt) {
     K.add(M.dark, T(new THREE.BoxGeometry(w, 0.04, L), [cx, y + 0.02, cz], [0, yaw, 0]));
     for (const s of [-1, 1]) K.add(brass, T(new THREE.BoxGeometry(0.14, 0.08, L), [cx + Math.cos(yaw) * s * (w / 2 + 0.1), y + 0.04, cz - Math.sin(yaw) * s * (w / 2 + 0.1)], [0, yaw, 0]));
   };
-  /** A whorled shell (drawn, or solid): chambers of ivory along a rising helix, coral bands. */
+  /** A whorled shell (drawn, or solid: its three lowest chambers, or 'all' of them): chambers of ivory along a rising helix, coral bands. */
   const whorl = (x, y, z, s, solid = false, n = 9) => {
     for (let i = 0; i < n; i++) {
       const k = i / (n - 1), a = i * 1.2, r = s * (1 - k * 0.8), rad = s * 0.55 * (1 - k * 0.7);
       const g = new THREE.SphereGeometry(r, 12, 8).scale(1, 0.82, 1).translate(x + Math.sin(a) * rad, y + r * 0.7 + k * s * 2.4, z + Math.cos(a) * rad);
-      if (solid && i < 3) K.both(i % 2 ? ivory : M.wall, g); else K.add(i % 2 ? ivory : M.wall, g);
+      if (solid === 'all' || (solid && i < 3)) K.both(i % 2 ? ivory : M.wall, g); else K.add(i % 2 ? ivory : M.wall, g);
       if (i % 2 === 0 && i < n - 2) K.add(coral, T(new THREE.TorusGeometry(r * 0.99, 0.06 * s, 3, 20), [x + Math.sin(a) * rad, y + r * 0.7 + k * s * 2.4, z + Math.cos(a) * rad], [Math.PI / 2 + 0.25, 0, a * 0.2]));
     }
   };
-  /** A corridor's sides and lintel between two walls (along z at x, from z0 to z1, floor y). */
-  const throughZ = (x, z0, z1, y = 0, w = 5, h = 6.4) => {
-    K.slab(x - w / 2 - 0.7, z0, x + w / 2 + 0.7, z1, y, 0.8);
-    K.wall(x - w / 2 - 0.4, z0, x - w / 2 - 0.4, z1, y, h, { t: 0.8 }); K.wall(x + w / 2 + 0.4, z1, x + w / 2 + 0.4, z0, y, h, { t: 0.8 });
-    K.both(M.wall, box(w + 1.6, 0.8, z1 - z0, x, y + h + 0.4, (z0 + z1) / 2));
+  /**
+   * (v1.77) A pillar of shell-stone standing out in a room, a coral band at its top, an eye on its face toward `yaw`:
+   * returns where the eye goes (on its face, at y).
+   */
+  const pillar = (x, z, h, y, yaw, base = 0) => {
+    K.both(M.wall, box(1.6, h, 1.6, x, base + h / 2, z));
+    K.both(M.trim, box(2.0, 0.4, 2.0, x, base + h + 0.2, z));
+    K.add(coral, box(1.64, 0.5, 1.64, x, base + h - 0.9, z));
+    return [x + Math.sin(yaw) * 0.82, y, z + Math.cos(yaw) * 0.82];
   };
-  const throughX = (z, x0, x1, y = 0, w = 5, h = 6.4) => {
-    K.slab(x0, z - w / 2 - 0.7, x1, z + w / 2 + 0.7, y, 0.8);
-    K.wall(x0, z - w / 2 - 0.4, x1, z - w / 2 - 0.4, y, h, { t: 0.8 }); K.wall(x1, z + w / 2 + 0.4, x0, z + w / 2 + 0.4, y, h, { t: 0.8 });
-    K.both(M.wall, box(x1 - x0, 0.8, w + 1.6, (x0 + x1) / 2, y + h + 0.4, z));
+  /** (v1.77) A dish standing out on the floor is solid as drawn: a disc as wide and as deep as its bowl (pieces.js Dish). */
+  const dishSolid = ({ at, yaw = 0, tilt = 0, r }) => K.solid(T(new THREE.CylinderGeometry(r, r, r * 0.4, 16).rotateX(Math.PI / 2).translate(0, 0, r * 0.2), at, [tilt, yaw, 0], 1, 'YXZ'));
+  /** (v1.77) A horn standing out on the floor (an EchoEar): its foot and its post solid as drawn. */
+  const earSolid = ({ at, stand = 2.4, size = 1 }) => {
+    K.solid(T(new THREE.CylinderGeometry(0.5 * size, 0.6 * size, 0.25, 12), [at[0], at[1] + 0.12, at[2]]));
+    K.solid(T(new THREE.CylinderGeometry(0.16 * Math.sqrt(size), 0.22 * Math.sqrt(size), stand, 8), [at[0], at[1] + stand / 2, at[2]]));
   };
+  /** An ear on its own post, solid. */
+  const ear = (o) => { earSolid(o); return add(EchoEar, o); };
+  /** A dish whose near end stands out on the floor, solid. */
+  const dish = (o) => { dishSolid(o); return add(Dish, o); };
+  const H = ROOMS.hall, Wg = ROOMS.wing, HX = H.w / 2, HZ0 = HZ - H.d / 2, HZ1 = HZ + H.d / 2;
 
   // ---- the Porch (z 0..12.8)
-  K.hall({ x: 0, z: 6.4, w: 14, d: 12.8, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
+  K.hall({ x: 0, z: 6.4, w: 14, d: 12.8, y: 0, h: 11, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
   K.solid(box(4, 5, 0.1, 0, 2.5, -1.25));
-  K.glyph([0, 6.2, 0.05], 1.5, 0);
+  K.glyph([0, 7.2, 0.05], 1.5, 0);
   for (const s of [-1, 1]) whorl(s * 5.2, 0, 8.5, 0.7, true, 6);
   add(Mark, { room: 'threshold', at: [-4.6, 0, 4], yaw: Math.PI / 2 });
 
-  // ---- the Sounding Hall (x -18..18, z 14..46): the hub
-  K.hall({ x: 0, z: HZ, w: 36, d: 32, y: 0, h: 20, roof: true, doors: [
-    { side: 's', w: 6, h: 7 }, { side: 'w', w: 5, h: 6.4 }, { side: 'e', w: 5, h: 6.4 }, { side: 's', at: STORE.x, w: 3.2, h: 5 },   // (and the Horn Store's, v1.53)
-    { side: 'n', at: HCX, w: 5, h: 6.4 }, { side: 'n', at: 0, w: 5, h: 6.4 }, { side: 'n', at: 13, w: 5, h: 6.4 },
+  // ---- the Sounding Hall (x -24..24, z 14..50): the hub
+  K.hall({ x: 0, z: HZ, w: H.w, d: H.d, y: 0, h: H.h, roof: true, doors: [
+    { side: 's', ...DOOR }, { side: 'w', ...DOOR }, { side: 'e', ...DOOR }, { side: 's', at: STORE.door, ...DOOR },   // (and the Horn Store's, v1.53)
+    { side: 'n', at: HCX, ...DOOR }, { side: 'n', at: AX, ...DOOR }, { side: 'n', at: KX, ...DOOR },
   ] });
   // the great shell hung from the roof (drawn), on brass chains; a whale's spiral inlaid in the floor under it
   whorl(0, 11.5, HZ - 1, 2.6, false, 9);
   for (const a of [0.4, 2.5, 4.6]) K.add(brass, T(new THREE.CylinderGeometry(0.05, 0.05, 6, 4), [Math.sin(a) * 2.0, 17.4, HZ - 1 + Math.cos(a) * 2.0]));
   K.add(M.dark, T(annulus(5.2, 5.6, 0.04, 48), [0, 0.03, HZ]));
   K.add(coral, T(annulus(6.6, 6.8, 0.04, 48), [0, 0.035, HZ]));
-  // the west door's cradle and its ball
-  groove([-5, 0, 22], [-14, 0, 22]);
-  add(Ball, { id: 'b1', a: [-5, 0.04, 22], b: [-14, 0.04, 22], r: 1.0, lock: true });
-  add(Plate, { id: 'p1', at: [-14, 0, 22], r: 1.2 });
-  add(Door, { id: 'd1', at: [-18.6, 0, HZ], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ drumOn: ['b1', 'p1'] }] });
-  // the long groove: from the Pool Room across the whole hall to the east door's cradle; the lidded eye over that door
-  groove([-28, 0, HZ], [14, 0, HZ]);
-  add(Ball, { id: 'b2', a: [-28, 0.04, HZ], b: [14, 0.04, HZ], r: 1.0, friction: 0.9, lock: true });
-  add(Plate, { id: 'p2', at: [14, 0, HZ], r: 1.2 });
-  add(Switch, { id: 'eD', at: [17.95, 8.0, HZ], yaw: -Math.PI / 2, size: 1.1, lids: true, wrong: 'The eye over the east door stays lidded. Its cradle below it is empty.' });
-  add(Door, { id: 'd2', at: [18.6, 0, HZ], yaw: Math.PI / 2, w: 5, h: 6.4, lamps: [{ lit: 'eD' }] });
+  // the west door's eye, lidded, on a pillar in the hall's west half facing the door; the cradle at its foot and the ball
+  add(Switch, { id: 'eD', at: pillar(-12, HZ - 2, 7.4, 6.5, -Math.PI / 2), yaw: -Math.PI / 2, size: 1.1, lids: true, wrong: 'The eye on the pillar stays lidded. The cradle at its foot is empty.' });
+  groove([-3, 0, HZ - 6], [-12, 0, HZ - 6]);
+  add(Ball, { id: 'b1', a: [-3, 0.04, HZ - 6], b: [-12, 0.04, HZ - 6], r: 1.0, lock: true });
+  add(Plate, { id: 'p1', at: [-12, 0, HZ - 6], r: 1.2 });
+  add(Door, { id: 'd1', at: [-HX - 0.6, 0, HZ], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'eD' }] });
+  // the east door: its lamp waits on the Pool Room's ball
+  add(Door, { id: 'd2', at: [HX + 0.6, 0, HZ], yaw: Math.PI / 2, ...DOOR, lamps: [{ drumOn: ['b2', 'p2'] }] });
   // the Horn Door: a lamp for each wing's eye
-  add(Door, { id: 'dH', at: [HCX, 0, 46.6], w: 5, h: 6.4, lamps: [{ lit: 'eP' }, { lit: 'eS' }] });
-  // the Listener's Door, and over it its ear beside the mouth of a dish (the landing's twin)
-  add(Door, { id: 'dL', at: [0, 0, 46.6], w: 5, h: 6.4, lamps: [{ lit: 'eL' }] });
-  K.both(brass, box(3.2, 0.3, 1.0, 0, 9.0, 45.5));   // (the ear's bracket)
+  add(Door, { id: 'dH', at: [HCX, 0, HZ1 + 0.6], ...DOOR, lamps: [{ lit: 'eP' }, { lit: 'eS' }] });
+  // the Listener's Door, and before it the Listener's column: its ear high on it beside the mouth of a dish (the
+  // landing's twin), seen from the first step
+  add(Door, { id: 'dL', at: [AX, 0, HZ1 + 0.6], ...DOOR, lamps: [{ lit: 'eL' }] });
+  const LC = [AX + 1.7, 41.6];   // (the column)
+  K.column(LC[0], LC[1], 0, 10.1, 0.9);
+  K.both(brass, box(6.0, 0.4, 1.8, LC[0], 10.3, LC[1]));   // (the bracket across its top: the ear at its west end, the dish at its east)
+  K.add(coral, T(new THREE.TorusGeometry(1.0, 0.12, 4, 20), [LC[0], 9.4, LC[1]], [Math.PI / 2, 0, 0]));
+  add(EchoEar, { id: 'eL', note: 'deep', lintel: true, at: [AX, 10.9, 41], yaw: Math.PI, size: 1.3, reach: 6,
+    heard: 'High on the Listener’s column the far dish says the deep note, and the ear beside it answers. The door behind it sinks.' });
   // the keepers' door, shut from this side
-  add(Door, { id: 'dK', at: [13, 0, 46.6], w: 5, h: 6.4, lamps: [{ lit: 'eK' }] });
-  K.glyph([0, 14, 45.95], 2.0, Math.PI);
+  add(Door, { id: 'dK', at: [KX, 0, HZ1 + 0.6], ...DOOR, lamps: [{ lit: 'eK' }] });
+  K.glyph([0, 14, HZ1 - 0.05], 2.0, Math.PI);
   add(Mark, { room: 'hall', at: [-8, 0, 17.5], yaw: Math.PI * 0.25 });
 
-  // ---- the Pool Room (the west wing, x -43.2..-22): the sea behind a glass wall; the pool's eye over it
-  throughX(HZ, -21.4, -18.6);
-  K.hall({ x: -32.6, z: HZ, w: 21.2, d: 20, y: 0, h: 12, roof: true, doors: [{ side: 'e', w: 5, h: 6.4 }] });
-  K.add(water, box(9.4, 0.1, 19.6, -38.5, 0.08, HZ));
-  K.add(deepM, box(9.4, 3.6, 0.1, -38.5, 1.9, HZ - 9.75));
-  K.solid(box(0.3, 4.2, 20, -33.8, 2.1, HZ));
-  add(Glass, { at: [-33.75, 0, HZ], yaw: Math.PI / 2, w: 19.6, h: 4.2, color: '#bfe4e6', slip: 'The glass is too smooth to hold, and the sea is on the other side of it.' });
-  add(Switch, { id: 'eP', at: [-43.1, 6.6, HZ], yaw: Math.PI / 2, size: 1.2 });
+  // ---- the Pool Room (the west wing, x -58..-28): the sea behind a glass wall across its middle; the pool's eye on a
+  // pillar out in the water; the ball for the east door's eye rolled down the dry half to its cradle
+  const PX = -Wg.x, GX = ROOMS.glass, px0 = PX - Wg.w / 2;
+  K.corridor([-HX - 0.6, HZ], [PX + Wg.w / 2 + 0.6, HZ], 0, DOOR);
+  K.hall({ x: PX, z: HZ, w: Wg.w, d: Wg.d, y: 0, h: Wg.h, roof: true, doors: [{ side: 'e', ...DOOR }] });
+  K.add(water, box(GX - px0 - 0.4, 0.1, Wg.d - 0.4, (px0 + GX) / 2, 0.08, HZ));
+  K.add(deepM, box(GX - px0 - 0.4, 3.6, 0.1, (px0 + GX) / 2, 1.9, HZ - Wg.d / 2 + 0.25));
+  K.solid(box(0.3, 4.2, Wg.d, GX, 2.1, HZ));
+  add(Glass, { at: [GX + 0.05, 0, HZ], yaw: Math.PI / 2, w: Wg.d - 0.4, h: 4.2, color: '#bfe4e6', slip: 'The glass is too smooth to hold, and the sea is on the other side of it.' });
+  add(Switch, { id: 'eP', at: pillar(PX - 8, HZ, 7.6, 6.6, Math.PI / 2), yaw: Math.PI / 2, size: 1.2 });
+  // (its cradle by the glass: the east door's)
+  const B2 = [[PX + 9, 0, HZ - 8], [PX - 1, 0, HZ + 2]];
+  groove(...B2);
+  add(Ball, { id: 'b2', a: [B2[0][0], 0.04, B2[0][2]], b: [B2[1][0], 0.04, B2[1][2]], r: 1.0, friction: 0.9, lock: true });
+  add(Plate, { id: 'p2', at: B2[1], r: 1.2 });
   // shelves of shells along the north wall (drawn)
-  for (let i = 0; i < 4; i++) { K.both(brass, box(1.6, 0.15, 0.6, -30 + i * 2.2, 2.2, HZ + 9.6)); whorl(-30 + i * 2.2, 2.3, HZ + 9.6, 0.32, false, 5); }
-  add(Mark, { room: 'pools', at: [-26, 0, HZ - 6.5], yaw: Math.PI / 2 });
+  for (let i = 0; i < 5; i++) { K.both(brass, box(1.6, 0.15, 0.6, GX + 2.4 + i * 2.4, 2.2, HZ + Wg.d / 2 - 0.4)); whorl(GX + 2.4 + i * 2.4, 2.3, HZ + Wg.d / 2 - 0.4, 0.32, false, 5); }
+  add(Mark, { room: 'pools', at: [PX + 12, 0, HZ - 7], yaw: Math.PI / 2 });
 
-  // ---- the Shell Room (the east wing, x 22..43.2): a great whorled shell; a ball to its plate unlids the shell's eye
-  throughX(HZ, 18.6, 21.4);
-  K.hall({ x: 32.6, z: HZ, w: 21.2, d: 20, y: 0, h: 14, roof: true, doors: [{ side: 'w', w: 5, h: 6.4 }] });
-  whorl(34, 0, HZ - 3.5, 2.4, true, 9);
-  groove([25.5, 0, HZ + 6.5], [39.5, 0, HZ + 6.5]);
-  add(Ball, { id: 'bS', a: [25.5, 0.04, HZ + 6.5], b: [39.5, 0.04, HZ + 6.5], r: 1.0, lock: true });
-  add(Plate, { id: 'pS', at: [39.5, 0, HZ + 6.5], r: 1.2 });
-  add(Switch, { id: 'eS', at: [43.1, 5.6, HZ], yaw: -Math.PI / 2, size: 1.2, lids: true, wrong: 'The shell’s eye stays lidded. Its plate by the wall is bare.' });
-  add(Mark, { room: 'shells', at: [25.5, 0, HZ - 6], yaw: -Math.PI / 2 });
+  // ---- the Shell Room (the east wing, x 28..58): a great whorled shell; a ball to its plate unlids the shell's eye on
+  // the pillar before it
+  const SX = Wg.x;
+  K.corridor([HX + 0.6, HZ], [SX - Wg.w / 2 - 0.6, HZ], 0, DOOR);
+  K.hall({ x: SX, z: HZ, w: Wg.w, d: Wg.d, y: 0, h: Wg.h, roof: true, doors: [{ side: 'w', ...DOOR }] });
+  whorl(SX + 5, 0, HZ - 4, 2.4, 'all', 9);
+  add(Switch, { id: 'eS', at: pillar(SX - 0.5, HZ - 6.5, 6.4, 5.6, -Math.PI / 2), yaw: -Math.PI / 2, size: 1.2, lids: true, wrong: 'The shell’s eye stays lidded. Its plate is bare.' });
+  groove([SX - 8, 0, HZ + 7], [SX + 8, 0, HZ + 7]);
+  add(Ball, { id: 'bS', a: [SX - 8, 0.04, HZ + 7], b: [SX + 8, 0.04, HZ + 7], r: 1.0, lock: true });
+  add(Plate, { id: 'pS', at: [SX + 8, 0, HZ + 7], r: 1.2 });
+  add(Mark, { room: 'shells', at: [SX - 12, 0, HZ - 7], yaw: -Math.PI / 2 });
 
-  // ---- the Horn Chamber (a rotunda round (HCX, HCZ)): the chest on a shell pulpit, a riding disc beside it; the try
-  throughZ(HCX, 47.2, 49.8);
-  K.rotunda({ x: HCX, z: HCZ, y: 0, r: 8.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0 });
+  // ---- the Horn Chamber (a round hall 34 m across round (HCX, HCZ)): the chest on a shell pulpit, a riding disc beside
+  // it; the try; the passage horn by the north door, which holds the Song Passage's door while it rings
+  const HR = ROOMS.horn.r;
+  K.corridor([HCX, HZ1 + 0.6], [HCX, HCZ - HR - 1.0], 0, DOOR);
+  K.rotunda({ x: HCX, z: HCZ, y: 0, r: HR, h: ROOMS.horn.h, gaps: [{ a: Math.PI, ...DOOR }, { a: 0, ...DOOR }], oculus: 0 });
   const PT = 3.0;   // the pulpit's top
   K.both(M.wall, lathe([[2.4, 0], [2.0, 0.6], [1.5, PT - 0.6], [2.3, PT - 0.15], [2.3, PT], [0.01, PT]], 20).translate(HCX, 0, HCZ), new THREE.CylinderGeometry(2.2, 2.3, PT, 20).translate(HCX, PT / 2, HCZ));
   K.add(coral, T(new THREE.TorusGeometry(2.25, 0.1, 4, 28), [HCX, PT - 0.1, HCZ], [Math.PI / 2, 0, 0]));
   add(Platform, { path: [[HCX + 4.4, 0.3, HCZ], [HCX + 4.4, PT, HCZ]], r: 1.7, speed: 1.2, pause: 1.6 });
   K.add(M.dark, T(new THREE.CylinderGeometry(1.9, 1.9, 0.08, 24), [HCX + 4.4, 0.04, HCZ]));
-  add(EchoEar, { id: 'eT', note: 'deep', at: [HCX - 5.2, 0, HCZ + 2.2], yaw: Math.PI / 2 + 0.4, stand: 1.8, size: 0.8, reach: 6,
+  ear({ id: 'eT', note: 'deep', at: [HCX - 5.2, 0, HCZ + 2.2], yaw: Math.PI / 2 + 0.4, stand: 1.8, size: 0.8, reach: 6,
     heard: 'The little horn by the pulpit takes the deep note and hums it back. The whorls round the chamber’s wall glow a moment. Nothing opens: it only answers.' });
-  for (const a of [0.9, 2.2, 4.1, 5.4]) whorl(HCX + Math.sin(a) * 7.4, 0, HCZ + Math.cos(a) * 7.4, 0.55, false, 6);
-  add(Mark, { room: 'horn', at: [HCX + 5, 0, HCZ - 4.5], yaw: -Math.PI * 0.75 });
-
-  // ---- the Song Passage (x HCX ± 5, z 66..76.4), a room on: the door held while its horn rings; the ball under it
-  K.hall({ x: HCX, z: 71.2, w: 10, d: 10.4, y: 0, h: 8, roof: true, omit: ['n', 's'] });
-  add(EchoEar, { id: 'e4', note: 'deep', at: [HCX - 3.6, 0, 67.8], yaw: 0.35, stand: 2.2, reach: 6,
-    heard: 'The horn by the passage takes the deep note and holds it, and at the far end the door sinks, as long as it rings.',
+  for (const a of [0.9, 2.2, 4.1, 5.4]) whorl(HCX + Math.sin(a) * (HR - 2), 0, HCZ + Math.cos(a) * (HR - 2), 0.8, 'all', 6);
+  ear({ id: 'e4', note: 'deep', at: [HCX + 1.5, 0, HCZ + 9.5], yaw: Math.PI + 0.3, stand: 2.2, reach: 6,
+    heard: 'The horn by the north door takes the deep note and holds it, and down the passage the door sinks, as long as it rings.',
     fading: 'The passage horn’s note is fading: the door will rise.' });
-  add(Door, { id: 'd4', at: [HCX, 0, 76.6], w: 5, h: 6.4, lamps: [{ lit: 'e4' }] });
-  for (const s of [-1, 1]) whorl(HCX + s * 4.0, 0, 73.5, 0.45, false, 5);
+  add(Mark, { room: 'horn', at: [HCX + 5, 0, HCZ - 9], yaw: -Math.PI * 0.75 });
 
-  // ---- the Tank Hall (x -30..3, z 77.2..101.2): the sea let in behind nine metres of glass; the shelf over it
-  const TX0 = -30, TX1 = 3, TZ = 89.2, GW = -8, GE = -2, SH = 9;
-  K.hall({ x: (TX0 + TX1) / 2, z: TZ, w: TX1 - TX0, d: 24, y: 0, h: 22, roof: true, doors: [{ side: 's', at: HCX - (TX0 + TX1) / 2, w: 5, h: 6.4 }, { side: 'e', at: 3.8, y0: SH, w: 5, h: 6.4 }] });
-  K.add(water, box(GE - GW - 0.2, SH - 0.4, 23.8, (GW + GE) / 2, (SH - 0.4) / 2, TZ));
+  // ---- the Song Passage (from the chamber's north door to the tank hall's): its door at the far end, held while the
+  // horn by the north door rings
+  const TK = ROOMS.tank, TZ = (TK.z0 + TK.z1) / 2, TX = (TK.x0 + TK.x1) / 2, GW = TK.gw, GE = TK.ge, SH = TK.shelf;
+  K.corridor([HCX, HCZ + HR + 1.0], [HCX, TK.z0 - 0.6], 0, DOOR);
+  add(Door, { id: 'd4', at: [HCX, 0, TK.z0 - 0.6], ...DOOR, lamps: [{ lit: 'e4' }] });
+  for (const s of [-1, 1]) whorl(HCX + s * 3.0, 0, HCZ + HR + 4.6, 0.45, 'all', 5);
+
+  // ---- the Tank Hall (x -36..4, z 98..128): the sea let in behind nine metres of glass down its middle; the shelf over it
+  K.hall({ x: TX, z: TZ, w: TK.x1 - TK.x0, d: TK.z1 - TK.z0, y: 0, h: TK.h, roof: true, doors: [{ side: 's', at: HCX - TX, ...DOOR }, { side: 'e', at: 5, y0: SH, ...DOOR }] });
+  K.add(water, box(GE - GW - 0.2, SH - 0.4, TK.z1 - TK.z0 - 0.2, (GW + GE) / 2, (SH - 0.4) / 2, TZ));
   // (the glass: the house's one climb, held only while its rungs are out, the Glass piece slipping you off it till then;
   // its other walls are not climbed, issue #115)
-  K.climbable('the Tank Hall\'s glass: its brass rungs, out while the shelf\'s ear rings, up to the shelf', () => K.solid(box(0.3, SH, 24, GW, SH / 2, TZ)));
-  add(Glass, { id: 'rungs', at: [GW - 0.05, 0, TZ], yaw: -Math.PI / 2, w: 23.6, h: SH, color: '#bfe4e6', rungs: true, when: { lit: 'e5' },
+  K.climbable('the Tank Hall\'s glass: its brass rungs, out while the shelf\'s ear rings, up to the shelf', () => K.solid(box(0.3, SH, TK.z1 - TK.z0, GW, SH / 2, TZ)));
+  add(Glass, { id: 'rungs', at: [GW - 0.05, 0, TZ], yaw: -Math.PI / 2, w: TK.z1 - TK.z0 - 0.4, h: SH, color: '#bfe4e6', rungs: true, when: { lit: 'e5' },
     slip: 'The tank’s glass is too smooth to hold. Its brass frame has slots all the way up, empty.' });
-  K.both(brass, box(GE - GW + 0.2, 0.3, 24, (GW + GE) / 2, SH - 0.15, TZ));   // (the tank's lid: a brass grating)
-  K.both(M.wall, box(TX1 - GE, SH - 0.8, 24, (GE + TX1) / 2, (SH - 0.8) / 2, TZ));   // (under the shelf: solid)
-  K.slab(GE, 77.2, TX1, 101.2, SH, 0.8);
+  K.both(brass, box(GE - GW + 0.2, 0.3, TK.z1 - TK.z0, (GW + GE) / 2, SH - 0.15, TZ));   // (the tank's lid: a brass grating)
+  K.both(M.wall, box(TK.x1 - GE, SH - 0.8, TK.z1 - TK.z0, (GE + TK.x1) / 2, (SH - 0.8) / 2, TZ));   // (under the shelf: solid)
+  K.slab(GE, TK.z0, TK.x1, TK.z1, SH, 0.8);
   // a whale drawn in the tank's water, in the makers' brass line (the house's sign)
   K.add(deepM, T(new THREE.SphereGeometry(1, 14, 8).scale(0.6, 1.4, 6), [(GW + GE) / 2, 4.2, TZ + 1]));
   K.add(deepM, T(new THREE.BoxGeometry(0.3, 0.5, 3.2), [(GW + GE) / 2, 4.2, TZ - 6.6], [0, 0, 0]));
-  // the ball, its footstone and the near dish by the glass; its twin on the shelf beside the shelf's ear
-  groove([-26, 0, 84], [-13, 0, 84]);
-  add(Ball, { id: 'b5', a: [-26, 0.04, 84], b: [-13, 0.04, 84], r: 1.0, lock: true });
-  add(Plate, { id: 'p5', at: [-13, 0, 84], r: 1.2 });
-  add(Dish, { id: 'dishT', at: [-15.6, 3.0, 87.2], yaw: Math.PI / 2, tilt: 0.1, r: 2.2, when: { drumOn: ['b5', 'p5'] },
-    to: { at: [0.6, SH + 2.6, 86], yaw: -Math.PI / 2, tilt: 0.1, r: 2.2 },
+  // the ball, its footstone and the near dish in the middle of the floor; its twin on the shelf beside the shelf's ear
+  groove([GW - 15, 0, TZ - 7], [GW - 3, 0, TZ - 7]);
+  add(Ball, { id: 'b5', a: [GW - 15, 0.04, TZ - 7], b: [GW - 3, 0.04, TZ - 7], r: 1.0, lock: true });
+  add(Plate, { id: 'p5', at: [GW - 3, 0, TZ - 7], r: 1.2 });
+  dish({ id: 'dishT', at: [GW - 5.6, 3.0, TZ - 3.8], yaw: Math.PI / 2, tilt: 0.1, r: 2.2, when: { drumOn: ['b5', 'p5'] },
+    to: { at: [GE + 2.6, SH + 2.6, TZ - 5.4], yaw: -Math.PI / 2, tilt: 0.1, r: 2.2 },
     dark: 'The dish by the glass is dark and deaf: its footstone is bare. Something heavy has to stand on it.' });
-  add(EchoEar, { id: 'e5', note: 'deep', at: [1.4, SH, 90.4], yaw: -Math.PI / 2, stand: 2.4, size: 1.2, reach: 7,
+  K.both(brass, T(new THREE.CylinderGeometry(0.22, 0.3, 1.4, 8), [GW - 5.6 - 0.3, 0.7, TZ - 3.8]));   // (the dish's post)
+  ear({ id: 'e5', note: 'deep', at: [GE + 1.4, SH, TZ - 1], yaw: -Math.PI / 2, stand: 2.4, size: 1.2, reach: 7,
     heard: 'Across the water the far dish says the deep note, and the shelf’s ear takes it and holds it. Brass rungs slide out of the glass’s frame, as long as it rings.',
     fading: 'The shelf’s ear is fading: the rungs will slide back.' });
-  add(Mark, { room: 'tank', at: [-22, 0, 79.6], yaw: Math.PI / 2 });
-  for (const [x, z] of [[-28.5, 84], [-28.5, 95]]) whorl(x, 0, z, 0.8, true, 6);
+  add(Mark, { room: 'tank', at: [HCX - 6, 0, TK.z0 + 3], yaw: Math.PI / 2 });
+  for (const [x, z] of [[TK.x0 + 2.5, TK.z0 + 8], [TK.x0 + 2.5, TK.z1 - 8]]) whorl(x, 0, z, 0.8, 'all', 6);
 
-  // ---- the Gallery of Horns (x 4.8..20.8, z 78..98, floor 9): the makers' speaking-horns
-  K.slab(2.5, 90.5, 5.5, 95.5, SH, 0.8);
-  K.hall({ x: 12.8, z: 88, w: 16, d: 20, y: SH, h: 9, roof: true, doors: [{ side: 'w', at: 5, w: 5, h: 6.4 }, { side: 's', at: 0.2, w: 5, h: 6.4 }] });
-  for (let i = 0; i < 4; i++) {
-    const z = 81.5 + i * 4.4;
-    K.both(brass, T(new THREE.CylinderGeometry(0.18, 0.24, 2.4, 8), [19.6, SH + 1.2, z]));
-    K.add(brass, T(lathe([[0.15, 0], [0.3, 0.7], [0.7, 1.3], [1.3, 1.6], [1.35, 1.65]], 14).rotateZ(Math.PI / 2), [19.9, SH + 2.9, z]));
-  }
-  K.add(deepM, box(8, 4, 0.1, 12.8, SH + 4, 97.35));   // (a window of the sea in the north wall)
-  for (let i = 0; i <= 4; i++) K.add(M.trim, box(0.14, 4.2, 0.2, 8.8 + i * 2, SH + 4, 97.3));
-  add(Mark, { room: 'gallery', at: [8, SH, 84], yaw: Math.PI / 2 });
-
-  // ---- the keepers' stair and landing (x 10.4..15.6): down to the keepers' door; the eye; the landing's dish and ball
-  K.stairs([13, 0, 58], [13, SH, 77.2], 4.6, { sides: false });
-  K.slab(10.4, 47.2, 15.6, 58, 0, 0.8);
-  K.wall(10.2, 47.2, 10.2, 77.6, 0, 17.4, { t: 0.8 }); K.wall(15.8, 77.6, 15.8, 47.2, 0, 17.4, { t: 0.8 });
-  K.slab(10.2, 47.2, 15.8, 58, 7.8, 0.8);
-  K.ramp([13, 7.8, 58], [13, 17.4, 77.2], 6.4, { t: 0.8 });
-  add(Switch, { id: 'eK', at: [15.35, 3.4, 49.6], yaw: -Math.PI / 2, size: 1.0 });
-  groove([11.8, 0, 56.6], [11.8, 0, 50.6]);
-  add(Ball, { id: 'bL', a: [11.8, 0.04, 56.6], b: [11.8, 0.04, 50.6], r: 0.9, lock: true });
-  add(Plate, { id: 'pL', at: [11.8, 0, 50.6], r: 1.1 });
-  add(Dish, { id: 'dishL', at: [10.75, 3.0, 53.2], yaw: Math.PI / 2, tilt: 0.15, r: 1.8, when: { drumOn: ['bL', 'pL'] },
-    to: { at: [4.2, 10.4, 45.1], yaw: Math.PI, tilt: 0.35, r: 2.0 },
+  // ---- the keepers' landing (x 14..44, z 53.4..83.4, behind the keepers' door): its horn (the way back), its ball and
+  // dish in the middle of the floor, the dish's twin on the Listener's column in the hall
+  const LD = ROOMS.landing, LZ0 = LD.z - LD.d / 2, LZ1 = LD.z + LD.d / 2, GY = ROOMS.gallery;
+  const stairX = 20;
+  K.corridor([KX, HZ1 + 0.6], [KX, LZ0 - 0.6], 0, DOOR);
+  K.hall({ x: LD.x, z: LD.z, w: LD.w, d: LD.d, y: 0, h: LD.h, roof: true, doors: [{ side: 's', at: KX - LD.x, ...DOOR }, { side: 'n', at: stairX - LD.x, ...DOOR }] });
+  add(Mark, { room: 'gallery', at: [KX - 1, 0, LZ0 + 4], yaw: 0 });
+  ear({ id: 'eK', note: 'deep', at: [LD.x + 4, 0, LZ0 + 11], yaw: -Math.PI * 0.7, stand: 2.2, reach: 6,
+    heard: 'The landing’s horn takes the deep note, and across the landing the keepers’ door sinks into the floor.' });
+  // (its footstone in the landing's south-west quarter: under 20 m from the Listener's Door, through the wall)
+  const BL = [[LD.x, 0, LZ0 + 7], [KX + 1, 0, LZ0 + 7]];
+  groove(...BL);
+  add(Ball, { id: 'bL', a: [BL[0][0], 0.04, BL[0][2]], b: [BL[1][0], 0.04, BL[1][2]], r: 0.9, lock: true });
+  add(Plate, { id: 'pL', at: BL[1], r: 1.1 });
+  const DL = [KX + 5.1, 3.0, LZ0 + 4.4];
+  dish({ id: 'dishL', at: DL, yaw: -Math.PI / 2, tilt: 0.15, r: 1.8, when: { drumOn: ['bL', 'pL'] },
+    to: { at: [LC[0] + 1.7, 11.2, LC[1]], yaw: Math.PI, tilt: 0.35, r: 2.0 },
     dark: 'The landing’s dish is dark and deaf: its footstone is bare.' });
-  add(EchoEar, { id: 'eL', note: 'deep', lintel: true, at: [0, 9.6, 45.6], yaw: Math.PI, size: 1.3, reach: 6,
-    heard: 'Over the Listener’s Door the far dish says the deep note, and the ear beside it answers. The door sinks.' });
-  add(Mark, { room: 'gallery', at: [13, 0, 55.5], yaw: Math.PI });
+  K.both(brass, T(new THREE.CylinderGeometry(0.2, 0.28, 1.6, 8), [DL[0] + 0.3, 0.8, DL[2]]));   // (the dish's post)
+  for (const [x, z] of [[LD.x - 12.4, LZ1 - 2.6], [LD.x + 12.4, LZ0 + 2.6]]) whorl(x, 0, z, 0.9, 'all', 6);
 
-  // ---- the Throat: from the Listener's Door down a long stair under the house to its hall
-  K.slab(-3.2, 47.2, 3.2, 50, 0, 0.8);
-  K.stairs([0, 0, 50], [0, AY, 76], 5, { sides: false });
-  K.slab(-3.2, 76, 3.2, 87.4, AY, 0.8);
-  for (const [z0, z1, y0, y1] of [[47.2, 50, 0, 7.4], [50, 63, -7.6, 7.4], [63, 75.5, AY, 0], [75.5, 87.4, AY, -7.0]]) {
-    K.wall(-3.6, z0, -3.6, z1, y0, y1 - y0, { t: 0.8 }); K.wall(3.6, z1, 3.6, z0, y0, y1 - y0, { t: 0.8 });
+  // ---- the keepers' stair: up from the landing's north door to the Gallery of Horns over the shelf
+  const S0 = LZ1 + 0.6, S1 = GY.z - GY.d / 2 - 0.6;
+  K.slab(stairX - 3.8, S0, stairX + 3.8, S0 + 1, 0, 0.8);
+  K.stairs([stairX, 0, S0 + 1], [stairX, SH, S1 - 1], DOOR.w, { sides: false });
+  K.slab(stairX - 3.8, S1 - 1, stairX + 3.8, S1, SH, 0.8);
+  K.wall(stairX - 4.2, S0, stairX - 4.2, S1, 0, SH + 10.6, { t: 0.8 }); K.wall(stairX + 4.2, S1, stairX + 4.2, S0, 0, SH + 10.6, { t: 0.8 });
+  K.slab(stairX - 4.6, S0, stairX + 4.6, S0 + 1, 10.6, 0.8);
+  K.ramp([stairX, 10.6, S0 + 1], [stairX, SH + 10.6, S1 - 1], 9.2, { t: 0.8 });
+  K.slab(stairX - 4.6, S1 - 1, stairX + 4.6, S1, SH + 10.6, 0.8);
+
+  // ---- the Gallery of Horns (x 8..28, z 102..126, floor 9): the makers' speaking-horns, over the shelf
+  K.corridor([TK.x1 + 0.6, TZ + 5], [GY.x - GY.w / 2 - 0.6, TZ + 5], SH, DOOR);
+  K.hall({ x: GY.x, z: GY.z, w: GY.w, d: GY.d, y: SH, h: GY.h, roof: true, doors: [{ side: 'w', at: TZ + 5 - GY.z, ...DOOR }, { side: 's', at: stairX - GY.x, ...DOOR }] });
+  const gx1 = GY.x + GY.w / 2, gz1 = GY.z + GY.d / 2;
+  for (let i = 0; i < 5; i++) {
+    const z = GY.z - 9 + i * 4.5;
+    K.both(brass, T(new THREE.CylinderGeometry(0.18, 0.24, 2.4, 8), [gx1 - 1.2, SH + 1.2, z]));
+    K.add(brass, T(lathe([[0.15, 0], [0.3, 0.7], [0.7, 1.3], [1.3, 1.6], [1.35, 1.65]], 14).rotateZ(Math.PI / 2), [gx1 - 0.9, SH + 2.9, z]));
   }
-  K.slab(-4, 47.2, 4, 50, 7.8, 0.8);
-  K.ramp([0, 7.8, 50], [0, -7.2, 76], 8, { t: 0.8 });
-  K.slab(-4, 75.5, 4, 87.4, -6.6, 0.8);
-  for (let z = 54; z < 74; z += 6) for (const s of [-1, 1]) whorl(s * 2.6, AY + (76 - z) / 26 * 15 + 0.3 - 0.3, z, 0.3, false, 5);
-  add(Mark, { room: 'ante', at: [1.8, AY, 80], yaw: -Math.PI / 2 });
-  add(Door, { id: 'dA', at: [0, AY, AZ - AR - 0.7], w: 5, h: 6 });
+  K.add(deepM, box(10, 5, 0.1, GY.x, SH + 5, gz1 - 0.05));   // (a window of the sea in the north wall)
+  for (let i = 0; i <= 5; i++) K.add(M.trim, box(0.14, 5.2, 0.2, GY.x - 5 + i * 2, SH + 5, gz1 - 0.1));
+  add(Mark, { room: 'gallery', at: [GY.x - 7, SH, TZ + 1], yaw: Math.PI / 2 });
 
-  // ---- the Listener's Hall (a rotunda round (0, AY, AZ)): its pool, the dishes on the wall, their footstones and balls
-  K.rotunda({ x: 0, z: AZ, y: AY, r: AR, h: 12, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0 });
-  K.add(water, T(new THREE.CylinderGeometry(6.5, 6.5, 0.06, 40), [0, AY + 0.04, AZ + 4]));
-  K.add(coral, T(annulus(6.5, 7.0, 0.08, 48), [0, AY + 0.06, AZ + 4]));
+  // ---- the Throat: from the Listener's Door down a long stair under the house to its hall (7 m wide, 10 m high)
+  const T0 = HZ1 + 0.6, T1 = 53, T2 = 95, fy = (z) => (z <= T1 ? 0 : AY * Math.min(1, (z - T1) / (T2 - T1)));
+  K.slab(AX - 4.2, T0, AX + 4.2, T1, 0, 0.8);
+  K.stairs([AX, 0, T1], [AX, AY, T2], DOOR.w, { sides: false });
+  for (let i = 0; i < 8; i++) {
+    const za = T0 + ((T2 - T0) * i) / 8, zb = T0 + ((T2 - T0) * (i + 1)) / 8, y0 = fy(zb) - 0.8, y1 = fy(za) + 11;
+    K.wall(AX - 4.2, za, AX - 4.2, zb, y0, y1 - y0, { t: 0.8 }); K.wall(AX + 4.2, zb, AX + 4.2, za, y0, y1 - y0, { t: 0.8 });
+  }
+  K.slab(AX - 4.6, T0, AX + 4.6, T1, 11, 0.8);
+  K.ramp([AX, 11, T1], [AX, AY + 11, T2], 9.2, { t: 0.8 });
+  for (let z = 58; z < 92; z += 6) for (const s of [-1, 1]) whorl(AX + s * 3.0, fy(z), z, 0.3, 'all', 5);
+  // the antechamber: the stair's foot, to the Listener's door
+  K.corridor([AX, T2], [AX, AZ - AR - 0.6], AY, { ...DOOR, h: 9.6 });
+  add(Mark, { room: 'ante', at: [AX + 1.8, AY, T2 + 3], yaw: -Math.PI / 2 });
+  add(Door, { id: 'dA', at: [AX, AY, AZ - AR - 0.7], ...DOOR });
+
+  // ---- the Listener's Hall (a rotunda round (AX, AY, AZ)): its pool, the dishes on the wall, their footstones and balls
+  K.rotunda({ x: AX, z: AZ, y: AY, r: AR, h: 18, seg: 36, gaps: [{ a: Math.PI, ...DOOR }, { a: 0, ...DOOR }], oculus: 0 });
+  K.add(water, T(new THREE.CylinderGeometry(6.5, 6.5, 0.06, 40), [AX, AY + 0.04, AZ + 4]));
+  K.add(coral, T(annulus(6.5, 7.0, 0.08, 48), [AX, AY + 0.06, AZ + 4]));
   for (const s of [-1, 1]) {
     const id = s < 0 ? 'W' : 'E';
-    groove([s * 8.5, AY, AZ + 4], [s * 14.6, AY, AZ + 4]);
-    add(Ball, { id: `b${id}`, a: [s * 8.5, AY + 0.04, AZ + 4], b: [s * 14.6, AY + 0.04, AZ + 4], r: 1.0, friction: 1.2 });
-    add(Plate, { id: `p${id}`, at: [s * 14.6, AY, AZ + 4], r: 1.2 });
-    add(Dish, { id: `dish${id}`, at: [s * 16.9, AY + 2.8, AZ + 4], yaw: s < 0 ? Math.PI / 2 : -Math.PI / 2, tilt: 0.1, r: 1.8, when: { drumOn: [`b${id}`, `p${id}`] },
-      to: { at: [s * 6, AY + 8.6, AZ + AR - 1.4], yaw: Math.PI, tilt: 0.45, r: 2.2 },
+    groove([AX + s * 8.5, AY, AZ + 4], [AX + s * 14.6, AY, AZ + 4]);
+    add(Ball, { id: `b${id}`, a: [AX + s * 8.5, AY + 0.04, AZ + 4], b: [AX + s * 14.6, AY + 0.04, AZ + 4], r: 1.0, friction: 1.2 });
+    add(Plate, { id: `p${id}`, at: [AX + s * 14.6, AY, AZ + 4], r: 1.2 });
+    add(Dish, { id: `dish${id}`, at: [AX + s * 16.9, AY + 2.8, AZ + 4], yaw: s < 0 ? Math.PI / 2 : -Math.PI / 2, tilt: 0.1, r: 1.8, when: { drumOn: [`b${id}`, `p${id}`] },
+      to: { at: [AX + s * 6, AY + 8.6, AZ + AR - 1.4], yaw: Math.PI, tilt: 0.45, r: 2.2 },
       dark: 'The dish on the wall is dark and deaf: its footstone is bare.' });
   }
-  for (const a of [0.6, 2.3, 3.9, 5.6]) whorl(Math.sin(a) * (AR - 2), AY, AZ + Math.cos(a) * (AR - 2), 1.0, true, 6);
-  add(Door, { id: 'd5', at: [0, AY, AZ + AR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
+  for (const a of [0.6, 2.3, 3.9, 5.6]) whorl(AX + Math.sin(a) * (AR - 2), AY, AZ + Math.cos(a) * (AR - 2), 1.0, 'all', 6);
+  add(Door, { id: 'd5', at: [AX, AY, AZ + AR + 0.7], ...DOOR, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   const E0 = AZ + AR + 0.6, E1 = AZ + AR + 10;
-  K.slab(-3.2, E0, 3.2, E1, AY, 0.8);
-  K.wall(-3.2, E0 + 0.8, -3.2, E1, AY, 7, { t: 0.8 }); K.wall(3.2, E1, 3.2, E0 + 0.8, AY, 7, { t: 0.8 });
-  K.wall(3.2, E1, -3.2, E1, AY, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, AY + 7.4, E0 + 5.1));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, AY, E1 + 0.5]));
-  K.solid(box(4, 5, 0.1, 0, AY + 2.5, E1 + 0.5));
+  K.slab(AX - 4.2, E0, AX + 4.2, E1, AY, 0.8);
+  K.wall(AX - 4.2, E0 + 0.8, AX - 4.2, E1, AY, 10, { t: 0.8 }); K.wall(AX + 4.2, E1, AX + 4.2, E0 + 0.8, AY, 10, { t: 0.8 });
+  K.wall(AX + 4.2, E1, AX - 4.2, E1, AY, 10, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
+  K.both(M.wall, box(9.2, 0.8, 9.4, AX, AY + 10.4, E0 + 5.1));
+  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [AX, AY, E1 + 0.5]));
+  K.solid(box(4, 5, 0.1, AX, AY + 2.5, E1 + 0.5));
 
   const model = listenerModel();
-  model.pos.copy(K.world(0, AY, AZ + 6));
+  model.pos.copy(K.world(AX, AY, AZ + 6));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
-  model.rest = K.world(0, AY, AZ + 8);
+  model.rest = K.world(AX, AY, AZ + 8);
   model.restHeading = K.heading(Math.PI);
-  const arena = { center: K.world(0, AY, AZ), r: AR, y: K.world(0, AY, 0).y };
+  const arena = { center: K.world(AX, AY, AZ), r: AR, y: K.world(0, AY, 0).y };
 
-  // (the wing last: its mark after the others, so the machines' ids by mark stay as they were)
+  // (the wing last: its mark after the others)
   store(rt, K, M, { brass, whorl });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-46, AY - 4, -3), V(46, 30, E1 + 2)),
+    bounds: new THREE.Box3(V(-62, AY - 4, STORE.z - STORE.d / 2 - 3), V(62, 32, E1 + 2)),
     gadget: { at: W(HCX, PT, HCZ).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, AY + 0.5, E1 - 0.4), r: 1.5, to: V(KEEPERS_HATCH.x, 0.1, KEEPERS_HATCH.z), heading: KEEPERS_HATCH.heading }],
-    lights: [[0, 6, 6, 12], [0, 12, HZ, 26], [0, 4, 40, 14], [-32, 7, HZ, 16], [32, 8, HZ, 16], [HCX, 8, HCZ, 14], [HCX, 5, 71, 10], [-18, 10, TZ, 22], [-1, 13, TZ, 14],
-      [12.8, 14, 88, 16], [STORE.x, 5, STORE.z, 11], [13, 6, 60, 14], [0, -4, 64, 14], [0, AY + 4, 82, 12], [0, AY + 7, AZ, 28]],
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(AX, AY + 0.5, E1 - 0.4), r: 1.5, to: V(KEEPERS_HATCH.x, 0.1, KEEPERS_HATCH.z), heading: KEEPERS_HATCH.heading }],
+    lights: [[0, 6, 6, 12], [0, 13, HZ, 30], [AX, 6, 42, 14], [-Wg.x, 9, HZ, 22], [Wg.x, 9, HZ, 22], [HCX, 9, HCZ, 20], [HCX, 5, 93, 10], [-24, 11, TZ, 24], [-1, 14, TZ, 16],
+      [GY.x, 15, GY.z, 18], [STORE.x, 9, STORE.z, 22], [LD.x, 10, LD.z, 22], [AX, -8, 72, 16], [AX, AY + 5, T2 + 3, 12], [AX, AY + 9, AZ, 30]],
     guardian: { def: { ...LISTENER, onHit: listenerHit }, model, arena },
   };
 }
@@ -564,8 +642,15 @@ export const UNDERWATER_TEMPLE = {
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
   pitLine: 'You climb back up, to the last glyph stone.',
   onResolved(rt) { rt.notice('The whales are coming back. The way out comes up in the divers’ court.', 'resolved.out'); },
+  // (v1.77) the Pool Room's ball in its cradle by the glass: the east door, across the hall, sinks (said once, as it
+  // lands; out of sight of it)
+  onUpdate(rt) {
+    const on = rt.logic.drumOn('b2', 'p2');
+    if (on && rt.poolBall === false) rt.notice('The ball settles in its cradle. Across the hall, the east door sinks.', 'p2.on');
+    rt.poolBall = on;
+  },
   onLit(rt, id) {
-    if (id === 'eD') rt.notice('The eye over the east door wakes, and the door to the Shell Room sinks.', 'eD.lit');
+    if (id === 'eD') rt.notice('The eye on the pillar wakes, and the west door, to the Pool Room, sinks.', 'eD.lit');
     if (id === 'eP' || id === 'eS') rt.notice(rt.logic.isLit('eP') && rt.logic.isLit('eS') ? 'Both lamps on the Horn Door are lit, and it sinks.' : 'One lamp on the Horn Door lights. One to go.', `dH.${id}`);
   },
   // the Listener's ear: in its first phase it hears the horn close by while it listens; from its second it shuts its
