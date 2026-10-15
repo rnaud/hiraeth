@@ -1,0 +1,81 @@
+engine/unity/pack.js
+  s_9ca76055a220ed::t_2823550c1e0a73 125
+src/temples/skins/lamp-house.js
+  s_9ca76055a220ed::t_0263628835e6d4 7,304-306,314
+engine/mirror.js
+  s_9ca76055a220ed::t_5ca426ab5216da 25,45,195-213
+src/temples/skins/whale-house.js
+  s_9ca76055a220ed::t_ea8a8b12099688 4,205-207,215,562-563,570
+src/temples/skins/rose-house.js
+  s_9ca76055a220ed::t_6aaa452e8603e6 7,188-190,197
+src/temples/skins/engine-house.js
+  s_9ca76055a220ed::t_116fe29341c221 5,297-299,307
+src/temples/skins/footprint.js
+  s_9ca76055a220ed::t_f7fe777f09df61 5,264-266,274
+src/temples/skins/casting-house.js
+  s_9ca76055a220ed::t_de477a6a1f43bc 6,348-350,358
+unity/Hiraeth/Assets/Hiraeth/Shaders/SkinPatterns.hlsl.meta
+  s_9ca76055a220ed::t_c6a6d51f8e8775 1-7
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_9ca76055a220ed::t_3321f93f95219b 262-271,277-296
+src/temples/skins/undertower.js
+  s_9ca76055a220ed::t_01ecc126f7cd7a 4,228-230,238
+src/temples/skins/aerie.js
+  s_9ca76055a220ed::t_bda854722d129a 5,297-299,307
+src/temples/skins/founders-belfry.js
+  s_9ca76055a220ed::t_fc5085f9178d2a 8,301-303,310
+src/temples/skins/skin-shader.js
+  s_9ca76055a220ed::t_049732f8955bb3 1-109
+src/temples/skins/wardens-well.js
+  s_9ca76055a220ed::t_f72561a933d23b 5,284-286,294
+src/temples/skins/mooring-house.js
+  s_9ca76055a220ed::t_b49927fdde1097 5,367-369,377
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_e7a683ac99c186 100-101
+unity/Hiraeth/Assets/Hiraeth/Shaders/SkinPatterns.hlsl
+  s_9ca76055a220ed::t_4a57df7c1081c8 1-2955
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_5708b9f813b4dc 57,125,247-251,266,271,276,286,293-296,401-403,439-441,857-870,921,1073,1241-1242,1253
+engine/ink-spec.js
+  s_9ca76055a220ed::t_3fcd3d503744a3 10,17,47-49
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_bf8adfddfb5d11 440-441,543-544,888-897,1089
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_990604c88334d7 481-482
+engine/unity/backend.js
+  s_9ca76055a220ed::t_7577822cbed85f 305-313
+src/temples/skins/hush-house.js
+  s_9ca76055a220ed::t_87eb2265187016 6,310-312,320
+tests/temple-skin-patterns.test.js
+  s_9ca76055a220ed::t_5cc442b4c3c636 1-133
+src/temples/skins/clock-house.js
+  s_9ca76055a220ed::t_39931b76febd2d 8,327-329,336
+scripts/unity-export/skin-hlsl.mjs
+  s_9ca76055a220ed::t_cd64a6f8930cdb 1-147
+changelog.md
+  s_9ca76055a220ed::t_6d9291e2f8aa97 23
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_1f5a275791463d 1328-1334
+docs/systems/temples.md
+  s_9ca76055a220ed::t_4654eb1c4e69b7 1222-1264
+src/changelog-media.js
+  s_9ca76055a220ed::t_135ff1d1eda295 1056-1064
+src/changelog.js
+  s_9ca76055a220ed::t_770430e91a3015 92-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5da88fe29d6ed91450afe0445f9472d4e857f1ca",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
