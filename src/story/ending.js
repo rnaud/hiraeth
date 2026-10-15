@@ -482,7 +482,7 @@ export function creditsHtml(c) {
     </section>`;
   return `<div class="roll">
     <h1>${esc(c.title)}</h1>
-    <div class="glyph">${MAKERS_MARK_SVG}</div>
+    <div class="mark">${MAKERS_MARK_SVG}</div>
     <p class="lead">A traveller went out to bring back something of value,<br>and met these people on the way.</p>
     ${c.worlds.map(world).join('')}
     <section class="home"><h3>At home</h3><ul>${c.home.map((h) => `<li class="met"><b>${esc(h)}</b></li>`).join('')}</ul></section>

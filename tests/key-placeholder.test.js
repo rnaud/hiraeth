@@ -54,7 +54,7 @@ test('keys in lines: touch, an unknown verb, HTML, and {glyph} beside them', () 
   assert.ok(hasKeys(LINE) && !hasKeys('{glyph}'));
   // the dialogue panel and balloons (formatText): motifs, highlights and keys together
   const html = formatText('~neutral~ The {glyph} mark. *Shoot it*: {key:fire}.', true, 'pad');
-  assert.match(html, /<svg class="glyph"/);
+  assert.match(html, /<svg class="makers-mark"/);
   assert.match(html, /<em>Shoot it<\/em>: <kbd class="kp pad-raw">RT \/ R2<\/kbd>\./);
   assert.equal(formatText('The {glyph}. Aim with {key:aim}.', false, 'keys'), 'The [makers’ mark]. Aim with R or the right mouse button.');
   assert.equal(keysHtml('a < b, {key:jump}'), 'a &lt; b, <kbd class="kp pad-raw">SPACE</kbd>');
@@ -159,4 +159,12 @@ test('hints subtle (the default) and off: a line keeps what it says and drops th
     }
     assert.equal(quietKeys('No keys here: none.'), 'No keys here: none.');
   } finally { setHintLevel('full'); }
+});
+
+test('the makers’ mark is not styled as a button glyph (the galactic map showed it as an empty key-cap)', async () => {
+  const { MAKERS_MARK_SVG } = await import('../src/makers-mark/design.js');
+  const { SIG_GLYPH } = await import('../src/ship/starmap.js');
+  assert.equal(SIG_GLYPH, MAKERS_MARK_SVG);
+  assert.doesNotMatch(MAKERS_MARK_SVG, /class="[^"]*\bglyph\b/);
+  assert.match(MAKERS_MARK_SVG, /class="makers-mark"/);
 });

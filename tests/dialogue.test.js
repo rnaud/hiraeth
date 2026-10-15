@@ -211,7 +211,7 @@ test('the panel: the speaker turns to you, Esc-closing emits the events, motifs 
   assert.equal(d.open, false);
   assert.equal(npc.talkTo, null);
   assert.deepEqual(events, [['start', 'bob'], ['end', 'bob']]);
-  assert.match(formatText('the {glyph} mark, *here*'), /<svg class="glyph".*<em>here<\/em>/);
+  assert.match(formatText('the {glyph} mark, *here*'), /<svg class="makers-mark".*<em>here<\/em>/);
   assert.equal(formatText('the {glyph}', false), 'the [makers’ mark]');
   // the two-shot camera eases toward a framing of both faces
   const cam = new THREE.PerspectiveCamera();

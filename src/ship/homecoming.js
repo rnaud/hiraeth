@@ -78,8 +78,8 @@ const CSS = `
   background: #2b211f; color: #f7ecd2; font: var(--type)/1.6 var(--face); text-align: center; opacity: 0; transition: opacity 1.6s; }
 #endcard.on { opacity: 1; }
 #endcard h1 { margin: 0 0 14px; font-size: 30px; letter-spacing: .3em; font-weight: normal; }
-#endcard svg.glyph, #credits svg.glyph { width: 28px; height: 38px; }
-#endcard .glyph { font-size: 22px; line-height: .7; margin: 0 0 22px; color: #9fe0d6; }
+#endcard svg.makers-mark, #credits svg.makers-mark { width: 28px; height: 38px; }
+#endcard .mark { font-size: 22px; line-height: .7; margin: 0 0 22px; color: #9fe0d6; }
 #endcard p { margin: 0; opacity: .8; font-style: italic; }
 /* a phone held upright: the panel across the screen, clear of the subtitles; no keyboard hint on touch */
 @media (max-width: 600px) { #homeward { left: 4vw; right: 4vw; width: auto; top: calc(11vh + 8px); bottom: max(calc(11vh + 150px), var(--cine-sub-clear, 0px)); } }
@@ -89,7 +89,7 @@ body.touch #homeward footer span { display: none; }
   font: var(--type-s)/1.5 var(--face); text-align: center; will-change: transform;
   background-image: repeating-linear-gradient(transparent 0 27px, rgba(43, 33, 31, .05) 27px 28px); }
 #credits h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: .26em; }
-#credits .glyph { font-size: 20px; line-height: .7; margin: 10px 0 18px; }
+#credits .mark { font-size: 20px; line-height: .7; margin: 10px 0 18px; }
 #credits .lead { font-style: italic; margin: 0 0 30px; }
 #credits section { margin: 0 0 30px; }
 #credits h3 { margin: 0; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; }
@@ -240,7 +240,7 @@ class EndCard {
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
     this.el.id = 'endcard';
-    this.el.innerHTML = `<h1>SOMETHING OF VALUE</h1><div class="glyph">${MAKERS_MARK_SVG}</div><p>for the two of them, on the hill</p>`;
+    this.el.innerHTML = `<h1>SOMETHING OF VALUE</h1><div class="mark">${MAKERS_MARK_SVG}</div><p>for the two of them, on the hill</p>`;
     document.body.appendChild(this.el);
     void this.el.offsetWidth;
     this.el.classList.add('on');

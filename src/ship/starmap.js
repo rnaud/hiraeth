@@ -143,12 +143,12 @@ const CSS = `
 #starmap .world .tag { display: block; text-align: center; line-height: 1.2; color: #9fe0d6; min-height: 1.2em; white-space: nowrap; }
 #starmap .world .star { position: absolute; right: -7px; top: -7px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: #f2c54b; color: #2b211f; border: 2px solid #2b211f; font-size: 11px; line-height: 1; }
 #starmap .world .sig { position: absolute; left: -7px; bottom: -5px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: #1f2747; border: 1.5px solid #cdb4ff; }
-#starmap svg.glyph { width: 13px; height: 11px; fill: #cdb4ff; stroke: #cdb4ff; overflow: visible; }
+#starmap svg.makers-mark { width: 10px; height: 13px; fill: #cdb4ff; stroke: #cdb4ff; overflow: visible; }
 #starmap .panel .sigline { display: flex; gap: 6px; align-items: baseline; font-size: 11px; letter-spacing: .04em; color: #5b3f8f; margin: -2px 0 8px; }
-#starmap .panel .sigline svg.glyph { fill: #6a4aa8; stroke: #6a4aa8; flex: none; }
+#starmap .panel .sigline svg.makers-mark { fill: #6a4aa8; stroke: #6a4aa8; flex: none; }
 #starmap .legend { padding: 8px 10px; font-size: 11px; line-height: 1.35; color: #e9dcff; border: 1.5px dashed rgba(205, 180, 255, .55); background: rgba(31, 39, 71, .6); }
 #starmap .legend b { color: #cdb4ff; letter-spacing: .08em; font-weight: normal; }
-#starmap .legend svg.glyph { vertical-align: -1px; margin-right: 4px; }
+#starmap .legend svg.makers-mark { vertical-align: -1px; margin-right: 4px; }
 #starmap .legend .short { display: none; }
 #starmap.portrait .legend, #starmap.small .legend { padding: 3px 8px; font-size: 10px; }
 #starmap.portrait .legend .long, #starmap.small .legend .long { display: none; }

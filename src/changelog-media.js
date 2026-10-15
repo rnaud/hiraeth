@@ -1072,6 +1072,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the Unity preview the backpack’s glass shows', tags: ['devices'], shots: [
       { name: 'unity-backpack', title: 'The round backpack (Unity)', caption: 'The Unity build on this Mac at the desert’s spawn, from behind his shoulder: before, the old lava-lamp flask, pale with dark streaks; after, the web’s nebula marched through the glass dome, lit from within, its stars and its highlight', from: 'The Unity editor in batch mode (BridgeBatch.Run, -views at the spawn), 1280 × 720, 10:00, before with the shaders of d166c5a45' },
     ] },
+    { match: 'On the galactic map the makers’ mark', shots: [
+      { name: 'starmap-mark', caption: 'The galactic map in the ship: the mark beside each world, in the panel and in the legend', from: 'headless Chrome on the ship\'s map, before and after', size: [1280, 720] },
+    ] },
     { match: 'The Unity version now has the fight', tags: ['combat', 'devices'], shots: [
       { name: 'unity-fight-keeper', only: 'after', title: 'The Keeper’s arena (Unity)', caption: 'The Unity build on this Mac, locked on to the Keeper in the Rose House’s cistern: the four gold arrows round its head, the camera back and high so both of you are in the frame, the hearts, potions and magic bar at the top left. Before, there was no fight in the Unity build at all', from: FIGHT264 },
     ], see: 'In the Unity version, walk into a temple guardian’s arena, or meet the ink blots in the wilds, and press R3 or Tab to lock on.' },

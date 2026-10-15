@@ -2,7 +2,7 @@
 export const MAKERS_MARK_ID = 'corner';
 const corner = [['M', 25, 94], ['L', 24, 12], ['Q', 45, 10, 74, 12], ['L', 73, 27], ['Q', 60, 31, 46, 29], ['L', 45, 94]];
 export const MAKERS_MARK_PATHS = [corner, [['M', 57, 47], ['Q', 65, 44, 73, 47], ['L', 73, 94], ['L', 56, 94]]];
-export const MAKERS_MARK_SVG = '<svg class="glyph" width="18" height="24" fill="currentColor" viewBox="12 4 72 96" role="img" aria-label="the makers’ mark: an open corner and a short upright">' + MAKERS_MARK_PATHS.map(p => '<path stroke="none" d="' + p.map(c => c.join(' ')).join(' ') + ' Z"/>').join('') + '</svg>';
+export const MAKERS_MARK_SVG = '<svg class="makers-mark" width="18" height="24" fill="currentColor" viewBox="12 4 72 96" role="img" aria-label="the makers’ mark: an open corner and a short upright">' + MAKERS_MARK_PATHS.map(p => '<path stroke="none" d="' + p.map(c => c.join(' ')).join(' ') + ' Z"/>').join('') + '</svg>';
 /** Sampled closed contours, centred in a square, x right and y up. */
 export function markContours(size = 1) {
   const polys = MAKERS_MARK_PATHS.map(path => {
