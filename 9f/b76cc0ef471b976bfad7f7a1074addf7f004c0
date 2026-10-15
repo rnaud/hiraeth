@@ -1,0 +1,65 @@
+docs/systems/audio.md
+  s_9ca76055a220ed::t_d340c296f9b31b 345-351
+engine/unity/game.js
+  s_9ca76055a220ed::t_a81dcd547fe776 7-11,43-44,120,137,141-163,194,276,278,301-303,584-588,605-606,613-621,636
+tests/engine-music.test.js
+  s_9ca76055a220ed::t_961b45af753f76 1-211
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_b7b297289242a0 231-232,245,256-258,269-270,298-304
+src/changelog-media.js
+  s_9ca76055a220ed::t_80a5f1de801542 1063
+src/soundtracks.js
+  s_9ca76055a220ed::t_91f999f86120e5 4-5,73,100-109
+engine/platform.js
+  s_9ca76055a220ed::t_8d92a8587e3b83 227-231,331
+tests/engine-menus.test.js
+  s_9ca76055a220ed::t_7b56a9f382f733 120-126
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_ed19546d1cc5c6 34,53-54,58,65,100-103,906
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMusic.cs
+  s_9ca76055a220ed::t_253638cedcb4e0 1-329
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_430002a55c69fe 1360-1421
+src/theme-levels.js
+  s_9ca76055a220ed::t_6c9ae84e059cf6 1-31
+engine/game.js
+  s_9ca76055a220ed::t_9ffd878d70c31c 136-140,143,527-528,1047
+engine/menus.js
+  s_9ca76055a220ed::t_ce4252d7c87072 35,48,52-53
+engine/webaudio.js
+  s_9ca76055a220ed::t_6d44ed1db9a012 24-29,33,340-358,362,372-380,383,505-506,539,577-582,592,600,603-629,634-654,679-680,683-684,692-697,728,736,747-754
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMusic.cs.meta
+  s_9ca76055a220ed::t_fc9efbdb9d9974 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_03bf8dddd6bd07 204-214
+scripts/theme-levels.mjs
+  s_9ca76055a220ed::t_57cd5b61b49af2 1-73
+engine/unity/music.js
+  s_9ca76055a220ed::t_9f4ed1ec38df92 1-55
+src/changelog.js
+  s_9ca76055a220ed::t_8cd3152df2a582 141-144
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_d39b9ceeff9168 41-42,169,236
+changelog.md
+  s_9ca76055a220ed::t_f648a53dc1266b 7
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_1d0684f2a42c51 2,60,74-102,243
+engine/unity/audio-worker.js
+  s_9ca76055a220ed::t_9cf373884584b0 5-6,12,28-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9fb76cc0ef471b976bfad7f7a1074addf7f004c0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
