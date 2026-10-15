@@ -1,5 +1,8 @@
 # Alien-built temples, house by house: reference prompts (v3, text only)
 
+> Superseded 2026-10-14 by [temple-future-prompts-v4.md](temple-future-prompts-v4.md): the author turned the organic
+> "alien" look down ("futuristic, not organic"); v4 draws the temples as ancient high technology.
+
 2026-10-14, issue #342, third pass. v2 ([alien-temple-prompts-v2.md](alien-temple-prompts-v2.md)) sent every prompt
 with the temple's current hall as an image reference, and its prompts began "the same … as the reference picture":
 so the providers drew variants of the existing picture, the alien push a layer of texture over the building we
