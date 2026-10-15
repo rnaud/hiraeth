@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_37905b3354bed5 7-10
+docs/design/fight-temples.md
+  s_9ca76055a220ed::t_d4fad09a958e10 29-30,35-66,73-74
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_281dcd1ca75ed9 211-213,395-399,405
+src/changelog-media.js
+  s_9ca76055a220ed::t_469e855a32f596 866-867,1177-1204
+src/changelog.js
+  s_9ca76055a220ed::t_09d3ab9e3401d2 124-130
+src/fight-temples/index.js
+  s_9ca76055a220ed::t_9201724a382a13 51-53,55
+src/fight-temples/rooms.js
+  s_9ca76055a220ed::t_659e6f47840ddf 3,97-100,104-108,111-112,114,121,127,130,132,135-136,138,140
+src/fight-temples/rules.js
+  s_9ca76055a220ed::t_2c160dcf38820c 3,8,15-16,18,43-51,64-65,78-99
+src/fight-temples/session.js
+  s_9ca76055a220ed::t_efe07e2e5766c9 11-13,16-17,24,88-90,92-94,96,98-100,189,273-282,348,350,369-371
+src/fluid-blade.js
+  s_9ca76055a220ed::t_6a8ca53492e63f 106-119,435-436,507-509,568,571,583-584,587,590-591,738-739,904-907
+src/jump.js
+  s_9ca76055a220ed::t_dae7e5226f16ef 164-168
+src/main.js
+  s_9ca76055a220ed::t_86d54e5598a28a 2203
+src/materials.js
+  s_9ca76055a220ed::t_a966506193e40d 197-204,1877-1882,2136-2151,2998-2999,3180-3185
+src/minigames/kit/runner.js
+  s_9ca76055a220ed::t_426d1e527f18df 128-130
+src/player.js
+  s_9ca76055a220ed::t_c02df1f3d43c22 14,2635,2652-2653
+tests/fight-roll.test.js
+  s_9ca76055a220ed::t_6fe573f7b1fa83 1-214
+tests/fight-temples.test.js
+  s_9ca76055a220ed::t_c332c28d924e0f 14,42,51-57,106,113,116,118,121,123-125,136-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e50206f678b678aa6200acea6f4bc26a15aeeaf",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
