@@ -1,0 +1,23 @@
+docs/design/makers-mark-prompts-v2.md
+  s_9ca76055a220ed::t_e1b22a8ff3029e 1-163
+docs/design/makers-mark-prompts.md
+  s_9ca76055a220ed::t_9970693e5c6081 3-5
+references/makers-mark-v2/README.md
+  s_9ca76055a220ed::t_a1536d7e8ce3e6 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bf3053b7714912a6cd95f6c7452f5d3e8257620d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
