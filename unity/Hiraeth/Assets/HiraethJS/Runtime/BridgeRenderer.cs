@@ -352,6 +352,46 @@ namespace Hiraeth.Bridge
         }
 
         // ------------------------------------------------------------------ materials (the port's own: WorldLoader.MakeMaterial)
+        // ---------------------------------------------------------------- textures: the game's canvases (issue #264)
+        readonly Dictionary<int, Texture2D> textures = new();
+        readonly Dictionary<int, List<Material>> mapUsers = new();
+        /// <summary>The materials drawing texture `tid`, given it (now, or once it arrives).</summary>
+        void UseMap(Material mat, int tid)
+        {
+            if (!mapUsers.TryGetValue(tid, out var l)) mapUsers[tid] = l = new List<Material>();
+            l.Add(mat);
+            mat.SetFloat("_MapOn", 1);
+            if (textures.TryGetValue(tid, out var t)) mat.SetTexture("_Map", t);
+        }
+        /// <summary>
+        /// A texture's pixels (engine/unity/backend.js _texture: a canvas the game drew, engine/raster.js, or a DataTexture's
+        /// bytes): RGBA, w × h, rows top down. Flags: 1 three's flipY (its top row at v = 1), 2 sRGB (decoded as sampled), 4
+        /// mipmaps, 8 nearest. Sent again when it is redrawn (the ship's console screen): the same texture, its pixels replaced.
+        /// </summary>
+        public void Texture(int tid, byte[] b, int n, int w, int h, int flags)
+        {
+            if (b == null || w <= 0 || h <= 0 || n < w * h * 4) return;
+            bool flip = (flags & 1) != 0, srgb = (flags & 2) != 0, mips = (flags & 4) != 0, nearest = (flags & 8) != 0;
+            if (!textures.TryGetValue(tid, out var t) || t.width != w || t.height != h)
+            {
+                if (t) Destroy(t);
+                t = new Texture2D(w, h, TextureFormat.RGBA32, mips, !srgb)
+                {
+                    name = $"canvas {tid} (bridge)", wrapMode = TextureWrapMode.Clamp, anisoLevel = 4,
+                    filterMode = nearest ? FilterMode.Point : mips ? FilterMode.Trilinear : FilterMode.Bilinear,
+                };
+                textures[tid] = t;
+                if (mapUsers.TryGetValue(tid, out var users)) foreach (var mu in users) if (mu) mu.SetTexture("_Map", t);
+            }
+            var px = t.GetPixelData<byte>(0);
+            int row = w * 4;
+            // (Unity's rows go bottom up: three's flipY puts the canvas's top row at v = 1, the last row here)
+            if (flip) for (int y = 0; y < h; y++) Unity.Collections.NativeArray<byte>.Copy(b, (h - 1 - y) * row, px, y * row, row);
+            else Unity.Collections.NativeArray<byte>.Copy(b, 0, px, 0, h * row);
+            t.Apply(mips, false);
+            Count("texture");
+        }
+
         public void Material(int mid, string json)
         {
             var m = Json.Parse(json) as Dictionary<string, object>;
@@ -407,6 +447,9 @@ namespace Hiraeth.Bridge
                 return;
             }
             materials[mid] = WorldLoader.MakeMaterial(surface, m);
+            // (a picture on it: a canvas the game drew, sent as a texture first: Texture below, the Surface shader's _Map)
+            int map = m.I("map");
+            if (map > 0) UseMap(materials[mid], map);
             if (noVeil && materials[mid].HasProperty("_Veil")) materials[mid].SetFloat("_Veil", 0);
             specs[materials[mid]] = json;
             // (-cull off|flip, a test for the Xbox's see-through picture: every Surface material's culling off, or the other face)

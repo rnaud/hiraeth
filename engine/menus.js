@@ -184,7 +184,7 @@ export class EngineMenus {
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
     this.changed();
   }
-  close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.card = null; this.changed(); this.onResume(); }
+  close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.card = null; this.foes = null; this.changed(); this.onResume(); }
 
   // ------------------------------------------------------------------ a game's card
 
@@ -302,6 +302,74 @@ export class EngineMenus {
       hint: asked ? '◀ ▶ choose · A / × answer · B / ○ not now' : 'A / × buy · B / ○ leave' };
   }
 
+  // ------------------------------------------------------------------ the Arena's foes
+
+  /**
+   * The Arena's list of foes (issue #264): the web's FoeList (src/foe-spawner.js, the level's quick menu) keeps what is
+   * in it and what a choice does (choose: a foe practised, a world's waves, a guardian called into its ring, the waves
+   * again, the field cleared); here its page is a sheet of rows the pad goes over as the page's buttons (left / right the
+   * row before / after, up / down the one above / below), LB / RB the world filter, A / × fights, B / ○ closes.
+   */
+  openFoes(list) {
+    if (!list?.shown) return false;
+    this.foes = { list, i: 0 };
+    this.mode = 'foes';
+    this.changed();
+    return true;
+  }
+  /** The list as its rows, `cols` across (a section's heading and its "Waves from here", its foes, then the two at the foot). */
+  foesRows() {
+    const L = this.foes.list, cols = (this.screen?.()?.w ?? 1280) < 1100 ? 2 : 3, rows = [];
+    for (const s of L.shown()) {
+      const headRow = [{ kind: 'head', text: s.title, col: 0, span: s.waves ? cols - 1 : cols }];
+      if (s.waves) headRow.push({ kind: 'waves', text: 'Waves from here', act: { waves: s.id }, col: cols - 1 });
+      rows.push(headRow);
+      for (let k = 0; k < s.items.length; k += cols) {
+        rows.push(s.items.slice(k, k + cols).map((it, j) => ({ kind: 'foe', text: it.name, sub: it.sub, act: it.guardian ? { guardian: it.guardian } : { kind: it.kind }, col: j })));
+      }
+    }
+    rows.push([{ kind: 'foot', text: 'Waves again', act: { waves: null }, col: 0 }, { kind: 'foot', text: 'Clear the field', act: { clear: true }, col: 1 }]);
+    // (the rows the pad can be on, in order: what left / right steps through)
+    const items = [];
+    rows.forEach((row, r) => row.forEach((c, k) => { if (c.act) items.push({ r, k, c }); }));
+    return { rows, items, cols };
+  }
+  foesMove(x, y) {
+    const F = this.foes, { items } = this.foesRows(), n = items.length;
+    if (!n) return;
+    const at = Math.min(F.i, n - 1);
+    if (!y) { F.i = Math.max(0, Math.min(n - 1, at + Math.sign(x))); return; }
+    // the nearest row in the next line down (or up), by its column
+    const me = items[at], col = me.c.col;
+    let best = -1, bestD = Infinity;
+    items.forEach((it, j) => {
+      const dr = (it.r - me.r) * Math.sign(y);
+      if (dr <= 0) return;
+      const d = dr * 4 + Math.abs(it.c.col - col);
+      if (d < bestD) { bestD = d; best = j; }
+    });
+    if (best >= 0) F.i = best;
+  }
+  foesAction(name) {
+    const F = this.foes, L = F.list;
+    if (name === 'back' || name === 'start' || name === 'select') { this.close(); return; }
+    if (name === 'tabPrev' || name === 'tabNext') { L.turn(name === 'tabPrev' ? -1 : 1); F.i = 0; return; }
+    if (name !== 'confirm') return;
+    const it = this.foesRows().items[F.i];
+    if (it) L.choose(it.c.act);
+  }
+  foesView() {
+    const F = this.foes, L = F.list, { rows, items, cols } = this.foesRows();
+    F.i = Math.min(F.i, Math.max(0, items.length - 1));
+    const on = items[F.i];
+    const stops = L.filters, w = L.filter.world;
+    return { v: this.v, kind: 'foes', head: 'Foes', cols: Array(cols).fill(1 / cols),
+      filter: { text: L.filterTitle(w), i: Math.max(0, stops.indexOf(w)), n: stops.length },
+      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub ?? '', col: c.col, span: c.span ?? 1, on: !!on && on.r === r && on.k === k, lit: !!c.act && L.isChosen(c.act) }))),
+      empty: L.shown().length ? '' : 'Nothing by that name.',
+      hint: 'A / × fights · LB / RB a world · B / ○ closes' };
+  }
+
   // ------------------------------------------------------------------ input
 
   /** The controller's menu actions (src/controller.js, context 'menu'). */
@@ -313,6 +381,7 @@ export class EngineMenus {
     else if (this.mode === 'start') this.startAction(name);
     else if (this.mode === 'shop') this.shopAction(name);
     else if (this.mode === 'card') this.cardAction(name);
+    else if (this.mode === 'foes') this.foesAction(name);
     else this.gameAction(name);
     this.changed();
   }
@@ -323,6 +392,7 @@ export class EngineMenus {
     else if (this.mode === 'start') this.startMove(x, y);
     else if (this.mode === 'shop') this.shopMove(x, y);
     else if (this.mode === 'card') this.cardMove(x, y);
+    else if (this.mode === 'foes') this.foesMove(x, y);
     else this.gameMove(x, y);
     this.changed();
   }
@@ -335,6 +405,7 @@ export class EngineMenus {
     const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] }[code];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
+    if (this.mode === 'foes' && code === 'KeyK') { this.close(); return true; }   // (K opened it: K closes it, as the page's)
     if (!act) return false;
     if (this.mode === 'game' && act === 'select') { this.close(); return true; }
     this.action(act);
@@ -714,7 +785,7 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
     v.hint = menuKeys(v.hint);

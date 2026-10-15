@@ -70,10 +70,11 @@ export const audio = {
  *             through the scene (the traveller's bones, the thing's object)
  *   boxCard   { name, text, ok, okLabel, scene, back, skipLabel }   a makers' box opening (boxes/card.js): scene while it
  *             plays (the skip's button), and its card once the item is out (name, what it does, the button to go on)
+ *   foeTab    { text, key }   the Arena's tab on the left edge: its list of foes, and the key that opens it (src/foe-spawner.js)
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null, foeTab: null },
   version: 0,
   _keys: {},
   set(part, value) {

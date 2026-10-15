@@ -92,6 +92,11 @@ namespace Hiraeth.Bridge
             guardianEdge = Ui.Rect(guardian.fill.rectTransform, Ui.Ink, 0, "edge");
             guardianText = Ui.Label(root, "guardian name", mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             { var o = guardianText.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Page; o.effectDistance = new Vector2(1.5f, -1.5f); }   // (the page's cream text-shadow round it)
+            // the Arena's FOES tab on the left edge (src/foe-spawner.js addTab: paper, an ink edge and shadow; its key under it)
+            foeTab = Ui.Panel(root, "foe tab", Ui.Hex("#fffaf0"), Ui.Ink, 2, 2, 2, 3);
+            foeTabText = Ui.Label(foeTab.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            foeTabKey = Ui.Panel(root, "foe tab key", Ui.Hex("#f7ecd2", 0.85f), Ui.Ink, 1, 0, 0, 3);
+            foeTabKeyText = Ui.Label(foeTabKey.rt, "text", mono, 10, Ui.Ink, TextAnchor.MiddleCenter);
             keysText = Ui.Label(keys.rt, "text", mono, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             wheel = Ui.Node("stamina", root);
             wheelRing = Ui.Fill(wheel, Ui.Hex("#2b211f", 0.25f), 0, "ring"); wheelRing.sprite = Ui.Round(32);
@@ -309,6 +314,7 @@ namespace Hiraeth.Bridge
             DrawHealth(hud ? state.O("health") : null);
             DrawKeys(state.O("keys"), free);
             DrawGuardian(free ? state.O("guardian") : null);
+            DrawFoeTab(state.O("foeTab"), free);
             DrawWheel(state.O("stamina"), free);
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
             // (the gadget's chip, wheel and reticle gone while a run is on, as the page's body.minigame #gadget-chip: src/gadgets/hud.js)
@@ -1215,6 +1221,22 @@ namespace Hiraeth.Bridge
 
         /// <summary>The key counter while in a temple (issue #274; src/hud.js keysHud: { small, big }): "KEY ×N", and
         /// "+ GREAT KEY" once it is in hand; under the health bar.</summary>
+        Ui.Box foeTab, foeTabKey; Label foeTabText, foeTabKeyText;
+        /// <summary>The Arena's FOES tab, at the left edge 14 % down as the page's #foe-tab, the key that opens its list under it.</summary>
+        void DrawFoeTab(Dictionary<string, object> t, bool on)
+        {
+            on &= t != null;
+            foeTab.Show(on); foeTabKey.Show(on);
+            if (!on) return;
+            var s = Ui.Set(foeTabText, t.S("text") ?? "FOES", 200);
+            float y = H * 0.14f;
+            Ui.Place(foeTab.rt, 12, y, s.x + 18, 30);
+            Ui.Place(foeTabText.rectTransform, 0, 0, s.x + 18, 30);
+            var k = Ui.Set(foeTabKeyText, t.S("key") ?? "", 200);
+            Ui.Place(foeTabKey.rt, 12, y + 36, k.x + 12, 18);
+            Ui.Place(foeTabKeyText.rectTransform, 0, 0, k.x + 12, 18);
+        }
+
         void DrawKeys(Dictionary<string, object> k, bool on)
         {
             on &= k != null;

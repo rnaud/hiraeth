@@ -134,6 +134,8 @@ namespace Hiraeth.Bridge
         // ---------------------------------------------------------------- the mirror's ops
         public static void Geometry(string key, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Geometry(key, b, n)); }
         public static void Material(int mid, string json) => On(() => R?.Material(mid, json));
+        /// <summary>A texture's pixels (a canvas the game drew: engine/unity/backend.js _texture), copied, then made a Texture2D.</summary>
+        public static void Texture(int tid, object buffer, int w, int h, int flags) { var b = JsRuntime.Bytes(buffer, out int n); var copy = new byte[n]; System.Buffer.BlockCopy(b, 0, copy, 0, n); On(() => R?.Texture(tid, copy, n, w, h, flags)); }
         /// <summary>The coral-shirt traveller's overshirt, done here (BridgeCloth): its description, once (engine/cloth.js packClothDesc).</summary>
         public static void Cloth(int id, object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Cloth(id, b, n)); }
         /// <summary>A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas).</summary>

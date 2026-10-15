@@ -145,12 +145,56 @@ test('the holo table\'s planet reaches the port as its own (Hiraeth/Planet: the 
   assert.deepEqual(p.body, new THREE.Color(L.body).toArray().map((x) => +x.toFixed(5)));
   assert.equal(p.kind, MARK_IDS[L.mark] ?? 3);
   assert.equal(p.inkK, 0.6); assert.equal(p.freq, 0.45); assert.equal(p.light.length, 3);
-  // (the ship's wall pictures and console screen take their no-canvas colours where the page's canvases draw nothing)
+  // (the ship's wall pictures and console screen take their no-canvas colours only where a page's canvases draw nothing;
+  // the engines' draw now, engine/raster.js)
   const { hasCanvas } = await import('../src/ship/art.js');
   const had = globalThis.document;
   globalThis.document = { createElement: () => ({}), canvasDrawsNothing: true };
   try { assert.equal(hasCanvas(), false); } finally { if (had === undefined) delete globalThis.document; else globalThis.document = had; }
 });
+
+test('the game\'s canvases reach Unity as textures: sent before the material that names them, once, again when redrawn (issue #264)', async () => {
+  const { PixelCanvas } = await import('../engine/raster.js');
+  const sent = [], mats = [];
+  const B = new UnityBackend({ Texture: (id, buf, w, h, flags) => sent.push({ id, bytes: buf.byteLength, w, h, flags, first: Array.from(new Uint8Array(buf, 0, 4)), mats: mats.length }), Material: (mid, json) => mats.push(JSON.parse(json)), Frame() {}, Geometry() {}, Create() {} });
+  const c = new PixelCanvas(8, 4), g = c.getContext('2d');
+  g.fillStyle = '#c8483a'; g.fillRect(0, 0, 8, 4);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const m = makeMaterial({ color: '#ffffff', map: tex, flat: true });
+  B.material(1, inkSpec(m), m);
+  assert.deepEqual([sent.length, sent[0].w, sent[0].h, sent[0].bytes, sent[0].mats], [1, 8, 4, 128, 0], 'its pixels first');
+  assert.equal(sent[0].flags & 3, 3, 'three\'s flipY, sRGB');
+  assert.deepEqual(sent[0].first, [200, 72, 58, 255]);
+  assert.equal(mats[0].map, sent[0].id, 'the material names it');
+  // on a second material: named, not sent again
+  const m2 = makeMaterial({ color: '#ffffff', map: tex });
+  B.material(2, inkSpec(m2), m2);
+  assert.equal(sent.length, 1); assert.equal(mats[1].map, sent[0].id);
+  // redrawn (needsUpdate, as the console's screen): sent at the next frame, once
+  g.fillStyle = '#000000'; g.fillRect(0, 0, 1, 1); tex.needsUpdate = true;
+  B.frame(); B.frame();
+  assert.equal(sent.length, 2); assert.deepEqual(sent[1].first, [0, 0, 0, 255]);
+  // a DataTexture's RGBA bytes (the Arena floor's markings) as they are, rows not flipped; a float one not at all
+  const d = new THREE.DataTexture(new Uint8Array(16).fill(200), 2, 2); d.needsUpdate = true;
+  const md = makeMaterial({ color: '#ffffff', map: d });
+  B.material(3, inkSpec(md), md);
+  assert.equal(sent.length, 3); assert.equal(sent[2].flags & 1, 0);
+  const f = new THREE.DataTexture(new Float32Array(16), 2, 2, THREE.RGBAFormat, THREE.FloatType);
+  const mf = makeMaterial({ color: '#ffffff', map: f });
+  B.material(4, inkSpec(mf), mf);
+  assert.equal(sent.length, 3); assert.equal(mats[3].map, undefined);
+  const none = makeMaterial({ color: '#ffffff' });
+  B.material(5, inkSpec(none), none);
+  assert.equal(mats[4].map, undefined);
+  // the C# side: the texture made (rows bottom up for three's flipY), the Surface shader's _Map and _MapOn
+  const { readFileSync } = await import('node:fs');
+  const cs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs', import.meta.url), 'utf8');
+  assert.match(cs, /public void Texture\(int tid, byte\[\] b, int n, int w, int h, int flags\)/);
+  assert.match(cs, /int map = m\.I\("map"\);\s*\n\s*if \(map > 0\) UseMap/);
+  const sh = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader', import.meta.url), 'utf8');
+  assert.match(sh, /if \(_MapOn > 0\.5\) albedo \*= SAMPLE_TEXTURE2D\(_Map, sampler_Map, i\.form\.xy\)\.rgb;/);
+});
+
 
 test('the port\'s crowd figures read the costume as costumes.js packs it (the pieces worn, not the wrong ones)', async () => {
   const { MASK_ID_LIMIT, BODY_ID_LIMIT, HEAD_ID_LIMIT } = await import('../src/costumes.js');

@@ -72,11 +72,53 @@ export class UnityBackend {
     return key;
   }
 
-  material(mid, spec) {
+  material(mid, spec, m) {
     this.specs.set(mid, spec);
     const pm = portMaterial(spec, mid);
     if (pm.port) this.ports.set(mid, pm.port);
+    // a picture on it (makeMaterial's map: a canvas the game drew, engine/raster.js, or a DataTexture's bytes): sent first,
+    // the material names it (BridgeRenderer.Texture, the Surface shader's _Map)
+    const tex = m?.uniforms ? (m.uniforms.uHasMap?.value > 0.5 ? m.uniforms.uMap?.value : null) : m?.map;
+    const tid = tex ? this._texture(tex) : 0;
+    if (tid) pm.map = tid;
     this.host.Material(mid, JSON.stringify(pm));
+  }
+
+  /**
+   * A texture's id, its pixels sent to C# (BridgeHost.Texture) if they can be: RGBA bytes, a canvas's (engine/raster.js,
+   * through engine/platform.js's canvas element) or a DataTexture's; 0 for any other (an image the VM cannot decode, a
+   * float or one-channel texture). Sent again when its version moves (the console's screen, redrawn: textures()).
+   */
+  _texture(tex) {
+    if (!this.host.Texture) return 0;
+    const tids = (this.tids ??= new WeakMap());
+    let t = tids.get(tex);
+    if (t !== undefined) return t?.id ?? 0;
+    const img = tex.image, d = img?.data;
+    const rgba = d && (d instanceof Uint8Array || d instanceof Uint8ClampedArray) && img.width > 0 && img.height > 0 && d.length >= img.width * img.height * 4
+      && (tex.isDataTexture ? tex.format === 1023 && (tex.type ?? 1009) === 1009 : true);   // (THREE.RGBAFormat, UnsignedByteType)
+    if (!rgba) { tids.set(tex, null); return 0; }
+    t = { id: (this.nextTex = (this.nextTex ?? 0) + 1), tex, sent: -1, version: -1 };
+    tids.set(tex, t);
+    (this.texList ??= []).push(t);
+    this._sendTexture(t);
+    return t.id;
+  }
+  _sendTexture(t) {
+    const tex = t.tex, img = tex.image, d = img.data, w = img.width, h = img.height;
+    // (flags: 1 rows bottom up, three's flipY; 2 sRGB, decoded as it is sampled; 4 mipmaps; 8 nearest)
+    const mips = tex.generateMipmaps !== false && tex.minFilter !== 1006 && tex.minFilter !== 1003;   // (LinearFilter, NearestFilter: none)
+    const flags = (tex.flipY ? 1 : 0) | (tex.colorSpace === 'srgb' ? 2 : 0) | (mips ? 4 : 0) | (tex.magFilter === 1003 ? 8 : 0);
+    const n = w * h * 4, bytes = d.byteOffset || d.byteLength !== n ? new Uint8Array(d.buffer, d.byteOffset, n).slice() : d;
+    this.host.Texture(t.id, this.toHost(bytes.buffer), w, h, flags);
+    t.version = tex.version; t.sent = img.version ?? 0;
+    (this.stats.textures ??= { sent: 0, bytes: 0 }).sent++; this.stats.textures.bytes += n;
+  }
+  /** Once a frame: the textures redrawn since they were sent (needsUpdate set: three's version moved), sent again. */
+  textures() {
+    const L = this.texList;
+    if (!L) return;
+    for (const t of L) if (t.tex.version !== t.version && t.tex.image?.data) this._sendTexture(t);
   }
 
   create(id, d) {
@@ -376,6 +418,7 @@ export class UnityBackend {
 
   /** The frame's commands to C#, once. */
   frame() {
+    this.textures();
     this.stats.opWords = this._opWords; this._opWords = {};
     // (a view of the writer's own buffer, no new ArrayBuffer a frame: pack.js takeView, issue #113; frameView false: a copy, as before)
     const buf = this.frameView ? this.w.takeView() : this.w.take();

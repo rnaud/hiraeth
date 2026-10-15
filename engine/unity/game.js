@@ -60,7 +60,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.noTitle || a.trial || a.game || a.ending);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 
@@ -258,13 +258,15 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     Object.assign(gameState.data.flags, ENDING_FLAGS(ending));
   }
   // (the ship's scenes play only with menus: an -ending run makes its own, never opened)
-  const menus = S.menus ?? (ending ? new EngineMenus({ store: slots }) : null);
+  // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save)
+  const menus = S.menus ?? (ending ? new EngineMenus({ store: slots })
+    : args.foes ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o) })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes })
     .then((game) => {
       S.game = game;
       if (menus) {
@@ -285,7 +287,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           return null;
         };
         if (menus.mode === 'title') menus.close();
-        game.save();
+        if (!args.foes) game.save();
         // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
         if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
@@ -389,7 +391,27 @@ function makePlan(args) {
   }
   // (-aboard: each room of the parked ship, the traveller where ?aboard= puts him on the web, the camera behind him; its
   // ship attached, scenes: the hull hidden from the sun inside, as the web's; tests/engine-ship.test.js)
+  // (-foes [world]: the Arena's list of foes as the menus draw it (BridgeMenu.cs DrawFoes): the Arena with its FOES tab, the
+  // list on that world's page, the pad moved and a foe chosen (lit), then closed and the foe come in to fight)
+  if (args.foes) {
+    steps.push({ kind: 'wait', frames: 90, secs: 3 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-arena.png` });
+    steps.push({ kind: 'foes', world: args.foes }, { kind: 'wait', frames: 10 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes.png` });
+    steps.push({ kind: 'menu', x: 1, y: 0 }, { kind: 'menu', x: 0, y: 1 }, { kind: 'menu', act: 'confirm' }, { kind: 'wait', frames: 10 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes-chosen.png` });
+    steps.push({ kind: 'menu', act: 'back' }, { kind: 'wait', frames: 150, secs: 4 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes-fight.png` });
+  }
   for (const room of aboardRooms(args)) {
+    // (-aboard …,pictures: from the main room, each canvas drawn aboard close up, the console's screen and the wall
+    // pictures: engine/raster.js, sent as textures; unity-canvas-<n>.png, the web's the same way from window.ship)
+    if (room === 'pictures') {
+      steps.push({ kind: 'aboard', room: 'main' }, { kind: 'wait', frames: 30, secs: 1 });
+      for (let i = 0; i < 8; i++) { steps.push({ kind: 'canvas', i }, { kind: 'wait', frames: 20, secs: 0.6 }); if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-canvas-${i}.png`, canvas: i }); }
+      steps.push({ kind: 'canvas', i: -1 });
+      continue;
+    }
     steps.push({ kind: 'aboard', room }, { kind: 'wait', frames: 90, secs: 3 });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-aboard-${room}.png` });
     // (at the console: E, the voicemail's message or "No new messages.", photographed as it plays)
@@ -495,6 +517,21 @@ function aimed(game, v) {
   return { ...v, player: null, hidePlayer: !trav, eye: [t[0] + fx * d + fz * side, eyeY, t[2] + fz * d - fx * side], target: t, fov: v.fov ?? 45 };
 }
 
+/** The parked ship's meshes drawn from a canvas (the console's screen first, then the pictures), each with a view of it. */
+export function shipCanvases(game) {
+  const S = game.ship?.parked, out = [];
+  if (!S) return out;
+  S.group.updateMatrixWorld(true);
+  S.group.traverse((o) => {
+    const t = o.material?.uniforms?.uHasMap?.value > 0.5 ? o.material.uniforms.uMap.value : null;
+    if (!t?.image?.data || !o.visible) return;
+    const V = o.position.constructor, p = o.getWorldPosition(new V()), n = new V(0, 0, 1).transformDirection(o.matrixWorld);
+    const screen = t === S.callScreen?.texture, d = screen ? 0.9 : 0.7;
+    out.push({ screen, w: t.image.width, h: t.image.height, target: [p.x, p.y, p.z], eye: [p.x + n.x * d, p.y + n.y * d, p.z + n.z * d] });
+  });
+  return out.sort((a, b) => b.screen - a.screen);
+}
+
 /**
  * This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held) as the page's keydown / keyup, each new
  * press and release first through the player's keys (Controls, "Your keys": src/remap.js keyRouter, as the page's
@@ -573,7 +610,7 @@ function pumpAudio(game) {
 export function frame(dt) {
   S?.menus?.tick?.();   // (a rebinding on the Controls page left waiting: kept as it was, engine/menus.js)
   // the title, before a world: only its menu (the world loading behind it once chosen)
-  if (S?.menus && !S.game) { if (!S.menus.title.starting) readTitleInput(dt); showMenu(); return; }
+  if (S?.menus && !S.game) { if (!S.menus.title.starting && S.titlePad) readTitleInput(dt); showMenu(); return; }
   if (!S?.game) return;
   const { game, backend } = S;
   const tA = now();
@@ -633,6 +670,23 @@ export function frame(dt) {
         console.log(`[unity] in ${T.id}'s arena (${G.state})`);
       }
     } else { const got = F.spawnKind(step.what, { n: 1, dist: 5 }); console.log(`[unity] a ${step.what} set down: ${got.length}`); }
+    next();
+  }
+  else if (step.kind === 'foes') {
+    const ok = game.openFoes();
+    if (ok && step.world && step.world !== 'all') { const L = game.foeList; L.setWorld(step.world); S.menus.changed(); }
+    console.log(ok ? `[unity] the list of foes: ${game.foeList.filterTitle()}, ${game.foeList.shown().reduce((n, s) => n + s.items.length, 0)} to fight` : '[unity] no list of foes here');
+    next();
+  } else if (step.kind === 'menu') {
+    if (step.act) S.menus.action(step.act); else S.menus.navigate(step.x, step.y);
+    next();
+  }
+  else if (step.kind === 'canvas') {
+    // (the i-th mesh of the parked ship drawn from a canvas: the camera half a metre to a metre before it, pinned; -1 lets go)
+    const list = shipCanvases(game);
+    const c = list[step.i];
+    if (step.i < 0 || !c) game.pin(null); else game.pin({ eye: c.eye, target: c.target, fov: 45, hidePlayer: true });
+    if (step.i >= 0) console.log(c ? `[unity] canvas ${step.i}: ${c.w} × ${c.h}` : `[unity] no canvas ${step.i}`);
     next();
   }
   else if (step.kind === 'aboard') { console.log(game.goAboard(step.room) ? `[unity] aboard: ${step.room}` : `[unity] no room ${step.room} aboard`); next(); }

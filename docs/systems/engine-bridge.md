@@ -108,7 +108,7 @@ bundle, before the game's modules load (some touch the page as they load), and r
 | `fetch`, `GLTFLoader` | the characters (`anim/*.glb`), MakeHuman bodies, motion data | **bridge**: `host.readFile(path)` reads `public/` (the repository's, or packed with the game) |
 | WebAudio (`AudioContext`, oscillators, filters) | audio.js (89 uses), score*.js, ship/sfx.js, story/arzach2.js | **shim**: `engine/webaudio.js` renders the game's own graph to PCM the engine plays (below, "Sound") |
 | `performance.now`, `requestAnimationFrame` | 21 modules / main.js's loop, title.js | **shim**: the host's clock; the engine's frame runs the callbacks (`page.tick`) |
-| 2D canvas (`getContext('2d')`, `CanvasTexture`) | ship/art.js, ship/portrait.js, ship/cinema.js, levels/home-drawings.js, levels/reference-picker.js | **shim**: a context that draws nothing (painted panels stay blank); later an engine-side canvas or pre-rendered textures |
+| 2D canvas (`getContext('2d')`, `CanvasTexture`) | ship/art.js, ship/portrait.js, ship/cinema.js, levels/home-drawings.js, levels/arcade.js, interior-kit.js, minigames/kit/marker.js, levels/reference-picker.js | **bridge** (Unity): a canvas element draws into bytes (`engine/raster.js`), its texture's pixels sent to Unity (below, "Canvas textures"); Godot draws none |
 | `Worker` | lod.js (simplification off the main thread) | absent: lod.js already falls back to the main thread |
 | `matchMedia`, `devicePixelRatio`, `location`, `history`, `URL` | perf.js, ui.js, main.js (`?level=`), reference levels (`new URL(…, import.meta.url)`) | **shim**: no media matches, `location.search` from the host |
 | WebAssembly | none (three-mesh-bvh is plain JS) | |
@@ -321,11 +321,32 @@ tight camera), to lay beside the web's `?aboard=` shots at 1280 × 720. Making t
 ship on the web and in the engines alike: `Ship.isInside` turned away points over 20 m from the ship's origin, from
 before the rooms were doubled (#338), and the hold reaches 26 m, so its back half had the weather in it and the rig's
 wide camera. The cut is now the rooms' own reach (`ROOMS_R2`; tests/ship.test.js).
-Beside the web's, the rooms match but for what the web paints on 2D canvases: the holo table's planet is its own
-shader (approach.js `planetMaterial`), now the port's `Hiraeth/Planet` (port-format.js `planet`, as HoloTable.cs draws
-it); the console's round screen and the wall pictures are canvas textures, which the engines' page cannot paint
-(`document.canvasDrawsNothing`, engine/platform.js), so `hasCanvas()` (src/ship/art.js) is false there and they take
-their no-canvas colours: the screen dark, the pictures plain paper (their drawings wait for textures in the bridge).
+Beside the web's, the rooms match: the holo table's planet is its own shader (approach.js `planetMaterial`), now the
+port's `Hiraeth/Planet` (port-format.js `planet`, as HoloTable.cs draws it); the console's round screen and the wall
+pictures are canvas textures, drawn in the VM and sent as textures since "Canvas textures" below (before that the
+screen was dark and the pictures plain paper: `document.canvasDrawsNothing`, which src/ship/art.js `hasCanvas()` reads).
+
+**Canvas textures** (issue #264). What the web paints on a 2D canvas for a texture is painted in the VM too: the
+engines' page hands out a canvas element whose 2D context draws into RGBA bytes (engine/platform.js `StubCanvas`, over
+engine/raster.js `PixelCanvas`, made at its first use). The raster has the calls the game's canvases use: paths filled
+(non-zero, each pixel's covered area summed along its row, font-rs's way) and stroked (round ends and joins, a pale line
+over itself blended once), arcs, ellipses and curves, the transform and save / restore, dashes, linear and radial
+gradients, globalAlpha, `putImageData` / `getImageData` / `drawImage` (another canvas, part of one, itself), and text:
+the letters are outlines of open fonts in engine/glyphs.js (scripts/engine-glyphs.mjs writes it once from the TrueType
+files Unity 6 carries: Roboto Regular, Bold and Black for the sans faces, Roboto Mono for the monospace ones, Apache
+License 2.0), picked by the CSS font's size, weight, style and family, placed by `textAlign` and `textBaseline`, measured
+by `measureText`. No shadows, clipping or patterns (none of the game's canvases use them). The Unity backend
+(engine/unity/backend.js `_texture`) sends a material's map (makeMaterial's `map`: a canvas's bytes, or a DataTexture's
+RGBA such as the Arena floor's markings; never a float or one-channel texture, nor an image the VM cannot decode) before
+the material, which names it (`map`); `BridgeHost.Texture` makes it a Texture2D (rows bottom up for three's `flipY`,
+sRGB when the texture says so, mipmaps as three's), `BridgeRenderer.UseMap` sets the Surface shader's `_Map` and
+`_MapOn` (its uv in the form's interpolator, which a material with a map never uses), and the fragment multiplies the
+colour by it as materials.js does. A texture whose version moves (`needsUpdate`) is sent again at the next frame: the
+console's screen, drawn at 256 px ten times a second in the engines (src/ship/portrait.js `CallScreen.size`, `fps`;
+the web's 384 px at 30), about a millisecond a draw on this Mac. So the ship's screen (standby, NO POWER, the new
+message, the reels), its four pictures (the child's drawing, the mother's note, the photo of home, the star chart), the
+Arena's and the worlds' arcade signs, the boards of interior-kit.js and the Arcade, and the drawings at Home show as on
+the web. Tests: tests/engine-raster.test.js, tests/engine-unity.test.js, tests/engine-ship.test.js.
 
 **The opening** (issue #264). New game on the title starts the desert's prologue, as the web's title does a save that
 has not played it (`prologue.done` unset): the ship in orbit (its space copy), the wake, the walk to the console in
@@ -371,8 +392,20 @@ reticle's four arrows: src/lock-reticle.js keeps what it drew as numbers, its `v
 winding up out of sight: `Foes.warnView`), `edges` (the low-health red, the flurry's lavender, a moth's white flash:
 `Foes.blindLevel`) and `restart`. Measured against the web in the desert's temple (scratchpad engine-cam.mjs and
 web-cam.mjs: into the Keeper's arena, then locked on): the camera's distance to him, its height and both in view agree
-to the centimetre, frame for frame. Not yet: the Arena's foe list (its quick menu is a page of its own) and the mastery
-trials. Test: tests/engine-combat.test.js.
+to the centimetre, frame for frame. Not yet: the mastery trials. Test: tests/engine-combat.test.js.
+
+**The Arena's list of foes** (issue #264). The web's FOES list (src/foe-spawner.js `FoeList`, the Arena's
+`level.quickMenu`) is a page of its own there; here it is attached to the fight's foes as main.js does (its own K
+listener taken off: the engine's `game.key` has K) and its page is the menus' `'foes'` (engine/menus.js `openFoes`,
+`foesView`; BridgeMenu.cs `DrawFoes`): FOES, the world filter at the right (LB / RB, its stop's name and which of how
+many), the sections' headings with a world's "Waves from here" beside its own, the foes three to a row (their name, what
+they are and do under it), "Waves again" and "Clear the field" at the foot, the current choice in gold (`FoeList.isChosen`,
+as the page's `sync`). D-pad ↓ (the controller's `call`) or K opens it, the pad goes over its rows as over the page's
+buttons (left / right the row before / after, up / down the nearest one above / below), A / × chooses (the FoeList's
+own `choose`: a foe practised, a world's waves, a guardian called into its ring), B / ○, K, Menu or View closes it. The
+tab on the left edge saying how to open it is the screen's `foeTab` (BridgeHud.cs `DrawFoeTab`). The bridge's
+`-foes [world]` photographs the Arena, the list on that world's page, a foe chosen, and the foe come in (a plan with
+menus, which writes no save: createGame `saves: false`). Tests: tests/engine-menus.test.js, tests/engine-combat.test.js.
 
 **The guardians' skins.** The Keeper's and the Elder's fitted skins are GLBs whose texture is a JPEG, which no engine VM
 decodes: the Keeper was white. Their colours sampled at each vertex (`colors.json` beside each model,
@@ -579,7 +612,7 @@ muted, and exits; the menu Hiraeth ▸ JS bridge rebuilds the scene.)
 
 `scripts/unity-js-run.sh <name> [BridgeBatch.Run arguments…]` does the two last in one, its log in
 `output/engine-bridge/unity-<name>.log`, the lines that say what happened printed. Its arguments:
-`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms`, `-fight foe,down,guardian`, `-bench secs`, `-split` (the frame's split: the
+`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms` (`pictures` among them: each canvas the parked ship draws, close up, `unity-canvas-<n>.png`), `-fight foe,down,guardian`, `-foes [world]` (with `-level arena`), `-bench secs`, `-split` (the frame's split: the
 mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id` (with `-talk-seq N [-talk-every frames]` N
 pictures of the first line as it is said; with `-bench secs` the frame measured while they talk, the gestures' own ms
 as `split.talkGestures`), `-through way` (a door walked into and back out of), `-play tool,drone`, and

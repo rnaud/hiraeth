@@ -81,3 +81,30 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   assert.ok(G.model.generated && skin, 'the Keeper on its fitted skin');
   assert.ok(skin.geometry.attributes.color && skin.material.vertexColors, 'its colours as vertex colours');
 });
+
+test('the Arena in the engine: its list of foes is the menus\' page (K, D-pad ↓), a foe chosen comes in to fight, the FOES tab on the screen (issue #264)', async () => {
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-arena-${process.pid}.js`));
+  await bundle('godot', { input: 'engine/game.js', out: [file] });
+  // (the menus made here, in Node, as the Unity bundle makes them in its VM: src/ui.js reads the page's matchMedia)
+  globalThis.matchMedia ??= () => ({ matches: false });
+  globalThis.window ??= new EventTarget();
+  const { EngineMenus } = await import('../engine/menus.js');
+  const { SlotStore } = await import('../src/save-slots.js');
+  const menus = new EngineMenus({ store: new SlotStore(new Map()), screen: () => ({ w: 1280, h: 720 }) });
+  const g = await makeGame(file, { levelId: 'arena', menus, saves: false });
+  const S = g.screen();
+  assert.ok(g.foeList && g.combat, 'the list attached to the fight\'s foes');
+  run(g, 20);
+  assert.equal(JSON.stringify(S.state.foeTab), JSON.stringify({ text: 'FOES ▸', key: 'K' }), 'the tab says how to open it');
+  tap(g, 'KeyK');
+  assert.equal(menus.mode, 'foes', 'K opens it');
+  const v = menus.view();
+  assert.ok(v.rows.length > 10 && v.rows[1][0].kind === 'foe', JSON.stringify(v.rows[1]));
+  menus.action('confirm');
+  const kind = g.foes.practice?.kind;
+  assert.ok(kind, 'the first foe practised');
+  menus.key('KeyK');
+  assert.equal(menus.open, false);
+  for (let i = 0; i < 20 && !g.foes.list.some((f) => f.alive); i++) run(g, 15);
+  assert.ok(g.foes.list.some((f) => f.alive), `a foe come in: ${g.foes.list.map((f) => f.kind).join(', ')}`);
+});

@@ -317,14 +317,14 @@ namespace Hiraeth.Bridge
             foreach (var l in new[] { logo, head, sub, hint, note, empty, tabPrev, tabNext, line }) Show(l, false);
             versionBox.Show(false); Show(titleArt, false); Show(titleLogo, false); titleUsed = 0;
             // (the shop's sheet sets these its own way: back to theirs)
-            tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal;
+            tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal; line.fontStyle = FontStyle.Normal; line.color = Muted;   // (and the Arena list's filter: DrawFoes)
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
             strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false); cSheet.Show(false);
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
-            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else DrawGame();
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);
@@ -726,6 +726,31 @@ namespace Hiraeth.Bridge
             Ui.Place(cSheet.rt, W / 2 - sw * k / 2, Mathf.Max(12, H / 2 - y * k / 2), sw, y);
         }
 
+        // ------------------------------------------------------------------ the Arena's foes (engine/menus.js foesView; issue #264)
+
+        /// <summary>
+        /// The Arena's list of foes as the web's page (src/foe-spawner.js FoeList): a paper sheet, FOES, the world filter at the
+        /// right with LB / RB, the sections' headings (a world's "Waves from here" beside its own), the foes in a grid of
+        /// rows (their name, what they are and do under it), the current choice in gold, "Waves again" and "Clear the field"
+        /// at the foot; the rows scrolled to keep the pad's in view.
+        /// </summary>
+        void DrawFoes()
+        {
+            float sw = Mathf.Min(1000, W - 36), sx = W / 2 - sw / 2, sy = 16, sh = H - 16 - 46;
+            Sheet(sx, sy, sw, sh, true);
+            Head(state.S("head"), sx + 24, sy + 16, sw * 0.4f);
+            var f = state.O("filter");
+            if (f != null)
+            {
+                Show(line, true);
+                line.alignment = TextAnchor.UpperRight; line.fontStyle = FontStyle.Bold; line.color = Ui.Ink;
+                var ln = "◀ " + Key("prev", "LB") + "   " + Ui.Upper(f.S("text")) + "  " + (f.I("i") + 1) + " / " + f.I("n") + "   " + Key("next", "RB") + " ▶";
+                Ui.Set(line, ln, sw * 0.55f);
+                Ui.Place(line.rectTransform, sx + sw - 24 - sw * 0.55f, sy + 22, sw * 0.55f, 20);
+            }
+            DrawRows("foes", sx + 18, sy + 58, sw - 36, sh - 58 - 14);
+        }
+
         void DrawAsk(Dictionary<string, object> a)
         {
             ask.Show(true);
@@ -897,8 +922,25 @@ namespace Hiraeth.Bridge
             float RowH(List<object> row)
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
+                if (panel == "foes") return k == "head" ? 34 : k == "foot" ? 44 : FoeRowH(row);
                 float baseH = panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" || k == "empty" ? side + 42 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
                 return panel == "map" || panel == "worlds" ? Fit(row, baseH) : baseH;
+            }
+            // (a row of foes as tall as its tallest: the name, then what it is and does, which may take two lines)
+            float FoeRowH(List<object> row)
+            {
+                float tw = w / Mathf.Max(1, cols.Count) - 6 - 28, most = 0;
+                foreach (var o in row)
+                {
+                    if (o is not Dictionary<string, object> c) continue;
+                    meas.fontSize = Body; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1;
+                    float th = Ui.Measure(meas, c.S("text") ?? "", tw).y, sh = 0;
+                    var u = c.S("sub");
+                    if (!string.IsNullOrEmpty(u)) { meas.fontSize = Small; meas.lineSpacing = 1.2f; sh = Ui.Measure(meas, u, tw).y + 1; }
+                    most = Mathf.Max(most, 5 + th + sh + 12);
+                }
+                meas.fontSize = Small; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1;
+                return Mathf.Max(56, most);
             }
             // (a line as tall as its words: on the Retroid's 4:3 the Map's list is narrow, and a long mark's name ran onto
             // the next line's, issue #264; measured as Entry lays it out, its name in Body bold, the line under in Small)
@@ -920,13 +962,24 @@ namespace Hiraeth.Bridge
             {
                 var row = rows[r] as List<object>;
                 float rh = hs[r];
-                if (yy + rh > y - 1 && yy < y + h - 2)
+                // (the list of foes draws whole rows only: a row cut by the sheet's foot ran over its edge)
+                bool shown = panel == "foes" ? yy >= y - 1 && yy + rh <= y + h + 2 : yy + rh > y - 1 && yy < y + h - 2;
+                if (shown)
                     foreach (var o in row)
                     {
                         var c = o as Dictionary<string, object>;
                         int col = Mathf.Clamp(c.I("col"), 0, cols.Count - 1), span = Mathf.Max(1, c.I("span", 1));
                         float cx = x + w * colX[col], cw = w * (colX[Mathf.Min(col + span, colX.Count - 1)] - colX[col]) - 6;
                         string text = c.S("text"), under = c.S("sub");
+                        if (panel == "foes")
+                        {
+                            // (a section's heading in the page's brick red, small spaced capitals; a row boxed, gold while chosen)
+                            var fk = c.S("kind");
+                            if (fk == "head") { var hc = Entry(cx, yy + 4, cw, rh - 6, Ui.Upper(text), null, null, false, size: Small); hc.text.color = Ui.Hex("#7a3a35"); hc.text.fontStyle = FontStyle.Bold; continue; }
+                            var fc = Entry(cx, yy, cw, rh - 6, fk == "foot" || fk == "waves" ? Ui.Upper(text) : text, under, null, B(c, "on"), size: fk == "foe" ? Body : Small, boxed: true);
+                            if (B(c, "lit") && !B(c, "on")) fc.box.SetFill(Ui.Gold);
+                            continue;
+                        }
                         if (B(c, "inUse")) under = "in use";
                         if (!string.IsNullOrEmpty(c.S("step"))) under = (string.IsNullOrEmpty(under) ? "" : under + "\n") + "Next: " + c.S("step");
                         if (B(c, "tracked")) text = "◆ " + text;

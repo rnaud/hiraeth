@@ -38,6 +38,8 @@ Shader "Hiraeth/Surface"
     _Weather ("Weathered (0..1)", Float) = 0
     _Detail ("Pen detail (kind, density)", Vector) = (0, 0, 0, 0)
     _Patch ("Colour across a wall", Float) = 0
+    _Map ("A picture over the colour (the game's canvas: BridgeRenderer.Texture)", 2D) = "white" {}
+    _MapOn ("Has a picture", Float) = 0
     _Plates ("Plating", Float) = 0
     _Windows ("Window share", Float) = 0.78
     _Drift ("Banked sand", Float) = 0
@@ -143,6 +145,7 @@ Shader "Hiraeth/Surface"
     float4 _TfBrowA, _TfBrowB, _TfEye, _TfMouth;
     // (the passes' own that a material sets: the crowd's clock, the puffs' far fade, the grass's view)
     float _CrowdTime;
+    float _MapOn;          // a picture over the colour (materials.js uMap: the game's canvases, BridgeRenderer.Texture), its uv in form.xy
     float4 _FarDepth;
     float4 _GrassView, _GrassLod, _GrassLook;
     float _GrassMirrored;
@@ -152,6 +155,7 @@ Shader "Hiraeth/Surface"
     float3 _EnvGround;             // what lies below the horizon here (materials.js uEnvGround: the world's ground)
     float _Halftone, _Bounce;   // the look's shade tones (globals)
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
+    TEXTURE2D(_Map); SAMPLER(sampler_Map);
     #include "Figure.hlsl"
     #include "Marks.hlsl"
     #include "TripoFace.hlsl"
@@ -428,6 +432,8 @@ Shader "Hiraeth/Surface"
         o.objNormal = toThree(v.normalOS / scl);
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
         o.form = 0;
+        // (a picture's uv where the form's point would be: a material with a map has no S_FORM; w 0 keeps the form's hatching off)
+        if (_MapOn > 0.5) o.form = float4(v.uv, 0, 0);
         #if defined(HIRAETH_VMAT)
           // (each merged object's own frame: materials.js S_VMAT; the camera in its frame, its turn about y undone)
           o.vm1 = v.vm1; o.vm2 = v.vm2; o.vm3 = v.vm3;
@@ -838,6 +844,7 @@ Shader "Hiraeth/Surface"
         #endif   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
+        if (_MapOn > 0.5) albedo *= SAMPLE_TEXTURE2D(_Map, sampler_Map, i.form.xy).rgb;   // (materials.js: uColor × the map, as the web's)
         float3 instColor = i.instColor;
         if (_PaletteSize > 0.5) {
           float best = 1e9;

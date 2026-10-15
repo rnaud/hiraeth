@@ -24,6 +24,9 @@ import { CONTENT } from '../src/levels/content.js';
 import { Physics } from '../src/physics.js';
 import { Waters } from '../src/water.js';
 import { Ship } from '../src/ship/ship.js';
+import { CallScreen } from '../src/ship/portrait.js';
+// (the console's round screen is drawn in the VM, engine/raster.js, and sent to the GPU each time: smaller and 10 times a second)
+CallScreen.size = 256; CallScreen.fps = 10;
 import { buildFlora, floraKeep, FLORA_WORLDS } from '../src/flora.js';
 import { buildGrass } from '../src/flora-grass.js';
 import { Player, CameraRig } from '../src/player.js';
@@ -252,7 +255,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -517,6 +520,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   combat = (menus || fight) && !flags ? optional('the foes', () => makeCombat({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans, waters, screen,
     toast: (t) => toast(t), teach: (t) => toast(keyText(t, { teach: true })) })) : null;
   if (combat) stamp('foes');
+  // the Arena's list of foes (src/foe-spawner.js FoeList, the level's quick menu: every foe there is to fight, a world's
+  // waves, a guardian's ring), attached to the fight's foes as main.js does; its page is the menus' 'foes' (engine/menus.js
+  // openFoes, BridgeMenu.cs DrawFoes), D-pad ↓ or K opens it; the tab on the left edge saying so is the screen's 'foeTab'
+  const foeList = combat && menus?.openFoes && level.foes?.waves && level.quickMenu?.shown ? level.quickMenu : null;
+  if (foeList) {
+    foeList.win?.removeEventListener?.('keydown', foeList.onKey, true);   // (its K is the engine's own: game.key)
+    optional('the list of foes', () => foeList.attach({ foes: combat.foes, player, physics, sound, scene, notice: (t) => toast(t), kind: level.foes.kind ?? null }));
+  }
   const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
     notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
   // after a box's card, the line a gadget found says (in hand; the first time two are carried, how to pick another), or the
@@ -655,6 +666,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // R3: lock on to a foe, then the next, then let go; with none in reach the scout finds the objective (main.js)
       if (name === 'lock' && combat && !pinned && !(shipOn && ship.playing)) { if (!combat.lock()) scout?.ping?.(); return; }
       if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }
+      // D-pad ↓ (the mount's call: there is none in the Arena): its list of foes, as main.js's quickMenu
+      if (name === 'call' && foeList && !pinned && !talking()) { menus.openFoes(foeList); return; }
       // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
       if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
       if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
@@ -732,6 +745,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     _w.setFromMatrixColumn(camera.matrixWorld, 0);
     screen.set('stamina', st && { ...st, at: _w.multiplyScalar(0.62).add(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.75).toArray().map((v) => +v.toFixed(2)) });
     screen.set('choice', talking() ? talk.sel : null);
+    // the Arena's FOES tab on the left edge, saying how to open its list (src/foe-spawner.js addTab)
+    screen.set('foeTab', foeList && !quiet ? { text: 'FOES ▸', key: pad ? 'D-pad ↓' : 'K' } : null);
   }
   // who casts a shadow (main.js renderFrame, shadows.js): everything but the level's noShadow list, the
   // traveller's gear's, and what lights itself
@@ -905,6 +920,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (down && !was && !menus?.open && !photo.on && combat) {
         if (combat.restartOpen && (code === 'Enter' || code === 'NumpadEnter' || code === 'Space' || code === 'KeyE')) { combat.restart(); return; }
         if (code === 'Tab' && !pinned && !boxes?.busy?.() && !(shipOn && ship.playing)) combat.lock();
+        // (K: the Arena's list of foes, as its page's key)
+        if (code === 'KeyK' && foeList && !pinned && !talking() && !boxes?.busy?.()) menus.openFoes(foeList);
       }
       // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
       if (down && !was && !menus?.open && !trials?.running) {
@@ -960,6 +977,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     sectionsOn: false,
     journal,
     /** A shop opened by its id ('thrum': Anselm's aboard; else a keeper's), as talking to its keeper does (-shop, a test). */
+    /** The Arena's list of foes opened (the bridge's -foes plan; D-pad ↓ or K in play): false where there is none. */
+    openFoes() { return !!(foeList && menus?.openFoes(foeList)); },
+    foeList,
     openShop(id) { if (shopPanel) shopWaiting = (id === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(id)) ?? null; return !!shopWaiting; },
     /** In that room of the parked ship (cockpit, main, cabin, hold; or at the console), the camera behind him, as ?aboard= on the web; false: no such room. */
     goAboard(room) { const ok = goAboard(room); if (ok) rig.update(player.pos, 0, player.frame); return ok; },
@@ -994,7 +1014,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
     save() {
       // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
-      if (flags || pinned || player.dead || (shipOn && ship.playing) || gameDef) return;   // (a game's page keeps the place you left the world at)
+      if (!saves || flags || pinned || player.dead || (shipOn && ship.playing) || gameDef) return;   // (a game's page keeps the place you left the world at)
       SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray() });
     },
     /**
@@ -1094,7 +1114,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       simT += dt; frames++;
       saveIn -= realDt;
       // (the engine playing with its menus: where you stand saved every 10 s, and the save's playtime, as main.js does)
-      if (menus && saveIn <= 0) { saveIn = 10; if (!flags && !pinned) { game.save(); slots.touch(slots.active, { addSeconds: 10 }); } }
+      if (menus && saveIn <= 0) { saveIn = 10; if (!flags && !pinned && saves) { game.save(); slots.touch(slots.active, { addSeconds: 10 }); } }
       const pad = controller.update(pdt, true);
       inputFrame();
       const ctl = mergeControls(latched(), pad);

@@ -145,7 +145,9 @@ gadgets), conversations (tones, portraits, three answers), quests and the journa
 their card, the shops (Anselm's and the keepers'), the gadgets and their HUD, the ship (aboard, voicemail, the holo
 table → Worlds, Travel here, the arrival), the prologue, photo mode (stills to `persistentDataPath/photos`), talk
 gestures (`gestures.glb`), the pad's printed letters (Retroid, Xbox, Deck), rumble, the key counter in temples, the
-carry, the see-through surfaces, weather, wind, wildlife, fire, the scout's ping.
+carry, the see-through surfaces, weather, wind, wildlife, fire, the scout's ping; the fight and the guardians, the
+Arena's list of foes (its FOES page in BridgeMenu, D-pad ↓ or K), and what the web paints on canvases (the ship's console
+screen and wall pictures, the signs and boards: engine/raster.js, sent as textures).
 
 **In progress now** (parallel agents, issue #264): What's new, photo mode, the prologue and the rebinding; the ship's
 interior; talk gestures.
@@ -168,7 +170,7 @@ interior; talk gestures.
 |---|---|
 | **The recorded music** | `src/soundtracks.js` decodes MP3s with `decodeAudioData`, which `engine/webaudio.js` refuses. Unity plays the procedural score only: no world themes, no title theme, no recorded cues or `music-moments`. Needs Unity-side decoding (an AudioClip per theme, on the music bus) and the themes downloaded into `persistentDataPath` (music-store's job on the web). |
 | **Body foley** (`src/foley.js`) | Not wired: no footsteps or body sounds. |
-| **Minigames** (`src/minigames/`), the Arena, Ink tide, the shooting gallery, Chime pirates (`src/ambush.js`, the first flight to a new world) | The games' own pages are wired (`createGame({ game, from })`, engine/trials.js: the Sunken Hall, the races, fishing… from their hosts). Not drawn yet: what a game draws on the page of its own (the speed lines, the drum circle's ring, the sketch hunt's frames, the gallery's balloons). Not wired: the Arena's waves, Chime pirates on the first flight. |
+| **Minigames** (`src/minigames/`), the Arena (its list of foes done, issue #264), Ink tide, the shooting gallery, Chime pirates (`src/ambush.js`, the first flight to a new world) | The games' own pages are wired (`createGame({ game, from })`, engine/trials.js: the Sunken Hall, the races, fishing… from their hosts). Not drawn yet: what a game draws on the page of its own (the speed lines, the drum circle's ring, the sketch hunt's frames, the gallery's balloons). Not wired: the Arena's waves, Chime pirates on the first flight. |
 | **Onboarding and help** | `first-steps.js`, `companion.js` (Plumb's hints), `scout-hint.js`, `temples/hints.js`: not wired. |
 | **The observatory quest** (`ObservatoryQuest`, the desert) | Not wired. |
 | **The eclipse's sky** (`applyEclipse`), the Lantern's sky | `main.js` applies them each frame; the engine doesn't. |

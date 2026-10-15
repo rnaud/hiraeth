@@ -80,7 +80,14 @@ export const CHANGELOG = [
     // the ship aboard in Unity (issue #264): engine/unity/port-format.js 'planet' (BridgeRenderer.cs → Hiraeth/Planet),
     // src/ship/art.js hasCanvas (engine/platform.js canvasDrawsNothing), interior.js picture's paper; the hold inside:
     // src/ship/ship.js ROOMS_R2 (isInside's far cut was 20 m, the hold reaches 26); tests/ship.test.js, engine-unity, engine-ship
-    'Aboard the ship in the Unity version, the holo table shows the planet in its colours and markings, and the console’s round screen is dark. They used to be white glowing discs. The pictures on the walls show plain paper instead of white cards. On every version, the back of the hold now counts as inside the ship: rain and blowing sand no longer reach it.',
+    'Aboard the ship in the Unity version, the holo table shows the planet in its colours and markings. It used to be a white glowing disc. On every version, the back of the hold now counts as inside the ship: rain and blowing sand no longer reach it.',
+    // the game's canvases in the engines (issue #264): engine/raster.js (paths, text in engine/glyphs.js's open fonts,
+    // gradients, pictures), engine/platform.js StubCanvas, engine/unity/backend.js _texture, BridgeRenderer.Texture,
+    // Surface.shader _Map; src/ship/portrait.js CallScreen.size / fps; tests/engine-raster, engine-unity, engine-ship
+    'In the Unity version, the ship’s round console screen shows what it shows on the web: the voicemail’s standby, NO POWER, a new message waiting, the reels turning as a recording plays. The pictures on the walls show their drawings: the child’s drawing of the family, the mother’s note, the photo of home and the star chart. They were a dark screen and white cards. The arcade signs, the name boards and the drawings at Home are lettered and drawn too.',
+    // the Arena's foe list in the engines (issue #264): engine/menus.js openFoes / foesView, BridgeMenu.cs DrawFoes,
+    // BridgeHud.cs DrawFoeTab (the screen's foeTab), engine/game.js (FoeList attached); tests/engine-menus, engine-combat
+    'The Unity version’s Arena has its list of foes: D-pad ↓ or K opens it, LB / RB goes through the worlds, and A / × on a foe brings it in to fight, again each time it falls. A world’s waves, the temple guardians, “Waves again” and “Clear the field” are there as on the web, and the FOES tab at the left edge says how to open it.',
     // the fight in Unity (issue #264): engine/combat.js (src/foes.js Foes, lockFollow, guardianBox, the drops, the potion,
     // the hazards, low-health, the knock-out's card), BridgeHud.cs (the hearts, the reticle, the warnings, the edges, the
     // restart card); tests/engine-combat.test.js

@@ -108,6 +108,17 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
     assert.ok(h.player.pos.distanceTo(h.ship.roomSpot(room).pos) < 0.5, `${room}: where ?aboard= puts him`);
   }
   assert.equal(h.goAboard('attic'), false);
+  // the console's round screen and the wall pictures drawn as the web's (engine/raster.js: the page's canvases draw in the
+  // engines), each a texture the backend sends; the screen redrawn ten times a second (src/ship/portrait.js CallScreen.fps)
+  const cs = h.ship.parked.callScreen;
+  assert.ok(cs?.texture && cs.canvas.width === 256, 'the screen a canvas texture, 256 px in the engines');
+  const v0 = cs.texture.version;
+  run(h, 9);
+  assert.ok(cs.texture.version - v0 >= 2 && cs.texture.version - v0 <= 5, `redrawn ~10 times a second: ${cs.texture.version - v0} in 0.3 s`);
+  const pictures = [];
+  h.ship.parked.group.traverse((o) => { const t = o.material?.uniforms?.uHasMap?.value > 0.5 ? o.material.uniforms.uMap.value : null; if (t?.image?.data && t !== cs.texture) pictures.push(t.image); });
+  const inked = (img) => { let n = 0; for (let i = 0; i < img.data.length; i += 4) if (img.data[i] < 90) n++; return n; };
+  assert.ok(pictures.length >= 4 && pictures.every((p) => inked(p) > 100), `the wall pictures drawn: ${pictures.map(inked).join(', ')}`);
   run(h, 20 * 2);
 
   // photo mode (the Start menu's, P): the world held, the camera flown, the HUD gone but for its keys; Enter saves the frame

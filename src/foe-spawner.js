@@ -183,7 +183,7 @@ export class FoeList {
   /** The chips and the sections, as the filter says. */
   render() {
     if (!this.el) return;
-    const title = (id) => (id === 'all' ? 'All' : id === 'roster' ? 'Roster' : id === 'guardians' ? 'Guardians' : worldName(id).replace(/^The /, ''));
+    const title = (id) => this.filterTitle(id);
     this.el.querySelector('.chips').innerHTML = FILTERS.map((w) => `<button type="button" data-world="${w}" class="${w === this.filter.world ? 'on' : ''}">${esc(title(w))}</button>`).join('');
     for (const b of this.el.querySelectorAll('.chips button')) b.addEventListener('click', (e) => { e.stopPropagation(); this.setWorld(b.dataset.world); });
     const shown = filterSections(this.sections, this.filter);
@@ -207,10 +207,23 @@ export class FoeList {
     this.el.querySelector('[data-a="waves"]')?.classList.toggle('on', !F?.practice && !g);
   }
 
+  // (what an engine's page of the list reads, engine/menus.js openFoes: the stops, the sections shown, a stop's name,
+  // whether a row is the current choice, as sync() lights them)
+  get filters() { return FILTERS; }
+  shown() { return filterSections(this.sections, this.filter); }
+  filterTitle(id = this.filter.world) { return id === 'all' ? 'All' : id === 'roster' ? 'Roster' : id === 'guardians' ? 'Guardians' : worldName(id).replace(/^The /, ''); }
+  isChosen(c) {
+    const F = this.foes, g = this.guardians?.id;
+    if (c.guardian) return g === c.guardian;
+    if (c.kind) return !g && F?.practice?.kind === c.kind;
+    if (c.waves === null) return !F?.practice && !g;
+    return false;
+  }
+
   setWorld(w) {
     this.filter.world = FILTERS.includes(w) ? w : 'all';
     this.render();
-    if (this.open) setTimeout(() => this.focus(0), 0);
+    if (this.open && this.el) setTimeout(() => this.focus(0), 0);
   }
   /** LB / RB (main.js turn): the world filter before / after, round. */
   turn(d) {

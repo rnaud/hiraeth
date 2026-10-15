@@ -7,7 +7,11 @@ import { hasCanvas } from './art.js';
 // trace; scanlines, and static that can swallow the picture.
 
 export class CallScreen {
-  constructor(size = 384) {
+  // (how big it is drawn and how often: the engines draw it in their VM, engine/raster.js, and send each picture to the
+  // GPU, so engine/game.js asks for a smaller one, fewer times a second)
+  static size = 384;
+  static fps = 30;
+  constructor(size = CallScreen.size) {
     this.size = size;
     this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '', waiting: false, signal: '', paused: false };
     if (!hasCanvas()) { this.texture = null; return; }
@@ -27,7 +31,7 @@ export class CallScreen {
     if (!this.g) return;
     this.state.t += dt;
     this._acc = (this._acc ?? 0) + dt;
-    if (this._acc < 1 / 30) return;   // 30 fps is plenty for a screen
+    if (this._acc < 1 / CallScreen.fps) return;   // 30 fps is plenty for a screen
     this._acc = 0;
     this.draw();
     this.texture.needsUpdate = true;

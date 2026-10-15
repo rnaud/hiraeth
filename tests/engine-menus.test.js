@@ -601,3 +601,55 @@ test('the Start menu says the save under its heading, as the web\'s (issue #346)
   m.show('start');
   assert.equal(m.view().line, 'Save 1 · The Desert · 10 min played');
 });
+
+test('the Arena\'s list of foes as a page of the menus: its rows, the pad over them, a foe chosen and lit, LB / RB its worlds, K and B / ○ close it (issue #264)', async () => {
+  const { FoeList } = await import('../src/foe-spawner.js');
+  const list = new FoeList({ win: null, doc: null });
+  // (the game's side, as attach makes it: the foes' practice and the guardians' ring)
+  list.foes = { practice: null, waves: 'on', setPractice(k) { this.practice = k ? { kind: k } : null; }, startWaves(w) { this.practice = null; this.waves = w ?? 'on'; } };
+  list.guardians = { id: null, call(id) { this.id = id; }, dismiss() { this.id = null; } };
+  const m = new EngineMenus({ store: new SlotStore(new Map()), screen: () => ({ w: 1280, h: 720 }) });
+  assert.equal(m.openFoes(null), false);
+  assert.ok(m.openFoes(list));
+  let v = m.view();
+  assert.equal(v.kind, 'foes');
+  assert.equal(v.filter.text, 'All');
+  assert.equal(v.cols.length, 3);
+  assert.deepEqual(v.rows[0].map((c) => c.kind), ['head'], 'the roster\'s heading first');
+  assert.equal(v.rows[0][0].text, 'The roster');
+  const heads = v.rows.flat().filter((c) => c.kind === 'head').map((c) => c.text);
+  assert.ok(heads.includes('Temple guardians') && heads.length >= 4, heads.join(', '));
+  assert.deepEqual(v.rows.at(-1).map((c) => c.text), ['Waves again', 'Clear the field']);
+  assert.ok(v.rows.at(-1)[0].lit, 'the waves running: "Waves again" lit');
+  // the pad on the first foe; right the next, down the one under it
+  const at = () => { const r = m.view().rows; for (let i = 0; i < r.length; i++) for (const c of r[i]) if (c.on) return { r: i, c }; return null; };
+  assert.equal(at().r, 1); assert.equal(at().c.col, 0);
+  m.navigate(1, 0); assert.equal(at().c.col, 1);
+  m.navigate(0, 1); assert.deepEqual([at().r, at().c.col], [2, 1]);
+  const name = at().c.text;
+  m.action('confirm');
+  assert.ok(list.foes.practice?.kind, 'chosen: practised');
+  v = m.view();
+  const lit = v.rows.flat().filter((c) => c.lit);
+  assert.ok(lit.length >= 1 && lit.every((c) => c.text === name && c.kind === 'foe'), 'the one chosen lit (in each section it is in), the waves not');
+  // RB: the next stop of the world filter (the roster's own page), the pad back on its first row
+  m.action('tabNext');
+  v = m.view();
+  assert.equal(v.filter.text, 'Roster'); assert.equal(v.filter.i, 1);
+  m.action('tabNext');
+  v = m.view();
+  assert.equal(v.rows[0][1]?.text, 'Waves from here', 'a world\'s page: its waves beside its heading');
+  assert.ok(v.rows[0][1].on, 'the pad on it');
+  m.action('confirm');
+  assert.equal(list.foes.practice, null, 'that world\'s waves');
+  // the guardians: one called into its ring
+  for (let i = 0; i < 30 && m.view().filter.text !== 'Guardians'; i++) m.action('tabNext');
+  m.action('confirm');
+  assert.ok(list.guardians.id, 'a guardian called');
+  assert.ok(m.view().rows[1][0].lit);
+  // K closes it, as the page's; B / ○ too
+  assert.equal(m.key('KeyK'), true); assert.equal(m.open, false);
+  m.openFoes(list); m.action('back'); assert.equal(m.open, false);
+  // drawn by BridgeMenu (DrawFoes: the rows' grid, the filter at the right)
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /else if \(kind == "foes"\) DrawFoes\(\)/);
+});

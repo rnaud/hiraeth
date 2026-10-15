@@ -14,12 +14,14 @@
 //   performance, TextDecoder / TextEncoder (UTF-8), queueMicrotask, structuredClone,
 //   requestAnimationFrame and setTimeout / setInterval (driven by the engine: tick() runs them), self / window
 //   with add / remove / dispatchEvent (the engine's keys arrive as keydown / keyup, as in a
-//   page), document (elements that take every call and draw nothing), navigator, location,
+//   page), document (elements that take every call and draw nothing; a canvas draws, engine/raster.js), navigator, location,
 //   URL / URLSearchParams (enough for the game's own uses), localStorage, fetch (from readFile),
 //   atob / btoa, Image, matchMedia.
 //
 // Nothing here is used by the web build: it is bundled only into the engines' scripts
 // (scripts/engine-bundle.mjs) and loaded by the tests.
+
+import { PixelCanvas } from './raster.js';
 
 const G = globalThis;
 const def = (k, v) => { if (G[k] === undefined) G[k] = v; };
@@ -179,6 +181,22 @@ class StubElement extends Listeners {
   play() { return Promise.resolve(); } pause() {} load() {}
 }
 
+/**
+ * A canvas element: an element as the others, whose 2D context draws into bytes (engine/raster.js PixelCanvas, made at
+ * its first use, 300 × 150 as a page's until its size is set). `data`, `version`: what a texture of it sends.
+ */
+class StubCanvas extends StubElement {
+  constructor() { super('canvas'); this._cw = this._ch = undefined; }   // (the element's 1 × 1 undone)
+  get px() { return (this._px ??= new PixelCanvas(this._cw ?? 300, this._ch ?? 150)); }
+  get width() { return this._cw ?? 300; }
+  set width(v) { this._cw = Math.max(1, v | 0); if (this._px) this._px.width = this._cw; }
+  get height() { return this._ch ?? 150; }
+  set height(v) { this._ch = Math.max(1, v | 0); if (this._px) this._px.height = this._ch; }
+  get data() { return this.px.data; }
+  get version() { return this._px?.version ?? 0; }
+  getContext(kind) { return kind === '2d' ? this.px.getContext('2d') : null; }
+}
+
 class StubDocument extends Listeners {
   constructor() {
     super();
@@ -186,11 +204,11 @@ class StubDocument extends Listeners {
     this.activeElement = this.body; this.pointerLockElement = null; this.fullscreenElement = null; this.hidden = false; this.visibilityState = 'visible';
     this.readyState = 'complete'; this.fonts = { ready: Promise.resolve(), load: () => Promise.resolve([]), check: () => true };
     this._byId = new Map();
-    // (its canvases draw nothing: what paints one for a texture (src/ship/art.js hasCanvas) takes its no-canvas way, the
-    // colours it has for that, instead of a blank white texture the engines can't show: the ship's console screen dark)
-    this.canvasDrawsNothing = true;
+    // (its canvases draw, into bytes: engine/raster.js; the backend sends a texture's as a picture, engine/unity/backend.js
+    // textures. src/ship/art.js hasCanvas reads this: true, the ship's screen and pictures were their plain colours)
+    this.canvasDrawsNothing = false;
   }
-  createElement(tag) { return new StubElement(tag); }
+  createElement(tag) { return String(tag).toLowerCase() === 'canvas' ? new StubCanvas() : new StubElement(tag); }
   createElementNS(ns, tag) { return new StubElement(tag); }
   createTextNode(t) { const e = new StubElement('#text'); e.textContent = t; return e; }
   createDocumentFragment() { return new StubElement('#fragment'); }
