@@ -433,7 +433,21 @@ namespace Hiraeth.Bridge
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
             if (kw != null) { m.EnableKeyword(kw); leanWhy.TryGetValue(kw, out int k); leanWhy[kw] = k + 1; }
             else { leanWhy.TryGetValue(why, out int c); leanWhy[why] = c + 1; }
+            // (and none of a wall's marks: the variant without their code, HIRAETH_PLAIN, issue #262)
+            if (kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0)
+            {
+                m.EnableKeyword("HIRAETH_PLAIN"); leanWhy.TryGetValue("plain", out int pc); leanWhy["plain"] = pc + 1;
+            }
         }
+        /// <summary>The plain lean variant (HIRAETH_PLAIN: Surface.shader) for the lean materials with none of a wall's marks (no
+        /// pattern, weathering, pen detail or colour patches): on Android (the Retroid's GPU 0.7-1.4 ms a frame, issue #262),
+        /// -plain elsewhere, -no-plain off.</summary>
+        public static bool plain =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
         static readonly Dictionary<string, int> leanWhy = new();
         readonly HashSet<int> veilMats = new();   // the see-through surfaces' washes (Hiraeth/Veil)
         static float F(Material m, string p) => m.HasProperty(p) ? m.GetFloat(p) : 0;

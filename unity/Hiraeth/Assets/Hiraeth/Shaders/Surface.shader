@@ -272,6 +272,16 @@ Shader "Hiraeth/Surface"
       #else
         #define WATERK true
       #endif
+      // HIRAETH_PLAIN (fragment only): a lean material with none of a wall's marks (no pattern, weathering, pen detail or
+      // colour patches: BridgeRenderer.Lean), on a variant without their code. Never drawn there, they still cost every
+      // pixel of the ground, the people and the props the registers of the walls' heaviest paths, and the GPU its waves
+      // in flight: 0.7-1.4 ms of the Retroid's GPU a frame (issue #262). The same picture. Given on Android (-plain elsewhere).
+      #pragma multi_compile_local_fragment _ HIRAETH_PLAIN
+      #if defined(HIRAETH_PLAIN)
+        #define WALLK false
+      #else
+        #define WALLK true
+      #endif
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       // the sun's shadow maps (HiraethShadows.cs, materials.js getShadow): fine, near, far; each its matrix
@@ -370,8 +380,13 @@ Shader "Hiraeth/Surface"
         // (no posWS: Unity's space is three's with x turned back, toThree(worldPos) in the fragment: three floats fewer
         // a vertex to pass on, issue #262)
         float3 bind : TEXCOORD9;
+        // (the crowd's and the grass's own, only in their variants: seven floats fewer a vertex to pass on elsewhere, #262)
+      #if defined(HIRAETH_CROWD)
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
+      #endif
+      #if defined(HIRAETH_GRASS)
         nointerpolation float3 grassLook : TEXCOORD11;   // a grass blade: its pen line, its outline's fade, its blend into the ground
+      #endif
         float4 form : TEXCOORD12;       // the point about its part's axis (materials.js vForm): across it xy, along it z, w the kind
       #if defined(HIRAETH_VMAT)
         nointerpolation float4 vm1 : TEXCOORD13; nointerpolation float4 vm2 : TEXCOORD14; nointerpolation float4 vm3 : TEXCOORD15;
@@ -412,7 +427,6 @@ Shader "Hiraeth/Surface"
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
-        o.crowdTrim = 0;
         o.form = 0;
         #if defined(HIRAETH_VMAT)
           // (each merged object's own frame: materials.js S_VMAT; the camera in its frame, its turn about y undone)
@@ -456,7 +470,6 @@ Shader "Hiraeth/Surface"
           o.bind = v.positionOS.xyz;
           o.crowdTrim = ctrim;
         #endif
-        o.grassLook = 0;
         #if defined(HIRAETH_GRASS)
           // a tuft of blades (grass-shader.js grassPlace), all in three space: thinned by rank with distance, shorter and in the
           // ground's colour further off, sunk at the patch's edge, bent by the wind and parted round the traveller's feet
@@ -565,6 +578,18 @@ Shader "Hiraeth/Surface"
         float3 c = strataBand(floor(t));
         float3 mean = _Color.rgb * 0.4 + _Color2.rgb * 0.35 + _Color3.rgb * 0.25;
         return lerp(mean, c, smoothstep(2.5, 5.0, 1.0 / gt));
+      }
+      // the strokes' triplanar weights: sharp on a faceted surface, straight down on the ground
+      float3 strokeWeights(float3 on, int mode)
+      {
+        float3 tw = pow(abs(normalize(on)), 3.0);
+        tw /= (tw.x + tw.y + tw.z);
+        if (_Flat > 0.5) {
+          float3 a = abs(on);
+          tw = a.x > a.y && a.x > a.z ? float3(1, 0, 0) : (a.y > a.z ? float3(0, 1, 0) : float3(0, 0, 1));
+        }
+        if (mode == MODE_TERRAIN) tw = float3(0, 1, 0);
+        return tw;
       }
       float2 strokeCoord(float3 objPos, float3 w, float2 dir)
       {
@@ -785,7 +810,6 @@ Shader "Hiraeth/Surface"
         // one, as the glass): a discard there, even one never taken, costs every lean surface the GPU's early depth test,
         // the City-Shaft's rim 21 ms of GPU a frame on the Xbox against 14 (issue #263)
         UNITY_BRANCH if (LEANK && _Veil > 0.0 && _MSurfaceDebug < 3.5 && abs(dot(normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos))) > _Veil) discard;
-        float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
         // a makers' box coming apart (boxes/scene.js): eaten from the top down, the edge burning bright
         float dEdge = 0.0;
         if (LEANK && _Dissolve.x > 0.0 && _MSurfaceDebug < 3.5)
@@ -796,56 +820,11 @@ Shader "Hiraeth/Surface"
           if (dn < dth) discard;
           dEdge = 1.0 - smoothstep(0.0, _Dissolve.y, dn - dth);
         }
-        // stroke coordinates + derivatives first, in uniform control flow
+        // (each part's coordinates and derivatives are worked out next to it, in uniform control flow, not all at the top:
+        // held from there through the colour, the shadow's taps and the lights, they cost every pixel of every surface its
+        // registers, and the GPU its waves in flight; the same numbers, issue #262)
         float3 facetO = cross(ddx(i.objRel), ddy(i.objRel));
         float3 on = _Flat > 0.5 ? facetO : i.objNormal;
-        float3 tw = pow(abs(normalize(on)), 3.0);
-        tw /= (tw.x + tw.y + tw.z);
-        if (_Flat > 0.5) {
-          float3 a = abs(on);
-          tw = a.x > a.y && a.x > a.z ? float3(1, 0, 0) : (a.y > a.z ? float3(0, 1, 0) : float3(0, 0, 1));
-        }
-        if (mode == MODE_TERRAIN) tw = float3(0, 1, 0);
-        float2 ce1 = strokeCoord(i.objPos, tw, float2(0.766, 0.643));
-        float2 ce2 = strokeCoord(i.objPos, tw, float2(0.83, -0.56));
-        float fw1 = fwidth(ce1.x), fw2 = fwidth(ce2.x);
-        float2 ceY = float2(i.objPos.y, dot(i.objPos.xz, float2(0.7071, 0.7071)));
-        float fwY = fwidth(i.objPos.y);
-        float2 fwd = float2(fw1, fwidth(ce1.y));
-        // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
-        // fine there, issue #262)
-        float3 gq = 0, gfw = 0, gw = 0;
-        UNITY_BRANCH if (_Grid > 0.0 || _Glyphs > 0.0)
-        {
-          gq = i.objPos / max(_Grid, 1e-3); gfw = fwidth(gq);
-          gw = pow(abs(normalize(on)), 6.0); gw /= (gw.x + gw.y + gw.z);
-        }
-        float2 fwp = fwidth(i.worldPos.xz);
-        float foldU = i.fold.x * _Folds;
-        float foldFw = fwidth(foldU);
-        float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
-        float fissFw = 0;   // (strata rock's alone: below)
-        // the wall's own frame for weathering, pen detail and colour patches (materials.js): along it and up, world-anchored
-        float2 wqA = float2(i.worldPos.x, i.worldPos.y), wqB = float2(i.worldPos.z, i.worldPos.y);
-        float wfy = length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y)));
-        float2 wfqA = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), wfy), wfqB = float2(length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))), wfy);
-        float2 wCell = floor(i.worldPos.xz / 9.0);
-        float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = _Weather * (0.6 + 0.8 * hash(wCell + 3.0));
-        // strokes along the beds of rock (the strata's wavy horizontals)
-        // (only strata rock reads them: worked out in its own branch, uniform over a draw (its derivatives fine there), as
-        // the web compiles them under S_STRATA alone; every other pixel paid two noises and a derivative for nothing, #262)
-        float2 strataCo = 0; float strataFw = 0;
-        UNITY_BRANCH if (mode == MODE_STRATA)
-        {
-          float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
-          strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
-          strataFw = fwidth(strataCo.x);
-          fissFw = fwidth(faceX) / 9.0;
-        }
-        float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
-        float tfAA = max(fwidth(i.bind.x) + fwidth(i.bind.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
-        float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
-        float2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
 
         float3 n = normalize(i.normal);
         float3 viewT = toThree(_WorldSpaceCameraPos) - i.worldPos;
@@ -879,6 +858,7 @@ Shader "Hiraeth/Surface"
           else if (slope > 0.30 && patches < 0.45) albedo = lerp(c1, c3, 0.5);
           if (_SandInk < 0.5)
           {
+            float2 fwp = fwidth(i.worldPos.xz);
             float b = max(blobs(i.worldPos.xz, fwp, 2.2, 0.28, 0.45, 0.0), max(blobs(i.worldPos.xz, fwp, 11.0, 1.3, 0.35, 41.0), blobs(i.worldPos.xz, fwp, 34.0, 3.2, 0.22, 97.0)));
             albedo *= lerp(float3(1, 1, 1), float3(0.945, 0.935, 0.965), b);
           }
@@ -895,9 +875,13 @@ Shader "Hiraeth/Surface"
         } else if (mode == MODE_EYE) {
           albedo = eyeball(i.bind, _Color.rgb, _Color2.rgb, _Skin.rgb);
         }
+        // the wall's own frame for weathering, pen detail and colour patches (materials.js): along it and up, world-anchored
+        float2 wqA = float2(i.worldPos.x, i.worldPos.y), wqB = float2(i.worldPos.z, i.worldPos.y);
+        float wfy = length(float2(ddx(i.worldPos.y), ddy(i.worldPos.y)));
+        float2 wfqA = float2(length(float2(ddx(i.worldPos.x), ddy(i.worldPos.x))), wfy), wfqB = float2(length(float2(ddx(i.worldPos.z), ddy(i.worldPos.z))), wfy);
         // colour across a wall (materials.js PATCH): big flat patches, each building its own; none far off
         int skip = (int)(_MSurfaceSkip + 0.5);
-        UNITY_BRANCH if (_Patch > 0.0 && i.viewDepth < 380.0 && (skip & 8) == 0)
+        UNITY_BRANCH if (WALLK && _Patch > 0.0 && i.viewDepth < 380.0 && (skip & 8) == 0)
         {
           float pk = 1.0 - smoothstep(260.0, 380.0, i.viewDepth);
           float3 dP = albedo * (wallPatch(i.worldPos, normalize(i.normal), _Patch, float3(wfqA.x, wfy, wfqB.x)) - 1.0);
@@ -907,14 +891,16 @@ Shader "Hiraeth/Surface"
         float emit = 0.0;   // lit windows at night (facade)
         int pattern = (int)(_Pattern + 0.5);
         // (the material's options are uniform over a draw: derivatives inside these branches are safe)
-        if ((skip & 1) != 0) pattern = 0;
+        if ((skip & 1) != 0 || !WALLK) pattern = 0;
         UNITY_BRANCH if (pattern == 1) patInk = facadeMarks(i.worldPos, n, normalize(i.normal), albedo, emit);
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
         // weathering (materials.js weatherInk): grime, chips, cracks, on upright faces
-        UNITY_BRANCH if (_Weather > 0.0 && abs(n.y) < 0.55 && (skip & 2) == 0)
+        UNITY_BRANCH if (WALLK && _Weather > 0.0 && abs(n.y) < 0.55 && (skip & 2) == 0)
         {
+          float2 wCell = floor(i.worldPos.xz / 9.0);
+          float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = _Weather * (0.6 + 0.8 * hash(wCell + 3.0));
           float wUp = 1.0 - smoothstep(0.35, 0.55, abs(n.y));
           float ax = abs(n.x), az = abs(n.z), wb = smoothstep(0.36, 0.64, ax / max(ax + az, 1e-4));
           float litK = smoothstep(0.02, 0.15, dot(n, _SunDir));
@@ -935,7 +921,7 @@ Shader "Hiraeth/Surface"
         }
         // pen detail at every scale (materials.js DETAIL): built seams, joints, vents, bolts; organic grain
         float dFar = _Detail.x > 1.5 ? 130.0 : 260.0;
-        UNITY_BRANCH if (_Detail.x > 0.5 && abs(n.y) < 0.75 && i.viewDepth < dFar && (skip & 4) == 0)
+        UNITY_BRANCH if (WALLK && _Detail.x > 0.5 && abs(n.y) < 0.75 && i.viewDepth < dFar && (skip & 4) == 0)
         {
           float dUp = (1.0 - smoothstep(0.55, 0.75, abs(n.y))) * (1.0 - smoothstep(dFar * 0.7, dFar, i.viewDepth));
           bool facingX = abs(n.x) > abs(n.z);
@@ -949,7 +935,11 @@ Shader "Hiraeth/Surface"
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
         if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
         // the coral-shirt traveller's drawn face (tripo-face.js, generated: TripoFace.hlsl), after his colours are display values
-        UNITY_BRANCH if (LEANK && _TripoFace > 0.5) albedo = tripoFace(albedo, i.bind, tfAA);
+        UNITY_BRANCH if (LEANK && _TripoFace > 0.5)
+        {
+          float tfAA = max(fwidth(i.bind.x) + fwidth(i.bind.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
+          albedo = tripoFace(albedo, i.bind, tfAA);
+        }
         #if defined(HIRAETH_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
           if (i.grassLook.z > 0.0)
@@ -959,13 +949,17 @@ Shader "Hiraeth/Surface"
           }
         #endif
         // a dark cap's underside: its veins drawn lighter, radiating from the stalk, as branches (materials.js FORM.veins)
-        UNITY_BRANCH if (LEANK && _Veins > 0.0 && _FormHatch > 0.0 && i.form.w > 0.5 && i.form.w < 1.5)
+        UNITY_BRANCH if (LEANK && _Veins > 0.0 && _FormHatch > 0.0)
         {
+          float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
+          if (i.form.w > 0.5 && i.form.w < 1.5)
+          {
           const float K = 162.9747;
           float r2 = max(dot(i.form.xy, i.form.xy), 1e-8);
           float fwT = (abs(i.form.x * formDx.y - i.form.y * formDx.x) + abs(i.form.x * formDy.y - i.form.y * formDy.x)) / r2 * K;
           float vein = veinLines(atan2(i.form.y, i.form.x) * K, fwT, _HatchSpacing * 2.2, 1.5, float2(sqrt(r2) * 0.5, 9.0), i.viewDepth);
           albedo += min(albedo * 1.2, 0.15) * vein * _Veins;
+          }
         }
         // a makers' chest: the star painted on, a ray of light travelling across it, a vertex colour over 1 a light (materials.js MAKERS_BOX)
         UNITY_BRANCH if (LEANK && _BoxOn > 0.5)
@@ -985,10 +979,13 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if (_Plates > 0.5 && _Grid > 0.0)
         {
           float plateTone;
-          plateInk = plateLines(gq, gfw, gw, plateTone);
+          float3 pq = i.objPos / max(_Grid, 1e-3), pfw = fwidth(pq), pw = pow(abs(normalize(on)), 6.0); pw /= (pw.x + pw.y + pw.z);
+          plateInk = plateLines(pq, pfw, pw, plateTone);
           albedo *= 1.0 + 0.09 * plateTone;
         }
+        #if defined(HIRAETH_CROWD)
         if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, i.bind);
+        #endif
         if (_Folds > 0.0) albedo = (i.fold.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
 
         float ndl = dot(n, _SunDir);
@@ -1044,8 +1041,19 @@ Shader "Hiraeth/Surface"
 
         // drawn detail (gHatch.b)
         float detail = 0.0;
-        if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
-        if (_Glyphs > 0.0) detail = max(detail, glyphs(glyphUV, glyphFw));
+        // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
+        // fine there, issue #262)
+        UNITY_BRANCH if (_Grid > 0.0 || _Glyphs > 0.0)
+        {
+          float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(normalize(on)), 6.0); gw /= (gw.x + gw.y + gw.z);
+          if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
+          if (_Glyphs > 0.0)
+          {
+            float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
+            float2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
+            detail = max(detail, glyphs(glyphUV, glyphFw));
+          }
+        }
         float2 gp = i.worldPos.xz;
         UNITY_BRANCH if (TERRAINK && mode == MODE_TERRAIN && (skip & 128) == 0) {
           float gm = max(length(ddx(gp)), length(ddy(gp)));
@@ -1075,20 +1083,30 @@ Shader "Hiraeth/Surface"
             float k = smoothstep(0.3, 0.8, bw.y) * (1.0 - smoothstep(0.14, 0.22, slope));
             if (k > 0.0) detail = max(detail, mudCracks(gp, q1, j1, q2, j2) * k);
           }
+          float2 fwp = fwidth(gp);
           if (_Ticks > 0.5 && slope < 0.35) detail = max(detail, grassTicks(gp, fwp) * 0.8);
           UNITY_BRANCH if (_SandInk > 0.5) detail = max(detail, sandScuffs(gp) * (1.0 - bw.y));
         } else if (mode == MODE_WATER) {
           detail = max(detail, _WaterOpt.x > 0.0 ? waterInk : waterLines(gp, _MTime) * 0.7);
-        } else if (mode == MODE_STRATA && abs(normalize(on).y) < 0.6) {
-          detail = max(detail, fissures(float2(faceX, i.objPos.y), fissFw) * 0.85);
-          if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
+        } else if (mode == MODE_STRATA) {
+          float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
+          float fissFw = fwidth(faceX) / 9.0;
+          if (abs(normalize(on).y) < 0.6)
+          {
+            detail = max(detail, fissures(float2(faceX, i.objPos.y), fissFw) * 0.85);
+            if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
+          }
         }
         UNITY_BRANCH if (LEANK && _Scrub > 0.0) {
-          float dashN = smoothstep(0.42, 0.6, vnoise(float2(ce1.x * 2.5, ce1.y * 9.0)));
+          float2 sc = strokeCoord(i.objPos, strokeWeights(on, mode), float2(0.766, 0.643));
+          float sfw = fwidth(sc.x);
+          float dashN = smoothstep(0.42, 0.6, vnoise(float2(sc.x * 2.5, sc.y * 9.0)));
           float dk0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
-          detail = max(detail, strokes(ce1, fw1, lerp(6.0, 3.5, dk0), lerp(0.8, 1.3, dk0)) * dashN * (0.6 + 0.4 * dk0));
+          detail = max(detail, strokes(sc, sfw, lerp(6.0, 3.5, dk0), lerp(0.8, 1.3, dk0)) * dashN * (0.6 + 0.4 * dk0));
         }
         if (_Folds > 0.0) {
+          float foldU = i.fold.x * _Folds;
+          float foldFw = fwidth(foldU);
           float colI = floor(foldU + 0.5);
           float d = abs(foldU - colI) / max(foldFw, 1e-5);
           float h1 = hash(float2(colI, 3.1)), h2 = hash(float2(colI, 8.7));
@@ -1097,10 +1115,14 @@ Shader "Hiraeth/Surface"
         }
         // the people: the suit's creases (creases.js) and the face (materials.js faceInk)
         if (_Creases > 0.0) detail = max(detail, outfitCreases(i.bind, normalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
-        if (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16)
+        if (mode == MODE_OUTFIT)
         {
-          float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
-          detail = max(detail, 2.0 * faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));   // (over 1: a pen line, darker)
+          float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
+          if (i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16)
+          {
+            float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
+            detail = max(detail, 2.0 * faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));   // (over 1: a pen line, darker)
+          }
         }
         detail = max(detail, patInk);
         detail = max(detail, metalInk);
@@ -1116,6 +1138,15 @@ Shader "Hiraeth/Surface"
           return o;
         #endif
 
+        // the strokes' coordinates and footprints, worked out here where the hatching draws them (uniform control flow)
+        float3 tw = strokeWeights(on, mode);
+        float2 ce1 = strokeCoord(i.objPos, tw, float2(0.766, 0.643));
+        float2 ce2 = strokeCoord(i.objPos, tw, float2(0.83, -0.56));
+        float fw1 = fwidth(ce1.x), fw2 = fwidth(ce2.x);
+        float2 ceY = float2(i.objPos.y, dot(i.objPos.xz, float2(0.7071, 0.7071)));
+        float fwY = fwidth(i.objPos.y);
+        float2 fwd = float2(fw1, fwidth(ce1.y));
+        float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
         // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
@@ -1143,11 +1174,20 @@ Shader "Hiraeth/Surface"
           o.hatch.rg = float2(h1, h2);
         }
         // rock in light keeps runs of strokes along its beds (materials.js strataHatch)
-        if (mode == MODE_STRATA && _Shade.w > 0.0 && L >= _Toon && i.viewDepth < 700.0 && abs(normalize(on).y) < 0.7)
+        // (strokes along the beds of rock, the strata's wavy horizontals: only strata rock reads them, worked out in its own
+        // uniform branch (its derivatives fine there), as the web compiles them under S_STRATA alone, #262)
+        UNITY_BRANCH if (mode == MODE_STRATA && _Shade.w > 0.0)
         {
+          float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
+          float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
+          float2 strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
+          float strataFw = fwidth(strataCo.x);
+          if (L >= _Toon && i.viewDepth < 700.0 && abs(normalize(on).y) < 0.7)
+          {
           float upright = 1.0 - smoothstep(0.45, 0.7, abs(normalize(on).y));
           float runs = smoothstep(0.42, 0.66, vnoise(float2(strataCo.y * 0.09, strataCo.x * 0.55)));
           o.hatch.r = max(o.hatch.r, strokes(strataCo, strataFw, hsp * 1.25, 0.85) * runs * upright * _Shade.w);
+          }
         }
         if (facePart) o.hatch.rg = 0;
         // the shade's tone (materials.js SHADE), packed over the strokes: the material's lift, the half-tone of a form
@@ -1189,7 +1229,9 @@ Shader "Hiraeth/Surface"
       #if defined(HIRAETH_PREPASS)
         struct DepthVaryings { float4 positionCS : SV_POSITION; };
         DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
-        void fragEntry(DepthVaryings i) { if (_Glass > 0.0 || _Dissolve.x > 0.0 || _Veil > 0.0) discard; }
+        // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
+        // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
+        void fragEntry(DepthVaryings i) { if (LEANK && (_Glass > 0.0 || _Dissolve.x > 0.0 || _Veil > 0.0)) discard; }
       #else
         Varyings vertEntry(Attributes v) { return vert(v); }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }

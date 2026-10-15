@@ -1138,6 +1138,25 @@ export const CHANGELOG_MEDIA = {
         { where: 'the City-Shaft’s rim', before: 11.4, after: 13.7 },
       ], note: 'The GPU spends the room it had on pixels: the dynamic resolution keeps it under ~15 ms.' },
     ] },
+    { match: 'The Unity preview on the Retroid runs smoother again', tags: ['perf', 'devices'], numbers: [
+      { title: 'The Unity preview on the Retroid at the bench’s views: frames a second', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova (Adreno 740, Vulkan), Handheld at 0.75 of 1280 × 960, 60 Hz, muted; GeckoView (the web game) the same day at the same views: 54.6, 55.5, 49.0, 36.9, 58.3, 59.4, 59.8, 59.4', rows: [
+        { where: 'the Desert’s spawn', before: 46.3, after: 52.4 },
+        { where: 'the pilgrims’ camps', before: 47.7, after: 53.5 },
+        { where: 'the City-Shaft’s start', before: 36.8, after: 41.9 },
+        { where: 'the City-Shaft, wide', before: 27.9, after: 34.6 },
+        { where: 'the City-Shaft, crowd 2', before: 48.9, after: 54.9 },
+        { where: 'the Signal Market’s gate', before: 43.3, after: 51.2 },
+        { where: 'the Signal Market, crowd 2', before: 47.6, after: 55.0 },
+        { where: 'the Signal Market, wide', before: 43.0, after: 53.3 },
+      ], source: 'the bridge’s own bench (-views -bench 6, unity-bench.json) on the device: before, the testers’ APK of main (v1.77, build 2350); after, this change built on the Mac; one sitting, the GPU at 680 MHz throughout; docs/systems/performance.md, “Unity on the Retroid: what each pixel carries”' },
+      { title: 'The GPU’s time a frame', unit: 'ms', better: 'lower', device: 'the same', rows: [
+        { where: 'the Desert’s spawn', before: 22.3, after: 19.8 },
+        { where: 'the City-Shaft’s start', before: 28.1, after: 24.9 },
+        { where: 'the City-Shaft, wide', before: 36.4, after: 29.9 },
+        { where: 'the Signal Market’s gate', before: 22.8, after: 19.0 },
+        { where: 'the Signal Market, wide', before: 23.1, after: 18.4 },
+      ], source: 'Unity’s frame timing in the same runs' },
+    ], see: 'On the Retroid, open Hiraeth (Unity) in the Signal Market or the City-Shaft: the readout at the top shows the frames a second.' },
     { match: 'Inside, the Hush-House is the makers’ sound-damping hall now', tags: ['lorn', 'temples', 'perf'], shots: [
       { name: 'future-hush-stilling', title: 'The Stilling Chamber', caption: 'Before, violet plaster walls, crystals on the bare floor; after, dark slate coffers with crisp chamfers up the drum and over the vault, violet circuits in their seams, stepped wedges under the vault, resonators hanging in slate collars round the oculus (two lit teal and violet, faint rings round them), the crystals on stepped plinths; the chest on its mound where it was', from: FUTURE342H,
         reference: { sheet: 'references/temples/future/hush-house/sheet-1.jpg', caption: 'The Hush-House as the makers’ sound-damping hall: the author’s pick (issue #342)' } },

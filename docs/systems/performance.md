@@ -2880,6 +2880,86 @@ To repeat: `gh workflow run unity-android.yml --ref <branch>`, `adb install -r` 
 -no-hatch-aa` for the old pipeline, `-pan-step 0` for the floor, `-pan-live` to watch it turn), pull the folder and
 `node scripts/bench/unity-shimmer.mjs <dir>`.
 
+### Unity on the Retroid: what each pixel carries (2026-10-15, issue #262)
+
+The third pass at the Unity build's GPU frame on the Retroid Pocket Nova (Adreno 740, Vulkan, Handheld at 0.75 of
+1280 × 960, muted, the frame readout on). Before: the testers' APK of main (v1.77, build 2350); after: this change,
+built on the Mac (`scripts/unity-android-release.sh` with `NO_UPLOAD=1`); the bridge's bench (`-views -bench 6`) in one
+sitting, the device's GPU at 680 MHz throughout (kgsl). GeckoView the same day, at the same views and scale
+(`android-worlds.mjs --modes fixed --scale 0.75`).
+
+**Where the frame goes now.** A development build's GPU recorders (`-split`) give the passes outside the G-buffer: at the
+desert's spawn (22 ms) the ink composite 3.3, the depth prepass 2.5, the shadow maps 1.1 + 0.6 a frame (the near one
+every other frame, the far one every fourth: 2.1 and 2.3 ms on the frames that draw them), the glow 0.4, SMAA 0.2; the
+rest, ~13 ms, is the G-buffer pass (a tiled GPU does its drawing at the end of the pass, so its own recorder reads 0.5).
+At a render scale of 0.375 (a quarter of the pixels) the spawn takes 13.3 ms and the City-Shaft's wide view 24.1, so about
+10 and 20 ms are fixed (the passes, the shadow maps, the prepass and the G-buffer's vertices) and 12 and 16 scale with
+the pixels; with the surfaces' fragment work gone (`-surface-debug 9`) 14.2 and 19.5 remain. The fragment work is the
+lever: 8-17 ms.
+
+**What a pixel paid for without running it.** The surfaces' code that a pixel never takes still costs it: compiled out
+(a test keyword, not kept) the same parts cost 1.2 / 4.8 / 2.1 ms (spawn / City-Shaft wide / Signal Market gate) more
+than when skipped at run time (`-surface-skip 79`), the Adreno allocating registers (and so fewer waves in flight to hide
+the shadow taps) for the heaviest path in the program. By part, compiled out: the local lights 1.3 / 2.5 / 1.4, the
+weathering and pen detail 1.3 / 2.9 / 2.0, the patterns 0.7 / 1.2 / 0.3, the colour patches 0.3 / 0.6 / 0.4.
+
+**What changed** (all the same picture: the bench's shots before and after differ only where the world moves, the
+people, the smoke, a boat, the wind's streaks and the lines' boil, as two runs of one build do):
+- **Each part's coordinates and derivatives next to it** (Surface.shader frag): the hatching's stroke coordinates and
+  footprints, the form's derivatives, the strata's strokes, the grid's and glyphs' coordinates, the folds', the face's
+  pixel and the weathering's seeds were all worked out at the top "in uniform control flow" and held through the colour,
+  the patterns, the shadow's taps and the lights. Each is now worked out where it is drawn, still in uniform control flow
+  (top level, or a branch on a material's values). 0.8 / 2.7 / 1.4 ms.
+- **The plain variant** (`HIRAETH_PLAIN`, a fragment-only keyword; BridgeRenderer.Lean): a lean material with no
+  pattern, weathering, pen detail or colour patches (the ground, the people, the props, the rocks) is drawn on a variant
+  without their code. 1.1 / 1.4 / 0.7 ms. On Android by default (`-plain` elsewhere, `-no-plain` off): it doubles the
+  G-buffer pass's fragment variants, and the Xbox's load counts its pipelines.
+- **The local lights out of view not sent** (HiraethLook.CullLightsToView, the bridge's players; `-no-light-cull`): the
+  eight nearest the traveller are chosen as before (main.js updateLights), then those whose reach (widened by 2 m and a
+  sixth of the distance: the view is a frame old there) is outside the camera's view are left out. Every pixel measured
+  its distance to each of the eight. 0 / 2.2 / 1.4 ms.
+- **The lean depth prepass without a discard** (its fragment's glass, dissolve and veil test only on the full variant,
+  which those materials take), and **the crowd's trim and the grass's look as varyings of their own variants** (seven
+  floats a vertex fewer elsewhere): 0.3-0.9 ms together.
+- Tried and left: the weathering's two walls as one call in a loop of two (2-3 ms *slower*: the Adreno's compiler does
+  worse with the real loop than with the two inlined calls), the lights' loop kept a loop (`[loop]`, no change), the
+  shadow's nine taps in a loop (within the noise, and High's path), a variant without a person's paths and metals
+  (`HIRAETH_BARE`: 0-0.5 ms, not worth its variants).
+
+**Before → after** (frames a second, the GPU's ms a frame in brackets; GeckoView's frames a second today):
+
+| place | before | after | GeckoView |
+|---|---|---|---|
+| Desert, spawn | 46.3 (22.3) | **52.4** (19.8) | 54.6 |
+| Desert, Qanat's tree | 60.2 (14.8) | 60.0 (13.9) | 54.0 |
+| Desert, the camps | 47.7 (21.7) | **53.5** (19.4) | 55.5 |
+| Desert, the dunes | 60.1 (16.3) | 60.1 (14.3) | 59.9 |
+| Desert, the cave | 60.1 (14.1) | 60.1 (13.7) | 59.7 |
+| City-Shaft, start | 36.8 (28.1) | **41.9** (24.9) | 49.0 |
+| City-Shaft, crowd | 57.2 (18.0) | **60.0** (16.0) | 53.4 |
+| City-Shaft, crowd 2 | 48.9 (22.1) | **54.9** (19.0) | 58.3 |
+| City-Shaft, wide | 27.9 (36.4) | **34.6** (29.9) | 36.9 |
+| Signal Market, start | 43.3 (22.8) | **51.2** (19.0) | 59.4 |
+| Signal Market, crowd | 60.2 (12.6) | 60.1 (11.7) | 59.9 |
+| Signal Market, crowd 2 | 47.6 (21.4) | **55.0** (17.9) | 59.8 |
+| Signal Market, wide | 43.0 (23.1) | **53.3** (18.4) | 59.4 |
+
+**The gap to GeckoView that is left** (2-3 fps in the desert and the City-Shaft's wide view, 6-8 at the City-Shaft's
+start and in the Signal Market): the GPU is still the frame wherever Unity is behind (18-25 ms; GeckoView's Adreno is
+75-94 % busy at 615-680 MHz for its 16.7 ms frames, so 12-16 ms of work). In numbers, of the Signal Market gate's 19 ms:
+- **the depth prepass, ~2 ms the web does not draw**: off, the desert gains 0.7-1 ms but the City-Shaft's wide view loses
+  6 (42 against 36 ms: the overdraw it saves), so it stays on;
+- **the code still compiled in that a wall's pixel does not run**: the walls (most of the City-Shaft's and the Signal
+  Market's pixels) keep the lean variant with every wall mark and the lights' loop, 3-7 ms by the parts' compiled-out costs
+  above. The web compiles a program per set of features (materials.js defines); here that would be a variant per pattern,
+  weathering, pen detail and patch, sixteen times the G-buffer's fragment programs (build time, and the pipelines each
+  load makes: the Xbox's first-draw stall), not done;
+- **the shadow maps, 1.7 ms a frame** (the web draws the same maps on the same schedule);
+- the composite (3.3 ms), the glow and SMAA are the web's own passes, at the same size.
+
+To repeat: `NO_UPLOAD=1 scripts/unity-android-release.sh`, `adb install -r -d` the APK, then each world's bench as in
+"Unity on the Retroid" above; `-split` needs a development build (`-development` on BridgeBuild.AndroidRelease).
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

@@ -40,6 +40,15 @@ namespace Hiraeth
         public Vector3 WindVector => new Vector3(-windDir.x, 0, windDir.y) * wind * 4f;
         readonly List<Vector4> localLights = new();
         readonly Vector4[] lightBuf = new Vector4[8];
+        /// <summary>
+        /// Of the eight local lights nearest the subject, only those whose reach touches the main camera's view go to the
+        /// shader (the Unity bridge's players: BridgeRunner). A light wholly off screen lights no pixel there, but every
+        /// pixel of every surface measured its distance to it: 1-2 ms of the Retroid's GPU in the villages and the
+        /// City-Shaft (issue #262). The same eight are chosen first (as main.js updateLights does), so what is lit is the
+        /// same; the view is a frame old here, so each reach is widened by 2 m and a sixth of its distance.
+        /// </summary>
+        public static bool CullLightsToView;
+        readonly Plane[] lightPlanes = new Plane[6];
 
         public void Load(Dictionary<string, object> lookData, List<object> lights)
         {
@@ -190,11 +199,16 @@ namespace Hiraeth
             // the local lights nearest the subject
             Vector3 at = subject ? subject.position : Camera.main ? Camera.main.transform.position : Vector3.zero;
             localLights.Sort((x, y) => ((Vector3)x - at).sqrMagnitude.CompareTo(((Vector3)y - at).sqrMagnitude));
-            for (int k = 0; k < 8; k++)
+            var view = CullLightsToView ? Camera.main : null;
+            if (view) GeometryUtility.CalculateFrustumPlanes(view, lightPlanes);
+            int lit = 0;
+            for (int k = 0; k < 8 && k < localLights.Count; k++)
             {
-                if (k < localLights.Count) { var l = localLights[k]; lightBuf[k] = new Vector4(-l.x, l.y, l.z, l.w); }
-                else lightBuf[k] = new Vector4(0, -1e5f, 0, 0);
+                var l = localLights[k];
+                if (view && !InView((Vector3)l, l.w + 2f + Vector3.Distance(view.transform.position, l) / 6f)) continue;
+                lightBuf[lit++] = new Vector4(-l.x, l.y, l.z, l.w);
             }
+            for (; lit < 8; lit++) lightBuf[lit] = new Vector4(0, -1e5f, 0, 0);
             Shader.SetGlobalVectorArray("_MLights", lightBuf);
             if (subject) { var s = Three(subject.position); Shader.SetGlobalVector("_Brush", new Vector4(s.x, s.y, s.z, 0)); }
         }
@@ -216,6 +230,11 @@ namespace Hiraeth
             return lineNoise;
         }
         static Texture2D lineNoise;
+        bool InView(Vector3 c, float r)
+        {
+            for (int i = 0; i < 6; i++) if (lightPlanes[i].GetDistanceToPoint(c) < -r) return false;
+            return true;
+        }
         static void Keyword(string k, bool on) { if (Shader.IsKeywordEnabled(k) != on) { if (on) Shader.EnableKeyword(k); else Shader.DisableKeyword(k); } }
 
         public static Vector3 Three(Vector3 v) => new Vector3(-v.x, v.y, v.z);

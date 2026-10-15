@@ -469,6 +469,12 @@ namespace Hiraeth.Bridge
             // water's: the Linux player's and the Xbox's (their GPU's time), -lean elsewhere, -no-lean off)
             if (BridgeArgs.Flag("-lean")) BridgeRenderer.lean = true;
             if (BridgeArgs.Flag("-no-lean")) BridgeRenderer.lean = false;
+            // (and the plain lean variant for the materials with none of a wall's marks, on Android (issue #262), -plain elsewhere,
+            // -no-plain off)
+            if (BridgeArgs.Flag("-plain")) BridgeRenderer.plain = true;
+            if (BridgeArgs.Flag("-no-plain")) BridgeRenderer.plain = false;
+            // the local lights off screen not sent to the shader (HiraethLook.CullLightsToView, issue #262); -no-light-cull as before
+            HiraethLook.CullLightsToView = !BridgeArgs.Flag("-no-light-cull");
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
             // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
 #if UNITY_WSA && !UNITY_EDITOR
