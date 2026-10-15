@@ -883,6 +883,43 @@ frame (the game's traveller's hands; not in node's), before and after.
 **Worlds tried and left out**: the City-Shaft. From its landing every way the script runs into a railing or a house
 within the sprint, and he climbs it.
 
+**Issue #47 on B3** (2026-10-15). The QC moved to the B3 traveller on 14 October, and four runs green on v1 were not on
+him: every pop a calf, 14-19 rad/s at a lift-off or touchdown, and 38-45 at the gaits' stop. Frame by frame:
+
+- **The knee reaching straight** at a walk's and a ramp's lift-off: B3's leg reached straight within v1's 2 % soft zone;
+  `FEET.soft` 0.02 → 0.035 (0.03 and 0.04-0.05 tried: each green on a different set; lower release rates were worse),
+  narrowed back to 0.02 standing (`FEET.softStand`, eased in from 0.3 to 1 m/s: wider, a held ball crept 5 mm at idle).
+- **Planted and let go in one frame**: stopping, a foot half eased off its old hold (w 0.56) touched down out of the
+  leg's reach and was let go again in the same frame: thrown onto its whole hold for that frame and off again, 38-45
+  rad/s. It now goes on easing off from where it was (`FEET.relockKeep`: on the out-of-reach release only; a fully free
+  foot keeps the old behaviour, which the ramp's stop needs).
+- **An early touchdown at a lift-off**: a foot "coming down" within 2.5 cm of the ground plants early; with a stale
+  `aloft` at a start move's first lift-off it planted for one frame as its contact fell (19 rad/s): only while the
+  contact isn't falling.
+- **Standing flickering off for a frame** as a pivot ended (its gait passing 0.25 on its way down): the settling step
+  under way was cut short and set down again the next frame (25 rad/s). Standing stays standing while the gait settles,
+  to `restGait + restKeep` (0.05); not as it rises (setting off from a pivot, it held a foot 2-3 cm too long in the
+  Arena).
+- **A stepping foot's turn** kept continuous from frame to frame (a half turn's place swinging past the back flipped
+  `yawBetween` from +π to -π: setting off the other way's 9.8 cm jolt → 3.9).
+
+Node, the default way (`diff.mjs`, before on 0006cfe7): red runs 11 → 9 of 16, limits failed 39 → 29, pops 3.9 → 2.7 a
+minute, jolts 5.0 → 4.4, slide p95 5.3 → 4.9 cm, boundary 4.0 → 3.5 cm. Green now: the slow walk (pops 5 → 0), up the
+ramp (6 → 3). Every gait: pops 7 → 2, boundary 7.6 → 1.9 cm. The standing pivots: pops 3 → 0, worst jolt 5.2 → 0,
+boundary 3.7 → 1.6, slide p95 6.0 → 4.5 (red only for crossed feet, 9 %). Matching: limits failed 75 → 74, pops 6.8 →
+6.3. `tests/motion-qc.test.js`: the B3 test is no longer todo, with these limits.
+
+In the game (Mac, muted headless Chrome, Medium, the desert and the Arena, the default way): within the runs' noise,
+pops 9, 11 → 9-10, 5-6, jolts 19, 12 → 13-16, 11-15 a minute; the walk's start pops (15-19 rad/s) gone; the pivot
+into a jog at 90° (`jog2`, a calf 25-34 rad/s) and the sprint reversed's forearm flip (160-250 rad/s, the game's hands)
+as before.
+
+**Left red** (node, the todo test): the stairs (8 pops, 18 jolts a minute, a 12.6 cm jolt, a 10.1 cm boundary, the
+stop never settles) and at a run (9 pops, a 30.6 cm jolt, 4.7 cm sink); the sprint's steps (slide p95 9.7 cm in every
+gait, max 31.4; 11.3 in starts and stops; 9.4 at the sprint's 180° pivot, max 20.9, 13 jolts a minute); walk → run →
+180° → stop (slide p95 10.1, 8 jolts a minute); the standing pivots' crossed feet (9 %, mid-turn); setting off the other
+way (slide p95 10.3, a half turn's step round flicking the foot 83 rad/s); down the ramp's 4.6 cm boundary.
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where
@@ -938,8 +975,37 @@ calves. `loopInPlace` (`src/motion-match.js`, as the moves load) takes a loop wi
 the pelvis's drift from first frame to last evenly over the cycle about its middle, and turns each bone's last frame
 back onto its first the same way. `tests/strafe.test.js`: every shipped loop closes and stays on the spot; locked on,
 left and right, the hips move at most 10 cm against the body in a frame (was 121.6, now 4.5), no joint jolts 20 cm
-(was 66, now 8), the facing turns smoothly. Left: the feet's holds at the strafe's 3.7-times cadence still pop the
-calves (~45 a minute in Node, ~100 in the game, as before the fix), the clips being slow walking strafes played at a jog.
+(was 66, now 8), the facing turns smoothly. Left after #360: the feet's holds at the strafe's 3.7-times cadence still popped the calves (~45 a minute in Node, ~100 in
+the game); fixed in v1.78, below.
+
+### Locked on, sideways: the side-run (v1.78, issue #47)
+
+Frame by frame (node and the Mother's Hall), the pack's two "strafes" step **forward and back**, not sideways: with the
+body facing the foe, the planted foot swept 46 cm along the facing while the body went 3.8 m/s across it. Every held
+foot was dragged sideways off its hold (8-9 cm) and let go at full stretch, at 3.7 times the clip's cadence. Sideways
+(`left` / `right`) the strafe clip is no longer played: the loops' own jog or run plays under him, and the drawn body
+is turned the way he goes (`Player.sideRunTurn`, on the object's facing, so the animator, the feet and the loops all
+see legs running forward), by the angle from the facing to the velocity (up to `LOCK_MOVE.sideRun`, 1.6 rad), times the
+side's weight, eased as a critically damped spring (`yawK` 20/s: following the weight, a change of side turned the hips
+0.4 rad a frame over both held feet). The back is then turned round again over spine_01..03 (`LOCK_MOVE.twist`, 0.3 /
+0.35 / 0.35) after the hands are posed, so the chest, the arms and the head face the foe (the hands posed after the
+twist kept the legs' way and the forearm flipped 180° in a frame). The travel angle is read only while the velocity is
+on the playing side's side (reversing, it swung through the facing in a frame as the old side faded). feet.js gets the
+legs' way as `fwd`. The walk back keeps its clip, played at most `rateMax` (2.4) times its pace with the rest in a
+longer step (`strafeRate`; feet.js `o.reach` scales the feet's reach along the way he goes, at most `reachMax`), and
+the feet count a step played over the loops as walking (`o.gait` at least its weight: its clip has no path, so the gait
+share fell to nothing and the feet held on as if standing).
+
+| strafing | pops | jolts | held (cm) | steps' slide p50 / p95 (cm) |
+|---|---|---|---|---|
+| the game, Mother's Hall, 16.9 s | 101 → 2 | 99 → 2 | 8.7 → 0.8 | 18.7 → 0.5 / 55.6 → 11.1 |
+| node, left and right, 8 s | 41 → 3 | 46 → 1 | 7.9 → 0.5 | 18.9 → 0.5 / 58.0 → 3.6 |
+| node, the walk back, 6 s | 31 → 9 | 37 → 10 | 9.0 → 1.6 | 17.4 → 15.6 / 47.8 → 60.6 |
+
+`tests/strafe.test.js`: the side-run's pops (≤ 5), jolts, held foot (< 2 cm), median slide (< 3 cm), the hips turned
+and the chest within 25° of the foe; `strafeRate`; the bone-jump test now reads the drawn skeleton (the animator's calf
+there is the run loop's own push-off, 0.63 rad in a frame, as when running anywhere). **Left**: the walk back still
+slides (16 cm at the median: the clip's feet sweep 3.3 m/s at most), a todo test.
 
 ## Combat transitions (v0.89)
 

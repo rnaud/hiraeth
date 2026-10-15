@@ -92,7 +92,7 @@ test('the traveller on the course: the runs green today stay green (the default:
   }
   // the worst before: the walk's knee and foot pops at every step, and the pivot's 20 cm jolt
   const g = (await runScenario(COURSE['gaits: walk → jog → sprint → jog → walk → stop'], 'moves')).r.measures;
-  // (its pops, 3 a minute at most on v1, 7 on B3: the todo test below)
+  // (its pops, 3 a minute at most on v1, 7 on B3 before issue #47's knee: the B3 test below)
   assert.ok(g.joltsPerMin <= 9, `every gait: jolts ${g.joltsPerMin}/min (13 before the sprint was looked at)`);
   const p = (await pivotsStanding()).r.measures;
   assert.ok(p.joltMax < 0.1, `pivots: the worst jolt ${(p.joltMax * 100).toFixed(1)} cm (20 before)`);
@@ -104,27 +104,49 @@ test('the traveller on the course: the runs green today stay green (the default:
   assert.ok(st.joltMax < 0.16 && st.popsPerMin <= 10, `stairs: the worst jolt ${(st.joltMax * 100).toFixed(1)} cm (18 before), pops ${st.popsPerMin}/min (18, then 12 before a foot rose ahead of a step up)`);
 });
 
-// (todo: on the B3 body, the game's since 2026-10-13: the runs above were measured on the coral-shirt v1 until 2026-10-14,
-// when the QC moved to him (scripts/motion-qc/run.mjs body). Two that were green on v1 are not on him yet: the slow walk
-// pops 5 a minute, up the ramp 6 (the limit 3), every gait 7 (3), and the standing pivots' worst jolt is 5.2 cm (5).
-// Every pop is a calf (his knee), 14-19 rad/s against 14 at a step's lift-off or touchdown, and one of 45 at the gaits'
-// stop: the knee straightened at the leg's reach, issue #47's fault on v1's legs, now on B3's.)
-test('on B3, the slow walk, the ramp, every gait and the standing pivots as they were on v1', { timeout: 120000, todo: 'B3: pops in the slow walk (5/min), the ramp (6), every gait (7); the pivots\' jolt 5.2 cm' }, async () => {
+// (on the B3 body, the game's since 2026-10-13: the runs above were measured on the coral-shirt v1 until 2026-10-14, when
+// the QC moved to him (scripts/motion-qc/run.mjs body). Four that were green on v1 were not on him: the slow walk popped 5
+// a minute, up the ramp 6 (the limit 3), every gait 7, and the standing pivots' worst jolt was 5.2 cm. Every pop a calf
+// (his knee), 14-19 rad/s at a step's lift-off or touchdown, and one of 45 at the gaits' stop. Issue #47, 2026-10-15: the
+// soft IK's zone 2 -> 3.5 % of the leg (FEET.soft: B3's knee reached straight within v1's 2 %); a foot planted and let go
+// in the same frame (out of reach as it touched down, a stop) goes on easing off its old hold instead of thrown back onto
+// it for that frame (FEET.relockKeep, the stop's 38-45 rad/s); a foot only plants early on its way down, not as its
+// contact falls at a lift-off (the start's 19 rad/s); standing stays standing till the gait is 0.05 over FEET.restGait
+// (FEET.restKeep: a pivot's settling step was cut short for one frame as its gait passed 0.25, set down the next, 25 rad/s).)
+test('on B3, the slow walk, the ramp, every gait and the standing pivots as they were on v1 (issue #47)', { timeout: 120000 }, async () => {
   const g = (await runScenario(COURSE['gaits: walk → jog → sprint → jog → walk → stop'], 'moves')).r.measures;
-  assert.ok(g.popsPerMin <= 3, `every gait: pops ${g.popsPerMin}/min (34, then 14 before the sprint was looked at, 10 before its push-off, issue #47)`);
+  assert.ok(g.popsPerMin <= 3, `every gait: pops ${g.popsPerMin}/min (7 before issue #47's knee on B3; 34, then 14 before the sprint was looked at, 10 before its push-off)`);
+  assert.ok(g.boundaryMax < 0.03, `every gait: the worst boundary ${(g.boundaryMax * 100).toFixed(1)} cm (7.6 before the stop's foot was eased off its hold)`);
   // standing pivots: the held foot turned on its ball at once, a settling step cut short dropped 6 cm, the facing spun up in a frame
   const p = (await pivotsStanding()).r.measures;
-  assert.ok(p.popsPerMin <= LIMITS.popsPerMin && p.joltMax < 0.05, `pivots standing: pops ${p.popsPerMin}/min (5 before), the worst jolt ${(p.joltMax * 100).toFixed(1)} cm (6.2 before)`);
+  assert.ok(p.popsPerMin <= LIMITS.popsPerMin && p.joltMax < 0.03 && p.boundaryMax < LIMITS.boundary, `pivots standing: pops ${p.popsPerMin}/min (3 before), the worst jolt ${(p.joltMax * 100).toFixed(1)} cm (5.2 before), boundary ${(p.boundaryMax * 100).toFixed(1)} cm (3.7)`);
+  assert.ok(p.slideP95 < LIMITS.slideP95 && p.held < 0.01, `pivots standing: slide p95 ${(p.slideP95 * 100).toFixed(1)} cm (6.0 before), held ${(p.held * 100).toFixed(1)} cm (1.3)`);
 
   const { r } = await runScenario(COURSE['slow walk (half stick), stop'], 'moves');
-  assert.ok(r.green, `slow walk (half stick), stop: green (${r.fails.join(', ')}; slide p95 ${(r.measures.slideP95 * 100).toFixed(1)} cm, pops ${r.measures.popsPerMin}/min, jolts ${r.measures.joltsPerMin}/min)`);
+  assert.ok(r.green, `slow walk (half stick), stop: green (${r.fails.join(', ')}; slide p95 ${(r.measures.slideP95 * 100).toFixed(1)} cm, pops ${r.measures.popsPerMin}/min (5 before), jolts ${r.measures.joltsPerMin}/min)`);
   // up the ramp a landing foot was planted from the clip's height, under the floor it rode: it dropped 10-13 cm in a frame
-  const ramp = (await runScenario(COURSE['up the ramp, stand'], 'moves')).r.measures;
-  assert.ok(ramp.popsPerMin <= LIMITS.popsPerMin && ramp.joltsPerMin <= LIMITS.joltsPerMin, `up the ramp: pops ${ramp.popsPerMin}/min, jolts ${ramp.joltsPerMin}/min (9 and 9 before)`);
+  const ramp = await runScenario(COURSE['up the ramp, stand'], 'moves');
+  assert.ok(ramp.r.green, `up the ramp: green (${ramp.r.fails.join(', ')}; pops ${ramp.r.measures.popsPerMin}/min (6 before on B3, 9 on v1), jolts ${ramp.r.measures.joltsPerMin}/min)`);
+});
+
+// (todo, what is left red on B3 after issue #47's round, 2026-10-15; node, the default way, the numbers now:
+//  - the stairs (up, stand, down): 8 pops and 18 jolts a minute, a 12.6 cm jolt, a 10.1 cm boundary, the stop never settles;
+//    at a run 9 pops, 13 jolts, a 30.6 cm jolt and a 4.7 cm sink (a swinging foot rising a riser, the legs folded climbing fast)
+//  - the sprint's steps: slide p95 9.7 cm in every gait (slide max 31.4), 11.3 in starts and stops (max 17.5), 9.4 in the
+//    pivots at a sprint (max 20.9, 13 jolts a minute): a foot held two frames at 8 m/s and let go early
+//  - walk → run → 180° turn → stop: slide p95 10.1 cm, 8 jolts a minute, a 4.3 cm boundary
+//  - the standing pivots' crossed feet, 9 % of the frames (the limit 3): mid-turn, before the step round
+//  - setting off the other way: slide p95 10.3 cm, 5 pops a minute (a half turn's step round, the foot 83 rad/s); down the
+//    ramp a 4.6 cm boundary)
+test('the reds left on B3: the stairs, the sprint\'s steps, the 180° turns, the pivots\' crossed feet', { timeout: 120000, todo: 'issue #47: stairs 8 pops/18 jolts a minute, the sprint slide p95 9.7 cm, crossed feet 9 %' }, async () => {
+  for (const name of ['stairs up, stand, down', 'stairs at a run', 'gaits: walk → jog → sprint → jog → walk → stop', 'pivots standing: 90° each way, 180°', 'walk → run → 180° turn → stop']) {
+    const { r } = await runScenario(COURSE[name], 'moves');
+    assert.ok(r.green, `${name}: green (${r.fails.join(', ')})`);
+  }
 });
 
 test('starts, stops and turns at the game\'s speeds: the ramp\'s touchdowns, the pivots, a sprint reversed (issue #47)', { timeout: 120000 }, async () => {
-  // (standing pivots, their pops and worst jolt: on B3 5.2 cm of 5, the todo test above)
+  // (standing pivots, their pops and worst jolt: the B3 test above)
   // a sprint reversed: a foot swinging 15 cm up was planted in the air for the one frame the pivot was on
   const v = (await runScenario(COURSE['pivot 180° at a jog, and at a sprint'], 'moves')).r;
   const rev = Math.max(0, ...v.events.boundaries.filter((b) => b.tag === 'pivot-sprint').map((b) => b.size));

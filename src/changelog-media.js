@@ -959,7 +959,53 @@ const benchShot = (w, title, caption) => ({ name: `bench-${w}`, title, caption, 
 const LOAD364_RETROID = 'Retroid Pocket Nova, GeckoView test app (com.rnaud.hiraeth.gecko), Handheld preset at 0.75, muted, the build served from the Mac; navigation to the first frame (scripts/bench/android-worlds.mjs, each world in the app started afresh, one load a world); main at 46a9c59 against the same tree with the change; 15 October';
 const LOAD364_MAC = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, High, 1280 × 720, the production build served statically (scripts/load-breakdown.mjs --runs 3, the median), a quiet machine; main at 46a9c59 against the same tree with the change; 15 October';
 const LOAD364_SOURCE = 'issue #364 scratchpad loading: retroid-head / retroid-fix (android-worlds.mjs), q-head / q-fix (load-breakdown.mjs); the programs are the links of each load (load-breakdown.mjs’s WebGL probe)';
+/** (v1.78, issue #47: the lock-on's steps and the knees) */
+const STRAFE47_GAME = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 6491; the Mother’s Hall (Lorn’s Hush-House), the Mother Snapper awake and locked on, the traveller strafing at full stick right and left in turn, 1.6 s each, four times, then 4 s right (16.9 s strafing), every frame recorded (scripts/motion-qc/sample.mjs) at a fixed 1/60 s; main at 0006cfe7 against the same tree with the change; 15 October';
+const STRAFE47_NODE = 'node, the gait harness’s flat course, the game’s B3 traveller locked on to a point 10 m ahead, the stick right and left in turn, 2 s each, twice (8 s strafing), or back and back-right, 3 s each, at 60 frames a second; main at 0006cfe7 against the same tree with the change; 15 October';
+const KNEES47 = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course); main at 0006cfe7 against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
+const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/after.json (tools/game-strafe.mjs, tools/game-analyse.mjs), tools/strafe-node.mjs';
 export const CHANGELOG_MEDIA = {
+  '1.78': [
+    { match: 'Locked on to a foe, moving left or right he now runs sideways', tags: ['characters'], shots: [
+      { name: 'strafe-run', title: 'Strafing right round the Mother Snapper', caption: 'Locked on, 1.3 s into a long run to the right: before, his body square to the foe and his legs stepping forward and back on the spot while he slid sideways; after, his hips and legs turned the way he runs, his back turned round so his chest and head still face her', from: STRAFE47_GAME },
+    ], numbers: [
+      { title: 'Strafing round the Mother Snapper, in the game (16.9 s)', unit: 'count', better: 'lower', device: STRAFE47_GAME, source: STRAFE47_SOURCE, rows: [
+        { where: 'pops (a bone flicking in a frame, mostly the calves)', before: 101, after: 2 },
+        { where: 'jolts (a joint 3 cm or more off its path in a frame)', before: 99, after: 2 },
+        { where: 'a held foot dragged over its hold (cm, the worst)', before: 8.7, after: 0.8 },
+        { where: 'the steps sliding (cm, the median)', before: 18.7, after: 0.5 },
+        { where: 'the steps sliding (cm, 95 %)', before: 55.6, after: 11.1 },
+      ] },
+      { title: 'Strafing left and right, in node (8 s)', unit: 'count', better: 'lower', device: STRAFE47_NODE, source: STRAFE47_SOURCE, rows: [
+        { where: 'pops', before: 41, after: 3 },
+        { where: 'jolts', before: 46, after: 1 },
+        { where: 'a held foot over its hold (cm)', before: 7.9, after: 0.5 },
+        { where: 'the steps sliding (cm, the median)', before: 18.9, after: 0.5 },
+      ] },
+    ], see: 'Lock on to any foe or guardian (R3 / Tab) and hold the stick left or right: he runs round it sideways, his hips turned the way he goes and his head on the foe, his feet planted. Reverse: his hips come round through the front.' },
+    { match: 'Locked on, stepping back flicks his knees far less', tags: ['characters'], numbers: [
+      { title: 'Walking back and back-right, locked on, in node (6 s)', unit: 'count', better: 'lower', device: STRAFE47_NODE, source: STRAFE47_SOURCE, rows: [
+        { where: 'pops', before: 31, after: 9 },
+        { where: 'jolts', before: 37, after: 10 },
+        { where: 'a held foot over its hold (cm)', before: 9.0, after: 1.6 },
+        { where: 'the steps sliding (cm, the median)', before: 17.4, after: 15.6 },
+      ], note: 'The walk back is still the pack’s slow walk, played at most 2.4 times its pace with longer steps: its feet still slide (issue #47).' },
+    ], see: 'Lock on and pull the stick back: he backs off with longer, slower steps.' },
+    { match: 'His knees no longer flick straight', tags: ['characters'], numbers: [
+      { title: 'Pops a minute (a bone flicking in a frame) in the motion QC', unit: '/min', better: 'lower', device: KNEES47, rows: [
+        { where: 'a slow walk (half stick) and a stop', before: 5, after: 0 },
+        { where: 'up the 12° ramp', before: 6, after: 3 },
+        { where: 'every gait: walk, jog, sprint, jog, walk, stop', before: 7, after: 2 },
+        { where: 'turning on the spot by 90° and 180°', before: 3, after: 0 },
+        { where: 'starts and stops at a walk, a jog and a run', before: 4, after: 3 },
+        { where: 'the mean of the 16 runs', before: 3.9, after: 2.7 },
+      ] },
+      { title: 'The worst jolt at a blend (cm)', unit: 'cm', better: 'lower', device: KNEES47, rows: [
+        { where: 'every gait', before: 7.6, after: 1.9 },
+        { where: 'turning on the spot', before: 3.7, after: 1.6 },
+      ] },
+    ], see: 'Walk off slowly with half the stick, or stop after a jog, or tap the stick sideways while standing: the knee bends and straightens smoothly instead of snapping straight for a frame.' },
+  ],
   '1.77': [
     { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [
       benchShot('desert', 'The Desert', 'On the dunes over Qanat: before, standing at the sandstone slab; after, sat on it, the town, its tree and the oasis below'),

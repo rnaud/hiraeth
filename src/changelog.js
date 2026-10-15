@@ -8,6 +8,16 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.78', date: '2026-10-15', items: [
+    // the lock-on's side-run (issue #47 after #360): src/player.js LOCK_MOVE sideRun / yawK / twist, updateStrafe,
+    // sideRunTurn, sideRunTwist (the pack's strafes stepped forward and back); tests/strafe.test.js
+    'Locked on to a foe, moving left or right he now runs sideways: his hips and legs turn the way he goes while his chest and head stay on the foe, and his feet stay where they land. He used to step on the spot at a frantic pace and slide across the floor, his knees and feet flicking several times a second.',
+    // the walk back: src/player.js strafeRate (LOCK_MOVE rateMax, reachMax), feet.js o.reach; the feet's gait share under a step
+    'Locked on, stepping back flicks his knees far less: his steps are longer instead of three and a half times too quick, and his feet no longer drag off where they land.',
+    // the knees (issue #47): src/feet.js FEET.soft 0.02 -> 0.035, relockKeep, restKeep, the early touchdown only coming
+    // down, a stepping foot's turn kept continuous; tests/motion-qc.test.js (the B3 test, no longer todo)
+    'His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.',
+  ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in
     // docs/design/temple-redesign.md, scripts/temple-design/rules.mjs + record.mjs; tests/temple-rules.test.js, tests/temples.test.js

@@ -163,7 +163,12 @@ export function faceStep(p, step, dt, was = 0) {
 }
 
 export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe_1', speed: 1.14 }, right: { clip: 'mixamo_ss_strafe_2', speed: 1.01 }, back: { clip: 'mixamo_ss_walk_2', speed: 1.08 },
-  in: 10, out: 10, swap: 18, keep: 0.55, side: 1.0 };
+  in: 10, out: 10, swap: 18, keep: 0.55, side: 1.0,
+  // (issue #47) the walk back played at most rateMax times its own pace, the rest in a longer step (at most reachMax);
+  // sideways the loops' run with the hips and legs turned up to sideRun rad the way he goes (easing round at yawK/s) and
+  // the back turned round again over `twist`, the chest to the foe
+  rateMax: 2.4, reachMax: 1.9, sideRun: 1.6, yawK: 20,
+  twist: [['spine_01', 0.3], ['spine_02', 0.35], ['spine_03', 0.35]] };
 /**
  * Which captured step a locked-on move wants (pure: tests): 'left' / 'right' / 'back' / null (forward: the loops), from
  * the speed along the facing `vf` and to the right `vr` (m/s). The side `was` playing is kept until the move is clearly
@@ -175,6 +180,18 @@ export function strafeSide(vf, vr, was = null, L = LOCK_MOVE) {
   if (vf < -0.3) return 'back';
   if ((was === 'left' || was === 'right') && Math.abs(vr) > 0.3 && Math.abs(vr) > Math.abs(vf) * L.keep) return was;
   return null;
+}
+/**
+ * How a locked-on step keeps up with the body at `hs` m/s (pure: tests): the clip's `speed` (m/s at its own rate) played
+ * at most LOCK_MOVE.rateMax times as fast, the rest in a longer step (`reach`, the feet's reach along the way, at most
+ * LOCK_MOVE.reachMax). (The pack's strafes are slow walking steps, ~1.1 m/s: played at the lock's 4.2 m/s they ran 3.7
+ * times their own cadence, 7 steps a second, and the feet's holds and lift-offs at that rate popped the calves.)
+ */
+export function strafeRate(hs, speed, L = LOCK_MOVE) {
+  const want = hs / speed;
+  if (!(L.rateMax > 0) || want <= L.rateMax) return { rate: want, reach: 1 };
+  const reach = Math.min(want / L.rateMax, L.reachMax);
+  return { rate: want / reach, reach };
 }
 /**
  * One frame of the step's weight (pure: tests): S { w, side }, the side wanted (or null). A different side wanted while one
@@ -419,6 +436,7 @@ export function idleMotion(t, calm = 0, moveW = 0) {
   return { w, breath, look, nod };
 }
 const _lk1 = new THREE.Vector3();
+const _sideQ = new THREE.Quaternion(), _sideQ2 = new THREE.Quaternion(), _sideQ3 = new THREE.Quaternion();
 const _g1 = new THREE.Vector3(), _g2 = new THREE.Vector3(), _g3 = new THREE.Vector3(), _g4 = new THREE.Vector3(), _g5 = new THREE.Vector3(), _g6 = new THREE.Vector3();
 const _mf = new THREE.Vector3(), _ml = new THREE.Vector3();   // (the matcher's frame: matchInput)
 const LEG_A = 0.49, LEG_B = 0.47;   // thigh, shin+foot
@@ -1063,11 +1081,57 @@ export class Player {
       want = strafeSide(this.vel.dot(F), this.vel.dot(Rt), S.side);
     }
     const st = strafeStep(S, want, dt);
-    if (!st) return;
+    S.reach = null;
+    // (sideways: the loops' own run, the hips and legs turned the way he goes and the back turned round to the foe: the
+    // pack's strafes step forward and back, not sideways, and played at the lock's pace their held feet were dragged across)
+    const side = LOCK_MOVE.sideRun > 0 && st && st !== 'back';
+    let yaw = 0;
+    if (side) {
+      const F = this.frame.dir(this.heading, _g1), U = this.frame.up;
+      // (the way he goes, while it is still the side playing: reversing, it swung round through the facing in a frame as the
+      // old side faded, the feet flicking 140 rad/s)
+      const vr = this.vel.dot(_g3.crossVectors(F, U));
+      if (hs > 0.5 && (vr > 0) === (st === 'right')) S.toward = Math.atan2(_g2.crossVectors(F, this.vel).dot(U), this.vel.dot(F));
+      yaw = THREE.MathUtils.clamp(S.toward ?? 0, -LOCK_MOVE.sideRun, LOCK_MOVE.sideRun) * THREE.MathUtils.smoothstep(S.w, 0, 1);
+    }
+    // (the hips come round as a critically damped spring: following the side's weight, a change of side turned them
+    // 0.4 rad a frame over both held feet, the calves flicking 30 rad/s)
+    {
+      const k = LOCK_MOVE.yawK, e = Math.exp(-k * dt), x = (S.yaw ?? 0) - yaw, j = (S.yawV ?? 0) + x * k;
+      S.yaw = yaw + e * (x + j * dt); S.yawV = e * ((S.yawV ?? 0) - j * k * dt);
+      if (!side && Math.abs(S.yaw) < 1e-3 && Math.abs(S.yawV) < 1e-2) S.yaw = S.yawV = 0;
+    }
+    if (!st || side) return;
     const M = LOCK_MOVE[st], clip = A.moveClip?.(M.clip);
     if (!clip) return;
-    S.t = (S.t + dt * hs / M.speed) % clip.duration;
+    const { rate, reach } = strafeRate(hs, M.speed);
+    S.t = (S.t + dt * rate) % clip.duration;
     A.play(M.clip, S.t, S.w, { full: true });
+    // (the rest of the speed in the length of the step: the feet reach that much further along the way he goes)
+    if (reach > 1.001) {
+      const U = this.frame.up, way = (S.way ??= new THREE.Vector3()).copy(this.vel).addScaledVector(U, -this.vel.dot(U));
+      if (way.lengthSq() > 1e-6) S.reach = { dir: way.normalize(), k: 1 + (reach - 1) * S.w };
+    }
+  }
+
+  /** The drawn body turned the way a side-run goes (LOCK_MOVE.sideRun): `q` the facing, turned about up by the strafe's yaw. */
+  sideRunTurn(q) {
+    const y = this._strafe?.yaw;
+    if (y) q.premultiply(_sideQ.setFromAxisAngle(this.frame.up, y));
+  }
+
+  /** And the back turned round again (spine_01..03, their shares of it), so the chest and the head face the foe. */
+  sideRunTwist(H) {
+    const y = this._strafe?.yaw;
+    if (!y || !H?.b) return;
+    const U = this.frame.up;
+    for (const [name, share] of LOCK_MOVE.twist) {
+      const bone = H.b[name];
+      if (!bone?.parent) continue;
+      const wq = bone.getWorldQuaternion(_sideQ2).premultiply(_sideQ.setFromAxisAngle(U, -y * share));
+      bone.quaternion.copy(bone.parent.getWorldQuaternion(_sideQ3).invert().multiply(wq));
+      bone.updateMatrixWorld(true);
+    }
   }
 
   /** Hit (a foe's strike that didn't knock you down): the upper body flinches, from motion capture (FLINCH). */
@@ -1857,6 +1921,7 @@ export class Player {
       this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking, this._ridden));
     }
     this.frame.quaternion(this.heading, this.object.quaternion);
+    this.sideRunTurn(this.object.quaternion);
     if (this.carrying) updateCarry(this, dt);   // (held in front of him, where the body is drawn: src/carry.js)
     // a scene's pose laid over the clip (kneeling at the stone, sitting in a window: src/story/home.js):
     // overlay(player, dt) poses the rig and may lower the body; the feet then stay where it put them
@@ -1870,6 +1935,7 @@ export class Player {
         if(this.character?.poseHands)this.character.poseHands(this.animator,armRotations);
         else {H.poseHands(this.animator);this.character?.poseWrists(armRotations);}
       } else this.character?.poseProceduralHands?.();
+      this.sideRunTwist(H);   // (after the hands: they turn back with the chest they hang from)
       const U = this.frame.up;
       if (this.mantle) {
         H.resetFeet();
@@ -1883,10 +1949,16 @@ export class Player {
         // the gait says which feet are down and how far to shorten the stride (src/locomotion.js gaitFeet)
         const o = gaitFeet(this.animator, _g2.copy(this.vel).addScaledVector(U, -this.vel.dot(U)).length(), this._feetO ??= {});
         o.pivot = !!this.loco?.pivot;
+        o.reach = this._strafe?.reach ?? null;   // (a locked-on step played slower than the body: the feet reach further, LOCK_MOVE)
+        // (a step played over the loops walks: its feet let go out of reach as a stride's do. Its clip has no path, so the
+        // gait's share fell to nothing under it and the feet held on as if standing, dragged off their holds 8-11 cm)
+        if (this._strafe?.side && this._strafe.w > 0) o.gait = Math.max(o.gait, this._strafe.w);
         o.carry = this._ridden;   // (a moving floor takes the held feet along)
         // the feet find the moving floors too (src/carriers.js), not the floor under them
         this._feetGround ??= this.opts.dynamic ? standGround(this.physics, () => this.opts.dynamic(), () => this.ride) : this.physics;
-        H.plantFeet(dt, this._feetGround, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
+        const legs = this.frame.dir(this.heading, _g1).clone();
+        if (this._strafe?.yaw) legs.applyAxisAngle(U, this._strafe.yaw);   // (a side-run: the legs go the way he runs, LOCK_MOVE.sideRun)
+        H.plantFeet(dt, this._feetGround, U, this.object.position, legs, (p, side, n) => this.stepped(p.clone(), 0, n), o);
       } else H.resetFeet();
       if (this.aim && !this.aim.noArm && !this.climbing && !this.mantle && (!this.gliding || this.hovering)) H.aimAt?.(this.aim.point, this.aim.k, U);   // (noArm: a captured blade swing moves the arm itself)
       // the soft aim: a swing's plane tilted toward its target's body, low or high (src/fluid-blade.js AIM)
@@ -2626,6 +2698,7 @@ export class Player {
     });
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
+    this.sideRunTurn(this.object.quaternion);
     A.apply(this.object, { legScale: 1.04 });
     // starts, stops and turns (src/locomotion.js): the lean into a change of speed, the bank into a
     // curve, the head and chest turned to where you steer before the hips get there

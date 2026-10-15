@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.78 — 2026-10-15
+
+- His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.
+- Locked on, stepping back flicks his knees far less: his steps are longer instead of three and a half times too quick, and his feet no longer drag off where they land.
+- Locked on to a foe, moving left or right he now runs sideways: his hips and legs turn the way he goes while his chest and head stay on the foe, and his feet stay where they land. He used to step on the spot at a frantic pace and slide across the floor, his knees and feet flicking several times a second.
+
 ## v1.77 — 2026-10-14
 
 - Worlds load about a second sooner on the handheld: your traveller’s clothes, skin and gear now share their shaders with everyone else’s, so every world has 8 or 9 fewer to prepare while it loads.
