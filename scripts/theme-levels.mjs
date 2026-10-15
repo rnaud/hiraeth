@@ -7,8 +7,8 @@
 //
 // Run it again when a recording is added or replaced; tests/soundtracks.test.js fails while one is missing.
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tempDir, removeTemp } from './temp-dirs.mjs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AudioContext } from '../engine/webaudio.js';
@@ -53,14 +53,14 @@ export function themeLevel(path, tmp) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const tmp = mkdtempSync(join(tmpdir(), 'theme-levels-'));
+  const tmp = tempDir('theme-levels-');
   const levels = {};
   try {
     for (const f of readdirSync(MUSIC).filter((x) => x.endsWith('.mp3')).sort()) {
       levels[f] = +themeLevel(join(MUSIC, f), tmp).toFixed(4);
       console.log(`${f}: ${levels[f]} (${(20 * Math.log10(levels[f])).toFixed(1)} dB)`);
     }
-  } finally { rmSync(tmp, { recursive: true, force: true }); }
+  } finally { removeTemp(tmp); }
   const body = Object.entries(levels).map(([k, v]) => `  '${k}': ${v},`).join('\n');
   writeFileSync(join(ROOT, 'src', 'theme-levels.js'), `// Made by scripts/theme-levels.mjs: the gain src/soundtracks.js prepareSoundtrack gives each recording (-27 dB RMS with a
 // peak cap, its tail joined to its opening), for the engines, which decode and stream the MP3s themselves and never hold
