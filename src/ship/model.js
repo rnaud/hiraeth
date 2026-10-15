@@ -12,13 +12,14 @@ let SERIAL = 0;
 export const SKIRT = BLOCK_H;
 
 /**
- * A look to compare (issue #364, ?roomlights=folded): the rooms' light (ROOM_LIGHT) compiles five programs of its own,
+ * The rooms' metals folded (issue #364; ?roomlights=full for the look before): the rooms' light (ROOM_LIGHT) compiles five programs of its own,
  * ~0.1 s each on the Retroid. Folded, the two rarest are built as the plain painted metal of the lockers: `panel` (the
  * slate tops of the dash and the console, the tool boards) loses its 0.5 m grid lines, `metal` (the brushed steel of
  * the instrument racks, the holo table's drum, the sink, the engine room's hatch) its streaks and hairlines, steel
- * still. Two programs fewer in every world. Off by default: the game as it is.
+ * still. Two programs fewer in every world, ~0.2 s off a Retroid load. On by default since 2026-10-15: the author
+ * couldn't tell the two apart.
  */
-export const ROOM_LIGHTS_FOLDED = typeof location !== 'undefined' && new URLSearchParams(location.search).get('roomlights') === 'folded';
+export const ROOM_LIGHTS_FOLDED = !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('roomlights') === 'full');
 function foldRoomMetals(o) {
   o.panel = { ...o.panel, grid: 0 };
   o.metal = { ...o.metal, brushed: false };

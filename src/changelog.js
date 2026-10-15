@@ -130,6 +130,10 @@ export const CHANGELOG = [
     // the bridge's conversation portrait on a camera of its own (BridgeRunner.PortraitCamera): drawing the main camera a
     // second time into its texture left every later frame black and the chip blank (issue #264, #197)
     'In the Unity preview, talking to someone no longer turns the world black: you see the conversation as in the game, the people gesturing as they speak, and their portrait in the panel’s circle.',
+    // the ship rooms' panel and brushed metal folded into the lockers' painted metal (src/ship/model.js ROOM_LIGHTS_FOLDED,
+    // issue #364): two shader programs fewer in every world; ?roomlights=full for the look before
+    { text: 'Worlds load a little quicker on handhelds: inside the ship, the tool boards and the engine-room hatch are now plain painted metal, which saves a moment on every load.',
+      see: 'On the Retroid, each world loads about 0.2 s sooner. Aboard, the tool boards no longer have panel lines and the hatch no longer has brushed streaks.' },
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

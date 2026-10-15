@@ -128,14 +128,14 @@ test('the room light is engine-neutral: the key and the lamps in the Unity expor
   assert.ok(hlsl.includes(`lerp(L, ${f(L.poolTop)}, smoothstep(${f(L.pool[0])}, ${f(L.pool[1])}, local))`), 'the lamps\' pools');
 });
 
-test('?roomlights=folded (issue #364): the console tops and the brushed steel in the lockers\' plain metal, two programs fewer; off, as it was', async () => {
+test('the rooms\' metals folded (issue #364): the console tops and the brushed steel in the lockers\' plain metal, two programs fewer; ?roomlights=full as it was', async () => {
   const { shipMaterials, ROOM_LIGHTS_FOLDED } = await import('../src/ship/model.js');
-  assert.equal(ROOM_LIGHTS_FOLDED, false, 'off unless asked for');
+  assert.equal(ROOM_LIGHTS_FOLDED, true, 'on unless ?roomlights=full');
   const room = { value: new THREE.Vector4(0, 0, -1, 1) };
   // (a program: its defines and its sources; side and vertex colours share one, scripts/three-program-keys.mjs)
   const key = (m) => JSON.stringify([Object.entries(m.defines ?? {}).sort(), m.vertexShader, m.fragmentShader]);
   const count = (mats, only = () => true) => new Set(Object.values(mats).filter(only).map(key)).size;
-  const now = shipMaterials('fold-a', { room }), folded = shipMaterials('fold-b', { room, folded: true });
+  const now = shipMaterials('fold-a', { room, folded: false }), folded = shipMaterials('fold-b', { room });
   const inRoom = (m) => !!m.defines?.ROOM_LIGHT;
   assert.equal(count(now, inRoom), 5, 'the rooms\' five programs: plain, grid, metal, gridded metal, brushed');
   assert.equal(count(folded, inRoom), 3);
