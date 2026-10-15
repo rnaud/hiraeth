@@ -49,6 +49,10 @@ export const CHANGELOG = [
     // colours), after references/temples/future/clock-house/sheet-1.jpg; tests/temple-skins.test.js; docs/systems/temples.md
     'Inside, the Clock-House now looks like the makers’ high-tech clock: tall dark slate slabs with brass seams under a warm cream drum, thin teal lines in the floors and walls, lens terminals in sixes round the great rooms, and over the Escapement’s pit and high in the Winding Well a column of sand stopped mid-fall inside tilted brass rings.',
     'The Clockwork Foreman is all brass now, with a pale teal dial, and the Escapement’s riding disc is a brass pendulum disc.',
+    // the Mooring-House's futuristic skin (issue #342): src/temples/skins/mooring-house.js (skin: mooringHouseSkin in
+    // spacecity.js, whose layout takes the skin's paints, capstan drum and warden colours); tests/temple-skins.test.js
+    'Inside, the Mooring-House is the makers’ old high technology now, after the drawings picked for it: round halls of dark slate in tall slabs, floors laid in rings round the great capstan, its drum bare dark metal banded with thin teal circuits, teal ring lights round the walls, dark slots where the slack cables run into the wall, square plates floating high over the halls and the void, and the city’s islands drifting in the stars outside, their cables slack toward the house. The rooms, the puzzles and the fight are as they were.',
+    'The Anchor-Warden is ochre brass and dark iron now, its eye teal.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

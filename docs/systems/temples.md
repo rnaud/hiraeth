@@ -1501,6 +1501,42 @@ facing each other across a cable pit, bronze spheres, coral circuits, the First 
   the counts' spread (-7 to +22 on High, -13 to +4 on Low); fewer triangles (the glyphs leave the shadow passes); frame
   time no worse (High 2.9 to 4.1 ms → 2.9 to 3.4, Low 1.8 to 2.1 → 1.7 to 1.8, the quiet runs). Dressing ~25–100 ms
   to build. `tests/temple-skins.test.js`.
+### The Mooring-House (`skins/mooring-house.js`, v1.78)
+
+After `references/temples/future/mooring-house/sheet-1.jpg` and `sheet-2.jpg`: round halls of dark slate round a
+stopped ring winch banded in teal, cables slack out to the islands under the planet. `skin: mooringHouseSkin` on
+`spacecity.js`'s def; its layout reads `rt.skin.house` (the paints, the capstan's drum, the starlight lines, the
+warden's colours) and draws the same solids either way. Values sampled from the picks (walls L 58–85, `MOORING_SKIN`).
+
+- **Surfaces** (albedo, first pen lines and `emit` replaced; the kit's rooms in `uSkR`, up to `MOORING_ROOMS`):
+  - `wall`: violet-grey slabs 2.6 by 7.2 m, each column's joints its own, lit and shaded chamfers, hatching 0.15, a
+    rare teal circuit (density 0.22); one dark ledge course at three fifths of the walls (`M.bands`).
+  - `floor`: in a round room plates in rings 2.6 m apart round its middle (the picks' concentric floor), in halls
+    2.6 m plates with a few line runs; a teal border 1.5 m in; round the capstan's foot (`uSkHub`) a dark well ring,
+    a teal line at its lip and twelve short spokes to lenses; a teal line under every landing's lip over the void.
+  - `drum` (the capstan's body and lid): dark teal-slate panels banded with thin teal runs with 45° jogs and a few
+    lenses, the lid rings round a lens; its cable wrap left off (drawn only), its bars and base dark iron.
+  - Lines emit 0.72–0.78 with a slow pulse: crisp, just over the post's 0.62.
+- **The house's own**: brass muted, iron near black, cables dark (paints); the starlight lines and the frieze's
+  moorers' rings' line teal (the skin's glow); the ornaments' rings dark metal; the glyph pale teal (the shared
+  open-corner mark, its shape left as it is); the fittings (the weight's bands, the doors') brass, the balls and the
+  weight dark steel; the Anchor-Warden ochre brass on dark iron, its dome iron, its eye teal (`anchorModel(skin.house.warden)`);
+  the light lavender shade and cream light (`skin.light`).
+- **Dressing**, drawn only: ring lights (a dark rounded bezel, a flat teal ring and lens) at 1.9 m round the round
+  rooms and the floored halls, one every 6.5 m, off doorways and pieces; a slate-framed dark slot with a teal sill where
+  each of the Capstan Hall's six cables meets the wall. Both merged into the kit's paint and glow batches (no draws of
+  their own). Square slate plates floating 10–22 m up over the big rooms and the void halls, a teal lens on each face,
+  bobbing (two InstancedMeshes, out of the shadow passes, `MOORING_PLATES`); eight islands of the city's adobe in the
+  void (overhead, seen up through the Drift's and the Balance's open tops; out of the Capstan Floor's west windows),
+  each with a slack cable to the house (one mesh, `dynamic`, no shadow, `MOORING_ISLANDS`; kept out of the pits'
+  boxes, whose wash would ink them, and their own mesh so the z-fight audit doesn't stand on them).
+- **Lighter presets**: no chamfers, panel tones or floor line runs; the plates still, their lenses hidden (`SkinLife`).
+- **Cost** (15 views, this Mac): the picture's own pass +0 to +3 draws, every pass about the same (157 → 155 High,
+  170 → 164 Low), triangles 488 k → 438 k (High), frame time +0.5 ms (3.95 → 4.56 High). Built in about 18 ms.
+- **Unlike the pictures:** the capstan stays the house's own size (a drum 6 m across, not a house), so the drum reads
+  as a big machine rather than the hall's floor; no sunken well round it (painted on the floor); no wall-mounted
+  weight bracket (the weight stays on its mast); the Anchor-Warden keeps its capstan body, not the picks' humanoid
+  robot; the planet is the world's sky, seen only where the house is open.
 
 
 ### The Clock-House (`skins/clock-house.js`, v1.78)

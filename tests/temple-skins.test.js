@@ -945,3 +945,77 @@ test('the Clock-House’s dressing keeps out of every doorway, and the lighter p
   } finally { chShared.uWearLite.value = was; }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('uWearLite < 0.5'), 'the slabs’ tones and chamfers off on the lighter presets');
 });
+
+// ---- the Mooring-House in its futuristic skin (src/temples/skins/mooring-house.js): its look only; its own names (mh*)
+const { mooringHouseSkin: mhSkin, MOORING_SKIN: MH, MOORING_ROOMS: MH_ROOMS } = await import('../src/temples/skins/mooring-house.js');
+const { sharedUniforms: mhShared } = await import('../src/materials.js');
+const mhBuild = (noSkin) => quietly(() => {
+  const def = { ...TEMPLES.spacecity.def, exterior: null, change: null };
+  const was = TempleRuntime.prototype.noSkin;
+  TempleRuntime.prototype.noSkin = noSkin;
+  try { return new TempleRuntime({ scene: new THREE.Scene(), level: { lights: [] }, def, game: new GameState(null) }); } finally { TempleRuntime.prototype.noSkin = was; }
+});
+let mhOn = null;
+const mhHouse = () => (mhOn ??= mhBuild(false));
+
+test('the Mooring-House wears its futuristic skin: slate, plates, a capstan banded in teal, its dressing drawn', () => {
+  const rt = mhHouse();
+  assert.equal(TEMPLES.spacecity.def.skin, mhSkin);
+  assert.equal(rt.skin?.name, 'mooring-house');
+  for (const k of ['wall', 'machine', 'floor', 'drum', 'floorObj', 'machineObj']) {
+    const m = rt.skin.mats[k];
+    assert.ok(m.userData.houseSkin, `its ${k} is the skin's`);
+    assert.ok(m.fragmentShader.includes('float detail = skInk;') && m.fragmentShader.includes('float emit = skEmit;'), `the ${k}'s pen lines and glow the pattern's`);
+  }
+  assert.ok(rt.skin.U.count.value >= 10 && rt.skin.U.count.value <= MH_ROOMS, `rooms ${rt.skin.U.count.value}`);
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'floor', 'drum', 'glyph', 'glow']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in its ${k}`);
+  const pieceMats = new Set();
+  for (const p of rt.pieces) p.group?.traverse?.((o) => o.material && pieceMats.add(o.material));
+  assert.ok(pieceMats.has(rt.skin.mats.floorObj) && pieceMats.has(rt.skin.mats.machineObj) && !pieceMats.has(rt.skin.mats.floor));
+  const s = rt.skin.stats;
+  assert.ok(s.rings >= 20 && s.slots === MH.slots.angles.length && s.plates >= 14 && s.islands >= 5, JSON.stringify(s));
+  const drawn = rt.kit.group.children.filter((m) => m.userData.skin);
+  assert.ok(drawn.length === 3 && drawn.filter((m) => m.isInstancedMesh).length === 2 && drawn.every((m) => m.userData.noCollide && m.userData.castShadow === false && !m.castShadow), 'the plates (two instanced meshes) and the islands, drawn only, out of the shadow passes');
+  // the house's own back for its exterior; what glows casts no shadow
+  assert.notEqual(rt.M.wall, rt.skin.mats.wall);
+  assert.equal(rt.kit.plan, null);
+  for (const mat of [rt.skin.mats.glyph, rt.skin.mats.glow]) {
+    const m = rt.kit.group.children.find((o) => o.material === mat && !o.userData.skin);
+    assert.ok(m && !m.castShadow && m.userData.castShadow === false);
+  }
+  assert.equal(rt.skin.light, MH.light);
+});
+
+test('the Mooring-House’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const on = mhHouse(), off = mhBuild(true);
+  assert.equal(off.skin, null);
+  assert.deepEqual(solids(on), solids(off), 'collision and climbs vertex for vertex');
+  const own = on.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.deepEqual(own.map((p) => [p.id, p.constructor.name]), off.pieces.map((p) => [p.id, p.constructor.name]));
+  own.forEach((p, i) => { const q = off.pieces[i]; for (const k of ['pos', 'center', 'home']) if (p[k]?.isVector3) assert.ok(p[k].distanceTo(q[k]) < 1e-6, `${p.id ?? p.constructor.name} where it was`); });
+});
+
+test('the Mooring-House’s floating plates keep out of every doorway and well over its floors; still on the lighter presets', () => {
+  const rt = mhHouse(), K = rt.kit;
+  const p = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), m4 = new THREE.Matrix4();
+  const doors = rt.pieces.filter((d) => d instanceof Door).map((d) => ({ at: K.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
+  assert.ok(doors.length >= 6);
+  const [body, lenses] = rt.kit.group.children.filter((x) => x.userData.skin && x.isInstancedMesh);
+  for (let i = 0; i < body.count; i++) {
+    body.getMatrixAt(i, m4); m4.decompose(p, q, sc);
+    const l = K.local(p);
+    for (const d of doors) assert.ok(!(Math.hypot(l.x - d.at.x, l.z - d.at.z) < d.w / 2 + 2 && l.y > d.at.y - 1 && l.y < d.at.y + d.h + 3), `plate #${i} by a doorway at ${l.toArray().map((v) => v.toFixed(1))}`);
+    assert.ok(l.y > 9.5, `plate #${i} high (${l.y.toFixed(1)})`);
+  }
+  const life = rt.pieces.find((x) => x.constructor.name === 'SkinLife');
+  const was = mhShared.uWearLite.value, a = new THREE.Matrix4(), b = new THREE.Matrix4();
+  try {
+    mhShared.uWearLite.value = 0; life.update(0.1, 1); body.getMatrixAt(0, a); life.update(0.1, 3); body.getMatrixAt(0, b);
+    assert.ok(!a.equals(b), 'they bob');
+    assert.equal(lenses.visible, true);
+    mhShared.uWearLite.value = 1; life.update(0.1, 4); body.getMatrixAt(0, a); life.update(0.1, 6); body.getMatrixAt(0, b);
+    assert.ok(a.equals(b) && lenses.visible === false, 'still, their lenses hidden, on the lighter presets');
+  } finally { mhShared.uWearLite.value = was; }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'));
+});

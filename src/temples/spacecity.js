@@ -8,6 +8,7 @@ import { TempleKit, T, box, lathe, annulus, paint } from './kit.js';
 import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit, Key, Weight, Coffer } from './pieces.js';
 import { anchorModel, anchorGeometry } from './guardian-anchor.js';
 import { chestMound } from '../boxes/mound.js';
+import { mooringHouseSkin } from './skins/mooring-house.js';
 
 // The City Floating in Space's temple: the Mooring-House, the makers' round house on the Moorings, an island of its
 // own north of the Towers, a rising bridge to it. The islands of the city are moored to each other by the moorers'
@@ -306,10 +307,12 @@ function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
-  const brass = { paint: new THREE.Color('#d2a648'), smooth: false, side: THREE.FrontSide };
-  const iron = { paint: new THREE.Color('#3d3f4c'), smooth: false, side: THREE.FrontSide };
-  const cableM = { paint: new THREE.Color('#6a5844'), smooth: false, side: THREE.DoubleSide };
-  const starM = makeMaterial({ color: PALETTE.glow, glow: 0.55, flat: true, key: 'temple.spacecity.starlines' });
+  // (in its futuristic skin, issue #342: the skin's paints, its capstan drum and its teal lines: skins/mooring-house.js)
+  const SK = rt.skin?.house;
+  const brass = SK?.brass ?? { paint: new THREE.Color('#d2a648'), smooth: false, side: THREE.FrontSide };
+  const iron = SK?.iron ?? { paint: new THREE.Color('#3d3f4c'), smooth: false, side: THREE.FrontSide };
+  const cableM = SK?.cable ?? { paint: new THREE.Color('#6a5844'), smooth: false, side: THREE.DoubleSide };
+  const starM = SK?.star ?? makeMaterial({ color: PALETTE.glow, glow: 0.55, flat: true, key: 'temple.spacecity.starlines' });
   /** A straight corridor from (x0, z0) to (x1, z1), floor at y: a floor, two walls, a roof. */
   const corridor = (x0, z0, x1, z1, y, { w = PASS.w, h = PASS.h, roof = true } = {}) => {
     const L = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(x1 - x0, z1 - z0), cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
@@ -349,11 +352,12 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C1, y: 0, r: R1, h: 28, seg: 54, oculus: 0.3, gaps: [
     { a: Math.PI, w: 6.6, h: PASS.h }, { a: SW, w: 7.8, h: PASS.h }, { a: SE, w: 7.8, h: PASS.h }, { a: 0, w: 6.6, h: PASS.h }, { a: MOOR_A, w: 8.4, h: PASS.h, y0: BALANCE.south },
   ] });
-  K.both(brass, T(new THREE.CylinderGeometry(2.6, 2.9, 4.2, 20), [0, 2.1, C1]));
+  // (in the skin a bare drum of dark metal banded with teal circuits, its lid the same, its bars iron)
+  K.both(SK?.drum ?? brass, T(new THREE.CylinderGeometry(2.6, 2.9, 4.2, 20), [0, 2.1, C1]));
   K.both(iron, T(new THREE.CylinderGeometry(3.3, 3.3, 0.5, 20), [0, 0.25, C1]));
-  K.add(cableM, T(new THREE.CylinderGeometry(2.68, 2.68, 2.2, 20, 1, true), [0, 2.2, C1]));
-  K.both(M.trim, T(new THREE.SphereGeometry(2.7, 18, 6, 0, TAU, 0, Math.PI / 2).scale(1, 0.45, 1), [0, 4.2, C1]));
-  for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; K.both(brass, T(new THREE.BoxGeometry(0.4, 0.4, 2.6), [Math.sin(a) * 3.9, 3.6, C1 + Math.cos(a) * 3.9], [0, a, 0])); }
+  if (SK?.wrap !== false) K.add(cableM, T(new THREE.CylinderGeometry(2.68, 2.68, 2.2, 20, 1, true), [0, 2.2, C1]));
+  K.both(SK?.drum ?? M.trim, T(new THREE.SphereGeometry(2.7, 18, 6, 0, TAU, 0, Math.PI / 2).scale(1, 0.45, 1), [0, 4.2, C1]));
+  for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; K.both(SK ? iron : brass, T(new THREE.BoxGeometry(0.4, 0.4, 2.6), [Math.sin(a) * 3.9, 3.6, C1 + Math.cos(a) * 3.9], [0, a, 0])); }
   // (clear of the doorways and of the balcony)
   for (const a of [0.55, 1.95, 2.75, -2.75, -0.95, -0.4]) { cable([Math.sin(a) * 2.8, 3, C1 + Math.cos(a) * 2.8], [Math.sin(a) * 17.9, 12, C1 + Math.cos(a) * 17.9], 4.6); }
   // the balcony inside the moorers' gate (the shortcut back), 10 m deep from the wall to its lip, and its cradle down
@@ -574,7 +578,7 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [X0 - 9.9, FY, CZ], [0, Math.PI / 2, 0]));
   K.solid(box(0.1, 5, 4, X0 - 9.9, FY + 2.5, CZ));
 
-  const model = anchorModel();
+  const model = anchorModel(SK?.warden);
   model.pos.copy(K.world(CX + 4, FY, CZ));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI / 2);
@@ -739,6 +743,8 @@ export const SPACECITY_TEMPLE = {
   origin: [-130, 1500, -120], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (its futuristic skin, issue #342: the look of the author's picks over the same rooms, src/temples/skins/mooring-house.js)
+  skin: mooringHouseSkin,
   local: { person: 'joss', out: 7, side: 6 },
   enterLine: 'Inside the Mooring-House the floors stop short over nothing, and under them the stars go on. Somewhere overhead, cable pays out with a long creak.',
   pitLine: 'You catch a hanging cable and haul yourself back up to the last glyph stone.',
