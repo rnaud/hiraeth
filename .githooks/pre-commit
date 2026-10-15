@@ -5,6 +5,8 @@
 # Enabled by `npm install` (package.json "prepare": git config core.hooksPath .githooks).
 # Skipped when the commit touches no code or tests (docs, pictures, the changelog's media only),
 # or with SKIP_TESTS=1 / `git commit --no-verify` in an emergency. FULL_TESTS=1 runs them all.
+# At most 4 test files at once (TEST_CONCURRENCY to change it): parallel agents' hooks at every core drove the
+# machine's load to 80.
 [ -n "$SKIP_TESTS" ] && exit 0
 staged=$(git diff --cached --name-only --diff-filter=ACMRD)
 if ! printf '%s\n' "$staged" | grep -qE '\.(js|mjs|cjs|json|glsl|html|css)$'; then
@@ -26,7 +28,7 @@ else
   set -- $tests
   echo "pre-commit: node --test, $# test files these changes reach (FULL_TESTS=1 for all)"
 fi
-out=$(node --test "$@" 2>&1)
+out=$(node --test --test-concurrency="${TEST_CONCURRENCY:-4}" "$@" 2>&1)
 status=$?
 if [ $status -ne 0 ]; then
   printf '%s\n' "$out" | grep -E '^not ok|^[ℹ#] (pass|fail)' | tail -20
