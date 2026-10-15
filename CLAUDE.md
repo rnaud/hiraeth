@@ -56,6 +56,9 @@ running, testing, shipping.
   Java bridge changes, so older apps are offered the new APK first. Keep the
   signing key backup in `.local-tools/android-signing/` (git-ignored); losing it
   means users must reinstall and lose their saves.
+- Keep the Unity version (`unity/`, the same game code through `engine/`) at parity: a change to
+  what the game does or shows also works in Unity, checked there (`docs/systems/engine-bridge.md`),
+  or says "web only" and why in its commit message.
 - Prompts are written in Xbox / PlayStation form (`A / ×`, `RT / R2`, `View`,
   `Menu`); `src/native-pad.js` rewrites them to Android handheld names, so keep
   that form when writing new prompts.
