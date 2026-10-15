@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_49152fd11670bd 35-36
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_b1113e935be864 1471-1497
+engine/unity/game.js
+  s_9ca76055a220ed::t_6748a362e0ccac 491-500,749-750
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_be8f038fb54d71 97
+src/changelog-media.js
+  s_9ca76055a220ed::t_9f31c813479004 39-40,1061-1074
+src/changelog.js
+  s_9ca76055a220ed::t_d68a5b5b324270 74-78
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_64f7c345ab4783 18,79-89
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_9ca76055a220ed::t_086744bbf0d23c 216-217
+unity/Hiraeth/Assets/Hiraeth/Shaders/Figure.hlsl
+  s_9ca76055a220ed::t_7e95bc3ff3aa2c 228-229,256-260,262-333,336,362-363,366-374
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_3b81749c312a13 89-90,143-144,943,1024,1147
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_01abcf1903717e 197-198
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_55479c7cab8dd2 274-316,318-322,326-335,338-344,1122,1135-1137,1337,1340
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31e36f7cc32aae6f2ca9b7c260dd22ad3f93e838",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
