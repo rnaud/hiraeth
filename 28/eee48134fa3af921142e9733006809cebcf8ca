@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_804d4cfd38693b 7-8
+docs/README.md
+  s_9ca76055a220ed::t_0c979482f40d85 54
+docs/systems/audio.md
+  s_9ca76055a220ed::t_e51034bbe50246 34-38
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_c994a1066ef605 1082-1128
+index.html
+  s_9ca76055a220ed::t_b15662d9fd1dbc 374-377
+src/audio.js
+  s_9ca76055a220ed::t_650157418ccd1e 71-76,613-638,2389,2392-2393,2395,2411,2413-2414,2681-2682
+src/benches-data.js
+  s_9ca76055a220ed::t_fb7b52cf6cb0a6 1-103
+src/benches.js
+  s_9ca76055a220ed::t_5a3b16cf46569f 1-289
+src/changelog-media.js
+  s_9ca76055a220ed::t_6ace451f24444b 955-957,960-980
+src/changelog.js
+  s_9ca76055a220ed::t_bb526d0533dd12 153-156
+src/main.js
+  s_9ca76055a220ed::t_e872632d3bfa06 114,928-929,2235,2250,2261,2766
+src/music-page/catalog.js
+  s_9ca76055a220ed::t_d6f36634e44be1 34
+tests/benches-worlds.test.js
+  s_9ca76055a220ed::t_2b1ddb1cbbe9ec 1-77
+tests/benches.test.js
+  s_9ca76055a220ed::t_c6d17a887340d5 1-275
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_76632f7e80bbef 121
+tests/menu-music.test.js
+  s_9ca76055a220ed::t_af84cae86d7698 42-44
+tests/route-worlds.test.js
+  s_9ca76055a220ed::t_553f3769b68a98 16,39,182-192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "28eee48134fa3af921142e9733006809cebcf8ca",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
