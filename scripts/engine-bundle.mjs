@@ -134,6 +134,36 @@ export async function unityTitle({ to = UNITY_TITLE.to } = {}) {
   return { n, marks: Object.keys(MAP_MARKS).length, bytes, to };
 }
 
+/**
+ * The galactic map's pictures for the Unity menus (BridgeMenu.StarMap.cs, engine/starmap.js), made once as the title's:
+ *   starmap/planet-<id>.png   each world's planet as the page draws it (src/ship/planets.js planetSvg), its viewBox opened
+ *                             to ±80 so the rings and the moons that overhang its ±50 disc are in it, 256 px
+ *   starmap/star.png          the star at the chart's edge (src/ship/starmap.js starSvg, r 44 as the 1280 × 720 chart has it), ±80
+ *   starmap/glyph.png, glyph-ink.png   the light's signature (the makers' mark, SIG_GLYPH) in the chart's lilac and the panel's ink
+ */
+export const UNITY_STARMAP = { to: 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/starmap', px: 256 };
+export async function unityStarmap({ to = UNITY_STARMAP.to } = {}) {
+  const sharp = (await import('sharp')).default;
+  const { planetSvg, PLANETS } = await import('../src/ship/planets.js');
+  const { starSvg, SIG_GLYPH } = await import('../src/ship/starmap.js');
+  const dir = resolve(ROOT, to);
+  mkdirSync(dir, { recursive: true });
+  const from = ['src/ship/planets.js', 'src/ship/starmap.js', 'src/makers-mark/design.js'].map((f) => resolve(ROOT, f));
+  const stale = (out) => !existsSync(out) || from.some((f) => statSync(out).mtimeMs < statSync(f).mtimeMs);
+  const px = UNITY_STARMAP.px, svg = (inner, box = '-80 -80 160 160') => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="${box}">${inner}</svg>`);
+  let n = 0, bytes = 0;
+  const put = async (name, buf) => { const out = resolve(dir, name); if (stale(out)) await sharp(buf, { density: 144 }).resize(px, px).png({ compressionLevel: 9 }).toFile(out); n++; bytes += statSync(out).size; };
+  for (const id of [...Object.keys(PLANETS), '_']) await put(`planet-${id}.png`, svg(planetSvg(id).replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '')));
+  await put('star.png', svg(starSvg({ x: 0, y: 0, r: 44 })));
+  for (const [name, col] of [['glyph.png', '#cdb4ff'], ['glyph-ink.png', '#6a4aa8']]) {
+    const g = SIG_GLYPH.replace(/ width="[^"]*" height="[^"]*"/, ` width="${px * 0.75}" height="${px}" xmlns="http://www.w3.org/2000/svg"`).replace('fill="currentColor"', `fill="${col}"`);
+    const out = resolve(dir, name);
+    if (stale(out)) await sharp(Buffer.from(g), { density: 144 }).resize(px * 0.75, px).png({ compressionLevel: 9 }).toFile(out);
+    n++; bytes += statSync(out).size;
+  }
+  return { n, bytes, to };
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const asked = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ENTRIES);
   const names = [...new Set(asked.flatMap((n) => [n, ...(WITH[n] ?? [])]))];
@@ -144,5 +174,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (names.includes('unity')) {
     const p = await unityPictures(); console.log(`the items' pictures: ${p.n} PNGs, ${(p.bytes / 1e6).toFixed(2)} MB, in ${p.to}`);
     const q = await unityTitle(); console.log(`the title's ${q.n} pictures, its lettering and the Map's ${q.marks} marks: ${(q.bytes / 1e6).toFixed(2)} MB, in ${q.to}`);
+    const m = await unityStarmap(); console.log(`the galactic map's ${m.n} pictures: ${(m.bytes / 1e6).toFixed(2)} MB, in ${m.to}`);
   }
 }

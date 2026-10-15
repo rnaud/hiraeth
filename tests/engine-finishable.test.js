@@ -1,6 +1,6 @@
 // Issue #264 (docs/plans/unity-finishable.md): what a player needs to finish the game in the engines. A world's story
-// done is kept (the journal's story page: the route opens on, home comes); aboard, the Worlds page is the holo table's
-// chart, so a world never visited can be flown to (engine/chart.js); the relics are placed; coming home by ship plays
+// done is kept (the journal's story page: the route opens on, home comes); aboard, the holo table opens the galactic map
+// (engine/starmap.js), where a world never visited is found by its signature and flown to; the relics are placed; coming home by ship plays
 // the homecoming, its cargo panel answered and its credits said where there is no page. engine/game.js in a bare V8
 // context (the bundle the engines run).
 import test from 'node:test';
@@ -10,25 +10,7 @@ import { join } from 'node:path';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
-import { chartTravel, chartWorlds } from '../engine/chart.js';
 import { creditLines, credits } from '../src/story/ending.js';
-
-test('the chart aboard: worlds on it are flown to, a findable one found first; off the ship fast travel only', () => {
-  const entries = [{ id: 'desert', known: true }, { id: 'arzach', known: false, findable: true }, { id: 'perdide', known: true }, { id: 'edena', known: false, findable: false }, { id: 'home', known: true }];
-  assert.deepEqual(chartWorlds(entries), ['desert', 'arzach', 'perdide', 'home']);
-  const flags = new Set(['ship.powered', ...['backpack', 'doublejump', 'gun', 'sword', 'shield'].map((i) => `item.${i}`)]);
-  const flag = (k) => flags.has(k), seen = (id) => id === 'desert';
-  const go = (to, aboard = true, f = flag) => chartTravel({ to, from: 'desert', entries, aboard, seen, flag: f });
-  assert.deepEqual(go('arzach'), { find: true }, 'findable: found as it is chosen');
-  assert.deepEqual(go('perdide'), { find: false });
-  assert.deepEqual(go('home'), { find: false });
-  assert.match(go('edena').text, /Not there yet/, 'not on the chart');
-  assert.match(go('arzach', false).text, /Not there yet/, 'off the ship: fast travel, worlds visited only');
-  assert.match(go('desert').text, /You are here/);
-  assert.match(go('arzach', true, (k) => k !== 'ship.powered' && flag(k)).text, /No power/);
-  const noBlade = go('arzach', true, (k) => k !== 'item.sword' && flag(k));
-  assert.ok(noBlade.text && noBlade.missing?.length, 'the leave gate holds (the desert without the blade)');
-});
 
 test('the credits as lines where there is no page to roll', () => {
   const c = credits({ order: ['desert', 'arzach'], titles: { desert: 'The Desert', arzach: 'Vael' }, flag: (k) => k === 'world.desert.done' });
@@ -42,7 +24,7 @@ test('the credits as lines where there is no page to roll', () => {
 // a backend that takes every op and keeps nothing (its flags and hooks left unset)
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
 const backend = new Proxy({}, { get: (t, k) => (UNSET.has(k) ? undefined : () => {}) });
-const menusStub = () => ({ shown: [], open: false, mode: null, show(m, p) { this.shown.push([m, p]); }, openShop() { return true; }, changed() {}, action() {}, navigate() {} });
+const menusStub = () => ({ shown: [], open: false, mode: null, show(m, p) { this.shown.push([m, p]); }, openShop() { return true; }, openStarMap(m) { this.star = m; this.mode = 'starmap'; m.onClose = () => { this.mode = null; }; m.open(); return true; }, changed() {}, action() {}, navigate() {} });
 const hushed = async (fn) => {
   const w = console.warn, i = console.info, l = console.log, e = console.error; console.warn = console.info = console.log = console.error = () => {};
   try { return await fn(); } finally { console.warn = w; console.info = i; console.log = l; console.error = e; }
@@ -74,7 +56,7 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   const gs = g.story.quests.game;
   assert.ok(g.ship.completed().includes('desert'), 'the ship counts it');
 
-  // aboard with power and the core gadgets: the Worlds page lists Vael (never visited) and travels there
+  // aboard with power and the core gadgets: the holo table's galactic map, Vael found by its signature and flown to
   gs.set('ship.powered', true);
   for (const id of ['backpack', 'doublejump', 'gun', 'sword', 'shield']) gs.set(`item.${id}`, true);
   const a = g.ship.arrivalSpot();
@@ -82,10 +64,18 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   run(g, 4); run(g, 40, { KeyW: true }); run(g, 20 * 8, { KeyW: false });
   assert.ok(g.ship.inside, 'aboard');
   const worlds = g.menuSources({ travel: true }).worlds();
-  const vael = worlds.find((w) => w.id === 'arzach');
-  assert.ok(vael?.travel, `Vael on the chart, Travel here (${worlds.map((w) => `${w.id}:${w.travel}`).join(' ')})`);
-  assert.equal(g.travel('arzach'), null);
-  assert.ok(gs.flag('map.found.arzach'), 'its signature found as it was chosen');
+  assert.ok(!worlds.find((w) => w.id === 'arzach')?.travel, 'the Worlds page: fast travel to worlds visited only, as the web');
+  g.ship.useTable(); run(g, 1);
+  const sm = g.starMap;
+  assert.ok(sm?.isOpen,'the holo table opens the galactic map');
+  assert.ok(sm.targets.some((t) => t.id === 'arzach'), 'Vael to find by its signature');
+  assert.ok(gs.flag('signature.search.told'), 'how the search works, said once');
+  const t = sm.targets.find((x) => x.id === 'arzach');
+  for (let i = 0; i < 600 && !gs.flag('map.found.arzach'); i++) { const dx = t.x - sm.scan[0], dy = t.y - sm.scan[1], d = Math.hypot(dx, dy); sm.update(1 / 60, d > 3 ? [dx / d, dy / d] : [0, 0]); }
+  assert.ok(gs.flag('map.found.arzach'), 'its signature found on the chart');
+  for (let i = 0; i < 70; i++) sm.update(1 / 60);
+  assert.equal(sm.entries[sm.sel].id, 'arzach');
+  sm.action('confirm'); sm.action('confirm');
   assert.ok(g.ship.playing, 'the take-off plays');
   run(g, 20 * 16, {}, () => travelled.length > 0);
   assert.deepEqual(travelled, ['arzach']);

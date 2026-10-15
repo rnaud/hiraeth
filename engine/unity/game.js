@@ -16,10 +16,11 @@ import { panSteps } from './pan.js';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
+import { STARMAP_SCENES, STARMAP_BASE, poseStarMap } from '../starmap.js';
 import { readHref } from '../trials.js';
 import { Controller } from '../../src/controller.js';
 import { Settings, SaveGame, TEXT_SIZES } from '../../src/ui.js';
-import { slots, DEBUG_SLOT, formatPlaytime } from '../../src/save-slots.js';
+import { slots, slotStorage, DEBUG_SLOT, formatPlaytime } from '../../src/save-slots.js';
 import { setRumbleSettings, rumblePlay } from '../../src/rumble.js';
 import { game as gameState } from '../../src/game-state.js';
 import { seedDebugSave } from '../../src/debug-save.js';
@@ -66,9 +67,20 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending || a.starmap);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
+/**
+ * -starmap search,warm,found,system,ask,nopower (engine/starmap.js STARMAP_SCENES): the holo table's galactic map opened
+ * aboard in the desert, on the debug save (its flags and its journal set for each scene), each photographed
+ * (unity-starmap-<scene>.png) to lay beside the web's StarMap at 1280 x 720.
+ */
+const starmapScenes = (a) => String(a.starmap ?? '').split(',').filter((k) => STARMAP_SCENES[k]);
+/** A scene's save: the base (past the prologue, the map's first lines heard), its flags; the save's format kept. */
+function starmapFlags(scene) {
+  const keep = Object.fromEntries(['save.migrated', 'res.v'].map((k) => [k, gameState.data.flags[k]]).filter(([, v]) => v !== undefined));
+  gameState.data.flags = { ...keep, ...STARMAP_BASE, 'signature.told': true, 'signature.search.told': true, ...(STARMAP_SCENES[scene]?.flags ?? {}) };
+}
 
 /**
  * -ending first|final (docs/plans/unity-finishable.md): the homecoming played as a player reaches it, on the debug save,
@@ -283,6 +295,14 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     S.settings = settings;
     S.menus = new EngineMenus({ store: slots, settings, version: `v${VERSION}`, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) });
   }
+  const starScenes = starmapScenes(args);
+  if (starScenes.length) {
+    // (the debug save, its journal of worlds seen emptied: the worlds to find are those the route opens, none seen yet)
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
+    starmapFlags(starScenes[0]);
+    args.level = 'desert';
+  }
   const ending = args.ending ? String(args.ending) : null;
   if (ending) {
     slots.setActive(DEBUG_SLOT); gameState.reload();
@@ -290,14 +310,15 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   }
   // (the ship's scenes play only with menus: an -ending run makes its own, never opened)
   // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save)
-  const menus = S.menus ?? (ending ? new EngineMenus({ store: slots })
+  const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
     : args.foes ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
+  if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
   if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
@@ -526,6 +547,13 @@ function makePlan(args) {
     // (docs/systems/performance.md, "The bench's desert start")
     steps.push({ kind: 'wait', frames: 120, secs: 3 }, { kind: 'measure', view: { name: 'spawn' }, secs: args.idle }, { kind: 'hold' });
   }
+  if (starmapScenes(args).length) {
+    steps.push({ kind: 'wait', frames: 240, secs: 5 });
+    for (const scene of starmapScenes(args)) {
+      steps.push({ kind: 'starmap', scene }, { kind: 'wait', frames: 90, secs: STARMAP_SCENES[scene].found ? 2.6 : 1.2 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-starmap-${scene}.png` });
+    }
+  }
   if (args.ending) {
     const n = args.endingShots ?? 40, every = args.endingEvery ?? 5;
     for (let k = 0; k < n; k++) {
@@ -617,7 +645,7 @@ function readInput(game) {
     if (menus && !menus.open) { if (game.photoOn) game.setPhoto?.(false); game.save(); menus.show('start'); }
   }
   for (const [k, down] of keyChanges(held)) {
-    if (!down) { game.key(k, false); continue; }
+    if (!down) { menus?.keyUp?.(k); game.key(k, false); continue; }
     // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
     // closes) and J the game menu, as the page's listeners do
     if (menus?.open) { menus.key(k); continue; }
@@ -710,10 +738,20 @@ export function frame(dt) {
   if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
   else if (step.kind === 'key') {
     // (a menu open, a run's card: its keys, as the player's arrive, readInput)
-    if (S.menus?.open) { if (step.down) S.menus.key(step.code); } else game.key(step.code, step.down);
+    if (S.menus?.open) { if (step.down) S.menus.key(step.code); else S.menus.keyUp?.(step.code); } else game.key(step.code, step.down);
     next();
   }
   else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'starmap') {
+    // (the scene's save, the map opened as the holo table opens it, its moment posed: engine/starmap.js)
+    if (S.menus?.open) S.menus.close();
+    starmapFlags(step.scene);
+    const ok = game.openStarMap?.();
+    if (ok) poseStarMap(game.starMap, step.scene);
+    const v = ok ? game.starMap.view() : null;
+    console.log(`[unity] starmap ${step.scene}: ${ok ? `${v.worlds.length} worlds charted, to find: ${game.starMap.targets.map((t) => t.id).join(' ') || '-'}, picked ${v.panel?.title ?? '-'}${v.ask ? `, ${v.ask.title}` : ''}${v.locked ? ', NO POWER' : ''}` : 'not opened'}`);
+    next();
+  }
   else if (step.kind === 'stage') {
     const c = game.ship?.cinematic, sub = game.screen().state.sub?.text ?? '';
     console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);

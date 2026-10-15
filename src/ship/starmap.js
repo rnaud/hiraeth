@@ -261,6 +261,86 @@ export function scanColour(w) {
   return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(', ')})`;
 }
 
+/** A world's tag under its name on the chart (you are here, new, a signal, a detour…). Shared with the engines' map (engine/starmap.js). */
+export function worldTag(e) {
+  return e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.tower ? TOWER.tag : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new';
+}
+/** The panel's state line for a world (THE SHIP IS HERE, VISITED…). */
+export function worldState(e) {
+  return e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.finale ? (e.done ? '✦ ILEN IS COMING HOME' : 'THE LAST PLACE, OFF EVERY CHART') : e.side ? 'A DETOUR, OFF THE ROUTE' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED';
+}
+/** The panel's line about the relay signal, the tower or the light's trace for a world ('' when none). */
+export function worldRelay(e) {
+  return e.signal === 'trace' ? RELAY_TEXT.trace : e.tower ? TOWER.panel : e.waiting ? 'Ilen is aboard. Home is waiting for both of you.' : e.signal ? RELAY_TEXT.far : e.held ? RELAY_TEXT.held : e.relayFar ? RELAY_TEXT.farUncharted : '';
+}
+/** The line under the chart's title: worlds charted, discoveries, signatures to find, the signal or the tower. */
+export function chartSub(entries = []) {
+  const worlds = entries.filter((e) => !e.home), known = worlds.filter((e) => e.known), done = worlds.filter((e) => e.done).length;
+  const farSig = worlds.find((e) => e.signal && !e.known), toFind = worlds.filter((e) => e.findable).length;
+  return `${known.length} ${known.length === 1 ? 'world' : 'worlds'} charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${toFind ? ` · ${toFind === 1 ? 'a signature' : `${toFind} signatures`} to find` : ''}${worlds.some((e) => e.tower) ? ' · the light went toward the silent tower' : farSig ? ' · a faint signal further along the route' : ''}`;
+}
+/** The world picked as the map opens: the place it points at, else home waiting, the light's trace, the next world… */
+export function firstPick(entries = [], flag = () => undefined) {
+  const cur = entries.findIndex((e) => e.current);
+  const next = entries.findIndex((e, i) => i > cur && e.known && !e.done && !e.home);
+  const any = entries.findIndex((e) => e.known && !e.done && !e.current && !e.home);
+  const withIlen = flag('finale.met') && !flag('ending.final');
+  const home = flag('ending.done') && !withIlen ? -1 : entries.findIndex((e) => e.home && !e.current);   // they are waiting
+  const trace = entries.findIndex((e) => e.finale && e.signal === 'trace' && !e.current);   // the light's trace (src/story/relay.js)
+  const marked = entries.findIndex((e) => e.next && e.known);   // the place the chart points at (nextDestination)
+  return marked >= 0 ? marked : home >= 0 ? home : trace >= 0 ? trace : next >= 0 ? next : any >= 0 ? any : Math.max(0, cur);
+}
+
+/**
+ * What the chart draws on a field of W x H px, as plain data (the page's SVG is made from it, and the engines' map draws
+ * the same: engine/starmap.js, BridgeMenu.cs): the layout (chartLayout), where each entry's disc goes (`pos`, `boxOf`),
+ * the orbits (`kind` next | seen | faint, `belt`), the moons' orbits, the route's segments, the light's trace, the way on
+ * (`p0`, `p1` and its arrowhead's three corners), the faint dots of worlds not known, the worlds to find (`targets`) with
+ * their uncharted regions, the relay's rings, and where the scanner starts (`scanFrom`).
+ */
+export function chartDrawing(entries, W, H) {
+  const worlds = entries.filter((e) => !e.home), home = entries.find((e) => e.home);
+  const L = chartLayout(worlds, W, H);
+  const pos = (e) => (e.home ? L.home : L.pts[e.i]);
+  const boxOf = (e) => (e.home ? L.homeBox : e.moon ? L.moonBox : L.box);
+  const next = entries.find((e) => e.next) ?? null;
+  const orbits = L.orbits.map((o) => {
+    const es = o.ids.map((id) => (id === 'home' ? home : worlds.find((e) => e.id === id))).filter(Boolean);
+    return { r: o.r, kind: next && o.ids.includes(next.id) ? 'next' : es.some((e) => e.visited || e.current) ? 'seen' : 'faint', belt: !!o.belt };
+  });
+  const moons = L.moons.filter((m) => worlds.find((e) => e.id === m.id)?.known).map((m) => ({ x: m.x, y: m.y, r: m.r }));
+  const route = worlds.filter((e) => !e.side), segs = [];
+  if (home && route[0]) segs.push({ a: L.home, b: L.pts[route[0].i], faint: !route[0].known });
+  for (let k = 1; k < route.length; k++) segs.push({ a: L.pts[route[k - 1].i], b: L.pts[route[k].i], faint: !route[k].known || !route[k - 1].known });
+  const fin = worlds.find((e) => e.finale), mk = worlds.find((e) => e.id === FINALE_AFTER);
+  const trace = fin && mk ? { a: L.pts[mk.i], b: L.pts[fin.i] } : null;
+  let wayon = null;
+  const cur = entries.find((e) => e.current);
+  if (next && cur) {
+    const a = pos(cur), b = pos(next), d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (d > 1) {
+      const ux = (b[0] - a[0]) / d, uy = (b[1] - a[1]) / d, ra = boxOf(cur).disc * 0.62, rb = (next.known ? boxOf(next).disc * 0.68 : 10);
+      const p0 = [a[0] + ux * ra, a[1] + uy * ra], p1 = [b[0] - ux * rb, b[1] - uy * rb];
+      wayon = { p0, p1, head: [p1, [p1[0] - ux * 9 - uy * 5, p1[1] - uy * 9 + ux * 5], [p1[0] - ux * 9 + uy * 5, p1[1] - uy * 9 - ux * 5]] };
+    }
+  }
+  const dots = worlds.filter((e) => !e.known && !e.findable).map((e) => ({ x: L.pts[e.i][0], y: L.pts[e.i][1], r: Math.max(3, L.box.disc * 0.07) }));
+  const diag = Math.hypot(W, H);
+  const targets = worlds.filter((e) => e.findable).map((e) => ({ id: e.id, title: e.title, x: L.pts[e.i][0], y: L.pts[e.i][1] }));
+  const regions = targets.map((t) => {
+    const g = regionFor(t.id, t.x, t.y, diag);
+    const cx = Math.min(W - 20, Math.max(20, g.cx)), cy = Math.min(H - 20, Math.max(HEADER, g.cy));
+    return { id: t.id, cx, cy, r: g.r, tagY: cy - g.r - 6 < HEADER ? cy + g.r + 14 : cy - g.r - 6 };
+  });
+  const here = cur ? pos(cur) : null;
+  const scanFrom = scanStart({ targets, box: [20, HEADER, W - 20, H - 20], diag, disc: L.box.disc, prefer: here ? [here] : [] });
+  const relays = worlds.filter((e) => !e.known && (e.signal || e.tower)).map((e) => {
+    const [x, y] = L.pts[e.i], r = Math.max(9, L.box.disc * 0.26), below = y + r + 13 < H - 4;
+    return { x, y, r, dot: Math.max(3, L.box.disc * 0.07), tag: e.tower ? TOWER.tag : RELAY_TEXT.tag, tagY: below ? y + r + 13 : y - r - 6, next: !!e.next, nextY: below ? y - r - 6 : y + r + 13 };
+  });
+  return { L, W, H, diag, pos, boxOf, orbits, moons, segs, trace, wayon, dots, targets, regions, scanFrom, relays };
+}
+
 export class StarMap {
   /** @param o { order, levels, flag(), journal, current, powered(), home(), onTravel(id) } */
   constructor(o) {
@@ -318,20 +398,17 @@ export class StarMap {
     const touch = document.body.classList.contains('touch');
     const pad = [...(navigator.getGamepads?.() ?? [])].some(Boolean);
     this.hints = pad ? 'pad' : touch ? 'touch' : 'keys';
-    const worlds = this.entries.filter((e) => !e.home), known = worlds.filter((e) => e.known);
-    const done = worlds.filter((e) => e.done).length;
-    const farSig = worlds.find((e) => e.signal && !e.known);
-    const toFind = worlds.filter((e) => e.findable).length, searching = toFind > 0 && !!o.powered?.();
+    const toFind = this.entries.filter((e) => e.findable).length, searching = toFind > 0 && !!o.powered?.();
     this.el.classList.toggle('searching', searching);
     this.el.innerHTML = `<div class="chart">
       <div class="field">
         <svg class="route"></svg>
-        <h1>GALACTIC MAP</h1><div class="sub">${known.length} ${known.length === 1 ? "world" : "worlds"} charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${toFind ? ` · ${toFind === 1 ? 'a signature' : `${toFind} signatures`} to find` : ''}${worlds.some((e) => e.tower) ? ' · the light went toward the silent tower' : farSig ? ' · a faint signal further along the route' : ''}</div>
+        <h1>GALACTIC MAP</h1><div class="sub">${chartSub(this.entries)}</div>
         <div class="scanner" aria-hidden="true"><span class="ping"></span><span class="ping"></span><span class="ping"></span></div>
         <div class="meter" role="status" aria-live="polite">SIGNAL <i></i><i></i><i></i><i></i><i></i> <b>silent</b></div>
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}${e.next ? ' next' : ''}${e.moon ? ' moon' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}${e.next ? '<span class="pennant">NEXT</span>' : ''}</span>
-            <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.tower ? TOWER.tag : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
+            <span class="name">${e.title}</span><span class="tag">${worldTag(e)}</span></button>` : '').join('')}
         <button class="close">${glyph('back', { key: 'Esc' })}close ✕</button>
       </div>
       <div class="side">
@@ -399,78 +476,54 @@ export class StarMap {
     const field = this.el.querySelector('.field');
     if (!field) return;
     const W = field.clientWidth, H = field.clientHeight;
-    const worlds = this.entries.filter((e) => !e.home), home = this.entries.find((e) => e.home);
-    const L = (this.layout = chartLayout(worlds, W, H));
-    const pos = (e) => (e.home ? L.home : L.pts[e.i]);
-    const boxOf = (e) => (e.home ? L.homeBox : e.moon ? L.moonBox : L.box);
+    const D = chartDrawing(this.entries, W, H), L = (this.layout = D.L);
     for (const b of field.querySelectorAll('button.world')) {
-      const e = this.entries[+b.dataset.i], bx = boxOf(e), [x, y] = pos(e);
+      const e = this.entries[+b.dataset.i], bx = D.boxOf(e), [x, y] = D.pos(e);
       Object.assign(b.style, { left: `${x}px`, top: `${y - bx.disc / 2}px`, width: `${bx.w}px`, fontSize: `${bx.font}px` });
       Object.assign(b.querySelector('.disc').style, { width: `${bx.disc}px`, height: `${bx.disc}px` });
     }
     const f1 = (v) => v.toFixed(1);
     const seg = (a, b, faint) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="${faint ? 'rgba(247,236,210,.22)' : '#e6875f'}" stroke-width="${faint ? 1.2 : 1.6}" stroke-dasharray="${faint ? '2 7' : '4 5'}"/>`;
-    const S = L.star, next = this.entries.find((e) => e.next) ?? null;
+    const S = L.star;
     let svg = '';
     // the orbits round the star: each world's own, firmer once you have been there; the next place's dashed gold
-    const orbitOf = new Map();
-    for (const o of L.orbits) for (const id of o.ids) orbitOf.set(id, o);
-    for (const o of L.orbits) {
-      const es = o.ids.map((id) => (id === 'home' ? home : worlds.find((e) => e.id === id))).filter(Boolean);
-      const isNext = !!next && o.ids.includes(next.id), seen = es.some((e) => e.visited || e.current);
-      svg += `<circle cx="${f1(S.x)}" cy="${f1(S.y)}" r="${f1(o.r)}" fill="none" stroke="${isNext ? 'rgba(242,197,75,.7)' : seen ? 'rgba(247,236,210,.3)' : 'rgba(247,236,210,.12)'}" stroke-width="${isNext ? 1.4 : 1}"${isNext ? ' stroke-dasharray="6 5"' : o.belt ? ' stroke-dasharray="1 6"' : ''}/>`;
+    for (const o of D.orbits) {
+      const isNext = o.kind === 'next';
+      svg += `<circle cx="${f1(S.x)}" cy="${f1(S.y)}" r="${f1(o.r)}" fill="none" stroke="${isNext ? 'rgba(242,197,75,.7)' : o.kind === 'seen' ? 'rgba(247,236,210,.3)' : 'rgba(247,236,210,.12)'}" stroke-width="${isNext ? 1.4 : 1}"${isNext ? ' stroke-dasharray="6 5"' : o.belt ? ' stroke-dasharray="1 6"' : ''}/>`;
     }
     // the moons' own small orbits round their worlds
-    for (const m of L.moons) if (worlds.find((e) => e.id === m.id)?.known) svg += `<circle cx="${f1(m.x)}" cy="${f1(m.y)}" r="${f1(m.r)}" fill="none" stroke="rgba(247,236,210,.2)" stroke-width="1" stroke-dasharray="2 4"/>`;
+    for (const m of D.moons) svg += `<circle cx="${f1(m.x)}" cy="${f1(m.y)}" r="${f1(m.r)}" fill="none" stroke="rgba(247,236,210,.2)" stroke-width="1" stroke-dasharray="2 4"/>`;
     // the chart's edge: past it, the Lantern ("off every chart")
     svg += `<circle cx="${f1(S.x)}" cy="${f1(S.y)}" r="${f1(L.edge)}" fill="none" stroke="rgba(205,180,255,.35)" stroke-width="1.2" stroke-dasharray="1 3 6 3"/>`;
     svg += starSvg(S);
     // the route, orbit to orbit: from home by the star out to the market (a moon's world and its moon in turn)
-    const route = worlds.filter((e) => !e.side);
-    if (home && route[0]) svg += seg(L.home, L.pts[route[0].i], !route[0].known);
-    for (let k = 1; k < route.length; k++) svg += seg(L.pts[route[k - 1].i], L.pts[route[k].i], !route[k].known || !route[k - 1].known);
+    for (const g of D.segs) svg += seg(g.a, g.b, g.faint);
     // the light's trace: a dotted line from the market out to the Lantern
-    const fin = worlds.find((e) => e.finale), mk = worlds.find((e) => e.id === FINALE_AFTER);
-    if (fin && mk) svg += `<line x1="${f1(L.pts[mk.i][0])}" y1="${f1(L.pts[mk.i][1])}" x2="${f1(L.pts[fin.i][0])}" y2="${f1(L.pts[fin.i][1])}" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="1 5"/>`;
+    if (D.trace) svg += `<line x1="${f1(D.trace.a[0])}" y1="${f1(D.trace.a[1])}" x2="${f1(D.trace.b[0])}" y2="${f1(D.trace.b[1])}" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="1 5"/>`;
     // the way on: from the ship's world to the next place, gold, with an arrowhead short of its disc
-    const cur = this.entries.find((e) => e.current);
-    if (next && cur) {
-      const a = pos(cur), b = pos(next), d = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (d > 1) {
-        const ux = (b[0] - a[0]) / d, uy = (b[1] - a[1]) / d, ra = boxOf(cur).disc * 0.62, rb = (next.known ? boxOf(next).disc * 0.68 : 10);
-        const p0 = [a[0] + ux * ra, a[1] + uy * ra], p1 = [b[0] - ux * rb, b[1] - uy * rb];
-        svg += `<line class="wayon" x1="${f1(p0[0])}" y1="${f1(p0[1])}" x2="${f1(p1[0])}" y2="${f1(p1[1])}"/>`
-          + `<path class="wayon-head" d="M${f1(p1[0])} ${f1(p1[1])}L${f1(p1[0] - ux * 9 - uy * 5)} ${f1(p1[1] - uy * 9 + ux * 5)}L${f1(p1[0] - ux * 9 + uy * 5)} ${f1(p1[1] - uy * 9 - ux * 5)}Z"/>`;
-      }
+    if (D.wayon) {
+      const { p0, p1, head: [, l, r] } = D.wayon;
+      svg += `<line class="wayon" x1="${f1(p0[0])}" y1="${f1(p0[1])}" x2="${f1(p1[0])}" y2="${f1(p1[1])}"/>`
+        + `<path class="wayon-head" d="M${f1(p1[0])} ${f1(p1[1])}L${f1(l[0])} ${f1(l[1])}L${f1(r[0])} ${f1(r[1])}Z"/>`;
     }
     // the worlds not known yet: faint dots, no names
-    for (const e of worlds) if (!e.known && !e.findable) svg += `<circle cx="${f1(L.pts[e.i][0])}" cy="${f1(L.pts[e.i][1])}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
+    for (const d of D.dots) svg += `<circle cx="${f1(d.x)}" cy="${f1(d.y)}" r="${d.r}" fill="rgba(247,236,210,.3)"/>`;
     // the worlds to find (the signature search): an uncharted region somewhere round each, never centred on it
-    const diag = Math.hypot(W, H);
-    this.diag = diag;
-    this.targets = worlds.filter((e) => e.findable).map((e) => ({ id: e.id, title: e.title, x: L.pts[e.i][0], y: L.pts[e.i][1] }));
+    this.diag = D.diag;
+    this.targets = D.targets;
     if (this.targets.length) {
       svg += `<defs><pattern id="sm-static" width="9" height="7" patternUnits="userSpaceOnUse"><rect width="9" height="7" fill="rgba(205,180,255,.06)"/><path d="M0 2h3M5 5h3M2 6h1M7 1h1" stroke="rgba(233,220,255,.28)" stroke-width="1"/></pattern></defs>`;
-      for (const t of this.targets) {
-        const g = regionFor(t.id, t.x, t.y, diag);
-        const cx = Math.min(W - 20, Math.max(20, g.cx)), cy = Math.min(H - 20, Math.max(HEADER, g.cy));
-        svg += `<circle class="uncharted" cx="${cx}" cy="${cy}" r="${g.r}"/><text class="uncharted-tag" x="${cx}" y="${cy - g.r - 6 < HEADER ? cy + g.r + 14 : cy - g.r - 6}" text-anchor="middle">UNCHARTED</text>`;
-      }
+      for (const g of D.regions) svg += `<circle class="uncharted" cx="${g.cx}" cy="${g.cy}" r="${g.r}"/><text class="uncharted-tag" x="${g.cx}" y="${g.tagY}" text-anchor="middle">UNCHARTED</text>`;
     }
     // (the scanner starts by the ship's own world, never over a hidden one: issue #204)
-    if (!this.scan || this.scan[0] > W || this.scan[1] > H) {
-      const here = this.entries.find((e) => e.current), at = here ? pos(here) : null;
-      this.scan = scanStart({ targets: this.targets, box: [20, HEADER, W - 20, H - 20], diag, disc: L.box.disc, prefer: at ? [at] : [] });
-    }
+    if (!this.scan || this.scan[0] > W || this.scan[1] > H) this.scan = D.scanFrom;
     this.drawScanner();
     // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js); the
     // silent tower once it is the goal, NEXT over it
-    for (const e of worlds) if (!e.known && (e.signal || e.tower)) {
-      const [x, y] = L.pts[e.i], r = Math.max(9, L.box.disc * 0.26);
-      const below = y + r + 13 < H - 4;
-      svg += `<circle class="relay" cx="${f1(x)}" cy="${f1(y)}" r="${r}"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${Math.max(3, L.box.disc * 0.07)}" fill="#f2c54b"/>`
-        + `<text class="relay-tag" x="${f1(x)}" y="${f1(below ? y + r + 13 : y - r - 6)}" text-anchor="middle">${e.tower ? TOWER.tag : RELAY_TEXT.tag}</text>`
-        + (e.next ? `<text class="next-tag" x="${f1(x)}" y="${f1(below ? y - r - 6 : y + r + 13)}" text-anchor="middle">NEXT</text>` : '');
+    for (const g of D.relays) {
+      svg += `<circle class="relay" cx="${f1(g.x)}" cy="${f1(g.y)}" r="${g.r}"/><circle cx="${f1(g.x)}" cy="${f1(g.y)}" r="${g.dot}" fill="#f2c54b"/>`
+        + `<text class="relay-tag" x="${f1(g.x)}" y="${f1(g.tagY)}" text-anchor="middle">${g.tag}</text>`
+        + (g.next ? `<text class="next-tag" x="${f1(g.x)}" y="${f1(g.nextY)}" text-anchor="middle">NEXT</text>` : '');
     }
     const svgEl = field.querySelector('svg.route');
     svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
@@ -485,9 +538,9 @@ export class StarMap {
     const p = this.el.querySelector('.panel');
     const sig = signatureReading(e.id, { visited: e.visited });
     p.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h2>${e.title}</h2><div class="src">${e.source}</div><p>${e.blurb}</p>
-      ${e.signal === 'trace' ? `<p class="relay">${RELAY_TEXT.trace}</p>` : e.tower ? `<p class="relay">${TOWER.panel}</p>` : e.waiting ? '<p class="relay">Ilen is aboard. Home is waiting for both of you.</p>' : e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
+      ${worldRelay(e) ? `<p class="relay">${worldRelay(e)}</p>` : ''}
       ${sig ? `<div class="sigline">${SIG_GLYPH}<span>SIGNATURE · ${sig}</span></div>` : ''}
-      <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.finale ? (e.done ? '✦ ILEN IS COMING HOME' : 'THE LAST PLACE, OFF EVERY CHART') : e.side ? 'A DETOUR, OFF THE ROUTE' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
+      <div class="state">${worldState(e)}</div>
       <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : `${glyph('ok')}Travel ▶`}</button>`;
     p.querySelector('.go').addEventListener('click', () => this.go());
   }
@@ -544,14 +597,7 @@ export class StarMap {
     if (on) {
       this.render();
       this.place();
-      const cur = this.entries.findIndex((e) => e.current);
-      const next = this.entries.findIndex((e, i) => i > cur && e.known && !e.done && !e.home);
-      const any = this.entries.findIndex((e) => e.known && !e.done && !e.current && !e.home);
-      const F = this.o.flag ?? (() => undefined), withIlen = F('finale.met') && !F('ending.final');
-      const home = F('ending.done') && !withIlen ? -1 : this.entries.findIndex((e) => e.home && !e.current);   // they are waiting
-      const trace = this.entries.findIndex((e) => e.finale && e.signal === 'trace' && !e.current);   // the light's trace (src/story/relay.js)
-      const marked = this.entries.findIndex((e) => e.next && e.known);   // the place the chart points at (nextDestination)
-      this.select(marked >= 0 ? marked : home >= 0 ? home : trace >= 0 ? trace : next >= 0 ? next : any >= 0 ? any : Math.max(0, cur));
+      this.select(firstPick(this.entries, this.o.flag ?? (() => undefined)));
       document.exitPointerLock?.();
     }
   }

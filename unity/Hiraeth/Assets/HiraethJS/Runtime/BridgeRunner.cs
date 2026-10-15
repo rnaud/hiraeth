@@ -117,7 +117,13 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Flag("-no-srp-batcher")) GraphicsSettings.useScriptableRenderPipelineBatching = false;
             cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = Color.black;
             cam.allowMSAA = false; cam.allowHDR = false;
-            var extra = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
+            // (-frames 1280x720: in the editor, every frame drawn at that size, not the batch editor's 640 x 480 game view, so the
+            // canvases are laid out as the shots draw them: the galactic map's chart, whose field the script lays out for the
+            // menus' width, -starmap; Shot then draws the same picture)
+            if (Application.isEditor && (BridgeArgs.Arg("-frames") ?? (BridgeArgs.Arg("-starmap") != null ? "1280x720" : null)) is string fr
+                && fr.Split('x') is var fwh && fwh.Length == 2 && int.TryParse(fwh[0], out int fw) && int.TryParse(fwh[1], out int fh))
+                cam.targetTexture = new RenderTexture(fw, fh, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { name = "frames" };
+            var extra =cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
             extra.renderPostProcessing = false; extra.renderShadows = !BridgeArgs.Flag("-no-urp-shadows");
             RenderSettings.skybox = null; RenderSettings.ambientMode = AmbientMode.Flat;
             look = gameObject.AddComponent<HiraethLook>();

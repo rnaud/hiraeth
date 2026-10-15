@@ -25,7 +25,7 @@ flight home is the **final homecoming**: the end card and the credits, then `end
 | 3 | The desert's main quest: Nour, the channel, the tank, the shrine, the hoverbike, the hearth, the tree lit | works (read) | src/story/desert.js: conversations, interactables, fluid targets, all inside createStory. The fluid tool was handed to the story as `null` (the drum's push and the tank's moment lost it): **fixed**, now made before the story |
 | 4 | The desert's leave gate: blade and guard from the Rose House (its arena) | works | leave-gate.js; the arena's foes since c5f1e5a92 (without them it lit by itself, runtime.js:255) |
 | 5 | Powering the ship, the first flight (take-off, warp, arrival) | works | VM: engine-ship.test.js (`ship.travel('arzach')`, the warp, `onTravel`) |
-| 6 | **Choosing a world never visited** at the holo table | **was missing, fixed** | The holo table opened the Worlds page, whose Travel here only went to worlds already visited (src/fast-travel.js `seen`). Nothing else reached a new world, so the route stopped at the desert. Now, aboard, the Worlds page lists the chart's worlds (`mapEntries`, engine/chart.js) and flies to any of them. A world waiting for its signature search is found as it is chosen (`map.found.<id>`, the ship's "Signature locked" line). VM: engine-finishable.test.js (Vael from the desert) |
+| 6 | **Choosing a world never visited** at the holo table | **was missing, fixed** | The holo table opened the Worlds page, whose Travel here only went to worlds already visited (src/fast-travel.js `seen`). Nothing else reached a new world, so the route stopped at the desert. First the Worlds page listed the chart's worlds and found one waiting for its signature as it was chosen; now the holo table opens the galactic map itself, the page's StarMap with its signature search (engine/starmap.js, BridgeMenu.StarMap.cs; engine-bridge.md "The galactic map"), and the Worlds page is fast travel again, as on the web. **Unity**: `-starmap …`, below; VM: engine-finishable.test.js (Vael swept for, found and flown to from the desert) |
 | 7 | Vael: the tower on the glider, the flute, the bird; the Aerie's wings | works (read) | src/story/arzach.js; the bird is Vael's own mount |
 | 8 | Lorn (and Lorn II's pools and skiff) | works (read) | perdide.js: splashes (the rain path wants `globalThis.weather`, main.js only, but the splash does it). The skiff's spot (`mountAt`) was not passed to the player: **fixed** |
 | 9 | Viridel: the off-map cabin | works | portals since 6a1ce648b (`-through`) |
@@ -44,6 +44,14 @@ flight home is the **final homecoming**: the end card and the credits, then `end
 | 22 | The Overnight Train (the market's halt, its bell) | **was a soft-lock, fixed** | Off the critical path. night-train.js travels by `location.search`, a stand-in in the engines, so the screen stayed black under its fade. Now `travel:page` restarts the engine there at the level's arrival (`from`). VM (the hand-over); the restart's arrival not run in Unity |
 
 ### The Unity runs
+
+`-starmap search,warm,found,system,ask,nopower,home` (engine/starmap.js STARMAP_SCENES) opens the holo table's galactic map
+aboard in the desert on the debug save, one scene after another, each photographed (`unity-starmap-<scene>.png`) to lay
+beside the web's StarMap at 1280 × 720:
+
+```sh
+scripts/unity-js-run.sh starmap -starmap search,warm,found,system,ask,nopower,home -out <dir>
+```
 
 `-ending first|final` (new: engine/unity/game.js, BridgeArgs.cs) plays a homecoming on the **debug save**, with the
 ship's scenes on. Pictures come every `-ending-every` seconds, and the stage and its subtitle are logged:
@@ -67,11 +75,11 @@ scripts/unity-js-run.sh ending-final -ending final -ending-every 5 -out <dir>
 
 | blocker | size | notes |
 |---|---|---|
-| **The signature search** is skipped | M | In Unity a findable world is found by choosing it. On the web it is a small search on the StarMap. A Unity StarMap (the chart, its scanner, the cue's rumble) belongs in BridgeMenu |
-| **The galactic map's own page** (the system, the NEXT pennant, the relay's signal, the tower's line) | M | Unity has the Worlds page's cards. The charge card and the Quests page still say where to go |
+| ~~The signature search~~ | done | The StarMap's search in BridgeMenu: the uncharted regions, the scanner (left stick, W A S D), its cues (warmth, beat, rumble, the light's notes), the meter, the resolve. engine/starmap.js |
+| ~~The galactic map's own page~~ | done | The system, the way on and its NEXT pennant, the relay's signal, the tower's tag, the Lantern's trace, Home, the panel, "Travel to …?", NO POWER: the page's model (`chartDrawing`) drawn by BridgeMenu.StarMap.cs |
 | The night train's arrival in Unity | S | The hand-over is tested in the VM, but the restart at `level.arrivals[from]` has not been run in Unity yet |
 | `isNight` for the story (the cranes' dusk run, the market tower at night) | done | now reads the engine's hour |
-| `travel:refused` → the gadget's quest started (main.js:805) | S | not listened to in the engines: after a refusal, the quest log shows no lead (the quests also start from conversations) |
+| ~~`travel:refused` → the gadget's quest started~~ | done | engine/game.js listens as main.js:805 does (the ship's refusal at the map, the Worlds page's) |
 | The bird and the bike in other worlds (`birdAnswers`, `bikeComes`, main.js:399–403) | S | main.js only; no main quest needs them |
 | The rain path of Lorn's singing (`globalThis.weather`) | XS | the splash path works |
 | The "end of the road" page (every story and relic) | S | main.js's own page, not the ending; Home is reached without it |

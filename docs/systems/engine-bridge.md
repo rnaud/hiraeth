@@ -302,15 +302,46 @@ numbers stay comparable) engine/game.js attaches the ship as main.js does (`ship
 `input` before the traveller's (the ramp walked into takes you aboard on its autopilot, E aboard is the ship's),
 its `update` after the rig (a scene's shot replaces the rig's camera), `hud()` in the cue ("E voicemail", "E galactic
 map", "E step outside"), its `busy()` in the world's. So the rooms, the hold and the console are reached: the
-voicemail plays a waiting recording (CallDirector) or says "No new messages."; the holo table's galactic map, a page
-of its own on the web (StarMap), opens the game menu's Worlds page here (without power the ship only says the map is
-dark); its Travel here is the ship's own (`ship.travel`: the take-off, then `go(to)`, which the web does with
+voicemail plays a waiting recording (CallDirector) or says "No new messages."; the holo table opens the galactic map,
+the menus' own here (below, "The galactic map"); its travel is the ship's own (`ship.travel`: the take-off, then `go(to)`, which the web does with
 `location.search`: the engine starts again at that world's landing, `boot.via` 'ship', and plays the arrival,
 ArrivalDirector). The ship's cinema (src/ship/cinema.js) has no page here (`cinema.dom` false): what it would draw
 is the screen's state as well, `cine` (the letterbox, the eyes' opening, the fade, the red wash, the hint,
 hold-to-skip, the HUD hidden but for the cue in a scene you walk through) and `sub` (the speaker's tag and the
 line; src/platform.js), and BridgeHud.cs draws them over the HUD as the page's #cine (`DrawCine`). Esc held skips a
 scene (it no longer opens the Start menu while one plays), as does B / ○ on the pad; Menu still pauses it.
+
+**The galactic map** (issue #264; engine/starmap.js, BridgeMenu.StarMap.cs). On the web the holo table opens the StarMap
+(src/ship/starmap.js), a page of its own: the system round one star, the worlds on their orbits, the way on in gold with
+its NEXT pennant, the relay's faint signal, the panel beside it, "Travel to …?" asked first, NO POWER without power, and the
+**signature search** (src/story/signature-search.js): a world the route has just opened is not named yet, an uncharted
+region is drawn somewhere round it and a scanner swept over the chart warms, quickens and sings nearer it (the pad
+rumbling the signature's three pulses); held over it half a second, the planet resolves and is charted (`map.found.<id>`,
+the ship's "Signature locked"). Until now the engines opened the game menu's Worlds page instead, which found a world as it
+was chosen (engine/chart.js, gone). Now `EngineStarMap` keeps the page's model without its page, from the options the ship
+gave its own StarMap in `attach` (`ship.map.o`): the entries (`mapEntries`), the drawing (`chartDrawing`, split out of the
+page's `place()` so both draw the same: the orbits and their kind, the moons' orbits, the route's segments, the light's
+trace, the way on and its arrowhead, the faint dots, the uncharted regions, the relay's rings, the scanner's start), the
+pick as it opens (`firstPick`), the panel's words (`worldTag`, `worldState`, `worldRelay`, `chartSub`), the search's step
+each frame (`searchStep`, `cues`, `wander`, the beat's rumble and the light's notes) and the resolve's second. The field is
+laid out at the size the page's CSS gives it on the menus' canvas (`chartBox`: 900 × 648 beside a 300 px side at 1280 ×
+720, 673 × 648 on the Retroid's 4:3). EngineMenus' mode `starmap` hands it the pad and keys as the page's listeners do: the
+D-pad or the arrows a world, the left stick (the controller's `menuAnalog`, taken only while there is something to find)
+or W A S D held the scanner (`keyUp` lets go), A / × or Enter travel and answer, B / ○ or Esc no, then close; the first
+time with a world to find, the ship's SEARCH_LINE. The Worlds page is fast travel again (worlds visited), as on the web.
+The view (`kind: 'starmap'`) is the chart in field px; its `cv` moves only when the chart does, so while the scanner moves
+BridgeMenu redraws only it, the meter and a resolving planet (`StarScanner`), and runs the page's animations from Unity's
+clock (`StarAnimate`: the way on's dashes, the relay's pulse, the scanner's pings). The planets, the star and the
+signature's glyph are the page's own SVGs made PNGs by the bundle (`unityStarmap`: StreamingAssets/hiraeth-js/starmap,
+not committed); the uncharted regions' static is the page's 9 × 7 pattern baked into one picture of the field. The page
+blends in sRGB, the canvas in linear light, where a faint line on the night blue reads much brighter: the chart's faint
+alphas go in as a^1.8. `-starmap search,warm,found,system,ask,nopower,home -out dir` photographs each scene
+(engine/starmap.js STARMAP_SCENES: aboard in the desert on the debug save, its flags and journal set; `poseStarMap`), in the
+editor at 1280 × 720 every frame (`-frames`, the canvases laid out as the shots draw them), to lay beside the web's
+StarMap at the same size. Tests: tests/engine-starmap.test.js, tests/engine-finishable.test.js (Vael found on the chart and
+flown to from the holo table). Seen beside the web's: the system, the regions, the scanner, the panel, the question and
+NO POWER match; the web shows the signature's mark as an empty key cap (the makers' mark SVG carries `class="glyph"`,
+which src/pad-glyphs.js styles as a pad glyph), the engine the mark itself.
 
 **The rooms side by side** (issue #264). `createGame({ aboard })` starts him in a room of the parked ship as the web's
 `?aboard=cockpit|main|cabin|hold` does (main.js; `ship.roomSpot`), and `game.goAboard(room)` moves him there later

@@ -13,7 +13,7 @@ namespace Hiraeth.Bridge
     /// in the HUD's paper and ink (Ui.cs, BridgeHud): a paper sheet over the world dimmed, the entries in ink, the one the
     /// pad is on in full ink on a cream band with a red mark and line, the buttons' prompts at the foot.
     /// </summary>
-    public class BridgeMenu : MonoBehaviour
+    public partial class BridgeMenu : MonoBehaviour
     {
         public Camera cam;
         RectTransform root;
@@ -306,6 +306,11 @@ namespace Hiraeth.Bridge
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
             bool open = state != null;
             if (root.gameObject.activeSelf != open) root.gameObject.SetActive(open);
+            bool star = open && state.S("kind") == "starmap" && smRoot && smRoot.gameObject.activeSelf;
+            // (the galactic map: only its scanner, its meter and a resolving planet moved, the chart as it was; its
+            // animations every frame)
+            if (star && dirty && Mathf.Approximately(state.F("cv"), smCv)) { dirty = false; smView = state; StarScanner(); }
+            if (star) StarAnimate();
             if (!open || !dirty) return;
             dirty = false;
             Draw();
@@ -324,7 +329,8 @@ namespace Hiraeth.Bridge
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
-            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else DrawGame();
+            if (smRoot && kind != "starmap") { Show(smRoot, false); smView = null; smCv = -1; }
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else if (kind == "starmap") DrawStarMap(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);

@@ -151,7 +151,7 @@ export class EngineMenus {
    */
   constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '' } = {}) {
     Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine });
-    this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card'
+    this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card' | 'starmap'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
     this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
@@ -187,7 +187,42 @@ export class EngineMenus {
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
     this.changed();
   }
-  close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.card = null; this.foes = null; this.changed(); this.onResume(); }
+  close() {
+    if (!this.mode) return;
+    this.stopRebind?.();
+    if (this.mode === 'shop') this.shop?.panel?.close?.();
+    const star = this.mode === 'starmap' ? this.star : null;
+    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null;
+    star?.close();
+    this.changed(); this.onResume();
+  }
+
+  // ------------------------------------------------------------------ the galactic map
+
+  /**
+   * The holo table's galactic map (engine/starmap.js EngineStarMap: the web's StarMap and its signature search): its
+   * world chosen with the D-pad (or the arrows), the scanner moved by the left stick (or W A S D), A / × travel (asked
+   * first), B / ○ no, then close. Its view is the map's own (kind 'starmap').
+   */
+  openStarMap(map) {
+    if (!map) return false;
+    this.star = map;
+    map.onClose = () => { if (this.mode === 'starmap') { this.star = null; this.mode = null; this.changed(); this.onResume(); } };
+    map.open();
+    this.mode = 'starmap';
+    this.starV = map.cv;
+    this.changed();
+    return true;
+  }
+  /** Each frame with the map open: the search (the stick the controller handed over this frame, W A S D held). */
+  starFrame(dt) {
+    if (this.mode !== 'starmap' || !this.star) return;
+    const moved = this.star.update(dt, this.starStick);
+    this.starStick = null;
+    if (moved || this.star.cv !== this.starV) { this.starV = this.star.cv; this.changed(); }
+  }
+  /** A key let go (W A S D held for the search). */
+  keyUp(code) { if (this.mode === 'starmap') this.star?.keyUp(code); }
 
   // ------------------------------------------------------------------ a game's card
 
@@ -385,6 +420,7 @@ export class EngineMenus {
     else if (this.mode === 'shop') this.shopAction(name);
     else if (this.mode === 'card') this.cardAction(name);
     else if (this.mode === 'foes') this.foesAction(name);
+    else if (this.mode === 'starmap') this.star?.action(name);
     else this.gameAction(name);
     this.changed();
   }
@@ -396,6 +432,7 @@ export class EngineMenus {
     else if (this.mode === 'shop') this.shopMove(x, y);
     else if (this.mode === 'card') this.cardMove(x, y);
     else if (this.mode === 'foes') this.foesMove(x, y);
+    else if (this.mode === 'starmap') this.star?.navigate(x, y);
     else this.gameMove(x, y);
     this.changed();
   }
@@ -405,6 +442,7 @@ export class EngineMenus {
     // (a pad's button awaited; a key awaited is the page's before it comes here: src/remap.js captureKey, engine/unity/game.js)
     if (this.rebinding) { if (code === 'Escape' || code === 'Backspace') this.stopRebind?.(); return true; }
     if (this.mode === 'card' && this.cardKey(code)) { this.changed(); return true; }
+    if (this.mode === 'starmap') { const took = !!this.star?.key(code); this.changed(); return took; }
     const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] }[code];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
@@ -701,6 +739,8 @@ export class EngineMenus {
    * the Map took them (the controller then leaves the stick's steps to the D-pad).
    */
   analog({ x = 0, y = 0, lt = 0, rt = 0 } = {}, dt = 1 / 60) {
+    // (the galactic map: while there is a world to find, the stick moves the scanner, the D-pad chooses a world)
+    if (this.mode === 'starmap') { this.starStick = [x, y]; return !!this.star?.searching() && !this.star.asking; }
     if (!this.onMap) return false;
     const V = this.mapView, k = (rt > 0.08 ? rt : 0) - (lt > 0.08 ? lt : 0);
     if (x || y) V.stick(x, y, dt);
@@ -788,7 +828,7 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.mode === 'starmap' ? { v: this.v, hint: '', ...this.star.view() } : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
     v.hint = menuKeys(v.hint);

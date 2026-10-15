@@ -204,6 +204,8 @@ namespace Hiraeth.Bridge
             // (-ending first|final: the homecoming played on the debug save, its pictures every -ending-every secs: engine/unity/game.js)
             if (Arg("-ending") != null) args["ending"] = Arg("-ending");
             if (Arg("-ending-every") != null) args["endingEvery"] = double.Parse(Arg("-ending-every"), CultureInfo.InvariantCulture);
+            // (-starmap search,warm,found,system,ask,nopower: the holo table's galactic map aboard, each scene photographed: engine/starmap.js)
+            if (Arg("-starmap") != null) args["starmap"] = Arg("-starmap");
             // (-hull-spawn: a plan's traveller on the spot the ship covers, as the plans started before issue #254 moved
             // the desert's spawn to the ramp's foot: to compare with numbers taken then, issue #265)
             if (Flag("-hull-spawn")) args["hullSpawn"] = true;

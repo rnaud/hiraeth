@@ -72,6 +72,10 @@ gameState.on('travel:page', ({ href } = {}) => {
   const q = String(href ?? ''), to = /[?&]level=([\w-]+)/.exec(q)?.[1], from = /[?&]from=([\w-]+)/.exec(q)?.[1] ?? null;
   if (to && pageGo) setTimeout(() => pageGo?.({ level: to, from }), 900);
 });
+// The ship won't leave without the world's core gadgets (src/story/leave-gate.js, issue #217): the quest that leads to them
+// starts, if it hadn't, so the quest log shows the way (main.js; docs/plans/unity-finishable.md). The game that runs now's.
+let refusedQuests = null;
+gameState.on('travel:refused', ({ quest } = {}) => { const Q = refusedQuests?.(); if (quest && Q && !Q.isStarted?.(quest)) Q.start?.(quest); });
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -90,14 +94,13 @@ import { GIVERS_NOTE } from '../src/story/signature.js';
 import { rumblePlay } from '../src/rumble.js';
 import { items as gear, ITEMS } from '../src/items.js';
 import { chargeState } from '../src/story/charge.js';
-import { ORDER, TITLES, CHARTED_SIDE } from '../src/levels/names.js';
+import { ORDER, TITLES } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud } from '../src/hud.js';
 import { toastSeconds, Story, Relics } from '../src/quest.js';
-import { mapEntries } from '../src/ship/starmap.js';
-import { chartTravel, chartWorlds } from './chart.js';
-import { homecomingKind, HOME_ID, FINALE_ID } from '../src/story/ending.js';
-import { routeChart, foundFlag, foundLine, findableNote } from '../src/story/signature-search.js';
+import { EngineStarMap } from './starmap.js';
+import { homecomingKind, HOME_ID } from '../src/story/ending.js';
+import { routeChart, findableNote, SEARCH_LINE } from '../src/story/signature-search.js';
 import { knownWorlds, newlyKnown } from '../src/story/route.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
@@ -546,7 +549,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
 
   // the ship attached, as main.js attaches it, when the engine is played (its menus; not a bench's plan): walking up the
   // ramp takes you aboard, E at the console plays the voicemail (CallDirector), at the holo table the galactic map (the
-  // game menu's Worlds page here), and its scenes play: the prologue, the take-off, the arrival (issue #264). Its
+  // menus' own here, engine/starmap.js), and its scenes play: the prologue, the take-off, the arrival (issue #264). Its
   // cinema draws nothing of its own (no page): its letterbox, fades and subtitles are the screen's 'cine' and 'sub'
   // (src/platform.js), which the engine's HUD draws (BridgeHud.cs). Travel ends in `onTravel(to)`: the engine
   // starts again at that world's landing (the page goes to ?level=<to>&via=ship).
@@ -554,15 +557,25 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const shipOn = !!((menus || scenes) && ship && story && !flags && !view && !gameDef);   // (not on a game's page: the runner keeps the ship out of the picture)
   pageGo = menus && !flags && !view && !gameDef ? onPage : null;
   shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
-  // the galactic map's entries (src/ship/starmap.js mapEntries, from the StarMap the ship made in attach) and whether he is
-  // aboard, where the Worlds page stands in for it (engine/chart.js)
-  const chart = () => (shipOn && ship.map?.o ? mapEntries(ship.map.o) : []);
-  const onBoard = () => shipOn && !!ship.inside;
   if (shipOn) {
     ship.cinema.dom = false;
     quiet(() => ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans, levels: LEVELS, order: ORDER,
       titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), go: (to) => onTravel?.(to) }));
   }
+  // the holo table's galactic map (engine/starmap.js: the page's StarMap and its signature search), drawn by the menus
+  // (BridgeMenu.StarMap.cs) from the options the ship gave its own StarMap in attach
+  const starMap = shipOn && menus && ship.map?.o ? new EngineStarMap({ o: ship.map.o, screen: () => menus.screen?.() ?? { w: 1280, h: 720 },
+    pad: () => !!globalThis.document?.body?.classList?.contains?.('controller') }) : null;
+  const openStarMap = () => {
+    if (!starMap || !menus?.openStarMap?.(starMap)) return false;
+    // (the first time there is a world to find: how the search works, as the ship's useTable says it once the page drew it)
+    if (starMap.targets?.length && gameState.flag('ship.powered') && !gameState.flag('signature.search.told')) {
+      gameState.set('signature.search.told', true);
+      ship.cinema?.say(SEARCH_LINE, { secs: 7, queue: true });
+    }
+    return true;
+  };
+  refusedQuests = () => story?.quests ?? null;
 
   // the ways through to another space (src/passage.js; issue #264): a doorway into a room built off the map, a cave mouth,
   // a temple's door, a hatch, each a level's `portals` entry, walked into as main.js walks them: its light flares
@@ -1037,27 +1050,29 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
         fragments: () => fragments?.counts?.() ?? null,
-        map: (o) => mapSource(o), travel: (id) => !!travel && (fastTravel.can({ to: id, from: levelId, seen, flag }) || (onBoard() && !game.travelRefusal(id))),
-        // (aboard, the holo table's chart: the worlds the route has opened, the Lantern and Home once open; engine/chart.js)
-        order: [...ORDER, ...CHARTED_SIDE, FINALE_ID, HOME_ID], known: (id) => journal.seen(id) || (onBoard() && chartWorlds(chart()).includes(id)) });
+        map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }), order: ORDER, known: (id) => journal.seen(id) });
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
     mapPicture: (key) => pictures.get(key) ?? null,
     /** Fill and draw the Map's ground now (a test's, a tool's), `ms` at most. */
     drawMap(ms = 1e5) { if (!mapWhole) mapSource(); worldMap.view(mapWhole.bounds, MAP.cells); pumpMap(ms); return worldMap.want?.canvas ?? null; },
     /** Why the ship won't take you to `id` (null: it will; src/fast-travel.js). */
-    travelRefusal(id) { return chartTravel({ to: id, from: levelId, entries: onBoard() ? chart() : [], aboard: onBoard(), seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
+    travelRefusal(id) { return fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) })?.text ?? null; },
     /**
-     * The Worlds page's Travel here: the ship's take-off to `id` (a world on the chart aboard, else one visited), a world
-     * still to be found by its signature found first, as the StarMap's search finds it. → null, or the line why not.
+     * The Worlds page's Travel here (main.js onTravel): fast travel to a world visited, the ship's take-off (its own way,
+     * src/ship/ship.js travel), or the line why not (a gate's missing gadget starts its quest). → null, or the line.
+     * A world never visited is reached from the holo table's galactic map (engine/starmap.js), found by its signature.
      */
     travel(id) {
-      const r = chartTravel({ to: id, from: levelId, entries: onBoard() ? chart() : [], aboard: onBoard(), seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) });
-      if (r.text) return r.text;
-      if (r.find) { gameState.set(foundFlag(id), true); ship?.cinema?.say(foundLine(TITLES[id] ?? id), { secs: 3.6 }); }
+      const no = fastTravel.refusal({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => gameState.flag(k) });
+      if (no) { if (no.missing) gameState.emit('travel:refused', { to: id, missing: no.missing, quest: no.quest }); return no.text; }
       if (shipOn) ship.travel(id); else onTravel?.(id);
       return null;
     },
+    /** The holo table's galactic map (engine/starmap.js; null off the ship's scenes): its state, a run's or a test's. */
+    get starMap() { return starMap; },
+    /** Open the galactic map as the holo table does (a run's, a test's): true when it opened. */
+    openStarMap() { return openStarMap(); },
     /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */
     applySettings(s = settings) {
       if (!s) return;
@@ -1085,6 +1100,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         inputFrame();
         // (whatever a gadget was doing lets go, its wheel closes: main.js gadgets.control paused under a menu)
         try { gadgets?.control(dt, noInput, true); } catch { /* said in play */ }
+        // (the galactic map open: its search, the scanner moved by the stick the controller just handed it, W A S D held)
+        menus.starFrame?.(realDt);
         // (the Map open: its ground drawn on, the menu told how far every few frames for its "Drawing the map… n %")
         if (menus.mode === 'game' && menus.state?.panel?.id === 'map' && pumpMap() && ++mapTick % 8 === 0) menus.changed();
         screen.set('prompt', null); screen.set('stamina', null);
@@ -1216,9 +1233,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (shipOn && !pinned) {
         // inside or out, its scenes and their camera (after the rig, as main.js: a scene's shot replaces the rig's)
         try { ship.update(dt, simT, ctl); } catch (e) { if (!game._shipFailed) { game._shipFailed = true; console.warn('[game] the ship failed in its update', e?.stack ?? e); } }
-        // the holo table's galactic map is the page's: here the game menu's Worlds page, its Travel here the ship's take-off
-        // (without power the ship only says so: the map is dark)
-        if (ship.map?.open) { ship.map.toggle(false); if (gameState.flag('ship.powered')) menus?.show('game', 'worlds'); }
+        // the holo table's galactic map, the page's StarMap: here the menus' own (engine/starmap.js, BridgeMenu.StarMap.cs),
+        // with its signature search; dark under NO POWER without power, as the page shows it
+        if (ship.map?.open) { ship.map.toggle(false); openStarMap(); }
       }
       // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
       try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
