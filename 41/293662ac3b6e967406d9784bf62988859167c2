@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_81488e964354c9 29
+docs/plans/unity-finishable.md
+  s_9ca76055a220ed::t_72df07cfa3c0a9 34
+engine/game.js
+  s_9ca76055a220ed::t_2a910dfd134176 77,724-728
+src/changelog.js
+  s_9ca76055a220ed::t_2265b17521ee8e 72
+tests/engine-combat.test.js
+  s_9ca76055a220ed::t_ed7e9db99e6e7a 73-75
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_9ca76055a220ed::t_22ba40bbb5682d 90-94,311,1231-1248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41293662ac3b6e967406d9784bf62988859167c2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
