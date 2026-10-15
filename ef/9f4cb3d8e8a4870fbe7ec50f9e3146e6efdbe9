@@ -1,0 +1,25 @@
+src/animator.js
+  s_9ca76055a220ed::t_8e570719c19514 30-31,581-584
+src/characters/tripo-walk.js
+  s_9ca76055a220ed::t_35506d0ec9c123 7-8,19-22,24
+src/feet.js
+  s_9ca76055a220ed::t_34a338558aa11d 38,46-49,52,66,68,71-72,75,78-79,196,233-235,237-240,276-294,298-301,307,318,358-360,428-432,465,492-496,531-538,541,569-573
+src/player.js
+  s_9ca76055a220ed::t_7d213bc8152a4d 153,156,160-164,166,1735-1736,1747,1963-1964,2711
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ef9f4cb3d8e8a4870fbe7ec50f9e3146e6efdbe9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
