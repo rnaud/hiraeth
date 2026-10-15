@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { Dish, EchoEar } from '../pieces.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Whale-House's futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' sounding-house
@@ -201,6 +202,9 @@ const BODIES = {
 };
 
 const EMIT_LINE = 'float emit = 0.0;   // lit windows at night (facade)';
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('whale-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'whInkV', emit: 'whGlow', emitAt: 'line' });
+
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and light the body's. */
 function skinMaterial(body, look, S, U, key) {
   const m = makeMaterial({ flat: true, ...look, color: S.color, key: `temple.skin.whale.${key}` });
@@ -208,9 +212,7 @@ function skinMaterial(body, look, S, U, key) {
   Object.assign(m.uniforms, { uSkinO: U.origin, uWhRound: U.round, uWhRoundN: U.count });
   if (m.userData.houseSkin) return m;
   m.userData.houseSkin = body;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes(EMIT_LINE)) throw new Error('whale-house.js: the surface shader changed: no albedo, emit or detail line to replace');
-  m.fragmentShader = PARS + fs.slice(0, at) + GLSL + fs.slice(at).replace('vec3 albedo = uColor;', BODIES[body]).replace(EMIT_LINE, 'float emit = whGlow;').replace('float detail = 0.0;', 'float detail = whInkV;');
+  spliceSkin(m, SHADER, body, 'whale-house.js');
   Object.assign(m.uniforms, {
     uWhLine: { value: new THREE.Color(WHALE_SKIN.line) }, uWhDark: { value: new THREE.Color(S.dark) }, uWhLight: { value: new THREE.Color(S.light) },
     uWhCell: { value: new THREE.Vector2(...(S.panel ?? S.plate)) },
@@ -557,15 +559,15 @@ const SEA_FAR = /* glsl */ `
   // inside a segment a..b, w wide at a and narrowing to nothing at b: under 0
   float whSegT(vec2 p, vec2 a, vec2 b, float w) { vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - w * (1.0 - h); }
 `;
+/** The sea's pattern (skin-shader.js), as the surfaces': the web's shader and the Unity port's made from it. */
+const SEA_SHADER = skinShader('whale-sea', { pars: 'uniform vec3 uSeaO;\nuniform vec3 uSeaT;\nuniform vec2 uSeaWH;\n', glsl: SEA_FAR, bodies: { sea: SEA }, ink: 'whInkV', emit: null });
 const seas = new Map();
 /** A pane's sea (its frame: O its foot's middle, T along it; w, h its size). */
 function seaMaterial(O, T, w, h) {
   const key = `${O.x.toFixed(1)}/${O.y.toFixed(1)}/${O.z.toFixed(1)}`;
   if (seas.has(key)) return seas.get(key);
   const m = makeMaterial({ color: '#2b6796', glow: 0.55, flat: true, key: `temple.skin.whale.sea.${key}` });
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;')) throw new Error('whale-house.js: the surface shader changed: no albedo or detail line to replace');
-  m.fragmentShader = 'uniform vec3 uSeaO;\nuniform vec3 uSeaT;\nuniform vec2 uSeaWH;\n' + fs.slice(0, at) + SEA_FAR + fs.slice(at).replace('vec3 albedo = uColor;', SEA).replace('float detail = 0.0;', 'float detail = whInkV;');
+  spliceSkin(m, SEA_SHADER, 'sea', 'whale-house.js');
   m.userData.houseSkin = 'sea';
   Object.assign(m.uniforms, { uSeaO: { value: O.clone() }, uSeaT: { value: T.clone() }, uSeaWH: { value: new THREE.Vector2(w, h) } });
   seas.set(key, m);

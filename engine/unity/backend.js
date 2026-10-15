@@ -346,6 +346,15 @@ export class UnityBackend {
     tally(this, 'matVec', b0);
   }
 
+  /** A temple skin's uniforms changed after it was sent (a bell ringing, a lamp lit: skin-shader.js's slots): op 21. */
+  materialSkin(mid, data) {
+    const w = this.w, b0 = w.n;
+    w.reserve(3 + data.length);
+    w.u(OP.skin); w.i(mid); w.u(data.length);
+    for (let i = 0; i < data.length; i++) w.f(data[i]);
+    tally(this, 'skin', b0);
+  }
+
   /** A face's shape-key weights, when they change (face-keys.js: mesh.userData.keyWeights): op 19, its blend shapes. */
   keyWeights(id, W) {
     const w = this.w, b0 = w.n;

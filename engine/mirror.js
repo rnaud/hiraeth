@@ -22,6 +22,7 @@
 //                               the range rewritten since they were last sent ({ array, itemSize, version, range: [start, count] | null })
 //   materialLive(mid, color, glow)   a material's colour or glow changed after it was sent (the answering plants
 //                               waking, a lamp lit, a beacon breathing): checked each frame a drawable using it is drawn
+//   materialSkin(mid, data)    a temple skin's uniforms moved (skin-shader.js's vec4 slots: a bell ringing, a lamp lit)
 //   materialVec(mid, which, v)  a material's vector moved (LIVE_VECTORS[which]: a box's ray, the traveller's drawn face)
 //   keyWeights(id, w)           a face's shape-key weights moved (face-keys.js mesh.userData.keyWeights)
 //   materialFluid(mid, f)       the traveller's fluid on a material (fluid-tool.js): uFluidA, uFluidB, the six tones, its base (29 floats), when they move
@@ -41,6 +42,7 @@
 // made for them. Every array handed over is the mirror's own (or the geometry's): a backend that
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
+import { skinPatternSpec } from '../src/temples/skins/skin-shader.js';
 import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 import { updateSceneMatrices, sceneList } from './scene-matrices.js';
 import { WORLD_STAMP } from '../src/matrix-cache.js';
@@ -189,6 +191,25 @@ export class SceneMirror {
       const mid = this.mats.get(m);
       if (moved) m.__mirrorMovedAt = f;
       if (moved && mid) this.backend.materialFluid(mid, F);
+    }
+    // a temple skin's uniforms (src/temples/skins/skin-shader.js: a bell ringing, a lamp lit), looked at every 4th frame
+    // (by the material's own count, not the frame's: a quiet drawable is looked at every 4th frame, quietWalk)
+    if (this.backend.materialSkin && m.userData?.skinPattern && ((m.__mirrorSkinN = (m.__mirrorSkinN ?? -1) + 1) & 1) === 0) {
+      const S = m.__mirrorSkin, now = skinPatternSpec(m, this._skinScratch)?.data;
+      if (now) {
+        this._skinScratch = now;
+        if (!S) m.__mirrorSkin = Float32Array.from(now);   // (as sent with the material)
+        else {
+          let moved = S.length !== now.length;
+          for (let i = 0; !moved && i < now.length; i++) moved = S[i] !== now[i];
+          if (moved) {
+            m.__mirrorSkin = Float32Array.from(now);
+            m.__mirrorMovedAt = f;
+            const mid = this.mats.get(m);
+            if (mid) this.backend.materialSkin(mid, m.__mirrorSkin);
+          }
+        }
+      }
     }
     if (!c?.isColor && typeof g !== 'number') return;
     const r = c?.isColor ? Math.fround(c.r) : 0, gr = c?.isColor ? Math.fround(c.g) : 0, b = c?.isColor ? Math.fround(c.b) : 0, gl = typeof g === 'number' ? Math.fround(g) : 0;

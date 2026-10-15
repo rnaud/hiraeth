@@ -1219,6 +1219,49 @@ skin gives it its colour, glow and setting (lit in the house's accent, inlaid, i
 `tests/makers-mark.test.js` finds every mark in each built house by its vertex signature (its outline up to size and
 pose) and fails if anything else stands in a house's glyph light, or if a skin declares its own sign geometry.
 
+### In Unity (v1.78, `skins/skin-shader.js`)
+
+The skins' surfaces are GLSL spliced into the surface shader, which the Unity port can't run. So each skin declares its
+pattern once, `skinShader(id, { pars, defines, glsl, bodies, ink, emit, emitAt })`: its uniforms, its helpers, its bodies
+(each replaces `vec3 albedo = uColor;`), and how its pen lines and glow join the surface's. Two things are made from that one declaration:
+- **the web's shader**: `spliceSkin(m, SHADER, body)` splices it as each skin did by hand. Every skinned material's
+  fragment shader in all 13 houses is the same text as before, character for character (checked against a snapshot when
+  the declarations went in; `tests/temple-skin-patterns.test.js` checks the splice). The material carries
+  `userData.skinPattern = { skin, body }`.
+- **the port's HLSL**: `scripts/unity-export/skin-hlsl.mjs` translates the same GLSL (types, `mix`/`fract`/`dFdx`/`mod`/`atan`,
+  one-number constructors, whole-vector `==`, reserved names, each skin's functions prefixed `s<n>_`) into
+  `unity/Hiraeth/Assets/Hiraeth/Shaders/SkinPatterns.hlsl`: one function per body, and `skinSurface()`, a switch on the
+  pattern's number. The test fails if the file is out of date: `node scripts/unity-export/skin-hlsl.mjs`.
+
+A pattern's number is its skin's place in `SKIN_ORDER` × 8 + its body's place + 1. Its uniforms go as vec4 slots in pars
+order (`skinLayout`: a scalar or vector one slot, an array one per element; at most 64): `engine/ink-spec.js` sends
+`skin: { body, data }`, `port-format.js` `skinPattern` / `skinData`, `WorldLoader.MakeMaterial` puts the data in a
+`ComputeBuffer` of the material's own (`_SkinData`, kept out of UnityPerMaterial for the SRP Batcher; only `_SkinBody`
+is in it) and turns on `HIRAETH_SKIN`. Uniforms that change after the house is built (the Belfry's bells, the Lamp-House's
+lantern and lit pools) go live: the mirror repacks them every other look and sends op 21 when they move.
+
+**One variant for all of them.** `HIRAETH_SKIN` is one more keyword in the vertex kinds' set (so it never combines with
+the crowd, the flora, instancing or VMAT) and is lean by itself (no glass, water, terrain or wall marks).
+`BridgeRenderer.Lean` gives a skin material no LEAN/PLAIN keyword, and only that combination compiles the patterns. That
+adds two programs (prepass or not), whatever the number of skins (#16). The build's G-buffer variant space goes from 112 to
+128, the 16 new ones mostly empty. The Deck's load shows `19× Hiraeth/Surface|HIRAETH_SKIN` in the Rose House. A skin
+material on an InstancedMesh (the Lamp-House's floating plates, the Casting-House's frames) is baked rather than drawn
+with `HIRAETH_INSTMAT`. The skin's facet normal comes from the object's frame (`facetO`), not from the world position
+a few kilometres up. `-no-skin-pattern` draws the surfaces plain, for a before-and-after on one build; `-surface-debug 7`
+shows a skin's glow, pen lines and number.
+
+**What it costs.** On the Steam Deck's Unity player (Vulkan, 1280 × 800, uncapped) in the Rose House, the GPU's time per frame
+goes from 8.3–8.7 ms to 8.7–9.1 ms (+0.3–0.55 ms) across four views, every one still over 100 frames a second.
+
+**How close.** At the same resolution (the web's High renders at 1.5×; compare it at `renderScale` 1) the patterns land
+on the same pixels in Unity (same hashes, same layout), in all 13 houses. Thin lit lines come out somewhat dimmer in
+Unity: their coverage depends on the pixel's size (`fwidth`), which reads ~5–10 % larger there, and the composite's light
+core starts at 0.62. The skins' drawn-only dressing and their per-house light (`rt.skin.light`, through the look) already
+reached Unity as meshes and look values.
+These differences seen in the comparisons are not the skins': the deadly pits' dark wash (`src/pit-void.js`: the Clock-House's and the
+Footprint's pools) is not drawn in Unity; the local lights' pools are lost in the editor's batch shots to
+`HiraethLook.CullLightsToView` (`-no-light-cull` brings them back).
+
 ### The Warden's Well (`skins/wardens-well.js`)
 
 After `references/temples/future/wardens-well/sheet-1.jpg` and `sheet-2.jpg`: a shaft of dark slate rings, cyan lines,

@@ -259,10 +259,40 @@ namespace Hiraeth
                     Rendering.HiraethFeature.WaterSeen = true;
                 }
             }
+            // a temple skin's pattern (src/temples/skins/skin-shader.js, issue #342): its number and its uniforms, packed as
+            // vec4 slots, in a buffer of the material's own (Surface.shader HIRAETH_SKIN, SkinPatterns.hlsl)
+            if (SkinPatterns && m.I("skinPattern") > 0 && m.L("skinData") is List<object> sd && sd.Count >= 4)
+            {
+                mat.SetFloat("_SkinBody", m.I("skinPattern"));
+                var data = new float[sd.Count / 4 * 4];
+                for (int i = 0; i < data.Length; i++) data[i] = Json.Num(sd[i]);
+                SetSkinData(mat, data);
+                mat.EnableKeyword("HIRAETH_SKIN");
+            }
             int side = m.I("side");
             mat.SetFloat("_Cull", side == 2 ? (float)CullMode.Off : side == 1 ? (float)CullMode.Front : (float)CullMode.Back);
             return mat;
         }
+
+        /// <summary>The temple skins' patterns drawn (the bridge's -no-skin-pattern: their surfaces plain, as before, a test).</summary>
+        public static bool SkinPatterns = true;
+        /// <summary>The skins' buffers, by material (each material its own: released with it, or all at once).</summary>
+        static readonly Dictionary<Material, ComputeBuffer> skinBuffers = new();
+        /// <summary>A skin material's packed uniforms (vec4 slots): its buffer made, or filled again (the bridge's op 21, live values).</summary>
+        public static void SetSkinData(Material mat, float[] data)
+        {
+            int n = Mathf.Max(1, data.Length / 4);
+            if (!skinBuffers.TryGetValue(mat, out var buf) || buf.count != n)
+            {
+                buf?.Release();
+                foreach (var k in new List<Material>(skinBuffers.Keys)) if (!k) { skinBuffers[k].Release(); skinBuffers.Remove(k); }
+                skinBuffers[mat] = buf = new ComputeBuffer(n, 16);
+                mat.SetBuffer("_SkinData", buf);
+            }
+            buf.SetData(data, 0, 0, n * 4);
+        }
+        /// <summary>Every skin's buffer released (the scene torn down).</summary>
+        public static void ReleaseSkinBuffers() { foreach (var b in skinBuffers.Values) b?.Release(); skinBuffers.Clear(); }
 
         GameObject Chunk(Dictionary<string, object> c, Transform parent, string name, WorldDetail detail = null)
         {

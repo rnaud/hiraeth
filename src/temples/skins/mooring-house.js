@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Mooring-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' capstan
@@ -363,6 +364,9 @@ const BODIES = {
   `,
 };
 
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('mooring-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+
 /** One of the skin's surface materials: makeMaterial's, its albedo and first pen lines the body's, its glow skEmit. */
 function skinMaterial(body, look, S, U, key, obj = false) {
   const m = makeMaterial({ flat: true, ...look, color: S.color, key: `temple.skin.mooring.${key}` });
@@ -370,9 +374,7 @@ function skinMaterial(body, look, S, U, key, obj = false) {
   Object.assign(m.uniforms, { uSkinO: U.origin, uSkRot: U.rot, uSkR: U.rooms, uSkY: U.roomsY, uSkN: U.count, uSkLips: U.lips, uSkHub: U.hub });
   if (m.userData.houseSkin) return m;
   m.userData.houseSkin = body;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes('float emit = 0.0;')) throw new Error('skins/mooring-house.js: the surface shader changed: no albedo, emit or detail line to replace');
-  m.fragmentShader = PARS + fs.slice(0, at) + GLSL + fs.slice(at).replace('vec3 albedo = uColor;', BODIES[body]).replace('float emit = 0.0;', 'float emit = skEmit;').replace('float detail = 0.0;', 'float detail = skInk;');
+  spliceSkin(m, SHADER, body, 'mooring-house.js');
   Object.assign(m.uniforms, {
     uSkA: { value: new THREE.Color(MOORING_SKIN.teal) }, uSkDark: { value: new THREE.Color(S.dark) }, uSkLight: { value: new THREE.Color(S.light) },
     uSkSeam: { value: new THREE.Color(S.seam) }, uSkCell: { value: new THREE.Vector2(...S.cell) }, uSkK: { value: S.density ?? 0.6 },

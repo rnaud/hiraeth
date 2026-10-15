@@ -1089,6 +1089,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'On the galactic map the makers’ mark', shots: [
       { name: 'starmap-mark', caption: 'The galactic map in the ship: the mark beside each world, in the panel and in the legend', from: 'headless Chrome on the ship\'s map, before and after', size: [1280, 720] },
     ] },
+    { match: 'In the Unity version the thirteen futuristic temples', tags: ['temples', 'devices'],
+      shots: [
+        { name: 'unity-skins-rose', caption: 'The Rose House’s hall of machines in the Unity version (the editor, High, 1280 × 720)', from: 'Unity batch run (BridgeBatch.Run -views) of this branch, before with -no-skin-pattern, 15 October' },
+        { name: 'unity-skins-well', caption: 'The Warden’s Well’s gallery in the Unity version (the editor, High, 1280 × 720)', from: 'Unity batch run (BridgeBatch.Run -views) of this branch, before with -no-skin-pattern, 15 October' },
+        { name: 'unity-skins-deck', caption: 'The Rose House’s cistern on the Steam Deck’s Unity player (its own preset, 1280 × 800)', from: 'scripts/bench/deck-unity.sh on the Steam Deck, the same player, before with -no-skin-pattern, 15 October' },
+      ],
+      numbers: [{ title: 'The Rose House on the Steam Deck’s Unity player: the GPU’s time a frame', unit: 'ms', better: 'lower', device: 'Steam Deck (Unity player, Linux, Vulkan, 1280 × 800, uncapped)',
+        rows: [{ where: 'the flame hall', before: 8.74, after: 9.05 }, { where: 'the hall of machines', before: 8.33, after: 8.79 }, { where: 'the fires', before: 8.32, after: 8.74 }, { where: 'the cistern', before: 8.32, after: 8.87 }],
+        source: 'scripts/bench/deck-unity.sh, -bench 6 at four pinned views, the same build with and without -no-skin-pattern (two runs with the patterns agree within 0.15 ms); every view stays over 100 frames a second' }] },
     { match: 'The Unity version now has the fight', tags: ['combat', 'devices'], shots: [
       { name: 'unity-fight-keeper', only: 'after', title: 'The Keeper’s arena (Unity)', caption: 'The Unity build on this Mac, locked on to the Keeper in the Rose House’s cistern: the four gold arrows round its head, the camera back and high so both of you are in the frame, the hearts, potions and magic bar at the top left. Before, there was no fight in the Unity build at all', from: FIGHT264 },
     ], see: 'In the Unity version, walk into a temple guardian’s arena, or meet the ink blots in the wilds, and press R3 or Tab to lock on.' },

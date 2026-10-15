@@ -122,7 +122,7 @@ export class CommandWriter {
   takeView() { this.reserve(1); this.u32[this.n++] = 0; const out = new Uint32Array(this.buf, 0, this.n); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
-export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17, matVec: 18, keys: 19, cape: 20 };
+export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17, matVec: 18, keys: 19, cape: 20, skin: 21 };
 
 /**
  * Instances as the port's Puffs.Inst (8 floats each, op 10: the footprints' decals): the position in Unity's

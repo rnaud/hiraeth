@@ -104,6 +104,8 @@ export function portMaterial(spec, id = 0) {
   if (spec.defines?.FLUID) e.fluid = 1;
   if (Array.isArray(u.uFluidBase)) e.fluidBase = u.uFluidBase.map(r5);
   if (spec.defines?.DISSOLVE) e.dissolveOn = 1;
+  // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData
+  if (spec.skin?.body > 0) { e.skinPattern = spec.skin.body; e.skinData = spec.skin.data.map(r5); }
   return e;
 }
 

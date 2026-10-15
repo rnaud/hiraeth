@@ -5,6 +5,7 @@ import { makeMaterial, MODE_STRATA } from '../../materials.js';
 import { paint, T } from '../kit.js';
 import { BellEar } from '../pieces.js';
 import { MOUND } from '../../boxes/mound.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Founders' Belfry in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): its rooms as an
@@ -297,15 +298,16 @@ const BODIES = {
   `,
 };
 
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('founders-belfry', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+
 /** One of the skin's surface materials: makeMaterial's, its albedo and first pen lines the body's, its glow skEmit. */
 function skinMaterial(body, look, U, key) {
   const m = makeMaterial({ flat: true, ...look, key: `temple.skin.belfry.${key}` });
   // (this build's rooms and notes: a material from the cache is pointed at them again)
   Object.assign(m.uniforms, { uSkinO: U.origin, uSkRot: U.rot, uSkR: U.rooms, uSkY: U.roomsY, uSkN: U.count, uSkBell: U.bells });
   if (m.userData.belfrySkin) return m;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes('float emit = 0.0;')) throw new Error('founders-belfry.js: the surface shader changed: no albedo, emit or detail line to replace');
-  m.fragmentShader = PARS + fs.slice(0, at) + GLSL + fs.slice(at).replace('vec3 albedo = uColor;', BODIES[body]).replace('float emit = 0.0;', 'float emit = skEmit;').replace('float detail = 0.0;', 'float detail = skInk;');
+  spliceSkin(m, SHADER, body, 'founders-belfry.js');
   const S = BELFRY_SKIN;
   Object.assign(m.uniforms, {
     uSkA: { value: new THREE.Color(S.cobalt) }, uSkB: { value: new THREE.Color(S.bronze) },

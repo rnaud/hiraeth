@@ -493,6 +493,8 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Flag("-no-plain")) BridgeRenderer.plain = false;
             // the local lights off screen not sent to the shader (HiraethLook.CullLightsToView, issue #262); -no-light-cull as before
             HiraethLook.CullLightsToView = !BridgeArgs.Flag("-no-light-cull");
+            // the temple skins' patterns (Surface.shader HIRAETH_SKIN, issue #342); -no-skin-pattern their surfaces plain, a before-and-after on one build
+            WorldLoader.SkinPatterns = !BridgeArgs.Flag("-no-skin-pattern");
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
             // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
 #if UNITY_WSA && !UNITY_EDITOR

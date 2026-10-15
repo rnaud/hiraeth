@@ -56,6 +56,7 @@ Shader "Hiraeth/Surface"
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
     _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
+    _SkinBody ("A temple skin's pattern (SkinPatterns.hlsl; 0 none)", Float) = 0
     // (every other value of UnityPerMaterial, 0 unless a material sets it: each material its own, as the SRP Batcher wants
     // them. The arrays (_Palette, _Limbs, _FluidTones) go by a value here.)
     _NoVertexColor ("NoVertexColor", Float) = 0
@@ -125,6 +126,7 @@ Shader "Hiraeth/Surface"
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
     float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn, _TripoFace;
+    float _SkinBody;       // a temple skin's pattern (src/temples/skins/skin-shader.js: its number; its uniforms in _SkinData, HIRAETH_SKIN)
     float4 _Lining, _BoxA, _BoxB, _BoxMark, _BoxLight;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
@@ -250,7 +252,11 @@ Shader "Hiraeth/Surface"
       #pragma target 4.5
       #pragma vertex vertEntry
       #pragma fragment fragEntry
-      #pragma multi_compile_local _ HIRAETH_CROWD HIRAETH_PUFFS HIRAETH_INSTMAT HIRAETH_GRASS HIRAETH_FLORA HIRAETH_VMAT
+      #pragma multi_compile_local _ HIRAETH_CROWD HIRAETH_PUFFS HIRAETH_INSTMAT HIRAETH_GRASS HIRAETH_FLORA HIRAETH_VMAT HIRAETH_SKIN
+      // HIRAETH_SKIN: a temple skin's surface (issue #342, src/temples/skins/skin-shader.js): its pattern, by number (_SkinBody), one
+      // of the generated SkinPatterns.hlsl's bodies (each the web's own GLSL in HLSL), its uniforms the material's _SkinData. One
+      // variant for every skin (lean: none of the rare paths, the ground's, the water's or a wall's marks), with the pattern only
+      // without the LEAN and PLAIN keywords (BridgeRenderer.Lean gives a skin none): two programs more, prepass or not (#16).
       // HIRAETH_PREPASS (global, HiraethFeature's depth prepass, -prepass): the same pass drawing depth alone first, its
       // vertex the G-buffer's own position (the rest of vert left to the compiler to drop), no fragment work but the
       // glass's, the dissolve's and a veil's (they write no depth there: drawn in full by the G-buffer pass after); the G-buffer pass
@@ -265,17 +271,17 @@ Shader "Hiraeth/Surface"
       // terrain and banked sand (or the water) that use none of the other rare paths: the Xbox's GPU 13.1 ms at the 1440p
       // spawn against 17.9 on the full variant (docs/systems/xbox.md, "The see-through picture").
       #pragma multi_compile_local _ HIRAETH_LEAN HIRAETH_LEAN_TERRAIN HIRAETH_LEAN_WATER
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN)
         #define LEANK false
       #else
         #define LEANK true
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_WATER)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN)
         #define TERRAINK false
       #else
         #define TERRAINK true
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_SKIN)
         #define WATERK false
       #else
         #define WATERK true
@@ -285,13 +291,17 @@ Shader "Hiraeth/Surface"
       // pixel of the ground, the people and the props the registers of the walls' heaviest paths, and the GPU its waves
       // in flight: 0.7-1.4 ms of the Retroid's GPU a frame (issue #262). The same picture. Given on Android (-plain elsewhere).
       #pragma multi_compile_local_fragment _ HIRAETH_PLAIN
-      #if defined(HIRAETH_PLAIN)
+      #if defined(HIRAETH_PLAIN) || defined(HIRAETH_SKIN)
         #define WALLK false
       #else
         #define WALLK true
       #endif
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
+      #if defined(HIRAETH_SKIN) && !defined(HIRAETH_LEAN) && !defined(HIRAETH_LEAN_TERRAIN) && !defined(HIRAETH_LEAN_WATER) && !defined(HIRAETH_PLAIN) && !defined(HIRAETH_PREPASS)
+        #define SKINK 1
+        #include "SkinPatterns.hlsl"
+      #endif
       // the sun's shadow maps (HiraethShadows.cs, materials.js getShadow): fine, near, far; each its matrix
       // into [0, 1] texture space, its bias (depth units), normal offset (m), texel (m), on; 4 or 9 taps
       TEXTURE2D_SHADOW(_MShadowMap0); TEXTURE2D_SHADOW(_MShadowMap1); TEXTURE2D_SHADOW(_MShadowMap2);
@@ -396,6 +406,9 @@ Shader "Hiraeth/Surface"
         nointerpolation float3 grassLook : TEXCOORD11;   // a grass blade: its pen line, its outline's fade, its blend into the ground
       #endif
         float4 form : TEXCOORD12;       // the point about its part's axis (materials.js vForm): across it xy, along it z, w the kind
+      #if defined(HIRAETH_SKIN)
+        float2 skinUV : TEXCOORD13;     // a temple skin's uv (materials.js vTextureUV: the Lamp-House's plates; HIRAETH_VMAT's slot, never both)
+      #endif
       #if defined(HIRAETH_VMAT)
         nointerpolation float4 vm1 : TEXCOORD13; nointerpolation float4 vm2 : TEXCOORD14; nointerpolation float4 vm3 : TEXCOORD15;
       #endif
@@ -431,6 +444,9 @@ Shader "Hiraeth/Surface"
         o.worldPos = toThree(posWS);
         o.normal = toThree(nWS);
         o.instColor = _NoVertexColor > 0.5 ? float3(1, 1, 1) : v.color.rgb;   // (a mesh without colours may read black)
+        #if defined(HIRAETH_SKIN)
+        o.skinUV = v.uv;
+        #endif
         o.viewDepth = -TransformWorldToView(posWS).z;
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
@@ -849,6 +865,20 @@ Shader "Hiraeth/Surface"
 
         float3 albedo = _Color.rgb;
         if (_MapOn > 0.5) albedo *= SAMPLE_TEXTURE2D(_Map, sampler_Map, i.form.xy).rgb;   // (materials.js: uColor × the map, as the web's)
+        // a temple skin's pattern (HIRAETH_SKIN): where the web's body replaces vec3 albedo = uColor; its pen lines start the
+        // surface's detail, its glow its emit (skin-shader.js spliceSkin)
+        float skinInk = 0.0, skinEmit = 0.0;
+        #if defined(SKINK)
+        UNITY_BRANCH if (_SkinBody > 0.5)
+        {
+          // (a facet's normal from its object's frame, as precise as the web's from vWorldRel: the one from the world's position
+          // a few kilometres up wobbles by a thousandth, and the patterns' coordinates along a wall, dot(p, the wall's way), with
+          // it: their pixel's size, fwidth, twice the web's, every thin lit line half as bright)
+          float3 skinN = n;
+          if (_Flat > 0.5) { skinN = normalize(toThree(TransformObjectToWorldNormal(toThree(facetO)))); if (dot(skinN, viewT) < 0.0) skinN = -skinN; }
+          albedo = skinSurface((int)(_SkinBody + 0.5), i.worldPos, i.objPos, i.objNormal, i.skinUV, i.positionCS, skinN, _Color.rgb, skinInk, skinEmit);
+        }
+        #endif
         float3 instColor = i.instColor;
         if (_PaletteSize > 0.5) {
           float best = 1e9;
@@ -899,7 +929,7 @@ Shader "Hiraeth/Surface"
           albedo += dP * min(1.0, 0.15 / max(length(dP), 1e-5)) * pk;
         }
         float patInk = 0.0;
-        float emit = 0.0;   // lit windows at night (facade)
+        float emit = skinEmit;   // lit windows at night (facade); a skin's glow
         int pattern = (int)(_Pattern + 0.5);
         // (the material's options are uniform over a draw: derivatives inside these branches are safe)
         if ((skip & 1) != 0 || !WALLK) pattern = 0;
@@ -1052,7 +1082,7 @@ Shader "Hiraeth/Surface"
         o.hatch = 0;
 
         // drawn detail (gHatch.b)
-        float detail = 0.0;
+        float detail = skinInk;
         // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
         // fine there, issue #262)
         UNITY_BRANCH if (_Grid > 0.0 || _Glyphs > 0.0)
@@ -1221,7 +1251,8 @@ Shader "Hiraeth/Surface"
         }
         // (a test for the Xbox's see-through picture, BridgeRunner -surface-debug N: 1 the material's plain colour, no strokes;
         // 2 every normal up; 3 both; from 4 the glass and the dissolve never discard, and the albedo shows what the GPU reads
-        // of the rare paths' values: 4 (glass, dissolve, fluid), 5 (veins, box, scrub), 6 (drawn face, mode / 4, water))
+        // of the rare paths' values: 4 (glass, dissolve, fluid), 5 (veins, box, scrub), 6 (drawn face, mode / 4, water); 7 a temple
+        // skin's glow, pen lines and pattern (its number / 128))
         if (_MSurfaceDebug > 0.5 && _MSurfaceDebug < 8.5)
         {
           int sd = (int)(_MSurfaceDebug + 0.5);
@@ -1232,7 +1263,7 @@ Shader "Hiraeth/Surface"
           }
           else
           {
-            float3 v = sd == 4 ? float3(_Glass, _Dissolve.x, _Fluid) : sd == 5 ? float3(_Veins, _BoxOn, _Scrub) : float3(_TripoFace, _Mode * 0.25, _WaterOpt.x);
+            float3 v = sd == 4 ? float3(_Glass, _Dissolve.x, _Fluid) : sd == 5 ? float3(_Veins, _BoxOn, _Scrub) : sd == 7 ? float3(skinEmit, skinInk, _SkinBody / 128.0) : float3(_TripoFace, _Mode * 0.25, _WaterOpt.x);
             o.albedoLight = float4(saturate(v), 1); o.hatch = 0;
           }
         }

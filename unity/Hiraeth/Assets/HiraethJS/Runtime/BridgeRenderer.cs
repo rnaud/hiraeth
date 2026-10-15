@@ -497,6 +497,8 @@ namespace Hiraeth.Bridge
         static void Lean(Material m)
         {
             if (!lean || !m || m.shader == null || !m.shader.name.StartsWith("Hiraeth/Surface") || !m.HasProperty("_Mode")) return;
+            // (a temple skin's surface is lean already: HIRAETH_SKIN, its pattern drawn only without the LEAN and PLAIN keywords)
+            if (m.IsKeywordEnabled("HIRAETH_SKIN")) { leanWhy.TryGetValue("skin", out int sc); leanWhy["skin"] = sc + 1; return; }
             int mode = (int)(m.GetFloat("_Mode") + 0.5f);
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
             string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
@@ -598,7 +600,8 @@ namespace Hiraeth.Bridge
                 nodes[id] = n;
                 return;
             }
-            if (n.kind == "instanced" && md != null && md.subs.Length == 1)
+            // (a temple skin's surface keeps its own variant, HIRAETH_SKIN, not the instances' one: its few instances baked, as before)
+            if (n.kind == "instanced" && md != null && md.subs.Length == 1 && !(materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var sk0) && sk0 && sk0.IsKeywordEnabled("HIRAETH_SKIN")))
             {
                 // instances drawn on the GPU (the port's InstMats: Surface.shader HIRAETH_INSTMAT, its shadow in the cascades), not baked
                 // (a copy of the material for each node: its instance buffer is bound on the material)
@@ -942,6 +945,16 @@ namespace Hiraeth.Bridge
                         }
                         break;
                     }
+                    case 21:   // a temple skin's uniforms, live (a bell ringing, a lamp lit): its packed vec4 slots (SkinPatterns.hlsl _SkinData)
+                    {
+                        int mid = (int)fu[o++], n = (int)fu[o++];
+                        var sd = new float[n];
+                        for (int i = 0; i < n; i++) sd[i] = ff[o + i];
+                        o += n;
+                        if (materials.TryGetValue(mid, out var sm) && sm) WorldLoader.SetSkinData(sm, sd);
+                        if (copies.TryGetValue(mid, out var sl)) foreach (var c in sl) if (c) WorldLoader.SetSkinData(c, sd);
+                        break;
+                    }
                     case 19:   // a face's shape-key weights (0..1, the blend shapes' frames at 1)
                     {
                         int id = (int)fu[o++], n = (int)fu[o++];
@@ -1133,6 +1146,7 @@ namespace Hiraeth.Bridge
             foreach (var c in cloths.Values) c.Dispose();
             foreach (var k in Capes.Values) k.Dispose();
             Capes.Clear();
+            WorldLoader.ReleaseSkinBuffers();   // (the temple skins' uniforms)
             foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);

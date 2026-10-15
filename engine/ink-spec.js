@@ -7,12 +7,14 @@
 //     name, side (0 front, 1 back, 2 double), transparent, opacity, vertexColors, depthWrite, depthTest,
 //     visible (false: three draws nothing with it: a shaft of light's mesh, drawn only as its wash),
 //     defines: { METAL: 1, … },
+//     skin: { body, data }  (a temple skin's surface: its pattern's number, its uniforms as vec4 slots; skin-shader.js)
 //     u: { uColor: [r, g, b], uMode: 1, uGlow: 0, … }   // every uniform the material has of its own
 //   }
 //
 // The shared uniforms (sun, shadows, wind, time: sharedUniforms in src/materials.js) are left out:
 // they are the frame's, sent once a frame, not each material's.
 import { sharedUniforms } from '../src/materials.js';
+import { skinPatternSpec } from '../src/temples/skins/skin-shader.js';
 
 const SHARED = new Set(Object.keys(sharedUniforms));
 
@@ -42,6 +44,9 @@ export function inkSpec(m) {
   };
   if (m.userData?.albedoLinear) spec.albedoLinear = true;
   if (Array.isArray(m.userData?.lining)) spec.lining = m.userData.lining.slice(0, 3);   // (back faces in this colour: the overshirt's lining)   // (its colours linear: the shader turns them to display values)
+  // a temple skin's pattern (src/temples/skins/skin-shader.js): its number and its uniforms packed, as the engines draw it
+  const skin = skinPatternSpec(m);
+  if (skin) spec.skin = { body: skin.body, data: Array.from(skin.data) };
   if (m.defines) for (const [k, v] of Object.entries(m.defines)) spec.defines[k] = typeof v === 'number' ? v : v === '' || v === true ? 1 : String(v);
   if (m.uniforms) {
     spec.type = m.uniforms.uMode ? 'ink' : 'shader';

@@ -4,6 +4,7 @@ import { LightShaft } from '../../veil.js';
 import { Switch, LightEar, Bridge } from '../pieces.js';
 import { paint } from '../kit.js';
 import { cyl, cone, box as gbox, torus, merge as gmerge } from '../../wildlife/geo.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Lamp-House's futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' lamp-house drawn
@@ -300,6 +301,9 @@ const BODIES = {
 };
 
 const EMIT_LINE = 'float emit = 0.0;   // lit windows at night (facade)';
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('lamp-house', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'lhInkV', emit: 'lhGlow', emitAt: 'line' });
+
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and light the body's. */
 function skinMaterial(body, look, color, U, key, cell = [1, 1]) {
   const m = makeMaterial({ flat: true, ...look, color, key: `temple.skin.lamp.${key}` });
@@ -307,9 +311,7 @@ function skinMaterial(body, look, color, U, key, cell = [1, 1]) {
   Object.assign(m.uniforms, { uSkinO: U.origin, uLhRot: U.rot, uLhRound: U.round, uLhRoundN: U.roundN, uLhSrc: U.src, uLhSrcN: U.srcN, uLhPool: U.pools, uLhPoolN: U.poolN });
   if (m.userData.houseSkin) return m;
   m.userData.houseSkin = body;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes(EMIT_LINE)) throw new Error('lamp-house.js: the surface shader changed: no albedo, emit or detail line to replace');
-  m.fragmentShader = PARS + fs.slice(0, at) + GLSL + fs.slice(at).replace('vec3 albedo = uColor;', BODIES[body]).replace(EMIT_LINE, 'float emit = lhGlow;').replace('float detail = 0.0;', 'float detail = lhInkV;');
+  spliceSkin(m, SHADER, body, 'lamp-house.js');
   Object.assign(m.uniforms, {
     uLhGold: { value: new THREE.Color(LAMP_SKIN.gold) }, uLhDull: { value: new THREE.Color(LAMP_SKIN.dull) },
     uLhDark: { value: new THREE.Color(look.dark ?? '#000000') }, uLhLight: { value: new THREE.Color(look.light ?? '#ffffff') },

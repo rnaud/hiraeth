@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { ROOMS, UP } from '../perdide.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Hush-House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the inside of Lorn's
@@ -306,6 +307,9 @@ const BODIES = {
   `,
 };
 
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('hush-house', { pars: SK_PARS, defines: (() => { const u = new THREE.Color(HUSH.wall.color); return `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${HUSH.emit.lines.toFixed(3)}\n`; })(), glsl: SK_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skGlow', emitAt: 'light' });
+
 /** The surface material of a skin's pattern: makeMaterial's own, its albedo, first pen lines and glow the pattern's. */
 function skinMaterial(body, look, pat, U, key, obj = false) {
   const m = makeMaterial({ flat: true, ...look, color: pat.color, key: `temple.skin.${key}` });
@@ -313,14 +317,7 @@ function skinMaterial(body, look, pat, U, key, obj = false) {
   Object.assign(m.uniforms, { uSkinO: U.origin, uSkR: U.rooms, uSkY: U.roomsY, uSkN: U.count });
   if (m.userData.houseSkin) return m;
   m.userData.houseSkin = body;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  const u = new THREE.Color(HUSH.wall.color), under = `#define SK_UNDER vec3(${u.r.toFixed(4)}, ${u.g.toFixed(4)}, ${u.b.toFixed(4)})\n#define SK_LINES ${HUSH.emit.lines.toFixed(3)}\n`;
-  const LIGHT = 'L = mix(L, 1.0, max(uGlow, emit));';
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes(LIGHT)) throw new Error('skins/hush-house.js: the surface shader changed: no albedo, light or detail line to replace');
-  m.fragmentShader = SK_PARS + under + fs.slice(0, at) + SK_GLSL + fs.slice(at)
-    .replace('vec3 albedo = uColor;', BODIES[body])
-    .replace(LIGHT, `emit = max(emit, skGlow); ${LIGHT}`)
-    .replace('float detail = 0.0;', 'float detail = skInk;');
+  spliceSkin(m, SHADER, body, 'hush-house.js');
   Object.assign(m.uniforms, {
     uSkA: { value: new THREE.Color(pat.a ?? pat.color) }, uSkB: { value: new THREE.Color(pat.b ?? pat.color) }, uSkC: { value: new THREE.Color(pat.c ?? pat.color) },
     uSkG: { value: new THREE.Color(HUSH.violet) },

@@ -131,6 +131,11 @@ export const CHANGELOG = [
     // the deadly pits' dark in the Unity build (issue #264 after #312): engine/unity/port-format.js 'pitvoid',
     // Shaders/PitVoid.shader (src/pit-void.js's GLSL), BridgeRenderer; tests/engine-unity.test.js
     'In the Unity version the deadly pits fill with the makers’ dark as on the web: the Clock-House’s drops and the Footprint’s pools go deep ink below their lip, with slow pale rings turning at the bottom, so you can tell from the edge that a fall there puts you back.',
+    // the futuristic skins in Unity (issue #342): src/temples/skins/skin-shader.js (each skin's pattern declared once,
+    // spliced for the web as before, sent as data: engine/ink-spec.js skin, port-format.js skinPattern / skinData, op 21
+    // live), scripts/unity-export/skin-hlsl.mjs → Shaders/SkinPatterns.hlsl, Surface.shader HIRAETH_SKIN (one variant);
+    // tests/temple-skin-patterns.test.js; docs/systems/temples.md "In Unity"
+    'In the Unity version the thirteen futuristic temples wear their skins as on the web: the Rose House’s slate panels with their ember circuits, the Warden’s Well’s rings of slabs and cyan lines, the Belfry’s, the Aerie’s, the Clock-House’s and every other house’s panels, plates, chamfers and glowing lines. They used to come out as plain walls and floors.',
     // the Aerie's futuristic skin (issue #342): src/temples/skins/aerie.js (`skin: aerieSkin` in arzach.js);
     // tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins"
     'Inside, the Aerie is the makers’ old high technology now, after the drawings picked for it: a round shaft of dark slate in tall slabs, thin pale peach circuits ringing it and climbing between the rings, warm grey floors with peach rings inlaid, a turbine of machined blades in every great vent that spins up when the wind rises, ochre sand on the ledges and balconies with a glowing rim along their edges, discs and hexagons floating high round the shafts, and a row of lit slots along every frieze. The makers’ sign on its walls is the drawings’ long low arch under three small dots. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the slabs are plainer and fewer plates float.',

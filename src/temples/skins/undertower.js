@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { Dish, EchoEar } from '../pieces.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Undertower's futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"): the makers' first sign's
@@ -224,6 +225,9 @@ const BODIES = {
 };
 
 const EMIT_LINE = 'float emit = 0.0;   // lit windows at night (facade)';
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('undertower', { pars: PARS, glsl: GLSL, bodies: BODIES, ink: 'utInkV', emit: 'utGlow', emitAt: 'line' });
+
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and light the body's. */
 function skinMaterial(body, look, S, U, key) {
   const m = makeMaterial({ flat: true, ...look, color: S.color, key: `temple.skin.undertower.${key}` });
@@ -231,9 +235,7 @@ function skinMaterial(body, look, S, U, key) {
   Object.assign(m.uniforms, { uSkinO: U.origin, uUtRound: U.round, uUtRoundN: U.count });
   if (m.userData.houseSkin) return m;
   m.userData.houseSkin = body;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  if (at < 0 || !fs.includes('vec3 albedo = uColor;') || !fs.includes('float detail = 0.0;') || !fs.includes(EMIT_LINE)) throw new Error('undertower.js: the surface shader changed: no albedo, emit or detail line to replace');
-  m.fragmentShader = PARS + fs.slice(0, at) + GLSL + fs.slice(at).replace('vec3 albedo = uColor;', BODIES[body]).replace(EMIT_LINE, 'float emit = utGlow;').replace('float detail = 0.0;', 'float detail = utInkV;');
+  spliceSkin(m, SHADER, body, 'undertower.js');
   Object.assign(m.uniforms, {
     uUtLine: { value: new THREE.Color(UNDERTOWER_SKIN.line) }, uUtDark: { value: new THREE.Color(S.dark ?? S.color) }, uUtLight: { value: new THREE.Color(S.light ?? S.color) },
     uUtCell: { value: new THREE.Vector2(...(S.panel ?? S.plate ?? [1, 1])) }, uUtEmit: { value: UNDERTOWER_SKIN.emit },

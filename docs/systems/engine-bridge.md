@@ -1398,6 +1398,13 @@ mirror take 10–18 ms on their own thread, and the main thread waits only 1–2
 web draws 100–450 on these views) and the full-resolution URP passes are where the time goes. With the script and
 the sound off the main thread (#55), the CPU side fits in a 60 Hz frame; the GPU side would need about 5× less.
 
+## The temples' futuristic skins (Unity + Puerts, 2026-10-15, issue #342)
+
+A skinned material's pattern crosses as data: `inkSpec` adds `skin: { body, data }` (src/temples/skins/skin-shader.js),
+the port gets `skinPattern` and `skinData` (vec4 slots), and Surface.shader's single `HIRAETH_SKIN` variant draws it with
+the generated `SkinPatterns.hlsl`, the web's own GLSL in HLSL. Values that move later go live as op 21 (`materialSkin`).
+See docs/systems/temples.md, "Futuristic skins", "In Unity".
+
 ## See-through surfaces (Unity + Puerts, 2026-10-13, issue #263)
 
 The web draws a see-through surface (src/veil.js: the City-Shaft's air pillars, Lorn II's mushrooms, the Glass

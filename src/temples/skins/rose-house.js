@@ -4,6 +4,7 @@ import { makeMaterial, sharedUniforms } from '../../materials.js';
 import { paint } from '../kit.js';
 import { Door, Flame, Switch, Sentry } from '../pieces.js';
 import { glyphGeometry } from '../../story/sign-text.js';
+import { skinShader, spliceSkin } from './skin-shader.js';
 
 // ---------------------------------------------------------------------------
 // The Rose House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"), after the author's
@@ -184,16 +185,16 @@ const BODIES = {
   `,
 };
 
+/** The pattern, as data the web's shader and the Unity port's are both made from (skin-shader.js). */
+const SHADER = skinShader('rose-house', { pars: RH_PARS, glsl: RH_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
+
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and emit the body's. */
 function skinMaterial(body, look, o, U, key) {
   const m = makeMaterial({ flat: true, ...look, color: o.color, key: `temple.skin.rose.${key}` });
   m.uniforms.uSkinO = U.origin;
   if (m.userData.roseSkin) return m;
   m.userData.roseSkin = body;
-  const fs = m.fragmentShader, at = fs.lastIndexOf('void main()');
-  for (const line of ['vec3 albedo = uColor;', 'float detail = 0.0;', 'float emit = 0.0;']) if (!fs.includes(line)) throw new Error(`rose-house.js: the surface shader changed: no "${line}" to replace`);
-  m.fragmentShader = RH_PARS + fs.slice(0, at) + RH_GLSL + fs.slice(at).replace('vec3 albedo = uColor;', BODIES[body])
-    .replace('float detail = 0.0;', 'float detail = skInk;').replace('float emit = 0.0;', 'float emit = skEmit;');
+  spliceSkin(m, SHADER, body, 'rose-house.js');
   const c = (h) => ({ value: new THREE.Color(h ?? o.color) });
   Object.assign(m.uniforms, {
     uSkA: c(o.seam), uSkB: c(o.bevel ?? o.tide), uSkE: c(ROSE_SKIN.ember), uSkS: c(o.sand),
