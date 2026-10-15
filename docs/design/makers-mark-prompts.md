@@ -1,5 +1,8 @@
 # The makers' mark: reference prompts for a new sign
 
+> **Superseded by the second pass, `docs/design/makers-mark-prompts-v2.md`.** The author liked none of these
+> eight (they came out as modern logos and icons); their batches are rejected in the lab. Kept as history.
+
 2026-10-15, issue #342. The makers' mark (the glyph) is drawn on every temple door, frieze, glyph stone and plate
 (`glyphGeometry` in `src/story/sign-text.js`, the Rose House's flatter `signGeometry`, and the dots-over-arc
 shapes across `src/temples/`). Today it is three dots over an upward-bowing arc, and even flattened it reads as a
