@@ -104,6 +104,12 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [benchmark-web-vs-unity.md](benchmark-web-vs-unity.md) | the web game against the Unity port, on the Mac and the Retroid |
 | [credits.md](credits.md) | third-party animation, bodies and motion capture, and their licences |
 
+## Plans (`docs/plans/`)
+
+| File | What |
+|---|---|
+| [unity-default-portables.md](plans/unity-default-portables.md) | Unity as the default on the portable devices: saves and settings across the two runtimes, how each device updates, what the Unity player still lacks, the web-against-Unity picture check, and the ordered checklist for the Steam Deck's switch, then the Retroid's |
+
 ## Archive (`docs/archive/`)
 
 | File | What |
