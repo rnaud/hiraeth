@@ -976,6 +976,105 @@ instead slid the pivots' steps); the sprint's push-off calves at 14-15 rad/s (st
 other way (5 pops, the half turn's step round); down the ramp a 3.2 cm boundary; the walk back's calves at each
 backwards lift-off (14 pops in 8 s); in the game the pivot into a jog at 90° (`jog2`, a calf 26-34 rad/s).
 
+**Issue #47 on B3, the third round** (2026-10-15). Frame by frame again, node and the game:
+
+- **Stood up for a frame in a running reversal.** Turning round at a run, the body's speed passes through nothing for a
+  frame on its way from 8 m/s one way to the other; under 0.25 m/s the Animator's blend aims at the standing pose, and
+  the idle took 15 % of the pose in that frame: every swinging foot dropped 7-10 cm and rose again (the 4.6 cm boundary
+  as the running turn's move came in). With the stick held and the loops already over half the pose, the blend keeps
+  the gait's own weights for that frame (`GAIT_HOLD`, the player passes `steering`).
+- **A foot planted in its release's arc.** A foot still easing off an old hold is drawn in the release's arc
+  (`releaseArc`), 8-12 cm over the clip's foot; as the clip's foot neared the ground it was planted early from there
+  and thrown onto the ground with its whole weight in a frame, the calf 38 rad/s. A foot 5 % or more on an old hold
+  plants early only once it is drawn near the ground too (`FEET.earlyShown`), and one held where it is drawn comes down
+  from the height it is drawn at (`FEET.dropShown`). The facing's speed-up, at a run (the loops over half the pose),
+  comes in over a few frames (`FACE.jerk`, 12000 rad/s³; at once from standing as before: a pivot down the ramp or the
+  other way then stepped late), and a pivot is not begun with the loops over 0.9 of the pose (`LOCO.pivotGait`): the speed
+  passing under 2.6 m/s for a frame on its way back up made a pivot of one frame, the held foot's knee swung round with
+  it (a calf 29 rad/s and crossed feet in 4-7 % of the reversal's frames in the Arena).
+- **The arm's clearance flipping.** The traveller's walk and jog hold his arms out from his sides by the arm's angle seen
+  from the front (`relaxWalkArms`); an arm swung up behind, as the running turn throws it, passed straight up there and
+  its angle flipped from +180° to -180°: the whole arm turned 40° and back in a frame, the forearm 60-80 rad/s. The
+  clearance is for an arm that hangs: it fades out as the arm comes up level (`ARM_HANG`, src/characters/tripo-walk.js).
+- **A landing foot eased off its speed.** In its last moments over the ground a foot was held back toward where it was
+  as it came over the ground, by the share of `landTime` gone: met two or three frames before touchdown, it kept a third
+  of its speed in the first frame (a running turn's foot, swung round at 13 m/s, stopped from 22 cm a frame to 7). The
+  share of its place's travel it keeps now falls from 1 to 0 over the moments left (`FEET.landEase`), and `landBack` is
+  reached smoothly (tanh), not clamped.
+- **A release's toe-off let go at its end.** A foot let go leaves its hold along the ground more slowly than it rises,
+  as w^0.7; at a sprint the last 3 % of a release still drew the foot 13 cm back toward a hold 1.5 m behind, and it jumped
+  on 15 cm in the frame it touched down. As 1 - (1 - w)^(1 / 0.7) instead (`FEET.toeOffTail`): as slow at first, gone at
+  the end. Slides at every gait 5.2 → 3.4 cm (p95), and the sprint's push-off calves (14-15 rad/s) gone.
+- **A pivot's step round.** Its foot turns half a turn in 0.17 s, 35 rad/s; held to `footRate` (12 rad/s) it fell 1.5
+  rad behind and was set to the clip's turn in a frame, 85-93 rad/s. It falls no more than `FEET.footLag` (0.5 rad)
+  behind. A step cut short as the pivot ends lands only where the gait has the foot down (`FEET.landPlanted`): set down
+  and let go in the same frame, it dropped its step's height, 3-4 cm, and rose again (the calf 21 rad/s, a pivot into a jog).
+- **The stairs.** Down a flight, a foot set on the step below before the body came down was out of reach and let go in
+  the frame it landed: thrown onto its hold and off (26-31 rad/s), it then slid the step through. A foot set down under
+  the body's floor by 8 cm or more lets go out of reach only past the hips' whole drop for its first 0.1 s (`reachGrace`'s
+  third). A swinging foot rises toward the next stair as a critically damped spring from rest (`FEET.rideAheadSpring`,
+  at 60/s: eased at 30/s, it set off at its full speed in the frame it lifted).
+- **The walk back** (locked on): the loops' gait run backwards lifts a foot where it came down, in front of the hips,
+  with the leg at its full length; let go there, the knee snapped bent, a calf pop at every step back. A foot walking back
+  lets go a moment before the leg is straight, as a sprint's push-off does (`FEET.pushOffBack`, 2.5-3.5 m/s, within
+  10 % of the leg; the player's `o.reverse`).
+
+Tried and left out: the drawn body's stair lag as a critically damped spring (`StepLag`: 18-50/s each moved the stairs'
+pops by one either way, no clear gain); the hips coming down from the leg's soft zone (`dropAt` 0.965-0.975: the slow
+walk's held foot crept 6 cm); a landing not held back while the body spins fast (the running turn's foot then slid 7
+cm); landing by the drawn foot's clearance down a slope (no change on the ramp); a longer `landTime` (0.1-0.13: the
+running turn's boundary 4.6 cm); a foot coming down from its lift over a stair's edge (no change); a rate limit on the
+forearm's share of the wrist's roll (the flip was the arm's clearance, above).
+
+Node, the default way (`diff.mjs`, before on 8ca3618f):
+
+| scenario · way | verdict | slide p95 (cm) | slide max (cm) | held (cm) | pops /min | jolts /min | worst jolt (cm) | boundary (cm) |
+|---|---|---|---|---|---|---|---|---|
+| walk → run → 180° turn → stop | red → red | 5.4 → 3.6 | 5.4 → 3.6 | 0.8 → 0.8 | 2 → 0 | 4 → 2 | 4.6 → 4.0 | 4.6 → 4.0 |
+| walk, 90° turn, stop | green → green | 1.0 → 1.0 | 1.0 → 1.0 | 0.8 → 0.8 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.2 → 1.2 |
+| turn round on the spot | green → green | 3.9 → 3.9 | 3.9 → 3.9 | 0.1 → 0.1 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.7 → 1.7 |
+| up the ramp, stand | green → green | 1.7 → 1.7 | 1.7 → 1.7 | 1.4 → 1.5 | 1 → 2 | 0 → 0 | 0.0 → 0.0 | 3.0 → 2.7 |
+| stairs up, stand, down | red → red | 2.1 → 2.0 | 2.1 → 2.0 | 1.1 → 1.1 | 7 → 5 | 5 → 2 | 6.9 → 3.9 | 3.9 → 3.9 |
+| slow walk (half stick), stop | green → green | 2.1 → 1.7 | 2.1 → 1.7 | 1.0 → 1.0 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 2.7 → 1.9 |
+| jog, 45° and back, stop | green → green | 1.3 → 0.8 | 1.3 → 0.8 | 0.8 → 0.8 | 1 → 0 | 0 → 0 | 0.0 → 0.0 | 2.9 → 2.0 |
+| stand still 6 s | green → green | 0.1 → 0.1 | 0.1 → 0.1 | 0.1 → 0.1 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 |
+| gaits: walk → jog → sprint → jog → walk → stop | green → green | 5.2 → 3.4 | 5.5 → 3.6 | 1.0 → 1.7 | 2 → 0 | 0 → 0 | 0.0 → 0.0 | 1.7 → 1.7 |
+| starts and stops, walk and run | red → green | 5.3 → 3.7 | 12.0 → 4.2 | 1.3 → 1.3 | 4 → 2 | 2 → 0 | 3.3 → 0.0 | 2.8 → 2.7 |
+| setting off the other way | red → red | 5.3 → 5.3 | 10.0 → 7.3 | 1.2 → 1.3 | 5 → 3 | 4 → 2 | 4.3 → 3.5 | 3.8 → 3.5 |
+| pivots standing: 90° each way, 180° | green → green | 5.5 → 5.5 | 5.5 → 5.5 | 0.4 → 0.4 | 1 → 1 | 0 → 0 | 0.0 → 0.0 | 1.5 → 1.5 |
+| pivot 180° at a jog, and at a sprint | red → green | 5.2 → 3.8 | 7.5 → 4.4 | 1.0 → 1.0 | 5 → 2 | 4 → 1 | 6.1 → 3.5 | 5.6 → 2.6 |
+| curve: the stick round a circle at a jog | green → green | 1.0 → 0.8 | 1.0 → 0.8 | 0.8 → 0.8 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.5 → 1.5 |
+| down the ramp, stop on it | red → red | 3.7 → 2.7 | 3.7 → 2.7 | 1.4 → 1.3 | 2 → 2 | 2 → 2 | 4.7 → 4.7 | 3.2 → 3.2 |
+| stairs at a run | red → red | 5.4 → 3.4 | 5.4 → 3.4 | 0.2 → 0.1 | 5 → 4 | 8 → 6 | 7.2 → 9.1 | 5.9 → 2.9 |
+
+red runs 7 → 5 of 16; limits failed 16 → 7; mean slide p95 3.4 → 2.7 cm; mean pops 2.2 → 1.3 /min; mean jolts 1.8 → 0.9 /min; mean worst boundary 2.9 → 2.3 cm
+
+Green now: starts and stops (pops 4 → 2, slide max 12.0 → 4.2 cm), the 180° pivots at a jog and a sprint (boundary 5.6 →
+2.6 cm, pops 5 → 2). Locked on, walking back (node, 8 s, `tests/strafe.test.js`): pops 14 → 2, a held foot over its hold
+1.0 → 0.2 cm; strafing unchanged (2 pops in 10 s). `tests/motion-qc.test.js` ("the 180° turns at a run, starts and
+stops…", the facing's jerk, `GAIT_HOLD`) and `tests/strafe.test.js` (the walk back's pops, no longer todo) hold these.
+
+In the game (Mac, muted headless Chrome, Medium, the desert and the Arena; before once, after twice):
+
+| world | pops /min | jolts /min | boundary (cm) | slide p95 (cm) | held (cm) | crossed |
+|---|---|---|---|---|---|---|
+| the desert's dunes | 9 → 2, 5 | 12 → 6, 9 | 6.7 → 5.2, 6.0 | 5.2 → 6.0, 5.8 | 1.8 → 1.8, 1.8 | 0 → 0, 0 % |
+| the Arena's floor | 5 → 3, 2 | 4 → 6, 5 | 6.1 → 4.5, 4.4 | 6.0 → 4.4, 4.2 | 2.0 → 1.0, 0.9 | 7 → 0, 0 % |
+
+The sprint's push-off calves (14-18 rad/s, 5 in the desert, 2 in the Arena) gone but one; the pivot into a jog at 90°
+(`jog2`): its calf 33-37 → 21-26 rad/s (one desert run none); the sprint reversed's calf 20-21 → 19-21 rad/s (one Arena run
+none): as it was. The desert's slides read 5.2 before and 6.0, 5.8 after (the second round's after: 7.8-8.5): within the
+runs' spread on the dunes.
+
+**Left red** (node, the todo tests): the stairs (5 pops a minute, a 3.9 cm boundary: a foot lifting off the lower step
+for the next one, let go as the clip's ball passes the riser, rises 10 cm a frame at once, the calf 26 rad/s) and at a run
+(4 pops, 6 jolts a minute, a 9 cm jolt: a riser every 2-3 frames, the drawn body climbing 6-10 cm a frame by turns);
+walk → run → 180° turn → stop (a 4.0 cm boundary: the running turn's swinging foot, swung round at 13 m/s by the body
+turning 30 rad/s, eased to nothing over the 3 frames before it touches down); setting off the other way (a 3.5 cm
+boundary, the pivot into a jog's lift-off); down the ramp (a 3.2 cm boundary, a calf 23 rad/s at a touchdown downhill, the
+drawn foot at the leg's soft reach). In the game: the pivot into a jog at 90° (a calf 21-26 rad/s) and the sprint
+reversed's calf (19-21).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

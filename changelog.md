@@ -25,6 +25,10 @@ The same release notes shown in the game (press **N** or open settings).
 - On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.
 - Inside, the Footprint is a white sphere of the makers’ old high technology now, after the drawing picked for it: smooth cream panels with round and octagonal plates set in them, walkways ringing every tall room with pale blue-white light along their edges, lit lines along the floors, the ledges and the walls’ foot, round lens terminals of teal glass, and thin rings of light floating under the oculi. The rooms, doors and puzzles are where they were.
 - In the Sunken Hall, B / ○ rolls and jumping is disabled: A / × and Space do nothing, and the touch jump button is hidden. Jumping elsewhere works as before.
+- Setting off the other way from standing, the foot stepping round no longer spins in a frame; jogging down stairs, a foot set on the step below stays there instead of sliding across it.
+- Locked on and stepping back, his knees no longer flick at every step.
+- At every pace his feet land more softly: each slows to a stop as it touches down instead of skidding the last few centimetres, the foot behind lets go of the ground cleanly, and his calves no longer flick as he pushes off into a sprint.
+- Turning round at a run or a sprint, his feet no longer drop for a frame as he slows through the turn, a foot coming down mid-turn no longer slams onto the ground, his feet no longer cross as he sets off again, and his arm no longer jerks round as it swings up behind him.
 - Locked on, pulling back he now jogs backwards, his feet staying where they land instead of sliding most of a step each time.
 - Turning round at a run or reversing a sprint, his forearm no longer flips over for a frame.
 - Running up or down stairs, his body rises and falls with the flight instead of trailing under the steps: his legs no longer fold up to reach the treads, his feet no longer sink into them, and his knees flick less as he steps down.

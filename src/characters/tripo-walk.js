@@ -4,6 +4,8 @@ import { updateChain } from '../world-read.js';
 // Character-specific walk/jog styling, after Animator.apply and before Humanoid.update.
 // Rotate the entire arm together so elbow bend and fore/aft swing are preserved.
 // Keep 7 degrees of walk clearance and 12 degrees when jogging; never modify climbing or the bind pose.
+/** How far down (the arm's way's share pointing down) the walk's arm clearance fades in, and is whole. */
+export const ARM_HANG = [0, 0.6];
 export function relaxWalkArms(char, motion, enabled = true, options = {}) {
   if (!enabled || !['walk','jog'].includes(motion)) return [];
   // (the arms and elbows it reads, not the whole body: issue #111)
@@ -14,8 +16,12 @@ export function relaxWalkArms(char, motion, enabled = true, options = {}) {
       .applyQuaternion(rootQ.clone().invert()).normalize();
     const side = i === 0 ? -1 : 1;
     const angle = Math.atan2(dir.x * side, -dir.y);
+    // (the clearance is for an arm that hangs: one swung up level or over, as a running turn throws it behind, lets it go.
+    // Seen from the front its angle passed straight up and flipped from +180° to -180°, and the whole arm turned 40° and
+    // back in a frame, the forearm 70-80 rad/s, issue #47)
+    const hangs = MathUtils.smoothstep(-dir.y, ARM_HANG[0], ARM_HANG[1]);
     const minimum=options.minimum ?? (motion==='jog'?12:7), maximum=options.maximum ?? (motion==='jog'?40:8);
-    const amount = MathUtils.clamp(angle - MathUtils.degToRad(minimum), -MathUtils.degToRad(options.outward ?? 0), MathUtils.degToRad(maximum)) * (options.weight ?? 1);
+    const amount = MathUtils.clamp(angle - MathUtils.degToRad(minimum), -MathUtils.degToRad(options.outward ?? 0), MathUtils.degToRad(maximum)) * (options.weight ?? 1) * hangs;
     const rotation = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1).applyQuaternion(rootQ), -side * amount);
     const world = arm.getWorldQuaternion(new Quaternion()).premultiply(rotation);
     arm.quaternion.copy(arm.parent.getWorldQuaternion(new Quaternion()).invert().multiply(world));

@@ -27,6 +27,8 @@ const HEAD_NOD = ['idle', 'walk', 'jog', 'sprint', 'talk', 'look'];
 // the traveller's idle variants after standing 7 s (Animator.idleMoves), in turn with IDLE_GAP s between
 const IDLE_VARIANTS = ['looking_around', 'breathing_idle', 'look'];
 const IDLE_GAP = 10;
+// the gait's share over which, the stick held, a speed under the standing line for a frame (a reversal) keeps the gait's blend
+export const GAIT_HOLD = 0.5;
 // the rig's hips over its body's origin (player.js buildCharacter: the thighs' pivots, the pelvis)
 const HIP_PIVOT = 0.97;
 const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
@@ -576,6 +578,10 @@ export class Animator {
         tw.air = Math.max(0, 1 - tw.jumpStart - tw.jumpLand);
       } else tw.air = 1;
     }
+    // (the stick held, the gait already under way: the speed passing through nothing for a frame as the body reverses (a
+    // pivot at a run, a sprint turned round) doesn't stand him up for that frame: the standing pose took 15 % of the blend at
+    // once and every swinging foot dropped 7-10 cm in a frame, the 4.6 cm boundary as the running 180° turn came in, issue #47)
+    else if (sp < 0.25 && s.steering && this.gaitW > GAIT_HOLD && this.w.walk + this.w.jog + this.w.sprint > GAIT_HOLD) { const g = this.w.walk + this.w.jog + this.w.sprint; for (const k of ['walk', 'jog', 'sprint']) tw[k] = this.w[k] / g; }
     else if (sp < 0.25) tw[s.mode === 'talk' ? 'talk' : 'idle'] = 1;
     else {
       const stops = [['idle', 0], ['walk', s.walkAt], ['jog', s.jogAt], ['sprint', s.sprintAt]];

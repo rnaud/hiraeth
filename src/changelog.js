@@ -34,6 +34,15 @@ export const CHANGELOG = [
     'Turning round at a run or reversing a sprint, his forearm no longer flips over for a frame.',
     // the walk back: src/player.js LOCK_MOVE.backRun (the loops' gait run backwards, src/animator.js s.reverse); tests/strafe.test.js
     'Locked on, pulling back he now jogs backwards, his feet staying where they land instead of sliding most of a step each time.',
+    // the running turns (issue #47, third round): src/animator.js GAIT_HOLD, src/feet.js FEET.earlyShown / dropShown,
+    // src/player.js FACE.jerk, src/locomotion.js LOCO.pivotGait, src/characters/tripo-walk.js ARM_HANG; tests/motion-qc.test.js
+    'Turning round at a run or a sprint, his feet no longer drop for a frame as he slows through the turn, a foot coming down mid-turn no longer slams onto the ground, his feet no longer cross as he sets off again, and his arm no longer jerks round as it swings up behind him.',
+    // the landings and releases: src/feet.js FEET.landEase (and landBack reached by tanh), FEET.toeOffTail
+    'At every pace his feet land more softly: each slows to a stop as it touches down instead of skidding the last few centimetres, the foot behind lets go of the ground cleanly, and his calves no longer flick as he pushes off into a sprint.',
+    // the walk back: src/feet.js FEET.pushOffBack (o.reverse from src/player.js); tests/strafe.test.js (no longer todo)
+    'Locked on and stepping back, his knees no longer flick at every step.',
+    // a pivot's step round: FEET.footLag, FEET.landPlanted; the stairs: FEET.reachGrace's third, FEET.rideAheadSpring
+    'Setting off the other way from standing, the foot stepping round no longer spins in a frame; jogging down stairs, a foot set on the step below stays there instead of sliding across it.',
     // the Sunken Hall's buttons (after issue #365): src/fight-temples/session.js (jump suppressed), index.js (controls
     // cards, touch jump hidden); tests/fight-roll.test.js
     'In the Sunken Hall, B / ○ rolls and jumping is disabled: A / × and Space do nothing, and the touch jump button is hidden. Jumping elsewhere works as before.',

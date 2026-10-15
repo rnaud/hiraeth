@@ -150,15 +150,20 @@ const NO_HANDS = Object.freeze({});
  * once, a turn from standing went from still to 34 rad/s in one frame (180° in eight), and every bone of the body jumped
  * with it, the hands 6 cm off their path (the motion QC's boundary at every pivot, issue #47). Slowing down is as before.
  */
-export const FACE = { accel: 600 };
+export const FACE = { accel: 600, jerk: 12000, runGait: 0.5 };   // (jerk, rad/s³: and, the loops over runGait of the pose, that speed-up itself comes in over a few frames: issue #47's running turn)
 /** Setting off from standing (under `gait` of the loops and `speed`, faster than `over`, within `turn` rad of the facing): the loops' phase `share` of a cycle past the front foot's touchdown. */
 export const START_STEP = { gait: 0.1, speed: 0.5, over: 2.6, share: 0, turn: 1.2 };
-export function faceStep(p, step, dt, was = 0) {
+export function faceStep(p, step, dt, was = 0, accWas = 0, running = true) {
   if (!(dt > 0)) return step;
   const want = step / dt;
   let rate = want;
-  if (!(Math.sign(want) === Math.sign(was) && Math.abs(want) <= Math.abs(was))) rate = was + THREE.MathUtils.clamp(want - was, -FACE.accel * dt, FACE.accel * dt);
+  // (running, the gait under way: the speed-up's own rise no faster than FACE.jerk. Brought up at FACE.accel from the first
+  // frame, a running 180° turn's swinging feet, carried round with the body, swung off their curve by 4-5 cm in the frame the
+  // facing set off, issue #47. Not from standing: a pivot setting off down the ramp or the other way then stepped late)
+  const acc = FACE.jerk > 0 && running ? Math.min(FACE.accel, Math.abs(accWas) + FACE.jerk * dt) : FACE.accel;
+  if (!(Math.sign(want) === Math.sign(was) && Math.abs(want) <= Math.abs(was))) rate = was + THREE.MathUtils.clamp(want - was, -acc * dt, acc * dt);
   p._faceRate = rate;
+  p._faceAcc = (rate - was) / dt;
   return rate * dt;
 }
 
@@ -1727,8 +1732,8 @@ export class Player {
     const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
     const hs = tvel.length();
     // (the facing's turn speed of the last frame, kept only while the next one follows the way he moves: faceStep)
-    const faceWas = this._faceRate ?? 0;
-    this._faceRate = 0;
+    const faceWas = this._faceRate ?? 0, faceAccWas = this._faceAcc ?? 0;
+    this._faceRate = 0; this._faceAcc = 0;
     if (this.onJets) {
       // flying on the jets: the heading is the nose's (flyJets steers it)
     } else if (this.lockOn && !this.gliding && !this.climbing && !this.ride && !this.swim) {
@@ -1739,7 +1744,7 @@ export class Player {
     else if (hs > 0.5 && !this.gliding) {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
-      this.heading += faceStep(this, d * (1 - Math.exp(-12 * dt)), dt, faceWas);
+      this.heading += faceStep(this, d * (1 - Math.exp(-12 * dt)), dt, faceWas, faceAccWas, (this.animator?.gaitW ?? 0) > FACE.runGait);
     } else if (this.edge.k > 0.15 && !this.gliding) {
       // leaning into the world's edge: turned to face it
       let d = F.headingOf(_v1.copy(this.edge.n).negate()) - this.heading;
@@ -1955,7 +1960,8 @@ export class Player {
         // the gait says which feet are down and how far to shorten the stride (src/locomotion.js gaitFeet)
         const o = gaitFeet(this.animator, _g2.copy(this.vel).addScaledVector(U, -this.vel.dot(U)).length(), this._feetO ??= {});
         o.pivot = !!this.loco?.pivot;
-        o.reach = this._strafe?.reach ?? null;   // (a locked-on step played slower than the body: the feet reach further, LOCK_MOVE)
+        o.reach = this._strafe?.reach ?? null;
+        o.reverse = !!this._strafe?.reverse;   // (walking back: its feet let go before the leg is straight, FEET.pushOffBack)   // (a locked-on step played slower than the body: the feet reach further, LOCK_MOVE)
         // (a step played over the loops walks: its feet let go out of reach as a stride's do. Its clip has no path, so the
         // gait's share fell to nothing under it and the feet held on as if standing, dragged off their holds 8-11 cm)
         if (this._strafe?.side && this._strafe.w > 0) o.gait = Math.max(o.gait, this._strafe.w);
@@ -2702,6 +2708,7 @@ export class Player {
       strideScale: 1,
       mm: A.matching ? this.matchInput() : null,
       reverse: !!this._strafe?.reverse,
+      steering,   // (the speed through nothing for a frame, reversing, keeps the gait's blend: Animator GAIT_HOLD)
     });
     this.object.position.copy(this.pos);
     this.frame.quaternion(this.heading, this.object.quaternion);
@@ -2712,7 +2719,7 @@ export class Player {
     const U = this.frame.up, fwd = this.frame.dir(this.heading, _g1);
     const vf = this.vel.dot(fwd);
     const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim && !this.lockOn ? this.frame.headingOf(this._moveDir) : null;   // (locked on: the chest stays on the foe)
-    (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
+    (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim, gait: A.gaitW });
     this.loco.pose(c);
     if (this.combatMotion?.evade && this.combatMotion.roll == null) {
       const e = Math.sin(Math.PI * this.combatMotion.evade);

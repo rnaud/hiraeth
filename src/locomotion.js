@@ -24,6 +24,7 @@ export const LOCO = {
   headLead: 0.5, headMax: 0.6, chestLead: 0.28, chestMax: 0.32,
   pivotTurn: 3.2, pivotSpeed: 2.6,                      // rad/s faster than this, under this speed: a pivot
   pivotKeep: 0.7, pivotHold: 0.12, pivotFast: 1.1,     // once pivoting: kept over 0.7x the turn, or for 0.12 s, under 1.1x the speed
+  pivotGait: 0.9,                                      // and not with the loops over this share of the pose (a running reversal)
 };
 
 export class Locomotion {
@@ -49,7 +50,7 @@ export class Locomotion {
    * @param s.want    the heading being steered to (rad), or null
    * @param s.ground  on the ground (else everything eases out)
    */
-  update(dt, { vf, speed, heading, want = null, ground = true }) {
+  update(dt, { vf, speed, heading, want = null, ground = true, gait = 0 }) {
     if (!(dt > 0)) return this;
     const S = this.style;
     // turn rate (rad/s) and forward acceleration (m/s^2), smoothed so a frame's noise isn't a lurch
@@ -74,7 +75,9 @@ export class Locomotion {
     this.chest += (chestT - this.chest) * damp(9, dt);
     // (with hysteresis and a least hold: a pivot that flickered off for a frame, the speed crossing the line as the turn
     // eased, let a held foot go and planted it again where the clip's was, half a metre off: the motion QC's 20 cm jolt)
-    const on = Math.abs(this.turn) > LOCO.pivotTurn && speed < LOCO.pivotSpeed;
+    // (not in a running reversal, the loops' gait over LOCO.pivotGait: the speed passing under 2.6 m/s for a frame on its way
+    // back up made a pivot of one frame, the held foot's knee swung round with it, a calf 29 rad/s, the Arena, issue #47)
+    const on = Math.abs(this.turn) > LOCO.pivotTurn && speed < LOCO.pivotSpeed && !(gait > LOCO.pivotGait);
     const stay = Math.abs(this.turn) > LOCO.pivotTurn * LOCO.pivotKeep;
     this.pivotT = on ? LOCO.pivotHold : Math.max(0, (this.pivotT ?? 0) - dt);
     this.pivot = on || (this.pivot && speed < LOCO.pivotSpeed * LOCO.pivotFast && (stay || this.pivotT > 0));

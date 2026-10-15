@@ -997,6 +997,10 @@ const QC47B = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, 
 const GAME47B = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 6513; the motion QC in the game (.claude/skills/motion-qc/run.mjs: every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the desert’s sand and the Arena’s floor; main at b653f6eb once against the same tree with the change twice; 15 October';
 const SRC47B = 'issue #47 scratchpad motion47b: base/ and r3/ (node), world-before/, world-after/, world-after2/ (the game), back.mjs (the walk back)';
 const KNEES47 = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course); main at 0006cfe7 against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
+const QC47C = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second); main at 8ca3618f against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
+const GAME47C = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 6517; the motion QC in the game (.claude/skills/motion-qc/run.mjs: every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the desert’s sand and the Arena’s floor; main at 8ca3618f once against the same tree with the change twice; 15 October';
+const BACK47C = 'node, the gait harness’s flat course, the game’s B3 traveller locked on to a point 10 m ahead, the stick back and back-right, 3 s each (6 s walking back, 8 s in all), 60 frames a second; main at 8ca3618f against the same tree with the change; 15 October';
+const SRC47C = 'issue #47 scratchpad motion47c: base/ and final/ (node), world-before/, world-after3/, world-after4/ (the game: game-ev.mjs), back.mjs (the walk back)';
 const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/after.json (tools/game-strafe.mjs, tools/game-analyse.mjs), tools/strafe-node.mjs';
 /** (v1.78, issue #111: the Steam Deck's main thread, round 10) */
 const DECK111 = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800 (render scale 1), muted, the bench’s own profile and save; every view of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1, viewpoints-worlds.json), main at c2f4ed6d against the same tree with the change, world by world in turn; 15 October';
@@ -1285,6 +1289,47 @@ export const CHANGELOG_MEDIA = {
         { where: 'walk, run, 180° turn (node)', before: 233, after: 26 },
       ], note: '14 rad/s is the pop threshold: after, no forearm or hand reached it in those runs but one 26 rad/s turn of the forearm in the run’s 180°.' },
     ], see: 'Sprint, then pull the stick back: he turns round with his arms swinging through, no forearm turning over.' },
+    { match: 'Turning round at a run or a sprint, his feet no longer drop for a frame', tags: ['characters'], numbers: [
+      { title: 'The 180° turns at a run in the motion QC', unit: 'count', better: 'lower', device: QC47C, source: SRC47C, rows: [
+        { where: '180° pivots at a jog and a sprint: the worst jolt at a blend (cm)', before: 5.6, after: 2.6 },
+        { where: '180° pivots at a jog and a sprint: pops a minute', before: 5, after: 2 },
+        { where: '180° pivots at a jog and a sprint: jolts a minute', before: 4, after: 1 },
+        { where: 'walk, run, 180° turn, stop: pops a minute', before: 2, after: 0 },
+        { where: 'walk, run, 180° turn, stop: the worst arm flick (rad/s)', before: 26, after: '< 14' },
+      ], note: 'The limits: 3 cm, 3 a minute; a pop is a bone 14 rad/s off its neighbours. The run’s 180° turn is still 1 cm over at its touchdown (4.0 cm, issue #47).' },
+      { title: 'In the game: a sprint reversed, the Arena’s floor', unit: 'count', better: 'lower', device: GAME47C, source: SRC47C, rows: [
+        { where: 'the share of its frames with the feet crossed (%)', before: 7, after: 0 },
+        { where: 'the worst jolt at a blend, the whole run (cm)', before: 6.1, after: '4.4–4.5' },
+      ] },
+    ], see: 'Sprint (hold RT / R2), then pull the stick right back: he turns round without a foot dropping or slamming down, his arms swinging through.' },
+    { match: 'At every pace his feet land more softly', tags: ['characters'], numbers: [
+      { title: 'Planted steps sliding over the ground in the motion QC (cm, 95 % of the steps under this)', unit: 'cm', better: 'lower', device: QC47C, source: SRC47C, rows: [
+        { where: 'every gait: walk, jog, sprint, jog, walk, stop', before: 5.2, after: 3.4 },
+        { where: 'starts and stops at a walk, a jog and a run', before: 5.3, after: 3.7 },
+        { where: 'walk, run, 180° turn, stop', before: 5.4, after: 3.6 },
+        { where: 'the stairs at a run', before: 5.4, after: 3.4 },
+      ], note: 'The worst single step in starts and stops: 12.0 → 4.2 cm. Pops at every gait 2 → 0 a minute.' },
+      { title: 'In the game: the sprint’s push-off, calves flicking (in one run of every gait)', unit: 'count', better: 'lower', device: GAME47C, source: SRC47C, rows: [
+        { where: 'the desert’s sand', before: 5, after: '0–1' },
+        { where: 'the Arena’s floor', before: 2, after: 0 },
+      ], note: 'The steps’ slides in the game: the Arena 6.0 → 4.4, 4.2 cm; the desert 5.2 → 6.0, 5.8 (within the dunes’ spread from run to run).' },
+    ], see: 'Sprint across flat ground and come to a stop: each foot slows as it lands and stays there, and the one behind leaves the ground cleanly.' },
+    { match: 'Locked on and stepping back, his knees no longer flick', tags: ['characters'], numbers: [
+      { title: 'Locked on, walking back and back-right (node)', unit: 'count', better: 'lower', device: BACK47C, source: SRC47C, rows: [
+        { where: 'pops (a bone flicking in a frame)', before: 14, after: 2 },
+        { where: 'a held foot over its hold (cm)', before: 1.0, after: 0.2 },
+      ] },
+    ], see: 'Lock on (R3 / Tab) and pull the stick back: he jogs backwards, each knee bending smoothly as its foot lifts.' },
+    { match: 'Setting off the other way from standing, the foot stepping round no longer spins', tags: ['characters'], numbers: [
+      { title: 'In the motion QC', unit: 'count', better: 'lower', device: QC47C, source: SRC47C, rows: [
+        { where: 'setting off the other way: the worst foot flick (rad/s)', before: 85, after: '< 14' },
+        { where: 'setting off the other way: pops a minute', before: 5, after: 3 },
+        { where: 'setting off the other way: jolts a minute', before: 4, after: 2 },
+        { where: 'up and down the stairs at a jog: pops a minute', before: 7, after: 5 },
+        { where: 'up and down the stairs at a jog: jolts a minute', before: 5, after: 2 },
+        { where: 'up and down the stairs at a jog: the worst jolt (cm)', before: 6.9, after: 3.9 },
+      ], note: 'Still over the limits: the stairs’ 5 pops a minute and a 3.9 cm jolt at a blend, as a foot lifts off the lower step (issue #47).' },
+    ], see: 'Stand, then push the stick the way you came from: the foot that steps round turns with it. Jog down a flight of stairs: each foot lands on its step and stays.' },
     { match: 'Locked on, pulling back he now jogs backwards', tags: ['characters'], numbers: [
       { title: 'Walking back and back-right, locked on, in node (6 s)', unit: 'count', better: 'lower', device: STRAFE47_NODE, source: SRC47B, rows: [
         { where: 'the steps sliding (cm, the median)', before: 11.2, after: 1.1 },

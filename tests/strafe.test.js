@@ -188,8 +188,10 @@ test('locked on, walking back at the lock\'s pace: the feet planted (issue #47)'
   assert.ok(held < 0.02, `a held foot moves ${(held * 100).toFixed(1)} cm over its hold (1.6 before)`);
   assert.ok(jolts(S).events.length <= 4, `${jolts(S).events.length} jolts (10 before)`);
 });
-// (todo: its calves still pop at a backwards lift-off, 15-20 rad/s, once a step: 14 in 8 s, as many as before)
-test('locked on, walking back: no pops', { todo: 'issue #47: the walk back\'s calves pop at its lift-offs, 14 in 8 s' }, async () => {
+// (issue #47, third round: run backwards, the gait lifts a foot where it came down, in front of the hips, the leg at its
+// full length; let go there, the knee snapped bent, a calf pop at every step back, 14 in 8 s. A foot walking back lets go
+// before the leg is straight, as a sprint's push-off does: src/feet.js FEET.pushOffBack, the player's o.reverse)
+test('locked on, walking back: no pops', async () => {
   const { S } = await walkBack();
-  assert.ok(pops(S).length <= 3, `${pops(S).length} pops`);
+  assert.ok(pops(S).length <= 3, `${pops(S).length} pops in 8 s (14 before; ${pops(S).map((x) => `${x.bone} ${x.size.toFixed(0)}`).join(', ')})`);
 });
