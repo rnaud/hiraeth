@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_e422449148e529 7-9
+docs/systems/animation.md
+  s_9ca76055a220ed::t_a660e159238730 927-943
+docs/systems/foes.md
+  s_9ca76055a220ed::t_268c68f681357b 727-743
+src/changelog.js
+  s_9ca76055a220ed::t_28241d3253a723 124-138
+src/motion-match.js
+  s_9ca76055a220ed::t_48843fbcec5476 135,144-182
+src/temples/boss.js
+  s_9ca76055a220ed::t_3b740be3d2f9a9 769,870-874,923-939,943
+src/temples/garage.js
+  s_9ca76055a220ed::t_a18b26f2fd3816 215-217,220
+tests/guardian-completable.test.js
+  s_9ca76055a220ed::t_ba7a091ab970aa 1-151
+tests/strafe.test.js
+  s_9ca76055a220ed::t_0d102bb4a5c6a3 9-11,68-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0caff00e68742a583e8065b5e27cfa76f2c1c1cb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
