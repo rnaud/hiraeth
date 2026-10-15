@@ -233,7 +233,7 @@ export async function chrome() {
     const gone = new Promise((r) => proc.once('exit', r));
     proc.kill('SIGTERM');
     await Promise.race([gone, sleep(5000)]);
-    rmSync(profile, { recursive: true, force: true });
+    rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });   // (Chrome's helpers can still be writing into it)
   };
   // the resident memory of this Chrome's renderer and GPU processes, MB (ps, by the profile's directory on their command line)
   const processes = () => {

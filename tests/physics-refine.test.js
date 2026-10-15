@@ -64,3 +64,16 @@ test('the City-Shaft asks for it; with no Worker (node) create builds the one BV
   assert.equal(p.refined, undefined, 'nothing started without a Worker');
   assert.ok(p.bvh && p.groundAt(-36, 30, -36) > -0.01);
 });
+
+test('with no Worker (node) create builds its BVH on the triangles it baked: no failed worker, no second bake', async () => {
+  const warned = [], warn = console.warn;
+  console.warn = (...a) => warned.push(a.join(' '));
+  try {
+    const scene = town(), sync = new Physics(scene);
+    const p = await Physics.create(scene);
+    assert.deepEqual(warned.filter((w) => /BVH worker/.test(w)), [], 'no "BVH worker failed" warning');
+    assert.equal(p.triangles, sync.triangles);
+    assert.equal(p.bvh?.geometry, p.geometry, 'the BVH is over the baked geometry');
+    assert.ok(Math.abs(p.groundAt(-36, 30, -36) - sync.groundAt(-36, 30, -36)) < 1e-6);
+  } finally { console.warn = warn; }
+});

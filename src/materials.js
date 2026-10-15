@@ -593,6 +593,8 @@ const vertexShader = /* glsl */ `
   uniform vec4 uOutfit;
   uniform float uSuit;
   uniform float uPortrait;
+  uniform float uHeroCut;  // the lens inside the traveller (sharedUniforms, issue #324)
+  uniform float uCutMe;    // 1: this is his own surface, left out while uHeroCut (markHero)
   uniform vec4 uHeadBall;  // portrait: bind-pose head centre, how far its normals round off
   uniform int uMode;
   uniform vec4 uFace;
@@ -849,6 +851,12 @@ const vertexShader = /* glsl */ `
     }
     #endif
     gl_Position = projectionMatrix * mv;
+    // the traveller's own surfaces while the lens is in his body (issue #324): every vertex past the clip volume's far
+    // corner, so no triangle of him is drawn (his shadow is the override's: kept). In the vertex shader and by uniforms
+    // (uCutMe: markHero's copies and his gear's fluid), so his copies share their programs with the materials they were
+    // copied from and no program has a discard (the early depth test kept everywhere): a define of his own had compiled
+    // 8-17 programs more in every world, a load's worth on the handheld and the Deck (issue #364)
+    if (uHeroCut * uCutMe > 0.5) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
   }
 `;
 
@@ -989,7 +997,6 @@ const fragmentShader = /* glsl */ `
   uniform float uWindows;  // façades: the share of cells with a window
   uniform float uWeather;  // weathering: hairline cracks on old walls (weatherInk), 0..1
   uniform float uWearLite; // the handheld's lighter weathering (sharedUniforms)
-  uniform float uHeroCut;  // the lens inside the traveller: his surfaces left out (sharedUniforms, issue #324)
   uniform vec2 uDetail;    // pen detail: kind (1 built, 2 organic), density (DETAIL)
   uniform float uVeins;    // a cap's veins (FORM.veins): lighter lines radiating from its stalk
   uniform float uPatch;    // colour across a wall (PATCH): how many patches, 0..1.5
@@ -2119,9 +2126,6 @@ ${SHADOW_GLSL}
   #endif
 
   void main() {
-    #ifdef S_HERO_CUT
-    if (uHeroCut > 0.5) discard;   // (the traveller's own surfaces, the lens in his body: the room, not his insides)
-    #endif
     // the hover trail dissolves into dots over its last stretch
     // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
     #ifdef S_GLASS
@@ -3047,6 +3051,7 @@ export function makeMaterial(o) {
       uSkin: { value: new THREE.Color(o.skin ?? '#e8c6a8') },
       uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4(0, 0, 0, 0) },   // w = 1 means gloved: bare hands by default
       uHero: { value: 0 },
+      uCutMe: { value: 0 },   // (markHero: 1 on the traveller's own surfaces, cut while uHeroCut)
       uFigure: { value: o.figure || o.crowd || o.mode === MODE_OUTFIT ? 1 : 0 },
       uMover: { value: isMover(o) ? 1 : 0 },
       uPortrait: { value: 0 },
@@ -3233,12 +3238,11 @@ export function keepHero(root, copies = new Map()) {
  */
 export const MOVER = { key: /^(foe[-.]|arch\.)/ };
 export function isMover(o) { return o.mover ?? MOVER.key.test(o.key ?? ''); }
-/** The traveller's surface (markHero's copies, his gear's fluid): compiled with S_HERO_CUT, left out of the view while the
- * lens is in his body (uHeroCut; issue #324). Only his: a discard in every program would cost the world its early depth test. */
+/** The traveller's surface (markHero's copies, his gear's fluid): left out of the view while the lens is in his body
+ * (uHeroCut × uCutMe, in the vertex shader; issue #324). A uniform, not a define: his copies keep the programs of the
+ * materials they were copied from (issue #364), and no program carries a discard (the world keeps its early depth test). */
 function heroCut(m) {
-  if (m.defines?.S_HERO_CUT) return;
-  m.defines = { ...(m.defines ?? {}), S_HERO_CUT: 1 };
-  m.needsUpdate = true;
+  if (m.uniforms?.uCutMe) m.uniforms.uCutMe.value = 1;
 }
 /** Tag only the player's materials, preserving live shared shader uniforms (skip(material): left as it is). */
 export function markHero(root, copies = new Map(), skip = null) {

@@ -383,18 +383,23 @@ test('the ping says what the drone is off to find at once (onPing), the flare on
 });
 
 test('the lens inside the traveller leaves him out of the view, his gear and its fluid with him, nothing else (issue #324)', () => {
-  // (aboard, his back to a cabin's wall, the camera pressed into him: main.js sets uHeroCut, his surfaces discard)
+  // (aboard, his back to a cabin's wall, the camera pressed into him: main.js sets uHeroCut, his vertices leave the view)
   const body=makeMaterial({color:'#aabbce'}), other=makeMaterial({color:'#aabbcf'}), root=new THREE.Group(), hand=new THREE.Group();
   root.add(new THREE.Mesh(new THREE.BoxGeometry(),body)); root.add(hand);
   keepHero(root);
   const glob=makeMaterial({color:'#fffffe',fluid:'glob',key:'t.cut.glob'});
   hand.add(new THREE.Mesh(new THREE.BoxGeometry(),glob));
-  assert.equal(root.children[0].material.defines.S_HERO_CUT,1,'his body');
-  assert.equal(glob.defines.S_HERO_CUT,1,'his gear\'s fluid, left as it is otherwise');
+  assert.equal(root.children[0].material.uniforms.uCutMe.value,1,'his body');
+  assert.equal(glob.uniforms.uCutMe.value,1,'his gear\'s fluid, left as it is otherwise');
   assert.equal(glob.uniforms.uHero.value,0);
-  assert.ok(!other.defines.S_HERO_CUT,'the world\'s are drawn, and compiled without a discard');
+  assert.equal(other.uniforms.uCutMe.value,0,'the world\'s are drawn');
+  assert.equal(body.uniforms.uCutMe.value,0,'the material his copy was made from too');
   assert.equal(root.children[0].material.uniforms.uHeroCut,sharedUniforms.uHeroCut,'one switch for all of him');
-  assert.match(body.fragmentShader,/#ifdef S_HERO_CUT\n\s*if \(uHeroCut > 0\.5\) discard;/);
+  // (by a uniform in the vertex shader, not a define: his copy keeps its original's program, issue #364, and no program
+  // has a discard for it, so the world keeps its early depth test)
+  assert.deepEqual(root.children[0].material.defines,body.defines,'his copy compiles the same program');
+  assert.match(body.vertexShader,/if \(uHeroCut \* uCutMe > 0\.5\) gl_Position = vec4\(2\.0, 2\.0, 2\.0, 1\.0\);/);
+  assert.doesNotMatch(body.fragmentShader,/uHeroCut/);
   const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
   assert.match(main,/SU\.uHeroCut\.value = !ship\.playing && !photo\.on && !minigame\?\.drives && heroCut\(/);
 });

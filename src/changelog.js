@@ -154,6 +154,9 @@ export const CHANGELOG = [
     // tests/benches.test.js, tests/benches-worlds.test.js, tests/route-worlds.test.js; docs/systems/worlds.md "Benches"
     'Every world now has a bench or two where the view is worth stopping for: Qanat and its tree from the dunes, the sky stones over the sea of cloud, the swamp from the Deep Wood’s high walk, the pyramids under Viridel’s ringed moon, the City-Shaft’s spire from its north rim, the moons hanging in the foundry, the planet over the floating city, and more. Each is made the way its world makes things: a stone slab, a wooden seat with a back, or a machined one on bent metal legs.',
     'Walk up to a bench and press the interact button to sit down: the camera comes round behind you and looks out over the view, the screen clears, and the world’s music swells. Move, jump, press B / ○ or interact again to stand up, and it all comes back.',
+    // the traveller's cut while the lens is in him by a uniform in the vertex shader, not a define of his own (issue #364):
+    // src/materials.js uCutMe / heroCut; 8-9 surface programs fewer in every world; docs/systems/performance.md "Loads and frames since v1.60"
+    'Worlds load about a second sooner on the handheld: your traveller’s clothes, skin and gear now share their shaders with everyone else’s, so every world has 8 or 9 fewer to prepare while it loads.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

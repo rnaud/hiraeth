@@ -94,7 +94,9 @@ export class Physics {
     const p = Object.create(Physics.prototype);
     p.bvhOptions = bvhOptions(o);
     if (slice) await runStepsAsync(p.bake(scene, base, true), slice); else runSteps(p.bake(scene, base, true));
-    if (p.geometry.attributes.position) {
+    // (no workers here, node's tests: the BVH built at once on the baked triangles, not baked again after a failed worker)
+    if (p.geometry.attributes.position && typeof Worker === 'undefined') p.bvh = new MeshBVH(p.geometry, p.bvhOptions);
+    else if (p.geometry.attributes.position) {
       // (the copy made before the first worker takes the geometry's buffers away)
       const later = o.later && typeof Worker !== 'undefined' ? bvhOptions({ strategy: o.later }) : null;
       if (later?.strategy !== undefined) p.refined = p.refine(copyGeometry(p.geometry), later);

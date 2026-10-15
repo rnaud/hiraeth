@@ -2863,3 +2863,124 @@ Her GPU time is within the Mac's noise (shown against hidden: 0.0–0.3 ms of a 
 device runs its own measuring sessions). Proposed next, if its GPU shows her near: a 1024² map on Handheld (5.3 MiB,
 built at load from the 2K or shipped as a second file); Handheld already has no fine cascade, so she is drawn twice a
 frame there (the G-buffer, the hero shadow).
+
+## Loads and frames since v1.60 (2026-10-15, issue #364)
+
+The author: "Loading levels seems slow, also did we have regressions on fps on the Retroid Pocket Nova and Steam Deck?"
+Every build measured as it ships (`npx vite build`; a tag from `git archive`, built the same way), muted, one sitting
+per device, against main at 46a9c59 (v1.77) and the same tree with this round's change ("after").
+
+**How.** The Mac (M4 Pro): `scripts/load-breakdown.mjs --runs 3` (the median), High, 1280 × 720, headless Chrome on ANGLE
+Metal, the builds served statically, a quiet machine (load 3-10). The Retroid: `scripts/bench/android-worlds.mjs`
+(GeckoView test app, Handheld at 0.75, every world's views of `viewpoints-worlds.json`, the app started afresh for each
+world; its load is navigation to the first frame) and `load-breakdown.mjs --gecko session --runs 2` for the phases. The
+Deck: `deck-worlds.mjs --secs 6 --warmup 2` (the Steam Deck preset at scale 1, `deck-run.sh start headless` at 90 Hz,
+the bench's own profile), and its phases by load-breakdown's `measure()` on the Deck's page.
+
+**Loads, s** (to the first frame; the Mac's median of three, the Retroid's one load in a fresh app):
+
+| world | Mac v1.60 | Mac main | Mac after | Retroid v1.60 | Retroid main | Retroid after |
+|---|---|---|---|---|---|---|
+| Desert | 3.34 | 3.60 | 3.47 | 15.8 | 18.2 | 17.2 |
+| Vael | 3.73 | 3.94 | 3.79 | 16.4 | 18.9 | 17.6 |
+| Lorn | 4.06 | 4.09 | 4.00 | 18.1 | 20.7 | 19.4 |
+| Viridel | 2.49 | 2.50 | 2.44 | 13.4 | 14.7 | 13.7 |
+| Underwater City | 2.29 | 2.54 | 2.18 | 12.1 | 14.1 | 13.0 |
+| City-Shaft | 4.09 | 4.30 | 4.03 | 18.3 | 20.8 | 20.0 |
+| Glass Dunes | 2.22 | 2.34 | 2.16 | 12.1 | 13.9 | 13.1 |
+| Buried Machine | 3.27 | 3.41 | 3.27 | 16.9 | 18.8 | 17.9 |
+| Moon Foundry | 2.69 | 2.70 | 2.50 | | | |
+| Garden of Spheres | 3.01 | 3.00 | 2.93 | 15.1 | 17.0 | 16.0 |
+| City Floating in Space | 2.66 | 2.71 | 2.69 | 12.4 | 14.8 | 13.5 |
+| Signal Market | 2.71 | 2.54 | 2.42 | 13.9 | 14.9 | 13.9 |
+| Home | 1.75 | 1.77 | 1.66 | 7.3 | 8.7 | 7.9 |
+| the Lantern | 1.58 | 1.64 | 1.53 | | | |
+
+(v1.70 on the Mac, in the same sitting: within 0.1-0.7 s of v1.60, no trend. The Moon Foundry has no bench views yet, so
+the device runs leave it out.)
+
+Where main's load goes, ms (modules: the fetch and parse of the page's scripts; assets: the wait for the models' files,
+fetched and decoded in parallel with the build; collision: the bake and its BVH, built in a worker; shaders: compiles and
+links; GPU warm-up: the passage's draws and uploads). The Mac: the Desert modules 226 · assets 21 · world 1564 ·
+collision 158 · characters 299 · shaders 387 · GPU warm-up 320 · rest 450 · first frame 181; the City-Shaft 204 · 21 ·
+1978 · 574 · 460 · 382 · 235 · 286 · 179; Home 209 · 23 · 329 · 36 · 192 · 417 · 147 · 319 · 127. The Retroid (session
+loads): the Desert modules 441 · world 3778 · collision 310 · characters 749 · shaders 10 619 · GPU warm-up 914; the
+City-Shaft 451 · 5266 · 1152 · 1372 · 10 973 · 798; Home 472 · 672 · 131 · 406 · 6025 · 371.
+
+- **The Mac did not regress** (every world within 0.3 s of v1.60, under the 6 s budget). **The Retroid did, 1.0-2.5 s a
+  world since v1.60, and it is the shaders**: a program costs the Retroid ~0.1 s (the shaders phase follows the count:
+  the Desert's 93 programs 8.6 s, 112 programs 10.6 s), and every world had gained 17-20 programs. Bisected on the
+  program count (exact, so the Mac finds it in a minute a commit):
+  - **+8 to +9 in every world, v1.71 → v1.72: 9547bfea7** (#324, the camera pressed into the traveller): his surfaces
+    compiled with a define of their own, `S_HERO_CUT`, so markHero's copies no longer shared the programs of the
+    materials they were copied from. **Fixed**: the cut is a uniform now, `uCutMe` (1 on his copies and his gear's fluid)
+    times the shared `uHeroCut`, in the vertex shader (every vertex past the clip volume: nothing of him drawn, his shadow
+    the override's as before; no program carries a discard, so the early depth test stays everywhere). The desert's
+    spawn with the cut off and on looks as before (him gone, his shadow kept). tests/scout.test.js.
+  - **+3 in every world, v1.76 → v1.77: de712627e** (#338, real light in the ship's rooms): the rooms' materials with
+    `ROOM_LIGHT`, five variants of their own (plain, grid, metal, brushed, grid and metal). Kept, a feature; folding the
+    brushed and the gridded metal into the plain metal would win back two, a look to decide first.
+  - **+2 in the Desert after v1.77**: the Rose House's futuristic skin (#342), shaders of its own; the other houses' skins
+    likewise in their worlds. A feature.
+  - The City-Shaft's world creation and near detail on the Retroid are +0.5 s each against v1.60 (4.8 → 5.3 s, 1.15 →
+    1.6 s); on the Mac the same steps moved 40 ms, so it may be the device's spread. Not chased.
+- **After:** 8-9 programs fewer in every world, the Retroid's loads 0.8-1.3 s quicker (its shaders phase: the Desert
+  10.6 → 9.6 s, the City-Shaft 11.0 → 10.1, Home 6.0 → 5.0): about half of what v1.60 → main had added.
+- **A temple's entry** (`scripts/transition-perf/transitions.mjs`, temple-in in the Desert, the City-Shaft and Lorn, High):
+  no hitch in v1.60, main or after, the worst frame 16.8 ms (one 50-67 ms frame in a single run of two of them, not
+  repeated). The temples are built with their world (TempleRuntime ~90 ms of the Desert's world creation on the Mac) and
+  their rooms drawn ahead by the passage warm-up, so walking in costs nothing.
+- **"BVH worker failed, building on the main thread" in the tests** was node's: it has no `Worker`, so every test that
+  built a world tried one, failed and baked the world's triangles a second time. Physics.create now builds the BVH at once
+  on the triangles it baked when there is no Worker (tests/physics-refine.test.js). No browser load logged it.
+- **What the web build fetches before the first frame** (resource timing, the Desert): 26.7 MB in 281 files, v1.60 24.6 MB:
+  the Keeper's model (2.9 MB, asked for half-way through the load), the gestures' clips, the B3 traveller (2.7 MB, 2 MB
+  lighter than the v1 body) and the head v3. On a first visit over a slow line that is the load; locally it is not.
+
+**The Steam Deck's loads: the shader cache, not a regression.** On the Deck the load is the GPU process compiling. Alone,
+one of the game's surface programs compiles and links in 50-70 ms (salted: no cache) and 17-22 ms when ANGLE's cache has
+it; in a load, a hundred of them queued, the GPU process gets through about one every 150-170 ms (it composites the
+loading screen meanwhile), and post, water and shadows each sit out their 2 s cap for programs still in the queue.
+Chromium keeps the compiled programs (`GPUCache` in the profile), so a world loads in half the time once its programs
+are in it: the Desert 27 s cold, 12-13 s warm; Home 11-14 → 5-6; the City-Shaft 26-27 → 13-17. Any change to the shaders'
+source (most releases touch materials.js) makes every world cold again, so after an update each world's first visit is
+the slow one. A larger cache (`--gpu-program-cache-size-kb=524288`, through `deck-run.sh`'s new `ARGS`) was no better;
+flushing the GL while polling the programs' status (so their links leave the page sooner) was no better on the Deck or
+the Retroid, and was not kept. With the cache's state the Deck's loads move ±5-10 s, and v1.60, v1.63, main and after
+measure alike (20-36 s cold, 5-17 s warm).
+
+**Frames: no regression on either device.** The Retroid, every world's views (fps median (the worst view) · main thread
+ms a frame):
+
+| world | v1.60 | main | after |
+|---|---|---|---|
+| Desert | 52.7 (48.9) · 17.6 | 53.0 (48.1) · 17.7 | 52.8 (47.6) · 17.9 |
+| Vael | 58.7 (58.5) · 14.7 | 59.1 (58.7) · 14.5 | 59.1 (58.7) · 14.4 |
+| Lorn | 56.2 (55.2) · 14.8 | 57.6 (56.8) · 14.7 | 58.2 (57.5) · 14.7 |
+| Viridel | 60.0 (58.9) · 12.8 | 59.9 (59.4) · 12.7 | 60.0 (59.3) · 12.6 |
+| Underwater City | 58.2 (54.7) · 13.1 | 59.2 (59.0) · 12.7 | 59.4 (59.1) · 12.7 |
+| City-Shaft | 43.6 (34.7) · 21.1 | 47.8 (37.4) · 18.8 | 47.0 (37.4) · 19.0 |
+| Glass Dunes | 59.8 (58.5) · 12.7 | 59.8 (59.1) · 13.2 | 59.8 (58.7) · 12.6 |
+| Buried Machine | 58.6 (51.4) · 12.8 | 59.8 (56.2) · 12.9 | 59.5 (56.4) · 12.7 |
+| Garden of Spheres | 59.7 (59.7) · 12.8 | 59.8 (59.2) · 12.7 | 59.9 (59.5) · 12.4 |
+| City Floating in Space | 58.5 (58.1) · 14.1 | 59.6 (57.5) · 13.1 | 59.2 (57.7) · 13.1 |
+| Signal Market | 58.1 (55.2) · 13.4 | 59.0 (58.5) · 14.1 | 59.4 (58.5) · 13.7 |
+| Home | 59.8 (59.0) · 13.4 | 59.9 (59.9) · 13.0 | 59.9 (59.6) · 12.4 |
+
+Under the budget still, as in v1.60: the Desert (median 53, under 55) and the City-Shaft (median 47.8, its wide view 37.4:
+under 55 and 40); both no worse than v1.60 (the City-Shaft +4 fps, its JS 21.1 → 18.8 ms).
+
+The Deck (90 Hz, fps median of a world's views). One sitting, every world, v1.60 then main: main 5-15 fps ahead everywhere
+(the Desert 37.4 → 44.2, the City-Shaft 33.7 → 41.8, Vael 43.8 → 55.0, the Market 53.1 → 60.1, the Underwater City
+56.3 → 65.9, the Floating city 54.0 → 67.7, Home 79.9 → 84.5): round 8's skeletons and matrices (v1.63) and the Xbox
+rounds since. Against v1.63, the distant detail settled first (`--settle 1`), v1.63 · main · after: the Desert 40.5 ·
+41.3 · 41.3, the City-Shaft 40.8 · 43.2 · 40.9, Vael 47.4 · 48.5 · 50.2, the Market 60.3 · 59.3 · 55.5, the Underwater
+City 60.2 · 54.5 · 62.4, the Floating city 59.8 · 58.6 · 59.6. The Deck drifts a few fps between runs as it warms, so the
+two that looked worse were measured again interleaved (v1.63, main, v1.63, main): the Underwater City 59.5 · 59.8 · 60.3 ·
+57.5, the City-Shaft 41.7 · 41.0 · 43.1 · 43.8, the same. Today's Deck numbers are 5-8 fps under rounds 8 and 9's for the
+same builds (v1.63's desert spawn 43.4 now, 51.9 then): the Deck's conditions (Gaming Mode with Steam running behind the
+bench now, Desktop Mode then), not the game.
+
+To repeat: the scripts above, with load-breakdown's `PORT` away from the Deck's tunnel (its Chrome takes `PORT + 1` for
+DevTools: with the tunnel on that port it drove the Deck's page instead). Not measured: the Xbox; the Moon Foundry on the
+devices (no views yet: `--pick 1`); a temple's entry on the devices.

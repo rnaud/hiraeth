@@ -5,7 +5,8 @@
 #   scripts/bench/deck-run.sh start [desktop|gamescope|headless] [GAME_DIR_ON_DECK]   stop
 # headless: gamescope's headless backend (X11 as in Gaming Mode, nothing on the screen): for a Deck left in
 # Gaming Mode, where there is no Plasma to nest in. GPU=vulkan|gl|software: ANGLE's backend (HIRAETH_GPU).
-# REFRESH: gamescope's refresh rate (default 60; Gaming Mode on the OLED runs at 90).
+# REFRESH: gamescope's refresh rate (default 60; Gaming Mode on the OLED runs at 90). ARGS: more of Chromium's switches
+# for the game (an A/B of one, e.g. ARGS=--gpu-program-cache-size-kb=262144).
 # GAME_DIR_ON_DECK: a built game (dist/) copied to the Deck, served instead of the installed one
 # (HIRAETH_GAME), to measure a change before it ships. Only our own unit (hiraeth-bench) is started and
 # stopped; Steam, the session and the system's settings are left as they are.
@@ -26,7 +27,7 @@ case "$1" in
       B=\$(readlink -f ~/.local/share/hiraeth-deck/current)/hiraeth
       mkdir -p ~/.local/share/hiraeth-bench
       G='XDG_CONFIG_HOME=/home/deck/.local/share/hiraeth-bench ${game:+HIRAETH_GAME=$game} ${GPU:+HIRAETH_GPU=$GPU}'
-      A='--mute-audio --disable-audio-output --remote-debugging-port=9222'
+      A='--mute-audio --disable-audio-output --remote-debugging-port=9222 ${ARGS:-}'
       if [ $kind = headless ]; then
         systemd-run --user --unit=hiraeth-bench --collect -p RuntimeMaxSec=7200 \
           gamescope --backend headless -W 1280 -H 800 -w 1280 -h 800 -r ${REFRESH:-60} -- env XDG_CURRENT_DESKTOP=gamescope \$G \$B \$A

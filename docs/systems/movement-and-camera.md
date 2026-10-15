@@ -441,8 +441,10 @@ rad, a fifth of the run), its arm cut to 0.15 m by the ceiling: in his head. The
   before): over his shoulder at a sensible height, not up under the ceiling over his head.
 - **Where the lens must be in him** (his back to the wall, the camera between: no camera behind him has room), he is
   left out of the view: `heroCut` (`BODY_CUT`: in under 0.5 m from his axis, out past 0.58) sets `uHeroCut`, and his
-  surfaces (compiled with `S_HERO_CUT`: markHero's copies and his gear's fluid materials, only his, so the world keeps its
-  early depth test) discard; his shadow, drawn by the override, stays.
+  surfaces (`uCutMe` 1: markHero's copies and his gear's fluid materials, only his) put every vertex outside the view in
+  the vertex shader; his shadow, drawn by the override, stays. A uniform, not a define (until v1.77 `S_HERO_CUT` and a
+  discard): his copies share their programs with the materials they were copied from, 8-17 programs fewer a world, and
+  no program carries a discard, so the world keeps its early depth test (issue #364).
   Not in a scene, photo mode or a game that takes the camera; `captureView` draws him whatever.
 - **An arm cut very short looks along itself**: under `SHORT_LOOK` (0.3-0.7 m from the look point) the view turns to the
   arm's own direction (the yaw and pitch) instead of at the look point, where a shove of a few cm off the wall turned it

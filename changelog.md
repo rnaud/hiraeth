@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.77 — 2026-10-14
 
+- Worlds load about a second sooner on the handheld: your traveller’s clothes, skin and gear now share their shaders with everyone else’s, so every world has 8 or 9 fewer to prepare while it loads.
 - Walk up to a bench and press the interact button to sit down: the camera comes round behind you and looks out over the view, the screen clears, and the world’s music swells. Move, jump, press B / ○ or interact again to stand up, and it all comes back.
 - Every world now has a bench or two where the view is worth stopping for: Qanat and its tree from the dunes, the sky stones over the sea of cloud, the swamp from the Deep Wood’s high walk, the pyramids under Viridel’s ringed moon, the City-Shaft’s spire from its north rim, the moons hanging in the foundry, the planet over the floating city, and more. Each is made the way its world makes things: a stone slab, a wooden seat with a back, or a machined one on bent metal legs.
 - Aiming with LT / L2 while locked on now puts your crosshair right on the lock’s centre (a guardian’s weak point), and the right stick shifts the aim a little off it, as in Metroid Prime; let go and it comes back to the centre. Before, the aim drifted onto the target and the stick switched to another target.
