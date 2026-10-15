@@ -1,0 +1,36 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_330e6248e8c710 2304-2374
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_446310224ca91c 211-231
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_23b7239ac49b6d 387,390
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs
+  s_9ca76055a220ed::t_b0539139aa6527 24-26,111
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_3a24b590591b8b 351-364,367-369,603-604,606-611,627,843-861
+src/changelog-media.js
+  s_9ca76055a220ed::t_2299620b15db7d 1140
+  s_9ca76055a220ed::t_5d11e491e09e1f 1003-1005,1122-1139
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_4d72ffdbb4811f 278,285-305
+changelog.md
+  s_9ca76055a220ed::t_fc140da0b7ea7b 19
+src/changelog.js
+  s_9ca76055a220ed::t_34fd87772908ce 47-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5eedbd199a7e89ee106eeb94940f7623181706eb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
