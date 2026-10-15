@@ -158,7 +158,7 @@ interior; talk gestures.
 | **Foes and combat** | `src/foes.js` not in the engine ("No foes in the engines yet", engine/game.js) | The ink blots and machines, lock-on and its camera (`lock-aim.js`, `lock-frame.js`), the blade's combat and hops, flurry, hitboxes, potion drops, chimes from foes, the low-health cue, `chemistry.js`'s foes catching fire. Gadgets get `foes: null`. |
 | **Guardians** (each temple's last room) and their hints | `src/guardian-help/`, `src/fight-temples/` | Every route world's climax. Depends on foes and portals. |
 | **Fragments** | `createFragments` (`src/fragments.js`) not wired | The finder switch shows; the fragments themselves aren't placed, and Anselm's shop sells for them. |
-| **Trials and challenges** | `src/trials/index.js` not wired (only `trials/upgrades.js`' sync) | Each world's trial and the makers' runs. |
+| ~~**Trials and challenges**~~ **done** (engine/trials.js, tests/engine-trials.test.js) | the world's challenges, the games' signs and their hosts made as main.js does; the runner's card is engine/menus.js's `card` (BridgeMenu.cs), its HUD the screen's `minigame` (BridgeHud.cs) | Each world's trial and the makers' runs. The Sunken Hall's waves wait for the foes (D2). |
 | **Hazards** | `updateHazards` not called | Hazards registered by levels (the foundry's pour, the desert city, flora) never act. |
 | **The ending and homecomings** | reached through `ship.js` → `ship/homecoming.js`, `story/ending.js`; `?ending=` / `viaShip` decided in `main.js` | To check in play: the arrival home by ship playing the right homecoming. |
 
@@ -168,7 +168,7 @@ interior; talk gestures.
 |---|---|
 | **The recorded music** | `src/soundtracks.js` decodes MP3s with `decodeAudioData`, which `engine/webaudio.js` refuses. Unity plays the procedural score only: no world themes, no title theme, no recorded cues or `music-moments`. Needs Unity-side decoding (an AudioClip per theme, on the music bus) and the themes downloaded into `persistentDataPath` (music-store's job on the web). |
 | **Body foley** (`src/foley.js`) | Not wired: no footsteps or body sounds. |
-| **Minigames** (`src/minigames/`), the Arena, Ink tide, the shooting gallery, Chime pirates (`src/ambush.js`, the first flight to a new world) | Not wired. |
+| **Minigames** (`src/minigames/`), the Arena, Ink tide, the shooting gallery, Chime pirates (`src/ambush.js`, the first flight to a new world) | The games' own pages are wired (`createGame({ game, from })`, engine/trials.js: the Sunken Hall, the races, fishing… from their hosts). Not drawn yet: what a game draws on the page of its own (the speed lines, the drum circle's ring, the sketch hunt's frames, the gallery's balloons). Not wired: the Arena's waves, Chime pirates on the first flight. |
 | **Onboarding and help** | `first-steps.js`, `companion.js` (Plumb's hints), `scout-hint.js`, `temples/hints.js`: not wired. |
 | **The observatory quest** (`ObservatoryQuest`, the desert) | Not wired. |
 | **The eclipse's sky** (`applyEclipse`), the Lantern's sky | `main.js` applies them each frame; the engine doesn't. |
@@ -221,7 +221,7 @@ Proposed, `scripts/unity-compare/`:
 |---|---|---|---|---|
 | D1 | **Doorways and portals in the engine**: `level.portals`, `passage.js`'s hand-over with its cover as screen state (BridgeHud), thresholds' light | `engine/game.js`, `src/passage.js`, `src/platform.js` screen, `BridgeHud.cs` | L | high (temples and interiors unreachable without it) |
 | D2 | **Foes, combat and guardians in the engine**: `Foes`, lock-on and its camera, hitboxes, drops, low health, the guardians' fights and hints; gadgets given `foes` | `engine/game.js`, `src/foes.js`, `src/guardian-help/`, `BridgeHud.cs` (health, lock mark) | L | high (the route can't be finished) |
-| D3 | Fragments, trials, hazards, the ending checked in play | `engine/game.js` | M | medium |
+| D3 | Fragments, trials (**done**: engine/trials.js), hazards, the ending checked in play | `engine/game.js` | M | medium |
 | D4 | **The store as a file**, PlayerPrefs moved into it once | `BridgeHost.cs` (`StorageGet/Set/Remove`), `BridgeArgs.SavedQuality` | S | medium |
 | D5 | **The importer** (merge per slot by `lastPlayed`, backup of what lost, `hiraeth.imported.v1`) and the Unity → web export back | `BridgeHost.cs`, `src/save-slots.js` (the merge rules shared and tested in node) | M | high (saves) |
 | D6 | **Electron's export mode** (`--export`, `__app/export`), `DESKTOP_API` 2, shipped through the runtime feed before D9 | `desktop/main.mjs`, `scripts/steam-deck/deck.py`, `tests/test_steam_deck.py` | M | high (saves) |

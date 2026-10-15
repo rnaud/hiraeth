@@ -58,6 +58,11 @@ worlds, photo mode, the scout, the sketchbook or lock-on; the game buttons (A / 
 reach the game through the merged controls only while it runs. **Quit** goes back to `?level=<from>` (the
 place saved as you left), or to the worlds list.
 
+**In the engines** (the Unity build, issue #264): the same runner, made by engine/trials.js as main.js makes it; what it
+draws on the page is data too, its HUD the screen's `minigame` part (`publish`) and its card `cardModel`, which the
+Unity bridge draws (BridgeHud.cs, BridgeMenu.cs through engine/menus.js's card): docs/systems/engine-bridge.md, "The
+trials and games". A new card or HUD piece goes into both.
+
 **Scores** (`kit/scores.js`): `score: { kind: 'time' }` (lower is better, shown `1:23.45`) or
 `{ kind: 'points', unit }`; kept in the save's flags as `minigame.<id>.best` and `minigame.<id>.plays`. A time
 trial not finished keeps nothing; points count even when the lives run out. `recordScore` keeps a best only

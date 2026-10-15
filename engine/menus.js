@@ -148,7 +148,7 @@ export class EngineMenus {
    */
   constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '' } = {}) {
     Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine });
-    this.mode = null;            // null | 'title' | 'start' | 'game'
+    this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
     this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
@@ -184,7 +184,77 @@ export class EngineMenus {
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
     this.changed();
   }
-  close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.changed(); this.onResume(); }
+  close() { if (!this.mode) return; this.stopRebind?.(); if (this.mode === 'shop') this.shop?.panel?.close?.(); this.mode = null; this.shop = null; this.card = null; this.changed(); this.onResume(); }
+
+  // ------------------------------------------------------------------ a game's card
+
+  /**
+   * A minigame's or a trial's card (src/minigames/kit/runner.js cardModel: the start card, the pause, the results;
+   * docs/systems/engine-bridge.md "The trials and games"): its options' rows and its buttons, up and down (and left and
+   * right along the buttons), left / right an option's value; A / × the button picked (or the option on), B / ○ the
+   * runner's back, Menu its start (the intro starts, the results retry, the pause resumes), LB / RB its links (the
+   * Arcade's other games); Enter the main button, R Retry, as the page's keys. `runner`: the MinigameRunner; the card is
+   * left open while the runner has one up (engine/trials.js keeps them in step).
+   */
+  openCard(runner) {
+    this.card = { runner, v: -1, i: 0 };
+    this.mode = 'card';
+    this.cardSync();
+    this.changed();
+  }
+  /** The runner's card moved on (redrawn, or another one up): the pick on its main button again. */
+  cardSync() {
+    const C = this.card, M = C?.runner?.cardModel;
+    if (!M || C.v === C.runner.cardV) return;
+    C.v = C.runner.cardV;
+    const items = this.cardItems(M);
+    const keep = C.keep && items.findIndex((x) => x.key === C.keep);
+    C.keep = null;
+    C.i = keep >= 0 ? keep : Math.max(0, items.findIndex((x) => x.main));
+    this.changed();
+  }
+  /** What the pad goes through on a card: its options, then its buttons. */
+  cardItems(M) {
+    return [...(M.options ?? []).map((o) => ({ opt: o.id, key: `opt:${o.id}` })), ...(M.buttons ?? []).map((b) => ({ act: b.act, main: !!b.main, key: `act:${b.act}` }))];
+  }
+  cardMove(x, y) {
+    const C = this.card, M = C.runner.cardModel;
+    if (!M) return;
+    const items = this.cardItems(M), it = items[C.i];
+    if (it?.opt && x) { C.keep = it.key; C.runner.stepCardOption(it.opt, Math.sign(x)); this.cardSync(); return; }
+    const d = y || x;
+    if (d) C.i = Math.max(0, Math.min(items.length - 1, C.i + Math.sign(d)));
+  }
+  cardAction(name) {
+    const R = this.card.runner, M = R.cardModel;
+    if (!M) return;
+    const it = this.cardItems(M)[this.card.i];
+    if (name === 'confirm') { if (it?.opt) { this.card.keep = it.key; R.stepCardOption(it.opt, 1); } else if (it?.act) R.act(it.act); }
+    else if (name === 'back' || name === 'start' || name === 'tabPrev' || name === 'tabNext') R.padAction(name);
+    this.cardSync();
+  }
+  /** The card's keys (the page's runner.key): Enter its main button, Space the one picked, R Retry, Esc back, [ ] the links. */
+  cardKey(code) {
+    const R = this.card.runner, M = R.cardModel;
+    if (!M) return true;
+    if (code === 'Enter' || code === 'NumpadEnter') { const main = (M.buttons ?? []).find((b) => b.main); if (main) R.act(main.act); }
+    else if (code === 'Space') this.cardAction('confirm');
+    else if (code === 'Escape' || code === 'KeyO' || code === 'Backspace') R.padAction('back');
+    else if (code === 'KeyR' && M.kind !== 'intro') R.act('retry');
+    else if (code === 'BracketLeft' || code === 'BracketRight') R.padAction(code === 'BracketLeft' ? 'tabPrev' : 'tabNext');
+    else return false;
+    this.cardSync();
+    return true;
+  }
+  /**
+   * The card to draw (BridgeMenu.cs DrawCard): the runner's model, the options' rows and the buttons each with `on` where
+   * the pad is.
+   */
+  cardView() {
+    const C = this.card, M = C.runner.cardModel ?? {};
+    const items = this.cardItems(M), at = items[C.i]?.key;
+    return { v: this.v, kind: 'card', hint: '', card: { ...M, options: (M.options ?? []).map((o) => ({ ...o, on: at === `opt:${o.id}` })), buttons: (M.buttons ?? []).map((b) => ({ ...b, on: at === `act:${b.act}` })) } };
+  }
 
   // ------------------------------------------------------------------ a shop
 
@@ -242,6 +312,7 @@ export class EngineMenus {
     if (this.mode === 'title') this.titleAction(name);
     else if (this.mode === 'start') this.startAction(name);
     else if (this.mode === 'shop') this.shopAction(name);
+    else if (this.mode === 'card') this.cardAction(name);
     else this.gameAction(name);
     this.changed();
   }
@@ -251,6 +322,7 @@ export class EngineMenus {
     if (this.mode === 'title') this.titleMove(x, y);
     else if (this.mode === 'start') this.startMove(x, y);
     else if (this.mode === 'shop') this.shopMove(x, y);
+    else if (this.mode === 'card') this.cardMove(x, y);
     else this.gameMove(x, y);
     this.changed();
   }
@@ -259,6 +331,7 @@ export class EngineMenus {
     if (!this.mode) return false;
     // (a pad's button awaited; a key awaited is the page's before it comes here: src/remap.js captureKey, engine/unity/game.js)
     if (this.rebinding) { if (code === 'Escape' || code === 'Backspace') this.stopRebind?.(); return true; }
+    if (this.mode === 'card' && this.cardKey(code)) { this.changed(); return true; }
     const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] }[code];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
@@ -641,7 +714,7 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
     v.hint = menuKeys(v.hint);

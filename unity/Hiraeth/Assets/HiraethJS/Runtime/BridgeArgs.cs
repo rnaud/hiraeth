@@ -185,6 +185,12 @@ namespace Hiraeth.Bridge
             if (Arg("-aboard") != null) args["aboard"] = Arg("-aboard");
             // (-fight foe,guardian: the fight photographed, a blot locked on and cut, the level's guardian woken and locked on)
             if (Arg("-fight") != null) args["fight"] = Arg("-fight");
+            // (-trial <id>: a trial or makers' run of -level on its start card, then started, run, paused and resumed, its cards
+            // and HUD photographed into -out; -game <id> the same on a game's own page, -level the world it came from;
+            // -run-secs how long it runs before the pause: engine/unity/game.js, engine/trials.js)
+            if (Arg("-trial") != null) args["trial"] = Arg("-trial");
+            if (Arg("-game") != null) args["game"] = Arg("-game");
+            if (Arg("-run-secs") != null) args["runSecs"] = double.Parse(Arg("-run-secs"), CultureInfo.InvariantCulture);
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);

@@ -14,6 +14,8 @@
 // The menus (the title, the Start menu, the game menu): engine/menus.js, as plain state the engine draws; createGame({ menus })
 // pauses the world while one is open and hands it the pad.
 // The gadgets (src/gadgets/, issue #344): every one registered as an item first, as main.js does, then made per world.
+// The trials and the games (engine/trials.js): a world's challenges, its games' signs and their hosts, and a run's
+// runner; createGame({ game }) plays a game's own page (its arena, or the world it is played in), as ?game=<id>.
 import { page } from './boot.js';
 import '../src/gadgets/all.js';   // (first after the page's stand-ins: the gadgets become items before anything reads ITEMS)
 import * as THREE from 'three';
@@ -101,8 +103,12 @@ import { InputMode } from '../src/input-mode.js';
 import { Passage, carryAcross, PASSAGE } from '../src/passage.js';
 import { Thresholds, THRESHOLD } from '../src/thresholds.js';
 import { Veils } from '../src/veil.js';
+import { makeTrials, gameById } from './trials.js';
+import { levelMetaFor } from '../src/minigames/kit/world.js';
+import { lendTool } from '../src/minigames/kit/onfoot.js';
 
 export { page };
+export { readHref } from './trials.js';   // (the tests: a game page's address)
 export { ITEMS, items } from '../src/items.js';   // (the tests: the bundle's items, the gadgets among them, against the web's)
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
 
@@ -231,7 +237,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -244,8 +250,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
   if (flags) Object.assign(gameState.data.flags, flags);
   const stamp = (k) => { T[k] = Math.round(performance.now() - t0); };
-  const meta = levelById(levelId);
+  // a game's page (?game=<id>, src/minigames/): its own arena under its host's id, or the world it is played in, is the
+  // level (src/minigames/kit/world.js levelMetaFor, as main.js builds it); `from` the world its Quit goes back to
+  const gameDef = gameId ? gameById(gameId) : null;
+  if (gameId && !gameDef) throw new Error(`no game ${gameId}`);
+  const meta = gameDef ? levelMetaFor(gameDef, levelById) : levelById(levelId);
   if (!meta) throw new Error(`no level ${levelId}`);
+  if (gameDef) levelId = meta.id;
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
@@ -261,7 +272,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, width / height, 0.3, 5000);
-  const level = quiet(() => meta.create(scene));
+  const level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene))));
   level.id ??= levelId;
   stamp('level');
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
@@ -272,7 +283,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const waters = quiet(() => new Waters(scene, { physics }));
   // the opening on a new save (main.js playPrologue: the desert, no save's place, not arriving by ship): the ship in
   // orbit too (its space copy), its scenes played by the engine (issue #264)
-  const playPrologue = !!(prologue && menus && levelId === 'desert' && !start?.pos && via !== 'ship' && !flags && !view);
+  const playPrologue = !!(prologue && menus && levelId === 'desert' && !start?.pos && via !== 'ship' && !flags && !view && !gameDef);
   const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue }));
   stamp('ship');
   const player = new Player(physics, {
@@ -410,6 +421,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     (level.noShadow ??= []).push(wind.mesh);
   }
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
+  if (tool && level.lendTool) lendTool(tool, level.lendTool);   // (the Arena's: the backpack, the blade and the shield lent for the visit, main.js)
   // (in a guardian's fight the ping is a hint, as main.js's: the lens on the weak point, its line once the struggle has
   // gone on a while, src/temples/hints.js; the line a toast here, the page's drone bubble)
   const struggle = new Struggle();
@@ -485,7 +497,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (src/platform.js), which the engine's HUD draws (BridgeHud.cs). Travel ends in `onTravel(to)`: the engine
   // starts again at that world's landing (the page goes to ?level=<to>&via=ship).
   // (`scenes`: a plan that wants them without the menus: the bridge's -aboard, the rooms photographed as the web's ?aboard=)
-  const shipOn = !!((menus || scenes) && ship && story && !flags && !view);
+  const shipOn = !!((menus || scenes) && ship && story && !flags && !view && !gameDef);   // (not on a game's page: the runner keeps the ship out of the picture)
   shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
   if (shipOn) {
     ship.cinema.dom = false;
@@ -527,6 +539,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     }
   };
 
+  // the trials and the games (engine/trials.js): this world's challenges, its games' signs and their hosts, when the
+  // engine is played (its menus draw the runner's card) or a plan asks for them (`trials`: the bridge's -trial, -game);
+  // not in a bench's plan, whose numbers stay comparable with before. On a game's page, its runner at once.
+  const trials = gameDef || ((menus || withTrials) && !flags && !view) ? optional('the trials', () => makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind, tool, foes: combat?.foes ?? null, chimes: combat?.chimes ?? null,
+    npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, def: gameDef, from, onGame, onLeave,
+    log: (t) => log(t) })) : null;
+  if (trials) stamp('trials');
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads
   // What is in hand, as the page's InputMode keeps it (src/input-mode.js): a pad connected or pressed is, until a key is
   // pressed; the prompts, the cue, a box's card and every {key:verb} name its buttons (the body's 'controller' class,
@@ -584,6 +603,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     look: (x, y) => { if (x || y) rig.look(x, y); },
     action: (name, dt) => {
       if (menus?.open) { menus.action(name); return; }
+      if (trials?.padAction(name)) return;   // (a run's own: Menu pauses it, the rest not in a game; src/minigames/kit/runner.js)
       if (name === 'photo') { setPhoto(!photo.on); return; }
       if (name === 'capture') { if (photo.on && !photo.capture) photo.capture = 1; return; }
       if (photo.on) return;
@@ -833,7 +853,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (code === 'Tab' && !pinned && !boxes?.busy?.() && !(shipOn && ship.playing)) combat.lock();
       }
       // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
-      if (down && !was && !menus?.open) {
+      if (down && !was && !menus?.open && !trials?.running) {
         if (code === 'KeyP') setPhoto(!photo.on);
         else if (photo.on && (code === 'Enter' || code === 'NumpadEnter') && !photo.capture) photo.capture = 1;
         else if (photo.on && code === 'Escape') setPhoto(false);
@@ -899,6 +919,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     get boxPlaying() { return !!boxes?.busy?.(); },
     /** What is in hand: 'pad' or 'keys' (src/input-mode.js), which the prompts name the buttons of. */
     get inputKind() { return inputMode.kind; },
+    /** This world's trials and games, and the run under way (engine/trials.js). */
+    trials,
+    /** A run (a trial, a game) under way: Esc and the Menu button are its pause, not the Start menu. */
+    get minigameOn() { return !!trials?.running; },
     /**
      * A thing used from the game menu's Items (main.js onUse): the fragment finder on or off, a gun mode taken, a gadget
      * taken in hand.
@@ -916,7 +940,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
     save() {
       // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
-      if (flags || pinned || player.dead || (shipOn && ship.playing)) return;
+      if (flags || pinned || player.dead || (shipOn && ship.playing) || gameDef) return;   // (a game's page keeps the place you left the world at)
       SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray() });
     },
     /**
@@ -960,6 +984,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const realDt = Math.min(dtRaw, 1 / 20);
       let dt = realDt;
       page.tick(tA);
+      // (a run's card, the menus' 'card', open while the runner has one up: before the menus hold the world)
+      try { trials?.sync(); } catch (e) { if (!game._trialsFailed) { game._trialsFailed = true; console.warn('[game] the trials failed', e?.stack ?? e); } }
       // a menu open (engine/menus.js): the world holds still under it, as the web's menus pause the game; the pad
       // goes to the menu (the controller's menu context), the scene is still drawn
       if (menus?.open) {
@@ -1041,23 +1067,31 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       }
       lap?.('people');
       // the ship's E aboard and its autopilot (the ramp's walk in and out), as main.js filters the input before the rest
-      const busy0 = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.();
+      const busy0 = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy();
       const ctlS = shipOn && !pinned ? (busy0 ? noInput : ship.input(ctl)) : ctl;
       // E goes to the nearest person or thing first (story/index.js, interact.js), as main.js does
       const ePressed = !!ctlS.KeyE && !eWasDown && !pinned; eWasDown = !!ctlS.KeyE;
       let handled = false;
-      if (story) { try { handled = story.update(dt, simT, { camera, ePressed, paused: busy0 || (shipOn && ship.playing) }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
+      if (story && !gameDef) { try { handled = story.update(dt, simT, { camera, ePressed, paused: busy0 || (shipOn && ship.playing) }).handled; } catch (e) { if (!story.failed) log('story update failed', e?.message ?? e); story.failed = true; } }
       if (handled) player._eHeld = true;
       if (shopWaiting && !talking()) { const e = shopWaiting; shopWaiting = null; menus.openShop(shopPanel, e); }
       lap?.('story');
-      const busy = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.();
+      const busy = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy();
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
-      // the gadgets' buttons before the traveller moves (the hook's reel sets his velocity), as main.js
-      const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing);
-      if (gadgets) { try { gadgets.control(pdt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
+      // (a run on foot's own buttons, before the traveller and the gadget in hand read them: main.js filterInput)
+      if (!busy && !pinned) trials?.filterInput(ctlS);
+      // a game that drives moves the traveller and the camera itself (main.js: instead of the usual play)
+      const drives = !!trials?.drives && !pinned;
+      // the gadgets' buttons before the traveller moves (the hook's reel sets his velocity), as main.js (a game takes them;
+      // a trial in the world keeps them: the fan into the skiff's sail)
+      const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing) || !(trials?.keepsGadgets ?? true);
       // a way through under way: the move happens here, before the traveller and the camera do (main.js)
       if (passage.update(dt) === 'done') passCover.clear();
-      player.update(pdt, pinned || busy ? noInput : ctlS, rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
+      if (drives) { try { trials.update(dt, busy ? noInput : ctlS); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the game failed in its update', e?.stack ?? e); } } }
+      else {
+        if (gadgets) { try { gadgets.control(pdt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
+        player.update(pdt, pinned || busy ? noInput : ctlS, rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
+      }
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');
       for (const v of player.vehicles) if (v !== player.ride) { try { v.update(dt, null, simT); } catch (e) { if (!game._vehiclesFailed) { game._vehiclesFailed = true; console.warn('[game] a vehicle failed', e?.stack ?? e); } } }
@@ -1066,13 +1100,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         camera.position.copy(pinned.eye); camera.quaternion.copy(pinned.q);
         if (camera.fov !== pinned.fov) { camera.fov = pinned.fov; camera.updateProjectionMatrix(); }
         player.object.visible = !pinned.hidePlayer;
-      } else {
+      } else if (!drives) {
         rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding);
         rig.down = !!player.down;
         rig.update(player.pos, pdt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
         // locked on: the camera keeps the foe ahead, a guardian framed with him; then a blow's jolt (main.js renderFrame)
         if (combat) { try { combat.frame(realDt, busy || (shipOn && ship.playing)); } catch (e) { if (!game._lockFailed) { game._lockFailed = true; console.warn('[game] the lock-on failed', e?.stack ?? e); } } shakeCamera(camera, realDt); }
+        // a game played on foot (a trial, the Sunken Hall): its clock, gates and waves, after the rig, so it may take the camera
+        if (trials?.running) { try { trials.update(dt, busy ? noInput : ctlS); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the run failed in its update', e?.stack ?? e); } } }
       }
       lap?.('vehicles, camera');
       try { boxes?.update(dt, simT, { camera }); itemFx?.update(dt, simT); } catch (e) { if (!game._boxesFailed) { game._boxesFailed = true; console.warn('[game] the boxes failed in their update', e?.stack ?? e); } }
@@ -1103,7 +1139,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
       try {
-        tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned);
+        tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned || drives);   // (a game on foot keeps the blade and the gun)
         gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
@@ -1114,9 +1150,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         wildlife?.update(dt, simT, player, camera, busy);
         reactiveWorld?.update(dt, simT, player, camera, busy);
         flammables?.update(dt, simT, player.pos);
+        trials?.world(dt, simT);   // the trials' wind columns, the makers' runs' moving pieces, the signs (src/trials/)
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
       lap?.('life');
-      if (ctl.KeyQ && !qWasDown && scout && !busy) scout.ping?.();
+      if (ctl.KeyQ && !qWasDown && scout && !busy && !trials?.running) scout.ping?.();
       qWasDown = !!ctl.KeyQ;
       // the sound's wind, rain and steps (main.js: sound.update; the gust as wind.js's)
       if (sound !== SILENT) {

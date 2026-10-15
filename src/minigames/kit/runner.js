@@ -12,6 +12,11 @@
 //
 // Quit goes back where the player came from: the world (?from=<level>, at the place saved as they left it),
 // or the worlds list (Debug) the game was picked in.
+//
+// What it shows is data too (docs/systems/engine-bridge.md, "The trials and games"): the HUD (the clock, the score, the
+// lives, the 3-2-1, the flashes, the hint row) is the screen's 'minigame' part (src/platform.js), and the card up (the
+// start card, the pause, the results) `cardModel`, its buttons by their acts: an engine draws them (the Unity bridge:
+// BridgeHud.cs, and BridgeMenu.cs through engine/menus.js's card) from the same runner the page draws its elements from.
 
 import './minigames.css';
 import { readInput, NO_INPUT } from './input.js';
@@ -21,11 +26,16 @@ import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
 import { inputKind, escapeHtml, keyText } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
 import { stripTone } from '../../story/tone.js';
+import { screen } from '../../platform.js';
 import { COUNT, FINISH_WAIT, countNumeral, controlsFor, hintRow, quitHref, optionValue, optionOffered, optionKey, stepOption, optionText, scoreDef, touchButtons, touchButtonsCss, resultActions } from './flow.js';
 
 export { COUNT, controlsFor, quitHref };
 
 const h = (s) => escapeHtml(s);
+/** A card's html (a trial's prize, a page of sketches) as plain lines, for an engine's card. */
+export const plainHtml = (html) => String(html ?? '').replace(/<\/(p|li|div|h\d)>\s*/gi, '\n').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+  .split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
 
 export class MinigameRunner {
   /**
@@ -49,6 +59,8 @@ export class MinigameRunner {
     this.hintAge = 0; this.hintsUsed = new Map();   // (the hint row: s of play since shown, the buttons used: hintRow)
     this.fov0 = host.camera.fov;
     this.sfx = gameSfx(host.sound);
+    this.cardModel = null; this.cardV = 0;   // (the card up, as data: an engine's card, engine/menus.js)
+    this.flashes = []; this.flashN = 0; this.countState = null; this.countN = 0; this.hudOn = false;
     this.buildDom();
     document.body.classList.add('minigame');
     document.body.classList.toggle('mg-onfoot', !this.drives);
@@ -147,6 +159,7 @@ export class MinigameRunner {
     this.session.update?.(dt, live ? inp : NO_INPUT, { live, phase: this.phase, t: this.clock, raw: controls ?? {} });   // (raw: the merged controls, for a game reading buttons of its own)
     if (this.phase === 'finishing' && (this.doneT -= dt) <= 0) this.showResults();
     this.drawHud();
+    this.publish(dt);
   }
 
   // ---------------------------------------------------------------- the run
@@ -156,7 +169,7 @@ export class MinigameRunner {
     this.countT = COUNT.step * COUNT.from;
     this.showCount(String(COUNT.from));
     this.sfx.tick(COUNT.from);
-    this.hud.classList.remove('off');
+    this.hud.classList.remove('off'); this.hudOn = true;
     // (no start card: what it said as the run begins, a game on the way somewhere: "On the way to Vael")
     if (this.def.direct && this.host.links?.intro?.kicker) this.flash(this.host.links.intro.kicker, 'good', 2.2);
   }
@@ -204,6 +217,7 @@ export class MinigameRunner {
     this.paused = false;
     this.result = null;
     this.flashEl.textContent = '';
+    this.flashes.length = 0;
     this.session = this.def.start(this.ctx) ?? {};
     this.drawLives();
     this.begin();
@@ -219,15 +233,17 @@ export class MinigameRunner {
   }
   /** The link `step` away (-1 the previous game, +1 the next: [ and ], LB / RB on a card), or one by its id. */
   link(q) { return (this.host.links?.extra ?? []).find((l) => (typeof q === 'number' ? l.step === q : l.id === q)) ?? null; }
+  /** The cards' buttons out, as data: the host's links, then Quit (under its label). */
+  outList() {
+    const extra = (this.host.links?.extra ?? []).map((l) => ({ act: `link:${l.id}`, label: l.label, sub: l.sub ?? '' }));
+    return this.mandatory ? extra : [...extra, { act: 'quit', label: this.host.links?.quit?.label ?? 'Quit' }];
+  }
+  /** Buttons as the card's html. */
+  buttonsHtml(list) { return list.map((b) => `<button data-act="${h(b.act)}"${b.main ? ' class="main"' : ''}>${h(b.label)}${b.sub ? `<small>${h(b.sub)}</small>` : ''}</button>`).join(''); }
   /** The cards' buttons out: the host's links, then Quit (under its label). */
-  outButtons() {
-    const extra = (this.host.links?.extra ?? []).map((l) => `<button data-act="link:${h(l.id)}">${h(l.label)}${l.sub ? `<small>${h(l.sub)}</small>` : ''}</button>`).join('');
-    return this.mandatory ? extra : `${extra}<button data-act="quit">${h(this.host.links?.quit?.label ?? 'Quit')}</button>`;
-  }
+  outButtons() { return this.buttonsHtml(this.outList()); }
   /** The results card's buttons (kit/flow.js resultActions: a host's links.win, Skip first after failures). */
-  resultButtons(r) {
-    return resultActions(r, this.host.links, this.fails ?? 0).map((b) => `<button data-act="${h(b.act)}"${b.main ? ' class="main"' : ''}>${h(b.label)}${b.sub ? `<small>${h(b.sub)}</small>` : ''}</button>`).join('');
-  }
+  resultButtons(r) { return this.buttonsHtml(resultActions(r, this.host.links, this.fails ?? 0)); }
 
   /** Leave the game: the session's things out of the scene, the camera as it was, the screens gone. */
   end() {
@@ -237,6 +253,8 @@ export class MinigameRunner {
     this.clearAdded();
     this.ctx.setFov(this.fov0);
     window.removeEventListener('keydown', this.onKey, true);
+    this.cardModel = null; this.cardV++;
+    screen.set('minigame', null);
     this.el.remove();
     this.touchStyle?.remove();
     document.body.classList.remove('minigame', 'mg-onfoot');
@@ -247,11 +265,16 @@ export class MinigameRunner {
     if (!['count', 'play', 'finishing'].includes(this.phase)) return;
     this.paused = on;
     this.session.pause?.(on);   // (a game with a clock of its own, a song: it stops and picks up again)
-    if (on) this.openCard(`<p class="kicker">${h(this.def.name)}</p><h1>Paused</h1>
-      <p class="best">${this.def.score?.kind === 'time' ? `Time so far ${formatTime(this.clock + this.penalty)}` : `Score so far ${formatScore(this.def, this.points)}`}</p>
-      <div class="buttons"><button class="main" data-act="resume">Resume</button><button data-act="retry">Retry</button>${this.outButtons()}</div>
+    if (on) {
+      const best = this.def.score?.kind === 'time' ? `Time so far ${formatTime(this.clock + this.penalty)}` : `Score so far ${formatScore(this.def, this.points)}`;
+      const buttons = [{ act: 'resume', label: 'Resume', main: true }, { act: 'retry', label: 'Retry' }, ...this.outList()];
+      this.setCard({ kind: 'paused', kicker: this.def.name, title: 'Paused', best, buttons, hint: this.hint('resume', 'quit') });
+      this.openCard(`<p class="kicker">${h(this.def.name)}</p><h1>Paused</h1>
+      <p class="best">${best}</p>
+      <div class="buttons">${this.buttonsHtml(buttons)}</div>
       <small>${this.hint('resume', 'quit')}</small>`, true);
-    else this.closeCard();
+    } else this.closeCard();
+    this.publish();
   }
 
   // ---------------------------------------------------------------- input to the cards
@@ -279,6 +302,17 @@ export class MinigameRunner {
   press() {
     const b = this.card.contains(document.activeElement) && document.activeElement.tagName === 'BUTTON' ? document.activeElement : this.card.querySelector('button.main') ?? this.card.querySelector('button');
     b?.click();
+  }
+  /**
+   * An option of the start card moved by `dir` (an engine's card: left / right on its row): a row of choices to the next
+   * or the one before (round), a stepper by its step.
+   */
+  stepCardOption(id, dir) {
+    const o = (this.def.options ?? []).find((q) => q.id === id);
+    if (!o) return;
+    const v = optionValue(this.def, this.host.state, id);
+    if (o.choices) { const i = o.choices.findIndex(([cv]) => cv === v), n = o.choices.length; this.setOption(id, o.choices[((i < 0 ? 0 : i) + dir + n) % n][0]); }
+    else this.setOption(id, stepOption(o, v, dir));
   }
   /** An option changed on the start card: kept in the save, the session started again with it, the card redrawn. */
   setOption(id, value) {
@@ -368,7 +402,13 @@ export class MinigameRunner {
     this._refocus = null;
     setTimeout(() => focus?.focus({ preventScroll: true }), 30);
   }
-  closeCard() { this.card.classList.remove('open'); document.activeElement?.blur?.(); }
+  closeCard() { this.card.classList.remove('open'); document.activeElement?.blur?.(); if (this.cardModel) { this.cardModel = null; this.cardV++; } }
+  /**
+   * The card up, as data (an engine's card: engine/menus.js, BridgeMenu.cs): { kind: intro | paused | results, kicker,
+   * title, lead: { name, text }, text, rules, rows: [[key, what]], options: [{ id, label, choices: [{ label, on }] | text,
+   * hint }], big, stamp, lines, extra (its html as plain lines), best, buttons: [{ act, label, sub, main }], hint }.
+   */
+  setCard(model) { this.cardModel = model; this.cardV++; }
 
   showIntro() {
     const d = this.def, S = this.host.state, best = bestScore(S, scoreDef(d, S)), kind = this.introKind = inputKind();
@@ -385,25 +425,41 @@ export class MinigameRunner {
     // (a host's links.intro: a game on the way somewhere says where, and what is said as it begins: the pirates between worlds)
     const I = this.host.links?.intro;
     const lead = I?.lead ? `<p class="lead"><b>${h(I.lead.name ?? '')}</b> “${h(stripTone(I.lead))}”</p>` : '';
+    const bestLine = best === null ? 'No best yet.' : `Best${d.bestBy ? ` (${this.optionLabel(d.bestBy)})` : ''}: ${formatScore(d, best)}`;
+    const buttons = [{ act: 'start', label: 'Start', main: true }, ...this.outList()];
+    const plainKeys = (x) => keyText(x, { kind, teach: true });
+    this.setCard({ kind: 'intro', kicker: I?.kicker ?? 'A game', title: d.name, lead: I?.lead ? { name: I.lead.name ?? '', text: stripTone(I.lead) } : null, text: d.blurb, rules: d.rules,
+      rows: controlsFor(d, kind).map(([k, v]) => [plainKeys(k), plainKeys(v)]),
+      options: (d.options ?? []).filter((o) => optionOffered(o, S)).map((o) => {
+        const v = optionValue(d, S, o.id);
+        return { id: o.id, label: o.label, hint: o.hint ?? '', ...(o.choices ? { choices: o.choices.map(([cv, label]) => ({ label, on: cv === v })) } : { text: optionText(o, v) }) };
+      }),
+      best: bestLine, buttons, hint: this.hint('start', 'quit') });
     this.openCard(`<p class="kicker">${h(I?.kicker ?? 'A game')}</p><h1>${h(d.name)}</h1>${lead}<p>${h(d.blurb)}</p><p class="rules">${h(d.rules)}</p>
       ${rows ? `<dl>${rows}</dl>` : ''}${opts ? `<div class="opts">${opts}</div>` : ''}
-      <p class="best">${best === null ? 'No best yet.' : `Best${d.bestBy ? ` (${h(this.optionLabel(d.bestBy))})` : ''}: ${h(formatScore(d, best))}`}</p>
-      <div class="buttons"><button class="main" data-act="start">Start</button>${this.outButtons()}</div>
+      <p class="best">${h(bestLine)}</p>
+      <div class="buttons">${this.buttonsHtml(buttons)}</div>
       <small>${this.hint('start', 'quit')}</small>`);
   }
   showResults() {
     const d = this.def, r = this.result;
     this.phase = 'results';
-    this.hud.classList.add('off');
+    this.hud.classList.add('off'); this.hudOn = false;
     const lines = (r.lines ?? []).map((l) => `<li>${h(l)}</li>`).join('');
     const label = r.failed ? (r.title ?? 'Out of lives') : d.score?.kind === 'time' ? 'Your time' : 'Your score';
     const showValue = !(r.failed && d.score?.kind === 'time');
+    const bestLine = r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${formatScore(d, r.best)}`;
+    const actions = resultActions(r, this.host.links, this.fails ?? 0);
+    const hint = this.hint({ win: 'fly on' }[actions[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
+    this.setCard({ kind: 'results', kicker: d.name, title: label, big: showValue ? formatScore(d, r.value) : '', stamp: !!r.isNew, lines: [...(r.lines ?? [])], extra: plainHtml(r.html),
+      best: bestLine, buttons: actions.map((b) => ({ act: b.act, label: b.label, sub: b.sub ?? '', main: !!b.main })), hint, wide: !!r.wide });
     this.openCard(`<p class="kicker">${h(d.name)}</p><h1>${h(label)}</h1>
       ${showValue ? `<div class="big">${h(formatScore(d, r.value))}</div>` : ''}${r.isNew ? '<div class="stamp">New best!</div>' : ''}
       ${lines ? `<ul class="lines">${lines}</ul>` : ''}${r.html ?? ''}
-      <p class="best">${r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${h(formatScore(d, r.best))}`}</p>
+      <p class="best">${h(bestLine)}</p>
       <div class="buttons">${this.resultButtons(r)}</div>
-      <small>${this.hint({ win: 'fly on' }[resultActions(r, this.host.links, this.fails ?? 0)[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit')}</small>`);   // (won on the way somewhere: Esc flies on too)
+      <small>${hint}</small>`);
+    this.publish();
     this.sheet.classList.toggle('wide', !!r.wide);
   }
   /** The chosen value's label of a choice option ('Hard'). */
@@ -419,7 +475,9 @@ export class MinigameRunner {
     el.classList.add('pop');
     el.classList.toggle('go', go);
     clearTimeout(this._countOff);
-    if (go) this._countOff = setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, COUNT.go * 1000 + 200);
+    const id = this.countState = { text, go, id: ++this.countN };
+    if (go) this._countOff = setTimeout(() => { if (el.textContent === text) el.textContent = ''; if (this.countState === id) { this.countState = null; this.publish(); } }, COUNT.go * 1000 + 200);
+    this.publish();
   }
   flash(text, kind = '', secs = 1.2) {
     const d = document.createElement('div');
@@ -428,9 +486,41 @@ export class MinigameRunner {
     d.style.setProperty('--secs', `${secs}s`);
     this.flashEl.appendChild(d);
     while (this.flashEl.children.length > 3) this.flashEl.firstElementChild.remove();
-    setTimeout(() => d.remove(), secs * 1000 + 50);
+    const f = { text: String(text), kind, secs, id: ++this.flashN };
+    this.flashes.push(f);
+    while (this.flashes.length > 3) this.flashes.shift();
+    setTimeout(() => { d.remove(); const i = this.flashes.indexOf(f); if (i >= 0) { this.flashes.splice(i, 1); this.publish(); } }, secs * 1000 + 50);
+    this.publish();
   }
-  bumpScore() { this.scoreEl.classList.remove('bump'); void this.scoreEl.offsetWidth; this.scoreEl.classList.add('bump'); }
+  /**
+   * The HUD as the screen's 'minigame' part (src/platform.js; an engine draws it: BridgeHud.cs): the clock as seconds
+   * with whether it runs (the engine counts it on between sends, which are on a change and once a second), the score's
+   * box, the lives, the 3-2-1 (each numeral its id), the flashes, the hint row, the speed lines' strength. Null once the
+   * game is left.
+   */
+  publish(dt = 0) {
+    if (this.ended) return;
+    const d = this.def, H = d.hud ?? {};
+    const run = this.phase === 'play' && !this.paused;
+    let timer = null;
+    if (H.timer ?? d.score?.kind === 'time') {
+      // (running, the clock is sent once a second: the engine runs it on between, BridgeHud.cs)
+      this._pubT = run && this._pubRun ? (this._pubT ?? 0) + dt : 1;
+      if (this._pubT >= 1) { this._pubT = 0; this._pubSecs = +(this.clock + this.penalty).toFixed(2); }
+      timer = { secs: this._pubSecs, run, down: H.countdown ?? 0, penalty: this.penalty };
+    }
+    this._pubRun = run;
+    const s = this.statusText ?? ((H.score ?? d.score?.kind === 'points') ? formatScore(d, this.points) : '');
+    let hints = null;
+    if (d.hints) {
+      const kind = inputKind(), live = ['count', 'play'].includes(this.phase) && !this.paused;
+      const row = hintRow(controlsFor({ controls: d.hints }, kind), { age: this.hintAge, used: this.hintsUsed, live });
+      hints = { off: !live || (row.off && !this.hintNote), items: row.items.map((i) => ({ k: keyText(i.k, { kind, teach: true }), w: i.w, gone: i.gone || row.off })), note: this.hintNote ? plainHtml(this.hintNote) : '' };
+    }
+    screen.set('minigame', { on: this.hudOn && !this.paused && !this.cardModel, timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
+      count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20 });
+  }
+  bumpScore() { this.scoreBumps = (this.scoreBumps ?? 0) + 1; this.scoreEl.classList.remove('bump'); void this.scoreEl.offsetWidth; this.scoreEl.classList.add('bump'); }
   drawLives() {
     if (this.lives === null) { this.livesEl.innerHTML = ''; return; }
     const n = Math.max(this.livesMax ?? this.lives, this.lives);
@@ -447,6 +537,7 @@ export class MinigameRunner {
   }
   /** Ink streaks from the edges toward the middle, more and darker the faster (k 0..1). */
   speedLines(k) {
+    this._speedK = k;
     const cv = this.speedCv;
     if (k < 0.02 && !this._speedOn) return;
     const W = Math.round(innerWidth / 2), Ht = Math.round(innerHeight / 2);

@@ -418,8 +418,8 @@ arrival). `-warp Vael` with `-views … -out …` pictures it over a view withou
 the fragments of the singing light as main.js does (`createFragments`: their glow among the local lights, their song,
 the finder's beep, one taken by walking into it, counted on the Worlds page), so the first brings Anselm and his shop has
 something to sell for; and calls `updateHazards` each frame (fire, the cacti's spines, a temple's spike rows, registered
-by the levels as they build), not while busy, pinned or in a ship's scene. The trials (src/trials/, a MinigameRunner)
-are still the web's only. Test: tests/engine-ship.test.js (a fragment walked into).
+by the levels as they build), not while busy, pinned or in a ship's scene.
+Test: tests/engine-ship.test.js (a fragment walked into).
 
 **Graphics: Steam Deck and Auto** (D7). The Graphics setting offers `auto`, `handheld`, `deck`, `low`, `medium` and
 `high`. Auto is the device's own preset at each start (BridgeArgs.Quality: Steam Deck on the Linux player, Handheld on
@@ -433,8 +433,48 @@ next frame, saves and opens the Start menu, which holds the world, so coming bac
 kept on while the player runs (`Screen.sleepTimeout`). Batch runs never go away. Test: tests/engine-unity.test.js. To
 check on the Deck: whether gamescope's Steam button and overlay take Unity's focus.
 
+**The trials and games** (issue #264; `engine/trials.js`). When the engine is played (its menus, or a plan's `-trial` /
+`-game`; never a bench's plan), engine/game.js makes what main.js makes for them, from the same modules: the world's
+challenges (src/trials/ `createChallenges`: its trial and its makers' runs, their signs, wind columns and courses), the
+signs of the games played on their own grounds (a game's `markers`, kit/marker.js), and every sign's host, stood by the
+story (kit/hosts.js `queueHost`, `takeHosts`, `story.host`). A trial's Play makes a `MinigameRunner` played here on foot,
+as main.js's `open` (Quit leaves you where the run did); a game's Play (`onGame`, the page's `?game=<id>&from=<world>`)
+starts the engine again on the game's page: `createGame({ game, from })` builds its level as main.js does
+(kit/world.js `levelMetaFor`: its arena under its host's id, or the world it is played in), makes its runner at once, writes
+no place to the save, and its Quit (`onLeave`, `?level=<from>`) starts the engine again on that world at the place saved
+as you left it. The frame follows main.js's: the runner's `filterInput` before the traveller and the gadget in hand read
+the controls (the Sunken Hall takes Space and the pad's jump: B / ○ rolls, no jump, 535f87f9a), a game that drives moves
+the traveller and the camera instead of the usual play, a game on foot is updated after the rig (it may take the camera:
+the Sunken Hall's isometric one), the gadgets held but in a trial, the runner's pad actions first (Menu pauses a run;
+Esc pauses it, J and P do nothing, as the runner's keys on the page).
+
+What the runner shows is data on both sides (src/minigames/kit/runner.js): its HUD the screen's `minigame` part
+(`publish`: the clock as seconds and whether it runs, sent on a change and once a second, which BridgeHud.cs counts on
+between; the score's box, the lives, the 3-2-1 with an id a numeral, the flashes, the hint row), drawn by BridgeHud.cs
+`DrawMinigame` as the page's #minigame (the cue and the floating prompt gone while it runs, as `body.minigame`); its card
+(the start card, the pause, the results) its `cardModel` (the kicker, the name, the blurb, the rules, the controls'
+rows in the input in hand's names, the options, the score, "New best!", the lines, a prize's html as plain lines, the
+best, the buttons by their acts, the keys' hint), which engine/menus.js holds as its `card` mode (`openCard`, kept in
+step each frame by engine/trials.js `sync` before the menus hold the world): up and down through the options and the
+buttons, left and right an option's value (`stepCardOption`), A / × the button picked, B / ○ the runner's back, Menu its
+start, LB / RB its links; Enter its main button, R Retry, Esc back. BridgeMenu.cs `DrawCard` lays it out as the page's
+.mg-card .sheet. A plan: `-level desert -trial kit-desert -out dir` (or `-game fight-desert`) photographs the card, the
+3-2-1, the run, the pause and the run resumed, on the debug save (it gives the gadgets the run and its prize want).
+Tests: tests/engine-trials.test.js.
+
+| the Wind hall's start card | the run: the clock, the gates, the gust's toast under the clock | the Sunken Hall from above |
+|---|---|---|
+| ![](../engine-bridge/unity-trial-card.jpg) | ![](../engine-bridge/unity-trial-run.jpg) | ![](../engine-bridge/unity-trial-hall.jpg) |
+
+(The editor's batch, `BridgeBatch.Run`: its screen is 640 × 480, so its HUD and menus are laid out on a 4:3 canvas, 960
+wide, in the 1280 × 720 picture: the Retroid's shape.)
+
+Not drawn yet: what a game draws on the page of its own (the speed lines' canvas, the drum circle's ring, the sketch
+hunt's frames, the shooting gallery's balloons, kit/labels.js). The foes the Sunken Hall's waves and the trials' calm
+wilds want come with the engine's foes (`foes: null` until then: its rooms open, nothing comes out of the springs).
+
 Left for later (issue #264): the language setting (on purpose). The recorded music (D15: Unity decoding the MP3s
-that engine/webaudio.js refuses) and the trials want rounds of their own. The Godot spike's keys are not routed through the
+that engine/webaudio.js refuses) wants a round of its own. The Godot spike's keys are not routed through the
 player's keys (it has no menus).
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD

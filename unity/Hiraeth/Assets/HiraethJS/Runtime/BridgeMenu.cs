@@ -193,6 +193,7 @@ namespace Hiraeth.Bridge
             askYes = Ui.Label(ask.rt, "yes", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
             cardPic = Ui.Node("pic", card.rt).gameObject.AddComponent<RawImage>(); cardPic.raycastTarget = false;
             cardMark = Ui.Label(card.rt, "mark", Ui.Sans, 64, Ui.Teal, TextAnchor.MiddleCenter);
+            BuildCard(mono);
             root.gameObject.SetActive(false);
         }
 
@@ -319,11 +320,11 @@ namespace Hiraeth.Bridge
             tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal;
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
-            strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false);
+            strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false); cSheet.Show(false);
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
-            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else DrawGame();
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);
@@ -557,6 +558,172 @@ namespace Hiraeth.Bridge
                 meas.lineSpacing = 1;
                 return Mathf.Max(string.IsNullOrEmpty(r.S("pic")) ? 52 : 60, 5 + th + sh2 + 14);
             }
+        }
+
+        // ------------------------------------------------------------------ a game's card
+
+        // a trial's or a game's card (engine/menus.js cardView: src/minigames/kit/runner.js cardModel; the web's
+        // src/minigames/kit/minigames.css .mg-card .sheet): the start card, the pause, the results, on the game's paper with a
+        // hard ink shadow; its kicker, its name in heavy capitals, its blurb, the rules in a dashed box, the controls in two
+        // columns, the options' rows, the score big and "New best!" stamped, the lines, the best, the buttons (the main one
+        // gold, the pad's in bright gold with a red edge), the keys' hint at the foot
+        Ui.Box cSheet, cRules, cStamp; Label cKicker, cTitle, cLead, cText, cRulesText, cBig, cStampText, cLines, cExtra, cBest, cHint;
+        class CardButton { public Ui.Box box; public Label text, sub; }
+        readonly List<CardButton> cButtons = new();
+        readonly List<(Label k, Label v)> cRows = new();
+        readonly List<(Ui.Box box, Label label, Label val, Label hint)> cOpts = new();
+        static readonly Color CardKicker = Ui.Hex("#8a5a3c"), CardDd = Ui.Hex("#4a3b33"), CardMuted = Ui.Hex("#6b5a4e"), CardStamp = Ui.Hex("#d9643a");
+
+        void BuildCard(Font mono)
+        {
+            cSheet = Ui.Panel(root, "game card", Ui.Page, Ui.Ink, 2, 7, 7);
+            cKicker = Ui.Label(cSheet.rt, "kicker", mono, 12, CardKicker); Ui.Space(cKicker, 0.18f);
+            cTitle = Ui.Label(cSheet.rt, "title", Ui.Heavy, 27, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1.1f); Ui.Space(cTitle, 0.12f);
+            cLead = Ui.Label(cSheet.rt, "lead", mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.35f);
+            cText = Ui.Label(cSheet.rt, "text", mono, 15, Ui.Ink, lineSpacing: 1.35f);
+            cRules = Ui.Panel(cSheet.rt, "rules", Ui.CardC, Ui.Ink, 1.5f);
+            cRulesText = Ui.Label(cRules.rt, "text", mono, 14, Ui.Ink, lineSpacing: 1.35f);
+            cBig = Ui.Label(cSheet.rt, "big", Ui.Heavy, 48, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
+            cStamp = Ui.Panel(cSheet.rt, "stamp", Ui.Page, CardStamp, 3);
+            cStampText = Ui.Label(cStamp.rt, "text", mono, 15, CardStamp, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Space(cStampText, 0.12f); Ui.Stretch(cStampText.rectTransform);
+            cLines = Ui.Label(cSheet.rt, "lines", mono, 14, CardDd, lineSpacing: 1.35f);
+            cExtra = Ui.Label(cSheet.rt, "extra", mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.35f);
+            cBest = Ui.Label(cSheet.rt, "best", mono, 13, CardMuted);
+            cHint = Ui.Label(cSheet.rt, "hint", mono, 12, CardMuted);
+            cSheet.Show(false);
+        }
+
+        /// <summary>A label at (x, y) of the card, wrapped at w, shown only with words: returns the y under it.</summary>
+        float CardPut(Label l, string s, float x, float y, float w)
+        {
+            bool on = !string.IsNullOrEmpty(s);
+            Show(l, on);
+            if (!on) return y;
+            var sz = Ui.Set(l, s, w);
+            Ui.Place(l.rectTransform, x, y, w, sz.y);
+            return y + sz.y;
+        }
+
+        void DrawCard()
+        {
+            var c = state.O("card");
+            if (c == null) return;
+            var mono = Ui.Mono;
+            // (the pause over the world held, barely dimmed, as the page's .mg-card.clear; the start and the results darker)
+            dim.color = c.S("kind") == "paused" ? Ui.Hex("#2b211f", 0.12f) : Ui.Hex("#2b211f", 0.42f);
+            sheet.Show(false);
+            cSheet.Show(true);
+            cSheet.rt.SetAsLastSibling();
+            float sw = Mathf.Min(B(c, "wide") ? 760 : 560, W - 40), px = 26, iw = sw - 2 * px, y = 18;
+            y = CardPut(cKicker, Ui.Upper(c.S("kicker")), px, y, iw) + 2;
+            y = CardPut(cTitle, Ui.Upper(c.S("title")), px, y, iw - 120) + 8;
+            var lead = c.O("lead");
+            y = CardPut(cLead, lead == null ? null : $"{lead.S("name")} “{lead.S("text")}”", px, y, iw);
+            if (lead != null) y += 8;
+            y = CardPut(cText, c.S("text"), px, y, iw);
+            if (!string.IsNullOrEmpty(c.S("text"))) y += 10;
+            var rules = c.S("rules");
+            cRules.Show(!string.IsNullOrEmpty(rules));
+            if (!string.IsNullOrEmpty(rules))
+            {
+                var rs = Ui.Set(cRulesText, rules, iw - 20);
+                Ui.Place(cRulesText.rectTransform, 10, 7, iw - 20, rs.y);
+                Ui.Place(cRules.rt, px, y, iw, rs.y + 14);
+                y += rs.y + 14 + 10;
+            }
+            // the controls: what to press, then what it does (the page's dl: dt bold, dd in brown ink)
+            var rows = c.L("rows") ?? new List<object>();
+            float kw = 0;
+            while (cRows.Count < rows.Count) cRows.Add((Ui.Label(cSheet.rt, "key" + cRows.Count, mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold), Ui.Label(cSheet.rt, "does" + cRows.Count, mono, 14, CardDd)));
+            for (int i = 0; i < rows.Count; i++) kw = Mathf.Max(kw, Ui.Measure(cRows[i].k, (rows[i] as List<object>)?[0] as string ?? "", iw * 0.45f).x);
+            for (int i = 0; i < cRows.Count; i++)
+            {
+                bool on = i < rows.Count;
+                Show(cRows[i].k, on); Show(cRows[i].v, on);
+                if (!on) continue;
+                var r = rows[i] as List<object>;
+                var ks = Ui.Set(cRows[i].k, r?[0] as string ?? "", iw * 0.45f);
+                var vs = Ui.Set(cRows[i].v, r?.Count > 1 ? r[1] as string ?? "" : "", iw - kw - 12);
+                Ui.Place(cRows[i].k.rectTransform, px, y, kw, ks.y);
+                Ui.Place(cRows[i].v.rectTransform, px + kw + 12, y, iw - kw - 12, vs.y);
+                y += Mathf.Max(ks.y, vs.y) + 3;
+            }
+            if (rows.Count > 0) y += 9;
+            // the options: a row each, its name, its choices (the one chosen ◀ ▶), the pad's row on a band
+            var opts = c.L("options") ?? new List<object>();
+            while (cOpts.Count < opts.Count)
+            {
+                var b = Ui.Panel(cSheet.rt, "opt" + cOpts.Count, Color.clear, Ui.Ink, 0);
+                cOpts.Add((b, Ui.Label(b.rt, "label", mono, 12, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold), Ui.Label(b.rt, "val", mono, 13, Ui.Ink, TextAnchor.MiddleLeft), Ui.Label(cSheet.rt, "hint", mono, 12, CardMuted)));
+            }
+            for (int i = 0; i < cOpts.Count; i++)
+            {
+                var (box, label, val, oh) = cOpts[i];
+                bool shown = i < opts.Count;
+                box.Show(shown); Show(oh, false);
+                if (!shown) continue;
+                var o = opts[i] as Dictionary<string, object>;
+                bool on = B(o, "on");
+                string v = o.L("choices") is List<object> ch
+                    ? string.Join("   ", ch.OfType<Dictionary<string, object>>().Select(x => B(x, "on") ? $"<b><color=#277e86>◀ {x.S("label")} ▶</color></b>" : x.S("label")))
+                    : $"◀ <b>{o.S("text")}</b> ▶";
+                box.SetFill(on ? Band : Color.clear);
+                Ui.Set(label, Ui.Upper(o.S("label")), 130); Ui.Place(label.rectTransform, 8, 0, 130, 28);
+                Ui.Set(val, v, iw - 150); Ui.Place(val.rectTransform, 144, 0, iw - 150, 28);
+                Ui.Place(box.rt, px - 8, y, iw + 16, 28);
+                y += 30;
+                if (on && !string.IsNullOrEmpty(o.S("hint"))) y = CardPut(oh, o.S("hint"), px + 144, y, iw - 144) + 4;
+            }
+            if (opts.Count > 0) y += 8;
+            // the results: the score big, "New best!" stamped at the top right, the run's lines, what the game adds (a prize)
+            var big = c.S("big");
+            y = CardPut(cBig, big, px, y + (string.IsNullOrEmpty(big) ? 0 : 4), iw);
+            if (!string.IsNullOrEmpty(big)) y += 10;
+            bool stamp = B(c, "stamp");
+            cStamp.Show(stamp);
+            if (stamp) { var ss = Ui.Measure(cStampText, "NEW BEST!"); cStampText.text = "NEW BEST!"; Ui.Place(cStamp.rt, sw - 18 - (ss.x + 24), 18, ss.x + 24, 30); cStamp.rt.localEulerAngles = new Vector3(0, 0, 6); }
+            var lines = c.L("lines")?.OfType<string>().ToList() ?? new List<string>();
+            y = CardPut(cLines, string.Join("\n", lines), px, y, iw);
+            if (lines.Count > 0) y += 10;
+            y = CardPut(cExtra, c.S("extra"), px, y, iw);
+            if (!string.IsNullOrEmpty(c.S("extra"))) y += 10;
+            y = CardPut(cBest, c.S("best"), px, y, iw) + 8;
+            // the buttons in a row (wrapped), each its label (and a link's game under it)
+            var buttons = c.L("buttons") ?? new List<object>();
+            float bx = px, bh = 36, rowH = bh;
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                if (i >= cButtons.Count)
+                {
+                    var nb = new CardButton { box = Ui.Panel(cSheet.rt, "button" + i, Ui.CardC, Ui.Ink, 2, 3, 3, 4) };
+                    nb.text = Ui.Label(nb.box.rt, "text", mono, 15, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
+                    nb.sub = Ui.Label(nb.box.rt, "sub", mono, 11, CardMuted, TextAnchor.UpperCenter);
+                    cButtons.Add(nb);
+                }
+                var b = buttons[i] as Dictionary<string, object>;
+                var cb = cButtons[i];
+                cb.box.Show(true);
+                bool on = B(b, "on"), main = B(b, "main");
+                string label = Ui.Upper(b.S("label")), under = b.S("sub") ?? "";
+                var ls = Ui.Measure(cb.text, label);
+                float us = under.Length > 0 ? Ui.Measure(cb.sub, under).x : 0, bw = Mathf.Max(ls.x, us) + 36, h = under.Length > 0 ? bh + 14 : bh;
+                if (bx + bw > px + iw && bx > px) { bx = px; y += rowH + 10; rowH = bh; }
+                rowH = Mathf.Max(rowH, h);
+                cb.text.text = label; Ui.Place(cb.text.rectTransform, 0, 9, bw, ls.y);
+                Show(cb.sub, under.Length > 0);
+                if (under.Length > 0) { cb.sub.text = under; Ui.Place(cb.sub.rectTransform, 0, 9 + ls.y + 2, bw, 14); }
+                cb.box.SetFill(on ? Ui.Hex("#ffd866") : main ? Ui.Gold : Ui.CardC);
+                cb.box.border.color = on ? Ui.Red : Ui.Ink;
+                Ui.Place(cb.box.rt, bx - (on ? 1 : 0), y - (on ? 1 : 0), bw, h);
+                bx += bw + 10;
+            }
+            for (int i = buttons.Count; i < cButtons.Count; i++) cButtons[i].box.Show(false);
+            y += rowH + 6;
+            y = CardPut(cHint, c.S("hint"), px, y + 4, iw) + 16;
+            // (no taller than the screen: a long start card scaled down to fit, centred)
+            float k = Mathf.Min(1, (H - 24) / y);
+            cSheet.rt.localScale = new Vector3(k, k, 1);
+            Ui.Place(cSheet.rt, W / 2 - sw * k / 2, Mathf.Max(12, H / 2 - y * k / 2), sw, y);
         }
 
         void DrawAsk(Dictionary<string, object> a)

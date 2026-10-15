@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Label = UnityEngine.UI.Text;
@@ -9,7 +10,8 @@ namespace Hiraeth.Bridge
     /// The HUD and the conversation, drawn in uGUI from the web game's own state (src/platform.js
     /// screen: the cue line, the toast, the floating prompt, the health bar, the stamina wheel, the
     /// conversation and the answer a pad has picked, the gadget in hand's chip, its wheel, reticle and
-    /// marks, a makers' box's card), sent by the bundle when it changes. The pieces
+    /// marks, a makers' box's card, a trial's or a game's clock, score, lives, 3-2-1 and flashes), sent by the bundle when
+    /// it changes. The pieces
     /// and their layout are the C# port's (Hud.cs, Ui.cs): the same paper, ink and fonts; only where
     /// the state comes from differs. The game decides everything; this only draws it.
     /// </summary>
@@ -96,6 +98,7 @@ namespace Hiraeth.Bridge
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
             BuildFight(mono);
+            BuildMinigame(mono);
             BuildWarp();          // (over everything but the frame readout, as the page's #warp)
             BuildPassage();   // (over everything: the paper covers the screen as it carries you through)
             fpsBox = Ui.Panel(root, "fps", new Color(1, 250 / 255f, 240 / 255f, 0.8f), Ui.Ink, 1.5f);
@@ -292,16 +295,20 @@ namespace Hiraeth.Bridge
             var cueState = state.O("cue");
             if (state.O("photo") is Dictionary<string, object> ph)
                 cueState = (ph.S("hint") ?? "").Length > 0 ? new Dictionary<string, object> { ["text"] = ph.S("hint"), ["kind"] = "" } : null;
-            DrawCue(cueState, d == null && (hud || walk));
+            // (a trial or a game under way: its own HUD, the cue and the floating prompt gone, as the page's body.minigame)
+            var mg = state.O("minigame");
+            DrawCue(cueState, d == null && (hud || walk) && (mg == null || state.O("photo") != null));
+            DrawMinigame(hud && d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
             DrawToast(state.O("toast"), free);
-            DrawPrompt(state.O("prompt"), free);
+            DrawPrompt(state.O("prompt"), free && mg == null);
             DrawHealth(hud ? state.O("health") : null);
             DrawKeys(state.O("keys"), free);
             DrawWheel(state.O("stamina"), free);
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
-            DrawGadget(free ? state.O("gadget") : null);
-            DrawGadgetWheel(free ? state.O("gadgetWheel") : null);
-            DrawReticle(free ? state.O("reticle") : null);
+            // (the gadget's chip, wheel and reticle gone while a run is on, as the page's body.minigame #gadget-chip: src/gadgets/hud.js)
+            DrawGadget(free && mg == null ? state.O("gadget") : null);
+            DrawGadgetWheel(free && mg == null ? state.O("gadgetWheel") : null);
+            DrawReticle(free && mg == null ? state.O("reticle") : null);
             DrawMarks(free ? state.L("gadgetMarks") : null);
             DrawCine(cine, state.O("sub"));
             DrawBoxCard(state.O("boxCard"));
@@ -618,6 +625,159 @@ namespace Hiraeth.Bridge
             Ui.Place(restartText.rectTransform, (w - s.x) / 2, 20, s.x, s.y);
             Ui.Place(restartKey.rectTransform, (w - ks.x) / 2, 20 + s.y + 14, ks.x, ks.y);
             Ui.Place(restartBox.rt, (W - w) / 2, (H - h) / 2, w, h);
+        }
+
+        // ---------------------------------------------------------------- a trial's or a game's HUD (screen 'minigame')
+        // src/minigames/kit/runner.js publish (the web's #minigame, src/minigames/kit/minigames.css): the lives at the left,
+        // the clock in the middle (sent once a second while it runs: counted on here between), the score's box at the right,
+        // the 3-2-1 in big inked numerals popping in, the flashes stacked under the clock, the hint row at the bottom right
+        Ui.Box mgTimer, mgScore; Label mgTimerText, mgPenalty, mgScoreText, mgCount; RectTransform mgLives;
+        readonly List<Image> mgLife = new();
+        readonly List<(Ui.Box box, Label text, int id, float t, float secs)> mgFlash = new();
+        Ui.Box mgHints; Label mgHintsText;
+        int mgCountId = -1; float mgCountT; double mgSecs = -1; bool mgRun; float mgLocal; int mgBump = -1; float mgBumpT = 1;
+        static readonly Color MgGold = Ui.Hex("#f2c54b"), MgTeal = Ui.Hex("#71d7cf"), MgBad = Ui.Hex("#d9643a"), MgCard = Ui.Hex("#fbf4e2");
+
+        void BuildMinigame(Font mono)
+        {
+            mgTimer = Ui.Panel(root, "mg timer", Ui.Page, Ui.Ink, 2, 4, 4);
+            mgTimerText = Ui.Label(mgTimer.rt, "text", mono, 26, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f); Ui.Space(mgTimerText, 0.06f);
+            mgPenalty = Ui.Label(mgTimer.rt, "penalty", mono, 11, Ui.Faint, TextAnchor.UpperCenter); Ui.Space(mgPenalty, 0.14f);
+            mgScore = Ui.Panel(root, "mg score", Ui.Page, Ui.Ink, 2, 4, 4);
+            mgScoreText = Ui.Label(mgScore.rt, "text", mono, 19, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold, 1.2f);
+            mgLives = Ui.Node("mg lives", root);
+            mgCount = Ui.Label(root, "mg count", Ui.Heavy, 140, MgGold, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+            var o = mgCount.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Ink; o.effectDistance = new Vector2(3, -3);
+            var sh = mgCount.gameObject.AddComponent<Shadow>(); sh.effectColor = Ui.Ink; sh.effectDistance = new Vector2(7, -7);
+            mgHints = Ui.Panel(root, "mg hints", HintBg0, HintBg0, 0, 0, 0, 4);
+            mgHintsText = Ui.Label(mgHints.rt, "text", mono, 11, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold);
+            foreach (var b in new[] { mgTimer, mgScore, mgHints }) b.Show(false);
+            Show(mgCount, false); mgLives.gameObject.SetActive(false);
+        }
+
+        /// <summary>A time as the game writes it (src/minigames/kit/scores.js formatTime): 1:23.45, 9.05.</summary>
+        static string MgTime(double s)
+        {
+            int cs = Mathf.Max(0, Mathf.FloorToInt((float)(s * 100 + 1e-6)));
+            int m = cs / 6000, sec = cs / 100 % 60, hun = cs % 100;
+            return m > 0 ? $"{m}:{sec:00}.{hun:00}" : $"{sec}.{hun:00}";
+        }
+
+        void DrawMinigame(Dictionary<string, object> g)
+        {
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);   // (the game's own step is held to 1/20 s: engine/game.js)
+            bool on = g != null && g.Get("on") is bool o && o;
+            // the clock, the score's box and the lives, along the top
+            var tm = on ? g.O("timer") : null;
+            mgTimer.Show(tm != null);
+            if (tm != null)
+            {
+                double secs = tm.F("secs");
+                bool run = tm.Get("run") is bool r && r;
+                if (secs != mgSecs || run != mgRun) { mgSecs = secs; mgRun = run; mgLocal = 0; }
+                if (run) mgLocal += dt;
+                double t = mgSecs + mgLocal, down = tm.F("down"), pen = tm.F("penalty");
+                var ts = Ui.Set(mgTimerText, MgTime(down > 0 ? System.Math.Max(0, down - t) : t));
+                string ps = pen > 0 ? $"+{pen:0.#} S PENALTY" : pen < 0 ? $"{-pen:0.#} S BONUS" : "";
+                Show(mgPenalty, ps.Length > 0);
+                float w = Mathf.Max(ts.x + 28, 26 * 0.62f * 6.2f), h = ts.y + 8 + (ps.Length > 0 ? 14 : 0);
+                Ui.Place(mgTimerText.rectTransform, 0, 4, w, ts.y);
+                if (ps.Length > 0) { mgPenalty.text = ps; Ui.Place(mgPenalty.rectTransform, 0, 4 + ts.y, w, 14); }
+                Ui.Place(mgTimer.rt, W / 2 - w / 2, 14, w, h);
+                cueBottom = Mathf.Max(cueBottom, 14 + h + 4);   // (the toast under it)
+            }
+            var sc = on ? g.S("score") ?? "" : "";
+            mgScore.Show(sc.Length > 0);
+            if (sc.Length > 0)
+            {
+                int bump = g.I("bump");
+                if (bump != mgBump) { if (mgBump >= 0) mgBumpT = 0; mgBump = bump; }
+                mgBumpT += dt;
+                float k = mgBumpT < 0.25f ? 1 + 0.12f * Mathf.Sin(mgBumpT / 0.25f * Mathf.PI) : 1;
+                var ss = Ui.Set(mgScoreText, sc);
+                Ui.Place(mgScoreText.rectTransform, 14, 4, ss.x, ss.y);
+                float w = ss.x + 28, h = ss.y + 9;
+                Ui.Place(mgScore.rt, W - 18 - w, 14, w, h);
+                mgScore.rt.localScale = new Vector3(k, k, 1);
+            }
+            var lives = on ? g.L("lives") : null;
+            mgLives.gameObject.SetActive(lives != null);
+            if (lives != null && lives.Count >= 2)
+            {
+                int n = (int)Json.Num(lives[0]), max = (int)Json.Num(lives[1]);
+                while (mgLife.Count < max) { var d = Ui.Rect(mgLives, MgBad, 0, "life" + mgLife.Count); d.sprite = Ui.Round(32); d.type = Image.Type.Sliced; var ol = d.gameObject.AddComponent<Outline>(); ol.effectColor = Ui.Ink; ol.effectDistance = new Vector2(2, -2); mgLife.Add(d); }
+                for (int i = 0; i < mgLife.Count; i++)
+                {
+                    Show(mgLife[i], i < max);
+                    if (i >= max) continue;
+                    mgLife[i].color = i < n ? MgBad : new Color(MgBad.r, MgBad.g, MgBad.b, 0.0f);
+                    mgLife[i].GetComponent<Outline>().effectColor = i < n ? Ui.Ink : new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.45f);
+                    Ui.Place(mgLife[i].rectTransform, i * 30, 0, 24, 24);
+                }
+                Ui.Place(mgLives, 18, 18, max * 30, 24);
+            }
+            // the 3-2-1: each numeral pops in big and fades (0.8 s); GO! in teal, held until the runner lets it go
+            var cn = g?.O("count");
+            if (cn != null && cn.I("id") != mgCountId) { mgCountId = cn.I("id"); mgCountT = 0; }
+            mgCountT += dt;
+            bool go = cn != null && cn.Get("go") is bool gg && gg;
+            bool showCount = cn != null && (go || mgCountT < 0.8f);
+            Show(mgCount, showCount);
+            if (showCount)
+            {
+                float u = Mathf.Clamp01(mgCountT / 0.8f), s = u < 0.18f ? Mathf.Lerp(1.9f, 1, u / 0.18f) : Mathf.Lerp(1, 0.86f, (u - 0.18f) / 0.82f);
+                float a = u < 0.18f ? u / 0.18f : u < 0.75f || go ? 1 : 1 - (u - 0.75f) / 0.25f;
+                mgCount.text = cn.S("text");
+                mgCount.color = go ? MgTeal : MgGold;
+                mgCount.fontSize = go ? 122 : 140;
+                Ui.PlaceC(mgCount.rectTransform, 0, H * 0.38f - 100, W, 200);
+                mgCount.rectTransform.localScale = new Vector3(s, s, 1);
+                Ui.Alpha(mgCount.rectTransform, a);
+            }
+            // the flashes, under the clock: "+3 s", "Gate!", the room's name (good teal, bad vermilion, big twice the size)
+            var fl = g?.L("flashes") ?? new List<object>();
+            var ids = new HashSet<int>(fl.OfType<Dictionary<string, object>>().Select(f => f.I("id")));
+            for (int i = mgFlash.Count - 1; i >= 0; i--) if (!ids.Contains(mgFlash[i].id) || mgFlash[i].t > mgFlash[i].secs) { Destroy(mgFlash[i].box.rt.gameObject); mgFlash.RemoveAt(i); }
+            foreach (var f in fl.OfType<Dictionary<string, object>>())
+            {
+                if (mgFlash.Any(x => x.id == f.I("id"))) continue;
+                var kind = f.S("kind") ?? "";
+                var box = Ui.Panel(root, "mg flash", kind.Contains("bad") ? MgBad : kind.Contains("good") ? MgTeal : Ui.Page, Ui.Ink, 2, 3, 3);
+                var text = Ui.Label(box.rt, "text", Ui.Mono, kind.Contains("big") ? 27 : 16, kind.Contains("bad") ? MgCard : Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
+                Ui.Space(text, 0.06f);
+                text.text = f.S("text");
+                mgFlash.Add((box, text, f.I("id"), 0, Mathf.Max(0.3f, f.F("secs", 1.2f))));
+            }
+            float fy = 92;
+            for (int i = 0; i < mgFlash.Count; i++)
+            {
+                var (box, text, id, t, secs) = mgFlash[i];
+                t += dt;
+                mgFlash[i] = (box, text, id, t, secs);
+                var s = Ui.Measure(text, text.text, W - 80);
+                bool big = text.fontSize > 20;   // (big: 27 px, a room's name, the finish)
+                float w = s.x + (big ? 44 : 24), h = s.y + (big ? 12 : 6);
+                float u = t / secs, a = u < 0.12f ? u / 0.12f : u < 0.8f ? 1 : Mathf.Max(0, 1 - (u - 0.8f) / 0.2f);
+                float lift = u < 0.12f ? -8 * (1 - u / 0.12f) : u > 0.8f ? 6 * (u - 0.8f) / 0.2f : 0;
+                Ui.Place(text.rectTransform, 0, 0, w, h);
+                Ui.Place(box.rt, W / 2 - w / 2, fy + lift, w, h);
+                Ui.Alpha(box.rt, a);
+                fy += h + 6;
+            }
+            // the controls' hint row (def.hints: the pirates between worlds), each word gone once used, the game's line beside it
+            var hi = g?.O("hints");
+            bool hon = hi != null && !(hi.Get("off") is bool ho && ho);
+            mgHints.Show(hon);
+            if (hon)
+            {
+                var parts = (hi.L("items") ?? new List<object>()).OfType<Dictionary<string, object>>().Where(x => !(x.Get("gone") is bool gn && gn)).Select(x => $"<color=#f2c54b>{x.S("k")}</color> {x.S("w")}").ToList();
+                var note = hi.S("note") ?? "";
+                if (note.Length > 0) parts.Add(note);
+                mgHints.SetFill(HintBg); mgHintsText.color = HintInk;
+                var s = Ui.Set(mgHintsText, string.Join("   ", parts), W - 60);
+                Ui.Place(mgHintsText.rectTransform, 9, 4, s.x, s.y);
+                Ui.Place(mgHints.rt, W - 14 - (s.x + 18), H - 12 - (s.y + 8), s.x + 18, s.y + 8);
+            }
         }
 
         // ---------------------------------------------------------------- the gadgets (issue #344; src/gadgets/hud.js)

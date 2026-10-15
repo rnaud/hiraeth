@@ -45,6 +45,12 @@ const noIcu = () => ({
   transform(code, id) { if (!id.includes('node_modules') && code.includes('\\p{')) return { code: lowerUnicodeClasses(code), map: null }; return null; },
 });
 
+/** The page's style sheets (a module's `import './x.css'`: the minigames' runner) are nothing in an engine: its HUD is drawn from state. */
+const noCss = () => ({
+  name: 'hiraeth-no-css',
+  load(id) { return id.endsWith('.css') ? { code: 'export {};', moduleType: 'js' } : null; },
+});
+
 export async function bundle(name, override = {}) {
   const e = { ...ENTRIES[name], ...override };
   const t0 = Date.now();
@@ -55,7 +61,7 @@ export async function bundle(name, override = {}) {
     // (vite's import.meta.env, and the module URLs the reference sheets resolve their pictures from)
     transform: { define: { 'import.meta.env.BASE_URL': '"./"', 'import.meta.env.DEV': 'false', 'import.meta.env.PROD': 'true', 'import.meta.env.MODE': '"engine"', 'import.meta.url': '"engine://hiraeth/src/module.js"' } },
     // (Vite's import.meta.glob, as the web build has it: src/gadgets/all.js finds every gadget so, issue #344)
-    plugins: [noIcu(), viteImportGlobPlugin({ root: ROOT })],
+    plugins: [noIcu(), noCss(), viteImportGlobPlugin({ root: ROOT })],
     logLevel: 'warn',
   });
   const out = [];

@@ -12,6 +12,7 @@ import { panSteps } from './pan.js';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
+import { readHref } from '../trials.js';
 import { Controller } from '../../src/controller.js';
 import { Settings, SaveGame, TEXT_SIZES } from '../../src/ui.js';
 import { slots, DEBUG_SLOT, formatPlaytime } from '../../src/save-slots.js';
@@ -59,7 +60,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.noTitle);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.noTitle || a.trial || a.game);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 
@@ -125,7 +126,7 @@ export function start(argsJson) {
  */
 function begin(choice) {
   let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null, prologue = false;
-  const via = choice.via ?? null;
+  const via = choice.via ?? null, game = choice.game ?? null;
   if (choice.debug) { seedDebugSave(choice.debug, { slot, state: gameState }); slot = slots.active; level = choice.debug; arrive = true; }
   else {
     slots.setActive(slot);
@@ -136,16 +137,17 @@ function begin(choice) {
     // as the web's title opens a new game: the prologue until it has been played, prologue.done; issue #264)
     level ??= saved?.level && levelById(saved.level) ? saved.level : levelById(S.args.level) ? S.args.level : 'desert';
     prologue = !saved && !via && level === 'desert' && !gameState.flag('prologue.done') && S.args.prologue !== false;
-    if (!arrive && saved?.level === level) start = saved; else arrive = !prologue;
+    if (game) { arrive = false; prologue = false; }   // (a game's page: its own start; the world's place kept for its Quit)
+    else if (!arrive && saved?.level === level) start = saved; else arrive = !prologue;
   }
   if (S.game) {
-    if (S.game.level?.id === level && S.slot === slot && !arrive && !prologue) { S.menus.close(); return; }
+    if (S.game.level?.id === level && S.slot === slot && !arrive && !prologue && !game && !S.game.trials?.def) { S.menus.close(); return; }
     console.log(`[unity] onto save ${slot}, ${level}: the engine starts again`);
-    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, resolved: true } }));
+    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, resolved: true } }));
     return;
   }
   S.slot = slot;
-  launch({ ...S.args, level }, { start, arrive, via, prologue });
+  launch({ ...S.args, level }, { start, arrive, via, prologue, game });
 }
 
 /**
@@ -174,6 +176,26 @@ function showMenu() {
   host.Menu?.(forPad(JSON.stringify(v), false));
 }
 
+/**
+ * A game's sign played (a host's Play: ?game=<id>&from=<world> on the web) and its Quit back (?level=<world>): the engine
+ * starts again on the game's page, then on the world at the place saved as you left it (engine/trials.js).
+ */
+function playGame(href) {
+  const { game, from } = readHref(href);
+  if (!game) return;
+  S.game?.save();
+  console.log(`[unity] the game ${game}: the engine starts again on its page`);
+  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game, resolved: true } }));
+}
+function leaveGame(href) {
+  const { level, from } = readHref(href);
+  const to = level ?? from ?? S.gameFrom ?? 'desert';
+  console.log(`[unity] back from the game to ${to}`);
+  // (a plan's game, the bridge's -game: it ends with it)
+  if (S.plan) { host.Exit(0); return; }
+  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: to, resolved: true } }));
+}
+
 /** Another world by the ship (its take-off done, Ship.travel's `go`): the engine starts again at that world's landing, arriving. */
 function flyTo(to) {
   S.game?.save();
@@ -181,7 +203,7 @@ function flyTo(to) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } }));
 }
 
-function launch(args, { start: from = null, arrive = false, via = null, prologue = false } = {}) {
+function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.portraitDir = args.out ?? null;
@@ -202,8 +224,17 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   const rate = args.sound === false ? 0 : host.AudioRate?.() ?? 0;
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
   const record = !!rate && !!host.AudioThreaded?.() && args.audioJs !== true;
+  // (-trial <id>, -game <id>: a run's cards want the menus that draw them, on the debug save, the player's own untouched)
+  if (!S.menus && (args.trial || args.game)) {
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    const settings = new Settings();
+    S.settings = settings;
+    S.menus = new EngineMenus({ store: slots, settings, version: `v${VERSION}`, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) });
+  }
   const menus = S.menus ?? null;
-  createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  game ??= args.game ?? null;
+  S.gameFrom = args.level ?? 'desert';
+  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard, fight: !!args.fight })
     .then((game) => {
@@ -229,6 +260,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
         // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
         if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
+      // (-trial <id>: that trial or makers' run of this world on its start card, as its host's Play)
+      if (args.trial && !game.trials?.open(args.trial, { grant: true })) console.log(`[unity] no trial ${args.trial} here`);
       if (args.freeze !== undefined) game.mirror.freeze = !!args.freeze;   // (-freeze: still subtrees frozen, mirror-freeze.js; off by default)
       console.log(`[unity] ready in ${(now() - t0).toFixed(0)} ms (in the VM: ${JSON.stringify(game.T)})`);
       if (args.split) {
@@ -361,6 +394,15 @@ function makePlan(args) {
       { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false }, { kind: 'wait', frames: 60, secs: 1.5 });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-guardian.png` });
   }
+  if (args.trial || args.game) {
+    // a run's cards and HUD photographed (-trial <id> in its world, -game <id> on its page): the start card, Start (Enter),
+    // the 3-2-1, the run a while (the stick forward), the pause (Esc), Resume, then the run left (Esc on the pause, Quit)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-${name}.png` }] : []);
+    const tap = (code, frames = 3) => [{ kind: 'key', code, down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code, down: false }, { kind: 'wait', frames }];
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...shot('card'), ...tap('Enter', 20), { kind: 'say', text: '[unity] run: counting' }, ...shot('count'),
+      { kind: 'wait', frames: 60, secs: 2.6 }, { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 60, secs: args.runSecs ?? 3 }, ...shot('run'),
+      { kind: 'key', code: 'KeyW', down: false }, ...tap('Escape', 10), ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
+  }
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
@@ -446,8 +488,9 @@ function readInput(game) {
     // closes) and J the game menu, as the page's listeners do
     if (menus?.open) { menus.key(k); continue; }
     // (Esc held in a ship's scene skips it, skips a box's opening, and leaves photo mode: the game's own)
-    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.photoOn && !game.scenePlaying && !game.boxPlaying) { game.save(); menus.show('start'); continue; }
-    if (menus && k === 'KeyJ') { menus.show('game'); continue; }
+    // (a run under way: Esc is its pause, J nothing, the runner's keys: src/minigames/kit/runner.js key)
+    if (menus && k === 'Escape' && !game.story?.dialogue?.open && !game.photoOn && !game.scenePlaying && !game.boxPlaying && !game.minigameOn) { game.save(); menus.show('start'); continue; }
+    if (menus && k === 'KeyJ' && !game.minigameOn) { menus.show('game'); continue; }
     game.key(k, true);
   }
   readPad();
@@ -520,7 +563,11 @@ export function frame(dt) {
   if (!step || step.kind === 'hold') return;
   const next = () => { P.i++; P.wait = 0; P.t = 0; };
   if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
-  else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
+  else if (step.kind === 'key') {
+    // (a menu open, a run's card: its keys, as the player's arrive, readInput)
+    if (S.menus?.open) { if (step.down) S.menus.key(step.code); } else game.key(step.code, step.down);
+    next();
+  }
   else if (step.kind === 'say') { console.log(step.text); next(); }
   else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }
   else if (step.kind === 'foe') {
