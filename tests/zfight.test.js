@@ -26,14 +26,14 @@ export const ZFIGHT_BASELINE = {
   // perdide 10, arzach 8, spacecity 5)
   desert: 0, incal: 39, arzach2: 10, spheres: 2, buried: 0, perdide2: 3, perdide: 9, arzach: 3,
   garage: 1, edena: 2, bazaar: 8,   // (v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
-  spacecity: 3, moonfoundry: 20, underwater: 19,
+  spacecity: 0, moonfoundry: 20, underwater: 19,   // (v1.77: the Mooring-House redone as shrines, issue #336, its doorways a little narrower than their passages: 3 -> 0)
 };
 /**
  * A world's own count, outside its temples, where a fix has brought it down (v1.68, issue #286; audit.mjs counts the
  * rest, docs/systems/rendering.md "Z-fighting"): the City Floating in Space 460 -> 22, its houses' windows over one
  * another, the storeys on the roofs' lips, the machinery's tops in the slabs' undersides, the pads and bridges on the decks.
  */
-export const WORLD_ZFIGHT_BASELINE = { spacecity: 22 };
+export const WORLD_ZFIGHT_BASELINE = { spacecity: 19 };   // (v1.77: 22 -> 19, the Mooring-House's three gone, issue #336)
 /** The worlds' own parts held to none of their own fights (their names in the meshes'). */
 const OWN_NONE = [['bazaar', 'The market in the air'], ['underwater', 'The canyon street'], ['spheres', 'The furrows’']];
 // (the worlds the test of the worlds' own counts audits whole: the test of the temples keeps its builds of them, unchanged,

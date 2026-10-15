@@ -162,6 +162,28 @@ horn's stone out of the key's sight (decoupling 5). What stayed: the First Sign 
 two small keys, the great key and the loop through the Choir, the pits, every disc's and pillar's timing and every
 groove's length. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.bazaar` v5).
 
+## The Mooring-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Capstan Hall 28 m across, the Winch Room 15, the Lamp Shaft 14, the Cord Loft 19, the Drift 40 × 22, the Balance 22 × 22, the Rope Store 12 × 15 | the Capstan Hall **36 m**, the Winch Room, the Lamp Shaft and the Cord Loft **34 m**, the Drift **48 × 30**, the Balance **32 × 36**, the Rope Store **30 × 30** |
+| ceilings | 9 (the store) to 14 m (the far landing), the balcony 11 m under the hall's roof | **16.6 m** or more (the Capstan Hall 28, so the balcony has 17 over it) |
+| doors | 5 to 5.6 m by 6 to 6.4 | **7 by 9** |
+| fights | a machine by every mark (the hall, the winch, the shaft, the loft, the Drift and its far landing, the Balance, the Gallery) and the Rope Store's arena | **the Rope Store only**, its keepers round its middle among four drums of cable |
+| against the walls | the counterweight's groove from the far wall through the Winch Room's door, the lamp-eye in a niche on the shaft's wall, the loft's try and the passage's ring on walls (the ring over its door), the Drift's and the Balance's rails at their halls' edges, the Gallery's ring on its west wall, the balcony's cable-rail round the hall's wall, the moorers' weight on a cleat in the wall | each in the middle of its room: the groove down the Winch Room's floor, the eye on top of a pier beside the draught, the try on a post by the chest and the ring hung over the loft's floor, the rails out from the middle of wider landings, the ring on a davit over the Gallery, the cable-rail out from the balcony's lip, the weight on a mast |
+| the rules broken | **54** (both 7, size 10, ceiling 6, unmeasured 2, door 8, centred 13, foes 8) | **0** |
+| the temple design audit | 4.22: structure 5, teach/test/twist 5, combination 4, non-obvious 3 (mean 3.38), decoupling 4, item 5, guardian 4, identity 3, curve 5 | 4.22, the same scores (mean obviousness **3.31**: the ring that opens the Drift is off its door now) |
+
+What it took beyond the sizes: the Mooring Passage (a hall of its own before, but the loft's room in the logic) is
+folded into the Cord Loft, its ring hung over the floor on a chain to the door into the Drift; the lamp-eye stands on the
+top of a pier whose lip is as far from the draught as the balcony's was, the eye 3 m in from every edge so the top hides it
+from the floor; the Drift's near landing is wider (15 m) so its cable-rail starts in the hall's middle, the gap to the far
+landing as it was (17.6 m, 6 m up); the Gallery's ring hangs from a davit over the landing, still 14 m from the north lip;
+the balcony's cable-rail runs out from its lip toward the capstan, as long as it was round the wall. The guardian's hall
+is measured by its two doors (`d6`, `d7` carry `room: 'arena'`). What stayed: the Anchor-Warden, its floor and its fight, the
+story's lines, the small key and the great one, every groove's length, the pan, the updrafts and every jump. A save that
+stood in the old rooms is taken to its last mark (`LAYOUTS.spacecity` v3).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -172,6 +194,8 @@ counts, and a house may not get worse). Ranked worst first:
 | Builders' Greenhouse (edena) | 58 → **0** (v1.77, above) | 7 | 10 | 6 | 7 | 20 | 0 | 8 | |
 | Undertower (bazaar) | 55 → **0** (v1.77, above) | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
 | Mooring-House (spacecity) | 54 | 7 | 10 | 6 | 8 | 13 | 0 | 8 | 2 unmeasured |
+
+| Undertower (bazaar) | 55 | 7 | 9 | 8 | 7 | 16 | 1 | 6 | 1 unmeasured |
 | Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |
 | Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
 | Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |

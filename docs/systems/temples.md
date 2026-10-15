@@ -422,6 +422,26 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (the dark ring and the cables at the First Sign's foot, its element's id). Old saves: one that stood in the old rooms
   is taken to its last mark (`migrate.js` bazaar v5). Tests: `tests/temple-rules.test.js` (no rule broken), the on-foot
   walk and the old save in `tests/temples.test.js`, camera-qc-lock, the play-through, door-bypass, way-back, zfight.
+- **The Mooring-House as shrines** (v1.77, issue #336). The Capstan Hall a round hall 36 m across under 28 m (`R1`, so
+  the balcony at the Gallery's height, 11 m, still has 17 over it), the Winch Room, the Lamp Shaft and the Cord Loft 34 m
+  across 40 m out along the hall's radials (`WING`, `LOFT`), the Drift 48 by 30 (`DRIFT`), the Balance 32 by 36
+  (`BALANCE`), the Rope Store 30 m square under 16.6 (`STORE`, its roof over the Balance's wall top), doors 7 by 9
+  (`DOOR`), doorways a little narrower than their passages (`HOLE`, `PASS`: no face shared). The props, every groove's
+  length (the winch's 11 m, the Drift's 10.2, the Balance's 10.5, the balcony's 4.5, so `PERCH.plateAt` stays 0.167), the
+  Drift's gap (17.6 m) and its far landing's 6 m, the 10 m between the Balance's landings, the pan, the updrafts, the
+  Capstan Floor and the Anchor-Warden as they were. Each puzzle in the middle of its room: the counterweight's groove down
+  the Winch Room's middle to its socket; the lamp-eye on top of a pier beside the shaft's draught (`SHAFT_PIER`: the top's
+  lip 2.5 m from the draught's middle, as the balcony's was; the eye 3 m in from every edge, so the top hides it from the
+  floor); the Mooring Passage folded into the Cord Loft, its ring `r1` hung over the loft's floor on a chain to the Drift's
+  door, the try `t0` on a post by the chest; the Drift's cable-rail out from the middle of a wider near landing; the
+  Gallery's ring `r5` on a davit over the landing, still 14 m from the north lip (out of the tether's reach); the
+  balcony 10 m deep, its cable-rail out from its lip toward the capstan (`PERCH`), the cradle beside it; the moorers'
+  weight on a mast in the hall (`CLEAT.mast`). The moorers' corridor runs along x from the Gallery to the hall's wall
+  (`MOOR`, `MOOR_A` where it meets it). Tagged rooms: the stage, the far landing, the ante and the way out passages, the
+  Rope Store the one fight (its keepers round its middle among four drums of cable, solid with their cable), the rest
+  puzzles; the Capstan Floor is measured by its two doors (`d6`, `d7` carry `room: 'arena'`). Old saves: one that stood in
+  the old rooms is taken to its last mark (`migrate.js` spacecity v3, `relaid`). Rules broken 54 → 0; temple design
+  audit 4.22 before and after (mean obviousness 3.38 → 3.31); its z-fights 3 → 0.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

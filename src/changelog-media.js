@@ -859,6 +859,8 @@ const GREENHOUSE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headle
 const SHRINE336A = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6442, at the Warden’s Well’s commit (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Undertower's rooms, shot the same way before and after) */
 const UNDER336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6446, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Mooring-House's rooms, shot the same way before and after) */
+const MOORING336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6447, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -926,6 +928,18 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The Undertower’s keepers wait only in the Cable Store', shots: [
       { name: 'undertower-store', title: 'The Cable Store', caption: 'From its door: before, a 16 m room, its keepers by the wall; after, the house’s one fight, its keepers round the middle of a store 30 m square among two columns, the drums of cable round its walls', from: UNDER336 },
+    ] },
+    { match: 'The Mooring-House is rebuilt like a shrine too', shots: [
+      { name: 'mooring-hall', title: 'The Capstan Hall', caption: 'From the way in: before, 28 m across, the moorers’ weight on a cleat on the east wall; after, 36 m across under 28 m of stone, the weight on a mast in the floor, the balcony’s ball out on its cable-rail over the hall', from: MOORING336 },
+      { name: 'mooring-winch', title: 'The Winch Room', caption: 'Before, a round room 15 m across, the counterweight’s groove from the far wall out through its door; after, 34 m across, the groove down the middle of the floor to its socket, the winch behind it', from: MOORING336 },
+      { name: 'mooring-shaft', title: 'The Lamp Shaft', caption: 'Looking up from the door: before, a well 14 m across, the balcony and the lamp-eye’s niche on its wall; after, 34 m across, the void’s breath beside a pier in the middle, the lamp-eye on its top', from: MOORING336 },
+      { name: 'mooring-loft', title: 'The Cord Loft', caption: 'Before, 19 m across, the try’s ring on the wall, the Mooring Passage through the far door; after, 34 m across, the try’s ring on a post by the chest, the ring that opens the Drift hung over the floor on its chain, the door 7 by 9 m', from: MOORING336 },
+      { name: 'mooring-drift', title: 'The Drift', caption: 'The near landing: before, 22 m deep, the ball’s cable-rail by the wall; after, 48 by 30 m, the cable-rail out from the middle of the landing, the gangway’s gap and the far landing as wide and as high as they were', from: MOORING336 },
+      { name: 'mooring-balance', title: 'The Balance', caption: 'From the north landing: before, 22 m square, the Gallery’s ring on its west wall; after, 32 by 36 m, the ball’s rail in the middle, the ring on a davit over the Gallery, the void between the landings as wide as it was', from: MOORING336 },
+      { name: 'mooring-perch', title: 'The Capstan Hall’s balcony', caption: 'Before, the ball on a cable-rail round the hall’s wall; after, the balcony 10 m deep, the cable-rail out from its lip toward the capstan, the ball pulled home over the drop', from: MOORING336 },
+    ] },
+    { match: 'The Mooring-House’s keepers wait only in the Rope Store', shots: [
+      { name: 'mooring-store', title: 'The Rope Store', caption: 'Before, a 12 by 15 m room, its drums by the walls; after, 30 m square under 17 m, the house’s one fight round its middle among four great drums of cable', from: MOORING336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
   ],

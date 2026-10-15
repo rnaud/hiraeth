@@ -154,11 +154,15 @@ export const LAYOUTS = {
   // v1.53: the Mooring-House's Rope Store off the Moorers' Gallery (its small key now opens the moorers' gate) and the
   // great key on the Capstan Hall's balcony for the Capstan Floor's door. With the Gallery's ring pulled (the gate was
   // open): its small key in the gate, the store won; past the west door: the great key in the floor's door too
+  // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved (the same pieces, the same
+  // state; the Mooring Passage's ring now over the loft's floor). A save that entered the house: taken to its last mark if
+  // it stood inside the old rooms (runtime.js relaid)
   spacecity: {
-    v: 2,
+    v: 3,
     steps: [
       { if: ['lit.r5', 'open.sc', 'open.gN', 'boss'], set: { 'unlocked.sc': 1, 'found.kS': true, 'lit.arR': true } },
       { if: ['open.gN', 'boss'], set: { 'unlocked.d6': 1, 'found.kB': true, 'drum.bK': 0.167 } },   // (spacecity.js PERCH.plateAt: tests/temples.test.js checks)
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.53: an arena in three houses that had none, each its small key for a later door (with its own condition). Past
