@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_bc22291866c95c 30
+docs/plans/unity-finishable.md
+  s_9ca76055a220ed::t_b2280091ad1075 1-83
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_e84c39182edf32 587-589
+engine/chart.js
+  s_9ca76055a220ed::t_eccc1e538ee25b 1-33
+engine/game.js
+  s_9ca76055a220ed::t_266feba9e180fc 63-71,89,92-97,301-302,304,307,385-396,398-399,401-404,410-411,422,540-542,850,852-854,885,1005,1010,1019-1023,1025-1029,1180-1182,1270-1272,1274
+engine/unity/game.js
+  s_9ca76055a220ed::t_a12b747712fec7 66-77,153,220-226,255-262,281-282,456-463,609-618
+src/changelog.js
+  s_9ca76055a220ed::t_c765d78f6ee2f3 70-73
+src/quest.js
+  s_9ca76055a220ed::t_bc4b71b64000d3 88,90,149
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_7c690ac5f08bd0 13,177-179,184,186,238-239,252-255,257,260-266,277-283,295,302,404,478-480,487,599-600
+src/story/ending.js
+  s_9ca76055a220ed::t_7e6eaa0b811060 459-476
+tests/engine-finishable.test.js
+  s_9ca76055a220ed::t_c41fd1a1c6b223 1-114
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_0ccfa27972936d 200-202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0c03d0fee1d8500d7c9569b86b27239867744697",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
