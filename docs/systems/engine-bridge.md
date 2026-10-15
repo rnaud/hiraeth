@@ -363,7 +363,8 @@ blows' feel (src/feel.js: a hit-stop and the flurry slow the world, `feelDt`, no
 camera's jolt after the rig), the drops (chimes into the wallet, potions: src/chimes.js, potion-drops.js), the potion
 (D-pad ←), the hazards' burns (src/hazards.js), the low-health heartbeat and the knock-out's card (A / ×, Enter, Space or E
 gets him up: `player.restart`). The guardians are the temples' own (src/temples/runtime.js, updated by the story): it
-adds their lock and its framing. A bench's plan has none (its numbers stay comparable). What the page draws over the
+adds their lock and its framing, and the drone's hints in their fights (the ping, Q: src/temples/hints.js `openHint`, as
+the struggle goes on, a toast here). A bench's plan has none (its numbers stay comparable). What the page draws over the
 picture for it is the screen's state, which BridgeHud.cs draws: `health` now with the hearts by their quarters, the
 potions, the wallet and the magic bar (src/hud.js healthHud, `heartsSvg`'s heart cut into a sprite), `lock` (the
 reticle's four arrows: src/lock-reticle.js keeps what it drew as numbers, its `view`), `warn` (the markers of foes

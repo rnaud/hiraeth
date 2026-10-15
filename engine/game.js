@@ -62,6 +62,7 @@ import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { makeCombat } from './combat.js';
+import { guardianHint, openHint, Struggle } from '../src/temples/hints.js';
 import { setSkinColours } from '../src/characters/skin-colours.js';
 import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
 import { ToolHud, SaveGame } from '../src/ui.js';
@@ -409,7 +410,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     (level.noShadow ??= []).push(wind.mesh);
   }
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
-  const scout = optional('the drone', () => new Scout({ scene, player, physics, sound, getTarget: () => nextObjective({ player, story: null, ship: level.ship, level, quest: () => story?.objective?.() }) }));
+  // (in a guardian's fight the ping is a hint, as main.js's: the lens on the weak point, its line once the struggle has
+  // gone on a while, src/temples/hints.js; the line a toast here, the page's drone bubble)
+  const struggle = new Struggle();
+  const scout = optional('the drone', () => new Scout({ scene, player, physics, sound, getTarget: () => nextObjective({ player, story: null, ship: level.ship, level, quest: () => story?.objective?.() }),
+    getHint: () => openHint(guardianHint(level.temple), struggle.t), onHint: (line) => toast(`◇ ${line}`) }));
   stamp('life');
   stamp('flora');
 
@@ -1093,6 +1098,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {} });
       lap?.('level');
       // the foes, the drops, the knock-out's card and what the page draws over the picture for them (engine/combat.js)
+      if (level.temple) struggle.tick(guardianHint(level.temple)?.id, busy ? 0 : dt);   // (how long this phase of a guardian's fight has gone on)
       if (combat) { try { combat.update(dt, realDt, { busy: busy || !!pinned, paused: shipOn && ship.playing }); } catch (e) { if (!game._foesFailed) { game._foesFailed = true; console.warn('[game] the foes failed in their update', e?.stack ?? e); } } }
       lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
