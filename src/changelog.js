@@ -121,6 +121,21 @@ export const CHANGELOG = [
     // surface shader, the note from uSkBell, the ring bells, the lens terminals), arzach2.js hang; tests/temple-skins.test.js
     'Inside, the Founders’ Belfry is an ancient machine now, as the makers built it: tall dark slate slabs edged in bronze, lit slots at their feet, a cobalt circuit glowing round every room, slate floors ringed in bronze and cobalt light, the chest on a lit hexagonal pedestal, and its doors two heavy slate slabs with a line of light between them.',
     'The Belfry’s bells are no longer cups: each is four heavy bronze rings floating apart round a dark core, a thin cobalt line round every ring and the makers’ sign on the lowest. While one rings, or your whistle sounds, faint rings of light hang round it and spread from it across the floor and the walls.',
+    // the lock-on's steps in place (issue #360): src/motion-match.js loopInPlace (the strafes' and the walk back's travel out
+    // of the pelvis, the loops closed); tests/strafe.test.js; docs/systems/animation.md "Locked on: the steps in place"
+    { text: 'Locked on, stepping left and right (round the Mother Snapper, or any foe) is smooth now: the traveller’s body no longer slides a metre off him and snaps back three times a second, and his feet no longer jolt each time a step starts over.',
+      numbers: [{ title: 'Locked on, strafing left and right at full stick (3.8 m/s), frame by frame', unit: 'cm', better: 'lower', device: 'the Mother’s Hall, muted headless Chrome, Medium, 60 frames a second, 19 s', rows: [
+        { where: 'the hips’ jump off their path in a frame', before: 130, after: 3.7 },
+        { where: 'the worst joint off its path in a frame', before: 66, after: 10 },
+        { where: 'the hips moving against the body in a frame (Node, tests/strafe.test.js)', before: 121.6, after: 4.5 },
+      ], source: 'a frame-by-frame recording of the traveller, his animation, the camera and the lock, on this branch and on the tree before it (46a9c59d), 15 October' }],
+      see: 'In the Hush-House, lock on to the Mother Snapper and hold the stick left, then right: the traveller sidesteps round her without lurching back and forth, and the camera stays steady.' },
+    // every guardian's fight can be won from anywhere in its hall (issue #361): src/temples/boss.js begin (a rooted one keeps
+    // the asked move), sweepOf (a body blow over its part's sweep), garage.js the hammer's reach; tests/guardian-completable.test.js
+    { text: 'The Mother Snapper’s fight can always be finished: in her second phase she no longer just throws seeds at you when you keep your distance, she still rears back to snap at you, so you can push her head and still her open mouth. Every guardian was played through from close by, from the middle of its hall and from its far side, at 60 and at 30 frames a second.',
+      see: 'In the Hush-House, calm the Mother Snapper through her first phase, then stand back by the hall’s wall: she still rears up to snap at you every few moves (“She rears back to snap”), and a push into her head as she draws back slams it down, spent.' },
+    { text: 'The Foreman’s hammer reaches you when you stand your ground: it comes close enough to land on your raised guard, even with your back to the Clock-House’s wall, and at a handheld’s frame rate it no longer passes through you without touching your guard.',
+      see: 'In the Clock-House, in the Foreman’s second phase, hold your guard toward it with your back to the wall: the hammer rings off your guard and its face swings open.' },
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

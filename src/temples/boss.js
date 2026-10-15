@@ -766,6 +766,7 @@ export class Guardian {
     kit.eye = P?.pos ?? null;
     m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit, pushed: !!this._pushed });
     this._pushed = false;
+    this.sweepOf(this.attack);
     (this._posed ??= V()).copy(m.pos);   // (where its middle was as its bones were posed: keepIn reads them from there)
     this.ground.update();
     this._meshFrame = this._mesh = null;   // (posed anew: a body blow's mesh is sampled again when next asked, meshParts)
@@ -866,7 +867,11 @@ export class Guardian {
       const reach = this.reachOf(this.def.attacks[id]);
       if (!picked && d > reach * 0.95) {
         if (!this.model.rooted) { this.closing = { id, reach, t: 0 }; this.order++; return; }
-        id = list.find((x) => this.reachOf(this.def.attacks[x]) > d) ?? id;
+        // (a rooted one throws something instead; but never in place of the move its phase asks for while it asks: the
+        // Mother Snapper's second phase opened only to a push as she rears to snap, and from past her snap's 7 m she
+        // threw seeds every time, round and round, and the fight went no further, issue #361. She rears to snap at the
+        // air: it misses, and the push still answers it)
+        if (!(this.asking && this.phase.asks.moves.includes(id))) id = list.find((x) => this.reachOf(this.def.attacks[x]) > d) ?? id;
       }
       this.combo = 0;
     }
@@ -915,11 +920,27 @@ export class Guardian {
   }
   /** Does move a land with its body (its `parts`: the model's posed bones, or its posed mesh)? */
   bodyBlow(a) { return !!a?.parts; }
-  /** The spheres move a strikes with now (world { c, r }), its parts on the posed bones (or mesh), a.splash wider. */
+  /**
+   * How far move a's striking part (its glow's, partAt) went as it was posed this frame, halved (m): a body blow's spheres
+   * are that much wider (partsOf), so a blow lands over the way its part swept between two frames, not only where a frame
+   * caught it (v1.77, issue #361: at 30 frames a second the Foreman's hammer came down past a traveller in its way 7 cm
+   * off him in one frame and through him in none, hammer after hammer; its phase asks for the guard against it).
+   */
+  sweepOf(a) {
+    const S = (this._sw ??= { at: [V(), V()], f: -2, id: null });
+    this.sweep = 0;
+    if (!a?.parts) { S.id = null; return; }
+    const sides = PAIRED.has(a.part) ? [1, -1] : [1], now = this._swNow ??= [V(), V()];
+    let most = 0;
+    sides.forEach((s, i) => { this.partAt(a.part ?? 'core', now[i], s); if (S.id === a && S.f === this.frame - 1) most = Math.max(most, now[i].distanceTo(S.at[i])); S.at[i].copy(now[i]); });
+    S.f = this.frame; S.id = a;
+    this.sweep = most / 2;
+  }
+  /** The spheres move a strikes with now (world { c, r }), its parts on the posed bones (or mesh), a.splash wider (and the sweep, sweepOf). */
   partsOf(a, out = (this._parts ??= [])) {
     out.length = 0;
     if (!a?.parts) return out;
-    const add = a.splash ?? 0, list = this.model.hitParts ? a.parts.flatMap((n) => this.model.hitParts(n, [])) : this.meshParts(a.parts);
+    const add = (a.splash ?? 0) + (this.sweep ?? 0), list = this.model.hitParts ? a.parts.flatMap((n) => this.model.hitParts(n, [])) : this.meshParts(a.parts);
     for (const s of list) out.push(add ? { c: s.c, r: s.r + add } : s);
     return out;
   }

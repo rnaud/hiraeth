@@ -924,6 +924,23 @@ to walk round, the people's assets, and the captured motion. It lists and plays 
 The course, the runs and the measures moved from `tests/gait-sim.js` into `src/gait-course.js`
 (browser-safe), which the harness, `compare.mjs` and the page share; the harness's output is unchanged.
 
+## Locked on: the steps in place (v1.77, issue #360)
+
+The author: "when fighting the mother snapper and straffing left and right I get a very choppy animation". Recorded
+frame by frame in the Mother's Hall (muted headless Chrome, the traveller strafing left and right at full stick,
+locked on): his heading turned an even 0.007 rad a frame, the lock's line and the camera moved smoothly (under 9 mm of
+second difference), the frame step was even; but his hips jumped 1.2–1.3 m in one frame every 20 frames, and his feet
+10 cm at each wrap. The Sword and Shield pack's strafes and walk back (`LOCK_MOVE`'s clips) came out of the mocap
+pipeline with their root held still (`root: 'fixed'`) and their whole travel left in the pelvis, 1.27–1.36 m a cycle;
+played round and round at the lock's pace (3.7 times their own), the body slid that far off the controller's place over
+each cycle and snapped back as the loop wrapped. Their last frames were also up to 12° off their first at the feet and
+calves. `loopInPlace` (`src/motion-match.js`, as the moves load) takes a loop with no ground track of its own, removes
+the pelvis's drift from first frame to last evenly over the cycle about its middle, and turns each bone's last frame
+back onto its first the same way. `tests/strafe.test.js`: every shipped loop closes and stays on the spot; locked on,
+left and right, the hips move at most 10 cm against the body in a frame (was 121.6, now 4.5), no joint jolts 20 cm
+(was 66, now 8), the facing turns smoothly. Left: the feet's holds at the strafe's 3.7-times cadence still pop the
+calves (~45 a minute in Node, ~100 in the game, as before the fix), the clips being slow walking strafes played at a jog.
+
 ## Combat transitions (v0.89)
 
 Combat uses explicit wind-up, active and recovery timings, rather than searching the locomotion database.

@@ -724,6 +724,23 @@ it lands) and the gadget taking. The temples' walkthroughs (`tests/temples.test.
 A combo's links no longer count as moves of the phase's rotation (`Guardian.begin`, v1.63): a three-move combo in a
 list of three moves had locked the rotation on that combo (the First Sign stuttered and cried, never beamed).
 
+### Every fight can be won from anywhere in the hall (v1.77, issue #361)
+
+The author: "after a while the mother snapper is just throwing fireballs so I can no longer shoot its mouth". A rooted
+guardian with you past a move's reach throws something that reaches instead (`Guardian.begin`); from past her snap's
+7 m the Mother Snapper's second phase turned every snap into a seed, and the push into a snap it asks for never came:
+seeds for ever. Now the move a phase asks for is never swapped while it asks: she rears to snap at the air, it misses,
+and the push still answers it. Two more found the same way: the Foreman came for its asked guard only to 4 m (the
+hammer's `reach` 4.5) and its arms landed 3.7 m out (now 3.8, landing on a guard held against the wall), and at 30
+frames a second the hammer came down past a traveller 7 cm off him in one frame and through him in none. A body blow's
+spheres are now wider by half of what its striking part moved as it was posed (`Guardian.sweepOf`), so a blow lands
+over the way its part swept between two frames, the same at 30 frames as at 60.
+
+`tests/guardian-completable.test.js` fights every temple's guardian, and every Arena sparring one, through to weary
+from three stances (close by, half way across the hall, at its far side) at 60 and at 30 frames a second, a traveller
+who only stands and answers what the fight offers (the asked verb as the asked move comes, each opening taken for half
+a phase); every phase must give him a way in within 45 s. All 14 temples and 14 sparring rings pass.
+
 ### Helping instead of fighting (prototypes, v1.76, issue #339: `src/guardian-help/`)
 
 Two encounters on the shipped guardians, played only from their own page (`?level=arzach&guardianHelp=elder`,

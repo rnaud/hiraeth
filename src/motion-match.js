@@ -132,7 +132,7 @@ export function attachMotion(lib, gltf) {
   if (sheets.mm_database) motion.db = new MotionDB(lib, sheets.mm_database);
   const walks = sheets.walk_loops ? segmentClips(sheets.walk_loops).map((c) => ({ ...c.userData, clip: c })) : [];
   motion.walks.push(...walks);
-  const clips = gltf.animations.filter((a) => a.userData?.use === 'clip').map((c) => stripRoot(pathOf(c)));
+  const clips = gltf.animations.filter((a) => a.userData?.use === 'clip').map((c) => loopInPlace(stripRoot(pathOf(c))));
   motion.clips.push(...clips);
   // the studio lists everything: the database's takes and the walks one by one
   motion.all.push(...(sheets.mm_database ? segmentClips(sheets.mm_database, 'mm') : []), ...walks.map((w) => w.clip), ...clips);
@@ -140,6 +140,45 @@ export function attachMotion(lib, gltf) {
 }
 
 const stripRoot = (clip) => { clip.tracks = clip.tracks.filter((t) => !t.name.startsWith('root_motion.')); return clip; };
+
+/**
+ * A captured loop kept on the spot (issue #360, "a very choppy animation strafing left and right"): the Sword and Shield
+ * pack's strafes and walk back (the lock-on's steps, src/player.js LOCK_MOVE) came out of the pipeline with their root
+ * held still ('fixed') and the whole of their travel in the pelvis, 1.27–1.36 m a cycle; played round and round, the
+ * body slid that far off where the controller had him over each cycle and jumped back in one frame as the loop wrapped,
+ * three times a second at a jog. Nor did they close: their last frame (the same moment as the first, played round)
+ * was up to 12° off it at the feet and calves, a step's worth twice over, a 10 cm jolt of a foot at every wrap. A loop
+ * with no ground track of its own has the pelvis's drift from its first frame to its last taken out evenly over the
+ * cycle, so it ends where it began (its sway and bob stay: the controller moves the body), and each bone's turn from
+ * its first frame to its last the same way, so the last frame is the first. `userData.inPlace`: the drift taken out
+ * (m); `userData.closed`: the largest turn taken out (rad). A one-off move (a get-up, a lunge) keeps its travel.
+ */
+export function loopInPlace(clip) {
+  if (!clip.userData?.loop || clip.userData.inPlace != null || clip.tracks.some((t) => t.name.startsWith('root_motion.'))) return clip;
+  let drift = 0, closed = 0;
+  for (const tr of clip.tracks) {
+    const n = tr.times.length, t0 = tr.times[0], T = tr.times[n - 1] - t0, v = tr.values;
+    if (n < 2 || !(T > 0)) continue;
+    if (tr.name === 'pelvis.position') {
+      const d = [0, 1, 2].map((k) => v[(n - 1) * 3 + k] - v[k]);
+      // (about the middle of the cycle: the pelvis kept where it was on average, over the root, not where it set off)
+      for (let i = 0; i < n; i++) { const u = (tr.times[i] - t0) / T - 0.5; for (let k = 0; k < 3; k++) v[i * 3 + k] -= d[k] * u; }
+      drift = Math.hypot(...d);
+    } else if (tr.name.endsWith('.quaternion')) {
+      // (q_i ← slerp(1, Δ, u)⁻¹ q_i, Δ = q_last q_first⁻¹: the last frame turned back onto the first)
+      const a = new THREE.Quaternion().fromArray(v, 0), D = new THREE.Quaternion().fromArray(v, (n - 1) * 4).multiply(a.invert());
+      if (D.w < 0) D.set(-D.x, -D.y, -D.z, -D.w);
+      closed = Math.max(closed, 2 * Math.acos(Math.min(1, D.w)));
+      const I = new THREE.Quaternion(), s = new THREE.Quaternion(), q = new THREE.Quaternion();
+      for (let i = 0; i < n; i++) {
+        s.slerpQuaternions(I, D, (tr.times[i] - t0) / T).invert();
+        q.fromArray(v, i * 4).premultiply(s).normalize().toArray(v, i * 4);
+      }
+    }
+  }
+  clip.userData = { ...clip.userData, inPlace: drift, closed };
+  return clip;
+}
 
 /**
  * A move's own path, from its ground track (before it is stripped: the controller moves the body),
