@@ -192,6 +192,25 @@ test('the key listener sends keys on as the verb\'s default key, toggles run, an
   setControlPrefs({});
 });
 
+test('the key router as data, for the engines\' held keys (issue #264): routes, toggles, and "press a key"', () => {
+  const r = remap.keyRouter();
+  setControlPrefs({ keys: { jump: 'KeyK' }, run: 'toggle' });
+  assert.equal(r.route('KeyW', true), null, 'an unmoved key goes on as it is');
+  assert.deepEqual(r.route('KeyK', true), [['Space', true]]);
+  assert.deepEqual(r.route('KeyK', false), [['Space', false]]);
+  assert.deepEqual(r.route('Space', true), [], 'moved away: nothing');
+  assert.deepEqual([r.route('ShiftLeft', true), r.route('ShiftLeft', false), r.route('ShiftLeft', true), r.route('ShiftLeft', false)],
+    [[['ShiftLeft', true]], [], [['ShiftLeft', false]], []], 'toggled: down on one press, up on the next');
+  let got = 'none';
+  captureKey((c) => { got = c; });
+  assert.ok(r.take('KeyL', true)); assert.equal(got, 'KeyL');
+  assert.ok(r.take('KeyL', false), 'its release swallowed too');
+  assert.ok(!r.take('KeyL', true), 'then keys are the game\'s again');
+  captureKey((c) => { got = c; });
+  assert.ok(r.take('Escape', true)); assert.equal(got, null, 'Esc leaves it');
+  setControlPrefs({});
+});
+
 // ---------------------------------------------------------------- the prompts
 
 test('the prompts name the buttons and keys now bound, the menus\' own ones stay', () => {

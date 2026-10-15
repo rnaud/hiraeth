@@ -167,7 +167,9 @@ overrides beside them, saved with the settings (`keys: { verb: code }`, `pad: { 
   capture phase on the window. A key a verb was moved to is sent on as that verb's *default* key
   (a new `KeyboardEvent` with its code, dispatched at the same target; the original is stopped); a
   default key whose verb moved away, and that nothing took, sends nothing (`keyRoutes`). Typing in
-  a text field is left alone. Toggle run / guard is done here too.
+  a text field is left alone. Toggle run / guard is done here too. The routing itself is `keyRouter()`
+  (`take`: the key "press a key" waits for; `route`: the default codes a key sends), which the
+  engines' held keys go through as well (engine/unity/game.js, issue #264).
 - **The pad.** `Controller.update` reads each default button through `padMap()` (index → the
   button pressed for it) while playing and riding (riding, the same verbs' buttons: jump off is
   the jump's). Menus, conversations and photo mode keep the default buttons: A confirms and B goes

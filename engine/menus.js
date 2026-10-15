@@ -22,9 +22,9 @@ import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
 import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
-import { controlsList, REBIND_PAD, PAD_RAW_ROWS, TEXT_SIZES, reducedMotion } from '../src/ui.js';
-import { PAD_VERBS, BUTTON_NAME } from '../src/bindings.js';
-import { padFor, padConflicts, padRename, capturePad, RUN_MODES, GUARD_MODES } from '../src/remap.js';
+import { controlsList, REBIND_PAD, REBIND_KEYS, PAD_RAW_ROWS, TEXT_SIZES, reducedMotion } from '../src/ui.js';
+import { PAD_VERBS, BUTTON_NAME, KEYS } from '../src/bindings.js';
+import { padFor, padConflicts, padRename, capturePad, keyFor, keyLabel, keyConflicts, captureKey, RESERVED_KEYS, RUN_MODES, GUARD_MODES } from '../src/remap.js';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 import { confirmKey, backKey } from '../src/native-pad.js';
 import { stockText, stateText } from '../src/shop-panel.js';
@@ -105,7 +105,9 @@ export const CONTROL_ROWS = [
 ];
 /** How many versions What's new lists (the newest first, as the web's changelog panel; the rest on the web's page). */
 export const NEWS_VERSIONS = 4;
-const verbName = (v) => { const k = `verb.${v}.pad`, s = t(k); return s === k ? t(`verb.${v}`) : s; };
+const verbName = (v, kind = 'pad') => { const k = `verb.${v}.${kind}`, s = t(k); return s === k ? t(`verb.${v}`) : s; };
+/** Is the keyboard in hand (the body's 'controller' class unset, as engine/game.js's InputMode keeps it; none: the pad)? */
+const keysInHand = () => { const b = globalThis.document?.body?.classList; return !!b && !b.contains?.('controller'); };
 
 const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
 /** Each panel's columns across the sheet, as the page lays them out (the cells' `col`; a cell's `span` columns wide). */
@@ -233,6 +235,8 @@ export class EngineMenus {
   /** The controller's menu actions (src/controller.js, context 'menu'). */
   action(name) {
     if (!this.mode) return;
+    // (a key awaited: a pad's button leaves it as it was, as Esc does)
+    if (this.rebinding?.kind === 'keys') { this.stopRebind?.(); return; }
     if (this.mode === 'title') this.titleAction(name);
     else if (this.mode === 'start') this.startAction(name);
     else if (this.mode === 'shop') this.shopAction(name);
@@ -251,7 +255,8 @@ export class EngineMenus {
   /** A key (KeyboardEvent.code) while a menu is open: true when it was the menus'. */
   key(code) {
     if (!this.mode) return false;
-    if (this.rebinding) { if (code === 'Escape' || code === 'Backspace') this.stopRebind?.(); return true; }   // (a pad's button awaited)
+    // (a pad's button awaited; a key awaited is the page's before it comes here: src/remap.js captureKey, engine/unity/game.js)
+    if (this.rebinding) { if (code === 'Escape' || code === 'Backspace') this.stopRebind?.(); return true; }
     const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] }[code];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
@@ -374,24 +379,45 @@ export class EngineMenus {
   /**
    * The Controls page (src/ui.js rebindHtml, then controlsList): the pad's verbs, each on its button now (A / × on
    * one: the next button pressed is its new one, src/remap.js capturePad; Menu or 8 s leave it), the ones sharing a
-   * button marked, run and guard held or toggled, the reset; then every control, in the buttons now bound.
+   * button marked, run and guard held or toggled, the reset; the keyboard's verbs the same way (A / × or Enter on one:
+   * the next key, captureKey; Esc or 8 s leave it), and their reset; then every control on the pad and the keyboard, in
+   * the buttons and keys now bound. The one in your hands first, as the web's (`keysFirst`).
    */
   controlsRows() {
-    const s = this.settings ?? {}, pad = s.pad ?? {}, clash = padConflicts(pad), wait = this.rebinding?.verb;
-    const rows = [];
-    if (this.settings) {
+    const s = this.settings ?? {}, rows = [];
+    const keysFirst = this.keysFirst();
+    const padRows = () => {
+      const pad = s.pad ?? {}, clash = padConflicts(pad), wait = this.rebinding?.kind === 'pad' ? this.rebinding.verb : null;
       for (const v of REBIND_PAD) {
-        const others = clash.has(v) ? REBIND_PAD.filter((w) => w !== v && padFor(w, pad) === padFor(v, pad)).map(verbName) : [];
+        const others = clash.has(v) ? REBIND_PAD.filter((w) => w !== v && padFor(w, pad) === padFor(v, pad)).map((w) => verbName(w)) : [];
         rows.push({ text: verbName(v), val: wait === v ? t('rebind.pressButton') : `${others.length ? '⚠ ' : ''}${BUTTON_NAME[padFor(v, pad)]}`, rebind: v, moved: padFor(v, pad) !== PAD_VERBS[v], note: others.length ? `⚠ ${t('rebind.also', { verbs: others.join(', ') })}` : '' });
       }
       for (const r of CONTROL_ROWS) rows.push({ text: r.label(), val: r.name(s[r.k]), control: r.k });
       rows.push({ text: t('rebind.reset'), act: 'reset', note: clash.size ? `⚠ ${t('rebind.clashes')}` : '' });
-      rows.push({ text: t('menu.controls').toUpperCase(), head: true, plain: true });
+    };
+    const keyRows = () => {
+      const keys = s.keys ?? {}, clash = keyConflicts(keys), wait = this.rebinding?.kind === 'keys' ? this.rebinding.verb : null;
+      for (const v of REBIND_KEYS) {
+        const others = clash.has(v) ? REBIND_KEYS.filter((w) => w !== v && keyFor(w, keys) === keyFor(v, keys)).map((w) => verbName(w, 'keys')) : [];
+        rows.push({ text: verbName(v, 'keys'), val: wait === v ? t('rebind.pressKey') : `${others.length ? '⚠ ' : ''}${keyLabel(keyFor(v, keys))}`, rebindKey: v, moved: keyFor(v, keys) !== KEYS[v], note: others.length ? `⚠ ${t('rebind.also', { verbs: others.join(', ') })}` : '' });
+      }
+      rows.push({ text: t('rebind.reset'), act: 'resetKeys', note: clash.size ? `⚠ ${t('rebind.clashes')}` : '' });
+    };
+    const head = (k) => rows.push({ text: t(k).toUpperCase(), head: true, plain: true });
+    if (this.settings) {
+      if (keysFirst) { keyRows(); head('rebind.padTitle'); padRows(); } else { padRows(); head('rebind.keysTitle'); keyRows(); }
+      head('menu.controls');
     }
-    // (the menus' own buttons never move: those rows as they are, the rest in the player's buttons, src/remap.js padRename)
-    for (const [what, how, id] of controlsList().pad) rows.push({ text: what, val: PAD_RAW_ROWS.has(id) ? how : padRename(how, pad), plain: true });
+    // (the menus' own buttons never move: those rows as they are, the rest in the player's buttons, src/remap.js padRename;
+    // the keyboard's in the keys now bound, controlsList's verbKey)
+    const list = controlsList();
+    const padList = () => { for (const [what, how, id] of list.pad) rows.push({ text: what, val: PAD_RAW_ROWS.has(id) ? how : padRename(how, s.pad ?? {}), plain: true }); };
+    const keyList = () => { for (const [what, how] of list.keyboard) rows.push({ text: what, val: how, plain: true }); };
+    if (keysFirst) { keyList(); head('ctl.controller'); padList(); } else { padList(); if (this.settings) { head('ctl.keyboard'); keyList(); } }
     return rows;
   }
+  /** The keyboard's verbs first on the Controls page: the keyboard in hand, and settings to rebind them in. */
+  keysFirst() { return !!this.settings && keysInHand(); }
   /** What's new (src/changelog.js, as its panel lists it): the newest versions, each line newest first. */
   newsRows() {
     const rows = [];
@@ -401,21 +427,25 @@ export class EngineMenus {
     }
     return rows;
   }
-  /** A verb's button chosen again: the next press (after all are let go) is its new button; Menu, View or 8 s keep it. */
-  rebind(verb) {
+  /**
+   * A verb's button (or key: `kind` 'keys') chosen again: the next press (a button after all are let go; a key, before
+   * anything else gets it) is its new one; Menu, View, Esc or 8 s keep it. A key the menus and scenes keep (Esc, Enter,
+   * the F keys: RESERVED_KEYS) is not taken.
+   */
+  rebind(verb, kind = 'pad') {
     this.stopRebind?.();
     let stop = () => {};
     const finish = (value) => {
       stop(); this.rebinding = null; this.stopRebind = null;
-      if (value && this.settings) {
-        const next = { ...(this.settings.pad ?? {}) };
-        if (value === PAD_VERBS[verb]) delete next[verb]; else next[verb] = value;
-        this.setSetting({ k: 'pad' }, next);
+      if (value && this.settings && !(kind === 'keys' && RESERVED_KEYS.test(value))) {
+        const k = kind === 'keys' ? 'keys' : 'pad', next = { ...(this.settings[k] ?? {}) };
+        if (value === (kind === 'keys' ? KEYS[verb] : PAD_VERBS[verb])) delete next[verb]; else next[verb] = value;
+        this.setSetting({ k }, next);
       }
       this.changed();
     };
-    this.rebinding = { verb, until: Date.now() + 8000 };
-    stop = capturePad(finish);
+    this.rebinding = { verb, kind, until: Date.now() + 8000 };
+    stop = kind === 'keys' ? captureKey(finish) : capturePad(finish);
     this.stopRebind = () => finish(null);
   }
   /** Each frame (the engine's): a rebinding left waiting 8 s keeps the button it had. */
@@ -450,6 +480,8 @@ export class EngineMenus {
       if (name === 'confirm' && this.startPage() === 'controls') {
         const r = this.startPageRows()[S.at.i], control = CONTROL_ROWS.find((c) => c.k === r?.control);
         if (r?.rebind) this.rebind(r.rebind);
+        else if (r?.rebindKey) this.rebind(r.rebindKey, 'keys');
+        else if (r?.act === 'resetKeys') this.setSetting({ k: 'keys' }, {});
         else if (control) this.setSetting(control, settingStep(control, this.settings[control.k], 1));
         else if (r?.act === 'reset') this.setSetting({ k: 'pad' }, {});
       }
@@ -634,13 +666,14 @@ export class EngineMenus {
   }
   startView() {
     const S = this.start, page = this.startPage();
-    const title = { controls: t('rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}` }[page] ?? t('menu.settings');
-    const hint = this.rebinding ? `${t('rebind.pressButton')} · Menu keeps it`
+    const keysFirst = page === 'controls' && this.keysFirst();
+    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}` }[page] ?? t('menu.settings');
+    const hint = this.rebinding ? (this.rebinding.kind === 'keys' ? `${t('rebind.pressKey')} · Esc keeps it` : `${t('rebind.pressButton')} · Menu keeps it`)
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
       : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
     return { v: this.v, kind: 'start', head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
       side: START_SIDE.map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
-      page: { title, note: page === 'controls' && this.settings ? t('rebind.padHow') : '', rows: this.startPageRows() }, hint };
+      page: { title, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
   }
   gameView() {
     const p = this.panel(), at = this.state.cursor(), cell = this.state.cell(p.rows);

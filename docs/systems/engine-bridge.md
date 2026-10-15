@@ -267,8 +267,15 @@ View, Esc on the keyboard, or 8 s leave it: `EngineMenus.tick`), saved with the 
 `applyAccess`: the controller reads through `padMap` while playing and riding, the menus and conversations keep
 their own); a verb sharing a button is marked ⚠ with the other's name, a moved one's button in red; Run and Guard
 held or toggled (`CONTROL_ROWS`); Reset to defaults; then every control in the buttons now bound (`padRename`,
-except the menus' own rows, `PAD_RAW_ROWS`). The keyboard's rebinding is the web's only. Tests:
-tests/engine-menus.test.js.
+except the menus' own rows, `PAD_RAW_ROWS`). The keyboard's verbs (`REBIND_KEYS`) are rebound the same way: A / ×
+or Enter on one waits for the next key (src/remap.js `captureKey`; Esc, a pad's button or 8 s leave it; the menus'
+own keys, `RESERVED_KEYS`, are not taken), clashes marked, their own reset, then the keyboard's list in the keys now
+bound. The one in your hands comes first, as on the web (`keysFirst`: the body's `controller` class unset). The keys
+themselves go through src/remap.js `keyRouter`, the page's `installKeyRemap` as data: engine/unity/game.js
+`keyChanges` turns each new press and release of the held codes into the default codes they send (a moved key, a
+toggled run or guard), the key the Controls page waits for to it alone, before the menus or the game see them; a
+plan's keys (`game.key`) are the defaults and go straight in. Tests: tests/engine-menus.test.js,
+tests/accessibility.test.js (the router).
 
 **The talk gestures** (issues #197, #264): engine/game.js loads public/anim/gestures.glb onto the clip library
 (`attachMotion`), the only captured motion the engines carry, so `talkGestures.drive` plays them in conversations
@@ -340,8 +347,18 @@ used is in hand until a key is pressed; Esc does not count, a handheld's back bu
 them as the pad does (`forPad`). A run with a plan presses keys and reads no pad, so its pictures show the keyboard's E.
 Test: tests/engine-gadgets.test.js.
 
-Left for later (issue #264): the keyboard's rebinding, the language setting, the take-off's warp (the page's canvas:
-the engine starts again as the climb ends).
+**The take-off's warp** (issue #264). The ship's Warp (src/ship/cinema.js) draws on a page canvas the engines don't
+have; starting it also sets the screen's `warp` (the next world's title and an id per take-off), and BridgeHud.cs
+`DrawWarp` draws it from there on its own clock, as the page's canvas does: the climbing sky under the paper fading
+in, the disc of night ink growing from the middle to the corners in 0.9 s with its inked rim, the 220 streaks in cream,
+teal and red rushing out (cut at the rim), the 90 fixed stars, and the title on its paper card. The flight then ends
+in a reboot onto the next world (the scene loaded anew): the warp's title is kept in a static, so the new HUD draws it
+whole while the world loads (the web's `#loading.space`) and fades it out as the new world's first state comes (the
+arrival). `-warp Vael` with `-views … -out …` pictures it over a view without flying. Test: tests/engine-ship.test.js
+(the take-off from the holo table: the warp with the destination's name, then `onTravel`).
+
+Left for later (issue #264): the language setting (on purpose). The Godot spike's keys are not routed through the
+player's keys (it has no menus).
 
 **In Unity** (`BridgeHud.cs`): the bundle sends `screen.state` when its version moves, and the HUD
 draws it in uGUI with the C# port's own pieces and layout (Hud.cs, Ui.cs: the paper, the ink, the

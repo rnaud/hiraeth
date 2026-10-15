@@ -179,38 +179,60 @@ export const capturingKey = () => !!keyCapture;
 export function installKeyRemap(win = globalThis.window) {
   if (!win?.addEventListener || win.__keyRemap) return;
   win.__keyRemap = true;
-  const toggled = new Set(), swallowUp = new Set();
-  const isToggle = (code) => (code === KEYS.run && prefs.run === 'toggle') || (code === KEYS.guard && prefs.guard === 'toggle');
+  const router = keyRouter();
   const handler = (e) => {
     if (e[SENT]) return;
-    if (e.type === 'keyup' && swallowUp.delete(e.code)) { e.stopImmediatePropagation(); e.preventDefault(); return; }
-    if (keyCapture && e.type === 'keydown') {
-      e.stopImmediatePropagation(); e.preventDefault();
-      if (e.repeat) return;
-      const { done } = keyCapture; keyCapture = null; swallowUp.add(e.code);
-      done(e.code === 'Escape' ? null : e.code);
-      return;
-    }
+    const down = e.type === 'keydown';
+    if (router.take(e.code, down, e.repeat)) { e.stopImmediatePropagation(); e.preventDefault(); return; }
     if (editable(e.target)) return;
-    const to = routes.get(e.code) ?? [e.code];
-    if (to.length === 1 && to[0] === e.code && !isToggle(e.code)) return;
+    const out = router.route(e.code, down, e.repeat);
+    if (!out) return;
     e.stopImmediatePropagation(); e.preventDefault();
-    for (const code of to) {
-      let type = e.type;
-      if (isToggle(code)) {
-        if (e.type === 'keyup' || e.repeat) continue;
-        if (toggled.has(code)) { toggled.delete(code); type = 'keyup'; } else { toggled.add(code); type = 'keydown'; }
-      }
-      const ev = new win.KeyboardEvent(type, { code, key: keyChar(code), repeat: e.repeat, bubbles: true, cancelable: true, shiftKey: e.shiftKey, ctrlKey: e.ctrlKey, altKey: e.altKey });
+    for (const [code, d] of out) {
+      const ev = new win.KeyboardEvent(d ? 'keydown' : 'keyup', { code, key: keyChar(code), repeat: e.repeat, bubbles: true, cancelable: true, shiftKey: e.shiftKey, ctrlKey: e.ctrlKey, altKey: e.altKey });
       ev[SENT] = true;
       (e.target?.dispatchEvent ? e.target : win).dispatchEvent(ev);
     }
   };
   win.addEventListener('keydown', handler, true);
   win.addEventListener('keyup', handler, true);
-  win.addEventListener('blur', () => toggled.clear());
-  onControlPrefs(() => toggled.clear());
+  win.addEventListener('blur', () => router.clear());
+  onControlPrefs(() => router.clear());
   readKeyboardLayout(win.navigator);
+}
+
+/**
+ * The keyboard's routing as data: installKeyRemap's on the page, and an engine's keys (engine/unity/game.js: the codes
+ * held each frame, not events; issue #264). `take(code, down, repeat)`: true when the key is the Controls page's (the
+ * one captureKey waits for, and its release) and goes nowhere else. `route(code, down, repeat)`: null when the key goes
+ * on as it is, else the default codes it sends, each [code, down] (none: moved away). Toggled run / guard: a press
+ * sends the default key down, the next press up, their releases nothing.
+ */
+export function keyRouter() {
+  const toggled = new Set(), swallowUp = new Set();
+  const isToggle = (code) => (code === KEYS.run && prefs.run === 'toggle') || (code === KEYS.guard && prefs.guard === 'toggle');
+  return {
+    take(code, down, repeat = false) {
+      if (!down) return swallowUp.delete(code);
+      if (!keyCapture) return false;
+      if (repeat) return true;
+      const { done } = keyCapture; keyCapture = null; swallowUp.add(code);
+      done(code === 'Escape' ? null : code);
+      return true;
+    },
+    route(code, down, repeat = false) {
+      const to = routes.get(code) ?? [code];
+      if (to.length === 1 && to[0] === code && !isToggle(code)) return null;
+      const out = [];
+      for (const c of to) {
+        if (!isToggle(c)) { out.push([c, down]); continue; }
+        if (!down || repeat) continue;
+        if (toggled.has(c)) { toggled.delete(c); out.push([c, false]); } else { toggled.add(c); out.push([c, true]); }
+      }
+      return out;
+    },
+    clear() { toggled.clear(); },
+  };
 }
 
 // ------------------------------------------------------------------ the pad

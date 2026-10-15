@@ -632,6 +632,9 @@ export class Warp {
     this.stars = Array.from({ length: WARP.stars }, () => ({ x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 1.4 }));
   }
   start(title) {
+    // (as data too, screen 'warp': an engine's HUD draws it from its own clock, the destination's name on it, and keeps
+    // it through the engine's restart onto the next world; issue #264, BridgeHud.cs DrawWarp)
+    screen.set('warp', { title: String(title ?? ''), id: (this.n = (this.n ?? 0) + 1) });
     if (!this.el) return;
     this.el.querySelector('.title').textContent = title;
     this.el.classList.add('on');

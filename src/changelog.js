@@ -46,6 +46,10 @@ export const CHANGELOG = [
     'On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.',
     // the Xbox's Unity preview at 4K (issue #113): unity/Hiraeth BridgeRunner Experiments / Uhd / DynamicResolution,
     // BridgeMetrics HdmiHeight, HiraethLook.PixelRatio; tests/unity-xbox.test.js; docs/systems/performance.md "4K on the Xbox"
+    // the Unity preview's take-off warp and keyboard rebinding (issue #264): src/ship/cinema.js Warp (screen 'warp'),
+    // BridgeHud.cs DrawWarp; engine/menus.js controlsRows (REBIND_KEYS), src/remap.js keyRouter, engine/unity/game.js keyChanges
+    { text: 'In the Unity preview, flying to another world ends in the take-off’s warp as on the web: space opens out of the middle of the screen, streaks rush past and the next world’s name shows, and it stays while that world loads. The Controls page now lets you move each keyboard verb to another key too, with clashes marked and a reset.',
+      see: 'In the Unity preview, travel from the ship’s holo table to another world and watch the end of the take-off. Then open the Start menu’s Controls, choose Jump under Your keys, press K, and jump with K.' },
     'The Unity preview on the Xbox now sends a 4K TV a 4K picture, still at 60 frames a second: the world is drawn as sharp as the console can keep up with, about 3520 × 1980 at the desert’s spawn and 2750 × 1550 at the City-Shaft’s rim, where it was always drawn at 2560 × 1440 and stretched by the console. The ink lines keep their weight.',
     // the Unity build's GPU on the Retroid, round 3 (issue #262): Surface.shader (each part's derivatives next to it,
     // HIRAETH_PLAIN, the lean prepass without a discard, the crowd's and grass's varyings), BridgeRenderer.Lean,

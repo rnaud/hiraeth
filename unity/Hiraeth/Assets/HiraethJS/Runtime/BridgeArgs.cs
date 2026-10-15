@@ -174,6 +174,8 @@ namespace Hiraeth.Bridge
             // (-shop thrum: Anselm's shop, or a keeper's by its id, opened once the world is ready: a test of the shop's sheet)
             if (Arg("-shop") != null) args["shop"] = Arg("-shop");
             if (Arg("-play") != null) args["play"] = Arg("-play");
+            // (-warp Vael: the take-off's warp drawn over the views, with -views and -out: a check of BridgeHud's DrawWarp)
+            if (Arg("-warp") != null) args["warp"] = Arg("-warp");
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);

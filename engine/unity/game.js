@@ -23,6 +23,7 @@ import { TITLES } from '../../src/levels/names.js';
 import { VERSION } from '../../src/version.js';
 import { devMode } from '../../src/dev-gate.js';
 import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
+import { keyRouter } from '../../src/remap.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
 // entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
@@ -285,6 +286,15 @@ function makePlan(args) {
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-drone.png` });
     }
   }
+  if (args.warp) {
+    // (-warp <title>: the take-off's warp over the view without flying, the ship's own Warp started (screen 'warp',
+    // BridgeHud.cs DrawWarp: issue #264), pictured as the disc opens, once open, and with the streaks at speed)
+    steps.push({ kind: 'warp', title: String(args.warp) });
+    for (const [secs, n] of [[0.25, 1], [0.45, 2], [0.8, 3]]) {
+      steps.push({ kind: 'wait', frames: 2, secs });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-warp-${n}.png` });
+    }
+  }
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
@@ -340,12 +350,25 @@ function aimed(game, v) {
   return { ...v, player: null, hidePlayer: !trav, eye: [t[0] + fx * d + fz * side, eyeY, t[2] + fz * d - fx * side], target: t, fov: v.fov ?? 45 };
 }
 
-/** This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held), as the page's keydown / keyup. */
+/**
+ * This frame's keys from Unity (BridgeHost.Keys: the KeyboardEvent codes held) as the page's keydown / keyup, each new
+ * press and release first through the player's keys (Controls, "Your keys": src/remap.js keyRouter, as the page's
+ * installKeyRemap; a key the page waits for goes to it alone), then as before with the default codes they send.
+ */
+const keyRoute = keyRouter();
+function keyChanges(held) {
+  const out = [];
+  const add = (k, down) => { if (!keyRoute.take(k, down)) for (const e of keyRoute.route(k, down) ?? [[k, down]]) out.push(e); };
+  for (const k of held) if (!S.keys.has(k)) add(k, true);
+  for (const k of S.keys) if (!held.has(k)) add(k, false);
+  S.keys = held;
+  return out;
+}
 function readInput(game) {
   const held = new Set((host.Keys() || '').split(',').filter(Boolean));
   const menus = S.menus;
-  for (const k of held) {
-    if (S.keys.has(k)) continue;
+  for (const [k, down] of keyChanges(held)) {
+    if (!down) { game.key(k, false); continue; }
     // a menu open: its keys (engine/menus.js key); in play Esc opens the Start menu (not over a conversation, which it
     // closes) and J the game menu, as the page's listeners do
     if (menus?.open) { menus.key(k); continue; }
@@ -354,8 +377,6 @@ function readInput(game) {
     if (menus && k === 'KeyJ') { menus.show('game'); continue; }
     game.key(k, true);
   }
-  for (const k of S.keys) if (!held.has(k)) game.key(k, false);
-  S.keys = held;
   readPad();
   const look = host.MouseLook();   // (the right button held: "dx,dy" pixels)
   if (look && !menus?.open) { const [dx, dy] = look.split(',').map(Number); if (dx || dy) game.look(dx, dy); }
@@ -368,9 +389,7 @@ function readPad() {
 
 /** The title's input before a world is loaded: its keys, and the pad through the controller's menu context. */
 function readTitleInput(dt) {
-  const held = new Set((host.Keys() || '').split(',').filter(Boolean));
-  for (const k of held) if (!S.keys.has(k)) S.menus.key(k);
-  S.keys = held;
+  for (const [k, down] of keyChanges(new Set((host.Keys() || '').split(',').filter(Boolean)))) if (down) S.menus.key(k);
   readPad();
   S.titlePad.update(Math.min(dt, 0.1), true);
 }
@@ -430,6 +449,7 @@ export function frame(dt) {
   if (step.kind === 'pin') { game.pin(aimed(game, step.view)); next(); }
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
   else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }
   else if (step.kind === 'turn') { game.look(step.dx, 0); if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'approach') {
     const people = game.npcs.filter((n) => n.def && !n.pooled);

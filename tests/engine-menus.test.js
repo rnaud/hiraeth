@@ -213,6 +213,57 @@ test('the Controls page rebinds the pad as the web\'s does (issue #264): a verb,
   assert.ok(!capturingPad());
 });
 
+test('the Controls page rebinds the keyboard as the web\'s does (issue #264): a verb, the next key, the clash marked, Esc keeps it, the reset', async () => {
+  const { keyRouter, capturingKey, controlPrefs } = await import('../src/remap.js');
+  const { applyAccess } = await import('../src/ui.js');
+  const s = settingsStub();
+  s.pad = {}; s.keys = {}; s.run = 'auto'; s.guard = 'hold';
+  s.set = function (k, v) { this[k] = v; applyAccess(this, null); };
+  const m = new EngineMenus({ store: memStore(), settings: s });
+  m.show('start');
+  for (let i = START_SIDE.findIndex((e) => e.id === 'controls'); i > 0; i--) m.navigate(0, 1);
+  m.action('confirm');
+  // (the pad in hand here: its verbs first, then the keyboard's under their heading)
+  let rows = m.view().page.rows;
+  const head = rows.findIndex((r) => r.head && /YOUR KEYS/.test(r.text));
+  assert.ok(head > 0, 'the keyboard\'s section');
+  const jumpAt = rows.findIndex((r) => r.rebindKey === 'jump');
+  assert.equal(rows[jumpAt].val, 'SPACE');
+  for (let i = 0; i < jumpAt; i++) m.navigate(0, 1);
+  // Enter on Jump: waiting for a key; K is its key now, and the engine's keys send Space for it (src/remap.js keyRouter)
+  const router = keyRouter();
+  m.key('Enter');
+  assert.ok(capturingKey());
+  assert.equal(m.view().page.rows[jumpAt].val, 'press a key…');
+  assert.match(m.view().hint, /Esc keeps it/);
+  assert.ok(router.take('KeyK', true));
+  assert.equal(s.keys.jump, 'KeyK');
+  assert.equal(controlPrefs().keys.jump, 'KeyK');
+  assert.deepEqual(router.route('KeyK', true), [['Space', true]]);
+  rows = m.view().page.rows;
+  assert.equal(rows[jumpAt].val, 'K');
+  assert.ok(rows[jumpAt].moved);
+  // onto E: it shares it with Interact, marked in words
+  m.key('Enter'); router.take('KeyE', true);
+  rows = m.view().page.rows;
+  assert.match(rows[jumpAt].val, /⚠ E/);
+  assert.match(rows[jumpAt].note, /Use, talk/);
+  // Esc keeps it, as does Enter (the menus' own), and a pad's button
+  m.key('Enter'); router.take('Escape', true);
+  m.key('Enter'); router.take('Enter', true);
+  m.key('Enter'); m.action('back');
+  assert.equal(s.keys.jump, 'KeyE');
+  assert.ok(!capturingKey() && !m.rebinding);
+  // its reset: every verb on its own key again
+  const resetAt = rows.findIndex((r) => r.act === 'resetKeys');
+  for (let i = jumpAt; i < resetAt; i++) m.navigate(0, 1);
+  m.action('confirm');
+  assert.deepEqual(s.keys, {});
+  // the keyboard's controls listed too, under the pad's
+  assert.ok(m.view().page.rows.some((r) => r.head && /KEYBOARD/i.test(r.text)), 'the keyboard\'s list');
+  s.set('keys', {});
+});
+
 test('What\'s new in the Start menu (issue #264): the newest versions\' lines, newest first, as the changelog panel lists them', async () => {
   const { CHANGELOG, lineText, newestFirst } = await import('../src/changelog.js');
   const m = new EngineMenus({ store: memStore(), settings: settingsStub() });

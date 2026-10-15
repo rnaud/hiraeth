@@ -51,7 +51,7 @@ namespace Hiraeth.Bridge
         const float HintTop = 12, HintGap = 8;
         float cueBottom;   // (where the cue ends this frame: the toast stacks under it)
 
-        public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object> ?? new(); }
+        public void Set(string json) { state = Json.Parse(json) as Dictionary<string, object> ?? new(); warpHeard = true; }
 
         /// <summary>The letters the game writes, put in the fonts' textures at once (a dynamic font adding them one by one
         /// rebuilt its texture under labels already drawn: letters dropped out of a frame).</summary>
@@ -94,6 +94,7 @@ namespace Hiraeth.Bridge
             BuildGadgets(mono);
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
+            BuildWarp();          // (over everything but the frame readout, as the page's #warp)
             fpsBox = Ui.Panel(root, "fps", new Color(1, 250 / 255f, 240 / 255f, 0.8f), Ui.Ink, 1.5f);
             fpsText = Ui.Label(fpsBox.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleLeft);
             fpsBox.Show(false);
@@ -301,6 +302,103 @@ namespace Hiraeth.Bridge
             DrawMarks(free ? state.L("gadgetMarks") : null);
             DrawCine(cine, state.O("sub"));
             DrawBoxCard(state.O("boxCard"));
+            DrawWarp(state.O("warp"));
+        }
+
+        // ---------------------------------------------------------------- the take-off's warp (issue #264)
+        // src/ship/cinema.js Warp: in the take-off's last second space opens out of the middle of the screen, a disc of the
+        // night's ink grown over the climbing sky to its corners (an inked rim round it), the streaks in the paper's cream,
+        // a little teal and red, rushing out, a few fixed stars, the destination's name on a paper card. Screen 'warp'
+        // (its title, an id per take-off) starts it; it runs on this clock, as the page's canvas does on its own. The
+        // engine then starts again on the next world (BridgeRunner.Reboot: the scene loaded anew, this HUD with it): the
+        // warp is carried over (static), drawn whole while the world loads, as the web's loading screen keeps its ink
+        // (index.html #loading.space), and fades out as the new world's first state comes (the arrival).
+        static readonly Color WarpSpace = Ui.Hex("#151a2b"), WarpInk = Ui.Hex("#2b211f"), WarpPaper = Ui.Hex("#f7ecd2");
+        static readonly Color[] WarpStreaks = { Ui.Hex("#f7ecd2"), Ui.Hex("#62c3c9"), Ui.Hex("#e0705f") };
+        const float WarpOpen = 0.9f;
+        static string warpCarry;   // (the title of a warp under way when the scene was loaded anew: a flight's reboot)
+        RectTransform warpRoot; Sketch warpSketch; Ui.Box warpCard; Label warpCardText;
+        struct Streak { public float a, r, v, w, c; }
+        Streak[] streaks; Vector2[] stars;
+        int warpId = -1; float warpT, warpA, warpCardA; bool warpOn, warpHeard, warpCarried;
+
+        void BuildWarp()
+        {
+            // (placed as the rest of the HUD is, from the canvas's top-left: the sketch's origin there, y up)
+            warpRoot = Ui.Node("warp", root);
+            warpSketch = Ui.Node("space", warpRoot).gameObject.AddComponent<Sketch>();
+            warpSketch.raycastTarget = false;
+            warpCard = Ui.Panel(warpRoot, "title", WarpPaper, WarpInk, 2, 6, 6);
+            warpCardText = Ui.Label(warpCard.rt, "text", Ui.Heavy, 30, WarpInk, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Ui.Space(warpCardText, 0.24f);
+            var rnd = new System.Random(7);
+            float R() => (float)rnd.NextDouble();
+            streaks = new Streak[220];
+            for (int i = 0; i < streaks.Length; i++) streaks[i] = new Streak { a = R() * Mathf.PI * 2, r = R(), v = 0.4f + R(), w = 1 + R() * 2.5f, c = R() };
+            stars = new Vector2[90];
+            for (int i = 0; i < stars.Length; i++) stars[i] = new Vector2(R(), R());
+            // (a flight's reboot: the warp goes on whole while the next world loads)
+            if (warpCarry != null) { warpOn = warpCarried = true; warpT = WarpOpen + 1; warpA = warpCardA = 1; warpCardText.text = warpCarry; }
+            warpRoot.gameObject.SetActive(warpOn);
+        }
+
+        void DrawWarp(Dictionary<string, object> w)
+        {
+            float dt = Time.unscaledDeltaTime;
+            if (w != null && w.I("id") != warpId)
+            {
+                warpId = w.I("id"); warpT = 0; warpA = 0; warpCardA = 0; warpOn = true; warpCarried = false;
+                warpCarry = (w.S("title") ?? "").ToUpperInvariant();
+                warpCardText.text = warpCarry;
+            }
+            // (carried over a reboot: out once the new world says something, the arrival under way; or a take-off's own
+            // warp gone from the state without a reboot)
+            bool fading = warpCarried ? warpHeard : w == null;
+            if (fading) warpCarry = null;
+            if (!warpOn) return;
+            warpT += dt;
+            // the element's opacity: in over 0.5 s (the climbing sky under it at first), out the same way
+            warpA = Mathf.MoveTowards(warpA, fading ? 0 : 1, dt / 0.5f);
+            warpCardA = fading ? Mathf.Min(warpCardA, warpA) : warpT < 0.4f ? 0 : Mathf.MoveTowards(warpCardA, 1, dt / 0.6f);
+            if (fading && warpA <= 0) { warpOn = false; warpRoot.gameObject.SetActive(false); warpSketch.Clear(); return; }
+            if (!warpRoot.gameObject.activeSelf) warpRoot.gameObject.SetActive(true);
+            Ui.Group(warpRoot).alpha = warpA;
+            Ui.Place(warpRoot, 0, 0, W, H); Ui.Place(warpSketch.rectTransform, 0, 0, W, H);
+            // the page's warpLook: the disc's reach (smoothstep over WarpOpen s) and the streaks' speed
+            float k0 = Mathf.Clamp01(warpT / WarpOpen), hole = k0 * k0 * (3 - 2 * k0), k = Mathf.Clamp01(warpT / 1.2f);
+            float cx = W / 2, cy = -H / 2, Rr = Mathf.Sqrt(W * W + H * H) / 2;
+            var sk = warpSketch; sk.Clear();
+            if (hole < 1) { var p = WarpPaper; p.a = 0.35f + 0.65f * hole; sk.Box(new Rect(-W, -2 * H, 3 * W, 3 * H), p); }
+            float rh = hole >= 1 ? Rr * 1.5f : Mathf.Max(1, hole * Rr * 1.04f);
+            var c = new Vector2(cx, cy);
+            sk.Disc(c, rh, WarpSpace);
+            if (hole < 1) sk.Ring(c, rh, 3, WarpInk);
+            // (inside the disc: the stars, then the streaks rushing out, cut at its rim)
+            var star = WarpPaper; star.a = 0.55f;
+            for (int i = 0; i < stars.Length; i++)
+            {
+                var sp = new Vector2(stars[i].x * W, -stars[i].y * H);
+                if ((sp - c).sqrMagnitude < rh * rh) { float sz = 0.6f + (i * 0.37f % 1) * 1.4f; sk.Box(new Rect(sp.x, sp.y, sz + 0.6f, sz + 0.6f), star); }
+            }
+            for (int i = 0; i < streaks.Length; i++)
+            {
+                ref var st = ref streaks[i];
+                st.r = (st.r + dt * st.v * (0.3f + 1.6f * k)) % 1;
+                float r0 = st.r * st.r * Rr, r1 = Mathf.Min(rh, r0 + (30 + 260 * k) * st.r);
+                if (r0 >= rh || r1 - r0 < 0.5f) continue;
+                var d = new Vector2(Mathf.Cos(st.a), Mathf.Sin(st.a));
+                sk.Line(c + d * r0, c + d * r1, st.w * (0.4f + st.r), st.c < 0.12f ? WarpStreaks[2] : st.c < 0.22f ? WarpStreaks[1] : WarpStreaks[0]);
+            }
+            // the destination's name on its card, in the middle
+            bool card = warpCardText.text.Length > 0;
+            warpCard.Show(card);
+            if (card)
+            {
+                var sz = Ui.Set(warpCardText, warpCardText.text, W - 80);
+                Ui.Place(warpCardText.rectTransform, 22, 10, sz.x, sz.y);
+                Ui.Place(warpCard.rt, W / 2 - (sz.x + 44) / 2, H / 2 - (sz.y + 20) / 2, sz.x + 44, sz.y + 20);
+                Ui.Group(warpCard.rt).alpha = warpCardA;
+            }
         }
 
         // ---------------------------------------------------------------- the gadgets (issue #344; src/gadgets/hud.js)

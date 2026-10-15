@@ -70,8 +70,8 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   assert.ok(g.camera.position.distanceTo(before) > 1, 'the camera follows him');
 
   // the ship as it stands: up the ramp and in; the table without power, the console with nothing waiting
-  const hm = menusStub();
-  const h = await makeGame(file, { menus: hm });
+  const hm = menusStub(), travelled = [];
+  const h = await makeGame(file, { menus: hm, onTravel: (to) => travelled.push(to) });
   // Anselm's shop asked for (his "Show me what you have", or -shop thrum): the menus' sheet opened on his wares
   assert.ok(h.openShop('thrum'));
   run(h, 2);
@@ -117,6 +117,23 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   assert.match(S.state.photo?.hint ?? '', /^Photo saved/);
   h.key('Escape', true); h.key('Escape', false);
   assert.ok(!h.photoOn && S.state.photo === null, 'Esc leaves it');
+
+  // the take-off (the Worlds page's Travel here, with power and the desert's core gadgets): its warp is the screen's
+  // 'warp', the next world's name on it (BridgeHud.cs DrawWarp keeps it through the restart), then the engine starts
+  // again there (onTravel); the page's canvas drew it alone before
+  const gs = h.story.quests.game;
+  gs.set('ship.powered', true);
+  for (const id of ['backpack', 'doublejump', 'gun', 'sword', 'shield']) gs.set(`item.${id}`, true);
+  h.player.pos.copy(h.ship.world(h.ship.parked, P.table)); run(h, 4);
+  assert.equal(S.state.warp, null);
+  h.ship.travel('arzach');
+  assert.ok(h.ship.playing, 'the take-off plays');
+  let warpAt = -1;
+  for (let i = 0; i < 20 * 14 && !travelled.length; i++) { run(h, 1); if (warpAt < 0 && S.state.warp) warpAt = i; }
+  assert.ok(warpAt > 0, 'the warp shown');
+  assert.equal(S.state.warp.title, 'Vael', JSON.stringify(S.state.warp));
+  assert.ok(Number.isInteger(S.state.warp.id));
+  assert.deepEqual(travelled, ['arzach'], 'then the engine goes on to the next world');
 
   // arriving by ship (the engine started again after a flight): the arrival plays, and ends at the foot of the ramp
   const k = await makeGame(file, { menus: menusStub(), via: 'ship', arrive: true });
