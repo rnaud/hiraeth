@@ -912,6 +912,42 @@ const FUTURE342B_NUMBERS = [
   { title: 'The Founders’ Belfry: draw calls a frame', unit: 'calls', better: 'lower', device: FUTURE342B_DEVICE, rows: [{ where: 'High', before: 220, after: 210 }, { where: 'Low', before: 242, after: 231 }], source: FUTURE342B_SOURCE },
   { title: 'The Founders’ Belfry: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342B_DEVICE, rows: [{ where: 'High', before: 371, after: 346 }, { where: 'Low', before: 315, after: 292 }], source: FUTURE342B_SOURCE },
 ];
+/** (v1.77, issue #342: the four futuristic skins on the devices, the same pinned camera in four rooms of each house, ?noskin=1 against the skin) */
+const DEV342_RETROID = 'Retroid Pocket Nova, GeckoView test app (com.rnaud.hiraeth.gecko), Handheld preset, render scale held at 0.75, 60 Hz, muted; main’s build (v1.77, e6e9045) served from the Mac; 15 October';
+const DEV342_DECK = 'Steam Deck OLED, the runtime with main’s build (v1.77, e6e9045) as its game (HIRAETH_GAME), gamescope headless at 90 Hz, the Steam Deck preset at scale 1 (1280 × 800), its own muted bench profile; 15 October';
+const DEV342_SOURCE = 'issue #342 scratchpad devices-skins: scripts/bench/android-worlds.mjs and deck-worlds.mjs with the rooms as views (the skin off as ?noskin=1), 3 s warm-up and 8 s recorded a view, each house loaded with and without its skin in turn, the order reversed in a second pass (the Deck’s Belfry four pairs); the means of the passes';
+const DEV342_NOTE = { retroid: 'The mean frame interval; the median was 16.7 ms (60 fps) in every room with and without the skin, the p95 16.7 ms too (33.2 in the Well’s Turning Floors either way). Within ±0.4 ms everywhere: the GPU 39–56 % busy either way, the main thread the same.',
+  deck: 'The mean frame interval (frames come in 11.1 ms steps at 90 Hz: the median 11.1–22.2 ms, the p95 22.3 ms in every room with and without the skin). Under a millisecond either way in every room; the Deck is CPU-bound here (12–20 ms of main thread against a GPU 6.4–8.7 ms).' };
+const dev342 = (house, rows) => ['retroid', 'deck'].flatMap((d) => [
+  { title: `${house} on the ${d === 'deck' ? 'Steam Deck' : 'Retroid'}: frame time (mean), skin off → on`, unit: 'ms', better: 'lower', device: d === 'deck' ? DEV342_DECK : DEV342_RETROID, rows: rows[d].ms, source: DEV342_SOURCE, note: DEV342_NOTE[d] },
+  { title: `${house} on the ${d === 'deck' ? 'Steam Deck' : 'Retroid'}: draw calls a frame`, unit: 'calls', better: 'lower', device: d === 'deck' ? DEV342_DECK : DEV342_RETROID, rows: rows[d].calls, source: DEV342_SOURCE },
+]);
+const DEVICES342 = {
+  well: dev342('The Warden’s Well', {
+    retroid: { ms: [{ where: 'the Turning Floors', before: 17.82, after: 17.74 }, { where: 'the Climb', before: 16.92, after: 16.88 }, { where: 'the Lamp Gallery', before: 16.81, after: 16.67 }, { where: 'the Warden’s Hall', before: 17.3, after: 16.9 }],
+      calls: [{ where: 'the Turning Floors', before: 418, after: 404 }, { where: 'the Climb', before: 405, after: 407 }, { where: 'the Lamp Gallery', before: 369, after: 372 }, { where: 'the Warden’s Hall', before: 237, after: 238 }] },
+    deck: { ms: [{ where: 'the Turning Floors', before: 20.26, after: 20.24 }, { where: 'the Climb', before: 19.57, after: 19.49 }, { where: 'the Lamp Gallery', before: 18.62, after: 18.1 }, { where: 'the Warden’s Hall', before: 17.08, after: 16.47 }],
+      calls: [{ where: 'the Turning Floors', before: 330, after: 334 }, { where: 'the Climb', before: 371, after: 375 }, { where: 'the Lamp Gallery', before: 331, after: 327 }, { where: 'the Warden’s Hall', before: 194, after: 197 }] },
+  }),
+  rose: dev342('The Rose House', {
+    retroid: { ms: [{ where: 'the Hall of the Flame', before: 17.27, after: 17.12 }, { where: 'the Dry Channel', before: 17.17, after: 17.16 }, { where: 'the Machines’ Hall', before: 16.94, after: 16.9 }, { where: 'the Cistern', before: 16.73, after: 16.9 }],
+      calls: [{ where: 'the Hall of the Flame', before: 328, after: 317 }, { where: 'the Dry Channel', before: 326, after: 317 }, { where: 'the Machines’ Hall', before: 311, after: 298 }, { where: 'the Cistern', before: 146, after: 141 }] },
+    deck: { ms: [{ where: 'the Hall of the Flame', before: 16.04, after: 15.43 }, { where: 'the Dry Channel', before: 15.34, after: 15.14 }, { where: 'the Machines’ Hall', before: 15.22, after: 14.7 }, { where: 'the Cistern', before: 14.28, after: 13.46 }],
+      calls: [{ where: 'the Hall of the Flame', before: 218, after: 210 }, { where: 'the Dry Channel', before: 208, after: 200 }, { where: 'the Machines’ Hall', before: 221, after: 212 }, { where: 'the Cistern', before: 124, after: 117 }] },
+  }),
+  whale: dev342('The Whale-House', {
+    retroid: { ms: [{ where: 'the Sounding Hall', before: 16.81, after: 16.78 }, { where: 'the Pool Room', before: 16.74, after: 16.8 }, { where: 'the Horn Chamber', before: 16.76, after: 16.81 }, { where: 'the Tank Hall', before: 16.69, after: 16.67 }],
+      calls: [{ where: 'the Sounding Hall', before: 313, after: 320 }, { where: 'the Pool Room', before: 195, after: 198 }, { where: 'the Horn Chamber', before: 199, after: 205 }, { where: 'the Tank Hall', before: 234, after: 232 }] },
+    deck: { ms: [{ where: 'the Sounding Hall', before: 13.06, after: 13.49 }, { where: 'the Pool Room', before: 11.8, after: 12.52 }, { where: 'the Horn Chamber', before: 12.84, after: 13.32 }, { where: 'the Tank Hall', before: 12.18, after: 12.38 }],
+      calls: [{ where: 'the Sounding Hall', before: 296, after: 295 }, { where: 'the Pool Room', before: 171, after: 174 }, { where: 'the Horn Chamber', before: 193, after: 197 }, { where: 'the Tank Hall', before: 165, after: 168 }] },
+  }),
+  belfry: dev342('The Founders’ Belfry', {
+    retroid: { ms: [{ where: 'the Hall of Stones', before: 16.74, after: 17.05 }, { where: 'the stair', before: 16.76, after: 16.81 }, { where: 'the Bell Chamber', before: 16.85, after: 16.71 }, { where: 'the Hall of Echoes', before: 16.73, after: 16.79 }],
+      calls: [{ where: 'the Hall of Stones', before: 235, after: 234 }, { where: 'the stair', before: 253, after: 243 }, { where: 'the Bell Chamber', before: 232, after: 223 }, { where: 'the Hall of Echoes', before: 191, after: 185 }] },
+    deck: { ms: [{ where: 'the Hall of Stones', before: 14.73, after: 14.99 }, { where: 'the stair', before: 14.13, after: 14.54 }, { where: 'the Bell Chamber', before: 14.61, after: 14.92 }, { where: 'the Hall of Echoes', before: 13.72, after: 14.14 }],
+      calls: [{ where: 'the Hall of Stones', before: 188, after: 189 }, { where: 'the stair', before: 191, after: 190 }, { where: 'the Bell Chamber', before: 190, after: 177 }, { where: 'the Hall of Echoes', before: 167, after: 156 }] },
+  }),
+};
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'Inside, the Warden’s Well is a shaft of the makers’ old high technology', tags: ['shaft', 'perf'], shots: [
@@ -923,7 +959,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'future-incal-turning', title: 'The Turning Floors', caption: 'From the near ledge: the vane on its pillar, the discs and the far door where they were; the walls long smooth slate panels (no longer like brick) with lit ring bands and crisp light panels, the riding disc’s lavender plates and its glowing rim, a lens terminal’s alcove on the right', from: FUTURE342_WELL },
       { name: 'future-incal-flue', title: 'The Flue', caption: 'Looking up the old breath-way: the key’s pier and the little vane’s post where they were, tiers of great wedge vanes turning on their axles out of the wall (none in the draught up its middle), a lens terminal glowing in its alcove, circuits climbing between the cream courses', from: FUTURE342_WELL },
       { name: 'future-incal-chest', title: 'The Bellows Chamber', caption: 'The chest on its mound under the oculus, the drum over it in big slate panels banded in dark slate, the makers’ sign in cyan along its bands, a lens terminal in its alcove over the frieze', from: FUTURE342_WELL },
-    ], numbers: FUTURE342_WELL_NUMBERS },
+    ], numbers: [...FUTURE342_WELL_NUMBERS, ...DEVICES342.well] },
     { match: 'Inside, the Founders’ Belfry is an ancient machine now', tags: ['vael', 'temples', 'perf'], shots: [
       { name: 'future-belfry-stones', title: 'The Hall of Stones', caption: 'Before, bone-white ashlar, bells in lit niches; after, tall dark slate slabs edged in bronze, a ledge band part way up, lit slots at the pilasters’ feet, a cobalt circuit round the walls, lens terminals beside the door, a bronze and cobalt border on the floor and a medallion in its middle; the door, its lamp and keyhole where they were', from: FUTURE342B,
         reference: { sheet: 'references/temples/future/founders-belfry/sheet-1.jpg', caption: 'The Founders’ Belfry as an ancient high-tech chamber: the author’s pick (issue #342)' } },
@@ -931,7 +967,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'future-belfry-chamber', title: 'The Bell Chamber', caption: 'The chest on a hexagonal slate pedestal with a lit panel on each side, in the middle of rings of slate plates, bronze and cobalt rings round it; the stones that fell up and the north door where they were', from: FUTURE342B },
       { name: 'future-belfry-echoes', title: 'The Hall of Echoes', caption: 'From the near ledge: the ball, its groove, the chasm and the hanging stones of the bridge as they were, in slate and bronze', from: FUTURE342B },
       { name: 'future-belfry-mother', title: 'The Cloud-Mother’s hall', caption: 'Her round hall under its dome: the columns in slate, the circuit and the lit slots round the drum, rings in the floor', from: FUTURE342B },
-    ], numbers: FUTURE342B_NUMBERS },
+    ], numbers: [...FUTURE342B_NUMBERS, ...DEVICES342.belfry] },
     { match: 'The Belfry’s bells are no longer cups', tags: ['vael', 'temples'], shots: [
       { name: 'future-belfry-bell-close', title: 'The porch’s bell', caption: 'Before, a bronze cup on a rod; after, four heavy bronze rings floating apart round a dark core, held by nothing, a thin cobalt line round each and the makers’ sign on the lowest', from: FUTURE342B,
         reference: { sheet: 'references/temples/future/founders-belfry/sheet-2.jpg', caption: 'The bell as a resonator of floating bronze rings: the author’s pick (issue #342)' } },
@@ -1106,6 +1142,7 @@ export const CHANGELOG_MEDIA = {
     ], numbers: [
       { title: 'Draw calls in the Rose House', unit: 'calls', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720', rows: ROSE342_CALLS, source: ROSE342 },
       { title: 'Frame time in the Rose House', unit: 'ms', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720, uncapped', rows: ROSE342_FRAME, source: ROSE342, note: 'The median of 3 s at each view, with and without the skin (?noskin=1) in one run; uncapped and the machine busy with other work, so a millisecond or two either way is noise. The second pass draws one mesh fewer than the first (3.3 skin draws a frame, from 4.4).' },
+      ...DEVICES342.rose,
     ] },
     { match: 'Inside, the Whale-House looks like the makers’ high-tech sounding-house', tags: ['underwater'], shots: [
       { name: 'future-whale-tank', title: 'The Tank Hall', caption: 'The great window: before, ivory stone, a coral course and pale glass; after, green slate in a cool clear light, the glass a deep sea with shafts of light, the Listener on the sea floor and a whale far out (they slide behind the glass as you walk) behind a few heavy dark mullions, the dishes polished brass, the brass horn terminals with dark mouths under their shelf along the far wall', from: WHALE342,
@@ -1133,6 +1170,7 @@ export const CHANGELOG_MEDIA = {
         { where: 'Low, the Tank Hall', before: 2.31, after: 1.98 },
         { where: 'Low, the Horn Chamber', before: 2.3, after: 1.97 },
       ], source: 'the scratchpad’s shots.mjs, the skin first then ?noskin=1, back to back', note: 'The machine was shared with a test run: read these as no worse, not as faster.' },
+      ...DEVICES342.whale,
     ] },
   ],
   '1.76': [
