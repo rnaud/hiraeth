@@ -1406,6 +1406,67 @@ pools every so often in play. Load keeps the lights unless a list comes with it 
 off-screen cull (#262) is unchanged; a shot (`BridgeRunner.Shot`) culls against its own 16:9 picture, not the 4:3
 batch window, and logs `lights at <shot>: kept of near` (Rose House: 8/8, 6/8, 7/8, 8/8; desert bench views: spawn
 8/8, qanat-tree 7/8, camps 6/8, cave 6/6, dunes 2/3).
+## The recorded music (Unity + Puerts, 2026-10-15, issue #264)
+
+The Web Audio shim can't decode an MP3, so until now Unity played only the procedural score: no world themes, no
+title recording, no recorded cues, nothing for Settings > Music plays to decide. Now Unity decodes them and the game's
+own graph still decides everything about them.
+
+- **Decoding** (`engine/unity/music.js`, `BridgeMusic.cs`): the shim's `decodeAudioData` has an engine decoder
+  (`setAudioDecoder`). The game fetches `music/<file>.mp3` as on the web (`src/soundtracks.js`). engine/platform.js
+  remembers which path each fetched ArrayBuffer came from (`fetchedPath`), and the decoder hands that path to Unity
+  (`BridgeHost.MusicLoad`). Only `music/` is taken; the effects stay as they were. BridgeMusic loads it with
+  `UnityWebRequestMultimedia.GetAudioClip(…, MPEG)` and **streams** it (`DownloadHandlerAudioClip.streamAudio`): each
+  voice decodes its part as it plays. Unity counts 0.2 MB for a 205 s theme (`Profiler.GetRuntimeMemorySizeLong`).
+  Without streaming Unity decompressed it on load (`compressed` alone isn't kept for a runtime MP3), the whole theme
+  as samples (about 40 MB at 16 bits). It works from a folder (the Deck, the
+  Xbox, the Mac) and from inside the APK (a `jar:` URL). Once Unity has it (`MusicState`, polled each frame), the promise
+  resolves with a **`NativeAudioBuffer`**: its length, rate and channels, and no samples on the script's side.
+- **Joined and balanced as on the web**: `prepareSoundtrack` on a native buffer returns `buffer.joined(fade, level)`
+  (`nativeSoundtrack`). That is the same 2 s join of the tail into the opening, at the gain the web's measure gives that file.
+  The script never holds the samples, so the gains are measured once on the Mac (`scripts/theme-levels.mjs`: afconvert
+  decodes, the web's own `prepareSoundtrack` measures) into `src/theme-levels.js`. tests/engine-music.test.js fails if a
+  recording has no gain.
+- **Played where the graph says**: a buffer source on a native buffer renders nothing in the shim. After every render,
+  the context lists each such source (`nativeText()`: its place in its buffer, its loop and join, and **its gain to the
+  speakers**). That gain is the product of the gains on every way from it to the destination, at that moment: the
+  theme's fades (`musicMomentsUpdate`), the music bus (the music volume, the menu taking the world's music out, a
+  bench's swell, a moment's dip), the world bus (the menu's hush), the master (the mute, the away guard), and the file's level. The
+  reverb's and delays' sends are left out (the engine plays it dry) and so are the meters. The lowest lowpass on the
+  way goes too (under water). Recorded, the replay on Unity's audio thread works it out (the graph is there) and sends it
+  with each batch (`BridgeHost.AudioNatives`). Rendered on the script's thread (`-audio-js`), `pumpAudio` sends it.
+  A source that isn't looped ends when its recording does, and its `onended` comes back as for any source.
+- **On Unity's side**: two AudioSources a source. Looped, each turn's voice plays the clip from its start, faded in over
+  the join, and runs on past the turn into the clip's last two seconds, fading out under the next turn's opening. That
+  is `prepareSoundtrack`'s crossfade, done as it plays. The place is the shim's, less the ring's lead (`BridgeAudio.Queued`),
+  so the music is heard with the rest. A voice more than 0.25 s off is set back. The gain is eased per sample on the
+  audio thread (`MusicGain.OnAudioFilterRead`: no steps, no clamp at 1). The lowpass is an `AudioLowPassFilter`. Away
+  (`AudioListener.pause`, the D8 pause) silences these sources with everything else. Muted (batch runs, `-mute`)
+  nothing plays: the places and gains are worked out all the same, logged every 2 s (`Hiraeth bridge: music now
+  [...]`) and summed at the exit (`Hiraeth bridge: music {"clips":…,"peakGain":…}`).
+- **The title**: the Unity title now has the web's sound (`makeSound('title', { title: true })`: the procedural
+  menu tune, then the title's recording over it once decoded). It fades as a save is chosen and is let go once the
+  world is up. The replay starts a fresh graph when a new context's destination arrives.
+- **Settings > Music plays** (Moments / Always) is in the engines' settings now (`engine/menus.js`, applied by
+  `setMusicMode`). A keepsake brings the theme back as on the web (`gameState.on('keepsake')`).
+- **What each player carries** (`BridgeBuild.Music`): the computers' players (the Deck's Linux one, the Mac's) carry
+  every theme (106 MB). The APK and the Xbox's carry the ones every device does (`OnDeviceThemes`, the same as
+  `src/music-store.js` `ON_DEVICE_THEMES`). Those two download the rest once into `persistentDataPath/public/music`
+  (`BridgeMusic.Fetch`, from 8 s after the world is up, one at a time, the world played first; a failure waits two
+  minutes; never in batch runs). `PublicRoots` reads that folder too, so a downloaded theme plays from the next world's load.
+
+Memory: only the clips asked for are loaded (the title's, the world's, a cue), streamed, released when the engine
+reboots into the next world. Tests: tests/engine-music.test.js (the shim's places and gains, recorded and replayed
+alike, the game's Sound under the volumes, the menu, a bench, the mute, the moments and the away, the title),
+tests/engine-unity.test.js (the bundle against a stand-in host: the title's and the world's recordings decoded and
+faded in, the download list).
+
+Checked (15 October 2026, muted, `-music-check`), in the Unity editor on the Mac and on the Steam Deck (the Linux IL2CPP
+player, `scripts/bench/deck-unity.sh`). The Glass Dunes' theme decoded (205 s, 48 kHz) and faded in to 0.158: its level
+0.354 × the music bus 0.62 × 0.8 × the master 0.9. At the start the tail and the opening played together. The voices'
+own clocks stayed within 0.06 s of the game's places, with no seeks. The title's recording played at 0.145 on the menu
+bus, for 15 minutes on the Deck. The Retroid and the Xbox are not checked yet: the bench's APK is built without Unity's
+audio, and the testers' APK and the Xbox package come from CI.
 
 ## Status
 

@@ -1,7 +1,8 @@
 // Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the desert's (and the title's)
 // is in the bundle; the others are downloaded from the site in the background and kept (src/music-store.js).
 import { bundledGame } from './levels/reference-sheets.js';
-import { keepTheme, pageThemeStore, startThemeDownload, themeSources } from './music-store.js';
+import { keepTheme, pageThemeStore, startThemeDownload, themeKey, themeSources } from './music-store.js';
+import { THEME_LEVELS } from './theme-levels.js';
 import { runSteps, runStepsAsync } from './load-steps.js';
 export const SOUNDTRACKS = {
   home: 'home.mp3',
@@ -69,6 +70,7 @@ export function prepareSoundtrack(ctx, original) { return runSteps(prepareSoundt
 const CHUNK = 1 << 18;   // samples between yields (a few ms): a three-minute stereo track was one 170 ms task
 /** prepareSoundtrack in steps (src/load-steps.js runStepsAsync): the page keeps answering while it runs. */
 export function* prepareSoundtrackSteps(ctx, original) {
+  if (original?.native) return nativeSoundtrack(original);
   const fade = Math.min(Math.floor(original.sampleRate * 2), Math.floor(original.length / 4));
   const length = original.length - fade;
   const buffer = ctx.createBuffer(original.numberOfChannels, length, original.sampleRate);
@@ -93,6 +95,16 @@ export function* prepareSoundtrackSteps(ctx, original) {
     for (let i = 0; i < data.length; i++) { data[i] *= gain; if (i % CHUNK === CHUNK - 1) yield; }
   }
   return buffer;
+}
+
+/**
+ * An engine's recording (engine/webaudio.js NativeAudioBuffer: Unity decodes and streams the MP3, the script never holds
+ * its samples): the same join and balance, the engine crossfading the tail into the opening as it loops, at the gain
+ * prepareSoundtrack measured on the file (src/theme-levels.js, scripts/theme-levels.mjs).
+ */
+export function nativeSoundtrack(original) {
+  const fade = Math.min(Math.floor(original.sampleRate * 2), Math.floor(original.length / 4));
+  return original.joined(fade, THEME_LEVELS[themeKey(original.file ?? '')] ?? 1);
 }
 
 /**

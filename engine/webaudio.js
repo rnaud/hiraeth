@@ -21,10 +21,16 @@
 // Float64Array of tokens, the blocks to render last), and an AudioReplay elsewhere (engine/unity/audio-worker.js, on
 // a thread of its own) builds the same graph from them and renders it, exactly as this context would have: the same
 // classes, the same ops at the same blocks. Its sources' ends come back (ctx.ended(ids): their onended).
+//
+// Recordings the engine decodes (setAudioDecoder: Unity's AudioClips, the recorded music): decodeAudioData gives a
+// NativeAudioBuffer, its samples the engine's alone (an MP3 streamed by Unity, never held here). A buffer source playing
+// one renders nothing here; after each render the context says where each such source is in its buffer and how loud it
+// reaches the destination (nativeText(): the gains on its way multiplied, the lowpasses on it), and the engine plays the
+// clip at that place and level (BridgeMusic.cs). The game's graph (its buses, fades, menu hush, mute) stays the one truth.
 
 const Q = 128;   // the render quantum
 // (the recording's tokens: ops, node kinds, param events, properties)
-const OP = { new: 1, con: 2, dis: 3, pv: 4, pe: 5, cancel: 6, start: 7, stop: 8, prop: 9, buf: 10, wave: 11, free: 12, render: 13, state: 14 };
+const OP = { new: 1, con: 2, dis: 3, pv: 4, pe: 5, cancel: 6, start: 7, stop: 8, prop: 9, buf: 10, wave: 11, free: 12, render: 13, state: 14, nbuf: 15 };
 const KIND = { dest: 0, gain: 1, osc: 2, biquad: 3, src: 4, pan: 5, conv: 6, comp: 7, an: 8, delay: 9 };
 const EV = { set: 0, lin: 1, exp: 2, target: 3 }, EV_NAME = ['set', 'lin', 'exp', 'target'];
 const PROP = { oscType: 1, biquadType: 2, buffer: 3, loop: 4, loopStart: 5, loopEnd: 6, convBuffer: 7, wave: 8 };
@@ -331,10 +337,29 @@ export class AudioBuffer {
   copyFromChannel(dst, c, o = 0) { dst.set(this._ch[c].subarray(o, o + dst.length)); }
 }
 
+/**
+ * A recording the engine decoded and plays itself (setAudioDecoder): its length and rate, no samples. `joined(fade,
+ * level)` is src/soundtracks.js prepareSoundtrack's result for it: `fade` frames of the tail crossfaded into the
+ * opening as it loops (so `fade` shorter), at `level`; the engine does both as it plays.
+ */
+export class NativeAudioBuffer {
+  constructor({ native, file = '', numberOfChannels = 2, length, sampleRate, join = 0, level = 1 }) {
+    this.native = native; this.file = file; this.numberOfChannels = numberOfChannels; this.length = length; this.sampleRate = sampleRate;
+    this.duration = length / sampleRate; this.join = join; this.level = level;
+  }
+  getChannelData() { throw new Error('a recording the engine plays: its samples are not here'); }
+  copyToChannel() { this.getChannelData(); }
+  copyFromChannel() { this.getChannelData(); }
+  joined(fade, level = 1) {
+    const f = Math.max(0, Math.min(Math.floor(fade), Math.floor(this.length / 2)));
+    return new NativeAudioBuffer({ native: this.native, file: this.file, numberOfChannels: this.numberOfChannels, length: this.length - f, sampleRate: this.sampleRate, join: f, level });
+  }
+}
+
 export class AudioBufferSourceNode extends Source {
   constructor(ctx) { super(ctx); this._buffer = null; this._loop = false; this._loopStart = 0; this._loopEnd = 0; this.playbackRate = new AudioParam(ctx, 1); this.detune = new AudioParam(ctx, 0); this._pos = 0; }
   get buffer() { return this._buffer; }
-  set buffer(b) { this._buffer = b; const R = this.context._rec; if (R) { if (b) this.context._sendBuffer(b); R.push(OP.prop, this.id, PROP.buffer, b ? b._bid : 0); } }
+  set buffer(b) { this._buffer = b; const R = this.context._rec; if (R) { if (b) this.context._sendBuffer(b); R.push(OP.prop, this.id, PROP.buffer, b ? b._bid : 0); } else if (b?.native && this._start < Infinity) this.context._natives.add(this); }
   get loop() { return this._loop; }
   set loop(v) { this._loop = !!v; this.context._rec?.push(OP.prop, this.id, PROP.loop, v ? 1 : 0); }
   get loopStart() { return this._loopStart; }
@@ -344,9 +369,18 @@ export class AudioBufferSourceNode extends Source {
   start(when = 0, offset = 0, duration) {
     this.context._rec?.push(OP.start, this.id, when, offset, duration === undefined ? NaN : duration);
     this._start = Math.max(when, this.context.currentTime);
-    this._pos = offset * (this.buffer?.sampleRate ?? this.context.sampleRate); if (duration !== undefined && !this.loop) this._stop = this._start + duration; return this;
+    this._pos = offset * (this.buffer?.sampleRate ?? this.context.sampleRate); if (duration !== undefined && !this.loop) this._stop = this._start + duration;
+    this._offset = offset;
+    if (!this.context._rec && this.buffer?.native) this.context._natives.add(this);
+    return this;
+  }
+  /** A played recording's end (not looped: its buffer's length from where it started). */
+  _nativeEnd() {
+    if (this.loop || this._stop < Infinity) return;
+    this._stop = this._start + (this.buffer.duration - (this._offset ?? 0)) / Math.max(this.playbackRate._v, 1e-3);
   }
   process(b, out) {
+    if (this.buffer?.native) { this._nativeEnd(); this._span(b); return false; }   // (the engine plays it: nativeText)
     const span = this._span(b);
     if (!span || !this.buffer) return false;
     const [s, e] = span, B = this.buffer, n = B.length, r = this.playbackRate.block(b), k = B.sampleRate / this.context.sampleRate;
@@ -468,6 +502,8 @@ export class AudioContext {
       // FinalizationRegistry's callbacks never ran in Puerts' V8: nothing pumps the tasks that call them)
       this._weak = []; this._sweepIn = 120; this._keep = new Map();
     }
+    this._natives = new Set();   // (sources playing a NativeAudioBuffer: started, not ended; nativeText)
+    this._nativeText = '';
     this.destination = this._made(new Destination(this), KIND.dest);
     this.listener = { positionX: new AudioParam(this, 0), positionY: new AudioParam(this, 0), positionZ: new AudioParam(this, 0), setPosition() {}, setOrientation() {} };
     this.state = 'running';
@@ -500,6 +536,7 @@ export class AudioContext {
     if (b._bid) return;
     b._bid = ++bufferIds;
     const R = this._rec;
+    if (b.native) { R.push(OP.nbuf, b._bid, b.native, b.numberOfChannels, b.length, b.sampleRate, b.join, b.level); return; }
     R.push(OP.buf, b._bid, b.numberOfChannels, b.length, b.sampleRate);
     for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) R.push(d[i]); }
   }
@@ -537,7 +574,12 @@ export class AudioContext {
   }
   createBuffer(channels, length, sampleRate) { return new AudioBuffer({ numberOfChannels: channels, length, sampleRate }); }
   createPeriodicWave(real, imag) { return new PeriodicWave(real, imag); }
-  decodeAudioData(data, ok, fail) { const e = new Error('decodeAudioData: no decoder in the engine'); fail?.(e); return Promise.reject(e); }
+  decodeAudioData(data, ok, fail) {
+    // (the engine's own decoder, where it has one: a NativeAudioBuffer the engine plays, setAudioDecoder)
+    const p = decoder ? Promise.resolve().then(() => decoder(data)).then((d) => new NativeAudioBuffer(d)) : Promise.reject(new Error('decodeAudioData: no decoder in the engine'));
+    p.then((b) => ok?.(b), (e) => fail?.(e));
+    return p;
+  }
   resume() { this.state = 'running'; this._rec?.push(OP.state, 0); return Promise.resolve(); }
   suspend() { this.state = 'suspended'; this._rec?.push(OP.state, 1); return Promise.resolve(); }
   close() { this.state = 'closed'; this._rec?.push(OP.state, 2); return Promise.resolve(); }
@@ -547,7 +589,7 @@ export class AudioContext {
     const blocks = Math.max(0, Math.floor((frames + (this._carry ?? 0)) / Q));
     this._carry = (frames + (this._carry ?? 0)) - blocks * Q;
     out = out && out.length >= blocks * Q * 2 ? out : new Float32Array(blocks * Q * 2);
-    if (this.state !== 'running') { out.fill(0); return out.subarray(0, blocks * Q * 2); }
+    if (this.state !== 'running') { out.fill(0); this._natived(); return out.subarray(0, blocks * Q * 2); }
     for (let k = 0; k < blocks; k++) {
       const o = this.destination.output(this._block);
       const base = k * Q * 2;
@@ -555,10 +597,59 @@ export class AudioContext {
       else out.fill(0, base, base + Q * 2);
       this._block++;
     }
+    this._natived();
     return out.subarray(0, blocks * Q * 2);
+  }
+
+  /**
+   * The recordings the engine plays, as they stand at the end of the last render: one line each, "id,clip,pos,gain,lowpass,
+   * loop,join,length" joined by ';' ('' none). pos: seconds into the source's buffer (negative: not started yet; looped:
+   * past its length, the engine wraps it), gain: its level times the gains on its way to the destination (0 while the
+   * context is suspended), lowpass: the lowest lowpass on that way (Hz, 0 none), join and length: the buffer's crossfade and
+   * its length, seconds (NativeAudioBuffer.joined).
+   */
+  nativeText() { return this._nativeText; }
+  _natived() {
+    const N = this._natives;
+    if (!N.size) { this._nativeText = ''; return; }
+    const t = this.currentTime, memo = new Map(), lines = [];
+    for (const n of N) {
+      const B = n.buffer;
+      if (B?.native) n._nativeEnd();
+      if (!B?.native || n._ended || this.state === 'closed' || t >= n._stop) {
+        N.delete(n);
+        if (!n._ended && B?.native) { n._ended = true; const f = n.onended; if (f) queueMicrotask(() => f({ type: 'ended', target: n })); }
+        continue;
+      }
+      const r = this.state === 'running' ? reach(n, t, this.destination, memo) : { g: 0, lp: Infinity };
+      const pos = (n._offset ?? 0) + (t - n._start) * n.playbackRate._v;
+      lines.push(`${n.id},${B.native},${pos.toFixed(4)},${(r.g * B.level).toFixed(5)},${Number.isFinite(r.lp) ? Math.round(r.lp) : 0},${n.loop ? 1 : 0},${(B.join / B.sampleRate).toFixed(4)},${B.duration.toFixed(4)}`);
+    }
+    this._nativeText = lines.join(';');
   }
   /** How many nodes are live in the graph now (from the destination). */
   liveNodes() { const seen = new Set(), st = [this.destination]; while (st.length) { const n = st.pop(); if (seen.has(n)) continue; seen.add(n); for (const i of n.inputs) st.push(i); } return seen.size; }
+}
+
+/**
+ * How loud a node reaches the destination at time t: the sum over its ways there of the gains on each, the reverb's
+ * and delays' sends left out (dry), with the lowest lowpass on them ({ g, lp }). memo: the nodes already reckoned.
+ */
+function reach(n, t, dest, memo) {
+  if (n === dest) return { g: 1, lp: Infinity };
+  let r = memo.get(n);
+  if (r) return r;
+  memo.set(n, r = { g: 0, lp: Infinity });   // (a way back round: nothing more)
+  let g = 0, lp = Infinity;
+  for (const d of n.outputs) {
+    if (!(d instanceof AudioNode) || d instanceof ConvolverNode || d instanceof DelayNode || d instanceof AnalyserNode) continue;
+    const s = reach(d, t, dest, memo);
+    if (s.g > 0) { g += s.g; lp = Math.min(lp, s.lp); }
+  }
+  if (n instanceof GainNode) g *= Math.abs(n.gain.at(t));
+  else if (n instanceof BiquadFilterNode && n.type === 'lowpass') lp = Math.min(lp, n.frequency.at(t));
+  r.g = g; r.lp = lp;
+  return r;
 }
 
 /** A node's params in their order (a recorded node's, as AudioReplay makes it). */
@@ -585,9 +676,12 @@ export class AudioReplay {
     this.nodes = new Map(); this.params = new Map(); this.buffers = new Map(); this.waves = new Map();
     this.live = new Map();   // started sources not yet ended: recorded id → node
     this.out = new Float32Array(0);
+    this.sampleRate = sampleRate; this.destId = null;
+    this.natives = '';   // (the recordings the engine plays, after the last render: AudioContext.nativeText)
   }
   apply(T) {
-    const C = this.ctx, N = this.nodes, P = this.params;
+    let C = this.ctx;
+    const N = this.nodes, P = this.params;
     let pcm = new Float32Array(0);
     const ended = [];
     for (let i = 0; i < T.length;) {
@@ -595,6 +689,12 @@ export class AudioReplay {
       switch (op) {
         case OP.new: {
           const kind = T[i++], id = T[i++], extra = T[i++];
+          if (kind === KIND.dest && this.destId !== null && id !== this.destId) {
+            // another context (the title's sound handing over to the world's): its graph starts here, the last one's is let go
+            this.ctx = C = new AudioContext({ sampleRate: this.sampleRate, record: false });
+            N.clear(); P.clear(); this.buffers.clear(); this.waves.clear(); this.live.clear();
+          }
+          if (kind === KIND.dest) this.destId = id;
           const n = kind === KIND.dest ? C.destination : kind === KIND.gain ? C.createGain() : kind === KIND.osc ? C.createOscillator() : kind === KIND.biquad ? C.createBiquadFilter()
             : kind === KIND.src ? C.createBufferSource() : kind === KIND.pan ? C.createStereoPanner() : kind === KIND.conv ? C.createConvolver() : kind === KIND.comp ? C.createDynamicsCompressor()
               : kind === KIND.an ? C.createAnalyser() : C.createDelay(extra);
@@ -625,6 +725,7 @@ export class AudioReplay {
           this.buffers.set(id, b);
           break;
         }
+        case OP.nbuf: { const id = T[i++]; this.buffers.set(id, new NativeAudioBuffer({ native: T[i++], numberOfChannels: T[i++], length: T[i++], sampleRate: T[i++], join: T[i++], level: T[i++] })); break; }
         case OP.wave: { const id = T[i++], nr = T[i++], ni = T[i++], w = C.createPeriodicWave(T.subarray(i, i + nr), T.subarray(i + nr, i + nr + ni)); i += nr + ni; this.waves.set(id, w); break; }
         case OP.free: { const id = T[i++], n = N.get(id); this.freed = (this.freed ?? 0) + 1; if (n) { for (const pid of n._pids ?? []) P.delete(pid); N.delete(id); this.live.delete(id); } break; }
         case OP.state: { const s = STATES[T[i++]]; C.state = s; break; }
@@ -632,6 +733,7 @@ export class AudioReplay {
           const blocks = T[i++];
           if (this.out.length < blocks * Q * 2) this.out = new Float32Array(blocks * Q * 2);
           pcm = C.render(blocks * Q, this.out);
+          this.natives = C.nativeText();
           for (const [id, n] of this.live) if (n._ended) { this.live.delete(id); ended.push(id); }
           break;
         }
@@ -641,6 +743,14 @@ export class AudioReplay {
     return { pcm, ended };
   }
 }
+
+/**
+ * The engine's decoder for decodeAudioData (Unity's: engine/unity/game.js): data (the file's bytes, as fetched) → a
+ * promise of { native (the engine's id for it), file, numberOfChannels, length, sampleRate }, or a rejection (not one it
+ * plays: the game keeps what it does without, the procedural score). null: none (every decode refused, as before).
+ */
+let decoder = null;
+export function setAudioDecoder(fn) { decoder = fn ?? null; }
 
 /** Put AudioContext (and webkitAudioContext) on globalThis, where the VM has none; new contexts at the engine's rate. */
 let defaultRecord = false;

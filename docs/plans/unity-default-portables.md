@@ -38,8 +38,8 @@ store:
 - **Retroid**: two packages, two sandboxes. `com.rnaud.hiraeth.unity` cannot read `com.rnaud.hiraeth`'s GeckoView
   profile.
 - **Xbox**: two packages, two `LocalState`s.
-- **Only web**: the recorded themes downloaded into IndexedDB (`src/music-store.js`; Unity doesn't play them, see
-  parity). Also the Notes page's drafts, and the web-only keys (`hiraeth.dev`, `refLabMode`, the cinematics QC). None
+- **Only web**: the recorded themes downloaded into IndexedDB (`src/music-store.js`). Unity has its own copies (D15:
+  the Deck's player carries them all, the APK and the Xbox's download them into `persistentDataPath`). Also the Notes page's drafts, and the web-only keys (`hiraeth.dev`, `refLabMode`, the cinematics QC). None
   of these needs to move.
 - **Settings that differ**: Unity's Graphics choice lists `handheld | low | medium | high` (`engine/menus.js`) but
   starts the Linux player on `deck` (`BridgeArgs.Quality`). An imported `quality: 'deck'` is honoured at start
@@ -168,7 +168,7 @@ interior; talk gestures.
 
 | what | notes |
 |---|---|
-| **The recorded music** | `src/soundtracks.js` decodes MP3s with `decodeAudioData`, which `engine/webaudio.js` refuses. Unity plays the procedural score only: no world themes, no title theme, no recorded cues or `music-moments`. Needs Unity-side decoding (an AudioClip per theme, on the music bus) and the themes downloaded into `persistentDataPath` (music-store's job on the web). |
+| ~~**The recorded music**~~ | **Done (D15, 2026-10-15)**: Unity decodes the MP3s (`BridgeMusic.cs`), the game's graph sets their place and gain (`engine/webaudio.js` `NativeAudioBuffer`); the title's recording, the world themes, the cues, Music plays (Moments / Always) in the settings. The Deck's player carries every theme; the APK and the Xbox's download the rest into `persistentDataPath`. engine-bridge.md, "The recorded music". |
 | **Body foley** (`src/foley.js`) | Not wired: no footsteps or body sounds. |
 | **Minigames** (`src/minigames/`), the Arena (its list of foes done, issue #264), Ink tide, the shooting gallery, Chime pirates (`src/ambush.js`, the first flight to a new world) | The games' own pages are wired (`createGame({ game, from })`, engine/trials.js: the Sunken Hall, the races, fishing… from their hosts). Not drawn yet: what a game draws on the page of its own (the speed lines, the drum circle's ring, the sketch hunt's frames, the gallery's balloons). Not wired: the Arena's waves, Chime pirates on the first flight. |
 | **Onboarding and help** | `first-steps.js`, `companion.js` (Plumb's hints), `scout-hint.js`, `temples/hints.js`: not wired. |
@@ -235,7 +235,7 @@ Proposed, `scripts/unity-compare/`:
 | D12 | **Build gating**: the Linux player published only after `tests.yml` passes on its commit and a smoke run (Xvfb + lavapipe) | `.github/workflows/unity-android.yml`, `scripts/unity-publish.sh` | M | medium |
 | D13 | **The Updates section in Unity's settings** (status, check, download with progress, restart → exit 76) | `engine/menus.js`, `BridgeMenu.cs`, `BridgeHost.cs`, reusing `src/updates.js` | M | low |
 | D14 | **Script updates over the air** (`UNITY_API`, `minUnity`, `unity-<build>.zip`, `persistentDataPath/bundle/`, boot watchdog) | `BridgeRunner.cs`, `scripts/web-update.mjs`, `scripts/release-info.mjs`, `deck.py` | L | medium (advised before the switch, required before the Retroid) |
-| D15 | **The recorded music** decoded by Unity, the themes downloaded and kept | `src/soundtracks.js` (an engine path), `engine/webaudio.js`, `BridgeAudio.cs` | M | low |
+| D15 | ~~**The recorded music** decoded by Unity, the themes downloaded and kept~~ **Done** (2026-10-15: `BridgeMusic.cs`, `engine/unity/music.js`) | `src/soundtracks.js` (an engine path), `engine/webaudio.js`, `BridgeAudio.cs` | M | low |
 | D16 | Foley, minigames, onboarding hints (Plumb, first steps, temple hints), the observatory, the eclipse's and Lantern's skies | `engine/game.js` | M | low |
 | D17 | **The visual check** (section 4), every world, fixed differences | `scripts/unity-compare/` (new) | M | low |
 | D18 | **Every world measured on the Deck**: Unity at or above the web in each (not just the three bench views), load times (#364) | `scripts/bench/deck-unity.sh`, `deck-worlds.mjs` | M | medium |

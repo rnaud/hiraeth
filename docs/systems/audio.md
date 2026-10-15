@@ -342,6 +342,13 @@ They use the existing music bus: volume, mute, menu hush, musician ducking,
 underwater filtering and background suspension still apply. Ambience, bands and
 combat continue independently. Disposing a world cancels its outstanding download.
 
+**In Unity** (October 2026, issue #264) the same code plays them. Unity decodes the MP3 (the Web Audio shim can't),
+and the game's graph still sets the place and the level: the fades, the music bus, the menu, the mute, the away.
+`engine/webaudio.js` `NativeAudioBuffer`, `BridgeMusic.cs`; the balance is measured once per file into
+`src/theme-levels.js` (`node scripts/theme-levels.mjs` after adding or replacing a recording). The Deck's player
+carries every theme. The APK and the Xbox's carry the desert's and the title's and download the rest once.
+[engine-bridge.md](engine-bridge.md), "The recorded music".
+
 ## The title's music (October 2026)
 
 The title screen plays its own recording, **Hiraeth - Distant Home** (`public/music/title.mp3`, `TITLE_THEME` in
