@@ -11,7 +11,20 @@ let SERIAL = 0;
 /** The invisible skirting's height (m): over a step, under the camera's line of sight. */
 export const SKIRT = BLOCK_H;
 
-export function shipMaterials(tag, { space = false, room = null } = {}) {
+/**
+ * A look to compare (issue #364, ?roomlights=folded): the rooms' light (ROOM_LIGHT) compiles five programs of its own,
+ * ~0.1 s each on the Retroid. Folded, the two rarest are built as the plain painted metal of the lockers: `panel` (the
+ * slate tops of the dash and the console, the tool boards) loses its 0.5 m grid lines, `metal` (the brushed steel of
+ * the instrument racks, the holo table's drum, the sink, the engine room's hatch) its streaks and hairlines, steel
+ * still. Two programs fewer in every world. Off by default: the game as it is.
+ */
+export const ROOM_LIGHTS_FOLDED = typeof location !== 'undefined' && new URLSearchParams(location.search).get('roomlights') === 'folded';
+function foldRoomMetals(o) {
+  o.panel = { ...o.panel, grid: 0 };
+  o.metal = { ...o.metal, brushed: false };
+}
+
+export function shipMaterials(tag, { space = false, room = null, folded = ROOM_LIGHTS_FOLDED } = {}) {
   const o = {
     // the outside, from the selected reference: worn cream enamel, muted lavender panels, one coral stripe,
     // a khaki lower hull in two chamfers, a dark belly, dark blue glass
@@ -71,6 +84,7 @@ export function shipMaterials(tag, { space = false, room = null } = {}) {
   // textures shimmering in my ship": at the print's spacing they were 2-4 px apart close up, right at HATCH_AA's edge,
   // crawling under the pixels as you walked; issue #322's second look: a flat tone lost the shade the author found helpful)
   for (const k of INTERIOR) o[k] = { ...o[k], ...roomLook(room) };
+  if (folded) foldRoomMetals(o);
   return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, makeMaterial(v)]));
 }
 

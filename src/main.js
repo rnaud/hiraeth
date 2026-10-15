@@ -1215,6 +1215,11 @@ if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.p
   player.heading = saved.heading ?? player.heading;
   rig.yaw = saved.yaw ?? rig.yaw;
 }
+// for development: ?aboard=cockpit | main | cabin | hold starts you in that room of the parked ship (src/ship/ship.js roomSpot)
+{
+  const spot = query.get('aboard') && !viaShip ? ship.roomSpot(query.get('aboard')) : null;
+  if (spot) { player.respawn(spot.pos); player.heading = spot.heading; rig.yaw = spot.heading + Math.PI; }
+}
 let resetting = false;   // (a save being started over: nothing more is written to it)
 const writeSave = () => !resetting && !minigameDef && SaveGame.write({   // (a game's page keeps the place you left the world at)
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,

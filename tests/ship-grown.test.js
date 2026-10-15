@@ -127,3 +127,32 @@ test('the room light is engine-neutral: the key and the lamps in the Unity expor
   assert.ok(hlsl.includes(`smoothstep(${f(L.cone[0])}, ${f(L.cone[1])}, dl.y / d) * (${f(L.face)} + ${f(+(1 - L.face).toFixed(2))} * max(dot(n, dl / d), 0.0))`), 'the lamps\' cone');
   assert.ok(hlsl.includes(`lerp(L, ${f(L.poolTop)}, smoothstep(${f(L.pool[0])}, ${f(L.pool[1])}, local))`), 'the lamps\' pools');
 });
+
+test('?roomlights=folded (issue #364): the console tops and the brushed steel in the lockers\' plain metal, two programs fewer; off, as it was', async () => {
+  const { shipMaterials, ROOM_LIGHTS_FOLDED } = await import('../src/ship/model.js');
+  assert.equal(ROOM_LIGHTS_FOLDED, false, 'off unless asked for');
+  const room = { value: new THREE.Vector4(0, 0, -1, 1) };
+  // (a program: its defines and its sources; side and vertex colours share one, scripts/three-program-keys.mjs)
+  const key = (m) => JSON.stringify([Object.entries(m.defines ?? {}).sort(), m.vertexShader, m.fragmentShader]);
+  const count = (mats, only = () => true) => new Set(Object.values(mats).filter(only).map(key)).size;
+  const now = shipMaterials('fold-a', { room }), folded = shipMaterials('fold-b', { room, folded: true });
+  const inRoom = (m) => !!m.defines?.ROOM_LIGHT;
+  assert.equal(count(now, inRoom), 5, 'the rooms\' five programs: plain, grid, metal, gridded metal, brushed');
+  assert.equal(count(folded, inRoom), 3);
+  assert.equal(count(folded), count(now) - 2, 'two fewer in all');
+  assert.ok(now.panel.defines.S_GRID && now.metal.defines.METAL_BRUSHED, 'by default the grid and the brushing as they were');
+  assert.equal(key(folded.panel), key(folded.locker));
+  assert.equal(key(folded.metal), key(folded.locker));
+  for (const k of Object.keys(now)) if (k !== 'panel' && k !== 'metal') assert.equal(key(folded[k]), key(now[k]), `${k} untouched`);
+});
+
+test('?aboard=<room> starts you in that room of the parked ship (development)', () => {
+  const { ship, m } = flatShip();
+  for (const r of Object.keys(ROOMS)) {
+    const s = ship.roomSpot(r);
+    const l = ship.local(m, s.pos);
+    assert.ok(inRooms(l, { margin: 0 }) && l.z > ROOMS[r].z0 && l.z < ROOMS[r].z1, `${r}: inside it`);
+  }
+  assert.equal(ship.roomSpot('nowhere'), null);
+  assert.match(readFileSync(new URL('../src/main.js', import.meta.url), 'utf8'), /query\.get\('aboard'\) && !viaShip \? ship\.roomSpot\(query\.get\('aboard'\)\)/);
+});

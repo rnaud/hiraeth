@@ -513,6 +513,14 @@ export class Ship {
     L.camYaw = a.heading + Math.PI;
   }
 
+  /** Where ?aboard=<room> starts you (development, main.js): in that room of the parked ship, facing the bow. */
+  roomSpot(room) {
+    const r = ROOMS[room], m = this.parked;
+    if (!r || !m) return null;
+    const l = new THREE.Vector3(0, m.interior.points.aboard.y + 0.1, r.z0 + (r.z1 - r.z0) * 0.7);
+    return { pos: this.world(m, l), heading: this.worldHeading(m, Math.PI) };
+  }
+
   /** Where you stand when you arrive by ship: the foot of the ramp, facing out. */
   arrivalSpot() { return { pos: this.rampFoot.clone(), heading: this.site.heading }; }
 

@@ -2919,7 +2919,9 @@ City-Shaft 451 · 5266 · 1152 · 1372 · 10 973 · 798; Home 472 · 672 · 131 
     spawn with the cut off and on looks as before (him gone, his shadow kept). tests/scout.test.js.
   - **+3 in every world, v1.76 → v1.77: de712627e** (#338, real light in the ship's rooms): the rooms' materials with
     `ROOM_LIGHT`, five variants of their own (plain, grid, metal, brushed, grid and metal). Kept, a feature; folding the
-    brushed and the gridded metal into the plain metal would win back two, a look to decide first.
+    brushed and the gridded metal into the plain metal would win back two, a look to decide first. To compare:
+    `?roomlights=folded` (src/ship/model.js ROOM_LIGHTS_FOLDED) builds `panel` without its grid and `metal` unbrushed,
+    with `&aboard=cockpit|main|cabin|hold` to start in a room; the pairs in references/compare/ship-room-lights/.
   - **+2 in the Desert after v1.77**: the Rose House's futuristic skin (#342), shaders of its own; the other houses' skins
     likewise in their worlds. A feature.
   - The City-Shaft's world creation and near detail on the Retroid are +0.5 s each against v1.60 (4.8 → 5.3 s, 1.15 →
