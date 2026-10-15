@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_2650338970b3d0 7
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_a41dc3365d9aba 401-404
+scripts/bench/deck-run.sh
+  s_9ca76055a220ed::t_d3621e5587926d 8-9,30
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_17216a993ac036 236
+src/changelog.js
+  s_9ca76055a220ed::t_4e4fc5c3fb76eb 124-126
+src/materials.js
+  s_9ca76055a220ed::t_da9e7df15b529d 588-589,846-851,3022,3203-3205,3207
+src/physics.js
+  s_9ca76055a220ed::t_52d98aa65168f9 97-99
+tests/physics-refine.test.js
+  s_9ca76055a220ed::t_1792e23b290e02 67-79
+tests/scout.test.js
+  s_9ca76055a220ed::t_8a4e3f2f654cd7 386,392-393,395-396,398-402
+docs/systems/performance.md
+  s_878be63ec95156::t_cbb92a2027e8d5 2866-2986
+src/changelog-media.js
+  s_878be63ec95156::t_5d286bf31c2b0f 951-954,957-966
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e564ea18a86aa3e0e9a6f8df115f6d8cf2f33602",
+  "prompts": {},
+  "sessions": {
+    "s_878be63ec95156": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0a911195630725ef",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
