@@ -797,6 +797,8 @@ export const DESERT_TEMPLE = {
   arenas: ARENAS,
   origin: [150, 2400, -250], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
+  // (inside, the alien skin the author picked: pleated cactus ribs, crackle, turquoise pores, seed capsules; issue #342)
+  skin: 'cactus',
   layout, exterior, change,
   enterLine: 'Cool air, and the smell of old water. The Rose House is dark inside, and very large.',
   pitLine: 'You climb back out of the sand, to the last glyph stone.',

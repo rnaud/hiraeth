@@ -54,7 +54,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [worlds.md](systems/worlds.md) | the levels, regions and wind, interiors, the terrain, each world's places, sand drifts, the singing spheres, Qanat, the ship's deck, Home, merged and dismissed worlds (`src/levels/dismissed/`), Vael's riders' road, sundial and broken edge, the Signal Market's galleries, old market and screen lanes, the Garden's causeway, craters and pillar forest |
 | [living-world.md](systems/living-world.md) | responsive worlds, birds, wildlife, flora, brushing past plants, flowers with room to open |
 | [water.md](systems/water.md) | the water look and swimming |
-| [temples.md](systems/temples.md) | the makers' temples |
+| [temples.md](systems/temples.md) | the makers' temples; their alien skins (the Rose House's cactus, the Warden's Well's comb: surfaces, drawn-only dressing, seed-capsule braziers, `src/temples/skins.js`) |
 | [boss-hints.md](systems/boss-hints.md) | the guardians: the bar of what is left of them, the drone's hints |
 | [hints.md](systems/hints.md) | hints off / subtle / full: the one setting every prompt, tip, nudge and the drone's help goes through; keys taken out of lines; the quiet glyph (audit: `docs/design/hints-audit.md`) |
 | [story.md](systems/story.md) | the story's systems: quests, errands, the father's charge, every world's story, the ending, the route and the galactic map, the strike's signature, the recordings, the desert reworked, quests that fail, the fellow traveller (Tansy), the rumours people tell and their circles on the Map |

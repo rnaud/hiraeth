@@ -5,6 +5,7 @@ import { Resources, sparing, heartsOf, DAMAGE } from '../resources.js';
 import { addIndoors } from '../shelter.js';
 import { rumble } from '../ship/sfx.js';
 import { TempleKit, templeMaterials } from './kit.js';
+import { houseSkin } from './skins.js';
 import { TempleLogic, flagStore } from './logic.js';
 import { Guardian, guardianBar } from './boss.js';
 import { Mark, Pit } from './pieces.js';
@@ -50,9 +51,12 @@ export class TempleRuntime {
     this.checkpoint = null;
     this.told = new Set();
     this.time = 0;
-    // the rooms
+    // the rooms (in the house's alien skin, if it wears one: its surfaces, its dressing, src/temples/skins.js; issue #342)
+    const skin = houseSkin(this);
     const L = def.layout(this);
+    skin?.dress();
     this.kit.flush();
+    skin?.done();
     this.arrival = L.arrival;           // { pos, heading } (world) where you come in
     this.bounds = L.bounds;             // Box3 in the kit's local frame: inside the temple
     this.gadgetSite = L.gadget ?? null; // { at: [x, y, z] world, face }
