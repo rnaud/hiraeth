@@ -71,6 +71,13 @@ export const CHANGELOG = [
     // (the machines only in the Sand Room, round its middle among the bins: LOGIC.rooms kinds, Mark `foes`; the door into the
     // furnace held by a cradle out on the Tong Chamber's floor; migrate.js moonfoundry v3, runtime.js relaid)
     'The Casting-House’s keepers wait only in the Sand Room now, round its middle among the sand bins, the house’s one fight: no machine stands by its puzzles any more. The Pincer Passage is gone: the door into the furnace is held by an iron moon’s cradle out on the Tong Chamber’s floor. If you were inside the old house you start at its last glyph stone.',
+    // the Lamp-House as shrines (issue #336): src/temples/perdide2.js (ROOMS, DOOR, KENNEL, WICK, ROOT_WAY, LOGIC.rooms kinds,
+    // the Lantern Chamber 34 m round with l0 and l1 on posts, orb5 and s5 in the Root Stair, the wick-house, the layout); tests/temple-rules.test.js
+    // REDONE, tests/temples.test.js
+    'The Lamp-House is rebuilt like a shrine too: its rooms are far bigger and taller (every hall 30 to 37 m across under 17 m of stone or more, the Lantern Chamber 34 m round), its doors twice the size, and every puzzle stands in the middle of its room. The third dark pool sits far back on a loft of roots out in the Hall of Dark Pools; the glowing orb and its small pool wait on the Root Stair’s own floor instead of rolling in through the doorway; the Lantern Chamber’s two lamps stand on posts beside the chest; the Dark Gallery’s hidden eye is up on a post over the near floor and the far door’s niche stands out on the far floor; and the Wick Room’s two niches and its great key are in a little house of stone in the middle of the room.',
+    // (the machines only in the Kennel, round its middle among four columns: LOGIC.rooms kinds, Mark `foes`; migrate.js
+    // perdide2 v4, runtime.js relaid)
+    'The Lamp-House’s keepers wait only in the Kennel now, round its middle among four columns, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Lamp-House, you start at its last glyph stone.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

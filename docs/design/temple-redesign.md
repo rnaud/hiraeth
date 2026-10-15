@@ -232,6 +232,32 @@ in the hall. What stayed: the Last Founder and its fight, the story's lines, the
 Door, the hoist and its pan (you in it, the stone moon for you), the founders' moon's and the hot moon's rails as long as they were, the press over
 the bridge, the keepers' door back. A save that stood in the old rooms is taken to its last mark (`LAYOUTS.moonfoundry` v3).
 
+## The Lamp-House (v1.77)
+
+| | before | after |
+|---|---|---|
+| rooms (puzzle / fight) | the Hall of Dark Pools 22 × 31, the Root Stair a round hall 20 m across, the Kennel 16 × 14, the Dark Gallery 22 × 34, the Wick Room 16 × 34, the Lantern Chamber 19 m round | the Hall of Dark Pools **36 × 40**, the Root Stair **37 × 46**, the Kennel **30 × 30**, the Dark Gallery **36 × 56**, the Wick Room **30 × 40**, the Lantern Chamber **34 m** round (the chest, its try and the Lamp Passage’s lamp on posts beside it) |
+| ceilings | 10 (the Kennel) to 13 m; the loft’s pool 3.9 m under the hall’s roof | **16 m** or more over every floor (the Root Stair 28, the loft’s pool 17) |
+| doors | 5 by 6 to 6.4, the Wick Room's grille 2.4 by 3 | **7 by 9**, the grille too |
+| fights | a machine by every mark (the Hall of Dark Pools, the Root Stair, the Lantern Chamber, the gallery, the Wick Room), and the Kennel's arena | **the Kennel only**, its keepers round its middle among four columns |
+| against the walls | the loft's pool by the west wall, the hidden eye on the gallery's south wall, the far door's niche in the west wall, the Wick Room's two niches in its east wall, the lamps by the doors | each in the middle of its room: the loft a block out from the wall, the eye on a post over the near floor, the niche on the far floor, the niches in the **wick-house** in the middle of the Wick Room, the lamps on posts |
+| threaded through doors | the pool-orb `orb5` rolled from the Hall of Dark Pools through `d1` to the Root Stair's socket | the orb, its small pool and the socket on the Root Stair's near floor |
+| the rules broken | **51** (both 5, size 8, ceiling 6, unmeasured 1, door 7, centred 17, door_thread 2, foes 5) | **0** |
+| the temple design audit | 4.22: structure 5, teach/test/twist 5, combination 4, non-obvious 4 (mean 2.83), decoupling 5, item 5, guardian 4, identity 3, curve 3 | **4.33**: decoupling **4** (the orb's step in its own room: 3 of 6 keys out of the lock's room or sight), curve **5** (complexity 3 → 4.25 across the house); mean obviousness 3.08; skeleton `BXCGRLLK` as it was |
+
+What it took beyond the sizes: the loft's pool stands 4.3 m back from the loft's edge, so nowhere on the bigger floor sees
+it (the hall's far corners are 35 m off); the Root Stair and the Hall of Dark Pools are as wide as each other, so the
+stair is half a metre wider each side (`ROOMS.roots`), or their side walls lay one in the other through the wall between
+them (two z-fights); the Wick Room's grille, a door on a link, is 7 by 9 too, so the key's alcove is a block of its own,
+the wick-house, with a niche either side; the ledge of roots to the keepers' door runs along the Root Stair's east wall
+over the pool, 9 m up, out of any jump's reach from the floor. The Lamp Passage's lamp moved into the Lantern Chamber
+(a puzzle room now, 34 m round): made a room of its own past a door for the lantern in hand, as the Belfry's porch, the
+house gained a step and its design score fell to 4.0 (the chest at 29 % of the steps, the skeleton 67 % like the
+Footprint's). The Lamp-Room is measured by its lure pools (`LurePools`
+carries the guardian's id). What stayed: the Lampless and its fight, the story's lines, the small key and the great one,
+the loop back up through the keepers' door, the pits, every groove's length, every orb's glow and every climb. A save
+that stood in the old rooms is taken to its last mark (`LAYOUTS.perdide2` v4).
+
 ## The other houses
 
 From `node --test tests/temple-rules.test.js` (its report, the rules each house breaks today; `PENDING` there holds the
@@ -247,6 +273,9 @@ counts, and a house may not get worse). Ranked worst first:
 | Whale-House (underwater) | 52 | 6 | 6 | 6 | 9 | 17 | 2 | 5 | 1 unmeasured |
 | Lamp-House (perdide2) | 51 | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
 | Casting-House (moonfoundry) | 51 → **0** (v1.77, above) | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
+
+| Lamp-House (perdide2) | 51 → **0** (v1.77, above) | 5 | 8 | 6 | 7 | 17 | 2 | 5 | 1 unmeasured |
+| Casting-House (moonfoundry) | 51 | 5 | 8 | 3 | 7 | 15 | 3 | 7 | 1 unmeasured, 2 gadget |
 | Clock-House (garage) | 49 | 6 | 8 | 7 | 7 | 14 | 1 | 4 | 1 unmeasured, 1 gadget |
 | Engine-House (buried) | 41 | 5 | 6 | 4 | 6 | 14 | 1 | 5 | |
 | Founders' Belfry (arzach2) | 40 → **0** (v1.77, above) | 3 | 7 | 6 | 6 | 11 | 1 | 4 | 2 unmeasured |

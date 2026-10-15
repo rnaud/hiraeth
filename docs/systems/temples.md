@@ -180,7 +180,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   only glows once something else has lit it). Rolled in dark it lights nothing and is tipped back out (no
   dead state), and it only locks in its socket once its lamp is lit. With `lamp.pool: { id, at, reach }` it also
   drinks a lit pool's light, resting beside it: the Root Stair's disc (v1.12) waits for such an orb, rolled from
-  the Hall of Dark Pools through the doorway (`gap` on the door `d1`: it stops at the shut door), so light is
+  the Hall of Dark Pools through the doorway until v1.77 (`gap` on the door `d1`: it stopped at the shut door; since
+  then the orb, its small pool and the socket are on the Root Stair's own near floor), so light is
   carried before the chest, and the gallery's niche twists it with the lantern where no pool is. Since v1.27 the
   socket's lamp wakes moss-stones sunk in the dark pool instead of a disc (a `Bridge` with `glow`: drawn glowing, as a
   hidden bridge is, but there for everyone).
@@ -485,6 +486,32 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   and the way back as they were. Old saves: one that stood in the old
   rooms is taken to its last mark (`migrate.js` moonfoundry v3). Rules broken: 51 before, none now. Temple design audit:
   4.44 before and after (mean obviousness 2.58 both). Z-fights in the house 20 → 0.
+- **The Lamp-House as shrines** (v1.77, issue #336). The Hall of Dark Pools 36 by 40 m under 26, the Root Stair 37 by
+  46 over its dark pool (its near floor 20 m deep, the pool 10, the root-wall the rest, its top 9 m up), the Kennel 30 m
+  square, the Dark Gallery 36 by 56 over its chasm (20 m, the moss-stones as long as they were), the Wick Room 30 by 40,
+  the Lantern Chamber a round hall 34 m across; every ceiling 16 m or more over the floor, doors 7 by 9 and the Wick
+  Room's grille too (`perdide2.js` `ROOMS`, `DOOR`, `KENNEL`, `WICK`, `ROOT_WAY`). The pools, the orbs, the niches,
+  every groove's length and every orb's glow as they were. Tagged rooms (`LOGIC.rooms` `kind`): the Threshold, the
+  alcove behind the grille and the way out passages, the Kennel the one fight (`arK`, its keepers round its middle among
+  four columns: its mark's `foes`), the rest puzzles; the Lantern Chamber is one (the chest in its middle, the try `l0`
+  by the dais and the Lamp Passage's lamp `l1` beside the way north, both on posts; the passage is the corridor through
+  its north wall to the gallery's door `d2`). (A room of its own past a door for the lantern in hand, as the Belfry's
+  porch, cost the house's design score a step: the chest at 29 % of the steps and a skeleton 67 % like the Footprint's,
+  4.0.) Each puzzle in the middle of its room: the third pool `s3` on a loft of roots out from the west wall, 4.3 m back
+  from its edge so the floor never sees it; the pool-orb `orb5`, its small pool `s5` and its socket on the Root Stair's
+  near floor (the orb rolled through the hall's door to the socket before: `door_thread`); the Dark Gallery's hidden eye
+  `s4` on a post over the near floor (on the wall over the way in before) and the far door's niche on the far floor (in
+  the west wall); the Wick Room's niches and the great key in the **wick-house** in the middle of its floor (`WICK.face`:
+  two blocks either side of the key's alcove, a niche in each block's face, the orbs' grooves before them; the niches
+  were in the east wall). The ledge of roots runs along the Root Stair's east wall over the pool to the keepers' door
+  (`ROOT_WAY`). The Root Stair is half a metre wider each side than the Hall of Dark Pools: as wide, their side walls lay
+  one in the other through the wall between them (two z-fights). The Lamp-Room is measured by its lure pools (`LurePools`
+  carries the guardian's id). The Lampless and its fight, the story's lines, the small key and the great one, the loop
+  back up through the keepers' door as they were. Old saves: one that stood in the old rooms is taken to its last mark
+  (`migrate.js` perdide2 v4). Rules broken: 51 before, none now. Temple design audit: 4.22 before, 4.33 after
+  (decoupling 5 → 4: the orb's step in its own room now; the curve 3 → 5; mean obviousness 2.83 → 3.08). Tests:
+  `tests/temple-rules.test.js`, the on-foot walk and the old save in `tests/temples.test.js`, zfight, contact audit.
+
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -808,7 +835,8 @@ far door's key. The audit's clue for an echo ear is the nearest stone of its not
 The **Lamp-House** (`perdide2.js` `WICK`, `ROOT_WAY`): the **Wick Room** is east off the Hall of Dark Pools (beside the
 Kennel, north of it, past the hall's last column), open and dark on the way in. The Kennel's small key goes into its
 grille (`cW` `lock: 'small'`; the Lamp Passage's door `d2` is its lamp alone again), which lifts once both niches burn: the
-lantern comes back down for the great key. A stair up its north wall to a balcony at 9, and a keepers' door (`dU`, `{ open:
+lantern comes back down for the great key (since v1.77 the niches and the grille in the wick-house in the middle of its
+floor, `WICK.face`). A stair up its north wall to a balcony at 9, and a keepers' door (`dU`, `{ open:
 'cW' }`) through the Root Stair's east wall onto a ledge of roots inside it (`ROOT_WAY.ledge`), on to the root-wall's top:
 the way back up to the chamber without the moss-stones and the climb.
 

@@ -878,6 +878,8 @@ const ALIEN342_NUMBERS = {
 const WHALE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6448, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Casting-House's rooms, shot the same way before and after) */
 const CASTING336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6450, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
+/** (v1.77, issue #336: the Lamp-House's rooms, shot the same way before and after) */
+const LAMP336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6449, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.77': [
     { match: 'The Rose House is rebuilt like a shrine', shots: [
@@ -978,6 +980,16 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Casting-House’s keepers wait only in the Sand Room', shots: [
       { name: 'casting-sand', title: 'The Sand Room', caption: 'From the Mould Room: before, a room 12 m square; after, the house’s one fight, its keepers round the middle of a hall 30 m square among the four sand bins', from: CASTING336 },
       { name: 'casting-tongs', title: 'The Tong Chamber', caption: 'From its door: before, 19 m across, two of the house’s machines by the chest; after, 34 m across and no machine, the try and the east door’s cradle out on the floor, its chain up to the door', from: CASTING336 },
+    ] },
+    { match: 'The Lamp-House is rebuilt like a shrine too', shots: [
+      { name: 'lamp-pools', title: 'The Hall of Dark Pools', caption: 'From the way in: before, a hall 22 m across, a keeper by the mark, the pool-orb’s groove running through the far door; after, 36 by 40 m under 26 m of stone, the two pools on the floor, the loft of roots out from the west wall, no machine', from: LAMP336 },
+      { name: 'lamp-roots', title: 'The Root Stair', caption: 'Before, a round well 20 m across, the pool and the root-wall right inside the door; after, 37 m across, the small pool, the orb and its socket on the near floor, the dark pool across the middle, the root-wall beyond', from: LAMP336 },
+      { name: 'lamp-chamber', title: 'The Lantern Chamber', caption: 'Before, a round room 19 m across, a keeper by the mark, the Lamp Passage’s door beyond; after, 34 m across, no machine, the chest in the middle, its two lamps on posts beside it and the way north', from: LAMP336 },
+      { name: 'lamp-gallery', title: 'The Dark Gallery', caption: 'From the near floor: before, 22 m across, the far door’s niche in the west wall; after, 36 m across, the hidden eye up on a post, the niche out on the far floor, the far door 7 by 9', from: LAMP336 },
+      { name: 'lamp-wick', title: 'The Wick Room', caption: 'Before, the two niches and the great key’s grille in the east wall; after, 30 by 40 m, all three in a block of stone in the middle of the floor, the orbs’ grooves before it', from: LAMP336 },
+    ] },
+    { match: 'The Lamp-House’s keepers wait only in the Kennel', shots: [
+      { name: 'lamp-kennel', title: 'The Kennel', caption: 'Before, a room 16 by 14 m, its keepers by the door; after, 30 m square, the house’s one fight round its middle among four columns', from: LAMP336 },
     ] },
     { match: 'When you win a temple’s arena', see: 'In any temple with an arena (the Aerie’s Moult, the Rose House’s Machines’ Hall), break the last machine: “The last of them falls still, and the doors sink open” shows as the doors go down.' },
     { match: 'Inside, the Rose House is the inside of a dry cactus now', tags: ['desert', 'perf'], shots: [

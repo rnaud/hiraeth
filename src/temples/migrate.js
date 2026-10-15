@@ -132,12 +132,16 @@ export const LAYOUTS = {
   // v1.60: the Wick Room moved off the Hall of Dark Pools, its grille a lock for the Kennel's small key (the Lamp Passage's
   // door is its lamp alone again, so a key put there is back in hand); its keepers' door onto the Root Stair opens with the
   // grille. With the great key already found, or past the far door: the Kennel's key in the grille
+  // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the Lamp Passage's lamp in the Lantern Chamber, the
+  // Root Stair's orb and its small pool in that room; the same state). A save that entered the house: taken to its last
+  // mark if it stood inside the old rooms (runtime.js relaid)
   perdide2: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d2', 'lit.s4', 'drum.orb', 'lit.l2', 'open.d4', 'boss'], set: { 'unlocked.d2': 1, 'found.kS': true, 'lit.arK': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'open.cW': true } },
       { if: ['found.kB', 'open.cW', 'open.d4', 'boss'], set: { 'unlocked.cW': 1, 'found.kS': true, 'lit.arK': true, 'open.cW': true } },
+      { if: ['entered'], set: { relaid: true } },
     ],
   },
   // v1.52: the Hush-House's Snapping Passage stills in the Choir's order (its two side mouths before the gate), the Nursery

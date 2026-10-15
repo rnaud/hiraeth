@@ -20,43 +20,53 @@ import { chestMound } from '../boxes/mound.js';
 //
 // Inside (built far overhead, through its door; dark: the lantern charm glows in it). The temple's one idea:
 // light wakes what waits for it, and light can be carried.
+// Since v1.77 (issue #336, docs/design/temple-redesign.md) its rooms are shrines: every hall 30 to 36 m across under 17 m
+// of stone or more, the chamber's round hall 34 m, doors 7 by 9 (ROOMS, DOOR), each puzzle in the middle of its own
+// room, the one fight in the Kennel.
 //   the Threshold           the first mark, the way out
 //   the Hall of Dark Pools  three pool-lamps for the door's three lamps: two on the floor, the third up on a
-//                           loft at the top of the west roots, out of sight from the floor (climb to find it)
-//   the Kennel              (v1.49, issue #23: east off the hall, an arena) where the keepers of the house's lamps were
-//                           kept, dark; its door shuts behind you while they stand. Won, the small key's cage sinks: the
-//                           Wick Room's grille, along the hall, takes it (v1.60; the Lamp Passage's door did, v1.49)
-//   the Root Stair          a dark pool, and no way over it: moss-stones lie sunk in it, dark until the lamp in
-//                           their socket wakes, and only light wakes it. A pool-orb waits in the Hall of Dark Pools
-//                           beside a small pool by the door; its groove runs through the doorway to the socket.
-//                           Light the pool, let the orb drink its light, then roll it through to the socket before
-//                           it fades: the lamp catches and the moss-stones rise glowing out of the pool (push +
-//                           shot, before the chest: light can be carried, and light wakes the stones); then a
-//                           root-wall to climb
-//   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'). Its way on is open; a
-//                           lamp by the dais wakes when you stand by it with the lantern (a try: nothing is locked)
-//   the Lamp Passage        a room on: the door into the gallery is a lamp that wakes when you stand by it with the
-//                           lantern, at the far end of a passage dark even to the lantern's light
-//   the Dark Gallery        a chasm crossed by moss-stones that only the lantern's light shows; an eye only it
-//                           shows, high over the way in (behind you as you cross, in sight from the far door);
-//                           and the far door's lamp, in a niche low in the west wall, wakes only to the
+//                           loft of roots out from the west wall, its pool far back from the edge: out of sight from
+//                           the floor (climb to find it)
+//   the Kennel              (v1.49, issue #23: east off the hall, an arena, the house's one fight) where the keepers of
+//                           the house's lamps were kept, dark; its door shuts behind you while they stand round its
+//                           middle. Won, the small key's cage sinks: the Wick Room's grille, along the hall, takes it
+//                           (v1.60; the Lamp Passage's door did, v1.49)
+//   the Root Stair          a dark pool across its middle, and no way over it: moss-stones lie sunk in it, dark until
+//                           the lamp in their socket wakes, and only light wakes it. A pool-orb waits on the near floor
+//                           beside a small pool, its groove across the floor to the socket (v1.77: it rolled through
+//                           the doorway from the Hall of Dark Pools). Light the pool, let the orb drink its light, then
+//                           roll it to the socket before it fades: the lamp catches and the moss-stones rise glowing
+//                           out of the pool (push + shot, before the chest: light can be carried, and light wakes the
+//                           stones); then a root-wall to climb
+//   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'), in the middle of a round hall.
+//                           Its way on is open; a lamp by the dais wakes when you stand by it with the lantern (a try:
+//                           nothing is locked)
+//   the Lamp Passage        on through the chamber's north wall: the door into the gallery is a lamp that wakes when you
+//                           stand by it with the lantern, on a post in the chamber beside the way north (since v1.77;
+//                           at the passage's far end before), dark even to the lantern's light
+
+//   the Dark Gallery        a chasm across its middle crossed by moss-stones that only the lantern's light shows; an eye
+//                           only it shows, up on a post over the near floor (behind you as you cross, in sight from the
+//                           far door); and the far door's lamp, in a niche on the far floor, wakes only to the
 //                           light of a pool-orb: stand by the orb with the lantern till it glows, then roll it
 //                           (the push) down its groove into the niche before its glow fades. Rolled in dark,
 //                           it wakes nothing (the lantern with the push: light carried where you cannot go)
 //   the Wick Room           (v1.60, east of the Root Stair, its way in off the Hall of Dark Pools' east wall: open and
 //                           dark on the way in; v1.49 off the gallery's far side) the gallery's far door takes its
-//                           great key, so the lantern comes back down for it. Two niches low in its east wall, a
-//                           pool-orb in a groove before each, the great key behind a grille between them, a keyhole in
-//                           the grille (the Kennel's small key, next door). A niche's lamp burns only while its orb
-//                           glows; the grille lifts, for good, only while both burn: light one orb, roll it home, light the other and roll it home
-//                           before the first fades (two lights carried at once). A stair up its north wall to a
-//                           balcony, and a keepers' door that opens with the grille onto a ledge of roots round the
-//                           Root Stair to the root-wall's top: the way back up to the chamber, a loop
+//                           great key, so the lantern comes back down for it. In the middle of its floor the wick-house:
+//                           two niches in its face, a pool-orb in a groove before each, the great key behind a grille
+//                           between them, a keyhole in the grille (the Kennel's small key, next door). A niche's lamp
+//                           burns only while its orb glows; the grille lifts, for good, only while both burn: light one
+//                           orb, roll it home, light the other and roll it home before the first fades (two lights
+//                           carried at once). A stair up its north wall to a balcony, and a keepers' door that opens
+//                           with the grille onto a ledge of roots along the Root Stair's wall to the root-wall's top:
+//                           the way back up to the chamber, a loop
 //   the Lamp-Room           the guardian (organic: you calm it): the Lampless, a great moth. When it hangs low,
 //                           searching for light, stand still by it with the lantern lit, and let it drink. Three
 //                           dark pools lie round the room: lit earlier (a splash, or your lantern held by one), a
 //                           pool lures it as it searches, and it drinks there (taught in its second phase; in its
 //                           last it shies from you: only a pool brings it down, and only if you stand back)
+
 // After: the Lamp-House's lamp burns again, its beam turning over the wood at night (the world change).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -88,33 +98,64 @@ export const PALETTE = {
 };
 
 /**
- * The Kennel (v1.49, east off the Hall of Dark Pools: an arena in the dark) and the Wick Room (v1.60: east of the Root
- * Stair, its way in off the Hall of Dark Pools' east wall at z `door`; v1.49 it stood off the Dark Gallery's far side),
- * local m: the room round x, z (w by d, h high); its balcony along the west wall at the root-wall's height ([z0, z1, its
- * depth]) and the stair up the north wall to it ([x at its foot, x at its head, z], stairW wide); its niches' z, their
- * grooves' x, the orbs' glow (s), the great key's alcove behind its grille at z `keyZ`.
+ * The house's doors (m: issue #336, 5 by 6.4 before; the Wick Room's grille 2.4 by 3) and its rooms in the kit's local
+ * frame (z into the house): each hall's floor from wall to wall (its walls stand outside it), its floor's height and its
+ * ceiling's; the round halls' middles and radii. The Root Stair and the Dark Gallery stand on their pits' floors (`y`),
+ * their floors at `floor` (`near` the near floor's depth, `pit` the pit's; the Root Stair's root-wall the rest, its top
+ * at `wall`). The props (the pools, the orbs, the niches, the moss-stones), the pits and every groove as long as they
+ * were, so every timing and every climb holds.
  */
-export const KENNEL = { x: 22.4, z: 22.4, w: 16, d: 14, zone: { min: [14.4, -1, 15.4], max: [30.4, 9, 29.4] } };
-export const WICK = { x: 21.8, z: 51, w: 16, d: 34, h: 16, door: 39, balcony: [52, 67.4, 5], stair: [29.2, 18.8, 65.2], stairW: 4.4,
-  niches: [39.6, 48.4], groove: [19, 27], keyZ: 44, lasts: 25 };
+export const DOOR = { w: 7, h: 9 };
+export const ROOMS = {
+  threshold: { x0: -10, x1: 10, z0: 0, z1: 14, y: 0, top: 12 },
+  pools: { x0: -18, x1: 18, z0: 15.2, z1: 55.2, y: 0, top: 26 },
+  roots: { x0: -18.5, x1: 18.5, z0: 56.4, z1: 102.4, y: -6, floor: 0, top: 28, near: 20, pit: 10.1, wall: 9 },
+  lantern: { x: 0, z: 125, r: 17, y: 9, top: 25 },
+  gallery: { x0: -18, x1: 18, z0: 146, z1: 202, y: -3, floor: 9, top: 27, near: 18, pit: 20 },
+  kennel: { x0: 26, x1: 56, z0: 10, z1: 40, y: 0, top: 18 },
+  wick: { x0: 26, x1: 56, z0: 45, z1: 85, y: 0, top: 20 },
+};
+const mid = (r) => [(r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2];
 /**
- * The keepers' way between the Wick Room's balcony and the Root Stair's root-wall top (v1.60): a ledge of roots south along
- * the stair's east wall at the root-wall's height, [x0, z0, x1, z1], and a passage east through the wall from x0 at z.
+ * The Kennel (v1.49, east off the Hall of Dark Pools: an arena in the dark; since v1.77 the house's one fight, its keepers
+ * round its middle) and the Wick Room (v1.60: east of the Root Stair, its way in off the Hall of Dark Pools' east wall at z
+ * `door`; v1.49 it stood off the Dark Gallery's far side), local m: the room round x, z (w by d, h high); its balcony along
+ * the west wall at the root-wall's height ([z0, z1, its depth]) and the stair up the north wall to it ([x at its foot, x
+ * at its head, z], stairW wide). Since v1.77 the niches, the orbs and the great key stand in the middle of the room, in
+ * the wick-house: a block of stone whose south face is at z `face`, its two niches' x (`niches`), the orbs' grooves along z
+ * ([from, to]: to the niches' mouths), the great key behind its grille in the block at z `keyZ`; the orbs' glow (s).
  */
-export const ROOT_WAY = { x0: 9.8, z: 57.2, y: 9, ledge: [7.5, 54.7, 9.8, 60.2] };
+const [KX, KZ] = mid(ROOMS.kennel), [WX, WZ] = mid(ROOMS.wick);
+export const KENNEL = { x: KX, z: KZ, w: 30, d: 30, zone: { min: [ROOMS.kennel.x0, -1, ROOMS.kennel.z0], max: [ROOMS.kennel.x1, 9, ROOMS.kennel.z1] } };
+export const WICK = { x: WX, z: WZ, w: 30, d: 40, h: 20, door: 50, balcony: [72, 85, 5], stair: [44, 31, 82.6], stairW: 4.4,
+  face: 64, niches: [34.7, 47.3], groove: [53.2, 61.2], keyZ: 68.5, lasts: 25 };
+/**
+ * The keepers' way between the Wick Room's balcony and the Root Stair's root-wall top (v1.60): a ledge of roots along the
+ * stair's east wall at the root-wall's height, [x0, z0, x1, z1] (over the pool, out of any jump's reach from the floor),
+ * and a passage east through the wall at z.
+ */
+export const ROOT_WAY = { x0: 14, z: 81, y: 9, ledge: [14, 77, 18.5, 86.5] };
 
 export const LOGIC = {
   id: 'perdide2', entry: 'threshold', gadget: 'lantern',
-  rooms: { threshold: { checkpoint: true }, pools: { checkpoint: true }, loft: {}, roots: { checkpoint: true }, lantern: { checkpoint: true }, kennel: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: {}, wick: { checkpoint: true }, wickKey: {}, lamp: { boss: true }, out: {} },
+  // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
+  // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js. The
+  // Lantern Chamber a puzzle room: the chest in its middle, the lantern's try and the Lamp Passage's lamp beside it)
+  rooms: {
+    threshold: { checkpoint: true, kind: 'passage' }, pools: { checkpoint: true, kind: 'puzzle' }, loft: { kind: 'puzzle' }, roots: { checkpoint: true, kind: 'puzzle' },
+    lantern: { checkpoint: true, kind: 'puzzle' }, kennel: { checkpoint: true, kind: 'combat' },
+    gallery: { checkpoint: true, kind: 'puzzle' }, galleryFar: { kind: 'puzzle' }, wick: { checkpoint: true, kind: 'puzzle' }, wickKey: { kind: 'passage' },
+    lamp: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+  },
   links: [
     { a: 'threshold', b: 'pools' },
-    { a: 'pools', b: 'loft' },                                        // up the west roots
+    { a: 'pools', b: 'loft' },                                        // up the loft of roots
     { a: 'pools', b: 'kennel', door: 'dK' },                         // the Kennel, east off the hall (v1.49): an arena, the small key
     { a: 'pools', b: 'wick' },                                        // the Wick Room, east off the hall too (v1.60): the great key behind a grille
     { a: 'pools', b: 'roots', door: 'd1' },
     { a: 'roots', b: 'lantern', door: 'disc' },                      // the moss-stones over the dark pool, once their lamp is lit
     { a: 'wick', b: 'lantern', door: 'dU' },                         // its keepers' door onto the ledge round the stair to the root-wall's top, with its grille: a loop
-    { a: 'lantern', b: 'gallery', door: 'd2' },                      // the Lamp Passage's door, a room on (one room with the chamber)
+    { a: 'lantern', b: 'gallery', door: 'd2' },                      // the Lamp Passage's door, past the chamber (one room with it)
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'wick', b: 'wickKey', door: 'cW' },                         // its grille: both its lamps lit at once
     { a: 'galleryFar', b: 'lamp', door: 'd4' },
@@ -123,8 +164,10 @@ export const LOGIC = {
   elements: {
     s1: { type: 'switch', room: 'pools' }, s2: { type: 'switch', room: 'pools' }, s3: { type: 'switch', room: 'loft' },
     d1: { type: 'door', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
-    s5: { type: 'switch', room: 'pools' },                            // the small pool by the door: its light for the orb
-    orb5: { type: 'drum', room: 'pools', plate: 'p5', plateAt: 1, start: 0 },   // a pool-orb, rolled through the doorway
+    // (v1.77) the small pool, the pool-orb and its socket in the middle of the Root Stair's floor: the orb rolled through
+    // the Hall of Dark Pools' door before
+    s5: { type: 'switch', room: 'roots' },                            // the small pool by the orb: its light for the orb
+    orb5: { type: 'drum', room: 'roots', plate: 'p5', plateAt: 1, start: 0 },   // a pool-orb, rolled to the socket
     p5: { type: 'plate', room: 'roots' },                             // the disc's socket
     l5: { type: 'switch', room: 'roots' },                            // the socket's lamp: it wakes to a glowing orb
     disc: { type: 'bridge', opens: { all: [{ lit: 's5' }, { drumOn: ['orb5', 'p5'] }, { lit: 'l5' }] }, latch: true },
@@ -253,195 +296,217 @@ function mothHit(g, part, mode) {
   return true;
 }
 
-/** The Kennel's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
+/** The Kennel's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round the middle of the Kennel). */
 export const ARENAS = [{
   el: 'arK', room: 'kennel', zone: KENNEL.zone, doors: ['dK'], extra: 2,
   shut: 'The door grinds shut behind you, and something in the dark of the kennel gets up.',
   won: 'The last of them goes still in the dark. The key’s cage sinks, and the door lets go.',
 }];
 
+/** A stone post under a lamp that stands in a floor (a LightEar's glass hangs 2.8 m over its foot): from y, solid. */
+function lampPost(K, M, x, y, z) {
+  K.both(M.trim, box(0.9, 0.3, 0.9, x, y + 0.15, z));
+  K.both(M.wall, box(0.5, 1.9, 0.5, x, y + 1.25, z));
+  K.both(M.trim, box(0.8, 0.2, 0.8, x, y + 2.3, z));
+}
+
 /**
  * The Kennel (east off the Hall of Dark Pools, an arena: where the keepers of the house's lamps were kept, dark; its door
- * shuts behind you while they stand, and won, the small key's cage sinks: for the Wick Room's grille) and the Wick Room
- * (v1.60: east off the hall too, north of the Kennel, beside the Root Stair: two niches low in its east wall, a pool-orb in
- * a groove before each; the great key in an alcove between them, behind a grille that lifts once both niches burn at
- * once; a balcony high on its west wall, at the end of the ledge of roots from the root-wall's top).
+ * shuts behind you while they stand round its middle among four columns, and won, the small key's cage sinks: for the
+ * Wick Room's grille) and the Wick Room (v1.60: east off the hall too, north of the Kennel, beside the Root Stair; since
+ * v1.77 the wick-house in its middle, a block of stone with two niches in its south face, a pool-orb in a groove before
+ * each, and the great key behind a grille between them that lifts once both niches burn at once; a balcony high on its
+ * west wall, at the end of the ledge of roots from the root-wall's top).
  */
 function wings(rt, K, M, { root }) {
   const add = (P, o) => rt.add(P, o);
-  const Kn = KENNEL, Wk = WICK;
+  const D = DOOR, Kn = KENNEL, Wk = WICK, KR = ROOMS.kennel, WR = ROOMS.wick, PO = ROOMS.pools;
   // ---- the Kennel
-  K.corridor([11.6, Kn.z], [Kn.x - Kn.w / 2 - 0.6, Kn.z], 0, { w: 5, h: 6.4 });
-  K.hall({ x: Kn.x, z: Kn.z, w: Kn.w, d: Kn.d, y: 0, h: 10, roof: true, doors: [{ side: 'w', at: 0, w: 5, h: 6.4 }] });
-  add(Door, { id: 'dK', at: [12.6, 0, Kn.z], yaw: Math.PI / 2, w: 5, h: 6.4 });   // (open: it shuts behind you while they stand)
-  // the keepers' old stalls along the walls (the bars over them drawn only: they are up out of reach)
-  for (const z of [Kn.z - 4.4, Kn.z + 4.4]) for (const x of [Kn.x - 3, Kn.x + 3]) { K.both(M.wall, box(0.4, 2.2, 3, x - 1.4, 1.1, z + Math.sign(z - Kn.z) * 1.6)); K.add(M.trim, box(3.2, 0.3, 0.3, x, 2.2, z + Math.sign(z - Kn.z) * 0.15)); }
-  add(Key, { id: 'kS', at: [Kn.x + Kn.w / 2 - 1.6, 0, Kn.z], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'kennel', at: [Kn.x - 4, 0, Kn.z - 3], yaw: -Math.PI / 2 });
+  K.corridor([PO.x1 + 1.2, Kn.z], [KR.x0 - 0.6, Kn.z], 0, { w: D.w, h: D.h });
+  K.hall({ x: Kn.x, z: Kn.z, w: Kn.w, d: Kn.d, y: 0, h: KR.top, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: D.w, h: D.h }] });
+  add(Door, { id: 'dK', at: [KR.x0 - 0.6, 0, Kn.z], yaw: Math.PI / 2, w: D.w, h: D.h });   // (open: it shuts behind you while they stand)
+  // the keepers' old stalls along the north and south walls, a bar over each front; four columns round the middle to
+  // fight round
+  for (const zs of [KR.z0, KR.z1]) {
+    const sg = zs === KR.z0 ? 1 : -1;
+    for (const x of [29, 35, 41, 47, 53]) K.both(M.wall, box(0.4, 2.6, 3.6, x, 1.3, zs + sg * 1.8));
+    for (const x of [32, 38, 44, 50]) K.both(M.trim, box(5.6, 0.3, 0.3, x, 2.45, zs + sg * 3.45));
+  }
+  for (const [x, z] of [[Kn.x - 6, Kn.z - 6], [Kn.x + 6, Kn.z - 6], [Kn.x - 6, Kn.z + 6], [Kn.x + 6, Kn.z + 6]]) K.column(x, z, 0, KR.top, 0.9);
+  add(Key, { id: 'kS', at: [KR.x1 - 2.4, 0, Kn.z], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'kennel', at: [KR.x0 + 3, 0, Kn.z - 7], yaw: Math.PI / 2, foes: [Kn.x, 0, Kn.z] });
 
   // ---- the Wick Room (v1.60: east of the Root Stair, off the Hall of Dark Pools; v1.49 off the gallery's far side). Its
-  // floor at the hall's, its way in from the hall's east wall; a stair up its north wall to a balcony
-  // on its west wall, and from it a keepers' door through to a ledge of roots round the Root Stair's east wall, onto the
-  // root-wall's top: it opens with the grille over the great key, the shortcut back up to the chamber
-  const Z = Wk.z, x0 = Wk.x - Wk.w / 2, x1 = Wk.x + Wk.w / 2, B = Wk.balcony, R = ROOT_WAY;
-  K.corridor([11.6, Wk.door], [x0 - 0.6, Wk.door], 0, { w: 5, h: 6.4 });
-  K.corridor([R.x0, R.z], [x0 - 0.6, R.z], R.y, { w: 5, h: 6 });
-  add(Door, { id: 'dU', at: [11.5, R.y, R.z], yaw: Math.PI / 2, w: 5, h: 6, lamps: [{ lit: 'lW1' }, { lit: 'lW2' }] });
-  K.hall({ x: Wk.x, z: Z, w: Wk.w, d: Wk.d, y: 0, h: Wk.h, roof: true, doors: [{ side: 'w', at: Wk.door - Z, w: 5, h: 6.4 }, { side: 'w', at: R.z - Z, w: 5, h: 6, y0: R.y }, { side: 'e', at: Wk.keyZ - Z, w: 2.4, h: 3 }] });
+  // floor at the hall's, its way in from the hall's east wall; a stair up its north wall to a balcony on its west wall,
+  // and from it a keepers' door through to a ledge of roots along the Root Stair's east wall, onto the root-wall's top: it
+  // opens with the grille over the great key, the shortcut back up to the chamber
+  const x0 = WR.x0, B = Wk.balcony, R = ROOT_WAY, F = Wk.face;
+  K.corridor([PO.x1 + 1.2, Wk.door], [x0 - 0.6, Wk.door], 0, { w: D.w, h: D.h });
+  K.corridor([ROOMS.roots.x1 + 1.2, R.z], [x0 - 0.6, R.z], R.y, { w: D.w, h: D.h });
+  add(Door, { id: 'dU', at: [ROOMS.roots.x1 + 0.6, R.y, R.z], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 'lW1' }, { lit: 'lW2' }] });
+  K.hall({ x: Wk.x, z: Wk.z, w: Wk.w, d: Wk.d, y: 0, h: Wk.h, roof: 'oculus', oculus: 0.2, doors: [{ side: 'w', at: Wk.door - Wk.z, w: D.w, h: D.h }, { side: 'w', at: R.z - Wk.z, w: D.w, h: D.h, y0: R.y }] });
   // the balcony under the way through from the roots, and the stair up the north wall to it; roots down the wall under it
   K.slab(x0, B[0], x0 + B[2], B[1], R.y, 0.8);
   const [sx0, sx1, sz] = Wk.stair;
   K.stairs([sx0, 0, sz], [sx1, R.y, sz], Wk.stairW);
   for (const [z, r] of [[B[0] + 1.6, 0.45], [B[0] + 6.4, 0.4]]) root([[x0 + 0.5, R.y - 0.9, z], [x0 + 0.9, R.y - 3, z + 0.6], [x0 + 0.4, R.y - 6, z - 0.4], [x0 + 0.8, 0, z + 0.3]], r);
-  // the two niches low in the east wall, each with its lamp at the back; a pool-orb's groove before each
-  const [g0, g1] = Wk.groove;
-  for (const [i, zz] of Wk.niches.entries()) {
+  // the wick-house in the middle of the floor: two blocks of stone either side of the great key's alcove (its back wall,
+  // its roof over the grille's 9 m), a niche in each block's south face with its lamp at the back; a pool-orb's groove
+  // before each niche, down the middle of the room
+  const [n0, n1] = Wk.niches, [g0, g1] = Wk.groove, cx = Wk.x, back = F + 8, HH = 11;
+  for (const s of [-1, 1]) K.both(M.wall, box(5.5, HH, 8, cx + s * 6.25, HH / 2, F + 4));
+  K.both(M.wall, box(7, 9, 0.8, cx, 4.5, back - 0.4));
+  K.both(M.wall, box(7, HH - 9, 8, cx, 9 + (HH - 9) / 2, F + 4));
+  K.both(M.trim, box(18.4, 0.5, 8.4, cx, HH + 0.25, F + 4));
+  for (const [i, nx] of [n0, n1].entries()) {
     const id = `lW${i + 1}`, orb = `oW${i + 1}`, plate = `pW${i + 1}`;
-    K.both(M.wall, [box(3.4, 3.2, 0.6, x1 - 1.7, 1.6, zz - 1.9), box(3.4, 3.2, 0.6, x1 - 1.7, 1.6, zz + 1.9), box(3.4, 0.8, 4.4, x1 - 1.7, 3.6, zz)]);
-    add(LightEar, { id, at: [x1 - 0.7, -0.3, zz], reach: 0 });   // (reach 0: your lantern can't wake it; its orb does, while it glows)
-    K.add(M.dark, box(g1 - g0 + 0.6, 0.04, 1.0, (g0 + g1) / 2, 0.02, zz));
-    for (const sd of [-1, 1]) K.add(M.trim, box(g1 - g0 + 0.6, 0.12, 0.25, (g0 + g1) / 2, 0.06, zz + sd * 0.75));
-    add(Ball, { id: orb, a: [g0, 0.04, zz], b: [g1, 0.04, zz], r: 0.9, lock: true, lamp: { id, reach: 2.8, hold: 2, lasts: Wk.lasts,
+    K.both(M.wall, [box(0.6, 3.2, 3.5, nx - 1.9, 1.6, F - 1.65), box(0.6, 3.2, 3.5, nx + 1.9, 1.6, F - 1.65), box(4.4, 0.8, 3.6, nx, 3.6, F - 1.7)]);
+    add(LightEar, { id, at: [nx, -0.3, F - 0.7], reach: 0 });   // (reach 0: your lantern can't wake it; its orb does, while it glows)
+    K.add(M.dark, box(1.0, 0.04, g1 - g0 + 0.6, nx, 0.02, (g0 + g1) / 2));
+    for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, g1 - g0 + 0.6, nx + sd * 0.75, 0.06, (g0 + g1) / 2));
+    add(Ball, { id: orb, a: [nx, 0.04, g0], b: [nx, 0.04, g1], r: 0.9, lock: true, lamp: { id, reach: 2.8, hold: 2, lasts: Wk.lasts,
       woke: 'The glowing orb settles in the niche, and its lamp catches: for as long as the orb glows.',
       faded: 'The orb’s glow has gone out, and its niche’s lamp with it.' } });
-    add(Plate, { id: plate, at: [g1, 0, zz], r: 1.0 });
+    add(Plate, { id: plate, at: [nx, 0, g1], r: 1.0 });
   }
-  // the great key in its alcove behind the east wall, between the niches, behind a grille
-  const KZ = Wk.keyZ;
-  K.slab(x1, KZ - 1.6, x1 + 3.6, KZ + 1.6, 0, 0.8);
-  K.both(M.wall, [box(0.6, 3.6, 3.2, x1 + 3.9, 1.8, KZ), box(3.6, 0.6, 3.2, x1 + 1.8, 3.9, KZ), box(3.5, 3.7, 0.5, x1 + 1.85, 1.75, KZ - 1.85), box(3.5, 3.7, 0.5, x1 + 1.85, 1.75, KZ + 1.85)]);
-  add(Door, { id: 'cW', at: [x1 + 0.6, 0, KZ], yaw: Math.PI / 2, w: 2.4, h: 3, lamps: [{ lit: 'lW1' }, { lit: 'lW2' }] });   // (a keyhole too: logic `lock`)
-  add(Key, { id: 'kB', big: true, at: [x1 + 2.2, 0, KZ], yaw: -Math.PI / 2 });
+  // the great key in its alcove, behind the grille between the niches (a keyhole too: logic `lock`)
+  add(Door, { id: 'cW', at: [cx, 0, F], w: D.w, h: D.h, lamps: [{ lit: 'lW1' }, { lit: 'lW2' }] });
+  add(Key, { id: 'kB', big: true, at: [cx, 0, Wk.keyZ], yaw: Math.PI });
   // roots down the walls, and the old wick-stands along the south wall
-  root([[x1 - 0.5, Wk.h, Z + 9], [x1 - 0.9, 9, Z + 10.5], [x1 - 0.4, 4, Z + 9.4], [x1 - 0.8, 0, Z + 10.2]], 0.5);
-  for (const x of [x0 + 5.2, x0 + 9.2]) { K.both(M.trim, box(0.5, 2.6, 0.5, x, 1.3, Z - Wk.d / 2 + 1.2)); K.both(M.wall, box(1.1, 0.25, 1.1, x, 2.7, Z - Wk.d / 2 + 1.2)); }
-  add(Mark, { room: 'wick', at: [x0 + 2.6, 0, Wk.door + 3.4], yaw: Math.PI / 2 });
+  root([[WR.x1 - 0.5, Wk.h, Wk.z + 9], [WR.x1 - 0.9, 13, Wk.z + 10.5], [WR.x1 - 0.4, 6, Wk.z + 9.4], [WR.x1 - 0.8, 0, Wk.z + 10.2]], 0.55);
+  for (const x of [x0 + 8, x0 + 15, x0 + 22]) { K.both(M.trim, box(0.5, 2.6, 0.5, x, 1.3, WR.z0 + 1.2)); K.both(M.wall, box(1.1, 0.25, 1.1, x, 2.725, WR.z0 + 1.2)); }
+  add(Mark, { room: 'wick', at: [x0 + 3.5, 0, Wk.door + 4], yaw: Math.PI / 2 });
 }
 
 // ------------------------------------------------------------------ inside
+// (since v1.77, issue #336, docs/design/temple-redesign.md: every hall 30 to 36 m across under 17 m of stone or more, the
+// chamber's round hall 34 m, doors 7 by 9; each puzzle in the middle of its room, the one fight in the Kennel)
 function layout(rt) {
-  const K = rt.kit, M = rt.M;
+  const K = rt.kit, M = rt.M, D = DOOR, R0 = ROOMS;
   const add = (P, o) => rt.add(P, o);
   const root = (pts, r) => K.both(M.stone, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => V(...p))), 16, r, 7, false));
+  const hall = (r, o = {}) => { const [x, z] = mid(r); return K.hall({ x, z, w: r.x1 - r.x0, d: r.z1 - r.z0, y: r.y, h: r.top - r.y, ...o }); };
 
-  // ---- the Threshold (z 0..12)
-  K.hall({ x: 0, z: 6, w: 14, d: 12, y: 0, h: 9, roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
+  // ---- the Threshold
+  const TH = R0.threshold;
+  hall(TH, { roof: true, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
   K.both(M.voidM, box(3.6, 5, 1.25, 0, 2.5, -0.625));   // (drawn and solid as one: from the doorway's face back to the wall's inner face)
   K.glyph([0, 6.2, 0.05], 1.5, 0);
-  add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
-  K.wall(-12.2, 12.6, 12.2, 12.6, 0, 13, { t: 1.2, holes: [{ at: 12.2, w: 6, h: 7 }] });
+  add(Mark, { room: 'threshold', at: [-5, 0, 6.5], yaw: Math.PI / 2 });
 
-  // ---- the Hall of Dark Pools (z 12.6..44): three pool-lamps, dark; splash each
-  K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: true, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }, { side: 'e', at: KENNEL.z - 28.3, w: 5, h: 6.4 }, { side: 'e', at: WICK.door - 28.3, w: 5, h: 6.4 }] });   // (and east into the Kennel, v1.49, and the Wick Room, v1.60)
+  // ---- the Hall of Dark Pools: three pool-lamps, dark; splash each. Two on the floor, the third up on the loft of roots,
+  // a block out from the west wall into the middle of the hall, its pool far enough back from the edge that the floor
+  // never sees it
+  const PO = R0.pools, [, pz] = mid(PO);
+  hall(PO, { roof: 'oculus', oculus: 0.2, omit: ['n'], doors: [{ side: 's', w: D.w, h: D.h }, { side: 'e', at: KENNEL.z - pz, w: D.w, h: D.h }, { side: 'e', at: WICK.door - pz, w: D.w, h: D.h }] });   // (and east into the Kennel, v1.49, and the Wick Room, v1.60)
+  for (const [x, z] of [[13, 22], [13, 48], [-13, 20], [-13, 48]]) K.column(x, z, 0, PO.top, 0.9);
   const poolM = makeMaterial({ color: '#2f3560', glow: 0.1, flat: true, key: 'temple.p2.pools' });
   const pool = (id, x, y, z, r = 2.0) => {
     K.both(M.trim, T(annulus(r, r + 0.6, 0.5, 32), [x, y + 0.5, z]));
     K.both(poolM, T(new THREE.CylinderGeometry(r, r, 0.1, 28), [x, y + 0.3, z]));
     add(Switch, { id, at: [x, y + 0.9, z], yaw: 0, size: 0.9 });
   };
-  pool('s1', 5, 0, 26); pool('s2', -4, 0, 34);
-  // a smaller pool by the door (not one of its three), and a pool-orb beside it in a groove that runs through the
-  // doorway to the Root Stair's socket: lit, the pool's light is what the orb carries to the disc's lamp
-  pool('s5', 4.8, 0, 39.6, 1.3);
-  K.add(M.dark, box(1.0, 0.04, 12.4, 1.4, 0.02, 43.4));
-  for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, 12.4, 1.4 + sd * 0.75, 0.06, 43.4));
-  add(Ball, { id: 'orb5', a: [1.4, 0.04, 37.4], b: [1.4, 0.04, 49.4], r: 0.9, lock: true, gap: { bridge: 'd1', from: 0.47, to: 0.73 },
-    lamp: { id: 'l5', reach: 0, pool: { id: 's5', at: [4.8, 0.9, 39.6], reach: 4.6 }, hold: 2, lasts: 25,
+  pool('s1', 7, 0, 29); pool('s2', -1, 0, 45);
+  const LO = { x0: PO.x0 - 0.1, x1: -6.2, z0: 26, z1: 42, top: 8 }, [lox, loz] = mid(LO);
+  K.climbable('the loft of roots: climbed from the Hall of Dark Pools\' floor to the third pool', () => {
+    K.both(M.wallGlyph, box(LO.x1 - LO.x0, LO.top, LO.z1 - LO.z0, lox, LO.top / 2, loz));
+    K.both(M.trim, box(LO.x1 - LO.x0 + 0.2, 0.3, LO.z1 - LO.z0 + 0.2, lox, LO.top + 0.05, loz));
+    root([[LO.x1 + 0.1, 8, loz - 4.5], [LO.x1 + 0.4, 5, loz - 5.4], [LO.x1, 2, loz - 4.4], [LO.x1 + 0.3, 0, loz - 5.2]], 0.4);
+    root([[LO.x1 + 0.1, 8, loz + 4.2], [LO.x1 + 0.5, 4, loz + 5.4], [LO.x1 + 0.1, 0, loz + 4.6]], 0.35);
+  });
+  pool('s3', -10.5, 8.2, loz, 1.5);
+  add(Door, { id: 'd1', at: [0, 0, PO.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] });
+  add(Mark, { room: 'pools', at: [11.5, 0, 18.5], yaw: -Math.PI / 2 });
+  root([[PO.x0 + 0.4, PO.top - 0.5, 17], [PO.x0 + 1.4, 18, 18.5], [PO.x0 + 0.8, 12, 21]], 0.8);
+  root([[PO.x0 + 0.6, PO.top - 0.5, 50], [PO.x0 + 1.5, 14, 47], [PO.x0 + 0.8, 4, 49], [PO.x0 + 1.2, 0, 51]], 0.8);
+  root([[PO.x1 - 0.4, PO.top - 1, 42], [PO.x1 - 1.9, 16, 38], [PO.x1 - 0.8, 6, 34], [PO.x1 - 0.6, 0, 33]], 0.7);
+
+  // ---- the Root Stair (a hall over a dark pool across its middle): the small pool and its pool-orb on the near floor,
+  // the orb's groove to the socket whose lamp wakes the moss-stones sunk in the pool; then a root-wall to climb, its top
+  // the landing at 9 under the chamber's door
+  const RS = R0.roots, P0 = RS.z0 + RS.near, P1 = P0 + RS.pit, [, rz] = mid(RS), dy = RS.floor - RS.y;
+  hall(RS, { floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 's', w: D.w, h: D.h, y0: dy }, { side: 'n', w: D.w, h: D.h, y0: RS.wall - RS.y }, { side: 'e', at: ROOT_WAY.z - rz, w: D.w, h: D.h, y0: RS.wall - RS.y }] });   // (and east at 9 to the Wick Room's balcony, v1.60)
+  K.slab(RS.x0, RS.z0, RS.x1, P0, RS.floor, dy);            // the near floor (its top at 0)
+  K.both(M.dark, box(RS.x1 - RS.x0, 1, RS.pit, 0, RS.y - 0.5, (P0 + P1) / 2));
+  const pool2 = makeMaterial({ color: '#2a2f58', glow: 0.18, flat: true, key: 'temple.p2.deep' });
+  K.add(pool2, box(RS.x1 - RS.x0, 0.2, RS.pit, 0, -2.4, (P0 + P1) / 2));
+  add(Pit, { room: 'roots', min: [RS.x0 - 1, RS.y - 2, P0], max: [RS.x1 + 1, -1.5, P1] });
+  add(Bridge, { id: 'disc', a: [0, 0, P0 - 0.05], b: [0, 0, P1 + 0.05], w: 3.0, n: 6, glow: { color: '#8fd6a8', k: 0.5 } });   // moss-stones, sunk in the pool
+  // the small pool beside the groove's start, the orb at rest by it, the socket and its lamp at the groove's end
+  const OZ = RS.z0 + 11.6;
+  pool('s5', -4.5, 0, OZ + 2.8, 1.3);
+  K.add(M.dark, box(12.6, 0.04, 1.0, 0, 0.02, OZ));
+  for (const sd of [-1, 1]) K.both(M.trim, box(12.6, 0.12, 0.25, 0, 0.06, OZ + sd * 0.75));
+  add(Ball, { id: 'orb5', a: [-6, 0.04, OZ], b: [6, 0.04, OZ], r: 0.9, lock: true,
+    lamp: { id: 'l5', reach: 0, pool: { id: 's5', at: [-4.5, 0.9, OZ + 2.8], reach: 4.6 }, hold: 2, lasts: 25,
       caught: 'The orb drinks the pool’s light and glows, for a while.',
       dark: 'The orb settles in the socket, dark, and the socket tips it back out. The disc’s lamp wants light.',
       woke: 'The glowing orb settles in the socket, and the disc’s lamp catches. The disc wakes.' } });
-  // the third pool, up on a loft of roots against the west wall (climb its face): its edge hides it from the floor
-  K.climbable('the loft of roots: climbed from the Hall of Dark Pools\' floor to the third pool', () => {
-    K.both(M.wallGlyph, box(5, 8, 13.2, -8.5, 4, 19.4));
-    K.both(M.trim, box(5.2, 0.3, 13.4, -8.5, 8.05, 19.4));
-    root([[-6.1, 8, 24.5], [-5.8, 5, 23.6], [-6.2, 2, 24.6], [-5.9, 0, 23.8]], 0.4);
-    root([[-6.1, 8, 15.2], [-5.7, 4, 16.4], [-6.1, 0, 15.6]], 0.35);
-  });
-  pool('s3', -8.8, 8.2, 21.2, 1.5);
-  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] });
-  add(Mark, { room: 'pools', at: [7.5, 0, 16], yaw: -Math.PI / 2 });
-  root([[-11, 12.5, 13.4], [-10, 10, 14.5], [-10.6, 8.2, 15.6]], 0.8);          // (over the loft's back, clear of its pool)
-  root([[-10.6, 8.1, 25.4], [-10.5, 4, 27], [-10.8, 0, 30]], 0.8);
-  root([[11, 12, 40], [9.5, 8, 36], [10.6, 3, 32], [10.8, 0, 26]], 0.7);
-
-  // ---- the Root Stair (a rotunda, floor 0): a disc over a dark pool, then a root-wall to the landing at 9
-  K.slab(-3.2, 44, 3.2, 46.6, 0, 0.8);
-  K.wall(-3.2, 44.6, -3.2, 46.6, 0, 6.4, { t: 0.8 }); K.wall(3.2, 46.6, 3.2, 44.6, 0, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.8, 45.6));
-  const C2 = 57.2;
-  K.rotunda({ x: 0, z: C2, y: -6, r: 10, h: 30, floor: false, gaps: [{ a: Math.PI, w: 5, h: 6.4, y0: 6 }, { a: 0, w: 5, h: 6, y0: 15 }, { a: Math.PI / 2, w: 5, h: 6, y0: 15 }], oculus: 0.3 });   // (and east at 9 to the Wick Room's balcony, v1.60)
-  K.both(M.floor, box(20, 6, 3, 0, -3, C2 - 8.6));            // the near landing (its top at 0)
-  K.both(M.dark, T(new THREE.CylinderGeometry(10, 10, 1, 32), [0, -6.5, C2]));
-  const pool2 = makeMaterial({ color: '#2a2f58', glow: 0.18, flat: true, key: 'temple.p2.deep' });
-  K.add(pool2, T(new THREE.CylinderGeometry(9.8, 9.8, 0.2, 32), [0, -2.4, C2]));
-  add(Pit, { room: 'roots', min: [-11, -8, C2 - 7], max: [11, -1.5, C2 + 3] });
-  add(Bridge, { id: 'disc', a: [0, 0, C2 - 7.15], b: [0, 0, C2 + 2.95], w: 3.0, n: 6, glow: { color: '#8fd6a8', k: 0.5 } });   // moss-stones, sunk in the pool
-  add(Plate, { id: 'p5', at: [1.4, 0, 49.4], r: 1.0 });
-  add(LightEar, { id: 'l5', at: [2.9, 0, 49.4], reach: 0 });   // (the disc's lamp: only the glowing orb wakes it)
-  // the root-wall, its top at 9: climb it (with the roots down its face and the landing on top: the house's
-  // climbs, its other walls are not climbed, issue #115)
+  add(Plate, { id: 'p5', at: [6, 0, OZ], r: 1.0 });
+  lampPost(K, M, 7.6, 0, OZ);
+  add(LightEar, { id: 'l5', at: [7.6, 0, OZ], reach: 0 });   // (the disc's lamp: only the glowing orb wakes it)
+  // the root-wall across the far side, its top at 9: climb it (with the roots down its face: the house's climbs, its other
+  // walls are not climbed, issue #115)
   K.climbable('the Root Stair\'s root-wall: climbed from the moss-stones to the landing at 9', () => {
-    K.both(M.wallGlyph, box(20, 15, 6, 0, 1.5, C2 + 6));
-    root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
-    root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
-    K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
+    K.both(M.wallGlyph, box(RS.x1 - RS.x0, RS.wall - RS.y, RS.z1 - P1, 0, (RS.wall + RS.y) / 2, (P1 + RS.z1) / 2));
+    root([[-6, 9, P1 - 0.2], [-5, 5, P1 - 0.3], [-6.2, 1, P1 - 0.25], [-6, -3, P1 - 0.3]], 0.45);
+    root([[5, 9, P1 - 0.2], [6, 4, P1 - 0.3], [4.8, 0, P1 - 0.25], [5.4, -3, P1 - 0.3]], 0.45);
   });
-  add(Mark, { room: 'roots', at: [-3.2, 0, C2 - 8.6], yaw: Math.PI / 2 });
-  // (v1.60) a ledge of roots from the root-wall's top south along the east wall, to the keepers' door through it into the Wick Room
+  add(Mark, { room: 'roots', at: [-12, 0, RS.z0 + 4], yaw: Math.PI / 2 });
+  // (v1.60) a ledge of roots along the east wall at the root-wall's height, to the keepers' door through it into the Wick Room
   { const [lx0, lz0, lx1, lz1] = ROOT_WAY.ledge;
     K.slab(lx0, lz0, lx1, lz1, ROOT_WAY.y, 0.6);
     root([[lx0 + 0.4, ROOT_WAY.y - 0.9, lz0 + 1.2], [lx0 + 1.1, ROOT_WAY.y - 3, lz0 + 0.6], [lx0 + 1.8, ROOT_WAY.y - 6.5, lz0 + 1.0]], 0.32); }
+  root([[RS.x0 + 0.5, RS.top - 1, RS.z0 + 8], [RS.x0 + 1.4, 14, RS.z0 + 10], [RS.x0 + 0.7, 4, RS.z0 + 9], [RS.x0 + 1, 0, RS.z0 + 11]], 0.7);
 
-  // ---- the corridor and the Lantern Chamber (floor 9, a dark rotunda): the chest; a lamp-door
-  K.slab(-3.2, C2 + 9.8, 3.2, C2 + 12.6, 9, 0.8);
-  K.wall(-3.2, C2 + 10.4, -3.2, C2 + 12.6, 9, 6.4, { t: 0.8 }); K.wall(3.2, C2 + 12.6, 3.2, C2 + 10.4, 9, 6.4, { t: 0.8 });
-  K.both(M.wall, box(7.2, 0.8, 2.6, 0, 15.8, C2 + 11.6));
-  const C3 = C2 + 22.6;    // 79.8
-  K.rotunda({ x: 0, z: C3, y: 9, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0 });
-  // the dais, solid as drawn: its two steps as cylinders (one cylinder stood over its lower step; the lathe
-  // alone gave no top a ray from above could land on, so the chest sank into the dais: the QC pass)
+  // ---- the corridor and the Lantern Chamber (floor 9, a dark round hall 34 m across): the chest in the middle; a lamp by
+  // the dais to try the lantern on, and the Lamp Passage's lamp on a post by the way north (the passage the corridor
+  // through the chamber's north wall since v1.77), whose door into the gallery wakes to it
+  const LA = R0.lantern, C3 = LA.z;
+  K.corridor([0, RS.z1 + 1.2], [0, C3 - LA.r - 0.4], 9, { w: D.w, h: D.h });
+  K.rotunda({ x: 0, z: C3, y: LA.y, r: LA.r, h: LA.top - LA.y, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0 });
   K.both(M.trim, ...chestMound(0, 9, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  lampPost(K, M, -5.4, 9, C3 + 3.4);
   add(LightEar, { id: 'l0', at: [-5.4, 9, C3 + 3.4], reach: 3.6 });   // (a try: it wakes to the lantern, and nothing waits on it)
-  add(Mark, { room: 'lantern', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
+  lampPost(K, M, 4.6, 9, C3 + 8.6);
+  add(LightEar, { id: 'l1', at: [4.6, 9, C3 + 8.6], reach: 3.0 });   // (off the way to the door: you go and stand by it)
+  root([[-LA.r + 0.6, LA.top - 0.5, C3 - 6], [-LA.r + 1, 18, C3 - 4], [-LA.r + 0.5, 9, C3 - 5]], 0.45);
+  root([[LA.r - 0.6, LA.top - 0.5, C3 + 3], [LA.r - 1, 17, C3 + 4.5], [LA.r - 0.5, 9, C3 + 3.6]], 0.4);
+  add(Mark, { room: 'lantern', at: [8, 9, C3 - 6], yaw: -Math.PI * 0.75 });
+  K.corridor([0, C3 + LA.r + 0.4], [0, R0.gallery.z0 - 0.6], 9, { w: D.w, h: D.h });   // (the Lamp Passage)
 
-  // ---- the Lamp Passage (floor 9), a room on: the door into the gallery is a lamp that wakes to the lantern
-  const A0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 9, 0.8);
-  K.hall({ x: 0, z: A0 + 6, w: 10, d: 12, y: 9, h: 8, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
-  root([[-4.6, 17, A0 + 2], [-4.2, 13, A0 + 4.5], [-4.7, 9, A0 + 3.6]], 0.35);
-  root([[4.5, 17, A0 + 8], [4.1, 12, A0 + 9.5], [4.6, 9, A0 + 8.4]], 0.3);
+  // ---- the Dark Gallery: a chasm across its middle crossed by moss-stones only the lantern shows; an eye only it shows,
+  // up on a post on the near floor (behind you as you cross, in sight from the far door); on the far floor the far door's
+  // lamp in a niche, which wakes only to the light of a pool-orb: stand by the orb with the lantern till it glows, then
+  // roll it (the push) down its groove into the niche before its glow fades. Rolled in dark, it wakes nothing
+  const GA = R0.gallery, Q0 = GA.z0 + GA.near, Q1 = Q0 + GA.pit, [, gz] = mid(GA), gy = GA.floor - GA.y;
+  add(Door, { id: 'd2', at: [0, 9, GA.z0 - 0.6], w: D.w, h: D.h, lamps: [{ lit: 'l1' }] });
+  hall(GA, { floor: false, roof: 'oculus', oculus: 0.2, doors: [{ side: 's', w: D.w, h: D.h, y0: gy }, { side: 'n', w: D.w, h: D.h, y0: gy }] });
+  K.slab(GA.x0, GA.z0, GA.x1, Q0, GA.floor, gy);
+  K.slab(GA.x0, Q1, GA.x1, GA.z1, GA.floor, gy);
+  K.both(M.dark, box(GA.x1 - GA.x0, 1, GA.pit, 0, GA.y - 0.5, gz));
+  add(Pit, { room: 'gallery', min: [GA.x0 - 1, GA.y - 3, Q0], max: [GA.x1 + 1, 4, Q1] });
+  add(Bridge, { id: 'br1', a: [0, 9, Q0 - 0.1], b: [0, 9, Q1 + 0.1], w: 3.4, n: 9, hidden: 'lantern' });
+  const SZ = Q0 - 5;
+  K.both(M.wall, box(2.4, 7.4, 1.0, 8, 12.7, SZ));
+  K.both(M.trim, box(2.8, 0.4, 1.4, 8, 16.6, SZ));
+  add(Switch, { id: 's4', at: [8, 15, SZ + 0.72], yaw: 0, size: 1.0, hidden: 'lantern' });   // (up on a post over the near floor, behind you as you cross; in sight from the far door)
+  const NZ = Q1 + 4;
+  K.both(M.wall, [box(0.8, 3.2, 4, -8.2, 10.6, NZ), box(3.6, 3.3, 0.6, -6.4, 10.65, NZ - 1.9), box(3.6, 3.3, 0.6, -6.4, 10.65, NZ + 1.9), box(3.8, 0.8, 4, -6.4, 12.65, NZ)]);
+  add(LightEar, { id: 'l2', at: [-7.3, 8.7, NZ], reach: 0 });   // (reach 0: your lantern can't wake it; the orb does)
+  K.add(M.dark, box(10.6, 0.04, 1.0, -0.8, 9.02, NZ));
+  for (const sd of [-1, 1]) K.both(M.trim, box(10.6, 0.12, 0.25, -0.8, 9.06, NZ + sd * 0.75));
+  add(Ball, { id: 'orb', a: [4.2, 9.04, NZ], b: [-6.2, 9.04, NZ], r: 0.9, lock: true, lamp: { id: 'l2', reach: 2.8, hold: 2, lasts: 25 } });
+  add(Plate, { id: 'p4', at: [-6.2, 9, NZ], r: 1.0 });
+  add(Door, { id: 'd4', at: [0, 9, GA.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] });
+  add(Mark, { room: 'gallery', at: [-7, 9, GA.z0 + 4], yaw: 0 });
 
-  // ---- the Dark Gallery (z 104..138): a chasm, moss-stones only the lantern shows, an eye only it shows
-  const G0 = A0 + 12 + 1.2;
-  K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 9, 0.8);
-  add(Door, { id: 'd2', at: [0, 9, G0 - 0.6], w: 5, h: 6.4, lamps: [{ lit: 'l1' }] });
-  add(LightEar, { id: 'l1', at: [3.6, 9, G0 - 2.6], reach: 3.0 });   // (beside the door, not on the way to it: you go and stand by it)
-  K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 24, floor: false, roof: true, doors: [{ side: 's', w: 5, h: 6.4, y0: 12 }, { side: 'n', w: 5, h: 6.4, y0: 12 }, { side: 'w', at: 12.8, w: 2.8, h: 2.8, y0: 12 }] });
-  K.slab(-11, G0, 11, G0 + 6, 9, 12);
-  K.slab(-11, G0 + 26, 11, G0 + 34.4, 9, 12);
-  K.both(M.dark, box(22, 1, 20, 0, -3.5, G0 + 16));
-  add(Pit, { room: 'gallery', min: [-12, -6, G0 + 6], max: [12, 4, G0 + 26] });
-  add(Bridge, { id: 'br1', a: [0, 9, G0 + 5.9], b: [0, 9, G0 + 26.1], w: 3.4, n: 9, hidden: 'lantern' });
-  add(Switch, { id: 's4', at: [7.2, 15, G0 + 0.15], yaw: 0, size: 1.0, hidden: 'lantern' });   // (over the way in, behind you at the edge; in sight from the far door)
-  // the far door's lamp, in a niche low in the west wall: only a pool-orb's light wakes it. The orb waits at
-  // the near end of its groove; held by your lantern it glows a while; rolled into the niche glowing, it wakes it
-  const NZ = G0 + 30;
-  K.slab(-14.4, NZ - 1.6, -11, NZ + 1.6, 9, 0.8);
-  K.both(M.wall, [box(0.8, 3.2, 4, -14.6, 10.6, NZ), box(3.6, 0.8, 4, -12.8, 12.65, NZ), box(3.6, 3.3, 0.6, -12.8, 10.65, NZ - 1.9), box(3.6, 3.3, 0.6, -12.8, 10.65, NZ + 1.9)]);
-  add(LightEar, { id: 'l2', at: [-13.7, 8.7, NZ], reach: 0 });   // (reach 0: your lantern can't wake it; the orb does)
-  K.add(M.dark, box(10.6, 0.04, 1.0, -7.2, 9.02, NZ));
-  for (const sd of [-1, 1]) K.both(M.trim, box(10.6, 0.12, 0.25, -7.2, 9.06, NZ + sd * 0.75));
-  add(Ball, { id: 'orb', a: [-2.2, 9.04, NZ], b: [-12.6, 9.04, NZ], r: 0.9, lock: true, lamp: { id: 'l2', reach: 2.8, hold: 2, lasts: 25 } });
-  add(Plate, { id: 'p4', at: [-12.6, 9, NZ], r: 1.0 });
-  add(Door, { id: 'd4', at: [0, 9, G0 + 35], w: 5, h: 6.4, lamps: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] });
-  add(Mark, { room: 'gallery', at: [-7, 9, G0 + 3], yaw: 0 });
-
-  // ---- the corridor, and the Lamp-Room (floor 9): a round hall, the great lamp dark in its cradle overhead
-  const H0 = G0 + 35;
+  // ---- the antechamber, and the Lamp-Room (floor 9): a round hall, the great lamp dark in its cradle overhead
+  const H0 = GA.z1 + 0.6;
   const AE = K.vestibule(H0, 9);   // (the antechamber, ANTE: issue #195)
   add(Mark, { room: 'ante', at: [ANTE.half - 1, 9, (H0 + AE) / 2], yaw: -Math.PI / 2 });
   const HR = 19, CL = AE + 1.2 + HR;
-  K.rotunda({ x: 0, z: CL, y: 9, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6 }], oculus: 0 });
+  K.rotunda({ x: 0, z: CL, y: 9, r: HR, h: 26, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: ANTE.h }, { a: 0, w: D.w, h: D.h }], oculus: 0 });
   // the lamp's cradle: a ring of brass on chains, a great glass lamp in it, dark until the end
   K.add(M.trim, T(annulus(4.2, 5, 0.4, 40), [0, 9 + 20, CL]));
   for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU; K.add(M.dark, box(0.12, 6, 0.12, Math.sin(a) * 4.6, 9 + 23, CL + Math.cos(a) * 4.6)); }
@@ -451,15 +516,18 @@ function layout(rt) {
   lamp.userData.noCollide = true; lamp.userData.dynamic = true;
   rt.root.add(lamp);
   rt.lampRoom = { lamp, lampM, light: null };
-  add(Door, { id: 'd5', at: [0, 9, CL + HR + 0.7], w: 5, h: 6, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
-  K.slab(-3.2, CL + HR + 0.6, 3.2, CL + HR + 10, 9, 0.8);
-  K.wall(-3.2, CL + HR + 1.4, -3.2, CL + HR + 10, 9, 7, { t: 0.8 }); K.wall(3.2, CL + HR + 10, 3.2, CL + HR + 1.4, 9, 7, { t: 0.8 });
-  K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CL + HR + 5.7));
-  K.both(M.voidM, box(3.4, 5, 0.9, 0, 11.5, CL + HR + 10.35));
+  // the way out, past the far door
+  const X0 = CL + HR + 0.7, X1 = CL + HR + 10;
+  add(Door, { id: 'd5', at: [0, 9, X0], w: D.w, h: D.h });
+  K.slab(-4.6, X0 - 0.1, 4.6, X1, 9, 0.8);
+  K.wall(-4.2, X0 + 0.7, -4.2, X1, 9, 10, { t: 0.8 }); K.wall(4.2, X1, 4.2, X0 + 0.7, 9, 10, { t: 0.8 });
+  K.wall(4.2, X1, -4.2, X1, 9, 10, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
+  K.both(M.wall, box(9.2, 0.8, X1 - X0 + 0.4, 0, 19.4, (X0 + X1) / 2));
+  K.both(M.voidM, box(3.4, 5, 0.9, 0, 11.5, X1 + 0.35));
 
-  // three dark pools round the room: lit earlier, each lures the Lampless down to drink (LurePools)
-  add(LurePools, { y: 9, at: [[-10.5, CL - 6], [10.5, CL - 6], [0, CL + 12]] });
+  // three dark pools round the room: lit earlier, each lures the Lampless down to drink (LurePools; its id the guardian's:
+  // the redesign's rules measure the Lamp-Room by them, scripts/temple-design/rules.mjs, the room has no mark)
+  add(LurePools, { id: 'moth', y: 9, at: [[-10.5, CL - 6], [10.5, CL - 6], [0, CL + 12]] });
 
   const model = mothModel();
   model.pos.copy(K.world(0, 9, CL + 4));
@@ -469,17 +537,18 @@ function layout(rt) {
   model.restHeading = K.heading(Math.PI);
   const arena = { center: K.world(0, 9, CL), r: HR, y: K.world(0, 9, 0).y };
 
-  // (the wings last: their marks after the others, so the machines' ids by mark stay as they were)
+  // (the wings last: their marks after the others)
   wings(rt, K, M, { root });
-  const W = (x, y, z) => K.world(x, y, z);
+  const W = (x, y, z) => K.world(x, y, z), KR = R0.kennel, WR = R0.wick;
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -10, -3), V(36, 40, CL + HR + 12)),
+    bounds: new THREE.Box3(V(R0.pools.x0 - 6, -10, -3), V(WR.x1 + 6, 40, X1 + 2)),
     gadget: { at: W(0, 9.62, C3).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 9.5, CL + HR + 9.6), r: 1.5 }],
+    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 9.5, X1 - 0.4), r: 1.5 }],
     // dim: the house is dark (the pools and the lantern light it)
     // (lower and wider since the visual pass: each a warm pool on the flags, lampTint, as the picked hall's lamps lay them)
-    lights: [[0, 3.5, 6, 12], [0, 3.5, 28, 14], [0, 3, C2, 12], [0, 12, C3, 11], [0, 12, G0 + 16, 12], [KENNEL.x, 3.5, KENNEL.z, 10], [WICK.x, 4, WICK.keyZ, 12], [WICK.x - 4, 12, WICK.balcony[0] + 4, 9], [0, 12.5, CL, 17]],
+    lights: [[0, 3.5, 7, 12], [4, 4, 26, 16], [-2, 4, 44, 16], [0, 4, RS.z0 + 9, 16], [0, 12, RS.z1 - 6, 14], [0, 12, C3, 16], [0, 12, GA.z0 + 9, 15], [0, 12, GA.z1 - 9, 15],
+      [KENNEL.x, 4, KENNEL.z, 18], [WICK.x, 4, WICK.groove[0], 16], [WICK.x, 4, WICK.keyZ, 10], [WR.x0 + 4, 12, WICK.balcony[0] + 6, 10], [0, 12.5, CL, 17]],
     guardian: { def: { ...LAMPLESS, onHit: mothHit }, model, arena },
   };
 }
