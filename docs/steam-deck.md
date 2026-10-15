@@ -129,6 +129,67 @@ build stays the main shortcut, unchanged.
   preview the player removed stays removed until the installer runs again. As Steam runs whenever a
   game launches from it, an existing install gets the preview by rerunning the installer.
 
+## The engine: web or Unity (one shortcut, a watched start)
+
+Ready for the switch (docs/plans/unity-default-portables.md, D9 and D10), **off by default**: until the
+author flips it, every Deck starts the web runtime exactly as above. The switch, when the Unity player
+can take the game to its end, is `DEFAULT_ENGINE = 'unity'` in `deck.py` (D19), or per Deck:
+
+```sh
+python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --engine unity   # or web
+```
+
+- **The setting.** `engine.json` (`{"engine": "web" | "unity"}`, written by `--engine`; none: `DEFAULT_ENGINE`,
+  `web`). `--status-local` reports `engine` (what the next launch starts) and `engineSetting`.
+- **The kill switch.** web.json's `deckEngine: 'web'` turns the Unity player off on every Deck, for a player
+  build gone bad. It is set in the repository: `scripts/steam-deck/engine-switch.json` (`{"deckEngine": "web"}`,
+  `null` to lift it), which `web-update.mjs` puts into the site's web.json at the next deploy
+  (`release-info.mjs deckEngineSwitch`). The background update records what it read (`engine-remote.json`) and the
+  launch reads that file, never the network: the switch takes effect at the launch after a Deck's next update
+  check, and lifting it the same way. It only ever turns Unity off; it never puts a web Deck on Unity.
+- **A watched start** (`launch_unity_watched`). With the engine `unity`, `launch` runs the installed player as
+  `run_game` runs Electron: its own process group, Steam's Exit Game passed on as SIGTERM (10 s, then killed), no
+  helper left behind. Ready is the file the player touches after its first frame (`-ready <file>`,
+  `BridgeRunner.MarkReady`, which also logs `Hiraeth bridge: ready`), or, for players built before it, the line
+  `Hiraeth bridge: script frame 1 took` in its log (`unity_ready` reads `unity-data/player.log` as it grows). No
+  first frame within 120 s (`UNITY_READY_SECONDS`), or a crash before a minute of play, marks that player build
+  `failed` in `unity-health.json` (by its sha's first 12; a player that drew is `ok`). Then the player before it
+  (`unity/`, `prune_unity` keeps two) gets one try, then Electron, in the same launch and the same `launch.log`.
+  A failed build is never started by `launch` again; a new player build gets its own chance. No player installed
+  yet (the background update downloads it, ~300 MB) is the web at once. Closing before the first frame is not a
+  failure. Exit 76 (a future Updates section's Restart now) launches again, as Electron's does.
+- **Its own data.** The player's saves and settings stay in `unity-data/` (`XDG_CONFIG_HOME`, PlayerPrefs; the
+  previous run's log kept as `player-prev.log`), the web's in `~/.config/hiraeth`. No migration between the two
+  (the author's choice for now): a fallback to the web plays the web's save.
+- **One shortcut.** **Hiraeth** (Exe `launch`: its app id, playtime and artwork) starts the engine. The second
+  shortcut is the other engine: **Hiraeth (Unity)** (`launch-unity`, the preview, unwatched) while the engine is
+  web, **Hiraeth (web)** (`launch-web`, `deck.py --launch-web`: Electron whatever the setting) once it is unity.
+  When the setting changes, the same Steam entry swaps its Exe (`second_shortcut`, `add_shortcut`): its app id,
+  playtime and place stay, a name or icon we gave it follows (`Hiraeth (web)`, `icon-web.png`, the WEB-badged art,
+  `scripts/steam-art.mjs` → `desktop/steam/web/`, `WEB_ART`), one the player chose stays. That edits
+  `shortcuts.vdf`, so it happens with Steam closed: `--engine` itself, the installer, `--register-steam`, or a
+  background update that finds Steam closed (`steam_entry`); until then the old entry still works (all three
+  launchers are always written). An account that had removed the preview is offered the web shortcut once
+  (`web-shortcut.json`). The desktop entries follow (`hiraeth-web.desktop` replaces `hiraeth-unity.desktop`).
+- **Downloads.** With the engine `unity`, the settings' Download (`--update --progress`) takes the player too
+  (its bar, `desktop/deck-updates.mjs`, still sums the runtime and the game only: it sits full while the player
+  downloads; the Updates section in Unity, D13, is where that belongs).
+- **A test copy.** `HIRAETH_NO_UPDATE=1` starts no background update; an install given with `--root` updates and
+  relaunches itself there, never the usual folder.
+
+Tried on the Deck (OLED, SteamOS 3.8, 15 October) in a copy of the install: hard links of runtime 2191001 and the
+two installed players (`c50c16affbbf`, `cd1f87cbe8a9`) in a folder of its own, this deck.py, `--root`,
+`HIRAETH_NO_UPDATE=1`, an `XDG_CONFIG_HOME` of its own for Electron, muted (`-mute --mute-audio`), in gamescope's
+headless backend; Exit Game played by a SIGTERM to the launcher. The player's install, saves, settings and Steam
+were left as they were.
+
+- engine `unity`: the player `c50c16affbbf` up in 5 s (its log's first script frame: that player predates
+  `-ready`), closed on the signal in 1–4 s, exit 0, marked `ok`.
+- two players that never draw (a script that waits): each killed at 120 s and marked `failed`, then Electron up
+  in 1.0 s, in the one launch.
+- one that never draws, the real one before it: killed at 120 s, then `c50c16affbbf` up in 5.3 s.
+- engine `unity` with `engine-remote.json` saying `web`: Electron straight away ("switched off for now").
+
 ### The install from before the rename
 
 Decks set up before the game was renamed may still have `~/.local/share/moebius-deck`: its own two
@@ -247,7 +308,10 @@ while the repository is public): launch the game twice before the repository goe
 - Update and launch diagnostics: `~/.local/share/hiraeth-deck/update.log`, `launch.log`
 - The Unity preview: its player in `~/.local/share/hiraeth-deck/unity/`, its saves and logs in
   `unity-data/`, its pipeline cache in `unity-cache/`, `unity-launch.log`
-- Desktop launchers: `~/.local/share/applications/hiraeth.desktop`, `hiraeth-unity.desktop`
+- The engine: `engine.json` (the setting), `engine-remote.json` (web.json's kill switch as last read),
+  `unity-health.json` (each player build's watched start)
+- Desktop launchers: `~/.local/share/applications/hiraeth.desktop`, `hiraeth-unity.desktop` (`hiraeth-web.desktop`
+  in its place once the engine is unity)
 
 For a manual update or to retry Steam registration, rerun the installation command.
 For registration without downloading, run:

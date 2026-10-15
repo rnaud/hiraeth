@@ -573,6 +573,7 @@ namespace Hiraeth.Bridge
                     else { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); }
                     return;
                 }
+                MarkReady();
                 // (a reboot asked in that frame: now, with the script's thread waiting for its next)
                 if (pendingReboot != null) { RebootNow(); return; }
                 // (-ops-after: the frame's last ops, its command buffer among them, taken now and applied once the next frame
@@ -591,8 +592,24 @@ namespace Hiraeth.Bridge
             {
                 if (tickJs) js.Tick();
                 js.Eval($"Hiraeth.frame({Time.unscaledDeltaTime.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
+                MarkReady();
             }
             catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
+        }
+
+        // -ready <file>: touched once, when the game's first frame has played (the Steam Deck's launcher watches for it,
+        // deck.py launch_unity_watched; no file in time is a failed start and the launcher falls back). The log line
+        // says it too, for a launcher reading the log.
+        bool readyMarked;
+        void MarkReady()
+        {
+            if (readyMarked) return;
+            readyMarked = true;
+            Debug.Log($"Hiraeth bridge: ready, the first frame played {Time.realtimeSinceStartup * 1000:0} ms after launch");
+            string path = Application.isEditor ? null : BridgeArgs.Arg("-ready");
+            if (string.IsNullOrEmpty(path)) return;
+            try { File.WriteAllText(path, "ready\n"); }
+            catch (Exception e) { Debug.Log("Hiraeth bridge: the ready file: " + e.Message); }
         }
         // (a bench with -split: a frame over twice the usual said, with where it went: the wait on the script, the rest of
         // Unity's frame before it, the GC's collections and Unity's render thread then)

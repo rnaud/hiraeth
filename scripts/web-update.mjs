@@ -19,7 +19,7 @@ import { deflateRawSync, crc32 } from 'node:zlib';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
-import { desktopApi, gameBuild, webJson, xboxApi } from './release-info.mjs';
+import { deckEngineSwitch, desktopApi, gameBuild, webJson, xboxApi } from './release-info.mjs';
 import { ON_DEVICE_THEMES } from '../src/music-store.js';
 
 export const SITE = 'https://hiraeth.alexandria-rnaud.workers.dev/';
@@ -179,7 +179,7 @@ export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site 
   const file = join(out, `web-${build}.zip`);
   await writeFile(file, zip);
 
-  const manifest = webJson({ build, version, file, zip: new URL(`${UPDATES}/web-${build}.zip`, site).href, desktop: desktopApi(), xbox: xboxApi() });
+  const manifest = webJson({ build, version, file, zip: new URL(`${UPDATES}/web-${build}.zip`, site).href, desktop: desktopApi(), xbox: xboxApi(), deckEngine: deckEngineSwitch() });
   await rm(file);
   await writeArchive(out, `web-${build}.zip`, zip, partSize);
   if (previous) await writeArchive(out, previous.name, previous.zip, partSize);

@@ -11,8 +11,11 @@ Two kinds of update, both checked in the background at each launch:
   steam-deck GitHub release; a package downloaded by hand installs with --from (docs/steam-deck.md).
 
 And a third, its own component: the Unity bridge's Linux player (the unity-linux GitHub release),
-unpacked to unity/<sha>/ and started by a second Steam shortcut, "Hiraeth (Unity preview)"
-(--launch-unity, the launch-unity script), with its own data folder; the web build stays the game.
+unpacked to unity/<sha>/, with its own data folder. Which one the "Hiraeth" shortcut starts is the
+engine (engine.json, web until the switch; web.json's deckEngine 'web' turns Unity off for everyone):
+the web runtime, or the Unity player watched as Electron is, falling back to the player before it and
+then to the web. The second shortcut is the other one: "Hiraeth (Unity)" (--launch-unity) while the
+engine is web, "Hiraeth (web)" (--launch-web) once it is unity.
 
 Standard-library only; no root, FUSE, Proton, or SteamOS system changes.
 """
@@ -63,6 +66,21 @@ OLD_NAMES = (None, '')   # (a shortcut without a name gets the game's)
 OLD_UNITY_NAMES = (None, '', 'Hiraeth (Unity preview)')
 # The preview's own icon, beside the game's (write_launchers: the runtime's steam/unity/icon.png, a Unity badge on it)
 UNITY_ICON = 'icon-unity.png'
+# Which engine the "Hiraeth" shortcut starts (engine.json; docs/steam-deck.md, "The engine"). web until the switch
+# (docs/plans/unity-default-portables.md, D19): then 'unity' here and in the installer.
+ENGINES = ('web', 'unity')
+DEFAULT_ENGINE = 'web'
+# ... and once it is unity, the second shortcut starts the web runtime: its launcher, name and WEB-badged icon
+WEB_NAME = 'Hiraeth (web)'
+WEB_ICON = 'icon-web.png'
+# (the names the second shortcut has had: one of them is ours to change when it swaps engines, any other the player's)
+SECOND_NAMES = (*OLD_UNITY_NAMES, UNITY_NAME, WEB_NAME)
+# The Unity player's watched start: no first frame by then is a failed start (its load on the Deck builds the whole
+# world before the first frame: ~25 s measured; the pipeline cache cold after a reboot adds to it)
+UNITY_READY_SECONDS = 120
+# What says the player is up: the file it touches after its first frame (-ready, BridgeRunner.MarkReady), or, for
+# players from before -ready, these lines of its log (the first script frame played)
+UNITY_READY_MARKS = (b'Hiraeth bridge: ready', b'Hiraeth bridge: script frame 1 took')
 
 
 def atomic_write(path, data, mode=0o644):
@@ -166,10 +184,19 @@ def our_entries(entries, exe):
             if isinstance(value, list) and field(value, 'exe') == exe]
 
 
-def add_shortcut(config, root, preview=True):
-    """The game's shortcut and the Unity preview's in one account's shortcuts.vdf (one write, backed up
-    first). preview: add the preview's when the account lacks it (the background update offers it once
-    per account, so one the player removed stays removed). @return whether the file changed"""
+def second_shortcut(engine):
+    """The shortcut beside "Hiraeth": the engine it doesn't start. (its launcher, name, icon, and the launcher it
+    replaces: one shortcut that swaps its Exe when the engine changes, keeping its app id, playtime and art's place)"""
+    if engine == 'unity':
+        return 'launch-web', WEB_NAME, WEB_ICON, 'launch-unity'
+    return 'launch-unity', UNITY_NAME, UNITY_ICON, 'launch-web'
+
+
+def add_shortcut(config, root, preview=True, engine=None):
+    """The game's shortcut and the second one (second_shortcut: the Unity preview while the engine is web,
+    the web fallback once it is unity) in one account's shortcuts.vdf (one write, backed up first).
+    preview: add the second when the account lacks it (the background update offers it once per account
+    and engine, so one the player removed stays removed). @return whether the file changed"""
     if steam_running():
         raise RuntimeError('Exit Steam completely before adding the shortcut, then run the installer again.')
     path = config / 'shortcuts.vdf'
@@ -189,13 +216,24 @@ def add_shortcut(config, root, preview=True):
     if not ours:
         add_entry(entries, shortcut_exe(root), root, MAIN_NAME, shortcut_appid(root))
         changed = True
-    previews = our_entries(entries, shortcut_exe(root, 'launch-unity'))
-    unity_icon = str(root / UNITY_ICON)
-    for entry in previews:
-        changed |= set_field(entry, 'AppName', UNITY_NAME, lambda name: name in OLD_UNITY_NAMES)
-        changed |= set_field(entry, 'icon', unity_icon, lambda old: not old or old == icon)
-    if not previews and preview:
-        add_entry(entries, shortcut_exe(root, 'launch-unity'), root, UNITY_NAME, unity_appid(root), UNITY_ICON)
+    launcher, name, icon_name, swapped = second_shortcut(engine or engine_setting(root))
+    second_icon = str(root / icon_name)
+    # the engine changed: the other engine's shortcut becomes this one (its id, playtime and place kept); a name
+    # or icon of ours follows, one the player gave it stays
+    ours_icons = ('', icon, str(root / UNITY_ICON), str(root / WEB_ICON))
+    for entry in our_entries(entries, shortcut_exe(root, swapped)):
+        set_field(entry, 'Exe', shortcut_exe(root, launcher), lambda _old: True)
+        set_field(entry, 'AppName', name, lambda old: old in SECOND_NAMES)
+        set_field(entry, 'icon', second_icon, lambda old: old in ours_icons)
+        changed = True
+    seconds = our_entries(entries, shortcut_exe(root, launcher))
+    old_names = OLD_UNITY_NAMES if launcher == 'launch-unity' else OLD_NAMES
+    for entry in seconds:
+        changed |= set_field(entry, 'AppName', name, lambda old: old in old_names)
+        changed |= set_field(entry, 'icon', second_icon, lambda old: not old or old == icon)
+    if not seconds and preview:
+        appid = unity_appid(root) if launcher == 'launch-unity' else web_appid(root)
+        add_entry(entries, shortcut_exe(root, launcher), root, name, appid, icon_name)
         changed = True
     if not changed:
         return False
@@ -232,18 +270,22 @@ def add_entry(entries, exe, root, name, appid, icon='icon.png'):
     entries[:] = [(str(i), value) for i, (_, value) in enumerate(entries)]
 
 
-def shortcut_stale(config, root, preview=True):
-    """Whether this account lacks our shortcut, or has it under the old name or without an icon; or
-    (preview) lacks the Unity preview's, or has it under its old name (or none) or the game's icon (or none)."""
+def shortcut_stale(config, root, preview=True, engine=None):
+    """Whether this account lacks our shortcut, or has it under the old name or without an icon; or has the
+    other engine's second shortcut (to swap); or (preview) lacks the second (second_shortcut), or has it under
+    its old name (or none) or the game's icon (or none)."""
     try:
         entries = field(parse_vdf((config / 'shortcuts.vdf').read_bytes()), 'shortcuts')
     except (OSError, ValueError):
         return True
+    launcher, _name, _icon, swapped = second_shortcut(engine or engine_setting(root))
+    old_names = OLD_UNITY_NAMES if launcher == 'launch-unity' else OLD_NAMES
     ours = our_entries(entries, shortcut_exe(root))
-    previews = our_entries(entries, shortcut_exe(root, 'launch-unity'))
+    seconds = our_entries(entries, shortcut_exe(root, launcher))
     return (not ours or any(field(value, 'AppName') in OLD_NAMES or not field(value, 'icon') for value in ours)
-            or (preview and not previews)
-            or any(field(value, 'AppName') in OLD_UNITY_NAMES or field(value, 'icon') in (None, '', str(root / 'icon.png')) for value in previews))
+            or bool(our_entries(entries, shortcut_exe(root, swapped)))
+            or (preview and not seconds)
+            or any(field(value, 'AppName') in old_names or field(value, 'icon') in (None, '', str(root / 'icon.png')) for value in seconds))
 
 
 def fetch_manifest(url):
@@ -618,6 +660,54 @@ def install_content(root, manifest, downloader=download_content):
         return True
 
 
+def content_update(root):
+    """The background update's game step: web.json read once, for the game and for the engine's kill switch."""
+    manifest = get_content_manifest()
+    remember_remote_engine(root, manifest)
+    return install_content(root, manifest)
+
+
+# ---------------------------------------------------------------- the engine: web or unity
+
+def engine_setting(root):
+    """The engine this install asks for (engine.json, written by --engine), DEFAULT_ENGINE without one."""
+    try:
+        engine = json.loads((root / 'engine.json').read_text()).get('engine')
+    except (OSError, ValueError, AttributeError):
+        engine = None
+    return engine if engine in ENGINES else DEFAULT_ENGINE
+
+
+def set_engine(root, engine):
+    if engine not in ENGINES:
+        raise ValueError(f'The engine is one of {", ".join(ENGINES)}')
+    atomic_write(root / 'engine.json', json.dumps({'engine': engine}).encode())
+
+
+def remote_engine(root):
+    """web.json's deckEngine as the last update read it (engine-remote.json): 'web' turns the Unity player
+    off for every Deck (a bad player build), else None. Read at launch, never fetched then: no network wait."""
+    try:
+        value = json.loads((root / 'engine-remote.json').read_text()).get('deckEngine')
+    except (OSError, ValueError, AttributeError):
+        return None
+    return value if value in ENGINES else None
+
+
+def remember_remote_engine(root, manifest):
+    value = manifest.get('deckEngine') if manifest.get('deckEngine') in ENGINES else None
+    if not (root / 'engine-remote.json').exists() or remote_engine(root) != value:
+        atomic_write(root / 'engine-remote.json', json.dumps({'deckEngine': value}).encode())
+
+
+def choose_engine(root):
+    """What the "Hiraeth" shortcut starts: the setting, unless web.json switched Unity off. @return (engine, why)"""
+    setting = engine_setting(root)
+    if setting == 'unity' and remote_engine(root) == 'web':
+        return 'web', 'the Unity player is switched off for now (web.json deckEngine)'
+    return setting, 'engine.json' if (root / 'engine.json').exists() else 'the default'
+
+
 # ---------------------------------------------------------------- the Unity preview's player
 
 def get_unity_manifest():
@@ -770,6 +860,9 @@ STEAM_ART = {'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png
 # has none yet
 UNITY_ART = {'p.png': 'steam/unity/portrait.png', '.png': 'steam/unity/wide.png', '_hero.png': 'steam/unity/hero.png',
              '_logo.png': 'steam/unity/logo.png', '_icon.png': 'steam/unity/icon.png'}
+# ... and the web fallback's, once the engine is unity: a WEB badge (scripts/steam-art.mjs web)
+WEB_ART = {'p.png': 'steam/web/portrait.png', '.png': 'steam/web/wide.png', '_hero.png': 'steam/web/hero.png',
+           '_logo.png': 'steam/web/logo.png', '_icon.png': 'steam/web/icon.png'}
 
 
 def shortcut_appid(root):
@@ -783,7 +876,12 @@ def unity_appid(root):
     return zlib.crc32((shortcut_exe(root, 'launch-unity') + UNITY_NAME).encode()) | 0x80000000
 
 
-def shortcut_appids(config, root, launchers=('launch', 'launch-unity')):
+def web_appid(root):
+    """A new web fallback's (an account that had no Unity preview to swap): from its own launcher and name."""
+    return zlib.crc32((shortcut_exe(root, 'launch-web') + WEB_NAME).encode()) | 0x80000000
+
+
+def shortcut_appids(config, root, launchers=('launch', 'launch-unity', 'launch-web')):
     """Our shortcuts' app ids in one account, read from its shortcuts.vdf (by their stable executables)."""
     try:
         document = parse_vdf((config / 'shortcuts.vdf').read_bytes())
@@ -809,6 +907,7 @@ def install_art(root, configs, app=None):
     for config in configs:
         targets = [(appid, STEAM_ART) for appid in shortcut_appids(config, root, ('launch',))]
         targets += [(appid, UNITY_ART) for appid in shortcut_appids(config, root, ('launch-unity',))]
+        targets += [(appid, WEB_ART) for appid in shortcut_appids(config, root, ('launch-web',))]
         for appid, art in targets:
             for suffix, name in art.items():
                 source = app / name
@@ -847,6 +946,8 @@ def local_state(root):
              'nextWeb': carried['web'], 'nextVersion': version}
     # the Unity preview's player, its sha256's first 12 ('' before one is installed; the panel ignores it)
     state['unity'] = ((unity_installed(root) or {}).get('sha256') or '')[:12]
+    # the engine the next launch starts (choose_engine) and the one asked for (engine.json)
+    state['engine'], state['engineSetting'] = choose_engine(root)[0], engine_setting(root)
     game = choose_content(root, current)
     if game:
         try:
@@ -879,18 +980,24 @@ def status(root, content=None, runtime=None):
     return state
 
 
-def preview_offered(root):
-    """The accounts (their config folders) the Unity preview's shortcut was given to (unity-shortcut.json)."""
+def offered_file(root, engine=None):
+    """Where the accounts given the second shortcut are kept: the Unity preview's (unity-shortcut.json) while the
+    engine is web, the web fallback's (web-shortcut.json) once it is unity, so each is offered once."""
+    return root / ('web-shortcut.json' if (engine or engine_setting(root)) == 'unity' else 'unity-shortcut.json')
+
+
+def preview_offered(root, engine=None):
+    """The accounts (their config folders) the second shortcut was given to."""
     try:
-        return set(json.loads((root / 'unity-shortcut.json').read_text()))
+        return set(json.loads(offered_file(root, engine).read_text()))
     except (OSError, ValueError, TypeError):
         return set()
 
 
-def remember_preview(root, configs):
-    offered = preview_offered(root)
+def remember_preview(root, configs, engine=None):
+    offered = preview_offered(root, engine)
     if not {str(config) for config in configs} <= offered:
-        atomic_write(root / 'unity-shortcut.json', json.dumps(sorted(offered | {str(config) for config in configs})).encode())
+        atomic_write(offered_file(root, engine), json.dumps(sorted(offered | {str(config) for config in configs})).encode())
 
 
 def steam_entry(root, configs):
@@ -900,20 +1007,21 @@ def steam_entry(root, configs):
     @return whether anything changed"""
     renamed = False
     if not steam_running():
-        offered, given = preview_offered(root), []
+        engine = engine_setting(root)
+        offered, given = preview_offered(root, engine), []
         for config in configs:
             if not shortcut_appids(config, root, ('launch',)):
                 continue
             preview = str(config) not in offered
             try:
-                if shortcut_stale(config, root, preview):
-                    renamed |= add_shortcut(config, root, preview)
+                if shortcut_stale(config, root, preview, engine):
+                    renamed |= add_shortcut(config, root, preview, engine)
             except (RuntimeError, ValueError, OSError):
                 continue   # (Steam started meanwhile, or files we won't touch: next time)
             if preview:
                 given.append(config)
         if given:
-            remember_preview(root, given)
+            remember_preview(root, given, engine)
     return install_art(root, configs) > 0 or renamed
 
 
@@ -934,7 +1042,7 @@ def update_all(root, runtime=None, content=None, art=None, unity=None, with_unit
     @return what failed"""
     failures = []
     steps = [('runtime', runtime or (lambda: install_update(root, get_manifest()))),
-             ('game', content or (lambda: install_content(root, get_content_manifest())))]
+             ('game', content or (lambda: content_update(root)))]
     if with_unity:
         steps.append(('unity', unity or (lambda: update_unity(root))))
     steps.append(('artwork', art or (lambda: steam_refresh(root))))
@@ -1041,19 +1149,25 @@ def desktop_entry(name, command, icon):
     return f'[Desktop Entry]\nType=Application\nName={name}\nExec="{command}"\nIcon={icon}\nTerminal=false\nCategories=Game;\n'.encode()
 
 
-def write_launchers(root, home=None):
-    """launch (the game's shortcut) and launch-unity (the Unity preview's), their icons and desktop entries."""
+def write_launchers(root, home=None, engine=None):
+    """launch (the game's shortcut: the engine's), launch-unity (the Unity preview's) and launch-web (the web
+    fallback's), their icons, and the desktop entries of launch and of the second shortcut (second_shortcut)."""
     applications = (home or Path.home()) / '.local/share/applications'
     deck = shlex.quote(str(root / 'current/resources/app/deck.py'))
     app = root / 'current/resources/app'
     atomic_write(root / 'icon.png', (app / 'game/icons/icon-512.png').read_bytes())
-    # (the preview's own icon, a Unity badge on the game's: the game's where a runtime has none yet)
-    badged = app / UNITY_ART['_icon.png']
-    atomic_write(root / UNITY_ICON, (badged if badged.is_file() else app / 'game/icons/icon-512.png').read_bytes())
-    for launcher, flag, name, entry, icon in (('launch', '--launch', MAIN_NAME, 'hiraeth.desktop', 'icon.png'),
-                                              ('launch-unity', '--launch-unity', UNITY_NAME, 'hiraeth-unity.desktop', UNITY_ICON)):
+    # (the second shortcut's own icons, a UNITY or WEB badge on the game's: the game's where a runtime has none yet)
+    for icon, art in ((UNITY_ICON, UNITY_ART), (WEB_ICON, WEB_ART)):
+        badged = app / art['_icon.png']
+        atomic_write(root / icon, (badged if badged.is_file() else app / 'game/icons/icon-512.png').read_bytes())
+    for launcher, flag in (('launch', '--launch'), ('launch-unity', '--launch-unity'), ('launch-web', '--launch-web')):
+        # (every launcher, whatever the engine: a shortcut Steam hasn't swapped yet still starts)
         atomic_write(root / launcher, f'#!/bin/sh\nexec python3 {deck} {flag} "$@"\n'.encode(), 0o755)
-        atomic_write(applications / entry, desktop_entry(name, root / launcher, root / icon), 0o755)
+    second, name, icon, swapped = second_shortcut(engine or engine_setting(root))
+    entries = {'launch-unity': 'hiraeth-unity.desktop', 'launch-web': 'hiraeth-web.desktop'}
+    atomic_write(applications / 'hiraeth.desktop', desktop_entry(MAIN_NAME, root / 'launch', root / 'icon.png'), 0o755)
+    atomic_write(applications / entries[second], desktop_entry(name, root / second, root / icon), 0o755)
+    (applications / entries[swapped]).unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------- launching
@@ -1087,25 +1201,31 @@ def group_alive(group):
         return False
 
 
-def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP_SECONDS, played_seconds=PLAYED_SECONDS, log=print):
-    """Electron in its own process group, watched until it ends; none of its processes outlives it
-    (Steam counts the game running, a black screen in Gaming Mode, while any of them does).
+def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP_SECONDS, played_seconds=PLAYED_SECONDS, log=print,
+             check=None, stop_signal=signal.SIGINT, cwd=None):
+    """Electron (or the Unity player) in its own process group, watched until it ends; none of its processes
+    outlives it (Steam counts the game running, a black screen in Gaming Mode, while any of them does).
+    ready: the file it touches once its window is up; check: another way to tell (the player's log).
     @return (how, code, shown): how is 'quit' (it closed, or Steam closed it), 'retry' (it crashed
     soon, hung before its window showed, or asked for another way to draw) or 'ended' (it crashed or
     was killed after its window had been up played_seconds: the way to draw worked, so no other is
     tried; once a game killed after 9 h restarted on Vulkan and gpu.json kept that); shown, whether
     its window did"""
     ready.unlink(missing_ok=True)
-    process = subprocess.Popen(command, env=env, start_new_session=True)
+    process = subprocess.Popen(command, env=env, start_new_session=True, cwd=cwd)
     stopping = []
+
+    def up():
+        return ready.exists() or bool(check and check())
 
     def stop(number, _frame):
         if not stopping:
             stopping.append(time.monotonic())
             log(f'Signal {number}: closing the game.')
-        # (SIGINT to the browser alone: Chromium closes its helpers itself, at once and cleanly)
+        # (SIGINT to the browser alone: Chromium closes its helpers itself, at once and cleanly; the Unity
+        # player is sent SIGTERM, as Steam would send it)
         try:
-            os.kill(process.pid, signal.SIGINT)
+            os.kill(process.pid, stop_signal)
         except ProcessLookupError:
             pass
     handled = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
@@ -1119,16 +1239,17 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
                 code = process.wait(timeout=0.25)
             except subprocess.TimeoutExpired:
                 now = time.monotonic()
-                shown = shown or ready.exists()
+                shown = shown or up()
                 if shown and shown_at is None:
                     shown_at = now
+                    log(f'Up after {now - started:.1f} s.')
                 if stopping and now - stopping[0] > stop_seconds:
                     signal_group(process.pid, signal.SIGKILL)
                 elif not shown and not stopping and not hung and now - started > ready_seconds:
                     log(f'No window after {ready_seconds} s: the game hangs.')
                     hung = True
                     signal_group(process.pid, signal.SIGKILL)
-        shown = shown or ready.exists()
+        shown = shown or up()
         # its helpers end with it; one left behind (a zygote outliving the browser) is killed
         deadline = time.monotonic() + 2
         while group_alive(process.pid) and time.monotonic() < deadline:
@@ -1176,7 +1297,10 @@ def start_updater(root, current):
     so Steam doesn't wait for a download to finish before it counts the game closed (a black screen in
     Gaming Mode), and a download carries on after the game. @return how it was started"""
     log = root / 'update.log'
-    command = [sys.executable, str(current / 'resources/app/deck.py'), '--update']
+    if os.environ.get('HIRAETH_NO_UPDATE') == '1':   # (a test copy of the install, on a Deck: never updated)
+        return 'off'
+    # (an install elsewhere than the usual folder updates itself, not the usual one)
+    command = [sys.executable, str(current / 'resources/app/deck.py'), *(['--root', str(root)] if root != ROOT else []), '--update']
     runner = shutil.which('systemd-run')
     if runner:
         try:
@@ -1192,11 +1316,12 @@ def start_updater(root, current):
     return 'child'
 
 
-def launch(root, arguments, run=run_game, relaunch=None):
-    """Electron, watched (run_game), until it closes; the settings' Restart now launches again
-    (relaunch: this same process becomes the new current runtime's launcher, so Steam keeps
-    tracking the game, and the next pin takes the update)."""
-    restart = launch_once(root, arguments, run)
+def launch(root, arguments, run=run_game, relaunch=None, engine=None):
+    """The engine's game (choose_engine; engine 'web': the web shortcut's, whatever the setting), watched
+    (run_game), until it closes; the settings' Restart now launches again (relaunch: this same process
+    becomes the new current runtime's launcher, so Steam keeps tracking the game, and the next pin takes
+    the update)."""
+    restart = launch_once(root, arguments, run, engine)
     marker = root / '.restart'
     try:
         wanted = marker.read_text().strip()
@@ -1205,13 +1330,16 @@ def launch(root, arguments, run=run_game, relaunch=None):
         wanted = ''
     # (the update the settings restarted for: if it isn't what runs next, they don't offer it again)
     os.environ['HIRAETH_RESTARTED_FOR'] = wanted or str(restart)
-    command = [sys.executable, str((root / 'current').resolve() / 'resources/app/deck.py'), '--launch', *arguments]
+    flag = '--launch-web' if engine == 'web' else '--launch'
+    command = [sys.executable, str((root / 'current').resolve() / 'resources/app/deck.py'), flag,
+               *(['--root', str(root)] if root != ROOT else []), *arguments]
     (relaunch or (lambda argv: os.execv(argv[0], argv)))(command)
 
 
-def launch_once(root, arguments, run=run_game):
-    """One launch: exits the process when the game closes or can't draw. @return the runtime build
-    that ran, when the settings asked to restart into an update"""
+def launch_once(root, arguments, run=run_game, engine=None):
+    """One launch: the Unity player when the engine is unity (launch_unity_watched), and Electron when it
+    is web or no player started. Exits the process when the game closes or can't draw. @return the
+    runtime build that ran, when the settings asked to restart into an update"""
     # Resolve before starting the updater. This process runs its immutable build;
     # the background update only affects the next launch. Saves live elsewhere.
     # Hold the short activation lock, never the potentially long download lock.
@@ -1237,6 +1365,14 @@ def launch_once(root, arguments, run=run_game):
             log(f'No update check ({error}).')
         # Keep the pins until Electron exits, so updates cannot remove its assets.
         build = json.loads((current / 'resources/app/build.json').read_text()).get('build', 0)
+        why = 'the web shortcut'
+        if engine is None:
+            engine, why = choose_engine(root)
+        log(f'Engine {engine} ({why}).')
+        if engine == 'unity':
+            if launch_unity_watched(root, arguments, run, log) == 'restart':
+                return build
+            log('Starting the web runtime instead.')
         key = f'{build}:{session_kind(os.environ)}'
         ready = root / f'.ready-{os.getpid()}'
         log(f'Runtime {build}, {session_kind(os.environ)}, game {game or "packaged"}.')
@@ -1277,6 +1413,126 @@ def unity_env(root, base=None):
 def unity_command(player, root, arguments):
     return [str(player / UNITY_PLAYER), '-screen-fullscreen', '1', '-screen-width', '1280', '-screen-height', '800',
             '-logFile', str(root / 'unity-data/player.log'), *arguments]
+
+
+def unity_players(root):
+    """The installed players to try, in order: the current one, then the one before it (prune_unity keeps two),
+    each a folder unity/<sha12>/ with its player."""
+    unity = root / 'unity'
+    try:
+        current = (unity / 'current').resolve(strict=True)
+    except OSError:
+        current = None
+
+    def installed_at(path):
+        try:
+            return json.loads((path / 'unity.json').read_text()).get('installedAt', 0)
+        except (OSError, ValueError, AttributeError):
+            return 0
+    others = sorted((path for path in (unity.iterdir() if unity.is_dir() else ())
+                     if re.fullmatch(r'[0-9a-f]{12}', path.name) and path != current and (path / UNITY_PLAYER).is_file()),
+                    key=installed_at, reverse=True)
+    return ([current] if current and (current / UNITY_PLAYER).is_file() else []) + others[:1]
+
+
+def unity_health(root):
+    """How each player's watched start went, by its sha's first 12 (unity-health.json): 'ok' or 'failed'."""
+    try:
+        data = json.loads((root / 'unity-health.json').read_text())
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def unity_remember(root, player, result):
+    """A player's start ('ok': it drew; 'failed': no first frame in time, or a crash before PLAYED_SECONDS),
+    kept for the players still installed. A failed one is never started again by the launcher (the preview's
+    shortcut still runs it): the next player build gets its own chance."""
+    data = unity_health(root)
+    if data.get(player.name) == result:
+        return
+    installed = {path.name for path in (root / 'unity').iterdir() if path.is_dir()} if (root / 'unity').is_dir() else set()
+    data = {sha: value for sha, value in data.items() if sha in installed}
+    data[player.name] = result
+    try:
+        atomic_write(root / 'unity-health.json', json.dumps(data).encode())
+    except OSError:
+        pass
+
+
+def unity_ready(path):
+    """A check for run_game: whether the player's log (path) says its first frame played (UNITY_READY_MARKS),
+    read as it grows."""
+    seen = {'offset': 0, 'tail': b''}
+
+    def check():
+        try:
+            with path.open('rb') as stream:
+                stream.seek(seen['offset'])
+                data = stream.read(1024 * 1024)
+        except OSError:
+            return False
+        seen['offset'] += len(data)
+        text = seen['tail'] + data
+        if any(mark in text for mark in UNITY_READY_MARKS):
+            return True
+        seen['tail'] = text[-200:]
+        return False
+    return check
+
+
+def launch_unity_watched(root, arguments, run=run_game, log=print):
+    """The "Hiraeth" shortcut's Unity player, watched as Electron is: its first frame within UNITY_READY_SECONDS
+    (the -ready file, or its log's line), or it is a failed start (unity_remember) and the player before it gets
+    one try. Each runs pinned, with its own data folder (unity_env: saves apart from the web's) and a lasting
+    cache. Exits the process when the game closes. @return 'restart' (exit 76: launch again), or None when no
+    player started: the web runtime next"""
+    for folder in ('unity-cache', 'unity-data'):
+        (root / folder).mkdir(parents=True, exist_ok=True)
+    (root / 'unity').mkdir(parents=True, exist_ok=True)
+    with (root / 'unity/state.lock').open('a') as state:
+        fcntl.flock(state, fcntl.LOCK_SH)
+        players = unity_players(root)
+        health = unity_health(root)
+        tried = [player for player in players if health.get(player.name) != 'failed']
+        pins = []
+        for player in tried:
+            pin = (player / '.in-use').open('a')
+            fcntl.flock(pin, fcntl.LOCK_SH)
+            pins.append(pin)
+    if not players:
+        log('No Unity player installed yet (the background update downloads it).')
+    elif not tried:
+        log('Every installed Unity player failed to start before: ' + ', '.join(player.name for player in players) + '.')
+    try:
+        for player in tried:
+            ready = root / f'.unity-ready-{os.getpid()}'
+            output = root / 'unity-data/player.log'
+            if output.exists():   # (the last run's, kept: the one that failed, when one did)
+                output.replace(root / 'unity-data/player-prev.log')
+            command = unity_command(player, root, ['-ready', str(ready), *arguments])
+            log(f'Starting the Unity player {player.name}.')
+            how, code, shown = run(command, unity_env(root), ready, ready_seconds=UNITY_READY_SECONDS, stop_seconds=10,
+                                   log=log, check=unity_ready(output), stop_signal=signal.SIGTERM, cwd=player)
+            if how == 'restart':
+                log(f'Restarting into the update (Unity {player.name}).')
+                unity_remember(root, player, 'ok')
+                return 'restart'
+            if how == 'quit':
+                log(f'Closed (Unity {player.name}, exit {code}).')
+                if shown:
+                    unity_remember(root, player, 'ok')
+                sys.exit(code)
+            if how == 'ended':
+                log(f'Ended (Unity {player.name}, exit {code}) after it had drawn.')
+                unity_remember(root, player, 'ok')
+                sys.exit(1)
+            log(f'The Unity player {player.name} did not start (exit {code}, {"drew" if shown else "no first frame"}).')
+            unity_remember(root, player, 'failed')
+    finally:
+        for pin in pins:
+            pin.close()
+    return None
 
 
 def exec_player(command, env, cwd, keep, output):
@@ -1330,6 +1586,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--launch', action='store_true')
     parser.add_argument('--launch-unity', action='store_true', help='the Unity preview (launch-unity)')
+    parser.add_argument('--launch-web', action='store_true', help='the web runtime, whatever the engine (launch-web)')
+    parser.add_argument('--engine', choices=ENGINES,
+                        help='what the Hiraeth shortcut starts (engine.json); the second shortcut follows once Steam is closed')
     parser.add_argument('--update', action='store_true')
     parser.add_argument('--register-steam', action='store_true')
     parser.add_argument('--from', dest='source', metavar='DIR',
@@ -1349,11 +1608,22 @@ def main():
     if args.launch:
         launch(root, extra)
         return
+    if args.launch_web:
+        launch(root, extra, engine='web')
+        return
     if args.launch_unity:
         launch_unity(root, extra)
         return
     if extra:
         parser.error('Unknown arguments: ' + ' '.join(extra))
+    if args.engine:
+        set_engine(root, args.engine)
+        write_launchers(root)
+        changed = steam_entry(root, steam_configs(Path.home()))
+        print(f'Hiraeth starts {args.engine} from the next launch'
+              + (', and its second shortcut follows.' if changed else
+                 ('; the second shortcut follows at the next update with Steam closed.' if steam_running() else '.')), flush=True)
+        return
     if args.status or args.status_local:
         print(json.dumps(status(root) if args.status else local_state(root)), flush=True)
         return
@@ -1367,9 +1637,9 @@ def main():
     if args.update:
         global PROGRESS
         PROGRESS = Path(args.progress) if args.progress else None
-        # (the settings' download, --progress, leaves the Unity preview to the launch's update; a
-        # 'unity' failure never fails it)
-        failures = update_all(root, with_unity=PROGRESS is None)
+        # (the settings' download, --progress, leaves the Unity preview to the launch's update unless the engine is
+        # unity, when the player is the game; a 'unity' failure never fails it)
+        failures = update_all(root, with_unity=PROGRESS is None or engine_setting(root) == 'unity')
         progress('done', 0, 0, done=True)
         sys.exit(1 if 'runtime' in failures and 'game' in failures else 0)
     if not args.register_steam:
@@ -1382,7 +1652,7 @@ def main():
             changed = install_update(ROOT, get_manifest())
         print('Update installed. It will be used on the next launch.' if changed else 'Already up to date.', flush=True)
         try:
-            if install_content(ROOT, get_content_manifest()):
+            if content_update(ROOT):
                 print('The newest game was downloaded too.', flush=True)
         except Exception as error:
             print(f'The game looks for its newest version again at the next launch ({error}).', flush=True)

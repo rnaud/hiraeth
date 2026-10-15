@@ -5,6 +5,8 @@
 //   node scripts/steam-art.mjs build                        → desktop/steam/{portrait,wide,hero,logo}.png (and unity/)
 //   node scripts/steam-art.mjs unity                        → desktop/steam/unity/{portrait,wide,hero,logo,icon}.png:
 //                                                             the Unity preview's, the same with a UNITY badge
+//                                                             (and desktop/steam/web/: the web fallback's, WEB, once
+//                                                             the Deck's engine is Unity)
 //   node scripts/steam-art.mjs all                          (both)
 //   node scripts/steam-art.mjs survey --views a,b --size 1920x620 --out <dir>   (to choose views)
 //
@@ -161,20 +163,24 @@ export const UNITY_BADGE = {
   logo: { w: 0.34, h: 0.24, x: 0.5, y: 0.86 },
   icon: { w: 0.86, h: 0.24, x: 0.5, y: 0.84 },
 };
-export const badgeSvg = (W, H, b) => {
+export const badgeSvg = (W, H, b, label = 'UNITY') => {
   const w = Math.round(b.w * W), h = Math.round(b.h * H), x = Math.round(b.x * W - w / 2), y = Math.round(b.y * H - h / 2);
   const r = Math.round(h * 0.22), stroke = Math.max(2, Math.round(h * 0.06)), size = Math.round(h * 0.62);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#1b2a30" stroke="#f4ead6" stroke-width="${stroke}"/>`
-    + `<text x="${x + w / 2}" y="${y + h / 2}" dy="0.35em" text-anchor="middle" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-weight="bold" font-size="${size}" letter-spacing="${Math.round(size * 0.12)}" fill="#f4ead6">UNITY</text></svg>`;
+    + `<text x="${x + w / 2}" y="${y + h / 2}" dy="0.35em" text-anchor="middle" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-weight="bold" font-size="${size}" letter-spacing="${Math.round(size * 0.12)}" fill="#f4ead6">${label}</text></svg>`;
 };
 
+/** The badged sets: the Unity preview's (deck.py UNITY_ART) and, once the Deck's engine is Unity, the web fallback's
+ *  "Hiraeth (web)" (WEB_ART), in the same places. */
 async function unityArt() {
   const { default: sharp } = await import('sharp');
   const from = { portrait: join(OUT, 'portrait.png'), wide: join(OUT, 'wide.png'), hero: join(OUT, 'hero.png'), logo: join(OUT, 'logo.png'), icon: join(ROOT, 'public/icons/icon-512.png') };
-  for (const [name, file] of Object.entries(from)) {
-    const { width, height } = await sharp(file).metadata();
-    const data = await sharp(file).composite([{ input: Buffer.from(badgeSvg(width, height, UNITY_BADGE[name])) }]).png().toBuffer();
-    out(join(OUT, 'unity', `${name}.png`), data);
+  for (const [folder, label] of [['unity', 'UNITY'], ['web', 'WEB']]) {
+    for (const [name, file] of Object.entries(from)) {
+      const { width, height } = await sharp(file).metadata();
+      const data = await sharp(file).composite([{ input: Buffer.from(badgeSvg(width, height, UNITY_BADGE[name], label)) }]).png().toBuffer();
+      out(join(OUT, folder, `${name}.png`), data);
+    }
   }
 }
 

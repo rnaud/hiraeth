@@ -101,6 +101,14 @@ test('Steam\'s library artwork: every image at Steam\'s size, in the package, na
     if (suffix !== '_icon.png') assert.deepEqual(size(file.slice('steam/'.length)), size(GRID[suffix].slice('steam/'.length)), file);
   }
   assert.deepEqual(size('unity/icon.png'), [512, 512]);
+  // ... and the web fallback's, once the engine is Unity (steam-art.mjs: WEB), the same way
+  const web = dict('WEB_ART');
+  assert.deepEqual(Object.keys(web).sort(), Object.keys(GRID).sort());
+  for (const [suffix, file] of Object.entries(web)) {
+    assert.match(file, /^steam\/web\//);
+    if (suffix !== '_icon.png') assert.deepEqual(size(file.slice('steam/'.length)), size(GRID[suffix].slice('steam/'.length)), file);
+  }
+  assert.deepEqual(size('web/icon.png'), [512, 512]);
   assert.deepEqual(Object.keys(GRID).sort(), ['.png', '_hero.png', '_icon.png', '_logo.png', 'p.png']);
   assert.match(read('../scripts/package-steam-deck.mjs'), /cp\('desktop\/steam', `\$\{output\}\/source\/steam`/);
 });
