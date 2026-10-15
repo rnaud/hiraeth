@@ -177,8 +177,9 @@ test('the Steam Deck has its own preset, between Handheld and Medium, and Auto p
   // (issue #111: its own resolution always, no dynamic resolution: the main thread is the limit there, never the GPU)
   assert.equal(d.dynamic, null, 'scale 1 whatever the frame rate');
   assert.equal(resolveQuality('auto', { deck: true }).scale, 1);
-  // the far map less often than the other presets' (most of the shadow draws), the near one as the Handheld's
-  assert.ok(d.farEvery > h.farEvery && d.nearEvery === h.nearEvery);
+  // the far map less often than the other presets' (most of the shadow draws); the near one less often than the
+  // Handheld's since round 11 (issue #111), as often in a fight (nearFight: tests/deck-levers.test.js)
+  assert.ok(d.farEvery > h.farEvery && d.nearEvery > h.nearEvery && d.nearFight === h.nearEvery);
   assert.ok(d.crowdFar > h.crowdFar && d.propFar > h.propFar && d.propFar < m.propFar);
   assert.ok(d.floraFar > h.floraFar && d.floraFar < m.floraFar);
   // (no fine cascade: a whole pass of the scene a frame on a main thread that is the limit; a sharper near map

@@ -3,7 +3,7 @@
 // (scripts/bench/deck-run.sh does both), then on the Mac:
 //   node scripts/bench/deck-worlds.mjs [--port 5310] [--worlds desert,incal,...] [--quality deck|high|handheld]
 //        [--scale 1] [--modes fixed,dynamic] [--secs 8] [--warmup 3] [--only spawn,qanat] [--profile 1] [--cpuprofile 1] [--raw dir]
-//        [--settle 1] [--draws 1] [--shots 1] [--pick 1]
+//        [--settle 1] [--draws 1] [--shots 1] [--pick 1] [--set '{"nearEvery":4}'] [--sets 'off={...};on={...}']
 // Per world: the world loaded (?level=, navigation to the first frame), then every view of the world
 // (viewpoints-worlds.json; the desert's are viewpoints.json's) placed, warmed up and recorded with the page
 // logic of the other runs (web-page.mjs): frame intervals, the screen refreshes missed, the JS time of
@@ -193,6 +193,8 @@ async function runWorld(page, world, mode) {
   if (dyn) await page.eval(() => { window.__dyn = window.preset().dynamic; return true; });
   const canvas = await conditions((fn, a) => page.eval(fn, a), { hour: VP.hour, weather: VP.weather, scale: fixedScale });
   if (dyn) await page.eval(() => { window.preset().dynamic = window.__dyn; return true; });
+  // (--set '{"peopleLod":false}': the running preset's keys set before the views, an A/B of one lever in the same build)
+  if (opt.set) console.log(`${label}: set ${JSON.stringify(await page.eval((j) => { const p = window.preset(); Object.assign(p, JSON.parse(j)); return Object.fromEntries(Object.keys(JSON.parse(j)).map((k) => [k, p[k]])); }, String(opt.set)))}`);
   await page.eval(() => { const st = document.createElement('style'); st.textContent = '#fps { visibility: visible !important; }'; document.head.appendChild(st); return true; });
   const onEach = async () => page.eval(() => {
     const B = window.__bench, s = B.scales.slice().sort((a, b) => a - b);
@@ -200,10 +202,15 @@ async function runWorld(page, world, mode) {
   });
   const items = [...W.views.map((v) => v.name), ...(W.paths ?? []).map((p) => p.name)].filter((n) => !only || only.includes(n));
   const views = [];
-  for (const name of items) {
+  // (--sets 'off={"peopleLod":false};on={}': each view measured under each set of the preset's keys in turn, in the same
+  //  page: an A/B of levers interleaved view by view, so the Deck's drift falls on each alike)
+  const SETS = opt.sets ? String(opt.sets).split(';').map((x) => { const i = x.indexOf('='); return [x.slice(0, i), x.slice(i + 1)]; }) : [[null, null]];
+  for (const name of items) for (const [setName, setJson] of SETS) {
+    if (setJson) await page.eval((j) => { Object.assign(window.preset(), JSON.parse(j)); return true; }, setJson);
     await page.eval((l) => { window.__benchLabel = l; return true; }, label + ' ' + name).catch(() => 0);
     const one = { ...VP, views: W.views.filter((x) => x.name === name), paths: (W.paths ?? []).filter((x) => x.name === name) };
     const [v] = await runAll((fn, a) => page.eval(fn, a), one, { secs, warmup, tag: label, onEach });
+    if (setName) v.set = setName;
     v.missedShare = missedShare(v.raw.frame);
     if (opt.profile) {
       v.profile = await profileView(page);
@@ -211,7 +218,7 @@ async function runWorld(page, world, mode) {
     }
     if (opt.shots) {   // (the view as the Deck shows it, for a before / after: <raw>/<world>-<view>.png)
       const r = await page.send('Page.captureScreenshot', { format: 'png' });
-      if (r.result?.data) writeFileSync(`${RAW}/${world}-${name}.png`, Buffer.from(r.result.data, 'base64'));
+      if (r.result?.data) writeFileSync(`${RAW}/${world}-${name}${setName ? '-' + setName : ''}.png`, Buffer.from(r.result.data, 'base64'));
     }
     if (opt.draws) {
       v.census = await page.eval(CENSUS);
@@ -221,7 +228,7 @@ async function runWorld(page, world, mode) {
       v.cpuTop = await cpuProfile(page, `${RAW}/${world}-${name}.cpuprofile`);
       console.log(`  ${name} cpu (ms a frame, self): ` + (v.cpuTop ?? []).slice(0, 25).map(([k, x]) => `${x} ${k}`).join(' | '));
     }
-    console.log(`${label} ${name.padEnd(9)} ${v.fps} fps p95 ${v.frame?.p95} missed ${v.missedShare}% js ${v.cpu?.median} gpu ${v.gpu?.median} draws ${v.draws} scale ${v.scales?.median ?? v.scale}`);
+    console.log(`${label} ${name.padEnd(9)}${setName ? ' ' + setName.padEnd(5) : ''} ${v.fps} fps p95 ${v.frame?.p95} missed ${v.missedShare}% js ${v.cpu?.median} gpu ${v.gpu?.median} draws ${v.draws} scale ${v.scales?.median ?? v.scale}`);
     views.push(v);
   }
   return { world, mode, quality, load, canvas, errors: page.errors.slice(0, 5), warnings: [...new Set(page.warnings)].slice(0, 10), views };

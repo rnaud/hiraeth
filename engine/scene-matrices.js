@@ -24,6 +24,10 @@
 // walk would, since a hidden object whose parent's world matrix changed is flagged (matrixWorldNeedsUpdate), and so is
 // made again by the first walk, read or frame that reaches it, the frame it is shown among them. Only a direct read of a
 // hidden object's .matrixWorld sees it as it was when it was hidden (or last read).
+// What is shown after the matrices but before the frame is drawn (a body's face by its level of detail, skinned-lod.js;
+// anything a culler or the levels of detail show again): catchUpShown(scene), called once those have run (src/main.js
+// renderFrame, the web game's Steam Deck preset, issue #111), makes each subtree stepped over this frame
+// that is shown now as the walk would have, so nothing is drawn a frame where it was when it was hidden.
 import * as THREE from 'three';
 import { updateMatrixWorldCached, updateInWalk } from '../src/matrix-cache.js';
 
@@ -43,7 +47,7 @@ const _old = new Float64Array(16);
 
 class SceneList {
   constructor(scene) {
-    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0;
+    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0; this.stepped = []; this.caught = 0; this.over = 0;
     this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0); this.owns = new Int32Array(1);
     this.P = []; this.Q = []; this.S = []; this.K = []; this.M = []; this.ME = []; this.WE = []; this.changed = new Uint8Array(0);
   }
@@ -80,6 +84,9 @@ class SceneList {
 
   /** One frame's matrices. @return whether it ran from the list (false: the walk, the list made again after it) */
   update(skipHidden = false) {
+    const stepped = this.stepped;
+    stepped.length = 0;
+    this.over = 0;   // (how many objects were stepped over this frame: the readout's)
     if (this.epoch !== epoch) {
       this.scene.updateMatrixWorld();
       // (edits frame after frame, a burst of things spawned: the walk alone until they stop, not the list made again
@@ -97,6 +104,8 @@ class SceneList {
       if (skipHidden && o.visible === false && owns[end[i]] === owns[i]) {
         // (hidden, no own walk in it: stepped over; flagged if its parent moved, so whatever reaches it next makes it)
         if (force) o.matrixWorldNeedsUpdate = true;
+        stepped.push(o);
+        this.over += end[i] - i;
         changed[i] = 0;
         i = end[i] - 1;
         continue;
@@ -172,6 +181,26 @@ function mul(te, ae, be) {
 export function sceneList(scene) {
   const L = scene.__sceneList;
   return L && L.epoch === epoch ? L : null;
+}
+
+/**
+ * After updateSceneMatrices(scene, true) and whatever showed things before the frame is drawn: each subtree stepped over
+ * this frame that is shown now made as the walk makes it (its own numbers composed, its world matrices multiplied from
+ * its parent's, made this frame). @return how many were made
+ */
+export function catchUpShown(scene) {
+  const L = scene.__sceneList, S = L?.stepped;
+  if (!S || S.length === 0) return 0;
+  let n = 0;
+  for (let i = 0; i < S.length; i++) {
+    const o = S[i];
+    if (o.visible === false) continue;
+    o.updateMatrixWorld(true);
+    n++;
+  }
+  S.length = 0;
+  L.caught += n;
+  return n;
 }
 
 /** The scene's matrices this frame (its list kept on it); skipHidden: hidden subtrees stepped over (above). */

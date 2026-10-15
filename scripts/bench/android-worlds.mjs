@@ -14,6 +14,7 @@
 //                                 world's own foes removed), as scripts/enemy-roster/bench.mjs does; with --spawn 1
 //        [--tag name]             added to the result's file name
 //        [--spawn 1]              the world as booted instead of its views: the boot camera held, then 40 m walked on
+//        [--sets 'a={...};b={...}']  each view measured under each set of the running preset's keys in turn (an A/B)
 // Per world: the app started afresh, the world loaded (navigation to the first frame), the memory of the
 // app's three processes (its content process, where the page runs; its GPU process, where WebGL runs
 // remoted; the parent), then every view of the world (viewpoints-worlds.json; the desert's are
@@ -327,11 +328,16 @@ async function runWorld(world, mode) {
   };
   const items = [...W.views.map((v) => v.name), ...(W.paths ?? []).map((p) => p.name)].filter((n) => !only || only.includes(n));
   const views = [];
-  for (const name of items) {
-    await ev((l) => { window.__benchLabel = l; return true; }, `${world} ${name} ${mode}`).catch(() => 0);
+  // (--sets 'off={"peopleLod":false};on={}': each view under each set of the running preset's keys in turn, in the
+  //  same page, as deck-worlds.mjs --sets)
+  const SETS = opt.sets ? String(opt.sets).split(';').map((x) => { const i = x.indexOf('='); return [x.slice(0, i), x.slice(i + 1)]; }) : [[null, null]];
+  for (const name of items) for (const [setName, setJson] of SETS) {
+    if (setJson) await ev((j) => { Object.assign(window.preset(), JSON.parse(j)); return true; }, setJson);
+    await ev((l) => { window.__benchLabel = l; return true; }, `${world} ${name} ${mode}${setName ? ' ' + setName : ''}`).catch(() => 0);
     const one = { ...VP, views: W.views.filter((x) => x.name === name), paths: (W.paths ?? []).filter((x) => x.name === name) };
     gs.reset(); last = jiffies(procs.map((p) => p.pid)); lastT = Date.now();
     const [v] = await runAll(ev, one, { secs, warmup, tag: label, onEach });
+    if (setName) v.set = setName;
     v.missedShare = missedShare(v.raw.frame);
     v.jsSpikes = v.raw.cpu.filter((x) => x > 2 * (v.cpu?.median ?? 99) && x > 8).length;   // (main-thread frames over twice the usual: GC, a compile, a load)
     if (opt.profile) {
@@ -343,7 +349,7 @@ async function runWorld(world, mode) {
       v.toggles = await toggleView(ev);
       console.log(`  ${name} toggles: ` + Object.entries(v.toggles).map(([k, r]) => `${k} ${r.ms}${r.diff != null ? ` (Δ ${r.diff})` : ''} ${r.calls}c ${r.ktris}k`).join(' | '));
     }
-    console.log(`  ${name}: fps ${v.fps}, p95 ${v.frame?.p95}, missed ${v.missedShare} %, js ${v.cpu?.median} ms, gpu ${v.gpuBusy} % @${v.gpuMHz}, ${v.draws} draws ${Math.round(v.tris / 1000)}k tris, scale ${v.scales?.median ?? v.scale}, tab ${v.mem?.tab?.pssMB} MB, ${v.gpuC} °C`);
+    console.log(`  ${name}${setName ? ' ' + setName : ''}: fps ${v.fps}, p95 ${v.frame?.p95}, missed ${v.missedShare} %, js ${v.cpu?.median} ms, gpu ${v.gpuBusy} % @${v.gpuMHz}, ${v.draws} draws ${Math.round(v.tris / 1000)}k tris, scale ${v.scales?.median ?? v.scale}, tab ${v.mem?.tab?.pssMB} MB, ${v.gpuC} °C`);
     delete v.raw.gpu;
     views.push(v);
   }

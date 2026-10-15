@@ -388,7 +388,8 @@ export class InteriorCuller {
  *  - shadow: map size per cascade (fine 24 m, near, far 2.3 km), 0 = no such cascade;
  *    hero: with no fine map, the size of the hero map (the traveller alone, round him: shadows.js HERO_CASCADE);
  *    nearExtent: half-size of the near map (m)
- *  - nearEvery / farEvery: refresh the near / far map every n-th frame
+ *  - nearEvery / farEvery: refresh the near / far map every n-th frame; nearFight: the near map's count while a fight
+ *    is on, when fewer (shadows.js nearEveryNow)
  *  - crowdFar: crowd figures drawn up to (m); crowdMid: full-figure range (m)
  *  - propFar: pebbles and shrubs drawn up to (m); propPx: props smaller than this on screen (px) are skipped
  *  - postLite: one ink-line pass instead of two
@@ -402,6 +403,10 @@ export class InteriorCuller {
  *    pixel is the coarsest and the far ink crawled; docs/systems/rendering.md "Far lines that would alias")
  *  - clothFar: people's capes are simulated within this many metres of the camera (npc.js updateCape;
  *    unset: 30 m on a low-detail preset, 70 m otherwise); further off they hang on the body
+ *  - peopleLod: a person past 30 m and out of the last frame's view (with room for their shadow) is moved a quarter of
+ *    the frames, as past 110 m (npc.js offView; main.js), the time missed taken at once back in view
+ *  - skipHidden: the scene's matrices step over hidden subtrees (engine/scene-matrices.js), whatever is shown again
+ *    before the frame is drawn made then (catchUpShown)
  */
 // (cpuBound's probe, adaptScale: a step of 0.1 tried where the main thread looks like the limit, judged over
 //  5 windows, kept for 3 fps more or 2 missed refreshes fewer a window, else not tried again for 240 windows, 2 min)
@@ -423,10 +428,14 @@ export const QUALITY_PRESETS = {
   // pass of the scene a frame), a sharper near map over a smaller square instead (the GPU has room);
   // capes simulated within 14 m (clothFar; further off they hang on the body). Its own resolution always (issue #111:
   // no dynamic resolution, which only ever cost sharpness there: the GPU has room at scale 1 everywhere measured), and
-  // the far map every 8th frame (the most of the shadow draws; what it shows is over 120 m off and moves little)
+  // the far map every 8th frame (the most of the shadow draws; what it shows is over 120 m off and moves little).
+  // Round 11 (issue #111, docs/systems/performance.md): the near map every 4th frame (every other one in a fight:
+  // nearFight; at once when the camera turns or moves out of the view it was drawn for), people out of view past
+  // 30 m at a quarter of the frames (peopleLod), hidden subtrees' matrices stepped over (skipHidden)
   deck:     { label: 'Steam Deck', scale: 1, dynamic: null,
-    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 8, taps: 4,
-    ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
+    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 4, nearFight: 2, farEvery: 8, taps: 4,
+    ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14,
+    peopleLod: true, skipHidden: true },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
   // reports a pixel ratio of 1.5 at 1080p), adapting down to 0.6 when a scene is too much. Its main thread is the
   // limit (docs/systems/xbox.md, "Why 20 fps": every WebGL call costs ~5 µs there), so the Deck's shadows (no fine

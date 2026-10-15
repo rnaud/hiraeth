@@ -228,6 +228,27 @@ export function viewLeft(at, camera, slack = VIEW_SLACK) {
 }
 
 /**
+ * When a kept map is drawn again (main.js renderFrame): the near map every `every`-th frame (frame % every === 0), the
+ * far map every `farEvery`-th one frame later when the near map is kept (so the two big passes never share a frame
+ * where the counts allow it); either at once when the sun's direction turned (all the maps together, their hand-over
+ * seamless) or when the camera left the slack of the view the map was culled for (`left`: viewLeft, a function so it is
+ * asked only when needed). Between, the map drawn last is looked up where it was drawn (its own matrix).
+ */
+export function nearDue(frame, every, turned = false, left = null) {
+  return turned || frame % every === 0 || (every > 1 && !!left?.());
+}
+/**
+ * The near map's count this frame: the preset's nearEvery, or nearFight (when set, and fewer) while a fight is on, where
+ * the foes run, leap and strike within a few metres of the camera and their shadows must keep to their feet.
+ */
+export function nearEveryNow(preset, fighting = false) {
+  return fighting && preset.nearFight ? Math.min(preset.nearEvery, preset.nearFight) : preset.nearEvery;
+}
+export function farDue(frame, nearEvery, farEvery, turned = false, left = null) {
+  return turned || frame % farEvery === (nearEvery > 1 ? 1 : 0) || !!left?.();
+}
+
+/**
  * Which meshes each shadow pass draws. Per frame, every candidate's world
  * bounding sphere is swept away from the sun (the volume its shadow can
  * darken); a pass skips the caster if that volume misses the camera's view

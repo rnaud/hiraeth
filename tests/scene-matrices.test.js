@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { installMatrixCache } from '../src/matrix-cache.js';
-import { updateSceneMatrices, watchSceneEdits } from '../engine/scene-matrices.js';
+import { updateSceneMatrices, watchSceneEdits, catchUpShown } from '../engine/scene-matrices.js';
 
 installMatrixCache();
 watchSceneEdits();
@@ -110,6 +110,52 @@ test('skipHidden: what is shown has the walk\'s matrices, a hidden thing read th
   for (const w of [A, B]) for (const k of hide) w.all[k].visible = true;
   updateSceneMatrices(A.scene, true); B.scene.updateMatrixWorld();
   assert.deepEqual(matrices(A.scene), matrices(B.scene), 'all shown');
+});
+
+test('skipHidden with catchUpShown: what a level of detail or a culler shows after the matrices is drawn where it is, not where it was hidden', () => {
+  // (the web game's light presets, issue #111: renderFrame makes the matrices, then the levels of detail show a body's
+  //  face again (skinned-lod.js showFace) or put back what a culler hid; drawn the same frame, it must be in its place)
+  const run = (catchUp) => {
+    const A = world(13), B = world(13);
+    const hide = [1, 4, 9, 16, 25];
+    let late = 0, made = 0;
+    for (let f = 1; f <= 40; f++) {
+      step(A, f); step(B, f);
+      for (const w of [A, B]) {
+        for (const k of hide) w.all[k].visible = false;
+        // (while hidden: what is under it moves, and so does its parent now and then)
+        for (const k of hide) { const o = w.all[k]; o.position.y += 0.25; o.children[0]?.position.set(f * 0.1, 0, -f * 0.05); }
+        if (f % 4 === 0) w.all[0].position.x += 0.5;
+      }
+      updateSceneMatrices(A.scene, true);
+      // a swap after the matrices: some of them shown for this frame's draw
+      const shown = hide.filter((_, j) => (f + j) % 3 === 0);
+      for (const w of [A, B]) for (const k of shown) w.all[k].visible = true;
+      if (catchUp) made += catchUpShown(A.scene);
+      B.scene.updateMatrixWorld();
+      const a = shownMatrices(A.scene), b = shownMatrices(B.scene);
+      if (catchUp) assert.deepEqual(a, b, `frame ${f}: what is drawn is where the walk puts it`);
+      else if (a.some((x, i) => x !== b[i])) late++;
+    }
+    return { late, made };
+  };
+  const without = run(false), withIt = run(true);
+  assert.ok(without.late > 5, `without the catch-up a shown thing is drawn where it was hidden (${without.late} frames)`);
+  assert.ok(withIt.made > 10, `the catch-up made the subtrees shown after the matrices (${withIt.made})`);
+});
+
+test('catchUpShown: nothing to do without skipHidden, nor for what stays hidden', () => {
+  const A = world(17);
+  updateSceneMatrices(A.scene); updateSceneMatrices(A.scene);
+  A.all[1].visible = false;
+  updateSceneMatrices(A.scene);
+  assert.equal(catchUpShown(A.scene), 0, 'the plain list stepped over nothing');
+  updateSceneMatrices(A.scene, true);
+  assert.equal(catchUpShown(A.scene), 0, 'still hidden: left');
+  updateSceneMatrices(A.scene, true);
+  A.all[1].visible = true;
+  assert.equal(catchUpShown(A.scene), 1, 'shown after the matrices: made');
+  assert.equal(catchUpShown(A.scene), 0, 'once');
 });
 
 test('edits frame after frame: the walk alone until they stop, then the list again, the same matrices', () => {

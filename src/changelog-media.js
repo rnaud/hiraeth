@@ -1005,6 +1005,10 @@ const STRAFE47_SOURCE = 'issue #47 scratchpad motion47: game/before.json, game/a
 /** (v1.78, issue #111: the Steam Deck's main thread, round 10) */
 const DECK111 = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800 (render scale 1), muted, the bench’s own profile and save; every view of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1, viewpoints-worlds.json), main at c2f4ed6d against the same tree with the change, world by world in turn; 15 October';
 const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<world> (deck-worlds.json); docs/systems/performance.md, “The Steam Deck, round 10”';
+/** (v1.78, issue #111: the Steam Deck's main thread, round 11: the three levers) */
+const DECK111B = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800, muted, the bench’s own profile and save; every view and walk of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1 --sets), one build with the levers set off and on in the same page view by view, in two runs of opposite order (the first set after a view is placed reads 1–3 fps high), the mean of the two runs’ medians; 15 October';
+const DECK111B_SOURCE = 'issue #111 scratchpad deck111b: run1, run2 (deck-worlds.json, sum.mjs); docs/systems/performance.md, “The Steam Deck, round 11”';
+const DECK111B_SHOT = 'this Mac, muted headless Chrome (Metal) at 1280 × 800 on the Steam Deck preset, the bench’s view placed and held (scripts/bench/deck-mac.mjs, deck-worlds.mjs --shots 1 --sets), the levers off then on in the same page a few seconds apart; what differs between the two is what moves anyway (smoke, people walking, the traveller breathing), as much as between two shots with the levers off (15 October)';
 /** (v1.78, issue #113: the Xbox's Unity build at 4K) */
 const XBOX113 = 'Xbox Series X, the Unity preview 1.73.2236 (Direct3D 12, vsync on, muted), the TV at 2160p 120 Hz; before: its 1440p swap chain as shipped; after: the new defaults set by the same build’s switches (-resolution 3840x2160 -render-scale 0.6667 -dyn-res -dyn-res-min 0.6667 -upscale fsr); the spawns left standing (-idle: 90 s before and for native 4K, 150 s after), the mean of the last 30 s; 15 October';
 const XBOX113_SOURCE = 'issue #113 scratchpad xbox113: r-1440-incal-idle, v-1440-desert-idle, s-4k-incal-idle, w-4k-desert-idle, x-new-desert-idle150, y-new-incal-idle150 (unity.log); docs/systems/performance.md, “4K on the Xbox”';
@@ -1123,6 +1127,23 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Underwater City', before: 16.1, after: 15.3 },
         { where: 'the City Floating in Space', before: 16.3, after: 15.4 },
       ], note: 'About 16 ms of the main thread gives 60 here; the desert, the City-Shaft, Vael and Lorn are still over it (issue #111).' },
+    ] },
+    { match: 'On the Steam Deck the four slowest worlds run 3 to 4 frames', tags: ['perf', 'devices'], shots: [
+      { name: 'deck-levers-camps', title: 'The desert’s camps', caption: 'The camps by the gate on the Steam Deck’s setting: before, every person moved every frame, every hidden thing’s place worked out and the near shadows drawn every other frame; after, the people out of sight past 30 m a quarter of the frames, the hidden skipped, the near shadows every fourth frame. The same picture: only the smoke, the people and the traveller’s breath moved between the two', size: [1280, 800], from: DECK111B_SHOT },
+      { name: 'deck-levers-shaft', title: 'The City-Shaft’s square', caption: 'The square before the temple, the same two: the snails and the walkers moved on between the shots, the shadows and everything standing still are the same', size: [1280, 800], from: DECK111B_SHOT },
+    ], numbers: [
+      { title: 'Frames a second on the Steam Deck at native resolution (the median of each world’s views), the three levers together', unit: 'fps', better: 'higher', device: DECK111B, source: DECK111B_SOURCE, rows: [
+        { where: 'the desert', before: 44.3, after: 48.4 },
+        { where: 'the City-Shaft', before: 45.0, after: 48.4 },
+        { where: 'Vael', before: 51.9, after: 55.0 },
+        { where: 'Lorn', before: 54.1, after: 57.0 },
+      ], note: 'One lever at a time (fps, before → after): people out of sight past 30 m at a quarter rate, desert 46.1, City-Shaft 46.8, Vael 52.3, Lorn 54.0; hidden things’ matrices skipped, 45.7, 48.0, 53.0, 54.7; the near shadow map every 4th frame, 46.2, 46.3, 54.2, 55.8 (every 3rd: 46.4, 46.4, 53.2, 55.8).' },
+      { title: 'The main thread’s time a frame on the Steam Deck (the median view)', unit: 'ms', better: 'lower', device: DECK111B, source: DECK111B_SOURCE, rows: [
+        { where: 'the desert', before: 22.3, after: 19.9 },
+        { where: 'the City-Shaft', before: 21.9, after: 19.3 },
+        { where: 'Vael', before: 19.0, after: 17.3 },
+        { where: 'Lorn', before: 18.0, after: 16.6 },
+      ], note: 'About 16 ms gives 60 here: Lorn is nearly there, the desert and the City-Shaft are still about 3 ms over (issue #111).' },
     ] },
     { match: 'The Unity preview on the Xbox now sends a 4K TV a 4K picture', tags: ['perf', 'devices'], numbers: [
       { title: 'The picture’s height drawn on the Xbox (a 4K TV, once the dynamic resolution settles)', unit: 'px', better: 'higher', device: XBOX113, source: XBOX113_SOURCE, rows: [

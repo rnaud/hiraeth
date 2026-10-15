@@ -3380,3 +3380,58 @@ What it says:
 To repeat: `load-breakdown.mjs --worlds … --profile <new dir> --salt <new word> --runs 3 --traverse 60` with `PORT` away
 from 5173. For the Xbox, the steps above, each run ending with the app stopped and `args.txt` removed
 (`node scripts/xbox-unity.mjs args ""`).
+
+## The Steam Deck, round 11: three levers that change what is simulated (issue #111, 2026-10-15)
+
+After round 10 four worlds were still under 60 at native resolution, CPU-bound (JS 18-22 ms). The author approved three
+levers that change what is simulated or how often something is drawn, taken on the **Steam Deck preset only** (perf.js
+`deck`; Handheld is unchanged: the Retroid was in use by the player's own app, so it could not be measured):
+
+- **People out of view, past 30 m, a quarter of the frames** (`peopleLod`; main.js sets each person's `offView` from the
+  last frame's view, src/motion-kit/view.js inView, with 3 × their scale + 6 m of room round them for their shadow and a
+  turn of the camera; src/npc.js then moves them as past 110 m, and takes the time missed at once back in view). The
+  Unity bridge's rule (engine/game.js), now on the web too.
+- **Hidden subtrees' matrices stepped over** (`skipHidden`, engine/scene-matrices.js). The side effect named in round
+  10, a thing shown after the matrices (a distant body's face by skinned-lod.js, anything a culler or level of detail
+  shows again) drawn a frame where it was when it was hidden, is closed by `catchUpShown(scene)`: the list keeps the
+  subtrees it stepped over this frame, and once the cullers, the levels of detail and the empty instances have run
+  (renderFrame), each of them shown now is made as the walk makes it, before the still batches copy their matrices
+  (statics.update moved after it) and before the first pass. Reads through three (getWorldPosition, the physics'
+  movers' updateWorldMatrix) get the walk's matrices anyway; only a direct read of a hidden object's `.matrixWorld`
+  sees it where it was hidden.
+- **The near shadow map every 4th frame** (`nearEvery` 2 → 4; the rule in shadows.js `nearDue` / `farDue`). It was
+  already kept over two frames on the Deck, drawn again at once when the camera turns 0.1 rad or moves 4 m from the view
+  it was culled for (VIEW_SLACK), so a fast turn or a cut never shows the lag; between, it is looked up where it was
+  drawn. What lags is another caster's own movement: a walker's shadow up to 3 frames, ~8 cm at 50 fps, about 1.4 of
+  the map's 5.9 cm texels under the 4-tap filter. **In a fight** (foes.js `fighting`: a foe chasing or striking
+  within 28 m, or a lock-on) the count is `nearFight` 2, as before (`nearEveryNow`), the foes' shadows kept to their
+  feet. The far map stays every 8th frame, one frame after the near map's (never both in one frame, either count).
+
+**How it was measured**: one build, the levers set off and on in the same page view by view (`deck-worlds.mjs --sets
+'off={…};a={…};…'`, the preset's keys assigned at run time; `android-worlds.mjs` takes `--sets` too), the Deck as in
+round 10 (Gaming Mode, `deck-run.sh start headless` at `REFRESH=90`, the build in `~/.local/share/hiraeth-bench-games/`,
+`--secs 6 --warmup 2 --settle 1`, every view and walk). **The first set measured after a view is placed reads 1-3 fps
+high** (run 1, levers off first, made every lever look larger; run 2 in the opposite order made "off" look better), so
+two runs of opposite order, and the mean of their medians.
+
+| world | off | people (a) | hidden (b) | near ÷4 (c) | near ÷3 | all, ÷3 | **all, ÷4** | JS ms off → all |
+|---|---|---|---|---|---|---|---|---|
+| Desert | 44.3 | 46.1 | 45.7 | 46.2 | 46.4 | 47.7 | **48.4** | 22.3 → 19.9 |
+| City-Shaft | 45.0 | 46.8 | 48.0 | 46.3 | 46.4 | 48.3 | **48.4** | 21.9 → 19.3 |
+| Vael | 51.9 | 52.3 | 53.0 | 54.2 | 53.2 | 53.7 | **55.0** | 19.0 → 17.3 |
+| Lorn | 54.1 | 54.0 | 54.7 | 55.8 | 55.8 | 56.8 | **57.0** | 18.0 → 16.6 |
+
+(fps the median of a world's views and walks.) The levers alone are 0.5-2 ms of JS each; the near map's also takes
+the GPU's share of the near pass (the City-Shaft's GPU ms 16.9 → 11.3, its draws a frame ~380 → ~300 on average).
+Every 3rd frame measured the same as every 4th alone and ~0.6 fps under it with the other two, and would have needed
+the far map moved (3 and 8 share frames), so 4 was taken.
+
+**Standing still nothing changes**: headless muted Chrome on the Mac at 1280 × 800 on the Deck preset
+(`deck-mac.mjs`, `deck-worlds.mjs --shots 1 --sets`), the desert's camps and the City-Shaft's square, levers off then
+on in the same page: 5.3 % / 2.3 % of pixels differ, against 4.8 % / 1.8 % between two shots with the levers off, all
+of it smoke, walkers, snails and the traveller's breath (changelog v1.78). tests/deck-levers.test.js (the people's rate
+off view and back, the wiring, the refresh rule and the fight's count), tests/scene-matrices.test.js (the catch-up:
+without it a shown subtree is drawn where it was hidden; with it every shown matrix is the walk's).
+
+**Still not 60**: the desert and the City-Shaft (~48, JS ~19-20 ms), Vael 55, Lorn 57. Draw calls (the G-buffer's
+material changes) are the next lever, taken separately.

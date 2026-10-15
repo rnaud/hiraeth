@@ -53,6 +53,10 @@ export const CHANGELOG = [
     // ShadowCuller.begin, ship/cinema.js holdsToasts, wind.js (wisps out of the view), perf.js cullers, static-batch.js
     // opaqueSort / Watch.holds; tests/deck-main-thread.test.js; docs/systems/performance.md "The Steam Deck, round 10"
     'On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.',
+    // the Steam Deck's main thread, round 11 (issue #111): perf.js deck peopleLod / skipHidden / nearEvery 4 / nearFight,
+    // main.js (npc offView, catchUpShown), engine/scene-matrices.js catchUpShown, shadows.js nearDue / farDue /
+    // nearEveryNow; tests/deck-levers.test.js; docs/systems/performance.md "The Steam Deck, round 11"
+    'On the Steam Deck the four slowest worlds run 3 to 4 frames a second smoother again: people out of sight in the distance, things hidden from view and the shadows near you cost the console less, and nothing on the screen looks different. In a fight the shadows near you are drawn as often as before.',
     // the Xbox's Unity preview at 4K (issue #113): unity/Hiraeth BridgeRunner Experiments / Uhd / DynamicResolution,
     // BridgeMetrics HdmiHeight, HiraethLook.PixelRatio; tests/unity-xbox.test.js; docs/systems/performance.md "4K on the Xbox"
     // the Unity preview's take-off warp and keyboard rebinding (issue #264): src/ship/cinema.js Warp (screen 'warp'),

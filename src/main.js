@@ -7,7 +7,7 @@ import { GIVERS_NOTE } from './story/signature.js';
 import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
 import { installSkeletonUpdate } from './skeleton-update.js';
-import { watchSceneEdits, updateSceneMatrices } from '../engine/scene-matrices.js';
+import { watchSceneEdits, updateSceneMatrices, catchUpShown } from '../engine/scene-matrices.js';
 import { EmptyInstances } from './empty-instances.js';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
@@ -61,7 +61,7 @@ import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
-import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent } from './shadows.js';
+import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent, nearDue, farDue, nearEveryNow } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { JumpShadow } from './jump-shadow.js';
@@ -118,7 +118,7 @@ import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
 import { guardianBox } from './lock-frame.js';
 import { AimNudge, AIM_NUDGE, lockAimStep } from './lock-aim.js';
 import { hopAxis } from './jump.js';
-import { setView } from './motion-kit/view.js';
+import { setView, inView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets, gadgetFoundLine } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
@@ -1966,11 +1966,12 @@ function renderFrame() {
   // the scene graph's matrices once per frame, not once per pass: renderer.render() walks the
   // whole scene to update them every call, and a frame makes four or five calls (~1 ms of CPU). From a flat list of
   // the scene (engine/scene-matrices.js, the Unity mirror's), the walk's matrices without its megamorphic reads of
-  // 5 000-7 000 objects (issue #111: the Steam Deck's main thread)
+  // 5 000-7 000 objects (issue #111: the Steam Deck's main thread). The light presets (skipHidden) step over hidden
+  // subtrees (a far person's whole body, the pools of effects, the faces of distant bodies), and whatever of those the
+  // cullers and levels of detail below show again is made before anything is drawn (catchUpShown)
   scene.matrixWorldAutoUpdate = true;
-  updateSceneMatrices(scene);
+  updateSceneMatrices(scene, !!preset.skipHidden);
   scene.matrixWorldAutoUpdate = false;
-  statics?.update(renderer);   // (the batched still meshes that moved: static-batch.js)
   // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
@@ -1987,6 +1988,8 @@ function renderFrame() {
   (lod ??= makeLod()).update(camera, pxPerRad, preset.lodPx ?? 0);
   if (crowd) crowd.range.dist = preset.lodPx ? (CROWD_DIST_CELL * pxPerRad) / preset.lodPx : Infinity;   // the crowd's distant figure, by the same rule
   emptyInstances.hide(frameHidden);   // (last: what the levels of detail left shown and holds no instance)
+  catchUpShown(scene);   // (what was hidden at the matrices and is shown now: its matrices as the walk's, before it is drawn)
+  statics?.update(renderer);   // (the batched still meshes that moved: static-batch.js; after the catch-up, which may move one)
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
   // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.
@@ -2004,14 +2007,16 @@ function renderFrame() {
   if (heroOn) heroPass();
   else if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
   // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
-  const nearKept = preset.nearEvery > 1;
-  if (turned || frameNo % preset.nearEvery === 0 || (nearKept && viewLeft(cascades.near.view, camera))) {
+  // (the light presets' near map every nearEvery-th frame, every nearFight-th while a fight is on: shadows.js nearEveryNow)
+  const nearEvery = nearEveryNow(preset, foes.fighting);
+  const nearKept = nearEvery > 1;
+  if (nearDue(frameNo, nearEvery, turned, () => viewLeft(cascades.near.view, camera))) {
     // (the traveller is the hero map's alone; in the near map his coarse shadow only blurred its edge)
     const hero = heroOn && player.object.visible ? [player.object] : [];
     for (const o of hero) o.visible = false;
     shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, hero, nearKept);
   }
-  if (turned || frameNo % preset.farEvery === (preset.nearEvery > 1 ? 1 : 0) || viewLeft(cascades.far.view, camera)) {
+  if (farDue(frameNo, nearEvery, preset.farEvery, turned, () => viewLeft(cascades.far.view, camera))) {
     // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
     const small = farPassSkips(tiled.small, cascades.far.texel);
     for (const o of small) o.visible = false;
@@ -2333,7 +2338,13 @@ function frame(ts) {
   if (crowd && level.crowdAway) crowd.away = level.crowdAway();   // (a world's night thins its street: bazaar.js)
   if (crowd) crowd.hush = !talkAllowed({ shipPlaying: ship.playing });   // (no shouts over the crash or a landing: src/ship/landing.js)
   crowd?.update(dt, t, player, camera);
-  for (const n of npcs) n.update(dt, player, camera);
+  // (the light presets' peopleLod: a person past 30 m out of the last frame's view, with room round them for their shadow
+  //  and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView; issue #111)
+  const peopleLod = !!preset.peopleLod;
+  for (const n of npcs) {
+    if (!n.pooled) n.offView = peopleLod ? !inView(n.pos, 3 * (n.object?.scale?.y ?? 1) + 6) : undefined;
+    n.update(dt, player, camera);
+  }
   errands.update();
   // only the nearest talking villager shows a balloon
   {
