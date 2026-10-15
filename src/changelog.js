@@ -24,6 +24,9 @@ export const CHANGELOG = [
     // ShadowCuller.begin, ship/cinema.js holdsToasts, wind.js (wisps out of the view), perf.js cullers, static-batch.js
     // opaqueSort / Watch.holds; tests/deck-main-thread.test.js; docs/systems/performance.md "The Steam Deck, round 10"
     'On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.',
+    // the Aerie's futuristic skin (issue #342): src/temples/skins/aerie.js (`skin: aerieSkin` in arzach.js);
+    // tests/temple-skins.test.js; docs/systems/temples.md "Futuristic skins"
+    'Inside, the Aerie is the makers’ old high technology now, after the drawings picked for it: a round shaft of dark slate in tall slabs, thin pale peach circuits ringing it and climbing between the rings, warm grey floors with peach rings inlaid, a turbine of machined blades in every great vent that spins up when the wind rises, ochre sand on the ledges and balconies with a glowing rim along their edges, discs and hexagons floating high round the shafts, and a row of lit slots along every frieze. The makers’ sign on its walls is the drawings’ long low arch under three small dots. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the slabs are plainer and fewer plates float.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

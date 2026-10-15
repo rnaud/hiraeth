@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.78 — 2026-10-15
 
+- Inside, the Aerie is the makers’ old high technology now, after the drawings picked for it: a round shaft of dark slate in tall slabs, thin pale peach circuits ringing it and climbing between the rings, warm grey floors with peach rings inlaid, a turbine of machined blades in every great vent that spins up when the wind rises, ochre sand on the ledges and balconies with a glowing rim along their edges, discs and hexagons floating high round the shafts, and a row of lit slots along every frieze. The makers’ sign on its walls is the drawings’ long low arch under three small dots. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the slabs are plainer and fewer plates float.
 - On the Steam Deck every world runs 2 to 7 frames a second smoother at full resolution: the Signal Market, Viridel, the Underwater City and the City Floating in Space now hold 60, and the desert, the City-Shaft, Vael and Lorn are closer to it.
 - In the Sunken Hall, B / ○ rolls and jumping is disabled: A / × and Space do nothing, and the touch jump button is hidden. Jumping elsewhere works as before.
 - His knees no longer flick straight at the start of a walk, at a slow walk’s steps, walking up a slope, as he comes to a stop, or as he settles after turning on the spot.

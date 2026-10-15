@@ -322,3 +322,82 @@ test('the Founders’ Belfry wears its futuristic skin; collision, climbs and pi
   for (let i = 0; i < 30; i++) note.update(1 / 30);
   assert.ok(on.skin.U.bells.value.some((b) => b.w > 0.9), 'the porch bell rings');
 });
+
+// ---- the Aerie in its futuristic skin (src/temples/skins/aerie.js, after references/temples/future/aerie/sheet-*.jpg;
+// its names its own, a*, so the other houses' sections beside it never clash)
+import { aerieSkin, signGeometry as aSign } from '../src/temples/skins/aerie.js';
+import { sharedUniforms as aShared } from '../src/materials.js';
+class ANoSkin extends TempleRuntime { get noSkin() { return true; } }
+const aBuild = (bare = false) => new (bare ? ANoSkin : TempleRuntime)({ scene: new THREE.Scene(), level: { lights: [], ground: { baseAt: () => 0, heightAt: () => 0 } }, def: TEMPLES.arzach.def, game: new GameState(null) });
+let aOn = null;
+const aerie = () => (aOn ??= aBuild());
+const aSolids = (rt) => rt.kit.group.children.filter((m) => m.name.endsWith(' collision') || m.name.endsWith(' climbs')).map((m) => [m.name, Array.from(m.geometry.attributes.position.array, (v) => Math.round(v * 1000))]);
+
+test('the Aerie wears its futuristic skin: slate slabs, sand ledges, peach circuits, turbines and floating plates', () => {
+  const rt = aerie();
+  assert.equal(TEMPLES.arzach.def.skin, aerieSkin);
+  assert.equal(rt.skin?.name, 'aerie');
+  for (const [k, body] of [['wall', 'slate'], ['wallGlyph', 'metal'], ['trim', 'metal'], ['floor', 'plates']]) {
+    const m = rt.skin.mats[k];
+    assert.equal(m.userData.houseSkin, body, `its ${k} the skin's ${body}`);
+    assert.ok(m.fragmentShader.includes('float detail = skInk;') && m.fragmentShader.includes('emit = max(emit, skGlow);'), `the ${k}'s pen lines and glow the pattern's`);
+  }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the slabs’ tones, chamfers and climbing circuits off on the lighter presets');
+  const s = rt.skin.stats;
+  // (the four great vents' turbines, the raised slabs' rims, the well's bands, the rings round the throats, the wing lines
+  // recoloured, every frieze glyph redrawn as the picks' sign, floating discs and hexagons)
+  assert.ok(s.turbines === 4 && s.rims >= 16 && s.bands >= 3 && s.rings >= 10 && s.wing > 20 && s.signs > 50 && s.floaters >= 12 && s.hexes >= 2, JSON.stringify(s));
+  const dressing = rt.kit.group.children.filter((m) => m.userData.skin);
+  assert.ok(dressing.length === 7 && dressing.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false), 'seven drawn-only instanced meshes, out of the shadow passes');
+  // its lights out of the shadow passes; the house's own materials and palette back for the exterior
+  for (const m of rt.kit.group.children) if ([rt.skin.mats.ring, rt.skin.mats.wing, rt.skin.mats.glyph, rt.skin.mats.slot].includes(m.material)) assert.equal(m.userData.castShadow, false, m.name);
+  assert.ok(!rt.M.wall.userData.houseSkin && rt.M.glyph !== rt.skin.mats.glyph);
+  assert.equal(rt.P, TEMPLES.arzach.def.palette);
+  assert.equal(rt.kit.plan, null);
+  // the picks' sign: a long low arch with its dots, far wider than it is tall
+  const z = new THREE.Box3().setFromBufferAttribute(aSign(1.62).attributes.position).getSize(new THREE.Vector3());
+  assert.ok(z.x > 1.55 && z.x < 1.75 && z.y < 0.6, `the sign ${z.x.toFixed(2)} by ${z.y.toFixed(2)}`);
+});
+
+test('the Aerie’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const on = aerie(), off = aBuild(true);
+  assert.equal(off.skin, null);
+  assert.deepEqual(aSolids(on), aSolids(off), 'collision and climbs vertex for vertex');
+  const own = on.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, off.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = off.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+    if (p.foot?.isVector3) assert.ok(p.foot.distanceTo(q.foot) < 1e-6);
+  });
+});
+
+test('the Aerie’s floating plates keep off its doorways and winds; its turbines turn with the wind; Low draws half the plates', () => {
+  const rt = aerie(), K = rt.kit;
+  const p = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), m4 = new THREE.Matrix4();
+  const doors = rt.pieces.filter((d) => d instanceof Door).map((d) => ({ at: K.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
+  const winds = rt.pieces.filter((w) => w.constructor.name === 'Updraft').map((w) => ({ f: K.local(w.foot), r: w.r, h: w.hMax }));
+  assert.ok(doors.length >= 4 && winds.length >= 6);
+  const plates = rt.kit.group.children.filter((m) => /floating (discs|hexagons)$/.test(m.name));
+  for (const m of plates) for (let i = 0; i < m.count; i++) {
+    m.getMatrixAt(i, m4); m4.decompose(p, q, sc);
+    const l = K.local(p);
+    for (const d of doors) assert.ok(!(Math.hypot(l.x - d.at.x, l.z - d.at.z) < d.w / 2 + 3 && l.y > d.at.y - 2 && l.y < d.at.y + d.h + 2), `${m.name} #${i} by a doorway`);
+    for (const w of winds) assert.ok(!(Math.hypot(l.x - w.f.x, l.z - w.f.z) < w.r + sc.x + 1 && l.y > w.f.y - 1 && l.y < w.f.y + w.h + 2), `${m.name} #${i} in a wind's column at ${l.toArray().map((v) => v.toFixed(1))}`);
+  }
+  const motion = rt.pieces.find((x) => x.constructor.name === 'SkinMotion'), tm = rt.kit.group.children.find((m) => m.name === 'skin: turbines');
+  const i = motion.turbines.findIndex((t) => t.piece.o.id === 'column'), wind = motion.turbines[i].piece;
+  const was = aShared.uWearLite.value, a = new THREE.Matrix4(), b = new THREE.Matrix4();
+  try {
+    // (the well's column rising, as it does once the hall's stone sits in its vent)
+    Object.defineProperty(wind, 'on', { value: true, configurable: true });
+    tm.getMatrixAt(i, a); for (let k = 0; k < 30; k++) motion.update(0.1); tm.getMatrixAt(i, b);
+    assert.ok(!a.equals(b), 'a turbine turns while its wind rises');
+    aShared.uWearLite.value = 1; motion.update(0.1);
+    const n = plates.reduce((s, m) => s + m.count, 0);
+    aShared.uWearLite.value = 0; motion.update(0.1);
+    assert.ok(n < plates.reduce((s, m) => s + m.count, 0), 'the lighter presets draw fewer plates');
+  } finally { aShared.uWearLite.value = was; delete wind.on; }
+});

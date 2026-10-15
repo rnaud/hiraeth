@@ -9,6 +9,7 @@ import { elderGuardian } from './guardian-generated.js';
 import { items } from '../items.js';
 import { shiftAt } from '../levels/names.js';
 import { chestMound } from '../boxes/mound.js';
+import { aerieSkin } from './skins/aerie.js';
 
 // Vael's temple: the Aerie, a great white house of the makers on the plain
 // west of the landing, two drums of bone-white stone and a crown of stone
@@ -717,6 +718,8 @@ export const ARZACH_TEMPLE = {
   origin: shiftAt('arzach', [-200, 1600, 300]), yaw: 0,   // (its rooms over Vael's plain, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (inside, its futuristic look, after the author's picks: src/temples/skins/aerie.js; issue #342)
+  skin: aerieSkin,
   local: { person: 'lark', out: 16, side: 7 },
   enterLine: 'Inside the Aerie it is bright and white and the wind never stops. Far overhead, something heavy shifts its feathers.',
   pitLine: 'You climb back up to the last glyph stone.',

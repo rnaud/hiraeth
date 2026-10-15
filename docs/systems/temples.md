@@ -1261,6 +1261,46 @@ lavender-grey floors, lens terminals in alcoves, tiers of turning vanes, an iris
   Lamp Gallery's drum has none (its puzzles fill it); the warden's ledge and the tripod robot are the guardian's own
   model, unchanged.
 
+### The Aerie (`skins/aerie.js`)
+
+After `references/temples/future/aerie/sheet-1.jpg` and `sheet-2.jpg`: a round shaft of dark slate open to the sky,
+thin pale peach circuits ringing it, a turbine in the floor's grille driving the wind, ochre sand on the ledges,
+floating discs and hexagons with glowing rims.
+
+- **Surfaces** (the surface shader's albedo, pen lines and `emit` replaced, as the Well's; the picks' pixels sampled:
+  walls #45494c–#595c61, floors #6f6863–#837977, ledges #c39e79–#d5b58b, and the game's shots match them):
+  - `slate` (walls): tall vertical slabs, one to three 1.35 m cells wide (`skJ`), a joint across only every 11–19 m,
+    staggered; each its tone, a chamfer lit down its left edge and shaded down its right (painted). Every 6.5 m a pair
+    of thin peach lines rings the wall (most lit), and from some joints a line climbs to the next pair, stepping
+    sideways once. Hatching 0.15 (sparse, as the picks' shadows).
+  - `metal`: the doors and the hall's screens (1.6 m panels, a peach seam down some) and the trim (kerbs, caps, the
+    stone feathers, the Moult's columns: a lighter slate, no seams).
+  - `plates` (floors): at a room's own floor warm grey plates in rings round a round room's middle (two peach rings
+    1.6 m in from the wall, one round the middle, four spokes) or a grid in a hall (an inlay 1.6 m in); anything higher
+    (a ledge, a balcony, the perch, a lip, the raft) ochre sand, its sides darker sand.
+- **Glows** (peach `#ffbe98`, `AERIE.emit` 0.67–0.76, just over the post pass's 0.62): the trim's flat rings round the
+  vents' throats, the stones' cups and the perch, the vent mouths' and the great eye's rims (`sortTrim`, by shape, moved
+  to a lit batch); the winds' own rings (`Updraft`'s); the wing lines up the well (arzach.js's, recoloured); the frieze's
+  feathers become a row of lit `slot`s (the picks' slots that breathe the gusts); the frieze glyphs and the threshold's
+  are redrawn as the picks' sign (`signGeometry`: a long low arch, three small dots in a tight row over its crest);
+  the doors', the plates' and the raft's glyph is the shared one (`sign-text.js`), left as it is.
+- **Dressing**, drawn only (7 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
+  turbines (`TURBINE`: 26 pitched blades between a hub ring and a frame) in the four great vents' grilles, clear of
+  the plate in the middle, spinning up while their wind rises and running down when a stone stops it; a lit rim along
+  every raised slab's edges (`raisedEdges`); a lit line round each great band of the well; floating discs and hexagons
+  (sand tops, darker sides, a lit rim) in two tiers round the well, high round the Roost and along the gulf's walls,
+  kept off every doorway, piece, floor, wind column (3.5 m round its whole height) and the gusts' air.
+- **Presets.** On Low, Handheld and the Deck (`uWearLite`) the shader leaves out the slabs' tones, chamfers and the
+  climbing circuits; half the floating plates are drawn.
+- **Cost** (this Mac, muted headless Chrome, 960 × 540, the same 10 views, `?noskin=1` → skin, means of the views'
+  medians): draw calls High 213 → 214, Low 219 → 225 (one view, over the well, swings 190–350 either way from run to
+  run); triangles High 401 k → 328 k, Low 387 k → 313 k (the lights leave the shadow passes, the frieze glyphs become
+  the lighter sign); frame time High 5.9 → 6.1 ms, Low 6.7 → 5.0 ms, within the shared machine's spread. Dressing
+  ~35 ms to build.
+- **Unlike the pictures:** the turbines stand on the floor rather than sunk in a pit; the vents' crossing bars stay
+  over them; the stone feathers (round the crown, in the hall and over the gulf) are kept, in slate; the Elder is the
+  guardian's own model.
+
 ### The Whale-House (`skins/whale-house.js`)
 
 After `references/temples/future/whale-house/sheet-1.jpg` and `sheet-2.jpg`: a hall of dark sage slate, the great

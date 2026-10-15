@@ -896,6 +896,15 @@ const FOOTPRINT336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headles
 /** (v1.77, issue #336: the Hush-House's rooms, shot the same way before and after) */
 const HUSH336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6454, on the tree before this change and on this branch, the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #342: the Warden's Well's futuristic skin, shot with and without it, the same pinned camera) */
+/** (v1.78, issue #342: the Aerie in its futuristic skin, the same pinned views with ?noskin=1 and without) */
+const FUTURE342_AERIE = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy that adds a query) in muted headless Chrome (High, 960 × 540, noon), Vite on port 6501, the house before the skin (before) and in it (after), the camera pinned in each room, 15 October; cwebp -q 72';
+const FUTURE342_AERIE_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 960 × 540, noon, the same pinned camera in 10 views (the Hall of Winds, the Wind Well up and on its floor and from the high balcony, the Wing Chamber, the Vent Hall, the Gulf, the Roost, the Moult, the Eyrie), the median of 240 frames each, ?noskin=1 and the skin in two loads; the machine shared with other work (load 14–25), so frame times are within its spread';
+const FUTURE342_AERIE_SOURCE = 'issue #342 scratchpad future-aerie/capture.mjs QC_MEASURE (the means over the ten views); draw calls and triangles from renderer.info, every pass of a frame';
+const FUTURE342_AERIE_NUMBERS = [
+  { title: 'The Aerie: frame time (median), skin off → on', unit: 'ms', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 5.9, after: 6.1 }, { where: 'Low', before: 6.7, after: 5.0 }], source: FUTURE342_AERIE_SOURCE },
+  { title: 'The Aerie: draw calls a frame', unit: 'calls', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 213.1, after: 214.1 }, { where: 'Low', before: 219.2, after: 225.3 }], source: FUTURE342_AERIE_SOURCE },
+  { title: 'The Aerie: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 401, after: 328 }, { where: 'Low', before: 387, after: 313 }], source: FUTURE342_AERIE_SOURCE },
+];
 const FUTURE342_WELL = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy that adds a query) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6462, this branch with the skin off (?noskin=1, before) and on (after) in two loads of the same world, the camera pinned in each room, 15 October; the after pictures shot again on port 6471 for the second pass closer to the drawings (bigger panels, lavender floors, crisp lights, lens alcoves, more vanes), 16 October; cwebp -q 72';
 const FUTURE342_WELL_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 1280 × 720, noon, the same pinned camera in 7 rooms (the Turning Floors, the Climb, the Bellows Chamber, the Lamp Gallery, the crown looking up, the Flue, the Warden’s Hall), the median of 240 frames each, the skin off and on in two loads; the machine shared with other work (load 8–13), so frame times are within its spread';
 const FUTURE342_WELL_SOURCE = 'issue #342 scratchpad capture.mjs QC_MEASURE (the means over the seven views); draw calls and triangles from renderer.info, every pass of a frame; the second pass’s rows: the first skin → the skin closer to its drawings, the same views on port 6471, 16 October (load 5–28)';
@@ -1035,6 +1044,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'turning on the spot', before: 3.7, after: 1.6 },
       ] },
     ], see: 'Walk off slowly with half the stick, or stop after a jog, or tap the stick sideways while standing: the knee bends and straightens smoothly instead of snapping straight for a frame.' },
+    { match: 'Inside, the Aerie is the makers’ old high technology now', tags: ['vael', 'temples', 'perf'], shots: [
+      { name: 'future-arzach-roost', title: 'The Roost', caption: 'Before, ivory stone banded in ochre round the Elder; after, tall slabs of dark slate, pale peach circuits ringing the drum, a turbine of machined blades in each vent’s grille inside a glowing peach ring, discs floating high round the walls, lit slots along the frieze; the Elder, the stone, its groove and the vents where they were', from: FUTURE342_AERIE,
+        reference: { sheet: 'references/temples/future/aerie/sheet-1.jpg', caption: 'The Aerie as an ancient high-tech shaft: the author’s pick (issue #342)' } },
+      { name: 'future-arzach-well-floor', title: 'The Wind Well’s floor', caption: 'The great vent, its stone, the raft and the Moult’s door where they were: warm grey floor plates in rings with peach rings and spokes inlaid, a turbine in the grille, the wing lines climbing the slate in peach, sand ledges round the wall', from: FUTURE342_AERIE,
+        reference: { sheet: 'references/temples/future/aerie/sheet-2.jpg', caption: 'The Aerie’s second pick: the turbine grille, the sign, the floating plates and the sand ledge (issue #342)' } },
+      { name: 'future-arzach-well-up', title: 'Looking up the Wind Well', caption: 'Up the shaft to the sky: tall slate slabs, rings of peach circuits, the wing lines, discs and hexagons floating high under the oculus', from: FUTURE342_AERIE },
+      { name: 'future-arzach-hall', title: 'The Hall of Winds', caption: 'The screens and the stone’s groove where they were: the screens machined slate with peach seams, the walls tall slabs with lit rings, a lit slot under every sign of the frieze', from: FUTURE342_AERIE },
+      { name: 'future-arzach-gulf', title: 'The Gulf', caption: 'From the near lip: the perch and the far ledge where they were, the lips’ edges lit peach, floating plates high along the walls', from: FUTURE342_AERIE },
+      { name: 'future-arzach-eyrie', title: 'The Eyrie', caption: 'The ledge in ochre sand, its stone and the great key’s perch where they were; the makers’ sign over each lit slot the drawings’ long low arch under three dots', from: FUTURE342_AERIE },
+    ], numbers: FUTURE342_AERIE_NUMBERS },
   ],
   '1.77': [
     { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [
