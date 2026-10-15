@@ -3435,3 +3435,105 @@ without it a shown subtree is drawn where it was hidden; with it every shown mat
 
 **Still not 60**: the desert and the City-Shaft (~48, JS ~19-20 ms), Vael 55, Lorn 57. Draw calls (the G-buffer's
 material changes) are the next lever, taken separately.
+
+## The Steam Deck, round 12: every world, Unity against the web (D18, issues #111 / #264, 2026-10-15)
+
+The plan's D18 (docs/plans/unity-default-portables.md): every world on the route and Home, in both engines, on the
+Deck, before the switch.
+
+**What ran.**
+- **Device**: the Steam Deck OLED in Gaming Mode, plugged in; gamescope's headless backend at 1280 × 800 and 90 Hz;
+  muted; in the bench's own profiles.
+- **The two builds, both from origin/main db5a37fc** (063efdfb's code: db5a37fc only touched CLAUDE.md):
+  - the web: `npx vite build`, served to the installed runtime (Electron 44, ANGLE on GL, radeonsi);
+  - the Unity player: the `unity-linux` release (IL2CPP, Vulkan on RADV, built from 063efdfb by run 187, digest
+    fb5023aa…). Its bundle was swapped for the same commit's bundle plus this round's bench code (the walks and every
+    frame's interval in its results; nothing the game runs).
+- **Settings**: the Steam Deck preset in both, at native resolution with no dynamic scale. The web is held to the
+  90 Hz refresh by its vsync; the player runs uncapped, as in rounds 6-7.
+- **The script**: `node scripts/bench/deck-engines.mjs --web <dir on the Deck> --unity <player> --out <dir> --lock <dir>`,
+  then `deck-engines-summary.mjs <dir>`. The results are in scripts/bench/results/deck-engines-d18.json. Per world and
+  engine it makes:
+  - **a cold launch**: a new profile and empty shader caches of the bench's own. That is Electron's profile with
+    `MESA_SHADER_CACHE_DIR`; for the player, its `XDG_CONFIG_HOME`, its `TMPDIR` (Unity's pipeline cache) and Mesa's
+    cache. Only the start view is measured;
+  - **a warm launch** on those same caches, where every view and walk is measured: viewpoints.json's desert,
+    viewpoints-worlds.json's others (the Moon Foundry's views were picked in this run).
+- **How each engine measures**:
+  - the web: `deck-worlds.mjs --settle 1 --secs 6 --warmup 2`;
+  - the player: each view measured on a second pass, then the walk (`deck-unity.sh`, `-bench 6 -split`).
+- **What the numbers mean**:
+  - fps is the median of a world's views and walks;
+  - the 1 % low is 1000 / the 99th-percentile frame, over all the world's frames;
+  - frames under 60 is the share of frames over 16.7 ms;
+  - load is from the navigation to the first frame (web) or from launch to "world settled" (Unity, unity.log);
+  - memory is the peak during the warm run: the processes' PSS (gamescope left out), and VRAM + GTT over what was in
+    use before the launch.
+
+| world | fps, web → Unity (worst view) | 1 % low | p95 / p99 ms | frames under 60 % | over 50 ms (longest ms) | load cold / warm s | PSS / GPU MB |
+|---|---|---|---|---|---|---|---|
+| Desert | 52.1 (47.1) → **77.6** (69.9) | 29.9 → 51.3 | 22.3 / 33.4 → 16.3 / 19.5 | 58.1 → 3.8 | 9 (77.9) → 4 (116.6) | 61.6 / 46.4 → 22.1 / 13.8 | 1317 / 672 → 1805 / 537 |
+| Vael | 63 (57.1) → **82.5** (76.5) | 44.6 → 55.9 | 22.3 / 22.4 → 15.8 / 17.9 | 44.7 → 2.2 | 0 (33.4) → 0 (22.6) | 63.8 / 57.1 → 18.7 / 14.4 | 1337 / 809 → 1668 / 486 |
+| Lorn | 63.3 (57.5) → **72** (70.9) | 44.8 → 57.5 | 22.3 / 22.3 → 15.7 / 17.4 | 36.8 → 1.9 | 0 (44.4) → 0 (44.3) | 73.9 / 61.7 → 12.5 / 14.6 | 1261 / 729 → 1630 / 510 |
+| Viridel | 78.7 (63.2) → **101.9** (97.8) | 44.8 → 72.3 | 22.3 / 22.3 → 12 / 13.8 | 17.3 → 0.1 | 0 (22.6) → 0 (31.4) | 56.4 / 50 → 10.1 / 12.1 | 976 / 557 → 1417 / 447 |
+| Underwater City | 73.2 (64.1) → **84.4** (79.4) | 44.6 → 55.9 | 22.3 / 22.4 → 15.1 / 17.9 | 23.8 → 2 | 2 (188.9) → 0 (22.7) | 55.4 / 44.2 → 9.9 / 9.6 | 1097 / 595 → 1294 / 465 |
+| City-Shaft | 54 (50.1) → **66** (61.4) | 44.4 → 47.2 | 22.3 / 22.5 → 18.8 / 21.2 | 65.5 → 16.7 | 1 (77.7) → 2 (71.3) | 60.5 / 53.8 → 23.1 / 24.2 | 1453 / 726 → 1797 / 533 |
+| Glass Dunes | 88.7 (78) → **102.9** (87.3) | 44.8 → 70.4 | 11.2 / 22.3 → 12.4 / 14.2 | 3.3 → 0.1 | 0 (33.3) → 1 (1231.5) | 54.9 / 43.7 → 9.9 / 10.2 | 1006 / 548 → 1275 / 425 |
+| Buried Machine | 85.7 (79.9) → **93.6** (88.7) | 44.8 → 66.3 | 22.2 / 22.3 → 12.9 / 15.1 | 6.6 → 0.4 | 0 (22.8) → 0 (22.6) | 61.9 / 51.2 → 13.0 / 13.8 | 1076 / 655 → 1464 / 463 |
+| Moon Foundry | 87.3 (83.7) → **105.1** (101.6) | 44.8 → 70.5 | 11.2 / 22.3 → 12.2 / 14.2 | 3.9 → 0.2 | 0 (33.3) → 0 (20.9) | 62.1 / 53.6 → 10.0 / 9.6 | 1023 / 578 → 1254 / 453 |
+| Garden of Spheres | 88.8 (82) → **92.1** (90.1) | 44.8 → 69.1 | 11.2 / 22.3 → 12.8 / 14.5 | 3.2 → 0.3 | 0 (23.1) → 0 (22.7) | 67.1 / 64.5 → 10.5 / 12.1 | 1105 / 640 → 1393 / 456 |
+| City Floating in Space | 74.4 (69.2) → **97.4** (91.4) | 44.8 → 67.5 | 22.3 / 22.3 → 12.7 / 14.8 | 21 → 0.4 | 2 (200.2) → 1 (82.3) | 51.9 / 46.5 → 10.6 / 13.1 | 1103 / 623 → 1368 / 470 |
+| Signal Market | 72.7 (61.8) → **91.7** (82.3) | 44.6 → 60 | 22.3 / 22.4 → 14 / 16.7 | 29.1 → 1 | 2 (77.8) → 2 (92.2) | 55.9 / 49.7 → 15.6 / 11.1 | 1075 / 587 → 1482 / 454 |
+| Home | 90 (89.8) → **107.6** (104.5) | 88.5 → 71.2 | 11.2 / 11.3 → 11.9 / 14.1 | 0.1 → 0.3 | 0 (24.2) → 0 (18.2) | 37 / 18.2 → 13.8 / 8.8 | 870 / 492 → 1092 / 407 |
+
+**What it says.**
+- **Unity is ahead in every world**: its median fps is higher in all 13, by 3-26 fps; its worst view is higher in all
+  13; and its share of frames under 60 is lower everywhere but Home (0.3 % against 0.1 %).
+  - The City-Shaft is Unity's weakest world: 66 fps, 16.7 % of frames under 60, the wide view 61. Its frame is
+    balanced there: script 12-13.5 ms, main thread 14-16, GPU 12-16 (most of the GPU is the shaft's geometry,
+    round 7).
+  - Next weakest are Lorn (72) and the desert (78). Everywhere else Unity is at 82-108.
+  - The web's 1 % lows sit at 44.8 (22.3 ms). That is vsync halving its missed frames to 45, so its lows read lower
+    than the time it actually missed.
+- **The one place the web reads better: frame pacing at the top.** Where the web holds the 90 Hz refresh, Unity's
+  slowest 5 % of frames are 12-14 ms (70-80 fps) against the web's 11.2: Home, the Glass Dunes, the Moon Foundry and
+  the Garden of Spheres (Home's 1 % low 71 against 88).
+  - This is the uncapped player's spread, not a slow world: those worlds run at 92-108 fps.
+  - Neither engine misses 60 there.
+  - With vsync at 90 the player would miss a refresh on a few frames in a hundred where the web misses none.
+  - **Not fixed here.** It needs gamescope to hold the player to 90 (round 6: at 90 Hz `-vsync 1` it does not), or
+    a frame-rate cap in the player measured against vsync.
+- **Stalls.** Frames over 50 ms in the measured views and walks:
+  - the web had 16: nine on the desert's walks (55-78 ms), and a 189 ms and a 200 ms frame in the Underwater City and the
+    City Floating in Space;
+  - the player had 10, most on the walks (the desert 117 ms, the Market 92, the City Floating in Space 82, the
+    City-Shaft 71), plus **one 1.23 s frame** in the Glass Dunes (its frozen view, second pass).
+  - That frame is `PreLateUpdate.EndGraphicsJobsAfterScriptUpdate` 1 228 ms in unity.log's slow-frame line, with no
+    script time and the GPU idle: the main thread waiting on the render thread.
+  - The same ~1.2 s wait shows **once in 6 of the 13 warm launches** (the Desert, Vael, Lorn, the Buried Machine, the
+    Glass Dunes, Home). It comes at 17-106 s, mostly between the measured views, so it is missing from the table.
+    A third Glass Dunes launch on the same caches had none: no frame over 30 ms, the frozen view at 108 fps.
+  - **The likely cause** is a Vulkan pipeline made the first time a variant is drawn: the cold run filled the caches
+    from the start view only, and one pipeline of the Surface shader's size takes about this long on RADV (the cold
+    loads' first draw is a 4-9 s stall of the same kind). Mesa keeps it on disk, so a player would pay each variant
+    once.
+  - **Not fixed here.** BridgePrewarm does nothing on Vulkan (round 6). The lever is Unity 6's
+    GraphicsStateCollection, or prewarming every variant a world uses at its load.
+- **Loads.**
+  - The player loads a world in **10-24 s cold and 9-24 s warm**. The cold first-draw stall is 4-9 s, then gone on
+    warm.
+  - The web takes **52-74 s cold and 18-65 s warm** on the Deck. Most of that is "mixing the inks… / surfaces": the
+    shader warm-up, one program at a time on ANGLE-GL (`oneAtATime`), and it has not gone with the caches warm.
+  - The City-Shaft is the player's slowest load (23-24 s): its collision and BVH are built on the script's thread
+    (as on the Xbox, "Cold and warm loads, Mac and Xbox").
+- **Memory.** The player uses **200-490 MB more** of the processes' memory (PSS 1.1-1.8 GB against 0.9-1.45 GB) and
+  **85-320 MB less** of the GPU's (VRAM + GTT 0.4-0.54 GB against 0.49-0.81 GB). Together that is 30-260 MB more than
+  the web: on a 16 GB Deck it limits nothing.
+- **A crash at launch**: 1 of the 31 player launches of this session (the desert's first warm launch) died with SIGSEGV right
+  after `InitializeOrResetSwapChain`, before the script started. The retry, and the 29 launches after it, started
+  normally. D9's watchdog falls back to the web on such a launch. Worth catching, with symbols, if it happens again.
+
+**Verdict for D18**: Unity is at or above the web in every world on fps, worst view, frames under 60 and loads. Two
+things are left open, neither a blocker for the switch:
+- the uncapped player's spread above 80 fps (above);
+- the one-off ~1.2 s first-use pipeline stalls (above).

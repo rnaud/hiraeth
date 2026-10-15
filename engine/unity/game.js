@@ -355,6 +355,13 @@ function talkClock(game, P) {
 function makePlan(args) {
   const steps = [];
   for (const v of args.views ?? []) {
+    // (a path among the views, as the web bench's (scripts/bench/web-page.mjs runAll): its points, speed and secs; the
+    // traveller and the camera carried along it by the clock while it is measured: scripts/bench/deck-engines.mjs)
+    if (v.points) {
+      steps.push({ kind: 'pin', view: pathAt(v, 0) }, { kind: 'wait', frames: 12, secs: args.settle ?? 1.5 });
+      if (args.bench) steps.push({ kind: 'measure', view: v, secs: v.secs ?? args.bench, path: v });
+      continue;
+    }
     // (and a second and a half of the game's time: what wakes by the traveller's nearness, the answering plants, has woken
     // as on the web bench's view, which waits seconds)
     steps.push({ kind: 'pin', view: v }, { kind: 'wait', frames: 12, secs: args.settle ?? 1.5 });
@@ -530,6 +537,15 @@ function makePlan(args) {
   if (!steps.length) return null;
   if (!args.idle && !args.tour) steps.push({ kind: 'done' });
   return { steps, i: 0, wait: 0, t: 0, samples: null };
+}
+
+/** Where a bench path is `s` m along (web-page.mjs runAll's `at`, the same numbers): a view with the traveller in it. */
+function pathAt(p, s) {
+  const pts = p.points, n = pts.length;
+  const k = Math.min(Math.max(s, 0), n - 1.001), i = Math.floor(k), u = k - i, a = pts[i], b = pts[i + 1];
+  const L = (x, y) => x.map((c, j) => c + (y[j] - c) * u);
+  let dh = b.h - a.h; dh = ((dh + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+  return { name: p.name, player: L(a.p, b.p), heading: a.h + dh * u, eye: L(a.eye, b.eye), target: L(a.target, b.target), fov: p.fov ?? 55, hidePlayer: false };
 }
 
 /**
@@ -789,6 +805,12 @@ export function frame(dt) {
   else if (step.kind === 'measure') {
     if (!P.samples && step.talk) talkClock(game, P);
     if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
+    if (step.path) {   // (along the path by the clock: the traveller set there, not walked, as the web bench does)
+      P.pathT0 ??= now();
+      const at = pathAt(step.path, ((now() - P.pathT0) / 1000) * (step.path.speed ?? 4));
+      game.player.pos.set(...at.player); game.player.vel?.set(0, 0, 0); game.player.heading = at.heading;
+      game.pin({ eye: at.eye, target: at.target, fov: at.fov, hidePlayer: false });
+    }
     P.samples ??= [];
     P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
     P.t += Math.min(dt, 0.1);   // (a load's long first frame counts as one)
@@ -804,9 +826,11 @@ export function frame(dt) {
       const hitches = { n: hit.length, vm: hit.length ? +(hit.reduce((a, x) => a + x.vm, 0) / hit.length).toFixed(2) : 0, every: hit.length > 1 ? +((s.indexOf(hit[hit.length - 1]) - s.indexOf(hit[0])) / (hit.length - 1)).toFixed(1) : 0 };
       if (P.talkMs) { split.talkGestures = +(P.talkMs.ms / nf).toFixed(3); split.talking = P.talkMs.n; P.talkMs.off(); P.talkMs = null; }
       const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), frameP99: q('dt', 0.99), hitches, vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
+      // (every frame's interval, for the 1 % lows and the stalls: scripts/bench/deck-engines-summary.mjs)
+      res.raw = s.map((x) => +x.dt.toFixed(2));
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);
-      P.samples = null;
+      P.samples = null; P.pathT0 = null;
       next();
     }
   } else if (step.kind === 'shot') {

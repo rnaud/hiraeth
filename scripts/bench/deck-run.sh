@@ -13,6 +13,8 @@
 # The bench's game runs in a profile of its own (XDG_CONFIG_HOME=~/.local/share/hiraeth-bench: Electron's
 # single-instance lock, the settings and the saves are per profile), so it starts while the player's game
 # is open, and its runs (deck-worlds.mjs writes the settings and a save) never touch the player's own.
+# BENCH_PROFILE: another such profile (a fresh one for a cold load: scripts/bench/deck-engines.mjs); BENCH_ENV: more
+# environment for the game (MESA_SHADER_CACHE_DIR=… a shader cache of the bench's own, empty for a cold load).
 DECK=${DECK:-deck@steamdeck.local}
 PORT=${PORT:-5310}
 case "$1" in
@@ -25,8 +27,8 @@ case "$1" in
     if [ -n "$busy" ]; then echo "the Deck is busy with another bench ($busy): not started"; exit 2; fi
     ssh -o BatchMode=yes "$DECK" "export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
       B=\$(readlink -f ~/.local/share/hiraeth-deck/current)/hiraeth
-      mkdir -p ~/.local/share/hiraeth-bench
-      G='XDG_CONFIG_HOME=/home/deck/.local/share/hiraeth-bench ${game:+HIRAETH_GAME=$game} ${GPU:+HIRAETH_GPU=$GPU}'
+      mkdir -p ${BENCH_PROFILE:-/home/deck/.local/share/hiraeth-bench}
+      G='XDG_CONFIG_HOME=/home/deck/.local/share/hiraeth-bench ${BENCH_PROFILE:+XDG_CONFIG_HOME=$BENCH_PROFILE} ${game:+HIRAETH_GAME=$game} ${GPU:+HIRAETH_GPU=$GPU} ${BENCH_ENV:-}'
       A='--mute-audio --disable-audio-output --remote-debugging-port=9222 ${ARGS:-}'
       if [ $kind = headless ]; then
         systemd-run --user --unit=hiraeth-bench --collect -p RuntimeMaxSec=7200 \
