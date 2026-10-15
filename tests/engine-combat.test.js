@@ -70,6 +70,9 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   const states = new Set();
   for (let k = 0; k < 12; k++) { run(g, 30); states.add(G.state); }
   assert.ok(states.has('fight'), [...states].join(' '));
+  // its bar (the page's .temple-meter, src/temples/runtime.js meterHud): the screen's 'guardian', BridgeHud.cs draws it
+  const bar = S.state.guardian;
+  assert.ok(bar && /·/.test(bar.label) && bar.fill > 0 && bar.fill <= 1 && /^#/.test(bar.color), JSON.stringify(bar));
   tap(g, 'Tab'); run(g, 10);
   assert.ok(g.foes.lock?.guardian, 'locked on the guardian');
   assert.ok(g.rig.frameWith, 'framed with him');

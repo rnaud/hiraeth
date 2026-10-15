@@ -87,6 +87,11 @@ namespace Hiraeth.Bridge
             healthFill = Ui.Rect(health.fill.rectTransform, Ui.Hp, 0, "hp");
             healthEdge = Ui.Rect(health.fill.rectTransform, Ui.Ink, 0, "edge");
             keys = Ui.Panel(root, "keys", Ui.Page, Ui.Ink, 1.5f, 2, 2, 6);
+            guardian = Ui.Panel(root, "guardian", Ui.Page, Ui.Ink, 2, 2, 2, 6);
+            guardianFill = Ui.Rect(guardian.fill.rectTransform, Ui.Hp, 0, "fill");
+            guardianEdge = Ui.Rect(guardian.fill.rectTransform, Ui.Ink, 0, "edge");
+            guardianText = Ui.Label(root, "guardian name", mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            { var o = guardianText.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Page; o.effectDistance = new Vector2(1.5f, -1.5f); }   // (the page's cream text-shadow round it)
             keysText = Ui.Label(keys.rt, "text", mono, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             wheel = Ui.Node("stamina", root);
             wheelRing = Ui.Fill(wheel, Ui.Hex("#2b211f", 0.25f), 0, "ring"); wheelRing.sprite = Ui.Round(32);
@@ -303,6 +308,7 @@ namespace Hiraeth.Bridge
             DrawPrompt(state.O("prompt"), free && mg == null);
             DrawHealth(hud ? state.O("health") : null);
             DrawKeys(state.O("keys"), free);
+            DrawGuardian(free ? state.O("guardian") : null);
             DrawWheel(state.O("stamina"), free);
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
             // (the gadget's chip, wheel and reticle gone while a run is on, as the page's body.minigame #gadget-chip: src/gadgets/hud.js)
@@ -1220,6 +1226,24 @@ namespace Hiraeth.Bridge
             // (under the hearts and the magic bar when they show, as the page's #keys is under #health)
             float ky = heartRow != null && heartRow.gameObject.activeSelf ? 12 + 21.6f * ts * (magicBox.rt.gameObject.activeSelf ? 1.72f : 1) + 8 : 32;
             Ui.Place(keys.rt, 16, ky, s.x + 16, 24);
+        }
+
+        // the guardian's bar (src/temples/runtime.js meterHud, the page's .temple-meter; boss.js guardianBar): a printed bar at
+        // the bottom, its name and what it is (a machine's health, a living guardian's unrest) over it, full at the start
+        Ui.Box guardian; Image guardianFill, guardianEdge; Label guardianText;
+        void DrawGuardian(Dictionary<string, object> g)
+        {
+            Show(guardian, g != null);
+            if (guardianText.gameObject.activeSelf != (g != null)) guardianText.gameObject.SetActive(g != null);
+            if (g == null) return;
+            const float bw = 260, bh = 15;
+            float x = (W - bw) / 2, y = H - 62 - bh, w = (bw - 4) * Mathf.Clamp01(g.F("fill", 1));
+            Ui.Place(guardian.rt, x, y, bw, bh);
+            Ui.Place(guardianFill.rectTransform, 0, 0, w, bh - 4);
+            Ui.Place(guardianEdge.rectTransform, w, 0, w > 0 ? 2 : 0, bh - 4);
+            guardianFill.color = Ui.Hex(g.S("color") ?? "#d9503f", 1);
+            Ui.Set(guardianText, (g.S("label") ?? "").ToUpperInvariant(), 600);
+            Ui.Place(guardianText.rectTransform, x - 170, y - 20, bw + 340, 16);
         }
 
         void DrawWheel(Dictionary<string, object> s, bool on)

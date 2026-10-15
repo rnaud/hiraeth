@@ -31,7 +31,7 @@ flight home is the **final homecoming**: the end card and the credits, then `end
 | 9 | Viridel: the off-map cabin | works | portals since 6a1ce648b (`-through`) |
 | 10 | The Underwater City: ends on the Listener (`temple.underwater.done`) | works (read) | the guardian inside TempleRuntime, its horn and touch through targets.js and interact.js; foes and lock-on since c5f1e5a92 |
 | 11 | The City-Shaft: point the camera at the Lodestar | works (read) | incal.js:486, the JS camera the mirror draws |
-| 12 | Glass Dunes, Moon Foundry, City in Space: their guardians | works, harder to read | c5f1e5a92. **The guardian's bar is not drawn**: TempleRuntime.meterHud (src/temples/runtime.js:281) builds a DOM element, and the engines have none |
+| 12 | Glass Dunes, Moon Foundry, City in Space: their guardians | works | c5f1e5a92. The guardian's bar was not drawn: TempleRuntime.meterHud (src/temples/runtime.js:281) builds a DOM element, and the engines have none. **Fixed**: the screen's `guardian` (from `guardianBar`), which BridgeHud.cs DrawGuardian draws. **Unity**: `-level moonfoundry -fight guardian`, "THE LAST FOUNDER · HEALTH" under the fight; VM: engine-combat.test.js |
 | 13 | The Buried Machine, the Garden of Spheres | works (read) | no temple; targets, interactables and conversations |
 | 14 | A world's closing words and its sketchbook page | **was missing, fixed** | engine/game.js passed a stand-in story page (`complete() {}`). The world still counted as done (its quest sets the flag first), but nothing was said, and the next world's "signature somewhere new" note never came. Now it is src/quest.js's own Story. VM |
 | 15 | The relics (each world's small things) | **was missing, fixed** | src/quest.js Relics, now placed. Its toast was the page's #toast; it now takes `say`. VM |
@@ -67,7 +67,6 @@ scripts/unity-js-run.sh ending-final -ending final -ending-every 5 -out <dir>
 
 | blocker | size | notes |
 |---|---|---|
-| **The guardian's bar** (its health, or a living guardian's unrest) is not drawn | S (~1 h) | TempleRuntime.meterHud builds a DOM element. It should go to the screen's state (`screen.set('guardian', { label, fill, color, on })`, from `guardianBar`), and BridgeHud.cs should draw it in the health bar's style. Not a blocker to finishing, but four fights are read blind |
 | **The signature search** is skipped | M | In Unity a findable world is found by choosing it. On the web it is a small search on the StarMap. A Unity StarMap (the chart, its scanner, the cue's rumble) belongs in BridgeMenu |
 | **The galactic map's own page** (the system, the NEXT pennant, the relay's signal, the tower's line) | M | Unity has the Worlds page's cards. The charge card and the Quests page still say where to go |
 | The night train's arrival in Unity | S | The hand-over is tested in the VM, but the restart at `level.arrivals[from]` has not been run in Unity yet |

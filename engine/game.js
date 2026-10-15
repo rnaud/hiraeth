@@ -74,6 +74,7 @@ import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { makeCombat } from './combat.js';
 import { guardianHint, openHint, Struggle } from '../src/temples/hints.js';
+import { guardianBar } from '../src/temples/boss.js';
 import { setSkinColours } from '../src/characters/skin-colours.js';
 import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
 import { ToolHud, SaveGame } from '../src/ui.js';
@@ -720,6 +721,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const keyT = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
     const keyN = keyT?.keyCount();
     screen.set('keys', keysHud({ inside: !!keyT, small: keyN?.small ?? 0, big: keyN?.big ?? false, quiet: !!pinned || busy }));
+    // the guardian's bar while it is awake and you are in its temple (src/temples/runtime.js meterHud, a page's element on the
+    // web: its name, its health or unrest, full at the start; BridgeHud.cs DrawGuardian), not while talking
+    const gT = (level.temples ?? []).find((t) => t.guardian?.awake && t.inside?.(player.pos));
+    const gBar = gT && !pinned && !player.dead && !talking() ? guardianBar(gT.guardian.def, gT.guardian.meter) : null;
+    screen.set('guardian', gBar && { ...gBar, fill: Math.round(gBar.fill * 100) / 100 });
     const k = Math.min(Math.max(player.stamina ?? 1, 0), 1);
     stShown = k < 0.995 || player.winded ? 0.9 : Math.max(0, stShown - dt);
     const st = staminaHud({ stamina: k, winded: player.winded, quiet: quiet || !!player.ride || !!player.down }, stShown);
