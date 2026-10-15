@@ -95,6 +95,7 @@ namespace Hiraeth.Bridge
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
             BuildWarp();          // (over everything but the frame readout, as the page's #warp)
+            BuildPassage();   // (over everything: the paper covers the screen as it carries you through)
             fpsBox = Ui.Panel(root, "fps", new Color(1, 250 / 255f, 240 / 255f, 0.8f), Ui.Ink, 1.5f);
             fpsText = Ui.Label(fpsBox.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleLeft);
             fpsBox.Show(false);
@@ -399,6 +400,60 @@ namespace Hiraeth.Bridge
                 Ui.Place(warpCard.rt, W / 2 - (sz.x + 44) / 2, H / 2 - (sz.y + 20) / 2, sz.x + 44, sz.y + 20);
                 Ui.Group(warpCard.rt).alpha = warpCardA;
             }
+            DrawPassage(state.O("passage"));
+        }
+
+        // ---------------------------------------------------------------- a way through (src/passage.js; issue #264)
+        // the paper that sweeps across as a door, a cave mouth, a hatch or a temple's door carries you to another space (the
+        // page's #passage, PassageCover): the screen's 'passage' { phase: cover | reveal, secs, light, lightSecs, n } from
+        // engine/game.js; the sheet, SHEET vw wide with an inked edge each side, slides in from the left until it covers the
+        // screen, then on off the right; the doorway's warm light (src/thresholds.js) over the screen before it
+        const float PassSheet = 124, PassEdge = 12;   // (vw: as passage.js SHEET, EDGE)
+        static readonly Color PassPaper = Ui.Hex("#f2e7cf"), PassLight = Ui.Hex("#ffe9b8");
+        Image passLight, passPaper, passInkL, passInkR;
+        float passX = -PassSheet, passFrom, passTo = -PassSheet, passT, passSecs = 1, passLightA, passLightTo, passLightSecs = 0.3f;
+        bool passReveal; double passN = -1;
+        void BuildPassage()
+        {
+            passLight = Ui.Fill(root, PassLight, 0, "passage light"); passLight.raycastTarget = false;
+            passPaper = Ui.Rect(root, PassPaper, 0, "passage paper"); passPaper.raycastTarget = false;
+            passInkL = Ui.Rect(passPaper.rectTransform, Ui.Ink, 0, "ink left"); passInkR = Ui.Rect(passPaper.rectTransform, Ui.Ink, 0, "ink right");
+            Show(passLight, false); Show(passPaper, false);
+        }
+        void DrawPassage(Dictionary<string, object> p)
+        {
+            float dt = Time.unscaledDeltaTime;
+            if (p != null && p.Get("n") is double n && n != passN)
+            {
+                passN = n;
+                passLightTo = Mathf.Clamp01(p.F("light")); passLightSecs = Mathf.Max(0.01f, p.F("lightSecs", 0.3f));
+                var phase = p.S("phase");
+                if (phase == "cover" || phase == "reveal")
+                {
+                    passReveal = phase == "reveal";
+                    // (a cover starts off the left, as the page's: no transition back there)
+                    passFrom = passReveal ? passX : -PassSheet; passTo = passReveal ? 100 : -PassEdge;
+                    passT = 0; passSecs = Mathf.Max(0.01f, p.F("secs", 0.3f));
+                }
+            }
+            if (p == null) { passLightTo = 0; if (!passReveal && passX > -PassSheet) { passFrom = passX; passTo = 100; passT = 0; passSecs = 0.3f; passReveal = true; } }
+            // the sheet, eased as the page's (cover: cubic-bezier(.5,0,.75,1), an ease-in; reveal: (.25,0,.5,1), an ease-out)
+            passT = Mathf.Min(passT + dt, passSecs);
+            float u = passT / passSecs, e = passReveal ? 1 - (1 - u) * (1 - u) : u * u * u;
+            passX = Mathf.Lerp(passFrom, passTo, e);
+            bool on = passX > -PassSheet + 0.01f && passX < 99.99f;
+            Show(passPaper, on);
+            if (on)
+            {
+                // (the paper between its two inked edges, which stand 0.55 × EDGE in from the sheet's sides, as sheetPath's)
+                float vw = W / 100f, inset = 0.65f * PassEdge, pw = (PassSheet - 2 * inset) * vw, ink = Mathf.Max(2, 0.3f * vw);
+                Ui.Place(passPaper.rectTransform, (passX + inset) * vw, 0, pw, H);
+                Ui.Place(passInkL.rectTransform, 0, 0, ink, H);
+                Ui.Place(passInkR.rectTransform, pw - ink, 0, ink, H);
+            }
+            passLightA = Mathf.MoveTowards(passLightA, passLightTo, dt / passLightSecs);
+            passLight.color = new Color(PassLight.r, PassLight.g, PassLight.b, 0.85f * passLightA);
+            Show(passLight, passLightA > 0.002f);
         }
 
         // ---------------------------------------------------------------- the gadgets (issue #344; src/gadgets/hud.js)

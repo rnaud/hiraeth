@@ -59,7 +59,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.play || a.walk || a.tour || a.idle || a.noTitle);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.noTitle);
 
 /**
  * The platform's pad (src/native-pad.js setEnginePad): on Android (the Retroid) the handheld's own names, A B X Y as
@@ -239,6 +239,18 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     .catch((e) => { console.error('[unity] the game failed to start', e?.stack ?? e); host.Exit(3); });
 }
 
+/**
+ * The conversations' gestures timed while a talk is measured (-talk id -bench secs): Animator.layTalk's own ms summed
+ * (src/animator.js, src/talk-gesture.js), and how many of its calls laid a gesture; put back as it was after.
+ */
+function talkClock(game, P) {
+  const proto = Object.getPrototypeOf(game.player.animator ?? {});
+  const was = proto?.layTalk;
+  if (!was) return;
+  const T = (P.talkMs = { ms: 0, n: 0, off: () => { proto.layTalk = was; } });
+  proto.layTalk = function (dt, s) { const t0 = now(); was.call(this, dt, s); T.ms += now() - t0; if (this.talkW > 0) T.n++; };
+}
+
 function makePlan(args) {
   const steps = [];
   for (const v of args.views ?? []) {
@@ -258,11 +270,26 @@ function makePlan(args) {
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-prompt.png` });
     steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyE', down: false }, { kind: 'wait', frames: 30 });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk.png` });
+    // (-talk-seq N: N pictures of the first line, one every -talk-every frames (6): the gestures in motion, against the
+    // web's frames of the same conversation; -bench secs: the frame measured while they talk, the gestures' own ms in it)
+    for (let k = 0; k < (args.talkSeq ?? 0); k++) steps.push({ kind: 'wait', frames: args.talkEvery ?? 6 }, { kind: 'shot', file: `${args.out}/unity-talk-seq-${String(k).padStart(2, '0')}.png` });
+    if (args.bench) steps.push({ kind: 'measure', view: { name: 'talk' }, secs: args.bench, talk: true });
     steps.push({ kind: 'wait', frames: 240 });
     for (let k = 0; k < 3; k++) {
       steps.push({ kind: 'key', code: 'Space', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Space', down: false }, { kind: 'wait', frames: 240 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk-${k + 2}.png` });
     }
+  }
+  if (args.through != null) {
+    // (-through id: a way through walked into, src/passage.js: a portal by its label's words or its index in level.portals,
+    // the paper photographed as it sweeps, the room on the far side, then the way back out of it; issue #264)
+    steps.push({ kind: 'wait', frames: 30 }, { kind: 'through', which: args.through }, { kind: 'key', code: 'KeyW', down: true });
+    for (let k = 0; k < 8; k++) steps.push({ kind: 'wait', frames: 3 }, ...(args.out ? [{ kind: 'shot', file: `${args.out}/unity-through-${k}.png` }] : []));
+    // (the room and the way back once the paper has gone: by the game's clock, a batch's frames being quick ones)
+    steps.push({ kind: 'key', code: 'KeyW', down: false }, { kind: 'wait', frames: 60, secs: 1.6 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-through-room.png` });
+    steps.push({ kind: 'wait', frames: 45, secs: 1.5 }, { kind: 'through', back: true }, { kind: 'wait', frames: 70, secs: 2 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-through-back.png` });
   }
   if (args.play) {
     // the fluid tool (aim with R, fire with G: a shot and its splat) and the drone (Q), photographed as they go
@@ -471,6 +498,19 @@ export function frame(dt) {
     }
     next();
   }
+  else if (step.kind === 'through') {
+    const P2 = game.level.portals ?? [], open = (q) => !q.when || q.when();
+    const w = step.which, pt = step.back
+      ? P2.find((q) => q !== S.through && open(q) && q.at.distanceTo(S.through.to) < 40 && q.to.distanceTo(S.through.at) < 40)
+      : (/^\d+$/.test(String(w)) ? P2[+w] : P2.find((q) => open(q) && String(q.label ?? '').includes(String(w))));
+    if (pt) {
+      if (!step.back) S.through = pt;
+      const V = pt.at.constructor;
+      game.player.teleport(pt.at.clone(), new V(0, 1, 0), new V(0, 0, 1));
+      console.log(`[unity] into the way through "${pt.label ?? '?'}" (${P2.indexOf(pt)} of ${P2.length})`);
+    } else console.log(`[unity] no way through ${step.back ? 'back' : w}: ${P2.map((q) => q.label).join(', ')}`);
+    next();
+  }
   else if (step.kind === 'cab') {
     const v = game.player.vehicles.find((x) => x.kind === 'taxi' || x.constructor?.name === 'Taxi') ?? game.player.vehicles[0];
     game.pin(null);   // (the camera back on the rig: the ride camera)
@@ -484,6 +524,7 @@ export function frame(dt) {
   }
   else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
+    if (!P.samples && step.talk) talkClock(game, P);
     if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     P.samples ??= [];
     P.samples.push({ dt: lastT ? tA - lastT : dt * 1000, vm: tB - tA, update: r.ms.update, mirror: r.ms.mirror, cpu: host.LastFrameCpuMs(), gpu: host.LastFrameGpuMs(), moved: r.stats.moved });
@@ -498,6 +539,7 @@ export function frame(dt) {
       // (the hitches: frames over twice the median, how many and how the script's time and the main thread's wait went then)
       const med = q('dt', 0.5), hit = s.filter((x) => x.dt > 2 * med);
       const hitches = { n: hit.length, vm: hit.length ? +(hit.reduce((a, x) => a + x.vm, 0) / hit.length).toFixed(2) : 0, every: hit.length > 1 ? +((s.indexOf(hit[hit.length - 1]) - s.indexOf(hit[0])) / (hit.length - 1)).toFixed(1) : 0 };
+      if (P.talkMs) { split.talkGestures = +(P.talkMs.ms / nf).toFixed(3); split.talking = P.talkMs.n; P.talkMs.off(); P.talkMs = null; }
       const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), frameP99: q('dt', 0.99), hitches, vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);

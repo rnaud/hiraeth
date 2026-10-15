@@ -1419,6 +1419,7 @@ export const CHANGELOG_MEDIA = {
       ], source: CLOCK342_SOURCE, note: 'The cleanest pair, at the machine’s quietest (load 15). Over thirteen rooms the skin was within the run’s noise both ways round (High 5.5 → 5.2 ms with the skin off first, 5.2 → 4.8 with it on first).' },
     ] },
     { match: 'The Clockwork Foreman is all brass now', tags: ['glassdunes', 'combat'], see: 'Reach the Foreman’s Workshop at the top of the Clock-House: the Foreman is a brass drum with a pale teal dial. In the Escapement, the riding disc that swings over the pit is brass.' },
+    { match: 'In the Unity preview you can now go through doors as in the game', see: 'In the Unity preview, walk into the Rose House’s door in the Desert: the doorway’s light flares, the paper sweeps across and you are in its first hall; walk back into the way out and you stand on its steps again.' },
   ],
   '1.77': [
     { match: 'Every world now has a bench or two where the view is worth stopping for', tags: ['worlds', 'desert', 'vael', 'lorn2', 'viridel', 'shaft', 'buried', 'spheres', 'market', 'moonfoundry', 'spacecity'], shots: [

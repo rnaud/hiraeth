@@ -171,6 +171,11 @@ namespace Hiraeth.Bridge
             if (Arg("-pan-step") != null) args["panStep"] = double.Parse(Arg("-pan-step"), CultureInfo.InvariantCulture);
             if (Flag("-pan-live")) args["panLive"] = true;   // (no pictures: one step a drawn frame, to watch or record)
             if (Arg("-talk") != null) args["talk"] = Arg("-talk");
+            // (-through id: a way through, a doorway, cave mouth, hatch or temple door, walked into and back out of: issue #264)
+            if (Arg("-through") != null) args["through"] = Arg("-through");
+            // (-talk-seq N [-talk-every frames]: N pictures of the first line as it is said, the gestures in motion: issue #197)
+            if (Arg("-talk-seq") != null) args["talkSeq"] = double.Parse(Arg("-talk-seq"), CultureInfo.InvariantCulture);
+            if (Arg("-talk-every") != null) args["talkEvery"] = double.Parse(Arg("-talk-every"), CultureInfo.InvariantCulture);
             // (-shop thrum: Anselm's shop, or a keeper's by its id, opened once the world is ready: a test of the shop's sheet)
             if (Arg("-shop") != null) args["shop"] = Arg("-shop");
             if (Arg("-play") != null) args["play"] = Arg("-play");

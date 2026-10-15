@@ -94,6 +94,9 @@ import { updateHazards } from '../src/hazards.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
 import { InputMode } from '../src/input-mode.js';
+import { Passage, carryAcross, PASSAGE } from '../src/passage.js';
+import { Thresholds, THRESHOLD } from '../src/thresholds.js';
+import { Veils } from '../src/veil.js';
 
 export { page };
 export { ITEMS, items } from '../src/items.js';   // (the tests: the bundle's items, the gadgets among them, against the web's)
@@ -452,6 +455,40 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), go: (to) => onTravel?.(to) }));
   }
 
+  // the ways through to another space (src/passage.js; issue #264): a doorway into a room built off the map, a cave mouth,
+  // a temple's door, a hatch, each a level's `portals` entry, walked into as main.js walks them: its light flares
+  // (src/thresholds.js, the veils the engine draws), the paper sweeps across (the screen's 'passage', which BridgeHud.cs
+  // draws as the page's #passage), the traveller is carried across mid-stride (carryAcross) and the paper goes on off the
+  // far side. No drawing ahead (WarmDraw): the engine has every mesh uploaded already.
+  const passCover = {
+    n: 0, k: 0, lightK: 0, state: null,
+    send(o) { this.state = { ...(this.state ?? {}), ...o, n: ++this.n }; screen.set('passage', this.state); },
+    light(k, secs) { this.lightK = k; this.send({ light: k, lightSecs: secs, phase: null }); },
+    cover(secs = PASSAGE.cover) { this.k = 1; this.send({ phase: 'cover', secs }); },
+    reveal(secs = PASSAGE.reveal) { this.k = 0; this.lightK = 0; this.send({ phase: 'reveal', secs, light: 0, lightSecs: secs }); },
+    clear() { if (this.state) { this.state = null; screen.set('passage', null); } },
+  };
+  const passage = new Passage({ cover: passCover, warm: null, carry: (c) => carryAcross(player, rig, camera, c) });
+  const thresholds = level.portals?.length ? optional('the doorways\' light', () => new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics })) : null;
+  let portalCool = 0;
+  const throughPortals = (dt, simT) => {
+    portalCool = Math.max(portalCool - dt, 0);
+    thresholds?.update(dt, simT, camera.position);
+    if (portalCool || passage.active || player.riding || player.dead || !level.portals) return;
+    for (const pt of level.portals) {
+      const d = player.pos.distanceTo(pt.at);
+      // (a doorway that won't take you yet, `when`: its `refuse` said once as you walk into it)
+      if (pt.when && !pt.when()) { if (d < pt.r) { if (!pt._refused && pt.refuse) toast(pt.refuse); pt._refused = true; } else if (d > pt.r + 3) pt._refused = false; continue; }
+      if (d < pt.r) {
+        const lit = thresholds?.flare(pt);
+        passage.go({ to: pt.to, heading: pt.heading, lead: lit ? THRESHOLD.lead : 0, onMove: (c) => thresholds?.arrive(c.to) });
+        sound.page?.();
+        portalCool = 1.2 + THRESHOLD.lead + PASSAGE.cover + PASSAGE.reveal;
+        break;
+      }
+    }
+  };
+
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads
   // What is in hand, as the page's InputMode keeps it (src/input-mode.js): a pad connected or pressed is, until a key is
   // pressed; the prompts, the cue, a box's card and every {key:verb} name its buttons (the body's 'controller' class,
@@ -784,6 +821,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     openShop(id) { if (shopPanel) shopWaiting = (id === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(id)) ?? null; return !!shopWaiting; },
     /** The ship attached and its scenes played (the engine played with its menus). */
     shipScenes: shipOn,
+    /** The ways through to another space (src/passage.js): `active` while one carries the traveller across. */
+    passage,
     /** A makers' box opening (Esc skips it, to its card or past it). */
     get boxPlaying() { return !!boxes?.busy?.(); },
     /** What is in hand: 'pad' or 'keys' (src/input-mode.js), which the prompts name the buttons of. */
@@ -939,6 +978,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the gadgets' buttons before the traveller moves (the hook's reel sets his velocity), as main.js
       const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing);
       if (gadgets) { try { gadgets.control(dt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
+      // a way through under way: the move happens here, before the traveller and the camera do (main.js)
+      if (passage.update(dt) === 'done') passCover.clear();
       player.update(dt, pinned || busy ? noInput : ctlS, rig.yaw, rig.pitch);
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');
@@ -974,7 +1015,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('boxes, hands');
       hud(dt, busy);
       lap?.('hud');
-      level.update?.(dt, simT, { player, rig, camera, passage: null, fade: () => {} });
+      if (!pinned) throughPortals(dt, simT);
+      level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {} });
       lap?.('level');
       // the world's life, the tool and the drone (main.js's order)
       try {

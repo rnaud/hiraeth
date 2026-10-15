@@ -516,6 +516,49 @@ test('the game in a bare V8 context: a world with its people, the traveller walk
   } finally { console.warn = warn; console.info = info; }
 });
 
+test('the engines\' ways through (issue #264): a doorway walked into carries the traveller to its room under the paper, and its way back out', async () => {
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-portals-${process.pid}.js`));
+  await bundle('godot', { input: 'engine/game.js', out: [file] });
+  const { exports } = loadBundle(file);
+  const warn = console.warn, info = console.info; console.warn = console.info = () => {};
+  try {
+    const game = await exports.createGame({ levelId: 'desert', backend: recorder().backend });
+    const P = game.level.portals ?? [];
+    assert.ok(P.length > 2, 'the desert\'s doorways, caves and hatches');
+    game.frame(1 / 30);
+    // a way that takes you now, with a way back out of where it lands
+    const back = (pt) => P.find((q) => q !== pt && (!q.when || q.when()) && q.at.distanceTo(pt.to) < 30 && q.to.distanceTo(pt.at) < 30);
+    const pt = P.find((q) => (!q.when || q.when()) && back(q));
+    assert.ok(pt, 'a doorway with its way back');
+    const go = (way) => {
+      game.player.teleport(way.at.clone(), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+      let covered = false, f = 0;
+      for (; f < 120 && game.player.pos.distanceTo(way.to) > 2; f++) { game.frame(1 / 30); covered ||= !!game.screen().state.passage; }
+      return { f, covered };
+    };
+    const inTo = go(pt);
+    assert.ok(game.player.pos.distanceTo(pt.to) < 2, `carried to the room (${game.player.pos.distanceTo(pt.to).toFixed(1)} m off)`);
+    assert.ok(inTo.covered, 'under the paper (the screen\'s passage, BridgeHud draws it)');
+    for (let i = 0; i < 90 && game.passage.active; i++) game.frame(1 / 30);
+    assert.equal(game.passage.active, false, 'the paper gone off the far side');
+    assert.equal(game.screen().state.passage ?? null, null, 'and the screen clear of it');
+    for (let i = 0; i < 45; i++) game.frame(1 / 30);   // (the cool-down after a way through)
+    const way = back(pt);
+    go(way);
+    assert.ok(game.player.pos.distanceTo(way.to) < 2, 'and back out the way he came');
+    // the temple's door (src/temples/runtime.js: the doorway in, its ways back out), into its halls and out again
+    for (let i = 0; i < 60; i++) game.frame(1 / 30);
+    const door = P.find((q) => q.temple && q.label !== 'way out' && (!q.when || q.when()));
+    assert.ok(door, 'the desert temple\'s door');
+    go(door);
+    assert.ok(game.player.pos.distanceTo(door.to) < 2, 'into the temple');
+    for (let i = 0; i < 90; i++) game.frame(1 / 30);
+    const out = P.find((q) => q.temple === door.temple && q.label === 'way out');
+    go(out);
+    assert.ok(game.player.pos.distanceTo(out.to) < 2, 'and out of it');
+  } finally { console.warn = warn; console.info = info; }
+});
+
 test('the mirror\'s skeleton update gives three\'s own bone matrices, bit for bit, as the bones move, and follows new bones', () => {
   const bones = [new THREE.Bone()];
   for (let i = 1; i < 12; i++) { const b = new THREE.Bone(); b.position.set(0.1 * i, 0.3, -0.05 * i); b.rotation.set(0.2 * i, -0.1 * i, 0.05); bones[i - 1].add(b); bones.push(b); }

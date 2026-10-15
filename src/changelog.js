@@ -103,6 +103,10 @@ export const CHANGELOG = [
     // the loading pen on the Deck (issue #52): src/warm-shaders.js oneAtATime (ANGLE over OpenGL: one program at a time),
     // main.js, title-world.js; tests/warm-shaders.test.js; docs/systems/performance.md "The loading pen on the Deck"
     'On the Steam Deck the loading screen’s pen keeps turning while the inks are mixed: it no longer stops for a quarter to a whole second partway through a load, and worlds load a few seconds sooner on average.',
+    // the engines' ways through (issue #264, the Deck switch's first item): engine/game.js walks level.portals as main.js
+    // (src/passage.js Passage, carryAcross; src/thresholds.js), the paper as the screen's 'passage' (BridgeHud.cs DrawPassage);
+    // tests/engine-bridge.test.js ("the engines' ways through"); docs/systems/engine-bridge.md "Doors, caves and hatches"
+    'In the Unity preview you can now go through doors as in the game: a temple’s door, a house’s doorway, a cave mouth or a hatch takes you inside, its light flaring and the sheet of paper sweeping across, and the way you came in takes you back out.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

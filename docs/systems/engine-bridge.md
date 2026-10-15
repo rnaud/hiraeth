@@ -283,6 +283,20 @@ as on the web; the traveller's `locoMoves` stays off (his captured moves are in 
 in the VM: docs/systems/characters.md, "What it costs" (~0.02 ms a frame while talking, nothing otherwise);
 `-js-off gestures` leaves them out.
 
+**Doors, caves and hatches** (issue #264, the first item of the Deck's switch to Unity): engine/game.js walks the
+level's `portals` as main.js does (`throughPortals`, after the traveller's update, not at a pinned view): a way that
+won't take you yet says its `refuse` once; one walked into flares its light (src/thresholds.js, its veils drawn as
+the engine draws every veil) and starts src/passage.js's `Passage`, whose `update` runs before the traveller's, so
+`carryAcross` moves him and the camera mid-stride under the paper; `level.update` is handed the passage (the Lab's
+lifts use it). No `WarmDraw`: the engine has uploaded every mesh already. The paper is the screen's `passage`
+(`{ phase: cover | reveal, secs, light, lightSecs, n }`, cleared once it is done), which `BridgeHud.DrawPassage`
+draws as the page's #passage: the sheet sliding in from the left until it covers the screen, on off the right, its
+two inked edges, the doorway's warm light under it. So every temple door, interior doorway, cave mouth and hatch
+takes you in and back out as on the web. Tests: tests/engine-bridge.test.js ("the engines' ways through": a desert
+doorway and back, the Rose House's door and its way out, under the paper). A batch run: `-through <label words or
+index>` walks into that way, photographs the sweep, the room, and the way back out
+(`scripts/unity-js-run.sh through -through "door of" -out …`).
+
 **The ship and its scenes** (issue #264). When the engine is played (with its menus; never a bench's plan, whose
 numbers stay comparable) engine/game.js attaches the ship as main.js does (`ship.attach`, `shipScenes`): its
 `input` before the traveller's (the ramp walked into takes you aboard on its autopilot, E aboard is the ship's),
@@ -483,7 +497,9 @@ muted, and exits; the menu Hiraeth ▸ JS bridge rebuilds the scene.)
 `scripts/unity-js-run.sh <name> [BridgeBatch.Run arguments…]` does the two last in one, its log in
 `output/engine-bridge/unity-<name>.log`, the lines that say what happened printed. Its arguments:
 `-level`, `-views file [-only a,b]`, `-out dir`, `-bench secs`, `-split` (the frame's split: the
-mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id`, `-play tool,drone`, and
+mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id` (with `-talk-seq N [-talk-every frames]` N
+pictures of the first line as it is said; with `-bench secs` the frame measured while they talk, the gestures' own ms
+as `split.talkGestures`), `-through way` (a door walked into and back out of), `-play tool,drone`, and
 `-probe text [-solo]` (at each shot, the nodes whose name holds the text as Unity has them: mesh,
 bounds, materials' culling, shadows, GPU instances; `-solo` draws only those).
 
