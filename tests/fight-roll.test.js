@@ -1,6 +1,6 @@
 // The fight temples' own moves (issue #365; src/fight-temples/session.js, src/fluid-blade.js ROLL and WIDE_CUT): B / ○
-// (Alt, the touch ↶) makes a dodge roll there, A / × still jumps (a burst along the stick or the way he faces, i-frames, a cooldown, a
-// tucked roll), the evade untouched everywhere else; the blade's cut takes every foe in a wider, longer cone, and
+// (Alt, the touch ↶) makes a dodge roll there (a burst along the stick or the way he faces, i-frames, a cooldown, a
+// tucked roll), jumping is disabled, the evade untouched everywhere else; the blade's cut takes every foe in a wider, longer cone, and
 // none behind a wall; the walls in the camera's way seen through while the others stay solid.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -162,16 +162,16 @@ function hall() {
   return { S, P, tool, level, camera, tick: (n = 1) => { for (let i = 0; i < n; i++) S.update(DT, {}, { live: true, raw: {} }); } };
 }
 
-test('in the Sunken Hall: only B / ○ rolls (Alt, the touch ↶); A / × jumps (Space, the touch ⤒), as everywhere; all of it put back as he leaves', () => {
+test('in the Sunken Hall: only B / ○ rolls (Alt, the touch ↶); A / × and Space cannot jump; all of it put back as he leaves', () => {
   const { S, tool, tick, P } = hall();
   tick();
   assert.equal(tool.blade.roll, ROLL);
   assert.equal(tool.blade.wide, WIDE_CUT);
-  // the jump button is left as it is: the runner's filterInput rewrites nothing (session.input, if any, keeps it)
+  // Filter the keyboard, pad and touch jump (touch feeds Space) before movement reads them.
   for (const c of [{ Space: true }, { PadJump: true }, { Space: true, PadJump: true }]) {
-    const before = { ...c };
-    S.input?.(c);
-    assert.deepEqual(c, before, 'the jump stays a jump');
+    S.input(c);
+    assert.equal(c.Space, false, 'keyboard and touch cannot jump');
+    assert.equal(c.PadJump, false, 'the pad cannot jump');
     assert.ok(!c.PadEvade, 'and is never the roll\'s press');
   }
   // the jump does not roll; B / ○, Alt and the touch evade do
@@ -182,19 +182,22 @@ test('in the Sunken Hall: only B / ○ rolls (Alt, the touch ↶); A / × jumps 
   assert.equal(B.rolling, null, 'A / × or Space: no roll');
   for (const press of [{ PadEvade: true }, { AltLeft: true }, { TouchEvade: true }]) {
     settle();
-    tool.update(DT, press);
+    const c = { ...press, Space: true, PadJump: true };
+    S.input(c);
+    assert.equal(c[Object.keys(press)[0]], true, 'jump suppression preserves the roll');
+    tool.update(DT, c);
     assert.ok(B.rolling != null && B.rolling < 0.02, `${Object.keys(press)[0]}: a roll`);
   }
-  // the controls cards and the touch buttons: B / ○ roll, A / × jump, the touch jump back
+  // The controls cards omit jump; the touch roll stays available.
   const game = fightTempleGame(DESERT_FIGHT);
   const row = (list, key) => list.find(([k]) => k === key)?.[1];
   assert.equal(row(game.controls.pad, 'B / ○'), 'roll');
-  assert.equal(row(game.controls.pad, 'A / ×'), 'jump');
+  assert.equal(row(game.controls.pad, 'A / ×'), undefined);
   assert.equal(row(game.controls.keys, 'Alt'), 'roll');
-  assert.equal(row(game.controls.keys, 'Space'), 'jump');
+  assert.equal(row(game.controls.keys, 'Space'), undefined);
   assert.equal(row(game.controls.touch, '↶'), 'roll');
-  assert.equal(row(game.controls.touch, '⤒'), 'jump');
-  assert.ok(game.touchButtons.includes('jump') && game.touchButtons.includes('evade'), 'the touch jump and evade buttons both shown');
+  assert.equal(row(game.controls.touch, '⤒'), undefined);
+  assert.ok(!game.touchButtons.includes('jump') && game.touchButtons.includes('evade'), 'only the touch roll button is shown');
   const plain = { KeyW: true };
   S.input?.(plain);
   assert.ok(!plain.PadEvade, 'nothing pressed, nothing rolls');

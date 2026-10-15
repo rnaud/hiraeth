@@ -969,7 +969,7 @@ const DECK111 = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime u
 const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<world> (deck-worlds.json); docs/systems/performance.md, “The Steam Deck, round 10”';
 export const CHANGELOG_MEDIA = {
   '1.78': [
-    { match: 'In the Sunken Hall only B / ○ rolls now', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × (Space): he jumps. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The controls card on its start screen says the same.' },
+    { match: 'In the Sunken Hall, B / ○ rolls and jumping is disabled', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × or Space: he stays on the floor. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The touch controls and start card offer no jump. Leave the hall to jump normally again.' },
     { match: 'On the Steam Deck every world runs 2 to 7 frames a second smoother', tags: ['perf', 'devices'], numbers: [
       { title: 'Frames a second on the Steam Deck at native resolution (the median of each world’s views)', unit: 'fps', better: 'higher', device: DECK111, source: DECK111_SOURCE, rows: [
         { where: 'the desert', before: 42.1, after: 44.6 },

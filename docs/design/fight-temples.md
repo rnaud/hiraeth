@@ -59,8 +59,8 @@ near ones a 3.5 m trench, then the bank), so nothing but a wall that can be seen
 `ROLL`, set on the blade by the session and taken off at the end):
 a tucked forward roll 0.42 s long, up to 9.5 m/s (about 3.3 m), along the stick or the way he faces (never the
 evade's backstep), i-frames from 0.02 to 0.34 s (Gentle 0.4), 0.75 s from one roll's start to the next; the pose is
-`jump.js` `ROLL_FLIP`, a front flip on the ground about a 0.6 m pivot, tucked hard. A / × (Space, the touch ⤒) jumps,
-as everywhere (the author's call after #365: at first the jump button rolled too, and the touch jump was left off).
+`jump.js` `ROLL_FLIP`, a front flip on the ground about a 0.6 m pivot, tucked hard. Jumping is disabled: the session’s input filter clears Space and PadJump before movement reads them.
+A / × does not roll, and the touch jump button and jump control hints are hidden.
 The blade's cut takes every foe in a wider, longer cone too (`WIDE_CUT`: 3.9 m, 1.5 rad
 either side, against the swing's own 2.9 m and 1.15 rad), the cone's line of sight keeping out any foe behind a wall.
 Outside the fight temples neither is set: the evade and the swing are as they were. Tests: `tests/fight-roll.test.js`.

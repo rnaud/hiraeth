@@ -39,7 +39,7 @@ test('the Sunken Hall is a complete game, played on foot, hosted by its doorway 
   assert.ok(Math.hypot(m.at[0] - 168, m.at[2] - 292) < 60, 'near the camps');
   const h = HOSTS['fight-desert'];
   assert.ok(h && h.name && h.say.length === 2, 'its host, who offers it');
-  for (const b of ['Left stick', 'Right stick', 'RB / R1', 'RT / R2', 'LB / L1', 'A / ×']) assert.ok(fightDesert.controls.pad.some(([x]) => x === b), b);
+  for (const b of ['Left stick', 'Right stick', 'RB / R1', 'RT / R2', 'LB / L1', 'B / ○']) assert.ok(fightDesert.controls.pad.some(([x]) => x === b), b);
   const model = fightDesert.marker.model();
   assert.ok(model.userData.solid, 'its doorway is walked into, not through');
 });

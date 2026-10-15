@@ -9,7 +9,7 @@
 // held at ISO.yaw, so the stick and WASD walk him relative to the screen). The aim: the right stick, or the mouse's
 // reticle on the floor, or the way he walks; the blade and the gun take the foe in that cone (FluidTool.lockOn and
 // updateAimPoint wrapped for the run). The walls and pillars between the camera and him are seen through (SEE: a hole with
-// a hand-cut edge opens in them round him, materials.js SEE_HOLE). B / ○ rolls (ROLL; A / × jumps, as everywhere), and the blade's cut
+// a hand-cut edge opens in them round him, materials.js SEE_HOLE). B / ○ rolls (ROLL; jumping is disabled here), and the blade's cut
 // takes every foe in a wider, longer cone (WIDE_CUT); both only here (issue #365).
 
 import * as THREE from 'three';
@@ -262,6 +262,11 @@ export function startFightTemple(ctx) {
   }
 
   return {
+    // The isometric fight stays on the floor. Touch jump also feeds Space; leave evade inputs alone.
+    input(controls) {
+      controls.Space = false;
+      controls.PadJump = false;
+    },
     /** (the checks: n more of this room's kinds at once, over the cap: the frame budget with a full crowd) */
     crowd(n = CROWD.cap) {
       const kinds = plan[run.room].flat().filter((q) => !q.tough);
