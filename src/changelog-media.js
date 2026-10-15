@@ -36,6 +36,8 @@ export const MEDIA_DIR = 'changelog-media';
 /** (the screen's and the menus' pictures of v1.65, issues #221–#244: taken by hand, not by scripts/changelog-shots.mjs) */
 const FROM_HUD = 'headless Chrome against a dev server of this branch and of the commit before it (172da299), the Desert, medium, 10:00';
 export { lineText };
+/** (v1.78, issue #264: the HUD on its points in the Unity testers' build) */
+const HUD264 = 'The Unity testers’ build (BridgeBuild.AndroidRelease) on the Retroid Pocket, muted, the frame readout on, the -hud-run plan (walking round Rima, then a sprint) with -hud-trace measuring where the wheel and the tag are drawn against their points as the camera starts to draw (every 2 s), in one run with -hud-old (before) and one without (after); the pictures are frames of adb screenrecord';
 /** (v1.77, issue #359: the guardian framing, before with the rig given no box) */
 const LOCK359 = 'Issue #359: muted headless Chrome (High, 1280 × 720, 10:00, clear), Vite on port 6482, the game stepped 1/60 s a frame, the guardian awake with its blows held and the traveller locked on, in one page load each: before with the rig given no box (the framing it had), after with it, 15 October; cwebp -q 72';
 /** (v1.77, issue #342: the Rose House with and without its futuristic skin, ?noskin=1, in one page load each) */
@@ -1056,6 +1058,20 @@ const FUTURE342_FP_NUMBERS = [
 ];
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [
+      { name: 'unity-hud-prompt', title: 'The “talk to” tag', caption: 'The Unity testers’ build on the Retroid Pocket (1280 × 960, the frame readout on, muted), walking round Rima at the desert’s spawn: before, the tag hung 180 px to her right and jumped as the camera moved; after, it sits by her shoulder, where the game puts it', size: [1280, 960], from: HUD264 },
+      { name: 'unity-hud-wheel', title: 'The stamina wheel', caption: 'The same run a few seconds on, sprinting away: before, the wheel floated 35–60 px off its place over his shoulder; after, it is on it', size: [1280, 960], from: HUD264 },
+    ], numbers: [
+      { title: 'How far the HUD is drawn from its point in the world, sprinting (the wheel) and walking round someone (the tag)', unit: 'px', better: 'lower', device: 'Retroid Pocket, Unity testers’ build 1.78 (2395), 1280 × 960, 60 fps', source: HUD264, rows: [
+        { where: 'the wheel, off its point', before: '35–60', after: 0 },
+        { where: 'the tag, off its point', before: '118–181', after: 0 },
+        { where: 'the wheel, its jump in one frame (most)', before: 33, after: 0 },
+        { where: 'the tag, its jump in one frame (most)', before: 150, after: 0 },
+      ] },
+    ], see: 'In the Unity preview, sprint past someone you can talk to and watch the wheel by his shoulder and their tag: they stay put.' },
+    { match: 'In the Unity preview the backpack’s glass shows', tags: ['devices'], shots: [
+      { name: 'unity-backpack', title: 'The round backpack (Unity)', caption: 'The Unity build on this Mac at the desert’s spawn, from behind his shoulder: before, the old lava-lamp flask, pale with dark streaks; after, the web’s nebula marched through the glass dome, lit from within, its stars and its highlight', from: 'The Unity editor in batch mode (BridgeBatch.Run, -views at the spawn), 1280 × 720, 10:00, before with the shaders of d166c5a45' },
+    ] },
     { match: 'The Unity version now has the fight', tags: ['combat', 'devices'], shots: [
       { name: 'unity-fight-keeper', only: 'after', title: 'The Keeper’s arena (Unity)', caption: 'The Unity build on this Mac, locked on to the Keeper in the Rose House’s cistern: the four gold arrows round its head, the camera back and high so both of you are in the frame, the hearts, potions and magic bar at the top left. Before, there was no fight in the Unity build at all', from: FIGHT264 },
     ], see: 'In the Unity version, walk into a temple guardian’s arena, or meet the ink blots in the wilds, and press R3 or Tab to lock on.' },

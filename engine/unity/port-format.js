@@ -94,7 +94,7 @@ export function portMaterial(spec, id = 0) {
     ['faceKit', 'uFaceKit'], ['faceKit2', 'uFaceKit2'], ['eyeC', 'uEyeC'], ['eyeR', 'uEyeR'], ['eyeLook', 'uEyeLook'], ['creases', 'uCreases'], ['limbs', 'uLimbs'],
     ['glass', 'uGlass'], ['glassCenter', 'uGlassCenter'], ['hero', 'uHero'],
     ['holoKind', 'uKind'], ['holoCut', 'uCut'], ['holoTint', 'uTint'],
-    ['fluidA', 'uFluidA'], ['fluidB', 'uFluidB'], ['fluidBox', 'uFluidBox'], ['fluidTones', 'uFluidTones'], ['dissolve', 'uDissolve'], ['dissolveColor', 'uDissolveColor']]) {
+    ['fluidA', 'uFluidA'], ['fluidB', 'uFluidB'], ['fluidBox', 'uFluidBox'], ['fluidDome', 'uFluidDome'], ['fluidDomeK', 'uFluidDomeK'], ['fluidTones', 'uFluidTones'], ['dissolve', 'uDissolve'], ['dissolveColor', 'uDissolveColor']]) {
     const x = u[name];
     if (x === undefined || x === null || typeof x === 'object' && !Array.isArray(x)) continue;
     e[k] = typeof x === 'number' ? x : x.map(r5);

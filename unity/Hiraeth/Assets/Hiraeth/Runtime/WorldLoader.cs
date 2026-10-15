@@ -213,8 +213,8 @@ namespace Hiraeth
                 for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
                 mat.SetVector(p, v);
             }
-            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
-            foreach (var (k, p) in new[] { ("fluidA", "_FluidA"), ("fluidB", "_FluidB"), ("fluidBox", "_FluidBox"), ("dissolveColor", "_DissolveColor") })
+            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid"), ("fluidDomeK", "_FluidDomeK") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            foreach (var (k, p) in new[] { ("fluidA", "_FluidA"), ("fluidB", "_FluidB"), ("fluidBox", "_FluidBox"), ("fluidDome", "_FluidDome"), ("dissolveColor", "_DissolveColor") })
             {
                 var l = m.L(k);
                 if (l == null) continue;

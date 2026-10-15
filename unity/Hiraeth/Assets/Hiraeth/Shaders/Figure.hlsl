@@ -225,6 +225,8 @@ float4 _FluidB;    // flash · refill · hose pulse head · slosh
 float4 _FluidBox;  // object space: glass bottom y, top y, radius, highlight angle
 float4 _FluidTones[6];
 float4 _FluidBase;   // the flask's own fluid, the colour the tones stream through (materials.js uFluidBase)
+float4 _FluidDome;   // the round backpack's dome: the centre of its flat face (three's object space) · its radius (0: none)
+float _FluidDomeK;   // how far it stands out of its ring (-z), in its radius
 #endif
 float3 fluidTone(int i) { return _FluidTones[i - 6 * (i / 6)].rgb; }
 float fmod2(float x, float y) { return x - y * floor(x / y); }
@@ -251,25 +253,87 @@ float3 fluidLava(float a, float h, float aspect, float t, int n, bool banded)
   [unroll] for (int c = 0; c < 6; c++) { if (c < n && c != base && F[c] > best) { best = F[c]; pick = c; } }
   return fluidTone(pick);
 }
-// the flask's living fluid (materials.js flaskFluid): a green body with the blend's tones turning through it in slow
-// warped streams, dark veins where they meet the green; p on the glass in glass heights, continuous all round
-float3 flaskFluid(float2 p, float t, int n)
+// The round backpack's nebula (materials.js nebula, flaskNebula; kind 0): inside the glass dome a little galaxy,
+// translucent jade-to-cyan clouds wound in a slow two-armed spiral round a soft bright heart, pale star specks
+// twinkling at three depths, all lit from within, marched through the dome from the fragment on its glass (six
+// samples). q in the dome's unit space (its flat face's centre at 0, |q| <= 1, z <= 0); three's frame throughout.
+float nebula(float3 q, float t, out float core, out float tint)
 {
-  p *= 4.2;
-  float2 q = float2(vnoise(p + float2(0.0, t * 0.23)), vnoise(p + float2(5.2, 1.3) - float2(t * 0.19, 0.0)));
-  float2 r = float2(vnoise(p * 1.3 + 2.8 * q + float2(1.7, 9.2) + t * 0.09), vnoise(p * 1.3 + 2.8 * q + float2(8.3, 2.8) - t * 0.11));
-  float f = vnoise(p * 0.9 + 2.6 * r);
-  float3 col = _FluidBase.rgb;
-  const float EDGE = 0.45, CORE = 0.63;
-  int nn = max(n, 1), k = (int)floor(frac(r.y * 1.7 + q.x * 0.8) * (float)nn);
-  if (f > EDGE) col = fluidTone(k);
-  if (f > CORE) col = fluidTone(k + 1 - nn * ((k + 1) / nn));
-  float fw = max(fwidth(f), 1e-4);
-  col = lerp(col, float3(0.08, 0.19, 0.14), 0.85 * (1.0 - smoothstep(0.6, 1.4, abs(f - EDGE) / fw)));
-  col = lerp(col, float3(0.1, 0.12, 0.16), 0.6 * (1.0 - smoothstep(0.4, 1.0, abs(f - CORE) / fw)));
+  float r = length(q.xy);
+  float tw = 2.3 * log(r + 0.12) - t * 0.3 + q.z * 0.9;
+  float c = cos(tw), s = sin(tw);
+  float2 p = float2(c * q.x + s * q.y, -s * q.x + c * q.y);   // (GLSL's mat2(c, -s, s, c) * q.xy: column-major)
+  float n1 = vnoise(p * 3.2 + float2(q.z * 2.3, 1.7));
+  float n2 = vnoise(p * 7.1 + float2(4.1, q.z * 3.1) + n1 * 1.3);
+  float arms = 0.5 + 0.5 * cos(2.0 * atan2(p.y, p.x + 1e-5) + n1 * 1.6);
+  arms *= arms;
+  float d = smoothstep(0.38, 0.9, arms * 0.7 + n1 * 0.45 + n2 * 0.3) * (1.0 - smoothstep(0.6, 1.05, length(q)));
+  core = exp(-(r * r * 11.0 + q.z * q.z * 6.0)) * (0.7 + 0.3 * n2);
+  tint = smoothstep(0.35, 0.8, n2 * 0.6 + arms * 0.4);
+  return d;
+}
+/** The fluid seen through the glass at this fragment (b its rest place, wp its world place: three's), standing to
+ *  fillY (object space); seen how much of the ray ran through fluid (0: empty glass). */
+float3 flaskNebula(float3 b, float3 wp, float t, float fillY, float bright, float sparkle, out float seen)
+{
+  float4 D = _FluidDome.w > 0.0 ? _FluidDome : float4(0.0, 0.5 * (_FluidBox.x + _FluidBox.y), 0.0, max(_FluidBox.z, 1e-3));
+  float K = _FluidDomeK > 0.0 ? _FluidDomeK : 1.0;
+  float3 S = float3(D.w, D.w, D.w * K);
+  float3 ro = (b - D.xyz) / S;
+  // (the eye's ray into three's object frame: Unity's object and world frames are three's with x mirrored)
+  float3 v = toThree(mul(transpose((float3x3)UNITY_MATRIX_M), toThree(wp - toThree(_WorldSpaceCameraPos))));
+  float3 rd = normalize(v / S);
+  float px = max(length(fwidth(ro)), 1e-4);   // (before the loops: derivatives in uniform flow)
+  float bq = dot(ro, rd), h = bq * bq - dot(ro, ro) + 1.0;
+  float tMax = -bq + sqrt(max(h, 0.0));
+  if (rd.z > 1e-4) tMax = min(tMax, -ro.z / rd.z);
+  tMax = clamp(tMax, 0.0, 2.0);
+  float fy = (fillY - D.y) / D.w;
+  float3 base = _FluidBase.rgb;
+  float3 deep = base * float3(0.08, 0.3, 0.24);
+  float3 cyan = lerp(base, lerp(fluidTone(0), float3(0.55, 0.98, 0.72), 0.65), 0.65);
+  float3 heart = float3(0.88, 1.0, 0.86);
+  float3 acc = 0;
+  float T = 1.0, wet = 0.0, dt = tMax / 6.0;
+  [unroll] for (int i = 0; i < 6; i++)
+  {
+    float3 q = ro + rd * (dt * (float(i) + 0.5));
+    if (q.y > fy) continue;
+    wet += 1.0;
+    float core, tint;
+    float d = nebula(q, t, core, tint);
+    float a = saturate(d * dt * 1.5);
+    acc += T * (a * lerp(base * float3(0.9, 1.15, 0.85), cyan * 1.2, tint) + dt * 1.5 * core * heart);
+    T *= 1.0 - a;
+  }
+  seen = wet / 6.0;
+  // the stars: specks on three shells, each its own parallax (a cell's hash, its speck at least a pixel across)
+  float stars = 0.0;
+  [unroll] for (int k = 0; k < 3; k++)
+  {
+    float zs = -0.2 - 0.25 * float(k);
+    if (rd.z < 1e-3 || zs < ro.z) continue;
+    float3 q = ro + rd * ((zs - ro.z) / rd.z);
+    if (q.y > fy || dot(q, q) > 0.95) continue;
+    float G = 9.0 + 4.0 * float(k);
+    float2 g = q.xy * G + float(k) * 7.31;
+    float2 cell = floor(g);
+    float hh = hash(cell + 17.0 * float(k));
+    if (hh < 0.8 - 0.15 * sparkle) continue;
+    float2 off = float2(hash(cell + 3.1), hash(cell + 8.7)) * 0.6 + 0.2;
+    float rad = max(0.07, px * G * 0.9);
+    float dd = length(frac(g) - off);
+    float tw = 0.55 + 0.45 * sin(t * (2.0 + 3.0 * hh) + hh * 40.0);
+    stars += (1.0 - smoothstep(rad * 0.3, rad, dd)) * tw * min(1.0, (0.07 / rad) * (0.07 / rad) * 4.0) * (0.6 + 0.4 * T);
+  }
+  float3 back = lerp(float3(0.8, 0.9, 0.88), deep, smoothstep(0.0, 0.34, seen));
+  float3 col = (acc + T * back) * bright;
+  col = lerp(col, float3(0.95, 1.0, 0.97), saturate(stars * (1.0 + 1.5 * sparkle)) * step(0.01, seen));
+  // the surface: a soft bright line where the fluid meets the glass
+  col += float3(0.35, 0.45, 0.4) * (1.0 - smoothstep(0.0, 0.05, abs(ro.y - fy))) * step(0.01, seen) * step(fy, 0.95);
   return col;
 }
-float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye)
+float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye, float3 wp, float glow)
 {
   float t = _FluidA.z, kind = _FluidA.w;
   int n = max(1, (int)(_FluidA.y + 0.5));
@@ -295,31 +359,20 @@ float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye)
   float h = (b.y - _FluidBox.x) / H;
   float a = atan2(b.z, b.x);
   if (kind > 1.5) return fluidLava(a, h, _FluidBox.z / H, t * 4.0, n, false);   // a glob in flight
-  // the flask: its living fluid at the fill level, sloshing; empty glass above (buildFlask)
-  float3 col = flaskFluid(float2(b.x + 0.8 * b.z, b.y - _FluidBox.x) / H, t, n);
+  // the round backpack: its nebula stands at the fill level (a third of the glass a charge), sloshing; empty glass
+  // above; brighter with the glow (the bar, the jets' stage): materials.js fluidAlbedo
   float fill = _FluidA.x;
   float surf = max(fill, 0.07) + (0.012 + 0.05 * _FluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
-  float w = _FluidB.y;
-  if (w > 0.0 && h < surf)
-  {
-    float2 g = float2(a * _FluidBox.z / H * 10.0, h * 10.0 - t * 5.0);
-    float2 c = frac(g) - 0.5;
-    if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = lerp(col, 1.0, 0.75 * w);
-  }
-  if (h > surf) col = kind < 0.5 ? float3(0.8, 0.9, 0.88) : float3(0.855, 0.925, 0.945);   // (the flask's glass a little green)
-  else if (h > surf - 0.04) col = lerp(col, 1.0, 0.35 + 0.4 * w);
-  if (kind < 0.5)
-  {
-    // the glass's edge, pale where it turns away from the eye; its thick green foot; an etched mark at each third
-    float fr = 1.0 - abs(dot(nrm, toEye));
-    col = lerp(col, float3(0.84, 0.94, 0.91), 0.8 * smoothstep(0.78, 0.86, fr));
-  }
-  if (h < 0.045) col = lerp(col, float3(0.2, 0.46, 0.36), 0.75);
-  float da = abs(a + 0.42);
-  if (da < 0.16 && (abs(h - 0.3333) < 0.008 || abs(h - 0.6667) < 0.008)) col = lerp(col, float3(0.12, 0.2, 0.17), 0.8);
+  float w = _FluidB.y, seen;
+  float3 col = flaskNebula(b, wp, t, _FluidBox.x + surf * H, 0.72 + 0.4 * glow, w, seen);
+  // the glass: a pale edge where it turns from the eye, glowing a little in the fluid's cyan; a window's highlight up
+  // on its shoulder and a smaller one under it
+  float fr = 1.0 - abs(dot(nrm, toEye));
+  col = lerp(col, lerp(float3(0.84, 0.95, 0.92), float3(0.62, 0.95, 0.8), seen), 0.6 * smoothstep(0.7, 0.95, fr));
+  float3 on = normalize((b - _FluidDome.xyz) * float3(1.0, 1.0, 1.0 / max(_FluidDomeK * _FluidDomeK, 0.2)));
+  float hl = dot(on, normalize(float3(-0.42, 0.62, -0.66))), hl2 = dot(on, normalize(float3(0.5, -0.38, -0.78)));
+  col = lerp(col, 1.0, 0.8 * smoothstep(0.97, 0.982, hl) + 0.4 * smoothstep(0.99, 0.995, hl2));
   col = lerp(col, 1.0, _FluidB.x * 0.45);
-  float dh = abs(fmod2(a - _FluidBox.w + 3.14159, 6.28318) - 3.14159);
-  if (dh < (kind < 0.5 ? 0.07 : 0.14) && h > 0.16 && h < 0.8) col = lerp(col, 1.0, h > surf ? 0.9 : 0.5);
   return col;
 }
 

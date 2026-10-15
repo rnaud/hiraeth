@@ -194,6 +194,8 @@ namespace Hiraeth.Bridge
             // (-foes [world]: the Arena's list of foes photographed, a world's page, a foe chosen and fought: engine/unity/game.js)
             if (Flag("-foes")) args["foes"] = Arg("-foes") is string fw && !fw.StartsWith("-") ? fw : "all";
             if (Flag("-freeze")) args["freeze"] = true;
+            // (-hud-run secs: round someone at a walk, then a sprint, the floating prompt and the stamina wheel in motion: engine/unity/game.js)
+            if (Arg("-hud-run") != null) args["hudRun"] = double.Parse(Arg("-hud-run"), CultureInfo.InvariantCulture);
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);
             if (Flag("-tour")) args["tour"] = true;

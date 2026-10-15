@@ -271,18 +271,77 @@ namespace Hiraeth.Bridge
         static void Show(Component c, bool on) { if (c && c.gameObject.activeSelf != on) c.gameObject.SetActive(on); }
         static void Show(Ui.Box b, bool on) { if (b != null) b.Show(on); }
 
+        /// <summary>A three.js world point ([x, y, z]) in Unity's frame (x mirrored).</summary>
+        static Vector3 World(List<object> at) => new Vector3(-Json.Num(at[0]), Json.Num(at[1]), Json.Num(at[2]));
+
+        // -hud-trace: where the stamina wheel and the floating prompt are drawn against where their point in the world is
+        // drawn, measured as the camera starts to render (the canvas where it is drawn from), in screen px: the error and
+        // its change from frame to frame (the shake), logged every 2 s. The wheel's centre and the prompt's foot (its
+        // bottom middle, unless held in at an edge) should sit on their points.
+        static readonly bool trace = BridgeArgs.Flag("-hud-trace");
+        class Trace { public Vector3? at; public Vector2 last; public bool had; public int n, shakeN; public double sum, max, shakeSum, shakeMax; }
+        readonly Trace traceWheel = new(), tracePrompt = new();
+        float traceT;
+        // (as the camera starts to draw; in a batch run, whose camera draws only for its pictures, as the canvases are
+        // made ready to draw at the end of the frame instead: once a frame either way)
+        void OnEnable() { if (trace) { UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering += TraceCam; Canvas.willRenderCanvases += TraceCanvas; } }
+        void OnDisable() { if (trace) { UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering -= TraceCam; Canvas.willRenderCanvases -= TraceCanvas; } }
+        int traceFrame = -1, traceCams;
+        void TraceCam(UnityEngine.Rendering.ScriptableRenderContext ctx, Camera c) { if (c == cam) { traceCams++; TraceFrame(); } }
+        void TraceCanvas() { if (traceCams == 0) TraceFrame(); }
+        void TraceFrame()
+        {
+            if (!root || traceFrame == Time.frameCount) return;
+            traceFrame = Time.frameCount;
+            Sample(traceWheel, wheel, new Vector2(0.5f, 0.5f));
+            Sample(tracePrompt, prompt.rt, new Vector2(0.5f, 0));
+            traceT += Time.unscaledDeltaTime;
+            if (traceT < 2) return;
+            traceT = 0;
+            string Say(Trace t) => t.n == 0 ? "not shown" : $"n {t.n}, off {t.sum / t.n:0.0} px (max {t.max:0.0}), shake {t.shakeSum / Mathf.Max(1, t.shakeN):0.00} px a frame (max {t.shakeMax:0.0})";
+            Debug.Log($"Hiraeth bridge: hud trace ({(traceCams > 0 ? "as the camera draws" : "as the canvases are made ready")}{(oldPlace ? ", placed as before" : "")}): wheel {Say(traceWheel)}; prompt {Say(tracePrompt)}; {Screen.width}x{Screen.height}, canvas {W:0}x{H:0}");
+            foreach (var t in new[] { traceWheel, tracePrompt }) { t.n = t.shakeN = 0; t.sum = t.max = t.shakeSum = t.shakeMax = 0; t.had = false; }
+        }
+        void Sample(Trace t, RectTransform rt, Vector2 pivot)
+        {
+            if (!t.at.HasValue || !rt || !rt.gameObject.activeInHierarchy) { t.had = false; return; }
+            var truth = cam.WorldToScreenPoint(t.at.Value);
+            var corners = new Vector3[4]; rt.GetWorldCorners(corners);   // (bottom left, top left, top right, bottom right)
+            var drawn = cam.WorldToScreenPoint(Vector3.Lerp(Vector3.Lerp(corners[0], corners[3], pivot.x), Vector3.Lerp(corners[1], corners[2], pivot.x), pivot.y));
+            var err = (Vector2)drawn - (Vector2)truth;
+            t.n++; t.sum += err.magnitude; t.max = System.Math.Max(t.max, err.magnitude);
+            if (t.had) { double d = (err - t.last).magnitude; t.shakeSum += d; t.shakeN++; t.shakeMax = System.Math.Max(t.shakeMax, d); }
+            t.last = err; t.had = true;
+        }
+
         /// <summary>A three.js world point ([x, y, z]) on the canvas (top-left origin, y down), or null behind the camera.</summary>
+        /// <remarks>From the camera's viewport, which the canvas covers, as the page projects its #stamina and #prompt: not
+        /// through the canvas' own transform (RectTransformUtility from a screen point), which the canvas moves to the camera
+        /// only as it draws, so it stood where last frame's camera had put it, and nearer or further with the near plane the
+        /// game sets each frame: while running the wheel and the floating prompt were off their points by the camera's
+        /// last step, and shook as the frames' lengths varied (the AYN Thor's Unity build, issue #264).</remarks>
         Vector2? ToCanvas(List<object> at)
         {
             if (at == null || at.Count < 3) return null;
-            var world = new Vector3(-Json.Num(at[0]), Json.Num(at[1]), Json.Num(at[2]));   // (Unity's frame: x mirrored)
-            var sp = cam.WorldToScreenPoint(world);
-            if (sp.z <= 0.05f) return null;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, sp, cam, out var lp)) return null;
-            return new Vector2(lp.x + W * 0.5f, H * 0.5f - lp.y);
+            if (oldPlace)
+            {
+                var sp = cam.WorldToScreenPoint(World(at));
+                if (sp.z <= 0.05f) return null;
+                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, sp, cam, out var lp)) return null;
+                return new Vector2(lp.x + W * 0.5f, H * 0.5f - lp.y);
+            }
+            var vp = cam.WorldToViewportPoint(World(at));   // (Unity's frame: x mirrored)
+            if (vp.z <= 0.05f) return null;
+            return new Vector2(vp.x * W, (1 - vp.y) * H);
         }
 
-        void Update()
+        // (in LateUpdate: after BridgeRunner's Update has applied the frame's ops, the camera's place and this state among
+        // them, so the HUD is placed with the camera the frame is drawn with, whichever of the two Updates Unity runs first.
+        // -hud-old: placed as before, in Update and through the canvas' transform, a check against -hud-trace's numbers)
+        static readonly bool oldPlace = BridgeArgs.Flag("-hud-old");
+        void Update() { if (oldPlace) Draw(); }
+        void LateUpdate() { if (!oldPlace) Draw(); }
+        void Draw()
         {
             if (!root) return;
             // (the canvas just beyond the near plane, which the game's camera sets each frame: on it, the HUD was clipped)
@@ -1060,6 +1119,7 @@ namespace Hiraeth.Bridge
         {
             var at = on && p != null ? ToCanvas(p.L("at")) : null;
             Show(prompt, at.HasValue);
+            if (trace) tracePrompt.at = null;
             if (!at.HasValue) return;
             var key = p.S("key", "E");
             prompt.SetFill(HintBg); promptKey.color = HintInk; promptText.color = HintInk;
@@ -1072,7 +1132,9 @@ namespace Hiraeth.Bridge
             Ui.Place(promptKey.rectTransform, 4, 3, kw, lh);
             Ui.Place(promptText.rectTransform, 4 + kw + 6, 3, s.x, lh);
             float w = 4 + kw + 6 + s.x + 10, h = lh + 6;
-            Ui.Place(prompt.rt, Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), Mathf.Clamp(at.Value.y - h, 8, H - h - 8), w, h);
+            float px = Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), py = Mathf.Clamp(at.Value.y - h, 8, H - h - 8);
+            Ui.Place(prompt.rt, px, py, w, h);
+            if (trace) tracePrompt.at = Mathf.Approximately(px, at.Value.x - w / 2) && Mathf.Approximately(py, at.Value.y - h) ? World(p.L("at")) : null;   // (not where it is held in at an edge)
         }
 
         // the hearts (src/hud.js healthHud / heartsSvg, the page's #health): a heart a container, filled by its quarters,
@@ -1272,8 +1334,10 @@ namespace Hiraeth.Bridge
         {
             var at = on && s != null ? ToCanvas(s.L("at")) : null;
             Show(wheel, at.HasValue);
+            if (trace) traceWheel.at = null;
             if (!at.HasValue) return;
             Ui.Place(wheel, at.Value.x - 17, at.Value.y - 17, 34, 34);
+            if (trace) traceWheel.at = World(s.L("at"));
             wheelFill.fillAmount = Mathf.Clamp01(s.F("value", 1));
             wheelFill.color = s.Get("winded") is bool w && w ? Ui.Red : Ui.Gold;
         }

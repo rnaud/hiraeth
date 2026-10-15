@@ -71,6 +71,11 @@ export const CHANGELOG = [
     // the homecoming), src/ship/homecoming.js (no page: the cargo answered, the card and credits as lines); tests/engine-finishable.test.js
     { text: 'The Unity preview can now be played to the end. Aboard, the holo table lists every world the route has opened, the ones you have never been to as well, and Home and the Lantern once they open, and the ship flies to any of them. Coming home by ship plays the homecoming, and the true ending’s end card and credits show as lines under the picture. Each world’s closing words and the small things hidden in every world are back too, and a guardian’s fight shows its bar at the bottom of the screen, its name and its health or unrest.',
       see: 'In the Unity preview, finish the desert, power the ship and use the holo table: Vael is on the Worlds page with Travel here. With six worlds done and the last recording heard, fly Home.' },
+    // the Unity preview's HUD on the world (issue #264): BridgeHud ToCanvas from the viewport, laid out in LateUpdate;
+    // -hud-trace / -hud-old / -hud-run (docs/systems/engine-bridge.md "The HUD on the world's points")
+    'In the Unity preview the stamina wheel and the floating “talk to” tag hold still beside the traveller and the person while you run, as on the web: they no longer shake, nor hang off to one side.',
+    // the round backpack in Unity: Figure.hlsl nebula / flaskNebula (materials.js), the dome through port-format.js
+    'In the Unity preview the backpack’s glass shows the same little green galaxy as on the web, lit from within with its stars, instead of a pale glass with dark streaks.',
     'The Unity preview on the Xbox now sends a 4K TV a 4K picture, still at 60 frames a second: the world is drawn as sharp as the console can keep up with, about 3520 × 1980 at the desert’s spawn and 2750 × 1550 at the City-Shaft’s rim, where it was always drawn at 2560 × 1440 and stretched by the console. The ink lines keep their weight.',
     // the Unity build's GPU on the Retroid, round 3 (issue #262): Surface.shader (each part's derivatives next to it,
     // HIRAETH_PLAIN, the lean prepass without a discard, the crowd's and grass's varyings), BridgeRenderer.Lean,

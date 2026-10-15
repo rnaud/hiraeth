@@ -1468,6 +1468,33 @@ own clocks stayed within 0.06 s of the game's places, with no seeks. The title's
 bus, for 15 minutes on the Deck. The Retroid and the Xbox are not checked yet: the bench's APK is built without Unity's
 audio, and the testers' APK and the Xbox package come from CI.
 
+## The HUD on the world's points, the round backpack's glass (Unity + Puerts, 2026-10-15, issue #264)
+
+Reported on the AYN Thor's Unity build: the stamina wheel and the floating "A talk to…" tag shook while running,
+and the backpack's glass looked nothing like the web's.
+
+- **The shake.** BridgeHud placed a world point (the screen's `stamina.at`, `prompt.at`, the reticle's, the gadget
+  marks') by projecting it to a screen point and then into the canvas through `RectTransformUtility`, i.e. through the
+  canvas' own transform. A Screen Space - Camera canvas is moved in front of its camera only as it draws, so between
+  BridgeRunner's Update (which applies the frame's camera) and the draw it stood where last frame's camera had put
+  it, at a plane distance that follows the near plane the game sets each frame; and BridgeHud's Update could also
+  run before BridgeRunner's. The wheel and the tag were off their points by the camera's last step, which changes
+  with every frame's length: a shake. Now `ToCanvas` goes from `WorldToViewportPoint` straight to canvas units (the
+  canvas covers the camera's viewport, as the page's `project(camera)` to `innerWidth`), and the HUD is laid out in
+  LateUpdate, after the frame's ops.
+- **Measuring it.** `-hud-trace` logs every 2 s how far the wheel's centre and the tag's foot are drawn from where
+  their points are drawn (screen px, measured as the camera starts to render, or as the canvases are made ready in a
+  batch run whose camera draws only for its pictures) and how much that changes frame to frame; `-hud-old` places
+  them as before; `-hud-run secs` is a plan that walks round someone (the tag) then sprints (the wheel). In the
+  editor (640 × 480): before, the wheel 6–9 px off, shaking 3–4 px a frame (up to 33), the tag 6–25 px off, shaking
+  1.5–5 px (up to 70); after, 0.0 for both.
+- **The backpack.** The port still drew the tank as the old green lava-lamp flask (`flaskFluid`); the web's round
+  backpack has since become a nebula marched through its glass dome (materials.js `nebula`, `flaskNebula`, the dome
+  set by fluid-tool.js `buildFlask`). Figure.hlsl now has the same march, the dome (`uFluidDome`, `uFluidDomeK`)
+  goes through port-format.js and `WorldLoader.MakeMaterial` (`_FluidDome`, `_FluidDomeK`), the eye's ray is taken
+  into three's object frame through `UNITY_MATRIX_M` with x mirrored on both sides, and Surface.shader keeps the web's
+  two rules for it: lit from within (`L ≥ 0.92`) and its glass inked by its outline only.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

@@ -86,6 +86,8 @@ Shader "Hiraeth/Surface"
     _FluidB ("FluidB", Vector) = (0, 0, 0, 0)
     _FluidBox ("FluidBox", Vector) = (0, 0, 0, 0)
     _FluidBase ("FluidBase", Vector) = (0, 0, 0, 0)
+    _FluidDome ("FluidDome", Vector) = (0, 0, 0, 0)
+    _FluidDomeK ("FluidDomeK", Float) = 1
     _Dissolve ("Dissolve", Vector) = (0, 0, 0, 0)
     _DissolveColor ("DissolveColor", Vector) = (0, 0, 0, 0)
     _TfBrowA ("TfBrowA", Vector) = (0, 0, 0, 0)
@@ -138,6 +140,8 @@ Shader "Hiraeth/Surface"
     float4 _FluidA, _FluidB, _FluidBox;
     float4 _FluidTones[6];
     float4 _FluidBase;
+    float4 _FluidDome;     // the round backpack's dome (Figure.hlsl flaskNebula)
+    float _FluidDomeK;
     float4 _Dissolve, _DissolveColor;
     // (Marks.hlsl's: the surface marks)
     float _Weather; float4 _Detail; float _Patch, _Plates, _Windows;
@@ -936,7 +940,7 @@ Shader "Hiraeth/Surface"
           float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
           patInk = max(patInk, di * dUp * 1.35);
         }
-        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos));
+        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         albedo *= instColor;
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
@@ -1017,6 +1021,7 @@ Shader "Hiraeth/Surface"
           albedo *= lerp(float3(1, 1, 1), 0.72 + 0.4 * lerp(_SkyHorizon, _SkyTop, 0.35), 0.22 * roomKey * _Room.w);
         }
         L = lerp(L, 1.0, max(_Glow, emit));
+        if (LEANK && _Fluid > 0.5 && _FluidA.w < 0.5) L = max(L, 0.92);   // (the round backpack's nebula is lit from within: no shade side on it)
         float local = 0.0;
         // (the lights come nearest first, the unused after them with no radius (HiraethLook): the loop stops at the first of
         // those, a uniform branch, instead of measuring all eight from every pixel, issue #262)
@@ -1139,6 +1144,7 @@ Shader "Hiraeth/Surface"
         // gHatch.a: glow + 2 hero + 4 figure (+ 8 soft ink) + 16 a face + 32 banked sand (post.js)
         o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift;
         if (_BoxOn > 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (a box with no edges: its outline only)
+        if (LEANK && _Fluid > 0.5 && _FluidA.w < 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (the round backpack's glass: its outline only, a full pen line, no hatching)
         #if defined(HIRAETH_GRASS)
           // blades: no hatching, no drawn detail; soft ink (r its pen line's share, g its outline's fade with distance)
           o.hatch.rgb = float3(i.grassLook.x, i.grassLook.y, 0.0); o.hatch.a += 8.0;

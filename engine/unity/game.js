@@ -66,7 +66,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 
@@ -488,6 +488,16 @@ function makePlan(args) {
       { kind: 'wait', frames: 60, secs: 2.6 }, { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 60, secs: args.runSecs ?? 3 }, ...shot('run'),
       { kind: 'key', code: 'KeyW', down: false }, ...tap('Escape', 10), ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
   }
+  if (args.hudRun) {
+    // (-hud-run secs: the floating prompt and the stamina wheel in motion, to watch or record, BridgeHud's -hud-trace
+    // measuring them: beside someone (-talk id, else anyone), round them at a walk, the camera turning (the prompt),
+    // then a sprint away (the wheel); the camera's turn in game seconds, so a slow device circles alike)
+    const say = (what) => ({ kind: 'say', text: `[unity] hud run: ${what}` });
+    steps.push({ kind: 'approach', who: args.talk ?? 'any' }, { kind: 'wait', frames: 30, secs: 1 }, say('circling'),
+      { kind: 'key', code: 'KeyD', down: true }, { kind: 'spin', secs: args.hudRun / 2, degPerSec: -100 }, { kind: 'key', code: 'KeyD', down: false },
+      say('sprinting'), { kind: 'key', code: 'ShiftLeft', down: true }, { kind: 'key', code: 'KeyW', down: true }, { kind: 'spin', secs: args.hudRun / 2, degPerSec: 12 },
+      { kind: 'key', code: 'KeyW', down: false }, { kind: 'key', code: 'ShiftLeft', down: false }, say('done'), { kind: 'wait', frames: 30, secs: 1 });
+  }
   if (args.walk) {
     steps.push({ kind: 'key', code: 'KeyW', down: true }, { kind: 'measure', view: { name: 'walk' }, secs: args.walk }, { kind: 'key', code: 'KeyW', down: false });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-walk.png` });
@@ -736,6 +746,8 @@ export function frame(dt) {
   }
   else if (step.kind === 'aboard') { console.log(game.goAboard(step.room) ? `[unity] aboard: ${step.room}` : `[unity] no room ${step.room} aboard`); next(); }
   else if (step.kind === 'turn') { game.look(step.dx, 0); if (++P.wait >= step.frames) next(); }
+  // (the camera turned at degPerSec of the game's time, the rig's 0.0025 rad a mouse pixel: src/player.js look, for secs)
+  else if (step.kind === 'spin') { const d = Math.min(dt, 0.1); game.look((step.degPerSec * d * Math.PI) / 180 / 0.0025, 0); P.t += d; if (P.t >= step.secs) next(); }
   else if (step.kind === 'approach') {
     const people = game.npcs.filter((n) => n.def && !n.pooled);
     const n = people.find((x) => x.def.id === step.who) ?? people[0];

@@ -15,6 +15,7 @@ import { Motes, Footprints } from '../src/life.js';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { capePacketWords } from '../engine/cape-job.js';
+import { buildFlask } from '../src/fluid-tool.js';
 import { AudioReplay } from '../engine/webaudio.js';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 
@@ -73,6 +74,17 @@ test('the port\'s formats: a material as materialOf writes it, the look as world
   assert.deepEqual(L.hours[0].light, [-0.5, 0.6, 0.3], 'directions in Unity\'s frame');
   assert.deepEqual(L.post.ink, [0.1, 0.1, 0.1]);
   assert.equal(L.post.uFogDensity, 0.001);
+});
+
+test('the round backpack\'s dome reaches the port (its nebula marched through it: Figure.hlsl flaskNebula)', () => {
+  const glass = makeMaterial({ color: '#ffffff', fluid: 'tank', fluidBox: [0, 0.3, 0.2, 0] });
+  buildFlask(glass);
+  const p = portMaterial(inkSpec(glass), 4);
+  assert.equal(p.fluid, 1);
+  assert.equal(p.fluidA[3], 0, 'kind 0: the tank');
+  assert.equal(p.fluidDome.length, 4);
+  assert.ok(p.fluidDome[3] > 0, 'the dome\'s radius, set by buildFlask');
+  assert.ok(p.fluidDomeK > 0, 'how far it stands out of its ring');
 });
 
 test('the web\'s newer surface marks reach the port: weathering, pen detail, patches, the shade, the spot and line steps; the look\'s vectors', () => {
