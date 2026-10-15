@@ -1206,6 +1206,49 @@ The pieces and the puzzles are untouched: the same rooms, collision and logic (t
 and reach farther, light only). Cost: two to seven draw calls more in a frame (paint and bands share the house's paint
 mesh), frame time within the machine's spread (the audit's "Cost"). `tests/temple-visuals.test.js`.
 
+## Futuristic skins (v1.77, issue #342, `src/temples/skins/`)
+
+A house may wear a skin of its own module (`def.skin`, a function `(rt) => ({ dress, done, brazier })`, run by
+`skins/index.js houseSkin` round the layout; `?noskin=1` or `rt.noSkin` builds the house without it). Look only: the
+same rooms, doors, collision, pieces and logic (`tests/temple-skins.test.js`).
+
+### The Warden's Well (`skins/wardens-well.js`)
+
+After `references/temples/future/wardens-well/sheet-1.jpg` and `sheet-2.jpg`: a shaft of dark slate rings, cyan lines,
+cream ledges, lens terminals, turning vanes, an iris at the top.
+
+- **Surfaces.** The wall, `wallGlyph` and floor materials become the surface shader with its albedo, first pen lines
+  and glow replaced (as `landmark-materials.js stone()` does; `emit` takes the pattern's `skGlow`, so bloom carries it):
+  - `slate` (walls): 2.3 m courses of staggered slabs, each its own tone, its top chamfer lit and its foot shaded;
+    every third course a dark ring groove, most lit cyan; cyan circuits up the walls, jogging sideways every 9 m, a lit
+    square at some; ceilings in rings of slabs round the room's middle, a cyan ring round the oculus.
+  - `metal` (doors, the climb's face, the irises' blades): 1.6 m machined panels, chamfered, a cyan seam down some.
+  - `plates` (floors): pale plates in rings round a round room's middle or a grid in a hall, a cyan inlay 1.6 m in from
+    the walls; a floor's underside slate rings.
+  - The kit's rooms go to the shader (`uSkR`, up to `WELL_ROOMS`), so a drum's slabs run round it without a seam. The
+    pieces' copies (`floorObj`, `wallGlyphObj`: a riding disc, a door's slab, an iris's blades) take the pattern in their
+    own frame, so it moves with them.
+  - The glows breathe slowly (`uTime`), rising up the shaft.
+- **Paints.** `M.bands` a dark plinth, a dark slate frieze course and cream courses every 8.4 m. The glyphs, the
+  frieze's marks, the vanes' rings and the gallery's floor rings are cyan glow, the slit windows cyan light panels, the
+  caps cream, the pieces' glows (`rt.P.glow`) cyan. incal.js reads these from `rt.skin.paints`. The band's sign is
+  sheet-1's (three tiny dots over a long flat arch); the frieze glyph itself is `sign-text.js glyphGeometry`, shared,
+  and left as it is.
+- **Dressing**, drawn only (5 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
+  - lens terminals (a housing under a deep cream overhang, a lens of cyan rings; one in two lit), two a room, high on
+    the walls, none in a room with an eye to strike;
+  - great flat vanes on axles out of the tall drums' walls, turning slowly (`SkinMotion`), none in the Warden's Hall;
+  - an iris of sixteen metal blades round each round room's oculus, and a cyan rim at its lip.
+  - Everything is kept off doorways, everything drawn on the walls, every floor's height and every piece, by boxes.
+- **Presets.** On Low, Handheld and the Deck (`uWearLite`) the shader leaves out the slabs' tones, the chamfers and
+  the circuits' jogs, and the vanes stand still.
+- **Cost** (this Mac, muted headless Chrome, 1280 × 720, 7 rooms, skin off → on): draw calls High 318 → 315, Low
+  329 → 335; triangles 726 k → 637 k on High (the glowing glyphs leave the shadow passes); frame time within the
+  machine's spread (High 11.2 → 9.9 ms, Low 6.7 → 6.7 ms). Dressing ~20 ms to build.
+- **Unlike the pictures:** the slabs are flat-shaded, not cut in relief (the chamfers are painted); the vanes are fewer
+  and smaller than the sheets' and none hang in the drum's middle (the flight's air); the warden's ledge and the
+  tripod robot are the guardian's own model, unchanged.
+
 ## Landmarks seen from the approach (14 October 2026)
 
 All fourteen current temples now use the author's Midjourney favourites in

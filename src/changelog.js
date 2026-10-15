@@ -106,6 +106,9 @@ export const CHANGELOG = [
     'The Hush-House’s keepers wait only in the Nursery now, round its middle among the old seed-beds, the house’s one fight: no machine stands by its puzzles any more. If you were inside the old Hush-House, you start at its last glyph stone.',
     // (issue #336 follow-up: src/temples/desert.js FIRES.x 5 -> 0, the groove, fire, thorns, ball and bowl moved with it)
     'In the Rose House’s Hall of Fires, the tar ball’s groove, its fire, its thorns and the hooded bowl now run down the middle of the hall instead of along its east side.',
+    // the Warden's Well's futuristic skin (issue #342): src/temples/skins/wardens-well.js (the slate, metal and plate
+    // patterns, their glow, the lens terminals, turning vanes, irises), incal.js `skin` and its paints; tests/temple-skins.test.js
+    'Inside, the Warden’s Well is a shaft of the makers’ old high technology now, after the drawings picked for it: dark slate rings of chamfered slabs with thin cyan circuits climbing them and glowing ring bands, cream ledges, machined metal doors and climbing face with lit seams, floors of pale plates with cyan inlays, lens terminals in deep housings high on the walls, great flat vanes turning slowly on their axles out of the tall drums’ walls, and an iris of metal blades round the light at the top of each round room. Its rooms, doors and puzzles are where they were; on the Low and handheld settings the slabs are plainer and the vanes stand still.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

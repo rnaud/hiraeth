@@ -11,6 +11,7 @@ import { t as tr } from '../i18n.js';
 import { EN } from '../i18n/en.js';
 import { registerTarget } from '../targets.js';
 import { chestMound } from '../boxes/mound.js';
+import { wardensWellSkin } from './skins/wardens-well.js';
 
 // The City-Shaft's temple: the Warden's Well, the makers' tower on the rim,
 // round from the ship. Nobody in the city goes in: the rim calls it a folly,
@@ -336,7 +337,7 @@ export const ARENAS = [{
  * the room, its stones standing only while the small vane on the far wall turns: splash it from this side, and cross
  * before it slows; the key on the far side). Each holds one of the two small keys the door at the balcony's end takes.
  */
-function wings(rt, K, M, { blue }) {
+function wings(rt, K, M, { blue, ring }) {
   const add = (P, o) => rt.add(P, o);
   const Z = WING.z, S = WING.store, R = WING.vane, [G0, G1] = WING.gap, D = ROOMS.door, H = ROOMS.wing.h;
   // (the ways out of the well: from inside its wall to the hall's wall's outer face)
@@ -365,7 +366,7 @@ function wings(rt, K, M, { blue }) {
   add(Vane, { id: 'vR', at: [px - 0.82, 5.5, pz], wall: true, yaw: -Math.PI / 2, r: 1.5, coast: VANES.wing,
     turning: 'The vane on its post in the chasm spins, and stones grind up out of the dark. Already it is slowing.',
     fading: 'The vane is slowing: the stones will sink with it.' });
-  K.add(blue, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [px - 0.69, 5.5, pz]));
+  K.add(ring, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [px - 0.69, 5.5, pz]));
   add(Key, { id: 'kE', at: [R.x + 10, 0, Z - 4], yaw: -Math.PI / 2 });
   add(Mark, { room: 'vane', at: [R.x - 10, 0, Z - 4], yaw: Math.PI / 2 });
 }
@@ -377,7 +378,7 @@ function wings(rt, K, M, { blue }) {
  * (splash it from the floor, ride it up; splash it again from the ledge). Half-way up, a ledge off its west wall: the
  * great key, for the high door.
  */
-function flue(rt, K, M, { C3, G0, GK, blue }) {
+function flue(rt, K, M, { C3, G0, GK, blue, ring }) {
   const add = (P, o) => rt.add(P, o);
   const F = FLUE, X = F.x, Lg = F.ledge, D = ROOMS.door, H = GK - G0 + D.h + 2;
   K.rotunda({ x: X, z: C3, y: G0, r: F.r, h: H, seg: 40, gaps: [{ a: Math.PI / 2, w: F.door, h: D.h }, { a: Math.PI / 2, w: F.door, h: D.h, y0: GK - G0 - 0.15 }], oculus: 0.3 });
@@ -399,7 +400,7 @@ function flue(rt, K, M, { C3, G0, GK, blue }) {
   add(Vane, { id: 'vT', at: [X, G0 + F.vane, vz], wall: true, yaw: 0, r: 1.4, coast: VANES.flue,
     turning: 'The little vane on its post in the flue spins, and a draught rises up the flue’s middle. Already it is slowing.',
     fading: 'The little vane is slowing: the draught will die with it.' });
-  K.add(blue, T(annulus(1.8, 2.2, 0.3, 32).rotateX(Math.PI / 2), [X, G0 + F.vane, vz - 0.13]));
+  K.add(ring, T(annulus(1.8, 2.2, 0.3, 32).rotateX(Math.PI / 2), [X, G0 + F.vane, vz - 0.13]));
   // the draught up its middle while the vane turns, to over the crown's floor
   add(Updraft, { at: [X, G0, C3], r: F.column, h: GK + 3 - G0, lift: 8, when: { lit: 'vT' },
     still: 'Still air: the little vane on its post in the flue is still.', hint: 'A draught rises up the flue’s middle. Open your wings in it.' });
@@ -419,16 +420,26 @@ function layout(rt) {
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
 
   // the makers' steel blue, banding the drums (after the picked reference: references/temples/wardens-well/sheet-1.jpg)
-  const blue = { paint: new THREE.Color('#7d93c4'), smooth: false, side: THREE.FrontSide };
-  const slitM = makeMaterial({ color: '#fff0c8', glow: 0.75, flat: true, key: 'incal.temple.slit' });
+  // (in its futuristic skin, issue #342: the drums' bands dark slate, their friezes and the vanes' rings lit cyan, the
+  // caps cream, the slit windows cyan light panels: src/temples/skins/wardens-well.js; drawn only, the same shapes)
+  const SK = rt.skin?.paints;
+  const blue = SK?.cap ?? { paint: new THREE.Color('#7d93c4'), smooth: false, side: THREE.FrontSide };
+  const ring = SK?.ring ?? blue, bandM = SK?.band ?? blue, markM = SK?.mark ?? M.trim;
+  const slitM = SK?.slit ?? makeMaterial({ color: '#fff0c8', glow: 0.75, flat: true, key: 'incal.temple.slit' });
   /** A band round a drum's inside wall (r, at y), with the makers' frieze on it: three dots over an upward arc. */
   const band = (x, z, r, y, h = 1.3, every = 0.26, skip = []) => {
-    K.add(blue, T(annulus(r - 0.14, r + 0.04, h, 72), [x, y + h / 2, z]));
+    K.add(bandM, T(annulus(r - 0.14, r + 0.04, h, 72), [x, y + h / 2, z]));
     for (let a = 0; a < TAU - 0.01; a += every) {
       if (skip.some(([c, w]) => Math.abs(Math.atan2(Math.sin(a - c), Math.cos(a - c))) < w)) continue;
       const px = x + Math.sin(a) * (r - 0.16), pz = z + Math.cos(a) * (r - 0.16);
-      for (const [dx, dy] of [[-0.24, 0.22], [0, 0.32], [0.24, 0.22]]) K.add(M.trim, T(new THREE.CylinderGeometry(0.09, 0.09, 0.05, 8).rotateX(Math.PI / 2), [px - Math.cos(a) * dx, y + dy, pz + Math.sin(a) * dx], [0, a, 0]));
-      K.add(M.trim, T(new THREE.TorusGeometry(0.34, 0.04, 3, 10, Math.PI), [px, y - 0.28, pz], [0, a, 0]));
+      // (in the skin the sign of sheet-1: three tiny dots in a tight row just over the crest of a long, low, flat arch)
+      if (SK?.flatArc) {
+        for (const dx of [-0.12, 0, 0.12]) K.add(markM, T(new THREE.CylinderGeometry(0.045, 0.045, 0.05, 8).rotateX(Math.PI / 2), [px - Math.cos(a) * dx, y + 0.24, pz + Math.sin(a) * dx], [0, a, 0]));
+        K.add(markM, T(new THREE.TorusGeometry(0.34, 0.03, 3, 14, Math.PI).scale(1.7, 0.6, 1), [px, y - 0.02, pz], [0, a, 0]));
+        continue;
+      }
+      for (const [dx, dy] of [[-0.24, 0.22], [0, 0.32], [0.24, 0.22]]) K.add(markM, T(new THREE.CylinderGeometry(0.09, 0.09, 0.05, 8).rotateX(Math.PI / 2), [px - Math.cos(a) * dx, y + dy, pz + Math.sin(a) * dx], [0, a, 0]));
+      K.add(markM, T(new THREE.TorusGeometry(0.34, 0.04, 3, 10, Math.PI), [px, y - 0.28, pz], [0, a, 0]));
     }
   };
   /** A tall slit window of warm light on a drum's inside wall, pointed at the top. */
@@ -459,7 +470,7 @@ function layout(rt) {
   add(Vane, { id: 'v1', at: [VX - 0.92, 9.5, VZ], wall: true, yaw: -Math.PI / 2, r: 1.9, coast: VANES.floors,
     turning: 'The vane on the pillar spins, and below it the discs wake and ride. Already it is slowing.',
     fading: 'The vane is slowing: the discs will stop with it.' });
-  K.add(blue, T(annulus(2.3, 2.75, 0.3, 32).rotateZ(Math.PI / 2), [VX - 0.8, 9.5, VZ]));
+  K.add(ring, T(annulus(2.3, 2.75, 0.3, 32).rotateZ(Math.PI / 2), [VX - 0.8, 9.5, VZ]));
   add(Mark, { room: 'turning', at: [-4.8, 0, 15.2], yaw: Math.PI / 2 });
   for (let i = 0; i < 4; i++) K.glyph([-TW + 0.05, 4 + i * 2.6, 22 + i * 5], 1.2, Math.PI / 2);
   for (let i = 0; i < 3; i++) { K.add(slitM, box(0.06, 7, 0.6, TW - 0.1, 6.5, 20 + i * 9)); K.add(slitM, T(new THREE.BoxGeometry(0.06, 0.43, 0.43), [TW - 0.1, 10, 20 + i * 9], [Math.PI / 4, 0, 0])); }
@@ -498,7 +509,7 @@ function layout(rt) {
     turning: 'The vane in the floor spins, and up on the balcony stones grind up into the slot across the groove.',
     fading: 'The vane below is slowing.' });
   add(Mark, { room: 'climb', at: [5.5, 0, C2 - 4.5], yaw: -Math.PI * 0.8 });
-  wings(rt, K, M, { blue });
+  wings(rt, K, M, { blue, ring });
 
   // ---- the corridor and the Bellows Chamber (floor 11, an oculus in its ceiling at 33)
   const E2 = C2 + R2;   // (the well's north wall)
@@ -525,7 +536,7 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: ROOMS.drum.h, floor: false, seg: 40, gaps: [{ a: 0, w: D.w, h: D.h, y0: H0 - G0 }, { a: -Math.PI / 2, w: FLUE.door, h: D.h }, { a: -Math.PI / 2, w: FLUE.door, h: D.h, y0: VANES.crown }], oculus: 0.25 });
   K.both(M.floor, T(annulus(3.9, GR + 1.4, 0.6, 56), [0, G0, C3]));
   K.add(M.trim, T(annulus(3.6, 4.2, 0.8, 32), [0, G0 + 0.25, C3]));
-  for (const r of [5.6, 7.4, 13.2]) K.add(blue, T(annulus(r, r + 0.3, 0.02, 56), [0, G0 + 0.012, C3]));
+  for (const r of [5.6, 7.4, 13.2]) K.add(SK ? ring : blue, T(annulus(r, r + (SK ? 0.12 : 0.3), 0.02, 56), [0, G0 + 0.012, C3]));
   const W0 = [[-Math.PI / 2, 0.3]], N0 = [[0, 0.3]];   // (the bands and windows stop short of the doorways west and north)
   band(0, C3, GR, G0 + 4.2, 1.3, 0.22, W0);
   band(0, C3, GR, GC - 2.6, 1.0, 0.22);
@@ -630,7 +641,7 @@ function layout(rt) {
     hint: 'The draught rushes up past you. Open your wings in it.', ride: 'The draught off the plinth fills your wings and carries you straight up.' });
   add(Door, { id: 'd3', at: [0, H0, C3 + GR + 0.7], w: D.w, h: D.h, lamps: [{ lit: 's4' }] });
 
-  flue(rt, K, M, { C3, G0, GK, blue });
+  flue(rt, K, M, { C3, G0, GK, blue, ring });
 
   // ---- the Warden's Hall (floor 72.6, a great drum), its corridor from the high door
   const CW = C3 + GR + 1.4 + 3 + 21.4;   // 141.2
@@ -816,6 +827,9 @@ export const INCAL_TEMPLE = {
   gadget: 'wardenbellows', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3', arenas: ARENAS,
   origin: [420, 1400, 140], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
+  // (inside, the futuristic skin the author picked: dark slate rings of chamfered slabs, cyan circuits, lens terminals,
+  // turning vanes, an iris round each oculus; issue #342, src/temples/skins/wardens-well.js)
+  skin: wardensWellSkin,
   layout, exterior, change,
   local: { person: 'vell', out: 7, side: 6 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the tower it is cool and very tall, and something far overhead hums, round and round.',
