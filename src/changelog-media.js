@@ -908,6 +908,7 @@ const FUTURE342_AERIE_NUMBERS = [
   { title: 'The Aerie: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 401, after: 328 }, { where: 'Low', before: 387, after: 313 }], source: FUTURE342_AERIE_SOURCE },
 ];
 /** (v1.78, issue #342: the Casting-House in its futuristic skin, the same pinned views with the skin off and on) */
+const SKINS_MARK = 'Issue #342: scripts/design-qc/capture.mjs in muted headless Chrome (High, 960 × 540, noon), Vite on port 6514, the camera pinned 4.5–5.5 m in front of the sign (placed from the built house in node), the skins with their own sign (before) and with the shared makers’ mark (after), 15 October; cwebp -q 72';
 const FUTURE342_CASTING = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy) in muted headless Chrome (High, 960 × 540, noon), Vite on port 6508, the house before the skin (its `skin:` line off, before) and in it (after), the camera pinned in each room, 15 October; cwebp -q 72';
 const FUTURE342_CASTING_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 960 × 540, noon, the same pinned camera in 11 views (the Pouring Floor along the rail, up at the moon, across it and at the great cradle; the Mould Room, the Crucible Stair, the Tong Chamber, the Casting Furnace, the Weighing Hall, the cold passage, the Last Casting), the median of 240 frames each, the skin off (two loads) and on in loads minutes apart; the machine shared with other work (load 10–24), so frame times are within its spread';
 const FUTURE342_CASTING_SOURCE = 'issue #342 scratchpad future-casting/capture.mjs QC_MEASURE (the means over the eleven views); draw calls and triangles from renderer.info, every pass of a frame';
@@ -1036,6 +1037,10 @@ const FUTURE342_FP_NUMBERS = [
 ];
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'Inside the futuristic temples the makers’ mark is the new one too', tags: ['temples', 'moonfoundry', 'buried'], shots: [
+      { name: 'skins-mark-cradle', title: 'The Casting-House’s cradle', caption: 'The hood over the great cradle’s mouth: before, the skin’s own sign, an arch under three dots; after, the makers’ open corner beside its shorter upright, lit ivory as before', from: SKINS_MARK },
+      { name: 'skins-mark-engine', title: 'An Engine-House frieze', caption: 'A frieze glyph on the slate: before, the arch under three dots; after, the makers’ mark in the same pale amber light', from: SKINS_MARK },
+    ] },
     { match: 'The last of the makers’ old sign', tags: ['temples'], shots: [
       { name: 'old-mark-lantern', title: 'The Lantern', caption: 'The Lantern’s tower near its top: before, three round eyes over an arc; after, the open corner and its shorter upright inked onto the shaft, on all four sides', from: KITMARK },
       { name: 'old-mark-rose-frieze', title: 'A temple frieze', caption: 'The Rose House without its skin (?noskin=1), along a hall’s frieze: before, three dots over an arc carved under each lit sign; after, the same open corner again, smaller, carved under it', from: KITMARK },

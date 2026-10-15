@@ -1212,6 +1212,13 @@ A house may wear a skin of its own module (`def.skin`, a function `(rt) => ({ dr
 `skins/index.js houseSkin` round the layout; `?noskin=1` or `rt.noSkin` builds the house without it). Look only: the
 same rooms, doors, collision, pieces and logic (`tests/temple-skins.test.js`).
 
+Every sign in a skinned house is the adopted makers' mark, the shared `story/sign-text.js glyphGeometry` (the open
+corner beside a shorter upright): the friezes, the threshold, the doors' medallions and each house's own places (the
+Rose House's spout slab and obelisk terminals, the Belfry's bells, the Casting-House's cradles' hoods and moon ring). A
+skin gives it its colour, glow and setting (lit in the house's accent, inlaid, in a lens), never a shape of its own.
+`tests/makers-mark.test.js` finds every mark in each built house by its vertex signature (its outline up to size and
+pose) and fails if anything else stands in a house's glyph light, or if a skin declares its own sign geometry.
+
 ### The Warden's Well (`skins/wardens-well.js`)
 
 After `references/temples/future/wardens-well/sheet-1.jpg` and `sheet-2.jpg`: a shaft of dark slate rings, cyan lines,
@@ -1280,9 +1287,8 @@ floating discs and hexagons with glowing rims.
 - **Glows** (peach `#ffbe98`, `AERIE.emit` 0.67–0.76, just over the post pass's 0.62): the trim's flat rings round the
   vents' throats, the stones' cups and the perch, the vent mouths' and the great eye's rims (`sortTrim`, by shape, moved
   to a lit batch); the winds' own rings (`Updraft`'s); the wing lines up the well (arzach.js's, recoloured); the frieze's
-  feathers become a row of lit `slot`s (the picks' slots that breathe the gusts); the frieze glyphs and the threshold's
-  are redrawn as the picks' sign (`signGeometry`: a long low arch, three small dots in a tight row over its crest);
-  the doors', the plates' and the raft's glyph is the shared one (`sign-text.js`), left as it is.
+  feathers become a row of lit `slot`s (the picks' slots that breathe the gusts); the frieze glyphs, the threshold's,
+  the doors', the plates' and the raft's are the shared makers' mark (`sign-text.js glyphGeometry`), lit peach.
 - **Dressing**, drawn only (7 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
   turbines (`TURBINE`: 26 pitched blades between a hub ring and a frame) in the four great vents' grilles, clear of
   the plate in the middle, spinning up while their wind rises and running down when a stone stops it; a lit rim along
@@ -1414,10 +1420,8 @@ picks' (sampled: slate about L 40–60 of 255, `ENGINE_SKIN`).
   frames dark blue steel paint, the bands gone, the balls polished dark steel, the fittings brass; the frieze's
   ornament a thin lit ring on the slate (its well is the wall's own material: a dark disc 1 cm off a round room's
   chord z-fought); the rooms' light cool and the sun teal (`skin.light`).
-- **The sign**: the kit's glyphs (friezes, the threshold) redrawn as `engineSign` (a long arch five times wider than
-  tall, three small dots over its crest), 1.5 times as wide, on the walls only, never on a round hub (in the picks it
-  sits on the crank's hub and reads as a frowning face). The doors' medallions are `sign-text.js glyphGeometry`,
-  shared, and left as they are.
+- **The sign**: the kit's glyphs (friezes, the threshold) and the doors' medallions are the shared makers' mark
+  (`sign-text.js glyphGeometry`), lit pale amber, on the walls only.
 - **Dressing**, drawn only (5 InstancedMeshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes): in
   each hall 14 m high or more a square of four round lens terminals on a dark plate (two lit) on its longest clear
   wall, a lit line down to the floor; chamfered slate pilasters (1.5 m wide, 62 % of the room's height) along the halls'
@@ -1765,10 +1769,9 @@ a Givers' test chamber of dark slate and ember light, over the same rooms. Its s
   and the rest turn at right angles); most lit ember orange in runs of three segments, the rest dark grooves, a small lit
   node where a lit run turns or ends. Lit pixels set the surface's `emit` at 0.68 to 0.8, breathing slowly: just over the
   post pass's 0.62 halo start, so the bloom stays tight round the line.
-- **Glows**: the frieze's ornament becomes the `slot` light panels (lit and dark by turns), the frieze glyphs are redrawn
-  as the picks' sign (`signGeometry`: a long low arch, three small dots in a row over its crest, 1.8 times the glyph's
-  width and lit ember, `ROSE_SKIN.signScale`; the doors', plates' and other houses' glyph is the shared one,
-  `src/story/sign-text.js`, left as it was), and an ember line runs down each groove. Daylight falls through slots along
+- **Glows**: the frieze's ornament becomes the `slot` light panels (lit and dark by turns), the frieze glyphs, the doors' and
+  the plates' are the shared makers' mark (`src/story/sign-text.js glyphGeometry`) lit ember, as are the spout slab's
+  (2.4 m) and each obelisk terminal's (half a metre, between its lit bars), and an ember line runs down each groove. Daylight falls through slots along
   the great halls' ceilings (the picks' roof stopping short of the walls): a lit strip 1.5 m wide just under the ceiling
   along each wall, clear of the lintel and of anything standing up to the ceiling (`ROSE_SKIN.slot`; drawn only, the
   lighting rig untouched).
@@ -1807,7 +1810,7 @@ shows the house without it). After `references/temples/future/founders-belfry/sh
 - **The bells** (`arzach2.js` `hang` asks `skin.bell`): not cups but resonators, four heavy chamfered bronze rings
   a ring's height apart round a dark core seen through every gap, held by nothing (no rod), a thin cobalt band round
   each and round the lowest's underside, and
-  the approved open-corner mark on the lowest (`belfrySign` sizes it to fit the band).
+  the shared makers' mark (`glyphGeometry`, 0.34 of the bell's scale) on the lowest, under its cobalt line.
 - **Dressing**, drawn only, in the kit's batches (one draw for all the bronze, one for all the cobalt; the cobalt out
   of the shadow passes): a column of four lens terminals on a cobalt line beside every doorway 5 m or taller, on the
   face toward a room, kept off every piece and glyph. The frieze ornament a lens in a bronze ring; the frieze band dark
@@ -1872,14 +1875,13 @@ collision, climbs, pieces and logic are vertex for vertex the same without it (`
   their lights` in ivory, instanced, out of the shadow passes): every door's slab frame (jambs and a lintel over its
   lamps, the opening's top corners chamfered, deeper on a round room's side where its wall bows out, an ivory line up
   each jamb and under the lintel); the great moon's floating ring, tilted, an ivory line round its inside and the
-  makers' sign on its face toward the way in; two floating rings over each pilot flame, clear of the moons on their rails.
+  makers' mark (0.42 m, to fit the ring's band) on its face toward the way in; two floating rings over each pilot flame, clear of the moons on their rails.
 - **The cradles** (`skin.brazier`): each hooded cradle drawn as sheet-2's machined half-pipe open to the rail on two legs
-  and a plinth, a tall hood behind with a stepped cap, an ivory line round its mouth and the makers' sign on the hood;
+  and a plinth, a tall hood behind with a stepped cap, an ivory line round its mouth and the makers' mark on the hood;
   the sign brightens (0.4 → 0.8) once the hot moon lights it (`SkinCradles`). The fire, the hood's mouth and its logic
   are the piece's own.
-- **The sign**: the frieze's glyphs and the doors' medallions are redrawn as the picks' sign (`signGeometry`, a long low
-  arch under three small dots: a sign, not a face). The bridge stones' and the other pieces' glyph is the shared
-  `glyphGeometry`, left as it is.
+- **The sign**: the frieze's glyphs, the doors' medallions, the bridge stones' and every other piece's are the shared
+  makers' mark (`glyphGeometry`), lit ivory.
 - **Lighter presets** (`uWearLite`): no tone per slab, no chamfers, no climbing circuits, the moons one tone; the foot
   lines, inlays, grating and dressing stay. Draw calls are the house's own (−6 to +5 a view), triangles about 95k fewer
-  (the redrawn signs are lighter than the glyphs).
+  (measured when the skin still redrew the signs, lighter than the glyphs).

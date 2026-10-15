@@ -11,6 +11,9 @@ export const CHANGELOG = [
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',
     'The last of the makers’ old sign, three dots over an arc, is gone: the Lantern’s tower, the great stone face on the sky stones, Talo’s post in Viridel, the gauges in the buried machine, the wind-silk scarf and the makers’ pebble at Home now carry the open corner too, and so does the small sign carved under each lit one along the temple friezes.',
+    // (issue #342: the skins' own "arch under three dots" gone, every skin takes story/sign-text.js glyphGeometry;
+    // tests/makers-mark.test.js finds the mark in every skinned house by its vertex signature)
+    'Inside the futuristic temples the makers’ mark is the new one too: the Casting-House’s cradles, doors, friezes and moon ring, the Engine-House’s and the Aerie’s friezes now carry the open corner in each house’s own light, no longer an arch under three dots.',
     // the lock-on's side-run (issue #47 after #360): src/player.js LOCK_MOVE sideRun / yawK / twist, updateStrafe,
     // sideRunTurn, sideRunTwist (the pack's strafes stepped forward and back); tests/strafe.test.js
     'Locked on to a foe, moving left or right he now runs sideways: his hips and legs turn the way he goes while his chest and head stay on the foe, and his feet stay where they land. He used to step on the spot at a frantic pace and slide across the floor, his knees and feet flicking several times a second.',

@@ -363,41 +363,10 @@ function plateGeometry(sides, P) {
 const rimGeometry = (sides) => new THREE.CylinderGeometry(1.012, 1.008, 0.14, sides, 1, true).translate(0, 0.16, 0).toNonIndexed();
 
 /**
- * The picks' sign (sheet-1's, cut into the floor grille): a long low arch, about five times wider than it is tall, three
- * small dots in a tight row just over its crest; width w (m), in the x, y plane, depth d along z, its middle at the origin.
+ * The frieze's glyphs (and the threshold's) are the kit's own, the shared makers' mark (src/story/sign-text.js
+ * glyphGeometry), lit in the skin's peach: counted, never redrawn (tests/temple-skins.test.js).
  */
-export function signGeometry(w = 1, d = 0.06) {
-  const R = w / 1.62, strip = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); return g; };
-  const parts = [new THREE.TorusGeometry(R, 0.045 * R, 4, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).scale(1, 0.8, d / (0.09 * R)).translate(0, -0.7 * R, 0)];
-  for (const x of [-0.17, 0, 0.17]) parts.push(new THREE.CylinderGeometry(0.05 * R, 0.05 * R, d, 8).rotateX(Math.PI / 2).translate(x * R, 0.2 * R, 0));
-  return mergeGeometries(parts.map(strip));
-}
-/**
- * The frieze's glyphs (and the threshold's) redrawn as the picks' sign, lit: each glyph's plane found from its vertices
- * (the thin way across it), the sign 1.6 times its width, at its middle, facing as it faced. The doors', the plates' and
- * the other houses' glyph is the shared one (src/story/sign-text.js), left as it is.
- */
-function redrawSigns(K, mat) {
-  const list = K.batches.get(mat);
-  if (!list) return 0;
-  let n = 0;
-  for (let i = 0; i < list.length; i++) {
-    const { box, s, pts } = shapeOf(K, list[i]), c = box.getCenter(V());
-    if (s.y < 0.3) continue;
-    // (its plane: the horizontal direction it is thinnest along, from the spread of its points round their middle)
-    let xx = 0, xz = 0, zz = 0;
-    for (const q of pts) { const dx = q.x - c.x, dz = q.z - c.z; xx += dx * dx; xz += dx * dz; zz += dz * dz; }
-    const a = 0.5 * Math.atan2(2 * xz, xx - zz);   // (the widest way, from +x)
-    const along = V(Math.cos(a), 0, Math.sin(a)), across = V(-along.z, 0, along.x);
-    let w = 0, t = 0;
-    for (const q of pts) { const d = q.clone().sub(c); w = Math.max(w, Math.abs(d.dot(along))); t = Math.max(t, Math.abs(d.dot(across))); }
-    if (t > 0.4 || w < 0.2) continue;
-    const sign = signGeometry(2 * w * 1.6, Math.max(0.06, 2 * t)).rotateY(Math.atan2(across.x, across.z)).translate(c.x, c.y - s.y * 0.05, c.z);
-    list[i] = sign.applyMatrix4(K.frame);
-    n++;
-  }
-  return n;
-}
+const countSigns = (K, mat) => K.batches.get(mat)?.filter((g) => g.userData.makersMark).length ?? 0;
 
 // ------------------------------------------------------------------ placing the dressing
 /** An instanced, drawn-only mesh of the dressing: walked through, never buried, never casting a shadow. */
@@ -666,7 +635,7 @@ export function aerieSkin(rt) {
       const T = sortTrim(K, K.batches.get(mats.trim) ?? []);
       if (T.rest.length) K.batches.set(mats.trim, T.rest); else K.batches.delete(mats.trim);
       if (T.rings.length) K.batches.set(mats.ring, [...(K.batches.get(mats.ring) ?? []), ...T.rings]);
-      const signs = redrawSigns(K, mats.glyph);
+      const signs = countSigns(K, mats.glyph);
       const keep = keepOuts(rt, new Set([mats.wall, mats.wallGlyph]), new Set([mats.floor]));
       const F0 = K.frame;
       // the turbines in the great vents' grilles (a wind 2.9 m round or more, on a floor)
