@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_2075c4b58403fb 30
+docs/systems/temples.md
+  s_9ca76055a220ed::t_a3f692218331ce 1840-1846
+src/boxes/model.js
+  s_9ca76055a220ed::t_84c26a1fc8ae90 432
+src/changelog-media.js
+  s_9ca76055a220ed::t_ff99b4de61ad82 899-900,1039-1042
+src/changelog.js
+  s_9ca76055a220ed::t_eaedae3213067b 13
+src/desert-city.js
+  s_9ca76055a220ed::t_f54fb223c9d27a 994
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_19e10085c28d76 2,609
+src/levels/buried.js
+  s_9ca76055a220ed::t_67a60ed5c181dc 1082
+src/levels/edena.js
+  s_9ca76055a220ed::t_41cab6f5935dd0 1,578
+src/levels/home.js
+  s_9ca76055a220ed::t_b85bb70a71461d 134
+src/levels/lantern.js
+  s_9ca76055a220ed::t_7981f85de6fcc2 7,125-128,130-131
+src/temples/kit.js
+  s_9ca76055a220ed::t_b52c37e795f3a0 238-239,241
+tests/makers-mark.test.js
+  s_9ca76055a220ed::t_e28eb2361a7c83 53-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0ec68197b87f73aa82af1413e727b79d18d0fe2a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
