@@ -620,6 +620,8 @@ fast and too shared to settle it. Done, at no measured cost in load time:
 - The pen spins on an HTML box of its own (`will-change: transform`; a transform on an SVG root isn't run
   off the main thread by every engine); the drawing is the same.
 - The WebGL canvas is hidden under the loading screen until the first frame.
+- On ANGLE over OpenGL (the Steam Deck) the shader warm-up asks for one program at a time (`oneAtATime`,
+  `warm-shaders.js`): see "The loading pen on the Deck: one program at a time" (issue #52).
 - **Guards** (so it can't come back unseen): `tests/gpu-pacer.test.js` (the pacer alone),
   `tests/load-awaits.test.js` (every `await` between the first stage and `'ready'` in `main.js` must be one
   of a known list of waits that end: a slice, the pacer, a stage's frame-or-250 ms, a race with a timer, the
@@ -2641,6 +2643,45 @@ turns at 81-85 frames a second through a load, its median step 11 ms (the 90 Hz 
 **The Updates section** (#52, read-only: `deck.py --status-local` and `--status`, what Check runs): runtime 2191001
 (1.68), the game the next launch serves 2191; the site has game 2237 (1.73) and runtime 2237001, so Check shows an
 update. Download and Restart were not pressed (they update the author's install).
+
+### The loading pen on the Deck: one program at a time (issue #52, 2026-10-15)
+
+The pen measured again (`deck-pen.mjs`, a build of 0733d8a6f copied to `hiraeth-bench-games/`, headless gamescope at
+90 Hz, the bench's own profile, muted; the Deck on battery in Desktop Mode): 79-87 frames a second through a load,
+the median step 11 ms, p95 14-17 ms, but in most loads **one stop of 0.2-0.7 s** (up to 1.1 s on the first load
+of a new build), always about a second into "mixing the inks…". The screencast had no frame at all in those gaps,
+not only no turn: the compositor itself had stopped, not the page. A trace of the GL calls (`linkProgram` and the
+rest timed in the page) put them right after the first slices of `warmShadersSliced`: one slice had asked for a
+dozen or more of the world's programs (each ~265 KB of GLSL) within 40 ms. ANGLE on OpenGL builds them on the GPU
+process's main thread, where the page is composited too, so the pen waited for the whole batch. The GPU pacer
+doesn't help here: it gives up on the Deck within a second of that burst (three 250 ms waits) and is remembered off
+(`hiraeth.pacerOff.<gpu>`; its fences do signal, 45 ms late at idle, but not within 250 ms behind that backlog).
+A CSS or compositor-only animation can't help either: the pen already is one.
+
+**Done:** on ANGLE over OpenGL (`oneAtATime` in `warm-shaders.js`: the GPU string says "OpenGL"; `?serial=<ms>` to
+measure, 0 off) each new program is flushed and waited for (`isReady`, at most 300 ms) before the next is asked for,
+in the game's load and the title's. Elsewhere nothing changes (the Xbox builds two at a time in parallel: waiting
+on each would double its load). The same build, `?serial=0` against the default, in turns: 12 loads each way (the
+desert, the City-Shaft and the Signal Market, twice with the shader cache warm and twice with it off,
+`--disable-gpu-shader-disk-cache`), and 6 more each way of the desert and the City-Shaft for the load times:
+
+| | one at a time off | on |
+|---|---|---|
+| the pen's longest stop mid-load (the first 0.45 s, the old page going, and the reveal left out) | 65-725 ms, median 254; over 100 ms in 9 loads of 12 | 0-91 ms, median 60; never over 100 |
+| frames a second, median step, p95 | 82-87, 11 ms, 14-19 ms | 84-88, 11 ms, 15-18 ms |
+| load, mean of 18 | 19.4 s | 16.0 s |
+
+The loads are no slower, and often quicker: the backlog had held up the post and water passes' `compileAsync` too,
+each to its 2 s timeout (`post 2006 · water 3962` in the desert's steps), and left programs unfinished for the
+first frames. One at a time, those passes take 12-50 ms. When the driver really is slow (a cold cache), the time goes
+into "surfaces" (9.8-13.3 s in 2 of 6 loads) where it went into post, water, shadows and first use before. Test:
+`tests/warm-shaders.test.js`.
+
+**The Updates section** on the Deck, the same day (the installed runtime, run in the bench's profile with
+`HIRAETH_ROOT` on the install, so its Check runs `deck.py --status`; Download and Restart not pressed): it says
+"Playing v1.68 · build 2191 (built in) · runtime 2191001" and "v1.78 · build 2372 is available (27.4 MB)" with
+Download and restart, Check again, Details and the first four of v1.78's lines. `deck.py --status-local` / `--status`
+agree: runtime 2191001, the site's game 2370 then 2372 (1.78) and runtime 2370001.
 
 ## Unity on the Retroid (2026-10-12)
 

@@ -141,7 +141,7 @@ import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } fro
 import { Thresholds, THRESHOLD } from './thresholds.js';
 import { Veils } from './veil.js';
 import { slicer, gatedSlicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
-import { warmShadersSliced as warmSliced, firstUse, settle, programKind } from './warm-shaders.js';
+import { warmShadersSliced as warmSliced, firstUse, settle, programKind, oneAtATime } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -2572,8 +2572,10 @@ async function warmShaders(targetScene, targetCamera, target = null) {
 // (a GPU whose fences never signal, the Steam Deck's ANGLE on GL: remembered, so its next loads don't wait to find out)
 const pacerKey = `hiraeth.pacerOff.${gpuName}`;
 const gpuPace = gpuPacer(renderer.getContext(), { memory: { get: () => { try { return localStorage.getItem(pacerKey) === '1'; } catch { return false; } }, set: () => { try { localStorage.setItem(pacerKey, '1'); } catch { /* private mode */ } } } });
+// (ANGLE on OpenGL, the Steam Deck: one program at a time, so the loading pen keeps turning; src/warm-shaders.js)
+const compileOne = oneAtATime(gpuName, location.search);
 const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
-  warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });
+  warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace, one: compileOne });
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 // the distant detail queued while building (src/deferred.js): what is near where the first frame looks from, the ship
 // and the ways through is done now; the rest after the first frame, nearest first

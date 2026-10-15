@@ -75,6 +75,9 @@ export const CHANGELOG = [
     // spacecity.js, whose layout takes the skin's paints, capstan drum and warden colours); tests/temple-skins.test.js
     'Inside, the Mooring-House is the makers’ old high technology now, after the drawings picked for it: round halls of dark slate in tall slabs, floors laid in rings round the great capstan, its drum bare dark metal banded with thin teal circuits, teal ring lights round the walls, dark slots where the slack cables run into the wall, square plates floating high over the halls and the void, and the city’s islands drifting in the stars outside, their cables slack toward the house. The rooms, the puzzles and the fight are as they were.',
     'The Anchor-Warden is ochre brass and dark iron now, its eye teal.',
+    // the loading pen on the Deck (issue #52): src/warm-shaders.js oneAtATime (ANGLE over OpenGL: one program at a time),
+    // main.js, title-world.js; tests/warm-shaders.test.js; docs/systems/performance.md "The loading pen on the Deck"
+    'On the Steam Deck the loading screen’s pen keeps turning while the inks are mixed: it no longer stops for a quarter to a whole second partway through a load, and worlds load a few seconds sooner on average.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

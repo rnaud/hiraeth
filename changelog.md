@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.78 — 2026-10-15
 
+- On the Steam Deck the loading screen’s pen keeps turning while the inks are mixed: it no longer stops for a quarter to a whole second partway through a load, and worlds load a few seconds sooner on average.
 - The Anchor-Warden is ochre brass and dark iron now, its eye teal.
 - Inside, the Mooring-House is the makers’ old high technology now, after the drawings picked for it: round halls of dark slate in tall slabs, floors laid in rings round the great capstan, its drum bare dark metal banded with thin teal circuits, teal ring lights round the walls, dark slots where the slack cables run into the wall, square plates floating high over the halls and the void, and the city’s islands drifting in the stars outside, their cables slack toward the house. The rooms, the puzzles and the fight are as they were.
 - The Clockwork Foreman is all brass now, with a pale teal dial, and the Escapement’s riding disc is a brass pendulum disc.

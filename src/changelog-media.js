@@ -1190,6 +1190,13 @@ export const CHANGELOG_MEDIA = {
       { title: 'The Mooring-House: frame time (median, the mean of the views)', unit: 'ms', better: 'lower', device: MOOR342_DEVICE, rows: [{ where: 'High', before: 3.95, after: 4.56 }, { where: 'Low', before: 2.05, after: 2.46 }], source: MOOR342_SOURCE, note: 'The surfaces’ pattern costs about half a millisecond on this Mac, far under a 60 fps frame.' },
     ], see: 'Enter the Mooring-House (the City Floating in Space, the Moorings): the capstan in the first hall, then the Drift’s open top and the Capstan Floor’s windows for the islands. ?noskin=1 shows the house without its skin.' },
     { match: 'The Anchor-Warden is ochre brass and dark iron now', tags: ['spacecity'], see: 'Reach the Capstan Floor at the end of the Mooring-House: the Anchor-Warden is brass and dark iron with a teal eye.' },
+    { match: 'On the Steam Deck the loading screen’s pen keeps turning while the inks are mixed', tags: ['perf', 'devices'], numbers: [
+      { title: 'The loading pen’s longest stop partway through a load, and the load’s length', unit: 'ms', better: 'lower', device: 'Steam Deck OLED, the game’s Electron runtime under gamescope’s headless backend at 90 Hz, the Steam Deck preset, muted, the bench’s own profile; the same build with and without the change (?serial=0) in turns, the desert, the City-Shaft and the Signal Market, the shader cache warm and cold; 15 October', source: 'scripts/bench/deck-pen.mjs; docs/systems/performance.md, “The loading pen on the Deck: one program at a time” (issue #52)', rows: [
+        { where: 'longest stop, median of 12 loads', before: 254, after: 60 },
+        { where: 'longest stop, worst of 12 loads', before: 725, after: 91 },
+        { where: 'load, mean of 18', before: 19400, after: 16000 },
+      ] },
+    ], see: 'On the Steam Deck, start a world and watch the pen on the loading screen through “mixing the inks…”: it turns without stopping.' },
     { match: 'Locked on to a foe, moving left or right he now runs sideways', tags: ['characters'], shots: [
       { name: 'strafe-run', title: 'Strafing right round the Mother Snapper', caption: 'Locked on, 1.3 s into a long run to the right: before, his body square to the foe and his legs stepping forward and back on the spot while he slid sideways; after, his hips and legs turned the way he runs, his back turned round so his chest and head still face her', from: STRAFE47_GAME },
     ], numbers: [

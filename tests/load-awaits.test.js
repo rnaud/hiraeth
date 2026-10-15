@@ -34,7 +34,7 @@ const KNOWN = [
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
   [/^warmShaders\(/, 'the race below: compileAsync or 2 s'],
-  [/^warmShadersSliced\(/, 'slices and the pacer per kind, then the pending() poll with its 2 s cap'],
+  [/^warmShadersSliced\(/, 'slices and the pacer per kind (on ANGLE over OpenGL a new program\'s isReady() poll, capped at `one`: 300 ms), then the pending() poll with its 2 s cap'],
   [/^firstUse\(/, 'slices, and for each program a poll of isReady() capped at its `wait` (60 s)'],
   [/^settle\(renderer, [^,]+, PASSAGE\.loadBudget\)/, 'a poll of the programs\' isReady() capped at the passage budget'],
   [/^Promise\.race\(\[/, 'a race with a timer', (after) => /setTimeout\(/.test(after.slice(0, 300))],

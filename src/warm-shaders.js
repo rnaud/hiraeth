@@ -18,13 +18,31 @@ export const programKind = (o, m) => `${m.id}|${o.isInstancedMesh ? 1 : 0}${o.in
 const keyScene = new THREE.Scene();
 
 /**
+ * Whether to compile one program at a time, and how long to wait for each (ms; 0: as many as a slice asks for).
+ * ANGLE on OpenGL (the Steam Deck, Linux) builds a program on the GPU process's main thread, where the page is
+ * composited too: a slice asked for a dozen or more of the world's big programs (~265 KB of source each) at once,
+ * and the loading screen's pen, though it turns on the compositor, stopped 0.1-0.7 s at a time (up to 1.1 s on a
+ * cold shader cache) while the GPU process worked through them (issue #52; docs/systems/performance.md, "The
+ * loading pen"). One at a time, the compositor draws between them, and the loads were no slower there (the
+ * backlog had held up the post and water passes' waits as well). Elsewhere the driver builds them in parallel
+ * off that thread (the Xbox, two at a time: waiting on each would double its load), so not there.
+ * `?serial=<ms>` sets it (0: off), to measure.
+ */
+export function oneAtATime(gpu, search = '') {
+  const q = new URLSearchParams(search).get('serial');
+  if (q !== null && q !== '') return Math.max(0, +q || 0);
+  return /OpenGL/.test(String(gpu ?? '')) ? 300 : 0;
+}
+
+/**
  * Compile the programs `targetScene` draws with, one kind at a time, with `target` (the render target the pass
  * really draws into: a program's key includes the output colour space) bound. `wear`: a material every mesh
  * wears for the pass (the shadow maps' depth-only one). Then waits up to `wait` ms for the driver
  * (KHR_parallel_shader_compile), polling. slice: a slicer (src/load-steps.js); pace: a gpuPacer, or nothing.
+ * `one` (ms, 0: off; oneAtATime): each new program waited for (at most that long) before the next is asked for.
  * Returns how many kinds it compiled.
  */
-export async function warmShadersSliced(renderer, targetScene, targetCamera, { target = null, wear = null, slice, pace = null, wait = 2000 } = {}) {
+export async function warmShadersSliced(renderer, targetScene, targetCamera, { target = null, wear = null, slice, pace = null, wait = 2000, one = 0 } = {}) {
   const reps = new Map();
   targetScene.traverse((o) => {
     if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
@@ -40,10 +58,15 @@ export async function warmShadersSliced(renderer, targetScene, targetCamera, { t
     for (const o of reps.values()) {
       const own = o.material;
       if (wear) o.material = wear;
+      const before = renderer.info.programs.length;
+      let these;
       try {
         renderer.setRenderTarget(target);
-        for (const m of renderer.compile(o, targetCamera, keyScene)) mats.add(m);
+        these = renderer.compile(o, targetCamera, keyScene);
+        for (const m of these) mats.add(m);
       } finally { if (wear) o.material = own; renderer.setRenderTarget(prev); }
+      // (a new program: flushed to the GPU process and waited for, so the next isn't queued behind it)
+      if (one && renderer.info.programs.length > before) { renderer.getContext().flush?.(); await settle(renderer, these, one); }
       await slice();
       await pace?.();   // (one compile queued at a time: the GPU process keeps up, the page keeps painting)
     }

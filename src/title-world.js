@@ -15,7 +15,7 @@ import { buildGrass } from './flora-grass.js';
 import { Flock } from './life.js';
 import { wallOpenings } from './wall-openings.js';
 import { gatedSlicer, runStepsAsync, gpuPacer } from './load-steps.js';
-import { warmShadersSliced, firstUse, settle } from './warm-shaders.js';
+import { warmShadersSliced, firstUse, settle, oneAtATime } from './warm-shaders.js';
 import { WarmDraw, warmPasses } from './passage.js';
 import { shotCamera } from './title-shots.js';
 import { onXbox } from './xbox.js';
@@ -403,15 +403,15 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   // once unseen (its buffers and textures uploaded), the levels of detail made, then each program's first use.
   // compileAsync and the first frame did all of that in one task: 0.5-7 s with the menu frozen, presses unanswered.
   onStage('shaders');
-  const pace = gpuPacer(gl);
+  const pace = gpuPacer(gl), one = oneAtATime(gpu, win.location?.search ?? '');   // (ANGLE on OpenGL: one program at a time)
   const passes = warmPasses({ makeGBuffer: createGBuffer, shadowOverride });
   try {
-    await warmShadersSliced(renderer, scene, camera, { target: gbuffer, slice: step, pace, wait: 4000 });
+    await warmShadersSliced(renderer, scene, camera, { target: gbuffer, slice: step, pace, wait: 4000, one });
     post.sync?.();   // (the ink pass's parts by the shot's look: post.js inkFeatures)
-    await warmShadersSliced(renderer, post.scene, post.camera, { target: composeRT, slice: step, pace });
+    await warmShadersSliced(renderer, post.scene, post.camera, { target: composeRT, slice: step, pace, one });
     const wp = waters?.warmPass?.();
-    if (wp) await warmShadersSliced(renderer, wp.scene, wp.camera, { target: composeRT, slice: step, pace });
-    if (cascades.near.rt) await warmShadersSliced(renderer, scene, camera, { target: cascades.near.rt, wear: shadowOverride, slice: step, pace });
+    if (wp) await warmShadersSliced(renderer, wp.scene, wp.camera, { target: composeRT, slice: step, pace, one });
+    if (cascades.near.rt) await warmShadersSliced(renderer, scene, camera, { target: cascades.near.rt, wear: shadowOverride, slice: step, pace, one });
     // (each program first used once it is linked, before the draws below would ask for it and block till it is)
     onStage('linking');
     await firstUse(renderer, step);
