@@ -562,3 +562,119 @@ test('the Engine-House’s dressing keeps out of every doorway; the lighter pres
   } finally { ehShared.uWearLite.value = was; }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the chamfers, tones and foot lines off on the lighter presets');
 });
+
+// ---- the Lamp-House in its futuristic skin (src/temples/skins/lamp-house.js); its own names (lh*), beside the other
+// houses' tests in this file
+const lhTHREE = await import('three');
+const { TEMPLES: lhTEMPLES } = await import('../src/temples/index.js');
+const { TempleRuntime: LhRuntime } = await import('../src/temples/runtime.js');
+const { GameState: LhGame } = await import('../src/game-state.js');
+const { sharedUniforms: lhShared } = await import('../src/materials.js');
+const { Door: LhDoor, Switch: LhSwitch } = await import('../src/temples/pieces.js');
+const { machineMoth: lhMachine, LAMP_SKIN: LH } = await import('../src/temples/skins/lamp-house.js');
+const lhBuild = (skin = true) => quietly(() => {
+  const was = LhRuntime.prototype.noSkin;
+  LhRuntime.prototype.noSkin = !skin;
+  try { return new LhRuntime({ scene: new lhTHREE.Scene(), level: { lights: [] }, def: lhTEMPLES.perdide2.def, game: new LhGame(null) }); }
+  finally { LhRuntime.prototype.noSkin = was; }
+});
+let lhBuilt = null;
+const lhHouse = () => (lhBuilt ??= lhBuild());
+const lhDressing = (rt) => rt.kit.group.children.filter((m) => m.userData.skin);
+const lhLife = (rt) => rt.pieces.find((x) => x.constructor.name === 'SkinLife');
+
+test('the Lamp-House wears its skin: dark slabs, plates and gold lines, bronze basins, its dressing drawn', () => {
+  const rt = lhHouse();
+  assert.equal(rt.skin?.name, 'lamp-house');
+  for (const k of ['wall', 'wallGlyph', 'floor', 'water', 'plate']) {
+    const m = rt.skin.mats[k];
+    assert.ok(m.userData.houseSkin && m.fragmentShader.includes('float emit = lhGlow;') && m.fragmentShader.includes('float detail = lhInkV;'), `its ${k}: the skin's pattern and light`);
+  }
+  assert.equal(rt.skin.mats.wall.uniforms.uLhRoundN.value, 2, 'its two round halls handed to the shader');
+  assert.equal(rt.skin.mats.floor.uniforms.uLhPoolN.value, 7, 'its seven basins ringed (four pools, three lure pools)');
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'floor', 'trim', 'bronze', 'water', 'conduit', 'glyph']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in the skin's ${k}`);
+  assert.ok(!rt.M.wall.userData.houseSkin && !rt.M.floor.userData.houseSkin && rt.M.ornament.kind === 'lamp', 'rt.M the house’s own again, for its exterior');
+  assert.equal(rt.P, lhTEMPLES.perdide2.def.palette, 'its palette its own again');
+  assert.equal(rt.kit.plan, null);
+  const s = rt.skin.stats;
+  assert.ok(s.rings === 7 && s.sockets >= 20 && s.rows >= 4 && s.plates >= 20, JSON.stringify(s));
+  assert.ok(lhDressing(rt).length <= 4, 'a handful of draws');
+  // the eyes gold while the layout was built, the gallery's lantern-shown stones pale plates
+  assert.equal('#' + rt.piece('s1').glow.uniforms.uColor.value.getHexString(), LH.glow);
+  const br1 = rt.piece('br1'), mats = new Set();
+  br1.root.traverse((o) => o.isMesh && mats.add(o.material));
+  assert.ok(mats.has(rt.skin.mats.stone));
+  // what glows casts no shadow
+  for (const m of rt.kit.group.children.filter((o) => o.material === rt.skin.mats.glyph)) assert.equal(m.userData.castShadow, false);
+});
+
+test('the Lamp-House’s skin adds no collision and moves nothing (rt.noSkin: the house without it)', () => {
+  const a = lhHouse(), b = lhBuild(false);
+  assert.equal(b.skin, null);
+  assert.equal(lhDressing(b).length, 0);
+  for (const end of [' collision', ' climbs']) {
+    const ma = a.kit.group.children.find((m) => m.name.endsWith(end)), mb = b.kit.group.children.find((m) => m.name.endsWith(end));
+    assert.ok(ma && mb, `its${end}`);
+    assert.deepEqual(verts(ma), verts(mb), `its${end} the same, vertex for vertex`);
+  }
+  const own = a.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, b.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = b.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+    if (p.center?.isVector3) assert.ok(p.center.distanceTo(q.center) < 1e-6);
+  });
+  for (const m of lhDressing(a)) assert.ok(m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.castShadow === false && m.userData.castShadow === false, `${m.name} drawn only`);
+});
+
+test('the Lamp-House’s dressing keeps out of every doorway; its lines wake to the light, its finest hidden on Low', () => {
+  const rt = lhHouse(), p = new lhTHREE.Vector3(), q = new lhTHREE.Quaternion(), sc = new lhTHREE.Vector3(), m4 = new lhTHREE.Matrix4();
+  const doors = rt.pieces.filter((d) => d instanceof LhDoor).map((d) => ({ at: rt.kit.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
+  assert.ok(doors.length >= 7);
+  for (const m of lhDressing(rt)) for (let i = 0; i < m.count; i++) {
+    m.getMatrixAt(i, m4); m4.decompose(p, q, sc);
+    const l = rt.kit.local(p);
+    for (const d of doors) assert.ok(!(Math.hypot(l.x - d.at.x, l.z - d.at.z) < d.w / 2 + 0.6 && l.y > d.at.y - 0.5 && l.y < d.at.y + d.h), `${m.name} #${i} in a doorway at ${l.toArray().map((v) => v.toFixed(1))}`);
+  }
+  // the floating plates high over the floors (out of any jump's reach and the camera's way)
+  const plates = lhDressing(rt).find((m) => /floating/.test(m.name));
+  for (let i = 0; i < plates.count; i++) { plates.getMatrixAt(i, m4); m4.decompose(p, q, sc); assert.ok(rt.kit.local(p).y > 12, `plate #${i} high`); }
+  // the lines wake by the lights: none in the dark, a lit pool's round it
+  const life = lhLife(rt), U = rt.skin.U, was = lhShared.uWearLite.value;
+  rt.player = { pos: rt.kit.world(0, 0, 30), vel: new lhTHREE.Vector3() };
+  life.update(0, 0);
+  assert.equal(U.srcN.value, 0, 'dark: no lantern yet, nothing lit');
+  rt.logic.light('s1'); rt.piece('s1').on = true;
+  life.update(0, 0);
+  assert.equal(U.srcN.value, 1, 'a lit pool wakes the lines round it');
+  assert.deepEqual(U.src.value[0].toArray(), [...rt.piece('s1').center.toArray(), LH.reach.pool]);
+  const fine = lhDressing(rt).filter((m) => m.userData.skinFine);
+  try {
+    lhShared.uWearLite.value = 1; life.update(0, 0);
+    assert.ok(fine.length && fine.every((m) => m.count === m.userData.skinFine.lite && m.count < m.userData.skinFine.full), 'the sockets’ lamps left out on Low');
+    lhShared.uWearLite.value = 0; life.update(0, 0);
+    assert.ok(fine.every((m) => m.count === m.userData.skinFine.full), 'drawn on High');
+  } finally { lhShared.uWearLite.value = was; delete rt.player; }
+  assert.ok(rt.skin.mats.floor.fragmentShader.includes('uWearLite < 0.5'), 'the chamfers and the finer lines off on the lighter presets');
+});
+
+test('the Lampless in the Lamp-House’s skin: a machine of white plates, its parts and motion as they were', () => {
+  const rt = lhBuild(), m = rt.guardian.model;   // (its own build: the other tests' frames made theirs a machine)
+  const groups = [];
+  m.group.traverse((o) => groups.push(o.type));
+  lhLife(rt).update(0, 0);
+  assert.ok(m.machine, 'made a machine on the first frame');
+  assert.equal(lhMachine(m), false, 'once');
+  const body = m.body.children.find((o) => o.isMesh), C = body.geometry.attributes.color, white = new lhTHREE.Color(LH.moth.plate);
+  assert.ok(Array.from({ length: C.count }, (_, i) => C.getX(i)).some((x) => Math.abs(x - white.r) < 1e-3), 'its plates white');
+  const lenses = [];
+  m.group.traverse((o) => /lens/.test(o.name) && lenses.push(o));
+  assert.equal(lenses.length, 4, 'the sign on each wing in a lens');
+  const after = [];
+  m.group.traverse((o) => after.push(o.type));
+  assert.equal(after.length, groups.length + 4, 'its parts as they were, and the lenses');
+  m.animate(1 / 30, 0, { state: 'fight' });
+});

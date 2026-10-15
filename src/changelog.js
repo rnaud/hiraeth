@@ -34,6 +34,10 @@ export const CHANGELOG = [
     // embers' material, the warden's colours, skin: engineHouseSkin); docs/systems/temples.md; tests/temple-skins.test.js
     'Inside, the Engine-House is the makers’ old machine hall now: tall navy slate slabs and dark metal, thin amber circuits running up the walls and along the floor plates, pulsing slowly, the walls of its pits glowing amber toward the embers, squares of round lens terminals and tall slabs along the walls, and the makers’ sign drawn as a long flat arch under three small dots. Its rooms, puzzles and the way through are as they were.',
     'The Tooth-Warden wears darker rust-red plates on navy, and the Engine-House’s drop hammers are dark metal.',
+    // the Lamp-House's futuristic skin (issue #342): src/temples/skins/lamp-house.js (skin: on perdide2.js's def), after
+    // references/temples/future/lamp-house/sheet-1.jpg; tests/temple-skins.test.js
+    'Inside, the Lamp-House looks like the makers’ high-tech lamp-house: near-black slate slabs and floor plates inlaid with thin gold lines that glow only near a light (your lantern, a lit pool, a woken lamp), so the floor wakes round you as you walk. Its pools are ringed in bronze over black water, a soft gold shaft rises from each one you light, rows of bronze sockets with dark glass spheres line its walls, and square plates float high overhead, only a faint gold outline until a light falls under them.',
+    'The Lampless is a machine now: a great moth of thin white plates edged in bronze, the makers’ sign on each wing in a round lens.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [
     // the Rose House as shrines (issue #336): src/temples/desert.js (ROOMS, DOOR, LOGIC.rooms kinds, the layout), the rules in

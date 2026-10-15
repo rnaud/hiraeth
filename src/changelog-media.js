@@ -994,6 +994,10 @@ const FUTURE342E_NUMBERS = [
   { title: 'The Engine-House: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342E_DEVICE, rows: [{ where: 'High', before: 443, after: 435 }, { where: 'Low', before: 371, after: 357 }], source: FUTURE342E_SOURCE },
   { title: 'The Engine-House: frame time (median), skin off → on', unit: 'ms', better: 'lower', device: FUTURE342E_DEVICE, rows: [{ where: 'High', before: 7.23, after: 5.87 }, { where: 'Low', before: 5.79, after: 4.44 }], source: FUTURE342E_SOURCE },
 ];
+/** (v1.78, issue #342: the Lamp-House in its futuristic skin, the same views before (main) and after, the same pinned camera) */
+const LAMP342 = 'Issue #342: muted headless Chrome (High, 1280 × 720, noon, clear, the lantern carried and the first pool lit) against this branch’s own Vite (port 6504), the camera pinned at the same place in each room, main before the skin and this branch after, 15 October; cwebp -q 72';
+const LAMP342_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, the same pinned camera in 9 rooms (the Threshold, the Hall of Dark Pools twice, the Root Stair, the Lantern Chamber, the Dark Gallery, the Wick Room, the Kennel, the Lamp-Room), the median of 240 frames each, the skin off (?noskin=1) and on in two loads each; the machine shared with other work (load 18–25)';
+const LAMP342_SOURCE = 'issue #342 scratchpad future-lamp: capture.mjs QC_MEASURE (m-high-off, m-high-on3, m-low-off, m-low-on); draw calls and triangles from renderer.info, every pass of a frame';
 export const CHANGELOG_MEDIA = {
   '1.78': [
     { match: 'In the Sunken Hall, B / ○ rolls and jumping is disabled', tags: ['controls', 'desert'], see: 'Start the Sunken Hall (the desert’s fight temple) and press A / × or Space: he stays on the floor. Press B / ○ (Alt, or ↶ on the touch screen): he rolls. The touch controls and start card offer no jump. Leave the hall to jump normally again.' },
@@ -1032,6 +1036,31 @@ export const CHANGELOG_MEDIA = {
       { name: 'future-hush-threshold', title: 'The Threshold', caption: 'The first crystal and the mark where they were: tall dado slabs with a violet seam over them, coffers above, wedges under the vault', from: FUTURE342H },
       { name: 'future-hush-hall', title: 'The Mother’s Hall', caption: 'The Mother Snapper, her bed and her pendulums untouched; the drum coffered, its crystals on plinths', from: FUTURE342H },
     ], numbers: FUTURE342H_NUMBERS },
+    { match: 'Inside, the Lamp-House looks like the makers’ high-tech lamp-house', tags: ['perdide'], shots: [
+      { name: 'future-lamp-house-pools', title: 'The Hall of Dark Pools', caption: 'Before, grey-violet blocks and a cyan eye in a stone ring; after, near-black slate, the lit pool ringed in bronze, a soft gold shaft rising from it, gold rings and lines on the floor round it, the far pool dark', from: LAMP342,
+        reference: { sheet: 'references/temples/future/lamp-house/sheet-1.jpg', caption: 'The author’s pick: the near-black hall, the bronze basins, one waking gold, the row of orb sockets, the plates solid only in the light, the Lampless overhead (the reference lab, 15 October)' } },
+      { name: 'future-lamp-house-pools-up', title: 'The Hall of Dark Pools, looking up', caption: 'Tall slabs with chamfered edges and few joints, square plates floating under the ceiling as faint gold outlines, the bronze sockets on their panel by the loft', from: LAMP342 },
+      { name: 'future-lamp-house-roots', title: 'The Root Stair', caption: 'The pool-orb’s groove and its lamp post on dark plates, gold lines jogging at 45° along the seams, the roots dark bronze conduits', from: LAMP342 },
+      { name: 'future-lamp-house-wick', title: 'The Wick Room', caption: 'The wick-house in dark slate, the orbs and the grille’s sign gold, a row of bronze sockets with dark glass spheres along the wall, gold lines up the walls to small lenses', from: LAMP342 },
+      { name: 'future-lamp-house-gallery', title: 'The Dark Gallery', caption: 'The lantern-shown stones pale plates edged in gold over the chasm, the walls blue-black slabs', from: LAMP342 },
+    ], numbers: [
+      { title: 'The Lamp-House with and without its skin: draw calls (High)', unit: 'calls', better: 'lower', device: LAMP342_DEVICE, rows: [
+        { where: 'the Threshold', before: 369, after: 381 },
+        { where: 'the Hall of Dark Pools (a shaft lit)', before: 385, after: 415 },
+        { where: 'the Root Stair', before: 309, after: 336 },
+        { where: 'the Lantern Chamber', before: 238, after: 250 },
+        { where: 'the Dark Gallery', before: 200, after: 211 },
+        { where: 'the Wick Room', before: 221, after: 233 },
+        { where: 'the Lamp-Room', before: 132, after: 144 },
+        { where: 'the mean of the 9 views, High', before: 271.6, after: 286.9 },
+        { where: 'the mean of the 9 views, Low', before: 299.0, after: 308.2 },
+      ], source: LAMP342_SOURCE, note: 'Three drawn-only meshes for the whole house (the sockets and their panels, their lamps and lines, the floating plates), the basins’ bronze and the lit pools’ shafts. The calls of one view vary by ±10 from load to load.' },
+      { title: 'Triangles a frame (thousands, the mean of the 9 views)', unit: 'k', better: 'lower', device: LAMP342_DEVICE, rows: [{ where: 'High', before: 474.8, after: 465.1 }, { where: 'Low', before: 337.9, after: 332.1 }], source: LAMP342_SOURCE },
+      { title: 'Frame time (median)', unit: 'ms', better: 'lower', device: LAMP342_DEVICE, rows: [{ where: 'High', before: 16.7, after: 16.7 }, { where: 'Low', before: 16.7, after: 16.6 }], source: LAMP342_SOURCE, note: 'Held to 60 frames a second in every view with and without the skin: no frame went over.' },
+    ], see: 'Enter the Lamp-House (Lorn, the causeway by the root cave). Walk with the lantern: the gold lines in the floor near you light up and fade behind you. Splash a pool: it glows, a gold shaft rises from it and the plates over it turn solid. ?noskin=1 shows the house without its skin.' },
+    { match: 'The Lampless is a machine now', tags: ['perdide'], shots: [
+      { name: 'future-lamp-house-lamproom', title: 'The Lamp-Room', caption: 'Before, a pale furred moth; after, a machine of white plates, its body octagonal segments ringed in bronze, its wings squared-off plates edged in bronze; the lure pools black water in bronze rings', from: LAMP342 },
+    ], see: 'Go up to the Lamp-Room past the Dark Gallery: the Lampless hangs over the floor, white plates and bronze, its sign in a lens on each wing.' },
     { match: 'Locked on to a foe, moving left or right he now runs sideways', tags: ['characters'], shots: [
       { name: 'strafe-run', title: 'Strafing right round the Mother Snapper', caption: 'Locked on, 1.3 s into a long run to the right: before, his body square to the foe and his legs stepping forward and back on the spot while he slid sideways; after, his hips and legs turned the way he runs, his back turned round so his chest and head still face her', from: STRAFE47_GAME },
     ], numbers: [

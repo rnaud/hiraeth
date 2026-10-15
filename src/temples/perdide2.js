@@ -10,6 +10,7 @@ import { Door, Switch, LightEar, Bridge, Ball, Plate, Mark, Pit, Key } from './p
 import { mothModel } from './guardians.js';
 import { offsetOf } from '../levels/names.js';
 import { chestMound } from '../boxes/mound.js';
+import { lampHouseSkin } from './skins/lamp-house.js';
 
 // Lorn II's temple: the Lamp-House, a dark tower of the makers standing in the
 // shallow water east of the root cave, a causeway of flat stones out to it from
@@ -640,6 +641,8 @@ export const PERDIDE2_TEMPLE = {
   origin: [-140 + OX, 1800, -300 + OZ], yaw: 0,   // (its rooms over the wood, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (its futuristic skin, issue #342: the look of the author's pick over the same rooms, src/temples/skins/lamp-house.js)
+  skin: (rt) => lampHouseSkin(rt, { rooms: ROOMS }),
   local: { person: 'briony', out: 33, side: 2 },
   enterLine: 'Inside the Lamp-House it is very dark, and it smells of moss and old oil. Somewhere above, wings.',
   pitLine: 'You climb back up to the last glyph stone.',

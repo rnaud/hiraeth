@@ -1432,6 +1432,38 @@ picks' (sampled: slate about L 40–60 of 255, `ENGINE_SKIN`).
 - **Unlike the pictures:** no teal shaft of daylight (the oculus' sun spot is teal-tinted only); the giant crank wheel,
   the drop hammer and the pistons are the house's pieces, smaller and round; the pits read as the game's dark void with
   amber walls rather than a bright amber floor; the warden keeps its round body.
+### The Lamp-House (`skins/lamp-house.js`, v1.78)
+
+After `references/temples/future/lamp-house/sheet-1.jpg`: a near-black hall where light wakes what waits for it.
+`skin: (rt) => lampHouseSkin(rt, { rooms: ROOMS })` on `perdide2.js`'s def (the rooms tell it which hall is which).
+
+- **Surfaces** (albedo, first pen lines and `emit` replaced): blue-black wall slabs 3.4 by 9.5 m with chamfers and
+  few joints (sampled: the sheet's walls `#17181e`, the game's now about `#19181e`), hatching cut to a fifth; dark
+  slate floor plates 2.4 m; thin gold lines up the walls (a 45° jog to a small lens) and along the floor's seams,
+  and two rings and their spokes round every basin (`uLhPool`: the four pools and the three lure pools).
+- **The lines wake to light** (`uLhSrc`, 16 points the skin's `SkinLife` gathers each frame: the lantern you carry,
+  7.5 m; a lit pool or eye; a woken lamp; a lit lure pool; the great lamp once the house is lit): near one a line is
+  gold and glows (emit 0.76, just over the post's halo start); far from all it is a dull bronze inlay (0.3–0.45).
+  The house stays dark and the lantern's role is what you see: the floor lights up round you and fades behind you.
+- **The house's own, swapped**: frames, lintels, columns and posts dark metal; the moss course gone for a dark one
+  (paint); the roots dark bronze conduits; `rt.P.glow` gold while the layout runs (eyes, door signs, orbs); the
+  basins' rings (the trim's annuli round each pool, found by size and place) machined bronze; their water black with
+  faint rings that glow when lit; the lure pools black, gold as they take the light; the gallery's lantern-shown
+  stones (`br1`) pale plates edged in gold; a soft gold `LightShaft` over each of the four pools once lit (not on the
+  lighter presets). The hanging lamps by the friezes stay (a lens there z-fought the round halls' facets).
+- **The Lampless** (`machineMoth`, once the guardian exists): its body a fuselage of octagonal white segments ringed
+  in bronze with a keel, each wing's oval squared off into a flat plate (a superellipse), edged in bronze, its panels
+  by turns paler; its sign in a round bronze-rimmed lens on each wing; its feelers bronze. Same groups, motion, hits.
+- **Dressing, drawn only** (3 InstancedMeshes: noCollide, keepBuried, out of the shadow passes): a row of up to seven
+  bronze sockets with blue-black glass spheres along the longest clear wall of each big hall, each with its tile of
+  a dark panel (2 cm joints: no shared faces); the panels' gold lines and the sockets' small lamps (one draw; the
+  lamps left out on Low by `count`); square plates floating 13 m and more over the floors (not over the Lamp-Room or
+  the Kennel), drawn as a faint gold outline (`plate` body: uv edges) and solid only where a light is under them
+  (`lhWakeUp`: the body discards elsewhere). Kept off doorways, pieces and small wall blocks (the Kennel's stalls).
+- **Lighter presets**: no chamfers, no second set of floor lines or basin spokes, no shafts, no socket lamps.
+- Not changed: the makers' glyph is the shared `glyphGeometry` (on the doors it still reads as a frowning face: a
+  shared-code change for every house), the pieces' own shapes. Cost (9 views, this Mac): +15 calls on High on
+  average (+11 to +30), +9 on Low, triangles a little fewer, 60 fps held. `tests/temple-skins.test.js`.
 
 
 ## Landmarks seen from the approach (14 October 2026)
