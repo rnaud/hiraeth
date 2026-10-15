@@ -254,7 +254,7 @@ export class Glob {
  * yaw and pitch, CameraRig's convention: yaw about the frame's up from its forward, pitch + looking down) at `rate`;
  * and the crosshair's ray passing within `snap` m of that chest takes it (updateAimPoint), the line to it clear.
  */
-export const LOCK_AIM = { rate: 14, snap: 1.4 };
+export const LOCK_AIM = { rate: 14, snap: 1.4 };   // (main.js: the camera on the point now, src/lock-aim.js; `rate` the ease it had before v1.77)
 /** The camera's yaw and pitch to look from `from` at `to` in frame F ({ up, fwd, right }). */
 export function lockAim(from, to, F) {
   const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z, len = Math.hypot(dx, dy, dz) || 1;
@@ -1023,7 +1023,8 @@ export class FluidTool {
     this.aimKind = shot.kind;
     // locked on: the crosshair near the foe's chest (a guardian's weak point: its mouth) takes it, if nothing stands between (LOCK_AIM)
     const L = this.lockOn?.(), lockAt = (L?.aim ?? L?.position)?.();
-    if (lockAt && rayMiss(o, this.aimDir, lockAt) < LOCK_AIM.snap) {
+    // (not when the right stick has shifted the aim off it: the crosshair is the player's own then, src/lock-aim.js)
+    if (lockAt && !this.nudged && rayMiss(o, this.aimDir, lockAt) < LOCK_AIM.snap) {
       const to = _t2.subVectors(lockAt, o), d = to.length();
       if (d < FLUID.shoot.range + 4 && !(this.physics?.rayDistance?.(o, to.divideScalar(d), d) < d - 0.6)) { this.aimPoint.copy(lockAt); this.aimKind = 'target'; this.aimLocked = true; return shot; }
     }

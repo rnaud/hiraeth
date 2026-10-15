@@ -36,6 +36,8 @@ export const MEDIA_DIR = 'changelog-media';
 /** (the screen's and the menus' pictures of v1.65, issues #221–#244: taken by hand, not by scripts/changelog-shots.mjs) */
 const FROM_HUD = 'headless Chrome against a dev server of this branch and of the commit before it (172da299), the Desert, medium, 10:00';
 export { lineText };
+/** (v1.77, issue #359: the guardian framing, before with the rig given no box) */
+const LOCK359 = 'Issue #359: muted headless Chrome (High, 1280 × 720, 10:00, clear), Vite on port 6482, the game stepped 1/60 s a frame, the guardian awake with its blows held and the traveller locked on, in one page load each: before with the rig given no box (the framing it had), after with it, 15 October; cwebp -q 72';
 /** (v1.77, issue #342: the Rose House with and without its futuristic skin, ?noskin=1, in one page load each) */
 const ROSE342 = 'Issue #342 (and its second pass, closer to the drawings): muted headless Chrome (High and Low, 1280 × 720, noon, clear), Vite on port 6472, the camera pinned at the same place with and without the skin (?noskin=1), 15 October; the bench’s rAF counter (renderer.info), 3 s a view; cwebp -q 72';
 const ROSE342_CALLS = [
@@ -1202,6 +1204,26 @@ export const CHANGELOG_MEDIA = {
         { where: 'arc, degrees either side', before: 66, after: 86 },
       ], source: 'BLADE.reach and angle against WIDE_CUT; a wall between still keeps a foe out (the cut’s line of sight)' },
     ], see: 'In the Sunken Hall, let a few blots come round you and cut once: those to your sides and a step further out fall too. One on the far side of a wall is never hit.' },
+    { match: 'Locked on to a guardian, the camera now keeps the whole fight in view', tags: ['combat'], shots: [
+      { name: 'lock-snapper', title: 'The Mother Snapper', caption: 'In the Hush-House, locked on 8 m from it: before, the camera 2.6 m behind him, its head out of the picture; after, 8.3 m back, him whole, its head, the floor between you', from: LOCK359 },
+      { name: 'lock-first-sign', title: 'The First Sign', caption: 'In its hall, locked on 8 m from it: before, its legs and his back filling the picture; after, 12 m back, the whole machine, its face and the floor round it', from: LOCK359 },
+      { name: 'lock-cloud-mother', title: 'The Cloud-Mother', caption: 'In the Founders’ Belfry, locked on below her: before, the camera on him and her belly off the top; after, 9 m back, her whole body over you and the floor', from: LOCK359 },
+    ], numbers: [
+      { title: 'Locked on from points round each guardian in its own arena (all 14 guardians, 148 points, his back at least 4 m from its wall)', unit: 'points', better: 'higher', device: 'node: the real camera rig and collision (scripts/camera-qc/sim-guardians.mjs)', rows: [
+        { where: 'he whole on the screen, head to feet', before: 52, after: 148 },
+        { where: 'the guardian’s middle on the screen', before: 100, after: 148 },
+        { where: 'he whole, the floor between, its foot and middle', before: 42, after: 148 },
+        { where: 'he whole and all of it, its top too', before: 7, after: 122 },
+        { where: 'the Mother Snapper’s 12 points: both framed', before: 0, after: 12 },
+      ], source: 'scripts/camera-qc/sim-guardians.mjs, before with the rig given no box (the framing it had); the camera QC in the browser: snapper-lock and guardian-lock green' },
+    ] },
+    { match: 'Aiming with LT / L2 while locked on now puts your crosshair', tags: ['combat', 'menus'], numbers: [
+      { title: 'How far the aim is off the lock’s point after LT / L2 (a guardian’s mouth 15 m off and 4.5 m up, the view 18° off it as the aim comes up)', unit: '°', better: 'lower', device: 'node: the real camera rig', rows: [
+        { where: '0.15 s after the press', before: 5.96, after: 0.22 },
+        { where: '0.25 s', before: 2.14, after: 0.16 },
+        { where: '0.4 s', before: 0.62, after: 0.09 },
+      ], source: 'the rig aiming locked on as main.js turns it, before at its old ease (14 /s), after onto the point (src/lock-aim.js); in the game, headless Chrome: 0.01–0.03° off the Mother Snapper’s, the First Sign’s and the Cloud-Mother’s points, the stick held right 2.6–3.5° off (at most 6.9°), let go 0.01–0.03°' },
+    ], see: 'Lock on to a guardian (R3) and hold LT / L2: the crosshair sits on its weak point. Push the right stick a little: the aim slides off it, at most a body’s width; let go and it slides back.' },
   ],
   '1.76': [
     { match: 'Across all fourteen temples', shots: [

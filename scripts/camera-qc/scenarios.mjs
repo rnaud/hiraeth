@@ -111,6 +111,19 @@ export const SCENARIOS = [
       // (awake and turning to face him, its blows held: a knock-down is not the camera's to judge)
       if (G.state === 'sleep') G.wake(); G.enter('fight'); G.fight = (dt) => { G.face(dt, player.pos, 1); return 0; }; }`, settle: 4,
     segs: [{ for: 1, lock: true }, { for: 8, stick: [1, 0] }, { for: 2, stick: [0, -1] }, { for: 8, stick: [-1, 0.2], run: true }, { for: 2, stick: [0, 1] }] },
+  // (issue #359, "with the mother snapper I cut off after the torso": locked on a guardian the camera frames you both whole,
+  // the floor between; src/lock-frame.js. Every guardian in node: scripts/camera-qc/sim-guardians.mjs)
+  { name: 'snapper-lock', world: 'perdide', about: 'in the Hush-House, locked on to the Mother Snapper awake: circling it each way, stepping back and in',
+    setup: `const rt = (level.temples ?? []).find((t) => t.id === 'perdide' && t.guardian); if (rt) {
+      const V = THREE.Vector3, G = rt.guardian, A = G.arena, c = G.model.home ?? A.center;
+      const away = new V(A.center.x - c.x, 0, A.center.z - c.z); if (away.length() < 1) away.set(0, 0, -1); away.normalize();
+      foes.list.slice().forEach((x) => foes.remove(x)); player.health = 1;
+      window.__cqHeal ??= setInterval(() => { if (window.player) player.health = 1; }, 200);
+      player.teleport(c.clone().addScaledVector(away, 9).setY(A.y + 0.1), new V(0, 1, 0), away.clone().negate());
+      rig.yaw = Math.atan2(away.x, away.z);
+      // (awake and turning to face him, its blows held: a knock-down is not the camera's to judge)
+      if (G.state === 'sleep') G.wake(); G.enter('fight'); G.fight = (dt) => { G.face(dt, player.pos, 1); return 0; }; }`, settle: 4,
+    segs: [{ for: 1, lock: true }, { for: 8, stick: [1, 0] }, { for: 2, stick: [0, -1] }, { for: 8, stick: [-1, 0.2], run: true }, { for: 2, stick: [0, 1] }] },
   // ---------------------------------------------------------------- rising air (src/updraft.js): the City-Shaft's halfway air pillar
   { name: 'incal-pillar', world: 'incal', about: 'riding the City-Shaft’s halfway air pillar on the wings: straight up past the terraces, the camera turned while rising, then steered out of it',
     flags: { 'item.backpack': true, 'item.glider': true }, at: [-53.3, -60, 179.2], yaw: 5.0, settle: 2,

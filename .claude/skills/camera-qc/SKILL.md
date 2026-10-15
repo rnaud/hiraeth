@@ -47,7 +47,10 @@ prints run k's frames, `EVENTS=n` the worst), `node scripts/camera-qc/sim-shop.m
 `node scripts/camera-qc/sim-train.mjs [train-walk,train-run]` walks
 the Overnight Train's carriages with the real `CameraRig` through the real collision in node (`scripts/camera-qc/sim.mjs`:
 a traveller moved along waypoints, the camera turned after the way as a thumb would). `EVENTS=10` lists the worst events
-with where they happened. `tests/camera-qc.test.js` and `tests/camera-qc-lock.test.js` hold the walks to the limits. Confirm in the browser afterwards:
+with where they happened. `node scripts/camera-qc/sim-guardians.mjs [temple …] [--circle] [--before]` locks on to every
+temple's guardian in its own arena from points round it and says whether he, his feet, the floor and it are on the
+screen (issue #359; `--before`: the rig given no box). `tests/camera-qc.test.js`, `tests/camera-qc-lock.test.js` and
+`tests/camera-qc-guardians.test.js` hold the walks to the limits. Confirm in the browser afterwards:
 the real player's physics, frame times and crowd differ.
 
 ## 2. The scenarios (`scripts/camera-qc/scenarios.mjs`)
@@ -67,6 +70,7 @@ the real player's physics, frame times and crowd differ.
 | bazaar-streets | bazaar | wandering the market's street with the camera after the way |
 | ante-lock | bazaar | in the Undertower's antechamber (8 × 6.9 m), locked on to an ink blot held in its middle, by points (`ANTE_WAY`): half round it each way, twice backed into the corner by the passage to the hall on purpose; three runs |
 | guardian-lock | bazaar | in the First Sign's Hall, locked on to the guardian awake (its blows held): circling it, backing to the wall, running round it |
+| snapper-lock | perdide | in the Hush-House, locked on to the Mother Snapper awake (its blows held): circling it, backing off, running round it (issue #359: he whole, it and the floor framed) |
 | arena-lock | arena | from the spawn, locked on to an ink blot (its chance seeded): circling, stepping in and back; three runs |
 | arena-lock-lizard | arena | locked on to a horn lizard: standing, stepping back, circling it |
 | incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |

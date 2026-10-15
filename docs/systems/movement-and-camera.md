@@ -180,6 +180,49 @@ Measured in the real game (headless Chrome, High, the Rose House's cistern by `?
 fake Xbox pad and the keyboard strafing 4 s each way, and 50 s strafing round it awake): see the v1.71 changelog's
 numbers; tests in `tests/keeper-second-pass.test.js`.
 
+## Locked on a guardian: both of you framed (v1.77, issue #359; `LOCK_FRAME`, `CameraRig.fitFrame`)
+
+The author: "During guardian encounters when locked in I should be able to always see the guardian, myself in full body
+and the floor. Right now with the mother snapper I cut off after the torso." Only the Keeper had the boss framing
+(`def.camera`); every other arena read as a closed room, so the lock camera came in over the shoulder at 2.6 m.
+
+- **The two boxes** (`src/lock-frame.js`): main.js gives the rig the locked guardian's box (`rig.frameWith`,
+  `guardianBox`: its model's bounds every 0.25 s round its steady stand-in, kept within 4 × its size). `framePoints`
+  turns it and his own box into the points to keep: his eight corners, the guardian as the round body it is (its foot,
+  middle and top either side across the line, its foot's near side) and the floor halfway between you.
+- **The solve** (`solveFrame`, every 0.1 s): of six camera heights (0.24–0.76 rad) the lowest whose shortest fitting arm
+  (4.5–16 m) is under 11 m, else the shortest; each height's arm no longer than the room behind it (a swept ball, read
+  ±0.5 rad round and where the lock's turn takes it 0.7 s on) less 1 m. The arm and height follow on springs (out 2.2 /s,
+  in 8 /s); the close-in framing gives way (`tightK × (1 − fitK)`), the look point rises 0.6 m (over plinths and spouts),
+  and the lens is still shoved off walls.
+- **The view** (`frameAim`): turned to the middle of the points' spread from where the camera is (refined twice on the
+  picture itself), eased at 8 /s; too tall for the frame, the lowest points (his feet, the floor) are kept and the top is
+  lost. Where no arm the room allows fits it all (his back near the arena's wall) the lens widens, up to 68°, and the
+  lock's turn off the line for room (`lockRoom`) looks for up to 7.5 m (`LOCK_ROOM.fit`); crushed under 2.4–3.6 m the
+  view goes back to the look at him.
+- Not while aiming (`aimK`); eased in and out at 1.8 /s.
+
+Measured in node over all 14 guardians in their own arenas (`scripts/camera-qc/sim-guardians.mjs`: 148 points round
+them, his back at least 4 m from the wall): he whole on the screen 52 → 148, its middle 100 → 148, he whole with the
+floor and its foot and middle 42 → 148, everything including its top 7 → 122; circling each, he is never off the screen.
+The browser QC's new `snapper-lock` (the Hush-House) and `guardian-lock` (the First Sign) are green. Tests:
+`tests/camera-qc-guardians.test.js`.
+
+## Aiming locked on: centred, then nudged (v1.77, issue #362; `src/lock-aim.js`)
+
+The author: "When pressing L2 to aim we should always center to the center of the lock on and I should be able to use the
+right stick to slightly shift the aim like it's done in Metroid Prime games." The aim used to ease toward the lock's point
+at 14 /s (6° off 0.15 s in) after the guardian's steady stand-in, and the stick's flick switched the lock.
+
+- Aiming (LT / L2, R, the right mouse button) with a lock, the camera comes onto the lock's own point as the aim rises
+  (`AIM_NUDGE.ramp`, over the tool's `camK` 0.2 → 0.7) and holds it exactly from then (`lockAimStep`).
+- **The nudge** (`AimNudge`): the right stick's tilt shifts the aim off the point within a 0.12 rad cone (about 7°),
+  following it at 14 /s; let go, it eases back at 5 /s. A mouse or a touch drag moves it too, held while it moves.
+  Nudged past 15 % of the cone the crosshair is the player's own (`FluidTool.nudged`: no snap onto the point).
+- While aiming locked the look no longer switches the lock. Without a lock, aiming is unchanged.
+
+Tests: `tests/lock-aim.test.js` (the cone, the return, the real rig on the point and shifted off it).
+
 ## The camera QC and what it fixed (v1.40, `.claude/skills/camera-qc`)
 
 The author: "in the train when I'm walking it keeps jumping around." The camera QC drives the game headless with

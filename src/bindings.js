@@ -58,7 +58,7 @@ export const BINDINGS = {
     ['Y', 'the bell-note whistle · the echo shell'],
     ['RB', 'the fluid sword (again: the next swing)'],
     ['LB', 'guard (held; at the blow: parry) · no foe near: with the right stick, zoom'],
-    ['LT', 'aim the gadget in hand (the fluid gun, the hook, the bombs…)'],
+    ['LT', 'aim the gadget in hand (the fluid gun, the hook, the bombs…) · locked on: on its centre, the right stick shifts the aim a little'],
     ['RT', 'use the gadget in hand: shoot, throw · while aiming: let fly'],
     ['L3', 'run, until the stick is let go'],
     ['R3', 'lock on, the next, let go · no foe in reach: the scout finds the objective'],

@@ -143,6 +143,13 @@ export const CHANGELOG = [
     'The Sunken Hall’s camera looks down the way Diablo IV’s does: steeper (57° instead of 52°) and a little further back, so a room and its crowd fit the screen better.',
     'In the Sunken Hall, the jump button (A / ×) and B / ○ make a dodge roll: a quick tumble the way you push the stick, or the way you face, with a moment no blow can touch you. There is no jumping in there any more. Everywhere else, both work as before.',
     'In the Sunken Hall your sword reaches further and wider: a cut takes every foe in a broad arc in front of you, a step further out than before, but never one behind a wall.',
+    // the guardian framing locked on (issue #359): src/lock-frame.js (LOCK_FRAME, solveFrame, frameAim, guardianBox),
+    // src/player.js CameraRig.fitFrame, LOCK_ROOM.fit; main.js rig.frameWith; scripts/camera-qc/sim-guardians.mjs, the
+    // camera QC's snapper-lock; tests/camera-qc-guardians.test.js; docs/systems/movement-and-camera.md
+    'Locked on to a guardian, the camera now keeps the whole fight in view: you from head to feet, the guardian and the floor between you. It stands further back and a little higher the bigger the guardian is, turns aside from a wall behind you, and only by a wall does it widen its view a little. With the Mother Snapper you were cut off at the chest and its head was out of the picture.',
+    // the locked aim (issue #362): src/lock-aim.js (AIM_NUDGE, AimNudge, lockAimStep), main.js (rig.look while aiming locked,
+    // padLook), fluid-tool.js (no snap once nudged), bindings.js LT; tests/lock-aim.test.js
+    'Aiming with LT / L2 while locked on now puts your crosshair right on the lock’s centre (a guardian’s weak point), and the right stick shifts the aim a little off it, as in Metroid Prime; let go and it comes back to the centre. Before, the aim drifted onto the target and the stick switched to another target.',
   ] },
   { v: '1.76', date: '2026-10-14', items: [
     // the ship twice the size (issue #338): src/ship/hull.js SHIP_SCALE (the design D built 2x, the bow's windshield

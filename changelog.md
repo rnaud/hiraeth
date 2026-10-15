@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.77 — 2026-10-14
 
+- Aiming with LT / L2 while locked on now puts your crosshair right on the lock’s centre (a guardian’s weak point), and the right stick shifts the aim a little off it, as in Metroid Prime; let go and it comes back to the centre. Before, the aim drifted onto the target and the stick switched to another target.
+- Locked on to a guardian, the camera now keeps the whole fight in view: you from head to feet, the guardian and the floor between you. It stands further back and a little higher the bigger the guardian is, turns aside from a wall behind you, and only by a wall does it widen its view a little. With the Mother Snapper you were cut off at the chest and its head was out of the picture.
 - In the Sunken Hall your sword reaches further and wider: a cut takes every foe in a broad arc in front of you, a step further out than before, but never one behind a wall.
 - In the Sunken Hall, the jump button (A / ×) and B / ○ make a dodge roll: a quick tumble the way you push the stick, or the way you face, with a moment no blow can touch you. There is no jumping in there any more. Everywhere else, both work as before.
 - The Sunken Hall’s camera looks down the way Diablo IV’s does: steeper (57° instead of 52°) and a little further back, so a room and its crowd fit the screen better.

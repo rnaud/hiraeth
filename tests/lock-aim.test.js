@@ -47,6 +47,11 @@ test('locked on, the crosshair near the foe\'s chest takes it; far off, or with 
   camera.lookAt(chest.x + 0.7, chest.y + 0.4, chest.z); camera.updateMatrixWorld();
   tool.updateAimPoint();
   assert.ok(tool.aimPoint.distanceTo(chest) > 0.3 && !tool.aimLocked);
+  // the right stick has shifted the aim off it (issue #362): the crosshair is the player's own, no snap
+  tool.lockOn = () => ({ position: () => chest, lock: true }); tool.nudged = true;
+  tool.updateAimPoint();
+  assert.ok(tool.aimPoint.distanceTo(chest) > 0.3 && !tool.aimLocked, 'nudged: where the camera looks');
+  tool.nudged = false;
   assert.ok(LOCK_AIM.snap >= 1 && LOCK_AIM.rate > 6, 'the camera turns quicker than the lock\'s own (6)');
   tool.dispose();
 });
@@ -85,4 +90,70 @@ test('the lock camera\'s turn eases its speed and stops on the line (issue #236)
   for (let i = 0; i < 300; i++) { line += 1.2 * dt; vel = lockTurn(line - yaw, vel, 6, dt); yaw += vel * dt; }
   assert.ok(Math.abs((line - yaw) - 1.2 / 6) < 0.035, `trails by ${(line - yaw).toFixed(3)} rad`);
   assert.equal(lockTurn(1, 0.5, 6, 0), 0.5, 'no time, no change');
+});
+
+// Issue #362 (the author: "When pressing L2 to aim we should always center to the center of the lock on and I should be
+// able to use the right stick to slightly shift the aim like it's done in Metroid Prime games"): src/lock-aim.js.
+import { AimNudge, AIM_NUDGE, inCone, lockAimStep } from '../src/lock-aim.js';
+import { Physics } from '../src/physics.js';
+import { CameraRig } from '../src/player.js';
+
+test('the aim\'s shift: within its cone at full tilt, after the stick, back to the centre when let go; a pointer the same', () => {
+  const N = new AimNudge(), dt = 1 / 60, C = AIM_NUDGE.cone;
+  assert.ok(C > 0.05 && C < 0.2, `a small cone (${C} rad)`);
+  for (let i = 0; i < 60; i++) N.update(dt, { x: 1, y: 1 });
+  assert.ok(Math.hypot(N.x, N.y) <= C + 1e-9 && Math.hypot(N.x, N.y) > 0.95 * C, `full tilt diagonally: ${Math.hypot(N.x, N.y).toFixed(3)} rad`);
+  assert.ok(N.x > 0 && N.y > 0 && N.nudged);
+  for (let i = 0; i < 30; i++) N.update(dt, { x: 0.3, y: 0 });
+  assert.ok(Math.abs(N.x - 0.3 * C) < 0.01 && Math.abs(N.y) < 0.01, 'a slight tilt, a slight shift (by the tilt, not added up)');
+  for (let i = 0; i < 60; i++) N.update(dt, null);
+  assert.ok(Math.hypot(N.x, N.y) < 0.002 && !N.nudged, 'let go: back on the centre within a second');
+  // a pointer: held where it moved it while it moves, then eased back
+  N.reset();
+  for (let i = 0; i < 10; i++) { N.push(400, 0); N.update(dt, null); }
+  assert.ok(N.x <= C + 1e-9 && N.x > 0.9 * C, `the mouse pushed far right: kept in the cone (${N.x.toFixed(3)})`);
+  for (let i = 0; i < 90; i++) N.update(dt, null);
+  assert.ok(Math.abs(N.x) < 0.003, 'still: back to the centre');
+  assert.deepEqual(inCone(3, 4, 1).map((v) => +v.toFixed(3)), [0.6, 0.8]);
+});
+
+test('lockAimStep: exactly on the point at full weight, shifted the stick\'s way, part way while the aim comes up', () => {
+  const rig = { yaw: 0.4, pitch: 0.1, invertY: false };
+  lockAimStep(rig, { yaw: -0.2, pitch: 0.3 }, null, 1);
+  assert.ok(Math.abs(rig.yaw + 0.2) < 1e-12 && Math.abs(rig.pitch - 0.3) < 1e-12, 'on the point');
+  lockAimStep(rig, { yaw: -0.2, pitch: 0.3 }, { x: 0.1, y: 0.05 }, 1);
+  assert.ok(Math.abs(rig.yaw - (-0.3)) < 1e-12, 'right: the yaw falls (CameraRig.look\'s way)');
+  assert.ok(Math.abs(rig.pitch - 0.25) < 1e-12, 'up: the pitch falls (looks up)');
+  rig.invertY = true; lockAimStep(rig, { yaw: -0.2, pitch: 0.3 }, { x: 0, y: 0.05 }, 1);
+  assert.ok(Math.abs(rig.pitch - 0.35) < 1e-12, 'the look inverted: the other way, as the stick looks');
+  rig.yaw = 0; lockAimStep(rig, { yaw: 1, pitch: 0 }, null, 0.25);
+  assert.ok(Math.abs(rig.yaw - 0.25) < 1e-12, 'a quarter of the way');
+  rig.yaw = 3.1; lockAimStep(rig, { yaw: -3.1, pitch: 0 }, null, 0.5);
+  assert.ok(Math.abs(rig.yaw - (3.1 + (2 * Math.PI - 6.2) / 2)) < 1e-9, 'the short way round');
+});
+
+test('aiming locked on with the real rig: the camera\'s centre on the lock\'s point, shifted within the cone, back when let go', () => {
+  globalThis.window ??= { addEventListener() {} };
+  const scene = new THREE.Scene();
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(200, 1, 200)); floor.position.y = -0.5; scene.add(floor);
+  const camera = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 5000);
+  const rig = new CameraRig(camera, { addEventListener() {} }, new Physics(scene));
+  const pos = v(0, 0, 0), point = v(3, 4.5, -11);   // (a guardian's mouth up and off to the right)
+  rig.yaw = 0.6; rig.aimK = 1; rig.locked = true;
+  const N = new AimNudge(), dt = 1 / 60, fwd = v(), RF = { up: v(0, 1, 0), fwd: v(0, 0, 1), right: v(1, 0, 0) };   // (the rig's own frame)
+  const off = () => { camera.updateMatrixWorld(true); camera.getWorldDirection(fwd); return fwd.angleTo(point.clone().sub(camera.position)); };
+  const frame = (stick) => {
+    rig.update(pos, dt, RF);
+    N.update(dt, stick);
+    lockAimStep(rig, lockAim(camera.position, point, RF), N, 1);
+  };
+  for (let i = 0; i < 30; i++) frame(null);
+  assert.ok(off() < 0.003, `on the point: ${(off() * 180 / Math.PI).toFixed(2)}° off`);
+  for (let i = 0; i < 40; i++) frame({ x: 1, y: 0 });
+  const o = off();
+  assert.ok(o > 0.8 * AIM_NUDGE.cone && o < AIM_NUDGE.cone + 0.01, `the stick held right: ${(o * 180 / Math.PI).toFixed(1)}° off (the cone ${(AIM_NUDGE.cone * 180 / Math.PI).toFixed(1)}°)`);
+  const right = new THREE.Vector3().crossVectors(fwd, camera.up).normalize();
+  assert.ok(point.clone().sub(camera.position).dot(right) < 0, 'shifted right of it (the point to the frame\'s left)');
+  for (let i = 0; i < 60; i++) frame(null);
+  assert.ok(off() < 0.004, `let go: back on it, ${(off() * 180 / Math.PI).toFixed(2)}° off`);
 });

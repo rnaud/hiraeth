@@ -87,7 +87,7 @@ import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
 import { xboxReadout } from './xbox.js';
 import { InputMode } from './input-mode.js';
-import { FluidTool, bindToolMouse, lockAim, LOCK_AIM } from './fluid-tool.js';
+import { FluidTool, bindToolMouse, lockAim } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
@@ -113,6 +113,8 @@ import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
+import { guardianBox } from './lock-frame.js';
+import { AimNudge, AIM_NUDGE, lockAimStep } from './lock-aim.js';
 import { hopAxis } from './jump.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
@@ -1146,6 +1148,11 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
 const flurryFx = new FlurryFx();
 let flurryAgainAt = 0, flurryChain = null;
 const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
+const lockBox = { min: new THREE.Vector3(), max: new THREE.Vector3() };   // (a locked guardian's box: src/lock-frame.js guardianBox)
+// aiming locked on (LT / L2): the aim on the lock's point, the right stick shifting it a little (src/lock-aim.js, issue #362)
+const aimNudge = new AimNudge();
+const aimingLocked = () => !!(foes.lock && !busy() && !photo.on && tool.camK > 0.2 && tool.k > 0.2);
+let padLook = () => null;   // (the right stick's tilt, once the controller is made below)
 const _hopView = new THREE.Vector3();   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
 function startFlurry() {
   const now = performance.now() / 1000;
@@ -1162,7 +1169,13 @@ if (tool.blade) tool.blade.onHopDodge = () => startFlurry();
 player.untouchable = () => flurryLeft() > 0;   // (a guardian's blows and rings pass you by: src/temples/boss.js)
 { // locked on, the look's sideways motion is the lock's: a quick flick (the right stick, the mouse, a drag) switches to the next foe that way (src/foes.js FLICK)
   const look = rig.look.bind(rig);
-  rig.look = (dx, dy) => { if (dx || dy) firstSteps?.looked(); if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy); };
+  // (aiming locked on, the look shifts the aim off the lock's point instead, within its cone: the stick by its tilt, read
+  // each frame, a pointer by its moves; src/lock-aim.js AimNudge, issue #362)
+  rig.look = (dx, dy) => {
+    if (dx || dy) firstSteps?.looked();
+    if (aimingLocked()) { const s = padLook(); if (!(s?.x || s?.y)) aimNudge.push(dx, dy, rig.sensitivity); return; }
+    if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy);
+  };
 }
 if (level.foes?.waves && !minigameDef) {   // (the Arena's FOES list, its guardians' ring: src/foe-spawner.js, the level's quick menu)
   const attach = { foes, player, physics, sound, scene, notice: (t) => showToast(t), kind: query.get('foe') };
@@ -1846,6 +1859,7 @@ const controller = new Controller({
     if (name === 'viewDown' || name === 'viewLeft' || name === 'viewRight') window.dispatchEvent(new CustomEvent('padchord', { detail: { name } }));
   },
 });
+padLook = () => controller.held.lookStick ?? null;   // (aiming locked on, the right stick's tilt shifts the aim: src/lock-aim.js)
 inputDisplay.bind({ context: () => controller.lastContext ?? 'game', index: () => controller.index });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
 // that is connected (the Retroid's own controls) counts as in use until the screen or keys are touched,
@@ -2408,6 +2422,9 @@ function frame(ts) {
   if (!foes.lock || busy() || photo.on) lockView.vel = 0;
   rig.locked = !!(foes.lock && !busy() && !photo.on);
   rig.lockAt = rig.locked ? (lockView_.chest ?? lockView_.pos) : null;
+  // (locked on a guardian: its box round its steady stand-in, so the camera frames you both whole, the floor between:
+  // CameraRig.fitFrame, src/lock-frame.js, issue #359)
+  rig.frameWith = rig.locked && foes.lock.guardian && foes.lock.model?.group ? guardianBox(foes.lock.model, lockView_.pos, lockBox, performance.now() / 1000) : null;
   // (in a guardian's arena, awake, the boss framing it asks for: further back and higher, both of you in the frame)
   rig.boss = busy() || photo.on ? null : foes.bossFight()?.def.camera ?? null;
   // (a helper prototype, issue #339: its own framing, the camera turned onto both of you: src/guardian-help/index.js)
@@ -2417,16 +2434,22 @@ function frame(ts) {
     const f = foes.lock, F = player.frame;
     // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
     // where it stands over the shoulder, not from the traveller (lockAim; v1.41, the author: "gun aim stays on the locked target")
-    // (a guardian's weak point, GuardianLock.aim: the camera turned after its steady stand-in, the gun on the real one)
-    const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, lockView_.aim ?? lockView_.chest, F) : null;
+    // (a guardian's weak point, GuardianLock.aim; v1.71 turned the camera after its steady stand-in, v1.77 onto the point itself)
+    // (on the lock's own point, not its steady stand-in's: the crosshair on the reticle, issue #362)
+    const aim = aimingLocked() ? lockAim(camera.position, f.aim ?? f.chest, F) : null;
     // (not aiming: the line to the foe, its stand-off swing, the room behind him, the turn after it: src/foes.js lockFollow)
     if (!aim) lockFollow(lockView, rig, lockView_, player.pos, F, realDt);
     else {
-      rig.lockRoom(realDt, null);
-      rig.yaw += Math.atan2(Math.sin(aim.yaw - rig.yaw), Math.cos(aim.yaw - rig.yaw)) * (1 - Math.exp(-LOCK_AIM.rate * realDt)); lockView.vel = 0;
-      rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
+      // (onto the lock's point as the aim comes up, and exactly on it from then, shifted by the right stick within its
+      // cone, eased back when let go: src/lock-aim.js, issue #362; it used to ease toward it at 14 /s, a little
+      // behind it, and the stick switched the lock)
+      rig.lockRoom(realDt, null); lockView.vel = 0;
+      aimNudge.update(realDt, padLook());
+      lockAimStep(rig, aim, aimNudge, THREE.MathUtils.smoothstep(tool.camK, AIM_NUDGE.ramp[0], AIM_NUDGE.ramp[1]));
     }
   }
+  if (!aimingLocked() && (aimNudge.x || aimNudge.y || aimNudge.mx || aimNudge.my)) aimNudge.reset();   // (each locked aim starts on the point)
+  tool.nudged = aimingLocked() && aimNudge.nudged;
   // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {
     const zone = level.zoneAt(player.pos);
