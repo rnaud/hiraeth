@@ -1,0 +1,19 @@
+src/changelog-media.js
+  s_cd8209260f58c0::t_10e15701724afd 915-950,962,970,1145,1173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4e00f5c4f874f0f53966082fc335f1f63fcf6a13",
+  "prompts": {},
+  "sessions": {
+    "s_cd8209260f58c0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4d40bc376d85be60",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
