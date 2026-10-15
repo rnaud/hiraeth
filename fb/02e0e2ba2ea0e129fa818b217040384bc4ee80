@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_7b861bfa2e71a3 22-26
+docs/systems/animation.md
+  s_9ca76055a220ed::t_3b4060286b11d7 923-978,1063-1065
+scripts/motion-qc/sample.mjs
+  s_9ca76055a220ed::t_fabca67536110e 41-42
+scripts/motion-qc/scenarios.mjs
+  s_9ca76055a220ed::t_7c57ebb942e840 18-21
+src/animator.js
+  s_9ca76055a220ed::t_87e8f85da496cd 639-640,656
+src/changelog-media.js
+  s_9ca76055a220ed::t_c0c9946ea256ed 992-994,1185-1229
+src/changelog.js
+  s_9ca76055a220ed::t_cd178e30daf636 21-32
+src/feet.js
+  s_9ca76055a220ed::t_b57f00bf7a3343 43,45-46,49-53,68,103,105,173,335,344-354,382,408,424,472-478,520,574
+src/humanoid.js
+  s_9ca76055a220ed::t_44ade0573f76d3 1395-1403
+src/locomotion.js
+  s_9ca76055a220ed::t_d7145466da86c9 120-124,126-127,135-140,143,145-158
+src/player.js
+  s_9ca76055a220ed::t_4da30dda7d3973 171-172,1106-1110,2704
+tests/motion-qc.test.js
+  s_9ca76055a220ed::t_db3262fc0cc648 132-180
+tests/strafe.test.js
+  s_9ca76055a220ed::t_9b04ad523c940f 177-184,186-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fb02e0e2ba2ea0e129fa818b217040384bc4ee80",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
