@@ -401,3 +401,89 @@ test('the Aerie’s floating plates keep off its doorways and winds; its turbine
     assert.ok(n < plates.reduce((s, m) => s + m.count, 0), 'the lighter presets draw fewer plates');
   } finally { aShared.uWearLite.value = was; delete wind.on; }
 });
+
+// ---- the Hush-House in its futuristic skin (src/temples/skins/hush-house.js, after
+// references/temples/future/hush-house/sheet-1.jpg): its look only. Its own names (hh*), beside the other houses'.
+import { hushHouseSkin, HUSH_ROOMS } from '../src/temples/skins/hush-house.js';
+import { sharedUniforms as hhShared } from '../src/materials.js';
+const hhBuild = (noSkin) => quietly(() => {
+  const def = { ...TEMPLES.perdide.def, exterior: null, change: null };
+  const was = TempleRuntime.prototype.noSkin;
+  TempleRuntime.prototype.noSkin = noSkin;
+  try { return new TempleRuntime({ scene: new THREE.Scene(), level: { lights: [] }, def, game: new GameState(null) }); } finally { TempleRuntime.prototype.noSkin = was; }
+});
+let hhOn = null;
+const hhHouse = () => (hhOn ??= hhBuild(false));
+
+test('the Hush-House wears its futuristic skin: coffered slate, machined metal and plates, violet circuits, its dressing drawn', () => {
+  const rt = hhHouse();
+  assert.equal(TEMPLES.perdide.def.skin, hushHouseSkin);
+  assert.equal(rt.skin?.name, 'hush-house');
+  for (const [k, body] of [['wall', 'coffer'], ['wallGlyph', 'metal'], ['floor', 'plates']]) {
+    const m = rt.skin.mats[k];
+    assert.equal(m.userData.houseSkin, body, `its ${k} the skin's ${body}`);
+    assert.ok(m.fragmentShader.includes('float detail = skInk;') && m.fragmentShader.includes('emit = max(emit, skGlow);'), `the ${k}'s pen lines and glow the pattern's`);
+    assert.ok(m.uniforms.uSkN.value > 6 && m.uniforms.uSkN.value <= HUSH_ROOMS, `its rooms in the shader (${m.uniforms.uSkN.value})`);
+  }
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'wallGlyph', 'floor', 'glyph', 'pool', 'cable', 'spikeTeal', 'spikeViolet']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in its ${k}`);
+  // the house's own materials and drawing back for its exterior, its own light inside
+  assert.ok(!rt.M.wall.userData.houseSkin && !rt.M.floor.userData.houseSkin && rt.M.glyph !== rt.skin.mats.glyph, 'rt.M the house’s own again');
+  assert.equal(rt.kit.plan, null);
+  assert.ok(!Object.hasOwn(rt.kit, 'add'), 'the kit draws as its own again');
+  assert.ok(rt.skin.light?.shadow && rt.skin.light.light);
+  const s = rt.skin.stats;
+  assert.ok(s.wedges > 60 && s.resonators === 8 && s.lit === 4 && s.rings === 12 && s.plinths >= 10 && s.jaws === 4, JSON.stringify(s));
+  const dressing = rt.kit.group.children.filter((m) => m.userData.skin);
+  assert.ok(dressing.length === 2 && dressing.every((m) => m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false && !m.castShadow), 'two drawn-only meshes out of the shadow passes');
+  // the lights out of the shadow passes too
+  for (const m of rt.kit.group.children.filter((o) => o.material === rt.skin.mats.glyph)) assert.equal(m.userData.castShadow, false);
+});
+
+test('the Hush-House’s skin adds no collision and moves nothing: its solids, climbs and pieces as without it', () => {
+  const on = hhHouse(), off = hhBuild(true);
+  assert.equal(off.skin, null);
+  assert.deepEqual(solids(on), solids(off), 'collision and climbs vertex for vertex');
+  const own = on.pieces.filter((p) => !p.constructor.name.startsWith('Skin'));
+  assert.equal(own.length, off.pieces.length, 'the same pieces');
+  own.forEach((p, i) => {
+    const q = off.pieces[i];
+    assert.equal(p.constructor, q.constructor);
+    assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+    if (p.center?.isVector3) assert.ok(p.center.distanceTo(q.center) < 1e-6);
+  });
+  // the jaws drawn as slate shutters in their own leaves' shapes (what is drawn is what collides), frosting when stilled
+  const jaw = on.piece('d2'), motion = on.pieces.find((p) => p.constructor.name === 'SkinMotion');
+  for (const { g } of jaw.halves) {
+    assert.ok(g.children.every((c) => c.visible), 'its leaves drawn');
+    assert.equal(g.children[0].material.userData.houseSkin, 'shutter');
+    assert.equal(g.children[2].material, on.skin.mats.lip);
+  }
+  const shell = jaw.halves[0].g.children[0].material, slate = shell.uniforms.uColor.value.clone();
+  jaw.frost = 1; motion.update(0.1);
+  assert.ok(shell.uniforms.uGlow.value > 0.2 && !shell.uniforms.uColor.value.equals(slate), 'stilled, its shutters frost');
+});
+
+test('the Hush-House’s dressing keeps out of every doorway, and the lighter presets draw less of it', () => {
+  const rt = hhHouse();
+  const doors = rt.pieces.filter((d) => d instanceof Door).map((d) => ({ at: rt.kit.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
+  assert.ok(doors.length >= 6);
+  const p = new THREE.Vector3();
+  for (const m of rt.kit.group.children.filter((x) => x.userData.skin)) {
+    const pos = m.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i += 3) {
+      const l = rt.kit.local(p.fromBufferAttribute(pos, i));
+      for (const d of doors) assert.ok(!(Math.hypot(l.x - d.at.x, l.z - d.at.z) < d.w / 2 + 1 && l.y > d.at.y - 1 && l.y < d.at.y + d.h + 1), `${m.name} by a doorway at ${l.toArray().map((v) => v.toFixed(1))}`);
+    }
+  }
+  const motion = rt.pieces.find((x) => x.constructor.name === 'SkinMotion'), was = hhShared.uWearLite.value;
+  try {
+    hhShared.uWearLite.value = 0; motion.update(0.1);
+    const full = motion.slate.geometry.drawRange.count, rings = motion.light.geometry.drawRange.count;
+    hhShared.uWearLite.value = 1; motion.update(0.1);
+    assert.ok(motion.slate.geometry.drawRange.count < Math.min(full, motion.slate.geometry.attributes.position.count), 'every other wedge on the lighter presets');
+    assert.ok(motion.light.geometry.drawRange.count < Math.min(rings, motion.light.geometry.attributes.position.count), 'and no rings');
+  } finally { hhShared.uWearLite.value = was; }
+  assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'));
+});

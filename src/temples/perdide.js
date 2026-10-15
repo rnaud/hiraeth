@@ -7,6 +7,7 @@ import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, Jaw, Swing, Platform, Plate, Ball, Mark, Pit, Key, Coffer } from './pieces.js';
 import { snapperModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
+import { hushHouseSkin } from './skins/hush-house.js';
 
 // Lorn's temple: the Hush-House, a great low dome of violet stone on the cave
 // island, crystals of the swamp's groves growing up through it, its door
@@ -658,6 +659,8 @@ export const PERDIDE_TEMPLE = {
   origin: [-100, 1700, 300], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
+  // (its futuristic skin, issue #342: src/temples/skins/hush-house.js; look only)
+  skin: hushHouseSkin,
   local: { person: 'teasel', out: 9, side: 6 },
   enterLine: 'Inside the Hush-House it is green and cool, and the crystals hum, each its own note. Somewhere ahead, something snaps.',
   pitLine: 'You climb back up to the last glyph stone.',

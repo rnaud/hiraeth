@@ -935,6 +935,15 @@ const dev342 = (house, rows) => ['retroid', 'deck'].flatMap((d) => [
   { title: `${house} on the ${d === 'deck' ? 'Steam Deck' : 'Retroid'}: frame time (mean), skin off → on`, unit: 'ms', better: 'lower', device: d === 'deck' ? DEV342_DECK : DEV342_RETROID, rows: rows[d].ms, source: DEV342_SOURCE, note: DEV342_NOTE[d] },
   { title: `${house} on the ${d === 'deck' ? 'Steam Deck' : 'Retroid'}: draw calls a frame`, unit: 'calls', better: 'lower', device: d === 'deck' ? DEV342_DECK : DEV342_RETROID, rows: rows[d].calls, source: DEV342_SOURCE },
 ]);
+const FUTURE342H = 'Issue #342: a scratchpad script (the bench’s frame instrument, scripts/bench/browser.mjs) in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6502, this branch with the skin off (?noskin=1, before) and on (after) in two loads of Lorn, the camera pinned in each room of the Hush-House; 15 October; cwebp -q 72';
+const FUTURE342H_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal), 1280 × 720, noon, no vsync, the bench’s frame instrument, 4 s a view in 9 views, the same pinned camera, the skin off then on in two loads; the machine shared with other agents (load 22 to 45)';
+const FUTURE342H_SOURCE = 'issue #342 scratchpad future-hush/shoot.mjs --ab; draw calls and triangles from renderer.info, GPU time from EXT_disjoint_timer_query';
+const FUTURE342H_NUMBERS = [
+  { title: 'The Hush-House: frame time (median), skin off → on', unit: 'ms', better: 'lower', device: FUTURE342H_DEVICE, rows: [{ where: 'High', before: 8.98, after: 6.47 }, { where: 'Low', before: 4.54, after: 5.14 }], source: FUTURE342H_SOURCE, note: 'The machine was shared and loaded (the skin-off run on High under the heavier load): within the run’s noise both ways.' },
+  { title: 'The Hush-House: GPU time a frame (median)', unit: 'ms', better: 'lower', device: FUTURE342H_DEVICE, rows: [{ where: 'High', before: 5.1, after: 5.44 }, { where: 'Low', before: 1.59, after: 1.61 }], source: FUTURE342H_SOURCE },
+  { title: 'The Hush-House: draw calls a frame', unit: 'calls', better: 'lower', device: FUTURE342H_DEVICE, rows: [{ where: 'High', before: 305, after: 304 }, { where: 'Low', before: 320, after: 319 }], source: FUTURE342H_SOURCE },
+  { title: 'The Hush-House: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342H_DEVICE, rows: [{ where: 'High', before: 481, after: 462 }, { where: 'Low', before: 388, after: 351 }], source: FUTURE342H_SOURCE, note: 'Fewer: the glowing glyphs and crystals leave the shadow passes.' },
+];
 const DEVICES342 = {
   well: dev342('The Warden’s Well', {
     retroid: { ms: [{ where: 'the Turning Floors', before: 17.82, after: 17.74 }, { where: 'the Climb', before: 16.92, after: 16.88 }, { where: 'the Lamp Gallery', before: 16.81, after: 16.67 }, { where: 'the Warden’s Hall', before: 17.3, after: 16.9 }],
@@ -1005,6 +1014,15 @@ export const CHANGELOG_MEDIA = {
         { where: 'the City Floating in Space', before: 16.3, after: 15.4 },
       ], note: 'About 16 ms of the main thread gives 60 here; the desert, the City-Shaft, Vael and Lorn are still over it (issue #111).' },
     ] },
+    { match: 'Inside, the Hush-House is the makers’ sound-damping hall now', tags: ['lorn', 'temples', 'perf'], shots: [
+      { name: 'future-hush-stilling', title: 'The Stilling Chamber', caption: 'Before, violet plaster walls, crystals on the bare floor; after, dark slate coffers with crisp chamfers up the drum and over the vault, violet circuits in their seams, stepped wedges under the vault, resonators hanging in slate collars round the oculus (two lit teal and violet, faint rings round them), the crystals on stepped plinths; the chest on its mound where it was', from: FUTURE342H,
+        reference: { sheet: 'references/temples/future/hush-house/sheet-1.jpg', caption: 'The Hush-House as the makers’ sound-damping hall: the author’s pick (issue #342)' } },
+      { name: 'future-hush-well-up', title: 'Over the Bog Well', caption: 'Looking up from the near landing: the four resonators over the black water as in the drawing, longest first, the first two lit, under a coffered vault with a violet ring round the oculus; the root-wall’s face machined slate', from: FUTURE342H },
+      { name: 'future-hush-gate', title: 'The gate of jaws', caption: 'The Snapping Passage’s gate: before, pink fleshy lips; after, two leaves of stacked slate slabs pointed toward the seam, a violet light where they meet (they snap as before, and frost pale blue when stilled)', from: FUTURE342H },
+      { name: 'future-hush-choir', title: 'The Choir', caption: 'The crystals, their rings, the balcony and the far door where they were: coffered slate walls and vault, warm grey floor plates with a few violet seams', from: FUTURE342H },
+      { name: 'future-hush-threshold', title: 'The Threshold', caption: 'The first crystal and the mark where they were: tall dado slabs with a violet seam over them, coffers above, wedges under the vault', from: FUTURE342H },
+      { name: 'future-hush-hall', title: 'The Mother’s Hall', caption: 'The Mother Snapper, her bed and her pendulums untouched; the drum coffered, its crystals on plinths', from: FUTURE342H },
+    ], numbers: FUTURE342H_NUMBERS },
     { match: 'Locked on to a foe, moving left or right he now runs sideways', tags: ['characters'], shots: [
       { name: 'strafe-run', title: 'Strafing right round the Mother Snapper', caption: 'Locked on, 1.3 s into a long run to the right: before, his body square to the foe and his legs stepping forward and back on the spot while he slid sideways; after, his hips and legs turned the way he runs, his back turned round so his chest and head still face her', from: STRAFE47_GAME },
     ], numbers: [

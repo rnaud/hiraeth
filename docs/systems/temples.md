@@ -1347,6 +1347,49 @@ window on the sea, brass dishes and rows of horn terminals, aquamarine lines.
 - Cost (1280x720, this Mac, six rooms): -7 to +10 draw calls on High, -14 to +1 on Low; fewer triangles (the
   friezes' shells were heavier than the lenses); frame time no worse (within the run's noise). `tests/temple-skins.test.js`.
 
+### The Hush-House (`skins/hush-house.js`)
+
+After `references/temples/future/hush-house/sheet-1.jpg`: a sound-damping hall of dark indigo slate, deep square
+coffers up its walls and over its vaults, thin violet circuits in their seams, warm grey floor plates, long hexagonal
+crystal resonators in slate collars over the black pool, the gates of jaws heavy slate shutters.
+
+- **Surfaces** (the surface shader's albedo, first pen lines and `emit` replaced, as `landmark-materials.js stone()`
+  does; the values sampled from the pick: its lit slate `#4f506c`, floors `#807679`):
+  - `coffer` (walls): up to a dado 4.2 m over the room's floor (`HUSH.wall.dado`, the floor from the kit's recorded
+    rooms) tall plain slabs, a dark groove over them lit violet in most; above, square coffers 4.8 m across (a whole
+    number round a round room): a flat frame, a bevel down into the coffer lit at its foot and shaded at its head, a
+    field, a second step (`skCoffer`, proportions by the coffer's size); some seams lit violet in runs of three
+    coffers up and four across. Vaults coffered 4.8 m from the room's middle, a violet ring round each oculus.
+  - `metal` (doors, the root-wall's face): 2.2 m machined panels, chamfered, a violet seam down some.
+  - `plates` (floors): the pick's warm grey stone in 3 m plates, rings round a round room's middle, a grid in a hall,
+    a few seams lit violet in runs, a violet inlay 1.6 m in from the walls; a floor's underside coffered.
+  - `shutter` (the jaws' leaves, in their own frame): stacked slate slabs pointed toward the leaves' meeting.
+  - Hatching sparse (`hatch` 0.18 on the walls), every light just over the post pass's 0.62 halo start (`HUSH.emit`:
+    lines 0.78, glyphs 0.72, rings 0.7, the resonators 0.68 breathing ±0.03), so lines stay crisp.
+- **The house's own drawing**, redirected while the layout runs (the skin wraps `K.add` until `done()`: drawn only, the
+  solids untouched): the bog's water a still black pool, the roots (tubes in the floor's material) heavy cables, the
+  crystals grown through the floors teal and violet by turns. The house's light is the pick's cool lavender
+  (`rt.skin.light`), not the dusk's rose.
+- **The jaws** (the Snapping Passage's gate, its two mouths, the balcony's): their own leaves, so what is drawn is what
+  collides (their colliders are built from those leaves, `physics.addMover`), in the `shutter` pattern, a violet lit lip
+  where they meet, dark gums, pale crystal teeth; stilled, the slabs frost pale blue (`SkinMotion`, from the jaw's
+  `frost`).
+- **Dressing**, drawn only (two merged meshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes):
+  stepped acoustic wedges (`WEDGE`: three slabs 0.5, 1 and 1.5 m out) every 4.2 m under the vault of every hall and
+  round room 14 m tall or more; eight resonators (a rod into the vault, a machined collar, a long hexagonal crystal):
+  four in a row over the Bog Well's water, longest first, the first two lit teal and violet with faint rings round them
+  and the others dark, as drawn, and four round the Stilling Chamber's oculus; a stepped hexagonal plinth under each
+  crystal grown through a floor. Kept off doorways, pieces and everything standing out of the walls by boxes.
+- **Lighter presets** (`uWearLite`): no coffer bevels or slab tones, the walls' coffers along the face's axis (no search
+  for the round room), every other wedge and no rings (the meshes' draw ranges).
+- **Unlike the pick**: the coffers are painted, not cut in relief (the wedges are the relief); the jaws keep their
+  leaves' rounded outline (their collision) rather than the pick's square shutters; the Mother Snapper, her crown and
+  the pendulums are the guardian's and the pieces' own, unchanged; the makers' glyph is the shared `glyphGeometry`.
+- Cost: (this Mac, muted headless Chrome, 1280 × 720, 9 views, skin off → on, the machine loaded): draw calls High 305 → 304,
+  Low 320 → 319; triangles 481 k → 462 k on High, 388 k → 351 k on Low (the lights leave the shadow passes); frame and
+  GPU time within the run's noise (GPU High 5.1 → 5.4 ms, Low 1.6 → 1.6 ms). Dressing ~15–40 ms to build.
+  `tests/temple-skins.test.js`.
+
 
 ## Landmarks seen from the approach (14 October 2026)
 
