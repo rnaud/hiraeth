@@ -149,7 +149,11 @@ namespace Hiraeth.Bridge
             }
             // the pipelines the last launch's scene asked of the GPU's driver, drawn while the script builds this one (BridgePrewarm)
             // (once a launch: not again after a reboot, its meshes went with the last scene)
+            // (the GPU's pipelines first: the shipped collection's made on the job system's workers meanwhile, BridgePso; then
+            // the drawn prewarm is left out, its pairs still noted for a launch without one; -draw-prewarm both)
+            if (!Rebooted) BridgePso.Begin();
             if (BridgeArgs.Flag("-no-prewarm") || Rebooted) BridgePrewarm.On = false;
+            else if (BridgePso.Warming && !BridgeArgs.Flag("-draw-prewarm")) Debug.Log("Hiraeth bridge: prewarm: not drawn, the pipelines warmed from the collection");
             else { int warmed = BridgePrewarm.Load(scene.MaterialFromSpec); Debug.Log($"Hiraeth bridge: prewarm: {warmed} (layout, state) pairs from the last launch"); }
             // the port's shadow pass draws casters over a WorldDetail; the bridge's are all "movers" (HiraethShadows
             // finds them), the detail only says where the lowest ground is
@@ -558,7 +562,10 @@ namespace Hiraeth.Bridge
             if (Time.realtimeSinceStartup > limitAt) { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); return; }
             BridgeHost.NewFrame();
             if (!started || failed) return;
-            BridgePrewarm.Draw(cam, !booted);
+            // (drawn once the script's engine is made: it is made through this thread, which the prewarm's first frame holds
+            // for as long as its pipelines take, 12-15 s on the Xbox; from then on its draws overlap the script's world build)
+            if (thread == null || scriptEnvMade.IsSet) BridgePrewarm.Draw(cam, !booted);
+            BridgePso.Tick();
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
             gpuSplit?.Tick();

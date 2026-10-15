@@ -218,6 +218,29 @@ test('the GPU driver\'s pipelines made early: the pairs the scene drew kept in L
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /BridgePrewarm\.Note\(/);
 });
 
+test('the GPU\'s pipelines warmed on the job system\'s workers from a traced collection, the drawn prewarm only without one (issue #16)', () => {
+  const pso = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs');
+  assert.match(pso, /new GraphicsStateCollection\(\)/);
+  assert.match(pso, /\.WarmUp\(default\(JobHandle\)\)/, 'made as jobs, not on the render thread at the first draws');
+  assert.match(pso, /"hiraeth-pso", SystemInfo\.graphicsDeviceType \+ "\.graphicsstate"/, 'one collection a graphics API');
+  assert.match(pso, /BeginTrace\(\)/); assert.match(pso, /SaveToFile\(TracePath\)/);
+  assert.match(read('unity/.gitignore'), /^!Hiraeth\/Assets\/StreamingAssets\/hiraeth-pso\/$/m, 'the traced collections committed');
+  const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
+  assert.ok(runner.indexOf('BridgePso.Begin()') < runner.indexOf('BridgePrewarm.Load('), 'warmed before anything is drawn');
+  assert.match(runner, /BridgePso\.Warming && !BridgeArgs\.Flag\("-draw-prewarm"\)/);
+  assert.match(runner, /scriptEnvMade\.IsSet\) BridgePrewarm\.Draw/, 'the drawn prewarm waits for the script\'s engine, made through the main thread');
+  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs'), /BridgePso\.Settled\(\)/);
+});
+
+test('the engine finishes distant detail after the first frame, as the web does: the City-Shaft\'s trees-in-houses check off the load (issue #16)', () => {
+  const game = read('engine/game.js');
+  assert.match(game, /const deferred = defer && !view \? new DeferredWork\(\) : null/);
+  assert.match(game, /level\.initSteps\(physics, \{ defer: deferred \}\)/);
+  assert.match(game, /deferred\.needSteps\(\[player\.pos, ship\?\.rampFoot, \.\.\.ways\]/, 'what the first frame sees done before it');
+  assert.match(game, /if \(deferred\?\.pending\) \{ deferred\.run\(player\.pos\)/, 'the rest a share a frame');
+  assert.match(read('engine/unity/game.js'), /defer: !off\.has\('defer'\)/, '-js-off defer: all of it before the first frame, as before');
+});
+
 test('the Surface shader is the SRP Batcher\'s: every value a material sets in one UnityPerMaterial buffer, the globals outside', () => {
   const sh = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader');
   const i = sh.indexOf('CBUFFER_START(UnityPerMaterial)'), j = sh.indexOf('CBUFFER_END');

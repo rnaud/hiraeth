@@ -159,6 +159,7 @@ namespace Hiraeth.Bridge
                     settled = lastGrowth;
                     Write($"load: GPU Resident Drawer {BridgeRunner.ResidentDrawerState()}");
                     Write($"load: prewarm: {BridgePrewarm.Save()} (layout, state) pairs kept for the next launch");
+                    BridgePso.Settled();
                     var cam = Camera.main; var urpAsset = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
                     Write($"load: the picture: screen {Screen.width}x{Screen.height}, the camera's {(cam ? cam.pixelWidth : 0)}x{(cam ? cam.pixelHeight : 0)}, render scale {(urpAsset ? urpAsset.renderScale : 1)}, the display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz{DisplayModes()}");
                     try { Write($"load: {scene.Variants()}"); } catch (Exception e) { Write("load: the variants: " + e.Message); }

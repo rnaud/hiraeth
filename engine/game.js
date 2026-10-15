@@ -54,6 +54,7 @@ import { Wildlife } from '../src/wildlife.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
+import { DeferredWork, DEFER } from '../src/deferred.js';
 import { Weather } from '../src/weather.js';
 import { WindStreaks } from '../src/wind.js';
 import { Shelter, addIndoors } from '../src/shelter.js';
@@ -261,7 +262,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -302,7 +303,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
   // (every cape and robe made from here on simulated by the engine where it can: Unity's Burst jobs; src/cape.js CAPE_HOST)
   CAPE_HOST.offload = backend?.capeOffload?.() ?? null;
-  quiet(() => level.init?.(physics));
+  // distant detail finished after the first frame, as main.js does (src/deferred.js): the City-Shaft's check for trees a
+  // clump put inside a house is thousands of rays through the collision, 7.6 s of the Xbox's load on the script's thread
+  // before (issue #16); what is near the first view is done before it, the rest a share a frame, nearest first. Not for a
+  // bench's fixed views (`view`), whose camera stands anywhere; `defer` false (the bridge's -js-off defer): all now
+  const deferred = defer && !view ? new DeferredWork() : null;
+  quiet(() => (level.initSteps ? runSteps(level.initSteps(physics, { defer: deferred })) : level.init?.(physics)));
   stamp('physics');
   const waters = quiet(() => new Waters(scene, { physics }));
   // the opening on a new save (main.js playPrologue: the desert, no save's place, not arriving by ship): the ship in
@@ -591,7 +597,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     reveal(secs = PASSAGE.reveal) { this.k = 0; this.lightK = 0; this.send({ phase: 'reveal', secs, light: 0, lightSecs: secs }); },
     clear() { if (this.state) { this.state = null; screen.set('passage', null); } },
   };
-  const passage = new Passage({ cover: passCover, warm: null, carry: (c) => carryAcross(player, rig, camera, c) });
+  const passage = new Passage({ cover: passCover, warm: null, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); } });
   const thresholds = level.portals?.length ? optional('the doorways\' light', () => new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics })) : null;
   let portalCool = 0;
   const throughPortals = (dt, simT) => {
@@ -928,13 +934,21 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     return true;
   };
   if (aboard) goAboard(aboard);
+  // the distant detail near where the first frame looks from, the ship and the ways through: now (main.js "near detail")
+  if (deferred?.pending) {
+    const t = performance.now();
+    const ways = [...(level.portals ?? []), ...(level.navigationPortals ?? [])].map((p) => p.to).filter(Boolean);
+    const n = runSteps(deferred.needSteps([player.pos, ship?.rampFoot, ...ways].filter(Boolean), DEFER.near));
+    log(`distant detail: ${n} jobs done near in ${Math.round(performance.now() - t)} ms, ${deferred.pending} after the first frame`);
+  }
+  stamp('near detail');
   // the first frame's camera
   rig.update(player.pos, 0, player.frame);
 
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -1180,6 +1194,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       sharedUniforms.uTime.value = simT;
       crowd?.update(dt, simT, player, camera);
       lap?.('crowd');
+      if (deferred?.pending) { deferred.run(player.pos); if (!deferred.pending) log(`distant detail: all done, ${deferred.done} jobs in ${Math.round(deferred.ms)} ms`); }   // (a share a frame, nearest first)
       // (the backend's peopleLod, the Unity bridge's: a person past 30 m out of the last frame's view, with room round them
       // for their shadow and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView)
       const lod = !!backend?.peopleLod;
