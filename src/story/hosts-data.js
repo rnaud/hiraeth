@@ -71,7 +71,7 @@ export const HOSTS = {
   elderflight: P({
     id: 'host.elderflight', name: 'Corra', title: 'who flew with the riders', color: '#9fd6ee', kind: 'f',
     palette: { cloak: '#9fd6ee', lining: '#2b211f', cloth: '#f4efe2', legs: '#5a5a6a', hat: '#d8a24a', hair: '#d8d0c0' }, head: 'hood',
-    say: ['~solemn~ Every morning the same. She won’t fly. Not alone.', '~neutral~ Her wing. Your wing. Through the gates. All the way to the Old Roost.'],
+    say: ['~solemn~ Every morning I wait for her. She won’t fly. Not alone.', '~neutral~ Her wing. Your wing. Through the gates. All the way to the Old Roost.'],
     lines: ['~whisper~ Together.'],
   }),
   // the desert's fight temple (issue #341, src/fight-temples/desert.js): by its doorway west of the camps
