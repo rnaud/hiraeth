@@ -11,6 +11,8 @@ import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 import { creditLines, credits } from '../src/story/ending.js';
+import { ORDER } from '../src/levels/names.js';
+import { CONTENT } from '../src/levels/content.js';
 
 test('the credits as lines where there is no page to roll', () => {
   const c = credits({ order: ['desert', 'arzach'], titles: { desert: 'The Desert', arzach: 'Vael' }, flag: (k) => k === 'world.desert.done' });
@@ -55,6 +57,16 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   assert.ok(g.journal.storyDone('desert'), 'the desert told: done for the route');
   const gs = g.story.quests.game;
   assert.ok(g.ship.completed().includes('desert'), 'the ship counts it');
+
+  // every world's story told and every small thing kept: the end of the road's words, once (main.js's closing page)
+  const J = g.journal.data;
+  const kept = JSON.stringify({ stories: J.stories, relics: J.relics });
+  for (const id of ORDER) { J.stories[id] ??= { title: id }; J.relics[id] = Object.fromEntries((CONTENT[id]?.relics?.names ?? []).map((n, i) => [i, { name: n }])); }
+  const said = [];
+  run(g, 20 * 40, {}, () => { const t = g.screen().state.toast?.text; if (t && said.at(-1) !== t) said.push(String(t)); return /END OF THE ROAD/.test(t ?? ''); });
+  assert.ok(J.completed, 'the road done, kept');
+  assert.ok(said.some((t) => t.startsWith('THE END OF THE ROAD')), said.join(' | '));
+  Object.assign(J, JSON.parse(kept));   // (back to the desert alone: the route's next worlds still to find)
 
   // aboard with power and the core gadgets: the holo table's galactic map, Vael found by its signature and flown to
   gs.set('ship.powered', true);

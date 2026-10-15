@@ -76,6 +76,13 @@ const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
  * (unity-starmap-<scene>.png) to lay beside the web's StarMap at 1280 x 720.
  */
 const starmapScenes = (a) => String(a.starmap ?? '').split(',').filter((k) => STARMAP_SCENES[k]);
+/**
+ * -page <to>:<from> (docs/plans/unity-finishable.md): a place a page load reaches on the web (the night train's bell at
+ * the market's halt: `travel:page` with ?level=<to>&from=<from>, src/story/night-train.js) played as a player meets it:
+ * in <from> on the debug save, the hand-over said, the engine started again at <to> at that level's arrival from <from>
+ * (level.arrivals); a picture before and after (unity-page-before.png, unity-page-arrival.png), where he stands logged.
+ */
+const pageRun = (a) => { const [to, from] = String(a.page ?? '').split(':'); return to && from ? { to, from } : null; };
 /** A scene's save: the base (past the prologue, the map's first lines heard), its flags; the save's format kept. */
 function starmapFlags(scene) {
   const keep = Object.fromEntries(['save.migrated', 'res.v'].map((k) => [k, gameState.data.flags[k]]).filter(([, v]) => v !== undefined));
@@ -146,6 +153,8 @@ export function start(argsJson) {
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
   S.titlePad = new Controller({ pads: () => pads, context: () => 'menu', action: (n) => menus.action(n), navigate: (x, y) => menus.navigate(x, y), look() {}, scroll() {}, faces: () => padFaces() });
   if (args.boot) begin(args.boot);
+  // (-page overnighttrain:bazaar: in the second world first, on the debug save, then by a page load's way to the first; below)
+  else if (pageRun(args)) begin({ slot: DEBUG_SLOT, level: pageRun(args).from, arrive: true });
   else { menus.show('title'); S.titleSound = titleSound(args, settings); }
   showMenu();
 }
@@ -554,6 +563,13 @@ function makePlan(args) {
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-starmap-${scene}.png` });
     }
   }
+  if (pageRun(args)) {
+    const { to, from } = pageRun(args);
+    steps.push({ kind: 'wait', frames: 150, secs: 5 }, { kind: 'pageAt', from });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-page-${args.boot ? 'arrival' : 'before'}.png` });
+    // (the first world: the hand-over, then the engine starts again; the second: done)
+    steps.push(args.boot ? { kind: 'done' } : { kind: 'page', to, from }, { kind: 'hold' });
+  }
   if (args.ending) {
     const n = args.endingShots ?? 40, every = args.endingEvery ?? 5;
     for (let k = 0; k < n; k++) {
@@ -742,6 +758,17 @@ export function frame(dt) {
     next();
   }
   else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'page') {
+    // (as the night train's bell says it: the page's location, here the engine's onPage, engine/game.js)
+    console.log(`[unity] page: ?level=${step.to}&from=${step.from}`);
+    gameState.emit('travel:page', { href: `?level=${step.to}&from=${step.from}` });
+    next();
+  }
+  else if (step.kind === 'pageAt') {
+    const a = game.level.arrivals?.[step.from], p = game.player.pos;
+    console.log(`[unity] page: in ${game.level.id} at ${p.toArray().map((v) => v.toFixed(1))}${a ? `, its arrival from ${step.from} at ${a.pos.toArray().map((v) => v.toFixed(1))} (${p.distanceTo(a.pos).toFixed(1)} m off)` : ''}; the screen's fade ${JSON.stringify(game.screen().state.passage ?? game.screen().state.cine?.fade ?? null)}`);
+    next();
+  }
   else if (step.kind === 'starmap') {
     // (the scene's save, the map opened as the holo table opens it, its moment posed: engine/starmap.js)
     if (S.menus?.open) S.menus.close();

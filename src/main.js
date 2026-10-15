@@ -1,6 +1,6 @@
 import * as shipSfx from './ship/sfx.js';
 import { worldVoid } from './pit-void.js';
-import { homecomingKind } from './story/ending.js';
+import { homecomingKind, roadDone, ROAD } from './story/ending.js';
 import { updateHazards, registerHazard } from './hazards.js';
 import { fireHazard } from './story/flames.js';
 import { GIVERS_NOTE } from './story/signature.js';
@@ -2526,7 +2526,7 @@ let eWasDown = false;
 // Every world's story page and every relic found: a closing page. (It used to point at the Atelier, a last page
 // opened in the picker: the Atelier was dismissed in October 2026, src/levels/names.js DISMISSED.)
 let endingOpen = false;
-const allDone = () => ORDER.every((id) => journal.storyDone(id) && journal.relicCount(id) >= CONTENT[id].relics.names.length);
+const allDone = () => roadDone({ order: ORDER, storyDone: (id) => journal.storyDone(id), relicCount: (id) => journal.relicCount(id), relics: (id) => CONTENT[id].relics.names.length });
 setInterval(() => {
   if (journal.data.completed || story.pageOpen || story.pending || storyRt.busy() || journal.open || !allDone()) return;
   journal.data.completed = Date.now();
@@ -2540,9 +2540,9 @@ setInterval(() => {
   const imgs = shots.map(([e, l], i) => captureView(e, l, i === 0 ? 900 : 440, i === 0 ? 380 : 300));
   const page = document.getElementById('page');
   page.innerHTML = `<div class="sheet">
-    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Every world, ${ORDER.reduce((n, id) => n + CONTENT[id].relics.names.length, 0)} small things kept.</div></div>
+    <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>${ROAD.title}</b><br>${ROAD.kept(ORDER.reduce((n, id) => n + CONTENT[id].relics.names.length, 0))}</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
-    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The sketchbook is full.<br>Home is on the ship’s map, whenever you are ready.</div></div>
+    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">${ROAD.full}<br>${ROAD.home}</div></div>
     <div class="hint" aria-label="continue">▸</div></div>`;
   page.classList.add('open');
   endingOpen = true;

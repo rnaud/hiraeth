@@ -491,3 +491,17 @@ export function creditsHtml(c) {
     <p class="end">The ship is ready whenever you are.</p>
   </div>`;
 }
+
+/**
+ * The end of the road (main.js's closing page, off the ending's path): every world's story told and every small thing
+ * kept. `relics(id)`: how many a world hides. The engines, which have no page, say its words as lines (engine/game.js).
+ */
+export const roadDone = ({ order = [], storyDone = () => false, relicCount = () => 0, relics = () => 0 } = {}) =>
+  order.length > 0 && order.every((id) => storyDone(id) && relicCount(id) >= relics(id));
+/** The closing page's words: its title, the count kept, the sketchbook full and Home waiting. */
+export const ROAD = {
+  title: 'THE END OF THE ROAD',
+  kept: (n) => `Every world, ${n} small things kept.`,
+  full: 'The sketchbook is full.',
+  home: 'Home is on the ship’s map, whenever you are ready.',
+};

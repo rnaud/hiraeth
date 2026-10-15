@@ -99,7 +99,7 @@ import { fastTravel } from '../src/fast-travel.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud } from '../src/hud.js';
 import { toastSeconds, Story, Relics } from '../src/quest.js';
 import { EngineStarMap } from './starmap.js';
-import { homecomingKind, HOME_ID } from '../src/story/ending.js';
+import { homecomingKind, HOME_ID, roadDone, ROAD } from '../src/story/ending.js';
 import { routeChart, findableNote, SEARCH_LINE } from '../src/story/signature-search.js';
 import { knownWorlds, newlyKnown } from '../src/story/route.js';
 import { selfLitSkips } from '../src/shadows.js';
@@ -384,6 +384,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // conversations and pages are the page's, so they are left out; its people stand and move
   // the toasts, one at a time for their reading time (as ship/cinema.js shows them on the page)
   const toasts = { queue: [], left: 0 };
+  let roadT = 1;
   const toast = (text) => { if (text && toasts.queue.at(-1) !== text) toasts.queue.push(String(text)); };
   carryHooks.notice = (t) => toast(keyText(t, { teach: true }));   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
@@ -739,6 +740,18 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     else if (story && !busy && !pinned && !(shipOn && ship.playing)) story.placePrompt?.(camera, pad); else screen.set('prompt', null);
     // toasts: the next once the last has been read
     toasts.left -= dt;
+    // the end of the road (main.js's closing page): every world's story told and every small thing kept, its words said
+    // as lines here, once (the journal's `completed`), when nothing else is on
+    if ((roadT -= dt) <= 0) {
+      roadT = 1;
+      if (!flags && !view && !gameDef && !journal.data.completed && !busy && !(shipOn && ship.playing)
+        && roadDone({ order: ORDER, storyDone: (id) => journal.storyDone(id), relicCount: (id) => journal.relicCount(id), relics: (id) => CONTENT[id]?.relics?.names?.length ?? 0 })) {
+        journal.data.completed = Date.now(); journal.save();
+        sound.chime?.();
+        const n = ORDER.reduce((k, id) => k + (CONTENT[id]?.relics?.names?.length ?? 0), 0);
+        toast(`${ROAD.title} · ${ROAD.kept(n)}`); toast(`${ROAD.full} ${ROAD.home}`);
+      }
+    }
     if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
     if (toasts.left < -6) screen.set('toast', null);
     // (the hearts, the potions and the wallet, as main.js updateHealth; shown a while after a hurt, a drink or a chime)

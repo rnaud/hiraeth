@@ -41,7 +41,7 @@ flight home is the **final homecoming**: the end card and the credits, then `end
 | 19 | The Signal Market's tower, the broadcast | works (read) | bazaar.js: three bulbs shot within 6 s, the console, the film or its timer, then the conversation |
 | 20 | The Lantern: the whistle by each lamp, Ilen, `finale.met` | works (read) | lantern.js listens for the whistle (gadgets → effects.js:124) |
 | 21 | **The final homecoming, the end card, the credits** | **was missing, fixed** | the card and the credits were pages (`#endcard`, `#credits`). Without a page they now show as lines under the picture (src/story/ending.js creditLines), one every 3.4 s. **Unity**: `-ending final`, below; VM to `ending.final` |
-| 22 | The Overnight Train (the market's halt, its bell) | **was a soft-lock, fixed** | Off the critical path. night-train.js travels by `location.search`, a stand-in in the engines, so the screen stayed black under its fade. Now `travel:page` restarts the engine there at the level's arrival (`from`). VM (the hand-over); the restart's arrival not run in Unity |
+| 22 | The Overnight Train (the market's halt, its bell) | **was a soft-lock, fixed** | Off the critical path. night-train.js travels by `location.search`, a stand-in in the engines, so the screen stayed black under its fade. Now `travel:page` restarts the engine there at the level's arrival (`from`). VM (the hand-over); **Unity**: `-page overnighttrain:bazaar`, the train's porch |
 
 ### The Unity runs
 
@@ -51,6 +51,14 @@ beside the web's StarMap at 1280 × 720:
 
 ```sh
 scripts/unity-js-run.sh starmap -starmap search,warm,found,system,ask,nopower,home -out <dir>
+```
+
+`-page <to>:<from>` plays a place a page load reaches on the web, as a player meets it: in `<from>` on the debug save, the
+hand-over (`travel:page`), the engine started again at `<to>`'s arrival from `<from>`; a picture before and after, where he
+stands logged against `level.arrivals[from]`:
+
+```sh
+scripts/unity-js-run.sh page -page overnighttrain:bazaar -out <dir>
 ```
 
 `-ending first|final` (new: engine/unity/game.js, BridgeArgs.cs) plays a homecoming on the **debug save**, with the
@@ -77,12 +85,12 @@ scripts/unity-js-run.sh ending-final -ending final -ending-every 5 -out <dir>
 |---|---|---|
 | ~~The signature search~~ | done | The StarMap's search in BridgeMenu: the uncharted regions, the scanner (left stick, W A S D), its cues (warmth, beat, rumble, the light's notes), the meter, the resolve. engine/starmap.js |
 | ~~The galactic map's own page~~ | done | The system, the way on and its NEXT pennant, the relay's signal, the tower's tag, the Lantern's trace, Home, the panel, "Travel to …?", NO POWER: the page's model (`chartDrawing`) drawn by BridgeMenu.StarMap.cs |
-| The night train's arrival in Unity | S | The hand-over is tested in the VM, but the restart at `level.arrivals[from]` has not been run in Unity yet |
+| ~~The night train's arrival in Unity~~ | done | **Unity**: `-page overnighttrain:bazaar` (below): in the market, the hand-over said, the engine started again on the train's porch at its arrival from the market (0.0 m off), the picture drawn, not black |
 | `isNight` for the story (the cranes' dusk run, the market tower at night) | done | now reads the engine's hour |
 | ~~`travel:refused` → the gadget's quest started~~ | done | engine/game.js listens as main.js:805 does (the ship's refusal at the map, the Worlds page's) |
 | The bird and the bike in other worlds (`birdAnswers`, `bikeComes`, main.js:399–403) | S | main.js only; no main quest needs them |
 | The rain path of Lorn's singing (`globalThis.weather`) | XS | the splash path works |
-| The "end of the road" page (every story and relic) | S | main.js's own page, not the ending; Home is reached without it |
+| ~~The "end of the road" page~~ | done | Its words said as lines once every story is told and every small thing kept (src/story/ending.js `roadDone`, `ROAD`, shared with main.js's page; engine/game.js). VM: engine-finishable.test.js |
 
 Nothing found on the critical path needs a minigame, a typed input or a page that Unity lacks. Once the foes and
 trials are in, which landed on main while this was written, the game can be played from a new save to the credits

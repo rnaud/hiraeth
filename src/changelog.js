@@ -93,6 +93,9 @@ export const CHANGELOG = [
     'In the Unity preview the stamina wheel and the floating “talk to” tag hold still beside the traveller and the person while you run, as on the web: they no longer shake, nor hang off to one side.',
     // the round backpack in Unity: Figure.hlsl nebula / flaskNebula (materials.js), the dome through port-format.js
     'In the Unity preview the backpack’s glass shows the same little green galaxy as on the web, lit from within with its stars, instead of a pale glass with dark streaks.',
+    // the end of the road in Unity (docs/plans/unity-finishable.md): src/story/ending.js roadDone, ROAD (main.js's page), engine/game.js
+    { text: 'In the Unity preview, telling every world’s story and keeping every small thing ends with the closing words, as on the web: the end of the road, the sketchbook full, Home on the ship’s map.',
+      see: 'In the Unity preview, with every world’s story told and its small things found, the last one kept brings the lines “THE END OF THE ROAD” and “The sketchbook is full.”' },
     'The Unity preview on the Xbox now sends a 4K TV a 4K picture, still at 60 frames a second: the world is drawn as sharp as the console can keep up with, about 3520 × 1980 at the desert’s spawn and 2750 × 1550 at the City-Shaft’s rim, where it was always drawn at 2560 × 1440 and stretched by the console. The ink lines keep their weight.',
     // the Unity build's GPU on the Retroid, round 3 (issue #262): Surface.shader (each part's derivatives next to it,
     // HIRAETH_PLAIN, the lean prepass without a discard, the crowd's and grass's varyings), BridgeRenderer.Lean,

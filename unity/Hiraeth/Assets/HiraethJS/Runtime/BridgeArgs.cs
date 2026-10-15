@@ -206,6 +206,8 @@ namespace Hiraeth.Bridge
             if (Arg("-ending-every") != null) args["endingEvery"] = double.Parse(Arg("-ending-every"), CultureInfo.InvariantCulture);
             // (-starmap search,warm,found,system,ask,nopower: the holo table's galactic map aboard, each scene photographed: engine/starmap.js)
             if (Arg("-starmap") != null) args["starmap"] = Arg("-starmap");
+            // (-page overnighttrain:bazaar: in the market, then by the night train's page load to the train's porch: engine/unity/game.js)
+            if (Arg("-page") != null) args["page"] = Arg("-page");
             // (-hull-spawn: a plan's traveller on the spot the ship covers, as the plans started before issue #254 moved
             // the desert's spawn to the ramp's foot: to compare with numbers taken then, issue #265)
             if (Flag("-hull-spawn")) args["hullSpawn"] = true;

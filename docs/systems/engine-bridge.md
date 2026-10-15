@@ -343,6 +343,13 @@ flown to from the holo table). Seen beside the web's: the system, the regions, t
 NO POWER match; the web shows the signature's mark as an empty key cap (the makers' mark SVG carries `class="glyph"`,
 which src/pad-glyphs.js styles as a pad glyph), the engine the mark itself.
 
+**A page load's way, and the end of the road** (issue #264). The night train's bell (src/story/night-train.js) travels by
+the page's address; here `travel:page` starts the engine again at the level's arrival from where you were
+(`level.arrivals[from]`). `-page overnighttrain:bazaar -out dir` plays it as a player meets it: in the market on the debug
+save, the hand-over, the train's porch (`unity-page-before.png`, `unity-page-arrival.png`, where he stands logged against
+the arrival). main.js's closing page once every story is told and every small thing kept (src/story/ending.js
+`roadDone`, `ROAD`) is said as two lines in the engines (engine/game.js, the journal's `completed` once).
+
 **The rooms side by side** (issue #264). `createGame({ aboard })` starts him in a room of the parked ship as the web's
 `?aboard=cockpit|main|cabin|hold` does (main.js; `ship.roomSpot`), and `game.goAboard(room)` moves him there later
 ('console': at the voicemail behind the console's tail). The bridge's `-aboard cockpit,main,cabin,hold,console -out dir`
