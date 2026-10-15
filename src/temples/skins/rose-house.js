@@ -8,18 +8,20 @@ import { Door, Flame, Switch, Sentry } from '../pieces.js';
 // The Rose House in its futuristic skin (issue #342, docs/systems/temples.md "Futuristic skins"), after the author's
 // picks (references/temples/future/rose-house/sheet-1.jpg and sheet-2.jpg): a test chamber of the Givers' high
 // technology, its look only. The same rooms, doors, collision, pieces, positions and logic (tests/temple-skins.test.js).
-//   1. surfaces: the walls monolithic slabs of dark slate, each its own tone, a chamfer round it (a lit bevel on its upper
-//      edge, a shaded one under), a pen line in every joint and rose sand caught in some; thin line circuits in straight
-//      runs and right-angled turns up the slabs and across the floor plates, most of them dark, some lit ember orange (they
-//      breathe, and bloom: the surface's `emit`), a lens terminal at each lit run's ends; the makers' marked faces (doors,
-//      the gallery's face, the pier, the obelisk) a finer machined slab with more circuits lit; pale floor plates split in
-//      halves and quarters with their inlays; the cistern's basin in concentric stepped rings, a pale tide line round it.
+//   1. surfaces: the walls monolithic slabs of warm violet-grey slate, each its own tone, a chamfer round it (a lit bevel
+//      on its upper edge, a shaded one under), a pen line in every joint and rose sand caught in some; thin line circuits
+//      in long straight runs and right-angled turns up the slabs and across the floor plates, most of them lit ember
+//      orange (they breathe, and bloom tightly: the surface's `emit` just over the post pass's 0.62), the rest dark, a
+//      small lit node where a lit run turns or ends; the makers' marked faces (doors, the gallery's face, the pier, the
+//      obelisk) a finer machined slab with more circuits lit; warm sandstone floor plates split in halves and quarters
+//      with their inlays; the cistern's basin in concentric stepped rings, a pale tide line round it.
 //   2. glows: the frieze's lamps light panels (a lit slot under every other glyph), each groove a thin ember line down its
-//      floor, the makers' sign redrawn as a sign (a long low arch, three small dots in a tight row over its crest).
-//   3. dressing, drawn only (three merged meshes: no collision, out of the shadow passes, kept off every doorway and piece):
-//      slate obelisks with a cold cup in the corners of the great halls, thin slate plates floating high under the
-//      ceilings, a machined ring floating over every pilot flame, the spout slab hanging over the cistern with the sign on
-//      it and a dead lens under it.
+//      floor, the makers' sign redrawn as a sign (a long low arch, three small dots in a tight row over its crest), large
+//      and lit; daylight through slots along the great halls' ceilings (a lit strip under each edge).
+//   3. dressing, drawn only (three merged meshes, vertex-coloured: no collision, out of the shadow passes, kept off every
+//      doorway and piece): slate obelisks with a cold cup in the corners of the great halls, thin slate plates floating
+//      high under the ceilings, a thin hoop floating over every pilot flame (its inner edge lit), the spout slab hanging
+//      over the cistern with the sign on it and a dead lens under it.
 //   4. braziers (pieces.js Brazier asks rt.skin.brazier): an obelisk terminal round the same hooded bowl and fire, its
 //      mouth low on the groove, its circuit lit when the bowl is (rt.skin.lit).
 // On Low, Handheld and the Steam Deck (uWearLite) the shader leaves out the dark circuits, the insets and the chamfers'
@@ -32,12 +34,15 @@ const TAU = Math.PI * 2;
 /** The skin's colours (sRGB) and sizes (m). */
 export const ROSE_SKIN = {
   ember: '#ff8a3d',
-  wall: { color: '#6c6571', seam: '#3a3440', bevel: '#9a909c', sand: '#c99a86', size: [4.2, 6.0, 2.3, 0.4], more: [0.32, 0.6, 0.07, 0.6] },
-  machine: { color: '#5d5763', seam: '#332e38', bevel: '#8c8390', sand: '#c99a86', size: [1.7, 2.3, 1.1, 0.5], more: [0.45, 0.8, 0.05, 0.3] },
-  floor: { color: '#b4a497', seam: '#6a5f5a', bevel: '#cdbfb2', sand: '#d4a58e', size: [4.2, 0, 2.6, 0.28], more: [0, 0.42, 0.04, 0.7] },
-  basin: { color: '#8c838d', seam: '#4a434e', tide: '#ddd2c4', step: 0.62 },
-  trim: '#4f4955', stone: '#625b67', fitting: '#45414a', groove: '#2e2a33', dressing: '#5f5865',
-  sign: '#ffa45e', lens: '#2b2730',
+  wall: { color: '#5e5462', seam: '#2f2833', bevel: '#8a7d88', sand: '#c4917c', size: [4.2, 6.0, 4.4, 0.8], more: [0.32, 0.85, 0.07, 0.6] },
+  machine: { color: '#554c58', seam: '#2a242d', bevel: '#7f7381', sand: '#c4917c', size: [1.7, 2.3, 2.0, 0.8], more: [0.45, 0.9, 0.05, 0.3] },
+  floor: { color: '#b89e90', seam: '#6a5550', bevel: '#d0bbab', sand: '#d29f88', size: [4.2, 0, 3.8, 0.6], more: [0, 0.55, 0.04, 0.7] },
+  basin: { color: '#8a7d86', seam: '#463d48', tide: '#dccdbd', step: 0.62 },
+  trim: '#4a4251', stone: '#5c5263', fitting: '#413a45', groove: '#2e2a33', dressing: '#584e5f',
+  sign: '#ff9a50', lens: '#2b2730',
+  /** daylight through the slots along the halls' ceilings (drawn: a lit strip) */
+  signScale: 1.8,
+  daylight: '#f4d29a', slot: { w: 1.5, off: 0.3, end: 1.4 },
   /** how many corner obelisks, floating plates a hall may have, and their sizes */
   obelisk: { inset: 2.6, h: 6.6, foot: 1.8, top: 1.15 },
   plates: { per: 7, below: [3, 7.5], clear: 9 },
@@ -62,7 +67,8 @@ const RH_GLSL = /* glsl */ `
   float rhCov(float d, float w, float pxm) { float h = max(w * 0.5, pxm * 0.5); return clamp((h - d) / pxm + 0.5, 0.0, 1.0) * clamp(w / pxm, 0.45, 1.0); }
   // a circuit in the strip u0..u0+W: segments S long up v, each at its own place across, joined by right-angled turns;
   // lit in runs of three (a share uSkP.w of them). x: how near the lit trace (m), y: the dark, z: a lens terminal (m)
-  float rhX(float seed, float k, float u0, float W) { return u0 + W * (0.2 + 0.6 * rhH(vec2(seed, k))); }
+  // (on one of three lanes across its strip: a third of the time a run goes straight on, unturned)
+  float rhX(float seed, float k, float u0, float W) { return u0 + W * (0.2 + 0.3 * floor(rhH(vec2(seed, k)) * 2.999)); }
   float rhLit(float seed, float k) { return step(rhH(vec2(seed * 1.31, floor(k / 3.0))), uSkP.w); }
   vec3 rhTrace(vec2 p, float u0, float W, float S, float seed) {
     float k = floor(p.y / S), y0 = k * S, y1 = y0 + S;
@@ -73,17 +79,18 @@ const RH_GLSL = /* glsl */ `
     if (lk > 0.5) lit = dv; else dark = dv;
     if (lk * lp > 0.5) lit = min(lit, d0); else dark = min(dark, d0);
     if (lk * ln > 0.5) lit = min(lit, d1); else dark = min(dark, d1);
-    if (lk > 0.5 && ln < 0.5) lens = length(p - vec2(xa, y1));
+    // (a node where a lit run ends, and where it turns)
+    if (lk > 0.5 && (ln < 0.5 || abs(xn - xa) > 1e-3)) lens = length(p - vec2(xa, y1));
     if (lk > 0.5 && lp < 0.5) lens = min(lens, length(p - vec2(xa, y0)));
     return vec3(lit, dark, lens);
   }
   float rhLine(float px) { float w = 0.5 * uPixelRatio; return 1.0 - smoothstep(w, w + 1.0, px); }
-  // the circuits' lit pixels, breathing a little, each run its own beat
-  float rhBreathe(float seed) { return 0.78 + 0.22 * sin(uTime * 1.15 + seed * 2.3); }
+  // the circuits' lit pixels, breathing a little, each run its own beat: just over the post pass's 0.62, a tight halo
+  float rhBreathe(float seed) { return 0.74 + 0.06 * sin(uTime * 1.15 + seed * 2.3); }
   // a circuit's look over albedo: lit (uSkE, emit) or dark (uSkA, a groove); its lens terminals
   void rhCircuit(vec3 T, float pxm, float lite, float seed, inout vec3 albedo, inout float emit, inout float ink) {
-    float cl = rhCov(T.x, 0.065, pxm), cd = (1.0 - lite) * rhCov(T.y, 0.04, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
-    float lensC = rhCov(T.z, 0.24, pxm), ring = rhCov(abs(T.z - 0.17), 0.05, pxm) * (1.0 - smoothstep(0.03, 0.06, pxm));
+    float cl = rhCov(T.x, 0.045, pxm), cd = (1.0 - lite) * rhCov(T.y, 0.035, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
+    float lensC = rhCov(T.z, 0.15, pxm), ring = rhCov(abs(T.z - 0.12), 0.03, pxm) * (1.0 - smoothstep(0.02, 0.05, pxm));
     albedo = mix(albedo, uSkA, max(cd * 0.85, ring));
     float on = max(cl, lensC) * rhBreathe(seed);
     albedo = mix(albedo, uSkE, max(cl, lensC));
@@ -121,7 +128,9 @@ const BODIES = {
       // a panel inset in some slabs
       if (lite < 0.5 && rhH(vec2(col, row) + 5.0) < uSkQ.x) skInk = max(skInk, rhLine(abs(dj - 0.32) / pxm) * 0.45 * near);
       // the circuits: one in some slabs' columns, up the wall (across a ceiling)
-      if (rhH(vec2(col, 7.7)) < uSkQ.y) rhCircuit(rhTrace(uv, col * W, W, uSkP.z, col + 0.37), pxm, lite, col, albedo, skEmit, skInk);
+      // (two strips to a column: a circuit in most of them)
+      float W2 = W * 0.5, c2 = floor(uv.x / W2);
+      if (rhH(vec2(c2, 7.7)) < uSkQ.y) rhCircuit(rhTrace(uv, c2 * W2, W2, uSkP.z * (0.8 + 0.5 * rhH(vec2(c2, 2.9))), c2 + 0.37), pxm, lite, c2, albedo, skEmit, skInk);
     }
   `,
   // floor plates: uSkP.x m squares, some split in halves or quarters, inlaid circuits both ways (uSkP.zw, uSkQ.y)
@@ -223,8 +232,8 @@ const slab = (w, h, d, x = 0, y = 0, z = 0) => bare(new THREE.BoxGeometry(w, h, 
  */
 export function signGeometry(width = 1, depth = 0.06) {
   const R = width / 1.62, parts = [];
-  parts.push(new THREE.TorusGeometry(R, 0.055 * R, 4, 16, Math.PI * 0.6).rotateZ(Math.PI * 0.2).scale(1, 0.8, depth / (0.11 * R)).translate(0, -0.8 * R + 0.1 * R, 0));
-  for (const x of [-0.2, 0, 0.2]) parts.push(new THREE.CylinderGeometry(0.06 * R, 0.06 * R, depth, 8).rotateX(Math.PI / 2).translate(x * R, 0.24 * R, 0));
+  parts.push(new THREE.TorusGeometry(R, 0.045 * R, 4, 18, Math.PI * 0.6).rotateZ(Math.PI * 0.2).scale(1, 0.8, depth / (0.09 * R)).translate(0, -0.8 * R + 0.1 * R, 0));
+  for (const x of [-0.2, 0, 0.2]) parts.push(new THREE.CylinderGeometry(0.055 * R, 0.055 * R, depth, 8).rotateX(Math.PI / 2).translate(x * R, 0.27 * R, 0));
   return mergeGeometries(parts.map(bare));
 }
 
@@ -303,7 +312,7 @@ function dressing(rt, S, keep, plan) {
   const K = rt.kit, rnd = rand(342), slate = [], plates = [], glow = [], dead = [];
   const rooms = plan.filter((e) => e.kind === 'hall' || e.kind === 'round');
   const eyes = rt.pieces.filter((p) => p instanceof Switch || p instanceof Sentry).map((p) => K.local(p.group?.position ?? p.pos));
-  const n = { obelisks: 0, plates: 0, rings: 0, spouts: 0, grooves: 0 };
+  const n = { obelisks: 0, plates: 0, rings: 0, spouts: 0, grooves: 0, slots: 0 };
   // the obelisks: a tapered slate slab with a cold cup on it in each corner of the great halls, a lens on its two faces
   // looking into the room (sheet-1, sheet-2: the brazier terminals at the hall's corners)
   const O = S.obelisk;
@@ -355,15 +364,28 @@ function dressing(rt, S, keep, plan) {
       got++; n.plates++;
     }
   }
-  // a machined ring floating over every pilot flame (sheet-1: the never-dying flame held in a floating ring), over the
-  // ball that rolls through it: a band, an ember line round its inside
+  // a thin ring floating over every pilot flame (sheet-1, sheet-2: the never-dying flame held in a floating hoop), over
+  // the ball that rolls through it: a flat hoop of slate, its inner edge lit ember
   for (const p of rt.pieces) {
     if (!(p instanceof Flame)) continue;
     const c = K.local(p.pos), R = (p.o.r ?? 0.9) + 0.65, y = c.y + 2.45;
-    const band = new THREE.LatheGeometry([[R, -0.14], [R + 0.16, -0.12], [R + 0.18, 0.12], [R, 0.14], [R - 0.04, 0], [R, -0.14]].map(([a, b]) => new THREE.Vector2(a, b)), 28);
-    slate.push(bare(band).translate(c.x, y, c.z));
-    glow.push(bare(new THREE.TorusGeometry(R - 0.04, 0.035, 3, 28).rotateX(Math.PI / 2).translate(c.x, y, c.z)));
+    const hoop = new THREE.LatheGeometry([[R, -0.04], [R + 0.13, -0.035], [R + 0.13, 0.035], [R, 0.04], [R, -0.04]].map(([a, b]) => new THREE.Vector2(a, b)), 32);
+    slate.push(bare(hoop).translate(c.x, y, c.z));
+    glow.push(bare(new THREE.TorusGeometry(R - 0.005, 0.03, 3, 32).rotateX(Math.PI / 2).translate(c.x, y, c.z)));
     n.rings++;
+  }
+  // daylight through slots along the great halls' ceilings (sheet-1, sheet-2: the roof stops short of the walls, the sky
+  // a bright line along their tops): a lit strip just under the ceiling along each wall, clear of the lintel's trim
+  // (and of whatever stands up to the ceiling there: a hall's columns)
+  const L = S.slot, day = [];
+  for (const r of rooms) {
+    if (r.kind !== 'hall' || r.h < 15 || !r.roof) continue;
+    const y = r.y + r.h - 0.04, a = L.off + L.w / 2, ex = r.w - 2 * L.end, ez = r.d - 2 * L.end;
+    for (const [cx, cz, sx, sz] of [[r.x, r.z - r.d / 2 + a, ex, L.w], [r.x, r.z + r.d / 2 - a, ex, L.w], [r.x - r.w / 2 + a, r.z, L.w, ez], [r.x + r.w / 2 - a, r.z, L.w, ez]]) {
+      if (hits(keep, new THREE.Box3().setFromCenterAndSize(V(cx, y - 0.3, cz), V(sx, 0.6, sz)))) continue;
+      day.push(slab(sx, 0.04, sz, cx, y, cz));
+      n.slots++;
+    }
   }
   // the spout slab hanging over a great round room's middle (the cistern): a beam across its oculus, set into its
   // ceiling, a neck, the slab with the makers' sign on the faces toward its doors and a dead lens under it
@@ -405,7 +427,7 @@ function dressing(rt, S, keep, plan) {
       n.grooves++;
     }
   }
-  return { slate, plates, glow, dead, n };
+  return { slate, plates, glow, dead, day, n };
 }
 /** A thin bar from a to b (w across, t thick), lying flat (its thin side up) unless it runs up. */
 function bar(a, b, w, t = w) {
@@ -415,6 +437,13 @@ function bar(a, b, w, t = w) {
   // (lookAt aims -z; the box runs +z: turn it round)
   g.applyMatrix4(new THREE.Matrix4().makeRotationY(Math.PI)).applyMatrix4(m).translate(a.x, a.y, a.z);
   return bare(g);
+}
+/** A geometry painted one colour (the dressing's materials read vertex colours: two looks in one draw). */
+function tint(g, hex) {
+  const c = new THREE.Color(hex), n = g.attributes.position.count, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) a.set([c.r, c.g, c.b], i * 3);
+  g.setAttribute('color', new THREE.BufferAttribute(a, 3));
+  return g;
 }
 /** A drawn-only mesh of the dressing (in the world: geometries from the kit's frame), out of every shadow pass. */
 function drawn(name, geos, mat, frame) {
@@ -445,7 +474,8 @@ function redrawSigns(K, mat) {
     const l = g.boundingBox.clone().applyMatrix4(K.inv), s = l.getSize(V());
     // (a glyph stands on a wall: thin one way across; the ring on the chest's mound lies flat, and stays)
     if (s.y < 0.2 || Math.min(s.x, s.z) > 0.5 || Math.max(s.x, s.z) < 0.3) continue;
-    const alongX = s.x > s.z, w = Math.max(s.x, s.z), c = l.getCenter(V());
+    // (half as wide again as the glyph it stands for, its strokes bolder: the picks' sign reads from across the hall)
+    const alongX = s.x > s.z, w = Math.max(s.x, s.z) * ROSE_SKIN.signScale, c = l.getCenter(V());
     const sign = signGeometry(w, Math.max(0.06, Math.min(s.x, s.z))).rotateY(alongX ? 0 : Math.PI / 2).translate(c.x, c.y - s.y * 0.05, c.z);
     list[i] = sign.applyMatrix4(K.frame);
     n++;
@@ -508,11 +538,11 @@ export function roseHouseSkin(rt) {
     basin: null,
     stoneMat: makeMaterial({ color: S.stone, flat: true, ...look, key: 'temple.skin.rose.stoneMat' }),
     trimMat: makeMaterial({ color: S.fitting, flat: true, key: 'temple.skin.rose.fitting' }),
-    glyph: makeMaterial({ color: S.sign, glow: 0.7, flat: true, key: 'temple.skin.rose.sign' }),
-    dressing: makeMaterial({ color: S.dressing, flat: true, ...look, key: 'temple.skin.rose.dressing' }),
-    glow: makeMaterial({ color: S.ember, glow: 0.95, flat: true, key: 'temple.skin.rose.glow' }),
-    dead: makeMaterial({ color: S.lens, flat: true, key: 'temple.skin.rose.lens' }),
-    slot: makeMaterial({ color: S.ember, glow: 0.85, flat: true, key: 'temple.skin.rose.slot' }),
+    glyph: makeMaterial({ color: S.sign, glow: 0.76, flat: true, key: 'temple.skin.rose.sign' }),
+    dressing: makeMaterial({ flat: true, ...look, color: '#ffffff', vertexColors: true, key: 'temple.skin.rose.dressing' }),
+    // (the lit dressing: its glow just over the post pass's 0.62, the halo kept tight)
+    glow: makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.78, flat: true, key: 'temple.skin.rose.glow' }),
+    slot: makeMaterial({ color: S.ember, glow: 0.78, flat: true, key: 'temple.skin.rose.slot' }),
     slotDim: makeMaterial({ color: '#4a3c3c', glow: 0.1, flat: true, key: 'temple.skin.rose.slotDim' }),
   };
   Object.assign(M, {
@@ -542,11 +572,11 @@ export function roseHouseSkin(rt) {
       const signs = redrawSigns(K, M.glyph);
       const keep = keepOuts(rt, plan);
       const D = dressing(rt, S, keep, plan);
-      const slateM = drawn('skin: obelisks, rings and the spout', D.slate, mats.dressing, K.frame);
-      const plateM = drawn('skin: floating plates', D.plates, mats.dressing, K.frame);
-      const glowM = drawn('skin: lit lines and lenses', D.glow, mats.glow, K.frame);
-      const deadM = drawn('skin: dark lenses', D.dead, mats.dead, K.frame);
-      for (const m of [slateM, plateM, glowM, deadM]) if (m) { K.group.add(m); meshes.push(m); }
+      // (vertex colours: the dark lenses drawn with the slate, the daylight slots with the ember lines)
+      const slateM = drawn('skin: obelisks, rings, the spout and its dark lenses', [...D.slate.map((g) => tint(g, S.dressing)), ...D.dead.map((g) => tint(g, S.lens))], mats.dressing, K.frame);
+      const plateM = drawn('skin: floating plates', D.plates.map((g) => tint(g, S.dressing)), mats.dressing, K.frame);
+      const glowM = drawn('skin: lit lines, lenses and the daylight slots', [...D.glow.map((g) => tint(g, S.ember)), ...D.day.map((g) => tint(g, S.daylight))], mats.glow, K.frame);
+      for (const m of [slateM, plateM, glowM]) if (m) { K.group.add(m); meshes.push(m); }
       // (the floating plates hidden on the lighter presets, as the shader's finer marks are)
       if (plateM && slateM) { plateM.userData.skinFine = true; slateM.onBeforeRender = () => { plateM.visible = sharedUniforms.uWearLite.value < 0.5; }; }
       skin.stats = { ...D.n, signs, ms: Math.round(performance.now() - t0) };

@@ -1432,20 +1432,27 @@ a Givers' test chamber of dark slate and ember light, over the same rooms. Its s
 (`skin: roseHouseSkin` on the house's def; the hooks are `src/temples/skins/index.js`). `?noskin=1` shows the house without it.
 
 - **Surfaces** (the surface shader's albedo, first pen lines and `emit` replaced, as `landmark-materials.js` `stone()`
-  does): the walls monolithic slate slabs (4.2 m by about 6, staggered per column, each its own tone), a chamfer round each
+  does): the walls monolithic slabs of warm violet-grey slate (the picks' value and hue, sampled from the sheets) (4.2 m by about 6, staggered per column, each its own tone), a chamfer round each
   (lit above, shaded below), a pen line in every joint, rose sand caught in some; the makers' marked faces (doors, the
-  gallery's face, the pier, the obelisk, the braziers) a finer machined slab. Pale floor plates, split in halves and
+  gallery's face, the pier, the obelisk, the braziers) a finer machined slab. Warm sandstone floor plates, split in halves and
   quarters, rose sand drifted over them. The cistern's basin in stepped rings round its middle, a pale tide line under
   its rim. Along each face's own direction, so the round rooms' stones pattern as the straight walls do.
-- **Circuits**: thin lines in straight runs with right-angled turns up the slabs and through the floor plates, most of
-  them dark grooves, some lit ember orange in runs of three segments, a lens terminal at each lit run's ends. Lit pixels
-  set the surface's `emit`, so they bloom as the lamps and flames do, and breathe slowly.
+- **Circuits**: thin lines (4.5 cm, never under a pixel) in long straight runs up the slabs and through the floor plates,
+  two strips to a slab column, each run on one of three lanes across its strip (so a third of the joints go straight on
+  and the rest turn at right angles); most lit ember orange in runs of three segments, the rest dark grooves, a small lit
+  node where a lit run turns or ends. Lit pixels set the surface's `emit` at 0.68 to 0.8, breathing slowly: just over the
+  post pass's 0.62 halo start, so the bloom stays tight round the line.
 - **Glows**: the frieze's ornament becomes the `slot` light panels (lit and dark by turns), the frieze glyphs are redrawn
-  as the picks' sign (`signGeometry`: a long low arch, three small dots in a row over its crest; the doors', plates' and
-  other houses' glyph is the shared one, `src/story/sign-text.js`, left as it was), and an ember line runs down each groove.
-- **Dressing**, drawn only (four merged meshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes): slate
-  obelisks with a cold cup in the corners of the great halls, thin slate plates floating high under the ceilings, a
-  machined ring floating over every pilot flame, the spout slab hanging over the cistern with the sign and a dead lens.
+  as the picks' sign (`signGeometry`: a long low arch, three small dots in a row over its crest, 1.8 times the glyph's
+  width and lit ember, `ROSE_SKIN.signScale`; the doors', plates' and other houses' glyph is the shared one,
+  `src/story/sign-text.js`, left as it was), and an ember line runs down each groove. Daylight falls through slots along
+  the great halls' ceilings (the picks' roof stopping short of the walls): a lit strip 1.5 m wide just under the ceiling
+  along each wall, clear of the lintel and of anything standing up to the ceiling (`ROSE_SKIN.slot`; drawn only, the
+  lighting rig untouched).
+- **Dressing**, drawn only (three merged meshes, vertex-coloured so the dark lenses go with the slate and the daylight
+  slots with the ember lines: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes): slate obelisks with a cold
+  cup in the corners of the great halls, thin slate plates floating high under the ceilings, a thin flat hoop floating
+  over every pilot flame, its inner edge lit, the spout slab hanging over the cistern with the sign and a dead lens.
   Kept off every doorway, archway, piece and the eyes to strike by keep-out boxes from the kit's plan and the pieces.
 - **Braziers** (`rt.skin.brazier`): an obelisk terminal round the same hooded bowl and fire (two cheeks round a low mouth on
   the groove, a square cup, a cowl, the obelisk behind with the sign), its circuit lit with the bowl (`rt.skin.lit`).

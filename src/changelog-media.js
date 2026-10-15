@@ -37,20 +37,20 @@ export const MEDIA_DIR = 'changelog-media';
 const FROM_HUD = 'headless Chrome against a dev server of this branch and of the commit before it (172da299), the Desert, medium, 10:00';
 export { lineText };
 /** (v1.77, issue #342: the Rose House with and without its futuristic skin, ?noskin=1, in one page load each) */
-const ROSE342 = 'Issue #342: muted headless Chrome (High and Low, 1280 × 720, noon, clear), Vite on port 6461, the camera pinned at the same place with and without the skin (?noskin=1), 14 October; the bench’s rAF counter (renderer.info), 5 s a view; cwebp -q 72';
+const ROSE342 = 'Issue #342 (and its second pass, closer to the drawings): muted headless Chrome (High and Low, 1280 × 720, noon, clear), Vite on port 6472, the camera pinned at the same place with and without the skin (?noskin=1), 15 October; the bench’s rAF counter (renderer.info), 3 s a view; cwebp -q 72';
 const ROSE342_CALLS = [
-  { where: 'Hall of the Flame, High', before: 380, after: 368 }, { where: 'Dry Channel, High', before: 390, after: 374 },
-  { where: 'Sword Chamber, High', before: 384, after: 368 }, { where: 'Machines’ Hall, High', before: 363, after: 346 },
-  { where: 'Hall of Channels, High', before: 213, after: 199 }, { where: 'Cistern, High', before: 142, after: 138 },
-  { where: 'Hall of the Flame, Low', before: 340, after: 328 }, { where: 'Sword Chamber, Low', before: 390, after: 309 },
-  { where: 'Cistern, Low', before: 169, after: 155 },
+  { where: 'Hall of the Flame, High', before: 380, after: 367 }, { where: 'Dry Channel, High', before: 381, after: 364 },
+  { where: 'Sword Chamber, High', before: 384, after: 367 }, { where: 'Machines’ Hall, High', before: 363, after: 352 },
+  { where: 'Hall of Channels, High', before: 213, after: 198 }, { where: 'Cistern, High', before: 148, after: 136 },
+  { where: 'Hall of the Flame, Low', before: 383, after: 369 }, { where: 'Hall of Channels, Low', before: 234, after: 218 },
+  { where: 'Cistern, Low', before: 169, after: 160 },
 ];
 const ROSE342_FRAME = [
-  { where: 'Hall of the Flame, High', before: 8.0, after: 8.6 }, { where: 'Dry Channel, High', before: 6.6, after: 8.6 },
-  { where: 'Sword Chamber, High', before: 7.8, after: 8.6 }, { where: 'Machines’ Hall, High', before: 7.1, after: 9.2 },
-  { where: 'Hall of Channels, High', before: 5.8, after: 7.0 }, { where: 'Cistern, High', before: 6.2, after: 7.6 },
-  { where: 'Hall of the Flame, Low', before: 6.5, after: 5.5 }, { where: 'Sword Chamber, Low', before: 6.6, after: 5.4 },
-  { where: 'Machines’ Hall, Low', before: 7.0, after: 5.8 }, { where: 'Cistern, Low', before: 4.8, after: 5.6 },
+  { where: 'Hall of the Flame, High', before: 7.2, after: 6.0 }, { where: 'Dry Channel, High', before: 7.9, after: 5.1 },
+  { where: 'Sword Chamber, High', before: 8.8, after: 5.0 }, { where: 'Machines’ Hall, High', before: 9.3, after: 5.3 },
+  { where: 'Hall of Channels, High', before: 7.7, after: 4.7 }, { where: 'Cistern, High', before: 5.9, after: 4.9 },
+  { where: 'Hall of the Flame, Low', before: 5.8, after: 5.6 }, { where: 'Sword Chamber, Low', before: 8.6, after: 5.7 },
+  { where: 'Machines’ Hall, Low', before: 9.4, after: 5.9 }, { where: 'Cistern, Low', before: 4.8, after: 5.1 },
 ];
 
 /** The files of a shot (paths from the site's root): before is null for an after-only picture; sheet, the design
@@ -1097,15 +1097,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'rose-fires2', title: 'The Hall of Fires', caption: 'From the near floor, looking north: before, the ball, its fire, its thorns and the bowl 5 m east of the middle; after, all of them down the middle of the hall', from: 'Issue #336 follow-up: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6455, on the tree before this change and on this branch, the camera pinned at the same place, 14 October; cwebp -q 72' },
     ] },
     { match: 'The Rose House looks like the Givers’ high technology now', shots: [
-      { name: 'future-rose-house-flame', title: 'The Hall of the Flame', caption: 'Down the groove to the hooded bowl: before, rose ashlar; after, slate slabs with their circuits, the floor plates and their inlays, the ring floating over the pilot flame, the lit panels under the frieze', from: ROSE342, reference: { sheet: 'references/temples/future/rose-house/sheet-1.jpg', caption: 'The picked drawing (sheet 1): slate slabs, ember circuits, the flame in its floating ring, the obelisk braziers' } },
-      { name: 'future-rose-house-cistern', title: 'The Cistern', caption: 'The Keeper by its dry spout: the basin in stepped rings with its tide line, the spout slab hanging overhead, the rim braziers as obelisks', from: ROSE342, reference: { sheet: 'references/temples/future/rose-house/sheet-2.jpg', caption: 'The picked drawing (sheet 2): the basin, the spout slab with the sign, the obelisks' } },
+      { name: 'future-rose-house-flame', title: 'The Hall of the Flame', caption: 'Down the groove to the hooded bowl: before, rose ashlar; after, violet-grey slate slabs with long thin ember circuits ending in small lit nodes, warm sandstone floor plates and their inlays, the thin ring floating over the pilot flame, daylight in a slot along the ceiling, the makers’ sign along the frieze', from: ROSE342, reference: { sheet: 'references/temples/future/rose-house/sheet-1.jpg', caption: 'The picked drawing (sheet 1): slate slabs, ember circuits, the flame in its floating ring, daylight along the roof’s edges, the obelisk braziers' } },
+      { name: 'future-rose-house-cistern', title: 'The Cistern', caption: 'The Keeper by its dry spout: the basin in stepped rings with its tide line, the spout slab hanging overhead, thin rings with a glowing inner edge over the side fires, the signs along the frieze bigger and lit', from: ROSE342, reference: { sheet: 'references/temples/future/rose-house/sheet-2.jpg', caption: 'The picked drawing (sheet 2): the basin, the spout slab with the sign, the obelisks' } },
       { name: 'future-rose-house-brazier', title: 'A brazier, lit', caption: 'The hooded bowl at the end of the Hall of the Flame’s groove: before, bronze; after, a slate obelisk terminal, its circuit lit with the fire', from: ROSE342 },
-      { name: 'future-rose-house-chest', title: 'The Sword Chamber', caption: 'The round chamber’s stones as slabs, the circuits running on round it', from: ROSE342 },
-      { name: 'future-rose-house-wing', title: 'The Hall of Channels', caption: 'The long groove with its ember line, the eye’s obelisk, the plates floating under the ceiling', from: ROSE342 },
-      { name: 'future-rose-house-machines', title: 'The Machines’ Hall', caption: 'The arena: slabs, circuits and the corner obelisks', from: ROSE342 },
+      { name: 'future-rose-house-chest', title: 'The Sword Chamber', caption: 'The round chamber’s stones as slabs, the circuits running on round it, the makers’ sign over each lit slot', from: ROSE342 },
+      { name: 'future-rose-house-wing', title: 'The Hall of Channels', caption: 'The long groove with its ember line, the eye’s obelisk, the plates floating under the ceiling, daylight in slots along its edges', from: ROSE342 },
+      { name: 'future-rose-house-machines', title: 'The Machines’ Hall', caption: 'The arena: slabs, circuits, the corner obelisks and the daylight slots round its ceiling', from: ROSE342 },
     ], numbers: [
       { title: 'Draw calls in the Rose House', unit: 'calls', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720', rows: ROSE342_CALLS, source: ROSE342 },
-      { title: 'Frame time in the Rose House', unit: 'ms', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720, uncapped', rows: ROSE342_FRAME, source: ROSE342, note: 'The median of 3 s at each view, with and without the skin (?noskin=1) in one run; the machine was busy with other builds, so a millisecond or two either way is noise.' },
+      { title: 'Frame time in the Rose House', unit: 'ms', better: 'lower', device: 'MacBook (M-series), headless Chrome, 1280 × 720, uncapped', rows: ROSE342_FRAME, source: ROSE342, note: 'The median of 3 s at each view, with and without the skin (?noskin=1) in one run; uncapped and the machine busy with other work, so a millisecond or two either way is noise. The second pass draws one mesh fewer than the first (3.3 skin draws a frame, from 4.4).' },
     ] },
     { match: 'Inside, the Whale-House looks like the makers’ high-tech sounding-house', tags: ['underwater'], shots: [
       { name: 'future-whale-tank', title: 'The Tank Hall', caption: 'The great window: before, ivory stone, a coral course and pale glass; after, green slate in a cool clear light, the glass a deep sea with shafts of light, the Listener on the sea floor and a whale far out (they slide behind the glass as you walk) behind a few heavy dark mullions, the dishes polished brass, the brass horn terminals with dark mouths under their shelf along the far wall', from: WHALE342,
