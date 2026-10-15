@@ -11,6 +11,7 @@ import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch,
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { keeperGuardian } from './guardian-generated.js';
 import { chestMound } from '../boxes/mound.js';
+import { roseHouseSkin } from './skins/rose-house.js';
 
 // The desert's temple: the Rose House, the great drum of rose stone the
 // people of Qanat call the house of the Givers, standing above the dunes east
@@ -797,6 +798,8 @@ export const DESERT_TEMPLE = {
   arenas: ARENAS,
   origin: [150, 2400, -250], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
+  // (its futuristic skin, issue #342: the look of the author's picks over the same rooms, src/temples/skins/rose-house.js)
+  skin: roseHouseSkin,
   layout, exterior, change,
   enterLine: 'Cool air, and the smell of old water. The Rose House is dark inside, and very large.',
   pitLine: 'You climb back out of the sand, to the last glyph stone.',

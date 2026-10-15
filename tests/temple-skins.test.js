@@ -2,7 +2,13 @@
 // and a house without one wears none.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as THREE from 'three';
 import { houseSkin } from '../src/temples/skins/index.js';
+import { roseHouseSkin } from '../src/temples/skins/rose-house.js';
+import { TEMPLES } from '../src/temples/index.js';
+import { TempleRuntime } from '../src/temples/runtime.js';
+import { GameState } from '../src/game-state.js';
+import { Door } from '../src/temples/pieces.js';
 
 test('a house without a skin wears none', () => {
   const rt = { def: {} };
@@ -106,4 +112,65 @@ test('the Warden’s Well’s dressing keeps out of every doorway; its vanes tur
     assert.ok(before.equals(after), 'and stand still on the lighter presets');
   } finally { wShared.uWearLite.value = was; }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the slabs’ tones, chamfers and jogs off on the lighter presets');
+});
+
+// ---- the Rose House in its futuristic skin (src/temples/skins/rose-house.js; docs/systems/temples.md "Futuristic skins")
+// (rt.noSkin is read by houseSkin while the constructor runs: a runtime that has it from its prototype)
+class NoSkin extends TempleRuntime { get noSkin() { return true; } }
+const buildHouse = (id, bare = false) => new (bare ? NoSkin : TempleRuntime)({ scene: new THREE.Scene(), level: { lights: [] }, def: TEMPLES[id].def, game: new GameState(null) });
+const verts = (m) => Array.from(m.geometry.attributes.position.array, (v) => Math.round(v * 1000));
+const skinned = (rt) => rt.kit.group.children.filter((m) => m.userData.skin);
+let rose = null;
+const roseHouse = () => (rose ??= buildHouse('desert'));
+
+test('the Rose House wears its futuristic skin: slate slabs, floor plates and circuits, its dressing drawn', () => {
+  const rt = roseHouse();
+  assert.equal(TEMPLES.desert.def.skin, roseHouseSkin);
+  assert.equal(rt.skin?.id, 'rose-house');
+  for (const k of ['wall', 'machine', 'floor', 'basin']) {
+    const m = rt.skin.mats[k];
+    assert.ok(m?.userData.roseSkin, `its ${k} is the skin's`);
+    assert.ok(m.fragmentShader.includes('float detail = skInk;') && m.fragmentShader.includes('float emit = skEmit;'), `the ${k}'s pen lines and glow are the pattern's`);
+  }
+  const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
+  for (const k of ['wall', 'machine', 'floor', 'basin', 'glyph']) assert.ok(kitMats.has(rt.skin.mats[k]), `the rooms drawn in its ${k}`);
+  assert.ok(!rt.M.wall.userData.roseSkin && !rt.M.floor.userData.roseSkin, 'rt.M the house’s own again, for its exterior');
+  assert.equal(rt.kit.plan, null);
+  const s = rt.skin.stats;
+  assert.ok(s.obelisks >= 8 && s.plates >= 30 && s.rings >= 5 && s.spouts === 1 && s.grooves >= 7 && s.signs > 40, JSON.stringify(s));
+  // the braziers are obelisk terminals, their circuit lit with the bowl
+  const b = rt.piece('b0');
+  assert.ok(b.skinLines);
+  b.ignite(true);
+  assert.ok(b.skinLines.uniforms.uGlow.value > 0.9);
+});
+
+test('the Rose House’s skin adds no collision and moves nothing: its solids, climbs and pieces as without it', () => {
+  const a = roseHouse(), b = buildHouse('desert', true);
+  assert.equal(b.skin, null);
+  assert.equal(skinned(b).length, 0);
+  for (const end of [' collision', ' climbs']) {
+    const ma = a.kit.group.children.find((m) => m.name.endsWith(end)), mb = b.kit.group.children.find((m) => m.name.endsWith(end));
+    assert.ok(ma && mb, `its${end}`);
+    assert.deepEqual(verts(ma), verts(mb), `its${end} the same, vertex for vertex`);
+  }
+  assert.equal(a.pieces.length, b.pieces.length);
+  a.pieces.forEach((p, i) => {
+    const q = b.pieces[i];
+    assert.equal(p.constructor, q.constructor); assert.equal(p.id, q.id);
+    if (p.pos?.isVector3) assert.ok(p.pos.distanceTo(q.pos) < 1e-6, `${p.id ?? p.constructor.name} where it was`);
+  });
+  // the dressing: drawn only, never buried, out of the shadow passes, and clear of every doorway
+  const dress = skinned(a);
+  assert.ok(dress.length >= 3);
+  for (const m of dress) assert.ok(m.userData.noCollide && m.userData.keepBuried && m.userData.dynamic && m.castShadow === false && m.userData.castShadow === false, m.name);
+  const box = new THREE.Box3(), v = new THREE.Vector3();
+  for (const p of a.pieces.filter((p) => p instanceof Door)) {
+    p.group.updateMatrixWorld(true);
+    box.setFromObject(p.slab).expandByVector(new THREE.Vector3(0.5, 0, 0.5));
+    for (const m of dress) {
+      const P = m.geometry.attributes.position;
+      for (let i = 0; i < P.count; i++) assert.ok(!box.containsPoint(v.fromBufferAttribute(P, i)), `${m.name} in the doorway of ${p.id}`);
+    }
+  }
 });

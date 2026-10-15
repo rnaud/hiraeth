@@ -1377,3 +1377,33 @@ extends 112 m from its centre and blends into the dunes by 200 m; the drift mask
 also excludes its foundation. The real-world threshold test samples the outer
 stair ring against the final terrain after drift accumulation, rather than only
 testing the model on an artificial flat plane.
+
+## Futuristic skins: the Rose House (v1.77, issue #342)
+
+The Rose House wears the author's futuristic picks (`references/temples/future/rose-house/sheet-1.jpg`, `sheet-2.jpg`):
+a Givers' test chamber of dark slate and ember light, over the same rooms. Its skin is `src/temples/skins/rose-house.js`
+(`skin: roseHouseSkin` on the house's def; the hooks are `src/temples/skins/index.js`). `?noskin=1` shows the house without it.
+
+- **Surfaces** (the surface shader's albedo, first pen lines and `emit` replaced, as `landmark-materials.js` `stone()`
+  does): the walls monolithic slate slabs (4.2 m by about 6, staggered per column, each its own tone), a chamfer round each
+  (lit above, shaded below), a pen line in every joint, rose sand caught in some; the makers' marked faces (doors, the
+  gallery's face, the pier, the obelisk, the braziers) a finer machined slab. Pale floor plates, split in halves and
+  quarters, rose sand drifted over them. The cistern's basin in stepped rings round its middle, a pale tide line under
+  its rim. Along each face's own direction, so the round rooms' stones pattern as the straight walls do.
+- **Circuits**: thin lines in straight runs with right-angled turns up the slabs and through the floor plates, most of
+  them dark grooves, some lit ember orange in runs of three segments, a lens terminal at each lit run's ends. Lit pixels
+  set the surface's `emit`, so they bloom as the lamps and flames do, and breathe slowly.
+- **Glows**: the frieze's ornament becomes the `slot` light panels (lit and dark by turns), the frieze glyphs are redrawn
+  as the picks' sign (`signGeometry`: a long low arch, three small dots in a row over its crest; the doors', plates' and
+  other houses' glyph is the shared one, `src/story/sign-text.js`, left as it was), and an ember line runs down each groove.
+- **Dressing**, drawn only (four merged meshes: `noCollide`, `keepBuried`, `dynamic`, out of the shadow passes): slate
+  obelisks with a cold cup in the corners of the great halls, thin slate plates floating high under the ceilings, a
+  machined ring floating over every pilot flame, the spout slab hanging over the cistern with the sign and a dead lens.
+  Kept off every doorway, archway, piece and the eyes to strike by keep-out boxes from the kit's plan and the pieces.
+- **Braziers** (`rt.skin.brazier`): an obelisk terminal round the same hooded bowl and fire (two cheeks round a low mouth on
+  the groove, a square cup, a cowl, the obelisk behind with the sign), its circuit lit with the bowl (`rt.skin.lit`).
+- **Lighter presets** (Low, Handheld, the Deck: `uWearLite`): no dark circuits or panel insets, softer chamfers, and the
+  floating plates hidden.
+
+`tests/temple-skins.test.js` checks it wears the skin, and that its collision and climbs are vertex for vertex those of
+the house without it (`rt.noSkin`), every piece where it was, and the dressing out of every doorway.
