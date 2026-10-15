@@ -1,0 +1,21 @@
+engine/unity/game.js
+  s_9ca76055a220ed::t_a668117d2224fe 181
+scripts/theme-levels.mjs
+  s_9ca76055a220ed::t_6e2d4824535266 10-11,56,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c1958de7b821f4f0b69a3ef91f6b295903cd71ba",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
