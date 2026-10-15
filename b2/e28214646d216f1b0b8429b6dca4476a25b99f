@@ -1,0 +1,45 @@
+references/temples/future/aerie/manifest.json
+  s_9ca76055a220ed::t_fe034be5e878d7 1-39
+references/temples/future/builders-greenhouse/manifest.json
+  s_9ca76055a220ed::t_2ffb954c43c2e6 1-26
+references/temples/future/casting-house/manifest.json
+  s_9ca76055a220ed::t_799748eb945c03 1-39
+references/temples/future/clock-house/manifest.json
+  s_9ca76055a220ed::t_ddd46f1417ebf8 1-22
+references/temples/future/engine-house/manifest.json
+  s_9ca76055a220ed::t_7da4386741479a 1-39
+references/temples/future/footprint/manifest.json
+  s_9ca76055a220ed::t_a9cf96253f2072 1-22
+references/temples/future/founders-belfry/manifest.json
+  s_9ca76055a220ed::t_ed682a7d9aca29 1-39
+references/temples/future/hush-house/manifest.json
+  s_9ca76055a220ed::t_8360ef751109a3 1-22
+references/temples/future/lamp-house/manifest.json
+  s_9ca76055a220ed::t_9d96628b9e8013 1-22
+references/temples/future/mooring-house/manifest.json
+  s_9ca76055a220ed::t_3b47655d62cde6 1-39
+references/temples/future/rose-house/manifest.json
+  s_9ca76055a220ed::t_12b6b47fe21c67 1-39
+references/temples/future/undertower/manifest.json
+  s_9ca76055a220ed::t_5625fa9d9590a4 1-39
+references/temples/future/wardens-well/manifest.json
+  s_9ca76055a220ed::t_89078431282bd8 1-39
+references/temples/future/whale-house/manifest.json
+  s_9ca76055a220ed::t_e41bdb12403e76 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b2e28214646d216f1b0b8429b6dca4476a25b99f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
