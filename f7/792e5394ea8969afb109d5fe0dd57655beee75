@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_95059d39fbe7f2 7
+docs/systems/temples.md
+  s_9ca76055a220ed::t_e27598c8589599 1310-1347
+src/changelog-media.js
+  s_9ca76055a220ed::t_2b76b50eeb6b35 970-972,975-1008
+src/changelog.js
+  s_9ca76055a220ed::t_cd704b42e2378c 27-29
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_cff49cdbdf3976 9,408-410,424,452,535,602,716-717
+src/temples/skins/undertower.js
+  s_9ca76055a220ed::t_a515872f76ce1f 1-593
+tests/temple-skins.test.js
+  s_9ca76055a220ed::t_d4c15fbac2e7a5 325-406
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f7792e5394ea8969afb109d5fe0dd57655beee75",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
