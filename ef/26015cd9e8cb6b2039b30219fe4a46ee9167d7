@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_a212e4922adab3 11
+docs/systems/temples.md
+  s_9ca76055a220ed::t_566a9db5c9171c 1218,1222-1225,1227-1228,1233-1235,1242-1248,1252,1255-1262
+src/changelog-media.js
+  s_9ca76055a220ed::t_11858da6eaa5fc 895,897,899-901,918,920,923-925
+src/changelog.js
+  s_9ca76055a220ed::t_cb648e01d74db3 110-112
+src/temples/skins/wardens-well.js
+  s_9ca76055a220ed::t_d9dcb84948c795 9-11,20,22-24,26,37-39,42-43,47-50,138-142,144,156,167,169,177,193,220,278,291,301,316-320,323,325-333,336,338-339,341-345,347-358,405,414-419,427-431,467,471-472,477-478,480-481,484,486,497,504,506,509-512,514-519,535-537,540,547-550,576,582-585,587,590,622,640-648
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ef26015cd9e8cb6b2039b30219fe4a46ee9167d7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
