@@ -135,6 +135,23 @@ test('the coral-shirt traveller\'s drawn face and the flask reach the port (Trip
   assert.equal(flask.fluidBase.length, 3);
 });
 
+test('the holo table\'s planet reaches the port as its own (Hiraeth/Planet: the galactic map\'s colours and mark, not a white ball; issue #264)', async () => {
+  const { planetMaterial, planetLook, MARK_IDS } = await import('../src/ship/approach.js');
+  const m = planetMaterial('desert');
+  m.uniforms.uInkK.value = 0.6; m.uniforms.uFreq.value = 0.45;
+  const p = portMaterial(inkSpec(m), 4);
+  const L = planetLook('desert');
+  assert.equal(p.port, 'planet');
+  assert.deepEqual(p.body, new THREE.Color(L.body).toArray().map((x) => +x.toFixed(5)));
+  assert.equal(p.kind, MARK_IDS[L.mark] ?? 3);
+  assert.equal(p.inkK, 0.6); assert.equal(p.freq, 0.45); assert.equal(p.light.length, 3);
+  // (the ship's wall pictures and console screen take their no-canvas colours where the page's canvases draw nothing)
+  const { hasCanvas } = await import('../src/ship/art.js');
+  const had = globalThis.document;
+  globalThis.document = { createElement: () => ({}), canvasDrawsNothing: true };
+  try { assert.equal(hasCanvas(), false); } finally { if (had === undefined) delete globalThis.document; else globalThis.document = had; }
+});
+
 test('the port\'s crowd figures read the costume as costumes.js packs it (the pieces worn, not the wrong ones)', async () => {
   const { MASK_ID_LIMIT, BODY_ID_LIMIT, HEAD_ID_LIMIT } = await import('../src/costumes.js');
   const { readFileSync } = await import('node:fs');

@@ -28,6 +28,13 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && Array.isArray(u.uWash) && u.uWash.length === 3 && Array.isArray(u.uColor) && spec.transparent && spec.depthTest === false) {
     return { id, name: spec.name ?? '', port: 'veil', color: u.uColor.map(r5), alpha: r5(u.uWash[0]), glow: r5(u.uWash[1]), near: r5(u.uWash[2]), side: spec.side ?? 2, plain: 1 };
   }
+  // a world as the galactic map draws it (src/ship/approach.js planetMaterial: the holo table's planet aboard, the
+  // approach's) → the port's Hiraeth/Planet (HoloTable.cs, ShipTravel.cs): its body, shade and mark, the mark's kind, its
+  // spin as it was made (the web turns it slowly), its lines' weight and fineness, the light in its own frame
+  if (spec.type === 'shader' && Array.isArray(u.uBody) && Array.isArray(u.uShade) && Array.isArray(u.uMark) && typeof u.uKind === 'number') {
+    return { id, name: spec.name ?? '', port: 'planet', body: col(u.uBody), shade: col(u.uShade), mark: col(u.uMark), kind: u.uKind,
+      spin: r5(u.uSpin ?? 0), inkK: r5(u.uInkK ?? 1), freq: r5(u.uFreq ?? 1), light: Array.isArray(u.uLight) ? u.uLight.slice(0, 3).map(r5) : [-0.55, 0.5, 0.68], side: 2, plain: 1 };
+  }
   // another of the game's shaders that the port has its own of: the fire's (story/flames.js → Hiraeth/Flame)
   if (spec.type === 'shader' && Array.isArray(u.uPal) && u.uPal.length >= 15) {
     return { id, name: spec.name ?? '', port: 'flame', pal: u.uPal.slice(0, 15).map(r5), seed: typeof u.uSeed === 'number' ? u.uSeed : 0, k: typeof u.uK === 'number' ? u.uK : 1, side: 2, plain: 1 };

@@ -1009,6 +1009,8 @@ const DECK111_SOURCE = 'issue #111 scratchpad deck111: r1-base-<world>, r1-d-<wo
 const DECK111B = 'Steam Deck OLED in Gaming Mode, the game’s Electron runtime under gamescope’s headless backend at 90 Hz uncapped, the Steam Deck preset at native 1280 × 800, muted, the bench’s own profile and save; every view and walk of each world (scripts/bench/deck-worlds.mjs --secs 6 --warmup 2 --settle 1 --sets), one build with the levers set off and on in the same page view by view, in two runs of opposite order (the first set after a view is placed reads 1–3 fps high), the mean of the two runs’ medians; 15 October';
 const DECK111B_SOURCE = 'issue #111 scratchpad deck111b: run1, run2 (deck-worlds.json, sum.mjs); docs/systems/performance.md, “The Steam Deck, round 11”';
 const DECK111B_SHOT = 'this Mac, muted headless Chrome (Metal) at 1280 × 800 on the Steam Deck preset, the bench’s view placed and held (scripts/bench/deck-mac.mjs, deck-worlds.mjs --shots 1 --sets), the levers off then on in the same page a few seconds apart; what differs between the two is what moves anyway (smoke, people walking, the traveller breathing), as much as between two shots with the levers off (15 October)';
+/** (v1.78, issue #264: the ship aboard in the Unity build) */
+const SHIP264 = 'The Unity bridge in the editor on this Mac (M4 Pro), muted batch run (scripts/unity-js-run.sh -aboard main), 1280 × 720, the traveller where the web’s ?aboard=main puts him, the camera behind him; before: main at a003e033; after: this change';
 /** (v1.78, issue #113: the Xbox's Unity build at 4K) */
 const XBOX113 = 'Xbox Series X, the Unity preview 1.73.2236 (Direct3D 12, vsync on, muted), the TV at 2160p 120 Hz; before: its 1440p swap chain as shipped; after: the new defaults set by the same build’s switches (-resolution 3840x2160 -render-scale 0.6667 -dyn-res -dyn-res-min 0.6667 -upscale fsr); the spawns left standing (-idle: 90 s before and for native 4K, 150 s after), the mean of the last 30 s; 15 October';
 const XBOX113_SOURCE = 'issue #113 scratchpad xbox113: r-1440-incal-idle, v-1440-desert-idle, s-4k-incal-idle, w-4k-desert-idle, x-new-desert-idle150, y-new-incal-idle150 (unity.log); docs/systems/performance.md, “4K on the Xbox”';
@@ -1049,6 +1051,9 @@ const FUTURE342_FP_NUMBERS = [
 ];
 export const CHANGELOG_MEDIA = {
   '1.78': [
+    { match: 'Aboard the ship in the Unity version', tags: ['ship', 'devices'], shots: [
+      { name: 'unity-ship-table', title: 'The main room (Unity)', caption: 'The holo table and the console from the room’s aft end, in the Unity build on this Mac: before, the planet and the round screen white; after, the desert’s planet in its stripes and the screen dark, as on the web', from: SHIP264 },
+    ], see: 'In the Unity version, walk up the ramp and look at the holo table in the middle of the main room. For the hold, stand at its back wall while it rains.' },
     { match: 'Inside the futuristic temples the makers’ mark is the new one too', tags: ['temples', 'moonfoundry', 'buried'], shots: [
       { name: 'skins-mark-cradle', title: 'The Casting-House’s cradle', caption: 'The hood over the great cradle’s mouth: before, the skin’s own sign, an arch under three dots; after, the makers’ open corner beside its shorter upright, lit ivory as before', from: SKINS_MARK },
       { name: 'skins-mark-engine', title: 'An Engine-House frieze', caption: 'A frieze glyph on the slate: before, the arch under three dots; after, the makers’ mark in the same pale amber light', from: SKINS_MARK },

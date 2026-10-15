@@ -207,7 +207,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false } = {}) {
   const T = {};
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
@@ -447,7 +447,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // cinema draws nothing of its own (no page): its letterbox, fades and subtitles are the screen's 'cine' and 'sub'
   // (src/platform.js), which the engine's HUD draws (BridgeHud.cs). Travel ends in `onTravel(to)`: the engine
   // starts again at that world's landing (the page goes to ?level=<to>&via=ship).
-  const shipOn = !!(menus && ship && story && !flags && !view);
+  // (`scenes`: a plan that wants them without the menus: the bridge's -aboard, the rooms photographed as the web's ?aboard=)
+  const shipOn = !!((menus || scenes) && ship && story && !flags && !view);
   shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
   if (shipOn) {
     ship.cinema.dom = false;
@@ -745,6 +746,17 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     player.heading = a.heading;
     rig.yaw = a.heading + Math.PI;
   }
+  // (`aboard`: in that room of the parked ship, as the web's ?aboard=cockpit | main | cabin | hold, main.js; the bridge's
+  // -aboard: a picture of each room beside the web's)
+  // ('console': at the voicemail behind the console's tail, as the ship's own walk to it puts him)
+  const goAboard = (room) => {
+    const m = ship?.parked, P = m?.interior?.points;
+    const spot = via === 'ship' ? null : room === 'console' && P?.cockpit ? { pos: ship.world(m, P.cockpit), heading: ship.worldHeading(m, P.cockpitHeading) } : ship?.roomSpot?.(room);
+    if (!spot) return false;
+    player.respawn(spot.pos); player.heading = spot.heading; rig.yaw = spot.heading + Math.PI;
+    return true;
+  };
+  if (aboard) goAboard(aboard);
   // the first frame's camera
   rig.update(player.pos, 0, player.frame);
 
@@ -819,6 +831,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     journal,
     /** A shop opened by its id ('thrum': Anselm's aboard; else a keeper's), as talking to its keeper does (-shop, a test). */
     openShop(id) { if (shopPanel) shopWaiting = (id === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(id)) ?? null; return !!shopWaiting; },
+    /** In that room of the parked ship (cockpit, main, cabin, hold; or at the console), the camera behind him, as ?aboard= on the web; false: no such room. */
+    goAboard(room) { const ok = goAboard(room); if (ok) rig.update(player.pos, 0, player.frame); return ok; },
     /** The ship attached and its scenes played (the engine played with its menus). */
     shipScenes: shipOn,
     /** The ways through to another space (src/passage.js): `active` while one carries the traveller across. */
@@ -1008,7 +1022,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         try { ship.update(dt, simT, ctl); } catch (e) { if (!game._shipFailed) { game._shipFailed = true; console.warn('[game] the ship failed in its update', e?.stack ?? e); } }
         // the holo table's galactic map is the page's: here the game menu's Worlds page, its Travel here the ship's take-off
         // (without power the ship only says so: the map is dark)
-        if (ship.map?.open) { ship.map.toggle(false); if (gameState.flag('ship.powered')) menus.show('game', 'worlds'); }
+        if (ship.map?.open) { ship.map.toggle(false); if (gameState.flag('ship.powered')) menus?.show('game', 'worlds'); }
       }
       // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
       try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }

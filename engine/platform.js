@@ -186,6 +186,9 @@ class StubDocument extends Listeners {
     this.activeElement = this.body; this.pointerLockElement = null; this.fullscreenElement = null; this.hidden = false; this.visibilityState = 'visible';
     this.readyState = 'complete'; this.fonts = { ready: Promise.resolve(), load: () => Promise.resolve([]), check: () => true };
     this._byId = new Map();
+    // (its canvases draw nothing: what paints one for a texture (src/ship/art.js hasCanvas) takes its no-canvas way, the
+    // colours it has for that, instead of a blank white texture the engines can't show: the ship's console screen dark)
+    this.canvasDrawsNothing = true;
   }
   createElement(tag) { return new StubElement(tag); }
   createElementNS(ns, tag) { return new StubElement(tag); }

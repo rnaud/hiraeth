@@ -66,6 +66,24 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   assert.ok(inRooms(ship.local(m, P.pos), { margin: 0 }), 'within the rooms');
 });
 
+test('every room counts as inside, the hold to its back wall: the far-off cut keeps none of the rooms out (the hold was outside past 20 m)', () => {
+  const { ship } = flatWorld();
+  const m = ship.parked;
+  for (const room of ['cockpit', 'main', 'cabin', 'hold']) assert.ok(ship.isInside(m, ship.roomSpot(room).pos), `${room}: where ?aboard= stands you`);
+  // the rooms' corners, from the cockpit's nose to the hold's back wall, at the deck and under the ceiling
+  for (let z = -9.6 * SHIP_SCALE; z <= 12.8 * SHIP_SCALE; z += 0.5) {
+    for (const y of [DECK + 0.1, DECK + 5]) {
+      const x = z < -6.9 * SHIP_SCALE ? 0 : WALL_IN - 0.1;
+      for (const sx of [-1, 1]) {
+        const l = v(sx * x, y, z);
+        if (!inRooms(l)) continue;
+        assert.ok(ship.isInside(m, ship.world(m, l)), `inside at ${l.toArray().map((n) => n.toFixed(1))}`);
+      }
+    }
+  }
+  assert.ok(!ship.isInside(m, ship.world(m, v(0, DECK + 1, 14 * SHIP_SCALE))), 'past the hold, outside');
+});
+
 test('walking straight from the corridor at the console gets you to it (the pilot seat stands in the way)', () => {
   const { physics, ship } = flatWorld();
   const m = ship.parked;

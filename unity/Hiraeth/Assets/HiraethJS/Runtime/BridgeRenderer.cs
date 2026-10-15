@@ -387,6 +387,18 @@ namespace Hiraeth.Bridge
                 materials[mid] = vm;
                 return;
             }
+            if (m.S("port") == "planet")
+            {
+                // a world as the galactic map draws it (src/ship/approach.js planetMaterial: the holo table's planet aboard)
+                // on the port's Hiraeth/Planet, as HoloTable.cs draws its own
+                var pl = new Material(Shader.Find("Hiraeth/Planet")) { name = "planet (bridge)" };
+                Vector4 C3(string k) { var c = m.L(k); return c == null ? Vector4.one : new Vector4(Json.Num(c[0]), Json.Num(c[1]), Json.Num(c[2]), 1); }
+                pl.SetVector("_Body", C3("body")); pl.SetVector("_Shade", C3("shade")); pl.SetVector("_Mark", C3("mark"));
+                var li = m.L("light"); if (li != null) pl.SetVector("_Light", new Vector4(Json.Num(li[0]), Json.Num(li[1]), Json.Num(li[2]), 0));
+                pl.SetFloat("_Kind", m.F("kind", 3)); pl.SetFloat("_Spin", m.F("spin")); pl.SetFloat("_InkK", m.F("inkK", 1)); pl.SetFloat("_Freq", m.F("freq", 1));
+                materials[mid] = pl;
+                return;
+            }
             if (m.S("port") == "print")
             {
                 var pm = new Material(Shader.Find("Hiraeth/Print")) { name = "prints (bridge)" };

@@ -189,7 +189,8 @@ const sideFrame = (side, z, h, off = 0.02, tilt = 0) => wallFrame(V(side * (WALL
 const crossFrame = (z, dir, x, h, off = 0.02, tilt = 0) => wallFrame(V(x, H(h), z + dir * off), V(0, 0, dir), tilt);
 
 function picture(group, tex, m, w, hgt) {
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, hgt), makeMaterial({ color: '#ffffff', map: tex ?? undefined, flat: true, glow: 0.3 }));
+  // (no drawing where nothing paints one, the engines: its paper, not a white card)
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, hgt), makeMaterial({ color: tex ? '#ffffff' : '#efe2c4', map: tex ?? undefined, flat: true, glow: 0.3 }));
   mesh.applyMatrix4(m);
   mesh.position.z += picture.dz ?? 0;
   mesh.userData.noCollide = true;

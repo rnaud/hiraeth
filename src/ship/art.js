@@ -7,7 +7,8 @@ import { FACE, TITLE_FACE } from '../typefaces.js';
 // (In node, for tests, there is no canvas: every function returns null.)
 
 const INK = '#2b211f', PAPER = '#f7ecd2';
-export const hasCanvas = () => typeof document !== 'undefined' && !!document.createElement;
+// (the engines' page, engine/platform.js, has canvases that draw nothing: none there either)
+export const hasCanvas = () => typeof document !== 'undefined' && !!document.createElement && !document.canvasDrawsNothing;
 
 export function canvasTexture(w, h, draw) {
   if (!hasCanvas()) return null;

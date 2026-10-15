@@ -99,6 +99,16 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   h.player.pos.copy(h.ship.world(h.ship.parked, P.cockpit)); run(h, 4);
   run(h, 2, { KeyE: true }); run(h, 2, { KeyE: false });
   assert.equal(S.state.sub?.text, 'No new messages.');
+  // the rooms as the web's ?aboard= puts him in them (the bridge's -aboard photographs each): in that room, the ship's
+  // inside, no room of another name
+  for (const room of ['cockpit', 'main', 'cabin', 'hold']) {
+    assert.ok(h.goAboard(room), room);
+    run(h, 3);
+    assert.ok(h.ship.inside, `${room}: aboard`);
+    assert.ok(h.player.pos.distanceTo(h.ship.roomSpot(room).pos) < 0.5, `${room}: where ?aboard= puts him`);
+  }
+  assert.equal(h.goAboard('attic'), false);
+  run(h, 20 * 2);
 
   // photo mode (the Start menu's, P): the world held, the camera flown, the HUD gone but for its keys; Enter saves the frame
   run(h, 20 * 4);

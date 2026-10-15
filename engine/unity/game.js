@@ -60,6 +60,9 @@ const RUMBLE = {
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
 const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.tour || a.idle || a.noTitle);
+const planned = (a) => !!(a.views?.length || a.talk || a.play || a.walk || a.tour || a.idle || a.aboard || a.noTitle);
+/** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
+const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 
 /**
  * The platform's pad (src/native-pad.js setEnginePad): on Android (the Retroid) the handheld's own names, A B X Y as
@@ -203,7 +206,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   const menus = S.menus ?? null;
   createGame({ levelId: args.level ?? 'desert', backend, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: args.views?.length || args.play ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to) })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? null, scenes: !!args.aboard })
     .then((game) => {
       S.game = game;
       if (menus) {
@@ -321,6 +324,15 @@ function makePlan(args) {
     for (const [secs, n] of [[0.25, 1], [0.45, 2], [0.8, 3]]) {
       steps.push({ kind: 'wait', frames: 2, secs });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-warp-${n}.png` });
+  // (-aboard: each room of the parked ship, the traveller where ?aboard= puts him on the web, the camera behind him; its
+  // ship attached, scenes: the hull hidden from the sun inside, as the web's; tests/engine-ship.test.js)
+  for (const room of aboardRooms(args)) {
+    steps.push({ kind: 'aboard', room }, { kind: 'wait', frames: 90, secs: 3 });
+    if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-aboard-${room}.png` });
+    // (at the console: E, the voicemail's message or "No new messages.", photographed as it plays)
+    if (room === 'console') {
+      steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyE', down: false }, { kind: 'wait', frames: 45, secs: 1.5 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-aboard-console-e.png` });
     }
   }
   if (args.walk) {
@@ -485,6 +497,7 @@ export function frame(dt) {
   else if (step.kind === 'key') { game.key(step.code, step.down); next(); }
   else if (step.kind === 'say') { console.log(step.text); next(); }
   else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }
+  else if (step.kind === 'aboard') { console.log(game.goAboard(step.room) ? `[unity] aboard: ${step.room}` : `[unity] no room ${step.room} aboard`); next(); }
   else if (step.kind === 'turn') { game.look(step.dx, 0); if (++P.wait >= step.frames) next(); }
   else if (step.kind === 'approach') {
     const people = game.npcs.filter((n) => n.def && !n.pooled);

@@ -181,6 +181,8 @@ namespace Hiraeth.Bridge
             if (Arg("-play") != null) args["play"] = Arg("-play");
             // (-warp Vael: the take-off's warp drawn over the views, with -views and -out: a check of BridgeHud's DrawWarp)
             if (Arg("-warp") != null) args["warp"] = Arg("-warp");
+            // (-aboard cockpit,main,cabin,hold: a picture of each room of the parked ship, as the web's ?aboard=: engine/unity/game.js)
+            if (Arg("-aboard") != null) args["aboard"] = Arg("-aboard");
             if (Flag("-freeze")) args["freeze"] = true;
             if (Arg("-walk") != null) args["walk"] = double.Parse(Arg("-walk"), CultureInfo.InvariantCulture);
             if (Arg("-idle") != null) args["idle"] = double.Parse(Arg("-idle"), CultureInfo.InvariantCulture);

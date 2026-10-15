@@ -2,7 +2,7 @@ import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp, DETAIL_FAR } from './model.js';
-import { R, DECK, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z } from './hull.js';
+import { R, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z } from './hull.js';
 import { polar } from './geo.js';
 import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
@@ -65,6 +65,9 @@ const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t
 /** The door's motion for k 0 (shut) .. 1 (open): it pops out (0 .. 0.25), then slides up (0.2 .. 1), easing. */
 export function doorPhases(k) { return { pop: ease(k / 0.25), slide: ease((k - 0.2) / 0.8) }; }
 export const SMOKE = ['#f3ede0', '#e6dfd0', '#d9d1c2', '#cdc4b4'];
+
+/** The rooms' farthest reach from the ship's origin (ship-local, squared): every point inRooms() takes, and a metre more. */
+const ROOMS_R2 = (Math.max(-ROOMS.cockpit.z0, ROOMS.hold.z1) + 1.3) ** 2 + (HALF_W + 1.3) ** 2 + (Math.max(Math.abs(DECK), Math.abs(CEIL)) + 2) ** 2;
 
 export class Ship {
   /**
@@ -419,10 +422,11 @@ export class Ship {
   }
 
   isInside(model, p) {
-    // (far off, no: the weather asks this of every wisp of wind each frame, src/wind.js; the rooms are within 13 m of the
-    // ship's origin, 20 kept, by the same matrix worldToLocal reads)
+    // (far off, no: the weather asks this of every wisp of wind each frame, src/wind.js; the rooms are within ROOMS_R of
+    // the ship's origin, by the same matrix worldToLocal reads. It was 20 m, from before the rooms were doubled (#338):
+    // the hold's back half, out to 26 m, was outside, rain and all, and the cabin's tight camera let go there)
     const e = model.group.matrixWorld.elements, dx = p.x - e[12], dy = p.y - e[13], dz = p.z - e[14];
-    if (dx * dx + dy * dy + dz * dz > 400 * (e[0] * e[0] + e[1] * e[1] + e[2] * e[2])) return false;
+    if (dx * dx + dy * dy + dz * dz > ROOMS_R2 * (e[0] * e[0] + e[1] * e[1] + e[2] * e[2])) return false;
     return inRooms(this.local(model, p));
   }
 

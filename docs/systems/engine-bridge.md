@@ -312,6 +312,21 @@ hold-to-skip, the HUD hidden but for the cue in a scene you walk through) and `s
 line; src/platform.js), and BridgeHud.cs draws them over the HUD as the page's #cine (`DrawCine`). Esc held skips a
 scene (it no longer opens the Start menu while one plays), as does B / ○ on the pad; Menu still pauses it.
 
+**The rooms side by side** (issue #264). `createGame({ aboard })` starts him in a room of the parked ship as the web's
+`?aboard=cockpit|main|cabin|hold` does (main.js; `ship.roomSpot`), and `game.goAboard(room)` moves him there later
+('console': at the voicemail behind the console's tail). The bridge's `-aboard cockpit,main,cabin,hold,console -out dir`
+photographs each (`unity-aboard-<room>.png`; at the console E is pressed and the message, or "No new messages.",
+photographed too), its ship attached without the menus (`scenes`: the hull hidden from the sun inside, the rooms'
+tight camera), to lay beside the web's `?aboard=` shots at 1280 × 720. Making them found the hold half outside the
+ship on the web and in the engines alike: `Ship.isInside` turned away points over 20 m from the ship's origin, from
+before the rooms were doubled (#338), and the hold reaches 26 m, so its back half had the weather in it and the rig's
+wide camera. The cut is now the rooms' own reach (`ROOMS_R2`; tests/ship.test.js).
+Beside the web's, the rooms match but for what the web paints on 2D canvases: the holo table's planet is its own
+shader (approach.js `planetMaterial`), now the port's `Hiraeth/Planet` (port-format.js `planet`, as HoloTable.cs draws
+it); the console's round screen and the wall pictures are canvas textures, which the engines' page cannot paint
+(`document.canvasDrawsNothing`, engine/platform.js), so `hasCanvas()` (src/ship/art.js) is false there and they take
+their no-canvas colours: the screen dark, the pictures plain paper (their drawings wait for textures in the bridge).
+
 **The opening** (issue #264). New game on the title starts the desert's prologue, as the web's title does a save that
 has not played it (`prologue.done` unset): the ship in orbit (its space copy), the wake, the walk to the console in
 your own time, the father's message, the singing light, the landing and the step out (PrologueDirector, the same
@@ -500,6 +515,8 @@ muted, and exits; the menu Hiraeth ▸ JS bridge rebuilds the scene.)
 mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id` (with `-talk-seq N [-talk-every frames]` N
 pictures of the first line as it is said; with `-bench secs` the frame measured while they talk, the gestures' own ms
 as `split.talkGestures`), `-through way` (a door walked into and back out of), `-play tool,drone`, and
+`-level`, `-views file [-only a,b]`, `-out dir`, `-aboard rooms`, `-bench secs`, `-split` (the frame's split: the
+mirror's profile, the audio, the C# apply), `-walk secs`, `-talk id`, `-play tool,drone`, and
 `-probe text [-solo]` (at each shot, the nodes whose name holds the text as Unity has them: mesh,
 bounds, materials' culling, shadows, GPU instances; `-solo` draws only those).
 
