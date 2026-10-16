@@ -112,7 +112,7 @@ export const SPACECITY_CONTENT = {
     // the city's own folk
     // (v1.48, issue #101: Rosa, who chalks the bridges: the city's main quest is hers, src/story/spacecity-people.js)
     { ...SC_PEOPLE.rosa, at: [-5, I0.pier.z - 10], y: 0, radius: 2, lang: 'spacecity' },
-    { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It leans back.'] },
+    { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It’s loose.'] },
     // (Liane: her flask of lamp oil goes to the Signal Market, src/levels/content.js errands)
     { id: 'liane', name: 'Liane', title: 'who sells at the plaza', color: '#e89a7e', kind: 'f', at: [PLAZA.x + 10, PLAZA.z + 6], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Lamp oil, cloth, bread from the garden! Everything grows up here, even bread.', '~playful~ Sit, eat. Nothing falls off a table here. Things fall off the island.'] },
     // (Ines: the light's trace from the world's detour days, and her word on Sel's notes: src/story/spacecity-people.js)
@@ -133,7 +133,7 @@ export const CROWD_LINES = [
   '~curious~ Is that a ship on the Pier? A real one?',
   '~neutral~ Look, the planet’s turning its face. It’ll be night soon.',
   '~playful~ I dropped my hat off the Garden bridge once. It’s still there, under us somewhere.',
-  '~whisper~ Don’t whistle near the cables. They whistle back.',
+  '~whisper~ Don’t whistle near the cables. They catch the note and hum it for hours.',
   '~solemn~ My uncle walked off the edge to see what was under. He came back. He won’t say.',
 ];
 

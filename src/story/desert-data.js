@@ -387,9 +387,9 @@ export const PEOPLE = {
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [
       "~neutral~ You’re from the long striped ship. I saw the burn on its side.",
-      ['~curious~ An open corner beside a shorter upright, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.', '~playful~ Somebody signs their work. If I knew who, I wouldn’t need a flute. Hm-hm.'],
-      { say: ["~neutral~ A ney. Cut from an oasis reed. Same tune for years. I change; it politely adjusts.", '~happy~ (He plays it for you.)'], do: { emit: ['music:solo', { who: 'bako' }] } },
-      { if: { not: RISEN }, say: '~whisper~ Old keepers’ saying: where the giant’s eyes are marked, its mouth is a door. Hm.' },
+      ['~curious~ An open corner beside a shorter upright, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.', '~playful~ Somebody signs their work. Nobody knows who. Hm-hm.'],
+      { say: ["~neutral~ A ney. Cut from an oasis reed. Same tune for years. My fingers got slower; the reed never complained.", '~happy~ (He plays it for you.)'], do: { emit: ['music:solo', { who: 'bako' }] } },
+      { if: { not: RISEN }, say: '~whisper~ Old keepers’ saying: where the giant’s eyes are marked, its mouth is a door. That’s the skull past the back gate. Hm.' },
       '~tired~ Hm. (He shuts his eyes. That is the end of the conversation.)',
       { after: DONE, say: '~happy~ Hm! (He plays something that sounds very much like a ball falling out of the sky, and laughs.)', do: { emit: ['music:solo', { who: 'bako' }] } },
     ] },
@@ -1080,12 +1080,12 @@ export const LINES = {
   procession: ['~solemn~ We walk the circuit until the tree drinks, and burns again.', '~shout~ Keep the step, stranger!', '~tired~ Seven times round, then seven again.', '~happy~ My grandmother walked this circuit. Hers too.', '~neutral~ The water rises from beneath the giants. Every year.', '~happy~ Listen to the drum. It keeps our feet together.', '~curious~ Are you here for the drinking?', '~angry~ Don’t stop in the middle, you’ll get trodden on.'],
   // the tree lit again (src/story/desert.js: the procession's lines once it burns)
   drinking: ['~shout~ It burns! It burns!', '~surprised~ Every colour! Look!', '~happy~ One more circuit, for joy!', '~playful~ I told you it would.', '~shout~ Sing, everyone!'],
-  camp: ['~neutral~ Ama’s fires never go out. Not like some.', '~scared~ The tree went out. I never thought I’d see it.', '~curious~ Did you see the light that went over? It sang.', '~tired~ Eleven days we walked.', '~happy~ Sit, sit.', '~curious~ Who are you, then?', '~playful~ Sefa plays better when someone listens.'],
+  camp: ['~neutral~ Ama’s fires never go out. Not like the tree’s.', '~scared~ The tree went out. I never thought I’d see it.', '~curious~ Did you see the light that went over? It sang.', '~tired~ Eleven days we walked.', '~happy~ Sit, sit.', '~curious~ Who are you, then?', '~playful~ Sefa plays better when someone listens.'],
   gate: ['~neutral~ We wait here for the Speaker’s word.', '~sad~ The roots are dry and the tree is cold. Imagine.', '~neutral~ Mind the steps, they’re older than the walls.'],
   // until the chest is open: everyone points the stranger on toward the city and the tree (desert.js mixes these in)
   waveOn: {
     camp: ['~shout~ The city’s that way, sky-stranger. *Under the big dark tree*!', '~happy~ Go on in! Nour will want to see you.', '~neutral~ Through the big gate and *up to the tree*.', "~surprised~ You’re from the ship? Nour’s chest has been humming since you arrived."],
-    procession: ['~shout~ Qanat’s ahead, stranger, under the great tree!', '~angry~ Keep the step, or go on to the city. Not both!', '~solemn~ The tree is waiting. Something is.'],
+    procession: ['~shout~ Qanat’s ahead, stranger, under the great tree!', '~angry~ Keep the step, or go on to the city. Not both!', '~solemn~ Go on up to the tree. The chest there is humming.'],
     gate: ['~neutral~ Go on up to *the tree*. Something there is humming.', '~neutral~ Nour is up *under the tree*. Mind the steps.', '~happy~ Up the stairs, stranger. Everyone’s waiting to see.'],
   },
 };
@@ -1143,7 +1143,7 @@ export const VILLAGER_TALK = {
     { if: { not: BACKPACK }, say: '~whisper~ The chest hums louder when you’re near. Don’t tell Nour I said so, she’ll make you sit with her all day.' },
     { after: BACKPACK, say: '~playful~ I was there when it opened! Well. Near. I heard it. My grandmother is going to say she saw it, and she was asleep.' },
     '~tired~ I’ve work to do, sky-stranger. Qanat doesn’t sweep itself. Well. Mim sweeps it.',
-    '~solemn~ Qanat is the city that didn’t sink. Every dune out there remembers one that did.',
+    '~solemn~ Qanat is the one city out here the sand never buried. There are others under the dunes.',
     { after: LIT, say: '~happy~ It burns from the roots up and doesn’t singe a leaf. My grandmother always said so. I thought she was being poetic.' },
     { after: DONE, say: '~playful~ Your ball’s awake? Then you’ll go. Everyone goes. Come back for the drinking.' },
   ] },
@@ -1154,10 +1154,10 @@ export const CROWD_TALK = {
   procession: [
     { name: 'A pilgrim', title: 'walking the circuit', talk: { listen: [
       "~neutral~ Walk with us. We circle Qanat until the tree drinks and burns again. Company makes the waiting easier.",
-      ['~solemn~ A tree can’t see, but it can hear feet.', '~solemn~ Seven times round for every year it has drunk. We lost count long ago.'],
+      ['~solemn~ We walk so the tree hears our feet. That’s what we’re told, anyway.', '~solemn~ Seven times round for every year it has drunk. We lost count long ago.'],
       '~angry~ You’re in my step. Walk or get out of the way, sky-stranger.',
-      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? A house for water, my mother called it. Its door faces Qanat, waiting.' },
-      { after: RISEN, if: { not: LIT }, say: '~surprised~ The roots drink and we still walk. The tree hasn’t burned. A circuit isn’t over until it’s over.' },
+      { if: { not: TEMPLE }, say: '~curious~ See the rose stone humped in the dunes *east of the walls*? A house for water, my mother called it. Its door faces Qanat.' },
+      { after: RISEN, if: { not: LIT }, say: '~surprised~ The roots drink and we still walk. The tree hasn’t burned, so we walk until it does.' },
       { after: DONE, say: '~happy~ The drinking came! Eleven days I walked for it, and I’d walk eleven more.' },
     ] } },
     { name: 'A banner bearer', title: 'in the procession', talk: { listen: [
@@ -1194,7 +1194,7 @@ export const CROWD_TALK = {
     { name: 'A trader', title: 'resting', talk: { listen: [
       ['~surprised~ You came out of the sky-ball? Then you saw the light that went over before it. It sang one long note, like a salt cart’s axle begging for grease.', '~whisper~ It didn’t come down. It dipped low behind the dunes, as if it was looking for something, and climbed away again.'],
       { if: { not: { flag: 'desert.bike.found' } }, say: '~whisper~ Marrow hides what he finds: a hollow *between your ball and the camps*, *a red rag on a pole*. Lift the tarp. Don’t pay him for looking.' },
-      '~playful~ I sell salt to people who walk past the salt flats to get here. Business is a kind of faith.',
+      '~playful~ I sell salt to people who walk past the salt flats to get here. They buy it anyway.',
       '~curious~ East of the camps there’s a ring of old ledges with glass on top. *The Sleeping Observatory*. People sketch it. Nobody knows what it watched.',
       { after: DONE, say: '~happy~ Business is good. Happy people buy salt. I don’t know why. I don’t ask.' },
     ] } },

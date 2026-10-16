@@ -178,7 +178,7 @@ export const UNDERWATER_CONTENT = {
     // Maelle listens to the whales in the Gallery: the world's way into its temple (src/story/underwater-people.js)
     { ...UW_PEOPLE.maelle, at: [D.gallery.x + 4, D.gallery.z + 6], y: D.gallery.y, radius: 1, facing: Math.PI / 2, palette: pal('#2f8a8f', { cloth: '#f2c8a0' }), lang: 'underwater' },
     // the city's own, in passing
-    { at: [-6, D.plaza.z + 16], y: 0, radius: 2, palette: pal('#e3b06a', { cloth: '#3a5f6a' }), lang: 'underwater', lines: ['~curious~ The column brings the air down from the top. Put your hand on it. It breathes.', '~playful~ I rode the lift to the Crown once. My ears went pop and I saw a fish the size of my house.'] },
+    { at: [-6, D.plaza.z + 16], y: 0, radius: 2, palette: pal('#e3b06a', { cloth: '#3a5f6a' }), lang: 'underwater', lines: ['~curious~ The column brings the air down from the top. Put your hand on it. You can feel the air moving inside.', '~playful~ I rode the lift to the Crown once. My ears went pop and I saw a fish the size of my house.'] },
     { at: [-8, 70], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efd2a6' }), lang: 'underwater', lines: ['~neutral~ The Avenue’s the big dome. Cafés, lamps, people, the lot.', '~whisper~ Look up as you walk through the tube. Sometimes a manta goes over and the whole tube goes dark.'] },
     { at: [D.avenue.x - 30, D.avenue.z - 8], y: 0, radius: 2, palette: pal('#c4604a', { cloth: '#f2e6d0' }), lang: 'underwater', lines: ['~tired~ The kelp garden is through the west tube. Brune will put you to work.', '~happy~ Glow-kelp in the soup, glow-kelp on the lamps. It’s all glow-kelp down here.'] },
   ],

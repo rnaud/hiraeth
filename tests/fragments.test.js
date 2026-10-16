@@ -185,7 +185,7 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   const m = talk(person, ctx, ['Come aboard']);
   assert.match(m.said, /on the lookout for these/, 'he has been on the lookout for them');
   assert.doesNotMatch(m.said, /Orrin|at your service/, 'no name and trade announced (v1.61, #229): the panel names him');
-  assert.match(m.said, /Bits of its song, I’d say/, 'he hedges: a witness reports before believing (issue #282)');
+  assert.match(m.said, /Bits of it that broke off, I think/, 'he hedges: a witness reports before believing (issue #282)');
   assert.doesNotMatch(m.said, /shed splinters/, 'not told as fact before the Lantern');
   assert.match(m.said, /at a price/);
   assert.match(m.said, /the hold, among the crates/);
@@ -201,7 +201,7 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   const c1 = talk(person, ctx, ['Where do they hide']);
   assert.match(c1.said, /One of 288\. One to spend\./);
   assert.match(c1.said, /Twenty-three still hide here, in the Desert\./);
-  assert.match(c1.said, /Up high\. Behind things\./);
+  assert.match(c1.said, /up high, behind things, at the dead ends/);
   assert.equal(person.fresh(), false, 'no balloon: nothing you can buy yet');
   const opened = [];
   ctx.game.on('shop:open', (e) => opened.push(e.shop));

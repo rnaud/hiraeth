@@ -130,7 +130,7 @@ export const ANTENNAS_CONTENT = {
         '~playful~ The birds nest in the dishes. I asked them to move. They asked me to move. We’re negotiating.',
       ] } },
     { ...BAZAAR_STREET.teb, at: [SHIP.x - 7, SHIP.z - 32], radius: 2, kind: 'm', world: 'bazaar', lang: 'bazaar',
-      lines: ['~shout~ Cab! Cab! No cabs. Nothing to wave at but masts.', '~playful~ The quiet here is the loudest thing I ever heard.'],
+      lines: ['~shout~ Cab! Cab! No cabs. Nothing to wave at but masts.', '~playful~ No traffic out here, no signs. I can hear my own feet.'],
       talk: { listen: [
         '~neutral~ No cabs to tout out here. A man needs a holiday from shouting.',
         '~curious~ Follow the path north. The workshops are under the big dish. You can’t miss it, it’s been trying to get your attention since you landed.',
@@ -151,7 +151,7 @@ export const ANTENNAS_CONTENT = {
         '~neutral~ She kept the dish turned that way all her life. The birds in it sit facing the same way. Nobody taught them.',
       ] } },
     { at: [FALLEN.x + 6, FALLEN.z - 8], radius: 2, lang: 'garage', lines: ['~playful~ It fell in a storm. Now it collects rain and children.', '~neutral~ Walk in, the inside is smooth. Mind the nests on the rim.'] },
-    { at: [HAMLET.x + 14, HAMLET.z + 6], radius: 3, lang: 'garage', lines: ['~whisper~ The great saucer listens to the far side of the sky.', '~happy~ The egg is warm inside. The machines keep it warm.'] },
+    { at: [HAMLET.x + 14, HAMLET.z + 6], radius: 3, lang: 'garage', lines: ['~whisper~ The great saucer is aimed at the far side of the sky. It’s still listening.', '~happy~ The egg is warm inside. The machines keep it warm.'] },
     { at: [6, 40], radius: 2, lang: 'garage', lines: ['~neutral~ Keep to the path. The masts drop rust.', '~curious~ Hear that crackle? That’s the forest clearing its throat.'] },
   ],
 };

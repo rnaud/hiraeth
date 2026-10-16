@@ -30,21 +30,21 @@ const inLine = (id) => (TITLES[id] ?? id).replace(/^The /, 'the ');
  */
 export const THRUM_SHOP_LINES = {
   open: ['~curious~ What’ll it be? Everything here runs on fragments.', '~happy~ Pick one. I’ll fit it while you wait.'],
-  short: ['~neutral~ Not enough yet. Bring me a few more.', '~playful~ Close. Go and listen for them.'],
+  short: ['~neutral~ Not enough yet. Bring me a few more.', '~playful~ Close. One or two more will do it.'],
   needs: ['~curious~ Nothing to fit it to yet. Find the gear first.', '~neutral~ That one wants gear you don’t have.'],
   owned: ['~happy~ You’re wearing that one already.', '~playful~ Fitted. Twice would be greedy.'],
-  finder: ['~playful~ My little box. It beeps when one is near, faster the closer you are.'],
-  lightheart: ['~happy~ Stitched in, over your heart. One more, for good.'],
-  lightedge: ['~curious~ Tempered. It’ll cut half as hard again.'],
-  lightcell: ['~solemn~ Ground fine, a chamber for your tank. One more shot.'],
-  lightwing: ['~happy~ Threaded through the veins. Faster in the air, slower to sink.'],
-  lightstep: ['~neutral~ Set in your heels. You’ll run longer and rest quicker.'],
-  lightguard: ['~surprised~ Round the rim. A block costs half now.'],
-  bye: ['~happy~ Bring me more.', '~curious~ Listen for them. They sing.'],
+  finder: ['~playful~ My little box. It beeps when a fragment is near, faster the closer you get.'],
+  lightheart: ['~happy~ Stitched in over your heart. One more heart, for good.'],
+  lightedge: ['~curious~ Done. Your blade hits half as hard again.'],
+  lightcell: ['~neutral~ Done. Your tank holds one more shot.'],
+  lightwing: ['~happy~ Done. Your wings fly faster and sink slower.'],
+  lightstep: ['~neutral~ Done. You’ll run longer and get your breath back quicker.'],
+  lightguard: ['~surprised~ Done. Blocking costs you half what it did.'],
+  bye: ['~happy~ Bring me more.', '~curious~ Keep an ear out. They hum when you’re close.'],
 };
 
 /** What he calls out as you come near (his balloon). */
-export const GREETING_LINES = ['~curious~ Any more out there?', '~happy~ The hold hums when you bring one aboard.'];
+export const GREETING_LINES = ['~curious~ Found any more?', '~happy~ Bring me fragments. I’ll fit them to your gear.'];
 const OFFER_GREETING = ['~happy~ There you are! You’ve enough for something.', '~playful~ Come here, come here. Have a look.'];
 
 export const THRUM = {
@@ -82,7 +82,7 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
         // (v1.61, #229: he opens in the middle of the chase, not on his name and trade; the panel names him)
         '~surprised~ (A thin man in a patched coat comes at a run, goggles on his brow, a brass box ticking in his hand.) Don’t drop it!',
         '~happy~ A fragment of the singing light. I’ve been on the lookout for these since the night the light went over.',
-        '~curious~ They turn up wherever it passed. Bits of its song, I’d say. They hide where nobody goes.',
+        '~curious~ They turn up wherever it passed. Bits of it that broke off, I think. They’re hidden in out-of-the-way places.',
         '~playful~ Bring me more. I’ll work them into your gear, at a price.',
       ],
       choices: [
@@ -108,7 +108,7 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
       ],
     },
     where: {
-      say: ['~whisper~ Up high. Behind things. At the ends of paths. Never where anyone sends you.', '~playful~ Listen, too. They sing, very quietly.'],
+      say: ['~neutral~ Off the main paths: up high, behind things, at the dead ends.', '~playful~ Listen, too. They hum, quietly, when you’re near one.'],
       choices: [
         { text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'thrum' }] }, end: true },
         { text: '~neutral~ I’ll keep looking.', end: true },

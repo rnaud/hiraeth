@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- People who aren’t part of a quest now talk plainly: Anselm Thrum, the shopkeepers, the games’ hosts and the townsfolk say what they mean, where things are and what to do, instead of riddles and sayings. The people whose quests you follow keep their own way of speaking.
 - Far fewer people wear skirts and long robes: most of the crowds and townsfolk now wear trousers. Robes stay where they belong, on Vael’s silent ones, the bell monastery’s brothers and sisters and the Garden of Spheres’ listeners, on some elders and pilgrims with a staff, and on the people whose own design has one.
 - On the galactic map, up and down now choose a world too: every direction on the D-pad, the stick or the arrow keys picks the nearest world that way on the chart. Up and down used to step along the route, the same as left and right.
 - In Viridel and the Garden of Spheres the hoverbike leaves its glowing trails behind it again. Where Vael’s bird answers your call, the bike waiting by the ship rode without them.

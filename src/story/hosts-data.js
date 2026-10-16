@@ -111,13 +111,13 @@ export const HOSTS = {
     id: 'host.trial-arzach2', name: 'Brother Amos', title: 'who keeps the riders’ round', color: '#c9b08a', kind: 'm',
     palette: { cloak: '#c9b08a', lining: '#2b211f', cloth: '#f4efe2', legs: '#6b5a4a', hat: '#c9b08a', hair: '#6b5a4a' }, head: 'bald', look: { prop: 'staff' },
     say: ['~solemn~ I sweep the riders’ gates each morning. Nobody has flown their round since they crossed the cloud.', '~neutral~ Take the bird round the Needles, the Table and the Monastery, every gate in order. It knows the way.'],
-    lines: ['~solemn~ The bird remembers the way.'],
+    lines: ['~solemn~ The bird knows the way round.'],
   }),
   'trial-perdide': P({
     id: 'host.trial-perdide', name: 'Wil', stand: { side: 0.4, ahead: 5 }, title: 'who races the reed-cutters', color: '#7fd0b8', kind: 'm',
     palette: { cloak: '#7fd0b8', lining: '#2b211f', cloth: '#5a6a3a', legs: '#3a3a2a', hat: '#c9b08a', hair: '#3a2a20' }, head: 'straw',
     say: ['~playful~ Crystal’s quiet, the reeds are cut, and my skiff’s faster than my mother’s. Race you round the makers’ buoys?', '~neutral~ Every gate in order, round the lake and back. A gust of your fan in the sail and she flies.'],
-    lines: ['~playful~ Mind the plants. They mind you.'],
+    lines: ['~playful~ Round the buoys and back. I’ll beat you.'],
   }),
   'trial-perdide2': {
     object: true, name: 'The race buoy', prompt: 'read the race buoy', color: '#9fe8d8',
@@ -127,7 +127,7 @@ export const HOSTS = {
     id: 'host.trial-edena', name: 'Linden', title: 'who waters the sleeping eyes', color: '#c8e88a', kind: 'f',
     palette: { cloak: '#c8e88a', lining: '#2b211f', cloth: '#f2e6c8', legs: '#4a5a3a', hat: '#e8c2f0', hair: '#4a3226' }, head: 'sunhat', look: { prop: 'flower' },
     say: ['~curious~ I water the beds, and the eyes in them open where the water lands. Only for a moment. The white builders left them.', '~neutral~ Wake all eight, any order, as quick as you can. A few sleep high up: climb for those.'],
-    lines: ['~neutral~ We tend the garden. Mostly it tends itself.'],
+    lines: ['~neutral~ Eight eyes in the beds. Wake them all.'],
   }),
   'trial-incal': P({
     id: 'host.trial-incal', name: 'Dagny', stand: { side: -1 }, title: 'a courier who won’t pay for cabs', color: '#ffd36a', kind: 'f',
@@ -145,7 +145,7 @@ export const HOSTS = {
     id: 'host.trial-buried', name: 'Tibor', title: 'who dives the canyon on Tooth Day', color: '#c98d4f', kind: 'm',
     palette: { cloak: '#c98d4f', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#b8603a', hair: '#2b211f' }, head: 'flatcap', look: { body: 'muffler' },
     say: ['~neutral~ Tooth Day. Wings on, and down the canyon for luck. My father did it every year. Once with a goat.', '~neutral~ Through every gate to the bottom, then ride the column up and out. Don’t stop to look at the pipes.'],
-    lines: ['~neutral~ One tooth a year. One dive a day.'],
+    lines: ['~neutral~ One dive a day, down the canyon, for luck.'],
   }),
   'trial-spheres': P({
     id: 'host.trial-spheres', name: 'Aurel', title: 'who walks the round of the spheres', color: '#e8c2f0', kind: 'm',
@@ -163,13 +163,13 @@ export const HOSTS = {
     id: 'host.trial-moonfoundry', name: 'Rudi', title: 'who ran the pour times', color: '#e89a5a', kind: 'm',
     palette: { cloak: '#e89a5a', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#d98c58', hair: '#6b5a4a' }, head: 'skullcap', look: { body: 'toolbelt' },
     say: ['~tired~ Forty years I ran the pour times round this floor. The house pours by itself now. My legs still go round.', '~neutral~ Every gate in order, round the floor and back to the mouth, before the pour cools. I always made it.'],
-    lines: ['~tired~ My knees remember every pour.'],
+    lines: ['~tired~ Forty years of pours. My knees feel every one.'],
   }),
   'trial-spacecity': P({
     id: 'host.trial-spacecity', name: 'Pia', title: 'who runs the oil bills', color: '#f0c06a', kind: 'f',
     palette: { cloak: '#f0c06a', lining: '#2b211f', cloth: '#5a3640', legs: '#3a3330', hat: '#e8d9b8', hair: '#2b211f' }, head: 'bun', look: { body: 'satchel' },
     say: ['~playful~ Oil bills, island to island, every evening. Late oil, dark lamps, cross customers. So I run.', '~neutral~ Every ring in order over the bridges. Mind your feet: step off, and the dark is a long way down.'],
-    lines: ['~playful~ Lamp oil waits for nobody.'],
+    lines: ['~playful~ Late oil, cross customers. So I run.'],
   }),
   'trial-bazaar': P({
     id: 'host.trial-bazaar', name: 'Quill', title: 'who hangs the signs', color: '#ff5fa2', kind: 'm',

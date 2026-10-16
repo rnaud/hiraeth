@@ -29,7 +29,7 @@ export const LOCALS = {
     lines: ['~neutral~ We blow floats from the drifts. The dunes give the sand; the kiln does the rest.', '~curious~ Have you looked into the cliffs at dusk? The big ones are clearer then.'] },
   // (and one goes from Corin to the Buried Machine: 'grease')
   corin: { id: 'corin', name: 'Corin', title: 'who keeps the west camp’s kiln', kind: 'm',
-    lines: ['~whisper~ My grandmother said they were asleep in there. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
+    lines: ['~whisper~ See the shapes in the cliffs? My grandmother said they were asleep in the glass. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
   // (resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
   // (he opens the dunes' main quest: QUESTS above; his cape the carriers' long road between the camps, issue #347)
   oren: { id: 'oren', name: 'Halden', title: 'who carries the floats', color: '#5fb7ad', voice: 0.95, kind: 'm', cape: 1.25,

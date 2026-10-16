@@ -310,7 +310,7 @@ export const STREET = {
         { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the avenue’s end. Silent since the night every sign showed the mark. *Madame Sel* sits at its foot, waiting.' },
         { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* by Sel: the market climbs the towers from there, gallery over gallery. Or the parked cab, or that pack on your back.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
-        '~curious~ The first thing anybody ever sold here was an answer. Then somebody sold the question, and we never looked back.',
+        '~curious~ The market’s first stall sold answers, one each. It’s still there, in the old market under the avenue.',
         { after: ON_AIR, say: '~happy~ The tower spoke! I’ve been welcoming people all morning, and they keep welcoming me back.' },
         { after: { flag: 'temple.bazaar.done' }, say: '~solemn~ They say the tower says the whole line once a night now, from the old stones under it. I stay up for it. Everybody does.' },
       ] },
@@ -335,9 +335,9 @@ export const STREET = {
     id: 'teb', name: 'Teb', title: 'cab tout', color: '#c3a9cc', look: { head: 'flatcap', body: 'muffler' },
     talk: { listen: [
         { if: { not: ON_AIR }, say: "~neutral~ The transmitter’s *on the cream balcony*. Need a cab? *Wave at one circling the tower.*" },
-        ['~whisper~ The quiet ones? The lavender folk with the big heads. They came with the market, or the market came with them.', '~whisper~ They don’t talk. They listen. When they all turn their heads at once, something’s about to happen.'],
+        ['~whisper~ The quiet ones? The lavender folk with the big heads. They were here when the market started. Nobody remembers it without them.', '~whisper~ They don’t talk. They listen. When they all turn their heads at once, something’s about to happen.'],
         '~shout~ Cab! Cab! Not you, you’re not a cab. Move, you’re in my wave.',
-        { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign in the market hangs *under the second skybridge*. Dark for years. Splash it with something bright; signs like attention.' },
+        { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign in the market hangs *under the second skybridge*. Dark for years. Splash it with something bright and it might light up.' },
         '~playful~ Fares are cheap, views are free, and the drop is extra.',
         { after: ON_AIR, say: '~happy~ Every cab in the sky stopped to listen. First traffic jam in thirty years. Beautiful.' },
       ] },
@@ -347,8 +347,8 @@ export const STREET = {
   wynn: {
     id: 'wynn', name: 'Wynn', title: 'the last listener', color: '#b9a37a', look: { head: 'skullcap', body: 'muffler' },
     talk: { listen: [
-        { if: { not: ON_AIR }, say: "~whisper~ Shh. Thirty years I’ve sat under these dishes, and the tower hasn’t said a word. I keep them turned to it anyway. You don’t stop listening because nobody’s talking." },
-        { if: { not: ON_AIR }, say: '~neutral~ We were twelve once, one dish each, all up this lane. The others went to the avenue to sell. The signs pay better than silence.' },
+        { if: { not: ON_AIR }, say: "~whisper~ Shh. Thirty years I’ve sat under these dishes, and the tower hasn’t said a word. I keep them turned to it anyway, in case it starts again." },
+        { if: { not: ON_AIR }, say: '~neutral~ We were twelve once, one dish each, all up this lane. The others went to the avenue to sell. Selling pays better than listening.' },
         '~curious~ Every dish here is aimed at the tower, to a finger’s width. Feel the poles: they hum when the wind is right.',
         '~playful~ People ask what I hear back here. Pigeons, mostly. Once a man proposing to a cab driver. She said yes.',
         { after: ON_AIR, say: "~happy~ You heard it? I heard it first. Well, second. The dishes heard it first. I only cried." },
@@ -511,7 +511,7 @@ export const CROWD_TALK = {
   square: [
     { name: 'A listener', title: 'in Signal Square', talk: { listen: [
       "~sad~ I used to listen to messages here every evening. People I’d never meet. I miss hearing how they got on.",
-      '~sad~ For somebody, really. Just never for me. That was the nice part: you could listen to love with nobody asking you to give any back.',
+      '~sad~ The messages were always for somebody else, never me. I liked that. All that love, and nobody asked me for any back.',
       { if: { not: ON_AIR }, say: '~curious~ The antenna up there is *three bulbs over a dish*. Light all three before the first one fades, the old engineers said. Nobody since has had the reach.' },
       '~whisper~ Shh. I’m listening to the hum it makes now, and pretending.',
     ] } },

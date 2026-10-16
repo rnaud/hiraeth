@@ -1060,6 +1060,7 @@ const FUTURE342_FP_NUMBERS = [
 const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6340), each game begun from its start card and played by its scripted player (window.__elderBot, window.__cisternBot); the signs in their worlds with the traveller set beside them; 15 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.79': [
+    { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },
     // (issue #370, taken at 95c4da85 before the commit, the same code: the Signal Market's street, Vael's and the Salt Harbour's crowds in the studio; scripts/changelog-shots.mjs)
     { match: 'Far fewer people wear skirts', tags: ['characters'], shots: [
       { name: 'skirts-market', title: 'The Signal Market', caption: 'The market’s street: the knee-length skirts gone from most of the crowd, trousers in their place', commit: '95c4da85',

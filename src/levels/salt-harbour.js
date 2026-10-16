@@ -136,7 +136,7 @@ export const SALT_CONTENT = {
         // (her niece Tansy, the fellow traveller: her letter carried home, or Tansy home herself; src/story/fellow-data.js)
         ...HESPER_AFTER,
       ] } },
-    { at: [9, -60], radius: 3, lang: 'desert', lines: ['~curious~ You came by the sky? We came by sea, a long time ago. The sea left first.', '~playful~ Don’t pull the ropes. The ship pulls back.'] },
+    { at: [9, -60], radius: 3, lang: 'desert', lines: ['~curious~ You came by the sky? We came by sea, a long time ago. Then the sea dried up, and we stayed.', '~playful~ Don’t pull the ropes. They’re what keeps the ships still.'] },
     { at: [-8, -150], radius: 3, lang: 'desert', lines: ['~neutral~ The cross-street goes out to the flats. Take water.', '~whisper~ Out past the red ship the crust has ridges. Something under it, they say. Nobody digs.'] },
     { at: [TOWER.x + 3, TOWER.z - 6], radius: 2, lang: 'desert', lines: ['~tired~ Ninety steps to the deck. I count them every morning.', '~happy~ Up top you can see three ships further than from down here.'] },
     { at: [SHIP.w1.x + 19, SHIP.w1.z - 18], y: SHIP.w1.D - SHIP.w1.sink - 0.3, radius: 3, lang: 'desert', lines: ['~solemn~ My grandmother’s grandmother steered this ship. Now we grow basil on it.', '~neutral~ The gangway crosses to the red hull. Walk in the middle.'] },

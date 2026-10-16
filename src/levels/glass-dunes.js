@@ -309,7 +309,7 @@ export const createGlassDunes = stepped(buildGlassDunes);
 export const CROWD_LINES = [
   '~neutral~ Mind the flows. They are warm at noon.',
   '~happy~ The kiln is lit. Come back when it is dark and see the walls.',
-  '~whisper~ Do not knock on the cliffs. Something knocks back.',
+  '~whisper~ Do not knock on the glass cliffs. Sometimes a knock comes back, and nobody knows from what.',
   '~tired~ Sand in, glass out. That is the whole trade.',
 ];
 
@@ -345,8 +345,8 @@ export const GLASS_CONTENT = {
     // (Aster and Corin: an errand comes to Aster from the City-Shaft, one goes from Corin to the Buried Machine: src/levels/content.js)
     { ...LOCALS.aster, at: [-118, 26], radius: 2, palette: pal('#d9b48a', { cloth: '#5a4a3a' }) },
     { ...LOCALS.corin, at: [-112, 38], radius: 2, palette: pal('#4f8a7f') },
-    { at: [16, -186], radius: 3, palette: pal('#c98a4a', { cloth: '#3f4b44' }), lines: ['~solemn~ The wave has been breaking over this camp for longer than we have names.', '~happy~ It has not finished yet. We are in no hurry.'] },
-    { at: [-66, -214], radius: 2, palette: pal('#e6d3b8'), lines: ['~curious~ The archways only open to the light. Stand here when the sun is low.', '~neutral~ Beyond? More glass. It is always more glass.'], shy: true },
+    { at: [16, -186], radius: 3, palette: pal('#c98a4a', { cloth: '#3f4b44' }), lines: ['~solemn~ That glass wave over the camp broke and froze before anyone here was born. It never came down.', '~happy~ It might fall one day. We have camped under it for years, and we are in no hurry.'] },
+    { at: [-66, -214], radius: 2, palette: pal('#e6d3b8'), lines: ['~curious~ The glass archways light up when the sun is low. Stand here at dusk and look through them.', '~neutral~ Beyond? More glass. It is always more glass.'], shy: true },
     // (Halden, resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
     { ...LOCALS.oren, at: [24, 228], radius: 2, palette: pal('#5fb7ad', { cloth: '#e6d3b8' }) },
   ],

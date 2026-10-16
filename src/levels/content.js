@@ -124,7 +124,7 @@ export const CONTENT = {
           '~happy~ Every child in the city has stood on this balcony and shouted. The water always wins.',
         ] } },
       { at: [-60, 12], y: 0, radius: 2, palette: pal('#c46b4e', { cloth: '#f2e6d0' }), lines: ['~tired~ Ferns, ferns and more ferns. They love the spray. I carry the pots out to it every morning.', '~curious~ You’re not wet. How did you get in without walking through the falls?'] },
-      { at: [-200, 4], y: 0, radius: 2, palette: pal('#d9a35e', { cloth: '#3f5a5e' }), lines: ['~solemn~ In the deep quarter we keep the lamps lit all day. The falls’ light gives out a street from the water.', '~neutral~ Follow the copper pipes up if you want the top terraces. They go where the water goes.'] },
+      { at: [-200, 4], y: 0, radius: 2, palette: pal('#d9a35e', { cloth: '#3f5a5e' }), lines: ['~solemn~ In the deep quarter we keep the lamps lit all day. The falls’ light doesn’t reach past the first street.', '~neutral~ Follow the copper pipes up if you want the top terraces. They go where the water goes.'] },
       { at: [70, 12], y: 0, radius: 2, palette: pal('#7a6e9e', { cloth: '#efe0c4' }), lines: ['~surprised~ A ship on the landing! The last thing that landed there was a heron, and it left offended.', '~playful~ The city’s that way, behind the water. You’ll hear it before you see it.'] },
     ],
   },
@@ -201,7 +201,7 @@ export const CONTENT = {
           "~tired~ The wind erases my tracks every night. I try not to take it as criticism.",
           { if: { not: { flag: 'item.backpack' } }, say: '~neutral~ Qanat is *north-east, past the low dunes*. Look for the great dark tree over the walls; the pilgrims are camped at its gate.' },
           "~solemn~ There are buried cities under these dunes. Qanat stayed above the sand. The old people say its tree’s roots hold it together.",
-          '~playful~ Lost? Good. Walking only works if you get a little lost.',
+          '~playful~ Lost? Everyone is, the first day. The dunes all look alike until you’ve walked them.',
           { after: { flag: 'world.desert.done' }, say: '~happy~ The tree burns again. I can walk home by it at night, the way I used to.' },
         ] } },
       { at: [-140, -80], palette: pal('#5fb7ad'), lines: ['~whisper~ The mask sleeps. Don’t wake it.', '~neutral~ I counted the ribs once. Forty.'],
@@ -227,9 +227,9 @@ export const CONTENT = {
           hello: { say: ["~playful~ Your bike comes when called. Mine seems to consider that a suggestion. Seen it anywhere?"], choices: [{ text: '~playful~ What does yours think?', goto: 'op' }, { text: '~happy~ Good luck, Rook.', end: true }] },
           op: { say: ["~tired~ It thinks I’m slow and talk too much. Probably gone to the procession, where both are encouraged."], choices: [{ text: '~happy~ Good luck.', end: true }] },
         } } },
-      { at: [-120, 34], palette: pal('#e6875f'), lines: ['~neutral~ The salt flats are that way. Bring water.', '~solemn~ At night the moon throws shadows too.'],
+      { at: [-120, 34], palette: pal('#e6875f'), lines: ['~neutral~ The salt flats are that way. Bring water.', '~solemn~ Don’t steer by shadows at night. The moon throws them too.'],
         id: 'ennor', name: 'Ennor', title: 'guide to the salt', color: '#e6875f', talk: { listen: [
-          ['~neutral~ The salt flats are west. Bring water. Bring two waters.', '~solemn~ At night the moon throws shadows too, and they don’t always point away from it.'],
+          ['~neutral~ The salt flats are west. Bring water. Bring two waters.', '~solemn~ And don’t steer by shadows after dark. The moon throws them too, and you’ll walk the wrong way.'],
           '~playful~ Water? Not from me. The pilgrims at Qanat have waited eleven days for theirs. The tree gets the first drink. It always has.',
           '~angry~ I’m a guide, not a well. Go and be thirsty somewhere else.',
           '~neutral~ Lost in the dunes? Climb the tallest one and look for the tree. Everything here is measured from the tree.',
@@ -304,7 +304,7 @@ export const CONTENT = {
       // (Tam, who copies you: a boy of seven, src/story/arzach-data.js LOCALS)
       { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true, kind: 'm', age: 'child', years: 7, scale: 0.72 },
       // Senn, out on the plain at the foot of the capped spire halfway to the tower (v1.9: she stood by the landing)
-      { at: [163, -271], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
+      { at: [163, -271], palette: pal('#d8c7a6'), lines: ["~solemn~ Wind rises up the tower’s side. Open your wings at its foot.", "~sad~ Her rider left. She keeps to the sky now."] },
       { at: [-130, -183], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say.", "~tired~ Small to tall. Always.", "~solemn~ (He taps his knuckles, little finger first, and listens.)"] },
     ],
   },

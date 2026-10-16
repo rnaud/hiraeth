@@ -117,7 +117,7 @@ export const PEOPLE = {
   bertil: {
     id: 'bertil', name: 'Bertil', title: 'who pours at the last furnace', color: '#c8693c', voice: 0.85, kind: 'm',
     head: 'hat', cape: 0,
-    lines: ['~happy~ Warm your hands. The furnace does not mind.', '~whisper~ If you listen at the mouth you can hear it talking to itself.'],
+    lines: ['~happy~ Warm your hands. The furnace does not mind.', '~whisper~ Put your ear to the furnace mouth. It rumbles all night, like someone muttering.'],
     talk: {
       entry: [
         // (the hook hung on his crane: his thanks when you pass, no step of it)

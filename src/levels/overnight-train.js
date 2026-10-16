@@ -129,12 +129,12 @@ export const TRAIN_CONTENT = {
       ] } },
     // up on the long tail's roofs, on the way to Solange: two who ride outside too (the night mail's walk back there)
     { at: [car('coach', 1).xc + 2, 0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~happy~ Sit down, sit down. Standing up here, the wind takes your hat to the next station.', '~curious~ Going to see the chalk lady? She’s at the very end. Mind the planks.'] },
-    { at: [car('coach', 3).xc - 3, -0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~whisper~ Look back. You can see the whole night we’ve come through.', '~playful~ The gantries! Duck! (He never ducks.)'] },
+    { at: [car('coach', 3).xc - 3, -0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~whisper~ Look back. You can see the rails running behind us into the dark.', '~playful~ The gantries! Duck! (He never ducks.)'] },
     // the train's own folk
     { at: [car('dining').x0 + 1.6, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~happy~ Soup of the plain, bread of the last station. Sit anywhere.', '~neutral~ The kitchen never stops. Neither do we, mostly.'] },
     { at: [car('sleeper').xc, -2.0], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~whisper~ Softly in the corridor. Half the train is asleep.', '~curious~ The compartments with the doors open are free. Lie down if you like.'] },
     { at: [LW.xc + 10, 8], y: FLOOR, radius: 3, lang: 'bazaar', lines: ['~surprised~ A ship! We keep the deck clear for them, but one hardly ever comes.', '~neutral~ The lounge is that way, through the library and the sleepers. Mind the porches.'] },
-    { at: [car('dome').xc - 2, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~neutral~ The library lends by the night. Bring it back before the plain runs out.', '~playful~ There is a terrace on our roof. The ladder is on the porch.'] },
+    { at: [car('dome').xc - 2, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~neutral~ The library lends books for the night. Bring them back by morning.', '~playful~ There is a terrace on our roof. The ladder is on the porch.'] },
     { at: [NOSE_X + 2.4, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~happy~ This is the best seat on the train, and it is standing room.', '~solemn~ At the stations everyone goes quiet. Then the whistle, and we all breathe again.'] },
   ],
   // the detour's trace (src/story/sightings-detours.js): the mark chalked on the last carriage's roof, kept by someone
@@ -154,7 +154,7 @@ export const TRAIN_CONTENT = {
 export const CROWD_LINES = [
   '~neutral~ Mind the gap between the carriages.',
   '~happy~ Another station! I can smell the bread from here.',
-  '~whisper~ Listen to the rails. You stop hearing them, and then you can’t stop.',
+  '~whisper~ The rails get into your head. After a night aboard you hear them in your sleep.',
   '~curious~ You came in on the ship? On the landing wagon? Nobody uses that.',
   '~playful~ My cousin walked the roofs from the front to the back. It took her all night.',
   '~tired~ I meant to sleep at the last station. Then the moons came out.',

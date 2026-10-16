@@ -415,7 +415,7 @@ export const PEOPLE = {
     // that mirror stood 164 m from anything): no errand of his, the mirror's own starts as you come near it
     id: 'abel', name: 'Abel', title: 'who rings the bells', color: '#9c3b2e', voice: 0.8, kind: 'm',
     palette: { cloak: '#9c3b2e', lining: '#2b211f', cloth: '#e2d3b4', legs: '#3a3a3a', hat: '#5f7a52', hair: '#8a7a6a' }, head: 'beanie', cape: 0, look: { prop: 'bell' },
-    lines: ['~happy~ The air rings them. I ring them when it won’t.', '~solemn~ Listen. That’s the low one.', '~neutral~ Mind the ropes.'],
+    lines: ['~happy~ The updraft rings the bells. When it doesn’t, I do.', '~solemn~ Listen. That’s the low one.', '~neutral~ Mind the ropes.'],
     talk: {
       entry: [
         { if: { flag: 'incal.beam.lit' }, node: 'after' },
@@ -429,7 +429,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Why at the wall?', goto: 'why' }, { text: '~playful~ The bells sound well enough.', end: true }],
         },
         why: {
-          say: ['~solemn~ The night the sky rang, the updraft knocked it round on its ring. The ones below it too. Its crank still turns.'],
+          say: ['~solemn~ The night the sky rang, the updraft knocked it round on its ring, and the ones below it too. Turn its crank and it swings back.'],
           choices: [{ text: '~neutral~ I’ll have a look.', end: true }],
         },
         again: {
@@ -632,7 +632,7 @@ export const MIDDLE = {
     id: 'basile', name: 'Basile', title: 'carries Fausta’s baskets', color: '#c98a4b', head: 'wrap', cape: 0, look: { prop: 'basket', under: 'crop' },
     talk: { listen: [
       ["~tired~ Waiting for a cab up. That’s the third gone past. They see the baskets and decide I’m scenery.", '~neutral~ I carry for Fausta. The small orders go down on her rope; the big ones go up the shaft on my back.'],
-      '~playful~ Rim prices on the way up, bottom prices on the way down. Same basket, same cure. I carry both, and I say nothing.',
+      '~playful~ Fausta charges rim prices going up and bottom prices going down, for the same cure in the same basket. I carry both and say nothing.',
       { if: { not: { has: 'cabpass' } }, say: '~curious~ No pass either? Lio writes them, up at the rim’s cab stand. One fare, paid in advance. I paid mine in baskets.' },
       { if: { has: 'cabpass' }, say: '~surprised~ A pass? Then wave for both of us. They might stop for the pair.' },
       { after: { flag: 'incal.lit' }, say: ['~happy~ When the light came back, the whole terrace stopped and looked up. I put my baskets down for it.', '~neutral~ Missed two cabs. Worth it.'] },
@@ -767,7 +767,7 @@ export const LINES = {
   rim: ['~happy~ Lovely day for looking down.', '~neutral~ Mind the edge, it’s a long way down.', '~tired~ The Lodestar? A light show.', '~playful~ Have you been to the palace? Neither have I.', '~shout~ Taxi! Oh. Not you.', '~angry~ Laundry? Up here? Never.'],
   upper: ['~neutral~ Laundry dries fast up here.', '~tired~ The light? The tourists like it.', '~neutral~ I never go below the smog.', '~neutral~ Mind the edge.', '~shout~ Fresh figs! Fresh figs!', '~playful~ The taxis stop for us. Naturally.'],
   middle: ['~tired~ Busy day.', '~neutral~ Excuse me.', '~tired~ Up a level, down a level, that’s my life.', '~curious~ Have you seen the light above the palace?', '~neutral~ Mind the cables.'],
-  lower: ['~angry~ The taxis never stop for us lower folk.', '~sad~ My grandmother never saw the sky.', '~solemn~ We pray with our eyes shut. The smog stings.', '~whisper~ A piece of the light fell down here, you know.', '~solemn~ Hum with it. It hums back.', '~solemn~ Up. Everything good is up.'],
+  lower: ['~angry~ The taxis never stop for us lower folk.', '~sad~ My grandmother never saw the sky.', '~solemn~ We pray with our eyes shut. The smog stings.', '~whisper~ A piece of the light fell down here, you know.', '~solemn~ Hum to the splinter. It hums back.', '~solemn~ Up. Everything good is up.'],
   carrying: ['~surprised~ It hums! You’ve got it!', '~curious~ Is that the light?', '~shout~ Take it up! Take it home!', '~shout~ Hold it higher!'],
   lit: {
     rim: ['~surprised~ Did you see that?', '~happy~ The palace has outdone itself.', '~curious~ I looked up. Did you?', '~surprised~ It throws shadows again!'],
@@ -799,7 +799,7 @@ export const CROWD_TALK = {
       "~playful~ We grow rooftop lemons. They get more sky than most people. Excellent lemons, though.",
       '~neutral~ The rain falls past us on its way to the bottom. We catch what we can. The bottom gets the rest, and the smog.',
       '~angry~ Mind the lemons! Not that one, it’s having a hard year.',
-      '~whisper~ Don’t look down too long. The shaft looks back, and it has six hundred metres of patience.',
+      '~whisper~ Don’t look down too long. It’s six hundred metres to the bottom, and it makes people dizzy.',
     ] } },
     { name: 'A flower seller', title: 'of the high terraces', talk: { listen: [
       "~sad~ It used to shine brighter. I know everyone says that about their childhood. This time it’s measurable.",
@@ -813,7 +813,7 @@ export const CROWD_TALK = {
       "~tired~ I mend the cables. Up a level, down a level. The middle is somewhere everybody passes and nobody asks about.",
       { if: { not: { quest: 'incal.ration', done: true } }, say: ['~neutral~ The old goods hoist, down low? There’s a rusted pin in it. *Shoot the pin out* and it swings free.', '~neutral~ Then push the weight round its post. Round, mind. Not toward the edge.'] },
       '~angry~ I’m on a cable. You’re on my cable. One of us has to move, and I’m working.',
-      '~solemn~ Everything in this city hangs from something. Don’t think about what the top one hangs from.',
+      '~solemn~ Every level in this city hangs off the one above. Try not to wonder what the top one hangs off.',
     ] } },
     { name: 'A commuter', title: 'in a hurry', talk: { listen: [
       "~tired~ I pass the light twice a day. Its colour? I… couldn’t tell you. That’s odd.",
@@ -827,7 +827,7 @@ export const CROWD_TALK = {
       ['~whisper~ Shh. We’re praying. Eyes shut, face up.', '~whisper~ The smog stings, but the light can still feel you looking.'],
       '~angry~ Why eyes shut? You try keeping them open down here.',
       '~solemn~ {glyph} A tall figure bent toward a smaller one: Those Who Look Up. They’re cut into the light itself, underneath, where only we can see them.',
-      '~solemn~ A light nobody looks at goes out. That is the whole of the teaching. The rest is singing.',
+      '~solemn~ A light nobody looks at goes out. That’s all we’re taught. The rest is just hymns.',
     ] } },
     { name: 'A laundry hanger', title: 'of the bottom terraces', talk: { listen: [
       "~playful~ The splinter landed in Behla’s washing. She now describes her vests as historically significant.",

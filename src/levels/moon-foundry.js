@@ -163,7 +163,7 @@ export const MOONFOUNDRY_CONTENT = {
     // the foundry's own folk
     { at: [QUARTER.x + 6, QUARTER.z + 4], radius: 3, lang: 'moonfoundry', lines: ['~happy~ We live in the old machines. They keep the rain off and they hum at night.', '~neutral~ That drum was a polishing wheel once. Now it is my kitchen.'] },
     { at: [QUARTER.x - 8, QUARTER.z - 6], radius: 2, lang: 'moonfoundry', lines: ['~curious~ You came in from the apron? Most people come by the rails.', '~tired~ Sweeping a floor this size is not a job. It is a way of life.'] },
-    { at: [CRADLE.x - 20, CRADLE.z + 10], radius: 3, lang: 'moonfoundry', lines: ['~solemn~ The claws still hold. Nobody has told them to let go.', '~playful~ My grandmother polished that moon. One crater a day. She got to nine.'] },
+    { at: [CRADLE.x - 20, CRADLE.z + 10], radius: 3, lang: 'moonfoundry', lines: ['~solemn~ The claws still hold that moon. Nobody ever switched them off.', '~playful~ My grandmother polished that moon. One crater a day. She got to nine.'] },
     { at: [10, 30], radius: 2, lang: 'moonfoundry', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
     // Bertil at the last furnace (the light's trace from the world's detour days, and the ladle-hook's end): src/story/moonfoundry-people.js
     { ...MF_PEOPLE.bertil, at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'moonfoundry', palette: pal('#c8693c', { cloth: '#e8d2a8' }) },
@@ -174,7 +174,7 @@ export const MOONFOUNDRY_CONTENT = {
     { ...MF_PEOPLE.hedda, at: [APRON.mould[0] + 5.6, APRON.mould[1] + 2.2], radius: 1, lang: 'moonfoundry', palette: pal('#d9a07c', { cloth: '#efe4cc' }) },
     // (v1.57, issue #193: the old woman who works the cranes, in the signal box on the hoist: src/foundry-cranes.js; after
     //  Hedda, the errands name people by their place in this list)
-    { at: [57.4, -182.0], y: 53.9, radius: 0.8, lang: 'moonfoundry', palette: pal('#7f93a3', { cloth: '#e8d2a8' }), lines: ['~neutral~ Six levers. Five do nothing now. The middle one calls the carrier.', '~playful~ The cranes keep their own hours. I only pull when they ask.', '~whisper~ At dusk they all take their moons to the Casting-House. Nobody tells them to.'] },
+    { at: [57.4, -182.0], y: 53.9, radius: 0.8, lang: 'moonfoundry', palette: pal('#7f93a3', { cloth: '#e8d2a8' }), lines: ['~neutral~ Six levers. Five do nothing now. The middle one calls the carrier.', '~playful~ The cranes mostly run themselves. I just mind the levers.', '~whisper~ At dusk they all take their moons to the Casting-House. Nobody tells them to.'] },
   ],
 };
 
@@ -797,7 +797,7 @@ export function* buildMoonFoundry(scene) {
       '~neutral~ Nothing runs on the rails any more. We walk on them, mostly.',
       '~happy~ Morning light comes in under the roof and the moons go pink. Best hour of the day.',
       '~curious~ Who were the moons for? Somebody ordered thirty-one of them and never came.',
-      '~tired~ Up and down that stair all day. The view is the only wage.',
+      '~tired~ Up and down that stair all day, and nobody pays me for it. The view’s nice, at least.',
       '~playful~ I live in a crater. Well, beside one. It is a very good address.',
       '~whisper~ Don’t stand under the hung ones at night. They creak.',
       '~solemn~ My father poured the last full moon. It is the one in the claws, there.',

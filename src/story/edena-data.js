@@ -344,7 +344,7 @@ export const PEOPLE = {
         },
         why: { say: ["~solemn~ Here we leave fallen things to the garden. It turns wreckage into soil and shelter. Digging it out undoes that work."], choices: [{ text: '~curious~ May I look at it?', goto: 'ask' }] },
         ask: {
-          say: ['~happy~ Good. You asked. Most don’t; most just stare.', "~neutral~ You may look inside. The hatch is on this side, beneath the flower arch. Talo used to sit there with his recorder.", "~solemn~ *Don’t cut or pull the vines.* Find a gentler way through."],
+          say: ['~happy~ Good. You asked. Most don’t; most just stare.', "~neutral~ You may look inside. The hatch is on this side, beneath the flower arch. Talo used to sit there with his recorder.", "~solemn~ *Don’t cut or pull the vines.* If they’re in your way, water them."],
           do: { set: { 'edena.vey.asked': true } },
           choices: [{ text: '~neutral~ I won’t cut anything.', end: true }],
         },

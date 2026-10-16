@@ -88,7 +88,7 @@ export const RUMOUR_LINES = {
     ],
     sight: [
       '~curious~ Been out to {place} yet? {Dir}. Mind your air.',
-      '~solemn~ {Place}, {dir}. Go and look. The whales used to.',
+      '~solemn~ {Place}, {dir}. Worth the swim.',
     ],
   },
   incal: {
@@ -109,7 +109,7 @@ export const RUMOUR_LINES = {
   glassdunes: {
     fragment: [
       '~curious~ A splinter of light sits {where}. It wasn’t there before the night the light passed.',
-      '~whisper~ When the wind drops, the carriers hear a note {where}. Glass doesn’t hum. That does.',
+      '~whisper~ When the wind drops, the carriers hear a note {where}. It isn’t the glass.',
       '~neutral~ Something sings {where}. The float-blowers tune their pipes to it.',
     ],
     host: [
@@ -162,7 +162,7 @@ export const RUMOUR_LINES = {
       '~playful~ Done tending? {Who} has a game {dir}.',
     ],
     sight: [
-      '~curious~ Seen {place}? {Dir}. Go slowly. It likes that.',
+      '~curious~ Seen {place}? {Dir}. Take your time there.',
       '~solemn~ {Place}, {dir}. Go in the morning, with the dew on it.',
     ],
   },

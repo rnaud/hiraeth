@@ -50,6 +50,9 @@ export const CHANGELOG = [
     // skirts on a few (issue #370): src/costumes.js robed() (ROBE_ODDS, T.robeOdds, wearsSkirt), decided from a hash of the
     // look like the capes; scripts/cape-census.mjs --skirts; tests/skirt-share.test.js; docs/systems/characters.md
     'Far fewer people wear skirts and long robes: most of the crowds and townsfolk now wear trousers. Robes stay where they belong, on Vael’s silent ones, the bell monastery’s brothers and sisters and the Garden of Spheres’ listeners, on some elders and pilgrims with a staff, and on the people whose own design has one.',
+    // plain speech (issue #369): townsfolk, crowd and balloon lines, hosts, shopkeepers and Anselm Thrum rewritten plainly
+    // across src/story/*-data.js, src/levels/*.js, hosts-data.js, shop-data.js, scientist-data.js, rumours-data.js
+    'People who aren’t part of a quest now talk plainly: Anselm Thrum, the shopkeepers, the games’ hosts and the townsfolk say what they mean, where things are and what to do, instead of riddles and sayings. The people whose quests you follow keep their own way of speaking.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',
