@@ -1,0 +1,37 @@
+docs/systems/notes.md
+  s_9ca76055a220ed::t_10740bfa46124e 4,138-165,211-217
+notes.html
+  s_9ca76055a220ed::t_e589c4c14b4102 47
+src/notes-page/list-sync.js
+  s_9ca76055a220ed::t_c6ad1675ef7174 1-55
+src/notes-page/main.js
+  s_9ca76055a220ed::t_0528bbe461d3c6 5,31,201-204,206,210-211,213-220,228,235,338-339,344
+src/notes-page/status-view.js
+  s_9ca76055a220ed::t_b604f4f4a1b6d2 59-60,72,75,77,92-93
+tests/notes-fake-github.js
+  s_9ca76055a220ed::t_945c61373bc7a7 1-88
+tests/notes-refresh.test.js
+  s_9ca76055a220ed::t_c44648ecc8c044 1-188
+tests/notes-status.test.js
+  s_9ca76055a220ed::t_76f72a81ddbda4 91-94,169-174
+worker/issues.js
+  s_9ca76055a220ed::t_3ac26f99e55619 99-107,206,217-221,225-228
+worker/questions.js
+  s_9ca76055a220ed::t_3336c56eb2490c 25-29,145-151,165-171,174-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "09773756cbca1b3205a5b477583bb49c0aac3936",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
