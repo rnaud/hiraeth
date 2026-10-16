@@ -126,7 +126,9 @@ test('every house\'s bed sounds: its events on the beat, its drone and roar, and
       let made = 0;
       const mk = s.ctx.createBufferSource.bind(s.ctx), mo = s.ctx.createOscillator.bind(s.ctx);
       s.ctx.createBufferSource = () => { made++; return mk(); }; s.ctx.createOscillator = () => { made++; return mo(); };
-      for (let b = 0; b < 60; b++) { s.beat = b; assert.equal(s.houseTick(A.sound.bed, s.ctx.currentTime + 0.1, 0.5), true, `${id}: ${A.sound.bed}`); }
+      // (the beds draw their events by chance each beat: a fixed sequence of draws, so a run can't fall silent by luck)
+      const rnd = Math.random; let k = 0; Math.random = () => ((k++ * 0.618034) % 1);
+      try { for (let b = 0; b < 60; b++) { s.beat = b; assert.equal(s.houseTick(A.sound.bed, s.ctx.currentTime + 0.1, 0.5), true, `${id}: ${A.sound.bed}`); } } finally { Math.random = rnd; }
       s.ctx.createBufferSource = mk; s.ctx.createOscillator = mo;
       assert.ok(made > 0, `${id}: something sounds in 60 beats`);
       const out = s.ctx.render(4800);
