@@ -60,6 +60,12 @@ export const CHANGELOG = [
     // issue #374: src/carry.js pickUp's own `t` (the thing) hid i18n's t(), so the first pick-up's teaching line threw
     // out of the frame loop; tests/carry.test.js, tests/engine-carry.test.js, tests/i18n-shadow.test.js
     'Picking up a crate or a weight for the first time in a save no longer freezes the game: the line saying how to put it down and throw it now shows instead.',
+    // the Mother Snapper's fight (issue #373): src/temples/perdide.js motherHit (MOTHER_STILLED), motherCrystal (each
+    // note its share), phase two's snap every other move; guardians.js SNAP_LOOM; boss.js Guardian.landed and
+    // targets.js hitTarget's info.dull (the splash of a wall, fluid-tool.js); tests/mother-snapper-fight.test.js,
+    // tests/engine-mother-snapper.test.js; docs/systems/foes.md "Every glob that sounds like a hit takes"
+    { text: 'The Mother Snapper’s fight can be finished from anywhere in her hall. Rearing to snap, her head now looms out over you, so a push reaches it even from the middle of the hall, and she rears to snap twice as often. Still her as she winds up and her head drops, mouth open, ready for the cold. Every stilling shot that rings bright now calms her and moves her bar, each crystal sung in turn too; one that does nothing splashes dull, as on a wall.',
+      see: 'In the Hush-House, wake the Mother Snapper and shoot a stilling glob into her jaws as she rears back: her head drops spent, agape; still her mouth and the bar goes down. In her second phase stand in the middle of the hall: as she rears to snap her head comes out over you, and a push into it slams it down.' },
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

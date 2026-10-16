@@ -1477,7 +1477,7 @@ export class Swing {
     noCollide(this.group);
     this.center = V(); this.still = 0; this.cool = 0; this.theta = 0; this.way = 1;
     this.place();
-    this.off = registerTarget({ kind: 'swing', radius: 1.9, accepts: ['stun'], position: () => this.center, onHit: (mode) => this.hit(mode) });
+    this.off = registerTarget({ kind: 'swing', radius: 1.9, accepts: ['stun'], position: () => this.center, onHit: (mode, point, dir, info) => this.hit(mode, info) });
     // a working (src/workings.js): what it meets, a foe too, it knocks away the way it swings
     this.working = { kind: 'swing', center: this.center, radius: 1.9,
       contains: (p) => (p.x - this.center.x) ** 2 + (p.z - this.center.z) ** 2 < 1.9 * 1.9 && Math.abs(p.y + 0.9 - this.center.y) < 2.6,
@@ -1485,11 +1485,13 @@ export class Swing {
       push: (p, out) => out.set(this.way, 0, 0).transformDirection(this.group.matrixWorld) };
     this.offWorking = registerWorking(this.working);
   }
-  hit(mode) {
+  hit(mode, info = null) {
     if (mode === 'stun') {
+      // (its note heard by something else, the Mother Snapper's crystals: that says how it rings, true or flat, and
+      // whether the glob took (false: the tool's splash as on a wall, src/targets.js hitTarget; issue #373)
+      if (this.o.onStill) { this.still = this.stillFor; if (this.o.onStill(this) === false && info) info.dull = true; return true; }
       if (!this.still) this.rt.sound?.chime?.();
       this.still = this.stillFor;
-      if (this.o.onStill) { this.o.onStill(this); return true; }   // (its note heard by something else: the Mother Snapper's crystals)
       this.rt.notice?.(this.o.stilled ?? 'The crystal stops dead mid-swing, frosted over, and hangs there humming.', 'swing.still');
       // its note: it takes in turn (the element lit for good), or out of turn it rings flat
       if (this.id) {

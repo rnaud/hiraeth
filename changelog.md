@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- The Mother Snapper’s fight can be finished from anywhere in her hall. Rearing to snap, her head now looms out over you, so a push reaches it even from the middle of the hall, and she rears to snap twice as often. Still her as she winds up and her head drops, mouth open, ready for the cold. Every stilling shot that rings bright now calms her and moves her bar, each crystal sung in turn too; one that does nothing splashes dull, as on a wall.
 - Picking up a crate or a weight for the first time in a save no longer freezes the game: the line saying how to put it down and throw it now shows instead.
 - Turning round at a run, his foot no longer whips round and stops dead as it lands; turning on the spot into a walk or a jog, the foot stepping round finishes its step instead of stopping in mid-air; and jogging up and down stairs, his feet rise onto the next step and come down onto the one below without his knees flicking.
 - People who aren’t part of a quest now talk plainly: Anselm Thrum, the shopkeepers, the games’ hosts and the townsfolk say what they mean, where things are and what to do, instead of riddles and sayings. The people whose quests you follow keep their own way of speaking.

@@ -509,11 +509,11 @@ export class Guardian {
     const fighting = () => this.state === 'fight' || this.state === 'open';
     this.offs.push(registerTarget({ kind: def.kind === 'robot' ? 'sentinel' : 'guardian', radius: model.mouthR ?? 1.2, accepts: ['fire', 'stun'],
       position: () => model.mouth, enabled: () => fighting() || this.state === 'weary',
-      onHit: (mode, point, dir, info) => this.hit('mouth', mode, dir, info) }));
+      onHit: (mode, point, dir, info) => this.landed('mouth', mode, dir, info) }));
     this.offs.push(registerTarget({ kind: def.kind === 'robot' ? 'sentinel' : 'guardian', radius: model.bodyR ?? (model.radius ?? 2.6) * 0.75, accepts: ['fire', 'stun'],
       position: () => (this._body ??= V()).copy(model.pos).addScaledVector(UP, model.floats ? 0 : (model.height ?? 3) * 0.5), enabled: () => fighting(),
       // (a glob that lands on the body close to the mouth counts as the mouth: the two overlap at the neck)
-      onHit: (mode, point, dir, info) => this.hit(point && point.distanceTo(model.mouth) < (model.mouthR ?? 1.2) * 1.8 ? 'mouth' : 'body', mode, dir, info) }));
+      onHit: (mode, point, dir, info) => this.landed(point && point.distanceTo(model.mouth) < (model.mouthR ?? 1.2) * 1.8 ? 'mouth' : 'body', mode, dir, info) }));
     if (def.final === 'touch') {
       this.offs.push(registerInteractable({
         id: `temple.${rt.def.id}.touch`, priority: PRIORITY.use + 2, range: 3.4, prompt: def.touch ?? 'lay a hand on it',
@@ -593,6 +593,19 @@ export class Guardian {
     this.tele.hide(); for (const T of this.teles) T.hide();
     for (const g of this.glows) g.hide();
     for (const b of this.balls) b.visible = false;
+  }
+  /**
+   * A glob or the push landed on its body or its weak point (its targets): hit(), and when that took nothing (no calm or
+   * damage, no opening, no strike stopped, no asked verb answered: or its temple's onHit says so, info.dull) the tool is
+   * told (info.dull: its splash sounds as on a wall, src/targets.js hitTarget). Issue #373: every stilling glob on the
+   * Mother Snapper rang the bright notes of a hit, and most of them did nothing.
+   */
+  landed(part, mode, dir, info = {}) {
+    const was = [this.meter, this.state, this.attack, this.opened, this.answered?.size ?? 0, this.cool];
+    const r = this.hit(part, mode, dir, info);
+    const now = [this.meter, this.state, this.attack, this.opened, this.answered?.size ?? 0, this.cool];
+    if (was.every((v, i) => v === now[i])) info.dull = true;
+    return r;
   }
   hit(part, mode, dir, info) {
     // (the phase's second verb: the push, or a splash, into the move it winds up)

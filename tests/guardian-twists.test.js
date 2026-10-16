@@ -35,6 +35,7 @@ import { allTargets, hitTarget } from '../src/targets.js';
 import { bestInteractable } from '../src/interact.js';
 import { setHintLevel } from '../src/hint-level.js';
 import { answerAsks } from './guardian-asks.js';
+import { comboOf } from '../src/temples/boss.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { KEEPER_GUARD, KEEPER_DARK, HEARTH_FIRE } from '../src/temples/desert.js';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
@@ -762,7 +763,9 @@ test('six guardians’ second phase asks for a second verb before the gadget (sr
     const A = arena(id, gadget, 1, { answer: false });
     const { G, P, frame, until, said } = A, Q = G.phase.asks;
     assert.equal(Q?.verb, verb, `${id}: asks for ${verb}`);
-    assert.ok(Q.moves.length && Q.moves.every((m) => G.phase.attacks.includes(m)), `${id}: a move of this phase answers it`);
+    // (a move of its combos too: the Mother Snapper's second snap, reared as the first, v1.79 #373)
+    const combos = G.phase.attacks.flatMap((m) => comboOf(G.def, m));
+    assert.ok(Q.moves.length && Q.moves.some((m) => G.phase.attacks.includes(m)) && Q.moves.every((m) => combos.includes(m)), `${id}: a move of this phase answers it`);
     assert.ok(Q.hint && Q.said && Q.lines.length === 3 && [Q.hint, Q.said].every((l) => !l.includes('\n') && l.length < 110), `${id}: its lines, one each`);
     assert.equal(G.asking, true);
     // the gadget first: nothing, and it says what it waits for

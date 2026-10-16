@@ -561,7 +561,7 @@ of its own, from its body and its temple's verb, on the same engine:
 | The warden (jets: get above it) | beam, mortar, stomp | stomp, sweeping beam, mortar | flare (vents straight up at you over it), beam, 3 mortars | stomp → stomp → slam (wave); flare → slam | - |
 | The Elder (wings beside her) | peck, stamp, buffet | buffet, dive, gale | stone feathers (3), peck, gale | peck → peck → buffet; gale → dive | dive (her beak in the floor: her hang aloft + `ROOST.miss`, 1.4 s) |
 | The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | dive, hail (4), roll | roll → tail → wail; hail → dive | dive (on her fins, 4.4 s; in her last phase only a held stone opens her) |
-| The Mother Snapper (stilling) | lunge, sweep | snap, seed, sweep | thrash, seed, snap | sweep → sweepBack; snap → snap → lunge; thrash → 3 seeds | - |
+| The Mother Snapper (stilling) | lunge, sweep | snap, seed, snap, sweep | thrash, seed, snap | sweep → sweepBack; snap → snap → lunge; thrash → 3 seeds | - |
 | The Lampless (the lantern) | swoop, gust, dust (wave) | flutter, scales (3), swoop | spiral, scales, gust | flutter → flutter → dust (wave); spiral → spiral | swoop, spiral (its wings on the floor, 5.4 s) |
 | The Gardener (bloom) | sweep, stamp (wave), clods | sweep, roots, stamp | crush, clods, sweep | sweep → sweepL → stamp | roots, crush |
 | The Clockwork Foreman (six numerals in a breath) | jab, chime (wave), hammer | cog, spin, hammer | jab, cogs (3), spin | jab → jab → hammer | spin (dizzy: its face opens) |
@@ -724,6 +724,33 @@ it lands) and the gadget taking. The temples' walkthroughs (`tests/temples.test.
 A combo's links no longer count as moves of the phase's rotation (`Guardian.begin`, v1.63): a three-move combo in a
 list of three moves had locked the rotation on that combo (the First Sign stuttered and cried, never beamed).
 
+### Every glob that sounds like a hit takes (v1.79, issue #373)
+
+The author: "I still can't finish the fight with the mother snapper? She almost never opens its mouth? And when it
+does even if I aim properly sometimes I hear the success sound but the health bar doesn't change". Played with real
+globs and the real push cone (`tests/mother-snapper-fight.test.js`), three causes:
+
+- **Her second phase never opened from the middle of her hall.** It asks for the push as she rears to snap, but she
+  reared over her own leaves, her head 9 m and more from a traveller 12 m off, and the push reaches 6 m: from 12 m
+  and 16 m, 0 openings in 280 s. Now her head looms out over you as she rears (`SNAP_LOOM` in guardians.js: 4.5 m short
+  of you, up to her neck's reach) and snaps down there, short of you; her second snap (`snap2`, reared the same)
+  answers the push too, and the snap comes every other move (`snap, seed, snap, sweep`).
+- **A glob in the jaws she gapes as she winds up stopped the strike, and she shook it off**: a player who shot at the
+  open mouth he saw never had her open (0 openings in 300 s). Now, in her first phase, stilled mid-strike her head drops
+  spent and agape (`MOTHER_STILLED`, 2.8 s): still her mouth then.
+- **The success sound was the splash's, played for any target.** A stilling glob on any target played the bright notes
+  of a hit (`fluidSplash(true)`), and most of hers took nothing (a glob on her leaves, into her mouth in her last phase,
+  mid-strike while her phase still asked for the push), and the first two crystals chimed with the bar standing still.
+  Now a target may say a hit took nothing (`info.dull`, `src/targets.js` `hitTarget`): `Guardian.landed` says so when
+  the hit changed nothing (no calm or damage, no opening, no strike stopped, no verb answered), the Mother's `onHit` and
+  her crystals say so where it only stopped her, and the tool's splash then sounds as on a wall. Each crystal in turn
+  takes its third, and a flat note takes the turn's calm back.
+
+Measured (a scripted traveller, 60 fps, standing 5 / 12 / 16 m off her): before, a player shooting only her open mouth
+won from 5 m (and 8 m), never from 12 or 16 m (stuck in phase two); a player who also shot her gaping jaws never won
+(0 openings, 70 to 85 globs landing bright and taking nothing). After, both win from every stance at 60 and 30 fps in
+29 to 64 s, opening 6 to 17 times a minute in each phase, and no glob lands bright or chimes without moving her bar.
+
 ### Every fight can be won from anywhere in the hall (v1.77, issue #361)
 
 The author: "after a while the mother snapper is just throwing fireballs so I can no longer shoot its mouth". A rooted
@@ -759,7 +786,7 @@ drawn on the floor: the tells are the body's, and the pieces stand in the arena 
 |---|---|---|---|---|
 | The Cloud-Mother (a bell holds things only while it rings) | four stones that fell up, under the dome (`HallStones`, arzach2.js) | a ring during a dive's wind-up (the `over` move: she rises to hang over the spot) brings the nearest stone down onto the spot, following it till she strikes; she dives onto it and lies there crying (`GROUNDED` 4.5 s): the bell calms her | her own crying no longer opens her (`def.openFor` → 0); only the stone does | a ring between her moves brings nothing; the stone falls up again when the note fades (`HOLD.stones`) |
 | The Lampless (light can be carried) | three dark pools (`LurePools`, perdide2.js) | a pool lit by a splash, or by your lantern held by it 1.2 s, lures it as it searches: it drifts there (8 m/s, its opening held while it goes) and drinks the pool dark | it shies from you: standing still by it does nothing; it drinks only at a pool, and only while you stand 5 m back (`LURE`) | by the lit pool, it hangs over it and waits |
-| The Mother Snapper (sing low to high) | three crystal pendulums high over her, out of order (`Swing` with `onStill`, perdide.js) | stilled in turn, smallest first, each rings true and stays lit; the third calms her a tenth | the cold in her mouth (or mid-strike) no longer eases her; the three in turn calm her | out of turn it rings flat, the lit ones fade, and she snaps up startled: begin again |
+| The Mother Snapper (sing low to high) | three crystal pendulums high over her, out of order (`Swing` with `onStill`, perdide.js) | stilled in turn, smallest first, each rings true, stays lit and calms her its third of a tenth (v1.79: each note moves her bar) | the cold in her mouth (or mid-strike) no longer eases her; the three in turn calm her | out of turn it rings flat, the lit ones fade and take their calm back, and she snaps up startled: begin again |
 | The First Sign (a note travels) | two low dishes on the wall, east and west, their twins high over them, a cable to its foot (`SIGN_DISHES`, bazaar.js; a `Dish` relays `via` its id) | a word played into a low dish reaches it from anywhere in the hall | its dish turns up as it listens (the model's `phase`): it hears only what the dishes carry | its word played to its face: nothing; the wrong word through a dish: refused as before |
 | The Clockwork Foreman (count round from where the hand points; every clock stopped at four) | its face's six numerals (lamp i at 2i o'clock as you face it) and a ring on each (`steps`) | open, its hands come round to four; numerals hit round from four (`FROM_FOUR`, garage.js) ring and light, any order still counts | only in step takes, six inside one breath (`VOLLEY`) | out of step they all go dark; faded past a breath, begin again |
 | The Gardener (v1.16; nothing grows in the shade) | the dome's louvre and its sunbeam on one quarter at a time, a footstone before each dead bed that turns it to that quarter (`rt.gardenSun`, a `Sunbeam` with `pick`, edena.js) | in the sun a bloom on its back counts double (`SUN.sun`), in the shade as before; it kneels a little longer (`SUN.open`, `def.openFor`) | in the shade nothing grows on it: stand on the footstone of the quarter it kneels in, let the sun settle on it, then bloom its back | in the shade the flowers fold and drop off it, and it says so |

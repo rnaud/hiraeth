@@ -219,9 +219,13 @@ export const MOTHER = {
   resolved: 'The Mother Snapper sleeps. Up in the dome the crystals hum in tune.',
   phases: [
     { to: 0.45, attacks: ['lunge', 'sweep'], pause: 1.5, hint: 'When her head lies spent after a lunge, still her: cold in her mouth.' },
-    { to: 0.75, attacks: ['snap', 'seed', 'sweep'], pause: 1.2, hint: 'She feints now. Still her, or still the three crystals, smallest first.',
+    // (v1.79, #373: the snap, the move her phase asks the push for, every other move, not every third; its second snap
+    // answers the push too, its rear the same; and as she rears to snap her head looms out over you, so a push from
+    // anywhere in her reach meets it: src/temples/guardians.js snapperModel. From the middle of her hall her head had
+    // stayed 9 m off and the push, 6 m long, never reached it: her second phase never opened)
+    { to: 0.75, attacks: ['snap', 'seed', 'snap', 'sweep'], pause: 1.2, hint: 'She feints now. Still her, or still the three crystals, smallest first.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
-      asks: { verb: 'push', moves: ['snap'], open: 3.6,
+      asks: { verb: 'push', moves: ['snap', 'snap2'], open: 3.6,
         hint: 'Push her head as she rears to snap: it slams down, spent.',
         said: 'Shoved aside, her head slams down spent, jaws agape. Still her.',
         lines: ['She rears back to snap.', 'Push her head as she rears to snap, and it slams down spent.', 'Switch to the push and fire it at her head as it draws back to snap; then still her open mouth.'] } },
@@ -241,32 +245,58 @@ export const MOTHER = {
   },
 };
 
-/** Only the stilling mode calms her: plain fluid startles her, a shove frightens her. */
-function motherHit(g, part, mode) {
+/**
+ * How long she lies spent when a stilling glob stops her mid-strike in her first phase (s): the strike never lands, her
+ * head drops agape, and the cold in her mouth then calms her (v1.79, issue #373: "she almost never opens her mouth":
+ * a glob into the jaws she gapes as she winds up stopped the strike and she shook it off, so a player who shot at the
+ * open jaws he saw never had her open at all).
+ */
+export const MOTHER_STILLED = 2.8;
+
+/**
+ * Only the stilling mode calms her: plain fluid startles her, a shove frightens her. Every glob that calms her rings
+ * the chime and moves her bar; one that does not is said to the tool (info.dull: its splash sounds as on a wall) and,
+ * where a player would think it should, rings flat (issue #373: "I hear the success sound but the health bar doesn't
+ * change").
+ */
+function motherHit(g, part, mode, info = {}) {
   const rt = g.rt;
+  const flat = () => { info.dull = true; rt.sound?.critter?.('blip', 0.5); };
   if (mode === 'stun') {
     if (g.phaseIndex >= 2 && (part === 'mouth' && g.state === 'open')) {
+      flat();
       rt.notice('The cold settles, but she shakes her crown at the crystals out of tune.', 'mother.tune');
       return true;
     }
     if (part === 'mouth' && g.state === 'open') {
-      g.add(0.15, 'still');
+      // (while her phase still asks for the push, add() takes nothing and says so)
+      if (!g.add(0.15, 'still')) { flat(); return true; }
       rt.notice('The cold settles in her mouth. Her jaws ease, and her head comes up.', 'mother.still');
       rt.sound?.chime?.();
       if (g.state === 'open') { g.enter('fight'); g.cool = 2.2; }
       return true;
     }
     if (g.attack && g.state === 'fight' && !g.struck) {
-      // stilled mid-strike: it never lands; once she has begun to calm, it calms her more
+      // stilled mid-strike: it never lands. At first her head drops spent, agape (a way in: still her mouth); once she
+      // has begun to calm, it calms her more; in her last phase she shakes it off
       g.stop(); g.cool = 2.4;
-      if (g.phaseIndex >= 2) rt.notice('She stops, frosted, and shakes it off: the cold no longer eases her.', 'mother.mid2');
-      else if (g.phaseIndex >= 1) { g.add(0.15, 'still'); rt.sound?.chime?.(); rt.notice('She stops mid-strike, frosted, and sways. Her crown glows brighter.', 'mother.mid'); }
-      else rt.notice('She stops mid-strike, frosted, and shakes it off.', 'mother.mid0');
+      if (g.phaseIndex >= 2) { flat(); rt.notice('She stops, frosted, and shakes it off: the cold no longer eases her.', 'mother.mid2'); }
+      else if (g.phaseIndex >= 1) {
+        if (g.add(0.15, 'still')) { rt.sound?.chime?.(); rt.notice('She stops mid-strike, frosted, and sways. Her crown glows brighter.', 'mother.mid'); }
+        else flat();
+      } else {
+        info.dull = true;   // (no calm yet: the opening is the reward)
+        g.cool = g.phase.pause ?? 1.5;
+        g.enter('open'); g.openFor = MOTHER_STILLED;
+        rt.notice('Frosted mid-strike, her head drops spent, agape. Still her mouth.', 'mother.mid0');
+      }
       return true;
     }
+    info.dull = true;
     return true;
   }
   if (mode === 'push') { g.add(-0.04, 'push'); rt.notice('She rears from the shove and snaps the air, more frightened than before.', 'mother.push'); return true; }
+  info.dull = true;
   if (part === 'mouth' && g.state === 'open') {
     g.enter('fight'); g.cool = 1.2;
     rt.notice('She snaps at the splash and rears up: it only startles her.', 'mother.fluid');
@@ -277,30 +307,37 @@ function motherHit(g, part, mode) {
 }
 
 /**
- * A crystal over the Mother stilled (a Swing's onStill): in turn, smallest first, its note rings true and stays;
- * the third calms her (a tenth, in her last phase the whole of it). Out of turn it rings flat, the notes stilled so
- * far fade, and she snaps up startled: begin again from the smallest.
+ * A crystal over the Mother stilled (a Swing's onStill): in turn, smallest first, its note rings true, stays, and
+ * calms her by its share (the three of them a tenth, in her last phase the whole of it), so every note that rings true
+ * moves her bar (v1.79, issue #373: the first two chimed and the bar stood still). Out of turn it rings flat, the notes
+ * stilled so far fade and take their calm with them, and she snaps up startled: begin again from the smallest.
  */
 export function motherCrystal(rt, sw) {
   const C = rt.motherCrystals, G = rt.guardian;
-  if (!C || !G?.awake || G.state === 'weary') { rt.notice('The crystal stops, frosted over, and hums its note into the hall.', 'mc.still'); return; }
-  if (sw.taken) return;
+  if (!C || !G?.awake || G.state === 'weary') { rt.sound?.chime?.(); rt.notice('The crystal stops, frosted over, and hums its note into the hall.', 'mc.still'); return true; }
+  if (sw.taken) return false;
+  const restart = () => { for (const s of C.list) s.taken = false; C.next = 0; C.from = null; };
   if (sw.o.rank !== C.next) {
     sw.flat = 0.8; rt.sound?.critter?.('blip', 0.5);
-    for (const s of C.list) s.taken = false;
-    C.next = 0;
+    if (C.from != null) G.add(C.from - G.meter, 'crystals.flat');   // (the notes' calm fades with them)
+    restart();
     if (G.state === 'fight' && !G.attack) G.cool = Math.min(G.cool, 0.4);
     rt.notice('It rings flat, and she snaps up, startled. Smallest crystal first.', 'mc.flat');
-    return;
+    return false;
   }
+  const from = G.meter, phase = G.phaseIndex;
+  // (while her second phase still asks for the push, add() takes nothing and says so: the note only hums, flat)
+  if (!G.add((phase >= 2 ? 0.15 : 0.1) / C.list.length + 1e-9, 'crystals')) { sw.flat = 0.8; rt.sound?.critter?.('blip', 0.5); return false; }
+  if (C.next === 0) C.from = from;
   sw.taken = true; C.next++;
   rt.sound?.chime?.();
-  if (C.next < C.list.length) { rt.notice('The crystal rings true over her, and she turns her head up to listen.', 'mc.true'); return; }
-  for (const s of C.list) s.taken = false;
-  C.next = 0;
-  G.add(G.phaseIndex >= 2 ? 0.15 : 0.1, 'crystals');
-  rt.notice('Low to high, the three notes ring true: her jaws ease, her crown glows.', `mc.done.${Math.min(G.phaseIndex, 2)}`);
+  // (a note that ended her phase ends the turn too: the next phase's notes begin from the smallest)
+  if (G.phaseIndex !== phase) { restart(); return true; }
+  if (C.next < C.list.length) { rt.notice('The crystal rings true over her, and she turns her head up to listen.', 'mc.true'); return true; }
+  restart();
+  rt.notice('Low to high, the three notes ring true: her jaws ease, her crown glows.', `mc.done.${Math.min(phase, 2)}`);
   if (G.state === 'open') { G.enter('fight'); G.cool = 2.2; }
+  return true;
 }
 
 const MOUTH_WRONG = 'Its crystal rings flat in the cold, and the jaws snap on. The makers sang from low to high: the smallest crystal first.';

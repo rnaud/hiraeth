@@ -81,9 +81,16 @@ export const BASE_MODES = ['shoot', 'push'];
 /** The mode a target gets for a glob of `mode`: its own if it accepts it, else 'shoot'. */
 export const modeFor = (target, mode) => (BASE_MODES.includes(mode) || target?.accepts?.includes(mode) ? mode : 'shoot');
 
+/**
+ * A glob (or the push) lands on `hit` (raycastTargets / targetsInCone's): its target's onHit. A target that took
+ * nothing from it may say so (info.dull = true: a guardian it did not calm, open or stop, src/temples/boss.js); then
+ * hit.dull is set, and the tool's splash sounds as on a wall, not the bright notes of a hit (issue #373: "I hear the
+ * success sound but the health bar doesn't change").
+ */
 export function hitTarget(hit, mode, dir, info) {
-  const t = hit?.target;
-  t?.onHit?.(modeFor(t, mode), hit.point, dir, { ...info, mode });
+  const t = hit?.target, i = { ...info, mode };
+  t?.onHit?.(modeFor(t, mode), hit.point, dir, i);
+  if (hit) hit.dull = !!i.dull;
   return !!hit;
 }
 export const allTargets = () => [...targets];

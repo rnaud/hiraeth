@@ -557,6 +557,11 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
 }
 
 /**
+ * The Mother Snapper's head as she rears to snap (v1.79, issue #373): out over the traveller, `short` m short of him,
+ * at most her neck's reach less `spare`; the push (6 m, src/fluid-tool.js FLUID.push) meets it from anywhere within it.
+ */
+export const SNAP_LOOM = { short: 4.5, spare: 1.5 };
+/**
  * Lorn's Mother Snapper (organic: you calm her): the oldest of the swamp's carnivorous plants, as big as a
  * house, rooted in the Hush's hall. The makers grew her to keep it; since the night the sky rang she snaps
  * at everything that moves. A bulb in a ring of broad leaves, a long neck of green beads, a great head of
@@ -599,7 +604,7 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, rooted: true, reach,
     mouth, mouthR: 1.9, radius: 3.6, height: 6, bodyR: 2.8, touchR: 1.6,
     H, upper, lower, beads, neckChain: chain, neckShape: shape, glowM, gape: 0, pitch: 0.6, turn: 0, head: at, marks: { c: [0, 1.3, 0], r: [2.7, 1.8, 2.7] },
-    animate(dt, t, { state, attack, k = 0, meter = 0 }) {
+    animate(dt, t, { state, attack, k = 0, meter = 0, kit = null }) {
       const id = attack?.id, struck = !!attack && k >= 1;
       let gape = 0.12 + 0.06 * Math.sin(t * 2.2), pitch = 0.35, turn = 0, rate = 3.5;
       want.set(Math.sin(t * 0.7) * 0.6, 8 + Math.sin(t * 1.1) * 0.3, 2.2);
@@ -611,8 +616,12 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
         else { want.set(0, 1.85, reach - 1.2); gape = 0; pitch = 0.05; rate = 16; }
       } else if (id === 'snap') {
         // a short snap: reared only half as high, struck only halfway out (the feint before the real lunge)
-        if (!struck) { want.set(0, 7.5, 0.5); gape = 0.15 + 0.6 * k; pitch = -0.05; rate = 5; }
-        else { want.set(0, 2.4, 6.5); gape = 0; pitch = 0.1; rate = 16; }
+        // (v1.79, issue #373: reared over you, her head looming out toward you the further off you stand, lower, up to
+        // her neck's reach, so a push from anywhere in her reach meets it: reared over her own leaves, it stayed 9 m
+        // from the middle of her hall and the push, 6 m long, never reached it)
+        const out = M.loom(kit?.eye);
+        if (!struck) { want.set(0, 7.5 - 2 * out / reach, Math.max(0.5, out)); gape = 0.15 + 0.6 * k; pitch = -0.05 + 0.25 * out / reach; rate = 5; }
+        else { want.set(0, 2.4, Math.max(6.5, out)); gape = 0; pitch = 0.1; rate = 16; }   // (down where it loomed: short of you)
       } else if (id === 'thrash') {
         // the head pulled down into her leaves, then thrown up and round
         if (!struck) { want.set(0, 2.6, 1.6); gape = 0.3 * k; pitch = 0.7; rate = 4; }
@@ -656,6 +665,12 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
       glowM.uniforms.uGlow.value = 0.15 + 0.75 * calm + (calm < 0.5 && state !== 'sleep' ? Math.max(0, Math.sin(t * 7)) * 0.12 : 0);
       group.updateMatrixWorld(true);
       mouth.copy(H.localToWorld(_w.set(0, 0, 0.7)));
+    },
+    /** How far out (m, along her front) her head looms as she rears to snap at a traveller at `eye` (world): SNAP_LOOM. */
+    loom(eye) {
+      if (!eye) return 0.5;
+      const e = group.worldToLocal(_w.copy(eye));
+      return THREE.MathUtils.clamp(Math.hypot(e.x, e.z) - SNAP_LOOM.short, 0.5, reach - SNAP_LOOM.spare);
     },
   };
   return M;

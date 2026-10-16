@@ -1537,7 +1537,7 @@ export class FluidTool {
             hitTarget(e.hit, gm, e.dir, { ...this.info(), colours: gTones });
             this.lastTarget = e.hit.target;   // (for the story and debugging: what the last glob landed on)
             this.lastHit = 'target';
-            this.sound?.fluidSplash?.(true, gm);
+            this.sound?.fluidSplash?.(!e.hit.dull, gm);   // (a target that took nothing from it: the splash of a wall, targets.js hitTarget)
             this.splash(e.hit.point, e.dir.clone().negate(), 1, gm, true);
           } else if (e.type === 'world') {
             this.lastHit = this.lastHit ?? 'world';
