@@ -216,9 +216,9 @@ test('the sheet: a ragged inked edge down each side, none along the top and bott
 
 test('main.js, the Lab and the Hangar hand over through the passage; it is warmed at load', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /passage\.go\(\{ to: pt\.to, heading: pt\.heading, lead: /, 'the doorways (through their light: src/thresholds.js)');
+  assert.match(main, /passage\.go\(\{ to: pt\.to, heading: pt\.heading, lead, cover, /, 'the doorways (through their light: src/thresholds.js; timed to the room beyond: src/door-walk.js)');
   assert.doesNotMatch(main, /rig\._curDist = 2/, 'no camera snapped in close');
-  assert.ok(main.indexOf('passage.update(dt)') < main.indexOf('player.update(pdt, busy()'), 'the move before the traveller and the camera move');
+  assert.ok(main.indexOf('passage.update(dt)') > 0 && main.indexOf('passage.update(dt)') < main.indexOf('player.update(pdt, doorWalk.input(busy()'), 'the move before the traveller and the camera move');
   assert.ok(main.indexOf('warmDraw.draw(') < main.indexOf("stage('ready')"), 'destinations drawn during the load');
   assert.match(main, /level\.update\(dt, t, \{[^}]*passage/, 'levels get the passage');
   const lab = readFileSync(new URL('../src/levels/lab.js', import.meta.url), 'utf8');

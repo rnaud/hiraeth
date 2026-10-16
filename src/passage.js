@@ -391,17 +391,19 @@ export class Passage {
   }
 
   /**
-   * Begin a hand-over. o: { to, heading, up, fwd, speed (null: kept), radius, onMove(c), lead }.
+   * Begin a hand-over. o: { to, heading, up, fwd, speed (null: kept), radius, onMove(c), lead, cover }.
    * `lead` (s): through a doorway's light, that long of its light over the screen before the paper comes across.
+   * `cover` (s): the paper's sweep across (PASSAGE.cover; a doorway walked into fast hurries it: src/door-walk.js).
    * Returns false if one is already under way.
    */
   go(o) {
     if (this.cur) return false;
     const warm = this.warm ? this.warm.near([o.to], o.radius ?? PASSAGE.radius) : [];
     const lead = o.lead > 0 ? o.lead : 0;
-    this.cur = { ...o, phase: lead ? 'lead' : 'cover', t: 0, frames: 0, warm };
+    const coverT = o.cover > 0 ? o.cover : PASSAGE.cover;
+    this.cur = { ...o, phase: lead ? 'lead' : 'cover', t: 0, frames: 0, warm, coverT };
     if (lead) this.cover?.light?.(PASSAGE.light, lead);
-    else this.cover?.cover(PASSAGE.cover);
+    else this.cover?.cover(coverT);
     return true;
   }
 
@@ -415,12 +417,12 @@ export class Passage {
     if (c.phase === 'lead') {
       // (the destination drawn ahead meanwhile: the light is on the screen, the paper not yet)
       if (c.warm.length) this.warm.draw(c.warm.splice(0, PASSAGE.perFrame));
-      if (c.t >= c.lead) { c.phase = 'cover'; c.t = 0; this.cover?.cover(PASSAGE.cover); }
+      if (c.t >= c.lead) { c.phase = 'cover'; c.t = 0; this.cover?.cover(c.coverT); }
     } else if (c.phase === 'cover') {
       if (c.warm.length) this.warm.draw(c.warm.splice(0, PASSAGE.perFrame));
       // (the frame after the sheet arrives: real time runs at least as fast as the game's clamped clock)
-      const covered = c.t >= PASSAGE.cover + 1 / 60;
-      if (covered && (!c.warm.length || c.t >= PASSAGE.cover + PASSAGE.warmMax)) {
+      const covered = c.t >= c.coverT + 1 / 60;
+      if (covered && (!c.warm.length || c.t >= c.coverT + PASSAGE.warmMax)) {
         if (c.warm.length) this.warm.draw(c.warm.splice(0));   // (behind the cover by now)
         this.carry(c);
         c.onMove?.(c);

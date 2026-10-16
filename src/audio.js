@@ -1724,6 +1724,16 @@ export class Sound {
     this.burst(t, { dur: 0.35, type: 'bandpass', freq: 3200, q: 0.6, vol: 0.12, rate: 0.8 });
   }
 
+  /** Walked into a doorway (src/door-walk.js, issue #389): the latch's tick, the door's soft wooden knock as it gives, and the
+   *  air of the room beyond drawn past (a low breath); the paper's own rustle (page) follows. */
+  doorway() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, v = this.vary(0.08);
+    this.burst(t, { dur: 0.03, type: 'bandpass', freq: 2600 * v, q: 4, vol: 0.09 });
+    this.sweep(t + 0.03, 190 * v, 120 * v, 0.12, 0.07, 'triangle');
+    this.burst(t + 0.04, { dur: 0.32, type: 'lowpass', freq: 520 * v, q: 0.7, vol: 0.07, rate: 0.6 });
+  }
+
   /** Something giving way, waking or moving (a quest's step): an airy sweep up, and four notes over it. */
   whoosh(vol = 1) {
     if (!this.ctx) return;

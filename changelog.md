@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.81 — 2026-10-16
 
+- Walking through a door no longer runs you into a wall first. The door takes you on through at your own pace, walking or sprinting, with a soft click of its latch; the page sweeps across, and you come out a few steps inside the other place with the camera behind you, then it is yours again. It all takes under a second, and turning the stick away hands it back at once. A locked door still tells you why.
 - For testers: the debug menu and the old dev panel are now one dev menu, with tabs like the game menu’s. Its first tab takes you to the world’s key places (the ship, the temples, a few landmarks), the second has the frame-rate readout and a god mode to fly anywhere fast, and the rest hold every other place, the films, quest stages, items and travel. The game pauses while it is open, in the web version and the Unity preview.
 - In the Unity preview a low moon or sun no longer throws the whole land into shade: Viridel’s meadow at dusk keeps its long shadows on lit grass.
 - In the Unity preview the light in every doorway, cave mouth and temple door streams in slow rays, as it does on the web.

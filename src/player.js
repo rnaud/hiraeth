@@ -663,6 +663,7 @@ export class Player {
     this.wallN = new THREE.Vector3();
     this._press = 0;
     this._climbCooldown = 0;
+    this.doorWalk = null;   // walked on through a doorway: { dir, pace, through } (src/door-walk.js)
     this.wind = new THREE.Vector3(1.2, 0, 0.5);   // levels can set this (wind on the scarf)
     this.onStep = null;                            // (footPos, heading) for footprints
     this.aim = null;                               // { k, point, dir } while aiming the tool (fluid-tool.js)
@@ -1597,6 +1598,9 @@ export class Player {
       const D = this.lockOn.hop ?? this.lockOn.dir, Rt = _lk1.crossVectors(D, F.up).normalize();
       if (Rt.lengthSq() > 0.5) move.copy(D).multiplyScalar(f).addScaledVector(Rt, s);
     }
+    // walked on through a doorway (src/door-walk.js): its way and its pace, whatever the stick, the lock or the aim say
+    const DW = this.doorWalk;
+    if (DW) { move.copy(DW.dir).addScaledVector(U, -DW.dir.dot(U)); f = 1; s = 0; stickScale = 1; }
     if (move.lengthSq() > 0) move.normalize();
     (this._moveDir ??= new THREE.Vector3()).copy(move);   // where you steer (the head and chest lead the turn: locomotion.js)
 
@@ -1630,6 +1634,7 @@ export class Player {
       if (this.carrying) speed = Math.min(speed, WALK) * CARRY.speed;   // something in both hands: a slower walk (src/carry.js)
       if (this.onGround && this.combatMotion) speed *= this.combatMotion.scale;
       speed *= this.wadeSlow;                                                   // wading (src/swim.js)
+      if (DW) speed = DW.pace;                                                  // (through a doorway: the pace it walks you at)
       steering = move.lengthSq() > .001;
       if (this.onGround || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
       // (in a locked-on hop, none: it carries you its own way)
@@ -1774,12 +1779,13 @@ export class Player {
 
     // Still ended up inside solid geometry (a moving taxi, a teleport, a
     // vehicle): step out to the nearest free spot, or back to the last one.
-    const stuck = this.unstick() || this.unhang(dt);
+    const through = !!this.doorWalk?.through;
+    const stuck = (!through && this.unstick()) || this.unhang(dt);
     this.watchFall(dt);   // jumped off the bird, falling to your death: she comes for you
 
     // deep water and other unsafe places put you back where you last stood safely
     if (this.opts.unsafe && this.opts.unsafe(this.pos) && !this.swimmable) this.respawn(this.lastSafe);
-    else if (!stuck && this.onGround && (this._safeTimer += dt) > 0.4) { this.lastSafe.copy(this.pos); this._safeTimer = 0; }
+    else if (!stuck && !through && this.onGround && (this._safeTimer += dt) > 0.4) { this.lastSafe.copy(this.pos); this._safeTimer = 0; }
 
     // facing
     const tvel = _v1.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
@@ -1831,7 +1837,8 @@ export class Player {
 
     // Walls and ceilings: a capsule from just above step height to the head.
     // Anything lower than STEP is stepped onto by the ground ray below.
-    const push = this.physics.pushCapsule(this.pos, RADIUS, STEP, HEIGHT, this._push, U);
+    // (walked on into a doorway too shallow for his pace, src/door-walk.js `through`: its back met under the paper, not pushed out of)
+    const push = this.doorWalk?.through ? null : this.physics.pushCapsule(this.pos, RADIUS, STEP, HEIGHT, this._push, U);
     if (push) {
       this._pushedStep = true;
       const n = push.normalize();
@@ -1839,7 +1846,7 @@ export class Player {
       if (vn < 0) this.vel.addScaledVector(n, -vn); // slide along the wall
       // pushing into a steep wall: start climbing (immediately in the air)
       const wall = Math.abs(n.dot(U)) < 0.35 && move.dot(n) < -0.6;
-      if (this.opts.climb && wall && this._climbCooldown === 0 && !this.carrying && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
+      if (this.opts.climb && wall && this._climbCooldown === 0 && !this.carrying && !this.doorWalk && ((this.stamina > 0.1 && !this.winded) || this.physics.onLadder?.(this.pos))) {
         this._press += dt;
         if (!this.onGround || this._press > 0.25) this.startClimb(n);
       } else this._press = 0;

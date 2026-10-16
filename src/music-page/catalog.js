@@ -202,6 +202,7 @@ add('Quests and moments', 'fail', 'A quest gone wrong', one((s) => s.fail()));
 add('Quests and moments', 'whoosh', 'Something giving way', one((s) => s.whoosh()));
 add('Quests and moments', 'rumble', 'Water and earth letting go', [pick('short', (s) => s.rumble(2.5)), pick('long', (s) => s.rumble(5))], 'Viridel\'s terraces');
 add('Quests and moments', 'page', 'A page turned', one((s) => s.page()));
+add('Quests and moments', 'doorway', 'Walking through a doorway: its latch and soft knock', one((s) => s.doorway()));
 add('Quests and moments', 'bell', 'The bell-note whistle', one((s) => s.bell()));
 add('Quests and moments', 'fragmentSong', 'A fragment singing to itself', [pick('near', (s, e) => s.fragmentSong(e.at, 1)), pick('far', (s, e) => s.fragmentSong(e.at, 0.3))]);
 add('Quests and moments', 'finderBeep', 'The finder\'s beep', [pick('far', (s) => s.finderBeep(700)), pick('near', (s) => s.finderBeep(1800))]);

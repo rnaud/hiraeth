@@ -140,6 +140,7 @@ import { wrapMenus, menusHeard } from '../src/ui-sound.js';
 import { InputMode } from '../src/input-mode.js';
 import { Passage, carryAcross, PASSAGE } from '../src/passage.js';
 import { Thresholds, THRESHOLD } from '../src/thresholds.js';
+import { DoorWalk } from '../src/door-walk.js';
 import { Veils } from '../src/veil.js';
 import { makeTrials, gameById } from './trials.js';
 import { levelMetaFor } from '../src/minigames/kit/world.js';
@@ -726,6 +727,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     reveal(secs = PASSAGE.reveal) { this.k = 0; this.lightK = 0; this.send({ phase: 'reveal', secs, light: 0, lightSecs: secs }); },
     clear() { if (this.state) { this.state = null; screen.set('passage', null); } },
   };
+  // walked on through a doorway, and in off it on the far side (issue #389, src/door-walk.js), as main.js
+  const doorWalk = new DoorWalk({ player, physics, rig });
   const passage = new Passage({ cover: passCover, warm: null, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); } });
   const thresholds = level.portals?.length ? optional('the doorways\' light', () => new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics })) : null;
   let portalCool = 0;
@@ -736,9 +739,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const d = player.pos.distanceTo(pt.at);
       // (a doorway that won't take you yet, `when`: its `refuse` said once as you walk into it)
       if (pt.when && !pt.when()) { if (d < pt.r) { if (!pt._refused && pt.refuse) toast(pt.refuse); pt._refused = true; } else if (d > pt.r + 3) pt._refused = false; continue; }
-      if (d < pt.r) {
+      if (d < doorWalk.reach(pt)) {   // (its radius; sooner, going into it, when the room beyond is too shallow for his pace: src/door-walk.js)
         const lit = thresholds?.flare(pt);
-        passage.go({ to: pt.to, heading: pt.heading, lead: lit ? THRESHOLD.lead : 0, onMove: (c) => thresholds?.arrive(c.to) });
+        const { lead, cover } = doorWalk.enter(pt, { lead: lit ? THRESHOLD.lead : 0, cover: PASSAGE.cover });
+        if (!passage.go({ to: pt.to, heading: pt.heading, lead, cover, onMove: (c) => { thresholds?.arrive(c.to); doorWalk.arrive(); } })) doorWalk.end();
+        sound.doorway?.();
         sound.page?.();
         portalCool = 1.2 + THRESHOLD.lead + PASSAGE.cover + PASSAGE.reveal;
         break;
@@ -1276,6 +1281,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     shipScenes: shipOn,
     /** The ways through to another space (src/passage.js): `active` while one carries the traveller across. */
     passage,
+    /** Walked through a doorway (src/door-walk.js): `active` while the door has the controls. */
+    doorWalk,
     /** A makers' box opening (Esc skips it, to its card or past it). */
     get boxPlaying() { return !!boxes?.busy?.(); },
     /** What is in hand: 'pad' or 'keys' (src/input-mode.js), which the prompts name the buttons of. */
@@ -1475,7 +1482,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (gadgets) { try { gadgets.control(pdt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
         // (the observatory's lens beside him takes E before he whistles: main.js)
         if (expedition) { try { if (expedition.update(dt, player, pinned ? noInput : ctlS, busy || !!pinned) && ctlS.KeyE) player._eHeld = true; } catch (e) { if (!game._obsFailed) { game._obsFailed = true; console.warn('[game] the observatory failed', e?.stack ?? e); } } }
-        player.update(pdt, pinned || busy ? noInput : ctlS, rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
+        player.update(pdt, doorWalk.input(pinned || busy ? noInput : ctlS, pdt, rig.yaw), rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
       }
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');

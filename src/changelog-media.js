@@ -1079,8 +1079,20 @@ const UNITY264_CHECK = 'Issue #264: the Unity editor’s batch on the Mac (scrip
 /** (v1.79, issue #264: the Unity preview's small gaps, the editor's batch on the Mac) */
 const UNITY264_SMALL = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, muted), `scripts/unity-js-run.sh -level desert -game cistern -run-secs 3 -words`: before with the engine’s and the words’ code as they were, after with this change; the web’s side in muted headless Chrome on this branch’s own Vite (port 6352).';
 const UNITY264_PANELS = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, its HUD on a 4:3 canvas 960 wide: the panels centre on x 480), muted, `scripts/unity-js-run.sh -game <id> -run-key … -pose`: before with the games’ code as it was (no pose), after with this change; the web’s side the same moment in muted headless Chrome on this branch’s own Vite.';
+/** (v1.81, issue #389: walking through a door) */
+const DOORS389 = 'Issue #389: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, Vite on its own port) on virtual time, a frame every 1/30 s of the game, the traveller sprinting into the Rose House’s door in the desert from 5 m out; before: the commit before the change (3e19c96), after: the change; four frames each laid out as a sheet';
+const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modules in node (the real traveller, the level’s collision, the passage’s timings, 60 frames a second), every way through of the twelve route worlds walked and sprinted into from 4 m out';
 export const CHANGELOG_MEDIA = {
   '1.81': [
+    { match: 'Walking through a door no longer runs you into a wall first', shots: [
+      { name: 'door-walk', caption: 'Sprinting into the Rose House’s door: before, he runs into the dark wall behind its light and stands there until the page comes; after, he runs on through it and comes out a few steps inside, still running', size: [1280, 728], from: DOORS389 },
+    ], numbers: [
+      { title: 'Ways through where you came to a halt against a wall before the page', better: 'lower', device: DOORS389_N, source: 'issue #389 scratchpad doors-389: before-all-*.json, after-all-*.json', rows: [
+        { where: 'walking in (86 ways)', before: 19, after: 0 },
+        { where: 'sprinting in (86 ways)', before: 59, after: 0 },
+        { where: 'starting to climb the wall instead', before: 19, after: 0 },
+      ] },
+    ], see: 'Walk, then sprint, into any shop or temple door: you keep going through it, and come out walking on inside.' },
     { match: 'In the Unity preview the drum circle, the sketch hunt', tags: ['devices'], shots: [
       { name: 'unity-drums', title: 'The drum circle', caption: 'Seven seconds into the song, the circle playing itself: before, the camp black and nothing but the score; after, the drum’s ring round the fire, the dashed spokes, the glyphs rolling in, a held socket throwing ink, PERFECT and the combo, as the web draws them.', from: UNITY264_PANELS },
       { name: 'unity-hunt', title: 'The sketch hunt', caption: 'The sketchbook up in the Signal Market, two of the list sketched and the silent tower in the frame: before, only the clock and the count; after, the list with its ticks and stars, the paper frame, its corners and thirds, the readout with its meter and the hint.', from: UNITY264_PANELS },

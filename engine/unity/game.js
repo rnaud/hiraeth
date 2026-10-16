@@ -446,7 +446,17 @@ function makePlan(args) {
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-talk-${k + 2}.png` });
     }
   }
-  if (args.through != null) {
+  const walkIn = args.through != null && /@\d/.test(String(args.through)) ? String(args.through).match(/^(.*)@([\d.]+)(r?)$/) : null;
+  if (walkIn) {
+    // (-through id@metres[r]: walked (r: run) into it from that far out in front, as a player comes to a door, issue #389:
+    // the frames every 4 of the game's, each one's speed, the passage's phase and the door walk's logged, as the web's)
+    const [, which, back, run] = walkIn;
+    steps.push({ kind: 'wait', frames: 30 }, { kind: 'through', which, from: +back }, { kind: 'wait', frames: 40, secs: 1 });
+    if (run) steps.push({ kind: 'key', code: 'ShiftLeft', down: true });
+    steps.push({ kind: 'key', code: 'KeyW', down: true });
+    for (let k = 0; k < 36; k++) steps.push({ kind: 'state', name: `through-${k}` }, ...(args.out ? [{ kind: 'shot', file: `${args.out}/unity-walkin-${String(k).padStart(2, '0')}.png` }] : [{ kind: 'wait', frames: 3 }]), { kind: 'wait', frames: 1 });
+    steps.push({ kind: 'key', code: 'KeyW', down: false }, { kind: 'key', code: 'ShiftLeft', down: false }, { kind: 'wait', frames: 30 });
+  } else if (args.through != null) {
     // (-through id: a way through walked into, src/passage.js: a portal by its label's words or its index in level.portals,
     // the paper photographed as it sweeps, the room on the far side, then the way back out of it; issue #264)
     steps.push({ kind: 'wait', frames: 30 }, { kind: 'through', which: args.through }, { kind: 'key', code: 'KeyW', down: true });
@@ -825,6 +835,12 @@ export function frame(dt) {
     next();
   }
   else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'state') {
+    // (the traveller's speed, height, the passage's phase and the door walk's: issue #389's frames against the web's)
+    const Pl = game.player, ps = game.passage?.cur;
+    console.log(`[unity] ${step.name} t=${S.frames} v=${Math.hypot(Pl.vel.x, Pl.vel.z).toFixed(2)} y=${Pl.pos.y.toFixed(1)} ${ps?.phase ?? '-'} ${game.doorWalk?.phase ?? '-'}${Pl.climbing ? ' CLIMB' : ''}`);
+    next();
+  }
   else if (step.kind === 'page') {
     // (as the night train's bell says it: the page's location, here the engine's onPage, engine/game.js)
     console.log(`[unity] page: ?level=${step.to}&from=${step.from}`);
@@ -958,7 +974,20 @@ export function frame(dt) {
     const w = step.which, pt = step.back
       ? P2.find((q) => q !== S.through && open(q) && q.at.distanceTo(S.through.to) < 40 && q.to.distanceTo(S.through.at) < 40)
       : (/^\d+$/.test(String(w)) ? P2[+w] : P2.find((q) => open(q) && String(q.label ?? '').includes(String(w))));
-    if (pt) {
+    if (pt && step.from) {
+      // (out in front of its door on the side it is walked into from, facing it, the camera behind)
+      S.through = pt;
+      const V = pt.at.constructor, door = pt._threshold?.door ?? pt.door;
+      const n = new V(Math.sin(door?.yaw ?? 0), 0, Math.cos(door?.yaw ?? 0));
+      const side = Math.sign(pt.at.clone().sub(door?.at ?? pt.at).dot(n)) || 1;
+      const p = (door?.at ?? pt.at).clone().addScaledVector(n, -side * step.from);
+      const g = game.physics?.groundAt?.(p.x, p.y + 2, p.z, 6);
+      if (Number.isFinite(g)) p.y = g;
+      game.player.teleport(p, new V(0, 1, 0), new V(0, 0, 1));
+      game.player.heading = Math.atan2(n.x * side, n.z * side);
+      game.rig.yaw = game.player.heading + Math.PI;
+      console.log(`[unity] ${step.from} m out from the way through "${pt.label ?? '?'}" (${P2.indexOf(pt)} of ${P2.length})`);
+    } else if (pt) {
       if (!step.back) S.through = pt;
       const V = pt.at.constructor;
       game.player.teleport(pt.at.clone(), new V(0, 1, 0), new V(0, 0, 1));

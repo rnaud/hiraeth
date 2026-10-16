@@ -141,6 +141,7 @@ import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { Thresholds, THRESHOLD } from './thresholds.js';
+import { DoorWalk } from './door-walk.js';
 import { Veils } from './veil.js';
 import { slicer, gatedSlicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
 import { warmShadersSliced as warmSliced, firstUse, settle, programKind, oneAtATime } from './warm-shaders.js';
@@ -2297,7 +2298,8 @@ function frame(ts) {
     if (interacted) player._eHeld = true;
     gadgets.control(pdt, busy() ? noInput : ctl, busy() || ship.playing || player.god || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
     // (locked on, the stick strafes round the foe from the lock's own line, not the camera's turn off it for room: LOCK_ROOM)
-    player.update(pdt, busy() ? noInput : benches.inputFor(ctl), rig.yaw - (rig.locked ? rig.lockOff : 0));
+    // (walked through a doorway: the door's way and pace, the stick read only to skip the steps in off it: src/door-walk.js)
+    player.update(pdt, doorWalk.input(busy() ? noInput : benches.inputFor(ctl), pdt, rig.yaw), rig.yaw - (rig.locked ? rig.lockOff : 0));
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
     const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
@@ -2366,10 +2368,13 @@ function frame(ts) {
       // (a doorway that won't take you yet, `when`: its `refuse` said once as you walk into it: the giant's mouth before the backpack)
       if (pt.when && !pt.when()) { if (d < pt.r) { if (!pt._refused && pt.refuse) showToast(pt.refuse); pt._refused = true; } else if (d > pt.r + 3) pt._refused = false; continue; }
       if (d < pt.r + PASSAGE.near) passage.prepare(pt.to);
-      if (d < pt.r) {
+      if (d < doorWalk.reach(pt)) {   // (its radius; sooner, going into it, when the room beyond is too shallow for his pace: src/door-walk.js)
         // (through its light: the veil flares and the light washes over the screen a moment before the paper: src/thresholds.js)
+        // (walked on through it, the light and the paper timed to the room beyond it, then in off the far door: src/door-walk.js)
         const lit = thresholds?.flare(pt);
-        passage.go({ to: pt.to, heading: pt.heading, lead: lit ? THRESHOLD.lead : 0, onMove: (c) => thresholds?.arrive(c.to) });
+        const { lead, cover } = doorWalk.enter(pt, { lead: lit ? THRESHOLD.lead : 0, cover: PASSAGE.cover });
+        if (!passage.go({ to: pt.to, heading: pt.heading, lead, cover, onMove: (c) => { thresholds?.arrive(c.to); doorWalk.arrive(); } })) doorWalk.end();
+        sound.doorway?.();
         sound.page();
         portalCool = 1.2 + THRESHOLD.lead + PASSAGE.cover + PASSAGE.reveal;
         break;
@@ -2782,6 +2787,8 @@ trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, leve
 window.trials = trialsRt;
 // the hosts of this world's games, trials and makers' runs (issue #248): each sign's person, or its post, offers it
 for (const spot of takeHosts()) if (!minigameDef) { try { storyRt.host(spot); } catch (e) { console.warn(e); } }
+// walked on through a doorway, and in off it on the far side (issue #389, src/door-walk.js)
+const doorWalk = new DoorWalk({ player, physics, rig });
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); },   // (the far side's detail finished, under the paper)
   busy: () => !!blades.grass?.placing });
 loadWatch.stop();
@@ -2822,7 +2829,7 @@ window.contactAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');

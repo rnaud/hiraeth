@@ -125,3 +125,39 @@ Lorn's front has no pick (its interior's) and follows its prompt. Tests: `tests/
 front, and every world as the play-through builds it: on the ground, the way clear, in and out, the keeper, the
 scout, no rain), `tests/shop.test.js` (one shop a world, the stock under the caps, the prices against the packs,
 every keeper's lines toned, every room's counter).
+
+## Walking through a door (v1.81, issue #389)
+
+The author: "when I walk through a door the character hits a wall before teleporting me to the other place." A way
+through (any of a level's `portals`: a shop's door and its room's, a temple's door and its ways out, the masked head's
+doorways, Qanat's passages and stair, the Givers' Hearth, Viridel's hatch, the Underwater City's lift and locks) took you
+at its edge and then left you walking on your own through the light's lead and the paper's sweep (0.44 s), into the back
+of a shop's recess, a temple's hall door or a passage's end. Measured before the change, the real traveller walked from
+4 m out into every way through of the twelve route worlds (86 of them): walking, 19 came to a halt against a wall before
+the move (2 started climbing it); running, 59 did, and 17 started climbing it. After: none, walking or running.
+
+`src/door-walk.js` (`DoorWalk`, one in main.js and one in engine/game.js) takes the controls at the door instead:
+
+- **In.** Walked into (`reach`: the portal's radius, or sooner when what lies beyond its opening is too close to keep
+  his pace for the light and the paper: a sprint, a shallow recess), the traveller is walked on through it at the pace
+  he had (a stroll at the least) along its middle line (`Player.doorWalk`: the way and the pace his steps take, whatever
+  the stick, the lock-on or the aim say; no climbing). The light and the paper are timed to the room beyond the opening
+  (`room`: rays from his knees, chest and head; a hit over the lintel or on the floor left out): never long enough to
+  reach a wall at his pace. A doorway too shallow even for its shortest timing (0.24 s) keeps three quarters of his pace
+  and its back is walked into under the paper (`through`: no push out of walls, nothing remembered as a safe spot). The
+  door's latch and knock play (`Sound.doorway`), then the paper's rustle.
+- **Across.** The passage carries him mid-stride (src/passage.js, `cover` per hand-over).
+- **Out.** Just inside the far door, facing in, he walks two or three steps in off it (`DOOR_WALK.arrive`, 0.5 s, at
+  the pace he came in at between a walk and a run) while the paper sweeps away and the camera eases round behind him;
+  then the controls are back. Moving the stick more than 50° another way, or any button, gives them back at once; a wall
+  close in front and they are back at the arrival. The whole of it, the door to the controls back: 0.75–0.97 s.
+- **Never stuck.** Knocked down, dead, mounted, climbing, swimming or 2.5 s after it began, the walk lets go. A door that
+  won't take you yet (`when`) says why and is never walked into. Not on his feet (gliding, on the jets) he goes through
+  as before, the controls his.
+
+The same in the engines (engine/game.js), and the Unity plan's `-through label@metres[r]` walks (or runs) into a way from
+that far out, logging each frame's speed and phases beside its pictures. Tests: `tests/door-walk.test.js` (a shop's
+door and its room's, walked, run and from a standstill; a locked door; knocked down on the way in; a far side that
+never comes; the skip; a wall in front on arrival; and every way through of the desert, Lorn, Viridel and the
+Underwater City walked and run into: no stop, no climb, carried across, the controls back within 1.1 s, never left in a
+wall), the frames as main.js runs them in `tests/door-walk-sim.js`.
