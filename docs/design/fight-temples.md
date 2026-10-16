@@ -16,6 +16,9 @@ The Sunken Hall (`?game=fight-desert`), or the Arcade's sign.
 **Built: Vael's, the Wind Cloister** (v1.80): on the rose cliff by the riders' monastery over the cloud (walk north-east of
 the monastery, past the Almonry), its host Sister Maud; or `?game=fight-arzach`. Below: "The Wind Cloister".
 
+**Built: Lorn's, the Drowned Mill** (v1.80): on the dry hillside south-east of the landing, its host Gert; or
+`?game=fight-perdide`. Below: "The Drowned Mill".
+
 ## The template
 
 A fight temple is a minigame played on foot (docs/systems/minigames.md: `drives: false`, so the walking, the blade,
@@ -161,12 +164,28 @@ find being the plain's under the cliff), facing the monastery; Sister Maud, who 
 133 foes, par 4:10; Rider's slate (blue-grey brass, white water). Played through by the scripted player (nothing
 hurting it, stepping out of the lanes): 2:28 to the reliquary, all 133, 28 gusts.
 
+## The Drowned Mill (Lorn, `src/fight-temples/perdide.js`)
+
+The reed-cutters' old mill, its floors under a hand of water (`water`), its pillars stacks of millstones, reed beds, the
+great wheel and sluice posts on its banks (`dress: 'mill'`), at 17.6 under Lorn's ringed planet. The doorway is on the
+dry hillside south-east of the landing (20, -45), facing it; Gert, who ground the reed-cutters' meal, offers it.
+
+| room | shape | waves | millstones |
+|---|---|---|---|
+| the mill race | 12 × 16, long | skitters and a toad; root knots, skitters, a toad | none |
+| the wheel pit | 20 × 16, two stacks | skitters and toads; root knots, skitters, a heron, a gorged toad; toads, skitters, a gorged root knot | two lanes east and west, one every 7 s |
+| the grinding floor | 24 × 18 (its door off-centre), two stacks | herons, toads, skitters; root knots, skitters, toads, a gorged heron | three lanes rolling down toward the camera, two every 6 s |
+| the miller's hall | 22 × 22, four stacks, the altar | toads, skitters, root knots, a gorged toad; a shade out of the Deep Wood and a whole root knot, skitters, toads, herons, a gorged root knot and toad | four lanes, both ways, two every 5.5 s |
+
+143 foes, par 4:20; Reed and rust. The toads lob from afar while the skitters swarm: the stones are for the swarm.
+Scripted run: 3:24, all 143, 39 stones (it was crushed four times: it steps out only once a stone is coming).
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
 |---|---|---|---|
 | Vael | **The Wind Cloister** (built, v1.80, above): a roofless monastery court on a cliff, its gates the riders' old stalls; gusts through the arches shove the crowd | sky rays, herons, blots; a crab of the sky stones at the end | Rider's slate (blue-grey brass, white water) |
-| Lorn | **The Drowned Mill**: four flooded rooms of a reed-cutters' mill, the water ankle-deep, the toads lobbing from the millstones | bellows toads, root knots, skitters; a shade at the end | Reed and rust |
+| Lorn | **The Drowned Mill** (built, v1.80, above): four flooded rooms of a reed-cutters' mill, the water ankle-deep, the toads lobbing from the millstones | bellows toads, root knots, skitters; a shade at the end | Reed and rust |
 | Viridel | **The Seed Vault**: the white builders' greenhouse cellars, beds of sleeping eyes that wake the moths | signal moths, root knots, a furnace brute at the end | Leafglass |
 | the Underwater City | **The Flooded Gallery**: sealed halls under the glass, the lamps flickering as the jellies ward the crabs | crabs, lantern jellies, sky rays; a lamp tripod at the end | Pearl and tide |
 | the City-Shaft | **The Lift Depot**: a stack of cab bays, each room a platform the cranes lower the next wave onto | lamp tripods, horn lizards, toads; two shades at the end | Cab yellow |

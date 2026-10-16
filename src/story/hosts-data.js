@@ -88,6 +88,12 @@ export const HOSTS = {
     say: ['~solemn~ My cloister. The wind comes through it, and now it brings them in.', '~neutral~ Four courts. Many, small. Where the floor shows the wind, let it take them. The altar, after.'],
     lines: ['~whisper~ Listen. Wind.'],
   }),
+  'fight-perdide': P({
+    id: 'host.fight-perdide', name: 'Gert', title: 'who ground the reed-cutters’ meal', color: '#8e5e3a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#8e5e3a', lining: '#2b211f', cloth: '#d8cfa8', legs: '#3a3a2a', hat: '#7e9a52', hair: '#6b5a4a' }, head: 'straw', look: { body: 'toolbelt' },
+    say: ['~tired~ I ground the reed-cutters’ meal in that mill. Now it’s flooded, and the stones roll with nobody at the gear.', '~neutral~ Four rooms, ankle-deep and crawling. Where the floor goes rust, a stone’s coming. The miller’s altar is at the back.'],
+    lines: ['~tired~ Hear the grinding? Nobody’s at the gear.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

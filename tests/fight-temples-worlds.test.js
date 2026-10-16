@@ -8,6 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import fightArzach from '../src/minigames/fight-arzach.js';
+import fightPerdide from '../src/minigames/fight-perdide.js';
 import { checkGame, collectGames } from '../src/minigames/index.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES } from '../src/story/tone.js';
@@ -24,7 +25,7 @@ import { WORLDS } from '../src/foe-worlds.js';
 import { spawnKindOf } from '../src/enemies/archetypes.js';
 import { colourById, colourOfWorld, chosenColour, PIECES } from '../src/kit-colours.js';
 
-const GAMES = [fightArzach];
+const GAMES = [fightArzach, fightPerdide];
 const save = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; }, emit() {}, on: () => () => {} });
 const hpOf = (k) => FOES[k]?.hp ?? 2;
 

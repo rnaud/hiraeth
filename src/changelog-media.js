@@ -1079,6 +1079,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-cloister-gust', only: 'after', title: 'A gust coming', caption: 'The cloister’s first wave: pale arrows run down a lane of the floor the way the wind will blow, two sky rays in it beside him. A moment later it blows them into the wall.', from: FIGHT341 },
       { name: 'fight-cloister-door', only: 'after', title: 'Its doorway', caption: 'On the rose cliff north-east of the riders’ monastery: the doorway and Sister Maud, who sweeps the cloister.', from: FIGHT341 },
     ], see: 'In Vael, cross to the sky stones and walk to the riders’ monastery on the rose cliff: the doorway stands north-east of it. In the cloister, stand clear of a lane when its arrows run, with the crowd in it.' },
+    { match: 'A new fight temple in Lorn, the Drowned Mill', tags: ['combat'], shots: [
+      { name: 'fight-mill-stone', only: 'after', title: 'A millstone rolling', caption: 'The wheel pit, its floor under water: a millstone rolls down the rust-edged lane past him, a toad and a heron up the room.', from: FIGHT341 },
+      { name: 'fight-mill-door', only: 'after', title: 'Its doorway', caption: 'On the dry hillside south-east of the landing, among the crystals: the doorway and Gert, who ground the reed-cutters’ meal.', from: FIGHT341 },
+    ], see: 'In Lorn, walk south-east from the landing up the hillside to the doorway. In the wheel pit, watch for a lane whose edges turn rust: a stone rises at its end and rolls.' },
   ],
   '1.79': [
     { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },

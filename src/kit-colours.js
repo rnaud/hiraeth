@@ -31,6 +31,9 @@ export const KIT_COLOURS = [
   // Vael's Wind Cloister: the riders' slate, blue-grey brass and white water (src/fight-temples/arzach.js)
   { id: 'slate', name: 'Rider’s slate', world: 'arzach', pack: { brass: '#8f9cab', brassDark: '#55606f', canvas: '#c9cdd2', canvasDark: '#8e96a0', cloth: '#9fd6ee', leather: '#3a3f4a' },
     water: { base: '#e8f2f8', cream: '#ffffff', deep: '#7f9fb8', pale: '#cfe6f2', gold: '#9fd6ee', light: '#ffffff' } },
+  // Lorn's Drowned Mill: reed green and the mill's rust (src/fight-temples/perdide.js)
+  { id: 'reed', name: 'Reed and rust', world: 'perdide', pack: { brass: '#a8643a', brassDark: '#6e3c24', canvas: '#7e9a52', canvasDark: '#5a7038', cloth: '#d8b04a', leather: '#3e2e22' },
+    water: { base: '#7fd0b8', cream: '#e6f4d8', deep: '#3f7a6a', pale: '#b6e6d2', gold: '#c9a24a', light: '#f2fff8' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
