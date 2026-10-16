@@ -8,6 +8,9 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.82', date: '2026-10-16', items: [
+    'A new fight temple in the City Floating in Space, the Oil Exchange, on the Towers’ deck: four decks of drones, moths and rollers over the dark, where leaking oil spreads under your feet and a spark sets it burning. Step off the pool before it lights, and let the rollers burn. Its prize: the Lamp oil colours. With it every world has its fight temple.',
+  ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)
     // and the crowd's walks as main.js does, the flora's burial check in its own queue; tests/engine-defer.test.js. Unity

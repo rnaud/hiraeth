@@ -142,6 +142,12 @@ export const HOSTS = {
     say: ['~whisper~ My gardens are full of hounds. They run in the spheres’ shade at dusk.', '~neutral~ Four gardens. Keep to the light: in the shade they bite and you can’t see them. The round garden’s altar is at the end.'],
     lines: ['~whisper~ Stay out of the shade.'],
   }),
+  'fight-spacecity': P({
+    id: 'host.fight-spacecity', name: 'Osric', title: 'who weighed the oil', color: '#f0c06a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#8a5a3a', lining: '#2b211f', cloth: '#f0c06a', legs: '#2b2f45', hat: '#3a3a50', hair: '#2b211f' }, head: 'cap', look: { body: 'satchel' },
+    say: ['~neutral~ I weighed the lamp oil at that depot till the drums started leaking. One spark and the deck burns.', '~neutral~ Four decks. When oil spreads under you, get off it before it lights. The clearing house altar is at the end.'],
+    lines: ['~neutral~ Mind your feet. And the sparks.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

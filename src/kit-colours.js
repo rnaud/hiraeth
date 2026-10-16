@@ -58,6 +58,9 @@ export const KIT_COLOURS = [
   // the Garden of Spheres' Quiet Orchard: dusk over the lawns (src/fight-temples/spheres.js)
   { id: 'orchard', name: 'Orchard dusk', world: 'spheres', pack: { brass: '#c9b08a', brassDark: '#7a6a4a', canvas: '#6a9a5a', canvasDark: '#4a6a3e', cloth: '#f4c86a', leather: '#2a2a3a' },
     water: { base: '#a8a0e8', cream: '#f4f0ff', deep: '#4a4a8a', pale: '#d0ccf4', gold: '#f4c86a', light: '#ffffff' } },
+  // the City Floating in Space's Oil Exchange: lamp oil and its flame (src/fight-temples/spacecity.js)
+  { id: 'lampoil', name: 'Lamp oil', world: 'spacecity', pack: { brass: '#f0c06a', brassDark: '#9a7a3a', canvas: '#3a3a50', canvasDark: '#22223a', cloth: '#ff9a3a', leather: '#1a1a28' },
+    water: { base: '#f0c06a', cream: '#fff8e0', deep: '#a8622a', pale: '#ffe0a0', gold: '#ff9a3a', light: '#fffcf0' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;

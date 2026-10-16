@@ -29,6 +29,7 @@ and the Signal Market's **Back Rooms** (in the back alley west of the sign-hange
 And the Underwater City's **Flooded Gallery** (in the Dock hall; its host Sabine; `?game=fight-underwater`).
 And the Glass Dunes' **Kiln Yard** (by the north camp's awnings; Ozren; `?game=fight-glassdunes`).
 And the Garden of Spheres' **Quiet Orchard** (west of the round plaza; Wenna; `?game=fight-spheres`).
+And the City Floating in Space's **Oil Exchange** (on the Towers' deck; Osric; `?game=fight-spacecity`).
 Below, each under its name.
 
 ## The template
@@ -149,6 +150,7 @@ none: it teaches the crowd; there are more, and sooner, deeper in (the tests hol
 | `bloom` (Viridel) | a row of sleeping eyes down the lane opens one by one from its head, 1.2 s | they flash white, 0.35 s | dazzled (`Foes.blind` 0.6 s), a quarter heart | stunned 1.2 s and a cut; moths from 1.2 m beyond its edge drawn in |
 | `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | half a heart, thrown out | three cuts to all under it |
 | `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
+| `spill` (the City Floating in Space) | a pool of oil spreads on the deck under him and near him, a spark at its rim, 1.4 s | it burns 3 s | a quarter heart a tick (0.8 s) in it | a cut a tick; flyers above it |
 | `shade` (the Garden of Spheres) | its edge glows on the side it will come from, 1 s (`hazard.lanes`: only `along` and `dir`) | a 4 m band of shade sweeps the room end to end at 2.4 m/s | a quarter heart a tick (1.2 s) in it | in it they can't be aimed at (`phased`) |
 | `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack white, 1.1 s | they break: pits to the kilns' glow, 3.5 s | a quarter heart a tick (0.9 s) in one | a cut a tick |
 | `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 3.6 s: the floor black but for the discs (2.4 m) | out of the light a quarter heart a second (0.6 s first) | in a lamp's disc a cut a second |
@@ -276,6 +278,14 @@ spheres on their stands beyond the walls (`dress: 'orchard'`). Rooms: the gateho
 centipedes and shades made light; the glass marionette and two whole hounds at the end; 112, par 4:10; Orchard dusk.
 Its doorway west of the round plaza, outside its hedge, Wenna by it. Keep to the light, ahead of the shade or behind it.
 
+## The Oil Exchange (the City Floating in Space, `src/fight-temples/spacecity.js`)
+
+The islands' lamp-oil depot on its rock over the dark (`outside: 'cliff'`, the rock under it, cables and lamps off its
+edge: `dress: 'islands'`), oil drums stacked for pillars (`pillar: 'drum'`). Rooms: the weigh house, the drum yard, the
+cable deck (its door off to one side), the clearing house (two pools at a time, more often). Foes: ring drones, signal moths,
+pearl rollers; a lamp tripod and two whole drones at the end; 121, par 4:10; Lamp oil. Its doorway on the Towers' deck,
+in its far corner from the bridges, Osric by it. The flyers are over the fire: the rollers are the ones to burn.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
@@ -289,26 +299,8 @@ Its doorway west of the round plaza, outside its hedge, Wenna by it. Keep to the
 | the Buried Machine | **The Tooth Gallery** (built, v1.81, above): a gear-house between the canyon's teeth, rails across it the carts run on | mound worms, crucible carts, centipedes, skitters | Brass tooth |
 | the Moon Foundry | **The Pour Floor** (built, v1.80, above): the casting bays, a pour every minute across one room's floor (step off the channels) | crucible carts, skitters, lizards; a brute at the end | Moon slag |
 | the Garden of Spheres | **The Quiet Orchard** (built, v1.81, above): the spheres' walled gardens at dusk, the hounds running in the trees' long shadows | rollers, centipedes, antler hounds; a marionette at the end | Orchard dusk |
-| the City Floating in Space | **The Oil Exchange**: the islands' lamp-oil depot, its rooms joined by short bridges over the dark | ring drones, moths, rollers; a lamp tripod at the end | Lamp oil |
+| the City Floating in Space | **The Oil Exchange** (built, v1.81, above): the islands' lamp-oil depot, its rooms joined by short bridges over the dark | ring drones, moths, rollers; a lamp tripod at the end | Lamp oil |
 | the Signal Market | **The Back Rooms** (built, v1.81, above): the market's shuttered shops after hours, a bell walker tolling in the last | lizards, hounds, marionettes; a bell walker at the end | Signal neon |
 
-## The next ones, written up (for later)
 
-(Built since from this list, in v1.81: the Seed Vault, the Lift Depot, the Tooth Gallery and the Back Rooms, above, much
-as written here. Four are left.)
-
-Each on the same template: a table, a hazard of its own (a new `kind` in `hazards.js` where none of the four fits), a
-look (`ground`, `pillar`, `dress`), a host and a doorway by a settlement, its world's kinds light, gorged ones from the
-second room, two or three tough ones at the end.
-
-**The City Floating in Space: the Oil Exchange.** The islands' lamp-oil depot: its rooms platforms over the dark, joined
-by short bridges (doors with rails), oil drums as pillars. Foes: ring drones (their harpoons), signal moths, rollers; at
-the end a lamp tripod. Hazard **`spill`** (spots that spread): a drum knocked over (by a roller's bowl or a cut) spills
-a pool that spreads to 2.5 m; the drones' sparks light it: a lit pool burns (half a heart a tick, two cuts to foes) for
-4 s; you can light it yourself with the fluid gun's ember. The first hazard the player starts. Rooms: the weigh house,
-the drum yard, the cable bridge (narrow, long), the clearing house. Reward: Lamp oil. Door: on the oil quay by the
-bill-runners' office.
-
-What each needs that is not built: a hazard kind (`dark` room-wide, `crack` and `spill` changing the floor, `shade`
-lanes that move), the Kiln Yard's tiles, and for the Flooded Gallery a near wall left out (the camera looking through
-the glass).
+**All twelve built** (v1.82): every route world has its fight temple; the hazards' kinds are the template's for any world added later.

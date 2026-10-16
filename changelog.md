@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.82 — 2026-10-16
+
+- A new fight temple in the City Floating in Space, the Oil Exchange, on the Towers’ deck: four decks of drones, moths and rollers over the dark, where leaking oil spreads under your feet and a spark sets it burning. Step off the pool before it lights, and let the rollers burn. Its prize: the Lamp oil colours. With it every world has its fight temple.
+
 ## v1.81 — 2026-10-16
 
 - A new fight temple in the Garden of Spheres, the Quiet Orchard, just west of the round plaza: four walled gardens at dusk, full of antler hounds and rollers, where a sphere’s shadow sweeps the lawns. Keep to the light: in the shade the hounds bite and you can’t aim at them. Its prize: the Orchard dusk colours.
