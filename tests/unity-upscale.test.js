@@ -32,7 +32,7 @@ test('URP\'s own final blit by default on every platform: no upscaler chosen unl
   assert.match(feature, /public static float gbufferScale = 1f;/);
   assert.match(feature, /if \(Settings\.upscaler != Upscaler\.Urp\)\n\s+\{/, 'the pass enqueued only when asked');
   // (Android's Handheld still draws at 0.75 of the screen)
-  assert.match(runner, /else if \(urp != null\) urp\.renderScale = BridgeArgs\.Quality == "handheld" \? 0\.75f : 1f;/);
+  assert.match(runner, /else if \(urp != null\) urp\.renderScale = BridgeArgs\.Quality == "handheld" \? HandheldScale\(Screen\.width, Screen\.height\) : 1f;/);
 });
 
 test('the upscale pass: FSR as EASU then RCAS (none at sharpness 0), SGSR in one pass, the HUD after it, no URP blit', () => {
