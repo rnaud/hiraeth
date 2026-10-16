@@ -116,7 +116,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       K.both(ceramic('#73ccb9'),disc(5.8,2,[0,y+66,2]));
       symbol(K,-12,y+52,9.7,1.4,edge);
       for(const sign of [-1,1])seams(K,edge,[[[sign*7,73],[sign*9,62],[sign*10,50],[sign*12,38]],[[sign*11,68],[sign*14,67]],[[sign*9,41],[sign*15,40]],[[sign*6,22],[sign*16,20]]],9.7,y,.07);
-      arch(entrance,red,{w:17,h:16,dw:6.8,dh:10,y,z:R+1,depth:4});
+      // (its doorway: the exterior's portal, src/temples/portal.js)
       return y+97;
     }
     case 'arzach': {
@@ -130,7 +130,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       // Slender black cleft: it ends at the arch, rather than exposing sky down to the ground.
       volume(K,navy,[['M',-1.6,18],['L',-1.6,51],['Q',0,59,1.6,51],['L',1.6,18]],{y,z:7.4,depth:.3,bevel:0});
       arch(entrance,ochre,{w:24,h:29,dw:12,dh:24,y,z:R-1,depth:8});
-      arch(entrance,blue,{w:15.2,h:24,dw:6,dh:17.8,y,z:R+2.5,depth:1.5});
+      // (the teal frames round its door: the exterior's portal, src/temples/portal.js)
       symbol(K,20,y+7,10.9,1.7,accent??navy);
       seams(K,paint('#b98b70'),[[[4,64],[5,52],[7,39],[10,31],[22,26],[40,25]],[[7,42],[10,41]],[[12,29],[17,28]],[[26,23],[29,20]],[[37,25],[40,24]]],8.72,y);
       for(const sign of [-1,1])seams(K,paint('#ad806f'),[
@@ -207,7 +207,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       for(let i=0;i<12;i++){const a=i*TAU/12;K.add(mint,tube([[Math.sin(a)*5.07,y+14,Math.cos(a)*5.07],[Math.sin(a)*5.07,y+38,Math.cos(a)*5.07],[Math.sin(a)*4.6,y+48,Math.cos(a)*4.6],[Math.sin(a)*3.08,y+58,Math.cos(a)*3.08],[0,y+64,0]],.08));}
       for(const [h,r]of [[22,5.1],[31,5.1],[40,5],[48,4.6],[55,3.7]])K.add(mint,T(new THREE.TorusGeometry(r,.07,4,48),[0,y+h,0],[Math.PI/2,0,0]));
       K.both(coral,lathe([[45,y+9],[44,y+12.8],[38,y+15],[30,y+15.3],[30,y+14.5],[38,y+14.2],[43,y+12.2],[44,y+9]],64).scale(1,1,.34));
-      volume(entrance,ivory,[['M',-4.2,0],['L',-2.2,0],['L',-2.2,6.8],['Q',0,11.2,2.2,6.8],['L',2.2,0],['L',4.2,0],['L',3.5,17],['Q',0,20,-3.5,17]],{y,z:R+1,depth:2,bevel:.2});
+      volume(entrance,ivory,[['M',-4.4,0],['L',-2.3,0],['L',-2.3,8.2],['L',-1.2,9.2],['L',1.2,9.2],['L',2.3,8.2],['L',2.3,0],['L',4.4,0],['L',3.6,17],['Q',0,20,-3.6,17]],{y,z:R+1,depth:2,bevel:.2});
       symbol(entrance,0,y+14,R+2.3,.8);
       return y+70;
     }
@@ -219,7 +219,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       K.both(gold,ring(5.9,.7,[0,49,10.8]));
       K.both(makeMaterial({color:'#fff0bc',glow:.82,hatch:0}),disc(5.25,.5,[0,49,11]));
       symbol(K,-.4,61,10.5,1.3,blue);
-      arch(entrance,cream,{w:16,h:27,dw:5.5,dh:17,y:1.8,z:R+6,depth:3});
+      arch(entrance,cream,{w:16,h:27,dw:7,dh:15.6,y:1.8,z:R+6,depth:3});   // (its opening round the portal's outer frame)
       return 89;
     }
     case 'garage': {
@@ -232,7 +232,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
         for(let i=1;i<5;i++){const a=i*Math.PI/5;K.both(cream,T(new THREE.BoxGeometry(.7,7.5,1.5).translate(0,3.75,0),[sign*10,y+2,-2],[0,0,-a+Math.PI/2]));}
       }
       seams(K,seam,[[[-10,7],[10,7]],[[-9.7,13],[9.7,13]],[[-9.2,19],[9.2,19]],[[-8.8,25],[8.8,25]],[[-5,2],[-5,31]],[[3,2],[3,31]]],4.9,y);
-      arch(entrance,cream,{w:6,h:8,dw:3.3,dh:6.8,y,z:R+1.2,depth:2});
+      // (its brass doorway: the exterior's portal, src/temples/portal.js)
       return y+59;
     }
     case 'buried': {
@@ -262,7 +262,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
         K.both(rust,new THREE.CylinderGeometry(1.5,1.5,.8,16).applyQuaternion(q).translate(sx*(rim+.6),y+4.4,sz*(rim+.6)));
       }
       for(let i=0;i<32;i++){const a=i*TAU/32;K.add(navy,disc(.16,.08,[Math.sin(a)*(R+1.1),y+4.8,Math.cos(a)*(R+1.1)]));}
-      arch(entrance,rust,{w:15,h:19,dw:4.4,dh:11,y,z:R+2,depth:4});
+      arch(entrance,rust,{w:15,h:19,dw:8.5,dh:11.1,y,z:R+2,depth:4});   // (its opening round the portal's outer frame)
       return y+74;
     }
     case 'spheres': {
@@ -284,7 +284,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       // A broad domed heel grows up around the small human entrance.
       volume(entrance,ivory,[['M',-29,-3],['C',-27,9,-19,31,0,33],['C',19,31,27,9,29,-3],
         ['L',2.7,-3],['L',2.7,6.5],['Q',0,12.5,-2.7,6.5],['L',-2.7,-3]],{y,z:9,depth:18,bevel:.6});
-      arch(entrance,ceramic('#73c7b8'),{w:13,h:17,dw:5.4,dh:9.5,y,z:R+.8,depth:1.2});
+      // (the teal frames round its door: the exterior's portal, src/temples/portal.js)
       symbol(entrance,0,y+24,R+.7,2.1,paint('#6eaaa3'));
       return y+64;
     }
@@ -292,13 +292,13 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       const pink=stone('#efaa9e',{course:2.5,width:4.3,wear:.25}), seam=paint('#b17f81');
       volume(K,pink,[['M',-9.5,0],['L',-3,0],['L',-3,34],['L',-4.5,39],['L',-8.7,40]],{z:2.3,depth:7,bevel:.3});
       volume(K,pink,[['M',3,0],['L',10,0],['L',8,43],['L',4.2,44],['L',3,40]],{z:2.3,depth:7,bevel:.3});
-      volume(K,pink,[['M',-8,0],['L',-3.1,0],['L',-3.1,5.5],['Q',0,12,3.1,5.5],['L',3.1,0],['L',8,0],['L',6.4,22],['L',-6.4,22]],{z:3.8,depth:4.7,bevel:.2});
+      // (its doorway cut round the portal's outer frame, src/temples/portal.js: three round frames stepping back)
+      volume(K,pink,[['M',-8,0],['L',-5.5,0],['L',-5.5,6.2],['C',-5.5,9.24,-3.04,11.7,0,11.7],['C',3.04,11.7,5.5,9.24,5.5,6.2],['L',5.5,0],['L',8,0],['L',6.4,22],['L',-6.4,22]],{z:3.8,depth:4.7,bevel:.2});
       const footing=stone('#8298a6',{course:1.8,width:3.6,wear:.3});
       for(const sign of [-1,1])for(const [x,w,h,d,z]of [[8.7,4.2,14,9,5],[12.5,3.4,8.5,8,5.7],[15.2,2.2,4.5,7,6.2]]){
         K.both(footing,box(w,h,d,sign*x,h/2,z));
         K.both(footing,box(w+.4,.55,d+.4,sign*x,h+.25,z));
       }
-      for(let i=0;i<3;i++)arch(entrance,footing,{w:14-i*2,h:16.2-i*1.6,dw:6.5-i*.6,dh:10.2-i*.7,y:.35,z:9-i*1.5,depth:.9});
       const bronze=metal('#b37c65','copper');
       K.both(bronze,T(lathe([[.01,-.4],[2,-.1],[4,.6],[6,1.9],[6,2.2],[4,.95],[2,.2],[.01,0]],48),[0,29,6],[Math.PI/2,0,0]));
       K.both(metal('#79594d','brass'),ring(6,.2,[0,29,8.2]));
@@ -315,7 +315,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       volume(K,ivory,[['M',-4.4,23],['L',4.4,23],['L',4.4,47],['Q',4.5,52,8,55],['L',8,81],['L',-8,81],['L',-8,55],['Q',-4.5,52,-4.4,47]],{y,z:1,depth:7,bevel:.4,holes:[slot(0,55,77,3.2),slot(0,24,51,2.5)]});
       volume(K,gold,[['M',-17,51],['C',-20,38,-15,25,0,24],['C',15,25,20,38,17,51],['C',17,35,9,31,0,30],['C',-9,31,-17,35,-17,51]],{y,z:2,depth:4,bevel:.55});
       for(const yy of [7,14])K.add(paint('#35445f'),T(annulus(15.6,15.65,.08,48),[0,y+yy,-1],[0,0,0],[1,1,.57]));
-      arch(entrance,blue,{w:15,h:20,dw:7.4,dh:16,y,z:R+2,depth:2.8});
+      arch(entrance,blue,{w:15,h:20,dw:8.7,dh:11.6,y,z:R+2,depth:2.8});   // (its opening round the portal's outer frame)
       // The existing crane hook still moves; its broad copper jib is now legible beside the mould.
       const holes=[18,24,30,36].map(x=>{const h=new THREE.Path();h.absarc(x,0,.8,0,TAU,true);return h;});
       volume(K,copper,[['M',10,-2],['L',40,-2],['L',40,2],['L',10,2]],{y:y+38,z:-1,depth:2,bevel:.2,holes});

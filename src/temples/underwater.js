@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { pearl, metal } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
@@ -584,11 +586,9 @@ function exterior(scene, level, rt) {
   const dark = { paint: new THREE.Color('#1f3d44'), smooth: false, side: THREE.DoubleSide };
   const DZ = SITE.door - SITE.z, FZ = DZ - 0.3;   // the door (local z 14) and the facade's face (13.7: it seals the tube's end)
   // The approach tube enters a small coral throat at the foot of the immense open mouth.
-  for (const sign of [-1,1]) K.both(coral,new THREE.SphereGeometry(1,20,16).scale(2.8,5.8,3.1).translate(sign*4.8,4.2,FZ-.8));
-  K.both(coral,new THREE.SphereGeometry(1,24,12).scale(5.8,2.5,3.1).translate(0,8.4,FZ-.8));
-  K.add(M.glyph,T(glyphGeometry(1.1,.14),[0,9.1,FZ+2.2]));
-  K.add(M.voidM,T(new THREE.PlaneGeometry(4.4,6.6).translate(0,3.3,0),[0,0,FZ-.9]));
-  K.solid(box(4.4,6.6,.1,0,3.3,FZ-.9));
+  // (the drawing's coral-framed round door: three frames stepping back, sealing the tube's end, to the dark, aquamarine light: src/temples/portal.js)
+  const P = portal(K, { y: 0, z: FZ - .9, w: 4.4, h: 6.6, shape: 'round', layers: 3, step: .9, recess: .5, back: 1.3, into: 1.5,
+    frame: coral, inlay: '#7ff5e0', sill: false });
   landmark(K, 'underwater', { R: 14 });
   // the ear to the deep: a conch's mouth at its back, facing north, dark inside, ringed in coral
   K.add(ivory, T(lathe([[1.5, 0], [2.4, 1.6], [4.2, 3.0], [6.0, 3.7], [6.3, 3.9]], 24).rotateX(-Math.PI / 2), [0, 6, -17]));
@@ -625,7 +625,7 @@ function exterior(scene, level, rt) {
   lm.position.copy(K.world(0, 0, 0));
   lm.userData.noCollide = true; lm.userData.dynamic = true;
   rt.root.add(lm);
-  return { door: { at: K.world(0, 0, DZ), heading: 0 }, kit: K, glowM, clear: [{ x: SITE.x, z: SITE.z - 2, r: 68 }] };
+  return { door: { at: K.world(0, 0, DZ), heading: 0, ...P.door }, kit: K, glowM, clear: [{ x: SITE.x, z: SITE.z - 2, r: 68 }] };
 }
 
 function mergeAll(list) {

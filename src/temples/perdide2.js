@@ -1,4 +1,6 @@
 import { landmark, LAMP_CROWN_LIFT } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { glazing, glaze, metal } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
@@ -598,11 +600,10 @@ function exterior(scene, level, rt) {
   K.both(brass, lathe([[.01,crown+39],[4.6,crown+39],[3.3,crown+40],[2,crown+41]],40));
   K.both(brass, lathe([[3.5,crown+51],[4.6,crown+52],[.01,crown+52]],40));
   // the doorway on the apron, toward the causeway
-  const z0 = R - 0.6, z1 = R + 3;
-  for (const s of [-1, 1]) K.both(M.wall, box(3.4, 9, z1 - z0, s * 3.9, door + 4.5, (z0 + z1) / 2));
-  K.both(M.wall, box(4.4, 2.4, z1 - z0, 0, door + 8.2, (z0 + z1) / 2));
-  K.both({ paint: new THREE.Color(PALETTE.accent), smooth: false, side: THREE.FrontSide }, box(11, 1, 1.2, 0, door + 9.6, z1 + 0.1));
-  K.both(M.voidM, box(4.3, 7, 0.9, 0, door + 3.5, R + 0.85));   // (drawn and solid as one: the dark of the doorway, back to the tower's wall)
+  // (the drawing's small round door at the tower's foot, framed twice in its slate down to the water, warm light:
+  // src/temples/portal.js)
+  const P = portal(K, { y: door, z: R + 1.3, w: 4.3, h: 7.4, shape: 'round', layers: 2, step: 0.9, recess: 0.7, back: 1.2, into: 3.6, foot: door + 1,
+    frame: lmStone('#465a78', { course: 2.4, width: 4.8, wear: .55 }), inlay: '#ffc979', sill: { w: 5.6 } });
   K.both(M.stone, box(5.8,door+1,11,0,(door-1)/2,R+4));
   // the causeway: flat stones from the apron to the end of the lit path
   const pathL = K.local(V(SITE.path[0], 0, SITE.path[1]));
@@ -622,7 +623,7 @@ function exterior(scene, level, rt) {
   lamp.userData.noCollide = true; lamp.userData.dynamic = true;
   rt.root.add(lamp);
   const at = K.world(0, door, R + 2.2);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: base + door, R, lamp, lampM, glassM, glassWashes, top: base + door + 56 + LAMP_CROWN_LIFT, clear: [{ x: SITE.x, z: SITE.z, r: 44 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, doorY: base + door, R, lamp, lampM, glassM, glassWashes, top: base + door + 56 + LAMP_CROWN_LIFT, clear: [{ x: SITE.x, z: SITE.z, r: 44 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the lamp burns again

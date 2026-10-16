@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { stone, ceramic, metal } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
@@ -618,14 +620,9 @@ function exterior(scene, level, rt) {
   K.both(brass, new THREE.CylinderGeometry(5.4, 5.4, 0.3, 24).translate(0, sill + HW + 2.3, 0));
   // the porch: a rounded adobe arch over the door, teal-framed, the glyph over it; lamps on posts either side
   const z0 = R - 1.2, z1 = R + 2.6;
-  for (const s of [-1, 1]) K.both(adobe, box(2.4, 7.6, z1 - z0, s * 3.6, sill + 3.8, (z0 + z1) / 2));
-  K.both(adobe, box(9.6, 1.8, z1 - z0, 0, sill + 7.5, (z0 + z1) / 2));
-  K.both(adobe, T(new THREE.TorusGeometry(2.75, 0.4, 6, 24, Math.PI), [0, sill + 4.2, z1 - 0.2]));
-  K.add(teal, T(new THREE.TorusGeometry(2.35, 0.13, 5, 24, Math.PI), [0, sill + 4.2, z1 + 0.2]));
-  for (const s of [-1, 1]) K.add(teal, box(0.26, 4.2, 0.2, s * 2.35, sill + 2.1, z1 + 0.2));
-  K.add(M.glyph, T(glyphGeometry(1.8, 0.14), [0, sill + 7.6, z1 + 0.06]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
-  K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
+  // (the drawing's cream pointed porch: two frames stepping back to the dark, teal light: src/temples/portal.js)
+  const P = portal(K, { y: sill, z: R + 0.25, w: 4.6, h: 7.4, shape: 'pointed', layers: 2, step: 1.0, recess: 0.8, back: 1.3, into: 1.6,
+    frame: adobe, inlay: '#5fd0c8' });
   for (const s of [-1, 1]) {
     K.both(iron, box(0.2, 3.2, 0.2, s * 6.4, sill + 1.6, z1 + 1.2));
     K.add(lit, T(new THREE.SphereGeometry(0.4, 10, 6), [s * 6.4, sill + 3.5, z1 + 1.2]));
@@ -647,7 +644,7 @@ function exterior(scene, level, rt) {
   rt.root.add(capstan);
   const at = K.world(0, sill, R + 1.4);
   const front = K.world(0, sill, R + 9);
-  return { door: { at, heading: yaw }, kit: K, R, sill, HW, capstan, top: K.world(0, sill + HW + 4.6, 0), clear: [{ x: SITE.x, z: SITE.z, r: R + 12 }, { x: front.x, z: front.z, r: 5 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, R, sill, HW, capstan, top: K.world(0, sill + HW + 4.6, 0), clear: [{ x: SITE.x, z: SITE.z, r: R + 12 }, { x: front.x, z: front.z, r: 5 }] };
 }
 
 function mergeAll(list) {

@@ -1972,6 +1972,52 @@ also excludes its foundation. The real-world threshold test samples the outer
 stair ring against the final terrain after drift accumulation, rather than only
 testing the model on an artificial flat plane.
 
+## The doorways (v1.82, issue #383)
+
+Every landmark reference draws its house's door alike: a dark opening set deep in the wall, framed two or three times,
+each frame a step wider and nearer than the one inside it, on a threshold of its own. The houses had a flat dark shape
+on the facade and a square collider behind it, so a round or pointed door glowed as a rectangle. `temples/portal.js`
+builds the way in from one outline (`openingPoints`: `round`, `pointed` as `landmarks.js arch()`, `rect` with its top
+corners cut, `oval`):
+
+- **frames** (`layers`, each `step` wider and `recess` nearer; the innermost the reveal, `back` deep; all reaching `into`
+  the wall behind the dark, and `foot` below the sill onto a lower apron or the water), drawn and solid in the house's own
+  landmark material, so they batch with it;
+- **a line of light** round the innermost frame's face, round the outermost's, and along the threshold's front edge: one
+  colour a house (`inlayMaterial`, flat and lit; the Hush-House uses its crystal's own glow), the makers' high technology;
+- **a threshold plate** 7 cm over the sill, the **dark** on it and a solid in the opening's own shape behind it;
+- **the door's shape for its light**: `door.top`, the opening's heights across (`openingTops`), which the runtime passes
+  to the portal (`runtime.js`), so the glow (`door-light.js`, `thresholds.js openingAt`) fills the drawn opening exactly,
+  at any size, instead of what `fitDoor` measured (it capped a door at 11 m and found the square collider).
+
+Where the landmark draws an arch round the door (the Warden's Well, the Engine-House, the Casting-House) its opening is
+cut a little inside the portal's outer frame; the Undertower's pink pylon is cut round three round frames, the outer two
+standing out of the pylons; the Greenhouse's ivory pylon round its two. Each house, from its reference:
+
+| House | Door | Frames | Light |
+| --- | --- | --- | --- |
+| Rose House | round, 7 × 10.4 | three, vermilion stone | turquoise (the oculus) |
+| Aerie | pointed, 6 × 17.8 | two, teal ceramic, in the ochre arch | pale peach |
+| Founders' Belfry | round, 4.4 × 7.6 (the gallery's small door; the square portico gone) | two, ivory stone | cobalt |
+| Hush-House | round, 4.4 × 5.6, under the canopy | three, lavender ceramic | the crystal's |
+| Lamp-House | round, 4.3 × 7.4 (the square portico gone) | two, slate, down to the water | warm amber |
+| Builders' Greenhouse | rect, 3.4 × 8.6 | two, ivory, in the pylon | leaf green |
+| Warden's Well | pointed, 5.5 × 15 | two, cream, in the landmark's arch | cyan |
+| Clock-House | rect, 3.4 × 6.6, the bronze leaves in it | two, brass | teal |
+| Engine-House | oval, 5.2 × 9.6 | three, riveted iron, in the plinth's arch | amber |
+| Footprint | rect, 4.6 × 8.4 | three, teal ceramic, out of the heel | pale blue-white |
+| Undertower | round, 4.8 × 8.6, 5 m deep | three, blue-grey, in the pink pylon | coral |
+| Casting-House | round, 7.4 × 11 | two, blue iron, in the drum's arch | ivory |
+| Mooring-House | pointed, 4.6 × 7.4 (the square portico gone) | two, adobe | teal |
+| Whale-House | round, 4.4 × 6.6, sealing the tube's end | three, coral | aquamarine |
+
+Each portal adds one draw (its light); the frames and plate merge into the house's own batches. Checked by
+`tests/thresholds.test.js` (the Rose House's light is its door's shape), `tests/zfight.test.js` (no house gained a
+fight; the City's own count moved 19 → 20 with its batches, the Mooring-House's still 0), the temple playthroughs
+(every door walked into), and `tests/contact-audit.test.js` (what you climb is what is drawn). The contact audit now
+samples each face from a seed of where it lies (`contact-audit.js reseed`), so a piece added in one place no longer
+moves every other face's samples.
+
 ## Futuristic skins: the Rose House (v1.77, issue #342)
 
 The Rose House wears the author's futuristic picks (`references/temples/future/rose-house/sheet-1.jpg`, `sheet-2.jpg`):

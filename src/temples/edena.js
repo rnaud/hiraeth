@@ -1,4 +1,6 @@
 import { landmark, landmarkFrame } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { glazing, glaze, ceramic } from './landmark-materials.js';
 import { toStair, STAIR } from '../viridel-stair.js';
 import * as THREE from 'three';
@@ -659,10 +661,9 @@ function exterior(scene, level, rt) {
     G.add(ribs, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(x,sill+9,-9),V(x,sill+11,0),V(x,sill+9,9)]),12,.1,5));
   }
   // The narrow entrance pier belongs to the broad glasshouse; its recess stays at the portal.
-  const recess = new THREE.Shape(); recess.moveTo(-2.2,0); recess.lineTo(-2.2,6.8);
-  recess.quadraticCurveTo(0,11.2,2.2,6.8); recess.lineTo(2.2,0); recess.closePath();
-  K.add(M.voidM, new THREE.ShapeGeometry(recess).translate(0,sill,R+.3));
-  K.solid(box(4.4,6.8,.1,0,sill+3.4,R+.3));
+  // (the drawing's tall narrow door in the ivory pylon, framed twice, leaf-green light: src/temples/portal.js)
+  const P = portal(K, { y: sill, z: R + .3, w: 3.4, h: 8.6, shape: 'rect', layers: 2, step: .7, recess: .5, back: 1.3, into: 1.5,
+    frame: lmStone('#f4ecd9', { course: 3.8, width: 8, wear: .18 }), inlay: '#8be59a' });
   // dry creepers already on it (brown: the garden grows over everything, even this, but it has stopped)
   const twig = { paint: new THREE.Color('#9a7448'), smooth: false, side: THREE.FrontSide };
   for (let i = 0; i < 9; i++) {
@@ -698,7 +699,7 @@ function exterior(scene, level, rt) {
   const at = K.world(0, sill, R + 1.4);
   // Sightline targets sit on the front of the enlarged glazing, not several
   // metres inside its solid shell (where the world's visibility audit cannot see).
-  return { door: { at, heading: yaw }, kit: K, gardenFrame: G, base, R, sill, glassM, spire: { top: K.world(0, landmarkTop, 4.2), lantern: G.world(0, sill + 52, 4.2), height: 94 }, clear: [{ x: SITE.x, z: SITE.z, r: 70 }, { x: K.world(0, 0, R + 9).x, z: K.world(0, 0, R + 9).z, r: 32 }, { x: K.world(0, 0, R + 15).x, z: K.world(0, 0, R + 15).z, r: 45 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, gardenFrame: G, base, R, sill, glassM, spire: { top: K.world(0, landmarkTop, 4.2), lantern: G.world(0, sill + 52, 4.2), height: 94 }, clear: [{ x: SITE.x, z: SITE.z, r: 70 }, { x: K.world(0, 0, R + 9).x, z: K.world(0, 0, R + 9).z, r: 32 }, { x: K.world(0, 0, R + 15).x, z: K.world(0, 0, R + 15).z, r: 45 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the white ruins flower

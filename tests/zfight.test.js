@@ -33,7 +33,7 @@ export const ZFIGHT_BASELINE = {
  * rest, docs/systems/rendering.md "Z-fighting"): the City Floating in Space 460 -> 22, its houses' windows over one
  * another, the storeys on the roofs' lips, the machinery's tops in the slabs' undersides, the pads and bridges on the decks.
  */
-export const WORLD_ZFIGHT_BASELINE = { spacecity: 19 };   // (v1.77: 22 -> 19, the Mooring-House's three gone, issue #336)
+export const WORLD_ZFIGHT_BASELINE = { spacecity: 20 };   // (v1.77: 22 -> 19, the Mooring-House's three gone, issue #336; v1.82: 20, the city's own 0.1 m² pairs counted anew as the Mooring-House's doorway changed the batches, issue #383: the temple's still 0)
 /** The worlds' own parts held to none of their own fights (their names in the meshes'). */
 const OWN_NONE = [['bazaar', 'The market in the air'], ['underwater', 'The canyon street'], ['spheres', 'The furrows’']];
 // (the worlds the test of the worlds' own counts audits whole: the test of the temples keeps its builds of them, unchanged,

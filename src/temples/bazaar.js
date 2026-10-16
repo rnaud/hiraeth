@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -637,28 +639,23 @@ function exterior(scene, level, rt) {
   // the doorway, after its reference: one great monolith of blue-grey blocks, older than any sign, stepping down
   // at its sides; a deep doorway framed three times, each frame set back from the last; a round dish-face over
   // the door; a dark way down, and the old cables coming out from under its foot into the paving
-  for (const s of [-1, 1]) K.both(old, box(3.4, 11.2, 4.8, s * 4.6, 5.6, 1.9));                  // the great piers
-  K.both(old, box(12.6, 2.8, 5.0, 0, 12.6, 1.9));                                                 // the crown block
-  K.both(old, box(6.0, 1.8, 3.4, 0, 10.1, 1.4));                                                  // the first frame's lintel
-  for (const s of [-1, 1]) K.both(old, box(0.7, 9.2, 3.4, s * 2.95, 4.6, 1.4));                   // the first frame's jambs
-  K.both(M.trim, box(5.2, 0.5, 2.6, 0, 8.25, 1.0));                                               // the inner frame
-  for (const s of [-1, 1]) K.both(M.trim, box(0.4, 8.0, 2.6, s * 2.6, 4.0, 1.0));
+  // (the doorway framed three times, each round frame a step nearer, the outer two standing out of the landmark's
+  // pylons: a deep way in, as drawn; src/temples/portal.js)
+  const P = portal(K, { y: sill, z: 0.35, w: 4.8, h: 8.6, shape: 'round', layers: 3, step: 1.1, recess: 0.9, back: 5.2, into: 1.2,
+    frame: lmStone('#8298a6', { course: 1.8, width: 3.6, wear: .3 }), inlay: '#ff9a7a' });
   // stepping down at the sides, more on the west, as drawn
   for (const [x, w, h, d] of [[-7.6, 2.6, 7.4, 4.2], [-9.9, 2.0, 4.6, 3.8], [-11.5, 1.4, 2.2, 3.2], [7.6, 2.6, 5.4, 4.2], [9.7, 1.6, 2.6, 3.6]]) K.both(old, box(w, h, d, x, h / 2, d / 2 - 0.1));
-  K.add(M.glyph, T(glyphGeometry(2.2, 0.14), [0, 12.6, 4.42]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 7.6).translate(0, 3.8, 0), [0, sill, 0.35]));
-  K.solid(box(4.8, 7.6, 0.1, 0, sill + 3.8, 0.35));
   K.both(M.floor, box(9.6, sill, 5.4, 0, sill / 2, 2.7));
   landmark(K, 'bazaar', { y: sill });
   // cables coming out from under the monolith's foot, through dark slots, into the paving
-  for (const x of [-3.6, 3.8]) K.add(M.dark, box(1.4, 0.4, 0.6, x, 0.2, 4.2));
-  for (const [x, k] of [[-3.9, 1.4], [-3.4, 1.9], [3.6, 1.5], [4.1, 2.2]]) K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(x, 0.18, 4.0), V(x * k * 0.8, 0.12, 6.5), V(x * k, 0.05, 9.5)]), 12, 0.15, 5));
+  for (const x of [-4.6, 4.8]) K.add(M.dark, box(1.4, 0.4, 0.6, x, 0.2, 9.4));
+  for (const [x, k] of [[-4.9, 1.4], [-4.4, 1.9], [4.6, 1.5], [5.1, 2.2]]) K.add(M.dark, new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(x, 0.18, 9.2), V(x * k * 0.8, 0.12, 11.7), V(x * k, 0.05, 14.7)]), 12, 0.15, 5));
   K.flush();
   const at = K.world(0, sill, 1.4);
-  const front = K.world(0, 0, 6);
+  const front = K.world(0, 0, 9);
   // the market's crowd keeps off the doorway (crowdSpots' clear circles, src/crowd.js)
   if (level.crowdSpots) { const spots = level.crowdSpots; level.crowdSpots = function (...a) { const r = spots.apply(this, a); (r.clear ??= []).push({ x: front.x, z: front.z, r: 6.5 }, { x: at.x, z: at.z, r: 5 }); return r; }; }
-  return { door: { at, heading: yaw }, kit: K, sill, lampM, clear: [{ x: front.x, z: front.z, r: 7 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, sill, lampM, clear: [{ x: front.x, z: front.z, r: 7 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the silent tower speaks, once a night

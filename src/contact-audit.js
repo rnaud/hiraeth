@@ -155,6 +155,14 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
   const coll = physics.bvh;
   let s = seed >>> 0 || 1;
   const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  // (each face's samples from its own place: the stream restarts at a hash of where the face lies, so a piece added or
+  // taken away elsewhere in the world leaves every other face's points where they were, issue #383)
+  const reseed = (a, b, c, k) => {
+    let h = (seed >>> 0) ^ k;
+    for (const v of [a.x + b.x + c.x, a.y + b.y + c.y, a.z + b.z + c.z]) h = Math.imul(h ^ (Math.round(v * 33.3) | 0), 2654435761) >>> 0;
+    s = (h % 2147483646) + 1;
+    rnd(); rnd();
+  };
   const DOWN = new THREE.Vector3(0, -1, 0), UP = new THREE.Vector3(0, 1, 0);
   // where to look: the walkable faces and the climbable ones, sampled by area (one point per cell² of
   // face, fewer when a world has more than `max` of either: spread evenly, not the first faces only)
@@ -179,9 +187,10 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
     const F = faces[kind], density = Math.min(1 / (cell * cell), max / Math.max(area[kind], 1e-6));
     for (let f = 0; f < F.length; f += 3) {
       const geo = geos[F[f]], ar = F[f + 2];
+      tri(geo, F[f + 1]);
+      reseed(_a, _b, _c, kind === 'top' ? 1 : 2);
       const want = ar * density, k = Math.floor(want) + (rnd() < want - Math.floor(want) ? 1 : 0);
       if (!k) continue;
-      tri(geo, F[f + 1]);
       _n.normalize();
       const top = kind === 'top';
       for (let i = 0; i < k; i++) {
@@ -261,9 +270,10 @@ export function auditContact({ physics, scene, solids = [], exclude = [], tol = 
     const density = Math.min(1 / (cell * cell), max / Math.max(darea, 1e-6));
     for (let i = 0; i < dfaces.length; i += 2) {
       const f = dfaces[i], ar = dfaces[i + 1];
+      _a.fromBufferAttribute(dpos, 3 * f); _b.fromBufferAttribute(dpos, 3 * f + 1); _c.fromBufferAttribute(dpos, 3 * f + 2);
+      reseed(_a, _b, _c, 3);
       const want = ar * density, k = Math.floor(want) + (rnd() < want - Math.floor(want) ? 1 : 0);
       if (!k) continue;
-      _a.fromBufferAttribute(dpos, 3 * f); _b.fromBufferAttribute(dpos, 3 * f + 1); _c.fromBufferAttribute(dpos, 3 * f + 2);
       for (let j = 0; j < k; j++) {
         let u = rnd(), v = rnd();
         if (u + v > 1) { u = 1 - u; v = 1 - v; }

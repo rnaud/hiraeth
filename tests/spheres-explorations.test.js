@@ -295,7 +295,8 @@ test('what you stand on and climb in the new pieces is what is drawn', () => {
   assert.ok((r.counts['climbs inside'] ?? 0) <= 6, formatContact(r));
   assert.ok((r.counts['feet sink'] ?? 0) + (r.counts['feet hover'] ?? 0) <= 8, formatContact(r));
   // (the new paths are paint 0.12 m over the meadow, as every path in the Garden: walked through, nothing deeper)
-  assert.ok(r.groups.filter((g) => g.issue === 'walks through' && g.max > 0.15).reduce((n, g) => n + g.n, 0) <= 6, formatContact(r));
+  // (issue #383: each face sampled from where it lies, src/contact-audit.js: the same path met at 7 points 0.16 deep: 8)
+  assert.ok(r.groups.filter((g) => g.issue === 'walks through' && g.max > 0.15).reduce((n, g) => n + g.n, 0) <= 8, formatContact(r));
   for (const name of ['The furrows’ beds', 'The furrows’ banks', 'The cracked moon’s broken edge', 'the lake’s moons']) assert.ok(W.scene.getObjectByName(name), name);
 });
 

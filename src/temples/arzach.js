@@ -1,4 +1,6 @@
 import { landmark, landmarkFrame } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -642,17 +644,15 @@ function exterior(scene, level, rt) {
   landmark(K, 'arzach', { y: sill, R, accent: glyphM });
   // The tall blue pointed arch is part of the swept shell. Its dark recess stays
   // behind the retained portal, so approaching the new door takes the same route in.
-  const recess = new THREE.Shape();
-  recess.moveTo(-3, 0); recess.lineTo(3, 0); recess.lineTo(3, 8.5);
-  recess.quadraticCurveTo(2.7, 15.7, 0, 17.8); recess.quadraticCurveTo(-2.7, 15.7, -3, 8.5); recess.closePath();
-  K.add(M.voidM, new THREE.ShapeGeometry(recess, 24).translate(0, sill, R + 1));
-  K.solid(box(6, 17.8, .3, 0, sill + 8.9, R + .9));
+  // (the teal frames, two, stepping back into the ochre arch; their light pale peach: src/temples/portal.js)
+  const P = portal(K, { y: sill, z: R + .9, w: 6, h: 17.8, shape: 'pointed', layers: 2, step: 3.6, recess: .6, back: .9, into: 4,
+    frame: lmCeramic('#409aa8'), inlay: '#ffd9b8' });
   // the great steps down to the plain
   const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 34); return [p.x, p.z]; })()) - base;
   K.stairs([0, sill, R + 10], [0, Math.max(0.2, foot), R + 34], 22, { rise: 0.4, sides: false, mat: { paint: new THREE.Color('#ebb083'), smooth: false } });
   K.flush();
   const at = K.world(0, sill, R + 1.4);
-  return { door: { at, heading: yaw }, kit: K, base, R, sill, glyphM, perch: landmarkFrame(K, 'arzach', sill).world(0, sill + 37.8, -4), clear: [{ x: SITE.x, z: SITE.z, r: 82 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, R, sill, glyphM, perch: landmarkFrame(K, 'arzach', sill).world(0, sill + 37.8, -4), clear: [{ x: SITE.x, z: SITE.z, r: 82 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the birds come back

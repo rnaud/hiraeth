@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
@@ -529,11 +531,9 @@ function exterior(scene, level, rt) {
   K.add(iron, box(.16,4,.16,hook.x,hook.y-2,hook.z));
   K.add(iron,T(new THREE.TorusGeometry(.6,.12,6,18,Math.PI*1.4),[hook.x,hook.y-4.2,hook.z],[0,0,2.4]));
   const z1 = R + 2.6;
-  const opening = new THREE.Shape();
-  opening.moveTo(-3.7, 0); opening.lineTo(3.7, 0); opening.lineTo(3.7, 8);
-  opening.quadraticCurveTo(3.2, 14, 0, 16); opening.quadraticCurveTo(-3.2, 14, -3.7, 8); opening.closePath();
-  K.add(M.voidM, new THREE.ShapeGeometry(opening, 24).translate(0, sill, R + .3));
-  K.solid(box(7.4, 16, .1, 0, sill + 8, R + .25));
+  // (the drawing's great round dark door, framed twice in the drum's blue iron, ivory light: src/temples/portal.js)
+  const P = portal(K, { y: sill, z: R + .3, w: 7.4, h: 11, shape: 'round', layers: 2, step: .8, recess: .6, back: 1.5, into: 2,
+    frame: lmMetal('#3b4969', 'iron'), inlay: '#fff1cf' });
   // Petra's ledger desk by the door, under a little tin roof; two cracked moons lying on the apron
   const dx = -(R + 3.0), dz = 3.2;
   K.both({ paint: new THREE.Color('#8a5a3a'), smooth: false, side: THREE.FrontSide }, box(2.2, 0.15, 1.0, dx, sill + 1.0, dz));
@@ -560,7 +560,7 @@ function exterior(scene, level, rt) {
   rt.root.add(sm);
   const at = K.world(0, sill, R + 1.4);
   const front = K.world(0, sill, R + 10);
-  return { door: { at, heading: yaw }, kit: K, R, sill, glowM, hook: K.world(hook.x, hook.y - 4.2, hook.z), foot: K.world(hook.x, sill, hook.z),
+  return { door: { at, heading: yaw, ...P.door }, kit: K, R, sill, glowM, hook: K.world(hook.x, hook.y - 4.2, hook.z), foot: K.world(hook.x, sill, hook.z),
     clear: [{ x: SITE.x, z: SITE.z, r: R + 8 }, { x: front.x, z: front.z, r: 7 }] };
 }
 

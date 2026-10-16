@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { ceramic, metal, glazing, glaze } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
@@ -637,15 +639,14 @@ function exterior(scene, level, rt) {
   // and round the great clock, a second ring of brass and four bosses (the clock's frame, as drawn)
   K.add(brass, T(new THREE.TorusGeometry(cr + 0.7, 0.12, 5, 40), [0, cy, cz + 0.05]));
   for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; K.add(brass, T(new THREE.SphereGeometry(0.28, 8, 6), [Math.sin(a) * (cr + 0.7), cy + Math.cos(a) * (cr + 0.7), cz + 0.15])); }
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
-  K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
-  // The reference's small golden door, with recessed bronze leaves and a narrow centre seam.
+  // The reference's brass-edged doorway: two machined brass frames stepping back into the tower's foot, teal light
+  // (src/temples/portal.js), and in it the recessed bronze leaves with their narrow centre seam.
+  const P = portal(K, { y: sill, z: R + 0.25, w: 3.4, h: 6.6, shape: 'rect', layers: 2, step: 0.55, recess: 0.5, back: 1.4, into: 3,
+    frame: brass, inlay: '#6fe3dc' });
   for(const sign of [-1,1]){
-    K.both(brass,box(.34,6.8,.3,sign*1.5,sill+3.4,R+1));
     K.add(brass,box(1.35,6.3,.18,sign*.74,sill+3.15,R+.48));
     K.add(metal('#a66f2e'),box(.9,4.8,.1,sign*.74,sill+3.3,R+.59));
   }
-  K.both(brass,box(3.35,.4,.3,0,sill+6.8,R+1));
   // a lean-to against the drum: a tin roof on posts, a bench, a painted board (the glassworkers' clock-bench)
   const sx = -(R + 3.4), sz = 1.4;
   for (const [x, z] of [[sx - 2.4, sz - 2.6], [sx - 2.4, sz + 2.6]]) K.both(M.trim, box(0.3, 3.6, 0.3, x, sill + 1.8, z));
@@ -696,7 +697,7 @@ function exterior(scene, level, rt) {
   rt.root.add(hands);
   const at = K.world(0, sill, R + 1.4);
   const front = K.world(0, sill, R + 9);
-  return { door: { at, heading: yaw }, kit: K, R, sill, cogs, hands, hourH, minH, lampM, clear: [{ x: SITE.x, z: SITE.z, r: R + 7 }, { x: front.x, z: front.z, r: 6 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, R, sill, cogs, hands, hourH, minH, lampM, clear: [{ x: SITE.x, z: SITE.z, r: R + 7 }, { x: front.x, z: front.z, r: 6 }] };
 }
 
 function mergeAll(list) {

@@ -1,4 +1,6 @@
 import { landmark, landmarkFrame } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { glazing, glaze } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -913,8 +915,9 @@ function exterior(scene, level, rt) {
   for (const g of rim) K.both(M.stone, g);
   // The broad rounded heel and lobed roots are built with the landmark. Keep
   // the same human doorway, without the old small porch protruding through it.
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.4, 7.4).translate(0, 3.7, 0), [0, 0.6, 16.4]));
-  K.solid(box(4.4, 7.4, 0.6, 0, 4.3, 16.1));
+  // (the drawing's framed doorway in the heel: three teal frames stepping out of the heel, pale light: src/temples/portal.js)
+  const P = portal(K, { y: 0.6, z: 16.4, w: 4.6, h: 8.4, shape: 'rect', layers: 3, step: .9, recess: .8, back: 2.3, into: 2.5,
+    frame: lmCeramic('#73c7b8'), inlay: '#d8f3ff', sill: { d: 5.2 } });
   for (let i = 0; i < 9; i++) {
     const a = 0.2 + i * 0.075, r = R + 7.5 + i * 0.9, x = Math.sin(a) * r * 0.6 + 2 + i * 1.4, z = R + 8.4 + i * 2.6;
     const gy = H(...K.world(x, 0, z).toArray().filter((_, k) => k !== 1)) - y0;
@@ -929,7 +932,7 @@ function exterior(scene, level, rt) {
   glaze(K, rt.veils, lens, {color:'#efa72f',alpha:.64,glow:.25});
   const at = K.world(0, 0.6, 17.4);
   const front = K.world(0, 0, R + 9);
-  return { door: { at, heading: yaw }, kit: K, base: y0, doorY: y0 + 0.6, R, pads, top: y0 + landmarkTop,
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base: y0, doorY: y0 + 0.6, R, pads, top: y0 + landmarkTop,
     clear: [{ x: SITE.x, z: SITE.z, r: 80 }, ...pads.map((p) => { const c = K.world(p.base[0] + p.dir[0] * p.len * 0.5, 0, p.base[1] + p.dir[1] * p.len * 0.5); return { x: c.x, z: c.z, r: p.len * 0.55 }; }), { x: front.x, z: front.z, r: 38 }] };
 }
 

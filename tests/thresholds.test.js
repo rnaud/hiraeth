@@ -78,8 +78,9 @@ test('each veil is its opening’s size and shape: a temple’s great door, its 
   const W = world('desert'), { T } = lights(W);
   const by = (label) => W.level.portals.find((p) => p.label === label)._threshold.door;
   const rose = by('door of the Rose House');
-  assert.ok(rose.w > 6 && rose.w < 7 && rose.h > 9, `the Rose House: ${rose.w.toFixed(2)} × ${rose.h.toFixed(2)} m (its door 6.8 by 10 at the arch's crown)`);
-  assert.ok(rose.top && rose.top[0] < rose.h - 3 && Math.abs(Math.max(...rose.top) - rose.h) < 0.01, `its pointed top measured: ${rose.top}`);
+  // (issue #383: the door gives its own shape, src/temples/portal.js: 7 by 10.4, a round head over straight jambs)
+  assert.ok(rose.w > 6.5 && rose.w < 7.5 && rose.h > 9, `the Rose House: ${rose.w.toFixed(2)} × ${rose.h.toFixed(2)} m (its door 7 by 10.4 at the arch's crown)`);
+  assert.ok(rose.top && rose.top[0] < rose.h - 3 && Math.abs(Math.max(...rose.top) - rose.h) < 0.01, `its round top: ${rose.top}`);
   assert.ok(rose.depth && rose.depth[0] + rose.depth[1] > 0.5, `its frame's depth: ${rose.depth}`);
   for (const p of W.level.portals.filter((q) => q.label === 'way out')) {
     const d = p._threshold.door;

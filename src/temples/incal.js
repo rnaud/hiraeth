@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -711,11 +713,9 @@ function exterior(scene, level, rt) {
   // steel blue at its foot, an unlit lamp on a post beside the steps
   const P0 = R + 4, z0 = P0 - 0.4, z1 = P0 + 3.2, sill = 1.8, dw = 4.6;
   const steel = { paint: new THREE.Color(PALETTE.stone), smooth: false, side: THREE.FrontSide };
-  const recess = new THREE.Shape();
-  recess.moveTo(-2.75,0);recess.lineTo(-2.75,8);recess.quadraticCurveTo(-2.4,15,0,17);
-  recess.quadraticCurveTo(2.4,15,2.75,8);recess.lineTo(2.75,0);recess.closePath();
-  K.add(M.voidM,new THREE.ShapeGeometry(recess).translate(0,sill,P0+1.1));
-  K.solid(box(5.5,17,.1,0,sill+8.5,P0+1));
+  // (the pointed door framed twice in the terraces' cream inside the landmark's arch, cyan light: src/temples/portal.js)
+  const P = portal(K, { y: sill, z: P0 + 1.1, w: 5.5, h: 15, shape: 'pointed', layers: 2, step: .9, recess: .7, back: 1.0, into: 1.5, foot: 1.6,
+    frame: lmStone('#f2dfbf', { course: 3.5, width: 9, wear: .2 }), inlay: '#86e8ff', sill: { w: 5.7, d: 2.0 } });
   K.add(pale,T(glyphGeometry(1.6,.1),[0,sill+21,P0+3.6]));
   K.both(M.floor, box(dw + 0.4, sill, z1 - z0, 0, sill / 2, (z0 + z1) / 2));
   K.both(M.floor, box(16, 0.3, 14, 0, 0.15, P0 + 8));
@@ -733,7 +733,7 @@ function exterior(scene, level, rt) {
   K.flush();
   const at = K.world(0, sill, P0 + 1.6);
   const f = V(Math.sin(yaw), 0, Math.cos(yaw)), front = at.clone().addScaledVector(f, 9);
-  return { door: { at, heading: yaw }, kit: K, base: TOP, doorY: TOP + sill, R, top: TOP + 134, lampM,
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base: TOP, doorY: TOP + sill, R, top: TOP + 134, lampM,
     clear: [{ x: SITE.x, z: SITE.z, r: 58 }, { x: front.x, z: front.z, r: 48 }] };
 }
 

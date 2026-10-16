@@ -1,4 +1,5 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
 import { stone } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -618,14 +619,11 @@ function exterior(scene, level, rt) {
   const K = new TempleKit(rt.root, 'The Rose House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, dy = doorY - base;
   const landmarkTop = landmark(K, 'desert', { y: dy, R });
-  // Low dark pointed entrance between the red feet, as in the selected drawing.
-  const doorShape = new THREE.Shape();
-  doorShape.moveTo(-3.4, 0); doorShape.lineTo(3.4, 0); doorShape.lineTo(3.4, 4.5);
-  doorShape.quadraticCurveTo(3, 8.8, 0, 10); doorShape.quadraticCurveTo(-3, 8.8, -3.4, 4.5); doorShape.closePath();
-  K.add(M.voidM, new THREE.ShapeGeometry(doorShape, 20).translate(0, dy, R + 2));
-  K.solid(box(6.8, 10, .3, 0, dy + 5, R + 1.8));
-  // the forecourt and its steps down into the sand
+  // The deep round doorway between the red feet, framed three times as in the selected drawing (src/temples/portal.js)
   const red = stone('#ef5845',{course:5.5,width:10,wear:.65});
+  const P = portal(K, { y: dy, z: R + 1.9, w: 7, h: 10.4, shape: 'round', layers: 3, step: 1.0, recess: 0.7, back: 1.1, into: 2.5,
+    frame: red, inlay: '#86e0cf', sill: { w: 13, d: 4.2 } });
+  // the forecourt and its steps down into the sand
   K.both(red, box(12, dy, 6, 0, dy / 2, R + 3));
   const end = K.world(0,0,R+38), sand = H(end.x,end.z)-base+.12;
   K.stairs([0,dy,R+6],[0,sand,R+38],10.4,{rise:.32,mat:red,sides:false});
@@ -635,7 +633,7 @@ function exterior(scene, level, rt) {
   // the door: its threshold (world), looking out toward Qanat
   const at = K.world(0, dy, R + 2.4);
   const front = K.world(0, dy, R + 14);
-  return { door: { at, heading: yaw }, kit: K, base, top: base + landmarkTop, doorY, R, front, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, top: base + landmarkTop, doorY, R, front, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
 }
 
 // ------------------------------------------------------------------ the world change: water runs, fields grow

@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -596,14 +598,14 @@ function exterior(scene, level, rt) {
   const landmarkTop = landmark(K, 'perdide', { y: sill, R, accent: crystalM });
   // A small recess under the broad canopy leaves the organ facade uninterrupted.
   const z1 = R + 3.2;
-  K.add(M.voidM,new THREE.PlaneGeometry(4.3,6).translate(0,sill+3,R+.325));
-  K.solid(box(4.3,6,.25,0,sill+3,R+.2));
-  for(const side of [-1,1]) K.both(M.wall,box(.65,6.8,2,side*2.5,sill+3.4,R+.5));
+  // (a low round door framed three times in the fins' lavender, lit by the crystal's colour: src/temples/portal.js)
+  const P = portal(K, { y: sill, z: R + .3, w: 4.4, h: 5.6, shape: 'round', layers: 3, step: .5, recess: .5, back: 1.1, into: 2.4,
+    frame: lmCeramic('#c9b8de'), inlay: crystalM });
   // steps down from the porch to the island's moss
   K.both(M.floor, box(6.4, sill * 0.5, 2, 0, sill * 0.25, z1 + 1));
   K.flush();
   const at = K.world(0, sill, R + 1.2);
-  return { door: { at, heading: yaw }, kit: K, base, R, sill, crystalM, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 54 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, R, sill, crystalM, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 54 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the swamp flowers

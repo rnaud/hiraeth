@@ -20,6 +20,9 @@ export const CHANGELOG = [
     // issue #391: src/door-light.js (one draw a door), src/thresholds.js; Unity: Hiraeth/DoorLight (port 'doorlight');
     // tests/door-light.test.js
     'And that light is new: instead of a curtain of flickering tongues, the doorway itself glows, brightest round its frame in a few flat steps, with the warm lamp of the room beyond (or the daylight, on the way out) faint in its middle. It softens as you walk up to it, so you can see into the door before you step through.',
+    // issue #383: src/temples/portal.js (frames, light, threshold, the door's shape for its light), each house's exterior
+    // and landmarks.js; runtime.js passes door.top; tests/thresholds.test.js, tests/zfight.test.js, tests/contact-audit.test.js
+    'The makers’ houses have real doorways now, as in their drawings: each door is set deep in its wall, framed two or three times in the house’s own stone or metal with a thin line of light round it, on a threshold of its own, and shaped as drawn: round at the Rose House, the Undertower and the Casting-House, pointed at the Aerie and the Warden’s Well, a tall oval at the Engine-House. The square porches at the Belfry, the Lamp-House and the Mooring-House are gone, and the light in each doorway fills its shape instead of a square.',
     // issue #390: src/fluid-blade.js FIGHT, foeEngaged, bladeLitWant (drawn and open while a foe is awake within 10 m or
     // locked on, 3 s past the last); tests/blade-grip.test.js, tests/engine-combat.test.js
     'Your sword stays drawn and glowing for the whole fight. It used to go dark in your hand after every cut and light again for the next; now, while a foe is close and awake or you are locked on, the blade stays open between swings, through the guard, rolls and the charged cut. A few seconds after the fight is over it goes back on your back as before.',

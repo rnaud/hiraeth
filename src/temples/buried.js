@@ -1,4 +1,6 @@
 import { landmark } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -648,15 +650,15 @@ function exterior(scene, level, rt) {
   const M = rt.M;
   const landmarkTop = landmark(K, 'buried', { y: dy, R, ground: H });
   // A dark furnace arch grows out of the riveted red plinth.
-  const opening = new THREE.Shape();opening.moveTo(-2.2,0);opening.lineTo(-2.2,5.3);
-  opening.quadraticCurveTo(-2,9,0,11);opening.quadraticCurveTo(2,9,2.2,5.3);opening.lineTo(2.2,0);opening.closePath();
-  K.add(M.voidM,new THREE.ShapeGeometry(opening).translate(0,dy,R+.2));
-  K.solid(box(4.4, 7, 0.6, 0, dy + 3.5, R - 0.2));
+  // (the drawing's tall oval door, framed three times in riveted iron inside the plinth's arch, amber light:
+  // src/temples/portal.js)
+  const P = portal(K, { y: dy, z: R + .2, w: 5.2, h: 9.6, shape: 'oval', layers: 3, step: .6, recess: .6, back: 1.7, into: 1.5,
+    frame: lmMetal('#c94d32', 'iron'), inlay: '#ffb04a' });
   K.both(M.floor, box(12, dy, 9, 0, dy / 2, R + 3.5));
   K.flush();
   const at = K.world(0, dy, R + 1.6);
   const front = K.world(0, dy, R + 10);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: base + dy, R, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 55 }, { x: front.x, z: front.z, r: 10 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, doorY: base + dy, R, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 55 }, { x: front.x, z: front.z, r: 10 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the engine runs, the pipe-cart rides again

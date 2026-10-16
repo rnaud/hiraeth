@@ -1,4 +1,6 @@
 import { landmark, LANDMARK_SCALE } from './landmarks.js';
+import { portal } from './portal.js';
+import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
@@ -668,19 +670,14 @@ function exterior(scene, level, rt) {
   const yaw = SITE.heading, base = -70, door = 40.3;
   const K = new TempleKit(rt.root, 'The Founders’ Belfry', V(SITE.x, 0, SITE.z), yaw, rt.M);
   const M = rt.M, R = 15;
-  const rose = { paint: new THREE.Color(PALETTE.accent), smooth: true };
   landmark(K, 'arzach2', { y: door, R, bottom: base });
   // Keep the gallery and the arrival bridge on the same walking plane.
   K.both(M.floor, T(annulus(R - 0.5, R + 5, 1.2), [0, door + .04, 0]));
   const B0 = door + 37;
-  // the portico and the dark doorway on the gallery, toward the plateau
-  const z0 = R - 0.6, z1 = R + 3.2;
-  for (const s of [-1, 1]) K.both(M.wall, box(3.6, 11, z1 - z0, s * 4, door + 5.5, (z0 + z1) / 2));
-  K.both(M.wall, box(4.4, 4, z1 - z0, 0, door + 9, (z0 + z1) / 2));
-  K.add(rose, box(12, 1.2, 1.2, 0, door + 11.6, z1 + 0.1));
-  K.glyph([0, door + 9.4, z1 + 0.05], 2.6, 0);
-  K.add(M.voidM, T(new THREE.PlaneGeometry(4.3, 7).translate(0, 3.5, 0), [0, door, R + 0.2]));
-  K.solid(box(4.4, 7, 0.6, 0, door + 3.5, R - 0.2));
+  // the dark doorway on the gallery, toward the plateau
+  // (the drawing's small round door in the gallery wall, framed twice in its ivory stone, cobalt light: src/temples/portal.js)
+  const P = portal(K, { y: door, z: R + 0.2, w: 4.4, h: 7.6, shape: 'round', layers: 2, step: 0.9, recess: 0.7, back: 1.7, into: 2.8,
+    frame: lmStone('#f4ecd9', { course: 3.8, width: 8, wear: .18 }), inlay: '#7ea6ff' });
   // the bridge from the plateau's rim to the gallery (the rim is a little lower than the door)
   const rimL = K.local(V(SITE.rim[0], 0, SITE.rim[1]));
   const rimY = level.topAt?.(SITE.rim[0], SITE.rim[1]) ?? 40;
@@ -732,7 +729,7 @@ function exterior(scene, level, rt) {
   for (const mesh of K.group.children) if (mesh.material === cloudM) mesh.userData.floats = true;
   const at = K.world(0, door, R + 1.6);
   const front = K.world(0, door, R + 9);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: door, R, top: door + 77 * LANDMARK_SCALE.arzach2[1] + 14.2, hang, clear: [] , front, lamp };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, doorY: door, R, top: door + 77 * LANDMARK_SCALE.arzach2[1] + 14.2, hang, clear: [] , front, lamp };
 }
 
 // ------------------------------------------------------------------ the world change: the stones come down
