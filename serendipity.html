@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hiraeth — the serendipity map</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<style>
+  /* The serendipity map (src/serendipity-page/, issue #381): a world in 3D, every thing of interest on it by kind */
+  :root { --paper: #f7ecd2; --card: rgba(251, 244, 226, 0.94); --ink: #2b211f; --rule: rgba(43, 33, 31, 0.25); --soft: #8a5a3c; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #efe6d2; color: var(--ink); font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; }
+  /* (the game's modules add their own cards to the page: hidden, only the map is shown) */
+  body > *:not(#app):not(.debug-back):not(script) { display: none !important; }
+  #app { position: fixed; inset: 0; }
+  #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  #view:active { cursor: grabbing; }
+  header { position: absolute; left: 0; right: 0; top: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px 8px 104px;
+    background: var(--card); border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: 17px; letter-spacing: 0.14em; white-space: nowrap; }
+  h1 span { font-size: 11.5px; letter-spacing: 0; font-weight: normal; color: var(--soft); }
+  select, .btn { font: inherit; padding: 4px 9px; background: #fbf4e2; border: 2px solid var(--ink); color: var(--ink); text-decoration: none; cursor: pointer; }
+  .gap { flex: 1; }
+  #status { color: var(--soft); }
+  .panel { position: absolute; z-index: 2; background: var(--card); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 8px 10px; }
+  #legend { left: 10px; top: 58px; width: 250px; max-height: calc(100% - 80px); overflow-y: auto; }
+  #legend h2, #stats h2 { margin: 0 0 6px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); font-weight: normal; }
+  #legend label { display: flex; align-items: center; gap: 7px; padding: 2px 0; cursor: pointer; user-select: none; }
+  #legend label .n { margin-left: auto; color: var(--soft); }
+  #legend .sw { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--ink); flex: none; }
+  #legend .sw.ring { border-radius: 50%; background: transparent !important; }
+  #legend hr { border: 0; border-top: 1px solid var(--rule); margin: 6px 0; }
+  #legend .row { display: flex; gap: 6px; margin-top: 6px; }
+  #legend .row button { flex: 1; font: inherit; font-size: 11.5px; padding: 2px 4px; background: #fbf4e2; border: 1.5px solid var(--ink); cursor: pointer; }
+  #stats { right: 10px; top: 58px; width: 290px; max-height: calc(100% - 80px); overflow-y: auto; }
+  #stats p { margin: 0 0 6px; }
+  #stats b { font-weight: 700; }
+  #stats .big { font-size: 20px; font-weight: 700; }
+  #stats table { border-collapse: collapse; width: 100%; font-size: 12px; margin-bottom: 6px; }
+  #stats td { padding: 1px 4px; border-bottom: 1px dotted var(--rule); }
+  #stats td:last-child { text-align: right; }
+  #tip { position: absolute; z-index: 4; pointer-events: none; display: none; max-width: 320px; padding: 6px 9px; background: var(--card); border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); font-size: 12px; }
+  #tip .k { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+  #tip .q { color: var(--soft); }
+  #pick { left: 50%; transform: translateX(-50%); bottom: 12px; width: min(560px, calc(100% - 40px)); display: none; }
+  #pick.open { display: block; }
+  #pick h3 { margin: 0 0 2px; font-size: 14px; }
+  #pick p { margin: 0 0 4px; }
+  #pick .close { position: absolute; right: 6px; top: 4px; background: none; border: 0; font: inherit; font-size: 15px; cursor: pointer; }
+  #busy { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; font-size: 15px; letter-spacing: 0.1em; background: rgba(239, 230, 210, 0.8); }
+  #busy[hidden] { display: none; }
+  @media (max-width: 760px) { #stats { top: auto; bottom: 10px; max-height: 34%; width: calc(100% - 40px); } #legend { width: 200px; max-height: 50%; } }
+</style>
+</head>
+<body data-debug-back="pad-off">
+<div id="app">
+  <canvas id="view" aria-label="The world in 3D: drag to turn, right-drag to move, wheel to zoom"></canvas>
+  <header>
+    <h1 class="debug-room">SERENDIPITY MAP</h1>
+    <select id="world" aria-label="The world"></select>
+    <span id="status"></span>
+    <span class="gap"></span>
+    <button class="btn" id="top" title="Look straight down on the world">from above</button>
+    <button class="btn" id="reset" title="The view it opened with">reset view</button>
+    <a class="btn" id="play" href="./">Play this world</a>
+  </header>
+  <aside id="legend" class="panel" aria-label="What is shown"></aside>
+  <aside id="stats" class="panel" aria-label="This world in numbers"></aside>
+  <div id="tip" role="tooltip"></div>
+  <div id="pick" class="panel" aria-live="polite"><button class="close" aria-label="Close">✕</button><div class="body"></div></div>
+  <div id="busy">building the world…</div>
+</div>
+<script type="module" src="/src/serendipity-page/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
+</body>
+</html>

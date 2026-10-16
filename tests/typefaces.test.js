@@ -19,6 +19,7 @@ const MONO_OK = {
   'src/debug-back.js': 'the dev pages’ way back to the Debug menu',
   'src/world-picker.css': 'the Debug menu',
   'src/foe-spawner.js': 'the foe spawner, a dev tool',
+  'src/serendipity-page/main.js': 'the serendipity map, a dev page',
   'src/hitbox-overlay.js': 'the hitbox overlay, a dev tool',
   'src/input-display.js': 'the input display: raw button and axis numbers, to check a controller',
   'src/levels/references.js': 'the References, the author’s reference level',

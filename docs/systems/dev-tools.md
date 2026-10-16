@@ -255,6 +255,31 @@ the right hand, with the bracer, hung into the hip in the idle sway and now hang
 out (`idleLayer`). NPC capes collide with the traveller's body capsules when they stand
 within 2.2 m (`NPC.clothCapsules`), so a seated elder's cape no longer drapes through your legs.
 
+## The serendipity map (issue #381: `serendipity.html`, `src/serendipity-page/`)
+
+Debug → Pages → Serendipity map: one world at a time (`?world=<id>`, a picker over every world but the dev rooms,
+the route first) in 3D, to audit whether a map serves serendipity. `world.js` builds the world as the play-through
+does (the level and its temples, the collision, the people, the story's quests and locators, the makers' boxes; the
+save sandboxed first, so nothing is written to a slot) and the page redraws every mesh flat shaded in its own colour
+(no ink pass; the people, the sky, temple insides and rooms far from the ground hidden). `collect.js` reads the things
+of interest from the game's own data, nothing by hand: the dev menu's gathering (`src/world-debug.js gatherPoints`:
+the ship, temple doors, fight temples' doors and the games' signs, shops, the level's sights, beacons and leading
+lines, trials, makers' runs and courts, doors and named places, relics), every quest stage where its locator stands
+(main or errand; a box's own quest on its box), the people with the quests that stand on them, the games' hosts, the
+makers' boxes (a temple's, a court's or the story's are chests), the fragments of light (`src/fragments-data.js`) and
+the foes that stand somewhere (`src/foe-worlds.js PLACED`, the relics' guards; the wild packs come and go). A thing
+inside a temple or a room off the map is drawn at its door, as the Map draws it.
+
+Each kind is a layer with its colour, its count and a toggle (remembered in this browser); hover a dot for its name,
+its quest, how far it is from the landing as the crow flies and on foot; click it to keep that card and turn round it.
+Dashed rings round the landing at 100 m, 250 m, 500 m, 1 km and 2 km carry the time at a run (8.2 m/s). The numbers
+panel counts each kind and measures emptiness on a grid (4 m cells and up, about 180 a side): the ground walked from
+the landing (steps no steeper than 1.2 : 1, inside the level's `limit`), how far each cell is from the nearest thing
+of interest (foes left out), the emptiest walkable spot (a red ring of that radius) and the share of ground more than
+50 m from anything (red dots). The game has no position parameter: "Play this world" opens it on its debug save,
+where the dev menu's teleports go anywhere. `tests/serendipity-map.test.js` builds every world the picker offers and
+checks the collector finds things in each (a route world: its temple, main quest, people and every fragment).
+
 ## Design audits: level and temple
 
 Two read-only measuring tools behind the `level-design-qc` and `temple-design-qc` skills (`.claude/skills/`):
