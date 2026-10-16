@@ -347,12 +347,6 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>
-        /// The Xbox's experiments, from LocalState\args.txt (BridgeArgs): -no-grd (URP's GPU Resident Drawer off: the
-        /// suspect for the load's 24-27 s stall before the first render, and part of the main thread's frame), -ops-cap N
-        /// (the script's ops applied N a frame at most: the load's objects made over several frames). The drawer's state
-        /// is logged either way.
-        /// </summary>
-        /// <summary>
         /// The upscaler's switches (issue #392): `up` off|fsr|sgsr|linear (HiraethFeature.Upscaler; null leaves URP's blit),
         /// urp-fsr|urp-linear|urp-point (URP's own filter setting); `sharp` RCAS's sharpness 0-1; `inkFull` the ink composite
         /// at the screen's size over a G-buffer at the render scale (URP's scale then 1); `weight` the lines' weight there.
@@ -382,6 +376,12 @@ namespace Hiraeth.Bridge
             Debug.Log($"Hiraeth bridge: upscaler {S}{(S == Hiraeth.Rendering.HiraethFeature.Upscaler.Fsr ? $" (RCAS {Hiraeth.Rendering.HiraethFeature.Settings.sharpness:0.##})" : "")}, the G-buffer at {Hiraeth.Rendering.HiraethFeature.Settings.gbufferScale:0.###} of the camera's target");
         }
 
+        /// <summary>
+        /// The Xbox's experiments, from LocalState\args.txt (BridgeArgs): -no-grd (URP's GPU Resident Drawer off: the
+        /// suspect for the load's 24-27 s stall before the first render, and part of the main thread's frame), -ops-cap N
+        /// (the script's ops applied N a frame at most: the load's objects made over several frames). The drawer's state
+        /// is logged either way.
+        /// </summary>
         static void Experiments()
         {
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
