@@ -68,7 +68,8 @@ export function signPlate(title, sub = '', color = '#71d7cf', w = 1.5, h = 0.56)
 
 /**
  * An arcade sign in a world that starts a game: walk up and press the interact button (X / □, E).
- * @param world   { scene, levelId, lights? (the level's light list: the sign lights its ground), go? (href) => void }
+ * @param world   { scene, levelId, lights? (the level's light list: the sign lights its ground), go? (href) => void,
+ *                physics? (a solid sign's collider), thresholds? (a doorway's light: src/thresholds.js) }
  * @param gameId  a game's id (src/minigames/<id>.js)
  * @param pos     where it stands (a Vector3 or [x, y, z]); heading (radians) which way it faces;
  *                plate (a line of text, '' for none) a name plate on the post with the game's name and that
@@ -90,12 +91,16 @@ export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate 
   }
   world.scene.add(object);
   if (object.userData.solid) world.physics?.addCollider?.(object);   // (a doorway: walked into, not through)
+  // (a doorway's light, the ways' own: src/thresholds.js addDoor; a fight temple's gatehouse, issue #384)
+  const D = object.userData.door;
+  object.updateMatrixWorld(true);
+  const lit = D && world.thresholds ? world.thresholds.addDoor({ ...D, at: object.localToWorld(D.at.clone()), yaw: heading }) : null;
   const light = new THREE.Vector4(at.x, at.y + 2.7, at.z, 5);
   world.lights?.push(light);
   const go = world.go ?? ((href) => { location.href = href; });
   // (hosted: the person beside it offers the game, the sign is only its sign)
   if (host && queueHost({ id: gameId, name: def.name, at: at.clone(), heading, play: () => go(gameHref(gameId, world.levelId)) })) {
-    return { object, remove() { object.removeFromParent(); const i = world.lights?.indexOf(light) ?? -1; if (i >= 0) world.lights.splice(i, 1); } };
+    return { object, remove() { lit?.remove(); object.removeFromParent(); const i = world.lights?.indexOf(light) ?? -1; if (i >= 0) world.lights.splice(i, 1); } };
   }
   const off = registerInteractable({
     id: `minigame.${gameId}`, priority: PRIORITY.use, range: 3.2,
@@ -106,6 +111,6 @@ export function placeGameMarker(world, gameId, pos, { heading = 0, games, plate 
   });
   return {
     object,
-    remove() { off(); object.removeFromParent(); const i = world.lights?.indexOf(light) ?? -1; if (i >= 0) world.lights.splice(i, 1); },
+    remove() { off(); lit?.remove(); object.removeFromParent(); const i = world.lights?.indexOf(light) ?? -1; if (i >= 0) world.lights.splice(i, 1); },
   };
 }

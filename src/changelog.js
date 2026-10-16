@@ -26,6 +26,10 @@ export const CHANGELOG = [
     // issue #395: unity/…/BridgeRunner.cs HandheldScale (Handheld on Android: 960 × 540's pixels at most on a screen
     // larger than the Retroid's); tests/unity-thor.test.js; docs/systems/performance.md "Unity on the AYN Thor"
     'The Unity version on the AYN Thor runs at or near 60 frames a second in most places instead of about 40: on its 1080p screen the world is now drawn at half its width and height and scaled up to fill it, a little softer for it. Retroid players see no change.',
+    // issue #384: src/fight-temples/entrance.js (the Blade Gate: six draws, its opening's light through Thresholds.addDoor),
+    // kit/marker.js, the hosts beside it (hosts-data.js FIGHT_STAND), the Oil Exchange's and the Lift Depot's spots moved;
+    // tests/fight-entrance.test.js
+    'Every fight temple now has a small gatehouse you can pick out from far off: two crossed blades over a shield on its roof, a banner with the crossed blades on each pillar, a lit ring on the ground before its door, all in the world’s own colours, the same sign in every world. Its doorway glows like the others and is dark right up to the lintel (the old one showed a strip of sky under it). In the City-Shaft and the City Floating in Space it stands a few steps from the old door, where it has room.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

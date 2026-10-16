@@ -1265,6 +1265,11 @@ doorway's light over the screen (`PassageCover.light`, a warm radial glow under 
 (0.2 s), the traveller still walking into it, before the paper sweeps across as before; on the far side the way back
 glows and settles (`arrive`). `tests/thresholds.test.js`.
 
+A doorway that is no portal (a fight temple's gatehouse, whose door opens its game's page: issue #384) wears the same
+glow: `Thresholds.addDoor({ at, yaw, w, h, depth, side, room })` builds it as a portal's (`glowOf`) and returns its entry
+with `remove()`; `kit/marker.js` calls it for a sign whose model gives `userData.door`. A wash added after the veils are
+bound takes their shared light and haze too (`Veils.addWash`).
+
 ## The eclipse (post.js `drawEclipse`, `uEclipse`; src/eclipse.js; October 2026)
 
 The City During the Eclipse's sky: the sun covered by the moon at midday, drawn as the pictures draw it.

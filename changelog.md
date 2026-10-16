@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.82 — 2026-10-16
 
+- Every fight temple now has a small gatehouse you can pick out from far off: two crossed blades over a shield on its roof, a banner with the crossed blades on each pillar, a lit ring on the ground before its door, all in the world’s own colours, the same sign in every world. Its doorway glows like the others and is dark right up to the lintel (the old one showed a strip of sky under it). In the City-Shaft and the City Floating in Space it stands a few steps from the old door, where it has room.
 - The Unity version on the AYN Thor runs at or near 60 frames a second in most places instead of about 40: on its 1080p screen the world is now drawn at half its width and height and scaled up to fill it, a little softer for it. Retroid players see no change.
 - Your sword stays drawn and glowing for the whole fight. It used to go dark in your hand after every cut and light again for the next; now, while a foe is close and awake or you are locked on, the blade stays open between swings, through the guard, rolls and the charged cut. A few seconds after the fight is over it goes back on your back as before.
 - And that light is new: instead of a curtain of flickering tongues, the doorway itself glows, brightest round its frame in a few flat steps, with the warm lamp of the room beyond (or the daylight, on the way out) faint in its middle. It softens as you walk up to it, so you can see into the door before you step through.

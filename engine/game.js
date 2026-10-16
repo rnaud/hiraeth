@@ -110,7 +110,7 @@ import { birdAnswers, promisedBird } from '../src/bird.js';
 import { bikeComes, parkedBike, callKind } from '../src/bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
-import { ORDER, TITLES } from '../src/levels/names.js';
+import { ORDER, TITLES, partsOf } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud, findSummary } from '../src/hud.js';
 import { toastSeconds, Story, Relics } from '../src/quest.js';
@@ -759,7 +759,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // walked on through a doorway, and in off it on the far side (issue #389, src/door-walk.js), as main.js
   const doorWalk = new DoorWalk({ player, physics, rig });
   const passage = new Passage({ cover: passCover, warm: null, carry: (c) => { if (c.to) for (const q of queues) q.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); } });
-  const thresholds = level.portals?.length ? optional('the doorways\' light', () => new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics })) : null;
+  // (and a fight temple's gatehouse door, which opens its game's page: issue #384, kit/marker.js)
+  const doorSigns = GAMES.some((g) => g.marker?.door && g.markers?.some((m) => partsOf(levelId).includes(m.level)));
+  const thresholds = level.portals?.length || doorSigns ? optional('the doorways\' light', () => new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics })) : null;
   let portalCool = 0;
   const throughPortals = (dt, simT) => {
     portalCool = Math.max(portalCool - dt, 0);
@@ -784,7 +786,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // engine is played (its menus draw the runner's card) or a plan asks for them (`trials`: the bridge's -trial, -game);
   // not in a bench's plan, whose numbers stay comparable with before. On a game's page, its runner at once.
   const trials = gameDef || withTrials || (menus && !flags && !view) ? optional('the trials', () => makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind, tool, foes: combat?.foes ?? null, chimes: combat?.chimes ?? null,
-    npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, def: gameDef, from, onGame, onLeave,
+    npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, def: gameDef, from, onGame, onLeave, thresholds,
     log: (t) => log(t) })) : null;
   if (trials) stamp('trials');
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads

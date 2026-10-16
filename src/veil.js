@@ -137,7 +137,11 @@ export class Veils {
    */
   addWash(wash, of = null) {
     wash.userData.of = of ?? wash;
-    if (this.bound) { wash.material.uniforms.tNormal = this.uniforms.tNormal; wash.material.uniforms.uRes = this.uniforms.uRes; }
+    if (this.bound) {
+      wash.material.uniforms.tNormal = this.uniforms.tNormal; wash.material.uniforms.uRes = this.uniforms.uRes;
+      // (added after bind: a fight temple's gatehouse door, issue #384; it takes the shared light as the rest did)
+      if (this.shared) for (const k of SHARED) if (this.shared[k]) wash.material.uniforms[k] = this.shared[k];
+    }
     this.scene.add(wash);
     this.list.push(wash);
     return wash;

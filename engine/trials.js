@@ -35,7 +35,7 @@ export function readHref(href) {
 }
 
 export function makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind = null, tool = null, foes = null, chimes = null, npcs = [], crowd = null, wildlife = null, flora = null,
-  people = null, story = null, menus = null, items, game, toast = () => {}, waters = null, kick = null, settings = null, ship = null, def = null, from = null, onGame = null, onLeave = null, log = () => {} }) {
+  people = null, story = null, menus = null, items, game, toast = () => {}, waters = null, kick = null, settings = null, ship = null, def = null, from = null, onGame = null, onLeave = null, thresholds = null, log = () => {} }) {
   let runner = null;
   const host = (extra) => ({ scene, camera, player, physics, level, sound, wind, state: game, kick, tool, foes, rig, settings, chimes,
     npcs, crowd, wildlife, flora, people, capture: null, othersOpen: () => !!menus?.open && menus.mode !== 'card', ...extra });
@@ -60,7 +60,7 @@ export function makeTrials({ levelId, scene, physics, level, player, camera, rig
       if (!partsOf(levelId).includes(m.level)) continue;
       const [x, y, z] = shiftAt(m.level, m.at), gy = y ?? physics.groundAt(x, 1e4, z);
       try {
-        placeGameMarker({ scene, levelId, lights: (level.lights ??= []), physics, go: (href) => onGame?.(href) }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z),
+        placeGameMarker({ scene, levelId, lights: (level.lights ??= []), physics, thresholds, go: (href) => onGame?.(href) }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z),
           { heading: m.heading ?? 0, ...(story ? {} : { host: false }) });
       } catch (e) { log(`the ${g.id} sign: ${e?.message ?? e}`); }
     }

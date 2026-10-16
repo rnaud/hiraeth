@@ -1086,6 +1086,7 @@ const DOORS389 = 'Issue #389: the running game in muted headless Chrome (ANGLE M
 const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modules in node (the real traveller, the level’s collision, the passage’s timings, 60 frames a second), every way through of the twelve route worlds walked and sprinted into from 4 m out';
 /** (v1.82, issue #391: the light of a way through fitted to its opening) */
 const DOORS391 = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on its own Vite (port 6391), the camera pinned 5.5 m before each way through of the twelve route worlds; before: the tree before the change (eb00b3c1, port 6394), after: the change; 16 October; cwebp -q 72';
+const GATE384 = 'Issue #384: the running game in muted headless Chrome (ANGLE Metal, High, 960 × 600, the HUD hidden) on its own Vite (port 5450; the before from the commit before, port 5470), the camera pinned 9.5 m before the way in and 2.4 m aside, 10:00, clear; 16 October; cwebp -q 72';
 const DOORS391G = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden) on its own Vite (port 6391), the camera pinned before the door, noon (12:00) or dusk (18:36); before: the fitted veil (the fit commit), after: the glow; 16 October; cwebp -q 72';
 const SWORD390 = 'muted headless Chrome on this Mac, High, 1280 × 720, the Arena at 10:00, a blot (its health raised) fought with the combo, the camera off his right front quarter, origin/main against issue #390’s change; 16 October; cwebp -q 72';
 /** (v1.82, issue #395: the Unity build's render scale on the AYN Thor) */
@@ -1129,6 +1130,10 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Floating city (4)', before: 43.1, after: 59.5 },
       ], source: THOR395, note: 'The median of each world’s views. The worst views: 28 → 37 fps (the City-Shaft’s wide view), 34 → 48 (Lorn’s start), 39 → 55 (the desert’s spawn). GeckoView on the same views, at its own Handheld: 47–59.' },
     ], see: 'On the AYN Thor, play the Unity version with Graphics on Handheld (its default): the desert’s first view, the Signal Market or the Floating city now keep a steady 60.' },
+    { match: 'Every fight temple now has a small gatehouse', tags: ['combat'], shots: [
+      { name: 'fight-gate-desert', caption: 'The Sunken Hall’s way in, by the pilgrims’ camps in the Desert: before, a plain doorway with a strip of sky under its lintel; after, the gatehouse with the crossed blades', size: [960, 600], from: GATE384 },
+      { name: 'fight-gate-edena', caption: 'The Seed Vault’s way in, in Viridel: the same gatehouse in the world’s green', size: [960, 600], from: GATE384 },
+    ], see: 'Every world’s fight temple: look for the crossed blades over the roofs; the Desert’s is west of the pilgrims’ camps.' },
   ],
   '1.81': [
     { match: 'Walking through a door no longer runs you into a wall first', shots: [

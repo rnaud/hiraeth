@@ -16,6 +16,9 @@ const P = (o) => ({ cape: 0, voice: 1, range: 3.4, tier: 'local', ...o, host: tr
 /** A makers' post: the runs' own sign, its lines cut under the mark. */
 const POST = (say) => ({ object: true, name: 'The makers’ post', prompt: 'read the makers’ post', color: '#c9b08a', say });
 
+// a fight temple's host stands beside its gatehouse (src/fight-temples/entrance.js, issue #384), clear of its pylons and dais
+const FIGHT_STAND = { side: -2, ahead: 1.6 };
+
 export const HOSTS = {
   // ---------------------------------------------------------------- the games' signs (src/minigames/)
   fishing: P({
@@ -76,74 +79,74 @@ export const HOSTS = {
   }),
   // the desert's fight temple (issue #341, src/fight-temples/desert.js): by its doorway west of the camps
   'fight-desert': P({
-    id: 'host.fight-desert', name: 'Wafa', title: 'who keeps watch on the sunken hall', color: '#b8613c', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-desert', name: 'Wafa', title: 'who keeps watch on the sunken hall', color: '#b8613c', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#b8613c', lining: '#2b211f', cloth: '#e8d9b8', legs: '#4a3a2a', hat: '#f0c45a', hair: '#2b211f' }, head: 'wrap', look: { prop: 'staff' },
     say: ['~tired~ Third night I’ve sat on this step. The ink pools down there, and the blots breed in it. Every dusk, more.', '~solemn~ Four rooms, and a lot of them. Small ones: one cut or two. Clear them, and what the makers left on the altar is yours.'],
     lines: ['~tired~ Listen. They’re at it again.'],
   }),
   // the other worlds' fight temples (src/fight-temples/arzach.js, perdide.js, moonfoundry.js), each by its doorway
   'fight-arzach': P({
-    id: 'host.fight-arzach', name: 'Sister Maud', title: 'who sweeps the riders’ cloister', color: '#9fb4c8', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-arzach', name: 'Sister Maud', title: 'who sweeps the riders’ cloister', color: '#9fb4c8', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#9fb4c8', lining: '#2b211f', cloth: '#f4efe2', legs: '#5a5a6a', hat: '#e6e2d8', hair: '#d8d0c0' }, head: 'hood', look: { prop: 'staff' },
     say: ['~solemn~ My cloister. The wind comes through it, and now it brings them in.', '~neutral~ Four courts. Many, small. Where the floor shows the wind, let it take them. The altar, after.'],
     lines: ['~whisper~ Listen. Wind.'],
   }),
   'fight-perdide': P({
-    id: 'host.fight-perdide', name: 'Gert', title: 'who ground the reed-cutters’ meal', color: '#8e5e3a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-perdide', name: 'Gert', title: 'who ground the reed-cutters’ meal', color: '#8e5e3a', kind: 'm', stand: FIGHT_STAND,
     palette: { cloak: '#8e5e3a', lining: '#2b211f', cloth: '#d8cfa8', legs: '#3a3a2a', hat: '#7e9a52', hair: '#6b5a4a' }, head: 'straw', look: { body: 'toolbelt' },
     say: ['~tired~ I ground the reed-cutters’ meal in that mill. Now it’s flooded, and the stones roll with nobody at the gear.', '~neutral~ Four rooms, ankle-deep and crawling. Where the floor goes rust, a stone’s coming. The miller’s altar is at the back.'],
     lines: ['~tired~ Hear the grinding? Nobody’s at the gear.'],
   }),
   'fight-moonfoundry': P({
-    id: 'host.fight-moonfoundry', name: 'Marta', title: 'who tapped the crucibles', color: '#d98c58', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-moonfoundry', name: 'Marta', title: 'who tapped the crucibles', color: '#d98c58', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#d98c58', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#e8dcc4', hair: '#4a3226' }, head: 'skullcap', look: { body: 'toolbelt' },
     say: ['~neutral~ The house still pours under our floor. Nobody taps it now, and things come down to stand in the heat.', '~solemn~ Four bays. When a channel’s rim goes bright, step off it. The great crucible’s altar is at the end.'],
     lines: ['~neutral~ Mind the channels. They don’t care who’s in them.'],
   }),
   'fight-edena': P({
-    id: 'host.fight-edena', name: 'Hollis', title: 'who keeps the seed cellars', color: '#7fa86a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-edena', name: 'Hollis', title: 'who keeps the seed cellars', color: '#7fa86a', kind: 'm', stand: FIGHT_STAND,
     palette: { cloak: '#7fa86a', lining: '#2b211f', cloth: '#f2e6c8', legs: '#4a5a3a', hat: '#eef0e6', hair: '#4a3226' }, head: 'sunhat', look: { prop: 'flower' },
     say: ['~curious~ I kept the seed cellars dry for twenty years. Now the eyes in the beds wake on their own.', '~neutral~ Four rooms. When a bed’s eyes open, get off it, and bring the moths onto it. The seed safe’s altar is at the end.'],
     lines: ['~curious~ They blink at me now. They never did.'],
   }),
   'fight-incal': P({
-    id: 'host.fight-incal', name: 'Ulric', title: 'who drove the depot’s cranes', color: '#e8b83a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-incal', name: 'Ulric', title: 'who drove the depot’s cranes', color: '#e8b83a', kind: 'm', stand: FIGHT_STAND,
     palette: { cloak: '#e8b83a', lining: '#2b211f', cloth: '#3a4a5a', legs: '#2b2f45', hat: '#5a5f6a', hair: '#2b211f' }, head: 'cap', look: { body: 'toolbelt' },
     say: ['~tired~ I drove those cranes till the depot shut. They still drop loads, and nobody’s at the levers.', '~neutral~ Four bays. A ring on the deck means a load is coming down: step out of it. The dispatch floor’s altar is at the end.'],
     lines: ['~tired~ Hear the chains? Nobody’s up there.'],
   }),
   'fight-buried': P({
-    id: 'host.fight-buried', name: 'Greta', title: 'who greased the gear-house rails', color: '#c9a24a', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-buried', name: 'Greta', title: 'who greased the gear-house rails', color: '#c9a24a', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#c9a24a', lining: '#2b211f', cloth: '#6e4e34', legs: '#3a2e24', hat: '#ffb347', hair: '#3a2a20' }, head: 'bandana', look: { mask: 'browgoggles' },
     say: ['~playful~ I greased those rails every morning, and the carts still run them. Empty, flat out, all day.', '~neutral~ Four rooms. When a rail’s lamp blinks, get off it and leave the crawlers on it. The tooth hall’s altar is at the end.'],
     lines: ['~playful~ Lamp’s blinking. Off the rail!'],
   }),
   'fight-bazaar': P({
-    id: 'host.fight-bazaar', name: 'Lettie', title: 'who locks up the back rooms', color: '#ff5fa2', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-bazaar', name: 'Lettie', title: 'who locks up the back rooms', color: '#ff5fa2', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#ff5fa2', lining: '#2b211f', cloth: '#3a3050', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'bun', look: { body: 'satchel' },
     say: ['~scared~ I lock the back rooms every night. Tonight the signs in there are ringing with the bell, and the rooms are full.', '~neutral~ Four rooms. When a sign lights, the ring comes off it: roll through it. The counting house’s altar is at the end.'],
     lines: ['~scared~ There. The bell again.'],
   }),
   'fight-underwater': P({
-    id: 'host.fight-underwater', name: 'Sabine', title: 'who trims the gallery lamps', color: '#7fe0e8', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-underwater', name: 'Sabine', title: 'who trims the gallery lamps', color: '#7fe0e8', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#3f7a8a', lining: '#2b211f', cloth: '#d8e4e6', legs: '#2b2f45', hat: '#7fe0e8', hair: '#2b211f' }, head: 'hood', look: { prop: 'bell' },
     say: ['~solemn~ I trimmed the gallery lamps every night. Now they gutter, and the dark comes in under the glass.', '~neutral~ Four halls. When the lamps flicker, get under one before they go out. The whale-watch altar is at the end.'],
     lines: ['~solemn~ Keep to the lamps. The dark is cold.'],
   }),
   'fight-glassdunes': P({
-    id: 'host.fight-glassdunes', name: 'Ozren', title: 'who banked the kilns', color: '#d6a94a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-glassdunes', name: 'Ozren', title: 'who banked the kilns', color: '#d6a94a', kind: 'm', stand: FIGHT_STAND,
     palette: { cloak: '#d6a94a', lining: '#2b211f', cloth: '#3f8f6a', legs: '#4a3a2a', hat: '#cfe9e0', hair: '#3a2a20' }, head: 'headcloth', look: { mask: 'glasses' },
     say: ['~tired~ I banked those kilns for thirty years. The sheds are full now, and the glass floor cracks under them.', '~neutral~ Four sheds. When the tile under you goes white, get off it. The great kiln’s altar is at the end.'],
     lines: ['~tired~ Listen. Glass going.'],
   }),
   'fight-spheres': P({
-    id: 'host.fight-spheres', name: 'Wenna', title: 'who tends the walled gardens', color: '#a8b878', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-spheres', name: 'Wenna', title: 'who tends the walled gardens', color: '#a8b878', kind: 'f', stand: FIGHT_STAND,
     palette: { cloak: '#a8b878', lining: '#2b211f', cloth: '#ece6d8', legs: '#4a4a3a', hat: '#f4c86a', hair: '#6b5a4a' }, head: 'sunhat', look: { prop: 'flower' },
     say: ['~whisper~ My gardens are full of hounds. They run in the spheres’ shade at dusk.', '~neutral~ Four gardens. Keep to the light: in the shade they bite and you can’t see them. The round garden’s altar is at the end.'],
     lines: ['~whisper~ Stay out of the shade.'],
   }),
   'fight-spacecity': P({
-    id: 'host.fight-spacecity', name: 'Osric', title: 'who weighed the oil', color: '#f0c06a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    id: 'host.fight-spacecity', name: 'Osric', title: 'who weighed the oil', color: '#f0c06a', kind: 'm', stand: FIGHT_STAND,
     palette: { cloak: '#8a5a3a', lining: '#2b211f', cloth: '#f0c06a', legs: '#2b2f45', hat: '#3a3a50', hair: '#2b211f' }, head: 'cap', look: { body: 'satchel' },
     say: ['~neutral~ I weighed the lamp oil at that depot till the drums started leaking. One spark and the deck burns.', '~neutral~ Four decks. When oil spreads under you, get off it before it lights. The clearing house altar is at the end.'],
     lines: ['~neutral~ Mind your feet. And the sparks.'],

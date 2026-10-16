@@ -10,7 +10,7 @@ optional, replayable for a best time, and it pays in looks: a world's colours fo
 shield. The makers' temples and the fights in the open are untouched.
 
 **Built: the desert's, the Sunken Hall** (v1.76). How to play it: in the desert walk west from the pilgrims' camps
-to the stone doorway half sunk in the sand (128, 300) and ask Wafa, who keeps watch on its step; or Debug → Games →
+to the gatehouse with the crossed blades on its roof (128, 300; the Blade Gate, issue #384) and ask Wafa, who keeps watch by it; or Debug → Games →
 The Sunken Hall (`?game=fight-desert`), or the Arcade's sign.
 
 **Built: Vael's, the Wind Cloister** (v1.80): on the rose cliff by the riders' monastery over the cloud (walk north-east of
@@ -90,7 +90,7 @@ export default fightTempleGame(<WORLD>_FIGHT);      // src/fight-temples/index.j
 | the rules | `src/fight-temples/rules.js` (pure) | the iso camera (`ISO`, `isoOffset`, `followIso`), the walls seen through (`SEE`, `inTheWay`, `easeSee`, `seeOpen`, `seeHoleCuts`), the walls from the rooms (`wallBoxes`, `doorGap`), the aim (`AIM`, `pickTarget`, `stickToGround`), the waves (`LIGHT_HP`, `roomWaves`, `CROWD`, `release`), the loot (`LOOT`) |
 | the rooms | `src/fight-temples/rooms.js` | the level from the table: the sand (flat in the rooms, banked to the walls' tops behind the far walls, a trench behind the near ones), a mesh a wall and a pillar, each with its own see-through materials, the springs, the gates (movers), the basin, the altar, the reliquary |
 | the run | `src/fight-temples/session.js` | the camera, the aim, the rooms and waves, the loot, the reward |
-| the doorway | `src/fight-temples/index.js` `entranceModel` | the game's sign in its world (kit/marker.js uses a game's `marker.model`; solid) |
+| the doorway | `src/fight-temples/entrance.js` `entranceModel` | the Blade Gate, the game's sign in its world, one gatehouse dressed in each world's palette (kit/marker.js uses a game's `marker.model`; solid; its opening's light through `Thresholds.addDoor`; docs/systems/minigames.md) |
 | the host | `src/story/hosts-data.js` | the person by the doorway who offers it (Play / Not now) |
 
 **The camera.** Fixed, as Diablo IV's (issue #365): from the south-east (`ISO.yaw` π/4, never turned by the player),

@@ -489,8 +489,30 @@ foe a drawn crescent covers (`WIDE_CUT`, below). Four rooms, two or three waves 
 tripod and two whole herons, then the reliquary on the altar wins the Ember colours (`src/kit-colours.js`, items.md
 "The kit's colours"). Hearts and chimes drop (`ctx.drop`: the runner's host passes the world's chime field). The
 right stick or the mouse's ring aims; the blade and the gun take the foe in that cone (`FluidTool.lockOn` and
-`updateAimPoint` wrapped for the run); RT / R2 alone a quick shot. Its sign is its own doorway (`marker.model`, solid:
-`kit/marker.js`), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`, `tests/fight-roll.test.js`, `tests/fight-temples-worlds.test.js`, `tests/fight-generate.test.js`. Since v1.82 every visit draws its own run from the temple's table (rooms in a new order and layout, mirrored, its waves drawn within the table's budget; a seed per run, `?seed=` to replay it): `src/fight-temples/generate.js`, the design doc's "Each run its own". Since v1.80 Vael's **Wind Cloister** too (`fight-arzach.js`), its gusts on lanes (`src/fight-temples/hazards.js`). Lorn's **Drowned Mill** (`fight-perdide.js`), its millstones. The Moon Foundry's **Pour Floor** (`fight-moonfoundry.js`), its pour. Each world's hazard, look and table: the design doc, "The hazards, the looks". Since v1.81 Viridel's **Seed Vault** (`fight-edena.js`, its bloom), the City-Shaft's **Lift Depot** (`fight-incal.js`, its loads), the Buried Machine's **Tooth Gallery** (`fight-buried.js`, its carts) and the Signal Market's **Back Rooms** (`fight-bazaar.js`, its toll). The Underwater City's **Flooded Gallery** (`fight-underwater.js`, its dark). The Glass Dunes' **Kiln Yard** (`fight-glassdunes.js`, its cracking floor). The Garden of Spheres' **Quiet Orchard** (`fight-spheres.js`, its shade). The City Floating in Space's **Oil Exchange** (`fight-spacecity.js`, its burning oil).
+`updateAimPoint` wrapped for the run); RT / R2 alone a quick shot. Its sign is its own gatehouse, the Blade Gate (`marker.model`, solid:
+`kit/marker.js`; since issue #384 `src/fight-temples/entrance.js`, below), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`, `tests/fight-roll.test.js`, `tests/fight-temples-worlds.test.js`, `tests/fight-generate.test.js`. Since v1.82 every visit draws its own run from the temple's table (rooms in a new order and layout, mirrored, its waves drawn within the table's budget; a seed per run, `?seed=` to replay it): `src/fight-temples/generate.js`, the design doc's "Each run its own". Since v1.80 Vael's **Wind Cloister** too (`fight-arzach.js`), its gusts on lanes (`src/fight-temples/hazards.js`). Lorn's **Drowned Mill** (`fight-perdide.js`), its millstones. The Moon Foundry's **Pour Floor** (`fight-moonfoundry.js`), its pour. Each world's hazard, look and table: the design doc, "The hazards, the looks". Since v1.81 Viridel's **Seed Vault** (`fight-edena.js`, its bloom), the City-Shaft's **Lift Depot** (`fight-incal.js`, its loads), the Buried Machine's **Tooth Gallery** (`fight-buried.js`, its carts) and the Signal Market's **Back Rooms** (`fight-bazaar.js`, its toll). The Underwater City's **Flooded Gallery** (`fight-underwater.js`, its dark). The Glass Dunes' **Kiln Yard** (`fight-glassdunes.js`, its cracking floor). The Garden of Spheres' **Quiet Orchard** (`fight-spheres.js`, its shade). The City Floating in Space's **Oil Exchange** (`fight-spacecity.js`, its burning oil).
+
+### The fight temples' gatehouse, the Blade Gate (issue #384)
+
+"The fight temple entrances should have a small building as an entrance that looks fight themed and easily
+recognizable." Every fight temple's way in is one gatehouse, `entranceModel(def)` in `src/fight-temples/entrance.js`
+(`ENTRANCE` its measures, `entranceParts` its geometry by surface): a crest of two crossed blades behind a round shield
+with a lit ring over the roof (the sign, read from across a world: over 7 m tall), two tapering pylons with a lit slit
+and a banner each (the crossed blades on it), a heavy lintel with a lit line, a small chamber behind, an eight-sided dais
+before the door with a lit ring and a lit cross in it. Ancient high tech as the makers' temples (panelled stone with
+glyphs, lit inlays), never organic. Each world dresses it from its table's `palette`: `wall*` the stone, `cap` the trim,
+`glyph` the light, the banners and the guards, `ink` the dark in the opening, `wall3` the blades. Six meshes (each
+surface's parts merged: six draws in every world, the old doorway's eleven), one collider (`userData.solid`): the
+dark in the opening is solid, so the traveller walks into the opening, not through it; the dais and sill are steps under
+`STEP`. The dark is wider and taller than the opening, its edges in the jambs and the lintel (the old doorway's plane
+stopped 15 cm short of its lintel, a strip of sky). Its opening's light is the ways' own (rendering.md "Ways through"):
+the model gives `userData.door` (its sill on the opening's face, 2.4 by 3.05 m, the frame 0.92 m deep) and
+`placeGameMarker` hangs it through `world.thresholds.addDoor` (main.js and engine/game.js make the Thresholds in a world
+with a fight temple even without portals; `remove()` takes it away with the sign). The hosts stand beside it, clear of
+its pylons and dais (`hosts-data.js` `FIGHT_STAND`). It needs about 5 by 7 m of open ground and 8.5 m over it: the Lift
+Depot's spot moved 1.8 m into its lane and the Oil Exchange's out of the Towers' corner onto open deck for it. Tests:
+`tests/fight-entrance.test.js` (every world's, its draws, the opening dark to the lintel, solid, no faces fighting, its
+light, its hosts).
 
 ### The Sunken Hall as a game (issue #368)
 

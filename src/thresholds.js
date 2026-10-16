@@ -277,21 +277,8 @@ export class Thresholds {
       this.group.add(g);
       const meshes = [];
       if (!door.column) {
-        // (its light: a glow filling the opening, one mesh, one draw, src/door-light.js; issue #391)
-        const side = approachSide(door, p, physics);
-        const geo = doorLightGeometry(door, side), m = washMesh(geo, g);
-        g.updateMatrixWorld(true);
-        let wash = null;
-        if (veils) {
-          const toRoom = !!p.toSpace || (!p.toUp && !p.fromSpace && !!p.temple);
-          wash = new THREE.Mesh(geo, doorLightMaterial({ far: toRoom ? DOOR_LIGHT.room : DOOR_LIGHT.sky }));
-          wash.matrixAutoUpdate = false; wash.matrix.copy(m.matrixWorld); wash.matrixWorld.copy(m.matrixWorld);
-          wash.frustumCulled = false; wash.userData.off = true;
-          veils.addWash(wash, m);
-        }
-        const T = { portal: p, door, group: g, meshes: [m], alphas: [1], washes: wash ? [wash] : [], glow: true, side, k: 0, flare: 0, phase: this.list.length * 1.7, on: false };
-        p._threshold = T;
-        this.list.push(T);
+        const toRoom = !!p.toSpace || (!p.toUp && !p.fromSpace && !!p.temple);
+        this.glowOf(p, door, g, approachSide(door, p, physics), toRoom);
         continue;
       }
       // (in the open: a soft round column of the veil's rays, and its pool)
@@ -310,6 +297,42 @@ export class Thresholds {
       p._threshold = T;
       this.list.push(T);
     }
+  }
+
+  /** A way's light: a glow filling the opening, one mesh, one draw (src/door-light.js; issue #391). */
+  glowOf(p, door, g, side, toRoom) {
+    const geo = doorLightGeometry(door, side), m = washMesh(geo, g);
+    g.updateMatrixWorld(true);
+    let wash = null;
+    if (this.veils) {
+      wash = new THREE.Mesh(geo, doorLightMaterial({ far: toRoom ? DOOR_LIGHT.room : DOOR_LIGHT.sky }));
+      wash.matrixAutoUpdate = false; wash.matrix.copy(m.matrixWorld); wash.matrixWorld.copy(m.matrixWorld);
+      wash.frustumCulled = false; wash.userData.off = true;
+      this.veils.addWash(wash, m);
+    }
+    const T = { portal: p, door, group: g, meshes: [m], alphas: [1], washes: wash ? [wash] : [], glow: true, side, k: 0, flare: 0, phase: this.list.length * 1.7, on: false };
+    p._threshold = T;
+    this.list.push(T);
+    return T;
+  }
+
+  /**
+   * The light of a doorway that is no portal (a fight temple's gatehouse, issue #384: its door opens a game's page):
+   * door { at (the sill's middle, in the world), yaw, w, h, depth, side, room (its far side a room's lamp) }. Returns
+   * its entry, and remove() takes it away again.
+   */
+  addDoor(door) {
+    const p = { at: door.at.clone(), door }, g = new THREE.Group();
+    g.position.copy(door.at); g.rotation.set(-(door.tilt ?? 0), door.yaw ?? 0, 0, 'YXZ');
+    this.group.add(g);
+    const T = this.glowOf(p, door, g, door.side ?? 1, door.room ?? true);
+    T.remove = () => {
+      const i = this.list.indexOf(T); if (i >= 0) this.list.splice(i, 1);
+      for (const w of T.washes) this.veils?.remove?.(w);
+      g.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+      g.removeFromParent();
+    };
+    return T;
   }
 
   /** The light of the way through nearest `point` (within `r` m), or null. */

@@ -44,6 +44,7 @@ export const INCAL_FIGHT = {
     { from: 2, to: 3, side: 'w', at: 0, w: 4 },
   ],
   // the way in: on the middle terrace by its cab stop (src/levels/incal.js), facing the stop; its height given (the
-  // ground found from above is the structure overhead)
-  entrance: { at: [236, -24, 42.5], heading: Math.atan2(208.3 - 236, 41.9 - 42.5), near: [208.3, 41.9] },
+  // ground found from above is the structure overhead). Issue #384: 1.8 m north, to the middle of the lane, so the corner
+  // before it no longer hides half its gatehouse
+  entrance: { at: [236, -24, 44.3], heading: Math.atan2(208.3 - 236, 41.9 - 42.5), near: [208.3, 41.9] },
 };

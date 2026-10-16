@@ -1329,7 +1329,9 @@ updateSky();
 const U = post.uniforms;
 const deadlyVoid = worldVoid(level);   // (the world's deadly void under its kill height, issue #312: src/pit-void.js; makes level.veils if need be)
 // every way through to another space wears its light (issue #305, src/thresholds.js): washes over the finished picture
-const thresholds = level.portals?.length ? new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics }) : null;
+// (and a fight temple's gatehouse door, which opens its game's page: issue #384, kit/marker.js)
+const doorSigns = GAMES.some((g) => g.marker?.door && g.markers?.some((m) => partsOf(levelId).includes(m.level)));
+const thresholds = level.portals?.length || doorSigns ? new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics }) : null;
 level.veils?.bind({ tNormal: gbuffer.textures[1], uniforms: U });   // (the see-through surfaces' wash reads the scene's depth and the ink pass's light and haze: src/veil.js)
 const params = {
   preset: level.defaults.preset ?? 'Moebius print',
@@ -2752,7 +2754,7 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
 if (!minigameDef) for (const g of GAMES) for (const m of g.markers ?? []) {
   if (!partsOf(levelId).includes(m.level)) continue;
   const [x, y, z] = shiftAt(m.level, m.at), gy = y ?? physics.groundAt(x, 1e4, z);
-  try { placeGameMarker({ scene, levelId, lights: levelLights, physics }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z), { heading: m.heading ?? 0 }); } catch (e) { console.warn(e); }
+  try { placeGameMarker({ scene, levelId, lights: levelLights, physics, thresholds }, g.id, new THREE.Vector3(x, Number.isFinite(gy) ? gy : 0, z), { heading: m.heading ?? 0 }); } catch (e) { console.warn(e); }
 }
 // a minigame's page: the runner takes over, the start card up (src/minigames/kit/runner.js)
 if (minigameDef) {

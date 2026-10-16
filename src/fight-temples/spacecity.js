@@ -46,6 +46,7 @@ export const SPACECITY_FIGHT = {
     { from: 2, to: 3, side: 'w', at: 0, w: 4 },
   ],
   // the way in: on the Towers' deck, in its far corner from the bridges (src/levels/space-city.js ISLANDS.towers), facing
-  // the towers; its height given (the ground found from above misses the islands)
-  entrance: { at: [112, 6, -97], heading: Math.atan2(98 - 112, -84 - -97), near: [98, -84] },
+  // the towers; its height given (the ground found from above misses the islands). Issue #384: out of the corner (its
+  // gatehouse stood into the shaft's pillar there) onto open deck by the towers, where it has room round it
+  entrance: { at: [106.6, 6, -84.1], heading: -1.22, near: [98, -84] },
 };
