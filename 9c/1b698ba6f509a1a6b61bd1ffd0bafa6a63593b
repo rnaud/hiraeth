@@ -1,0 +1,45 @@
+docs/README.md
+  s_5f899ba316b5dc::t_f6db1693184032 91
+src/temple-maps/fights.js
+  s_5f899ba316b5dc::t_74114ff048362f 1-146
+src/temple-maps/main.js
+  s_5f899ba316b5dc::t_db8af4b53b9370 1-527
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_a7ac17b21b03e8 1-457
+src/temple-maps/record.js
+  s_5f899ba316b5dc::t_8d517c0fcf197f 1-57
+src/world-picker.js
+  s_5f899ba316b5dc::t_bfa4e3565aaa60 34
+temples.html
+  s_5f899ba316b5dc::t_03c93a7c6097d5 1-107
+tests/temple-maps.test.js
+  s_5f899ba316b5dc::t_f0f25461fe28ea 1-119
+vite.config.js
+  s_5f899ba316b5dc::t_bdab5cfecd7a2a 40-41
+docs/systems/dev-tools.md
+  s_ced53a6cbf672a::t_8bd83abd1cae65 283-321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9c1b698ba6f509a1a6b61bd1ffd0bafa6a63593b",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ced53a6cbf672a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad101a6dd3af5608a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
