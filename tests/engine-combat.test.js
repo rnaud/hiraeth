@@ -50,7 +50,9 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   // (the wallet read as the frames go: the health HUD shows a few seconds of the real clock after a pickup, and on a
   // slow runner 120 frames outlast it, so a read at the end alone found it hidden)
   let walleted = 0;
-  for (let k = 0; k < 120; k++) { run(g, 1); walleted = Math.max(walleted, S.state.health?.chimes ?? 0); }
+  // (the fight steps on the real clock, engine/game.js feelDt(realDt): a fast runner's 120 frames are a fraction of a
+  // second, too short for the chimes to walk in; run until they have, up to 1500 frames)
+  for (let k = 0; k < 1500 && !walleted; k++) { run(g, 1); walleted = Math.max(walleted, S.state.health?.chimes ?? 0); }
   off();
   assert.ok(!foe.alive, 'cut down');
   assert.equal(bursts, 1, 'its burst');
