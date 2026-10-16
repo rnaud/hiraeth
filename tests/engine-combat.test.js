@@ -55,6 +55,8 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   // second, too short for the chimes to walk in; run until they have, up to 1500 frames)
   // (the wallet itself, g.chimes, not the HUD's copy: the HUD hides after a few seconds of the real clock, which a slow
   // runner's frames outlast)
+  // (walked over to where it fell: its chimes scatter at random and are only drawn in from 2.4 m, src/chimes.js PIECE)
+  if (!foe.alive && foe.pos) g.player.pos.set(foe.pos.x, g.player.pos.y, foe.pos.z);
   for (let k = 0; k < 1500 && !walleted; k++) { run(g, 1); walleted = g.chimes - before; }
   off();
   assert.ok(!foe.alive, 'cut down');
