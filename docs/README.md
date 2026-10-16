@@ -91,6 +91,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [testing.md](systems/testing.md) | the tests, their shards on GitHub and the rules for heavy tests, and the play-through: the route played from the crash to home in node, old saves resumed, the page's own flows in a headless Chrome |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |
 | [engine-bridge.md](systems/engine-bridge.md) | the game's JavaScript inside Godot (GodotJS) and Unity (Puerts), the engine only drawing: the scene mirror, the platform stand-ins |
+| [unity-updates.md](systems/unity-updates.md) | the Unity players' saves in a file, their script over the air (unity.json, the boot watchdog, the Updates page), and the Linux player's gates before it is published |
 
 ## Deployment and data
 

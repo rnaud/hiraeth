@@ -12,6 +12,15 @@ export const CHANGELOG = [
     // issue #264: the games' own panels as screen parts (src/platform.js drums, hunt, fishing, pirates), drawn by
     // unity/…/BridgeHud.Games.cs; the page's canvases not drawn in an engine (page.drawsHud)
     'In the Unity preview the drum circle, the sketch hunt, the fishing and the chime pirates show their own pieces as on the web: the drum’s ring with its glyphs rolling in, its sockets, hits and combo; the sketch list, the sketchbook’s frame and what it holds; the fishing journal, the line’s tension meter and the catch card; the pirates’ reticle, lock, captain’s bar, hull pips, missiles and radio lines. The drum circle’s camp no longer goes black once the count starts.',
+    // issue #264 (docs/systems/unity-updates.md): BridgeStore.cs, the Unity-default plan's D4 / X1
+    { text: 'The Unity version keeps your saves and settings in a file of their own, written so that a crash or a full disk mid-save never loses the last good one. On the Xbox a long journey no longer outgrows what the console kept for it. Saves from before move over by themselves.',
+      see: 'In the Unity version, play a while, quit to the title and close the game, then open it again: Continue is where you left off. Your saves from before this version are there too.' },
+    // BridgeUpdates.cs, engine/unity/updates.js: D13 / D14, X3, R4's script half
+    { text: 'The Unity version now updates the game by itself, as the web version and the Android app do: on the Steam Deck, the Xbox and the Retroid it fetches the newest game when the title shows and plays it from the next start. The new Updates page (in the Start menu, and on the title under Settings) shows what is coming, its download, and Restart now. If an update ever fails to start, the game goes back to the one it came with.',
+      see: 'In the Unity version, open the Start menu (Menu) and choose Updates, or Updates on the title: Check for updates, then Download and restart when a newer game is there.' },
+    // D12: scripts/unity-linux-smoke.sh, scripts/wait-tests.sh in unity-android.yml
+    { text: 'A new Unity version for the Steam Deck reaches it only once the game\'s checks have passed and the new version has started, loaded the desert and drawn it on a test machine.',
+      see: 'Nothing to see on the Deck: a version that fails those checks simply never arrives.' },
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

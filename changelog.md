@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.81 — 2026-10-16
 
+- A new Unity version for the Steam Deck reaches it only once the game's checks have passed and the new version has started, loaded the desert and drawn it on a test machine.
+- The Unity version now updates the game by itself, as the web version and the Android app do: on the Steam Deck, the Xbox and the Retroid it fetches the newest game when the title shows and plays it from the next start. The new Updates page (in the Start menu, and on the title under Settings) shows what is coming, its download, and Restart now. If an update ever fails to start, the game goes back to the one it came with.
+- The Unity version keeps your saves and settings in a file of their own, written so that a crash or a full disk mid-save never loses the last good one. On the Xbox a long journey no longer outgrows what the console kept for it. Saves from before move over by themselves.
 - In the Unity preview the drum circle, the sketch hunt, the fishing and the chime pirates show their own pieces as on the web: the drum’s ring with its glyphs rolling in, its sockets, hits and combo; the sketch list, the sketchbook’s frame and what it holds; the fishing journal, the line’s tension meter and the catch card; the pirates’ reticle, lock, captain’s bar, hull pips, missiles and radio lines. The drum circle’s camp no longer goes black once the count starts.
 
 ## v1.80 — 2026-10-15

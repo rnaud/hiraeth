@@ -49,7 +49,8 @@ store:
 
 **Migration needed (one design, three devices):**
 
-1. **Store the Unity side in a file, not PlayerPrefs** (`BridgeHost`): one JSON file in `persistentDataPath`, written
+1. **Store the Unity side in a file, not PlayerPrefs** (`BridgeHost`; **done 2026-10-16**, D4: `BridgeStore`,
+   docs/systems/unity-updates.md): one JSON file in `persistentDataPath`, written
    atomically and debounced, with the old PlayerPrefs keys moved into it once. Today every `localStorage.setItem` is
    `PlayerPrefs.SetString` followed by `PlayerPrefs.Save()`, which rewrites the whole prefs file, and a save is written
    every 10 s. On UWP, PlayerPrefs live in `ApplicationData.LocalSettings`, which is limited to 8 KB a value (to check
@@ -122,14 +123,18 @@ script bundle placed in LocalState (a test switch).
   command format changes), would let a 300 MB player change only when Unity's side does. The game would then follow
   every push, as the web does. `BridgeRunner` already reads another bundle (`-bundle`). What's missing is
   `persistentDataPath/bundle/<build>/` with a boot watchdog (`.failed`), the feed, and the StreamingAssets lookups
-  reading there first. The same zip serves the Xbox and Android players.
+  reading there first. The same zip serves the Xbox and Android players. **Done 2026-10-16** (D14:
+  `BridgeUpdates.cs`, docs/systems/unity-updates.md).
 - **Build gating.** A Linux player that becomes the default must pass `tests.yml` on its commit and a smoke run
   before it replaces the release: the player under Xvfb with lavapipe (software Vulkan), `-no-title`, exit 0 after
-  "world settled". Today a red nightly would reach every Deck.
+  "world settled". Today a red nightly would reach every Deck. **Done 2026-10-16** (D12: `scripts/unity-linux-smoke.sh`
+  draws the desert's spawn and exits 0, `scripts/wait-tests.sh` waits for tests.yml on the commit).
 - **The settings' Updates section.** Unity's menus have none. Add it to the Start menu's Settings, as on the web
   (`src/update-panel.js`, `src/updates.js`): `BridgeHost` runs `deck.py --status`, `--status-local` and
   `--update --progress <file>` (what `desktop/deck-updates.mjs` does for Electron). Restart exits 76, which deck.py's
-  launcher already turns into a new launch (`RESTART_EXIT`).
+  launcher already turns into a new launch (`RESTART_EXIT`). **Done for the script 2026-10-16** (D13: the Updates
+  page, `engine/unity/updates.js`, follows `BridgeUpdates`; Restart exits 76 on the launcher). Still open: the player's
+  own update (deck.py's feed: `--status`, `--update --progress`) on that page.
 
 ## 3. Parity: what the Unity player lacks or does differently
 
@@ -224,7 +229,7 @@ Proposed, `scripts/unity-compare/`:
 | D1 | **Doorways and portals in the engine**: `level.portals`, `passage.js`'s hand-over with its cover as screen state (BridgeHud), thresholds' light | `engine/game.js`, `src/passage.js`, `src/platform.js` screen, `BridgeHud.cs` | L | high (temples and interiors unreachable without it) |
 | D2 | **Foes, combat and guardians in the engine**: `Foes`, lock-on and its camera, hitboxes, drops, low health, the guardians' fights and hints; gadgets given `foes` | `engine/game.js`, `src/foes.js`, `src/guardian-help/`, `BridgeHud.cs` (health, lock mark) | L | high (the route can't be finished) |
 | D3 | Fragments, trials (**done**: engine/trials.js), hazards, the ending checked in play | `engine/game.js` | M | medium |
-| D4 | **The store as a file**, PlayerPrefs moved into it once | `BridgeHost.cs` (`StorageGet/Set/Remove`), `BridgeArgs.SavedQuality` | S | medium |
+| D4 | [x] **The store as a file**, PlayerPrefs moved into it once. **Done 2026-10-16** (`BridgeStore.cs`: `persistentDataPath/store.json`, written whole on a thread of its own, tmp flushed and read back then put in place, the last good file kept as `store.json.bak` and read when the file is lost or damaged; each PlayerPrefs key moved in at its first read, PlayerPrefs left as a fallback read, a removal from both; `SavedQuality` from it; flushed at the exit, going away and before an update's restart. Editor tests `BridgeStoreTests`; docs/systems/unity-updates.md) | `BridgeHost.cs` (`StorageGet/Set/Remove`), `BridgeArgs.SavedQuality` | S | medium |
 | D5 | **The importer** (merge per slot by `lastPlayed`, backup of what lost, `hiraeth.imported.v1`) and the Unity → web export back | `BridgeHost.cs`, `src/save-slots.js` (the merge rules shared and tested in node) | M | high (saves) |
 | D6 | **Electron's export mode** (`--export`, `__app/export`), `DESKTOP_API` 2, shipped through the runtime feed before D9 | `desktop/main.mjs`, `scripts/steam-deck/deck.py`, `tests/test_steam_deck.py` | M | high (saves) |
 | D7 | Graphics' `deck` and `auto` in Unity's menu; the settings' keys checked one by one after an import | `engine/menus.js`, `BridgeArgs.cs` | S | low |
@@ -232,9 +237,9 @@ Proposed, `scripts/unity-compare/`:
 | D9 | [x] **The launcher picks the engine**: `engine.json`, the `web.json` kill switch, the player's ready file and watchdog, fallback to the previous player and then Electron, remembered per player sha. **Done, off by default** (`DEFAULT_ENGINE = 'web'`; `--engine unity` per Deck; the kill switch in `scripts/steam-deck/engine-switch.json`; tried on the Deck in a copy of the install: docs/steam-deck.md, "The engine") | `scripts/steam-deck/deck.py` (`launch_once`, `launch_unity`), `BridgeRunner.cs` (`-ready`) | M | high (black screen) |
 | D10 | [x] **One shortcut**: **Hiraeth** runs `launch` (now Unity), **Hiraeth (web)** the fallback (renamed from the Unity entry, WEB badge), art and app ids kept; the player installed before registering, included in the settings' Download. **Done, follows the engine** (the preview's entry swaps its Exe to `launch-web` and back, its id kept; `desktop/steam/web/`) | `deck.py` (`add_shortcut`, `write_launchers`, `install_art`, `update_all`), `scripts/steam-art.mjs` | M | medium |
 | D11 | **The player's feed on the site** in parts, GitHub second; the previous build kept for half-done downloads | `scripts/deck-runtime.mjs` or a sibling, `.github/workflows/cloudflare.yml`, `deck.py` (`get_unity_manifest`) | M | medium (Worker limits) |
-| D12 | **Build gating**: the Linux player published only after `tests.yml` passes on its commit and a smoke run (Xvfb + lavapipe) | `.github/workflows/unity-android.yml`, `scripts/unity-publish.sh` | M | medium |
-| D13 | **The Updates section in Unity's settings** (status, check, download with progress, restart → exit 76) | `engine/menus.js`, `BridgeMenu.cs`, `BridgeHost.cs`, reusing `src/updates.js` | M | low |
-| D14 | **Script updates over the air** (`UNITY_API`, `minUnity`, `unity-<build>.zip`, `persistentDataPath/bundle/`, boot watchdog) | `BridgeRunner.cs`, `scripts/web-update.mjs`, `scripts/release-info.mjs`, `deck.py` | L | medium (advised before the switch, required before the Retroid) |
+| D12 | [x] **Build gating**: the Linux player published only after `tests.yml` passes on its commit and a smoke run (Xvfb + lavapipe). **Done 2026-10-16** (`scripts/unity-linux-smoke.sh`: the desert's spawn drawn on the runner's CPU, exit 0, a picture not of one colour, its log and picture kept with the run; `scripts/wait-tests.sh`: tests.yml's run for the push of that commit; both before `unity-publish.sh linux`) | `.github/workflows/unity-android.yml`, `scripts/unity-publish.sh` | M | medium |
+| D13 | [x] **The Updates section in Unity's settings** (status, check, download with progress, restart → exit 76). **Done 2026-10-16** (`engine/unity/updates.js`: the Start menu's Updates before Quit to title and the title's under Settings, src/updates.js's words for platform `unity`; Restart now exits 76 on the Deck's launcher, starts the bridge again at the title elsewhere) | `engine/menus.js`, `BridgeMenu.cs`, `BridgeHost.cs`, reusing `src/updates.js` | M | low |
+| D14 | [x] **Script updates over the air** (`UNITY_API`, `minUnity`, `unity-<build>.zip`, `persistentDataPath/bundle/`, boot watchdog). **Done 2026-10-16** (`BridgeUpdates.cs`: `UnityApi` and `ScriptMinUnity`, `updates/unity.json` and `unity-<build>.zip` beside web.json from the Cloudflare deploy (`web-update.mjs --unity`), bundle.json in every script, checked when the title shows and from the page, sha256-checked and unpacked into `bundle/<build>/`, played from the next start; 30 s to its first frame (60 on the Xbox) or back to the built-in script, two crashed starts and it is dropped; on only in the published players. Editor tests `BridgeUpdatesTests`; docs/systems/unity-updates.md) | `BridgeRunner.cs`, `scripts/web-update.mjs`, `scripts/release-info.mjs`, `deck.py` | L | medium (advised before the switch, required before the Retroid) |
 | D15 | ~~**The recorded music** decoded by Unity, the themes downloaded and kept~~ **Done** (2026-10-15: `BridgeMusic.cs`, `engine/unity/music.js`) | `src/soundtracks.js` (an engine path), `engine/webaudio.js`, `BridgeAudio.cs` | M | low |
 | D16 | Foley, minigames, onboarding hints (Plumb, first steps, temple hints), the observatory, the eclipse's and Lantern's skies | `engine/game.js` | M | low |
 | D17 | **The visual check** (section 4), every world, fixed differences | `scripts/unity-compare/` (new) | M | low |
@@ -251,7 +256,7 @@ can switch without losing a save or a launch. The rest can follow the switch, wi
 | R1 | **Speed first** (#262): the Unity APK is GPU-bound (1 165–1 291 draws where GeckoView's web draws 100–450, 18–28 ms of GPU), behind GeckoView's 50–60 fps in open views. It has to match GeckoView in every world before anything below is worth shipping | `BridgeRenderer.cs`, URP settings, the mirror's batching | L | high |
 | R2 | **The package**: the Unity APK takes over `com.rnaud.hiraeth` (same key, a versionCode above the web APK's, so the existing `Updater.java` offers it through `latest.json`'s `native`, and the app's data folder stays). Or it stays beside it and imports. Taking over means one icon and the update path for free, but no way back except an uninstall (which deletes the save). Decide with the author | `BridgeBuild.AndroidRelease`, `scripts/release-info.mjs` (versionCode scheme: Unity and web built from one commit can't share one), `android.yml` | M | high |
 | R3 | **The web app mirrors its saves** to `files/saves.json` (`AppShell.mirrorSaves`, `NATIVE_API` 10), shipped and spread before R2's APK. The Unity app imports it (D5) | `android/…/AppShell.java`, `WebBundles.java`, `src/native-app.js`, `src/save-slots.js` | M | high (saves) |
-| R4 | **Updates inside the Unity app**: the script bundle over the air (D14) and the APK offer (download, FileProvider, the install intent) | `BridgeHost.cs` or an Android plugin in the Unity project, `Plugins/Android` | M | medium |
+| R4 | **Updates inside the Unity app**: the script bundle over the air (D14: **done**, the APK's `files/bundle/`) and the APK offer (download, FileProvider, the install intent: open) | `BridgeHost.cs` or an Android plugin in the Unity project, `Plugins/Android` | M | medium |
 | R5 | **Silent while away**, as NATIVE_API 7: pause and sound on `OnApplicationPause`, screen off | `BridgeRunner.cs` (shares D8) | S | low |
 | R6 | Every HUD part and menu on 4:3 (Items and the Map are done) and the visual check's pass on the device | `BridgeMenu.cs`, `BridgeHud.cs` | S | low |
 | R7 | The switch, its changelog line, android.md rewritten | `src/changelog.js`, `docs/systems/android.md` | S | medium |
@@ -260,9 +265,9 @@ can switch without losing a save or a launch. The rest can follow the switch, wi
 
 | # | item | owner | size | risk |
 |---|---|---|---|---|
-| X1 | The store as a file (D4): PlayerPrefs on UWP are limited to 8 KB a value | `BridgeHost.cs` | S | medium |
+| X1 | [x] The store as a file (D4): PlayerPrefs on UWP are limited to 8 KB a value. **Done 2026-10-16** (`LocalState\store.json`, D4) | `BridgeHost.cs` | S | medium |
 | X2 | The web app's saves into the Unity package (the web writes `saves.json`, `xbox-unity.mjs saves` copies it, D5 imports) | `xbox/Hiraeth/MainPage.xaml.cs`, `scripts/xbox-unity.mjs` | S | low (one console) |
-| X3 | The script bundle over the air into `LocalState` (D14). The package itself still comes through the portal | `BridgeRunner.cs` | S once D14 exists | low |
+| X3 | [x] The script bundle over the air into `LocalState` (D14). The package itself still comes through the portal. **Done 2026-10-16** (`LocalState\bundle\`, the watchdog 60 s there) | `BridgeRunner.cs` | S once D14 exists | low |
 
 ## Open questions for the author
 

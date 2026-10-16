@@ -63,6 +63,12 @@ it finishes:
 - A failure there is a warning: the testers' build is on its prerelease anyway. `VERSION_TAG=<tag>` points the
   step at another release (a test one), `NO_VERSION_RELEASE=1` skips it. `tests/unity-version-release.test.js`
   runs the script against a fake `gh`.
+- **The Unity APK's script updates itself** (issue #264, R4's script half; docs/systems/unity-updates.md): from the
+  site's `unity.json` beside `web.json`, into the app's `files/bundle/`, played from the next start (or at once from
+  the Updates page), with the web's 30 s boot watchdog. Its saves are `files/store.json`. The APK offer (a new APK
+  through `latest.json`) is still to come (R2, R4).
+- **The Linux player waits for the suite**: `unity-android.yml` publishes it only after tests.yml passed on its commit
+  and its smoke run (Xvfb, lavapipe) passed (D12); the APK and the Xbox's are testers' builds and don't wait.
 - The prereleases still hold the builds from before the rename (issue #130): `memento-unity-linux.tar.gz` is
   kept, as installs on a Deck from before the rename (`moebius-deck`, which can't update to the renamed
   package) still read that name; nothing reads `memento-unity.apk` or `memento-unity-xbox.zip` any more.

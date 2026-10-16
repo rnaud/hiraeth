@@ -122,8 +122,8 @@ build stays the main shortcut, unchanged.
   starts the background update; pins `unity/current` and execs `hiraeth-js.x86_64 -screen-fullscreen
   1 -screen-width 1280 -screen-height 800 -logFile unity-data/player.log`, sound on, with `TMPDIR` set
   to `unity-cache/` (Unity's Vulkan pipeline cache lives in `temporaryCachePath`, under `TMPDIR`,
-  which SteamOS clears at boot) and `XDG_CONFIG_HOME` to `unity-data/` (its `persistentDataPath` and
-  PlayerPrefs; never `~/.config/hiraeth`).
+  which SteamOS clears at boot) and `XDG_CONFIG_HOME` to `unity-data/` (its `persistentDataPath`: the saves'
+  `store.json` and the script downloaded over the air, docs/systems/unity-updates.md; never `~/.config/hiraeth`).
 - **Steam.** Each shortcut is known by its own Exe (`launch`, `launch-unity`). The preview's appid is
   Steam's scheme from its own Exe and name (`unity_appid`); the game's stays as it was. Its icon and
   library artwork are the game's with a UNITY badge (`scripts/steam-art.mjs unity` →
@@ -170,8 +170,16 @@ python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --engine unity
   (`unity/`, `prune_unity` keeps two) gets one try, then Electron, in the same launch and the same `launch.log`.
   A failed build is never started by `launch` again; a new player build gets its own chance. No player installed
   yet (the background update downloads it, ~300 MB) is the web at once. Closing before the first frame is not a
-  failure. Exit 76 (a future Updates section's Restart now) launches again, as Electron's does.
-- **Its own data.** The player's saves and settings stay in `unity-data/` (`XDG_CONFIG_HOME`, PlayerPrefs; the
+  failure. Exit 76 (the Updates page's Restart now) launches again, as Electron's does.
+- **The script over the air.** The player is deck.py's (the runtime feed above); the game's script inside it
+  updates itself from the site (`unity.json`, `unity-<build>.zip` beside web.json: `BridgeUpdates.cs`,
+  docs/systems/unity-updates.md), checked when the title first shows, downloaded into
+  `unity-data/unity3d/rnaud/<product>/bundle/` and played from the next launch, or at once with the Updates page's
+  Restart now (the player exits 76 and the launcher starts it again). A downloaded script that doesn't play its
+  first frame in 30 s is dropped for the built-in one in the same launch; a new player build plays its own script
+  when that is newer. The player is published only after the unit suite passed on its commit and a smoke run under
+  Xvfb and lavapipe passed (D12, `scripts/unity-linux-smoke.sh`).
+- **Its own data.** The player's saves and settings stay in `unity-data/` (`XDG_CONFIG_HOME`, `store.json`; the
   previous run's log kept as `player-prev.log`), the web's in `~/.config/hiraeth`. No migration between the two
   (the author's choice for now; the importer is D5): after the switch **Hiraeth** starts a new journey in the
   Unity player, the journey played on the web is where it was under **Hiraeth (web)**, and a fallback to the web

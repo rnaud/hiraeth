@@ -369,6 +369,11 @@ The engine bridge (docs/systems/engine-bridge.md: the game's own JavaScript in U
 to see whether Unity's native Direct3D 11 path compiles and draws the same world faster than WebView2's ANGLE one
 (the 100-second title above). Results: docs/benchmark-web-vs-unity.md, "On the Xbox: WebView2 against the Unity bridge".
 
+- **Its saves and its script over the air** (issue #264, the Unity-default plan's X1 and X3; docs/systems/unity-updates.md):
+  the script's `localStorage` is `LocalState\store.json` (`BridgeStore`, written atomically with a backup), not
+  PlayerPrefs, which UWP keeps in `LocalSettings` at 8 KB a value; the keys a build from before kept there move in at
+  their first read. The game's script updates itself from the site into `LocalState\bundle\` (`unity.json`,
+  `BridgeUpdates`, the boot watchdog 60 s here); the package itself still comes through the Device Portal.
 - **The script engine**: Puerts 3.0.3 ships no UWP libraries. Its V8 is relinked for UWP x64
   (`scripts/unity-uwp-v8.ps1`, worked out and proven in `rnaud/puerts-uwp`): Puerts' own prebuilt V8 13.6.233.17
   (`wee8.lib`) with Puerts' papi-v8 at the release's tag, linked against OneCore's import libraries only
