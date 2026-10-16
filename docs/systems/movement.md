@@ -285,6 +285,11 @@ world with a mount of its own keeps it (the desert's bike, Lorn's skiff, Vael's 
 whistle as before. It runs on the backpack as in the desert. Nothing to migrate: a save that found the bike has it
 in every riding world. `tests/bike-worlds.test.js`.
 
+The hover trails (`src/trail.js`) stream from the jets of the hover vehicle you ride, whether it is the world's mount
+or one of your vehicles (`trailVehicle`: the one ridden, else the last ridden, its trails fading; the hoverbike and
+the skiff, never the bird or a cab). They were made for the mount alone, so where the bird is the mount the bike by
+the ship rode without them (issue #376). Web only for now: the Unity version draws no hover trails yet.
+
 ## Footprints
 
 Footprints are boot-sole decals that multiply the G-buffer albedo

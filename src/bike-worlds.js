@@ -63,3 +63,18 @@ export function parkedBike(physics, spawn, heading = 0) {
   b.pos.y -= 1;   // (place lifts it a metre to arrive riding; parked it hovers at its height)
   return b;
 }
+
+/**
+ * The hover trails (src/trail.js) stream from the jets of whatever hover vehicle you ride: the hoverbike or the
+ * skiff, never the bird or a cab (issue #376: where Vael's bird answers, as in Viridel, the bird is the world's mount
+ * and the bike only one of your vehicles, and the trails, made for the mount alone, were never there).
+ */
+export const laysTrail = (v) => !!v && v instanceof Hoverbike;
+
+/** The vehicles of a world that lay trails (the mount first). */
+export const trailVehicles = (player) => (player?.vehicles ?? []).filter(laysTrail);
+
+/** The one whose jets the trails follow this frame: the one ridden, else the last ridden (coasting, its trails fading). */
+export function trailVehicle(player, last = null) {
+  return laysTrail(player?.ride) ? player.ride : last ?? trailVehicles(player)[0] ?? null;
+}

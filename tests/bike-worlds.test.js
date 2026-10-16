@@ -79,3 +79,26 @@ test('#249: the hoverbike is called from your pack, not whistled for; the bird k
   const en = readFileSync(new URL('../src/i18n/en.js', import.meta.url), 'utf8');
   for (const key of ['teach.bikeCall', 'ctl.k.use.how']) assert.doesNotMatch(en.match(new RegExp(`'${key}': '[^\\n]*`))[0], /whistl/i, `${key}: no whistle`);
 });
+
+test('#376: the hover trails follow the vehicle you ride, the bike by the ship too where the bird is the world’s mount', async () => {
+  const { laysTrail, trailVehicles, trailVehicle } = await import('../src/bike-worlds.js');
+  const { Hoverbike } = await import('../src/bike.js');
+  const { Bird } = await import('../src/bird.js');
+  const physics = new Physics(new THREE.Scene(), null);
+  const bird = quiet(() => new Bird(physics)), bike = parkedBike(physics, new THREE.Vector3(), 0);
+  const skiff = new Hoverbike(physics, { kind: 'skiff' }), cab = { kind: 'taxi', vel: new THREE.Vector3() };
+  assert.equal(laysTrail(bike), true, 'the hoverbike');
+  assert.equal(laysTrail(skiff), true, 'the skiff');
+  assert.equal(laysTrail(bird), false, 'not the bird');
+  assert.equal(laysTrail(cab), false, 'not a cab');
+  // Viridel with the bird's promise: the bird is the mount, the bike one of the vehicles (main.js bikeHere)
+  const player = { mount: bird, vehicles: [bird, cab, bike], ride: null };
+  assert.deepEqual(trailVehicles(player), [bike], 'the bike lays them, though not the mount');
+  assert.equal(trailVehicle(player), bike, 'on foot: the bike’s (fading)');
+  player.ride = bike; assert.equal(trailVehicle(player), bike, 'riding the bike');
+  player.ride = bird; assert.equal(trailVehicle(player, bike), bike, 'on the bird: still the bike’s, fading out');
+  assert.equal(trailVehicle({ vehicles: [bird], ride: bird }), null, 'only the bird: no trails');
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /trailVehicle\(player, trailBy\)/, 'main.js lays them behind the vehicle trailVehicle names');
+  assert.doesNotMatch(main, /player\.mount\.kind !== 'bird' \? \[new Trail/, 'not made for the mount alone');
+});

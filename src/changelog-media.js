@@ -1070,6 +1070,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'cistern-host', only: 'after', title: 'Nuri by the Rose House', caption: 'The game’s sign and its host, Nuri, beside the foot of the Rose House’s steps.', from: HELPGAMES339 },
     ], see: 'Walk to the foot of the Rose House’s steps in the desert and ask Nuri (or open ?game=cistern). Stand on a stone and press A / × to turn it; before the spout opens, turn the stones under it into a channel toward a trough. Leave one wrong and the water spills there (a red arrow warns first).' },
     { match: 'The two helping prototypes in the Debug menu', see: 'Open the Debug menu (L, or Debug on the title): the Prototypes section is gone; the two games are in its Games list.' },
+    { match: 'In Viridel and the Garden of Spheres the hoverbike leaves', tags: ['viridel'], shots: [
+      { name: 'viridel-bike-trail', title: 'Riding off from the ship', caption: 'Viridel with the bird’s promise kept (so the bird is the world’s mount), two seconds on the hoverbike parked by the ship, at full throttle: before, no trail behind its jets; after, its two trails', from: 'Issue #376: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5482), a save with the bike found and the bird’s promise, ?level=edena, boarded and ridden with W held for 3 s; 15 October; cwebp -q 72' },
+    ] },
   ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [

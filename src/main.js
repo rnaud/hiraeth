@@ -97,7 +97,7 @@ import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { carryHooks } from './carry.js';
 import { Ship } from './ship/ship.js';
 import { birdAnswers, promisedBird } from './bird.js';
-import { bikeComes, parkedBike, callKind } from './bike-worlds.js';
+import { bikeComes, parkedBike, callKind, trailVehicles, trailVehicle } from './bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
@@ -639,10 +639,12 @@ const motes = lifeCfg.motes ? new Motes(scene, lifeCfg.motes) : null;
 if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
 // the hoverbike / skiff trail
-// two trails, one per hover jet
-const trailGround = (x, y, z) => (player.mount.groundAt ? player.mount.groundAt(x, y, z) : physics.groundAt(x, y, z));   // never under the ground (or the skiff's water)
-const trails = player.mount && player.mount.kind !== 'bird' ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
-const JETS = player.mount?.jets ?? [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the jets' rear caps (the vehicle's own, if it says)
+// two trails, one per hover jet, behind whichever hover vehicle you ride (the world's mount, or the bike by the ship
+// where the bird is the mount, as in Viridel: issue #376; src/bike-worlds.js trailVehicle)
+let trailBy = trailVehicles(player)[0] ?? null;
+const trailGround = (x, y, z) => (trailBy?.groundAt ? trailBy.groundAt(x, y, z) : physics.groundAt(x, y, z));   // never under the ground (or the skiff's water)
+const trails = trailBy ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
+const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the jets' rear caps (unless the vehicle says)
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
 const jumpShadow = new JumpShadow(scene);    // off the ground: a patch of shade straight under you (src/jump-shadow.js)
 (level.noShadow ??= []).push(jumpShadow.mesh);
@@ -2403,9 +2405,10 @@ function frame(ts) {
   edgeInk.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);   // and the ink shimmers where you touch it
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   if (trails) {
-    const m = player.mount, moving = Math.hypot(m.vel.x, m.vel.z) > 3;
+    const m = trailVehicle(player, trailBy), moving = Math.hypot(m.vel.x, m.vel.z) > 3, jets = m.jets ?? JETS;
+    if (m !== trailBy) { for (const tr of trails) tr.samples.length = 0; trailBy = m; }   // (another vehicle's: not joined to the last one's)
     m.body.updateMatrixWorld(true);
-    trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
+    trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(jets[i].clone()) : null));
   }
   updateHud();
   pingWhenFree();

@@ -43,6 +43,8 @@ export const CHANGELOG = [
     // the v1.76 prototypes taken out: src/guardian-help/, tests/guardian-help.test.js, boot.js + main.js ?guardianHelp,
     // world-picker.js Prototypes, fluid-kit.js MODES.cannon, fluid-tool.js lent / pourStream / streamCatch
     'The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.',
+    // issue #376: src/bike-worlds.js trailVehicle (main.js: the trails behind the vehicle ridden, not the mount alone)
+    'In Viridel and the Garden of Spheres the hoverbike leaves its glowing trails behind it again. Where Vael’s bird answers your call, the bike waiting by the ship rode without them.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',
