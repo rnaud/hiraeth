@@ -3160,6 +3160,107 @@ and one ink pass (`_PostLite`), and the bridge passes all three; no lever found 
 the others within a frame; GeckoView's within a frame too.) GeckoView draws 0.4-0.9 M triangles a frame there over
 230-650 draws; Unity 1.1-3.3 M.
 
+### Unity on the Retroid, round 7: Android's pipeline list, the slim variants' stall found (2026-10-16, issue #262)
+
+The same device, preset and bench as round 6 (Handheld at 0.75 of 1280 × 960, muted, the frame readout on); base:
+origin/main at 30fdb799f (round 6 landed). The player's own app was not touched; it sat in the background as a cached
+process of ~85 MB throughout, not the 2.3 GB of rounds 4 and 5.
+
+**Android's pipeline list.** As the Deck's (round 14): a development APK (`BUILD_ARGS=-development NO_UPLOAD=1
+scripts/unity-android-release.sh`) run with `-pso-trace` by `scripts/bench/android-pso-trace.mjs` over all 16 worlds'
+views and walks, the first temple's first room with the ship's rooms, and a fight with the guardian woken (48 launches,
+none retried). It ships as `StreamingAssets/hiraeth-pso/Android/Vulkan.graphicsstate`: 177 states of 63 variants,
+0.6 MB, 140 of them the Surface shader's (the Deck's has 82: Android's plain and slim variants are its own). The first
+world gave 88-100 states, the views of all 16 about 170.
+- **Where BridgePso finds it.** The file was named by the graphics API alone, and the APK is Vulkan as the Deck is: it
+  now looks in `hiraeth-pso/Android/` on Android. StreamingAssets is a `jar:` URL inside the APK there, which
+  `File.Exists` cannot see, so BridgePso reads the list through UnityWebRequest into the cache folder first (3 ms),
+  then loads it. The Deck's list in the APK, and Android's in the Linux player, are left by the platform check as before.
+- **When it warms**: as on the Deck, on the job system's workers once the script's engine is made (~0.9 s after the
+  start), and the main thread waits for it there too. **On Android it is now off by default** (`-pso` warms it,
+  `-pso-file` too), for what follows.
+
+**Measured** (each world's views once and its walk, `-slow-ms 50`; **cold**: Unity's own Vulkan pipeline cache,
+`cache/vulkan_pso_cache.bin`, deleted first; **warm**: the next launch). The final APK, the list warmed against
+`-no-pso` (the drawn prewarm instead, as before). Its shaders were new to the device, which is the case after an APK
+update that changes them:
+
+| world | cold: first frame s | cold: frozen load frames (over 1 s, summed, and the longest) | warm: first frame s | stalls after the world settled |
+|---|---|---|---|---|
+| Desert | 16.9 → 17.6 | 10.2 (3.5) → 10.6 (8.4) s | 9.0 → 8.9 | none either way |
+| City-Shaft | 19.0 → 19.9 | 10.0 (3.5) → 9.8 (7.5) | 11.5 → 11.5 | 2-4 frames of 67-83 ms either way |
+| Signal Market | 12.8 → 15.8 | 7.7 (2.8) → 9.7 (8.6) | 7.0 → 7.0 | none |
+| Lorn | 15.6 → 17.5 | 9.4 (3.4) → 10.1 (9.0) | 8.5 → 8.5 | none (one of 50 ms without, warm) |
+| Underwater | 13.9 → 15.2 | 9.5 (4.5) → 9.8 (8.6) | 6.5 → 6.5 | none |
+| Floating city | 13.9 → 17.3 | 8.8 (3.9) → 11.2 (10.1) | 7.1 → 7.0 | none |
+
+- **No first-use stall to remove on Android.** Unlike the Deck, no world froze mid-play without the list, cold or
+  warm. The Adreno makes these pipelines fast enough, and Unity's own pipeline cache keeps them between launches.
+- **A cold load gains nothing.** Without the list it holds still for 8-10 s over a few frames of 1-4.5 s (the drawn
+  prewarm, then the first frame's pipelines). With it, the warm-up (8.4-10.9 s on the workers) holds the main thread in
+  **one frame of 7.5-10 s**, and the first frame comes 0.7-3.4 s later. A frame that long is past Android's 5 s for an
+  unanswered touch, which is reason enough to leave it off.
+- **Warm launches are the same either way** (the first frame 6.5-11.5 s; with the list the warm-up takes 30-50 ms).
+- An earlier pass, with the list traced before the slim variants (`-no-slim`, `-pso-file`), had seemed to halve the
+  cold load's frozen time (8-12 s → 2.5-5.8 s). Its warm-up finished in 0.2 s on a "cold" Unity cache, so the driver had
+  already seen those pipelines, from its trace. The Adreno driver seems to keep a cache of its own, which cannot be
+  emptied without touching the device. So the list helps a cold launch only if the driver has those pipelines already:
+  a reinstall of the same build, not an update.
+- What could still use it: warming it a few states a frame (`WarmUpProgressively`), so the loading screen keeps
+  moving. Not tried.
+
+**The slim variants' stall was not a pipeline's first use.** Round 6's slim lean variants (built again here,
+`HIRAETH_LEAN_SLIM`, BridgeRenderer.Lean) stalled the frame for **~330 ms again and again**, in the desert's camps and
+the walk (12 times a launch), the City-Shaft's start, the Signal Market's walk, Underwater's crowd and the Floating city's
+crowd. That happened on warm launches too, and with the list warmed (189 states with the slim ones) as much as without it. The
+Floating city's frames then went into **GPU faults**: the Adreno driver's `log_gpu_snapshot` 405-413 times a launch,
+a 3 s frame, and the GPU drawing nothing until the run was stopped (three of four launches never ended). With
+`-no-slim`, no snapshot and no such frame. Bisected on the Floating city with test switches (`-slim-not`,
+`-slim-copies`, `-slim-on-plain`):
+- the **faults** come from the slim variant on the **copies** made for the GPU instances, the grass and the crowds
+  (CopyOf: with HIRAETH_INSTMAT, HIRAETH_GRASS…); left off them, no snapshot;
+- the **~330 ms stalls** come from the slim variant **together with HIRAETH_PLAIN** (a fragment-only keyword); with
+  either alone, none. The picture is the same either way, so the draw is not lost. More likely the driver makes that
+  pipeline again at each use and fails each time, but this was not proven.
+
+So the slim variant now goes only to the lean materials that keep a wall's marks (no HIRAETH_PLAIN), never to a
+copy, and only under Vulkan on Android. The ground is always plain, so the terrain's slim variant
+(`HIRAETH_LEAN_TERRAIN_SLIM`) was never drawn and is gone; the list was traced again with this rule.
+
+**The build's size.** All of round 6's 128 slim variants cost the APK **8.5 MB** (119.4 → 127.8 MB) for Vulkan and
+OpenGL ES 3 together. They are now stripped from every other platform's build and from OpenGL ES 3's
+(BridgeShaderStrip, an IPreprocessShaders; `-strip-slim` or `-keep-slim` at the build to try it). That left the APK
+at 124.7 MB with the terrain's slim variant still in. As shipped (Vulkan, `HIRAETH_LEAN_SLIM` alone) it is **122.4 MB
+against 120.0 MB without them: 2.4 MB, 2 %**. That is worth the frames below. The other platforms carry none of them,
+so their size is unchanged (the stripper's OpenGL ES 3 half is what took 127.8 to 124.7).
+
+**Where it stands, in one sitting** (GeckoView first, this branch's `dist`; then the final APK with the slim variant
+and with `-no-slim`, interleaved world by world; warm launches, views only; nothing else running but the cached app):
+
+| world (views) | Unity `-no-slim`: fps, worst view, 1 % low, GPU ms | Unity (slim, as shipped): fps, worst view, 1 % low, GPU ms | GeckoView: fps, worst view, 1 % low | Unity − GeckoView, worst view |
+|---|---|---|---|---|
+| City-Shaft (4) | 57.5, 36.9, 45.8, 22.0 | 58.4, 37.5, 36.7, 21.9 | 52.1, 37.0, 27.7 | +0.5 |
+| Signal Market (4) | 57.7, 52.7, 49.2, 17.6 | 58.4, 54.1, 51.4, 17.2 | 59.8, 59.3, 42.0 | −5.2 |
+| Lorn (4) | 60.1, 46.7, 54.7, 19.6 | 60.1, 46.9, 52.8, 19.5 | 59.6, 56.9, 32.8 | −10.0 |
+| Underwater (4) | 56.5, 49.4, 48.7, 17.6 | 57.2, 50.1, 45.4, 17.5 | 59.4, 58.8, 30.0 | −8.7 |
+| Floating city (4) | 60.1, 51.9, 40.0, 17.3 | 60.1, 54.5, 54.9, 16.3 | 59.4, 59.1, 30.0 | −4.6 |
+| Desert (5) | 60.1, 54.8, 53.3, 14.6 | 60.1, 55.1, 48.9, 14.3 | 55.0, 54.1, 30.0 | +1.0 |
+
+- **The slim variant as shipped**: up to 1 ms of GPU where the walls with marks fill the view (the Floating city's start
+  18.9 → 18.1 ms, its wide view 17.3 → 16.3 and 57.4 → 60.1 fps; the Signal Market's 0.3-0.6 ms, its start 52.7 →
+  54.1 fps), 0.1-0.5 ms elsewhere. That is less than round 6's 0.4-1.3, which also gave it to the plain materials and the
+  copies. An earlier run of the same rule gave the same numbers within 0.3 fps.
+- **No stall**: no frame over 67 ms after the world settled, either way. The 1 % lows move both ways between the two,
+  by up to 15 fps, on one or two slow frames of 50-67 ms each. That is the noise of one 6 s view.
+- **Against GeckoView**: level or ahead in the City-Shaft and the desert. Behind in the worst view by 4.6 in the
+  Floating city (6.6 in round 6), 5.2 in the Signal Market, 8.7 Underwater and 10.0 in Lorn. Unity's 1 % lows are
+  above GeckoView's in every view but Underwater's crowd (27.0 against 30.0).
+
+To repeat: build both APKs as above, `node scripts/bench/android-pso-trace.mjs --out <dir> --apk <dev apk> --fresh 1`
+(it copies the list into StreamingAssets), build the release APK, then each world's views (and walk) with `-mute -metrics
+-views … -bench 6 -slow-ms 50` cold (the app's `cache/vulkan_pso_cache.bin` deleted) and warm, with and without
+`-pso` (Android's default is now without) and `-no-slim`; the first frame, the frozen load frames and the late frames are in the app's `unity.log`.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

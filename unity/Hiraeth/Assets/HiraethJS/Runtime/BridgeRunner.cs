@@ -521,6 +521,12 @@ namespace Hiraeth.Bridge
             // -no-plain off)
             if (BridgeArgs.Flag("-plain")) BridgeRenderer.plain = true;
             if (BridgeArgs.Flag("-no-plain")) BridgeRenderer.plain = false;
+            // (the slim lean variants: on Android, -slim elsewhere, -no-slim off; round 7 of #262)
+            if (BridgeArgs.Flag("-slim")) BridgeRenderer.slim = true;
+            if (BridgeArgs.Flag("-no-slim")) BridgeRenderer.slim = false;
+            BridgeRenderer.slimNot = BridgeArgs.Arg("-slim-not")?.Split(',');
+            BridgeRenderer.slimNoCopies = !BridgeArgs.Flag("-slim-copies");
+            BridgeRenderer.slimOnPlain = BridgeArgs.Flag("-slim-on-plain");
             // the local lights off screen not sent to the shader (HiraethLook.CullLightsToView, issue #262); -no-light-cull as before
             HiraethLook.CullLightsToView = !BridgeArgs.Flag("-no-light-cull");
             // the temple skins' patterns (Surface.shader HIRAETH_SKIN, issue #342); -no-skin-pattern their surfaces plain, a before-and-after on one build

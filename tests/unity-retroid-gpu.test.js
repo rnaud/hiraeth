@@ -23,7 +23,8 @@ test('the plain variant: a fragment keyword of its own, every wall mark behind i
 
 test('the bridge gives a lean material the plain variant only when it has none of a wall\'s marks, on Android by default', () => {
   const br = read('HiraethJS/Runtime/BridgeRenderer.cs');
-  assert.match(br, /if \(kw != null && plain && \(int\)\(F\(m, "_Pattern"\) \+ 0\.5f\) == 0 && F\(m, "_Weather"\) <= 0 && V\(m, "_Detail"\)\.x <= 0\.5f && F\(m, "_Patch"\) <= 0\)\s+\{\s+m\.EnableKeyword\("HIRAETH_PLAIN"\)/);
+  assert.match(br, /bool plainOk = kw != null && plain && \(int\)\(F\(m, "_Pattern"\) \+ 0\.5f\) == 0 && F\(m, "_Weather"\) <= 0 && V\(m, "_Detail"\)\.x <= 0\.5f && F\(m, "_Patch"\) <= 0;/);
+  assert.match(br, /if \(plainOk\)\s+\{\s+m\.EnableKeyword\("HIRAETH_PLAIN"\)/);
   assert.match(br, /public static bool plain =\n#if UNITY_ANDROID && !UNITY_EDITOR\n\s+true;\n#else\n\s+false;\n#endif/);
   const runner = read('HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /if \(BridgeArgs\.Flag\("-plain"\)\) BridgeRenderer\.plain = true;/);
@@ -44,7 +45,7 @@ test('the crowd\'s trim and the grass\'s look are varyings of their own variants
 test('each part\'s coordinates and derivatives next to it: none of the hatching\'s held through the shadow and the lights', () => {
   const at = (s) => { const i = frag.indexOf(s); assert.ok(i > 0, s); return i; };
   const shadow = at('getShadow(posWS'), lights = at('for (int li = 0;'), hatching = at('// hatching in the shade');
-  for (const s of ['float2 ce1 = strokeCoord(', 'float2 ce2 = strokeCoord(', 'float fwY = fwidth(', 'float3 formDx = ddx(i.form.xyz), formDy']) {
+  for (const s of ['float2 ce1 = strokeCoord(', 'float2 ce2 = strokeCoord(', 'float fwY = fwidth(', 'float3 formDx = ddx(I_FORM.xyz), formDy']) {
     const last = frag.lastIndexOf(s);
     assert.ok(last > shadow && last > lights && last < hatching, `${s} worked out after the lights, before the hatching`);
   }

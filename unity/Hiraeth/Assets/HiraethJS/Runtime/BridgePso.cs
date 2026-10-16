@@ -19,7 +19,10 @@ namespace Hiraeth.Bridge
     ///   traced by a development player (-pso-trace, below) over every world, and committed (unity/.gitignore lets that
     ///   folder in). Unity finds its variants by shader name and GUID, pass and keyword names, and layout and state hashes,
     ///   not by the compiled code, so it stays good from build to build until one of those changes (tests/unity-pso.test.js);
-    ///   refreshing it: docs/steam-deck.md, "The pipeline list". One traced on another platform is left (the APK is Vulkan too).
+    ///   refreshing it: docs/steam-deck.md, "The pipeline list". One traced on another platform is left (the APK is Vulkan too):
+    ///   Android's is hiraeth-pso/Android/Vulkan.graphicsstate, read out of the APK first (Load), traced on the Retroid
+    ///   (scripts/bench/android-pso-trace.mjs; docs/systems/performance.md, "Unity on the Retroid, round 7"), and warmed only
+    ///   with -pso (or -pso-file): there it froze a cold load in one long frame and removed no stall.
     /// - -pso-trace (a development player only: Unity traces in no other): the states this launch draws, added to
     ///   &lt;persistentDataPath&gt;/pso-trace.graphicsstate (read first, so launch after launch in other worlds gather into one
     ///   file), saved 20 s after the world has settled, every 30 s after while it grows, and at the exit.
@@ -37,7 +40,9 @@ namespace Hiraeth.Bridge
         static bool said, exited;
         public static bool Warming => warm != null || pending != null;
 
-        static string Shipped => Path.Combine(Application.streamingAssetsPath, "hiraeth-pso", SystemInfo.graphicsDeviceType + ".graphicsstate");
+        // (the Deck's at hiraeth-pso/Vulkan.graphicsstate, Android's in a folder of its own: Vulkan too, its layouts and passes its own)
+        static string Shipped => Path.Combine(Application.streamingAssetsPath, "hiraeth-pso",
+            Application.platform == RuntimePlatform.Android ? "Android" : "", SystemInfo.graphicsDeviceType + ".graphicsstate");
         static string TracePath => Path.Combine(Application.persistentDataPath, "pso-trace.graphicsstate");
 
         /// <summary>At the start, before anything is drawn: the trace begun, or the shipped collection loaded to be warmed.</summary>
@@ -58,20 +63,50 @@ namespace Hiraeth.Bridge
                 return;   // (traced alone: nothing warmed that the trace could take for the world's own)
             }
             if (BridgeArgs.Flag("-no-pso")) { Debug.Log("Hiraeth bridge: pso: -no-pso, made at their first draws"); return; }
+            // (Android: off unless -pso or -pso-file. Its list buys nothing there: no world stalls mid-play without it, and Unity's
+            // own pipeline cache keeps warm launches quick. On a cold driver cache the warm-up holds the main thread in one frame
+            // of 7.5-10 s, past Android's 5 s for an unanswered touch, where the load froze ~10 s over a few frames anyway;
+            // docs/systems/performance.md, "Unity on the Retroid, round 7")
+            if (Application.platform == RuntimePlatform.Android && !BridgeArgs.Flag("-pso") && BridgeArgs.Arg("-pso-file") == null)
+            { Debug.Log("Hiraeth bridge: pso: Android's list not warmed (-pso warms it)"); return; }
             var file = BridgeArgs.Arg("-pso-file") ?? Shipped;
-            if (!File.Exists(file)) { Debug.Log($"Hiraeth bridge: pso: no collection for {SystemInfo.graphicsDeviceType} ({file})"); return; }
             try
             {
                 var c = new GraphicsStateCollection();
-                if (!c.LoadFromFile(file)) { Debug.LogWarning($"Hiraeth bridge: pso: {file} did not load"); return; }
+                if (!Load(c, file)) return;
                 if (c.graphicsDeviceType != SystemInfo.graphicsDeviceType) { Debug.Log($"Hiraeth bridge: pso: the collection is {c.graphicsDeviceType}'s, not {SystemInfo.graphicsDeviceType}'s"); return; }
-                // (the Deck's Vulkan list is in every player's StreamingAssets: the APK, Vulkan too, leaves it, its layouts and passes are the Linux player's)
+                // (each list is in every player's StreamingAssets: one traced on another platform is left, -pso-file's too)
                 if (c.runtimePlatform != Application.platform) { Debug.Log($"Hiraeth bridge: pso: the collection is {c.runtimePlatform}'s, not {Application.platform}'s"); return; }
                 pending = c;
                 if (BridgeArgs.Arg("-pso-at") == "start") Warm();
                 else Debug.Log($"Hiraeth bridge: pso: {c.totalGraphicsStateCount} states of {c.variantCount} variants to warm once the script's engine is made");
             }
             catch (Exception e) { Debug.LogWarning("Hiraeth bridge: pso: " + e.Message); warm = pending = null; }
+        }
+
+        /// <summary>
+        /// The collection read: from a file, or on Android from inside the APK (StreamingAssets is a jar: URL there, which
+        /// System.IO cannot see): read whole through UnityWebRequest into the cache folder, then loaded from there.
+        /// </summary>
+        static bool Load(GraphicsStateCollection c, string file)
+        {
+            if (file.Contains("://"))
+            {
+                var t0 = Time.realtimeSinceStartupAsDouble;
+                var copy = Path.Combine(Application.temporaryCachePath, "hiraeth-pso-" + SystemInfo.graphicsDeviceType + ".graphicsstate");
+                using (var rq = UnityEngine.Networking.UnityWebRequest.Get(file))
+                {
+                    var op = rq.SendWebRequest();
+                    while (!op.isDone) System.Threading.Thread.Sleep(1);   // (a file in the package: a few ms)
+                    if (rq.result != UnityEngine.Networking.UnityWebRequest.Result.Success) { Debug.Log($"Hiraeth bridge: pso: no collection for {SystemInfo.graphicsDeviceType} ({file}: {rq.error})"); return false; }
+                    File.WriteAllBytes(copy, rq.downloadHandler.data);
+                }
+                Debug.Log($"Hiraeth bridge: pso: {file} read from the package in {(Time.realtimeSinceStartupAsDouble - t0) * 1000:0} ms");
+                file = copy;
+            }
+            if (!File.Exists(file)) { Debug.Log($"Hiraeth bridge: pso: no collection for {SystemInfo.graphicsDeviceType} ({file})"); return false; }
+            if (!c.LoadFromFile(file)) { Debug.LogWarning($"Hiraeth bridge: pso: {file} did not load"); return false; }
+            return true;
         }
 
         /// <summary>

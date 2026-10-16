@@ -57,6 +57,18 @@ export const CHANGELOG = [
     // issue #389: src/door-walk.js (main.js, engine/game.js), Player.doorWalk, Passage's cover per hand-over, Sound.doorway;
     // tests/door-walk.test.js
     'Walking through a door no longer runs you into a wall first. The door takes you on through at your own pace, walking or sprinting, with a soft click of its latch; the page sweeps across, and you come out a few steps inside the other place with the camera behind you, then it is yours again. It all takes under a second, and turning the stick away hands it back at once. A locked door still tells you why.',
+    // the Unity build's GPU on the Retroid, round 7 (issue #262): Surface.shader HIRAETH_LEAN_SLIM (BridgeRenderer.Lean, never
+    // with HIRAETH_PLAIN nor on copies), BridgeShaderStrip (Android's Vulkan only), BridgePso's Android list (off unless -pso);
+    // tests/unity-pso.test.js; docs/systems/performance.md "Unity on the Retroid, round 7"
+    { text: 'The Unity preview on the Retroid draws the walls with marks on them a little more cheaply: up to 3 frames a second more in the City Floating in Space, and 1-2 more in the Signal Market, with the same picture.',
+      numbers: [{ title: 'Frames a second in the Unity preview, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova, Handheld preset at 0.75 of 1280 × 960, muted', rows: [
+        { where: 'the City Floating in Space, the wide view', before: 57.4, after: 60.1 },
+        { where: 'the City Floating in Space, its start', before: 51.9, after: 54.5 },
+        { where: 'the Signal Market, its start', before: 52.7, after: 54.1 },
+        { where: 'the Signal Market, the wide view', before: 56.1, after: 57.4 },
+        { where: 'Underwater, the wide view', before: 49.4, after: 50.1 },
+        { where: 'the City-Shaft, the wide view', before: 36.9, after: 37.5 },
+      ], source: 'the bridge\'s bench (-views -bench 6), 16 October, the same APK with and without the change (-no-slim); the mean rate over each view', note: 'Lorn and the desert are unchanged; GeckoView, the web version, is still ahead in Lorn, Underwater, the Signal Market and the City Floating in Space.' }] },
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

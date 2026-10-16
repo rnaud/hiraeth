@@ -9,6 +9,8 @@
 # KEYS another folder with moebius-release.p12 and password.txt (default .local-tools/android-signing/, here or in
 # the main checkout); MIN_FREE_GB the free disk wanted before the build (10: the first build takes 4-6 GB);
 # CLEAN=1 deletes Library/Bee (the IL2CPP build's cache, 2-3 GB) afterwards; UNITY another editor.
+# BUILD_ARGS more of the editor's arguments: -development a development player (what -pso-trace needs: Android's
+# pipeline list, scripts/bench/android-pso-trace.mjs); -strip-slim without the slim lean variants (BridgeShaderStrip).
 # Muted throughout: the editor runs in batch mode and the player is not started.
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -50,7 +52,7 @@ rm -f "$OUT"
 echo "Building $VERSION ($BUILD) from $(git rev-parse --short=12 HEAD)…"
 STATUS=0
 ANDROID_KEYSTORE_PATH=$KEYS/moebius-release.p12 ANDROID_KEYSTORE_PASSWORD=$(cat "$KEYS/password.txt") \
-  scripts/unity-export/unity-batch.sh BridgeBuild.AndroidRelease -buildVersion "$VERSION" -androidVersionCode "$BUILD" -out "$OUT" || STATUS=$?
+  scripts/unity-export/unity-batch.sh BridgeBuild.AndroidRelease -buildVersion "$VERSION" -androidVersionCode "$BUILD" -out "$OUT" ${BUILD_ARGS:-} || STATUS=$?
 # (the editor writes the build's settings back, the key's path among them: the committed ones stay as they were)
 [ "$SETTINGS_CLEAN" = 1 ] && git checkout -- "$SETTINGS"
 [ "$STATUS" = 0 ] && [ -f "$OUT" ] || { echo "no APK: unity/Hiraeth/Logs/batch-BridgeBuild.AndroidRelease.log" >&2; exit 1; }

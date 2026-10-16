@@ -222,7 +222,7 @@ test('the GPU\'s pipelines warmed on the job system\'s workers from a traced col
   const pso = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs');
   assert.match(pso, /new GraphicsStateCollection\(\)/);
   assert.match(pso, /\.WarmUp\(default\(JobHandle\)\)/, 'made as jobs, not on the render thread at the first draws');
-  assert.match(pso, /"hiraeth-pso", SystemInfo\.graphicsDeviceType \+ "\.graphicsstate"/, 'one collection a graphics API');
+  assert.match(pso, /"hiraeth-pso",\s+Application\.platform == RuntimePlatform\.Android \? "Android" : "", SystemInfo\.graphicsDeviceType \+ "\.graphicsstate"/, 'one collection a graphics API (Android\'s in a folder of its own)');
   assert.match(pso, /BeginTrace\(\)/); assert.match(pso, /SaveToFile\(TracePath\)/);
   assert.match(read('unity/.gitignore'), /^!Hiraeth\/Assets\/StreamingAssets\/hiraeth-pso\/$/m, 'the traced collections committed');
   const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');

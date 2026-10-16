@@ -204,7 +204,7 @@ test('the game\'s canvases reach Unity as textures: sent before the material tha
   assert.match(cs, /public void Texture\(int tid, byte\[\] b, int n, int w, int h, int flags\)/);
   assert.match(cs, /int map = m\.I\("map"\);\s*\n\s*if \(map > 0\) UseMap/);
   const sh = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader', import.meta.url), 'utf8');
-  assert.match(sh, /if \(_MapOn > 0\.5\) albedo \*= SAMPLE_TEXTURE2D\(_Map, sampler_Map, i\.form\.xy\)\.rgb;/);
+  assert.match(sh, /if \(_MapOn > 0\.5\) albedo \*= SAMPLE_TEXTURE2D\(_Map, sampler_Map, I_FORM\.xy\)\.rgb;/);
 });
 
 

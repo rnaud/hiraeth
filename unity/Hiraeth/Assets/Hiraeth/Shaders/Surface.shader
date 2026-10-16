@@ -113,6 +113,13 @@ Shader "Hiraeth/Surface"
     Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "Queue" = "Geometry" }
 
     HLSLINCLUDE
+    // (the bind, fold and form interpolators, read and written through these: the slim lean variants have none, below)
+    #define O_BIND o.bind
+    #define O_FOLD o.fold
+    #define O_FORM o.form
+    #define I_BIND i.bind
+    #define I_FOLD i.fold
+    #define I_FORM i.form
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "HiraethCommon.hlsl"
 
@@ -277,7 +284,31 @@ Shader "Hiraeth/Surface"
       // HIRAETH_LEAN_TERRAIN and HIRAETH_LEAN_WATER: the lean variant with the ground's path (or the water's) kept, for the
       // terrain and banked sand (or the water) that use none of the other rare paths: the Xbox's GPU 13.1 ms at the 1440p
       // spawn against 17.9 on the full variant (docs/systems/xbox.md, "The see-through picture").
-      #pragma multi_compile_local _ HIRAETH_LEAN HIRAETH_LEAN_TERRAIN HIRAETH_LEAN_WATER
+      // HIRAETH_LEAN_SLIM: HIRAETH_LEAN for a material that is no person (no outfit or eye, creases or folds), has no picture
+      // and no hatching that follows its form, and keeps a wall's marks (BridgeRenderer.Lean: never with HIRAETH_PLAIN, nor on
+      // the instances' and grass's copies, which stall or fault the Adreno): its vertices pass on 19 floats, not 28, without the
+      // bind, fold and form interpolators; the same picture. The Retroid's GPU up to 1 ms less (issue #262;
+      // docs/systems/performance.md, "Unity on the Retroid, round 7"). In Android's Vulkan builds only (BridgeShaderStrip).
+      #pragma multi_compile_local _ HIRAETH_LEAN HIRAETH_LEAN_TERRAIN HIRAETH_LEAN_WATER HIRAETH_LEAN_SLIM
+      #if defined(HIRAETH_LEAN_SLIM)
+        #define HIRAETH_LEAN 1
+        #define SLIMV 1
+      #endif
+      #if defined(SLIMV)
+        static float3 _slimBind; static float2 _slimFold; static float4 _slimForm;
+        #undef O_BIND
+        #undef O_FOLD
+        #undef O_FORM
+        #undef I_BIND
+        #undef I_FOLD
+        #undef I_FORM
+        #define O_BIND _slimBind
+        #define O_FOLD _slimFold
+        #define O_FORM _slimForm
+        #define I_BIND float3(0, 0, 0)
+        #define I_FOLD float2(0, 0)
+        #define I_FORM float4(0, 0, 0, 0)
+      #endif
       #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN)
         #define LEANK false
       #else
@@ -401,10 +432,14 @@ Shader "Hiraeth/Surface"
         float3 objPos : TEXCOORD4;      // three space, object frame x scale (static chunks: the world)
         float3 objNormal : TEXCOORD5;
         float3 objRel : TEXCOORD6;      // objPos measured from the camera (facet normals stay exact far out)
+      #if !defined(SLIMV)
         float2 fold : TEXCOORD7;
+      #endif
         // (no posWS: Unity's space is three's with x turned back, toThree(worldPos) in the fragment: three floats fewer
         // a vertex to pass on, issue #262)
+      #if !defined(SLIMV)
         float3 bind : TEXCOORD9;
+      #endif
         // (the crowd's and the grass's own, only in their variants: seven floats fewer a vertex to pass on elsewhere, #262)
       #if defined(HIRAETH_CROWD)
         float4 crowdTrim : TEXCOORD10;  // the crowd figures: the tunic's printed pattern (accent, id)
@@ -412,7 +447,9 @@ Shader "Hiraeth/Surface"
       #if defined(HIRAETH_GRASS)
         nointerpolation float3 grassLook : TEXCOORD11;   // a grass blade: its pen line, its outline's fade, its blend into the ground
       #endif
+      #if !defined(SLIMV)
         float4 form : TEXCOORD12;       // the point about its part's axis (materials.js vForm): across it xy, along it z, w the kind
+      #endif
       #if defined(HIRAETH_SKIN)
         float2 skinUV : TEXCOORD13;     // a temple skin's uv (materials.js vTextureUV: the Lamp-House's plates; HIRAETH_VMAT's slot, never both)
       #endif
@@ -458,9 +495,9 @@ Shader "Hiraeth/Surface"
         o.objPos = toThree(v.positionOS.xyz * scl);
         o.objNormal = toThree(v.normalOS / scl);
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
-        o.form = 0;
+        O_FORM = 0;
         // (a picture's uv where the form's point would be: a material with a map has no S_FORM; w 0 keeps the form's hatching off)
-        if (_MapOn > 0.5) o.form = float4(v.uv, 0, 0);
+        if (_MapOn > 0.5) O_FORM = float4(v.uv, 0, 0);
         #if defined(HIRAETH_VMAT)
           // (each merged object's own frame: materials.js S_VMAT; the camera in its frame, its turn about y undone)
           o.vm1 = v.vm1; o.vm2 = v.vm2; o.vm3 = v.vm3;
@@ -468,13 +505,13 @@ Shader "Hiraeth/Surface"
           float vc = cos(v.vmP.w), vs = sin(v.vmP.w);
           float3 vd = toThree(_WorldSpaceCameraPos) - v.vmM.xyz;
           o.objRel = v.vmP.xyz - float3(vc * vd.x - vs * vd.z, vd.y, vs * vd.x + vc * vd.z);
-          o.fold = 0; o.bind = 0;
+          O_FOLD = 0; O_BIND = 0;
         #else
         if (_Bind > 0.5) { o.objPos = toThree(v.bind * scl); o.objNormal = toThree(v.bindN / scl); }   // (three: the unskinned position)
         o.objRel = o.objPos - toThree(camOS * scl);
-        o.fold = v.fold;
-        o.bind = toThree(v.bind);
-        if (_DuneOn > 0.5) o.form = v.formC;   // (the Glass Dunes' aGlass: the silhouettes, the thin glass, the lobes; the pools)
+        O_FOLD = v.fold;
+        O_BIND = toThree(v.bind);
+        if (_DuneOn > 0.5) O_FORM = v.formC;   // (the Glass Dunes' aGlass: the silhouettes, the thin glass, the lobes; the pools)
         if (_FormOn > 0.5 && v.formC.w > 0.5)
         {
           // (in three's object frame, metric: materials.js S_FORM; the position mirrored back)
@@ -483,7 +520,7 @@ Shader "Hiraeth/Surface"
           fa = fl > 1e-6 ? fa / fl : float3(0, 1, 0);
           float3 fu = normalize(cross(fa, abs(fa.y) < 0.9 ? float3(0, 1, 0) : float3(1, 0, 0))), fv = cross(fa, fu);
           float3 fr = (toThree(v.positionOS.xyz) - v.formC.xyz) * scl;
-          o.form = float4(dot(fr, fu), dot(fr, fv), dot(fr, fa), v.formC.w);
+          O_FORM = float4(dot(fr, fu), dot(fr, fv), dot(fr, fa), v.formC.w);
         }
         #endif
         #if defined(HIRAETH_CROWD)
@@ -501,7 +538,7 @@ Shader "Hiraeth/Surface"
           o.instColor = ccol;
           o.viewDepth = -TransformWorldToView(posWS).z;
           o.objPos = cp * cs; o.objNormal = cn / cs; o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
-          o.bind = v.positionOS.xyz;
+          O_BIND = v.positionOS.xyz;
           o.crowdTrim = ctrim;
         #endif
         #if defined(HIRAETH_GRASS)
@@ -544,7 +581,7 @@ Shader "Hiraeth/Surface"
           o.instColor = lerp(float3(1, 1, 1), _Color2.rgb / max(_Color.rgb, 0.02), gi.b.y) * lerp(0.8, 1.06, frac(rank * 13.7)) * lerp(0.94, 1.08, gt);
           o.viewDepth = -TransformWorldToView(posWS).z;
           o.objPos = wpT; o.objNormal = gn; o.objRel = wpT - camT;
-          o.bind = 0;
+          O_BIND = 0;
           o.grassLook = float3(pen, look, look);
         #endif
         #if defined(HIRAETH_PUFFS)
@@ -558,7 +595,7 @@ Shader "Hiraeth/Surface"
           o.instColor = pi.col.rgb * v.color.rgb;
           o.viewDepth = -TransformWorldToView(posWS).z;
           o.objPos = toThree(lp); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos - pi.at.xyz);
-          o.bind = 0;
+          O_BIND = 0;
         #endif
         #if defined(HIRAETH_INSTMAT)
           MatInst mi = _Mats[v.iid];
@@ -571,7 +608,7 @@ Shader "Hiraeth/Surface"
           o.viewDepth = -TransformWorldToView(posWS).z;
           float ms = length(mi.r0.xyz);
           o.objPos = toThree(q * ms); o.objNormal = toThree(v.normalOS); o.objRel = o.objPos - toThree((_WorldSpaceCameraPos - float3(mi.r0.w, mi.r1.w, mi.r2.w)));
-          o.bind = 0;
+          O_BIND = 0;
         #endif
         #if defined(HIRAETH_FLORA)
           {
@@ -584,7 +621,7 @@ Shader "Hiraeth/Surface"
             o.viewDepth = -TransformWorldToView(posWS).z;
             // (patterns anchored in the world, as on the merged chunks the flora was drawn as)
             o.objPos = toThree(fw); o.objNormal = toThree(fn); o.objRel = o.objPos - toThree(_WorldSpaceCameraPos);
-            o.bind = 0;
+            O_BIND = 0;
           }
         #endif
         // (-surface-debug 10 and 11: the position, normal and depth from the object's own transform alone, none of the above:
@@ -872,7 +909,7 @@ Shader "Hiraeth/Surface"
         #endif   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
-        if (_MapOn > 0.5) albedo *= SAMPLE_TEXTURE2D(_Map, sampler_Map, i.form.xy).rgb;   // (materials.js: uColor × the map, as the web's)
+        if (_MapOn > 0.5) albedo *= SAMPLE_TEXTURE2D(_Map, sampler_Map, I_FORM.xy).rgb;   // (materials.js: uColor × the map, as the web's)
         // a temple skin's pattern (HIRAETH_SKIN): where the web's body replaces vec3 albedo = uColor; its pen lines start the
         // surface's detail, its glow its emit (skin-shader.js spliceSkin)
         float skinInk = 0.0, skinEmit = 0.0;
@@ -920,9 +957,9 @@ Shader "Hiraeth/Surface"
         float waterInk = 0.0, waterLit = 0.0;
         UNITY_BRANCH if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
-          albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
+          albedo = outfitAlbedo(I_BIND, _Color.rgb, _Color2.rgb, _Color3.rgb);
         } else if (mode == MODE_EYE) {
-          albedo = eyeball(i.bind, _Color.rgb, _Color2.rgb, _Skin.rgb);
+          albedo = eyeball(I_BIND, _Color.rgb, _Color2.rgb, _Skin.rgb);
         }
         // the wall's own frame for weathering, pen detail and colour patches (materials.js): along it and up, world-anchored
         float2 wqA = float2(i.worldPos.x, i.worldPos.y), wqB = float2(i.worldPos.z, i.worldPos.y);
@@ -978,7 +1015,7 @@ Shader "Hiraeth/Surface"
           float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
           patInk = max(patInk, di * dUp * 1.35);
         }
-        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, i.bind, i.fold, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
+        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         albedo *= instColor;
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
@@ -986,8 +1023,8 @@ Shader "Hiraeth/Surface"
         // the coral-shirt traveller's drawn face (tripo-face.js, generated: TripoFace.hlsl), after his colours are display values
         UNITY_BRANCH if (LEANK && _TripoFace > 0.5)
         {
-          float tfAA = max(fwidth(i.bind.x) + fwidth(i.bind.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
-          albedo = tripoFace(albedo, i.bind, tfAA);
+          float tfAA = max(fwidth(I_BIND.x) + fwidth(I_BIND.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
+          albedo = tripoFace(albedo, I_BIND, tfAA);
         }
         #if defined(HIRAETH_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
@@ -1000,13 +1037,13 @@ Shader "Hiraeth/Surface"
         // a dark cap's underside: its veins drawn lighter, radiating from the stalk, as branches (materials.js FORM.veins)
         UNITY_BRANCH if (LEANK && _Veins > 0.0 && _FormHatch > 0.0)
         {
-          float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
-          if (i.form.w > 0.5 && i.form.w < 1.5)
+          float3 formDx = ddx(I_FORM.xyz), formDy = ddy(I_FORM.xyz);
+          if (I_FORM.w > 0.5 && I_FORM.w < 1.5)
           {
           const float K = 162.9747;
-          float r2 = max(dot(i.form.xy, i.form.xy), 1e-8);
-          float fwT = (abs(i.form.x * formDx.y - i.form.y * formDx.x) + abs(i.form.x * formDy.y - i.form.y * formDy.x)) / r2 * K;
-          float vein = veinLines(atan2(i.form.y, i.form.x) * K, fwT, _HatchSpacing * 2.2, 1.5, float2(sqrt(r2) * 0.5, 9.0), i.viewDepth);
+          float r2 = max(dot(I_FORM.xy, I_FORM.xy), 1e-8);
+          float fwT = (abs(I_FORM.x * formDx.y - I_FORM.y * formDx.x) + abs(I_FORM.x * formDy.y - I_FORM.y * formDy.x)) / r2 * K;
+          float vein = veinLines(atan2(I_FORM.y, I_FORM.x) * K, fwT, _HatchSpacing * 2.2, 1.5, float2(sqrt(r2) * 0.5, 9.0), i.viewDepth);
           albedo += min(albedo * 1.2, 0.15) * vein * _Veins;
           }
         }
@@ -1033,9 +1070,9 @@ Shader "Hiraeth/Surface"
           albedo *= 1.0 + 0.09 * plateTone;
         }
         #if defined(HIRAETH_CROWD)
-        if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, i.bind);
+        if (i.crowdTrim.w > 0.5) albedo = outfitTrim(albedo, i.crowdTrim.rgb, i.crowdTrim.w, I_BIND);
         #endif
-        if (_Folds > 0.0) albedo = (i.fold.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
+        if (_Folds > 0.0) albedo = (I_FOLD.y < 0.62 ? _Color.rgb : _Color2.rgb) * i.instColor;
 
         float ndl = dot(n, _SunDir);
         // a flat facet edge-on to the sun goes to shade, whole (materials.js FACET_EDGE)
@@ -1062,7 +1099,7 @@ Shader "Hiraeth/Surface"
         // the Glass Dunes' glass as the plates print it, and the light come through it pooled on the sand (src/dune-glass-shader.js)
         UNITY_BRANCH if (_DuneOn > 0.5)
         {
-          float4 G = i.form;
+          float4 G = I_FORM;
           float dSun = smoothstep(-0.02, 0.1, _SunDir.y) * (1.0 - _Night);
           if (_DuneOn < 1.5)
           {
@@ -1199,30 +1236,30 @@ Shader "Hiraeth/Surface"
           detail = max(detail, strokes(sc, sfw, lerp(6.0, 3.5, dk0), lerp(0.8, 1.3, dk0)) * dashN * (0.6 + 0.4 * dk0));
         }
         if (_Folds > 0.0) {
-          float foldU = i.fold.x * _Folds;
+          float foldU = I_FOLD.x * _Folds;
           float foldFw = fwidth(foldU);
           float colI = floor(foldU + 0.5);
           float d = abs(foldU - colI) / max(foldFw, 1e-5);
           float h1 = hash(float2(colI, 3.1)), h2 = hash(float2(colI, 8.7));
-          float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, i.fold.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, i.fold.y));
-          detail = max(detail, inkLine(d, lerp(1.3, 0.7, i.fold.y)) * run * step(0.25, h2 + 0.3));
+          float run = smoothstep(0.08 + h1 * 0.25, 0.14 + h1 * 0.25, I_FOLD.y) * (1.0 - smoothstep(0.75 + h2 * 0.25, 0.8 + h2 * 0.25, I_FOLD.y));
+          detail = max(detail, inkLine(d, lerp(1.3, 0.7, I_FOLD.y)) * run * step(0.25, h2 + 0.3));
         }
         // the people: the suit's creases (creases.js) and the face (materials.js faceInk)
-        if (_Creases > 0.0) detail = max(detail, outfitCreases(i.bind, normalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
+        if (_Creases > 0.0) detail = max(detail, outfitCreases(I_BIND, normalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
         if (mode == MODE_OUTFIT)
         {
-          float fwBind = max(fwidth(i.bind.y), fwidth(i.bind.x));
-          if (i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16)
+          float fwBind = max(fwidth(I_BIND.y), fwidth(I_BIND.x));
+          if (I_BIND.y > _Outfit.z && abs(I_BIND.x) < 0.16)
           {
             float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
-            detail = max(detail, 2.0 * faceInk(float2(abs(i.bind.x), i.bind.y - _Face.x), fwBind, frontal, i.bind.x));   // (over 1: a pen line, darker)
+            detail = max(detail, 2.0 * faceInk(float2(abs(I_BIND.x), I_BIND.y - _Face.x), fwBind, frontal, I_BIND.x));   // (over 1: a pen line, darker)
           }
         }
         detail = max(detail, patInk);
         detail = max(detail, metalInk);
         // (packed over the detail: the material's spot-black step x4, weathered +16; materials.js SPOT, WEATHER)
         o.hatch.b = detail + 4.0 * _SpotStep + (_Weather > 0.0 ? 16.0 : 0.0);
-        bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && i.bind.y > _Outfit.z && abs(i.bind.x) < 0.16);
+        bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && I_BIND.y > _Outfit.z && abs(I_BIND.x) < 0.16);
         // gHatch.a: glow + 2 hero + 4 figure (+ 8 soft ink) + 16 a face + 32 banked sand (post.js)
         o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift;
         if (_BoxOn > 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (a box with no edges: its outline only)
@@ -1241,7 +1278,7 @@ Shader "Hiraeth/Surface"
         float2 ceY = float2(i.objPos.y, dot(i.objPos.xz, float2(0.7071, 0.7071)));
         float fwY = fwidth(i.objPos.y);
         float2 fwd = float2(fw1, fwidth(ce1.y));
-        float3 formDx = ddx(i.form.xyz), formDy = ddy(i.form.xyz);
+        float3 formDx = ddx(I_FORM.xyz), formDy = ddy(I_FORM.xyz);
         // hatching in the shade (finer close to the camera, coarser far away)
         float dark0 = clamp((_Toon - L) / _Toon, 0.0, 1.0);
         // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
@@ -1255,8 +1292,8 @@ Shader "Hiraeth/Surface"
         if ((skip & 16) != 0) {
         } else if (dark > 0.0 && _HatchOn > 0.0 && _ShadeStyle > 0.5) {
           o.hatch.r = stipple(ce1, fwd, hsp * 1.15, dark) * smoothstep(0.02, 0.15, dark);
-        } else if (dark > 0.0 && _HatchOn > 0.0 && i.form.w > 0.5 && _FormHatch > 0.0) {
-          o.hatch.rg = formHatch(i.form, formDx, formDy, hsp, dark, i.viewDepth);   // strokes radiating from its axis or wrapping round it
+        } else if (dark > 0.0 && _HatchOn > 0.0 && I_FORM.w > 0.5 && _FormHatch > 0.0) {
+          o.hatch.rg = formHatch(I_FORM, formDx, formDy, hsp, dark, i.viewDepth);   // strokes radiating from its axis or wrapping round it
         } else if (dark > 0.0 && _HatchOn > 0.0) {
           float h1 = strokes(ce1, fw1, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark);
           if (_FormHatch > 0.0 && mode == MODE_TERRAIN) h1 = lerp(h1, strokes(ceY, fwY, hsp, lerp(0.9, 2.2, dark)) * smoothstep(0.02, 0.12, dark), smoothstep(0.1, 0.3, slope) * _FormHatch);
@@ -1295,7 +1332,7 @@ Shader "Hiraeth/Surface"
           float lift = 1.0 - (1.0 - _Shade.x) * (1.0 - _Halftone * turned) * (1.0 - _Bounce * smoothstep(-0.1, -0.7, n.y));
           float hatchK = mode == MODE_TERRAIN ? lerp(min(_Shade.z, 1.0), 1.0, smoothstep(0.16, 0.36, slope)) : min(_Shade.z, 1.0);
           float liftK = lift;
-          if (i.form.w > 0.5) liftK *= 1.0 - (i.form.w > 1.5 ? 0.2 : 0.45);   // (a cap's fan stays dense under a lifted shade)
+          if (I_FORM.w > 0.5) liftK *= 1.0 - (I_FORM.w > 1.5 ? 0.2 : 0.45);   // (a cap's fan stays dense under a lifted shade)
           liftK /= hDense * hDense;
           o.hatch.rg *= hatchK * float2(1.0 - 0.8 * liftK, max(1.0 - 2.5 * liftK, 0.0));
           float hq = _Shade.y < 0.0 ? 0.0 : _Shade.y >= 2.0 ? 10.0 + floor((_Shade.y - 2.0) * 5.0 + 0.5) : 1.0 + floor(_Shade.y * 8.0 + 0.5);

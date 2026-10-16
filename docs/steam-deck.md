@@ -416,6 +416,13 @@ and at the exit. A launch that dies at the start (the rare SIGSEGV after `Initia
 again. The script copies the result to `StreamingAssets/hiraeth-pso/Vulkan.graphicsstate`. Commit it with the change
 that needed it.
 
+The Android APK has a list of its own, `StreamingAssets/hiraeth-pso/Android/Vulkan.graphicsstate` (each player leaves
+a list traced on another platform). It is traced on the Retroid the same way, by `scripts/bench/android-pso-trace.mjs`
+with a development APK (`BUILD_ARGS=-development NO_UPLOAD=1 scripts/unity-android-release.sh`); BridgePso reads it out
+of the APK first. It is warmed there only with `-pso`: on the Retroid no world stalls without it, and on a cold driver
+cache its warm-up froze the load in one 7.5-10 s frame. Numbers: docs/systems/performance.md, "Unity on the Retroid,
+round 7".
+
 Flags for trying a list:
 - `-pso-file <path>` warms another list in place of the shipped one, so a new list can be tried without a build;
 - `-no-pso` turns the warm-up off, for an A/B;

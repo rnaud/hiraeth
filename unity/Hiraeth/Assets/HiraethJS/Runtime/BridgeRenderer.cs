@@ -46,7 +46,7 @@ namespace Hiraeth.Bridge
         readonly Dictionary<int, float> moteSizes = new(), moteGlows = new();
         readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (HIRAETH_INSTMAT, its own buffer)
         readonly Dictionary<int, List<Material>> copies = new();     // a material's copies (instances, crowds, grass): its live colour and glow go to them too (op 15)
-        Material CopyOf(int mid, Material m) { var c = new Material(m); if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>(); l.RemoveAll(x => !x); l.Add(c); return c; }
+        Material CopyOf(int mid, Material m) { var c = new Material(m); if (slimNoCopies) Unslim(c); if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>(); l.RemoveAll(x => !x); l.Add(c); return c; }
         public readonly List<Vector4> lights = new();         // the local lights (op 11), in Unity's space
         public HiraethLook look;   // a mote material's point size (life.js uSize)
         readonly Dictionary<int, Node> nodes = new();
@@ -514,10 +514,15 @@ namespace Hiraeth.Bridge
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
                 : F(m, "_Scrub") > 0 ? "scrub" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
+            bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0;
+            // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
+            // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
+            // always plain, so the plain lean materials' only)
+            if (kw == "HIRAETH_LEAN" && slim && (!plainOk || slimOnPlain) && Slim(m, mode)) kw = "HIRAETH_LEAN_SLIM";
             if (kw != null) { m.EnableKeyword(kw); leanWhy.TryGetValue(kw, out int k); leanWhy[kw] = k + 1; }
             else { leanWhy.TryGetValue(why, out int c); leanWhy[why] = c + 1; }
             // (and none of a wall's marks: the variant without their code, HIRAETH_PLAIN, issue #262)
-            if (kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0)
+            if (plainOk)
             {
                 m.EnableKeyword("HIRAETH_PLAIN"); leanWhy.TryGetValue("plain", out int pc); leanWhy["plain"] = pc + 1;
             }
@@ -531,6 +536,28 @@ namespace Hiraeth.Bridge
 #else
             false;
 #endif
+        /// <summary>The slim lean variant (HIRAETH_LEAN_SLIM: Surface.shader) for the lean materials that read none of the bind,
+        /// fold and form interpolators and keep a wall's marks: on Android under Vulkan (the Retroid's GPU up to 1 ms a frame,
+        /// issue #262, docs/systems/performance.md "Unity on the Retroid, round 7"), -slim elsewhere, -no-slim off. Its variants
+        /// are in Android's Vulkan builds only (BridgeShaderStrip: -keep-slim at the build for -slim elsewhere).</summary>
+        public static bool slim =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;   // (OpenGL ES 3's builds have none)
+#else
+            false;
+#endif
+        /// <summary>No person (an outfit or eyes, creases, folds), no picture and no hatching that follows its form, not a crowd's.</summary>
+        static bool Slim(Material m, int mode) => mode != 4 && mode != 6 && F(m, "_Folds") <= 0 && F(m, "_Creases") <= 0
+            && F(m, "_MapOn") <= 0.5f && F(m, "_FormOn") <= 0.5f && F(m, "_DuneOn") <= 0.5f && !m.IsKeywordEnabled("HIRAETH_CROWD")
+            && (slimNot == null || System.Array.TrueForAll(slimNot, k => !(k.StartsWith("mode") ? mode.ToString() == k.Substring(4) : m.IsKeywordEnabled(k))));
+        // (the copies made for the GPU instances, the grass and the crowds leave the slim variant: on them it faults the Adreno's GPU,
+        // round 7; tests: -slim-copies keeps it on them, -slim-on-plain gives it with HIRAETH_PLAIN too, -slim-not KW,KW,mode1 leaves
+        // the materials with those keywords (or that mode) on the lean variant)
+        public static string[] slimNot; public static bool slimNoCopies = true, slimOnPlain;
+        static void Unslim(Material c)
+        {
+            if (c.IsKeywordEnabled("HIRAETH_LEAN_SLIM")) { c.DisableKeyword("HIRAETH_LEAN_SLIM"); c.EnableKeyword("HIRAETH_LEAN"); }
+        }
         static readonly Dictionary<string, int> leanWhy = new();
         readonly HashSet<int> veilMats = new();   // the see-through surfaces' washes (Hiraeth/Veil)
         static float F(Material m, string p) => m.HasProperty(p) ? m.GetFloat(p) : 0;
@@ -569,6 +596,7 @@ namespace Hiraeth.Bridge
                 materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var cm);
                 var mat = cm ? CopyOf(n.mids[0], cm) : new Material(surface);
                 mat.name = "crowd figures"; mat.EnableKeyword("HIRAETH_CROWD"); mat.SetFloat("_Figure", 1); mat.SetFloat("_Cull", (float)CullMode.Off);
+                Unslim(mat);   // (its figures' trims read the bind interpolator: never the slim variant, -slim-copies or not)
                 crowds[id] = new Crowd { mesh = md?.mesh, mat = mat };
                 nodes[id] = n;
                 return;
