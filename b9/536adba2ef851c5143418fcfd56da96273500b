@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_197d97e2392100 44-45
+docs/plans/unity-finishable.md
+  s_9ca76055a220ed::t_beb38dae7d5f2d 28,48-55,78-79,82
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_cd5d28a1ce3d4e 305-306,314-345
+engine/game.js
+  s_9ca76055a220ed::t_438097ba14577c 75-78,97,101-103,552,565-578,1053,1060,1062-1064,1067-1068,1072-1075,1103-1104,1236-1238
+engine/menus.js
+  s_9ca76055a220ed::t_c70ca78ed822be 154,190-194,196-225,423,435,445,742-743
+engine/starmap.js
+  s_9ca76055a220ed::t_9378feb77a9cc8 1-308
+engine/unity/game.js
+  s_9ca76055a220ed::t_120e6a5ca3764e 19,23,73-83,298-305,315,550-556,648,741,745-754
+scripts/engine-bundle.mjs
+  s_9ca76055a220ed::t_17fa01ec37ac48 137-166,177
+src/changelog.js
+  s_9ca76055a220ed::t_c82a8ebcb9c22d 85-90
+src/ship/starmap.js
+  s_9ca76055a220ed::t_d5e0716f9d50a7 264-343,401,406,411,479,481,487,490-492,495,500,502,504-507,510,512-513,516,519,523-526,541,543,600
+tests/engine-finishable.test.js
+  s_9ca76055a220ed::t_8c59afd1aa3ecc 2-3,27,59,67-78
+tests/engine-starmap.test.js
+  s_9ca76055a220ed::t_9953ef3b506df7 1-138
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_9a5957619b6033 207-208
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.StarMap.cs
+  s_9ca76055a220ed::t_c4c960d6ecd689 1-657
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.StarMap.cs.meta
+  s_9ca76055a220ed::t_0a33f213ab34fc 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_961c48eab8024d 16,309-313,332
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_4e941d023f9bd0 120-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b9536adba2ef851c5143418fcfd56da96273500b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
