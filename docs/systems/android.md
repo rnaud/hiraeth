@@ -68,7 +68,7 @@ it finishes:
   the Updates page), with the web's 30 s boot watchdog. Its saves are `files/store.json`. The APK offer (a new APK
   through `latest.json`) is still to come (R2, R4).
 - **The Linux player waits for the suite**: `unity-android.yml` publishes it only after tests.yml passed on its commit
-  and its smoke run (Xvfb, lavapipe) passed (D12); the APK and the Xbox's are testers' builds and don't wait.
+  (D12); the APK and the Xbox's are testers' builds and don't wait.
 - The prereleases still hold the builds from before the rename (issue #130): `memento-unity-linux.tar.gz` is
   kept, as installs on a Deck from before the rename (`moebius-deck`, which can't update to the renamed
   package) still read that name; nothing reads `memento-unity.apk` or `memento-unity-xbox.zip` any more.

@@ -89,12 +89,11 @@ while something happens, 4 s otherwise).
 The Linux player (the Deck's since v1.79) is published to `unity-linux` (and the version's release) only after, in the
 same job of `.github/workflows/unity-android.yml`:
 
-1. **A smoke run** (`scripts/unity-linux-smoke.sh`): on the runner, with no GPU, under Xvfb and Mesa's software Vulkan
-   (lavapipe), in a profile of its own and with `-no-updates`, the player loads the desert, draws the spawn's view
-   (`scripts/bench/viewpoints.json`), and exits 0; its picture must not be one colour. Its log and picture are kept
-   with the run (`hiraeth-unity-linux-smoke`).
-2. **The unit suite on its commit** (`scripts/wait-tests.sh`): tests.yml's run for the push of that commit, waited for
+- **The unit suite on its commit** (`scripts/wait-tests.sh`): tests.yml's run for the push of that commit, waited for
    (up to 90 min); failed or cancelled (a newer push covers it), nothing is published.
+- (A smoke run of the player under Xvfb and Mesa's software Vulkan, lavapipe, was removed on 2026-10-16: Unity's player
+  refuses it on the runner, "Vulkan detection: 0 / No supported renderers found", run 38901932713. The Deck's
+  launcher already falls back to the web when a build doesn't reach its first frame.)
 
 ## Checking it
 

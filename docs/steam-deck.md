@@ -177,8 +177,8 @@ python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --engine unity
   `unity-data/unity3d/rnaud/<product>/bundle/` and played from the next launch, or at once with the Updates page's
   Restart now (the player exits 76 and the launcher starts it again). A downloaded script that doesn't play its
   first frame in 30 s is dropped for the built-in one in the same launch; a new player build plays its own script
-  when that is newer. The player is published only after the unit suite passed on its commit and a smoke run under
-  Xvfb and lavapipe passed (D12, `scripts/unity-linux-smoke.sh`).
+  when that is newer. The player is published only after the unit suite passed on its commit (D12; a smoke run
+  under lavapipe was tried and removed: Unity's player refuses the runner's software Vulkan).
 - **Its own data.** The player's saves and settings stay in `unity-data/` (`XDG_CONFIG_HOME`, `store.json`; the
   previous run's log kept as `player-prev.log`), the web's in `~/.config/hiraeth`. No migration between the two
   (the author's choice for now; the importer is D5): after the switch **Hiraeth** starts a new journey in the
