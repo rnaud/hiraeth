@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_0301a5fc4b641c 7
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_7a5b48845f3cf6 329,341-344
+engine/starmap.js
+  s_9ca76055a220ed::t_fd049fc465681f 16,93-98,123,125,127,133,139,220,289,300-301,313
+src/changelog-media.js
+  s_9ca76055a220ed::t_4f9d35a16f6fb4 1073-1076
+src/changelog.js
+  s_9ca76055a220ed::t_d0ee74ed836178 48-49
+src/ship/starmap.js
+  s_9ca76055a220ed::t_0971abe6ad12ee 254-255,258-286,396,402,420-426,454-455,515,722-725,730,735
+tests/starmap-navigate.test.js
+  s_9ca76055a220ed::t_567532d22da4b4 1-124
+unity/README.md
+  s_9ca76055a220ed::t_efbd4103b2afe9 108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8ce1d8ac7d2c594c56e52efc634647e123417947",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
