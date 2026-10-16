@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_59699e9b178492 5-9,11
+docs/README.md
+  s_9ca76055a220ed::t_0819cb8effe88a 94
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_a19e08ec029293 52-53,126-127,130-131,135-137,232,240-242,259,268,270
+docs/steam-deck.md
+  s_9ca76055a220ed::t_69e60dc45f7acf 125-126,173-182
+docs/systems/android.md
+  s_9ca76055a220ed::t_3f68d70c8f6fcf 66-71
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_b1273833af3cef 107
+docs/systems/unity-updates.md
+  s_9ca76055a220ed::t_eb2f49dc996999 1-118
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_db3a6e5a54a36c 372-376
+src/changelog.js
+  s_9ca76055a220ed::t_90e527af275cbf 11,15-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "488e61f029b0a29ce7330ff4abf005d07423fb9d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
