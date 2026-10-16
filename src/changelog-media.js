@@ -1154,6 +1154,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-flooded-hazard', only: 'after', title: 'The dark', caption: 'The fish market: the lamps out, the floor black but for their discs of light; he stands under one, crabs coming in from the dark.', from: FIGHT341B },
       { name: 'fight-flooded-door', only: 'after', title: 'Its doorway', caption: 'In the Dock hall’s air, east of its middle: the doorway and Sabine, who trims the gallery lamps.', from: FIGHT341B },
     ], see: 'In the Underwater City, walk into the Dock hall: the doorway stands east of its middle. In the fish market, when the lamps flicker, get under one.' },
+    { match: 'A new fight temple in the Glass Dunes, the Kiln Yard', tags: ['combat'], shots: [
+      { name: 'fight-kiln-hazard', only: 'after', title: 'Tiles breaking', caption: 'The cooling shed: two tiles of the glass floor broken into pits of the kilns’ glow, crabs at their edge.', from: FIGHT341B },
+    ], see: 'In the Glass Dunes, walk to the north camp’s awnings: the doorway is at their west end. In the cooling shed, step off a tile that cracks white.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

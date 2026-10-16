@@ -130,6 +130,12 @@ export const HOSTS = {
     say: ['~solemn~ I trimmed the gallery lamps every night. Now they gutter, and the dark comes in under the glass.', '~neutral~ Four halls. When the lamps flicker, get under one before they go out. The whale-watch altar is at the end.'],
     lines: ['~solemn~ Keep to the lamps. The dark is cold.'],
   }),
+  'fight-glassdunes': P({
+    id: 'host.fight-glassdunes', name: 'Ozren', title: 'who banked the kilns', color: '#d6a94a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#d6a94a', lining: '#2b211f', cloth: '#3f8f6a', legs: '#4a3a2a', hat: '#cfe9e0', hair: '#3a2a20' }, head: 'headcloth', look: { mask: 'glasses' },
+    say: ['~tired~ I banked those kilns for thirty years. The sheds are full now, and the glass floor cracks under them.', '~neutral~ Four sheds. When the tile under you goes white, get off it. The great kiln’s altar is at the end.'],
+    lines: ['~tired~ Listen. Glass going.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.81 — 2026-10-16
 
+- A new fight temple in the Glass Dunes, the Kiln Yard, by the north camp’s awnings: four cooling sheds floored in glass over the kilns, full of glass crabs, mantas and worms. When the tile under you cracks white, get off it before it breaks into a pit of the kiln’s glow, and leave the crabs on it. Its prize: the Furnace glass colours.
 - A new fight temple in the Underwater City, the Flooded Gallery, in the Dock hall: four sealed halls of glass crabs, lantern jellies and sky rays, lit by lamps that flicker and go out. When they do, get under one: out of the light the cold of the deep takes a little of you each second, and the foes caught in a lamp’s light are scalded. Its prize: the Pearl and tide colours.
 - A new fight temple in the Signal Market, the Back Rooms, in the back alley west of the sign-hanger’s ladder: four shuttered shops of lizards, hounds, moths and marionettes, where the signs on the walls ring with the bell walker’s toll. A ring of sound spreads from each sign that lights: roll through its edge, and cut down the foes it stuns. The bell walker itself comes last. Its prize: the Signal neon colours.
 - A new fight temple in the Buried Machine, the Tooth Gallery, just east of the domes: four rooms of skitters, mound worms, horn lizards and carts, with ore carts that still run the rails across the floor. When a rail’s lamp blinks, get off the rail. Three whole centipedes wait at the end. Its prize: the Brass tooth colours.

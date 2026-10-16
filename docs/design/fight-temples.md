@@ -27,6 +27,7 @@ water stair; its host Hollis; `?game=fight-edena`), the City-Shaft's **Lift Depo
 stop; Ulric; `?game=fight-incal`), the Buried Machine's **Tooth Gallery** (east of the domes; Greta; `?game=fight-buried`)
 and the Signal Market's **Back Rooms** (in the back alley west of the sign-hanger's ladder; Lettie; `?game=fight-bazaar`).
 And the Underwater City's **Flooded Gallery** (in the Dock hall; its host Sabine; `?game=fight-underwater`).
+And the Glass Dunes' **Kiln Yard** (by the north camp's awnings; Ozren; `?game=fight-glassdunes`).
 Below, each under its name.
 
 ## The template
@@ -147,6 +148,7 @@ none: it teaches the crowd; there are more, and sooner, deeper in (the tests hol
 | `bloom` (Viridel) | a row of sleeping eyes down the lane opens one by one from its head, 1.2 s | they flash white, 0.35 s | dazzled (`Foes.blind` 0.6 s), a quarter heart | stunned 1.2 s and a cut; moths from 1.2 m beyond its edge drawn in |
 | `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | half a heart, thrown out | three cuts to all under it |
 | `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
+| `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack white, 1.1 s | they break: pits to the kilns' glow, 3.5 s | a quarter heart a tick (0.9 s) in one | a cut a tick |
 | `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 3.6 s: the floor black but for the discs (2.4 m) | out of the light a quarter heart a second (0.6 s first) | in a lamp's disc a cut a second |
 
 `drop` and `toll` have no lanes (`ON_LANES`): a load is begun on `{ spot }`, a toll on `{ sign }` (the signs farthest from
@@ -256,6 +258,14 @@ lamps down a narrow hall), the whale-watch (five lamps, one on the altar). Foes:
 lamp tripod and a whole crab at the end; 110, par 4:10; Pearl and tide. Its doorway in the Dock hall's air, east of its
 middle (its height given), Sabine by it. The fight is fought from the lamps, the crowd drawn into their light.
 
+## The Kiln Yard (the Glass Dunes, `src/fight-temples/glassdunes.js`)
+
+The glassworkers' cooling sheds, floored in glass tiles over the kilns (drawn as a 2 m grid), kiln chimneys for pillars
+(`pillar: 'chimney'`), chimneys and glass shards in the dunes round them (`dress: 'kiln'`). Rooms: the packing shed, the
+cooling shed (four chimneys), the annealing floor (open, two tiles at a time), the great kiln (two, more often). Foes:
+glass crabs, mantas, mound worms, a furnace walker or two made light; two clock-house drones and a whole walker at the
+end; 110, par 4:10; Furnace glass. Its doorway at the west end of the north camp's awnings, Ozren by it.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
@@ -265,7 +275,7 @@ middle (its height given), Sabine by it. The fight is fought from the lamps, the
 | Viridel | **The Seed Vault** (built, v1.81, above): the white builders' greenhouse cellars, beds of sleeping eyes that wake the moths | signal moths, root knots, a furnace brute at the end | Leafglass |
 | the Underwater City | **The Flooded Gallery** (built, v1.81, above): sealed halls under the glass, the lamps flickering as the jellies ward the crabs | crabs, lantern jellies, sky rays; a lamp tripod at the end | Pearl and tide |
 | the City-Shaft | **The Lift Depot** (built, v1.81, above): a stack of cab bays, each room a platform the cranes lower the next wave onto | lamp tripods, horn lizards, toads; two shades at the end | Cab yellow |
-| the Glass Dunes | **The Kiln Yard**: the glassworkers' cooling sheds, the floor glass that cracks under a brute | furnace brutes, glass crabs, worms; a drone pair at the end | Furnace glass |
+| the Glass Dunes | **The Kiln Yard** (built, v1.81, above): the glassworkers' cooling sheds, the floor glass that cracks under a brute | furnace brutes, glass crabs, worms; a drone pair at the end | Furnace glass |
 | the Buried Machine | **The Tooth Gallery** (built, v1.81, above): a gear-house between the canyon's teeth, rails across it the carts run on | mound worms, crucible carts, centipedes, skitters | Brass tooth |
 | the Moon Foundry | **The Pour Floor** (built, v1.80, above): the casting bays, a pour every minute across one room's floor (step off the channels) | crucible carts, skitters, lizards; a brute at the end | Moon slag |
 | the Garden of Spheres | **The Quiet Orchard**: the spheres' walled gardens at dusk, the hounds running in the trees' long shadows | rollers, centipedes, antler hounds; a marionette at the end | Orchard dusk |
@@ -280,14 +290,6 @@ as written here. Four are left.)
 Each on the same template: a table, a hazard of its own (a new `kind` in `hazards.js` where none of the four fits), a
 look (`ground`, `pillar`, `dress`), a host and a doorway by a settlement, its world's kinds light, gorged ones from the
 second room, two or three tough ones at the end.
-
-**The Glass Dunes: the Kiln Yard.** The glassworkers' cooling sheds: a floor of glass tiles over a red glow. Foes:
-furnace brutes (the light wave's only big kind: one in a wave, two cuts), glass crabs, mound worms; at the end two
-clock-house drones. Hazard **`crack`** (tiles, a new kind): a brute's slam, a worm's breaking through and a long fall
-crack the tiles round it (drawn: a white star), and a cracked tile stood on for 0.8 s breaks: a pit to the kiln's glow
-for 6 s (half a heart, out at its edge); foes walk into them. The floor is a grid of 2 m tiles (`ground` none, the tiles
-drawn), the pillars kiln chimneys, the dress the sheds' glass roofs over the far walls. Reward: Furnace glass. Door:
-by the kiln-masters' yard at the glassworks.
 
 **The Garden of Spheres: the Quiet Orchard.** The spheres' walled gardens at dusk, rows of trees whose long shadows lie
 across the paths (the hour 18.6). Foes: rollers, centipedes, antler hounds (they run in the shadows: only there can

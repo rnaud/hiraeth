@@ -93,6 +93,7 @@ export const CHANGELOG = [
     // the last four worlds' fight temples (issue #341): src/fight-temples/underwater.js, glassdunes.js, spheres.js,
     // spacecity.js; hazards.js (dark, crack, shade, spill); dress.js (chimney, tree, drum; deep, kiln, orchard, islands)
     'A new fight temple in the Underwater City, the Flooded Gallery, in the Dock hall: four sealed halls of glass crabs, lantern jellies and sky rays, lit by lamps that flicker and go out. When they do, get under one: out of the light the cold of the deep takes a little of you each second, and the foes caught in a lamp’s light are scalded. Its prize: the Pearl and tide colours.',
+    'A new fight temple in the Glass Dunes, the Kiln Yard, by the north camp’s awnings: four cooling sheds floored in glass over the kilns, full of glass crabs, mantas and worms. When the tile under you cracks white, get off it before it breaks into a pit of the kiln’s glow, and leave the crabs on it. Its prize: the Furnace glass colours.',
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

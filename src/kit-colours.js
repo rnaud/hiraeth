@@ -52,6 +52,9 @@ export const KIT_COLOURS = [
   // the Underwater City's Flooded Gallery: pearl and the sea (src/fight-temples/underwater.js)
   { id: 'pearl', name: 'Pearl and tide', world: 'underwater', pack: { brass: '#e8eef0', brassDark: '#9ab0b8', canvas: '#3f7a8a', canvasDark: '#2a5462', cloth: '#7fe0e8', leather: '#14202e' },
     water: { base: '#7fe0e8', cream: '#f0fcff', deep: '#2a7a8a', pale: '#c8f4f8', gold: '#e8eef0', light: '#ffffff' } },
+  // the Glass Dunes' Kiln Yard: amber glass and the kiln's glow (src/fight-temples/glassdunes.js)
+  { id: 'furnace', name: 'Furnace glass', world: 'glassdunes', pack: { brass: '#d6a94a', brassDark: '#8a6a2a', canvas: '#9cc8bc', canvasDark: '#5a8a7e', cloth: '#ff9a4a', leather: '#203038' },
+    water: { base: '#ffb060', cream: '#fff0d8', deep: '#c85a2a', pale: '#ffd8a8', gold: '#bfe8dc', light: '#fffaf0' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
