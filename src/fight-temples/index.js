@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { buildHall } from './rooms.js';
 import { startFightTemple } from './session.js';
+import { drawRun, seedOf } from './generate.js';
 
 /**
  * The way in, in its world (the game's sign: kit/marker.js uses a game's `marker.model`): a makers' doorway half
@@ -44,7 +45,7 @@ export function fightTempleGame(def) {
     id: def.id, order: 30,
     name: def.name,
     blurb: def.blurb,
-    rules: 'Clear the rooms one by one: the waves come up out of the ink springs, many foes at once, each felled in a cut or two. Hearts and chimes drop as they fall. The last room’s last wave is the hardest; then the reliquary on the altar holds new colours for your backpack, sword and shield. Best time kept.',
+    rules: 'Clear the rooms one by one: the waves come up out of the ink springs, many foes at once, each felled in a cut or two. Hearts and chimes drop as they fall. The last room’s last wave is the hardest; then the reliquary on the altar holds new colours for your backpack, sword and shield. The rooms and their waves are different on every visit. Best time kept.',
     drives: false,
     fightTemple: def.world,
     controls: {
@@ -56,7 +57,8 @@ export function fightTempleGame(def) {
     score: { kind: 'time' },
     hud: { timer: true, score: true },
     color: def.palette.glyph,
-    build: function* (scene) { return yield* buildHall(scene, def); },
+    // (each visit its own run, drawn from the table with a seed: generate.js; ?seed=<n> replays one)
+    build: function* (scene) { return yield* buildHall(scene, drawRun(def, seedOf())); },
     start: startFightTemple,
     markers: def.entrance ? [{ level: def.entrance.level ?? def.world, at: def.entrance.at, heading: def.entrance.heading }] : [],
     marker: { model: () => entranceModel(def), stand: def.entrance?.stand },

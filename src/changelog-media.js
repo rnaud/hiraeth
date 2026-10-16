@@ -1086,6 +1086,9 @@ const DOORS389 = 'Issue #389: the running game in muted headless Chrome (ANGLE M
 const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modules in node (the real traveller, the level’s collision, the passage’s timings, 60 frames a second), every way through of the twelve route worlds walked and sprinted into from 4 m out';
 export const CHANGELOG_MEDIA = {
   '1.82': [
+    { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
+      { name: 'fight-runs', only: 'after', title: 'Two runs of the Wind Cloister', caption: 'The same temple drawn from two seeds, seen from above: the bell walk and the cloister in the other order, the rooms laid out another way and turned, the waves drawn again (each room’s count of foes below it); the stalls first and the old roost last both times.', from: 'tests/fight-generate.test.js’s draws, the plans drawn from src/fight-temples/generate.js drawRun(ARZACH_FIGHT, 3) and (…, 8) as SVG and shot in muted headless Chrome; 16 October; cwebp -q 72' },
+    ], see: 'Go into any fight temple twice: the rooms come in another order and layout. At the end, the card gives the run’s number: add ?seed= and that number to the address to play the same run again.' },
     { match: 'A new fight temple in the City Floating in Space, the Oil Exchange', tags: ['combat'], shots: [
       { name: 'fight-oil-hazard', only: 'after', title: 'Burning oil', caption: 'The drum yard: a pool of oil alight on the deck beside him, the drums stacked round it, a roller in the flames.', from: FIGHT341B },
       { name: 'fight-oil-door', only: 'after', title: 'Its doorway', caption: 'On the Towers’ deck, in its far corner from the bridges: the doorway and Osric, who weighed the oil.', from: FIGHT341B },

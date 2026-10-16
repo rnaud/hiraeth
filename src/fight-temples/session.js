@@ -461,6 +461,7 @@ export function startFightTemple(ctx) {
       `Rank ${rank} · ${clock(runClock)} (par ${clock(def.par ?? 240)}) · hearts lost ${+run.lost.toFixed(2)}`,
       `Foes felled ${run.kills} · gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain}`,
       `Hearts found ${run.hearts} · fury ${run.furies}× · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,
+      ...(def.seed ? [`This run: ${def.seed} (the same rooms and waves again: ?seed=${def.seed})`] : []),
     ] });
   }
 
@@ -479,6 +480,8 @@ export function startFightTemple(ctx) {
     },
     /** (the console, the checks: where the run is) */
     get run() { return { ...run, queue: queue.length, coming: pending.reduce((a, w) => a + w.items.length, 0), standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length, hazards: hz.count, hazardsOn: hz.active }; },
+    /** (the checks: the run's own table, drawn from the theme: generate.js) */
+    get def() { return def; },
     /** (the checks: the world's hazard, hazards.js) */
     get hazards() { return hz; },
     update(dt, inp, { live, raw, t: clockNow }) {
@@ -524,7 +527,7 @@ export function startFightTemple(ctx) {
           : run.phase === 'wait' ? `On to ${rooms[run.room].name}` : run.phase === 'reward' ? 'Take the reliquary' : '');
         if (player.dead) {
           over = true;
-          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll (B / ○) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`] });
+          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll (B / ○) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`, ...(def.seed ? [`This run: ${def.seed} (?seed=${def.seed} to try it again)`] : [])] });
         }
       }
       // the geysers filling and bursting, the world's hazard on its lanes, the shards and the fury, the last few marked

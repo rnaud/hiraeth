@@ -32,6 +32,48 @@ And the Garden of Spheres' **Quiet Orchard** (west of the round plaza; Wenna; `?
 And the City Floating in Space's **Oil Exchange** (on the Towers' deck; Osric; `?game=fight-spacecity`).
 Below, each under its name.
 
+
+## Each run its own (issue #386, v1.82)
+
+> "each time I walk into the fight temple it should be in a different order" (the author)
+
+A temple's table is now its **theme**, and every visit draws its own **run** from it (`src/fight-temples/generate.js`
+`drawRun(def, seed)`, called by the game's build: `index.js`). The run is a table of the same form, so `rooms.js`,
+`session.js`, the hazards and the tests read it as they read a hand-laid one:
+
+- **The order.** The entrance stays first and the room with the altar (and the tough ones) last; the rooms between are
+  shuffled.
+- **The layout.** The rooms are laid out afresh, each off the last one's north or west side (the far sides: its gate
+  is seen), one wall (2 m) on, slid along so the two overlap by 6 m or more with the 4 m door in the overlap, never
+  closer than a wall to any room before it, within 74 m of the middle (the hall's ground is 170 m across), on whole
+  metres (`layOut`). A draw that will not lay out is drawn again from the same seed.
+- **The rooms' insides.** Each room is mirrored across x, z, both or neither (its springs, pillars, hazard lanes, signs
+  and lamps with it, the lanes' ways flipped; the entrance only across x, its spawn with it), and a room with more than
+  three springs loses one half the time (`pieceOf`, `mirrorPiece`, `placePiece`). A sign the new layout put in a
+  doorway is hung again on a wall with no door.
+- **The waves.** Each wave is drawn from the theme's foes (`foePool`: the light kinds weighted by how many the table
+  brings, the kinds it gorges, the last wave's tough ones) for the **budget** the table's wave at that place in the run
+  had (`waveCost`: a light foe its heads × its cuts, a gorged one 4, a tough one its health), so the difficulty curve is
+  the table's whatever the order; the gorged ones where the table had them, the tough ones in the last wave
+  (`drawWave`). Within half the cheapest foe of the budget, every wave.
+- **The seed.** `?seed=<n>` replays a run (the same seed, the same rooms, layout and waves: a seeded mulberry32,
+  `rngOf`); without it a fresh one (1 … 999 999, `seedOf`). The results card and the card of a run lost give it
+  ("This run: 48213 (… ?seed=48213)"). Retry replays the same run (the level is built once a visit); the best time is
+  the temple's, whatever the run.
+
+In the engines it is the same JS (engine/game.js builds the game's level through the same `build`): no location there,
+so a fresh seed each time.
+
+### A theme (a new world's temple in a few lines)
+
+`fromTheme(t)` makes a full table from a short theme: `rooms` another temple's table (its rooms are the pieces, its
+waves the budget curve, not the foes), `foes` `{ light: { kind: weight }, gorged: [kinds], tough: [[kind, n, { tough:
+true }]] }`, `hazard` one of hazards.js's kinds (its lanes, signs or lamps laid in each room by the room's own shape,
+off its pillars and altar: `hazardLayout`; as often as the pieces' own came), and the look, host and door as any
+table (`palette`, `pillar`, `dress`, `sky`, `entrance`, `colours`, its host in hosts-data.js). The twelve built tables
+are themes as they are (their waves read as pools and budgets); `tests/fight-generate.test.js` plays a short theme of
+every hazard kind over three temples' rooms.
+
 ## The template
 
 A fight temple is a minigame played on foot (docs/systems/minigames.md: `drives: false`, so the walking, the blade,
