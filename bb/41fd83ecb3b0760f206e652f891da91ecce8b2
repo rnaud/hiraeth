@@ -1,0 +1,75 @@
+src/interiors.js
+  s_9ca76055a220ed::t_2cca1f61567a58 172,174
+tests/door-light.test.js
+  s_9ca76055a220ed::t_a7de1ee9edbb12 1-61
+  s_be080572ac7f7a::t_cc1b0bb10a81cd 62-65
+src/door-light.js
+  s_9ca76055a220ed::t_9585b026bac076 1-116
+src/desert-city.js
+  s_9ca76055a220ed::t_af60c480c2a619 1146
+src/levels/edena.js
+  s_9ca76055a220ed::t_0a8237fba3150c 284
+src/thresholds.js
+  s_9ca76055a220ed::t_d38cadbe480581 2,7-12,182-233,279-295
+  s_9ca76055a220ed::t_54af13a1859622 297-300,341
+src/temples/runtime.js
+  s_9ca76055a220ed::t_79770b585294ef 128
+changelog.md
+  s_9ca76055a220ed::t_79de28d36765ce 7
+docs/systems/engine-bridge.md
+  s_be080572ac7f7a::t_871559f5488829 1510-1514
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_ad6f623810da1b 1216,1246-1262
+engine/mirror.js
+  s_9ca76055a220ed::t_365e93e1573640 57
+engine/unity/backend.js
+  s_9ca76055a220ed::t_85736d2f694275 12
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_ae7fd4b9cc0baf 33-38
+src/changelog-media.js
+  s_9ca76055a220ed::t_6f0a520092a50d 1087,1093-1096
+src/changelog.js
+  s_9ca76055a220ed::t_d77e52f27c3574 16-18
+tests/thresholds.test.js
+  s_9ca76055a220ed::t_d90d7ff8cbc526 22-23,39,44-46,130,143,151-152,155,157
+unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs
+  s_9ca76055a220ed::t_0e18c1018a2d2d 200
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_534d36b53bca9a 69,439-452
+unity/Hiraeth/Assets/Hiraeth/Shaders/DoorLight.shader
+  s_9b182e4398fa65::t_3f7cb04167fddc 1-71
+unity/Hiraeth/Assets/Hiraeth/Shaders/DoorLight.shader.meta
+  s_9b182e4398fa65::t_5a6d20322eee6b 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bb41fd83ecb3b0760f206e652f891da91ecce8b2",
+  "prompts": {},
+  "sessions": {
+    "s_9b182e4398fa65": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac0be6cc0772d51ff",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_be080572ac7f7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14544-e974-7c30-a4fc-7a8dc20510dc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
