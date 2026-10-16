@@ -1,0 +1,37 @@
+src/serendipity-page/collect.js
+  s_5f899ba316b5dc::t_3ffe0cb765a1ce 1-274
+docs/README.md
+  s_5f899ba316b5dc::t_010c1d2e02ff4b 90
+docs/systems/dev-tools.md
+  s_5f899ba316b5dc::t_33c7f1fc79161d 258-282
+serendipity.html
+  s_5f899ba316b5dc::t_50f91ba51ca77e 1-75
+src/serendipity-page/main.js
+  s_5f899ba316b5dc::t_3d0cfcafe204ed 1-293
+src/serendipity-page/world.js
+  s_5f899ba316b5dc::t_eeec85f782d242 1-57
+tests/serendipity-map.test.js
+  s_5f899ba316b5dc::t_035e2b9ab48457 1-67
+src/world-picker.js
+  s_5f899ba316b5dc::t_f9eeda4d329273 33
+vite.config.js
+  s_5f899ba316b5dc::t_1fe9f6c80fdb86 38-39
+tests/typefaces.test.js
+  s_5f899ba316b5dc::t_30b0a767c0a601 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c1b3eff18b64af3a66a0a2dfa1db6d12a75a1be6",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
