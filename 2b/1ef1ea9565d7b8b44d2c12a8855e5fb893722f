@@ -1,0 +1,107 @@
+changelog.md
+  s_9ca76055a220ed::t_d4045f0c6a9ac3 7
+docs/README.md
+  s_9ca76055a220ed::t_651d528f0a09b6 90
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_ef5ecdf5a74b94 244
+docs/systems/controls.md
+  s_9ca76055a220ed::t_59ddef6f622c0e 17,285,324
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_7e20d7e64bc2ef 3,39,41-51,53,55-64,66-94
+docs/systems/engine-bridge.md
+  s_9ca76055a220ed::t_8d1a6588c4f342 167-169
+docs/systems/foes.md
+  s_9ca76055a220ed::t_d56b80ed84d3aa 1783-1784
+docs/systems/notes.md
+  s_9ca76055a220ed::t_74788f3e34f6e6 82
+docs/systems/progression.md
+  s_9ca76055a220ed::t_6bdc4a07f8028f 23
+engine/game.js
+  s_9ca76055a220ed::t_e8ce174a23ca14 139-142,664,744,1011-1071,1095-1096,1151-1152,1190,1356,1414
+engine/menus.js
+  s_9ca76055a220ed::t_f975c875e3ecce 11-12,38-39,165,205-206,208,423-461,475,488,499-500,939
+engine/unity/game.js
+  s_9ca76055a220ed::t_bf2fa1ddd133f9 73,333-334,336-337,351,375,506-517,873-895
+src/bindings.js
+  s_9ca76055a220ed::t_1a56e644a414f9 75
+src/changelog.js
+  s_9ca76055a220ed::t_7344803c7aa2c8 43-46
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_0b856aad8e0172 64
+src/controller.js
+  s_9ca76055a220ed::t_2dd36917248952 11,120,198
+src/dev-menu.js
+  s_9ca76055a220ed::t_bdcf3544ea7b41 1-18,21-22,24-27,29,32-41,43-45,47,49-60,62-72,74-75,79,81-84,87-115,138-158,162-179,182-188
+src/game-menu.css
+  s_9ca76055a220ed::t_b8688342f37f2f 6-9,17,19,26-27,33-34,39,44,46,49-50,55-64,66,71-76,79-80,83,86,116,327,331-336,341,343-345,409,422-449
+src/i18n/en.js
+  s_9ca76055a220ed::t_08af2b18d97b92 249,354
+src/issue-draft.js
+  s_9ca76055a220ed::t_aac5be64f67024 1
+src/items.js
+  s_9ca76055a220ed::t_b04866b631aff3 58
+src/levels/arena-hitbox-board.js
+  s_9ca76055a220ed::t_21b7943d262724 8
+src/main.js
+  s_9ca76055a220ed::t_12e4f46b4d2a98 136,1082-1091,1093-1105,1248,1290,1294,1493,1510,1521,1557-1559,1577-1625,1795,1822,1832,1842,1855,1871,1877,1902,2298,2322-2323,2363,2760,2777
+src/player.js
+  s_9ca76055a220ed::t_b384e5aa53891d 145-152,473,624,950,971,1208-1245,1537
+src/ui.js
+  s_9ca76055a220ed::t_c3e78fef8ec9f9 52,205,373
+src/world-debug.js
+  s_9ca76055a220ed::t_156f0574636596 1-3,5-12,14-16,23,60-61,64,66-67,71,80,84-86,107-108,111-112,122-128,138-139,153,176,189-192,256,263-266,268-269,271-303,305-306,308-316,319-324,326-351,354-370,372-378,380-384,386-392,394-412
+src/world-picker.css
+  s_9ca76055a220ed::t_6d85423d178269 4-5,12-14,17,23-33,35-39,42-51,54-57,60-61,65-75,78-80,84-99,102,104,108-114,118-122
+src/world-picker.js
+  s_9ca76055a220ed::t_d7448f50751d6b 212
+tests/dev-menu.test.js
+  s_9ca76055a220ed::t_545c4889828478 1-236
+tests/gadgets-qa.test.js
+  s_9ca76055a220ed::t_31954015704ad5 350
+tests/hitboxes.test.js
+  s_9ca76055a220ed::t_888859226f1e20 262
+tests/issue-draft.test.js
+  s_9ca76055a220ed::t_8b38169e83a6ea 1,7,83-93
+tests/menu-music.test.js
+  s_9ca76055a220ed::t_132a6a4a317363 48
+tests/menus-settings.test.js
+  s_9ca76055a220ed::t_cd0e188a701dcf 216-217,220-221
+tests/menus.test.js
+  s_9ca76055a220ed::t_2c36508690fb0f 58
+tests/motion-page.test.js
+  s_9ca76055a220ed::t_3e9d76a3217e24 21
+tests/pad-glyphs.test.js
+  s_9ca76055a220ed::t_ea5fdd78267ff6 144
+tests/reduce-motion-css.test.js
+  s_9ca76055a220ed::t_2fb1be3e235f78 8-9,15,17
+tests/typefaces.test.js
+  s_9ca76055a220ed::t_d5fedeeef0f497 20
+tests/world-debug-worlds.test.js
+  s_9ca76055a220ed::t_b44702f10e64d5 1-6,9,12-13,16-17,19-21,23-25,28-46,53,62-64,67
+tests/world-debug.test.js
+  s_9ca76055a220ed::t_dee0b159be1c76 1-4,9,185,187-230,241,255,258-261,263-264
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_8b0e1faabd7a10 128
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_85b2dc23d1975e 211-212
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_28da440b0f4863 335-336
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_9ca76055a220ed::t_028a6fabeacc67 933-934,992-1000
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2b1ef1ea9565d7b8b44d2c12a8855e5fb893722f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
