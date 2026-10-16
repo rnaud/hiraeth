@@ -1718,6 +1718,35 @@ hologram torn sideways in one picture is the page's own spike of glitch, at rand
 (the eyes, no sword, the prompt in the walk, the figures as `'holo'` with his encoded picture, the beam hidden, the live
 vectors), tests/charge.test.js (the card as the screen's).
 
+## Loud gaps (2026-10-16, issue #428)
+
+#394's misses (an overlay scene, page HTML, a shader with no port, a function only main.js had) went unnoticed because
+the bridge fell back silently. Now everything the web game uses that the bridge might not carry is named in
+**engine/bridge-gaps.js**, each entry `handled` (where), `web-only` (why) or `gap` (its issue, how visible), and
+**tests/bridge-gaps.test.js** (node, no Unity, so it runs in GitHub's Tests) fails on anything new, on a listed thing
+gone, and on a counted file with a site more or fewer. scripts/bridge-gaps.mjs gathers five kinds:
+
+- **materials**, by running the engines' bundle (engine/game.js) in node in every world, the opening and every
+  minigame (about a minute), each material put through the port's own `portMaterial` with its uniforms and defines
+  watched: a shader with no port of its own (`shader:<its uniforms>`), one of three's lit materials (`three:<type>`),
+  and makeMaterial's defines and uniforms the port never reads (`define:…`, `uniform:…`: Unity never gets them).
+  port-format.js no longer falls back in silence either: such a material is kept in `unmapped` and said once
+  (`[bridge gap] no port for …`), in the Unity player's log too.
+- **shaders**: each file's `ShaderMaterial`s, `onBeforeCompile`s and lit materials, counted.
+- **passes**: a scene of its own, another `renderer.render`, an object's own `render(renderer)` (the hologram's was one).
+- **dom**: each file's page elements (createElement but canvases, innerHTML, getElementById…), counted; and a screen
+  part (src/platform.js `screen.set`) that no Bridge*.cs reads. A `handled` entry names its parts, checked against the C#.
+- **host**: main.js's imports from src/ that nothing in engine/ imports, and its own functions engine/ never names
+  (engine/game.js's habit of "as main.js armTool" counts): #427's list for one shared host.
+
+Dev pages and tools (their own HTML pages, the dev menu, overlays) are left out by path (`DEV_PAGES`). A gap fixed: take
+its entry out or mark it handled. Something new: add it with its status. Either way `node scripts/bridge-gaps.mjs`
+rewrites **docs/audits/bridge-gaps.md** (the test checks it is current), `node scripts/bridge-gaps.mjs --check` lists
+what is out of step without the test (`--static` skips the worlds' run). The first run's gaps (66 entries: 25 materials, 5 shader sites, 1 pass, 6 page elements, 29 of the host's; the foes'
+surfaces, the wall's see-through hole, the blade, the waterfalls, the speech balloons, the kit's colours, the jump's
+shadow, the breath meter…) are the to-do of #429, #430 and #427; "to check" marks a gap read from the code, not yet
+seen in a Unity picture.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot
