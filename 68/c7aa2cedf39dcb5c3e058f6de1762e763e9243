@@ -1,0 +1,31 @@
+engine/game.js
+  s_9ca76055a220ed::t_7d29e436a5f9ea 57,265,306-311,600,937-944,951,1197
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_32457c2e25f78d 221-243
+unity/.gitignore
+  s_9ca76055a220ed::t_3f1c8c7fe8d862 24-25
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_acc025f50f894a 162
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs
+  s_9ca76055a220ed::t_8592464f8254a7 1-94
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs.meta
+  s_9ca76055a220ed::t_ad3e62b29949f8 1-11
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_4c678f6aae399a 152-154,156,565-568
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "68c7aa2cedf39dcb5c3e058f6de1762e763e9243",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
