@@ -727,7 +727,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let portalCool = 0;
   const throughPortals = (dt, simT) => {
     portalCool = Math.max(portalCool - dt, 0);
-    thresholds?.update(dt, simT, camera.position);
     if (portalCool || passage.active || player.riding || player.dead || !level.portals) return;
     for (const pt of level.portals) {
       const d = player.pos.distanceTo(pt.at);
@@ -1444,6 +1443,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('boxes, hands');
       hud(dt, busy);
       lap?.('hud');
+      // (the ways through's light every frame, a fixed view's too: the web's bench draws them, scripts/unity-compare/)
+      thresholds?.update(dt, simT, camera.position);
       if (!pinned) throughPortals(dt, simT);
       level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {} });
       lap?.('level');

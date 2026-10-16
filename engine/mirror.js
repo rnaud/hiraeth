@@ -54,7 +54,7 @@ import { skeletonUpdate } from '../src/skeleton-update.js';
  * ray and clock (boxes/), the coral-shirt traveller's drawn face (characters/tripo-face.js: brows, eyes, mouth), a
  * face's expression as its ink draws it (Humanoid.setExpression: uMood, uMood2).
  */
-export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2'];
+export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays'];   // (uRays: a light's wash, its rays' clock: src/veil.js)
 const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
 
 /** What a render hook is handed for the renderer: nothing it can draw with (hooks here read the scene, not it). */

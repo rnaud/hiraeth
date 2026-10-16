@@ -33,7 +33,10 @@ export function portMaterial(spec, id = 0) {
   // a see-through surface's body (src/veil.js Veils: a wash over the finished picture, tested by hand against the
   // G-buffer's depth) → the bridge's Hiraeth/Veil: its colour, alpha a layer, glow, how near the eye it fades out
   if (spec.type === 'shader' && Array.isArray(u.uWash) && u.uWash.length === 3 && Array.isArray(u.uColor) && spec.transparent && spec.depthTest === false) {
-    return { id, name: spec.name ?? '', port: 'veil', color: u.uColor.map(r5), alpha: r5(u.uWash[0]), glow: r5(u.uWash[1]), near: r5(u.uWash[2]), side: spec.side ?? 2, plain: 1 };
+    // (and a light's: added to the picture, not laid over it, three's AdditiveBlending; its rays streaked round it, uRays:
+    // strength, clock, how many round, the soft edge: the chest's light, the ways through's, src/boxes/light.js, src/thresholds.js)
+    return { id, name: spec.name ?? '', port: 'veil', color: u.uColor.map(r5), alpha: r5(u.uWash[0]), glow: r5(u.uWash[1]), near: r5(u.uWash[2]), side: spec.side ?? 2, plain: 1,
+      add: spec.blending === 2 ? 1 : 0, rays: Array.isArray(u.uRays) && u.uRays.length === 4 ? u.uRays.map(r5) : [0, 0, 0, 0.5] };
   }
   // a world as the galactic map draws it (src/ship/approach.js planetMaterial: the holo table's planet aboard, the
   // approach's) → the port's Hiraeth/Planet (HoloTable.cs, ShipTravel.cs): its body, shade and mark, the mark's kind, its

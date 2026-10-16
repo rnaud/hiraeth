@@ -39,7 +39,7 @@ export function plainValue(v) {
 export function inkSpec(m) {
   const spec = {
     type: 'other', name: m.name || '', side: m.side ?? 0, transparent: !!m.transparent, opacity: m.opacity ?? 1,
-    vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false, visible: m.visible !== false,
+    vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false, visible: m.visible !== false, blending: m.blending ?? 1,
     defines: {}, u: {},
   };
   if (m.userData?.albedoLinear) spec.albedoLinear = true;
