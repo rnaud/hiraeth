@@ -97,6 +97,10 @@ Shader "Hiraeth/Veil"
           float k = face * fade * lerp(1.0, 0.15 + 1.1 * rays, _WashRays.x);
           a *= floor(saturate(k) * 3.0 + 0.5) / 3.0;
         }
+        // (a light adds in Unity's linear target, the web's in sRGB: over dark walls the same alpha came out far brighter
+        // (a temple's first room washed out), over a lit floor about the same; its alpha brought down between the two,
+        // measured against the web at the Rose House's, the Moon Foundry's and the Buried Machine's first rooms)
+        if (_DstBlend < 1.5) a = pow(saturate(a), 1.5);
         return float4(pow(saturate(col), 2.2), a);
       }
       ENDHLSL
