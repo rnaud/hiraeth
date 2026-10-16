@@ -94,6 +94,12 @@ export const HOSTS = {
     say: ['~tired~ I ground the reed-cutters’ meal in that mill. Now it’s flooded, and the stones roll with nobody at the gear.', '~neutral~ Four rooms, ankle-deep and crawling. Where the floor goes rust, a stone’s coming. The miller’s altar is at the back.'],
     lines: ['~tired~ Hear the grinding? Nobody’s at the gear.'],
   }),
+  'fight-moonfoundry': P({
+    id: 'host.fight-moonfoundry', name: 'Marta', title: 'who tapped the crucibles', color: '#d98c58', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#d98c58', lining: '#2b211f', cloth: '#3a3330', legs: '#2e2a28', hat: '#e8dcc4', hair: '#4a3226' }, head: 'skullcap', look: { body: 'toolbelt' },
+    say: ['~neutral~ The house still pours under our floor. Nobody taps it now, and things come down to stand in the heat.', '~solemn~ Four bays. When a channel’s rim goes bright, step off it. The great crucible’s altar is at the end.'],
+    lines: ['~neutral~ Mind the channels. They don’t care who’s in them.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

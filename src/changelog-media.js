@@ -1083,6 +1083,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-mill-stone', only: 'after', title: 'A millstone rolling', caption: 'The wheel pit, its floor under water: a millstone rolls down the rust-edged lane past him, a toad and a heron up the room.', from: FIGHT341 },
       { name: 'fight-mill-door', only: 'after', title: 'Its doorway', caption: 'On the dry hillside south-east of the landing, among the crystals: the doorway and Gert, who ground the reed-cutters’ meal.', from: FIGHT341 },
     ], see: 'In Lorn, walk south-east from the landing up the hillside to the doorway. In the wheel pit, watch for a lane whose edges turn rust: a stone rises at its end and rolls.' },
+    { match: 'A new fight temple in the Moon Foundry, the Pour Floor', tags: ['combat'], shots: [
+      { name: 'fight-pour-slag', only: 'after', title: 'The pour', caption: 'The casting bays: slag runs down one of the three channels, its rims bright, a lizard and a cart beside it; he stands on the dry floor between.', from: FIGHT341 },
+      { name: 'fight-pour-door', only: 'after', title: 'Its doorway', caption: 'On the open floor just south of the workers’ quarter: the doorway and Marta, who tapped the crucibles.', from: FIGHT341 },
+    ], numbers: [
+      { title: 'Each new temple played through by a script (it walks to the next room, closes on the nearest foe and cuts, steps out of the lanes; nothing hurting it, so it plays to the end)', unit: '', better: 'lower', device: 'this Mac, muted headless Chrome, High, 1280 × 720', rows: [
+        { where: 'the Wind Cloister: time to the reliquary, s (133 foes, 28 gusts)', before: '—', after: 148 },
+        { where: 'the Drowned Mill: time, s (143 foes, 39 millstones)', before: '—', after: 204 },
+        { where: 'the Pour Floor: time, s (147 foes, 18 pours)', before: '—', after: 160 },
+      ], source: FIGHT341 },
+    ], see: 'In the Moon Foundry, walk south from the workers’ quarter to the doorway. In the bays, when a channel’s rim turns bright, step off it.' },
   ],
   '1.79': [
     { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },

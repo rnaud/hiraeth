@@ -62,6 +62,8 @@ export const CHANGELOG = [
     'A new fight temple in Vael, the Wind Cloister, on the rose cliff by the riders’ monastery over the cloud: four rooms of sky rays, herons and blots seen from high above, and gusts that blow down lanes of the floor. Pale arrows show where first; then the wind shoves you and carries every foe in it into the wall. Clear it for the Rider’s slate colours for your backpack, sword and shield.',
     // src/fight-temples/perdide.js, src/minigames/fight-perdide.js (hazards.js 'stone')
     'A new fight temple in Lorn, the Drowned Mill, on the dry hillside south-east of the landing: four flooded rooms of toads, root knots and skitters, and millstones that roll down the floor where it shows rust. Step aside or roll through, and let them crush the crowd. Its prize: the Reed and rust colours.',
+    // src/fight-temples/moonfoundry.js, src/minigames/fight-moonfoundry.js (hazards.js 'pour')
+    'A new fight temple in the Moon Foundry, the Pour Floor, just south of the workers’ quarter: four casting bays of carts, skitters and horn lizards, their floors cut with channels whose rims glow before they fill with slag. Stand clear, or lead the foes in. Its prize: the Moon slag colours.',
   ] },
   { v: '1.79', date: '2026-10-15', items: [
     // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync

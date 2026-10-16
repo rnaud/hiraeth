@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.80 — 2026-10-15
 
+- A new fight temple in the Moon Foundry, the Pour Floor, just south of the workers’ quarter: four casting bays of carts, skitters and horn lizards, their floors cut with channels whose rims glow before they fill with slag. Stand clear, or lead the foes in. Its prize: the Moon slag colours.
 - A new fight temple in Lorn, the Drowned Mill, on the dry hillside south-east of the landing: four flooded rooms of toads, root knots and skitters, and millstones that roll down the floor where it shows rust. Step aside or roll through, and let them crush the crowd. Its prize: the Reed and rust colours.
 - A new fight temple in Vael, the Wind Cloister, on the rose cliff by the riders’ monastery over the cloud: four rooms of sky rays, herons and blots seen from high above, and gusts that blow down lanes of the floor. Pale arrows show where first; then the wind shoves you and carries every foe in it into the wall. Clear it for the Rider’s slate colours for your backpack, sword and shield.
 - The mastery trials’ prizes follow the gadgets to their temples, so a run never pays out for a gadget you can’t have yet: the fourth coil is the Tube run’s now, the fourth notch the Glass slalom’s, the fourth pouch the Canyon dive’s, the strong lodestone the Floor round’s, the clear glass the Garden round’s and the wide vane the Courier’s round’s. The Stone circuit, the Reed race and the Lagoon laps give a rider’s cap, a reed pin and a lagoon ribbon.

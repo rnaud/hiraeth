@@ -34,6 +34,9 @@ export const KIT_COLOURS = [
   // Lorn's Drowned Mill: reed green and the mill's rust (src/fight-temples/perdide.js)
   { id: 'reed', name: 'Reed and rust', world: 'perdide', pack: { brass: '#a8643a', brassDark: '#6e3c24', canvas: '#7e9a52', canvasDark: '#5a7038', cloth: '#d8b04a', leather: '#3e2e22' },
     water: { base: '#7fd0b8', cream: '#e6f4d8', deep: '#3f7a6a', pale: '#b6e6d2', gold: '#c9a24a', light: '#f2fff8' } },
+  // the Moon Foundry's Pour Floor: moon slag, ivory brass and molten water (src/fight-temples/moonfoundry.js)
+  { id: 'slag', name: 'Moon slag', world: 'moonfoundry', pack: { brass: '#e8dcc4', brassDark: '#a99a86', canvas: '#5a4a4a', canvasDark: '#3a2e2e', cloth: '#ff8a3e', leather: '#2a2228' },
+    water: { base: '#ff8a3e', cream: '#fff0c8', deep: '#b8432e', pale: '#ffc890', gold: '#ffd36a', light: '#fff6e0' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
