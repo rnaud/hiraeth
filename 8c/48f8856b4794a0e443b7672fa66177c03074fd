@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_b6b660586cc378 8
+docs/systems/temples.md
+  s_9ca76055a220ed::t_7cc60dbd71727d 1188-1193
+src/boxes/placements.js
+  s_9ca76055a220ed::t_76740539379ce4 138-139,292-295
+src/changelog.js
+  s_9ca76055a220ed::t_e2ce179afdcd63 26-28
+src/gadgets/springs.js
+  s_9ca76055a220ed::t_c7ce11dd14be77 169
+src/items.js
+  s_9ca76055a220ed::t_bb7585a8338c51 98-99,101
+src/temples/hints.js
+  s_9ca76055a220ed::t_591e7dbba2d39c 203,257-258,260-261,263-264
+src/temples/index.js
+  s_9ca76055a220ed::t_73c022eca000ee 111
+src/temples/migrate.js
+  s_9ca76055a220ed::t_b69e2231ed12b9 25
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_dbc13e47c3dba1 135
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_b7805692c34efa 46-47,62
+src/temples/underwater.js
+  s_9ca76055a220ed::t_65c01c80c1af27 20-23,38,40,42-43,45,48,55-57,128-132,135,174-176,178,180,185,187-189,192,196,208,234-236,438-445,669,693-698
+tests/temples.test.js
+  s_9ca76055a220ed::t_ff65e6517ba5b0 2830,2850-2851,2919,2948-2954,2966
+tests/trials.test.js
+  s_9ca76055a220ed::t_75d9906500f8e4 69-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8c48f8856b4794a0e443b7672fa66177c03074fd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

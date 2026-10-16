@@ -1,0 +1,72 @@
+src/temples/hints.js
+  s_9ca76055a220ed::t_9032a6399888c7 110,114-115,117-118,120-125,142-143
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_dfa2d0d33f58ba 57
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_6f105cfaf64bf2 6,34,37-41,43-47,57-63,120,123,137,163-166,168,170,172,175,181,183,195-201,210-211,220,227-228,232-233,237-239,256-257,259,261,266-268,281,499-502,510,517-518,520-521,525,533-534,551-554,563-566,587-591,785,803-804
+tests/playthrough.test.js
+  s_9ca76055a220ed::t_67784ccd442198 14-15
+tests/temples.test.js
+  s_9ca76055a220ed::t_a5d94b814d7962 52-53,351,359-360,363,546-551,563,681,697,710-715,1927,1945-1949,2041,2043-2048,2057-2059,2065,2076,2088,2100,2110,2123,2125,2133-2134,2138,2152-2153,2162,2170,2479,2481-2486,2544,2571-2579
+src/boxes/placements.js
+  s_9ca76055a220ed::t_e93d0af86230e0 119-122,124,133-136,165-168,202-205,207
+changelog.md
+  s_9ca76055a220ed::t_bd020d1e7a64c4 5-9
+src/carried-light.js
+  s_260e724cb36b52::t_418c6952f5a83d 1-34
+src/temples/arzach2-data.js
+  s_9ca76055a220ed::t_8fcc4cdfa98d55 41
+src/gadgets/hook.js
+  s_9ca76055a220ed::t_333ef62c3ec5b1 99
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_643aef0d9fb784 389-405
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_a2867a33bcd05d 227-232,234,236,277,279
+docs/systems/temples.md
+  s_9ca76055a220ed::t_0803c7955d3632 32-33,1150-1174
+src/changelog.js
+  s_9ca76055a220ed::t_cad17e7dfbbe1b 11-21
+src/temples/pieces.js
+  s_9ca76055a220ed::t_1b5393b70a48cc 36-37,55,1247-1250,1258,1260,1279-1331
+src/temples/migrate.js
+  s_9ca76055a220ed::t_94497d75406999 14,16
+tests/temple-skins.test.js
+  s_9ca76055a220ed::t_448fff5d0645f4 309-312
+tests/trials.test.js
+  s_9ca76055a220ed::t_e36415454718f1 48-49,54,59,61,66-68
+src/temples/index.js
+  s_9ca76055a220ed::t_0903d9a16f9fda 91-92,100-101,103,105
+src/gadgets/bomb.js
+  s_9ca76055a220ed::t_f7ef35e894c682 67
+  s_9ca76055a220ed::t_21724e8528f27a 172-173,175
+tests/resources.test.js
+  s_9ca76055a220ed::t_678ecbe1fa6c42 130-131
+src/temples/buried-data.js
+  s_9ca76055a220ed::t_0ec5cf26768347 56
+src/temples/buried.js
+  s_9ca76055a220ed::t_7fc4d11012adad 33-38,49,55,57,101,137-139,144,156,167,173,181,185,527-528,712,745,748-749
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0fc0559cc09b08297ffa5f94237af161291da011",
+  "prompts": {},
+  "sessions": {
+    "s_260e724cb36b52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a289a5ba60b4014be",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
