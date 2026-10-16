@@ -1353,6 +1353,7 @@ Shader "Hiraeth/Surface"
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
       float3 _LightDirection;
+      float _ShadowPancake;   // (1: casters beyond the near plane pressed onto it, URP's way; 0 the web's: HiraethShadows.Pancake)
       float3 _LightPosition;
       float4 shadowVert(Attributes v) : SV_POSITION
       {
@@ -1379,11 +1380,17 @@ Shader "Hiraeth/Surface"
           }
         #endif
         float4 positionCS = TransformWorldToHClip(ApplyShadowBias(posWS, nWS, _LightDirection));
+        // (no pancaking, as the web's maps: what lies beyond a map's near plane, half its depth toward the light from the
+        // traveller, is clipped, not pressed onto it; pressed, a far ridge 1.4 km off cast its shadow over the whole of
+        // Viridel under a low moon. -shadow-pancake: as before, scripts/unity-compare/)
+        if (_ShadowPancake > 0.5)
+        {
         #if UNITY_REVERSED_Z
           positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
         #else
           positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
         #endif
+        }
         return positionCS;
       }
       void shadowFrag() { }   // (depth alone, no colour output: a tiled GPU's depth-only path)

@@ -447,6 +447,8 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-prepass-min") is string pm && float.TryParse(pm, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float pmv)) Hiraeth.Rendering.HiraethFeature.Settings.prepassMinRadius = pmv;
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) HiraethShadows.On = false;
+            // (the casters past a map's near plane clipped as the web's are, not pancaked onto it: -shadow-pancake as before)
+            Shader.SetGlobalFloat("_ShadowPancake", BridgeArgs.Flag("-shadow-pancake") ? 1 : 0);
             // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the
             // Xbox and Android, instead of a DrawRenderer a caster (the Retroid: 440 fewer SetPass calls at the City-Shaft's start,
             // its GPU 2-3 ms less there, the desert's 1-1.6, issue #262); -shadow-draws as before, -shadow-lists elsewhere
