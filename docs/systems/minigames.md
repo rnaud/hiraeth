@@ -63,7 +63,10 @@ place saved as you left), or to the worlds list.
 **In the engines** (the Unity build, issue #264): the same runner, made by engine/trials.js as main.js makes it; what it
 draws on the page is data too, its HUD the screen's `minigame` part (`publish`) and its card `cardModel`, which the
 Unity bridge draws (BridgeHud.cs, BridgeMenu.cs through engine/menus.js's card): docs/systems/engine-bridge.md, "The
-trials and games". A new card or HUD piece goes into both.
+trials and games". A new card or HUD piece goes into both. A game that draws a canvas or a panel of its own (the
+drum circle's ring, the sketch hunt's list, the fishing's meter, the pirates' reticle) publishes it as a screen part
+too and draws its canvas only where `page.drawsHud()` (engine-bridge.md, "The games' own panels"); a `pose(kind)` on
+its session gives the bridge's `-pose` and the web's comparison pictures the same moment.
 
 **Scores** (`kit/scores.js`): `score: { kind: 'time' }` (lower is better, shown `1:23.45`) or
 `{ kind: 'points', unit }`; kept in the save's flags as `minigame.<id>.best` and `minigame.<id>.plays`. A time

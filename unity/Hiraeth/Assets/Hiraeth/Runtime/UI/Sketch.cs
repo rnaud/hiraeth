@@ -75,6 +75,25 @@ namespace Hiraeth
             }
             SetVerticesDirty();
         }
+        /// <summary>A filled band between two radii (a drum's head seen from above: a canvas' even-odd ring).</summary>
+        public void Band(Vector2 c, float r0, float r1, Color col)
+        {
+            int seg = Mathf.Clamp((int)(r1 * 0.9f), 24, 160);
+            var c0 = col; c0.a = 0;
+            float f = feather * 0.5f;
+            int first = vs.Count;
+            for (int i = 0; i < seg; i++)
+            {
+                float a = i * Mathf.PI * 2 / seg; var d = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                V(c + d * Mathf.Max(0, r0 - f), c0); V(c + d * (r0 + f), col); V(c + d * (r1 - f), col); V(c + d * (r1 + f), c0);
+            }
+            for (int i = 0; i < seg; i++)
+            {
+                int a = first + i * 4, b = first + ((i + 1) % seg) * 4;
+                Q(a, b, b + 1, a + 1); Q(a + 1, b + 1, b + 2, a + 2); Q(a + 2, b + 2, b + 3, a + 3);
+            }
+            SetVerticesDirty();
+        }
         public void Tri(Vector2 a, Vector2 b, Vector2 c, Color col) { T(V(a, col), V(b, col), V(c, col)); SetVerticesDirty(); }
         public void Quad(Vector2 a, Vector2 b, Vector2 c, Vector2 d, Color col) { Q(V(a, col), V(b, col), V(c, col), V(d, col)); SetVerticesDirty(); }
         public void Box(Rect r, Color col) => Quad(new Vector2(r.xMin, r.yMin), new Vector2(r.xMin, r.yMax), new Vector2(r.xMax, r.yMax), new Vector2(r.xMax, r.yMin), col);

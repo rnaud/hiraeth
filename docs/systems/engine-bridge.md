@@ -569,11 +569,47 @@ yet had (`travel:refused`) starts the quest that leads to it. The bridge's `-set
 before the world is built (`-level edena -set-flags desert.bike.found -walk 1.5 -out …`: the bike by the ramp, as on
 the web). Test: tests/engine-finishable.test.js.
 
-Not drawn yet: what a game draws on a canvas or a panel of its own: the drum circle's ring, sockets and notes
-(src/minigames/drums.js Overlay, a full-screen canvas redrawn each frame), the sketch hunt's list, viewfinder and flash
-(sketchhunt.js), the fishing line's tension panel (fishing.js), the chime pirates' radar canvas and comms panel
-(pirates.js). Each wants its state published and a BridgeHud piece of its own (an afternoon each), or a general
-full-screen raster overlay (engine/raster.js at the screen's size every frame: too slow on the handhelds).
+**The games' own panels** (issue #264). Four games draw part of their picture on a canvas or a panel of their own
+on the page; each publishes it as a screen part (src/platform.js) that BridgeHud.Games.cs draws with a few uGUI boxes
+and one Sketch mesh, laid out as the page's CSS and canvas calls are, never a full-screen raster:
+- `drums` (src/minigames/drums.js `drumsPart`): the lanes, the glyphs near (index, time, lane, missed), the approach,
+  the beat's and the song's length, the buttons held, each socket's last hit by its id, the sockets' labels, the combo.
+  The song's time `t` goes with each send (on a change, else four times a second, `n` counting them) and BridgeHud runs it on
+  between at the pace the sends show (the song's clock is the sound's: a batch run's audio runs slow); `DrawDrums`
+  draws the ring, its lacing and shadow, the dashed spokes, the sockets, the hits' ink and words, the rolling glyphs,
+  the combo and the song's progress.
+- `hunt` (sketchhunt.js): the list (title, each subject's name, done, stars, verdict or hint), whether it is dimmed,
+  the viewfinder while the sketchbook is up (its readout: the name, the meter's percent, the line under it; the zoom),
+  the flash's count and the hint. `DrawHunt`: the paper card, the frame, corners, thirds and middle ring, the readout,
+  the flash fading over 0.45 s.
+- `fishing` (fishing.js): the journal's rows, the line's meter (its fill, label, the tension's red zone hatched past
+  80 %), the pull's arrows, the hint (gold at the strike) and the catch's card. `DrawFishing`.
+- `pirates` (pirates.js drawHud, in the half-size canvas' px with its size): the reticle (ring, dot, charge, hit
+  marks), the lock, the missile's pip, the captain's bar, the hull's pips and their burst, the hit's flare, and the
+  comms line (`DrawPirates`, the flare a radial texture under it). The hint row's missiles are coloured bars in its
+  rich text (the runner's `hintNote(html, text)`).
+
+In an engine the page's canvases for these are not drawn at all (engine/platform.js `hudIsData`, src/platform.js
+`page.drawsHud`): the drum circle's full-screen canvas drawn into bytes each frame had left the Unity preview's camp
+black from the 3-2-1 on. Text in these panels takes the page's line heights (`CssSet`: CSS lines are 1.35 of their
+size, uGUI's one), and a label's words after an arrow go in a label of their own (a space after a glyph from the
+fallback font took that font's advance). The bridge's `-run-key KeyR` holds another key than W through a `-game` run,
+and `-pose [kind]` calls the game's `session.pose` a moment before the run's picture (the drum circle plays itself on
+every beat; a fish on the line, `catch` one landed; two of the hunt's list sketched and the silent tower in the frame;
+the pirate captain hails), the web's side the same through `window.minigame.session.pose`. Tests:
+tests/engine-games-hud.test.js.
+
+| | Unity + Puerts | web (three.js) |
+|---|---|---|
+| the drum circle | ![](../engine-bridge/unity-drums.jpg) | ![](../engine-bridge/web-drums.jpg) |
+| the sketch hunt | ![](../engine-bridge/unity-hunt.jpg) | ![](../engine-bridge/web-hunt.jpg) |
+| the fishing | ![](../engine-bridge/unity-fishing.jpg) | ![](../engine-bridge/web-fishing.jpg) |
+| the chime pirates | ![](../engine-bridge/unity-pirates.jpg) | ![](../engine-bridge/web-pirates.jpg) |
+
+(The batch's HUD is laid out on its 4:3 canvas, 960 wide, in the 1280-wide picture: the ring, the readout and the
+pirates' reticle sit at its middle, x 480, not the picture's; on a player's own screen the canvas is the screen.)
+Not as the web yet: the glyphs the fallback font draws (the arrows of the keys' labels, the pull's ▶▶, the stars) are
+smaller than the page's.
 
 Left for later (issue #264): the language setting (on purpose). The recorded music (D15: Unity decoding the MP3s
 that engine/webaudio.js refuses) wants a round of its own. The Godot spike's keys are not routed through the

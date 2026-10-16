@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.81', date: '2026-10-16', items: [
+    // issue #264: the games' own panels as screen parts (src/platform.js drums, hunt, fishing, pirates), drawn by
+    // unity/…/BridgeHud.Games.cs; the page's canvases not drawn in an engine (page.drawsHud)
+    'In the Unity preview the drum circle, the sketch hunt, the fishing and the chime pirates show their own pieces as on the web: the drum’s ring with its glyphs rolling in, its sockets, hits and combo; the sketch list, the sketchbook’s frame and what it holds; the fishing journal, the line’s tension meter and the catch card; the pirates’ reticle, lock, captain’s bar, hull pips, missiles and radio lines. The drum circle’s camp no longer goes black once the count starts.',
+  ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js
     // (HookBell pull-rings under every bell, BellEar `struck`, the Cloud-Mother's four hall bells), src/temples/pieces.js

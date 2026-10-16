@@ -15,6 +15,7 @@ import { CROWD_POSES } from '../crowd-shader.js';
 import { BRIDGES } from '../levels/bazaar.js';
 import { inputKind, escapeHtml } from '../prompt-keys.js';
 import { promptText } from '../native-pad.js';
+import { screen } from '../platform.js';
 
 export const HUNT = { seconds: 180, n: 6, fov: { min: 18, max: 62, start: 46 } };
 const INK = '#2b211f', PAPER = '#f7ecd2';
@@ -190,7 +191,11 @@ function start(ctx) {
   // the list on the page's left
   const listEl = document.createElement('div');
   listEl.id = 'hunt-list';
+  // (the same as the screen's 'hunt' part, src/platform.js: an engine draws it, BridgeHud.Games.cs DrawHunt; publish below)
+  const hud = { list: null, read: null, zoom: '', flash: 0, hint: '' };
   const drawList = () => {
+    hud.list = { title: `To sketch · ${list.filter((x) => x.best).length} of ${list.length}`,
+      items: list.map(({ s, best }) => ({ name: s.name, done: !!best, stars: best ? starText(best.q) : '', sub: best ? verdict(best.q) : s.hint })) };
     listEl.innerHTML = `<h2>To sketch · ${list.filter((x) => x.best).length} of ${list.length}</h2><ol>${list.map(({ s, best }) =>
       `<li class="${best ? 'done' : ''}"><b>${h(s.name)}</b>${best ? `<span class="st">${starText(best.q)}</span> <small>${h(verdict(best.q))}</small>` : `<small>${h(s.hint)}</small>`}</li>`).join('')}</ol>`;
   };
@@ -212,8 +217,10 @@ function start(ctx) {
       ? k === 'pad' ? `${promptText('RT / R2', { remap: false })} sketch · ${promptText('LB / RB', { remap: false })} zoom · let go of ${promptText('LT / L2', { remap: false })} to lower it` : k === 'touch' ? 'Tap to sketch' : 'Click or G sketch · wheel or Z / C zoom · let go to lower it'
       : k === 'pad' ? `Hold ${promptText('LT / L2', { remap: false })} to raise the sketchbook` : k === 'touch' ? '' : 'Hold the right mouse button or R to raise the sketchbook';
     if (hintEl.textContent !== text) hintEl.textContent = text;
+    hud.hint = text;
     hintEl.style.display = text ? '' : 'none';
   };
+  const publish = (shown) => screen.set('hunt', shown ? { list: hud.list, dim: view.raised, view: view.raised ? { read: hud.read, zoom: hud.zoom } : null, flash: hud.flash, hint: hud.hint } : null);
 
   // what the frame holds right now: the best subject on the list (an occluded one is not seen)
   // (seen: a ray to its middle or to its top half gets there; a wall, a floor, a deck in the way stops it)
@@ -284,6 +291,7 @@ function start(ctx) {
     view.cool = 0.6;
     const b = judge(true);
     flashEl.classList.remove('go'); void flashEl.offsetWidth; flashEl.classList.add('go');
+    hud.flash++;
     ctx.sfx.whoosh?.();
     if (!b || b.q < FRAMING.min) {
       const was = view.last?.q >= FRAMING.min ? view.last.item.s.name.toLowerCase() : null;   // (the readout had it: something drawn is in the way)
@@ -372,7 +380,10 @@ function start(ctx) {
           readEl.innerHTML = b && b.q > 0.05
             ? `${h(b.item.s.name)}<div class="meter"><i style="width:${pct}%"></i></div><small>${b.q >= FRAMING.min ? `${starText(b.q)} ${h(verdict(b.q))}` : 'closer, or nearer the middle'}${b.item.best ? ` · yours: ${starText(b.item.best.q)}` : ''}</small>`
             : 'Nothing on your list in the frame<small>find it, fill the frame with it, and keep it in the middle</small>';
-          zoomEl.textContent = `${Math.round(55 / view.fov * 10) / 10}×`;
+          hud.read = b && b.q > 0.05
+            ? { text: b.item.s.name, pct, sub: `${b.q >= FRAMING.min ? `${starText(b.q)} ${verdict(b.q)}` : 'closer, or nearer the middle'}${b.item.best ? ` · yours: ${starText(b.item.best.q)}` : ''}` }
+            : { text: 'Nothing on your list in the frame', pct: null, sub: 'find it, fill the frame with it, and keep it in the middle' };
+          zoomEl.textContent = hud.zoom = `${Math.round(55 / view.fov * 10) / 10}×`;
         }
         const fire = !!(c.PadFire || c.MouseLeft || c.KeyG);
         if (fire && !view.wasFire) sketch();
@@ -383,9 +394,21 @@ function start(ctx) {
       const show = phase !== 'results';
       if (listEl.hidden === show) listEl.hidden = hintEl.hidden = !show;
       if (phase !== 'play') hint();
+      publish(show);
       void left;
     },
     pause(on) { if (on) setRaised(false); },
+    /** The screenshots' pose (the bridge's -pose): two of the list sketched, the silent tower on it and in the frame. */
+    pose() {
+      const tower = POOL.find((s) => s.id === 'tower-far');
+      if (!list.some((x) => x.s === tower)) list[list.length - 1] = { s: tower, best: null };
+      for (const x of list.filter((y) => y.s !== tower).slice(0, 2)) x.best = { q: 0.82, url: null, at: ctx.time };
+      drawList();
+      ctx.setScore(huntScore(list.map((x) => x.best), 0, HUNT.n).base);
+      if (ctx.rig) { ctx.rig.yaw = Math.PI; ctx.rig.pitch = -0.14; }
+      view.k = 0;
+      return true;
+    },
     list, judge, sketch, view, visible: (t, eye, drawn = true) => { _u.copy(player.frame?.up ?? _u.set(0, 1, 0)); return seenFrom(eye, drawn)(t); },   // (for the tests' and the screenshots' bot)
     end() {
       setRaised(false);
@@ -393,6 +416,7 @@ function start(ctx) {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('pointerdown', onPointer);
       listEl.remove(); viewEl.remove(); flashEl.remove(); hintEl.remove(); touchEl.remove();
+      screen.set('hunt', null);
     },
   };
 }

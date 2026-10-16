@@ -16,6 +16,7 @@ import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
 import { disposeTree } from './kit/dispose.js';
 import { inputKind, escapeHtml } from '../prompt-keys.js';
+import { screen } from '../platform.js';
 
 // ------------------------------------------------------------------ the fish
 /**
@@ -548,8 +549,11 @@ function start(ctx) {
   let t = 0, shownFish = null;
   const cam = { pos: new THREE.Vector3(2.3, P.deck + 2.2, P.pierEnd + 5.2), look: new THREE.Vector3(-0.3, 0.2, P.pierEnd - 8) };
 
+  // (what the HUD shows, as the screen's 'fishing' part too, src/platform.js: an engine draws it, BridgeHud.Games.cs DrawFishing)
+  const hud = { journal: null, hint: { text: '', now: false }, meter: null, pull: '', catch: null };
   function drawJournal(now = null) {
     const n = SPECIES.filter((s) => journal[s.id]).length;
+    hud.journal = { title: `Journal · ${n} of ${SPECIES.length}`, rows: SPECIES.map((s) => { const j = journal[s.id]; return j ? [s.name, `${j.best.toFixed(1)} kg`, s.id === now ? 'now' : ''] : ['· · · · ·', '?', 'no']; }) };
     dom.journal.innerHTML = `<h3>Journal · ${n} of ${SPECIES.length}</h3><ul>${SPECIES.map((s) => {
       const j = journal[s.id];
       return j ? `<li class="${s.id === now ? 'now' : ''}"><span>${escapeHtml(s.name)}</span><span>${j.best.toFixed(1)} kg</span></li>` : '<li class="no"><span>· · · · ·</span><span>?</span></li>';
@@ -557,9 +561,10 @@ function start(ctx) {
   }
   drawJournal();
   const dirOf = (aim, out = new THREE.Vector3()) => out.set(-Math.sin(aim), 0, -Math.cos(aim));
-  function hint(text, now = false) { if (dom.hint.textContent !== text) dom.hint.textContent = text; dom.hint.classList.toggle('now', now); }
+  function hint(text, now = false) { if (dom.hint.textContent !== text) dom.hint.textContent = text; dom.hint.classList.toggle('now', now); hud.hint = { text, now }; }
   function meter(on, k = 0, label = '', cls = '') {
     dom.meter.classList.toggle('on', on);
+    hud.meter = on ? { k: Math.round(Math.max(0, Math.min(1, k)) * 100) / 100, label, tension: /tension/.test(cls), hot: /hot/.test(cls) } : null;
     if (!on) return;
     dom.meter.className = `fh-meter on ${cls}`;
     dom.fill.style.width = `${Math.round(Math.max(0, Math.min(1, k)) * 100)}%`;
@@ -610,6 +615,7 @@ function start(ctx) {
     shownFish = fishModel(sp, kg);
     ctx.add(shownFish);
     S.phase = 'landed'; S.t = 0;
+    hud.catch = { name: sp.name, kg: `${kg.toFixed(1)} kg`, tag: r.isNew ? 'NEW IN THE JOURNAL' : r.isRecord ? 'HEAVIEST YET' : '', note: sp.note };
     dom.catch.innerHTML = `<h2>${escapeHtml(sp.name)}</h2><div class="kg">${kg.toFixed(1)} kg</div>${r.isNew ? '<div class="tag">NEW IN THE JOURNAL</div>' : r.isRecord ? '<div class="tag">HEAVIEST YET</div>' : ''}<p>${escapeHtml(sp.note)}</p>`;
     dom.catch.classList.add('on');
     drawJournal(sp.id);
@@ -716,16 +722,16 @@ function start(ctx) {
         if (F.running && waters()) waters().touch?.('fish', floatPos.x, floatPos.z, 0.6 + F.sp.pull * 0.5, 0.28, dt);
         const hot = F.tension > FIGHT.red;
         meter(true, F.tension / 1.2 * 1.0, `line ${F.dist.toFixed(1)} m${hot ? ' · ease off!' : ''}`, `tension${hot ? ' hot' : ''}`);
-        dom.pull.textContent = F.running ? (F.dir > 0 ? '◀◀ pull' : 'pull ▶▶') : '';
+        dom.pull.textContent = hud.pull = F.running ? (F.dir > 0 ? '◀◀ pull' : 'pull ▶▶') : '';
         hint(hot ? `Ease off: let go of ${btn('RT / R2', 'Shift')}!` : F.running ? `It runs! ${btn('Left stick', 'A  D')} against it` : `${btn('RT / R2', 'Shift  or  W')} reels in`);
         break;
       }
       case 'landed':
-        if (S.t > 2.6) { dom.catch.classList.remove('on'); disposeTree(shownFish); shownFish = null; S.phase = 'ready'; S.t = 0; drawJournal(); if (run.lastFish) finishSession(); }
+        if (S.t > 2.6) { dom.catch.classList.remove('on'); hud.catch = null; disposeTree(shownFish); shownFish = null; S.phase = 'ready'; S.t = 0; drawJournal(); if (run.lastFish) finishSession(); }
         hint('');
         break;
     }
-    if (S.phase !== 'fight') { dom.pull.textContent = ''; S.cranking = S.phase === 'retrieve'; }
+    if (S.phase !== 'fight') { dom.pull.textContent = hud.pull = ''; S.cranking = S.phase === 'retrieve'; }
     if (S.phase === 'charge') meter(true, S.power, `cast ${castDistance(S.power).toFixed(0)} m`);
     else if (S.phase !== 'fight') meter(false);
     if (S.phase !== 'fight' && S.phase !== 'bite' && run.lastFish && S.phase !== 'landed') finishSession();
@@ -762,6 +768,15 @@ function start(ctx) {
 
   return {
     state: S, fishes,
+    /** The screenshots' pose (the bridge's -pose): a fish on the line, 9 m out, pulling; 'catch': one landed, its card up. */
+    pose(kind) {
+      const f = fishes[0] ?? addFish();
+      f.mode = 'hooked'; S.fish = f;
+      S.fight = newFight(f.sp, 9, () => 0.25); S.fight.angle = 0.25; S.fight.tension = 0.62; S.fight.running = true; S.fight.left = 3;
+      S.phase = 'fight'; S.t = 0;
+      if (kind === 'catch') landFish();
+      return true;
+    },
     update(dt, inp, { live, phase }) {
       t += dt;
       dom.el.classList.toggle('idle', !live);
@@ -828,10 +843,12 @@ function start(ctx) {
       updateCamera(dt);
       const left = Math.max(0, SESSION.secs - ctx.time);
       ctx.status(`${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')} left · ${run.kg.toFixed(1)} kg`);
+      screen.set('fishing', { ...hud, idle: !live, touch: inputKind() === 'touch' });
     },
     end() {
       kit.remove();
       dom.el.remove();
+      screen.set('fishing', null);
       shownFish?.removeFromParent(); S.leaper?.removeFromParent();   // (ctx.add's: the runner lets them go)
     },
   };

@@ -15,7 +15,7 @@ namespace Hiraeth.Bridge
     /// and their layout are the C# port's (Hud.cs, Ui.cs): the same paper, ink and fonts; only where
     /// the state comes from differs. The game decides everything; this only draws it.
     /// </summary>
-    public class BridgeHud : MonoBehaviour
+    public partial class BridgeHud : MonoBehaviour
     {
         public Camera cam;
         RectTransform root;
@@ -110,6 +110,7 @@ namespace Hiraeth.Bridge
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
             BuildFight(mono);
+            BuildGames(mono);     // (the drum circle's ring, the sketch hunt's list, the fishing's meter, the pirates' reticle: BridgeHud.Games.cs)
             BuildMinigame(mono);
             BuildWarp();          // (over everything but the frame readout, as the page's #warp)
             BuildPassage();   // (over everything: the paper covers the screen as it carries you through)
@@ -369,6 +370,7 @@ namespace Hiraeth.Bridge
             // (a trial or a game under way: its own HUD, the cue and the floating prompt gone, as the page's body.minigame)
             var mg = state.O("minigame");
             DrawCue(cueState, d == null && (hud || walk) && (mg == null || state.O("photo") != null));
+            DrawGames(state, hud);
             DrawMinigame(hud && d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
             DrawWords(hud ? state.O("words") : null);
             DrawToast(state.O("toast"), free);

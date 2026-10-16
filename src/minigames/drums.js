@@ -22,6 +22,7 @@ import { MODES, scoreFor, scoreFreq } from '../score.js';
 import { inputKind } from '../prompt-keys.js';
 import { promptText } from '../native-pad.js';
 import { arenaLevel } from './kit/world.js';
+import { screen, page } from '../platform.js';
 import {
   LANES, LEVELS, SONG, JUDGE, drumSong, eventsBetween, heardSongTime, newRun, judgePress, sweepMisses, runDone,
   accuracy, rank, timingAdvice, fervour, multiplier, FRAME_PATTERN,
@@ -213,6 +214,27 @@ export function ringLayout(w, h) {
 }
 const DIRS = { bottom: [0, 1], right: [1, 0], left: [-1, 0], top: [0, -1] };
 
+/**
+ * The overlay as the screen's 'drums' part (src/platform.js; an engine draws it: BridgeHud.Games.cs DrawDrums), all but the
+ * song's time: the lanes, the glyphs near (those Overlay.draw would draw now and in the next second: [index, time,
+ * lane, missed]), the approach, the beat's length, the song's, the buttons held, the last hit of each socket ({ lane,
+ * kind, id }: a renderer ages it from when its id first comes), the sockets' labels, the combo and its multiplier.
+ */
+export function drumsPart({ t, song, run, combo, mult, held, fx, labels, countdown }) {
+  const notes = [], ap = song.approach;
+  for (let i = run.next; i < song.notes.length; i++) {
+    const n = song.notes[i], ahead = n.t - t;
+    if (ahead > ap + 1) break;
+    if (run.judged[i] && run.judged[i] !== 'miss') continue;
+    if (ahead < -JUDGE.late - 0.25) continue;
+    notes.push([i, Math.round(n.t * 1000) / 1000, n.lane, run.judged[i] === 'miss' ? 1 : 0]);
+  }
+  const last = [];
+  for (let i = 0; i < song.lanes; i++) { const f = fx.filter((q) => q.lane === i).at(-1); if (f) last.push({ lane: i, kind: f.kind, id: f.id }); }
+  return { lanes: song.lanes, ap, spb: song.spb, len: song.length, late: JUDGE.late, notes, held: held.slice(0, song.lanes).map((h) => (h ? 1 : 0)), fx: last,
+    labels: labels.slice(0, song.lanes), combo, mult, countdown: !!countdown };
+}
+
 /** The glyph inside a note: the PlayStation shape of its button, in ink. */
 function glyphPath(g, at, s) {
   g.beginPath();
@@ -239,8 +261,10 @@ class Overlay {
       return d;
     });
     document.body.appendChild(this.el);
-    this.fx = [];   // the flashes: { lane, kind, t0 }
+    this.fx = [];   // the flashes: { lane, kind, t0, id }
+    this.fxN = 0;
     this.labelKind = null;
+    this.labelTexts = [];   // (the sockets' labels as written: the screen's part, drumsPart)
   }
   remove() { this.el.remove(); }
   /** The sockets' labels for what is held: the pad's buttons, the keys' arrows, nothing on a touch screen. */
@@ -249,6 +273,7 @@ class Overlay {
       const L = LANES[i], [dx, dy] = DIRS[L.at];
       const text = kind === 'pad' ? promptText(L.pad, { remap: false }) : kind === 'touch' ? '' : `${L.keyLabel} ${L.keys[1].slice(3)}`;
       if (d.textContent !== text) d.textContent = text;
+      this.labelTexts[i] = text;
       d.style.display = text ? '' : 'none';
       // (beside its socket, a turn of the ring clockwise from it: clear of the spokes)
       const a = Math.atan2(dy, dx) + Math.PI / 4.2, rr = lay.R + lay.r * 1.9;
@@ -256,11 +281,12 @@ class Overlay {
       d.style.top = `${lay.cy + Math.sin(a) * rr}px`;
     }
   }
-  flash(lane, kind, now) { this.fx.push({ lane, kind, t0: now }); if (this.fx.length > 16) this.fx.shift(); }
+  flash(lane, kind, now) { this.fx.push({ lane, kind, t0: now, id: ++this.fxN }); if (this.fx.length > 16) this.fx.shift(); }
 
   /** Draw the frame: song time t (s), the notes, the run (for what is judged), the beat's phase, the combo. */
   draw({ t, song, run, combo, mult, beat, held, progress, now, countdown }) {
     const dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight;
+    if (!page.drawsHud()) { this.lay = ringLayout(W, H); this.fx = this.fx.filter((f) => now - f.t0 < 0.6); return; }   // (an engine draws the screen's part)
     const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
     if (this.cv.width !== cw || this.cv.height !== ch) { this.cv.width = cw; this.cv.height = ch; }
     const g = this.cv.getContext('2d');
@@ -437,6 +463,7 @@ function start(ctx) {
   const held = [false, false, false, false];
   const clock = { t0: null, perf0: null, audio: false, paused: false, scheduled: -SONG.leadIn, ended: false, last: -Infinity };
   let heat = 0, beatHeard = -SONG.leadIn;
+  const auto = { on: false, up: [0, 0, 0, 0] };
 
   // ---- the people: made once (a body each is a while to build) and kept on the level for the retries
   if (!D.people) {
@@ -597,6 +624,18 @@ function start(ctx) {
     o.quaternion.setFromAxisAngle(_v.set(0, 1, 0), s.heading);
   };
 
+  // ---- the screen's part (drumsPart): sent when it changes, and the song's time with it at least four times a second
+  const pub = { key: '', at: -Infinity, n: 0 };
+  const publish = (shown, t, phase, now) => {
+    if (!shown) { pub.key = ''; screen.set('drums', null); return; }
+    const part = drumsPart({ t, song, run, combo: run.combo, mult: multiplier(run.combo), held, fx: overlay.fx, labels: overlay.labelTexts, countdown: phase !== 'play' });
+    const going = clock.t0 !== null && !clock.paused && !clock.ended;
+    const key = JSON.stringify(part) + going;
+    if (key === pub.key && now - pub.at < 250) return;
+    pub.key = key; pub.at = now;
+    screen.set('drums', { ...part, t: Math.round(t * 1000) / 1000, run: going, n: ++pub.n });
+  };
+
   placeCamera(0, 0);
   poseAll(1 / 60, -SONG.leadIn * spb, -SONG.leadIn);
   ctx.status(`0 pts · ${LEVELS[levelId].label}`);
@@ -616,6 +655,11 @@ function start(ctx) {
           if (on && !padWas[i]) press(i, padStamp(dt));
           if (on !== padWas[i]) held[i] = on;
           padWas[i] = on;
+        }
+        // (pose: the circle played by itself, every glyph on its beat: the screenshots' bot)
+        if (auto.on) {
+          for (let i = 0; i < 4; i++) if (auto.up[i] > 0 && (auto.up[i] -= dt) <= 0) held[i] = false;
+          for (let i = run.next; i < song.notes.length && song.notes[i].t <= t - offsetMs / 1000 + 0.004; i++) if (!run.judged[i]) { held[song.notes[i].lane] = true; auto.up[song.notes[i].lane] = 0.09; press(song.notes[i].lane, now); }
         }
         for (const n of sweepMisses(run, t - offsetMs / 1000)) { overlay.flash(n.lane, 'miss', now / 1000); band.dud(); }
         if (!clock.ended && runDone(run) && t > song.length + 0.6) {
@@ -646,6 +690,7 @@ function start(ctx) {
       const shown = phase !== 'intro' && phase !== 'results';
       if (overlay.shown !== shown) { overlay.el.style.display = shown ? '' : 'none'; overlay.shown = shown; }
       if (shown) overlay.draw({ t, song, run, combo: run.combo, mult: multiplier(run.combo), beat, held, progress: t / song.length, now: now / 1000, countdown: phase !== 'play' });
+      publish(shown, t, phase, now);
       ctx.status(`${run.score} pts${run.combo >= 10 ? ` · ×${multiplier(run.combo)}` : ''}`);
     },
     pause(on) {
@@ -660,6 +705,8 @@ function start(ctx) {
       // (the glyphs not played yet come round again; those played stay played)
     },
     run, song, clock, songAt, press, band,   // (for the tests' and the screenshots' bot)
+    /** The screenshots' pose (the bridge's -pose): from now on the circle plays itself, every glyph on its beat. */
+    pose() { auto.on = true; return true; },
     end() {
       clearInterval(timer);
       band.close(0.3);
@@ -668,6 +715,7 @@ function start(ctx) {
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('pointerdown', onPointer);
       overlay.remove();
+      screen.set('drums', null);
     },
   };
 }

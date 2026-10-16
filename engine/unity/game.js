@@ -529,11 +529,15 @@ function makePlan(args) {
     // the 3-2-1, the run a while (the stick forward), the pause (Esc), Resume, then the run left (Esc on the pause, Quit)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-${name}.png` }] : []);
     const tap = (code, frames = 3) => [{ kind: 'key', code, down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code, down: false }, { kind: 'wait', frames }];
+    const runKey = args.runKey ?? 'KeyW';
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...shot('card'), ...tap('Enter', 20), { kind: 'say', text: '[unity] run: counting' }, ...shot('count'),
-      { kind: 'wait', frames: 60, secs: 2.6 }, { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 60, secs: args.runSecs ?? 3 }, ...shot('run'),
+      // (-run-key: the key held through the run, W by default; -pose: the game's own pose for its pictures a moment before
+      // the run's, session.pose: the drum circle played by itself, a fish on the fishing's line)
+      { kind: 'wait', frames: 60, secs: 2.6 }, { kind: 'key', code: runKey, down: true }, { kind: 'wait', frames: 60, secs: args.runSecs ?? 3 },
+      ...(args.pose ? [{ kind: 'pose' }, { kind: 'wait', frames: 40, secs: 1.5 }] : []), ...shot('run'),
       // (-words: a fixed set of the minigames' words round the traveller, a second on: BridgeHud's DrawWords against the web's)
-      ...(args.words ? [{ kind: 'key', code: 'KeyW', down: false }, { kind: 'words' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('words')] : []),
-      { kind: 'key', code: 'KeyW', down: false }, ...tap('Escape', 10), ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
+      ...(args.words ? [{ kind: 'key', code: runKey, down: false }, { kind: 'words' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('words')] : []),
+      { kind: 'key', code: runKey, down: false }, ...tap('Escape', 10), ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
   }
   if (args.hudRun) {
     // (-hud-run secs: the floating prompt and the stamina wheel in motion, to watch or record, BridgeHud's -hud-trace
@@ -803,6 +807,7 @@ export function frame(dt) {
     next();
   }
   else if (step.kind === 'words') { planWords(game); console.log('[unity] words up'); next(); }
+  else if (step.kind === 'pose') { const ok = game.trials?.runner?.session?.pose?.(S.args.pose); console.log(`[unity] run: posed ${ok ? 'yes' : 'no pose'}`); next(); }
   else if (step.kind === 'stage') {
     const c = game.ship?.cinematic, sub = game.screen().state.sub?.text ?? '';
     console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);

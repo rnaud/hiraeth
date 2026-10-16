@@ -193,6 +193,10 @@ namespace Hiraeth.Bridge
             if (Arg("-run-secs") != null) args["runSecs"] = double.Parse(Arg("-run-secs"), CultureInfo.InvariantCulture);
             // (-words: with -trial / -game, a fixed set of the minigames' words put up after the run's picture and photographed)
             if (Flag("-words")) args["words"] = true;
+            // (-run-key KeyR: the key held through the run instead of W; -pose: the game's own pose a moment before the run's
+            // picture, session.pose: the drum circle played by itself, a fish on the fishing's line)
+            if (Arg("-run-key") != null) args["runKey"] = Arg("-run-key");
+            if (Flag("-pose")) args["pose"] = Arg("-pose") is string pk && !pk.StartsWith("-") ? pk : "on";   // (-pose catch: the fishing's catch card)
             // (-set-flags a,b: those flags set on the debug save before the world is built: engine/unity/game.js)
             if (Arg("-set-flags") != null) args["setFlags"] = Arg("-set-flags");
             // (-foes [world]: the Arena's list of foes photographed, a world's page, a foe chosen and fought: engine/unity/game.js)

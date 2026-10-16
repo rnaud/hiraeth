@@ -1076,7 +1076,16 @@ const GAME47E = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 128
 const SRC47E = 'issue #47 scratchpad motion-r5: before/, after/ (node), game-before1–3/, game-after1–3/ (the game; tools/bounds.mjs lists their events)';
 /** (v1.79, issue #264: the Unity preview's small gaps, the editor's batch on the Mac) */
 const UNITY264_SMALL = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, muted), `scripts/unity-js-run.sh -level desert -game cistern -run-secs 3 -words`: before with the engine’s and the words’ code as they were, after with this change; the web’s side in muted headless Chrome on this branch’s own Vite (port 6352).';
+const UNITY264_PANELS = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, its HUD on a 4:3 canvas 960 wide: the panels centre on x 480), muted, `scripts/unity-js-run.sh -game <id> -run-key … -pose`: before with the games’ code as it was (no pose), after with this change; the web’s side the same moment in muted headless Chrome on this branch’s own Vite.';
 export const CHANGELOG_MEDIA = {
+  '1.81': [
+    { match: 'In the Unity preview the drum circle, the sketch hunt', tags: ['devices'], shots: [
+      { name: 'unity-drums', title: 'The drum circle', caption: 'Seven seconds into the song, the circle playing itself: before, the camp black and nothing but the score; after, the drum’s ring round the fire, the dashed spokes, the glyphs rolling in, a held socket throwing ink, PERFECT and the combo, as the web draws them.', from: UNITY264_PANELS },
+      { name: 'unity-hunt', title: 'The sketch hunt', caption: 'The sketchbook up in the Signal Market, two of the list sketched and the silent tower in the frame: before, only the clock and the count; after, the list with its ticks and stars, the paper frame, its corners and thirds, the readout with its meter and the hint.', from: UNITY264_PANELS },
+      { name: 'unity-fishing', title: 'The fishing', caption: 'A fish on the line: before, only the time left; after, the journal, the pull’s arrows, the line’s meter in the red with its hatched zone, and the hint to ease off.', from: UNITY264_PANELS },
+      { name: 'unity-pirates', title: 'The chime pirates', caption: 'Ten seconds into the ambush, the captain hailing: before, no reticle and no radio; after, the reticle, the missile’s pip over the pirate it would take, the captain’s line at the bottom left and the missiles left in the hint row.', from: UNITY264_PANELS },
+    ], see: 'In the Unity preview, play the drum circle (by the pilgrims’ small fire in the desert), the sketch hunt (the Signal Market’s gate), the fishing (the Still Oasis’s pier) or the chime pirates (on a flight between worlds): their rings, lists, meters and reticles are drawn over the world as on the web.' },
+  ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [
       { name: 'fight-cloister-gust', only: 'after', title: 'A gust coming', caption: 'The cloister’s first wave: pale arrows run down a lane of the floor the way the wind will blow, two sky rays in it beside him. A moment later it blows them into the wall.', from: FIGHT341 },

@@ -25,6 +25,10 @@ export const page = {
   hasBodyClass: (name) => (hasDoc() ? !!document.body?.classList.contains(name) : false),
   exitPointerLock() { if (hasDoc()) document.exitPointerLock?.(); },
   activeElement: () => (hasDoc() ? document.activeElement : null),
+  /** Does the page draw a game's own HUD canvas (the drum circle's ring, the pirates' reticle)? Not in an engine
+   * (engine/platform.js hudIsData): there the game's screen part is drawn instead (BridgeHud.cs), and a full-screen
+   * canvas drawn into bytes each frame would only cost. */
+  drawsHud: () => hasDoc() && !document.hudIsData,
 };
 
 /** localStorage, never throwing (private windows, a full quota, no storage at all). */
@@ -74,10 +78,15 @@ export const audio = {
  *   words     { pops: [{ id, text, kind, at, secs }], says: [{ text, at }], tags: [{ title, text, at }] }   a minigame's words
  *             in the world (src/minigames/kit/labels.js): the "+10" that floats up from a point (kind '', gold, bad, combo;
  *             a renderer floats and fades it over secs from when its id first comes), a speech balloon, a label over a thing
+ *   drums     the drum circle's ring, sockets and glyphs (minigames/drums.js drumsPart): the song's time t (s, sent on a
+ *             change and four times a second, n counting the sends; a renderer runs it on while run), the glyphs near, the hits
+ *   hunt      the sketch hunt's list, viewfinder, flash and hint (minigames/sketchhunt.js)
+ *   fishing   the fishing's journal, line meter, pull, hint and catch card (minigames/fishing.js)
+ *   pirates   the chime pirates' reticle, lock, captain's bar, hull pips, hit flare (half-size canvas px) and comms line
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null, foeTab: null, words: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null },
   version: 0,
   _keys: {},
   set(part, value) {

@@ -207,6 +207,8 @@ class StubDocument extends Listeners {
     // (its canvases draw, into bytes: engine/raster.js; the backend sends a texture's as a picture, engine/unity/backend.js
     // textures. src/ship/art.js hasCanvas reads this: true, the ship's screen and pictures were their plain colours)
     this.canvasDrawsNothing = false;
+    // (a game's own HUD canvas is not drawn here: its screen part is, by the engine: src/platform.js page.drawsHud)
+    this.hudIsData = true;
   }
   createElement(tag) { return String(tag).toLowerCase() === 'canvas' ? new StubCanvas() : new StubElement(tag); }
   createElementNS(ns, tag) { return new StubElement(tag); }

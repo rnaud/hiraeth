@@ -27,6 +27,7 @@ import { optionKey } from './kit/flow.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
 import { FLY, BOSS, ATTACKS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget, targetPos } from './pirates-rules.js';
 import { pirateSounds } from './pirates-sfx.js';
+import { screen, page } from '../platform.js';
 
 const INK = '#2b211f';
 /** The height every ground query answers (no ground in space; finite, so what the host places on the ground has a place). */
@@ -439,18 +440,25 @@ function makeHud(root) {
   comms.className = 'pirates-comms off';
   root.prepend(cv);
   root.appendChild(comms);
-  let hideT = 0;
+  let hideT = 0, n = 0;
   return {
     cv, comms,
+    /** The comms line as the screen's part shows it ({ who, name, text, on, n }: n one a line), or null before the first. */
+    line: null,
     say(line) {
       comms.className = `pirates-comms ${line.who === 'captain' ? 'captain' : ''}`;
       comms.innerHTML = `<b>${SPEAKERS[line.who] ?? line.who}</b>${stripTone(line).replace(/[<>&]/g, '')}`;
       hideT = Math.min(6, 1.6 + stripTone(line).length * 0.055);
+      this.line = { who: line.who, name: SPEAKERS[line.who] ?? line.who, text: stripTone(line).replace(/[<>&]/g, ''), on: true, n: ++n };
     },
-    update(dt) { if (hideT > 0 && (hideT -= dt) <= 0) comms.classList.add('off'); },
+    update(dt) { if (hideT > 0 && (hideT -= dt) <= 0) { comms.classList.add('off'); if (this.line) this.line = { ...this.line, on: false }; } },
     dispose() { cv.remove(); comms.remove(); style.remove(); },
   };
 }
+
+/** A 2D context that draws nothing (an engine: the HUD is the screen's 'pirates' part there, src/platform.js page.drawsHud). */
+const NO_CANVAS = new Proxy({}, { get: (t, k) => (k === 'createRadialGradient' ? () => ({ addColorStop() {} }) : () => {}), set: () => true });
+const r1 = (v) => Math.round(v * 10) / 10;
 
 // ------------------------------------------------------------------ the game
 const _p = V(), _p2 = V(), _d = V(), _look = V(), _up = V(), _e = new THREE.Euler(), _qa = new THREE.Quaternion(), _proj = V();
@@ -869,9 +877,11 @@ function start(ctx) {
     if (!hud) return;
     const cv = hud.cv, W = Math.round(innerWidth / 2), H = Math.round(innerHeight / 2);
     if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
-    const g = cv.getContext('2d');
+    const g = page.drawsHud() ? cv.getContext('2d') : NO_CANVAS;
     g.clearRect(0, 0, W, H);
-    if (phase !== 'play') return;
+    // (the same as the screen's 'pirates' part, in the half-size canvas' px: an engine draws it, BridgeHud.Games.cs DrawPirates)
+    const M = { W, H, comms: hud.line };
+    if (phase !== 'play') { screen.set('pirates', M.comms ? M : null); return; }
     const P = S.ship;
     g.lineJoin = 'round';
     // the aim (issue #357: "I don't understand the double reticule. We can make one nicer single reticule"): one
@@ -892,6 +902,8 @@ function start(ctx) {
       run.reticle = { x: x / W, y: y / H };
       const R = RETICLE.r - (RETICLE.r - RETICLE.tight) * on, gap = RETICLE.gap;
       inked(() => { for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x, y, R, k * Math.PI / 2 + gap, (k + 1) * Math.PI / 2 - gap); g.stroke(); } }, 2.1);
+      M.ret = { x: r1(x), y: r1(y), r: r1(R), gap, hot, dot: RETICLE.dot, charge: P.charge > 0 ? r1(Math.min(1, P.charge) * 100) / 100 : 0, full, cr: RETICLE.charge,
+        hit: run.hitT > 0 ? { k: Math.round(run.hitT / HIT_MARK * 100) / 100, big: !!run.hitBig } : null };
       // the dot in the middle
       g.beginPath(); g.arc(x, y, RETICLE.dot, 0, Math.PI * 2);
       g.fillStyle = hot; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.2; g.stroke();
@@ -918,6 +930,7 @@ function start(ctx) {
         const p = project(world(at.ds, at.u, at.v, _p));
         if (p.front) {
           const x = p.x * W, y = p.y * H, r = Math.max(10, 900 / Math.max(10, at.ds + CAM.back)) * (at.r ?? 2.5) / 2;
+          M.lock = { x: r1(x), y: r1(y), r: r1(r) };
           const b = (sx, sy) => { g.beginPath(); g.moveTo(x + sx * r, y + sy * (r - 6)); g.lineTo(x + sx * r, y + sy * r); g.lineTo(x + sx * (r - 6), y + sy * r); g.stroke(); };
           for (const [lw, c] of [[5, INK], [2.4, '#ef9479']]) { g.lineWidth = lw; g.strokeStyle = c; b(-1, -1); b(1, -1); b(-1, 1); b(1, 1); }
           g.font = `700 10px ${FACE}`; g.textAlign = 'center';
@@ -933,6 +946,7 @@ function start(ctx) {
         const p = project(world(at.ds, at.u, at.v, _p));
         if (p.front) {
           const x = p.x * W, y = p.y * H - Math.max(9, 900 / Math.max(10, at.ds + CAM.back)) * (at.r ?? 2.5) / 2 - 7;
+          M.pip = { x: r1(x), y: r1(y) };
           g.beginPath(); g.moveTo(x - 3.6, y - 4.5); g.lineTo(x + 3.6, y - 4.5); g.lineTo(x, y); g.closePath();
           g.fillStyle = '#9ff2e6'; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.6; g.stroke();
         }
@@ -945,6 +959,7 @@ function start(ctx) {
       g.font = `700 10px ${FACE}`; g.textAlign = 'center';
       g.lineWidth = 3; g.strokeStyle = INK; g.strokeText('THE CAPTAIN’S GUNSHIP', W / 2, y0 - 4); g.fillStyle = '#f7ecd2'; g.fillText('THE CAPTAIN’S GUNSHIP', W / 2, y0 - 4);
       const order = ['gunL', 'core', 'gunR'], seg = (w - 8) / 3;
+      M.bar = { x: r1(x0), y: y0, w: r1(w), parts: order.map((id) => { const p = B.parts.find((q) => q.id === id); return { k: Math.round(Math.max(0, p.hp) / p.hp0 * 1000) / 1000, c: p.armoured && !B.open ? '#6b5a4e' : id === 'core' ? '#9ff2e6' : '#c99d48' }; }) };
       order.forEach((id, i) => {
         const p = B.parts.find((q) => q.id === id), x = x0 + i * (seg + 4);
         g.fillStyle = INK; g.fillRect(x - 1.5, y0 - 1.5, seg + 3, 10);
@@ -959,7 +974,9 @@ function start(ctx) {
       const sp = project(world(0, P.u, P.v, _p));
       if (sp.front) {
         const n = P.hull0, gap = 11, x0 = sp.x * W - (n - 1) * gap / 2, y = sp.y * H + 24;
-        g.globalAlpha = Math.max(low ? 0.6 : 0, Math.min(1, run.pipT / 0.4));
+        const pa = Math.max(low ? 0.6 : 0, Math.min(1, run.pipT / 0.4));
+        g.globalAlpha = pa;
+        M.hull = { x0: r1(x0), y: r1(y), gap, n, full: P.hull, low, a: Math.round(pa * 100) / 100, lost: run.lostT > 0 && run.lostI != null ? { i: run.lostI, k: Math.round((1 - run.lostT / HURT.lost) * 100) / 100 } : null };
         for (let i = 0; i < n; i++) {
           const x = x0 + i * gap, full = i < P.hull;
           g.beginPath(); g.arc(x, y, 3.8, 0, Math.PI * 2);
@@ -979,12 +996,14 @@ function start(ctx) {
     // hit: the screen's edges flare coral and red a moment, an ink band round them (and the view shakes: drawCamera)
     if (run.redT > 0) {
       const k = Math.pow(run.redT / HURT.flash, 0.7), m = Math.max(W, H);
+      M.red = Math.round(k * 100) / 100;
       const v = g.createRadialGradient(W / 2, H / 2, m * 0.32, W / 2, H / 2, m * 0.72);
       v.addColorStop(0, 'rgba(217, 70, 40, 0)'); v.addColorStop(1, `rgba(217, 70, 40, ${0.78 * k})`);
       g.fillStyle = v; g.fillRect(0, 0, W, H);
       g.strokeStyle = `rgba(43, 33, 31, ${0.85 * k})`; g.lineWidth = 9; g.strokeRect(0, 0, W, H);
       g.strokeStyle = `rgba(255, 90, 60, ${k})`; g.lineWidth = 4; g.strokeRect(6, 6, W - 12, H - 12);
     }
+    screen.set('pirates', M);
   }
   /** Two colours mixed (k 0..1), as a CSS colour. */
   function mix(a, b, k) { return '#' + _c.set(a).lerp(_c2.set(b), Math.max(0, Math.min(1, k))).getHexString(); }
@@ -1005,7 +1024,13 @@ function start(ctx) {
     run.onTarget = !!run.target;
     // the missiles left, under the hints at the bottom right (issue #224)
     const mk = `${S.ship.missiles}/${FLY.missile.count}`;
-    if (mk !== run.missileNote) { run.missileNote = mk; ctx.hintNote?.(`<span class="pirates-missiles">MISSILES${Array.from({ length: FLY.missile.count }, (_, i) => `<i class="${i < S.ship.missiles ? '' : 'gone'}"></i>`).join('')}</span>`); }
+    if (mk !== run.missileNote) {
+      run.missileNote = mk;
+      const left = (i) => i < S.ship.missiles;
+      // (an engine's: the pills as coloured bars in the hint row's rich text, BridgeHud.cs DrawMinigame)
+      ctx.hintNote?.(`<span class="pirates-missiles">MISSILES${Array.from({ length: FLY.missile.count }, (_, i) => `<i class="${left(i) ? '' : 'gone'}"></i>`).join('')}</span>`,
+        `MISSILES ${Array.from({ length: FLY.missile.count }, (_, i) => `<color=${left(i) ? '#ef9479' : '#ef947966'}>▮</color>`).join('')}`);
+    }
     run.aimK += ((run.onTarget ? 1 : 0) - run.aimK) * Math.min(1, dt * 14);
     drawHud(phase);
     if (phase === 'results') tally(dt);
@@ -1068,9 +1093,12 @@ function start(ctx) {
       }
       tick(dt, phase);
     },
+    /** The screenshots' pose (the bridge's -pose): the captain hails (or a line of AMBUSH_LINES by its id) over the comms. */
+    pose(kind) { say(AMBUSH_LINES[kind] ? kind : 'captain'); return !!hud; },
     end() {
       snd.engine(0);
       hud?.dispose();
+      screen.set('pirates', null);
       words.dispose();
       fire.dispose(); smoke.dispose();
       for (const m of [fire.mesh, smoke.mesh]) { const i = level.noShadow?.indexOf(m) ?? -1; if (i >= 0) level.noShadow.splice(i, 1); }

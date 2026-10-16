@@ -112,7 +112,7 @@ export class MinigameRunner {
       /** A line of the game's own in the score's box (the speed, the gates): null gives the box back to the score. */
       status(text) { R.statusText = text; },
       /** A line beside the controls' hint row (def.hints; html), or null: it stays while the row fades (the missiles left). */
-      hintNote(html) { R.hintNote = html ?? null; },
+      hintNote(html, text) { R.hintNote = html ?? null; R.hintNoteText = text ?? null; },   // (text: the line as an engine shows it, BridgeHud.cs; plain html by default)
       /** A button of the hint row was used (its id: the row's third field, or its word): its word fades (issue #326). */
       hintUsed(id) { if (!R.hintsUsed.has(id)) R.hintsUsed.set(id, R.hintAge); },
       /** Lives (null: none shown). */
@@ -515,7 +515,7 @@ export class MinigameRunner {
     if (d.hints) {
       const kind = inputKind(), live = ['count', 'play'].includes(this.phase) && !this.paused;
       const row = hintRow(controlsFor({ controls: d.hints }, kind), { age: this.hintAge, used: this.hintsUsed, live });
-      hints = { off: !live || (row.off && !this.hintNote), items: row.items.map((i) => ({ k: keyText(i.k, { kind, teach: true }), w: i.w, gone: i.gone || row.off })), note: this.hintNote ? plainHtml(this.hintNote) : '' };
+      hints = { off: !live || (row.off && !this.hintNote), items: row.items.map((i) => ({ k: keyText(i.k, { kind, teach: true }), w: i.w, gone: i.gone || row.off })), note: this.hintNote ? this.hintNoteText ?? plainHtml(this.hintNote) : '' };
     }
     screen.set('minigame', { on: this.hudOn && !this.paused && !this.cardModel, timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
       count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20 });

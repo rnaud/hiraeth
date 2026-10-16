@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.81 — 2026-10-16
+
+- In the Unity preview the drum circle, the sketch hunt, the fishing and the chime pirates show their own pieces as on the web: the drum’s ring with its glyphs rolling in, its sockets, hits and combo; the sketch list, the sketchbook’s frame and what it holds; the fishing journal, the line’s tension meter and the catch card; the pirates’ reticle, lock, captain’s bar, hull pips, missiles and radio lines. The drum circle’s camp no longer goes black once the count starts.
+
 ## v1.80 — 2026-10-15
 
 - The Unity preview on the Retroid draws the world’s still buildings and props in fewer batches: up to 3 frames a second more in the City Floating in Space and the Signal Market, 1 more over the City-Shaft. With the frame readout on, each world’s first seconds no longer stutter once.
