@@ -2960,6 +2960,95 @@ start and in the Signal Market): the GPU is still the frame wherever Unity is be
 To repeat: `NO_UPLOAD=1 scripts/unity-android-release.sh`, `adb install -r -d` the APK, then each world's bench as in
 "Unity on the Retroid" above; `-split` needs a development build (`-development` on BridgeBuild.AndroidRelease).
 
+### Unity on the Retroid: every world, what the web leaves out far away, the shadows' draws (2026-10-16, issue #262)
+
+The fourth pass, and the first over **all sixteen worlds** (the bench's 69 views: viewpoints.json's desert,
+viewpoints-worlds.json's others), the Unity build against GeckoView on the Retroid Pocket Nova (Handheld at 0.75 of
+1280 × 960, muted, the frame readout on, one sitting). Before: this branch's base (e1c00a29d) built on the Mac; after:
+this change; GeckoView: the same commit's `dist` (`android-worlds.mjs --modes fixed --scale 0.75`). The bench now reads
+what Unity drew (`res.rs`: the Render profiler's SetPass calls, triangles and vertices over every pass, mean a frame;
+a release player counts no draw calls).
+
+**What was tried and measured first** (the City-Shaft's start / wide view, GPU ms, before 25.2 / 29.8):
+- **Fewer vertices do not buy GPU time.** The big still meshes drawn by pieces in the view too (BridgeShadowChunks' cut,
+  the web's tileScene for meshes): 8.9 → 4.9 M vertices and 4.8 → 3.8 M triangles a frame, the GPU 24.8 → 24.5 and
+  29.7 → **31.3** (more draws, and the main thread 3 ms longer). Each still mesh's points in a vertex stream of their own
+  (what a tiled GPU's binning pass reads), and their normals and colours as half floats: within the noise (±0.3). The
+  web's levels of detail run in the engine (lod.js, its levels built on the script's thread): 0.15 M triangles fewer,
+  0.4 ms, and the first view's 1 % low 26 → 18 fps while they were built. None kept.
+- **The draws' order** after the prepass (by shader and material instead of front to back): 1 ms at the start view,
+  nothing wide; not kept. URP's own shadow maps are not drawn (`-no-urp-shadows` changes nothing).
+- **Where it does go**: the render scale at 0.375 (a quarter of the pixels) takes the start 22.3 → 15.7 ms and the wide
+  view 27.9 → 18.7: 13-16 ms that does not scale with the pixels and is not the meshes' vertices. The GPU instances
+  (InstMats: rocks, plants, kits, the bodies' repeated parts) are the largest part of it found: `-hide inst` takes
+  4.3-4.6 ms off (1.2 M triangles, 290 SetPass calls); the shadow maps 2-3.5 (`-no-shadows -no-urp-shadows`); the plain
+  meshes 3.5 with their pixels (`-hide mesh`); the skinned people, the crowd: under 0.6 each.
+
+**What changed:**
+- **The small props past the preset's propFar left out, as the web does.** main.js cuts the big instanced sets into
+  110 m tiles and hides each frame the tiles of small props past `propFar` (320 m at Handheld), with the level's small
+  props and the flora's (perf.js tileScene, cullFar); the engine ran neither, so Unity drew all of them to the horizon.
+  Now engine/game.js culls the level's and the flora's small props each frame with the same cullFar, and gives each set
+  main.js would tile (perf.js `tilesInstances`, the same rule) its distance, `userData.instancesFar` = its `drawFar` or
+  propFar, plus a tile's reach (77.8 m: main.js keeps a tile whose centre is within propFar of its radius); the mirror
+  sends it (`far`) and InstMats leaves out, in the view and in each cascade, the instances whose reach is wholly past it
+  (InstMats.far, by the eye, `ViewEye`). Tiling the sets in the engine instead (as main.js) left the triangles where
+  they were and made a draw of every tile: the per-instance cut is the same rule without the draws. `-js-off far` as
+  before.
+- **The shadow maps' casters as renderer lists on Android**, as on the Xbox since round 2 there (HiraethShadows: the
+  movers culled by the engine per cascade, the big still meshes cast by pieces, the instances culled one by one):
+  the SetPass calls a frame halve (the City-Shaft's start 910 → 494, the desert's spawn 359 → 217, Lorn's 548 → 234),
+  1-3 ms of GPU where the shadows had many casters (the City-Shaft, the desert, Lorn), none in the Signal Market.
+  `-shadow-draws` as before. In Lorn it also matches the web's picture better: the draws drew some caster the lists'
+  sweep leaves out, which put the start's and the wide view's whole ground in shade where the web's is lit.
+- **A crash it brought out**: with renderer lists, another camera's frame (a portrait, a page's sketch) reused the
+  last main camera's culling results, and Home's first seconds crashed the player (SIGSEGV in
+  PrepareDrawRenderersCommand, symbolised with Unity's libunity.sym.so). HiraethShadows now marks a plan culled only by
+  CullFor, draws another camera's movers one by one, and has the main camera prepare its own plans again after one.
+  The Xbox ran the same code: the fix is shared.
+
+**Every world** (fps: the mean over each view's 6 s, the median of the world's views and its worst view; 1 % low: the
+mean rate of the slowest 1 % of frames, the median of the views; GPU: Unity's GPU ms a frame, the median of the views):
+
+| world (views) | Unity before: fps, worst, 1 % low, GPU | Unity after: fps, worst, 1 % low, GPU | GeckoView: fps, worst, 1 % low | after − GeckoView, worst view |
+|---|---|---|---|---|
+| Desert (5) | 60.1, 51.1, 53.5, 14.4 | 60.1, 54.0, 46.8, 14.3 | 59.3, 55.5, 30.0 | −1.5 |
+| City-Shaft (4) | 50.7, 33.5, 34.8, 25.3 | 56.7, 35.8, 44.9, 22.4 | 52.1, 37.0, 30.0 | −1.2 |
+| Signal Market (4) | 55.1, 51.7, 47.5, 18.4 | 55.5, 52.0, 48.7, 18.1 | 59.6, 59.4, 32.8 | −7.4 |
+| Vael (4) | 60.1, 52.4, 48.5, 16.6 | 60.1, 59.8, 49.7, 15.8 | 59.2, 58.9, 30.0 | +0.9 |
+| Vael II (4) | 60.1, 47.6, 54.8, 15.6 | 60.1, 51.5, 55.9, 14.7 | 59.6, 52.1, 32.7 | −0.6 |
+| Hangar (4) | 60.1, 60.1, 53.0, 13.6 | 60.1, 60.1, 54.7, 13.2 | 59.6, 59.3, 32.8 | +0.8 |
+| Buried Machine (6) | 60.1, 55.7, 54.8, 15.8 | 60.1, 56.3, 54.0, 15.8 | 59.4, 56.4, 30.0 | −0.1 |
+| Viridel (4) | 60.1, 60.1, 53.7, 13.6 | 60.1, 59.8, 53.2, 13.6 | 59.7, 58.8, 36.1 | +1.0 |
+| Garden of Spheres (4) | 60.1, 58.2, 53.2, 16.7 | 60.1, 59.8, 53.8, 15.7 | 59.5, 59.4, 30.1 | +0.4 |
+| Lorn (4) | 60.1, 44.2, 50.6, 20.2 | 60.1, 46.8, 55.0, 19.4 | 59.6, 57.2, 32.8 | −10.4 |
+| Lorn II (4) | 49.8, 46.4, 42.3, 20.9 | 52.2, 49.2, 42.8, 19.4 | 57.2, 52.8, 30.0 | −3.6 |
+| Home (3) | 60.1, 59.9, 54.4, 12.3 | 60.1, 59.9, 52.4, 12.3 | 59.7, 59.6, 36.1 | +0.3 |
+| Glass Dunes (7) | 60.1, 60.1, 54.0, 14.1 | 60.1, 60.1, 54.6, 13.9 | 59.7, 58.8, 36.1 | +1.3 |
+| Underwater (4) | 56.7, 49.7, 45.3, 17.6 | 56.7, 50.0, 44.3, 17.5 | 59.4, 58.8, 30.0 | −8.8 |
+| Floating city (4) | 60.1, 50.8, 50.7, 18.0 | 60.1, 51.0, 53.0, 18.1 | 59.9, 58.9, 45.0 | −7.9 |
+| Moon Foundry (4) | 60.1, 57.8, 53.8, 16.2 | 60.1, 58.6, 55.0, 16.1 | 59.7, 59.1, 36.0 | −0.5 |
+
+The GPU 0.7 ms less a view on average (69 views), up to 3 ms (the City-Shaft's crowds, 15.8 → 13.1 and 19.9 → 16.8;
+its start 25.2 → 22.4, 40 → 44 fps). Unity's 1 % lows stay above GeckoView's (the views' medians 45-56 against 30-45:
+GeckoView's late frames are whole missed refreshes), but a few views dip lower than before (the desert's
+spawn and camps 35-39 → 30-31, Lorn's start 32 → 27; the City-Shaft's better: not explained yet, most are a world's first view, the one
+measured soonest after its load), and it is level with or ahead of GeckoView in nine worlds (Vael, the Hangar,
+Viridel, the Garden of Spheres, Home, the Glass Dunes, the Moon Foundry, the Buried Machine and Vael II within a frame).
+The picture: the bench's shots before and after differ where the world moves (smoke, fire, people, cabs), and in Lorn
+(the shadows, above).
+
+**What is left** (behind in the worst view by 7-10 fps in the Signal Market, Lorn, Underwater and the Floating city,
+1-4 in the desert's spawn, the City-Shaft and Lorn II; the GPU 18-22 ms there): the 13-16 ms that do not scale with the
+pixels, of which the GPU instances are the largest part found (each set its own procedural draw in every pass, with its
+own material and buffer: the bodies' repeated parts are sets of 3-10); then the Surface shader's fragment work (round 3)
+and the depth prepass the web does not draw. SetPass calls are not it: the Signal Market's halved with no GPU time saved.
+
+To repeat: build as above, then for each world `-mute -metrics -level <world> -views <its views> -bench 6 -out <dir>`
+(the plan in the intent's `unity` extra: `am start -n com.rnaud.hiraeth.unity/com.unity3d.player.UnityPlayerGameActivity
+-e unity '<plan>'`, the plan read back from the log before anything is measured), pull `unity-bench.json` (its `rs`)
+and the views' shots; `-js-off far -shadow-draws` gives the old behaviour on the same build.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

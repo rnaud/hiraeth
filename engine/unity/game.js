@@ -292,6 +292,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (off.has('shape')) backend.shapeAttrs = null;
   if (off.has('copy')) backend.frameView = false;
   if (off.has('portrait')) backend.portrait = null;   // (portrait: a conversation's chip without its picture, their initial instead)
+  // (far: the small props past the preset's propFar drawn all the same, engine/game.js, issue #262)
   // (gestures: the conversations' captured gestures left unloaded, public/anim/gestures.glb, issue #197)
   // (played, the title's state kept: its menus, settings and the save chosen)
   S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
@@ -334,7 +335,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes, defer: !off.has('defer') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes, defer: !off.has('defer'), far: !off.has('far') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
@@ -892,7 +893,7 @@ export function frame(dt) {
   else if (step.kind === 'wait') { P.t += Math.min(dt, 0.05); if (++P.wait >= step.frames && P.t >= (step.secs ?? 0)) next(); }
   else if (step.kind === 'measure') {
     if (!P.samples && step.talk) talkClock(game, P);
-    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
+    if (!P.samples) { game.mirror.profiling = !!S.args.split; game.sectionsOn = !!S.args.split; game.sections?.(); game.mirror.profile(); backend.stats.hostMs = 0; host.ApplyMs(); host.ClothMs?.(); host.CapeMs?.(); host.WaitMs?.(); host.GpuSplit?.(); host.RenderStats?.(); S.audioMs = 0; P.n0 = backend.stats.frames; S.lookMs = 0; S.looks = backend.stats.looks ?? 0; }
     if (step.path) {   // (along the path by the clock: the traveller set there, not walked, as the web bench does)
       P.pathT0 ??= now();
       const at = pathAt(step.path, ((now() - P.pathT0) / 1000) * (step.path.speed ?? 4));
@@ -916,6 +917,8 @@ export function frame(dt) {
       const res = { split, view: step.view.name, frames: s.length, frame: q('dt', 0.5), frameP95: q('dt', 0.95), frameP99: q('dt', 0.99), hitches, vm: q('vm', 0.5), update: q('update', 0.5), mirror: q('mirror', 0.5), cpu: q('cpu', 0.5), gpu: q('gpu', 0.5), moved: q('moved', 0.5), drawn: r.stats.drawn, commandBytes: backend.stats.commandBytes, opWords: backend.stats.opWords, visited: r.stats.visited };
       // (every frame's interval, for the 1 % lows and the stalls: scripts/bench/deck-engines-summary.mjs)
       res.raw = s.map((x) => +x.dt.toFixed(2));
+      // (what Unity drew a frame over the measure: its SetPass calls, triangles and vertices, every pass)
+      try { res.rs = JSON.parse(host.RenderStats?.() ?? '{}'); } catch { /* none */ }
       S.results.push(res);
       console.log(`[bench] ${JSON.stringify(res)}`);
       P.samples = null; P.pathT0 = null;

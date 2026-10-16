@@ -40,7 +40,7 @@ import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, CROWD_DIST_CELL, buildPeople } from '../src/crowd.js';
-import { QUALITY_PRESETS, SmallCuller } from '../src/perf.js';
+import { QUALITY_PRESETS, SmallCuller, tilesInstances, cullFar } from '../src/perf.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
@@ -143,6 +143,8 @@ const SHOP_EL = { classList: { add() {}, remove() {}, toggle() {}, contains: () 
 /** Sound where the engine has none: every call taken, nothing played. */
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
+// how far a tile of main.js's instanced sets reaches round its centre (perf.js tileScene's 110 m cells: half their diagonal)
+const PROP_TILE_REACH = 110 * Math.SQRT1_2;
 
 /**
  * The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. `title`: the
@@ -266,7 +268,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -464,6 +466,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, density: Q?.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
+  // the small props past the preset's propFar left out of every pass, as main.js's cullFar does (issue #262): the level's
+  // small props and the flora's each frame (below), and the big instanced sets main.js cuts into tiles (perf.js
+  // tilesInstances) instance by instance where they are drawn (the mirror's `far`: Unity's InstMats.far), whole, past
+  // propFar and a tile's reach (main.js leaves out a tile whose centre is past propFar by more than its radius)
+  const small = farOn ? [...(level.smallProps ?? []), ...(flora?.small ?? [])] : [];
+  if (farOn && Q?.propFar) scene.traverse((o) => { if (tilesInstances(o)) o.userData.instancesFar = (o.userData.drawFar ?? Q.propFar) + PROP_TILE_REACH; });
   if (flora?.noShadow) (level.noShadow ??= []).push(...flora.noShadow);
   // grass blades round the camera on the grassy grounds (flora-grass.js), by the graphics preset (the bench's: High), as main.js grows them
   const grass = optional('the grass blades', () => buildGrass({ scene, level, physics, presetKey: grassPreset, water: FLORA_WORLDS[levelId]?.water,
@@ -1363,10 +1371,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const tB = performance.now();
       mirror.time = simT;
       // (the props under the preset's pixels on screen hidden for this frame's mirror, shown again after: main.js renderFrame)
-      const hidden = Q?.propPx ? (smallCull ??= new SmallCuller(scene)).hide(camera, pxPerRad, Q.propPx, []) : null;
+      const hidden = Q?.propPx ? (smallCull ??= new SmallCuller(scene)).hide(camera, pxPerRad, Q.propPx, []) : [];
+      // (and the small props' tiles past the preset's propFar: main.js renderFrame's cullFar)
+      if (Q?.propFar && small.length) cullFar(small, camera, Q.propFar, hidden);
       veilsFrame();
       const stats = mirror.sync(scene, camera);
-      if (hidden) for (const o of hidden) o.visible = true;
+      for (const o of hidden) o.visible = true;
       // what the camera saw, as main.js after drawing: the next frame's fires and machines skip what is out of it
       // (src/motion-kit/view.js: the kit's detail tiers, the flames' tongues)
       setView(camera);

@@ -143,6 +143,21 @@ export const CHANGELOG = [
     // the stairs at a run (issue #47, fifth round): src/locomotion.js StairLine / STAIR_LINE (the drawn body on the stairs'
     // line, read ahead), src/feet.js FEET.rideOver, dropKeep, softFlight; tests/motion-qc.test.js ("fifth round", StairLine)
     'Sprinting up or down stairs, his body now rides the line of the flight, rising smoothly onto it and levelling out onto the landing, instead of climbing in jerks step by step and stopping dead at the top; his kicked-back foot no longer folds up against his hip on the way, and his knees no longer flick as his feet land on the steps.',
+    // the Unity build's GPU on the Retroid, round 4 (issue #262): engine/game.js (cullFar on the small props, instancesFar
+    // on main.js's tiled sets: perf.js tilesInstances), engine/unity/backend.js desc.far, InstMats.far (Wildlife.cs),
+    // the shadows' renderer lists on Android (BridgeRunner), HiraethShadows (another camera's plans: Home's crash);
+    // tests/unity-retroid-far.test.js; docs/systems/performance.md "Unity on the Retroid: every world"
+    { text: 'The Unity preview on the Retroid runs smoother where the most is drawn: small props past the distance the web version stops drawing them at are left out here too, and the shadows are drawn in far fewer batches. 44 frames a second at the City-Shaft’s start (40 before), 57 in its second crowd (51), 54 where the Desert starts (51), 47 in Lorn (44). In Lorn the ground is no longer wrongly in shadow.',
+      numbers: [{ title: 'Frames a second in the Unity preview, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova, Handheld preset at 0.75 of 1280 × 960, muted', rows: [
+        { where: 'the City-Shaft, its start', before: 40.3, after: 44.4 },
+        { where: 'the City-Shaft, the second crowd', before: 50.7, after: 56.7 },
+        { where: 'the City-Shaft, the wide view', before: 33.5, after: 35.8 },
+        { where: 'the Desert, the spawn', before: 51.1, after: 54.0 },
+        { where: 'the Desert, the camps', before: 52.5, after: 55.6 },
+        { where: 'Lorn, its start', before: 44.2, after: 46.8 },
+        { where: 'Lorn II, the wide view', before: 46.4, after: 49.2 },
+        { where: 'Vael, the second crowd', before: 52.4, after: 60.1 },
+      ], source: 'the bridge\'s bench (-views -bench 6), every world\'s views, 16 October; the mean rate over each view', note: 'The GPU 0.7 ms less a frame across all 69 views, up to 3 ms. GeckoView, the web version, is still ahead by 7–10 fps in the Signal Market, Lorn, Underwater and the City Floating in Space.' }] },
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

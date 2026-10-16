@@ -385,6 +385,8 @@ namespace Hiraeth.Bridge
         public static double LastFrameCpuMs() => OnMain ? (Runner ? Runner.cpuMs : 0) : cpuMs;
         public static double LastFrameGpuMs() => OnMain ? (Runner ? Runner.gpuMs : 0) : gpuMs;
         /// <summary>The GPU's passes, ms a frame since the last call (BridgeGpuSplit; "{}" without -split).</summary>
+        /// <summary>Unity's SetPass calls, triangles and vertices, the mean a frame since the last call (JSON: BridgeRunner.RenderStats).</summary>
+        public static string RenderStats() => Ask(() => Runner ? Runner.RenderStats() : "{}");
         public static string GpuSplit() => Ask(() => Runner && Runner.gpuSplit != null ? Runner.gpuSplit.Take() : "{}");
         /// <summary>The C# side's time applying the frames' commands since the last call (ms, summed).</summary>
         public static double ApplyMs() { var r = R; if (r is null) return 0; var v = r.msFrame; r.msFrame = 0; return v; }

@@ -439,8 +439,9 @@ namespace Hiraeth.Bridge
             // (-no-shadows: the port's shadow maps off, a test: their casters are gathered on the main thread each frame)
             if (BridgeArgs.Flag("-no-shadows")) HiraethShadows.On = false;
             // the shadow maps' movers culled by the engine per cascade and drawn as renderer lists (the SRP Batcher's path) on the
-            // Xbox, instead of a DrawRenderer a caster; -shadow-draws as before, -shadow-lists elsewhere
-#if UNITY_WSA && !UNITY_EDITOR
+            // Xbox and Android, instead of a DrawRenderer a caster (the Retroid: 440 fewer SetPass calls at the City-Shaft's start,
+            // its GPU 2-3 ms less there, the desert's 1-1.6, issue #262); -shadow-draws as before, -shadow-lists elsewhere
+#if (UNITY_WSA || UNITY_ANDROID) && !UNITY_EDITOR
             HiraethShadows.UseRendererLists = !BridgeArgs.Flag("-shadow-draws");
 #else
             HiraethShadows.UseRendererLists = BridgeArgs.Flag("-shadow-lists");
@@ -574,6 +575,7 @@ namespace Hiraeth.Bridge
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
             gpuSplit?.Tick();
+            SampleRenderStats();
             DynamicResolution();
             if (thread != null)
             {
@@ -931,9 +933,36 @@ namespace Hiraeth.Bridge
             else Application.Quit(code);
         }
 
+        // what Unity drew a frame (the Render profiler's counters; issue #262): SetPass calls, triangles and
+        // vertices over every pass, summed until RenderStats takes them (-1: not counted; a release player counts no draw calls)
+        Unity.Profiling.ProfilerRecorder[] renderRec;
+        static readonly string[] RenderStatNames = { "SetPass Calls Count", "Triangles Count", "Vertices Count" };
+        readonly double[] renderSum = new double[3];
+        int renderN;
+        void SampleRenderStats()
+        {
+            if (renderRec == null)
+            {
+                renderRec = new Unity.Profiling.ProfilerRecorder[RenderStatNames.Length];
+                for (int i = 0; i < renderRec.Length; i++) renderRec[i] = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, RenderStatNames[i]);
+            }
+            for (int i = 0; i < renderRec.Length; i++) renderSum[i] += renderRec[i].Valid ? renderRec[i].LastValue : -1;
+            renderN++;
+        }
+        /// <summary>The frames' mean SetPass calls, triangles and vertices since the last call (JSON).</summary>
+        public string RenderStats()
+        {
+            int n = Mathf.Max(renderN, 1);
+            var s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{{\"setpass\":{0:0},\"tris\":{1:0},\"verts\":{2:0},\"frames\":{3}}}",
+                renderSum[0] / n, renderSum[1] / n, renderSum[2] / n, renderN);
+            System.Array.Clear(renderSum, 0, renderSum.Length); renderN = 0;
+            return s;
+        }
+
         void OnDestroy()
         {
             RenderPipelineManager.beginCameraRendering -= CullShadows;
+            if (renderRec != null) foreach (var r in renderRec) r.Dispose();
             quit = true; go.Set(); BridgeHost.AudioWake.Set();
             if (BridgeHost.Runner == this) BridgeHost.Runner = null;
             // (not on the way out: V8 tears down with the process, and disposing its isolate then aborts)

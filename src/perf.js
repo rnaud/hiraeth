@@ -25,6 +25,13 @@ function spread(o) {
 }
 
 export function tileScene(scene, o = {}) { return runSteps(tileSceneSteps(scene, o)); }
+/** Is this mesh one of the instanced sets tileScene cuts into tiles (whose far tiles cullFar then leaves out)? */
+export function tilesInstances(o, propTile = 110) {
+  if (!o.isInstancedMesh || Array.isArray(o.material) || o.userData.dynamic || o.userData.tiled || !o.geometry.attributes.position) return false;
+  if (o.instanceMatrix.usage === THREE.DynamicDrawUsage) return false;
+  const total = o.count * triangleCount(o.geometry);
+  return (o.count > 300 || (o.count >= 48 && total >= 30000)) && spread(o) > propTile * 0.6;
+}
 /** tileScene a mesh a step (src/load-steps.js: the terrain-sized ones are cut a few thousand triangles a step). */
 export function* tileSceneSteps(scene, { tile = 260, propTile = 110 } = {}) {
   const small = [];   // tiles of small props (excluded from the far shadow pass)
@@ -32,9 +39,7 @@ export function* tileSceneSteps(scene, { tile = 260, propTile = 110 } = {}) {
   scene.traverse((o) => {
     if (!o.isMesh || o.isSkinnedMesh || Array.isArray(o.material) || o.userData.dynamic || o.userData.tiled || !o.geometry.attributes.position) return;
     if (o.isInstancedMesh) {
-      if (o.instanceMatrix.usage === THREE.DynamicDrawUsage) return;
-      const total = o.count * triangleCount(o.geometry);
-      if ((o.count > 300 || (o.count >= 48 && total >= 30000)) && spread(o) > propTile * 0.6) todo.push(o);
+      if (tilesInstances(o, propTile)) todo.push(o);
     } else {
       const tris = triangleCount(o.geometry);
       if (tris >= 150000 || (tris >= 20000 && spread(o) > propTile * 0.6)) todo.push(o);

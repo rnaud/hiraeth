@@ -122,7 +122,7 @@ export class UnityBackend {
     for (const t of L) if (t.tex.version !== t.version && t.tex.image?.data) this._sendTexture(t);
   }
 
-  create(id, d) {
+  create(id, d, o) {
     const specs = d.mids.map((m) => this.specs.get(m));
     // (the wind's wisps: their alpha per vertex, as the port's Hiraeth/Wisp reads it from the vertex colour)
     const colors = specs.some((s) => s?.vertexColors) || d.mids.some((m) => this.ports.get(m) === 'wisp');
@@ -169,6 +169,8 @@ export class UnityBackend {
     const desc = { kind: d.kind, mesh, mids: d.mids, name: d.name, shadow: d.shadow !== false && !over && !hidden, bones: d.bones ?? 0 };
     // (a skinned mesh bound "attached": its skeleton's bones are shared, its bind matrix is its bind pose)
     if (d.kind === 'skinned' && d.skeleton && d.attached) { desc.skeleton = d.skeleton; desc.bind = Array.from(mirrorMatrix(d.bind)); }
+    // (an instanced set's instances left out past this distance from the eye: engine/game.js instancesFar, InstMats.far)
+    if (o?.isInstancedMesh && o.userData?.instancesFar > 0) desc.far = o.userData.instancesFar;
     this.host.Create(id, JSON.stringify(desc));
   }
 

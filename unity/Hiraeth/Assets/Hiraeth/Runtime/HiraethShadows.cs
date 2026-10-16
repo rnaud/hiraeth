@@ -126,6 +126,9 @@ namespace Hiraeth
         public static int IndexOf(Cascade c) => c == Instance.fine ? 0 : c == Instance.near ? 1 : c == Instance.far ? 2 : -1;
         public static uint LayerOf(Cascade c) => c == Instance.fine ? CascadeLayer[0] : c == Instance.near ? CascadeLayer[1] : CascadeLayer[2];
         int preparedFrame = -1; Camera preparedFor;
+        // (Prepare called by CullFor, whose culling gives the movers to the renderer lists; any other camera's Prepare (a portrait,
+        // a page's sketch) draws them one by one, and its plans hold no culling results: a stale one crashed the Retroid in Home)
+        bool culling;
         /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
         public static Camera MainCamera;
         /// <summary>The smallest caster drawn, in the cascade's texels (its bounding radius; the web's 0.75).</summary>
@@ -207,6 +210,7 @@ namespace Hiraeth
         List<Plan> PrepareTimed(Camera cam, WorldDetail detail)
         {
             plans.Clear();
+            if (!culling) preparedFrame = -1;   // (the plans are another camera's now: the main one prepares its own again)
             if (!On || detail == null) return plans;
             if (version != Quality.Version || fine.rt == null) Configure();
             var look = HiraethLook.Instance;
@@ -270,7 +274,7 @@ namespace Hiraeth
             int casters = 0;
             // the movers drawn this frame and their bounds, read once for all the cascades (each a few calls into the engine)
             live.Clear();
-            if (!UseRendererLists) foreach (var mv in movers)
+            if (!UseRendererLists || !culling) foreach (var mv in movers)
             {
                 var r = mv.r;
                 if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.shadowCastingMode == ShadowCastingMode.Off) continue;
@@ -282,7 +286,7 @@ namespace Hiraeth
                 var (c, reach) = want[w];
                 c.Place(center);
                 c.fresh = true;
-                var plan = pool[w]; plan.cascade = c; plan.reach = reach; plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
+                var plan = pool[w]; plan.cascade = c; plan.reach = reach; plan.hasCull = false; plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
                 planes[5] = new Plane(-fwd, Vector3.Dot(fwd, cp) + reach);   // (the far plane at the cascade's reach)
                 bool isFar = c == far;
                 float minR = c.Texel * (isFar ? Mathf.Max(minCasterTexels, minFarCasterTexels) : minCasterTexels), texel = c.Texel;
@@ -346,7 +350,9 @@ namespace Hiraeth
         {
             if (!UseRendererLists || !On || detail == null) return;
             preparedFrame = -1;
-            var list = Prepare(cam, detail);
+            culling = true;
+            List<Plan> list;
+            try { list = Prepare(cam, detail); } finally { culling = false; }
             preparedFrame = Time.frameCount; preparedFor = cam;
             bool census = Census && Time.realtimeSinceStartup > censusAt;
             if (census) censusAt = Time.realtimeSinceStartup + 5;

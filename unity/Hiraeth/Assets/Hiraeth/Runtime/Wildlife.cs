@@ -57,7 +57,10 @@ namespace Hiraeth
             subN[ci] = -1;
             if (!casts || drawnAt != Time.frameCount || count <= 0 || !boundsOk) return;   // (unknown bounds: every one)
             if (!Inside(c, bounds)) { subN[ci] = 0; return; }
-            if (count < 16 || rad.Length < count || Holds(c, bounds)) return;
+            // (and past its distance from the eye: `far`, as the view leaves them out)
+            bool cut = far > 0 && rad.Length >= count;
+            if (cut && bounds.SqrDistance(ViewEye) > far * far) { subN[ci] = 0; return; }
+            if (!cut && (count < 16 || rad.Length < count || Holds(c, bounds))) return;
             var s = sub[ci];
             if (s == null || s.Length < count) s = sub[ci] = new Inst[data.Length];
             int k = 0;
@@ -66,8 +69,8 @@ namespace Hiraeth
             {
                 ref var d = ref data[i];
                 float x = d.r0.w, y = d.r1.w, z = d.r2.w, r = -rad[i];
-                bool keep = true;
-                for (int j = 0; j < np; j++) { var n = P[j].normal; if (n.x * x + n.y * y + n.z * z + P[j].distance < r) { keep = false; break; } }
+                bool keep = !cut || Near(i, ViewEye);
+                if (keep) for (int j = 0; j < np; j++) { var n = P[j].normal; if (n.x * x + n.y * y + n.z * z + P[j].distance < r) { keep = false; break; } }
                 if (keep) s[k++] = d;
             }
             subN[ci] = k;
@@ -153,6 +156,20 @@ namespace Hiraeth
         public static bool ViewCull = true;
         /// <summary>-view-instance-sets: whole sets only (none culled one by one), a test.</summary>
         public static bool ViewSetsOnly;
+        /// <summary>
+        /// How far from the eye (ViewEye) this set's instances are drawn, in the view and the shadow maps (m; 0: as far as they
+        /// are seen): the instances whose reach is wholly past it are left out. The bridge sets it from the mirror (an instanced
+        /// mesh's userData.instancesFar, engine/game.js: the sets the web cuts into tiles and leaves out past the preset's
+        /// propFar, perf.js tileScene and cullFar, issue #262).
+        /// </summary>
+        public float far;
+        public static Vector3 ViewEye;
+        bool Near(int i, Vector3 e)
+        {
+            ref var d = ref data[i];
+            float x = d.r0.w - e.x, y = d.r1.w - e.y, z = d.r2.w - e.z, F = far + rad[i];
+            return x * x + y * y + z * z <= F * F;
+        }
         /// <summary>For the census: what this set is and how the view's cull saw it.</summary>
         public string Describe(Vector3 eye)
         {
@@ -177,16 +194,19 @@ namespace Hiraeth
             if (view != null && ViewCull && boundsOk)
             {
                 if (!Inside(view, view.Length, bounds)) return;
-                if (!ViewSetsOnly && count >= 16 && rad.Length >= count && !Holds(view, view.Length, bounds))
+                bool cut = far > 0 && rad.Length >= count;
+                if (cut && bounds.SqrDistance(ViewEye) > far * far) return;   // (the whole set past its distance)
+                if (!ViewSetsOnly && rad.Length >= count && (cut || (count >= 16 && !Holds(view, view.Length, bounds))))
                 {
+                    var e = ViewEye;
                     if (viewSub == null || viewSub.Length < count) viewSub = new Inst[data.Length];
                     k = 0;
                     for (int i = 0; i < count; i++)
                     {
                         ref var d = ref data[i];
                         float x = d.r0.w, y = d.r1.w, z = d.r2.w, r = -rad[i];
-                        bool keep = true;
-                        for (int j = 0; j < view.Length; j++) { var n = view[j].normal; if (n.x * x + n.y * y + n.z * z + view[j].distance < r) { keep = false; break; } }
+                        bool keep = !cut || Near(i, e);
+                        if (keep) for (int j = 0; j < view.Length; j++) { var n = view[j].normal; if (n.x * x + n.y * y + n.z * z + view[j].distance < r) { keep = false; break; } }
                         if (keep) viewSub[k++] = d;
                     }
                     if (k == 0) return;

@@ -616,7 +616,7 @@ namespace Hiraeth.Bridge
                 {
                     // (the shader multiplies the instance's tint by the vertex colour: a mesh without any gets white)
                     if (md.col == null) { md.col = new Color[md.pos.Length]; for (int i = 0; i < md.col.Length; i++) md.col[i] = Color.white; md.mesh.SetColors(md.col); }
-                    n.im = new InstMats(md.mesh, imat, 64); nodes[id] = n; return;
+                    n.im = new InstMats(md.mesh, imat, 64) { far = d.F("far") }; nodes[id] = n; return;   // (far: engine/game.js instancesFar)
                 }
             }
             if (md != null && n.kind == "skinned" && d.I("bones") > 0 && d.Get("skeleton") != null)
@@ -1078,7 +1078,7 @@ namespace Hiraeth.Bridge
             var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
             // (the GPU instances drawn only where the camera's view holds them: InstMats.ViewCull)
             Plane[] view = null;
-            if (cam) { GeometryUtility.CalculateFrustumPlanes(cam, viewPlanes); view = viewPlanes; }
+            if (cam) { GeometryUtility.CalculateFrustumPlanes(cam, viewPlanes); view = viewPlanes; InstMats.ViewEye = cam.transform.position; }   // (and the eye: InstMats.far)
             foreach (var n in nodes.Values)
             {
                 if (!n.go.activeInHierarchy) continue;
