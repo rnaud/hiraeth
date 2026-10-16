@@ -1,0 +1,63 @@
+changelog.md
+  s_9ca76055a220ed::t_8cf0c4c35a68be 7
+docs/steam-deck.md
+  s_9ca76055a220ed::t_f8d11a72eba3f4 419-425
+docs/systems/performance.md
+  s_9ca76055a220ed::t_5a20e9ffd83411 3163-3263
+scripts/bench/android-pso-trace.mjs
+  s_9ca76055a220ed::t_c9341b5f99e7a1 1-80
+scripts/unity-android-release.sh
+  s_9ca76055a220ed::t_52924ac9e26165 12-13,55
+src/changelog.js
+  s_9ca76055a220ed::t_f2ce39559c922b 60-71
+tests/engine-unity.test.js
+  s_be080572ac7f7a::t_75717b24ecfd85 207
+tests/unity-pso.test.js
+  s_9ca76055a220ed::t_0cf88271264dcd 1-3,13,47-85,87,90
+tests/unity-retroid-gpu.test.js
+  s_be080572ac7f7a::t_a72aeb6fb8f68b 26-27,48
+tests/unity-xbox.test.js
+  s_be080572ac7f7a::t_f5d29ef97f7aee 225
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_dadaeeb70d67a0 116-122,287-311,435,437,440,442,450,452,498,500,508,512-513,523,541,584,598,611,624,912,960,962,1018,1026-1027,1040-1041,1044-1046,1073,1075,1239,1244-1245,1248,1251-1252,1255,1262,1281,1295-1296,1335
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeShaderStrip.cs
+  s_9ca76055a220ed::t_ce54210878f98a 1-34
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeShaderStrip.cs.meta
+  s_9ca76055a220ed::t_889553be9915a1 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs
+  s_9ca76055a220ed::t_eb389ef0dfa60d 22-25,43-45,66-71,76,78,87-111
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_2036a88aa71106 49,517-521,525,539-550,552-560,599
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_7ccf9e3d2c917d 524-529
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Android.meta
+  s_9ca76055a220ed::t_87a89131d79725 1-8
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Android/Vulkan.graphicsstate
+  s_9ca76055a220ed::t_4f775a10629f3e 1-16089
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Android/Vulkan.graphicsstate.meta
+  s_9ca76055a220ed::t_cd83b50f301eba 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5c0486c118e3f7d341eff71b8b95653eea5a7467",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_be080572ac7f7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14544-e974-7c30-a4fc-7a8dc20510dc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
