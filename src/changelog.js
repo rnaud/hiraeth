@@ -23,6 +23,9 @@ export const CHANGELOG = [
     // the lantern into Viridel's makers' court (src/boxes/placements.js edena.bubble)
     { text: 'The bubble wand is now earned in Lorn’s Lamp-House, where the lantern charm used to be, and its bubbles carry light: blow one by a lit pool or the chamber’s fount and it glows, and where it bursts the light goes. The lamps out of reach, the moss-stones’ lamp hanging over the dark gallery’s chasm, the pool-orbs and the Lampless itself all drink a bubble of light. The lantern charm waits in Viridel’s makers’ court, where the wand used to be.',
       see: 'In Lorn, inside the Lamp-House, open the chest and stand by the fount of lamp-water beside it: blow a bubble (aim with LT / L2, blow with RT / R2) and send it, glowing, to the dark lamp by the dais.' },
+    // src/trials/data.js rewards, src/items.js (trial, where; three cosmetics renamed for their new runs)
+    { text: 'The mastery trials’ prizes follow the gadgets to their temples, so a run never pays out for a gadget you can’t have yet: the fourth coil is the Tube run’s now, the fourth notch the Glass slalom’s, the fourth pouch the Canyon dive’s, the strong lodestone the Floor round’s, the clear glass the Garden round’s and the wide vane the Courier’s round’s. The Stone circuit, the Reed race and the Lagoon laps give a rider’s cap, a reed pin and a lagoon ribbon.',
+      see: 'Open the items page: each trial’s prize says which run gives it. Finish one of the runs above again to win its new prize.' },
   ] },
   { v: '1.79', date: '2026-10-15', items: [
     // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync

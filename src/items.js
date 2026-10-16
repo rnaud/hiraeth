@@ -200,7 +200,7 @@ export const ITEMS = {
     does: 'The hoverbike’s top speed is 42 m/s instead of 34.',
   },
   clearglass: {
-    name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
+    name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',
     text: 'A second lens for the monocle, ground thinner than a fingernail. The seeing lens clouds over half as fast.',
   },
   longline: {
@@ -208,16 +208,16 @@ export const ITEMS = {
     text: 'A spool of the makers’ grey cord, finer than hair and stronger than rope. The grappling hook reaches 34 m instead of 25.',
   },
   fourthcoil: {
-    name: 'Fourth coil', kind: 'upgrade', needs: 'springs', trial: 'arzach2', where: 'The first finish of the Stone circuit, the Sky Stones’ bird race.',
+    name: 'Fourth coil', kind: 'upgrade', needs: 'springs', trial: 'underwater', where: 'The first finish of the Tube run, the Underwater City’s run through its halls.',
     text: 'A spare spring for each boot, wound tighter than the rest. It hums when it is happy. The spring boots bounce four times in a chain instead of three.',
     does: 'The spring boots bounce four times in a chain instead of three.',
   },
   widevane: {
-    name: 'Wide vane', kind: 'upgrade', needs: 'fan', trial: 'perdide', where: 'The first finish of the Reed race, Lorn’s skiff run.',
+    name: 'Wide vane', kind: 'upgrade', needs: 'fan', trial: 'spacecity', where: 'The first finish of the Courier’s round, the City Floating in Space’s run over its bridges.',
     text: 'Two more paper ribs for the fan, painted with reeds. The gust fan lifts you five times in the air before you land instead of three.',
   },
   fourthnotch: {
-    name: 'Fourth notch', kind: 'upgrade', needs: 'boomerang', trial: 'perdide2', where: 'The first finish of the Lagoon laps, the Deep Wood’s skiff run.',
+    name: 'Fourth notch', kind: 'upgrade', needs: 'boomerang', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ run on the wings.',
     text: 'A fourth notch cut in the boomerang’s elbow by a careful hand. It locks on to four things instead of three.',
     does: 'The boomerang locks on to four things instead of three.',
   },
@@ -230,11 +230,11 @@ export const ITEMS = {
     text: 'A deeper ink well for the bridge pen, with a glass window: you can see the ink think. Half as much ink again: longer bridges, more of them.',
   },
   lodestone: {
-    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ run on the wings.',
+    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'moonfoundry', where: 'The first finish of the Floor round, the Moon Foundry’s run on foot.',
     text: 'A darker lodestone dug from under the Glass Dunes’ kilns; spoons follow you about. The magnet glove reaches 26 m instead of 18.',
   },
   fourthpouch: {
-    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'spheres', where: 'The first finish of the Garden round, the Garden of Spheres’ run on foot.',
+    name: 'Fourth pouch', kind: 'upgrade', needs: 'bomb', trial: 'buried', where: 'The first finish of the Canyon dive, the Buried Machine’s run on the wings.',
     text: 'One more leather pouch on the bomb belt, already smelling of ink. Four ink bombs instead of three.',
   },
   longsand: {
@@ -246,18 +246,19 @@ export const ITEMS = {
     name: 'Racer’s ribbon', kind: 'cosmetic', retired: true, where: 'The first finish of the Avenue run, the Signal Market’s run on the wings, before v1.47.',
     text: 'A ribbon in the market’s racing colours. It does nothing at all, and everyone in the market knows what it means.',
   },
-  // (the three worlds that joined the route in v1.40: their trials' rewards, worn for the finishing)
+  // (worn for the finishing: the three worlds that joined the route in v1.40 gave them until issues #375 and #377, when their
+  // trials took the upgrades of the gadgets their temples and the ones before them earn, and the first three on the route these)
   divercap: {
-    name: 'Diver’s cap', kind: 'cosmetic', trial: 'underwater', where: 'The first finish of the Tube run, the Underwater City’s run through its halls.',
-    text: 'A knitted cap in the divers’ teal, a brass ring sewn over one ear. It does nothing at all, and every diver in the city nods at it.',
+    name: 'Rider’s cap', kind: 'cosmetic', trial: 'arzach2', where: 'The first finish of the Stone circuit, the Sky Stones’ bird race.',
+    text: 'A knitted cap in the sky-riders’ blue, a brass ring sewn over one ear. It does nothing at all, and every bird on the stones looks twice at it.',
   },
   founderspin: {
-    name: 'Founder’s pin', kind: 'cosmetic', trial: 'moonfoundry', where: 'The first finish of the Floor round, the Moon Foundry’s run on foot.',
-    text: 'A tiny cast moon on a pin, its seam still showing, for whoever ran the floor fastest. It does nothing at all, and Bertil says it suits you.',
+    name: 'Reed pin', kind: 'cosmetic', trial: 'perdide', where: 'The first finish of the Reed race, Lorn’s skiff run.',
+    text: 'A tiny skiff of pressed reed on a pin, for whoever sailed the reeds fastest. It does nothing at all, and the punt-folk say it suits you.',
   },
   courierribbon: {
-    name: 'Courier’s ribbon', kind: 'cosmetic', trial: 'spacecity', where: 'The first finish of the Courier’s round, the City Floating in Space’s run over its bridges.',
-    text: 'A strip of salmon cloth for the wrist, the couriers’ colour; Kip wears nine. It does nothing at all, and the bridge-keepers wave you through.',
+    name: 'Lagoon ribbon', kind: 'cosmetic', trial: 'perdide2', where: 'The first finish of the Lagoon laps, the Deep Wood’s skiff run.',
+    text: 'A strip of the lagoon racers’ green for the wrist. It does nothing at all, and the boat-folk wave you past.',
   },
   // ---- given by people, through a quest (quests.give: the same item.<id> flag), not found in a box
   cabpass: {

@@ -41,7 +41,7 @@ export const TRIALS = {
     rules: 'Fly the bird through every ring in order, round the stones and back to the plateau.',
     marker: [16, 4], start: [20, null, -6], heading: 2.9, speed: 18,
     gates: [[10, 70, -110, 10], [110, 82, -200, 10], [180, 100, -292, 10], [110, 92, -380, 10], [-30, 96, -452, 10], [-150, 100, -330, 10], [-240, 104, -215, 10], [-150, 80, -60, 10], [-20, 58, 40, 12]],
-    reward: 'fourthcoil',
+    reward: 'divercap',
   },
   perdide: {
     id: 'trial-perdide', world: 'perdide', mode: 'skiff', name: 'Reed race', color: '#7fd0b8',
@@ -49,7 +49,7 @@ export const TRIALS = {
     rules: 'Steer the skiff through every buoy gate in order, round the lake and back. A gust of the fan in its sail goes faster.',
     marker: [-34, 6], start: [-46, null, 4], heading: -1.6, speed: 12, ground: true, up: 1.2,
     gates: [[-90, -10, 7], [-140, -50, 7], [-190, -110, 7], [-200, -180, 7], [-140, -220, 7], [-90, -170, 7], [-110, -100, 7], [-70, -40, 8]],
-    reward: 'widevane',
+    reward: 'founderspin',
   },
   perdide2: {
     id: 'trial-perdide2', world: 'perdide2', mode: 'skiff', name: 'Lagoon laps', color: '#9fe8d8',
@@ -58,7 +58,7 @@ export const TRIALS = {
     marker: [-140, 0, 214], start: [-150, null, 205], heading: 2.1, speed: 10, ground: true, up: 1.2,
     // (two laps of the open water south-west of the wood; the sign floats there, a buoy)
     gates: [[-115, 185, 7], [-115, 145, 7], [-150, 125, 7], [-185, 145, 7], [-185, 185, 7], [-150, 205, 7], [-115, 185, 7], [-115, 145, 7], [-150, 125, 7], [-185, 145, 7], [-185, 185, 7], [-148, 207, 8]],
-    reward: 'fourthnotch',
+    reward: 'courierribbon',
   },
   edena: {
     id: 'trial-edena', world: 'edena', mode: 'eyes', name: 'Eye garden', color: '#c8e88a',
@@ -87,7 +87,7 @@ export const TRIALS = {
     winds: [[18, 204, 7, 58, 9], [140, 0, 7, 60, 9], [-60, -130, 7, 56, 9], [-118, 66, 7, 52, 9]],
     // Give the enlarged Clock-House's western wall room on the way to the second column.
     gates: [[18, 56, 204, 7], [60, 44, 150, 8], [80, 32, 100, 8], [140, 58, 0, 7], [90, 44, -70, 8], [20, 26, -120, 8], [-60, 54, -130, 7], [-125, 31, -20, 8], [-118, 51, 66, 7], [-60, 33, 150, 8], [5, 17, 195, 9]],
-    reward: 'lodestone',
+    reward: 'fourthnotch',
   },
   // (on the wings since v1.43: down into the canyon on a glide, and out on the column of rising air at its end)
   buried: {
@@ -97,7 +97,7 @@ export const TRIALS = {
     marker: [14, 52], start: [10, null, 44], heading: 3.0, speed: 10,
     winds: [[10, 44, 7, 40, 9], [-30, -182, 7, 72, 10]],
     gates: [[10, 41, 44, 7], [-5, 34, 0, 8], [-25, 14, -60, 8], [-30, 0, -100, 8], [-30, -18, -140, 8], [-30, 35, -182, 7], [10, 27, -150, 9]],
-    reward: 'clearglass',
+    reward: 'fourthpouch',
   },
   spheres: {
     id: 'trial-spheres', world: 'spheres', mode: 'foot', name: 'Garden round', color: '#e8c2f0',
@@ -105,7 +105,7 @@ export const TRIALS = {
     rules: 'Run through every gate in order, round the garden and back. Climb, jump, boost, glide: anything goes.',
     marker: [10, -12], start: [14, null, -6], heading: 2.0, speed: 6, ground: true, up: 1.3,
     gates: [[40, -40, 4], [60, -100, 4], [0, -120, 4], [-50, -100, 4], [-90, -80, 4], [-165, -25, 4], [-110, 30, 4], [-90, 70, 4], [-20, 80, 4], [30, 70, 4], [20, 20, 4], [10, -2, 5]],
-    reward: 'fourthpouch',
+    reward: 'clearglass',
   },
   // (the three worlds that joined the route in v1.40)
   underwater: {
@@ -114,7 +114,7 @@ export const TRIALS = {
     rules: 'Run through every ring in order, hall to hall through the glass tubes. Jump, climb, anything goes: just don’t miss one.',
     marker: [8, 0, 116], start: [4, 0, 112], heading: 3.1, speed: 6,
     gates: [[0, 2.7, 98, 3], [0, 2.7, 40, 3], [-34, 2.7, 22, 3], [-88, 2.7, 22, 3], [-10, 2.7, 22, 3], [0, 2.7, -14, 3], [0, 2.7, -78, 3], [20, 2.7, -100, 3.5]],
-    reward: 'divercap',
+    reward: 'fourthcoil',
   },
   moonfoundry: {
     id: 'trial-moonfoundry', world: 'moonfoundry', mode: 'foot', name: 'Floor round', color: '#e89a5a',
@@ -122,7 +122,7 @@ export const TRIALS = {
     rules: 'Run through every gate in order, round the floor and back to the mouth. Climb, jump, boost: anything goes.',
     marker: [-10, 30], start: [-6, null, 24], heading: 3.1, speed: 6, ground: true, up: 1.3,
     gates: [[20, -10, 4], [36, -70, 4], [30, -128, 4], [84, -140, 4], [120, -80, 4], [120, -20, 4], [80, 12, 4], [30, 12, 4], [0, 30, 5]],
-    reward: 'founderspin',
+    reward: 'lodestone',
   },
   spacecity: {
     id: 'trial-spacecity', world: 'spacecity', mode: 'foot', name: 'Courier’s round', color: '#f0c06a',
@@ -130,7 +130,7 @@ export const TRIALS = {
     rules: 'Run through every ring in order, island to island over the bridges. Don’t fall off: the dark is a long way down.',
     marker: [6, 106], start: [2, null, 102], heading: 3.1, speed: 6, ground: true, up: 1.3,
     gates: [[0, 80, 3], [0, 34, 3], [0, -10, 3], [0, -44, 3], [24, -74, 3], [56, -77, 3], [24, -74, 3], [-24, -66, 3], [-58, -63, 3], [-24, -66, 3], [0, -76, 3], [0, -104, 3], [0, -136, 3.5]],
-    reward: 'courierribbon',
+    reward: 'widevane',
   },
   // (on the wings since v1.43: two columns of rising air, one at the avenue's head and one halfway)
   bazaar: {
