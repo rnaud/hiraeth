@@ -306,8 +306,10 @@ test('the Founders’ Belfry wears its futuristic skin; collision, climbs and pi
   assert.equal(off.skin, null);
   assert.deepEqual(solids(on), solids(off), 'collision and climbs vertex for vertex');
   assert.deepEqual(on.pieces.filter((p) => p.id).map((p) => [p.id, p.constructor.name]), off.pieces.filter((p) => p.id).map((p) => [p.id, p.constructor.name]));
-  // its three bells drawn as rings, a note for every ear, lens terminals beside the doorways
-  assert.equal(on.skin.stats.bells, 3);
+  // its bells drawn as rings (the stair's, the oculus's, the porch's; since issue #377 the Hall of Echoes', the far door's and
+  // the Cloud-Mother's four, each with a pull-ring for the hook), a note for every ear, lens terminals beside the doorways
+  assert.equal(on.skin.stats.bells, 9);
+  assert.equal(on.pieces.filter((p) => p.constructor.name === 'HookBell').length, 9, 'a pull-ring under every bell');
   assert.equal(on.skin.stats.notes, on.pieces.filter((p) => p instanceof BellEar).length);
   assert.ok(on.skin.stats.lenses > 20, `lenses ${on.skin.stats.lenses}`);
   // the house's own materials back for its exterior; the cobalt casts no shadow

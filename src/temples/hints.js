@@ -107,16 +107,22 @@ export const BOSS_HINTS = {
       return _p.copy(g.model.pos).addScaledVector(UP, 4.4);
     },
   },
-  // the Founders' Belfry: the Cloud-Mother (organic: answered with the bell)
+  // the Founders' Belfry: the Cloud-Mother (organic: answered with a bell, its ring hooked: issue #377)
   arzach2: {
     phases: [
       ['She cries, and nobody answers.',
-        'When she sinks low and cries, answer her with your bell.',
-        'Get close while she cries, then ring the bell ({key:whistle}). Not the fluid, never a shove.'],
+        'When she sinks low and cries, ring the bell nearest her.',
+        'While she cries, hook the ring under the bell nearest her ({key:aim}, then {key:fire}). Not the fluid, never a shove.'],
       ['She is crying again.',
-        'Answer every cry with the bell, near her.',
-        'Each time she sinks low and cries, run close and ring the bell ({key:whistle}).'],
+        'Answer every cry with the bell nearest her.',
+        'Each time she sinks low and cries, hook the ring of the bell nearest her ({key:aim}, then {key:fire}).'],
     ],
+    // (the drone's lens on the hall's bell nearest her: what to hook)
+    at(g) {
+      const bells = (g.rt.pieces ?? []).filter((p) => p.id?.startsWith?.('hb.hall.'));
+      if (!bells.length) return null;
+      return bells.reduce((a, b) => (a.at.distanceTo(g.model.pos) <= b.at.distanceTo(g.model.pos) ? a : b)).at.clone();
+    },
   },
   // the First Garage: the Clockwork Foreman (a robot: it can only be stopped)
   garage: {
@@ -133,8 +139,8 @@ export const BOSS_HINTS = {
   buried: {
     phases: [
       ['Four vents open after its beam. One faces away from you.',
-        'All four in one breath. From the front its body hides the back one.',
-        'Fly over it and aim with {key:aim} as the vents open: the jets hold you up, and from above all four show.'],
+        'All four in one breath, and the bar holds three shots: a bomb reaches the ones you can’t splash.',
+        'As its vents open, throw a bomb at its feet ({key:fire}), then splash the vents its blast missed.'],
       ['It turns on the great gear in the floor now.',
         'Roll the ball by the west wall into the gear’s teeth: then four vents in a breath count twice.',
         'Push the ball along its groove into the gear, then hit all four vents in one breath when they open.'],

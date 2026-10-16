@@ -127,8 +127,8 @@ test('the upgrades: the fourth chamber lengthens the bar a unit, the coil quicke
   // the temple solver reads the same: the items alone
   assert.equal(meetsWith((x) => x === 'backpack', 'magic:4'), false);
   assert.equal(meetsWith((x) => x === 'cell', 'magic:4'), true);
-  // the requirements that wanted the fourth chamber now want the capacity
-  assert.match(src('src/temples/buried.js'), /needs: \['magic:4'\]/);
+  // the requirements that wanted the fourth chamber wanted the capacity; since issue #377 the Engine-House's want its bombs
+  assert.match(src('src/temples/buried.js'), /needs: \['bomb'\]/);
   assert.match(src('src/trials/kit-data.js'), /needs: \['backpack', 'gun', 'magic:4'\]/);
   assert.doesNotMatch(src('src/temples/buried.js'), /needs: \[[^\]]*'cell'/);
 });

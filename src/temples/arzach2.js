@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
-import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit, Key } from './pieces.js';
+import { Door, Plate, Ball, Platform, Bridge, BellEar, HookBell, Switch, Mark, Pit, Key } from './pieces.js';
 import { whaleModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { foundersBelfrySkin } from './skins/founders-belfry.js';
@@ -31,17 +31,20 @@ import { foundersBelfrySkin } from './skins/founders-belfry.js';
 //                          ball lies in a groove that runs into its mouth: roll the ball in and it strikes the bell
 //                          (a splash on it as it lies there strikes again). While the bell rings the great stone
 //                          comes down to the floor; when it falls quiet the stone falls up again, and whoever
-//                          stands on it goes up with it (the house's own bell, taught before the whistle: what
+//                          stands on it goes up with it (the house's own bell, taught before the hook: what
 //                          the bell holds, it holds only while it rings). The high door's eye is on the
 //                          landing's face, under your feet once you are up: splash it on the way
-//   the Bell Chamber       the makers' chest: the BELL-NOTE WHISTLE (src/items.js 'bell'). Its north door sinks for
-//                          the whistle in your hand. The clapperless bell in the oculus answers the whistle: three stones that fell up come
-//                          down round the dais while it rings, and fall up again (a try where nothing is locked)
+//   the Bell Chamber       the makers' chest: the GRAPPLING HOOK (src/gadgets/hook.js; issue #377: the bell-note whistle
+//                          was here, a charm, and went to Vael's makers' court). Its north door sinks for the hook in
+//                          your hand. The clapperless bell in the oculus hangs a brass pull-ring (HookBell) out of any
+//                          reach: hook it and the bell booms, three stones that fell up come down round the dais while it
+//                          rings, and fall up again (a try where nothing is locked)
 //   the Bell Porch         a room on: the door into the Hall of Echoes is held by the porch's own bell, hung in the
-//                          middle of the room, open only while it rings (about eight seconds). Ring, walk through; too
-//                          slow, ring again (the whistle's first lock, where failing costs nothing)
-//   the Hall of Echoes     a chasm across its middle, the stones of its bridge hanging high over it (they fell up): the
-//                          bell brings them down only while it rings, ten seconds, enough to run across. But the
+//                          middle of the room, open only while it rings (about eight seconds). Hook its ring, walk
+//                          through; too slow, hook it again (the hook's first lock, where failing costs nothing)
+//   the Hall of Echoes     a chasm across its middle, the stones of its bridge hanging high over it (they fell up), and
+//                          a bell hung over the chasm's east side: hooked from the near lip it brings the stones down
+//                          only while it rings, ten seconds, enough to run across. But the
 //                          far door wants a ball on its plate too, and the ball waits at the near edge in a
 //                          groove that runs over the bridge: ring, then roll the ball across while the
 //                          stones are down (it stops at the lip while they hang, and drops if they rise
@@ -51,11 +54,13 @@ import { foundersBelfrySkin } from './skins/founders-belfry.js';
 //   the Ringers' Walk      through that doorway: a long passage back south outside the house, the ringers' way, and up
 //                          a stair to a ledge high in the Stone Stair, over the landing. On it, the house's great key,
 //                          seen from the stair at the start and out of reach from there, the founders' bell in sight
-//                          below it. Drop onto the landing, and climb the house again with the whistle: the porch's
-//                          bell, the stones held for good, to the far door (it takes the great key). A ring through
-//                          both halves of the house
-//   the Cloud-Mother's Hall the guardian (organic: you calm her). She swims high and fearful, gusts and dives;
-//                          each time she cries, low, her mouth open, sound the bell near her. Stones that fell
+//                          below it: hook its ring from the ledge, and while it booms the cage sinks. Drop onto the
+//                          landing, and climb the house again with the hook: the porch's bell, the stones held for
+//                          good, the far door's bell over its lintel (it takes the great key). A ring through both
+//                          halves of the house
+//   the Cloud-Mother's Hall the guardian (organic: you calm her). She swims high and fearful, gusts and dives; four
+//                          founders' bells hang round her hall, a pull-ring under each: each time she cries, low, her
+//                          mouth open, hook the bell near her. Stones that fell
 //                          up hang under the dome: a ring as she rises to dive brings one down where she will
 //                          dive, held only while the note sounds, and she dives onto it and lies on it, crying
 //                          (taught in her second phase; in her last she no longer sinks to cry by herself, so
@@ -112,10 +117,10 @@ export const ROOMS = {
 };
 
 export const LOGIC = {
-  id: 'arzach2', entry: 'threshold', gadget: 'bell',
+  id: 'arzach2', entry: 'threshold', gadget: 'hook',
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js. The
-  // Bell Chamber holds the whistle and its try; the Bell Porch past its open way is a room of its own since v1.77)
+  // Bell Chamber holds the hook and its try; the Bell Porch past its open way is a room of its own since v1.77)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, stones: { checkpoint: true, kind: 'passage' }, storeW: { kind: 'combat' }, storeE: { kind: 'puzzle' },
     stair: { checkpoint: true, kind: 'puzzle' }, landing: { kind: 'passage' }, bell: { checkpoint: true, kind: 'puzzle' }, porch: { checkpoint: true, kind: 'puzzle' },
@@ -129,7 +134,7 @@ export const LOGIC = {
     { a: 'stones', b: 'stair', door: 'd1' },
     { a: 'stair', b: 'landing', door: 'lift' },     // the great stone: rung down, it falls up again with you on it
     { a: 'landing', b: 'bell', door: 'd2' },
-    { a: 'bell', b: 'porch', door: 'dP' },          // the chamber's north door: it sinks for the whistle in your hand
+    { a: 'bell', b: 'porch', door: 'dP' },          // the chamber's north door: it sinks for the hook in your hand
     { a: 'porch', b: 'echoes', door: 'd3' },        // the Bell Porch's held door, a room on from the chest
     // (issue #23's last round: a ring through both halves. Off the bridge's middle a spur of stones the bell alone holds, to
     // the Ringers' Walk back south and up to a ledge high in the Stone Stair, the great key's, a drop over the landing)
@@ -155,25 +160,27 @@ export const LOGIC = {
     lift: { type: 'door', opens: { lit: 'e0' }, latch: true },
     s1: { type: 'switch', room: 'stair' },
     d2: { type: 'door', opens: { lit: 's1' }, latch: true },
-    chest: { type: 'gadget', room: 'bell', item: 'bell' },
-    dP: { type: 'door', opens: { item: 'bell' }, latch: true },
+    // (issue #377: the chest held the bell-note whistle, a charm that finds chests; the hook rings the founders' bells by
+    // their pull-rings now, HookBell, and the whistle waits in Vael's makers' court)
+    chest: { type: 'gadget', room: 'bell', item: 'hook' },
+    dP: { type: 'door', opens: { item: 'hook' }, latch: true },
     // the chamber's own bell in the oculus: stones come down round the dais while it rings (nothing is locked by it)
-    eT: { type: 'bell', room: 'bell', needs: ['bell'], hold: 6 },
+    eT: { type: 'bell', room: 'bell', needs: ['hook'], hold: 6 },
     heap: { type: 'bridge', opens: { lit: 'eT' } },
-    e1: { type: 'bell', room: 'porch', needs: ['bell'], hold: 8 },   // the porch's bell, in the middle of the porch
+    e1: { type: 'bell', room: 'porch', needs: ['hook'], hold: 8 },   // the porch's bell, in the middle of the porch
     d3: { type: 'door', opens: { lit: 'e1' } },
-    e2: { type: 'bell', room: 'echoes', needs: ['bell'], hold: 10 },
+    e2: { type: 'bell', room: 'echoes', needs: ['hook'], hold: 10 },   // the bell hung over the chasm's east side
     // the spur off the bridge's middle to the Ringers' Walk: held by the bell alone (no ball holds it). At the walk's end,
     // on the ledge high in the Stone Stair, the great key in a tall cage (seen from the stair's floor at the start) that
-    // sinks only while the founders' bell far below rings: the ball still in its mouth, the whistle sounded from the ledge
+    // sinks only while the founders' bell far below rings: the ball still in its mouth, its ring hooked from the ledge
     spur: { type: 'bridge', opens: { lit: 'e2' } },
     kB: { type: 'key', kind: 'big', room: 'ringers', when: { lit: 'e0' } },
     ball3: { type: 'drum', room: 'echoes', plate: 'p3', plateAt: 1, start: 0 },
     p3: { type: 'plate', room: 'echoes' },   // (on the far lip, in the same hall as its ball: nothing rolled through a door)
     br1: { type: 'bridge', opens: { any: [{ lit: 'e2' }, { drumOn: ['ball3', 'p3'] }] } },
-    e3: { type: 'bell', room: 'echoesFar', needs: ['bell'] },
+    e3: { type: 'bell', room: 'echoesFar', needs: ['hook'] },   // the bell beside the far door
     d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
-    mother: { type: 'boss', room: 'hall', needs: ['gun', 'bell'] },
+    mother: { type: 'boss', room: 'hall', needs: ['gun', 'hook'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -185,6 +192,13 @@ export const ARENAS = [{
   won: 'The last of them falls among the stones. The key’s cage sinks, and the archway lets go.',
 }];
 
+/**
+ * (issue #377) The Hall of Echoes' bell (local: over the chasm's east side, by the bridge's middle, its mouth's height) and the
+ * Cloud-Mother's four, [x, 0, z] from her hall's middle, high round its wall between the columns.
+ */
+export const BELL2 = [10, UP + 8, ROOMS.echoes.z0 + 24];
+export const HALL_BELLS = [[12, 0, 12], [-12, 0, 12], [-12, 0, -12], [12, 0, -12]];
+
 /** The held notes: how long the founders' bells hold their door and their stones (s). */
 export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold, stair: LOGIC.elements.e0.hold, chamber: LOGIC.elements.eT.hold };
 /**
@@ -193,8 +207,8 @@ export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.ho
  * (`stairs`: foot and head, z), then RING.y to its south end, where it turns east through the Stone Stair's west wall onto
  * a ledge round its north-west wall at RING.y (`ledge`: radii, rotunda angles; a parapet along it but over the landing,
  * `drop`), the great key on it by its edge (`key`: angle, radius; `cage` its cage's height, seen over the ledge's edge from
- * the stair's floor, sunk only while the founders' bell in the middle of the stair's floor rings, which hears the whistle
- * from the ledge: `hear` its reach). The founders' bell (`bell`: angle, radius) stands straight in from the key, in sight
+ * the stair's floor, sunk only while the founders' bell in the middle of the stair's floor rings, its pull-ring hooked
+ * from the ledge: `hear` its ear's reach). The founders' bell (`bell`: angle, radius) stands straight in from the key, in sight
  * of it and under 20 m from it (issue #336: the temple design audit's cage at 1.0, out of sight two rooms off); the
  * landing (`landing`: its face's radius, its angles) under the ledge's drop; the Stone Stair `stairH` high.
  */
@@ -203,26 +217,26 @@ export const RING = {
   ledge: { r0: 13, r1: 17.4, a0: -Math.PI / 2 - 0.3, a1: -0.3 }, drop: -0.9, key: { a: -0.5, r: 14.3 }, cage: 3.2, hear: 28,
   bell: { a: -0.5, r: 5 }, landing: { r: 9.8, a0: -1.02, a1: 0.75 }, lift: { a: 0.35 },
 };
-/** How long the Cloud-Mother lies on a held stone she dived onto, crying (s): the bell calms her then. */
+/** How long the Cloud-Mother lies on a held stone she dived onto, crying (s): a bell rung near her calms her then. */
 export const GROUNDED = 4.5;
 
 export const MOTHER = {
   kind: 'organic', name: 'the Cloud-Mother', final: 'touch', touch: 'lay a hand on her brow',
   speed: 3.2, wakeTime: 3.4,
   wake: 'A sky-whale turns over at the top of the tower. She is afraid of you.',
-  openHint: 'She sinks low and cries. Ring the bell near her.',
-  missHint: 'Her dive went wide: she lies caught, crying. Ring the bell near her.',
+  openHint: 'She sinks low and cries. Hook the bell nearest her.',
+  missHint: 'Her dive went wide: she lies caught, crying. Hook the bell nearest her.',
   weary: 'She settles on the floor of her hall, listening. Go to her.',
   resolved: 'She sighs, and the cloud along her back thins away.',
   phases: [
-    { to: 0.5, attacks: ['gust', 'dive', 'wail'], pause: 1.8, hint: 'When she cries, sound the bell near her.' },
-    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Ring as she rises to dive: a stone drops where she dives.',
+    { to: 0.5, attacks: ['gust', 'dive', 'wail'], pause: 1.8, hint: 'When she cries, hook the ring of the bell nearest her.' },
+    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Hook a bell as she rises to dive: a stone drops where she dives.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'parry', moves: ['roll'], open: 3.6, perfect: 4.6,
         hint: 'Guard her wing as it rolls at you: jarred, she sinks and cries.',
-        said: 'Her wing rings off your guard. She sinks low, crying: ring the bell.',
-        lines: ['She rolls her wing at you.', 'Raise your guard as her wing rolls in: jarred, she sinks and cries.', 'When she tips onto one wing, hold the guard (LB / L1) toward her, then ring the bell ({key:whistle}) near her.'] } },
-    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'Ring as she rises: a stone drops under her. Ring again as she cries.' },
+        said: 'Her wing rings off your guard. She sinks low, crying: hook a bell.',
+        lines: ['She rolls her wing at you.', 'Raise your guard as her wing rolls in: jarred, she sinks and cries.', 'When she tips onto one wing, hold the guard (LB / L1) toward her, then hook the bell nearest her ({key:aim}, {key:fire}).'] } },
+    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'Hook a bell as she rises: a stone drops under her. Again as she cries.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -239,17 +253,19 @@ export const MOTHER = {
   },
 };
 
-/** The fluid does not calm her (it only frightens her): the bell does (onBell). */
-function motherHit(g, part, mode) {
+/** The fluid does not calm her (it only frightens her), nor the hook on her: a bell does (motherBell). */
+function motherHit(g, part, mode, info) {
   const rt = g.rt;
+  if (info?.mode === 'hook') { rt.notice('She shies from the hook, crying louder. Hook a bell, not her.', 'mother.hook'); return true; }
   if (mode === 'push') { g.add(-0.05, 'push'); rt.notice('She shies from the shove, crying louder. Gently.', 'mother.push'); return true; }
-  if (g.state === 'open') rt.notice('The fluid only frightens her. She wants a sound: the bell.', 'mother.fluid');
+  if (g.state === 'open') rt.notice('The fluid only frightens her. She wants a sound: a bell.', 'mother.fluid');
   else rt.notice('She flinches from the splash.', 'mother.splash');
   return true;
 }
 /**
- * The bell-note whistle. Sounded near her while she cries: an eighth (then a tenth) of her calm. Sounded as she
- * rises to dive (a dive's wind-up): a stone that fell up comes down where she will dive, held while the note sounds.
+ * A founders' bell rung (its ring hooked: HookBell, issue #377; the bell-note whistle before). Rung near her while she
+ * cries: an eighth (then a tenth) of her calm. Rung as she rises to dive (a dive's wind-up): a stone that fell up comes
+ * down where she will dive, held while the note sounds.
  */
 export function motherBell(g, pos) {
   if (!pos || !g.awake) return;
@@ -262,7 +278,7 @@ export function motherBell(g, pos) {
     rt.notice(g.phaseIndex >= 2 ? 'She hears the note, and rises out of its reach.' : 'She hears the note, and turns her head. Sound it when she cries.', g.phaseIndex >= 2 ? 'mother.wait2' : 'mother.wait');
     return;
   }
-  if (pos.distanceTo(g.model.pos) > 28) { rt.notice('She is too far to hear it. Get closer.', 'mother.far'); return; }
+  if (pos.distanceTo(g.model.pos) > 28) { rt.notice('That bell is too far from her. Hook the one nearest her.', 'mother.far'); return; }
   g.add((g.phaseIndex === 0 ? 0.125 : 0.1) * (g.gasp ? MOTHER_GASP.bell : 1), 'bell');
   if (g.state === 'open') { g.enter('fight'); g.cool = 2.2; }
 }
@@ -480,9 +496,10 @@ function layout(rt) {
   for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, GL - 0.8, BX - tx * (GL + 0.8) / 2 + tz * sd * 0.75, 0.06, BZ - tz * (GL + 0.8) / 2 - tx * sd * 0.75, gyaw));
   add(Ball, { id: 'ballS', a: [GA[0], 0.04, GA[1]], b: [BX, 0.04, BZ], r: 1.0, strike: { at: [BX, 3.4, BZ] } });
   add(Plate, { id: 'pS', at: [BX, 0, BZ], r: 1.2 });
-  // (it hears the whistle too, once the ball lies in its mouth: from anywhere in the stair, the Ringers' Walk's ledge high
-  // over it as well, where the great key's cage sinks only while it rings: RING.hear. Its ear at its crown)
-  add(BellEar, { id: 'e0', at: [BX, 6.4, BZ], reach: RING.hear, heard: 'The founders’ bell booms, and high over the well the great stone comes down to the floor. It stays only while the bell sounds.', heardKey: 'e0.heard', fading: 'The bell’s hum is fading: the great stone stirs.' });
+  // (and once the ball lies in its mouth, its pull-ring on its crown rings it too, hooked from anywhere in the stair: the
+  // Ringers' Walk's ledge high over it as well, where the great key's cage sinks only while it rings. Its ear at its crown)
+  add(HookBell, { id: 'hb.e0', at: [BX, 6.9, BZ], chain: 0.3, yaw: Math.atan2(BX, BZ - C2) });   // (facing out, toward the key's ledge)
+  add(BellEar, { id: 'e0', at: [BX, 6.4, BZ], reach: RING.hear, struck: true, heard: 'The founders’ bell booms, and high over the well the great stone comes down to the floor. It stays only while the bell sounds.', heardKey: 'e0.heard', fading: 'The bell’s hum is fading: the great stone stirs.' });
 
   add(Mark, { room: 'stair', at: [8.5, 0, C2 - 9.5], yaw: -Math.PI * 0.7 });
   // the high door, and its eye on the landing's face: under your feet once you are up, seen on the way
@@ -490,21 +507,22 @@ function layout(rt) {
   const EY = round(S2, -0.05, LD.r - 0.1, UP - 3);
   add(Switch, { id: 's1', at: EY, yaw: Math.PI - 0.05, size: 1.0 });
 
-  // ---- the corridor and the Bell Chamber (floor UP): the chest; its north door sinks for the whistle in hand
+  // ---- the corridor and the Bell Chamber (floor UP): the chest; its north door sinks for the hook in hand
   const S3 = R0.bell, C3 = S3.z;
   K.corridor([0, C2 + S2.r + 1.4], [0, C3 - S3.r - 0.6], UP, { w: D.w, h: D.h });
   K.rotunda({ x: 0, z: C3, y: UP, r: S3.r, h: S3.top - UP, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.35 });
   // (in the futuristic skin a hexagonal slate pedestal with lit panels, drawn over the same collider)
   const [moundD, moundS] = chestMound(0, UP, C3);
   if (!rt.skin?.pedestal?.(moundD, moundS)) K.both(M.trim, moundD, moundS);   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
-  // a bell hangs high in the oculus, without a clapper: the whistle rings it, and three stones that fell up come down
-  // round the dais while it sounds (a try: nothing is locked by it)
+  // a bell hangs high in the oculus, without a clapper, its pull-ring out of any reach: the hook rings it, and three stones
+  // that fell up come down round the dais while it sounds (a try: nothing is locked by it)
   hang(0, UP + 12, C3, 1, S3.top + 4, 'eT', Math.PI);   // (up through the oculus)
-  add(BellEar, { id: 'eT', at: [0, UP + 12, C3], reach: 16, heard: 'The bell in the oculus hums with your note, and three of the stones that fell up come down round the dais. They stay only while it sounds.', heardKey: 'eT.heard', fading: 'The hum is fading: the stones tremble.' });
+  add(HookBell, { id: 'hb.eT', at: [0, UP + 11.1, C3], chain: 0.4, yaw: Math.PI });
+  add(BellEar, { id: 'eT', at: [0, UP + 12, C3], reach: 16, struck: true, heard: 'The bell in the oculus booms as the hook tugs it, and three of the stones that fell up come down round the dais. They stay only while it sounds.', heardKey: 'eT.heard', fading: 'The hum is fading: the stones tremble.' });
   add(Bridge, { id: 'heap', a: [-6.4, UP + 0.6, C3 - 3.2], b: [-6.4, UP + 0.6, C3 + 3.2], w: 2.4, n: 3, from: 'above' });
   for (let i = 0; i < 6; i++) { const a = Math.PI * (0.3 + i * 0.28); K.glyph(round(S3, a, S3.r - 0.05, UP + 6), 1.6, a + Math.PI); }
   add(Mark, { room: 'bell', at: [6.5, UP, C3 - 9], yaw: -Math.PI * 0.75 });
-  add(Door, { id: 'dP', at: [0, UP, C3 + S3.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'bell' }] });   // (the whistle in hand)
+  add(Door, { id: 'dP', at: [0, UP, C3 + S3.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'hook' }] });   // (the hook in hand)
 
   // ---- the Bell Porch (floor UP), a room on: the door into the Hall of Echoes is held by the porch's own bell, hung in
   // the middle of the room
@@ -512,7 +530,8 @@ function layout(rt) {
   K.corridor([0, C3 + S3.r + 0.6], [0, PO.z0 - 1.2], UP, { w: D.w, h: D.h });
   hall(PO, { oculus: 0.3, columns: 2, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
   hang(0, UP + 6.6, poz, 0.8, PO.top + 4, 'e1', Math.PI);
-  add(BellEar, { id: 'e1', at: [0, UP + 7, poz], reach: 8.5, heard: 'The porch’s bell hums with your note, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
+  add(HookBell, { id: 'hb.e1', at: [0, UP + 5.7, poz], chain: 0.4, yaw: Math.PI });
+  add(BellEar, { id: 'e1', at: [0, UP + 7, poz], reach: 8.5, struck: true, heard: 'The porch’s bell booms as the hook tugs it, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
   add(Mark, { room: 'porch', at: [-6, UP, PO.z0 + 5], yaw: Math.PI / 2 });
   add(Door, { id: 'd3', at: [0, UP, PO.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [{ lit: 'e1' }] });
 
@@ -529,7 +548,10 @@ function layout(rt) {
   add(Bridge, { id: 'br1', a: [0, UP, LIP - 0.1], b: [0, UP, FAR + 0.1], w: 6, n: 8, from: 'above' });
   // the spur off its middle, west to the Ringers' Walk's doorway: the same stones, held by the bell alone
   add(Bridge, { id: 'spur', a: [-3.05, UP, RING.z], b: [EC.x0 + 0.05, UP, RING.z], w: RING.w - 0.4, n: 5, from: 'above' });
-  add(BellEar, { id: 'e2', at: [0, UP, E0 + 11.9], reach: 32, heard: 'The hanging stones answer the note and come down into a bridge. They stay only while it sounds.', heardKey: 'e2.heard', fading: 'The note is fading: the stones begin to tremble.' });
+  // the hall's bell, hung over the chasm's east side by the bridge's middle: hooked from either lip or the bridge
+  hang(BELL2[0], BELL2[1], BELL2[2], 0.9, EC.top + 4, 'e2', Math.PI);
+  add(HookBell, { id: 'hb.e2', at: [BELL2[0], BELL2[1] - 0.9, BELL2[2]], chain: 0.4, yaw: -Math.PI / 2 });
+  add(BellEar, { id: 'e2', at: [0, UP, E0 + 11.9], reach: 32, struck: true, heard: 'The hanging stones answer the note and come down into a bridge. They stay only while it sounds.', heardKey: 'e2.heard', fading: 'The note is fading: the stones begin to tremble.' });
   const BA = [1.6, UP + 0.04, E0 + 10.5], BB = [1.6, UP + 0.04, E0 + 38.2], BL = BB[2] - BA[2];
   add(Ball, { id: 'ball3', a: BA, b: BB, r: 1.0, friction: 0.2, lock: true, gap: { bridge: 'br1', from: (LIP - 0.1 - BA[2]) / BL, to: (FAR + 0.1 - BA[2]) / BL } });
   add(Plate, { id: 'p3', at: [1.6, UP, BB[2]], r: 1.2 });
@@ -538,7 +560,10 @@ function layout(rt) {
     for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, z1 - z0, 1.6 + sd * 0.75, UP + 0.06, (z0 + z1) / 2));
   }
   add(Door, { id: 'd4', at: [0, UP, EC.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] });
-  add(BellEar, { id: 'e3', at: [-1.8, UP, E0 + 39.4], reach: 9 });
+  // the far door's own bell, hung beside it over the far landing
+  hang(-6, UP + 6.4, EC.z1 - 2.2, 0.6, EC.top + 4, 'e3', Math.PI);
+  add(HookBell, { id: 'hb.e3', at: [-6, UP + 5.7, EC.z1 - 2.2], chain: 0.3, yaw: Math.PI });
+  add(BellEar, { id: 'e3', at: [-1.8, UP, E0 + 39.4], reach: 14, struck: true });
   add(Mark, { room: 'echoes', at: [-3.6, UP, E0 + 4.5], yaw: Math.PI / 2 });
   for (let i = 0; i < 4; i++) K.glyph([EC.x0 + 0.05, UP + 6 + (i % 2) * 2.4, LIP + 1.5 + i * 5.6], 1.6, Math.PI / 2);
   for (const z of [E0 + 6, EC.z1 - 6]) for (const x of [EC.x0 + 6, EC.x1 - 6]) K.column(x, z, UP, EC.top - UP, 0.9);
@@ -559,6 +584,11 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(5, 7).translate(0, 3.5, 0), [0, UP, O1 + 0.9]));
   K.solid(box(5.4, 7, 0.5, 0, UP + 3.5, O1 + 1.3));
 
+  // her hall's four bells, high round its wall between the columns, a pull-ring under each: hooked near her, they calm her
+  for (const [x, , z] of HALL_BELLS) {
+    hang(x, UP + 10.5, CH + z, 0.8, HA.top + 4, 'mother', Math.PI);
+    add(HookBell, { id: `hb.hall.${x > 0 ? 'e' : 'w'}${z > 0 ? 'n' : 's'}`, at: [x, UP + 9.6, CH + z], chain: 0.4, yaw: Math.atan2(-x, -z) });
+  }
   // stones that fell up, hanging under the dome: a ring as she rises to dive brings one down (HallStones)
   add(HallStones, { id: 'mother', y: UP, at: [[-9, CH - 4], [8, CH + 3], [-2, CH + 10], [6, CH - 9]], hang: [[17, 1.5], [19, 1.7], [21, 1.4], [18, 1.3]] });
 
@@ -752,7 +782,7 @@ export const RELAID = 'temple.arzach2.relaid';
 
 export const ARZACH2_TEMPLE = {
   id: 'arzach2', levelId: 'arzach2', name: 'The Founders’ Belfry', doorLabel: 'door of the Founders’ Belfry',
-  gadget: 'bell', gadgetBox: 'arzach2.temple.bell', arenaDoor: 'd4', arenas: ARENAS,
+  gadget: 'hook', gadgetBox: 'arzach2.temple.bell', arenaDoor: 'd4', arenas: ARENAS,   // (the box's id from when it held the whistle: the saves' flag)
   origin: [80, 1600, 150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
@@ -770,6 +800,6 @@ export const ARZACH2_TEMPLE = {
       if (rt.inside(P.pos) || rt.below(P.pos)) rt.toCheckpoint();
     }
   },
-  // her calm comes from the bell: every 'bell' the whistle sounds, she hears
-  onConnect(rt) { rt.offs.push(rt.game.on('bell', ({ pos, soft } = {}) => { if (!soft && rt.guardian?.awake) motherBell(rt.guardian, pos); })); },
+  // her calm comes from the bells: every founders' bell rung (struck: a pull-ring hooked, not the whistle), she hears
+  onConnect(rt) { rt.offs.push(rt.game.on('bell', ({ pos, soft, struck } = {}) => { if (!soft && struck && rt.guardian?.awake) motherBell(rt.guardian, pos); })); },
 };

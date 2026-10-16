@@ -11,6 +11,8 @@ import assert from 'node:assert/strict';
 // reach with what he has, every way of getting about before its time; the last test fails on any of them
 // not in KNOWN. PLAYTHROUGH_VERBOSE=1 prints every step. docs/systems/testing.md.
 
+// (the gadgets as items: since issues #375 and #377 the temples' chests hold them, src/gadgets/registry.js)
+await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
 const { game, items, V } = A;
 /** Without the little DOM (the ship's cinema builds a real one when it sees a document): as tests/ending.test.js runs it. */

@@ -8,6 +8,17 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.80', date: '2026-10-15', items: [
+    // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js
+    // (HookBell pull-rings under every bell, BellEar `struck`, the Cloud-Mother's four hall bells), src/temples/pieces.js
+    // HookBell; the whistle into Vael's makers' court (src/boxes/placements.js arzach.hook)
+    { text: 'The grappling hook is now earned in the Founders’ Belfry, in the chest past the stone stair: every founders’ bell hangs a brass ring under it, and the hook rings it from below, from across the chasm or from the ledge high over the stair, holding its door or its stones while it sounds. The Cloud-Mother is calmed by hooking the bell nearest her as she cries. The bell-note whistle that was in that chest waits in Vael’s makers’ court instead.',
+      see: 'In Vael II, go into the Founders’ Belfry and through the Bell Chamber: hook the ring under the oculus’s bell (aim with LT / L2, fire with RT / R2) and three stones come down round the dais; in the porch, hook the porch’s bell and walk through while it sounds.' },
+    // src/temples/buried.js (the banks need the bombs, the vents take a bomb's blast), src/gadgets/bomb.js (off on meeting a
+    // guardian); the fourth chamber into the Garden of Spheres' makers' court (src/boxes/placements.js spheres.bomb)
+    { text: 'The ink bombs are now earned in the Engine-House, where the fourth chamber for your magic bar used to be: its banks of four eyes still want all four in one breath, three splashes and a bomb for the rest, and a bomb thrown at the Tooth-Warden’s open vent goes off on it and takes three vents at once. The fourth chamber waits in the Garden of Spheres’ makers’ court, where the bombs used to be.',
+      see: 'In the Buried Machine, open the chest in the Engine-House’s Fourth Chamber, then throw a bomb between two of the eyes on posts round it and splash the other two before they fade: the shutters roll up.' },
+  ] },
   { v: '1.79', date: '2026-10-15', items: [
     // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync
     // (BridgeRunner); docs/systems/performance.md "The Steam Deck, round 12" and "round 13", docs/steam-deck.md "The engine"

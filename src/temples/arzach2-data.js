@@ -38,7 +38,7 @@ export const PEOPLE = {
           say: ["~solemn~ Calix calls her *the Cloud-Mother*. An air-whale. She once carried the morning cloud away for the founders.", "~sad~ She rose with the stones and never came down. I think she’s trapped, or frightened. Perhaps both."],
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' }, { text: '~neutral~ Maybe she needs a bell.', goto: 'bell' }],
         },
-        bell: { say: ["~curious~ There are silent bells in every room. If you find a way to ring one, try letting her hear it.", '~whisper~ Nobody here has one small enough to carry.'], choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' }] },
+        bell: { say: ["~curious~ There are silent bells in every room, hung far out of reach. If you find a way to ring one, let her hear it.", '~whisper~ The ringers pulled them by a ring underneath. Nobody here reaches that high now.'], choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.arzach2' }, goto: 'go' }] },
         go: {
           say: ["~neutral~ Cross *the bridge to the gallery door*. Mind the edge. The cloud is much farther down than it looks.", "~whisper~ If you hear her cry, approach quietly. Shouting won’t help her understand you."],
           choices: [{ text: '~happy~ I’ll be gentle.', end: true }],

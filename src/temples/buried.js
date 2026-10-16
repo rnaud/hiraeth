@@ -30,11 +30,12 @@ import { engineHouseSkin } from './skins/engine-house.js';
 //   the Crank Hall         a walkway over a pit, and the engine's great hammer slamming down on it, driven by a
 //                          crank wheel in an iron casing west of the way. A ball's groove runs down the near landing
 //                          into the crank's teeth: roll it in, and the hammer stops at the top of its stroke
-//   the Fourth Chamber     the makers' chest: the FOURTH CHAMBER (src/items.js 'cell'): a fourth unit on the magic
-//                          bar. Its way on is open. Four eyes on posts round the chest wake only together, inside one
-//                          breath: four shots, and the starting bar only holds three (needs 'magic:4', src/resources.js
-//                          meets). Since v1.48 (issue #23) they are two by each of its shutters, west and east (v1.77: and north): woken,
-//                          the shutters roll up (the fourth chamber's first lock, where failing costs nothing). The hub:
+//   the Fourth Chamber     the makers' chest: INK BOMBS (src/gadgets/bomb.js; issue #377: the fourth chamber, a fourth
+//                          unit on the magic bar, was here, and went to the Garden of Spheres' makers' court). Its way on
+//                          is open. Four eyes on posts round the chest wake only together, inside one breath: four hits,
+//                          and the bar holds three shots, so one bomb's blast among two of them, the other two splashed
+//                          (needs the bombs). Since v1.48 (issue #23) they are two by each of its shutters, west and east (v1.77: and north): woken,
+//                          the shutters roll up (the bombs' first lock, where failing costs nothing). The hub:
 //   the Boiler Room        (west, an arena) the engine's cold boilers; its doors shut behind you while its keepers
 //                          stand. Won, the small key's cage sinks and its flue opens, a way on into the Crank Passage
 //   the Governor Room      (east) the great key caged on an anvil, the hammer over the cage; one ball between two
@@ -45,15 +46,15 @@ import { engineHouseSkin } from './skins/engine-house.js';
 //   the Crank Passage      a room on, behind the chamber's north shutter: its door wants four eyes in one breath too, but they
 //                          stand on pistons behind a
 //                          parapet that rise in turn, one crank for all four: jam it with the ball by it, all four
-//                          up (the fourth chamber with the push, where failing costs a wait). And the Boiler Room's
+//                          up (a bomb over the parapet with the push, where failing costs a wait). And the Boiler Room's
 //                          small key
 //   the Furnace            a chasm over embers; the bridge rises on four eyes in one breath, but each eye stands on
 //                          a piston behind the far parapet, and the pistons rise in turn with the stroke, never four
 //                          up inside a breath. Two cranks on the near lip drive the two west pistons, a ball in a
 //                          groove by each: jam those two up, then catch the other two as they rise one after the
-//                          other (the fourth chamber with the push)
+//                          other, a bomb lobbed over the far parapet among two of them (the bombs with the push)
 //   the Tooth-Warden's Hall the guardian (a robot: its meter is damage). When its four vents open, hit all four inside
-//                          a breath. From its second phase it turns on the great gear in the floor; a ball in the
+//                          a breath: a bomb at its feet takes the vents its blast reaches, splash the rest. From its second phase it turns on the great gear in the floor; a ball in the
 //                          gear's teeth jams its turning (a volley then counts twice). In its last it opens turning,
 //                          one vent at a time facing out, and stamps the ball out of the teeth as it shifts: roll it
 //                          back in, and all four stay open
@@ -97,7 +98,7 @@ export const STROKE = { period: 8, up: 1.2 };
 export const GEAR = { turn: 1.4, jammed: 0.25, free: 0.125 };
 
 export const LOGIC = {
-  id: 'buried', entry: 'threshold', gadget: 'cell',
+  id: 'buried', entry: 'threshold', gadget: 'bomb',
   // (v1.77, issue #336: every room tagged with its kind, the Boiler Room the one fight; the Crank Passage a room of its own)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, pistons: { checkpoint: true, kind: 'puzzle' }, weight: { checkpoint: true, kind: 'puzzle' },
@@ -133,13 +134,14 @@ export const LOGIC = {
     ballJ: { type: 'drum', room: 'weight', plate: 'pJ', plateAt: 1, start: 0.09 },   // (issue #275: it starts 1 m along its groove, off the wall it lay against: room behind it to push from)
     pJ: { type: 'plate', room: 'weight' },
     h1: { type: 'door', opens: { drumOn: ['ballJ', 'pJ'] } },
-    chest: { type: 'gadget', room: 'cell', item: 'cell' },
-    k0: { type: 'switch', room: 'cell', needs: ['magic:4'] },       // the chamber's four still eyes, two by each shutter
+    // (issue #377: the chest held the fourth chamber, more magic; ink bombs now, the shots the bar can't hold)
+    chest: { type: 'gadget', room: 'cell', item: 'bomb' },
+    k0: { type: 'switch', room: 'cell', needs: ['bomb'] },          // the chamber's four still eyes, two by each shutter
     dS: { type: 'door', opens: { lit: 'k0' }, latch: true },        // its shutters west, east and (v1.77) north (three pieces, one element)
     // the Crank Passage: four eyes on pistons that rise in turn, one crank for all four: jammed, all stay up
     bK: { type: 'drum', room: 'crank', plate: 'pK', plateAt: 1, start: 0.22 },   // (issue #275: it starts 0.9 m along its groove, off the wall it lay against: room behind it to push from)
     pK: { type: 'plate', room: 'crank' },
-    k1: { type: 'switch', room: 'crank', needs: ['magic:4'], when: { drumOn: ['bK', 'pK'] } },   // four eyes in one breath
+    k1: { type: 'switch', room: 'crank', needs: ['bomb'], when: { drumOn: ['bK', 'pK'] } },   // four eyes in one breath
     d3: { type: 'door', lock: 'small', opens: { lit: 'k1' }, latch: true },
     // the Boiler Room: its keepers beaten, the small key's cage sinks and the flue opens on into the Crank Passage
     arB: { type: 'arena', room: 'boiler' },
@@ -151,7 +153,7 @@ export const LOGIC = {
     // pistons', they stand for four in a breath, but the hammer runs, down on the cage; rolled back (a woken eye stays
     // awake), the hammer stands still again and the cage sinks
     // (the eyes before the ball: once they can wake, the marker points at them, not at the ball's other stop)
-    k3: { type: 'switch', room: 'gov', needs: ['magic:4'], when: { drumOn: ['bQ', 'pQ'] } },
+    k3: { type: 'switch', room: 'gov', needs: ['bomb'], when: { drumOn: ['bQ', 'pQ'] } },
     bQ: { type: 'drum', room: 'gov', stops: { pH: 0, pQ: 1 }, start: 0 },
     pH: { type: 'plate', room: 'gov' },
     pQ: { type: 'plate', room: 'gov' },
@@ -162,13 +164,13 @@ export const LOGIC = {
     pA: { type: 'plate', room: 'furnace' },
     bB: { type: 'drum', room: 'furnace', plate: 'pB', plateAt: 1, start: 0.43 },   // (issue #275: it starts 1.5 m along its groove, off the wall it lay against: room behind it to push from)
     pB: { type: 'plate', room: 'furnace' },
-    k2: { type: 'switch', room: 'furnace', needs: ['magic:4'], when: { all: [{ drumOn: ['bA', 'pA'] }, { drumOn: ['bB', 'pB'] }] } },
+    k2: { type: 'switch', room: 'furnace', needs: ['bomb'], when: { all: [{ drumOn: ['bA', 'pA'] }, { drumOn: ['bB', 'pB'] }] } },
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', lock: 'big' },                            // the great key's door (and the arena's: shut while the warden fights)
     // the hall's great gear: a ball in its teeth stops the warden turning (its last phase wants it)
     bG: { type: 'drum', room: 'hall', plate: 'pG', plateAt: 1, start: 0.07 },   // (issue #275: it starts 0.5 m along its groove, off the wall it lay against: room behind it to push from)
     pG: { type: 'plate', room: 'hall' },
-    warden: { type: 'boss', room: 'hall', needs: ['gun', 'magic:4'], requires: { drumOn: ['bG', 'pG'] } },
+    warden: { type: 'boss', room: 'hall', needs: ['gun', 'bomb'], requires: { drumOn: ['bG', 'pG'] } },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -176,11 +178,11 @@ export const LOGIC = {
 export const TOOTH_WARDEN = {
   kind: 'robot', name: 'the Tooth-Warden', final: 'break', speed: 1.6, wakeTime: 2.8,
   wake: 'The machine in the hall stands up on four legs. Its lamp turns to you.',
-  openHint: 'All four vents open, glowing. Hit all four, quickly.',
+  openHint: 'All four vents open, glowing. Bomb a vent, splash the rest, quickly.',
   resolved: 'The Tooth-Warden locks up and goes still. Below you, the engine runs.',
   missHint: 'It ploughs into the wall: all four vents open. Hit all four.',
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'When its four vents open, hit all four inside one breath.' },
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Its four vents open: all four in a breath. A bomb on one takes three.' },
     { to: 0.75, attacks: ['grind', 'beam', 'stomp'], pause: 1.2, hint: 'Jam the floor gear with the ball: then its vents count twice.' },
     { to: 1.0, attacks: ['charge', 'mortars', 'grind'], pause: 1.0, hint: 'It stamped the ball out: roll it back into the gear’s teeth.',
       openHint: 'Its vents open one at a time. Jam the gear for all four.' },
@@ -522,8 +524,8 @@ function layout(rt) {
     for (const y of [7.5, 10.9]) K.add(band, new THREE.CylinderGeometry(0.94, 0.94, 0.3, 14).translate(x, y, z));
   }
   add(Bank, { id: 'k0', window: VOLLEY, eyes: K0.map((a) => ({ at: [Math.sin(a) * (PR - 0.95), 10.6, C3 + Math.cos(a) * (PR - 0.95)], yaw: Math.PI + a })),
-    full: 'All four woke, and went dark again: four shots in one breath, and the bar holds three.',
-    fade: 'They woke one by one, and went dark again before the last: four in one breath.' });
+    full: 'All four woke, and went dark again: four in one breath, and the bar holds three shots.',
+    fade: 'They woke one by one, and went dark again before the last: four in one breath. A bomb between two wakes both.' });
   add(Mark, { room: 'cell', at: [5, 7, C3 - 10], yaw: -Math.PI * 0.75 });
 
   // ---- the Crank Passage (floor 7), a room on: four eyes on pistons across its middle, one crank for all four
@@ -707,7 +709,7 @@ function change(scene, level, rt) {
 
 export const BURIED_TEMPLE = {
   id: 'buried', levelId: 'buried', name: 'The Engine-House', doorLabel: 'door of the Engine-House',
-  gadget: 'cell', gadgetBox: 'buried.temple.cell', arenaDoor: 'd4', arenas: ARENAS,
+  gadget: 'bomb', gadgetBox: 'buried.temple.cell', arenaDoor: 'd4', arenas: ARENAS,   // (the box's id from when it held the fourth chamber: the saves' flag)
   origin: [-150, 2200, -280], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
@@ -740,10 +742,11 @@ export const BURIED_TEMPLE = {
         if (G.phaseIndex >= 1 && jammed()) rt.notice('The gear holds it, and all four take it at once. It reels.', `tw.jammed.${G.phaseIndex}`);
         rt.rumble(0.6, 0.45);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
-      } else if (hits.filter((h) => clock - h <= VOLLEY).length === 3 && !rt.logic.has('magic:4')) rt.notice('Three vents, and the magic bar is spent. A fourth needs a longer bar.', 'tw.three');
+      } else if (hits.filter((h) => clock - h <= VOLLEY).length === 3 && !rt.logic.has('magic:4')) rt.notice('Three vents, and the bar is spent. A bomb on a vent takes three.', 'tw.three');
     };
     for (let i = 0; i < 4; i++) {
-      rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.9, position: () => G.model.vent(i, at[i]), enabled: () => facing(i), onHit: (mode) => { if (mode !== 'push') rt.volley(i); return true; } }));
+      // (a splash on it, or a bomb's blast reaching it: issue #377, the bombs are the house's tool; a shove rings off)
+      rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.9, position: () => G.model.vent(i, at[i]), enabled: () => facing(i), onHit: (mode, point, dir, info) => { if (mode !== 'push' || info?.mode === 'bomb') rt.volley(i); return true; } }));
     }
     let lastPhase = G.phaseIndex, openT = 0;
     const upd = G.update.bind(G);

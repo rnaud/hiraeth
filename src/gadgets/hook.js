@@ -96,6 +96,7 @@ function hookHead(mat) {
 
 export default {
   id: 'hook', name: 'Grappling hook', glyph: '⥉', order: 10, trigger: 'aim',
+  where: 'In the Founders’ Belfry, out of the cloud west of Vael’s sky stones: in the Bell Chamber over the stone stair.',
   text: 'A brass reel and a three-pronged hook on makers’ cord. Aim with {key:aim}, fire with {key:fire}: it reels you to a wall or ledge, or drags loose things to you.',
   model: hookModel,
 

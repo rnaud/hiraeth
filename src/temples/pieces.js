@@ -33,7 +33,8 @@ import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
 //   Flame    the Givers' pilot flame in the floor: a tar ball rolled through it catches
 //   Bramble  dry thorns across a doorway: an ember glob burns them away for good (cut: the sword cuts them too)
 //   Switch   a carved eye on a wall: a splash of fluid wakes it for good (blade: struck with the sword, only that)
-//   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
+//   Bank     eyes that wake only together, inside a breath: more than a tank of shots, so the house's gadget helps
+//            (a bomb's blast among them, the boomerang's locks: issue #377)
 //   LightEar a lamp that wakes when you stand by it with the lantern charm
 //   Jaw      a gate of snapping jaws: a stilling glob stills them, and they rest open for good (in turn, `after`,
 //            or a while only: their element's `hold`, the frost thaws and they snap shut again)
@@ -51,6 +52,7 @@ import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
 //   EchoStone a singing stone: splash it and it sings its note (the echo shell catches it)
 //   EchoEar  a horn that listens for its note played back close by (the echo shell), or sung (hears: 'note')
 //   Dish     a pair of receiving dishes: a note sung into the near one's mouth comes out of the far one's
+//   HookBell a brass pull-ring under a founders' bell: the grappling hook's bite rings the bell (issue #377)
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Key      a key of the makers' brass over a plinth, caged until its element's `when` holds: walk up and it is yours
@@ -1242,8 +1244,10 @@ export class Bank {
   dispose() { for (const e of this.eyes) e.off?.(); }
 }
 
-/** Bell-tuned: the bell-note whistle sounded within reach rings element `id` (a 'bell' element: needs the bell).
- * o: { id, at, reach, heard (what it says when it answers), heardKey (say it once), fading (said as a held note fades) }
+/** Bell-tuned: a bell's note within reach rings element `id` (a 'bell' element: needs what rings it).
+ * o: { id, at, reach, heard (what it says when it answers), heardKey (say it once), fading (said as a held note fades),
+ *      struck (true: only a bell struck, a clapper's blow or a HookBell tugged by the grappling hook, not the bell-note
+ *      whistle: the Founders' Belfry since issue #377) }
  * A held bell (its element has `hold: s`, logic.js) rings for s seconds and falls quiet: what it holds lets go
  * (a held door shuts, held stones rise). Sounded again while it rings, the note starts over. */
 export class BellEar {
@@ -1251,8 +1255,9 @@ export class BellEar {
     this.rt = rt; this.id = o.id; this.o = o; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 40;
     this.hold = rt.logic.el?.(o.id)?.hold ?? 0;
     this.left = 0;
-    this.off = rt.game?.on?.('bell', ({ pos, soft } = {}) => {
+    this.off = rt.game?.on?.('bell', ({ pos, soft, struck } = {}) => {
       if (!pos || soft || pos.distanceTo(this.at) > this.reach) return;   // (soft: the listening shell's hum, not a bell)
+      if (o.struck && !struck) return;   // (the whistle: a charm that finds chests, not a founders' bell)
       if (this.hold && rt.logic.isLit(this.id)) { this.left = this.hold; this.warned = false; return; }   // (rung again: the note starts over)
       if (rt.logic.light(this.id)) {
         if (this.hold) { this.left = this.hold; this.warned = false; }
@@ -1267,6 +1272,59 @@ export class BellEar {
     this.left -= dt;
     if (this.left < 2.5 && !this.warned) { this.warned = true; this.rt.rumble?.(0.8, 0.2); if (this.o.fading) this.rt.notice?.(this.o.fading, `${this.o.heardKey ?? this.id}.fading`); }
     if (this.left <= 0) { this.left = 0; this.rt.logic.quiet(this.id); }
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A founders' bell's pull ring (the Founders' Belfry, issue #377: the grappling hook rings the bells). A heavy brass ring
+ * on a short chain under a bell's lip (or on its crown), drawn as the Gadget Yard draws the hook's rings (a brass ring
+ * round a red heart), so it reads as something to hook. The hook's bite tugs it (src/gadgets/hook.js: a target's onHit
+ * with mode 'hook'): the bell swings and booms, a game 'bell' event at the ring marked `struck`, which the house's
+ * BellEars and its guardian hear. Nothing else rings it: a splash or a push only rocks it a little.
+ * o: { id, at (the ring's middle, local), chain (m of chain over it: 0 none), yaw (the way the ring faces, local),
+ *      size (the ring's radius, m; 0.5) }
+ */
+export class HookBell {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, r = o.size ?? 0.5, chain = o.chain ?? 0.8;
+    this.at = K.world(...o.at);
+    this.center = this.at;
+    this.group = new THREE.Group();
+    this.group.position.copy(this.at);
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    const brass = own({ color: '#d6a94a', flat: true, metal: 'brass', refl: 0.4 });
+    const red = own({ color: '#c8483a', flat: true, glow: 0.12 });
+    // (the ring swings from the top of its chain: the pivot r + chain over its middle)
+    this.loop = new THREE.Group();
+    this.loop.position.y = r + chain;
+    this.loop.add(mesh([T(new THREE.TorusGeometry(r, r * 0.17, 8, 24), [0, -r - chain, 0])], brass));
+    this.loop.add(mesh([T(new THREE.CircleGeometry(r * 0.45, 14), [0, -r - chain, 0.02]), T(new THREE.CircleGeometry(r * 0.45, 14), [0, -r - chain, -0.02], [0, Math.PI, 0])], red));
+    if (chain > 0) this.loop.add(mesh([T(new THREE.CylinderGeometry(0.06, 0.06, chain, 6), [0, -chain / 2, 0])], M.trimMat));
+    this.group.add(this.loop);
+    noCollide(this.group);
+    this.swing = 0; this.wob = 0; this.time = 0;
+    this.off = registerTarget({ kind: 'bell', radius: Math.max(0.8, r * 1.6), position: () => this.at, enabled: () => this.group.visible, onHit: (mode, point, dir, info) => this.hit(mode, info) });
+  }
+  hit(mode, info = {}) {
+    if (info?.mode !== 'hook') { this.wob = Math.max(this.wob, 0.25); return true; }   // (a splash rocks it; only a tug rings the bell)
+    this.ring();
+    return true;
+  }
+  /** Tugged: the bell swings and booms (a 'bell' event at the ring, struck). */
+  ring() {
+    this.swing = 1;
+    this.rt.sound?.chime?.();
+    this.rt.rumble?.(0.35, 0.15);
+    this.rt.game?.emit?.('bell', { pos: this.at.clone(), struck: true, by: this.id });
+  }
+  update(dt) {
+    this.time += dt;
+    this.swing = Math.max(0, this.swing - dt * 0.45);
+    this.wob = Math.max(0, this.wob - dt * 0.8);
+    this.loop.rotation.z = Math.sin(this.time * 7) * (this.swing * 0.35 + this.wob * 0.15);
   }
   dispose() { this.off?.(); }
 }

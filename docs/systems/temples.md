@@ -29,8 +29,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   bridge that knocks you off; a stilling glob stops it a while), `Updraft` (a
   column of rising wind that lifts the fluid wings, holds you near its middle
   and lets you go at its top), `Gust` (gusts down a hall that shove you back,
-  but not behind its screens), `BellEar` (the bell-note
-  whistle sounded near it), `Platform` (a riding disc, a dynamic solid you stand
+  but not behind its screens), `BellEar` (a bell rung near it: `struck`, a bell struck only, a clapper's blow or
+  a `HookBell`, the pull-ring the grappling hook rings), `Platform` (a riding disc, a dynamic solid you stand
   on), `Bridge` (stones rise out of a chasm; `from: 'grow'`: a vine bridge that
   grows out from its near end), `Mark` (a checkpoint), `Pit`; and for the last
   three temples `Seed` (a husk in a stone ring that only a bloom glob wakes),
@@ -1146,6 +1146,31 @@ plate at one end and the Givers' weight at the other: the plate no longer latche
 `migrate.js` desert v3 puts it there for a save past that door) and the Mooring-House's Capstan Hall (a coffer caged by
 the east wall, its plate, and the moorers' weight high on a cleat where only the grappling hook reaches it: a reward,
 `optional`). The playthrough test carries every weight on the way for real. docs/systems/carry.md has the rules.
+
+## The gadgets earned inside (issues #375, #377, docs/design/gadget-temples.md)
+
+The author: "Gadgets should never be in a chest out in the wild. They should be earned, like in a temple … then a couple of
+rooms that make me use the gadget to exit the place", and "a lot of the temple gadgets are … very topical like more mana or
+a tool to calm the guardian. They should be tools that help with puzzles in the temple and help with the guardian fight."
+Each house whose chest held a topical thing holds one of the real gadgets now (src/gadgets/), its rooms after the chest
+and its guardian answering that gadget's verb; the topical thing went to the makers' court whose box the gadget left
+(src/boxes/placements.js, `court: true`), or into the gadget. The box ids stay (the saves' flags), `TEMPLE_BOXES`
+(migrate.js) says what each holds now.
+
+- **The Founders' Belfry: the grappling hook** (the bell-note whistle before). Every founders' bell hangs a `HookBell`
+  (pieces.js): a brass ring round a red heart on a short chain under its lip (on the founders' bell, on its crown), drawn
+  like the Gadget Yard's rings. The hook's bite on it (hook.js: a target's `onHit` with `mode: 'hook'`) swings it and
+  rings the bell, a game `'bell'` event marked `struck`; the house's `BellEar`s are `struck: true`, so the whistle (a
+  charm in Vael's court now) no longer rings them, and a clapper ball's blow still does. Two bells are new: the Hall of
+  Echoes' over the chasm's east side (`BELL2`, hooked from either lip or the bridge) and the far door's beside it; and four
+  round the Cloud-Mother's hall (`HALL_BELLS`): hooked near her as she cries she calms, hooked as she rises to dive a
+  hanging stone comes down. Hooking her instead frightens her. The walk-through rings every bell from where the player
+  can, in the hook's reach and sight (`tests/temples.test.js`).
+- **The Engine-House: ink bombs** (the fourth chamber before). Its banks of four eyes in one breath want the bombs: the
+  bar holds three shots, and a bomb's blast wakes the eyes it reaches (kit.js `blast`: a target's `onHit` 'push',
+  `mode: 'bomb'`; between two of the chamber's posts, both). A bomb that meets a guardian's target goes off on it
+  (bomb.js, as on a foe): on the Tooth-Warden's open vent it takes that vent and the two beside it (`TOOTH_WARDEN` vents
+  count a bomb's blast), a splash the last.
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

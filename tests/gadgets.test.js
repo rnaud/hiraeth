@@ -388,6 +388,23 @@ test('a blast cuts and throws a foe, throws a crate, breaks a cracked wall in re
   clearTargets();
 });
 
+test('a bomb that meets a temple guardian goes off on it at once, as on a foe (issue #377: the Tooth-Warden’s vents)', () => {
+  clearTargets();
+  const ph = physicsOf();
+  const P = player(v(0, 0, 10));
+  const blasts = [], hits = [];
+  registerTarget({ kind: 'sentinel', radius: 0.9, position: () => v(0, 1.5, -4), onHit: (mode, point, dir, info) => hits.push({ mode, info }) });
+  const ctx = hookCtx(P, ph, { world: new GadgetWorld({ physics: ph, player: P }), bursts: { add: (at) => blasts.push(at.clone()) }, game: { emit() {} } });
+  const B = bomb.create(ctx);
+  B.spawn(v(0, 1.5, 0), v(0, 0, -14));
+  let t = 0;
+  while (B.live.length && t < 3) { B.update(DT); t += DT; }
+  assert.ok(t < 0.6, `off on meeting it, not after its fuse (${t.toFixed(2)} s)`);
+  assert.equal(blasts.length, 1);
+  assert.ok(hits.some((h) => h.info?.mode === 'bomb'), 'the blast reaches it, marked a bomb’s');
+  clearTargets();
+});
+
 test('a loose crate falls, lands, slides to a stop; walked into, it is pushed along', () => {
   const ph = physicsOf();
   const p = new Prop({ object: new THREE.Group(), r: 0.5, h: 0.45 });

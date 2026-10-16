@@ -224,10 +224,16 @@ test('the Echo’s second phase teaches the print: only the sphere that answers 
 });
 
 // ------------------------------------------------------------------ the Cloud-Mother
+/** (issue #377) Her hall's bell nearest her, rung by the hook's bite on its pull-ring (src/temples/pieces.js HookBell). */
+function hallBell(rt, G) {
+  const bells = rt.pieces.filter((p) => p.id?.startsWith?.('hb.hall.')).sort((a, b) => a.at.distanceTo(G.model.pos) - b.at.distanceTo(G.model.pos));
+  assert.equal(bells.length, 4, 'four bells round her hall');
+  bells[0].hit('push', { mode: 'hook' });
+}
 test('the Cloud-Mother’s last phase: she never sinks to cry by herself; a ring as she rises to dive brings a stone down where she dives, she lies on it, and the bell calms her', () => {
-  const A = arena('arzach2', 'bell', 2);
+  const A = arena('arzach2', 'hook', 2);
   const { rt, G, P, until, wait, said, away } = A;
-  const ring = () => game.emit('bell', { pos: P.pos.clone() });
+  const ring = () => hallBell(rt, G);
   const S = rt.hallStones;
   assert.ok(S?.list.length >= 3, 'stones hang under her dome');
   // left alone she only gasps (v1.70, #319: an opening in every phase): a moment's cry, and a ring then calms her a
@@ -268,9 +274,9 @@ test('the Cloud-Mother’s last phase: she never sinks to cry by herself; a ring
 });
 
 test('the Cloud-Mother’s second phase teaches the stone: a ring as she rises to dive brings it down, and her own crying still opens her', () => {
-  const A = arena('arzach2', 'bell', 1);
+  const A = arena('arzach2', 'hook', 1);
   const { rt, G, P, until, away } = A;
-  const ring = () => game.emit('bell', { pos: P.pos.clone() });
+  const ring = () => hallBell(rt, G);
   assert.equal(until(() => G.state === 'open', 40), true, 'she sinks to cry by herself');
   const m0 = G.meter;
   ring();

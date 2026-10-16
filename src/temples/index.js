@@ -88,7 +88,8 @@ export const templesIn = (world) => Object.keys(TEMPLES).filter((id) => templeWo
 
 /**
  * The gifts, world by world: `temple` is the gadget inside the world's temple (the key to its
- * later rooms and its guardian), `world` the gifts left in the open. `built: false` marks a
+ * later rooms and its guardian), `world` the gifts left in the open (charms and upgrades, never a gadget: issue #375,
+ * docs/design/gadget-temples.md). `built: false` marks a
  * temple still to come: until it is built, its gadget waits in the world as before (`now`).
  * tests/temples.test.js checks the split, and that it matches PLACEMENTS.
  */
@@ -96,12 +97,12 @@ export const GADGETS = {
   desert: { temple: 'sword', world: ['backpack', 'star'], built: true },   // (the Givers' blade, and their guard beside it; the main quest's own since v1.38, the lift valve by the giant's pool and the fluid gun in the Givers' Hearth, with ember mode in the same chest since v1.45: src/boxes/placements.js)
   incal: { temple: 'wardenbellows', world: ['soles'], built: true },   // (the Warden's bellows, the wings' third strength: v1.42; the Warden's harness, the City-Shaft's own jets, before it)
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
-  arzach: { temple: 'glider', world: ['hush'], built: true },         // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire
-  arzach2: { temple: 'bell', world: ['scarf'], built: true },         // the bell moved here from Vael's spire; the wind-silk scarf on the balanced stack (the wings went to the Aerie)
+  arzach: { temple: 'glider', world: ['hush', 'bell'], built: true }, // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire; the bell-note whistle in its makers' court (issue #375: the hook's box, the hook earned in the Belfry)
+  arzach2: { temple: 'hook', world: ['scarf'], built: true },         // the grappling hook (issue #377: the bell-note whistle until then, a charm, now in Vael's court); the wind-silk scarf on the balanced stack (the wings went to the Aerie)
   garage: { temple: 'coil', world: ['level'], built: true },          // the Clock-House (the Sealed Hangar's First Garage, in the Glass Dunes now: TEMPLE_HOME): the coil inside; the brass level on a glass mound
-  buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
+  buried: { temple: 'bomb', world: ['resin'], built: true },          // ink bombs (issue #377: the fourth chamber until then, now in the Garden of Spheres' court)
   edena: { temple: 'bloom', world: ['pouch'], built: true },          // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy (the lantern went to Lorn II)
-  spheres: { temple: 'lens', world: ['shell'], built: true },
+  spheres: { temple: 'lens', world: ['shell', 'cell'], built: true },   // (the fourth chamber in its makers' court, the bombs' old box: issue #375)
   perdide: { temple: 'stun', world: ['reed'], built: true },          // the stilling mode moved inside from the mossy rise; the breathing reed is there now
   perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open

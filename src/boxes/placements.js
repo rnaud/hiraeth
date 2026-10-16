@@ -116,10 +116,12 @@ export const PLACEMENTS = {
     // rest: the gulf, the wind well, the Elder, who will not fly alone
     { id: 'arzach.temple.glider', item: 'glider', temple: 'arzach', site: templeSite('arzach'),
       note: 'Inside the Aerie on the plain west of the landing, in the round chamber at the top of the feather stair.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'arzach.hook', item: 'hook', site: courtSite('arzach'), beacon: 160, gadget: true,
+    // the makers' court (src/finds/courts.js): the hook's bay round it (rings on its wall, towers to reel up to). Its box
+    // held the grappling hook until issue #375 ("gadgets should never be in a chest out in the wild"): the hook is earned
+    // in the Founders' Belfry now, and the box holds the bell-note whistle, the belfry's old charm (its id the saves' flag)
+    { id: 'arzach.hook', item: 'bell', site: courtSite('arzach'), beacon: 160, court: true,
       hint: 'At the pale court west of the landing',
-      note: 'In the makers’ court on the rise west of the landing, at its front edge: rings on its wall and towers to reel up to.' },
+      note: 'In the makers’ court on the rise west of the landing, at its front edge. Its rings and towers are for the grappling hook, earned in the Founders’ Belfry.' },
   ],
   arzach2: [
     // the sky stones: the top of the balanced five-stone stack on the start plateau
@@ -128,9 +130,10 @@ export const PLACEMENTS = {
     { id: 'arzach2.scarf', item: 'scarf', at: [35, 65.3, -43.5], toward: [0, 22],
       hint: 'On the balanced stack on the first sky stone',
       note: 'The top stone of the balanced stack on the first sky stone, the plateau over the cloud south of the plain: a teetering climb.' },
-    // the Founders' Belfry (src/temples/arzach2.js): in the bell chamber half-way up. The whistle is the key to the
-    // rest: the bell-tuned doors, the stones that come down into a bridge, the Cloud-Mother's calm
-    { id: 'arzach2.temple.bell', item: 'bell', temple: 'arzach2', site: templeSite('arzach2'),
+    // the Founders' Belfry (src/temples/arzach2.js): in the bell chamber half-way up. The grappling hook is the key to the
+    // rest (issue #377; the bell-note whistle was here): the bells' pull-rings, so the held doors, the stones that come down
+    // into a bridge, the great key's cage and the Cloud-Mother's calm. (Its id from when it held the whistle: the saves' flag)
+    { id: 'arzach2.temple.bell', item: 'hook', temple: 'arzach2', site: templeSite('arzach2'),
       note: 'Inside the Founders’ Belfry, out of the cloud west of the first sky stone, in the round chamber over the stone stair.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
     { id: 'arzach2.springs', item: 'springs', site: courtSite('arzach2'), beacon: 160, gadget: true,
@@ -159,9 +162,10 @@ export const PLACEMENTS = {
     { id: 'buried.resin', item: 'resin', at: [110, 33.8, 144.5], toward: [110, 160],
       hint: 'On the smoking chimney stack’s lower ring',
       note: 'The lower ring platform of the chimney stack north-east of the spawn, on its +z side.' },
-    // the Engine-House (src/temples/buried.js): in the round chamber past the counterweight. The fourth chamber
-    // is the key to the rest: the banks of four eyes that wake only together, the Tooth-Warden's four vents
-    { id: 'buried.temple.cell', item: 'cell', temple: 'buried', site: templeSite('buried'),
+    // the Engine-House (src/temples/buried.js): in the round chamber past the counterweight. Ink bombs are the key to the
+    // rest (issue #377; the fourth chamber was here): the banks of four eyes that wake only together, three splashed and
+    // the rest in a blast, the Tooth-Warden's four vents. (Its id from when it held the fourth chamber: the saves' flag)
+    { id: 'buried.temple.cell', item: 'bomb', temple: 'buried', site: templeSite('buried'),
       note: 'Inside the Engine-House on the dunes west of the domes, in the round chamber past the counterweight.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
     { id: 'buried.monocle', item: 'monocle', site: courtSite('buried'), beacon: 160, gadget: true,
@@ -195,10 +199,12 @@ export const PLACEMENTS = {
     // the door that is wall without it, the bridge and the eye only it shows
     { id: 'spheres.temple.lens', item: 'lens', temple: 'spheres', site: templeSite('spheres'),
       note: 'Inside the Footprint north of the grove, in the heel, in the round chamber past the still pool.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'spheres.bomb', item: 'bomb', site: courtSite('spheres'), beacon: 160, gadget: true,
+    // the makers' court (src/finds/courts.js): the bombs' bay round it (a cracked wall, a cracked boulder, crates to throw).
+    // Its box held the ink bombs until issue #375: they are earned in the Engine-House now, and the box holds the fourth
+    // chamber, the Engine-House's old upgrade (its id the saves' flag)
+    { id: 'spheres.bomb', item: 'cell', site: courtSite('spheres'), beacon: 160, court: true,
       hint: 'At the court in the south-west grove',
-      note: 'In the makers’ court in the grove south-west of the landing: a cracked wall, a cracked boulder, crates to throw.' },
+      note: 'In the makers’ court in the grove south-west of the landing, at its front edge. Its cracked wall and boulder are for the ink bombs, earned in the Buried Machine’s Engine-House.' },
   ],
   perdide: [
     // the swamp of lights: on top of Wendel's lookout, the stepped crystal on the mossy rise east of the landing

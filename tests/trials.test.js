@@ -45,24 +45,27 @@ test('one trial in every place on the route, each with a reward that is an upgra
 // (the v1.0 and v1.46 audits: three trials paid out on a gadget that arrives worlds later; issue #99)
 test('every trial’s first finish is something to use at once: no gadget from further down the route', () => {
   const at = (w) => ORDER.indexOf(partOf(w));
-  // (where each gadget is found: its court's box; a court with a bay of its own, v1.48, is for a gadget found before)
-  const gadgetWorld = Object.fromEntries(Object.entries(COURTS).filter(([, c]) => !c.bay).map(([w, c]) => [c.gadget, w]));
+  // (where each gadget is found: the box that holds it, a temple's chest since issues #375 and #377, by the world it stands in)
+  const gadgetWorld = Object.fromEntries(Object.entries(PLACEMENTS).flatMap(([w, list]) => list.filter((p) => ITEMS[p.item]?.kind === 'gadget' && p.item !== 'gun').map((p) => [p.item, w])));
   for (const [w, T] of Object.entries(TRIALS)) {
     const it = ITEMS[T.reward];
     if (!it.needs) continue;   // (the hoverbike's fins, the cosmetics)
     const from = gadgetWorld[it.needs];
-    assert.ok(from, `${w}: ${T.reward} upgrades ${it.needs}, which a court gives`);
+    assert.ok(from, `${w}: ${T.reward} upgrades ${it.needs}, which a box holds`);
     assert.ok(at(from) <= at(w), `${w} (world ${at(w) + 1}): ${T.reward} is for the ${it.needs}, found in ${from} (world ${at(from) + 1})`);
   }
 });
 
-test('a gadget a world, in the makers’ courts, each in a box', () => {
+test('a gadget’s bay in each makers’ court; its box, where it has one, a gift in the open (issue #375: the gadgets are earned in the temples)', () => {
   const gadgets = Object.values(COURTS).filter((c) => !c.bay).map((c) => c.gadget);
-  assert.deepEqual(new Set(gadgets), new Set(GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id)), 'every gadget once (but the fluid gun, the desert\'s main quest\'s own)');
+  assert.deepEqual(new Set(gadgets), new Set(GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id)), 'every gadget’s bay once (but the fluid gun, the desert\'s main quest\'s own)');
   assert.equal(gadgets.length, 10);
   const at = (w) => ORDER.indexOf(partOf(w));
   for (const [w, c] of Object.entries(COURTS)) {
     assert.ok(ROUTE_PARTS.includes(w), `${w}: on the route`);
+    // (a court whose gadget moved into a temple: its box, if any, holds a gift in the open, never a gadget)
+    const own = PLACEMENTS[w].find((p) => p.court);
+    if (!c.bay && own) { assert.ok(own.hint && ITEMS[own.item] && ITEMS[own.item].kind !== 'gadget', `${w}: its box holds a gift in the open, with a hint`); continue; }
     if (!c.bay) { assert.ok(PLACEMENTS[w].some((p) => p.item === c.gadget && p.gadget && p.hint), `${w}: its box holds the ${c.gadget}, with a hint`); continue; }
     // (v1.48, issue #101: the three worlds promoted in v1.40, their temples bringing new tools, have a court of a gadget
     // found worlds before, a bay of its own and a charm for that gadget behind its gate, in a box with a hint)

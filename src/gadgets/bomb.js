@@ -64,6 +64,7 @@ function bombBody(scale = 1) {
 
 export default {
   id: 'bomb', name: 'Ink bombs', glyph: '●', order: 20, trigger: 'aim',
+  where: 'In the Engine-House on the Buried Machine’s dunes, west of the domes: in its Fourth Chamber, past the stopped hammer.',
   text: 'Pots of the makers’ blackest ink under a short fuse. Aim with {key:aim}, throw with {key:fire}: they break cracked walls and throw foes. Three, and they grow back.',
   model: () => bombBody(1),
   create(ctx) { return new Bombs(ctx); },
@@ -168,9 +169,10 @@ class Bombs {
     const move = _v.copy(b.vel).multiplyScalar(dt), L = move.length();
     if (L < 1e-5) return;
     const dir = _w.copy(move).divideScalar(L);
-    // a foe in the way: off at once
+    // a foe in the way: off at once (and a temple's guardian, issue #377: a bomb that meets the Tooth-Warden's vent goes
+    // off on it, its blast taking the vents beside it)
     const t = raycastTargets(b.pos, dir, L + BOMB.r);
-    if (t && t.target.kind === 'foe') { b.pos.copy(t.point); b.fuse = 0; return; }
+    if (t && (t.target.kind === 'foe' || t.target.kind === 'sentinel' || t.target.kind === 'guardian')) { b.pos.copy(t.point); b.fuse = 0; return; }
     const hit = rayWorld(physics, b.pos, dir, L + BOMB.r);
     if (hit) {
       b.pos.copy(hit.point).addScaledVector(hit.normal, BOMB.r);

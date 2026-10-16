@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.80 — 2026-10-15
+
+- The ink bombs are now earned in the Engine-House, where the fourth chamber for your magic bar used to be: its banks of four eyes still want all four in one breath, three splashes and a bomb for the rest, and a bomb thrown at the Tooth-Warden’s open vent goes off on it and takes three vents at once. The fourth chamber waits in the Garden of Spheres’ makers’ court, where the bombs used to be.
+- The grappling hook is now earned in the Founders’ Belfry, in the chest past the stone stair: every founders’ bell hangs a brass ring under it, and the hook rings it from below, from across the chasm or from the ledge high over the stair, holding its door or its stones while it sounds. The Cloud-Mother is calmed by hooking the bell nearest her as she cries. The bell-note whistle that was in that chest waits in Vael’s makers’ court instead.
+
 ## v1.79 — 2026-10-15
 
 - The last few foes of each Sunken Hall wave stand under a pillar of light so you can find them, one that slipped behind a wall is put back in the room (a run could never end), and the results give you a rank from S to C by your time and the hearts you lost.
