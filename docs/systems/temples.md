@@ -1191,6 +1191,11 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   horn, and every ear past the chest and the Listener need the boots. Over the Tank Hall's glass a screen of the house's
   shell now runs to the roof, with a hatch at the top of the rungs (`hatch`, `HATCH`) that opens with them: no bounce of the
   boots clears the glass, only its rungs while the shelf's ear rings.
+- **The Warden's Well: the gust fan** (the Warden's bellows before, in Lorn's court now: open wings still climb faster with
+  them, and a save's bellows still wash a vane). A `Vane` takes the fan's `'gust'` (its target `accepts` it): a great one,
+  too heavy for a splash, turns `VANE_GUST` (5) s a gust, a small one as long as a splash. Every great vane, the draughts
+  and the warden need the fan: the gallery's and the loft's vanes, the crown's two at once, the hall's four (its last phase's
+  hatch lifts over the one it backs onto, fanned from beside it, its bulk not in the gust's way).
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

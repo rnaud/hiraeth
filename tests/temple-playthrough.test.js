@@ -188,8 +188,9 @@ export function playTemple(id, o = {}) {
       goTo(s, b.center.clone().sub(s));
       if (fire()) return true;
     }
-    // hovering on the bellows' breath beside it, where no floor is (the Warden's Well's loft shelf: its own lesson)
-    if (has('wardenbellows') && tool.kind === 'push') {
+    // hovering on the vane's breath beside it, where no floor is (the Warden's Well's loft shelf: its own lesson; the fan
+    // its tool since issue #377, the bellows before)
+    if ((has('fan') || has('wardenbellows')) && tool.kind === 'push') {
       for (const at of spots) {
         const feet = at.clone().setY(floorY + 0.1), probe = feet.clone();
         if (physics.pushCapsule(probe, 0.4, 0.4, 1.7) || !inCone(feet)) continue;

@@ -44,6 +44,7 @@ import { TempleKit, ANTE } from '../src/temples/kit.js';
 import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as AERIE_TOP, BALCONY as AERIE_BALCONY } from '../src/temples/arzach.js';
 import { KENNEL, WICK, ROOT_WAY, ROOMS as ROOMS_P2, FOUNT } from '../src/temples/perdide2.js';
 import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
+import fanGadget, { FAN } from '../src/gadgets/fan.js';
 import { NURSERY, BALCONY, ROOMS as ROOMS_HUSH, UP as HUSH_UP, WALK as HUSH_WALK, MOUTHS as HUSH_MOUTHS, SHRINE as HUSH_SHRINE, KEEPER as HUSH_KEEPER } from '../src/temples/perdide.js';
 import { LODGE as FOOT_LODGE } from '../src/temples/spheres.js';
 import { SAND as FOUNDRY_SAND, UP as FOUNDRY_UP } from '../src/temples/moonfoundry.js';
@@ -474,7 +475,7 @@ test('the Warden’s Well is a hub (issue #23): either wing alone gives its key,
   const g = new GameState(null);
   for (const [k, v] of Object.entries({ 'lit.v1': true, 'drum.ball1': 1, 'open.d1': true, gadget: true, checkpoint: 'jets' })) g.set(`temple.incal.${k}`, v);
   migrateTemples(g);
-  const W = new TempleLogic(L, { store: flagStore(g, 'incal'), has: (i) => items.includes(i) || i === 'wardenbellows' });
+  const W = new TempleLogic(L, { store: flagStore(g, 'incal'), has: (i) => items.includes(i) || i === 'fan' });
   W.update();
   assert.ok(W.isOpen('d1') && W.keys('small') === 0, 'the balcony’s door stays open behind them');
   // (v1.74, issue #23's last round: two ways up from the gallery meeting at the crown. The Flue's draught rises only while
@@ -490,7 +491,7 @@ test('the Warden’s Well is a hub (issue #23): either wing alone gives its key,
   const g2 = new GameState(null);
   for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'open.d1': true, gadget: true, 'lit.s2': true, 'open.iris': true, 'drum.ball3': 1, 'open.iris2': true, 'lit.s4': true, 'open.d3': true, checkpoint: 'hall', layout: 2 })) g2.set(`temple.incal.${k}`, v);
   migrateTemples(g2);
-  const W2 = new TempleLogic(L, { store: flagStore(g2, 'incal'), has: (i) => items.includes(i) || i === 'wardenbellows' });
+  const W2 = new TempleLogic(L, { store: flagStore(g2, 'incal'), has: (i) => items.includes(i) || i === 'fan' });
   W2.update();
   assert.ok(W2.isOpen('d3') && W2.keys('big') === 0, 'an old save past the high door: open, its great key in it');
 });
@@ -1528,7 +1529,7 @@ test('the Rose House is solved with the backpack and the double jump, the blade 
 });
 
 // ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
-test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: the Ash Store’s arena and the Vane Room’s chasm, each a small key for the balcony’s door, the slot and the ball, the bellows and the draught up the oculus, the great vane and the lidded eye from the rising air, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye (the little one in the loft below, too slow and in time), the high door’s great lock, into the Flue from the gallery’s floor, its little vane’s draught up past the ledge and its great key, and up into the crown, the warden broken over a vane, the shaft’s breath', () => {
+test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: the Ash Store’s arena and the Vane Room’s chasm, each a small key for the balcony’s door, the slot and the ball, the gust fan (issue #377: the bellows before) and the draught up the oculus, the great vane fanned and the lidded eye from the rising air, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye (the little one in the loft below, too slow and in time), the high door’s great lock, into the Flue from the gallery’s floor, its little vane’s draught up past the ledge and its great key, and up into the crown, the warden broken over a vane, the shaft’s breath', () => {
   game.reset();
   own('backpack', 'gun', 'glider');
   const { level, physics, rt } = world('incal');
@@ -1539,7 +1540,19 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
+  // (issue #377) the gust fan, the house's tool: a real one (src/gadgets/fan.js). Held in the air over a great vane, he swings
+  // it down at the vane every swing (FAN.cool), as the bellows' wash turned it before
+  const fanG = fanGadget.create({ player: P, physics, camera: null, tool: null, sound: null, world: null, hud: { reticle() {} }, sfx: { equip() {} }, fx: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
+  let fanT = 0, fanAt = null;   // (fanAt: the great vane he swings it at, while he hovers over it)
+  const fanDown = () => {
+    const v = fanAt;
+    if (!v || P.onGround || !items.has('fan') || (fanT -= DT) > 0) return;
+    if (v.center.distanceTo(P.pos) > FAN.range - 1 || P.pos.y < v.center.y) return;
+    const hand = P.pos.clone().add(V(0, 1.4, 0));
+    fanG.gust(hand, v.center.clone().sub(hand).normalize());
+    fanT = FAN.cool;
+  };
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); fanDown(); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -1686,12 +1699,12 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(walk(L(0, 11, C3 - 6.4)), true, `into the chamber (${where()})`);
   for (let i = 0; i < 2 / DT; i++) frame({ Space: true }, 0);
   assert.ok(ly() < 16, 'before the chest the plinth is still: the wings go nowhere up');
-  items.grant('wardenbellows'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
+  items.grant('fan'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
   assert.equal(rt.logic.gadget, true);
   // what they are for, at once: a line a moment after the chest, the drone sent up, the draught rising through the oculus
   const pings = [], offPing = game.on('scout:ping', (e) => pings.push(e));
   wait(1.5);
-  assert.ok(notes.includes(BELLOWS_NEXT), `the bellows' next step is said (${notes.at(-1)})`);
+  assert.ok(notes.includes(BELLOWS_NEXT), `the next step is said (${notes.at(-1)})`);
   assert.match(BELLOWS_NEXT, /\{key:thrust\}/);   // (jump held in the air, as the player holds it: src/prompt-keys.js keyText)
   assert.equal(pings.length, 1, 'the drone flies up to show where');
   offPing?.();
@@ -1716,12 +1729,13 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(vG.turning, false, 'a splash only rocks the great vane');
   assert.ok(said(/too heavy/), 'too heavy for a splash');
   assert.equal(rt.logic.isOpen('iris'), false, 'the iris is shut');
-  // the way: up the thin breath over the great vane on the wings, and hold there: the bellows' wash turns it, the lids
+  // the way: up the thin breath over the great vane on the wings, and hold there: the fan swung down at it turns it, the lids
   // lift; splash the eye from the air (the rising air holds you still enough to aim)
   assert.equal(walk(vG.center, { tol: 0.6 }), true, `onto the great vane (${where()})`);
+  fanAt = vG;
   assert.equal(rise(), true, `the breath holds you over it (${where()})`);
   assert.equal(P.hovering, true, 'on the wings, held: the gun may come up');
-  assert.equal(vG.turning, true, 'the bellows’ wash turns it');
+  assert.equal(vG.turning, true, 'the fan’s gust turns it');
   assert.ok(holding(0.8, () => eye.lidK > 0.95), 'the eye’s lids lift');
   {
     const f2 = P.pos.clone().add(V(0, 0.6, 0)), d2 = eye.center.clone().sub(f2), l2 = d2.length();
@@ -1731,9 +1745,9 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(rt.logic.isLit('s2'), true, 'the eye wakes');
   holding(2.2);
   assert.equal(rt.logic.isOpen('iris'), true, 'the iris opens');
-  land();
-  wait(2);
-  assert.equal(vG.turning, false, 'the wings folded, the vane runs down');
+  land(); fanAt = null;
+  wait(5.5);
+  assert.equal(vG.turning, false, 'no more gusts, the vane runs down');
   assert.equal(rt.logic.isLit('s2'), true, 'and the eye stays awake');
 
   // ---- up through the iris to the loft
@@ -1757,6 +1771,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   P.teleport(L(-7, GC + 0.1, C3 - 8.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   assert.equal(walk(vE.center, { tol: 0.6 }), true, `onto the loft's vane (${where()})`);
+  fanAt = vE;
   assert.equal(rise(), true, `held over it (${where()})`);
   assert.ok(holding(2, () => rt.logic.isOpen('span')), 'the gap’s stones stand while it turns');
   const aim = ball3.center.clone().sub(P.pos).normalize();
@@ -1765,7 +1780,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   holding(4, () => ball3.t > g3.to + 0.05);
   assert.ok(ball3.t > g3.to, `over the gap (${ball3.t.toFixed(2)})`);
   holding(3, () => rt.logic.drumOn('ball3', 'p3'));
-  land();
+  land(); fanAt = null;
   for (let k = 0; k < 4 && !rt.logic.drumOn('ball3', 'p3'); k++) push(ball3, 1);
   assert.ok(rt.logic.drumOn('ball3', 'p3'), `onto its plate (${ball3.t.toFixed(2)})`);
   wait(2.2);
@@ -1782,6 +1797,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   // the great vane alone: the lids stay shut (round the open iris, not across it)
   for (const [x, z] of [[0, -10], [8, -6], [8, 0]]) walk(L(x, GK, C3 + z), { tol: 1 });
   assert.equal(walk(vC.center, { tol: 0.6 }), true, `onto the crown's great vane (${where()})`);
+  fanAt = vC;
   assert.equal(rise(), true, `held over it (${where()})`);
   assert.equal(vC.turning, true);
   holding(1);
@@ -1789,8 +1805,8 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   s4.hit('shoot');
   assert.equal(rt.logic.isLit('s4'), false, 'and a splash on them does nothing');
   assert.ok(said(/two vanes/), 'it says what they want');
-  land();
-  for (let i = 0; i < 3 / DT && vC.turning; i++) frame();
+  land(); fanAt = null;
+  for (let i = 0; i < 6 / DT && vC.turning; i++) frame();
   // the little vane is not in the crown: it stands on a post in the loft below, seen down through the second iris
   assert.ok(rt.kit.local(vS.center).y < GK - 1 && rt.logic.el('vS').room === 'loft', 'the little vane stands in the loft');
   {
@@ -1810,17 +1826,19 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   wait(VANES.small - 3);
   assert.equal(leapInto([0, C3]), true, `into the draught, up through the second iris (${where()})`);
   assert.equal(glideTo([5, GK, C3 + 8.6]), true, `over onto the great vane (${where()})`);
+  fanAt = vC;
   assert.equal(rise(), true);
   holding(1);
   assert.ok(!vS.turning && s4.lidK < 0.05, 'the little one stopped on the way up: the lids stay shut');
-  land();
-  for (let i = 0; i < 3 / DT && vC.turning; i++) frame();
+  land(); fanAt = null;
+  for (let i = 0; i < 6 / DT && vC.turning; i++) frame();
   // the way: splash the small one in the loft, then fly straight up to the great one and hover while it still turns
   P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   vS.hit('shoot');
   assert.equal(leapInto([0, C3]), true, `into the draught, up through the second iris (${where()})`);
   assert.equal(glideTo([5, GK, C3 + 8.6]), true, `over onto the great vane (${where()})`);
+  fanAt = vC;
   assert.equal(rise(), true);
   assert.ok(holding(1.2, () => s4.lidK > 0.95), `both turn: the lids lift (${vS.left.toFixed(1)} s of the little one left)`);
   {
@@ -1831,7 +1849,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   assert.equal(rt.logic.isLit('s4'), true, 'the crown’s eye wakes');
   holding(2.2);
   assert.equal(rt.logic.isOpen('d3'), false, 'the eye awake, and the high door still shut: it has a great lock too');
-  land();
+  land(); fanAt = null;
   // ---- the Flue (issue #23's last round): back down to the gallery (the irises stand open), and west out of it into the
   // flue at its floor; its little vane, the draught up its middle while it turns, the great key on the ledge half-way, and
   // up into the crown by its west doorway
@@ -1901,14 +1919,22 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
         assert.equal(K.meter, below, 'in still air the hatch stays shut');
         assert.ok(said(/still air/), 'and it says so');
       }
+      // (first from the floor beside it, the warden's bulk not between: a swing at the vane sets it turning; then up its
+      // draught, the fan swung down at it as he rises)
+      { const side = v.center.clone().sub(K.model.pos).setY(0).normalize(), at = v.center.clone().addScaledVector(side, 3.5);
+        P.teleport(at.setY(v.center.y + 0.05), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0);
+        const hand = P.pos.clone().add(V(0, 1.4, 0)); fanG.gust(hand, v.center.clone().sub(hand).normalize()); }
+      fanAt = v;
       hoverOver(v);
-      assert.equal(v.turning, true, 'held on the wings over it, the bellows turn the vane under you');
+      if (!P.hovering) hoverOver(v);   // (knocked off his wings by its flare on the way up: up again)
+      assert.equal(v.turning, true, 'held on the wings over it, the fan turns the vane under you');
       assert.ok(P.pos.y > K.model.mouth.y - 1.2 && P.hovering, `over its hatch (${(P.pos.y - v.center.y).toFixed(1)} vs ${(K.model.mouth.y - v.center.y).toFixed(1)}, held ${P.hovering})`);
     }
     const before = K.meter, phase = K.phaseIndex;
     K.hit('mouth', 'shoot');
     if (phase === 1) assert.ok(Math.abs(K.meter - before - 0.25) < 1e-6 || K.meter >= 0.75, `over a turning vane a hit counts twice (${(K.meter - before).toFixed(3)})`);
     for (let i = 0; i < 1 / DT && !P.onGround; i++) frame();
+    fanAt = null;
   }
   assert.equal(K.state, 'resolved', `broken (${K.meter})`);
   assert.ok(stillTried, 'the last phase was met');

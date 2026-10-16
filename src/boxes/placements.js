@@ -85,9 +85,10 @@ export const PLACEMENTS = {
     { id: 'incal.soles', item: 'soles', at: [Math.cos(0.45) * 286, 216, Math.sin(0.45) * 286], toward: [274, 0], beacon: true,
       hint: 'On the lone stone pillar on the rim',
       note: 'On top of the makers’ pillar on the rim, round from the ship: climb the column.' },
-    // the Warden's Well (src/temples/incal.js): in the chamber half-way up, the Warden's bellows (the jets until v1.42).
-    // They are the key to the rest: the draught up through its ceiling, the great vanes, the warden's crown
-    { id: 'incal.temple.jetpack', item: 'wardenbellows', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
+    // the Warden's Well (src/temples/incal.js): in the chamber half-way up, the gust fan (issue #377; the Warden's bellows
+    // until then, the jets until v1.42). It is the key to the rest: the great vanes its gust turns, the draught, the
+    // warden's crown hatch
+    { id: 'incal.temple.jetpack', item: 'fan', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
       site: templeSite('incal'),
       note: 'Inside the makers’ tower on the rim, in the round chamber over the climbing well.' },
     // (issue #169) the light that goes down: on the little square at the foot of the mirrors' chain on the bottom terrace,
@@ -218,10 +219,12 @@ export const PLACEMENTS = {
     // to the rest: the gates of jaws, the pendulums, the Mother Snapper
     { id: 'perdide.temple.stun', item: 'stun', temple: 'perdide', site: templeSite('perdide'),
       note: 'Inside the Hush-House on the cave island, in the round chamber over the bog well.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'perdide.fan', item: 'fan', site: courtSite('perdide'), beacon: 160, gadget: true,
+    // the makers' court (src/finds/courts.js): the gust fan's bay round it (pinwheels, a fire in a hut's door, a ledge to
+    // hover up to). Its box held the fan until issue #375: it is earned in the City-Shaft's Warden's Well now, and the box
+    // holds the Warden's bellows, the Well's old gift (its id the saves' flag)
+    { id: 'perdide.fan', item: 'wardenbellows', site: courtSite('perdide'), beacon: 160, court: true,
       hint: 'At the pinwheel court east of the landing',
-      note: 'In the makers’ court on the dry ground east of the landing: pinwheels, a fire in a hut’s door, a ledge to hover up to. Its gusts fill the skiff’s sail too.' },
+      note: 'In the makers’ court on the dry ground east of the landing, at its front edge. Its pinwheels are for the gust fan, earned in the City-Shaft’s Warden’s Well.' },
   ],
   perdide2: [
     // the top of the first root arch over the path

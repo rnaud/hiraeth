@@ -66,7 +66,8 @@ export const ITEMS = {
   // City-Shaft's own jets, went: src/save-migrate.js step 11 turns a save's harness into these)
   wardenbellows: {
     name: 'Warden’s bellows', kind: 'movement', needs: 'backpack',
-    text: 'Bellows under the tank that breathe wind down while your wings are open: hover over a makers’ vane to turn it, and climb faster in rising air.',
+    text: 'Bellows under the tank that breathe wind down while your wings are open: you climb faster in rising air, and a makers’ vane you hover over turns.',
+    where: 'In the makers’ court on Lorn’s dry ground east of the landing.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',

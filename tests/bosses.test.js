@@ -4,6 +4,7 @@
 // written for that guardian, plainer each time.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import './register-gadgets.js';   // (the gadgets as items: the temples' tools since issues #375, #377)
 import * as THREE from 'three';
 import { guardianBar } from '../src/temples/boss.js';
 import { guardianHint, BOSS_HINTS } from '../src/temples/hints.js';
@@ -123,6 +124,7 @@ test('the warden\'s vents keep opening, fight after fight: its sides in the firs
     if (G.phaseIndex >= 2) {
       for (let k = 0; k < 2.6 / DT; k++) frame();
       const v = rt.hallVanes.slice().sort((a, b) => a.center.distanceTo(G.model.pos) - b.center.distanceTo(G.model.pos))[0];
+      v.hit('gust');   // (issue #377: a swing of the fan at it, the Well's tool; the jets' wash, a debug item, turns it too)
       P.teleport(v.center.clone().add(V(0, Math.max(6.5, G.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
       for (let i = 0; i < 3; i++) frame({ Space: true, PadJump: true });
       for (let i = 0; i < 0.5 / DT; i++) frame({ PadAim: true });

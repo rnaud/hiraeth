@@ -647,17 +647,21 @@ test('the Elder’s second phase teaches the wind: flown with on still air she s
 });
 
 // ------------------------------------------------------------------ the warden
-/** Hover over a vane on the jets (thrust a moment, then aim: they hold you), level with the warden's crown. */
+/**
+ * (issue #377: the gust fan is the Warden's Well's tool, the bellows and the jets before) A swing of the fan at the vane from
+ * beside it (its 'gust': src/gadgets/fan.js), then up its breath on the wings, held over it level with the warden's crown.
+ */
 function hoverOver(A, v) {
   const { G, P } = A;
+  items.grant('glider');
+  v.hit('gust');
   P.teleport(v.center.clone().add(V(0, Math.max(6.5, G.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
-  for (let i = 0; i < 3; i++) A.frame({ Space: true, PadJump: true });
-  for (let i = 0; i < 0.5 / DT; i++) A.frame({ PadAim: true });
+  for (let i = 0; i < 2.5 / DT && !(P.hovering && Math.abs(P.vel.y) < 0.3 && i > 30); i++) A.frame({ Space: true });
 }
 const nearestVane = (rt, G) => rt.hallVanes.slice().sort((a, b) => Math.hypot(a.center.x - G.model.pos.x, a.center.z - G.model.pos.z) - Math.hypot(b.center.x - G.model.pos.x, b.center.z - G.model.pos.z))[0];
 
-test('the warden’s last phase: over its crown in still air the hatch slams; it backs onto a vane, and hovering over that vane on the jets its draught lifts the hatch', () => {
-  const A = arena('incal', 'jetpack', 2);
+test('the warden’s last phase: over its crown in still air the hatch slams; it backs onto a vane, and over that vane, fanned, its draught lifts the hatch', () => {
+  const A = arena('incal', 'fan', 2);
   const { rt, G, P, until, wait, said } = A;
   assert.equal(rt.hallVanes?.length, 4, 'four great vanes in the floor');
   let stillTried = false;
@@ -677,9 +681,9 @@ test('the warden’s last phase: over its crown in still air the hatch slams; it
       assert.equal(G.meter, before, 'in still air the shot does nothing');
       assert.ok(said(/still air/), 'and it says why');
     }
-    // the way: hover over that vane: the jets' wash turns it, and its draught holds the hatch up
+    // the way: fan that vane, and hover over it: its draught holds the hatch up
     hoverOver(A, v);
-    assert.equal(v.turning, true, 'the vane turns under the jets');
+    assert.equal(v.turning, true, 'the vane turns in the fan’s gust');
     assert.ok(draught(rt), 'its draught reaches the warden');
     const before = G.meter;
     G.hit('mouth', 'shoot');
@@ -691,7 +695,7 @@ test('the warden’s last phase: over its crown in still air the hatch slams; it
 });
 
 test('the warden’s second phase teaches the vanes: a plain hit in its crown still counts, and over a turning vane twice as much', () => {
-  const A = arena('incal', 'jetpack', 1);
+  const A = arena('incal', 'fan', 1);
   const { rt, G, P, until, wait } = A;
   assert.equal(until(() => G.state === 'open', 40), true, 'its hatch opens');
   P.teleport(G.model.mouth.clone().add(V(3, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));

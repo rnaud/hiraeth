@@ -84,12 +84,15 @@ test('every world before the chosen one is played through, the chosen one and th
   }
 });
 
-test('the gear and the tank are what the route gave: the wings in Vael, the Warden\'s bellows in the City-Shaft (never the debug jets), a band per magical water', () => {
+test('the gear and the tank are what the route gave: the wings in Vael, the Warden\'s bellows in Lorn’s makers’ court and the fan in the City-Shaft (never the debug jets), a band per magical water', () => {
   assert.equal(progressBefore('arzach').flags['item.glider'], undefined);
   assert.equal(progressBefore('perdide').flags['item.glider'], true);
   assert.equal(progressBefore('perdide').flags['item.bell'], true, 'and the sky stones’ bell (Vael’s, since October 2026)');
-  assert.equal(progressBefore('incal').flags['item.wardenbellows'], undefined);
-  assert.equal(progressBefore('glassdunes').flags['item.wardenbellows'], true);
+  // (issues #375, #377: the Warden's Well holds the gust fan, its bellows wait in the fan's old court in Lorn)
+  assert.equal(progressBefore('perdide').flags['item.wardenbellows'], undefined);
+  assert.equal(progressBefore('edena').flags['item.wardenbellows'], true);
+  assert.equal(progressBefore('incal').flags['item.fan'], undefined);
+  assert.equal(progressBefore('glassdunes').flags['item.fan'], true);
   assert.equal(progressBefore('glassdunes').flags['item.harness'], undefined, 'the Warden’s harness went in v1.42');
   assert.equal(progressBefore('glassdunes').flags['item.jetpack'], undefined, 'the jets anywhere: a debug item');
   assert.equal(progressBefore('glassdunes').flags['item.cabpass'], true);   // (Lio's, at the end of a City-Shaft quest: a conversation gives it)

@@ -155,6 +155,7 @@ function curlCurve() {
 
 export default {
   id: 'fan', name: 'Gust fan', glyph: '◗', order: 100, trigger: 'use',
+  where: 'In the Warden’s Well, the makers’ tower on the City-Shaft’s rim: in its Bellows Chamber over the climbing well.',
   text: 'A folding fan of the makers’ paper. Swing it with {key:use}: the gust shoves crates and foes, fills sails, blows out fires and lifts you as you glide.',
   model: () => fanModel(),
   create(ctx) { return new Fan(ctx); },

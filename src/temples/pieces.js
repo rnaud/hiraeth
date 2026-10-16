@@ -2047,6 +2047,8 @@ export class Sentry {
  * o: { id, at (its centre), wall, yaw, r, coast, great, reach, linger, heavy, turning (said the first time it turns),
  *      washed (said the first time a wash turns it), fading (said as a splashed one slows) }
  */
+/** s a great vane turns for one gust of the fan (issue #377: the Warden's Well's tool; held, it gusts every 0.42 s). */
+export const VANE_GUST = 5;
 export class Vane {
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
@@ -2078,12 +2080,14 @@ export class Vane {
     this.group.add(this.rotor);
     noCollide(this.group);
     this.left = 0; this.w = 0; this.rock = 0;
-    this.off = registerTarget({ kind: 'vane', radius: r, position: () => this.center, onHit: (mode) => this.hit(mode) });
+    // (accepts the gust fan's 'gust', issue #377: a gust turns a great vane as the bellows' wash did)
+    this.off = registerTarget({ kind: 'vane', radius: r, accepts: ['gust'], position: () => this.center, onHit: (mode, point, dir, info) => this.hit(mode, info) });
   }
   /** Is it turning (its element lit)? */
   get turning() { return this.rt.logic.isLit(this.id); }
-  /** A splash: a small vane spins a while; a great one only rocks. */
-  hit() {
+  /** A splash: a small vane spins a while; a great one only rocks. A gust of the fan turns either a while (VANE_GUST s). */
+  hit(mode, info = {}) {
+    if (mode === 'gust') { this.spin(this.o.great ? VANE_GUST : this.coast, true); return true; }
     if (this.o.great) {
       this.rock = 0.7;
       this.rt.sound?.critter?.('creak', 0.6);
@@ -2105,7 +2109,7 @@ export class Vane {
     if (s > this.left) { this.left = s; this.warned = false; }
     return true;
   }
-  /** A steady wash over it: the bellows' off open wings (the Warden's bellows), or the debug jets burning; within reach over its face and not far off its axis. */
+  /** A steady wash over it: the bellows' off open wings (the Warden's bellows: a save that found them before issue #377), or the debug jets burning; within reach over its face and not far off its axis. */
   washedBy(P) {
     if (!P || P.dead) return false;
     if (!(P.gliding && P.has?.('wardenbellows')) && !(P.jetFlight && P.jetPower > 0)) return false;

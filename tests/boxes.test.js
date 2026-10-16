@@ -85,7 +85,8 @@ test('the jetpack, glider, stun and fire unlocks each have a box; every special 
   const where = Object.fromEntries(Object.values(PLACEMENTS).flat().flatMap((p) => [[p.item, p.id], ...(ITEMS[p.item]?.with ?? []).map((w) => [w, p.id])]));   // (what comes with an item is in its box: the gun's ember mode)
   for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest && !ITEMS[id].trial && !ITEMS[id].debug && !ITEMS[id].retired && !ITEMS[id].fragments) assert.ok(where[id], `${id} is in a box somewhere`);   // (a trial's reward is won: src/trials/; a retired one, kept for the saves that won it, is nowhere now; the scientist fits his for the fragments of the singing light: src/story/scientist.js)
   assert.ok(!where.cabpass, 'the cab pass is a quest’s, not a box’s');
-  assert.match(where.wardenbellows, /^incal\./, 'the Warden’s bellows in the City-Shaft (the jets anywhere are a debug item: no box)');
+  assert.match(where.wardenbellows, /^perdide\./, 'the Warden’s bellows in Lorn’s makers’ court since issue #375 (the jets anywhere are a debug item: no box)');
+  assert.match(where.fan, /^incal\./, 'the gust fan in the City-Shaft’s Warden’s Well');
   assert.equal(where.jetpack, undefined);
   assert.match(where.glider, /^arzach2?\./);
   assert.match(where.stun, /^(perdide|spheres)\./);
