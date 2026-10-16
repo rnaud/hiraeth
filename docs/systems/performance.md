@@ -3590,3 +3590,59 @@ Deck, before the switch.
 things are left open, neither a blocker for the switch:
 - the uncapped player's spread above 80 fps (above);
 - the one-off ~1.2 s first-use pipeline stalls (above).
+
+## The Steam Deck, round 13: the Unity player held to 90 Hz (issue #111, 2026-10-15)
+
+Round 12's first open point. Where the web holds the OLED's 90 Hz (p95 11.2 ms), the uncapped player ran at 92-108 fps
+with its frames 9-14 ms apart.
+
+**How it was measured.** The same rig as round 12 (`deck-engines.mjs --engines unity --loads warm`, the Steam Deck
+preset, 90 Hz, warm caches), with a Linux player built from origin/main f7024ce5 plus this change
+(`BridgeBuild.Linux` on the Mac). Three ways were measured, world by world, in the same session:
+- uncapped (`-vsync 0`), run twice;
+- held to the refresh by Unity's frame limiter (`Application.targetFrameRate` 90);
+- vsync (`-vsync 1`), with and without the near shadow map drawn every frame (2048², `-shadow-near-every 1`).
+
+fps is the median of the views and walks (in brackets the worst one). p95 and the 1 % low are the script thread's
+frame intervals.
+
+| world | uncapped (two runs) | `targetFrameRate` 90 | **vsync** (kept) |
+|---|---|---|---|
+| Home | 107.1 / 107.0 (p95 12.0) | 89.1 (87.5), p95 13.9, 1 % low 64.5 | **90.0** (90.0), p95 13.6 |
+| Glass Dunes | 103.1 / 104.8 | 89.5 (89.0) | **90.0** (90.0) |
+| Moon Foundry | 105.3 / 104.7 | 89.2 (89.1) | **90.0** (90.0) |
+| Garden of Spheres | 92.2 / 91.0 | 89.2 (88.5) | **89.6** (88.0) |
+| Desert | 78.0 / 78.6, 4.0 % under 60 | 76.0, 4.4 % | **76.1** (70.3), 4.6 % |
+
+- **vsync works under gamescope at 90 Hz now.** Round 6 found it did not hold the player. Here every view of Home,
+  the Glass Dunes and the Moon Foundry ran at 90.0: a new frame at every refresh. The thread intervals still spread to
+  12-14 ms at p95, because they are the CPU side's, and Unity's two queued frames absorb them (a missed refresh would
+  take the view under 90). Frame times on the screen itself can't be read in the headless backend; the fps can.
+- **The frame limiter is worse**: 89.1-89.5 rather than 90, and Home's 1 % low fell to 64.5. Unity's limiter sleeps
+  to its target and drifts against the display's refresh.
+- **The cost where Unity is under 90**: the Desert 78.3 → 76.1 with vsync, and the same with the limiter.
+  - With a frame cap the GPU's clocks drop: its time a frame went from 8.1 to 9.4-10 ms in the capped worlds (on
+    the main thread's 5 s windows).
+  - In the Desert a frame that misses a refresh waits for the next one.
+  - That is 2-3 %, against a frame at every refresh where the world can hold 90.
+- **The near shadow map every frame at 2048**: Home's 1 % low 74.6 against 68.9, but the Garden of Spheres 87.8 and
+  the Desert 74.8. Not kept.
+- **Kept: vsync on by default on the Linux player** (`BridgeRunner`, `QualitySettings.vSyncCount = 1` as on the Xbox;
+  `-vsync 0` uncapped). `deck-unity.sh` passes `-vsync 0` unless `VSYNC=1` or `-hz Nv`, so its numbers stay
+  comparable with the rounds before.
+
+**Round 12's second open point, the ~1.2 s first-use stall: written up, not fixed.**
+- **What it is.** The main thread waits ~1.2 s on the render thread (`PreLateUpdate.EndGraphicsJobsAfterScriptUpdate`),
+  once, mid-session, the first time a (layout, material variant) pair is drawn on a Deck whose Mesa cache has never
+  seen it. A third launch on the same caches had none.
+- **Why the existing prewarm can't help.** BridgePrewarm draws the pairs the last launch saw (`prewarm.txt`, saved once
+  the world has settled, the last world only). Those are the pairs Mesa's disk cache already holds, so on Vulkan it
+  buys nothing (round 6).
+- **What would help:**
+  - a list of every pair the worlds use, gathered by a bench pass over every world and view (BridgePrewarm's
+    `Note`, saved again at exit and merged), shipped in StreamingAssets with the player, and drawn during the load of
+    the first launch of each player build;
+  - or Unity 6's GraphicsStateCollection, recorded the same way and warmed at the load.
+- **What it would cost.** Either is a few seconds once per build, in place of a 1.2 s stall per new variant in play.
+  The size of the list, how long its warm-up takes on the Deck, and whether the specs stay stable between builds all
+  need a session of their own. Not done in this round.

@@ -7,7 +7,7 @@
 #   scripts/bench/deck-unity.sh run <name> <level> <views.json> <out dir here> [player args…]
 #   scripts/bench/deck-unity.sh busy | stop | ls | rm <name>   (busy: what bench, if any, runs there now)
 # REFRESH: gamescope's refresh rate (default 90, the OLED's Gaming Mode; 60 for the 60 Hz rows). (Or -hz N first among the player's arguments.) The player's own
-# arguments follow (-bench 6 -split -metrics are always passed; -vsync 1, -no-grd, -shadow-lists, … for the levers).
+# arguments follow (-bench 6 -split -metrics are always passed, and -vsync 0: VSYNC=1 for the player's own vsync; -no-grd, -shadow-lists, … for the levers).
 # The player's data (persistentDataPath: prewarm.txt, unity.log, Player.log) goes to
 # ~/.local/share/hiraeth-bench-unity/config (XDG_CONFIG_HOME), never the player's own game or saves. Only our own unit
 # (hiraeth-unity-bench) is started and stopped.
@@ -29,7 +29,8 @@ case "$1" in
   run)
     name=$2; level=$3; views=$4; out=$5; shift 5
     # (-hz N first among the player's arguments: gamescope's refresh, as REFRESH; -hz 60v: and the player's vsync on)
-    if [ "$1" = -hz ]; then REFRESH=${2%v}; v=$2; shift 2; [ "$v" != "$REFRESH" ] && set -- -vsync 1 "$@"; fi
+    # (the player's own default is vsync since round 13; the bench runs uncapped, -vsync 0, unless -hz Nv or VSYNC=1)
+    if [ "$1" = -hz ]; then REFRESH=${2%v}; v=$2; shift 2; [ "$v" != "$REFRESH" ] && VSYNC=1; fi
     busy=$(ssh -o BatchMode=yes "$DECK" "$ENVS; $BUSY")
     if [ -n "$busy" ]; then echo "the Deck is busy with another bench ($busy): not started"; exit 2; fi
     scp -q "$views" "$DECK:$PROF/views.json"
@@ -39,7 +40,7 @@ case "$1" in
       systemd-run --user --unit=hiraeth-unity-bench --collect -p RuntimeMaxSec=1200 --working-directory=\$HOME/$BASE/$name \
         gamescope --backend headless -W 1280 -H 800 -w 1280 -h 800 -r ${REFRESH:-90} -- \
         env XDG_CONFIG_HOME=\$HOME/$PROF/config PWD=\$HOME/$PROF ${PLAYER_ENV:-} ./hiraeth-js.x86_64 -screen-fullscreen 1 -screen-width 1280 -screen-height 800 \
-          -logFile \$HOME/$PROF/out/player.log -mute -metrics -level $level -views \$HOME/$PROF/views.json -bench 6 -split -limit 900 -out \$HOME/$PROF/out $*
+          -logFile \$HOME/$PROF/out/player.log -mute -metrics -level $level -views \$HOME/$PROF/views.json -bench 6 -split -limit 900 -out \$HOME/$PROF/out -vsync ${VSYNC:-0} $*
       for i in \$(seq 1 300); do systemctl --user is-active -q hiraeth-unity-bench || break; sleep 3; done
       systemctl --user stop hiraeth-unity-bench 2>/dev/null; true"
     mkdir -p "$out"

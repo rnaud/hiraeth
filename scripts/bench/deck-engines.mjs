@@ -3,6 +3,7 @@
 // viewpoints-worlds.json's others, their walks), the Steam Deck preset at native resolution in each:
 //   node scripts/bench/deck-engines.mjs --web <game dir on the Deck> --unity <player name on the Deck> --out <dir here>
 //        [--worlds desert,arzach,…] [--engines web,unity] [--lock <dir>] [--port 5420] [--refresh 90] [--loads cold,warm]
+//        [--args '-fps 0'] (more of the player's arguments) [--resume 1]
 // Per world and engine: a cold load (a profile and a shader cache of the bench's own, made empty first: Electron's
 // profile and Mesa's MESA_SHADER_CACHE_DIR; the player's XDG_CONFIG_HOME, its TMPDIR (Unity's pipeline cache) and Mesa's),
 // its start view only; then a warm one, the same caches again, every view and walk measured. The process tree's
@@ -97,7 +98,7 @@ async function unityRun(world, load) {
   const views = unityViews(world, load === 'cold');
   const gpu0 = +gpuNow();
   const mem = sampler('hiraeth-unity-bench', `${dir}/memory.txt`);
-  const r = sh('scripts/bench/deck-unity.sh', ['run', UNITY, world, views, dir], { REFRESH, PLAYER_ENV: `MESA_SHADER_CACHE_DIR=${base}/mesa TMPDIR=${base}/tmp` });
+  const r = sh('scripts/bench/deck-unity.sh', ['run', UNITY, world, views, dir, ...(opt.args ? String(opt.args).split(' ') : [])], { REFRESH, PLAYER_ENV: `MESA_SHADER_CACHE_DIR=${base}/mesa TMPDIR=${base}/tmp` });
   mem.stop();
   writeFileSync(`${dir}/run.txt`, r.out);
   const ul = existsSync(`${dir}/unity.log`) ? readFileSync(`${dir}/unity.log`, 'utf8') : '';

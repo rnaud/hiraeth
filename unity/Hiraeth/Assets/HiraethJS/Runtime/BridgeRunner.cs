@@ -401,6 +401,11 @@ namespace Hiraeth.Bridge
             // the Xbox at a steady 60 by default (a UWP app presents at 60 there, the TV at 120 Hz too: vsync 1 is every frame on
             // time but 2-3 %, against 72 fps torn without; -vsync 0 for the numbers)
             else QualitySettings.vSyncCount = 1;
+#elif UNITY_STANDALONE_LINUX && !UNITY_EDITOR
+            // the Steam Deck held to its refresh (90 on the OLED, 60 on the LCD) as the web is: uncapped, a world running at
+            // 92-108 fps spread its frames to 12-14 ms where the web holds 11.1; with vsync Home, the Glass Dunes and the Moon
+            // Foundry show a frame at every refresh (docs/systems/performance.md, "The Steam Deck, round 13"). -vsync 0 uncapped
+            else QualitySettings.vSyncCount = 1;
 #endif
             // (-no-bloom, -no-fxaa: the ink look's glow and its smoothing off, tests of the GPU's frame)
             if (BridgeArgs.Flag("-no-bloom")) Hiraeth.Rendering.HiraethFeature.Settings.bloom = false;
