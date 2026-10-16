@@ -4130,3 +4130,67 @@ The after is the final player with the 125-state list. Home's after is from the 
 - Left: the warm-up holds the main thread on the Deck, so the cold launch's loading screen stands still for ~13 s. If
   that matters, it could be warmed per world (its ~22 states) or progressively (`WarmUpProgressively`, a few a frame).
   Not tried.
+
+### Unity on the Retroid, round 8: spatial upscalers, FSR 1 against Snapdragon GSR 1 (issue #392, 2026-10-16)
+
+The same device, preset and bench as round 7 (Handheld, 1280 × 960, muted, the frame readout on; warm launches, views
+only, conditions interleaved world by world; nothing else running but the player's app, cached). The APK is this branch's
+release build (2491). GeckoView ran after it in the same sitting (this branch's `dist`, Handheld held at 0.75).
+
+**What was there before.** The bridge's camera has no post-processing, so URP's final blit was always **bilinear**,
+whatever its upscaling filter said. That includes the Xbox's 4K "FSR" default. URP's FSR never ran in this game.
+
+**What was added** (none of it is a default): `-upscale fsr|sgsr|linear|off` replaces URP's final blit with our own
+pass (HiraethFeature.UpscalePass, `Hidden/Hiraeth/Upscale`). FSR 1 runs EASU then RCAS (`-sharpness`, 0.92 by
+default). Snapdragon GSR 1 is one pass, its source under its BSD-3 notice. The HUD's canvases are drawn after the
+upscale, at the screen's size. `-ink-full` is the other placement (a): the G-buffer, its light and the glow at the
+render scale, and the ink composite and everything after it at the screen's.
+
+**The six worlds at 0.75** (median of the views' fps, the worst view, the 1 % low, the GPU's ms):
+
+| world (views) | off (bilinear) | FSR 1 | SGSR 1 | GeckoView: fps, worst, 1 % low |
+|---|---|---|---|---|
+| City-Shaft (4) | 51.6, 37.6, 38.7, 18.9 | 49.9, 36.8, 33.9, 19.6 | 51.1, 37.4, 35.6, 19.1 | 50.7, 37.0, 25.4 |
+| Signal Market (4) | 58.6, 53.9, 45.4, 16.9 | 56.6, 52.2, 50.2, 17.5 | 58.1, 53.6, 51.1, 17.0 | 59.3, 58.6, 30.0 |
+| Lorn (4) | 55.4, 46.8, 45.0, 16.3 | 54.7, 45.6, 46.4, 17.0 | 55.3, 46.6, 46.2, 16.5 | 58.8, 57.3, 35.0 |
+| Underwater (4) | 56.6, 49.8, 43.9, 17.5 | 54.8, 48.4, 46.4, 18.1 | 56.2, 49.4, 47.7, 17.6 | 59.0, 58.7, 30.0 |
+| Floating city (4) | 59.1, 53.6, 53.9, 16.6 | 57.7, 51.9, 45.4, 17.3 | 58.8, 53.2, 53.4, 16.7 | 59.0, 58.5, 30.0 |
+| Desert (5) | 60.1, 54.4, 53.0, 14.2 | 60.1, 52.8, 53.2, 14.1 | 60.1, 54.2, 51.3, 14.7 | 56.7, 54.0, 30.0 |
+
+- **What each upscaler costs at 0.75 → 1280 × 960:** FSR 1 adds **0.5-0.7 ms** of GPU (two full-screen passes) and
+  1-2 fps in a view under 60. SGSR 1 adds **0.1-0.2 ms**, within the noise in fps.
+- **What they buy is a lower render scale at a similar picture.** SGSR 1 is the cheaper of the two, so it was measured
+  again at 0.67 (857 × 643), with plain bilinear at 0.67 beside it:
+
+| world (views) | SGSR 1 at 0.67 | off at 0.67 | worst view against GeckoView's (SGSR 0.67) |
+|---|---|---|---|
+| City-Shaft (4) | 53.9, 39.6, 42.5, 17.7 | 53.9, 39.7, 41.9, 17.6 | +2.6 |
+| Signal Market (4) | 60.1, 60.0, 53.7, 15.1 | 60.1, 60.1, 54.0, 15.0 | +1.4 |
+| Lorn (4) | 58.4, 51.8, 48.3, 14.5 | 58.6, 52.1, 46.8, 14.4 | −5.5 |
+| Underwater (4) | 60.0, 56.1, 52.9, 15.6 | 60.0, 56.5, 51.3, 15.6 | −2.6 |
+| Floating city (4) | 60.1, 58.6, 53.8, 15.2 | 60.1, 58.8, 53.5, 15.0 | +0.1 |
+| Desert (5) | 60.1, 59.9, 51.7, 13.3 | 60.1, 60.1, 51.4, 13.1 | +5.9 |
+
+- 0.75 → 0.67 takes **1.1-1.9 ms** of GPU off every world. That closes the gap behind GeckoView everywhere but Lorn
+  (−5.5 in its worst view, the start, against −10.5 at 0.75) and Underwater (−2.6, against −8.9). Unity's 1 % lows stay
+  well above GeckoView's (42-54 against 25-35).
+- Unity's own medians today are under round 7's at the same settings in the City-Shaft (51.6 against 57.5) and Lorn
+  (55.4 against 60.1), and level elsewhere (main moved on, and the device was warm). GeckoView's are within 1.7 fps of
+  round 7's.
+- **Placement (a), `-ink-full`, costs more than it saves:** City-Shaft 46.0, 34.9, 36.4, **21.3 ms** and the Floating
+  city 52.2, 47.6, 37.9, **19.1 ms**. That is 2.4-2.5 ms over the whole picture at 0.75, because the ink composite, the
+  AA and the transparent passes stay at full size. Its wisps, motes, veil and pit shaders don't follow its scale
+  either. **Placement (b)** (the whole picture at the render scale, then the upscaler) is the one measured above.
+
+**The pictures** (the Retroid's own screen, adb screencap mid-view; contact sheets with 200 % crops of the busiest
+ink, and an 8 s screenrecord of a slow pan (`-pan 700 -pan-live -pan-step 0.05`) for shimmer, in
+`.local-tools/handoff/upscale-392/sheets/`). They are for the author to judge. From the crops: FSR's lines are the
+crispest, with RCAS bringing out the paper's grain in flat skies. SGSR's ink lines come out **stair-stepped and
+stippled** along diagonals (Lorn's crystals, the City-Shaft's floor grid), softer than bilinear in places. That may be
+SGSR 1's own look on thin dark lines, or a fault in this port (its gathers were checked against the original's
+coordinates, but no reference picture). At 0.67 it is the same, a little blockier.
+
+To repeat (scripts in `.local-tools/handoff/upscale-392/`): `ab.mjs <tag> --worlds … --conds "off=|fsr=-upscale
+fsr|sgsr=-upscale sgsr"`, `table.mjs <tag> off,fsr,sgsr <gecko raw dir>`, `caps.mjs`/`sheet.mjs` for the pictures;
+GeckoView with `ANDROID_SERIAL=ea2c972a node scripts/bench/android-worlds.mjs --serve <dist> --modes fixed --scale
+0.75` (the serial is needed when another device is on adb).
