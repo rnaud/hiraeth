@@ -238,6 +238,14 @@ across it), the rail yard (four short rails across a narrow room, two carts at a
 round the altar). Foes: skitters in swarms, mound worms, horn lizards, crucible carts; three centipedes whole at the end;
 150, par 4:10; Brass tooth.
 
+## The Back Rooms (the Signal Market, `src/fight-temples/bazaar.js`)
+
+The market's shuttered shops after hours, at dusk: stacked crates for pillars (`pillar: 'crate'`), the shops' neon on
+poles and awnings over the far walls (`dress: 'market'`), signs dark on the rooms' walls until they toll. Rooms: the
+shuttered row, the sign-painter's (two signs), the stockroom (a little maze of crates, two signs), the counting house
+(four signs, two rings at a time). Foes: horn lizards, antler hounds, moths, marionettes; the bell walker itself and a
+whole marionette at the end; 123, par 4:10; Signal neon. The ring is rolled through, not run from.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |

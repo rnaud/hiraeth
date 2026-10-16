@@ -1136,6 +1136,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-gallery-cart', only: 'after', title: 'A cart on the rails', caption: 'The gear pit: an ore cart, its lamp lit, starts down the near rail; skitters and a worm round him on the floor between the rails.', from: FIGHT341B },
       { name: 'fight-gallery-door', only: 'after', title: 'Its doorway', caption: 'East of the domes: the doorway and Greta, who greased the gear-house rails.', from: FIGHT341B },
     ], see: 'In the Buried Machine, walk east from the domes to the doorway. In the gear pit, when the lamp on a rail’s cart blinks, get off that rail.' },
+    { match: 'A new fight temple in the Signal Market, the Back Rooms', tags: ['combat'], shots: [
+      { name: 'fight-rooms-toll', only: 'after', title: 'The toll', caption: 'The sign-painter’s: a sign has lit on the far wall and its ring of sound spreads across the room between the crates.', from: FIGHT341B },
+      { name: 'fight-rooms-door', only: 'after', title: 'Its doorway', caption: 'In the back alley west of the sign-hanger’s ladder: the doorway and Lettie, who locks up the back rooms.', from: FIGHT341B },
+    ], numbers: [
+      { title: 'Every fight temple played through by a scripted player that takes its hits and rolls (it rolls away from a foe winding up and out of or through the hazards; it never parries, guards or shoots)', unit: '', better: 'higher', device: 'this Mac, muted headless Chrome, High, 1280 × 720', rows: [
+        { where: 'the Wind Cloister', before: '—', after: 'cleared, B, 4¼ hearts lost' },
+        { where: 'the Drowned Mill', before: '—', after: 'cleared, C, 10¼ lost' },
+        { where: 'the Pour Floor', before: '—', after: 'cleared, C, 8½ lost' },
+        { where: 'the Seed Vault', before: '—', after: 'cleared, C, 10¾ lost' },
+        { where: 'the Lift Depot (knocked out in its third room before its loads were made half a heart and its bays a tripod lighter)', before: '—', after: 'cleared, C, 12½ lost' },
+        { where: 'the Tooth Gallery', before: '—', after: 'cleared, B, 5¾ lost' },
+        { where: 'the Back Rooms', before: '—', after: 'cleared, C, 8 lost' },
+      ], source: FIGHT341B, note: 'One run each. It lives on the hearts that drop (it picked up 4 to 13) and never parries or guards, so its ranks are a floor: an S needs at most one heart lost inside the par.' },
+    ], see: 'In the Signal Market, walk into the back alley west of the sign-hanger’s ladder. In the rooms, when a sign lights, roll through the ring as it reaches you.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

@@ -46,6 +46,9 @@ export const KIT_COLOURS = [
   // the Buried Machine's Tooth Gallery: brass and the canyon's rust (src/fight-temples/buried.js)
   { id: 'brass', name: 'Brass tooth', world: 'buried', pack: { brass: '#c9a24a', brassDark: '#7a5a2a', canvas: '#b88a5a', canvasDark: '#6e4e34', cloth: '#ffb347', leather: '#2a2018' },
     water: { base: '#ffb347', cream: '#fff0c8', deep: '#a8642a', pale: '#ffd8a0', gold: '#c9a24a', light: '#fff6e0' } },
+  // the Signal Market's Back Rooms: the signs' neon (src/fight-temples/bazaar.js)
+  { id: 'neon', name: 'Signal neon', world: 'bazaar', pack: { brass: '#62c3c9', brassDark: '#2e7a80', canvas: '#6a5a7a', canvasDark: '#3a3050', cloth: '#ff5fa2', leather: '#1e1a2a' },
+    water: { base: '#ff5fa2', cream: '#ffe0f0', deep: '#a82a6a', pale: '#ffb0d4', gold: '#62c3c9', light: '#fff4fa' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
