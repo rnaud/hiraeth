@@ -80,7 +80,15 @@ gameState.on('travel:page', ({ href } = {}) => {
 });
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { HouseAir } from '../src/temples/air.js';
-import { Scout, nextObjective } from '../src/scout.js';
+import { Scout, nextObjective, findText, HINT, FIND } from '../src/scout.js';
+import { ObservatoryQuest } from '../src/observatory.js';
+import { FirstSteps } from '../src/first-steps.js';
+import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from '../src/scout-hint.js';
+import { Companion, shown as droneShown } from '../src/companion.js';
+import { registerInteractable, PRIORITY } from '../src/interact.js';
+import { applyEclipse } from '../src/eclipse.js';
+import { lanternSky, applyLanternSky } from '../src/story/lantern-sky.js';
+import { completedWorlds } from '../src/story/calls.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { makeCombat } from './combat.js';
 import { guardianHint, openHint, Struggle } from '../src/temples/hints.js';
@@ -102,7 +110,7 @@ import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud } from '../src/hud.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud, findSummary } from '../src/hud.js';
 import { toastSeconds, Story, Relics } from '../src/quest.js';
 import { EngineStarMap } from './starmap.js';
 import { homecomingKind, HOME_ID, roadDone, ROAD } from '../src/story/ending.js';
@@ -270,9 +278,11 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
   'uHalftone', 'uBounce', 'uShadeKeep', 'uFlatten', 'uNight', 'uSunDisc', 'uPaper', 'uGrain', 'uSkyDots', 'uCrevice', 'uAO', 'uEnvGround',
   'uSunColor', 'uMoonDisc', 'uMoonVis'];
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
-export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
+export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow',
+  // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
+  'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -414,6 +424,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const toasts = { queue: [], left: 0 };
   let roadT = 1;
   const toast = (text) => { if (text && toasts.queue.at(-1) !== text) toasts.queue.push(String(text)); };
+  const noticeBusy = () => toasts.left > 0 || toasts.queue.length > 0;   // (a notice up or waiting: main.js ship.cinema.noticeBusy)
   carryHooks.notice = (t) => toast(keyText(t, { teach: true }));   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
@@ -533,8 +544,57 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (in a guardian's fight the ping is a hint, as main.js's: the lens on the weak point, its line once the struggle has
   // gone on a while, src/temples/hints.js; the line a toast here, the page's drone bubble)
   const struggle = new Struggle();
-  const scout = optional('the drone', () => new Scout({ scene, player, physics, sound, getTarget: () => nextObjective({ player, story: null, ship: level.ship, level, quest: () => story?.objective?.() }),
-    getHint: () => openHint(guardianHint(level.temple), struggle.t), onHint: (line) => toast(`◇ ${line}`) }));
+  // the desert's sleeping observatory (src/observatory.js, as main.js: Naji the sketcher, the six ledges, the three lenses
+  // turned by E beside each or a glob of the fluid, the roof unfolding; its words said through the story page)
+  const expedition = level.observatory && npcs[5] && !gameDef ? optional('the observatory', () => new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5],
+    story: storyPage ?? { say: (t) => toast(t) }, capture: () => null, sound })) : null;
+  const _lensAt = new THREE.Vector3();
+  if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: () => expedition.hud(player).replace(/^E \(X \/ □\) /, ''),
+    at: () => { const i = expedition.nearby(player); return i >= 0 ? expedition.model.dials[i].getWorldPosition(_lensAt).add(player.frame.up) : null; },
+    distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
+  // the scout finds the objective (Q, R3): the cue names it and how far at once, as main.js (scoutSays); a guardian's hint
+  // the same way, after a struggle (src/temples/hints.js)
+  const scoutSaid = { text: '', until: 0, kind: '' };
+  const scoutSays = (text, secs, kind = '') => { scoutSaid.text = text; scoutSaid.kind = kind; scoutSaid.until = performance.now() + secs * 1000; };
+  const findGoal = (target) => {
+    const id = String(target?.id ?? '').replace(/^portal-\d+-/, '');
+    const q = /^(quest|opener|giver)-/.test(id) ? story?.quests?.objective?.()?.quest : null;
+    if (q) return story.quests.goal?.(q) ?? '';
+    if (/^(ledge|lens|observatory|traveler)/.test(id)) return 'Wake the sleeping observatory';
+    if (id === 'story') return content?.story?.title ?? '';
+    if (id === 'ship') return 'On to the next world';
+    return '';
+  };
+  const _fl = new THREE.Vector3();
+  const findLine = (found) => () => {
+    const t = scout?.target?.id === found.id ? scout.target : found;
+    const rise = _fl.subVectors(t.position, player.pos).dot(player.frame.up);
+    return findSummary({ goal: findGoal(t), step: findText({ ...t, rise }, player.pos.distanceTo(t.position)) });
+  };
+  const objectiveNow = () => nextObjective({ player, expedition, story: storyPage, ship: level.ship, level, quest: () => story?.objective?.() });
+  const scout = optional('the drone', () => new Scout({ scene, player, physics, sound, getTarget: objectiveNow,
+    onPing: (target) => { scoutSays(findLine(target), FIND.say + FIND.seek, 'quest'); plumb?.progress(); },
+    onFind: (target) => { scoutSays(findLine(target), FIND.say, 'quest'); story?.marker?.reveal?.(); },
+    onShrug: () => scoutSays(guardianHint(level.temple) ? '◇ …' : 'Nothing to find here', 2.5),
+    getHint: () => openHint(guardianHint(level.temple), struggle.t), onHint: (line) => scoutSays(`◇ ${line}`, HINT.say) }));
+  // the onboarding, as main.js: Plumb's own lines (src/companion.js: the opening's, once a save, and when you look lost, its
+  // ping toward the goal), the scout's button taught once after the first conversation (src/scout-hint.js), the desert's
+  // first steps (src/first-steps.js: the camera and the jump); all on the cue at the bottom
+  const help = !flags && !view && !gameDef;
+  const plumb = help ? new Companion({ state: gameState, setting: () => settings?.droneHints ?? 'on' }) : null;
+  const droneSaid = { text: '', until: 0 };
+  const plumbAt = { goalT: 0, goal: null, lookT: 0 };
+  if (plumb) {
+    for (const ev of ['quest', 'keepsake', 'dialogue:start', 'box:opened']) gameState.on(ev, () => plumb.progress());
+    gameState.on('item', (e) => { if (!(e?.n < 0)) plumb.progress(); });
+    gameState.on('box:opened', () => plumb.note('chest'));
+    gameState.on('ship:exit', () => { if (levelId === 'desert' && !gameState.flag('item.backpack')) plumb.note('out'); });
+  }
+  const scoutTeach = { left: 0, at: 0 };
+  const scoutHint = help ? installScoutHint({ game: gameState, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
+    usable: () => !(shipOn && (ship.inside || ship.playing)) && !trials?.running && gameState.flag('prologue.done') && !!scout?.getTarget?.() }) : null;
+  const firstSteps = help && levelId === 'desert' && !gameState.flag('item.backpack') ? new FirstSteps(gameState) : null;
+  const firstStepsAt = new THREE.Vector3(NaN, 0, 0);
   stamp('life');
   stamp('flora');
 
@@ -566,8 +626,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const sky ={ hour: level.defaults?.hour ?? 10 };
   const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
   let atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
-  const updateSky = () => applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, U, atmo, atmo?.script ?? script);
+  // (as main.js updateSky: an eclipse world's sun on its own path and the moon over it by the hour, src/eclipse.js; a
+  // world with moons of its own has none of ours)
+  const updateSky = () => {
+    applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, U, atmo, atmo?.script ?? script);
+    if (level.sky?.eclipse && skies) applyEclipse(sky.hour, level.sky.eclipse, U, sharedUniforms.uSunDir.value);
+    if (level.sky?.moon === false && U.uMoonVis) U.uMoonVis.value = 0;
+  };
   updateSky();
+  // the Lantern's light low in the sky from the seventh world on, brighter as the end nears (src/story/lantern-sky.js, as
+  // main.js setLanternSky); again when a world is done or the story moves
+  const setLanternSky = () => { if (U.uLantern && skies) applyLanternSky(U.uLantern.value, lanternSky({ level: levelId, completed: completedWorlds(ORDER, { flag: (k) => gameState.flag(k), storyDone: (id) => journal.storyDone(id) }), flag: (k) => gameState.flag(k) })); };
+  setLanternSky();
+  gameState.on('flag', ({ name } = {}) => { if (/^world\..+\.done$|^ending\.|^finale\.met$|^clue\.bazaar\.home$|^bazaar\.broadcast\.on$/.test(name)) setLanternSky(); });
 
   // what the boxes' special items do (src/boxes/effects.js: the bell's note on V / Y, the lantern after dusk, the star on his
   // lapel, the tank's upgrades…), as main.js makes them
@@ -776,6 +847,28 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     combat: () => !!combat?.near(20),
   });
   if (combat) combat.padLook = () => controller.held?.lookStick ?? null;
+  // (any look counts as the camera learnt: the first steps' line never said then, main.js's rig.look)
+  if (firstSteps) { const look0 = rig.look.bind(rig); rig.look = (dx, dy) => { if (dx || dy) firstSteps.looked(); look0(dx, dy); }; }
+  /** Plumb, each frame after the scout (main.js updatePlumb): the first person near, the lost watch, its line and ping. */
+  function updatePlumb(dt, busy) {
+    const now = performance.now();
+    if ((plumbAt.lookT -= dt) <= 0) {
+      plumbAt.lookT = 0.5;
+      const metAnyone = Object.keys(gameState.data?.flags ?? {}).some((k) => k.startsWith('met.'));
+      if (!metAnyone) for (const n of npcs) {
+        if (!n.def?.id || n.pooled || !n.object?.visible) continue;
+        if (n.pos.distanceTo(player.pos) < 8) { plumb.note('person'); break; }
+      }
+    }
+    const canSpeak = !busy && !photo.on && !(shipOn && (ship.playing || ship.inside)) && !player.dead && !cue.text && !noticeBusy() && now >= scoutSaid.until && now >= droneSaid.until;
+    const fight = !!combat?.foes?.lock || !!guardianHint(level.temple) || !!trials?.running;
+    if ((plumbAt.goalT -= dt) <= 0) { plumbAt.goalT = 1; plumbAt.goal = fight ? null : scout?.getTarget()?.position ?? null; }
+    const r = plumb.update(dt, { active: !fight && !scout?.out, canSpeak, pos: player.pos, goal: plumbAt.goal });
+    if (!r.say) return;
+    if (r.point) scout?.ping();
+    droneSaid.text = droneShown(r.say); droneSaid.until = now + 3200;
+    sound.drone?.('go');
+  }
 
   const noInput = {};
   let eWasDown = false, qWasDown = false;
@@ -793,7 +886,21 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad,
       shipHint: shipOn && !ship.promptTag() ? ship.hud() : null, shipPlaying: shipOn && ship.playing });
     const place = quiet || (shipOn && ship.playing) ? '' : placeName.update(atmo?.name, nowMs);
-    cue.set(text || place, text ? '' : 'place');
+    // (Plumb's line, then what the scout found, then a lesson: the first steps' and the scout's button's, as main.js updateHud)
+    const said = !quiet && nowMs < droneSaid.until ? droneSaid.text : '';
+    const found = said || (!quiet && nowMs < scoutSaid.until ? (typeof scoutSaid.text === 'function' ? scoutSaid.text() : scoutSaid.text) : '');
+    let teach = '';
+    const scenePlaying = shipOn && (ship.playing || ship.inside);
+    if (firstSteps) {
+      if (player._jumped) firstSteps.jumped();
+      const moved = Number.isFinite(firstStepsAt.x) ? Math.hypot(player.pos.x - firstStepsAt.x, player.pos.z - firstStepsAt.z) : 0;
+      firstStepsAt.copy(player.pos);
+      const open = !quiet && !scenePlaying && !player.ride && !tool?.aiming && !found && !text && !place && !noticeBusy() && gameState.flag('prologue.done') && !gameState.flag('item.backpack');
+      teach = firstSteps.update(Math.min(0.1, dt), { active: open, moved: moved < 5 ? moved : 0 });
+      if (quiet || (shipOn && ship.playing)) teach = '';
+    }
+    if (scoutTeach.left > 0 && !teach && !found && !text && !place && !quiet && !(shipOn && ship.playing)) { teach = scoutHintLine(); scoutTeach.left -= Math.min(0.1, dt); }
+    cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
     // (aboard, the ship's E floats by what it is for, the prologue's voicemail button too: src/ship/ship.js promptTag, issue #350)
     const sceneTag = story && shipOn && ship.playing && !pinned ? ship.promptTag() : null;
     if (sceneTag) { story.prompt = sceneTag.text; story.promptAt = sceneTag.at; story.promptEntry = null; story.placePrompt?.(camera, pad); }
@@ -1006,7 +1113,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     key(code, down) {
@@ -1051,7 +1158,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     fullLook() {
       // (numbers, and the look's few vectors: the spot blacks, the haze by depth and height, the cast shadows lifted or inked)
       const nums = (o) => { const out = {}; for (const [k, x] of Object.entries(o)) { if (typeof x?.value === 'number') out[k] = x.value; else if (LOOK_VECTORS.has(k)) { const v = plainValue(x?.value); if (v) out[k] = v; } } return out; };
-      return { ...this.lookParams(), post: nums(U), shared: nums(sharedUniforms), preset: presetName, planets: level.sky?.planets ?? [] };
+      const post = nums(U);
+      // (-js-off skies: the sky's own left out, the look as the bridge sent it before them, a before-and-after on one build)
+      if (!skies) for (const k of ['uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']) delete post[k];
+      return { ...this.lookParams(), post, shared: nums(sharedUniforms), preset: presetName, planets: level.sky?.planets ?? [] };
     },
     /**
      * The local lights the surfaces take this frame (main.js updateLights: the level's lamps, fires, eggs, pools and
@@ -1289,6 +1399,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (drives) { try { trials.update(dt, busy ? noInput : ctlS); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the game failed in its update', e?.stack ?? e); } } }
       else {
         if (gadgets) { try { gadgets.control(pdt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
+        // (the observatory's lens beside him takes E before he whistles: main.js)
+        if (expedition) { try { if (expedition.update(dt, player, pinned ? noInput : ctlS, busy || !!pinned) && ctlS.KeyE) player._eHeld = true; } catch (e) { if (!game._obsFailed) { game._obsFailed = true; console.warn('[game] the observatory failed', e?.stack ?? e); } } }
         player.update(pdt, pinned || busy ? noInput : ctlS, rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
       }
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
@@ -1344,6 +1456,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned || drives);   // (a game on foot keeps the blade and the gun)
         gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);
+        if (plumb && !pinned) updatePlumb(dt, busy);
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);
         houseAir?.update(dt, simT, camera, player.pos);
@@ -1356,7 +1469,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         trials?.world(dt, simT);   // the trials' wind columns, the makers' runs' moving pieces, the signs (src/trials/)
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
       lap?.('life');
-      if (ctl.KeyQ && !qWasDown && scout && !busy && !trials?.running) scout.ping?.();
+      if (ctl.KeyQ && !qWasDown && scout && !busy && !trials?.running) { scoutHint?.pinged(); scout.ping?.(); }
       qWasDown = !!ctl.KeyQ;
       // the sound's wind, rain and steps (main.js: sound.update; the gust as wind.js's)
       if (sound !== SILENT) {

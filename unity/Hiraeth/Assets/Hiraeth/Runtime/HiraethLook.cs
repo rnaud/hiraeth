@@ -197,6 +197,17 @@ namespace Hiraeth
                 craters[pi] = p.Get("craters") is bool cb && !cb ? 0 : 1;
             }
             Shader.SetGlobalVector("_PlanetCraters", craters);
+            // the sky's own, in three's space as the composite's view ray (the bridge's look: post.js uEclipse, uCorona,
+            // uEclipseGlow, uEclipseDir, uLantern, uSpace…; absent from an older export: all off)
+            Shader.SetGlobalVector("_Eclipse", V4("uEclipse", Vector4.zero));
+            Shader.SetGlobalVector("_Corona", V4("uCorona", new Vector4(1, 1, 1, 0)));
+            Shader.SetGlobalVector("_EclipseGlow", V4("uEclipseGlow", new Vector4(1, 1, 1, 0)));
+            Shader.SetGlobalVector("_EclipseDir", V4("uEclipseDir", Vector4.zero));
+            Shader.SetGlobalVector("_Lantern", V4("uLantern", new Vector4(0, 1, 0, 0)));
+            Shader.SetGlobalVector("_Space", V4("uSpace", Vector4.zero));
+            Shader.SetGlobalVector("_SpaceTone", V4("uSpaceTone", new Vector4(0.1f, 0.16f, 0.22f, 1)));
+            Shader.SetGlobalVector("_SpaceSun", V4("uSpaceSun", new Vector4(0, 1, 0, 0)));
+            Shader.SetGlobalVector("_SpaceNight", V4("uSpaceNight", Vector4.zero));
             float time = Application.isPlaying ? Time.time : 0f;
             Shader.SetGlobalFloat("_MTime", time);
             // (the bridge's look carries the web's own wind, materials.js uWind: downwind x, z in three's space, strength, gust)

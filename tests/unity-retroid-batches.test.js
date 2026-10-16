@@ -43,7 +43,7 @@ test('the frame readout\'s load report leaves the scene\'s variants out unless a
 test('the tests kept as switches, off: the instanced sets merged, the engine\'s levels of detail', () => {
   assert.match(br, /public static bool mergeInstances;/);
   assert.match(runner, /if \(BridgeArgs\.Flag\("-merge-instances"\)\) BridgeRenderer\.mergeInstances = true;/);
-  assert.match(read('engine/game.js'), /far: farOn = true, lod: lodOn = false \} = \{\}\) \{/);
+  assert.match(read('engine/game.js'), /far: farOn = true, lod: lodOn = false[,} ]/);
   assert.match(read('engine/unity/game.js'), /lod: String\(args\.on \?\? ''\)\.split\(','\)\.includes\('lod'\)/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /if \(Arg\("-js-on"\) != null\) args\["on"\] = Arg\("-js-on"\);/);
 });

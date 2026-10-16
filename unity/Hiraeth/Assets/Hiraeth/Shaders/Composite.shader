@@ -48,6 +48,13 @@ Shader "Hidden/Hiraeth/Composite"
       float4 _Subject;      // the player on screen: uv, view depth, radius
       float4 _Planet0, _PlanetColor0, _Planet1, _PlanetColor1, _Planet2, _PlanetColor2;
       float4 _PlanetCraters;   // per planet: 1 cratered, 0 a plain printed disc
+      // the sky's own (post.js, the bridge's look; uniform branches, no variants): the eclipse (src/eclipse.js: x the cover,
+      // y the discs' radius, z the corona's reach, w its style; the corona's colour and a its stars; the horizon band's colour
+      // and a its height; where the eclipsed sun stands if not at the sun's place), the Lantern's light (xyz its direction,
+      // w how bright: src/story/lantern-sky.js), space all round (x on, y the stars' density, z their teal share, w the
+      // nebula; its tone, a the stars' size; a space world's own sun for its planets and their night side)
+      float4 _Eclipse, _Corona, _EclipseGlow, _Lantern, _Space, _SpaceTone, _SpaceSun, _SpaceNight;
+      float3 _EclipseDir;
       float _Debug;
       float _NoInkFar;      // 1: the far lines' fade (1c) off, a test (the bridge's -no-ink-far; issue #218)
       float _CineRed, _CineLids, _CineBars, _CineFade; float4 _CineFadeColor;   // the cinema (Cinema.cs)
@@ -105,7 +112,7 @@ Shader "Hidden/Hiraeth/Composite"
         float3 c = lerp(_SkyHorizon, _SkyTop, lerp(t, tb, _SkyBands));
         c = lerp(c, lerp(_SkyHorizon, _SkyTop, lerp(0.45, 1.0, smoothstep(0.0, 0.03, h))), _SkyFlat);
         float sd = max(dot(rd, _SunDisc), 0.0);
-        c = lerp(c, _SkyHorizon * float3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - _Night));
+        c = lerp(c, _SkyHorizon * float3(1.03, 1.0, 0.96), pow(sd, 8.0) * 0.5 * (1.0 - h) * (1.0 - _Night) * (1.0 - step(1e-5, _Eclipse.y) * _Eclipse.x) * (1.0 - _Space.x));
         return c;
       }
       float strokeAt(float v, float f, float widthPx)
@@ -267,8 +274,9 @@ Shader "Hidden/Hiraeth/Composite"
         if (hasRing && !front && r < 1.0) ringMask = 0.0;
         if (r < 1.0 + fw) {
           float3 nrm = normalize(q.x * e1 + q.y * e2 - sqrt(max(1.0 - r * r, 0.0)) * dir);
-          float lit = smoothstep(-0.02, 0.02, dot(nrm, _SunDisc));
-          float3 pc = lerp(C.rgb * _ShadowTint * 0.9, C.rgb * lerp(float3(1, 1, 1), _LightTint, 0.3), lit);
+          float3 Lp = _SpaceSun.w > 0.5 ? normalize(_SpaceSun.xyz) : _SunDisc;   // (a space world's planets lit by their own sun)
+          float lit = smoothstep(-0.02, 0.02, dot(nrm, Lp));
+          float3 pc = lerp(lerp(C.rgb * _ShadowTint * 0.9, _SpaceNight.rgb, _SpaceNight.a), C.rgb * lerp(float3(1, 1, 1), _LightTint, 0.3), lit);
           float2 cq = q * 4.0;
           float2 cid = floor(cq);
           float ch = hash(cid + 3.1);
@@ -290,6 +298,103 @@ Shader "Hidden/Hiraeth/Composite"
         }
       }
 
+      // the Lantern's light low in the sky (post.js drawLantern): a small inked disc, four needle rays, two flat gold washes
+      // with a dotted ink ring, larger and brighter (Lt.w) as the end nears
+      void drawLantern(float3 rd, float4 Lt, inout float3 col, inout float ink)
+      {
+        float3 dir = normalize(Lt.xyz + float3(0, 1e-5, 0));
+        float3 e1 = normalize(cross(dir, float3(0.0, 1.0, 0.0)) + 1e-6);
+        float3 e2 = cross(e1, dir);
+        float2 q = float2(dot(rd, e1), dot(rd, e2));
+        float pw = max(max(fwidth(q.x), fwidth(q.y)), 1e-6);
+        if (Lt.w <= 0.0 || dot(rd, dir) <= 0.0) return;
+        float s = saturate(Lt.w), px = _PixelRatio;
+        float u = lerp(0.0072, 0.0125, s), r = length(q);
+        float breathe = 1.0 + 0.05 * sin(_MTime * 1.3);
+        float3 gold = float3(0.98, 0.8, 0.42), pale = float3(1.0, 0.97, 0.86);
+        float h2 = u * lerp(4.2, 7.5, s) * breathe, h1 = u * lerp(2.3, 3.4, s) * breathe;
+        float w2 = 1.0 - smoothstep(h2 - pw, h2 + pw, r), w1 = 1.0 - smoothstep(h1 - pw, h1 + pw, r);
+        col = lerp(col, lerp(col, gold, 0.6), w2 * lerp(0.22, 0.42, s));
+        col = lerp(col, lerp(col, pale, 0.75), w1 * lerp(0.4, 0.62, s));
+        float dots = step(0.45, frac(atan2(q.y, q.x) * 3.0 + _MTime * 0.05));
+        ink = max(ink, (1.0 - smoothstep(0.0, pw * 1.1 * px, abs(r - h1))) * dots * lerp(0.35, 0.6, s));
+        float2 a = abs(q);
+        float lv = u * lerp(6.5, 14.0, s), lh = u * lerp(3.5, 8.0, s);
+        float tv = u * 0.4 * saturate(1.0 - a.y / lv) + pw * 0.35, th = u * 0.4 * saturate(1.0 - a.x / lh) + pw * 0.35;
+        float ray = max((1.0 - smoothstep(tv - pw * 0.5, tv + pw * 0.5, a.x)) * step(a.y, lv), (1.0 - smoothstep(th - pw * 0.5, th + pw * 0.5, a.y)) * step(a.x, lh));
+        col = lerp(col, pale, ray * lerp(0.75, 1.0, s));
+        col = lerp(col, pale, 1.0 - smoothstep(u - pw, u + pw, r));
+        ink = max(ink, 1.0 - smoothstep(0.0, pw * 1.2 * px, abs(r - u)));
+      }
+
+      // the eclipse (post.js drawEclipse): the moon's black disc over the sun, its bright limb, the corona's fine rays
+      // and / or stipple and two flat halo bands in totality; out of it only the moon's bite out of the sun
+      void drawEclipse(float3 rd, float3 sun, float ang, float aa, float sunR, inout float3 col, inout float ink)
+      {
+        float R = _Eclipse.y, cover = _Eclipse.x, px = _PixelRatio;
+        float3 s1 = normalize(cross(sun, float3(0.0, 1.0, 0.0)) + 1e-5), s2 = cross(s1, sun);
+        float3 md = normalize(sun + (s1 * 0.8 - s2 * 0.6) * (1.0 - cover) * 2.05 * R);
+        float ma = acos(clamp(dot(rd, md), -1.0, 1.0));
+        float total = smoothstep(0.93, 1.0, cover);
+        float u = ang / R;
+        if (total > 0.0 && u < 2.0 + _Eclipse.z) {
+          float2 q = float2(dot(rd, s1), dot(rd, s2)) / R;
+          float b1 = 1.0 - smoothstep(1.0 + _Eclipse.z * 0.3 - aa / R, 1.0 + _Eclipse.z * 0.3 + aa / R, u);
+          float b2 = 1.0 - smoothstep(1.0 + _Eclipse.z * 0.7 - aa / R, 1.0 + _Eclipse.z * 0.7 + aa / R, u);
+          col = lerp(col, lerp(col, _Corona.rgb, 0.18), (b1 * 0.6 + b2 * 0.4) * total);
+          float N = 260.0, phi = atan2(q.y, q.x), k = phi / 6.2832 * N, id = floor(k), f = frac(k);
+          float cellPx = ang * 6.2832 / N / max(aa, 1e-7);
+          float hl = hash(float2(id, 7.3)), len = 1.0 + _Eclipse.z * (0.2 + 0.8 * hl * hl);
+          float jit = (hash(float2(id, 3.1)) - 0.5) * 0.5;
+          float wpx = lerp(0.55, 1.1, hash(float2(id, 5.7))) * px;
+          float ray = (1.0 - smoothstep(wpx * 0.5, wpx * 0.5 + 0.9, abs(f - 0.5 - jit * 0.6) * cellPx)) * step(1.0, u)
+            * (1.0 - smoothstep(lerp(1.0, len, 0.55), len, u)) * step(hash(float2(id, 2.1)), 0.82) * smoothstep(1.3, 2.6, cellPx);
+          float pxQ = aa / R, lvl = log2(max(pxQ * 3.2 * px, 1e-7)), cell = exp2(floor(lvl));
+          float2 g = q / cell, cid = floor(g), o = float2(hash(cid + 1.3), hash(cid + 7.1)) * 0.8 + 0.1;
+          float dens = exp(-(u - 1.0) / max(_Eclipse.z * 0.38, 1e-3)) * 0.95;
+          float size = lerp(0.35, 0.8, hash(cid + 2.9)) * px;
+          float dots = (1.0 - smoothstep(size, size + 0.6, length(frac(g) - o) * cell / pxQ)) * step(hash(cid + 4.4), dens) * step(1.0, u);
+          float cor = max(ray * saturate(1.6 - 1.6 * _Eclipse.w), dots * saturate(1.6 * _Eclipse.w));
+          col = lerp(col, _Corona.rgb, cor * total);
+        }
+        float rw = max(R * 0.035, aa * 1.2 * px);
+        float ring = (1.0 - smoothstep(rw - aa, rw + aa, abs(ma - R - rw))) * total;
+        col = lerp(col, lerp(_Corona.rgb, float3(1.0, 0.98, 0.94), 0.6), ring);
+        float inSun = 1.0 - smoothstep(sunR - aa, sunR + aa, ang);
+        float mdisc = (1.0 - smoothstep(R - aa, R + aa, ma)) * max(inSun, total) * step(0.001, cover);
+        col = lerp(col, float3(0.012, 0.012, 0.03), mdisc);
+        ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ma - R))) * inSun * step(0.001, cover) * (1.0 - total));
+      }
+
+      // space all round (post.js drawSpace): a nebula in two flat steps of its tone, and stars on both caps
+      void drawSpace(float3 rd, inout float3 col)
+      {
+        float px = _PixelRatio;
+        float2 sp = rd.xz / (1.0 + abs(rd.y));
+        float2 hemi = rd.y < 0.0 ? float2(37.1, 11.3) : float2(0.0, 0.0);
+        if (_Space.w > 0.0) {
+          float band = 1.0 - smoothstep(0.0, 0.55, abs(dot(rd, normalize(float3(0.35, 0.22, -0.91)))));
+          float f = fbm(sp * 2.6 + 5.0) * 0.75 + band * 0.45;
+          float fw = fwidth(f) * 1.2 + 1e-4;
+          float n1 = smoothstep(0.62 - fw, 0.62 + fw, f), n2 = smoothstep(0.76 - fw, 0.76 + fw, f);
+          col = lerp(col, lerp(col, _SpaceTone.rgb, 0.55), n1 * _Space.w);
+          col = lerp(col, _SpaceTone.rgb, n2 * _Space.w);
+        }
+        float2 g = sp * 300.0 + hemi;
+        float2 cell = floor(g);
+        float hs = hash(cell), kind = hash(cell + 9.1);
+        float2 o = float2(hash(cell + 3.3), hash(cell + 7.7)) * 0.6 + 0.2;
+        float cw = max(max(fwidth(sp.x), fwidth(sp.y)) * 300.0, 1e-5);
+        float dpx = length(frac(g) - o) / cw;
+        float on = step(1.0 - lerp(0.004, 0.05, _Space.y), hs);
+        float big = step(0.93, kind), size = lerp(0.45, 0.9, hash(cell + 2.2)) * (1.0 + big * 0.9) * max(_SpaceTone.a, 0.3) * px;
+        float star = on * (1.0 - smoothstep(size, size + 0.9, dpx));
+        float2 d = abs(frac(g) - o) / cw;
+        float crossK = big * on * (1.0 - smoothstep(0.3, 0.9, min(d.x, d.y))) * (1.0 - smoothstep(size * 2.0, size * 3.6, max(d.x, d.y)));
+        float3 sc = hash(cell + 5.5) < _Space.z ? float3(0.3, 0.84, 0.86) : float3(1.0, 0.97, 0.9);
+        col = lerp(col, sc, saturate(max(star, crossK * 0.8)));
+      }
+
       float3 renderSky(float3 rd, out float ink)
       {
         float3 col = skyBase(rd);
@@ -298,12 +403,23 @@ Shader "Hidden/Hiraeth/Composite"
         float ang = acos(clamp(dot(rd, _SunDisc), -1.0, 1.0));
         float aa = fwidth(ang);
         float r = 0.05;
-        col = lerp(col, _SunColor, 1.0 - smoothstep(r - aa, r + aa, ang));
-        ink = max(ink, 1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r)));
-        ink = max(ink, 0.5 * (1.0 - _Night) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))));
+        // (an eclipse world: the rose light low all round the horizon, and the sun the moon's own size: post.js)
+        float eclipse = step(1e-5, _Eclipse.y), eCover = eclipse * _Eclipse.x;
+        float3 sunAt = _SunDisc;
+        if (eclipse > 0.0) {
+          if (dot(_EclipseDir, _EclipseDir) > 0.25) { sunAt = normalize(_EclipseDir); ang = acos(clamp(dot(rd, sunAt), -1.0, 1.0)); aa = fwidth(ang); }
+          float eh = rd.y, ew = fwidth(eh) * 1.2, top = _EclipseGlow.a;
+          float band = (1.0 - smoothstep(top * 0.45 - ew, top * 0.45 + ew, eh)) * 0.55 + (1.0 - smoothstep(top - ew, top + ew, eh)) * 0.45;
+          col = lerp(col, _EclipseGlow.rgb, band * step(-0.02, eh) * smoothstep(0.6, 1.0, eCover));
+          r = _Eclipse.y * 0.985;
+        }
+        col = lerp(col, _SunColor, (1.0 - smoothstep(r - aa, r + aa, ang)) * (1.0 - smoothstep(0.93, 1.0, eCover)));
+        ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r))) * (1.0 - eCover));
+        ink = max(ink, 0.5 * (1.0 - _Night) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))) * (1.0 - eclipse) * (1.0 - _Space.x));
+        if (eclipse > 0.0) drawEclipse(rd, sunAt, ang, aa, r, col, ink);
         // sun rays: pale wedges fanning from a low sun (post.js)
         if (_Rays > 0.0 && _SunDisc.y > -0.05) {
-          float low = (1.0 - smoothstep(0.08, 0.45, _SunDisc.y)) * (1.0 - _Night);
+          float low = (1.0 - smoothstep(0.08, 0.45, _SunDisc.y)) * (1.0 - _Night) * (1.0 - eCover) * (1.0 - _Space.x);
           float3 s1 = normalize(cross(_SunDisc, float3(0.0, 1.0, 0.0)) + 1e-5);
           float3 s2 = cross(s1, _SunDisc);
           float phi = atan2(dot(rd, s2), dot(rd, s1));
@@ -322,9 +438,11 @@ Shader "Hidden/Hiraeth/Composite"
           col = lerp(col, lerp(float3(0.96, 0.94, 0.88), _SkyTop * 1.2, crescent * 0.85), disc * _MoonVis);
           ink = max(ink, _MoonVis * (1.0 - smoothstep(0.0, mw * 1.2 * px, abs(ma - mr))));
         }
+        if (_Space.x > 0.0) drawSpace(rd, col);
         drawPlanet(rd, _Planet0, _PlanetColor0, _PlanetCraters.x, col, ink);
         drawPlanet(rd, _Planet1, _PlanetColor1, _PlanetCraters.y, col, ink);
         drawPlanet(rd, _Planet2, _PlanetColor2, _PlanetCraters.z, col, ink);
+        if (_Lantern.w > 0.0) drawLantern(rd, _Lantern, col, ink);
 
         // the printed sky's dots, on the dome (azimuth / elevation; a projected cap overhead)
         float el = asin(clamp(rd.y, -1.0, 1.0));
@@ -378,8 +496,9 @@ Shader "Hidden/Hiraeth/Composite"
           ink = max(ink, (1.0 - smoothstep(0.0, 0.9 * _PixelRatio, inner)) * cloud * 0.55);
         }
 
-        // stars: sparse dots at night
-        if (_Night > 0.0 && rd.y > 0.0)
+        // stars: sparse dots at night (and in an eclipse's totality, off the moon's disc; space draws its own)
+        float starsK = max(_Night, _Corona.a * eclipse * step(_Eclipse.y * 1.02, ang)) * (1.0 - _Space.x);
+        if (starsK > 0.0 && rd.y > 0.0)
         {
           float2 st = rd.xz / (rd.y + 1.0) * 260.0;
           float2 sc = floor(st);
@@ -387,7 +506,7 @@ Shader "Hidden/Hiraeth/Composite"
           float2 so = float2(hash(sc + 3.3), hash(sc + 7.7)) * 0.6 + 0.2;
           float sd2 = length(frac(st) - so) / max(fwidth(st.x), 1e-5);
           float star = step(0.985, hs) * (1.0 - smoothstep(0.4, 1.2 + 1.2 * step(0.996, hs), sd2 / px));
-          col = lerp(col, float3(1.0, 0.97, 0.88), star * _Night * smoothstep(0.02, 0.2, rd.y));
+          col = lerp(col, float3(1.0, 0.97, 0.88), star * starsK * smoothstep(0.02, 0.2, rd.y));
         }
 
         // flat inked clouds on a virtual plane
