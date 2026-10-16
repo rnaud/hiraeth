@@ -1,0 +1,63 @@
+changelog.md
+  s_5f899ba316b5dc::t_5fb2ec72708b90 7
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_cebcb6c51f9675 361,435-468
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_40639a8387b591 611-667
+scripts/temple-design/record.mjs
+  s_5f899ba316b5dc::t_a45a47eaf74322 20-22
+scripts/temple-design/rules.mjs
+  s_5f899ba316b5dc::t_5160bb1a0ef310 183-185
+src/changelog-media.js
+  s_5f899ba316b5dc::t_5155ce8efd1a10 1091-1094,1097-1111
+src/changelog.js
+  s_5f899ba316b5dc::t_e5beedb5695c11 26-30
+src/temples/hints.js
+  s_5f899ba316b5dc::t_0229482963168e 176
+src/temples/logic.js
+  s_5f899ba316b5dc::t_35fb849731cee8 115,279-281,290-307,439-446,448-462,483-499
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_1a5483ff0920b7 215-220,222,225
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_806a417a7fadea 524-525,557-561,629-630,639-641,662,740-741,763-764,795,886-907,2249
+src/temples/spheres-data.js
+  s_5f899ba316b5dc::t_f110ca2abdae16 42
+src/temples/spheres.js
+  s_5f899ba316b5dc::t_ba89d61252d526 8-9,24-51,90-92,95-113,115-122,124-134,140-141,143-147,150-169,173-174,183-194,199-202,204-208,214-217,221-223,225-226,228-234,242,326,340-342,350-351,355-356,359,384-607,609-610,622-624,626,628,632-634,636-704,706-716,718-727,729,731-749,751-756,758-763,765-775,777-798,800-808,810-815,817-819,821-824,828-834,837,840,842,845-846,849-851,853-856,862-865,867,871-877,998
+tests/temple-design.test.js
+  s_5f899ba316b5dc::t_e0be49653294aa 230,232-234
+tests/temple-playthrough.test.js
+  s_5f899ba316b5dc::t_4d3c95cba75561 181-183,269-282,285,444
+tests/temple-skins.test.js
+  s_5f899ba316b5dc::t_ced1bccb93405a 1050-1051
+tests/temples.test.js
+  s_5f899ba316b5dc::t_cb019d8d0adfae 270-271,274,1497,1506-1514,1519-1520,2254
+tests/zfight.test.js
+  s_5f899ba316b5dc::t_d2cd2d7ec92ac6 27
+tests/footprint-floors.test.js
+  s_fd4219c580f3e9::t_e43e10a4276800 1-343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9dd4198300c1d032b33aac915068694d3e7802df",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_fd4219c580f3e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5ec90038d4885553",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
