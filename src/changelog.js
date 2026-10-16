@@ -18,6 +18,11 @@ export const CHANGELOG = [
     // guardian); the fourth chamber into the Garden of Spheres' makers' court (src/boxes/placements.js spheres.bomb)
     { text: 'The ink bombs are now earned in the Engine-House, where the fourth chamber for your magic bar used to be: its banks of four eyes still want all four in one breath, three splashes and a bomb for the rest, and a bomb thrown at the Tooth-Warden’s open vent goes off on it and takes three vents at once. The fourth chamber waits in the Garden of Spheres’ makers’ court, where the bombs used to be.',
       see: 'In the Buried Machine, open the chest in the Engine-House’s Fourth Chamber, then throw a bomb between two of the eyes on posts round it and splash the other two before they fade: the shutters roll up.' },
+    // src/temples/perdide2.js (the lamps, the moss-stones' hanging lamp, the orbs and the Lampless take a bubble's light),
+    // src/carried-light.js, src/gadgets/bubble.js takeLight, src/temples/pieces.js LightEar / Ball `carried`, LightFount;
+    // the lantern into Viridel's makers' court (src/boxes/placements.js edena.bubble)
+    { text: 'The bubble wand is now earned in Lorn’s Lamp-House, where the lantern charm used to be, and its bubbles carry light: blow one by a lit pool or the chamber’s fount and it glows, and where it bursts the light goes. The lamps out of reach, the moss-stones’ lamp hanging over the dark gallery’s chasm, the pool-orbs and the Lampless itself all drink a bubble of light. The lantern charm waits in Viridel’s makers’ court, where the wand used to be.',
+      see: 'In Lorn, inside the Lamp-House, open the chest and stand by the fount of lamp-water beside it: blow a bubble (aim with LT / L2, blow with RT / R2) and send it, glowing, to the dark lamp by the dais.' },
   ] },
   { v: '1.79', date: '2026-10-15', items: [
     // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync

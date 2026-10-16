@@ -183,10 +183,12 @@ export const PLACEMENTS = {
     // gun mode) is the key to the rest: the budded doors, the vine bridge, the vine up the glass, the Gardener
     { id: 'edena.temple.bloom', item: 'bloom', temple: 'edena', site: templeSite('edena'),
       note: 'Inside the Builders’ Greenhouse in the meadow hollow north of the white ruins, in the round chamber over the glass stair.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'edena.bubble', item: 'bubble', site: courtSite('edena'), beacon: 160, gadget: true,
+    // the makers' court (src/finds/courts.js): the bubble wand's bay round it (a crate to float up onto the ledge's plate).
+    // Its box held the bubble wand until issue #375: it is earned in Lorn's Lamp-House now, and the box holds the lantern
+    // charm, the Lamp-House's old gift, back in Viridel where it was first found (its id the saves' flag)
+    { id: 'edena.bubble', item: 'lantern', site: courtSite('edena'), beacon: 160, court: true,
       hint: 'At the court in the south-west meadow',
-      note: 'In the makers’ court in the meadow south-west of the landing: a crate to float up onto the ledge’s plate.' },
+      note: 'In the makers’ court in the meadow south-west of the landing, at its front edge. Its ledge and plate are for the bubble wand, earned in Lorn’s Lamp-House.' },
   ],
   spheres: [
     // the grove's umbrella tree, on its flat canopy
@@ -230,9 +232,10 @@ export const PLACEMENTS = {
     { id: 'perdide2.moss', item: 'moss', at: [-18.8, 15.1, -89.5], toward: [0, 0],
       hint: 'On top of the first root arch',
       note: 'On top of the first root arch over the path; climb its root.' },
-    // the Lamp-House (src/temples/perdide2.js): in its dark round chamber over the root stair. The lantern is the
-    // key to the rest: the lamps that wake to it, the moss-stones and the eye only its light shows, the Lampless
-    { id: 'perdide2.temple.lantern', item: 'lantern', temple: 'perdide2', site: templeSite('perdide2'),
+    // the Lamp-House (src/temples/perdide2.js): in its dark round chamber over the root stair. The bubble wand is the key
+    // to the rest (issue #377; the lantern charm was here): its bubbles carry a lamp's light to the lamps and orbs out of
+    // reach, the moss-stones' hanging lamp, the Lampless. (Its id from when it held the lantern: the saves' flag)
+    { id: 'perdide2.temple.lantern', item: 'bubble', temple: 'perdide2', site: templeSite('perdide2'),
       note: 'Inside the Lamp-House in the shallows east of the root cave, in the dark chamber over the root stair.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
     { id: 'perdide2.boomerang', item: 'boomerang', site: courtSite('perdide2'), beacon: 160, gadget: true,

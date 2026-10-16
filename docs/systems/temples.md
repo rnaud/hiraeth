@@ -1172,6 +1172,20 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   (bomb.js, as on a foe): on the Tooth-Warden's open vent it takes that vent and the two beside it (`TOOTH_WARDEN` vents
   count a bomb's blast), a splash the last.
 
+- **The Lamp-House: the bubble wand** (the lantern charm before, back in Viridel's court). The house's idea stays (light
+  wakes what waits for it, and light can be carried), and the bubble carries it: `src/carried-light.js` keeps the lit
+  places (`registerLight`: the pool-lamps, `Switch` `light`; a `LightEar`'s glass once it burns; a pool-orb while it
+  glows; the Lantern Chamber's `LightFount`; the Lamp-Room's lit pools) and what drinks light (`registerDrinker`: a dark
+  `carried` lamp's glass, a dark `carried` orb, the Lampless hanging low). A bubble blown in a light takes it and glows
+  (a gold halo, bubble.js `takeLight`); glowing, it bursts on a drinker it meets, and wherever it bursts it emits
+  `'bubble:light'` { pos }: a `carried` `LightEar` within `CARRY.reach` of its glass lights, a `carried` orb (`Ball`
+  `lamp.carried`) glows its `lasts` s. The chamber's two lamps (the try and the Lamp Passage's) take the fount's light;
+  the Dark Gallery's moss-stones (`br1`, no longer hidden) rise for good once their lamp, hung over the chasm on a chain
+  (`lM`, `MOSS`), drinks a bubble of the near floor's pool-lamp (`s6`); the far orb a bubble of the far pool-lamp's (`s7`);
+  the Wick Room's two orbs bubbles of the wick-house's pool-lamp (`sW`), both burning at once as before; the eye on the
+  post is a plain one. The Lampless drinks a bubble of light burst on it as it hangs low (0.15 a bubble; in its last
+  phase not while you stand within `LURE.back`); the lit pools still lure it.
+
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 
 `K.both(mat, geo, proxy)` draws `geo` and makes it solid (or `proxy` instead, a stand-in). Several boxes go as an

@@ -28,6 +28,23 @@ export function lightAt(p, list = LIGHTS) {
   return null;
 }
 
+/**
+ * What drinks a glowing bubble's light (a dark lamp's glass, a dark orb, the Lampless hanging low): a glowing bubble that
+ * comes within `radius` of one bursts on it (src/gadgets/bubble.js), so its light goes there. Returns the function that
+ * takes it away.
+ */
+const DRINKERS = new Set();
+export function registerDrinker(d) {
+  const e = { radius: 1.2, enabled: () => true, ...d };
+  DRINKERS.add(e);
+  return () => DRINKERS.delete(e);
+}
+/** The drinker a glowing bubble at `p` (radius r) touches now, or null. */
+export function drinkerAt(p, r = 0, list = DRINKERS) {
+  for (const d of list) if (d.enabled() && d.position().distanceTo(p) <= d.radius + r) return d;
+  return null;
+}
+
 /** Every light (tests). */
 export const allLights = () => [...LIGHTS];
 /** (tests) */

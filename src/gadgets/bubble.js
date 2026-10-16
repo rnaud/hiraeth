@@ -6,6 +6,7 @@ import { hazardAt } from '../hazards.js';
 import { thinRing } from '../thin.js';
 import { kick } from '../feel.js';
 import { t as tr } from '../i18n.js';
+import { lightAt, drinkerAt } from '../carried-light.js';
 
 // The bubble wand (docs/systems/gadgets.md, "The bubble wand"): hold the use button to aim (the reticle shows
 // what it would catch), let go to blow a bubble. It flies out along the aim (toward a foe, a crate or a bomb
@@ -120,7 +121,12 @@ function bubbleLook() {
   const hi = ringMesh(0.72, 0.045, inkMat('#ffffff', { glow: 1 }), 0.95, 10); hi.rotation.z = 1.85; face.add(hi);
   const glint = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), inkMat('#ffffff', { glow: 1 }));
   glint.position.set(-0.36, 0.56, 0.05); glint.userData.noCollide = true; face.add(glint);
-  return { group: g, face, band, inner, merid };
+  // (lit: a bubble that took a lamp's light, src/carried-light.js: a gold halo round its rim and a warm heart, issue #377)
+  const halo = new THREE.Group(); halo.visible = false; face.add(halo);
+  halo.add(ringMesh(1.08, 0.06, inkMat('#ffd27a', { glow: 1 })));
+  const heart = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 8), inkMat('#ffe6a8', { glow: 1 }));
+  heart.userData.noCollide = true; halo.add(heart);
+  return { group: g, face, band, inner, merid, halo };
 }
 
 /** The wand: a turned wooden handle, a brass loop with a film of soap across it, a little pot of soap. ~0.3 m. */
@@ -149,6 +155,7 @@ function wandModel() {
 
 export default {
   id: 'bubble', name: 'Bubble wand', glyph: '◯', order: 90, trigger: 'aim',
+  where: 'In Lorn’s Lamp-House, in the shallows east of the root cave: in its dark chamber over the root stair.',
   text: 'A brass loop and a pot of soap that never runs dry. Aim with {key:aim}, blow with {key:fire}: the bubble floats what it catches, a foe, a crate or you, for six seconds.',
   model: wandModel,
   create(ctx) { return new Wand(ctx); },
@@ -293,7 +300,8 @@ class Wand {
   /** A new bubble of `kind` at `at` (also the tests' way in). */
   spawn(kind, at) {
     const b = new Bubble(this.look);
-    b.kind = kind; b.pos.copy(at); b.t = 0; b.r = bubbleRadius(kind); b.grow = 0; b.base = 0; b.phase = Math.random() * 6;
+    b.kind = kind; b.pos.copy(at); b.t = 0; b.r = bubbleRadius(kind); b.grow = 0; b.base = 0; b.phase = Math.random() * 6; b.lit = false;
+    this.look.halo.visible = false;
     b.blow.set(0, 0, 0);
     this.bubble = b;
     this.look.group.visible = true;
@@ -378,7 +386,9 @@ class Wand {
     this.drops(b.pos, b.r, 26, 4.5);
     this.ctx.tool?.rings?.add?.({ from: b.pos, dir: this.ctx.camera ? _w.copy(this.ctx.camera.position).sub(b.pos).normalize() : up, reach: 0, r0: b.r * 0.8, r1: b.r * 1.6, life: 0.22, color: '#ffffff', thick: 0.7 });
     if (b.kind === 'self') kick(0.12);
-    this.ctx.game?.emit?.('gadget:bubble', { kind: b.kind, why });
+    this.ctx.game?.emit?.('gadget:bubble', { kind: b.kind, why, pos: b.pos.clone(), lit: !!b.lit });
+    // (a bubble that took a lamp's light gives it up where it bursts: a dark lamp or orb by it drinks it, src/carried-light.js)
+    if (b.lit) this.ctx.game?.emit?.('bubble:light', { pos: b.pos.clone(), kind: b.kind, why });
     if (why === 'spikes' || why === 'fire') this.ctx.notice?.(why === 'fire' ? 'The heat bursts the bubble.' : 'Pop: the bubble meets the spikes.', `bubble.${why}`);
   }
 
@@ -526,11 +536,23 @@ class Wand {
       }
     }
     if (!this.bubble) return;
+    // in a lamp's light (a lit pool-lamp, a lamp's glass, a glowing orb, a fount: src/carried-light.js), it takes the light
+    if (!b.lit && lightAt(b.pos)) this.takeLight(b);
+    // glowing, it bursts on what drinks light (a dark lamp's glass, a dark orb, the Lampless), and the light goes there
+    if (b.lit && b.kind === 'free' && b.t > 0.2 && drinkerAt(b.pos, b.r)) { this.pop('light'); return; }
     // time up for what it carries; spikes, fire or an ember pop it
     if (b.kind !== 'self' && b.kind !== 'free' && b.t > BUBBLE.life) { this.pop('time'); return; }
     const danger = this.danger(b);
     if (danger) { this.pop(danger); return; }
     this.draw(b, dt);
+  }
+
+  /** In a lamp's light: the bubble takes it and glows, until it bursts (issue #377, the Lamp-House). */
+  takeLight(b) {
+    b.lit = true;
+    this.look.halo.visible = true;
+    bubbleSfx.plop(this.ctx.sound, this.near(b.pos) * 0.6);
+    this.ctx.notice?.('The bubble takes the light, and glows. Where it bursts, the light goes.', 'bubble.light');
   }
 
   /** Its way across: easing back to its slow drift along the way it was blown (a gust's push dies away into it). */

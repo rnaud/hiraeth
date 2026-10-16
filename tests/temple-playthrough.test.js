@@ -204,6 +204,9 @@ export function playTemple(id, o = {}) {
   const charge = (b) => {
     const lp = b.o.lamp;
     if (b.charge > (lp.lasts ?? 25) - 6) return true;
+    // (issue #377, the Lamp-House: a bubble of a lamp's light burst on it, src/carried-light.js; the bubble's flight is
+    // tests/temples.test.js's, here its light arrives, counted as done through the logic)
+    if (lp.carried && has('bubble')) { game.emit('bubble:light', { pos: b.center.clone() }); logical.push(`${b.id} (a bubble's light)`); return b.charge > 0; }
     if (has('lantern') && (lp.reach ?? 2.8) > 0) {
       for (const a of [0, 1, 2, 3, 4, 5, 6, 7]) {
         const ang = (a / 8) * Math.PI * 2, at = b.center.clone().add(V(Math.cos(ang) * (b.r + 0.9), 0, Math.sin(ang) * (b.r + 0.9)));

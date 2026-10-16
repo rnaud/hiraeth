@@ -17,6 +17,7 @@ import { buildBox } from '../boxes/model.js';
 import { ChestLight, chestLamp, MOUTHS } from '../boxes/light.js';
 import { Prop, stepProp } from '../gadgets/world.js';
 import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
+import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -547,7 +548,20 @@ export class Ball {
     rt.root.add(this.group);
     this.spin = new THREE.Group();
     this.group.add(this.spin);
-    if (o.lamp) { this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0; }
+    if (o.lamp) {
+      this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0;
+      // (issue #377, the Lamp-House: `carried`, a glowing bubble's light, src/carried-light.js, burst on it lights it, not
+      // the lantern charm stood by it; and glowing, it is a light a bubble may take)
+      if (o.lamp.carried) {
+        this.offs = [rt.game?.on?.('bubble:light', ({ pos } = {}) => {
+          // (what its lamp needs carried, the wand: a bubble's light; a wet bubble no one blew is not)
+          if (!pos || pos.distanceTo(this.center) > this.r + CARRY.reach || !(rt.logic.el(o.lamp.id)?.needs ?? []).every((n) => rt.logic.has(n))) return;
+          if (this.charge <= 0) { rt.sound?.chime?.(); rt.notice?.(o.lamp.caught ?? 'The bubble bursts on the orb, and it drinks the light: it glows, for a while.', `${this.id}.caught`); }
+          this.charge = o.lamp.lasts ?? 25;
+        }), registerLight({ position: () => this.center, enabled: () => this.charge > 0 }),
+        registerDrinker({ position: () => this.center, radius: this.r + 0.4, enabled: () => this.charge <= 0 })].filter(Boolean);
+      }
+    }
     if (o.seed) this.husk = own({ color: '#a07a4e', flat: true });
     if (o.tar) { this.tarM = own({ color: '#4a3a33', flat: true }); this.burn = 0; }
     if (o.heavy || o.iron) this.ironM = own({ color: '#3d3a40', flat: true, metal: 'iron' });
@@ -743,7 +757,7 @@ export class Ball {
     const o = this.o.lamp, L = this.rt.logic, P = this.rt.player;
     // (at rest: a quick push doesn't light it) by your lantern, or at rest by a lit pool (o.pool: { id, at, reach })
     const pool = o.pool && this.rest && L.isLit(o.pool.id) && this.center.distanceTo(this.poolAt ??= this.rt.kit.world(...o.pool.at)) < (o.pool.reach ?? 4);
-    const by = pool || (!!P && this.rest && L.has('lantern') && P.pos.distanceTo(this.center) < (o.reach ?? 2.8));
+    const by = pool || (!o.carried && !!P && this.rest && L.has('lantern') && P.pos.distanceTo(this.center) < (o.reach ?? 2.8));
     this.near = by ? this.near + dt : 0;
     if (this.near > (o.hold ?? 2) && this.charge < (o.lasts ?? 25) - 0.5) {
       if (this.charge <= 0) { this.rt.sound?.chime?.(); this.rt.notice?.(o.caught ?? 'The orb drinks your lantern’s light and glows, for a while.', `${this.id}.caught`); }
@@ -830,7 +844,7 @@ export class Ball {
     this.solid.bottom = this.solid.top = -1e6;   // (gone: nothing to stand on)
     if (D.y > 14) { this.t = 0; this.rt.logic.moveDrum(this.id, 0); this.place(); D.back = 1.2; this.spin.scale.setScalar(0.1); }
   }
-  dispose() { this.off?.(); }
+  dispose() { this.off?.(); for (const f of this.offs ?? []) f?.(); }
 }
 
 // ---------------------------------------------------------------------------------------- fire
@@ -1116,6 +1130,8 @@ export class Switch {
     this.hidden = !!o.hidden;
     const seen = () => !this.hidden || rt.logic.has(shownBy(o.hidden));
     this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, accepts: o.pull ? ['tether'] : o.blade ? ['blade'] : undefined, onHit: (mode) => this.hit(mode) });
+    // (o.light: a pool-lamp, the Lamp-House's: lit, a light a bubble may take, src/carried-light.js, issue #377)
+    if (o.light) this.offLight = registerLight({ position: () => this.center, radius: o.light === true ? CARRY.radius : o.light, enabled: () => this.on });
     this.seen = seen;
     this.flash = 0;
   }
@@ -1148,7 +1164,7 @@ export class Switch {
     this.flash = Math.max(0, this.flash - dt);
     this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3) + this.flash * 0.6;
   }
-  dispose() { this.off?.(); }
+  dispose() { this.off?.(); this.offLight?.(); }
 }
 
 /**
@@ -1330,29 +1346,67 @@ export class HookBell {
 }
 
 /**
- * Wakes to the lantern charm's light: stand by it (within `reach`) with the lantern a moment (`hold` s), and
- * element `id` (a 'switch' that needs the lantern) is lit for good. o: { id, at, reach, hold }. reach 0: only
- * something else wakes it (a Ball's `lamp`, the pool-orb); it glows once its element is lit.
+ * A lamp's glass: it wakes to the lantern charm's light: stand by it (within `reach`) with the lantern a moment (`hold` s), and
+ * element `id` (a 'switch' that needs the lantern) is lit for good. o: { id, at, reach, hold, carried, hang, heard }. reach 0: only
+ * something else wakes it (a Ball's `lamp`, the pool-orb); it glows once its element is lit. `carried` (issue #377, the
+ * Lamp-House: its tool is the bubble wand): no lantern wakes it, a glowing bubble burst within CARRY.reach of its glass does
+ * (src/carried-light.js), and lit it is a light a bubble may take. `hang`: its glass hangs on a chain `hang` m long (over a
+ * chasm), not over a post.
  */
 export class LightEar {
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 3.5; this.hold = o.hold ?? 1.5;
+    this.rt = rt; this.id = o.id; this.o = o; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 3.5; this.hold = o.hold ?? 1.5;
     this.t = 0;
     this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.05, flat: true });
     const m = mesh([T(new THREE.SphereGeometry(0.5, 14, 10), [0, 0, 0])], this.glow);
     m.position.copy(this.at).add(V(0, 2.8, 0));
+    this.glass = m.position;
     noCollide(m);
     rt.root.add(m);
+    if (o.hang) { const c = mesh([T(new THREE.CylinderGeometry(0.05, 0.05, o.hang, 6), [0, 0.5 + o.hang / 2, 0])], rt.M.trimMat); c.position.copy(m.position); noCollide(c); rt.root.add(c); }
     this.lit = rt.logic.isLit(o.id);
+    if (o.carried) {
+      this.offs = [rt.game?.on?.('bubble:light', ({ pos } = {}) => {
+        if (this.lit || !pos || pos.distanceTo(this.glass) > (o.carried === true ? CARRY.reach : o.carried)) return;
+        if (rt.logic.light(this.id)) { this.lit = true; rt.sound?.chime?.(); rt.onLit?.(this.id); rt.notice?.(o.heard ?? 'The bubble bursts on the lamp’s glass, and the lamp catches its light.', `${this.id}.lit`); }
+      }), registerLight({ position: () => this.glass, enabled: () => this.lit }),
+      registerDrinker({ position: () => this.glass, radius: 1.0, enabled: () => !this.lit })].filter(Boolean);
+    }
   }
+  dispose() { for (const f of this.offs ?? []) f?.(); }
   update(dt, t) {
     this.lit ||= this.rt.logic.isLit(this.id);   // (woken some other way: a glowing pool-orb, reach 0)
-    const P = this.rt.player, has = this.rt.logic.has('lantern');
+    if (this.o.carried && !this.lit) { this.glow.uniforms.uGlow.value = 0.05 + 0.03 * Math.sin(t * 1.2); return; }
+    const P = this.rt.player, has = !this.o.carried && this.rt.logic.has('lantern');
     const near = P && has && P.pos.distanceTo(this.at) < this.reach;
     this.t = near ? this.t + dt : 0;
     if (!this.lit && this.t > this.hold && this.rt.logic.light(this.id)) { this.lit = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
     this.glow.uniforms.uGlow.value = this.lit ? 0.9 : near ? 0.2 + 0.7 * Math.min(1, this.t / this.hold) : 0.05 + 0.03 * Math.sin(t * 1.2);
   }
+}
+
+/**
+ * A fount of the makers' lamp-water (the Lamp-House's Lantern Chamber, issue #377): a low stone basin whose water never
+ * goes dark, a light a bubble blown over it takes (src/carried-light.js). o: { at (the basin's foot, local), r }
+ */
+export class LightFount {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, M = rt.M, r = o.r ?? 1.3, [x, y, z] = o.at;
+    K.both(M.trim, T(annulus(r, r + 0.5, 0.6, 32), [x, y + 0.6, z]));
+    this.glow = own({ color: rt.P.lamp ?? '#ffd6a0', glow: 0.85, flat: true });
+    const m = mesh([T(new THREE.CylinderGeometry(r, r, 0.08, 28), [0, 0, 0])], this.glow);
+    m.position.copy(K.world(x, y + 0.5, z));
+    noCollide(m);
+    rt.root.add(m);
+    this.center = m.position.clone().add(V(0, 0.6, 0));
+    this.offLight = registerLight({ position: () => this.center, radius: o.light ?? r + 1.6 });
+    this.lamp = new THREE.Vector4(0, -1e5, 0, 0);
+    rt.lights?.push(this.lamp);
+    this.lamp.set(this.center.x, this.center.y + 1, this.center.z, 7);
+  }
+  update(dt, t) { this.glow.uniforms.uGlow.value = 0.78 + 0.12 * Math.sin(t * 2.2); }
+  dispose() { this.offLight?.(); }
 }
 
 // ---------------------------------------------------------------------------------------- living gates

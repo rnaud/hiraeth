@@ -101,10 +101,10 @@ export const GADGETS = {
   arzach2: { temple: 'hook', world: ['scarf'], built: true },         // the grappling hook (issue #377: the bell-note whistle until then, a charm, now in Vael's court); the wind-silk scarf on the balanced stack (the wings went to the Aerie)
   garage: { temple: 'coil', world: ['level'], built: true },          // the Clock-House (the Sealed Hangar's First Garage, in the Glass Dunes now: TEMPLE_HOME): the coil inside; the brass level on a glass mound
   buried: { temple: 'bomb', world: ['resin'], built: true },          // ink bombs (issue #377: the fourth chamber until then, now in the Garden of Spheres' court)
-  edena: { temple: 'bloom', world: ['pouch'], built: true },          // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy (the lantern went to Lorn II)
+  edena: { temple: 'bloom', world: ['pouch', 'lantern'], built: true }, // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy; the lantern charm back in its makers' court (issue #375: the bubble wand's box)
   spheres: { temple: 'lens', world: ['shell', 'cell'], built: true },   // (the fourth chamber in its makers' court, the bombs' old box: issue #375)
   perdide: { temple: 'stun', world: ['reed'], built: true },          // the stilling mode moved inside from the mossy rise; the breathing reed is there now
-  perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch
+  perdide2: { temple: 'bubble', world: ['moss'], built: true },       // the bubble wand (issue #377: the lantern charm until then, now in Viridel's court); the glow-moss pin on the root arch
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
   spacecity: { temple: 'tether', world: ['starthread'], built: true }, // the Mooring-House: tether mode inside; the star-thread on a roof in the Towers
   moonfoundry: { temple: 'tongs', world: ['bellows'], built: true },  // the Casting-House: the founders' tongs inside; the pocket bellows on top of the cradled moon

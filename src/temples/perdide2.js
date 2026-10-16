@@ -6,7 +6,8 @@ import { LightShaft } from '../veil.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Switch, LightEar, Bridge, Ball, Plate, Mark, Pit, Key } from './pieces.js';
+import { Door, Switch, LightEar, LightFount, Bridge, Ball, Plate, Mark, Pit, Key } from './pieces.js';
+import { registerLight, registerDrinker } from '../carried-light.js';
 import { mothModel } from './guardians.js';
 import { offsetOf } from '../levels/names.js';
 import { chestMound } from '../boxes/mound.js';
@@ -39,34 +40,36 @@ import { lampHouseSkin } from './skins/lamp-house.js';
 //                           roll it to the socket before it fades: the lamp catches and the moss-stones rise glowing
 //                           out of the pool (push + shot, before the chest: light can be carried, and light wakes the
 //                           stones); then a root-wall to climb
-//   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'), in the middle of a round hall.
-//                           Its way on is open; a lamp by the dais wakes when you stand by it with the lantern (a try:
-//                           nothing is locked)
-//   the Lamp Passage        on through the chamber's north wall: the door into the gallery is a lamp that wakes when you
-//                           stand by it with the lantern, on a post in the chamber beside the way north (since v1.77;
-//                           at the passage's far end before), dark even to the lantern's light
+//   the Lantern Chamber     the makers' chest: the BUBBLE WAND (src/gadgets/bubble.js; issue #377: the lantern charm was
+//                           here, and went to Lorn's makers' court), in the middle of a round hall. A bubble blown over
+//                           a lit pool-lamp, or the chamber's fount of lamp-water, takes its light and glows, and where
+//                           it bursts the light goes: a dark lamp's glass or a dark orb drinks it (src/carried-light.js).
+//                           Its way on is open; a lamp by the dais wakes to a glowing bubble (a try: nothing is locked)
+//   the Lamp Passage        on through the chamber's north wall: the door into the gallery is a lamp that wakes to a
+//                           glowing bubble from the fount, on a post in the chamber beside the way north
 
-//   the Dark Gallery        a chasm across its middle crossed by moss-stones that only the lantern's light shows; an eye
-//                           only it shows, up on a post over the near floor (behind you as you cross, in sight from the
-//                           far door); and the far door's lamp, in a niche on the far floor, wakes only to the
-//                           light of a pool-orb: stand by the orb with the lantern till it glows, then roll it
-//                           (the push) down its groove into the niche before its glow fades. Rolled in dark,
-//                           it wakes nothing (the lantern with the push: light carried where you cannot go)
+//   the Dark Gallery        a chasm across its middle, moss-stones sunk in it that rise glowing once their lamp is lit,
+//                           and it hangs over the chasm on a chain: splash the near floor's pool-lamp, blow a bubble in
+//                           its light, and send it out to the lamp; an eye up on a post over the near floor (behind you
+//                           as you cross, in sight from the far door); and the far door's lamp, in a niche on the far
+//                           floor, wakes only to the light of a pool-orb: send it a bubble of the far pool-lamp's light,
+//                           then roll it (the push) down its groove into the niche before its glow fades. Rolled in
+//                           dark, it wakes nothing (the bubble with the push: light carried where you cannot go)
 //   the Wick Room           (v1.60, east of the Root Stair, its way in off the Hall of Dark Pools' east wall: open and
 //                           dark on the way in; v1.49 off the gallery's far side) the gallery's far door takes its
-//                           great key, so the lantern comes back down for it. In the middle of its floor the wick-house:
+//                           great key, so the bubble wand comes back down for it. In the middle of its floor the wick-house:
 //                           two niches in its face, a pool-orb in a groove before each, the great key behind a grille
 //                           between them, a keyhole in the grille (the Kennel's small key, next door). A niche's lamp
 //                           burns only while its orb glows; the grille lifts, for good, only while both burn: light one
-//                           orb, roll it home, light the other and roll it home before the first fades (two lights
-//                           carried at once). A stair up its north wall to a balcony, and a keepers' door that opens
+//                           orb with a bubble of the pool-lamp's light, roll it home, light the other and roll it home
+//                           before the first fades (two lights carried at once). A stair up its north wall to a balcony, and a keepers' door that opens
 //                           with the grille onto a ledge of roots along the Root Stair's wall to the root-wall's top:
 //                           the way back up to the chamber, a loop
 //   the Lamp-Room           the guardian (organic: you calm it): the Lampless, a great moth. When it hangs low,
-//                           searching for light, stand still by it with the lantern lit, and let it drink. Three
+//                           searching for light, send it a bubble of light (blown by a lit pool), and it drinks. Three
 //                           dark pools lie round the room: lit earlier (a splash, or your lantern held by one), a
 //                           pool lures it as it searches, and it drinks there (taught in its second phase; in its
-//                           last it shies from you: only a pool brings it down, and only if you stand back)
+//                           last it shies from you: a bubble from afar, or a pool while you stand back)
 
 // After: the Lamp-House's lamp burns again, its beam turning over the wood at night (the world change).
 
@@ -129,19 +132,28 @@ const mid = (r) => [(r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2];
 const [KX, KZ] = mid(ROOMS.kennel), [WX, WZ] = mid(ROOMS.wick);
 export const KENNEL = { x: KX, z: KZ, w: 30, d: 30, zone: { min: [ROOMS.kennel.x0, -1, ROOMS.kennel.z0], max: [ROOMS.kennel.x1, 9, ROOMS.kennel.z1] } };
 export const WICK = { x: WX, z: WZ, w: 30, d: 40, h: 20, door: 50, balcony: [72, 85, 5], stair: [44, 31, 82.6], stairW: 4.4,
-  face: 64, niches: [34.7, 47.3], groove: [53.2, 61.2], keyZ: 68.5, lasts: 25 };
+  face: 64, niches: [34.7, 47.3], groove: [53.2, 61.2], keyZ: 68.5, lasts: 25, pool: 49 };
 /**
  * The keepers' way between the Wick Room's balcony and the Root Stair's root-wall top (v1.60): a ledge of roots along the
  * stair's east wall at the root-wall's height, [x0, z0, x1, z1] (over the pool, out of any jump's reach from the floor),
  * and a passage east through the wall at z.
  */
 export const ROOT_WAY = { x0: 14, z: 81, y: 9, ledge: [14, 77, 18.5, 86.5] };
+/**
+ * (issue #377: the bubble wand is the house's tool, its bubbles carrying a lamp's light, src/carried-light.js) How far a lit
+ * pool-lamp's light reaches a bubble (m); the Lantern Chamber's fount (local: its foot); the Dark Gallery's near pool-lamp
+ * ([x, z from the chasm's near lip]), the moss-stones' hanging lamp ([x, z from the lip]: its post's foot, the glass 2.8 m
+ * up, a chain to the roof) and the far floor's pool-lamp ([x, z from the far lip]); the Wick Room's pool-lamp's z.
+ */
+export const POOL_LIGHT = 3.5;
+export const FOUNT = [-2.4, 9, 132];
+export const MOSS = { pool: [-3, -3], lamp: [0, 4], far: [10, 5] };
 
 export const LOGIC = {
-  id: 'perdide2', entry: 'threshold', gadget: 'lantern',
+  id: 'perdide2', entry: 'threshold', gadget: 'bubble',
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js. The
-  // Lantern Chamber a puzzle room: the chest in its middle, the lantern's try and the Lamp Passage's lamp beside it)
+  // Lantern Chamber a puzzle room: the chest in its middle, the bubble's try and the Lamp Passage's lamp beside it)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, pools: { checkpoint: true, kind: 'puzzle' }, loft: { kind: 'puzzle' }, roots: { checkpoint: true, kind: 'puzzle' },
     lantern: { checkpoint: true, kind: 'puzzle' }, kennel: { checkpoint: true, kind: 'combat' },
@@ -172,19 +184,26 @@ export const LOGIC = {
     p5: { type: 'plate', room: 'roots' },                             // the disc's socket
     l5: { type: 'switch', room: 'roots' },                            // the socket's lamp: it wakes to a glowing orb
     disc: { type: 'bridge', opens: { all: [{ lit: 's5' }, { drumOn: ['orb5', 'p5'] }, { lit: 'l5' }] }, latch: true },
-    chest: { type: 'gadget', room: 'lantern', item: 'lantern' },
-    l0: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // the lamp by the dais: a try, nothing waits on it
-    l1: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // the passage's lamp that wakes to the lantern
+    // (issue #377: the chest held the lantern charm, a light round you; the bubble wand now, whose bubbles carry a lamp's
+    // light where you can't, src/carried-light.js; the lantern waits in Lorn's makers' court)
+    chest: { type: 'gadget', room: 'lantern', item: 'bubble' },
+    l0: { type: 'switch', room: 'lantern', needs: ['bubble'] },      // the lamp by the dais: a try, nothing waits on it
+    l1: { type: 'switch', room: 'lantern', needs: ['bubble'] },      // the passage's lamp, a bubble's light from the fount
     d2: { type: 'door', opens: { lit: 'l1' }, latch: true },   // (v1.49-1.59 the Kennel's small key too: since v1.60 the Wick Room's grille takes it)
     // the Kennel: its keepers beaten in the dark, the small key's cage sinks
     arK: { type: 'arena', room: 'kennel' },
     kS: { type: 'key', kind: 'small', room: 'kennel', when: { lit: 'arK' } },
     dK: { type: 'door', opens: null },
-    br1: { type: 'bridge', opens: { item: 'lantern' } },             // moss-stones only its light shows
-    s4: { type: 'switch', room: 'gallery', needs: ['lantern'] },     // an eye only its light shows, high on the near wall: seen from the far door, looking back
+    // the moss-stones sunk in the chasm wake to their lamp hanging over it, out of reach: a bubble's light from the near
+    // floor's pool-lamp (the lantern's light showed them, before issue #377)
+    s6: { type: 'switch', room: 'gallery' },                         // the near floor's pool-lamp: its light for the bubble
+    lM: { type: 'switch', room: 'gallery', needs: ['bubble'] },      // the moss-stones' lamp, hanging over the chasm
+    br1: { type: 'bridge', opens: { lit: 'lM' }, latch: true },
+    s4: { type: 'switch', room: 'gallery' },                         // an eye high on a post on the near floor: seen from the far door, looking back
     orb: { type: 'drum', room: 'galleryFar', plate: 'p4', plateAt: 1, start: 0 },   // a pool-orb, rolled into the niche
     p4: { type: 'plate', room: 'galleryFar' },
-    l2: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },  // the niche's lamp: it wakes to the glowing orb
+    s7: { type: 'switch', room: 'galleryFar' },                      // the far floor's pool-lamp, a few strides from the orb
+    l2: { type: 'switch', room: 'galleryFar', needs: ['bubble'] },   // the niche's lamp: it wakes to the glowing orb (lit by a bubble's light)
     d4: { type: 'door', lock: 'big', opens: { all: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] }, latch: true },   // (and the great key)
     // the Wick Room (v1.60: off the first hall, open and dark on the way in): the gallery's far door wants its great key,
     // behind a grille with a keyhole (the Kennel's small key, next door) that lifts only while both niches burn, so the
@@ -195,15 +214,16 @@ export const LOGIC = {
     // two niches, two pool-orbs, one lantern. The grille over the great key lifts (for good) only while
     // both niches' lamps burn, and a niche's lamp burns only while its orb glows (`hold`: the orb's own time, its piece
     // puts it out): light one, roll it home, light the other and roll it home before the first goes dark
-    lW1: { type: 'switch', room: 'wick', needs: ['lantern'], hold: WICK.lasts, when: { drumOn: ['oW1', 'pW1'] } },
-    lW2: { type: 'switch', room: 'wick', needs: ['lantern'], hold: WICK.lasts, when: { drumOn: ['oW2', 'pW2'] } },
+    sW: { type: 'switch', room: 'wick' },                            // the wick-house's pool-lamp: the light the bubbles carry to the orbs
+    lW1: { type: 'switch', room: 'wick', needs: ['bubble'], hold: WICK.lasts, when: { drumOn: ['oW1', 'pW1'] } },
+    lW2: { type: 'switch', room: 'wick', needs: ['bubble'], hold: WICK.lasts, when: { drumOn: ['oW2', 'pW2'] } },
     oW1: { type: 'drum', room: 'wick', plate: 'pW1', plateAt: 1, start: 0 },
     pW1: { type: 'plate', room: 'wick' },
     oW2: { type: 'drum', room: 'wick', plate: 'pW2', plateAt: 1, start: 0 },
     pW2: { type: 'plate', room: 'wick' },
     cW: { type: 'door', lock: 'small', opens: { all: [{ lit: 'lW1' }, { lit: 'lW2' }] }, latch: true },   // (and the Kennel's small key: it goes in on the way in, and waits)
     kB: { type: 'key', kind: 'big', room: 'wickKey' },
-    moth: { type: 'boss', room: 'lamp', needs: ['gun', 'lantern'] },
+    moth: { type: 'boss', room: 'lamp', needs: ['gun', 'bubble'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -212,19 +232,19 @@ export const LAMPLESS = {
   kind: 'organic', name: 'the Lampless', final: 'touch', touch: 'lay a hand on its back',
   speed: 3.4, wakeTime: 3,
   wake: 'Wings wide as sails open in the dark lamp-room. It is hungry for light.',
-  openHint: 'It hangs low over the floor, turning, searching for light.',
-  missHint: 'Its swoop went wide: it hangs low. Stand still by it with your lantern.',
+  openHint: 'It hangs low, searching for light. Send it a bubble of light.',
+  missHint: 'Its swoop went wide: it hangs low. Send it a bubble of light.',
   weary: 'It folds its wings and settles, lit with your light. Go to it.',
   resolved: 'The Lampless climbs to the lamp, and the whole room goes gold.',
   phases: [
-    { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, stand still by it with your lantern: let it drink.' },
-    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Stand still with it when it searches, or light a pool for it to drink.',
+    { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, send it a bubble blown by a lit pool.' },
+    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Send it a bubble of light, or leave it a lit pool to drink.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'dodge', moves: ['flutter'], open: 4.0,
         hint: 'Hop clear as its wings beat down: overreached, it hangs low.',
-        said: 'Its wings beat empty air. It hangs low, searching: stand still by it.',
-        lines: ['Its wings beat at you.', 'Hop back from its fluttering wings just as they come down.', 'When it flutters at you, flip back (stick back and A / ×) as the wings fall; then stand still by it.'] } },
-    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'It shies from you now: light a pool before it searches, and stand back.' },
+        said: 'Its wings beat empty air. It hangs low, searching: send it a bubble of light.',
+        lines: ['Its wings beat at you.', 'Hop back from its fluttering wings just as they come down.', 'When it flutters at you, flip back (stick back and A / ×) as the wings fall; then send it a bubble of light ({key:aim}, {key:fire}).'] } },
+    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'It shies from you: send light from afar, or leave it a lit pool.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -263,6 +283,7 @@ class LurePools {
       const light = new THREE.Vector4(0, -1e5, 0, 0);
       rt.lights.push(light);
       const pool = { i, at: m.position.clone(), m, mat, light, lit: false, held: 0 };
+      pool.offLight = registerLight({ position: () => pool.at, radius: POOL_LIGHT, enabled: () => pool.lit });   // (issue #377: a bubble takes its light)
       pool.off = registerTarget({ kind: 'switch', radius: 1.7, position: () => pool.at, onHit: (mode) => { if (mode !== 'push') this.light(pool); return true; } });
       return pool;
     });
@@ -288,7 +309,7 @@ class LurePools {
       if (p.lit) p.light.set(p.at.x, p.at.y + 1.5, p.at.z, 9); else p.light.set(0, -1e5, 0, 0);
     }
   }
-  dispose() { for (const p of this.list) p.off(); }
+  dispose() { for (const p of this.list) { p.off(); p.offLight?.(); } }
 }
 
 function mothHit(g, part, mode) {
@@ -319,7 +340,7 @@ function lampPost(K, M, x, y, z) {
  * each, and the great key behind a grille between them that lifts once both niches burn at once; a balcony high on its
  * west wall, at the end of the ledge of roots from the root-wall's top).
  */
-function wings(rt, K, M, { root }) {
+function wings(rt, K, M, { root, pool }) {
   const add = (P, o) => rt.add(P, o);
   const D = DOOR, Kn = KENNEL, Wk = WICK, KR = ROOMS.kennel, WR = ROOMS.wick, PO = ROOMS.pools;
   // ---- the Kennel
@@ -365,11 +386,13 @@ function wings(rt, K, M, { root }) {
     add(LightEar, { id, at: [nx, -0.3, F - 0.7], reach: 0 });   // (reach 0: your lantern can't wake it; its orb does, while it glows)
     K.add(M.dark, box(1.0, 0.04, g1 - g0 + 0.6, nx, 0.02, (g0 + g1) / 2));
     for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, g1 - g0 + 0.6, nx + sd * 0.75, 0.06, (g0 + g1) / 2));
-    add(Ball, { id: orb, a: [nx, 0.04, g0], b: [nx, 0.04, g1], r: 0.9, lock: true, lamp: { id, reach: 2.8, hold: 2, lasts: Wk.lasts,
+    add(Ball, { id: orb, a: [nx, 0.04, g0], b: [nx, 0.04, g1], r: 0.9, lock: true, lamp: { id, carried: true, lasts: Wk.lasts,
       woke: 'The glowing orb settles in the niche, and its lamp catches: for as long as the orb glows.',
       faded: 'The orb’s glow has gone out, and its niche’s lamp with it.' } });
     add(Plate, { id: plate, at: [nx, 0, g1], r: 1.0 });
   }
+  // (issue #377) the wick-house's pool-lamp before it: the light two bubbles carry to the two orbs
+  pool('sW', Wk.x, 0, Wk.pool, 1.3);
   // the great key in its alcove, behind the grille between the niches (a keyhole too: logic `lock`)
   add(Door, { id: 'cW', at: [cx, 0, F], w: D.w, h: D.h, lamps: [{ lit: 'lW1' }, { lit: 'lW2' }] });
   add(Key, { id: 'kB', big: true, at: [cx, 0, Wk.keyZ], yaw: Math.PI });
@@ -405,7 +428,7 @@ function layout(rt) {
   const pool = (id, x, y, z, r = 2.0) => {
     K.both(M.trim, T(annulus(r, r + 0.6, 0.5, 32), [x, y + 0.5, z]));
     K.both(poolM, T(new THREE.CylinderGeometry(r, r, 0.1, 28), [x, y + 0.3, z]));
-    add(Switch, { id, at: [x, y + 0.9, z], yaw: 0, size: 0.9 });
+    add(Switch, { id, at: [x, y + 0.9, z], yaw: 0, size: 0.9, light: POOL_LIGHT });   // (lit, a light a bubble takes: issue #377)
   };
   pool('s1', 7, 0, 29); pool('s2', -1, 0, 45);
   const LO = { x0: PO.x0 - 0.1, x1: -6.2, z0: 26, z1: 42, top: 8 }, [lox, loz] = mid(LO);
@@ -467,10 +490,13 @@ function layout(rt) {
   K.corridor([0, RS.z1 + 1.2], [0, C3 - LA.r - 0.4], 9, { w: D.w, h: D.h });
   K.rotunda({ x: 0, z: C3, y: LA.y, r: LA.r, h: LA.top - LA.y, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0 });
   K.both(M.trim, ...chestMound(0, 9, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  // (issue #377) the fount of lamp-water by the dais, that never goes dark: a bubble blown over it takes its light, and a
+  // glowing bubble that bursts on a dark lamp's glass lights it (the lantern charm stood by them, before)
+  add(LightFount, { at: FOUNT });
   lampPost(K, M, -5.4, 9, C3 + 3.4);
-  add(LightEar, { id: 'l0', at: [-5.4, 9, C3 + 3.4], reach: 3.6 });   // (a try: it wakes to the lantern, and nothing waits on it)
+  add(LightEar, { id: 'l0', at: [-5.4, 9, C3 + 3.4], carried: true });   // (a try: nothing waits on it)
   lampPost(K, M, 4.6, 9, C3 + 8.6);
-  add(LightEar, { id: 'l1', at: [4.6, 9, C3 + 8.6], reach: 3.0 });   // (off the way to the door: you go and stand by it)
+  add(LightEar, { id: 'l1', at: [4.6, 9, C3 + 8.6], carried: true, heard: 'The bubble bursts on the lamp’s glass and it catches. Beyond the chamber, the gallery door sinks.' });
   root([[-LA.r + 0.6, LA.top - 0.5, C3 - 6], [-LA.r + 1, 18, C3 - 4], [-LA.r + 0.5, 9, C3 - 5]], 0.45);
   root([[LA.r - 0.6, LA.top - 0.5, C3 + 3], [LA.r - 1, 17, C3 + 4.5], [LA.r - 0.5, 9, C3 + 3.6]], 0.4);
   add(Mark, { room: 'lantern', at: [8, 9, C3 - 6], yaw: -Math.PI * 0.75 });
@@ -487,17 +513,22 @@ function layout(rt) {
   K.slab(GA.x0, Q1, GA.x1, GA.z1, GA.floor, gy);
   K.both(M.dark, box(GA.x1 - GA.x0, 1, GA.pit, 0, GA.y - 0.5, gz));
   add(Pit, { room: 'gallery', min: [GA.x0 - 1, GA.y - 3, Q0], max: [GA.x1 + 1, 4, Q1] });
-  add(Bridge, { id: 'br1', a: [0, 9, Q0 - 0.1], b: [0, 9, Q1 + 0.1], w: 3.4, n: 9, hidden: 'lantern' });
+  // (issue #377) moss-stones sunk in the chasm, glowing once their lamp is lit: it hangs over the chasm on a chain, out of
+  // reach; the near floor's pool-lamp by the lip gives the light a bubble carries out to it
+  add(Bridge, { id: 'br1', a: [0, 9, Q0 - 0.1], b: [0, 9, Q1 + 0.1], w: 3.4, n: 9, glow: { color: '#8fd6a8', k: 0.5 } });
+  pool('s6', MOSS.pool[0], 9, Q0 + MOSS.pool[1], 1.3);
+  add(LightEar, { id: 'lM', at: [MOSS.lamp[0], 9.4, Q0 + MOSS.lamp[1]], carried: true, hang: GA.top - 9.4 - 3.3, heard: 'The bubble bursts on the hanging lamp and it catches: down in the chasm the moss-stones glow and rise.' });
   const SZ = Q0 - 5;
   K.both(M.wall, box(2.4, 7.4, 1.0, 8, 12.7, SZ));
   K.both(M.trim, box(2.8, 0.4, 1.4, 8, 16.6, SZ));
-  add(Switch, { id: 's4', at: [8, 15, SZ + 0.72], yaw: 0, size: 1.0, hidden: 'lantern' });   // (up on a post over the near floor, behind you as you cross; in sight from the far door)
+  add(Switch, { id: 's4', at: [8, 15, SZ + 0.72], yaw: 0, size: 1.0 });   // (up on a post over the near floor, behind you as you cross; in sight from the far door)
   const NZ = Q1 + 4;
   K.both(M.wall, [box(0.8, 3.2, 4, -8.2, 10.6, NZ), box(3.6, 3.3, 0.6, -6.4, 10.65, NZ - 1.9), box(3.6, 3.3, 0.6, -6.4, 10.65, NZ + 1.9), box(3.8, 0.8, 4, -6.4, 12.65, NZ)]);
   add(LightEar, { id: 'l2', at: [-7.3, 8.7, NZ], reach: 0 });   // (reach 0: your lantern can't wake it; the orb does)
   K.add(M.dark, box(10.6, 0.04, 1.0, -0.8, 9.02, NZ));
   for (const sd of [-1, 1]) K.both(M.trim, box(10.6, 0.12, 0.25, -0.8, 9.06, NZ + sd * 0.75));
-  add(Ball, { id: 'orb', a: [4.2, 9.04, NZ], b: [-6.2, 9.04, NZ], r: 0.9, lock: true, lamp: { id: 'l2', reach: 2.8, hold: 2, lasts: 25 } });
+  add(Ball, { id: 'orb', a: [4.2, 9.04, NZ], b: [-6.2, 9.04, NZ], r: 0.9, lock: true, lamp: { id: 'l2', carried: true, lasts: 25 } });
+  pool('s7', MOSS.far[0], 9, Q1 + MOSS.far[1], 1.3);   // (the far floor's pool-lamp, a few strides from the orb: its light for a bubble)
   add(Plate, { id: 'p4', at: [-6.2, 9, NZ], r: 1.0 });
   add(Door, { id: 'd4', at: [0, 9, GA.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] });
   add(Mark, { room: 'gallery', at: [-7, 9, GA.z0 + 4], yaw: 0 });
@@ -539,7 +570,7 @@ function layout(rt) {
   const arena = { center: K.world(0, 9, CL), r: HR, y: K.world(0, 9, 0).y };
 
   // (the wings last: their marks after the others)
-  wings(rt, K, M, { root });
+  wings(rt, K, M, { root, pool });
   const W = (x, y, z) => K.world(x, y, z), KR = R0.kennel, WR = R0.wick;
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
@@ -637,7 +668,7 @@ function change(scene, level, rt) {
 
 export const PERDIDE2_TEMPLE = {
   id: 'perdide2', levelId: 'perdide2', name: 'The Lamp-House', doorLabel: 'door of the Lamp-House',
-  gadget: 'lantern', gadgetBox: 'perdide2.temple.lantern', arenaDoor: 'd4', arenas: ARENAS, dark: true,
+  gadget: 'bubble', gadgetBox: 'perdide2.temple.lantern', arenaDoor: 'd4', arenas: ARENAS, dark: true,   // (the box's id from when it held the lantern: the saves' flag)
   origin: [-140 + OX, 1800, -300 + OZ], yaw: 0,   // (its rooms over the wood, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
@@ -647,8 +678,8 @@ export const PERDIDE2_TEMPLE = {
   enterLine: 'Inside the Lamp-House it is very dark, and it smells of moss and old oil. Somewhere above, wings.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Out over the wood, the Lamp-House’s lamp catches and its beam turns.', 'resolved.out'); },
-  // the Lampless drinks the lantern's light: stand still by it while it hangs low, searching; or a pool lit earlier
-  // lures it down to drink there (its last phase: only a pool, and only while you stand back)
+  // the Lampless drinks light: a bubble's carried to it while it hangs low, searching (below); or a pool lit earlier lures
+  // it down to drink there (its last phase: a bubble from afar, or a pool while you stand back)
   onConnect(rt) {
     const G = rt.guardian;
     if (!G) return;
@@ -688,19 +719,21 @@ export const PERDIDE2_TEMPLE = {
         return;
       }
       const near = Math.hypot(P.pos.x - m.pos.x, P.pos.z - m.pos.z) < 8;
-      const quiet = Math.hypot(P.vel.x, P.vel.z) < 0.4 && !P.down;
-      if (last) { if (near) rt.notice('It shies from you: it comes down only to a light left for it.', 'moth.shy'); still = 0; return; }
-      if (near && quiet && rt.logic.has('lantern')) {
-        if ((still += dt) > 1.4) {
-          still = 0;
-          G.add(G.phaseIndex === 0 ? 0.15 : 0.15, 'light');
-          rt.sound?.chime?.();
-          if (G.state === 'open') { G.enter('fight'); G.cool = 2; }
-        }
-      } else {
-        if (near && !quiet) rt.notice('It flinches from your movement. Be still.', 'moth.still');
-        still = 0;
-      }
+      if (last && near) rt.notice('It shies from you: it takes light only from afar, or a pool.', 'moth.shy');
     };
+    // (issue #377) a bubble that took a lamp's light, sent to it as it hangs low searching, bursts on it, and it drinks the
+    // light (the lantern charm stood by it, before): src/carried-light.js. In its last phase it shies from you: from afar.
+    const body = (out) => out.copy(G.model.pos).add(V(0, 2, 0));
+    const at = V();
+    rt.offs.push(registerDrinker({ position: () => body(at), radius: 2.6, enabled: () => G.state === 'open' }));
+    rt.offs.push(rt.game.on('bubble:light', ({ pos } = {}) => {
+      if (!pos || G.state !== 'open' || pos.distanceTo(body(at)) > 4.2) return;
+      const P = rt.player;
+      if (G.phaseIndex >= 2 && P && Math.hypot(P.pos.x - G.model.pos.x, P.pos.z - G.model.pos.z) < LURE.back) { rt.notice('The light reaches it, but it won’t drink while you stand so near.', 'moth.near'); return; }
+      G.add(0.15, 'light');
+      rt.sound?.chime?.();
+      rt.notice('The bubble bursts on its fur, and it drinks the light, glowing.', 'moth.bubble');
+      if (G.state === 'open') { G.enter('fight'); G.cool = 2; }
+    }));
   },
 };

@@ -293,8 +293,8 @@ test('the Cloud-Mother’s second phase teaches the stone: a ring as she rises t
 const HOLD_STONES = 10;
 
 // ------------------------------------------------------------------ the Lampless
-test('the Lampless’s last phase: it shies from you; a pool lit earlier (your lantern held by it, or a splash) lures it down, and it drinks there if you stand back', () => {
-  const A = arena('perdide2', 'lantern', 2);
+test('the Lampless’s last phase: it shies from you; a pool lit earlier (a splash) lures it down, and it drinks there if you stand back', () => {
+  const A = arena('perdide2', 'bubble', 2);
   const { rt, G, P, until, wait, said, stand, frame } = A;
   const pools = rt.lurePools.list;
   assert.equal(pools.length, 3, 'three dark pools round the room');
@@ -307,11 +307,12 @@ test('the Lampless’s last phase: it shies from you; a pool lit earlier (your l
   until(() => G.state !== 'open', 6);
   assert.equal(G.meter, m0, 'it does not drink from you in its last phase');
   assert.ok(said(/shies from you/), 'it says so');
-  // light a pool with the lantern: held by it a moment
+  // light a pool: a splash
   const [px, pz] = local(pools[0]);
   stand(px + 1, pz);
-  wait(1.6);
-  assert.equal(pools[0].lit, true, 'your lantern held by it lights the pool');
+  hitTarget({ target: allTargets().find((x) => x.position() === pools[0].at), point: pools[0].at.clone() }, 'shoot');
+  wait(0.5);
+  assert.equal(pools[0].lit, true, 'a splash lights the pool');
   // the second failure: stay by the lit pool and it will not come down to drink
   assert.equal(until(() => G.state === 'open', 40), true, 'it searches again');
   stand(px + 1, pz);
@@ -328,16 +329,16 @@ test('the Lampless’s last phase: it shies from you; a pool lit earlier (your l
   A.done();
 });
 
-test('the Lampless’s second phase teaches the pools: a splash lights one and it drinks there, and standing still by it still works', () => {
-  const A = arena('perdide2', 'lantern', 1);
+test('the Lampless’s second phase teaches the pools: a splash lights one and it drinks there, and a bubble of light still works', () => {
+  const A = arena('perdide2', 'bubble', 1);
   const { rt, G, P, until, stand, frame } = A;
   const c = G.arena.center, pool = rt.lurePools.list[2];
-  // the old way still: stand still by it as it searches
+  // the first phase's way still: a bubble of light (issue #377) bursting on it as it searches
   assert.equal(until(() => G.state === 'open', 40), true, 'it searches');
-  stand(G.model.pos.x - c.x + 4, G.model.pos.z - c.z);
+  stand(G.model.pos.x - c.x + 6, G.model.pos.z - c.z);
   const m0 = G.meter;
-  until(() => G.meter > m0 || G.state !== 'open', 6);
-  assert.ok(G.meter > m0, 'it drinks your lantern’s light');
+  game.emit('bubble:light', { pos: G.model.pos.clone().add(V(0, 2, 0)) });
+  assert.ok(G.meter > m0, 'it drinks the bubble’s light');
   // a splash lights a pool from afar
   const t = allTargets().find((x) => x.position() === pool.at);
   assert.ok(t, 'the pool is a target');
@@ -764,7 +765,7 @@ test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts 
 
 // ------------------------------------------------------------------ a second verb (v1.63, #257)
 test('six guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
-  const SIX = [['arzach2', 'bell', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'lantern', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'coil', 'parry'], ['bazaar', 'echo', 'dodge']];
+  const SIX = [['arzach2', 'hook', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'coil', 'parry'], ['bazaar', 'echo', 'dodge']];
   for (const [id, gadget, verb] of SIX) {
     const A = arena(id, gadget, 1, { answer: false });
     const { G, P, frame, until, said } = A, Q = G.phase.asks;

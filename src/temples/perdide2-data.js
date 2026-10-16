@@ -39,7 +39,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.perdide2' }, goto: 'go' }, { text: '~solemn~ Then it’s been hungry a long time.', end: true }],
         },
         go: {
-          say: ["~neutral~ Take the causeway beside the root cave, at the lit path’s end. Step from stone to stone.", "~whisper~ Bring a light into the tower. If you haven’t one, look for a gift the makers left inside."],
+          say: ["~neutral~ Take the causeway beside the root cave, at the lit path’s end. Step from stone to stone.", "~whisper~ It’s dark in there. The makers left something inside that can carry light where you can’t reach."],
           choices: [{ text: '~happy~ I’ll find one.', end: true }],
         },
         again: {

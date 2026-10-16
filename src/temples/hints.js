@@ -199,11 +199,11 @@ export const BOSS_HINTS = {
   perdide2: {
     phases: [
       ['It is searching for light.',
-        'When it hangs low, stand still by it with your lantern.',
-        'Wait for it to hang low and turn about, then stand still within a few steps of it. Do not move.'],
-      ['It wants more of your light.',
-        'Again: be still by it while it searches.',
-        'When it hangs low, walk under it and stand still, lantern lit, until it has drunk.'],
+        'When it hangs low, send it a bubble of light.',
+        'Splash a pool so it glows, blow a bubble beside it ({key:aim}, {key:fire}), and send the glowing bubble to it while it hangs low.'],
+      ['It wants more light.',
+        'Again: a bubble of a lit pool’s light while it searches.',
+        'When it hangs low, stand by a lit pool, blow a bubble and aim it at the moth until it has drunk.'],
     ],
     at: (g) => _p.copy(g.model.pos).setY(g.arena.y + 0.5),
   },

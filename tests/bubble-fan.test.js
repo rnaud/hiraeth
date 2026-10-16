@@ -72,6 +72,36 @@ test('a bubble rises at its speed low down and hovers at its top; it wraps the t
 
 // ------------------------------------------------------------------ the bubble's behaviour
 
+test('a bubble blown in a lamp’s light takes it and glows; glowing, it bursts on what drinks light and gives it up there (issue #377, src/carried-light.js)', async () => {
+  const { registerLight, registerDrinker, clearLights } = await import('../src/carried-light.js');
+  clearLights();
+  const ph = physicsOf();
+  const P = player(v(0, 0, 0));
+  const events = [];
+  const ctx = ctxOf(P, ph, { game: { emit: (k, e) => events.push([k, e]) } });
+  const W = bubble.create(ctx);
+  let lit = true;
+  const offL = registerLight({ position: () => v(0, 1.4, 0), radius: 2, enabled: () => lit });
+  let dark = true;
+  const offD = registerDrinker({ position: () => v(0, 2, -6), radius: 1, enabled: () => dark });
+  // a dark place first: the bubble takes nothing
+  lit = false;
+  let b = W.spawn('free', v(0, 1.45, 0)); b.vel.set(0, 0, -BUBBLE.speed); b.blow.set(0, 0, -1);
+  for (let i = 0; i < 10; i++) W.update(DT);
+  assert.equal(b.lit, false, 'no light here');
+  W.pop('pressed');
+  assert.ok(!events.some(([k]) => k === 'bubble:light'), 'a plain bubble gives no light');
+  // in the light: it glows, flies on, and bursts on the drinker six metres off
+  lit = true;
+  b = W.spawn('free', v(0, 1.45, 0)); b.vel.set(0, 0.5, -BUBBLE.speed); b.blow.set(0, 0, -1);
+  for (let i = 0; i < 3 / DT && W.bubble; i++) W.update(DT);
+  assert.equal(b.lit, true, 'it took the light');
+  assert.equal(W.bubble, null, 'and burst');
+  const e = events.find(([k]) => k === 'bubble:light');
+  assert.ok(e && e[1].pos.distanceTo(v(0, 2, -6)) < 2, `on the drinker (${e?.[1].pos.toArray().map((x) => x.toFixed(1))})`);
+  offL(); offD(); clearLights();
+});
+
 test('a bubble blown at a crate catches it and floats it up; when it pops the crate falls back down', () => {
   clearTargets();
   const ph = physicsOf(), P = player(v(0, 0, 8));

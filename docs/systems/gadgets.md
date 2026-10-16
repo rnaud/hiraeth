@@ -410,6 +410,12 @@ adds to it, then dies back into the drift). It pops after `life` 6 s:
   when he touches down (`selfPhase`, `selfLift`). Jump pops it (the wings may open at once), and so does a
   hurt (a foe's strike).
 
+**Carried light** (issue #377, the Lamp-House: src/carried-light.js): a bubble in a lit place's light (`lightAt`: a lit
+pool-lamp, a lamp's glass, a glowing orb, a fount) takes it and glows (`takeLight`: a gold halo and a warm heart);
+glowing, a free bubble bursts on what drinks light (`drinkerAt`: a dark lamp's glass, a dark orb, the Lampless hanging
+low), and wherever a glowing bubble bursts it emits `'bubble:light'` { pos }: docs/systems/temples.md, "The gadgets
+earned inside".
+
 Spikes and flames (`hazardAt`, src/hazards.js), a fire burning (a flammable spot lit by an ember glob, the
 yard's ember fire), a blade or an ember or fluid glob pop it (the bubble is a target: `kind: 'bubble'`,
 accepting `blade`, `fire` and `gust`). Its look: nothing is transparent here, so it is drawn as an ink

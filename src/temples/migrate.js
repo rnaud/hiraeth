@@ -14,7 +14,7 @@ export const TEMPLE_BOXES = [
   ['arzach2.temple.bell', 'hook'],   // (the bell-note whistle until issue #377: the box's id kept)
   ['spheres.temple.lens', 'lens'],
   ['buried.temple.cell', 'bomb'],   // (the fourth chamber until issue #377: the box's id kept)
-  ['perdide2.temple.lantern', 'lantern'],
+  ['perdide2.temple.lantern', 'bubble'],   // (the lantern charm until issue #377: the box's id kept)
   ['perdide.temple.stun', 'stun'],
   ['arzach.temple.glider', 'glider'],
   ['garage.temple.coil', 'coil'],
