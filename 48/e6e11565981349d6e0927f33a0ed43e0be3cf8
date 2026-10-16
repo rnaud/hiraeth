@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_d0d7f88858b9d2 25
+docs/systems/performance.md
+  s_9ca76055a220ed::t_dd46531ff548d8 1490-1537
+engine/game.js
+  s_9ca76055a220ed::t_75089d134fe172 24,41,59-60,164-166,335-351,355-361,433-436,440,442,446,529,761,1145,1148-1151,1222,1484-1485
+src/changelog.js
+  s_9ca76055a220ed::t_8e48cc21a9509a 12-23
+src/late-collision.js
+  s_9ca76055a220ed::t_6e54b93c1e142f 20,26,29-36,165,200-201,203,205
+src/sand-drifts.js
+  s_9ca76055a220ed::t_f2147092ef5f6e 226-228,401-404
+tests/engine-defer.test.js
+  s_9ca76055a220ed::t_94cafcdfa27ee0 1-114
+tests/late-collision.test.js
+  s_9ca76055a220ed::t_eb4ece93e4f03f 13,24-25,97-127
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_26a164a8c7ba18 239-241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48e6e11565981349d6e0927f33a0ed43e0be3cf8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
