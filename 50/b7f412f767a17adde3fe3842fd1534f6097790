@@ -1,0 +1,37 @@
+.claude/skills/sound-qc/SKILL.md
+  s_9ca76055a220ed::t_684cab81a67d9b 1-81
+.claude/skills/sound-qc/run.mjs
+  s_9ca76055a220ed::t_9f516972416f46 1-172
+docs/README.md
+  s_9ca76055a220ed::t_5868472e2f1f90 80
+docs/systems/audio.md
+  s_9ca76055a220ed::t_b659df21de15bc 646-726
+scripts/sound-qc/actions.mjs
+  s_9ca76055a220ed::t_86aa759781db87 1-101
+scripts/sound-qc/drive.mjs
+  s_9ca76055a220ed::t_d4b9f6b752e792 1-85
+scripts/sound-qc/lib.mjs
+  s_9ca76055a220ed::t_1d8957572edb3f 1-159
+scripts/sound-qc/render.mjs
+  s_9ca76055a220ed::t_3f92f9c2c73b95 1-126
+scripts/sound-qc/scenarios.mjs
+  s_9ca76055a220ed::t_fe3456d5c72975 1-25
+tests/sound-qc.test.js
+  s_9ca76055a220ed::t_06802c50e7a1de 1-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "50b7f412f767a17adde3fe3842fd1534f6097790",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
