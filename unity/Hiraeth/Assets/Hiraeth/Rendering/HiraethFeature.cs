@@ -28,7 +28,8 @@ namespace Hiraeth.Rendering
         GBufferPass gbuffer;
         ShadowPass shadows;
         CompositePass composite;
-        Material compositeMaterial, bloomMaterial, fxaaMaterial, smaaMaterial;
+        UpscalePass upscale;
+        Material compositeMaterial, bloomMaterial, fxaaMaterial, smaaMaterial, upscaleMaterial;
         static bool logged;
 
         public override void Create()
@@ -40,6 +41,7 @@ namespace Hiraeth.Rendering
             shadows = new ShadowPass { renderPassEvent = RenderPassEvent.BeforeRenderingOpaques };
             gbuffer = new GBufferPass { renderPassEvent = RenderPassEvent.BeforeRenderingOpaques };
             composite = new CompositePass { renderPassEvent = RenderPassEvent.BeforeRenderingTransparents };
+            upscale = new UpscalePass { renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing };
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -70,9 +72,43 @@ namespace Hiraeth.Rendering
             renderer.EnqueuePass(shadows);
             renderer.EnqueuePass(gbuffer);
             renderer.EnqueuePass(composite);
+            // the picture to the screen by our own upscaler (FSR 1 or SGSR 1), the HUD drawn after it at the screen's size
+            // (Settings.upscaler; URP's own final blit otherwise)
+            if (Settings.upscaler != Upscaler.Urp)
+            {
+                if (upscaleMaterial == null) { var us = Shader.Find("Hidden/Hiraeth/Upscale"); if (us != null && us.isSupported) upscaleMaterial = CoreUtils.CreateEngineMaterial(us); }
+                if (upscaleMaterial != null) { upscale.material = upscaleMaterial; renderer.EnqueuePass(upscale); }
+            }
         }
 
-        protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); }
+        protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); CoreUtils.Destroy(upscaleMaterial); }
+
+        /// <summary>How the picture made at the render scale reaches the screen (issue #392; the bridge's -upscale): URP's own
+        /// final blit (bilinear), or our UpscalePass: FSR 1 (EASU, then RCAS), Snapdragon GSR 1, or a plain bilinear copy.</summary>
+        public enum Upscaler { Urp, Fsr, Sgsr, Linear }
+
+        static int uiMaskWas = -1;
+        /// <summary>The HUD's canvases (the UI layer) out of URP's own transparent pass, to be drawn by UpscalePass after the
+        /// upscale (on), or back in it (off). The renderer's asset as it was is put back when the application quits (in the
+        /// editor the asset would keep it).</summary>
+        public static void UiAfterUpscale(UniversalRenderPipelineAsset urp, bool on)
+        {
+            if (urp == null || urp.rendererDataList.Length == 0 || urp.rendererDataList[0] is not UniversalRendererData data) return;
+            int mask = data.transparentLayerMask;
+            if (uiMaskWas < 0) { uiMaskWas = mask; Application.quitting += () => { if (data != null && uiMaskWas >= 0) data.transparentLayerMask = uiMaskWas; }; }
+            int want = on ? uiMaskWas & ~(1 << Settings.UiLayer) : uiMaskWas;
+            if (want != mask) data.transparentLayerMask = want;
+        }
+
+        /// <summary>The upscaler's name on the command line (-upscale): off (URP's blit), fsr, sgsr, linear; null if unknown.</summary>
+        public static Upscaler? ParseUpscaler(string s) => s switch
+        {
+            "off" or "urp" => Upscaler.Urp,
+            "fsr" or "fsr1" => Upscaler.Fsr,
+            "sgsr" or "sgsr1" => Upscaler.Sgsr,
+            "linear" => Upscaler.Linear,
+            _ => null,
+        };
 
         /// <summary>Switches the game can flip (the settings: FXAA). `waterContact`: the water's contact foam, on (seen working
         /// in batch renders, October 2026, issue #53) except on mobile players, as the web's Handheld (perf.js waterContactOn);
@@ -96,6 +132,17 @@ namespace Hiraeth.Rendering
             public static float prepassMinRadius;
             /// <summary>The bridge's -gbuffer-test N (the G-buffer's targets in 8 bits, a test: GBufferPass).</summary>
             public static int gbufferTest;
+            /// <summary>The upscaler from the render scale to the screen (issue #392): Urp, URP's own final blit, as before.</summary>
+            public static Upscaler upscaler = Upscaler.Urp;
+            /// <summary>RCAS's sharpness after FSR's EASU (FSRUtils' linear scale, 0..1: URP's default 0.92); 0 leaves RCAS out.</summary>
+            public static float sharpness = 0.92f;
+            /// <summary>The G-buffer, its lighting and the glow at this share of the camera's size, the ink composite and
+            /// everything after it at the camera's own (issue #392's placement (a): URP's render scale left at 1). 1: off.</summary>
+            public static float gbufferScale = 1f;
+            /// <summary>With gbufferScale under 1: the ink's line weight in the composite's pixels (1: a screen pixel; the
+            /// default 1/gbufferScale keeps the weight lines have when the whole picture is drawn at that scale).</summary>
+            public static float inkWeight = 0f;
+            public const int UiLayer = 5;
             public const uint OccluderLayer = 1u << 28;
             public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
             /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
@@ -176,6 +223,13 @@ namespace Hiraeth.Rendering
         }
 
         static ShaderTagId Tag => new ShaderTagId("HiraethGBuffer");
+        /// <summary>The G-buffer's size for a camera target of w x h (Settings.gbufferScale, placement (a) of issue #392).</summary>
+        public static Vector2Int GSize(int w, int h)
+        {
+            float s = Settings.gbufferScale;
+            if (s >= 0.999f || s <= 0) return new Vector2Int(w, h);
+            return new Vector2Int(Mathf.Max(1, Mathf.RoundToInt(w * s)), Mathf.Max(1, Mathf.RoundToInt(h * s)));
+        }
         /// <summary>Each pass's profiling sampler, by its name: its GPU time in a development player (the bridge's -split,
         /// BridgeGpuSplit), nothing in a release one.</summary>
         static readonly System.Collections.Generic.Dictionary<string, ProfilingSampler> samplers = new();
@@ -209,6 +263,7 @@ namespace Hiraeth.Rendering
                 desc.msaaSamples = 1;
                 desc.depthBufferBits = 0;
                 desc.depthStencilFormat = GraphicsFormat.None;
+                var gs = GSize(desc.width, desc.height); desc.width = gs.x; desc.height = gs.y;   // (placement (a): Settings.gbufferScale)
                 var data = frame.Create<GBufferData>();
                 // (-gbuffer-test N, a test of what the targets' bytes a pixel cost a tiled GPU (issue #262), the picture wrong: 1 the hatch
                 // target in 8 bits, 2 the albedo too, 3 all three, 4 only the albedo; else half floats, as the web's G-buffer)
@@ -223,6 +278,7 @@ namespace Hiraeth.Rendering
                 desc.graphicsFormat = gt == 3 ? g8 : g16;
                 data.normal = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GNormal", true, FilterMode.Point);
                 var ddesc = cam.cameraTargetDescriptor;
+                ddesc.width = gs.x; ddesc.height = gs.y;
                 ddesc.msaaSamples = 1;
                 ddesc.graphicsFormat = GraphicsFormat.None;
                 ddesc.depthStencilFormat = gt == 5 ? GraphicsFormat.D16_UNorm : gt == 6 ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D32_SFloat;   // (-gbuffer-test 5: 16 bits, 6: 24)
@@ -349,6 +405,8 @@ namespace Hiraeth.Rendering
             class FxaaData { public Material mat; public TextureHandle src; public Vector4 texel; public float flip; public MaterialPropertyBlock mpb; }
             readonly MaterialPropertyBlock fxaaMpb = new();
             static readonly int IdFlip = Shader.PropertyToID("_TargetFlip");
+            static readonly int IdPixelRatio = Shader.PropertyToID("_PixelRatio");
+            bool pixelRatioSet;
             static readonly int IdA = Shader.PropertyToID("_GAlbedo"), IdN = Shader.PropertyToID("_GNormal"), IdH = Shader.PropertyToID("_GHatch");
             static readonly int IdB1 = Shader.PropertyToID("_GBloom"), IdB2 = Shader.PropertyToID("_GBloom2"), IdSrc = Shader.PropertyToID("_BloomSrc"), IdStep = Shader.PropertyToID("_BloomStep");
             static readonly int IdFx = Shader.PropertyToID("_FxaaSrc"), IdTexel = Shader.PropertyToID("_FxaaTexel");
@@ -414,14 +472,21 @@ namespace Hiraeth.Rendering
                 var cam = frame.Get<UniversalCameraData>();
                 int W = cam.cameraTargetDescriptor.width, H = cam.cameraTargetDescriptor.height;
                 HiraethLook.SetCameraUniforms(material, cam.camera, W, H);
+                // (placement (a): the G-buffer smaller than the page; the glow is gathered from the G-buffer's own size, and the
+                // composite's lines and dither measured in the page's pixels at Settings.inkWeight)
+                var gsz = GSize(W, H); int GW = gsz.x, GH = gsz.y;
+                bool gSmall = GW != W || GH != H;
+                // (a material's own value outlives the global once set: kept in step with it after that)
+                if (gSmall || pixelRatioSet) material.SetFloat(IdPixelRatio, HiraethLook.PixelRatio * (gSmall ? (Settings.inkWeight > 0 ? Settings.inkWeight : (float)W / GW) : 1f));
+                pixelRatioSet |= gSmall;
 
                 // ---- the glow: gathered at a quarter, blurred, and again wider at an eighth (post.js createBloom)
                 TextureHandle b1 = TextureHandle.nullHandle, b2 = TextureHandle.nullHandle;
                 if (bloom != null)
                 {
-                    var bd = new TextureDesc(Mathf.Max(1, (W + 3) / 4), Mathf.Max(1, (H + 3) / 4)) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "_GBloom" };
+                    var bd = new TextureDesc(Mathf.Max(1, (GW + 3) / 4), Mathf.Max(1, (GH + 3) / 4)) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "_GBloom" };
                     var qa = rg.CreateTexture(bd); bd.name = "_GBloomB"; var qb = rg.CreateTexture(bd);
-                    var ed = new TextureDesc(Mathf.Max(1, (W + 7) / 8), Mathf.Max(1, (H + 7) / 8)) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "_GBloom2" };
+                    var ed = new TextureDesc(Mathf.Max(1, (GW + 7) / 8), Mathf.Max(1, (GH + 7) / 8)) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "_GBloom2" };
                     var ea = rg.CreateTexture(ed); ed.name = "_GBloom2B"; var eb = rg.CreateTexture(ed);
                     using (var b = rg.AddRasterRenderPass<BloomData>("Hiraeth glow", out var d, Sampler("Hiraeth glow")))
                     {
@@ -475,6 +540,99 @@ namespace Hiraeth.Rendering
                         builder.SetRenderFunc((FxaaData d, RasterGraphContext ctx) => { d.mpb.SetTexture(IdFx, d.src); d.mpb.SetVector(IdTexel, d.texel); d.mpb.SetFloat(IdFlip, d.flip); ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1, d.mpb); });
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// The picture from the render scale to the screen by our own upscaler (issue #392; Settings.upscaler), in place of
+        /// URP's final blit: FSR 1 (EASU into a screen-sized target, then RCAS into the back buffer; RCAS left out at
+        /// sharpness 0), Snapdragon GSR 1 (one pass) or a bilinear copy (Hidden/Hiraeth/Upscale). The HUD's canvases (the UI
+        /// layer, which URP's own transparent pass then leaves out: BridgeRunner.UiAfterUpscale) are drawn after it at the
+        /// screen's size, so their text is never upscaled. The camera's targets are then the back buffer's, and URP adds no
+        /// blit of its own.
+        /// </summary>
+        class UpscalePass : ScriptableRenderPass
+        {
+            public Material material;
+            class PassData { public Material mat; public TextureHandle src; public int pass; public Vector4 outSize, sgsr; public Vector2 inSize; public float flip, sharp; public MaterialPropertyBlock mpb; }
+            class UiData { public RendererListHandle list; public Matrix4x4 view, proj; }
+            readonly MaterialPropertyBlock[] mpbs = { new(), new() };
+            static readonly int IdSrc = Shader.PropertyToID("_UpSrc"), IdOut = Shader.PropertyToID("_UpOut"), IdSgsr = Shader.PropertyToID("_SgsrViewport"), IdFlip = Shader.PropertyToID("_TargetFlip");
+            static readonly System.Collections.Generic.List<ShaderTagId> UiTags = new() { new("SRPDefaultUnlit"), new("UniversalForward"), new("UniversalForwardOnly") };
+            static bool logged;
+
+            /// <summary>Settings.upscaler's pass of Hidden/Hiraeth/Upscale: EASU 0 (RCAS 1 after it), SGSR 2, bilinear 3.</summary>
+            public static int PassOf(Upscaler u) => u == Upscaler.Fsr ? 0 : u == Upscaler.Sgsr ? 2 : 3;
+
+            void Blit(RenderGraph rg, string name, TextureHandle src, TextureHandle dst, int pass, Vector2 inSize, Vector2 outSize, float flip, int mpb)
+            {
+                using var b = rg.AddRasterRenderPass<PassData>(name, out var d, Sampler(name));
+                d.mat = material; d.src = src; d.pass = pass; d.flip = flip; d.mpb = mpbs[mpb]; d.inSize = inSize; d.sharp = Settings.sharpness;
+                d.outSize = new Vector4(outSize.x, outSize.y, 1f / outSize.x, 1f / outSize.y);
+                d.sgsr = new Vector4(1f / inSize.x, 1f / inSize.y, inSize.x, inSize.y);
+                b.UseTexture(src);
+                b.SetRenderAttachment(dst, 0, AccessFlags.WriteAll);   // (every pixel written: nothing to load)
+                b.AllowGlobalStateModification(true);
+                b.SetRenderFunc((PassData x, RasterGraphContext ctx) =>
+                {
+                    if (x.pass == 0) FSRUtils.SetEasuConstants(ctx.cmd, x.inSize, x.inSize, new Vector2(x.outSize.x, x.outSize.y));
+                    if (x.pass == 1) FSRUtils.SetRcasConstantsLinear(ctx.cmd, x.sharp);
+                    x.mpb.SetTexture(IdSrc, x.src); x.mpb.SetVector(IdOut, x.outSize); x.mpb.SetVector(IdSgsr, x.sgsr); x.mpb.SetFloat(IdFlip, x.flip);
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, x.mat, x.pass, MeshTopology.Triangles, 3, 1, x.mpb);
+                });
+            }
+
+            /// <summary>The UI layer's canvases into `dst`, with the camera's matrices for that target (a player's back buffer
+            /// the other way up from a texture).</summary>
+            static void DrawUi(RenderGraph rg, ContextContainer frame, TextureHandle dst, bool toWindow)
+            {
+                var cam = frame.Get<UniversalCameraData>();
+                var rend = frame.Get<UniversalRenderingData>();
+                var lights = frame.Get<UniversalLightData>();
+                using var b = rg.AddRasterRenderPass<UiData>("Hiraeth HUD", out var d, Sampler("Hiraeth HUD"));
+                var draw = RenderingUtils.CreateDrawingSettings(UiTags, rend, cam, lights, SortingCriteria.CommonTransparent);
+                var filter = new FilteringSettings(RenderQueueRange.transparent, 1 << Settings.UiLayer);
+                d.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, filter));
+                d.view = cam.GetViewMatrix();
+                d.proj = GL.GetGPUProjectionMatrix(cam.GetProjectionMatrix(), !toWindow);
+                b.UseRendererList(d.list);
+                b.SetRenderAttachment(dst, 0, AccessFlags.Write);
+                b.AllowGlobalStateModification(true);
+                b.SetRenderFunc((UiData x, RasterGraphContext ctx) =>
+                {
+                    RenderingUtils.SetViewAndProjectionMatrices(ctx.cmd, x.view, x.proj, false);
+                    ctx.cmd.DrawRendererList(x.list);
+                });
+            }
+
+            public override void RecordRenderGraph(RenderGraph rg, ContextContainer frame)
+            {
+                var res = frame.Get<UniversalResourceData>();
+                var cam = frame.Get<UniversalCameraData>();
+                if (material == null || !cam.resolveFinalTarget) return;
+                // (a player's own window, not a texture: the other way up, as the composite's _TargetFlip)
+                bool window = !Application.isEditor && cam.camera.targetTexture == null;
+                // (already on the back buffer: nothing to upscale; the HUD where the picture is)
+                if (res.isActiveTargetBackBuffer) { DrawUi(rg, frame, res.activeColorTexture, window); return; }
+                var src = res.activeColorTexture;
+                var sd = rg.GetTextureDesc(src);
+                int inW = sd.width, inH = sd.height, outW = cam.camera.pixelWidth, outH = cam.camera.pixelHeight;
+                if (inW >= outW && inH >= outH) { DrawUi(rg, frame, src, false); return; }   // (the same size: URP's blit copies it)
+                var dst = res.backBufferColor;
+                float flip = window ? 1 : 0;
+                var inSize = new Vector2(inW, inH); var outSize = new Vector2(outW, outH);
+                var u = Settings.upscaler;
+                if (!logged) { logged = true; Debug.Log($"Hiraeth: upscale {u} {inW}x{inH} -> {outW}x{outH}{(u == Upscaler.Fsr ? $", RCAS sharpness {Settings.sharpness:0.##}" : "")}, the HUD at the screen's size"); }
+                if (u == Upscaler.Fsr && Settings.sharpness > 0)
+                {
+                    var md = sd; md.width = outW; md.height = outH; md.name = "_HiraethEasu"; md.filterMode = FilterMode.Point; md.clearBuffer = false;
+                    var mid = rg.CreateTexture(md);
+                    Blit(rg, "Hiraeth FSR EASU", src, mid, 0, inSize, outSize, 0, 0);
+                    Blit(rg, "Hiraeth FSR RCAS", mid, dst, 1, outSize, outSize, flip, 1);
+                }
+                else Blit(rg, u == Upscaler.Fsr ? "Hiraeth FSR EASU" : u == Upscaler.Sgsr ? "Hiraeth SGSR" : "Hiraeth upscale bilinear", src, dst, PassOf(u), inSize, outSize, flip, 0);
+                DrawUi(rg, frame, dst, window);
+                res.SwitchActiveTexturesToBackbuffer();
             }
         }
     }

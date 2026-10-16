@@ -352,6 +352,36 @@ namespace Hiraeth.Bridge
         /// (the script's ops applied N a frame at most: the load's objects made over several frames). The drawer's state
         /// is logged either way.
         /// </summary>
+        /// <summary>
+        /// The upscaler's switches (issue #392): `up` off|fsr|sgsr|linear (HiraethFeature.Upscaler; null leaves URP's blit),
+        /// urp-fsr|urp-linear|urp-point (URP's own filter setting); `sharp` RCAS's sharpness 0-1; `inkFull` the ink composite
+        /// at the screen's size over a G-buffer at the render scale (URP's scale then 1); `weight` the lines' weight there.
+        /// With our upscaler the HUD's layer leaves URP's transparent pass, to be drawn after the upscale.
+        /// </summary>
+        public static void ApplyUpscale(UniversalRenderPipelineAsset urp, string up, string sharp, bool inkFull, string weight)
+        {
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            var S = Hiraeth.Rendering.HiraethFeature.Settings.upscaler;
+            if (up != null && up.StartsWith("urp-"))
+                urp.upscalingFilter = up == "urp-linear" ? UpscalingFilterSelection.Linear : up == "urp-point" ? UpscalingFilterSelection.Point : UpscalingFilterSelection.FSR;
+            else if (up != null)
+            {
+                if (Hiraeth.Rendering.HiraethFeature.ParseUpscaler(up) is Hiraeth.Rendering.HiraethFeature.Upscaler u) S = u;
+                else Debug.LogWarning($"Hiraeth bridge: -upscale {up}: off, fsr, sgsr or linear");
+            }
+            if (sharp != null && float.TryParse(sharp, System.Globalization.NumberStyles.Float, inv, out float sv)) Hiraeth.Rendering.HiraethFeature.Settings.sharpness = Mathf.Clamp01(sv);
+            if (inkFull && urp.renderScale < 0.999f)
+            {
+                Hiraeth.Rendering.HiraethFeature.Settings.gbufferScale = urp.renderScale;
+                urp.renderScale = 1f;
+                S = Hiraeth.Rendering.HiraethFeature.Upscaler.Urp;   // (nothing left to upscale)
+                if (weight != null && float.TryParse(weight, System.Globalization.NumberStyles.Float, inv, out float wv)) Hiraeth.Rendering.HiraethFeature.Settings.inkWeight = wv;
+            }
+            Hiraeth.Rendering.HiraethFeature.Settings.upscaler = S;
+            Hiraeth.Rendering.HiraethFeature.UiAfterUpscale(urp, S != Hiraeth.Rendering.HiraethFeature.Upscaler.Urp);
+            Debug.Log($"Hiraeth bridge: upscaler {S}{(S == Hiraeth.Rendering.HiraethFeature.Upscaler.Fsr ? $" (RCAS {Hiraeth.Rendering.HiraethFeature.Settings.sharpness:0.##})" : "")}, the G-buffer at {Hiraeth.Rendering.HiraethFeature.Settings.gbufferScale:0.###} of the camera's target");
+        }
+
         static void Experiments()
         {
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
@@ -374,9 +404,13 @@ namespace Hiraeth.Bridge
             // 960 x 540 at most (the AYN Thor's 1080p at 0.5, issue #395: HandheldScale)
             else if (urp != null) urp.renderScale = BridgeArgs.Quality == "handheld" ? HandheldScale(Screen.width, Screen.height) : 1f;
 #endif
-            // (-upscale fsr|linear|point: URP's filter from a render scale under 1 to the screen, FSR 1 by default there)
-            if (urp != null && BridgeArgs.Arg("-upscale") is string up)
-                urp.upscalingFilter = up == "linear" ? UpscalingFilterSelection.Linear : up == "point" ? UpscalingFilterSelection.Point : UpscalingFilterSelection.FSR;
+            // (-upscale fsr|sgsr|linear|off: how the picture at a render scale under 1 reaches the screen (issue #392): our own
+            // pass, FSR 1 (EASU + RCAS, -sharpness 0-1, 0 no RCAS) or Snapdragon GSR 1, the HUD then drawn at the screen's size;
+            // off, URP's own final blit as before. urp-fsr|urp-linear|urp-point: URP's filter setting, which its final blit
+            // ignores while the camera has no post-processing (ours has none: bilinear whatever it says).
+            // -ink-full: the G-buffer, its light and the glow at the render scale, the ink composite, AA and the rest at the
+            // screen's (issue #392's placement (a); -ink-weight N its lines' weight in screen pixels, 1/scale by default))
+            if (urp != null) ApplyUpscale(urp, BridgeArgs.Arg("-upscale"), BridgeArgs.Arg("-sharpness"), BridgeArgs.Flag("-ink-full"), BridgeArgs.Arg("-ink-weight"));
             // (Screen.SetResolution takes effect at the end of the frame: until then Screen.width is the last launch's, so the log
             // says the size asked for)
             string asked = null;
