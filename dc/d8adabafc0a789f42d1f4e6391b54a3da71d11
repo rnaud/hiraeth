@@ -1,0 +1,41 @@
+src/desert-city.js
+  s_9ca76055a220ed::t_af60c480c2a619 1146
+src/door-light.js
+  s_9ca76055a220ed::t_9585b026bac076 1-187
+src/interiors.js
+  s_9ca76055a220ed::t_2cca1f61567a58 172,174
+src/levels/edena.js
+  s_9ca76055a220ed::t_0a8237fba3150c 284
+src/temples/runtime.js
+  s_9ca76055a220ed::t_79770b585294ef 128
+src/thresholds.js
+  s_9ca76055a220ed::t_d38cadbe480581 2,182-233,264,279-297,347
+tests/door-light.test.js
+  s_9ca76055a220ed::t_a7de1ee9edbb12 1-72
+docs/systems/rendering.md
+  s_9b182e4398fa65::t_1bb51b9de4cf48 1246-1257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dcd8adabafc0a789f42d1f4e6391b54a3da71d11",
+  "prompts": {},
+  "sessions": {
+    "s_9b182e4398fa65": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac0be6cc0772d51ff",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
