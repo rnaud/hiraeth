@@ -140,6 +140,9 @@ export const CHANGELOG = [
     'The last few foes of each Sunken Hall wave stand under a pillar of light so you can find them, one that slipped behind a wall is put back in the room (a run could never end), and the results give you a rank from S to C by your time and the hearts you lost.',
     // (issue #372: src/temples/air.js HOUSE_AIR; docs/design/temple-ambience.md, docs/systems/temples.md "The houses' air")
     'The makers’ houses now have an air of their own: embers rise in the Rose House, the Engine-House and the Casting-House, whose lamps flicker; sand streams through the Aerie and falls slowly in the Clock-House, dust climbs the Warden’s Well, bubbles rise in the Whale-House, drips fall in the Hush-House, teal glints hang in the Mooring-House. Each house sounds like itself too (a furnace’s roar, drips, far bells, a clock’s ticks, creaking cables), and the dust and noise of the world outside stay at the door.',
+    // the stairs at a run (issue #47, fifth round): src/locomotion.js StairLine / STAIR_LINE (the drawn body on the stairs'
+    // line, read ahead), src/feet.js FEET.rideOver, dropKeep, softFlight; tests/motion-qc.test.js ("fifth round", StairLine)
+    'Sprinting up or down stairs, his body now rides the line of the flight, rising smoothly onto it and levelling out onto the landing, instead of climbing in jerks step by step and stopping dead at the top; his kicked-back foot no longer folds up against his hip on the way, and his knees no longer flick as his feet land on the steps.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

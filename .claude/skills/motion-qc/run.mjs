@@ -5,7 +5,7 @@
 // and what the matcher costs a frame. The camera-qc skill's harness, for the traveller instead of the camera.
 //
 //   node .claude/skills/motion-qc/run.mjs <out-dir> [--worlds desert,bazaar] [--ways moves,mm] [--preset medium] [--cpu 4]
-//   PORT (default 5363; never 5173); Chrome picks its own debugging port
+//   PORT (default 5363; never 5173); Chrome picks its own debugging port; TUNE='{"feet.js":{"FEET":{...}}}' assigns into the page's src/ modules
 //
 // ways: moves (the game's default: the loops with the captured starts, stops and turns), mm (motion matching, ?mm=1),
 // loops (?moves=0). --cpu 4: Chrome's CPU throttled 4x (a handheld's main thread, roughly) for the cost columns.
@@ -161,6 +161,8 @@ for (const sc of plan) for (const way of ways) {
   if (way === 'mm') for (let i = 0; i < 100 && !(await ev('!!window.player.animator?.matching')); i++) await sleep(100);
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; } return true; })()`);
   await ev(`(async () => { const S = await import('/scripts/motion-qc/sample.mjs'); const LIB = await import('/scripts/motion-qc/lib.mjs'); return (${install.toString()})(S, LIB); })()`);
+  // (tuning without editing, as node's run.mjs: TUNE='{"feet.js":{"FEET":{"dropKeep":false}}}' assigns into the page's own src/<module>)
+  if (process.env.TUNE) await ev(`(async () => { for (const [mod, o] of Object.entries(${process.env.TUNE})) { const M = await import('/src/' + mod); for (const [k, v] of Object.entries(o)) Object.assign(M[k], v); } return true; })()`);
   await ev(`(async () => { const { THREE, player, rig } = window; ${sc.setup ?? ''}
     ${sc.at ? `player.teleport(new THREE.Vector3(...${JSON.stringify(sc.at)}), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));` : ''}
     ${sc.yaw != null ? `rig.yaw = ${sc.yaw};` : ''} rig.dist = ${sc.dist ?? 3.6}; rig._lastP = null; window.story?.closePage?.(); return true; })()`);

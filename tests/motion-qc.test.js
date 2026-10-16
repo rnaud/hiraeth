@@ -249,15 +249,52 @@ test('running, the facing turns no faster than FACE.runMax; from standing as bef
   assert.ok(was > FACE.runMax, 'standing (a pivot), as fast as before');
 });
 
-// (todo, what is left red on B3 after issue #47's fourth round, 2026-10-15; node, the default way: the stairs at a run, 4
-// pops and 6 jolts a minute (a 9.1 cm jolt). A riser passes under him every two or three frames: the drawn body (StepLag)
-// rises 6 cm one frame and 10 the next by turns, and the held feet and knees read against it jolt 3-7 cm; a sprint's
-// kick-back, lifted over the floor ahead, comes within 11-18 cm of the hip, where the knee's bend is barely defined, and
-// the thigh turns 45 rad/s in a frame. Tried and dropped: a critically damped StepLag (overshot the landing by 22 cm), a
-// second easing of it (27 cm jolts), the floor ahead read against the body's own climb, a least fold of the leg.)
-test('the red left on B3: the stairs at a run', { timeout: 120000, todo: 'issue #47: the stairs at a run, 4 pops and 6 jolts a minute' }, async () => {
-  const { r } = await runScenario(COURSE['stairs at a run'], 'moves');
-  assert.ok(r.green, `stairs at a run: green (${r.fails.join(', ')})`);
+// (issue #47's fifth round on B3, 2026-10-16: the last red, the stairs at a run, 4 pops and 6 jolts a minute (a 9.1 cm
+// jolt). A riser passed under him every two or three frames, and the drawn body eased after each one (StepLag) climbed 6 cm
+// one frame and 10 the next by turns, then stopped dead at the landing from 4.6 m/s up; the sprint's kick-back, lifted over
+// the floor ahead on top of its own height, came within 11-18 cm of the hip. Now the drawn body rides the stairs' own line,
+// read ahead (src/locomotion.js StairLine); a free foot the clip lifts well clear rises over a higher floor only by what it
+// lacks (FEET.rideOver); a foot let go while still coming down onto its hold goes on coming down (FEET.dropKeep: zeroed, it
+// dropped 8 cm in a frame on the top stair); and on a flight at a run the legs' soft zone widens (FEET.softFlight: down one
+// the landing leg was 95 % straight, and bent 8 cm in the frame it landed).)
+test('the stairs at a run: green, the drawn body on the stairs\' line, the kick-back clear of the hip (issue #47, fifth round)', { timeout: 120000 }, async () => {
+  const H = [], near = [];
+  const { r } = await runScenario(COURSE['stairs at a run'], 'moves', { onFrame: (p) => {
+    H.push(p.object.position.y);
+    if (p.pos.z > 30 && p.pos.z < 38.1) {
+      const B = p.humanoid.b, v = (n) => B[n].getWorldPosition(p.pos.clone());
+      near.push(Math.min(v('thigh_l').distanceTo(v('foot_l')), v('thigh_r').distanceTo(v('foot_r'))));
+    }
+  } });
+  assert.ok(r.green, `stairs at a run: green (${r.fails.join(', ')}; pops ${r.measures.popsPerMin}/min (4 before), jolts ${r.measures.joltsPerMin}/min (6), the worst jolt ${(r.measures.joltMax * 100).toFixed(1)} cm (9.1))`);
+  // (the drawn body's climb frame to frame: up the flight 6 and 10 cm by turns before, and 7.7 cm a frame to 2 at the landing)
+  let jerk = 0;
+  for (let i = 2; i < H.length; i++) jerk = Math.max(jerk, Math.abs(H[i] - 2 * H[i - 1] + H[i - 2]));
+  assert.ok(jerk < 0.035, `the drawn body's climb changes by at most ${(jerk * 100).toFixed(1)} cm a frame from one frame to the next (5.5 before)`);
+  const closest = Math.min(...near);
+  assert.ok(closest > 0.25, `a foot comes no nearer its hip than ${(closest * 100).toFixed(0)} cm on the stairs (11 before)`);
+});
+
+test('StairLine: an even flight read ahead is a smooth line through it, continuous as each riser is stepped (src/locomotion.js, issue #47)', async () => {
+  const THREE = await import('three');
+  const { StairLine, STAIR_LINE } = await import('../src/locomotion.js');
+  // (a floor of 18 cm risers every 32 cm from z = 1, eight of them: the physics' heightAbove, read straight down)
+  const floor = (z) => 0.18 * Math.max(0, Math.min(8, Math.floor((z - 1) / 0.32) + 1));
+  const physics = { heightAbove: (p) => p.y - floor(p.z) };
+  const line = new StairLine(), up = new THREE.Vector3(0, 1, 0), vel = new THREE.Vector3(0, 0, 8), dt = 1 / 60;
+  const drawn = [];
+  for (let z = -4; z < 5; z += 8 * dt) {   // (from 4 m back: the line's weight eased in at speed)
+    const pos = new THREE.Vector3(0, floor(z), z);
+    const off = line.update(dt, pos, up, true, vel, physics);
+    drawn.push({ z, y: pos.y + off * line.w });
+  }
+  // (at full weight on the flight: within a centimetre of the line through the treads' middles, read STAIR_LINE.lead ahead)
+  const mid = drawn.filter((d) => d.z > 1.4 && d.z < 2.6);
+  for (const d of mid) assert.ok(Math.abs(d.y - 0.18 * ((d.z + STAIR_LINE.lead - 1) / 0.32 + 0.5)) < 0.01, `on the line at z ${d.z.toFixed(2)}: ${d.y.toFixed(3)}`);
+  let step = 0;
+  for (let i = 1; i < drawn.length; i++) step = Math.max(step, Math.abs(drawn[i].y - drawn[i - 1].y));
+  assert.ok(step < 0.1, `no riser's jump in a frame (the most ${(step * 100).toFixed(1)} cm)`);
+  assert.ok(Math.abs(drawn[drawn.length - 1].y - 1.44) < 0.005, 'and on the top floor once past the flight');
 });
 
 test('starts, stops and turns at the game\'s speeds: the ramp\'s touchdowns, the pivots, a sprint reversed (issue #47)', { timeout: 120000 }, async () => {

@@ -1146,6 +1146,73 @@ of the hip, where the knee's bend is barely defined, and the thigh turns 45 rad/
 a jog at 90° (`jog2`, a calf 21-27 rad/s, a 4.4-6.7 cm jolt at its blend; node's turn into a jog at 90° has its 16-23 rad/s
 calf too, within the limit's count) and the sprint reversed's calf (15-16).
 
+**Issue #47 on B3, the fifth round: a flight at a run** (2026-10-16). Round 4's last red needed a redesign of how the
+drawn body and the swinging foot follow a fast flight, not more tuning. Frame by frame (node), at 8.2 m/s on the course's
+18 cm × 32 cm stairs: a riser every 2.3 frames, a climb of 4.6 m/s, and the sprint's stride takes the eight steps in two
+footfalls (the first on step 1, the next on step 8).
+
+- **The drawn body on the stairs' line** (`StairLine`, src/locomotion.js, inside `StepLag`). Eased after each riser, the
+  body climbed 3.8, 7.7, 6.1, 9.5, 7.4 cm a frame by turns and stopped dead at the landing from 4.6 m/s up. Now, from 4.5
+  to 6.5 m/s along the ground (`STAIR_LINE.fast`), the floor ahead is read (a ray every 8 cm to 0.6 m ahead, each jump of
+  3-60 cm bisected to a centimetre; a slope's jump shrinks as it is bisected and is not a riser), and each riser is kept
+  where it was found (a point and the way he was going: its distance along that way stays put as he turns) until it is a
+  window behind him. The body rides the floor's profile smoothed by a window `width` (0.45 m) either side, read `lead`
+  (0.15 m) ahead: Σ rise · C((lead - s) / width), C a smootherstep from 0 to 1, s each riser's distance ahead. On an even
+  flight that is the line through the treads' middles (its ripple under 3 mm for treads of 25-36 cm); it bends onto a
+  landing over the window's length; and it is continuous as the controller steps each riser (its height jumps a riser,
+  the offset back by as much). Its share is eased in and out at 6/s; off in the air, on a moving floor, and when the
+  risers kept disagree with the floor he is on by more than half a riser and 20 cm. On the level, slopes and dunes it
+  finds nothing and adds nothing. Cost: 8 rays a frame at a run, 3 more for each riser found. Read 0.15 m ahead, the
+  hips are over the tread he steps onto (read where he is, the landing legs stretched further down a flight).
+- **The kick-back over a higher floor** (`FEET.rideOver`). The swinging foot rode the floor under it and ahead
+  (`gRide`) on top of its own height: up a flight the sprint's kick-back, 40 cm up in the clip, rose another 20-30 cm
+  and came within 11 cm of the hip. Now, from 4.5 to 6.5 m/s, a free foot over a higher floor rises only to clear it by
+  min(its own height, 10 cm): a smooth max (6 cm soft) of its own height and that. Not as it comes in to land: from
+  0.2 s before touchdown, fully by 0.1 s, it rises onto the tread by the floor's whole rise (cut there, the first foot
+  onto the stairs dipped 5 cm and rose again). The nearest a foot comes to its hip on the flight: 11 → 31 cm.
+- **A foot let go while still coming down** (`FEET.dropKeep`). The top stair's foot met the tread 14 cm up (its
+  `dropIn`), was let go two frames on, and its drop was zeroed: it fell 8 cm in a frame, the foot 25-38 rad/s. It now
+  goes on coming down as it eases off.
+- **The knee on a flight** (`FEET.softFlight`; `o.flight` from the player, the line's share × its pitch). Down a flight
+  the landing leg reached the tread below 95 % straight, where the knee's bend changes fastest with the leg's length, and
+  the body coming down onto it at 4.6 m/s bent the knee 8 cm in the frame it landed (a 5.5 cm jolt, the calf 21 rad/s).
+  On a flight at a run the legs' soft zone widens from `softFast`'s 5 % to 12 % (the pitch from 0.15 to 0.4): the jolt
+  3.5 cm, no pop. Widened at every run it did as well on the course, but it would change every sprint: on flights only.
+
+Tried and left out: a hard clamp on the swinging foot's distance from the hip, a least one (35-40 % of the leg: the foot
+kinked off its path, new pops of 14-24 rad/s) and a most (85-90 %: held up, the foot was planted on the tread from higher
+and the knee jolted 9-14 cm); the line read further ahead down a flight than up one (0.25-0.35 m: the lifting foot,
+drawn under the tread it stood on, was lifted out of it in a frame, an 8 cm sink and a 9 cm jolt); a landing kept 10 cm
+off a stair's edge (the first foot comes down with its ball a centimetre onto step 1, the heel over the riser: moved
+over the landing's 0.07 s the foot jolted 5 cm, and over 0.15 s toward a predicted hold it got only half way and popped,
+14 rad/s); the line's window 0.55-0.65 m (no clearer gain). Treads chosen by stride (every second or third step, as
+people run stairs) would need a shorter, quicker stride at the controller's 8.2 m/s than the sprint loop has: at that
+speed and cadence a stride covers seven or eight treads.
+
+Node, the default way (`diff.mjs`, before on 87277301): the stairs at a run red → green, pops 4 → 1, jolts 6 → 2, the
+worst jolt 9.1 → 4.2 cm, slide p95 3.6 → 3.6 cm, held 0.1 → 0.5 cm, boundary 2.8 → 2.8 cm; the drawn body's climb changes
+by at most 5.5 → 2.3 cm a frame from one frame to the next. The other 15 runs read exactly as before. Red runs 1 → 0 of
+16; limits failed 2 → 0; mean pops 1.2 → 1.0, jolts 0.6 → 0.4 a minute. Of what is left in the run, two are on the flat
+as he sets off (a calf at 5 m/s, a ball at 7.5 m/s, before the stairs) and one the descent's touchdown, 3.5 cm. Under
+matching (`?mm=1`): 15 of 16 red before and after, limits failed 65 → 65, pops 4.9 → 4.4 and jolts 7.3 → 6.9 a minute;
+its stairs at a run's worst jolt 60.8 → 12.6 cm.
+
+In the game (Mac, muted headless Chrome, Medium, every world's course: none has a flight, so nothing should change; three
+runs each way, the change switched off with the skill's new `TUNE` and on; the machine's load 10-15):
+
+| world | slide p95 (cm) | pops /min | jolts /min | boundary (cm) |
+|---|---|---|---|---|
+| the desert's dunes | 5.0, 5.6, 4.6 → 7.7, 5.7, 4.4 | 4, 5, 4 → 4, 6, 5 | 9, 10, 8 → 8, 8, 6 | 3.1, 5.6, 3.0 → 6.0, 4.4, 3.9 |
+| the Signal Market's street | 4.6, 4.5, 7.3 → 6.0, 5.0, 4.7 | 2, 1, 1 → 2, 3, 3 | 3, 6, 3 → 1, 3, 3 | 3.6, 4.5, 5.0 → 4.4, 5.6, 3.5 |
+| the Arena's floor | 4.6, 4.2, 6.6 → 4.4, 4.3, 7.8 | 3, 2, 2 → 1, 2, 2 | 6, 5, 3 → 3, 3, 2 | 3.9, 2.8, 4.7 → 5.7, 4.6, 6.1 |
+
+Within the runs' spread, with the same events either way: the pivot into a jog at 90° (`jog2`, a calf 14-27 rad/s, its
+blend 4.4-6.1 cm) and the sprint reversed (a calf 14-21). `tests/motion-qc.test.js` ("fifth round": the run green, the
+body's climb, the feet's distance from the hips; and `StairLine` on a made-up flight) holds these; no test is todo now.
+
+**Left red**: none in node. In the game, as in round 4: the pivot into a jog at 90° (`jog2`) and the sprint reversed's
+calf, every world's course over the 3 cm boundary in most runs.
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

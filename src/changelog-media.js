@@ -1068,6 +1068,9 @@ const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) agai
 const QC47D = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second); main at a9a8ed0f against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
 const GAME47D = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs: every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the desert’s sand, the Signal Market’s street and the Arena’s floor; main at a9a8ed0f once (the desert twice) against the same tree with the change three times (world-final, -final2, -final3); 15 October';
 const SRC47D = 'issue #47 scratchpad motion-r4: before/ and final/ (node), world-before/, world-before2/, world-final/, world-final2/, world-final3/ (the game; tools/wev.mjs lists their events)';
+const QC47E = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second, the run’s 5.7 s); main at 87277301 against the same tree with the change (scripts/motion-qc/diff.mjs); 16 October';
+const GAME47E = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs) on the desert’s sand, the Signal Market’s street and the Arena’s floor, three runs each way: the change switched off (TUNE) and on';
+const SRC47E = 'issue #47 scratchpad motion-r5: before/, after/ (node), game-before1–3/, game-after1–3/ (the game; tools/bounds.mjs lists their events)';
 /** (v1.79, issue #264: the Unity preview's small gaps, the editor's batch on the Mac) */
 const UNITY264_SMALL = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, muted), `scripts/unity-js-run.sh -level desert -game cistern -run-secs 3 -words`: before with the engine’s and the words’ code as they were, after with this change; the web’s side in muted headless Chrome on this branch’s own Vite (port 6352).';
 export const CHANGELOG_MEDIA = {
@@ -1122,6 +1125,21 @@ export const CHANGELOG_MEDIA = {
         { where: 'the desert’s sand', before: '3–7', after: '2–5' },
       ], note: 'The worst jolt at a blend: the Arena 4.8 → 2.8–4.6 cm, the street 6.0 → 2.6–4.4, the desert 4.4–14.2 → 3.4–5.3. The Arena’s floor came out within every limit in one of the three runs, the first time.' },
     ], see: 'Sprint (hold RT / R2), then pull the stick right back: his feet come round with him and land without a jolt. Stand, tap the stick left or right and push on: the foot stepping round lands before he sets off. Jog up and down a flight of stairs.' },
+    { match: 'Sprinting up or down stairs, his body now rides the line', tags: ['characters'], numbers: [
+      { title: 'The motion QC: up the course’s 18 cm stairs, over the landing and down at a sprint (node)', unit: 'count', better: 'lower', device: QC47E, source: SRC47E, rows: [
+        { where: 'pops (a bone flicking in a frame)', before: 4, after: 1 },
+        { where: 'jolts (a joint off its curve by over 3 cm)', before: 6, after: 2 },
+        { where: 'the worst jolt (cm)', before: 9.1, after: 4.2 },
+        { where: 'the drawn body’s climb, the most it changes from one frame to the next (cm a frame)', before: 5.5, after: 2.3 },
+        { where: 'runs red, of 16', before: 1, after: 0 },
+      ], note: 'The limits: 3 pops and 3 jolts in the run. Every run of the course is within its limits now; the other 15 read the same before and after. Of the pops and jolts left, two are on the flat as he sets off, before the stairs. The nearest a foot comes to its hip on the stairs: 11 cm before, 31 after.' },
+      { title: 'In the game (no stairs on these courses: nothing should change)', unit: '/min', better: 'lower', device: GAME47E, source: SRC47E, rows: [
+        { where: 'the desert’s sand: pops a minute', before: '4–5', after: '4–6' },
+        { where: 'the Signal Market’s street: pops a minute', before: '1–2', after: '2–3' },
+        { where: 'the Arena’s floor: pops a minute', before: '2–3', after: '1–2' },
+        { where: 'the desert’s sand: jolts a minute', before: '8–10', after: '6–8' },
+      ], note: 'Three runs each, within the runs’ spread: the same events either way (the pivot into a jog at 90° and the sprint reversed).' },
+    ], see: 'In a town with a long flight of steps, sprint (hold RT / R2) straight up it and down the other side: his hips rise and fall with the stairs’ slope, easing onto the landing, and his feet land on the steps without his knees snapping.' },
     { match: 'Picking up a crate or a weight for the first time', see: 'Start a new save and open the Gadget Yard (?level=gadgetyard), walk up to a wooden crate and press A / × to pick it up: before, the game stopped dead there and had to be restarted; now he lifts it and the line “Carried in both hands…” appears.' },
     { match: 'Every temple now ends on a short film', tags: ['temples'], shots: [
       { name: 'temple-finale-rose', title: 'The Rose House', caption: 'The moment the Keeper of the cistern is calmed: before, the follow camera over his shoulder and the toasts; after, the film’s first panel, the Keeper at rest in the letterbox (the world’s theme playing)', from: 'headless muted Chrome on this branch, the guardian resolved in its arena, before with the ending unhooked, 15 October', size: [1280, 720] },

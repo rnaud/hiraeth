@@ -1933,7 +1933,7 @@ export class Player {
     // a stair or a kerb: the drawn body follows the floor's jump over a moment (src/locomotion.js StepLag)
     {
       const U = this.frame.up, walking = this.onGround && !this.ride && !this.climbing && !this.mantle && !this.swim && !this.boarding;
-      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking, this._ridden));
+      this.object.position.addScaledVector(U, (this._stepLag ??= new StepLag()).update(dt, this.pos, U, walking, this._ridden, { physics: this.physics, vel: this.vel }));
     }
     this.frame.quaternion(this.heading, this.object.quaternion);
     this.sideRunTurn(this.object.quaternion);
@@ -1970,6 +1970,8 @@ export class Player {
         // gait's share fell to nothing under it and the feet held on as if standing, dragged off their holds 8-11 cm)
         if (this._strafe?.side && this._strafe.w > 0) o.gait = Math.max(o.gait, this._strafe.w);
         o.carry = this._ridden;   // (a moving floor takes the held feet along)
+        // (up or down a flight at a run, how steep the stairs' line he rides is: src/locomotion.js StairLine, FEET.softFlight)
+        { const L = this._stepLag?.line; o.flight = L ? L.w * Math.abs(L.pitch) : 0; }
         // the feet find the moving floors too (src/carriers.js), not the floor under them
         this._feetGround ??= this.opts.dynamic ? standGround(this.physics, () => this.opts.dynamic(), () => this.ride) : this.physics;
         const legs = this.frame.dir(this.heading, _g1).clone();

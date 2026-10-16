@@ -63,6 +63,8 @@ export const FEET = {
   softStand: [0.3, 1, 0.02],     // m/s, m/s, share: under the first speed (standing) it narrows to this, eased in by the second
   softFast: [4, 7, 0.05],        // m/s, m/s, share: from the first speed to the second it widens to this (a sprint's hips go 14 cm a frame, through the
                                  // whole of a 2 % zone in one; standing, a wide one keeps the legs from their rest length and they twitch)
+  softFlight: [0.15, 0.4, 0.12], // pitch, pitch, share: up or down a flight at a run (o.flight, the stairs' line's rise a metre), from the first pitch
+                                 // to the second it widens to this (null: as on the level)
   pushOff: [4.5, 7, 0.05, 0.05, 0.03], // m/s, m/s, s, share, s: from the first speed to the second a moving held foot lets go once the hips, this far ahead
                                  // at the body's speed, would have its leg within this share of its full length (the release's spring takes the rest)
   pushOffBack: [2.5, 3.5, 0.05, 0.1, 0.03],   // the same walking back (o.reverse): from a slower speed, within a wider share
@@ -73,6 +75,9 @@ export const FEET = {
   holdRate: 45, releaseRate: 30, // 1/s: a foot eases onto its hold and off it as a critically damped spring (from rest), not at once
   earlyShown: 0.05,              // a foot this much or more on an old hold still plants early only once it is drawn near the ground too
   dropShown: 0.05,               // a foot planted where it is drawn, this much or more on an old hold still, comes down from the height it is drawn at (its release's arc)
+  rideOver: [4.5, 6.5, 0.1, 0.06, 0.2, 0.1],   // m/s, m/s, m, m (x size), s, s: from the first speed to the second, a free foot over a higher floor rises only
+                                 // to clear it by min(its own height, the third) (a smooth max, this soft) (null: by the floor's whole rise, on top)
+  dropKeep: true,                // a foot let go while still coming down onto its hold goes on coming down as it eases off (false: at once)
   relockKeep: 0.05,              // a foot planted and let go in one frame, this much or more on its old hold, goes on easing off it
   footRate: 12,                  // rad/s: the most a foot turns against the body (0: as the clip)
   footLag: 0.5,                  // rad: and it falls no further than this behind (0: any, set to the clip's past 1.5 rad)
@@ -517,7 +522,9 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     const lockedAnkle = F.pos.clone().add(offset);
     // (a foot that met the ground a little up comes down onto its hold: a critically damped spring from its fall)
     if (F.dropIn) {
-      if (!held) F.dropIn = 0;
+      // (let go before it has come down, it goes on coming down as it eases off: zeroed, a sprint's foot set down on the
+      // top stair from its lift, 9 cm over its hold, and let go two frames on, dropped 8 cm in a frame, issue #47)
+      if (!held && !(FEET.dropKeep && F.w > 0.01)) F.dropIn = 0;
       else {
         lockedAnkle.addScaledVector(up, F.dropIn);   // (from where it met the ground this frame, down from the next)
         const k = FEET.holdRate, e = Math.exp(-k * dt), j = F.dropV + F.dropIn * k;
@@ -563,7 +570,20 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       } else F.gAraw = undefined;
     } else { F.gAhead = F.gRide; F.gAheadV = 0; F.gAraw = undefined; }
     (F.lastBall ??= new THREE.Vector3()).copy(d.ball);
-    const swing = d.ankle.clone().addScaledVector(up, F.gRide);
+    // (at a run, a foot the clip already lifts well clear rises over a higher floor only by what it lacks: added on top of
+    // its own height, a sprint's kick-back over the stair behind it, down a flight, or the floor ahead, up one, came within
+    // 11-18 cm of the hip, the knee's bend barely defined, the thigh turning 45 rad/s in a frame, issue #47. Its swing over
+    // the floor at least min(its own height, RO[2]); a smooth max, so the foot's path keeps its curve)
+    let ride = F.gRide;
+    // (not as it comes in to land: there it rises onto the higher tread with the floor's whole rise, from RO[4] s before
+    // touchdown fully by RO[5]: cut there, a foot coming down onto the first stair dipped 5 cm and rose again)
+    const RO = FEET.rideOver, ro = RO && !held && ride > 0 ? THREE.MathUtils.smoothstep(o.speed ?? 0, RO[0], RO[1]) * THREE.MathUtils.smoothstep(o.toContact?.[s] ?? Infinity, RO[5], RO[4]) : 0;
+    if (ro > 0) {
+      const cc = Math.max(0, d.hBall - ballRest), a = cc, b = ride + Math.min(cc, RO[2] * sc), e = RO[3] * sc;
+      ride += ((a + b + Math.sqrt((a - b) * (a - b) + e * e)) / 2 - e / 2 - cc - ride) * ro;
+      ride = Math.max(ride, 0);
+    }
+    const swing = d.ankle.clone().addScaledVector(up, ride);
     // letting go far from the clip's foot: the foot goes over there in a low arc, not along the floor
     if (!held && F.w > 0.01) {
       const gap = _d.subVectors(F.pos, d.place).addScaledVector(up, -_d.dot(up)).length();
@@ -632,7 +652,11 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
   }
   // (standing, the narrower zone: a wide one keeps the legs from their rest length, and a held ball crept 5 mm at idle)
   const SS = FEET.softStand, soft0 = SS ? THREE.MathUtils.lerp(SS[2], FEET.soft, THREE.MathUtils.smoothstep(o.speed ?? 0, SS[0], SS[1])) : FEET.soft;
-  const SF = FEET.softFast, soft = SF ? THREE.MathUtils.lerp(soft0, SF[2], THREE.MathUtils.clamp(((o.speed ?? 0) - SF[0]) / Math.max(SF[1] - SF[0], 1e-3), 0, 1)) : soft0;
+  const SF = FEET.softFast, soft1 = SF ? THREE.MathUtils.lerp(soft0, SF[2], THREE.MathUtils.clamp(((o.speed ?? 0) - SF[0]) / Math.max(SF[1] - SF[0], 1e-3), 0, 1)) : soft0;
+  // (and wider still up or down a flight at a run (o.flight: the stairs' line's pitch, src/locomotion.js StairLine): down one at a
+  // sprint the swinging foot reached the tread below with the leg 95 % straight, where the knee's bend is barely defined, and the
+  // body coming down onto it bent the knee 8 cm in the frame it landed, the calf 21 rad/s, issue #47)
+  const FL = FEET.softFlight, soft = FL && o.flight > 0 ? Math.max(soft1, FL[2] * THREE.MathUtils.smoothstep(o.flight, FL[0], FL[1])) : soft1;
   for (const s of ['l', 'r']) {
     const foot = B[`foot_${s}`], F = S[s];
     const fq = worldQuat(foot, new THREE.Quaternion());

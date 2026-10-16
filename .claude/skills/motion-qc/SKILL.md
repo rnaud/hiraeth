@@ -26,6 +26,9 @@ node .claude/skills/motion-qc/run.mjs <scratch>/motion-world [--worlds desert,ba
 node scripts/motion-qc/diff.mjs <before>/motion.json <after>/motion.json [--way moves]   # two node runs side by side
 ```
 
+Both runs take `TUNE='{"feet.js":{"FEET":{"dropKeep":false}}}'` (assigned into `src/<module>`'s exported objects; in the
+browser into the page's own modules): a before / after of a change that has a switch, without a second checkout.
+
 Node 22.12 or newer on PATH (the global `WebSocket` and Vite's floor; CI uses 24; Zed's bundled node works).
 
 - **Node** (`scripts/motion-qc/run.mjs`): the real Player, Animator, feet and matcher on the gait harness's course (flat
