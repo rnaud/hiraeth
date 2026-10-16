@@ -106,6 +106,12 @@ export const HOSTS = {
     say: ['~curious~ I kept the seed cellars dry for twenty years. Now the eyes in the beds wake on their own.', '~neutral~ Four rooms. When a bed’s eyes open, get off it, and bring the moths onto it. The seed safe’s altar is at the end.'],
     lines: ['~curious~ They blink at me now. They never did.'],
   }),
+  'fight-incal': P({
+    id: 'host.fight-incal', name: 'Ulric', title: 'who drove the depot’s cranes', color: '#e8b83a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#e8b83a', lining: '#2b211f', cloth: '#3a4a5a', legs: '#2b2f45', hat: '#5a5f6a', hair: '#2b211f' }, head: 'cap', look: { body: 'toolbelt' },
+    say: ['~tired~ I drove those cranes till the depot shut. They still drop loads, and nobody’s at the levers.', '~neutral~ Four bays. A ring on the deck means a load is coming down: step out of it. The dispatch floor’s altar is at the end.'],
+    lines: ['~tired~ Hear the chains? Nobody’s up there.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

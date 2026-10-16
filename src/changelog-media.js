@@ -1127,6 +1127,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-cloister-blow', only: 'after', title: 'A gust blowing', caption: 'The cloister, the moment the wind blows down the lane: long white streaks race down it and its floor flashes (it was a few flecks and the arrows).', from: FIGHT341B },
     ], see: 'In the Wind Cloister, wait in the cloister for a lane’s arrows: when the wind blows, watch the streaks.' },
     { match: 'In the fight temples a foe thrown up onto a wall’s top', tags: ['combat'], see: 'Rare: in the Lift Depot, let a load land beside a crowd by a wall. Before, a tripod could be thrown onto the wall’s top and the wave never ended; now it is put back in the room within a second and a half.' },
+    { match: 'A new fight temple in the City-Shaft, the Lift Depot', tags: ['combat'], shots: [
+      { name: 'fight-depot-drop', only: 'after', title: 'Loads coming down', caption: 'The first bay: two rings tightening on the deck, one where he stands, the loads’ shadows growing.', from: FIGHT341B },
+      { name: 'fight-depot-landed', only: 'after', title: 'Landed', caption: 'A moment later the crates are down where the rings were; he has stepped out from between them.', from: FIGHT341B },
+      { name: 'fight-depot-door', only: 'after', title: 'Its doorway', caption: 'On the middle terrace by its cab stop: the doorway and Ulric, who drove the depot’s cranes.', from: FIGHT341B },
+    ], see: 'In the City-Shaft, take a cab to the middle terrace: the doorway is a short walk from the stop. In the bays, keep moving: a ring under you means a load.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

@@ -178,7 +178,7 @@ test('the Sunken Hall on its own page in the engine: its card, B / ○ rolls and
 
 // the other worlds' fight temples (issue #341: the Wind Cloister, the Drowned Mill, the Pour Floor) on the same runner:
 // their card, the roll and no jump, a wave up out of the springs, their hazard's lanes coming and hurting, Quit home
-for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust'], ['perdide', 'fight-perdide', 'The Drowned Mill', 'stone'], ['moonfoundry', 'fight-moonfoundry', 'The Pour Floor', 'pour'], ['edena', 'fight-edena', 'The Seed Vault', 'bloom']]) {
+for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust'], ['perdide', 'fight-perdide', 'The Drowned Mill', 'stone'], ['moonfoundry', 'fight-moonfoundry', 'The Pour Floor', 'pour'], ['edena', 'fight-edena', 'The Seed Vault', 'bloom'], ['incal', 'fight-incal', 'The Lift Depot', 'drop']]) {
   test(`${name} on its own page in the engine: its card, the roll, a wave, its ${kind}, Quit back to ${world}`, async () => {
     const { exports: X } = await load();
     const menus = new EngineMenus({});

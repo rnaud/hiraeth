@@ -40,6 +40,9 @@ export const KIT_COLOURS = [
   // Viridel's Seed Vault: green glass and the eyes' light (src/fight-temples/edena.js)
   { id: 'leafglass', name: 'Leafglass', world: 'edena', pack: { brass: '#b8d8a8', brassDark: '#6a8a5a', canvas: '#eef0e6', canvasDark: '#b4bca8', cloth: '#8fd86a', leather: '#3e5a4a' },
     water: { base: '#c8f0b0', cream: '#f4ffe8', deep: '#4a8a4a', pale: '#e0f8d0', gold: '#8fd86a', light: '#ffffff' } },
+  // the City-Shaft's Lift Depot: the cabs' yellow on iron (src/fight-temples/incal.js)
+  { id: 'cab', name: 'Cab yellow', world: 'incal', pack: { brass: '#e8b83a', brassDark: '#9a7424', canvas: '#5a5f6a', canvasDark: '#3e424c', cloth: '#ffd36a', leather: '#1e2028' },
+    water: { base: '#ffd36a', cream: '#fff6d0', deep: '#b8862a', pale: '#ffe8a0', gold: '#e8b83a', light: '#fffbe8' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
