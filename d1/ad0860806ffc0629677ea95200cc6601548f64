@@ -1,0 +1,105 @@
+changelog.md
+  s_5f899ba316b5dc::t_1166fa681b65fc 7
+docs/README.md
+  s_5f899ba316b5dc::t_620983c9d8ab0a 60
+docs/systems/dev-tools.md
+  s_5f899ba316b5dc::t_14b2c39d972909 291-294
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_bad52e8fe4141a 167-172
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_8a940cb3175fa8 1235-1266
+docs/systems/ui.md
+  s_5f899ba316b5dc::t_3537b20412fd66 693-702
+engine/game.js
+  s_5f899ba316b5dc::t_0601622e0f5b3a 106,1377-1378
+engine/menus.js
+  s_5f899ba316b5dc::t_a2322f78b7057b 10-11,41-42,118-119,168-175,208-212,672-676,679-694,697,804-805,825,1004,1006,1009,1012-1017
+engine/unity/game.js
+  s_5f899ba316b5dc::t_d64927b81bf53e 159-160,247,249,353,368,392,533-538,957-980
+scripts/temple-design/rules.mjs
+  s_5f899ba316b5dc::t_88c0221bf75e37 46
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ca247eb8283a8a 1101-1104
+src/changelog.js
+  s_5f899ba316b5dc::t_3d634dfd10d6f5 38-41
+src/house-map.js
+  s_5f899ba316b5dc::t_da239ba0446d2a 1-360
+src/i18n/en.js
+  s_5f899ba316b5dc::t_70e275d6fb1509 14
+src/i18n/fr.js
+  s_5f899ba316b5dc::t_3d4dcf66942fe8 14
+src/main.js
+  s_5f899ba316b5dc::t_d72827278a4385 164,1492-1493,1878
+src/menus.css
+  s_5f899ba316b5dc::t_2935a55097d375 373-381
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_df9b65c390cc78 28,71,88-89,142,146,199,362
+src/temple-maps/record.js
+  s_5f899ba316b5dc::t_4ece1ff1207584 2-6,11,15,17-18
+src/temples/arzach.js
+  s_5f899ba316b5dc::t_9eb7185d9b18ac 190-191
+src/temples/arzach2.js
+  s_5f899ba316b5dc::t_c7f0f1fdbda9d8 185-186
+src/temples/bazaar.js
+  s_5f899ba316b5dc::t_81d6a988e9ac09 195-196
+src/temples/buried.js
+  s_5f899ba316b5dc::t_d7f12b15216a56 175-176
+src/temples/desert.js
+  s_5f899ba316b5dc::t_f6b932c604ff63 190-191
+src/temples/edena.js
+  s_5f899ba316b5dc::t_d1a3bade69bbce 193-194
+src/temples/garage.js
+  s_5f899ba316b5dc::t_2998ce7d6e599f 200-201
+src/temples/house-plan.js
+  s_5f899ba316b5dc::t_d1641f83e494a8 1-202
+src/temples/incal.js
+  s_5f899ba316b5dc::t_ee53c6b3344fa3 228-229
+src/temples/kit.js
+  s_5f899ba316b5dc::t_5c65aed42d3c81 280-282,284-285,382,399,432,474,519,539,547,564,571,582
+src/temples/logic.js
+  s_5f899ba316b5dc::t_bd69e96fd6789e 27-28,65-66,408
+src/temples/moonfoundry.js
+  s_5f899ba316b5dc::t_38a49b242777bc 194-195
+src/temples/perdide.js
+  s_5f899ba316b5dc::t_e30d7a9acfa62f 203-204
+src/temples/perdide2.js
+  s_5f899ba316b5dc::t_6302f725c5c0c5 228-229
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_e865c8f8a85680 23,64-65,3157-3158,3200-3201,3246-3247,3258-3273
+src/temples/runtime.js
+  s_5f899ba316b5dc::t_173e823788bb1b 11-12,32-33,36-37,111,118-119,162,241-255,337
+src/temples/spacecity.js
+  s_5f899ba316b5dc::t_cbf6e0b9aaf0c5 210-211
+src/temples/spheres.js
+  s_5f899ba316b5dc::t_aeb0622981d45d 175-176
+src/temples/underwater.js
+  s_5f899ba316b5dc::t_191f60ddf712bf 210-211
+src/ui.js
+  s_5f899ba316b5dc::t_8d3c815f220532 16,206,208-210,266,281,329-330,384,414,417,423,426-448,471-474
+tests/house-map.test.js
+  s_5f899ba316b5dc::t_d2280f4cb621e6 1-245
+tests/moonfoundry.test.js
+  s_5f899ba316b5dc::t_334a84bb7fae52 205
+tests/temples.test.js
+  s_5f899ba316b5dc::t_3c0a45943ae81f 41,900-901,905,907-908,916
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_08a59cd7eb21f5 215-218
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_bf86af6b4b5e49 65-67,180-183,335,857-858,863-896
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d1ad0860806ffc0629677ea95200cc6601548f64",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
