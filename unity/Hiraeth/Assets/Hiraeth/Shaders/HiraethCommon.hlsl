@@ -46,9 +46,9 @@ inline float2 gmod(float2 x, float y) { return x - y * floor(x / y); }
 float biomeField(float2 p) { return sin(p.x * 0.0021) * cos(p.y * 0.0017 - 0.7) + 0.5 * sin((p.x + p.y) * 0.0011); }
 float2 biomeWeights(float2 p) { float f = biomeField(p); return float2(smoothstep(0.3, 0.6, f), smoothstep(-0.3, -0.6, f)); }
 void biomeGround(float2 w, out float3 c1, out float3 c2, out float3 c3) {
-  c1 = lerp(lerp(float3(0.937255, 0.823529, 0.607843), float3(0.917647, 0.717647, 0.619608), w.x), float3(0.921569, 0.901961, 0.847059), w.y);
-  c2 = lerp(lerp(float3(0.960784, 0.882353, 0.713725), float3(0.952941, 0.803922, 0.721569), w.x), float3(0.964706, 0.949020, 0.909804), w.y);
-  c3 = lerp(lerp(float3(0.862745, 0.647059, 0.478431), float3(0.788235, 0.513725, 0.435294), w.x), float3(0.725490, 0.713725, 0.776471), w.y);
+  c1 = lerp(lerp(float3(0.933333, 0.752941, 0.486275), float3(0.917647, 0.717647, 0.619608), w.x), float3(0.921569, 0.901961, 0.847059), w.y);
+  c2 = lerp(lerp(float3(0.956863, 0.839216, 0.635294), float3(0.952941, 0.803922, 0.721569), w.x), float3(0.964706, 0.949020, 0.909804), w.y);
+  c3 = lerp(lerp(float3(0.850980, 0.584314, 0.368627), float3(0.788235, 0.513725, 0.435294), w.x), float3(0.725490, 0.713725, 0.776471), w.y);
 }
 
 // ---------------------------------------------------------------- strokes (materials.js)
