@@ -201,13 +201,18 @@ for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloi
     const mid = [(room.x[0] + room.x[1]) / 2, (room.z[0] + room.z[1]) / 2];
     const lane = room.hazard.lanes?.[0] ?? (kind === 'toll' ? { sign: room.hazard.signs[0] } : kind === 'dark' ? { room: true } : { spot: mid });
     assert.equal(room.hazard.kind, kind);
+    // (he stands unharmed while it runs: a wave drawn at random can knock him out first, and the run stops with him)
+    g.player.god = true;
     S.hazards.start(1, lane);
     assert.equal(S.hazards.active, 1);
     await run(g, 30);
     assert.equal(plain(S.hazards.list)[0].kind, kind);
-    // (up to 30 s, not 18: the hazard runs on the real clock, which a slow runner's frames fall behind)
-    for (let i = 0; i < 60 && S.hazards.active; i++) await run(g, 10);
-    assert.equal(S.hazards.active, 0, 'and gone');
+    // (only the one begun in the second room: the wave he fights in the first starts its own room's hazards at random.
+    // The hazard runs on the real clock, not the frames': a fast runner's 600 frames are 8 s of it, a slow one's 30;
+    // so wait on the clock, up to 40 s)
+    const mine = () => S.hazards.list.filter((h) => h.ri === 1).length;
+    for (const until = Date.now() + 40000; mine() && Date.now() < until;) await run(g, 10);
+    assert.equal(mine(), 0, `and gone (${JSON.stringify(plain(S.hazards.list))})`);
     g.trials.runner.ctx.finish({ lines: ['Rooms cleared 4 of 4'] });
     await run(g, 60);
     assert.equal(menus.view().card.kind, 'results');
