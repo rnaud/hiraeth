@@ -1132,6 +1132,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-depot-landed', only: 'after', title: 'Landed', caption: 'A moment later the crates are down where the rings were; he has stepped out from between them.', from: FIGHT341B },
       { name: 'fight-depot-door', only: 'after', title: 'Its doorway', caption: 'On the middle terrace by its cab stop: the doorway and Ulric, who drove the depot’s cranes.', from: FIGHT341B },
     ], see: 'In the City-Shaft, take a cab to the middle terrace: the doorway is a short walk from the stop. In the bays, keep moving: a ring under you means a load.' },
+    { match: 'A new fight temple in the Buried Machine, the Tooth Gallery', tags: ['combat'], shots: [
+      { name: 'fight-gallery-cart', only: 'after', title: 'A cart on the rails', caption: 'The gear pit: an ore cart, its lamp lit, starts down the near rail; skitters and a worm round him on the floor between the rails.', from: FIGHT341B },
+      { name: 'fight-gallery-door', only: 'after', title: 'Its doorway', caption: 'East of the domes: the doorway and Greta, who greased the gear-house rails.', from: FIGHT341B },
+    ], see: 'In the Buried Machine, walk east from the domes to the doorway. In the gear pit, when the lamp on a rail’s cart blinks, get off that rail.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

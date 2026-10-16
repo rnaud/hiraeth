@@ -112,6 +112,12 @@ export const HOSTS = {
     say: ['~tired~ I drove those cranes till the depot shut. They still drop loads, and nobody’s at the levers.', '~neutral~ Four bays. A ring on the deck means a load is coming down: step out of it. The dispatch floor’s altar is at the end.'],
     lines: ['~tired~ Hear the chains? Nobody’s up there.'],
   }),
+  'fight-buried': P({
+    id: 'host.fight-buried', name: 'Greta', title: 'who greased the gear-house rails', color: '#c9a24a', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#c9a24a', lining: '#2b211f', cloth: '#6e4e34', legs: '#3a2e24', hat: '#ffb347', hair: '#3a2a20' }, head: 'bandana', look: { mask: 'browgoggles' },
+    say: ['~playful~ I greased those rails every morning, and the carts still run them. Empty, flat out, all day.', '~neutral~ Four rooms. When a rail’s lamp blinks, get off it and leave the crawlers on it. The tooth hall’s altar is at the end.'],
+    lines: ['~playful~ Lamp’s blinking. Off the rail!'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

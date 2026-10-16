@@ -230,6 +230,14 @@ bay (two loads at a time), the second bay (its door off to one side), the dispat
 lizards in pairs (most), bellows toads, lamp tripods made light; two shades at the end; 111, par 4:10; Cab yellow. The
 loads come down on him and round him, so he keeps moving and leads the crowd under the rings.
 
+## The Tooth Gallery (the Buried Machine, `src/fight-temples/buried.js`)
+
+A gear-house between the canyon's teeth: brass and rust, iron posts, the teeth standing round it and a great gear half
+sunk (`dress: 'teeth'`); rails laid across its floors from the start. Rooms: the tooth gate, the gear pit (two rails
+across it), the rail yard (four short rails across a narrow room, two carts at a time), the tooth hall (rails both ways
+round the altar). Foes: skitters in swarms, mound worms, horn lizards, crucible carts; three centipedes whole at the end;
+150, par 4:10; Brass tooth.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
