@@ -185,6 +185,14 @@ export const CHANGELOG = [
     // nativeText, engine/unity/music.js, BridgeMusic.cs, src/theme-levels.js (scripts/theme-levels.mjs), the title's sound
     // in engine/unity/game.js, Music plays in engine/menus.js; tests/engine-music.test.js; docs/systems/engine-bridge.md
     'The Unity versions (the Xbox and Retroid previews, and the Steam Deck’s next) now play the recorded music as the web game does: each world’s theme, the title’s music and the recorded cues. They follow your music volume, go quiet under the menus, swell on a bench, and follow Music plays, now in their settings. The Steam Deck carries every theme; the Xbox and the Retroid download the ones they lack once.',
+    // the engines' distant detail after the first frame (issue #16): engine/game.js DeferredWork as main.js has it (the
+    // City-Shaft's trees-in-houses check, src/levels/incal.js initSteps); -js-off defer for the old load; tests/unity-xbox.test.js;
+    // docs/systems/performance.md "The Xbox's load, round two"
+    { text: 'In the Unity versions the City-Shaft opens about 6 seconds sooner on the Xbox: the check for trees grown into houses far from you now finishes after you arrive, as in the web game, and only what you can see is checked first.',
+      numbers: [{ title: 'City-Shaft, launch to the first frame of the world', unit: 's', better: 'lower', device: 'Xbox Series X, Unity build 1.78.2399, the same script with and without (-js-off defer)',
+        rows: [{ where: 'first launch (caches cleared)', before: 44.6, after: 38.8 }, { where: 'launched again', before: 44.4, after: 38.2 },
+          { where: 'the collision step of the load', before: 7.6, after: 1.0 }],
+        source: 'docs/systems/performance.md, "The Xbox\'s load, round two"' }] },
     'On the galactic map the makers’ mark beside each world, in the side panel and in the legend, now draws as the mark; it showed as an empty key-cap box.',
   ] },
   { v: '1.77', date: '2026-10-14', items: [

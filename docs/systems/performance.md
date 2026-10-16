@@ -3381,6 +3381,59 @@ To repeat: `load-breakdown.mjs --worlds … --profile <new dir> --salt <new word
 from 5173. For the Xbox, the steps above, each run ending with the app stopped and `args.txt` removed
 (`node scripts/xbox-unity.mjs args ""`).
 
+## The Xbox's load, round two: the City-Shaft's collision after the first frame, the pipelines on the workers (issue #16, 2026-10-15)
+
+The round above left two things to fix on the Xbox: the City-Shaft's 7.6 s collision step on the script's thread, and the
+GPU's pipelines, ~20-24 s of every launch made on one core.
+
+**The collision step was the trees, not the BVH.** In node on the Mac (a script in the session's scratchpad, `xbox-load/phys.mjs`), the City-Shaft's
+bake and BVH of 1.16 million triangles take 0.37 s and `level.init` 3.06 s. Almost all of that is the check for trees a
+clump put inside a house: a dozen rays through the collision for each of ~8,400 trees. The web has finished that check
+after the first frame since issue #14 (`src/deferred.js`); the engines still did it all before. Now engine/game.js does
+as main.js does. It passes a `DeferredWork` to `level.initSteps`, does the jobs within `DEFER.near` (140 m) of the
+traveller, the ship's ramp and the ways through before the first frame (291 jobs here), and runs the rest
+`DEFER.budget` (2 ms) a frame after it, nearest first. A passage's far side is finished before it is shown. A bench's
+fixed views (`view`) do it all first, as before, and so does `-js-off defer`.
+
+Measured on the Xbox (Series X, `rnaud.HiraethUnity` 1.78.2399, Direct3D 12, a 4K TV, muted). The same script bundle, put in
+LocalState (`-bundle`), with and without `-js-off defer`; `-level incal -walk 60 -slow-ms 100`. Cold: the app's D3D12
+caches and `prewarm.txt` removed first. Times are seconds after launch.
+
+| City-Shaft | collision step | `Hiraeth.start` | first node | first frame of the world | walk p50 / p95 / p99 ms, hitches |
+|---|---|---|---|---|---|
+| cold, before | 7.61 | 15.3 | 22.2 | **44.6** | 17.4 / 33.2 / 34.9, 40 |
+| cold, after | 1.01 (+0.96 near) | 9.6 | 16.5 | **38.8** | 19.1 / 28.6 / 31.2, 6 |
+| warm, before | 7.62 | 15.4 | 32.7 | **44.4** | 17.4 / 33.2 / 35.0, 37 |
+| warm, after | 1.02 (+0.97 near) | 9.8 | 26.8 | **38.2** | 19.2 / 28.6 / 31.3, 7 |
+
+- **The City-Shaft's first frame is 5.8-6.2 s sooner,** cold or warm.
+- **The rest is done on the frames that follow.** The near jobs cost 0.96 s before the first frame. The other ~8,100 jobs
+  take 2 ms of each frame while you walk, for a few minutes on the console. The walk's median frame goes from 17.4 to
+  19.1 ms. Its p95 and p99 are lower, at 28.6 / 31.2 ms against 33.2 / 34.9, and it has 6-7 hitches against 37-40. At the
+  spawn the walk holds 49-50 fps, as before.
+- The Desert has no such check (its collision step is 0.25 s): its first frame came at 39.5 s cold and 38.4 s warm on this
+  build, the same with or without.
+- Build 2399 is slower to its first frame than 2373 (round one: 35.9 / 35.1 s in the Desert, 41.4 / 40.9 s in the City-Shaft).
+  The script is the same, and the world's first frame waits longer on the pipelines: 11.3-11.7 s warm, 20-22 s cold.
+
+**The pipelines: BridgePso (built, not yet measured on the console).** Unity 6's `GraphicsStateCollection` holds the states
+a run traced (shader variant, vertex layout, render state, targets). `WarmUp` makes them as jobs on the job system's
+seven workers, where today's first draws make them one after another on the render thread. `BridgePso.Begin` (BridgeRunner's
+start, before anything is drawn) loads `StreamingAssets/hiraeth-pso/<graphics API>.graphicsstate` and warms it, while the
+script builds the world and the loading screen draws. The log says when it is done (`pso: n of m states warmed, … ms after
+the start`). With a collection, the drawn prewarm (BridgePrewarm) is left out (`-draw-prewarm` keeps both). Without one,
+the drawn prewarm now waits for the script's engine before it draws, because the engine is made through the main thread
+that the prewarm's first frame held for 12-15 s.
+- Unity traces only in a development player. `-pso-trace` in one (the workflow's `development` input) traces each launch
+  into `LocalState\pso-trace.graphicsstate`, reading it first, so launches in other worlds add to the same file. It saves
+  20 s after the world settles. Fetch the file into `unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate`
+  (unity/.gitignore lets that folder in) and commit it. `-no-pso` turns the warm-up off for an A/B.
+- **Not done yet:** the console run. It needs a build of the branch by the Xbox workflow, which only a push can start: a
+  development build to trace the Desert, the City-Shaft and the worlds a save may start in, then a release build carrying
+  the collection, to measure cold and warm against the numbers above. The C# compiles in the editor (6000.6.4f1, batch
+  mode). Expected: the 11-22 s wait at the first frame drops toward the slowest single pipeline (~2.5 s), if the
+  console's driver makes pipelines in parallel. If it does not, the fallback is still the drawn prewarm, now overlapping
+  the script (about 7 s sooner).
 ## The Steam Deck, round 11: three levers that change what is simulated (issue #111, 2026-10-15)
 
 After round 10 four worlds were still under 60 at native resolution, CPU-bound (JS 18-22 ms). The author approved three
