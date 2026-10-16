@@ -1106,6 +1106,7 @@ export const CHANGELOG_MEDIA = {
         { where: 'the desert’s sand', before: '3–7', after: '2–5' },
       ], note: 'The worst jolt at a blend: the Arena 4.8 → 2.8–4.6 cm, the street 6.0 → 2.6–4.4, the desert 4.4–14.2 → 3.4–5.3. The Arena’s floor came out within every limit in one of the three runs, the first time.' },
     ], see: 'Sprint (hold RT / R2), then pull the stick right back: his feet come round with him and land without a jolt. Stand, tap the stick left or right and push on: the foot stepping round lands before he sets off. Jog up and down a flight of stairs.' },
+    { match: 'Picking up a crate or a weight for the first time', see: 'Start a new save and open the Gadget Yard (?level=gadgetyard), walk up to a wooden crate and press A / × to pick it up: before, the game stopped dead there and had to be restarted; now he lifts it and the line “Carried in both hands…” appears.' },
   ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [

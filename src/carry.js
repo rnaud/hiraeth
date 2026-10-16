@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { registerInteractable, PRIORITY } from './interact.js';
 import { screen } from './platform.js';
 import { game as sharedGame } from './game-state.js';
-import { t } from './i18n.js';
+import { t as tr } from './i18n.js';
 
 // Carrying small things in both hands (issue #337, the author: "I should be able to pick up and put down small objects,
 // that should be put to use for puzzles. Like grab a box from afar with the grappling hook, then put it down on a switch
@@ -161,7 +161,7 @@ export function pickUp(p, t, { from = 'hand' } = {}) {
   p.sprinting = false;
   p.gliding = false;
   screen.set('carry', { name: t.name ?? 'thing', how: from });
-  if (!sharedGame.flag?.(TAUGHT)) { sharedGame.set?.(TAUGHT, true); carryHooks.notice?.(t('hint.carry')); }
+  if (!sharedGame.flag?.(TAUGHT)) { sharedGame.set?.(TAUGHT, true); carryHooks.notice?.(tr('hint.carry')); }
   return true;
 }
 

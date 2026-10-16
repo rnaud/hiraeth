@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
-import { CARRY, IN_HANDS, canCarry, pickUp, putDown, putSpot, throwCarried, dropCarried, mustDrop, registerCarryable, registerSnap, updateCarry } from '../src/carry.js';
+import { CARRY, IN_HANDS, carryHooks, canCarry, pickUp, putDown, putSpot, throwCarried, dropCarried, mustDrop, registerCarryable, registerSnap, updateCarry } from '../src/carry.js';
 import { Prop, stepProp } from '../src/gadgets/world.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -313,4 +313,25 @@ test('the Mooring-House: the moorers\' weight pulled off its cleat into his hand
   assert.ok(coffer.cageK > 0.9, 'but the coffer is open: its cage stays down');
   dropCarried(P);
   own();
+});
+
+test('the first pick-up of a save says how to put it down and throw it, and does not throw (issue #374: the game hung)', () => {
+  // (pickUp's own `t`, the thing, hid i18n's t(): the first time, with main.js's notice hook set, "t is not a function"
+  // was thrown out of the use button's handler, and the frame loop, which asks for the next frame at its end, stopped)
+  const ph = floorWith();
+  const c = crate(ph, 0, 1);
+  const P = { pos: V(0, 0, 0), heading: 0, physics: ph, frame: { up: UP, dir: (h, o = V()) => o.set(Math.sin(h), 0, Math.cos(h)) }, onGround: true, vel: V(), object: { position: V() } };
+  const was = game.flag('carry.taught'), hook = carryHooks.notice, said = [];
+  delete game.data.flags['carry.taught'];
+  carryHooks.notice = (text) => said.push(text);
+  try {
+    assert.doesNotThrow(() => assert.equal(pickUp(P, c), true));
+    assert.equal(said.length, 1, 'the first time: one line');
+    assert.match(said[0], /Carried in both hands/);
+    assert.equal(game.flag('carry.taught'), true);
+    dropCarried(P);
+    assert.equal(pickUp(P, c), true);
+    assert.equal(said.length, 1, 'taught once');
+    dropCarried(P);
+  } finally { carryHooks.notice = hook; if (was === undefined) delete game.data.flags['carry.taught']; else game.data.flags['carry.taught'] = was; }
 });

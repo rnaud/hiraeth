@@ -57,6 +57,9 @@ export const CHANGELOG = [
     // pivotFinish, releaseLag / releaseLagRise / releaseLagLevel, rideDownAhead, src/loco-moves.js MOVES.smooth;
     // tests/motion-qc.test.js ("fourth round"; the stairs at a run still todo)
     'Turning round at a run, his foot no longer whips round and stops dead as it lands; turning on the spot into a walk or a jog, the foot stepping round finishes its step instead of stopping in mid-air; and jogging up and down stairs, his feet rise onto the next step and come down onto the one below without his knees flicking.',
+    // issue #374: src/carry.js pickUp's own `t` (the thing) hid i18n's t(), so the first pick-up's teaching line threw
+    // out of the frame loop; tests/carry.test.js, tests/engine-carry.test.js, tests/i18n-shadow.test.js
+    'Picking up a crate or a weight for the first time in a save no longer freezes the game: the line saying how to put it down and throw it now shows instead.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

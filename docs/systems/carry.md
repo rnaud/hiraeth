@@ -32,7 +32,9 @@ box from afar with the grappling hook, then put it down on a switch so I can go 
   it drags it in as a light crate, and once it is `dragTo` away it lands in his hands (`pickUp(…, { from: 'hook' })`) if
   his hands are free and he stands; too big or metal, it is let go at his feet as before.
 - **The first time** (`carry.taught`): "Carried in both hands: X / □ puts it down, RB / R1 throws it." (`carryHooks.notice`,
-  main.js and engine/game.js toasts).
+  main.js and engine/game.js toasts). carry.js imports i18n's `t` as `tr`: `pickUp(p, t)`'s own `t` hid it, and the
+  first pick-up of a save threw out of the frame loop and froze the game (issue #374; `tests/i18n-shadow.test.js` scans
+  every file for a local `t` called in i18n's place).
 
 ## In the temples (`Weight`, logic `weight`)
 

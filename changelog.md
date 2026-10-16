@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- Picking up a crate or a weight for the first time in a save no longer freezes the game: the line saying how to put it down and throw it now shows instead.
 - Turning round at a run, his foot no longer whips round and stops dead as it lands; turning on the spot into a walk or a jog, the foot stepping round finishes its step instead of stopping in mid-air; and jogging up and down stairs, his feet rise onto the next step and come down onto the one below without his knees flicking.
 - People who aren’t part of a quest now talk plainly: Anselm Thrum, the shopkeepers, the games’ hosts and the townsfolk say what they mean, where things are and what to do, instead of riddles and sayings. The people whose quests you follow keep their own way of speaking.
 - Far fewer people wear skirts and long robes: most of the crowds and townsfolk now wear trousers. Robes stay where they belong, on Vael’s silent ones, the bell monastery’s brothers and sisters and the Garden of Spheres’ listeners, on some elders and pilgrims with a staff, and on the people whose own design has one.
