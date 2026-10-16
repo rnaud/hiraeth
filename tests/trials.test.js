@@ -66,6 +66,8 @@ test('a gadget’s bay in each makers’ court; its box, where it has one, a gif
     // (a court whose gadget moved into a temple: its box, if any, holds a gift in the open, never a gadget)
     const own = PLACEMENTS[w].find((p) => p.court);
     if (!c.bay && own) { assert.ok(own.hint && ITEMS[own.item] && ITEMS[own.item].kind !== 'gadget', `${w}: its box holds a gift in the open, with a hint`); continue; }
+    // (or no box at all: its gadget earned in a temple, src/boxes/placements.js)
+    if (!c.bay && Object.values(PLACEMENTS).flat().some((p) => p.temple && p.item === c.gadget)) { assert.ok(!PLACEMENTS[w].some((p) => p.item === c.gadget && !p.temple), `${w}: the ${c.gadget} only in its temple`); continue; }
     if (!c.bay) { assert.ok(PLACEMENTS[w].some((p) => p.item === c.gadget && p.gadget && p.hint), `${w}: its box holds the ${c.gadget}, with a hint`); continue; }
     // (v1.48, issue #101: the three worlds promoted in v1.40, their temples bringing new tools, have a court of a gadget
     // found worlds before, a bay of its own and a charm for that gadget behind its gate, in a box with a hint)

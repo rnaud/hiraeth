@@ -95,8 +95,10 @@ export const ITEMS = {
     text: 'A coil of pale cord that lives in the glove. In tether mode ({key:mode}), a shot pulls toward you: stone balls, the moorers’ rings, loose things.',
   },
   // the Underwater City's Whale-House (src/temples/underwater.js): the whales' deep note
+  // (retired by issue #377: the Whale-House's chest holds the spring boots, whose stomp booms the deep note; kept for the saves
+  // that found it, it still sounds the note)
   horn: {
-    name: 'Whale-horn', kind: 'charm',
+    name: 'Whale-horn', kind: 'charm', retired: true, where: 'The Whale-House’s chest, before the spring boots were put in it.',
     text: 'A curled shell horn with one deep note, the whales’ own. Sound it with {key:whistle}: the makers’ listening ears answer, and so do the whales.',
   },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)

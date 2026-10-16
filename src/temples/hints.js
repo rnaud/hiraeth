@@ -200,7 +200,7 @@ export const BOSS_HINTS = {
     phases: [
       ['It is searching for light.',
         'When it hangs low, send it a bubble of light.',
-        'Splash a pool so it glows, blow a bubble beside it ({key:aim}, {key:fire}), and send the glowing bubble to it while it hangs low.'],
+        'Splash a pool, blow a bubble beside it ({key:aim}, {key:fire}) and send it, glowing, to the moth.'],
       ['It wants more light.',
         'Again: a bubble of a lit pool’s light while it searches.',
         'When it hangs low, stand by a lit pool, blow a bubble and aim it at the moth until it has drunk.'],
@@ -254,14 +254,14 @@ export const BOSS_HINTS = {
   underwater: {
     phases: [
       ['Its great ear opens after it strikes.',
-        'When it stops and spreads its ear, sound the whale-horn close to it.',
-        'Wait out its fins and its slam; when the lips of its ear spread wide, stand near and sound the horn ({key:whistle}).'],
+        'When it stops and spreads its ear, stomp close to it: the boom is the deep note.',
+        'Wait out its fins and its slam; when its ear spreads wide, jump near it ({key:jump}) and stomp ({key:fire} in the air).'],
       ['It shuts its ear to anything close now.',
-        'Roll a stone onto a dish’s footstone, then sound the horn into that dish while it listens.',
-        'Push a stone onto the footstone by the wall, then stand at its dish and sound the horn ({key:whistle}) as it listens.'],
+        'Roll a stone onto a dish’s footstone, then stomp into that dish while it listens.',
+        'Push a stone onto the footstone by the wall, then jump by its dish and stomp ({key:fire} in the air) as it listens.'],
       ['It knocked the stones off the footstones.',
-        'Roll a stone back onto a footstone, and sound the horn into its dish while the ear is open.',
-        'Push a stone back onto a footstone, then sound the horn ({key:whistle}) into its dish when the ear spreads.'],
+        'Roll a stone back onto a footstone, and stomp into its dish while the ear is open.',
+        'Push a stone back onto a footstone, then stomp ({key:fire} in the air) by its dish when the ear spreads.'],
     ],
     // (its first phase: its ear; then a stone off its footstone, or the dish a stone wakes)
     at: (g, i) => {

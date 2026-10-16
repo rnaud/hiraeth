@@ -132,7 +132,7 @@ const mid = (r) => [(r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2];
 const [KX, KZ] = mid(ROOMS.kennel), [WX, WZ] = mid(ROOMS.wick);
 export const KENNEL = { x: KX, z: KZ, w: 30, d: 30, zone: { min: [ROOMS.kennel.x0, -1, ROOMS.kennel.z0], max: [ROOMS.kennel.x1, 9, ROOMS.kennel.z1] } };
 export const WICK = { x: WX, z: WZ, w: 30, d: 40, h: 20, door: 50, balcony: [72, 85, 5], stair: [44, 31, 82.6], stairW: 4.4,
-  face: 64, niches: [34.7, 47.3], groove: [53.2, 61.2], keyZ: 68.5, lasts: 25, pool: 49 };
+  face: 64, niches: [34.7, 47.3], groove: [53.2, 61.2], keyZ: 68.5, lasts: 25, pool: 55.5 };
 /**
  * The keepers' way between the Wick Room's balcony and the Root Stair's root-wall top (v1.60): a ledge of roots along the
  * stair's east wall at the root-wall's height, [x0, z0, x1, z1] (over the pool, out of any jump's reach from the floor),

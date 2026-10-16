@@ -2827,7 +2827,7 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
 });
 
 // ------------------------------------------------------------------ on foot: the Underwater City's Whale-House, room by room
-test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tube, the Horn Store’s arena off the hall and its small key for the passage door, the hall’s ball and the lidded eye on the pillar for the west door, the pool’s eye over the glass and its ball for the east door, the shell’s ball and eye, the Horn Door, the whale-horn and its try, the passage door held while the horn by the chamber’s north door rings, the tank’s glass too smooth until the dish carries the note to the shelf’s ear and the rungs come out, the landing’s horn for the keepers’ door back, the landing’s dish to the ear on the Listener’s column, the Listener calmed by the horn and through the dishes, the lamps lit', () => {
+test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tube, the Horn Store’s arena off the hall and its small key for the passage door, the hall’s ball and the lidded eye on the pillar for the west door, the pool’s eye over the glass and its ball for the east door, the shell’s ball and eye, the Horn Door, the spring boots (issue #377: the whale-horn before) and the try their stomp’s deep note wakes, the passage door held while the horn by the chamber’s north door rings, the tank’s glass too smooth until the dish carries the note to the shelf’s ear and the rungs come out, the landing’s horn for the keepers’ door back, the landing’s dish to the ear on the Listener’s column, the Listener calmed by the horn and through the dishes, the lamps lit', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('underwater');
@@ -2847,7 +2847,8 @@ test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tub
   const at = (x, y, z) => { P.teleport(L(x, y + 0.1, z), V(0, 1, 0), V(0, 0, 1)); wait(0.3); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   const said = (re) => notes.some((n) => re.test(n));
-  const horn = (pos = P.pos) => game.emit('echo', { pos: pos.clone(), note: 'deep', degree: -3, horn: true });
+  // (issue #377) the spring boots' stomp (src/gadgets/springs.js: the event of its landing), which the house hears as the deep note
+  const horn = (pos = P.pos) => game.emit('gadget:stomp', { at: pos.clone() });
   const roll = (id, n = 10) => {
     const ball = rt.piece(id), plate = rt.logic.el(id).plate, done = () => rt.logic.drumOn(id, plate);
     for (let k = 0; k < n && !done(); k++) {
@@ -2915,7 +2916,7 @@ test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tub
   at(-16, 0, 46);
   assert.equal(walk(L(-16, 0, 58)), true, `through the Horn Door (${where()})`);
   assert.equal(rt.logic.next(), 'chest');
-  items.grant('horn'); game.emit('box:opened', { id: 'underwater.temple.horn' });
+  items.grant('springs'); game.emit('box:opened', { id: 'underwater.temple.horn' });
   wait(0.3);
   assert.equal(rt.logic.gadget, true);
   at(-19, 0, 72);
@@ -2944,7 +2945,13 @@ test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tub
   if (P.climbing) { P.stopClimb(false); wait(1); }
   horn();
   wait(1);
-  assert.equal(rt.logic.isLit('e5'), false, 'the shelf’s ear is far out of the horn’s reach');
+  assert.equal(rt.logic.isLit('e5'), false, 'the shelf’s ear is far out of a stomp’s reach');
+  // (issue #377) and no bounce of the boots clears the glass: the screen over it runs to the roof, its hatch shut
+  at(-15, 0, 113);
+  P.vel.set(9, Math.sqrt(2 * 32 * 14.3), 0); P.onGround = false;
+  for (let i = 0; i < 3 / DT; i++) frame();
+  assert.ok(rt.kit.local(P.pos).x < -12 && !rt.logic.isOpen('hatch'), `a full launch at the glass falls back on the floor's side (${where()})`);
+  if (P.climbing) { P.stopClimb(false); wait(1); }
   const dish = rt.piece('dishT');
   horn(dish.ends[0].mouth);
   wait(1);
@@ -2956,7 +2963,7 @@ test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tub
   wait(1);
   assert.equal(rt.logic.isLit('e5'), true, 'the dish carries the note across the water to the shelf’s ear');
   wait(1);
-  assert.ok(rt.logic.isOpen('rungs'));
+  assert.ok(rt.logic.isOpen('rungs') && rt.logic.isOpen('hatch'), 'the rungs out, and the hatch at their top open');
   at(-13.6, 0, 113);
   let up = false;
   for (let i = 0; i < 14 / DT; i++) { frame({ KeyW: true }, toward(L(-9, 9.5, 113))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }

@@ -17,9 +17,10 @@ import { whaleHouseSkin } from './skins/whale-house.js';
 //
 // Inside (built far overhead, through its door), one idea from the first room to the last: THE NOTE CROSSES WHAT YOU
 // CANNOT. Your water stops at the glass; a note goes through glass and water, and the makers' dishes carry it on, but
-// a dish only carries with a weight on its footstone, and a held note only rings a while. Before the horn the house
-// is balls, plates and eyes, and you learn its glass from the wrong side; the whale-horn (src/items.js 'horn') sounds
-// ONE fixed note, the deep one, and the house's ears that listen for it answer: the doors it holds only while it
+// a dish only carries with a weight on its footstone, and a held note only rings a while. Before the chest the house
+// is balls, plates and eyes, and you learn its glass from the wrong side; the SPRING BOOTS (src/gadgets/springs.js;
+// issue #377: the whale-horn was here, a charm with one note) bring you down hard in a stomp, and in this house of shell
+// and water a stomp's boom is the deep note, the whales' own, that its ears listen for: the doors it holds only while it
 // rings, the ear behind the tank's glass, the ear over the Listener's door that only hears the far dish.
 //   the Porch             the first mark, the way out
 //   the Sounding Hall     the hub, a hall 48 by 36 m under a great hung shell: a pillar in its west half, its eye lidded
@@ -34,26 +35,26 @@ import { whaleHouseSkin } from './skins/whale-house.js';
 //   the Shell Room        the east wing: a great whorled shell; a ball rolled to its plate unlids the shell's eye on the
 //                         pillar before it
 //   the Horn Chamber      a round hall 34 m across: the makers' chest on a shell pulpit (a riding disc beside it): the
-//                         WHALE-HORN. A try by the pulpit: a little horn that answers the deep note, and nothing waits on
+//                         SPRING BOOTS (a stomp by an ear is the deep note). A try by the pulpit: a little horn that answers the deep note, and nothing waits on
 //                         it. By its north door the passage horn: the Song Passage's door at the passage's far end stays
-//                         open only while it rings (`hold`): the horn's first lock, where a miss costs nothing
+//                         open only while it rings (`hold`): the boots' first lock, where a miss costs nothing
 //   the Tank Hall         the sea let in behind a wall of glass nine metres tall down its middle; the shelf over it, and
-//                         the ear on the shelf, seen through the water and far out of the horn's reach. A stone ball
-//                         rolled onto the footstone of a dish in the middle of the floor wakes it; the horn sounded into
+//                         the ear on the shelf, seen through the water and far out of a stomp's reach. A stone ball
+//                         rolled onto the footstone of a dish in the middle of the floor wakes it; a stomp by it booms into
 //                         it comes out of its twin on the shelf, the shelf's ear rings, and while it rings brass rungs
-//                         come out of the glass's frame and you can climb it (the horn with the push, and the timing)
+//                         come out of the glass's frame and you can climb it (the stomp with the push, and the timing)
 //   the Gallery of Horns  over the shelf: the makers' speaking-horns along the wall; its stair goes down to the keepers'
 //                         landing behind the keepers' door: its horn opens the door onto the hall (the shortcut back), and
-//                         the landing's dish, woken by a ball on its footstone, carries the horn's note to its twin on the
+//                         the landing's dish, woken by a ball on its footstone, carries the deep note to its twin on the
 //                         Listener's column in the hall, where the ear hears it (the key decoupled from its lock)
 //   the Horn Store        (v1.53, issue #23: off the Sounding Hall's south wall, the house's one fight) where the makers
 //                         kept their spare horns, shells stacked in the corners; its door shuts behind you while its
 //                         keepers stand among four columns. Won, the small key's cage sinks: the Song Passage's door takes
 //                         it, a room past the chest, with its horn's note
 //   the Throat            down from the Listener's Door, a long stair under the house
-//   the Listener's Hall   the guardian (organic: its meter is calm). When it stops and spreads its great ear, sound the
-//                         horn close by. From its second phase it shuts its ear to anything near it, and only the hall's
-//                         dishes reach it: a ball on a dish's footstone, the horn into the dish while its ear is open. As
+//   the Listener's Hall   the guardian (organic: its meter is calm). When it stops and spreads its great ear, stomp
+//                         close by. From its second phase it shuts its ear to anything near it, and only the hall's
+//                         dishes reach it: a ball on a dish's footstone, a stomp into the dish while its ear is open. As
 //                         it shifts into its last it knocks the balls off the footstones: roll one back
 // (v1.77, issue #336: the house remade as shrines, docs/design/temple-redesign.md: every room 30 m across or more, every
 // door 7 by 9 (DOOR), each puzzle in the middle of its room, the Horn Store the one fight; ROOMS.)
@@ -124,10 +125,14 @@ export const CALM = { near: 0.12, dish: 0.11, last: 0.09 };
 export const ARENA_DISHES = ['dishW', 'dishE'];
 /** (in the skin) the great windows' glass, the deep sea blue behind it (src/temples/skins/whale-house.js) */
 const SEA_GLASS = '#1d4f86';
-const LISTEN = 14;   // m: how close to its ear a horn has to be, sounded straight at it
+/** (issue #377) The hatch at the top of the Tank Hall's glass, in the screen over it: its width and height (m). */
+export const HATCH = [6, 5];
+const LISTEN = 14;   // m: how close to its ear the deep note has to be (a stomp's boom; the whale-horn's, before issue #377)
+/** The deep note a stomp booms in the house (the whales' own: src/boxes/effects.js HORN, src/temples/pieces.js NOTES.deep). */
+export const STOMP_NOTE = { degree: -3, color: '#6f8fd8' };
 
 export const LOGIC = {
-  id: 'underwater', entry: 'threshold', gadget: 'horn',
+  id: 'underwater', entry: 'threshold', gadget: 'springs',
   // (each room's kind, issue #336: src/foes.js puts machines only in the combat room, the Horn Store)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, pools: { checkpoint: true, kind: 'puzzle' },
@@ -166,24 +171,29 @@ export const LOGIC = {
     pS: { type: 'plate', room: 'shells' },
     eS: { type: 'switch', room: 'shells', when: { drumOn: ['bS', 'pS'] } },
     dH: { type: 'door', opens: { all: [{ lit: 'eP' }, { lit: 'eS' }] }, latch: true },
-    chest: { type: 'gadget', room: 'horn', item: 'horn' },
+    // (issue #377: the chest held the whale-horn, one note to calm the Listener; the spring boots now, whose stomp booms the
+    // deep note through shell and water: the house's onConnect)
+    chest: { type: 'gadget', room: 'horn', item: 'springs' },
     // the try by the pulpit: a little horn that answers the deep note (nothing waits on it)
-    eT: { type: 'switch', room: 'horn', needs: ['horn'] },
+    eT: { type: 'switch', room: 'horn', needs: ['springs'] },
     // the Song Passage: the door held while its horn rings; the ball whose groove runs under it, to the tank's dish
-    e4: { type: 'switch', room: 'horn', needs: ['horn'], hold: HOLD.door },
+    e4: { type: 'switch', room: 'horn', needs: ['springs'], hold: HOLD.door },
     d4: { type: 'door', lock: 'small', opens: { lit: 'e4' } },     // (and since v1.53 the Horn Store's small key)
     b5: { type: 'drum', room: 'tank', plate: 'p5', plateAt: 1, start: 0 },
     p5: { type: 'plate', room: 'tank' },
     // the Tank Hall: the shelf's ear, through the dish (awake with the ball on its footstone), held: the glass's rungs
-    e5: { type: 'switch', room: 'tank', needs: ['horn'], hold: HOLD.rungs, when: { drumOn: ['b5', 'p5'] } },
+    e5: { type: 'switch', room: 'tank', needs: ['springs'], hold: HOLD.rungs, when: { drumOn: ['b5', 'p5'] } },
     rungs: { type: 'bridge', opens: { lit: 'e5' } },
+    // (issue #377) the hatch at the top of the glass, in the screen that runs up from it to the roof: open with the rungs, so
+    // no bounce of the spring boots takes you over the glass, only its rungs while the ear rings
+    hatch: { type: 'door', opens: { lit: 'e5' } },
     // the landing behind the keepers' door: its horn (the way back, v1.77: an eye shot once); its dish, woken by the
     // ball, to the ear on the Listener's column in the hall (heard there: its room the hall's, issue #336)
-    eK: { type: 'switch', room: 'gallery', needs: ['horn'] },
+    eK: { type: 'switch', room: 'gallery', needs: ['springs'] },
     dK: { type: 'door', opens: { lit: 'eK' }, latch: true },
     bL: { type: 'drum', room: 'gallery', plate: 'pL', plateAt: 1, start: 0 },
     pL: { type: 'plate', room: 'gallery' },
-    eL: { type: 'switch', room: 'hall', needs: ['horn'], when: { drumOn: ['bL', 'pL'] } },
+    eL: { type: 'switch', room: 'hall', needs: ['springs'], when: { drumOn: ['bL', 'pL'] } },
     dL: { type: 'door', opens: { lit: 'eL' }, latch: true },
     // the Horn Store: its keepers beaten, the small key's cage sinks (v1.53)
     arH: { type: 'arena', room: 'store' },
@@ -195,7 +205,7 @@ export const LOGIC = {
     pW: { type: 'plate', room: 'arena' },
     bE: { type: 'drum', room: 'arena', plate: 'pE', plateAt: 1, start: 0 },
     pE: { type: 'plate', room: 'arena' },
-    listener: { type: 'boss', room: 'arena', needs: ['horn'], requires: { any: [{ drumOn: ['bW', 'pW'] }, { drumOn: ['bE', 'pE'] }] } },
+    listener: { type: 'boss', room: 'arena', needs: ['springs'], requires: { any: [{ drumOn: ['bW', 'pW'] }, { drumOn: ['bE', 'pE'] }] } },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -221,9 +231,9 @@ export const LISTENER = {
   resolved: 'The Listener hums the whales’ note back. Far off, something answers.',
   missHint: 'It rolls into the wall and lies there, its ear opening.',
   phases: [
-    { to: 0.35, attacks: ['sweep', 'slam', 'pearl'], pause: 1.6, hint: 'When it stops and spreads its ear, sound the whale-horn close to it.' },
-    { to: 0.65, attacks: ['song', 'pearls', 'sweep'], pause: 1.3, hint: 'It shuts its ear to you: weight a dish’s footstone, horn into the dish.' },
-    { to: 0.9, attacks: ['roll', 'pearls', 'slam'], pause: 1.1, hint: 'Roll a stone back onto a footstone, then sound the horn into its dish.' },
+    { to: 0.35, attacks: ['sweep', 'slam', 'pearl'], pause: 1.6, hint: 'When it spreads its ear, stomp close to it: the boom is the deep note.' },
+    { to: 0.65, attacks: ['song', 'pearls', 'sweep'], pause: 1.3, hint: 'Its ear shuts to you: weight a dish’s footstone, stomp into the dish.' },
+    { to: 0.9, attacks: ['roll', 'pearls', 'slam'], pause: 1.1, hint: 'Roll a stone back onto a footstone, then stomp into its dish.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -425,6 +435,14 @@ function layout(rt) {
   const tankGlass = add(Glass, { id: 'rungs', at: [GW - 0.05, 0, TZ], yaw: -Math.PI / 2, w: TK.z1 - TK.z0 - 0.4, h: SH, color: S ? SEA_GLASS : '#bfe4e6', rungs: true, when: { lit: 'e5' },
     slip: 'The tank’s glass is too smooth to hold. Its brass frame has slots all the way up, empty.' });
   K.both(brass, box(GE - GW + 0.2, 0.3, TK.z1 - TK.z0, (GW + GE) / 2, SH - 0.15, TZ));   // (the tank's lid: a brass grating)
+  // (issue #377) over the glass a screen of the house's shell up to the roof, so no bounce of the spring boots clears it, and
+  // in it at the top of the rungs a hatch that opens with them (the shelf's ear ringing): HATCH
+  { const [hw, hh] = HATCH, z0 = TK.z0, z1 = TK.z1, top = TK.h, sx = GW + 0.02;
+    K.both(M.wall, box(0.4, top - SH, TZ - hw / 2 - z0, sx, (SH + top) / 2, (z0 + TZ - hw / 2) / 2));
+    K.both(M.wall, box(0.4, top - SH, z1 - (TZ + hw / 2), sx, (SH + top) / 2, (TZ + hw / 2 + z1) / 2));
+    K.both(M.wall, box(0.4, top - SH - hh, hw, sx, (SH + hh + top) / 2, TZ));
+    K.both(M.wall, box(0.4, 0.45, hw, sx, SH + 0.225, TZ));   // (its sill, over the glass's lit head)
+    add(Door, { id: 'hatch', at: [sx, SH + 0.45, TZ], yaw: Math.PI / 2, w: hw, h: hh - 0.45, t: 0.4, lamps: [{ lit: 'e5' }] }); }
   K.both(M.wall, box(TK.x1 - GE, SH - 0.8, TK.z1 - TK.z0, (GE + TK.x1) / 2, (SH - 0.8) / 2, TZ));   // (under the shelf: solid)
   K.slab(GE, TK.z0, TK.x1, TK.z1, SH, 0.8);
   // a whale drawn in the tank's water, in the makers' brass line (the house's sign)
@@ -648,7 +666,7 @@ function change(scene, level, rt) {
 
 export const UNDERWATER_TEMPLE = {
   id: 'underwater', levelId: 'underwater', name: 'The Whale-House', doorLabel: 'door of the Whale-House',
-  gadget: 'horn', arenas: ARENAS, gadgetBox: 'underwater.temple.horn', arenaDoor: 'dA',
+  gadget: 'springs', arenas: ARENAS, gadgetBox: 'underwater.temple.horn', arenaDoor: 'dA',   // (the box's id from when it held the horn: the saves' flag)
   origin: [0, 1600, -150], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
@@ -672,6 +690,12 @@ export const UNDERWATER_TEMPLE = {
   // ear to anything near it and only the hall's dishes reach it (a ball on a footstone wakes a dish); shifting into its
   // last it knocks the balls off the footstones
   onConnect(rt) {
+    // (issue #377) a stomp of the spring boots in the house is the deep note: shell and water carry its boom, and the house's
+    // ears and dishes take it as they took the whale-horn's
+    rt.offs.push(rt.game.on('gadget:stomp', ({ at } = {}) => {
+      if (!at || !rt.logic.has('springs') || !(rt.inside(at) || rt.below(at))) return;
+      rt.game.emit('echo', { pos: at.clone().add(V(0, 1.2, 0)), note: 'deep', degree: STOMP_NOTE.degree, color: STOMP_NOTE.color, stomp: true });
+    }));
     const G = rt.guardian;
     if (!G) return;
     const homed = () => ['W', 'E'].some((s) => rt.logic.drumOn(`b${s}`, `p${s}`));

@@ -135,10 +135,8 @@ export const PLACEMENTS = {
     // into a bridge, the great key's cage and the Cloud-Mother's calm. (Its id from when it held the whistle: the saves' flag)
     { id: 'arzach2.temple.bell', item: 'hook', temple: 'arzach2', site: templeSite('arzach2'),
       note: 'Inside the Founders’ Belfry, out of the cloud west of the first sky stone, in the round chamber over the stone stair.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'arzach2.springs', item: 'springs', site: courtSite('arzach2'), beacon: 160, gadget: true,
-      hint: 'At the makers’ court on the first sky stone',
-      note: 'In the makers’ court at the north end of the first sky stone: blocks of 4, 8 and 12 m and a tower to bounce up.' },
+    // (the makers' court on the first sky stone keeps the spring boots' bay, blocks of 4, 8 and 12 m and a tower to bounce up,
+    // and no box since issue #375: the boots are earned in the Underwater City's Whale-House; src/finds/courts.js)
   ],
   glassdunes: [
     // (the Sealed Hangar's three, moved with the First Garage, now the Clock-House, when the Hangar was dismissed in
@@ -291,9 +289,10 @@ export const PLACEMENTS = {
     { id: 'underwater.pearl', item: 'pearl', at: [-22.0, 15.7, -21.3], toward: [-24, -16],
       hint: 'Atop the pod tower in the great dome',
       note: 'The top deck of the tower of pods in the Avenue (level.decks), 16 m up: climb from deck to deck.' },
-    // the Whale-House (src/temples/underwater.js): on the shell pulpit in the Horn Chamber. The horn is the key to the rest:
-    // the held door, the ear behind the tank's glass, the ear over the Listener's Door, the Listener itself
-    { id: 'underwater.temple.horn', item: 'horn', temple: 'underwater', site: templeSite('underwater'),
+    // the Whale-House (src/temples/underwater.js): on the shell pulpit in the Horn Chamber. The spring boots are the key to the
+    // rest (issue #377; the whale-horn was here): a stomp's boom is the deep note the house's ears hear, the held door, the
+    // ear behind the tank's glass, the ear over the Listener's Door, the Listener itself. (Its id: the saves' flag)
+    { id: 'underwater.temple.horn', item: 'springs', temple: 'underwater', site: templeSite('underwater'),
       note: 'Inside the Whale-House at the end of the last tube north of the Plaza, on the shell pulpit in the round chamber.' },
   ],
 };

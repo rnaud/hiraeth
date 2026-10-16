@@ -108,7 +108,7 @@ export const GADGETS = {
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
   spacecity: { temple: 'tether', world: ['starthread'], built: true }, // the Mooring-House: tether mode inside; the star-thread on a roof in the Towers
   moonfoundry: { temple: 'tongs', world: ['bellows'], built: true },  // the Casting-House: the founders' tongs inside; the pocket bellows on top of the cradled moon
-  underwater: { temple: 'horn', world: ['pearl'], built: true },      // the Whale-House: the whale-horn inside; the diver's pearl on the top deck of the Avenue's tower of pods
+  underwater: { temple: 'springs', world: ['pearl'], built: true },   // the Whale-House: the spring boots inside (issue #377: the whale-horn until then, folded into the boots' stomp); the diver's pearl on the top deck of the Avenue's tower of pods
 };
 
 /** Build a temple (by its id: the world it was made for) into a level and join it to the level's hooks. */

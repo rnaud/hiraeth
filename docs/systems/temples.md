@@ -1185,6 +1185,12 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   the Wick Room's two orbs bubbles of the wick-house's pool-lamp (`sW`), both burning at once as before; the eye on the
   post is a plain one. The Lampless drinks a bubble of light burst on it as it hangs low (0.15 a bubble; in its last
   phase not while you stand within `LURE.back`); the lit pools still lure it.
+- **The Whale-House: the spring boots** (the whale-horn before, retired: a save that has it still sounds it). In the house a
+  stomp of the boots (springs.js's `'gadget:stomp'` event) is the deep note: the house's `onConnect` turns each stomp inside it
+  into the `'echo'` the horn sent (`STOMP_NOTE`), so its `EchoEar`s, its dishes and the Listener hear it as they heard the
+  horn, and every ear past the chest and the Listener need the boots. Over the Tank Hall's glass a screen of the house's
+  shell now runs to the roof, with a hatch at the top of the rungs (`hatch`, `HATCH`) that opens with them: no bounce of the
+  boots clears the glass, only its rungs while the shelf's ear rings.
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

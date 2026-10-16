@@ -22,7 +22,7 @@ export const TEMPLE_BOXES = [
   ['bazaar.temple.echo', 'echo'],
   ['spacecity.temple.tether', 'tether'],
   ['moonfoundry.temple.tongs', 'tongs'],
-  ['underwater.temple.horn', 'horn'],
+  ['underwater.temple.horn', 'springs'],   // (the whale-horn until issue #377: the box's id kept)
 ];
 
 export function migrateTemples(g) {

@@ -43,8 +43,8 @@ export const PEOPLE = {
         },
         go: {
           say: ['~neutral~ *The door at the end of the tube.* It opens for anyone who walks up to it. It always did.',
-            '~curious~ The old divers said the makers left a *whale-horn* in there. One note, the deep one, the whales’ own. Find it before you go down.'],
-          choices: [{ text: '~happy~ A horn. Got it.', end: true }],
+            '~curious~ The old divers said that house hears the deep note in anything that booms through it. Find what the makers left in there before you go down.'],
+          choices: [{ text: '~happy~ Something that booms. Got it.', end: true }],
         },
         again: {
           say: ['~neutral~ *The door at the end of the tube.* Listen for the deep note in there.'],
@@ -59,7 +59,7 @@ export const PEOPLE = {
         },
         near: {
           say: ['~solemn~ It was built to hear the whales from far off. The makers never sang to its face. They sang into the dishes.',
-            '~neutral~ A dish only carries with a weight on its footstone. Put one there, and sound the horn into it.'],
+            '~neutral~ A dish only carries with a weight on its footstone. Put one there, and boom the deep note into it.'],
           choices: [{ text: '~neutral~ I’ll try that.', end: true }],
         },
         after: {
