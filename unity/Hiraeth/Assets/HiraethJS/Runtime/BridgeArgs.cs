@@ -52,7 +52,13 @@ namespace Hiraeth.Bridge
                 if (!string.IsNullOrWhiteSpace(extra)) a = a.Concat(Split(extra)).ToArray();
                 Debug.Log($"Hiraeth bridge: the arguments from LocalState\\args.txt: {(string.IsNullOrWhiteSpace(extra) ? "none" : extra.Trim())}");
             }
-            catch (Exception e) { Debug.LogWarning("Hiraeth bridge: LocalState\\args.txt: " + e.Message); }
+            catch (Exception e)
+            {
+                // (not kept: read again on the next call. A static field's initializer, run in a MonoBehaviour's static
+                // constructor, may not ask for persistentDataPath; caching the line then lost args.txt, -mute with it)
+                Debug.LogWarning("Hiraeth bridge: LocalState\\args.txt (read again later): " + e.Message);
+                return a;
+            }
 #endif
             return line = a;
         }

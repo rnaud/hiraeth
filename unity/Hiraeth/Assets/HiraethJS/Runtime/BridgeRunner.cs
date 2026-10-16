@@ -716,7 +716,8 @@ namespace Hiraeth.Bridge
         /// among it): -gc-slice MS, the incremental collector's slice; -gc-step MS, the collector driven by hand, MS of it a
         /// frame once the script is let go (GarbageCollector.GCMode Manual; a full collection past 1.5 GB as a guard).
         /// </summary>
-        static readonly float gcStepMs = BridgeArgs.Arg("-gc-step") is string gs && float.TryParse(gs, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float gsv) ? gsv : 0;
+        static float gcStepMs => gcStep ??= BridgeArgs.Arg("-gc-step") is string gs && float.TryParse(gs, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float gsv) ? gsv : 0;
+        static float? gcStep;   // (read at the first use, not in the static constructor: on the Xbox the arguments are LocalState's args.txt, not readable there)
         static bool gcSet;
         static void GcStep()
         {
@@ -733,7 +734,8 @@ namespace Hiraeth.Bridge
             else UnityEngine.Scripting.GarbageCollector.CollectIncremental((ulong)(gcStepMs * 1e6));
         }
         bool booted;
-        static readonly bool deferLast = BridgeArgs.Flag("-ops-after");
+        static bool deferLast => deferLastFlag ??= BridgeArgs.Flag("-ops-after");
+        static bool? deferLastFlag;
         static bool bootBlocking => BridgeArgs.Flag("-boot-blocking");
         /// <summary>The main thread's time waiting on the script (ms, summed; BridgeHost.WaitMs reads and clears it).</summary>
         public double waitMs;
