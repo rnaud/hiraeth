@@ -1,0 +1,49 @@
+src/glass-dunes-streets.js
+  s_5f899ba316b5dc::t_0d2dec23db0112 1,9-15,17-21,39-47
+docs/systems/worlds.md
+  s_be080572ac7f7a::t_be2481dbab4b99 2726,2731,2762
+  s_5f899ba316b5dc::t_c7903c29484c9b 2725,2727-2730,2732-2761,2763-2765
+src/changelog-media.js
+  s_5f899ba316b5dc::t_c91853d519b698 1113,1115-1118,1120-1123
+src/glass-dunes-city.js
+  s_5f899ba316b5dc::t_bc30390bf0d499 66
+changelog.md
+  s_5f899ba316b5dc::t_a870fea9ea5ac7 7-8
+src/glass-dunes-quarter.js
+  s_5f899ba316b5dc::t_94fe1a0a0ed1c5 7,64-84,87,98-101,115,117-121,135-139,141-147,149-153,155-181,187-192,195
+src/glass-dunes-west.js
+  s_be080572ac7f7a::t_6f0b60bd9a4107 77
+  s_5f899ba316b5dc::t_633bf862a822ba 5,10,26,28-32,40-46,48-50,52,54-62,66-69,71-76,78-90,92-93,98,100-102,105,107,110,113,118-132,134,136-137,155,157-163,166-170,177-182
+src/changelog.js
+  s_5f899ba316b5dc::t_1c85e32b8de493 23-29
+src/glass-dunes-masses.js
+  s_5f899ba316b5dc::t_f327788416bbbb 1-335
+src/glass-dunes-enclosures.js
+  s_5f899ba316b5dc::t_02515481b8b9c2 132-133
+tests/glass-dunes-masses.test.js
+  s_5f899ba316b5dc::t_af32f4aa77c1fa 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e568795baf4545f5e9cdd90ef993a740012e5de",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_be080572ac7f7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14544-e974-7c30-a4fc-7a8dc20510dc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
