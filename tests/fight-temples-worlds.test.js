@@ -10,13 +10,14 @@ import * as THREE from 'three';
 import fightArzach from '../src/minigames/fight-arzach.js';
 import fightPerdide from '../src/minigames/fight-perdide.js';
 import fightMoonfoundry from '../src/minigames/fight-moonfoundry.js';
+import fightEdena from '../src/minigames/fight-edena.js';
 import { checkGame, collectGames } from '../src/minigames/index.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES } from '../src/story/tone.js';
 import {
   ISO, isoOffset, SEE, sightPoints, inTheWay, easeSee, seeOpen, seeHoleCuts, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt, roomWaves, totalFoes,
 } from '../src/fight-temples/rules.js';
-import { HAZARD, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery } from '../src/fight-temples/hazards.js';
+import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach } from '../src/fight-temples/hazards.js';
 import { buildHall, hallHeight, outside } from '../src/fight-temples/rooms.js';
 import { farSpots } from '../src/fight-temples/dress.js';
 import { startFightTemple } from '../src/fight-temples/session.js';
@@ -26,7 +27,7 @@ import { WORLDS } from '../src/foe-worlds.js';
 import { spawnKindOf } from '../src/enemies/archetypes.js';
 import { colourById, colourOfWorld, chosenColour, PIECES } from '../src/kit-colours.js';
 
-const GAMES = [fightArzach, fightPerdide, fightMoonfoundry];
+const GAMES = [fightArzach, fightPerdide, fightMoonfoundry, fightEdena];
 const save = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; }, emit() {}, on: () => () => {} });
 const hpOf = (k) => FOES[k]?.hp ?? 2;
 
@@ -87,7 +88,19 @@ for (const game of GAMES) {
     assert.equal(kinds.size, 1, 'one hazard of its own');
     assert.ok(!D.rooms[0].hazard && D.rooms.slice(1).every((r) => r.hazard), 'from the second room on: the first teaches the crowd');
     assert.ok(D.rooms.at(-1).hazard.n >= D.rooms[1].hazard.n && D.rooms.at(-1).hazard.every <= D.rooms[1].hazard.every, 'more of it deeper in');
-    for (const r of D.rooms.filter((x) => x.hazard)) for (const l of r.hazard.lanes) {
+    const K = D.rooms[1].hazard.kind;
+    assert.ok(HAZARD[K], `${K}: a kind of hazards.js`);
+    if (K === 'toll') for (const r of D.rooms.filter((x) => x.hazard)) {
+      // (its signs on its walls, none in a doorway, as many as it rings at once at least)
+      assert.ok(r.hazard.signs.length >= r.hazard.n);
+      for (const [x, z] of r.hazard.signs) {
+        assert.ok((x === r.x[0] || x === r.x[1]) && z > r.z[0] && z < r.z[1] || (z === r.z[0] || z === r.z[1]) && x > r.x[0] && x < r.x[1], `${r.id}: a sign on its wall at ${x}, ${z}`);
+        assert.ok(!gaps.some((g) => x >= g.x[0] - 1.2 && x <= g.x[1] + 1.2 && z >= g.z[0] - 1.2 && z <= g.z[1] + 1.2), `${r.id}: a sign in a doorway at ${x}, ${z}`);
+        assert.ok(tollReach(r, [x, z]) < 40);
+      }
+    }
+    if (K === 'drop') assert.ok(D.rooms.slice(1).every((r) => !r.hazard.lanes && r.hazard.n >= 1 && r.hazard.n <= 3), 'loads round him: no lanes');
+    for (const r of D.rooms.filter((x) => x.hazard && ON_LANES.has(x.hazard.kind))) for (const l of r.hazard.lanes) {
       const L = laneRect(r, l);
       assert.ok(L.x[0] >= r.x[0] - 1e-9 && L.x[1] <= r.x[1] + 1e-9 && L.z[0] >= r.z[0] - 1e-9 && L.z[1] <= r.z[1] + 1e-9, `${r.id}: a lane inside it`);
       assert.ok(l.w >= 2 && l.w <= 3.6 && Math.abs(l.dir) === 1);
@@ -222,7 +235,8 @@ for (const game of GAMES) {
       }
     }
     assert.equal(S.run.phase, 'reward');
-    assert.equal(felled, totalFoes(D));
+    assert.ok(felled <= totalFoes(D));
+    assert.equal(S.run.kills, totalFoes(D), 'every one felled (some by its hazard)');
     player.pos.set(D.rooms.at(-1).altar[0], 0, D.rooms.at(-1).altar[1]);
     for (let k = 0; k < 80 && !out.finished; k++) tick();
     assert.ok(out.finished && !out.finished.failed, 'won');
@@ -250,10 +264,20 @@ for (const game of GAMES) {
     assert.ok(seen, 'it comes on its own');
     for (let k = 0; k < 300; k++) g.tick();
     g.S.hazards.clear();
-    // a lane begun with him in it, past its head, and a foe in it
-    const lane = r.hazard.lanes[0], L = laneLength(r, lane);
-    const [x, z] = lanePoint(r, lane, L * 0.55);
-    const f = g.foes.add(kind === 'gust' ? 'blot' : D.rooms[1].waves[0][0][0], new THREE.Vector3(...lanePoint(r, lane, L * 0.35).flatMap((v, i) => (i ? [0, v] : [v]))));
+    // a lane begun with him in it, past its head, and a foe in it (a load: him under it, the foe beside him; a toll: him
+    // and the foe a few metres out from its sign)
+    const mid = [(r.x[0] + r.x[1]) / 2, (r.z[0] + r.z[1]) / 2];
+    let lane, x, z, foeAt;
+    if (ON_LANES.has(kind)) {
+      lane = r.hazard.lanes[0]; const L = laneLength(r, lane);
+      [x, z] = lanePoint(r, lane, L * 0.55); foeAt = lanePoint(r, lane, L * 0.35);
+    } else if (kind === 'drop') {
+      [x, z] = mid; lane = { spot: [x, z] }; foeAt = [x + 0.6, z + 0.3];
+    } else {
+      const sign = r.hazard.signs[0], d = Math.hypot(mid[0] - sign[0], mid[1] - sign[1]), u = [(mid[0] - sign[0]) / d, (mid[1] - sign[1]) / d];
+      lane = { sign }; [x, z] = [sign[0] + u[0] * 4, sign[1] + u[1] * 4]; foeAt = [sign[0] + u[0] * 6 + u[1] * 1.5, sign[1] + u[1] * 6 - u[0] * 1.5];
+    }
+    const f = g.foes.add(kind === 'gust' || kind === 'drop' || kind === 'toll' ? 'blot' : D.rooms[1].waves[0][0][0], new THREE.Vector3(foeAt[0], 0, foeAt[1]));
     f.hp = 20;
     const at = f.pos.clone();
     g.hurts.length = 0;
@@ -263,7 +287,7 @@ for (const game of GAMES) {
     assert.deepEqual(g.hurts, [], 'nothing while it warns');
     assert.equal(f.hp, 20);
     for (let k = 0; k < 120; k++) { hold(); g.tick(); }
-    assert.ok(g.hurts.length >= 1 && g.hurts.every(([why]) => ['gust', 'millstone', 'slag'].includes(why)), `it hurts him: ${JSON.stringify(g.hurts)}`);
+    assert.ok(g.hurts.length >= 1 && g.hurts.every(([why]) => ['gust', 'millstone', 'slag', 'cart', 'bloom', 'drop', 'toll'].includes(why)), `it hurts him: ${JSON.stringify(g.hurts)}`);
     assert.ok(f.hp < 20, `and the foe in it (${f.hp})`);
     if (kind === 'gust') assert.ok(Math.abs(alongLane(r, lane, f.pos.x, f.pos.z) - alongLane(r, lane, at.x, at.z)) > 4, 'carried down the lane');
     // rolling through it: unharmed

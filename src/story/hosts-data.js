@@ -100,6 +100,12 @@ export const HOSTS = {
     say: ['~neutral~ The house still pours under our floor. Nobody taps it now, and things come down to stand in the heat.', '~solemn~ Four bays. When a channel’s rim goes bright, step off it. The great crucible’s altar is at the end.'],
     lines: ['~neutral~ Mind the channels. They don’t care who’s in them.'],
   }),
+  'fight-edena': P({
+    id: 'host.fight-edena', name: 'Hollis', title: 'who keeps the seed cellars', color: '#7fa86a', kind: 'm', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#7fa86a', lining: '#2b211f', cloth: '#f2e6c8', legs: '#4a5a3a', hat: '#eef0e6', hair: '#4a3226' }, head: 'sunhat', look: { prop: 'flower' },
+    say: ['~curious~ I kept the seed cellars dry for twenty years. Now the eyes in the beds wake on their own.', '~neutral~ Four rooms. When a bed’s eyes open, get off it, and bring the moths onto it. The seed safe’s altar is at the end.'],
+    lines: ['~curious~ They blink at me now. They never did.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.81 — 2026-10-16
 
+- In the fight temples a foe thrown up onto a wall’s top is now put back down in the room, so a wave can always be finished.
+- The Wind Cloister’s gusts are easier to read: as the wind blows, long white streaks race down the lane and its floor flashes pale.
+- A new fight temple in Viridel, the Seed Vault, on the plateau just west of the Builders’ Greenhouse: four white cellars of moths, root knots and blots, their seed beds full of sleeping eyes. When a bed’s eyes open one by one, get off it before they flash, and bring the moths onto it. Its prize: the Leafglass colours for your backpack, sword and shield.
 - Walking through a door no longer runs you into a wall first. The door takes you on through at your own pace, walking or sprinting, with a soft click of its latch; the page sweeps across, and you come out a few steps inside the other place with the camera behind you, then it is yours again. It all takes under a second, and turning the stick away hands it back at once. A locked door still tells you why.
 - For testers: the debug menu and the old dev panel are now one dev menu, with tabs like the game menu’s. Its first tab takes you to the world’s key places (the ship, the temples, a few landmarks), the second has the frame-rate readout and a god mode to fly anywhere fast, and the rest hold every other place, the films, quest stages, items and travel. The game pauses while it is open, in the web version and the Unity preview.
 - In the Unity preview a low moon or sun no longer throws the whole land into shade: Viridel’s meadow at dusk keeps its long shadows on lit grass.

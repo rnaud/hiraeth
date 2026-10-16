@@ -178,7 +178,7 @@ test('the Sunken Hall on its own page in the engine: its card, B / ○ rolls and
 
 // the other worlds' fight temples (issue #341: the Wind Cloister, the Drowned Mill, the Pour Floor) on the same runner:
 // their card, the roll and no jump, a wave up out of the springs, their hazard's lanes coming and hurting, Quit home
-for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust'], ['perdide', 'fight-perdide', 'The Drowned Mill', 'stone'], ['moonfoundry', 'fight-moonfoundry', 'The Pour Floor', 'pour']]) {
+for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust'], ['perdide', 'fight-perdide', 'The Drowned Mill', 'stone'], ['moonfoundry', 'fight-moonfoundry', 'The Pour Floor', 'pour'], ['edena', 'fight-edena', 'The Seed Vault', 'bloom']]) {
   test(`${name} on its own page in the engine: its card, the roll, a wave, its ${kind}, Quit back to ${world}`, async () => {
     const { exports: X } = await load();
     const menus = new EngineMenus({});
@@ -197,7 +197,8 @@ for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloi
     for (let i = 0; i < 60 && !seen; i++) { await run(g, 2); seen = S.run.standing; }
     assert.ok(seen >= 1, `the first wave up (${JSON.stringify(plain(S.run))})`);
     // the second room's hazard, begun under him: it comes, runs and is gone
-    const def = g.trials.runner.def.table, room = def.rooms[1], lane = room.hazard.lanes[0];
+    const def = g.trials.runner.def.table, room = def.rooms[1];
+    const lane = room.hazard.lanes?.[0] ?? (kind === 'drop' ? { spot: [(room.x[0] + room.x[1]) / 2, (room.z[0] + room.z[1]) / 2] } : { sign: room.hazard.signs[0] });
     assert.equal(room.hazard.kind, kind);
     S.hazards.start(1, lane);
     assert.equal(S.hazards.active, 1);

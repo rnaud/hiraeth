@@ -6,9 +6,15 @@
 //   pillar 'column' (the desert's)  a round column and a square cap
 //          'stack'  (Lorn's mill)    three millstones stacked, a timber cap
 //          'post'   (the Foundry)    a square iron post, a brass band, a cap
+//          'pipe'   (Viridel's vault) a boiler pipe: a slim column in bands, a valve wheel
+//          'crate'  (the market)      a stack of two crates, the top one turned
 //   dress  'cloister'  (Vael)        the sea of cloud far under the cliff, the riders' pennant poles, broken arches
 //          'mill'      (Lorn)        reed beds on the banks, the great wheel, sluice posts
 //          'foundry'   (the Foundry) crucibles on the banks, hoist frames, cooling slag
+//          'greenhouse' (Viridel)    the greenhouse's glass ribs over the cellars, potted trees
+//          'shaft'     (the City-Shaft) the shaft's far wall of lit windows, crane jibs over the bays
+//          'teeth'     (the Buried Machine) the canyon's teeth round the gear-house, a great gear
+//          'market'    (the Signal Market) the shops' neon signs on poles, awnings
 
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
@@ -27,6 +33,19 @@ export function pillarModel(kind = 'column', h, mat, capMat) {
     }
     const c = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.28, 0.5).translate(0, h + 0.14, 0), capMat); c.userData.noCollide = true; m.add(c);
     const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.28, 2.1).translate(0, h + 0.14, 0), capMat); c2.userData.noCollide = true; m.add(c2);
+    return m;
+  }
+  if (kind === 'pipe') {
+    m = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, h, 12).translate(0, h / 2, 0), mat);
+    for (const y of [0.4, h * 0.4, h * 0.8]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.66, 0.18, 12).translate(0, y, 0), capMat); b.userData.noCollide = true; m.add(b); }
+    const w = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.06, 5, 14), capMat); w.position.set(0, h * 0.6, 0.62); w.userData.noCollide = true; m.add(w);
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.7, 0.3, 12).translate(0, h + 0.15, 0), capMat); c.userData.noCollide = true; m.add(c);
+    return m;
+  }
+  if (kind === 'crate') {
+    m = new THREE.Mesh(new THREE.BoxGeometry(1.7, h * 0.5, 1.7).translate(0, h * 0.25, 0), mat);
+    const t = new THREE.Mesh(new THREE.BoxGeometry(1.5, h * 0.45, 1.5).translate(0, h * 0.725, 0), mat); t.rotation.y = 0.5; t.userData.noCollide = true; m.add(t);
+    const c = new THREE.Mesh(new THREE.BoxGeometry(1.56, 0.14, 1.56).translate(0, h * 0.96, 0), capMat); c.rotation.y = 0.5; c.userData.noCollide = true; m.add(c);
     return m;
   }
   if (kind === 'post') {
@@ -78,6 +97,72 @@ export function dressHall(group, def, terrain) {
 }
 
 const DRESS = {
+  // Viridel: the Builders' greenhouse over its cellars, its white ribs, potted trees on the banks
+  greenhouse(group, def, P, ground) {
+    const white = own({ color: '#f4f2ea', flat: true }), glass = own({ color: '#cfe8d8', flat: true, glow: 0.2 });
+    const leaf = own({ color: '#6aa85a', color2: '#8cc46a', flat: true }), pot = own({ color: P.cap, flat: true });
+    for (const [i, [x, z, a]] of farSpots(def, 6, { from: 2.5, to: 4, apart: 6, seed: 31 }).entries()) {
+      const g = new THREE.Group();
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.12, 5, 18, Math.PI), white); rib.position.y = 0.2; g.add(rib);
+      const pane = new THREE.Mesh(new THREE.CircleGeometry(3.1, 18, 0, Math.PI), glass); pane.position.set(0, 0.2, -0.05); g.add(pane);
+      g.rotation.y = a + Math.PI / 2 + (i % 2) * 0.2;
+      put(group, g, x, ground(x, z), z);
+    }
+    for (const [x, z] of farSpots(def, 10, { from: 3, to: 10, apart: 4, seed: 37 })) {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.4, 0.7, 10).translate(0, 0.35, 0), pot));
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 5).translate(0, 1.4, 0), pot));
+      g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.9, 0).translate(0, 2.4, 0), leaf));
+      put(group, g, x, ground(x, z), z);
+    }
+  },
+  // the City-Shaft: the shaft's far wall of lit windows round the depot, crane jibs over it
+  shaft(group, def, P, ground) {
+    const wall = own({ color: P.wall3, color2: P.wall2 }), lit = own({ color: '#ffe8a0', flat: true, glow: 0.85 }), iron = own({ color: P.ink, flat: true }), cab = own({ color: P.cap, flat: true });
+    for (const [i, [x, z, a]] of farSpots(def, 9, { from: 6, to: 14, apart: 7, seed: 41 }).entries()) {
+      const h = 14 + (i % 4) * 5, g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(5, h, 4).translate(0, h / 2 - 20, 0), wall));
+      for (let y = -16; y < h - 21; y += 2.6) for (const sx of [-1.4, 0, 1.4]) if ((Math.round(y) + i + sx * 3) % 3) g.add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.1, 0.1).translate(sx, y, 2.02), lit));
+      g.rotation.y = a + Math.PI;
+      put(group, g, x, 0, z);
+    }
+    for (const [x, z, a] of farSpots(def, 3, { from: 2.4, to: 3.4, apart: 14, seed: 43 })) {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, 9, 0.4).translate(0, 4.5, 0), iron));
+      const jib = new THREE.Mesh(new THREE.BoxGeometry(7, 0.35, 0.35).translate(2.6, 9, 0), iron); g.add(jib);
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.2).translate(5.6, 7.2, 0), cab));
+      g.rotation.y = a + Math.PI;
+      put(group, g, x, ground(x, z), z);
+    }
+  },
+  // the Buried Machine: the canyon's teeth standing round the gear-house, one great gear half sunk
+  teeth(group, def, P, ground) {
+    const rock = own({ color: P.wall, color2: P.wall2, color3: P.wall3, mode: MODE_STRATA, strataSize: 1.4 }), brass = own({ color: P.cap, flat: true });
+    for (const [i, [x, z]] of farSpots(def, 9, { from: 4, to: 13, apart: 6, seed: 51 }).entries()) {
+      const h = 7 + (i % 3) * 3;
+      put(group, new THREE.Mesh(new THREE.ConeGeometry(1.8 + (i % 2), h, 6).translate(0, h / 2, 0), rock), x, ground(x, z) - 0.3, z);
+    }
+    const [gx, gz, ga] = farSpots(def, 1, { from: 3, to: 4.5, apart: 1, seed: 53 })[0] ?? [0, -20, 0];
+    const gear = new THREE.Group();
+    gear.add(new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.6, 24).rotateX(Math.PI / 2), brass));
+    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, t = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.6), brass); t.position.set(Math.cos(a) * 3.5, Math.sin(a) * 3.5, 0); t.rotation.z = a; gear.add(t); }
+    gear.rotation.y = ga + Math.PI / 2;
+    put(group, gear, gx, ground(gx, gz) + 1.6, gz);
+  },
+  // the Signal Market: the shops' signs on poles behind the back rooms, lit; awnings
+  market(group, def, P, ground) {
+    const pole = own({ color: P.ink, flat: true });
+    const neon = [own({ color: '#ff5fa2', flat: true, glow: 0.95 }), own({ color: '#62c3c9', flat: true, glow: 0.95 }), own({ color: '#ffd36a', flat: true, glow: 0.95 })];
+    const awn = [own({ color: '#c94a6a', flat: true }), own({ color: '#3a8a9a', flat: true })];
+    for (const [i, [x, z, a]] of farSpots(def, 10, { from: 2.4, to: 6, apart: 5, seed: 61 }).entries()) {
+      const g = new THREE.Group(), h = 4.5 + (i % 3);
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.15, h, 0.15).translate(0, h / 2, 0), pole));
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.9, 0.12).translate(0, h - 0.4, 0), neon[i % 3]));
+      if (i % 2) { const w = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.1, 1.4).translate(0, 2.6, 0.7), awn[i % 2 ? 0 : 1]); w.rotation.x = 0.2; g.add(w); }
+      g.rotation.y = a + Math.PI;
+      put(group, g, x, ground(x, z), z);
+    }
+  },
   // Vael: the court is on a cliff over the sea of cloud; the riders' pennants on the ledge, two arches left standing
   cloister(group, def, P, ground) {
     const cloud = own({ color: '#f6f4ee', flat: true, glow: 0.35 }), cloud2 = own({ color: '#e4e6ec', flat: true, glow: 0.2 });
