@@ -1,0 +1,21 @@
+engine/game.js
+  s_9ca76055a220ed::t_fa3916d0a871cf 1194-1195
+tests/engine-combat.test.js
+  s_9ca76055a220ed::t_3b0f89d8d3c05f 48,56-58,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e7103c919257be3c105d7d2a79a7d7963d7db1f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
