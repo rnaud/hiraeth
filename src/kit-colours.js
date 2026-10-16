@@ -43,6 +43,9 @@ export const KIT_COLOURS = [
   // the City-Shaft's Lift Depot: the cabs' yellow on iron (src/fight-temples/incal.js)
   { id: 'cab', name: 'Cab yellow', world: 'incal', pack: { brass: '#e8b83a', brassDark: '#9a7424', canvas: '#5a5f6a', canvasDark: '#3e424c', cloth: '#ffd36a', leather: '#1e2028' },
     water: { base: '#ffd36a', cream: '#fff6d0', deep: '#b8862a', pale: '#ffe8a0', gold: '#e8b83a', light: '#fffbe8' } },
+  // the Buried Machine's Tooth Gallery: brass and the canyon's rust (src/fight-temples/buried.js)
+  { id: 'brass', name: 'Brass tooth', world: 'buried', pack: { brass: '#c9a24a', brassDark: '#7a5a2a', canvas: '#b88a5a', canvasDark: '#6e4e34', cloth: '#ffb347', leather: '#2a2018' },
+    water: { base: '#ffb347', cream: '#fff0c8', deep: '#a8642a', pale: '#ffd8a0', gold: '#c9a24a', light: '#fff6e0' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
