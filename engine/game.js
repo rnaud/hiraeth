@@ -77,10 +77,6 @@ gameState.on('travel:page', ({ href } = {}) => {
   const q = String(href ?? ''), to = /[?&]level=([\w-]+)/.exec(q)?.[1], from = /[?&]from=([\w-]+)/.exec(q)?.[1] ?? null;
   if (to && pageGo) setTimeout(() => pageGo?.({ level: to, from }), 900);
 });
-// The ship won't leave without the world's core gadgets (src/story/leave-gate.js, issue #217): the quest that leads to them
-// starts, if it hadn't, so the quest log shows the way (main.js; docs/plans/unity-finishable.md). The game that runs now's.
-let refusedQuests = null;
-gameState.on('travel:refused', ({ quest } = {}) => { const Q = refusedQuests?.(); if (quest && Q && !Q.isStarted?.(quest)) Q.start?.(quest); });
 import { Flock, Motes, Footprints } from '../src/life.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
@@ -606,7 +602,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     }
     return true;
   };
-  refusedQuests = () => story?.quests ?? null;
 
   // the ways through to another space (src/passage.js; issue #264): a doorway into a room built off the map, a cave mouth,
   // a temple's door, a hatch, each a level's `portals` entry, walked into as main.js walks them: its light flares
