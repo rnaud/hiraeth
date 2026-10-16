@@ -476,6 +476,14 @@ class SettingsUpdateTests(unittest.TestCase):
         self.assertEqual(how[:2], ('restart', deck.RESTART_EXIT))
 
 
+def web_engine(test):
+    """An install on the web engine (engine.json 'web', as every install was before the switch, D19): the preview's
+    shortcut and art, the web fallback's swap from there."""
+    patcher = patch.object(deck, 'DEFAULT_ENGINE', 'web')
+    patcher.start()
+    test.addCleanup(patcher.stop)
+
+
 class SteamArtTests(unittest.TestCase):
     """Steam's library artwork for the shortcut, in each account's config/grid/."""
 
@@ -483,6 +491,7 @@ class SteamArtTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
+        web_engine(self)
         self.app = self.home / 'app'
         for name in deck.STEAM_ART.values():
             (self.app / name).parent.mkdir(parents=True, exist_ok=True)
@@ -719,6 +728,7 @@ class PreviewShortcutTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
+        web_engine(self)
         self.vdf = self.config / 'shortcuts.vdf'
 
     def entries(self):
@@ -859,6 +869,7 @@ class RemoveOldInstallTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
+        web_engine(self)
         self.legacy = self.home / '.local/share/moebius-deck'
         (self.legacy / 'versions/1903001').mkdir(parents=True)
         (self.legacy / 'unity-data').mkdir()
@@ -1152,14 +1163,22 @@ class EngineTests(unittest.TestCase):
                 code = done.code
         return ran, code, (self.root / 'launch.log').read_text()
 
-    def test_the_default_is_web_even_with_a_player_installed(self):
-        self.players()
-        self.assertEqual(deck.DEFAULT_ENGINE, 'web')
-        self.assertEqual(deck.choose_engine(self.root)[0], 'web')
-        ran, code, log = self.launch({})
-        self.assertEqual((ran, code), ([('web', 'gl')], 0))
-        self.assertIn('Engine web (the default)', log)
-        self.assertEqual((deck.local_state(self.root)['engine'], deck.local_state(self.root)['engineSetting']), ('web', 'web'))
+    def test_the_default_is_unity_since_the_switch(self):
+        # (D19: an install with no engine.json, new or from before the switch, starts the Unity player)
+        _, current = self.players()
+        self.assertEqual(deck.DEFAULT_ENGINE, 'unity')
+        self.assertEqual(deck.choose_engine(self.root), ('unity', 'the default'))
+        ran, code, log = self.launch({current: ('quit', 0, True)})
+        self.assertEqual((ran, code), ([current], 0))
+        self.assertIn('Engine unity (the default)', log)
+        self.assertEqual((deck.local_state(self.root)['engine'], deck.local_state(self.root)['engineSetting']), ('unity', 'unity'))
+        # the web kept for good: its shortcut, and engine.json 'web' for a Deck that wants it back
+        ran, _, _ = self.launch({}, engine='web')
+        self.assertEqual(ran, [('web', 'gl')])
+        deck.set_engine(self.root, 'web')
+        ran, _, log = self.launch({})
+        self.assertEqual(ran, [('web', 'gl')])
+        self.assertIn('Engine web (engine.json)', log)
 
     def test_the_unity_engine_starts_the_current_player(self):
         before, current = self.players()
@@ -1289,6 +1308,7 @@ class EngineShortcutTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
+        web_engine(self)   # (an install from before the switch, then set to unity: what the update does to it)
         self.vdf = self.config / 'shortcuts.vdf'
 
     def test_an_existing_install_swaps_its_preview_into_the_web_fallback(self):

@@ -12,7 +12,7 @@ Two kinds of update, both checked in the background at each launch:
 
 And a third, its own component: the Unity bridge's Linux player (the unity-linux GitHub release),
 unpacked to unity/<sha>/, with its own data folder. Which one the "Hiraeth" shortcut starts is the
-engine (engine.json, web until the switch; web.json's deckEngine 'web' turns Unity off for everyone):
+engine (engine.json, unity without one since the switch; web.json's deckEngine 'web' turns Unity off for everyone):
 the web runtime, or the Unity player watched as Electron is, falling back to the player before it and
 then to the web. The second shortcut is the other one: "Hiraeth (Unity)" (--launch-unity) while the
 engine is web, "Hiraeth (web)" (--launch-web) once it is unity.
@@ -66,10 +66,11 @@ OLD_NAMES = (None, '')   # (a shortcut without a name gets the game's)
 OLD_UNITY_NAMES = (None, '', 'Hiraeth (Unity preview)')
 # The preview's own icon, beside the game's (write_launchers: the runtime's steam/unity/icon.png, a Unity badge on it)
 UNITY_ICON = 'icon-unity.png'
-# Which engine the "Hiraeth" shortcut starts (engine.json; docs/steam-deck.md, "The engine"). web until the switch
-# (docs/plans/unity-default-portables.md, D19): then 'unity' here and in the installer.
+# Which engine the "Hiraeth" shortcut starts (engine.json; docs/steam-deck.md, "The engine"). unity since the switch
+# (docs/plans/unity-default-portables.md, D19): an install with no engine.json, new or older, starts the Unity player,
+# and "Hiraeth (web)" the web runtime; --engine web keeps a Deck on the web.
 ENGINES = ('web', 'unity')
-DEFAULT_ENGINE = 'web'
+DEFAULT_ENGINE = 'unity'
 # ... and once it is unity, the second shortcut starts the web runtime: its launcher, name and WEB-badged icon
 WEB_NAME = 'Hiraeth (web)'
 WEB_ICON = 'icon-web.png'
@@ -1657,11 +1658,11 @@ def main():
         except Exception as error:
             print(f'The game looks for its newest version again at the next launch ({error}).', flush=True)
         try:
-            print('Checking for the Unity preview\'s player (about 300 MB the first time)…', flush=True)
+            print('Checking for the Unity player (about 300 MB the first time)…', flush=True)
             if update_unity(ROOT):
-                print('The Unity preview was installed too.', flush=True)
+                print('The Unity player was installed too.', flush=True)
         except Exception as error:
-            print(f'The Unity preview is downloaded at the next update instead ({error}).', flush=True)
+            print(f'The Unity player is downloaded at the next update instead; until then Hiraeth starts the web version ({error}).', flush=True)
     write_launchers(ROOT)
     configs = steam_configs(Path.home())
     if not configs:

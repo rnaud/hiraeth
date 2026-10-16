@@ -7,6 +7,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.
 - A new game in the desert, Cistern channels: under the Rose House, turn the Givers’ channel stones ahead of the water so it reaches the Keeper’s troughs before it spills. Three floods, each faster; hold RT / R2 to hurry the water for double points. Ask Nuri by the Rose House’s steps.
 - A new game in Vael, The Elder’s flight: the Elder won’t fly alone, so fly at her wing from the Aerie across the sea of cloud to the riders’ Old Roost. Hold the slot in her wake, go through your ring of every wind gate beside hers, cross to the side she calls, and keep her courage up. Ask Corra at the foot of the Aerie’s steps.
+- On the Steam Deck, Hiraeth now starts the Unity version of the game: smoother in every world, much quicker to load, and held to the screen’s 90 Hz with a new picture at every refresh. The version you played until now stays beside it in your library as Hiraeth (web), with your journey there; the Unity version keeps its own journey, so you start a new one in it.
 
 ## v1.78 — 2026-10-15
 

@@ -1,6 +1,11 @@
 # Steam Deck
 
-The Steam Deck build packages the web game with Electron for Linux x86-64.
+Since the switch (v1.79, docs/plans/unity-default-portables.md D19) the **Hiraeth** shortcut starts the
+Unity bridge's Linux player ("The engine", below): the same game's JavaScript drawn by Unity, faster in
+every world (docs/systems/performance.md, "The Steam Deck, round 12"). The web build stays beside it for
+good, as **Hiraeth (web)**, and is what the player falls back to.
+
+The web build packages the web game with Electron for Linux x86-64.
 Chromium renders the existing Three.js game; all assets are bundled for offline
 play. It runs natively on Linux without Proton, root access, FUSE, or changes to
 SteamOS's read-only system. It is distributed as a non-Steam game, not through
@@ -89,6 +94,9 @@ that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appi
 
 ## The Unity preview (issue #146)
 
+(How the Unity player came to the Deck, before the switch. Its download, its folders and its launch below are
+still how the player is installed and run; what changed at the switch is which shortcut starts it: "The engine".)
+
 A second shortcut, **Hiraeth (Unity)** ("Hiraeth (Unity preview)" until 1.73), starts the Unity bridge's Linux player (IL2CPP,
 Vulkan; `docs/systems/unity.md`, measured in `docs/systems/performance.md`, "The Steam Deck, round
 6") beside the game. It is for testers: no menus, conversations or pages yet, its own saves. The web
@@ -105,7 +113,7 @@ build stays the main shortcut, unchanged.
   symlink. The one before is kept; older ones are removed unless a preview still runs them (its
   `.in-use` lock).
 - **When.** The installer installs it after the runtime and the game (a failure never fails the
-  install); the background update checks it too, reported as `unity` in `update.log` (never the
+  install, and **Hiraeth** starts the web until the player is there); the background update checks it too, reported as `unity` in `update.log` (never the
   exit code). The settings' Download (`--update --progress`) leaves it out. `--status-local` says
   which player is here (`unity`, its sha's first 12; the panel ignores it).
 - **Launch.** `launch-unity` (written by `write_launchers` next to `launch`, with
@@ -131,16 +139,21 @@ build stays the main shortcut, unchanged.
 
 ## The engine: web or Unity (one shortcut, a watched start)
 
-Ready for the switch (docs/plans/unity-default-portables.md, D9 and D10), **off by default**: until the
-author flips it, every Deck starts the web runtime exactly as above. The switch, when the Unity player
-can take the game to its end, is `DEFAULT_ENGINE = 'unity'` in `deck.py` (D19), or per Deck:
+**Unity since v1.79** (docs/plans/unity-default-portables.md, D9, D10 and D19: `DEFAULT_ENGINE = 'unity'` in
+`deck.py`). Every Deck without an `engine.json`, a new install or one from before, starts the Unity player
+from the launch after its runtime update, and its second shortcut becomes **Hiraeth (web)** the next time
+the update finds Steam closed. The web runtime stays: **Hiraeth (web)** always starts it, the watched start
+falls back to it, and one Deck can stay on it (or come back to Unity):
 
 ```sh
 python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --engine unity   # or web
 ```
 
 - **The setting.** `engine.json` (`{"engine": "web" | "unity"}`, written by `--engine`; none: `DEFAULT_ENGINE`,
-  `web`). `--status-local` reports `engine` (what the next launch starts) and `engineSetting`.
+  `unity`).
+- **The frame rate.** The player runs with vsync, held to the display's refresh (90 Hz on the OLED, 60 on the LCD;
+  `BridgeRunner`, `QualitySettings.vSyncCount = 1`; `-vsync 0` uncapped). Uncapped, the worlds that run above 90
+  showed their frames 9-14 ms apart; with vsync they show a new one at every refresh (performance.md, round 13). `--status-local` reports `engine` (what the next launch starts) and `engineSetting`.
 - **The kill switch.** web.json's `deckEngine: 'web'` turns the Unity player off on every Deck, for a player
   build gone bad. It is set in the repository: `scripts/steam-deck/engine-switch.json` (`{"deckEngine": "web"}`,
   `null` to lift it), which `web-update.mjs` puts into the site's web.json at the next deploy
@@ -160,7 +173,9 @@ python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --engine unity
   failure. Exit 76 (a future Updates section's Restart now) launches again, as Electron's does.
 - **Its own data.** The player's saves and settings stay in `unity-data/` (`XDG_CONFIG_HOME`, PlayerPrefs; the
   previous run's log kept as `player-prev.log`), the web's in `~/.config/hiraeth`. No migration between the two
-  (the author's choice for now): a fallback to the web plays the web's save.
+  (the author's choice for now; the importer is D5): after the switch **Hiraeth** starts a new journey in the
+  Unity player, the journey played on the web is where it was under **Hiraeth (web)**, and a fallback to the web
+  plays the web's save.
 - **One shortcut.** **Hiraeth** (Exe `launch`: its app id, playtime and artwork) starts the engine. The second
   shortcut is the other engine: **Hiraeth (Unity)** (`launch-unity`, the preview, unwatched) while the engine is
   web, **Hiraeth (web)** (`launch-web`, `deck.py --launch-web`: Electron whatever the setting) once it is unity.

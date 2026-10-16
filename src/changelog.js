@@ -9,6 +9,29 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.79', date: '2026-10-15', items: [
+    // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync
+    // (BridgeRunner); docs/systems/performance.md "The Steam Deck, round 12" and "round 13", docs/steam-deck.md "The engine"
+    { text: 'On the Steam Deck, Hiraeth now starts the Unity version of the game: smoother in every world, much quicker to load, and held to the screen’s 90 Hz with a new picture at every refresh. The version you played until now stays beside it in your library as Hiraeth (web), with your journey there; the Unity version keeps its own journey, so you start a new one in it.',
+      numbers: [{ title: 'Frames a second on the Steam Deck (the median of each world’s views and walks), web → Unity', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, Gaming Mode, plugged in, 1280 × 800, the Steam Deck preset, 90 Hz (the Unity player uncapped for this row)', rows: [
+        { where: 'the Desert', before: 52.1, after: 77.6 },
+        { where: 'Vael', before: 63, after: 82.5 },
+        { where: 'Lorn', before: 63.3, after: 72 },
+        { where: 'the City-Shaft', before: 54, after: 66 },
+        { where: 'the Signal Market', before: 72.7, after: 91.7 },
+        { where: 'the City Floating in Space', before: 74.4, after: 97.4 },
+      ], source: 'scripts/bench/deck-engines.mjs, both builds from the same commit, 15 October', note: 'Ahead in all 13 worlds; the share of frames slower than 60 fps fell from 17–66 % to 0–17 % in the seven slowest.' },
+      { title: 'Loading a world (a warm start), web → Unity', unit: 's', better: 'lower', device: 'Steam Deck OLED, the same runs', rows: [
+        { where: 'the Desert', before: 46.4, after: 13.8 },
+        { where: 'the City-Shaft', before: 53.8, after: 24.2 },
+        { where: 'the Garden of Spheres', before: 64.5, after: 12.1 },
+        { where: 'Home', before: 18.2, after: 8.8 },
+      ], source: 'scripts/bench/deck-engines.mjs: the web from the navigation to its first frame, Unity from the launch to its world settled' },
+      { title: 'Held to 90 Hz: frames a second, Unity uncapped → with vsync', unit: 'fps', better: 'higher', device: 'Steam Deck OLED, 90 Hz', rows: [
+        { where: 'Home (uncapped, the frames ran ahead of the screen)', before: 107, after: 90 },
+        { where: 'the Glass Dunes', before: 104, after: 90 },
+        { where: 'the Moon Foundry', before: 105, after: 90 },
+        { where: 'the Desert (under 90 either way)', before: 78.3, after: 76.1 },
+      ], source: 'the same player with -vsync 0 and with its new default, 15 October', note: 'At 90.0 every refresh gets a new picture; uncapped, the frames came unevenly, 9 to 14 ms apart.' }] },
     // helping a guardian instead of fighting it, as minigames (issue #339): src/minigames/elderflight.js (the sky, the
     // camera, the Elder posed in flight), formation.js (pure: the route, her wake, the slot, the gates, the gusts, her
     // courage, botInput); story/hosts-data.js Corra; tests/minigames-helpers.test.js; docs/design/helper-guardians.md,
