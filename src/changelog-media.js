@@ -1060,12 +1060,19 @@ const FUTURE342_FP_NUMBERS = [
 ];
 /** (v1.79, issue #339: the guardians' helping games, shot by hand on this branch) */
 const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6340), each game begun from its start card and played by its scripted player (window.__elderBot, window.__cisternBot); the signs in their worlds with the traveller set beside them; 15 October; cwebp -q 72';
+<<<<<<< HEAD
 /** (v1.79, issue #47's fourth round: the traveller's feet) */
 const QC47D = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second); main at a9a8ed0f against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
 const GAME47D = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs: every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the desert’s sand, the Signal Market’s street and the Arena’s floor; main at a9a8ed0f once (the desert twice) against the same tree with the change three times (world-final, -final2, -final3); 15 October';
 const SRC47D = 'issue #47 scratchpad motion-r4: before/ and final/ (node), world-before/, world-before2/, world-final/, world-final2/, world-final3/ (the game; tools/wev.mjs lists their events)';
+||||||| parent of b021756e4 (Refs #264: the Unity preview's small gaps: the minigames' floating words and speed lines drawn, Cistern channels' start card on the game's camera, the bird and the bike in other worlds, Lorn's rain, the refused flight's quest; the Canyon run's wall burst fixed)
+=======
+/** (v1.79, issue #264: the Unity preview's small gaps, the editor's batch on the Mac) */
+const UNITY264_SMALL = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, muted), `scripts/unity-js-run.sh -level desert -game cistern -run-secs 3 -words`: before with the engine’s and the words’ code as they were, after with this change; the web’s side in muted headless Chrome on this branch’s own Vite (port 6352).';
+>>>>>>> b021756e4 (Refs #264: the Unity preview's small gaps: the minigames' floating words and speed lines drawn, Cistern channels' start card on the game's camera, the bird and the bike in other worlds, Lorn's rain, the refused flight's quest; the Canyon run's wall burst fixed)
 export const CHANGELOG_MEDIA = {
   '1.79': [
+<<<<<<< HEAD
     { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },
     // (issue #370, taken at 95c4da85 before the commit, the same code: the Signal Market's street, Vael's and the Salt Harbour's crowds in the studio; scripts/changelog-shots.mjs)
     { match: 'Far fewer people wear skirts', tags: ['characters'], shots: [
@@ -1076,6 +1083,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'skirts-vael', title: 'Vael’s silent ones', caption: 'A lineup of Vael’s crowd: every one in a long robe before; after, the order’s robes on some, trousers on the rest', commit: '95c4da85',
         view: studio('lineup=crowd&world=arzach&count=8', [1280, 720]) },
     ] },
+||||||| parent of b021756e4 (Refs #264: the Unity preview's small gaps: the minigames' floating words and speed lines drawn, Cistern channels' start card on the game's camera, the bird and the bike in other worlds, Lorn's rain, the refused flight's quest; the Canyon run's wall burst fixed)
+=======
+    { match: 'In the Unity preview the games’ floating score words', tags: ['devices'], shots: [
+      { name: 'unity-words', title: 'The words over the cistern court', caption: 'Cistern channels a moment into the run, the bridge’s fixed set of words put up round the traveller: before, nothing (the words were the page’s alone); after, “+10”, the gold “+250”, the teal “×3” and the vermilion “spilled” floating up stroked in ink, a speech balloon and a label, as the web draws them.', from: UNITY264_SMALL },
+    ], see: 'In the Unity preview, play Cistern channels (Nuri by the Rose House’s steps) or the shooting gallery: each stone the water runs through floats a “+10”, a trough a gold “+250”; in the gallery the keeper calls out in a balloon. In a fast game (the ski run, the canyon) ink streaks come in from the screen’s edges as you speed up.' },
+    { match: 'In the Unity preview, Cistern channels’ start card', tags: ['devices'], shots: [
+      { name: 'unity-cistern-card', title: 'The start card', caption: 'Before, the card over the traveller’s back, the follow camera low among the channel stones; after, the court from high over its south end, the whole board, the Keeper and the troughs, as on the web.', from: UNITY264_SMALL },
+    ] },
+    { match: 'The Canyon run no longer breaks off', see: 'Play the Canyon run (ask Kamal at the Two Chasms in the desert) and steer the bike into the canyon’s wall or through a sand drift: sand sprays up and the race goes on.' },
+    { match: 'In the Unity preview the hoverbike comes along', tags: ['devices'], see: 'In the Unity preview, with the hoverbike found in the desert, land in Viridel (or the Glass Dunes, the Buried Machine, the Spheres): it stands by the ramp; call it from your pack. Once Vael’s bird has promised, call in Viridel and she comes down. In Lorn, stand by the Great Crystal while it rains: it sings. Try to fly on from the desert without the blade: the Rose House’s quest shows in the quest log.' },
+>>>>>>> b021756e4 (Refs #264: the Unity preview's small gaps: the minigames' floating words and speed lines drawn, Cistern channels' start card on the game's camera, the bird and the bike in other worlds, Lorn's rain, the refused flight's quest; the Canyon run's wall burst fixed)
     { match: 'A new game in Vael, The Elder’s flight', tags: ['vael'], shots: [
       { name: 'elder-formation', only: 'after', title: 'At her wing', caption: 'In the slot off her right wingtip (the ring of light, teal while you hold it), her wake’s motes trailing off her wings; ahead, a wind gate hung between two rose needles, her great ring and yours beside it.', from: HELPGAMES339 },
       { name: 'elder-roost', only: 'after', title: 'The Old Roost', caption: 'The flight flown: she has set down on the riders’ Old Roost among its stone feathers, calm, the results card beside her.', from: HELPGAMES339 },

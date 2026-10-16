@@ -190,6 +190,30 @@ test('a game that drives (the ring race) moves the traveller itself in the engin
   assert.match(g.screen().state.minigame.score, /^Ring 1 \/ 20/);
 });
 
+test('a game that drives shows its own camera under its start card (Cistern channels: the court from above, not the follow camera)', async () => {
+  const { exports: X } = await load();
+  const menus = new EngineMenus({});
+  const g = await quietly(() => X.createGame({ levelId: 'desert', game: 'cistern', from: 'desert', backend, menus }));
+  await run(g, 3);
+  assert.equal(menus.mode, 'card', 'the start card up');
+  assert.ok(g.trials.drives);
+  const cam = g.camera.position;
+  assert.ok(cam.y - g.player.pos.y > 40, `high over the court (${(cam.y - g.player.pos.y).toFixed(1)} m over the traveller)`);
+  assert.ok(Math.abs(g.camera.fov - 44) < 0.1, `the game's field of view (${g.camera.fov})`);
+});
+
+test('the Canyon run steered into its walls goes on (a wall\'s sand burst read the heading before it was made)', async () => {
+  const { exports: X } = await load();
+  const menus = new EngineMenus({});
+  const g = await quietly(() => X.createGame({ levelId: 'desert', game: 'canyon', from: 'desert', backend, menus }));
+  await run(g, 3);
+  menus.key('Enter');
+  const warn = console.warn, failed = [];
+  console.warn = (...a) => { if (/failed/.test(String(a[0]))) failed.push(String(a[1] ?? a[0]).slice(0, 200)); };
+  try { for (let i = 0; i < 400; i++) { g.key('KeyW', true); g.key('KeyA', i > 60); g.frame(1 / 30); } } finally { console.warn = warn; }
+  assert.deepEqual(failed, []);
+});
+
 test('the menus\' card: options left and right, the buttons up and down, Menu its start (engine/menus.js)', () => {
   const calls = [];
   const runner = {

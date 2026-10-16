@@ -245,7 +245,7 @@ export default {
   delay, mode })` lends the backpack for the game (worn and full even on a save that has not found it; its tank's
   size held against the save's upgrades; `back.set({ max, delay })` for a boon; `back()` puts it all back),
   `tune(table, changes)` changes a tuning table (BLADE, EVADE…) for the game, `standAt(player, pos, heading, rig,
-  yaw)`. `kit/labels.js` `WorldLabels`: a "+20" floating up from a point, a speech balloon, a label over a thing.
+  yaw)`. `kit/labels.js` `WorldLabels`: a "+20" floating up from a point, a speech balloon, a label over a thing (the same words the screen's `words` part, for an engine to draw).
   `hud.countdown: s` shows the clock counting down. A game's page tells no story (its host's goal is not reached).
 - Keep the rules pure where you can (a step function on plain objects) and test them in
   `tests/minigames.test.js`; play the game in headless Chrome through a virtual pad (override
@@ -431,7 +431,8 @@ the start, the Old Roost (a great table ringed with stone feathers) at the end.
   into the gusts: every gate, all together, about 2 min 15 s, at 60 and 30 fps (`tests/minigames-helpers.test.js`).
 - Unity (engine/trials.js): card, 3-2-1, run, pause and resume draw. Her wake's motes are placed from her frame on the
   route, not from her bones (`E.part`): placed from her bones they blacked out the bridge's whole frame. Cistern channels
-  plays there as it is; the floating score words of both (kit/labels.js) are web only (docs/design/helper-guardians.md).
+  plays there as it is; the floating score words of both (kit/labels.js) are drawn there from the screen's `words`
+  (docs/systems/engine-bridge.md, "The words in the world and the speed lines").
 
 ## Cistern channels (`cistern.js`, the rules in `channels.js`)
 

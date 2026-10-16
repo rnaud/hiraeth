@@ -69,6 +69,10 @@ addIndoors((p) => !!shipIndoors?.(p));
 // there, at that level's arrival from where you were (level.arrivals). The page's location is a stand-in in the engines,
 // so the screen stayed black under the fade (issue #264). One listener for the module, asking the game that runs now.
 let pageGo = null;
+// (a flight refused for a gadget not yet had, the holo table's or the Worlds page's: the quest that leads to it started,
+// as main.js does; the game that runs now's story)
+let refusedGo = null;
+gameState.on('travel:refused', (e = {}) => refusedGo?.(e));
 gameState.on('travel:page', ({ href } = {}) => {
   const q = String(href ?? ''), to = /[?&]level=([\w-]+)/.exec(q)?.[1], from = /[?&]from=([\w-]+)/.exec(q)?.[1] ?? null;
   if (to && pageGo) setTimeout(() => pageGo?.({ level: to, from }), 900);
@@ -94,6 +98,9 @@ import { PixelCanvas } from './raster.js';
 import { GIVERS_NOTE } from '../src/story/signature.js';
 import { rumblePlay } from '../src/rumble.js';
 import { items as gear, ITEMS } from '../src/items.js';
+import { birdAnswers, promisedBird } from '../src/bird.js';
+import { bikeComes, parkedBike, callKind } from '../src/bike-worlds.js';
+import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
@@ -319,7 +326,16 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const playHomecoming = !!(menus && levelId === HOME_ID && via === 'ship' && !flags && !view && !gameDef) && homecomingKind((k) => gameState.flag(k));
   const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || !!playHomecoming }));
   stamp('ship');
+  // the bird's promise and the hoverbike in the worlds after the desert, as main.js: under open sky, in a world with no
+  // mount of its own, the whistle calls Vael's bird down (src/bird.js); the bike, found in the desert, stands by the ramp
+  // in the worlds made for riding, called from your pack (src/bike-worlds.js)
+  const flagOf = (k) => gameState.flag(k);
+  if (birdAnswers(levelId, level, flagOf)) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
+  if (!level.mount && bikeComes(levelId, level, flagOf)) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
   const player = new Player(physics, {
+    // (calling the mount: the bird with the rider's call on the flute, the bike from your pack, its tank's rings blinking;
+    // a taxi, a whistle: main.js onWhistle)
+    onWhistle: (kind) => { const how = callKind(kind, level.mountName, gear.has('backpack')); if (how === 'rider') sound?.tune?.(RIDER_CALL, RIDER_CALL_BEAT); else if (how === 'pack') { sound?.packCall?.(); tool?.signal?.(); } else if (how) sound?.whistle?.(kind); },
     mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
     killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
@@ -330,6 +346,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     onKnockdown: (dead, why) => { hpHurt = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
     onKnockout: (why) => combat?.knockout(why),
   });
+  // (no call from a room off the map, nor from inside the ship: main.js canSummon)
+  const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (level.ground?.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
+  player.opts.canSummon = () => !offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90) && !ship?.inside;
   const lib = await animLib;
   const gestureClips = await gesturesP;
   if (lib && gestureClips) { attachMotion(lib, gestureClips); stamp('gestures'); }
@@ -465,7 +484,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const onStep = player.onStep;
   player.onStep = (p, heading, up, i) => { onStep?.(p, heading, up, i); footprints.add?.(p, heading, up, i); sound.step(Math.hypot(player.vel.x, player.vel.z)); };
   const wildlife = optional('wildlife', () => new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife }));
-  const weather = optional('weather', () => new Weather(content.weather));
+  // (its pace, and the desert's first arrival clear until its flag, issue #139, as main.js's)
+  const weather = optional('weather', () => new Weather(content.weather, { ...content.weatherPace, calm: content.calmUntil ? () => !gameState.flag(content.calmUntil) : null }));
+  // (on the page's window as main.js puts it, where the story reads it: rain on Lorn's Great Crystal makes it sing,
+  // src/story/perdide.js; one game at a time, so the newest world's)
+  globalThis.weather = weather ?? null;
   const shelter = optional('shelter', () => new Shelter(physics));
   // the wind (wind.js): its direction and gusts for the traveller, the plants and the grass, and its wisps of blown sand
   // (on the page a screen overlay of their own; here a mesh in the mirrored scene, on the port's Hiraeth/Wisp)
@@ -563,6 +586,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (`scenes`: a plan that wants them without the menus: the bridge's -aboard, the rooms photographed as the web's ?aboard=)
   const shipOn = !!((menus || scenes) && ship && story && !flags && !view && !gameDef);   // (not on a game's page: the runner keeps the ship out of the picture)
   pageGo = menus && !flags && !view && !gameDef ? onPage : null;
+  refusedGo = ({ quest } = {}) => { const q = story?.quests; if (quest && q && !q.isStarted(quest)) q.start(quest); };
   shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
   if (shipOn) {
     ship.cinema.dom = false;
@@ -942,8 +966,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     log(`distant detail: ${n} jobs done near in ${Math.round(performance.now() - t)} ms, ${deferred.pending} after the first frame`);
   }
   stamp('near detail');
-  // the first frame's camera
-  rig.update(player.pos, 0, player.frame);
+  // the first frame's camera (a game that drives: its own, which its session set as it was made; main.js never runs the
+  // rig for it, so the start card shows the game's view: the cistern court from above, not the traveller's follow camera)
+  if (!trials?.drives) rig.update(player.pos, 0, player.frame);
 
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
@@ -1125,6 +1150,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (menus?.open) {
         controller.update(dt, true);
         inputFrame();
+        // (a game that drives goes on under its own start or results card, its camera with it, as main.js runs the runner
+        // under its card with no input; its pause holds it, as the page's `paused`)
+        if (menus.mode === 'card' && trials?.drives && !trials.runner?.paused) { try { trials.update(dt, noInput); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the game failed in its update', e?.stack ?? e); } } }
         // (whatever a gadget was doing lets go, its wheel closes: main.js gadgets.control paused under a menu)
         try { gadgets?.control(dt, noInput, true); } catch { /* said in play */ }
         // (the galactic map open: its search, the scanner moved by the stick the controller just handed it, W A S D held)

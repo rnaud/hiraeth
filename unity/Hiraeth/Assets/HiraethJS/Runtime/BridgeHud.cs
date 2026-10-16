@@ -69,7 +69,7 @@ namespace Hiraeth.Bridge
 
         void Start()
         {
-            Warm(Ui.Mono);
+            Warm(Ui.Mono); Warm(Ui.Sans);   // (Sans: the minigames' words, the page's --face)
             root = Hud.MakeCanvas(cam, "HUD (JS bridge)", 100);
             root.SetParent(transform, false);
             var mono = Ui.Mono;
@@ -103,6 +103,8 @@ namespace Hiraeth.Bridge
             wheelFill = Ui.Fill(wheel, Ui.Gold, 0, "fill"); wheelFill.sprite = Ui.Round(32);
             wheelFill.type = Image.Type.Filled; wheelFill.fillMethod = Image.FillMethod.Radial360; wheelFill.fillOrigin = (int)Image.Origin360.Top; wheelFill.fillClockwise = false;
             Ui.Stretch(wheelFill.rectTransform, 3, 3, 3, 3);
+            wordsRoot = Ui.Node("words", root);   // (a minigame's words in the world: under the conversation and the cards, as the page's #mg-words)
+            Ui.Stretch(wordsRoot);
             BuildDialogue(mono);
             BuildGadgets(mono);
             BuildCine(mono);
@@ -368,6 +370,7 @@ namespace Hiraeth.Bridge
             var mg = state.O("minigame");
             DrawCue(cueState, d == null && (hud || walk) && (mg == null || state.O("photo") != null));
             DrawMinigame(hud && d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
+            DrawWords(hud ? state.O("words") : null);
             DrawToast(state.O("toast"), free);
             DrawPrompt(state.O("prompt"), free && mg == null);
             DrawHealth(hud ? state.O("health") : null);
@@ -709,8 +712,12 @@ namespace Hiraeth.Bridge
         int mgCountId = -1; float mgCountT; double mgSecs = -1; bool mgRun; float mgLocal; int mgBump = -1; float mgBumpT = 1;
         static readonly Color MgGold = Ui.Hex("#f2c54b"), MgTeal = Ui.Hex("#71d7cf"), MgBad = Ui.Hex("#d9643a"), MgCard = Ui.Hex("#fbf4e2");
 
+        Sketch mgSpeed; bool mgSpeedOn; readonly System.Random mgRnd = new(11);
         void BuildMinigame(Font mono)
         {
+            // (the speed lines first, under the run's HUD: the page's canvas under #minigame)
+            mgSpeed = Ui.Node("mg speed", root).gameObject.AddComponent<Sketch>();
+            mgSpeed.raycastTarget = false;
             mgTimer = Ui.Panel(root, "mg timer", Ui.Page, Ui.Ink, 2, 4, 4);
             mgTimerText = Ui.Label(mgTimer.rt, "text", mono, 26, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f); Ui.Space(mgTimerText, 0.06f);
             mgPenalty = Ui.Label(mgTimer.rt, "penalty", mono, 11, Ui.Faint, TextAnchor.UpperCenter); Ui.Space(mgPenalty, 0.14f);
@@ -726,6 +733,29 @@ namespace Hiraeth.Bridge
             Show(mgCount, false); mgLives.gameObject.SetActive(false);
         }
 
+        /// <summary>The speed lines (runner.js speedLines, the page's half-size canvas stretched over the screen): ink streaks
+        /// from the edges toward the middle, drawn anew each frame at random, more and darker the faster (k 0..1).</summary>
+        void DrawSpeed(float k)
+        {
+            if (k < 0.02f) { if (mgSpeedOn) { mgSpeed.Clear(); mgSpeedOn = false; } return; }
+            mgSpeedOn = true;
+            Ui.Place(mgSpeed.rectTransform, 0, 0, W, H);
+            var sk = mgSpeed; sk.Clear();
+            float R() => (float)mgRnd.NextDouble();
+            // (in the canvas' half-size units, then doubled: its lines' widths with them)
+            float hw = W / 2, hh = H / 2, cx = hw / 2, cy = hh * 0.5f, Rr = Mathf.Sqrt(hw * hw + hh * hh) / 2;
+            int n = Mathf.RoundToInt(6 + 22 * k);
+            for (int i = 0; i < n; i++)
+            {
+                float a = R() * Mathf.PI * 2, r0 = Rr * (0.74f + 0.24f * R() - 0.12f * k), len = Rr * (0.05f + 0.14f * k * R());
+                var c = Ui.Ink; c.a = 0.12f + 0.4f * k * R();
+                float w = 0.5f + 1.1f * R();
+                var p0 = new Vector2(cx + Mathf.Cos(a) * r0, cy + Mathf.Sin(a) * r0 * 0.8f) * 2;
+                var p1 = new Vector2(cx + Mathf.Cos(a) * (r0 + len), cy + Mathf.Sin(a) * (r0 + len) * 0.8f) * 2;
+                sk.Line(new Vector2(p0.x, -p0.y), new Vector2(p1.x, -p1.y), w * 2, c);
+            }
+        }
+
         /// <summary>A time as the game writes it (src/minigames/kit/scores.js formatTime): 1:23.45, 9.05.</summary>
         static string MgTime(double s)
         {
@@ -738,6 +768,7 @@ namespace Hiraeth.Bridge
         {
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);   // (the game's own step is held to 1/20 s: engine/game.js)
             bool on = g != null && g.Get("on") is bool o && o;
+            DrawSpeed(on ? (float)g.F("speed") : 0);
             // the clock, the score's box and the lives, along the top
             var tm = on ? g.O("timer") : null;
             mgTimer.Show(tm != null);
@@ -1008,6 +1039,113 @@ namespace Hiraeth.Bridge
                 gMarks[i].n.text = m.S("label") ?? (i + 1).ToString();
             }
         }
+
+        // ---------------------------------------------------------------- a minigame's words in the world (src/minigames/kit/labels.js)
+        // the screen's 'words': a pop ("+10", "+250", "×3") floats up 70 px from where its world point falls and fades over
+        // its last 30 %, popping in at 1.35 × its size; cream letters stroked in ink (gold, vermilion, teal by its kind);
+        // a speech balloon over someone (cream, an ink edge and hard shadow, round corners, its tail at the foot), and a
+        // label over a thing to pick (its name in capitals, the words under it), both kept on the screen, as the page's
+        RectTransform wordsRoot;
+        class Pop { public int id; public RectTransform rt; public Label text; public float t, secs; public List<object> at; }
+        readonly List<Pop> pops = new();
+        readonly List<(Ui.Box box, Label text, Image tail)> says = new();
+        readonly List<(Ui.Box box, Label title, Label text)> tags = new();
+        static readonly Color WordCream = Ui.Hex("#fbf4e2");
+
+        void DrawWords(Dictionary<string, object> w)
+        {
+            float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);
+            var list = (w?.L("pops") ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
+            var ids = new HashSet<int>(list.Select(p => p.I("id")));
+            for (int i = pops.Count - 1; i >= 0; i--) if (!ids.Contains(pops[i].id) || pops[i].t >= pops[i].secs) { Destroy(pops[i].rt.gameObject); pops.RemoveAt(i); }
+            foreach (var p in list)
+            {
+                int id = p.I("id");
+                if (pops.Any(x => x.id == id) || id <= popSeen) continue;
+                popSeen = Mathf.Max(popSeen, id);
+                var kind = p.S("kind") ?? "";
+                var c = kind == "gold" ? MgGold : kind == "bad" ? MgBad : kind == "combo" ? MgTeal : WordCream;
+                int size = kind == "gold" ? 28 : kind == "bad" ? 22 : kind == "combo" ? 24 : 20;
+                var rt = Ui.Node("pop", wordsRoot);
+                var t = Ui.Label(rt, "text", Ui.Sans, size, c, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+                Ui.Space(t, 0.04f);
+                // (-webkit-text-stroke 3px in ink, painted under the fill: eight copies round it)
+                foreach (var dd in new[] { new Vector2(1.6f, 1.6f), new Vector2(2.2f, 0), new Vector2(0, 2.2f) }) { var o = t.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Ink; o.effectDistance = dd; o.useGraphicAlpha = true; }
+                t.horizontalOverflow = HorizontalWrapMode.Overflow;
+                t.text = p.S("text") ?? "";
+                pops.Add(new Pop { id = id, rt = rt, text = t, t = 0, secs = Mathf.Max(0.1f, p.F("secs", 0.9f)), at = p.L("at") });
+            }
+            foreach (var q in pops)
+            {
+                q.t += dt;
+                float k = q.t / q.secs;
+                var at = ToCanvas(q.at);
+                bool on = at.HasValue && k < 1 && at.Value.x > -0.1f * W && at.Value.x < 1.1f * W && at.Value.y > -0.1f * H && at.Value.y < 1.1f * H;
+                Show(q.rt, on);
+                if (!on) continue;
+                var sz = Ui.Measure(q.text, q.text.text);
+                Ui.PlaceC(q.rt, at.Value.x - sz.x / 2, at.Value.y - 70 * k - sz.y / 2, sz.x, sz.y);
+                Ui.Stretch(q.text.rectTransform);
+                float sc = 1.35f - 0.35f * Mathf.Min(1, k * 4);
+                q.rt.localScale = new Vector3(sc, sc, 1);
+                Ui.Alpha(q.rt, k < 0.7f ? 1 : 1 - (k - 0.7f) / 0.3f);
+            }
+            // the balloons
+            var sl = (w?.L("says") ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
+            while (says.Count < sl.Count)
+            {
+                var box = Ui.Panel(wordsRoot, "say", WordCream, Ui.Ink, 2, 3, 3, 14);
+                var text = Ui.Label(box.rt, "text", Ui.Sans, Sz(13), Ui.Ink, TextAnchor.UpperLeft, FontStyle.Normal, 1.2f);
+                // (its tail: an ink corner at the foot, 24 px in from the left)
+                var tail = Ui.Rect(box.rt, Ui.Ink, 0, "tail"); tail.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
+                tail.rectTransform.SetSiblingIndex(0);   // (under the paper: only its point shows below the edge)
+                says.Add((box, text, tail));
+            }
+            for (int i = 0; i < says.Count; i++)
+            {
+                var m = i < sl.Count ? sl[i] : null;
+                var at = m != null ? ToCanvas(m.L("at")) : null;
+                Show(says[i].box, at.HasValue);
+                if (!at.HasValue) continue;
+                var (box, text, tail) = says[i];
+                text.fontSize = Sz(13);
+                var s = Ui.Set(text, m.S("text") ?? "", 300 - 24);
+                float bw = s.x + 24, bh = s.y + 15;
+                float x = Mathf.Clamp(at.Value.x, bw / 2 + 8, W - bw / 2 - 8), y = Mathf.Max(bh + 8, at.Value.y);
+                Ui.Place(box.rt, x - bw / 2, y - bh, bw, bh);
+                Ui.Place(text.rectTransform, 12, 7, s.x, s.y);
+                Ui.PlaceC(tail.rectTransform, 22, bh - 6.5f, 11, 11);
+            }
+            // the labels
+            var tl = (w?.L("tags") ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
+            while (tags.Count < tl.Count)
+            {
+                var box = Ui.Panel(wordsRoot, "tag", Ui.Page, Ui.Ink, 2, 3, 3);
+                var title = Ui.Label(box.rt, "title", Ui.Sans, 13, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.2f); Ui.Space(title, 0.08f);
+                var text = Ui.Label(box.rt, "text", Ui.Sans, Sz(11), Ui.Ink, TextAnchor.UpperCenter, FontStyle.Normal, 1.2f);
+                tags.Add((box, title, text));
+            }
+            for (int i = 0; i < tags.Count; i++)
+            {
+                var m = i < tl.Count ? tl[i] : null;
+                var at = m != null ? ToCanvas(m.L("at")) : null;
+                Show(tags[i].box, at.HasValue);
+                if (!at.HasValue) continue;
+                var (box, title, text) = tags[i];
+                float maxW = 13 * Sz(13);
+                string ts = (m.S("title") ?? "").ToUpperInvariant(), xs = m.S("text") ?? "";
+                var a = ts.Length > 0 ? Ui.Set(title, ts, maxW) : Vector2.zero;
+                text.fontSize = Sz(11);
+                var b = xs.Length > 0 ? Ui.Set(text, xs, maxW) : Vector2.zero;
+                Show(title, ts.Length > 0); Show(text, xs.Length > 0);
+                float iw = Mathf.Max(a.x, b.x), bw = iw + 24, bh = a.y + b.y + 13;
+                float x = Mathf.Clamp(at.Value.x, bw / 2 + 8, W - bw / 2 - 8), y = Mathf.Max(bh + 8, at.Value.y);
+                Ui.Place(box.rt, x - bw / 2, y - bh, bw, bh);
+                Ui.Place(title.rectTransform, 12, 6, iw, a.y);
+                Ui.Place(text.rectTransform, 12, 6 + a.y, iw, b.y);
+            }
+        }
+        int popSeen;   // (the last pop's id drawn: one gone stays gone)
 
         // ---------------------------------------------------------------- a makers' box's card (issue #345; src/boxes/card.js)
         // as the web's #boxcard: a low cream strip along the foot of the screen, in the letterbox's bottom band, so the item

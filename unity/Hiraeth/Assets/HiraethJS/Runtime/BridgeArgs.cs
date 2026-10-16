@@ -191,6 +191,10 @@ namespace Hiraeth.Bridge
             if (Arg("-trial") != null) args["trial"] = Arg("-trial");
             if (Arg("-game") != null) args["game"] = Arg("-game");
             if (Arg("-run-secs") != null) args["runSecs"] = double.Parse(Arg("-run-secs"), CultureInfo.InvariantCulture);
+            // (-words: with -trial / -game, a fixed set of the minigames' words put up after the run's picture and photographed)
+            if (Flag("-words")) args["words"] = true;
+            // (-set-flags a,b: those flags set on the debug save before the world is built: engine/unity/game.js)
+            if (Arg("-set-flags") != null) args["setFlags"] = Arg("-set-flags");
             // (-foes [world]: the Arena's list of foes photographed, a world's page, a foe chosen and fought: engine/unity/game.js)
             if (Flag("-foes")) args["foes"] = Arg("-foes") is string fw && !fw.StartsWith("-") ? fw : "all";
             if (Flag("-freeze")) args["freeze"] = true;

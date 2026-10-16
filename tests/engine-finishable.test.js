@@ -57,6 +57,9 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   assert.ok(g.journal.storyDone('desert'), 'the desert told: done for the route');
   const gs = g.story.quests.game;
   assert.ok(g.ship.completed().includes('desert'), 'the ship counts it');
+  // a flight refused for a gadget not yet had starts the quest that leads to it (main.js 'travel:refused')
+  gs.emit('travel:refused', { to: 'arzach', missing: ['sword'], quest: 'temple.desert' });
+  assert.ok(g.story.quests.isStarted('temple.desert'), 'the refusal started the Rose House\'s quest');
 
   // every world's story told and every small thing kept: the end of the road's words, once (main.js's closing page)
   const J = g.journal.data;
@@ -113,4 +116,16 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   assert.ok(subs.includes('SOMETHING OF VALUE'), subs.slice(-12).join(' | '));
   assert.ok(subs.includes('The ship is ready whenever you are.'), 'the credits said to their end');
   assert.ok(!f.ship.playing && gs.flag('ending.final'), 'the true ending over');
+
+  // the hoverbike found in the desert stands by the ramp in Viridel, called from the pack; with the bird's promise she
+  // answers there instead (main.js, src/bike-worlds.js, src/bird.js)
+  gs.set('desert.bike.found', true);
+  const e = await hushed(() => B.createGame({ levelId: 'edena', backend, menus: menusStub() }));
+  assert.equal(e.level.mountName, 'hoverbike');
+  assert.equal(e.player.mount?.constructor?.name, 'Hoverbike');
+  gs.set('bird.promise', true);
+  const e2 = await hushed(() => B.createGame({ levelId: 'edena', backend, menus: menusStub() }));
+  assert.equal(e2.level.mountName, 'bird');
+  assert.equal(e2.player.mount?.kind, 'bird');
+  assert.ok(e2.player.opts.canSummon(), 'called out in the open');
 });

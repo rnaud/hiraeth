@@ -71,10 +71,13 @@ export const audio = {
  *   boxCard   { name, text, ok, okLabel, scene, back, skipLabel }   a makers' box opening (boxes/card.js): scene while it
  *             plays (the skip's button), and its card once the item is out (name, what it does, the button to go on)
  *   foeTab    { text, key }   the Arena's tab on the left edge: its list of foes, and the key that opens it (src/foe-spawner.js)
+ *   words     { pops: [{ id, text, kind, at, secs }], says: [{ text, at }], tags: [{ title, text, at }] }   a minigame's words
+ *             in the world (src/minigames/kit/labels.js): the "+10" that floats up from a point (kind '', gold, bad, combo;
+ *             a renderer floats and fades it over secs from when its id first comes), a speech balloon, a label over a thing
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null, foeTab: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null, foeTab: null, words: null },
   version: 0,
   _keys: {},
   set(part, value) {

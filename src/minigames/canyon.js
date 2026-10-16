@@ -709,10 +709,11 @@ function start(ctx) {
       // the pads cool after their flash
       for (const pm of Cy.pads) if (pm.glow > 0 && (pm.glow -= dt / 0.6) <= 0) pm.chev.material = Cy.chevM;
       // sand thrown up off the banks and the drifts; the jets' trails
-      const fx = Math.sin(B.heading), fz = Math.cos(B.heading);
       const churn = (B.sand > 0 || B.drift >= 0) && B.speed > 4 ? Math.min(1, 0.4 + B.sand + (B.drift >= 0 ? 0.6 : 0)) : 0;
       if (churn > 0 && Math.random() < 0.9) burst(1 + churn * 4, churn);
+      // (its own heading: a wall or a drift above calls it before this point, where a const of the block was not yet made)
       function burst(n, k) {
+        const fx = Math.sin(B.heading), fz = Math.cos(B.heading);
         for (let i = 0; i < n; i++) {
           _sp.set(B.x - fx * 1.0 + (Math.random() - 0.5) * 1.2, B.y - 0.8, B.z - fz * 1.0 + (Math.random() - 0.5) * 1.2);
           _sv.set(B.vx * 0.35 + (Math.random() - 0.5) * 6 * k, 2 + 5 * Math.random() * k, B.vz * 0.35 + (Math.random() - 0.5) * 6 * k);

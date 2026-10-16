@@ -42,6 +42,14 @@ export const CHANGELOG = [
     'A new game in the desert, Cistern channels: under the Rose House, turn the Givers’ channel stones ahead of the water so it reaches the Keeper’s troughs before it spills. Three floods, each faster; hold RT / R2 to hurry the water for double points. Ask Nuri by the Rose House’s steps.',
     // the v1.76 prototypes taken out: src/guardian-help/, tests/guardian-help.test.js, boot.js + main.js ?guardianHelp,
     // world-picker.js Prototypes, fluid-kit.js MODES.cannon, fluid-tool.js lent / pourStream / streamCatch
+    // the Unity preview's small gaps (issue #264): kit/labels.js as the screen's 'words', BridgeHud.cs DrawWords / DrawSpeed;
+    // engine/game.js a driving game's camera under its card, the bird and the bike (bird.js, bike-worlds.js), canSummon,
+    // globalThis.weather and the weather's calm, 'travel:refused'; docs/systems/engine-bridge.md "The words in the world"
+    'In the Unity preview the games’ floating score words show over the world as on the web: “+10”, “+250”, “×3”, “spilled”, the shooting gallery keeper’s speech balloon and the Sunken Hall’s labels; the fast games’ speed lines streak in from the screen’s edges too.',
+    'In the Unity preview, Cistern channels’ start card shows the whole court from above, as on the web, not the view from behind the traveller.',
+    // src/minigames/canyon.js: burst() read the block's fx / fz before they were made (a wall's or a drift's burst)
+    'The Canyon run no longer breaks off when the bike hits a wall or ploughs into a sand drift.',
+    'In the Unity preview the hoverbike comes along to the worlds made for riding and Vael’s bird answers your call under open sky, as on the web; rain on Lorn’s Great Crystal makes it sing; and a flight turned down for a missing gadget starts the quest that leads to it.',
     'The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.',
     // issue #376: src/bike-worlds.js trailVehicle (main.js: the trails behind the vehicle ridden, not the mount alone)
     'In Viridel and the Garden of Spheres the hoverbike leaves its glowing trails behind it again. Where Vael’s bird answers your call, the bike waiting by the ship rode without them.',

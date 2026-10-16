@@ -85,11 +85,9 @@ is routing**: turn the stones so the water runs from the spout to the Keeper's f
 
 Both play in the Unity bridge through engine/trials.js (it reads the games from src/minigames/index.js), checked in the
 editor's batch (`scripts/unity-js-run.sh <name> -game elderflight -level arzach`, `-game cistern -level desert`): the
-start card, the 3-2-1, the run with its HUD line, the pause card and the run resumed all draw. Web only for now: the
-floating "+10" / "+250" / "×3" words over the board and the sky (kit/labels.js is DOM: docs/systems/engine-bridge.md,
-"Not drawn yet"); the flashes, the status line and the cards are the bridge's own and show. In the batch the cistern's
-start card is seen from the traveller's follow camera rather than the court's overview; from GO on, both games' own
-cameras.
+start card, the 3-2-1, the run with its HUD line, the pause card and the run resumed all draw, and the floating "+10" /
+"+250" / "×3" words over the board and the sky (the screen's `words`, BridgeHud.cs DrawWords: docs/systems/engine-bridge.md,
+"The words in the world and the speed lines"). The cistern's start card shows the court's overview, as on the web.
 
 ## What the author decides after playing
 

@@ -13,6 +13,8 @@ import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 import { fullGcWatch } from './gc-watch.js';
 import { panSteps } from './pan.js';
+import { WorldLabels } from '../../src/minigames/kit/labels.js';
+import * as THREE from 'three';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
@@ -312,6 +314,11 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     starmapFlags(starScenes[0]);
     args.level = 'desert';
   }
+  // (-set-flags a,b: on the debug save, those flags set first: the hoverbike found, the bird's promise, for a world's picture)
+  if (args.setFlags) {
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    for (const f of String(args.setFlags).split(',').filter(Boolean)) gameState.data.flags[f] = true;
+  }
   const ending = args.ending ? String(args.ending) : null;
   if (ending) {
     slots.setActive(DEBUG_SLOT); gameState.reload();
@@ -523,6 +530,8 @@ function makePlan(args) {
     const tap = (code, frames = 3) => [{ kind: 'key', code, down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code, down: false }, { kind: 'wait', frames }];
     steps.push({ kind: 'wait', frames: 60, secs: 2 }, ...shot('card'), ...tap('Enter', 20), { kind: 'say', text: '[unity] run: counting' }, ...shot('count'),
       { kind: 'wait', frames: 60, secs: 2.6 }, { kind: 'key', code: 'KeyW', down: true }, { kind: 'wait', frames: 60, secs: args.runSecs ?? 3 }, ...shot('run'),
+      // (-words: a fixed set of the minigames' words round the traveller, a second on: BridgeHud's DrawWords against the web's)
+      ...(args.words ? [{ kind: 'key', code: 'KeyW', down: false }, { kind: 'words' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('words')] : []),
       { kind: 'key', code: 'KeyW', down: false }, ...tap('Escape', 10), ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
   }
   if (args.hudRun) {
@@ -581,6 +590,19 @@ function makePlan(args) {
   if (!steps.length) return null;
   if (!args.idle && !args.tour) steps.push({ kind: 'done' });
   return { steps, i: 0, wait: 0, t: 0, samples: null };
+}
+
+/**
+ * The minigames' words for a picture (-words): a pop of each kind round the traveller's head, 4 s long, a balloon to his
+ * right and a tag to his left (src/minigames/kit/labels.js; the web's side the same, scratchpad webshots.mjs).
+ */
+function planWords(game) {
+  const w = new WorldLabels(game.camera), p = game.player.pos, at = (x, y, z) => new THREE.Vector3(p.x + x, p.y + y, p.z + z);
+  w.pop(at(0, 1, -4), '+10', '', 4); w.pop(at(4, 1, -2), '+250', 'gold', 4); w.pop(at(-4, 1, -2), '×3', 'combo', 4); w.pop(at(0, 1, -8), 'spilled', 'bad', 4);
+  const say = w.balloon(); say.show('The water’s in it.', 10); say.place(at(6, 2, 2));
+  w.tag('<b>Longer blade</b>Reaches a step further').place(at(-7, 1, 2));
+  w.update(0);
+  return w;
 }
 
 /** Where a bench path is `s` m along (web-page.mjs runAll's `at`, the same numbers): a view with the traveller in it. */
@@ -779,6 +801,7 @@ export function frame(dt) {
     console.log(`[unity] starmap ${step.scene}: ${ok ? `${v.worlds.length} worlds charted, to find: ${game.starMap.targets.map((t) => t.id).join(' ') || '-'}, picked ${v.panel?.title ?? '-'}${v.ask ? `, ${v.ask.title}` : ''}${v.locked ? ', NO POWER' : ''}` : 'not opened'}`);
     next();
   }
+  else if (step.kind === 'words') { planWords(game); console.log('[unity] words up'); next(); }
   else if (step.kind === 'stage') {
     const c = game.ship?.cinematic, sub = game.screen().state.sub?.text ?? '';
     console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);

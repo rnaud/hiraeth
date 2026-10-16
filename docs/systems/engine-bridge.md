@@ -543,9 +543,37 @@ Tests: tests/engine-trials.test.js.
 (The editor's batch, `BridgeBatch.Run`: its screen is 640 × 480, so its HUD and menus are laid out on a 4:3 canvas, 960
 wide, in the 1280 × 720 picture: the Retroid's shape.)
 
-Not drawn yet: what a game draws on the page of its own (the speed lines' canvas, the drum circle's ring, the sketch
-hunt's frames, the shooting gallery's balloons, kit/labels.js). The foes the Sunken Hall's waves and the trials' calm
-wilds want come with the engine's foes (`foes: null` until then: its rooms open, nothing comes out of the springs).
+**The words in the world and the speed lines** (issue #264). A game's floating score words ("+10", "+250", "×3",
+"spilled"), the speech balloon over someone calling out (the shooting gallery's keeper) and the label over a thing to
+pick (the Sunken Hall's upgrades) are DOM on the page (src/minigames/kit/labels.js `WorldLabels`); the same words are the
+screen's `words` part (`pops`: each with its id, text, kind, world point and length; `says` and `tags` where they were
+last placed), which BridgeHud.cs `DrawWords` draws over the world and under the cards: a pop floats 70 px up from its
+point, pops in at 1.35 × and fades over its last 30 % on the HUD's own clock (cream, gold, vermilion or teal letters
+stroked in ink, the page's face: Avenir Next), the balloon a cream panel with its ink edge, round corners, hard shadow
+and tail, the tag its name in capitals over its words, both held on the screen. The runner's speed lines (`speed` in
+the 'minigame' part, kit/runner.js `speedLines`) are drawn as the page's half-size canvas, ink streaks from the edges
+toward the middle, anew each frame (`DrawSpeed`). A game that drives goes on under its own start and results cards, as
+main.js runs it with no input under them (its pause holds it), and its camera is the first frame's: the start card of
+Cistern channels shows the court from above, not the traveller's follow camera. The bridge's `-words` (with `-trial` or
+`-game`) puts a fixed set of words round the traveller after the run's picture and photographs them (`unity-words.png`),
+the web's side the same words through the page's `WorldLabels`. Tests: tests/minigames-words.test.js,
+tests/engine-trials.test.js.
+
+**The bird and the bike in other worlds, Lorn's rain, a refused flight** (issue #264). engine/game.js makes the mounts
+main.js makes for worlds without their own: Vael's bird under open sky once she has promised (src/bird.js
+`birdAnswers`), else the desert's hoverbike by the ramp in the worlds made for riding (src/bike-worlds.js `bikeComes`),
+their calls' sounds (`callKind`: the rider's call on the flute, the pack's pulse) and no call from a room off the map or
+from inside the ship (`canSummon`). Its weather is the page's `window.weather`, where Lorn's story reads the rain that
+makes the Great Crystal sing, with the web's pace and the desert's calm first arrival. A flight refused for a gadget not
+yet had (`travel:refused`) starts the quest that leads to it. The bridge's `-set-flags a,b` sets flags on the debug save
+before the world is built (`-level edena -set-flags desert.bike.found -walk 1.5 -out …`: the bike by the ramp, as on
+the web). Test: tests/engine-finishable.test.js.
+
+Not drawn yet: what a game draws on a canvas or a panel of its own: the drum circle's ring, sockets and notes
+(src/minigames/drums.js Overlay, a full-screen canvas redrawn each frame), the sketch hunt's list, viewfinder and flash
+(sketchhunt.js), the fishing line's tension panel (fishing.js), the chime pirates' radar canvas and comms panel
+(pirates.js). Each wants its state published and a BridgeHud piece of its own (an afternoon each), or a general
+full-screen raster overlay (engine/raster.js at the screen's size every frame: too slow on the handhelds).
 
 Left for later (issue #264): the language setting (on purpose). The recorded music (D15: Unity decoding the MP3s
 that engine/webaudio.js refuses) wants a round of its own. The Godot spike's keys are not routed through the
