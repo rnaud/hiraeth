@@ -361,6 +361,58 @@ the Linux game requires Linux. CI's software-rendering smoke test does not prove
 frame rate, controller mapping, suspend/resume, or graphics-driver behavior on a
 physical Steam Deck; those still need a device check.
 
+### The pipeline list (the Unity player's shader warm-up)
+
+The Linux player carries a list of every GPU pipeline the worlds draw:
+`unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate`, a Unity 6 GraphicsStateCollection
+(JSON). `BridgePso` warms it on the job system's workers during the load, once the script's engine is made. Without
+it, a pipeline is made the first time its variant is drawn, and on a Deck whose Mesa cache has never seen it the game
+freezes while it is made: 1.0-1.9 s mid-play, and a 4-9 s first frame. Mesa keeps what it made, so the warm-up is
+slow only once: ~11.5 s on the first launch with an empty cache, ~0.7 s after that. Mesa's cache is keyed by the
+shader code and the driver, so it should be slow again only after the shaders change or SteamOS updates Mesa (not
+measured). The
+loading screen holds still while it runs, because the main thread waits for it. Numbers: docs/systems/performance.md,
+"The Steam Deck, round 14".
+
+**Does it go stale?** Unity finds each entry by the shader's name and asset GUID, the pass, the keyword names, and
+hashes of the vertex layout, render state and render pass. It does not use the compiled code, so a shader's code can
+change and the list still matches. This was checked with a player whose Surface shader was changed: all 113 states
+warmed, and the cold first frame was 14 ms. It goes stale when:
+- a shader is renamed or its `.meta` GUID changes;
+- a keyword is renamed or added;
+- a new shader or vertex layout is drawn;
+- the render targets change (a new pass, MSAA, HDR).
+
+`tests/unity-pso.test.js` fails on the first two. An entry that no longer matches is skipped, and its pipeline is
+made at its first draw, as before the list: no crash, only the old freeze. A list missing the Surface shader's lean
+variants gave a 1.75 s first frame again. Unity's own miss tracing (`WarmUp(…, traceCacheMisses)`) records nothing in
+a release player, so the check is the cold launch's longest frame in unity.log (`first frames: … longest`).
+
+**Refreshing it** (after a new shader, keyword, world or render pass; on the Mac, the Deck at steamdeck.local):
+
+```sh
+# a development player: Unity traces in no other (the Linux sysroot: docs/systems/unity.md)
+scripts/unity-export/unity-batch.sh BridgeBuild.Linux -development -out Builds/bridge-linux-dev/hiraeth-js.x86_64
+scripts/bench/deck-unity.sh put unity/Hiraeth/Builds/bridge-linux-dev u-psodev
+node scripts/bench/deck-pso-trace.mjs --unity u-psodev --out <dir> --fresh 1 --lock <dir>
+scripts/bench/deck-unity.sh rm u-psodev
+```
+
+Per world it runs three launches with `-pso-trace`, in a profile, Mesa cache and TMPDIR of the bench's own:
+- the bench views (deck-engines.mjs's), each once, then the walk;
+- the first temple's first room and the ship's rooms;
+- a fight: a blot, knocked out, the guardian woken.
+
+Each launch adds to the same trace on the Deck. It is saved 20 s after the world settles, every 30 s while it grows,
+and at the exit. A launch that dies at the start (the rare SIGSEGV after `InitializeOrResetSwapChain`) is run
+again. The script copies the result to `StreamingAssets/hiraeth-pso/Vulkan.graphicsstate`. Commit it with the change
+that needed it.
+
+Flags for trying a list:
+- `-pso-file <path>` warms another list in place of the shipped one, so a new list can be tried without a build;
+- `-no-pso` turns the warm-up off, for an A/B;
+- `-pso-at start` warms before the script's engine is made, as first measured.
+
 ## Troubleshooting and removal
 
 If Hiraeth does not appear, exit Steam completely and retry registration. A Deck

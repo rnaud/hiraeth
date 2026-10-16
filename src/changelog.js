@@ -89,6 +89,25 @@ export const CHANGELOG = [
         { where: 'the Moon Foundry', before: 105, after: 90 },
         { where: 'the Desert (under 90 either way)', before: 78.3, after: 76.1 },
       ], source: 'the same player with -vsync 0 and with its new default, 15 October', note: 'At 90.0 every refresh gets a new picture; uncapped, the frames came unevenly, 9 to 14 ms apart.' }] },
+    // the Steam Deck's pipeline list (issue #111): unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate,
+    // BridgePso (warmed once the script's engine is made), scripts/bench/deck-pso-trace.mjs, tests/unity-pso.test.js;
+    // docs/systems/performance.md "The Steam Deck, round 14", docs/steam-deck.md "The pipeline list"
+    { text: 'On the Steam Deck, the game no longer freezes for a second or two the first time it draws something new in a world. Every world’s shaders are now prepared while the game loads. The first launch after an install takes a few seconds longer, with the loading screen holding still meanwhile; every launch after it is quicker than before.',
+      numbers: [{ title: 'The first launch on the Steam Deck (an empty shader cache): the longest freeze once the world is up', unit: 'ms', better: 'lower', device: 'Steam Deck OLED, Gaming Mode, 1280 × 800, the Steam Deck preset, every view and walk of the world', rows: [
+        { where: 'Viridel', before: 1878, after: 0 },
+        { where: 'the Desert', before: 1208, after: 0 },
+        { where: 'Vael', before: 1166, after: 0 },
+        { where: 'Lorn', before: 1155, after: 0 },
+        { where: 'the Moon Foundry', before: 1095, after: 0 },
+        { where: 'Home', before: 1007, after: 0 },
+      ], source: 'the same Unity player without and with its list (-no-pso), 16 October', note: 'Six of the 13 worlds froze once, for 1.0–1.9 s; now none has a frame over 50 ms that the shaders cause. The frozen first frame of the load (4–9 s) is gone too.' },
+      { title: 'Launch to the world’s first frame, before → after', unit: 's', better: 'lower', device: 'Steam Deck OLED, the same runs', rows: [
+        { where: 'the Moon Foundry, a later launch', before: 13.9, after: 9.7 },
+        { where: 'Vael, a later launch', before: 17.2, after: 12.9 },
+        { where: 'the Desert, a later launch', before: 14.8, after: 13.2 },
+        { where: 'the Desert, the very first launch', before: 22.3, after: 23.7 },
+        { where: 'the City Floating in Space, the very first launch', before: 14.4, after: 21.9 },
+      ], source: 'the same runs', note: 'Later launches are 0.2–4.3 s quicker in every world; the very first one is 1.4–7.5 s slower, once.' }] },
     // helping a guardian instead of fighting it, as minigames (issue #339): src/minigames/elderflight.js (the sky, the
     // camera, the Elder posed in flight), formation.js (pure: the route, her wake, the slot, the gates, the gusts, her
     // courage, botInput); story/hosts-data.js Corra; tests/minigames-helpers.test.js; docs/design/helper-guardians.md,

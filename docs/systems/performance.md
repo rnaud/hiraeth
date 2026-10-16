@@ -3735,3 +3735,87 @@ frame intervals.
 - **What it would cost.** Either is a few seconds once per build, in place of a 1.2 s stall per new variant in play.
   The size of the list, how long its warm-up takes on the Deck, and whether the specs stay stable between builds all
   need a session of their own. Not done in this round.
+
+## The Steam Deck, round 14: the first-use stall gone, a shipped pipeline list (issue #111, 2026-10-16)
+
+Round 13's open point. The first time a shader variant is drawn on a Deck whose Mesa cache has never seen it, the main
+thread waits on the render thread while RADV makes the pipeline. BridgePrewarm's list was the last launch's only, so it
+could not help.
+
+**What was built** (BridgePso; how to refresh it: docs/steam-deck.md, "The pipeline list").
+- **The list.** A Unity 6 GraphicsStateCollection, traced on the Deck by a development player (`-pso-trace`) over
+  every bench world: 16 worlds, their views and walks, their first temple's first room, the ship's rooms, and a fight
+  with the guardian woken. It ships as `StreamingAssets/hiraeth-pso/Vulkan.graphicsstate`: 125 states of 44 variants,
+  0.5 MB of JSON.
+  - 82 of the 125 states are the Surface shader's.
+  - It converged fast: the first world gave 38 states, the views of all 16 gave 113, and temples, ship and fights 12 more.
+  - The last six worlds added 0-2 states each.
+  - `scripts/bench/deck-pso-trace.mjs` traces it again.
+- **The warm-up.** `WarmUp` on the job system's workers, once the script's engine is made.
+  - The main thread's next frame waits for the whole warm-up on the Deck. Unity's jobs do not keep it drawing.
+  - Warmed first thing at the start (`-pso-at start`, how it was first measured), the engine was made only after the
+    warm-up. Nothing was drawn until ~14 s.
+  - Warmed after the engine, the loading screen is up at ~3 s, then holds still for the warm-up. The first frame of the
+    world comes at the same time either way (the Glass Dunes 20.5 s against 19.8, the desert 23.4 against 23.3).
+  - On an empty Mesa cache it takes 12.7-13.7 s; on a warm one, 1.0-1.1 s.
+  - The drawn prewarm is left out when the list warms (as on the Xbox).
+- A list traced on another platform is left: the APK is Vulkan too, but its layouts are its own.
+- `-pso-file <path>` warms another list without a build. `-no-pso` is the before.
+
+**How it was measured.** A release Linux player of this branch on the Deck OLED: gamescope headless, 1280 × 800,
+90 Hz, the Steam Deck preset, uncapped, muted. Every world got two launches, each condition in a profile of its own:
+- **cold**: the bench's own Mesa cache, TMPDIR (Unity's pipeline cache) and config made empty first;
+- **warm**: the same caches again.
+
+Each launch ran every view once and the walk, with `-slow-ms 50`. The before is the same player with `-no-pso`, as
+the game was until now.
+
+- **First frame** is the launch to the world's first frame (unity.log's first node plus its frame 1).
+- **Longest load frame** is the longest frame from the first node to the world settling.
+- **Stalls** are the frames over 50 ms after the world settled where the main thread was not waiting on the script.
+  These are the render thread's: pipelines. The script's own frames over 50 ms (100-200 ms, at the bench's view
+  changes) were 3-11 a world, the same in both.
+
+The after is the final player with the 125-state list. Home's after is from the same code warmed at the start, with
+113 states (the Deck left the network before Home's final launches).
+
+| world | cold: first frame s | cold: longest load frame | cold: stalls (longest) | warm: first frame s | warm: stalls |
+|---|---|---|---|---|---|
+| Desert | 22.3 → 23.7 | 9 010 → 60 ms | 1 (1 208 ms) → **0** | 14.8 → **13.2** | 0 → 0 |
+| Vael | 19.6 → 24.1 | 6 065 → 90 | 1 (1 166) → **0** | 17.2 → **12.9** | 0 → 0 |
+| Lorn | 19.3 → 23.2 | 6 692 → 79 | 1 (1 155) → **0** | 14.1 → **12.4** | 0 → 0 |
+| Viridel | 15.8 → 21.5 | 5 721 → 93 | 1 (1 878) → **0** | 10.4 → **9.8** | 1 (51) → 0 |
+| Underwater City | 18.7 → 21.2 | 8 697 → 27 | 0 → 0 | 11.5 → **9.6** | 0 → 0 |
+| City-Shaft | 23.8 → 27.7 | 7 088 → 50 | 0 → 0 | 18.1 → **16.7** | 0 → 0 |
+| Glass Dunes | 16.8 → 21.0 | 7 015 → 36 | 0 → 0 | 11.5 → **9.5** | 0 → 0 |
+| Buried Machine | 18.0 → 24.5 | 4 743 → 78 | 0 → 0 | 14.7 → **12.8** | 0 → 0 |
+| Moon Foundry | 15.8 → 20.8 | 5 860 → 31 | 1 (1 095) → **0** | 13.9 → **9.7** | 0 → 0 |
+| Garden of Spheres | 19.8 → 21.4 | 9 173 → 85 | 0 → 0 | 13.9 → **10.4** | 0 → 0 |
+| City Floating in Space | 14.4 → 21.9 | 3 819 → 33 | 0 → 0 | 14.5 → **10.5** | 0 → 0 |
+| Signal Market | 15.9 → 21.8 | 5 189 → 81 | 0 → 0 | 12.1 → **10.3** | 0 → 0 |
+| Home | 14.3 → 18.0 | 6 038 → 72 | 1 (1 007) → **0** | 8.2 → **8.0** | 0 → 0 |
+
+**What it says.**
+- **The first-use stall is gone.**
+  - Before, on a cold cache, 6 of the 13 worlds froze once mid-play, for 1.0-1.9 s: round 12's stall, now caught on
+    the measured views.
+  - After, no world had a render-side frame over 50 ms, cold or warm.
+  - The cold load's frozen first frame, 3.8-9.2 s, is gone too: the longest frame of the load is now 27-93 ms.
+- **What it costs: once, 1.4-7.5 s more to the first frame on an empty cache.** The 12.7-13.7 s warm-up is done for
+  all 16 worlds' pipelines; one world needs about 22 of them. The loading screen holds still meanwhile, where it
+  froze for 4-9 s at the end before.
+- **Warm launches are faster in every world**, by 0.2-4.3 s to the first frame (the Moon Foundry 13.9 → 9.7 s, Vael
+  17.2 → 12.9). The warm-up hits Mesa's cache in ~1 s, and BridgePrewarm's drawn triangles, which it replaces, cost
+  more.
+- **The list stays good between builds.**
+  - A player whose Surface shader was changed still warmed all 113 states of the first list. Its cold first frames were
+    14 ms (the Glass Dunes and the desert), with no stalls.
+  - Unity matches by names, GUIDs, keywords and state hashes, not by the compiled code
+    (`tests/unity-pso.test.js` checks the names, GUIDs and keywords against the project).
+  - A list without the Surface shader's lean variants brought a 1.75 s first frame back. That shows the matching works,
+    and also what a stale list costs.
+  - Unity's own miss tracing (`WarmUp(…, traceCacheMisses: true)`) recorded nothing in a release player, so it is not
+    used.
+- Left: the warm-up holds the main thread on the Deck, so the cold launch's loading screen stands still for ~13 s. If
+  that matters, it could be warmed per world (its ~22 states) or progressively (`WarmUpProgressively`, a few a frame).
+  Not tried.

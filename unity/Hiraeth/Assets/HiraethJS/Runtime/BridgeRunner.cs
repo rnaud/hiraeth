@@ -571,7 +571,7 @@ namespace Hiraeth.Bridge
             // (drawn once the script's engine is made: it is made through this thread, which the prewarm's first frame holds
             // for as long as its pipelines take, 12-15 s on the Xbox; from then on its draws overlap the script's world build)
             if (thread == null || scriptEnvMade.IsSet) BridgePrewarm.Draw(cam, !booted);
-            BridgePso.Tick();
+            BridgePso.Tick(thread == null || scriptEnvMade.IsSet);   // (its warm-up waits for the engine too: it holds this thread as long)
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
             gpuSplit?.Tick();
@@ -929,6 +929,7 @@ namespace Hiraeth.Bridge
             if (audioOut) Debug.Log($"Hiraeth bridge: sound {audioOut.Report()}");
             if (music) Debug.Log($"Hiraeth bridge: music {music.Report()}");
             Debug.Log($"Hiraeth bridge: exit {code}");
+            BridgePso.Exit();   // (the trace's states, or the warm-up's misses, saved before the player goes)
             if (OnExit != null) OnExit(code);
             else Application.Quit(code);
         }
