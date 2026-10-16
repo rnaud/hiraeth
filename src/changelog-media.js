@@ -1074,6 +1074,12 @@ const SRC47E = 'issue #47 scratchpad motion-r5: before/, after/ (node), game-bef
 /** (v1.79, issue #264: the Unity preview's small gaps, the editor's batch on the Mac) */
 const UNITY264_SMALL = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, muted), `scripts/unity-js-run.sh -level desert -game cistern -run-secs 3 -words`: before with the engine’s and the words’ code as they were, after with this change; the web’s side in muted headless Chrome on this branch’s own Vite (port 6352).';
 export const CHANGELOG_MEDIA = {
+  '1.80': [
+    { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [
+      { name: 'fight-cloister-gust', only: 'after', title: 'A gust coming', caption: 'The cloister’s first wave: pale arrows run down a lane of the floor the way the wind will blow, two sky rays in it beside him. A moment later it blows them into the wall.', from: FIGHT341 },
+      { name: 'fight-cloister-door', only: 'after', title: 'Its doorway', caption: 'On the rose cliff north-east of the riders’ monastery: the doorway and Sister Maud, who sweeps the cloister.', from: FIGHT341 },
+    ], see: 'In Vael, cross to the sky stones and walk to the riders’ monastery on the rose cliff: the doorway stands north-east of it. In the cloister, stand clear of a lane when its arrows run, with the crowd in it.' },
+  ],
   '1.79': [
     { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },
     // (issue #370, taken at 95c4da85 before the commit, the same code: the Signal Market's street, Vael's and the Salt Harbour's crowds in the studio; scripts/changelog-shots.mjs)

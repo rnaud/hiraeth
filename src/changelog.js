@@ -56,6 +56,10 @@ export const CHANGELOG = [
     // src/trials/data.js rewards, src/items.js (trial, where; three cosmetics renamed for their new runs)
     { text: 'The mastery trials’ prizes follow the gadgets to their temples, so a run never pays out for a gadget you can’t have yet: the fourth coil is the Tube run’s now, the fourth notch the Glass slalom’s, the fourth pouch the Canyon dive’s, the strong lodestone the Floor round’s, the clear glass the Garden round’s and the wide vane the Courier’s round’s. The Stone circuit, the Reed race and the Lagoon laps give a rider’s cap, a reed pin and a lagoon ribbon.',
       see: 'Open the items page: each trial’s prize says which run gives it. Finish one of the runs above again to win its new prize.' },
+    // the fight temples of the other worlds (issue #341): src/fight-temples/arzach.js (the table), hazards.js (the gusts, the
+    // millstones, the pour, on lanes), dress.js (each world's pillars and things round the hall), rooms.js (a cliff, a
+    // flooded floor, a world's sky); src/minigames/fight-arzach.js; story/hosts-data.js; docs/design/fight-temples.md
+    'A new fight temple in Vael, the Wind Cloister, on the rose cliff by the riders’ monastery over the cloud: four rooms of sky rays, herons and blots seen from high above, and gusts that blow down lanes of the floor. Pale arrows show where first; then the wind shoves you and carries every foe in it into the wall. Clear it for the Rider’s slate colours for your backpack, sword and shield.',
   ] },
   { v: '1.79', date: '2026-10-15', items: [
     // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync

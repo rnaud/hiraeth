@@ -13,6 +13,9 @@ shield. The makers' temples and the fights in the open are untouched.
 to the stone doorway half sunk in the sand (128, 300) and ask Wafa, who keeps watch on its step; or Debug → Games →
 The Sunken Hall (`?game=fight-desert`), or the Arcade's sign.
 
+**Built: Vael's, the Wind Cloister** (v1.80): on the rose cliff by the riders' monastery over the cloud (walk north-east of
+the monastery, past the Almonry), its host Sister Maud; or `?game=fight-arzach`. Below: "The Wind Cloister".
+
 ## The template
 
 A fight temple is a minigame played on foot (docs/systems/minigames.md: `drives: false`, so the walking, the blade,
@@ -112,11 +115,57 @@ apart, the doors on a room's far side so the gates are seen), a one-line game fi
 (the camera never blocked, every room shut but for its doors, the waves, a run to the reward) are written over the
 table: add the new one to them.
 
+## The hazards, the looks (v1.80)
+
+The desert's geysers are spots under him; the other worlds' hazards run on **lanes** (`src/fight-temples/hazards.js`): a
+strip the whole room long, `w` wide (2.4–3.4 m), across the room at `at`, going `dir` along it. A room's table:
+`hazard: { kind, every, n, lanes: [{ along: 'x' | 'z', at, w, dir }] }`. Every `every` s of a wave (the last wave
+`HAZARD.last` 0.75 of it, Gentle 1.6 times as rarely and half the harm) `n` lanes go, the one he stands in (else the
+nearest him) first (`pickLanes`). Each kind warns on the floor, then acts, and a roll's i-frames take him through, as a
+blow's (`player.dodge`); every kind hurts the foes in it too, so the crowd can be led in. The first room of a temple has
+none: it teaches the crowd; there are more, and sooner, deeper in (the tests hold both).
+
+| kind | warns | then | him | the foes in it |
+|---|---|---|---|---|
+| `gust` (Vael) | pale chevrons run down the lane the way it will blow, 1.1 s | the wind blows 0.7 s | shoved along it 11 m/s, a quarter heart, a flinch | buffeted (a cut), carried at 15 m/s toward the wall at its end, slammed there (another) |
+| `stone` (Lorn) | the lane's edges in rust, a millstone rising at its head, 1.4 s | it rolls the length of the room at 8.5 m/s | a heart, thrown out of its way | crushed (three cuts); flyers above it |
+| `pour` (the Foundry) | the channel's rims glow, flickering faster, 1.5 s | slag runs down it at 14 m/s and lies 3.6 s, then crusts over | half a heart a tick (0.7 s) in it | a cut a tick; flyers above it |
+
+The pour's channels are cut into the floor from the start (a dark groove, its rims in the cap's colour), so the floor
+is read before the fight. `S.hazards` (the session) gives the lanes under way to the checks, and `start(room, lane)`.
+
+A table's look: `ground` (the terrain material's options: the desert's `ripples`/`sandInk`, or none), `outside: 'cliff'`
+(a ledge round the walls, then the rock falls 34 m to the cloud: `rooms.js CLIFF`), `water` (a sheet over the rooms and
+doorways at 3.5 cm, pale ripple rings on it; flat, not the lakes' mirror, which washed white from this high), `pillar`
+(`dress.js pillarModel`: the desert's `column`, Lorn's `stack` of millstones, the Foundry's iron `post`), `dress`
+(`dress.js`: what stands round the hall, only on the far side of the walls from the camera, never between a room and
+it: `farSpots`), `sky` and `look` (the world's, handed to `arenaLevel`), and the palette's `glyph` (the springs' rings,
+the gates' marks), `pale`, `gust`, `slag`/`slag2`/`crust`. The doorway's `entrance`: `{ at, heading, level?, near }`
+(`level`: the part of a merged world it stands in, its frame; `near`: the settlement it stands by, for the tests).
+
+## The Wind Cloister (Vael, `src/fight-temples/arzach.js`)
+
+The riders' old monastery court on a spur of the cliff, roofless, its stalls empty, the sea of cloud far under its walls
+(`outside: 'cliff'`; the pennant poles and two broken arches on the ledge behind, `dress: 'cloister'`), in pale stone and
+slate with a sky-blue glyph, at 9.4 in the morning. The doorway is on the rose cliff by the riders' monastery over the
+cloud (the sky stones' frame: `entrance.level 'arzach2'`, (-215, 76.8, -172), its height given, the ground the markers
+find being the plain's under the cliff), facing the monastery; Sister Maud, who sweeps the cloister, offers it.
+
+| room | shape | waves | gusts |
+|---|---|---|---|
+| the riders' stalls | 16 × 12, two stall posts | blots and a ray; blots and two herons | none |
+| the cloister | 22 × 22, its arcade's six columns, a spring in the middle | rays and blots; herons, blots, a gorged ray; blots, rays, a gorged heron | two lanes east and west, one every 6.5 s |
+| the bell walk | a narrow gallery 20 × 10 | herons, rays, blots; blots, rays, a gorged blot | three short lanes across it, two every 5 s |
+| the old roost | 24 × 24, four columns, the altar | rays, blots, herons, a gorged ray; a crab of the sky stones and two herons whole, blots, rays, a gorged heron and blot | four lanes, both ways, two every 5 s |
+
+133 foes, par 4:10; Rider's slate (blue-grey brass, white water). Played through by the scripted player (nothing
+hurting it, stepping out of the lanes): 2:28 to the reliquary, all 133, 28 gusts.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
 |---|---|---|---|
-| Vael | **The Wind Cloister**: a roofless monastery court on a cliff, its gates the riders' old stalls; gusts through the arches shove the crowd | sky rays, herons, blots; a crab of the sky stones at the end | Rider's slate (blue-grey brass, white water) |
+| Vael | **The Wind Cloister** (built, v1.80, above): a roofless monastery court on a cliff, its gates the riders' old stalls; gusts through the arches shove the crowd | sky rays, herons, blots; a crab of the sky stones at the end | Rider's slate (blue-grey brass, white water) |
 | Lorn | **The Drowned Mill**: four flooded rooms of a reed-cutters' mill, the water ankle-deep, the toads lobbing from the millstones | bellows toads, root knots, skitters; a shade at the end | Reed and rust |
 | Viridel | **The Seed Vault**: the white builders' greenhouse cellars, beds of sleeping eyes that wake the moths | signal moths, root knots, a furnace brute at the end | Leafglass |
 | the Underwater City | **The Flooded Gallery**: sealed halls under the glass, the lamps flickering as the jellies ward the crabs | crabs, lantern jellies, sky rays; a lamp tripod at the end | Pearl and tide |

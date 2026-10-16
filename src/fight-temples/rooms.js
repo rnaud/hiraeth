@@ -9,6 +9,7 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { arenaLevel } from '../minigames/kit/world.js';
 import { WALL, ISO, wallBoxes, doorGap, inRoom } from './rules.js';
+import { dressHall, pillarModel } from './dress.js';
 
 /** How far (x, z) is outside the nearest room or doorway (0 inside one), and the way out from it: { d, nx, nz }. */
 export function outside(def, x, z) {
@@ -28,10 +29,14 @@ export function outside(def, x, z) {
  * wall cut down there opens the view to him instead of showing the sand behind it.
  */
 export const BANK = { trench: 3.5, ramp: 3, facing: [-0.35, 0.55] };
+/** A cliff's (def.outside 'cliff'): the ledge beyond the rooms (m from them), how far it falls over, and how deep. */
+export const CLIFF = { ledge: 3.2, fall: 7, drop: 34 };
 const smooth = (e0, e1, v) => { const k = Math.max(0, Math.min(1, (v - e0) / (e1 - e0))); return k * k * (3 - 2 * k); };
 export function hallHeight(def, x, z, H = WALL.h, B = BANK) {
   const { d, nx, nz } = outside(def, x, z);
   if (d <= 0) return 0.03 * Math.sin(x * 0.9) * Math.sin(z * 0.7);
+  // (a court on a cliff, Vael's: a ledge round the walls, then the rock falls away to the cloud far below)
+  if (def.outside === 'cliff') return -CLIFF.drop * smooth(CLIFF.ledge, CLIFF.ledge + CLIFF.fall, d) + 0.25 * Math.sin(x * 0.7 + z * 0.4) * smooth(WALL.t / 2, CLIFF.ledge, d);
   // (how much the way out faces the camera: 0 away from it, 1 toward it, eased round the corners)
   const w = smooth(B.facing[0], B.facing[1], nx * Math.sin(ISO.yaw) + nz * Math.cos(ISO.yaw));
   const dune = (from) => (d > from ? (1.2 + Math.sin(x * 0.11 + z * 0.05) * 0.9 + Math.sin(z * 0.17 - x * 0.04) * 0.6) * Math.min(1, (d - from) / 10) : 0);
@@ -90,7 +95,7 @@ export function* buildHall(scene, def) {
   const P = def.palette;
   const terrain = yield* Terrain.make({
     size: 170, seg: 170, height: (x, z) => hallHeight(def, x, z),
-    material: { color: P.floor, color2: P.floor2, color3: P.floor3, mode: MODE_TERRAIN, ripples: true, sandInk: true },
+    material: { color: P.floor, color2: P.floor2, color3: P.floor3, mode: MODE_TERRAIN, ...(def.ground ?? { ripples: true, sandInk: true }) },
   });
   scene.add(terrain.mesh);
   yield;
@@ -133,9 +138,9 @@ export function* buildHall(scene, def) {
   def.rooms.forEach((r, i) => {
     for (const [x, z] of r.pillars ?? []) {
       const h = WALL.h + 0.6, pillarMat = own(STONE, `p${pi}`), capMat = own(CAP, `p${pi++}c`);
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, h, 10).translate(0, h / 2, 0), pillarMat);
+      // (a world's own: Lorn's a stack of millstones, the Foundry's an iron post; dress.js; the desert's a column)
+      const m = pillarModel(def.pillar, h, pillarMat, capMat);
       m.position.set(x, 0, z);
-      const c = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.3, 1.9).translate(0, h + 0.15, 0), capMat); c.userData.noCollide = true; m.add(c);
       group.add(m);
       cuttables.push({ mesh: m, box: footBox(x - 0.95, x + 0.95, z - 0.95, z + 0.95, h + 0.4), k: 0, kind: 'pillar', see: seeOf(pillarMat, capMat) });
     }
@@ -173,11 +178,35 @@ export function* buildHall(scene, def) {
     group.add(g);
     return { door, gap, group: g };
   });
+  // the floor flooded (Lorn's mill: ankle-deep water over the rooms and their doorways, under the springs and marks)
+  if (def.water) {
+    // (a flat sheet of the water's colour, not the lakes' mirror: from this high the sky's reflection washed it white;
+    // pale rings drawn on it here and there for its ripples)
+    const wm = makeMaterial({ color: def.water.color, color2: def.water.color2, hatch: 0.5 }), ring = makeMaterial({ color: def.water.ripple ?? '#d8eee6', flat: true, glow: 0.3 });
+    const y = def.water.y ?? 0.035;
+    for (const [ri, r] of [...def.rooms, ...def.doors.map((door) => doorGap(def.rooms, door))].entries()) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(r.x[1] - r.x[0] + 0.02, r.z[1] - r.z[0] + 0.02).rotateX(-Math.PI / 2), wm);
+      m.position.set((r.x[0] + r.x[1]) / 2, y, (r.z[0] + r.z[1]) / 2);
+      m.userData.noCollide = true;
+      group.add(m);
+      const n = Math.round((r.x[1] - r.x[0]) * (r.z[1] - r.z[0]) / 40);
+      for (let k = 0; k < n; k++) {
+        const u = ((k * 0.618 + ri * 0.31) % 1), v = ((k * 0.382 + ri * 0.53 + 0.17) % 1), R = 0.35 + ((k * 0.73) % 1) * 0.6;
+        const c = new THREE.Mesh(new THREE.RingGeometry(R, R + 0.06, 20).rotateX(-Math.PI / 2), ring);
+        c.position.set(r.x[0] + 0.8 + u * (r.x[1] - r.x[0] - 1.6), y + 0.004, r.z[0] + 0.8 + v * (r.z[1] - r.z[0] - 1.6));
+        c.userData.noCollide = true;
+        group.add(c);
+      }
+    }
+  }
+  // the world's dressing round the hall (dress.js: Vael's cloud and flags, Lorn's wheel and reeds, the Foundry's crucibles)
+  if (def.dress) dressHall(group, def, terrain);
   scene.add(group);
   yield;
   const spawn = new THREE.Vector3(...def.spawn);
   return arenaLevel({
     ground: terrain, name: def.name, hour: def.hour, spawn,
+    ...(def.sky ? { sky: def.sky } : {}), ...(def.look ? { look: def.look } : {}),
     features: { mount: false, wind: false, jetpack: false, climb: false },
     // (src/foes.js: the game's own, on whatever the setting; no ink for the blade's growth, no chimes of their own (the
     // session drops its loot); the world's own foes: their desert skins and stage, partAt)

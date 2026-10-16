@@ -58,7 +58,7 @@ export function fightTempleGame(def) {
     color: def.palette.glyph,
     build: function* (scene) { return yield* buildHall(scene, def); },
     start: startFightTemple,
-    markers: def.entrance ? [{ level: def.world, at: def.entrance.at, heading: def.entrance.heading }] : [],
+    markers: def.entrance ? [{ level: def.entrance.level ?? def.world, at: def.entrance.at, heading: def.entrance.heading }] : [],
     marker: { model: () => entranceModel(def), stand: def.entrance?.stand },
     table: def,
   };

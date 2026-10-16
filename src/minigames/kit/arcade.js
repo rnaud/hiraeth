@@ -12,7 +12,8 @@ import { GAMES, gameHref } from '../index.js';
 export const ARCADE = 'arcade';
 
 /** The plaza: the signs on a ring `radius` m out, over `arc` radians from the south-west round the north to the south-east. */
-export const ARCADE_RING = { radius: 14, arc: Math.PI * 1.5, stand: 2.4 };
+// (radius 18.5 since the fight temples of Vael, Lorn and the Moon Foundry: 14 left neighbours under 5 m apart)
+export const ARCADE_RING = { radius: 18.5, arc: Math.PI * 1.5, stand: 2.4 };
 
 /** The game `step` places after (+1) or before (-1) the game `id`, round the list (an id not in it: the first or the last). */
 export function cycleGame(games, id, step = 1) {

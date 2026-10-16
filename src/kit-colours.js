@@ -28,6 +28,9 @@ export const KIT_COLOURS = [
   // the desert's Sunken Hall: ember and saffron, the burning tree's colours (src/fight-temples/desert.js)
   { id: 'ember', name: 'Ember', world: 'desert', pack: { brass: '#d8843e', brassDark: '#8e4a2c', canvas: '#b8613c', canvasDark: '#8c432a', cloth: '#f0c45a', leather: '#4e2f22' },
     water: { base: '#e8703a', cream: '#ffe0a6', deep: '#a8382a', pale: '#ffc890', gold: '#f6c14a', light: '#fff2dc' } },
+  // Vael's Wind Cloister: the riders' slate, blue-grey brass and white water (src/fight-temples/arzach.js)
+  { id: 'slate', name: 'Rider’s slate', world: 'arzach', pack: { brass: '#8f9cab', brassDark: '#55606f', canvas: '#c9cdd2', canvasDark: '#8e96a0', cloth: '#9fd6ee', leather: '#3a3f4a' },
+    water: { base: '#e8f2f8', cream: '#ffffff', deep: '#7f9fb8', pale: '#cfe6f2', gold: '#9fd6ee', light: '#ffffff' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;

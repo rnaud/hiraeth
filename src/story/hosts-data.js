@@ -81,6 +81,13 @@ export const HOSTS = {
     say: ['~tired~ Third night I’ve sat on this step. The ink pools down there, and the blots breed in it. Every dusk, more.', '~solemn~ Four rooms, and a lot of them. Small ones: one cut or two. Clear them, and what the makers left on the altar is yours.'],
     lines: ['~tired~ Listen. They’re at it again.'],
   }),
+  // the other worlds' fight temples (src/fight-temples/arzach.js, perdide.js, moonfoundry.js), each by its doorway
+  'fight-arzach': P({
+    id: 'host.fight-arzach', name: 'Sister Maud', title: 'who sweeps the riders’ cloister', color: '#9fb4c8', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#9fb4c8', lining: '#2b211f', cloth: '#f4efe2', legs: '#5a5a6a', hat: '#e6e2d8', hair: '#d8d0c0' }, head: 'hood', look: { prop: 'staff' },
+    say: ['~solemn~ My cloister. The wind comes through it, and now it brings them in.', '~neutral~ Four courts. Many, small. Where the floor shows the wind, let it take them. The altar, after.'],
+    lines: ['~whisper~ Listen. Wind.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

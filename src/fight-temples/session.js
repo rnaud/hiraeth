@@ -20,6 +20,7 @@ import { lendTool, standAt, tune } from '../minigames/kit/onfoot.js';
 import { WorldLabels } from '../minigames/kit/labels.js';
 import { unlockColours, colourById, applyKitColours } from '../kit-colours.js';
 import { reliquaryModel } from './rooms.js';
+import { roomHazards, HAZARD } from './hazards.js';
 import {
   ISO, isoOffset, followIso, SEE, sightPoints, inTheWay, easeSee, seeOpen, AIM, pickTarget, stickToGround, screenUp, screenRight,
   roomAt, inRoom, roomWaves, release, CROWD, headOf, heartChance, chimesFor, pursesFor, totalFoes,
@@ -60,10 +61,10 @@ function shardModel() {
  * it brings rise), an ink geyser about to burst (a dark pool filling to its ember rim), a gorged one's ring, and a
  * pillar of light over each of the last few.
  */
-function warnMarks() {
-  const ember = makeMaterial({ color: '#e8703a', flat: true, glow: 0.9 });
-  const pale = makeMaterial({ color: '#ffc890', flat: true, glow: 0.85 });
-  const ink = makeMaterial({ color: '#2a2440', flat: true });
+function warnMarks(P = {}) {
+  const ember = makeMaterial({ color: P.glyph ?? '#e8703a', flat: true, glow: 0.9 });
+  const pale = makeMaterial({ color: P.pale ?? '#ffc890', flat: true, glow: 0.85 });
+  const ink = makeMaterial({ color: P.ink ?? '#2a2440', flat: true });
   const mesh = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.renderOrder = 2; m.userData.noCollide = true; m.visible = false; return m; };
   return {
     well: () => mesh(new THREE.RingGeometry(0.75, 1.0, 32).rotateX(-Math.PI / 2), ember, 0.09),
@@ -142,11 +143,13 @@ export function startFightTemple(ctx) {
   let furyT = 0;
 
   // ---------------------------------------------------------------- the floor's warnings (issue #368)
-  const W = warnMarks();
+  const W = warnMarks(def.palette);
   const wells = [], geysers = [], filling = [], beacons = Array.from({ length: CROWD.few }, () => ctx.add(W.beacon()));
   const wellMesh = () => wells.find((w) => !w.busy) ?? (wells[wells.length] = { busy: false, m: ctx.add(W.well()) });
   const geyserMesh = () => geysers.find((g) => !g.busy) ?? (geysers[geysers.length] = { busy: false, m: ctx.add(W.geyser()) });
   let pending = [], geyserT = 0;
+  // the world's own hazard in its rooms (hazards.js: Vael's gusts, Lorn's millstones, the Foundry's pour), on lanes
+  const hz = roomHazards({ ctx, def, player, foes, tool, sfx, sound, gentle, mine: () => mine });
 
   // ---------------------------------------------------------------- the aim
   const marks = ctx.add(aimMarks());
@@ -464,7 +467,9 @@ export function startFightTemple(ctx) {
       return mine.filter((f) => f.alive).length;
     },
     /** (the console, the checks: where the run is) */
-    get run() { return { ...run, queue: queue.length, coming: pending.reduce((a, w) => a + w.items.length, 0), standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length }; },
+    get run() { return { ...run, queue: queue.length, coming: pending.reduce((a, w) => a + w.items.length, 0), standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length, hazards: hz.count, hazardsOn: hz.active }; },
+    /** (the checks: the world's hazard, hazards.js) */
+    get hazards() { return hz; },
     update(dt, inp, { live, raw, t: clockNow }) {
       t += dt;
       runClock = clockNow ?? t;   // (the runner's clock: the time the results show)
@@ -508,11 +513,12 @@ export function startFightTemple(ctx) {
           : run.phase === 'wait' ? `On to ${rooms[run.room].name}` : run.phase === 'reward' ? 'Take the reliquary' : '');
         if (player.dead) {
           over = true;
-          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, 'A roll (B / ○) takes you through a blow or a geyser unharmed.'] });
+          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll (B / ○) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`] });
         }
       }
-      // the geysers filling and bursting, the shards and the fury, the last few marked
+      // the geysers filling and bursting, the world's hazard on its lanes, the shards and the fury, the last few marked
       geysersUp(dt);
+      hz.update(dt, { fighting: live && !over && run.phase === 'fight' && !player.dead, room: run.room, last: lastWave() });
       shardsUp(dt);
       lastFew(dt);
       if (over && player.dead && (deadT += dt) > 1.2) player.restart?.();
@@ -567,6 +573,7 @@ export function startFightTemple(ctx) {
       for (const f of mine) f.ring?.removeFromParent();
       for (const w of [...wells, ...geysers]) { w.busy = false; w.m.visible = false; }
       pending = []; filling.length = 0;
+      hz.clear();
       keepBlade();
       if (blade) blade.slashTones = null;
       movers.forEach((m) => m && physics?.removeCollider?.(m));

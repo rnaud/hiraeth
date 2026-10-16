@@ -176,6 +176,45 @@ test('the Sunken Hall on its own page in the engine: its card, B / ○ rolls and
   assert.deepEqual(left, ['?level=desert']);
 });
 
+// the other worlds' fight temples (issue #341: the Wind Cloister, the Drowned Mill, the Pour Floor) on the same runner:
+// their card, the roll and no jump, a wave up out of the springs, their hazard's lanes coming and hurting, Quit home
+for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust']]) {
+  test(`${name} on its own page in the engine: its card, the roll, a wave, its ${kind}, Quit back to ${world}`, async () => {
+    const { exports: X } = await load();
+    const menus = new EngineMenus({});
+    const left = [];
+    const g = await quietly(() => X.createGame({ levelId: world, game: id, from: world, backend, menus, onLeave: (h) => left.push(h) }));
+    await run(g, 2);
+    assert.equal(menus.mode, 'card');
+    const card = menus.view().card;
+    assert.equal(card.title, name);
+    assert.ok(card.rows.some(([, v]) => v === 'roll') && !card.rows.some(([k, v]) => /jump/i.test(`${k} ${v}`)), 'B rolls, no jump');
+    menus.key('Enter');
+    await run(g, 90);
+    assert.equal(g.trials.runner.phase, 'play');
+    const S = g.trials.runner.session;
+    let seen = 0;
+    for (let i = 0; i < 60 && !seen; i++) { await run(g, 2); seen = S.run.standing; }
+    assert.ok(seen >= 1, `the first wave up (${JSON.stringify(plain(S.run))})`);
+    // the second room's hazard, begun under him: it comes, runs and is gone
+    const def = g.trials.runner.def.table, room = def.rooms[1], lane = room.hazard.lanes[0];
+    assert.equal(room.hazard.kind, kind);
+    S.hazards.start(1, lane);
+    assert.equal(S.hazards.active, 1);
+    await run(g, 30);
+    assert.equal(plain(S.hazards.list)[0].kind, kind);
+    await run(g, 240);
+    assert.equal(S.hazards.active, 0, 'and gone');
+    g.trials.runner.ctx.finish({ lines: ['Rooms cleared 4 of 4'] });
+    await run(g, 60);
+    assert.equal(menus.view().card.kind, 'results');
+    menus.navigate(0, 1);
+    menus.action('confirm');
+    await run(g, 1);
+    assert.deepEqual(left, [`?level=${world}`]);
+  });
+}
+
 test('a game that drives (the ring race) moves the traveller itself in the engine', async () => {
   const { exports: X } = await load();
   const menus = new EngineMenus({});
