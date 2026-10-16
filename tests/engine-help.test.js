@@ -53,10 +53,11 @@ test('the desert in the engines: the first steps, the scout\'s find on the cue, 
   assert.match(found, /\d+\s*m|here|ahead|up|down/i, `the find's line: "${found}"`);
   // the sleeping observatory: Naji's sketch, the lens turned beside its dial
   assert.ok(g.expedition, 'the observatory quest made');
-  g.expedition.traveler.greeted = true;
-  // (up to 20 s, not 2 frames: the observatory waits while a line or a cue holds the story busy, which a run's draws
-  // can bring, e.g. Plumb speaking up)
-  run(g, 20 * 20, {}, () => !!g.expedition.state.started);
+  // (met for real: the traveller set down beside Naji. A greeted flag set by hand is cleared by Naji's own update while
+  // he is far off, src/npc.js, so whether the quest saw it came down to the order of the updates)
+  const N = g.expedition.traveler, V0 = g.player.pos.constructor;
+  g.player.teleport(N.pos.clone().add(new V0(1.5, 0.3, 0)), new V0(0, 1, 0), new V0(0, 0, 1));
+  run(g, 20 * 20, {}, () => { N.greeted ||= 1; return !!g.expedition.state.started; });
   assert.ok(g.expedition.state.started, 'started once Naji has been met');
   const turns = g.expedition.state.turns.slice();
   const d = g.expedition.model.dials[0].getWorldPosition(g.player.pos.clone());
