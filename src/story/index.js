@@ -490,7 +490,7 @@ export function createStory(o) {
       _p.copy(anchor).project(camera);
       const on = _p.z < 1 && Math.abs(_p.x) < 1.05 && Math.abs(_p.y) < 1.05;
       // (as data too, platform.js screen.prompt: where it floats, in the world)
-      screen.set('prompt', on ? { text: rt.prompt, key: controller ? PAD.interact : 'E', at } : null);
+      screen.set('prompt', on ? { text: rt.prompt, key: controller ? PAD.interact : 'E', at, words: !!hintsFor('words') } : null);   // (words: the button alone unless hints are full, as below)
       if (on) {
         // (hints full: the button and what it does; otherwise the button alone, a small quiet glyph: src/hint-level.js)
         const words = hintsFor('words'), key = controller ? PAD.interact : 'E', text = words ? `${key} ${rt.prompt}` : key;

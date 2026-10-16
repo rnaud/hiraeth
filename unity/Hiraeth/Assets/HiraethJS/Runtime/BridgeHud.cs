@@ -109,6 +109,7 @@ namespace Hiraeth.Bridge
             BuildGadgets(mono);
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
+            BuildCharge();
             BuildFight(mono);
             BuildGames(mono);     // (the drum circle's ring, the sketch hunt's list, the fishing's meter, the pirates' reticle: BridgeHud.Games.cs)
             BuildMinigame(mono);
@@ -181,8 +182,11 @@ namespace Hiraeth.Bridge
             // the letterbox: 11 % of the height each, 50.5 % with the eyes shut, the eyelids' opening in between (eyelids(k))
             bool lids = c != null && c.Get("lids") is bool l && l, bars = c != null && c.Get("bars") is bool b && b;
             float lid = c != null ? Mathf.Clamp01(c.F("lid", 1)) : 1;
-            float to = lids ? 0.505f : lid < 1 ? 0.505f - (0.505f - 0.11f) * lid : bars ? 0.11f : 0;
-            barH = lids || lid < 1 ? to : Mathf.MoveTowards(barH, to, dt / 1.1f * 0.2f);
+            // (eyes: the lid drives them, over the shut lids too, until they are let go: the page's inline heights; the wake was
+            // all black in Unity once his eyes were open, issue #394)
+            bool eyes = c != null && c.Get("eyes") is bool ey && ey;
+            float to = eyes || lid < 1 ? 0.505f - (0.505f - 0.11f) * lid : lids ? 0.505f : bars ? 0.11f : 0;
+            barH = lids || eyes || lid < 1 ? to : Mathf.MoveTowards(barH, to, dt / 1.1f * 0.2f);
             Show(barTop, barH > 0.001f); Show(barBot, barH > 0.001f);
             Ui.Place(barTop.rectTransform, 0, 0, W, barH * H); Ui.Place(barBot.rectTransform, 0, H - barH * H, W, barH * H);
             // the hint under the top bar
@@ -377,7 +381,8 @@ namespace Hiraeth.Bridge
             DrawMinigame(hud && d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
             DrawWords(hud ? state.O("words") : null);
             DrawToast(state.O("toast"), free);
-            DrawPrompt(state.O("prompt"), free && mg == null);
+            // (and in a scene walked through: the prologue's walk to the voicemail, its E over the button, as the page's, issue #394)
+            DrawPrompt(state.O("prompt"), (free || walk && d == null) && mg == null);
             DrawHealth(hud ? state.O("health") : null);
             DrawKeys(state.O("keys"), free);
             DrawGuardian(free ? state.O("guardian") : null);
@@ -391,6 +396,7 @@ namespace Hiraeth.Bridge
             DrawMarks(free ? state.L("gadgetMarks") : null);
             DrawCine(cine, state.O("sub"));
             DrawBoxCard(state.O("boxCard"));
+            DrawCharge(state.O("charge"));
             DrawEdges(state.O("edges"));
             DrawLock(free ? state.O("lock") : null);
             DrawWarn(free ? state.L("warn") : null);
@@ -1161,6 +1167,63 @@ namespace Hiraeth.Bridge
         float bCardT;
         const int CardBody = 15, CardName = 26;
 
+        // the father's charge lettered low in the lower third (src/story/charge.js showChargeCard, the page's #charge-card;
+        // issue #394: Unity showed nothing as the dust cleared): a band of paper fading out at its ends, the gold mark and
+        // the airy capitals closing up as it comes in, an ink line under them with a gold dot; in over 0.8 s, out over 1.1 s
+        RectTransform charge; Image chargeBand, chargeEdgeL, chargeEdgeR, chargeLine, chargeDot; Label chargeText;
+        int chargeId = -1; float chargeT;
+        static readonly Color ChargePaper = Ui.Hex("#fff6dc", 0.95f);
+        void BuildCharge()
+        {
+            charge = Ui.Node("charge card", root);
+            chargeBand = Ui.Rect(charge, ChargePaper, 0, "band");
+            chargeEdgeL = Ui.Rect(charge, ChargePaper, 0, "edge l"); chargeEdgeR = Ui.Rect(charge, ChargePaper, 0, "edge r");
+            foreach (var e in new[] { chargeEdgeL, chargeEdgeR }) { e.sprite = Fade(); e.type = Image.Type.Simple; }
+            chargeEdgeR.rectTransform.localScale = new Vector3(-1, 1, 1);
+            chargeText = Ui.Label(charge, "text", Ui.Sans, 25, Ui.Ink, TextAnchor.MiddleCenter);
+            chargeText.supportRichText = true;
+            Ui.Space(chargeText, 0.42f);
+            chargeLine = Ui.Rect(charge, Ui.Ink, 0, "line");
+            chargeDot = Ui.Rect(charge, Ui.Hex("#f2c54b"), 5, "dot");
+            charge.gameObject.SetActive(false);
+        }
+        static Sprite fade;
+        /// <summary>A strip from clear to opaque, left to right (the band's soft ends, the page's linear-gradient).</summary>
+        static Sprite Fade()
+        {
+            if (fade) return fade;
+            var t = new Texture2D(32, 1, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            for (int x = 0; x < 32; x++) t.SetPixel(x, 0, new Color(1, 1, 1, x / 31f));
+            t.Apply();
+            return fade = Sprite.Create(t, new Rect(0, 0, 32, 1), new Vector2(0.5f, 0.5f));
+        }
+        void DrawCharge(Dictionary<string, object> c)
+        {
+            bool on = c != null;
+            if (charge.gameObject.activeSelf != on) charge.gameObject.SetActive(on);
+            if (!on) { chargeId = -1; return; }
+            int id = c.I("id");
+            if (id != chargeId) { chargeId = id; chargeT = 0; }
+            chargeT += Time.unscaledDeltaTime;
+            float ms = c.F("ms", 5000) / 1000f, t = chargeT;
+            float a = t < 0.8f ? t / 0.8f : t > ms - 1.3f ? Mathf.Clamp01(1 - (t - (ms - 1.3f)) / 1.1f) : 1;
+            float k = 1 - Mathf.Pow(1 - Mathf.Clamp01(t / 1.8f), 3);   // (the letters closing up, .42 em to .22)
+            Ui.Space(chargeText, Mathf.Round(Mathf.Lerp(0.42f, 0.22f, k) * 100) / 100);
+            chargeText.fontSize = Mathf.RoundToInt(Mathf.Clamp(H * 0.025f * 16 / 9, 16, 27) * ts);
+            var text = $"<color=#f2c54b>{c.S("mark")}</color>  {c.S("text")}";
+            var s = Ui.Set(chargeText, text, W);
+            float bw = Mathf.Min(Mathf.Max(640, s.x + 120), W * 0.88f), bh = s.y + 40, y = H - H * 0.06f - bh - 8 * (1 - k);
+            Ui.Place(charge, 0, 0, W, H);
+            float ex = bw * 0.18f, x0 = W / 2 - bw / 2;
+            Ui.Place(chargeEdgeL.rectTransform, x0, y, ex, bh); Ui.Place(chargeBand.rectTransform, x0 + ex, y, bw - 2 * ex, bh); Ui.Place(chargeEdgeR.rectTransform, x0 + bw - ex, y, ex, bh);
+            Ui.Place(chargeText.rectTransform, W / 2 - s.x / 2, y + 8, s.x, s.y);
+            float lw = Mathf.Min(300, W * 0.6f) * Mathf.Clamp01((t - 0.5f) / 1.2f);
+            Ui.Place(chargeLine.rectTransform, W / 2 - lw / 2, y + 12 + s.y, lw, 2);
+            float d = 10 * Mathf.Clamp01((t - 1.5f) / 0.5f);
+            Ui.Place(chargeDot.rectTransform, W / 2 - d / 2, y + 13 + s.y - d / 2, d, d);
+            foreach (var g in new Graphic[] { chargeBand, chargeEdgeL, chargeEdgeR, chargeText, chargeLine, chargeDot }) { var col = g.color; col.a = (g == chargeBand || g == chargeEdgeL || g == chargeEdgeR ? 0.95f : 1) * a; g.color = col; }
+        }
+
         void BuildBoxCard(Font mono)
         {
             bCard = Ui.Panel(root, "box card", Ui.Cream, Ui.Ink, 2, 4, 4);
@@ -1270,11 +1333,15 @@ namespace Hiraeth.Bridge
             promptKeyText.text = key;
             float kw = Mathf.Max(21, Ui.Measure(promptKeyText, key).x + 10);
             Ui.Place(promptKey.rectTransform, 4, 3, kw, 21);
-            var s = Ui.Set(promptText, p.S("text"), 360);
+            // (the button alone unless hints are full, as the page's .glyph: src/hint-level.js; issue #394, Unity always wrote
+            // "E voicemail" where the page shows the E)
+            bool words = !(p.Get("words") is bool wd) || wd;
+            var s = words ? Ui.Set(promptText, p.S("text"), 360) : Vector2.zero;
+            Show(promptText, words);
             float lh = Mathf.Max(21, Sz(12) * 1.6f);
             Ui.Place(promptKey.rectTransform, 4, 3, kw, lh);
             Ui.Place(promptText.rectTransform, 4 + kw + 6, 3, s.x, lh);
-            float w = 4 + kw + 6 + s.x + 10, h = lh + 6;
+            float w = words ? 4 + kw + 6 + s.x + 10 : kw + 8, h = lh + 6;
             float px = Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), py = Mathf.Clamp(at.Value.y - h, 8, H - h - 8);
             Ui.Place(prompt.rt, px, py, w, h);
             if (trace) tracePrompt.at = Mathf.Approximately(px, at.Value.x - w / 2) && Mathf.Approximately(py, at.Value.y - h) ? World(p.L("at")) : null;   // (not where it is held in at an edge)

@@ -415,6 +415,12 @@ function figureUniforms(seed) {
     uSpan: { value: new THREE.Vector2(0, 1) },
     uCut: { value: new THREE.Vector2(0, 0) },
     uLocal: { value: new THREE.Matrix4() },
+    // (the same, packed as the engines read a material's moving vectors: engine/mirror.js LIVE_VECTORS, issue #394; the
+    // page's shaders read the uniforms above) A: rising, torn, the mouth, the seed; B: the lens's and the top's world y,
+    // the bust's cut; C: the figure's feet (world) and 1 / its scale
+    uHoloA: { value: new THREE.Vector4(0, 0, 0, seed) },
+    uHoloB: { value: new THREE.Vector4(0, 1, 0, 0) },
+    uHoloC: { value: new THREE.Vector4(0, 0, 0, 1) },
   };
 }
 
@@ -506,6 +512,7 @@ export class HoloFigure {
     const B = BUST[P.kind];
     this.u = figureUniforms(Math.random() * 10);
     this.u.uCut.value.set(B.bottom, B.top);
+    this.u.uHoloB.value.z = B.bottom; this.u.uHoloB.value.w = B.top;
     const model = this.humanoid.model;
     const mats = new Map();
     this.char.root.traverse((o) => {
@@ -775,6 +782,10 @@ export class Hologram {
       f.u.uGlitch.value = g;
       f.u.uSpan.value.set(y0, top);
       f.u.uLocal.value.copy(f.object.matrixWorld).invert();
+      const fe = f.object.matrixWorld.elements, fs = Math.hypot(fe[4], fe[5], fe[6]) || 1;
+      f.u.uHoloA.value.set(e, g, f.u.uTalk.value, f.u.uSeed.value);
+      f.u.uHoloB.value.x = y0; f.u.uHoloB.value.y = top;
+      f.u.uHoloC.value.set(fe[12], fe[13], fe[14], 1 / fs);
     }
     this.beamU.uAlpha.value = e;
     this.beamU.uGlitch.value = g;

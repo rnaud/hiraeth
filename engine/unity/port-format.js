@@ -51,6 +51,19 @@ export function portMaterial(spec, id = 0) {
     return { id, name: spec.name ?? '', port: 'planet', body: col(u.uBody), shade: col(u.uShade), mark: col(u.uMark), kind: u.uKind,
       spin: r5(u.uSpin ?? 0), inkK: r5(u.uInkK ?? 1), freq: r5(u.uFreq ?? 1), light: Array.isArray(u.uLight) ? u.uLight.slice(0, 3).map(r5) : [-0.55, 0.5, 0.68], side: 2, plain: 1 };
   }
+  // a recording's figure in light (src/ship/hologram.js: the father's message, the parents at home) → the bridge's
+  // Hiraeth/HoloFigure: its kind (0 a colour, 1 per vertex, 2 the clothes by region, 3 the eyes, 4 its picture), colours,
+  // the face's numbers, and what moves (uHoloA rising, torn, the mouth; uHoloB the span and the bust's cut; uHoloC its
+  // feet and scale: engine/mirror.js LIVE_VECTORS); its beam (uConeH) draws nothing on the page (three's additive blend
+  // of an alpha of 0), so nothing here either
+  if (spec.type === 'shader' && Array.isArray(u.uHoloA) && typeof u.uConeH === 'number') return { id, name: spec.name ?? '', port: 'hidden', side: 2, plain: 1 };
+  if (spec.type === 'shader' && Array.isArray(u.uHoloA) && typeof u.uKind === 'number') {
+    const v4 = (k, d) => (Array.isArray(u[k]) ? [...u[k], 0, 0, 0, 0].slice(0, 4).map(r5) : d);
+    return { id, name: spec.name ?? '', port: 'holo', kind: u.uKind, color: col(u.uColor) ?? [1, 1, 1], color2: col(u.uColor2) ?? [1, 1, 1], color3: col(u.uColor3) ?? [1, 1, 1],
+      skin: col(u.uSkin) ?? [0.91, 0.78, 0.66], tint: col(u.uTint) ?? [0.56, 0.95, 0.9], outfit: v4('uOutfit', [0.13, 0.97, 1.47, 0.64]), glove: v4('uGlove', [0, 0, 0, 0]),
+      face: v4('uFace', [-1, 0, 0, 0]), eyeC: v4('uEyeC', [0.034, 1.7, 0.066, 0.44]), genFace: v4('uGeneratedFace', [0, 0.023, 0, 0]),
+      holoA: v4('uHoloA', [0, 0, 0, 0]), holoB: v4('uHoloB', [0, 1, 0, 0]), holoC: v4('uHoloC', [0, 0, 0, 1]), side: spec.side ?? 0, vertexColors: spec.vertexColors ? 1 : 0, plain: 1 };
+  }
   // another of the game's shaders that the port has its own of: the fire's (story/flames.js → Hiraeth/Flame)
   if (spec.type === 'shader' && Array.isArray(u.uPal) && u.uPal.length >= 15) {
     return { id, name: spec.name ?? '', port: 'flame', pal: u.uPal.slice(0, 15).map(r5), seed: typeof u.uSeed === 'number' ? u.uSeed : 0, k: typeof u.uK === 'number' ? u.uK : 1, side: 2, plain: 1 };

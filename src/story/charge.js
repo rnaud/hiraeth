@@ -25,6 +25,7 @@
 
 import { ENDING_WORLDS, endingUnlocked, homeOpen, finaleOpen, TOWER } from './ending.js';
 import { escapeHtml } from '../prompt-keys.js';
+import { screen } from '../platform.js';
 
 export const CHARGE = {
   title: 'Something of Value',
@@ -129,7 +130,12 @@ export const chargeCardLine = () => CHARGE.words.replace(/\.$/, '').toUpperCase(
  */
 export function showChargeCard({ sound = null, doc = typeof document !== 'undefined' ? document : null, ms = CARD_MS } = {}) {
   sound?.charge?.();
-  if (!doc?.body) return Promise.resolve(false);
+  // (as the screen's 'charge' part too: an engine letters it from there, BridgeHud.cs DrawCharge; issue #394, it showed
+  // nothing in Unity. `id` counts the cards, `ms` how long it stays)
+  const id = (chargeCards += 1);
+  screen.set('charge', { id, mark: CHARGE.mark, text: chargeCardLine(), ms });
+  setTimeout(() => { if (screen.state.charge?.id === id) screen.set('charge', null); }, ms);
+  if (!doc?.body || !doc.head) return Promise.resolve(false);
   if (!doc.getElementById('charge-card-css')) { const s = doc.createElement('style'); s.id = 'charge-card-css'; s.textContent = CSS; doc.head.appendChild(s); }
   doc.getElementById('charge-card')?.remove();
   const el = doc.createElement('div');
@@ -148,3 +154,4 @@ export function showChargeCard({ sound = null, doc = typeof document !== 'undefi
   });
 }
 export const CHARGE_CARD_MS = CARD_MS;
+let chargeCards = 0;

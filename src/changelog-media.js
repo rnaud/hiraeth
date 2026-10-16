@@ -1091,8 +1091,13 @@ const DOORS391G = 'Issue #391: the running game in muted headless Chrome (ANGLE 
 const SWORD390 = 'muted headless Chrome on this Mac, High, 1280 × 720, the Arena at 10:00, a blot (its health raised) fought with the combo, the camera off his right front quarter, origin/main against issue #390’s change; 16 October; cwebp -q 72';
 /** (v1.82, issue #395: the Unity build's render scale on the AYN Thor) */
 const THOR395 = 'Issue #395: the Unity testers’ APK on the AYN Thor (adb, muted, the frame readout on, the bench’s plan -views … -bench 6 in one sitting); before: the installed v1.82 build (build 2490, Handheld at 0.75 of 1920 × 1080), after: this change’s build (0.5); the pictures are the bench’s own frames of the desert’s spawn from this change’s build, before held at 0.75 (-render-scale 0.75), the middle 1280 × 720 cut at full size; 16 October; cwebp -q 72';
+const OPENING394 = 'Issue #394: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720; its HUD laid out for the batch’s 4:3 window, so the letterbox stops short of the right edge in both), a new save’s prologue photographed beat by beat by -opening (engine/opening-beats.js), before and after the fix; 16 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.82': [
+    { match: 'In the Unity version the opening plays as it does on the web', shots: [
+      { name: 'unity-father', caption: 'Eight seconds into the father’s message: before, nothing over the dash; after, his hologram, as on the web', from: OPENING394 },
+      { name: 'unity-wake', caption: 'Waking, three and a half seconds in: before, the eyelids still shut over everything; after, the cabin’s ceiling as his eyes open', from: OPENING394 },
+    ], see: 'Start a new game in the Unity version: wake in the cabin, walk to the console and press A / × at the voicemail’s button.' },
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
       { name: 'fight-runs', only: 'after', title: 'Two runs of the Wind Cloister', caption: 'The same temple drawn from two seeds, seen from above: the bell walk and the cloister in the other order, the rooms laid out another way and turned, the waves drawn again (each room’s count of foes below it); the stalls first and the old roost last both times.', from: 'tests/fight-generate.test.js’s draws, the plans drawn from src/fight-temples/generate.js drawRun(ARZACH_FIGHT, 3) and (…, 8) as SVG and shot in muted headless Chrome; 16 October; cwebp -q 72' },
     ], see: 'Go into any fight temple twice: the rooms come in another order and layout. At the end, the card gives the run’s number: add ?seed= and that number to the address to play the same run again.' },

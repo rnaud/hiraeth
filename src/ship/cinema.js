@@ -305,7 +305,7 @@ export class Cinema {
     this._held = [];         // lines said while the caption has the screen (say(): they come after it)
     this._objPending = null; // the objective card, waiting its turn
     // what the scene shows, as data too (src/platform.js screen 'cine' and 'sub': an engine's HUD draws them, issue #264)
-    this.scr = { bars: false, lids: false, lid: 1, fade: 0, white: false, secs: 0.6, red: 0, hint: '', skip: null, hud: true, walk: false };
+    this.scr = { bars: false, lids: false, lid: 1, eyes: false, fade: 0, white: false, secs: 0.6, red: 0, hint: '', skip: null, hud: true, walk: false };
     if (!this.dom) return;
     if (!document.getElementById('cine-css')) {
       const st = document.createElement('style'); st.id = 'cine-css'; st.textContent = CSS; document.head.appendChild(st);
@@ -334,7 +334,7 @@ export class Cinema {
   /** The scene's pieces as data (screen.cine), for an engine to draw; null when none shows. */
   _cine(part) {
     const S = Object.assign(this.scr, part);
-    screen.set('cine', S.bars || S.lids || S.lid < 1 || S.fade > 0 || S.red > 0 || S.hint || S.skip || !S.hud ? { ...S } : null);
+    screen.set('cine', S.bars || S.lids || S.eyes || S.lid < 1 || S.fade > 0 || S.red > 0 || S.hint || S.skip || !S.hud ? { ...S } : null);
   }
 
   bars(on) {
@@ -349,12 +349,12 @@ export class Cinema {
   /** Eyelids opening: k = 0 closed .. 1 open (drives the bar heights directly). */
   eyelids(k) {
     this._lidK = k;
-    this._cine({ lid: +Math.max(0, Math.min(1, k)).toFixed(3) });
+    this._cine({ lid: +Math.max(0, Math.min(1, k)).toFixed(3), eyes: true });   // (eyes: the lid drives the bars until releaseLids, over the shut lids' too: the page's inline heights; issue #394)
     if (!this.dom) return;
     const h = 50.5 - (50.5 - 11) * Math.max(0, Math.min(1, k));
     for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = 'none'; b.style.height = `${h}vh`; }
   }
-  releaseLids() { this._lidK = 1; this._cine({ lid: 1 }); if (this.dom) for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = ''; b.style.height = ''; } }
+  releaseLids() { this._lidK = 1; this._cine({ lid: 1, eyes: false }); if (this.dom) for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = ''; b.style.height = ''; } }
 
   /**
    * A subtitle, replacing the one up. opts.secs: take it down after that long;

@@ -30,6 +30,11 @@ export const CHANGELOG = [
     // kit/marker.js, the hosts beside it (hosts-data.js FIGHT_STAND), the Oil Exchange's and the Lift Depot's spots moved;
     // tests/fight-entrance.test.js
     'Every fight temple now has a small gatehouse you can pick out from far off: two crossed blades over a shield on its roof, a banner with the crossed blades on each pillar, a lit ring on the ground before its door, all in the world’s own colours, the same sign in every world. Its doorway glows like the others and is dark right up to the lintel (the old one showed a strip of sky under it). In the City-Shaft and the City Floating in Space it stands a few steps from the old door, where it has room.',
+    // issue #394 (Unity): the hologram mirrored (engine/game.js, port 'holo', Hiraeth/HoloFigure, the father's picture
+    // decoded by Unity: engine/boot.js engineImages, BridgeRenderer.TextureImage), the cine's eyes, the prompt drawn in
+    // the walk (as a glyph unless hints are full), the charge card as the screen's 'charge', tool.swordOn;
+    // tests/engine-hologram.test.js, tests/charge.test.js; scripts/unity-compare/opening.mjs
+    'In the Unity version the opening plays as it does on the web: you wake with your eyes opening on the ship’s cabin instead of a black screen, the voicemail’s button shows its E as you come up to it, your father’s message rises over the dash as his hologram (there was nothing there), his charge is lettered on the sand as the dust clears, and no sword hangs on your back before you have found one.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

@@ -74,3 +74,11 @@ test('the title card sounds even without a page (and resolves)', async () => {
   assert.equal(await showChargeCard({ sound: { charge: () => rang++ }, doc: null }), false);
   assert.equal(rang, 1);
 });
+
+test('the title card is the screen\'s too, for an engine to letter, and goes when it is done (issue #394)', async () => {
+  const { screen } = await import('../src/platform.js');
+  await showChargeCard({ doc: null, ms: 40 });
+  assert.deepEqual({ ...screen.state.charge, id: 0 }, { id: 0, mark: CHARGE.mark, text: 'BRING BACK SOMETHING OF VALUE', ms: 40 });
+  await new Promise((r) => setTimeout(r, 80));
+  assert.equal(screen.state.charge, null);
+});

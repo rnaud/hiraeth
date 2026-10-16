@@ -96,6 +96,7 @@ import { makeCombat } from './combat.js';
 import { guardianHint, openHint, Struggle } from '../src/temples/hints.js';
 import { guardianBar } from '../src/temples/boss.js';
 import { setSkinColours } from '../src/characters/skin-colours.js';
+import { HOLO } from '../src/ship/hologram.js';
 import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
 import { ToolHud, SaveGame } from '../src/ui.js';
 import { screen } from '../src/platform.js';
@@ -728,6 +729,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     ship.cinema.dom = false;
     quiet(() => ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans, levels: LEVELS, order: ORDER,
       titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), go: (to) => onTravel?.(to) }));
+    // the recordings' hologram (src/ship/hologram.js): on the page a scene of its own drawn over the finished picture
+    // (HOLO.render); here that scene hangs in the mirrored one, its figures drawn by the engine in light over its ink
+    // (Unity: Hiraeth/HoloFigure, port-format.js 'holo'), as the veils' washes are (issue #394: the father's message showed
+    // nothing in Unity)
+    if (ship.holo) scene.add(HOLO.scene);
   }
   // the holo table's galactic map (engine/starmap.js: the page's StarMap and its signature search), drawn by the menus
   // (BridgeMenu.StarMap.cs) from the options the ship gave its own StarMap in attach
@@ -1575,6 +1581,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
       try {
+        // (the sword and the shield only once found, as main.js armTool: unset, the sword hung on his back from the
+        // opening on in Unity, and cut, before the Rose House gave it; issue #394)
+        if (tool?.items) { tool.swordOn = fight || !!tool.items.has('sword'); tool.shieldOn = fight || !!tool.items.has('shield'); }   // (a fight's bench, -fight: armed, as the Arena lends them)
         tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned || drives || player.god);   // (a game on foot keeps the blade and the gun)
         gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);

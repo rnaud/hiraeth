@@ -9,7 +9,7 @@ import { skinMatrices } from '../skin.js';
 import { packClothDesc } from '../cloth.js';
 import { packCapeDesc, writeCapePacket } from '../cape-job.js';
 
-const OVER = new Set(['veil', 'pitvoid', 'wisp', 'doorlight']);   // (drawn over the ink: no shadow)
+const OVER = new Set(['veil', 'pitvoid', 'wisp', 'doorlight', 'holo']);   // (drawn over the ink: no shadow)
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
 export class UnityBackend {
@@ -79,7 +79,8 @@ export class UnityBackend {
     if (pm.port) this.ports.set(mid, pm.port);
     // a picture on it (makeMaterial's map: a canvas the game drew, engine/raster.js, or a DataTexture's bytes): sent first,
     // the material names it (BridgeRenderer.Texture, the Surface shader's _Map)
-    const tex = m?.uniforms ? (m.uniforms.uHasMap?.value > 0.5 ? m.uniforms.uMap?.value : null) : m?.map;
+    // (a recording's figure in light, src/ship/hologram.js: its own picture when it has one, the father's generated body)
+    const tex = m?.uniforms ? (m.uniforms.uHasMap?.value > 0.5 || (pm.port === 'holo' && pm.kind === 4) ? m.uniforms.uMap?.value : null) : m?.map;
     const tid = tex ? this._texture(tex) : 0;
     if (tid) pm.map = tid;
     this.host.Material(mid, JSON.stringify(pm));
@@ -95,6 +96,17 @@ export class UnityBackend {
     const tids = (this.tids ??= new WeakMap());
     let t = tids.get(tex);
     if (t !== undefined) return t?.id ?? 0;
+    // (a picture a model file carries, still encoded (JPEG, PNG: engine/boot.js engineImages): Unity decodes it, issue #394)
+    const enc = tex.userData?.encoded;
+    if (enc?.bytes && this.host.TextureImage) {
+      t = { id: (this.nextTex = (this.nextTex ?? 0) + 1), tex, sent: 0, version: tex.version };
+      tids.set(tex, t);
+      const mips = tex.generateMipmaps !== false && tex.minFilter !== 1006 && tex.minFilter !== 1003;
+      const flags = (tex.flipY ? 1 : 0) | (tex.colorSpace === 'srgb' ? 2 : 0) | (mips ? 4 : 0) | (tex.magFilter === 1003 ? 8 : 0);
+      this.host.TextureImage(t.id, this.toHost(enc.bytes.slice().buffer), flags);
+      (this.stats.textures ??= { sent: 0, bytes: 0 }).sent++; this.stats.textures.bytes += enc.bytes.length;
+      return t.id;
+    }
     const img = tex.image, d = img?.data;
     const rgba = d && (d instanceof Uint8Array || d instanceof Uint8ClampedArray) && img.width > 0 && img.height > 0 && d.length >= img.width * img.height * 4
       && (tex.isDataTexture ? tex.format === 1023 && (tex.type ?? 1009) === 1009 : true);   // (THREE.RGBAFormat, UnsignedByteType)
@@ -135,7 +147,8 @@ export class UnityBackend {
     const fluid = specs.some((s) => s?.defines?.FLUID);
     // (a material three draws nothing with, visible false: a shaft of light's mesh, src/veil.js LightShaft, drawn only as its
     // wash; drawn opaque white before, issue #263): a node with no mesh, so nothing drawn and no geometry sent for it)
-    const hidden = specs.length > 0 && specs.every((s) => s?.visible === false);
+    // (and one the page draws nothing with by its blending: the hologram's beam, port 'hidden')
+    const hidden = specs.length > 0 && (specs.every((s) => s?.visible === false) || d.mids.every((m) => this.ports.get(m) === 'hidden'));
     const mesh = d.gid && !hidden ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form, vmat) : null;
     if (d.kind === 'instanced' && d.mids.some((m) => this.ports.get(m) === 'print')) {
       // the footprints: the port's Puffs (its Print decal), instanced from op 10

@@ -222,6 +222,8 @@ namespace Hiraeth.Bridge
             if (Flag("-arrive")) args["arrive"] = true;
             // (-ending first|final: the homecoming played on the debug save, its pictures every -ending-every secs: engine/unity/game.js)
             if (Arg("-ending") != null) args["ending"] = Arg("-ending");
+            // (-opening: a new save's prologue on the debug save, photographed beat by beat: engine/opening-beats.js, issue #394)
+            if (Flag("-opening")) args["opening"] = true;
             if (Arg("-ending-every") != null) args["endingEvery"] = double.Parse(Arg("-ending-every"), CultureInfo.InvariantCulture);
             // (-starmap search,warm,found,system,ask,nopower: the holo table's galactic map aboard, each scene photographed: engine/starmap.js)
             if (Arg("-starmap") != null) args["starmap"] = Arg("-starmap");

@@ -59,7 +59,7 @@ export const audio = {
  *   keys      { small, big }                     the key counter while in a temple: small keys in hand, the great key (hud.js keysHud)
  *   dialogue  { name, title, color, text, shown, done, speaker, choices: [{ text, tone, index }], more }
  *   choice    the answer a pad has picked (an engine's: the page focuses a button instead)
- *   cine      { bars, lids, lid, fade, white, secs, red, hint, skip: { k, label, press }, hud, walk }  a ship's scene
+ *   cine      { bars, lids, lid, eyes, fade, white, secs, red, hint, skip: { k, label, press }, hud, walk }  a ship's scene
  *             (ship/cinema.js): the letterbox, the eyes' opening, the fade, the alarm's wash, the hint, hold-to-skip,
  *             the game's HUD hidden (hud false) but for the cue in a scene you walk through (walk)
  *   sub       { who, cls, text, id }             the scene's subtitle (ship/cinema.js): the speaker's tag and the line
@@ -74,6 +74,7 @@ export const audio = {
  *             through the scene (the traveller's bones, the thing's object)
  *   boxCard   { name, text, ok, okLabel, scene, back, skipLabel }   a makers' box opening (boxes/card.js): scene while it
  *             plays (the skip's button), and its card once the item is out (name, what it does, the button to go on)
+ *   charge    { id, mark, text, ms }   the father's charge lettered low in the lower third (story/charge.js showChargeCard)
  *   foeTab    { text, key }   the Arena's tab on the left edge: its list of foes, and the key that opens it (src/foe-spawner.js)
  *   words     { pops: [{ id, text, kind, at, secs }], says: [{ text, at }], tags: [{ title, text, at }] }   a minigame's words
  *             in the world (src/minigames/kit/labels.js): the "+10" that floats up from a point (kind '', gold, bad, combo;
@@ -86,7 +87,7 @@ export const audio = {
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null },
   version: 0,
   _keys: {},
   set(part, value) {

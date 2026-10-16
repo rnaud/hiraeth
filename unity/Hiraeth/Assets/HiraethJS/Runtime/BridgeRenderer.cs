@@ -66,7 +66,7 @@ namespace Hiraeth.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door" };   // (engine/mirror.js LIVE_VECTORS)
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC" };   // (engine/mirror.js LIVE_VECTORS)
         public double msCloth;
         /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
         public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();
@@ -395,6 +395,26 @@ namespace Hiraeth.Bridge
             Count("texture");
         }
 
+        /// <summary>
+        /// A picture a model file carries, still encoded (engine/boot.js engineImages: the father's generated body, issue #394):
+        /// decoded by Unity, its rows put top first as a canvas's bytes are, then on as Texture's (the flags the same).
+        /// </summary>
+        public void TextureImage(int tid, byte[] b, int flags)
+        {
+            var tmp = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if (b == null || !tmp.LoadImage(b, false)) { Destroy(tmp); Debug.LogWarning($"Hiraeth bridge: picture {tid} not decoded"); return; }
+            int w = tmp.width, h = tmp.height, row = w * 4;
+            var px = tmp.GetPixels32();
+            Destroy(tmp);
+            var top = new byte[w * h * 4];
+            for (int y = 0; y < h; y++)
+            {
+                int src = (h - 1 - y) * w, o = y * row;   // (Unity's rows go bottom up)
+                for (int x = 0; x < w; x++) { var c = px[src + x]; top[o++] = c.r; top[o++] = c.g; top[o++] = c.b; top[o++] = c.a; }
+            }
+            Texture(tid, top, top.Length, w, h, flags);
+        }
+
         public void Material(int mid, string json)
         {
             var m = Json.Parse(json) as Dictionary<string, object>;
@@ -465,6 +485,28 @@ namespace Hiraeth.Bridge
                 if (inv != null && inv.Count == 16) for (int j = 0; j < 16; j++) im[j] = Json.Num(inv[j]);   // (both column-major)
                 pv.SetMatrix("_Inv", im);
                 materials[mid] = pv;
+                return;
+            }
+            if (m.S("port") == "holo" || m.S("port") == "hidden")
+            {
+                // a recording's figure in light (src/ship/hologram.js: the father's message, the parents at home), drawn over the
+                // finished picture and tested against the G-buffer's depth as the page's HOLO.render (Hiraeth/HoloFigure); _HoloA..C
+                // live (rising, torn, the mouth; the span and the cut; the feet and scale). Its beam ('hidden') draws nothing
+                var hm = new Material(Shader.Find("Hiraeth/HoloFigure")) { name = "hologram (bridge)" };
+                Vector4 H4(string k, Vector4 d) { var l = m.L(k); if (l == null) return d; for (int j = 0; j < l.Count && j < 4; j++) d[j] = Json.Num(l[j]); return d; }
+                hm.SetFloat("_Kind", m.F("kind"));
+                hm.SetVector("_Color", H4("color", Vector4.one)); hm.SetVector("_Color2", H4("color2", Vector4.one)); hm.SetVector("_Color3", H4("color3", Vector4.one));
+                hm.SetVector("_Skin", H4("skin", Vector4.one)); hm.SetVector("_Tint", H4("tint", new Vector4(0.56f, 0.95f, 0.9f, 1)));
+                hm.SetVector("_Outfit", H4("outfit", new Vector4(0.13f, 0.97f, 1.47f, 0.64f))); hm.SetVector("_Glove", H4("glove", Vector4.zero));
+                hm.SetVector("_Face", H4("face", new Vector4(-1, 0, 0, 0))); hm.SetVector("_EyeC", H4("eyeC", new Vector4(0.034f, 1.7f, 0.066f, 0.44f)));
+                hm.SetVector("_GenFace", H4("genFace", Vector4.zero));
+                hm.SetVector("_HoloA", H4("holoA", Vector4.zero)); hm.SetVector("_HoloB", H4("holoB", new Vector4(0, 1, 0, 0))); hm.SetVector("_HoloC", H4("holoC", new Vector4(0, 0, 0, 1)));
+                hm.SetFloat("_VertexColors", m.F("vertexColors"));
+                int hs = m.I("side");
+                hm.SetFloat("_Cull", hs == 2 ? (float)CullMode.Off : hs == 1 ? (float)CullMode.Front : (float)CullMode.Back);
+                int hmap = m.I("map");
+                if (hmap > 0) UseMap(hm, hmap);
+                materials[mid] = hm;
                 return;
             }
             if (m.S("port") == "planet")

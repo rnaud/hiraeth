@@ -1692,6 +1692,32 @@ node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,un
 
 Run it again on every Unity release, before the Deck's and the Retroid's defaults move to it.
 
+## The opening, beat by beat (Unity + Puerts, 2026-10-16, issue #394)
+
+"Unity: opening cinematic on android seems a bit bugged out, father's hologram is not working, there is no button
+prompt on the voicemail machine, etc." The prologue compared with the web at seventeen beats (engine/opening-beats.js:
+a stage of src/ship/prologue.js and how far into it), a new save on each side: the web's
+`node scripts/unity-compare/opening.mjs web <dir>` (headless Chrome, `?level=desert&prologue=1`, its own Vite port), the
+bridge's `scripts/unity-js-run.sh opening -opening -out <dir>` (the debug save emptied, the beats photographed and the
+screen's cine, subtitle and prompt logged; at `console` the traveller is put at the cockpit's point and E pressed), the
+sheet by `opening.mjs sheet <web> <unity> <sheet.jpg>`. What differed, all fixed:
+
+| Beat | Unity before | Cause, fix |
+|---|---|---|
+| wake | black for the whole wake | the cine's `lids` drew the bars shut whatever the eyes' opening (the page's inline heights win over its `.lids` class). The scene's state says `eyes` while `eyelids(k)` drives them (src/ship/cinema.js), and BridgeHud lets the lid set the bars over the shut lids until `releaseLids` |
+| walk, console | no E over the voicemail's button | the screen's prompt was there (#350) but BridgeHud drew it only with the HUD on; a scene walked through (`cine.walk`) draws it now. And as the page: the button alone (a glyph) unless hints are full (`prompt.words`, src/hint-level.js), where Unity always wrote "E voicemail" |
+| call, pause | no father over the dash | the hologram (src/ship/hologram.js) is a scene of its own the page draws over its finished picture (`HOLO.render`), which the mirror never walked. engine/game.js hangs `HOLO.scene` in the mirrored scene (as the veils'); its figures' materials go as port `'holo'` to **Hiraeth/HoloFigure** (the page's fragment: kinds, two tones, edge, scanlines, flicker, the bust's grains, the slices torn sideways, the mouth; over the finished picture at Transparent+40, premultiplied, tested by hand against `_GNormalTex.w`), what moves in three live vectors (`uHoloA` rising, torn, mouth, seed; `uHoloB` the span and the cut; `uHoloC` the feet and 1 / scale: LIVE_VECTORS, `_HoloA..C`). The beam, cone, rings and motes draw nothing on the page (three's AdditiveBlending of an alpha of 0), so they go as port `'hidden'`: no mesh |
+| call | (and the father's own picture) | his generated body (public/characters/father-v1) carries a JPEG the VM cannot decode: for the models `ENCODED_PICTURES` names, engine/boot.js `engineImages` keeps a glTF's image encoded on a Texture (`userData.encoded`), the backend sends it as `BridgeHost.TextureImage` and Unity decodes it (`BridgeRenderer.TextureImage`, rows put top first, then as a canvas's). The guardians keep their vertex colours (src/characters/skin-colours.js) |
+| settle | no "✦ BRING BACK SOMETHING OF VALUE" | src/story/charge.js `showChargeCard` lettered it in the page only; it is the screen's `charge` part too (`{ id, mark, text, ms }`), BridgeHud `DrawCharge` letters it on its paper band, the capitals closing up, the ink line and its gold dot |
+| every beat with him | the sword's hilt on his back from the first step | engine/game.js never set `tool.swordOn` / `shieldOn` (main.js `armTool`): unset is armed, so the sword hung there (and cut) before the Rose House gave it. Set from the items each frame, as the page |
+
+Left as they are: the batch's HUD is laid out for its 4:3 window while the shot is 16:9, so in these pictures the
+letterbox, the subtitles and the skip stop at three quarters of the width (a player's own screen is right); the HUD's
+mono type against the page's; his hair darker close up (the ink's spot blacks, not the opening's). A slice of the
+hologram torn sideways in one picture is the page's own spike of glitch, at random. Tests: tests/engine-hologram.test.js
+(the eyes, no sword, the prompt in the walk, the figures as `'holo'` with his encoded picture, the beam hidden, the live
+vectors), tests/charge.test.js (the card as the screen's).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

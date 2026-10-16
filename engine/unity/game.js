@@ -20,6 +20,8 @@ import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
 import { UnityUpdates } from './updates.js';
 import { STARMAP_SCENES, STARMAP_BASE, poseStarMap } from '../starmap.js';
+import { OPENING_BEATS, beatDue } from '../opening-beats.js';
+import { PROLOGUE_STAGES } from '../../src/ship/prologue.js';
 import { readHref } from '../trials.js';
 import { Controller } from '../../src/controller.js';
 import { Settings, SaveGame, TEXT_SIZES } from '../../src/ui.js';
@@ -70,7 +72,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.noTitle || a.trial || a.game || a.ending || a.starmap || a.updatesPage);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.noTitle || a.trial || a.game || a.ending || a.opening || a.starmap || a.updatesPage);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -331,6 +333,12 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     slots.setActive(DEBUG_SLOT); gameState.reload();
     for (const f of String(args.setFlags).split(',').filter(Boolean)) gameState.data.flags[f] = true;
   }
+  // (-opening: a new save's prologue played on the debug save, emptied first, photographed beat by beat: issue #394)
+  if (args.opening) {
+    slots.setActive(DEBUG_SLOT); gameState.reload(); gameState.reset();
+    try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
+    args.level = 'desert'; prologue = true;
+  }
   const ending = args.ending ? String(args.ending) : null;
   if (ending) {
     slots.setActive(DEBUG_SLOT); gameState.reload();
@@ -339,7 +347,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (the ship's scenes play only with menus: an -ending run makes its own, never opened)
   // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save; -devmenu:
   // the dev menu is one of the menus too, with the player's settings for its frame readout)
-  const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
+  const menus = S.menus ?? (ending || args.opening || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
     : args.foes || args.devmenu ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
@@ -634,6 +642,18 @@ function makePlan(args) {
     // (the first world: the hand-over, then the engine starts again; the second: done)
     steps.push(args.boot ? { kind: 'done' } : { kind: 'page', to, from }, { kind: 'hold' });
   }
+  if (args.opening) {
+    // (-opening: the prologue's beats, engine/opening-beats.js, each photographed with what the screen shows logged; at the
+    // console the traveller put at the cockpit's point and E pressed: the father's message; issue #394)
+    for (const b of OPENING_BEATS) {
+      steps.push({ kind: 'beat', beat: b });
+      if (b.console) steps.push({ kind: 'console' }, { kind: 'wait', frames: 20, secs: 0.8 });
+      steps.push({ kind: 'stage' });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-opening-${b.name}.png` });
+      if (b.console) steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyE', down: false });
+    }
+    steps.push({ kind: 'untilOver' });
+  }
   if (args.ending) {
     const n = args.endingShots ?? 40, every = args.endingEvery ?? 5;
     for (let k = 0; k < n; k++) {
@@ -866,7 +886,17 @@ export function frame(dt) {
   else if (step.kind === 'pose') { const ok = game.trials?.runner?.session?.pose?.(S.args.pose); console.log(`[unity] run: posed ${ok ? 'yes' : 'no pose'}`); next(); }
   else if (step.kind === 'stage') {
     const c = game.ship?.cinematic, sub = game.screen().state.sub?.text ?? '';
-    console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);
+    console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} prompt=${JSON.stringify(game.screen().state.prompt?.text ?? null)} holo=${!!game.ship?.holo?.visible} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);
+    next();
+  }
+  else if (step.kind === 'beat') {
+    const pr = game.ship?.prologue;
+    if (!pr || beatDue(step.beat, PROLOGUE_STAGES, pr.stage, pr.t) || (pr.done && ++P.wait > 1)) next();
+    else if ((P.t += Math.min(dt, 0.05)) > 90) { console.log(`[unity] opening: ${step.beat.name} never came (${pr.stage})`); next(); }
+  }
+  else if (step.kind === 'console') {
+    const m = game.ship.modelOf(game.player.pos);
+    if (m?.interior?.points?.cockpit) game.player.pos.copy(game.ship.world(m, m.interior.points.cockpit));
     next();
   }
   else if (step.kind === 'untilOver') {
