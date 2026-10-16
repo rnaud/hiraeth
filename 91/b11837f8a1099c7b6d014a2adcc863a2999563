@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_5a8c700867b149 8
+docs/systems/temples.md
+  s_9ca76055a220ed::t_7fddf080b535c2 1206-1211
+src/boxes/placements.js
+  s_9ca76055a220ed::t_37daafa92a3b27 168-171,173,200-203
+src/changelog.js
+  s_9ca76055a220ed::t_b347f613dfec89 41-44
+src/gadgets/hidden.js
+  s_9ca76055a220ed::t_747d6ff11698d1 154-168
+src/gadgets/lens.js
+  s_9ca76055a220ed::t_ad0b0d73a6c1ff 4,125,197,205-207
+src/temples/index.js
+  s_9ca76055a220ed::t_2e639491ddcaaa 102,104
+src/temples/migrate.js
+  s_9ca76055a220ed::t_d07f88e383cb40 15
+src/temples/pieces.js
+  s_9ca76055a220ed::t_acfbb9b4bb9158 22,68-70,87-104,235,314-315,493,1176
+src/temples/spheres-data.js
+  s_9ca76055a220ed::t_b3d4bf2842b55c 42
+src/temples/spheres.js
+  s_9ca76055a220ed::t_6763ac1416ce4e 9,35-37,113,152-154,156,159,167,173,242,273,624
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_b11a11d4c08c6d 38,184-194,196,202-204,222,227
+tests/temples.test.js
+  s_9ca76055a220ed::t_9b803e6f520749 50,2230,2304-2307,2313,2315-2316,2318-2319,2328-2329,2331-2332,2355-2358,2362-2365,2388,2412,2416
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "91b11837f8a1099c7b6d014a2adcc863a2999563",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
