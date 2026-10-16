@@ -41,7 +41,7 @@ import { clockHouseSkin } from './skins/clock-house.js';
 //   the Mainspring Room  (off the far landing, east, across from the Cupboard's door: since v1.74, round 6 of issue
 //                        #23; it was off the Clock Gallery's landing, four rooms from the clock it starts) the
 //                        mainspring hangs slack until its weight, a ball on the landing, is rolled home; then six eyes
-//                        round it in one breath (the coil, past the chest: seen on the way in, wound on the way back),
+//                        round it in one breath (the boomerang, past the chest: seen on the way in, wound on the way back),
 //                        and out on the landing the Clockmaker's clock begins to tick
 //   the Winding Well     the hub. A wall to climb, the door at its top; the door wants two small keys and the
 //                        winding's counterweight home in its socket, and the counterweight is a stone ball still
@@ -51,20 +51,22 @@ import { clockHouseSkin } from './skins/clock-house.js';
 //                        small key's cage on the landing sinks and a door above opens onto the ledge over the climb
 //   the Striking Room    (east) the hour track: a ball and three plates, at two, four and six; on the house's hour the
 //                        striking eye's lids lift, and woken it lets the second small key out of its cage
-//   the Coil Chamber     the makers' chest: the QUICK COIL (src/items.js 'coil'). Its north door sinks for it in hand
+//   the Coil Chamber     the makers' chest: the BOOMERANG (src/gadgets/boomerang.js; issue #377: the quick coil, a faster
+//                        refill of the magic bar, was here, and went to Lorn II's makers' court). Its north door sinks
+//                        for it in hand
 //   the Winding Passage  a room of its own (v1.77): the makers' great escape wheel on a stele in its middle is ringed
-//                        by six eyes that wake only together, inside one breath (4.6 s): three shots, a refill, three
-//                        more; the tank refills too slowly without the coil (the coil's first lock, where failing
-//                        costs a breath)
+//                        by six eyes that wake only together, inside one breath (4.6 s): a tank holds three shots, so
+//                        three locked on and struck in one throw of the boomerang, three splashed (the boomerang's
+//                        first lock, where failing costs a breath)
 //   the Clock Gallery    the key hall, after its reference: a chasm with the makers' cogs turning in the dark,
 //                        a great clock face hung over the bridge's far end that has lost its hands, six eyes round it. The bridge
-//                        wants all six inside one breath (the coil) and in turn, counted round from the hour the
+//                        wants all six inside one breath (the boomerang) and in turn, counted round from the hour the
 //                        clock stopped at, which it no longer shows: the little clock over the way in does (and
 //                        the Winding Well's, and the one over the door outside). Out of turn they all go dark.
 //                        Over the bridge the Foreman's door wants the house's great key. (v1.74) The gallery's great
 //                        pendulum hangs over the bridge and swings along it: cross in its beat, or it knocks you back
 //   the Foreman's Workshop the guardian (a robot: its meter is damage). When its face opens, hit all six
-//                        numerals inside a breath. Open, its hands come round to four; numerals hit in the clock's
+//                        numerals inside a breath (three on the boomerang's locks). Open, its hands come round to four; numerals hit in the clock's
 //                        order counted from four ring in step (taught in its second phase, where any order still
 //                        does); in its last phase only that order takes, and out of step they all go dark
 // After: the clock over the Clock-House's door keeps the true time, and the makers' cogs in the sand round it
@@ -121,7 +123,7 @@ export const VOLLEY = 4.6;   // s: the six eyes (and the Foreman's six numerals)
 export const FROM_FOUR = [2, 3, 4, 5, 0, 1];
 
 export const LOGIC = {
-  id: 'garage', entry: 'threshold', gadget: 'coil',
+  id: 'garage', entry: 'threshold', gadget: 'boomerang',
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, esc: { checkpoint: true, kind: 'puzzle' }, escFar: { kind: 'puzzle' },
     well: { checkpoint: true, kind: 'puzzle' }, pend: { checkpoint: true, kind: 'combat' }, springs: { checkpoint: true, kind: 'puzzle' },
@@ -169,21 +171,23 @@ export const LOGIC = {
     kE: { type: 'key', kind: 'small', room: 'springs', when: { lit: 'sS' }, clue: 'hour' },
     hour: { type: 'clue', room: 'well' },   // (the house's hour: the well's clock, stopped at four, as the one over the door outside)
     d2: { type: 'door', lock: 'small', keys: 2, opens: { drumOn: ['ball1', 'p1'] }, latch: true },   // (the ball's weight: the winding's counterweight)
-    chest: { type: 'gadget', room: 'coil', item: 'coil' },
-    dP: { type: 'door', opens: { item: 'coil' }, latch: true },
-    k1: { type: 'switch', room: 'wind', needs: ['coil'] },        // the passage's six eyes in one breath: two tanks
+    // (issue #377: the chest held the quick coil, a faster refill: "more mana"; the boomerang now, whose locks strike three
+    // eyes in one throw, in turn; the coil waits in Lorn II's makers' court)
+    chest: { type: 'gadget', room: 'coil', item: 'boomerang' },
+    dP: { type: 'door', opens: { item: 'boomerang' }, latch: true },
+    k1: { type: 'switch', room: 'wind', needs: ['boomerang'] },   // the passage's six eyes in one breath: three thrown, three splashed
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
-    k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
+    k2: { type: 'switch', room: 'gallery', needs: ['boomerang'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', lock: 'big', room: 'hall' },              // the great key; and shut while the Foreman fights
-    foreman: { type: 'boss', room: 'hall', needs: ['gun', 'coil'] },
+    foreman: { type: 'boss', room: 'hall', needs: ['gun', 'boomerang'] },
     d5: { type: 'door', opens: { resolved: true }, room: 'hall' },   // (d4 and d5 carry the hall's room: the rules measure it by them)
     // the Mainspring Room (v1.74: off the Escapement's far landing, east; it was off the gallery's landing): its weight
     // rolled home, then six eyes in a breath, and the Clockmaker's clock across the landing ticks again.
     // (After the gallery's elements: the marker sends you over the bridge to the great lock first, and back for its key)
     ballM: { type: 'drum', room: 'mainspring', plate: 'pM', plateAt: 1, start: 0 },   // (at the way in)
     pM: { type: 'plate', room: 'mainspring' },
-    k3: { type: 'switch', room: 'mainspring', needs: ['coil'], when: { drumOn: ['ballM', 'pM'] } },
+    k3: { type: 'switch', room: 'mainspring', needs: ['boomerang'], when: { drumOn: ['ballM', 'pM'] } },
     // the Clockmaker's Cupboard (optional, so last: the marker never points at it): the Clockmaker's clock on the landing
     // woken round from four (four, eight, twelve)
     // (v1.53) its clock stopped, the eyes lidded, until the mainspring is wound: the great key inside
@@ -199,17 +203,17 @@ export const LOGIC = {
 export const FOREMAN = {
   kind: 'robot', name: 'the Clockwork Foreman', final: 'break', speed: 1.5, wakeTime: 2.8,
   wake: 'A machine with a clock for a chest winds itself up, its hands racing.',
-  openHint: 'Its face opens on six numerals. Hit all six inside one breath.',
+  openHint: 'Its face opens on six numerals: lock three, splash three, in a breath.',
   resolved: 'The Foreman’s hands come round to the right time, and stop there.',
   missHint: 'It spins on, dizzy, its face open: hit the six numerals now.',
   phases: [
-    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'When its face opens, hit all six numerals in one breath.' },
+    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'Its face opens: six numerals in a breath, three on the boomerang.' },
     { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its hands stop at four: hit the numerals round from four, in step.',
       // (v1.63, #257: a second verb before the gadget, src/temples/boss.js asks)
       asks: { verb: 'parry', moves: ['hammer'], open: 5.6, perfect: 6.4,
         hint: 'Guard its hammer: jarred, its face swings open.',
         said: 'The hammer rings off your guard and its face swings open: the six numerals.',
-        lines: ['Its hammer comes down hard.', 'Take its hammer on your guard: jarred, its face opens.', 'When it rears its hammer, hold the guard (LB / L1) toward it; then hit the six numerals in one breath.'] } },
+        lines: ['Its hammer comes down hard.', 'Take its hammer on your guard: jarred, its face opens.', 'When it rears its hammer, hold the guard (LB / L1) toward it; then six numerals in a breath, three on the boomerang.'] } },
     { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'Only numerals hit in step count now: six, clockwise from four.' },
   ],
   attacks: {
@@ -397,7 +401,7 @@ function mainspring(rt, K, M, { brass }) {
   K.both(brass, T(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 18).rotateZ(Math.PI / 2), [SX - 0.25, Y + 6, Z]));
   add(Bank, { id: 'k3', eyes: Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return { at: [SX - 0.4, Y + 6 + Math.cos(a) * 4.1, Z + Math.sin(a) * 4.1], yaw: -Math.PI / 2 }; }), window: VOLLEY,
     unmet: 'The six eyes stay dull. The mainspring hangs slack: its weight isn’t home.',
-    full: 'All six woke round the spring, and went dark again: two tanks in one breath, and this one fills too slowly.',
+    full: 'All six woke round the spring, and went dark again: six in a breath, more than a tank of shots.',
     fade: 'They woke, and went dark again before the rest.',
     woke: 'The mainspring takes up with a groan, and out on the landing the Clockmaker’s clock begins to tick.' });
   add(Mark, { room: 'mainspring', at: [X0 + 5, Y, Z + 4], yaw: Math.PI / 2 });
@@ -521,7 +525,7 @@ function layout(rt) {
   const copper = { paint: new THREE.Color('#d9643a'), smooth: false, side: THREE.FrontSide };
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) K.add(copper, T(new THREE.TorusGeometry(0.9, 0.18, 6, 18), [s * (RC - 0.4), UP + 2 + i * 0.6, C3 + 2], [0, Math.PI / 2, 0]));
   add(Mark, { room: 'coil', at: [8, UP, C3 - 7], yaw: -Math.PI * 0.75 });
-  add(Door, { id: 'dP', at: [0, UP, C3 + RC + 0.3], ...D, lamps: [{ item: 'coil' }] });   // (v1.77: the coil in hand)
+  add(Door, { id: 'dP', at: [0, UP, C3 + RC + 0.3], ...D, lamps: [{ item: 'boomerang' }] });   // (v1.77: the coil in hand; the boomerang since issue #377)
 
   // ---- the Winding Passage (floor UP), a room of its own (v1.77): six eyes round the makers’ great escape wheel on its stele
   // in the middle of the floor, to wake in one breath
@@ -534,8 +538,8 @@ function layout(rt) {
   K.both(brass, T(cogGeometry(2.0, 0.5).rotateZ(Math.PI / 6), [0, UP + 6, A - 0.4]));   // (the makers’ great escape wheel, stopped: its six teeth between the eyes)
   K.both(brass, T(new THREE.CylinderGeometry(0.7, 0.7, 0.5, 18).rotateX(Math.PI / 2), [0, UP + 6, A - 0.2]));
   add(Bank, { id: 'k1', eyes: ring6(0, UP + 6, A - 0.4, 4.1, Math.PI), window: VOLLEY,
-    full: 'All six woke, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
-    fade: 'They woke, and went dark again before the rest. Six eyes, one breath: more than one tank can do.' });
+    full: 'All six woke, and went dark again: six in a breath, more than a tank of shots.',
+    fade: 'They woke, and went dark again before the rest. Six eyes, one breath: three on the boomerang, three splashed.' });
   add(Mark, { room: 'wind', at: [-8, UP, AZ0 + 5], yaw: Math.PI / 2 });
   add(Door, { id: 'd3', at: [0, UP, F0 - 0.6], ...D, lamps: [{ lit: 'k1' }] });
 
@@ -563,7 +567,7 @@ function layout(rt) {
   for (const s of [-1, 1]) K.both(brass, box(0.3, GY + 33 - (GC.y + 5.8), 0.3, s * 2.2, (GY + 33 + GC.y + 5.8) / 2, GZ + 0.05));
   K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [0, GC.y + 7.1, GZ - 0.15], [0, Math.PI, 0]));
   add(Bank, { id: 'k2', eyes: ring6(0, GC.y, GZ - 0.5, 4.9, Math.PI), size: 1.0, window: VOLLEY, order: [4, 3, 2, 1, 0, 5],
-    full: 'All six woke round the clock, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
+    full: 'All six woke round the clock, and went dark again: six in a breath, more than a tank of shots.',
     fade: 'They woke round the clock, and went dark again before the rest.',
     wrong: 'The eyes ring out of step and all go dark. The great clock has lost its hands: count round from the hour every clock in this house stopped at.' });
   dial(0, UP + 11.4, F0 + 0.3, 1.3, 0, [TAU * 4 / 12, 0.4]);   // the little clock over the way in, behind you: stopped at four
@@ -753,7 +757,7 @@ function change(scene, level, rt) {
 
 export const GARAGE_TEMPLE = {
   id: 'garage', levelId: 'glassdunes', name: 'The Clock-House', doorLabel: 'door of the Clock-House',
-  gadget: 'coil', gadgetBox: 'garage.temple.coil', arenaDoor: 'd4', arenas: ARENAS,
+  gadget: 'boomerang', gadgetBox: 'garage.temple.coil', arenaDoor: 'd4', arenas: ARENAS,   // (the box's id from when it held the coil: the saves' flag)
   origin: [-300, 1800, -420], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
@@ -806,7 +810,7 @@ export const GARAGE_TEMPLE = {
         G.add(0.25, 'volley');
         rt.rumble(0.6, 0.45);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
-      } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the tank is dry. It needs a tank that fills faster.', 'cf.three');
+      } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the tank is dry: three more on the boomerang.', 'cf.three');
     };
     for (let i = 0; i < N; i++) {
       rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.6, position: () => G.model.vent(i, at[i]), enabled: () => G.state === 'open', onHit: (mode) => { if (mode !== 'push') rt.volley(i); return true; } }));

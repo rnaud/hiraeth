@@ -138,6 +138,7 @@ function crescent(scale = 1) {
 
 export default {
   id: 'boomerang', name: 'Boomerang', glyph: '☾', order: 30, trigger: 'aim',
+  where: 'In the Clock-House in the Glass Dunes: in its Coil Chamber at the top of the winding well.',
   text: 'A crescent of hammered brass that always comes home. Aim with {key:aim} to lock on to up to three things; {key:fire} throws it to stun, flip switches and fetch.',
   model: () => { const m = crescent(1); m.rotation.set(0.9, 0.3, 0.2); return m; },
   create(ctx) { return new Boomerang(ctx); },

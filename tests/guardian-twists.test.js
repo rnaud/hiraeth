@@ -459,7 +459,7 @@ test('the First Sign’s second phase teaches the dishes: a word played into a l
 const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 test('the Foreman’s last phase: open, its hands stop at four, and its six numerals take only in the clock’s order counted from four; out of step they all go dark', () => {
-  const A = arena('garage', 'coil', 2);
+  const A = arena('garage', 'boomerang', 2);
   const { rt, G, until, wait, said } = A;
   const shots = (list) => { for (const i of list) { rt.volley(i); wait(0.35); } };
   const lit = () => G.model.steps.filter((r) => r.visible).length;
@@ -481,7 +481,7 @@ test('the Foreman’s last phase: open, its hands stop at four, and its six nume
 });
 
 test('the Foreman’s second phase teaches the order: any order still sets it back, and six in step round from four ring true', () => {
-  const A = arena('garage', 'coil', 1);
+  const A = arena('garage', 'boomerang', 1);
   const { rt, G, until, wait, said } = A;
   const shots = (list) => { for (const i of list) { rt.volley(i); wait(0.35); } };
   A.stand(0, -6);
@@ -490,7 +490,7 @@ test('the Foreman’s second phase teaches the order: any order still sets it ba
   assert.ok(G.meter > 0.5, `six from twelve still count here (${G.meter})`);
   assert.ok(!said(/in step, round from four/));
   A.done();
-  const B = arena('garage', 'coil', 1);
+  const B = arena('garage', 'boomerang', 1);
   B.stand(0, -6);
   assert.equal(B.until(() => B.G.state === 'open', 40), true, 'its face opens');
   for (const i of [2, 3, 4, 5, 0, 1]) { B.rt.volley(i); B.wait(0.35); }
@@ -769,7 +769,7 @@ test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts 
 
 // ------------------------------------------------------------------ a second verb (v1.63, #257)
 test('six guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
-  const SIX = [['arzach2', 'hook', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'coil', 'parry'], ['bazaar', 'echo', 'dodge']];
+  const SIX = [['arzach2', 'hook', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'echo', 'dodge']];
   for (const [id, gadget, verb] of SIX) {
     const A = arena(id, gadget, 1, { answer: false });
     const { G, P, frame, until, said } = A, Q = G.phase.asks;

@@ -17,7 +17,7 @@ export const TEMPLE_BOXES = [
   ['perdide2.temple.lantern', 'bubble'],   // (the lantern charm until issue #377: the box's id kept)
   ['perdide.temple.stun', 'stun'],
   ['arzach.temple.glider', 'glider'],
-  ['garage.temple.coil', 'coil'],
+  ['garage.temple.coil', 'boomerang'],   // (the quick coil until issue #377: the box's id kept)
   ['edena.temple.bloom', 'bloom'],
   ['bazaar.temple.echo', 'echo'],
   ['spacecity.temple.tether', 'tether'],

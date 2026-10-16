@@ -129,7 +129,7 @@ export const BOSS_HINTS = {
     phases: [
       ['Watch its face after it strikes.',
         'When the glass over its face swings up, hit all six numerals inside one breath.',
-        'Let it strike, then shoot the six glowing numerals fast: three shots, the tank refills, three more.'],
+        'Let it strike, lock three numerals with the boomerang ({key:aim}), throw ({key:fire}), splash three.'],
       ['Its face still opens after a strike.',
         'Six numerals, one breath, again. Keep clear of its cogs.',
         'Dodge the cogs, wait for the hammer or the chime, then all six numerals before the glass comes down.'],

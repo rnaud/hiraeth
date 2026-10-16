@@ -146,9 +146,10 @@ export const PLACEMENTS = {
     { id: 'garage.level', item: 'level', at: [-110, -60], toward: [-20, -60],
       hint: 'On the glass mound west of the valley',
       note: 'The top of the glass mound west of the valley floor, under the cliffs of the giants.' },
-    // the Clock-House (src/temples/garage.js): in its round chamber over the winding well. The coil is the key to the
-    // rest: the banks of six eyes that wake only together (two tanks in one breath), the Foreman's six numerals
-    { id: 'garage.temple.coil', item: 'coil', temple: 'garage', site: templeSite('garage'),
+    // the Clock-House (src/temples/garage.js): in its round chamber over the winding well. The boomerang is the key to the
+    // rest (issue #377; the quick coil was here): the banks of six eyes that wake only together, three of them struck in
+    // one throw, in turn; the Foreman's six numerals. (Its id from when it held the coil: the saves' flag)
+    { id: 'garage.temple.coil', item: 'boomerang', temple: 'garage', site: templeSite('garage'),
       note: 'Inside the Clock-House east of the valley, in the round chamber over the winding well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
     { id: 'garage.magnet', item: 'magnet', site: courtSite('glassdunes'), beacon: 160, gadget: true,
@@ -238,10 +239,12 @@ export const PLACEMENTS = {
     // reach, the moss-stones' hanging lamp, the Lampless. (Its id from when it held the lantern: the saves' flag)
     { id: 'perdide2.temple.lantern', item: 'bubble', temple: 'perdide2', site: templeSite('perdide2'),
       note: 'Inside the Lamp-House in the shallows east of the root cave, in the dark chamber over the root stair.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'perdide2.boomerang', item: 'boomerang', site: courtSite('perdide2'), beacon: 160, gadget: true,
+    // the makers' court (src/finds/courts.js): the boomerang's bay round it (targets, lanterns, crates on ropes, pots of ink
+    // out of reach). Its box held the boomerang until issue #375: it is earned in the Glass Dunes' Clock-House now, and the
+    // box holds the quick coil, the Clock-House's old upgrade (its id the saves' flag)
+    { id: 'perdide2.boomerang', item: 'coil', site: courtSite('perdide2'), beacon: 160, court: true,
       hint: 'At the court south-east of the island',
-      note: 'In the makers’ court on the dry ground south-east of the Deep Wood’s island: targets, lanterns, crates on ropes and pots of ink out of reach.' },
+      note: 'In the makers’ court on the dry ground south-east of the Deep Wood’s island, at its front edge. Its targets and ropes are for the boomerang, earned in the Glass Dunes’ Clock-House.' },
   ],
   bazaar: [
     // the market has no chest in the open. The Undertower (src/temples/bazaar.js), under the silent tower: in its

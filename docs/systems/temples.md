@@ -1196,6 +1196,10 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   too heavy for a splash, turns `VANE_GUST` (5) s a gust, a small one as long as a splash. Every great vane, the draughts
   and the warden need the fan: the gallery's and the loft's vanes, the crown's two at once, the hall's four (its last phase's
   hatch lifts over the one it backs onto, fanned from beside it, its bulk not in the gust's way).
+- **The Clock-House: the boomerang** (the quick coil before, in Lorn II's court now). Its banks of six eyes in one breath
+  (`Bank`) and the Foreman's six numerals want the boomerang: a tank holds three shots, its locks strike three more in one
+  throw (an eye is a target the boomerang strikes as a glob would), and in the order they were locked, so the Clock
+  Gallery's six in turn from four are three locks in turn and three splashes. The walk-through throws a real boomerang.
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

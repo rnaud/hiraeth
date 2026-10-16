@@ -99,12 +99,12 @@ export const GADGETS = {
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
   arzach: { temple: 'glider', world: ['hush', 'bell'], built: true }, // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire; the bell-note whistle in its makers' court (issue #375: the hook's box, the hook earned in the Belfry)
   arzach2: { temple: 'hook', world: ['scarf'], built: true },         // the grappling hook (issue #377: the bell-note whistle until then, a charm, now in Vael's court); the wind-silk scarf on the balanced stack (the wings went to the Aerie)
-  garage: { temple: 'coil', world: ['level'], built: true },          // the Clock-House (the Sealed Hangar's First Garage, in the Glass Dunes now: TEMPLE_HOME): the coil inside; the brass level on a glass mound
+  garage: { temple: 'boomerang', world: ['level'], built: true },     // the Clock-House (the Sealed Hangar's First Garage, in the Glass Dunes now: TEMPLE_HOME): the boomerang inside (issue #377: the quick coil until then); the brass level on a glass mound
   buried: { temple: 'bomb', world: ['resin'], built: true },          // ink bombs (issue #377: the fourth chamber until then, now in the Garden of Spheres' court)
   edena: { temple: 'bloom', world: ['pouch', 'lantern'], built: true }, // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy; the lantern charm back in its makers' court (issue #375: the bubble wand's box)
   spheres: { temple: 'lens', world: ['shell', 'cell'], built: true },   // (the fourth chamber in its makers' court, the bombs' old box: issue #375)
   perdide: { temple: 'stun', world: ['reed', 'wardenbellows'], built: true }, // the stilling mode moved inside from the mossy rise; the breathing reed is there now; the Warden's bellows in its makers' court (issue #375: the fan's box)
-  perdide2: { temple: 'bubble', world: ['moss'], built: true },       // the bubble wand (issue #377: the lantern charm until then, now in Viridel's court); the glow-moss pin on the root arch
+  perdide2: { temple: 'bubble', world: ['moss', 'coil'], built: true }, // the bubble wand (issue #377: the lantern charm until then, now in Viridel's court); the glow-moss pin on the root arch
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
   spacecity: { temple: 'tether', world: ['starthread'], built: true }, // the Mooring-House: tether mode inside; the star-thread on a roof in the Towers
   moonfoundry: { temple: 'tongs', world: ['bellows'], built: true },  // the Casting-House: the founders' tongs inside; the pocket bellows on top of the cradled moon

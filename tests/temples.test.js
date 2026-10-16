@@ -45,6 +45,7 @@ import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as 
 import { KENNEL, WICK, ROOT_WAY, ROOMS as ROOMS_P2, FOUNT } from '../src/temples/perdide2.js';
 import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
 import fanGadget, { FAN } from '../src/gadgets/fan.js';
+import boomGadget from '../src/gadgets/boomerang.js';
 import { NURSERY, BALCONY, ROOMS as ROOMS_HUSH, UP as HUSH_UP, WALK as HUSH_WALK, MOUTHS as HUSH_MOUTHS, SHRINE as HUSH_SHRINE, KEEPER as HUSH_KEEPER } from '../src/temples/perdide.js';
 import { LODGE as FOOT_LODGE } from '../src/temples/spheres.js';
 import { SAND as FOUNDRY_SAND, UP as FOUNDRY_UP } from '../src/temples/moonfoundry.js';
@@ -238,7 +239,7 @@ test('the Clock-House is a hub (issue #23): either wing alone gives its key, the
   M.update();
   assert.notEqual(M.next(), 'c1', 'nor at the cupboard before its clock runs');
   assert.equal(M.light('c1'), false, 'its clock stopped');
-  const C = new TempleLogic(L, { has: (i) => [...items, 'coil'].includes(i) });
+  const C = new TempleLogic(L, { has: (i) => [...items, 'boomerang'].includes(i) });
   C.moveDrum('ballM', 1); assert.equal(C.light('k3'), true);
   assert.equal(C.light('c1'), true, 'the mainspring wound: four takes');
 });
@@ -394,7 +395,7 @@ test('old saves that own a temple’s gadget find its chest open; the temple’s
 
 test('old saves in the Clock-House as it was (a chain of rooms) are brought round its hub: past the climb, its keys are in the door and its arena won; set right, the great lock open; nowhere yet, nothing', () => {
   const save = (flags) => { const g = new GameState(null); for (const [k, v] of Object.entries(flags)) g.set(`temple.garage.${k}`, v); migrateTemples(g); return g; };
-  const logicOf = (g, items = ['backpack', 'gun', 'coil']) => { const L = new TempleLogic(TEMPLES.garage.def.logic, { store: flagStore(g, 'garage'), has: (i) => items.includes(i) }); L.update(); return L; };
+  const logicOf = (g, items = ['backpack', 'gun', 'boomerang']) => { const L = new TempleLogic(TEMPLES.garage.def.logic, { store: flagStore(g, 'garage'), has: (i) => items.includes(i) }); L.update(); return L; };
   // with the coil, in the passage: the door back down to the hub still open, the Foreman's door still wanting its key
   const mid = logicOf(save({ 'lit.s1': true, 'lit.s2': true, 'lit.s3': true, 'open.discs': true, 'drum.ball1': 1, 'open.d2': true, gadget: true, checkpoint: 'coil' }));
   assert.equal(mid.isOpen('d2'), true, 'the door over the climb stays open behind them');
@@ -1463,10 +1464,10 @@ test('a save from the Clock-House before issue #336: its state as it was (the sa
   assert.equal(past.flag('temple.garage.layout'), LAYOUTS.garage.v);
   assert.equal(past.flag('temple.garage.relaid'), true, 'inside the old house: to its mark');
   assert.equal(past.flag('temple.garage.checkpoint'), 'coil', 'its place kept');
-  const L = new TempleLogic(TEMPLES.garage.def.logic, { store: flagStore(past, 'garage'), has: (i) => ['backpack', 'gun', 'coil'].includes(i) });
+  const L = new TempleLogic(TEMPLES.garage.def.logic, { store: flagStore(past, 'garage'), has: (i) => ['backpack', 'gun', 'boomerang'].includes(i) });
   L.update();
   assert.ok(L.isOpen('d2') && L.drumOn('ball1', 'p1'), 'the door over the climb open, the counterweight home in its socket on the landing');
-  assert.equal(L.isOpen('dP'), true, 'the chamber’s new north door opens for the coil in hand');
+  assert.equal(L.isOpen('dP'), true, 'the chamber’s new north door opens for the boomerang in hand');
   const outside = new GameState(null);
   outside.set('temple.garage.layout', 2);
   migrateTempleLayouts(outside);
@@ -4058,7 +4059,7 @@ test('the Hangar’s own portals still work, dismissed: its list kept, a copy in
   assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
 });
 
-test('the Clock-House on foot: the escapement’s three eyes in turn from its hand on its tower in the pit, the Clockmaker’s stopped clock on the landing across from the slack mainspring, the counterweight rolled home on the landing (v1.77, issue #336: the house redone as shrines), the hub: the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the quick coil and the chamber’s north door for it, the passage’s six eyes round its spring that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the great pendulum over the bridge crossed in its beat, the great lock, back down to the Mainspring Room winding the Clockmaker’s clock across the landing and the great key in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
+test('the Clock-House on foot: the escapement’s three eyes in turn from its hand on its tower in the pit, the Clockmaker’s stopped clock on the landing across from the slack mainspring, the counterweight rolled home on the landing (v1.77, issue #336: the house redone as shrines), the hub: the Pendulum Hall’s arena and its key, the hour track and its key, both keys in the door over the climb, the boomerang (issue #377: the quick coil before) and the chamber’s north door for it, the passage’s six eyes round its spring in a breath, three on the boomerang’s locks, the clock’s six in turn from the hour it stopped, the great pendulum over the bridge crossed in its beat, the great lock, back down to the Mainspring Room winding the Clockmaker’s clock across the landing and the great key in the cupboard, the Foreman’s six numerals, the clock keeps time', () => {
   const UP = CLOCK_UP, C2 = CLOCK_WELL.z, R = CLOCK_WELL.r, C3 = CLOCK_COIL.z, A = CLOCK_WIND.z, AZ0 = A - CLOCK_WIND.d / 2, F0G = CLOCK_GALLERY.z0;
   const Z = CUPBOARD.z, stairZ = CLOCK_WING.stairZ, PX1 = CLOCK_WING.pend.x + CLOCK_WING.pend.w / 2;
   game.reset();
@@ -4069,7 +4070,21 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
+  // (issue #377) the boomerang, the house's tool: a real one (src/gadgets/boomerang.js), thrown from his hand through its locks
+  const cam = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 500);
+  const boom = boomGadget.create({ player: P, physics, camera: cam, tool: null, sound: null, world: null, relics: null, hud: { reticle() {}, marks() {} }, sfx: { equip() {} }, fx: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); boom.update(DT); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
+  /** Lock on to the targets at `ats` (world points: an eye's middle, a numeral), in that order, and throw: frames till it is back. */
+  const throwAt = (ats) => {
+    const tg = ats.map((at) => allTargets().find((x) => x.enabled() && x.position().distanceTo(at) < 0.05));
+    assert.ok(tg.every(Boolean), 'each lock a target');
+    cam.position.copy(P.pos).add(V(0, 2, 0)); cam.lookAt(ats[0]); cam.updateMatrixWorld();
+    boom.locks = tg.map((x) => ({ key: x, kind: x.kind, target: x, pos: () => x.position() }));
+    boom.throw();
+    for (let i = 0; i < 6 / DT && boom.flight; i++) frame();
+  };
+  /** Three eyes of a bank on the boomerang, in the order given, then the other three splashed as fast as the bar lets. */
+  const throwAndShoot = (bank, order = [0, 1, 2, 3, 4, 5]) => { throwAt(order.slice(0, 3).map((i) => bank.eyes[i].center)); return tankShots(frame, 3, (i) => bank.hit(order[3 + i])); };
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -4210,24 +4225,23 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.ok(bank.eyes[0].center.distanceTo(L(0, UP, C3)) > 20, 'the bank is a room on, not by the chest');
   assert.equal(walk(L(0, UP, C3 + 10)), true, `to the chamber's north door (${where()})`);
   wait(1);
-  assert.equal(rt.logic.isOpen('dP'), false, 'the chamber’s north door is shut without the coil');
+  assert.equal(rt.logic.isOpen('dP'), false, 'the chamber’s north door is shut without the boomerang');
   const slow = tankShots(frame, 6, (i) => bank.hit(i));
-  assert.ok(slow > VOLLEY, `without the coil the sixth comes too late (${slow.toFixed(2)} s)`);
+  assert.ok(slow > VOLLEY, `the tank alone: the sixth comes too late (${slow.toFixed(2)} s)`);
   assert.equal(rt.logic.isLit('k1'), false, 'they went dark again');
   items.grant('cell');
   tankShots(frame, 6, (i) => bank.hit(i));
   assert.equal(rt.logic.isLit('k1'), false, 'nor with the fourth chamber: four, then a long wait');
   assert.equal(rt.logic.next(), 'chest');
-  items.grant('coil'); game.emit('box:opened', { id: 'garage.temple.coil' });
+  items.grant('boomerang'); game.emit('box:opened', { id: 'garage.temple.coil' });
   assert.equal(rt.logic.gadget, true);
   wait(2.5);
-  assert.equal(rt.logic.isOpen('dP'), true, 'the coil in hand: the door sinks');
+  assert.equal(rt.logic.isOpen('dP'), true, 'the boomerang in hand: the door sinks');
   assert.equal(walk(L(0, UP, AZ0 + 3)), true, `into the passage (${where()})`);
   wait(3);
   items.revoke('cell');
-  const quick = tankShots(frame, 6, (i) => bank.hit(i));
-  assert.ok(quick < VOLLEY, `with the quick coil: three, a quick refill, three more (${quick.toFixed(2)} s)`);
-  assert.equal(rt.logic.isLit('k1'), true, 'six in a breath');
+  throwAndShoot(bank);
+  assert.equal(rt.logic.isLit('k1'), true, 'six in a breath: three struck in one throw of the boomerang, three splashed');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Clock Gallery: the six round the handless clock, in one breath and in turn from the hour it stopped
@@ -4240,12 +4254,13 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   assert.equal(rt.logic.isLit('k2'), false, 'from twelve, not four: out of turn');
   assert.ok(notes.some((s) => /lost its hands/.test(s)), 'they all go dark, and say why');
   wait(5.5);
-  const late = tankShots(frame, 5, (i) => k2.hit(ORDER[i]));
-  assert.equal(k2.seq, 5, `five in turn (${late.toFixed(2)} s)`);
+  throwAt(ORDER.slice(0, 3).map((i) => k2.eyes[i].center));
+  const late = tankShots(frame, 2, (i) => k2.hit(ORDER[3 + i]));
+  assert.equal(k2.seq, 5, `five in turn, three of them on the boomerang (${late.toFixed(2)} s)`);
   wait(VOLLEY + 0.5);
   assert.equal(k2.seq, 0, 'the first faded before the sixth: start again');
-  tankShots(frame, 6, (i) => k2.hit(ORDER[i]));
-  assert.equal(rt.logic.isLit('k2'), true, 'four, six, eight, ten, twelve, two, inside one breath');
+  throwAndShoot(k2, ORDER);
+  assert.equal(rt.logic.isLit('k2'), true, 'four, six, eight on the boomerang’s locks in turn, ten, twelve, two splashed, inside one breath');
   wait(3.5);
   // (v1.74) the great pendulum over the bridge: walked straight into as it swings back, it knocks you back, unhurt
   const bob = rt.pieces.find((p) => p.o?.bob === 'disc');
@@ -4297,7 +4312,7 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
   }
   assert.ok(rt.logic.drumOn('ballM', 'pM'), `the weight home under the spring (${ballM.t.toFixed(2)})`);
   wait(5.5);
-  tankShots(frame, 6, (i) => k3.hit(i));
+  throwAndShoot(k3);
   assert.equal(rt.logic.isLit('k3'), true, 'six round the spring in one breath');
   assert.ok(notes.some((s) => /out on the landing the Clockmaker’s clock begins to tick/.test(s)), 'and out on the landing the Clockmaker’s clock begins to tick');
   assert.equal(walk(L(MAINSPRING.x - 12, 0, Z), { tol: 0.8 }) && walk(L(-8, 0, Z)), true, `back across the landing to the Cupboard's door (${where()})`);
@@ -4346,8 +4361,9 @@ test('the Clock-House on foot: the escapement’s three eyes in turn from its ha
     const before = G.meter;
     if (n === 0) { for (let i = 0; i < 3; i++) rt.volley(i); assert.equal(G.meter, before, 'three numerals are nothing'); }
     // (round from four, where its hands stop as it opens: in its last phase only that order takes; tests/guardian-twists)
-    tankShots(frame, 6, (i) => rt.volley(FROM_FOUR[i]));
-    assert.ok(G.meter > before || G.state === 'resolved', `six in a breath set it back a little (${n}: ${G.meter})`);
+    throwAt(FROM_FOUR.slice(0, 3).map((i) => G.model.vent(i, V())));
+    tankShots(frame, 3, (i) => rt.volley(FROM_FOUR[3 + i]));
+    assert.ok(G.meter > before || G.state === 'resolved', `six in a breath, three on the boomerang, set it back a little (${n}: ${G.meter})`);
   }
   assert.equal(G.state, 'resolved', `set right (${G.meter})`);
   assert.equal(game.flag('temple.garage.done'), true);
