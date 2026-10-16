@@ -1,0 +1,35 @@
+engine/unity/host.js
+  s_9ca76055a220ed::t_8872b6ec2869f3 3
+unity/Hiraeth/Assets/HiraethJS/Editor/Tests.meta
+  s_9ca76055a220ed::t_1f65c869850b27 1-8
+unity/Hiraeth/Assets/HiraethJS/Editor/Tests/BridgeStoreTests.cs
+  s_9ca76055a220ed::t_6c88cba3b42571 1-184
+unity/Hiraeth/Assets/HiraethJS/Editor/Tests/BridgeStoreTests.cs.meta
+  s_9ca76055a220ed::t_47c651eb596c1e 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_9ca76055a220ed::t_6cd97ad63cd312 135-138,229,234
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_ffbd84efe90063 292-313
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_c819db57c27a8c 66,929,943,974-975
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeStore.cs
+  s_9ca76055a220ed::t_f9cc3270e758df 1-257
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeStore.cs.meta
+  s_9ca76055a220ed::t_9c3661738a4df5 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e240018623c7a1fb2ff7264eb17f66bd6bac307d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
