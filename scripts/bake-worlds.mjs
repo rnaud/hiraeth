@@ -15,6 +15,7 @@ import { loadBundle } from '../engine/vm-run.mjs';
 import { ORDER, SIDE } from '../src/levels/names.js';
 import { DUNE_VISITS } from '../src/desert-sites.js';
 import { mergeBakes } from '../src/world-bake.js';
+import { tempPath } from './temp-dirs.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const BAKE_OUT = 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/public/bake';
@@ -50,7 +51,7 @@ export async function bakeWorld(id, file) {
  * Bake each world into `out`: [{ id, bytes, ms, rss, line }]. Each world in a node of its own (`apart`, the default with
  * more than one): the bundle's contexts are not all let go between worlds, and every world in one process grew to 7 GB.
  */
-export async function bakeWorlds({ worlds = BAKED_WORLDS, out = BAKE_OUT, file = join(tmpdir(), `hiraeth-bake-${process.pid}.cjs`), log = console.log, apart = worlds.length > 1 } = {}) {
+export async function bakeWorlds({ worlds = BAKED_WORLDS, out = BAKE_OUT, file = tempPath(join(tmpdir(), `hiraeth-bake-${process.pid}.cjs`)), log = console.log, apart = worlds.length > 1 } = {}) {
   const dir = resolve(ROOT, out);
   mkdirSync(dir, { recursive: true });
   for (const f of readdirSync(dir)) if (f.endsWith('.bin')) rmSync(join(dir, f));
