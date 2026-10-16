@@ -191,8 +191,9 @@ The first things in the game that fight back, and the tool's answer to them.
       a perfect parry a gold one and the blade flares out of the cup a moment (`lit` 0.9, then back), the charge
       gathered full a ring; each with a flash of the whole blade (`uBladeC.z`, gone in ~0.3 s) and the bead swelling.
       The ring bulges the edges as it passes.
-    - *At rest*: in the fist between cuts nothing stands out of the cup, only the bead in it breathes (±12 % on a 3 s
-      breath, on the back too). `BLADE_LOOK.idle` (`bladeIdle`, eased with `idleK`) could stand a share of the blade
+    - *At rest*: in the fist between cuts out of a fight nothing stands out of the cup, only the bead in it breathes
+      (±12 % on a 3 s breath, on the back too). In a fight (`FIGHT`, below) it stays open at full length between cuts
+      (`bladeLitWant`: `FIGHT.lit` 1 with the hilt in the fist; issue #390, it went dark after every cut). `BLADE_LOOK.idle` (`bladeIdle`, eased with `idleK`) could stand a share of the blade
       out of the cup; it is 0: at 11 % (9 cm) the tongue read as a small dagger in stills and changed the weapon.
     - *Light* (`bladeLight`, after the light term as the chimes' crystal): a pale rim where the faces turn away,
       flecks of sunlight on the ripples (no sun: a softer glint off a light over your shoulder), never under the toon
@@ -242,8 +243,10 @@ The first things in the game that fight back, and the tool's answer to them.
   body every strap vertex is 0–3.4 mm off the skin through standing, walking, running, turning and every combat clip,
   never more than 1.5 mm under it (`tests/blade-grip.test.js`). Before, the strap was a round 4.1 cm tube on the bone
   line: on the B3 forearm it stood a centimetre off the skin at the sides and the drum floated over a flat plate.
-- **Drawn or put away** (`bladeDrawn`, `STANCE`): in the fist while swinging, guarding, evading, locked on, or
-  within `STANCE.linger` (2.5 s) of any of those or of a blow taken; put away at once when the tool may not act
+- **Drawn or put away** (`bladeDrawn`, `STANCE`, `FIGHT`): in the fist while swinging, guarding, evading, locked on,
+  in a fight (`foeEngaged`: a foe chasing, winding up, striking or recovering within `FIGHT.near`, 10 m, or locked
+  on, and `FIGHT.after`, 3 s, past the last of them, so it never flickers between cuts), or within `STANCE.linger`
+  (2.5 s) of any of those or of a blow taken; the fight over, the usual sheathe. Put away at once when the tool may not act
   (climbing, swimming, gliding, the jets, riding, aiming the gun, knocked down, a scene or a conversation). The
   hands close round them (`player.swordGrip`, `player.shieldGrip` → `handTargets` `sword` / `shield`).
   Put away, the hilt sits in a leather frog on his back, behind the right shoulder (`src/sword-sheath.js`;

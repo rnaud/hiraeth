@@ -362,10 +362,29 @@ export function inGuard(pos, dir, from, angle = GUARD.angle) {
   if (d < 1e-4) return true;
   return Math.acos(THREE.MathUtils.clamp((dx * dir.x + dz * dir.z) / (d * Math.hypot(dir.x, dir.z) || 1), -1, 1)) <= angle;
 }
-/** Is the blade in the fist: in a fight (a swing or its chain, the guard, an evade, locked on, a blow taken) or just after one. */
-export function bladeDrawn({ ok = true, swinging = false, guarding = false, evading = false, locked = false, since = Infinity } = {}) {
-  return ok && (swinging || guarding || evading || locked || since < STANCE.linger);
+/**
+ * A fight (issue #390, the author: "the sword should stay open and in hand while I'm fighting, vs back to not glowing
+ * after each hit"): a foe awake (chasing, winding up, striking, recovering) within `near` m, or locked on, keeps the
+ * blade drawn and lit, open at full length between cuts; `after` s with neither (and nothing struck or taken: STANCE)
+ * the fight is over and the blade goes back on his back. `lit`: how open it stands between cuts in a fight.
+ */
+export const FIGHT = { near: 10, after: 3, lit: 1 };
+const ENGAGED = new Set(['chase', 'wind', 'strike', 'recover']);
+/** Is a foe engaged with someone at `from`: a living foe target (src/foes.js) awake within `near` m (flat). */
+export function foeEngaged(from, targets = allTargets(), near = FIGHT.near) {
+  for (const t of targets) {
+    if (t.kind !== 'foe' || !t.foe || !ENGAGED.has(t.foe.state) || !t.enabled()) continue;
+    const q = t.position();
+    if (Math.hypot(q.x - from.x, q.z - from.z) < near) return true;
+  }
+  return false;
 }
+/** Is the blade in the fist: in a fight (a swing or its chain, the guard, an evade, locked on, a blow taken, a foe engaged near) or just after one. */
+export function bladeDrawn({ ok = true, swinging = false, guarding = false, evading = false, locked = false, fighting = false, since = Infinity } = {}) {
+  return ok && (swinging || guarding || evading || locked || fighting || since < STANCE.linger);
+}
+/** How lit the blade wants to be (0..1): 1 through a swing, FIGHT.lit between cuts in a fight (the hilt in the fist), else 0 (only the bead). */
+export const bladeLitWant = ({ swinging = false, fighting = false, inHand = false } = {}, F = FIGHT) => swinging ? 1 : fighting && inHand ? F.lit : 0;
 
 /** The arc a swing's hand follows (u 0..1 along it): side to side (+1 the right), up and down, for the three swings. */
 export function swingArc(n, u) {
@@ -631,7 +650,7 @@ export class FluidBlade {
     this.parry = Math.max(0, this.parry - dt);
     if (!ok || !p) {
       // (climbing, swimming, gliding, on the jets, aiming, riding, knocked down, a scene: the blade put away at once, the shield folds)
-      this.stop(); this.evadeT = 0; this.guardK = 0; this.guardWant = false; this.since = Infinity;
+      this.stop(); this.evadeT = 0; this.guardK = 0; this.guardWant = false; this.since = Infinity; this.fightSince = Infinity;
       this.sheath.update(dt, false, { ok: false });   // (flown back to the frog, no reach: the arms are busy)
       this.placeShield(dt); return this.fade(dt);
     }
@@ -760,7 +779,11 @@ export class FluidBlade {
       p.aim = this.pose;
     } else if (!this.swinging && p.swingMove) p.swingMove = null;
     if (!want && this.guardK === 0) this.guardT = 0;
-    this.lit += ((this.swinging ? 1 : 0) - this.lit) * (1 - Math.exp(-(this.swinging ? 30 : 9) * dt));
+    // (a fight: a foe engaged near or locked on, FIGHT; it lasts FIGHT.after s past the last of them, so it never flickers between cuts)
+    this.fightSince = (p.lockOn || foeEngaged(p.pos)) ? 0 : (this.fightSince ?? Infinity) + dt;
+    const fighting = this.fightSince < FIGHT.after;
+    const litWant = bladeLitWant({ swinging: this.swinging, fighting, inHand: this.sheath.held >= 1 });
+    this.lit += (litWant - this.lit) * (1 - Math.exp(-(litWant > this.lit ? 30 : 9) * dt));
     if (this.charging) this.lit = 0.8 + 0.2 * Math.sin(this.charging.t * (this.charging.full ? 26 : 12));   // (gathering: the blade pulses, faster once full)
     if (this.evadeT && p.onGround) {
       this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
@@ -781,7 +804,7 @@ export class FluidBlade {
     // in a fight the blade stays in the fist (a while after, and all the time locked on), then is put away
     this.since += dt;
     if (this.swinging || this.evadeT || this.guardK > 0.05 || p._flinch) this.since = 0;
-    const drawWant = bladeDrawn({ ok, swinging: this.swinging, guarding: this.guardK > 0.05, evading: this.evadeT > 0, locked: !!p.lockOn, since: this.since });
+    const drawWant = bladeDrawn({ ok, swinging: this.swinging, guarding: this.guardK > 0.05, evading: this.evadeT > 0, locked: !!p.lockOn, fighting, since: this.since });
     // (drawn over the shoulder; a swing pressed with it on the back starts at once and the hilt is in the fist before its cut)
     this.sheath.update(dt, drawWant, { quick: this.swinging });
     this.place(dt);

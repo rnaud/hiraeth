@@ -1087,6 +1087,7 @@ const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modul
 /** (v1.82, issue #391: the light of a way through fitted to its opening) */
 const DOORS391 = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on its own Vite (port 6391), the camera pinned 5.5 m before each way through of the twelve route worlds; before: the tree before the change (eb00b3c1, port 6394), after: the change; 16 October; cwebp -q 72';
 const DOORS391G = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden) on its own Vite (port 6391), the camera pinned before the door, noon (12:00) or dusk (18:36); before: the fitted veil (the fit commit), after: the glow; 16 October; cwebp -q 72';
+const SWORD390 = 'muted headless Chrome on this Mac, High, 1280 × 720, the Arena at 10:00, a blot (its health raised) fought with the combo, the camera off his right front quarter, origin/main against issue #390’s change; 16 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.82': [
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
@@ -1110,6 +1111,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'door-glow', caption: 'The Rose House’s door at noon: before, the fitted veil of tongues; after, the glow round its frame, the room’s warm light faint in the middle', from: DOORS391G },
       { name: 'door-glow-out', caption: 'The Rose House’s way out from its first hall, at dusk: before, the veil; after, the glow, the day outside faint in its middle', from: DOORS391G },
     ], see: 'Walk up to any doorway, shop or temple door: its frame glows; come close and the glow in its middle fades so you can see in.' },
+    { match: 'Your sword stays drawn and glowing for the whole fight', tags: ['combat'], shots: [
+      { name: 'sword-open', size: [1280, 711], title: 'Between cuts', caption: 'The Arena, a blot fought with the combo, a frame every half second or so: before, the blade dark in the fist after each cut (only the cuts lit); after, open at full length between them', from: SWORD390 },
+      { name: 'sword-sheathe', size: [960, 400], title: 'The fight over', caption: 'The blot gone: 1.5 s after, and 6.5 s after. Before, dark in the fist, then on his back; after, still open, then on his back with the same sheathe', from: SWORD390 },
+    ], see: 'Fight anything: between your swings the blade stays lit in your hand. Walk away from the fight and a few seconds later he puts it back on his back.' },
   ],
   '1.81': [
     { match: 'Walking through a door no longer runs you into a wall first', shots: [

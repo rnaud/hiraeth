@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { circumcentre, gripLine, fistGrip, forearmMount, FOREARM, STRAP } from '../src/blade-grip.js';
 import { ShieldState, SHIELD, shieldArc, blobRadius, braceShift } from '../src/shield.js';
-import { SWINGS, WHIRL, GUARD, STANCE, attackSample, bladeDrawn, inGuard } from '../src/fluid-blade.js';
+import { SWINGS, WHIRL, GUARD, STANCE, FIGHT, attackSample, bladeDrawn, bladeLitWant, foeEngaged, inGuard } from '../src/fluid-blade.js';
+import { registerTarget } from '../src/targets.js';
 import { DRAW, SHEATHE } from '../src/sword-sheath.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { GameState } from '../src/game-state.js';
@@ -239,4 +240,62 @@ test('put away climbing, swimming, in a scene and knocked down; the bracer stays
   for (let i = 0; i < (STANCE.linger + SHEATHE.time + 1) / dt; i++) tick({});
   assert.ok(blade.sheath.held === 0 && blade.group.parent === p.humanoid.chestAnchor && blade.frog.visible, 'the fight over: back in its frog');
   tool.dispose();
+});
+
+test('a fight (issue #390): a foe awake near keeps the blade drawn and lit between cuts; asleep, far or dead it does not', () => {
+  const foe = (state, x) => ({ kind: 'foe', foe: { state }, enabled: () => state !== 'dead', position: () => v(x, 1, 0) });
+  for (const s of ['chase', 'wind', 'strike', 'recover']) assert.ok(foeEngaged(v(), [foe(s, 4)]), `${s} near: a fight`);
+  assert.ok(!foeEngaged(v(), [foe('idle', 4)]) && !foeEngaged(v(), [foe('home', 4)]) && !foeEngaged(v(), [foe('dead', 4)]), 'asleep, gone home or dead: none');
+  assert.ok(!foeEngaged(v(), [foe('chase', FIGHT.near + 1)]), 'beyond FIGHT.near: none');
+  assert.ok(!foeEngaged(v(), [{ kind: 'rope', enabled: () => true, position: () => v() }]), 'only foes');
+  assert.ok(bladeDrawn({ fighting: true }), 'drawn in a fight with nothing pressed');
+  assert.equal(bladeLitWant({ fighting: true, inHand: true }), FIGHT.lit, 'open between cuts in a fight');
+  assert.ok(FIGHT.lit >= 0.9, 'open at (nearly) full length');
+  assert.equal(bladeLitWant({ fighting: true, inHand: false }), 0, 'not lit on his back');
+  assert.equal(bladeLitWant({ inHand: true }), 0, 'out of a fight, only the bead');
+  assert.equal(bladeLitWant({ swinging: true }), 1);
+});
+
+test('in a fight the blade stays in the fist and open through the combo, the guard, the dash cut, the charged cut and the air cut, back after the gun; the fight over, it goes back on his back', async () => {
+  const { p, tool, tick } = await armed('b3');
+  const blade = tool.blade, state = { state: 'chase' };
+  const off = registerTarget({ kind: 'foe', foe: state, lock: false, position: () => p.pos.clone().add(v(0, 1, 6)), enabled: () => state.state !== 'dead' });
+  try {
+    for (let i = 0; i < Math.ceil(DRAW.time / dt) + 30; i++) tick({});
+    assert.ok(blade.sheath.held >= 1 && blade.group.parent === p.humanoid.b.hand_r, 'a foe awake near: drawn with nothing pressed');
+    assert.ok(blade.shownLit(0, true) > 0.95 && blade.bladeGroup.visible, 'and open');
+    let minLit = Infinity, minHeld = Infinity, since = Infinity;
+    const watch = () => {
+      // (the charge pulses on its own, CHARGE_LOOK, and its cut lights from there: a tenth of a second after it left out)
+      since = blade.charging ? 0 : since + dt;
+      if (since > 0.1) minLit = Math.min(minLit, blade.lit);
+      minHeld = Math.min(minHeld, blade.sheath.held);
+    };
+    // the combo, three presses chained, then its recovery and a wait
+    for (let k = 0; k < 3; k++) { tick({ KeyF: true }); watch(); for (let i = 0; i < 20; i++) { tick({}); watch(); } }
+    for (let i = 0; i < 120; i++) { tick({}); watch(); }
+    for (let i = 0; i < 40; i++) { tick({ KeyZ: true }); watch(); }   // (the guard)
+    for (let i = 0; i < 60; i++) { tick({}); watch(); }
+    // an evade with a press in it (the dash cut), then the charged cut (held), then a jump and a press (the air cut)
+    tick({ AltLeft: true }); watch(); for (let i = 0; i < 6; i++) { tick({ KeyF: i < 2 }); watch(); }
+    for (let i = 0; i < 90; i++) { tick({}); watch(); }
+    for (let i = 0; i < 100; i++) { tick({ KeyF: true }); watch(); }
+    for (let i = 0; i < 90; i++) { tick({}); watch(); }
+    tick({ Space: true }); for (let i = 0; i < 12; i++) { tick({ KeyF: i === 8 }); watch(); }
+    for (let i = 0; i < 120; i++) { tick({}); watch(); }
+    assert.ok(minHeld >= 1, `never put away in the fight (held down to ${minHeld.toFixed(2)})`);
+    assert.ok(minLit > 0.95, `never dark between cuts (lit down to ${minLit.toFixed(2)})`);
+    // the gun: aimed, the blade is put away; the aim let go in the fight, it is drawn again and open
+    items.grant('gun'); tool.forceGun = true;   // (the gun in hand, as a game on foot lends it)
+    for (let i = 0; i < 40; i++) tick({ MouseRight: true });
+    assert.ok(blade.sheath.held === 0, 'aiming the gun: on his back');
+    for (let i = 0; i < Math.ceil(DRAW.time / dt) + 40; i++) tick({});
+    assert.ok(blade.sheath.held >= 1 && blade.lit > 0.95, 'the aim let go in the fight: back in the fist, open');
+    // the foe dead: a short while still drawn (FIGHT.after), then the sheathe
+    state.state = 'dead';
+    for (let i = 0; i < 1.5 / dt; i++) tick({});
+    assert.ok(blade.sheath.held >= 1, 'not put away the moment the fight ends');
+    for (let i = 0; i < (FIGHT.after + STANCE.linger + SHEATHE.time + 1) / dt; i++) tick({});
+    assert.ok(blade.sheath.held === 0 && blade.group.parent === p.humanoid.chestAnchor && blade.lit < 0.05, 'the fight over: back in its frog, dark');
+  } finally { off(); items.revoke('gun'); tool.dispose(); }
 });

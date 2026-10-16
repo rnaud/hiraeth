@@ -20,6 +20,9 @@ export const CHANGELOG = [
     // issue #391: src/door-light.js (one draw a door), src/thresholds.js; Unity: Hiraeth/DoorLight (port 'doorlight');
     // tests/door-light.test.js
     'And that light is new: instead of a curtain of flickering tongues, the doorway itself glows, brightest round its frame in a few flat steps, with the warm lamp of the room beyond (or the daylight, on the way out) faint in its middle. It softens as you walk up to it, so you can see into the door before you step through.',
+    // issue #390: src/fluid-blade.js FIGHT, foeEngaged, bladeLitWant (drawn and open while a foe is awake within 10 m or
+    // locked on, 3 s past the last); tests/blade-grip.test.js, tests/engine-combat.test.js
+    'Your sword stays drawn and glowing for the whole fight. It used to go dark in your hand after every cut and light again for the next; now, while a foe is close and awake or you are locked on, the blade stays open between swings, through the guard, rolls and the charged cut. A few seconds after the fight is over it goes back on your back as before.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

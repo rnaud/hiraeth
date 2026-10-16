@@ -47,6 +47,11 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   assert.ok(S.state.lock.x > 0.2 && S.state.lock.x < 0.8 && S.state.lock.y > 0.2 && S.state.lock.y < 0.9, 'the reticle over it');
   const before = g.chimes;   // (the wallet before the cut: chimes may walk in during it)
   let bursts = 0; const off = g.foes.game.on('foe:burst', () => bursts++);
+  // (issue #390: in the fight the blade stays in the fist and open between cuts, not dark after each: one cut, then a
+  // second with nothing pressed, the blot still up)
+  run(g, 2, { KeyF: true }); run(g, 40, { KeyF: false });
+  const B = g.tool?.blade;
+  if (foe.alive) assert.ok(B && !B.swinging && B.sheath.held >= 1 && B.lit > 0.9, `the blade open between cuts (held ${B?.sheath.held}, lit ${B?.lit?.toFixed(2)})`);
   for (let k = 0; k < 40 && foe.alive && foe.dead === undefined; k++) { run(g, 2, { KeyF: true }); run(g, 10, { KeyF: false }); }
   // (the wallet read as the frames go: the health HUD shows a few seconds of the real clock after a pickup, and on a
   // slow runner 120 frames outlast it, so a read at the end alone found it hidden)

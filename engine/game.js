@@ -1310,6 +1310,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     goAboard(room) { const ok = goAboard(room); if (ok) rig.update(player.pos, 0, player.frame); return ok; },
     /** The fight (engine/combat.js), and its foes (src/foes.js), when the engine plays them. */
     combat, foes: combat?.foes ?? null,
+    /** The fluid tool (src/fluid-tool.js): the gun and the blade (its sheath, its light). */
+    tool,
     /** The ship attached and its scenes played (the engine played with its menus). */
     shipScenes: shipOn,
     /** The ways through to another space (src/passage.js): `active` while one carries the traveller across. */
