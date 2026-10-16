@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_b5cc373299baf1 8
+docs/systems/temples.md
+  s_9ca76055a220ed::t_8217ee5d1c459a 1197-1200
+src/boxes/placements.js
+  s_9ca76055a220ed::t_06baa082a4eb70 149-152,242-245,247
+src/changelog.js
+  s_9ca76055a220ed::t_562c7be9b48cce 33-36
+src/gadgets/boomerang.js
+  s_9ca76055a220ed::t_e28bc9f2fe2b34 141
+src/temples/garage-data.js
+  s_9ca76055a220ed::t_2a59ad29d194c9 60
+src/temples/garage.js
+  s_9ca76055a220ed::t_f752586a1e4a75 44,54-56,58-60,63,69,126,174-178,180,183,190,206,210,216,404,528,541-542,570,760,813
+src/temples/hints.js
+  s_9ca76055a220ed::t_b6c55a5c3c3f08 132
+src/temples/index.js
+  s_9ca76055a220ed::t_dc04e522dc7cfa 101,106
+src/temples/migrate.js
+  s_9ca76055a220ed::t_4131e80b8beb5c 20
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_12bff06fd4895f 461,483,492,771
+tests/temples.test.js
+  s_9ca76055a220ed::t_69eaf2766e4f97 48,242,398,1467,1470,4062,4073-4087,4228,4230,4236,4239,4243-4244,4257-4259,4262-4263,4315,4364-4366
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0458332aca2b56118ecc68e128e1d7f4a487ea2b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
