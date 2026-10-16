@@ -1,0 +1,25 @@
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_71257ac87d8a68 23-24,397,599-625
+scripts/unity-linux-smoke.sh
+  s_9ca76055a220ed::t_34093175824411 1-37
+scripts/wait-tests.sh
+  s_9ca76055a220ed::t_46d2c2a8276fc5 1-23
+tests/unity-linux-gate.test.js
+  s_9ca76055a220ed::t_e5f23797828142 1-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "23407add8274d69df9473e5f4dc4741c877d0576",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
