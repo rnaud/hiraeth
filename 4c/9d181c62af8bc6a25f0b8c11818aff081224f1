@@ -1,0 +1,35 @@
+tests/unity-upscale.test.js
+  s_9ca76055a220ed::t_0814a2e8adf049 1-75
+unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs
+  s_9ca76055a220ed::t_f604fc4b8fe8fe 201
+unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs
+  s_9ca76055a220ed::t_efdeb248238111 31-32,44,75-81,84-111,135-145,226-232,266,281,408-409,475-481,487,489,545-637
+unity/Hiraeth/Assets/Hiraeth/Shaders/SGSR1.hlsl
+  s_9ca76055a220ed::t_451dffa11cbc97 1-203
+unity/Hiraeth/Assets/Hiraeth/Shaders/SGSR1.hlsl.meta
+  s_9ca76055a220ed::t_a3ce3af17ca2cc 1-7
+unity/Hiraeth/Assets/Hiraeth/Shaders/Upscale.shader
+  s_9ca76055a220ed::t_e650f5776e66cf 1-100
+unity/Hiraeth/Assets/Hiraeth/Shaders/Upscale.shader.meta
+  s_9ca76055a220ed::t_72b53ed8129716 1-9
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_64b4b8053c86a4 355-384,407-413
+unity/Hiraeth/ProjectSettings/GraphicsSettings.asset
+  s_9ca76055a220ed::t_157f100b2a2c67 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c9d181c62af8bc6a25f0b8c11818aff081224f1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
