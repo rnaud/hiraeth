@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_9b23703554ddfa 7
+docs/design/fight-temples.md
+  s_9ca76055a220ed::t_4c84f1de7465c5 225-232
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_d05174f3570ace 146
+src/changelog-media.js
+  s_9ca76055a220ed::t_f30cf1d4645cb2 1130-1134
+src/changelog.js
+  s_9ca76055a220ed::t_6ba978089d8bdb 66
+src/fight-temples/incal.js
+  s_9ca76055a220ed::t_f583fec8eb37d0 1-49
+src/kit-colours.js
+  s_9ca76055a220ed::t_85708753353cf1 43-45
+src/minigames/fight-incal.js
+  s_9ca76055a220ed::t_d5b174ddde2684 1-6
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_593f92c80f23c4 109-114
+tests/engine-trials.test.js
+  s_9ca76055a220ed::t_cd55a4efb8b752 181
+tests/fight-temples-worlds.test.js
+  s_9ca76055a220ed::t_efff74c9350fa2 14,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5b23ce413239818b18db4b0de1fdd84990f0d0c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

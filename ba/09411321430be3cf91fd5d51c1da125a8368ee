@@ -1,0 +1,57 @@
+changelog.md
+  s_9ca76055a220ed::t_0128306b9587fe 5-9,27
+docs/README.md
+  s_9ca76055a220ed::t_9ede217dcc6f2f 28
+docs/design/fight-temples.md
+  s_9ca76055a220ed::t_80d0d540b73e22 25-30,145-152,216-224,231,233,235,239,243-245,282-284
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_1408f9bac08b02 145,486
+src/changelog-media.js
+  s_9ca76055a220ed::t_46b93026f933fc 872-873,1088,1121-1130
+src/changelog.js
+  s_9ca76055a220ed::t_ece7ba4c7f4a04 11,60-66
+src/fight-temples/dress.js
+  s_9ca76055a220ed::t_32f3507937d7da 9-10,14-17,38-50,100-165
+src/fight-temples/edena.js
+  s_9ca76055a220ed::t_10460bc0d90aa7 1-51
+src/fight-temples/hazards.js
+  s_9ca76055a220ed::t_731143fea9fe5a 12-19,28,34-37,78-86,126-165,192-217,229-255,259,266-269,278-287,300,315-317,322-323,345-353,355-356,362,368,371-424,453,461-467
+src/fight-temples/rules.js
+  s_9ca76055a220ed::t_1c1531c03a06cc 189
+src/fight-temples/session.js
+  s_9ca76055a220ed::t_55563962a74804 270,365,368,370,380,383-389,406,580
+src/kit-colours.js
+  s_9ca76055a220ed::t_7b6d48fa040e86 40-42
+src/levels/arcade.js
+  s_9ca76055a220ed::t_190a96854a3f0d 27,190
+src/minigames/fight-edena.js
+  s_9ca76055a220ed::t_c295a0be1de93b 1-6
+src/minigames/kit/arcade.js
+  s_9ca76055a220ed::t_90eceec7b61584 15-16
+src/perf.js
+  s_9ca76055a220ed::t_8d116f9068234d 208-214
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_08a3207addc188 103-108
+tests/engine-trials.test.js
+  s_9ca76055a220ed::t_802bedbed2ac36 181,200-201
+tests/fight-temples-worlds.test.js
+  s_9ca76055a220ed::t_36a71136a98814 13,20,30,91-103,238-239,267-280,290
+tests/fight-temples.test.js
+  s_9ca76055a220ed::t_1d82d2a89b0b95 400
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba09411321430be3cf91fd5d51c1da125a8368ee",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
