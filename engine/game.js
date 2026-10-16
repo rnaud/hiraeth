@@ -1191,6 +1191,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     scene, camera, player, rig, level, physics, deferred, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
+    /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
+    get chimes() { return resources.chimes; },
     key(code, down) {
       if (down) tapped.add(code);
       const was = keys[code];
