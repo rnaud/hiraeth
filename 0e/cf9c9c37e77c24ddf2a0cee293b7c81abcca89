@@ -1,0 +1,33 @@
+changelog.md
+  s_5f899ba316b5dc::t_e0cf76e9dd0359 7
+docs/systems/foes.md
+  s_5f899ba316b5dc::t_21e6930fb1370a 194-196,246-249
+engine/game.js
+  s_5f899ba316b5dc::t_eb8496b38597b6 1313-1314
+src/changelog-media.js
+  s_5f899ba316b5dc::t_9418dc2a28152c 1090,1114-1117
+src/changelog.js
+  s_5f899ba316b5dc::t_bcd010407e426e 23-25
+src/fluid-blade.js
+  s_5f899ba316b5dc::t_1b8153071313e5 365-384,386-387,653,782-786,807
+tests/blade-grip.test.js
+  s_5f899ba316b5dc::t_e69de70f0649be 6-7,244-301
+tests/engine-combat.test.js
+  s_5f899ba316b5dc::t_30ddbc2e3f0cd9 50-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0ecf9c9c37e77c24ddf2a0cee293b7c81abcca89",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
