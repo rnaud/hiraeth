@@ -13,6 +13,10 @@ export const CHANGELOG = [
     // session.js (the seed on the cards); tests/fight-generate.test.js; docs/design/fight-temples.md "Each run its own"
     'The fight temples are different every time you go in: the rooms between the entrance and the altar come in a new order and a new layout, each turned its own way, and every wave is drawn fresh from the world’s foes, as hard as before at each point of the run. The results show the run’s number, so you can play the same one again.',
     'A new fight temple in the City Floating in Space, the Oil Exchange, on the Towers’ deck: four decks of drones, moths and rollers over the dark, where leaking oil spreads under your feet and a spark sets it burning. Step off the pool before it lights, and let the rollers burn. Its prize: the Lamp oil colours. With it every world has its fight temple.',
+    // issue #391: src/thresholds.js fitDoor (the jambs looked for within 5.5 m, up to 10 by 11 m, the hole's width, its
+    // top and depth measured), openingGeometry; the shopfronts', sea locks', skull's mouth's, Crown lift's and hull
+    // hatch's own openings; tests/thresholds.test.js
+    'The light in a doorway now fills the whole opening. A temple’s great door, its ways out, the skull’s mouth, the sea locks, the shops and the crashed ship’s hatch all used to wear a narrow sheet of it, smaller than the dark it stood in, like a cut-out in front of a hole; now it reaches from jamb to jamb and up into the arch.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

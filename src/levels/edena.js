@@ -280,7 +280,9 @@ function hullHatch(grp, hull, terrain, crashed) {
   foot.addScaledVector(new THREE.Vector3(n.x, 0, n.z).normalize(), 0.35);
   foot.y = terrain.heightAt(foot.x, foot.z);
   crashed.hatchSpot = { x: HX, hw, hh, aMid, aTop: aMid - hh / r, r };
-  return { at: foot, heading };
+  // (its opening, where the way's light hangs: on the dark, inside the collar, leaning back with the hull: src/thresholds.js, issue #391)
+  const opening = { at: h.localToWorld(new THREE.Vector3(0, -hh, 0.22)), yaw: heading, w: hw * 2, h: hh * 2, corner: 0.5, tilt: Math.asin(THREE.MathUtils.clamp(n.y, -1, 1)) };
+  return { at: foot, heading, opening };
 }
 
 /** A giant umbrella tree: a pinched trunk, a few branches, one to three flat canopies. kit: { scene, terrain, rng, pick } (createEdena; the Lab's Viridel room) */
@@ -439,7 +441,7 @@ export function* buildEdena(scene) {
     grp.updateMatrixWorld(true);
     // a hatch in the hull opens onto the cabin (on the starboard flank, where the hull meets the meadow)
     {
-      const { at: hatch, heading } = hullHatch(grp, hull, terrain, crashed);
+      const { at: hatch, heading, opening } = hullHatch(grp, hull, terrain, crashed);
       const room = buildRoom(scene, {
         pos: new THREE.Vector3(0, 1500, 0), w: 6, d: 16, h: 3.2,
         wall: { color: '#f3ead8', color2: '#e6875f', grid: 0.6 }, floor: '#62c3c9', ceiling: '#e9e3d4',
@@ -450,6 +452,7 @@ export function* buildEdena(scene) {
       });
       shipRoom = room;
       shipPortals.push(...portalPair({ at: hatch, heading, room }));
+      shipPortals[shipPortals.length - 2].door = opening;
       crashed.hatch = hatch; crashed.hatchHeading = heading;
       crashed.room = room;
       crashed.panel = room.group.localToWorld(new THREE.Vector3(0, 0, -6.4));

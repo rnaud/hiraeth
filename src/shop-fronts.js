@@ -79,7 +79,7 @@ export const FRONTS = {
     B.add(bone, lathe([[0.01, 4.25], [1.9, 4.25], [4.2, 4.5], [4.75, 4.85], [4.65, 5.2], [3.9, 5.65], [2.3, 5.95], [0.01, 6.05]], 26).translate(0, 0, cz), strata('#e6d4bf', 0.9));
     B.add(ochre, new THREE.CylinderGeometry(4.73, 4.7, 0.16, 30, 1, true).translate(0, 5.0, cz), { soft: true, side: THREE.DoubleSide });
     // the carved face with its door (an arch), solid behind
-    B.add(bone, archWall(3.4, 3.7, 0.7, { arch: true, door: { w: 1.5, h: 2.5, arch: true } }), strata('#e2cdb6', 1.1));
+    B.add(bone, archWall(3.4, 3.7, 0.7, { arch: true, door: B.door({ w: 1.5, h: 2.5, arch: true }) }), strata('#e2cdb6', 1.1));
     B.add(bone, new THREE.ExtrudeGeometry(archShape(3.4, 3.7), { depth: 1.7, bevelEnabled: false }).translate(0, 0, -2.4));
     B.add(bone, block(3.6, 1.6, 2.6, 0, -1.6, -1.2));
     lit(B, 1.5, 2.5, 0, 0, -0.68, { color: '#f4cfa4' });
@@ -116,7 +116,7 @@ export const FRONTS = {
   almonry(B) {
     const rose = '#e4a99f', rose2 = '#d4958c', slate = '#7d7e9e', wood = '#9a6a46', bronze = '#c4903e';
     const W = 7, H = 5.4;
-    B.add(rose, archWall(W, H, 0.7, { door: { w: 1.5, h: 2.5, x: -1.6, arch: true }, windows: [{ w: 1.8, h: 1.5, x: 1.5, y: 1.05, arch: true }] }), { ...strata(rose2, 1.0), grid: 0.75 });
+    B.add(rose, archWall(W, H, 0.7, { door: B.door({ w: 1.5, h: 2.5, x: -1.6, arch: true }), windows: [{ w: 1.8, h: 1.5, x: 1.5, y: 1.05, arch: true }] }), { ...strata(rose2, 1.0), grid: 0.75 });
     B.add(rose, block(W, H + 1.6, 3.6, 0, -1.6, -2.5), { ...strata(rose2, 1.0), grid: 0.75 });
     B.add(rose2, block(W + 0.3, 0.35, 4.0, 0, H, -2.3));
     for (let i = 0; i < 7; i++) B.add(rose2, block(0.5, 0.45, 0.4, -W / 2 + 0.4 + i * 1.03, H + 0.35, 0.0));
@@ -152,7 +152,7 @@ export const FRONTS = {
     B.add(plank, block(2.4, 0.3, 1.8, 0.4, -0.3, 1.45), { grid: 0.35 });
     B.add('#6e5a44', stick([1.45, -1.2, 2.2], [1.45, 1.05, 2.2], 0.09));
     // the house: a front of planks with its door and a round window, reed bundles at the corners, the body behind
-    B.add(grey, archWall(5.4, 2.9, 0.25, { door: { w: 1.4, h: 2.3, x: -0.7 }, windows: [{ w: 0.85, x: 1.4, y: 1.0, round: true }] }), { grid: 0.3 });
+    B.add(grey, archWall(5.4, 2.9, 0.25, { door: B.door({ w: 1.4, h: 2.3, x: -0.7 }), windows: [{ w: 0.85, x: 1.4, y: 1.0, round: true }] }), { grid: 0.3 });
     B.add(grey2, block(5.4, 2.9, 3.9, 0, 0, -2.2), { grid: 0.3 });
     lit(B, 1.4, 2.3, -0.7, 0, -0.23, { arch: false, color: '#e7c98e' });
     lit(B, 0.85, 0.85, 1.4, 1.425, -0.23, { round: true, color: '#c9a6ff' });
@@ -190,7 +190,7 @@ export const FRONTS = {
     const moss = '#8aa05a', stone = '#9a9a86', blue = '#4f6f9e', cream = '#efe6d0', wood = '#7a5232', c = [0, -0.9, -5.4], R = 4.8;
     B.add(moss, new THREE.SphereGeometry(R, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2).translate(c[0], c[1], c[2]), { weathered: true });
     B.add(moss, new THREE.CylinderGeometry(R, R, 1.2, 28, 1, true).translate(c[0], c[1] - 0.6, c[2]));
-    B.add(stone, archWall(2.1, 2.8, 0.6, { arch: true, door: { w: 1.3, h: 2.3, arch: true } }), { grid: 0.45 });
+    B.add(stone, archWall(2.1, 2.8, 0.6, { arch: true, door: B.door({ w: 1.3, h: 2.3, arch: true }) }), { grid: 0.45 });
     B.add(stone, new THREE.ExtrudeGeometry(archShape(2.1, 2.8), { depth: 1.6, bevelEnabled: false }).translate(0, 0, -2.2));
     B.add(stone, block(2.3, 1.4, 2.2, 0, -1.4, -1.0));
     lit(B, 1.3, 2.3, 0, 0, -0.58, { color: '#ffd59a' });
@@ -228,7 +228,7 @@ export const FRONTS = {
     const slab = new THREE.Shape(); slab.moveTo(-1.2, -1.4); slab.lineTo(-4.6, 6.8); slab.lineTo(-6.4, 6.8); slab.lineTo(-8.4, -1.4); slab.lineTo(-1.2, -1.4);
     B.add(white, new THREE.ExtrudeGeometry(slab, { depth: 10, bevelEnabled: false }).rotateY(-Math.PI / 2).translate(5, 0, 0), { grid: 1.3 });
     // the glasshouse: a front of glass in a wooden frame with its door and window, a sloping glass roof to the slab
-    B.add(glass, archWall(4.4, 2.8, 0.15, { door: { w: 1.3, h: 2.3, x: -0.9 }, windows: [{ w: 1.6, h: 1.2, x: 1.1, y: 0.9 }] }), { glow: 0.1 });
+    B.add(glass, archWall(4.4, 2.8, 0.15, { door: B.door({ w: 1.3, h: 2.3, x: -0.9 }), windows: [{ w: 1.6, h: 1.2, x: 1.1, y: 0.9 }] }), { glow: 0.1 });
     B.add(glass, block(4.4, 2.8, 2.6, 0, 0, -1.45), { glow: 0.1 });
     B.add(glass, new THREE.BoxGeometry(4.4, 0.08, 3.6).rotateX(0.62).translate(0, 3.85, -1.35), { glow: 0.1 });
     for (const x of [-2.2, -1.6, -0.2, 0.3, 1.9, 2.2]) B.add(wood, block(0.09, 2.85, 0.1, x, 0, 0.03), { soft: true });
@@ -275,7 +275,7 @@ export const FRONTS = {
   basket(B) {
     const cream = '#efe2c8', terra = '#c9694a', green = '#7c9a78', wood = '#8f6440', iron = '#3d3a3a';
     const W = 4.6, H = 9.4, wins = [[-1.1, 3.5], [1.1, 3.5], [-1.1, 6.3], [1.1, 6.3]];
-    B.add(cream, archWall(W, H, 0.4, { door: { w: 1.3, h: 2.4, x: -1.1, arch: true }, windows: [{ w: 1.7, h: 1.4, x: 1.05, y: 0.95 }, ...wins.map(([x, y]) => ({ w: 0.9, h: 1.4, x, y }))] }), strata('#e2cfb2', 1.4));
+    B.add(cream, archWall(W, H, 0.4, { door: B.door({ w: 1.3, h: 2.4, x: -1.1, arch: true }), windows: [{ w: 1.7, h: 1.4, x: 1.05, y: 0.95 }, ...wins.map(([x, y]) => ({ w: 0.9, h: 1.4, x, y }))] }), strata('#e2cfb2', 1.4));
     B.add(cream, block(W, H + 1.4, 4.2, 0, -1.4, -2.5), strata('#e2cfb2', 1.4));
     B.add(terra, new THREE.ConeGeometry(3.75, 1.7, 4).rotateY(Math.PI / 4).scale(1, 1, 0.98).translate(0, H + 0.85, -2.3), { grid: 0.4 });
     lit(B, 1.3, 2.4, -1.1, 0, -0.38);
@@ -311,7 +311,7 @@ export const FRONTS = {
    */
   kiosk(B) {
     const sage = '#a8b59b', sage2 = '#97a58a', pale = '#c9ccc4', rust = '#b8644a', crate = '#c9b48a', stencil = '#6d7468';
-    B.add(sage, archWall(4.8, 3.1, 0.3, { door: { w: 1.3, h: 2.3, x: -1.5 }, windows: [{ w: 2.3, h: 1.2, x: 1.0, y: 1.0 }] }), { plates: true });
+    B.add(sage, archWall(4.8, 3.1, 0.3, { door: B.door({ w: 1.3, h: 2.3, x: -1.5 }), windows: [{ w: 2.3, h: 1.2, x: 1.0, y: 1.0 }] }), { plates: true });
     B.add(sage, block(5.6, 3.4, 4.0, 0, -0.2, -2.3), { plates: true });
     B.add(sage2, block(5.8, 0.9, 4.2, 0, -1.1, -2.2));
     for (const z of [-0.33, -4.27]) for (const s of [-1, 1]) B.add(sage2, new THREE.CylinderGeometry(0.35, 0.35, 3.4, 10).translate(s * 2.62, 1.5, z));
@@ -355,7 +355,7 @@ export const FRONTS = {
     for (let i = 0; i < 8; i++) B.add(iron2, new THREE.TorusGeometry(R + 0.03, 0.05, 4, 20, Math.PI / 2).rotateY(i * Math.PI / 4).translate(...c), { soft: true });
     B.add(iron2, new THREE.TorusGeometry(R * 0.72, 0.06, 4, 28).rotateX(Math.PI / 2).translate(c[0], c[1] + R * 0.69, c[2]), { soft: true });
     // the oval door: a thick arched frame proud of the dome, solid behind
-    B.add(iron, archWall(2.6, 3.4, 1.0, { arch: true, door: { w: 1.4, h: 2.5, arch: true } }), { plates: true });
+    B.add(iron, archWall(2.6, 3.4, 1.0, { arch: true, door: B.door({ w: 1.4, h: 2.5, arch: true }) }), { plates: true });
     B.add(iron, new THREE.ExtrudeGeometry(archShape(2.6, 3.4), { depth: 1.1, bevelEnabled: false }).translate(0, 0, -2.1));
     B.add(iron, block(2.8, 1.4, 2.2, 0, -1.4, -1.0));
     lit(B, 1.4, 2.5, 0, 0, -0.98, { color: '#ffcf8a' });
@@ -387,7 +387,7 @@ export const FRONTS = {
     B.add(white2, new THREE.CylinderGeometry(5.4, 5.5, 1.3, 32).translate(0, -1.27 + 0.65 - 0.1, cz));
     B.add(white, new THREE.CylinderGeometry(4.9, 4.9, 1.2, 32).translate(0, -0.58, cz));
     B.add(white, new THREE.CylinderGeometry(3.2, 3.2, 3.6, 28).translate(0, 1.8, cz - 0.15), strata(white2, 2));
-    B.add(white, archWall(2.4, 3.3, 0.6, { arch: true, door: { w: 1.35, h: 2.4, arch: true } }), strata(white2, 2));
+    B.add(white, archWall(2.4, 3.3, 0.6, { arch: true, door: B.door({ w: 1.35, h: 2.4, arch: true }) }), strata(white2, 2));
     B.add(white, new THREE.ExtrudeGeometry(archShape(2.4, 3.3), { depth: 1.1, bevelEnabled: false }).translate(0, 0, -1.7));
     lit(B, 1.35, 2.4, 0, 0, -0.58, { color: '#fff1d6' });
     for (const g of archFrame(1.35, 2.4, { t: 0.12, d: 0.08 })) B.add(white2, g, { soft: true });
@@ -427,7 +427,7 @@ export const FRONTS = {
     const coral = '#e48a76', coral2 = '#d2776a', teal = '#5aa79c', teal2 = '#478e84', cream = '#f3e6c8', awn = '#e0654f', cz = -5.9, R = 5.0;
     B.add(coral, new THREE.CylinderGeometry(R, R + 0.1, 10.5, 30).translate(0, 4.0, cz), { plates: true });
     for (const y of [4.6, 7.4]) B.add(coral2, new THREE.TorusGeometry(R + 0.05, 0.12, 5, 30).rotateX(Math.PI / 2).translate(0, y, cz));
-    B.add(teal, archWall(6.0, 3.6, 0.7, { door: { w: 1.4, h: 2.4, x: 1.95, arch: true }, windows: [{ w: 3.0, h: 1.6, x: -1.15, y: 1.1 }] }), { plates: true });
+    B.add(teal, archWall(6.0, 3.6, 0.7, { door: B.door({ w: 1.4, h: 2.4, x: 1.95, arch: true }), windows: [{ w: 3.0, h: 1.6, x: -1.15, y: 1.1 }] }), { plates: true });
     B.add(teal, block(6.0, 3.6 + 1.4, 1.6, 0, -1.4, -1.5));
     lit(B, 1.4, 2.4, 1.95, 0, -0.68, { color: '#ffd9a0' });
     lit(B, 3.0, 1.6, -1.15, 1.1, -0.68, { arch: false, color: '#f6dc9e' });
@@ -467,7 +467,7 @@ export const FRONTS = {
     B.add(teal, new THREE.CylinderGeometry(R, R, 1.2, 26, 1, true).translate(c[0], c[1] - 0.6, c[2]));
     for (const y of [0.9, 2.1]) B.add(coral2, new THREE.TorusGeometry(Math.sqrt(R * R - ((y - c[1]) / 0.85) ** 2) + 0.03, 0.07, 4, 26).rotateX(Math.PI / 2).translate(c[0], y, c[2]), { soft: true });
     // the round door in a thick coral frame proud of the shell, solid behind
-    B.add(coral, archWall(2.6, 3.1, 0.9, { arch: true, door: { w: 1.4, h: 2.4, arch: true } }));
+    B.add(coral, archWall(2.6, 3.1, 0.9, { arch: true, door: B.door({ w: 1.4, h: 2.4, arch: true }) }));
     B.add(coral, new THREE.ExtrudeGeometry(archShape(2.6, 3.1), { depth: 1.1, bevelEnabled: false }).translate(0, 0, -2.0));
     B.add(coral, block(2.8, 1.2, 2.2, 0, -1.2, -1.0));
     lit(B, 1.4, 2.4, 0, 0, -0.88, { color: '#ffcf96' });
@@ -499,7 +499,7 @@ export const FRONTS = {
     // the pouring spout at the rim, toward the right
     B.add(rust2, new THREE.CylinderGeometry(0.5, 0.9, 1.8, 10, 1, true).rotateZ(-1.0).translate(R - 0.2, 5.4, cz + 1.0), { side: THREE.DoubleSide });
     // the arched door in its side, solid behind
-    B.add(rust, archWall(2.8, 3.4, 0.8, { arch: true, door: { w: 1.4, h: 2.5, arch: true } }), { plates: true });
+    B.add(rust, archWall(2.8, 3.4, 0.8, { arch: true, door: B.door({ w: 1.4, h: 2.5, arch: true }) }), { plates: true });
     B.add(rust, new THREE.ExtrudeGeometry(archShape(2.8, 3.4), { depth: 1.0, bevelEnabled: false }).translate(0, 0, -1.8));
     B.add(rust, block(3.0, 1.4, 2.0, 0, -1.4, -0.9));
     lit(B, 1.4, 2.5, 0, 0, -0.78, { color: '#ffb46a' });
@@ -529,7 +529,7 @@ export const FRONTS = {
     B.add(cream2, new THREE.SphereGeometry(2.4, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.7, 1).translate(-1.2, 3.6, cz - 0.6));
     B.add(cream2, new THREE.SphereGeometry(1.7, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.8, 1).translate(1.7, 3.6, cz - 1.2));
     B.add(salmon, new THREE.BoxGeometry(6.06, 0.32, 5.06).translate(0, 2.7, cz - 0.6), { soft: true });
-    B.add(cream, archWall(6.0, 3.6, 0.6, { door: { w: 1.4, h: 2.4, x: -1.4, arch: true }, windows: [{ w: 1.8, h: 1.2, x: 1.4, y: 1.1 }] }));
+    B.add(cream, archWall(6.0, 3.6, 0.6, { door: B.door({ w: 1.4, h: 2.4, x: -1.4, arch: true }), windows: [{ w: 1.8, h: 1.2, x: 1.4, y: 1.1 }] }));
     lit(B, 1.4, 2.4, -1.4, 0, -0.58, { color: '#ffd9a0' });
     lit(B, 1.8, 1.2, 1.4, 1.1, -0.58, { arch: false, color: '#ffe0a8' });
     for (const g of archFrame(1.4, 2.4, { t: 0.12, d: 0.08 })) B.add(coral, g.translate(-1.4, 0, 0), { soft: true });
@@ -572,7 +572,9 @@ export function buildStyledFront(scene, { at, heading = 0, style }) {
   grp.updateMatrixWorld(true);
   const wp = (x, y, z) => grp.localToWorld(new THREE.Vector3(x, y, z));
   const lights = (made.lights ?? []).map(([x, y, z, r]) => { const p = inner.localToWorld(new THREE.Vector3(x, y, z)); return new THREE.Vector4(p.x, p.y, p.z, r); });
-  return { group: grp, door: wp(0, 0, 0), heading, lights, local: wp, size: made.size ?? { w: 8, d: 7, h: 5 }, style, offset: -(made.door ?? 0) };
+  // (opening: its doorway's hole, where the way's light hangs: src/thresholds.js)
+  const D = B.opening;
+  return { group: grp, door: wp(0, 0, 0), heading, lights, local: wp, size: made.size ?? { w: 8, d: 7, h: 5 }, style, offset: -(made.door ?? 0), ...(D ? { opening: { w: D.w, h: D.h, ...(D.arch ? { arch: true } : {}) } } : {}) };
 }
 
 /** The styles there are (every route world's but the desert's, whose front is the kit's own). */

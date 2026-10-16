@@ -29,6 +29,9 @@ export function buckets() {
   const map = new Map();
   return {
     map,
+    opening: null,
+    /** A front's doorway (archWall's `door`), kept as its opening (the first one): returns it. */
+    door(d) { this.opening ??= d; return d; },
     /** A piece: its colour (null: a chime crystal), and { soft (walked through), glow, mode / extra material options, side }. */
     add(color, geo, o = {}) {
       if (!geo) return;

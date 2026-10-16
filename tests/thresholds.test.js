@@ -9,7 +9,7 @@ import * as THREE from 'three';
 
 await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
-const { Thresholds, THRESHOLD, doorOf, passable } = await import('../src/thresholds.js');
+const { Thresholds, THRESHOLD, doorOf, passable, openingGeometry } = await import('../src/thresholds.js');
 const { Veils } = await import('../src/veil.js');
 const { Passage, PASSAGE } = await import('../src/passage.js');
 const { items } = await import('../src/items.js');
@@ -36,7 +36,8 @@ test('every way through to another space has its light, sized to its opening', (
       assert.equal(L.portal._threshold, L, `${name} knows its light`);
       assert.equal(L.washes.length, 2, `${name}: its veil and the pool on its sill`);
       const { w, h, at } = L.door;
-      assert.ok(w >= 1 && w <= 5.5 && h >= 2 && h <= 5, `${name}: ${w.toFixed(2)} × ${h.toFixed(2)} m`);
+      const F = THRESHOLD.fit;
+      assert.ok(w >= F.w[0] && w <= F.w[1] + 1 && h >= F.h[0] && h <= F.h[1], `${name}: ${w.toFixed(2)} × ${h.toFixed(2)} m`);
       assert.ok(at.distanceTo(L.portal.at) < 3, `${name}: hung where the way is (${at.distanceTo(L.portal.at).toFixed(2)} m from it)`);
       assert.ok(L.washes.every((x) => x.material.blending === THREE.AdditiveBlending && x.material.uniforms.uWash.value.y === 1), `${name}: light, glowing`);
       assert.ok(L.washes[0].material.uniforms.uRays.value.x > 0, `${name}: its rays on`);
@@ -65,6 +66,50 @@ test('doorways, temples, rooms, the caves and the lifts say where their openings
   assert.ok(panel, 'the panel at the landing’s far end'); assert.notEqual(panel.material.uniforms?.uColor?.value?.getHexString?.() ?? panel.material.color?.getHexString?.(), '2b211f', 'not ink');
   const room = W.level.portals.find((p) => p.label === 'door');
   assert.ok(room.door && Math.abs(room.door.w - 1.6) < 1e-6, 'a room’s door: its hole in the wall');
+});
+
+// Issue #391, the author: "the shader for the door doesn't match the real size of the door?" A temple's door (7 by 9 m)
+// wore the fallback veil, 2.2 by 4.2, standing in it like a cut-out; a shop's, a sea lock's or the skull's mouth's was
+// measured from walls that were not its opening's.
+test('each veil is its opening’s size and shape: a temple’s great door, its ways out, shops, the sea locks, the skull', () => {
+  const W = world('desert'), { T } = lights(W);
+  const by = (label) => W.level.portals.find((p) => p.label === label)._threshold.door;
+  const rose = by('door of the Rose House');
+  assert.ok(rose.w > 6 && rose.w < 7 && rose.h > 9, `the Rose House: ${rose.w.toFixed(2)} × ${rose.h.toFixed(2)} m (its door 6.8 by 10 at the arch's crown)`);
+  assert.ok(rose.top && rose.top[0] < rose.h - 3 && Math.abs(Math.max(...rose.top) - rose.h) < 0.01, `its pointed top measured: ${rose.top}`);
+  assert.ok(rose.depth && rose.depth[0] + rose.depth[1] > 0.5, `its frame's depth: ${rose.depth}`);
+  for (const p of W.level.portals.filter((q) => q.label === 'way out')) {
+    const d = p._threshold.door;
+    assert.ok(d.w > 4.5 && d.h > 6.5, `a way out of the Rose House: ${d.w.toFixed(2)} × ${d.h.toFixed(2)} m (its halls' doors 7 by 9, framed)`);
+  }
+  const mouth = by('giant’s mouth');
+  assert.ok(mouth.arch && mouth.w > 10 && Math.abs(mouth.h - mouth.w / 2) < 0.1, `the skull's mouth: its tunnel's arch (${mouth.w.toFixed(2)} × ${mouth.h.toFixed(2)})`);
+  const shopP = W.level.portals.find((p) => p.label === 'shop door'), shop = shopP._threshold.door;
+  assert.ok(shopP.door.w && shop.w === shopP.door.w && shop.h === shopP.door.h, `the shop: its front’s own doorway (${shop.w} × ${shop.h})`);
+  T.dispose();
+  for (const id of ['underwater', 'edena', 'glassdunes']) {
+    const U = world(id);
+    for (const p of U.level.portals.filter((q) => q.label === 'shop door')) {
+      const d = doorOf(p, U.physics);
+      assert.ok(p.door.w && p.door.h && d.w === p.door.w && d.h === p.door.h, `${id}'s shop: its front's doorway (${d.w} × ${d.h})`);
+    }
+  }
+  const locks = world('underwater').level.portals.filter((p) => / lock: /.test(p.label ?? ''));
+  assert.ok(locks.length >= 4, `${locks.length} sea locks' doors`);
+  for (const p of locks) assert.ok(p.door.round && Math.abs(p.door.w - 2.36) < 1e-6, `${p.label}: its round door`);
+});
+
+test('an opening’s sheet: square, arched, round or as measured', () => {
+  const box = (g) => { g.computeBoundingBox(); return g.boundingBox; };
+  const sq = box(openingGeometry({ w: 2, h: 3 }));
+  assert.deepEqual([sq.min.x, sq.max.x, sq.min.y, sq.max.y], [-1, 1, 0, 3]);
+  const arch = openingGeometry({ w: 2, h: 3, arch: true }), p = arch.attributes.position;
+  let side = 0; for (let i = 0; i < p.count; i++) if (Math.abs(Math.abs(p.getX(i)) - 1) < 1e-6) side = Math.max(side, p.getY(i));
+  assert.ok(Math.abs(side - 2) < 1e-6 && Math.abs(box(arch).max.y - 3) < 1e-3, 'an arch: its springing at h − w/2, its crown at h');
+  const disc = box(openingGeometry({ w: 2, h: 2.5, round: true }));
+  assert.ok(Math.abs(disc.min.y - 0.5) < 1e-3 && Math.abs(disc.max.y - 2.5) < 1e-3, 'a round door: a disc under its top');
+  const rock = box(openingGeometry({ w: 4, h: 3, top: [2, 3, 2.5] }));
+  assert.ok(Math.abs(rock.max.y - 3) < 1e-6, 'a cave’s mouth: as measured');
 });
 
 test('a way that won’t take you yet wears no light; it comes on once it will', () => {

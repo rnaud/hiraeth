@@ -35,7 +35,10 @@ export const THRESHOLD = {
   flareFade: 0.9,     // s: the flare settling on the far side
   lead: 0.2,          // s: the flare and the light on the screen before the paper comes across
   floorDepth: 0.9,    // m: the pool on the floor, front to back
-  size: { w: [1.0, 5.5], h: [2.0, 5.0] },
+  size: { w: [1.0, 5.5], h: [2.0, 5.0] },   // m: an opening measured blind (measureDoor: no way through given)
+  // m: an opening whose way through is known (fitDoor), as wide and tall as doorways are drawn (a temple's 7 by 9):
+  // each jamb looked for within `reach` of its middle, the lintel within `up`, the top's shape from `cols` rays up
+  fit: { w: [0.8, 10], h: [1.8, 11], reach: 5.5, up: 11, cols: 8 },
 };
 
 const _Y = new THREE.Vector3(0, 1, 0);
@@ -74,34 +77,113 @@ export function measureDoor(physics, at) {
 }
 
 /**
- * An opening whose way through is known (`yaw`) fitted to the walls round `at`: its width across between the jambs and
- * its height to the lintel, each unless given (`w`, `h`), else `fallback`'s. A point a little out of its doorway (a
- * temple's way out, in the hall before it) finds its jambs a step or two along the way through.
+ * An opening whose way through is known (`yaw`) fitted to the walls round `at` (issue #391: a temple's door 7 by 9 m
+ * wore a veil of 2.2 by 4.2, the size it fell back to, standing in it like a cut-out): its width across between the
+ * jambs, its height to the lintel and the top's shape (`top`: the height at `THRESHOLD.fit.cols` + 1 points across, an
+ * arch's curve or a cave mouth's rock), and how deep its frame is (`depth`: [behind, in front] of the sill, m along the
+ * way through), each unless given (`w`, `h`; `arch`: a round top of radius w/2), else `fallback`'s. A point a little out
+ * of its doorway (a temple's way out, in the hall before it) finds its jambs a step or two along the way through.
  */
-export function fitDoor(physics, at, yaw, { w = null, h = null } = {}, fallback = { w: 2.2, h: 3.2 }) {
+export function fitDoor(physics, at, yaw, { w = null, h = null, arch = false, keep = false } = {}, fallback = { w: 2.2, h: 3.2 }) {
+  const F = THRESHOLD.fit, rays = !!physics?.rayDistance;
   const g = physics?.groundAt?.(at.x, at.y + 0.6, at.z, 3);
   const floor = Number.isFinite(g) && g > at.y - 3 ? g : at.y;
   const o = new THREE.Vector3(at.x, floor + 1.2, at.z), across = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw)), n = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
-  const back = across.clone().negate(), mid = o.clone();
-  if (w == null && physics?.rayDistance) {
-    for (const s of [0, -0.4, 0.4, -0.8, 0.8, -1.2, 1.2]) {
-      const q = o.clone().addScaledVector(n, s), a = physics.rayDistance(q, across, 3.2), b = physics.rayDistance(q, back, 3.2);
-      if (Number.isFinite(a) && Number.isFinite(b) && a + b >= THRESHOLD.size.w[0] && a + b <= THRESHOLD.size.w[1]) { w = a + b; mid.copy(q).addScaledVector(across, (a - b) / 2); break; }
+  const back = across.clone().negate(), mid = o.clone(), q = new THREE.Vector3();
+  const jambs = (p) => { const a = physics.rayDistance(p, across, F.reach), b = physics.rayDistance(p, back, F.reach); return Number.isFinite(a) && Number.isFinite(b) ? [a, b] : null; };
+  // (its hole: the narrowest slice along the way through, the nearest of the narrowest: a frame's pillars or a recess
+  // round the hole are wider, and a veil hung between them stands in front of the hole. keep: `at` is the opening's own
+  // sill, as its maker set it, in front of whatever shuts the way behind (a temple's dark): the veil stays on it, the
+  // hole looked for within 1 m; else within 1.6 m, and the veil moved to it)
+  let sAt = 0, plane = 0;
+  if (w == null && rays) {
+    let best = null;
+    for (let k = 0; k <= (keep ? 10 : 16); k++) {
+      const s = (k % 2 ? -1 : 1) * Math.ceil(k / 2) * 0.2, j = jambs(q.copy(o).addScaledVector(n, s));
+      if (!j || j[0] + j[1] < F.w[0] || j[0] + j[1] > F.w[1]) continue;
+      if (!best || j[0] + j[1] < best.w - 0.05) best = { w: j[0] + j[1], s, off: (j[0] - j[1]) / 2 };
     }
+    if (best) { w = best.w; sAt = best.s; plane = keep ? 0 : best.s; mid.copy(o).addScaledVector(n, plane).addScaledVector(across, best.off); }
   }
-  if (h == null && physics?.rayDistance) {
-    const up = physics.rayDistance(mid, _Y, 6);
-    h = Number.isFinite(up) ? THREE.MathUtils.clamp(1.2 + up, THRESHOLD.size.h[0], THRESHOLD.size.h[1]) : 4.2;   // (no lintel within 6 m: a tall dark doorway)
+  const W = w ?? fallback.w;
+  // the frame's depth: from the slice its jambs were found at, along the way through each way while they stand (within
+  // a hand's breadth more than its width: a recess, a passage), at most 3 m; [behind, in front] of the veil's plane
+  let depth = null;
+  const at0 = mid.clone();   // (the slice its jambs were found at: its frame, its lintel)
+  if (rays) {
+    at0.copy(mid).addScaledVector(n, sAt - plane);
+    const reach = (sg) => {
+      let d = 0;
+      for (let k = 1; k <= 30; k++) { const j = jambs(q.copy(at0).addScaledVector(n, sg * k * 0.1)); if (!j || j[0] + j[1] > W + 0.3) break; d = k * 0.1; }
+      return d;
+    };
+    if (jambs(at0)) depth = [reach(-1) - (sAt - plane), reach(1) + (sAt - plane)].map((x) => +x.toFixed(2));
   }
-  return { at: new THREE.Vector3(mid.x, floor, mid.z), yaw, w: w ?? fallback.w, h: h ?? fallback.h };
+  // the top: rays up across the opening, a little in from each jamb (its middle the height, unless given)
+  let top = null;
+  if (h == null && rays) {
+    top = [];
+    for (let i = 0; i <= F.cols; i++) {
+      const x = (i / F.cols - 0.5) * Math.max(0, W - 0.16);
+      const up = physics.rayDistance(q.copy(at0).addScaledVector(across, x), _Y, F.up);
+      top.push(Number.isFinite(up) ? THREE.MathUtils.clamp(1.2 + up, F.h[0], F.h[1]) : null);
+    }
+    const c = top[F.cols >> 1];
+    h = c ?? (top.some((y) => y != null) ? Math.max(...top.filter((y) => y != null)) : 4.2);   // (no lintel within reach: a tall dark doorway)
+    // (an open top, nothing over a column: the height of its neighbours; all alike: no shape of its own)
+    for (let i = 0; i <= F.cols; i++) if (top[i] == null) top[i] = h;
+    if (top.every((y) => Math.abs(y - h) < 0.05)) top = null;
+    else top = top.map((y) => +y.toFixed(2));
+  }
+  const out = { at: new THREE.Vector3(mid.x, floor, mid.z), yaw, w: W, h: h ?? fallback.h };
+  if (arch) out.arch = true;
+  if (top) out.top = top;
+  if (depth) out.depth = depth;
+  return out;
+}
+
+/**
+ * An opening's bottom and top (m over its sill) at x across it: its top square, round (`arch`: radius w/2), as measured
+ * (`top`: heights at evenly spread points across), its corners rounded (`corner`: a radius), or a round door (`round`: a
+ * disc w across whose top is at h).
+ */
+export function openingAt({ w, h, arch = false, top = null, round = false, corner = 0 }, x) {
+  const r = w / 2, c = Math.sqrt(Math.max(0, r * r - x * x));
+  if (top) {
+    const f = THREE.MathUtils.clamp((x / w + 0.5) * (top.length - 1), 0, top.length - 1), i = Math.min(Math.floor(f), top.length - 2);
+    return [0, top[i] + (top[i + 1] - top[i]) * (f - i)];
+  }
+  if (round) return [h - r - c, h - r + c];
+  if (arch && h >= r) return [0, h - r + c];
+  const k = Math.min(corner, r, h / 2), e = Math.abs(x) - (r - k), cut = e > 0 ? k - Math.sqrt(Math.max(0, k * k - e * e)) : 0;
+  return [cut, h - cut];
+}
+
+/** The opening's sheet: its shape (openingAt) on the sill, x across, y up, uv 0..1 over its bounding box. */
+export function openingGeometry(door) {
+  const { w } = door, N = door.top ? door.top.length - 1 : door.arch || door.round || door.corner ? 24 : 1;
+  const lo = [], hi = [];
+  for (let i = 0; i <= N; i++) { const [a, b] = openingAt(door, (i / N - 0.5) * w); lo.push(a); hi.push(b); }
+  const H = Math.max(...hi), B = Math.min(...lo), pos = [], uv = [], idx = [];
+  for (let i = 0; i <= N; i++) {
+    const x = (i / N - 0.5) * w, u = i / N;
+    pos.push(x, lo[i], 0, x, hi[i], 0); uv.push(u, (lo[i] - B) / (H - B), u, (hi[i] - B) / (H - B));
+    if (i < N) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(Array.from({ length: pos.length }, (_, k) => (k % 3 === 2 ? 1 : 0)), 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(idx);
+  return geo;
 }
 
 /** Where a portal's light hangs: its own `door` (filled in from the walls where it leaves its size out), or measured, or
  *  a column round its point. */
 export function doorOf(p, physics = null) {
   const d = p.door;
-  if (d?.at && d.yaw != null && d.w && d.h) return { ...d, at: d.at.clone() };
-  if (d?.yaw != null) return { ...fitDoor(physics, d.at ?? p.at, d.yaw, d), ...(d.column ? { column: true } : {}) };
+  if (d?.at && d.yaw != null && d.w && d.h) return { ...d, at: d.at.clone(), ...(physics ? { depth: fitDoor(physics, d.at, d.yaw, d).depth } : {}) };
+  if (d?.yaw != null) return { ...fitDoor(physics, d.at ?? p.at, d.yaw, { ...d, keep: !!d.at }), ...(d.column ? { column: true } : {}) };
   const m = measureDoor(physics, p.at);
   if (m) return m;
   const g = physics?.groundAt?.(p.at.x, p.at.y + 0.6, p.at.z, 3);
@@ -137,7 +219,8 @@ export class Thresholds {
       if (!p?.at || !p.to) continue;
       const door = doorOf(p, physics);
       const g = new THREE.Group();
-      g.position.copy(door.at); g.rotation.y = door.yaw ?? 0;
+      // (tilt: an opening leaning back from upright, a hatch in a ship's curved hull)
+      g.position.copy(door.at); g.rotation.set(-(door.tilt ?? 0), door.yaw ?? 0, 0, 'YXZ');
       this.group.add(g);
       const meshes = [];
       if (door.column) {
@@ -146,7 +229,7 @@ export class Thresholds {
         meshes.push([washMesh(new THREE.CircleGeometry(r, 20).rotateX(-Math.PI / 2).translate(0, 0.04, 0), g), C.floor, C.floorAlpha]);
       } else {
         // the veil in the opening (square to the way through), and the pool across the sill, a little each side of it
-        meshes.push([washMesh(new THREE.PlaneGeometry(door.w, door.h).translate(0, door.h / 2, 0), g), C.color, C.alpha]);
+        meshes.push([washMesh(openingGeometry(door), g), C.color, C.alpha]);
         meshes.push([washMesh(new THREE.PlaneGeometry(door.w * 0.92, C.floorDepth).rotateX(-Math.PI / 2).translate(0, 0.04, 0), g), C.floor, C.floorAlpha]);
       }
       g.updateMatrixWorld(true);

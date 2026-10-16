@@ -1084,6 +1084,8 @@ const UNITY264_PANELS = 'Issue #264: the Unity editor’s batch on the Mac (Brid
 /** (v1.81, issue #389: walking through a door) */
 const DOORS389 = 'Issue #389: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, Vite on its own port) on virtual time, a frame every 1/30 s of the game, the traveller sprinting into the Rose House’s door in the desert from 5 m out; before: the commit before the change (3e19c96), after: the change; four frames each laid out as a sheet';
 const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modules in node (the real traveller, the level’s collision, the passage’s timings, 60 frames a second), every way through of the twelve route worlds walked and sprinted into from 4 m out';
+/** (v1.82, issue #391: the light of a way through fitted to its opening) */
+const DOORS391 = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on its own Vite (port 6391), the camera pinned 5.5 m before each way through of the twelve route worlds; before: the tree before the change (eb00b3c1, port 6394), after: the change; 16 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.82': [
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
@@ -1100,6 +1102,9 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Oil Exchange (four runs)', before: '—', after: 'knocked out in the last two rooms, 4 left of 121 at best' },
       ], source: FIGHT341B },
     ], see: 'In the City Floating in Space, cross to the Towers: the doorway is in the deck’s far corner from the bridges. In the drum yard, step off a spreading pool before its spark.' },
+    { match: 'The light in a doorway now fills the whole opening', shots: [
+      { name: 'door-fit', caption: 'The Rose House’s door from its forecourt at noon: before, a narrow sheet of light 2.2 m wide and 4.2 m tall standing in the 6.5 m dark; after, the light from jamb to jamb and up into the pointed top', from: DOORS391 },
+    ], see: 'Walk up to any temple’s door or a shop’s: the light fills the doorway from side to side.' },
   ],
   '1.81': [
     { match: 'Walking through a door no longer runs you into a wall first', shots: [

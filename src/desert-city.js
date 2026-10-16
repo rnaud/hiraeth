@@ -1141,7 +1141,9 @@ export function buildDesertCity(scene, terrain) {
     giant.flush();
     const door = giant.world(0, 0, 15.6);
     door.y = terrain.heightAt(door.x, door.z) + 0.05;
-    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(brow.x, brow.y, brow.z), hand: giant.world(wr.x, wr.y, wr.z), cairns: cairns.map((c) => giant.world(c.x, ground(c.x, c.z), c.z)), glow: giant.world(...skp(0, 0.5, 3.85).toArray()) };
+    // (mouth: just inside the tunnel's lip, where the way's light hangs, its arch the tunnel's (4.3 m round, scaled), a
+    // hand over it all round so the lip's face clips it: src/thresholds.js, issue #391)
+    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, mouth: giant.world(...skp(0, 0, 13.4).toArray()), mouthSize: { w: 2 * 4.3 * SIZE + 0.2, h: 4.3 * SIZE + 0.1, arch: true }, yaw: G.yaw, brow: giant.world(brow.x, brow.y, brow.z), hand: giant.world(wr.x, wr.y, wr.z), cairns: cairns.map((c) => giant.world(c.x, ground(c.x, c.z), c.z)), glow: giant.world(...skp(0, 0.5, 3.85).toArray()) };
     // the giant's breath (level design audit, fifth round: from Ama's fire the skull's mouth was blind, the skull 17 m
     // high behind the city's walls): the cool air of the cave under it breathing out through the skull's brow into the
     // morning heat, a thin pale column over the back gate, seen from the camps over the walls (55 m: it was 85 m, as big
@@ -1496,7 +1498,7 @@ export function buildDesertCity(scene, terrain) {
   const gd = out.giant.door, fwd = V(Math.sin(G.yaw), 0, Math.cos(G.yaw));
   portals.push(
     // (not before the backpack: the way back up wants the lift valve's double jump, and its chest a full tank: issue #68)
-    { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth', door: { at: gd.clone(), yaw: G.yaw },
+    { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth', door: { at: out.giant.mouth.clone(), yaw: G.yaw, ...out.giant.mouthSize },
       when: () => items.has('backpack'), refuse: 'Below the skull’s mouth the dark drops away, deep and sheer. Not with empty hands: nothing down there would bring you back up.' },
     // (its light over the dark at the shaft's top, the landing's far end: it read as a shut wall, issue #305)
     { at: cv.exit.clone().add(V(0, 0.5, 0)), r: 1.6, to: gd.clone().addScaledVector(fwd, 3.2), heading: G.yaw, label: 'passage up', door: { at: cv.exit.clone().add(V(0, 0, 0.3)), yaw: 0, w: 4.6, h: 4.6 } },

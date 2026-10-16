@@ -1227,6 +1227,22 @@ step or two along the way through if the point stands out of the doorway, and up
 divers' cage), wears a soft round column of the same light. The black panel at the end of the skull cave's landing,
 which read as a shut wall, is the daylight up there now.
 
+**Its size is its opening's** (issue #391, "the shader for the door doesn't match the real size of the door?"): a temple's
+door, 7 by 9 m, wore 2.2 by 4.2, the size `fitDoor` fell back to when its jambs stood more than 3.2 m off, and a 5 m
+cap on the height cut every way out short; it stood in the dark like a cut-out. Now `fitDoor` looks for each jamb
+within `THRESHOLD.fit.reach` (5.5 m) and takes openings up to 10 by 11 m; the width is the hole's, the narrowest slice
+along the way through (a frame's pillars or a recess round the hole are wider), and the veil moves to it, except where
+the portal gives its sill (`at`: in front of whatever shuts the way behind it, a temple's dark), where it stays and only
+the width and middle are taken from the hole within 1 m. Its top is measured too (`top`: nine rays up across it, an
+arch's point or a cave's rock) and the frame's depth (`depth`: [behind, in front], m; the looks below use it). A door
+can give its shape: `arch` (a round top, radius w/2), `corner` (rounded corners), `round` (a round door: a disc w
+across under h), `tilt` (leaning back from upright) — `openingAt` / `openingGeometry` draw it. At the source: the
+shopfronts give their own doorway (`buildShopfront` and every `FRONTS` builder: `B.door()`, `opening`), the sea locks
+their round doors a hand in front of them, the skull's mouth its tunnel's arch just inside the lip (the lip's face clips
+it), the Crown's lift its booth door, Viridel's hull hatch its rounded, leaning hole inside the collar. Measured on the
+twelve route worlds (issue #391's scratchpad doorlight-391, fit.md): 29 of 91 veils were off their openings by more
+than 15 %, every temple door and way out among them.
+
 Going through (main.js): the veil flares (`flare`: ×2.6, settling over 0.9 s), and `Passage.go({ lead })` puts the
 doorway's light over the screen (`PassageCover.light`, a warm radial glow under the paper) for `THRESHOLD.lead`
 (0.2 s), the traveller still walking into it, before the paper sweeps across as before; on the far side the way back

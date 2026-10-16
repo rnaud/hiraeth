@@ -213,7 +213,7 @@ export function buildShopfront(scene, {
   grp.updateMatrixWorld(true);
   const wp = (x, y, z) => grp.localToWorld(new THREE.Vector3(x, y, z));
   const lp = wp(lantern.position.x, lantern.position.y, lantern.position.z);
-  return { group: grp, door: wp(door.x, 0, 0), heading, lights: [new THREE.Vector4(lp.x, lp.y, lp.z, 7)], local: wp, size: { w, d, h } };
+  return { group: grp, door: wp(door.x, 0, 0), heading, lights: [new THREE.Vector4(lp.x, lp.y, lp.z, 7)], local: wp, size: { w, d, h }, opening: { w: door.w, h: door.h } };
 }
 
 // ------------------------------------------------------------------ the interior
@@ -235,7 +235,8 @@ export function buildInterior(scene, { id, label = 'the shop', doorLabel = 'door
   veil.position.copy(built.group.localToWorld(new THREE.Vector3(R.door?.x ?? 0, 0, R.d / 2 + 2.3)));
   veil.userData.noCollide = true;
   scene.add(veil);
-  const portals = portalPair({ at, heading, room: built });
+  // (the way in hangs its light in the front's own doorway, its size as built: src/thresholds.js, issue #391)
+  const portals = portalPair({ at, heading, room: built, door: shopfront?.opening ?? {} });
   portals[0].label = doorLabel;   // (the scout: "Through the shop door" when the way to a find is in through it)
   portals[1].label = 'door';
   const lights = [...built.lights, ...(shopfront?.lights ?? [])];

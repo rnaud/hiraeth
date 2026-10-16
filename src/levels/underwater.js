@@ -515,7 +515,7 @@ export function* buildUnderwater(scene) {
   const up = new THREE.Vector3(0, 1, 0);
   const portals = [
     { at: new THREE.Vector3(LIFT.foot[0], 0.6, LIFT.foot[2]), r: 1.3, to: new THREE.Vector3(LIFT.head[0], D.crown.y + 0.1, LIFT.head[2] + 3.4), heading: 0, label: 'the lift up to the Crown', toUp: up, door: { at: new THREE.Vector3(LIFT.foot[0], 0, COLUMN.z + COLUMN.r + 0.45), yaw: 0, w: 2.2, h: 2.8 } },
-    { at: new THREE.Vector3(LIFT.head[0], D.crown.y + 0.6, LIFT.head[2]), r: 1.3, to: new THREE.Vector3(LIFT.foot[0], 0.1, LIFT.foot[2] + 3.4), heading: 0, label: 'the lift down to the Plaza', toUp: up, door: { yaw: 0 } },
+    { at: new THREE.Vector3(LIFT.head[0], D.crown.y + 0.6, LIFT.head[2]), r: 1.3, to: new THREE.Vector3(LIFT.foot[0], 0.1, LIFT.foot[2] + 3.4), heading: 0, label: 'the lift down to the Plaza', toUp: up, door: { at: new THREE.Vector3(LIFT.head[0], D.crown.y, COLUMN.z + COLUMN.r + 1.1), yaw: 0, w: 2.2, h: 2.8 } },   // (on the booth's lit door, as the foot's: issue #391)
     // (issue #192: the locks out to the sea and back, and the divers' cage; the story says which want a helmet: src/story/underwater-ways.js)
     ...ways.locks.dock.portals, ...ways.locks.gallery.portals, ...cage,
   ];

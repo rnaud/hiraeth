@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.82 — 2026-10-16
 
+- The light in a doorway now fills the whole opening. A temple’s great door, its ways out, the skull’s mouth, the sea locks, the shops and the crashed ship’s hatch all used to wear a narrow sheet of it, smaller than the dark it stood in, like a cut-out in front of a hole; now it reaches from jamb to jamb and up into the arch.
 - A new fight temple in the City Floating in Space, the Oil Exchange, on the Towers’ deck: four decks of drones, moths and rollers over the dark, where leaking oil spreads under your feet and a spark sets it burning. Step off the pool before it lights, and let the rollers burn. Its prize: the Lamp oil colours. With it every world has its fight temple.
 - The fight temples are different every time you go in: the rooms between the entrance and the altar come in a new order and a new layout, each turned its own way, and every wave is drawn fresh from the world’s foes, as hard as before at each point of the run. The results show the run’s number, so you can play the same one again.
 

@@ -63,12 +63,15 @@ export function lock(kit, M, brass, d, { yaw, len = 5.4, floorOut = d.y, label }
     kit.light(x + fx * 8, y + 2.6, z + fz * 8, 6);
   }
   const inner = doors[0], outer = doors[1];
+  // (each way's light on its round door, 1.18 m round its middle 1.55 m up, a hand in front of it on the side it is
+  // walked into from: the hall's side of the inner door, the sea's of the outer; src/thresholds.js, issue #391)
+  const disc = (p, out) => ({ at: V(p[0] + sx * out * 0.2, p[1], p[2] + sz * out * 0.2), yaw, w: 2.36, h: 2.73, round: true });
   const inAt = V(d.x + sx * (d.r - 1.3), d.y + 0.6, d.z + sz * (d.r - 1.3)), outAt = V(outer[0] + sx * 0.9, floorOut + 0.6, outer[2] + sz * 0.9);
   const inTo = V(outer[0] + sx * 3.4, floorOut + 0.1, outer[2] + sz * 3.4), outTo = V(d.x + sx * (d.r - 4.2), d.y + 0.1, d.z + sz * (d.r - 4.2));
   const portals = [
     // (door: where each way's light hangs, on its door: src/thresholds.js)
-    { at: inAt, r: 1.25, to: inTo, heading: yaw, label: `${label}: out to the sea`, door: { at: V(...inner), yaw } },
-    { at: outAt, r: 1.25, to: outTo, heading: yaw + Math.PI, label: `${label}: in from the sea`, door: { at: V(...outer), yaw } },
+    { at: inAt, r: 1.25, to: inTo, heading: yaw, label: `${label}: out to the sea`, door: disc(inner, -1) },
+    { at: outAt, r: 1.25, to: outTo, heading: yaw + Math.PI, label: `${label}: in from the sea`, door: disc(outer, 1) },
   ];
   // (the drum's inside is dry: its two doors are shut either side of it)
   const ax = d.x + sx * d.r, az = d.z + sz * d.r;
