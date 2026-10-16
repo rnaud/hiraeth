@@ -54,7 +54,8 @@ test('the desert in the engines: the first steps, the scout\'s find on the cue, 
   // the sleeping observatory: Naji's sketch, the lens turned beside its dial
   assert.ok(g.expedition, 'the observatory quest made');
   g.expedition.traveler.greeted = true;
-  run(g, 2);
+  // (up to 2 s, not 2 frames: the quest starts on its own update, later on a slow runner)
+  run(g, 20 * 2, {}, () => !!g.expedition.state.started);
   assert.ok(g.expedition.state.started, 'started once Naji has been met');
   const turns = g.expedition.state.turns.slice();
   const d = g.expedition.model.dials[0].getWorldPosition(g.player.pos.clone());
