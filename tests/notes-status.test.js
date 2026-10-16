@@ -88,8 +88,10 @@ test('the list with every status: state=all, 100 a page, each issue\'s status an
   const data = await (await handleIssues(get('issues?state=all', c), env, github.fetch, now)).json();
   assert.deepEqual(data.issues.map((i) => [i.number, i.status]), [[290, 'progress'], [289, 'needs'], [288, 'blocked'], [284, 'done'], [283, 'open']]);
   assert.equal(data.nextPage, 2);
-  assert.deepEqual(data.issues[3], { number: 284, title: 'Issue 284', url: `https://github.com/${REPOSITORY}/issues/284`, createdAt: '2026-10-12T10:00:00Z',
-    updatedAt: '2026-10-13T18:00:00Z', labels: [], comments: 0, state: 'closed', status: 'done', closedAt: '2026-10-13T18:52:50Z', stateReason: 'completed' });
+  // (#388: only what the page uses; no link, no empty labels, no zero replies)
+  assert.deepEqual(data.issues[3], { number: 284, title: 'Issue 284', createdAt: '2026-10-12T10:00:00Z',
+    updatedAt: '2026-10-13T18:00:00Z', state: 'closed', status: 'done', closedAt: '2026-10-13T18:52:50Z', stateReason: 'completed' });
+  assert.deepEqual(data.issues[0].labels, ['in progress']);
   assert.equal(data.issues[4].closedAt, undefined);
   assert.equal((await handleIssues(get('issues?state=closed', c), env, noFetch, now)).status, 400);
   assert.equal((await handleIssues(get('issues?state=all'), env, noFetch, now)).status, 401);
@@ -164,9 +166,12 @@ test('the caches: the last list, and an opened note\'s activity while its update
   const memory = new Map();
   const storage = { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, String(v)), removeItem: (k) => memory.delete(k) };
   assert.equal(readList(storage), null);
-  writeList(storage, [{ number: 1, title: 'a' }], 2, 1234);
-  assert.deepEqual(readList(storage), { at: 1234, issues: [{ number: 1, title: 'a' }], nextPage: 2 });
-  memory.set('hiraeth.notes.list.v2', '{broken');
+  writeList(storage, [{ number: 1, title: 'a' }], 2, 1234, 1000);
+  assert.deepEqual(readList(storage), { at: 1234, fullAt: 1000, issues: [{ number: 1, title: 'a' }], nextPage: 2 });
+  memory.set('hiraeth.notes.list.v3', '{broken');
+  assert.equal(readList(storage), null);
+  // (a list of the older format, without fullAt: none, so the page reads the list whole)
+  memory.set('hiraeth.notes.list.v3', JSON.stringify({ at: 1234, issues: [], nextPage: null }));
   assert.equal(readList(storage), null);
 
   const issue = { number: 284, updatedAt: '2026-10-13T18:00:00Z' };

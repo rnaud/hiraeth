@@ -56,7 +56,8 @@ export const shortSha = (sha) => typeof sha === 'string' ? sha.slice(0, 7) : '';
 
 // ---- the caches (localStorage): the last list, shown at once on the next visit while the new one loads, and each
 // opened note's activity, kept while the issue's updatedAt stands (a comment, a label or closing it moves updatedAt).
-export const LIST_CACHE = 'hiraeth.notes.list.v2';
+// (v3, #388: the Worker's trimmed rows, and fullAt, when the list was last read whole; an older list is read whole again)
+export const LIST_CACHE = 'hiraeth.notes.list.v3';
 export const ACTIVITY_CACHE = 'hiraeth.notes.activity.v1';
 const ACTIVITY_KEEP = 200;
 
@@ -68,12 +69,12 @@ function write(storage, key, value) {
   try { storage?.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
 }
 
-/** The cached list: { at, issues, nextPage } or null. */
+/** The cached list: { at, fullAt, issues, nextPage } or null. */
 export function readList(storage) {
   const v = read(storage, LIST_CACHE);
-  return v && Array.isArray(v.issues) && typeof v.at === 'number' ? v : null;
+  return v && Array.isArray(v.issues) && typeof v.at === 'number' && typeof v.fullAt === 'number' ? v : null;
 }
-export const writeList = (storage, issues, nextPage, at = Date.now()) => write(storage, LIST_CACHE, { at, issues, nextPage: nextPage ?? null });
+export const writeList = (storage, issues, nextPage, at = Date.now(), fullAt = at) => write(storage, LIST_CACHE, { at, fullAt, issues, nextPage: nextPage ?? null });
 
 /** The cached activity of an issue if still current (its updatedAt unchanged), else null. */
 export function cachedActivity(storage, issue) {
@@ -88,5 +89,5 @@ export function storeActivity(storage, issue, data) {
   return write(storage, ACTIVITY_CACHE, all);
 }
 
-/** The pages the list loads by itself on a refresh (100 notes each); past them, Load more. */
-export const AUTO_PAGES = 5;
+/** The pages the list loads by itself on a whole read, all at once after the first (100 notes each); past them, Load more. */
+export const AUTO_PAGES = 10;

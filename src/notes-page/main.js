@@ -2,6 +2,7 @@
 import { questionCard, pageTitle } from './needs-you.js';
 import { FILTERS, STATUS_TEXT, statusOf, matchesFilter, sortForFilter, filterCounts, otherLabels, relativeTime, shortSha,
   readList, writeList, cachedActivity, storeActivity, LIST_CACHE, ACTIVITY_CACHE, AUTO_PAGES } from './status-view.js';
+import { syncList, mergeUpdates } from './list-sync.js';
 const $ = (id) => document.getElementById(id);
 const DRAFT = 'hiraeth.notes.draft.v1';
 const OUTBOX = 'hiraeth.notes.outbox.v1';
@@ -27,7 +28,7 @@ let issues = [], nextPage = null, loading = false, generation = 0;
 // (#277: each note's status, a filter by it, and an opened note's latest comment and landing commit)
 const FILTER = 'hiraeth.notes.filter.v1';
 const store = (() => { try { return localStorage; } catch { return null; } })();
-let filter = 'todo', listedAt = null;
+let filter = 'todo', listedAt = null, fullAt = null;
 try { const f = store?.getItem(FILTER); if (FILTERS.some(([k]) => k === f)) filter = f; } catch { /* private browsing */ }
 const expanded = new Set();
 const activity = new Map();   // number → { updatedAt, state: 'loading' | 'ok' | 'error', data, error }
@@ -197,23 +198,26 @@ function render() {
     : nextPage ? 'No notes on this page. Load more to continue.' : filter === 'todo' && issues.length ? 'Nothing left to do.' : 'A clean page. Add your first thought above.';
   $('listed-at').textContent = listedAt ? `Updated ${relativeTime(new Date(listedAt).toISOString())}` : '';
 }
-/** The list with each note's status (state=all, 100 a page): page 1, then on by itself up to AUTO_PAGES, so the
- *  filter's counts are whole; the list is kept on the device and shown at once on the next visit. */
-async function load(page = 1) {
+/** The list with each note's status (state=all, 100 a page). A refresh asks only for the issues updated since the
+ *  list kept on the device (#388, list-sync.js); a whole read (no list kept, a day old, Reload all) asks for page 1,
+ *  then the rest up to AUTO_PAGES at once, so the filter's counts are whole; Load more reads one page past them. */
+async function load({ page = 1, all = false } = {}) {
   if (loading) return;
-  loading = true; $('refresh').disabled = $('more').disabled = true;
+  loading = true; $('refresh').disabled = $('reload-all').disabled = $('more').disabled = true;
   const version = generation;
   if (!issues.length) $('list-status').textContent = 'Reading your notes…';
   try {
-    let fresh = page === 1 ? [] : issues, next = page;
-    do {
-      const data = await api(`issues?state=all&page=${next}`);
+    if (page > 1) {
+      const data = await api(`issues?state=all&page=${page}`);
       if (version !== generation) return;
-      fresh = [...new Map([...fresh, ...data.issues].map((i) => [i.number, i])).values()];
-      next = data.nextPage;
-    } while (next && page === 1 && next <= AUTO_PAGES);
-    issues = fresh; nextPage = next; listedAt = Date.now();
-    writeList(store, issues, nextPage, listedAt);
+      issues = mergeUpdates(issues, data.issues); nextPage = data.nextPage;
+    } else {
+      const got = await syncList(api, { issues, nextPage, fullAt }, { all, maxPages: AUTO_PAGES });
+      if (version !== generation) return;
+      ({ issues, nextPage, fullAt } = got);
+    }
+    listedAt = Date.now();
+    writeList(store, issues, nextPage, listedAt, fullAt ?? listedAt);
     render();
   } catch (e) {
     render();
@@ -221,14 +225,14 @@ async function load(page = 1) {
       ? `${e.message} Showing the list from ${new Date(listedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}.`
       : e.message;
   }
-  finally { loading = false; $('refresh').disabled = $('more').disabled = false; }
+  finally { loading = false; $('refresh').disabled = $('reload-all').disabled = $('more').disabled = false; }
 }
 /** The list kept from the last visit, shown while the new one loads. */
 function showCachedList() {
   const cached = readList(store);
   if (!cached || issues.length) return;
   issues = cached.issues.filter((i) => Number.isSafeInteger(i?.number) && typeof i.title === 'string');
-  nextPage = cached.nextPage; listedAt = cached.at; render();
+  nextPage = cached.nextPage; listedAt = cached.at; fullAt = cached.fullAt; render();
 }
 // ---- the screenshot drafts (worker/drafts.js, issue #8): taken in the game, written up and sent from here
 let drafts = [];
@@ -331,12 +335,13 @@ window.addEventListener('resize', resizeComposer);
 $('new-note').addEventListener('input', updateDraft);
 $('search').addEventListener('input', render);
 $('refresh').addEventListener('click', () => { load(); loadDrafts(); loadQuestions(); });
-$('more').addEventListener('click', () => { if (nextPage) load(nextPage); });
+$('reload-all').addEventListener('click', () => { load({ all: true }); loadDrafts(); loadQuestions(); });
+$('more').addEventListener('click', () => { if (nextPage) load({ page: nextPage }); });
 $('lock').addEventListener('click', async () => {
   if (outbox.some((n) => n.state === 'sending')) return;
   $('lock').disabled = true;
   try {
-    await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; listedAt = null;
+    await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; listedAt = null; fullAt = null;
     questions = []; activity.clear(); expanded.clear();
     try { store?.removeItem(LIST_CACHE); store?.removeItem(ACTIVITY_CACHE); } catch { /* private browsing */ }
     renderQuestions(); render(); signedIn(false); notice('Signed out.');

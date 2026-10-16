@@ -22,6 +22,11 @@ export const NEEDS_AUTHOR = 'needs-author';
 export const ANSWERED = 'answered';
 const MAX_ISSUES = 20;              // (one GitHub call each for its comments: a Worker has 50 subrequests)
 const CONTEXT_LINES = 12;
+// Each listed issue's question, kept in the notebook's store (the drafts' Durable Object) by the issue's updatedAt and
+// comment count (#388): a new comment, a body edit or a label moves them, so only a changed issue reads its comments
+// again. An entry is kept an hour at most, for what may not move updatedAt (a box ticked by editing a comment).
+export const QUESTION_CACHE = 'questions:cache';
+export const QUESTION_KEEP = 60 * 60 * 1000;
 // Only the repository's people ask: on a public repository anyone may comment, so a stranger's block is ignored.
 const TRUSTED = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/;
@@ -137,6 +142,13 @@ async function issueQuestion(ctx, issue) {
   return { question, answered, where: { ...sources[source], start, end } };
 }
 
+/** The cached questions ({} when empty), or null without a store or when it can't be read (then nothing is kept). */
+async function readCache(store) {
+  if (!store) return null;
+  try { const v = await store.get(QUESTION_CACHE); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
+  catch { return null; }
+}
+
 function view(ctx, issue, question) {
   return { number: issue.number, title: issue.title, url: `https://github.com/${ctx.repository}/issues/${issue.number}`, labels: labelNames(issue), question };
 }
@@ -150,9 +162,20 @@ export async function handleQuestions(request, ctx, number, body) {
     const issues = await response.json();
     if (!Array.isArray(issues)) return failure(502, 'The questions could not be loaded. Please try again.');
     const open = issues.filter((i) => !i.pull_request && Number.isSafeInteger(i.number));
-    const found = await Promise.all(open.map((i) => issueQuestion(ctx, i)));
+    const now = ctx.now ?? Date.now();
+    const cache = await readCache(ctx.store);
+    const current = (i) => {
+      const hit = cache?.[i.number];
+      return hit && hit.updatedAt === i.updated_at && hit.comments === (i.comments ?? 0) && now - hit.at >= 0 && now - hit.at < QUESTION_KEEP ? hit : null;
+    };
+    const found = await Promise.all(open.map((i) => current(i) ?? issueQuestion(ctx, i)));
     const failed = found.find((f) => f.error);
     if (failed) return ctx.githubFailure(failed.error);
+    if (cache) {
+      // (the open needs-author issues' entries only: an issue that left the list leaves the cache)
+      const next = Object.fromEntries(open.map((i, k) => [i.number, current(i) ?? { updatedAt: i.updated_at ?? null, comments: i.comments ?? 0, at: now, question: found[k].question, answered: found[k].answered }]));
+      if (JSON.stringify(next) !== JSON.stringify(cache)) try { await ctx.store.put(QUESTION_CACHE, next); } catch { /* (uncached next time) */ }
+    }
     // (answered on GitHub already, by a tick or a later comment: the label waits for the coordinator)
     return json({ questions: open.map((i, k) => [i, found[k]]).filter(([, f]) => !f.answered).map(([i, f]) => view(ctx, i, f.question)) });
   }

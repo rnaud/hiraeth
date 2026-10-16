@@ -96,6 +96,15 @@ function issueView(issue) {
     ...(issue.state === 'closed' ? { closedAt: issue.closed_at ?? null, stateReason: issue.state_reason ?? null } : {}),
   };
 }
+/** A list row (#388): only what the Notes page draws and filters by. The page builds the link from the number, an
+ *  empty label list, no replies and a missing closing time or reason are left out, as the page reads them. */
+export function listView(issue) {
+  const { url, labels, comments, closedAt, stateReason, ...row } = issueView(issue);
+  return { ...row, ...(labels.length ? { labels } : {}), ...(comments ? { comments } : {}),
+    ...(closedAt ? { closedAt } : {}), ...(stateReason ? { stateReason } : {}) };
+}
+/** `since` for the list: GitHub's ISO time to the second, UTC (what the page sends back from an issue's updatedAt). */
+const SINCE = /^20\d\d-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\dZ$/;
 async function github(fetcher, env, url, options = {}) {
   return fetcher(url, { ...options, redirect: 'manual', signal: AbortSignal.timeout(12000), headers: {
     Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28',
@@ -194,7 +203,7 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
 
   try {
     if (question) {
-      return await handleQuestions(request, { github: (u, options) => github(fetcher, env, u, options), githubFailure, api: API, repository: REPOSITORY, json, failure },
+      return await handleQuestions(request, { github: (u, options) => github(fetcher, env, u, options), githubFailure, api: API, repository: REPOSITORY, json, failure, store, now },
         question[1] ? Number(question[1]) : null, body);
     }
     if (activity) return await issueActivity((u, options) => github(fetcher, env, u, options), Number(activity[1]));
@@ -205,11 +214,18 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
       // (state=all: every issue with its status, #277, 100 a page; without it the open ones, 50 a page, as before)
       const state = url.searchParams.get('state') ?? 'open';
       if (state !== 'open' && state !== 'all') return failure(400, 'Invalid state.');
-      const response = await github(fetcher, env, `${API}?state=${state}&sort=created&direction=desc&per_page=${state === 'all' ? 100 : 50}&page=${page}`);
+      // (since, #388: only the issues updated at or after it, newest change first: the page's refresh of its cached list)
+      const since = url.searchParams.get('since');
+      if (since !== null && (state !== 'all' || !SINCE.test(since) || Number.isNaN(Date.parse(since)))) return failure(400, 'Invalid since.');
+      const order = since ? `sort=updated&direction=desc&since=${since}` : 'sort=created&direction=desc';
+      const response = await github(fetcher, env, `${API}?state=${state}&${order}&per_page=${state === 'all' ? 100 : 50}&page=${page}`);
       if (!response.ok) return githubFailure(response);
       const issues = await response.json();
       if (!Array.isArray(issues)) return failure(502, 'The notes could not be loaded. Please try again.');
-      return json({ issues: issues.filter((i) => !i.pull_request).map(issueView), nextPage: /rel="next"/.test(response.headers.get('Link') ?? '') ? page + 1 : null });
+      const more = /rel="next"/.test(response.headers.get('Link') ?? '');
+      // (lastPage: page 1's Link says how many there are, so the page asks for the rest at once, #388)
+      return json({ issues: issues.filter((i) => !i.pull_request).map(state === 'all' ? listView : issueView),
+        nextPage: more ? page + 1 : null, lastPage: more ? Math.max(lastPage(response), page + 1) : page });
     }
     const text = body?.text;
     if (text !== undefined && (typeof text !== 'string' || !text.trim() || text.length > 4000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text))) {

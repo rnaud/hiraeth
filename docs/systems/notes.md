@@ -1,7 +1,7 @@
 # The notebook
 
 `notes.html` is the phone-friendly Notes page in the game's Pages list. It shows the GitHub issues
-(excluding pull requests), open and closed, each with its status (see "Status" below), 100 a page: the first five
+(excluding pull requests), open and closed, each with its status (see "Status" below), 100 a page: the first ten
 pages load by themselves, then a Load more button. Search and the status filter work on the loaded notes.
 Write up to 4,000 characters in the expanding composer. Enter adds a line; Add or Ctrl/⌘ + Enter sends.
 The first line (up to 256 characters) becomes the issue title; the full text is preserved in its body.
@@ -135,16 +135,34 @@ as plain text, a link to it) and, for a closed issue, the commit that closed it 
 issue's last `closed` event) and a link to the issue.
 
 **Calls and caching.** The list is `GET /api/notes/issues?state=all&page=n` (one GitHub call a page; without
-`state` it is the open issues 50 a page, as before), so a refresh of ~300 issues is four calls through the
-Worker's token (5,000 an hour, not the 60 of an anonymous page). An opened note is `GET
-/api/notes/issues/<n>/activity`: the issue, its newest comment (`comments?per_page=1&page=<count>`) and, closed,
-its events (the last page): two or three calls, only for the notes opened. The page keeps the last list in
-localStorage (`hiraeth.notes.list.v2`) and shows it at once on the next visit while the new one loads ("Updated 5
-min ago"), and keeps each opened note's activity (`hiraeth.notes.activity.v1`, 200 at most) while the issue's
-`updatedAt` stands: a new comment, a label or closing it moves `updatedAt`, so it is fetched again. If GitHub
-refuses (its rate limit: the Worker's 429), the page says so and keeps showing the list it has, with its time.
-Sign out clears both caches. Tests: `tests/notes-status.test.js` (the mapping, the excerpt and the closing commit
-from GitHub-shaped fixtures, both routes over a fake GitHub, the filter, the order and the caches).
+`state` it is the open issues 50 a page, as before), through the Worker's token (5,000 an hour, not the 60 of an
+anonymous page). Its rows carry only what the page draws (`listView`: no link, which the page builds from the
+number; no empty labels, zero replies or missing closing time), and `lastPage` from GitHub's `Link` header. The page
+keeps the last list in localStorage (`hiraeth.notes.list.v3`: the rows, when it was read and `fullAt`, when it was
+last read whole) and shows it at once on the next visit ("Updated 5 min ago").
+
+**A refresh (#388)** (`src/notes-page/list-sync.js`) asks only for what changed: `GET
+/api/notes/issues?state=all&since=<t>` (GitHub's `since`, `sort=updated`: every issue updated at or after `t`,
+closed, reopened, relabelled or new), `t` the newest `updatedAt` the kept list holds less five minutes, to the
+second (the Worker takes only that form, `YYYY-MM-DDTHH:MM:SSZ`). The rows replace or join the kept ones by number,
+newest first: usually one small call. The list is read whole when nothing is kept, when it was last read whole over
+a day ago, when its format changed (an older key or no `fullAt`), when more changed than ten pages, and from
+**Reload all**; a whole read asks for page 1, then pages 2 to `lastPage` (up to ten) at once. Deleted or
+transferred issues leave the list only on a whole read. Load more reads one page past them and merges it.
+
+An opened note is `GET /api/notes/issues/<n>/activity`: the issue, its newest comment
+(`comments?per_page=1&page=<count>`) and, closed, its events (the last page): two or three calls, only for the
+notes opened. The page keeps each opened note's activity (`hiraeth.notes.activity.v1`, 200 at most) while the
+issue's `updatedAt` stands: a new comment, a label or closing it moves `updatedAt`, so it is fetched again. If
+GitHub refuses (its rate limit: the Worker's 429), the page says so and keeps showing the list it has, with its time.
+Sign out clears both caches.
+
+Timed over a fake GitHub at 300 ms a call with 390 issues (`tests/notes-refresh.test.js`'s fake): a refresh was
+1,213 ms (four pages one after another; the questions 605 ms beside it), now 302 ms (one call; the questions 301 ms
+from their cache); a whole read 605 ms (was 1,213). Tests: `tests/notes-status.test.js` (the mapping, the excerpt
+and the closing commit from GitHub-shaped fixtures, both routes over a fake GitHub, the filter, the order and the
+caches), `tests/notes-refresh.test.js` (the merge, when a whole read is due, the `since` route, the pages at once,
+the questions' cache, the timing).
 
 ## Questions for the author (`needs-author`)
 
@@ -190,4 +208,11 @@ The crab fight takes 40 s now; the brief says 20.
 | `POST /api/notes/questions/<n>/answer` | the notebook (cookie, same Origin, the write limiter) | `{ choices, text }`, checked against the question as it stands (the options offered, one for single; the issue open, still `needs-author` and not answered on GitHub, else 409); the comment, the boxes ticked, then the labels |
 
 If the comment is posted but ticking the boxes or a label change fails, the page says so (502) rather than inviting a second answer.
+
+**Kept (#388).** Each listed issue's question is kept in the notebook's store (the drafts' Durable Object, one key
+`questions:cache`) with the issue's `updated_at` and comment count: while both stand (a new comment, a body edit or a
+label moves them) and for an hour at most (a box ticked by editing a comment may not move them), the issue costs no
+comment call, so an unchanged list of questions is the one call for the `needs-author` issues. Issues that left the
+list leave the cache. Without the store, or when it fails, every issue is read as before. An answer always reads
+the question as it stands.
 Tests: `tests/notes-questions.test.js` (the parser, the routes over a fake GitHub, the page's card on a stand-in DOM).
