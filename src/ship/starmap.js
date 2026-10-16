@@ -251,9 +251,39 @@ const CSS = `
 `;
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
-const NEXT = ['ArrowRight', 'ArrowDown', 'KeyD', 'KeyS'], PREV = ['ArrowLeft', 'ArrowUp', 'KeyA', 'KeyW'];
+/** The keys that choose a world by its direction on the chart (x right, y down); W A S D search instead while searching. */
+export const DIR_KEYS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
 /** The keys that move the scanner while there is a world to find. */
 const SCAN_KEYS = { KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
+/** How far off the direction pressed a world may lie and still be the one it picks (tan of the cone's half-angle: 55°). */
+const TOWARD_CONE = Math.tan((55 * Math.PI) / 180);
+
+/**
+ * The world a direction points to from the one chosen (issue #371: the map answered only left and right, stepping along
+ * the route; up and down did the same): the nearest disc that way, a world well off to the side counting as further
+ * (its sideways offset twice over). First within 55° of the direction, else anywhere on that side; -1 when there is
+ * nothing that way. `pts` holds each entry's [x, y] on the chart (y down), null for one that can't be chosen.
+ */
+export function worldToward(pts, sel, dx, dy) {
+  const m = Math.hypot(dx, dy), from = pts?.[sel];
+  if (!m || !from) return -1;
+  const ux = dx / m, uy = dy / m;
+  let best = -1, bestS = Infinity, wide = -1, wideS = Infinity;
+  pts.forEach((p, i) => {
+    if (!p || i === sel) return;
+    const vx = p[0] - from[0], vy = p[1] - from[1], along = vx * ux + vy * uy, across = Math.abs(vx * uy - vy * ux);
+    if (along <= 0.5) return;
+    const score = along + 2 * across;
+    if (across <= along * TOWARD_CONE) { if (score < bestS) { bestS = score; best = i; } }
+    else if (score < wideS) { wideS = score; wide = i; }
+  });
+  return best >= 0 ? best : wide;
+}
+
+/** The world a direction points to on a chart (chartDrawing's), from the entry chosen: worldToward over the known ones. */
+export function chartToward(entries, D, sel, dx, dy) {
+  return worldToward((entries ?? []).map((e) => (e.known ? D.pos(e) : null)), sel, dx, dy);
+}
 /** The scanner's colour at a warmth: cool violet, gold, then the route's orange right on it. */
 export function scanColour(w) {
   const k = Math.min(1, Math.max(0, w));
@@ -363,14 +393,13 @@ export class StarMap {
       const choose = !e.repeat && (e.code === 'Enter' || e.code === 'Space' || (e.code === 'KeyE' && this._armed));
       if (this.asking) {
         if (e.code === 'Escape' || e.code === 'Backspace') { this.answer(false); e.stopPropagation(); }
-        else if (NEXT.includes(e.code) || PREV.includes(e.code) || e.code === 'Tab') { this.focusAnswer(this._yes ? 'no' : 'yes'); e.preventDefault(); }
+        else if (DIR_KEYS[e.code] || e.code === 'Tab') { this.focusAnswer(this._yes ? 'no' : 'yes'); e.preventDefault(); }
         else if (choose) { this.answer(this._yes); e.preventDefault(); }
         return;
       }
       if (this.searching() && SCAN_KEYS[e.code]) { this._held.add(e.code); e.preventDefault(); return; }
       if (e.code === 'Escape') { this.toggle(false); e.stopPropagation(); }
-      else if (NEXT.includes(e.code)) this.step(1);
-      else if (PREV.includes(e.code)) this.step(-1);
+      else if (DIR_KEYS[e.code]) { this.move(...DIR_KEYS[e.code]); e.preventDefault(); }
       else if (choose) { this.go(); e.preventDefault(); }
     }, true);
     window.addEventListener('keyup', (e) => { if (e.code === 'KeyE') this._armed = true; this._held.delete(e.code); });
@@ -386,6 +415,13 @@ export class StarMap {
     if (!c.length) return;
     const at = c.indexOf(this.sel);
     this.select(c[(Math.max(0, at) + d + c.length) % c.length]);
+  }
+
+  /** The world that way on the chart (x right, y down), the nearest disc in that direction (chartToward). */
+  move(dx, dy) {
+    if (!this.entries || !this._D) return;
+    const i = chartToward(this.entries, this._D, this.sel, dx, dy);   // (the chart as place() last laid it out)
+    if (i >= 0) this.select(i);
   }
 
   render() {
@@ -415,8 +451,8 @@ export class StarMap {
         <div class="panel"></div>
         ${searching ? `<div class="legend search">${SIG_GLYPH}<b>${SEARCH_LABEL}</b> · <span class="long">${SEARCH_LEGEND}</span><span class="short">${SEARCH_LEGEND_SHORT}</span></div>`
           : `<div class="legend">${SIG_GLYPH}<b>${SIGNATURE}</b> · <span class="long">${SIGNATURE_LEGEND}</span><span class="short">${SIGNATURE_LEGEND_SHORT}</span></div>`}
-        <div class="keys">${searching ? { touch: 'drag over the chart to search · tap a world, then Travel', pad: `left stick: search · ${glyph('dpad')}choose a world`, keys: `mouse or W A S D: search · ${glyph('dpad', { key: '← →' })}choose a world` }[this.hints]
-          : { touch: 'tap a world, then Travel', pad: `${glyph('dpad')}choose a world`, keys: `${glyph('dpad', { key: '← →' })}choose a world` }[this.hints]}</div>
+        <div class="keys">${searching ? { touch: 'drag over the chart to search · tap a world, then Travel', pad: `left stick: search · ${glyph('dpad')}choose a world`, keys: `mouse or W A S D: search · ${glyph('dpad', { key: 'arrows' })}choose a world` }[this.hints]
+          : { touch: 'tap a world, then Travel', pad: `${glyph('dpad')}choose a world`, keys: `${glyph('dpad', { key: 'arrows' })}choose a world` }[this.hints]}</div>
       </div>
       <div class="confirm"><div class="card"></div></div>
       <div class="locked"><div><b>NO POWER</b>The ship cannot fly.<br>Find a new source of power.</div></div>
@@ -476,7 +512,7 @@ export class StarMap {
     const field = this.el.querySelector('.field');
     if (!field) return;
     const W = field.clientWidth, H = field.clientHeight;
-    const D = chartDrawing(this.entries, W, H), L = (this.layout = D.L);
+    const D = (this._D = chartDrawing(this.entries, W, H)), L = (this.layout = D.L);
     for (const b of field.querySelectorAll('button.world')) {
       const e = this.entries[+b.dataset.i], bx = D.boxOf(e), [x, y] = D.pos(e);
       Object.assign(b.style, { left: `${x}px`, top: `${y - bx.disc / 2}px`, width: `${bx.w}px`, fontSize: `${bx.font}px` });
@@ -683,17 +719,20 @@ export class StarMap {
     this.searchUpdate(dt, gp ? [gp.axes[0] ?? 0, gp.axes[1] ?? 0] : null);
     if (!gp) return;
     const b = (i) => !!gp.buttons[i]?.pressed;
-    const x = (b(15) || b(13) ? 1 : 0) - (b(14) || b(12) ? 1 : 0) || (searching && !this.asking ? 0 : Math.round(gp.axes[0] ?? 0));
+    // (the D-pad, or the stick when it isn't searching: a direction on the chart)
+    const stick = searching && !this.asking ? [0, 0] : [gp.axes[0] ?? 0, gp.axes[1] ?? 0];
+    let x = (b(15) ? 1 : 0) - (b(14) ? 1 : 0), y = (b(13) ? 1 : 0) - (b(12) ? 1 : 0);
+    if (!x && !y && Math.hypot(stick[0], stick[1]) > 0.5) [x, y] = stick;
     const tn = performance.now();
     const A = b(padIndex('ok')), B = b(padIndex('back')), pressA = A && !this._padA, pressB = B && !this._padB;   // printed A / B (native-pad.js)
     this._padA = A; this._padB = B;
     if (this.asking) {
-      if (x && tn - (this._padT ?? 0) > 220) { this._padT = tn; this.focusAnswer(this._yes ? 'no' : 'yes'); }
+      if ((x || y) && tn - (this._padT ?? 0) > 220) { this._padT = tn; this.focusAnswer(this._yes ? 'no' : 'yes'); }
       if (pressA) this.answer(this._yes);
       else if (pressB) this.answer(false);
       return;
     }
-    if (x && tn - (this._padT ?? 0) > 220) { this._padT = tn; this.step(x); }
+    if ((x || y) && tn - (this._padT ?? 0) > 220) { this._padT = tn; this.move(x, y); }
     if (pressA) this.go();
     else if (pressB) this.toggle(false);
   }

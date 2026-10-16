@@ -326,7 +326,7 @@ pick as it opens (`firstPick`), the panel's words (`worldTag`, `worldState`, `wo
 each frame (`searchStep`, `cues`, `wander`, the beat's rumble and the light's notes) and the resolve's second. The field is
 laid out at the size the page's CSS gives it on the menus' canvas (`chartBox`: 900 × 648 beside a 300 px side at 1280 ×
 720, 673 × 648 on the Retroid's 4:3). EngineMenus' mode `starmap` hands it the pad and keys as the page's listeners do: the
-D-pad or the arrows a world, the left stick (the controller's `menuAnalog`, taken only while there is something to find)
+D-pad or the arrows a world (by its direction on the chart, as on the page: `chartToward`, issue #371), the left stick (the controller's `menuAnalog`, taken only while there is something to find)
 or W A S D held the scanner (`keyUp` lets go), A / × or Enter travel and answer, B / ○ or Esc no, then close; the first
 time with a world to find, the ship's SEARCH_LINE. The Worlds page is fast travel again (worlds visited), as on the web.
 The view (`kind: 'starmap'`) is the chart in field px; its `cv` moves only when the chart does, so while the scanner moves
@@ -338,7 +338,10 @@ blends in sRGB, the canvas in linear light, where a faint line on the night blue
 alphas go in as a^1.8. `-starmap search,warm,found,system,ask,nopower,home -out dir` photographs each scene
 (engine/starmap.js STARMAP_SCENES: aboard in the desert on the debug save, its flags and journal set; `poseStarMap`), in the
 editor at 1280 × 720 every frame (`-frames`, the canvases laid out as the shots draw them), to lay beside the web's
-StarMap at the same size. Tests: tests/engine-starmap.test.js, tests/engine-finishable.test.js (Vael found on the chart and
+StarMap at the same size. Choosing by direction (issue #371): up, down, left or right picks the nearest charted world that
+way (`worldToward`: within 55° of it, one well to the side counting its offset twice; else anywhere on that side; nothing
+when none lies that way), on the page and in the engines alike; the stick does the same when there is nothing to search
+for, and W A S D too. It used to step along the route for any direction. Tests: tests/starmap-navigate.test.js, tests/engine-starmap.test.js, tests/engine-finishable.test.js (Vael found on the chart and
 flown to from the holo table). Seen beside the web's: the system, the regions, the scanner, the panel, the question and
 NO POWER match; the web shows the signature's mark as an empty key cap (the makers' mark SVG carries `class="glyph"`,
 which src/pad-glyphs.js styles as a pad glyph), the engine the mark itself.

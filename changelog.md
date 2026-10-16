@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- On the galactic map, up and down now choose a world too: every direction on the D-pad, the stick or the arrow keys picks the nearest world that way on the chart. Up and down used to step along the route, the same as left and right.
 - In Viridel and the Garden of Spheres the hoverbike leaves its glowing trails behind it again. Where Vael’s bird answers your call, the bike waiting by the ship rode without them.
 - The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.
 - A new game in the desert, Cistern channels: under the Rose House, turn the Givers’ channel stones ahead of the water so it reaches the Keeper’s troughs before it spills. Three floods, each faster; hold RT / R2 to hurry the water for double points. Ask Nuri by the Rose House’s steps.

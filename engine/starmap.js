@@ -13,7 +13,7 @@
 //   map.update(dt, [x, y]);   // each frame: the search
 //   map.view();               // what to draw (the chart's field in px, y down)
 
-import { mapEntries, chartDrawing, scanColour, worldTag, worldState, worldRelay, chartSub, firstPick } from '../src/ship/starmap.js';
+import { mapEntries, chartDrawing, scanColour, worldTag, worldState, worldRelay, chartSub, firstPick, chartToward, DIR_KEYS } from '../src/ship/starmap.js';
 import { signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../src/story/signature.js';
 import { searchStep, searchArmed, cues, wander, WANDER, SEARCH, SEARCH_LABEL, SEARCH_LEGEND, SEARCH_LEGEND_SHORT, signatureNotes } from '../src/story/signature-search.js';
 import { rumblePlay } from '../src/rumble.js';
@@ -30,7 +30,6 @@ export function chartBox(W = 1280, H = 720) {
 
 /** The keys that move the scanner while there is a world to find (the page's SCAN_KEYS). */
 const SCAN_KEYS = { KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
-const NEXT = ['ArrowRight', 'ArrowDown', 'KeyD', 'KeyS'], PREV = ['ArrowLeft', 'ArrowUp', 'KeyA', 'KeyW'];
 const r1 = (v) => Math.round(v * 10) / 10;
 const pt = (p) => [r1(p[0]), r1(p[1])];
 /** 'rgb(r, g, b)' as '#rrggbb' (scanColour's, for the engine). */
@@ -91,6 +90,12 @@ export class EngineStarMap {
     this.select(c[(Math.max(0, at) + Math.sign(d) + c.length) % c.length]);
   }
   select(i) { if (this.entries?.[i]?.known && this.sel !== i) { this.sel = i; this.cv++; } }
+  /** The world that way on the chart (x right, y down): the nearest disc in that direction (the page's move). */
+  move(dx, dy) {
+    if (!this.entries || !this.D) return;
+    const i = chartToward(this.entries, this.D, this.sel, dx, dy);
+    if (i >= 0) this.select(i);
+  }
 
   /** Travel to the chosen world: ask first. */
   go() {
@@ -115,25 +120,23 @@ export class EngineStarMap {
     if (name === 'confirm') this.go();
     else if (name === 'back') this.close();
   }
-  /** The D-pad, the arrows (and the stick when not searching): the next world, or the other answer. */
+  /** The D-pad, the arrows (and the stick when not searching): the world that way on the chart, or the other answer. */
   navigate(x, y) {
-    const d = x || y;
-    if (!d) return;
+    if (!x && !y) return;
     if (this.asking) { this.yes = !this.yes; this.cv++; return; }
-    this.step(d);
+    this.move(x, y);
   }
   /** A key pressed (KeyboardEvent.code), as the page's keydown: true when the map took it. */
   key(code) {
     if (this.asking) {
       if (code === 'Escape' || code === 'Backspace') this.answer(false);
-      else if (NEXT.includes(code) || PREV.includes(code) || code === 'Tab') { this.yes = !this.yes; this.cv++; }
+      else if (DIR_KEYS[code] || code === 'Tab') { this.yes = !this.yes; this.cv++; }
       else if (code === 'Enter' || code === 'Space' || code === 'KeyE' || code === 'NumpadEnter') this.answer(this.yes);
       return true;
     }
     if (this.searching() && SCAN_KEYS[code]) { this.held.add(code); return true; }
     if (code === 'Escape' || code === 'Backspace') this.close();
-    else if (NEXT.includes(code)) this.step(1);
-    else if (PREV.includes(code)) this.step(-1);
+    else if (DIR_KEYS[code]) this.move(...DIR_KEYS[code]);
     else if (code === 'Enter' || code === 'Space' || code === 'KeyE' || code === 'NumpadEnter') this.go();
     else return false;
     return true;
@@ -214,7 +217,7 @@ export class EngineStarMap {
   /** A prompt's key and its words: the pad's button (written "A / ×", the bundle names it), else the keyboard's key. */
   cap(role, text) {
     const pad = !!this.pad?.();
-    const cap = { ok: pad ? 'A / ×' : 'Enter', back: pad ? 'B / ○' : 'Esc', dpad: pad ? 'D-pad' : '← →' }[role] ?? '';
+    const cap = { ok: pad ? 'A / ×' : 'Enter', back: pad ? 'B / ○' : 'Esc', dpad: pad ? 'D-pad' : 'arrows' }[role] ?? '';
     return { cap, text };
   }
 
@@ -283,6 +286,7 @@ const found = (...ids) => Object.fromEntries(ids.map((w) => [`map.found.${w}`, t
  *   ask      the same, "Travel to The Underwater City?"
  *   nopower  the desert done, the ship without power: NO POWER over the chart
  *   home     six worlds done and the call heard: Home by the star, NEXT on it, "they are waiting"
+ *   up, down the system's, then the D-pad's up (or down) pressed once: the world that way picked (issue #371)
  */
 export const STARMAP_BASE = { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'ship.powered': true };
 export const STARMAP_SCENES = {
@@ -293,6 +297,8 @@ export const STARMAP_SCENES = {
   ask: { flags: { ...done('desert', 'arzach', 'perdide', 'edena'), ...found('underwater', 'incal') }, ask: true },
   nopower: { flags: { ...done('desert'), 'ship.powered': false } },
   home: { flags: { ...done('desert', 'arzach', 'perdide', 'edena', 'underwater', 'incal'), ...found('glassdunes', 'buried'), 'calls.home': true } },
+  up: { flags: { ...done('desert', 'arzach', 'perdide', 'edena'), ...found('underwater', 'incal') }, nav: [0, -1] },
+  down: { flags: { ...done('desert', 'arzach', 'perdide', 'edena'), ...found('underwater', 'incal') }, nav: [0, 1] },
 };
 /** A scene's moment on an open map (the web's shot script does the same on the page's StarMap). */
 export function poseStarMap(map, scene) {
@@ -304,5 +310,6 @@ export function poseStarMap(map, scene) {
     map.lock = 0.4; map.still = true; map.cv++;
   }
   if (S.found && t) { map.scan = [t.x, t.y]; map.moved = 1e4; }
+  if (S.nav) map.navigate(...S.nav);
   if (S.ask) map.go();
 }

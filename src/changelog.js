@@ -45,6 +45,8 @@ export const CHANGELOG = [
     'The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.',
     // issue #376: src/bike-worlds.js trailVehicle (main.js: the trails behind the vehicle ridden, not the mount alone)
     'In Viridel and the Garden of Spheres the hoverbike leaves its glowing trails behind it again. Where Vael’s bird answers your call, the bike waiting by the ship rode without them.',
+    // issue #371: src/ship/starmap.js worldToward / chartToward / DIR_KEYS, StarMap.move; engine/starmap.js move (the Unity map)
+    'On the galactic map, up and down now choose a world too: every direction on the D-pad, the stick or the arrow keys picks the nearest world that way on the chart. Up and down used to step along the route, the same as left and right.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

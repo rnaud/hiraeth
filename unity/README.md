@@ -105,7 +105,7 @@ The holo table, the rain, the sun rays, the observatory awake (web left, Unity r
 | controls in the status box | H | |
 | hoverbike | W / S go and brake, A / D steer, Shift boost | left stick, RT / R2 go |
 | the bird (Vael) | Space take off and flap, A / D bank, W dive, S pull up | A / ×, left stick, RT / R2 thrust |
-| the galactic map (at the console, the ship powered) | ← → choose, Enter travel | D-pad, A / × |
+| the galactic map (at the console, the ship powered) | arrows choose (the world that way), Enter travel | D-pad, A / × |
 
 ### From the command line
 
