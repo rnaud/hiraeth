@@ -690,6 +690,16 @@ sits at the hearts' place and moves under them while they show (`#health.on ~ #k
 and the count swells (`got`). `screen.keys` (platform.js) carries `{ small, big }` for an engine; the Unity bridge
 draws "KEY ×N" under its health bar (BridgeHud.cs `DrawKeys`). Tests: `tests/key-chests.test.js`.
 
+## The House map (issue #405)
+
+Inside a makers' house the Start menu has **House map** after Map (src/ui.js `drawHouse`, `houseTurn`; main.js
+`house`): the house's name, a tab a floor (1F, 2F, B1; a red dot on yours) with LB / RB (Q / E) at their ends, the
+floor's name, and the floor drawn on a canvas in ink and paper (src/house-map.js `drawHouseMap`). The rooms you have
+stood in are solid; once the house's little map chest is open, the rest show faint; before it, only those you have
+seen. The traveller, the doors, the great key's and the guardian's are marked; the key along the foot says which is
+which. The engines draw the same picture (engine/menus.js `houseKey`, BridgeMenu.cs `DrawHouse`). How the plan is
+read: docs/systems/temples.md, "The house's map".
+
 ## Notices and the quest card (playtest 2026-10-08)
 
 - **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are one short line on a dark strip since

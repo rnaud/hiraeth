@@ -7,7 +7,8 @@
 //     it writes and every world of the route (src/debug-save.js seedDebugSave);
 //   - the Start menu (Menu / Esc): a sidebar (Resume, Items, Quests, Map, Settings, Controls, Quit to title) and its
 //     page, left / right between them and up / down round each (src/menu-pad.js sideStep, issue #210), a slider's
-//     left / right its value, B / ○ in the page back to the sidebar first;
+//     left / right its value, B / ○ in the page back to the sidebar first; inside a makers' house, House map after Map
+//     (issue #405, src/house-map.js): its page the floor drawn (a picture by its key, sent as the Map's are), LB / RB a floor;
 //   - the dev menu (L3 + R3, F2, `; issue #387): src/dev-menu.js DevMenu's tabs and acts, drawn as the game menu's sheet
 //     (kind 'game', panel 'dev'), LB / RB (◀ ▶) a tab, up / down its rows, A / × the row;
 //   - the game menu (View / Select, J): its five panels (src/game-menu.js PANELS, MenuState, the panels' own rows from
@@ -37,6 +38,8 @@ import { titleLayout } from '../src/title-layout.js';
 import { MUSIC_MODES, musicMode } from '../src/music-moments.js';
 import { tabWindow } from '../src/world-debug.js';
 import { TAB_STRIP, verb } from '../src/dev-menu.js';
+import { drawHouseMap, HouseMapPage, HOUSE_MAP } from '../src/house-map.js';
+import { PixelCanvas } from './raster.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -112,6 +115,8 @@ export const START_SIDE = [
  * engine/unity/updates.js, BridgeUpdates.cs; the Unity-default plan's D13). The title has it too, under Settings.
  */
 export const UPDATES_SIDE = { id: 'updates', label: () => 'Updates', page: 'updates' };
+/** The House map entry, after Map, only inside a makers' house (issue #405, src/house-map.js; src/ui.js has it too). */
+export const HOUSE_SIDE = { id: 'house', label: () => t('menu.house'), page: 'house' };
 
 /** The Controls page's own choices over the rebinding (src/ui.js: run and guard held or toggled). */
 export const CONTROL_ROWS = [
@@ -160,8 +165,14 @@ export class EngineMenus {
    * @param o.saveLine  () → the line under the Start menu's heading: the save, the world, the time played
    * @param o.updates   the player's script updates (engine/unity/updates.js UnityUpdates: rows(), act(a), tick()); null: none
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null, house = () => null } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates, house });
+    // the House map (issue #405): the house's view as the Start menu opened (house(): src/house-map.js houseView, or null
+    // outside a house), the floor chosen, and its drawn floors by key (engine/raster.js: the engine shows them as the Map's)
+    this.hv = null;
+    this.housePage = new HouseMapPage();
+    this.housePics = new Map();
+    this.houseN = 0;
     this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card' | 'starmap' | 'foes' | 'dev'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
@@ -194,7 +205,11 @@ export class EngineMenus {
       try { shot = this.shots({ storage: globalThis.localStorage ?? null, saves: this.store.list?.() ?? [] }); } catch (e) { console.warn(`[menus] the title's shot: ${e?.message ?? e}`); }
       this.title.shot = shot ? { id: shot.id, menu: shot.menu ?? 'low' } : null;
     }
-    if (mode === 'start') this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
+    if (mode === 'start') {
+      this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
+      try { this.hv = this.house?.() ?? null; } catch (e) { this.hv = null; console.warn(`[menus] the house's map: ${e?.message ?? e}`); }
+      this.housePage.reset(this.hv);
+    }
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
     this.changed();
   }
@@ -654,14 +669,32 @@ export class EngineMenus {
 
   /** The Start menu's sidebar: START_SIDE, and Updates before Quit to title in a player that has them. */
   startSide() {
-    if (!this.hasUpdates()) return START_SIDE;
-    const quit = START_SIDE.findIndex((e) => e.id === 'quit');
-    return [...START_SIDE.slice(0, quit), UPDATES_SIDE, ...START_SIDE.slice(quit)];
+    const map = START_SIDE.findIndex((e) => e.id === 'map');
+    const side = this.hv ? [...START_SIDE.slice(0, map + 1), HOUSE_SIDE, ...START_SIDE.slice(map + 1)] : START_SIDE;
+    if (!this.hasUpdates()) return side;
+    const quit = side.findIndex((e) => e.id === 'quit');
+    return [...side.slice(0, quit), UPDATES_SIDE, ...side.slice(quit)];
   }
 
-  startPage() { return ['controls', 'news'].includes(this.start.page) || (this.start.page === 'updates' && this.hasUpdates()) ? this.start.page : 'settings'; }
+  startPage() { return ['controls', 'news'].includes(this.start.page) || (this.start.page === 'updates' && this.hasUpdates()) || (this.start.page === 'house' && this.hv) ? this.start.page : 'settings'; }
+  /**
+   * The House map's picture of a floor (src/house-map.js drawHouseMap into engine/raster.js's PixelCanvas), by its key:
+   * drawn once a floor while the menu is open (the last few kept), sent to the engine as the Map's ground is.
+   */
+  houseKey(view, floor) {
+    for (const [k, p] of this.housePics) if (p.view === view && p.floor === floor) return k;
+    const c = new PixelCanvas(HOUSE_MAP.w, HOUSE_MAP.h);
+    drawHouseMap(c.getContext('2d'), view, floor);
+    const key = `house${++this.houseN}`;
+    this.housePics.set(key, { canvas: c, view, floor });
+    while (this.housePics.size > 4) this.housePics.delete(this.housePics.keys().next().value);
+    return key;
+  }
+  /** A drawn floor by its key (engine/unity/game.js sends its RGBA to Unity), or null. */
+  housePicture(key) { return this.housePics.get(key)?.canvas ?? null; }
   startPageRows() {
     const page = this.startPage(), at = this.start.at, on = (i) => at.in === 'page' && at.i === i;
+    if (page === 'house') return [];
     if (page === 'controls') return this.controlsRows().map((r, i) => ({ ...r, on: on(i) }));
     if (page === 'news') return this.newsRows().map((r, i) => ({ ...r, on: on(i) }));
     if (page === 'updates') return this.updatesRows(at);
@@ -768,6 +801,8 @@ export class EngineMenus {
     const S = this.start, SIDE = this.startSide();
     if (name === 'start') { this.close(); return; }
     if (name === 'select') { this.show('game'); return; }
+    // (LB / RB on the House map: the floor below, the floor above)
+    if ((name === 'tabPrev' || name === 'tabNext') && this.startPage() === 'house' && this.hv) { this.housePage.turn(this.hv, name === 'tabPrev' ? -1 : 1); return; }
     if (S.at.in === 'page') {
       if (name === 'back') { S.back = S.at.i; S.at = { in: 'side', i: Math.max(0, SIDE.findIndex((e) => e.page === this.startPage())) }; return; }
       if (name === 'confirm' && this.startPage() === 'updates') this.updatesConfirm(S.at.i);
@@ -787,6 +822,7 @@ export class EngineMenus {
     const e = SIDE[S.at.i];
     if (e.id === 'resume') this.close();
     else if (e.panel) this.show('game', e.panel);
+    else if (e.page === 'house') S.page = e.page;   // (its page has nothing to move to: the floors are LB / RB's)
     else if (e.page) { S.page = e.page; S.at = { in: 'page', i: e.page === 'updates' ? this.updatesFirst() : 0 }; }
     else if (e.id === 'quit') { this.mode = null; this.onQuit(); }
     else if (e.id === 'photo') { this.close(); this.onPhoto(); }
@@ -965,13 +1001,20 @@ export class EngineMenus {
   startView() {
     const S = this.start, page = this.startPage();
     const keysFirst = page === 'controls' && this.keysFirst();
-    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}`, updates: UPDATES_SIDE.label() }[page] ?? t('menu.settings');
+    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}`, updates: UPDATES_SIDE.label(), house: `${this.hv?.name ?? ''} · ${t('menu.house')}` }[page] ?? t('menu.settings');
     const hint = this.rebinding ? (this.rebinding.kind === 'keys' ? `${t('rebind.pressKey')} · Esc keeps it` : `${t('rebind.pressButton')} · Menu keeps it`)
+      : page === 'house' ? `LB / RB floor · B / ○ ${S.at.in === 'page' ? 'back' : 'resume'}`
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
       : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'updates' ? 'A / × choose · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
-    return { v: this.v, kind: 'start', head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
+    const view = { v: this.v, kind: 'start', head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
       side: this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
       page: { title, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
+    // the House map: its floors' tabs (LB / RB), the one shown, its picture by key, the picture's shape (issue #405)
+    if (page === 'house' && this.hv) {
+      const hv = this.hv, floor = this.housePage.floor(hv), i = hv.floors.findIndex((f) => f.id === floor);
+      view.page.house = { key: this.houseKey(hv, floor), tabs: hv.floors.map((f) => f.label), here: hv.floors.findIndex((f) => f.id === hv.here), i, name: hv.floors[i]?.name ?? '', aspect: +(HOUSE_MAP.w / HOUSE_MAP.h).toFixed(4), prev: hv.floors.length > 1 ? 'LB' : '', next: hv.floors.length > 1 ? 'RB' : '' };
+    }
+    return view;
   }
   gameView() {
     const p = this.panel(), at = this.state.cursor(), cell = this.state.cell(p.rows);

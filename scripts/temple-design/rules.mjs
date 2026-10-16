@@ -43,7 +43,7 @@ export const RULE_TEXT = {
 };
 
 /** Element types that are a puzzle's (anything a player works): not the chests, the keys, the gates or the guardian. */
-const NOT_PUZZLE = new Set(['gadget', 'find', 'key', 'cache', 'door', 'bridge', 'boss', 'arena']);
+const NOT_PUZZLE = new Set(['gadget', 'find', 'key', 'cache', 'map', 'door', 'bridge', 'boss', 'arena']);   // (map: the house's map's little chest, issue #405)
 export const isPuzzleElement = (e) => !!e && !NOT_PUZZLE.has(e.type);
 
 // ---------------------------------------------------------------- geometry

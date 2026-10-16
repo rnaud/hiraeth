@@ -188,6 +188,8 @@ export const LOGIC = {
     ...Object.fromEntries(RIM.map((id, i) => [id, { type: 'brazier', room: 'cistern', needs: ['sword'], when: { drumOn: [SPOKES[i], `pk${i + 1}`] } }])),
     keeper: { type: 'boss', room: 'cistern', needs: ['sword', 'shield'], requires: { all: RIM.map((id) => ({ lit: id })) } },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'channel', at: [-16.2, 0, 56.4], yaw: Math.PI / 4 },
   },
 };
 

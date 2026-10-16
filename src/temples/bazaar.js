@@ -194,6 +194,8 @@ export const LOGIC = {
     kB: { type: 'key', kind: 'big', room: 'choir', when: { all: [{ lit: 'hA' }, { lit: 'hB' }] } },
     sign: { type: 'boss', room: 'hall', needs: ['gun', 'recall'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'tune', at: [22.2, 0, 75], yaw: Math.PI / 4 },
   },
 };
 

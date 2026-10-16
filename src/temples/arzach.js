@@ -189,6 +189,8 @@ export const LOGIC = {
     // (optional, so last: the marker never points at it) the coffer on the shelf over the Eyrie's door, beside the ledge's
     // own column, as its stone starts
     cache: { type: 'cache', room: 'eyrie' },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'gulf', at: [-14, 32, 159.8], yaw: Math.PI / 2 },
   },
 };
 

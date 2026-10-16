@@ -25,6 +25,7 @@ import { ORDER } from '../levels/names.js';
 import { ITEMS } from '../items.js';
 import { puzzleGraph, mechanicOf, piecePos, GADGET_VERB, dist } from '../../scripts/temple-design/lib.mjs';
 import { buildTemple } from './record.js';
+import { floorsOf, floorAt, roomPlaces, onFloors, boundsOf } from '../temples/house-plan.js';
 
 // ------------------------------------------------------------------ the route
 /** The makers' temples in the order the route reaches them (a merged world's own first, then its part's). */
@@ -67,6 +68,7 @@ export function nounOf(id, e, piece) {
     case 'gadget': return 'chest';
     case 'find': return 'chest';
     case 'cache': return 'coffer';
+    case 'map': return 'map chest';
     case 'weight': return 'stone block';
     case 'arena': return 'foes';
     case 'door': return e.lock === 'big' ? 'great lock' : e.lock ? 'locked door' : 'door';
@@ -83,17 +85,8 @@ export const VERB_WORDS = {
 };
 export const verbWord = (m) => (m.startsWith('gadget:') ? GADGET_VERB[m.slice(7)] ?? itemName(m.slice(7)) : VERB_WORDS[m] ?? m);
 
-// ------------------------------------------------------------------ floors
-/** Heights grouped into floors: a new floor wherever the next height is more than `gap` m over the last. */
-export function floorsOf(ys, gap = 4.5) {
-  const s = [...new Set(ys.filter(Number.isFinite).map((y) => Math.round(y * 10) / 10))].sort((a, b) => a - b);
-  const out = [];
-  for (const y of s) { const f = out.at(-1); if (f && y - f.top <= gap) { f.top = y; f.ys.push(y); } else out.push({ y, top: y, ys: [y] }); }
-  // (each floor at its most common height: the floor you stand on, its ledges a little over it)
-  const ground = out.reduce((b, f) => (Math.abs(f.y) < Math.abs(b.y) ? f : b), out[0] ?? { y: 0 });
-  return out.map((f, i) => ({ id: `f${i}`, y: f.y, top: f.top, name: f === ground ? 'ground floor' : f.y > ground.y ? `up ${Math.round(f.y - ground.y)} m` : `down ${Math.round(ground.y - f.y)} m` }));
-}
-export const floorAt = (floors, y) => floors.reduce((b, f) => (Math.abs(y - (f.y + f.top) / 2) - (f.top - f.y) / 2 < Math.abs(y - (b.y + b.top) / 2) - (b.top - b.y) / 2 ? f : b), floors[0])?.id ?? 'f0';
+// ------------------------------------------------------------------ floors (shared with the house's map in the game)
+export { floorsOf, floorAt };
 
 // ------------------------------------------------------------------ the walk
 /** The cheapest way between rooms through the links open now: Dijkstra over waypoints (room → doorway → room). */
@@ -143,28 +136,14 @@ export function makersMap(id, { built = null, sight = true } = {}) {
   // ---- where things are (the kit's local metres)
   const byId = new Map();
   for (const p of pieces) { const pos = piecePos(p.o); for (const k of [p.o?.id, p.o?.bloom, p.o?.still]) if (k && pos && !byId.has(k)) byId.set(k, { ...p, pos }); }
-  const marks = Object.fromEntries(pieces.filter((p) => p.cls === 'Mark' && p.o?.room).map((p) => [p.o.room, piecePos(p.o)]));
-  const at = {};
-  for (const r of g.rooms) at[r] = g.at[r] ? [g.at[r][0], marks[r]?.[1] ?? Math.min(g.at[r][1], ...Object.entries(E).filter(([k, e]) => e.room === r && byId.get(k)).map(([k]) => byId.get(k).pos[1])), g.at[r][2]] : null;
   // (the guardian's hall at its arena's middle)
   const arena = rt.guardian?.arena?.center ? rt.kit.local(rt.guardian.arena.center.clone()).toArray() : null;
   const bossRoom = Object.entries(logic.rooms).find(([, r]) => r.boss)?.[0];
-  if (arena && bossRoom) at[bossRoom] = [arena[0], at[bossRoom]?.[1] ?? arena[1], arena[2]];
-  // a room still with nowhere: halfway along its links
-  for (let pass = 0; pass < 3; pass++) for (const r of g.rooms) if (!at[r]) { const n = logic.links.filter((l) => l.a === r || l.b === r).map((l) => at[l.a === r ? l.b : l.a]).filter(Boolean); if (n.length) at[r] = n[0].map((_, k) => n.reduce((s, p) => s + p[k], 0) / n.length); }
-  for (const r of g.rooms) at[r] ??= [0, 0, 0];
+  const at = roomPlaces(logic, pieces, { arena });
 
   // ---- floors: the rooms' floors, and the plan's walkable parts on the nearest
   const floors = floorsOf(Object.values(at).map((p) => p[1]));
-  const yOf = (e) => (e.kind === 'wall' ? e.y0 : e.kind === 'stairs' || e.kind === 'ramp' || e.kind === 'bridge' ? Math.min(e.a[1], e.b[1]) : e.y ?? 0);
-  const shapes = plan.map((e) => ({ ...e, hasFloor: e.floor !== false, floor: floorAt(floors, yOf(e)), ...(e.kind === 'stairs' || e.kind === 'ramp' || e.kind === 'bridge' ? { floor: floorAt(floors, Math.min(e.a[1], e.b[1])), to: floorAt(floors, Math.max(e.a[1], e.b[1])) } : {}) }));
-  // (lifts and winds: what carries you up, read from the pieces)
-  for (const p of pieces) {
-    const pos = piecePos(p.o);
-    if (!pos) continue;
-    if (p.cls === 'Platform') shapes.push({ kind: 'lift', path: (p.o.path ?? []).map((q) => [q[0], q[1], q[2]]), r: p.o.r ?? 2.2, floor: floorAt(floors, Math.min(...(p.o.path ?? [pos]).map((q) => q[1]))), to: floorAt(floors, Math.max(...(p.o.path ?? [pos]).map((q) => q[1]))), id: p.o.id ?? null });
-    if (p.cls === 'Updraft') shapes.push({ kind: 'updraft', x: pos[0], z: pos[2], r: p.o.r ?? 4.5, y: pos[1], top: pos[1] + (p.o.h ?? 22), floor: floorAt(floors, pos[1]), to: floorAt(floors, pos[1] + (p.o.h ?? 22)), id: p.o.id ?? null });
-  }
+  const shapes = onFloors(plan, floors, pieces);
 
   // ---- the rooms
   const rooms = g.rooms.map((r) => ({ id: r, name: roomName(r), pos: r3(at[r]), floor: floorAt(floors, at[r][1]), kind: logic.rooms[r].kind ?? null, boss: !!logic.rooms[r].boss, checkpoint: !!logic.rooms[r].checkpoint, entry: r === logic.entry }));
@@ -217,7 +196,7 @@ export function makersMap(id, { built = null, sight = true } = {}) {
   const elements = Object.entries(E).filter(([, e]) => !isGate(e)).map(([k, e]) => {
     const piece = byId.get(k) ?? null;
     const pos = piece?.pos ?? (e.room ? at[e.room] : null);
-    const verbs = e.type === 'boss' ? ['guardian', ...(e.needs ?? []).filter((n) => n !== 'backpack').map((n) => `gadget:${n}`)] : e.type === 'gadget' || e.type === 'find' || e.type === 'cache' ? ['take'] : e.type === 'weight' ? ['carry'] : mechanicOf(k, e, { elements: E, piece });
+    const verbs = e.type === 'boss' ? ['guardian', ...(e.needs ?? []).filter((n) => n !== 'backpack').map((n) => `gadget:${n}`)] : e.type === 'gadget' || e.type === 'find' || e.type === 'cache' || e.type === 'map' ? ['take'] : e.type === 'weight' ? ['carry'] : mechanicOf(k, e, { elements: E, piece });
     return { id: k, type: e.type, room: e.room ?? null, noun: nounOf(k, e, piece), pos: r3(pos), floor: e.room && at[e.room] ? floorAt(floors, at[e.room][1]) : pos ? floorAt(floors, pos[1]) : null, verbs: [...new Set(verbs)], item: e.item ?? null, hidden: !!piece?.o?.hidden };
   });
   const elOf = new Map(elements.map((e) => [e.id, e]));
@@ -380,6 +359,7 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
     case 'take':
       if (e?.type === 'gadget') return `Open the chest${where}: the ${itemName(e.item)}${tag}`;
       if (e?.type === 'find') return `Open the chest${where}: the ${itemName(e.item)}${tag}`;
+      if (e?.type === 'map') return `Open the little chest${where}: the house’s map${tag}`;
       return `Take the ${el?.noun ?? 'key'}${where}${tag}`;
     case 'open': return `Open the coffer${where}${tag}`;
     case 'roll': return `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
@@ -409,21 +389,6 @@ function linkLabel(l, e, type, needs, piece) {
   const cls = piece?.cls && !['Door', 'Bridge'].includes(piece.cls) ? ` (${piece.cls.toLowerCase()})` : '';
   return [what + cls, via, l.oneWay && type !== 'oneway' ? 'one way' : ''].filter(Boolean).join(' · ');
 }
-function boundsOf(shapes, rooms) {
-  const xs = [], zs = [];
-  const add = (x, z) => { if (Number.isFinite(x) && Number.isFinite(z)) { xs.push(x); zs.push(z); } };
-  for (const s of shapes) {
-    if (s.kind === 'hall') { add(s.x - s.w / 2, s.z - s.d / 2); add(s.x + s.w / 2, s.z + s.d / 2); }
-    else if (s.kind === 'round' || s.kind === 'shaft' || s.kind === 'updraft') { add(s.x - s.r, s.z - s.r); add(s.x + s.r, s.z + s.r); }
-    else if (s.kind === 'corridor' || s.kind === 'slab') { add(s.x0, s.z0); add(s.x1, s.z1); }
-    else if (s.kind === 'wall') { add(s.a[0], s.a[1]); add(s.a[0] + s.dir[0] * s.L, s.a[1] + s.dir[1] * s.L); }
-    else if (s.a) { add(s.a[0], s.a[2]); add(s.b[0], s.b[2]); }
-    else if (s.path) for (const p of s.path) add(p[0], p[2]);
-  }
-  for (const r of rooms) add(r.pos[0], r.pos[2]);
-  return [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)].map(round1);
-}
-
 /**
  * Line of sight in the temple's own frame (as the design audit has it): its walls, floors and pieces, the doors shut as at
  * the start, but those you came through to reach a lock's room open by then; the key looked at never hides itself.

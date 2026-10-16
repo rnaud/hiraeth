@@ -11,6 +11,7 @@ export const EN = {
   'menu.items': 'Items',
   'menu.quests': 'Quests',
   'menu.map': 'Map',
+  'menu.house': 'House map',
   'menu.settings': 'Settings',
   'menu.controls': 'Controls',
   'menu.photo': 'Photo mode',

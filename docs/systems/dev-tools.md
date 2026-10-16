@@ -288,9 +288,10 @@ one at a time (`?t=<id>`; `?step=`, `?floor=`, `?view=plan|graph|three` keep the
 temples' own data and solver, nothing by hand:
 
 - **The plan** (`record.js`): the temple built in node or the page as the game builds it (its runtime and layout, no
-  world, no outside) with the kit's own plan switched on (`TempleKit.plan`: halls, round halls with their gaps,
-  corridors, walls with their doorways) and the floors it has no entry for recorded beside it (slabs and ledges,
-  stairs, ramps, bridges, shafts), plus the pieces the layout placed (as the design audit records them). Floors are
+  world, no outside), read from the kit's chart (`TempleKit.chart`: halls, round halls with their gaps, corridors,
+  walls with their doorways, then slabs and ledges, stairs, ramps, bridges, shafts), and the pieces the layout placed
+  (`rt.placed`, as the design audit records them): the same the house's map in the game reads (issue #405,
+  src/temples/house-plan.js, which has the floors and the rooms' places for both). Floors are
   the rooms' heights grouped (a new floor more than 4.5 m up; `floorsOf`), each its own colour, a switcher to show one
   (the rest faded); lifts and winds (riding discs, updrafts) drawn with the floors they join; doors marked by kind (D a
   door, K a small lock, G the great lock, = a bridge, B the guardian's). A fight temple's plan is its drawn run's rooms,

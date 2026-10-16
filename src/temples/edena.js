@@ -192,6 +192,8 @@ export const LOGIC = {
     fs4: { type: 'plate', room: 'hall' },
     gardener: { type: 'boss', room: 'hall', needs: ['gun', 'bloom'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'vault', at: [-49.8, 0, 60.8], yaw: Math.PI / 4 },
   },
 };
 

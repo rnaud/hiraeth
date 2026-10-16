@@ -227,6 +227,8 @@ export const LOGIC = {
     vh2: { type: 'vane', room: 'warden', needs: ['fan'] },
     vh3: { type: 'vane', room: 'warden', needs: ['fan'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'vane', at: [22.8, 0, 74], yaw: Math.PI },
   },
 };
 

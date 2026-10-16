@@ -209,6 +209,8 @@ export const LOGIC = {
     pE: { type: 'plate', room: 'arena' },
     listener: { type: 'boss', room: 'arena', needs: ['springs'], requires: { any: [{ drumOn: ['bW', 'pW'] }, { drumOn: ['bE', 'pE'] }] } },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'pools', at: [-46.4, 0, 18.2], yaw: Math.PI / 4 },
   },
 };
 

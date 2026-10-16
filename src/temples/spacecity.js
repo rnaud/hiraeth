@@ -209,6 +209,8 @@ export const LOGIC = {
     wC: { type: 'weight', room: 'hall', plate: 'pC', needs: ['hook'], optional: true },
     pC: { type: 'plate', room: 'hall' },
     cC: { type: 'cache', room: 'hall', when: { pressed: 'pC' } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'stair', at: [13.1, 0, 1.7], yaw: Math.PI / 2 },
   },
 };
 

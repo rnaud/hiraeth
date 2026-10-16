@@ -103,6 +103,7 @@ import { screen } from '../src/platform.js';
 import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
+import { houseHere, houseView } from '../src/house-map.js';
 import { PixelCanvas } from './raster.js';
 import { GIVERS_NOTE } from '../src/story/signature.js';
 import { rumblePlay } from '../src/rumble.js';
@@ -1373,6 +1374,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
     mapPicture: (key) => pictures.get(key) ?? null,
+    /** Inside a makers' house: its map's view (src/house-map.js, the Start menu's House map, issue #405); else null. */
+    houseView: () => { const rt = houseHere(level, player); return rt ? houseView(rt, { game: gameState, player }) : null; },
     /** Fill and draw the Map's ground now (a test's, a tool's), `ms` at most. */
     drawMap(ms = 1e5) { if (!mapWhole) mapSource(); worldMap.view(mapWhole.bounds, MAP.cells); pumpMap(ms); return worldMap.want?.canvas ?? null; },
     /** Why the ship won't take you to `id` (null: it will; src/fast-travel.js). */

@@ -38,7 +38,7 @@ import { HOLD as BELFRY_HOLD, FallUpStone, RING, ROOMS as BELFRY, UP as BELFRY_U
 const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR = BELFRY_HOLD.stair, HOLD_CHAMBER = BELFRY_HOLD.chamber;
 import { HOLD as UNDERTOWER_HOLD, CHOIR } from '../src/temples/bazaar.js';
 const HOLD_PILLAR = UNDERTOWER_HOLD.pillar;
-import { Key, KEY_CHEST } from '../src/temples/pieces.js';
+import { Key, KEY_CHEST, MapChest } from '../src/temples/pieces.js';
 import { BOX_SCALE } from '../src/boxes/model.js';
 import { TempleKit, ANTE } from '../src/temples/kit.js';
 import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as AERIE_TOP, BALCONY as AERIE_BALCONY } from '../src/temples/arzach.js';
@@ -897,13 +897,15 @@ test('each built temple: a door in its world, solid rooms with marks, a chest si
 
 // (the key chests' layout, issue #274, here where every temple is built already: tests/key-chests.test.js has the rest,
 // docs/systems/testing.md "Heavy tests")
-test('every temple key is in a little makers\' chest, on flat floor, with room before it (issue #274)', () => {
+// (and the house's map's chest, issue #405: the same little chest, a rolled map in it)
+test('every temple key is in a little makers\' chest, on flat floor, with room before it (issue #274); the house\'s map too (#405)', () => {
   let n = 0;
   for (const id of BUILT) {
     const w = world(id), L = w.rt.logic;
-    const els = Object.entries(L.def.elements).filter(([, e]) => e.type === 'key').map(([k]) => k);
+    const els = Object.entries(L.def.elements).filter(([, e]) => e.type === 'key' || e.type === 'map').map(([k]) => k);
     const keys = w.rt.pieces.filter((p) => p instanceof Key);
-    assert.deepEqual(keys.map((k) => k.id).sort(), els.sort(), `${id}: a chest for each key`);
+    assert.deepEqual(keys.map((k) => k.id).sort(), els.sort(), `${id}: a chest for each key, and the map's`);
+    assert.equal(keys.filter((k) => k instanceof MapChest).length, 1, `${id}: one map chest`);
     for (const k of keys) {
       n++;
       const at = `${id}.${k.id}`;
@@ -911,6 +913,7 @@ test('every temple key is in a little makers\' chest, on flat floor, with room b
       assert.ok(k.chest.shell.isMesh && k.chest.shell.name === 'Makers’ chest', `${at}: the chest's own model`);
       assert.ok(k.scale < BOX_SCALE * 0.75, `${at}: little (${k.scale} of the boxes' ${BOX_SCALE})`);
       assert.equal(k.scale, k.o.big ? KEY_CHEST.big : KEY_CHEST.small);
+      if (k instanceof MapChest) assert.equal(k.flying, false, `${at}: never counted with the keys`);
       assert.equal(k.chest.root.scale.x, k.scale);
       assert.ok(Math.abs(k.chest.mats.body.uniforms.uBoxB.value.x - k.chest.size.w / 2 * k.scale) < 1e-6, `${at}: its shader sized as drawn`);
       // flat round it: the floor under it and out past its cage, at its own height (no step, no slope, no gap)

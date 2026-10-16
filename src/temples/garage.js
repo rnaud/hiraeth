@@ -199,6 +199,8 @@ export const LOGIC = {
     dC: { type: 'door', opens: { all: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }] }, latch: true },   // (all three: in turn, the last lights after the others)
     kB: { type: 'key', kind: 'big', room: 'cupboard' },
     cache: { type: 'cache', room: 'cupboard' },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'springs', at: [24.2, 0, 82.2], yaw: Math.PI / 4 },
   },
 };
 

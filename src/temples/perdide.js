@@ -202,6 +202,8 @@ export const LOGIC = {
     mother: { type: 'boss', room: 'hall', needs: ['gun', 'stun'] },
     d5: { type: 'door', opens: { resolved: true }, room: 'hall' },
     cache: { type: 'cache', room: 'stilling' },                    // in the smallest mouth's niche
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'choir', at: [-16.8, 0, 33.2], yaw: Math.PI / 4 },
   },
 };
 

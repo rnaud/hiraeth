@@ -1289,6 +1289,40 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
 - The backpack's third stage (`BACKPACK_STAGES`, the tank's look) is the gust fan, the Warden's Well's gift now; the
   bellows, in Lorn's court earlier on the route, are no stage.
 
+## The house's map (issue #405, recommendation G5; `src/house-map.js`, `src/temples/house-plan.js`)
+
+A little chest in every makers' house holds its map. Its element is `map: { type: 'map', room, at, yaw }` at the end
+of the house's `LOGIC.elements` (its place in the kit's local metres): the runtime puts a `MapChest` there after the
+layout (pieces.js: a key's little makers' chest with a rolled map in it, `MAP_CHEST.line` said once it is open, the
+tone left off; never counted with the keys) and `logic.find` keeps it (`temple.<id>.found.map`). Nothing waits on it,
+so the solver takes it on the way (`take map`) and the Temple maps page lists it as an extra. It stands in a room of
+the first third of the house's stages, not the way in, by a wall, at least 5 m off the solution's walk, on flat floor
+with room before it (tests/house-map.test.js, tests/temples.test.js with the key chests); `logic.next` (the scout's
+ping) never points at it.
+
+The map itself is read from what the layout built, never drawn by hand, so a house remade (#401's Footprint, #383's
+ways in) maps as it is:
+
+- **The kit's chart** (`TempleKit.chart`, kit.js): every hall, round hall, corridor and wall (with its doorways) and
+  every slab, stair, ramp, bridge, shaft and antechamber, as the kit builds them; the runtime keeps the pieces as
+  placed (`rt.placed`). The Temple maps page reads the same (src/temple-maps/record.js). A floor a layout builds
+  itself goes in with `K.chartNote`: the Footprint's balconies round the Heel Well (`ring`: an arc between two radii,
+  its drops' holes), its great lift (`lift`) and the lift's piers, so its four floors map as they stand.
+- **The plan** (`housePlan`, read once: `rt.housePlan()`): floors from the rooms' heights (`floorsOf`, shared with the
+  page), each shape on its floor; a floor's room the one whose mark stands on it (else its middle, else the nearest);
+  a wall on every floor it rises past (a well's, a tall hall's), belonging to the rooms beside it; the doors from the
+  links (a lock's kind; the guardian's: the door into its hall or into the open rooms before it).
+- **Rooms seen**: inside, a few times a second, the room you stand in (`roomAt`: the smallest floor under you within
+  a storey) is kept as `temple.<id>.been.<room>`; the way in and the rooms where something was done count too (a
+  save from before).
+
+The Start menu's **House map** (only inside a house, after Map) draws a floor at a time: the rooms seen washed and
+inked, the rest faint and dashed once the map is yours (none of them before), the ways up hatched with their arrows,
+a floor below's tall walls thin, the doors shut (brown) or open (empty), a lock's keyhole until its key is in, the
+great key's door a gold diamond, the guardian's door ringed in red and its hall marked, you as the world map's red
+arrow, and the key along the foot. A tab a floor (1F the ground floor, 2F up, B1 down), LB / RB (Q / E) between them,
+on your own floor each time it opens. A house deeper than wide is turned a quarter, its way in on the left.
+
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 
 `K.both(mat, geo, proxy)` draws `geo` and makes it solid (or `proxy` instead, a stand-in). Several boxes go as an

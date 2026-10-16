@@ -370,3 +370,12 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .menu-nav button { display: flex; align-items: center; }
 .fullmenu .menu-nav button .glyph { margin: 0 0 0 auto; }
 .fullmenu .panel button { display: inline-flex; align-items: center; }
+
+/* the House map (issue #405, src/house-map.js): a tab a floor (LB / RB), the floor drawn in ink on paper */
+.fullmenu .panel.housemap:not([hidden]) { display: flex; flex-direction: column; overflow: hidden; }
+.fullmenu .hm-floors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.fullmenu .hm-floors button { position: relative; min-width: 3.2em; justify-content: center; font-weight: 700; letter-spacing: 0.06em; }
+.fullmenu .hm-floors button.on { background: #f2c54b; }
+.fullmenu .hm-floors .hm-here { position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; border-radius: 50%; background: #c8483a; border: 2px solid #2b211f; }
+.fullmenu .hm-floors .hm-name { margin-left: 6px; opacity: 0.7; }
+.fullmenu .hm-map { display: block; width: 100%; height: auto; min-height: 0; max-height: 100%; object-fit: contain; object-position: left top; border: 2.5px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; background: #f6ecd3; }

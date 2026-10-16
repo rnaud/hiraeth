@@ -62,6 +62,9 @@ namespace Hiraeth.Bridge
         Ui.Box card; Label cardTitle, cardSub, cardText, cardFacts, cardUse, cardSteps;
         Ui.Box ask; Label askQ, askWhat, askNo, askYes;
         Ui.Box mapBox;
+        // the House map (issue #405, src/house-map.js): inside a makers' house, the Start menu's page: a floor drawn in the
+        // script (engine/menus.js houseKey, sent as the Map's ground is, BridgeHost.MapImage) in its paper frame
+        Ui.Box houseBox; RawImage houseImg; Label houseName;
 
         static readonly Color Muted = Ui.Hex("#5e4b45"), Band = Ui.Hex("#f2dfb4"), Dim = Ui.Hex("#1d1614", 0.62f);
         const int Body = 19, Small = 14, Tiny = 12;
@@ -174,6 +177,10 @@ namespace Hiraeth.Bridge
             mapTipName = Ui.Label(mapTip.rt, "name", mono, 15, Ui.Hex("#f7ecd2"), TextAnchor.UpperLeft, FontStyle.Bold);
             mapTipSub = Ui.Label(mapTip.rt, "sub", mono, 13, Ui.Hex("#f7ecd2", 0.85f), TextAnchor.UpperLeft);
             mapEdge = Ui.Fill(mapBox.rt, Ui.Ink, 0, "edge"); mapEdge.sprite = Ui.Frame(2.5f, 0); mapEdge.type = Image.Type.Sliced; mapEdge.pixelsPerUnitMultiplier = 2;
+            houseBox = Ui.Panel(root, "house map", Ui.Hex("#f6ecd3"), Ui.Ink, 2.5f, 4, 4);
+            houseImg = Ui.Stretch(Ui.Node("floor", houseBox.rt)).gameObject.AddComponent<RawImage>(); houseImg.raycastTarget = false;
+            houseImg.uvRect = new Rect(0, 1, 1, -1);   // (its rows top down)
+            houseName = Ui.Label(root, "house floor", mono, Small, Muted, TextAnchor.MiddleLeft, FontStyle.Italic);
             strip = Ui.Panel(root, "strip", Ui.Paper, Ui.Ink, 1.5f, 3, 3);
             stripName = Ui.Label(strip.rt, "name", mono, Body, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             stripSub = Ui.Label(strip.rt, "sub", mono, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
@@ -325,7 +332,7 @@ namespace Hiraeth.Bridge
             tabNext.fontSize = Small; sub.fontStyle = FontStyle.Normal; line.fontStyle = FontStyle.Normal; line.color = Muted;   // (and the Arena list's filter: DrawFoes)
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
-            strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false); cSheet.Show(false);
+            strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false); cSheet.Show(false); houseBox.Show(false); Show(houseName, false);
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
@@ -847,8 +854,44 @@ namespace Hiraeth.Bridge
             Show(empty, pn.Length > 0);
             if (pn.Length > 0) { empty.fontSize = Tiny; var ns = Ui.Set(empty, pn, pw - 28); noteH = ns.y + 6; Ui.Place(empty.rectTransform, px + 14, top + 20, pw - 28, ns.y); }
             else empty.fontSize = Body;
+            var house = page?.O("house");
+            if (house != null) { DrawHouse(house, px, top + 26, pw, sh - (top - sy) - 44); return; }
             var rows = page?.L("rows");
             DrawSettings(rows, px, top + 22 + noteH, pw, sh - (top - sy) - 40 - noteH);
+        }
+
+        /// <summary>
+        /// The House map's page (src/ui.js drawHouse, issue #405): a tab a floor (1F, 2F, B1…; the one shown gold, LB / RB at
+        /// the ends, a red dot on the one you stand on), the floor's name, and the floor's picture under them in its paper frame.
+        /// </summary>
+        void DrawHouse(Dictionary<string, object> h, float x, float y, float w, float hh)
+        {
+            var tabsL = h.L("tabs") ?? new List<object>();
+            int at = (int)h.F("i"), here = (int)h.F("here", -1);
+            float tx = x + 14, th = 34;
+            if (!string.IsNullOrEmpty(h.S("prev"))) { Entry(tx, y, 58, th, Key("prev", "LB"), null, null, false, size: Small, dimmed: true); tx += 60; }
+            for (int i = 0; i < tabsL.Count; i++)
+            {
+                string label = (tabsL[i] as string ?? "") + (i == here ? " •" : "");
+                float tw = 34 + label.Length * 12;   // (wide enough for its label on one line: 1F, B1, 1F •)
+                var c = Entry(tx, y, tw, th, label, null, null, i == at, size: Body, boxed: true);
+                if (i == at) c.box.SetFill(Ui.Gold);
+                tx += tw + 6;
+            }
+            if (!string.IsNullOrEmpty(h.S("next"))) { Entry(tx, y, 58, th, Key("next", "RB"), null, null, false, size: Small, dimmed: true); tx += 60; }
+            var nm = h.S("name") ?? "";
+            Show(houseName, nm.Length > 0);
+            if (nm.Length > 0) { houseName.text = nm; Ui.Place(houseName.rectTransform, tx + 8, y, Mathf.Max(60, x + w - tx - 8), th); }
+            // the picture, as wide as the page lets it at its own shape
+            float aspect = Mathf.Clamp(h.F("aspect", 1.6f), 0.5f, 3f), top = y + th + 12, room = hh - th - 12;
+            float pw = Mathf.Min(w - 20, room * aspect), ph = pw / aspect;
+            houseBox.Show(true);
+            Ui.Place(houseBox.rt, x + 10, top, pw, ph);
+            var key = h.S("key") ?? "";
+            var tex = key.Length > 0 && grounds.TryGetValue(key, out var gt) ? gt : null;
+            if (tex != null) groundUsed[key] = Time.frameCount;
+            Show(houseImg, tex != null);
+            if (tex != null) houseImg.texture = tex;
         }
 
         // ------------------------------------------------------------------ the game menu

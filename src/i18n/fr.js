@@ -11,6 +11,7 @@ export const FR = {
   'menu.items': 'Objets',
   'menu.quests': 'Quêtes',
   'menu.map': 'Carte',
+  'menu.house': 'Plan de la maison',
   'menu.settings': 'Réglages',
   'menu.controls': 'Commandes',
   'menu.photo': 'Mode photo',

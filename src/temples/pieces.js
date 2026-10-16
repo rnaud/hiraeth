@@ -20,6 +20,7 @@ import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
 import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
 import { registerIron } from '../gadgets/metal.js';
 import { lensSees } from '../gadgets/hidden.js';
+import { stripTone } from '../story/tone.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -60,6 +61,8 @@ import { lensSees } from '../gadgets/hidden.js';
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Key      a key of the makers' brass over a plinth, caged until its element's `when` holds: walk up and it is yours
 //            (a small key turns one lock; the great key, `big`, the guardian's door). A Door with `lock` takes them
+//   MapChest a little makers' chest like a key's, the house's map in it (issue #405): opened, the Start menu's House map
+//            shows every room (src/house-map.js); its element { type: 'map', room }, nothing waits on it
 //   Coffer   a little brass-bound coffer in an optional room: open it (interact) for a purse of chimes
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
 //   Pit      a volume below a chasm: fall in and you are back at the room's mark
@@ -3188,7 +3191,8 @@ export class Key {
     // the key, inside it until it rises
     this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.35, flat: true });
     this.key = new THREE.Group();
-    this.key.add(mesh(keyGeometry(big), M.trimMat), mesh([new THREE.SphereGeometry(big ? 0.14 : 0.09, 8, 6).translate(0, (big ? 0.75 : 0.425) + (big ? 0.19 : 0.12), 0)], this.glow));
+    if (o.map) this.key.add(mesh(scrollGeometry(), own({ color: rt.P.paper ?? '#efe0bd', flat: true })), mesh(scrollTies(), M.trimMat), mesh([new THREE.SphereGeometry(0.08, 8, 6).translate(0, 0.42, 0)], this.glow));
+    else this.key.add(mesh(keyGeometry(big), M.trimMat), mesh([new THREE.SphereGeometry(big ? 0.14 : 0.09, 8, 6).translate(0, (big ? 0.75 : 0.425) + (big ? 0.19 : 0.12), 0)], this.glow));
     this.key.visible = false;
     this.group.add(this.key);
     // the cage: bars round the chest, a ring over them; they sink into the floor once the key may be taken
@@ -3230,7 +3234,8 @@ export class Key {
     this.opening = { t: 0, rang: false };
     this.rt.sound?.boxLatch?.();
     if (!this.light && this.rt.veils) this.light = new ChestLight({ veils: this.rt.veils, parent: this.rt.root, kind: 'makers' });
-    this.rt.game?.emit?.('temple:key', { id: this.rt.id, el: this.id, kind: this.o.big ? 'big' : 'small' });
+    if (this.o.map) this.rt.game?.emit?.('temple:map', { id: this.rt.id, el: this.id });
+    else this.rt.game?.emit?.('temple:key', { id: this.rt.id, el: this.id, kind: this.o.big ? 'big' : 'small' });
     return true;
   }
   pose(t) {
@@ -3275,7 +3280,8 @@ export class Key {
     if (!O.said && T0 >= C.counted) {
       O.said = true;
       const n = this.rt.logic.keys('small');
-      this.rt.notice(this.o.line ?? (this.o.big ? 'The house’s great key. It opens the guardian’s door.' : `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`));
+      if (this.o.map) this.rt.notice(stripTone(this.o.line ?? MAP_CHEST.line));
+      else this.rt.notice(this.o.line ?? (this.o.big ? 'The house’s great key. It opens the guardian’s door.' : `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`));
     }
     if (T0 >= C.done) {
       this.opening = null; this.lightK = 0; this.key.visible = false;
@@ -3284,6 +3290,22 @@ export class Key {
     }
   }
   dispose() { this.off?.(); this.light?.dispose(); this.light = null; }
+}
+
+/** The house's map's chest (issue #405): what it says once opened (a tone, as every line: src/story/tone.js). */
+export const MAP_CHEST = { line: '~happy~ The house’s map. Menu shows its rooms now.' };
+export class MapChest extends Key {
+  /** o: { id, at: the chest's foot, yaw (its front), line }: a little chest, the house's map rolled up in it. */
+  constructor(rt, o) { super(rt, { ...o, map: true, big: false }); }
+  /** (never counted with the keys) */
+  get flying() { return false; }
+}
+/** A rolled map standing on end (its bottom at y 0, 0.85 m tall), as the key stands over its chest. */
+function scrollGeometry() {
+  return [T(new THREE.CylinderGeometry(0.1, 0.1, 0.7, 12), [0, 0, 0]), T(new THREE.CylinderGeometry(0.05, 0.05, 0.85, 8), [0, 0, 0])];
+}
+function scrollTies() {
+  return [-0.18, 0.18].map((y) => T(new THREE.TorusGeometry(0.105, 0.018, 5, 14), [0, y, 0], [Math.PI / 2, 0, 0]));
 }
 
 export class Coffer {

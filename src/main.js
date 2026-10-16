@@ -161,6 +161,7 @@ import { ShopPanel } from './shop-panel.js';
 import { rumblePlay, setRumbleSettings } from './rumble.js';
 import { interiorAt } from './interior-kit.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from './world-map.js';
+import { houseHere, houseView } from './house-map.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -1488,6 +1489,8 @@ const menu = new SettingsMenu(settings, {
   onDebug: () => showPicker(true),
   hasJets: () => items.has('jetpack'),   // (the jets' pitch row: the debug jets only, issue #122)
   piratesBeaten: () => !!game.flag('minigame.pirates.beaten'),   // (the chime pirates' pitch row: once beaten, issue #224)
+  // (inside a makers' house: its map, the House map page; issue #405, src/house-map.js)
+  house: () => { const rt = houseHere(level, player); return rt ? houseView(rt, { game, player }) : null; },
   onQuit: () => quitToTitle(),
   onBeforeRestart: saveBeforeRestart,
   // where you are, at the top of the Start menu
@@ -1872,6 +1875,7 @@ const controller = new Controller({
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === picker) debugMenu.jump(name === 'tabPrev' ? -1 : 1);   // (the Debug menu: the section before / after)
     if (name === 'y' && menuRoot() === picker) debugMenu.focusSearch();   // (and Y its filter)
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === devMenu.el) devMenu.pad(name);   // (the dev menu: its tab before / after)
+    if ((name === 'tabPrev' || name === 'tabNext') && menu.open && menu.current === 'house') menu.houseTurn(name === 'tabPrev' ? -1 : 1);   // (the House map: the floor below / above)
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f)) f.click(); else storyRt.dialogue.next(); }

@@ -184,6 +184,8 @@ export const LOGIC = {
     d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
     mother: { type: 'boss', room: 'hall', needs: ['gun', 'hook'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'stair', at: [-15.2, 0, 72.4], yaw: Math.PI / 2 },
   },
 };
 

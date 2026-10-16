@@ -234,6 +234,8 @@ export const LOGIC = {
     pDown: { type: 'plate', room: 'bal2' },
     lift: { type: 'drum', room: 'rim', stops: { pUp: 0, pDown: 1 }, start: 0, roll: 'hand', through: 'well' },
     bW: { type: 'bridge', opens: { drumOn: ['lift', 'pUp'] } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'pool', at: [14.6, -18, 69.8], yaw: -Math.PI / 2 },
   },
 };
 
@@ -655,7 +657,7 @@ function layout(rt) {
   const [hAx, hAz] = round(AT.dropA, AT.poolR), [hBx, hBz] = round(AT.dropB, AT.poolR);
   const hole = (x, z) => ({ x: x - WELL.x, z: z - WZ, r: AT.holeR });
   // (drawn round, 128 sides; solid with 48, its holes 12: the collision's budget, tests/spheres.test.js)
-  const ring = (y, a0, a1, holes = []) => K.both(M.floor, T(slabOf(ringShape(IN, WELL.ring, a0, a1), holes), [WELL.x, y, WZ]), T(slabOf(ringShape(IN, WELL.ring, a0, a1, 48), holes, 0.8, 12), [WELL.x, y, WZ]));
+  const ring = (y, a0, a1, holes = []) => (K.chartNote({ kind: 'ring', x: WELL.x, z: WZ, y, r0: IN, r1: WELL.ring, a0, a1, holes: holes.map((h) => ({ x: h.x + WELL.x, z: h.z + WZ, r: h.r })) }), K.both(M.floor, T(slabOf(ringShape(IN, WELL.ring, a0, a1), holes), [WELL.x, y, WZ]), T(slabOf(ringShape(IN, WELL.ring, a0, a1, 48), holes, 0.8, 12), [WELL.x, y, WZ])));
   ring(F0, 0, TAU, [hole(hAx, hAz), hole(hBx, hBz)]);
   const [g1, g2] = AT.gaps, gw = AT.gapW / 2;
   ring(F1, g1 + gw, g2 - gw);
@@ -694,10 +696,12 @@ function layout(rt) {
   // ---- the great lift, its piers (south: you come in facing it) and their plates; the Lodge's eye under the rim's pier
   const lift = add(GreatLift, { id: 'lift', x: WELL.x, z: WZ, top: LIFT.top, bottom: LIFT.bottom, r: LIFT.r, ball: LIFT.ball, speed: LIFT.speed, up: 'pUp', down: 'pDown' });
   add(LiftSphere, { lift, r: LIFT.ball });
+  K.chartNote({ kind: 'lift', id: 'lift', path: [[WELL.x, LIFT.top, WZ], [WELL.x, LIFT.bottom, WZ]], r: LIFT.r });   // (the house's map: issue #405)
   add(Catch, { r: LIFT.r - 0.2, follow: () => lift.solid.pos, said: 'The disc’s glass gives under you, and holds.' });
   const pz0 = WZ - IN - 0.4, pz1 = WZ - LIFT.r - 0.15;
   for (const [y, id] of [[F0, 'pUp'], [F2, 'pDown']]) {
     K.both(M.floor, box(3.6, 0.8, pz1 - pz0, WELL.x, y - Z - 0.4, (pz0 + pz1) / 2));
+    K.chartNote({ kind: 'slab', x0: WELL.x - 1.8, x1: WELL.x + 1.8, z0: pz0, z1: pz1, y: y - Z });
     for (const s of [-1, 1]) K.both(M.trim, box(0.3, 0.55, IN - LIFT.r - 1.2, WELL.x + s * 1.6, y - Z + 0.2, WZ - (IN + LIFT.r) / 2 - 0.4));
     add(Plate, { id, at: [WELL.x, y - Z, WZ - LIFT.pier], r: 1.2 });
   }

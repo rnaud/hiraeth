@@ -46,6 +46,10 @@ export const CHANGELOG = [
     // scripts/temple-design/ (rules `through`, the well measured); tests/footprint-floors.test.js, temple-playthrough's
     // lift; docs/systems/temples.md "The Footprint across four floors", docs/design/temple-best-practices.md part 4
     'The Footprint in the Garden of Spheres now goes down: four floors round a great well, and from its rim you can see the Echo’s door at the very bottom. Drop through holes in the floors into pools that break your fall, push a sphere through a hatch onto a plate on the floor below, ride the great sphere’s lift (where it rests decides which bridges stand and which doors open), and climb a spiral of stones only the seeing lens shows. Eleven steps where there were five.',
+    // issue #405 (G5 of docs/design/temple-best-practices.md): src/house-map.js, src/temples/house-plan.js (TempleKit.chart,
+    // rt.placed), pieces.js MapChest, each house's LOGIC `map`, src/ui.js drawHouse, engine/menus.js HOUSE_SIDE,
+    // BridgeMenu.cs DrawHouse; tests/house-map.test.js
+    'Every makers’ house now has its map, in a little chest off the way on, early in the house. Open it and the Start menu’s new House map shows the whole house floor by floor, a tab for each (LB / RB): the rooms you have been in drawn in ink, the rest faint, where you stand and which way you face, the doors open or shut, the locks still waiting for a key, the great key’s door in gold and the guardian’s door ringed in red. Before you find it, the House map shows only the rooms you have seen.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

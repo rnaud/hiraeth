@@ -72,7 +72,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.noTitle || a.trial || a.game || a.ending || a.opening || a.starmap || a.updatesPage);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.noTitle || a.trial || a.game || a.ending || a.opening || a.starmap || a.updatesPage || a.house);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -156,6 +156,8 @@ export function start(argsJson) {
     itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))),
     // (the room BridgeMenu's sheet has for the Map, its units: "w,h"; the map is drawn as wide as it, issue #272)
     mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; },
+    // (inside a makers' house: its map, the Start menu's House map; issue #405)
+    house: () => S?.game?.houseView?.() ?? null,
   });
   S = { args, menus, settings, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, menuV: -1 };
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
@@ -242,9 +244,9 @@ function showMenu() {
   const v = m.view();
   // (the Map's drawn ground and its sharper part zoomed in, once each: their RGBA to Unity before the state that shows
   // them, BridgeHost.MapImage)
-  for (const key of [v?.map?.ground, v?.map?.detail?.key]) {
+  for (const key of [v?.map?.ground, v?.map?.detail?.key, v?.page?.house?.key]) {
     if (!key || (S.mapsSent ??= new Set()).has(key)) continue;
-    const pic = S.game?.mapPicture?.(key);
+    const pic = S.game?.mapPicture?.(key) ?? m.housePicture?.(key);   // (the House map's floors: engine/menus.js, issue #405)
     if (pic && host.MapImage) { host.MapImage(key, toHost(pic.data.buffer), pic.width, pic.height); S.mapsSent.add(key); }
   }
   host.Menu?.(forPad(JSON.stringify(v), false));
@@ -348,7 +350,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save; -devmenu:
   // the dev menu is one of the menus too, with the player's settings for its frame readout)
   const menus = S.menus ?? (ending || args.opening || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
-    : args.foes || args.devmenu ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
+    : args.foes || args.devmenu || args.house ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
   // (-updates-page: the Start menu's Updates page photographed as it checks, downloads and restarts: BridgeUpdates, with
@@ -363,7 +365,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
@@ -387,7 +389,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           return null;
         };
         if (menus.mode === 'title') menus.close();
-        if (!args.foes && !args.devmenu) game.save();
+        if (!args.foes && !args.devmenu && !args.house) game.save();
         // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
         if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
@@ -527,6 +529,12 @@ function makePlan(args) {
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes-chosen.png` });
     steps.push({ kind: 'menu', act: 'back' }, { kind: 'wait', frames: 150, secs: 4 });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes-fight.png` });
+  }
+  if (args.house) {
+    // (-house id: the House map, issue #405: the traveller at the house's way in (or by the mark of -house-room), half its
+    // rooms seen, its map found, the Start menu on House map, each floor photographed (unity-house-<id>-<floor>.png, to lay
+    // beside the web's), RB between them)
+    steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'house', id: String(args.house) }, { kind: 'wait', frames: 40, secs: 1.5 }, { kind: 'house', open: true });
   }
   if (args.devmenu) {
     // (-devmenu: the dev menu, issue #387: opened on F2 as the keys open it, each tab photographed (unity-dev-<n>-<id>.png, to lay
@@ -943,6 +951,30 @@ export function frame(dt) {
       M.action('confirm');
       if (step.what === 'god') M.close();
       console.log(`[unity] dev menu: ${step.what} ${step.what === 'god' ? !!p.god : !!S.settings?.showFps}`);
+    }
+    next();
+  }
+  else if (step.kind === 'house') {
+    const rt = (game.level.temples ?? []).find((t) => t.id === step.id) ?? game.level.temple, M = S.menus;
+    if (!rt?.housePlan) { console.log(`[unity] no house ${step.id} here`); next(); return; }
+    if (!step.open) {
+      const plan = rt.housePlan(), room = S.args.houseRoom ?? plan.entry;
+      const m = rt.marks.find((k) => k.room === room) ?? rt.marks[0], V = m.spot.constructor;
+      game.player.teleport(m.spot.clone(), new V(0, 1, 0), new V(0, 0, 1));
+      game.player.heading = m.heading + Number(S.args.houseTurn ?? 0);
+      for (const r of plan.rooms.slice(0, Math.ceil(plan.rooms.length * 0.45))) gameState.set(`temple.${rt.id}.been.${r.id}`, true);
+      rt.logic.find('map');
+      console.log(`[unity] in ${rt.def.name} by the mark of ${m.room}: inside ${rt.inside(game.player.pos)}`);
+    } else {
+      M.show('start');
+      const side = M.startSide(), i = side.findIndex((e) => e.id === 'house');
+      if (i >= 0) { M.start.at = { in: 'side', i }; M.start.page = 'house'; M.changed(); }
+      const floors = M.hv?.floors ?? [];
+      if (floors.length) M.housePage.pick(M.hv, floors[0].id);   // (from the lowest floor up, RB each time)
+      console.log(`[unity] the House map: ${i >= 0 ? floors.map((f) => f.label).join(' ') : 'not offered'}`);
+      const more = [];
+      floors.forEach((f) => more.push({ kind: 'wait', frames: 10, secs: 0.4 }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-house-${rt.id}-${f.id}.png` }] : []), { kind: 'menu', act: 'tabNext' }));
+      P.steps.splice(P.i + 1, 0, ...more);
     }
     next();
   }

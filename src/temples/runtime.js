@@ -8,7 +8,8 @@ import { TempleKit, templeMaterials } from './kit.js';
 import { houseSkin } from './skins/index.js';
 import { TempleLogic, flagStore } from './logic.js';
 import { Guardian, guardianBar } from './boss.js';
-import { Mark, Pit } from './pieces.js';
+import { Mark, Pit, Platform, Updraft, MapChest } from './pieces.js';
+import { housePlan, roomAt } from './house-plan.js';
 import { Veils } from '../veil.js';
 import { FINALE } from './finale.js';
 import { pitVoid, PIT_VOID } from '../pit-void.js';
@@ -28,9 +29,12 @@ import { pitVoid, PIT_VOID } from '../pit-void.js';
 //
 // Flags (src/game-state.js, per save slot): temple.<id>.entered (you went in), .checkpoint (the room
 // of the last mark), .gadget (the chest here was opened), .boss = 'done' (the guardian resolved),
-// .done (the world has changed), and the logic's own: .open.<door>, .lit.<id>, .drum.<id>.
+// .done (the world has changed), .been.<room> (stood in: the house's map, src/house-map.js), and the logic's own:
+// .open.<door>, .lit.<id>, .drum.<id>, .found.<id> (a key, a coffer, the map's chest).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+// (the pieces the house's map reads by kind, by their names: a built game's classes have other names)
+const CLASS = new Map([[Mark, 'Mark'], [Platform, 'Platform'], [Updraft, 'Updraft']]);
 /** The foes of a room still standing (src/foes.js placeMachinesIn: rt.machines, each with its room). */
 export const arenaFoes = (rt, room) => (rt.machines ?? []).filter((f) => f.room === room && f.alive && f.dead === undefined);
 
@@ -104,12 +108,15 @@ export class TempleRuntime {
     this.kit = new TempleKit(this.root, def.name, V(...def.origin), def.yaw ?? 0, this.M);
     this.kit.noClimb = true;   // (no wall inside is climbed but the climbs its layout marks: K.climbable, issue #115)
     this.pieces = []; this.byId = new Map(); this.marks = []; this.pits = []; this.portals = [];
+    this.placed = [];   // ({ cls, o }: every piece as its layout placed it, the house's map reads them: house-plan.js)
     this.checkpoint = null;
     this.told = new Set();
     this.time = 0;
     // the rooms (in the house's skin, if it wears one: its surfaces, its dressing, src/temples/skins/; issue #342)
     const skin = houseSkin(this);
     const L = def.layout(this);
+    // the little chest with the house's map in it (issue #405): where its element says (logic type 'map', `at` local)
+    for (const [id, e] of Object.entries(def.logic.elements)) if (e.type === 'map' && e.at) this.add(MapChest, { id, at: e.at, yaw: e.yaw ?? 0 });
     skin?.dress?.();
     this.kit.flush();
     skin?.done?.();
@@ -152,6 +159,7 @@ export class TempleRuntime {
 
   /** Add a piece (a Door, a Plate…: pieces.js) built for this temple. */
   add(Piece, o) {
+    this.placed.push({ cls: CLASS.get(Piece) ?? Piece.name, o });
     const p = new Piece(this, o);
     this.pieces.push(p);
     // (a second piece of the same id, a door's twin: the Engine-House's two shutters, one element; it opens with the first)
@@ -228,6 +236,21 @@ export class TempleRuntime {
     P.teleport?.(m.spot.clone(), V(0, 1, 0), V(0, 0, 1));
     P.heading = m.heading;
     if (hurt) P.hurt?.(sparing(heartsOf(P), hurt), 'fall');   // (hearts; never the last quarter)
+  }
+
+  /** The house's plan for its map (src/temples/house-plan.js: read once from what its layout built, in local metres). */
+  housePlan() {
+    const arena = this.guardian?.arena?.center ? this.kit.local(this.guardian.arena.center.clone()).toArray() : null;
+    return (this.mapPlan ??= housePlan({ logic: this.def.logic, chart: this.kit.chart, pieces: this.placed, arena }));
+  }
+  /** The rooms stood in, for the house's map (saved: temple.<id>.been.<room>), looked at a few times a second. */
+  trackRooms(dt, pos) {
+    this.roomClock = (this.roomClock ?? 0) - dt;
+    if (this.roomClock > 0) return;
+    this.roomClock = 0.25;
+    const l = this.kit.local(pos), room = roomAt(this.housePlan(), [l.x, l.y, l.z]);
+    this.room = room;
+    if (room && !this.game.flag(`temple.${this.id}.been.${room}`)) this.game.set(`temple.${this.id}.been.${room}`, true);
   }
 
   /** The room the traveller stands in, as near as the house knows it: the nearest mark or piece of a room's. */
@@ -311,6 +334,7 @@ export class TempleRuntime {
     // the save's; else back to the last mark it can reach, or the entrance's
     // (main.js sets `loaded` when it puts the traveller where a save left him: only then, once)
     if (P?.pos && this.loaded) { this.loaded = false; if (inside) this.unstrand(); }
+    if (inside) this.trackRooms(dt, P.pos);
     this.def.onUpdate?.(this, dt, t);
     this.updateArenas(dt);
     this.applyDoors();

@@ -227,6 +227,8 @@ export const LOGIC = {
     kB: { type: 'key', kind: 'big', room: 'wickKey' },
     moth: { type: 'boss', room: 'lamp', needs: ['gun', 'bubble'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
+    map: { type: 'map', room: 'roots', at: [-17.5, 0, 63], yaw: Math.PI / 2 },
   },
 };
 

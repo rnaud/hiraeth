@@ -202,7 +202,7 @@ test('solid as drawn: the pillars, the moons, the furnace; drawn only overhead; 
   const under = (o) => { for (let q = o; q; q = q.parent) if (q === T) return true; return false; };
   scene.traverse((o) => { if (o.isMesh && o.visible) { if (T && under(o)) temple++; else meshes++; } });
   assert.ok(meshes < 260, `meshes ${meshes}`);
-  assert.ok(temple < 180, `the temple's meshes ${temple}`);
+  assert.ok(temple < 190, `the temple's meshes ${temple}`);   // (180 until the house's map chest, issue #405: its little chest and rolled map)
   // (v1.57, issue #193: the street in the broken moon, the signal box and the night pour's runnels: 193 k → 206 k)
   assert.ok(physics.triangles < 210000, `collision triangles ${physics.triangles}`);
   // the furnace drones by its mouth; the pour's bands march down it

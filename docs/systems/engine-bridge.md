@@ -164,6 +164,12 @@ the same entries in the same order, moved through by the web's own rules, and `v
   marks from world-map.js `mapMarks`, the ground not drawn), the cursor by `MenuState` / `moveCursor` (a row's
   end rests on the side tab, once more turns), LB / RB turn, A / × a thing's full view (its use: a gun mode),
   a quest tracked, a person's page (← → the next), Travel here.
+- **the House map** (issue #405): inside a makers' house the Start menu has it after Map (`HOUSE_SIDE`; the house's
+  view taken as the menu opens, `house()`: engine/game.js `houseView`); its page carries `house: { key, tabs, i,
+  here, name, aspect }`, the floor drawn by src/house-map.js into engine/raster.js's PixelCanvas (`houseKey`,
+  `housePicture`) and sent as the Map's ground is (BridgeHost.MapImage); LB / RB a floor. BridgeMenu.cs `DrawHouse`
+  lays out the tabs and the picture. `-house <id> [-house-room r] [-house-turn rad] -out dir` photographs each floor
+  (`unity-house-<id>-<floor>.png`).
 - **the dev menu** (L3 + R3, F2, `; issue #387): src/dev-menu.js's tabs on the game menu's sheet (panel `'dev'`),
   its world rows carried out by engine/game.js (teleports, god mode, the frame readout, cheats, quest stages, the
   hour); `-devmenu` photographs each tab (docs/systems/dev-tools.md, "The dev menu").

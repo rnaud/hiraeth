@@ -24,7 +24,8 @@ import { meetsWith } from '../resources.js';
 //     elements: { id: { type, room, needs?: [items], ... } } }
 //   types: plate · drum { plate, plateAt?, stops?, needs? (an iron moon: the tongs; a ball only a tether reaches), roll? (rolls) } · brazier · bramble · switch · bell · gadget { item } · boss
 //          · find { item, box } (a second chest, the Rose House's guard: its item a key of the rooms after it; the
-//           gadget stays the temple's own, the dungeon item)
+//           gadget stays the temple's own, the dungeon item) · map (the little chest with the house's map in it: nothing
+//          waits on it, the scout never points at it; issue #405, src/house-map.js)
 //          (a drum with `stops: { plate: t }` rests on any of several plates along its groove: one ball, two
 //           places, the Builders' Greenhouse's louvres and the Aerie's vents)
 //          (a latched element may come `after` another: it only takes once that one is lit; or `when` a
@@ -61,8 +62,8 @@ export function flagStore(game, id) {
 }
 
 const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane', 'arena']);
-/** What is found and kept (a second chest, a key, a coffer): `find(id)`. */
-const FINDS = new Set(['find', 'key', 'cache']);
+/** What is found and kept (a second chest, a key, a coffer, the house's map): `find(id)`. */
+const FINDS = new Set(['find', 'key', 'cache', 'map']);
 /** Held, not latched: lit only while it rings or turns (a held bell, a vane). */
 export const held = (e) => !!e && (e.type === 'vane' || !!e.hold);
 
@@ -424,7 +425,7 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         if (e.item && !withhold.includes(e.item)) owned.add(e.item);
         note(`find ${id}${e.item ? ` (${e.item})` : ''}`); did = true; break;
       }
-      if ((e.type === 'key' || e.type === 'cache') && !L.isFound(id) && L.find(id)) { note(`${e.type === 'key' ? 'take' : 'open'} ${id}`); did = true; break; }
+      if ((e.type === 'key' || e.type === 'cache' || e.type === 'map') && !L.isFound(id) && L.find(id)) { note(`${e.type === 'cache' ? 'open' : 'take'} ${id}`); did = true; break; }
       if (LATCHED.has(e.type) && !L.isLit(id) && L.canUse(id)) { L.light(id); note(`${e.type} ${id}`); did = true; break; }
       if (e.type === 'drum' && e.plate && !e.stops && !L.drumOn(id, e.plate) && rolls(e, has) && (e.needs ?? []).every(has)) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
       // (a weight carried onto its plate, in its room: issue #337)

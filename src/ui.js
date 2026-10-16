@@ -13,6 +13,7 @@ import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
 import { menuNavigate } from './controller.js';
 import { glyph } from './pad-glyphs.js';
+import { drawHouseMap, HouseMapPage, HOUSE_MAP } from './house-map.js';
 import { onXbox, qualityChoices } from './xbox.js';
 import { rumbleSupported, rumblePlay } from './rumble.js';
 import { HINT_LEVELS, DEFAULT_HINTS, setHintLevel } from './hint-level.js';
@@ -202,8 +203,11 @@ export const MENU_PAGES = ['settings', 'controls'];
 const MENU_ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
 
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, piratesBeaten = () => false, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, piratesBeaten = () => false, house = () => null, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
+    // the House map (issue #405, src/house-map.js): inside a makers' house, its page in the sidebar; house() → its view or null
+    this.house = house;
+    this.housePage = new HouseMapPage();
     this.hasJets = hasJets;   // (the jets' pitch row: shown only once the jets are owned, a debug item since v1.38)
     this.piratesBeaten = piratesBeaten;   // (the chime pirates' pitch row: shown only once they have been beaten, issue #224)
     this.el = el;
@@ -259,6 +263,7 @@ export class SettingsMenu {
       if (at?.dataset.rebind) { e.preventDefault(); this.rebind(at.dataset.rebind, at.dataset.verb); return; }
       if (a === 'close') this.toggle(false);
       if (a === 'page') this.page(at.dataset.page);
+      if (a === 'floor') { const v = this.house(); if (v && this.housePage.pick(v, at.dataset.floor)) { this.drawHouse(v); this.el.querySelector(`[data-floor="${at.dataset.floor}"]`)?.focus({ preventScroll: true }); } }
       if (a === 'news') { this.toggle(false); onNews?.(); }
       if (a === 'photo') { this.toggle(false); onPhoto?.(); }
       if (a === 'book') { this.toggle(false); onBook?.(at.dataset.panel); }
@@ -273,6 +278,7 @@ export class SettingsMenu {
     if (!title) {
       window.addEventListener('keydown', (e) => {
         if (e.repeat) return;   // (holding Esc to skip a scene must not open the settings when the scene ends)
+        if (this.open && this.current === 'house' && (e.code === 'KeyQ' || e.code === 'KeyE')) { this.houseTurn(e.code === 'KeyQ' ? -1 : 1); return; }
         if (e.code === 'KeyO') this.toggle();
         else if (e.code === 'KeyH' && !isBusy()) { if (this.open && this.current === 'controls') this.toggle(false); else this.toggle(true, 'controls'); }
         else if (e.code === 'Escape') {
@@ -320,7 +326,8 @@ export class SettingsMenu {
           <div class="where"></div>
           <nav class="menu-nav">
             <button data-a="close" class="primary">${game ? t('menu.resume') : t('menu.back')}${glyph('back', { key: 'Esc' })}</button>
-            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}${F}</button><button data-a="book" data-panel="quests">${t('menu.quests')}${F}</button><button data-a="book" data-panel="map">${t('menu.map')}${F}</button>` : ''}
+            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}${F}</button><button data-a="book" data-panel="quests">${t('menu.quests')}${F}</button><button data-a="book" data-panel="map">${t('menu.map')}${F}</button>
+            <button data-a="page" data-page="house" data-house hidden>${t('menu.house')}${F}</button>` : ''}
             ${go('settings', t('menu.settings'))}
             ${go('controls', t('menu.controls'))}
             ${game ? `<button data-a="photo">${t('menu.photo')}${F}</button>
@@ -374,6 +381,7 @@ export class SettingsMenu {
           ${isNativeApp || isDeckApp || isXboxApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
         </section>
         <section class="panel controls" data-page="controls" hidden></section>
+        ${game ? '<section class="panel housemap" data-page="house" hidden></section>' : ''}
       </div>`;
     if (updates) el.querySelector('.updates')?.replaceWith(updates);
   }
@@ -403,15 +411,40 @@ export class SettingsMenu {
     timer = setTimeout(() => finish(null), 8000);
     this.stopRebind = () => finish(null);
   }
-  /** Show a page on the right: 'settings' or 'controls'. */
+  /** Show a page on the right: 'settings', 'controls' or, inside a makers' house, 'house' (its map). */
   page(name = 'settings') {
     if (!this.el.querySelector(`[data-page="${name}"].panel`)) name = 'settings';
+    if (name === 'house' && !this.house()) name = 'settings';
     this.stopRebind?.();
     this.current = name;
     for (const p of this.el.querySelectorAll('.panel[data-page]')) p.hidden = p.dataset.page !== name;
     for (const b of this.el.querySelectorAll('.menu-nav [data-page]')) b.classList.toggle('on', b.dataset.page === name);
     if (name === 'controls') this.syncControls();
+    if (name === 'house') this.drawHouse();
     this.el.querySelector(`.panel[data-page="${name}"]`)?.scrollTo?.(0, 0);
+  }
+  /**
+   * The House map's page (issue #405): the house's name, a tab a floor (LB / RB, Q / E, or a tap), the floor drawn in ink
+   * on paper (src/house-map.js drawHouseMap). `view`: the house's view now (house()), asked again when left out.
+   */
+  drawHouse(view = this.house()) {
+    const p = this.el.querySelector('.panel[data-page="house"]');
+    if (!p) return;
+    if (!view) { p.innerHTML = ''; return; }
+    const floor = this.housePage.floor(view), on = view.floors.find((f) => f.id === floor);
+    const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    p.innerHTML = `<h1>${esc(view.name)} <span>${t('menu.house')}</span></h1>
+      <nav class="hm-floors">${view.floors.length > 1 ? glyph('lb', { key: 'Q' }) : ''}${view.floors.map((f) => `<button type="button" data-a="floor" data-floor="${f.id}"${f.id === floor ? ' class="on"' : ''} title="${esc(f.name)}">${f.label}${f.id === view.here ? '<i class="hm-here" aria-label="you are here"></i>' : ''}</button>`).join('')}${view.floors.length > 1 ? glyph('rb', { key: 'E' }) : ''}<span class="hm-name">${esc(on?.name ?? '')}</span></nav>
+      <canvas class="hm-map" width="${HOUSE_MAP.w}" height="${HOUSE_MAP.h}"></canvas>`;
+    const c = p.querySelector('canvas');
+    if (c?.getContext) drawHouseMap(c.getContext('2d'), view, floor);
+  }
+  /** LB / RB (Q / E) on the House map: the floor below, the floor above. */
+  houseTurn(d) {
+    const v = this.house();
+    if (!v || !this.housePage.turn(v, d)) return false;
+    this.drawHouse(v);
+    return true;
   }
   /**
    * Back (B / ○, Esc): first out of an open dropdown (src/menu-pad.js), then out of the "start over?" question, then out of the menu, whatever
@@ -435,6 +468,10 @@ export class SettingsMenu {
     this.open = on;
     if (on) {
       this.sync(); document.exitPointerLock?.();
+      // (inside a makers' house its map's entry shows, on the floor you stand on)
+      const hv = this.title ? null : this.house();
+      for (const b of this.el.querySelectorAll('[data-house]')) b.hidden = !hv;
+      this.housePage.reset(hv);
       const w = this.el.querySelector('.where');
       if (w) w.innerHTML = this.where?.() ?? '';
       this.askReset(false);

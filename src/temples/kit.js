@@ -277,7 +277,18 @@ export class TempleKit {
     this.climbs = []; this.climbWhy = [];
     // (a house in a skin records its walls and rooms here while they are built: src/temples/skins/)
     this.plan = null;
+    // (and every kit keeps its own chart of them, the floors too: the house's map, src/temples/house-plan.js, and the
+    // Temple maps page, src/temple-maps/record.js; issues #396, #405)
+    this.chart = [];
   }
+  /** A wall, hall, round hall or passage built: in the skin's plan while it records one, and in the kit's chart. */
+  note(e) { this.plan?.push(e); this.chart.push(e); }
+  /**
+   * A floor a layout builds itself, for the house's map (src/temples/house-plan.js): a balcony's ring { kind: 'ring', x, z,
+   * y, r0, r1, a0, a1, holes: [{ x, z, r }] } (angles as round halls' gaps: 0 toward +z), a lift of its own { kind: 'lift',
+   * path: [[x, y, z]…], r }, a slab it shaped by hand { kind: 'slab', x0, x1, z0, z1, y }.
+   */
+  chartNote(e) { this.chart.push(e); return e; }
   /** local -> world */
   world(x, y, z) { return V(x, y, z).applyMatrix4(this.frame); }
   /** world -> local */
@@ -374,6 +385,7 @@ export class TempleKit {
   // ---------------------------------------------------------------- pieces
   /** A floor slab, its top at y. */
   slab(x0, z0, x1, z1, y = 0, t = 0.8, mat = this.M.floor) {
+    this.chart.push({ kind: 'slab', x0: Math.min(x0, x1), x1: Math.max(x0, x1), z0: Math.min(z0, z1), z1: Math.max(z0, z1), y });
     const w = Math.abs(x1 - x0), d = Math.abs(z1 - z0);
     return this.both(mat, box(w, t, d, (x0 + x1) / 2, y - t / 2, (z0 + z1) / 2));
   }
@@ -390,7 +402,7 @@ export class TempleKit {
     // a block of the wall: centred s metres along it, from y up hgt, w long (thick: a little proud of the wall, for trim)
     const at = (s, y, hgt, w, thick = t) => box(w, hgt, thick, ax + dir[0] * s, y0 + y + hgt / 2, az + dir[1] * s, ry);
     const H = holes.map((o) => ({ x0: o.at - o.w / 2, x1: o.at + o.w / 2, y0: o.y0 ?? 0, y1: (o.y0 ?? 0) + o.h }));
-    this.plan?.push({ kind: 'wall', a: [ax, az], dir, L, y0, h, t, holes: H });
+    this.note({ kind: 'wall', a: [ax, az], dir, L, y0, h, t, holes: H });
     const xs = [0, L, ...H.flatMap((o) => [o.x0, o.x1])].filter((x) => x >= 0 && x <= L).sort((a, b) => a - b);
     for (let i = 0; i < xs.length - 1; i++) {
       const a = xs[i], b = xs[i + 1];
@@ -423,7 +435,7 @@ export class TempleKit {
    */
   hall({ x = 0, z = 0, w, d, y = 0, h, doors = [], roof = true, oculus = 0.35, floor = true, t = 1.2, columns = 0, frieze = true, omit = [] }) {
     const x0 = x - w / 2, x1 = x + w / 2, z0 = z - d / 2, z1 = z + d / 2;
-    this.plan?.push({ kind: 'hall', x, z, w, d, y, h, roof, oculus, floor });
+    this.note({ kind: 'hall', x, z, w, d, y, h, roof, oculus, floor });
     if (floor) this.slab(x0 - t / 2, z0 - t / 2, x1 + t / 2, z1 + t / 2, y);
     const holes = (side, L) => doors.filter((o) => o.side === side).map((o) => ({ at: L / 2 + (o.at ?? 0), w: o.w, h: o.h, y0: o.y0 ?? 0 }));
     const half = t / 2;
@@ -465,7 +477,7 @@ export class TempleKit {
    * annular ceiling round an oculus (oculus: its radius as a share of r; 0 shuts it).
    */
   rotunda({ x = 0, z = 0, y = 0, r, h, gaps = [], seg = 28, t = 1.4, oculus = 0.38, floor = true, frieze = true }) {
-    this.plan?.push({ kind: 'round', x, z, y, r, h, t, seg, gaps, oculus, floor });
+    this.note({ kind: 'round', x, z, y, r, h, t, seg, gaps, oculus, floor });
     if (floor) this.both(this.M.floor, T(new THREE.CylinderGeometry(r + t, r + t, 0.8, seg), [x, y - 0.4, z]));
     const step = (Math.PI * 2) / seg, chord = 2 * (r + t / 2) * Math.sin(step / 2) + 0.05;
     for (let i = 0; i < seg; i++) {
@@ -510,7 +522,7 @@ export class TempleKit {
     const alongZ = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1]);
     const [u0, u1] = alongZ ? [Math.min(a[1], b[1]), Math.max(a[1], b[1])] : [Math.min(a[0], b[0]), Math.max(a[0], b[0])];
     const c = alongZ ? a[0] : a[1], s = w / 2 + 0.3 + t / 2, L = u1 - u0;   // (its walls 0.3 m outside the doorway's w: clear of the doorways' frames, as the houses' own passages)
-    this.plan?.push(alongZ ? { kind: 'corridor', x0: c - s, x1: c + s, z0: u0, z1: u1, y, h } : { kind: 'corridor', x0: u0, x1: u1, z0: c - s, z1: c + s, y, h });
+    this.note(alongZ ? { kind: 'corridor', x0: c - s, x1: c + s, z0: u0, z1: u1, y, h } : { kind: 'corridor', x0: u0, x1: u1, z0: c - s, z1: c + s, y, h });
     if (alongZ) {
       this.slab(c - s - t / 2, u0, c + s + t / 2, u1, y, 0.8);
       this.wall(c - s, u0, c - s, u1, y, h, { t, cap: false });
@@ -530,6 +542,7 @@ export class TempleKit {
    */
   vestibule(z0, y, { x = 0 } = {}) {
     const { half, len, h } = ANTE, end = z0 + len;
+    this.chart.push({ kind: 'slab', x0: x - half, x1: x + half, z0, z1: z0 + len, y, ante: true });
     this.slab(x - half - 0.4, z0 - 0.6, x + half + 0.4, end + 0.6, y, 0.8);
     this.wall(x - half, z0 + 0.2, x - half, end + 0.6, y, h, { t: 0.8 }); this.wall(x + half, end + 0.6, x + half, z0 + 0.2, y, h, { t: 0.8 });
     this.both(this.M.wall, box(2 * half + 0.8, 0.8, len + 0.8, x, y + h + 0.4, (z0 - 0.2 + end + 0.6) / 2));
@@ -537,6 +550,7 @@ export class TempleKit {
   }
   /** Straight stairs from a (the bottom's middle) to b (the top's middle), w wide, steps no taller than `rise`. */
   stairs(a, b, w, { rise = 0.32, mat = this.M.floor, sides = true } = {}) {
+    this.chart.push({ kind: 'stairs', a: a.slice(0, 3), b: b.slice(0, 3), w });
     const dy = b[1] - a[1], n = Math.max(1, Math.ceil(Math.abs(dy) / rise));
     const dx = b[0] - a[0], dz = b[2] - a[2], L = Math.hypot(dx, dz), yaw = Math.atan2(dx, dz);
     for (let i = 0; i < n; i++) {
@@ -553,12 +567,14 @@ export class TempleKit {
   }
   /** A ramp (a tilted slab) from a to b, w wide. */
   ramp(a, b, w, { t = 0.6, mat = this.M.floor } = {}) {
+    this.chart.push({ kind: 'ramp', a: a.slice(0, 3), b: b.slice(0, 3), w });
     const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], L = Math.hypot(dx, dz);
     const len = Math.hypot(L, dy);
     return this.both(mat, T(new THREE.BoxGeometry(w, t, len), [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - t / 2, (a[2] + b[2]) / 2], [-Math.atan2(dy, L), Math.atan2(dx, dz), 0], 1, 'YXZ'));
   }
   /** A bridge: a walkway from a to b at their height, with low parapets. */
   bridge(a, b, w, { parapet = 0.9 } = {}) {
+    this.chart.push({ kind: 'bridge', a: a.slice(0, 3), b: b.slice(0, 3), w });
     this.ramp(a, b, w, { t: 0.7 });
     const dx = b[0] - a[0], dz = b[2] - a[2], L = Math.hypot(dx, dz), yaw = Math.atan2(dx, dz);
     for (const s of [-1, 1]) {
@@ -569,6 +585,7 @@ export class TempleKit {
   }
   /** A round shaft (a well of stone) from y0 to y1, open at the top: its wall only. */
   shaft(x, z, r, y0, y1, { t = 1.2, seg = 20, gaps = [] } = {}) {
+    this.chart.push({ kind: 'shaft', x, z, r, y: y0, top: y1 });
     return this.rotunda({ x, z, y: y0, r, h: y1 - y0, gaps, seg, t, oculus: -1, floor: false, frieze: false });
   }
   column(x, z, y, h, r = 0.7, { mat = this.M.trim } = {}) {
