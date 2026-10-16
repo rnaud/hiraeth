@@ -222,6 +222,14 @@ seed safe (four beds round the altar, two at a time). Foes: moths (most of them,
 furnace brute and a whole root knot at the end; 151 in all, par 4:10; Leafglass. The bloom is what moths are for:
 they are drawn into a bed's flash from a little way off.
 
+## The Lift Depot (the City-Shaft, `src/fight-temples/incal.js`)
+
+The old cab bays on a ledge of the shaft: iron decks (`outside: 'cliff'`, the drop of the shaft round them), iron posts,
+the shaft's far wall of lit windows and three crane jibs round it (`dress: 'shaft'`). Rooms: the cab stand, the first
+bay (two loads at a time), the second bay (its door off to one side), the dispatch floor (two at a time, more often). Foes: horn
+lizards in pairs (most), bellows toads, lamp tripods made light; two shades at the end; 111, par 4:10; Cab yellow. The
+loads come down on him and round him, so he keeps moving and leads the crowd under the rings.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |

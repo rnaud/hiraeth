@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.81 — 2026-10-16
 
+- A new fight temple in the City-Shaft, the Lift Depot, on the middle terrace by the cab stop: four iron bays over the drop, full of horn lizards, toads and lamp tripods, and cranes that still lower their loads. A ring tightening on the deck means a load is coming down on it: step out, or lead the crowd in. Its prize: the Cab yellow colours.
 - In the fight temples a foe thrown up onto a wall’s top is now put back down in the room, so a wave can always be finished.
 - The Wind Cloister’s gusts are easier to read: as the wind blows, long white streaks race down the lane and its floor flashes pale.
 - A new fight temple in Viridel, the Seed Vault, on the plateau just west of the Builders’ Greenhouse: four white cellars of moths, root knots and blots, their seed beds full of sleeping eyes. When a bed’s eyes open one by one, get off it before they flash, and bring the moths onto it. Its prize: the Leafglass colours for your backpack, sword and shield.
