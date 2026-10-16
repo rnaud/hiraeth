@@ -1,0 +1,29 @@
+engine/game.js
+  s_9ca76055a220ed::t_f0c741e1a1bded 1427-1428
+engine/ink-spec.js
+  s_9ca76055a220ed::t_7a1463385ee782 42
+engine/mirror.js
+  s_9ca76055a220ed::t_e58a1487b85dce 57
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_c4c4aa30f8d1e2 36-39
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader
+  s_9ca76055a220ed::t_96798fae5a910a 9-11,21-22,30,41-42,48-49,53,62,89-99
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_828e8417401b66 69,432-435
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "20308a3b61195d65884d1d85e8a565fc22b7311c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
