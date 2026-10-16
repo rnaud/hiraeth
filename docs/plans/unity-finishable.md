@@ -87,22 +87,14 @@ scripts/unity-js-run.sh ending-final -ending final -ending-every 5 -out <dir>
 | ~~The galactic map's own page~~ | done | The system, the way on and its NEXT pennant, the relay's signal, the tower's tag, the Lantern's trace, Home, the panel, "Travel to …?", NO POWER: the page's model (`chartDrawing`) drawn by BridgeMenu.StarMap.cs |
 | ~~The night train's arrival in Unity~~ | done | **Unity**: `-page overnighttrain:bazaar` (below): in the market, the hand-over said, the engine started again on the train's porch at its arrival from the market (0.0 m off), the picture drawn, not black |
 | `isNight` for the story (the cranes' dusk run, the market tower at night) | done | now reads the engine's hour |
-<<<<<<< HEAD
 | ~~`travel:refused` → the gadget's quest started~~ | done | engine/game.js listens as main.js:805 does (the ship's refusal at the map, the Worlds page's) |
 | The bird and the bike in other worlds (`birdAnswers`, `bikeComes`, main.js:399–403) | S | main.js only; no main quest needs them |
 | The rain path of Lorn's singing (`globalThis.weather`) | XS | the splash path works |
 | ~~The "end of the road" page~~ | done | Its words said as lines once every story is told and every small thing kept (src/story/ending.js `roadDone`, `ROAD`, shared with main.js's page; engine/game.js). VM: engine-finishable.test.js |
-||||||| parent of b021756e4 (Refs #264: the Unity preview's small gaps: the minigames' floating words and speed lines drawn, Cistern channels' start card on the game's camera, the bird and the bike in other worlds, Lorn's rain, the refused flight's quest; the Canyon run's wall burst fixed)
-| `travel:refused` → the gadget's quest started (main.js:805) | S | not listened to in the engines: after a refusal, the quest log shows no lead (the quests also start from conversations) |
-| The bird and the bike in other worlds (`birdAnswers`, `bikeComes`, main.js:399–403) | S | main.js only; no main quest needs them |
-| The rain path of Lorn's singing (`globalThis.weather`) | XS | the splash path works |
-| The "end of the road" page (every story and relic) | S | main.js's own page, not the ending; Home is reached without it |
-=======
 | `travel:refused` → the gadget's quest started (main.js:802) | done | engine/game.js listens (one listener for the module, the game that runs now's story); the Worlds page's refusal emits it |
 | The bird and the bike in other worlds (`birdAnswers`, `bikeComes`, main.js:396–400) | done | engine/game.js makes them as main.js (Vael's bird under open sky once promised, the desert's hoverbike by the ramp in Viridel, the Glass Dunes, the Buried Machine and the Spheres), their calls' sounds (`callKind`), and no call from a room off the map or the ship (`canSummon`). VM: engine-finishable.test.js |
 | The rain path of Lorn's singing (`globalThis.weather`) | done | engine/game.js puts its weather on the page's window as main.js does; the weather's pace and the desert's calm first arrival (`calmUntil`) passed too |
 | The "end of the road" page (every story and relic) | S | main.js's own page, not the ending; Home is reached without it |
->>>>>>> b021756e4 (Refs #264: the Unity preview's small gaps: the minigames' floating words and speed lines drawn, Cistern channels' start card on the game's camera, the bird and the bike in other worlds, Lorn's rain, the refused flight's quest; the Canyon run's wall burst fixed)
 
 Nothing found on the critical path needs a minigame, a typed input or a page that Unity lacks. Once the foes and
 trials are in, which landed on main while this was written, the game can be played from a new save to the credits
