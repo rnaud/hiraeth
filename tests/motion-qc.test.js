@@ -209,7 +209,7 @@ test('the facing\'s speed-up comes in over a few frames at a run, at once from s
   assert.ok(Math.abs(b - FACE.accel * dt * dt) < 1e-9, 'from standing, at FACE.accel from the first frame (as before)');
   let was = 0, acc = 0;
   for (let i = 0; i < 20; i++) { faceStep(run, 0.5, dt, was, acc, true); acc = run._faceAcc; was = run._faceRate; }
-  assert.ok(Math.abs(acc - FACE.accel) < 1e-6 || was >= 0.5 / dt - 1e-6, 'and running it reaches FACE.accel after a few frames');
+  assert.ok(Math.abs(acc - FACE.accel) < 1e-6 || was >= Math.min(0.5 / dt, FACE.runMax) - 1e-6, 'and running it reaches FACE.accel after a few frames (or FACE.runMax)');
 });
 
 test('the stick held through a reversal keeps the gait\'s blend for the frame the speed passes through nothing (Animator GAIT_HOLD, issue #47)', { timeout: 60000 }, async () => {
@@ -219,19 +219,45 @@ test('the stick held through a reversal keeps the gait\'s blend for the frame th
   assert.ok(idle < 0.02, `the idle's share at the reversal ${idle.toFixed(2)} (0.15 in a frame before)`);
 });
 
-// (todo, what is left red on B3 after issue #47's third round, 2026-10-15; node, the default way, the numbers now:
-//  - the stairs (up, stand, down): 5 pops a minute, a 3.9 cm boundary: a foot lifting off the lower step for the next one
-//    (let go as the clip's ball passes the riser, it rises 10 cm a frame at once, the calf 26 rad/s) as he sets off; at a
-//    run 4 pops, 6 jolts a minute (a 9 cm jolt): a riser every 2-3 frames, the drawn body climbing 6-10 cm a frame by turns
-//  - walk → run → 180° turn → stop: a 4.0 cm boundary: the running turn's swinging foot, swung round at 13 m/s by the body
-//    turning 30 rad/s, eased off to nothing over the last 3 frames before it touches down
-//  - setting off the other way: a 3.5 cm boundary (the pivot into a jog's lift-off); down the ramp: a 3.2 cm boundary
-//    and a calf 23 rad/s at a touchdown downhill, the drawn foot at the leg's soft reach)
-test('the reds left on B3: the stairs, the running turn\'s touchdown, the ramp', { timeout: 120000, todo: 'issue #47: stairs 5 pops a minute and a 3.9 cm boundary, the running 180° turn\'s 4.0 cm boundary, down the ramp 3.2 cm' }, async () => {
-  for (const name of ['stairs up, stand, down', 'stairs at a run', 'walk → run → 180° turn → stop', 'down the ramp, stop on it', Object.keys(COURSE).find((n) => n.startsWith('setting off the other way'))]) {
-    const { r } = await runScenario(COURSE[name], 'moves');
-    assert.ok(r.green, `${name}: green (${r.fails.join(', ')})`);
-  }
+// (issue #47's fourth round on B3, 2026-10-15. The running 180° turn came round at 28 rad/s and its swinging foot, carried
+// round the body at 11-13 m/s, stopped in the three frames before it touched down: the facing turns no faster than
+// FACE.runMax running (src/player.js), and a landing foot is held back by up to 30 cm, not 20 (FEET.landBack). A pivot's step on its way when the pivot ended (a turn on the spot into a walk or
+// a jog: setting off the other way, down the ramp) was cut where it was, the foot stopped dead from 1-2 m/s: it finishes
+// first (FEET.pivotFinish). A captured move's weight is laid on along a smoothstep of its ramp (MOVES.smooth: the arm
+// 3.5 cm off its curve as a turn into a jog at 90° ended). Up a flight, a foot let go with the clip's a riser over it
+// eases off toward an eased goal (FEET.releaseLag: it rose 11 cm a frame, the calf 35 rad/s), and down one a free foot
+// rides down toward the floor ahead too (FEET.rideDownAhead: it met the step below 9 cm up, the calf 24 rad/s).)
+test('the running 180° turn, setting off the other way, down the ramp and the stairs (issue #47, fourth round)', { timeout: 120000 }, async () => {
+  const t = (await runScenario(COURSE['walk → run → 180° turn → stop'], 'moves')).r;
+  assert.ok(t.green && t.measures.turn <= LIMITS.turn, `walk → run → 180°: green (${t.fails.join(', ')}; boundary ${(t.measures.boundaryMax * 100).toFixed(1)} cm (4.0 before), the turn ${t.measures.turn?.toFixed(2)} s)`);
+  const o = (await runScenario(COURSE[Object.keys(COURSE).find((n) => n.startsWith('setting off the other way'))], 'moves')).r;
+  assert.ok(o.green, `setting off the other way: green (${o.fails.join(', ')}; boundary ${(o.measures.boundaryMax * 100).toFixed(1)} cm (3.5 before), jolts ${o.measures.joltsPerMin}/min (2))`);
+  const d = (await runScenario(COURSE['down the ramp, stop on it'], 'moves')).r;
+  assert.ok(d.green, `down the ramp: green (${d.fails.join(', ')}; boundary ${(d.measures.boundaryMax * 100).toFixed(1)} cm (3.2 before))`);
+  const st = (await runScenario(COURSE['stairs up, stand, down'], 'moves')).r;
+  assert.ok(st.green, `the stairs: green (${st.fails.join(', ')}; pops ${st.measures.popsPerMin}/min (5 before), boundary ${(st.measures.boundaryMax * 100).toFixed(1)} cm (3.9))`);
+});
+
+test('running, the facing turns no faster than FACE.runMax; from standing as before (src/player.js, issue #47)', async () => {
+  const { faceStep, FACE } = await import('../src/player.js');
+  const dt = 1 / 60, run = {}, stand = {};
+  let was = 0, acc = 0, top = 0;
+  for (let i = 0; i < 30; i++) { faceStep(run, 3, dt, was, acc, true); was = run._faceRate; acc = run._faceAcc; top = Math.max(top, Math.abs(was)); }
+  assert.ok(top <= FACE.runMax + 1e-9, `running, the fastest turn ${top.toFixed(1)} rad/s (28 before)`);
+  was = 0;
+  for (let i = 0; i < 30; i++) { faceStep(stand, 3, dt, was, 0, false); was = stand._faceRate; }
+  assert.ok(was > FACE.runMax, 'standing (a pivot), as fast as before');
+});
+
+// (todo, what is left red on B3 after issue #47's fourth round, 2026-10-15; node, the default way: the stairs at a run, 4
+// pops and 6 jolts a minute (a 9.1 cm jolt). A riser passes under him every two or three frames: the drawn body (StepLag)
+// rises 6 cm one frame and 10 the next by turns, and the held feet and knees read against it jolt 3-7 cm; a sprint's
+// kick-back, lifted over the floor ahead, comes within 11-18 cm of the hip, where the knee's bend is barely defined, and
+// the thigh turns 45 rad/s in a frame. Tried and dropped: a critically damped StepLag (overshot the landing by 22 cm), a
+// second easing of it (27 cm jolts), the floor ahead read against the body's own climb, a least fold of the leg.)
+test('the red left on B3: the stairs at a run', { timeout: 120000, todo: 'issue #47: the stairs at a run, 4 pops and 6 jolts a minute' }, async () => {
+  const { r } = await runScenario(COURSE['stairs at a run'], 'moves');
+  assert.ok(r.green, `stairs at a run: green (${r.fails.join(', ')})`);
 });
 
 test('starts, stops and turns at the game\'s speeds: the ramp\'s touchdowns, the pivots, a sprint reversed (issue #47)', { timeout: 120000 }, async () => {

@@ -1058,6 +1058,10 @@ const FUTURE342_FP_NUMBERS = [
 ];
 /** (v1.79, issue #339: the guardians' helping games, shot by hand on this branch) */
 const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6340), each game begun from its start card and played by its scripted player (window.__elderBot, window.__cisternBot); the signs in their worlds with the traveller set beside them; 15 October; cwebp -q 72';
+/** (v1.79, issue #47's fourth round: the traveller's feet) */
+const QC47D = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second); main at a9a8ed0f against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
+const GAME47D = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs: every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the desert’s sand, the Signal Market’s street and the Arena’s floor; main at a9a8ed0f once (the desert twice) against the same tree with the change three times (world-final, -final2, -final3); 15 October';
+const SRC47D = 'issue #47 scratchpad motion-r4: before/ and final/ (node), world-before/, world-before2/, world-final/, world-final2/, world-final3/ (the game; tools/wev.mjs lists their events)';
 export const CHANGELOG_MEDIA = {
   '1.79': [
     { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },
@@ -1087,6 +1091,21 @@ export const CHANGELOG_MEDIA = {
     { match: 'In Viridel and the Garden of Spheres the hoverbike leaves', tags: ['viridel'], shots: [
       { name: 'viridel-bike-trail', title: 'Riding off from the ship', caption: 'Viridel with the bird’s promise kept (so the bird is the world’s mount), two seconds on the hoverbike parked by the ship, at full throttle: before, no trail behind its jets; after, its two trails', from: 'Issue #376: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5482), a save with the bike found and the bird’s promise, ?level=edena, boarded and ridden with W held for 3 s; 15 October; cwebp -q 72' },
     ] },
+    { match: 'Turning round at a run, his foot no longer whips round', tags: ['characters'], numbers: [
+      { title: 'The motion QC’s runs over its limits (node)', unit: 'count', better: 'lower', device: QC47D, source: SRC47D, rows: [
+        { where: 'runs red, of 16', before: 5, after: 1 },
+        { where: 'walk, run, 180° turn, stop: the worst jolt at a blend (cm)', before: 4.0, after: 2.7 },
+        { where: 'setting off the other way: the worst jolt at a blend (cm)', before: 3.5, after: 2.4 },
+        { where: 'down the ramp, stopping on it: the worst jolt at a blend (cm)', before: 3.2, after: 2.4 },
+        { where: 'up and down the stairs at a jog: pops a minute', before: 5, after: 3 },
+        { where: 'up and down the stairs at a jog: the worst jolt at a blend (cm)', before: 3.9, after: 2.5 },
+      ], note: 'The limits: 3 cm, 3 a minute. Still over them: the stairs at a run (4 pops and 6 jolts a minute, issue #47). Running, he now turns at most 18 rad/s (28 before): he still faces back within 0.35 s of the stick; the chest is half way round in 0.18 s (0.15).' },
+      { title: 'In the game: pops a minute (a bone flicking in a frame)', unit: '/min', better: 'lower', device: GAME47D, source: SRC47D, rows: [
+        { where: 'the Arena’s floor', before: 3, after: '1–3' },
+        { where: 'the Signal Market’s street', before: 3, after: '2–3' },
+        { where: 'the desert’s sand', before: '3–7', after: '2–5' },
+      ], note: 'The worst jolt at a blend: the Arena 4.8 → 2.8–4.6 cm, the street 6.0 → 2.6–4.4, the desert 4.4–14.2 → 3.4–5.3. The Arena’s floor came out within every limit in one of the three runs, the first time.' },
+    ], see: 'Sprint (hold RT / R2), then pull the stick right back: his feet come round with him and land without a jolt. Stand, tap the stick left or right and push on: the foot stepping round lands before he sets off. Jog up and down a flight of stairs.' },
   ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [

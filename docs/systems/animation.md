@@ -1075,6 +1075,77 @@ boundary, the pivot into a jog's lift-off); down the ramp (a 3.2 cm boundary, a 
 drawn foot at the leg's soft reach). In the game: the pivot into a jog at 90° (a calf 21-26 rad/s) and the sprint
 reversed's calf (19-21).
 
+**Issue #47 on B3, the fourth round** (2026-10-15):
+
+- **The running 180° turn's foot.** Turning round at a run the facing came round at 28 rad/s at its fastest, and the
+  swinging foot, carried round the body at 11-13 m/s, met the ground with its landing's hold-back at its 20 cm limit:
+  it stopped in the three frames before touchdown (the 4.0 cm boundary). Running, the facing turns no faster than
+  `FACE.runMax` (18 rad/s; 16 made him face back in 0.37 s, over the 0.35 s `tests/locomotion.test.js` holds him to), and
+  a landing foot is held back by up to 30 cm (`FEET.landBack` 0.2 → 0.3). The chest is half way round in 0.18 s (0.15).
+- **A pivot's step cut short.** A turn on the spot that becomes a walk or a jog (setting off the other way, down the
+  ramp) ended the pivot with its step round 0.78 of the way: cut there, the foot was set down or let go where it was,
+  stopped dead from 1-2 m/s in a frame (3.2-3.5 cm). A pivot's step past half way finishes first (`FEET.pivotFinish`), then
+  lands or goes with the stride.
+- **A captured move's weight.** A move eased in and out along a straight ramp, which starts and stops the pose's drift
+  toward the loops at once: the arm 3.5 cm off its curve as a turn into a jog at 90° ended. Laid on along a smoothstep of
+  the ramp (`MOVES.smooth`, src/loco-moves.js); every blend boundary of the course came down (every gait 1.7 → 1.0 cm).
+- **The stairs at a jog.** Lifting off the lower step, the clip's foot is already over the next one: let go at
+  `releaseRate`, the foot's pull toward it came in fully in two frames and it rose 11 cm a frame, the calf 35 rad/s. A foot
+  let go from a level tread with the clip's place 6 cm or more over it eases off toward a goal itself eased (`FEET.releaseLag`,
+  40/s; `releaseLagRise`, `releaseLagLevel`: up a dune's slope the later release made the sprint's knee pop). Stepping
+  down, a free foot followed the stair it was over and met the one below 9 cm up (the calf 24 rad/s): under 6 m/s and
+  over a level tread it rides down toward the floor ahead too (`FEET.rideDownAhead`; down the ramp it set the feet down
+  early and they sank; at a sprint its stride lands well past the edge it looked over).
+
+Tried and left out: a longer, smoothstepped landing for a fast foot (`landTime` stretched by its speed: the running
+turn's boundary 4.6 cm); the stairs at a run's drawn body as a critically damped spring with the flight's climb as its
+speed (it overshot the landing by 22 cm), or eased a second time (27 cm jolts); the floor ahead read against the body's
+own climb (a riser then lifted the foot in a frame); a least fold of the leg (a 9 cm jolt down to 5, others up); rides
+up eased (`rideUp`) with a held foot's ride its own floor's height; the eased release for every foot or every stretched
+one (the starts and stops, the 180° pivots red).
+
+Node, the default way (`diff.mjs`, before on a9a8ed0f):
+
+| scenario | verdict | slide p95 (cm) | slide max (cm) | held (cm) | pops /min | jolts /min | worst jolt (cm) | boundary (cm) |
+|---|---|---|---|---|---|---|---|---|
+| walk → run → 180° turn → stop | red → green | 3.6 → 3.7 | 3.6 → 3.7 | 0.8 → 0.8 | 0 → 1 | 2 → 1 | 4.0 → 3.2 | 4.0 → 2.7 |
+| walk, 90° turn, stop | green → green | 1.0 → 1.0 | 1.0 → 1.0 | 0.8 → 0.8 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.2 → 1.2 |
+| turn round on the spot | green → green | 3.9 → 3.9 | 3.9 → 3.9 | 0.1 → 0.1 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.7 → 1.7 |
+| up the ramp, stand | green → green | 1.7 → 1.7 | 1.7 → 1.7 | 1.5 → 1.5 | 2 → 2 | 0 → 0 | 0.0 → 0.0 | 2.7 → 2.1 |
+| stairs up, stand, down | red → green | 2.0 → 2.0 | 2.0 → 2.0 | 1.1 → 1.1 | 5 → 3 | 2 → 2 | 3.9 → 3.7 | 3.9 → 2.5 |
+| slow walk (half stick), stop | green → green | 1.7 → 1.7 | 1.7 → 1.7 | 1.0 → 1.0 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.9 → 1.9 |
+| jog, 45° and back, stop | green → green | 0.8 → 0.8 | 0.8 → 0.8 | 0.8 → 0.8 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 2.0 → 2.0 |
+| stand still 6 s | green → green | 0.1 → 0.1 | 0.1 → 0.1 | 0.1 → 0.1 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 |
+| gaits: walk → jog → sprint → jog → walk → stop | green → green | 3.4 → 3.5 | 3.6 → 3.7 | 1.7 → 1.7 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.7 → 1.0 |
+| starts and stops, walk and run | green → green | 3.7 → 4.3 | 4.2 → 4.8 | 1.3 → 1.3 | 2 → 2 | 0 → 0 | 0.0 → 0.0 | 2.7 → 2.2 |
+| setting off the other way | red → green | 5.3 → 5.3 | 7.3 → 7.3 | 1.3 → 1.3 | 3 → 3 | 2 → 0 | 3.5 → 0.0 | 3.5 → 2.4 |
+| pivots standing: 90° each way, 180° | green → green | 5.5 → 5.5 | 5.5 → 5.5 | 0.4 → 0.4 | 1 → 1 | 0 → 0 | 0.0 → 0.0 | 1.5 → 1.5 |
+| pivot 180° at a jog, and at a sprint | green → green | 3.8 → 3.8 | 4.4 → 4.4 | 1.0 → 1.0 | 2 → 1 | 1 → 0 | 3.5 → 0.0 | 2.6 → 2.4 |
+| curve: the stick round a circle at a jog | green → green | 0.8 → 0.8 | 0.8 → 0.8 | 0.8 → 0.8 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 1.5 → 0.9 |
+| down the ramp, stop on it | red → green | 2.7 → 2.7 | 2.7 → 2.7 | 1.3 → 1.3 | 2 → 2 | 2 → 1 | 4.7 → 4.7 | 3.2 → 2.4 |
+| stairs at a run | red → red | 3.4 → 3.6 | 3.4 → 3.6 | 0.1 → 0.1 | 4 → 4 | 6 → 6 | 9.1 → 9.1 | 2.9 → 2.8 |
+
+red runs 5 → 1 of 16; limits failed 7 → 2; mean slide p95 2.7 → 2.8 cm; mean pops 1.3 → 1.2 /min; mean jolts 0.9 → 0.6 /min; mean worst boundary 2.3 → 1.9 cm
+
+Under matching (`?mm=1`) nothing changed (15 of 16 red before and after). In the game (Mac, muted headless Chrome,
+Medium, every world's course; before once, the desert twice; after three times, the machine's load 8-29):
+
+| world | pops /min | jolts /min | boundary (cm) | crossed |
+|---|---|---|---|---|
+| the desert's dunes | 3, 7 → 2, 4, 5 | 10, 12 → 7, 5, 7 | 4.4, 14.2 → 5.3, 3.4, 4.5 | 0, 4 → 0, 0, 3 % |
+| the Signal Market's street | 3 → 2, 2, 3 | 5 → 5, 8, 3 | 6.0 → 2.6, 4.4, 3.8 | 0 → 0, 11, 0 % |
+| the Arena's floor | 3 → 1, 3, 2 | 4 → 2, 4, 2 | 4.8 → 2.8, 4.6, 4.3 | 0 → 0, 0, 0 % |
+
+The Arena's floor came out within every limit in one run, the first time. The street's 11 % was one standing 90° pivot
+in one run (the Arena's pivot read 0-7 % from run to run in the second round).
+
+**Left red** (node, the todo test): the stairs at a run, 4 pops and 6 jolts a minute (a 9.1 cm jolt). A riser passes
+under him every two or three frames: the drawn body (`StepLag`) rises 6 cm one frame and 10 the next by turns, and the
+held feet and knees read against it jolt 3-7 cm; the sprint's kick-back, lifted over the floor ahead, comes within 11-18 cm
+of the hip, where the knee's bend is barely defined, and the thigh turns 45 rad/s in a frame. In the game: the pivot into
+a jog at 90° (`jog2`, a calf 21-27 rad/s, a 4.4-6.7 cm jolt at its blend; node's turn into a jog at 90° has its 16-23 rad/s
+calf too, within the limit's count) and the sprint reversed's calf (15-16).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

@@ -53,6 +53,10 @@ export const CHANGELOG = [
     // plain speech (issue #369): townsfolk, crowd and balloon lines, hosts, shopkeepers and Anselm Thrum rewritten plainly
     // across src/story/*-data.js, src/levels/*.js, hosts-data.js, shop-data.js, scientist-data.js, rumours-data.js
     'People who aren’t part of a quest now talk plainly: Anselm Thrum, the shopkeepers, the games’ hosts and the townsfolk say what they mean, where things are and what to do, instead of riddles and sayings. The people whose quests you follow keep their own way of speaking.',
+    // the traveller's feet, issue #47's fourth round: src/player.js FACE.runMax, src/feet.js FEET.landBack 0.2 -> 0.3,
+    // pivotFinish, releaseLag / releaseLagRise / releaseLagLevel, rideDownAhead, src/loco-moves.js MOVES.smooth;
+    // tests/motion-qc.test.js ("fourth round"; the stairs at a run still todo)
+    'Turning round at a run, his foot no longer whips round and stops dead as it lands; turning on the spot into a walk or a jog, the foot stepping round finishes its step instead of stopping in mid-air; and jogging up and down stairs, his feet rise onto the next step and come down onto the one below without his knees flicking.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

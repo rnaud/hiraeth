@@ -150,7 +150,7 @@ const NO_HANDS = Object.freeze({});
  * once, a turn from standing went from still to 34 rad/s in one frame (180° in eight), and every bone of the body jumped
  * with it, the hands 6 cm off their path (the motion QC's boundary at every pivot, issue #47). Slowing down is as before.
  */
-export const FACE = { accel: 600, jerk: 12000, runGait: 0.5 };   // (jerk, rad/s³: and, the loops over runGait of the pose, that speed-up itself comes in over a few frames: issue #47's running turn)
+export const FACE = { accel: 600, jerk: 12000, runGait: 0.5, runMax: 18 };   // (jerk, rad/s³: and, the loops over runGait of the pose, that speed-up itself comes in over a few frames: issue #47's running turn; runMax, rad/s: running, the fastest it turns)
 /** Setting off from standing (under `gait` of the loops and `speed`, faster than `over`, within `turn` rad of the facing): the loops' phase `share` of a cycle past the front foot's touchdown. */
 export const START_STEP = { gait: 0.1, speed: 0.5, over: 2.6, share: 0, turn: 1.2 };
 export function faceStep(p, step, dt, was = 0, accWas = 0, running = true) {
@@ -162,6 +162,10 @@ export function faceStep(p, step, dt, was = 0, accWas = 0, running = true) {
   // facing set off, issue #47. Not from standing: a pivot setting off down the ramp or the other way then stepped late)
   const acc = FACE.jerk > 0 && running ? Math.min(FACE.accel, Math.abs(accWas) + FACE.jerk * dt) : FACE.accel;
   if (!(Math.sign(want) === Math.sign(was) && Math.abs(want) <= Math.abs(was))) rate = was + THREE.MathUtils.clamp(want - was, -acc * dt, acc * dt);
+  // (running, no faster than FACE.runMax: a running 180° turn came round at 28 rad/s, its swinging foot carried round the body at
+  // 11-13 m/s and stopped in the three frames before it touched down, a 4 cm jolt, issue #47. 16 made it face back in 0.37 s,
+  // over the 0.35 s tests/locomotion.test.js holds it to)
+  if (running && Math.abs(rate) > FACE.runMax) rate = Math.sign(rate) * FACE.runMax;
   p._faceRate = rate;
   p._faceAcc = (rate - was) / dt;
   return rate * dt;

@@ -33,6 +33,7 @@ export const movesSetting = {
 
 export const MOVES = {
   blendIn: 0.1, blendOut: 0.2,
+  smooth: true,   // the weight laid on eased in and out along a smoothstep of its ramp (false: the straight ramp)
   start: { clips: ['start_walking'], legs: false, from: 0.25, upTo: 2.6, fade: [2.2, 3.4], minRate: 0.6, maxRate: 3, lead: 0.12 },
   stop: { legs: false, walk: 'stop_walking', run: 'run_to_stop', runFrom: 2.8, from: 0.9, brake: 16, minRate: 0.7, maxRate: 2.5 },
   turn: { legs: false, from: 0.75, maxSpeed: 2.0, outSpeed: 2.8, clips: [[1.15, 'left_turn_45'], [2.2, 'left_turn_90'], [Infinity, 'left_turn_180']], minRate: 0.9, maxRate: 3.2 },
@@ -220,7 +221,9 @@ export class LocoMoves {
   play(animator = this.A) {
     const C = this.cur;
     if (!C || C.w <= 0) return 0;
-    const w = C.w * (C.cap ?? 1);
+    // (a straight ramp starts and stops the pose's drift toward the loops at once: a turn on the spot handing over to a jog
+    // at 90° moved the arm on 2-3 cm a frame more from one frame to the next, a 3.5 cm jolt as it ended, issue #47)
+    const w = (MOVES.smooth ? C.w * C.w * (3 - 2 * C.w) : C.w) * (C.cap ?? 1);
     // (a turn on the spot steps as captured; the others walk and run faster than any of the clips:
     // their legs stay the loops', planted as before, and the clip shows above them)
     animator.play(C.name, Math.min(C.t, C.shape.end), w, { full: false, head: true, walks: true, rate: C.rate ?? 1, legs: MOVES[C.kind].legs !== false });
