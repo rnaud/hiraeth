@@ -6,7 +6,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, printGeometry } from './pieces.js';
+import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, printGeometry, lensUp } from './pieces.js';
 import { echoModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { footprintSkin } from './skins/footprint.js';
@@ -32,7 +32,9 @@ import { footprintSkin } from './skins/footprint.js';
 //                          over the door (the push and your weight, before the lens; the decoys plain to see)
 //   the Still Pool         a sphere floating in the sunken pool: push it across the still water onto the far berth,
 //                          and the stepping stones rise
-//   the Lens Chamber       the makers' chest: the GLYPH LENS (src/items.js 'lens'). Through it the stele by the chest
+//   the Lens Chamber       the makers' chest: the SEEING LENS (src/gadgets/lens.js; issue #377: the glyph lens, a charm
+//                          that showed the house's hidden things while carried, was here, and went to the Buried
+//                          Machine's makers' court). Raised, through it the stele by the chest
 //                          shows the walker's print, three toes, and its prints lead on over the floor (the clue, no lock)
 //   the Hall of the Unseen a chasm; the lens shows a field of stepping stones, each with a print: only the walker's
 //                          hold (pieces.js LensStones), the rest crumble. On the far landing a sphere's groove past
@@ -108,7 +110,7 @@ export const ROOMS = {
 };
 
 export const LOGIC = {
-  id: 'spheres', entry: 'threshold', gadget: 'lens',
+  id: 'spheres', entry: 'threshold', gadget: 'monocle',
   // (the Lens Chamber and the Hall of the Unseen's near ledge are one room: the passage between them is open, and
   // nothing past the chest's room opens without the lens)
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a
@@ -147,12 +149,14 @@ export const LOGIC = {
     p3: { type: 'plate', room: 'pool' },
     ball3: { type: 'drum', room: 'pool', plate: 'p3', plateAt: 1, start: 0, when: { pressed: 'pS' } },
     stones: { type: 'bridge', opens: { drumOn: ['ball3', 'p3'] }, latch: true },
-    chest: { type: 'gadget', room: 'lens', item: 'lens' },
+    // (issue #377: the chest held the glyph lens, a charm; the seeing lens now, raised to see what the house hides: once it
+    // has looked at a hidden stone, eye or door, it stays; a print shows only while it looks)
+    chest: { type: 'gadget', room: 'lens', item: 'monocle' },
     mural: { type: 'clue', room: 'lens' },                               // the walker's print on the wall, through the lens
-    br1: { type: 'bridge', opens: { item: 'lens' }, clue: 'mural' },     // the stones only the lens shows: the print's hold
+    br1: { type: 'bridge', opens: { item: 'monocle' }, clue: 'mural' },  // the stones only the lens shows: the print's hold
     // an eye only the lens shows, on a pillar out of the chasm facing the far landing (v1.77; high on the near wall
     // before, the Lens Chamber's room): the far landing's
-    s2: { type: 'switch', room: 'unseenFar', needs: ['lens'] },
+    s2: { type: 'switch', room: 'unseenFar', needs: ['monocle'] },
     // the far landing: a sphere's groove past two plain prints and the walker's, which only the lens shows
     pf1: { type: 'plate', room: 'unseenFar' },
     p4: { type: 'plate', room: 'unseenFar' },
@@ -160,13 +164,13 @@ export const LOGIC = {
     ball4: { type: 'drum', room: 'unseenFar', stops: { pf1: 0.3, p4: 0.62, pf2: 0.9 }, start: 0 },
     // (d4 and d5 carry the Echo's Hall's room: the redesign's rules measure the hall by its two doors, it has no mark)
     d4: { type: 'door', lock: 'small', opens: { all: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }] }, latch: true, room: 'hall' },   // (and since v1.53 the Lodge's small key)
-    ssc: { type: 'switch', room: 'gallery', needs: ['lens'] },          // the gallery's eye by the door, its far side
+    ssc: { type: 'switch', room: 'gallery', needs: ['monocle'] },       // the gallery's eye by the door, its far side
     sc: { type: 'door', opens: { lit: 'ssc' }, latch: true },
     // the Keepers' Lodge: its keepers beaten, the small key's cage sinks (v1.53)
     arL: { type: 'arena', room: 'lodge' },
     kS: { type: 'key', kind: 'small', room: 'lodge', when: { lit: 'arL' } },
     dR: { type: 'door', opens: null },
-    echo: { type: 'boss', room: 'hall', needs: ['gun', 'lens'] },
+    echo: { type: 'boss', room: 'hall', needs: ['gun', 'monocle'] },
     d5: { type: 'door', opens: { resolved: true }, room: 'hall' },
   },
 };
@@ -235,7 +239,7 @@ class Resonator {
     this.k += ((sing ? 1 : 0) - this.k) * Math.min(1, dt * 5);
     this.glow.uniforms.uGlow.value = 0.05 + 0.85 * this.k * (0.75 + 0.25 * Math.sin(t * 10));
     const g = this.rt.guardian;
-    this.print.visible = this.rt.sing === this.i && (g?.phaseIndex ?? 0) >= 1 && this.rt.logic.has('lens');
+    this.print.visible = this.rt.sing === this.i && (g?.phaseIndex ?? 0) >= 1 && lensUp(this.rt, this.center);   // (while the lens looks: issue #377)
     if (this.print.visible) this.printM.uniforms.uGlow.value = 0.6 + 0.3 * Math.sin(t * 6);
   }
   dispose() { this.off?.(); }
@@ -266,7 +270,7 @@ class Mural {
     rt.root.add(this.mesh);
   }
   update(dt, t) {
-    this.mesh.visible = this.rt.logic.has('lens');
+    this.mesh.visible = lensUp(this.rt);   // (while the lens is up: issue #377)
     if (this.mesh.visible) this.mat.uniforms.uGlow.value = 0.55 + 0.2 * Math.sin(t * 1.3);
   }
 }
@@ -617,7 +621,7 @@ function change(scene, level, rt) {
 
 export const SPHERES_TEMPLE = {
   id: 'spheres', levelId: 'spheres', name: 'The Footprint', doorLabel: 'door in the Footprint’s heel',
-  gadget: 'lens', gadgetBox: 'spheres.temple.lens', arenaDoor: 'd4', arenas: ARENAS,
+  gadget: 'monocle', gadgetBox: 'spheres.temple.lens', arenaDoor: 'd4', arenas: ARENAS,   // (the box's id from when it held the glyph lens: the saves' flag)
   origin: [-120, 2000, -260], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

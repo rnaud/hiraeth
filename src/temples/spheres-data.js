@@ -39,7 +39,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.spheres' }, goto: 'go' }, { text: '~solemn~ Lonely and loud. I’ll listen from here.', end: true }],
         },
         go: {
-          say: ["~neutral~ Enter the door in the heel, on the grove side.", "~curious~ There’s supposed to be a lens inside that reveals hidden marks. Look closely if you find it. A wall isn’t always just a wall."],
+          say: ["~neutral~ Enter the door in the heel, on the grove side.", "~curious~ There’s supposed to be a lens inside that reveals hidden marks. Hold it up and look closely. A wall isn’t always just a wall."],
           choices: [{ text: '~happy~ I will.', end: true }],
         },
         again: {

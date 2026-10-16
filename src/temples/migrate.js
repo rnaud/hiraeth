@@ -12,7 +12,7 @@ export const TEMPLE_BOXES = [
   ['desert.temple.shield', 'shield'],
   ['incal.temple.jetpack', 'fan'],   // (the Warden's bellows until issue #377, the jets before: the box's id kept)
   ['arzach2.temple.bell', 'hook'],   // (the bell-note whistle until issue #377: the box's id kept)
-  ['spheres.temple.lens', 'lens'],
+  ['spheres.temple.lens', 'monocle'],   // (the glyph lens until issue #377: the box's id kept)
   ['buried.temple.cell', 'bomb'],   // (the fourth chamber until issue #377: the box's id kept)
   ['perdide2.temple.lantern', 'bubble'],   // (the lantern charm until issue #377: the box's id kept)
   ['perdide.temple.stun', 'stun'],

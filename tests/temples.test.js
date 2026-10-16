@@ -47,6 +47,7 @@ import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
 import fanGadget, { FAN } from '../src/gadgets/fan.js';
 import boomGadget from '../src/gadgets/boomerang.js';
 import { irons } from '../src/gadgets/metal.js';
+import { LENS_VIEW } from '../src/gadgets/hidden.js';
 import { NURSERY, BALCONY, ROOMS as ROOMS_HUSH, UP as HUSH_UP, WALK as HUSH_WALK, MOUTHS as HUSH_MOUTHS, SHRINE as HUSH_SHRINE, KEEPER as HUSH_KEEPER } from '../src/temples/perdide.js';
 import { LODGE as FOOT_LODGE } from '../src/temples/spheres.js';
 import { SAND as FOUNDRY_SAND, UP as FOUNDRY_UP } from '../src/temples/moonfoundry.js';
@@ -2226,7 +2227,7 @@ test('the Founders’ Belfry on foot: the west store’s arena and the east stor
 });
 
 // ------------------------------------------------------------------ on foot: the Garden of Spheres' Footprint, room by room
-test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walker’s print and you on its print beside the groove (and on the wrong prints), the floating sphere pushed over the stilled pool, the lens and its mural, the stones whose prints are the walker’s, the walker’s plate among plain ones and the eye across the chasm, the Keepers’ Lodge’s arena off the gallery and its small key for the far door, the keepers’ gallery back, the Echo answered by the print', () => {
+test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walker’s print and you on its print beside the groove (and on the wrong prints), the floating sphere pushed over the stilled pool, the seeing lens (issue #377: the glyph lens before) raised and its mural, the stones whose prints are the walker’s, the walker’s plate among plain ones and the eye across the chasm, the Keepers’ Lodge’s arena off the gallery and its small key for the far door, the keepers’ gallery back, the Echo answered by the print', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('spheres');
@@ -2300,15 +2301,22 @@ test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walk
   assert.ok(rt.logic.drumOn('ball3', 'p3'), 'off the stone, the sphere stays in its berth');
   assert.equal(walk(L(3.5, 0, 86.4)), true, `over the stones (${where()})`);
   assert.ok(P.pos.y > L(0, -1, 0).y, 'not in the pool');
-  // ---- the Lens Chamber: plain wall and floor, until you carry the lens
+  // (issue #377) the seeing lens raised, looking at `at` (src/gadgets/hidden.js LENS_VIEW: what src/gadgets/lens.js sets), or lowered
+  const look = (at) => { LENS_VIEW.k = 1; LENS_VIEW.eye.copy(P.pos).add(V(0, 1.7, 0)); LENS_VIEW.dir.subVectors(at, LENS_VIEW.eye).normalize(); frame(); };
+  const lower = () => { LENS_VIEW.k = 0; frame(); };
+  // ---- the Lens Chamber: plain wall and floor, until you raise the lens
   assert.equal(walk(L(0, 0, 100)), true, `into the chamber (${where()})`);
   wait(0.2);
   assert.equal(rt.piece('mural').mesh.visible, false, 'no mural to see');
   assert.equal(rt.piece('br1').root.visible, false, 'no stones to see');
   assert.equal(rt.piece('p4').group.visible, false, 'no walker’s plate to see');
-  items.grant('lens'); game.emit('box:opened', { id: 'spheres.temple.lens' });
+  items.grant('monocle'); game.emit('box:opened', { id: 'spheres.temple.lens' });
   wait(0.2);
+  assert.equal(rt.piece('mural').mesh.visible, false, 'the lens carried, not raised: nothing yet');
+  look(L(0, 3, 120));
   assert.equal(rt.piece('mural').mesh.visible, true, 'through the lens: the walker’s print on the wall, and on the floor');
+  lower();
+  assert.equal(rt.piece('mural').mesh.visible, false, 'lowered, gone');
   assert.equal(walk(L(18.6, 0, 109), { max: 4 }), false, 'the keepers’ door will not open from this side');
   // ---- the Hall of the Unseen: the stones only the lens shows; a print not the walker's crumbles
   const S = rt.piece('br1');
@@ -2317,7 +2325,11 @@ test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walk
   assert.equal(walk(L(-5, 0, 132.5)), true, `past the hall's mark (${where()})`);
   wait(0.5);
   assert.equal(rt.checkpoint?.room, 'unseen');
+  assert.equal(S.root.visible, false, 'nothing over the chasm to the eye');
+  look(L(0, 0, U0 + 15));
   assert.equal(S.root.visible, true, 'the stones show through the lens');
+  lower();
+  assert.equal(S.root.visible, true, 'and once seen, they stay');
   const wrong = row(0).find((c) => !c.real);
   assert.ok(wrong.toes !== 3, 'a stone whose print has two or four toes');
   walk(L(wrong.x, 0, wrong.z), { tol: 0.5, max: 4 });
@@ -2340,10 +2352,17 @@ test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walk
   pushOn();
   assert.ok(rt.logic.drumOn('ball4', 'pf1'), `the sphere settles on the two-toed print (${ball4.t.toFixed(2)})`);
   assert.equal(rt.logic.isOpen('d4'), false, 'nothing');
+  assert.equal(rt.piece('p4').group.visible, false, 'the walker’s print not to be seen');
+  look(rt.piece('p4').pos);
+  assert.equal(rt.piece('p4').group.visible, true, 'through the lens, the walker’s print among the plain ones');
+  lower();
   pushOn();
   assert.ok(rt.logic.drumOn('ball4', 'p4'), `then on the walker’s, which only the lens shows (${ball4.t.toFixed(2)})`);
   assert.equal(rt.logic.isOpen('d4'), false, 'the far door wants its eye too');
-  assert.equal(rt.piece('s2').seen(), true, 'the eye on the pillar out of the chasm, facing the far landing');
+  assert.equal(rt.piece('s2').seen(), false, 'no eye to see');
+  look(rt.piece('s2').center);
+  lower();
+  assert.equal(rt.piece('s2').seen(), true, 'the eye on the pillar out of the chasm, facing the far landing, seen once through the lens');
   rt.piece('s2').hit('shoot');
   wait(2.2);
   assert.ok(rt.logic.check(rt.logic.el('d4').opens) && !rt.logic.isOpen('d4'), 'the eye and the sphere: and since v1.53 the far door wants a small key too');
@@ -2366,6 +2385,7 @@ test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walk
   assert.equal(walk(L(66, 0, FOOT_LODGE.z)) && walk(L(55, 0, FOOT_LODGE.z)) && walk(L(40, 0, FOOT_LODGE.z)), true, `back into the gallery (${where()})`);
   assert.equal(walk(L(34, 0, 110)), true, `down the gallery (${where()})`);
   assert.equal(rt.logic.isOpen('sc'), false);
+  look(rt.piece('ssc').center); lower();
   rt.piece('ssc').hit('shoot');
   wait(2.2);
   assert.equal(rt.logic.isOpen('sc'), true, 'the eye on its post before the door wakes it');
@@ -2389,9 +2409,11 @@ test('the Footprint on foot (v1.77, as shrines): the sphere set down on the walk
     assert.ok(open, `it sings (${n})`);
     assert.ok(rt.sing >= 0, 'one sphere answers its note');
     wait(0.1);
+    if (G.phaseIndex >= 1) { assert.equal(rt.resonators[rt.sing].print.visible, false, 'the print not to the eye'); look(rt.resonators[rt.sing].center); }
     if (G.phaseIndex >= 1) assert.ok(rt.resonators[rt.sing].print.visible && rt.resonators.filter((r) => r.print.visible).length === 1, 'the walker’s print on the one that answers');
     if (G.phaseIndex >= 2) assert.ok(rt.resonators.every((r) => r.k > 0.3), 'its last phase: all three glow');
     if (n === 0) { const m = G.meter; rt.resonators[(rt.sing + 1) % 3].hit('shoot'); assert.ok(G.meter <= m, 'the wrong note does not calm it'); }
+    LENS_VIEW.k = 0;   // (the lens down to splash it)
     rt.resonators[rt.sing].hit('shoot');
   }
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);

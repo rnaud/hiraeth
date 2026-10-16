@@ -19,6 +19,7 @@ import { Prop, stepProp } from '../gadgets/world.js';
 import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
 import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
 import { registerIron } from '../gadgets/metal.js';
+import { lensSees } from '../gadgets/hidden.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -64,8 +65,9 @@ import { registerIron } from '../gadgets/metal.js';
 //   Pit      a volume below a chasm: fall in and you are back at the room's mark
 //   Weight   a block of the house's stone small enough to carry (src/carry.js): set on a plate, it holds it down
 //
-// Any of Door, Switch and Bridge can be `hidden`: only the glyph lens shows it (src/items.js 'lens'): a hidden
-// door is plain wall until you carry the lens, a hidden eye and a hidden bridge are not there at all.
+// Any of Door, Switch and Bridge can be `hidden`: only the seeing lens shows it (src/gadgets/lens.js, issue #377; the glyph
+// lens, carried, until then): a hidden door is plain wall until the lens has looked at it, a hidden eye and a hidden bridge
+// are not there at all (revealed: once seen, for good).
 // (`hidden: 'lantern'`: only the lantern charm's light shows it.)
 //
 // A piece: { id?, update(dt, t), init(physics)?, setOpen(open, instant)?, solid?, dispose() }.
@@ -82,8 +84,24 @@ const ease = (k) => k * k * (3 - 2 * k);
 // (a shut door, a bramble, a gate: never taken hold of to climb, as the house's walls are not: issue #115)
 const NO_CLIMB = { noClimb: true };
 const _dl = new THREE.Vector3(), _dn = new THREE.Vector3(), _mk = new THREE.Vector3(), _mk2 = new THREE.Vector3();
-/** What shows a hidden piece: the glyph lens (hidden: true), or the item named. */
-const shownBy = (h) => (h === true ? 'lens' : h);
+// (a hidden piece named by an item, hidden: 'lantern', shows while that is carried; `hidden: true` is the seeing lens's)
+/** (issue #377) The seeing lens raised now (src/gadgets/hidden.js LENS_VIEW), and `at` in its view (any at: null). */
+export const lensUp = (rt, at = null) => rt.logic.has('monocle') && lensSees(at ?? rt.player?.pos ?? null, at ? {} : { range: Infinity, cone: Math.PI });
+/**
+ * A hidden piece (hidden: true) the seeing lens reveals: once seen through it, in its view, it is there for good (saved:
+ * the temple's flag seen.<id>; issue #377: the Footprint's glyph lens showed them while carried, before).
+ */
+export function revealed(rt, id, at) {
+  const L = rt.logic;
+  if (L.store.get(`seen.${id}`)) return true;
+  if (!lensUp(rt, at)) return false;
+  L.store.set(`seen.${id}`, true);
+  rt.sound?.chime?.();
+  rt.notice?.('Through the lens it is there, and it stays.', 'lens.seen');
+  return true;
+}
+/** Is a piece with `hidden` shown now (for the eye and the hand)? */
+const shown = (rt, o, at) => !o.hidden || (o.hidden === true ? revealed(rt, o.id, at) : rt.logic.has(o.hidden));
 let uid = 0;
 /** A material of its own (uniforms it can change without touching other pieces). */
 const own = (o) => makeMaterial({ ...o, key: `temple.${uid++}` });
@@ -214,7 +232,7 @@ export class Door {
     }
     if (this.lock) this.updateLock(dt);
     // hidden: plain wall, no glyph, until the lens shows it
-    if (this.o.hidden) { const seen = this.rt.logic.has(shownBy(this.o.hidden)); this.glowMesh.visible = seen; for (const l of this.lamps) l.mesh.visible = seen; if (!seen) return; }
+    if (this.o.hidden) { const seen = shown(this.rt, this.o, this.slab.getWorldPosition(_mk)); this.glowMesh.visible = seen; for (const l of this.lamps) l.mesh.visible = seen; if (!seen) return; }
     let met = 0;
     for (const l of this.lamps) {
       const on = this.open || !!this.rt.logic?.check(l.cond);
@@ -293,7 +311,8 @@ export class Plate {
     this.disc.position.y = -0.07 * this.k;
     this.solid.top = this.pos.y + PLATE_TOP + this.disc.position.y;
     this.glow.uniforms.uGlow.value = 0.1 + 0.85 * this.k;
-    if (this.o.hidden) this.group.visible = L.has(shownBy(this.o.hidden));
+    // (a hidden print, a clue: shown while the lens looks at it)
+    if (this.o.hidden) this.group.visible = this.o.hidden === true ? lensUp(this.rt, this.pos) : L.has(this.o.hidden);
   }
 }
 
@@ -471,7 +490,7 @@ export class LensStones {
     this.s = s;
   }
   init(physics) { this.physics = physics; }
-  seen() { return this.rt.logic.has(shownBy(true)); }
+  seen() { return revealed(this.rt, this.id, this.mid ??= this.rt.kit.world(...[0, 1, 2].map((i) => (this.o.a[i] + this.o.b[i]) / 2))); }
   /** Is p standing on cell c? */
   on(c, p) {
     if (!p?.pos) return false;
@@ -1154,7 +1173,7 @@ export class Switch {
     noCollide(this.group);
     this.on = rt.logic.isLit(o.id);
     this.hidden = !!o.hidden;
-    const seen = () => !this.hidden || rt.logic.has(shownBy(o.hidden));
+    const seen = () => shown(rt, o, this.center);
     this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, accepts: o.pull ? ['tether'] : o.blade ? ['blade'] : undefined, onHit: (mode) => this.hit(mode) });
     // (o.light: a pool-lamp, the Lamp-House's: lit, a light a bubble may take, src/carried-light.js, issue #377)
     if (o.light) this.offLight = registerLight({ position: () => this.center, radius: o.light === true ? CARRY.radius : o.light, enabled: () => this.on });

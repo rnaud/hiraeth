@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { inkMat } from './kit.js';
 import { rayWorld } from '../fluid-tool.js';
-import { HIDDEN, hiddenIn, setSolid, riseHeight, ghostPath, ghostBridge, hiddenWriting, buried } from './hidden.js';
+import { HIDDEN, hiddenIn, setSolid, riseHeight, ghostPath, ghostBridge, hiddenWriting, buried, LENS_VIEW } from './hidden.js';
 
 // The seeing lens (docs/systems/gadgets.md, "The seeing lens"): a monocle of the makers' glass. Hold the use
 // button and the traveller holds it up: the view goes into the glass (src/post.js, "the seeing lens": a ring
@@ -122,6 +122,7 @@ const sfx = {
 
 export default {
   id: 'monocle', name: 'Seeing lens', glyph: '◎', order: 70, trigger: 'look',
+  where: 'In the Footprint, the Garden of Spheres’ great print north of the grove: in its Lens Chamber past the still pool.',
   text: 'A monocle of the makers’ glass. Hold {key:use} to look: hidden paths, false floors and a foe’s weak point show. The glass clouds over as you look.',
   model: () => lensModel(1),
   create(ctx) { return new Lens(ctx); },
@@ -193,7 +194,7 @@ class Lens {
 
   update(dt, paused = false) {
     // (a conversation, a scene, the ship: the glass comes down, and the view out of it with it)
-    if (paused) { this.lower(); this.k = lensRaise(this.k, false, dt); this.drawGlass(); this.held.visible = this.k > 0.05; if (this.held.visible) this.held.scale.setScalar(Math.max(0.01, this.k)); return; }
+    if (paused) { this.lower(); this.k = lensRaise(this.k, false, dt); LENS_VIEW.k = this.k; this.drawGlass(); this.held.visible = this.k > 0.05; if (this.held.visible) this.held.scale.setScalar(Math.max(0.01, this.k)); return; }
     const { ctx } = this, P = ctx.player;
     this.time += dt;
     this.adopt();
@@ -201,6 +202,9 @@ class Lens {
     ({ meter: this.meter, idle: this.idle } = lensMeter(this.meter, this.idle, dt, this.up, LENS.drain * (this.up && this.onGhost() ? LENS.steady : 1)));
     if (this.up && this.meter <= 0) { this.lower(); ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); sfx.clouded(ctx.sound); }
     this.k = lensRaise(this.k, this.up, dt);
+    // (what it sees, for the temples' hidden pieces: issue #377, src/gadgets/hidden.js LENS_VIEW)
+    LENS_VIEW.k = this.k;
+    if (ctx.camera) { LENS_VIEW.eye.copy(ctx.camera.position); ctx.camera.getWorldDirection(LENS_VIEW.dir); }
     // the hidden things: shown, solid, read
     for (const e of this.entries) {
       const r = revealAt(e, this.k);

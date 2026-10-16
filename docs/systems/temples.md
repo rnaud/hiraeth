@@ -1205,6 +1205,12 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   which the glove takes with its crates and machines (magnet.js `candidates`): held, the moon rolls along its groove toward
   the point the glove holds (`magnetTo`, at most `MAGNET_ROLL` 6 m/s), tapped it is thrown along it (`magnetShove`). Every
   moon past the chest and the Last Founder's cradle need the glove.
+- **The Footprint: the seeing lens** (the glyph lens before, in the Buried Machine's court now). A piece `hidden: true` (a
+  `Door`, a `Switch`, the `LensStones`) is `revealed` once the raised lens has looked at it (`src/gadgets/hidden.js`
+  `LENS_VIEW`: lens.js writes its raise and the camera's eye and view every frame; `lensSees`: within 34 m and 0.6 rad of
+  the view's middle), and stays (the temple's flag `seen.<id>`); a hidden `Plate`'s print, the Lens Chamber's mural and the
+  Echo's print on its answering sphere show only while the lens looks (`lensUp`). The house's stones, eyes, door and
+  guardian need the lens.
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

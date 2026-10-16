@@ -151,3 +151,18 @@ export function setSolid(physics, e, on) {
   } else if (e.handle) physics.removeCollider?.(e.handle);
   e.solid = on;
 }
+
+/**
+ * (issue #377) What the seeing lens sees now, for the makers' temples' hidden pieces (src/temples/pieces.js: the
+ * Footprint's, whose tool the lens is since its glyph lens went to the open): its raise `k` (0 down .. 1 up), the camera's
+ * eye and the way it looks. lens.js sets it every frame it runs.
+ */
+export const LENS_VIEW = { k: 0, eye: new THREE.Vector3(), dir: new THREE.Vector3(0, 0, -1) };
+/** Raised past `see` and `p` in its view: within `range` m of the eye and `cone` rad of the view's middle. Pure but for LENS_VIEW. */
+export function lensSees(p, { range = 34, cone = 0.6, see = 0.35, view = LENS_VIEW } = {}) {
+  if (!(view.k >= see) || !p) return false;
+  const dx = p.x - view.eye.x, dy = p.y - view.eye.y, dz = p.z - view.eye.z, d = Math.hypot(dx, dy, dz);
+  if (d > range) return false;
+  if (d < 1e-3) return true;
+  return (dx * view.dir.x + dy * view.dir.y + dz * view.dir.z) / d >= Math.cos(cone);
+}

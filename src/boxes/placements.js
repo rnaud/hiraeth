@@ -165,10 +165,12 @@ export const PLACEMENTS = {
     // the rest in a blast, the Tooth-Warden's four vents. (Its id from when it held the fourth chamber: the saves' flag)
     { id: 'buried.temple.cell', item: 'bomb', temple: 'buried', site: templeSite('buried'),
       note: 'Inside the Engine-House on the dunes west of the domes, in the round chamber past the counterweight.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'buried.monocle', item: 'monocle', site: courtSite('buried'), beacon: 160, gadget: true,
+    // the makers' court (src/finds/courts.js): the seeing lens's bay round it (a false plank, a true path of glass, writing
+    // only the lens reads). Its box held the seeing lens until issue #375: it is earned in the Garden of Spheres' Footprint
+    // now, and the box holds the glyph lens, the Footprint's old charm (its id the saves' flag)
+    { id: 'buried.monocle', item: 'lens', site: courtSite('buried'), beacon: 160, court: true,
       hint: 'At the makers’ court west of the landing',
-      note: 'In the makers’ court on the dunes west of the landing: a false plank, a true path of glass, writing only the lens reads. The canyon’s glass bridge too.' },
+      note: 'In the makers’ court on the dunes west of the landing, at its front edge. Its glass path and writing are for the seeing lens, earned in the Garden of Spheres’ Footprint; the canyon’s glass bridge too.' },
   ],
   edena: [
     // the upper canopy of an umbrella tree: climb the trunk
@@ -195,9 +197,10 @@ export const PLACEMENTS = {
     { id: 'spheres.shell', item: 'shell', at: [62, 24, -4], toward: [56, 2],
       hint: 'On the grove’s umbrella tree, east of the landing',
       note: 'On the canopy of the grove’s umbrella tree east of the spawn.' },
-    // the Footprint (src/temples/spheres.js): in the round chamber half-way in. The lens is the key to the rest:
-    // the door that is wall without it, the bridge and the eye only it shows
-    { id: 'spheres.temple.lens', item: 'lens', temple: 'spheres', site: templeSite('spheres'),
+    // the Footprint (src/temples/spheres.js): in the round chamber half-way in. The seeing lens is the key to the rest (issue
+    // #377; the glyph lens was here): the door that is wall until it looks, the stones and the eye only it shows, the Echo's
+    // print. (Its id from when it held the glyph lens: the saves' flag)
+    { id: 'spheres.temple.lens', item: 'monocle', temple: 'spheres', site: templeSite('spheres'),
       note: 'Inside the Footprint north of the grove, in the heel, in the round chamber past the still pool.' },
     // the makers' court (src/finds/courts.js): the bombs' bay round it (a cracked wall, a cracked boulder, crates to throw).
     // Its box held the ink bombs until issue #375: they are earned in the Engine-House now, and the box holds the fourth

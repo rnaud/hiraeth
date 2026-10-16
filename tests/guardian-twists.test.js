@@ -36,6 +36,7 @@ import { bestInteractable } from '../src/interact.js';
 import { setHintLevel } from '../src/hint-level.js';
 import { answerAsks } from './guardian-asks.js';
 import { comboOf } from '../src/temples/boss.js';
+import { LENS_VIEW } from '../src/gadgets/hidden.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { KEEPER_GUARD, KEEPER_DARK, HEARTH_FIRE } from '../src/temples/desert.js';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
@@ -181,15 +182,27 @@ test('the Keeper’s second phase teaches the fire: its own panting still opens 
 });
 
 // ------------------------------------------------------------------ the Echo
+/** (issue #377) Which resonators wear the walker's print, each looked at through the raised seeing lens in turn (LENS_VIEW). */
+function printsSeen(A) {
+  const { rt, P } = A, out = [];
+  for (const r of rt.resonators) {
+    LENS_VIEW.k = 1; LENS_VIEW.eye.copy(P.pos).add(V(0, 1.7, 0)); LENS_VIEW.dir.subVectors(r.center, LENS_VIEW.eye).normalize();
+    A.frame();
+    if (r.print.visible) out.push(r);
+  }
+  LENS_VIEW.k = 0; A.frame();
+  return out;
+}
 test('the Echo’s last phase: it sings three notes at once and all three spheres glow; a glowing one without the walker’s print is the wrong note, the one wearing it (through the lens) calms it', () => {
-  const A = arena('spheres', 'lens', 2);
+  const A = arena('spheres', 'monocle', 2);
   const { rt, G, until, said } = A;
   for (let n = 0; n < 4 && G.state !== 'weary'; n++) {
     assert.equal(until(() => G.state === 'open', 40), true, `it sings (${n})`);
     A.wait(0.4);
     assert.ok(rt.resonators.every((r) => r.k > 0.5), 'all three glow');
-    const prints = rt.resonators.filter((r) => r.print.visible);
-    assert.equal(prints.length, 1, 'one wears the walker’s print');
+    assert.equal(rt.resonators.filter((r) => r.print.visible).length, 0, 'to the eye, no print');
+    const prints = printsSeen(A);
+    assert.equal(prints.length, 1, 'through the lens, one wears the walker’s print');
     assert.equal(prints[0].i, rt.sing);
     if (n === 0) {
       // the failure: a glowing sphere without the print
@@ -207,16 +220,13 @@ test('the Echo’s last phase: it sings three notes at once and all three sphere
 });
 
 test('the Echo’s second phase teaches the print: only the sphere that answers glows, and through the lens it wears the walker’s print; without the lens, no print', () => {
-  const A = arena('spheres', 'lens', 1);
+  const A = arena('spheres', 'monocle', 1);
   const { rt, G, until } = A;
   assert.equal(until(() => G.state === 'open', 40), true, 'it sings');
   A.wait(0.4);
   assert.equal(rt.resonators.filter((r) => r.k > 0.5).length, 1, 'one glows');
-  assert.ok(rt.resonators[rt.sing].print.visible, 'wearing the walker’s print');
-  items.revoke('lens');
-  A.wait(0.1);
+  assert.deepEqual(printsSeen(A).map((r) => r.i), [rt.sing], 'through the lens, wearing the walker’s print');
   assert.equal(rt.resonators.some((r) => r.print.visible), false, 'the print shows only through the lens');
-  items.grant('lens');
   const m = G.meter;
   rt.resonators[rt.sing].hit('shoot');
   assert.ok(G.meter > m, 'answered');
