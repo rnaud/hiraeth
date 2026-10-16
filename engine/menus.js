@@ -8,6 +8,8 @@
 //   - the Start menu (Menu / Esc): a sidebar (Resume, Items, Quests, Map, Settings, Controls, Quit to title) and its
 //     page, left / right between them and up / down round each (src/menu-pad.js sideStep, issue #210), a slider's
 //     left / right its value, B / ○ in the page back to the sidebar first;
+//   - the dev menu (L3 + R3, F2, `; issue #387): src/dev-menu.js DevMenu's tabs and acts, drawn as the game menu's sheet
+//     (kind 'game', panel 'dev'), LB / RB (◀ ▶) a tab, up / down its rows, A / × the row;
 //   - the game menu (View / Select, J): its five panels (src/game-menu.js PANELS, MenuState, the panels' own rows from
 //     itemsPanel, questsPanel, mapPanel, worldsPanel, peoplePanel), turned with LB / RB, the cursor's moves and the
 //     side tabs as there (moveCursor), A / × a thing's full view, a quest tracked, a person's page.
@@ -33,6 +35,8 @@ import { MapView, VIEW, mapAspect } from '../src/world-map.js';
 import { chooseShot } from '../src/title-shots.js';
 import { titleLayout } from '../src/title-layout.js';
 import { MUSIC_MODES, musicMode } from '../src/music-moments.js';
+import { tabWindow } from '../src/world-debug.js';
+import { TAB_STRIP, verb } from '../src/dev-menu.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -158,7 +162,7 @@ export class EngineMenus {
    */
   constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null } = {}) {
     Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates });
-    this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card' | 'starmap'
+    this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card' | 'starmap' | 'foes' | 'dev'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
     this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
@@ -198,9 +202,10 @@ export class EngineMenus {
     if (!this.mode) return;
     this.stopRebind?.();
     if (this.mode === 'shop') this.shop?.panel?.close?.();
-    const star = this.mode === 'starmap' ? this.star : null;
-    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null;
+    const star = this.mode === 'starmap' ? this.star : null, dev = this.mode === 'dev' ? this.dev : null;
+    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null; this.dev = null;
     star?.close();
+    if (dev?.open) dev.toggle(false);
     this.changed(); this.onResume();
   }
 
@@ -415,6 +420,45 @@ export class EngineMenus {
       hint: 'A / × fights · LB / RB a world · B / ○ closes' };
   }
 
+  // ------------------------------------------------------------------ the dev menu
+
+  /**
+   * The dev menu (src/dev-menu.js DevMenu, issue #387): its tabs (src/world-debug.js devTabs) and its acts are the page's;
+   * here its sheet is the game menu's (kind 'game', panel 'dev': BridgeMenu.cs DrawGame, the tab strip with five of its
+   * tabs round the open one, a row a line, its state at the right, what A / × does in the strip). LB / RB (Q / E, [ ],
+   * ← →) a tab, up / down its rows, A / × the row, B / ○, L3 + R3, F2 or ` closes; Menu and View go on to theirs.
+   */
+  openDev(dev) {
+    if (!dev) return false;
+    this.dev = dev;
+    dev.changed = () => this.changed();
+    this.mode = 'dev';
+    if (!dev.open) dev.toggle(true); else dev.refresh();
+    this.changed();
+    return true;
+  }
+  devAction(name) {
+    const D = this.dev;
+    if (name === 'tabPrev' || name === 'tabNext') D.turn(name === 'tabPrev' ? -1 : 1);
+    else if (name === 'confirm') { D.choose(); if (this.mode === 'dev' && !D.open) this.close(); }
+    else if (name === 'back' || name === 'worldDebug') this.close();
+    else if (name === 'start') { this.close(); this.show('start'); }
+    else if (name === 'select') { this.close(); this.show('game'); }
+  }
+  devMove(x, y) { if (y) this.dev.move(y); else if (x) this.dev.turn(x); }
+  devView() {
+    const D = this.dev, tabs = D.tabs, n = D.nav, tab = tabs[n.tab];
+    const [a, b] = tabWindow(tabs.length, n.tab, TAB_STRIP), cur = n.current(tabs);
+    const rows = (tab?.rows ?? []).map((r, i) => [r.head
+      ? { kind: 'head', text: `${r.label} · ${r.hint}`, sub: '', col: 0, span: 1, on: false }
+      : { kind: 'dev', text: `${r.now ? '▸ ' : ''}${r.label}`, sub: r.hint ?? '', val: r.state !== undefined ? (r.state ? 'ON' : 'OFF') : r.tag ? String(r.tag).toUpperCase() : '', lit: !!r.state, col: 0, span: 1, on: i === n.row }]);
+    if (tab?.note) rows.unshift([{ kind: 'head', text: tab.note, sub: '', col: 0, span: 1, on: false }]);
+    return { v: this.v, kind: 'game', panel: 'dev', tabs: { names: tabs.slice(a, b).map((t) => t.name), i: n.tab - a, edge: 0 }, cols: [1], rows,
+      empty: rows.length ? '' : tab?.empty ?? 'Nothing here.',
+      strip: cur ? { name: cur.label, sub: `${tab.title} · ${n.tab + 1} / ${tabs.length}`, desc: cur.hint ?? '', act: verb(cur) } : { name: tab?.title ?? '', sub: `${n.tab + 1} / ${tabs.length}`, desc: tab?.line ?? '', act: '' },
+      hint: 'LB / RB a tab · A / × choose · B / ○ close' };
+  }
+
   // ------------------------------------------------------------------ input
 
   /** The controller's menu actions (src/controller.js, context 'menu'). */
@@ -428,6 +472,7 @@ export class EngineMenus {
     else if (this.mode === 'card') this.cardAction(name);
     else if (this.mode === 'foes') this.foesAction(name);
     else if (this.mode === 'starmap') this.star?.action(name);
+    else if (this.mode === 'dev') this.devAction(name);
     else this.gameAction(name);
     this.changed();
   }
@@ -440,6 +485,7 @@ export class EngineMenus {
     else if (this.mode === 'card') this.cardMove(x, y);
     else if (this.mode === 'foes') this.foesMove(x, y);
     else if (this.mode === 'starmap') this.star?.navigate(x, y);
+    else if (this.mode === 'dev') this.devMove(x, y);
     else this.gameMove(x, y);
     this.changed();
   }
@@ -450,6 +496,8 @@ export class EngineMenus {
     if (this.rebinding) { if (code === 'Escape' || code === 'Backspace') this.stopRebind?.(); return true; }
     if (this.mode === 'card' && this.cardKey(code)) { this.changed(); return true; }
     if (this.mode === 'starmap') { const took = !!this.star?.key(code); this.changed(); return took; }
+    if (this.mode === 'dev' && (code === 'F2' || code === 'Backquote')) { this.close(); return true; }   // (as it opened)
+    if (this.mode === 'dev' && (code === 'PageUp' || code === 'PageDown')) { this.action(code === 'PageUp' ? 'tabPrev' : 'tabNext'); return true; }
     const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] }[code];
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
@@ -888,7 +936,7 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.mode === 'starmap' ? { v: this.v, hint: '', ...this.star.view() } : this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.mode === 'starmap' ? { v: this.v, hint: '', ...this.star.view() } : this.mode === 'dev' ? this.devView() : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
     v.hint = menuKeys(v.hint);

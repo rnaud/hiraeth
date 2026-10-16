@@ -20,7 +20,7 @@ now: Vael II waited for Vael's bird until it became part of Vael).
   makers' great vanes). From v1.38 to v1.41 that chest held the Warden's harness (`harness`), jets that fired in the
   City-Shaft only; step 11 of src/save-migrate.js gives a save that had it the bellows. The jets anywhere
   (`jetpack`) were too strong for the worlds as they are drawn (the author, 2026-10-10): a debug item, given only by
-  the world debug menu's toggle (L3 + R3, F2) and the dev menu; no box, shop or quest holds it, and there is no
+  the dev menu's Cheats (L3 + R3, F2, `); no box, shop or quest holds it, and there is no
   fallback box of it. `tests/route.test.js` still checks that no world before the City-Shaft wants them.
 - **After the route:** the first homecoming at six worlds, and the final chapter (the Lantern, past the
   Signal Market) once the market is heard: docs/systems/story.md, "Two homecomings".

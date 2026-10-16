@@ -142,6 +142,14 @@ const FLINCH = { clip: 'mixamo_ss_impact_1', from: 0, for: 0.6 };
  * `guard` s (Player.staggered: the foes and guardians hold their blows). The ragdoll is kept for a knockout and a fall.
  */
 export const STAGGER = { carry: 0.6, max: 5.5, slide: 4, time: 0.5, anim: 0.75, guard: 0.9 };
+/**
+ * God mode (the dev menu's Cheats, issue #387: "so I can move very quickly in the world to go anywhere"): flying with no
+ * body in the world, through walls and the ground, nothing hurting, no doorway taking you. The stick (W A S D) flies
+ * across the camera's way at `speed` m/s, `boost` times that with L3 (Shift) held or run on; RT / R2 (Space, A / ×)
+ * rises and LT / L2 (Ctrl, Z) sinks at `climb`; `ease` 1/s to it. Several times the jets' JET.speed (22 m/s). Never
+ * saved: main.js leaves the save alone while it is on, and sets you down on the ground under you when it goes off.
+ */
+export const GOD = { speed: 70, boost: 4, climb: 40, ease: 6 };
 const NO_HANDS = Object.freeze({});
 // locked on (main.js sets player.lockOn = { dir }): you face the foe and the stick strafes round it or backs
 // away, at a jog at most; sideways and backwards play captured steps (the Sword and Shield pack), m/s each covers
@@ -462,6 +470,7 @@ const _cu = new THREE.Vector3(), _cs = new THREE.Vector3(), _cb = new THREE.Vect
 const _ca = new THREE.Vector3(), _cbb = new THREE.Vector3(), _cA = new THREE.Vector3(), _cv = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _v3 = new THREE.Vector3();
+const _godMove = new THREE.Vector3(), _godWant = new THREE.Vector3();
 const _v4 = new THREE.Vector3();
 const _jn = new THREE.Vector3(), _jf = new THREE.Vector3();   // (the jets' nose: flyJets)
 const _mat = new THREE.Matrix4();
@@ -612,6 +621,7 @@ export class Player {
   constructor(physics, opts = {}) {
     this.physics = physics;
     this.opts = { jetpack: false, climb: true, killY: -Infinity, limit: 1900, ...opts };
+    this.god = false;   // god mode (GOD, setGod): the dev menu's, never saved
     this.char = buildCharacter();
     this.object = this.char.root;
     this.frame = new Frame();
@@ -937,7 +947,7 @@ export class Player {
    * opts.onKnockout(why) the knockout. Nothing hurts the dead.
    */
   hurt(amount, why = 'hit') {
-    if (!(amount > 0) || this.opts.health === false || this.down?.dead) return;
+    if (!(amount > 0) || this.opts.health === false || this.god || this.down?.dead) return;
     const q = amount === Infinity ? this.hearts : quarters(amount);
     this.hearts = Math.max(0, this.hearts - q);
     if (this.hearts < 1e-9) this.hearts = 0;
@@ -958,7 +968,7 @@ export class Player {
    * stays down. Riding, nothing knocks you down.
    */
   knockDown(vel, { dead = false, why = 'fall' } = {}) {
-    if (this.ride) return false;
+    if (this.ride || this.god) return false;
     const H = this.humanoid?.b?.pelvis ? this.humanoid : null;
     const U = this.frame.up, vu = vel.dot(U);
     const flat = _g1.copy(vel).addScaledVector(U, -vu);
@@ -1193,6 +1203,44 @@ export class Player {
     this.mantle = null;   // (a climb onto a ledge in progress would pull you back to it)
     this.swim = null;     // (swim.js finds the water again if there is some here)
     this.lastSafe.copy(pos);
+  }
+
+  /** God mode on or off (GOD; main.js setGod sets you down on the ground once it is off). */
+  setGod(on) {
+    this.god = !!on;
+    this.vel.set(0, 0, 0);
+    if (!on) return;
+    if (this.down && !this.down.dead) this.down = null;
+    this._knockout = null;
+    this.endJets();
+    this.boarding = this.unboarding = null;
+    this.climbing = false; this.mantle = null; this.swim = null; this.gliding = false;
+    this.onGround = false;
+  }
+
+  /** A frame of god mode (GOD): the stick across the camera's way, the triggers up and down, no collision at all. */
+  flyGod(dt, input, camYaw) {
+    const F = this.frame, U = F.up;
+    let f = (input.KeyW || input.ArrowUp ? 1 : 0) - (input.KeyS || input.ArrowDown ? 1 : 0);
+    let s = (input.KeyD || input.ArrowRight ? 1 : 0) - (input.KeyA || input.ArrowLeft ? 1 : 0);
+    if (input.stick && (input.stick.x || input.stick.y)) { f = input.stick.y; s = input.stick.x; }
+    const t = triggers(input);
+    const up = (input.Space || input.PadJump || t.fire ? 1 : 0) - (t.aim || input.KeyZ || input.ControlLeft || input.ControlRight ? 1 : 0);
+    const k = input.ShiftLeft || input.ShiftRight ? GOD.boost : 1;
+    const camF = _v1.copy(F.right).multiplyScalar(-Math.sin(camYaw)).addScaledVector(F.fwd, -Math.cos(camYaw));
+    const camR = _v2.copy(F.right).multiplyScalar(Math.cos(camYaw)).addScaledVector(F.fwd, -Math.sin(camYaw));
+    const move = _godMove.set(0, 0, 0).addScaledVector(camF, f).addScaledVector(camR, s);
+    if (move.lengthSq() > 1) move.normalize();
+    const want = _godWant.copy(move).multiplyScalar(GOD.speed * k).addScaledVector(U, up * GOD.climb * k);
+    this.vel.lerp(want, 1 - Math.exp(-GOD.ease * dt));
+    this.pos.addScaledVector(this.vel, dt);
+    // facing the way you fly across
+    const flat = _v3.copy(this.vel).addScaledVector(U, -this.vel.dot(U));
+    if (flat.lengthSq() > 1) { let d = F.headingOf(flat) - this.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); this.heading += d * (1 - Math.exp(-8 * dt)); }
+    this.onGround = false; this.gliding = false;
+    this._jumpHeld = !!input.Space; this._eHeld = !!input.KeyE;
+    this.lastSafe ??= this.pos.clone();
+    this.finishFrame(dt, flat.length());
   }
 
   /** Distance from the player to the summonable mount. */
@@ -1486,6 +1534,7 @@ export class Player {
     const F = this.frame;
     if (this.opts.gravityAt) F.turnToward(this.opts.gravityAt(this.pos), 5, dt);
     const U = F.up;
+    if (this.god) { this.flyGod(dt, input, camYaw); return; }   // (god mode: GOD, no body in the world)
 
     // staggered by a blow (STAGGER): no hands until he has his feet again
     const St = this._stagger;

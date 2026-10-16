@@ -61,7 +61,7 @@ export async function startReview(w) {
 /**
  * Stage and start one cinematic of the catalog in the world `w` is (window: its storyRt, ship, boxes, level,
  * player, items, THREE, rig, camera): the traveller put where it plays, the film started. Returns false when it
- * refused to start. The review page calls it after seeding its save; the world debug menu (src/world-debug.js)
+ * refused to start. The review page calls it after seeding its save; the dev menu (src/dev-menu.js)
  * calls it in the save being played.
  */
 /** The worlds whose climax is filmed outside their temple once its guardian is done: the temple's id. */

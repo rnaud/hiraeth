@@ -1,81 +1,118 @@
+// The dev menu (issue #387; docs/systems/dev-tools.md "The dev menu"): one menu over the world you are in, on L3 + R3
+// (both sticks), F2 or ` (backquote), or the Debug menu's "Dev menu" button on a touch screen. The game is paused under
+// it, as under the other full-screen menus. Its tabs (src/world-debug.js devTabs) are turned with LB / RB (Q / E, [ ],
+// PgUp / PgDn, ◀ ▶, a click on a tab or a side tab), its rows gone through with the D-pad, the stick or the arrows,
+// A / × (Enter, a click) does what the row says, B / ○ (Esc) closes it. It is drawn in the game menu's frame
+// (src/game-menu.css: the tab strip, the two side tabs, the sheet, the strip at the foot), five tabs of the strip in
+// sight round the open one.
+//
+// It took in the old DEV MENU (the panel the backquote and the settings' button opened until v1.81): the items on and
+// off, the boxes reset or opened, the story's switches, completing a world, travel to any world, motion matching.
+// Those are its own acts (below, and the tests drive them without a page); the world's (a teleport, god mode, a film,
+// a quest's stage…) go to `onAct` (main.js; engine/game.js in the engines, where engine/menus.js draws the same tabs).
+//
+//   const dev = new DevMenu({ levelId, levels, boxes, quests, story, onTravel, world: () => ({ points, … }), onAct });
+//   dev.toggle(on?) · dev.turn(±1) · dev.move(±1) · dev.choose() · dev.act(a)
+//   dev.setItem(id, on) · dev.allItems() · dev.noItems() · dev.resetBoxes() · dev.openAllBoxes() · dev.setFlag(k, v)
+//   dev.completeWorld() · dev.travel(id)
+
 import { game as sharedGame } from './game-state.js';
 import { items, ITEMS } from './items.js';
+import { devTabs, DevNav, tabWindow } from './world-debug.js';
+import { glyph } from './pad-glyphs.js';
 
-// The developer's menu: ` (backquote) or the button in the settings panel.
-// Items on and off, every box closed or opened, a jump to any world, the
-// story's big switches, motion matching for the traveller (src/motion-match.js). Paper-and-ink like the rest of the UI, big targets
-// for touch. Works without a page too (the tests drive its methods).
-//
-//   const dev = new DevMenu({ levelId, levels, boxes, quests, story, onTravel });
-//   dev.toggle(on?) · dev.setItem(id, on) · dev.allItems() · dev.noItems()
-//   dev.resetBoxes() · dev.openAllBoxes() · dev.setFlag(k, v) · dev.completeWorld() · dev.travel(id)
+/** The story's big switches on the Story tab: [flag, label]. */
+export const STORY_FLAGS = [['prologue.done', 'Prologue done'], ['ship.powered', 'Ship powered'], ['desert.bike.found', 'Hoverbike found'], ['desert.tree.lit', 'Qanat’s tree lit'], ['tool.empty', 'Tank empty']];
+/** How many tabs the strip shows round the open one (the engines' sheet has room for as many: BridgeMenu.cs DrawGame). */
+export const TAB_STRIP = 5;
 
-const CSS = `
-#devmenu { position: fixed; inset: 0; z-index: 9000; display: none; align-items: flex-start; justify-content: flex-end; pointer-events: none; }
-#devmenu.open { display: flex; }
-#devmenu .panel { pointer-events: auto; margin: calc(12px + var(--safe-top, env(safe-area-inset-top, 0px))) calc(12px + var(--safe-right, env(safe-area-inset-right, 0px))) 0 0; width: min(380px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px); overflow: auto; box-sizing: border-box; padding: 14px 16px 16px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f;
-  font: 13px ui-monospace, Menlo, monospace; color: #2b211f; transform: none; }
-#devmenu h1 { margin: 0 0 4px; font-size: 16px; letter-spacing: .16em; display: flex; justify-content: space-between; align-items: center; }
-#devmenu h1 button { font-size: 12px; padding: 4px 10px; }
-#devmenu h2 { margin: 12px 0 6px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #7a3a35; border-bottom: 1.5px solid #2b211f; padding-bottom: 2px; }
-#devmenu .hint { margin: 0; font-size: 11px; opacity: .6; }
-#devmenu label.item { display: flex; gap: 10px; align-items: center; padding: 5px 4px; min-height: 30px; cursor: pointer; border-bottom: 1px dashed rgba(43,33,31,.25); }
-#devmenu label.item input { width: 20px; height: 20px; accent-color: #c8483a; flex: none; }
-#devmenu label.item small { opacity: .55; margin-left: auto; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-#devmenu .btns { display: flex; flex-wrap: wrap; gap: 6px; }
-#devmenu button { font: inherit; font-size: 12px; padding: 7px 10px; min-height: 34px; background: #fffaf0; border: 2px solid #2b211f; box-shadow: 2px 2px 0 #2b211f; cursor: pointer; color: #2b211f; }
-#devmenu button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #2b211f; }
-#devmenu button.here { background: #f2c54b; }
-#devmenu .worlds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-#devmenu .worlds button { text-align: left; }
-`;
+const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 export class DevMenu {
-  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, matching = null, moves = null, hitboxes = null, inputs = null, game: g = sharedGame } = {}) {
-    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, matching, moves, hitboxes, inputs, g });
+  /**
+   * @param o.world   () → what devTabs takes from the world: { world, points, films, quests, toggles, save, notes, motion }
+   * @param o.onAct   (act) a world's row chosen (a teleport, a switch, a film, a stage…): the host carries it out
+   * @param o.onToggle (on) opened or closed
+   * @param o.caps    the acts the host carries out (src/world-debug.js devTabs; null: all)
+   * @param o.doc     the page's document (null: no page, the engines and the tests)
+   */
+  constructor({ levelId, levels = [], boxes = null, quests = null, story = null, onTravel = null, game: g = sharedGame, world = () => ({}), onAct = () => {}, onToggle = () => {}, caps = null,
+    doc = typeof document !== 'undefined' && document?.head && typeof document.createElement === 'function' ? document : null } = {}) {
+    Object.assign(this, { levelId, levels, boxes, quests, story, onTravel, g, world, onAct, onToggle, caps, doc });
     this.open = false;
-    this.dom = typeof document !== 'undefined' && !!document.head && typeof document.createElement === 'function';
+    this.nav = new DevNav();
+    this.tabs = [];
+    this.dom = !!doc;
     if (!this.dom) return;
-    if (!document.getElementById('devmenu-css')) { const st = document.createElement('style'); st.id = 'devmenu-css'; st.textContent = CSS; document.head.appendChild(st); }
-    const el = (this.el = document.createElement('div'));
+    const el = (this.el = doc.createElement('div'));
     el.id = 'devmenu';
-    document.body.appendChild(el);
-    el.addEventListener('change', (e) => {
-      const c = e.target;
-      if (c.dataset.item) this.setItem(c.dataset.item, c.checked);
-      if (c.dataset.flag) this.setFlag(c.dataset.flag, c.checked);
-      if (c.dataset.opt === 'matching') this.matching?.set(c.checked);
-      if (c.dataset.opt === 'moves') this.moves?.set(c.checked);
-      if (c.dataset.opt === 'hitboxes') this.hitboxes?.set(c.checked);
-      if (c.dataset.opt === 'inputs') this.inputs?.set(c.checked);
-    });
+    el.className = 'gamemenu';
+    el.innerHTML = `<div class="gm pad-raw" role="dialog" aria-label="Dev menu">
+        <nav class="gm-tabs"></nav>
+        <button class="gm-close close" aria-label="Close the dev menu">${glyph('back', { key: 'Esc' })}✕</button>
+        <div class="gm-stage">
+          <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span>${glyph('lb', { key: 'Q' })}<span class="nm"></span></button>
+          <div class="gm-sheet"><div class="gm-body"></div></div>
+          <button class="gm-side next" data-go="1"><span class="arrow">▶</span>${glyph('rb', { key: 'E' })}<span class="nm"></span></button>
+        </div>
+        <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span></div><div class="gm-keys"></div></footer>
+      </div>`;
+    doc.body.appendChild(el);
     el.addEventListener('click', (e) => {
-      const b = e.target.closest?.('button');
-      if (!b) return;
-      const a = b.dataset.a;
-      if (a === 'close') this.toggle(false);
-      else if (a === 'all') this.allItems();
-      else if (a === 'none') this.noItems();
-      else if (a === 'reset') this.resetBoxes();
-      else if (a === 'openall') this.openAllBoxes();
-      else if (a === 'complete') this.completeWorld();
-      else if (a === 'motionpage') location.href = 'motion.html';   // (motion.html: the loops against motion matching)
-      else if (b.dataset.level) this.travel(b.dataset.level);
-      this.render();
+      const tg = e.target.closest?.('[data-go], [data-tab], [data-at], .gm-close');
+      if (!tg) return;
+      e.preventDefault();
+      if (tg.classList.contains('gm-close')) this.toggle(false);
+      else if (tg.dataset.go) this.turn(+tg.dataset.go);
+      else if (tg.dataset.tab) { this.nav.show(this.tabs, tg.dataset.tab); this.render(); }
+      else {
+        // a click (a tap) on a row does it, as A / × on it
+        this.nav.at(this.tabs, +tg.dataset.at);
+        this.choose();
+      }
     });
-    window.addEventListener('keydown', (e) => { if (e.code === 'Backquote' && !e.repeat) this.toggle(); });
-    this.offs = [items.on(() => this.open && this.render()), g.on('flag', () => this.open && this.sync())];
+    doc.defaultView?.addEventListener('keydown', (e) => this.key(e), { capture: true });
+    this.offs = [items.on(() => this.open && this.refresh()), g.on?.('flag', () => this.open && this.refresh())];
   }
 
   toggle(on = !this.open) {
+    if (on === this.open) return;
     this.open = on;
-    if (!this.dom) return;
-    if (on) { this.render(); document.exitPointerLock?.(); }
-    this.el.classList.toggle('open', on);
+    if (on) { this.refresh(); this.doc?.exitPointerLock?.(); }
+    else if (this.dom && this.el.contains(this.doc.activeElement)) this.doc.activeElement.blur();
+    if (this.dom) this.el.classList.toggle('open', on);
+    this.onToggle(on);
   }
 
-  // ------------------------------------------------------------------ actions
+  /** The tabs as they are now (the people move, a quest goes on, a switch flips), the cursor kept where it was. */
+  build() {
+    const counts = this.boxes?.counts?.()?.[this.levelId] ?? null;
+    this.tabs = devTabs({ ...this.world(), levelId: this.levelId, levels: this.levels,
+      items: Object.entries(ITEMS).map(([id, d]) => ({ id, name: d.name, kind: d.kind, on: items.has(id) })),
+      flags: STORY_FLAGS.map(([k, label]) => [k, label, !!this.g.flag(k)]), boxes: counts, caps: this.caps });
+    this.nav.fit(this.tabs);
+    return this.tabs;
+  }
+  refresh() { this.build(); this.render(); this.changed?.(); }
+  get tab() { return this.tabs[this.nav.tab] ?? null; }
+  turn(d) { this.nav.turn(this.tabs, d); this.render(); this.changed?.(); }
+  move(d) { this.nav.step(this.tabs, d); this.render(); this.changed?.(); }
+  /** A / × (Enter, a click): the row's act. */
+  choose() { const r = this.nav.current(this.tabs); if (r) this.act(r.act); }
+  /** A row's act: the old dev menu's done here, the world's handed to the host; then drawn again. */
+  act(a) {
+    if (a.do === 'item') this.setItem(a.id, !items.has(a.id));
+    else if (a.do === 'items') { if (a.all) this.allItems(); else this.noItems(); }
+    else if (a.do === 'boxes') { if (a.open) this.openAllBoxes(); else this.resetBoxes(); }
+    else if (a.do === 'flag') this.setFlag(a.key, !this.g.flag(a.key));
+    else if (a.do === 'complete') this.completeWorld();
+    else if (a.do === 'travel') { this.toggle(false); this.travel(a.id); return; }
+    else if (a.do === 'page') { this.toggle(false); if (typeof location !== 'undefined') location.href = a.href; return; }
+    else this.onAct(a);
+    if (this.open) this.refresh();
+  }
+
+  // ------------------------------------------------------------------ the old dev menu's acts
   setItem(id, on) { return on ? items.grant(id) : items.revoke(id); }
   allItems() { for (const id of Object.keys(ITEMS)) items.grant(id); }
   noItems() { for (const id of Object.keys(ITEMS)) items.revoke(id); }
@@ -98,38 +135,54 @@ export class DevMenu {
   travel(id) { if (this.onTravel) this.onTravel(id); else if (typeof location !== 'undefined') location.search = `?level=${id}`; }
 
   // ------------------------------------------------------------------ the page
-  sync() {
-    if (!this.dom) return;
-    for (const c of this.el.querySelectorAll('[data-item]')) c.checked = items.has(c.dataset.item);
-    for (const c of this.el.querySelectorAll('[data-flag]')) c.checked = !!this.g.flag(c.dataset.flag);
+  /** The keyboard (capture: before the game's own keys see it). */
+  key(e) {
+    if ((e.code === 'F2' || e.code === 'Backquote') && !e.repeat) { e.preventDefault(); e.stopPropagation(); this.toggle(); return; }
+    if (!this.open || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName ?? '')) return;
+    const turn = { KeyQ: -1, BracketLeft: -1, PageUp: -1, ArrowLeft: -1, KeyE: 1, BracketRight: 1, PageDown: 1, ArrowRight: 1 }[e.code];
+    const step = { ArrowUp: -1, KeyW: -1, ArrowDown: 1, KeyS: 1 }[e.code];
+    if (turn) this.turn(turn);
+    else if (step) this.move(step);
+    else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') { if (!e.repeat) this.choose(); }
+    else if (e.code === 'Escape' || e.code === 'Backspace') this.toggle(false);
+    else return;   // (the rest: the game's, which is paused under the menu)
+    e.preventDefault(); e.stopPropagation();
+  }
+  /** The controller's menu actions (main.js hands them over while the menu is on top): true when taken. */
+  pad(name, x = 0, y = 0) {
+    if (!this.open) return false;
+    if (name === 'navigate') { if (y) this.move(y); else if (x) this.turn(x); return true; }
+    if (name === 'tabPrev' || name === 'tabNext') { this.turn(name === 'tabPrev' ? -1 : 1); return true; }
+    if (name === 'confirm') { this.choose(); return true; }
+    if (name === 'back' || name === 'worldDebug') { this.toggle(false); return true; }
+    return false;
   }
   render() {
     if (!this.dom || !this.open) return;
-    const counts = this.boxes?.counts?.()[this.levelId];
-    const itemRows = Object.entries(ITEMS).map(([id, d]) => `<label class="item"><input type="checkbox" data-item="${id}"${items.has(id) ? ' checked' : ''}>${d.name}<small>${d.kind}</small></label>`).join('');
-    const flag = (k, label) => `<label class="item"><input type="checkbox" data-flag="${k}"${this.g.flag(k) ? ' checked' : ''}>${label}<small>${k}</small></label>`;
-    const worlds = this.levels.map((l) => `<button data-level="${l.id}"${l.id === this.levelId ? ' class="here"' : ''}>${l.title}</button>`).join('');
-    this.el.innerHTML = `<div class="panel">
-      <h1>DEV MENU <button data-a="close" type="button">close \`</button></h1>
-      <p class="hint">\` toggles this panel · changes apply at once</p>
-      <h2>Items</h2>${itemRows}
-      <div class="btns" style="margin-top:8px"><button data-a="all" type="button">all items</button><button data-a="none" type="button">no items</button></div>
-      <h2>Boxes${counts ? ` · here ${counts.found}/${counts.total}` : ''}</h2>
-      <div class="btns"><button data-a="reset" type="button">reset boxes</button><button data-a="openall" type="button">open all boxes</button></div>
-      <p class="hint">reset also takes the items back, so every box can be opened again</p>
-      <h2>Story</h2>${flag('prologue.done', 'Prologue done')}${flag('ship.powered', 'Ship powered')}${flag('desert.bike.found', 'Hoverbike found')}${flag('desert.tree.lit', 'Qanat’s tree lit')}${flag('tool.empty', 'Tank empty')}
-      <div class="btns" style="margin-top:8px"><button data-a="complete" type="button">complete current world</button></div>
-      ${this.matching ? `<h2>Motion</h2><label class="item"><input type="checkbox" data-opt="matching"${this.matching.get() ? ' checked' : ''}>Motion matching (CMU capture)<small>traveller</small></label>
-      <p class="hint">the traveller's walk, run, stops and turns picked from motion capture; off: the blended loops</p>
-      ${this.moves ? `<label class="item"><input type="checkbox" data-opt="moves"${this.moves.get() ? ' checked' : ''}>Captured starts, stops and turns<small>traveller</small></label>
-      <p class="hint">over the loops: setting off, stopping, turning on the spot and the pivot at a run from Mixamo's capture (the body above the legs); off: the loops alone</p>` : ''}
-      <div class="btns"><button data-a="motionpage" type="button">the Motion page</button></div>
-      <p class="hint">both side by side on a test ground, the matcher's debug, the people's walks (motion.html; leaves the game)</p>` : ''}
-      ${this.hitboxes ? `<h2>Combat</h2><label class="item"><input type="checkbox" data-opt="hitboxes"${this.hitboxes.get() ? ' checked' : ''}>Show hitboxes<small>F4 · L3 + R3 menu</small></label>
-      <p class="hint">the traveller's hurt column, the blade's cut, the guard and parry, foes' bodies, strikes, ranges and states, shots, bombs (src/hitboxes.js)</p>` : ''}
-      ${this.inputs ? `<h2>Controller</h2><label class="item"><input type="checkbox" data-opt="inputs"${this.inputs.get() ? ' checked' : ''}>Show controller inputs<small>F6 · ?inputs=1</small></label>
-      <p class="hint">the pad drawn, each press with its raw index and what it does, the pad's id, mapping and remap profile (src/input-display.js)</p>` : ''}
-      <h2>Teleport</h2><div class="worlds">${worlds}</div>
-    </div>`;
+    const tabs = this.tabs, n = this.nav, tab = this.tab, el = this.el;
+    if (!tab) return;
+    const [a, b] = tabWindow(tabs.length, n.tab, TAB_STRIP);
+    el.querySelector('.gm-tabs').innerHTML = `${a > 0 ? '<span class="dv-more">…</span>' : ''}${tabs.slice(a, b).map((t, i) => `<button class="gm-tab${a + i === n.tab ? ' on' : ''}" data-tab="${esc(t.id)}">${esc(t.name)}</button>`).join('')}${b < tabs.length ? '<span class="dv-more">…</span>' : ''}`;
+    const side = (d) => tabs[(n.tab + d + tabs.length) % tabs.length]?.name ?? '';
+    el.querySelector('.gm-side.prev .nm').textContent = side(-1);
+    el.querySelector('.gm-side.next .nm').textContent = side(1);
+    const rows = tab.rows.map((r, i) => (r.head
+      ? `<h3 class="dv-head">${esc(r.label)} <small>${esc(r.hint)}</small></h3>`
+      : `<button type="button" class="dv-row${i === n.row ? ' at' : ''}${r.now ? ' now' : ''}" data-at="${i}"><b>${esc(r.label)}</b><small>${esc(r.hint)}</small>${
+        r.state !== undefined ? `<em class="dv-state${r.state ? ' on' : ''}">${r.state ? 'on' : 'off'}</em>` : r.tag ? `<em class="dv-tag">${esc(r.tag)}</em>` : ''}</button>`)).join('');
+    el.querySelector('.gm-body').innerHTML = `<h2>${esc(tab.title)} <span>${esc(tab.line)} · ${n.tab + 1} / ${tabs.length}</span></h2>${tab.note ? `<p class="dv-note">${esc(tab.note)}</p>` : ''}${
+      rows ? `<div class="dv-rows">${rows}</div>` : `<p class="none">${esc(tab.empty ?? 'Nothing here.')}</p>`}`;
+    const cur = n.current(tabs);
+    el.querySelector('.gm-name').textContent = cur?.label ?? '';
+    el.querySelector('.gm-sub').textContent = cur?.hint ?? '';
+    el.querySelector('.gm-keys').innerHTML = cur ? `<span class="gm-act">${glyph('ok')}${esc(verb(cur))}</span>` : '';
+    el.querySelector('.dv-row.at')?.scrollIntoView?.({ block: 'nearest' });
   }
+}
+
+/** What A / × does on a row, in the strip at the foot (the engines' too). */
+export function verb(r) {
+  const d = r?.act?.do;
+  if (r?.state !== undefined) return r.state ? 'Turn off' : 'Turn on';
+  return { tp: 'Teleport', film: 'Play', quest: 'Set', travel: 'Travel', picker: 'Open', page: 'Open', reload: 'Reload', shot: 'Take', flush: 'Send', hour: 'Set', heal: 'Heal' }[d] ?? 'Do it';
 }

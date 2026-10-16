@@ -94,8 +94,6 @@ export const FR = {
   'set.droneHints.fewer': 'Moins',
   'set.droneHints.off': 'Non',
   'set.devPanel': 'Panneau de développement',
-  'set.devMenu': 'Menu de développement : objets, boîtes, mondes (`)',
-  'set.devOpen': 'ouvrir',
   'set.reset': 'Recommencer cette sauvegarde depuis le prologue',
   'set.resetAsk': 'Oublier chaque relique, page d\'histoire et lieu de cette sauvegarde ?',
   'set.resetYes': 'Oui, tout recommencer',

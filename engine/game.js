@@ -144,6 +144,10 @@ import { Veils } from '../src/veil.js';
 import { makeTrials, gameById } from './trials.js';
 import { levelMetaFor } from '../src/minigames/kit/world.js';
 import { lendTool } from '../src/minigames/kit/onfoot.js';
+import { DevMenu } from '../src/dev-menu.js';
+import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
+import { GAMES } from '../src/minigames/index.js';
+import { DEBUG_SLOT } from '../src/save-slots.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -727,7 +731,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let portalCool = 0;
   const throughPortals = (dt, simT) => {
     portalCool = Math.max(portalCool - dt, 0);
-    if (portalCool || passage.active || player.riding || player.dead || !level.portals) return;
+    if (portalCool || passage.active || player.riding || player.dead || player.god || !level.portals) return;
     for (const pt of level.portals) {
       const d = player.pos.distanceTo(pt.at);
       // (a doorway that won't take you yet, `when`: its `refuse` said once as you walk into it)
@@ -807,6 +811,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     action: (name, dt) => {
       if (menus?.open) { menus.action(name); return; }
       if (trials?.padAction(name)) return;   // (a run's own: Menu pauses it, the rest not in a game; src/minigames/kit/runner.js)
+      if (name === 'worldDebug') { openDev(); return; }   // L3 + R3: the dev menu (src/dev-menu.js; engine/menus.js draws it)
       if (name === 'photo') { setPhoto(!photo.on); return; }
       if (name === 'capture') { if (photo.on && !photo.capture) photo.capture = 1; return; }
       if (photo.on) return;
@@ -1114,6 +1119,67 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // rig for it, so the start card shows the game's view: the cistern court from above, not the traveller's follow camera)
   if (!trials?.drives) rig.update(player.pos, 0, player.frame);
 
+  // the dev menu (src/dev-menu.js, issue #387): its tabs and acts are the page's, engine/menus.js draws them (BridgeMenu's
+  // game sheet); here what its world rows do: a teleport, god mode, the frame readout, the potions, the hearts, the jets,
+  // a quest's stage, the hour. (The page's own rows are left out: films, the Notes screenshot, the hitbox overlay, the
+  // input display, the Debug menu, the Motion page, a reload, the sky's clock, which the engines' sky does not run.)
+  const devTeleport = (point) => {
+    const spot = landingSpot(physics, point, { portals: level.portals ?? [], killY: level.killY ?? -Infinity });
+    if (!spot.ok) { toast(`Nothing to stand on near ${point.label}.`); return false; }
+    if (player.ride) player.dismount(true);
+    if (player.dead) player.restart?.();
+    const to = new THREE.Vector3(...spot.pos), heading = spot.heading ?? player.heading;
+    const up = level.gravityAt?.(to)?.clone?.() ?? new THREE.Vector3(0, 1, 0);
+    const land = () => { portalCool = 2; player.vel.set(0, 0, 0); player.lastSafe?.copy(to); };   // (no doorway takes you on at once)
+    portalCool = 3;
+    if (!passage.go({ to, heading, up, speed: 0, onMove: land })) { player.teleport(to, up, new THREE.Vector3(0, 0, 1)); player.heading = heading; land(); }
+    sound.page?.();
+    toast(`To ${point.label}.`);
+    return true;
+  };
+  /** God mode on or off (src/player.js GOD); off, set down on the ground under you (src/world-debug.js godLanding), as main.js. */
+  const setGod = (on) => {
+    if (on) { if (player.ride) player.dismount(true); player.setGod(true); toast('God mode: the stick flies, RT / R2 up, LT / L2 down, L3 boost. Nothing hurts.'); return; }
+    player.setGod(false);
+    const s = godLanding(physics, player.pos, { portals: level.portals ?? [], killY: level.killY ?? -Infinity });
+    const to = s.ok ? new THREE.Vector3(...s.pos) : player.lastSafe.clone(), heading = player.heading;
+    player.teleport(to, player.frame.up.clone(), player.frame.fwd.clone());
+    player.heading = heading; portalCool = 2;
+    toast(s.ok ? 'God mode off: on the ground below.' : 'God mode off: back where you last stood.');
+  };
+  const devAct = (a) => {
+    if (a.do === 'tp') { menus.close(); devTeleport(a.point); }
+    else if (a.do === 'toggle') {
+      if (a.key === 'fps') { settings?.set?.('showFps', !settings.showFps); menus.onSetting?.('showFps'); }
+      else if (a.key === 'god') setGod(!player.god);
+      else if (a.key === 'potions') resources.setPotionsInfinite(!resources.potions.infinite);
+      else if (a.key === 'jets') { if (gear.has('jetpack')) gear.revoke('jetpack'); else { if (!gear.has('backpack')) gear.grant('backpack'); gear.grant('jetpack'); } }
+    }
+    else if (a.do === 'heal') { player.restore(player.maxHearts); toast('Every heart back.'); }
+    else if (a.do === 'hour') { sky.hour = a.h; updateSky(); }
+    else if (a.do === 'quest' && story?.quests) {
+      try { applyQuestJump(story.quests, gameState, a.id, a.stage); toast(`${story.quests.def(a.id)?.title ?? a.id}: set to ${a.stage}.`); } catch (err) { toast(`Could not set it: ${err.message}`); }
+    }
+  };
+  const devMenu = menus?.openDev && !flags && !view && !gameDef ? new DevMenu({ levelId, levels: LEVELS, boxes, quests: story?.quests ?? null, story, game: gameState, doc: null,
+    caps: new Set(['quest']),
+    onTravel: (id) => { menus.close(); onTravel?.(id); },
+    world: () => ({
+      world: meta.title,
+      points: gatherPoints({ levelId, level, quests: story?.quests ?? null, npcs, boxes, relics, ship, content, games: GAMES }),
+      quests: story?.quests ? questList(story.quests, levelId) : [],
+      toggles: { fps: !!settings?.showFps, god: !!player.god, potions: !!resources.potions.infinite, jets: gear.has('jetpack') },
+      save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
+    }),
+    onAct: (a) => devAct(a),
+    onToggle: (on) => { if (!on && menus.mode === 'dev') menus.close(); } }) : null;
+  /** L3 + R3, F2 or `: the dev menu over the world (not in a conversation, a ship's scene or a run). */
+  function openDev() {
+    if (!devMenu || menus.open || pinned || talking() || (shipOn && ship.playing) || trials?.running) return false;
+    if (photo.on) setPhoto(false);
+    return menus.openDev(devMenu);
+  }
+
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
@@ -1137,6 +1203,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         // (K: the Arena's list of foes, as its page's key)
         if (code === 'KeyK' && foeList && !pinned && !talking() && !boxes?.busy?.()) menus.openFoes(foeList);
       }
+      // (the dev menu: F2 or `, as the page's; the menu's own keys close it again, engine/menus.js)
+      if (down && !was && !menus?.open && (code === 'F2' || code === 'Backquote')) openDev();
       // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
       if (down && !was && !menus?.open && !trials?.running) {
         if (code === 'KeyP') setPhoto(!photo.on);
@@ -1194,6 +1262,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     sectionsOn: false,
     journal,
     /** A shop opened by its id ('thrum': Anselm's aboard; else a keeper's), as talking to its keeper does (-shop, a test). */
+    /** The dev menu (src/dev-menu.js; null without the menus) and opening it (the bridge's -devmenu plan, L3 + R3, F2, `). */
+    devMenu, openDev: () => openDev(),
     /** The Arena's list of foes opened (the bridge's -foes plan; D-pad ↓ or K in play): false where there is none. */
     openFoes() { return !!(foeList && menus?.openFoes(foeList)); },
     foeList,
@@ -1231,7 +1301,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** Where you stand, into the active save slot (main.js writeSave); not from a bench's fixed views. */
     save() {
       // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
-      if (!saves || flags || pinned || player.dead || (shipOn && ship.playing) || gameDef) return;   // (a game's page keeps the place you left the world at)
+      if (!saves || flags || pinned || player.dead || player.god || (shipOn && ship.playing) || gameDef) return;   // (god mode: never saved, you would load in the air)   // (a game's page keeps the place you left the world at)
       SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray() });
     },
     /**
@@ -1397,7 +1467,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const drives = !!trials?.drives && !pinned;
       // the gadgets' buttons before the traveller moves (the hook's reel sets his velocity), as main.js (a game takes them;
       // a trial in the world keeps them: the fan into the skiff's sail)
-      const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing) || !(trials?.keepsGadgets ?? true);
+      const gadgetsPaused = busy || !!pinned || (shipOn && ship.playing) || player.god || !(trials?.keepsGadgets ?? true);   // (god mode: the triggers fly)
       // a way through under way: the move happens here, before the traveller and the camera do (main.js)
       if (passage.update(dt) === 'done') passCover.clear();
       if (drives) { try { trials.update(dt, busy ? noInput : ctlS); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the game failed in its update', e?.stack ?? e); } } }
@@ -1459,7 +1529,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
       try {
-        tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned || drives);   // (a game on foot keeps the blade and the gun)
+        tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned || drives || player.god);   // (a game on foot keeps the blade and the gun)
         gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);
         if (plumb && !pinned) updatePlumb(dt, busy);

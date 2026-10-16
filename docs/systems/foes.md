@@ -1780,8 +1780,8 @@ and what it found.
 ## Hitboxes (v0.93: `src/hitboxes.js`, `src/hitbox-overlay.js`)
 
 A debug overlay of what the fight actually tests, for tuning and for learning the timings.
-- **The switch** (`hitboxes`): F4, the world debug menu's Toggles (L3 + R3 or F2: docs/systems/dev-tools.md), the dev menu's
-  Combat row, the Arena's board left of the way in (X / □, E: `src/levels/arena-hitbox-board.js`, its lamp lit
+- **The switch** (`hitboxes`): F4, the dev menu's Toggles (L3 + R3, F2 or `: docs/systems/dev-tools.md),
+  the Arena's board left of the way in (X / □, E: `src/levels/arena-hitbox-board.js`, its lamp lit
   while on), `?hitboxes=1` / `=0` for the session. Kept in the settings (`settings.hitboxes`).
 - **Truthful by construction:** `collectHitboxes()` reads the combat code's own data, exposed through small
   getters used by the combat code too: `Foe.attackOrigin()`, `Foe.attackPhase`, `STRIKE_RISE`, `hurtRadius()`

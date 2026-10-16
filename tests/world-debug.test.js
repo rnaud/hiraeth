@@ -1,12 +1,12 @@
-// The world debug menu (src/world-debug.js; docs/systems/dev-tools.md "The world debug menu"): what it gathers
-// from a world's own data, where a teleport sets you down, the quest jump's flags, the cinematics it lists, the
-// rows it draws, and L3 + R3 / F2 opening it. Every route world built, gathered and landed on:
-// tests/world-debug-worlds.test.js.
+// The dev menu's world (src/world-debug.js; docs/systems/dev-tools.md "The dev menu"): what it gathers from a world's
+// own data, where a teleport sets you down, the quest jump's flags, the cinematics it lists, the tabs it makes, and
+// L3 + R3 opening it. The menu itself (its tabs, pausing, god mode, the engines'): tests/dev-menu.test.js. Every route
+// world built, gathered and landed on: tests/world-debug-worlds.test.js.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { gatherPoints, groupPoints, landingSpot, questJump, applyQuestJump, questList, cinematicsFor, debugSections, xyz, words, KINDS } from '../src/world-debug.js';
+import { gatherPoints, groupPoints, landingSpot, questJump, applyQuestJump, questList, cinematicsFor, devTabs, keyPlaces, xyz, words, KINDS } from '../src/world-debug.js';
 import { CINEMATICS } from '../src/cinematics-page/catalog.js';
 import { WORLD_MOMENTS } from '../src/story/film.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
@@ -182,21 +182,52 @@ test('the cinematics: each of this world\'s on the Cinematics page, how it plays
   assert.ok(cinematicsFor('arzach').every((e) => CINEMATICS.some((c) => c.id === e.id)));
 });
 
-test('the rows: a section a kind, then the cinematics, the quests with the save warning, the toggles; each row says what it does', () => {
+test('the tabs: World, Cheats, a tab a kind, the cinematics, the quests with the save warning, Notes, Toggles, then the old dev menu\'s; each row says what it does', () => {
   const { w, quests } = miniWorld();
-  const { sections, acts } = debugSections({ points: gatherPoints(w), films: cinematicsFor('desert'), quests: questList(quests, 'mini'), toggles: { hitboxes: true }, save: 'the debug save' });
-  assert.deepEqual(sections.map((s) => s.key), ['tp-landing', 'tp-quest', 'tp-people', 'tp-temple', 'tp-shop', 'tp-sight', 'tp-place', 'tp-find', 'films', 'quests', 'toggles']);
-  const html = sections.map((s) => s.html).join('');
-  const rows = [...html.matchAll(/data-wd="(\d+)"/g)].map((m) => +m[1]);
-  assert.deepEqual(rows, acts.map((_, i) => i), 'one act per row, in order');
-  assert.ok(acts.filter((a) => a.do === 'tp').length === gatherPoints(w).length);
-  assert.match(sections.find((s) => s.key === 'quests').html, /changes the save being played \(the debug save\)/);
-  assert.ok(acts.some((a) => a.do === 'quest' && a.id === 'mini.main' && a.stage === 'done'));
-  const toggles = sections.find((s) => s.key === 'toggles').html;
-  assert.match(toggles, /class="tag wd-state on" data-state="hitboxes">on</, 'the hitbox overlay: on, as it is');
-  assert.match(toggles, /data-state="god">off</);
-  for (const d of ['heal', 'hour', 'picker']) assert.ok(acts.some((a) => a.do === d), d);
-  assert.match(html, /<small class="tag">room<\/small>/, 'a room is tagged');
+  const pts = gatherPoints(w);
+  const tabs = devTabs({ world: 'Mini', points: pts, films: cinematicsFor('desert'), quests: questList(quests, 'mini'), toggles: { hitboxes: true, god: false }, save: 'the debug save',
+    notes: { paired: true }, items: [{ id: 'glider', name: 'Glider', kind: 'gear', on: true }], flags: [['prologue.done', 'Prologue done', false]], levels: [{ id: 'mini', title: 'Mini' }, { id: 'desert', title: 'The Desert' }], levelId: 'mini' });
+  assert.deepEqual(tabs.map((t) => t.id), ['world', 'cheats', 'tp-landing', 'tp-quest', 'tp-people', 'tp-temple', 'tp-shop', 'tp-sight', 'tp-place', 'tp-find', 'films', 'quests', 'notes', 'toggles', 'items', 'story', 'travel']);
+  assert.equal(tabs[0].title, 'Mini', 'the first tab: the world\'s name');
+  assert.deepEqual(tabs[0].rows.map((r) => r.label), ['the ship', 'outside the Well-House', 'the mast'], 'its key places, few (the start and the well by the ship, the cairn by the mast: once)');
+  for (const t of tabs) for (const r of t.rows) assert.ok(r.head || (r.act && r.act.do), `${t.id}: ${r.label} does something`);
+  const kinds = tabs.filter((t) => t.id.startsWith('tp-'));
+  assert.equal(kinds.reduce((n, t) => n + t.rows.length, 0), pts.length, 'every point on its kind\'s tab');
+  assert.match(tabs.find((t) => t.id === 'quests').note, /changes the save being played \(the debug save\)/);
+  assert.ok(tabs.find((t) => t.id === 'quests').rows.some((r) => r.act?.do === 'quest' && r.act.id === 'mini.main' && r.act.stage === 'done'));
+  const cheats = tabs.find((t) => t.id === 'cheats').rows;
+  assert.deepEqual(cheats.filter((r) => r.state !== undefined).map((r) => r.act.key), ['fps', 'god', 'potions', 'jets'], 'the readout and god mode first');
+  const toggles = tabs.find((t) => t.id === 'toggles').rows;
+  assert.equal(toggles.find((r) => r.act.key === 'hitboxes').state, true, 'the hitbox overlay: on, as it is');
+  for (const d of ['heal', 'hour', 'picker', 'item', 'items', 'boxes', 'flag', 'complete', 'travel']) assert.ok(tabs.some((t) => t.rows.some((r) => r.act?.do === d)), d);
+  assert.ok(tabs.find((t) => t.id === 'tp-temple').rows.some((r) => r.tag === 'room'), 'a room is tagged');
+  assert.equal(tabs.find((t) => t.id === 'travel').rows.find((r) => r.act.id === 'mini').tag, 'here');
+  // an engine without the page's rows: no films, no screenshot, no overlays, no Debug menu, no reload
+  const eng = devTabs({ points: pts, films: cinematicsFor('desert'), quests: questList(quests, 'mini'), notes: { paired: true }, levels: [{ id: 'mini', title: 'Mini' }], caps: new Set(['quest']) });
+  assert.ok(!eng.some((t) => t.id === 'films' || t.id === 'notes'));
+  assert.ok(!eng.some((t) => t.rows.some((r) => ['film', 'shot', 'picker', 'page', 'reload'].includes(r.act?.do) || ['hitboxes', 'inputs', 'clock'].includes(r.act?.key))));
+});
+
+test('the key places: the ship, the start, the temples and the fight temple, then a few landmarks, from the world\'s own data', () => {
+  const { w } = miniWorld();
+  const fight = { name: 'The Sunken Hall', fightTemple: 'mini', markers: [{ level: 'mini', at: [100, null, 100], heading: 1 }] };
+  const sign = { name: 'Rings', markers: [{ level: 'mini', at: [120, null, 0] }, { level: 'other', at: [0, null, 0] }] };
+  const pts = gatherPoints({ ...w, games: [fight, sign] });
+  assert.deepEqual(pts.filter((p) => p.label.startsWith('fight temple') || p.label.startsWith('game:')).map((p) => [p.kind, p.label, p.face]), [['temple', 'fight temple: The Sunken Hall', true], ['run', 'game: Rings', true]], 'a game\'s sign in this world only');
+  assert.deepEqual(keyPlaces(pts, { near: 0 }).map((p) => p.label), ['the ship', 'the start', 'outside the Well-House', 'fight temple: The Sunken Hall', 'the well top', 'the mast', 'the cairn'], 'in that order');
+  assert.equal(keyPlaces(pts, { near: 0, landmarks: 1 }).length, 5, 'a few landmarks at most');
+  assert.deepEqual(keyPlaces(pts).map((p) => p.label), ['the ship', 'outside the Well-House', 'fight temple: The Sunken Hall', 'the mast'], 'a place within 30 m of one listed: left out');
+  // two temples (a merged world's): each one's door
+  const two = gatherPoints({ levelId: 'mini', level: { temples: [{ def: { name: 'A' }, doorOut: V(1, 0, 1) }, { def: { name: 'B' }, doorOut: V(9, 0, 9) }] } });
+  assert.deepEqual(keyPlaces(two).map((p) => p.label), ['outside A', 'outside B']);
+  // a thing to look at: set down off it, facing it
+  const scene = new THREE.Scene();
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(200, 1, 200)); floor.position.y = -0.5; scene.add(floor);
+  const physics = new Physics(scene, null);
+  const s = landingSpot(physics, pts.find((p) => p.label === 'game: Rings'));
+  const dx = s.pos[0] - 120, dz = s.pos[2];
+  assert.ok(s.ok && Math.hypot(dx, dz) > 3, 'off the sign');
+  assert.ok(Math.abs(Math.atan2(Math.sin(s.heading - Math.atan2(-dx, -dz)), Math.cos(s.heading - Math.atan2(-dx, -dz)))) < 1e-6, 'facing it');
 });
 
 // the controller: both sticks open it in play and close it in a menu; R3 alone still locks on, L3 alone runs
@@ -207,7 +238,7 @@ function virtualPad(ctx) {
   const set = (i, d) => { pad.buttons[i] = { pressed: d, value: +d }; };
   return { c, set, actions };
 }
-test('L3 + R3 opens the world debug menu (in play, riding) and closes it (in the menu), and never locks on', () => {
+test('L3 + R3 opens the dev menu (in play, riding) and closes it (in the menu), and never locks on', () => {
   const dt = 1 / 60;
   for (const ctx of ['game', 'ride', 'menu']) {
     const { c, set, actions } = virtualPad(ctx);
@@ -221,19 +252,18 @@ test('L3 + R3 opens the world debug menu (in play, riding) and closes it (in the
   const { c, set, actions } = virtualPad('game');
   set(11, true); c.update(dt); set(11, false); c.update(dt);
   assert.deepEqual(actions, ['lock'], 'R3 alone still locks on');
-  assert.equal(BINDINGS.foot.find(([b]) => b === 'L3 + R3')[1].includes('world debug menu'), true, 'the layout\'s table says so');
+  assert.equal(BINDINGS.foot.find(([b]) => b === 'L3 + R3')[1].includes('the dev menu'), true, 'the layout\'s table says so');
 });
 
-test('the game opens it on L3 + R3 and F2 (F4 keeps the hitboxes), behind the Debug menu\'s rules, with the cinematics staged as the review page stages them', () => {
-  const main = src('src/main.js'), wd = src('src/world-debug.js');
-  assert.match(main, /name === 'worldDebug'[^\n]*worldDebug\.toggle\(\)/);
-  assert.match(wd, /e\.code === 'F2'/);
+test('the game opens it on L3 + R3, F2 and ` (F4 keeps the hitboxes), with the cinematics staged as the review page stages them', () => {
+  const main = src('src/main.js'), dm = src('src/dev-menu.js');
+  assert.match(main, /name === 'worldDebug'[^\n]*devMenu\.toggle\(\)/);
+  assert.match(dm, /e\.code === 'F2' \|\| e\.code === 'Backquote'/);
   assert.match(main, /e\.code === 'F4'[^\n]*toggleHitboxes/);
-  assert.match(main, /worldDebug\.open \? worldDebug\.el :/, 'the controller\'s menu root: B, LB / RB, Y reach it');
-  assert.match(main, /const busy = \(\) =>[^\n]*worldDebug\.open/, 'the world waits while it is open');
+  assert.match(main, /devMenu\.open \? devMenu\.el :/, 'the controller\'s menu root: B, LB / RB, A reach it');
+  assert.match(main, /const busy = \(\) =>[^\n]*devMenu\.open/, 'the world waits while it is open');
   assert.match(src('src/cinematics-page/runtime.js'), /export async function stageCinematic\(w, e\)/);
   assert.match(src('src/cinematics-page/runtime.js'), /const ok = await stageCinematic\(w, e\);/, 'the review page plays them through the same staging');
-  assert.match(src('src/world-picker.css'), /:is\(#picker, #wdebug\) \.row \{/, 'drawn as the Debug menu');
   // F2 was free: no other key of the game's is on it
   assert.ok(!/code === 'F2'/.test(main));
 });

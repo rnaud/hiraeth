@@ -930,6 +930,8 @@ namespace Hiraeth.Bridge
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
                 if (panel == "foes") return k == "head" ? 34 : k == "foot" ? 44 : FoeRowH(row);
+                // (the dev menu's rows: its name, what it does under it, its state at the right; a quest's heading over its stages)
+                if (panel == "dev") return k == "head" ? Fit(row, 30) : Fit(row, 36);
                 float baseH = panel == "quests" ? (k == "ended" ? 34 : 76) : panel == "items" ? (k == "item" || k == "empty" ? side + 42 : 34) : panel == "worlds" ? 58 : panel == "people" ? 56 : 36;
                 return panel == "map" || panel == "worlds" ? Fit(row, baseH) : baseH;
             }
@@ -985,6 +987,15 @@ namespace Hiraeth.Bridge
                             if (fk == "head") { var hc = Entry(cx, yy + 4, cw, rh - 6, Ui.Upper(text), null, null, false, size: Small); hc.text.color = Ui.Hex("#7a3a35"); hc.text.fontStyle = FontStyle.Bold; continue; }
                             var fc = Entry(cx, yy, cw, rh - 6, fk == "foot" || fk == "waves" ? Ui.Upper(text) : text, under, null, B(c, "on"), size: fk == "foe" ? Body : Small, boxed: true);
                             if (B(c, "lit") && !B(c, "on")) fc.box.SetFill(Ui.Gold);
+                            continue;
+                        }
+                        if (panel == "dev")
+                        {
+                            var dk = c.S("kind");
+                            if (dk == "head") { var hc = Entry(cx, yy + 4, cw, rh - 6, Ui.Upper(text), null, null, false, size: Small); hc.text.color = Ui.Hex("#7a3a35"); hc.text.fontStyle = FontStyle.Bold; continue; }
+                            var dc = Entry(cx, yy, cw, rh - 6, text, under, c.S("val"), B(c, "on"), size: Body, boxed: true);
+                            dc.sub.fontSize = Small;
+                            dc.val.color = B(c, "lit") ? Ui.Hex("#2f7a55") : Ui.Ink;
                             continue;
                         }
                         if (B(c, "inUse")) under = "in use";

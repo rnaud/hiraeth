@@ -70,7 +70,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending || a.starmap || a.updatesPage);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.noTitle || a.trial || a.game || a.ending || a.starmap || a.updatesPage);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -337,9 +337,11 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     Object.assign(gameState.data.flags, ENDING_FLAGS(ending));
   }
   // (the ship's scenes play only with menus: an -ending run makes its own, never opened)
-  // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save)
+  // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save; -devmenu:
+  // the dev menu is one of the menus too, with the player's settings for its frame readout)
   const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
-    : args.foes ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
+    : args.foes || args.devmenu ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
+  if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
   // (-updates-page: the Start menu's Updates page photographed as it checks, downloads and restarts: BridgeUpdates, with
   // -updates <manifest>; the debug save, so Restart now's save writes nothing of the player's)
@@ -353,7 +355,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
@@ -377,7 +379,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           return null;
         };
         if (menus.mode === 'title') menus.close();
-        if (!args.foes) game.save();
+        if (!args.foes && !args.devmenu) game.save();
         // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
         if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
@@ -507,6 +509,18 @@ function makePlan(args) {
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes-chosen.png` });
     steps.push({ kind: 'menu', act: 'back' }, { kind: 'wait', frames: 150, secs: 4 });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-foes-fight.png` });
+  }
+  if (args.devmenu) {
+    // (-devmenu: the dev menu, issue #387: opened on F2 as the keys open it, each tab photographed (unity-dev-<n>-<id>.png, to lay
+    // beside the web's), a teleport to the temple's door off the World tab, god mode on from Cheats, up and across, then off:
+    // set down on the ground below)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-dev-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'key', code: 'F2', down: true }, { kind: 'key', code: 'F2', down: false }, { kind: 'wait', frames: 10 }, { kind: 'dev', what: 'log' },
+      { kind: 'dev', what: 'tabs' }, { kind: 'dev', what: 'noon' }, { kind: 'dev', what: 'tp' }, { kind: 'wait', frames: 90, secs: 3 }, { kind: 'dev', what: 'log' }, ...shot('tp-temple'),
+      { kind: 'dev', what: 'god' }, { kind: 'key', code: 'Space', down: true }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'key', code: 'Space', down: false },
+      { kind: 'key', code: 'KeyW', down: true }, { kind: 'key', code: 'ShiftLeft', down: true }, { kind: 'wait', frames: 60, secs: 1.5 }, { kind: 'key', code: 'KeyW', down: false }, { kind: 'key', code: 'ShiftLeft', down: false },
+      { kind: 'wait', frames: 30, secs: 0.8 }, { kind: 'dev', what: 'log' }, ...shot('god-flying'), { kind: 'dev', what: 'god' }, { kind: 'wait', frames: 40, secs: 1.2 }, { kind: 'dev', what: 'log' }, ...shot('god-landed'),
+      { kind: 'dev', what: 'fps' }, { kind: 'wait', frames: 20 }, ...shot('cheats-fps-on'), { kind: 'dev', what: 'fps' }, { kind: 'menu', act: 'back' }, { kind: 'wait', frames: 10 });   // (the readout back off: the settings are the player's)
   }
   for (const room of aboardRooms(args)) {
     // (-aboard …,pictures: from the main room, each canvas drawn aboard close up, the console's screen and the wall
@@ -861,6 +875,29 @@ export function frame(dt) {
         console.log(`[unity] in ${T.id}'s arena (${G.state})`);
       }
     } else { const got = F.spawnKind(step.what, { n: 1, dist: 5 }); console.log(`[unity] a ${step.what} set down: ${got.length}`); }
+    next();
+  }
+  else if (step.kind === 'dev') {
+    const D = game.devMenu, M = S.menus, p = game.player;
+    if (!D) { console.log('[unity] dev menu: none here'); next(); return; }
+    const pick = (tab, test) => { D.nav.show(D.tabs, tab); const i = D.tab.rows.findIndex(test); if (i >= 0) D.nav.at(D.tabs, i); M.changed(); return D.tab.rows[i]?.label ?? null; };
+    if (step.what === 'log') console.log(`[unity] dev menu: open ${!!M?.open && M.mode === 'dev'}, at ${p.pos.toArray().map((v) => v.toFixed(1)).join(' ')}, god ${!!p.god}, on the ground ${!!p.onGround}, the frame readout ${!!S.settings?.showFps}`);
+    else if (step.what === 'tabs') {
+      // (each tab photographed, RB to the next: as many as this world's menu has)
+      console.log(`[unity] dev menu tabs: ${D.tabs.map((t) => `${t.id} ${t.rows.length}`).join(', ')}`);
+      const more = [];
+      D.tabs.forEach((t, i) => more.push({ kind: 'wait', frames: 8 }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-dev-${String(i).padStart(2, '0')}-${t.id}.png` }] : []), { kind: 'menu', act: 'tabNext' }));
+      P.steps.splice(P.i + 1, 0, ...more);
+    }
+    else if (step.what === 'noon') { if (!M.open) game.openDev(); console.log(`[unity] dev menu: the hour, ${pick('toggles', (r) => r.act?.do === 'hour' && r.act.h === 12)}`); M.action('confirm'); }
+    else if (step.what === 'tp') { if (!M.open) game.openDev(); console.log(`[unity] dev menu: teleport to ${pick('world', (r) => r.act?.point?.key === 'temple')}`); M.action('confirm'); }
+    else if (step.what === 'god' || step.what === 'fps') {
+      if (!M.open) game.openDev();
+      pick('cheats', (r) => r.act?.key === step.what);
+      M.action('confirm');
+      if (step.what === 'god') M.close();
+      console.log(`[unity] dev menu: ${step.what} ${step.what === 'god' ? !!p.god : !!S.settings?.showFps}`);
+    }
     next();
   }
   else if (step.kind === 'foes') {

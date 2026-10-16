@@ -55,7 +55,7 @@ export const ITEMS = {
     does: 'Aim with {key:aim} and push with {key:fire}; {key:mode} turns it to ember, which lights fires, or to a shot.',
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
-  // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it
+  // debug menus (the dev menu's Cheats and Items): no box, shop or quest holds it, and old saves lose it
   // (src/save-migrate.js step 9). The City-Shaft's own, the Warden's harness, went too in v1.42: its air pillars
   // carry the wings (src/shaft-pillars.js)
   jetpack: {

@@ -17,8 +17,7 @@ const MONO = /font[^\n]*(monospace|\bMenlo\b|\bConsolas\b|Courier New)|--face-mo
 const MONO_OK = {
   'src/typefaces.js': 'where the faces are named',
   'src/debug-back.js': 'the dev pages’ way back to the Debug menu',
-  'src/dev-menu.js': 'the author’s dev menu',
-  'src/world-picker.css': 'the Debug menu and the world debug menu',
+  'src/world-picker.css': 'the Debug menu',
   'src/foe-spawner.js': 'the foe spawner, a dev tool',
   'src/hitbox-overlay.js': 'the hitbox overlay, a dev tool',
   'src/input-display.js': 'the input display: raw button and axis numbers, to check a controller',

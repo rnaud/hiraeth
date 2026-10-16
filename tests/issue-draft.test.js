@@ -1,10 +1,10 @@
-// A screenshot as a Notes draft from the world debug menu (src/issue-draft.js, issue #8): kept on the device, the device
+// A screenshot as a Notes draft from the dev menu (src/issue-draft.js, issue #8): kept on the device, the device
 // paired with a code the Notes page approves, then sent; the notebook here is the real Worker (worker/issues.js) over a
 // store in memory, and GitHub is never called.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ShotDrafts, shotContext, draftText, DEVICE_KEY, QUEUE_KEY, NOTES_HOST, SHOT } from '../src/issue-draft.js';
-import { debugSections } from '../src/world-debug.js';
+import { devTabs } from '../src/world-debug.js';
 import { handleIssues } from '../worker/issues.js';
 import { memoryStore } from '../worker/drafts.js';
 
@@ -80,16 +80,15 @@ test('offline, the screenshot waits on the device; a revoked token pairs again; 
   assert.ok(on.status().code);
 });
 
-test('the world debug menu has the screenshot action, and says the pairing code while it waits', () => {
-  const plain = debugSections({});
-  assert.ok(!plain.sections.some((s) => s.key === 'notes'), 'nothing without the notes');
-  const { sections, acts } = debugSections({ notes: { paired: false, code: 'ABC234', queued: 2 } });
-  const notes = sections.find((s) => s.key === 'notes');
-  assert.ok(notes, 'a Notes section');
-  assert.match(notes.html, /Screenshot to a Notes draft/);
-  assert.match(notes.html, /Pairing code: ABC234/);
-  assert.match(notes.html, /Send 2 waiting screenshots/);
-  assert.ok(acts.some((a) => a.do === 'shot' && !a.pairOnly) && acts.some((a) => a.do === 'flush'));
-  // (a row is a link the pad reaches like every other: A opens it)
-  assert.ok((notes.html.match(/data-wd="/g) ?? []).length >= 3);
+test('the dev menu has the screenshot action, and says the pairing code while it waits', () => {
+  assert.ok(!devTabs({}).some((t) => t.id === 'notes'), 'nothing without the notes');
+  const notes = devTabs({ notes: { paired: false, code: 'ABC234', queued: 2 } }).find((t) => t.id === 'notes');
+  assert.ok(notes, 'a Notes tab');
+  const labels = notes.rows.map((r) => r.label);
+  assert.ok(labels.includes('📷 Screenshot to a Notes draft'));
+  assert.ok(labels.includes('Pairing code: ABC234'));
+  assert.ok(labels.includes('↑ Send 2 waiting screenshots'));
+  assert.ok(notes.rows.some((r) => r.act.do === 'shot' && !r.act.pairOnly) && notes.rows.some((r) => r.act.do === 'flush'));
+  // (an engine without the page's screenshot has none)
+  assert.ok(!devTabs({ notes: { paired: true }, caps: new Set(['quest']) }).some((t) => t.id === 'notes'));
 });

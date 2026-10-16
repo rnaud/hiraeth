@@ -45,6 +45,6 @@ test('the score\'s per-frame level and a new start keep it out while a menu is u
   assert.match(audio, /this\.music\.gain\.value = this\.menuOn \? 0 : 0\.62 \* this\.musicVol/);
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   // (the Start menu, the game menu and what's new pause the game, and each toggles the menu music by paused())
-  assert.match(main, /const panels = \[menu, journal, changelog\]/);
+  assert.match(main, /const panels = \[menu, journal, changelog(, devMenu)?\]/);
   assert.match(main, /sound\.menuMusic\(paused\(\)\)/);
 });

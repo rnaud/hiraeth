@@ -164,6 +164,9 @@ the same entries in the same order, moved through by the web's own rules, and `v
   marks from world-map.js `mapMarks`, the ground not drawn), the cursor by `MenuState` / `moveCursor` (a row's
   end rests on the side tab, once more turns), LB / RB turn, A / × a thing's full view (its use: a gun mode),
   a quest tracked, a person's page (← → the next), Travel here.
+- **the dev menu** (L3 + R3, F2, `; issue #387): src/dev-menu.js's tabs on the game menu's sheet (panel `'dev'`),
+  its world rows carried out by engine/game.js (teleports, god mode, the frame readout, cheats, quest stages, the
+  hour); `-devmenu` photographs each tab (docs/systems/dev-tools.md, "The dev menu").
 - While one is open engine/game.js holds the world still (the scene still mirrored), the controller in its
   menu context hands its actions to the menu; Esc and J open them from the keyboard. Where you stand is saved
   every 10 s and as the Start menu opens (ui.js `SaveGame`, the save's playtime by `slots.touch`).

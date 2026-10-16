@@ -5,14 +5,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
+/** A selector list split at its top-level commas (not those inside :is(…)). */
+const split = (sels) => sels.split(/,(?![^(]*\))/).map((s) => s.trim());
 const css = readFileSync(new URL('../src/game-menu.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 
 test('every animated rule of the game menu is stilled by Reduce motion and by prefers-reduced-motion (issue #235)', () => {
   // the rules (outside @keyframes and @media) that set an animation other than none
   const flat = css.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').replace(/@media[^{]*\{((?:[^{}]*\{[^{}]*\})*)[^{}]*\}/g, '');
-  const animated = [...flat.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, , body]) => /animation:(?!\s*none)/.test(body)).flatMap(([, sel]) => sel.split(',').map((s) => s.trim()));
+  const animated = [...flat.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, , body]) => /animation:(?!\s*none)/.test(body)).flatMap(([, sel]) => split(sel));
   assert.ok(animated.includes('#journal .gm-mapimg .pen'), 'the map\'s loading pen is one of them');
-  const stilled = (sels) => sels.split(',').map((s) => s.trim());
+  const stilled = split;
   const media = css.match(/@media \(prefers-reduced-motion: reduce\) \{\s*([^{]+)\{ animation: none; \}/);
   const setting = [...css.matchAll(/(html\.reduce-motion[^{]+)\{ animation: none; \}/g)].flatMap((m) => stilled(m[1]));
   assert.ok(media, 'a prefers-reduced-motion block');

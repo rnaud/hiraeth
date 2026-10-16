@@ -1,4 +1,4 @@
-// A screenshot as a Notes draft (issue #8; docs/systems/notes.md "Screenshot drafts"): the world debug menu's
+// A screenshot as a Notes draft (issue #8; docs/systems/notes.md "Screenshot drafts"): the dev menu's
 // "Screenshot to a Notes draft" (L3 + R3, F2) takes the frame just drawn, small, with where the game is (the world,
 // where you stand, the build, the preset), and saves it as a draft on the notebook (worker/drafts.js), where the Notes
 // page on any device lists it to be written up and sent as an issue. Nothing is filed from here.

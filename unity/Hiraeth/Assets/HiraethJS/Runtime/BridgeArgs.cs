@@ -210,6 +210,8 @@ namespace Hiraeth.Bridge
             if (Flag("-fresh")) args["fresh"] = true;
             // (-foes [world]: the Arena's list of foes photographed, a world's page, a foe chosen and fought: engine/unity/game.js)
             if (Flag("-foes")) args["foes"] = Arg("-foes") is string fw && !fw.StartsWith("-") ? fw : "all";
+            // (-devmenu: the dev menu opened on F2, each of its tabs photographed, a teleport, god mode on, flown, off: engine/unity/game.js)
+            if (Flag("-devmenu")) args["devmenu"] = true;
             if (Flag("-freeze")) args["freeze"] = true;
             // (-hud-run secs: round someone at a walk, then a sprint, the floating prompt and the stamina wheel in motion: engine/unity/game.js)
             if (Arg("-hud-run") != null) args["hudRun"] = double.Parse(Arg("-hud-run"), CultureInfo.InvariantCulture);

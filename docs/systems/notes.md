@@ -79,7 +79,7 @@ No test creates real issues. The existing update-download tests cover unchanged 
 
 ## Screenshot drafts (issue #8, v1.46)
 
-The world debug menu (L3 + R3, F2) has **Screenshot to a Notes draft**: the frame just drawn, 640 px wide as a JPEG
+The dev menu (L3 + R3, F2, `) has, on its Notes tab, **Screenshot to a Notes draft**: the frame just drawn, 640 px wide as a JPEG
 under 88 KB (`src/issue-draft.js` `grabFrame`, `shotJpeg`), with where the game is (`shotContext`: world, position,
 heading, version, build, commit, preset, device, tracked quest and stage, hour, save slot). It is a **draft**, not an
 issue: it waits in the notebook's own store, and the Notes page lists it under *Screenshot drafts* with its picture

@@ -259,7 +259,7 @@ test('on the real traveller: the blade is drawn red exactly on the frames it cut
   tool.dispose();
 });
 
-// (L3 + R3 opened the hitboxes until v1.33; it opens the world debug menu now, where they are: tests/world-debug.test.js)
+// (L3 + R3 opened the hitboxes until v1.33; it opens the dev menu now, where they are in its Toggles: tests/dev-menu.test.js)
 
 test('the built archetypes (src/enemies/archetypes.js): each attack’s shape is drawn where it is checked, telegraph then active then spent', () => {
   for (const kind of ['crab', 'lizard', 'hound', 'tripod', 'blot']) for (const a of FOES[kind].attacks.filter((x) => !x.chain && !x.instant && !x.sweep && !x.blink)) {

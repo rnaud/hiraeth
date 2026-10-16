@@ -94,8 +94,6 @@ export const EN = {
   'set.droneHints.fewer': 'Fewer',
   'set.droneHints.off': 'Off',
   'set.devPanel': 'Developer panel',
-  'set.devMenu': 'Dev menu: items, boxes, worlds (`)',
-  'set.devOpen': 'open',
   'set.reset': 'Restart this save from the prologue',
   'set.resetAsk': 'Forget every relic, story page and place in this save?',
   'set.resetYes': 'Yes, start over',
@@ -248,7 +246,7 @@ export const EN = {
   'ctl.p.talk.how': '{ok} or {interact} carry on, choose · {back} leave',
   'ctl.p.menus': 'In menus',
   'ctl.p.menus.how': 'D-pad select · left / right adjust · {ok} confirm · {back} back · right stick scroll',
-  'ctl.p.debug': 'Debug: the world debug menu (teleports, cinematics, hitboxes)',
+  'ctl.p.debug': 'Debug: the dev menu (teleports, god mode, cinematics, hitboxes)',
   'ctl.p.debug.how': 'click both sticks (L3 + R3)',
 
   'ctl.t.move': 'Move · look',
@@ -353,7 +351,7 @@ export const EN = {
   'restart.tap': 'tap to restart',
   'restart.enter': 'Enter to restart',
   'restart.label': 'Knocked out',
-  'toast.hitboxesOn': 'Hitboxes shown (F4, or the world debug menu: L3 + R3).',
+  'toast.hitboxesOn': 'Hitboxes shown (F4, or the dev menu: L3 + R3).',
   'toast.hitboxesOff': 'Hitboxes hidden.',
   'load.sketching': 'sketching the world…',
 

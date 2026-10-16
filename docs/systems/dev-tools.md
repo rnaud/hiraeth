@@ -1,6 +1,6 @@
 # The Debug menu, the Lab and the clipping audit
 
-Developer levels and checks: the Debug menu, the Lab, the worlds list's debug save, the clipping audit.
+Developer levels and checks: the Debug menu, the dev menu, the Lab, the worlds list's debug save, the clipping audit.
 
 ## The Debug menu (v1.11, `src/world-picker.js`, `src/world-picker.css`)
 
@@ -36,40 +36,62 @@ the **filter** and close, and a chip a section (a click scrolls there; the one i
 - **Sizes**: the sections' grids fill the width; under 620 px the filter takes a line of its own and the
   headings' lines go under them; under 480 px tall (a handheld on its side) it tightens. `tests/world-picker.test.js`.
 
-## The world debug menu (v1.33, `src/world-debug.js`)
+## The dev menu (v1.81, issue #387: `src/dev-menu.js`, `src/world-debug.js`)
 
-**L3 + R3** (both sticks, in either order; in play or riding) or **F2** opens a menu over the world you are in;
-the same again, B / Esc or its close button shut it. It is available wherever the Debug menu is (every build,
-for now). It is drawn by the Debug menu's own code and CSS (`fillPicker` given `sections`; `#wdebug` shares
-`src/world-picker.css` with `#picker`): the sticky header with the filter (type, or Y on a pad) and a chip a
-section (LB / RB, PgUp / PgDn), rows a controller moves through in 2D (`data-grid-nav`), the confirm glyph on
-the focused row. It is drawn again each time it opens (people move, quests go on).
+One menu over the world you are in (it took in the world debug menu of v1.33 and the old DEV MENU panel, whose
+settings button, CSS and DOM are gone). **L3 + R3** (both sticks, in either order; in play or riding), **F2** or
+**`** (backquote) open it, the same again or B / Esc close it; on a touch screen the Debug menu's header has a
+**dev menu** button. The game is **paused** under it as under the other full-screen menus (`paused()`: the world
+stands, the menu music plays; one of `panels`, so it closes the Start menu, the game menu and What's new). It is
+drawn in the game menu's frame (`#devmenu.gamemenu` shares `src/game-menu.css` with `#journal`: the tab strip, the
+two side tabs naming the neighbours, the sheet, the strip at the foot with the row's words and what A / × does),
+five tabs of the strip in sight round the open one (`tabWindow`, `TAB_STRIP`). LB / RB (Q / E, [ ], PgUp / PgDn,
+← →, a click on a tab or a side tab) turn the tabs, round; the D-pad, the stick or ↑ ↓ go through the rows
+(`DevNav`: round, over the headings, each tab keeps its row); A / × (Enter, a click or a tap) does the row. Its
+tabs are made afresh each time something changes (`devTabs`, pure; people move, quests go on):
 
-| Section | What is in it, and where it comes from |
+| Tab | What is in it, and where it comes from |
 | --- | --- |
-| **Landing** | the ship (`ship.arrivalSpot()`: the foot of its ramp), the level's `spawn` |
-| **Quests** | every stage of this world's quests where its marker stands (`quests.where(stage)`: `goto`, `at`, `talk`, the locators) |
-| **People** | the world's people (`npcs`, not the crowd's pooled walkers) |
-| **Temple** | outside its door (`temple.doorOut`), inside the door (`arrival`), each room's mark (`marks`), the gadget's chest, the guardian's arena (at its edge) |
-| **Shops** | outside (where the shop's way out lands) and at the counter (`level.shops`) |
-| **Sights** | the level design's `sights`, `beacons` (at their foot) and the start of each leading line (`lines`) |
-| **Runs & trials** | the trial (`TRIALS`), the makers' runs (`kitTrialsFor`), the makers' court (`level.finds.court`) |
-| **Places** | each door into a room, cave or hall (`level.portals`, not the temples' or the shops'), outside and inside; the story's goal (`CONTENT[id].story`); the desert's named places (`src/desert-sites.js`) |
-| **Finds** | the makers' boxes (`boxes.list`), the relics not yet found |
-| **Cinematics** | this world's entries of the Cinematics page (`cinematics-page/catalog.js`, `cinematicsFor`): its moments and its boxes' films are played in place (`stageCinematic`, the review page's own staging) and you are put back where you stood when it ends; the ship's recordings and takeoff while the ship is here; an arrival reloads the world by ship; the prologue and homecomings open the Cinematics page |
-| **Quest stage** | each of this world's quests, main first, with its stages and "done": `applyQuestJump` sets the flags the stages before it wait for (as the debug save does, `questJump`), clears those of it and after, then `quests.set` (its hooks run); a warning names the save it changes (the debug save, or save N), and a row reloads the world |
-| **Notes** | Screenshot to a Notes draft (issue #8, `src/issue-draft.js`): the frame drawn right after the menu closes (`grabFrame` in the loop, 640 px wide, a JPEG under 88 KB) and where the game is (world, position, heading, build, commit, preset, device, tracked quest and stage, hour, save), kept on the device and sent to the notebook as a draft for the Notes page; the device's pairing code while it waits, and a row to send what still waits (`docs/systems/notes.md` "Screenshot drafts") |
-| **Toggles** | the hitbox overlay (what L3 + R3 did until v1.33; F4 still), the input display (F6), god mode (`player.opts.health = false`, this session), endless potions (`res.potions.infinite`, in the save), full hearts, the sky's clock running or still, six times of day, and back to the Debug menu |
+| **World** | the world's name and its key places (`keyPlaces`, from `gatherPoints`' points, no list per world): the ship (`ship.arrivalSpot()`), the start unless it is by the ship, each makers' temple's door (`level.temples`), the fight temple's door (its game's `markers`, src/fight-temples/), then at most three of the story's goal, the `beacons` and the `sights`; a place within 30 m of one listed is left out (desert: the ship, the Rose House, the Sunken Hall, the great dark tree, the camps' smoke, the Givers' Hearth's chimney) |
+| **Cheats** | the frame readout (`settings.showFps`, F3), **god mode** (below), endless potions (`res.potions.infinite`, in the save), full hearts, the fluid jets (the debug item) |
+| **Landing** … **Finds** | a tab a kind of place (`KINDS`; empty kinds left out): the ship and the start; every stage of this world's quests where its marker stands (`quests.where`); the people (`npcs`, not the crowd's walkers); the temples (outside, inside, each room's mark, the gadget's chest, the guardian's arena at its edge; the fight temple's door); the shops (outside, the counter); the level design's `sights`, `beacons` and leading `lines`; the runs (the trial, the makers' runs and court, the games' signs); the doors into rooms and caves, the story's goal, the desert's named places; the makers' boxes and the relics left |
+| **Films** | this world's entries of the Cinematics page (`cinematicsFor`): moments and boxes' films played in place (`stageCinematic`) and you put back where you stood; the ship's recordings and takeoff while it is here; an arrival reloads the world by ship; the prologue and homecomings open the Cinematics page |
+| **Stages** | each of this world's quests (a heading each, main first) with its stages and "done": `applyQuestJump` sets the flags the stages before it wait for (as the debug save does), clears those of it and after, then `quests.set`; a warning names the save it changes, and a row reloads the world |
+| **Notes** | Screenshot to a Notes draft (issue #8, `src/issue-draft.js`, `docs/systems/notes.md` "Screenshot drafts"), the pairing code while it waits, a row to send what still waits |
+| **Toggles** | the hitbox overlay (F4), the input display (F6), the sky's clock running or still, six times of day |
+| **Items** | every item on or off, all, none (the old panel's `setItem`, `allItems`, `noItems`) |
+| **Story** | reset the boxes (their items taken back) or open them all, the story's switches (`STORY_FLAGS`), complete this world, motion matching and the captured moves, the Motion page |
+| **Travel** | every world (`?level=<id>`, in the save played), and back to the Debug menu |
 
-A teleport (`landingSpot`, then `passage.go`: the paper sweeps across as at a door) sets you on solid ground
-near the point, from just over it (under a low ceiling, not on the roof over it), with room to stand, out of
-the doorways' discs (with `portalCool` held, so no door takes you on), over `killY`; a point in the air (a
-beacon's foot, the fallen-up tiles over the cloud) takes the floor under it or the nearest within 60 m. A room's
-mark and a door's far side are landed on as they are, which needs nothing from the passage: the rooms are real
-geometry off the map, and the temple notices you inside by itself. Nowhere to stand: a toast, and you stay.
-`tests/world-debug.test.js` (the gathering, the landing, the quest jump, the films, the rows, the controller) and
-`tests/world-debug-worlds.test.js` (the desert and the floating city built with their story, `WORLD_DEBUG_ALL=1` for every
-route world: every kind there and every point landed on; desert 122 points, the others 49–71).
+A teleport (`landingSpot`, then `passage.go`: the paper sweeps across as at a door) closes the menu and sets you on
+your feet: on solid ground near the point, from just over it (under a low ceiling, not on the roof over it), with
+room to stand, out of the doorways' discs (with `portalCool` held), over `killY`; facing the way the point says (the
+ship's ramp, a temple's door), or facing the point when it is a thing to look at (`face`: a sign, a beacon's foot, a
+sight, set down 3.6 m or more off it); a point in the air takes the floor under it or the nearest within 60 m. A
+room's mark and a door's far side are landed on as they are. Nowhere to stand: a toast, and you stay.
+
+**God mode** (`GOD` in `src/player.js`, `setGod` / `flyGod`; main.js and engine/game.js `setGod`): no body in the
+world (no collision, no gravity, no doorway takes you, no fall), nothing hurts or knocks you down. The stick (W A S D)
+flies across the camera's way at 70 m/s (the jets' 22), four times that with L3 held or run on (Shift); RT / R2 or
+A / × (Space) rises and LT / L2 (Ctrl, Z) sinks, at 40 m/s; the gadgets and the blade are held meanwhile (the
+triggers are its own). It stays on until it is turned off and is never saved (`writeSave` and the engines' `save`
+skip while it is on: you would load in the air). Off, `godLanding` sets you down on the ground under you: straight
+down onto the floor under where you hover (from just over you, so a room's floor under its roof), then near it; from
+inside a solid or under the terrain, the top of what is there; over nothing, back where you last stood safely.
+
+**In the engines** (Unity; engine/menus.js mode `'dev'`): the same `DevMenu` without a page, its tabs drawn as the game
+menu's sheet (`view()` kind `'game'`, panel `'dev'`: BridgeMenu.cs DrawGame and DrawRows, a row its name, its words
+under it and its state at the right, a quest's heading in small red capitals), the window of five tabs in the strip.
+engine/game.js opens it on L3 + R3, F2 or ` (BridgeHost's keys include F2, `, [ ], PgUp and PgDn) and carries out its
+world rows: the teleports, god mode, the frame readout, the potions, the hearts, the jets, a quest's stage, the hour;
+the page's own rows are left out (`caps`: films, the screenshot, the hitbox overlay, the input display, the sky's clock,
+the reload, the Debug menu, the Motion page). A batch run: `-devmenu` (with `-level`, `-out`) opens it on F2, shoots
+each tab (`unity-dev-<n>-<id>.png`), teleports to the temple's door, turns god mode on, flies up and across, and off.
+
+Tests: `tests/dev-menu.test.js` (the tabs, the moves, the acts, the pausing and the old panel gone, god mode and its
+landing, the engines' sheet), `tests/world-debug.test.js` (the gathering, the key places, the landing, the quest jump,
+the films, the tabs, the controller), `tests/world-debug-worlds.test.js` (every route world's key places landed on, on
+their feet; in the desert and the floating city, `WORLD_DEBUG_ALL=1` for all, every point of every kind).
 
 ## The Lab (v0.39)
 

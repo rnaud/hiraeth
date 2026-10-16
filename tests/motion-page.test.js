@@ -18,7 +18,7 @@ test('the Motion page is a page of the build, linked from the studio and the dev
   for (const p of Object.values(BUILD_INPUT)) assert.ok(existsSync(p), p);
   assert.match(read('../motion.html'), /src="\/src\/motion\/main\.js"/);
   assert.match(read('../studio.html'), /href="\.\/motion\.html"/);
-  assert.match(read('../src/dev-menu.js'), /'motion\.html'/);
+  assert.match(read('../src/world-debug.js'), /'motion\.html'/);   // (the dev menu's Story tab)
   const main = read('../src/motion/main.js');
   assert.doesNotMatch(main, /levels\/index\.js|from '\.\.\/main\.js'|boot\.js/);
   // the game's own pipeline, the shared course and measures

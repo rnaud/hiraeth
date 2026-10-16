@@ -213,11 +213,12 @@ test('the jets\' pitch row shows only with the jets, and the developer rows are 
     assert.match(html, /<label class="row" data-jets hidden><span>[^<]*<\/span><input data-k="invertFlight"/);
   }
   const game = draw(false);
-  // the developer rows: after every player's row and the reset, under their own heading; the dev menu behind the gate
+  // the developer row: after every player's row and the reset, under its own heading (the dev menu's button went with the
+  // old panel, issue #387: L3 + R3, F2, ` or the Debug menu's "dev menu" open the one menu)
   const dev = game.indexOf('class="dev-group"');
   assert.ok(dev > game.indexOf('data-a="reset"') && dev > game.indexOf('data-k="hints"'), 'the Developer group comes last');
-  assert.ok(game.indexOf('data-k="devPanel"') > dev && game.indexOf('data-a="dev"') > dev, 'both developer rows are in it');
-  assert.match(game, /<label class="row" data-dev hidden><span>[^<]*<\/span><button data-a="dev"/);
+  assert.ok(game.indexOf('data-k="devPanel"') > dev, 'the developer row is in it');
+  assert.ok(!game.includes('data-a="dev"'), 'no button to the old dev menu');
   assert.doesNotMatch(draw(true), /devPanel|data-a="dev"/, 'none on the title screen');
   // sync() decides: the jets from the game's items (main.js), the dev menu from the gate
   const ui = src('src/ui.js'), main = src('src/main.js');

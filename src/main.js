@@ -133,7 +133,7 @@ import { hitboxes, registerHitboxes } from './hitboxes.js';
 import { inputDisplay } from './input-display.js';
 import { fillPicker, pickHref, buildInfo } from './world-picker.js';
 import { ShotDrafts, grabFrame, shotJpeg, shotContext } from './issue-draft.js';
-import { WorldDebugMenu, gatherPoints, debugSections, cinematicsFor, questList, applyQuestJump, landingSpot } from './world-debug.js';
+import { gatherPoints, cinematicsFor, questList, applyQuestJump, landingSpot, godLanding } from './world-debug.js';
 import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { lanternSky, applyLanternSky } from './story/lantern-sky.js';
@@ -1079,16 +1079,30 @@ if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !p
     showChargeCard({ sound });
   }, 4000);
 }
+// the dev menu (L3 + R3, F2, `; src/dev-menu.js, docs/systems/dev-tools.md "The dev menu"): the world's key places, the
+// cheats, every place by kind, its films and quests, the toggles, the items, the boxes and the story's switches, travel
+// (its world rows: devAct, below with the teleports)
+// (motion matching for the traveller: src/motion-match.js; its database loads the first time it is switched on)
+const devMatching = lib && {
+  get: () => !!player.animator?.matching,
+  set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; if (devMenu.open) devMenu.refresh(); }); },
+};
+// (the captured starts, stops and turns over the loops: src/loco-moves.js)
+const devMoves = { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; } };
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story,
-  // (motion matching for the traveller: src/motion-match.js; its database loads the first time it is switched on)
-  matching: lib && {
-    get: () => !!player.animator?.matching,
-    set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; devMenu.render(); }); },
-  },
-  // (the captured starts, stops and turns over the loops: src/loco-moves.js)
-  moves: { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; devMenu.render(); } },
-  hitboxes: { get: () => hitboxes.on, set: (on) => hitboxes.set(on) },   // (src/hitboxes.js)
-  inputs: { get: () => inputDisplay.on, set: (on) => inputDisplay.set(on) } });   // (the input display: src/input-display.js)
+  world: () => ({
+    world: meta.title,
+    points: gatherPoints({ levelId, level, quests: storyRt.quests, npcs, boxes, relics, ship, content, games: GAMES }),
+    films: cinematicsFor(levelId, { ship: !!ship.parked }),
+    quests: questList(storyRt.quests, levelId),
+    toggles: devToggles(),
+    save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
+    notes: shotDrafts.status(),
+    motion: !!devMatching,
+  }),
+  onAct: (a) => devAct(a),
+  onToggle: (on) => { if (on) { showPicker(false); document.exitPointerLock?.(); } },
+});
 window.addEventListener('keydown', (e) => {
   if (!boxes.busy() || e.repeat) return;
   if (e.code === 'Escape') boxes.skip();
@@ -1231,7 +1245,7 @@ if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.p
   if (spot) { player.respawn(spot.pos); player.heading = spot.heading; rig.yaw = spot.heading + Math.PI; }
 }
 let resetting = false;   // (a save being started over: nothing more is written to it)
-const writeSave = () => !resetting && !minigameDef && SaveGame.write({   // (a game's page keeps the place you left the world at)
+const writeSave = () => !resetting && !minigameDef && !player.god && SaveGame.write({   // (a game's page keeps the place you left the world at; god mode never: you would load in the air)
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
   up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
 });
@@ -1273,11 +1287,11 @@ syncUpgrades((id) => items.has(id));
 items.on(() => syncUpgrades((id) => items.has(id)));
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t, TEACH), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
-// the hitbox overlay (src/hitboxes.js): F4, the world debug menu (L3 + R3, F2), the dev menu, the Arena's board, ?hitboxes=1 (this session only)
+// the hitbox overlay (src/hitboxes.js): F4, the dev menu's Toggles (L3 + R3, F2, `), the Arena's board, ?hitboxes=1 (this session only)
 const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
 registerHitboxes((out) => foes.hitShapes(out));   // (the foes' shockwaves, slag, holds and volleys: src/foes.js)
 hitboxes.set(query.has('hitboxes') ? query.get('hitboxes') !== '0' : !!settings.hitboxes);
-hitboxes.listen((on) => { if (!query.has('hitboxes')) settings.set('hitboxes', on); devMenu.render(); });
+hitboxes.listen((on) => { if (!query.has('hitboxes')) settings.set('hitboxes', on); if (devMenu.open) devMenu.refresh(); });
 const toggleHitboxes = () => showToast(tr(hitboxes.toggle() ? 'toast.hitboxesOn' : 'toast.hitboxesOff'));
 window.addEventListener('keydown', (e) => { if (e.code === 'F4' && !e.repeat) { e.preventDefault(); toggleHitboxes(); } });
 window.addEventListener('blur', () => Object.keys(input).forEach((k) => (input[k] = false)));
@@ -1466,7 +1480,6 @@ const changelog = new Changelog({ onBeforeRestart: saveBeforeRestart });
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
-  onDev: () => devMenu.toggle(true),
   onBook: (panel) => journal.toggle(true, panel),   // (its Items and Quests: the game menu, on that panel)
   onPhoto: () => setPhoto(true),   // (photo mode from the menu: the only way on a touch screen; View + D-pad ↑ on a pad, P)
   onDebug: () => showPicker(true),
@@ -1477,7 +1490,7 @@ const menu = new SettingsMenu(settings, {
   // where you are, at the top of the Start menu
   where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played${fragmentsLine()}`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
-  isBusy: () => shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
+  isBusy: () => shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   // this save only (the other slots stay): forget it and start again with the prologue
   onResetProgress: () => {
     reactiveWorld.clear(); game.reset();
@@ -1494,7 +1507,7 @@ function quitToTitle() {
 // The full-screen menus (Start: settings; View / Select: the game menu, src/game-menu.js; what's new) pause
 // the game: frame() skips the world while one is open, and the menu music plays over the
 // hushed world (src/audio.js menuMusic).
-const paused = () => !!window.cinematicReview?.paused || menu.open || journal.open || changelog.open || !!minigame?.paused;
+const paused = () => !!window.cinematicReview?.paused || menu.open || journal.open || changelog.open || devMenu.open || !!minigame?.paused;
 // The menus heard (issue #379: none made a sound): a press in a menu (the keys, the pad, a click) plays Sound.ui's kind
 // for it (src/ui-sound.js uiKind); opening and closing a panel, below; a conversation's answers their own (toolClick).
 // (a menu, a card or a page up: not a conversation, a scene or the ship's moments, where the keys are the world's)
@@ -1505,7 +1518,7 @@ document.addEventListener('click', (e) => { if (e.isTrusted && menuHeard() && e.
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the
 // settings card (and O over the sketchbook the other way round)
 {
-  const panels = [menu, journal, changelog];
+  const panels = [menu, journal, changelog, devMenu];
   for (const p of panels) {
     const toggle = p.toggle.bind(p);
     p.toggle = (on = !p.open, ...rest) => {
@@ -1541,6 +1554,9 @@ function showPicker(on) {
 }
 showPicker(query.get('worlds') === '1');   // (?level=<id>&worlds=1: a world with the list up; the title's Debug entry shows the list alone, src/world-picker.js) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
+// (over a world, the dev menu from its header: a touch screen has no sticks to click, nor F2 or `)
+picker.querySelector('.tools')?.insertAdjacentHTML('afterbegin', '<button type="button" class="devopen">dev menu</button>');
+picker.querySelector('.devopen')?.addEventListener('click', () => devMenu.toggle(true));
 window.addEventListener('keydown', (e) => {
   if (e.target === debugMenu.search) return;   // (the Debug menu's filter: its keys are its own, src/world-picker.js)
   const open = picker.classList.contains('open');
@@ -1558,10 +1574,55 @@ window.addEventListener('keydown', (e) => {
   if (debugMenu.typeKey(e)) e.stopPropagation();
 }, { capture: true });
 
-// ------------------------------------------------------------------ the world debug menu
-// L3 + R3 (both sticks) or F2, in any world (src/world-debug.js, docs/systems/dev-tools.md "The world debug menu"):
-// teleport to this world's points of interest, play its cinematics, set a quest's stage, the debug toggles
-const worldToggles = () => ({ hitboxes: hitboxes.on, inputs: inputDisplay.on, god: player.opts.health === false, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack') });
+// ------------------------------------------------------------------ the dev menu's world
+// what the dev menu's rows do in the world (src/dev-menu.js hands them here): teleport to a place, the cheats and the
+// toggles, a film, a quest's stage, the time of day, a screenshot for the Notes page
+const devToggles = () => ({ fps: !!settings.showFps, god: !!player.god, hitboxes: hitboxes.on, inputs: inputDisplay.on, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack'),
+  matching: !!devMatching?.get(), moves: devMoves.get() });
+/**
+ * God mode on or off (src/player.js GOD: fly fast, nothing hurts, through walls; never saved). Off: set down on the
+ * ground under you (src/world-debug.js godLanding), or where you last stood safely when there is none.
+ */
+function setGod(on) {
+  if (on) {
+    if (player.ride) player.dismount(true);
+    player.setGod(true);
+    showToast('God mode: the stick flies, RT / R2 up, LT / L2 down, L3 boost. Nothing hurts.');
+    return;
+  }
+  player.setGod(false);
+  const s = godLanding(physics, player.pos, { portals: level.portals ?? [], killY: level.killY ?? -Infinity });
+  const to = s.ok ? new THREE.Vector3(...s.pos) : player.lastSafe.clone(), heading = player.heading;
+  player.teleport(to, player.frame.up.clone(), player.frame.fwd.clone());
+  player.heading = heading; portalCool = 2;
+  showToast(s.ok ? 'God mode off: on the ground below.' : 'God mode off: back where you last stood.');
+}
+function devAct(a) {
+  if (a.do === 'tp') { devMenu.toggle(false); worldTeleport(a.point); }
+  else if (a.do === 'film') { devMenu.toggle(false); worldFilm(a.entry); }
+  else if (a.do === 'quest') {
+    try { applyQuestJump(storyRt.quests, game, a.id, a.stage); showToast(`${storyRt.quests.def(a.id)?.title ?? a.id}: set to ${a.stage}.`); } catch (err) { showToast(`Could not set it: ${err.message}`); }
+  }
+  else if (a.do === 'reload') location.reload();
+  else if (a.do === 'toggle') {
+    if (a.key === 'fps') settings.set('showFps', !settings.showFps);
+    else if (a.key === 'god') setGod(!player.god);
+    else if (a.key === 'hitboxes') toggleHitboxes();
+    else if (a.key === 'inputs') toggleInputs();
+    else if (a.key === 'potions') resources.setPotionsInfinite(!resources.potions.infinite);
+    else if (a.key === 'clock') sky.speed = sky.speed > 0 ? 0 : 1;
+    // the jets anywhere: a debug item since v1.38 (too strong for the worlds), given and taken here only
+    else if (a.key === 'jets') { if (items.has('jetpack')) items.revoke('jetpack'); else { if (!items.has('backpack')) items.grant('backpack'); items.grant('jetpack'); } showToast(items.has('jetpack') ? 'The fluid jets (debug): hold jump in the air.' : 'The fluid jets put away.'); }
+    else if (a.key === 'matching') devMatching?.set(!devMatching.get());
+    else if (a.key === 'moves') devMoves.set(!devMoves.get());
+  }
+  else if (a.do === 'heal') { player.restore(player.maxHearts); showToast('Every heart back.'); }
+  else if (a.do === 'hour') { sky.hour = a.h; updateSky(); }
+  else if (a.do === 'picker') { devMenu.toggle(false); showPicker(true); }
+  else if (a.do === 'shot' && a.pairOnly) void shotDrafts.pair();
+  else if (a.do === 'shot') { devMenu.toggle(false); shotPending = true; }   // (the next frame, the menu gone)
+  else if (a.do === 'flush') { devMenu.toggle(false); void shotDrafts.flush(); }
+}
 /** Put the traveller at a point of interest: on the ground near it (or on its spot in a room), under the passage's paper, out of the doorways. */
 function worldTeleport(point) {
   const spot = landingSpot(physics, point, { portals: level.portals ?? [], killY: level.killY ?? -Infinity });
@@ -1618,48 +1679,6 @@ function takeShot() {
   shotJpeg(frame).then((shot) => (shot ? shotDrafts.save({ shot, context }) : showToast('The screenshot came out too big to keep.')))
     .catch((err) => { showToast(`Could not keep the screenshot: ${err.message}`); console.error(err); });
 }
-const worldDebug = new WorldDebugMenu({
-  fill: fillPicker,
-  title: () => meta.title,
-  build: () => debugSections({
-    points: gatherPoints({ levelId, level, quests: storyRt.quests, npcs, boxes, relics, ship, content }),
-    films: cinematicsFor(levelId, { ship: !!ship.parked }),
-    quests: questList(storyRt.quests, levelId),
-    toggles: worldToggles(),
-    save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
-    notes: shotDrafts.status(),
-  }),
-  onToggle: (on) => {
-    if (on) { for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false); showPicker(false); document.exitPointerLock?.(); }
-  },
-  act: (a) => {
-    if (a.do === 'tp') { worldDebug.toggle(false); worldTeleport(a.point); }
-    else if (a.do === 'film') { worldDebug.toggle(false); worldFilm(a.entry); }
-    else if (a.do === 'quest') {
-      try { applyQuestJump(storyRt.quests, game, a.id, a.stage); showToast(`${storyRt.quests.def(a.id)?.title ?? a.id}: set to ${a.stage}.`); } catch (err) { showToast(`Could not set it: ${err.message}`); }
-      worldDebug.toggle(false); worldDebug.toggle(true);   // (drawn again: the stage marked "now")
-      [...worldDebug.el.querySelectorAll('#dbg-quests a[data-wd]')].find((el) => el.querySelector('.hint')?.textContent === `${a.id} → ${a.stage}`)?.focus();
-    }
-    else if (a.do === 'reload') location.reload();
-    else if (a.do === 'toggle') {
-      if (a.key === 'hitboxes') toggleHitboxes();
-      else if (a.key === 'inputs') toggleInputs();
-      else if (a.key === 'god') { player.opts.health = player.opts.health === false ? undefined : false; showToast(player.opts.health === false ? 'God mode: nothing hurts you.' : 'God mode off.'); }
-      else if (a.key === 'potions') resources.setPotionsInfinite(!resources.potions.infinite);
-      else if (a.key === 'clock') sky.speed = sky.speed > 0 ? 0 : 1;
-      // the jets anywhere: a debug item since v1.38 (too strong for the worlds), given and taken here only (and the dev menu)
-      else if (a.key === 'jets') { if (items.has('jetpack')) items.revoke('jetpack'); else { if (!items.has('backpack')) items.grant('backpack'); items.grant('jetpack'); } showToast(items.has('jetpack') ? 'The fluid jets (debug): hold jump in the air.' : 'The fluid jets put away.'); }
-      worldDebug.states(worldToggles());
-    }
-    else if (a.do === 'heal') { player.restore(player.maxHearts); showToast('Every heart back.'); }
-    else if (a.do === 'hour') { sky.hour = a.h; updateSky(); }
-    else if (a.do === 'picker') { worldDebug.toggle(false); showPicker(true); }
-    else if (a.do === 'shot' && a.pairOnly) void shotDrafts.pair();
-    else if (a.do === 'shot') { worldDebug.toggle(false); shotPending = true; }   // (the next frame, the menu gone)
-    else if (a.do === 'flush') { worldDebug.toggle(false); void shotDrafts.flush(); }
-  },
-});
-
 // ------------------------------------------------------------------ photo mode
 // P: free camera (WASD / Q E, mouse look, SHIFT faster), HUD hidden,
 // H toggles the panel, ENTER saves a PNG of the frame.
@@ -1773,7 +1792,7 @@ function placeToolGauge() {
 }
 
 
-const busy = () => restartOpen || shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open || !!minigame?.busy();
+const busy = () => restartOpen || shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open || !!minigame?.busy();
 // a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
@@ -1800,7 +1819,7 @@ const pageUp = () => pageEl.classList.contains('open');
 // (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
 // worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
 // conversation or a moment closes first)
-const menuRoot = () => minigame?.cardEl() ?? (restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : shopPanel.isOpen ? shopPanel.root : boxes.busy() && boxes.card.el ? boxes.card.el : worldDebug.open ? worldDebug.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl);
+const menuRoot = () => minigame?.cardEl() ?? (restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : shopPanel.isOpen ? shopPanel.root : boxes.busy() && boxes.card.el ? boxes.card.el : devMenu.open ? devMenu.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl);
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
   if (changelog.open) changelog.toggle(false);
@@ -1810,7 +1829,7 @@ const closeControllerMenu = () => {
   else if (shopPanel.isOpen) shopPanel.back();   // (out of a purchase's question first, then out of the shop)
   else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
   else if (boxes.busy()) boxes.skip();
-  else if (worldDebug.open) { if (document.activeElement === worldDebug.menu?.search) worldDebug.menu.search.blur(); else worldDebug.toggle(false); }
+  else if (devMenu.open) devMenu.toggle(false);
   else if (picker.classList.contains('open')) { if (document.activeElement === debugMenu.search) debugMenu.search.blur(); else showPicker(false); }
   else if (pageUp()) pageEl.click();
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
@@ -1820,7 +1839,7 @@ const closeControllerMenu = () => {
 // default everywhere (it covered the view on a small screen in the Arena); F6 anywhere, View + D-pad ← in the Arena
 // (a free chord, src/bindings.js), the dev menu, ?inputs=1
 inputDisplay.set(query.has('inputs') && query.get('inputs') !== '0');
-inputDisplay.listen(() => devMenu.render());
+inputDisplay.listen(() => { if (devMenu.open) devMenu.refresh(); });
 const toggleInputs = () => showToast(inputDisplay.toggle() ? 'Controller inputs shown (F6).' : 'Controller inputs hidden.');
 window.addEventListener('keydown', (e) => { if (e.code === 'F6' && !e.repeat) { e.preventDefault(); toggleInputs(); } });
 window.addEventListener('padchord', (e) => { if (levelId === 'arena' && e.detail?.name === 'viewLeft') toggleInputs(); });
@@ -1833,7 +1852,7 @@ const controller = new Controller({
   stickTaken: () => !!gadgets?.wheelOn,   // (the gadget wheel open: the right stick chooses, the camera holds: src/gadgets/index.js wheelStick)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y, fresh) => { if (menuHeard()) uiSound({ nav: [x, y] }); if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
+  navigate: (x, y, fresh) => { if (menuHeard()) uiSound({ nav: [x, y] }); if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else if (root === devMenu.el) devMenu.pad('navigate', x, y); else menuNavigate(root, x, y, fresh); },
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (menuHeard()) uiSound({ action: name });   // (a menu's confirm, back and tabs heard: src/ui-sound.js)
@@ -1849,13 +1868,13 @@ const controller = new Controller({
     if ((name === 'tabPrev' || name === 'tabNext') && quickMenu && menuRoot() === quickMenu.el) quickMenu.turn?.(name === 'tabPrev' ? -1 : 1);   // (the References' list: the world before / after)
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === picker) debugMenu.jump(name === 'tabPrev' ? -1 : 1);   // (the Debug menu: the section before / after)
     if (name === 'y' && menuRoot() === picker) debugMenu.focusSearch();   // (and Y its filter)
-    if ((name === 'tabPrev' || name === 'tabNext') && worldDebug.open && menuRoot() === worldDebug.el) worldDebug.menu.jump(name === 'tabPrev' ? -1 : 1);   // (the world debug menu: the same)
-    if (name === 'y' && worldDebug.open && menuRoot() === worldDebug.el) worldDebug.menu.focusSearch();
+    if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === devMenu.el) devMenu.pad(name);   // (the dev menu: its tab before / after)
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f)) f.click(); else storyRt.dialogue.next(); }
       else if (root.id === 'page') root.click();
       else if (root === journal.el) journal.menu.confirm();
+      else if (root === devMenu.el) devMenu.pad('confirm');
       else if (root.contains(document.activeElement)) {
         const el = document.activeElement;
         if (!padConfirm(el)) el.click();   // (a dropdown opens, then keeps the choice shown: src/menu-pad.js)
@@ -1880,7 +1899,7 @@ const controller = new Controller({
       else if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); showToast(keyText(tr('hint.hop'), { teach: true }), TEACH); }   // (locked on, a new verb: the hops, taught once)
     }
     if (name === 'l3' && level.jump) level.jump(-1);
-    if (name === 'worldDebug' && (worldDebug.open || !busy() || menuRoot() === picker)) worldDebug.toggle();   // L3 + R3: the world debug menu (F2; the hitbox overlay is in it, and F4)
+    if (name === 'worldDebug' && (devMenu.open || !busy() || menuRoot() === picker)) devMenu.toggle();   // L3 + R3: the dev menu (F2, `; the hitbox overlay is in its Toggles, and F4)
     // the free View + D-pad chords (src/bindings.js FREE): a 'padchord' event any system may listen for
     if (name === 'viewDown' || name === 'viewLeft' || name === 'viewRight') window.dispatchEvent(new CustomEvent('padchord', { detail: { name } }));
   },
@@ -2276,7 +2295,7 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    gadgets.control(pdt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
+    gadgets.control(pdt, busy() ? noInput : ctl, busy() || ship.playing || player.god || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
     // (locked on, the stick strafes round the foe from the lock's own line, not the camera's turn off it for room: LOCK_ROOM)
     player.update(pdt, busy() ? noInput : benches.inputFor(ctl), rig.yaw - (rig.locked ? rig.lockOff : 0));
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
@@ -2300,8 +2319,8 @@ function frame(ts) {
   // the view, not drawn from inside; his shadow stays (issue #324). Not in a scene, photo mode or a game that takes the camera
   SU.uHeroCut.value = !ship.playing && !photo.on && !minigame?.drives && heroCut(SU.uHeroCut.value > 0.5, camera.position, player.pos, player.frame?.up) ? 1 : 0;
   armTool();
-  tool.update(pdt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
-  gadgets.update(pdt, busy() || photo.on || ship.playing || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
+  tool.update(pdt, ctl, busy() || photo.on || player.god || !!minigame?.drives);   // (a game on foot keeps the blade and the gun; god mode: the triggers fly)
+  gadgets.update(pdt, busy() || photo.on || ship.playing || player.god || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);
   chemistry.update(dt, player.pos);
   trialsRt?.update(dt, t);   // the trials' wind columns and signs (src/trials/)
@@ -2341,7 +2360,7 @@ function frame(ts) {
   // ahead as you come near, then the paper sweeps across, you walk on out of the far side
   portalCool = Math.max(portalCool - dt, 0);
   thresholds?.update(dt, t, camera.position);
-  if (!portalCool && !passage.active && !player.riding && !player.dead && level.portals) {
+  if (!portalCool && !passage.active && !player.riding && !player.dead && !player.god && level.portals) {
     for (const pt of level.portals) {
       const d = player.pos.distanceTo(pt.at);
       // (a doorway that won't take you yet, `when`: its `refuse` said once as you walk into it: the giant's mouth before the backpack)
@@ -2738,7 +2757,7 @@ if (minigameDef) {
   if (transit && !game.flag(ambushKey(transit.to))) game.set(ambushKey(transit.to), 'met');
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings, chimes,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
-    othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open,
+    othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open,
     navigate: (href) => { if (transit && game.flag(ambushKey(transit.to)) === 'met') game.set(ambushKey(transit.to), 'skipped'); flushPlay(); location.href = href; },
     // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
     onResult: (r) => { if (transit && !r.failed) { if (r.chimes && game.flag(ambushKey(transit.to)) !== 'won') resources.addChimes(r.chimes, { source: 'pirates' }); game.set(ambushKey(transit.to), 'won'); } },
@@ -2755,7 +2774,7 @@ trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, leve
     if (minigame) return false;
     minigame = new MinigameRunner(def, { scene, camera, player, physics, level, sound, wind, ship: null, state: game, kick, from: null, tool, foes, rig, settings,
       capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },
-      othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || worldDebug.open,
+      othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open,
       navigate: () => { minigame = null; window.minigame = null; } });
     window.minigame = minigame;
     return true;

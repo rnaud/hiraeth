@@ -241,7 +241,7 @@ report, its table (v1.6 → v1.66 per row), pictures and proposed issues: [cinem
   broadcast from the square, not the console up the tower. `stageCinematic` now branches on the id's part
   (`W.parts[part]` of a merged world), stages the debris, the roots with the stone (`setStone`), the console, and
   an arm's length from the bell rope; `seedReview` gives the desert's films the desert's quest version
-  (`tests/cinematics-page.test.js`, a stand-in world). The world debug menu plays cinematics through the same code.
+  (`tests/cinematics-page.test.js`, a stand-in world). The dev menu's Films tab plays cinematics through the same code.
 - **A lens at NaN**: over the Space City's void `heightAt` answers NaN and `?? site.ground` let it through; the
   arrival's descent drew 3.7 s of black. `Ship.groundAt` / `floorAt` fall back on a finite ground (`tests/ship.test.js`);
   `analyse` counts `badCam` frames and `scoreTechnical` takes 1.5 for them (`tests/cinematics-qc.test.js`).

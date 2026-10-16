@@ -332,6 +332,8 @@ namespace Hiraeth.Bridge
             { Key.LeftAlt, "AltLeft" }, { Key.Tab, "Tab" }, { Key.Escape, "Escape" }, { Key.Enter, "Enter" },
             { Key.UpArrow, "ArrowUp" }, { Key.DownArrow, "ArrowDown" }, { Key.LeftArrow, "ArrowLeft" }, { Key.RightArrow, "ArrowRight" },
             { Key.Digit1, "Digit1" }, { Key.Digit2, "Digit2" }, { Key.Digit3, "Digit3" }, { Key.Digit4, "Digit4" },
+            // (the dev menu's: F2 or ` opens it, [ ] and the page keys turn its tabs; src/dev-menu.js, engine/menus.js)
+            { Key.F2, "F2" }, { Key.Backquote, "Backquote" }, { Key.LeftBracket, "BracketLeft" }, { Key.RightBracket, "BracketRight" }, { Key.PageUp, "PageUp" }, { Key.PageDown, "PageDown" },
         };
         static readonly StringBuilder sb = new();
         /// <summary>The keys held now, comma-separated KeyboardEvent codes.</summary>

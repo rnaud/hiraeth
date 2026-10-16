@@ -50,6 +50,10 @@ export const CHANGELOG = [
     'In the Unity preview the Glass Dunes’ glass holds its dark giants, heads and trees, glows mint and lime where the sun comes through, and pools that light on the sand.',
     'In the Unity preview the light in every doorway, cave mouth and temple door streams in slow rays, as it does on the web.',
     'In the Unity preview a low moon or sun no longer throws the whole land into shade: Viridel’s meadow at dusk keeps its long shadows on lit grass.',
+    // issue #387: src/dev-menu.js (one menu, the game menu's frame), src/world-debug.js devTabs / keyPlaces / godLanding,
+    // src/player.js GOD; engine/menus.js 'dev', engine/game.js, BridgeMenu.cs; tests/dev-menu.test.js
+    { text: 'For testers: the debug menu and the old dev panel are now one dev menu, with tabs like the game menu’s. Its first tab takes you to the world’s key places (the ship, the temples, a few landmarks), the second has the frame-rate readout and a god mode to fly anywhere fast, and the rest hold every other place, the films, quest stages, items and travel. The game pauses while it is open, in the web version and the Unity preview.',
+      see: 'Open it with both sticks clicked (L3 + R3), F2 or `, or the Debug menu’s “dev menu” button on a touch screen; LB / RB move between its tabs.' },
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

@@ -8,7 +8,7 @@
 //             · LT aims the gadget in hand · RT uses it (shoots, throws; the fluid gun is a gadget)
 //             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
 //             · L3 run until you stop · R3 lock on (nothing to lock: the scout finds the objective)
-//             · L3 + R3 (both sticks) the world debug menu (src/world-debug.js)
+//             · L3 + R3 (both sticks) the dev menu (src/dev-menu.js)
 //             · D-pad ↑ choose a gadget (tap: the next; held: the wheel) · ← drink a potion
 //             · ↓ call the mount / a taxi · → the gadget in hand's next mode (one job per button)
 //             · View the sketchbook (on release; View + D-pad: photo, free slots)
@@ -117,7 +117,7 @@ export class Controller {
       else if (press(ok) || talkOn) this.action('confirm');
       else if (ctx === 'menu' && press(WEST)) this.action('x');   // (a menu's own extra buttons: a save's Delete on the title,
       else if (ctx === 'menu' && press(NORTH)) this.action('y');  //  the items page's reset and turn; each carries its glyph)
-      // (both sticks again: the world debug menu closes, as it opened; nothing else in a menu uses them)
+      // (both sticks again: the dev menu closes, as it opened; nothing else in a menu uses them)
       if (ctx === 'menu' && ((press(R3) && down(L3)) || (press(L3) && down(R3)))) this.action('worldDebug');
       // (a page that reads the stick itself, the game menu's Map: it moves a cursor smoothly and the triggers zoom,
       // issue #244; the D-pad still steps)
@@ -195,7 +195,7 @@ export class Controller {
       if (ctx !== 'photo') {
         // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
         // scout to find the objective instead (Tab and Q on the keyboard: src/foes.js, src/scout.js).
-        // Both sticks clicked (L3 + R3, in either order): the world debug menu (src/world-debug.js: teleports,
+        // Both sticks clicked (L3 + R3, in either order): the dev menu (src/dev-menu.js: teleports, god mode,
         // cinematics, the quest's stage, the hitbox overlay), and no lock-on
         if ((press(R3) && down(L3)) || (press(L3) && down(R3))) this.action('worldDebug');
         else if (press(R3)) this.action('lock');

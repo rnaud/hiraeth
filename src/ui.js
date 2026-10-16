@@ -49,7 +49,7 @@ const DEFAULTS = {
   piratePitch: 'auto',  // the chime pirates' stick (src/minigames/pirates.js piratePitch): auto (as the jets' setting) | dive | climb; shown once beaten (issue #224)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
-  hitboxes: false,      // the fight's hitbox overlay (F4, the world debug menu (L3 + R3), the dev menu, the Arena's board: src/hitboxes.js)
+  hitboxes: false,      // the fight's hitbox overlay (F4, the dev menu's Toggles (L3 + R3, F2, `), the Arena's board: src/hitboxes.js)
   hints: DEFAULT_HINTS, // how much the game says (src/hint-level.js): off | subtle (a glyph on approach, the first-time prompts) | full
   hintsV: 1,            // settings saved before v1 had no hints setting (the game said everything): they start on subtle once
   droneHints: DEFAULT_DRONE_HINTS,   // the drone speaking up by itself (src/companion.js): on | fewer | off
@@ -202,7 +202,7 @@ export const MENU_PAGES = ['settings', 'controls'];
 const MENU_ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
 
 export class SettingsMenu {
-  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onDev, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, piratesBeaten = () => false, el = document.getElementById('settings'), title = false }) {
+  constructor(settings, { sound, onResetProgress, isBusy = () => false, onNews, onQuit, onBook, onPhoto, onDebug, onBeforeRestart, where, hasJets = () => false, piratesBeaten = () => false, el = document.getElementById('settings'), title = false }) {
     this.s = settings;
     this.hasJets = hasJets;   // (the jets' pitch row: shown only once the jets are owned, a debug item since v1.38)
     this.piratesBeaten = piratesBeaten;   // (the chime pirates' pitch row: shown only once they have been beaten, issue #224)
@@ -264,7 +264,6 @@ export class SettingsMenu {
       if (a === 'book') { this.toggle(false); onBook?.(at.dataset.panel); }
       if (a === 'title') onQuit?.();
       if (a === 'debug' && devMode({ settings: this.s })) { this.toggle(false); onDebug?.(); }
-      if (a === 'dev') { e.preventDefault(); this.toggle(false); onDev?.(); }
       if (a === 'rebind-reset') { this.s.set(at.dataset.kind === 'pad' ? 'pad' : 'keys', {}); this.syncControls(); el.querySelector(`[data-a="rebind-reset"][data-kind="${at.dataset.kind}"]`)?.focus({ preventScroll: true }); }
       // (an inline question, not confirm(): a controller can answer it)
       if (a === 'reset') this.askReset(true);
@@ -371,8 +370,7 @@ export class SettingsMenu {
               <button data-a="reset-yes">${glyph('ok', { focus: true })}${t('set.resetYes')}</button><button data-a="reset-no">${glyph('back', { key: 'Esc' })}${t('set.resetNo')}</button></div>
           </div>
           <h2 class="dev-group">${t('set.group.dev')}</h2>
-          ${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}
-          ${row(t('set.devMenu'), `<button data-a="dev" type="button">${t('set.devOpen')}</button>`, ' data-dev hidden')}` : ''}
+          ${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}` : ''}
           ${isNativeApp || isDeckApp || isXboxApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
         </section>
         <section class="panel controls" data-page="controls" hidden></section>

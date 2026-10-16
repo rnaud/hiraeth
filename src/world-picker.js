@@ -209,7 +209,7 @@ export const LAST_KEY = 'hiraeth.debugMenu.last';
 export function fillPicker(picker, { levels = [], current = null, cont = null, state = null, sections: given = null, label = 'Filter the Debug menu', remember = true }) {
   const doc = picker.ownerDocument;
   const header = picker.querySelector('header');
-  // (the world debug menu, src/world-debug.js, brings sections of its own: the same header, filter and chips)
+  // (a caller may bring sections of its own: the same header, filter and chips)
   const sections = given ?? menuSections({ levels, current, cont, state });
   // the header: the title, the filter and the close button; under it a chip a section
   const tools = header.querySelector('.tools') ?? header.lastElementChild;
