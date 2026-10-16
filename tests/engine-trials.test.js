@@ -178,7 +178,7 @@ test('the Sunken Hall on its own page in the engine: its card, B / ○ rolls and
 
 // the other worlds' fight temples (issue #341: the Wind Cloister, the Drowned Mill, the Pour Floor) on the same runner:
 // their card, the roll and no jump, a wave up out of the springs, their hazard's lanes coming and hurting, Quit home
-for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust'], ['perdide', 'fight-perdide', 'The Drowned Mill', 'stone'], ['moonfoundry', 'fight-moonfoundry', 'The Pour Floor', 'pour'], ['edena', 'fight-edena', 'The Seed Vault', 'bloom'], ['incal', 'fight-incal', 'The Lift Depot', 'drop'], ['buried', 'fight-buried', 'The Tooth Gallery', 'cart'], ['bazaar', 'fight-bazaar', 'The Back Rooms', 'toll']]) {
+for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloister', 'gust'], ['perdide', 'fight-perdide', 'The Drowned Mill', 'stone'], ['moonfoundry', 'fight-moonfoundry', 'The Pour Floor', 'pour'], ['edena', 'fight-edena', 'The Seed Vault', 'bloom'], ['incal', 'fight-incal', 'The Lift Depot', 'drop'], ['buried', 'fight-buried', 'The Tooth Gallery', 'cart'], ['bazaar', 'fight-bazaar', 'The Back Rooms', 'toll'], ['underwater', 'fight-underwater', 'The Flooded Gallery', 'dark']]) {
   test(`${name} on its own page in the engine: its card, the roll, a wave, its ${kind}, Quit back to ${world}`, async () => {
     const { exports: X } = await load();
     const menus = new EngineMenus({});
@@ -198,13 +198,14 @@ for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloi
     assert.ok(seen >= 1, `the first wave up (${JSON.stringify(plain(S.run))})`);
     // the second room's hazard, begun under him: it comes, runs and is gone
     const def = g.trials.runner.def.table, room = def.rooms[1];
-    const lane = room.hazard.lanes?.[0] ?? (kind === 'drop' ? { spot: [(room.x[0] + room.x[1]) / 2, (room.z[0] + room.z[1]) / 2] } : { sign: room.hazard.signs[0] });
+    const mid = [(room.x[0] + room.x[1]) / 2, (room.z[0] + room.z[1]) / 2];
+    const lane = room.hazard.lanes?.[0] ?? (kind === 'toll' ? { sign: room.hazard.signs[0] } : kind === 'dark' ? { room: true } : { spot: mid });
     assert.equal(room.hazard.kind, kind);
     S.hazards.start(1, lane);
     assert.equal(S.hazards.active, 1);
     await run(g, 30);
     assert.equal(plain(S.hazards.list)[0].kind, kind);
-    await run(g, 240);
+    await run(g, 360);
     assert.equal(S.hazards.active, 0, 'and gone');
     g.trials.runner.ctx.finish({ lines: ['Rooms cleared 4 of 4'] });
     await run(g, 60);

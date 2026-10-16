@@ -165,7 +165,7 @@ export function pickTarget(from, dir, foes, { range = AIM.blade, cone = AIM.cone
   let best = null, score = Infinity, close = null, cd = near;
   const dl = Math.hypot(dir.x, dir.z) || 1, ux = dir.x / dl, uz = dir.z / dl;
   for (const f of foes) {
-    if (!f || f.alive === false || f.phased) continue;
+    if (!f || f.alive === false || f.phased || f.inShade) continue;   // (inShade: the Orchard's shade, hazards.js)
     const dx = f.pos.x - from.x, dz = f.pos.z - from.z, d = Math.hypot(dx, dz);
     if (d > range) continue;
     if (d < cd) { cd = d; close = f; }

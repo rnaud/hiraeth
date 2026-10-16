@@ -49,6 +49,9 @@ export const KIT_COLOURS = [
   // the Signal Market's Back Rooms: the signs' neon (src/fight-temples/bazaar.js)
   { id: 'neon', name: 'Signal neon', world: 'bazaar', pack: { brass: '#62c3c9', brassDark: '#2e7a80', canvas: '#6a5a7a', canvasDark: '#3a3050', cloth: '#ff5fa2', leather: '#1e1a2a' },
     water: { base: '#ff5fa2', cream: '#ffe0f0', deep: '#a82a6a', pale: '#ffb0d4', gold: '#62c3c9', light: '#fff4fa' } },
+  // the Underwater City's Flooded Gallery: pearl and the sea (src/fight-temples/underwater.js)
+  { id: 'pearl', name: 'Pearl and tide', world: 'underwater', pack: { brass: '#e8eef0', brassDark: '#9ab0b8', canvas: '#3f7a8a', canvasDark: '#2a5462', cloth: '#7fe0e8', leather: '#14202e' },
+    water: { base: '#7fe0e8', cream: '#f0fcff', deep: '#2a7a8a', pale: '#c8f4f8', gold: '#e8eef0', light: '#ffffff' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;

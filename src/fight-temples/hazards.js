@@ -17,6 +17,14 @@
 //          load comes down; it lands: a heart, three cuts to every foe under it
 //   toll   (the Signal Market)      a sign on a wall flickers on, then a ring of sound spreads from it across the room:
 //          its edge passing him flinches him (a little harm), every foe it passes stunned and cut
+//   dark   (the Underwater City)    the room's lamps flicker, then go out but for the discs of light under them: out of
+//          the light the cold of the deep takes a little of him each second; foes caught in a lamp's disc are scalded
+//   crack  (the Glass Dunes)        a glass tile of the floor under him (and near him) cracks white, then breaks: a pit
+//          to the kiln's glow, half a heart a tick to him in it, a cut a tick to the foes in it, until it glazes over
+//   shade  (the Garden of Spheres)  a band of the trees' shade sweeps the room end to end as a sphere rolls overhead: in
+//          it the hounds bite (a little harm a tick) and the foes in it can't be aimed at; keep to the light
+//   spill  (the City Floating in Space) a pool of lamp-oil spreads on the deck under him and near him, a spark at its rim,
+//          then it burns: half a heart a tick in it, a cut a tick to the foes in it
 //
 // A room's table: `hazard: { kind, every, n, lanes: [{ along: 'x' | 'z', at, w, dir: ±1 }] }` (`at` across the room,
 // `dir` the way it blows, rolls or flows). Every `every` s of a wave (the last wave a quarter sooner; Gentle 1.6 times as
@@ -35,6 +43,10 @@ export const HAZARD = {
   bloom: { warn: 1.2, secs: 0.35, harm: 0.25, blind: 0.6, stun: 1.2, cut: 1, word: 'the eyes’ flash' },
   drop: { warn: 1.3, radius: 1.7, harm: 0.5, crush: 3, fall: 13, lie: 1.4, word: 'a falling load' },
   toll: { warn: 1.0, speed: 6, band: 0.7, harm: 0.25, stun: 1.0, cut: 1, word: 'the toll' },
+  dark: { warn: 1.2, secs: 3.6, light: 2.4, grace: 0.6, tick: 1.0, harm: 0.25, cut: 1, word: 'the dark' },
+  crack: { warn: 1.1, secs: 3.5, tile: 2, tick: 0.9, harm: 0.25, burn: 1, word: 'a breaking tile' },
+  shade: { warn: 1.0, speed: 2.4, band: 4, tick: 1.2, harm: 0.25, word: 'the shade' },
+  spill: { warn: 1.4, secs: 3, radius: 1.9, tick: 0.8, harm: 0.25, burn: 1, word: 'burning oil' },
   last: 0.75, gentle: 1.6,
 };
 
@@ -75,10 +87,26 @@ export function pickLanes(room, lanes, at, n, rng = Math.random) {
   while (out.length < n && rest.length) out.push(rest.splice(Math.floor(rng() * rest.length), 1)[0]);
   return out;
 }
+/** The tile (its middle) a point is on, the floor's 2 m grid laid from the room's corner. */
+export function tileOf(room, x, z, T = HAZARD.crack.tile) {
+  const ix = Math.floor((x - room.x[0]) / T), iz = Math.floor((z - room.z[0]) / T);
+  return [room.x[0] + (Math.max(0, ix) + 0.5) * T, room.z[0] + (Math.max(0, iz) + 0.5) * T];
+}
+/** Is (x, z) in the lamps' light (a dark room's discs)? */
+export const inLight = (lamps, x, z, r = HAZARD.dark.light) => (lamps ?? []).some(([a, b]) => Math.hypot(x - a, z - b) < r);
+/** The shade's band, `s` m on from its start: [lo, hi] along its axis (it crosses the whole room the other way). */
+export function shadeBand(room, lane, s, H = HAZARD.shade) {
+  const [a0, a1] = lane.along === 'x' ? room.x : room.z;
+  const lead = lane.dir > 0 ? a0 + s : a1 - s;
+  return lane.dir > 0 ? [lead - H.band, lead] : [lead, lead + H.band];
+}
+
 /** Where a round of loads comes down (rules.js geyserSpots' tuning: one under him, the rest near him, apart). */
 const DROP_SPOTS = { warn: 0, radius: 1.7, near: 4.5, inset: 1.6, apart: 3.2 };
 /** The kinds that run on lanes (the rest on spots: `drop` under and round him, `toll` from its room's signs). */
 export const ON_LANES = new Set(['gust', 'stone', 'pour', 'cart', 'bloom']);
+/** The kinds that are the whole room's at once (`dark`) or sweep it (`shade`: its lanes give only the way it goes). */
+export const ROOM_WIDE = new Set(['dark', 'shade']);
 /** How far a toll's ring must spread to have crossed the whole room from its sign. */
 export function tollReach(room, [x, z]) {
   return Math.max(...[[room.x[0], room.z[0]], [room.x[1], room.z[0]], [room.x[0], room.z[1]], [room.x[1], room.z[1]]].map(([a, b]) => Math.hypot(a - x, b - z)));
@@ -215,6 +243,36 @@ export function roomHazards(env) {
       signs.push({ ri, at: [x, z], m });
     }
   });
+  // the dark rooms' lamps (posts and globes, always there) and the dark itself (the floor gone black but for the discs)
+  const lampsOf = [];
+  rooms.forEach((room, ri) => {
+    if (room.hazard?.kind !== 'dark') return;
+    const globes = [];
+    for (const [x, z] of room.hazard.lamps) {
+      const g = new THREE.Group(); g.userData.noCollide = true;
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.4, 6).translate(0, 1.2, 0), dark));
+      const globe = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), hot); globe.position.y = 2.5; g.add(globe);
+      const disc = new THREE.Mesh(new THREE.RingGeometry(HAZARD.dark.light - 0.12, HAZARD.dark.light, 40).rotateX(-Math.PI / 2), pale); disc.position.y = 0.05; disc.renderOrder = 2; g.add(disc);
+      g.position.set(x, 0, z); g.traverse((o) => { o.userData.noCollide = true; });
+      ctx.add(g); globes.push(globe);
+    }
+    const sh = new THREE.Shape();
+    sh.moveTo(room.x[0], -room.z[0]); sh.lineTo(room.x[1], -room.z[0]); sh.lineTo(room.x[1], -room.z[1]); sh.lineTo(room.x[0], -room.z[1]); sh.closePath();
+    for (const [x, z] of room.hazard.lamps) { const h = new THREE.Path(); h.absarc(x, -z, HAZARD.dark.light, 0, Math.PI * 2, true); sh.holes.push(h); }
+    const sheet = new THREE.Mesh(new THREE.ShapeGeometry(sh, 24).rotateX(-Math.PI / 2), FLAT(P.ink)); sheet.position.y = 0.11; sheet.renderOrder = 3; sheet.visible = false; sheet.userData.noCollide = true;
+    ctx.add(sheet);
+    lampsOf[ri] = { globes, sheet };
+  });
+  // the glass floor's tiles, drawn on every room that cracks (a 2 m grid of fine lines)
+  rooms.forEach((room, ri) => {
+    if (room.hazard?.kind !== 'crack') return;
+    const T = HAZARD.crack.tile, g = new THREE.Group(); g.userData.noCollide = true;
+    const line = FLAT(P.inkLite);
+    for (let x = room.x[0] + T; x < room.x[1] - 0.01; x += T) { const m = strip(0.06, room.z[1] - room.z[0], line, 0.04); m.position.x = x; m.position.z = (room.z[0] + room.z[1]) / 2; g.add(m); }
+    for (let z = room.z[0] + T; z < room.z[1] - 0.01; z += T) { const m = strip(room.x[1] - room.x[0], 0.06, line, 0.04); m.position.z = z; m.position.x = (room.x[0] + room.x[1]) / 2; g.add(m); }
+    ctx.add(g);
+    channels.push({ ri, lane: null, g, rims: [] });
+  });
   const rimsOf = (ri, lane) => channels.find((c) => c.ri === ri && c.lane === lane)?.rims ?? [];
 
   function hurtHim(kind, at, amount) {
@@ -230,15 +288,41 @@ export function roomHazards(env) {
   function startSpot(ri, target) {
     const room = rooms[ri], kind = room.hazard.kind, H = HAZARD[kind];
     const g = new THREE.Group(); g.userData.noCollide = true;
-    const a = { ri, room, lane: target, kind, H, g, t: 0, hitHim: false, hit: new Set() };
-    if (kind === 'drop') {
+    const a = { ri, room, lane: target, kind, H, g, t: 0, hitHim: false, hit: new Set(), ticks: new Map(), tickHim: 0 };
+    if (kind === 'crack' || kind === 'spill') {
+      const [x, z] = target.spot;
+      g.position.set(x, 0, z);
+      if (kind === 'crack') {
+        // a white star of cracks on the tile, then the pit
+        a.cracks = [];
+        for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.9 + (i % 3) * 0.25, 0.02, 0.05).translate(0.45, 0, 0), pale); m.rotation.y = (i / 6) * Math.PI * 2 + 0.3; m.position.y = 0.06; m.renderOrder = 2; m.scale.x = 0.05; g.add(m); a.cracks.push(m); }
+        a.pit = new THREE.Mesh(new THREE.PlaneGeometry(H.tile - 0.1, H.tile - 0.1).rotateX(-Math.PI / 2), slag); a.pit.position.y = 0.07; a.pit.visible = false; a.pit.renderOrder = 2; g.add(a.pit);
+        a.core = new THREE.Mesh(new THREE.PlaneGeometry(H.tile * 0.5, H.tile * 0.5).rotateX(-Math.PI / 2), slag2); a.core.position.y = 0.075; a.core.visible = false; a.core.renderOrder = 2; g.add(a.core);
+      } else {
+        a.oil = new THREE.Mesh(new THREE.CircleGeometry(H.radius, 28).rotateX(-Math.PI / 2), dark); a.oil.position.y = 0.065; a.oil.scale.setScalar(0.1); a.oil.renderOrder = 2; g.add(a.oil);
+        a.spark = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), slag2); a.spark.position.set(H.radius * 0.9, 0.2, 0); a.spark.visible = false; g.add(a.spark);
+        a.fire = new THREE.Mesh(new THREE.CircleGeometry(H.radius, 28).rotateX(-Math.PI / 2), slag); a.fire.position.y = 0.07; a.fire.visible = false; a.fire.renderOrder = 2; g.add(a.fire);
+        a.fire2 = new THREE.Mesh(new THREE.RingGeometry(H.radius * 0.35, H.radius * 0.6, 24).rotateX(-Math.PI / 2), slag2); a.fire2.position.y = 0.075; a.fire2.visible = false; a.fire2.renderOrder = 2; g.add(a.fire2);
+      }
+    } else if (kind === 'dark') {
+      a.lamps = lampsOf[ri];
+    } else if (kind === 'shade') {
+      // the shade's band, the trees' shadow, crossing the whole room; its leading edge drawn
+      const L = laneLength(room, target);
+      a.L = L;
+      const w = target.along === 'x' ? room.z[1] - room.z[0] : room.x[1] - room.x[0];
+      a.band = new THREE.Mesh(new THREE.PlaneGeometry(H.band, w).rotateX(-Math.PI / 2), FLAT(P.shade ?? P.ink)); a.band.position.y = 0.08; a.band.renderOrder = 2; a.band.visible = false;
+      a.edge = new THREE.Mesh(new THREE.PlaneGeometry(0.2, w).rotateX(-Math.PI / 2), hot); a.edge.position.y = 0.085; a.edge.renderOrder = 2;
+      if (target.along === 'z') { a.band.rotation.y = Math.PI / 2; a.edge.rotation.y = Math.PI / 2; }
+      g.add(a.band, a.edge);
+    } else if (kind === 'drop') {
       const [x, z] = target.spot;
       g.position.set(x, 0, z);
       a.ring = new THREE.Mesh(new THREE.RingGeometry(H.radius - 0.14, H.radius, 36).rotateX(-Math.PI / 2), hot); a.ring.position.y = 0.08; a.ring.renderOrder = 2;
       a.shadow = new THREE.Mesh(new THREE.CircleGeometry(1.1, 20).rotateX(-Math.PI / 2), dark); a.shadow.position.y = 0.06; a.shadow.renderOrder = 2;
       a.load = loadModel(P); a.load.position.y = H.fall;
       g.add(a.ring, a.shadow, a.load);
-    } else {
+    } else if (kind === 'toll') {
       a.sign = signs.find((q) => q.ri === ri && q.at === target.sign) ?? null;
       const [x, z] = target.sign;
       g.position.set(x, 0, z);
@@ -256,7 +340,7 @@ export function roomHazards(env) {
   /** One lane's hazard begun: its warning on the floor. */
   function start(ri, lane) {
     const room = rooms[ri], kind = room.hazard.kind, H = HAZARD[kind];
-    if (!ON_LANES.has(kind)) return startSpot(ri, lane);
+    if (!ON_LANES.has(kind)) return startSpot(ri, lane ?? {});
     const g = new THREE.Group(); g.userData.noCollide = true;
     const L = layLane(g, room, lane, 0);
     const a = { ri, room, lane, kind, H, g, L, t: 0, hitHim: false, hit: new Set(), ticks: new Map(), tickHim: 0 };
@@ -298,6 +382,8 @@ export function roomHazards(env) {
   function stop(a) {
     a.g.removeFromParent();
     if (a.sign) a.sign.m.board.material = dark;
+    if (a.lamps) { a.lamps.sheet.visible = false; for (const m of a.lamps.globes) m.material = hot; }
+    if (a.phased) for (const f of a.phased) f.inShade = false;
     if (a.rims) for (const m of a.rims) m.material = rust;
     active.splice(active.indexOf(a), 1);
   }
@@ -409,6 +495,61 @@ export function roomHazards(env) {
       a.load.position.y = -Math.max(0, tl - H.lie * 0.6) * 2.5;   // (it sinks away through the floor as the crane takes it)
       return tl >= H.lie ? -1 : a.t;
     }
+    if (a.kind === 'crack' || a.kind === 'spill') {
+      const [x, z] = a.lane.spot, k = Math.min(1, a.t / H.warn);
+      if (a.kind === 'crack') for (const m of a.cracks) m.scale.x = 0.05 + 0.95 * k;
+      else { a.oil.scale.setScalar(0.1 + 0.9 * Math.sqrt(k)); a.spark.visible = k > 0.7 && Math.floor(a.t * 18) % 2 === 0; }
+      if (!blowing) return a.t;
+      const tb = a.t - H.warn;
+      if (!a.opened) {
+        a.opened = true;
+        env.sfx?.splash?.(); env.sound?.foeWarn?.('ink');
+        if (a.kind === 'crack') { for (const m of a.cracks) m.visible = false; a.pit.visible = a.core.visible = true; }
+        else { a.oil.visible = false; a.spark.visible = false; a.fire.visible = a.fire2.visible = true; }
+      }
+      if (a.fire2) a.fire2.scale.setScalar(1 + 0.15 * Math.sin(a.t * 9));
+      if (Math.random() < 0.5) tool?.glow?.add?.({ pos: _v.set(x + (Math.random() - 0.5) * 1.6, 0.2, z + (Math.random() - 0.5) * 1.6), vel: _w.set(0, 1.5 + Math.random() * 2, 0), drag: 1, size: 0.06, life: 0.5, color: P.slag2 ?? '#ffd36a' });
+      const inIt2 = (p, pad = 0) => (a.kind === 'crack' ? Math.abs(p.x - x) < H.tile / 2 + pad && Math.abs(p.z - z) < H.tile / 2 + pad : Math.hypot(p.x - x, p.z - z) < H.radius + pad);
+      if (!player.dead && inIt2(player.pos, -0.15)) { if ((a.tickHim -= dt) <= 0) { a.tickHim = H.tick; hurtHim(a.kind, _v.set(x, 0, z).clone(), H.harm); } } else a.tickHim = 0;
+      for (const f of live) {
+        if (f.def.hover || !inIt2(f.pos, 0)) continue;
+        const kk = (a.ticks.get(f) ?? 0) - dt;
+        if (kk <= 0) { a.ticks.set(f, H.tick); hurtFoe(f, [f.pos.x - x, f.pos.z - z], H.burn, a.kind); } else a.ticks.set(f, kk);
+      }
+      return tb >= H.secs ? -1 : a.t;
+    }
+    if (a.kind === 'dark') {
+      const lamps = room.hazard.lamps, L = a.lamps;
+      if (!blowing) { for (const m of L.globes) m.material = Math.sin(a.t * (12 + 18 * a.t / H.warn)) > 0 ? hot : dark; L.sheet.visible = a.t > H.warn * 0.75 && Math.floor(a.t * 16) % 2 === 0; return a.t; }
+      const tb = a.t - H.warn;
+      for (const m of L.globes) m.material = hot;
+      L.sheet.visible = tb < H.secs;
+      if (!a.went) { a.went = true; env.sound?.foeWarn?.('ink'); a.tickHim = H.grace; }
+      if (!player.dead && !inLight(lamps, player.pos.x, player.pos.z)) { if ((a.tickHim -= dt) <= 0) { a.tickHim = H.tick; hurtHim('dark', player.pos.clone().add(_v.set(0.5, 0, 0.5)), H.harm); } }
+      for (const f of live) {
+        if (!inLight(lamps, f.pos.x, f.pos.z)) continue;
+        const kk = (a.ticks.get(f) ?? 0) - dt;
+        if (kk <= 0) { a.ticks.set(f, H.tick); hurtFoe(f, [1, 0], H.cut, 'dark'); } else a.ticks.set(f, kk);
+      }
+      return tb >= H.secs ? -1 : a.t;
+    }
+    if (a.kind === 'shade') {
+      const lane = a.lane, k = lane.along === 'x' ? 'x' : 'z';
+      const s0 = (a.t - H.warn) * H.speed;
+      const [lo, hi] = shadeBand(room, lane, Math.max(0, s0));
+      const mid = (lo + hi) / 2, edgeAt = lane.dir > 0 ? hi : lo;
+      const cAcross = lane.along === 'x' ? (room.z[0] + room.z[1]) / 2 : (room.x[0] + room.x[1]) / 2;
+      const put = (m, v) => { if (k === 'x') m.position.set(v, m.position.y, cAcross); else m.position.set(cAcross, m.position.y, v); };
+      put(a.band, mid); put(a.edge, edgeAt);
+      a.band.visible = blowing;
+      if (!blowing) { a.edge.visible = Math.floor(a.t * 10) % 2 === 0; return a.t; }
+      a.edge.visible = true;
+      const inShade = (p) => p[k] > lo && p[k] < hi;
+      if (!player.dead && inShade(player.pos)) { if ((a.tickHim -= dt) <= 0) { a.tickHim = H.tick; hurtHim('shade', player.pos.clone().add(_v.set(k === 'x' ? -lane.dir : 0, 0, k === 'z' ? -lane.dir : 0)), H.harm); } } else a.tickHim = Math.min(a.tickHim, 0.4);
+      a.phased ??= new Set();
+      for (const f of live) { const on = inShade(f.pos); if (on && !f.inShade) { f.inShade = true; a.phased.add(f); } else if (!on && a.phased.has(f)) { f.inShade = false; a.phased.delete(f); } }
+      return s0 > a.L + H.band ? -1 : a.t;
+    }
     if (a.kind === 'toll') {
       // the sign flickers on, then the ring of sound spreads from it across the room
       if (a.sign) a.sign.m.board.material = !blowing ? (Math.sin(a.t * (10 + 20 * a.t / H.warn)) > 0 ? hot : dark) : hot;
@@ -459,7 +600,13 @@ export function roomHazards(env) {
         T = 0;
         const busy = new Set(active.filter((a) => a.ri === room).map((a) => a.lane));
         const n = R.hazard.n ?? 1;
-        if (R.hazard.kind === 'drop') for (const spot of geyserSpots(R, player.pos, n, Math.random, { ...DROP_SPOTS })) start(room, { spot });
+        if (R.hazard.kind === 'drop' || R.hazard.kind === 'spill') for (const spot of geyserSpots(R, player.pos, n, Math.random, { ...DROP_SPOTS, ...(R.hazard.kind === 'spill' ? { radius: 2.1, apart: 4.4 } : {}) })) start(room, { spot });
+        else if (R.hazard.kind === 'crack') {
+          // (the tile under him and the tiles near him, never one already broken)
+          const tiles = geyserSpots(R, player.pos, n, Math.random, { ...DROP_SPOTS, radius: 1, apart: 2.1, inset: 1 }).map(([x, z]) => tileOf(R, x, z));
+          for (const spot of tiles) if (!active.some((a) => a.lane?.spot && a.lane.spot[0] === spot[0] && a.lane.spot[1] === spot[1])) start(room, { spot });
+        } else if (R.hazard.kind === 'dark') { if (!active.some((a) => a.ri === room)) start(room, { room: true }); }
+        else if (R.hazard.kind === 'shade') { if (!active.some((a) => a.ri === room)) start(room, R.hazard.lanes[Math.floor(Math.random() * R.hazard.lanes.length)]); }
         else if (R.hazard.kind === 'toll') {
           // (the signs farthest from him first: the ring has room to be seen coming)
           const S = R.hazard.signs.slice().sort((p, q) => Math.hypot(q[0] - player.pos.x, q[1] - player.pos.z) - Math.hypot(p[0] - player.pos.x, p[1] - player.pos.z));

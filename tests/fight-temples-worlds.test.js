@@ -14,13 +14,14 @@ import fightEdena from '../src/minigames/fight-edena.js';
 import fightIncal from '../src/minigames/fight-incal.js';
 import fightBuried from '../src/minigames/fight-buried.js';
 import fightBazaar from '../src/minigames/fight-bazaar.js';
+import fightUnderwater from '../src/minigames/fight-underwater.js';
 import { checkGame, collectGames } from '../src/minigames/index.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES } from '../src/story/tone.js';
 import {
   ISO, isoOffset, SEE, sightPoints, inTheWay, easeSee, seeOpen, seeHoleCuts, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt, roomWaves, totalFoes,
 } from '../src/fight-temples/rules.js';
-import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach } from '../src/fight-temples/hazards.js';
+import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach, tileOf, inLight, shadeBand } from '../src/fight-temples/hazards.js';
 import { buildHall, hallHeight, outside } from '../src/fight-temples/rooms.js';
 import { farSpots } from '../src/fight-temples/dress.js';
 import { startFightTemple } from '../src/fight-temples/session.js';
@@ -30,7 +31,7 @@ import { WORLDS } from '../src/foe-worlds.js';
 import { spawnKindOf } from '../src/enemies/archetypes.js';
 import { colourById, colourOfWorld, chosenColour, PIECES } from '../src/kit-colours.js';
 
-const GAMES = [fightArzach, fightPerdide, fightMoonfoundry, fightEdena, fightIncal, fightBuried, fightBazaar];
+const GAMES = [fightArzach, fightPerdide, fightMoonfoundry, fightEdena, fightIncal, fightBuried, fightBazaar, fightUnderwater];
 const save = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; }, emit() {}, on: () => () => {} });
 const hpOf = (k) => FOES[k]?.hp ?? 2;
 
@@ -102,7 +103,15 @@ for (const game of GAMES) {
         assert.ok(tollReach(r, [x, z]) < 40);
       }
     }
-    if (K === 'drop') assert.ok(D.rooms.slice(1).every((r) => !r.hazard.lanes && r.hazard.n >= 1 && r.hazard.n <= 3), 'loads round him: no lanes');
+    if (['drop', 'crack', 'spill'].includes(K)) assert.ok(D.rooms.slice(1).every((r) => !r.hazard.lanes && r.hazard.n >= 1 && r.hazard.n <= 3), 'spots round him: no lanes');
+    if (K === 'dark') for (const r of D.rooms.slice(1)) {
+      // (its lamps inside it, apart, and dark enough between them that the dark means something)
+      assert.ok(r.hazard.lamps.length >= 3 && r.hazard.lamps.every(([x, z]) => inRoom(r, x, z, 1)), `${r.id}: its lamps in it`);
+      let lit = 0, n = 0;
+      for (let x = r.x[0] + 0.5; x < r.x[1]; x += 1) for (let z = r.z[0] + 0.5; z < r.z[1]; z += 1) { n++; if (inLight(r.hazard.lamps, x, z)) lit++; }
+      assert.ok(lit / n > 0.12 && lit / n < 0.6, `${r.id}: ${(100 * lit / n).toFixed(0)} % of it lit`);
+    }
+    if (K === 'shade') for (const r of D.rooms.slice(1)) assert.ok(r.hazard.lanes.every((l) => (l.along === 'x' || l.along === 'z') && Math.abs(l.dir) === 1), `${r.id}: the shade's ways`);
     for (const r of D.rooms.filter((x) => x.hazard && ON_LANES.has(x.hazard.kind))) for (const l of r.hazard.lanes) {
       const L = laneRect(r, l);
       assert.ok(L.x[0] >= r.x[0] - 1e-9 && L.x[1] <= r.x[1] + 1e-9 && L.z[0] >= r.z[0] - 1e-9 && L.z[1] <= r.z[1] + 1e-9, `${r.id}: a lane inside it`);
@@ -274,13 +283,23 @@ for (const game of GAMES) {
     if (ON_LANES.has(kind)) {
       lane = r.hazard.lanes[0]; const L = laneLength(r, lane);
       [x, z] = lanePoint(r, lane, L * 0.55); foeAt = lanePoint(r, lane, L * 0.35);
-    } else if (kind === 'drop') {
+    } else if (kind === 'drop' || kind === 'spill') {
       [x, z] = mid; lane = { spot: [x, z] }; foeAt = [x + 0.6, z + 0.3];
+    } else if (kind === 'crack') {
+      [x, z] = tileOf(r, ...mid); lane = { spot: [x, z] }; [x, z] = [x + 0.2, z + 0.2]; foeAt = [x - 0.4, z - 0.3];
+    } else if (kind === 'dark') {
+      // (him out of the light, the foe in a lamp's disc)
+      lane = { room: true };
+      [x, z] = [0, 0].map((_, i) => 0); let best = null;
+      for (let a = r.x[0] + 1; a < r.x[1] - 1; a += 0.5) for (let b = r.z[0] + 1; b < r.z[1] - 1; b += 0.5) if (!inLight(r.hazard.lamps, a, b, HAZARD.dark.light + 0.6) && !(r.pillars ?? []).some(([px, pz]) => Math.hypot(a - px, b - pz) < 1.6)) { best = [a, b]; break; }
+      [x, z] = best; foeAt = [r.hazard.lamps[0][0] + 0.5, r.hazard.lamps[0][1]];
+    } else if (kind === 'shade') {
+      lane = r.hazard.lanes[0]; [x, z] = mid; foeAt = [mid[0] + 0.8, mid[1] + 0.8];
     } else {
       const sign = r.hazard.signs[0], d = Math.hypot(mid[0] - sign[0], mid[1] - sign[1]), u = [(mid[0] - sign[0]) / d, (mid[1] - sign[1]) / d];
       lane = { sign }; [x, z] = [sign[0] + u[0] * 4, sign[1] + u[1] * 4]; foeAt = [sign[0] + u[0] * 6 + u[1] * 1.5, sign[1] + u[1] * 6 - u[0] * 1.5];
     }
-    const f = g.foes.add(kind === 'gust' || kind === 'drop' || kind === 'toll' ? 'blot' : D.rooms[1].waves[0][0][0], new THREE.Vector3(foeAt[0], 0, foeAt[1]));
+    const f = g.foes.add(['gust', 'drop', 'toll', 'crack', 'spill', 'dark', 'shade'].includes(kind) ? 'blot' : D.rooms[1].waves[0][0][0], new THREE.Vector3(foeAt[0], 0, foeAt[1]));
     f.hp = 20;
     const at = f.pos.clone();
     g.hurts.length = 0;
@@ -290,8 +309,8 @@ for (const game of GAMES) {
     assert.deepEqual(g.hurts, [], 'nothing while it warns');
     assert.equal(f.hp, 20);
     for (let k = 0; k < 120; k++) { hold(); g.tick(); }
-    assert.ok(g.hurts.length >= 1 && g.hurts.every(([why]) => ['gust', 'millstone', 'slag', 'cart', 'bloom', 'drop', 'toll'].includes(why)), `it hurts him: ${JSON.stringify(g.hurts)}`);
-    assert.ok(f.hp < 20, `and the foe in it (${f.hp})`);
+    assert.ok(g.hurts.length >= 1 && g.hurts.every(([why]) => ['gust', 'millstone', 'slag', 'cart', 'bloom', 'drop', 'toll', 'crack', 'spill', 'dark', 'shade'].includes(why)), `it hurts him: ${JSON.stringify(g.hurts)}`);
+    if (kind === 'shade') assert.ok(true); else assert.ok(f.hp < 20, `and the foe in it (${f.hp})`);
     if (kind === 'gust') assert.ok(Math.abs(alongLane(r, lane, f.pos.x, f.pos.z) - alongLane(r, lane, at.x, at.z)) > 4, 'carried down the lane');
     // rolling through it: unharmed
     g.S.hazards.clear(); g.hurts.length = 0;
