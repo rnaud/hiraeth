@@ -31,6 +31,7 @@ export const PAGES = [
   { href: 'changelog.html', label: 'What\'s new', hint: 'every change, with pictures' },
   { href: 'audits.html', label: 'Audits', hint: 'every audit report, its scores and findings, and how they changed' },
   { href: 'serendipity.html', label: 'Serendipity map', hint: 'each world in 3D with its temples, quests, people, places, shards and boxes, and its empty stretches' },
+  { href: 'temples.html', label: 'Temple maps', hint: 'every makers’ and fight temple: its plan per floor, its lock-and-key graph, its solution step by step, its numbers' },
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
   { href: 'enemies.html', label: 'Creatures & spirits', hint: 'the enemies of every world, their attacks, and Arena practice' },
   { href: 'studio.html', label: 'Character studio', hint: 'the people alone, to tune them' },

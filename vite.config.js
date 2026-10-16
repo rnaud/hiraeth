@@ -37,6 +37,8 @@ export const BUILD_INPUT = {
   music: fileURLToPath(new URL('./music.html', import.meta.url)),
   // the serendipity map (src/serendipity-page/: a world in 3D with every thing of interest on it by kind, issue #381)
   serendipity: fileURLToPath(new URL('./serendipity.html', import.meta.url)),
+  // the temple maps (src/temple-maps/: each temple's plan, lock-and-key graph, solution and numbers, issue #396)
+  temples: fileURLToPath(new URL('./temples.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**

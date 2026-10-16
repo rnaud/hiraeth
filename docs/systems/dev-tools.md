@@ -280,6 +280,45 @@ of interest (foes left out), the emptiest walkable spot (a red ring of that radi
 where the dev menu's teleports go anywhere. `tests/serendipity-map.test.js` builds every world the picker offers and
 checks the collector finds things in each (a route world: its temple, main quest, people and every fragment).
 
+## The temple maps (issue #396: `temples.html`, `src/temple-maps/`)
+
+Debug → Pages → Temple maps: every makers' temple and every fight temple as a map the author reviews and comments on,
+one at a time (`?t=<id>`; `?step=`, `?floor=`, `?view=plan|graph|three` keep the place, and a fight temple's run
+`?seed=<n>`, with a seed box and "new run" since `generate.js` draws each run afresh). Everything comes from the
+temples' own data and solver, nothing by hand:
+
+- **The plan** (`record.js`): the temple built in node or the page as the game builds it (its runtime and layout, no
+  world, no outside) with the kit's own plan switched on (`TempleKit.plan`: halls, round halls with their gaps,
+  corridors, walls with their doorways) and the floors it has no entry for recorded beside it (slabs and ledges,
+  stairs, ramps, bridges, shafts), plus the pieces the layout placed (as the design audit records them). Floors are
+  the rooms' heights grouped (a new floor more than 4.5 m up; `floorsOf`), each its own colour, a switcher to show one
+  (the rest faded); lifts and winds (riding discs, updrafts) drawn with the floors they join; doors marked by kind (D a
+  door, K a small lock, G the great lock, = a bridge, B the guardian's). A fight temple's plan is its drawn run's rooms,
+  walls and gates, pillars, ink springs, hazard lanes, signs and lamps, and the altar (`fights.js`).
+- **The flow graph**: rooms as boxes listing what is in them, in rows by stage (how many room-opening steps came
+  before each could be reached), linked by open ways, doors, locks, bridges, the ways only an item makes, one-way
+  drops and the guardian's doors; each key or clue drawn as a dashed arrow from where it sits to the lock it opens, in
+  that lock's colour (the design audit's `puzzleGraph`, `scripts/temple-design/lib.mjs`: rooms away, metres, and
+  whether it is in sight of the lock through the temple's own walls).
+- **The solution** (`makers.js`): `logic.js solve()` with what the route has given by then (`carriedInto`, as the
+  audit has it), step by step, each with the walk to it through the doors open at that moment (the cheapest way over
+  the rooms' middles and their doorways), what it opens, its verbs, and its lock with the key's distance and sight.
+  What nothing waits on (a test scale, a coffer, a wing that is only a shortcut, what is worked during the guardian's
+  fight) is found by solving again without it and listed apart as extras; the steps end with the guardian. Numbered
+  badges and the walk over the plan, the current step in red; ◀ ▶ (or the arrow keys) step through, a hover shows
+  the step's room. A fight temple's steps are its run's waves room by room (foes in words, the hazard to mind), then
+  the reliquary.
+- **The numbers**: rooms, floors, keys and locked doors, puzzles, steps (and extras), metres walked on the solution
+  path, the furthest clue from its lock, the times the path goes back into a room it had left, the verbs and how often.
+- **3D** (makers' temples): the built rooms flat shaded, the roofs cut a storey over the floor looked at, the walk and
+  the steps on it.
+
+Every temple and step has a stable id to name in a comment (`moonfoundry`, `moonfoundry-3`, an extra
+`moonfoundry-x2`; a fight temple's `fight-desert-4` with its run's seed): click one to copy it. Rooms are named from
+their ids (`roomName`: "furnaceFar" is "furnace, far side"). `tests/temple-maps.test.js` checks every temple has a plan,
+a graph and a complete solution, and plays each makers' temple's steps again on a fresh logic, each step's room in
+reach when it comes, until its guardian is resolved.
+
 ## Design audits: level and temple
 
 Two read-only measuring tools behind the `level-design-qc` and `temple-design-qc` skills (`.claude/skills/`):
