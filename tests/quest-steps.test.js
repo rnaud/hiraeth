@@ -175,3 +175,55 @@ test('no quest ends carrying one person’s answer back to another (issue #279)'
   assert.ok(n > 3, `${n} quests end on a thing brought`);
   assert.deepEqual(bad, []);
 });
+
+// "Hints say where, not who" (the author, October 2026, from the Lorn arrival line "A huge crystal hums east of the
+// landing. Wendel the egg-warden knows the way; Saba listens at its foot."): no hint or pointer sends you to a person
+// instead of saying where the thing is. Not the worlds' arrival lines, the steps, the makers' boxes' hints and notes, the
+// rumours, nor anybody's line in the story and temple data: no “X knows the way”, “X can show you”, “ask X”, “X is up
+// under the tree”, “X sits by it” after the place. A line where talking to the person is itself the goal (Nour calling
+// you over) or the traveller's own answer is on the allow-list.
+const POINTER_FILES = () => [
+  ...readdirSync(new URL('levels/', SRC)).filter((x) => x.endsWith('.js')).map((x) => `levels/${x}`),
+  ...readdirSync(new URL('story/', SRC)).filter((x) => x.endsWith('.js')).map((x) => `story/${x}`),
+  ...readdirSync(new URL('temples/', SRC)).filter((x) => /-data\.js$/.test(x)).map((x) => `temples/${x}`),
+  'boxes/placements.js',
+];
+const POINTER_OK = [
+  'Nour wants a word',                                 // (the desert's step: Nour comes over and calls you; the talk is the step)
+  '~playful~ I’ll ask Calix to ring it loud.',         // (the traveller's own answer, not a hint)
+  '~solemn~ Keep it. Use it. Go down and see Pip.',    // (the traveller to Dov, handing his token back)
+  'You pressed his lift token back into his hand: go down and see Pip.',   // (the people book: what you did, Dov's day off)
+  'They wanted to ask the Great Crystal about the light.',   // (Odile and Talo, long ago: a thing, not a way)
+];
+test('no hint or pointer names a person as the way: they say where, not who', async () => {
+  const names = new Set();
+  const look = (v) => { if (v && typeof v === 'object' && typeof v.name === 'string' && (v.talk || v.lines || v.title) && /^\p{Lu}[\p{L}-]*( \p{Lu}[\p{L}-]*)*$/u.test(v.name)) { names.add(v.name); names.add(v.name.split(' ').at(-1)); } };
+  for (const d of ['story/', 'temples/']) for (const f of readdirSync(new URL(d, SRC)).filter((x) => /-(data|people)\.js$/.test(x))) {
+    for (const v of Object.values(await import(new URL(`${d}${f}`, SRC)))) {
+      if (Array.isArray(v)) v.forEach(look);
+      else if (v && typeof v === 'object') { look(v); for (const w of Object.values(v)) { look(w); if (Array.isArray(w)) w.forEach(look); } }
+    }
+  }
+  for (const n of ['The', 'Old', 'Young']) names.delete(n);
+  assert.ok(['Wendel', 'Saba', 'Kesh', 'Hobb', 'Achille', 'Nour', 'Sel'].every((n) => names.has(n)), `${names.size} people`);
+  const N = [...names].sort((a, b) => b.length - a.length).map(escape).join('|');
+  const POINTERS = [
+    new RegExp(`\\b(${N})\\b[^.;!?]{0,40}\\b(knows the way|(will|can|could|’ll) (tell|show) you|will want to see you|wants a word|will help you)`, 'u'),
+    new RegExp(`\\b(ask|talk to|speak to|speak with|go and see|go and ask|go (?:up |down )?and see|go to see)\\s+(old |young |little |the |Uncle |Aunt |Grandmother |Mother |Brother |Sister |Madame )?(${N})\\b(?![’'])`, 'iu'),
+    new RegExp(`\\b(${N})\\b,?[^.;!?]{0,40}\\b(listens|waits|sits) (at|by|beside) (it|its)\\b`, 'u'),
+    new RegExp(`\\b(${N}) is (up|down|out|over|on the|by the|at the)\\b`, 'u'),
+    /\b(Start|Begin) with (its|the) people\b/,
+  ];
+  const bad = [];
+  for (const f of POINTER_FILES()) {
+    for (const [i, line] of readFileSync(new URL(f, SRC), 'utf8').split('\n').entries()) {
+      if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;   // (comments)
+      const strs = line.replace(/\s\/\/ .*$/, '').match(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g) ?? [];
+      for (const s of strs) {
+        if (POINTER_OK.some((ok) => s.includes(ok))) continue;
+        if (POINTERS.some((p) => p.test(s))) bad.push(`${f}:${i + 1}: ${s.slice(1, 100)}`);
+      }
+    }
+  }
+  assert.deepEqual(bad, []);
+});

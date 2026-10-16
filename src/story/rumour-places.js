@@ -36,7 +36,7 @@ export const RUMOUR_PLACES = {
   perdide: [
     '=near', '=near', 'on the keepers’ canopy, high over the wood', 'among the keepers’ stalks',
     'on the egg isle’s heap, in the drowned wood', 'halfway up the keepers’ stair', '=near', '=near', '=walls',
-    'by Wendel’s lookout', '=walls', 'on a shroom’s cap+', 'at the foot of the keepers’ stair', '=walls', '=walls', '=walls',
+    'by the crystal lookout east of the landing', '=walls', 'on a shroom’s cap+', 'at the foot of the keepers’ stair', '=walls', '=walls', '=walls',
     '=walls', '=walls', '=walls', '=end', '=walls', '=end', '=walls', '=high',
   ],
   edena: [

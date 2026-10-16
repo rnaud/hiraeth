@@ -53,6 +53,11 @@ export const CHANGELOG = [
     // plain speech (issue #369): townsfolk, crowd and balloon lines, hosts, shopkeepers and Anselm Thrum rewritten plainly
     // across src/story/*-data.js, src/levels/*.js, hosts-data.js, shop-data.js, scientist-data.js, rumours-data.js
     'People who aren’t part of a quest now talk plainly: Anselm Thrum, the shopkeepers, the games’ hosts and the townsfolk say what they mean, where things are and what to do, instead of riddles and sayings. The people whose quests you follow keep their own way of speaking.',
+    // hints say where, not who: arrival lines (levels/perdide.js, spheres.js, content.js), townsfolk pointers
+    // (desert-data, bazaar-data, aliens-data, underwater-people, buried-data, perdide-data, arzach-data), the Lorn
+    // box's hint and note (boxes/placements.js), a rumour (rumour-places.js); tests/quest-steps.test.js "where, not who"
+    { text: 'Hints now say where to go, not who to find: arriving in Lorn you hear the crystal is east of the landing, over the hill and through the ford, instead of who knows the way; the same for the Signal Market, the Garden of Spheres and the desert’s arrival lines, and for townsfolk who used to send you to someone sitting by the place they had just named.',
+      see: 'Before, arriving in Lorn: “A huge crystal hums east of the landing. Wendel the egg-warden knows the way; Saba listens at its foot.” Now: “A huge crystal hums east of the landing, over the hill and through the ford.” Before, the Signal Market: “Sel waits at its foot with a message nobody has heard.” Now: “one silent tower at the avenue’s end with a message nobody has heard.” In Vael, rapping the stone hand: before “Kesh, beside the hand, can show you”, now “the dots on each knuckle count it out”.' },
     // the traveller's feet, issue #47's fourth round: src/player.js FACE.runMax, src/feet.js FEET.landBack 0.2 -> 0.3,
     // pivotFinish, releaseLag / releaseLagRise / releaseLagLevel, rideDownAhead, src/loco-moves.js MOVES.smooth;
     // tests/motion-qc.test.js ("fourth round"; the stairs at a run still todo)

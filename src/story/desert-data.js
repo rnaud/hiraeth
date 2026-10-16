@@ -1084,9 +1084,9 @@ export const LINES = {
   gate: ['~neutral~ We wait here for the Speaker’s word.', '~sad~ The roots are dry and the tree is cold. Imagine.', '~neutral~ Mind the steps, they’re older than the walls.'],
   // until the chest is open: everyone points the stranger on toward the city and the tree (desert.js mixes these in)
   waveOn: {
-    camp: ['~shout~ The city’s that way, sky-stranger. *Under the big dark tree*!', '~happy~ Go on in! Nour will want to see you.', '~neutral~ Through the big gate and *up to the tree*.', "~surprised~ You’re from the ship? Nour’s chest has been humming since you arrived."],
+    camp: ['~shout~ The city’s that way, sky-stranger. *Under the big dark tree*!', '~happy~ Go on in! *The tree’s at the top of the city.*', '~neutral~ Through the big gate and *up to the tree*.', "~surprised~ You’re from the ship? The chest under the tree has been humming since you arrived."],
     procession: ['~shout~ Qanat’s ahead, stranger, under the great tree!', '~angry~ Keep the step, or go on to the city. Not both!', '~solemn~ Go on up to the tree. The chest there is humming.'],
-    gate: ['~neutral~ Go on up to *the tree*. Something there is humming.', '~neutral~ Nour is up *under the tree*. Mind the steps.', '~happy~ Up the stairs, stranger. Everyone’s waiting to see.'],
+    gate: ['~neutral~ Go on up to *the tree*. Something there is humming.', '~neutral~ Straight up, *under the tree*. Mind the steps.', '~happy~ Up the stairs, stranger. Everyone’s waiting to see.'],
   },
 };
 
@@ -1139,7 +1139,7 @@ export const CALLS = {
 export const VILLAGER_TALK = {
   name: 'Someone from Qanat', title: 'of Qanat', color: '#e6875f', voice: 1.0,
   talk: { listen: [
-    { if: { not: BACKPACK }, say: '~playful~ That’s *the Givers’ chest, at the tree’s foot*. It never opens. Nour sits beside it, in case. Go and look, if you like; it hums at people.' },
+    { if: { not: BACKPACK }, say: '~playful~ That’s *the Givers’ chest, at the tree’s foot*. It never opens. Go and look, if you like; it hums at people.' },
     { if: { not: BACKPACK }, say: '~whisper~ The chest hums louder when you’re near. Don’t tell Nour I said so, she’ll make you sit with her all day.' },
     { after: BACKPACK, say: '~playful~ I was there when it opened! Well. Near. I heard it. My grandmother is going to say she saw it, and she was asleep.' },
     '~tired~ I’ve work to do, sky-stranger. Qanat doesn’t sweep itself. Well. Mim sweeps it.',

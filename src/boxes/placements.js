@@ -111,7 +111,7 @@ export const PLACEMENTS = {
     // to the bell world, and is the belfry's key now. The spire keeps the hush-cloth, a gift in the open
     { id: 'arzach.hush', item: 'hush', at: [172.5, 86.2, -278], toward: [0, 0],
       hint: 'On the needle spire out on the plain',
-      note: 'The flat cap of the needle spire on the plain halfway from the landing to the lone tower, where Senn listens; climb it or land the bird on it.' },
+      note: 'The flat cap of the needle spire on the plain halfway from the landing to the lone tower; climb it or land the bird on it.' },
     // the Aerie (src/temples/arzach.js): in its round chamber over the feather stair. The wings are the key to the
     // rest: the gulf, the wind well, the Elder, who will not fly alone
     { id: 'arzach.temple.glider', item: 'glider', temple: 'arzach', site: templeSite('arzach'),
@@ -206,8 +206,8 @@ export const PLACEMENTS = {
     // It held the stilling mode until the Hush-House was built (src/temples/perdide.js): the stilling mode is the
     // house's key now, and the lookout keeps the breathing reed, a gift in the open
     { id: 'perdide.reed', item: 'reed', at: [62, 37, -32], toward: [0, 0],
-      hint: 'On top of Wendel’s crystal lookout',
-      note: 'On top of Wendel’s lookout, the stepped teal crystal on the mossy rise east of the landing: four short climbs and the last.' },
+      hint: 'On the crystal lookout east of the landing',
+      note: 'On top of the crystal lookout, the stepped teal crystal on the mossy rise east of the landing: four short climbs and the last.' },
     // the Hush-House (src/temples/perdide.js): in its round chamber over the bog well. The stilling mode is the key
     // to the rest: the gates of jaws, the pendulums, the Mother Snapper
     { id: 'perdide.temple.stun', item: 'stun', temple: 'perdide', site: templeSite('perdide'),

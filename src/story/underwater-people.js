@@ -185,7 +185,7 @@ export const PEOPLE = {
         },
         why: { say: ['~whisper~ Something in the Whale-House calls them off. It used to call them in. The makers built it to talk to them, long before the city.'], choices: [{ text: '~curious~ The Whale-House?', goto: 'house' }] },
         house: {
-          say: ['~neutral~ *The Whale-House*, the makers’ old sounding-house on the sea floor north of the Plaza. *The last tube runs out to its door.* Old Achille sits by it.',
+          say: ['~neutral~ *The Whale-House*, the makers’ old sounding-house on the sea floor north of the Plaza. *The last tube runs out to its door.*',
             '~solemn~ Whatever listens in there has been singing the light’s note back to the whales for months. Go and ask it to stop.'],
           choices: [{ text: '~neutral~ I’ll go.', if: { quest: 'temple.underwater', started: false }, do: { start: 'temple.underwater' }, end: true }, { text: '~curious~ I’ll listen at its door first.', end: true }],
         },

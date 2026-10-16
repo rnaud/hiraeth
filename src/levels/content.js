@@ -66,7 +66,7 @@ export const CONTENT = {
     // first visit and closes when the tower has spoken and Sel has read where it came from
     story: {
       title: 'YOU ARE NOT ALONE',
-      intro: "A market of shouting signs and one silent tower. Sel waits at its foot with a message nobody has heard.",
+      intro: "A market of shouting signs, and one silent tower at the avenue’s end with a message nobody has heard.",
       outro: "Your father’s voice filled the market, calling for someone named Ilen. The message came from home, thirty years ago.",
       label: 'the broadcast balcony', goal: [0, 45, -234], radius: 5, verticalRadius: 5, manual: true,
     },
@@ -185,7 +185,7 @@ export const CONTENT = {
     // opens on the first visit and closes when the ship has power again
     story: {
       title: 'THE TREE THAT DRINKS',
-      intro: "Your ship needs fuel. Past the dunes, Qanat’s great tree stands dark over the walls. Start with its people.",
+      intro: "Your ship needs fuel. Past the dunes, Qanat’s great tree stands dark over the walls.",
       outro: "You cleared the water channel, brought back the spark-stone, and relit Qanat’s tree. Its glowing water has powered your ship.",
       label: 'the great dark tree', goal: [230, 'ground', 400], radius: 20, manual: true,
     },

@@ -286,7 +286,7 @@ export const PEOPLE = {
             { text: '~curious~ Where does the canyon lead?', goto: 'lead' },
           ],
         },
-        lead: { say: ["~neutral~ *Through the two oval doors to the oculus.* You’ll find the Wick in the open-roofed room. Hask usually tends it."], choices: [{ text: '~curious~ What do the walls say?', goto: 'say' }] },
+        lead: { say: ["~neutral~ *Through the two oval doors to the oculus.* You’ll find the Wick in the open-roofed room."], choices: [{ text: '~curious~ What do the walls say?', goto: 'say' }] },
         say: {
           say: ["~tired~ The pipes sound full, but I need the gauges to be sure. Their needles stick. They’re too high for me to tap.", "~neutral~ *Three gauges on canyon posts*: at the ramp, beyond my ledge, and between the oval doors."],
           choices: [

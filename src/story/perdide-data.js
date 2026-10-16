@@ -103,7 +103,7 @@ export const LANDING = [
           choices: [{ text: '~neutral~ I’ll try it.', end: true }, { text: '~curious~ And what hums in the east?', goto: 'hum' }],
         },
         hum: {
-          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. No rain for days. *Your tank could stand in for it: three quick splashes on the spires.* Saba, who listens at its foot, says it fell from the sky."],
+          say: ["~neutral~ The Great Crystal is east, over the hill and through the ford. You can walk there. The water will reach your knees. It considers that polite.", "~solemn~ Rain makes it sing. No rain for days. *Your tank could stand in for it: three quick splashes on the spires.* They say it fell from the sky."],
           do: { set: { 'perdide.wendel.heard': true } },
           choices: [
             { text: '~curious~ Fell from where?', goto: 'fell' },

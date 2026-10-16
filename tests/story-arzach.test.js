@@ -343,7 +343,8 @@ test('looking at the stone hand starts its quest and says what to do', () => {
   const look = THINGS.palm.talk.nodes.look;
   assert.equal(look.do?.start, 'arzach.hand', 'looking at it puts the knuckles in the journal');
   const strike = THINGS.palm.talk.nodes[look.choices.find((c) => c.goto)?.goto];
-  assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /Kesh/.test(strike.say.join(' ')), 'shoot a knuckle; Kesh knows the order');
+  assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /dots/.test(strike.say.join(' ')), 'shoot a knuckle; the dots give the order');
+  assert.doesNotMatch(strike.say.join(' '), /Kesh/, 'the hand says where the order is, not who knows it');
 });
 
 

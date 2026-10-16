@@ -307,8 +307,8 @@ export const STREET = {
     id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273', head: 'wrap', look: { body: 'badge' },
     talk: { listen: [
         "~happy~ Signal Market! A thousand voices competing for your attention. One tower has gracefully withdrawn.",
-        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the avenue’s end. Silent since the night every sign showed the mark. *Madame Sel* sits at its foot, waiting.' },
-        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* by Sel: the market climbs the towers from there, gallery over gallery. Or the parked cab, or that pack on your back.' },
+        { if: { not: ON_AIR }, say: '~sad~ *The broadcast tower*, at the avenue’s end. Silent since the night every sign showed the mark.' },
+        { if: { not: ON_AIR }, say: '~neutral~ Up the tower? *The stalls’ stairs* at its foot: the market climbs the towers from there, gallery over gallery. Or the parked cab, or that pack on your back.' },
         '~playful~ Welcome! Welcome. Oh, you again. Welcome anyway; it’s my job.',
         '~curious~ The market’s first stall sold answers, one each. It’s still there, in the old market under the avenue.',
         { after: ON_AIR, say: '~happy~ The tower spoke! I’ve been welcoming people all morning, and they keep welcoming me back.' },
@@ -518,7 +518,7 @@ export const CROWD_TALK = {
     { name: 'An old trader', title: 'in Signal Square', talk: { listen: [
       "~solemn~ The night the signs went white, every one of them showed that mark. Grandmother says it was here before the market. Before there was anything to advertise.",
       '~solemn~ Every sign in this market lies a little. The silent tower was the only one that ever told the truth.',
-      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway* in the great old stones. Hobb sits by it, ear to the paving, hearing one word.' },
+      { if: { not: { flag: 'temple.bazaar.done' } }, say: '~whisper~ Round the back of the silent tower there’s *an old doorway* in the great old stones. Put your ear to the paving there: it hums one word.' },
       '~angry~ In my day a sign was a sign. Now they sing, they dance, they follow you home.',
     ] } },
   ],

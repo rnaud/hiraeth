@@ -351,7 +351,7 @@ export const THINGS = {
           choices: [{ text: '~curious~ (rap a knuckle)', goto: 'strike' }, { text: '~neutral~ (step back)', end: true }],
         },
         strike: {
-          say: ["~neutral~ Your fist makes no sound. Try your fluid: *aim and shoot a knuckle*.", "~curious~ The four notes need an order: the dots may count it out. *Kesh, beside the hand*, can show you."],
+          say: ["~neutral~ Your fist makes no sound. Try your fluid: *aim and shoot a knuckle*.", "~curious~ The four notes need an order: *the dots on each knuckle count it out*."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         open: { say: ["~scared~ The mark glows in the palm. Was that finger always bent?"], choices: [{ text: '~neutral~ (step back)', end: true }] },
