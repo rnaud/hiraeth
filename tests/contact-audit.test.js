@@ -170,7 +170,9 @@ const KNOWN = {
   // the same seams in the Hush-House's and the Lamp-House's rooms far overhead, none by the stakes)
   // (v1.59: sink 3 -> 8, the samples moved again once the crystal's veins went under the water (issue #188): 7 on the tree
   // before it, 16 after, all in the Lamp-House's and the Hush-House's rooms overhead and one on the keepers' light)
-  perdide: { sink: 8, hover: 0, inside: 4, walk: 22 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 8 },
+  // (issue #377: the Lamp-House's new pool-lamps, fount and hanging lamp moved its samples: walk 19 → 22 on the tree before
+  // and after, the same seams under its doors' lintels, none on the new pieces)
+  perdide: { sink: 8, hover: 0, inside: 4, walk: 22 }, perdide2: { sink: 5, hover: 0, inside: 1, walk: 10 },
   // (v1.48: the passages under the towers by Signal Square and the Undertower's wings both moved the samples; nearly all
   // the market's drawn-only strip along its south avenue and the night halt's thin sleepers)
   // (v1.49: the Choir off the Undertower's gallery moved them again: 4 → 17 feet sink, all but one 0.12 m on the night
