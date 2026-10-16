@@ -4,6 +4,12 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.81 — 2026-10-16
 
+- In the Unity preview a low moon or sun no longer throws the whole land into shade: Viridel’s meadow at dusk keeps its long shadows on lit grass.
+- In the Unity preview the light in every doorway, cave mouth and temple door streams in slow rays, as it does on the web.
+- In the Unity preview the Glass Dunes’ glass holds its dark giants, heads and trees, glows mint and lime where the sun comes through, and pools that light on the sand.
+- In the Unity preview the desert’s sand is the warm orange-gold of the web game, not a pale cream.
+- In the Unity preview the City During the Eclipse has its black sun, corona and rose horizon, the City Floating in Space its nebula, and from the seventh world on the Lantern’s light hangs low in every sky.
+- In the Unity preview Plumb speaks up again when you look lost, the desert teaches the camera and the jump, the scout’s find says what it is for and how far, and the sleeping observatory east of camp can be woken.
 - The music steps back a little while someone speaks to you and comes back after. Footsteps, landings, the swimming stroke and the climb’s grab sit softer under the world, the low-health heartbeat is felt more than heard, and the gun’s shot, its empty click and the double jump’s lift no longer stand out over the music. Many small sounds (the shield, the potion, the charge, the scout) now vary a little each time.
 - A quest given now rings an open, waiting call, a step done the familiar chime, and a quest finished a run of bells up to a held note. Locking on to a foe ticks softly and letting go ticks back; a photo clicks its shutter; throwing what you carry swishes; a temple door thunks its bolt before it rushes open; and a lever’s clank is heard at last.
 - Every menu now makes soft, short sounds: opening and closing, the cursor moving, a choice confirmed, going back and changing tabs, and choosing an answer in a conversation. They play through the menu’s hush and follow the Effects volume.

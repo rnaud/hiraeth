@@ -724,7 +724,9 @@ as `split.talkGestures`), `-through way` (a door walked into and back out of), `
 `-probe text [-solo]` (at each shot, the nodes whose name holds the text as Unity has them: mesh,
 bounds, materials' culling, shadows, GPU instances; `-solo` draws only those), and `-ending first|final [-ending-every secs]` (a homecoming
 played on the debug save with the ship's scenes on, a picture every few seconds, its stage and subtitle logged:
-docs/plans/unity-finishable.md).
+docs/plans/unity-finishable.md). For the visual check (below, "The visual check"): `-fresh` (the debug save and its
+journal emptied first, as the web's side-by-sides clear the page's storage), `-no-hud` (the picture alone), a view's
+`hour` and `weather` pinned with it, and `-js-off skies` (the sky's own left out of the look: a before on one build).
 
 ## The Godot renderer (stage 2)
 
@@ -1606,6 +1608,81 @@ and the backpack's glass looked nothing like the web's.
   goes through port-format.js and `WorldLoader.MakeMaterial` (`_FluidDome`, `_FluidDomeK`), the eye's ray is taken
   into three's object frame through `UNITY_MATRIX_M` with x mirrored on both sides, and Surface.shader keeps the web's
   two rules for it: lit from within (`L ≥ 0.92`) and its glass inked by its outline only.
+
+## The onboarding, the observatory and the sky's own (Unity + Puerts, 2026-10-16, issue #264, D16)
+
+What main.js made and the engines didn't (docs/plans/unity-default-portables.md, D16; the action sounds are the
+sound-QC's, apart):
+
+- **The help on the cue**, as main.js `updateHud` stacks it: Plumb's own line first (src/companion.js `Companion`: the
+  opening's lines once a save, out of the ship, the first person near, the first chest; the lost watch, its ping toward
+  the goal), then what the scout found (Q, R3: `findSummary` of the goal over the step and how far, its distance as it
+  is each frame, `FIND.say`; the shrug, a guardian's hint `◇ …` on the cue instead of a toast), then a lesson: the
+  desert's first steps (src/first-steps.js: the camera after 6 s without a look, the jump after 25 m without one; any
+  look through `rig.look`, the mouse or the stick, counts it as learnt) and the scout's button once after the first
+  conversation (src/scout-hint.js). A lesson waits for the notices: `noticeBusy` is the engine's toast queue up or
+  waiting. None in a bench's views, a game's page or a fixed view.
+- **The scout's goal** is the main.js one: `nextObjective` with the observatory and the story page (it was given
+  `story: null`, so a world whose quests were done pointed nowhere but the ship).
+- **The sleeping observatory** (src/observatory.js `ObservatoryQuest`, the desert): Naji (npcs[5]), the six ledges'
+  fragments, the three lenses turned by E beside each (its interactable, the prompt over the dial) or a glob of the
+  fluid, the roof unfolding; its pages said through the story page (`say`), no picture (no `capture` in the engines).
+- **The skies**: an eclipse world's sun on its own path and the moon over it (src/eclipse.js `applyEclipse` in
+  `updateSky`), a world with moons of its own without ours (`sky.moon: false`), the Lantern's light from the seventh
+  world on (src/story/lantern-sky.js, again on each flag that moves it). They reach Unity in the look's `post`
+  (LOOK_VECTORS: `uEclipse`, `uCorona`, `uEclipseGlow`, `uEclipseDir`, `uLantern`, and space's `uSpace`, `uSpaceTone`,
+  `uSpaceSun`, `uSpaceNight`), which HiraethLook sets as globals in three's space; Composite.shader draws them as
+  post.js does, in uniform branches (no new variants: the pipeline lists hold): `drawEclipse` (the black disc, the
+  limb, the corona's rays or stipple, the halo bands, the rose band round the horizon, the stars in totality, the
+  sun's glow and rays off), `drawLantern` (the inked disc, four needle rays, two gold washes, the dotted ring) and
+  `drawSpace` (the nebula's two flat steps, the stars on both caps; the planets lit by the space world's own sun, their
+  night side its colour). `-js-off skies` leaves them out (a before on one build). VM: tests/engine-help.test.js.
+
+## The visual check (Unity + Puerts, 2026-10-16, issue #264, D17)
+
+Every world on the web and in Unity from the same fixed views, side by side (docs/plans/unity-default-portables.md
+section 4). `scripts/unity-compare/`:
+
+```sh
+node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,unity] [--notes notes.json]
+#   views.mjs → <out>/views.json; design-qc/capture.mjs → <out>/web/; unity.mjs → <out>/unity/<world>/; pair.mjs → <out>/report/
+#   (default out: output/unity-compare/<sha>/; PORT for the web's Vite, never 5173; LOCK, MAX_LOAD for a shared Mac)
+```
+
+- **The views** (views.mjs): the bench's where a world has them (the start, a crowd, a wide look), else where the game
+  puts you, read from the game in the VM; each temple's first room; at noon, the start and the wide one again at dusk
+  (18.6 h), the weather clear. 115 views in 22 worlds (the route, the detours, home, the Lantern, the night train);
+  `--set lantern` turns Lorn's widest view to the Lantern's light with six worlds done.
+- **The same state on both sides**: the web clears the page's storage and sets the bench's flags; Unity's run is
+  `-fresh` (the debug save emptied), `-no-hud`, the view's hour and weather pinned, the trials' objects made (the
+  web's page makes them). Both at High, 1280 × 720, the web at a fixed render scale (`--fixed-scale`).
+- **The numbers** (pair.mjs): SSIM at 256 px, ΔE (Lab) by a 6 × 4 grid (mean and worst cell), the dark share, the Sobel
+  edges' F1, and a score (50 (1 − SSIM) + 1.5 ΔE + the dark share's gap) that sorts the report, worst first; each row
+  web | Unity | the ΔE heat map, with its note.
+
+**The first sweep** (all 117 views looked at; mean ΔE 3.6 → 1.8, mean SSIM 0.869 → 0.886 over the fixes):
+
+| what | where | verdict |
+|---|---|---|
+| The sand the old cream (`biomeGround`'s dunes palette by hand, the web's October ochre never ported) | every desert ground | **fixed** (tests/unity-biomes.test.js) |
+| The Glass Dunes' glass plain (`DUNE_GLASS` / `DUNE_POOL` never ported): no shapes held inside, no light through, no pools | the Glass Dunes | **fixed**: Surface.shader `_DuneOn`, aGlass in the form's slot |
+| The ways' light: not updated in a fixed view, no rays, not added; then too bright over dark walls (added in a linear target) | every temple's first room, doorways | **fixed** (Veil.shader `_WashRays`, `_DstBlend`, alpha^1.5 when added). Left: its rays turn the other way round (uv mirrored with x); the Moon Foundry's pool a little wider |
+| The whole land in shade under a low moon: casters past a map's near plane pancaked onto it (the far rim 1.4–1.9 km off) | Viridel at dusk, any low light | **fixed** (`_ShadowPancake` 0; `-shadow-pancake` as before) |
+| The eclipse, the Lantern's light, space's nebula | the eclipse city, every sky from the seventh world, the City in Space | **fixed** (D16) |
+| A save's own state in Unity's pictures (the desert's tree lit, its beacon), the HUD and a greeting over them, no trials' rings | the check itself | **fixed** in the check (`-fresh`, `-no-hud`, trials) |
+| Cloud shadows in different places | everywhere | design: each side's own clock |
+| What moves (people, birds, fish, Lou and the dog) | everywhere | design |
+| Lorn's houses black on both | Lorn's first rooms | the views: the houses are built on the way in (walk in with `-through`) |
+| The lake's ripple strokes denser from high up; the posts' shadows on the water fainter at dusk | Lorn | **open** |
+| A bright vertical streak down the middle; the domes' shadows lighter at dusk | the Underwater City's wide views | **open** (on that line the VM has only a points cloud 3 m from the eye) |
+| The makers' box by the stair glows white (an orange pool on the web) | the eclipse city | **open** |
+| A water tower, a signboard, a lamp post and a glowing box on the platform the web lacks | the Overnight Train | **open** |
+| The falling water a flat sheet (falling bands on the web) | the City Behind the Waterfall (WIP) | **open** |
+| The traveller lighter at night | the Underwater City at dusk | **open** (small) |
+| The seeing lens's overlay (post.js `uLens`) has no Unity side | any world, the lens raised | **open**, found by the uniforms' audit, not in a view |
+| One run drew the Signal Market's square all in shade | the market's crowd view | a flake (the shot before the maps were drawn); the run after as the web |
+
+Run it again on every Unity release, before the Deck's and the Retroid's defaults move to it.
 
 ## Status
 

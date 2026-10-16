@@ -40,6 +40,16 @@ export const CHANGELOG = [
     // fluidMode; docs/systems/audio.md "Sound QC"
     { text: 'The music steps back a little while someone speaks to you and comes back after. Footsteps, landings, the swimming stroke and the climb’s grab sit softer under the world, the low-health heartbeat is felt more than heard, and the gun’s shot, its empty click and the double jump’s lift no longer stand out over the music. Many small sounds (the shield, the potion, the charge, the scout) now vary a little each time.',
       see: 'Hear it: talk to anyone while the music plays, then walk and sprint on sand and stone.' },
+    // issue #264 D16 (docs/plans/unity-default-portables.md): engine/game.js as main.js (src/companion.js, src/first-steps.js,
+    // src/scout-hint.js, src/observatory.js)
+    'In the Unity preview Plumb speaks up again when you look lost, the desert teaches the camera and the jump, the scout’s find says what it is for and how far, and the sleeping observatory east of camp can be woken.',
+    // D16: Composite.shader drawEclipse, drawLantern, drawSpace from the bridge's look (src/eclipse.js, src/story/lantern-sky.js)
+    'In the Unity preview the City During the Eclipse has its black sun, corona and rose horizon, the City Floating in Space its nebula, and from the seventh world on the Lantern’s light hangs low in every sky.',
+    // D17, the visual check (scripts/unity-compare/): what it found and fixed
+    'In the Unity preview the desert’s sand is the warm orange-gold of the web game, not a pale cream.',
+    'In the Unity preview the Glass Dunes’ glass holds its dark giants, heads and trees, glows mint and lime where the sun comes through, and pools that light on the sand.',
+    'In the Unity preview the light in every doorway, cave mouth and temple door streams in slow rays, as it does on the web.',
+    'In the Unity preview a low moon or sun no longer throws the whole land into shade: Viridel’s meadow at dusk keeps its long shadows on lit grass.',
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

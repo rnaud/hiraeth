@@ -1074,6 +1074,8 @@ const SRC47F = 'issue #47 scratchpad motion-r5: game-after1–3/ (before), r6-fi
 const QC47E = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second, the run’s 5.7 s); main at 87277301 against the same tree with the change (scripts/motion-qc/diff.mjs); 16 October';
 const GAME47E = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs) on the desert’s sand, the Signal Market’s street and the Arena’s floor, three runs each way: the change switched off (TUNE) and on';
 const SRC47E = 'issue #47 scratchpad motion-r5: before/, after/ (node), game-before1–3/, game-after1–3/ (the game; tools/bounds.mjs lists their events)';
+/** (v1.81, issue #264 D16 and D17: the visual check, scripts/unity-compare/) */
+const UNITY264_CHECK = 'Issue #264: the Unity editor’s batch on the Mac (scripts/unity-compare/unity.mjs: BridgeBatch.Run -fresh -no-hud -quality high, 1280 × 720, muted), the same view before and after the fix (the skies’ before: -js-off skies); the web’s side in muted headless Chrome, High, on its own Vite (port 5391), 16 October; sharp webp q 72';
 /** (v1.79, issue #264: the Unity preview's small gaps, the editor's batch on the Mac) */
 const UNITY264_SMALL = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, muted), `scripts/unity-js-run.sh -level desert -game cistern -run-secs 3 -words`: before with the engine’s and the words’ code as they were, after with this change; the web’s side in muted headless Chrome on this branch’s own Vite (port 6352).';
 const UNITY264_PANELS = 'Issue #264: the Unity editor’s batch on the Mac (BridgeBatch.Run, 1280 × 720 pictures of its 640 × 480 screen, its HUD on a 4:3 canvas 960 wide: the panels centre on x 480), muted, `scripts/unity-js-run.sh -game <id> -run-key … -pose`: before with the games’ code as it was (no pose), after with this change; the web’s side the same moment in muted headless Chrome on this branch’s own Vite.';
@@ -1085,6 +1087,23 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-fishing', title: 'The fishing', caption: 'A fish on the line: before, only the time left; after, the journal, the pull’s arrows, the line’s meter in the red with its hatched zone, and the hint to ease off.', from: UNITY264_PANELS },
       { name: 'unity-pirates', title: 'The chime pirates', caption: 'Ten seconds into the ambush, the captain hailing: before, no reticle and no radio; after, the reticle, the missile’s pip over the pirate it would take, the captain’s line at the bottom left and the missiles left in the hint row.', from: UNITY264_PANELS },
     ], see: 'In the Unity preview, play the drum circle (by the pilgrims’ small fire in the desert), the sketch hunt (the Signal Market’s gate), the fishing (the Still Oasis’s pier) or the chime pirates (on a flight between worlds): their rings, lists, meters and reticles are drawn over the world as on the web.' },
+    { match: 'In the Unity preview Plumb speaks up again', tags: ['devices'], see: 'In the Unity preview, start a new game: out of the crashed ship Plumb says it will ride on your pack; stand a few seconds without turning the camera and the cue at the top says how to look round, walk on and it says how to jump. Press the scout’s button (Q, R3): the line names the goal over the next step and how far it is, counting down as you walk. Talk to Naji the sketcher by the camp, climb the observatory east of it and turn its three lenses with E (X / □).' },
+    { match: 'In the Unity preview the City During the Eclipse', tags: ['devices'], shots: [
+      { name: 'unity-eclipse', title: 'The City During the Eclipse', caption: 'Its square at noon: before, a plain night-blue sky; after, the moon’s black disc over the sun in totality, its corona of fine rays and the stars out, as on the web.', from: UNITY264_CHECK },
+      { name: 'unity-lantern', title: 'The Lantern’s light over Lorn', caption: 'Six worlds done, looking over Lorn to the side of the sky the sun never crosses: before, nothing; after, the Lantern’s small inked light with its needle rays and gold washes, where the web hangs it.', from: UNITY264_CHECK },
+    ], see: 'In the City Floating in Space, the nebula’s flat bands behind the stars, and its planet lit by the world’s own sun.' },
+    { match: 'In the Unity preview the desert’s sand is the warm', tags: ['devices', 'desert'], shots: [
+      { name: 'unity-sand', title: 'The foot of the ramp', caption: 'Before, the Unity preview’s sand the old cream (239, 205, 144); after, the web’s ochre (238, 187, 116), the same as the web’s picture of this view.', from: UNITY264_CHECK },
+    ] },
+    { match: 'In the Unity preview the Glass Dunes’ glass', tags: ['devices'], shots: [
+      { name: 'unity-dune-glass', title: 'The Glass Dunes from above the landing', caption: 'Before, plain green glass; after, the shapes held dark inside it, the light through its thin edges and the deeper lobes, as the web prints it.', from: UNITY264_CHECK },
+    ] },
+    { match: 'In the Unity preview the light in every doorway', tags: ['devices'], shots: [
+      { name: 'unity-door-light', title: 'The Rose House’s first room', caption: 'Standing in the light of the door he came in by: before, none; after, its rays round him, as strong over the walls as on the web.', from: UNITY264_CHECK },
+    ] },
+    { match: 'In the Unity preview a low moon or sun', tags: ['devices'], shots: [
+      { name: 'unity-low-moon', title: 'Viridel at dusk', caption: 'The moon low in the east: before, the whole meadow in shade (the world’s far rim cast over it); after, lit grass with the flowers’ long shadows, as on the web.', from: UNITY264_CHECK },
+    ] },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

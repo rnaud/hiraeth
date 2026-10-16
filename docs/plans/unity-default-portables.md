@@ -175,11 +175,11 @@ interior; talk gestures.
 | what | notes |
 |---|---|
 | ~~**The recorded music**~~ | **Done (D15, 2026-10-15)**: Unity decodes the MP3s (`BridgeMusic.cs`), the game's graph sets their place and gain (`engine/webaudio.js` `NativeAudioBuffer`); the title's recording, the world themes, the cues, Music plays (Moments / Always) in the settings. The Deck's player carries every theme; the APK and the Xbox's download the rest into `persistentDataPath`. engine-bridge.md, "The recorded music". |
-| **Body foley** (`src/foley.js`) | Not wired: no footsteps or body sounds. |
+| **Body foley** (`src/foley.js`) | Not wired: no footsteps or body sounds. The sound QC's (every action's sound, on the web and in Unity), apart from D16. |
 | **Minigames** (`src/minigames/`), the Arena (its list of foes done, issue #264), Ink tide, the shooting gallery, Chime pirates (`src/ambush.js`, the first flight to a new world) | The games' own pages are wired (`createGame({ game, from })`, engine/trials.js: the Sunken Hall, the races, fishing… from their hosts). Not drawn yet: what a game draws on the page of its own (the speed lines, the drum circle's ring, the sketch hunt's frames, the gallery's balloons). Not wired: the Arena's waves, Chime pirates on the first flight. |
-| **Onboarding and help** | `first-steps.js`, `companion.js` (Plumb's hints), `scout-hint.js`, `temples/hints.js`: not wired. |
-| **The observatory quest** (`ObservatoryQuest`, the desert) | Not wired. |
-| **The eclipse's sky** (`applyEclipse`), the Lantern's sky | `main.js` applies them each frame; the engine doesn't. |
+| ~~**Onboarding and help**~~ | **Done (D16, 2026-10-16)**: Plumb's lines, the scout's find on the cue with how far, the first steps, the scout's button taught once; the temple hints were already in (engine-bridge.md, "The onboarding, the observatory and the sky's own"). |
+| ~~**The observatory quest**~~ | **Done (D16)**: Naji, the ledges, the three lenses by E or a glob, the roof. |
+| ~~**The eclipse's sky**, the Lantern's sky~~ | **Done (D16)**: and space's (the City Floating in Space's stars and nebula), drawn by Composite.shader as post.js does. |
 | **The take-off's warp**, the galactic map's own page | The engine restarts at the climb's end; the holo table opens the Worlds page instead of `StarMap`. |
 | **Benches, carriers, birds, `interact.js`** | Not wired (small life). |
 | **The distant detail queue** (`deferred.js`, `lod.js`) | The engine builds everything at load. Load time on the Deck to measure (issue #364). |
@@ -198,7 +198,9 @@ for the C# port's worlds). `scripts/design-qc/capture.mjs` shoots worlds one by 
 cleans up after itself. `scripts/bench/viewpoints-worlds.json` has 14 worlds' bench views. The bridge's players take
 `-level <id> -views <file> -out <dir>` (`BridgeArgs`: a list of views each with its world, or the worlds file).
 `deck-worlds.mjs --shots` and `android-worlds.mjs` shoot the web on the devices, and `deck-unity.sh` /
-`android-bridge.sh` shoot the players. There is no `unity-compare` script yet.
+`android-bridge.sh` shoot the players. **Built (D17, 2026-10-16): `scripts/unity-compare/`** (engine-bridge.md, "The visual check"), the
+proposal below as it was done: `views.mjs`, the web through `design-qc/capture.mjs`, `unity.mjs` (the editor's batch, not the
+player: no build to wait for), `pair.mjs` (no blink GIF: the heat map instead), `run.mjs`.
 
 Proposed, `scripts/unity-compare/`:
 
@@ -242,8 +244,8 @@ Proposed, `scripts/unity-compare/`:
 | D13 | [x] **The Updates section in Unity's settings** (status, check, download with progress, restart → exit 76). **Done 2026-10-16** (`engine/unity/updates.js`: the Start menu's Updates before Quit to title and the title's under Settings, src/updates.js's words for platform `unity`; Restart now exits 76 on the Deck's launcher, starts the bridge again at the title elsewhere) | `engine/menus.js`, `BridgeMenu.cs`, `BridgeHost.cs`, reusing `src/updates.js` | M | low |
 | D14 | [x] **Script updates over the air** (`UNITY_API`, `minUnity`, `unity-<build>.zip`, `persistentDataPath/bundle/`, boot watchdog). **Done 2026-10-16** (`BridgeUpdates.cs`: `UnityApi` and `ScriptMinUnity`, `updates/unity.json` and `unity-<build>.zip` beside web.json from the Cloudflare deploy (`web-update.mjs --unity`), bundle.json in every script, checked when the title shows and from the page, sha256-checked and unpacked into `bundle/<build>/`, played from the next start; 30 s to its first frame (60 on the Xbox) or back to the built-in script, two crashed starts and it is dropped; on only in the published players. Editor tests `BridgeUpdatesTests`; docs/systems/unity-updates.md) | `BridgeRunner.cs`, `scripts/web-update.mjs`, `scripts/release-info.mjs`, `deck.py` | L | medium (advised before the switch, required before the Retroid) |
 | D15 | ~~**The recorded music** decoded by Unity, the themes downloaded and kept~~ **Done** (2026-10-15: `BridgeMusic.cs`, `engine/unity/music.js`) | `src/soundtracks.js` (an engine path), `engine/webaudio.js`, `BridgeAudio.cs` | M | low |
-| D16 | Foley, minigames, onboarding hints (Plumb, first steps, temple hints), the observatory, the eclipse's and Lantern's skies | `engine/game.js` | M | low |
-| D17 | **The visual check** (section 4), every world, fixed differences | `scripts/unity-compare/` (new) | M | low |
+| D16 | [x] **Done 2026-10-16**: the onboarding hints (Plumb, the first steps, the scout's find and button; the temple hints were in), the observatory, the eclipse's, the Lantern's and space's skies (engine-bridge.md, "The onboarding, the observatory and the sky's own"). Foley left to the sound QC (every action's sound, web and Unity); the minigames' own drawings are listed under "Missing, not blocking" | `engine/game.js`, `Composite.shader`, `HiraethLook.cs` | M | low |
+| D17 | [x] **Done 2026-10-16**: `scripts/unity-compare/`, 115 views in 22 worlds, looked at pair by pair; fixed: the desert's sand palette, the Glass Dunes' glass, the ways' and chests' light, the shadow maps' pancaking (Viridel at dusk), the skies; the rest listed (engine-bridge.md, "The visual check"). Run it again on every Unity release | `scripts/unity-compare/` (new) | M | low |
 | D18 | [x] **Every world measured on the Deck**: Unity at or above the web in each (not just the three bench views), load times (#364). **Done 2026-10-15** (performance.md, "The Steam Deck, round 12"; `scripts/bench/deck-engines.mjs`). Ahead in all 13 worlds: fps +3 to +26 (the City-Shaft lowest, 66 against 54), worst views and frames under 60 better everywhere, loads 10-24 s against 44-74. Open, not blocking: the uncapped player's p95 of 12-14 ms where the web holds 90 (Home, the Glass Dunes, the Moon Foundry, the Garden), a ~1.2 s first-use pipeline stall once in 6 of 13 warm launches, and 1 SIGSEGV at launch in 31 | `scripts/bench/deck-unity.sh`, `deck-worlds.mjs`, `deck-engines.mjs` | M | medium |
 | D19 | [x] **Done 2026-10-15** (v1.79): `DEFAULT_ENGINE = 'unity'` (an install with no `engine.json` starts Unity; `--engine web` keeps a Deck on the web, "Hiraeth (web)" stays for good), the player held to 90 Hz by vsync first (performance.md, round 13). The switch: the installer and the next update set `engine.json` to `unity`. A changelog line ("the Steam Deck now starts the Unity version"), and steam-deck.md rewritten | `deck.py`, `src/changelog.js`, `docs/steam-deck.md` | S | medium |
 
