@@ -8,6 +8,25 @@ const r5 = (v) => +(+v).toFixed(5);
 const col = (c) => (Array.isArray(c) ? c.slice(0, 3).map(r5) : null);
 const mx = (v) => (Array.isArray(v) ? [-v[0], v[1], v[2]].map(r5) : null);
 
+/**
+ * A material the port has no shader for, by what tells it apart: a shader's own uniforms (sorted), or three's material
+ * type (inkSpec's 'other': a Lambert, a Standard, a line). engine/bridge-gaps.js names the known ones.
+ */
+export function unmappedKey(spec) {
+  if (spec.type === 'other') return `three:${spec.three ?? 'material'}`;
+  const names = Object.keys(spec.u ?? {}).sort();
+  return `shader:${names.length ? names.join(',') : '(none)'}`;
+}
+/** The materials drawn as a Surface for want of their own port: key → { name, n }; each said once (console.warn). */
+export const unmapped = new Map();
+function noteUnmapped(spec) {
+  const key = unmappedKey(spec);
+  const was = unmapped.get(key);
+  if (was) { was.n++; return; }
+  unmapped.set(key, { name: spec.name ?? '', n: 1 });
+  console.warn(`[bridge gap] no port for ${key}${spec.name ? ` ('${spec.name}')` : ''}: drawn as a Surface (engine/bridge-gaps.js)`);
+}
+
 /** export-world.mjs materialOf, from an ink spec (engine/ink-spec.js) instead of the material. */
 export function portMaterial(spec, id = 0) {
   const u = spec.u ?? {};
@@ -68,6 +87,10 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && Array.isArray(u.uPal) && u.uPal.length >= 15) {
     return { id, name: spec.name ?? '', port: 'flame', pal: u.uPal.slice(0, 15).map(r5), seed: typeof u.uSeed === 'number' ? u.uSeed : 0, k: typeof u.uK === 'number' ? u.uK : 1, side: 2, plain: 1 };
   }
+  // (past here: makeMaterial's surface (Hiraeth/Surface), or a plain colour. Any other shader or three.js material that gets
+  // here has no port of its own and is drawn as a Surface: a gap, recorded and said once, never silent; issue #428,
+  // engine/bridge-gaps.js lists the known ones and tests/bridge-gaps.test.js fails on a new one)
+  if (spec.type === 'shader' || spec.type === 'other') noteUnmapped(spec);
   const v = (k, d = 0) => (typeof u[k] === 'number' ? u[k] : d);
   const e = {
     id, name: spec.name ?? '',

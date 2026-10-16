@@ -58,6 +58,7 @@ export function inkSpec(m) {
     }
   } else {
     spec.type = m.isMeshBasicMaterial || m.isSpriteMaterial || m.isPointsMaterial || m.isLineBasicMaterial ? 'basic' : 'other';
+    if (spec.type === 'other') spec.three = m.type;   // (which of three's: a gap of the bridge's by name, engine/bridge-gaps.js)
     if (m.color) spec.u.uColor = [m.color.r, m.color.g, m.color.b];
     if (m.emissive) spec.u.uEmissive = [m.emissive.r, m.emissive.g, m.emissive.b];
     if (m.map) spec.u.map = { texture: m.map.uuid };

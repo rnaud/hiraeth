@@ -157,6 +157,7 @@ import { DEBUG_SLOT } from '../src/save-slots.js';
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
 export { ITEMS, items } from '../src/items.js';   // (the tests: the bundle's items, the gadgets among them, against the web's)
+export { GAMES };   // (the tests: every minigame, played on its own page: tests/bridge-gaps.test.js)
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
 
 /** The shop panel's element where there is no page: every call taken (its sheet is the menus', engine/menus.js). */
