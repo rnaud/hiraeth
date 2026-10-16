@@ -77,7 +77,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [changelog.md](systems/changelog.md) | the interactive changelog: before / after pictures, numbers and how to see each change; the capture tool; why its pictures stay off the devices |
 | [localisation.md](systems/localisation.md) | the game's words in the player's language (`t()`, English as the source, French): what is covered, adding a language, how to bring the dialogue in |
 | [ui.md](systems/ui.md) | playing and settings (and accessibility: text size, speech background, reduced motion, hold or toggle, not by colour alone), the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (quests, the map of the world you are in, items full screen, worlds, people, sketchbook), the debug saves, the audits page |
-| [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world, the people's voices (a formant voice a line), the music page (`music.html`, Debug → Music & sounds: every song and sound to listen to, with notes) |
+| [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world, the people's voices (a formant voice a line), the music page (`music.html`, Debug → Music & sounds: every song and sound to listen to, with notes), the sound QC (every action answered: the checklist, the runs) |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
 | [xbox.md](systems/xbox.md) | the Xbox Dev Mode package: the UWP app, its updates and saves, signing, CI, deploying and measuring on the console |

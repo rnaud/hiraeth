@@ -643,3 +643,84 @@ Notes go the lore page's way (`src/lore-page/note-box.js`, `notes.js` `fileNote`
 GitHub issue through the Worker with the notebook's session, its body naming the song or sound, its catalogue id and
 its link (`…/music#s-<id>`), and the footer "Added from the Hiraeth music page." (`source: 'music'`,
 `worker/issues.js` SOURCES). The canyon run's bike engine and the trailer's foley are their own pages' and not here.
+
+## Sound QC (issue #379, October 2026)
+
+The author: "we have no sound effect for the character when he attacks and some other key actions, which makes the
+game feel less good." The sound QC (`.claude/skills/sound-qc/`: `node .claude/skills/sound-qc/run.mjs <out>`) lists
+every player action and game event that should be heard (`scripts/sound-qc/actions.mjs`, found in the code), finds
+where the browser's game and the engines' (engine/game.js: what Unity plays) ask for it, renders each on the
+in-memory Web Audio with and without the recorded takes, drives the engines' build with scripted keys, and checks the
+mix. Its thresholds and how to read it: the skill's SKILL.md.
+
+### The checklist
+
+What the QC holds the game to (the numbers where a source gives them; the bands of the mix are the house's own):
+
+1. **Every action answered.** A swing, a block, a jump, a landing, a pick-up, a menu move: each a sound, layered over
+   rules that stay the same (Jonasson & Purho, "Juice it or lose it", GDC Europe 2012; Nijman, "The art of
+   screenshake", 2013: the first fix was the gun's sound).
+2. **At once.** The whole loop from the press to feedback under ~100 ms (Swink, *Game Feel*); the sound in the frame
+   the input lands, not when the animation catches up. A wind-up is answered at its start; the cut's whoosh with the cut.
+3. **Anticipation and impact are separate.** The whoosh rides the swing; the impact fires on contact, on the hit-stop's
+   frame, its transient clear of the rest (Dumais, "The 4 secret layers behind epic sword sound effects").
+4. **Layers.** Swing (air), impact (body), texture (material), a sweetener (a low kick, a shimmer); the combo's
+   finisher heavier than its first cuts.
+5. **A hit, a block and a miss differ.** A landed hit crisp and bright, a block dull and metallic, a miss the whoosh
+   alone (the fighting games' hit-confirm; Sakurai on hit-stop).
+6. **Variation.** About ±1 semitone (±100-120 cents) of pitch and ±1 dB of level on effects (wider, ±2-3 dB, only on
+   footsteps and foliage); 4-6 takes a sound in a shuffled round, never the same twice running (Wwise's randomiser,
+   the "machine-gun effect"); a synth varies its pitch, filter and length every time.
+7. **Voices limited and prioritised.** A cap per sound (footsteps, impacts: 2-4); the player's hits, a foe's wind-up and
+   the low-health warning never stolen (FMOD's virtual voices).
+8. **Ducking.** Music and ambience step back under dialogue (Quarles's example: -9 dB, 500 ms in, 1 s out; smaller,
+   3-6 dB, for a moment); stacked ducks capped; no pumping (Game Developer, "Game audio theory: ducking", 2009).
+9. **Loudness.** Integrated -24 LUFS on a console or a desktop, -18 on a handheld, true peak under -1 dBTP, a loudness
+   range of 20 LU at most, measured over 30 minutes of play (Sony ASWG-R001; Taylor, "Loudness and how to measure it",
+   GDC 2013).
+10. **Falloff.** -6 dB per doubling of distance and a low-pass far off, per class; dialogue nearly flat (Audiokinetic,
+    "A Wwise approach to spatial audio").
+11. **UI sounds one family.** Shared timbre and envelopes, 100-300 ms, no silence before them, quiet under speech and
+    music, confirm and back the same in every menu; never the only cue.
+12. **Low health does not nag.** It fades or stops after a few beats, scales with what is left, comes with a picture.
+13. **Silence is a tool.** Drop the music and the bed before a reveal or a guardian; keep the range, don't compress
+    everything to the ceiling.
+14. **Footsteps by surface and gait**, up to 5 takes a surface, landings by the height fallen.
+15. **A slider per kind**: music, effects, voices (Xbox Accessibility Guideline 105).
+
+Sources: [Juice it or lose it](https://www.gdcvault.com/play/1016487/juice-it-or-lose) ·
+[The art of screenshake](https://www.youtube.com/watch?v=AJdEqssNZ-U) ·
+[Loudness and how to measure it (Sony, GDC 2013)](https://media.gdcvault.com/gdc2013/slides/824764Garry_Taylor_Loudness_and_how.pdf) ·
+[LUFS loudness standards](https://danmurtagh.com/lufs-loudness-standards) ·
+[Game audio theory: ducking](https://www.gamedeveloper.com/audio/game-audio-theory-ducking) ·
+[Wwise CUBE: balancing the final mix (randomiser values)](https://gameaudioresource.com/2019/08/26/chapter-16-a-balancing-final-mix/) ·
+[FMOD virtual voices](https://documentation.help/fmod-studio-api/virtualvoices.html) ·
+[FMOD event macros (stealing)](https://javierzumer.com/blog/2022/2/26/fmod-event-macros) ·
+[The 4 secret layers behind epic sword sound effects](https://www.daviddumaisaudio.com/the-4-secret-layers-behind-epic-sword-sound-effects/) ·
+[Hit confirm](https://wavu.wiki/t/Hit_confirm) ·
+[Android audio latency](https://developer.android.com/ndk/guides/audio/audio-latency) ·
+[Xbox Accessibility Guideline 105](https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/105) ·
+[Game Feel (Swink), reviewed](https://lizengland.com/blog/review-game-feel-by-steve-swink/) ·
+*The Game Audio Tutorial* (Stevens & Raybould, Focal Press 2011).
+
+### The first run (16 October 2026, before the fixes)
+
+71 actions; OK in the browser 36, in the engines 28. The key actions not OK:
+
+- **The blade's press was silent** (both): the first sound of a swing came at the end of its wind-up, 133 ms after the
+  press. The cuts themselves were heard (-2..0 dB against the music), but nothing answered the press, and the synth's
+  swings (the engines') repeated within 0.3 dB and 3 % of brightness.
+- **The engines had no body at all**: no BodyFoley in engine/game.js, so in Unity no jump, landing, roll, climb, wings,
+  jets, knock-out or getting up; no swimming (waters had no sound), no pick-up (interactHooks), no potion's healing
+  chord, every step on the world's default ground (no footing). The hurt's stand-in for its recording was a 40 ms
+  burst, -19 dB against the music: a blow landed on him was all but silent.
+- **No menu made a sound** (open, close, move, confirm, back, tab: both), and a conversation's answer called a
+  `Sound.toolClick` that did not exist. Letting the lock go, throwing what he carries and taking a photo were silent.
+- **Too loud**: the recorded footsteps (-7, sprinting -5 against the music: foley sits at -8 or under), the soft
+  landing, the swimming stroke, the lock-on's chirp (-3), the heartbeat (+0.6: a warning that repeats sits at -6 or
+  under), the tank's empty click, the gun's shot, the double jump; **the shop's purchase peaked at +10 dBFS** in the
+  engines: the shim interpolated a gain across the 128-sample block a scheduled note began in, so its default level of
+  1 leaked into the samples before the note's first event (a click at full level on every delayed note of the engines).
+- **Repetitive**: the potion's cork, the shield opening, the charge, the scout's blip, the potion picked up, the
+  mount's whistle. **Alike**: a quest given, a step done and a quest done were the same chime. **Too quiet**: a lever.
+- **The mix**: the music did not step back at all under a conversation (0 dB).
