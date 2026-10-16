@@ -1,0 +1,31 @@
+tests/unity-pso.test.js
+  s_be080572ac7f7a::t_6638d7c0bcf0be 1-3,11-12,46-59,61,64-65
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate
+  s_9ca76055a220ed::t_4dcad8ef0062d6 1-12102
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate.meta
+  s_be080572ac7f7a::t_ba2ccc68601b2c 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8897ddc7ee758cdcf2dbb1fa6530658a72474a77",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_be080572ac7f7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14544-e974-7c30-a4fc-7a8dc20510dc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
