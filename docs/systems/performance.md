@@ -1487,6 +1487,54 @@ A fast traversal while the queue drains (40 m/s, 15 s, two runs each), p50 / p95
 15.1 / 18.9 / 26.0 / 529 ms before, 16.1 / 19.5 / 28.4 / 541 after (the 0.5 s frame is in both); Buried Machine
 7.0 / 9.4 / 11.6 / 21 before, 7.0 / 9.9 / 14.1 / 32 after.
 
+### The same in the engines (October 2026, issue #385)
+
+The Unity version (engine/game.js) had deferred only the trees' check (through `level.initSteps`): it made the drifts'
+collision and worked out every stroller's walk before its first frame. It now does what main.js does, with the same
+promises and the same `-js-off defer` to turn it all off:
+- `DRIFT_FITS.later` round the world's build, the pieces queued once the collision exists (`queueLateCollision`). There is
+  no worker in the engines' VMs, so a merge is built in the frame: `mergeMax: WORKER_TRIS` keeps the parts under 6 000
+  triangles (the Buried Machine's last merges were 70-170 ms jobs in node), a dozen or so colliders at the end, not one.
+  And a dense square is cut into pieces of at most 100 triangles to test (`DRIFT_FITS.most`, engine/game.js
+  `DRIFT_PIECE`): a whole one was up to 50 ms to make in node; main.js keeps whole squares.
+- The flora's burial checks in a queue of their own (`game.floraLater`), done near the first view before it like the rest,
+  and after it only by the guard until the drifts' pieces are all made: a check's long rays (embedded's 400 m, buried's
+  1000 m) make every piece of sand they cross, which on the Deck was a 200 ms frame in the Buried Machine's first seconds.
+- The crowd built with `defer` and the ship's calm (`shipCalmZones`, which the engines also lacked).
+- Found on the way, missing in the engines and added: the flora's burial check (`dropBuriedFloraSteps`, deferred as
+  above: the engines never left out a shrub buried in a rock), the large plants' collider (`flora.collider`), `noClimbZones` and
+  `ladders`. Still different: the engines build every world's BVH with CENTER (`level.collision`'s SAH is not read), and
+  the wildlife has no `keepOff` round the ship.
+
+Checked in node (`tests/engine-defer.test.js`, the engines' bundle in a bare V8, each mode in a VM of its own): at the
+first frame no job is left within `DEFER.near` of the spawn, the footing and the walls round it answer as if everything
+were made, a frame far off leaves nothing within the guard; drained, the drifts' triangles, the ground over 1.6 km, the
+plants left out and the crowd, person for person, are the load's. In node the City-Shaft's build went 7.2 → 3.5 s with
+everything deferred (most of it the trees, already deferred before); the walks' jobs are at most 13 ms each, the trees' 12.
+
+Measured, launch to the world's first frame, the bundle before and after in the same player, interleaved, three runs
+each, muted, `-level <w> -walk 15 -metrics`; "longest frame" is the longest from the first mirrored object over the
+walk's 15 s (BridgeMetrics' first frames and its 5 s windows), the most of the three runs.
+
+Steam Deck OLED: the v1.81 Linux player (`unity-linux`) with each bundle, gamescope headless 1280 × 800, a profile of its
+own (no save, settings or volume touched); every run within ±0.15 s:
+
+| World | first frame before | after | the load in the VM (near detail done) | longest frame, before → after |
+|---|---|---|---|---|
+| The Buried Machine | 12.31 s | **11.04 s (−1.27)** | 7.03 → 5.84 s | 36 → 49 ms |
+| The City-Shaft (no bake) | 15.09 s | **14.01 s (−1.08)** | 9.87 → 8.79 s | 65 → 66 ms |
+| The Desert | 11.76 s | 11.66 s (−0.10) | 6.53 → 6.41 s | 80 → 78 ms |
+| Vael | 11.87 s | 11.87 s | 6.64 → 6.61 s | 42 → 49 ms |
+| Lorn | 11.36 s | 11.41 s (+0.05: the flora's near checks, new) | 6.14 → 6.18 s | 65 → 72 ms |
+| The Signal Market | 9.67 s | 9.67 s | 4.45 → 4.47 s | 84 → 89 ms |
+
+Before the flora's own queue and the cut squares, the Buried Machine's first seconds had a 202-207 ms frame on the Deck
+(a check's rays making the sand along them), and its load was the same. Mac (M4 Pro, the IL2CPP macOS player launched in
+the background, the machine shared with other agents at load 12-50, medians of three): the Buried Machine 6.74 → 5.55 s,
+the City-Shaft 8.63 → 7.82 s, the others within the noise (±0.5-0.7 s run to run). With the City-Shaft's bake (issue #385's
+`src/world-bake.js`) its walks and trees are answered from the bake and nothing of the crowd is deferred: what this saves
+there is the bake-less load's, and the other worlds'.
+
 **Remote interiors: measured, not deferred.** The rooms far over the map (each world's temple, its shop, the desert's
 chambers and the giant's cave) cost the load their build (the temples 66-154 ms with their outside in node profiles of
 six worlds, the shops 20-46 ms with their fronts), their share of the collision's bake (7-22 % of a world's triangles)

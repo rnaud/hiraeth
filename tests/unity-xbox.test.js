@@ -236,7 +236,9 @@ test('the engine finishes distant detail after the first frame, as the web does:
   const game = read('engine/game.js');
   assert.match(game, /const deferred = defer && !view \? new DeferredWork\(\) : null/);
   assert.match(game, /level\.initSteps\(physics, \{ defer: deferred \}\)/);
-  assert.match(game, /deferred\.needSteps\(\[player\.pos, ship\?\.rampFoot, \.\.\.ways\]/, 'what the first frame sees done before it');
+  // (every queue of it: the distant detail's and the flora's checks, which wait for the drifts' collision: issue #385)
+  assert.match(game, /for \(const q of queues\) n \+= runSteps\(q\.needSteps\(\[player\.pos, ship\?\.rampFoot, \.\.\.ways\]/, 'what the first frame sees done before it');
+  assert.match(game, /const queues = \[\.\.\.new Set\(\[deferred, floraLater\]\)\]/);
   assert.match(game, /if \(deferred\?\.pending\) \{ deferred\.run\(player\.pos\)/, 'the rest a share a frame');
   assert.match(read('engine/unity/game.js'), /defer: !off\.has\('defer'\)/, '-js-off defer: all of it before the first frame, as before');
 });

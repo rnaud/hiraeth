@@ -10,7 +10,7 @@ import { LateCollision, queueLateCollision } from '../src/late-collision.js';
 // detail after the first frame"): the same triangles in the end, and every query answered as if baked at load.
 
 /** A floor that turns up into slopes (where a skirt's chords stand over the height), blocks spread over 300 m. */
-function sandWorld(later) {
+function sandWorld(later, most = Infinity) {
   const ground = { heightAt: (x, z) => Math.max(0, Math.sin(x * 0.05) * 6 + Math.cos(z * 0.04) * 4) };
   const scene = new THREE.Scene();
   for (let i = 0; i < 24; i++) {
@@ -21,8 +21,8 @@ function sandWorld(later) {
   }
   const d = new SandDrifts({ heightAt: (x, z) => ground.heightAt(x, z), seed: 5 }).addScene(scene);
   scene.add(d.build(new THREE.MeshBasicMaterial()));
-  DRIFT_FITS.later = later;
-  try { d.raise(ground); } finally { DRIFT_FITS.later = false; }
+  DRIFT_FITS.later = later; DRIFT_FITS.most = most;
+  try { d.raise(ground); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; }
   const pieces = DRIFT_FITS.pending.splice(0);
   return { scene, ground, d, pieces, physics: new Physics(scene, ground) };
 }
@@ -93,4 +93,35 @@ test('a hit on the late sand is the ground (footsteps): not something built', ()
   const x = (T[0] + T[3] + T[6]) / 3, z = (T[2] + T[5] + T[8]) / 3, y = Math.max(T[1], T[4], T[7]) + 2;
   later.physics.groundAt(x, y, z); now.physics.groundAt(x, y, z);
   assert.equal(later.physics.groundKind, now.physics.groundKind);
+});
+
+test('with no worker to merge in (the engines), parts stop merging at mergeMax: the same answers from a few parts', () => {
+  const total = fitMesh.geometry.attributes.position.count / 3, cap = Math.ceil(total / 6);
+  const later = sandWorld(true), q = new DeferredWork({ guard: 0 });
+  queueLateCollision(later.physics, q, later.pieces, { mergeMax: cap });
+  const late = later.physics.late;
+  q.flush();
+  assert.equal(late.pending, 0);
+  assert.equal(late.triangles, total);
+  const biggest = Math.max(...later.pieces.map((p) => (p.make()?.length ?? 0) / 9));
+  assert.ok(late.parts.length > 1 && late.parts.length <= 24, `a few parts (${late.parts.length})`);
+  for (const p of late.parts) assert.ok(p.tris.length / 9 <= Math.max(cap, biggest), `no part merged past the cap (${p.tris.length / 9} > ${cap})`);
+  assert.equal(late.extras.length, late.parts.length);
+  let rand = 7; const R = () => ((rand = (rand * 16807) % 2147483647) / 2147483647);
+  const V = new THREE.Vector3(), D = new THREE.Vector3();
+  for (let n = 0; n < 300; n++) {
+    const x = R() * 320 - 160, z = R() * 320 - 160, y = now.ground.heightAt(x, z);
+    assert.equal(later.physics.groundAt(x, y + 3, z), now.physics.groundAt(x, y + 3, z), `footing at ${x}, ${z}`);
+    V.set(x, y + 0.5 + R() * 2, z); D.set(R() - 0.5, (R() - 0.5) * 0.3, R() - 0.5).normalize();
+    assert.equal(later.physics.rayDistance(V, D, 300), now.physics.rayDistance(V, D, 300), 'a ray');
+  }
+});
+
+test('DRIFT_FITS.most (the engines): a dense square cut in parts, the same triangles between them', () => {
+  const whole = sandWorld(true), cut = sandWorld(true, 20);
+  assert.ok(cut.pieces.length > whole.pieces.length, `more pieces (${whole.pieces.length} → ${cut.pieces.length})`);
+  const made = cut.pieces.map((p) => p.make()).filter(Boolean);
+  const all = new Float32Array(made.reduce((s, a) => s + a.length, 0));
+  let o = 0; for (const a of made) { assert.ok(a.length / 9 <= 20); all.set(a, o); o += a.length; }
+  assert.deepEqual(trisOf(all), trisOf(fitMesh.geometry.attributes.position.array));
 });

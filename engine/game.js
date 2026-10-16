@@ -21,7 +21,7 @@ import '../src/gadgets/all.js';   // (first after the page's stand-ins: the gadg
 import * as THREE from 'three';
 import { levelById, LEVELS } from '../src/levels/index.js';
 import { CONTENT } from '../src/levels/content.js';
-import { Physics } from '../src/physics.js';
+import { Physics, dropBuriedFloraSteps } from '../src/physics.js';
 import { Waters } from '../src/water.js';
 import { Ship } from '../src/ship/ship.js';
 import { CallScreen } from '../src/ship/portrait.js';
@@ -38,7 +38,7 @@ import { loadTraveller, createTraveller } from '../src/characters/traveller.js';
 import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
 import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
-import { spawnNPCs, pooledNPC } from '../src/npc.js';
+import { spawnNPCs, pooledNPC, setCalmZones, shipCalmZones } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, CROWD_DIST_CELL, buildPeople } from '../src/crowd.js';
 import { QUALITY_PRESETS, SmallCuller, tilesInstances, cullFar } from '../src/perf.js';
 import { LodManager } from '../src/lod.js';
@@ -56,6 +56,8 @@ import { ReactiveWorld } from '../src/reactive-world.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
 import { DeferredWork, DEFER } from '../src/deferred.js';
+import { queueLateCollision, WORKER_TRIS } from '../src/late-collision.js';
+import { DRIFT_FITS } from '../src/sand-drifts.js';
 import { Weather } from '../src/weather.js';
 import { WindStreaks } from '../src/wind.js';
 import { Shelter, addIndoors } from '../src/shelter.js';
@@ -159,6 +161,9 @@ export { Raycaster } from 'three';   // (for the tests and the tools that probe 
 const SHOP_EL = { classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, setAttribute() {}, addEventListener() {}, querySelector: () => null, innerHTML: '' };
 /** Sound where the engine has none: every call taken, nothing played. */
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
+/** The drifts' pieces at most this many triangles to test (src/sand-drifts.js DRIFT_FITS.most): the Buried Machine's
+ * densest 8 m squares were 50 ms each to make in node, whole (issue #385). */
+const DRIFT_PIECE = 100;
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
 // how far a tile of main.js's instanced sets reaches round its centre (perf.js tileScene's 110 m cells: half their diagonal)
 const PROP_TILE_REACH = 110 * Math.SQRT1_2;
@@ -322,20 +327,38 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, width / height, 0.3, 5000);
-  const level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene))));
-  level.id ??= levelId;
-  stamp('level');
-  const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
-  // (every cape and robe made from here on simulated by the engine where it can: Unity's Burst jobs; src/cape.js CAPE_HOST)
-  CAPE_HOST.offload = backend?.capeOffload?.() ?? null;
   // distant detail finished after the first frame, as main.js does (src/deferred.js): the City-Shaft's check for trees a
   // clump put inside a house is thousands of rays through the collision, 7.6 s of the Xbox's load on the script's thread
   // before (issue #16); what is near the first view is done before it, the rest a share a frame, nearest first. Not for a
   // bench's fixed views (`view`), whose camera stands anywhere; `defer` false (the bridge's -js-off defer): all now
   const deferred = defer && !view ? new DeferredWork() : null;
+  // (with it, the sand drifts' collision cut into pieces made after the world is built, as main.js: src/late-collision.js,
+  // issue #385)
+  DRIFT_FITS.pending.length = 0;
+  DRIFT_FITS.later = !!deferred;
+  DRIFT_FITS.most = DRIFT_PIECE;   // (a piece's triangles tested at most: each made on the frame's thread here)
+  let level;
+  try { level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene)))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; }
+  level.id ??= levelId;
+  stamp('level');
+  const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
+  physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed, ladders climbed for free: main.js)
+  physics.ladders = level.ladders ?? null;
+  // (every cape and robe made from here on simulated by the engine where it can: Unity's Burst jobs; src/cape.js CAPE_HOST)
+  CAPE_HOST.offload = backend?.capeOffload?.() ?? null;
+  // the drifts' collision, a piece at each 8 m square of sand, made when its turn comes or a query comes near it (its
+  // parts merged only while small: no worker here, a merge is built in the frame)
+  { const n = deferred ? queueLateCollision(physics, deferred, DRIFT_FITS.pending.splice(0), { mergeMax: WORKER_TRIS }) : 0; if (n) log(`collision: ${n} pieces of the drifts' to make later`); }
   quiet(() => (level.initSteps ? runSteps(level.initSteps(physics, { defer: deferred })) : level.init?.(physics)));
   stamp('physics');
   const waters = quiet(() => new Waters(scene, { physics }));
+  // trees and shrubs that landed inside a house or a rock left out, as main.js: near the first view before it, the rest
+  // after (src/physics.js dropBuriedFloraSteps; the engines never ran it before issue #385). In a queue of their own,
+  // run once the drifts' collision is all made: a check's long rays make every piece of sand they cross, on the frame's
+  // thread here (the Buried Machine's first frames had one of 200 ms on the Deck); the guard still does the near ones
+  const floraLater = deferred && physics.late ? new DeferredWork() : deferred;
+  quiet(() => runSteps(dropBuriedFloraSteps(scene, physics, { defer: floraLater })));
+  const queues = [...new Set([deferred, floraLater])].filter(Boolean);
   // the opening on a new save (main.js playPrologue: the desert, no save's place, not arriving by ship): the ship in
   // orbit too (its space copy), its scenes played by the engine (issue #264)
   const playPrologue = !!(prologue && menus && levelId === 'desert' && !start?.pos && via !== 'ship' && !flags && !view && !gameDef);
@@ -407,15 +430,20 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   }
   // the crowd (crowd.js: GPU-animated figures, the nearest few promoted to full people from a pool)
   let crowd = null;
+  // (no strollers round the ship's hull and ramp, whoever stands there idling slower: main.js, src/npc.js SHIP_CALM; set
+  // for every world, the last one's gone)
+  const calm = shipCalmZones(ship?.restPos, ship?.rampFoot);
+  setCalmZones(calm);
   if (people && level.crowdSpots && humans && lib) {
     const spots = { lines: level.crowdLines, ...level.crowdSpots() };
     const clear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId)];
+    // (the walks worked out after the first frame with distant detail, nearest first: crowd.js buildPeopleSteps, #385)
     quiet(() => {
-      const built = buildPeople(physics, spots, { seed: 11, clear });
+      const built = buildPeople(physics, spots, { seed: 11, clear, calm, defer: deferred });
       const pooled = Array.from({ length: CROWD_BUDGET.pool }, (_, i) => pooledNPC(scene, physics, { kind: i % 2 ? 'f' : 'm', lib, humans }));
       crowd = new Crowd(scene, physics, { spots, built, pooled, clear, makeNPC: (kind) => pooledNPC(scene, physics, { kind, lib, humans }) });
     });
-    if (crowd) npcs.push(...crowd.npcs);
+    if (crowd) { npcs.push(...crowd.npcs); if (crowd.pending) log(`crowd: ${crowd.people.length} people placed; ${crowd.pending} walks of strollers worked out later, nearest first`); }
   }
   if (crowd && Q?.crowdMid) {   // (main.js applyDetail)
     const R = crowd.range, mid = Q.crowdMid;
@@ -498,6 +526,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, density: Q?.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
+  if (flora?.collider) physics.addCollider(flora.collider);   // (the large plants solid, as main.js)
   // the small props past the preset's propFar left out of every pass, as main.js's cullFar does (issue #262): the level's
   // small props and the flora's each frame (below), and the big instanced sets main.js cuts into tiles (perf.js
   // tilesInstances) instance by instance where they are drawn (the mirror's `far`: Unity's InstMats.far), whole, past
@@ -729,7 +758,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   };
   // walked on through a doorway, and in off it on the far side (issue #389, src/door-walk.js), as main.js
   const doorWalk = new DoorWalk({ player, physics, rig });
-  const passage = new Passage({ cover: passCover, warm: null, carry: (c) => { if (c.to) deferred?.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); } });
+  const passage = new Passage({ cover: passCover, warm: null, carry: (c) => { if (c.to) for (const q of queues) q.need(c.to, DEFER.near); carryAcross(player, rig, camera, c); } });
   const thresholds = level.portals?.length ? optional('the doorways\' light', () => new Thresholds({ veils: (level.veils ??= new Veils()), parent: scene, portals: level.portals, physics })) : null;
   let portalCool = 0;
   const throughPortals = (dt, simT) => {
@@ -1113,11 +1142,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   };
   if (aboard) goAboard(aboard);
   // the distant detail near where the first frame looks from, the ship and the ways through: now (main.js "near detail")
-  if (deferred?.pending) {
+  if (queues.some((q) => q.pending)) {
     const t = performance.now();
     const ways = [...(level.portals ?? []), ...(level.navigationPortals ?? [])].map((p) => p.to).filter(Boolean);
-    const n = runSteps(deferred.needSteps([player.pos, ship?.rampFoot, ...ways].filter(Boolean), DEFER.near));
-    log(`distant detail: ${n} jobs done near in ${Math.round(performance.now() - t)} ms, ${deferred.pending} after the first frame`);
+    let n = 0;
+    for (const q of queues) n += runSteps(q.needSteps([player.pos, ship?.rampFoot, ...ways].filter(Boolean), DEFER.near));
+    const L = physics.late;
+    log(`distant detail: ${n} jobs done near in ${Math.round(performance.now() - t)} ms, ${queues.reduce((s, q) => s + q.pending, 0)} after the first frame${L ? ` (the drifts' collision: ${L.made} pieces made, ${L.forced} by a query, in ${Math.round(L.ms)} ms; ${L.pending} after)` : ''}${crowd?.pending ? `; ${crowd.pending} walks still to come` : ''}`);
   }
   stamp('near detail');
   // the first frame's camera (a game that drives: its own, which its session set as it was made; main.js never runs the
@@ -1188,7 +1219,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
@@ -1450,6 +1481,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       crowd?.update(dt, simT, player, camera);
       lap?.('crowd');
       if (deferred?.pending) { deferred.run(player.pos); if (!deferred.pending) log(`distant detail: all done, ${deferred.done} jobs in ${Math.round(deferred.ms)} ms`); }   // (a share a frame, nearest first)
+      // (the flora's checks: only the guard's while the drifts' pieces are still being made, then a share a frame)
+      if (floraLater !== deferred && floraLater.pending) { floraLater.run(player.pos, physics.late.pending ? 0 : DEFER.budget); if (!floraLater.pending) log(`the flora's checks: all done, ${floraLater.done} in ${Math.round(floraLater.ms)} ms`); }
       // (the backend's peopleLod, the Unity bridge's: a person past 30 m out of the last frame's view, with room round them
       // for their shadow and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView)
       const lod = !!backend?.peopleLod;

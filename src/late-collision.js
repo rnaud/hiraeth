@@ -17,17 +17,23 @@ import { MeshBVH } from 'three-mesh-bvh';
 // What is made goes into a few colliders (`extras`, tested after physics.extras: every query tests each one's box), merged as they come like a
 // binary counter: a new part, then two parts of about the same size into one, so there are never more than a dozen and
 // each triangle is built into a BVH a few times in all. The big merges are built in a worker, the parts they replace
-// answering till it is done. Once nothing is left, one collider holds it all.
+// answering till it is done. Once nothing is left, one collider holds it all (in the engines, without workers, a dozen or so: mergeMax).
 // ---------------------------------------------------------------------------
 
 const CELL = 8;
 const keyOf = (cx, cz) => (cx + 32768) * 65536 + (cz + 32768);
 /** Triangles in a part at or over which a merge is built in a worker (the page keeps its frames). */
-const WORKER_TRIS = 6000;
+export const WORKER_TRIS = 6000;
 
 export class LateCollision {
-  /** @param physics src/physics.js Physics: the parts go into its extras (as `ground`: the world's own, for footsteps). */
-  constructor(physics, { worker = null } = {}) {
+  /**
+   * @param physics src/physics.js Physics: the parts go into its extras (as `ground`: the world's own, for footsteps).
+   * mergeMax: triangles over which two parts are not merged (Infinity: always, one collider at the end). The engines'
+   * VMs have no workers, so every merge is built on the frame's thread: there it is WORKER_TRIS, and a dozen or so parts
+   * of a few thousand triangles stay (the Buried Machine's last merges were 70-170 ms frames in node, issue #385).
+   */
+  constructor(physics, { worker = null, mergeMax = Infinity } = {}) {
+    this.mergeMax = mergeMax;
     this.physics = physics;
     physics.composite();
     physics.late = this;
@@ -156,6 +162,7 @@ export class LateCollision {
       if (free.length < 2) return;
       const a = free[free.length - 2], b = free[free.length - 1];
       if (!all && b.tris.length * 2 < a.tris.length) return;
+      if ((a.tris.length + b.tris.length) / 9 > this.mergeMax) return;
       this._join(a, b);
     }
   }
@@ -190,11 +197,12 @@ export class LateCollision {
 
 /**
  * Pieces of collision (src/sand-drifts.js lateFitPieces: { x, y, z, r, box, make }) queued as distant detail
- * (src/deferred.js DeferredWork, tag 'collision') and made into physics' late collision. Returns how many.
+ * (src/deferred.js DeferredWork, tag 'collision') and made into physics' late collision (o: LateCollision's options).
+ * Returns how many.
  */
-export function queueLateCollision(physics, defer, pieces) {
+export function queueLateCollision(physics, defer, pieces, o = {}) {
   if (!pieces.length) return 0;
-  const late = physics.late ?? new LateCollision(physics);
+  const late = physics.late ?? new LateCollision(physics, o);
   for (const p of pieces) { const piece = late.add(p.box, p.make); defer.add(p.x, p.y, p.z, piece.run, 'collision', p.r); }
   return pieces.length;
 }

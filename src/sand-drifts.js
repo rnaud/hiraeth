@@ -223,7 +223,9 @@ export function edgeDistance(e, x, z) {
  * `later`, raise() leaves misfits' triangles out and puts its pieces (lateFitPieces) in `pending`, for main.js to queue
  * (src/late-collision.js queueLateCollision) once the collision exists. Off everywhere else (tests, tools, the studio).
  */
-export const DRIFT_FITS = { later: false, pending: [] };
+// (most: triangles tested in one piece at most, a square's cut in parts over it: the engines, which make each on the
+// frame's thread, set it; main.js's pieces stay whole squares)
+export const DRIFT_FITS = { later: false, pending: [], most: Infinity };
 /** m: the squares the drifts' late collision is cut into. */
 const FIT_CELL = 8;
 
@@ -396,7 +398,10 @@ export class SandDrifts {
     const group = this.group, fits = this.fitTest(heightAt, tol);
     group.userData.fitTriangles = 0;
     const pieces = [];
-    for (const list of cells.values()) {
+    // (a square's triangles in parts of DRIFT_FITS.most at most: in a dense one, making it took 50 ms in node)
+    const most = Math.max(1, DRIFT_FITS.most) * 9, lists = [];
+    for (const list of cells.values()) for (let o = 0; o < list.length; o += most) lists.push(o === 0 && list.length <= most ? list : list.slice(o, o + most));
+    for (const list of lists) {
       const T = Float32Array.from(list);
       let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
       for (let i = 0; i < T.length; i += 3) {

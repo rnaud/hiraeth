@@ -9,6 +9,18 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.81', date: '2026-10-16', items: [
+    // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)
+    // and the crowd's walks as main.js does, the flora's burial check in its own queue; tests/engine-defer.test.js. Unity
+    // only: the web game already did all of this (v1.49), so it loads as before
+    { text: 'In the Unity version the City-Shaft and the Buried Machine open about a second sooner on the Steam Deck: the sand banked against far walls and the strollers on the far streets are now worked out in the first seconds of play, as the web version does, while everything near you is ready from the first moment. Shrubs that had grown inside rocks are now left out, and the large plants are solid to walk into, as on the web.',
+      numbers: [{ title: 'Launch to the world’s first frame in the Unity version, before → after', unit: 's', better: 'lower', device: 'Steam Deck OLED, the Unity Linux player, 1280 × 800, muted, three runs each', rows: [
+        { where: 'the Buried Machine', before: 12.31, after: 11.04 },
+        { where: 'the City-Shaft', before: 15.09, after: 14.01 },
+        { where: 'the Desert', before: 11.76, after: 11.66 },
+        { where: 'Vael', before: 11.87, after: 11.87 },
+        { where: 'Lorn', before: 11.36, after: 11.41 },
+        { where: 'the Signal Market', before: 9.67, after: 9.67 },
+      ], source: 'the same player with the game before and after, runs interleaved, 16 October', note: 'The longest frame over the first 15 s of play stayed where it was (36–89 ms before, 49–89 after). The web version is unchanged: it already did this.' }] },
     // issue #264: the games' own panels as screen parts (src/platform.js drums, hunt, fishing, pirates), drawn by
     // unity/…/BridgeHud.Games.cs; the page's canvases not drawn in an engine (page.drawsHud)
     'In the Unity preview the drum circle, the sketch hunt, the fishing and the chime pirates show their own pieces as on the web: the drum’s ring with its glyphs rolling in, its sockets, hits and combo; the sketch list, the sketchbook’s frame and what it holds; the fishing journal, the line’s tension meter and the catch card; the pirates’ reticle, lock, captain’s bar, hull pips, missiles and radio lines. The drum circle’s camp no longer goes black once the count starts.',
