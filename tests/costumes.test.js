@@ -7,7 +7,7 @@ const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: (
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 globalThis.window ??= { innerWidth: 1200, innerHeight: 800 };
 
-const { COSTUMES, HEADS, MASKS, BODIES, PROPS, TRIM_IDS, HEAD_IDS, BODY_IDS, PROP_IDS, MASK_IDS, BODY_ID_LIMIT, MASK_ID_LIMIT, dressFor, namedLook, crowdLook, silhouette, packDress, unpackDress, tribeOf, lookPieces, underOf } = await import('../src/costumes.js');
+const { COSTUMES, HEADS, MASKS, BODIES, PROPS, TRIM_IDS, HEAD_IDS, BODY_IDS, PROP_IDS, MASK_IDS, BODY_ID_LIMIT, MASK_ID_LIMIT, dressFor, namedLook, crowdLook, silhouette, packDress, unpackDress, tribeOf, lookPieces, underOf, wearsHat } = await import('../src/costumes.js');
 const { LEVELS } = await import('../src/levels/index.js');
 const { Crowd, figureGeometry, worldPieces } = await import('../src/crowd.js');
 const { pooledNPC, NPC } = await import('../src/npc.js');
@@ -41,7 +41,7 @@ test('every world has a costume set, built from pieces that exist', () => {
 test('the worlds dress apart: silhouettes and palettes differ from world to world', () => {
   const looks = Object.fromEntries(MAIN.map((w) => [w, people(w)]));
   const set = (w, k) => new Set(looks[w].map((s) => s[k]));
-  const top = (w) => { const c = {}; for (const s of looks[w]) c[s.head] = (c[s.head] ?? 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]; };
+  const top = (w) => { const c = {}; for (const s of looks[w].filter(wearsHat)) c[s.head] = (c[s.head] ?? 0) + 1; return Object.entries(c).sort((a, b) => b[1] - a[1])[0][0]; };
   for (let i = 0; i < MAIN.length; i++) for (let j = i + 1; j < MAIN.length; j++) {
     const a = MAIN[i], b = MAIN[j];
     const sig = (w) => [...set(w, 'head')].sort().join() + '|' + [...set(w, 'body')].sort().join() + '|' + [...set(w, 'prop')].sort().join();
@@ -49,25 +49,25 @@ test('the worlds dress apart: silhouettes and palettes differ from world to worl
     const shared = [...set(a, 'cloak')].filter((c) => set(b, 'cloak').has(c));
     assert.ok(shared.length < Math.min(set(a, 'cloak').size, set(b, 'cloak').size), `${a} and ${b} share every cloak colour`);
   }
-  // most people of each world wear that world's own headwear
-  assert.equal(top('desert'), 'headcloth'); assert.equal(top('arzach'), 'cowl'); assert.equal(top('garage'), 'antenna');
-  assert.equal(top('spheres'), 'orb'); assert.equal(top('perdide2'), 'lamphat'); assert.equal(top('bazaar'), 'turban');
+  // most of those who wear something on the head in each world wear that world's own headwear (issue #403: the oddest dropped)
+  assert.equal(top('desert'), 'headcloth'); assert.equal(top('arzach'), 'cowl'); assert.equal(top('garage'), 'peak');
+  assert.equal(top('spheres'), 'skullcap'); assert.equal(top('perdide2'), 'hood'); assert.equal(top('bazaar'), 'turban');
   // two far-apart worlds share no headwear at all
-  assert.equal([...set('desert', 'head')].filter((h) => set('arzach', 'head').has(h)).length, 0);
-  assert.equal([...set('garage', 'head')].filter((h) => set('arzach', 'head').has(h)).length, 0);
+  const hats = (w) => new Set(looks[w].filter(wearsHat).map((s) => s.head));
+  assert.equal([...hats('desert')].filter((h) => hats('arzach').has(h)).length, 0);
+  assert.equal([...hats('garage')].filter((h) => hats('arzach').has(h)).length, 0);
   // skins: the Hangar's grey-blue and Lorn's pale violet aren't anyone else's
   assert.ok([...set('garage', 'skin')].every((c) => !set('desert', 'skin').has(c)));
   assert.ok([...set('perdide', 'skin')].every((c) => !set('bazaar', 'skin').has(c)));
 });
 
-test('the City-Shaft dresses by depth: tall hats on the rim, rag hoods and goggles at the bottom', () => {
-  const rim = people('incal', 40, { pos: new THREE.Vector3(0, 200, 0) }), low = people('incal', 40, { spot: { id: 'lower' } });
+test('the City-Shaft dresses by depth: hard hats on the rim, rag hoods and goggles at the bottom', () => {
+  const rim = people('incal', 120, { pos: new THREE.Vector3(0, 200, 0) }).filter(wearsHat), low = people('incal', 120, { spot: { id: 'lower' } }).filter(wearsHat);
   assert.match(tribeOf('incal', { pos: new THREE.Vector3(0, 200, 0) }).name, /rim/);
-  assert.ok(rim.filter((s) => ['tophat', 'spire', 'bowler', 'trilby'].includes(s.head)).length > 28);
-  assert.ok(rim.filter((s) => s.head === 'tophat' || s.head === 'spire').length > 18, 'mostly the tall ones');
-  assert.ok(rim.every((s) => s.head !== 'raghood'));
-  assert.ok(low.filter((s) => ['raghood', 'hood', 'beanie', 'trapper', 'bandana'].includes(s.head)).length > 32);
-  assert.ok(low.filter((s) => s.head === 'raghood' || s.head === 'hood').length > 18, 'mostly the rag hoods');
+  // (issue #403: the stovepipes and spires dropped, bowlers and trilbies in their place)
+  assert.ok(rim.length > 15 && rim.every((s) => ['bowler', 'trilby'].includes(s.head)), rim.map((s) => s.head).join());
+  assert.ok(low.length > 15 && low.every((s) => ['raghood', 'hood', 'beanie', 'trapper', 'bandana'].includes(s.head)));
+  assert.ok(low.filter((s) => s.head === 'raghood' || s.head === 'hood').length > low.length / 2, 'mostly the rag hoods');
   assert.ok(low.some((s) => s.mask === 'goggles' || s.mask === 'browgoggles'));
   assert.ok(rim.every((s) => !low.some((l) => l.cloak === s.cloak)));
 });
@@ -78,10 +78,12 @@ test('a named person keeps their colours, in their world’s style, the same eve
   const b = namedLook({ world: 'desert', id: 'ama', palette, head: 'hat', cape: 1.25 });
   assert.deepEqual(a, b);
   for (const k of Object.keys(palette)) assert.equal(a[k], palette[k]);
-  assert.equal(a.head, 'sunhat');
+  // (the story's generic heads in the world's style, or bare: issue #403's hat share)
+  const styled = (s, h) => assert.ok(s.head === h || s.head === s.under, `${s.head}: ${h} or bare`);
+  styled(a, 'sunhat');
   assert.equal(a.capeLen, 1.25);
-  assert.equal(namedLook({ world: 'incal', id: 'x', palette, head: 'hat', pos: new THREE.Vector3(0, 200, 0) }).head, 'tophat');
-  assert.equal(namedLook({ world: 'arzach', id: 'x', palette, head: 'hood' }).head, 'cowl');
+  styled(namedLook({ world: 'incal', id: 'x', palette, head: 'hat', pos: new THREE.Vector3(0, 200, 0) }), 'bowler');
+  styled(namedLook({ world: 'arzach', id: 'x', palette, head: 'hood' }), 'cowl');
   // the story can pin a piece
   assert.equal(namedLook({ world: 'desert', id: 'speaker', palette, look: { prop: 'staff' } }).prop, 'staff');
 });
