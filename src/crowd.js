@@ -418,6 +418,8 @@ const WALK_ID0 = 1 << 20, WALK_IDS = 4096;
  * whole walk at once when anything forces a chunk of it (the traveller within the guard, a passage's far side). Those
  * standing about (circles, perches) are placed here, in order: the lanes they keep clear of are the walks' as drawn.
  */
+/** A world's bake (src/world-bake.js) answers the crowd's ray tests: begin(physics, inputs) → { ask(f), done() } or null. */
+export const CROWD_MEMO = { begin: null };
 export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm = [], defer = null } = {}) {
   const rng = mulberry32(seed);
   const base = [...(spots.avoid ?? []), ...(spots.clear ?? []), ...clear];
@@ -426,6 +428,10 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
   // the hull as you came to leave; those who stand or sit there stay, a procession keeps its loop)
   const calmMap = new ClearMap(calm), walkAvoid = calm.length ? { blocked: (x, y, z, pad) => clearOnly.blocked(x, y, z, pad) || calmMap.blocked(x, y, z, pad) } : clearOnly;
   const out = { people: [], groups: [], routes: [], later: 0 };
+  // (a world's bake, src/world-bake.js: every ray test below answered in order from it, or recorded; nothing deferred)
+  const memo = CROWD_MEMO.begin?.(physics, { spots, seed, clear, calm }) ?? null;
+  if (memo) defer = null;
+  const ask = memo ? memo.ask : (f) => f();
   const frozen = defer ? physics.freeze?.() : null;
   const { people, groups } = out;
   // looks come from their own random stream (the placement draws stay what they were)
@@ -514,7 +520,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
     // keep the lanes free of standing people (along the walk as drawn: those standing about don't wait for it)
     const laneR = (sp.lateral ?? 1.1) + 0.45 + (sp.lanes ? sp.lanes * 0.45 : 0);
     for (let i = 0; i < samples.length; i += 2) avoid.add({ x: samples[i].x, y: samples[i].y, z: samples[i].z, r: laneR });
-    const test = (i0) => { for (let i = i0; i < Math.min(i0 + WALK_CHUNK, samples.length); i++) heights[i] = walkSample(physics, samples, i, opts); };
+    const test = (i0) => { for (let i = i0; i < Math.min(i0 + WALK_CHUNK, samples.length); i++) heights[i] = ask(() => walkSample(physics, samples, i, opts)); };
     // (worked out later, against the collision as it is now: what is added or moves after the load is not in it)
     const testLater = (i0) => (physics.asWas ? physics.asWas(frozen, () => test(i0)) : test(i0));
     if (!defer || sp.column) {
@@ -561,7 +567,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
       for (let tryN = 0; tryN < 3; tryN++) {
         const a = a0 + (k / n) * TAU + (rng() - 0.5) * (tryN ? 1.1 : 0.5), rr = r * (0.88 + rng() * 0.24) * (tryN === 2 ? 0.8 : 1);
         const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
-        const g = standable(physics, x, sp.at.y, z, { avoid });
+        const g = ask(() => standable(physics, x, sp.at.y, z, { avoid }));
         if (!Number.isFinite(g)) continue;
         mem.push({ pos: new THREE.Vector3(x, g, z), heading: Math.atan2(cx - x, cz - z) + (rng() - 0.5) * 0.3 });
         break;
@@ -578,7 +584,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
   for (const sp of spots.edges ?? []) {
     yield;
     if (avoid.blocked(sp.at.x, sp.at.y, sp.at.z, 0.25)) continue;
-    const ok = perch(physics, sp, avoid);
+    const ok = ask(() => perch(physics, sp, avoid));
     if (!ok) continue;
     const pos = new THREE.Vector3(sp.at.x, ok.y, sp.at.z);
     if (ok.back) pos.addScaledVector(fwdOf(sp.heading, _v), -ok.back);
@@ -587,6 +593,7 @@ export function* buildPeopleSteps(physics, spots, { seed = 7, clear = [], calm =
     out.addPeople([p], []);
     avoid.add({ x: pos.x, y: pos.y, z: pos.z, r: 0.45 });
   }
+  memo?.done();
   return out;
 }
 

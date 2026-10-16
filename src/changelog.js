@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.81', date: '2026-10-16', items: [
+    // issue #385: the City-Shaft's collision tree, its trees-in-houses checks and its crowd's ray tests baked when the Unity
+    // builds are made (src/world-bake.js, scripts/bake-worlds.mjs in the Unity workflows); the web generates as before
+    { text: 'In the Unity preview the City-Shaft loads about three and a half seconds sooner on the Steam Deck: its collision, the trees caught inside houses and the crowd’s walks are worked out when the build is made, not at every load.',
+      numbers: [{ title: 'Launch to the world’s first frame in the Unity preview, before → after', unit: 's', better: 'lower', device: 'Steam Deck OLED, the Linux player, 1280 × 800, muted, its own profile; 3 runs each, interleaved', rows: [
+        { where: 'the City-Shaft', before: 15.2, after: 11.7 },
+        { where: 'the desert (not baked in the builds: 0.2 s for 40 MB)', before: 11.8, after: 11.6 },
+      ], source: 'issue #385: -level <world> -walk 8, -js-off bake for before' }] },
     // issue #264: the games' own panels as screen parts (src/platform.js drums, hunt, fishing, pirates), drawn by
     // unity/…/BridgeHud.Games.cs; the page's canvases not drawn in an engine (page.drawsHud)
     'In the Unity preview the drum circle, the sketch hunt, the fishing and the chime pirates show their own pieces as on the web: the drum’s ring with its glyphs rolling in, its sockets, hits and combo; the sketch list, the sketchbook’s frame and what it holds; the fishing journal, the line’s tension meter and the catch card; the pirates’ reticle, lock, captain’s bar, hull pips, missiles and radio lines. The drum circle’s camp no longer goes black once the count starts.',

@@ -3,7 +3,7 @@ import { MeshBVH, ExtendedTriangle, CENTER, AVERAGE, SAH } from 'three-mesh-bvh'
 import { GenerateMeshBVHWorker } from 'three-mesh-bvh/src/workers/GenerateMeshBVHWorker.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { runSteps, runStepsAsync } from './load-steps.js';
-import { dropInstance } from './deferred.js';
+import { dropInstance, INSTANCE_COPIES } from './deferred.js';
 
 // Collision against the real level geometry. Every static mesh in the scene
 // (minus anything flagged userData.noCollide, e.g. moving vehicles, plants or
@@ -715,6 +715,16 @@ export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false,
   let n = 0;
   mesh.updateMatrixWorld();
   const gb = geoBox(mesh.geometry);
+  // (a world's bake, src/world-bake.js: this check's answer under its inputs' key, dropped at once; or recorded)
+  const memoKey = BURIED_MEMO.key ? buriedKey(BURIED_MEMO.key(physics), mesh, gb, heights, all, ring) : null;
+  const known = memoKey && BURIED_MEMO.get?.(memoKey);
+  if (known) {
+    for (const i of known) { if (INSTANCE_COPIES.has(mesh)) { dropInstance(mesh, i); continue; } mesh.getMatrixAt(i, _dbM); zeroScale(_dbM); mesh.setMatrixAt(i, _dbM); }
+    if (known.length) mesh.instanceMatrix.needsUpdate = true;
+    return known.length;
+  }
+  const record = memoKey && BURIED_MEMO.put ? [] : null;
+  if (record) defer = null;
   const cx = (gb.min.x + gb.max.x) / 2, cz = (gb.min.z + gb.max.z) / 2;
   /** Is instance i buried (its world matrix in _dbW)? */
   const buried = (i) => {
@@ -742,12 +752,32 @@ export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false,
     }
     if ((i & 7) === 7) yield;
     if (!world(i) || !buried(i)) continue;
-    _dbM.elements[0] = _dbM.elements[1] = _dbM.elements[2] = _dbM.elements[4] = _dbM.elements[5] = _dbM.elements[6] = _dbM.elements[8] = _dbM.elements[9] = _dbM.elements[10] = 0;   // (scaled to nothing where it stood)
+    zeroScale(_dbM);   // (scaled to nothing where it stood)
     mesh.setMatrixAt(i, _dbM);
+    record?.push(i);
     n++;
   }
   if (n && !defer) mesh.instanceMatrix.needsUpdate = true;
+  if (record) BURIED_MEMO.put(memoKey, record);
   return n;
+}
+const zeroScale = (m) => { const e = m.elements; e[0] = e[1] = e[2] = e[4] = e[5] = e[6] = e[8] = e[9] = e[10] = 0; };
+
+/**
+ * A world's bake (src/world-bake.js) answers the buried checks: `key(physics)` the collision's content key, `get(k)`
+ * the dropped ids under a check's key (or null), `put(k, ids)` records them. All null outside a bake.
+ */
+export const BURIED_MEMO = { key: null, get: null, put: null };
+/**
+ * A buried check's key: the collision's, the mesh's instances where they stand (their matrices' sums by component, to
+ * 9 figures: the engines' floats and node's differ in their last bits, src/world-bake.js fingerprint), its box and the
+ * test's own.
+ */
+function buriedKey(collision, mesh, gb, heights, all, ring) {
+  const m = mesh.instanceMatrix.array, s = new Float64Array(16);
+  for (let i = 0; i < mesh.count * 16; i++) s[i & 15] += m[i];
+  const r = (v) => (Math.abs(v) < 1e-6 ? '0' : v.toPrecision(9));
+  return `${collision}|${mesh.count}:${Array.from(s, r).join(',')}|${mesh.matrixWorld.elements.map(r).join(',')}|${[...gb.min.toArray(), ...gb.max.toArray()].map(r).join(',')}|${heights.join(',')}|${all ? 1 : 0}|${ring}`;
 }
 
 /**

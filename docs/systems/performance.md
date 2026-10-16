@@ -3930,3 +3930,65 @@ The after is the final player with the 125-state list. Home's after is from the 
 - Left: the warm-up holds the main thread on the Deck, so the cold launch's loading screen stands still for ~13 s. If
   that matters, it could be warmed per world (its ~22 states) or progressively (`WarmUpProgressively`, a few a frame).
   Not tried.
+
+## Worlds baked ahead of time for the Unity builds (issue #385, 2026-10-16)
+
+The author asked whether the worlds could be built ahead of time for the Unity builds, how much bigger the app would be, and whether GitHub Actions could do it. The aim is loads under 3 s.
+
+**What a bake can hold.** A world's creation (the terrain, the drifts, the buildings, the temples) is seeded and reads no preset. It does read the save in a few places: the desert's walking dunes (6 visits), a temple's world change once it is done, and home's tomb. It also makes the world's runtime state (temples, doors, spots, the story's hooks), so its code has to run whatever is baked. Three results are pure functions of what it makes, and they are the costly ones:
+- the collision's BVH;
+- the buried-instance checks (the City-Shaft's trees in houses);
+- the crowd's ray tests.
+
+Every world, measured in Node and written out as bytes (quantised positions, octahedral normals, 16/32-bit indices; the issue has the per-world table):
+
+| variant | all 21 worlds raw / gz / br |
+|---|---|
+| full (every drawn geometry plus the costly results) | 786 / 216 / 176 MB |
+| the costly results only (this bake) | 131 MB raw / 51 MB gz, the desert's six dune visits included |
+| this bake, the City-Shaft only (shipped) | 25.6 MB raw / 9.6 MB gz |
+
+**How it works** (`src/world-bake.js`, `scripts/bake-worlds.mjs`):
+- `bake-worlds.mjs` loads each world through the engines' own code (`engine/game.js` bundled, in a bare V8 context) with `bake: 'record'`. It writes `StreamingAssets/hiraeth-js/public/bake/<world>.bin` (not committed) and `index.json`.
+- `engine/game.js` reads `bake/<levelId>.bin` through the host's files (`-js-off bake` turns it off) and keeps each result under a key built from its inputs:
+  - the BVH under a fingerprint of the triangles gathered from the scene;
+  - each buried check under the collision's key, the mesh's instances and the test's heights;
+  - the crowd's answers under the collision's key and the spots. They are replayed in order, so nothing is deferred.
+
+  A save that changes the world gives other keys, and that part generates.
+- **The engines' floats are not node's.** Puerts' V8 is node 24's version (13.6.233.17) but built with libm's trigonometry; node's uses fdlibm. The same world comes out a few ulps apart. So:
+  - the keys are fingerprints (lengths and sums to 9 figures; the spots rounded to a micrometre), not bit hashes;
+  - the baked BVH's boxes are widened by `BVH_SLACK` (1 cm), so a box always holds its triangles.
+- **The code's key** (`scripts/source-key.mjs`: a SHA-256 of `src/` and `engine/`) is defined into every engine bundle. A bake from other code, such as a bundle updated over the air, is ignored.
+- The web never reads a bake. `tests/world-bake.test.js` checks that the desert and the City-Shaft loaded from their bakes equal the generated worlds:
+  - the same triangles;
+  - the same answers to 3,000 rays and ground queries;
+  - the same instances dropped;
+  - the same crowd, person for person.
+
+  It also checks that a bake that does not fit is ignored.
+
+**Measured** (launch to the world's first frame; the bake off with `-js-off bake`, then on; interleaved; muted):
+
+| | the City-Shaft | the desert |
+|---|---|---|
+| Steam Deck OLED, the Linux player (v1.81's), 3 runs each | 15.2 → **11.7 s** (`Hiraeth.start` 10.0 → 6.4) | 11.8 → 11.6 s |
+| Mac (M4 Pro, macOS IL2CPP player, loaded machine), medians of 3 | 8.4 → **5.4 s** | within noise |
+
+On the Deck the City-Shaft's collision went 1.0 → 0.45 s, its crowd 2.9 → 1.0 s and its near detail 1.05 → 0.03 s. What is left of a Deck load (~11.6 s):
+- the boot 2.6 s and the bundle 0.9 s;
+- the world's creation 3.1-3.5 s;
+- the traveller and gestures 1.1 s, people and story 1.0 s, life 0.7 s;
+- 2.6 s from `Hiraeth.start` to the first frame (the mirror's first sync, the pipelines).
+
+No bake of results reaches 3 s. Baking the creation itself means splitting every level's builder, about +176-216 MB compressed. The Xbox's 36-41 s is mostly its GPU pipelines (above, "Cold and warm loads, Mac and Xbox").
+
+**In CI.** `unity-android.yml` (the APK and the Deck's Linux player) and `unity-xbox.yml` run `node scripts/bake-worlds.mjs --worlds $BAKE_WORLDS` after the bundle. `BAKE_WORLDS` is `incal`; empty means every world.
+- Each world is baked in a node of its own. Every world in one process grew to 7 GB.
+- On the Mac all 21 worlds took 83 s, peaking at 2.1 GB (the desert's six variants). The City-Shaft alone took 9 s and 1.1 GB.
+- `steam-deck.yml` packages the web game, so it has no bake.
+- Release assets may be up to 2 GiB each, with no limit on a release's total.
+
+**Two gaps on the engine side, fixed by no bake:**
+- `engine/game.js` routes the crowd's walks before the first frame, where main.js queues them as distant detail.
+- The engines never set `DRIFT_FITS.later`, so the drifts' collision fit runs at load.

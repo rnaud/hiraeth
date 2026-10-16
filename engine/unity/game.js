@@ -355,7 +355,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu, defer: !off.has('defer'), bake: off.has('bake') ? false : 'auto', far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)

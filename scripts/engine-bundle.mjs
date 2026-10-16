@@ -12,6 +12,7 @@ import { viteImportGlobPlugin } from 'rolldown/experimental';
 import { mkdirSync, statSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sourceKey } from './source-key.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const ENTRIES = {
@@ -59,7 +60,9 @@ export async function bundle(name, override = {}) {
     external: ['godot', 'godot-jsb', 'csharp', 'puerts'],
     platform: 'neutral',
     // (vite's import.meta.env, and the module URLs the reference sheets resolve their pictures from)
-    transform: { define: { 'import.meta.env.BASE_URL': '"./"', 'import.meta.env.DEV': 'false', 'import.meta.env.PROD': 'true', 'import.meta.env.MODE': '"engine"', 'import.meta.url': '"engine://hiraeth/src/module.js"' } },
+    transform: { define: { 'import.meta.env.BASE_URL': '"./"', 'import.meta.env.DEV': 'false', 'import.meta.env.PROD': 'true', 'import.meta.env.MODE': '"engine"', 'import.meta.url': '"engine://hiraeth/src/module.js"',
+      // (the code's key: a world's bake is used only by a bundle of the code it was baked from, src/world-bake.js)
+      __HIRAETH_SOURCE_KEY__: JSON.stringify(sourceKey()) } },
     // (Vite's import.meta.glob, as the web build has it: src/gadgets/all.js finds every gadget so, issue #344)
     plugins: [noIcu(), noCss(), viteImportGlobPlugin({ root: ROOT })],
     logLevel: 'warn',

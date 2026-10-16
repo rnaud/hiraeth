@@ -31,6 +31,7 @@ on:
       - 'scripts/unity-*'
       - 'scripts/unity-*/**'
       - 'scripts/engine-bundle.mjs'
+      - 'scripts/bake-worlds.mjs'
       - '.github/workflows/unity-xbox.yml'
   workflow_dispatch:
     inputs:
@@ -55,6 +56,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  # (the worlds baked for the players, scripts/bake-worlds.mjs: issue #385; empty for every world)
+  BAKE_WORLDS: incal
   UNITY_VERSION: 6000.6.4f1   # (unity/Hiraeth/ProjectSettings/ProjectVersion.txt)
   PROJECT: unity/Hiraeth
   GFX: ${{ inputs.graphics_api || 'Direct3D12' }}
@@ -118,6 +121,13 @@ jobs:
           npm ci
           PUERTS_BACKENDS='Quickjs V8' scripts/unity-js-setup.sh
           node scripts/engine-bundle.mjs unity
+
+      # The worlds' costly results worked out ahead of time (issue #385, src/world-bake.js: the collision's BVH, the
+      # buried instances, the crowd's ray tests), by the bundle's own code in node, into StreamingAssets/hiraeth-js/
+      # public/bake (index.json: the code's key, each world's size); a world without one generates, as the web always does
+      - name: The worlds' bakes
+        shell: bash
+        run: node scripts/bake-worlds.mjs ${BAKE_WORLDS:+--worlds "$BAKE_WORLDS"} | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Puerts' natives for UWP x64
         run: |

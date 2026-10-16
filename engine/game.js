@@ -56,6 +56,7 @@ import { ReactiveWorld } from '../src/reactive-world.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
 import { DeferredWork, DEFER } from '../src/deferred.js';
+import { WorldBake } from '../src/world-bake.js';
 import { Weather } from '../src/weather.js';
 import { WindStreaks } from '../src/wind.js';
 import { Shelter, addIndoors } from '../src/shelter.js';
@@ -158,6 +159,8 @@ export { Raycaster } from 'three';   // (for the tests and the tools that probe 
 const SHOP_EL = { classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, setAttribute() {}, addEventListener() {}, querySelector: () => null, innerHTML: '' };
 /** Sound where the engine has none: every call taken, nothing played. */
 const SILENT = new Proxy({}, { get: (t, k) => (k === 'ctx' ? null : k === 'band' ? () => null : () => {}) });
+/** A world's bake among the host's files (src/world-bake.js; a Unity build's StreamingAssets/hiraeth-js/public/bake), or null. */
+const bakeFile = (id) => { try { return globalThis.__HIRAETH_HOST__?.readFile?.(`bake/${id}.bin`) ?? null; } catch { return null; } };
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
 // how far a tile of main.js's instanced sets reaches round its centre (perf.js tileScene's 110 m cells: half their diagonal)
 const PROP_TILE_REACH = 110 * Math.SQRT1_2;
@@ -286,7 +289,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, bake: bakeIn = 'auto', bakeFlags = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -298,6 +301,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const t0 = performance.now();
   // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
   if (flags) Object.assign(gameState.data.flags, flags);
+  // (a bake recorded under a save's flags that change the world: the desert's walking dunes' visit, scripts/bake-worlds.mjs)
+  if (bakeIn === 'record' && bakeFlags) Object.assign(gameState.data.flags, bakeFlags);
   const stamp = (k) => { T[k] = Math.round(performance.now() - t0); };
   // a game's page (?game=<id>, src/minigames/): its own arena under its host's id, or the world it is played in, is the
   // level (src/minigames/kit/world.js levelMetaFor, as main.js builds it); `from` the world its Quit goes back to
@@ -324,7 +329,16 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene))));
   level.id ??= levelId;
   stamp('level');
-  const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
+  // the world's costly results worked out ahead of time, where its build carries them (src/world-bake.js, issue #385:
+  // the Unity builds' bake/<world>.bin, scripts/bake-worlds.mjs): the collision's BVH, the buried instances, the
+  // crowd's ray tests, each under its own inputs' key, so nothing is ever answered that the load would not have worked
+  // out; `bake` 'record' writes one (game.bakeOut()), false (-js-off bake) generates everything, a buffer is used as given
+  WorldBake.end();
+  const bake = bakeIn === 'record' ? WorldBake.record(levelId)
+    : bakeIn === false ? null
+    : WorldBake.use(typeof bakeIn?.byteLength === 'number' ? bakeIn : bakeFile(levelId), levelId, log);
+  const physics = bake ? bake.physics(scene, level.ground?.heightAt ? level.ground : null) : new Physics(scene, level.ground?.heightAt ? level.ground : null);
+  bake?.begin();
   // (every cape and robe made from here on simulated by the engine where it can: Unity's Burst jobs; src/cape.js CAPE_HOST)
   CAPE_HOST.offload = backend?.capeOffload?.() ?? null;
   // distant detail finished after the first frame, as main.js does (src/deferred.js): the City-Shaft's check for trees a
@@ -497,6 +511,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
   const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, density: Q?.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
+  if (bake) {
+    bake.end();
+    const b = bake.stats;
+    log(`bake: ${bake.mode === 'use' ? 'used' : 'recorded'}: the BVH ${b.bvh}, ${b.buried} buried checks answered${b.buriedMissed ? ` (${b.buriedMissed} not in it)` : ''}, the crowd ${b.crowd ?? 'none'}; ${Math.round(b.ms)} ms`);
+  }
   // the small props past the preset's propFar left out of every pass, as main.js's cullFar does (issue #262): the level's
   // small props and the flora's each frame (below), and the big instanced sets main.js cuts into tiles (perf.js
   // tilesInstances) instance by instance where they are drawn (the mirror's `far`: Unity's InstMats.far), whole, past
@@ -1183,6 +1202,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
+    bakeOut: () => bake?.write() ?? null,
     scene, camera, player, rig, level, physics, deferred, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
