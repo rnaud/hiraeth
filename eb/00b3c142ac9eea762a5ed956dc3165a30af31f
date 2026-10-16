@@ -1,0 +1,53 @@
+changelog.md
+  s_9ca76055a220ed::t_0d4b20205e73f0 7
+docs/README.md
+  s_9ca76055a220ed::t_b9b9d910e96683 73
+docs/systems/interiors.md
+  s_9ca76055a220ed::t_12477bb818689e 128-163
+engine/game.js
+  s_9ca76055a220ed::t_052f1173f37d9d 143,730-731,742,744-746,1284-1285,1485
+engine/unity/game.js
+  s_9ca76055a220ed::t_a166db5a0fdcbf 449-459,838-843,977-990
+scripts/sound-qc/actions.mjs
+  s_9ca76055a220ed::t_acd77ae3a8a452 83
+src/audio.js
+  s_9ca76055a220ed::t_39738aee19f4dd 1726-1735
+src/changelog-media.js
+  s_9ca76055a220ed::t_a1a52f21f43aec 1082-1084,1087-1095
+src/changelog.js
+  s_9ca76055a220ed::t_8aa7012a243291 57-59
+src/door-walk.js
+  s_9ca76055a220ed::t_d34902c594b285 1-265
+src/main.js
+  s_9ca76055a220ed::t_6a75970cff05c2 144,2301-2302,2371,2373,2375-2377,2790-2791,2832
+src/music-page/catalog.js
+  s_9ca76055a220ed::t_0f50d67b025110 205
+src/passage.js
+  s_9ca76055a220ed::t_a18dea434a59d0 394,396,403-404,406,420,424-425
+src/player.js
+  s_9ca76055a220ed::t_37cba95da6bd3c 666,1601-1603,1637,1782-1783,1788,1840-1841,1849
+tests/door-walk-sim.js
+  s_9ca76055a220ed::t_364a0fe1a69090 1-96
+tests/door-walk.test.js
+  s_9ca76055a220ed::t_ea59608278bf7c 1-219
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_d70986dea73887 121
+tests/passage.test.js
+  s_9ca76055a220ed::t_607a404345042d 219,221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eb00b3c142ac9eea762a5ed956dc3165a30af31f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
