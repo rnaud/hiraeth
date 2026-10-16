@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_ae14ff056753ec 5-6,10-11
+docs/plans/unity-default-portables.md
+  s_9ca76055a220ed::t_50030fe2779e34 242
+docs/steam-deck.md
+  s_9ca76055a220ed::t_f7a8ad564d1d1a 3-8,97-99,116,142-146,153-156,176-178
+scripts/steam-deck/deck.py
+  s_9ca76055a220ed::t_7bc2c2b53624e9 15,69-71,73,1661,1663,1665
+src/changelog.js
+  s_9ca76055a220ed::t_0b96d79b36ac92 11-34,46
+tests/test_steam_deck.py
+  s_9ca76055a220ed::t_e2f2689f13d690 479-486,494,731,872,1166-1181,1311
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bfd5c30a22c0d695830a7d600349eb823e4269a4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
