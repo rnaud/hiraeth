@@ -1213,6 +1213,78 @@ body's climb, the feet's distance from the hips; and `StairLine` on a made-up fl
 **Left red**: none in node. In the game, as in round 4: the pivot into a jog at 90° (`jog2`) and the sprint reversed's
 calf, every world's course over the 3 cm boundary in most runs.
 
+**Issue #47 on B3, the sixth round: the game's reds** (2026-10-16). The node QC was all green after the fifth round;
+the game's (the desert, the Signal Market's street, the Arena) was not: the pivot into a jog at 90° (`jog2`, a calf
+20-27 rad/s and a 4.4-6.7 cm jolt at its blend in every run), the sprint reversed (a calf 14-21 rad/s, 3-4 cm), jolts
+by the handful at a sprint. What the game has that node hadn't: its frames. In headless Chrome a frame is 15-19 ms,
+not 16.7, and on a busy machine 30-50 ms by the hundred.
+
+- **The judgement at the frames' own times** (scripts/motion-qc/lib.mjs `cubicWeights`). A jolt is a joint off the cubic
+  through its places two frames either side; the cubic took the frames as evenly spaced, so a smooth swing at a run,
+  sampled unevenly, read 2-4 cm off its curve. It is now the cubic through the four frames at their times (Lagrange), each
+  pose at the end of its frame (both recorders stamp a sample at its frame's start). Evenly spaced, the weights are the
+  old ones, and node's runs read as before. In node at uneven frames, eight runs' jolts 55 → 22; the fifth round's game
+  runs, judged again, 0-1 fewer a minute (their frames were steadier than the seeded walk).
+- **The game's frames in node** (scripts/motion-qc/scenarios.mjs `WORLDS_FLAT`, `unevenFrames`; run.mjs `frames`): the
+  worlds' course on the node course's flat ground at seeded 15-19 ms frames. It plays the game's reds: every seed had the
+  `jog2` calf pop and its 5-7 cm blend, which a run at even frames never showed.
+- **The pivot into a jog at 90°** (`FEET.lateRelease`). Turning on the spot holds both feet; turning into a jog, the
+  pivot ends when the body passes 2.9 m/s, and the gait under it has the held foot nearly at the end of its swing by then.
+  Let go two or three frames before the jog's touchdown for it, 60 cm from where the jog sets it down, the foot was pulled
+  9 cm toward there in a frame, planted again where it was drawn and stopped dead: the calf 22-29 rad/s. Whether the pivot
+  ended six frames before that touchdown or two was the frames' timing. Now a foot let go (by the gait or out of reach)
+  with the clip's touchdown under 0.1 s away lands only once little (15 %) is left on its old hold: it goes over to the
+  clip's place in its release's arc, and lands there.
+- **The sprint reversed**: a frame of no speed (`WARP_HOLD`, src/locomotion.js `gaitFeet`). The body's speed passes
+  through nothing for a frame on its way from 8 m/s one way to the other, and the stride's warp (the body's speed over the
+  loops' sweep) fell back to 1 there: the clip's feet reached out their whole stride for one frame, a swinging foot 8 cm on
+  and 16 back (an 11.6 cm jolt). With the gait over half the pose the warp of the frame before is kept (`Animator`'s
+  `GAIT_HOLD` keeps the gait's weights through the same frame).
+- **The foot held through a half turn** (`FEET.ballTurn`). The running 180° turns the body round over its held foot, and
+  as that foot was let go its knee, bent over toes pointing back, swung across to the front, 7-8 cm a frame, the calf 18-21
+  rad/s. Moving, a held foot turned more than 0.4 rad from the clip's way turns on its ball toward it at up to 14 rad/s, as
+  a pivoting foot does.
+- **A push-off braking** (`FEET.pushOffBrake`). A sprint's held foot lets go once the hips, a moment ahead at the body's
+  speed, would have its leg at full length; at a reversal's first frame, braking from 8 m/s at 100 m/s², that let the
+  stance foot go with the clip's contact still full, and it skimmed the floor 5-12 cm a frame as the body came round (the
+  Arena's 21-31 cm slides). The hips' lead counts the braking.
+- **A settling step lifts before it moves** (`FEET.stepMove`): it goes over between 10 % and 85 % of its time, so its ball
+  never travels on the floor. Not a pivot's quick steps: the walk back's first step then popped its calf (16 rad/s).
+- **Unsteady runs** (the skill's run.mjs): a browser run with over 2 % of its frames longer than 22 ms is printed
+  UNSTEADY and marked so in motion-world.json. A desert run with 219 such frames read 8 pops and 17 jolts a minute, a steady
+  one 2-3 and 4-6: the springs and the contacts' timing then measure the machine.
+
+Tried and left out: a landing counted by where a fast fall will have it (`landFall`: the running reversal's foot meets
+the landing window in its last frame; counted earlier, the sprint's slides grew 1 cm everywhere and down the ramp a 3.3 cm
+blend; only while braking, a jog's speeding into a sprint jolted 8.9 cm); a pivot setting off past `pivotStepSpeed`
+letting its held foot go at once (blends of 4.8-4.9 cm); the late release faster, or lifting at once, or its ball held
+longer (each moved the slide to the next step); a pivot's quick step set down later or steeper (the pivots' slides 5.5 →
+1.0 cm, but 4-8 pops a minute); the step's path push let go sooner; a knee's way turned back slower than the hold's weight;
+the jog and the walk loops smoothed like the sprint (no change).
+
+Node, the QC's course (`diff.mjs`, before on 72377dec9): every run green before and after; mean slide p95 2.8 → 2.6 cm
+(up the ramp 1.7 → 0.8, the stairs 2.0 → 1.0, down the ramp 2.7 → 2.2: the settling steps), every other measure as it was.
+Matching: 15 of 16 red before and after. The worlds' course at the game's frames (six seeds, the change off → on): red
+runs 6 → 2, pops 11 → 4, the `jog2` calf 22-29 → at most 15 rad/s, its blend 5.4-6.7 cm → under 3 in every seed.
+
+In the game (Mac, muted headless Chrome, Medium; before: the fifth round's three runs on 72377dec9, judged again with the
+new judgement; after: four runs, the steady ones only, the machine shared with a Unity build):
+
+| world | pops /min | jolts /min | boundary (cm) | slide p95 (cm) |
+|---|---|---|---|---|
+| the desert's dunes | 4, 6, 5 → 3 | 7, 7, 6 → 6 | 6.0, 4.5, 3.9 → 3.3 | 7.7, 5.7, 4.4 → 5.7 |
+| the Signal Market's street | 2, 3, 3 → 0, 0, 3, 1 | 2, 3, 2 → 2, 1, 3, 2 | 4.4, 5.6, 3.5 → 3.6, 3.5, 3.8, 2.4 | 6.0, 5.0, 4.7 → 5.5, 4.5, 4.9, 5.3 |
+| the Arena's floor | 1, 2, 2 → 1, 1, 0 | 3, 2, 2 → 1, 2, 1 | 5.8, 4.4, 6.0 → 3.7, 2.4, 3.7 | 4.4, 4.3, 7.8 → 6.6, 4.3, 4.7 |
+
+The street and the Arena each came out within every limit in one run (the Arena once in the fifth round, the street
+never). `tests/motion-qc.test.js` ("sixth round": the uneven-frame course at four seeds, the judgement at uneven frames,
+the warp held) holds these.
+
+**Left red**, in the game: the sprint reversed's landing (a 3.3-3.8 cm blend: its foot, swung round, falls its last 20-30
+cm in four frames and meets the landing window only in its last frame), a settling step after a pivot touching down
+3-4 cm a frame (slide p95 6-7 cm in some runs), and on the dunes the sprint's feet over the slopes (jolts 4-5 cm, 6 a
+minute).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

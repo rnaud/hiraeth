@@ -58,3 +58,14 @@ export const WORLDS = [
   // and shoved him as he stood, so the stop never counted as settled: issue #288)
   { name: 'arena-floor', world: 'arena', about: 'the Arena’s open floor (the waves held off): the same on hard flat ground', setup: "window.foes?.setPractice?.('');", segs: course() },
 ];
+
+// the worlds' course on the node course's flat ground, as COURSE's scripts: with the game's uneven frames (runScenario's
+// `frames`, unevenFrames) it plays the game's reds in node (issue #47's sixth round); not one of the QC's runs
+export const WORLDS_FLAT = { at: [0, 0, -60], about: 'the worlds’ course on flat ground',
+  script: course().map((s) => [s.for, s.stick ? { stick: { x: s.stick[0], y: s.stick[1] }, ...(s.run ? { ShiftLeft: true } : {}) } : {}, s.tag]) };
+
+/** Frame times as the game's come in headless Chrome, 15-19 ms: a seeded walk, the same every run (frames(k) for runScenario). */
+export function unevenFrames(seed = 1) {
+  let x = seed;
+  return () => { x = (x * 16807) % 2147483647; return (1 / 60) * (0.88 + 0.24 * (x / 2147483647)); };
+}

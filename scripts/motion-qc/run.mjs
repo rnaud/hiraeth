@@ -22,15 +22,18 @@ import { sheetSVG } from './sheet.mjs';
 
 export const WAYS = { loops: { matching: false, moves: false }, moves: { matching: false, moves: true }, mm: { matching: true, moves: false } };
 
-/** One scenario one way: { samples, meta, r (lib.analyse) }. */
-export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null } = {}) {
+/** One scenario one way: { samples, meta, r (lib.analyse) }. o.frames(k): frame k's dt (the game's uneven frames; default 1 / fps). */
+export async function runScenario(sc, way, { body = 'b3', fps = 60, onFrame = null, frames = null } = {}) {
   const p = await traveller(course(), new THREE.Vector3(...sc.at), { ...WAYS[way], body });
   timeAnimator(p.animator);
-  const dt = 1 / fps, S = [], st = {};
-  let t = 0;
+  const S = [], st = {};
+  let t = 0, k = 0;
   for (const [secs, input, tag] of sc.script) {
-    const n = Math.round(secs * fps);
-    for (let i = 0; i < n; i++) {
+    // (uneven frames: a phase lasts its seconds, however many frames that takes)
+    const n = frames ? Infinity : Math.round(secs * fps);
+    for (let i = 0, u = 0; i < n && (!frames || u < secs - 1e-9); i++) {
+      const dt = frames ? frames(k) : 1 / fps;
+      k++; u += dt;
       p.update(dt, input, CAM_PLUS_Z);
       p.object.updateMatrixWorld(true);
       S.push(sample(p, st, { t, dt, tag, stick: stickOf(input), run: !!input.ShiftLeft }));

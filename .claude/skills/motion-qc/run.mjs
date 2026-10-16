@@ -174,7 +174,11 @@ for (const sc of plan) for (const way of ways) {
   await send('Emulation.setCPUThrottlingRate', { rate: 1 });
   const { samples, shots, meta } = await ev(`(async () => { const s = window.__mq; s.rec = false; const S = await import('/scripts/motion-qc/sample.mjs'); return { samples: s.samples, shots: s.shots, meta: S.metaOf(window.player) }; })()`);
   const r = L.analyse(samples, meta);
-  results[key] = { world: sc.world, way, about: sc.about, cpu: CPU, measures: r.measures, fails: r.fails, green: r.green, worst: r.worst, events: { ...r.events, steps: r.events.steps.slice().sort((a, b) => b.slide - a.slide).slice(0, 12) } };
+  // (the frames' own steadiness: on a busy machine a run's frames come at 30-50 ms by the hundred, and the feet's springs and
+  // the contact's timing then measure the machine, not the walk (issue #47's sixth round: a desert run with 219 frames over
+  // 22 ms read 8 pops a minute, a steady one 2). Such a run is marked unsteady and should be run again)
+  const longFrames = samples.filter((x) => x.dt > 0.022).length, unsteady = longFrames > Math.max(5, samples.length * 0.02);
+  results[key] = { world: sc.world, way, about: sc.about, cpu: CPU, longFrames, unsteady, measures: r.measures, fails: r.fails, green: r.green, worst: r.worst, events: { ...r.events, steps: r.events.steps.slice().sort((a, b) => b.slide - a.slide).slice(0, 12) } };
   rows.push({ name: sc.name, way, r });
   writeFileSync(join(OUT, `${sc.name}.${way}.json`), JSON.stringify({ meta, samples }));
   // the sheet: for each of node's worst frames, the page's picture nearest it (within a third of a second)
@@ -186,7 +190,7 @@ for (const sc of plan) for (const way of ways) {
   const png = await sheet(key, picks.slice(0, 6));
   if (png) writeFileSync(join(OUT, `${sc.name}.${way}.png`), Buffer.from(png.split(',')[1], 'base64'));
   const m = r.measures;
-  console.log(`${key.padEnd(30)} ${r.green ? 'green' : 'RED  '} slide ${(m.slideP95 * 100).toFixed(1)}/${(m.slideMax * 100).toFixed(1)} cm held ${(m.held * 100).toFixed(1)} pops ${m.popsPerMin.toFixed(1)}/min jolts ${m.joltsPerMin.toFixed(1)}/min boundary ${(m.boundaryMax * 100).toFixed(1)} cm anim ${m.animUs.toFixed(0)} µs match ${m.matchUs.toFixed(0)} µs${r.fails.length ? `  [${r.fails.join(' ')}]` : ''}`);
+  console.log(`${key.padEnd(30)} ${unsteady ? `UNSTEADY (${longFrames} frames over 22 ms: run it again) ` : ''}${r.green ? 'green' : 'RED  '} slide ${(m.slideP95 * 100).toFixed(1)}/${(m.slideMax * 100).toFixed(1)} cm held ${(m.held * 100).toFixed(1)} pops ${m.popsPerMin.toFixed(1)}/min jolts ${m.joltsPerMin.toFixed(1)}/min boundary ${(m.boundaryMax * 100).toFixed(1)} cm anim ${m.animUs.toFixed(0)} µs match ${m.matchUs.toFixed(0)} µs${r.fails.length ? `  [${r.fails.join(' ')}]` : ''}`);
 }
 writeFileSync(join(OUT, 'motion-world.json'), JSON.stringify({ when: new Date().toISOString(), preset: PRESET, cpu: CPU, limits: L.LIMITS, results, errors: errors.slice(0, 20) }, null, 1));
 writeFileSync(join(OUT, 'motion-world.md'), `${L.table(rows)}\n`);

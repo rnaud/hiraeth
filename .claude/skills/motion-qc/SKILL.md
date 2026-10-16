@@ -29,6 +29,11 @@ node scripts/motion-qc/diff.mjs <before>/motion.json <after>/motion.json [--way 
 Both runs take `TUNE='{"feet.js":{"FEET":{"dropKeep":false}}}'` (assigned into `src/<module>`'s exported objects; in the
 browser into the page's own modules): a before / after of a change that has a switch, without a second checkout.
 
+A browser run whose frames came unevenly (over 2 % of them longer than 22 ms: a busy machine) is printed UNSTEADY and
+marked `unsteady` in `motion-world.json`: run it again; its pops and jolts measure the machine. To play the game's frame
+times in node, `runScenario(WORLDS_FLAT, 'moves', { frames: unevenFrames(seed) })` (scripts/motion-qc/scenarios.mjs): the
+worlds' course on the flat at 15-19 ms frames, seeded; the jolts' cubic is read at the frames' own times.
+
 Node 22.12 or newer on PATH (the global `WebSocket` and Vite's floor; CI uses 24; Zed's bundled node works).
 
 - **Node** (`scripts/motion-qc/run.mjs`): the real Player, Animator, feet and matcher on the gait harness's course (flat

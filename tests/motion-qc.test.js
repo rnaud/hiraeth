@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyse, steps, pops, jolts, latency, pivots, LIMITS, BONES, JOINTS } from '../scripts/motion-qc/lib.mjs';
 import { runScenario } from '../scripts/motion-qc/run.mjs';
-import { COURSE } from '../scripts/motion-qc/scenarios.mjs';
+import { COURSE, WORLDS_FLAT, unevenFrames } from '../scripts/motion-qc/scenarios.mjs';
 
 const meta = { ballRest: 0.04, ankleRest: 0.08 };
 /**
@@ -273,6 +273,50 @@ test('the stairs at a run: green, the drawn body on the stairs\' line, the kick-
   assert.ok(jerk < 0.035, `the drawn body's climb changes by at most ${(jerk * 100).toFixed(1)} cm a frame from one frame to the next (5.5 before)`);
   const closest = Math.min(...near);
   assert.ok(closest > 0.25, `a foot comes no nearer its hip than ${(closest * 100).toFixed(0)} cm on the stairs (11 before)`);
+});
+
+// (issue #47's sixth round, 2026-10-16: the game's reds. In headless Chrome a frame is 15-19 ms, not 16.7: the jolts' cubic
+// through evenly spaced frames read a smooth swing at a run, sampled unevenly, as 2-4 cm off its curve (the cubic is now at
+// the frames' own times, each pose at its frame's end), and the worlds' course on flat ground in node at such frames plays
+// what the game showed: the pivot into a jog at 90° popped the calf 22-29 rad/s at every seed, its held foot let go as the
+// jog was about to set it down and planted again two frames on (FEET.lateRelease); a sprint reversed threw a foot 8 cm on
+// and 16 back in the frame its speed passed through nothing (the warp held, src/locomotion.js WARP_HOLD) and swung the knee
+// across as its foot, held through the half turn, was let go (FEET.ballTurn).)
+test('the judgement: a smooth swing at uneven frames is no jolt (the cubic at the frames\' own times)', () => {
+  let t = 0;
+  const S = walk(300, { v: 6, edit: (s, i) => {
+    const dt = (1 / 60) * (0.88 + 0.24 * ((i * 7919) % 101) / 100);
+    s.t = t; s.dt = dt; t += dt;
+    const te = s.t + dt;   // (the pose at the frame's end)
+    s.joints = JOINTS.map((_, j) => [Math.sin(te * 9 + j) * 0.4, 0.5 + j * 0.05, Math.cos(te * 9 + j) * 0.4]);
+  } });
+  const J = jolts(S);
+  assert.equal(J.events.length, 0, `no jolts (${J.events.map((e) => (e.size * 100).toFixed(1)).join(', ')} cm)`);
+});
+
+test('the worlds\' course at the game\'s uneven frames: the pivot into a jog at 90° and the sprint reversed (issue #47, sixth round)', { timeout: 180000 }, async () => {
+  let red = 0;
+  for (const seed of [2, 3, 5, 6]) {
+    const { r } = await runScenario(WORLDS_FLAT, 'moves', { frames: unevenFrames(seed) });
+    const jog2 = r.events.pops.filter((e) => e.tag === 'jog2'), b = Math.max(0, ...r.events.boundaries.filter((e) => e.tag === 'jog2').map((e) => e.size));
+    assert.ok(jog2.every((e) => e.size < 18), `seed ${seed}: the pivot into a jog at 90°: pops ${jog2.map((e) => e.size.toFixed(0)).join(', ')} rad/s (22-29 before)`);
+    assert.ok(b < LIMITS.boundary, `seed ${seed}: the pivot into a jog at 90°: its blend ${(b * 100).toFixed(1)} cm (5.4-6.7 before)`);
+    const rev = Math.max(0, ...r.events.jolts.filter((e) => e.tag === 'pivot-sprint').map((e) => e.size));
+    assert.ok(rev < 0.06, `seed ${seed}: the sprint reversed: the worst jolt ${(rev * 100).toFixed(1)} cm`);
+    if (!r.green) red++;
+  }
+  assert.ok(red <= 1, `${red} of 4 seeds red (all 4 before)`);
+});
+
+test('gaitFeet keeps the stride\'s warp through a frame of no sweep while the gait holds the pose (src/locomotion.js WARP_HOLD)', async () => {
+  const { gaitFeet } = await import('../src/locomotion.js');
+  const A = { contact: { l: 0, r: 1 }, toContact: { l: 0.2, r: 0 }, gaitW: 1, footSpeed: 10, mmW: 0, w: {} };
+  const o = gaitFeet(A, 7, {});
+  assert.ok(Math.abs(o.warp - 0.7) < 1e-9, `warp ${o.warp}`);
+  A.footSpeed = 0;
+  assert.ok(Math.abs(gaitFeet(A, 0.01, o).warp - 0.7) < 1e-9, 'the warp kept for the frame the sweep is nothing');
+  A.gaitW = 0.1;
+  assert.equal(gaitFeet(A, 0.01, o).warp, 1, 'standing: no warp');
 });
 
 test('StairLine: an even flight read ahead is a smooth line through it, continuous as each riser is stepped (src/locomotion.js, issue #47)', async () => {

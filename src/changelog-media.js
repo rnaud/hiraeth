@@ -1068,6 +1068,9 @@ const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) agai
 const QC47D = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second); main at a9a8ed0f against the same tree with the change (scripts/motion-qc/diff.mjs); 15 October';
 const GAME47D = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs: every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the desert’s sand, the Signal Market’s street and the Arena’s floor; main at a9a8ed0f once (the desert twice) against the same tree with the change three times (world-final, -final2, -final3); 15 October';
 const SRC47D = 'issue #47 scratchpad motion-r4: before/ and final/ (node), world-before/, world-before2/, world-final/, world-final2/, world-final3/ (the game; tools/wev.mjs lists their events)';
+const QC47F = 'node, the motion QC’s worlds’ course (every gait, a sprint reversed, a pivot, a jog off at 90°, a 90° turn) on the gait harness’s flat ground at the game’s uneven frame times (15-19 ms, six seeded runs: scripts/motion-qc/scenarios.mjs WORLDS_FLAT, unevenFrames), the B3 traveller; the change switched off and on; 16 October';
+const GAME47F = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391, the in-game motion QC (.claude/skills/motion-qc/run.mjs) on the desert’s sand, the Signal Market’s street and the Arena’s floor: main at 72377dec9 three times against the change, the steady runs only (fewer than 2 % of frames over 22 ms), both judged with the new judgement';
+const SRC47F = 'issue #47 scratchpad motion-r5: game-after1–3/ (before), r6-final4/, r6-end1–3/ (after); tools/seeds.mjs, tools/rejudge.mjs';
 const QC47E = 'node, the motion QC (scripts/motion-qc/run.mjs, the default way, the game’s B3 traveller on the gait harness’s course, 60 frames a second, the run’s 5.7 s); main at 87277301 against the same tree with the change (scripts/motion-qc/diff.mjs); 16 October';
 const GAME47E = 'Mac (M4 Pro), muted headless Chrome on ANGLE Metal, Medium, 1280 × 720, Vite on port 5391; the motion QC in the game (.claude/skills/motion-qc/run.mjs) on the desert’s sand, the Signal Market’s street and the Arena’s floor, three runs each way: the change switched off (TUNE) and on';
 const SRC47E = 'issue #47 scratchpad motion-r5: before/, after/ (node), game-before1–3/, game-after1–3/ (the game; tools/bounds.mjs lists their events)';
@@ -1093,6 +1096,22 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Pour Floor: time, s (147 foes, 18 pours)', before: '—', after: 160 },
       ], source: FIGHT341 },
     ], see: 'In the Moon Foundry, walk south from the workers’ quarter to the doorway. In the bays, when a channel’s rim turns bright, step off it.' },
+    { match: 'Turning on the spot and setting off into a jog to the side', tags: ['characters'], numbers: [
+      { title: 'The worlds’ course in node at the game’s frame times: six seeded runs', unit: 'count', better: 'lower', device: QC47F, source: SRC47F, rows: [
+        { where: 'runs over the QC’s limits, of 6', before: 6, after: 2 },
+        { where: 'pops (a bone flicking in a frame), all six runs', before: 11, after: 4 },
+        { where: 'the pivot into a jog at 90°: its calf (rad/s, the worst run)', before: 29, after: 15 },
+        { where: 'the pivot into a jog at 90°: the worst jolt at its blend (cm)', before: 6.7, after: '< 3' },
+      ], note: 'Before, every run had the pivot’s calf pop (22-29 rad/s) and a 5.4-6.7 cm jolt at its blend; after, none over the 3 cm limit, the calf 14-15 rad/s in two runs. The QC’s own course in node reads as it did, every run within its limits.' },
+      { title: 'In the game: pops a minute, the worst jolt at a blend (cm)', unit: '', better: 'lower', device: GAME47F, source: SRC47F, rows: [
+        { where: 'the desert’s sand: pops a minute', before: '4–6', after: '3' },
+        { where: 'the Signal Market’s street: pops a minute', before: '2–3', after: '0–3' },
+        { where: 'the Arena’s floor: pops a minute', before: '1–2', after: '0–1' },
+        { where: 'the desert’s sand: worst jolt at a blend (cm)', before: '3.9–6.0', after: '3.3' },
+        { where: 'the Signal Market’s street: worst jolt at a blend (cm)', before: '3.5–5.6', after: '2.4–3.8' },
+        { where: 'the Arena’s floor: worst jolt at a blend (cm)', before: '4.4–6.0', after: '2.4–3.7' },
+      ], note: 'The QC’s limits are 3 pops a minute and 3 cm. The Arena and the street each came out within every limit in one run; the desert, the busiest scene on a shared machine, was steady in one run of four.' },
+    ], see: 'Stand, tap the stick right, then push it forward and keep it there: he turns and jogs off without a hop in his first step. Sprint (hold RT / R2) and pull the stick right back: his feet come round with him.' },
   ],
   '1.79': [
     { match: 'People who aren’t part of a quest now talk plainly', tags: ['story'], see: 'Aboard the ship, ask Anselm Thrum “Where do they hide?”: before, “Up high. Behind things. At the ends of paths. Never where anyone sends you.”; now, “Off the main paths: up high, behind things, at the dead ends.” In a shop, run short of chimes, or listen to the City-Shaft’s worshippers and the Signal Market’s stallholders.' },

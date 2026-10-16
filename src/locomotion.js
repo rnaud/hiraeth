@@ -98,6 +98,9 @@ export class Locomotion {
   }
 }
 
+/** The gait's share of the pose over which gaitFeet keeps the last warp through a frame of no sweep (1: never). */
+export const WARP_HOLD = 0.5;
+
 /**
  * What feet.js needs from the animator this frame: which feet are down, how much of the pose is
  * the gait, and the stride warp (the body's speed over the speed the loop sweeps a planted foot
@@ -110,7 +113,10 @@ export function gaitFeet(animator, speed, out = {}) {
   out.speed = speed;
   out.gait = A.gaitW;
   const sweep = A.footSpeed * Math.max(A.gaitW, 0.05);
-  out.warp = sweep > 0.05 ? clamp(speed / sweep, 0.4, 1.25) : 1;
+  // (the loops' sweep falls to nothing for the frame a running reversal's speed passes through it, the gait still most of
+  // the pose (Animator GAIT_HOLD): the warp of the frame before is kept. Set to 1 there, the clip's feet reached out their
+  // whole stride for one frame, a swinging foot 8 cm on and 16 back, the calf 21 rad/s, the sprint reversed, issue #47)
+  out.warp = sweep > 0.05 ? clamp(speed / sweep, 0.4, 1.25) : A.gaitW > WARP_HOLD && out.warp !== undefined ? out.warp : 1;
   // (captured feet swing low, a centimetre or two over the floor, as people's do: lifted clear while
   // the matcher or a captured walk leads, so a swinging foot never reads as dragged: feet.js)
   out.minClear = 0.045 * Math.min(1, (A.mmW ?? 0) + (A.walkName ? A.w.walk : 0));

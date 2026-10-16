@@ -112,9 +112,12 @@ export function jolts(S, warm = 0.3) {
   for (let i = 2; i < S.length - 2; i++) {
     if (S[i].t < warm || !S[i].joints) continue;
     let worst = 0, j0 = -1;
+    // (the cubic at the frames' own times: in the game a frame is 15-19 ms, and the cubic of evenly spaced frames read a
+    // smooth swing at a run, sampled unevenly, as 2-4 cm off its curve. Evenly spaced, the weights are -1/6, 4/6, 4/6, -1/6)
+    const wk = cubicWeights(S, i);
     for (let j = 0; j < S[i].joints.length; j++) {
       const p = (k) => S[i + k].joints[j];
-      const e = Math.hypot(...[0, 1, 2].map((k) => p(0)[k] - (-p(-2)[k] + 4 * p(-1)[k] + 4 * p(1)[k] - p(2)[k]) / 6));
+      const e = Math.hypot(...[0, 1, 2].map((k) => p(0)[k] - (wk[0] * p(-2)[k] + wk[1] * p(-1)[k] + wk[2] * p(1)[k] + wk[3] * p(2)[k])));
       if (e > worst) { worst = e; j0 = j; }
     }
     // (a teleport or a step of the floor the body takes in one frame: the joints are relative to the body, so it cancels)
@@ -123,6 +126,17 @@ export function jolts(S, warm = 0.3) {
   const out = [];
   for (let i = 0; i < S.length; i++) if (per[i] > LIMITS.jolt) out.push({ i, t: S[i].t, tag: S[i].tag, size: per[i], joint: JOINTS[which[i]] ?? which[i] });
   return { per, which, events: merge(out) };
+}
+
+/**
+ * Lagrange weights of frames i-2, i-1, i+1, i+2 for the cubic through them at frame i's time (evenly spaced without). A
+ * sample's pose is at the end of its frame: t + dt (both recorders stamp t at the frame's start).
+ */
+export function cubicWeights(S, i) {
+  const at = (k) => S[k].t + (S[k].dt ?? 0);
+  const T = [-2, -1, 1, 2].map((k) => at(i + k)), t = at(i);
+  if (!T.every(Number.isFinite) || !Number.isFinite(t) || new Set(T).size < 4) return [-1 / 6, 4 / 6, 4 / 6, -1 / 6];
+  return T.map((tk, a) => T.reduce((w, tm, b) => (b === a ? w : w * (t - tm) / (tk - tm)), 1));
 }
 
 /** Events within 3 frames of each other are one (the worst kept). */
