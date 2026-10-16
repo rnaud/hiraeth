@@ -7,7 +7,7 @@ import hook from '../src/gadgets/hook.js';
 import bomb from '../src/gadgets/bomb.js';
 import boomerang from '../src/gadgets/boomerang.js';
 import magnet, { MAG, holdPoint, followVelocity, reachAfter, pickMetal, FieldLines } from '../src/gadgets/magnet.js';
-import { tagMetal, metalSpots, isMetal } from '../src/gadgets/metal.js';
+import { tagMetal, metalSpots, isMetal, registerIron } from '../src/gadgets/metal.js';
 import { GadgetWorld } from '../src/gadgets/world.js';
 import { Physics } from '../src/physics.js';
 import { clearTargets } from '../src/targets.js';
@@ -218,4 +218,22 @@ test('the yard\'s magnet bay: a plate only metal presses, a gate it opens, an ir
   world.updatePlates(DT);
   assert.equal(world.plates[0].on, true, 'a metal crate is');
   clearTargets();
+});
+
+test('loose iron that is not a crate (an iron moon in its groove, issue #377): the glove takes hold of it, holds it toward its point, and a tap throws it', () => {
+  const P = player(v(0, 0, 0));
+  const camera = cameraAt(v(0, 1.7, 2), v(0, 0.5, -6));
+  const G = magnet.create(ctxOf({ P, camera }));
+  const moon = { pos: v(0, 0.5, -6), followed: [], shoved: [] };
+  const off = registerIron({ pos: () => moon.pos, r: 1, follow: (goal) => moon.followed.push(goal.clone()), shove: (dir) => moon.shoved.push(dir.clone()) });
+  assert.ok(G.candidates().some((c) => c.kind === 'iron'), 'among what the glove may take');
+  G.press(); G.hold(MAG.tap + 0.05);
+  assert.equal(G.state, 'hold', 'held past a tap: taken hold of');
+  G.update(1 / 60);
+  assert.ok(moon.followed.length > 0, 'held, it is drawn toward the held point');
+  G.release();
+  G.cool = 0;
+  G.press(); G.release();
+  assert.equal(moon.shoved.length, 1, 'a tap throws it');
+  off();
 });

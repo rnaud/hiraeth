@@ -107,7 +107,7 @@ export const GADGETS = {
   perdide2: { temple: 'bubble', world: ['moss', 'coil'], built: true }, // the bubble wand (issue #377: the lantern charm until then, now in Viridel's court); the glow-moss pin on the root arch
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
   spacecity: { temple: 'tether', world: ['starthread'], built: true }, // the Mooring-House: tether mode inside; the star-thread on a roof in the Towers
-  moonfoundry: { temple: 'tongs', world: ['bellows'], built: true },  // the Casting-House: the founders' tongs inside; the pocket bellows on top of the cradled moon
+  moonfoundry: { temple: 'magnet', world: ['bellows'], built: true }, // the Casting-House: the magnet glove inside (issue #377: the founders' tongs until then, folded into the glove); the pocket bellows on top of the cradled moon
   underwater: { temple: 'springs', world: ['pearl'], built: true },   // the Whale-House: the spring boots inside (issue #377: the whale-horn until then, folded into the boots' stomp); the diver's pearl on the top deck of the Avenue's tower of pods
 };
 

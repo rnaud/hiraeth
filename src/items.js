@@ -86,8 +86,10 @@ export const ITEMS = {
     text: 'A green glass seed with a root curled inside. In bloom mode ({key:mode}), a burst wakes the makers’ plants: seeds sprout, doorways open, vines bridge gaps.',
   },
   // the Moon Foundry's Casting-House (src/temples/moonfoundry.js): the push takes hold of the founders' iron moons
+  // (retired by issue #377: the magnet glove is the Casting-House's tool, and draws the moons itself; kept for the saves
+  // that found it)
   tongs: {
-    name: 'Founders’ tongs', kind: 'upgrade', needs: 'gun',
+    name: 'Founders’ tongs', kind: 'upgrade', needs: 'gun', retired: true, where: 'The Casting-House’s chest, before the magnet glove was put in it.',
     text: 'Black iron tongs shrunk to the glove’s cuff. Your push takes hold of iron now: the Moon Foundry’s cast moons, too heavy for a plain push, roll for it.',
   },
   // the City Floating in Space's Mooring-House (src/temples/spacecity.js): a gun mode that pulls

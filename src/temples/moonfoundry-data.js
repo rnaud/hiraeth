@@ -49,7 +49,7 @@ export const PEOPLE = {
         },
         go: {
           say: ['~neutral~ *The door under the chimney.* It isn’t locked. The founders never locked anything; they just made it heavy.',
-            '~curious~ The ledger lists a pair of *tongs* in the house, shrunk to fit a hand. Their iron moons only move for those. Find them first.'],
+            '~curious~ The ledger lists a *magnet glove* in the house, for drawing the iron moons along. They move for nothing else. Find it first.'],
           choices: [{ text: '~happy~ Tongs. Got it.', end: true }],
         },
         again: {
@@ -65,7 +65,7 @@ export const PEOPLE = {
         },
         cradle: {
           say: ['~solemn~ The ledger says it stops when a moon comes out whole. So give it a whole one.',
-            '~neutral~ An iron moon, rolled into its cradle. You’ll want the tongs for that.'],
+            '~neutral~ An iron moon, drawn into its cradle. You’ll want the glove for that.'],
           choices: [{ text: '~neutral~ I’ll try.', end: true }],
         },
         after: {
@@ -87,7 +87,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll tell it.', end: true }],
         },
         ledger: {
-          say: ['~playful~ (She turns it round: columns of moons and weights, and in the margins, little drawings of hands holding tongs.) Founders’ handwriting. Terrible. I love it.'],
+          say: ['~playful~ (She turns it round: columns of moons and weights, and in the margins, little drawings of hands in horseshoe gloves.) Founders’ handwriting. Terrible. I love it.'],
           choices: [{ text: '~playful~ Terrible. I love it too.', end: true }],
         },
       },

@@ -238,7 +238,7 @@ test('every real temple builds a graph its measures can read (no layout needed)'
 
 // The audit plays each temple with what the traveller carries in by then (the backpack, the gun, the double jump, and
 // every gadget of the temples before it on the route): with the backpack alone no ball rolled and no eye was shot, no
-// temple solved and every door counted shut for its sight lines (the three v1.40 temples' tongs, horn and tether among them).
+// temple solved and every door counted shut for its sight lines (the three v1.40 temples' magnet glove, spring boots and tether among them, since issue #377).
 test('the audit carries in the gadgets the route has given by then, and every temple it plays is solved', async () => {
   const { spawnSync } = await import('node:child_process');
   const { readFileSync, rmSync } = await import('node:fs');
@@ -254,7 +254,8 @@ test('the audit carries in the gadgets the route has given by then, and every te
       assert.ok(t.carried.includes('gun'), `${t.id}: the gun carried in`);
     }
     const by = Object.fromEntries(rep.temples.map((t) => [t.id, t.carried]));
-    assert.ok(by.bazaar.includes('tether') && by.bazaar.includes('tongs'), 'the Signal Market: after the Moorings and the Casting-House');
-    assert.ok(!by.moonfoundry.includes('tongs') && !by.spacecity.includes('tether'), 'never a temple’s own gadget before its chest');
+    // (issue #377: the Casting-House's chest holds the magnet glove, the tongs before)
+    assert.ok(by.bazaar.includes('tether') && by.bazaar.includes('magnet'), 'the Signal Market: after the Moorings and the Casting-House');
+    assert.ok(!by.moonfoundry.includes('magnet') && !by.spacecity.includes('tether'), 'never a temple’s own gadget before its chest');
   } finally { rmSync(out, { recursive: true, force: true }); }
 });

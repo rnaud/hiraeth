@@ -31,6 +31,7 @@ import { FLUID } from '../src/fluid-tool.js';
 import { BLADE } from '../src/fluid-blade.js';
 import { BALL_CUT } from '../src/temples/pieces.js';
 import { updateHazards } from '../src/hazards.js';
+import { irons } from '../src/gadgets/metal.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -113,7 +114,9 @@ export function playTemple(id, o = {}) {
   /** The ways he can move a ball, best first: [{ kind }]. */
   const tools = (b, e) => {
     const out = [];
-    const heavyOk = !b.o.heavy || has(b.o.heavy);
+    const heavyOk = !b.o.heavy || (b.o.heavy !== 'magnet' && has(b.o.heavy));
+    // (an iron moon since issue #377: only the magnet glove's field draws it, src/gadgets/metal.js irons)
+    if (b.o.heavy === 'magnet' && has('magnet')) out.push({ kind: 'magnet' });
     if (e.roll === 'hand') out.push({ kind: 'shove' });
     if (e.roll === 'sword' && b.o.blade && has('sword')) out.push({ kind: 'cut' });
     if (has('gun') && heavyOk) out.push({ kind: 'push' });
@@ -133,6 +136,15 @@ export function playTemple(id, o = {}) {
     const floorY = b.group.position.y;
     const side = V().crossVectors(UP, along).normalize();
     const f = b.o.friction ?? 1.6;
+    if (tool.kind === 'magnet') {
+      // held in the glove's field from where he stands, toward a point `dist` along its groove (to an end: past it), let go
+      const x = irons().find((i) => i.pos() === b.center);
+      if (!x) return false;
+      const goal = b.center.clone().addScaledVector(along, toEnd ? b.len + 2 : dist);
+      const t0 = b.t;
+      for (let i = 0; i < 6 / DT && Math.abs(b.t - t0) * b.len < (toEnd ? b.len : dist) - 0.05; i++) { x.follow(goal, DT); frame(); if (b.rest && Math.abs(b.v) < 1e-3 && i > 30) break; }
+      return true;
+    }
     if (tool.kind === 'shove') {
       // his hands: walked into it along its groove, at a walk, until it has gone far enough
       const back = b.group.position.clone().addScaledVector(along, -(b.r + 1.0));

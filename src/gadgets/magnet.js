@@ -5,7 +5,7 @@ import { makeMaterial } from '../materials.js';
 import { thinPole } from '../thin.js';
 import { hitStop, kick } from '../feel.js';
 import { reelTarget, reelVelocity } from './hook.js';
-import { metalSpots } from './metal.js';
+import { metalSpots, irons } from './metal.js';
 
 // The magnet glove (docs/systems/gadgets.md, "The magnet glove"): a heavy glove with a horseshoe of the
 // makers' glyph on its back. Hold the use button and it reaches for the metal under the aim within MAG.range:
@@ -172,6 +172,7 @@ function gloveModel(scale = 1) {
 
 export default {
   id: 'magnet', name: 'Magnet glove', glyph: '∩', order: 40, trigger: 'use',
+  where: 'In the Moon Foundry’s Casting-House, on the hangar’s east side: in its round chamber at the top of the hoist.',
   text: 'A heavy glove with the glyph in iron. Hold {key:use} near metal to lift it and hold it where you look; fixed metal pulls you to it instead.',
   model: () => { const m = gloveModel(1.2); m.rotation.set(0.5, -0.6, 0.15); return m; },
   create(ctx) { return new Magnet(ctx); },
@@ -230,6 +231,8 @@ class Magnet {
     for (const p of this.ctx.world?.props ?? []) if (p.metal && p.object.visible) out.push({ kind: 'prop', prop: p, r: p.r, pos: () => p.pos });
     for (const f of this.ctx.foes?.list ?? []) if ((f.def?.metal || f.kind === 'machine') && f.alive && !this.falling.some((x) => x.foe === f)) out.push({ kind: 'foe', foe: f, r: f.def.radius, pos: () => f.chest });
     for (const s of this.spots()) out.push({ kind: 'fixed', spot: s, r: s.extent, pos: () => s.pos });
+    // (and loose iron that is not a crate: the Moon Foundry's cast moons in their grooves, src/gadgets/metal.js irons)
+    for (const x of irons()) out.push({ kind: 'iron', iron: x, r: x.r, pos: x.pos });
     return out;
   }
 
@@ -338,7 +341,7 @@ class Magnet {
     } else if (c.foe) {
       const f = c.foe, flat = dir.clone().setY(0).normalize();
       f.vel.copy(flat).multiplyScalar(MAG.shoveFoe); f.stunned = Math.max(f.stunned, 1); f.flash = 1;
-    }
+    } else if (c.iron) c.iron.shove?.(dir);
     snd.shove(this.ctx.sound);
     kick(0.3);
   }
@@ -358,7 +361,8 @@ class Magnet {
     if (at.distanceTo(this.goal) > MAG.lost + this.dist * 0.2 || hand.distanceTo(at) > MAG.range + 3) { this.drop(); return; }
     const speed = _w.subVectors(at, this.lastPos).length() / Math.max(dt, 1e-4);
     this.lastPos.copy(at);
-    if (c.prop) {
+    if (c.iron) c.iron.follow?.(this.goal, dt);
+    else if (c.prop) {
       followVelocity(at, this.goal, {}, c.prop.vel);
       c.prop.resting = false;
     } else if (c.foe) {

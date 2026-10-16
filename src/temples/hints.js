@@ -226,7 +226,7 @@ export const BOSS_HINTS = {
         'Wait out its ladle and its pour; when its chest opens, splash the glowing heart with water.'],
       ['The iron moon by the west wall fits its cradle.',
         'Roll the iron moon into the casting cradle: with a whole moon there, a splash counts twice.',
-        'Push the iron moon along its rail into the cradle (the tongs), then splash its heart when it opens.'],
+        'Draw the iron moon along its rail into the cradle with the magnet glove (hold {key:fire}), then splash its heart.'],
       ['It tipped the moon out. Its heart is too hot now.',
         'Roll the moon back into the cradle. Only then does the water take.',
         'Push the iron moon back into the casting cradle, then splash the heart while it stops to look.'],

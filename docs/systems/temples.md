@@ -1200,6 +1200,11 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   (`Bank`) and the Foreman's six numerals want the boomerang: a tank holds three shots, its locks strike three more in one
   throw (an eye is a target the boomerang strikes as a glob would), and in the order they were locked, so the Clock
   Gallery's six in turn from four are three locks in turn and three splashes. The walk-through throws a real boomerang.
+- **The Casting-House: the magnet glove** (the founders' tongs before, retired). Its iron moons are `Ball`s with `heavy:
+  'magnet'`: no push moves them (nor a tether); each registers itself as loose iron (`src/gadgets/metal.js` `registerIron`),
+  which the glove takes with its crates and machines (magnet.js `candidates`): held, the moon rolls along its groove toward
+  the point the glove holds (`magnetTo`, at most `MAGNET_ROLL` 6 m/s), tapped it is thrown along it (`magnetShove`). Every
+  moon past the chest and the Last Founder's cradle need the glove.
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

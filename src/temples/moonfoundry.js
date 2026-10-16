@@ -38,8 +38,9 @@ import { castingHouseSkin } from './skins/casting-house.js';
 //                         founders' moon hot in its cradle (a key carried from the first rooms to the last door)
 //   the Crucible Stair    (a passage) the hoist up to the chest: it runs only while its pan in the Mould Room holds a
 //                         weight (stand in it yourself and it rises without you; the stone moon stands in for you)
-//   the Tong Chamber      the makers' chest: the FOUNDERS' TONGS (src/items.js 'tongs'). A try by the dais: an iron moon
-//                         that rolls for the tongs into a little cradle, and nothing waits on it. Its east door into the
+//   the Tong Chamber      the makers' chest: the MAGNET GLOVE (src/gadgets/magnet.js; issue #377: the founders' tongs
+//                         were here, a push that took hold of iron, and are folded into the glove). A try by the dais:
+//                         an iron moon the glove draws along its rail into a little cradle, and nothing waits on it. Its east door into the
 //                         furnace is held by an iron moon's cradle out on the chamber's floor, chained to the door's bar
 //                         (the tongs' first lock, where a miss costs nothing; v1.77: it was the Pincer Passage, a room on)
 //   the Casting Furnace   a channel of molten iron, the bridge over it raised by the hooded mould on the near lip: the
@@ -117,7 +118,7 @@ export const ARENAS = [{
 }];
 
 export const LOGIC = {
-  id: 'moonfoundry', entry: 'threshold', gadget: 'tongs',
+  id: 'moonfoundry', entry: 'threshold', gadget: 'magnet',
   // (v1.77, issue #336: each room tagged with its kind; the Sand Room the one fight)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, floor: { checkpoint: true, kind: 'puzzle' }, moulds: { checkpoint: true, kind: 'puzzle' },
@@ -153,28 +154,30 @@ export const LOGIC = {
     // the test scale on the Pouring Floor: a stone moon in a little cradle; it tips, and nothing waits on it
     m0: { type: 'drum', room: 'floor', plate: 'p0', plateAt: 1, start: 0 },
     p0: { type: 'plate', room: 'floor' },
-    chest: { type: 'gadget', room: 'tongs', item: 'tongs' },
+    // (issue #377: the chest held the founders' tongs, a push that took hold of iron; the magnet glove now, whose field
+    // draws the iron moons along their rails, and throws them)
+    chest: { type: 'gadget', room: 'tongs', item: 'magnet' },
     // the try by the dais: an iron moon into a little cradle (nothing waits on it)
-    mT: { type: 'drum', room: 'tongs', plate: 'pT', plateAt: 1, start: 0, needs: ['tongs'] },
+    mT: { type: 'drum', room: 'tongs', plate: 'pT', plateAt: 1, start: 0, needs: ['magnet'] },
     pT: { type: 'plate', room: 'tongs' },
     // the chamber's east door, held by an iron moon's cradle on its floor
-    mP: { type: 'drum', room: 'tongs', plate: 'pP', plateAt: 1, start: 0, needs: ['tongs'] },
+    mP: { type: 'drum', room: 'tongs', plate: 'pP', plateAt: 1, start: 0, needs: ['magnet'] },
     pP: { type: 'plate', room: 'tongs' },
     dP: { type: 'door', opens: { drumOn: ['mP', 'pP'] }, latch: true },
     // the Casting Furnace: the near lip's iron moon through the pilot flame into the hooded mould (v1.77: it lay in the
     // passage and was rolled under its door)
-    mH: { type: 'drum', room: 'furnace', plate: 'pH', plateAt: 1, start: 0, needs: ['tongs'] },
+    mH: { type: 'drum', room: 'furnace', plate: 'pH', plateAt: 1, start: 0, needs: ['magnet'] },
     pH: { type: 'plate', room: 'furnace' },
     bH: { type: 'brazier', room: 'furnace', when: { drumOn: ['mH', 'pH'] } },     // hooded: only the hot moon lights it
     brH: { type: 'bridge', opens: { lit: 'bH' }, latch: true },
     hm: { type: 'door', opens: { resolved: true } },                             // the press over the bridge: it slams until the founder is stopped
     // the Weighing Hall: the keepers' door's eye, lidded until an iron moon weighs its pan on the gallery
-    mB: { type: 'drum', room: 'scales', plate: 'pB', plateAt: 1, start: 0, needs: ['tongs'] },
+    mB: { type: 'drum', room: 'scales', plate: 'pB', plateAt: 1, start: 0, needs: ['magnet'] },
     pB: { type: 'plate', room: 'scales' },
     eS: { type: 'switch', room: 'scales', when: { drumOn: ['mB', 'pB'] } },
     dS: { type: 'door', opens: { lit: 'eS' }, latch: true },
     // back on the Pouring Floor: the founders' moon through the pilot flame into the great cradle
-    mG: { type: 'drum', room: 'floor', plate: 'pG', plateAt: 1, start: 0, needs: ['tongs'] },
+    mG: { type: 'drum', room: 'floor', plate: 'pG', plateAt: 1, start: 0, needs: ['magnet'] },
     pG: { type: 'plate', room: 'floor' },
     bG: { type: 'brazier', room: 'floor', when: { drumOn: ['mG', 'pG'] } },
     dF: { type: 'door', lock: 'small', opens: { lit: 'bG' }, latch: true },   // (and since v1.53 the Sand Room's small key)
@@ -184,9 +187,9 @@ export const LOGIC = {
     dR: { type: 'door', opens: null },
     dA: { type: 'door', opens: null },                                          // the arena's door: shut while the founder fights
     // the casting cradle in the arena: an iron moon in it, and the founder stops to look (its last phase wants it)
-    mA: { type: 'drum', room: 'hall', plate: 'pA', plateAt: 1, start: 0, needs: ['tongs'] },
+    mA: { type: 'drum', room: 'hall', plate: 'pA', plateAt: 1, start: 0, needs: ['magnet'] },
     pA: { type: 'plate', room: 'hall' },
-    founder: { type: 'boss', room: 'hall', needs: ['gun', 'tongs'], requires: { drumOn: ['mA', 'pA'] } },
+    founder: { type: 'boss', room: 'hall', needs: ['gun', 'magnet'], requires: { drumOn: ['mA', 'pA'] } },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -202,8 +205,8 @@ export const LAST_FOUNDER = {
   missHint: 'It rolls into the wall, crucible doors open: splash its heart.',
   phases: [
     { to: 0.35, attacks: ['ladle', 'slam', 'cast'], pause: 1.6, hint: 'When it has poured, its doors swing open: splash the molten heart.' },
-    { to: 0.7, attacks: ['cast', 'casts', 'ladle'], pause: 1.2, hint: 'Roll the iron moon into its cradle: as it looks, splashes count double.' },
-    { to: 1.0, attacks: ['charge', 'casts', 'slam'], pause: 1.0, hint: 'Its heart is too hot now: roll the moon back in, splash while it looks.',
+    { to: 0.7, attacks: ['cast', 'casts', 'ladle'], pause: 1.2, hint: 'Draw the iron moon into its cradle: as it looks, splashes count double.' },
+    { to: 1.0, attacks: ['charge', 'casts', 'slam'], pause: 1.0, hint: 'Its heart is too hot now: draw the moon back in, splash while it looks.',
       openHint: 'Too hot for water: with a moon in its cradle it stops, and cools.' },
   ],
   attacks: {
@@ -277,7 +280,7 @@ function layout(rt) {
   const ivory = { paint: new THREE.Color('#efe6d2'), smooth: true, side: THREE.FrontSide };
   const ember = makeMaterial({ color: '#f08a3c', glow: 0.6, flat: true, key: 'temple.moonfoundry.ember' });
   const HOT = { caught: 'The iron moon rolls through the pilot flame and comes out glowing. It won’t stay hot for long.', out: 'The iron moon’s glow dulls, and it is cold again.', back: 4 };
-  const HEAVY = 'It rocks on its rail and settles back. Cast iron: far too heavy for a plain push. The founders moved these with something.';
+  const HEAVY = 'It rocks on its rail and settles back. Cast iron: far too heavy for a push. The founders drew these with something.';
   /** A groove: a dark strip and two iron rails along it (drawn). */
   const groove = (a, b, w = 1.0) => {
     const dx = b[0] - a[0], dz = b[2] - a[2], L = Math.hypot(dx, dz), yaw = Math.atan2(dx, dz), cx = (a[0] + b[0]) / 2, cz = (a[2] + b[2]) / 2, y = Math.min(a[1], b[1]);
@@ -313,7 +316,7 @@ function layout(rt) {
   // the founders' moon on its rail, through the pilot flame, into the great hooded cradle (the rail as long as it was)
   const GA = FZ - 9.4, GB = GA + 14.8;
   groove([0, 0, GA], [0, 0, GB], 1.3);
-  add(Ball, { id: 'mG', a: [0, 0.04, GA], b: [0, 0.04, GB], r: 1.3, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.7, lock: true, tar: { ...HOT, burns: 14 } });
+  add(Ball, { id: 'mG', a: [0, 0.04, GA], b: [0, 0.04, GB], r: 1.3, heavy: 'magnet', iron: true, heavyLine: HEAVY, friction: 0.7, lock: true, tar: { ...HOT, burns: 14 } });
   add(Flame, { at: [0, 0, GA + 6.8], r: 0.9 });
   add(Brazier, { id: 'bG', at: [0, 0, GB + 2.4], scale: 1.3, hood: { ball: 'mG', yaw: Math.PI,
     said: 'The ember spatters on the cradle’s iron hood. Its mouth opens low, on the rail: only a moon hot from the fire would reach it.',
@@ -381,13 +384,13 @@ function layout(rt) {
   // racks of tongs on the walls (drawn)
   for (const a of [-0.9, -2.2, 2.6]) { const x = SX + Math.sin(a) * (TR - 0.2), z = TZ + Math.cos(a) * (TR - 0.2); for (const s of [-1, 1]) K.add(iron, T(new THREE.BoxGeometry(0.12, 2.4, 0.12), [x, UP + 2.6, z], [0, a, s * 0.12])); }
   groove([SX - 6.5, UP, TZ - 3.5], [SX - 6.5, UP, TZ + 3.5]);
-  add(Ball, { id: 'mT', a: [SX - 6.5, UP + 0.04, TZ - 3.5], b: [SX - 6.5, UP + 0.04, TZ + 3.5], r: 1.1, heavy: 'tongs', iron: true, heavyLine: HEAVY, lock: true });
+  add(Ball, { id: 'mT', a: [SX - 6.5, UP + 0.04, TZ - 3.5], b: [SX - 6.5, UP + 0.04, TZ + 3.5], r: 1.1, heavy: 'magnet', iron: true, heavyLine: HEAVY, lock: true });
   add(Plate, { id: 'pT', at: [SX - 6.5, UP, TZ + 3.5], r: 1.3 });
-  add(Watch, { when: { drumOn: ['mT', 'pT'] }, say: 'The iron moon rolls for the tongs, heavy as a cart, and settles in its cradle. The tongs take hold of the founders’ iron.', key: 'mT.cradle' });
+  add(Watch, { when: { drumOn: ['mT', 'pT'] }, say: 'The iron moon rolls in the glove’s field, heavy as a cart, and settles in its cradle.', key: 'mT.cradle' });
   // the east door's cradle out on the floor, its chain up and over to the door's bar
   const PP = [SX + 8.7, UP, TZ - 5];
   groove([SX + 2.5, UP, PP[2]], PP);
-  add(Ball, { id: 'mP', a: [SX + 2.5, UP + 0.04, PP[2]], b: [PP[0], UP + 0.04, PP[2]], r: 1.2, heavy: 'tongs', iron: true, heavyLine: HEAVY, lock: true });
+  add(Ball, { id: 'mP', a: [SX + 2.5, UP + 0.04, PP[2]], b: [PP[0], UP + 0.04, PP[2]], r: 1.2, heavy: 'magnet', iron: true, heavyLine: HEAVY, lock: true });
   add(Plate, { id: 'pP', at: PP, r: 1.4 });
   cradle(K, iron, PP[0], UP, PP[2], 1.5, 5);
   K.add(iron, box(0.12, 9.4, 0.12, PP[0] + 1.7, UP + 4.7, PP[2]));
@@ -415,7 +418,7 @@ function layout(rt) {
   // along it as they were)
   const HX = 3, HA = TZ - 8.3, HB = HA + 16.6;
   groove([HX, UP, HA], [HX, UP, HB]);
-  add(Ball, { id: 'mH', a: [HX, UP + 0.04, HA], b: [HX, UP + 0.04, HB], r: 1.0, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.55, tar: { ...HOT, burns: 12 } });
+  add(Ball, { id: 'mH', a: [HX, UP + 0.04, HA], b: [HX, UP + 0.04, HB], r: 1.0, heavy: 'magnet', iron: true, heavyLine: HEAVY, friction: 0.55, tar: { ...HOT, burns: 12 } });
   add(Flame, { at: [HX, UP, HA + 12.8], r: 0.9 });
   add(Brazier, { id: 'bH', at: [HX, UP, HA + 18.4], hood: { ball: 'mH', yaw: Math.PI,
     said: 'The ember spatters on the mould’s iron hood. Its mouth opens low, on the rail: only a moon hot from the fire would reach it.',
@@ -441,7 +444,7 @@ function layout(rt) {
   K.both(M.trim, box(51.2 - PX - 3, 1.0, 0.3, (PX + 3 + 51.2) / 2, UP + 0.5, GZ + 0.15));
   K.stairs([53, 0, 31], [53, UP, GZ - 0.4], 3);
   groove([PX, UP, GZ - 1.5], PB, 1.1);
-  add(Ball, { id: 'mB', a: [PX, UP + 0.04, GZ - 1.5], b: [PX, UP + 0.04, PB[2]], r: 1.2, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 0.9, lock: true });
+  add(Ball, { id: 'mB', a: [PX, UP + 0.04, GZ - 1.5], b: [PX, UP + 0.04, PB[2]], r: 1.2, heavy: 'magnet', iron: true, heavyLine: HEAVY, friction: 0.9, lock: true });
   add(Plate, { id: 'pB', at: PB, r: 1.4 });
   cradle(K, iron, PX, UP, PB[2], 1.5, 5);
   // its chain up over a pulley and across to the keepers' eye's post
@@ -478,7 +481,7 @@ function layout(rt) {
   K.add(ember, T(annulus(9.2, 9.4, 0.06, 64), [0, 0.27, CW]));
   for (const a of [0.7, 2.0, 4.3, 5.6]) crackedMoon(Math.sin(a) * (HR - 2.2), 1.0, CW + Math.cos(a) * (HR - 2.2), 1.0, true);
   groove([-16.6, 0, CW], [-9.6, 0, CW], 1.3);
-  add(Ball, { id: 'mA', a: [-16.6, 0.04, CW], b: [-9.6, 0.04, CW], r: 1.3, heavy: 'tongs', iron: true, heavyLine: HEAVY, friction: 1.2 });
+  add(Ball, { id: 'mA', a: [-16.6, 0.04, CW], b: [-9.6, 0.04, CW], r: 1.3, heavy: 'magnet', iron: true, heavyLine: HEAVY, friction: 1.2 });
   add(Plate, { id: 'pA', at: [-9.6, 0, CW], r: 1.5 });
   cradle(K, iron, -9.6, 0, CW, 1.6, 6);
   const XZ = CW + HR + 10;
@@ -647,7 +650,7 @@ function change(scene, level, rt) {
 
 export const MOONFOUNDRY_TEMPLE = {
   id: 'moonfoundry', levelId: 'moonfoundry', name: 'The Casting-House', doorLabel: 'door of the Casting-House',
-  gadget: 'tongs', gadgetBox: 'moonfoundry.temple.tongs', arenaDoor: 'dA', arenas: ARENAS,
+  gadget: 'magnet', gadgetBox: 'moonfoundry.temple.tongs', arenaDoor: 'dA', arenas: ARENAS,   // (the box's id from when it held the tongs: the saves' flag)
   origin: [-50, 1600, -180], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

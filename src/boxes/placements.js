@@ -151,10 +151,8 @@ export const PLACEMENTS = {
     // one throw, in turn; the Foreman's six numerals. (Its id from when it held the coil: the saves' flag)
     { id: 'garage.temple.coil', item: 'boomerang', temple: 'garage', site: templeSite('garage'),
       note: 'Inside the Clock-House east of the valley, in the round chamber over the winding well.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'garage.magnet', item: 'magnet', site: courtSite('glassdunes'), beacon: 160, gadget: true,
-      hint: 'At the court north of the Clock-House',
-      note: 'In the makers’ court on the sand north of the Clock-House, toward the north camp: a plate only metal presses, an iron block across a gap.' },
+    // (the makers' court on the sand north of the Clock-House keeps the magnet glove's bay, a plate only metal presses and an
+    // iron block across a gap, and no box since issue #375: the glove is earned in the Moon Foundry's Casting-House)
   ],
   buried: [
     // the ring platform round the smoking chimney stack (jets or a climb up the stack). It held ember mode
@@ -267,9 +265,10 @@ export const PLACEMENTS = {
     { id: 'moonfoundry.bellows', item: 'bellows', at: [64, 46, -92], toward: [40, -60],
       hint: 'On top of the moon in the orange claws',
       note: 'The crown of the cradled moon (CRADLE), 42 m up: climb a claw of the cradle, then the shell.' },
-    // the Casting-House (src/temples/moonfoundry.js): in the round chamber at the top of the hoist. The tongs are the key
-    // to the rest: the iron moons that only roll for them, the hot moons through the pilot flames, the Last Founder's cradle
-    { id: 'moonfoundry.temple.tongs', item: 'tongs', temple: 'moonfoundry', site: templeSite('moonfoundry'),
+    // the Casting-House (src/temples/moonfoundry.js): in the round chamber at the top of the hoist. The magnet glove is the
+    // key to the rest (issue #377; the founders' tongs were here): the iron moons only its field draws along their rails, the
+    // hot moons through the pilot flames, the Last Founder's cradle. (Its id from when it held the tongs: the saves' flag)
+    { id: 'moonfoundry.temple.tongs', item: 'magnet', temple: 'moonfoundry', site: templeSite('moonfoundry'),
       note: 'Inside the Casting-House on the hangar’s east side, in the round chamber at the top of the hoist.' },
   ],
   spacecity: [

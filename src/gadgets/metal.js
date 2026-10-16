@@ -44,3 +44,18 @@ export function metalSpots(root, level = null) {
   for (const s of level?.metal ?? []) out.push({ pos: s.pos.isVector3 ? s.pos.clone() : new THREE.Vector3(...s.pos), radius: s.radius ?? 0.6, extent: s.radius ?? 0.6, object: null });
   return out;
 }
+
+/**
+ * Loose iron that is not a Prop: the Moon Foundry's cast moons, balls in their grooves (src/temples/pieces.js Ball
+ * `heavy: 'magnet'`, issue #377: the magnet glove is the Casting-House's tool, the founders' tongs before). Each says
+ * where it is and what the glove does to it: held, `follow(goal, dt)` (it rolls along its groove toward the held point);
+ * tapped, `shove(dir)` (thrown along its groove). The glove takes them with its loose metal (magnet.js candidates).
+ */
+const IRON = new Set();
+export function registerIron(x) {
+  const e = { r: 1, enabled: () => true, ...x };
+  IRON.add(e);
+  return () => IRON.delete(e);
+}
+/** The loose iron the glove may take now. */
+export const irons = () => [...IRON].filter((x) => x.enabled());

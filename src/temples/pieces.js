@@ -18,6 +18,7 @@ import { ChestLight, chestLamp, MOUTHS } from '../boxes/light.js';
 import { Prop, stepProp } from '../gadgets/world.js';
 import { registerCarryable, registerSnap, IN_HANDS } from '../carry.js';
 import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
+import { registerIron } from '../gadgets/metal.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -499,6 +500,8 @@ export class LensStones {
 /** m/s: a ball walked into rolls ahead at your pace, at most SHOVE (Ball `shove`); a cut of the sword sends it at BALL_CUT. */
 export const SHOVE = 2.6;
 export const BALL_CUT = 7.5;
+/** m/s at most an iron moon rolls in the magnet glove's field (held toward its point; a tap 1.2 times it: issue #377). */
+export const MAGNET_ROLL = 6;
 export class Ball {
   /**
    * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
@@ -565,6 +568,9 @@ export class Ball {
     if (o.seed) this.husk = own({ color: '#a07a4e', flat: true });
     if (o.tar) { this.tarM = own({ color: '#4a3a33', flat: true }); this.burn = 0; }
     if (o.heavy || o.iron) this.ironM = own({ color: '#3d3a40', flat: true, metal: 'iron' });
+    // (heavy: 'magnet', issue #377: an iron moon the magnet glove takes hold of, src/gadgets/metal.js registerIron; held it
+    // rolls along its groove toward where the glove holds it, tapped it is thrown along it. No push moves it)
+    if (o.heavy === 'magnet') this.offIron = registerIron({ pos: () => this.center, r: this.r, enabled: () => !this.drop && rt.logic.has('magnet'), follow: (goal, dt) => this.magnetTo(goal, dt), shove: (dir) => this.magnetShove(dir) });
     this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? this.husk ?? (o.iron ? this.ironM : null) ?? this.tarM ?? this.ironM ?? M.stoneMat));   // (an iron moon that heats, the Casting-House's: drawn iron)
     this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : o.seed ? '#7fcf72' : o.tar ? '#e0844a' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
@@ -634,8 +640,9 @@ export class Ball {
       return true;
     }
     const cone = mode === 'push' || mode === 'tether';
-    // an iron moon: only a push (or a tether) made with the founders' tongs takes hold of it
-    if (this.o.heavy && !(cone && this.rt.logic.has(this.o.heavy))) {
+    // an iron moon: only a push (or a tether) made with the founders' tongs takes hold of it; since issue #377 (heavy:
+    // 'magnet') only the magnet glove does (magnetTo, magnetShove), no push at all
+    if (this.o.heavy && (this.o.heavy === 'magnet' || !(cone && this.rt.logic.has(this.o.heavy)))) {
       this.wobble = 0.25; this.rt.sound?.critter?.('clank', 0.6);
       this.rt.notice?.(this.o.heavyLine ?? 'It rocks on its rail and settles back. Cast iron: far too heavy for a plain push.', `${this.id}.heavy`);
       return true;
@@ -649,6 +656,25 @@ export class Ball {
     this.rt.sound?.critter?.('creak', 0.7);
     return true;
   }
+  /** Held in the magnet glove's field (heavy: 'magnet'): it rolls along its groove toward the point the glove holds. */
+  magnetTo(goal, dt) {
+    if (this.lockedHome?.()) return;
+    const tGoal = THREE.MathUtils.clamp(_dl.copy(goal).sub(this.a).dot(this.dir) / this.len, 0, 1);
+    const want = THREE.MathUtils.clamp((tGoal - this.t) * this.len * 3, -MAGNET_ROLL, MAGNET_ROLL);
+    this.v += (want - this.v) * Math.min(1, dt * 8);
+    this.rest = false;
+  }
+  /** A tap of the glove (heavy: 'magnet'): thrown along its groove the way the tap goes. */
+  magnetShove(dir) {
+    if (this.lockedHome?.()) return;
+    const along = dir.x * this.dir.x + dir.z * this.dir.z;
+    if (Math.abs(along) < 0.2) { this.wobble = 0.4; this.rt.sound?.critter?.('clank', 0.6); return; }
+    this.v += Math.sign(along) * MAGNET_ROLL * 1.2;
+    this.rest = false;
+    this.rt.sound?.critter?.('creak', 0.7);
+  }
+  /** Settled in its socket for good (o.lock), its plate held. */
+  lockedHome() { const L = this.rt.logic; return !!this.o.lock && this.rest && L.drumOn(this.id, L.el(this.id)?.plate); }
   /** A clapper (o.strike): it strikes its bell, a game 'bell' event at the bell (heard by its BellEar). */
   strike() {
     this.strikeAt ??= this.rt.kit.world(...this.o.strike.at);
@@ -844,7 +870,7 @@ export class Ball {
     this.solid.bottom = this.solid.top = -1e6;   // (gone: nothing to stand on)
     if (D.y > 14) { this.t = 0; this.rt.logic.moveDrum(this.id, 0); this.place(); D.back = 1.2; this.spin.scale.setScalar(0.1); }
   }
-  dispose() { this.off?.(); for (const f of this.offs ?? []) f?.(); }
+  dispose() { this.off?.(); this.offIron?.(); for (const f of this.offs ?? []) f?.(); }
 }
 
 // ---------------------------------------------------------------------------------------- fire

@@ -46,6 +46,7 @@ import { KENNEL, WICK, ROOT_WAY, ROOMS as ROOMS_P2, FOUNT } from '../src/temples
 import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
 import fanGadget, { FAN } from '../src/gadgets/fan.js';
 import boomGadget from '../src/gadgets/boomerang.js';
+import { irons } from '../src/gadgets/metal.js';
 import { NURSERY, BALCONY, ROOMS as ROOMS_HUSH, UP as HUSH_UP, WALK as HUSH_WALK, MOUTHS as HUSH_MOUTHS, SHRINE as HUSH_SHRINE, KEEPER as HUSH_KEEPER } from '../src/temples/perdide.js';
 import { LODGE as FOOT_LODGE } from '../src/temples/spheres.js';
 import { SAND as FOUNDRY_SAND, UP as FOUNDRY_UP } from '../src/temples/moonfoundry.js';
@@ -1444,7 +1445,7 @@ test('a save from the Casting-House before issue #336: its state as it was (the 
   // standing where the old Tong Chamber's floor was (9 m up round (-21, 66.9): now under the Crucible Stair's landing):
   // to the chamber's mark
   game.reset();
-  own('backpack', 'gun', 'tongs');
+  own('backpack', 'gun', 'magnet');
   const { level, physics, rt } = world('moonfoundry');
   game.set('temple.moonfoundry.checkpoint', 'tongs'); game.set('temple.moonfoundry.relaid', true);
   const P = new Player(physics, { spawn: rt.kit.world(-21, 9.05, 66.9), dynamic: level.dynamic, health: true });
@@ -2655,7 +2656,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
 });
 
 // ------------------------------------------------------------------ on foot: the Moon Foundry's Casting-House, room by room
-test('the Casting-House on foot: the founders’ moon too heavy at the start, the test scale, the stone moon rolled into the great mould and its seam-eye, the Sand Room’s arena off it and its small key, you in the hoist’s pan and the stone moon for you, the hoist, the tongs and their try, the east door’s cradle out on the chamber’s floor (v1.77, issue #336: every room a shrine’s, each puzzle in the middle of its room), through the door, the near lip’s iron moon through the pilot flame into the hooded mould, the press over the bridge, the keepers’ pan and eye and the way back, the founders’ moon hot into the great cradle, the Last Founder given a whole moon, the moon on the jib', () => {
+test('the Casting-House on foot: the founders’ moon too heavy at the start, the test scale, the stone moon rolled into the great mould and its seam-eye, the Sand Room’s arena off it and its small key, you in the hoist’s pan and the stone moon for you, the hoist, the magnet glove (issue #377: the founders’ tongs before) and its try, the east door’s cradle out on the chamber’s floor (v1.77, issue #336: every room a shrine’s, each puzzle in the middle of its room), through the door, the near lip’s iron moon through the pilot flame into the hooded mould, the press over the bridge, the keepers’ pan and eye and the way back, the founders’ moon hot into the great cradle, the Last Founder given a whole moon, the moon on the jib', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('moonfoundry');
@@ -2682,6 +2683,17 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
       ball.hit('push', d.clone(), { strength: 0.8 });
       wait(2.6);
     }
+    return done();
+  };
+  // (issue #377) an iron moon drawn along its rail in the magnet glove's field: the glove's hold on it (src/gadgets/metal.js
+  // irons: what src/gadgets/magnet.js holds), toward the rail's end `way` (1: its far end), till done
+  const draw = (ball, way, done, s = 10) => {
+    const x = irons().find((i) => i.pos() === ball.center);
+    assert.ok(x, `${ball.id}: the glove takes hold of it`);
+    const goal = (way > 0 ? ball.b : ball.a).clone().addScaledVector(ball.dir, way * 1.5);
+    P.teleport(ball.center.clone().addScaledVector(ball.dir, -way * 5).setY(ball.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+    for (let i = 0; i < s / DT && !done(); i++) { x.follow(goal, DT); frame(); }
+    for (let i = 0; i < 3 / DT && !done(); i++) frame();
     return done();
   };
   wait(0.5);
@@ -2741,14 +2753,17 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
   assert.equal(walk(L(-30, U, 62.5), { max: 4 }), true, `onto the landing (${where()})`);
   assert.equal(walk(L(-30, U, 76)), true, `into the Tong Chamber (${where()})`);
   // ---- the Tong Chamber: the tongs; the try by the dais
-  items.grant('tongs'); game.emit('box:opened', { id: 'moonfoundry.temple.tongs' });
+  assert.equal(irons().some((i) => i.pos() === rt.piece('mT').center), false, 'before the glove, nothing takes hold of the iron');
+  items.grant('magnet'); game.emit('box:opened', { id: 'moonfoundry.temple.tongs' });
   wait(0.3);
   assert.equal(rt.logic.gadget, true);
-  assert.equal(roll(rt.piece('mT'), 1, () => rt.logic.drumOn('mT', 'pT')), true, 'the try: the iron moon rolls for the tongs');
-  assert.ok(said(/take hold of the founders’ iron/));
+  roll(rt.piece('mT'), 1, () => rt.logic.drumOn('mT', 'pT'), 1);
+  assert.equal(rt.logic.drumOn('mT', 'pT'), false, 'a push still only rocks the iron');
+  assert.equal(draw(rt.piece('mT'), 1, () => rt.logic.drumOn('mT', 'pT')), true, 'the try: the iron moon drawn in the glove’s field');
+  assert.ok(said(/rolls in the glove’s field/));
   // ---- the chamber's east door (v1.77: the Pincer Passage's): held by the cradle's moon out on the chamber's floor
   assert.equal(rt.logic.isOpen('dP'), false, 'the east door shut');
-  assert.equal(roll(rt.piece('mP'), 1, () => rt.logic.drumOn('mP', 'pP')), true, 'the cradle’s moon home');
+  assert.equal(draw(rt.piece('mP'), 1, () => rt.logic.drumOn('mP', 'pP')), true, 'the cradle’s moon home');
   wait(2.5);
   assert.equal(rt.logic.isOpen('dP'), true, 'the chamber’s east door');
   assert.equal(walk(L(-20, U, 89)) && walk(L(-5, U, 89)), true, `through it onto the furnace’s near lip (${where()})`);
@@ -2756,7 +2771,7 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
   // it on the lip, nothing rolled under a door)
   const mH = rt.piece('mH');
   assert.ok(!mH.o.gap, 'no door on its rail');
-  assert.equal(roll(mH, 1, () => rt.logic.drumOn('mH', 'pH')), true, `the iron moon into the mould’s mouth (${mH.t.toFixed(2)})`);
+  assert.equal(draw(mH, 1, () => rt.logic.drumOn('mH', 'pH')), true, `the iron moon into the mould’s mouth (${mH.t.toFixed(2)})`);
   wait(1.5);
   assert.ok(said(/comes out glowing/), 'it went through the flame');
   assert.equal(rt.logic.isLit('bH'), true, 'the hot moon lights the hooded mould');
@@ -2771,7 +2786,7 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
   assert.ok(P.pos.y > L(0, U - 1, 0).y, 'over it, not in the channel');
   assert.equal(walk(L(27, U, 75)) && walk(L(27, U, 65)), true, `from the far lip through its south door onto the Weighing Hall’s gallery (${where()})`);
   // ---- the far landing and the Weighing Hall: the iron moon into the keepers' pan; the keepers' eye; down and back
-  assert.equal(roll(rt.piece('mB'), 1, () => rt.logic.drumOn('mB', 'pB')), true, 'the third iron moon into the keepers’ pan on the gallery');
+  assert.equal(draw(rt.piece('mB'), 1, () => rt.logic.drumOn('mB', 'pB')), true, 'the third iron moon into the keepers’ pan on the gallery');
   const eS = rt.piece('eS');
   wait(1);
   assert.ok(eS.lidsOpen(), 'the keepers’ eye unlids');
@@ -2783,7 +2798,7 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
   assert.equal(walk(L(53, U, 61)) && walk(L(53, 0, 30.6), { max: 20 }), true, `down the gallery’s stair (${where()})`);
   assert.equal(walk(L(26, 0, 32)) && walk(L(8, 0, 32)), true, `through the keepers’ door onto the Pouring Floor (${where()})`);
   // ---- back on the floor: the founders' moon through the pilot flame into the great cradle
-  assert.equal(roll(mG, 1, () => rt.logic.drumOn('mG', 'pG')), true, `the founders’ moon home (${mG.t.toFixed(2)})`);
+  assert.equal(draw(mG, 1, () => rt.logic.drumOn('mG', 'pG')), true, `the founders’ moon home (${mG.t.toFixed(2)})`);
   wait(1.5);
   assert.equal(rt.logic.isLit('bG'), true, 'hot into the great cradle');
   wait(3);
@@ -2808,7 +2823,7 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
       const m = G.meter;
       rt.quench();
       assert.ok(Math.abs(G.meter - m - 0.175) < 1e-6, `free, a splash as before (${(G.meter - m).toFixed(3)})`);
-      roll(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
+      draw(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
       assert.equal(rt.founderCradled(), true, 'a whole moon in its cradle');
       continue;
     }
@@ -2828,7 +2843,7 @@ test('the Casting-House on foot: the founders’ moon too heavy at the start, th
       assert.equal(rt.quench(), false, 'too hot for water');
       assert.equal(G.meter, m);
       assert.ok(said(/too hot/), 'and it says why');
-      roll(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
+      draw(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
       assert.equal(rt.founderCradled(), true, 'rolled back in');
       continue;
     }
