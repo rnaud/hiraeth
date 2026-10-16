@@ -1,0 +1,53 @@
+changelog.md
+  s_9ca76055a220ed::t_678336990ecf35 5-8
+docs/design/fight-temples.md
+  s_9ca76055a220ed::t_685fceeb8b5761 16-18,118-163,168
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_b10451b962a7c3 139,479
+src/changelog-media.js
+  s_9ca76055a220ed::t_24edec0594b935 1068-1073
+src/changelog.js
+  s_9ca76055a220ed::t_336a3f6cc55b78 11-16
+src/fight-temples/arzach.js
+  s_9ca76055a220ed::t_7bc735fe07209e 1-53
+src/fight-temples/dress.js
+  s_9ca76055a220ed::t_a8411ee34fd4b9 1-157
+src/fight-temples/hazards.js
+  s_9ca76055a220ed::t_c63572b910bc76 1-281
+src/fight-temples/index.js
+  s_9ca76055a220ed::t_f2b82295c7db49 61
+src/fight-temples/rooms.js
+  s_9ca76055a220ed::t_60260e931253ba 12,32-33,38-39,98,141-142,181-203,209
+src/fight-temples/rules.js
+  s_9ca76055a220ed::t_5fded342f105fd 189
+src/fight-temples/session.js
+  s_9ca76055a220ed::t_37983e93a0f9d3 23,64-67,146,151-152,470-472,516,519,521,576
+src/kit-colours.js
+  s_9ca76055a220ed::t_3c887c3ddd2a63 31-33
+src/minigames/fight-arzach.js
+  s_9ca76055a220ed::t_cc04fe33200399 1-6
+src/minigames/kit/arcade.js
+  s_9ca76055a220ed::t_8280ee70476bed 15-16
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_aaf11f0a0b2c48 84-90
+tests/engine-trials.test.js
+  s_9ca76055a220ed::t_a4271366e4e08f 179-217
+tests/fight-temples-worlds.test.js
+  s_9ca76055a220ed::t_81bc00935c919e 1-275
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b7fba946af8d37fdec5915bf201b782d509951e1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
