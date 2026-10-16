@@ -11,6 +11,9 @@ of hats per culture, **three to five at most**, from one Midjourney sheet per wo
 own browser, hearts the sheets they like, and only the picked designs are modelled (as `HEADS` pieces in
 `src/costumes.js`, fitted to the skull like the stage 3 hats, then given to each tribe's `heads` table). The picks
 go to a new `hats/<id>/` folder under the references folder (made when the first pick is saved).
+own browser, hearts the sheets he likes, and only the picked designs are modelled (as `HEADS` pieces in
+`src/costumes.js`, fitted to the skull like the stage 3 hats, then given to each tribe's `heads` table). The picks
+go to `references/hats/<id>/`.
 
 ## What every hat must do
 
