@@ -40,7 +40,9 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
   const total = idx ? idx.length : n;
   const groups = g.groups?.length ? g.groups : [{ start: 0, count: total, materialIndex: 0 }];
   const R = rig && A.aRig ? A.aRig : null;   // (the crowd's figure: each vertex's part, zone and code, crowd.js)
-  const F = form && A.aFormC?.itemSize === 4 && A.aFormA?.itemSize === 3 ? [A.aFormC.array, A.aFormA.array] : null;
+  // (or the Glass Dunes' aGlass in the form's point, its axis none: src/dune-glass-shader.js, Surface.shader _DuneOn)
+  const F = form && A.aFormC?.itemSize === 4 && A.aFormA?.itemSize === 3 ? [A.aFormC.array, A.aFormA.array]
+    : form && A.aGlass?.itemSize === 4 ? [A.aGlass.array, new Float32Array(n * 3)] : null;
   const VM = vmat && VMAT_ATTRS.every(([k, s]) => A[k]?.itemSize === s) ? VMAT_ATTRS.map(([k]) => A[k].array) : null;
   const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0) | (F ? 64 : 0) | (VM ? 128 : 0);
   const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0) + (F ? n * 7 : 0) + (VM ? n * 22 : 0);

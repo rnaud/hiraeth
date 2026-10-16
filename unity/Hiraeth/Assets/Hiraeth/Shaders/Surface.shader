@@ -89,6 +89,11 @@ Shader "Hiraeth/Surface"
     _FluidBase ("FluidBase", Vector) = (0, 0, 0, 0)
     _FluidDome ("FluidDome", Vector) = (0, 0, 0, 0)
     _FluidDomeK ("FluidDomeK", Float) = 1
+    _DuneOn ("Dune glass (1) or the sand under it (2)", Float) = 0
+    _DuneMint ("DuneMint", Vector) = (0, 0, 0, 0)
+    _DuneLime ("DuneLime", Vector) = (0, 0, 0, 0)
+    _DuneSil ("DuneSil", Vector) = (0, 0, 0, 0)
+    _DuneK ("DuneK", Vector) = (0, 0, 0, 0)
     _Dissolve ("Dissolve", Vector) = (0, 0, 0, 0)
     _DissolveColor ("DissolveColor", Vector) = (0, 0, 0, 0)
     _TfBrowA ("TfBrowA", Vector) = (0, 0, 0, 0)
@@ -144,6 +149,8 @@ Shader "Hiraeth/Surface"
     float4 _FluidBase;
     float4 _FluidDome;     // the round backpack's dome (Figure.hlsl flaskNebula)
     float _FluidDomeK;
+    float _DuneOn;         // the Glass Dunes (src/dune-glass-shader.js): 1 the glass, 2 the sand its light falls on; aGlass in the form's slot
+    float4 _DuneMint, _DuneLime, _DuneSil, _DuneK;
     float4 _Dissolve, _DissolveColor;
     // (Marks.hlsl's: the surface marks)
     float _Weather; float4 _Detail; float _Patch, _Plates, _Windows;
@@ -467,6 +474,7 @@ Shader "Hiraeth/Surface"
         o.objRel = o.objPos - toThree(camOS * scl);
         o.fold = v.fold;
         o.bind = toThree(v.bind);
+        if (_DuneOn > 0.5) o.form = v.formC;   // (the Glass Dunes' aGlass: the silhouettes, the thin glass, the lobes; the pools)
         if (_FormOn > 0.5 && v.formC.w > 0.5)
         {
           // (in three's object frame, metric: materials.js S_FORM; the position mirrored back)
@@ -1051,6 +1059,50 @@ Shader "Hiraeth/Surface"
           albedo *= lerp(float3(1, 1, 1), 0.72 + 0.4 * lerp(_SkyHorizon, _SkyTop, 0.35), 0.22 * roomKey * _Room.w);
         }
         L = lerp(L, 1.0, max(_Glow, emit));
+        // the Glass Dunes' glass as the plates print it, and the light come through it pooled on the sand (src/dune-glass-shader.js)
+        UNITY_BRANCH if (_DuneOn > 0.5)
+        {
+          float4 G = i.form;
+          float dSun = smoothstep(-0.02, 0.1, _SunDir.y) * (1.0 - _Night);
+          if (_DuneOn < 1.5)
+          {
+            float3 dv = normalize(toThree(_WorldSpaceCameraPos) - i.worldPos);
+            float rim = 1.0 - abs(dot(n, dv));
+            rim *= rim * step(G.w, 1.5);
+            float back = saturate(dot(-dv, _SunDir) * 0.5 + 0.5);
+            float shadeD = 1.0 - step(_Toon, L);
+            float fwx = max(fwidth(G.x), 1e-4);
+            float sil = 1.0 - smoothstep(-fwx, fwx, G.x);
+            float through = (G.y * (0.6 + 0.55 * back) + rim * _DuneMint.a * (0.25 + 0.95 * back)) * dSun * (0.55 + 0.6 * shadeD);
+            through = max(through, G.y * _DuneLime.a * _Night);
+            through *= 1.0 - sil;
+            float fwt = max(fwidth(through), 1e-4), fwz = max(fwidth(G.z), 1e-4), fwn = max(fwidth(ndl), 1e-4);
+            float b1 = smoothstep(_DuneK.x - fwt, _DuneK.x + fwt, through), b2 = smoothstep(_DuneK.y - fwt, _DuneK.y + fwt, through);
+            float deep = max(smoothstep(0.38 - fwn, 0.38 + fwn, -ndl), smoothstep(G.z - fwz, G.z + fwz, 0.22)) * shadeD * (1.0 - b1);
+            albedo *= lerp(1.0, _DuneK.z, deep);
+            albedo = lerp(albedo, _DuneSil.rgb * (0.85 + 0.3 * min(G.w, 1.0)), sil);
+            float streak = smoothstep(0.9 - fwz, 0.9 + fwz, G.z) * (1.0 - sil) * (1.0 - b1) * smoothstep(0.1, 0.5, G.w) * step(G.w, 1.5);
+            albedo = lerp(albedo, lerp(albedo, _DuneMint.rgb, 0.6) * 1.12, streak * (0.55 + 0.45 * shadeD));
+            albedo = lerp(albedo, lerp(albedo, _DuneMint.rgb, 0.75), b1);
+            albedo = lerp(albedo, _DuneLime.rgb, b2);
+            L = lerp(L, max(L, _Toon + 0.08), b1);
+            L = lerp(L, max(L, 0.92), b2);
+            emit = max(emit, 0.3 * b1 + 0.2 * b2);
+          }
+          else
+          {
+            float2 to = G.yz, s2 = _SunDir.xz / max(length(_SunDir.xz), 1e-3);
+            float behind = smoothstep(-0.15, 0.55, dot(to, s2) / max(length(to), 1e-3));
+            float low = 1.0 - 0.45 * smoothstep(0.3, 0.9, _SunDir.y);
+            float pool = G.x * (behind * low + (1.0 - behind) * _DuneMint.a) * dSun;
+            float fwp = max(fwidth(pool), 1e-4);
+            float b1 = smoothstep(_DuneK.x - fwp, _DuneK.x + fwp, pool), b2 = smoothstep(_DuneK.y - fwp, _DuneK.y + fwp, pool);
+            albedo = lerp(albedo, _DuneMint.rgb, b1 * 0.7);
+            albedo = lerp(albedo, _DuneLime.rgb, b2 * 0.85);
+            L = lerp(L, max(L, _Toon + 0.06), b2);
+            L = lerp(L, max(L, _Toon - 0.04), b1 * (1.0 - b2));
+          }
+        }
         if (LEANK && _Fluid > 0.5 && _FluidA.w < 0.5) L = max(L, 0.92);   // (the round backpack's nebula is lit from within: no shade side on it)
         float local = 0.0;
         // (the lights come nearest first, the unused after them with no radius (HiraethLook): the loop stops at the first of

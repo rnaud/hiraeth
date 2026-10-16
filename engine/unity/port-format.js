@@ -107,6 +107,11 @@ export function portMaterial(spec, id = 0) {
   if (spec.defines?.FLUID) e.fluid = 1;
   if (Array.isArray(u.uFluidBase)) e.fluidBase = u.uFluidBase.map(r5);
   if (spec.defines?.DISSOLVE) e.dissolveOn = 1;
+  // the Glass Dunes' glass and the sand its light falls on (src/dune-glass-shader.js DUNE_GLASS, DUNE_POOL): Surface.shader's
+  // _DuneOn (1 the glass, 2 the sand), the tones and thresholds in _DuneMint, _DuneLime, _DuneSil, _DuneK; the vertices'
+  // aGlass go as the form's point (pack.js), which a dune material has no other use for
+  if (spec.defines?.DUNE_GLASS) Object.assign(e, { duneOn: 1, duneMint: (u.uDuneMint ?? [0, 0, 0, 0]).map(r5), duneLime: (u.uDuneLime ?? [0, 0, 0, 0]).map(r5), duneSil: (u.uDuneSil ?? [0, 0, 0, 0]).map(r5), duneK: (u.uDuneK ?? [0, 0, 0, 0]).map(r5) });
+  else if (spec.defines?.DUNE_POOL) Object.assign(e, { duneOn: 2, duneMint: (u.uPoolMint ?? [0, 0, 0, 0]).map(r5), duneLime: (u.uPoolLime ?? [0, 0, 0, 0]).map(r5), duneK: (u.uPoolK ?? [0, 0, 0, 0]).map(r5) });
   // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData
   if (spec.skin?.body > 0) { e.skinPattern = spec.skin.body; e.skinData = spec.skin.data.map(r5); }
   return e;
