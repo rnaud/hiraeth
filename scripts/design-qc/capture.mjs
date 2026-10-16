@@ -4,11 +4,11 @@
 // plans turned into pictures by the same browser. It leaves no Chrome and no server behind.
 //
 //   node scripts/design-qc/capture.mjs <out-dir> [--views a/views.json,b/views.json] [--svgs dir1,dir2]
-//        [--worlds desert,incal] [--rest 15] [--res 960x540] [--preset high]
+//        [--worlds desert,incal] [--rest 15] [--res 960x540] [--preset high] [--fixed-scale]
 //   PORT (default 5344; never 5173, the author's own server). Chrome's debugging port: chosen by Chrome.
 //   QC_VITE_CACHE: the dev server's cache folder (default: in Chrome's throwaway profile; in a worktree whose node_modules is
 //   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
-// A view: { world, name, eye, target, player?, hour?, fov?, flags? (the save its world boots with), act? (an expression
+// A view: { world, name, eye, target, player?, heading?, hour?, weather?, fov?, flags? (the save its world boots with), act? (an expression
 // run in the page before the shot) }.
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json.
 import { spawn } from 'node:child_process';
@@ -22,6 +22,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'design-qc'));
 const [W, H] = arg('res', '960x540').split('x').map(Number), PRESET = arg('preset', 'high'), REST = +arg('rest', 15) * 1000;
+const FIXED = args.includes('--fixed-scale');   // (no dynamic resolution, the render scale 1: the Unity side-by-sides, scripts/unity-compare/)
 const PORT = Number(process.env.PORT ?? 5344);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -75,7 +76,10 @@ const pin = (v) => `(() => { const { THREE, camera, player } = window, up = new 
   window.__pin = { e, q: new THREE.Quaternion().setFromRotationMatrix(m.lookAt(e, t, up)), fov: ${v.fov ?? 60}, far: ${v.far ?? 0} };
   if (!camera.__pinned) { const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld; camera.__pinned = true;
     camera.updateMatrixWorld = function (f) { const P = window.__pin; if (P) { this.position.copy(P.e); this.quaternion.copy(P.q); if (this.fov !== P.fov || (P.far && this.far < P.far)) { this.fov = P.fov; if (P.far) this.far = P.far; this.updateProjectionMatrix(); } } return base.call(this, f); }; }
-  ${v.player ? `player.teleport?.(new THREE.Vector3(...${JSON.stringify(v.player)}), up, new THREE.Vector3(0, 0, 1));` : ''} return true; })()`;
+  ${v.player ? `player.teleport?.(new THREE.Vector3(...${JSON.stringify(v.player)}), up, new THREE.Vector3(0, 0, 1));` : ''}
+  ${Number.isFinite(v.heading) ? `player.heading = ${v.heading};` : ''}
+  ${v.weather && v.weather !== 'clear' ? `if (window.weather) window.weather.mode = ${JSON.stringify(v.weather)};` : ''}
+  ${FIXED ? 'const pr = window.preset?.(); if (pr) pr.dynamic = null; if (window.quality) { window.quality.renderScale = 1; window.resize?.(); }' : ''} return true; })()`;
 for (const [n, world] of worlds.entries()) {
   if (n) await sleep(REST);   // a rest between worlds: the machine is shared
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);

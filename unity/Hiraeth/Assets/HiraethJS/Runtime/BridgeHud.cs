@@ -344,9 +344,12 @@ namespace Hiraeth.Bridge
         static readonly bool oldPlace = BridgeArgs.Flag("-hud-old");
         void Update() { if (oldPlace) Draw(); }
         void LateUpdate() { if (!oldPlace) Draw(); }
+        // (-no-hud: nothing of the HUD drawn, the picture alone, as the web's side-by-sides hide the page: scripts/unity-compare/)
+        static readonly bool noHud = BridgeArgs.Flag("-no-hud");
         void Draw()
         {
             if (!root) return;
+            if (noHud) { if (root.gameObject.activeSelf) root.gameObject.SetActive(false); return; }
             // (the canvas just beyond the near plane, which the game's camera sets each frame: on it, the HUD was clipped)
             var canvas = root.GetComponent<Canvas>();
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 3);

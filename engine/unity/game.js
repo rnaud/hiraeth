@@ -319,6 +319,13 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     starmapFlags(starScenes[0]);
     args.level = 'desert';
   }
+  // (-fresh: the debug save emptied first, its journal too, as the web's side-by-sides start from a cleared page's storage
+  // (scripts/bench/web-page.mjs prepareStorage, scripts/design-qc/capture.mjs): no world's story told, nothing kept, so both
+  // sides draw the same state of the world; scripts/unity-compare/)
+  if (args.fresh) {
+    slots.setActive(DEBUG_SLOT); gameState.reload(); gameState.reset();
+    try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
+  }
   // (-set-flags a,b: on the debug save, those flags set first: the hoverbike found, the bird's promise, for a world's picture)
   if (args.setFlags) {
     slots.setActive(DEBUG_SLOT); gameState.reload();
@@ -344,9 +351,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes, defer: !off.has('defer'), far: !off.has('far'), lod: String(args.on ?? '').split(',').includes('lod') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)

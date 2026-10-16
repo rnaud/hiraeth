@@ -35,6 +35,8 @@ scripts/bench/results/raw/
 
 # the engine bridges (docs/systems/engine-bridge.md): the bundles are built from src/ (scripts/engine-bundle.mjs),
 # the engines keep their caches; the runs write their pictures and logs to output/engine-bridge/
+# the visual check's pictures and report (scripts/unity-compare/)
+output/unity-compare/
 output/engine-bridge/
 godot/js/
 godot/.godot/

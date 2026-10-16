@@ -745,7 +745,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the trials and the games (engine/trials.js): this world's challenges, its games' signs and their hosts, when the
   // engine is played (its menus draw the runner's card) or a plan asks for them (`trials`: the bridge's -trial, -game);
   // not in a bench's plan, whose numbers stay comparable with before. On a game's page, its runner at once.
-  const trials = gameDef || ((menus || withTrials) && !flags && !view) ? optional('the trials', () => makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind, tool, foes: combat?.foes ?? null, chimes: combat?.chimes ?? null,
+  const trials = gameDef || withTrials || (menus && !flags && !view) ? optional('the trials', () => makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind, tool, foes: combat?.foes ?? null, chimes: combat?.chimes ?? null,
     npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, def: gameDef, from, onGame, onLeave,
     log: (t) => log(t) })) : null;
   if (trials) stamp('trials');
@@ -918,7 +918,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         toast(`${ROAD.title} · ${ROAD.kept(n)}`); toast(`${ROAD.full} ${ROAD.home}`);
       }
     }
-    if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
+    // (a fixed view's picture has no notices over it, as the web's side-by-sides hide the page's: scripts/unity-compare/)
+    if (pinned) screen.set('toast', null);
+    else if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
     if (toasts.left < -6) screen.set('toast', null);
     // (the hearts, the potions and the wallet, as main.js updateHealth; shown a while after a hurt, a drink or a chime)
     if (combat) player.setMaxHearts?.(resources.maxHearts);
@@ -1049,6 +1051,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const eye = new THREE.Vector3(...v.eye), target = new THREE.Vector3(...v.target);
     // the traveller where the view says (scripts/bench/web-page.mjs __benchPlace does the same on the web)
     if (v.player) { player.teleport(new THREE.Vector3(...v.player), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)); player.heading = v.heading ?? player.heading; }
+    // (a view's hour and weather pinned, as the web's side does: scripts/bench/web-page.mjs conditions, scripts/unity-compare/)
+    if (Number.isFinite(v.hour)) sky.hour = v.hour;
+    if (v.weather && weather) { weather.mode = v.weather; if (v.weather === 'clear') weather.intensity = 0; }
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, target, new THREE.Vector3(0, 1, 0)));
     // (a view with no place for the traveller leaves him out of the picture, as web-shots.mjs does)
     return { eye, q, fov: v.fov ?? 55, hidePlayer: v.hidePlayer ?? !v.player };

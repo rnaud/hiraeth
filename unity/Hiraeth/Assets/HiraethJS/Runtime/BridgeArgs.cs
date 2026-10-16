@@ -206,6 +206,8 @@ namespace Hiraeth.Bridge
             if (Flag("-pose")) args["pose"] = Arg("-pose") is string pk && !pk.StartsWith("-") ? pk : "on";   // (-pose catch: the fishing's catch card)
             // (-set-flags a,b: those flags set on the debug save before the world is built: engine/unity/game.js)
             if (Arg("-set-flags") != null) args["setFlags"] = Arg("-set-flags");
+            // (-fresh: the debug save emptied first, its journal too: the visual check's clean state, scripts/unity-compare/)
+            if (Flag("-fresh")) args["fresh"] = true;
             // (-foes [world]: the Arena's list of foes photographed, a world's page, a foe chosen and fought: engine/unity/game.js)
             if (Flag("-foes")) args["foes"] = Arg("-foes") is string fw && !fw.StartsWith("-") ? fw : "all";
             if (Flag("-freeze")) args["freeze"] = true;
