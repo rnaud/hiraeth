@@ -193,7 +193,9 @@ export const lightHp = (kind, hp = 2) => Math.min(hp, LIGHT_HP[kind] ?? 2);
  * How many stand at once (heads: a skitter half a one): `cap`, Gentle `gentle`; how often more come up out of the
  * springs (s) and how many at a time; the breather between waves (s).
  */
-export const CROWD = { cap: 24, gentle: 14, every: 0.45, burst: 3, breather: 2.4, gentleShare: 0.7 };
+export const CROWD = { cap: 24, gentle: 14, every: 0.45, burst: 3, breather: 2.4, gentleShare: 0.7, warn: 0.7, few: 3 };
+// (`warn`: s a spring wells up, its ring growing, before the foes it brings come out of it: where they will be is seen
+// first, issue #368; `few`: this many left and none still to come, each one is marked by a pillar of light)
 export const headOf = (kind) => (kind === 'skitter' ? 0.5 : 1);
 
 /**
@@ -203,10 +205,65 @@ export const headOf = (kind) => (kind === 'skitter' ? 0.5 : 1);
  */
 export function roomWaves(room, { gentle = false, hpOf = () => 2 } = {}) {
   return (room.waves ?? []).map((w) => w.flatMap(([kind, n, o = {}]) => {
-    const m = gentle && !o.tough ? Math.max(1, Math.round(n * CROWD.gentleShare)) : n;
-    return Array.from({ length: m }, () => ({ kind, tough: !!o.tough, hp: o.tough ? hpOf(kind) : lightHp(kind, hpOf(kind)) }));
+    const m = gentle && !o.tough && !o.gorged ? Math.max(1, Math.round(n * CROWD.gentleShare)) : n;
+    return Array.from({ length: m }, () => ({ kind, tough: !!o.tough, gorged: !!o.gorged,
+      hp: o.tough ? hpOf(kind) : o.gorged ? gorgedHp(kind, hpOf(kind), gentle) : lightHp(kind, hpOf(kind)) }));
   }));
 }
+
+/**
+ * A gorged one (issue #368: the waves' elites, `{ gorged: true }` in a temple's table): a light foe swollen with the
+ * ink, `scale` times its size, an ember ring at its feet, its kind's own health and `hp` more (Gentle `gentleHp`),
+ * striking as hard as its kind (not halved); felled, it always leaves a heart and `chimes`, and an ember shard (FURY).
+ */
+export const GORGED = { hp: 2, gentleHp: 1, scale: 1.35, chimes: 4 };
+export const gorgedHp = (kind, hp = 2, gentle = false) => hp + (gentle ? GORGED.gentleHp : GORGED.hp);
+
+/**
+ * The ember shard a gorged one leaves (issue #368): walked over, `secs` s of fury, every cut landing `edge` times as
+ * hard and the crescent burning in the ember's tones (`tones`).
+ */
+export const FURY = { secs: 8, edge: 2, tones: ['#e8703a', '#ffc890', '#fff2dc'] };
+
+/**
+ * The ink geysers (issue #368: a reason to keep moving): in a room with `geysers` in its table, every `every` s of a
+ * wave (the last wave `last` times as often) `n` rings of ink open on the floor, one under him and the rest near him
+ * (`near` m), each filling for `warn` s before it bursts: `harm` hearts to him in it (`radius` m; a roll's i-frames
+ * take him through), `damage` to every foe in it (lure them in). Gentle: `gentle` times as rarely, half the harm.
+ */
+export const GEYSER = { warn: 1.25, radius: 1.7, harm: 0.5, damage: 2, near: 4.5, last: 0.75, gentle: 1.6, inset: 1.6, apart: 2.6 };
+
+/**
+ * Where a round of geysers opens: one under him (`at`), the rest `near` m round him, all inside the room (`inset` in
+ * from its walls), off its pillars and `apart` m from one another. `rng`: 0..1.
+ */
+export function geyserSpots(room, at, n, rng = Math.random, G = GEYSER) {
+  const out = [];
+  const ok = (x, z) => inRoom(room, x, z, G.inset) && !(room.pillars ?? []).some(([px, pz]) => Math.hypot(x - px, z - pz) < 1.4 + G.radius * 0.5)
+    && out.every(([ox, oz]) => Math.hypot(x - ox, z - oz) >= G.apart);
+  const clampIn = (v, [a, b]) => Math.min(b - G.inset - 0.01, Math.max(a + G.inset + 0.01, v));
+  const first = [clampIn(at.x, room.x), clampIn(at.z, room.z)];
+  if (n > 0 && ok(...first)) out.push(first);
+  for (let tries = 0; out.length < n && tries < 120; tries++) {
+    // (wider out once the near ring has no room: a corner, the pillars)
+    const a = rng() * Math.PI * 2, far = G.near * (tries < 40 ? 1 : 1.6), r = G.apart * 0.8 + rng() * (far - G.apart * 0.8);
+    const x = at.x + Math.cos(a) * r, z = at.z + Math.sin(a) * r;
+    if (ok(x, z)) out.push([x, z]);
+  }
+  return out;
+}
+
+/**
+ * The rank on the results (issue #368): by the hearts lost and the time against the temple's `par` (s). S: at most
+ * `S.lost` lost inside par; A: at most `A.lost` inside `A.par` × par; B: at most `B.lost`; else C.
+ */
+export const RANK = { S: { lost: 1, par: 1 }, A: { lost: 3, par: 1.3 }, B: { lost: 6, par: Infinity } };
+export function rankFor({ secs, lost }, par = 240, R = RANK) {
+  for (const k of ['S', 'A', 'B']) if (lost <= R[k].lost + 1e-9 && secs <= par * R[k].par) return k;
+  return 'C';
+}
+/** m:ss for the results. */
+export const clock = (secs) => `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, '0')}`;
 
 /** How many of the waiting foes may come up now: the heads standing against the cap, at most `burst`. */
 export function release(waiting, standing, cap = CROWD.cap, burst = CROWD.burst) {
@@ -221,7 +278,7 @@ export const totalFoes = (def, o = {}) => def.rooms.reduce((a, r) => a + roomWav
 // ------------------------------------------------------------------ the loot
 /**
  * What a foe felled may leave: a heart (more likely the more you are hurt, never at full), chimes (a light one now
- * and then, a tough one always); a wave cleared, a room and the last its purses. `first`: the reward not won yet
+ * and then, a tough or gorged one always); a wave cleared, a room and the last its purses. `first`: the reward not won yet
  * (after it, a run's chimes are halved: the hall is not a mine).
  */
 export const LOOT = { heart: 0.05, hurtHeart: 0.16, chime: 0.25, tough: 6, wave: 3, room: 6, finale: 25 };
@@ -230,7 +287,7 @@ export function heartChance(hearts, max, L = LOOT) {
   return hearts <= max / 2 ? L.hurtHeart : L.heart;
 }
 export function chimesFor(f, rng = Math.random, first = true, L = LOOT) {
-  const n = f.tough ? L.tough : rng() < L.chime ? 1 : 0;
+  const n = f.tough ? L.tough : f.gorged ? GORGED.chimes : rng() < L.chime ? 1 : 0;
   return first ? n : Math.floor(n / 2) + (n % 2 && rng() < 0.5 ? 1 : 0);
 }
 export const pursesFor = (what, first = true, L = LOOT) => { const n = L[what] ?? 0; return first ? n : Math.ceil(n / 2); };

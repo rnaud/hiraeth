@@ -14,15 +14,16 @@
 
 import * as THREE from 'three';
 import { makeMaterial, SEE_HOLE } from '../materials.js';
-import { ROLL, WIDE_CUT } from '../fluid-blade.js';
+import { ROLL, WIDE_CUT, BLADE } from '../fluid-blade.js';
 import { FOES } from '../foes.js';
-import { lendTool, standAt } from '../minigames/kit/onfoot.js';
+import { lendTool, standAt, tune } from '../minigames/kit/onfoot.js';
 import { WorldLabels } from '../minigames/kit/labels.js';
 import { unlockColours, colourById, applyKitColours } from '../kit-colours.js';
 import { reliquaryModel } from './rooms.js';
 import {
   ISO, isoOffset, followIso, SEE, sightPoints, inTheWay, easeSee, seeOpen, AIM, pickTarget, stickToGround, screenUp, screenRight,
   roomAt, inRoom, roomWaves, release, CROWD, headOf, heartChance, chimesFor, pursesFor, totalFoes,
+  GORGED, FURY, GEYSER, geyserSpots, rankFor, clock,
 } from './rules.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
@@ -42,6 +43,41 @@ function heartModel() {
   g.add(m, ring);
   g.traverse((o) => { o.userData.noCollide = true; });
   return Object.assign(g, { gem: m, ring });
+}
+
+/** An ember shard (a gorged one's): a small burning diamond, bobbing; walked over, FURY. */
+function shardModel() {
+  const g = new THREE.Group();
+  const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.26, 0).scale(1, 1.5, 1), makeMaterial({ color: FURY.tones[0], flat: true, glow: 0.9 }));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.44, 24).rotateX(-Math.PI / 2), makeMaterial({ color: FURY.tones[1], flat: true, glow: 0.8 }));
+  g.add(gem, ring);
+  g.traverse((o) => { o.userData.noCollide = true; });
+  return Object.assign(g, { gem, ring });
+}
+
+/**
+ * The floor's warnings (issue #368), flat on the stone: a spring welling up (an ember ring that tightens as the foes
+ * it brings rise), an ink geyser about to burst (a dark pool filling to its ember rim), a gorged one's ring, and a
+ * pillar of light over each of the last few.
+ */
+function warnMarks() {
+  const ember = makeMaterial({ color: '#e8703a', flat: true, glow: 0.9 });
+  const pale = makeMaterial({ color: '#ffc890', flat: true, glow: 0.85 });
+  const ink = makeMaterial({ color: '#2a2440', flat: true });
+  const mesh = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.renderOrder = 2; m.userData.noCollide = true; m.visible = false; return m; };
+  return {
+    well: () => mesh(new THREE.RingGeometry(0.75, 1.0, 32).rotateX(-Math.PI / 2), ember, 0.09),
+    geyser: () => {
+      const g = new THREE.Group(); g.visible = false; g.userData.noCollide = true;
+      const rim = mesh(new THREE.RingGeometry(GEYSER.radius - 0.12, GEYSER.radius, 40).rotateX(-Math.PI / 2), ember, 0.07);
+      const fill = mesh(new THREE.CircleGeometry(GEYSER.radius - 0.12, 40).rotateX(-Math.PI / 2), ink, 0.06);
+      rim.visible = fill.visible = true;
+      g.add(rim, fill);
+      return Object.assign(g, { rim, fill });
+    },
+    gorged: () => mesh(new THREE.RingGeometry(0.95, 1.15, 32).rotateX(-Math.PI / 2), pale, 0.07),
+    beacon: () => mesh(new THREE.CylinderGeometry(0.09, 0.09, 7, 6, 1, true).translate(0, 3.5, 0), pale, 0),
+  };
 }
 
 /** The aim's marks on the floor: a chevron at his feet the way he aims, a ring under the foe taken, the mouse's reticle. */
@@ -67,9 +103,11 @@ export function startFightTemple(ctx) {
   const words = new WorldLabels(camera);
   const first = !state?.flag?.(`kit.colours.${def.colours}`);   // (the reward not won yet: the full loot)
   const plan = rooms.map((r) => roomWaves(r, { gentle, hpOf: (k) => FOES[k]?.hp ?? 2 }));
-  const run = { room: 0, wave: -1, phase: 'wait', kills: 0, chain: 0, lastKill: -99, bestChain: 0, hearts: 0, chimes: 0, total: totalFoes(def, { gentle }) };
+  const run = { room: 0, wave: -1, phase: 'wait', kills: 0, chain: 0, lastKill: -99, bestChain: 0, hearts: 0, chimes: 0, total: totalFoes(def, { gentle }),
+    waveN: 0, waves: plan.reduce((a, w) => a + w.length, 0), lost: 0, gorged: 0, gorgedOf: plan.flat(2).filter((q) => q.gorged).length, geysers: 0, furies: 0 };
   let t = 0, queue = [], mine = [], spawnT = 0, restT = 0, over = false, deadT = 0, reward = null, rewardT = 0;
-  const hearts = [];
+  const hearts = [], shards = [];
+  let heartsWas = player.hearts ?? 0, runClock = 0;
   globalThis.document?.body?.classList.add('fight-iso');
 
   // ---------------------------------------------------------------- the camera: the rig's yaw held on the iso line
@@ -98,6 +136,17 @@ export function startFightTemple(ctx) {
   // the blade's dodge roll and its generous cut (fluid-blade.js ROLL, WIDE_CUT): only in here
   const blade = tool?.blade;
   if (blade) { blade.roll = ROLL; blade.wide = WIDE_CUT; }
+  // (the sword drawn longer and broader in here, to the crescent: its tip about 2.1 m out, the crescent's edge past it)
+  const edge0 = BLADE.edge ?? 1;
+  const keepBlade = tune(BLADE, { length: WIDE_CUT.length, width: WIDE_CUT.width, edge: edge0 });
+  let furyT = 0;
+
+  // ---------------------------------------------------------------- the floor's warnings (issue #368)
+  const W = warnMarks();
+  const wells = [], geysers = [], filling = [], beacons = Array.from({ length: CROWD.few }, () => ctx.add(W.beacon()));
+  const wellMesh = () => wells.find((w) => !w.busy) ?? (wells[wells.length] = { busy: false, m: ctx.add(W.well()) });
+  const geyserMesh = () => geysers.find((g) => !g.busy) ?? (geysers[geysers.length] = { busy: false, m: ctx.add(W.geyser()) });
+  let pending = [], geyserT = 0;
 
   // ---------------------------------------------------------------- the aim
   const marks = ctx.add(aimMarks());
@@ -153,9 +202,10 @@ export function startFightTemple(ctx) {
     // (shuffled a little: the kinds mixed as they come up)
     for (let i = queue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [queue[i], queue[j]] = [queue[j], queue[i]]; }
     queue.sort((a, b) => +a.tough - +b.tough);   // (the tough ones last: the crowd first, then them)
-    spawnT = 0.2;
-    const last = run.room === rooms.length - 1 && run.wave === plan[run.room].length - 1;
-    ctx.flash(last ? 'The last of them' : `${rooms[run.room].name} · wave ${run.wave + 1} of ${plan[run.room].length}`, last ? 'bad big' : 'big', 1.8);
+    spawnT = 0.2; geyserT = 0;
+    run.waveN++;
+    const last = lastWave(), g = plan[run.room][run.wave].filter((q) => q.gorged).length;
+    ctx.flash(last ? `The last of them · wave ${run.waveN} of ${run.waves}` : `${rooms[run.room].name} · wave ${run.waveN} of ${run.waves}${g ? ` · ${g > 1 ? `${g} gorged` : 'a gorged one'} in it` : ''}`, last ? 'bad big' : 'big', 1.8);
     sound?.foeWarn?.('machine');
     sfx.whoosh?.();
   }
@@ -167,24 +217,154 @@ export function startFightTemple(ctx) {
     if (!queue.length) return;
     if ((spawnT -= dt) > 0) return;
     spawnT = CROWD.every;
-    const standing = mine.filter((f) => f.alive).reduce((a, f) => a + headOf(f.kind), 0);
+    const coming = pending.reduce((a, w) => a + w.items.reduce((b, q) => b + headOf(q.kind), 0), 0);
+    const standing = mine.filter((f) => f.alive).reduce((a, f) => a + headOf(f.kind), 0) + coming;
     const n = release(queue, standing, cap, cap === Infinity ? queue.length : CROWD.burst);
+    if (!n) return;
     const S = springsFor(run.room);
-    for (let i = 0; i < n; i++) {
-      const q = queue.shift(), s = S[i % Math.min(S.length, 3)] ?? spawn;
+    // (each spring wells up first, CROWD.warn s, its ring tightening, and then they come out of it: where they will
+    // be is seen before they are there; the checks' crowd comes up at once)
+    const by = new Map();
+    for (let i = 0; i < n; i++) { const s = S[i % Math.min(S.length, 3)] ?? spawn; if (!by.has(s)) by.set(s, []); by.get(s).push(queue.shift()); }
+    for (const [s, items] of by) {
+      const warn = cap === Infinity ? 0 : CROWD.warn;
+      const w = { at: s, items, t: warn, warn, mark: warn > 0 ? wellMesh() : null };
+      if (w.mark) { w.mark.busy = true; w.mark.m.position.set(s.x, 0.09, s.z); w.mark.m.scale.setScalar(1.6); w.mark.m.visible = true; }
+      pending.push(w);
+      if (warn <= 0) emerge(w);
+    }
+    pending = pending.filter((w) => !w.done);
+  }
+  /** The springs welling: their rings tighten; once one is through, its foes come up out of it. */
+  function wellsUp(dt) {
+    for (const w of pending) {
+      w.t -= dt;
+      if (w.mark) { const k = 1 - Math.max(0, w.t) / w.warn; w.mark.m.scale.setScalar(1.6 - 0.9 * k + 0.06 * Math.sin(t * 22)); }
+      if (w.t <= 0) emerge(w);
+    }
+    pending = pending.filter((w) => !w.done);
+  }
+  function emerge(w) {
+    if (w.done) return;
+    w.done = true;
+    if (w.mark) { w.mark.busy = false; w.mark.m.visible = false; }
+    const s = w.at;
+    for (const q of w.items) {
       const a = Math.random() * Math.PI * 2, r = Math.random() * 0.8;
       const at = new THREE.Vector3(s.x + Math.cos(a) * r, 0, s.z + Math.sin(a) * r);
       const f = foes?.add(q.kind, at);
       if (!f) continue;
-      f.hp = q.hp; f.light = !q.tough; f.tough = q.tough;
-      // (it sees the whole room and keeps after you; no high ground to hold (the pillars' tops); a light one strikes half as hard)
-      f.def = { ...f.def, sight: 80, giveUp: 1e9, perch: false, clamber: false, ...(q.tough ? {} : { attacks: f.def.attacks.map((a) => ({ ...a, damage: (a.damage ?? 1) * LIGHT_HARM })) }) };
+      f.hp = q.hp; f.light = !q.tough && !q.gorged; f.tough = q.tough; f.gorged = q.gorged;
+      // (it sees the whole room and keeps after you; no high ground to hold (the pillars' tops); a light one strikes
+      // half as hard, a gorged one as hard as its kind)
+      f.def = { ...f.def, sight: 80, giveUp: 1e9, perch: false, clamber: false, ...(q.tough || q.gorged ? {} : { attacks: f.def.attacks.map((a) => ({ ...a, damage: (a.damage ?? 1) * LIGHT_HARM })) }) };
       if (!q.tough) { f.def.attack = f.def.attacks[0]; f.atk = f.def.attack; }
       f.state = 'chase'; f.cool = 0.8 + Math.random() * 0.8;
       if (q.tough) f.model.group.scale.multiplyScalar(1.12);
+      if (q.gorged) {
+        // (swollen with the ink, a pale ring at its feet: it takes longer to fell, and leaves a heart and an ember shard)
+        f.model.group.scale.multiplyScalar(GORGED.scale);
+        f.ring = ctx.add(W.gorged()); f.ring.visible = true; f.ring.position.set(f.pos.x, 0.07, f.pos.z);
+        words.pop(_v.copy(f.pos).setY(2.6), 'gorged!', 'bad', 1.2);
+      }
       mine.push(f);
-      splash(s);
     }
+    splash(s);
+  }
+
+  // ---------------------------------------------------------------- the ink geysers (rules.js GEYSER)
+  const lastWave = () => run.room === rooms.length - 1 && run.wave === plan[run.room].length - 1;
+  const geyserEvery = () => { const G = rooms[run.room]?.geysers; return G ? G.every * (lastWave() ? GEYSER.last : 1) * (gentle ? GEYSER.gentle : 1) : 0; };
+  function openGeysers(dt) {
+    const every = geyserEvery();
+    if (!every || run.phase !== 'fight' || player.dead) return;
+    if ((geyserT += dt) < every) return;
+    geyserT = 0;
+    for (const [x, z] of geyserSpots(rooms[run.room], player.pos, rooms[run.room].geysers.n)) {
+      const g = geyserMesh(); g.busy = true; g.m.position.set(x, 0, z); g.m.visible = true; g.m.fill.scale.setScalar(0.05);
+      filling.push({ at: new THREE.Vector3(x, 0, z), t: 0, mark: g });
+    }
+    sound?.foeWarn?.('ink');
+  }
+  function geysersUp(dt) {
+    for (let i = filling.length - 1; i >= 0; i--) {
+      const g = filling[i]; g.t += dt;
+      const k = Math.min(1, g.t / GEYSER.warn);
+      g.mark.m.fill.scale.setScalar(0.05 + 0.95 * k * k);
+      g.mark.m.rim.scale.setScalar(1 + (k > 0.75 ? 0.05 * Math.sin(t * 40) : 0));
+      if (k < 1) continue;
+      burst(g.at);
+      g.mark.busy = false; g.mark.m.visible = false; filling.splice(i, 1);
+    }
+  }
+  function burst(at) {
+    run.geysers++;
+    const tones = [def.palette.ink, def.palette.inkLite, '#6d4fa8', def.palette.glyph];
+    for (let i = 0; i < 26; i++) tool?.drops?.add({ pos: _v.set(at.x + (Math.random() - 0.5) * GEYSER.radius, 0.2, at.z + (Math.random() - 0.5) * GEYSER.radius), vel: _w.set((Math.random() - 0.5) * 2.5, 6 + Math.random() * 6, (Math.random() - 0.5) * 2.5), drag: 1.2, grav: 14, size: 0.07 + Math.random() * 0.07, stretch: 2.5, life: 0.6 + Math.random() * 0.4, color: tones[i % tones.length] });
+    tool?.rings?.add({ from: _v.set(at.x, 0.1, at.z), dir: _up, reach: 0.02, r0: 0.4, r1: GEYSER.radius + 0.4, life: 0.35, color: def.palette.glyph, thick: 1.2 });
+    sfx.splash?.();
+    // him: in it, and not rolling through it (the roll's i-frames, as a blow's)
+    const d = Math.hypot(player.pos.x - at.x, player.pos.z - at.z);
+    if (!player.dead && d < GEYSER.radius && !player.dodge?.(at, 'strike', gentle)) {
+      player.hurt?.(GEYSER.harm * (gentle ? 0.5 : 1), 'geyser');
+      if (d > 0.05) player.vel?.addScaledVector(_w.set(player.pos.x - at.x, 0, player.pos.z - at.z).normalize(), 4);
+      player.vel?.addScaledVector(_up, 3);
+      player.flinch?.();
+    }
+    // the foes in it: cut by it (lured in, a crowd goes down with it)
+    for (const f of mine.slice()) {
+      if (!f.alive || Math.hypot(f.pos.x - at.x, f.pos.z - at.z) > GEYSER.radius + (f.def.radius ?? 0.5) * 0.5) continue;
+      foes?.hurt?.(f, 'world', _w.set(f.pos.x - at.x + 1e-3, 0, f.pos.z - at.z).normalize(), { damage: GEYSER.damage, source: 'geyser' });
+    }
+  }
+
+  // ---------------------------------------------------------------- the ember shards (FURY)
+  function dropShard(at) {
+    const m = ctx.add(shardModel());
+    m.position.set(at.x, 0.7, at.z);
+    shards.push({ m, age: 0 });
+  }
+  function shardsUp(dt) {
+    for (let i = shards.length - 1; i >= 0; i--) {
+      const h = shards[i]; h.age += dt;
+      h.m.gem.rotation.y += dt * 3; h.m.gem.position.y = Math.sin(h.age * 4) * 0.08; h.m.ring.position.y = -0.62;
+      const dx = player.pos.x - h.m.position.x, dz = player.pos.z - h.m.position.z, d = Math.hypot(dx, dz);
+      if (d < 2.4 && h.age > 0.4) { h.m.position.x += (dx / d) * Math.min(d, 7 * dt); h.m.position.z += (dz / d) * Math.min(d, 7 * dt); }
+      if ((d < 0.8 && h.age > 0.3) || h.age > 30) {
+        if (h.age <= 30) {
+          furyT = FURY.secs; run.furies++;
+          sound?.potionPickup?.(); sfx.whoosh?.();
+          words.pop(_v.copy(player.pos).setY(player.pos.y + 2.2), 'fury!', 'gold', 1.1);
+          ctx.flash(`Fury · your cuts land ${FURY.edge}× for ${FURY.secs} s`, 'good', 1.6);
+        }
+        h.m.removeFromParent(); shards.splice(i, 1);
+      }
+    }
+    const was = BLADE.edge;
+    furyT = Math.max(0, furyT - dt);
+    BLADE.edge = furyT > 0 ? edge0 * FURY.edge : edge0;
+    if (blade) blade.slashTones = furyT > 0 ? FURY.tones : null;
+    if (was !== BLADE.edge && furyT <= 0) ctx.flash('The fury fades', '', 1.0);
+  }
+
+  // ---------------------------------------------------------------- the last few marked, the strays put back
+  function lastFew(dt) {
+    const left = run.phase === 'fight' && !queue.length && !pending.length ? mine.filter((f) => f.alive) : [];
+    beacons.forEach((b, i) => {
+      const f = left.length <= CROWD.few ? left[i] : null;
+      b.visible = !!f;
+      if (f) { b.position.set(f.pos.x, 0, f.pos.z); b.scale.set(1, 0.92 + 0.08 * Math.sin(t * 6 + i), 1); }
+    });
+    // (a foe got out of the room, past a wall or into a corner it can't leave: back by the spring nearest it)
+    const R = rooms[run.room];
+    for (const f of mine) {
+      if (!f.alive || !R || f.air) continue;
+      if (inRoom(R, f.pos.x, f.pos.z, -0.3)) { f.strayT = 0; continue; }
+      if ((f.strayT = (f.strayT ?? 0) + dt) < 1.5) continue;
+      const s = springsFor(run.room).at(-1) ?? spawn;
+      f.pos.set(s.x, 0, s.z); f.model.group.position.copy(f.pos); f.vel?.set?.(0, 0, 0); f.strayT = 0;
+    }
+    for (const f of mine) if (f.ring) { f.ring.position.set(f.pos.x, 0.07, f.pos.z); f.ring.visible = f.alive; }
   }
   /** A walker that got up onto a pillar's top (a hop, a leap) is put down beside it: the fight is on the floor. */
   function offTheTop(f) {
@@ -209,7 +389,13 @@ export function startFightTemple(ctx) {
     run.bestChain = Math.max(run.bestChain, run.chain);
     if (run.chain >= 3 && run.chain % 5 === 0) words.pop(_v.copy(f.pos).setY(f.pos.y + 1.8), `chain ×${run.chain}`, 'combo', 1.0);
     // the loot: a heart now and then (more when you are hurt), a chime from a light one now and then, more from a tough one
-    if (Math.random() < heartChance(player.hearts ?? 3, player.maxHearts ?? 3)) dropHeart(f.pos);
+    if (f.gorged) {
+      // (a gorged one: a heart always, its ember shard, and its ring gone with it)
+      run.gorged++;
+      dropHeart(f.pos); dropShard(_v.copy(f.pos).add(_w.set(0.9, 0, 0.4)));
+      f.ring?.removeFromParent(); f.ring = null;
+      ctx.kick?.(0.35);
+    } else if (Math.random() < heartChance(player.hearts ?? 3, player.maxHearts ?? 3)) dropHeart(f.pos);
     const n = chimesFor(f, Math.random, first);
     if (n) { ctx.drop?.(f.pos.clone().setY(f.pos.y + 0.3), n); run.chimes += n; }
   }
@@ -254,10 +440,13 @@ export function startFightTemple(ctx) {
     sfx.coin?.(3); sfx.gate?.();
     reward.visible = false;
     over = true;
-    ctx.finish({ title: `${def.name} cleared`, lines: [
+    const rank = rankFor({ secs: runClock, lost: run.lost }, def.par);
+    run.rank = rank;
+    ctx.finish({ title: `${def.name} cleared · rank ${rank}`, lines: [
       fresh ? `New colours: ${pal.name}, for the backpack, the sword and the shield. Wearing them now; change them in Items.` : `${pal.name}: yours already (Items, Colours)`,
-      `Foes felled ${run.kills} · longest chain ${run.bestChain}`,
-      `Hearts found ${run.hearts} · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,
+      `Rank ${rank} · ${clock(runClock)} (par ${clock(def.par ?? 240)}) · hearts lost ${+run.lost.toFixed(2)}`,
+      `Foes felled ${run.kills} · gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain}`,
+      `Hearts found ${run.hearts} · fury ${run.furies}× · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,
     ] });
   }
 
@@ -275,9 +464,10 @@ export function startFightTemple(ctx) {
       return mine.filter((f) => f.alive).length;
     },
     /** (the console, the checks: where the run is) */
-    get run() { return { ...run, queue: queue.length, standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length }; },
-    update(dt, inp, { live, raw }) {
+    get run() { return { ...run, queue: queue.length, coming: pending.reduce((a, w) => a + w.items.length, 0), standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length }; },
+    update(dt, inp, { live, raw, t: clockNow }) {
       t += dt;
+      runClock = clockNow ?? t;   // (the runner's clock: the time the results show)
       // (no lock-on here: the aim takes the foe in its cone, and a lock would turn the view and the stick off the iso line)
       if (foes?.lock) foes.lock = null;
       aim(raw);
@@ -295,9 +485,15 @@ export function startFightTemple(ctx) {
         for (const f of mine) if (f.alive && !f.def.hover && f.pos.y > 1.2) offTheTop(f);
         for (const f of mine) if (!f.alive && !f.counted) { f.counted = true; felled(f); }
         mine = mine.filter((f) => !f.counted);
+        // (the hearts he lost, for the rank: whatever took them)
+        const h = player.hearts ?? 0;
+        if (h < heartsWas) run.lost += heartsWas - h;
+        heartsWas = h;
+        wellsUp(dt);
+        openGeysers(dt);
         const here = roomAt(rooms, player.pos.x, player.pos.z, 1.0);
         if (run.phase === 'wait' && here === run.room) startWave();
-        else if (run.phase === 'fight') { bringUp(dt); if (!queue.length && !mine.length) waveCleared(); }
+        else if (run.phase === 'fight') { bringUp(dt); if (!queue.length && !pending.length && !mine.length) waveCleared(); }
         else if (run.phase === 'rest' && (restT -= dt) <= 0) startWave();
         else if (run.phase === 'reward' && reward) {
           rewardT += dt;
@@ -306,14 +502,19 @@ export function startFightTemple(ctx) {
           reward.lid.rotation.y += dt * 1.6; reward.ring.rotation.z += dt;
           if (k > 0.7 && Math.hypot(player.pos.x - reward.position.x, player.pos.z - reward.position.z) < 1.7) takeReward();
         }
-        const left = queue.length + mine.length;
-        ctx.status(run.phase === 'fight' ? `${rooms[run.room].name} · ${left} left` : run.phase === 'rest' ? `Breathe · next wave in ${Math.max(0, restT).toFixed(1)} s`
+        const left = queue.length + mine.length + pending.reduce((a, w) => a + w.items.length, 0);
+        const extra = `${t - run.lastKill <= 2.5 && run.chain >= 3 ? ` · chain ×${run.chain}` : ''}${furyT > 0 ? ` · fury ${Math.ceil(furyT)} s` : ''}`;
+        ctx.status(run.phase === 'fight' ? `${rooms[run.room].name} · ${left} left${extra}` : run.phase === 'rest' ? `Breathe · next wave in ${Math.max(0, restT).toFixed(1)} s`
           : run.phase === 'wait' ? `On to ${rooms[run.room].name}` : run.phase === 'reward' ? 'Take the reliquary' : '');
         if (player.dead) {
           over = true;
-          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · foes felled ${run.kills} of ${run.total}`, `Longest chain ${run.bestChain} · chimes ${run.chimes}`] });
+          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, 'A roll (B / ○) takes you through a blow or a geyser unharmed.'] });
         }
       }
+      // the geysers filling and bursting, the shards and the fury, the last few marked
+      geysersUp(dt);
+      shardsUp(dt);
+      lastFew(dt);
       if (over && player.dead && (deadT += dt) > 1.2) player.restart?.();
       // the gates sink as their rooms are cleared (their colliders with them)
       F.gates.forEach((g) => {
@@ -361,6 +562,13 @@ export function startFightTemple(ctx) {
       if (foes) foes.lock = null;
       for (const h of hearts) h.m.removeFromParent();
       hearts.length = 0;
+      for (const h of shards) h.m.removeFromParent();
+      shards.length = 0;
+      for (const f of mine) f.ring?.removeFromParent();
+      for (const w of [...wells, ...geysers]) { w.busy = false; w.m.visible = false; }
+      pending = []; filling.length = 0;
+      keepBlade();
+      if (blade) blade.slashTones = null;
       movers.forEach((m) => m && physics?.removeCollider?.(m));
       for (const c of F.cuttables) setSee(c, 0);
       SEE_HOLE.value.set(0, -1e4, 0, SEE.radius);

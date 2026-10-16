@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- The last few foes of each Sunken Hall wave stand under a pillar of light so you can find them, one that slipped behind a wall is put back in the room (a run could never end), and the results give you a rank from S to C by your time and the hearts you lost.
+- From the second room of the Sunken Hall on, ink geysers open on the floor, one under you and more nearby: get out of the ring, or roll through it, before it bursts. Foes caught in one are cut by it, so lead the crowd in.
+- The Sunken Hall’s waves are more of a fight: an ember ring wells up on a spring just before foes climb out of it, and from the second room on most waves bring a gorged one, bigger, with a pale ring at its feet, that leaves a heart and an ember shard: pick it up and your cuts land twice as hard for 8 seconds.
+- In the Sunken Hall you now see your sword’s sweep: each cut throws a crescent of its water round you, and what the crescent covers is exactly what it cuts. It reaches less far than before (foes fell well past anything you could see), and the sword is drawn longer in there so you can follow it from high above.
 - Every temple now ends on a short film once its guardian is calmed or stopped: the guardian at rest, its reward on the floor, the house from high up as its glyphs light, then the way out sinking open, with the world’s own music playing through it. B / ○ or Esc skips it.
 - The Mother Snapper’s fight can be finished from anywhere in her hall. Rearing to snap, her head now looms out over you, so a push reaches it even from the middle of the hall, and she rears to snap twice as often. Still her as she winds up and her head drops, mouth open, ready for the cold. Every stilling shot that rings bright now calms her and moves her bar, each crystal sung in turn too; one that does nothing splashes dull, as on a wall.
 - Picking up a crate or a weight for the first time in a save no longer freezes the game: the line saying how to put it down and throw it now shows instead.

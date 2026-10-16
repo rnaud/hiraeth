@@ -11,6 +11,7 @@ import { MAGIC_COST } from './resources.js';
 import { rumblePlay } from './rumble.js';
 import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
 import { bodyTouch, bodySpan } from './foe-body.js';
+import { SlashArc, SLASH_LOOK } from './slash-arc.js';
 
 // Three committed cuts: anticipation, release and recovery, with one buffered follow-up.
 // Full-body captured poses on the ground, upper-body in the air. The blade's swept segment
@@ -112,11 +113,38 @@ export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5, iframes: [0.0
  */
 export const ROLL = { duration: 0.42, cooldown: 0.75, speed: 9.5, iframes: [0.02, 0.34], gentle: [0.02, 0.4], rest: 0.3 };
 /**
- * The generous cut (the fight temples): the blade's swing takes every foe in a wider, longer cone at once (`reach` m from
- * the chest, `angle` its half angle), not only those the drawn blade passes through; a wall between still keeps a foe
- * out of it (the cone's line of sight: targets.js targetsInCone). FluidBlade.wide set to it; null elsewhere.
+ * The generous cut (the fight temples, issues #365, #368): the swing takes every foe a crescent round him reaches, not
+ * only those the sword passes through, and the crescent is drawn (src/slash-arc.js): a sweep of the sword's water laid
+ * as the cut goes, its outer edge `reach` m from his axis on the flat. What it covers is what it cuts: a foe whose body
+ * (its hurt radius) the crescent reaches, as the crescent reaches it, a wall between keeping it out, no higher or lower
+ * than `height` m off his feet. Each of the combo's swings sweeps its own way (`sweeps`: `from` → `to`, rad off the
+ * cut's way, + his left, as its clip's blade goes: measured in the game; the heavy third a narrow forward cleave, its
+ * own `reach`), the charged cut `charge`; the other moves cut with the sword alone. The sword there is drawn `length`
+ * m long and `width` wide (its tip about 2.1 m out through a cut: the crescent's edge half a metre past it); a swing
+ * at a foe a little out of reach steps in only to stand `pull` m off its body (MAGNET's ideal: under the crescent).
+ * v1.77 took every foe in a cone 3.9 m from the chest and 1.5 rad either side with nothing drawn (#368: hits landed
+ * well past what was seen, and it felt too big). FluidBlade.wide set to it; null elsewhere.
  */
-export const WIDE_CUT = { reach: 3.9, angle: 1.5 };
+export const WIDE_CUT = {
+  reach: 2.6, height: 2.6, length: 1.25, width: 0.14, pull: 2.0,
+  sweeps: [{ from: -1.2, to: 1.2 }, { from: 1.1, to: -1.1 }, { from: -0.5, to: 0.5, reach: 2.9 }],
+  charge: { from: -1.4, to: 1.4, reach: 2.9 },
+};
+/** A cut's sweep under the generous cut: the combo's `n`th swing's, the charged cut's, or null (another move: the sword alone). */
+export const wideSweep = (W, n, special = null) => (!W ? null : special === CHARGE ? W.charge : special ? null : W.sweeps?.[n] ?? null);
+/** The span (rad off the cut's way: [start, how far it has reached]) of a sweep `u` (0..1) of the way through. */
+export const sweepSpan = (sweep, u) => [sweep.from, sweep.from + (sweep.to - sweep.from) * THREE.MathUtils.clamp(u, 0, 1)];
+/**
+ * Is a body at flat offset (dx, dz) from his axis, `radius` m round, under a crescent along the flat unit `dir` over
+ * `span` (sweepSpan), out to `reach` m? Its edge within the reach, and within the span by the angle its radius takes up.
+ */
+export function underSweep(dx, dz, radius, dir, span, reach) {
+  const d = Math.hypot(dx, dz);
+  if (d - radius > reach) return false;
+  if (d <= radius) return true;
+  const off = Math.atan2(dx * dir.z - dz * dir.x, dx * dir.x + dz * dir.z), slack = Math.asin(Math.min(1, radius / d));
+  return off >= Math.min(span[0], span[1]) - slack && off <= Math.max(span[0], span[1]) + slack;
+}
 /** The i-frame window [from, to] (s into an evade) for this setting. */
 export const iframeWindow = (gentle = false, E = EVADE) => (gentle ? E.gentle : E.iframes);
 /** Is an evade `age` s old invulnerable (it was given i-frames: `granted`)? */
@@ -434,6 +462,8 @@ export class FluidBlade {
     this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
     // the dodge roll (ROLL: the evade made a roll; the fight temples set it) and the generous cut (WIDE_CUT); the evade under way's spec
     this.roll = null; this.wide = null; this.evadeSpec = EVADE;
+    // (the generous cut's crescent: its state, the hits' and the drawing's both, src/slash-arc.js; its tones, null: the sword's water)
+    this.slash = null; this.arc = null; this.slashTones = null;
     // the locked-on hops' own dodge frames (hop(): the back flip, the side hop; src/jump.js HOP): how long it has run, its window
     this.hopAge = Infinity; this.hopWin = null; this.hopGranted = false;
     this.hitTargets = new Set(); this.previousBlade = null; this.buffered = 0; this.closeIn = 0;
@@ -803,7 +833,7 @@ export class FluidBlade {
     const rise = foe && this.special !== LUNGE && !force && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
     this.rising = !!rise;
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
-    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js)
+    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : wideSweep(this.wide, n, this.special) ? { ...MAGNET, ideal: this.wide.pull } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js; the generous cut: only to bring it under the crescent)
     this.closeLeft = this.closeIn * pullT;
     this.aimAt(foe, flat - this.closeLeft, !rise && p.onGround && this.special !== AIR);   // (aimed from where the pull will have him)
     if (force === DASH) {
@@ -901,10 +931,10 @@ export class FluidBlade {
       hits.push(...bodyHits(origin, C.reach, T.physics, this.previousBlade ?? pose, pose));
       hits = hits.filter((h) => h.body || sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
     }
-    // the generous cut (WIDE_CUT, the fight temples): every foe in its wider, longer cone, a wall between keeping one out
-    if (this.wide && !S?.down && !this.rising) {
-      for (const h of bladeHits(origin, C.dir, T.physics, { reach: this.wide.reach * (C.reach / BLADE.reach), angle: Math.max(C.angle, this.wide.angle) })) if (!hits.some((x) => x.target === h.target)) hits.push(h);
-    }
+    // the generous cut (WIDE_CUT, the fight temples): every foe the drawn crescent has reached so far, a wall between keeping one out
+    const sweep = !S?.down && !this.rising ? wideSweep(this.wide, this.n, S) : null;
+    // (the crescent is the whole of it there: what the sword itself meets is under it, and nothing outside it is cut)
+    if (sweep) hits = this.sweepHits(sweep, origin);
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
     const damage = (S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1) * (BLADE.edge ?? 1);
@@ -940,6 +970,41 @@ export class FluidBlade {
     }
     T.sound?.fluidSlashHit?.(hits.length > 0, info.combo === 2);
     return hits;
+  }
+
+  /** How far through its cut the swing is (0..1): the clip's displayed time across its active window, or the arc's strike phase. */
+  cutU() {
+    if (this.move) {
+      const [a, b] = activeRange(this.spec), t = this.tool.player?.swingMove?.t;
+      return t === undefined ? 0 : THREE.MathUtils.clamp((t - a) / Math.max(1e-4, b - a), 0, 1);
+    }
+    const S = this.sample;
+    return S ? THREE.MathUtils.clamp((this.t * this.dur - S.wind) / Math.max(1e-4, S.active), 0, 1) : 0;
+  }
+
+  /**
+   * The generous cut's hits this frame (WIDE_CUT; strike()): the crescent laid as far as the cut has gone (this.slash,
+   * what src/slash-arc.js draws), every foe whose body it reaches, out of a wall's way.
+   */
+  sweepHits(sweep, origin) {
+    const T = this.tool, p = T.player, W = this.wide, up = hasUpgrade('reach', T.state) ? REACH_UP : 1;
+    const dir = _f.copy(this.dir).setY(0);
+    if (dir.lengthSq() < 1e-8) return [];
+    dir.normalize();
+    const u = Math.max(this.slash?.id === this.swingId ? this.slash.u : 0, this.cutU() || 1e-3);
+    const reach = (sweep.reach ?? W.reach) * up;
+    this.slash = { id: this.swingId, sweep, u, reach, at: (this.slash?.at ?? new THREE.Vector3()).copy(p.pos), dir: (this.slash?.dir ?? new THREE.Vector3()).copy(dir), done: -1 };
+    const span = sweepSpan(sweep, u), out = [];
+    for (const t of allTargets()) {
+      if (!t.enabled() || !t.accepts?.includes('blade')) continue;
+      // (its body as drawn: a foe's own radius, not the blade's touch margin on it)
+      const c = t.position(), dx = c.x - p.pos.x, dz = c.z - p.pos.z, r = t.foe?.def?.radius ?? t.radius ?? 0.5;
+      if (Math.abs(c.y - p.pos.y) > W.height + r || !underSweep(dx, dz, r, dir, span, reach)) continue;
+      _r.subVectors(c, origin); const d = _r.length(), to = d > 1e-5 ? _r.divideScalar(d).clone() : dir.clone();
+      if (T.physics?.rayDistance && d > 0.3 && T.physics.rayDistance(origin, to, d) < d - r - 0.05) continue;   // (a wall between)
+      out.push({ target: t, distance: Math.max(0, Math.hypot(dx, dz) - r), point: c.clone(), dir: to });
+    }
+    return out;
   }
 
   /** The blade as drawn (or as it would be, lit by `lit`): from the guard to the tip, in the world, the hilt in the fist. Null with no fist to hold it. */
@@ -1067,7 +1132,27 @@ export class FluidBlade {
    * between them (the world's blend of the two, the hand at the frog by then); lit (grown out of the guard)
    * while it swings, a trail of fluid off its edge. The right arm reaches back for it (player.sheathReach).
    */
+  /**
+   * The generous cut's crescent (WIDE_CUT, src/slash-arc.js) drawn from this.slash, the state its hits read: laid while
+   * the cut goes, lingering SLASH_LOOK.linger s once it is through; nothing outside the fight temples.
+   */
+  drawSlash(dt) {
+    const S = this.slash;
+    if (S && (S.u >= 1 || S.id !== this.swingId || !this.swinging || this.phase === 'recover')) S.done = S.done < 0 ? 0 : S.done + dt;
+    if (S && (S.done > SLASH_LOOK.linger || !this.wide)) this.slash = null;
+    if (this.wide && !this.arc && this.tool.fx) this.arc = new SlashArc(this.tool.fx);
+    if (!this.arc) return;
+    if (this.slash && this.slash.done < 0 && this.slash.u < 0.2) {
+      // (in the sword's own water: a fight temple's colours worn tint it, src/kit-colours.js)
+      const U = this.swordMat?.uniforms;
+      if (this.slashTones) this.arc.tint(this.slashTones);   // (the fight temples' fury: the ember's)
+      else if (U?.uFluidTones) this.arc.tint([U.uFluidBase?.value ?? U.uFluidTones.value[4], '#fff6dc']);
+    }
+    this.arc.update(dt, this.slash);
+  }
+
   place(dt) {
+    this.drawSlash(dt);
     this.previousBlade = this.bladeSegment();
     const T = this.tool, p = T.player, S = this.sheath;
     const on = p?.object?.visible !== false && T.swordOn !== false;   // (once found: main.js sets tool.swordOn from the items; a scene may put it away)
@@ -1182,5 +1267,5 @@ export class FluidBlade {
     S.k = shield;   // (held where the panel says)
   }
 
-  dispose() { this.group.removeFromParent(); this.frog.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
+  dispose() { this.arc?.dispose(); this.group.removeFromParent(); this.frog.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
 }

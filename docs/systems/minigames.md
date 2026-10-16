@@ -468,14 +468,60 @@ built: the desert's **Sunken Hall** (`fight-desert.js`, its table `src/fight-tem
 (`drives: false`) under a fixed isometric camera the session puts on its line after the rig every frame (the rig's
 yaw held on it, so the stick walks him on the screen's axes; 57° down, 28 m, a 31° lens, as Diablo IV's: issue #365);
 walls and pillars between the camera and him are seen through, a hole cut round him (`makeMaterial({ seeThrough })`).
-B / ○ (Alt, the touch ↶) rolls there (`ROLL`, the evade made a roll; A / × still jumps, the touch jump shown) and the cut takes foes in a wider, longer cone
-(`WIDE_CUT`). Four rooms, two or three waves each of the desert's kinds made light (a cut or two, half the harm), up to
+B / ○ (Alt, the touch ↶) rolls there (`ROLL`, the evade made a roll; jumping is off: 535f87f9a) and the cut takes every
+foe a drawn crescent covers (`WIDE_CUT`, below). Four rooms, two or three waves each of the desert's kinds made light (a cut or two, half the harm), up to
 24 heads standing, out of the ink springs; a room cleared, its gate (a mover) sinks; the last wave brings a lamp
 tripod and two whole herons, then the reliquary on the altar wins the Ember colours (`src/kit-colours.js`, items.md
 "The kit's colours"). Hearts and chimes drop (`ctx.drop`: the runner's host passes the world's chime field). The
 right stick or the mouse's ring aims; the blade and the gun take the foe in that cone (`FluidTool.lockOn` and
 `updateAimPoint` wrapped for the run); RT / R2 alone a quick shot. Its sign is its own doorway (`marker.model`, solid:
 `kit/marker.js`), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`, `tests/fight-roll.test.js`.
+
+### The Sunken Hall as a game (issue #368)
+
+The author: the hall should be a better game, and the bigger swing of v1.77 couldn't be seen (and felt too big).
+Played through by a scripted player in headless Chrome (the scratchpad's `play.mjs`: walk to the next room, close on
+the nearest foe, cut; with and without stepping out of the geysers) and judged as an action-RPG arena. What v1.77
+had: nine waves of a pile of light foes each, the cut taking everything 3.9 m out with nothing drawn, no warning where
+foes would come from, the toughest wave only at the very end, and a results card of counts. A mashing player cleared
+it in about 100 s and a tripod could be left stuck outside the sanctum's wall, the run never ending. What changed:
+
+- **The cut is drawn and is what hits** (`fluid-blade.js` `WIDE_CUT`, `src/slash-arc.js`). A crescent of the sword's
+  water, flat at his waist, is laid as the swing goes (its leading edge where the cut has reached, 28 segments
+  rewritten each frame), its outer edge a cream line exactly `WIDE_CUT.reach` (2.6 m) from his axis, lingering 0.2 s
+  and thinning to that edge. The hits read the same state (`FluidBlade.slash`: the sweep, how far through it, the
+  reach, his place, the cut's way): `sweepHits` takes every foe whose body (its drawn radius) the crescent has reached
+  so far (`underSweep`, a wall between keeping one out) and nothing else, so nothing outside the picture is cut. Each
+  swing sweeps the way its clip's sword goes (measured in the game: the first right to left, −1.2 → 1.2 rad; the
+  second back, 1.1 → −1.1; the heavy third a narrow forward cleave ±0.5 rad, 2.9 m; the charged cut ±1.4, 2.9 m);
+  the other moves cut with the sword alone. Brought down from 3.9 m from the chest and ±1.5 rad: in the game the
+  hits' farthest body edge measured 2.54 m against the 2.6 m drawn. The sword itself is drawn 1.25 m long and 0.14
+  wide in there (`tune(BLADE)`, its tip about 2.1 m out through a cut, the crescent's edge half a metre past it:
+  a 0.85 m blade was a few pixels from this camera), and a swing at a foe a little out of reach steps in only to stand
+  `WIDE_CUT.pull` (2 m) off its body, under the crescent, not up against it. The fury's ember tints it.
+- **Where foes come from is seen first.** A spring wells up `CROWD.warn` (0.7 s) before a burst comes out of it: an
+  ember ring on it tightening (`wellsUp` / `emerge`; the heads coming count against the cap).
+- **Gorged ones** (`{ gorged: true }` in the table, `GORGED`): a light foe swollen with ink in most waves from the hall
+  on (five in a run), 1.35 times its size, a pale ring at its feet, its kind's health and two more (Gentle one), striking
+  as hard as its kind; felled, a heart, four chimes and an **ember shard**: walked over, `FURY` (8 s of every cut landing
+  twice as hard, `BLADE.edge`, the crescent in ember). The wave's banner says one is in it.
+- **A reason to move: ink geysers** (`GEYSER`, `geyserSpots`, a room's `geysers: { every, n }`): from the hall on,
+  every 7 / 5.5 / 5 s of a wave (the last wave a quarter sooner) one to three pools open on the floor, one under him and
+  the rest near him, off the pillars and apart, a dark pool filling to its ember rim over 1.25 s, then a burst: half a
+  heart to him in it (a roll's i-frames take him through, as a blow's), two cuts to every foe in it (lure the crowd in).
+- **The last few marked, strays put back.** With three or fewer left and none to come, each stands under a pillar of
+  pale light; a foe out of the room more than 1.5 s (past a wall, in the trench) is put back by its far spring (the
+  v1.77 run that never ended).
+- **Escalation and the end.** Banners count the whole run (`wave 4 of 9`), the status line adds the live chain and the
+  fury; the results give a **rank** (`rankFor`, S/A/B/C by the hearts lost, whatever took them, and the time against
+  the table's `par`, 240 s), the time, the gorged felled, the furies. A run lost says how far it got and that the roll
+  takes him through a blow or a geyser.
+
+Measured with the scripted player (muted headless Chrome, High, nothing hurting him so it plays to the end): v1.77
+cleared in about 100 s, 144 of 145 felled, then stuck on a tripod past the wall; now 137 s to the reliquary, all
+150, 30 geysers, 5 gorged and 5 furies, and it is hit twice as often (it never rolls). Unity: all of it is meshes and
+the session's logic, so the engine's runner plays it as is (`tests/engine-trials.test.js` runs a wave there); the
+floating words (`WorldLabels`, DOM) stay web-only.
 
 ## Ink tide (`waves.js`)
 

@@ -1,13 +1,14 @@
 // The fight temples' own moves (issue #365; src/fight-temples/session.js, src/fluid-blade.js ROLL and WIDE_CUT): B / ○
 // (Alt, the touch ↶) makes a dodge roll there (a burst along the stick or the way he faces, i-frames, a cooldown, a
-// tucked roll), jumping is disabled, the evade untouched everywhere else; the blade's cut takes every foe in a wider, longer cone, and
-// none behind a wall; the walls in the camera's way seen through while the others stay solid.
+// tucked roll), jumping is disabled, the evade untouched everywhere else; the blade's cut takes every foe the drawn crescent
+// covers (#368: drawn, its reach brought down to the sword's look), and none behind a wall; the walls in the camera's way seen through while the others stay solid.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES } from '../src/foes.js';
 import { FluidTool } from '../src/fluid-tool.js';
-import { EVADE, ROLL, WIDE_CUT, BLADE, iframeWindow } from '../src/fluid-blade.js';
+import { EVADE, ROLL, WIDE_CUT, CHARGE, iframeWindow, sweepSpan, underSweep, wideSweep } from '../src/fluid-blade.js';
+import { slashBand } from '../src/slash-arc.js';
 import { ROLL_FLIP, flipAngle } from '../src/jump.js';
 import { clearTargets, registerTarget } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -121,26 +122,53 @@ test('outside the fight temples the evade is as it was: a short backstep, its ow
   tool.dispose?.(); clearTargets();
 });
 
-test('the generous cut: foes at the wider, longer cone\'s edge are hit; one behind a wall is not, nor one behind him', () => {
-  const swing = (wide, at, wall = null) => {
+test('the generous cut (#368): what the drawn crescent covers is what it cuts, as it reaches it; past its edge, behind a wall, behind him: nothing', () => {
+  // a swing with foes (bodies `radius` round) at flat [x, z] off him (he faces +z); the hits in order, the crescent's state at each
+  const swing = (wide, at, { wall = null, radius = 0.5 } = {}) => {
     const { tool, B } = setup({ wall });
     B.wide = wide;
-    const hits = [];
-    at.forEach(([x, z], i) => registerTarget({ kind: 'foe', accepts: ['blade'], radius: 0.5, position: () => v(x, 1, z), onHit: () => hits.push(i) }));
-    for (let i = 0; i < 90; i++) tool.update(DT, i < 3 ? { KeyF: true } : {});
+    const hits = [], seen = [];
+    at.forEach(([x, z], i) => registerTarget({ kind: 'foe', accepts: ['blade'], radius, position: () => v(x, 1, z), onHit: () => { hits.push(i); seen.push(B.slash && { ...B.slash, span: sweepSpan(B.slash.sweep, B.slash.u) }); } }));
+    let arc = null;
+    for (let i = 0; i < 90; i++) { tool.update(DT, i < 3 ? { KeyF: true } : {}); if (B.arc?.drawn) arc = { pos: Float32Array.from(B.arc.pos), drawn: B.arc.drawn }; }
     tool.dispose?.(); clearTargets();
-    return hits.sort();
+    return { hits, seen, arc };
   };
-  const far = WIDE_CUT.reach - 0.3 + 0.5, a = WIDE_CUT.angle - 0.05;   // (its body's near side just inside the reach; just inside the angle)
-  const edge = [[0, far], [Math.sin(a + 0.15) * 2.5, Math.cos(a + 0.15) * 2.5]];   // (ahead at its reach; 2.5 m off at its side)
-  assert.ok(WIDE_CUT.reach > BLADE.reach + 0.6 && WIDE_CUT.angle > BLADE.angle + 0.2, 'longer and wider than the swing\'s own');
-  assert.deepEqual(swing(WIDE_CUT, edge), [0, 1], 'both at the edge are hit');
-  assert.deepEqual(swing(null, edge), [], 'the plain cut reaches neither');
-  // a wall across, 2 m ahead: the one past it is safe; one this side of it still hit
+  const R = WIDE_CUT.reach, S0 = WIDE_CUT.sweeps[0], r = 0.5;
+  assert.ok(R > 2.2 && R < 3.0, `a reach to the sword's look (${R} m; v1.77 3.9 from the chest)`);
+  assert.ok(Math.max(Math.abs(S0.from), Math.abs(S0.to)) < 1.35, 'a sweep narrower than v1.77\'s 1.5 rad either side');
+  // ahead: its body just inside the crescent's edge is cut, just past it is not
+  const ahead = (d) => [[0, d]];
+  assert.deepEqual(swing(WIDE_CUT, ahead(R + r - 0.1)).hits, [0], 'at the edge: cut');
+  assert.deepEqual(swing(WIDE_CUT, ahead(R + r + 0.15)).hits, [], 'just past the edge: not');
+  // the first swing sweeps from his right to his left: the one on his right falls first; each when the crescent has reached it
+  const side = 1.0, d = 2.2, right = [-Math.sin(side) * d, Math.cos(side) * d], left = [Math.sin(side) * d, Math.cos(side) * d];
+  const s = swing(WIDE_CUT, [left, right]);
+  assert.deepEqual(s.hits, [1, 0], `right first, then left (${s.hits})`);
+  for (const [k, i] of s.hits.entries()) {
+    const [x, z] = [left, right][i], S = s.seen[k];
+    assert.ok(S && underSweep(x, z, r, v(0, 0, 1), S.span, S.reach), 'under the crescent laid so far when it fell');
+  }
+  // outside the sweep's angle (past its far end by more than its body takes up), behind a wall, behind him: safe
+  const past = S0.to + Math.asin(r / d) + 0.25;
+  assert.deepEqual(swing(WIDE_CUT, [[Math.sin(past) * d, Math.cos(past) * d]]).hits, [], 'past the sweep\'s end');
   const wall = new THREE.Box3(v(-3, 0, 1.8), v(3, 3.4, 2.2));
-  assert.deepEqual(swing(WIDE_CUT, [[0, 3.2], [0, 1.2]], wall), [1], 'not through the wall');
-  assert.deepEqual(swing(WIDE_CUT, [[0, -2]]), [], 'not behind him');
-  assert.ok(WIDE_CUT.reach < 4.5, 'generous, not a room-wide sweep');
+  assert.deepEqual(swing(WIDE_CUT, [[0, 2.9], [0, 1.2]], { wall }).hits, [1], 'not through the wall');
+  assert.deepEqual(swing(WIDE_CUT, [[0, -2]]).hits, [], 'not behind him');
+  // the crescent as drawn: its outer edge the reach, exactly, round him
+  const { arc } = swing(WIDE_CUT, ahead(R + r - 0.1));
+  assert.ok(arc, 'drawn');
+  const P = arc.pos, outer = [];
+  for (let i = 0; i < P.length / 6; i++) outer.push(Math.hypot(P[i * 6 + 3], P[i * 6 + 5]));
+  assert.ok(outer.every((x) => Math.abs(x - R) < 1e-4), `its outer edge at the reach (${Math.min(...outer).toFixed(3)}..${Math.max(...outer).toFixed(3)})`);
+  assert.equal(arc.drawn.reach, R);
+  // a crescent's band: laid up to how far the cut has gone, nothing past it; thinning to its edge as it fades
+  assert.equal(slashBand(0.6, 0.5, R), null);
+  assert.equal(slashBand(0.5, 0.5, R)[1], R);
+  assert.ok(slashBand(0.2, 1, R, 0.8)[0] > slashBand(0.2, 1, R, 0)[0], 'thinner as it fades');
+  assert.equal(wideSweep(WIDE_CUT, 1), WIDE_CUT.sweeps[1]);
+  assert.equal(wideSweep(WIDE_CUT, 0, CHARGE), WIDE_CUT.charge);
+  assert.equal(wideSweep(null, 0), null);
 });
 
 /** The Sunken Hall's run in node with the real tool and blade (tests/fight-temples.test.js's simulate, with a tool). */

@@ -869,6 +869,8 @@ const LANDMARKS76 = "Muted headless Chrome, High, 1280 × 720, clear at 10:00; 4
 const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this branch (port 6341), High, 1280 × 720, a save with the sword and the shield; the run played by a script that walks to the nearest foe and cuts; 14 October';
 /** (v1.77, issue #365: the Sunken Hall more like Diablo IV, shot by hand before and after) */
 const FIGHT365 = 'Issue #365: muted headless Chrome (High, 1280 × 720) against its own Vite (port 6483), the Sunken Hall begun from its start card, the traveller set at the same spots, nothing hurting him; before, the tree at 46a9c59d8, after, this branch; 15 October; cwebp -q 72';
+/** (v1.79, issue #368: the Sunken Hall's cut and waves) */
+const FIGHT368 = 'Issue #368: muted headless Chrome (High, 1280 × 720) against its own Vite (port 6491), the Sunken Hall begun from its start card; the cut held at the end of its swing with blots pinned round him (the scratchpad’s swing.mjs), the waves played by a scripted player (play.mjs, scenes.mjs); before, the tree at ed4834a70, after, this branch; 15 October; cwebp -q 72';
 /** (v1.77, issue #336: the Rose House's rooms, shot by hand before and after) */
 const SHRINE336 = 'Issue #336: scripts/design-qc/capture.mjs in muted headless Chrome (High, 1280 × 720, noon), Vite on port 6436, at 9f1142fa7 (before) and this branch (after), the camera pinned in each room at about the same place in it (the rooms moved: the house is bigger), 14 October; cwebp -q 72';
 /** (v1.77, issue #336: the Warden's Well's rooms, shot by hand before and after) */
@@ -1111,6 +1113,35 @@ export const CHANGELOG_MEDIA = {
       { name: 'temple-finale-rose', title: 'The Rose House', caption: 'The moment the Keeper of the cistern is calmed: before, the follow camera over his shoulder and the toasts; after, the film’s first panel, the Keeper at rest in the letterbox (the world’s theme playing)', from: 'headless muted Chrome on this branch, the guardian resolved in its arena, before with the ending unhooked, 15 October', size: [1280, 720] },
       { name: 'temple-finale-aerie', title: 'The Aerie', caption: 'The Elder’s resolution: before, the follow camera; after, the film’s first panel, the Elder opening her wings, him small at her feet', from: 'headless muted Chrome on this branch, the guardian resolved in its arena, before with the ending unhooked, 15 October', size: [1280, 720] },
     ], see: 'Calm or stop any temple’s guardian: the film plays (about 11 s) with the world’s recorded theme, the way out opens in its last panel, then you are back in play, turned to it. B / ○, Menu, Esc or a tap on the corner skips it; it plays once per save.' },
+    { match: 'In the Sunken Hall you now see your sword’s sweep', tags: ['desert', 'combat'], shots: [
+      { name: 'fight-cut', title: 'One cut, ten blots round him', caption: 'The stair foot, the first swing held at its end, blots set 3.2 m (inside), 3.6 m (on the edge) and 4.3–4.4 m (outside) from where he stood. Before: the sword a sliver, and every one of them flashes white, hit, the farthest 4.4 m off. After: the crescent drawn out to its edge; those it covers are hit, the three past it are not.', from: FIGHT368 },
+    ], numbers: [
+      { title: 'The cut in the Sunken Hall', unit: '', better: 'lower', device: 'the game’s own numbers (src/fluid-blade.js WIDE_CUT) and the swing measured in the game (the scratchpad’s swing.mjs)', rows: [
+        { where: 'reach, m (before from the chest, after from him on the floor to the crescent’s edge)', before: 3.9, after: 2.6 },
+        { where: 'arc of the first swing, degrees either side', before: 86, after: 69 },
+        { where: 'the farthest body edge hit in the test, m (the edge drawn at 2.6)', before: 2.8, after: 2.28 },
+        { where: 'blots hit of the ten round him', before: 10, after: 5 },
+        { where: 'the sword drawn, m long', before: 0.85, after: 1.25 },
+      ], source: FIGHT368 },
+    ], see: 'In the Sunken Hall, cut once with blots around you: a crescent of the sword’s water sweeps out the way the sword goes, and only the blots it reaches fall.' },
+    { match: 'The Sunken Hall’s waves are more of a fight', tags: ['desert', 'combat'], shots: [
+      { name: 'fight-gorged', only: 'after', title: 'A gorged one', caption: 'The pillared hall’s second wave: a gorged blot, swollen and ringed, at his side; up the room an ember ring on a spring as the next ones climb out.', from: FIGHT368 },
+      { name: 'fight-fury', only: 'after', title: 'Fury', caption: 'The gorged one felled: its ember shard taken, his cuts land twice as hard for eight seconds.', from: FIGHT368 },
+    ], see: 'In the Sunken Hall, watch the springs: an ember ring tightens on one just before foes come out of it. In the pillared hall’s second wave a big blot with a pale ring comes up: fell it and walk over the ember shard it leaves.' },
+    { match: 'From the second room of the Sunken Hall on, ink geysers', tags: ['desert', 'combat'], shots: [
+      { name: 'fight-geyser', only: 'after', title: 'An ink geyser', caption: 'In the pillared hall a geyser’s pool fills toward its ember rim, a blot in it; he has stepped out. When it bursts it cuts whatever stands in it.', from: FIGHT368 },
+    ], see: 'In the pillared hall, fight for a few seconds: a dark pool with an ember rim opens under you. Walk or roll out before it fills, and try to keep the blots in it.' },
+    { match: 'The last few foes of each Sunken Hall wave', tags: ['desert', 'combat', 'menus'], shots: [
+      { name: 'fight-last-few', only: 'after', title: 'The last two', caption: 'The stair foot’s first wave down to two: each stands under a pillar of pale light.', from: FIGHT368 },
+      { name: 'fight-rank', only: 'after', title: 'The results', caption: 'The hall cleared: the rank (here S, nothing hurt him: the run was scripted), the time against its par of 4:00, the hearts lost, the gorged felled and the furies.', from: FIGHT368 },
+    ], numbers: [
+      { title: 'A scripted run of the Sunken Hall (it walks to the next room, closes on the nearest foe and cuts; it steps out of the geysers but never rolls)', unit: '', better: 'higher', device: 'this Mac, muted headless Chrome, High, 1280 × 720', rows: [
+        { where: 'cleared, foes felled of the run', before: '144 of 145 (a tripod stuck past the wall: never ended)', after: '150 of 150' },
+        { where: 'time to the reliquary, s', before: '—', after: 147 },
+        { where: 'hearts it lost (it lives on what drops)', before: 2.75, after: 11.5 },
+        { where: 'rank', before: '—', after: 'C' },
+      ], source: FIGHT368, note: 'The scripted player is a masher: it lost 8 hearts to foes and 3.5 to geysers. Rolling through blows and out of the rings is what earns an A or an S.' },
+    ], see: 'Clear the Sunken Hall: the results card gives your rank. Lose no more than a heart inside four minutes for an S.' },
   ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [

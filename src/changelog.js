@@ -69,6 +69,13 @@ export const CHANGELOG = [
     // a temple's ending filmed (issue #366): src/temples/finale.js (one shape, the house's own details), runtime.js
     // onBossResolved / glowUpdate, index.js; docs/systems/cinematics.md "A temple's ending"
     'Every temple now ends on a short film once its guardian is calmed or stopped: the guardian at rest, its reward on the floor, the house from high up as its glyphs light, then the way out sinking open, with the world’s own music playing through it. B / ○ or Esc skips it.',
+    // the Sunken Hall (issue #368): src/fluid-blade.js WIDE_CUT (sweeps, sweepHits, underSweep, the hall's longer sword),
+    // src/slash-arc.js; src/fight-temples/rules.js GORGED, FURY, GEYSER, geyserSpots, rankFor, session.js the wells, the
+    // geysers, the shards, the last few's pillars, the strays put back; docs/systems/minigames.md "The Sunken Hall as a game"
+    'In the Sunken Hall you now see your sword’s sweep: each cut throws a crescent of its water round you, and what the crescent covers is exactly what it cuts. It reaches less far than before (foes fell well past anything you could see), and the sword is drawn longer in there so you can follow it from high above.',
+    'The Sunken Hall’s waves are more of a fight: an ember ring wells up on a spring just before foes climb out of it, and from the second room on most waves bring a gorged one, bigger, with a pale ring at its feet, that leaves a heart and an ember shard: pick it up and your cuts land twice as hard for 8 seconds.',
+    'From the second room of the Sunken Hall on, ink geysers open on the floor, one under you and more nearby: get out of the ring, or roll through it, before it bursts. Foes caught in one are cut by it, so lead the crowd in.',
+    'The last few foes of each Sunken Hall wave stand under a pillar of light so you can find them, one that slipped behind a wall is put back in the room (a run could never end), and the results give you a rank from S to C by your time and the hearts you lost.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

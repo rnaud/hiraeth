@@ -13,11 +13,13 @@ import { DESERT_FIGHT } from '../src/fight-temples/desert.js';
 import {
   ISO, isoOffset, followIso, screenUp, screenRight, SEE, sightPoints, inTheWay, easeSee, seeOpen, seeHoleCuts, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt,
   AIM, pickTarget, stickToGround, LIGHT_HP, roomWaves, release, CROWD, headOf, totalFoes, heartChance, chimesFor, pursesFor,
+  GORGED, gorgedHp, GEYSER, geyserSpots, rankFor, RANK, FURY,
 } from '../src/fight-temples/rules.js';
 import { buildHall, hallHeight } from '../src/fight-temples/rooms.js';
 import { startFightTemple, LIGHT_HARM } from '../src/fight-temples/session.js';
 import { runSteps } from '../src/load-steps.js';
 import { FOES, Foes } from '../src/foes.js';
+import { BLADE, WIDE_CUT } from '../src/fluid-blade.js';
 import { KIT_COLOURS, PIECES, colourById, colourOfWorld, wonColours, chosenColour, chooseColour, cycleColour, unlockColours, coloursData, paintPack, paintWater, PACK_BASE } from '../src/kit-colours.js';
 import { buildFlask } from '../src/fluid-tool.js';
 import { makeMaterial } from '../src/materials.js';
@@ -176,7 +178,7 @@ test('the aim: the foe in the cone, the nearer and the more on the line first; o
 // ------------------------------------------------------------------ the waves
 test('the waves: many light foes of the desert’s kinds, felled in a cut or two; the last wave the tough one; Gentle smaller', () => {
   const hpOf = (k) => FOES[k].hp;
-  let tough = 0;
+  let tough = 0, gorged = 0;
   for (const [i, r] of D.rooms.entries()) {
     const W = roomWaves(r, { hpOf });
     assert.ok(W.length >= 2, `${r.id}: two waves or more`);
@@ -185,12 +187,16 @@ test('the waves: many light foes of the desert’s kinds, felled in a cut or two
       for (const q of w) {
         assert.ok(FOES[q.kind], q.kind);
         if (q.tough) { tough++; assert.equal(q.hp, FOES[q.kind].hp); assert.equal(i, D.rooms.length - 1, 'the tough ones in the last room'); }
+        else if (q.gorged) { gorged++; assert.equal(q.hp, gorgedHp(q.kind, FOES[q.kind].hp)); assert.ok(q.hp > FOES[q.kind].hp && i > 0, 'gorged: tougher, from the hall on'); }
         else assert.ok(q.hp <= 2 && q.hp <= FOES[q.kind].hp && q.hp === Math.min(FOES[q.kind].hp, LIGHT_HP[q.kind] ?? 2), `${q.kind} light: ${q.hp}`);
       }
     }
     const G = roomWaves(r, { hpOf, gentle: true });
     assert.ok(G.flat().length < W.flat().length, 'Gentle: fewer');
+    assert.equal(G.flat().filter((q) => q.gorged).length, W.flat().filter((q) => q.gorged).length, 'Gentle: as many gorged, softer');
+    assert.ok(G.flat().filter((q) => q.gorged).every((q) => q.hp < gorgedHp(q.kind, FOES[q.kind].hp)));
   }
+  assert.ok(gorged >= 4, `a gorged one in most waves from the hall on (${gorged})`);
   const last = roomWaves(D.rooms.at(-1), { hpOf }).at(-1);
   assert.ok(last.some((q) => q.tough), 'the last wave brings the tough ones');
   assert.ok(tough >= 2);
@@ -212,6 +218,7 @@ test('the loot: a heart more likely when hurt and never at full; chimes from the
   let n = 0; for (let i = 0; i < 1000; i++) n += chimesFor({ tough: false }, Math.random);
   assert.ok(n > 150 && n < 400, `${n}`);
   assert.ok(chimesFor({ tough: true }, () => 0.9) >= 5);
+  assert.equal(chimesFor({ gorged: true }, () => 0.9), GORGED.chimes, 'a gorged one always pays');
   assert.ok(chimesFor({ tough: true }, () => 0.9, false) < chimesFor({ tough: true }, () => 0.9, true));
   assert.ok(pursesFor('finale', false) < pursesFor('finale', true));
 });
@@ -255,7 +262,7 @@ test('a run: each room’s waves come up as he walks in, at most the crowd’s c
       maxHeads = Math.max(maxHeads, live.reduce((a, f) => a + headOf(f.kind), 0));
       // once the crowd is full (or all are up), the traveller fells all that stand
       const heads = live.reduce((a, f) => a + headOf(f.kind), 0);
-      if (S.run.queue === 0 || heads > CROWD.cap - 1) for (const f of live) { assert.ok(f.hp <= (f.tough ? FOES[f.kind].hp : 2)); assert.ok(f.def.sight >= 60); f.state = 'dead'; felled++; }
+      if (S.run.queue === 0 || heads > CROWD.cap - 1) for (const f of live) { assert.ok(f.hp <= (f.tough ? FOES[f.kind].hp : f.gorged ? gorgedHp(f.kind, FOES[f.kind].hp) : 2)); assert.ok(f.def.sight >= 60); f.state = 'dead'; felled++; }
       if (S.run.phase === 'rest' || S.run.phase === 'wait') waves.push(`${S.run.room}/${S.run.wave}`);
     }
     if (i < D.rooms.length - 1) {
@@ -277,6 +284,9 @@ test('a run: each room’s waves come up as he walks in, at most the crowd’s c
   tick();
   assert.ok(out.finished && !out.finished.failed, 'the run ends, won');
   assert.match(out.finished.lines[0], /New colours: Ember/);
+  assert.match(out.finished.title, /rank [SABC]$/);
+  assert.ok(out.finished.lines.some((l) => /^Rank [SABC] · \d+:\d\d \(par 4:00\) · hearts lost 0$/.test(l)), out.finished.lines.join(' | '));
+  assert.ok(out.finished.lines.some((l) => /gorged \d+ of \d+/.test(l)));
   assert.equal(state.flag('kit.colours.ember'), true, 'the colours won, in the save');
   for (const p of PIECES) assert.equal(chosenColour(state, p), 'ember', `and worn: ${p}`);
   assert.ok(out.drops > 40, `chimes dropped (${out.drops})`);
@@ -300,6 +310,128 @@ test('a run lost: knocked out, it ends failed with no reward; a light foe strike
   g.player.pos.set(0, 0, 0); for (let k = 0; k < 120; k++) g.tick();
   assert.ok(g.S.run.queue + g.S.run.standing < roomWaves(D.rooms[0], { hpOf: (k) => FOES[k].hp })[0].length + 1);
   g.S.end();
+});
+
+// ------------------------------------------------------------------ issue #368: the hall made more of a game
+/** The stair foot cleared (its foes felled as they come up): the run waits for him in the pillared hall. */
+function toHall(g) {
+  g.player.pos.set(0, 0, 0);
+  for (let k = 0; k < 4000 && g.S.run.room === 0; k++) { g.tick(); for (const f of g.foes.list) if (f.alive) f.state = 'dead'; }
+  assert.equal(g.S.run.room, 1);
+}
+test('the geysers: one opens under him, the rest near him, all in the room, off its pillars and apart; the rank by hearts lost and time', () => {
+  const r = D.rooms.find((x) => x.id === 'sanctum');
+  let seed = 7; const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (const at of [new THREE.Vector3(-21, 0, -42), new THREE.Vector3(-30.5, 0, -53.5), new THREE.Vector3(-26, 0, -37)]) {
+    const S = geyserSpots(r, at, 3, rng);
+    assert.ok(S.length >= 2, `${S.length} spots`);
+    for (const [x, z] of S) {
+      assert.ok(inRoom(r, x, z, GEYSER.inset - 1e-6), 'in the room');
+      for (const [px, pz] of r.pillars) assert.ok(Math.hypot(x - px, z - pz) >= 1.4 + GEYSER.radius * 0.5 - 1e-6, 'off the pillars');
+    }
+    for (let i = 0; i < S.length; i++) for (let j = i + 1; j < S.length; j++) assert.ok(Math.hypot(S[i][0] - S[j][0], S[i][1] - S[j][1]) >= GEYSER.apart - 1e-6, 'apart');
+    if (inRoom(r, at.x, at.z, GEYSER.inset) && !r.pillars.some(([px, pz]) => Math.hypot(at.x - px, at.z - pz) < 1.4 + GEYSER.radius * 0.5)) assert.deepEqual(S[0], [at.x, at.z], 'the first under him');
+  }
+  assert.ok(D.rooms.slice(1).every((x) => x.geysers?.n >= 1) && !D.rooms[0].geysers, 'geysers from the hall on');
+  assert.ok(D.rooms.at(-1).geysers.n > D.rooms[1].geysers.n, 'more of them deeper in');
+  assert.equal(rankFor({ secs: 200, lost: 0.5 }, 240), 'S');
+  assert.equal(rankFor({ secs: 300, lost: 0.5 }, 240), 'A');
+  assert.equal(rankFor({ secs: 200, lost: 2 }, 240), 'A');
+  assert.equal(rankFor({ secs: 900, lost: 5 }, 240), 'B');
+  assert.equal(rankFor({ secs: 100, lost: RANK.B.lost + 1 }, 240), 'C');
+});
+
+test('the springs well up before the foes come out of them; a geyser bursts on him unless he rolls through it, and cuts the foes in it', () => {
+  const { S, player, foes, tick, out } = simulate();
+  player.pos.set(0, 0, 0); tick();
+  assert.equal(S.run.phase, 'fight');
+  // (the first burst: a ring on a spring, nobody up yet)
+  for (let k = 0; k < 8; k++) tick();
+  const rings = () => out.added.filter((o) => o.isMesh && o.visible && o.geometry?.type === 'RingGeometry' && o.geometry.parameters.innerRadius === 0.75);
+  assert.ok(rings().length >= 1, 'a spring welling');
+  assert.equal(foes.list.filter((f) => f.alive).length, 0, 'nobody out of it yet');
+  for (let k = 0; k < Math.ceil(CROWD.warn * 30) + 2; k++) tick();
+  assert.ok(foes.list.filter((f) => f.alive).length >= 1, 'they come up once it has welled');
+  S.end();
+  // the hall's geysers: one under him; he stands in it, it bursts: harm; rolling through: none; the foes in it cut
+  const g = simulate();
+  const hurts = [];
+  let rolling = false;
+  Object.assign(g.player, { hurt: (n) => hurts.push(n), dodge: () => rolling, flinch() {} });
+  toHall(g);
+  g.player.pos.set(0, 0, -19.5); g.tick();
+  assert.equal(g.S.run.room, 1);
+  assert.equal(g.S.run.phase, 'fight');
+  const every = D.rooms[1].geysers.every;
+  for (let k = 0; k < Math.ceil(every * 30) + 1; k++) g.tick();
+  const pools = () => g.out.added.filter((o) => o.isGroup && o.visible && o.rim);
+  assert.equal(pools().length, D.rooms[1].geysers.n, 'a geyser opens');
+  const at = pools()[0].position.clone();
+  assert.ok(Math.hypot(at.x - g.player.pos.x, at.z - g.player.pos.z) < 0.5, 'under him');
+  // a foe in it too
+  const f = g.foes.list.find((x) => x.alive) ?? g.foes.add('blot', at.clone());
+  f.pos.copy(at); f.hp = 5;
+  const hp = f.hp;
+  for (let k = 0; k < Math.ceil(GEYSER.warn * 30) + 1; k++) { g.tick(); f.pos.copy(at); g.player.pos.copy(at); }
+  assert.deepEqual(hurts, [GEYSER.harm], 'it bursts on him');
+  assert.ok(f.hp <= hp - GEYSER.damage + 1e-9, `and cuts the foe in it (${hp} → ${f.hp})`);
+  assert.ok(g.S.run.geysers >= 1);
+  // the next round: he rolls through it
+  rolling = true;
+  for (let k = 0; k < Math.ceil((every + GEYSER.warn) * 30) + 2; k++) { g.tick(); g.player.pos.set(0, 0, -19.5); }
+  assert.deepEqual(hurts, [GEYSER.harm], 'rolling: unharmed');
+  g.S.end();
+});
+
+test('a gorged one: bigger, ringed, felled it leaves a heart and an ember shard; the shard\'s fury doubles the cuts for a while; the sword drawn longer in the hall, all put back', () => {
+  const len = BLADE.length, edge = BLADE.edge ?? 1;
+  const { S, player, foes, tick, out } = simulate();
+  tick();
+  assert.equal(BLADE.length, WIDE_CUT.length, 'the sword drawn longer in here');
+  player.pos.set(0, 0, -19.5); tick();
+  // the hall's second wave has one: fell the first wave, then wait for it
+  let gorged = null;
+  for (let k = 0; k < 4000 && !gorged; k++) {
+    tick();
+    for (const f of foes.list) if (f.alive && !f.gorged) f.state = 'dead';
+    gorged = foes.list.find((f) => f.alive && f.gorged);
+  }
+  assert.ok(gorged, 'a gorged one came up');
+  assert.ok(gorged.model.group.scale.x > 1.3 && gorged.ring?.visible, 'bigger, a ring at its feet');
+  assert.ok(gorged.hp > FOES[gorged.kind].hp);
+  const at = gorged.pos.clone();
+  gorged.state = 'dead'; tick();
+  const shard = out.added.find((o) => o.gem?.geometry?.type === 'OctahedronGeometry');
+  assert.ok(shard, 'an ember shard');
+  assert.ok(out.added.some((o) => o.gem && o.gem.geometry?.type === 'ExtrudeGeometry' && Math.hypot(o.position.x - at.x, o.position.z - at.z) < 0.5), 'and a heart');
+  assert.equal(S.run.gorged, 1);
+  player.pos.copy(shard.position).setY(0);
+  for (let k = 0; k < 20; k++) { tick(); player.pos.copy(shard.position).setY(0); }
+  assert.equal(S.run.furies, 1, 'taken');
+  assert.equal(BLADE.edge, edge * FURY.edge, 'fury: the cuts land twice as hard');
+  for (let k = 0; k < (FURY.secs + 0.5) * 30; k++) tick();
+  assert.equal(BLADE.edge, edge, 'and then it fades');
+  S.end();
+  assert.equal(BLADE.length, len, 'the sword as it was outside');
+  assert.equal(BLADE.edge, edge);
+});
+
+test('the last few of a wave are marked by a pillar of light; a foe out of the room is put back by a spring', () => {
+  const { S, player, foes, tick, out } = simulate();
+  player.pos.set(0, 0, 0); tick();
+  for (let k = 0; k < 400 && (S.run.queue + S.run.coming > 0 || foes.list.filter((f) => f.alive).length < 3); k++) tick();
+  const beacons = () => out.added.filter((o) => o.isMesh && o.visible && o.geometry?.type === 'CylinderGeometry');
+  const alive = () => foes.list.filter((f) => f.alive);
+  for (let k = 0; k < 300 && (S.run.queue + S.run.coming > 0 || alive().length > 2); k++) { tick(); const a = alive(); if (!S.run.queue && !S.run.coming && a.length > 2) a[0].state = 'dead'; }
+  tick();
+  assert.ok(alive().length >= 1 && alive().length <= CROWD.few);
+  assert.equal(beacons().length, alive().length, 'one pillar each');
+  // one pushed out past the wall (the near trench): back in the room within moments
+  const f = alive()[0];
+  f.pos.set(9.5, 0, 0);
+  for (let k = 0; k < 60; k++) { tick(); }
+  assert.ok(inRoom(D.rooms[0], f.pos.x, f.pos.z, 0), `back in (${f.pos.x.toFixed(1)}, ${f.pos.z.toFixed(1)})`);
+  S.end();
 });
 
 test('the frame’s budget: with the crowd full, the foes’ meshes stay few (their parts instanced: src/part-batch.js)', () => {

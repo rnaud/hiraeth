@@ -149,6 +149,16 @@ test('the Sunken Hall on its own page in the engine: its card, B / ○ rolls and
   await run(g, 10, { Space: true });
   g.key('Space', false);
   assert.ok(Math.abs(g.player.pos.y - y0) < 0.05, `no jump (${y0} → ${g.player.pos.y})`);
+  // issue #368 in the engine: the wave's foes come up out of the springs, and a cut lays its crescent (what it hits)
+  const S = g.trials.runner.session;
+  let seen = 0;
+  for (let i = 0; i < 60 && !seen; i++) { await run(g, 2); seen = S.run.standing; }
+  assert.ok(seen >= 1, `the first wave up (${JSON.stringify(plain(S.run))})`);
+  let u = 0;
+  g.key('KeyF', true); await run(g, 1); g.key('KeyF', false);
+  for (let i = 0; i < 30 && !(u >= 1); i++) { await run(g, 1); u = Math.max(u, g.tool.blade.slash?.u ?? 0); }
+  assert.ok(u > 0.5, `the crescent laid (${u})`);
+  assert.equal(g.tool.blade.arc?.drawn?.reach ?? g.tool.blade.slash?.reach, g.tool.blade.wide.reach);
   // the run over: the results card (the time big, the lines, a prize's html as plain lines), Retry first, then Quit
   g.trials.runner.ctx.finish({ lines: ['Rooms cleared 4 of 4'], html: '<div class="trial-reward"><p class="kicker">Yours: the Ember colours</p><p>For your backpack &amp; sword.</p></div>' });
   await run(g, 60);

@@ -61,9 +61,10 @@ a tucked forward roll 0.42 s long, up to 9.5 m/s (about 3.3 m), along the stick 
 evade's backstep), i-frames from 0.02 to 0.34 s (Gentle 0.4), 0.75 s from one roll's start to the next; the pose is
 `jump.js` `ROLL_FLIP`, a front flip on the ground about a 0.6 m pivot, tucked hard. Jumping is disabled: the session’s input filter clears Space and PadJump before movement reads them.
 A / × does not roll, and the touch jump button and jump control hints are hidden.
-The blade's cut takes every foe in a wider, longer cone too (`WIDE_CUT`: 3.9 m, 1.5 rad
-either side, against the swing's own 2.9 m and 1.15 rad), the cone's line of sight keeping out any foe behind a wall.
-Outside the fight temples neither is set: the evade and the swing are as they were. Tests: `tests/fight-roll.test.js`.
+The blade's cut takes every foe a drawn crescent covers (`WIDE_CUT`, issue #368: the crescent of the sword's water
+laid as the swing goes, out to 2.6 m from him, and what it covers is exactly what is cut, a wall between keeping a foe
+out; v1.77 took a 3.9 m, ±1.5 rad cone with nothing drawn; the sword drawn 1.25 m long in there: docs/systems/minigames.md
+"The Sunken Hall as a game"). Outside the fight temples neither is set: the evade and the swing are as they were. Tests: `tests/fight-roll.test.js`.
 
 **The controls.** The left stick walks up and across the screen. The aim is the right stick (twin-stick), or a ring
 on the floor that the mouse moves (pointer captured), or the way he walks. The blade and the gun take the foe in the
@@ -81,6 +82,13 @@ springs farthest from you, three every 0.45 s, as long as fewer than `CROWD.cap`
 Gentle 14 and seven tenths of each wave). The tough ones (`{ tough: true }`) keep their full health and harm and come
 last. A room cleared: a heart back, its gate sinks (a mover: its collider goes down with it). The last room's last
 wave is the tough one; then the reliquary rises on the altar.
+
+**Wells, gorged ones, geysers, the rank** (issue #368, docs/systems/minigames.md "The Sunken Hall as a game"): a
+spring wells up (an ember ring) 0.7 s before foes come out of it; a table's `{ gorged: true }` is a bigger light foe
+with more health that leaves a heart and an ember shard (8 s of double cuts); a room's `geysers: { every, n }` opens
+ink pools on the floor under and near him that burst after 1.25 s (half a heart, two cuts to foes in them); the last
+three of a wave stand under pillars of light; a foe out of the room is put back; the results rank the run S to C by
+the hearts lost and the time against the table's `par`.
 
 **The loot.** A heart now and then (5 %, 16 % at half your hearts or fewer, never at full), drawn in as you pass; a
 chime from a light foe a quarter of the time, six from a tough one, a purse for each wave, room and the finale
