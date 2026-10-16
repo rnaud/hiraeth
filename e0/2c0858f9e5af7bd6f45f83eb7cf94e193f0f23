@@ -1,0 +1,49 @@
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_86108cca4fcf5f 34,56-57,138-144,435-441
+.github/workflows/unity-xbox.yml
+  s_9ca76055a220ed::t_bd7945049010e7 34,59-60,125-131
+changelog.md
+  s_9ca76055a220ed::t_523225ff44a127 8
+docs/README.md
+  s_9ca76055a220ed::t_998f403ed182de 55
+docs/systems/performance.md
+  s_9ca76055a220ed::t_98474666e587cb 3881-3942
+engine/game.js
+  s_9ca76055a220ed::t_df0f7b0e91a15f 59,147-148,275,287-288,315-324,484-488,1010
+engine/unity/game.js
+  s_9ca76055a220ed::t_24ebf24e573383 338
+scripts/bake-worlds.mjs
+  s_9ca76055a220ed::t_98229c6b50c17d 1-95
+scripts/engine-bundle.mjs
+  s_9ca76055a220ed::t_4b0eb69d5ca394 15,63-65
+scripts/source-key.mjs
+  s_9ca76055a220ed::t_dfd07ed4dbd22f 1-32
+src/changelog.js
+  s_9ca76055a220ed::t_16b6ae01cdcde2 12-18
+src/crowd.js
+  s_9ca76055a220ed::t_6f9186e526a1d0 421-422,431-434,523,570,587,596
+src/physics.js
+  s_9ca76055a220ed::t_1e08796374ca56 6,718-727,755,757,761,764-781
+src/world-bake.js
+  s_9ca76055a220ed::t_2562a91c193ed4 1-220
+tests/unity-retroid-batches.test.js
+  s_9ca76055a220ed::t_c7675c15c44b84 46
+tests/world-bake.test.js
+  s_9ca76055a220ed::t_f75a2173831679 1-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e02c0858f9e5af7bd6f45f83eb7cf94e193f0f23",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
