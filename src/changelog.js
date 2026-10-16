@@ -89,6 +89,7 @@ export const CHANGELOG = [
     'In the fight temples a foe thrown up onto a wall’s top is now put back down in the room, so a wave can always be finished.',
     'A new fight temple in the City-Shaft, the Lift Depot, on the middle terrace by the cab stop: four iron bays over the drop, full of horn lizards, toads and lamp tripods, and cranes that still lower their loads. A ring tightening on the deck means a load is coming down on it: step out, or lead the crowd in. Its prize: the Cab yellow colours.',
     'A new fight temple in the Buried Machine, the Tooth Gallery, just east of the domes: four rooms of skitters, mound worms, horn lizards and carts, with ore carts that still run the rails across the floor. When a rail’s lamp blinks, get off the rail. Three whole centipedes wait at the end. Its prize: the Brass tooth colours.',
+    'A new fight temple in the Signal Market, the Back Rooms, in the back alley west of the sign-hanger’s ladder: four shuttered shops of lizards, hounds, moths and marionettes, where the signs on the walls ring with the bell walker’s toll. A ring of sound spreads from each sign that lights: roll through its edge, and cut down the foes it stuns. The bell walker itself comes last. Its prize: the Signal neon colours.',
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

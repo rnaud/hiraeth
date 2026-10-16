@@ -118,6 +118,12 @@ export const HOSTS = {
     say: ['~playful~ I greased those rails every morning, and the carts still run them. Empty, flat out, all day.', '~neutral~ Four rooms. When a rail’s lamp blinks, get off it and leave the crawlers on it. The tooth hall’s altar is at the end.'],
     lines: ['~playful~ Lamp’s blinking. Off the rail!'],
   }),
+  'fight-bazaar': P({
+    id: 'host.fight-bazaar', name: 'Lettie', title: 'who locks up the back rooms', color: '#ff5fa2', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#ff5fa2', lining: '#2b211f', cloth: '#3a3050', legs: '#2b2f45', hat: '#62c3c9', hair: '#2b211f' }, head: 'bun', look: { body: 'satchel' },
+    say: ['~scared~ I lock the back rooms every night. Tonight the signs in there are ringing with the bell, and the rooms are full.', '~neutral~ Four rooms. When a sign lights, the ring comes off it: roll through it. The counting house’s altar is at the end.'],
+    lines: ['~scared~ There. The bell again.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },
