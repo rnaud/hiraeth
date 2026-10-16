@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_7bfe20c9f2be08 48
+docs/steam-deck.md
+  s_9ca76055a220ed::t_8ede9ba10f877a 364-415
+docs/systems/performance.md
+  s_9ca76055a220ed::t_0799e5abfea6b7 3738-3821
+scripts/bench/deck-pso-trace.mjs
+  s_9ca76055a220ed::t_578cdf115037a0 1-55
+src/changelog.js
+  s_9ca76055a220ed::t_7a7f3d31269789 92-110
+tests/unity-pso.test.js
+  s_9ca76055a220ed::t_756fdf70e4ab12 1-65
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs
+  s_9ca76055a220ed::t_4111c0ae0177c1 10-22,24-27,33,35-38,43,61,68-86,90,98-99,101,108-118,120-125,127
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_c19462e1a10bd8 574,932
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate
+  s_9ca76055a220ed::t_415e1b1d27d2d0 1-13503
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate.meta
+  s_9ca76055a220ed::t_38027fdd70efc6 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c5b4ed209071e1929433c32c090530a2eb26562f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
