@@ -521,6 +521,8 @@ export const SHOVE = 2.6;
 export const BALL_CUT = 7.5;
 /** m/s at most an iron moon rolls in the magnet glove's field (held toward its point; a tap 1.2 times it: issue #377). */
 export const MAGNET_ROLL = 6;
+/** (issue #401) The farthest a ball with a hole at its groove's end is saved along it while it stays up there: t 1 is fallen through. */
+export const HOLE_REST = 0.93;
 export class Ball {
   /**
    * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
@@ -552,7 +554,11 @@ export class Ball {
    * iron: true (drawn as cast iron, dark with a rust ring),
    * shove: true (the Rose House, v1.44: walked into along its groove, it rolls ahead of you at your pace, `shove` m/s
    * at most when a number: hands, no gadget), blade: true (a cut of the sword sends it rolling, BALL_CUT m/s: far
-   * faster than a shove) }
+   * faster than a shove),
+   * hole: { gate, to, stand, fell } (issue #401, the Footprint's Sounding Toe: its groove ends over a hole in the floor
+   * under a hatch, the door element `gate`; come to its end while the hatch is open, it drops through and comes to rest
+   * at `to` (its foot, the plate on the floor below, its element's `plate`), for good: t 1 is "fallen"; on its groove it
+   * is never saved past HOLE_REST. `stand`: the plate the hatch wants you on, pushed from (the play-through's) }
    * A tether (the City Floating in Space's gun mode, 'tether') rolls any ball toward whoever pulled it: the cone hands
    * it the way back to the hand as its `dir`.
    * Its element (logic.js) may have `stops`: several plates along the groove, and it settles into whichever it slows by.
@@ -620,6 +626,8 @@ export class Ball {
         return true;
       },
     };
+    // (a ball dropped through its hole, issue #401: where it came to rest, below; at 1 when saved fallen)
+    if (o.hole) { this.below = K.world(...o.hole.to); this.fell = this.t >= 1 - 1e-3; }
     this.place();
     this.off = registerTarget({
       kind: 'ball', radius: this.r + 0.15, position: () => this.center, accepts: [...(o.seed ? ['bloom', 'tether'] : ['tether']), ...(o.blade ? ['blade'] : [])],
@@ -628,7 +636,9 @@ export class Ball {
     this.rest = true;
   }
   place() {
-    this.group.position.copy(this.a).lerp(this.b, this.t);
+    if (this.fell) this.group.position.copy(this.below);
+    else this.group.position.copy(this.a).lerp(this.b, this.t);
+    if (this.falling2) this.group.position.y = this.falling2.y;
     this.center.copy(this.group.position).addScaledVector(UP, this.r);
     this.spin.position.y = this.r;
     this.solid.pos.copy(this.group.position);
@@ -649,6 +659,7 @@ export class Ball {
     if (this.o.strike && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate)) { this.wobble = 0.4; this.strike(); return true; }
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
+    if (this.fell || this.falling2) { this.wobble = 0.3; return true; }   // (dropped through its hole: it lies below, for good)
     if (mode === 'blade') {
       if (!this.o.blade) return false;
       // a cut: the flat of the blade sends it rolling, hard, the way the cut went (along its groove)
@@ -726,6 +737,8 @@ export class Ball {
     }
     if (this.o.sings) { this.flash = Math.max(0, (this.flash ?? 0) - dt); this.glow.uniforms.uGlow.value = 0.35 + 0.6 * (this.flash / 1.6); }
     if (this.drop) { this.falling(dt); return; }
+    if (this.fell) { this.solid.vel.set(0, 0, 0); this.v = 0; this.rest = true; return; }
+    if (this.falling2) { this.throughHole(dt); return; }
     const G = this.o.gap;
     if (G && this.t > G.from + 1e-3 && this.t < G.to - 1e-3 && !this.rt.logic.isOpen(G.bridge)) { this.startDrop(); return; }
     const Cu = this.o.current;
@@ -747,6 +760,8 @@ export class Ball {
     if (Math.abs(this.v) < 1.2 && near < 1.6) this.v += Math.sign(at - this.t) * 3.5 * dt * Math.min(1, near);
     this.v *= Math.exp(-(near < 1.6 ? 1.6 : this.o.friction ?? 1.6) * dt);   // (the plate's dip holds it, whatever the groove)
     let t = this.t + (this.v * dt) / this.len;
+    // (its groove's end over an open hatch: it drops through, issue #401)
+    if (this.o.hole && t >= 1 && L.isOpen(this.o.hole.gate)) { this.t = 1; this.place(); this.startHole(); return; }
     if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -this.v * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
     // thorns across the groove: it stops against them, or, burning, burns them and rolls on
     const Th = this.o.thorns;
@@ -777,7 +792,7 @@ export class Ball {
     this.solid.vel.copy(this.dir).multiplyScalar(this.v);
     if (Math.abs(this.v) < 0.05 && (near < 0.05 || near > 1.6) && !(this.pulled && this.t > 0.004)) {
       this.v = 0; this.rest = true;
-      if (L.moveDrum(this.id, this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) { this.rt.sound?.chime?.(); if (this.o.strike && L.drumOn(this.id, e.plate)) this.strike(); }
+      if (L.moveDrum(this.id, this.o.hole ? Math.min(this.t, HOLE_REST) : this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) { this.rt.sound?.chime?.(); if (this.o.strike && L.drumOn(this.id, e.plate)) this.strike(); }
     }
   }
   /**
@@ -868,6 +883,28 @@ export class Ball {
   }
   /** A hooded bowl tips a cold ball back out the way it came. */
   tipBack() { this.v = -(this.o.tar?.back ?? 6); this.rest = false; this.rt.sound?.critter?.('creak', 0.6); }
+  /** Over its hole with the hatch open (o.hole, issue #401): it drops through the floor. */
+  startHole() {
+    this.v = 0; this.rest = false;
+    this.falling2 = { y: this.group.position.y, v: 0 };
+    this.solid.bottom = this.solid.top = -1e6;   // (gone from under your feet)
+    this.rt.sound?.critter?.('clack', 0.8);
+  }
+  throughHole(dt) {
+    const F = this.falling2;
+    F.v += 18 * dt; F.y -= F.v * dt;
+    this.spin.rotateOnWorldAxis(this.axis, F.v * dt / this.r * 0.3);
+    if (F.y <= this.below.y) {
+      this.falling2 = null; this.fell = true; this.rest = true;
+      this.place();
+      this.rt.logic.moveDrum(this.id, 1);
+      this.rt.sound?.critter?.('clack', 1); this.rt.sound?.chime?.(); this.rt.rumble?.(1.2, 0.35);
+      this.rt.notice?.(this.o.hole.fell ?? 'The sphere drops through the floor. Far below, something settles.', `${this.id}.fell`);
+      return;
+    }
+    this.place();
+    this.solid.bottom = this.solid.top = -1e6;
+  }
   /** The stones went from under it: it falls into the chasm, and a new one rolls out where the groove starts. */
   startDrop() {
     this.drop = { y: 0, v: 0, back: 0 };
@@ -2209,7 +2246,7 @@ export class Iris {
     this.lamps = (o.lamps ?? []).map((cond, i, all) => {
       const m = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.05, flat: true });
       const a = (i / all.length) * Math.PI * 2 + Math.PI / 2;
-      const lm = mesh([T(new THREE.SphereGeometry(0.28, 10, 8), [Math.cos(a) * (r + 0.7), -t - 0.2, Math.sin(a) * (r + 0.7)])], m);
+      const lm = mesh([T(new THREE.SphereGeometry(0.28, 10, 8), [Math.cos(a) * (r + 0.7), o.up ? 0.3 : -t - 0.2, Math.sin(a) * (r + 0.7)])], m);   // (`up`: an iris in a floor, its lamps on it: issue #401)
       this.group.add(lm);
       return { cond, m };
     });

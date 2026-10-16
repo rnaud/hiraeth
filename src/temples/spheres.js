@@ -5,8 +5,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, printGeometry, lensUp } from './pieces.js';
+import { TempleKit, ANTE, T, box, lathe, annulus, Z_GAP as Z } from './kit.js';
+import { Door, Plate, Ball, Switch, Bridge, LensStones, Mark, Pit, Key, Iris, Platform, Coffer, printGeometry, lensUp, revealed } from './pieces.js';
 import { echoModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { footprintSkin } from './skins/footprint.js';
@@ -21,37 +21,34 @@ import { footprintSkin } from './skins/footprint.js';
 // carries the walker's print, three toes like the Footprint itself; the look-alikes carry two or four, or nothing the
 // lens can see. Taught at the chest (its mural, the prints on the floor), then asked of stones, plates and spheres.
 //
-// Inside (built far overhead, through its door). Since v1.77 (issue #336, docs/design/temple-redesign.md) its rooms are
-// shrines: every hall 30 to 32 m across under 18 m, the round halls 34 and 40 m, doors 7 by 9 (ROOMS, DOOR), each puzzle in
-// the middle of its own room, the one fight in the Keepers' Lodge.
-//   the Threshold          the first mark, the way out
-//   the Hall of Spheres    where the walker set a sphere down, and where it stood: one white sphere in a groove that
-//                          runs down the middle past three prints carved in the floor (two toes, three, four), and
-//                          three prints in a row beside it. The door wants the sphere on the walker's print and your
-//                          weight on the walker's print beside it: three toes, like the Footprint outside and the print carved
-//                          over the door (the push and your weight, before the lens; the decoys plain to see)
-//   the Still Pool         a sphere floating in the sunken pool: push it across the still water onto the far berth,
-//                          and the stepping stones rise
-//   the Lens Chamber       the makers' chest: the SEEING LENS (src/gadgets/lens.js; issue #377: the glyph lens, a charm
-//                          that showed the house's hidden things while carried, was here, and went to the Buried
-//                          Machine's makers' court). Raised, through it the stele by the chest
-//                          shows the walker's print, three toes, and its prints lead on over the floor (the clue, no lock)
-//   the Hall of the Unseen a chasm; the lens shows a field of stepping stones, each with a print: only the walker's
-//                          hold (pieces.js LensStones), the rest crumble. On the far landing a sphere's groove past
-//                          two plain prints of two and four toes and the walker's, which only the lens shows; and an
-//                          eye only the lens shows on a pillar out of the chasm, facing the far landing: both open the
-//                          far door
-//   the Keepers' Gallery   a long hall from the far landing back round to the Lens Chamber: a door plain wall from
-//                          the chest's side, opened by an eye only the lens shows on a post before it, on its far side
-//                          (the shortcut)
-//   the Keepers' Lodge     (v1.53, issue #23: off the Keepers' Gallery, an arena, the house's one fight) where the
-//                          walker's keepers rested; its door shuts behind you while they stand round its middle. Won, the small key's cage sinks: the far door
-//                          takes it, with the eye and the sphere on the walker's print
-//   the Echo's Hall        the guardian (a being of sound: you calm it). It sings, and one of the three
-//                          resonant spheres round the hall glows with the note: splash that one. Through the lens
-//                          the sphere that answers wears the walker's print (taught in its second phase); in its last
-//                          all three glow at once, and only the print tells
-//   the way out            (v1.54, issue #178) past the Echo, up through the keepers' stone at the white hill's foot
+// Inside (built far overhead, through its door). Since v1.82 (issue #401, docs/design/temple-best-practices.md part 4) the
+// house goes DOWN: four floors 18 m apart round the Heel Well, a round shaft 40 m across with a balcony on every floor.
+// From the rim you see the Echo's great door at the very bottom on the way in. Its rooms are shrines (issue #336): every
+// hall 30 m across or more under 16 m and more, doors 7 by 9, each puzzle in the middle of its room.
+//   F0 (0 m)    the Threshold, the RIM round the well. West, the Hall of Spheres: the sphere set down on the walker's
+//               print and you on the walker's print beside it open the first drop, an iris in the rim's floor over a
+//               pool on F1. East, the Keepers' Lodge (the house's one fight), its door wanting an eye only the lens
+//               shows, under the rim's pier, and the great sphere up. In the middle the GREAT LIFT: a disc and its great
+//               sphere riding between the rim and F2; stood on, it carries you; its plate on either pier calls it
+//   F1 (-18 m)  the balcony, its east arc cut off by two gaps whose bridges stand while the great sphere is up. North,
+//               the Still Pool (the floating sphere pushed over the stilled water: its berth opens the Lens Chamber,
+//               below and west; its stones a coffer on the far ledge). East, the Sounding Toe: a sphere in a groove
+//               whose end is a hatch over a hole in the floor; from the walker's print, among two plain ones, the hatch
+//               opens, and pushed from there the sphere drops through onto the plate below and opens the Hall of the
+//               Unseen's door (the author's ruling: a hole is not a door, #336)
+//   F2 (-36 m)  the balcony. West, the Lens Chamber: the makers' chest, the SEEING LENS (src/gadgets/lens.js), its
+//               mural. Raised over the well, the lens shows a spiral of stones winding up the well to the rim: the
+//               shortcut up, the way to the Lodge's eye, and it never moves the great sphere. East, the Hall of the
+//               Unseen: the chasm of stones only the lens shows (the walker's hold), the far landing's sphere on the
+//               walker's print and the eye across the chasm, and with the Lodge's small key and the great sphere down
+//               on F2 the far door opens on the great key. South, the last lift down
+//   F3 (-54 m)  the heel's floor round the heel's pool (a fall from anywhere above lands in it), and north the great
+//               door into the Echo's Hall: the guardian, a being of sound (you calm it). It sings, and one of the three
+//               resonant spheres on the galleries round its hall glows with the note: splash that one. Through the lens
+//               the sphere that answers wears the walker's print (its second phase); in its last all three glow at once
+//               Then the way out (v1.54, issue #178), up through the keepers' stone at the white hill's foot
+// Drops: three, each into a shallow pool that breaks the fall (Catch): the iris in the rim onto F1's pool, the open hole
+// through the rim and F1's balcony onto F2's, and the well itself onto the heel's pool.
 // After: the toes and the heel of the Footprint fill with still water, and every sphere in the garden
 // wears a ring of the glyph's light (the world change).
 
@@ -90,52 +87,92 @@ export const PALETTE = {
 };
 
 /**
- * The house's doors (m: issue #336, 5 by 6 to 6.6 before) and its rooms in the kit's local frame (z into the house): each
- * hall's floor from wall to wall (its walls stand outside it), its floor's height and its ceiling's; the round halls'
- * middles and radii. The Still Pool and the Hall of the Unseen stand on their pits' floors (`y`): their near ledges
- * `near` deep, their pits `pit` long, the far ledge the rest (the floors you stand on at 0). Every groove, the pool and
- * the chasm as long as they were, so every push and every crossing holds.
+ * The house's doors (m: issue #336) and the Heel Well (issue #401): its middle (x, z), its wall's inner radius `r` and
+ * thickness `t`, the balconies' inner edge (`inner`: inside it the well is open), how far each balcony's floor runs into
+ * the wall (`ring`) and the four floors' heights, F0 the rim to F3 the heel's floor, `step` apart.
  */
 export const DOOR = { w: 7, h: 9 };
+export const WELL = { x: 0, z: 42, r: 20, t: 1.4, inner: 14, ring: 20.3, step: 18, floors: [0, -18, -36, -54] };
+const WZ = WELL.z, [F0, F1, F2, F3] = WELL.floors;
+/** A point round the well: angle a (0 north, +z; π/2 east, +x), r m from its middle, local [x, z]. */
+export const round = (a, r) => [WELL.x + Math.sin(a) * r, WZ + Math.cos(a) * r];
+const DEG = Math.PI / 180;
+/**
+ * Where things stand round the well (angles): the three drops' holes and pools (A: the iris in the rim over F1's pool; B:
+ * the open hole through the rim and F1's balcony onto F2's), the piers to the great lift (south: you come in facing it),
+ * the spiral's two ends (north), the gaps cut in F1's balcony either side of its east arc (their bridges, bW).
+ */
+export const AT = { dropA: -120 * DEG, dropB: -60 * DEG, holeR: 2.2, poolR: 17, pier: Math.PI, spiral: 0, gaps: [45 * DEG, 135 * DEG], gapW: 10 * DEG };
+/**
+ * Each hall's floor from wall to wall (its walls stand outside it), its floor's height and its ceiling's; the round halls'
+ * middles and radii. The Still Pool and the Hall of the Unseen stand on their pits' floors (`y`): their near ledges `near`
+ * deep at `ledge`, their pits `pit` long, the far ledge the rest. Every groove, the pool and the chasm as long as they
+ * were, so every push and every crossing holds. Stacked in the east (the Lodge over the Sounding Toe over the Hall of the
+ * Unseen: the Toe's hole straight over the plate below); the Lens Chamber under the Hall of Spheres, the Still Pool north
+ * over the Echo's Hall.
+ */
 export const ROOMS = {
-  threshold: { x0: -10, x1: 10, z0: 0, z1: 14, y: 0, top: 12 },
-  spheres: { x0: -16, x1: 16, z0: 15.2, z1: 55.2, y: 0, top: 18 },
-  pool: { x0: -16, x1: 16, z0: 56.4, z1: 88.4, y: -6, top: 18, near: 8, pit: 19.2 },
-  lens: { x: 0, z: 109, r: 17, y: 0, top: 18 },
-  unseen: { x0: -16, x1: 16, z0: 129, z1: 169, y: -10, top: 18, near: 6, pit: 20 },
-  // (the gallery and the Lodge east of the chamber and the chasm since v1.77: the white hill's tree stands under the west
-  // side, its canopy and the terrace reached from the sky down, tests/spheres.test.js)
-  gallery: { x0: 21, x1: 51, z0: 102, z1: 168, y: 0, top: 18 },
-  lodge: { x0: 59, x1: 89, z0: 120, z1: 150, y: 0, top: 18 },
+  threshold: { x0: -10, x1: 10, z0: 0, z1: 14, y: F0, top: 12 },
+  spheres: { x0: -66, x1: -26, z0: WZ - 16, z1: WZ + 16, y: F0, top: F0 + 18 },
+  lodge: { x0: 26, x1: 56, z0: WZ - 15, z1: WZ + 15, y: F0, top: F0 + 18 },
+  pool: { x0: -16, x1: 16, z0: WZ + 26, z1: WZ + 58, y: F1 - 6, top: F1 + 16, ledge: F1, near: 8, pit: 19.2 },
+  sounding: { x0: 26, x1: 70, z0: WZ - 16, z1: WZ + 16, y: F1, top: F1 + 17 },
+  lens: { x: -44, z: WZ, r: 17, y: F2, top: F2 + 17 },
+  unseen: { x0: 26, x1: 70, z0: WZ - 16, z1: WZ + 16, y: F2 - 10, top: F2 + 17, ledge: F2, near: 6, pit: 20 },
+  vault: { x0: 70, x1: 82, z: WZ, y: F2 },
 };
+/** (issue #401) The Sounding Toe: its sphere's groove (x along it), the hole at its end over the plate below (x, z), and the three prints behind it. */
+export const SOUNDING = { a: 40, b: 55, z: WZ, hole: 1.7, prints: [[36.5, WZ - 3.6, 2], [36.5, WZ, 4], [36.5, WZ + 3.6, 3]] };
+/** (issue #401) The great lift: its disc's radius, its sphere's, its two stops (the disc's top: the rim, F2) and speed (m/s). */
+export const LIFT = { r: 4, ball: 2, top: F0, bottom: F2, speed: 3, pier: 6.6 };
+/** (issue #401) The spiral only the lens shows: from F2 to the rim round the well's middle, two turns of `n` stones. */
+export const SPIRAL = { r0: 10.5, r1: 13, turns: 2, n: 80, y0: F2, y1: F0 };
+/**
+ * (issue #401) A drop's pool: falling over it faster than `slow` m/s, its water takes the fall in the last metres (`over`
+ * m, or the distance of `frames` of the fall at its speed): a landing at no more than a wade's speed, nothing hurt.
+ */
+export const CATCH = { slow: 12, over: 2.5, frames: 5 / 60 };
 
 export const LOGIC = {
   id: 'spheres', entry: 'threshold', gadget: 'monocle',
-  // (the Lens Chamber and the Hall of the Unseen's near ledge are one room: the passage between them is open, and
-  // nothing past the chest's room opens without the lens)
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a
   // fight; src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js.
-  // The Lens Chamber a puzzle room: the chest in its middle, the mural on a stele beside it)
+  // The rim and F2's balcony are puzzle rooms: the great lift is worked there; so is the spiral, `helix`: the Lodge's eye
+  // is seen from it, under the rim's pier)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, spheres: { checkpoint: true, kind: 'puzzle' }, pool: { checkpoint: true, kind: 'puzzle' },
-    lens: { checkpoint: true, kind: 'puzzle' }, unseenFar: { kind: 'puzzle' }, gallery: { kind: 'puzzle' }, lodge: { checkpoint: true, kind: 'combat' },
-    hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    threshold: { checkpoint: true, kind: 'passage' }, rim: { checkpoint: true, kind: 'puzzle' }, spheres: { checkpoint: true, kind: 'puzzle' },
+    bal1: { checkpoint: true, kind: 'passage' }, bal1e: { kind: 'passage' }, pool: { checkpoint: true, kind: 'puzzle' }, poolFar: { kind: 'passage' },
+    sounding: { checkpoint: true, kind: 'puzzle' }, bal2: { checkpoint: true, kind: 'puzzle' }, lens: { checkpoint: true, kind: 'puzzle' },
+    unseen: { checkpoint: true, kind: 'puzzle' }, unseenFar: { kind: 'puzzle' }, vault: { kind: 'passage' }, lodge: { checkpoint: true, kind: 'combat' },
+    bal3: { checkpoint: true, kind: 'passage' }, helix: { kind: 'puzzle' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
-    { a: 'threshold', b: 'spheres' },
-    { a: 'spheres', b: 'pool', door: 'd1' },
-    { a: 'pool', b: 'lens', door: 'stones' },
-    { a: 'lens', b: 'unseenFar', door: 'br1' },
-    { a: 'unseenFar', b: 'gallery' },                // the far landing's side door (west before v1.77, east since), into the keepers' gallery
-    { a: 'lens', b: 'gallery', door: 'sc' },          // the gallery's door into the Lens Chamber: opened from its far side
-    { a: 'gallery', b: 'lodge', door: 'dR' },        // the Keepers' Lodge, off the gallery (v1.53): an arena, the small key
-    { a: 'unseenFar', b: 'hall', door: 'd4' },
+    { a: 'threshold', b: 'rim' },
+    { a: 'rim', b: 'spheres' },
+    { a: 'rim', b: 'bal2' },                                // the great lift, ridden either way (or called to your pier)
+    { a: 'rim', b: 'bal1', door: 'd1', oneWay: true },      // the first drop: the iris in the rim, onto F1's pool
+    { a: 'bal1', b: 'bal2', oneWay: true },                 // the second drop's hole through F1's balcony, onto F2's pool
+    { a: 'bal1e', b: 'bal2', oneWay: true },                // (off the east arc: a hard landing on F2's balcony)
+    { a: 'rim', b: 'bal3', oneWay: true }, { a: 'bal1', b: 'bal3', oneWay: true }, { a: 'bal1e', b: 'bal3', oneWay: true }, { a: 'bal2', b: 'bal3', oneWay: true },   // the heel's pool
+    { a: 'bal2', b: 'bal3' },                               // the last lift
+    { a: 'bal1', b: 'pool' },
+    { a: 'pool', b: 'poolFar', door: 'stones' },
+    { a: 'bal1', b: 'bal1e', door: 'bW' },                  // F1's east arc, over its gaps' bridges
+    { a: 'bal1e', b: 'sounding' },
+    { a: 'bal2', b: 'lens', door: 'dL' },
+    { a: 'bal2', b: 'unseen', door: 'dT' },
+    { a: 'unseen', b: 'unseenFar', door: 'br1' },
+    { a: 'unseenFar', b: 'vault', door: 'd4' },
+    { a: 'bal2', b: 'helix', door: 'spiral' },              // the stones only the lens shows: the shortcut up, F2 to the rim
+    { a: 'helix', b: 'rim', door: 'spiral' },
+    { a: 'rim', b: 'lodge', door: 'dR' },                   // the Keepers' Lodge (v1.53): an arena, the small key
+    { a: 'bal3', b: 'hall', door: 'dG' },                   // the great door
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
+    // F0, the Hall of Spheres: the sphere set down on the walker's print (among two- and four-toed ones), and you standing
+    // on the walker's print by the wall: the first drop opens, the iris in the rim
     p1: { type: 'plate', room: 'spheres' },
-    // the Hall of Spheres: the sphere set down on the walker's print (among two- and four-toed ones), and you standing
-    // on the walker's print by the wall
     pa: { type: 'plate', room: 'spheres' },
     pb: { type: 'plate', room: 'spheres' },
     ball1: { type: 'drum', room: 'spheres', stops: { pa: 0.3, p1: 0.62, pb: 0.92 }, start: 0 },
@@ -143,35 +180,58 @@ export const LOGIC = {
     pX: { type: 'plate', room: 'spheres' },
     pY: { type: 'plate', room: 'spheres' },
     d1: { type: 'door', opens: { all: [{ drumOn: ['ball1', 'p1'] }, { pressed: 'pW' }] }, latch: true },
-    // the Still Pool: the water stirs and draws the floating sphere back, unless you stand on the stone that stills it;
-    // pushed across onto its berth meanwhile, it raises the stepping stones
+    // F1, the Sounding Toe: the hatch over the hole opens while you stand on the walker's print; the sphere pushed from
+    // there drops through onto the plate in the Hall of the Unseen below, and its door opens
+    pH: { type: 'plate', room: 'sounding' },
+    pH2: { type: 'plate', room: 'sounding' },
+    pH4: { type: 'plate', room: 'sounding' },
+    hT: { type: 'door', opens: { pressed: 'pH' } },
+    pT: { type: 'plate', room: 'unseen' },
+    ballT: { type: 'drum', room: 'sounding', plate: 'pT', plateAt: 1, start: 0, through: 'hole', when: { open: 'hT' } },
+    dT: { type: 'door', opens: { drumOn: ['ballT', 'pT'] }, latch: true },
+    // F1, the Still Pool: the water stirs and draws the floating sphere back, unless you stand on the stone that stills it;
+    // pushed across onto its berth meanwhile, it raises the stepping stones (to a coffer on the far ledge) and opens the
+    // Lens Chamber on F2
     pS: { type: 'plate', room: 'pool' },
     p3: { type: 'plate', room: 'pool' },
     ball3: { type: 'drum', room: 'pool', plate: 'p3', plateAt: 1, start: 0, when: { pressed: 'pS' } },
     stones: { type: 'bridge', opens: { drumOn: ['ball3', 'p3'] }, latch: true },
-    // (issue #377: the chest held the glyph lens, a charm; the seeing lens now, raised to see what the house hides: once it
-    // has looked at a hidden stone, eye or door, it stays; a print shows only while it looks)
+    cF: { type: 'cache', room: 'poolFar' },
+    dL: { type: 'door', opens: { drumOn: ['ball3', 'p3'] }, latch: true },
+    // F2, the Lens Chamber (issue #377: the seeing lens, raised to see what the house hides: once it has looked at a hidden
+    // stone, eye or door, it stays; a print shows only while it looks)
     chest: { type: 'gadget', room: 'lens', item: 'monocle' },
-    mural: { type: 'clue', room: 'lens' },                               // the walker's print on the wall, through the lens
-    br1: { type: 'bridge', opens: { item: 'monocle' }, clue: 'mural' },  // the stones only the lens shows: the print's hold
-    // an eye only the lens shows, on a pillar out of the chasm facing the far landing (v1.77; high on the near wall
-    // before, the Lens Chamber's room): the far landing's
+    mural: { type: 'clue', room: 'lens' },                                   // the walker's print on the wall, through the lens
+    spiral: { type: 'bridge', opens: { item: 'monocle' }, clue: 'mural' },   // the spiral up the well, only the lens shows
+    // the Hall of the Unseen: the stones only the lens shows, the print's hold; on the far landing a sphere's groove past two
+    // plain prints and the walker's, which only the lens shows; an eye only the lens shows on a pillar out of the chasm
+    br1: { type: 'bridge', room: 'unseen', opens: { item: 'monocle' }, clue: 'mural' },
     s2: { type: 'switch', room: 'unseenFar', needs: ['monocle'] },
-    // the far landing: a sphere's groove past two plain prints and the walker's, which only the lens shows
     pf1: { type: 'plate', room: 'unseenFar' },
     p4: { type: 'plate', room: 'unseenFar' },
     pf2: { type: 'plate', room: 'unseenFar' },
     ball4: { type: 'drum', room: 'unseenFar', stops: { pf1: 0.3, p4: 0.62, pf2: 0.9 }, start: 0 },
-    // (d4 and d5 carry the Echo's Hall's room: the redesign's rules measure the hall by its two doors, it has no mark)
-    d4: { type: 'door', lock: 'small', opens: { all: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }] }, latch: true, room: 'hall' },   // (and since v1.53 the Lodge's small key)
-    ssc: { type: 'switch', room: 'gallery', needs: ['monocle'] },       // the gallery's eye by the door, its far side
-    sc: { type: 'door', opens: { lit: 'ssc' }, latch: true },
+    // the Lodge's eye, under the rim's pier, only the lens shows: seen from the spiral (its room, `helix`), on the way up;
+    // its door wants the eye and the great sphere up
+    sL: { type: 'switch', room: 'helix', needs: ['monocle'] },
+    dR: { type: 'door', opens: { all: [{ lit: 'sL' }, { drumOn: ['lift', 'pUp'] }] }, latch: true },
     // the Keepers' Lodge: its keepers beaten, the small key's cage sinks (v1.53)
     arL: { type: 'arena', room: 'lodge' },
     kS: { type: 'key', kind: 'small', room: 'lodge', when: { lit: 'arL' } },
-    dR: { type: 'door', opens: null },
+    // the Unseen's far door: the Lodge's small key, the eye and the sphere on the walker's print, and the great sphere down
+    d4: { type: 'door', lock: 'small', opens: { all: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }, { drumOn: ['lift', 'pDown'] }] }, latch: true },
+    kG: { type: 'key', kind: 'big', room: 'vault' },
     echo: { type: 'boss', room: 'hall', needs: ['gun', 'monocle'] },
+    // (dG and d5 carry the Echo's Hall's room: the redesign's rules measure the hall by its two doors, it has no mark)
+    dG: { type: 'door', lock: 'big', room: 'hall' },
     d5: { type: 'door', opens: { resolved: true }, room: 'hall' },
+    // the great lift (issue #401): its sphere on the rim's plate (up, t 0) or on F2's (down, t 1), the house's one state,
+    // seen from every balcony. Up: F1's bridges stand and the Lodge's bar is lifted; down: the Unseen's far door. (Late in
+    // the list: the marker asks for it only when nothing else is left to do, never to and fro: logic.js next)
+    pUp: { type: 'plate', room: 'rim' },
+    pDown: { type: 'plate', room: 'bal2' },
+    lift: { type: 'drum', room: 'rim', stops: { pUp: 0, pDown: 1 }, start: 0, roll: 'hand', through: 'well' },
+    bW: { type: 'bridge', opens: { drumOn: ['lift', 'pUp'] } },
   },
 };
 
@@ -179,7 +239,7 @@ export const ECHO = {
   kind: 'organic', name: 'the Echo', final: 'touch', touch: 'hold out your hand to it',
   speed: 2.6, wakeTime: 3,
   wake: 'Rings of glass round a pale heart sing one loud note at you. It is lost.',
-  openHint: 'It sings, and one sphere round the hall glows. Splash that one.',
+  openHint: 'It sings, and one sphere on the galleries glows. Splash that one.',
   weary: 'It sinks to the floor, humming, listening for you now.',
   resolved: 'The Echo hums with all three spheres at once, and stays quiet.',
   missHint: 'It lies on the floor ringing: splash the sphere that glows.',
@@ -263,7 +323,7 @@ class Mural {
     parts.push(up(new THREE.PlaneGeometry(2.2, 0.12).rotateX(Math.PI / 2), x + fx, y - 0.9, z + fz, yaw));
     parts.push(up(printGeometry(3, 0.9), x + fx, y - 0.4, z + fz, yaw));
     // the prints on the floor, from the dais toward the way on
-    for (const [px, pz, a] of o.prints ?? []) parts.push(printGeometry(3, 0.9).rotateY(a).translate(px, 0.03, pz));
+    for (const [px, pz, a] of o.prints ?? []) parts.push(printGeometry(3, 0.9).rotateY(a).translate(px, (o.floor ?? 0) + 0.03, pz));
     this.mesh = new THREE.Mesh(mergeGeometries(parts.map((g) => { if (g.attributes.uv) g.deleteAttribute('uv'); if (g.attributes.normal) g.deleteAttribute('normal'); return g.index ? g.toNonIndexed() : g; })), this.mat);
     this.mesh.applyMatrix4(K.frame);
     this.mesh.userData.noCollide = true; this.mesh.userData.dynamic = true;
@@ -277,28 +337,26 @@ class Mural {
 
 const NOTES = ['#f6c84e', '#a8e6ee', '#e8b9c4'];
 /**
- * The Hall of the Unseen's stepping stones (x, z from the hall's south end, the toes of the print each carries): three
- * across, six rows over the chasm. The walker's (three toes) make one way over, a step aside every row or two; the
- * rest carry two or four and crumble.
+ * The Hall of the Unseen's stepping stones ([across, along from the hall's west wall, the toes of the print each
+ * carries]): three across, six rows over the chasm. The walker's (three toes) make one way over, a step aside every row
+ * or two; the rest carry two or four and crumble.
  */
 export const STONES = (() => {
   const path = [1, 0, 0, 1, 2, 1], out = [];
   for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) out.push([(c - 1) * 3.2, 7.6 + r * 3.35, c === path[r] ? 3 : (r + c) % 2 ? 2 : 4]);
   return out;
 })();
-// the keepers' gallery: where it meets the Hall of the Unseen's east door (z, on the far landing)
-const GALLERY_Z = ROOMS.unseen.z0 + 33;
 /**
- * The Still Pool (z): where the floating sphere starts (its groove's near end) and the stilling stone at the ledge's edge
- * (the ledge ends at 64.4; at 50 before v1.77). Stood on, the sphere is pushed from it: from its middle the push's line to
+ * The Still Pool (z from its south wall): where the floating sphere starts (its groove's near end) and the stilling stone
+ * at the ledge's edge (the ledge ends at 8). Stood on, the sphere is pushed from it: from its middle the push's line to
  * the sphere clears the ledge's edge (issue #311: with the stone 2 m short of the edge and the sphere 1.8 m past it only
  * its last 0.2 m did; from the rest the edge took the push).
  */
-export const POOL = { ball: 67.0, still: 63.4 };
-/** (v1.53) The Keepers' Lodge, off the Keepers' Gallery (an arena; since v1.77 the house's one fight, 30 m square). */
+export const POOL = { ball: 10.6, still: 7.0 };
+/** (v1.53) The Keepers' Lodge, off the rim (an arena; since v1.77 the house's one fight, 30 m square). */
 export const LODGE = (() => {
   const L = ROOMS.lodge;
-  return { x: (L.x0 + L.x1) / 2, z: (L.z0 + L.z1) / 2, w: L.x1 - L.x0, d: L.z1 - L.z0, zone: { min: [L.x0, -1, L.z0], max: [L.x1, 9, L.z1] } };
+  return { x: (L.x0 + L.x1) / 2, z: (L.z0 + L.z1) / 2, w: L.x1 - L.x0, d: L.z1 - L.z0, zone: { min: [L.x0, L.y - 1, L.z0], max: [L.x1, L.y + 9, L.z1] } };
 })();
 /** The Lodge's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark). */
 export const ARENAS = [{
@@ -323,9 +381,235 @@ function resonate(rt, res, mode) {
   return true;
 }
 
+// ------------------------------------------------------------------ the well's own pieces (issue #401)
+/** A flat outline (local [x, z] points, or a THREE.Shape whose x, y are x, z) with round holes [{ x, z, r }], as a slab t thick, its top at 0. */
+function slabOf(outline, holes = [], t = 0.8, seg = 24) {
+  const s = outline instanceof THREE.Shape ? outline : new THREE.Shape(outline.map(([x, z]) => new THREE.Vector2(x, z)));
+  for (const h of holes) { const p = new THREE.Path(); p.absarc(h.x, h.z, h.r, 0, TAU, true); s.holes.push(p); }
+  // (the shape's x, y are the floor's x, z: turned down into it, extruded down from 0)
+  return new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false, curveSegments: seg }).rotateX(Math.PI / 2);
+}
+/** A ring's outline round (0, 0) from r0 to r1 (angles as `round`: 0 north), whole or from a0 to a1. */
+function ringShape(r0, r1, a0 = 0, a1 = TAU, seg = 128) {
+  const pt = (a, r) => new THREE.Vector2(Math.sin(a) * r, Math.cos(a) * r);
+  if (a1 - a0 >= TAU - 1e-6) {
+    const s = new THREE.Shape(Array.from({ length: seg }, (_, i) => pt((i / seg) * TAU, r1)));
+    s.holes.push(new THREE.Path(Array.from({ length: seg }, (_, i) => pt(-(i / seg) * TAU, r0))));
+    return s;
+  }
+  const n = Math.max(4, Math.ceil(((a1 - a0) / TAU) * seg)), pts = [];
+  for (let i = 0; i <= n; i++) pts.push(pt(a0 + ((a1 - a0) * i) / n, r1));
+  for (let i = n; i >= 0; i--) pts.push(pt(a0 + ((a1 - a0) * i) / n, r0));
+  return new THREE.Shape(pts);
+}
+/** Geometries merged into one mesh (their uvs left out: the house's flat materials need none). */
+function merged(geos, mat) {
+  return new THREE.Mesh(mergeGeometries(geos.map((g) => { g = g.index ? g.toNonIndexed() : g; if (g.attributes.uv) g.deleteAttribute('uv'); return g; })), mat);
+}
+const own = (o, key) => makeMaterial({ ...o, key });
+
+/**
+ * A drop's pool (issue #401): fall into it from any height and its water takes the fall in the last metres over it
+ * (CATCH: slowed to a wade's speed, as the makers' still water would), a splash, nothing hurt. Robust to whichever runs
+ * first, the house or the traveller: the slowing starts a few frames of the fall before the water. o: { at: [x, y, z] its
+ * floor (local), r, follow: () => world point (a moving one: the great lift's disc), said }
+ */
+class Catch {
+  constructor(rt, o) { this.rt = rt; this.o = o; this.at = rt.kit.world(...(o.at ?? [0, 0, 0])); this.on = false; }
+  update() {
+    const P = this.rt.player;
+    if (!P?.pos) return;
+    const c = this.o.follow?.() ?? this.at;
+    const over = Math.hypot(P.pos.x - c.x, P.pos.z - c.z) < this.o.r + 0.5 && P.pos.y > c.y - 1.5 && P.pos.y < c.y + 80;
+    if (over && !P.onGround && !P.dead && P.vel.y < -CATCH.slow) {
+      this.on = true;
+      if (P.pos.y - c.y < Math.max(CATCH.over, -P.vel.y * CATCH.frames)) P.vel.y = -CATCH.slow;
+      return;
+    }
+    if (this.on && (P.onGround || !over || P.dead)) {
+      this.on = false;
+      if (P.onGround && over) { this.rt.sound?.splash?.(1.2); this.rt.notice?.(this.o.said ?? 'The water breaks your fall.', 'spheres.caught'); }
+    }
+  }
+}
+
+/**
+ * The great lift (issue #401): a disc in the middle of the Heel Well and the great sphere on it, between the rim (its
+ * element at t 0, the sphere on the rim's plate) and F2 (t 1). Stepped on, after a breath it carries you to the other
+ * floor (stay on and it stays: step off and on to go back); its plate on the other floor's pier, stood on, calls it.
+ * Leaving, its sphere is off both plates (t 0.1 or 0.9: what waits for it shuts at once). It is the house's one state,
+ * seen from every balcony. o: { id, x, z, top, bottom, r, speed, up, down (the piers' plates) }
+ */
+class GreatLift {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, L = rt.logic;
+    this.topP = K.world(o.x, o.top, o.z); this.bottomP = K.world(o.x, o.bottom, o.z);
+    const t = L.drumT(o.id);
+    this.at = t >= 0.5 ? 1 : 0;   // (left half-way, it finishes the trip)
+    if (Math.abs(t - this.at) > 1e-3) L.moveDrum(o.id, this.at);
+    this.s = this.at; this.dest = null; this.wait = 0; this.onT = 0; this.rode = false;
+    // (the rules' and the audits' points: its two stops)
+    o.a = [o.x, o.top, o.z]; o.b = [o.x, o.bottom, o.z];
+    this.group = new THREE.Group();
+    rt.root.add(this.group);
+    const r = o.r;
+    this.glow = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.5, flat: true }, 'temple.spheres.lift');
+    this.group.add(merged([new THREE.CylinderGeometry(r, r * 0.86, 1.0, 40).translate(0, -0.5, 0)], M.floor));
+    this.group.add(merged([new THREE.TorusGeometry(r * 0.94, 0.09, 4, 48).rotateX(Math.PI / 2).translate(0, -1.03, 0), glyphGeometry(r * 0.9, 0.04).rotateX(Math.PI / 2).translate(0, -1.06, 0), new THREE.TorusGeometry(r - 0.12, 0.06, 4, 48).rotateX(Math.PI / 2).translate(0, -0.05, 0)], this.glow));
+    this.group.add(merged([new THREE.TorusGeometry(o.ball * 0.78, 0.2, 6, 40).rotateX(Math.PI / 2).translate(0, 0.2, 0)], M.trimMat));   // the cradle
+    this.group.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; });
+    // its rails of light, from under F2 to over the rim (they stay)
+    const rails = [];
+    for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; rails.push(new THREE.CylinderGeometry(0.07, 0.07, o.top - o.bottom + 8, 6).translate(o.x + Math.sin(a) * (r + 0.45), (o.top + o.bottom) / 2 + 2, o.z + Math.cos(a) * (r + 0.45))); }
+    this.rails = merged(rails, this.glow);
+    this.rails.applyMatrix4(K.frame);
+    this.rails.userData.noCollide = true;
+    rt.root.add(this.rails);
+    this.solid = { pos: V(), r, top: 0, bottom: 0, vel: V(), flat: true };
+    this.place(0);
+  }
+  y() { return THREE.MathUtils.lerp(this.topP.y, this.bottomP.y, this.s); }
+  /** Where to go to work it (the marker's spot): its plate on the pier where it rests, a step from its disc. */
+  get pos() { return this.rt.piece(this.at ? this.o.down : this.o.up)?.pos ?? this.group.position; }
+  place(dt) {
+    const y = this.y(), prev = this.group.position.y;
+    this.group.position.set(this.topP.x, y, this.topP.z);
+    this.solid.pos.copy(this.group.position);
+    this.solid.top = y; this.solid.bottom = y - 1.4;
+    this.solid.vel.set(0, dt > 0 ? (y - prev) / dt : 0, 0);
+  }
+  /** The traveller stands on its disc. */
+  carries(P) { return !!P?.pos && !P.dead && P.onGround && Math.hypot(P.pos.x - this.topP.x, P.pos.z - this.topP.z) < this.o.r && Math.abs(P.pos.y - this.y()) < 0.5; }
+  /** Off to the other floor (1: down to F2, 0: up to the rim). */
+  go(dest) {
+    if (this.dest != null || dest === this.at) return false;
+    this.dest = dest; this.wait = 0.6;
+    this.rt.logic.moveDrum(this.id, dest ? 0.9 : 0.1);   // (its sphere off the plate it leaves)
+    this.rt.rumble?.(1.4, 0.35); this.rt.sound?.whoosh?.(0.6);
+    return true;
+  }
+  update(dt, t) {
+    const P = this.rt.player, L = this.rt.logic;
+    if (this.dest == null) {
+      const on = this.carries(P);
+      if (on) { this.onT += dt; if (this.onT > 0.9 && !this.rode) { this.rode = true; this.go(1 - this.at); } }
+      else { this.onT = 0; this.rode = false; }
+      if (this.dest == null && P) {
+        if (this.at === 1 && this.rt.piece(this.o.up)?.weighed?.(P)) this.go(0);
+        else if (this.at === 0 && this.rt.piece(this.o.down)?.weighed?.(P)) this.go(1);
+      }
+      this.solid.vel.set(0, 0, 0);
+    } else if (this.wait > 0) { this.wait -= dt; this.solid.vel.set(0, 0, 0); }
+    else {
+      const total = Math.abs(this.topP.y - this.bottomP.y), dir = Math.sign(this.dest - this.s);
+      const left = Math.abs(this.dest - this.s) * total, gone = total - left;
+      const sp = this.o.speed * (0.3 + 0.7 * Math.min(1, Math.min(left, gone) / 3));
+      this.s = THREE.MathUtils.clamp(this.s + (dir * sp * dt) / total, 0, 1);
+      if (Math.abs(this.s - this.dest) < 1e-3) this.s = this.dest;
+      this.place(dt);
+      // going down with someone on it: they go down with it (as a Platform's riders)
+      if (P && this.solid.vel.y < 0 && !P.climbing && Math.hypot(P.pos.x - this.solid.pos.x, P.pos.z - this.solid.pos.z) < this.o.r && Math.abs(P.pos.y - this.solid.top) < 0.4 && P.vel.y <= 0.5) P.vel.y = Math.min(P.vel.y, this.solid.vel.y);
+      if (this.s === this.dest) {
+        this.at = this.dest; this.dest = null; this.solid.vel.set(0, 0, 0);
+        L.moveDrum(this.id, this.at);
+        this.rt.sound?.chime?.(); this.rt.rumble?.(0.8, 0.3);
+        this.rt.notice?.(this.at ? 'The great sphere settles on the low plate. Up the well, bridges sink.' : 'The great sphere settles on the rim’s plate. Below, bridges rise.', `${this.id}.${this.at}`);
+        this.rode = this.carries(P);   // (come with you on it: it stays until you step off and on again)
+      }
+    }
+    this.glow.uniforms.uGlow.value = this.dest != null ? 0.85 : 0.45 + 0.12 * Math.sin(t * 1.4);
+  }
+  dispose() { this.rails.removeFromParent(); }
+}
+/** The great lift's sphere, riding its disc: round to the feet (as a Ball). o: { lift, r } */
+class LiftSphere {
+  constructor(rt, o) {
+    this.rt = rt; this.lift = o.lift; this.r = o.r;
+    this.group = new THREE.Group();
+    rt.root.add(this.group);
+    this.glow = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.4, flat: true }, 'temple.spheres.liftBall');
+    this.group.add(merged([new THREE.SphereGeometry(this.r, 28, 18)], rt.M.stoneMat));
+    this.group.add(merged([new THREE.TorusGeometry(this.r * 1.004, 0.08, 4, 48), new THREE.TorusGeometry(this.r * 1.004, 0.08, 4, 48).rotateY(Math.PI / 2), printGeometry(3, 1.6).rotateX(-Math.PI / 2).translate(0, 0, this.r + 0.02)], this.glow));
+    this.group.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; });
+    this.center = V();
+    this.solid = {
+      pos: V(), r: this.r, top: 0, bottom: 0, vel: V(),
+      topAt: (x, z) => { const R = this.r + 0.03, d2 = (x - this.center.x) ** 2 + (z - this.center.z) ** 2; return d2 < (0.92 * R) ** 2 ? this.center.y + Math.sqrt(R * R - d2) : -Infinity; },
+      pushOut: (p, rc) => {
+        const dx = p.x - this.center.x, dz = p.z - this.center.z, d = Math.hypot(dx, dz), R = this.r + rc;
+        if (d >= R || d < 1e-4 || p.y > this.center.y + Math.sqrt(Math.max(0, this.r * this.r - Math.min(d, this.r) ** 2)) - 0.5) return false;
+        p.x = this.center.x + (dx / d) * R; p.z = this.center.z + (dz / d) * R;
+        return true;
+      },
+    };
+    this.update(0, 0);
+  }
+  update(dt, t) {
+    const L = this.lift;
+    this.center.set(L.topP.x, L.y() + this.r + 0.15, L.topP.z);
+    this.group.position.copy(this.center);
+    this.group.rotation.y = L.s * Math.PI * 1.5;
+    this.solid.pos.copy(this.center).setY(this.center.y - this.r);
+    this.solid.bottom = this.center.y - this.r; this.solid.top = this.center.y + this.r;
+    this.solid.vel.copy(L.solid.vel);
+    this.glow.uniforms.uGlow.value = L.dest != null ? 0.9 : 0.4 + 0.1 * Math.sin(t * 1.4);
+  }
+}
+
+/**
+ * The spiral only the lens shows (issue #401): stones winding up round the well's middle from F2 to the rim, each a step
+ * up from the last (never more than the traveller steps), a landing at each end onto the balcony. Plain air until the
+ * lens has looked at the well's middle (`mid`, local), then there for good (pieces.js revealed). It never moves the great
+ * sphere: the way up that leaves the house as it is. o: { id, x, z, r0, r1, y0, y1, a0, turns, n, mid, reach }
+ */
+class Spiral {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, n = o.n, rm = (o.r0 + o.r1) / 2, sweep = o.turns * TAU, arc = (sweep * rm) / n, dy = (o.y1 - o.y0) / n;
+    const stones = [], prints = [];
+    const stone = (a, top, r0, r1, len) => {
+      const r = (r0 + r1) / 2;
+      stones.push(box(len, 0.5, r1 - r0, o.x + Math.sin(a) * r, top - 0.25, o.z + Math.cos(a) * r, a));
+    };
+    this.steps = [];
+    for (let k = 0; k < n; k++) {
+      const a = o.a0 + ((k + 0.5) / n) * sweep, top = o.y0 + (k + 1) * dy;
+      stone(a, top, o.r0, o.r1, arc - 0.12);
+      prints.push(printGeometry(3, 0.8).rotateY(a + Math.PI / 2).translate(o.x + Math.sin(a) * rm, top + 0.02, o.z + Math.cos(a) * rm));
+      this.steps.push({ a, top, x: o.x + Math.sin(a) * rm, z: o.z + Math.cos(a) * rm });
+    }
+    // the landings, onto the balconies (2 cm under them: no face shared with their floors)
+    const half = sweep / n / 2;   // (a landing a stone's width before the first and after the last)
+    stone(o.a0 - half, o.y0 - Z, o.r0, o.reach, arc - 0.12);
+    stone(o.a0 + sweep + half, o.y1 - Z, o.r0, o.reach, arc - 0.12);
+    this.ends = [round(o.a0 - half, (o.r0 + o.reach) / 2), round(o.a0 + sweep + half, (o.r0 + o.reach) / 2)];
+    this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.4, flat: true }, 'temple.spheres.spiral');
+    this.markM = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.7, flat: true }, 'temple.spheres.spiralPrints');
+    this.root = new THREE.Group();
+    const m1 = merged(stones.map((g) => g.clone()), this.mat), m2 = merged(prints, this.markM);
+    for (const m of [m1, m2]) { m.applyMatrix4(K.frame); this.root.add(m); }
+    this.root.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; });
+    rt.root.add(this.root);
+    this.block = merged(stones, new THREE.MeshBasicMaterial());
+    this.block.applyMatrix4(K.frame);
+    this.mid = K.world(...o.mid);
+    this.root.visible = false;
+  }
+  init(physics) { this.physics = physics; }
+  seen() { return revealed(this.rt, this.id, this.mid); }
+  update(dt, t) {
+    const seen = this.seen();
+    this.root.visible = seen;
+    if (seen && !this.handle && this.physics) this.handle = this.physics.addCollider?.(this.block, { noClimb: true }) ?? null;
+    if (seen) this.mat.uniforms.uGlow.value = 0.38 + 0.08 * Math.sin(t * 1.2);
+  }
+  dispose() { if (this.handle) this.physics?.removeCollider?.(this.handle); }
+}
+
 // ------------------------------------------------------------------ inside
-// (since v1.77, issue #336, docs/design/temple-redesign.md: every hall 30 to 32 m across under 18 m of stone, the round
-// halls 34 and 40 m, doors 7 by 9; each puzzle in the middle of its room, the one fight in the Keepers' Lodge)
+// (since v1.82, issue #401: four floors round the Heel Well; since v1.77, issue #336, docs/design/temple-redesign.md:
+// every hall 30 m across and more under 16 m and more, doors 7 by 9; each puzzle in the middle of its room)
 function layout(rt) {
   const K = rt.kit, M = rt.M, D = DOOR, R0 = ROOMS;
   const add = (P, o) => rt.add(P, o);
@@ -337,171 +621,265 @@ function layout(rt) {
     K.add(M.dark, box(1.0, 0.04, L, cx, y + 0.02, cz, ry));
     for (const s of [-1, 1]) K.both(M.trim, box(0.25, 0.12, L, cx + Math.cos(ry) * 0.75 * s, y + 0.06, cz - Math.sin(ry) * 0.75 * s, ry));
   };
+  const waterM = makeMaterial({ color: '#a8d0d6', glow: 0.15, flat: true, key: 'temple.spheres.pool' });
+  const toCentre = (x, z) => Math.atan2(WELL.x - x, WZ - z);
+  const R = WELL.r, IN = WELL.inner;
 
-  // ---- the Threshold
+  // ---- the Threshold, and the way onto the rim
   const TH = R0.threshold;
-  hall(TH, { roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 3.6, h: 5 }], omit: ['n'] });
+  hall(TH, { roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 3.6, h: 5 }, { side: 'n', w: D.w, h: D.h }] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.6, 5).translate(0, 2.5, 0), [0, 0, -1.25]));
   K.solid(box(4, 5, 0.5, 0, 2.5, -1.4));
   K.glyph([0, 6.2, 0.05], 1.5, 0);
-  add(Mark, { room: 'threshold', at: [-5, 0, 6.5], yaw: Math.PI / 2 });
+  add(Mark, { room: 'threshold', at: [-5, F0, 6.5], yaw: Math.PI / 2 });
+  // (a passage's floor 4 cm under the balcony it runs out onto, and 2 cm under the well wall's sill: no two share a face)
+  K.corridor([0, TH.z1 + 0.6], [0, WZ - R + 0.1], F0 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
 
-  // ---- the Hall of Spheres: one white sphere in a groove down the middle past three carved prints; three prints in a row
-  // beside it; the walker's print (three toes) carved over the door
+  // ---- the Heel Well: one round wall from the heel's floor to over the rim, its doorways floor by floor, open to the sky
+  const gap = (a, y) => ({ a, w: D.w, h: D.h, y0: y - F3 });
+  K.rotunda({ x: WELL.x, z: WZ, y: F3, r: R, h: F0 + 18 - F3, seg: 40, t: WELL.t, oculus: 0.55, floor: false, frieze: false, well: true,
+    gaps: [gap(Math.PI, F0), gap(-Math.PI / 2, F0), gap(Math.PI / 2, F0), gap(0, F1), gap(Math.PI / 2, F1), gap(-Math.PI / 2, F2), gap(Math.PI / 2, F2), gap(Math.PI, F2), gap(0, F3), gap(Math.PI, F3)] });
+  // a frieze of glyphs round every floor, clear of its doorways
+  const doorsAt = { [F0]: [Math.PI, -Math.PI / 2, Math.PI / 2], [F1]: [0, Math.PI / 2], [F2]: [-Math.PI / 2, Math.PI / 2, Math.PI], [F3]: [0, Math.PI] };
+  for (const y of WELL.floors) for (let i = 0; i < 8; i++) {
+    const a = ((i + 0.5) / 8) * TAU;
+    if (doorsAt[y].some((d) => Math.abs(Math.atan2(Math.sin(a - d), Math.cos(a - d))) < 0.3)) continue;
+    const [gx, gz] = round(a, R - 0.08);
+    K.glyph([gx, y + 12.6, gz], 1.1, a + Math.PI);
+    K.ornament([gx, y + 12.6, gz], a + Math.PI);
+  }
+  // the balconies: the rim with its two holes, F1's with its east arc cut off by two gaps and the second drop's hole,
+  // F2's whole, F3's round the heel's pool
+  const [hAx, hAz] = round(AT.dropA, AT.poolR), [hBx, hBz] = round(AT.dropB, AT.poolR);
+  const hole = (x, z) => ({ x: x - WELL.x, z: z - WZ, r: AT.holeR });
+  // (drawn round, 128 sides; solid with 48, its holes 12: the collision's budget, tests/spheres.test.js)
+  const ring = (y, a0, a1, holes = []) => K.both(M.floor, T(slabOf(ringShape(IN, WELL.ring, a0, a1), holes), [WELL.x, y, WZ]), T(slabOf(ringShape(IN, WELL.ring, a0, a1, 48), holes, 0.8, 12), [WELL.x, y, WZ]));
+  ring(F0, 0, TAU, [hole(hAx, hAz), hole(hBx, hBz)]);
+  const [g1, g2] = AT.gaps, gw = AT.gapW / 2;
+  ring(F1, g1 + gw, g2 - gw);
+  ring(F1, g2 + gw, g1 - gw + TAU, [hole(hBx, hBz)]);
+  ring(F2, 0, TAU);
+  ring(F3, 0, TAU);
+  // the holes' lit collars (the way down), the pools under them (a lip, still water, a soft landing)
+  // (in a light of their own: the makers' glyph material is the mark's alone, tests/makers-mark.test.js)
+  const lineM = makeMaterial({ color: rt.P.glow ?? '#a8e6ee', glow: 0.55, flat: true, key: 'temple.spheres.lines' });
+  for (const [x, z, y] of [[hAx, hAz, F0], [hBx, hBz, F0], [hBx, hBz, F1]]) K.add(lineM, T(annulus(AT.holeR + 0.02, AT.holeR + 0.3, 0.06, 40), [x, y + 0.02, z]));
+  const pool = (x, z, y, said) => {
+    K.both(M.trim, T(annulus(AT.holeR + 0.1, AT.holeR + 0.5, 0.34, 40), [x, y + 0.3, z]));
+    K.add(waterM, T(new THREE.CircleGeometry(AT.holeR + 0.1, 40).rotateX(-Math.PI / 2), [x, y + 0.1, z]));
+    add(Catch, { at: [x, y, z], r: AT.holeR + 0.3, said });
+  };
+  pool(hAx, hAz, F1, 'The pool breaks your fall.');
+  pool(hBx, hBz, F2, 'The pool breaks your fall.');
+  // the first drop: an iris in the rim's floor, shut until the Hall of Spheres is answered (its two lamps: the sphere on
+  // the walker's print, you on the walker's print)
+  add(Iris, { id: 'd1', at: [hAx, F0, hAz], r: AT.holeR, t: 0.6, up: true, lamps: [{ drumOn: ['ball1', 'p1'] }, { pressed: 'pW' }] });
+  // F1's east arc: the gaps either side of it, bridged while the great sphere is up (bW: two bridges, one element)
+  for (const g of AT.gaps) {
+    const [px, pz] = round(g, 17.4), tx = Math.cos(g) * 2.1, tz = -Math.sin(g) * 2.1;
+    add(Bridge, { id: 'bW', a: [px - tx, F1 - Z, pz - tz], b: [px + tx, F1 - Z, pz + tz], w: 6.4, n: 3 });
+  }
+  // the heel's floor: a round pool of still water in the middle of F3, the walker's print lit on it; a fall from any
+  // floor above lands in it
+  K.both(M.dark, T(new THREE.CylinderGeometry(IN + 0.05, IN + 0.05, 0.8, 64), [WELL.x, F3 - 0.9, WZ]), T(new THREE.CylinderGeometry(IN + 0.05, IN + 0.05, 0.8, 24), [WELL.x, F3 - 0.9, WZ]));
+  K.add(waterM, T(new THREE.CircleGeometry(IN, 64).rotateX(-Math.PI / 2), [WELL.x, F3 - 0.15, WZ]));
+  K.add(lineM, T(printGeometry(3, 16), [WELL.x, F3 - 0.13, WZ]));
+  add(Catch, { at: [WELL.x, F3 - 0.5, WZ], r: IN, said: 'The heel’s pool breaks your fall.' });
+  // marks on the balconies
+  const markOn = (room, a, y) => { const [x, z] = round(a, 17); add(Mark, { room, at: [x, y, z], yaw: toCentre(x, z) }); };
+  markOn('rim', 172 * DEG, F0); markOn('bal1', -100 * DEG, F1); markOn('bal2', -35 * DEG, F2); markOn('bal3', 150 * DEG, F3);
+
+  // ---- the great lift, its piers (south: you come in facing it) and their plates; the Lodge's eye under the rim's pier
+  const lift = add(GreatLift, { id: 'lift', x: WELL.x, z: WZ, top: LIFT.top, bottom: LIFT.bottom, r: LIFT.r, ball: LIFT.ball, speed: LIFT.speed, up: 'pUp', down: 'pDown' });
+  add(LiftSphere, { lift, r: LIFT.ball });
+  add(Catch, { r: LIFT.r - 0.2, follow: () => lift.solid.pos, said: 'The disc’s glass gives under you, and holds.' });
+  const pz0 = WZ - IN - 0.4, pz1 = WZ - LIFT.r - 0.15;
+  for (const [y, id] of [[F0, 'pUp'], [F2, 'pDown']]) {
+    K.both(M.floor, box(3.6, 0.8, pz1 - pz0, WELL.x, y - Z - 0.4, (pz0 + pz1) / 2));
+    for (const s of [-1, 1]) K.both(M.trim, box(0.3, 0.55, IN - LIFT.r - 1.2, WELL.x + s * 1.6, y - Z + 0.2, WZ - (IN + LIFT.r) / 2 - 0.4));
+    add(Plate, { id, at: [WELL.x, y - Z, WZ - LIFT.pier], r: 1.2 });
+  }
+  K.both(M.wall, box(1.2, 1.8, 1.2, WELL.x, F0 - 0.62 - 0.9, WZ - 8.6));
+  add(Switch, { id: 'sL', at: [WELL.x, F0 - 1.7, WZ - 8.6 - 0.62], yaw: Math.PI, size: 0.8, hidden: true });
+  // ---- the spiral only the lens shows, F2 to the rim
+  add(Spiral, { id: 'spiral', x: WELL.x, z: WZ, ...SPIRAL, a0: AT.spiral, reach: IN + 0.15, mid: [WELL.x, (F0 + F2) / 2, WZ] });
+
+  // ---- the Hall of Spheres (F0, west): one white sphere in a groove past three carved prints; three prints in a row
+  // beside it; the walker's print (three toes) carved over the far wall
   const SP = R0.spheres;
-  hall(SP, { roof: 'oculus', oculus: 0.25, columns: 3, omit: ['n'], doors: [{ side: 's', w: D.w, h: D.h }] });
-  const SZ0 = 24.2, SZ1 = 46.6, SL = SZ1 - SZ0, GX = -5;   // (the groove as long as it was: 22.4 m)
-  K.add(M.dark, box(1.0, 0.04, SL, GX, 0.02, (SZ0 + SZ1) / 2));
-  for (const s of [-1, 1]) K.both(M.trim, box(0.25, 0.12, SL, GX + s * 0.75, 0.06, (SZ0 + SZ1) / 2));
-  add(Ball, { id: 'ball1', a: [GX, 0.04, SZ0], b: [GX, 0.04, SZ1], r: 1.2 });
-  for (const [id, t, toes] of [['pa', 0.3, 2], ['p1', 0.62, 3], ['pb', 0.92, 4]]) add(Plate, { id, at: [GX, 0, SZ0 + SL * t], r: 1.4, print: toes });
-  for (const [id, z, toes] of [['pX', SZ0 + 4, 4], ['pW', SZ0 + 11, 3], ['pY', SZ0 + 18, 2]]) add(Plate, { id, at: [6, 0, z], r: 1.3, print: toes });
-  K.add(M.glyph, T(printGeometry(3, 2.4).rotateX(-Math.PI / 2), [0, 11.6, SP.z1 - 0.05]));   // the walker's print over the door
-  add(Door, { id: 'd1', at: [0, 0, SP.z1 + 0.6], w: D.w, h: D.h, lamps: [{ drumOn: ['ball1', 'p1'] }, { pressed: 'pW' }] });
-  add(Mark, { room: 'spheres', at: [-9, 0, SP.z0 + 3.3], yaw: Math.PI / 2 });
+  hall(SP, { roof: 'oculus', oculus: 0.25, doors: [{ side: 'e', w: D.w, h: D.h }] });
+  for (const [x, z] of [[SP.x0 + 4, WZ - 11], [SP.x0 + 4, WZ + 11], [SP.x1 - 4, WZ - 11], [SP.x1 - 4, WZ + 11]]) K.column(x, z, F0, SP.top - F0, 0.8);
+  K.corridor([-(R - 0.1), WZ], [SP.x1 + 0.6, WZ], F0 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  const SX0 = -35, SX1 = -57.4, SL = SX0 - SX1, GZ = WZ - 5;   // (the groove as long as it was: 22.4 m)
+  K.add(M.dark, box(SL, 0.04, 1.0, (SX0 + SX1) / 2, F0 + 0.02, GZ));
+  for (const s of [-1, 1]) K.both(M.trim, box(SL, 0.12, 0.25, (SX0 + SX1) / 2, F0 + 0.06, GZ + s * 0.75));
+  add(Ball, { id: 'ball1', a: [SX0, F0 + 0.04, GZ], b: [SX1, F0 + 0.04, GZ], r: 1.2 });
+  for (const [id, t, toes] of [['pa', 0.3, 2], ['p1', 0.62, 3], ['pb', 0.92, 4]]) add(Plate, { id, at: [SX0 - SL * t, F0, GZ], r: 1.4, print: toes, yaw: -Math.PI / 2 });
+  for (const [id, x, toes] of [['pX', SX0 - 4, 4], ['pW', SX0 - 11, 3], ['pY', SX0 - 18, 2]]) add(Plate, { id, at: [x, F0, WZ + 6], r: 1.3, print: toes, yaw: -Math.PI / 2 });
+  K.add(M.glyph, T(printGeometry(3, 2.4).rotateX(-Math.PI / 2), [SP.x0 + 0.05, 11.6, WZ], [0, -Math.PI / 2, 0]));   // the walker's print on the far wall
+  add(Mark, { room: 'spheres', at: [SP.x1 - 3.3, F0, WZ - 9], yaw: -Math.PI / 2 });
 
-  // ---- the Still Pool: a sunken pool across the middle, a sphere floating in it, stepping stones that rise
-  const PL = R0.pool, E = PL.z0 + PL.near, F = E + PL.pit, [, pz] = mid(PL), dy = -PL.y;
-  hall(PL, { floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h, y0: dy }, { side: 'n', w: D.w, h: D.h, y0: dy }] });
-  K.slab(PL.x0, PL.z0, PL.x1, E, 0, dy);
-  K.slab(PL.x0, F, PL.x1, PL.z1, 0, dy);
-  const waterM = makeMaterial({ color: '#a8d0d6', glow: 0.15, flat: true, key: 'temple.spheres.pool' });
-  K.add(waterM, box(PL.x1 - PL.x0, 0.2, PL.pit, 0, -2.6, (E + F) / 2));
-  K.both(M.dark, box(PL.x1 - PL.x0, 1, PL.pit, 0, PL.y - 0.5, (E + F) / 2));
-  add(Pit, { room: 'pool', min: [PL.x0 - 1, PL.y - 2, E], max: [PL.x1 + 1, -1.8, F] });
-  // the floating sphere (half sunk in the still water): pushed across, it settles in the berth at the far ledge's foot
+  // ---- the Still Pool (F1, north): a sunken pool across the middle, a sphere floating in it, stepping stones that rise
+  const PL = R0.pool, E = PL.z0 + PL.near, Fz = E + PL.pit, dy = PL.ledge - PL.y;
+  hall(PL, { floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h, y0: dy }] });
+  K.corridor([0, WZ + R - 0.1], [0, PL.z0 - 1.2], F1 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  K.slab(PL.x0, PL.z0, PL.x1, E, F1, dy);
+  K.slab(PL.x0, Fz, PL.x1, PL.z1, F1, dy);
+  K.add(waterM, box(PL.x1 - PL.x0, 0.2, PL.pit, 0, F1 - 2.6, (E + Fz) / 2));
+  K.both(M.dark, box(PL.x1 - PL.x0, 1, PL.pit, 0, PL.y - 0.5, (E + Fz) / 2));
+  add(Pit, { room: 'pool', min: [PL.x0 - 1, PL.y - 2, E], max: [PL.x1 + 1, F1 - 1.8, Fz] });
+  // the floating sphere (half sunk in the still water): pushed across, it settles in the berth at the far ledge's foot;
   // the water stirs and draws it back to the near side unless you stand on the stilling stone at the ledge's edge
-  add(Ball, { id: 'ball3', a: [-4.5, -3.3, POOL.ball], b: [-4.5, -3.3, POOL.ball + 14.8], r: 1.5, friction: 0.45,
+  add(Ball, { id: 'ball3', a: [-4.5, F1 - 3.3, PL.z0 + POOL.ball], b: [-4.5, F1 - 3.3, PL.z0 + POOL.ball + 14.8], r: 1.5, friction: 0.45,
     current: { pull: 0.7, still: { pressed: 'pS' }, stirs: 'The water stirs, and draws the sphere back to you.', stilled: 'Under your feet the stone hums, and the pool goes glassy still.' } });
-  add(Plate, { id: 'pS', at: [-4.5, 0, POOL.still], r: 1.0 });
-  K.add(M.trim, T(new THREE.TorusGeometry(1.8, 0.18, 5, 20, Math.PI), [-4.5, -2.45, F - 0.6], [Math.PI / 2, 0, Math.PI]));   // the berth's lip
-  add(Bridge, { id: 'stones', a: [3.5, 0, E - 0.1], b: [3.5, 0, F + 0.1], w: 3.4, n: 7 });
-  add(Mark, { room: 'pool', at: [-9, 0, PL.z0 + 3.1], yaw: Math.PI / 2 });
+  add(Plate, { id: 'pS', at: [-4.5, F1, PL.z0 + POOL.still], r: 1.0 });
+  K.add(M.trim, T(new THREE.TorusGeometry(1.8, 0.18, 5, 20, Math.PI), [-4.5, F1 - 2.45, Fz - 0.6], [Math.PI / 2, 0, Math.PI]));   // the berth's lip
+  add(Bridge, { id: 'stones', a: [3.5, F1, E - 0.1], b: [3.5, F1, Fz + 0.1], w: 3.4, n: 7 });
+  add(Coffer, { id: 'cF', at: [3.5, F1, Fz + 2.4], yaw: Math.PI });
+  add(Mark, { room: 'pool', at: [-9, F1, PL.z0 + 3.1], yaw: Math.PI / 2 });
 
-  // ---- the corridor and the Lens Chamber (floor 0, a round hall 34 m across): the chest in the middle, the mural on a
-  // stele beside it; the way on is wall without the lens
-  const LE = R0.lens, C3 = LE.z;
-  K.corridor([0, PL.z1 + 0.6], [0, C3 - LE.r - 0.7], 0, { w: D.w, h: D.h });
-  K.rotunda({ x: 0, z: C3, y: 0, r: LE.r, h: LE.top, seg: 32, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }, { a: Math.PI / 2, w: D.w, h: D.h }], oculus: 0.35 });
-  K.both(M.trim, ...chestMound(0, 0, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  // ---- the Sounding Toe (F1, east): a sphere in a groove whose end is a hatch over a hole in the floor, straight over
+  // the plate in the Hall of the Unseen below; three prints behind it, the walker's opens the hatch while you stand on it
+  const ST = R0.sounding, S = SOUNDING;
+  hall(ST, { floor: false, roof: true, doors: [{ side: 'w', w: D.w, h: D.h }] });
+  const rect = (x0, z0, x1, z1) => [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
+  K.both(M.floor, T(slabOf(rect(ST.x0 - 0.6, ST.z0 - 0.6, ST.x1 + 0.6, ST.z1 + 0.6), [{ x: S.b, z: S.z, r: S.hole }]), [0, F1, 0]));
+  K.corridor([R - 0.1, WZ], [ST.x0 - 0.6, WZ], F1 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  groove(S.a - 0.5, S.z, S.b - S.hole - 0.6, S.z, F1);
+  add(Iris, { id: 'hT', at: [S.b, F1, S.z], r: S.hole, t: 0.6, up: true, lamps: [{ pressed: 'pH' }] });
+  add(Ball, { id: 'ballT', a: [S.a, F1 + 0.04, S.z], b: [S.b, F1 + 0.04, S.z], r: 1.2, friction: 0.25,
+    hole: { gate: 'hT', stand: 'pH', to: [S.b, F2 + 0.04, S.z], fell: 'The sphere drops through the floor. Far below, something settles on its plate.' } });
+  for (const [x, z, toes] of S.prints) add(Plate, { id: toes === 3 ? 'pH' : `pH${toes}`, at: [x, F1, z], r: 1.3, print: toes, yaw: Math.PI / 2 });
+  add(Mark, { room: 'sounding', at: [ST.x0 + 3, F1, WZ - 9], yaw: Math.PI / 2 });
+
+  // ---- the Lens Chamber (F2, west; a round hall 34 m across under the Hall of Spheres): the chest in the middle, the
+  // mural on a stele beside it
+  const LE = R0.lens;
+  K.rotunda({ x: LE.x, z: LE.z, y: F2, r: LE.r, h: LE.top - F2, seg: 32, gaps: [{ a: Math.PI / 2, w: D.w, h: D.h }], oculus: 0 });
+  K.corridor([-(R - 0.1), WZ], [LE.x + LE.r + 1.4, WZ], F2 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  K.both(M.trim, ...chestMound(LE.x, F2, LE.z));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // the lens shows the walker's print on the stele west of the chest, over a stone carrying the same, and its prints from
-  // the dais to the way on (the clue of the stones over the chasm, a room on: no lock here). The stele solid, as drawn
-  K.both(M.wall, box(0.8, 6.4, 4.8, -7.4, 3.2, C3));
-  K.both(M.trim, box(1.2, 0.4, 5.2, -7.4, 6.6, C3));
-  add(Mural, { id: 'mural', at: [-6.98, 3.6, C3], yaw: Math.PI / 2, prints: [[0.9, C3 + 4.2, 0.15], [-0.7, C3 + 5.8, -0.1], [0.8, C3 + 7.4, 0.1], [-0.6, C3 + 9.0, -0.05], [0.7, C3 + 10.6, 0.1], [-0.5, C3 + 12.2, 0]] });
-  // the keepers' door in the east wall (the west before v1.77): plain wall from here, through the lens a door that will not open (its eye is
-  // on its far side, in the gallery)
-  add(Door, { id: 'sc', at: [LE.r + 0.7, 0, C3], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.6, hidden: true, lamps: [{ lit: 'ssc' }] });
-  add(Mark, { room: 'lens', at: [8, 0, C3 - 8], yaw: -Math.PI * 0.75 });
+  // the dais toward the way out (the clue of the stones only the lens shows). The stele solid, as drawn
+  K.both(M.wall, box(0.8, 6.4, 4.8, LE.x - 7.4, F2 + 3.2, LE.z));
+  K.both(M.trim, box(1.2, 0.4, 5.2, LE.x - 7.4, F2 + 6.6, LE.z));
+  add(Mural, { id: 'mural', at: [LE.x - 6.98, F2 + 3.6, LE.z], yaw: Math.PI / 2, floor: F2, prints: [[LE.x + 4.2, LE.z + 0.9, Math.PI / 2 + 0.15], [LE.x + 5.8, LE.z - 0.7, Math.PI / 2 - 0.1], [LE.x + 7.4, LE.z + 0.8, Math.PI / 2 + 0.1], [LE.x + 9.0, LE.z - 0.6, Math.PI / 2 - 0.05], [LE.x + 10.6, LE.z + 0.7, Math.PI / 2 + 0.1], [LE.x + 12.2, LE.z - 0.5, Math.PI / 2]] });
+  add(Door, { id: 'dL', at: [-(R + 0.7), F2, WZ], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ drumOn: ['ball3', 'p3'] }] });
+  add(Mark, { room: 'lens', at: [LE.x + 8, F2, LE.z - 8], yaw: -Math.PI * 0.75 });
 
-  // ---- the Hall of the Unseen: a chasm across its middle under stones only the lens shows, the walker's holding; an eye
-  // only the lens shows on a pillar out of the chasm, facing the far landing; on the far landing a sphere's groove past
-  // two plain prints and the walker's
-  const UN = R0.unseen, U0 = UN.z0, [, uz] = mid(UN), uy = -UN.y, Q0 = U0 + UN.near, Q1 = Q0 + UN.pit;
-  K.corridor([0, C3 + LE.r + 0.7], [0, U0 - 0.6], 0, { w: D.w, h: D.h });
-  hall(UN, { floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h, y0: uy }, { side: 'n', w: D.w, h: D.h, y0: uy }, { side: 'e', at: GALLERY_Z - uz, w: D.w, h: D.h, y0: uy }] });
-  K.slab(UN.x0, U0, UN.x1, Q0, 0, uy);
-  K.slab(UN.x0, Q1, UN.x1, UN.z1, 0, uy);
-  K.both(M.dark, box(UN.x1 - UN.x0, 1, UN.pit, 0, UN.y - 0.5, (Q0 + Q1) / 2));
+  // ---- the Hall of the Unseen (F2, east): a chasm across its middle under stones only the lens shows, the walker's
+  // holding; an eye only the lens shows on a pillar out of the chasm, facing the far landing; on the far landing the
+  // plate the Sounding Toe's sphere drops onto, and a sphere's groove past two plain prints and the walker's
+  const UN = R0.unseen, U0 = UN.x0, Q0 = U0 + UN.near, Q1 = Q0 + UN.pit, uy = UN.ledge - UN.y;
+  hall(UN, { floor: false, roof: false, doors: [{ side: 'w', w: D.w, h: D.h, y0: uy }, { side: 'e', w: D.w, h: D.h, y0: uy }] });
+  // its roof, the hole in it under the Sounding Toe's (a little wider: their edges apart)
+  K.both(M.wall, T(slabOf(rect(UN.x0 - 1.2 + Z, UN.z0 - 1.2 + Z, UN.x1 + 1.2 - Z, UN.z1 + 1.2 - Z), [{ x: S.b, z: S.z, r: S.hole + 0.15 }]), [0, UN.top + 0.8, 0]));
+  K.corridor([R - 0.1, WZ], [UN.x0 - 1.2, WZ], F2 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  K.slab(UN.x0, UN.z0, Q0, UN.z1, F2, uy);
+  K.slab(Q1, UN.z0, UN.x1, UN.z1, F2, uy);
+  K.both(M.dark, box(UN.pit, 1, UN.z1 - UN.z0, (Q0 + Q1) / 2, UN.y - 0.5, WZ));
   // the chasm's lips, broken rock hanging under the ledges' edges
-  for (let i = 0; i < 12; i++) for (const [z, s] of [[Q0, 1], [Q1, -1]]) K.add(M.stone, T(new THREE.IcosahedronGeometry(0.9 + (i % 3) * 0.35, 0).scale(1.2, 1.6, 0.8), [-14.85 + i * 2.7, -1.4 - (i % 2) * 0.8, z + s * 0.35], [0.3 * i, i, 0]));
-  add(Pit, { room: 'unseen', min: [UN.x0 - 1, UN.y - 2, Q0], max: [UN.x1 + 1, -3, Q1] });
-  add(LensStones, { id: 'br1', cells: STONES.map(([x, z, toes]) => ({ x, z: U0 + z, toes, real: toes === 3 })), y: 0, size: 3, a: [0, 0, Q0], b: [0, 0, Q1] });
-  // the eye only the lens shows, on a pillar out of the chasm by the near lip: its face toward the far landing (from the
-  // near ledge you see the pillar's back)
-  const EZ = Q0 + 3;
-  K.both(M.wall, box(2.4, 7.6 - UN.y, 2.4, -8, (7.6 + UN.y) / 2, EZ));
-  K.both(M.trim, box(2.8, 0.4, 2.8, -8, 7.8, EZ));
-  add(Switch, { id: 's2', at: [-8, 6.0, EZ + 1.85], yaw: 0, size: 1.1, hidden: true });
-  // the far landing: a sphere's groove past two plain prints (two toes, four) and the walker's, which only the lens shows
-  const FL = Q1 + 2;
-  groove(-8.6, FL, 8.6, FL);
-  add(Ball, { id: 'ball4', a: [-8.6, 0.04, FL], b: [8.6, 0.04, FL], r: 0.9 });
-  for (const [id, t, toes, hidden] of [['pf1', 0.3, 2, false], ['p4', 0.62, 3, true], ['pf2', 0.9, 4, false]]) add(Plate, { id, at: [-8.6 + 17.2 * t, 0, FL], r: 1.0, print: toes, hidden, yaw: Math.PI / 2 });
-  add(Door, { id: 'd4', at: [0, 0, UN.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }] });
-  // two pillars topped with spheres either side of the far door (as drawn in the picked reference)
-  for (const s of [-1, 1]) { K.column(s * 6.4, UN.z1 - 1.4, 0, 8, 0.6); K.both(M.stone, new THREE.SphereGeometry(0.85, 16, 10).translate(s * 6.4, 8.85, UN.z1 - 1.4)); }
-  add(Mark, { room: 'unseen', at: [-7, 0, U0 + 3], yaw: 0 });
-  for (let i = 0; i < 4; i++) K.glyph([UN.x0 + 0.05, 7 + (i % 2) * 2.5, Q0 + i * 6], 1.3, Math.PI / 2);
+  for (let i = 0; i < 12; i++) for (const [x, s] of [[Q0, 1], [Q1, -1]]) K.add(M.stone, T(new THREE.IcosahedronGeometry(0.9 + (i % 3) * 0.35, 0).scale(0.8, 1.6, 1.2), [x + s * 0.35, F2 - 1.4 - (i % 2) * 0.8, UN.z0 + 1.15 + i * 2.7], [0.3 * i, i, 0]));
+  add(Pit, { room: 'unseen', min: [Q0, UN.y - 2, UN.z0 - 1], max: [Q1, F2 - 3, UN.z1 + 1] });
+  add(LensStones, { id: 'br1', cells: STONES.map(([c, along, toes]) => ({ x: U0 + along, z: WZ + c, toes, real: toes === 3 })), y: F2, size: 3, a: [Q0, F2, WZ], b: [Q1, F2, WZ] });
+  const EX = Q0 + 3, EZ = WZ - 8;
+  K.both(M.wall, box(2.4, 7.6 + uy, 2.4, EX, F2 + (7.6 - uy) / 2, EZ));
+  K.both(M.trim, box(2.8, 0.4, 2.8, EX, F2 + 7.8, EZ));
+  add(Switch, { id: 's2', at: [EX + 1.85, F2 + 6.0, EZ], yaw: Math.PI / 2, size: 1.1, hidden: true });
+  const FL = Q1 + 7;
+  groove(FL, WZ - 8.6, FL, WZ + 8.6, F2);
+  add(Ball, { id: 'ball4', a: [FL, F2 + 0.04, WZ - 8.6], b: [FL, F2 + 0.04, WZ + 8.6], r: 0.9 });
+  for (const [id, t, toes, hidden] of [['pf1', 0.3, 2, false], ['p4', 0.62, 3, true], ['pf2', 0.9, 4, false]]) add(Plate, { id, at: [FL, F2, WZ - 8.6 + 17.2 * t], r: 1.0, print: toes, hidden, yaw: 0 });
+  add(Plate, { id: 'pT', at: [S.b, F2, S.z], r: 1.4, print: 3, yaw: Math.PI / 2 });
+  add(Door, { id: 'd4', at: [UN.x1 + 0.6, F2, WZ], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }, { drumOn: ['lift', 'pDown'] }] });
+  for (const s of [-1, 1]) { K.column(UN.x1 - 1.4, WZ + s * 6.4, F2, 8, 0.6); K.both(M.stone, new THREE.SphereGeometry(0.85, 16, 10).translate(UN.x1 - 1.4, F2 + 8.85, WZ + s * 6.4)); }
+  add(Mark, { room: 'unseen', at: [U0 + 3, F2, WZ - 9], yaw: Math.PI / 2 });
+  for (let i = 0; i < 4; i++) K.glyph([Q0 + i * 6, F2 + 7 + (i % 2) * 2.5, UN.z1 - 0.05], 1.3, Math.PI);
+  // the vault past the far door: the great key
+  const VA = R0.vault;
+  K.corridor([UN.x1 + 1.2, WZ], [VA.x1, WZ], F2 - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  K.wall(VA.x1 + 0.4, WZ + 4.6, VA.x1 + 0.4, WZ - 4.6, F2 - Z, 9.6, { t: 0.8 });
+  K.glyph([VA.x1 - 0.05, F2 + 6.4, WZ], 1.2, -Math.PI / 2);
+  add(Key, { id: 'kG', at: [VA.x1 - 3, F2, WZ], yaw: -Math.PI / 2, big: true });
 
-  // ---- the Keepers' Gallery: a long hall east of the Lens Chamber and the Hall of the Unseen, from the far landing's east
-  // door back to the chamber's keepers' door; its eye, only the lens shows, on a post before that door
-  const GA = R0.gallery, [gx, gz] = mid(GA);
-  hall(GA, { roof: 'oculus', oculus: 0.2, doors: [{ side: 'w', at: C3 - gz, w: D.w, h: D.h }, { side: 'w', at: GALLERY_Z - gz, w: D.w, h: D.h }, { side: 'e', at: LODGE.z - gz, w: D.w, h: D.h }] });
-  K.corridor([LE.r + 0.7, C3], [GA.x0 - 0.6, C3], 0, { w: D.w, h: D.h });
-  K.corridor([UN.x1 + 0.6, GALLERY_Z], [GA.x0 - 0.6, GALLERY_Z], 0, { w: D.w, h: D.h });
-  for (const [x, z] of [[gx - 8, gz - 12], [gx + 8, gz - 12], [gx - 8, gz + 12], [gx + 8, gz + 12]]) K.column(x, z, 0, GA.top, 0.9);
-  for (const i of [0, 1, 3, 4]) K.glyph([GA.x1 - 0.05, 4.4, GA.z0 + 9 + i * 12], 1.0, -Math.PI / 2);   // (not over the Lodge's door)
-  // the eye's post, 9 m in from the keepers' door, facing it
-  const SX = 29, SZ = 116, sy = Math.atan2(LE.r + 0.7 - SX, C3 - SZ);
-  K.both(M.trim, box(1.6, 0.3, 1.6, SX, 0.15, SZ));
-  K.both(M.wall, box(1.1, 2.1, 1.1, SX, 1.35, SZ));
-  K.both(M.trim, box(1.4, 0.2, 1.4, SX, 2.5, SZ));
-  add(Switch, { id: 'ssc', at: [SX + Math.sin(sy) * 0.65, 1.8, SZ + Math.cos(sy) * 0.65], yaw: sy, size: 0.9, hidden: true });
+  // ---- the last lift (south, F2 to F3): a landing on each floor, the disc riding up and down between them
+  const LZ0 = WZ - R + 0.1, LZ1 = WZ - R - 4.4, LZ2 = WZ - R - 12;
+  K.slab(-4.6, LZ1, 4.6, LZ0, F2 - 2 * Z, 0.8);
+  K.slab(-4.6, LZ2, 4.6, LZ0, F3 - 2 * Z, 0.8);
+  K.both(M.trim, box(9.2, 0.34, 0.3, 0, F2 - 2 * Z + 0.13, LZ1 + 0.15));   // (a kerb at the landing's edge)
+  for (const s of [-1, 1]) K.wall(s * 4.6, WZ - R - 1.4, s * 4.6, LZ2, F3, F2 + 10 - F3, { t: 0.8 });
+  K.wall(-4.6, LZ2 - 0.4, 4.6, LZ2 - 0.4, F3, F2 + 10 - F3, { t: 0.8 });
+  K.both(M.wall, box(10, 0.8, LZ0 - LZ2 + 0.8, 0, F2 + 10.4, (LZ0 + LZ2) / 2));
+  add(Platform, { path: [[0, F3, (LZ1 + LZ2) / 2], [0, F2, (LZ1 + LZ2) / 2]], r: 3.2, speed: 2.6, pause: 2 });
 
-  // ---- the antechamber, and the Echo's Hall (floor 0, a round hall 40 m across under a great oculus)
-  const H0 = UN.z1 + 0.6;
-  const AE = K.vestibule(H0, 0);   // (the antechamber, ANTE: issue #195)
-  add(Mark, { room: 'ante', at: [ANTE.half - 1, 0, (H0 + AE) / 2], yaw: -Math.PI / 2 });
+  // ---- F3: the great door, the antechamber, and the Echo's Hall (a round hall 40 m across); its three resonant spheres
+  // on galleries round its wall, over the floor
+  add(Door, { id: 'dG', at: [0, F3, WZ + R + 0.7], w: D.w, h: D.h });
+  const H0 = WZ + R + 0.7;
+  const AE = K.vestibule(H0, F3 - 2 * Z);   // (the antechamber, ANTE: issue #195)
+  add(Mark, { room: 'ante', at: [ANTE.half - 1, F3, (H0 + AE) / 2], yaw: -Math.PI / 2 });
   const HR = 20, CH = AE + 1.2 + HR;
-  K.rotunda({ x: 0, z: CH, y: 0, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: ANTE.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.45 });
-  K.add(M.glyph, T(glyphGeometry(9, 0.05).rotateX(-Math.PI / 2), [0, 0.03, CH]));
-  // the three resonant spheres round the hall, one note each
+  K.rotunda({ x: 0, z: CH, y: F3, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: ANTE.h }, { a: 0, w: D.w, h: D.h }], oculus: 0 });
+  K.add(M.glyph, T(glyphGeometry(9, 0.05).rotateX(-Math.PI / 2), [0, F3 + 0.03, CH]));
+  const GH = 6;   // (the galleries' floor over the hall's)
   const res = [0, 1, 2].map((i) => {
-    const a = (i / 3) * TAU + Math.PI / 3;
-    return add(Resonator, { i, at: [Math.sin(a) * 13, 0, CH + Math.cos(a) * 13], face: [0, 0, CH], color: NOTES[i], onHit: (r, mode) => resonate(rt, r, mode) });
+    const a = (i / 3) * TAU + Math.PI / 3, w = 0.24;
+    K.both(M.floor, T(slabOf(ringShape(HR - 5.6, HR + 0.3, a - w, a + w, 72)), [0, F3 + GH, CH]));
+    K.both(M.trim, T(slabOf(ringShape(HR - 5.9, HR - 5.6, a - w, a + w, 72), [], 0.5), [0, F3 + GH + 0.5, CH]));
+    return add(Resonator, { i, at: [Math.sin(a) * (HR - 3.4), F3 + GH, CH + Math.cos(a) * (HR - 3.4)], face: [0, F3, CH], color: NOTES[i], onHit: (r, mode) => resonate(rt, r, mode) });
   });
   // the way out, past the far door
   const X0 = CH + HR + 0.7, X1 = CH + HR + 10;
-  add(Door, { id: 'd5', at: [0, 0, X0], w: D.w, h: D.h });
-  K.slab(-4.6, X0 - 0.1, 4.6, X1, 0, 0.8);
-  K.wall(-4.2, X0 + 0.7, -4.2, X1, 0, 10, { t: 0.8 }); K.wall(4.2, X1, 4.2, X0 + 0.7, 0, 10, { t: 0.8 });
-  K.wall(4.2, X1, -4.2, X1, 0, 10, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(9.2, 0.8, X1 - X0 + 0.4, 0, 10.4, (X0 + X1) / 2));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 0, X1 + 0.5]));
-  K.solid(box(4, 5, 0.5, 0, 2.5, X1 + 0.9));
+  add(Door, { id: 'd5', at: [0, F3, X0], w: D.w, h: D.h });
+  K.slab(-4.6, X0 - 0.1, 4.6, X1, F3, 0.8);
+  K.wall(-4.2, X0 + 0.7, -4.2, X1, F3, 10, { t: 0.8 }); K.wall(4.2, X1, 4.2, X0 + 0.7, F3, 10, { t: 0.8 });
+  K.wall(4.2, X1, -4.2, X1, F3, 10, { t: 0.8, holes: [{ at: 4.2, w: 3.4, h: 5 }] });
+  K.both(M.wall, box(9.2, 0.8, X1 - X0 + 0.4, 0, F3 + 10.4, (X0 + X1) / 2));
+  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, F3, X1 + 0.5]));
+  K.solid(box(4, 5, 0.5, 0, F3 + 2.5, X1 + 0.9));
 
   const model = echoModel();
-  model.pos.copy(K.world(0, 0, CH + 3));
+  model.pos.copy(K.world(0, F3, CH + 3));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
-  model.rest = K.world(0, 0, CH + 2);
+  model.rest = K.world(0, F3, CH + 2);
   model.restHeading = K.heading(Math.PI);
-  const arena = { center: K.world(0, 0, CH), r: HR, y: K.world(0, 0, 0).y };
+  const arena = { center: K.world(0, F3, CH), r: HR, y: K.world(0, F3, 0).y };
   rt.resonators = res;
 
-  // (the wing last: its mark after the others, so the machines' ids by mark stay as they were)
-  lodge(rt, K, M, { GA });
+  // (the wing last: its mark after the others)
+  lodge(rt, K, M);
   const W = (x, y, z) => K.world(x, y, z);
   return {
-    arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-LE.r - 4, -14, -3), V(R0.lodge.x1 + 3, 40, X1 + 2)),
-    gadget: { at: W(0, 0.62, C3).toArray(), face: K.heading(Math.PI) },
+    arrival: { pos: W(0, F0 + 0.05, 3.6), heading: K.heading(0) },
+    bounds: new THREE.Box3(V(-70, F3 - 12, -3), V(VA.x1 + 3, F0 + 24, X1 + 2)),
+    gadget: { at: W(LE.x, F2 + 0.62, LE.z).toArray(), face: K.heading(Math.PI / 2) },
     // (the last way out, past the Echo, comes up at the keepers' stone by the white hill: KEEPERS_STONE)
-    exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 0.5, X1 - 0.4), r: 1.5, to: V(KEEPERS_STONE.x, KEEPERS_STONE.y + 0.05, KEEPERS_STONE.z), heading: KEEPERS_STONE.heading }],
-    lights: [[0, 7, 7, 16], [0, 9, 26, 24], [0, 9, 45, 24], [0, 7, pz, 26], [0, 9, C3, 22], [0, 9, U0 + 12, 26], [0, 9, U0 + 32, 22], [gx, 8, gz - 16, 24], [gx, 8, gz + 16, 24], [LODGE.x, 8, LODGE.z, 22], [0, 10, CH, 30]],
+    exits: [{ at: W(0, F0 + 0.5, 0.4), r: 1.5 }, { at: W(0, F3 + 0.5, X1 - 0.4), r: 1.5, to: V(KEEPERS_STONE.x, KEEPERS_STONE.y + 0.05, KEEPERS_STONE.z), heading: KEEPERS_STONE.heading }],
+    lights: [[0, 7, 7, 16], [0, F0 + 9, WZ, 30], [-46, 9, WZ, 26], [LODGE.x, 8, LODGE.z, 22], [0, F1 + 6, WZ, 28], [0, F1 + 4, (PL.z0 + PL.z1) / 2, 26],
+      [48, F1 + 8, WZ, 26], [0, F2 + 6, WZ, 28], [LE.x, F2 + 9, LE.z, 22], [40, F2 + 9, WZ, 24], [62, F2 + 9, WZ, 22], [VA.x1 - 4, F2 + 6, WZ, 12],
+      [0, F3 + 6, WZ, 26], [0, F3 + 3, WZ + R - 1, 12], [0, F3 + 10, CH, 30]],
     guardian: { def: { ...ECHO, onHit: echoHit, onStrike: () => {} }, model, arena },
   };
 }
 
 /**
- * (v1.53, issue #23) The Keepers' Lodge, off the Keepers' Gallery (east since v1.77, west before): an arena where the walker's keepers rested, their
- * stone benches by the walls; won, the small key's cage sinks (for the Hall of the Unseen's far door). Since v1.77 the
- * house's one fight, 30 m square, its keepers round its middle among four columns.
+ * (v1.53, issue #23) The Keepers' Lodge, off the rim (F0, east, since v1.82: issue #401): an arena where the walker's
+ * keepers rested, their stone benches by the walls; won, the small key's cage sinks (for the Hall of the Unseen's far
+ * door). The house's one fight, 30 m square, its keepers round its middle among four columns. Its door, in the well's
+ * wall, wants the eye under the rim's pier and the great sphere up.
  */
-function lodge(rt, K, M, { GA }) {
+function lodge(rt, K, M) {
   const add = (P, o) => rt.add(P, o);
   const Lg = LODGE, LR = ROOMS.lodge, D = DOOR;
   K.hall({ x: Lg.x, z: Lg.z, w: Lg.w, d: Lg.d, y: LR.y, h: LR.top - LR.y, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: D.w, h: D.h }] });
-  K.corridor([GA.x1 + 0.6, Lg.z], [LR.x0 - 0.6, Lg.z], 0, { w: D.w, h: D.h });
-  add(Door, { id: 'dR', at: [LR.x0 - 0.6, 0, Lg.z], yaw: Math.PI / 2, w: D.w, h: D.h });   // (open: it shuts behind you while they stand)
-  for (const z of [LR.z0 + 0.9, LR.z1 - 0.9]) K.both(M.stone, box(12, 0.6, 1.0, Lg.x + 1, 0.3, z));   // (benches)
-  for (const s of [-1, 1]) K.both(M.stone, new THREE.SphereGeometry(0.7, 14, 8).translate(LR.x1 - 1.6, 0.7, Lg.z + s * 4.6));
-  for (const [x, z] of [[Lg.x - 7, Lg.z - 7], [Lg.x + 7, Lg.z - 7], [Lg.x - 7, Lg.z + 7], [Lg.x + 7, Lg.z + 7]]) K.column(x, z, 0, LR.top, 0.9);
-  add(Key, { id: 'kS', at: [Lg.x + 10, 0, Lg.z], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'lodge', at: [LR.x0 + 3, 0, Lg.z - 4], yaw: Math.PI / 2, foes: [Lg.x, 0, Lg.z] });
+  K.corridor([WELL.r - 0.1, Lg.z], [LR.x0 - 0.6, Lg.z], LR.y - 2 * Z, { w: D.w, h: D.h + 2 * Z });
+  add(Door, { id: 'dR', at: [WELL.r + 0.7, LR.y, Lg.z], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 'sL' }, { drumOn: ['lift', 'pUp'] }] });
+  for (const z of [LR.z0 + 0.9, LR.z1 - 0.9]) K.both(M.stone, box(12, 0.6, 1.0, Lg.x + 1, LR.y + 0.3, z));   // (benches)
+  for (const s of [-1, 1]) K.both(M.stone, new THREE.SphereGeometry(0.7, 14, 8).translate(LR.x1 - 1.6, LR.y + 0.7, Lg.z + s * 4.6));
+  for (const [x, z] of [[Lg.x - 7, Lg.z - 7], [Lg.x + 7, Lg.z - 7], [Lg.x - 7, Lg.z + 7], [Lg.x + 7, Lg.z + 7]]) K.column(x, z, LR.y, LR.top - LR.y, 0.9);
+  add(Key, { id: 'kS', at: [Lg.x + 10, LR.y, Lg.z], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'lodge', at: [LR.x0 + 3, LR.y, Lg.z - 4], yaw: Math.PI / 2, foes: [Lg.x, LR.y, Lg.z] });
 }
-
 // ------------------------------------------------------------------ outside: the Footprint in the meadow
 function exterior(scene, level, rt) {
   const H = (x, z) => level.ground?.heightAt?.(x, z) ?? 0;
@@ -621,7 +999,7 @@ function change(scene, level, rt) {
 
 export const SPHERES_TEMPLE = {
   id: 'spheres', levelId: 'spheres', name: 'The Footprint', doorLabel: 'door in the Footprint’s heel',
-  gadget: 'monocle', gadgetBox: 'spheres.temple.lens', arenaDoor: 'd4', arenas: ARENAS,   // (the box's id from when it held the glyph lens: the saves' flag)
+  gadget: 'monocle', gadgetBox: 'spheres.temple.lens', arenaDoor: 'dG', arenas: ARENAS,   // (the box's id from when it held the glyph lens: the saves' flag)
   origin: [-120, 2000, -260], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

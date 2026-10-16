@@ -1047,7 +1047,8 @@ test('the Footprint wears its futuristic skin: cream panels, machined doors and 
   // light and pale, as its pick: the walls' and floors' albedo cream, never dark slate
   for (const k of ['wall', 'floor']) { const c = rt.skin.mats[k].uniforms.uColor.value; assert.ok(Math.min(c.r, c.g, c.b) > 0.6, `its ${k} pale`); }
   const s = rt.skin.stats;
-  assert.ok(s.walks >= 10 && s.lenses >= 6 && s.rings >= 5, JSON.stringify(s));
+  // (rings under the oculi: four since issue #401, the rooms of the lower floors roofed by the ones over them)
+  assert.ok(s.walks >= 10 && s.lenses >= 6 && s.rings >= 4, JSON.stringify(s));
   const dress = fpDressing(rt);
   assert.ok(dress.length === 5 && dress.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.castShadow === false && m.userData.castShadow === false), 'five drawn-only instanced meshes');
   // the walkways over the doorways and the frieze, never near its glyphs nor the ceiling

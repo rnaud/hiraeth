@@ -24,7 +24,7 @@ const mat = (color, o = {}) => new THREE.MeshBasicMaterial({ color, ...o });
 export const ZFIGHT_BASELINE = {
   // (v1.66, the zfight audit: the counts the temples had come down to, held there; were incal 47, arzach2 11, perdide2 9,
   // perdide 10, arzach 8, spacecity 5)
-  desert: 0, incal: 39, arzach2: 10, spheres: 2, buried: 0, perdide2: 3, perdide: 2, arzach: 3,   // (v1.77: the Hush-House redone as shrines, issue #336, 9 -> 2: the walls and floors over the old Choir's door and the old root-wall's top gone, the two left the doorways' dark at the way in and out)
+  desert: 0, incal: 39, arzach2: 10, spheres: 0, buried: 0, perdide2: 3, perdide: 2, arzach: 3,   // (v1.82: the Footprint rebuilt across four floors, issue #401, 2 -> 0; v1.77: the Hush-House redone as shrines, issue #336, 9 -> 2: the walls and floors over the old Choir's door and the old root-wall's top gone, the two left the doorways' dark at the way in and out)
   garage: 1, edena: 2, bazaar: 8,   // (v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
   spacecity: 0, moonfoundry: 0, underwater: 19,   // (v1.77: the Mooring-House redone as shrines, issue #336, its doorways a little narrower than their passages: 3 -> 0; the Casting-House, 20 -> 0: its channel's faces and its landing's trim set 2 cm proud)
 };

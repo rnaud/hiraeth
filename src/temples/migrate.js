@@ -212,10 +212,17 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the Footprint remade to the redesign's rules, its rooms bigger and moved, the far landing's eye on
   // a pillar out of the chasm (the same pieces, the same state). A save that entered the house: taken to its last mark if
   // it stood inside the old rooms (runtime.js relaid)
+  // v1.82 (issue #401): the house across four floors round the Heel Well: the Hall of Spheres' door is the iris over the
+  // first drop (d1), the Still Pool's berth opens the Lens Chamber too (dL), the Hall of the Unseen opens to a sphere
+  // dropped through the Sounding Toe's floor (dT), the Lodge's door to an eye seen from the spiral and the great sphere up
+  // (dR), the far door wants the great sphere down too and opens on the great key, for the great door (dG) on the heel's
+  // floor. Past the old far door (or the guardian): all of that as done, the great sphere down. And a save that entered
+  // the house: taken to its last mark
   spheres: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } },
+      { if: ['open.d4', 'boss'], set: { 'drum.ballT': 1, 'open.dT': true, 'open.dL': true, 'lit.sL': true, 'seen.spiral': true, 'open.dR': true, 'drum.lift': 1, 'open.d4': true, 'found.kG': true, 'unlocked.dG': 1 } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

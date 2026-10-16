@@ -608,6 +608,63 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   in the old rooms is taken to its last mark (`migrate.js` spheres v3). Rules broken: 36 before (both 3, size 5, ceiling
   4, unmeasured 2, door 5, centred 12, foes 3, gadget 2), none now. Temple design audit: 4.33 before and after (5 5 5 4
   5 5 4 3 3; the skeleton `XXCRRLK` as it was, mean obviousness 2.9 → 3.0).
+- **The Footprint across four floors** (v1.82, issue #401; the plan: `docs/design/temple-best-practices.md` part 4). The
+  author: "1 temple should have more verticality, like be on multiple levels so that the non linear path is not just
+  about the horizontal layout". The house goes down: four floors 18 m apart (`WELL.floors`: F0 the rim, F1, F2, F3 the
+  heel's floor) round the **Heel Well**, one round wall 40 m across from the heel's floor to over the rim, open to the sky
+  (`K.rotunda` with `well: true`: its balconies are rooms, measured by the rules as one round space), a balcony on every
+  floor (`ringShape`, `slabOf`: a ring 6 m wide, drawn with 128 sides and solid with 48; F1's east arc cut off by two
+  gaps). Toes off the well, stacked where a hole or a floor demands it (`ROOMS`): F0 the Threshold, the Hall of Spheres
+  (west), the Keepers' Lodge (east); F1 the Still Pool (north, its 6 m pool over the Echo's Hall) and the Sounding Toe
+  (east, over the Hall of the Unseen); F2 the Lens Chamber (west, under the Hall of Spheres), the Hall of the Unseen and
+  its vault (east); F3 the great door, the antechamber and the Echo's Hall (north). From the rim's edge the great door is
+  in sight at the bottom on the way in (`tests/footprint-floors.test.js`, a ray beside the pier). The pieces:
+  - **Drops** (`Catch`): three, each into a pool: an `Iris` in the rim's floor over F1's pool (`d1`: the Hall of Spheres'
+    answer opens it, where the hall's door used to), an open hole through the rim and F1's balcony over F2's pool, and
+    the well itself over the heel's pool. Over a pool, falling faster than `CATCH.slow`, its water takes the fall in the
+    last metres (a wade's speed: nothing hurt, a splash); it slows the fall a few frames before the water, so it works
+    whichever runs first, the house or the traveller (in the game the boxes' effects set `fallGuard` every frame, so a
+    guard would not hold). Off a balcony's edge where no pool waits: a hard landing, as anywhere.
+  - **The great lift** (`GreatLift`, `LiftSphere`): a disc in the well's middle with the great sphere on it, between the
+    rim and F2 (`LIFT`), its rails of light from top to bottom. Stepped on, after 0.9 s it carries you to the other floor
+    (stay on and it stays); its plate on the other floor's pier (`pUp`, `pDown`) calls it. Its element is a drum with two
+    stops, `pUp` (t 0) and `pDown` (t 1), `roll: 'hand'`: the house's one state, seen from every balcony. Up: F1's two
+    bridges stand (`bW`, two `Bridge`s, one element) and the Lodge's door can open; down: the third lamp of the Unseen's
+    far door. Leaving, its sphere is off both plates (t 0.1 or 0.9), so what waits for it shuts at once; saved half-way, it
+    finishes the trip. A pool on its disc too (a fall onto it from the rim).
+  - **The Sounding Toe** (`SOUNDING`): a sphere in a groove whose end is an iris over a round hole in the floor (`hT`,
+    open while you stand on the walker's print among a two- and a four-toed one: `pH`). Pushed from the print, it rolls
+    to the end (friction 0.25: one push carries it) and drops through onto the plate in the Hall of the Unseen below
+    (`pT`), and the Unseen's door opens (`dT`). `Ball` `hole: { gate, to, stand }`: at its groove's end with the gate
+    open it falls (`startHole`, `throughHole`) and lies at `to` for good, its t 1 meaning fallen; up on its groove it is
+    never saved past `HOLE_REST` (0.93), so a ball resting on the shut hatch is not on the plate below. The rules let a
+    `through` drum's plate be another room's (`scripts/temple-design/rules.mjs`: the author's ruling, a hole is not a
+    door, and nor is the lift's shaft).
+  - **The spiral** (`Spiral`, `SPIRAL`): 80 stones only the lens shows, two turns round the well's middle from F2 to
+    the rim, each 0.45 m over the last (a step, never a jump), a landing onto each balcony. Revealed once the lens has
+    looked at the well's middle; then solid (one collider). It is the way up that leaves the great sphere where it is,
+    and the Lodge's eye (`sL`, under the rim's pier, facing the spiral's second turn) is seen from it: its room is
+    `helix`, a puzzle room after the chest.
+  - **The last lift** (`Platform`, always running) from F2's balcony down to the heel's floor, south: the way back up
+    from a fall into the well.
+  The steps: the Hall of Spheres (the sphere on the walker's print, you on the walker's print) opens the first drop; on
+  F1, in either order, the Sounding Toe (over the bridges while the great sphere is up) and the Still Pool (its berth
+  raises the stones to a coffer on the far ledge, `cF`, and opens the Lens Chamber, `dL`); down to F2 by the second drop
+  or the lift; the lens; raised over the well, the spiral; the Hall of the Unseen's stones, the far landing's hidden print
+  and its eye; up the spiral to the Lodge's eye; the Lodge (its door: the eye and the great sphere up) and its small key;
+  down with the great sphere; the far door (the small key, the eye, the print, the great sphere down) and the vault's
+  great key; the last lift; the great door (`dG`, the arena's door now) and the Echo, whose three resonant spheres stand
+  on galleries 6 m up round its hall. Eleven steps a player takes (the design audit counts ten locks, was five; mean
+  obviousness 3.0 → 1.8; score 4.33 as before). The logic:
+  `solve()` tries two balls at once when nothing else is left (the far door wants the great sphere down and the sphere on
+  the print, neither alone opens it), and the marker (`logic.next`) asks for a ball's stop only if it opens something or
+  shuts nothing (`worthMove`: never the great sphere down while it only lights one lamp and sinks F1's bridges), the lift
+  last in the list, so it is called only when nothing else is left. Tests: `tests/footprint-floors.test.js` (every drop
+  fallen, the spiral climbed stone by stone, both lifts ridden, the whole house on foot with a real traveller),
+  `tests/temple-playthrough.test.js` (the lift called from its plates, the Sounding Toe's sphere pushed from its print),
+  the solver's, the rules' (none broken), the way back's, z-fights 2 → 0. Old saves: past the old far door, the new
+  doors as done and the great key in the great door (`migrate.js` spheres v4); one that stood in the old rooms, to its
+  last mark.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

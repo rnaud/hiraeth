@@ -173,7 +173,7 @@ export const BOSS_HINTS = {
   spheres: {
     phases: [
       ['It sings, and waits for an answer.',
-        'When it sings, one sphere round the hall glows with its note.',
+        'When it sings, one sphere on the galleries glows with its note.',
         'Shoot the sphere that glows while it sings. The wrong one makes it flinch.'],
       ['It sings again, and faster.',
         'Answer each song on the sphere that glows. Through your lens it wears the walker’s print.',

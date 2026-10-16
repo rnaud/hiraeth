@@ -35,6 +35,11 @@ export const CHANGELOG = [
     // the walk (as a glyph unless hints are full), the charge card as the screen's 'charge', tool.swordOn;
     // tests/engine-hologram.test.js, tests/charge.test.js; scripts/unity-compare/opening.mjs
     'In the Unity version the opening plays as it does on the web: you wake with your eyes opening on the ship’s cabin instead of a black screen, the voicemail’s button shows its E as you come up to it, your father’s message rises over the dash as his hologram (there was nothing there), his charge is lettered on the sand as the dust clears, and no sword hangs on your back before you have found one.',
+    // issue #401: src/temples/spheres.js (WELL, ROOMS, LOGIC, GreatLift, LiftSphere, Spiral, Catch, the layout), pieces.js
+    // (Ball hole, Iris up), logic.js (solve's two balls at once, next's worthMove), migrate.js spheres v4,
+    // scripts/temple-design/ (rules `through`, the well measured); tests/footprint-floors.test.js, temple-playthrough's
+    // lift; docs/systems/temples.md "The Footprint across four floors", docs/design/temple-best-practices.md part 4
+    'The Footprint in the Garden of Spheres now goes down: four floors round a great well, and from its rim you can see the Echo’s door at the very bottom. Drop through holes in the floors into pools that break your fall, push a sphere through a hatch onto a plate on the floor below, ride the great sphere’s lift (where it rests decides which bridges stand and which doors open), and climb a spiral of stones only the seeing lens shows. Eleven steps where there were five.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

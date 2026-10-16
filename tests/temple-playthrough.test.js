@@ -178,7 +178,9 @@ export function playTemple(id, o = {}) {
       spots.push(at);
     }
     // (a floating ball in a pool that stirs: pushed from the plate that stills it, the Footprint's bank)
-    const Cu = b.o.current, still = Cu?.still?.pressed && !L.check(Cu.still) ? rt.piece(Cu.still.pressed) : null;
+    // (or a ball whose groove ends at a hatch over a hole, issue #401: pushed from the print that opens the hatch, the
+    // Footprint's Sounding Toe)
+    const Cu = b.o.current, still = (Cu?.still?.pressed && !L.check(Cu.still) ? rt.piece(Cu.still.pressed) : null) ?? (b.o.hole?.stand && !L.pressed(b.o.hole.stand) ? rt.piece(b.o.hole.stand) : null);
     const cone = tool.kind === 'cut' ? BLADE.angle : FLUID.push.angle, tg = targetOf(b);
     if (!tg) return false;
     const mode = tool.kind === 'cut' ? 'blade' : tool.kind === 'nudge' ? 'shoot' : tool.kind;
@@ -264,8 +266,23 @@ export function playTemple(id, o = {}) {
     return Math.abs((t - b.t) * b.len) <= tol || !!until?.();
   };
 
+  /**
+   * (issue #401) A lift that carries its sphere between floors (the Footprint's great lift, its element a drum whose stops
+   * are the plates on its piers): called to the stop its puzzle wants by standing on that stop's plate, and waited for.
+   */
+  const ride = (eid) => {
+    const lift = rt.piece(eid), e = L.el(eid), [, plate] = goal(lift, e), pl = rt.piece(plate);
+    if (!pl?.pos) { fail(`${eid}: no plate ${plate} to call it from`); return false; }
+    if (L.drumOn(eid, plate)) return true;
+    goTo(pl.pos.clone());
+    if (!wait(40, () => L.drumOn(eid, plate))) { fail(`${eid}: called from ${plate}, never came (it rests at t ${L.drumT(eid)})`); return false; }
+    const off = near(pl.pos, 2.6);
+    if (off) goTo(off);
+    return true;
+  };
   /** Roll a drum onto the stop its puzzle wants now; what it lights must catch from it. */
   const roll = (eid) => {
+    if (rt.piece(eid)?.carries) return ride(eid);
     const b = rt.piece(eid), e = L.el(eid);
     if (!(b instanceof Ball)) { fail(`${eid}: no ball`); return false; }
     const [t, plate] = goal(b, e);
@@ -424,7 +441,7 @@ export function playTemple(id, o = {}) {
     tries.set(eid, k);
     if (k > (held(e) ? 12 : 4)) { fail(`${e.type} ${eid}: asked for again and again (${k} times)`); break; }
     let how = null;
-    if (e.type === 'drum') how = roll(eid) ? 'rolled' : null;
+    if (e.type === 'drum') how = roll(eid) ? (rt.piece(eid)?.carries ? 'called' : 'rolled') : null;
     else if (e.type === 'weight') how = carryOnto(eid);
     else if (e.type === 'gadget' || e.type === 'find') {
       const item = e.item ?? def.gadget, box = e.type === 'find' ? e.box : def.gadgetBox;

@@ -17,7 +17,9 @@ const wrap = (name, f) => {
   TempleKit.prototype[name] = function (...a) { if (spaces) { const s = f.apply(this, a); if (s) spaces.push(s); } return was.apply(this, a); };
 };
 wrap('hall', ({ x = 0, z = 0, w, d, y = 0, h }) => ({ shape: 'box', x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, y, top: y + h }));
-wrap('rotunda', ({ x = 0, z = 0, y = 0, r, h, oculus = 0.38 }) => (oculus < 0 ? null : { shape: 'round', x, z, r, y, top: y + h }));   // (a shaft is a well, not a room)
+// (a shaft is a well, not a room; but a well whose balconies are rooms, `well: true`, is measured as one: the Footprint's
+// Heel Well, issue #401)
+wrap('rotunda', ({ x = 0, z = 0, y = 0, r, h, oculus = 0.38, well = false }) => (oculus < 0 && !well ? null : { shape: 'round', x, z, r, y, top: y + h }));
 wrap('vestibule', (z0, y, { x = 0 } = {}) => ({ shape: 'box', x0: x - ANTE.half, x1: x + ANTE.half, z0, z1: z0 + ANTE.len, y, top: y + ANTE.h, passage: true }));
 wrap('corridor', (a, b, y, { w = 5, h = 6.4 } = {}) => {
   const alongZ = Math.abs(b[0] - a[0]) < Math.abs(b[1] - a[1]), s = w / 2 + 0.3;

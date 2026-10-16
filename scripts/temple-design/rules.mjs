@@ -180,7 +180,9 @@ export function templeRules({ logic, pieces = [], spaces = [], order = null, gua
   for (const [id, e] of Object.entries(E)) {
     if (e.type !== 'drum' && e.type !== 'weight') continue;
     const plates = [e.plate, ...Object.keys(e.stops ?? {})].filter(Boolean);
-    for (const pl of new Set(plates)) if (E[pl]?.room && e.room && E[pl].room !== e.room) add('door_thread', e.room, `${id}: its plate ${pl} is in the ${E[pl].room}`);
+    // (issue #401, the author's ruling: a ball dropped through a hole in the floor onto a plate in the room below, and a lift
+    // carrying its sphere between the floors of one well, `through`, cross no door: their plates may be another room's)
+    if (!e.through) for (const pl of new Set(plates)) if (E[pl]?.room && e.room && E[pl].room !== e.room) add('door_thread', e.room, `${id}: its plate ${pl} is in the ${E[pl].room}`);
     if (e.gap && E[e.gap]?.type === 'door') add('door_thread', e.room, `${id}: rolled through the door ${e.gap}`);
     const b = byId.get(id);
     if (b?.cls === 'Ball' && Array.isArray(b.o.a) && Array.isArray(b.o.b)) for (const d of doors) {

@@ -112,7 +112,7 @@ export class TempleLogic {
     this.store.set(`weight.${id}`, plate ?? '');
     return true;
   }
-  drumT(drum) { return this.store.get(`drum.${drum}`) ?? this.el(drum)?.start ?? 0; }
+  drumT(drum) { return this.trial?.drum === drum ? this.trial.t : this.store.get(`drum.${drum}`) ?? this.el(drum)?.start ?? 0; }
   moveDrum(drum, t) {
     const e = this.el(drum);
     if (e?.type !== 'drum') return false;
@@ -276,7 +276,9 @@ export class TempleLogic {
       // (a stop is worth it only for a door that leads somewhere not in reach now: the Aerie's one stone opens the vent's
       // shaft down into the Moult in one throat and the column to the great key in the other, and once the Moult's own door
       // is open the shaft is no way anywhere new: issue #23)
-      if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => (!this.drumOn(id, p) && this.awaitedStop(p, reach)) || (this.drumOn(id, p) && this.holdsShut(p)))) return id;
+      // (and not a stop that only half-answers one door while it shuts another: the Footprint's great lift, issue #401, whose
+      // sphere up holds F1's bridges and down is one of the far door's three lamps; down it goes once that door would open)
+      if (e.type === 'drum' && e.stops && rolls(e, (it) => this.has(it)) && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => (!this.drumOn(id, p) && this.awaitedStop(p, reach) && this.worthMove(id, p)) || (this.drumOn(id, p) && this.holdsShut(p)))) return id;
       // (a weight worth carrying onto its plate: one a shut door waits for; a reward's, `optional`, the marker leaves alone)
       if (e.type === 'weight' && !e.optional && e.plate && this.weightOn(id) !== e.plate && (e.needs ?? []).every((it) => this.has(it)) && this.awaited(e.plate)) return id;
       if (e.type === 'boss' && !this.resolved) return id;
@@ -284,6 +286,24 @@ export class TempleLogic {
     // a plate still worth standing on: one a shut door is waiting for (not one a weight of its own is for: that is carried)
     for (const [id, e] of Object.entries(this.def.elements)) if (e.type === 'plate' && reach.has(e.room) && !this.pressed(id) && this.awaited(id) && !this.ofType('weight').some((w) => this.el(w).plate === id)) return id;
     return null;
+  }
+  /**
+   * Is rolling `drum` onto `plate` worth it now: it opens a shut door or bridge, or it shuts none that stands open (a trial:
+   * nothing saved, nothing latched)?
+   */
+  worthMove(drum, plate) {
+    const at = stopOf(this.el(drum), plate);
+    if (at == null) return false;
+    const gates = Object.keys(this.def.elements).filter((d) => isGate(this.el(d)));
+    // (or what it lets be done: an eye whose `when` it answers, a key or a coffer whose cage it sinks: the Engine-House's
+    // Governor Room, its one ball moved off the hammer's crank to wake the pistons' eyes)
+    const waits = Object.entries(this.def.elements).filter(([d, g]) => g.when && ((LATCHED.has(g.type) && !this.isLit(d)) || (FINDS.has(g.type) && !this.isFound(d)))).map(([d]) => d);
+    const state = () => [...gates.map((d) => this.computeOpen(d)), ...waits.map((d) => this.check(this.el(d).when))];
+    const before = state();
+    this.trial = { drum, t: at };
+    const after = state();
+    this.trial = null;
+    return after.some((v, i) => v && !before[i]) || !gates.some((_, i) => before[i] && !after[i]);
   }
   /** A shut door or bridge waits for this plate to be let go (its `opens` wants it `not` pressed: a stone out of a throat). */
   holdsShut(id) { return Object.entries(this.def.elements).some(([d, g]) => isGate(g) && !this.isOpen(d) && mentionsNot(g.opens, id)); }
@@ -416,30 +436,30 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
     for (const id of reverse ? lockIds.slice().reverse() : lockIds) if (L.canUnlock(id) && L.lockReachable(id, reach)) { L.unlock(id); note(`unlock ${id}`); did = true; break; }
     if (did) continue;
     // a ball with several stops: roll it to one that lets something new be done (an eye's `when`, a door, a room)
-    for (const [id, e] of Object.entries(def.elements)) {
-      if (forbid.includes(id) || e.type !== 'drum' || !e.stops || !rolls(e, has) || !reach.has(e.room) || !(e.needs ?? []).every(has)) continue;
-      // (tried without update(): a trial must not latch a door open)
-      const score = () => {
-        const rooms = new Set([def.entry]), todo = [def.entry];
-        while (todo.length) {
-          const r = todo.pop();
-          for (const l of def.links) {
-            const o = l.a === r ? l.b : l.b === r && !l.oneWay ? l.a : null;
-            if (o && !rooms.has(o) && (!l.door || L.computeOpen(l.door)) && (l.needs ?? []).every(has)) { rooms.add(o); todo.push(o); }
-          }
+    // (tried without update(): a trial must not latch a door open)
+    const score = () => {
+      const rooms = new Set([def.entry]), todo = [def.entry];
+      while (todo.length) {
+        const r = todo.pop();
+        for (const l of def.links) {
+          const o = l.a === r ? l.b : l.b === r && !l.oneWay ? l.a : null;
+          if (o && !rooms.has(o) && (!l.door || L.computeOpen(l.door)) && (l.needs ?? []).every(has)) { rooms.add(o); todo.push(o); }
         }
-        // (an eye that can be woken now first: it stays woken, and the ball can go on to its next place; then rooms, then doors)
-        const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
-        // (and a lock a key in hand fits, brought within reach: the Mooring-House's great lock past the west door, v1.53)
-        const fits = lockIds.filter((x) => L.canUnlock(x) && L.lockReachable(x, rooms)).length;
-        // (a room never reached before counts more than one left behind: the Aerie's one stone, its vent's shaft down into the
-        // Moult while it sits in one throat, the column up to the great key's perch in the other, issue #23)
-        const fresh = [...rooms].filter((r) => !order.includes(r)).length;
-        return usable * 1e6 + fits * 1e5 + fresh * 1e4 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
-      };
-      // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
-      const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));
-      const scoreStood = () => { let best = score(); for (const p of plates) { L.press(p, 'player'); best = Math.max(best, score()); L.release(p, 'player'); } return best; };
+      }
+      // (an eye that can be woken now first: it stays woken, and the ball can go on to its next place; then rooms, then doors)
+      const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
+      // (and a lock a key in hand fits, brought within reach: the Mooring-House's great lock past the west door, v1.53)
+      const fits = lockIds.filter((x) => L.canUnlock(x) && L.lockReachable(x, rooms)).length;
+      // (a room never reached before counts more than one left behind: the Aerie's one stone, its vent's shaft down into the
+      // Moult while it sits in one throat, the column up to the great key's perch in the other, issue #23)
+      const fresh = [...rooms].filter((r) => !order.includes(r)).length;
+      return usable * 1e6 + fits * 1e5 + fresh * 1e4 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
+    };
+    // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
+    const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));
+    const scoreStood = () => { let best = score(); for (const p of plates) { L.press(p, 'player'); best = Math.max(best, score()); L.release(p, 'player'); } return best; };
+    const stopBalls = Object.entries(def.elements).filter(([id, e]) => !forbid.includes(id) && e.type === 'drum' && e.stops && rolls(e, has) && reach.has(e.room) && (e.needs ?? []).every(has));
+    for (const [id, e] of stopBalls) {
       const t0 = L.drumT(id), base = scoreStood();
       let best = null;
       for (const [plate, at] of Object.entries(e.stops)) {
@@ -460,6 +480,23 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
       L.press(p, 'player'); L.update(); L.release(p, 'player'); L.update();
       if (openCount() > before) { note(`stand on ${p}`); did = true; break; }
     }
+    if (did) continue;
+    // (two balls at once, issue #401: a door that wants two of them, each on one of its stops, where neither alone opens
+    // anything: the Footprint's far door, the great sphere down on F2 and the sphere on the walker's print. Tried only once
+    // nothing else is left)
+    let pair = null;
+    const base2 = stopBalls.length > 1 ? scoreStood() : 0;
+    for (let i = 0; i < stopBalls.length; i++) for (let j = i + 1; j < stopBalls.length; j++) {
+      const [ia, ea] = stopBalls[i], [ib, eb] = stopBalls[j], ta = L.drumT(ia), tb = L.drumT(ib);
+      for (const [pa, sa] of Object.entries(ea.stops)) for (const [pb, sb] of Object.entries(eb.stops)) {
+        if (L.drumOn(ia, pa) || L.drumOn(ib, pb)) continue;
+        L.moveDrum(ia, sa); L.moveDrum(ib, sb);
+        const sc = scoreStood();
+        if (sc > base2 && (!pair || sc > pair.s)) pair = { s: sc, moves: [[ia, pa, sa], [ib, pb, sb]] };
+        L.moveDrum(ia, ta); L.moveDrum(ib, tb);
+      }
+    }
+    if (pair) { for (const [d, p, t] of pair.moves) { L.moveDrum(d, t); note(`roll ${d} onto ${p}`); } did = true; }
     if (!did) break;
   }
   return { done: L.resolved, log, order, gadgetAt, stuck: [...L.reachable()], logic: L };

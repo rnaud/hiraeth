@@ -358,7 +358,7 @@ no growth from first to last.**
 
 ---
 
-## Part 4: verticality, the plan for issue #401
+## Part 4: verticality, the plan for issue #401 (built in v1.82: see "As built" at its end)
 
 ### Which house
 
@@ -432,3 +432,37 @@ floors.
 
 **What #401 will need to check:** every drop's landing walked with a real `Player`. The lens stones read from the rim
 in headless Chrome. The sphere's drop through the floor accepted or refused by the author. The same in Unity.
+
+### As built (v1.82, issue #401)
+
+The plan is built, with the author's two choices: the Footprint is the house, and a ball dropped through a hole in the
+floor may carry a puzzle to the room below. Where the code asked for something else, this is what changed, and why
+(`src/temples/spheres.js`; how it works: `docs/systems/temples.md`, "The Footprint across four floors"; the floors'
+plans and pictures in the commit's report):
+
+- **Floors and well as planned:** four floors 18 m apart round a 40 m well, a balcony on each, the Echo's great door in
+  sight at the bottom from the rim's edge.
+- **The Hall of Spheres opens a drop, not a stair.** An 18 m stair needs some 33 m of run beside the toes, and under the
+  Hall of Spheres stands the Lens Chamber. Its answer opens an iris in the rim's floor over a pool on F1: the first drop.
+- **F1's two ways each open a room on F2.** The Sounding Toe's sphere drops through its floor onto a plate in the Hall of
+  the Unseen, straight below, and opens its door. The Still Pool's berth opens the Lens Chamber. The chamber cannot stand
+  under the pool: the pool is sunk 6 m into F1's floor. Either order works.
+- **F1's bridge is two bridges, over two gaps** either side of the balcony's east arc, where the Sounding Toe's door is. A
+  bridge across the middle of the well would cross the great lift and the spiral.
+- **The great lift carries you as well as the sphere.** The well is open, so any fall lands somewhere below. Without a way
+  up that needs nothing, a fall before the lens would strand you (`tests/way-back.test.js`). So you ride the disc, or
+  stand on its plate on the other floor's pier to call it. The spiral is still the shortcut up, and the way up that
+  leaves the great sphere where it is.
+- **What the sphere sets:** up, F1's bridges and the Lodge's door; down, the third lamp of the Unseen's far door. Going
+  for the small key needs it up, and using the key needs it down: one state you set, seen from every balcony.
+- **The third drop is the well itself,** into the heel's pool on F3. Every fall now has a safe landing, and a fall from the
+  rim's edge is the way down to the great door. The two other drops land in pools on F1 and F2. The pools take a fall in
+  their last metres, so nothing is hurt (`Catch`).
+- **The last flight is a lift** from F2 to F3, for the same reason as the first stair.
+- **The Echo's spheres stand on galleries round its own hall,** 6 m over its floor: the well's bottom is the heel's pool
+  every fall lands in, so the fight has a hall of its own behind the great door.
+- **Length:** a player takes eleven steps: the Hall of Spheres, the first drop, the Sounding Toe, the Still Pool, the
+  lens, the spiral, the Hall of the Unseen, the Lodge's eye, the Lodge, the great sphere down and the far door, then the
+  great door. The design audit counts ten puzzle locks (it was five; skeleton `XBBXXCRRRXLLK`), its mean obviousness 1.8
+  (it was 3.0), its score 4.33 as before; the redesign's rules: none broken.
+

@@ -1092,12 +1092,31 @@ const SWORD390 = 'muted headless Chrome on this Mac, High, 1280 × 720, the Aren
 /** (v1.82, issue #395: the Unity build's render scale on the AYN Thor) */
 const THOR395 = 'Issue #395: the Unity testers’ APK on the AYN Thor (adb, muted, the frame readout on, the bench’s plan -views … -bench 6 in one sitting); before: the installed v1.82 build (build 2490, Handheld at 0.75 of 1920 × 1080), after: this change’s build (0.5); the pictures are the bench’s own frames of the desert’s spawn from this change’s build, before held at 0.75 (-render-scale 0.75), the middle 1280 × 720 cut at full size; 16 October; cwebp -q 72';
 const OPENING394 = 'Issue #394: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720; its HUD laid out for the batch’s 4:3 window, so the letterbox stops short of the right edge in both), a new save’s prologue photographed beat by beat by -opening (engine/opening-beats.js), before and after the fix; 16 October; cwebp -q 72';
+/** (v1.82, issue #401: the Footprint across four floors) */
+const FP401 = 'Issue #401: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5401, scripts/design-qc/capture.mjs), the camera pinned; before: the same tree with src/temples/spheres.js as on origin/main (5b612814), the same camera where the house allows; 16 October; cwebp -q 72';
+const FP401P = 'Issue #401: the house’s plans drawn from its own rooms and pieces (scripts/temple-design/record.mjs: the kit’s halls, round halls and passages, every piece where the layout put it), one floor before, four after (local metres, the same scale), 16 October; cwebp -q 70';
+const FP401N = 'Issue #401: muted headless Chrome on this Mac (ANGLE Metal, High, render scale 1, 1280 × 720, vsync off), this branch’s own Vite, the camera pinned, 9 s a view, the median frame and the median draw calls (the game’s frameStats), the before with src/temples/spheres.js as on origin/main measured in the same minutes (load 11–13); 16 October';
 export const CHANGELOG_MEDIA = {
   '1.82': [
     { match: 'In the Unity version the opening plays as it does on the web', shots: [
       { name: 'unity-father', caption: 'Eight seconds into the father’s message: before, nothing over the dash; after, his hologram, as on the web', from: OPENING394 },
       { name: 'unity-wake', caption: 'Waking, three and a half seconds in: before, the eyelids still shut over everything; after, the cabin’s ceiling as his eyes open', from: OPENING394 },
     ], see: 'Start a new game in the Unity version: wake in the cabin, walk to the console and press A / × at the voicemail’s button.' },
+    { match: 'The Footprint in the Garden of Spheres now goes down', shots: [
+      { name: 'footprint-arrival', title: 'In at the heel', caption: 'In through the Footprint’s door: before, the Hall of Spheres straight ahead; after, a passage out onto the rim of the Heel Well, the great sphere on its lift in the middle', from: FP401 },
+      { name: 'footprint-well', title: 'Down the well', caption: 'The deepest the house went: before, the Hall of the Unseen’s chasm, sunk 10 m; after, down the Heel Well from over the rim: the balconies of four floors, the great lift and its pier, the heel’s pool and its print 54 m below', from: FP401 },
+      { name: 'footprint-spiral', only: 'after', title: 'The spiral', caption: 'Through the seeing lens, over the well: the spiral of stones from F2 to the rim, each carrying the walker’s print', from: FP401 },
+      { name: 'footprint-plan', size: [1280, 1199], title: 'The plan', caption: 'The house from above: before, one floor (its pool and chasm sunk 6 and 10 m); after, its four floors: the rim, F1, F2 and the heel’s floor', from: FP401P },
+    ], numbers: [
+      { title: 'Frame time inside the Footprint (the draw calls with each place)', unit: 'ms', better: 'lower', device: 'this Mac, muted headless Chrome, High, render scale 1, vsync off', rows: [
+        { where: 'at the door, looking in (draw calls 436 → 543)', before: 4.6, after: 5.7 },
+        { where: 'the Hall of Spheres (draw calls 429 → 156)', before: 4.0, after: 3.7 },
+        { where: 'the Lens Chamber (draw calls 364 → 265)', before: 4.1, after: 4.0 },
+        { where: 'the Hall of the Unseen (draw calls 210 → 239)', before: 3.6, after: 3.7 },
+        { where: 'the rim, down the well (draw calls 461: new)', before: null, after: 5.0 },
+        { where: 'the Echo’s Hall (draw calls 209)', before: null, after: 3.8 },
+      ], source: FP401N },
+    ], see: 'In the Garden of Spheres, go in at the Footprint’s heel and walk out onto the rim: look down the well. The first drop opens once the Hall of Spheres is answered; ride the great sphere’s disc in the middle, or stand on its plate on the pier to call it.' },
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
       { name: 'fight-runs', only: 'after', title: 'Two runs of the Wind Cloister', caption: 'The same temple drawn from two seeds, seen from above: the bell walk and the cloister in the other order, the rooms laid out another way and turned, the waves drawn again (each room’s count of foes below it); the stalls first and the old roost last both times.', from: 'tests/fight-generate.test.js’s draws, the plans drawn from src/fight-temples/generate.js drawRun(ARZACH_FIGHT, 3) and (…, 8) as SVG and shot in muted headless Chrome; 16 October; cwebp -q 72' },
     ], see: 'Go into any fight temple twice: the rooms come in another order and layout. At the end, the card gives the run’s number: add ?seed= and that number to the address to play the same run again.' },
