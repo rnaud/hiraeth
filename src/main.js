@@ -64,6 +64,7 @@ import { BrushTrail } from './brush.js';
 import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent, nearDue, farDue, nearEveryNow } from './shadows.js';
 import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
+import { HouseAir } from './temples/air.js';
 import { JumpShadow } from './jump-shadow.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
@@ -295,6 +296,7 @@ function resize() {
   wind?.uniforms.uRes.value.set(rw, rh);
   HOLO.uniforms.uRes.value.set(rw, rh);
   if (overlays.motes) { overlays.motes.uniforms.uRes.value.set(rw, rh); overlays.motes.uniforms.uPR.value = pr; }
+  overlays.houseAir?.setTarget(gbuffer.textures[1], rw, rh, pr);
 }
 window.addEventListener('resize', () => resize());
 let wind = null;
@@ -638,6 +640,11 @@ const flocks = (lifeCfg.flocks ?? []).map((f) => new Flock(scene, f));
 const motes = lifeCfg.motes ? new Motes(scene, lifeCfg.motes) : null;
 if (motes) motes.uniforms.tNormal.value = gbuffer.textures[1];
 overlays.motes = motes;
+// the makers' houses' air (src/temples/air.js, issue #372): embers, sand, bubbles, drips, dust in each skinned house,
+// drawn over the ink as the motes are, the world's own motes hidden while you are inside; its lights' pulse, its sound
+const houseAir = level.temples?.length ? new HouseAir(level, { lowDetail: () => !!preset.lowDetail, worldMotes: motes }) : null;
+overlays.houseAir = houseAir;
+houseAir?.setTarget(gbuffer.textures[1], post.uniforms.uRes.value.x, post.uniforms.uRes.value.y, post.uniforms.uPixelRatio.value);
 // the hoverbike / skiff trail
 // two trails, one per hover jet, behind whichever hover vehicle you ride (the world's mount, or the bike by the ship
 // where the bird is the mount, as in Viridel: issue #376; src/bike-worlds.js trailVehicle)
@@ -2056,6 +2063,7 @@ function renderFrame() {
     level.veils?.render(renderer, camera, composeRT);   // the see-through surfaces' bodies, a pale wash (src/veil.js: Lorn II's mushrooms)
     renderer.render(wind.scene, camera);
     if (motes) renderer.render(motes.scene, camera);
+    if (houseAir) for (const sc of houseAir.scenes()) renderer.render(sc, camera);   // (a makers' house's air: src/temples/air.js)
     if (HOLO.live()) HOLO.render(renderer, camera, composeRT);   // the recordings' hologram: light, not ink
     if (hitboxes.on) hitboxOverlay.render(renderer, camera, composeRT);   // the fight's hitboxes, on top (src/hitbox-overlay.js)
   }
@@ -2293,6 +2301,7 @@ function frame(ts) {
   const orbit = !!ship.spaceCopy && player.pos.y > (level.ground.heightAt?.(player.pos.x, player.pos.z) ?? 0) + 1000;
   for (const f of flocks) { for (const m of [...f.wings, f.bodies]) m.visible = !orbit; if (!orbit) f.update(dt, t, player.pos, camera.position); }
   motes?.update(dt, t, camera.position);
+  houseAir?.update(dt, t, camera, player.pos);
   footprints?.update(dt);
   jumpShadow.update(player, physics);
   updateLights();
@@ -2392,6 +2401,7 @@ function frame(ts) {
     hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
     rails: level.rails?.(player.pos) ?? null,   // (a train's wheels under you: src/levels/overnight-train.js)
     footing: player.footing,   // (the world's ground or something built on it: the footsteps' surface)
+    house: houseAir?.sound ?? null,   // (inside a makers' house: its bed, src/temples/air.js)
   });
 
   // sand: ambient gusts + dust behind the bike

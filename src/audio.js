@@ -787,6 +787,7 @@ export class Sound {
 
   // ------------------------------------------------------------------ ambience beds
   ambienceTick(t, spb) {
+    if (this.houseBed && this.houseTick(this.houseBed, t, spb)) return;   // (inside a makers' house: its own, src/temples/air.js)
     const A = this.voice.ambience, R = Math.random();
     if (A === 'birds' && R < 0.35) {                     // little chirps, in twos and threes
       const base = 2400 + Math.random() * 2200, n = 2 + Math.floor(Math.random() * 3);
@@ -817,6 +818,72 @@ export class Sound {
     } else if (A === 'paper' && R < 0.15) {
       this.burst(t + Math.random() * spb, { dur: 0.4, type: 'highpass', freq: 2500, q: 0.6, vol: 0.03, rate: 0.7 });
     }
+  }
+
+  /**
+   * A makers' house's own sounds on the score's beat (issue #372, src/temples/air.js HOUSE_AIR's sound.bed), under the
+   * bed update() holds (its roar, drone and wind): true if `kind` is a house's (the world's ambience is left out there).
+   */
+  houseTick(kind, t, spb) {
+    const R = Math.random(), at = t + Math.random() * spb;
+    const crackle = (n, vol) => { for (let i = 0; i < n; i++) this.burst(at + Math.random() * spb, { dur: 0.008 + Math.random() * 0.025, type: 'highpass', freq: 2200 + Math.random() * 3600, q: 0.8, vol: vol * (0.5 + Math.random()) }); };
+    if (kind === 'fire') { crackle(2 + Math.floor(R * 4), 0.012); if (R < 0.1) this.burst(at, { dur: 0.12, type: 'lowpass', freq: 500, q: 1, vol: 0.03 }); }
+    else if (kind === 'furnace') { crackle(1 + Math.floor(R * 3), 0.01); if (R > 0.4) this.burst(t + (R > 0.7 ? spb / 2 : 0), { dur: 0.03, type: 'highpass', freq: 3000, q: 1, vol: 0.018 }); if (R < 0.07) this.burst(t, { dur: 0.7, type: 'lowpass', freq: 120, q: 1, vol: 0.1, rate: 0.4 }); }
+    else if (kind === 'forge') { crackle(2 + Math.floor(R * 4), 0.012); if (R < 0.07) this.ring(at, 1180 + Math.random() * 300, { vol: 0.012, dur: 1.4, partials: [1, 2.4, 3.9] }); }
+    else if (kind === 'gusts') { if (R < 0.2) this.burst(t, { dur: 3.5, type: 'bandpass', freq: 500 + Math.random() * 600, q: 3, vol: 0.06, rate: 0.6 }); }
+    else if (kind === 'bells') { if (R < 0.1) this.ring(at, [262, 311, 392, 466][Math.floor(Math.random() * 4)], { vol: 0.009, dur: 4.5, partials: [1, 2.76, 5.4, 8.9] }); }
+    else if (kind === 'drips') { if (R < 0.3) this.drip(at, 0.018); }
+    else if (kind === 'filament') { if (R < 0.12) this.ring(at, 2100 + Math.random() * 900, { vol: 0.004, dur: 0.6, partials: [1, 2.1] }); if (R > 0.7) this.burst(at, { dur: 0.02, type: 'highpass', freq: 4200, q: 0.7, vol: 0.006 }); }
+    else if (kind === 'deep') { if (R < 0.05) this.moan(at); if (R > 0.75) this.drip(at, 0.012); }
+    else if (kind === 'vanes') { if (R < 0.18) this.burst(t, { dur: 2.2, type: 'bandpass', freq: 380 + Math.random() * 200, q: 2, vol: 0.05, rate: 0.5 }); }
+    else if (kind === 'ticks') { this.burst(t, { dur: 0.025, type: 'bandpass', freq: this.beat % 2 ? 2400 : 3200, q: 6, vol: 0.03 }); }
+    else if (kind === 'glass') { if (R < 0.08) this.ring(at, 1600 + Math.random() * 1000, { vol: 0.005, dur: 3, partials: [1, 2.32, 4.25] }); }
+    else if (kind === 'cables') { if (R < 0.1) this.creak(at); }
+    else if (kind === 'signals') {
+      if (R < 0.4) { const n = 2 + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) this.burst(at + i * (0.02 + Math.random() * 0.06), { dur: 0.01 + Math.random() * 0.02, type: 'highpass', freq: 2400 + Math.random() * 3200, q: 0.7, vol: 0.008 + Math.random() * 0.01 }); }
+      if (R > 0.94) this.tuning(at);
+    } else return false;
+    return true;
+  }
+
+  /** A struck metal's ring: sine partials (× f), each dying faster than the one under it. */
+  ring(t, f, { vol = 0.01, dur = 2, partials = [1, 2.76] } = {}) {
+    const ctx = this.ctx;
+    partials.forEach((k, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), d = dur / (1 + i * 0.8);
+      o.type = 'sine'; o.frequency.value = f * k;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol / (1 + i), t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g).connect(this.fx); o.start(t); o.stop(t + d + 0.05);
+    });
+  }
+
+  /** A drop falling into still water: a short falling pitch, and its echo off the walls. */
+  drip(t, vol = 0.015) {
+    const ctx = this.ctx, f = 1100 + Math.random() * 900;
+    for (const [dt, k] of [[0, 1], [0.21, 0.3]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(f, t + dt); o.frequency.exponentialRampToValueAtTime(f * 0.55, t + dt + 0.07);
+      g.gain.setValueAtTime(0.0001, t + dt); g.gain.exponentialRampToValueAtTime(vol * k, t + dt + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.12);
+      o.connect(g).connect(this.fx); o.start(t + dt); o.stop(t + dt + 0.15);
+    }
+  }
+
+  /** Far off in the sea, a long low call rising and falling. */
+  moan(t) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter(), f0 = 80 + Math.random() * 30;
+    o.type = 'triangle'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * 1.6, t + 1.4); o.frequency.linearRampToValueAtTime(f0 * 0.9, t + 3.2);
+    f.type = 'lowpass'; f.frequency.value = 400;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.018, t + 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + 3.4);
+    o.connect(f).connect(g).connect(this.fx); o.start(t); o.stop(t + 3.5);
+  }
+
+  /** A slack cable taking the strain: a low rough groan bending in pitch. */
+  creak(t) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter(), f0 = 55 + Math.random() * 35, d = 0.6 + Math.random() * 0.6;
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * (1.15 + Math.random() * 0.2), t + d);
+    f.type = 'bandpass'; f.frequency.value = 420; f.Q.value = 3;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.012, t + 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(f).connect(g).connect(this.fx); o.start(t); o.stop(t + d + 0.05);
   }
 
   /**
@@ -2682,20 +2749,25 @@ export class Sound {
     const W = AMBIENT_WIND * (1 - SEATED_SWELL.duck * (this._sitK ?? 0));
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
     // (a storm rises well over the calm, but stays a darker roar under the world: not the hiss it was)
-    this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W + (s.house?.howl ?? 0) * 0.03, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
     this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.07 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 380 + s.gust * 220 + s.storm * 240);
     this.set('rain', s.rain * 0.07);
     this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
     this.set('jet', s.thrusting ? 0.32 * (0.45 + 0.55 * Math.min(1, s.jetPower ?? 1)) : 0);   // (the throttle's roar: a light squeeze hums)
+    // inside a makers' house (issue #372, src/temples/air.js): its bed (a low roar, a drone, wind), its events on the beat
+    const HB = s.house ?? null;
+    this.houseBed = HB?.bed ?? null;
     const roar = Math.min(1, Math.max(0, s.roar ?? 0)) * (1 - 0.6 * (s.indoor ?? 0));
-    this.set('roar', roar * 0.2, 300 + roar * 260);
+    this.set('roar', roar * 0.2 + (HB?.roar ?? 0) * 0.06, HB?.roar ? HB.roarF ?? 260 : 300 + roar * 260);
     this.set('hiss', roar * roar * 0.035);
     const e = this.engine, t = this.ctx.currentTime;
-    const hum = Math.min(1, Math.max(0, s.hum ?? 0)) * (1 - 0.5 * (s.indoor ?? 0));
+    const hum = Math.max(Math.min(1, Math.max(0, s.hum ?? 0)) * (1 - 0.5 * (s.indoor ?? 0)), HB?.hum ?? 0);
+    const humF = HB?.hum ? HB.humF ?? 98 : 98;
+    if (this.hum.f !== humF) { this.hum.f = humF; this.hum.osc[0].frequency.setTargetAtTime(humF, t, 0.8); this.hum.osc[1].frequency.setTargetAtTime(humF * 2.006, t, 0.8); }
     this.hum.gain.gain.setTargetAtTime(hum * 0.022, t, 0.5);
     this.hum.osc[1].detune.setTargetAtTime(Math.sin(t * 0.21) * 9, t, 0.5);
-    this.set('static', hum * hum * 0.012);
+    this.set('static', (HB ? (HB.bed === 'signals' ? hum * hum : 0) : hum * hum) * 0.012);
     this.railsUpdate(s.rails, s.indoor ?? 0);
     const motor = s.rideKind === 'bike' || s.rideKind === 'skiff' || s.rideKind === 'taxi';
     e.gain.gain.setTargetAtTime(motor ? 0.035 : 0, t, 0.2);

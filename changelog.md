@@ -19,6 +19,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- The makers’ houses now have an air of their own: embers rise in the Rose House, the Engine-House and the Casting-House, whose lamps flicker; sand streams through the Aerie and falls slowly in the Clock-House, dust climbs the Warden’s Well, bubbles rise in the Whale-House, drips fall in the Hush-House, teal glints hang in the Mooring-House. Each house sounds like itself too (a furnace’s roar, drips, far bells, a clock’s ticks, creaking cables), and the dust and noise of the world outside stay at the door.
 - The last few foes of each Sunken Hall wave stand under a pillar of light so you can find them, one that slipped behind a wall is put back in the room (a run could never end), and the results give you a rank from S to C by your time and the hearts you lost.
 - From the second room of the Sunken Hall on, ink geysers open on the floor, one under you and more nearby: get out of the ring, or roll through it, before it bursts. Foes caught in one are cut by it, so lead the crowd in.
 - The Sunken Hall’s waves are more of a fight: an ember ring wells up on a spring just before foes climb out of it, and from the second room on most waves bring a gorged one, bigger, with a pale ring at its feet, that leaves a heart and an ember shard: pick it up and your cuts land twice as hard for 8 seconds.

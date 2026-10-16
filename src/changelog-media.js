@@ -912,6 +912,10 @@ const FUTURE342_AERIE_NUMBERS = [
   { title: 'The Aerie: draw calls a frame', unit: 'calls', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 213.1, after: 214.1 }, { where: 'Low', before: 219.2, after: 225.3 }], source: FUTURE342_AERIE_SOURCE },
   { title: 'The Aerie: triangles a frame (thousands)', unit: 'k', better: 'lower', device: FUTURE342_AERIE_DEVICE, rows: [{ where: 'High', before: 401, after: 328 }, { where: 'Low', before: 387, after: 313 }], source: FUTURE342_AERIE_SOURCE },
 ];
+/** (v1.79, issue #372: the skinned houses' air, the same pinned views before it and with it) */
+const AIR372 = 'Issue #372: a scratchpad script (ambience/shots.mjs) in muted headless Chrome (High, 960 × 540, noon), its own Vite on port 6591, the camera pinned in each house’s four biggest rooms (placed from the built house in node), the commit before (before) and with the air (after), 15–16 October; cwebp -q 72';
+const AIR372_DEVICE = 'this Mac (M4 Pro), muted headless Chrome (Metal, no vsync), 960 × 540, noon, the same pinned camera in each house’s four biggest rooms, the median of 180 frames a view, ?noair=1 and the air in loads minutes apart (High twice each, Low once), the means over the views; the machine shared with other work (load 9–22)';
+const AIR372_SOURCE = 'issue #372 scratchpad ambience/perf.sh (shots.mjs --measure); draw calls and frame time from renderer.info and requestAnimationFrame, every pass of a frame';
 /** (v1.78, issue #342: the Casting-House in its futuristic skin, the same pinned views with the skin off and on) */
 const SKINS_MARK = 'Issue #342: scripts/design-qc/capture.mjs in muted headless Chrome (High, 960 × 540, noon), Vite on port 6514, the camera pinned 4.5–5.5 m in front of the sign (placed from the built house in node), the skins with their own sign (before) and with the shared makers’ mark (after), 15 October; cwebp -q 72';
 const FUTURE342_CASTING = 'Issue #342: scripts/design-qc/capture.mjs (a scratchpad copy) in muted headless Chrome (High, 960 × 540, noon), Vite on port 6508, the house before the skin (its `skin:` line off, before) and in it (after), the camera pinned in each room, 15 October; cwebp -q 72';
@@ -1152,6 +1156,25 @@ export const CHANGELOG_MEDIA = {
         { where: 'rank', before: '—', after: 'C' },
       ], source: FIGHT368, note: 'The scripted player is a masher: it lost 8 hearts to foes and 3.5 to geysers. Rolling through blows and out of the rings is what earns an A or an S.' },
     ], see: 'Clear the Sunken Hall: the results card gives your rank. Lose no more than a heart inside four minutes for an S.' },
+    // (issue #372: scratchpad ambience/shots.mjs; ?noair=1 against the air in the same build for the numbers)
+    { match: 'The makers’ houses now have an air of their own', tags: ['temples'], shots: [
+      { name: 'air-engine', title: 'The Engine-House', caption: 'Its great hall: before, the desert’s pale sand dust carried in from outside; after, embers rising over the pits, a little ash, the world’s dust left at the door', from: AIR372 },
+      { name: 'air-engine-unity', only: 'after', title: 'The same in the Unity version', caption: 'The Engine-House’s great hall in the Unity version (its batch shot at 1280 × 720): the embers drawn on its own motes, glowing and orange, as on the web', from: 'Issue #372: the Unity bridge in the editor in batch mode on this Mac (BridgeBatch.Run -level buried -views, the same pinned view), muted; 16 October; cwebp -q 72' },
+      { name: 'air-rose', title: 'The Rose House', caption: 'Its brazier hall: embers rising from the braziers’ light and fine rose sand in the air', from: AIR372 },
+      { name: 'air-casting', title: 'The Casting-House', caption: 'Beside a pilot flame: sparks flying up, warm heat dust in place of the foundry’s grey motes', from: AIR372 },
+      { name: 'air-aerie', title: 'The Aerie', caption: 'The Wind Well’s floor: ochre sand streaming on the turbine’s wind (it moves at 3.4 m/s across the shaft), pale down tumbling up', from: AIR372 },
+      { name: 'air-whale', title: 'The Whale-House', caption: 'The first hall: bubbles rising and drips falling in place of the city’s dust', from: AIR372 },
+      { name: 'air-hush', title: 'The Hush-House', caption: 'Over the black pool: slow violet motes glowing, drips falling into it', from: AIR372 },
+    ], numbers: [
+      { title: 'With and without the houses’ air: draw calls a frame', unit: 'calls', better: 'lower', device: AIR372_DEVICE, source: AIR372_SOURCE, rows: [
+        { where: 'the Engine-House, High', before: 404.9, after: 405.8 }, { where: 'the Engine-House, Low', before: 405.3, after: 407.8 },
+        { where: 'the Casting-House, High', before: 233.3, after: 235.8 }, { where: 'the Casting-House, Low', before: 251.8, after: 251.5 },
+      ], note: 'One more draw a view: two layers of the house’s air, one less for the world’s motes now hidden inside.' },
+      { title: 'With and without the houses’ air: frame time (median)', unit: 'ms', better: 'lower', device: AIR372_DEVICE, source: AIR372_SOURCE, rows: [
+        { where: 'the Engine-House, High', before: 8.18, after: 7.43 }, { where: 'the Engine-House, Low', before: 5.77, after: 5.37 },
+        { where: 'the Casting-House, High', before: 6.36, after: 6.72 }, { where: 'the Casting-House, Low', before: 4.28, after: 5.27 },
+      ], note: 'Within the shared machine’s noise both ways (load 9–22): the air is 100–150 points a frame, half of them on Low and the handheld.' },
+    ], see: 'Go into the Engine-House in the Buried Machine, or the Rose House, and look up from the glowing pits or the braziers: embers rise and blink out. Walk in and out of any house: the world’s dust and sounds stop at the door, and the house’s own begin (the Engine-House’s furnace, the Clock-House’s ticks, the Hush-House’s drips).' },
   ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [

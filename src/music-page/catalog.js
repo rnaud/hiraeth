@@ -30,6 +30,7 @@ export const PLUMBING = {
   combatSchedule: 'the combat layer (Songs)', menuBusEnsure: 'the menu music (Songs)', menuSchedule: 'the menu music', menuPad: 'the menu music',
   noiseLayer: 'the continuous layers (Ambience)', set: 'the continuous layers', update: 'the continuous layers (Ambience: hold)', follow: 'the score\'s activity',
   railsUpdate: 'the rails layer (Ambience: update with rails)', ambienceTick: 'each world\'s ambience bed (Songs: "with its ambience")',
+  houseTick: 'a makers\' house\'s own bed on the beat (Ambience: its ring, drip, moan, creak; src/temples/air.js)',
   placeAt: 'placing a sound', spot: 'placing a sound', foeEar: 'placing a foe\'s sound', foeSpot: 'placing a foe\'s sound', moveFoeSpots: 'placing a foe\'s sound',
   listen: 'the listener (the page calls it every frame)', seated: 'a bench\'s swell (src/benches.js)', seatedK: 'a bench\'s swell', musicLevel: 'the music bus\'s level', _humVoice: 'the hum (makersHum)', _humOut: 'the hum (makersHum)',
   setBands: 'the musicians (Songs)', makeBands: 'the musicians', band: 'the musicians', setBandMode: 'the musicians', bandBeat: 'the musicians',
@@ -256,6 +257,10 @@ add('Ambience', 'croak', 'A frog', one((s) => s.croak(s.ctx.currentTime)), 'the 
 add('Ambience', 'tuning', 'A far signal tuning in', one((s) => s.tuning(s.ctx.currentTime)), 'the Forest of Antennas');
 add('Ambience', 'trainWhistle', 'The locomotive\'s whistle', one((s) => s.trainWhistle(s.ctx.currentTime)), 'the Overnight Train');
 add('Ambience', 'clack', 'A wheel over a joint', one((s) => { const t = s.ctx.currentTime; for (const d of [0, 0.1, 0.7, 0.8]) s.clack(t + d, 0.08); }), 'the Overnight Train');
+add('Ambience', 'ring', 'A struck anvil, a far bell', one((s) => { const t = s.ctx.currentTime; s.ring(t, 1300, { vol: 0.03, dur: 1.4, partials: [1, 2.4, 3.9] }); s.ring(t + 1.5, 311, { vol: 0.03, dur: 4.5, partials: [1, 2.76, 5.4, 8.9] }); }), 'the makers\' houses: the Casting-House, the Founders\' Belfry');
+add('Ambience', 'drip', 'A drop into still water', one((s) => { const t = s.ctx.currentTime; for (const d of [0, 0.7, 1.1]) s.drip(t + d, 0.04); }), 'the makers\' houses: the Hush-House, the Whale-House');
+add('Ambience', 'moan', 'Far off in the sea, a long low call', one((s) => s.moan(s.ctx.currentTime)), 'the Whale-House');
+add('Ambience', 'creak', 'A slack cable taking the strain', one((s) => s.creak(s.ctx.currentTime)), 'the Mooring-House');
 // voices
 const LINE = 'Hello there, traveller. The wind is kind today.';
 for (const lang of Object.keys(LANGUAGES)) add('Voices', `voice:${lang}`, `${LANGUAGES[lang].name ?? lang}`, [pick('a man', (s) => s.speak(planLine(LINE, { lang, voice: voiceOf({ id: `${lang}-m`, kind: 'm' }) }), { channel: 'call' })), pick('a woman', (s) => s.speak(planLine(LINE, { lang, voice: voiceOf({ id: `${lang}-f`, kind: 'f' }) }), { channel: 'call' }))], 'src/story/voice.js LANGUAGES');

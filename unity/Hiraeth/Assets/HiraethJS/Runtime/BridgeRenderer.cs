@@ -21,7 +21,7 @@ namespace Hiraeth.Bridge
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
             public SkinnedMeshRenderer smr; public Transform[] bones; public Mesh inst; public bool shadow;
             public Matrix4x4 bind; public string bindKey; public int nb;   // (a mesh on a shared skeleton: its bind pose)
-            public MeshData src; public float moteSize; public Vector3[] qv;   // (points: camera-facing quads from src's points, each frame)
+            public MeshData src; public float moteSize, moteGlow; public Vector3[] qv;   // (points: camera-facing quads from src's points, each frame)
             public Puffs puffs;                                                 // (the footprints: the port's Print decal, instanced)
             public InstMats im; public Matrix4x4[] raw = new Matrix4x4[0]; public Color[] rawCol = new Color[0]; public int rawN; public bool imDirty;   // (instanced: on the GPU, the port's HIRAETH_INSTMAT)
             public List<GameObject> chunks; public MeshData chunkSrc;   // (a big still mesh's pieces for the shadow maps: BridgeShadowChunks)
@@ -41,7 +41,7 @@ namespace Hiraeth.Bridge
             Lean(mat);   // (the prewarm's pairs drawn on the variant the scene will use)
             return mat;
         }
-        readonly Dictionary<int, float> moteSizes = new();
+        readonly Dictionary<int, float> moteSizes = new(), moteGlows = new();
         readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (HIRAETH_INSTMAT, its own buffer)
         readonly Dictionary<int, List<Material>> copies = new();     // a material's copies (instances, crowds, grass): its live colour and glow go to them too (op 15)
         Material CopyOf(int mid, Material m) { var c = new Material(m); if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>(); l.RemoveAll(x => !x); l.Add(c); return c; }
@@ -404,7 +404,9 @@ namespace Hiraeth.Bridge
                 var c = m.L("color"); var ink = m.L("ink");
                 mm.SetVector("_MoteColor", new Vector4(Json.Num(c[0]), Json.Num(c[1]), Json.Num(c[2]), 1));
                 if (ink != null) mm.SetVector("_Ink", new Vector4(Json.Num(ink[0]), Json.Num(ink[1]), Json.Num(ink[2]), 1));
-                materials[mid] = mm; moteSizes[mid] = m.F("size", 0.05f);
+                // (a glow: no rim, a soft halo, brighter, and blinking as life.js's; alpha: a temple's air, src/temples/air.js)
+                mm.SetFloat("_Glow", m.F("glow", 0f)); mm.SetFloat("_Alpha", m.F("alpha", 1f));
+                materials[mid] = mm; moteSizes[mid] = m.F("size", 0.05f); moteGlows[mid] = m.F("glow", 0f);
                 return;
             }
             if (m.S("port") == "wisp")
@@ -597,6 +599,7 @@ namespace Hiraeth.Bridge
                 materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var qm);
                 n.r.sharedMaterial = qm; n.r.shadowCastingMode = ShadowCastingMode.Off;
                 n.moteSize = moteSizes.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var ms) ? ms : 0.05f;
+                n.moteGlow = moteGlows.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var mg) ? mg : 0f;
                 nodes[id] = n;
                 return;
             }
@@ -1043,7 +1046,7 @@ namespace Hiraeth.Bridge
 
         void LateUpdate() { FinishCloths(); DrawCrowds(); }
 
-        /// <summary>The motes' quads, turned to the camera: clamp(size × 900 / depth, 1.5, 14) px across, as life.js's gl_PointSize.</summary>
+        /// <summary>The motes' quads, turned to the camera: clamp(size × 900 / depth, 1.5, 14) × (1 + 0.8 glow) px across, as life.js's gl_PointSize.</summary>
         void PointQuads()
         {
             if (!cam) return;
@@ -1058,7 +1061,7 @@ namespace Hiraeth.Bridge
                 {
                     var p = M.MultiplyPoint3x4(P[i]);
                     float d = Mathf.Max(Vector3.Distance(p, at), 0.1f);
-                    float px = Mathf.Clamp(n.moteSize * 900 / d, 1.5f, 14f), half = 0.5f * px * d * pxW;
+                    float px = Mathf.Clamp(n.moteSize * 900 / d, 1.5f, 14f) * (1f + 0.8f * n.moteGlow), half = 0.5f * px * d * pxW;
                     n.qv[i * 4] = Mi.MultiplyPoint3x4(p - right * half - up * half); n.qv[i * 4 + 1] = Mi.MultiplyPoint3x4(p + right * half - up * half);
                     n.qv[i * 4 + 2] = Mi.MultiplyPoint3x4(p - right * half + up * half); n.qv[i * 4 + 3] = Mi.MultiplyPoint3x4(p + right * half + up * half);
                 }

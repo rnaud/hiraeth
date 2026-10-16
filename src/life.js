@@ -90,11 +90,15 @@ export class Flock {
  * against the G-buffer depth so they still hide behind things.
  */
 export class Motes {
-  constructor(scene, { count = 220, color = '#e6d3a8', size = 0.08, glow = 0, box = 36, rise = 0, wind = [0.6, 0.2] } = {}) {
+  // (sway: the share of the drift's wobble, 1 as the worlds have it; alpha: how solid they are, 1 as the worlds; tall: the
+  // box's height as a share of its width, 0.5 as the worlds; a temple's air (src/temples/air.js) sets them its own way)
+  constructor(scene, { count = 220, color = '#e6d3a8', size = 0.08, glow = 0, box = 36, rise = 0, wind = [0.6, 0.2], sway = 1, alpha = 1, tall = 0.5 } = {}) {
     this.count = count;
     this.box = box;
     this.rise = rise;
     this.wind = wind;
+    this.sway = sway;
+    this.tall = tall;
     const pos = new Float32Array(count * 3), phase = new Float32Array(count);
     for (let i = 0; i < count; i++) phase[i] = Math.random() * 6.28;
     const geo = new THREE.BufferGeometry();
@@ -103,7 +107,7 @@ export class Motes {
     this.uniforms = {
       tNormal: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uPR: { value: 1 },
       uColor: { value: new THREE.Color(color) }, uInk: { value: new THREE.Color('#2b211f') },
-      uGlow: { value: glow }, uSize: { value: size }, uTime: { value: 0 },
+      uGlow: { value: glow }, uSize: { value: size }, uTime: { value: 0 }, uAlpha: { value: alpha },
     };
     const points = new THREE.Points(geo, new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3, transparent: true, depthTest: false, depthWrite: false, uniforms: this.uniforms,
@@ -118,7 +122,7 @@ export class Motes {
         }`,
       fragmentShader: `
         precision highp float;
-        uniform sampler2D tNormal; uniform vec2 uRes; uniform vec3 uColor, uInk; uniform float uGlow;
+        uniform sampler2D tNormal; uniform vec2 uRes; uniform vec3 uColor, uInk; uniform float uGlow, uAlpha;
         in float vDepth; in float vTw; out highp vec4 fragColor;
         void main() {
           float scene = texture(tNormal, gl_FragCoord.xy / uRes).w;
@@ -130,7 +134,7 @@ export class Motes {
           float core = 1.0 - smoothstep(0.42, 0.5, r);
           float halo = mix(core, (1.0 - smoothstep(0.0, 0.5, r)), uGlow);   // glows: soft halo
           float far = 1.0 - smoothstep(22.0, 38.0, vDepth);
-          fragColor = vec4(col * mix(1.0, 1.25, uGlow), halo * far * vTw);
+          fragColor = vec4(col * mix(1.0, 1.25, uGlow), halo * far * vTw * uAlpha);
         }`,
     }));
     points.frustumCulled = false;
@@ -142,15 +146,15 @@ export class Motes {
 
   update(dt, t, focus) {
     this.uniforms.uTime.value = t;
-    const B = this.box, H = B * 0.5;
+    const B = this.box, H = B * this.tall, S = this.sway;
     const pos = this.geo.attributes.position.array;
     // each mote drifts freely; its position is wrapped into a box centred on the focus
     const wrap = (v, c, size) => c - size / 2 + ((((v - c + size / 2) % size) + size) % size);
     for (let i = 0; i < this.count; i++) {
       const s = this.seeds[i];
-      const x = s.x * 1000 + t * this.wind[0] + Math.sin(t * 0.5 + i) * 1.5;
-      const y = s.y * 1000 + t * this.rise + Math.sin(t * 0.8 + i * 0.7) * 0.8;
-      const z = s.z * 1000 + t * this.wind[1] + Math.cos(t * 0.4 + i) * 1.5;
+      const x = s.x * 1000 + t * this.wind[0] + Math.sin(t * 0.5 + i) * 1.5 * S;
+      const y = s.y * 1000 + t * this.rise + Math.sin(t * 0.8 + i * 0.7) * 0.8 * S;
+      const z = s.z * 1000 + t * this.wind[1] + Math.cos(t * 0.4 + i) * 1.5 * S;
       pos[i * 3] = wrap(x, focus.x, B);
       pos[i * 3 + 1] = wrap(y, focus.y + H * 0.3, H);
       pos[i * 3 + 2] = wrap(z, focus.z, B);

@@ -117,7 +117,9 @@ export class TempleRuntime {
     this.bounds = L.bounds;             // Box3 in the kit's local frame: inside the temple
     this.gadgetSite = L.gadget ?? null; // { at: [x, y, z] world, face }
     this.findSites = L.finds ?? {};     // { [find element]: { at, face } }: its second chests (src/boxes/placements.js)
-    for (const l of L.lights ?? []) { const p = this.kit.world(l[0], l[1], l[2]); this.lights.push(new THREE.Vector4(p.x, p.y, p.z, l[3])); }
+    // (its own lights, kept apart too: the house's air breathes or flickers them while you are inside, src/temples/air.js)
+    this.ownLights = [];
+    for (const l of L.lights ?? []) { const p = this.kit.world(l[0], l[1], l[2]), v = new THREE.Vector4(p.x, p.y, p.z, l[3]); this.lights.push(v); this.ownLights.push(v); }
     // the outside: the building in the world and its door
     this.outside = def.exterior?.(scene, level, this) ?? null;
     if (this.outside?.door) {

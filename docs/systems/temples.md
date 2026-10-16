@@ -1761,6 +1761,30 @@ shade) is kept.
   and the makers' glyph are shared code (`guardians.js`, `glyphGeometry`), unchanged; no glass bridge is added (the
   stones the lens shows are the house's own `LensStones`).
 
+### The houses' air (v1.79, issue #372, `src/temples/air.js`)
+
+Each skinned house has an air, a light and a sound of its own while you are inside (the plan, house by house:
+`docs/design/temple-ambience.md`). `HOUSE_AIR[id]`: its theme, one or two `layers`, its `light`, its `sound`.
+- **The air**: each layer a `life.js Motes` (one draw, points round the camera that wrap in a box `box` m wide and
+  `tall` × box high, `rise` m/s (negative falls: drips, the Clock-House's sand), `wind`, `sway` (the drift's wobble),
+  `glow` (no rim, a halo, blinking: embers, sparks, glints), `alpha`). `HouseAir` (main.js; engine/game.js with
+  `host: scene`, so the bridge mirrors the points as the world's motes) builds a house's layers the first time you go in
+  (`rt.inside`), shows them only there and hides the world's motes inside (the desert's sand stops at the door). Low-detail
+  presets (the handheld, Low, the Deck) build `AIR_LOW` (half) of each. `?noair=1` leaves it out, for a before and after.
+- **The light**: the house's own lights (`rt.ownLights`, the layout's) have their reach eased by `lightPulse`
+  (`flicker` a fire's, `breathe` a slow swell, `blink` a signal's two pulses and a rest, `tick` a clock's), put back
+  as built on the way out. Both renderers take the local lights from `level.lights` each frame.
+- **The sound**: `houseAir.sound` goes to `Sound.update` as `house` (src/audio.js): a low roar (`roar`, `roarF`: a
+  furnace, the sea), the drone (`hum` at `humF`), wind (`howl`), and `houseTick(bed)` on the score's beat in place of
+  the world's ambience (`fire`, `furnace`, `forge`, `gusts`, `bells`, `drips`, `filament`, `deep`, `vanes`, `ticks`,
+  `glass`, `cables`, `signals`: crackle, a struck anvil or bell's `ring`, a `drip` and its echo, a far `moan`, a
+  cable's `creak`).
+- **In Unity**: the points reach the port's `Hiraeth/Mote` quads; its shader now draws a glow as the web's (no rim, a
+  soft halo, brighter, blinking, each quad on a phase of its own) and an alpha (BridgeRenderer `_Glow`, `_Alpha`, the
+  quad sized × (1 + 0.8 glow) as `gl_PointSize`). The world's fireflies and glowing motes gain their halo there too.
+- `tests/temple-air.test.js`: every skinned house has one and nothing else, the budgets, the fire houses' embers, the
+  pulse's bounds, inside only (lights back, the world's motes back), every bed sounding on the in-memory Web Audio.
+
 
 ## Landmarks seen from the approach (14 October 2026)
 

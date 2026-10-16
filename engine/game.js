@@ -78,6 +78,7 @@ gameState.on('travel:page', ({ href } = {}) => {
   if (to && pageGo) setTimeout(() => pageGo?.({ level: to, from }), 900);
 });
 import { Flock, Motes, Footprints } from '../src/life.js';
+import { HouseAir } from '../src/temples/air.js';
 import { Scout, nextObjective } from '../src/scout.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { makeCombat } from './combat.js';
@@ -475,7 +476,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const flocks = quiet(() => (lifeCfg.flocks ?? []).map((f) => new Flock(scene, f)));
   const motes = lifeCfg.motes ? quiet(() => new Motes(scene, lifeCfg.motes)) : null;
   // (the page draws the motes over the ink from a scene of their own; the engines take them from this one)
-  if (motes?.scene) for (const c of [...motes.scene.children]) scene.add(c);
+  const motePoints = motes?.scene ? [...motes.scene.children] : [];
+  for (const c of motePoints) scene.add(c);
+  // the makers' houses' air (src/temples/air.js, issue #372): their motes in the scene the bridge mirrors, the world's
+  // own hidden while the traveller is inside one; their lights' pulse and their sound's bed, as main.js
+  const houseAir = level.temples?.length ? quiet(() => new HouseAir(level, { lowDetail: !!Q?.lowDetail, host: scene, worldMotes: { scene: { children: motePoints } } })) : null;
   const footprints = quiet(() => new Footprints(scene));
   const onStep = player.onStep;
   player.onStep = (p, heading, up, i) => { onStep?.(p, heading, up, i); footprints.add?.(p, heading, up, i); sound.step(Math.hypot(player.vel.x, player.vel.z)); };
@@ -1310,6 +1315,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         scout?.update(dt, busy || !!pinned);
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);
+        houseAir?.update(dt, simT, camera, player.pos);
         footprints?.update(dt);
         // (not paused at a fixed view, as main.js doesn't pause them for the bench's: the answering plants wake as the
         // traveller stands by them, the animals go about)
@@ -1330,6 +1336,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
             speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust, storm: Wx?.storm ?? 0, rain: Wx?.rainOut ?? 0, rainRoof: Wx?.rainRoof ?? 0,
             thrusting: !!player.thrusting, riding: !!player.riding, rideKind: player.ride?.kind ?? null, rideSpeed: player.ride?.speed ?? 0,
             altitude: Number.isFinite(ground) ? player.pos.y - ground : 0, flying: !!(player.gliding || player.thrusting), indoor: shelter?.indoor ?? 0, night: sky.hour < 6.4 || sky.hour > 19.3,
+            house: houseAir?.sound ?? null,   // (inside a makers' house: its bed, src/temples/air.js)
           });
         } catch (e) { if (!game._soundFailed) { game._soundFailed = true; console.warn('[game] the sound failed in its update', e?.stack ?? e); } }
       }

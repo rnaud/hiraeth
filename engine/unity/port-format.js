@@ -13,7 +13,7 @@ export function portMaterial(spec, id = 0) {
   const u = spec.u ?? {};
   // the dust motes (life.js Motes: points with a size, a colour and a glow) → the port's Hiraeth/Mote, on quads
   if (spec.type === 'shader' && Array.isArray(u.uColor) && typeof u.uSize === 'number' && typeof u.uGlow === 'number') {
-    return { id, name: spec.name ?? '', port: 'mote', color: u.uColor.map(r5), ink: (Array.isArray(u.uInk) ? u.uInk : [0.169, 0.129, 0.122]).map(r5), glow: r5(u.uGlow), size: r5(u.uSize), side: 2, plain: 1 };
+    return { id, name: spec.name ?? '', port: 'mote', color: u.uColor.map(r5), ink: (Array.isArray(u.uInk) ? u.uInk : [0.169, 0.129, 0.122]).map(r5), glow: r5(u.uGlow), size: r5(u.uSize), alpha: r5(u.uAlpha ?? 1), side: 2, plain: 1 };
   }
   // the footprints (life.js Footprints: a decal multiplied into the albedo) → the port's Hiraeth/Print
   if (spec.type === 'shader' && typeof u.uDepth === 'number' && spec.transparent && !spec.depthWrite) {
