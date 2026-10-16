@@ -936,6 +936,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (start.up && start.fwd) player.frame.set(new THREE.Vector3(...start.up), new THREE.Vector3(...start.fwd));
     player.heading = start.heading ?? player.heading;
     rig.yaw = start.yaw ?? player.heading + Math.PI;
+    // (issue #375, as main.js) a save left inside a temple, past a gadget gate it can't cross back: the house sees to it
+    // on its first frame (src/temples/runtime.js unstrand)
+    for (const rt of [...(level.temples ?? []), level.temple].filter(Boolean)) rt.loaded = true;
   } else if (arrive && ship?.arrivalSpot) {
     const a = ship.arrivalSpot();
     player.respawn(a.pos);

@@ -1223,7 +1223,7 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
 - Old saves: `src/save-migrate.js` step 29 (`BOXES_375`: an opened chest or court box gives what it holds now;
   `FOLDED_375`: the shell, the horn, the tongs give their gadget), and `TEMPLE_BOXES` opens a temple's chest for a save
   that owns its gadget. No box outside a temple holds a gadget (`tests/temples.test.js`, the gadget plan's test).
-- Never stranded on load (`runtime.js unstrand`, the house's first frame with the traveller inside): the room he stands
+- Never stranded on load (`runtime.js unstrand`, the house's first frame after a save puts the traveller back inside: main.js, and engine/game.js for the Unity version, mark it `loaded`): the room he stands
   in is the nearest mark's or room piece's (`roomNear`); if it lies past one of the house's gadget gates (`gateItems`: an
   item its chest or a find gives that a link or an element wants; `roomsPast`: the rooms walked to through links whose
   `needs` are met and doors that are open or open without what is lacking, `wants`) without that gadget, then past the
