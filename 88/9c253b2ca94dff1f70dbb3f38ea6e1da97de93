@@ -1,0 +1,65 @@
+changelog.md
+  s_9ca76055a220ed::t_3e6ab26323baea 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_c7a6cbe792cd4b 1063
+src/changelog.js
+  s_9ca76055a220ed::t_0df7cff5df9d88 26-28
+src/levels/antennas.js
+  s_9ca76055a220ed::t_e1bac44636a5ca 133,154
+src/levels/content.js
+  s_9ca76055a220ed::t_d99767b139c9ca 127,204,230,232,307
+src/levels/eclipse.js
+  s_9ca76055a220ed::t_276547f8e30098 94,97,105
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_2a2b94dcf8098b 312,348-349
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_2b0a1bc9b22d1b 166,177,800
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_4ecb5c8608551e 132,137,157
+src/levels/salt-harbour.js
+  s_9ca76055a220ed::t_8f09c6042ccefc 139
+src/levels/space-city.js
+  s_9ca76055a220ed::t_4b9e19bbcc25a1 115,136
+src/levels/underside.js
+  s_9ca76055a220ed::t_62da569790bc85 87,108,115,122
+src/levels/underwater.js
+  s_9ca76055a220ed::t_77cc259b913685 181
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_740012e9075572 313,338,340,350-351,514
+src/story/desert-data.js
+  s_9ca76055a220ed::t_d4e1d39d13e406 390-392,1083,1088,1146,1157,1159-1160,1197
+src/story/edena-data.js
+  s_9ca76055a220ed::t_b6038c40c7f34b 347
+src/story/glassdunes-people.js
+  s_9ca76055a220ed::t_c5b8c60f25e01e 32
+src/story/hosts-data.js
+  s_9ca76055a220ed::t_5f64b0af7af102 114,120,130,148,166,172
+src/story/incal-data.js
+  s_9ca76055a220ed::t_85d5a89eeed342 418,432,635,770,802,816,830
+src/story/moonfoundry-people.js
+  s_9ca76055a220ed::t_2e1068152d8ebb 120
+src/story/rumours-data.js
+  s_9ca76055a220ed::t_f2389e59edefd7 91,112,165
+src/story/scientist-data.js
+  s_9ca76055a220ed::t_c0b23a09f07d39 33,36-43,47,85,111
+src/story/shop-data.js
+  s_9ca76055a220ed::t_1e6d14ac83dee1 39,58,91,94,106,136,147,149,187,217-218,243,254,270,284-285,287,293-294,297,299,305-306,314,319,329,333,336,365-366,384,386-387,389,403,413,415-416,423,426
+tests/fragments.test.js
+  s_9ca76055a220ed::t_571a786e254127 188,204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "889c253b2ca94dff1f70dbb3f38ea6e1da97de93",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
