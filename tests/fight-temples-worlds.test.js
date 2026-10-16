@@ -16,6 +16,7 @@ import fightBuried from '../src/minigames/fight-buried.js';
 import fightBazaar from '../src/minigames/fight-bazaar.js';
 import fightUnderwater from '../src/minigames/fight-underwater.js';
 import fightGlassdunes from '../src/minigames/fight-glassdunes.js';
+import fightSpheres from '../src/minigames/fight-spheres.js';
 import { checkGame, collectGames } from '../src/minigames/index.js';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES } from '../src/story/tone.js';
@@ -32,7 +33,7 @@ import { WORLDS } from '../src/foe-worlds.js';
 import { spawnKindOf } from '../src/enemies/archetypes.js';
 import { colourById, colourOfWorld, chosenColour, PIECES } from '../src/kit-colours.js';
 
-const GAMES = [fightArzach, fightPerdide, fightMoonfoundry, fightEdena, fightIncal, fightBuried, fightBazaar, fightUnderwater, fightGlassdunes];
+const GAMES = [fightArzach, fightPerdide, fightMoonfoundry, fightEdena, fightIncal, fightBuried, fightBazaar, fightUnderwater, fightGlassdunes, fightSpheres];
 const save = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; }, emit() {}, on: () => () => {} });
 const hpOf = (k) => FOES[k]?.hp ?? 2;
 

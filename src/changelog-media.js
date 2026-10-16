@@ -1157,6 +1157,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'A new fight temple in the Glass Dunes, the Kiln Yard', tags: ['combat'], shots: [
       { name: 'fight-kiln-hazard', only: 'after', title: 'Tiles breaking', caption: 'The cooling shed: two tiles of the glass floor broken into pits of the kilns’ glow, crabs at their edge.', from: FIGHT341B },
     ], see: 'In the Glass Dunes, walk to the north camp’s awnings: the doorway is at their west end. In the cooling shed, step off a tile that cracks white.' },
+    { match: 'A new fight temple in the Garden of Spheres, the Quiet Orchard', tags: ['combat'], shots: [
+      { name: 'fight-orchard-hazard', only: 'after', title: 'The shade', caption: 'The orchard: a sphere’s shade sweeping across the garden between the trees, its edge lit, hounds running in it.', from: FIGHT341B },
+      { name: 'fight-orchard-door', only: 'after', title: 'Its doorway', caption: 'West of the round plaza, outside its hedge: the doorway and Wenna, who tends the walled gardens.', from: FIGHT341B },
+    ], see: 'In the Garden of Spheres, walk west out of the round plaza’s hedge: the doorway is there. In the orchard, keep out of the moving shade.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

@@ -136,6 +136,12 @@ export const HOSTS = {
     say: ['~tired~ I banked those kilns for thirty years. The sheds are full now, and the glass floor cracks under them.', '~neutral~ Four sheds. When the tile under you goes white, get off it. The great kiln’s altar is at the end.'],
     lines: ['~tired~ Listen. Glass going.'],
   }),
+  'fight-spheres': P({
+    id: 'host.fight-spheres', name: 'Wenna', title: 'who tends the walled gardens', color: '#a8b878', kind: 'f', stand: { side: -1, ahead: 1.2 },
+    palette: { cloak: '#a8b878', lining: '#2b211f', cloth: '#ece6d8', legs: '#4a4a3a', hat: '#f4c86a', hair: '#6b5a4a' }, head: 'sunhat', look: { prop: 'flower' },
+    say: ['~whisper~ My gardens are full of hounds. They run in the spheres’ shade at dusk.', '~neutral~ Four gardens. Keep to the light: in the shade they bite and you can’t see them. The round garden’s altar is at the end.'],
+    lines: ['~whisper~ Stay out of the shade.'],
+  }),
   ski: P({
     id: 'host.ski', name: 'Tarek', title: 'who made the sand-skis', color: '#e8a24a', kind: 'm',
     palette: { cloak: '#e8a24a', lining: '#2b211f', cloth: '#3f6f6a', legs: '#4a3a2a', hat: '#f2e6c8', hair: '#3a2a20' }, head: 'headcloth', look: { body: 'scarf' },

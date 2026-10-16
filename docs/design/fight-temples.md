@@ -28,6 +28,7 @@ stop; Ulric; `?game=fight-incal`), the Buried Machine's **Tooth Gallery** (east 
 and the Signal Market's **Back Rooms** (in the back alley west of the sign-hanger's ladder; Lettie; `?game=fight-bazaar`).
 And the Underwater City's **Flooded Gallery** (in the Dock hall; its host Sabine; `?game=fight-underwater`).
 And the Glass Dunes' **Kiln Yard** (by the north camp's awnings; Ozren; `?game=fight-glassdunes`).
+And the Garden of Spheres' **Quiet Orchard** (west of the round plaza; Wenna; `?game=fight-spheres`).
 Below, each under its name.
 
 ## The template
@@ -148,6 +149,7 @@ none: it teaches the crowd; there are more, and sooner, deeper in (the tests hol
 | `bloom` (Viridel) | a row of sleeping eyes down the lane opens one by one from its head, 1.2 s | they flash white, 0.35 s | dazzled (`Foes.blind` 0.6 s), a quarter heart | stunned 1.2 s and a cut; moths from 1.2 m beyond its edge drawn in |
 | `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | half a heart, thrown out | three cuts to all under it |
 | `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
+| `shade` (the Garden of Spheres) | its edge glows on the side it will come from, 1 s (`hazard.lanes`: only `along` and `dir`) | a 4 m band of shade sweeps the room end to end at 2.4 m/s | a quarter heart a tick (1.2 s) in it | in it they can't be aimed at (`phased`) |
 | `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack white, 1.1 s | they break: pits to the kilns' glow, 3.5 s | a quarter heart a tick (0.9 s) in one | a cut a tick |
 | `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 3.6 s: the floor black but for the discs (2.4 m) | out of the light a quarter heart a second (0.6 s first) | in a lamp's disc a cut a second |
 
@@ -266,6 +268,14 @@ cooling shed (four chimneys), the annealing floor (open, two tiles at a time), t
 glass crabs, mantas, mound worms, a furnace walker or two made light; two clock-house drones and a whole walker at the
 end; 110, par 4:10; Furnace glass. Its doorway at the west end of the north camp's awnings, Ozren by it.
 
+## The Quiet Orchard (the Garden of Spheres, `src/fight-temples/spheres.js`)
+
+The spheres' walled gardens at dusk: white walls, a grass floor, trees for pillars (`pillar: 'tree'`), rows of trees and
+spheres on their stands beyond the walls (`dress: 'orchard'`). Rooms: the gatehouse, the orchard (six trees), the lawn
+(open, the shade along it), the round garden (the shade from any side). Foes: antler hounds most of all, pearl rollers,
+centipedes and shades made light; the glass marionette and two whole hounds at the end; 112, par 4:10; Orchard dusk.
+Its doorway west of the round plaza, outside its hedge, Wenna by it. Keep to the light, ahead of the shade or behind it.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
@@ -278,7 +288,7 @@ end; 110, par 4:10; Furnace glass. Its doorway at the west end of the north camp
 | the Glass Dunes | **The Kiln Yard** (built, v1.81, above): the glassworkers' cooling sheds, the floor glass that cracks under a brute | furnace brutes, glass crabs, worms; a drone pair at the end | Furnace glass |
 | the Buried Machine | **The Tooth Gallery** (built, v1.81, above): a gear-house between the canyon's teeth, rails across it the carts run on | mound worms, crucible carts, centipedes, skitters | Brass tooth |
 | the Moon Foundry | **The Pour Floor** (built, v1.80, above): the casting bays, a pour every minute across one room's floor (step off the channels) | crucible carts, skitters, lizards; a brute at the end | Moon slag |
-| the Garden of Spheres | **The Quiet Orchard**: the spheres' walled gardens at dusk, the hounds running in the trees' long shadows | rollers, centipedes, antler hounds; a marionette at the end | Orchard dusk |
+| the Garden of Spheres | **The Quiet Orchard** (built, v1.81, above): the spheres' walled gardens at dusk, the hounds running in the trees' long shadows | rollers, centipedes, antler hounds; a marionette at the end | Orchard dusk |
 | the City Floating in Space | **The Oil Exchange**: the islands' lamp-oil depot, its rooms joined by short bridges over the dark | ring drones, moths, rollers; a lamp tripod at the end | Lamp oil |
 | the Signal Market | **The Back Rooms** (built, v1.81, above): the market's shuttered shops after hours, a bell walker tolling in the last | lizards, hounds, marionettes; a bell walker at the end | Signal neon |
 
@@ -290,14 +300,6 @@ as written here. Four are left.)
 Each on the same template: a table, a hazard of its own (a new `kind` in `hazards.js` where none of the four fits), a
 look (`ground`, `pillar`, `dress`), a host and a doorway by a settlement, its world's kinds light, gorged ones from the
 second room, two or three tough ones at the end.
-
-**The Garden of Spheres: the Quiet Orchard.** The spheres' walled gardens at dusk, rows of trees whose long shadows lie
-across the paths (the hour 18.6). Foes: rollers, centipedes, antler hounds (they run in the shadows: only there can
-they step behind you); at the end the glass marionette. Hazard **`shade`** (lanes that move): the trees' shadows sweep
-across the room as a sphere rolls overhead (a lane of shade crossing the floor at 2 m/s): in it the hounds are fast and
-unseen but for their eyes; out of it they are slow and lit: you keep to the light and cut them as they come out. Rooms:
-the gatehouse, the orchard (trees in rows: the pillars), the lawn (no cover), the round garden (the altar a sundial).
-Reward: Orchard dusk. Door: at the white archway's garden gate, off the round plaza.
 
 **The City Floating in Space: the Oil Exchange.** The islands' lamp-oil depot: its rooms platforms over the dark, joined
 by short bridges (doors with rails), oil drums as pillars. Foes: ring drones (their harpoons), signal moths, rollers; at

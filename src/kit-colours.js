@@ -55,6 +55,9 @@ export const KIT_COLOURS = [
   // the Glass Dunes' Kiln Yard: amber glass and the kiln's glow (src/fight-temples/glassdunes.js)
   { id: 'furnace', name: 'Furnace glass', world: 'glassdunes', pack: { brass: '#d6a94a', brassDark: '#8a6a2a', canvas: '#9cc8bc', canvasDark: '#5a8a7e', cloth: '#ff9a4a', leather: '#203038' },
     water: { base: '#ffb060', cream: '#fff0d8', deep: '#c85a2a', pale: '#ffd8a8', gold: '#bfe8dc', light: '#fffaf0' } },
+  // the Garden of Spheres' Quiet Orchard: dusk over the lawns (src/fight-temples/spheres.js)
+  { id: 'orchard', name: 'Orchard dusk', world: 'spheres', pack: { brass: '#c9b08a', brassDark: '#7a6a4a', canvas: '#6a9a5a', canvasDark: '#4a6a3e', cloth: '#f4c86a', leather: '#2a2a3a' },
+    water: { base: '#a8a0e8', cream: '#f4f0ff', deep: '#4a4a8a', pale: '#d0ccf4', gold: '#f4c86a', light: '#ffffff' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
