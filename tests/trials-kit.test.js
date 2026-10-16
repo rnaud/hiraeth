@@ -112,7 +112,7 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
     if (!['kitwings', 'kitbell', 'kitlamp', 'kithorn'].includes(T.controls)) assert.ok(def.controls.pad.some(([b]) => b === '{key:fire}'), `${id}: the card names the splash`);
     if (T.controls === 'kithorn') assert.ok(def.controls.pad.some(([b, what]) => b === '{key:whistle}' && /horn/.test(what)), `${id}: the card names the horn’s button`);
     if (T.controls === 'kitbell') assert.ok(def.controls.pad.some(([b, what]) => b === '{key:whistle}' && /bell/.test(what)), `${id}: the card names the bell’s button`);
-    if (T.controls === 'kitecho') assert.ok(def.controls.pad.some(([b, what]) => b === '{key:whistle}' && /shell/.test(what)), `${id}: the card names the shell’s button`);
+    if (T.controls === 'kitecho') assert.ok(def.controls.pad.some(([b, what]) => b === '{key:whistle}' && /hourglass/.test(what)), `${id}: the card names the hourglass’s button (issue #377: the shell’s before)`);
     if (T.controls === 'kitwings') assert.ok(def.controls.pad.some(([b, what]) => b === '{key:jump}' && /wings/.test(what)), `${id}: the card names the wings`);
     assert.match(def.rules, /makers’ mark/);
   }

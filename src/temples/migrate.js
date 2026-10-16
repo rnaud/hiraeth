@@ -11,6 +11,7 @@ export const TEMPLE_BOXES = [
   ['desert.temple.sword', 'sword'],
   ['desert.temple.shield', 'shield'],
   ['incal.temple.jetpack', 'fan'],   // (the Warden's bellows until issue #377, the jets before: the box's id kept)
+  ['incal.bridge', 'bridge'],   // (issue #375: the Ash Store's prize, the makers' court's box before)
   ['arzach2.temple.bell', 'hook'],   // (the bell-note whistle until issue #377: the box's id kept)
   ['spheres.temple.lens', 'monocle'],   // (the glyph lens until issue #377: the box's id kept)
   ['buried.temple.cell', 'bomb'],   // (the fourth chamber until issue #377: the box's id kept)
@@ -19,7 +20,7 @@ export const TEMPLE_BOXES = [
   ['arzach.temple.glider', 'glider'],
   ['garage.temple.coil', 'boomerang'],   // (the quick coil until issue #377: the box's id kept)
   ['edena.temple.bloom', 'bloom'],
-  ['bazaar.temple.echo', 'echo'],
+  ['bazaar.temple.echo', 'recall'],   // (the echo shell until issue #377: the box's id kept)
   ['spacecity.temple.tether', 'tether'],
   ['moonfoundry.temple.tongs', 'magnet'],   // (the founders' tongs until issue #377: the box's id kept)
   ['underwater.temple.horn', 'springs'],   // (the whale-horn until issue #377: the box's id kept)

@@ -157,8 +157,9 @@ export const ITEMS = {
     name: 'Climber’s resin', kind: 'charm',
     text: 'Soft amber resin for your palms. Climbing tires you half as fast: you hang on twice as long.',
   },
+  // (retired by issue #377: folded into the recall hourglass, whose sand keeps the note; kept for the saves that found it)
   echo: {
-    name: 'Echo shell', kind: 'charm',
+    name: 'Echo shell', kind: 'charm', retired: true, where: 'The Undertower’s chest, before the recall hourglass was put in it.',
     text: 'A brass shell that keeps the last note sung near you, a singing stone’s or a machine’s. Play it back with {key:whistle}: what listens for it answers.',
   },
   level: {

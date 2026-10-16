@@ -417,7 +417,7 @@ function underDish(A, id) {
 }
 
 test('the First Sign’s last phase: it turns its dish up and hears its word only through the low dishes on the wall; played to its face, or the wrong word into a dish, nothing', () => {
-  const A = arena('bazaar', 'echo', 2);
+  const A = arena('bazaar', 'recall', 2);
   const { rt, G, P, until, wait, said, stand } = A;
   const echo = (note) => game.emit('echo', { pos: P.pos.clone(), note });
   const word = 'sign.3';
@@ -451,7 +451,7 @@ test('the First Sign’s last phase: it turns its dish up and hears its word onl
 });
 
 test('the First Sign’s second phase teaches the dishes: a word played into a low dish on the wall reaches it from across the hall', () => {
-  const A = arena('bazaar', 'echo', 1);
+  const A = arena('bazaar', 'recall', 1);
   const { rt, G, P, until, wait, said } = A;
   assert.equal(until(() => G.state === 'open', 40), true, 'it listens');
   // (under the dish further from it: out of its own hearing)
@@ -779,7 +779,7 @@ test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts 
 
 // ------------------------------------------------------------------ a second verb (v1.63, #257)
 test('six guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
-  const SIX = [['arzach2', 'hook', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'echo', 'dodge']];
+  const SIX = [['arzach2', 'hook', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'recall', 'dodge']];
   for (const [id, gadget, verb] of SIX) {
     const A = arena(id, gadget, 1, { answer: false });
     const { G, P, frame, until, said } = A, Q = G.phase.asks;

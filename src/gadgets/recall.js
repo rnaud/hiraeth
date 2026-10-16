@@ -145,7 +145,8 @@ export const recallSfx = {
 
 export default {
   id: 'recall', name: 'Recall hourglass', glyph: '⧗', order: 50, trigger: 'aim',
-  text: 'An hourglass whose sand runs the wrong way. Point it at something that just moved and press {key:use}: it goes back along its path, up to eight seconds.',
+  where: 'In the Undertower under the Signal Market’s silent tower: in its Shell Chamber over the cable well.',
+  text: 'An hourglass whose sand runs backward. Aim at something that just moved and press {key:use}: back it goes, up to 8 s. On the air, it sings the last note back.',
   model: hourglassModel,
   create(ctx) { return new Recall(ctx); },
 
@@ -271,6 +272,9 @@ class Recall {
     this.state = 'idle';
     const h = this.pick();
     if (h) this.begin(h, false);
+    // (nothing under the aim: the glass turned on the air gives back the last note its sand kept, issue #377, the
+    // Undertower's: the echo shell folded into it, src/echo-shell.js; src/boxes/effects.js plays it)
+    else this.ctx.game?.emit?.('recall:note', {});
   }
 
   /** Send `a` back along its path (or say there is none). */

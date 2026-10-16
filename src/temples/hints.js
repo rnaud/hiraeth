@@ -211,11 +211,11 @@ export const BOSS_HINTS = {
   bazaar: {
     phases: [
       ['It is trying to say something.',
-        'Catch its word with your shell, then give it back when it listens.',
-        'Stay near when it cries its word, then play the shell back ({key:whistle}) while its dish is lowered.'],
+        'Catch its word in the hourglass, then give it back when it listens.',
+        'Stay near when it cries its word, then turn the hourglass on the air ({key:fire}) while its dish is lowered.'],
       ['It has a new word.',
         'Catch the new word, and play it back when it lowers its dish.',
-        'Be close when it cries, then play the shell back ({key:whistle}) close to its dish while it listens.'],
+        'Be close when it cries, then turn the hourglass ({key:fire}) close to its dish while it listens.'],
     ],
   },
   // the Casting-House: the Last Founder (a machine, stopped)

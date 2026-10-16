@@ -39,7 +39,9 @@ import { undertowerSkin } from './skins/undertower.js';
 //   the Tuning Room      (east) a pair of dishes across the room: the near one deaf until a ball (its groove down the
 //                        middle of the room) is on its footstone, a low and a high stone by its mouth; the far horn,
 //                        too far for either alone, wants the high one
-//   the Shell Chamber    the makers' chest: the ECHO SHELL (src/items.js 'echo', src/echo-shell.js). Its north door
+//   the Shell Chamber    the makers' chest: the RECALL HOURGLASS (src/gadgets/recall.js; issue #377: the echo shell, a
+//                        tool for this house alone, was here, and is folded into it: its sand keeps the last note sung
+//                        near you, and turned on the air, or with Y / △, gives it back: src/echo-shell.js). Its north door
 //                        sinks for the shell in your hand (v1.77); a low singing stone stands by the dais: splash it, and the shell keeps its note. A
 //                        second hub (v1.60): north the Listening Passage, west the Choir
 //   the Choir            (v1.60, west off the chamber, over the Cable Store; v1.49 off the gallery's far side) two horns
@@ -108,7 +110,7 @@ export const SIGN_DISHES = ['signDishW', 'signDishE'];
 export const HOLD = { pillar: 6, reach: 6.5 };
 
 export const LOGIC = {
-  id: 'bazaar', entry: 'threshold', gadget: 'echo',
+  id: 'bazaar', entry: 'threshold', gadget: 'recall',
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js. The
   // Shell Chamber holds the shell alone; the Listening Passage past its open way is a room of its own since v1.77)
@@ -135,7 +137,7 @@ export const LOGIC = {
     { a: 'shell', b: 'choir', door: 'dC' },
     { a: 'shell', b: 'listen', door: 'dL' },          // the chamber's north door, for the shell in your hand (v1.77: the Listening Passage a room of its own)
     { a: 'listen', b: 'gallery', door: 'd3' },         // the Listening Passage's door
-    { a: 'gallery', b: 'galleryFar', needs: ['echo'] },   // the listening pillars: the high note carried over (v1.74)
+    { a: 'gallery', b: 'galleryFar', needs: ['recall'] },   // the listening pillars: the high note carried over (v1.74)
     { a: 'galleryFar', b: 'hall', door: 'd4' },        // (and the great key)
     { a: 'hall', b: 'out', door: 'd5' },
   ],
@@ -156,19 +158,21 @@ export const LOGIC = {
     eT: { type: 'switch', room: 'tune' },
     kE: { type: 'key', kind: 'small', room: 'tune', when: { all: [{ drumOn: ['ballT', 'pT'] }, { lit: 'eT' }] } },
     dK: { type: 'door', lock: 'small', keys: 2, latch: true },
-    chest: { type: 'gadget', room: 'shell', item: 'echo' },
-    dL: { type: 'door', opens: { item: 'echo' }, latch: true },
+    // (issue #377: the chest held the echo shell, a tool for this house alone; the recall hourglass now, the market's own
+    // tool, whose sand keeps the last note sung near you and gives it back, turned on the air or with Y / △: src/echo-shell.js)
+    chest: { type: 'gadget', room: 'shell', item: 'recall' },
+    dL: { type: 'door', opens: { item: 'recall' }, latch: true },
     // the passage's horn: the low note, carried from the chamber's stone; since v1.49 deaf until a ball's weight is on its
     // footstone (the shell with the push)
     ballP: { type: 'drum', room: 'listen', plate: 'pP', plateAt: 1, start: 0 },
     pP: { type: 'plate', room: 'listen' },
-    e0: { type: 'switch', room: 'listen', needs: ['echo'], when: { drumOn: ['ballP', 'pP'] } },
+    e0: { type: 'switch', room: 'listen', needs: ['recall'], when: { drumOn: ['ballP', 'pP'] } },
     d3: { type: 'door', opens: { lit: 'e0' }, latch: true },
     ball2: { type: 'drum', room: 'gallery', plate: 'p2', plateAt: 1, start: 0 },  // onto the near dish's footstone
     p2: { type: 'plate', room: 'gallery' },
     // (the pillars over the chasm hear the high note played back near them, each for itself: pieces.js Pillars, v1.74; there
     // were a great horn at each edge, e1 and e3, that held it and raised them all, br1)
-    e2: { type: 'switch', room: 'galleryFar', needs: ['echo'] },     // the middle note, said by the dish over the far door
+    e2: { type: 'switch', room: 'galleryFar', needs: ['recall'] },     // the middle note, said by the dish over the far door
     d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball2', 'p2'] }, { lit: 'e2' }] }, latch: true },   // (the arena's door too: it shuts behind you; and the great key)
     // the Choir (v1.60: over the Cable Store; v1.49 off the gallery's far side). Its keepers' gate, off the walk round
     // the Cable Well at 12, listens through a horn back in the first hall: its cable runs from the gate down the well's
@@ -178,15 +182,15 @@ export const LOGIC = {
     // pair of dishes (a ball on the near dish's footstone). The near one wants the high note played back, and nothing in
     // the Choir sings it: the Cable Well's high stone does, on the floor below the gate.
     // (After the gallery in this list: the marker sends you through the gallery, and back for the far door's key)
-    hG: { type: 'switch', room: 'dishesFar', needs: ['echo'] },     // (the gate's horn, at its cable's far end)
+    hG: { type: 'switch', room: 'dishesFar', needs: ['recall'] },     // (the gate's horn, at its cable's far end)
     dG: { type: 'door', opens: { lit: 'hG' }, latch: true },
     dC: { type: 'door', opens: { open: 'dG' }, latch: true },   // (the Choir's door goes with its gate: one machine)
     hA: { type: 'switch', room: 'choir', when: { drumOn: ['ballQ', 'pQ'] } },   // (it hears only through the dish, awake with the ball home)
     ballQ: { type: 'drum', room: 'choir', plate: 'pQ', plateAt: 1, start: 0 },
     pQ: { type: 'plate', room: 'choir' },
-    hB: { type: 'switch', room: 'choir', needs: ['echo'] },
+    hB: { type: 'switch', room: 'choir', needs: ['recall'] },
     kB: { type: 'key', kind: 'big', room: 'choir', when: { all: [{ lit: 'hA' }, { lit: 'hB' }] } },
-    sign: { type: 'boss', room: 'hall', needs: ['gun', 'echo'] },
+    sign: { type: 'boss', room: 'hall', needs: ['gun', 'recall'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -203,7 +207,7 @@ export const FIRST_SIGN = {
       asks: { verb: 'dodge', moves: ['beam'], open: 4.4,
         hint: 'Hop clear of its beam as it fires: overreached, it lowers its dish.',
         said: 'Its beam burns past you. It lowers its dish to listen: play its word back.',
-        lines: ['Its beam searches for you.', 'Hop aside from its beam just as it fires: it lowers its dish.', 'When its dish glows to fire, flip back (stick back and A / ×) as the beam comes; then play its word back ({key:whistle}).'] } },
+        lines: ['Its beam searches for you.', 'Hop aside from its beam just as it fires: it lowers its dish.', 'When its dish glows to fire, flip back (stick back and A / ×) as the beam comes; then turn the hourglass ({key:fire}) to give its word back.'] } },
     { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'It hears only through its cables now: play its word into a wall dish.' },
   ],
   attacks: {
@@ -499,7 +503,7 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: 12, r: SH.r, h: SH.top - SH.y, seg: 24, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }, { a: -Math.PI / 2, w: D.w, h: D.h }], oculus: 0.35 });   // (and west into the Choir, v1.60)
   K.both(M.trim, ...chestMound(0, 12, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   add(EchoStone, { note: 'low', at: [-5.6, 12, C3 + 3.2], yaw: Math.PI * 0.6, h: 2.6 });
-  add(Door, { id: 'dL', at: [0, 12, C3 + SH.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'echo' }] });   // (the shell in hand)
+  add(Door, { id: 'dL', at: [0, 12, C3 + SH.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'recall' }] });   // (the hourglass in hand)
   add(Mark, { room: 'shell', at: [6, 12, C3 - 5], yaw: -Math.PI * 0.75 });
 
   // ---- the Listening Passage (floor 12), a room of its own on from the chamber (issue #336): the door into the gallery
@@ -709,7 +713,7 @@ function change(scene, level, rt) {
 
 export const BAZAAR_TEMPLE = {
   id: 'bazaar', levelId: 'bazaar', name: 'The Undertower', doorLabel: 'old doorway under the silent tower',
-  gadget: 'echo', gadgetBox: 'bazaar.temple.echo', arenas: ARENAS, arenaDoor: 'd4',
+  gadget: 'recall', gadgetBox: 'bazaar.temple.echo', arenas: ARENAS, arenaDoor: 'd4',   // (the box's id from when it held the shell: the saves' flag)
   origin: [-200, 1600, -520], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,

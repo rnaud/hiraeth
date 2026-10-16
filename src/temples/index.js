@@ -105,7 +105,7 @@ export const GADGETS = {
   spheres: { temple: 'monocle', world: ['shell', 'cell'], built: true },   // the seeing lens (issue #377: the glyph lens until then, now in the Buried Machine's court); the fourth chamber in its makers' court, the bombs' old box (issue #375)
   perdide: { temple: 'stun', world: ['reed', 'wardenbellows'], built: true }, // the stilling mode moved inside from the mossy rise; the breathing reed is there now; the Warden's bellows in its makers' court (issue #375: the fan's box)
   perdide2: { temple: 'bubble', world: ['moss', 'coil'], built: true }, // the bubble wand (issue #377: the lantern charm until then, now in Viridel's court); the glow-moss pin on the root arch
-  bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
+  bazaar: { temple: 'recall', world: [], built: true },              // the recall hourglass (issue #377: the echo shell until then, folded into it); the market has no chest in the open
   spacecity: { temple: 'tether', world: ['starthread'], built: true }, // the Mooring-House: tether mode inside; the star-thread on a roof in the Towers
   moonfoundry: { temple: 'magnet', world: ['bellows'], built: true }, // the Casting-House: the magnet glove inside (issue #377: the founders' tongs until then, folded into the glove); the pocket bellows on top of the cradled moon
   underwater: { temple: 'springs', world: ['pearl'], built: true },   // the Whale-House: the spring boots inside (issue #377: the whale-horn until then, folded into the boots' stomp); the diver's pearl on the top deck of the Avenue's tower of pods

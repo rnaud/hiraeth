@@ -328,6 +328,11 @@ test('B only chooses gadgets (never the guard); Y / △ sounds the whistle whate
   assert.deepEqual(G.wheelList().map((w) => w.id), ['hook'], 'the wheel holds the gadgets only');
   its.grant('echo');
   assert.equal(G.instrument().name, 'Bell-note whistle · echo shell');
+  // (issue #377) the recall hourglass keeps a note too, and the button gives it back
+  game.set('item.echo', false); its.grant('recall');
+  assert.equal(G.instrument().name, 'Bell-note whistle · hourglass’s note');
+  game.set('item.bell', false);
+  assert.equal(G.instrument().id, 'recall');
 });
 
 test('the gadget in hand gets its picture first; the wheel open draws the others, one a frame', () => {

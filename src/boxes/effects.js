@@ -119,11 +119,14 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       rang = true;
     }
     // (the shell answers a breath after the bell, so the two notes can be told apart)
-    if (items.has('echo')) { if (rang) setTimeout(() => echo.play(), items.has('horn') ? 900 : 450); else rang = echo.play(); }
+    // (and the recall hourglass, whose sand keeps the last note since issue #377: the Undertower's tool)
+    if (items.has('echo') || items.has('recall')) { if (rang) setTimeout(() => echo.play(), items.has('horn') ? 900 : 450); else rang = echo.play(); }
     // nothing to sound: your own whistle, which only the Lantern's light listens for (src/story/lantern.js, its sound too)
     if (!rang && player && !player.hidden) g.emit('whistle', { pos: player.pos.clone() });
     return rang;
   };
+  // (the recall hourglass turned on the air plays the kept note back too: src/gadgets/recall.js 'recall:note')
+  const offRecall = g.on?.('recall:note', () => { if (items.has('recall')) echo.play(); });
   const onKey = (e) => { if (e.code === 'KeyV' && !e.repeat && !(globalThis.document?.activeElement?.tagName === 'INPUT')) ring(); };
   keys?.addEventListener?.('keydown', onKey);
   const off = items.on((id, owned) => {
@@ -253,6 +256,6 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       if (star) { star.visible = items.has('star'); if (star.visible) placeStar(); }
       if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = (items.has('scarf') ? 0.6 : 1) * (items.has('lightwing') ? LIGHT.sink : 1); player.glideK = items.has('lightwing') ? LIGHT.glide : 1; player.sprintK = (items.has('pearl') ? 0.66 : 1) * (items.has('lightstep') ? LIGHT.sprint : 1); player.restK = (items.has('bellows') ? 2 : 1) * (items.has('lightstep') ? LIGHT.rest : 1); player.climbSpeedK = items.has('starthread') ? 1.33 : 1; }
     },
-    dispose() { off(); offBloom?.(); echo.dispose(); levelEl?.remove?.(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
+    dispose() { off(); offBloom?.(); offRecall?.(); echo.dispose(); levelEl?.remove?.(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
   };
 }

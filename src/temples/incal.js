@@ -38,8 +38,8 @@ import { wardensWellSkin } from './skins/wardens-well.js';
 //                          v1.48 (issue #23): the door at the balcony's end wants two small keys too, one from each wing:
 //   the Ash Store          (west, an arena) the tower's old ash banked by its walls; its door shuts behind you while its
 //                          keepers stand
-//   the Vane Room          (east) a chasm whose stones stand only while the small vane on its far wall turns: splash it
-//                          from this side, and cross before it slows
+//   the Vane Room          (east) a chasm, the small key on its far side; its vane's stones long since gone (issue #375): a
+//                          plank drawn across with the bridge pen, the Ash Store's prize, there and back
 //   the Bellows Chamber    the makers' chest: the GUST FAN (src/gadgets/fan.js; issue #377: the Warden's bellows were here;
 //                          room id 'jets', from when it held the jets). Lifting them out unstops the plinth: a draught
 //                          rises up through the oculus in the ceiling, the only way on (the wings in rising air)
@@ -148,7 +148,7 @@ export const LOGIC = {
   // (each room's kind, issue #336: src/foes.js puts machines only in the combat room, the Ash Store)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, turning: { checkpoint: true, kind: 'puzzle' }, climb: { checkpoint: true, kind: 'puzzle' },
-    store: { checkpoint: true, kind: 'combat' }, vane: { checkpoint: true, kind: 'puzzle' }, vaneFar: { kind: 'passage' }, jets: { checkpoint: true, kind: 'chest' },
+    store: { checkpoint: true, kind: 'combat' }, vane: { checkpoint: true, kind: 'passage' }, vaneFar: { kind: 'passage' }, jets: { checkpoint: true, kind: 'chest' },
     gallery: { checkpoint: true, kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, crown: { checkpoint: true, kind: 'puzzle' },
     flue: { checkpoint: true, kind: 'puzzle' }, flueLedge: { kind: 'passage' }, warden: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
@@ -159,7 +159,9 @@ export const LOGIC = {
     // wants a small key from each, and the ball on its plate
     { a: 'climb', b: 'store', door: 'dW' },         // (open: it shuts behind you while its keepers stand)
     { a: 'climb', b: 'vane' },
-    { a: 'vane', b: 'vaneFar', door: 'vb' },        // the chasm's stones, only while the far wall's vane turns
+    // (issue #375: the bridge pen is earned in the Ash Store, its fight's prize; the Vane Room's chasm has no stones since:
+    // draw your own plank across, there and back)
+    { a: 'vane', b: 'vaneFar', needs: ['bridge'] }, // the chasm, a plank drawn across it with the pen
     { a: 'climb', b: 'jets', door: 'd1' },          // the ball on its plate, rolled over the slot while the well's vane turned
     { a: 'jets', b: 'gallery', needs: ['fan'] }, // up through the oculus, on the draught the chest unstops
     { a: 'gallery', b: 'loft', door: 'iris' },      // the iris in the gallery's ceiling: the eye whose lids the great vane lifts
@@ -188,9 +190,9 @@ export const LOGIC = {
     arW: { type: 'arena', room: 'store' },
     kW: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arW' } },
     dW: { type: 'door', opens: null },
-    // the Vane Room: the small vane across the chasm, splashed from this side; cross on its stones before it slows
-    vR: { type: 'vane', room: 'vane' },
-    vb: { type: 'bridge', opens: { lit: 'vR' } },
+    // the Ash Store's prize, won: the bridge pen in its chest (issue #375: in the City-Shaft's makers' court before)
+    pen: { type: 'find', room: 'store', item: 'bridge', box: 'incal.bridge', when: { lit: 'arW' } },
+    // the Vane Room: a chasm, and its small key on the far side: a plank drawn across with the pen
     kE: { type: 'key', kind: 'small', room: 'vaneFar' },
     // (issue #377: the chest held the Warden's bellows, a wash off open wings for the great vanes only; the gust fan now, whose
     // gust turns them from the floor or the air, and lifts you over them; the bellows wait in Lorn's makers' court)
@@ -339,6 +341,8 @@ export const ARENAS = [{
  * the room, its stones standing only while the small vane on the far wall turns: splash it from this side, and cross
  * before it slows; the key on the far side). Each holds one of the two small keys the door at the balcony's end takes.
  */
+/** The Ash Store's pen chest (issue #375), local to the store's middle: [x, z]. */
+const PEN_AT = [3.5, 11.5];
 function wings(rt, K, M, { blue, ring }) {
   const add = (P, o) => rt.add(P, o);
   const Z = WING.z, S = WING.store, R = WING.vane, [G0, G1] = WING.gap, D = ROOMS.door, H = ROOMS.wing.h;
@@ -351,6 +355,8 @@ function wings(rt, K, M, { blue, ring }) {
   for (const [x, z, s] of [[-11.5, -11, 1.8], [-12, 10.4, 2.4], [-1, 12.4, 1.5], [9.5, -12, 1.6], [-12.4, -5.6, 1.2], [11.6, 11.4, 1.4]]) K.both(M.dark, T(new THREE.SphereGeometry(s, 9, 6, 0, TAU, 0, Math.PI / 2).scale(1.4, 0.5, 1), [S.x + x, 0, Z + z]));   // (ash banked by the walls)
   for (const [x, z] of [[-6.5, -6.5], [6.5, -6.5], [-6.5, 6.5], [6.5, 6.5]]) K.column(S.x + x, Z + z, 0, H - 4, 0.9);
   add(Key, { id: 'kW', at: [S.x - S.w / 2 + 1.6, 0, Z], yaw: Math.PI / 2 });
+  // (issue #375) the pen's chest by the wall, on a low ramped mound (issue #162), facing the store's middle
+  K.both(M.trim, ...chestMound(S.x + PEN_AT[0], 0, Z + PEN_AT[1], { h: 0.3, top: 1.3, foot: 2.1, seg: 24 }));
   add(Mark, { room: 'store', at: [S.x + S.w / 2 - 3.5, 0, Z - 4.5], yaw: Math.PI / 2, foes: [S.x, 0, Z] });
 
   // ---- the Vane Room: a chasm across its middle, stones standing in it only while the vane on its post in the chasm turns
@@ -360,14 +366,11 @@ function wings(rt, K, M, { blue, ring }) {
   K.slab(G1, Z - R.d / 2, R.x + R.w / 2, Z + R.d / 2, 0, 9);
   K.both(M.dark, box(G1 - G0, 1, R.d, (G0 + G1) / 2, -9, Z));
   add(Pit, { room: 'vane', min: [G0, -10, Z - R.d / 2], max: [G1, -1.5, Z + R.d / 2] });
-  add(Bridge, { id: 'vb', a: [G0 - 0.1, 0, Z], b: [G1 + 0.1, 0, Z], w: 3, n: 5 });
   // (its post out of the chasm's floor, the vane on its west face: splashed from this side)
   const px = (G0 + G1) / 2, pz = Z + WING.post;
   K.both(M.wall, box(1.6, 16.5, 1.6, px, -9 + 16.5 / 2, pz));
   K.add(blue, box(1.9, 0.5, 1.9, px, 7.65, pz));
-  add(Vane, { id: 'vR', at: [px - 0.82, 5.5, pz], wall: true, yaw: -Math.PI / 2, r: 1.5, coast: VANES.wing,
-    turning: 'The vane on its post in the chasm spins, and stones grind up out of the dark. Already it is slowing.',
-    fading: 'The vane is slowing: the stones will sink with it.' });
+  // (its vane long since seized, a ring round where it turned: issue #375, the chasm is the pen's now)
   K.add(ring, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [px - 0.69, 5.5, pz]));
   add(Key, { id: 'kE', at: [R.x + 10, 0, Z - 4], yaw: -Math.PI / 2 });
   add(Mark, { room: 'vane', at: [R.x - 10, 0, Z - 4], yaw: Math.PI / 2 });
@@ -688,6 +691,8 @@ function layout(rt) {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(FX - FLUE.r - 3, -17, -3), V(WING.vane.x + WING.vane.w / 2 + 3, H0 + 34, CW + HR + 12)),
     gadget: { at: W(0, 11.62, C3).toArray(), face: K.heading(Math.PI) },
+    // (issue #375) the Ash Store's prize, the bridge pen: its chest on a mound by the store's wall, shut till the fight is won
+    finds: { pen: { at: W(WING.store.x + PEN_AT[0], 0.3, WING.z + PEN_AT[1]).toArray(), face: K.heading(Math.PI) } },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, H0 + 0.5, CW + HR + 9.6), r: 1.5 }],
     lights: [[FX, G0 + 6, C3, 22], [FX, G0 + FLUE.ledge.y + 4, C3, 18], [FX, GK + 3, C3, 18], [0, 6, 6, 14], [0, 6, 18, 24], [0, 6, 40, 24], [0, 8, C2, 26], [WING.store.x, 8, WING.z, 24], [WING.vane.x, 8, WING.z, 24], [0, 16, C2, 22], [0, 18, C3, 18], [0, G0 + 8, C3, 28], [0, GC + 8, C3, 26], [0, GK + 8, C3, 26], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
     guardian: { def: { ...WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },

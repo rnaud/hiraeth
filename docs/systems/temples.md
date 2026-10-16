@@ -1211,6 +1211,18 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
   the view's middle), and stays (the temple's flag `seen.<id>`); a hidden `Plate`'s print, the Lens Chamber's mural and the
   Echo's print on its answering sphere show only while the lens looks (`lensUp`). The house's stones, eyes, door and
   guardian need the lens.
+- **The Undertower: the recall hourglass** (the echo shell before, retired: its work folded in). `src/echo-shell.js` keeps a
+  note for whoever has the shell or the hourglass (`teach.sandCaught`); the hourglass turned with nothing under its aim emits
+  `'recall:note'` (recall.js), which `src/boxes/effects.js` plays back as the shell's `'echo'`, and so does Y / △. The
+  chamber's door, the horns, the listening pillars, the Choir and the First Sign need `recall`; so does the Signal Market's
+  Echo relay (`src/trials/kit-courses.js addEar`).
+- **The Warden's Well's Ash Store: the bridge pen** (the City-Shaft's court before). A temple find (`pen`, `type: 'find'`,
+  its box `incal.bridge`, `ready` once the arena `arW` is won, `sealed` before); the Vane Room's vane and its stones went, and
+  its chasm (`WING.gap`, 8 m) `needs: ['bridge']`: a plank there for its key, another back. The walk-through draws real
+  planks (bridge.js `press`/`hold`/`release`) and waits for the first to wear away.
+- Old saves: `src/save-migrate.js` step 29 (`BOXES_375`: an opened chest or court box gives what it holds now;
+  `FOLDED_375`: the shell, the horn, the tongs give their gadget), and `TEMPLE_BOXES` opens a temple's chest for a save
+  that owns its gadget. No box outside a temple holds a gadget (`tests/temples.test.js`, the gadget plan's test).
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

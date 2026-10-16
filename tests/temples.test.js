@@ -45,6 +45,7 @@ import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as 
 import { KENNEL, WICK, ROOT_WAY, ROOMS as ROOMS_P2, FOUNT } from '../src/temples/perdide2.js';
 import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
 import fanGadget, { FAN } from '../src/gadgets/fan.js';
+import bridgeGadget, { PEN } from '../src/gadgets/bridge.js';
 import boomGadget from '../src/gadgets/boomerang.js';
 import { irons } from '../src/gadgets/metal.js';
 import { LENS_VIEW } from '../src/gadgets/hidden.js';
@@ -378,6 +379,8 @@ test('the gifts: a tool in every temple, the small gifts in the open, no gadget 
   }
   // every placed item is a real item, and every temple box sits in a built temple
   for (const p of placed) { assert.ok(ITEMS[p.item], p.id); if (p.temple) assert.ok(GADGETS[p.temple]?.built, p.id); }
+  // (issue #375: "gadgets should never be in a chest out in the wild") no box anywhere outside a temple holds a gadget
+  for (const p of placed) if (ITEMS[p.item]?.kind === 'gadget' && p.item !== 'gun') assert.ok(p.temple, `${p.id}: ${p.item} in a chest in the wild`);
 });
 
 test('old saves that own a temple’s gadget find its chest open; the temple’s doors answer it', () => {
@@ -388,8 +391,8 @@ test('old saves that own a temple’s gadget find its chest open; the temple’s
   assert.equal(migrateTemples(g), 0, 'once');
   const L = new TempleLogic(TEMPLES.desert.def.logic, { store: memoryStore(), has: (i) => !!g.flag(`item.${i}`) });
   assert.equal(L.gadget, true, 'carried in: the gadget counts as found');
-  // the quick coil moved inside the First Garage from the keep's wall: whoever has it finds the chest open
-  g.set('item.coil', true);
+  // the Clock-House's chest (the quick coil's until issue #377, the boomerang's now): whoever has it finds the chest open
+  g.set('item.boomerang', true);
   assert.equal(migrateTemples(g), 1);
   assert.equal(g.flag('box.garage.temple.coil'), true);
   for (const id of ['garage', 'edena', 'bazaar', 'moonfoundry', 'spacecity', 'underwater']) assert.ok(TEMPLE_BOXES.some(([b]) => b.startsWith(`${id}.temple.`)), `${id}: its chest migrates`);
@@ -471,8 +474,10 @@ test('the Builders’ Greenhouse is a hub (issue #23): either wing alone gives i
 test('the Warden’s Well is a hub (issue #23): either wing alone gives its key, the balcony’s door takes both, solved either way round; old saves past it find it open', () => {
   const L = TEMPLES.incal.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield', 'glider'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
-  const noVane = solve(L, { items, forbid: ['vR'] });
-  assert.ok(noVane.logic.isFound('kW') && !noVane.stuck.includes('jets') && !noVane.stuck.includes('vaneFar'), 'the Ash Store alone: its key, and the chest stays shut');
+  // (issue #375) the bridge pen is the Ash Store's prize, and the Vane Room's chasm wants it: the store first, always
+  const noPen = solve(L, { items, forbid: ['pen'] });
+  assert.ok(noPen.logic.isFound('kW') && !noPen.logic.isFound('kE') && !noPen.stuck.includes('jets'), 'the Ash Store alone: its key, no pen, no way over the chasm, and the chest stays shut');
+  assert.equal(L.elements.pen.item, 'bridge');
   const noArena = solve(L, { items, forbid: ['arW'] });
   assert.ok(noArena.logic.isFound('kE') && !noArena.stuck.includes('jets'), 'the Vane Room alone: its key, and the chest stays shut');
   const g = new GameState(null);
@@ -509,7 +514,7 @@ test('the Undertower is a hub (issue #23): either wing alone gives its key, the 
   const g = new GameState(null);
   for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'lit.eD': true, 'open.disc': true, 'lit.eW': true, 'open.wdisc': true, gadget: true, checkpoint: 'shell' })) g.set(`temple.bazaar.${k}`, v);
   migrateTemples(g);
-  const B = new TempleLogic(L, { store: flagStore(g, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  const B = new TempleLogic(L, { store: flagStore(g, 'bazaar'), has: (i) => ['backpack', 'gun', 'recall'].includes(i) });
   B.update();
   assert.ok(B.isOpen('dK') && B.keys('small') === 0, 'the Shell Chamber’s door stays open behind them');
   // (v1.49) past the gallery, the Choir: the great key for the far door, its two horns answered and its ball home
@@ -518,7 +523,7 @@ test('the Undertower is a hub (issue #23): either wing alone gives its key, the 
   const g2 = new GameState(null);
   for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'lit.eD': true, 'open.disc': true, 'lit.eW': true, 'open.wdisc': true, gadget: true, 'lit.e0': true, 'open.d3': true, 'drum.ball2': 1, 'lit.e2': true, 'open.d4': true, checkpoint: 'galleryFar' })) g2.set(`temple.bazaar.${k}`, v);
   migrateTemples(g2);
-  const B2 = new TempleLogic(L, { store: flagStore(g2, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  const B2 = new TempleLogic(L, { store: flagStore(g2, 'bazaar'), has: (i) => ['backpack', 'gun', 'recall'].includes(i) });
   B2.update();
   assert.ok(B2.isOpen('d4') && B2.isOpen('d3') && B2.keys('big') === 0, 'old saves past the far door find it open, and the passage’s');
   assert.ok(B2.isOpen('dG') && B2.isOpen('dC'), 'and the Choir’s gate and door (v1.60)');
@@ -533,7 +538,7 @@ test('the Undertower is a hub (issue #23): either wing alone gives its key, the 
   const g3 = new GameState(null);
   for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'lit.eD': true, 'open.disc': true, 'lit.eW': true, 'open.wdisc': true, gadget: true, 'lit.e0': true, 'open.d3': true, 'found.kB': true, 'lit.hA': true, 'lit.hB': true, checkpoint: 'galleryFar', layout: 3 })) g3.set(`temple.bazaar.${k}`, v);
   migrateTemples(g3);
-  const B3 = new TempleLogic(L, { store: flagStore(g3, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  const B3 = new TempleLogic(L, { store: flagStore(g3, 'bazaar'), has: (i) => ['backpack', 'gun', 'recall'].includes(i) });
   B3.update();
   assert.ok(B3.isOpen('dG') && B3.isOpen('dC') && B3.keys('big') === 1, 'its key in hand, the moved Choir open behind it');
 });
@@ -1651,27 +1656,39 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   wait(0.3);
   openChest(rt, 'kW', P);
   assert.equal(rt.logic.isFound('kW'), true, 'a small key');
-  // ---- the Vane Room, east: the chasm's stones stand only while the vane on its far wall turns
+  // (issue #375) the store's prize: the bridge pen's chest, shut while its keepers stood, open now
+  const penBox = PLACEMENTS.incal.find((b) => b.id === 'incal.bridge');
+  assert.ok(penBox.temple === 'incal' && penBox.item === 'bridge' && penBox.ready(game), 'the pen’s chest opens once the store is won');
+  items.grant('bridge'); game.set('box.incal.bridge', true); game.emit('box:opened', { id: 'incal.bridge', item: 'bridge' });
+  // a real pen (src/gadgets/bridge.js), drawn from the feet toward `to`: its plank set across
+  const pen = bridgeGadget.create({ player: P, physics, camera: null, tool: null, sound: null, world: null, hud: { reticle() {} }, sfx: { equip() {} }, fx: new THREE.Group(), scene: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
+  const drawTo = (to) => {
+    const eye = P.pos.clone().add(V(0, 1.8, 0)), d = to.clone().sub(eye).setY(0).normalize();
+    const cam = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 500);
+    cam.position.copy(eye).addScaledVector(d, -3); cam.lookAt(cam.position.clone().add(d)); cam.updateMatrixWorld(true);
+    pen.ctx.camera = cam; pen.ink = PEN.ink;
+    const n0 = pen.bridges.length;
+    pen.press();
+    for (let i = 0; i < 3 / DT && pen.state === 'draw'; i++) { pen.hold(DT); pen.update(DT); if (pen.len > to.distanceTo(P.pos) + 0.6) break; }
+    pen.release();
+    return pen.bridges.length > n0;
+  };
+  // ---- the Vane Room, east: a chasm, its vane long seized; the key on the far side, a plank drawn across with the pen
   assert.equal(walk(L(-17, 0, WZ)) && walk(L(17, 0, WZ)), true, `back across the hub (${where()})`);
-  assert.equal(walk(L(CH0 - 1.4, 0, WZ)), true, `to the chasm's edge (${where()})`);
-  assert.equal(rt.logic.isOpen('vb'), false, 'no stones in the chasm');
-  const vR = rt.piece('vR');
-  vR.hit('shoot');
-  wait(0.1);
-  assert.equal(vR.turning, true, 'the vane across the chasm spins');
-  wait(2.5);
-  assert.equal(rt.logic.isOpen('vb'), true, 'and the stones stand');
-  assert.equal(walk(L(CH1 + 1.5, 0, WZ)), true, `across before it slows (${where()})`);
+  assert.equal(walk(L(CH0 - 0.6, 0, WZ), { tol: 0.4 }), true, `to the chasm's edge (${where()})`);
+  assert.ok(!rt.piece('vR') && !rt.piece('vb'), 'no vane, no stones');
+  assert.equal(drawTo(L(CH1 + 1.5, 0, WZ)), true, 'a plank drawn across');
+  assert.equal(walk(L(CH1 + 1.5, 0, WZ)), true, `across on the ink (${where()})`);
   assert.ok(ly() > -1, 'over the chasm, not in it');
   assert.equal(walk(rt.piece('kE').pos, { tol: 1.2 }), true, `to the key (${where()})`);
   wait(0.3);
   openChest(rt, 'kE', P);
   assert.equal(rt.logic.isFound('kE'), true, 'the second small key');
-  for (let i = 0; i < 20 / DT && vR.turning; i++) frame();
-  assert.equal(rt.logic.isOpen('vb'), false, 'the vane runs down, and the stones sink: stranded');
-  vR.hit('shoot');
-  wait(2.5);
-  assert.equal(walk(L(CH1 + 1.5, 0, WZ)) && walk(L(CH0 - 3, 0, WZ)), true, `a splash from this side, and back across (${where()})`);
+  for (let i = 0; i < (PEN.life + PEN.fade + 1) / DT && pen.bridges.length; i++) { frame(); pen.update(DT); }
+  assert.equal(pen.bridges.length, 0, 'the ink wears away: stranded');
+  assert.equal(walk(L(CH1 + 0.6, 0, WZ), { tol: 0.4 }), true, `to the far edge (${where()})`);
+  assert.equal(drawTo(L(CH0 - 1.5, 0, WZ)), true, 'another plank, back');
+  assert.equal(walk(L(CH0 - 1.5, 0, WZ)) && walk(L(CH0 - 3, 0, WZ)), true, `and back across (${where()})`);
   assert.equal(walk(L(17, 0, WZ)) && walk(L(0, 0, C2 - 1.6)), true, `back into the well (${where()})`);
   let up = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, C2 + CLIMB.face + 3.4))); if (P.onGround && ly() > 10.5) { up = true; break; } }
@@ -4772,6 +4789,13 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   game.emit('note', { pos: V(5, 0, 8), note: 'mid', reach: 4 });
   assert.equal(shell.held.note, 'mid', 'it holds one note: the last');
   assert.ok(ITEMS.echo && ITEMS.echo.kind === 'charm');
+  // (issue #377) the recall hourglass's sand keeps a note as the shell did, the Undertower's tool since
+  items.revoke('echo'); items.grant('recall');
+  shell.update(1.1);
+  game.emit('note', { pos: V(5, 0, 7), note: 'high', label: 'the high stone’s note' });
+  assert.equal(shell.held.note, 'high', 'the hourglass keeps it');
+  assert.equal(shell.play(), true, 'and gives it back');
+  items.revoke('recall');
   shell.dispose(); off();
   game.reset();
   own();
@@ -4907,7 +4931,7 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   assert.ok(lowC.center.distanceTo(L(0, 12, C3)) < 9, 'a low singing stone in the chamber');
   assert.ok(ear0.at.distanceTo(L(0, 12, C3)) > 17, 'and the door’s horn a room on, in the passage');
   assert.equal(rt.logic.next(), 'chest');
-  items.grant('echo'); game.emit('box:opened', { id: 'bazaar.temple.echo' });
+  items.grant('recall'); game.emit('box:opened', { id: 'bazaar.temple.echo' });   // (issue #377: the hourglass, its sand the shell's)
   assert.equal(rt.logic.gadget, true);
   // through the open way into the Listening Passage, a room of its own (v1.77): the door's horn, and nothing to sing here
   assert.equal(walk(L(0, 12, 145)), true, `into the passage (${where()})`);
@@ -5148,7 +5172,7 @@ test('a save from the Undertower before issue #336: its state as it was (the sam
   assert.equal(past.flag('temple.bazaar.layout'), LAYOUTS.bazaar.v);
   assert.equal(past.flag('temple.bazaar.relaid'), true, 'inside the old house: to its mark');
   assert.equal(past.flag('temple.bazaar.checkpoint'), 'gallery', 'its place kept');
-  const B = new TempleLogic(TEMPLES.bazaar.def.logic, { store: flagStore(past, 'bazaar'), has: (i) => ['backpack', 'gun', 'echo'].includes(i) });
+  const B = new TempleLogic(TEMPLES.bazaar.def.logic, { store: flagStore(past, 'bazaar'), has: (i) => ['backpack', 'gun', 'recall'].includes(i) });
   B.update();
   assert.ok(B.isOpen('d3') && B.isOpen('dK'), 'the passage’s door and the chamber’s stay open behind them');
   const outside = new GameState(null);

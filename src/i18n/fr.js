@@ -526,6 +526,7 @@ export const FR = {
   'teach.echo': 'Le coquillage à écho : laissez quelque chose chanter près de lui, puis rejouez-le avec {key:whistle}.',
   'teach.horn': 'La corne de baleine : faites sonner sa note grave avec {key:whistle}.',
   'teach.shellCaught': 'Le coquillage saisit {label} et le garde. {key:whistle} le rejoue.',
+  'teach.sandCaught': 'Le sablier garde {label}. {key:whistle} le rend.',
   'teach.penShort': 'Maintenez {key:gadget} pour tirer le trait, puis relâchez.',
   'teach.bubbleSelf': 'Vous flottez : dirigez avec {key:move}, appuyez de nouveau sur {key:gadget} (ou {key:jump}) pour la crever.',
   'teach.bellowsNext': 'Le soufflet respire sur votre dos, et le socle sous le coffre respire avec lui : un courant d\'air monte tout droit par le plafond ouvert. Sautez dedans et ouvrez vos ailes ({key:thrust}) : il vous porte vers le haut. Dans l\'air qui monte, vos ailes vous tiennent assez immobile pour viser.',

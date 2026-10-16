@@ -118,7 +118,7 @@ export function addRoller(rt, { id, a, b, r = 1, plateR = r + 0.25 }) {
  * → { id, note, ear, lit(), reset() }
  */
 export function addEar(rt, { id, note, at, yaw = 0, reach = 7, deaf = 'The horn hears its note, and stays still. It answers someone running the relay: start at the sign.' }) {
-  rt.logic.def.elements[id] = { type: 'switch', room: 'open', needs: ['echo'] };
+  rt.logic.def.elements[id] = { type: 'switch', room: 'open', needs: ['recall'] };   // (issue #377: the echo shell before, folded into the hourglass)
   rt.deaf[id] = deaf;
   const ear = rt.add(EchoEar, { id, note, at, yaw, reach });
   rt.kit.solid(new THREE.CylinderGeometry(0.3, 0.3, 2.6, 8).translate(at[0], at[1] + 1.3, at[2]));

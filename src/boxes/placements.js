@@ -99,10 +99,13 @@ export const PLACEMENTS = {
       ready: (g) => !!g.flag('incal.beam.lit'),
       sealed: 'The makers’ chest sits shut and cold in the shade. It wants the sun on it.',
       note: 'On the bottom terrace, on a low rise in the little square at the foot of the mirrors, a short walk round from the Upward Shrine. It opens once the mirrors throw the sun down onto it.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'incal.bridge', item: 'bridge', site: courtSite('incal'), beacon: 160, gadget: true,
-      hint: 'At the makers’ court beyond the rim',
-      note: 'In the makers’ court on the plateau beyond the rim behind the landing: towers across a gap, a rise to a lamp. The pen spans the shaft’s terraces too.' },
+    // the Warden's Well's Ash Store (src/temples/incal.js, a find): its fight's prize, the bridge pen, shut till its keepers are
+    // beaten (issue #375: "gadgets should never be in a chest out in the wild"; in the makers' court beyond the rim before,
+    // whose bay of towers stays; its id the saves' flag). The Vane Room's chasm a room on wants it
+    { id: 'incal.bridge', item: 'bridge', temple: 'incal', site: findSite('incal', 'pen'),
+      ready: (g) => !!g.flag('temple.incal.lit.arW'),
+      sealed: 'The makers’ chest sits shut among the ash. Its keepers still stand.',
+      note: 'Inside the Warden’s Well on the City-Shaft’s rim, in the Ash Store west of the Climb: beat its keepers and the chest opens. The pen spans the shaft’s terraces too.' },
   ],
   arzach: [
     // the capped needle spire out on the plain, halfway from the landing to the lone tower (Senn listens at its foot,
@@ -249,14 +252,13 @@ export const PLACEMENTS = {
   ],
   bazaar: [
     // the market has no chest in the open. The Undertower (src/temples/bazaar.js), under the silent tower: in its
-    // round chamber over the cable well. The echo shell (a new tool) is the key to the rest: the doors and the
-    // bridge that listen for a note played back, the First Sign that wants its own word
-    { id: 'bazaar.temple.echo', item: 'echo', temple: 'bazaar', site: templeSite('bazaar'),
+    // round chamber over the cable well. The recall hourglass is the key to the rest (issue #377; the echo shell was here,
+    // folded into it): its sand keeps the last note sung near you and gives it back, so the doors and the pillars that
+    // listen for a note played back, the First Sign that wants its own word. (Its id from when it held the shell: the saves' flag)
+    { id: 'bazaar.temple.echo', item: 'recall', temple: 'bazaar', site: templeSite('bazaar'),
       note: 'Inside the Undertower, through the old doorway in the silent tower’s back, in the round chamber over the cable well.' },
-    // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'bazaar.recall', item: 'recall', site: courtSite('bazaar'), beacon: 160, gadget: true,
-      hint: 'At the makers’ court by the market’s edge',
-      note: 'In the makers’ court east of the start: a crate on a high ledge to knock down, ride and send back up. The market’s cabs go back along their lanes too.' },
+    // (the makers' court east of the start keeps the recall hourglass's bay, a crate on a high ledge to knock down, ride and
+    // send back up, and no box since issue #375: the hourglass is earned in the Undertower)
   ],
   // (v1.48, issue #101: the makers' courts of the three worlds of v1.40, src/finds/courts.js: no gadget's box, a charm for the
   // court's gadget behind the gate its puzzle opens)

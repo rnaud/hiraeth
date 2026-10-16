@@ -23,7 +23,7 @@
 //   onFoot   walked: up on the jets for more than a moment ends it (offFeet: the words on the card)
 //   noWings  the wings opened end it at once too (the vine walk: a glide would carry you over its gaps)
 //   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash;
-//            'kitwings'; 'kitecho': walk, splash, play the shell back; 'kitbell': walk, jump, sound the bell;
+//            'kitwings'; 'kitecho': walk, splash, give the note back from the hourglass; 'kitbell': walk, jump, sound the bell;
 //            'kitlamp': walk, jump, stand by a lamp with the lantern; 'kithorn': walk, jump, sound the whale-horn)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
@@ -127,10 +127,10 @@ export const KIT_TRIALS = {
   'kit-bazaar': {
     id: 'kit-bazaar', world: 'bazaar', mode: 'kit', course: 'echorelay', name: 'Echo relay', color: '#62c3c9',
     blurb: 'The Undertower’s singing stones and listening horns stood out down the first side street west of the avenue, with old dishes on the walls between.',
-    rules: 'Walk past the listening walls to the arch at the far end. Then give each horn its own note: splash a stone near enough for the echo shell to catch its song, carry it to the horn of its colour, and play it back. The shell holds one note at a time.',
+    rules: 'Walk past the listening walls to the arch at the far end. Then give each horn its own note: splash a stone near enough for the recall hourglass to catch its song, carry it to the horn of its colour, and turn the hourglass to give it back. Its sand holds one note at a time.',
     origin: [-42, 0.35, 75], yaw: -Math.PI / 2,
     marker: [4.4, -3.6], start: [0, -1.4], heading: 0, par: 38,
-    needs: ['backpack', 'gun', 'echo'], lacks: 'Its stones sing for the fluid and its horns listen for the echo shell: it wants both.',
+    needs: ['backpack', 'gun', 'recall'], lacks: 'Its stones sing for the fluid and its horns listen for the recall hourglass: it wants both.',   // (issue #377: the echo shell before, folded into the hourglass)
     onFoot: true, offFeet: 'This one is walked: no jets.',
     controls: 'kitecho',
     voice: {

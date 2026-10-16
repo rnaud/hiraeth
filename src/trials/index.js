@@ -59,7 +59,7 @@ const ROWS = {
   kitlamp: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump']],
   // (the Underwater City's sounding walk: the whale-horn sounds on the bell's button, src/boxes/effects.js)
   kithorn: [['{key:move}', 'walk; {key:run} to run'], ['{key:jump}', 'jump'], ['{key:whistle}', 'sound the whale-horn']],
-  kitecho: [['{key:move}', 'walk; {key:run} to run'], ['{key:aim}', 'aim'], ['{key:fire}', 'splash a stone'], ['{key:whistle}', 'play the shell back']],
+  kitecho: [['{key:move}', 'walk; {key:run} to run'], ['{key:aim}', 'aim'], ['{key:fire}', 'splash a stone'], ['{key:whistle}', 'give the note back from the hourglass']],
 };
 /** The start card's rows by input: { pad, keys, touch }. */
 export const CONTROLS = Object.fromEntries(Object.entries(ROWS).map(([k, r]) => [k, Array.isArray(r) ? { pad: r, keys: r, touch: r } : { ...r, touch: r.pad }]));

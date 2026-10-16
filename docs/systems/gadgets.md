@@ -480,24 +480,27 @@ gadget on arrival.
 
 ## In the worlds: the makers' courts (v0.98, `src/finds/courts.js`)
 
-One gadget in each route world after the desert, in the route's order, each in a makers' box at the front of a
-**makers' court**: a slab of the makers' pale stone (`COURT`: 21 × 24.5 m, a blue band inlaid round it, the glyph
+Since v1.80 (issues #375, #377: docs/design/gadget-temples.md) no court's box holds a gadget: the gadgets are earned in
+the temples, and each court's box holds what that temple gave before (the whistle, the lantern, the bellows, the coil, the
+fourth chamber, the glyph lens), or no box stands (Vael II, the City-Shaft, the Glass Dunes, the Signal Market). The
+court and its bay stay, the gadget's own puzzle for when you have it. Before, one gadget in each route world after the
+desert, in the route's order, each in a makers' box at the front of a **makers' court**: a slab of the makers' pale stone (`COURT`: 21 × 24.5 m, a blue band inlaid round it, the glyph
 by the box, a skirt down into the ground) carrying that gadget's own Yard bay (its `yard(kit)`, the banner and
 statue left out, the bomb bay's pen of blots too). So the tool is useful the moment it is found, and the bay's
 pots of ink and its gate are the reward for using it.
 
-| World | Gadget | Also useful there |
-|---|---|---|
-| Vael | grappling hook | the spires |
-| Vael II | spring boots | the stone stacks |
-| Lorn | gust fan | the skiff's sail (and its trial) |
-| Lorn II | boomerang | |
-| Viridel | bubble wand | |
-| City-Shaft | ink bridge pen | the gaps between the terraces |
-| Hangar | magnet glove | the brass pumps, the signal board |
-| Buried Machine | seeing lens | the glass bridge and writing in the canyon |
-| Garden of Spheres | ink bombs | |
-| Signal Market | recall hourglass | the cabs |
+| World | The court's bay | Its box since v1.80 | The gadget is earned in |
+|---|---|---|---|
+| Vael | grappling hook | the bell-note whistle | the Founders' Belfry (Vael II) |
+| Vael II | spring boots | none | the Whale-House (the Underwater City) |
+| Lorn | gust fan | the Warden's bellows | the Warden's Well (the City-Shaft) |
+| Lorn II | boomerang | the quick coil | the Clock-House (the Glass Dunes) |
+| Viridel | bubble wand | the lantern charm | the Lamp-House (Lorn II) |
+| City-Shaft | ink bridge pen | none | the Warden's Well's Ash Store |
+| Glass Dunes | magnet glove | none | the Casting-House (the Moon Foundry) |
+| Buried Machine | seeing lens | the glyph lens | the Footprint (the Garden of Spheres) |
+| Garden of Spheres | ink bombs | the fourth chamber | the Engine-House (the Buried Machine) |
+| Signal Market | recall hourglass | none | the Undertower (the Signal Market) |
 | Underwater City (v1.48) | bubble wand, already yours: the divers' court, a dome of its own off the Plaza | float a crate over the pit's wall onto its plate |
 | Moon Foundry (v1.48) | magnet glove, already yours: the founders' yard on the apron | lift the iron crate out of its cage, set it in the pit |
 | City Floating in Space (v1.48) | grappling hook, already yours: the moorers' yard on the Yard, an island west of the Gate | reel the crate off its pillar, push it onto the plate |

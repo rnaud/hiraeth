@@ -284,7 +284,29 @@ const STEPS = [
   (flags) => migrateNightMail279(flags),
   // 28: three people renamed, and their ids (issue #281, v1.73): Anselme → Achille, Tamsy → Briony, Rowan → Burdock
   (flags) => migrateRenamed281(flags),
+  // 29: the gadgets earned in the temples (issues #375, #377, v1.80): a chest or a box a save opened holds something else
+  // now; the save is given that too, and keeps what it had (the echo shell, the horn and the tongs folded into a gadget)
+  (flags) => migrateGadgets375(flags),
 ];
+/**
+ * Step 29's boxes (their ids the saves' flags, kept), each to what it holds since v1.80: the temples' chests their
+ * house's gadget, the makers' courts' boxes the old temple things (docs/design/gadget-temples.md).
+ */
+export const BOXES_375 = {
+  'arzach2.temple.bell': 'hook', 'perdide2.temple.lantern': 'bubble', 'underwater.temple.horn': 'springs',
+  'incal.temple.jetpack': 'fan', 'garage.temple.coil': 'boomerang', 'buried.temple.cell': 'bomb',
+  'moonfoundry.temple.tongs': 'magnet', 'spheres.temple.lens': 'monocle', 'bazaar.temple.echo': 'recall',
+  'arzach.hook': 'bell', 'edena.bubble': 'lantern', 'perdide.fan': 'wardenbellows', 'perdide2.boomerang': 'coil',
+  'spheres.bomb': 'cell', 'buried.monocle': 'lens',
+};
+/** Step 29's retired things, each to the gadget it was folded into. */
+export const FOLDED_375 = { echo: 'recall', horn: 'springs', tongs: 'magnet' };
+/** Step 29 (pure, in place): what an opened box holds now, and the gadget a retired thing went into. Nothing taken. */
+export function migrateGadgets375(flags) {
+  for (const [box, item] of Object.entries(BOXES_375)) if (flags[`box.${box}`]) flags[`item.${item}`] = true;
+  for (const [old, item] of Object.entries(FOLDED_375)) if (flags[`item.${old}`]) flags[`item.${item}`] = true;
+  return flags;
+}
 /** Step 28's ids, old → new, and the other flags named after them (issue #281). */
 export const RENAMED_281 = { ids: { anselme: 'achille', tamsy: 'briony', rowan: 'burdock' }, flags: { 'perdide2.rowan.welcome': 'perdide2.burdock.welcome' } };
 /** Step 28 (pure, in place): each renamed person's flags under their new id (a flag already there is kept). */

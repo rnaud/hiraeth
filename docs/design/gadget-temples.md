@@ -43,7 +43,7 @@ The nine in bold are what #377 calls topical: more mana (the coil, the chamber),
 the horn, the lantern), keys to one house only (the bellows, the tongs, the glyph lens, the shell). The sword, the wings and
 the three gun modes are tools you use everywhere, in fights and puzzles, and stay where they are.
 
-## After: one real gadget in each of those nine temples, and one mini temple
+## After: one real gadget in each of those nine temples, and the pen in the Well's arena
 
 | Temple (world, route order) | Gadget it awards (was) | Earned by (the rooms before the chest) | The rooms after it that need it to get out | In the guardian's fight |
 |---|---|---|---|---|
@@ -51,7 +51,7 @@ the three gun modes are tools you use everywhere, in fights and puzzles, and sta
 | Lamp-House (Lorn II, 4) | **bubble wand** (lantern charm) | the dark pools' three eyes, the Root Stair's orb lit at its small pool and rolled into its socket (the moss-stones) | the Lamp Passage (its lamp high over a pit: float up to it), the Gallery of moss-stones (the stones are gone: float across the dark pool), the Wick Room (two orbs carried in bubbles to their niches in one glow) | the Lampless hangs low searching for light: blow a bubble round it, and caught, it drinks the bubble's light and calms; it shies from you later, so catch it from afar |
 | Whale-House (Underwater City, 6) | **spring boots** (whale-horn) | the Sounding Hall's ball and eye, the Pool Room's ball over the glass, the Shell Room's ball, the Horn Door's two eyes | the Song Passage (a stomp by its ear holds the door), the Tank Hall (a stomp into the dish: the shelf's ear rings and the glass's rungs come out), the keepers' landing (its ear, then its dish to the Listener's column) | the Listener spreads its great ear: come down on the floor by it in a stomp, the boom is the deep note; later it shuts its ear to anything near, and only a stomp into a dish reaches it |
 | Warden's Well (City-Shaft, 7) | **gust fan** (Warden's bellows) | the Turning Floors' vane, the Climb's slot and ball, the Ash Store's fight and the Vane Room's key | the gallery (its great vane turns only in the fan's gust: the iris), the loft (the great vane, the ball over the gap), the crown (the small vane and the great one turning at once), the Flue (its draught; the fan's lift up it) | its crown hatch opens to a hall vane's draught: fan one of the four vanes beside it, then shoot down through the hatch |
-| The Inkwell, a mini temple (City-Shaft, 7) | **ink bridge pen** (none: new) | the Proving Room, a fight against the keepers | the Gap Room (a chasm too wide for the wings: draw a plank across), the Gust Gallery (a gust hall with no screens: draw your own wall and go on behind it), and out | no guardian: the way out is the exam |
+| Warden's Well, its Ash Store (City-Shaft, 7) | **ink bridge pen** (the City-Shaft's court) | the Ash Store's fight against its keepers: the makers' chest among the ash opens when they fall (a temple find, `incal.bridge`) | the Vane Room (its vane's stones are gone: a plank across the chasm to the small key, and another back once the ink wears away) | none of its own: the gust fan is the house's exam |
 | Clock-House (Glass Dunes, 8) | **boomerang** (quick coil) | the escapement's three eyes in turn, the counterweight, the Pendulum Hall's fight and the Striking Room's ball on the hour (two small keys) | the Winding Passage (six eyes in one breath: three locked with the boomerang, three splashed), the Clock Gallery (six in turn from four: the boomerang's locks in turn), the Mainspring Room (six round the spring) | the Foreman's face opens on six numerals: lock three, throw, splash the other three inside one breath |
 | Engine-House (Buried Machine, 9) | **ink bombs** (fourth chamber) | the Piston Hall's valve and ball, the Crank Hall's ball in the hammer's teeth | the Fourth Chamber's four eyes (a bomb among two, splash two: the shutters), the Crank Passage, the Governor Room and the Furnace (four eyes on pistons, a bomb into the stroke) | its four vents open: a bomb under it wakes the two it is under, splash the other two inside a breath; a bomb on the jammed gear's teeth jams it longer |
 | Casting-House (Moon Foundry, 10) | **magnet glove** (founders' tongs) | the Mould Room's stone moon, the hoist's counterweight, the seam-eye | the Pincer Passage (an iron moon pulled into its cradle), the Casting Furnace (the iron moon through the pilot flame), the Weighing Hall (an iron moon onto its pan), the Founders' Door (the founders' moon) | its last phase wants an iron moon in the casting cradle: pull one in with the glove while it fights |
@@ -60,35 +60,45 @@ the three gun modes are tools you use everywhere, in fights and puzzles, and sta
 
 The temples that keep their tool: the Rose House (the blade and the guard), the Aerie (the wings), the Hush-House (stilling
 mode), the Builders' Greenhouse (bloom mode), the Mooring-House (tether mode). With the hook from the Belfry, the hook and the
-tether both pull now; the tether stays (a gun mode, used in fights), and the Mooring-House's rings answer either.
+tether both pull now; the tether stays (a gun mode, used in fights), and the Mooring-House's rings answer the tether alone.
+
+A mini temple of its own for the pen (the "Inkwell", planned first) was not built: the Warden's Well already had an arena
+with nothing in its chest but a key, and a chasm a room on, so the pen became the arena's prize and the chasm its exam. One
+room needs it, not two; the gust fan is the house's main tool.
 
 ### Where the nine topical things go
 
 | Thing | Now |
 |---|---|
-| quick coil | folded into a wild chest: the box of the Glass Dunes' makers' court (an upgrade worth finding, not a key) |
-| fourth chamber | the box of the Buried Machine's court |
-| glyph lens (chests from far away) | the box of the Garden of Spheres' court |
-| bell-note whistle (chests chime back) | the box of Vael's court |
-| Warden's bellows (faster in rising air) | the box of Vael II's court (the sky stones' rising air) |
-| lantern charm (light after dusk) | the box of Lorn's court |
+| bell-note whistle (chests chime back) | the box of Vael's court, where the hook was (`arzach.hook`) |
+| lantern charm (light after dusk) | the box of Viridel's court, where the bubble wand was (`edena.bubble`) |
+| Warden's bellows (faster in rising air) | the box of Lorn's court, where the fan was (`perdide.fan`) |
+| quick coil | the box of Lorn II's court, where the boomerang was (`perdide2.boomerang`) |
+| fourth chamber | the box of the Garden of Spheres' court, where the bombs were (`spheres.bomb`) |
+| glyph lens (chests from far away) | the box of the Buried Machine's court, where the seeing lens was (`buried.monocle`) |
 | echo shell | folded into the recall hourglass: its sand keeps the last note sung near you, played back with Y / △ |
 | founders' tongs | folded into the magnet glove: the glove takes hold of the founders' iron moons |
 | whale-horn | folded into the spring boots' stomp: the boom is the deep note the Whale-House's ears listen for |
 
-The courts of Lorn II, Viridel and the Signal Market keep their bays (the gadget's own puzzle, its pots of ink) but no box;
-the City-Shaft's court is the Inkwell's site. The three courts of v1.40 keep their charms behind their gates (their gadgets
-are earned before them: the bubble wand in the Lamp-House, the magnet in the Casting-House next door, the hook in the Belfry).
+Each thing went into the court whose gadget left it, so every box keeps its id (the saves' flag). The courts of Vael II
+(the springs), the City-Shaft (the pen), the Glass Dunes (the magnet) and the Signal Market (the hourglass) keep their bays
+(the gadget's own puzzle, its pots of ink) but no box. The three courts of v1.40 keep their charms behind their gates.
 
 ### Saves
 
-A save keeps everything it has (`src/save-migrate.js`, step 29, and `src/temples/migrate.js`):
-- a gadget found in a court stays; that temple's chest is open for it (the temples' doors answer the gadget you carry);
+A save keeps everything it has (`src/save-migrate.js` step 29, BOXES_375 and FOLDED_375, and `src/temples/migrate.js`):
+- a gadget found in a court stays; that temple's chest is open for it (TEMPLE_BOXES: the doors answer the gadget you carry);
 - a temple chest opened before holds the new gadget now: the save is given it (the rooms after it want it);
-- a court box opened before holds a folded thing now: the save is given that too;
-- the bellows, the horn, the tongs and the echo shell stay in a save that has them (the echo shell plays back as before).
+- a court box opened before holds one of the old temple things now: the save is given that too;
+- the horn, the tongs and the echo shell stay in a save that has them (retired: no box holds them), and give it the gadget
+  each was folded into (the springs, the magnet, the hourglass).
 
-### Not changed
+### The mastery trials' prizes
 
-The mastery trials' rewards stay where they are: an upgrade for a gadget not yet earned (the fourth notch won in Lorn II
-before the boomerang is earned in the Clock-House) waits on the items page until it is.
+Each trial's prize moved with the gadgets (`src/trials/data.js`), so an upgrade is won at or after its gadget's temple (the
+rule of issue #99): the fourth coil is the Tube run's (the Underwater City), the fourth notch the Glass slalom's, the fourth
+pouch the Canyon dive's (the Buried Machine), the lodestone the Floor round's (the Moon Foundry), the clear glass the Garden
+round's, the wide vane the Courier's round's (the floating city). The three runs before any gadget give cosmetics, renamed
+for them: the Rider's cap (the Stone circuit), the Reed pin (the Reed race), the Lagoon ribbon (the Lagoon laps). A save
+keeps every prize it won; finishing a run again gives its new one. The Echo relay (the Signal Market's kit trial) listens
+for the hourglass now.

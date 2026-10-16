@@ -190,8 +190,10 @@ export class Gadgets {
    * { id, name, glyph } (the chip shows it while nothing is in hand), or null while neither is owned.
    */
   instrument() {
-    if (this.items.has?.('bell')) return { id: 'bell', name: this.items.has?.('echo') ? 'Bell-note whistle · echo shell' : 'Bell-note whistle', glyph: '♪' };
-    if (this.items.has?.('echo')) return { id: 'echo', name: 'Echo shell', glyph: '♪' };
+    // (issue #377: the recall hourglass keeps the note the echo shell kept, and Y / △ gives it back too)
+    const keeper = this.items.has?.('echo') ? 'echo shell' : this.items.has?.('recall') ? 'hourglass’s note' : null;
+    if (this.items.has?.('bell')) return { id: 'bell', name: keeper ? `Bell-note whistle · ${keeper}` : 'Bell-note whistle', glyph: '♪' };
+    if (keeper) return { id: this.items.has?.('echo') ? 'echo' : 'recall', name: keeper === 'echo shell' ? 'Echo shell' : 'The hourglass’s note', glyph: '♪' };
     return null;
   }
 

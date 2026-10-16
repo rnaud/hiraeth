@@ -252,6 +252,7 @@ export const penSfx = {
 
 export default {
   id: 'bridge', name: 'Ink bridge pen', glyph: '✒', order: 60, trigger: 'use',
+  where: 'In the Warden’s Well on the City-Shaft’s rim: the prize of the Ash Store’s fight, west of the Climb.',
   text: 'A night-blue fountain pen. Hold {key:use} and aim to draw a line of ink from your feet; let go and it sets into a plank you can walk on, for a while.',
   model: penModel,
   create(ctx) { return new Pen(ctx); },

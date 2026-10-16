@@ -529,6 +529,7 @@ export const EN = {
   'teach.echo': 'The echo shell: let something sing near it, then play it back with {key:whistle}.',
   'teach.horn': 'The whale-horn: sound its deep note with {key:whistle}.',
   'teach.shellCaught': 'The shell catches {label} and holds it. {key:whistle} plays it back.',
+  'teach.sandCaught': 'The hourglass keeps {label}. {key:whistle} gives it back.',
   'teach.penShort': 'Hold {key:gadget} to draw the line out, then let go.',
   'teach.bubbleSelf': 'Floating: steer with {key:move}, press {key:gadget} again (or {key:jump}) to pop it.',
   'teach.bellowsNext': 'An updraft rises from the plinth: jump in and open your wings ({key:thrust}).',

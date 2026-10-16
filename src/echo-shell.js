@@ -26,22 +26,22 @@ export function createEchoShell({ player, game = sharedGame, items = sharedItems
     get held() { return game.flag('echo.held') ?? null; },
     /** Something sang near you: the shell keeps it (if you carry it, and it is within earshot). */
     hear({ pos, note, degree = 0, color = '#ffffff', label = 'a note', reach = ECHO.reach } = {}) {
-      if (!items.has('echo') || !player || !pos || !note) return false;
+      if (!(items.has('echo') || items.has('recall')) || !player || !pos || !note) return false;   // (the recall hourglass's sand keeps it since issue #377)
       if (player.pos.distanceTo(pos) > reach) return false;
       const was = shell.held;
       game.set('echo.held', { note, degree, color, label });
       if (!was || was.note !== note) {
         sound?.critter?.('blip', 0.5);
         const key = told.size ? 'again' : 'first';
-        if (!told.has(key)) { told.add(key); toast(key === 'first' ? tr('teach.shellCaught', { label }) : `The shell holds ${label} now.`); }
+        if (!told.has(key)) { told.add(key); toast(key === 'first' ? tr(items.has('echo') ? 'teach.shellCaught' : 'teach.sandCaught', { label }) : `${items.has('echo') ? 'The shell' : 'The hourglass'} holds ${label} now.`); }
       }
       return true;
     },
     /** Play back what it holds, where you stand. Returns true if it did. */
     play() {
       const h = shell.held;
-      if (!items.has('echo') || !player || player.hidden || cool > 0) return false;
-      if (!h) { if (!told.has('empty')) { told.add('empty'); toast('The shell is quiet. It holds nothing yet: let something sing near it.'); } return false; }
+      if (!(items.has('echo') || items.has('recall')) || !player || player.hidden || cool > 0) return false;
+      if (!h) { if (!told.has('empty')) { told.add('empty'); toast(items.has('echo') ? 'The shell is quiet. It holds nothing yet: let something sing near it.' : 'The sand holds no note yet: let something sing near it.'); } return false; }
       cool = ECHO.cool;
       sound?.orbNote?.(h.degree ?? 0, player.pos, { soft: true, size: 0.6 });
       game.emit('echo', { pos: player.pos.clone(), note: h.note, degree: h.degree, color: h.color });

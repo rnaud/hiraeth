@@ -87,7 +87,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 28);   // (28: three people renamed with their ids, issue #281)
+  assert.equal(MIGRATED(), 29);   // (29: the gadgets earned in the temples, issues #375, #377)
 });
 
 test('the Givers’ House remade (v1.44, step 13): every old save keeps the sword and the shield; ember mode’s chest moved to the Hearth; the old house’s state goes, a calmed Keeper stays calmed', () => {
@@ -458,4 +458,20 @@ test('three renamed, and their ids (issue #281, step 28): Anselme → Achille, T
   assert.equal(WHALE.achille.name, 'Achille');
   assert.equal(LAMP.briony.name, 'Briony');
   assert.equal(SHOPKEEPERS.burdock.name, 'Burdock');
+});
+
+test('the gadgets earned in the temples (issues #375, #377, step 29): an opened chest or box gives what it holds now, a retired thing its gadget, nothing taken', async () => {
+  const { BOXES_375, FOLDED_375 } = await import('../src/save-migrate.js');
+  const { PLACEMENTS } = await import('../src/boxes/placements.js');
+  const { ITEMS } = await import('../src/items.js');
+  const run = (flags) => { const f = { 'save.migrated': 28, ...flags }; migrateFlags(f); return f; };
+  // a save that had opened the Belfry's chest (the whistle) and Vael's court (the hook) before
+  const f = run({ 'box.arzach2.temple.bell': true, 'item.bell': true, 'box.arzach.hook': true, 'item.hook': true, 'box.underwater.temple.horn': true, 'item.horn': true, 'item.echo': true });
+  for (const k of ['item.bell', 'item.hook', 'item.horn', 'item.echo', 'item.springs', 'item.recall']) assert.equal(f[k], true, k);
+  assert.equal(f['item.magnet'], undefined, 'nothing it never had');
+  assert.equal(run({ 'world.desert.done': true })['item.hook'], undefined, 'a save with none of them: nothing given');
+  // the table is what the boxes hold now
+  const all = Object.values(PLACEMENTS).flat();
+  for (const [box, item] of Object.entries(BOXES_375)) assert.equal(all.find((p) => p.id === box)?.item, item, `${box}: ${item}`);
+  for (const old of Object.keys(FOLDED_375)) assert.ok(ITEMS[old]?.retired, `${old}: retired`);
 });
