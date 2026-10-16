@@ -171,6 +171,7 @@ export class UnityBackend {
     if (d.kind === 'skinned' && d.skeleton && d.attached) { desc.skeleton = d.skeleton; desc.bind = Array.from(mirrorMatrix(d.bind)); }
     // (an instanced set's instances left out past this distance from the eye: engine/game.js instancesFar, InstMats.far)
     if (o?.isInstancedMesh && o.userData?.instancesFar > 0) desc.far = o.userData.instancesFar;
+    if (d.kind === 'instanced' && d.capacity) desc.capacity = d.capacity;   // (how many it can hold: BridgeRenderer's -merge-max)
     this.host.Create(id, JSON.stringify(desc));
   }
 

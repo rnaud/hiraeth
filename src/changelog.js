@@ -68,6 +68,19 @@ export const CHANGELOG = [
     // scripts/motion-qc/lib.mjs (jolts at the frames' own times), .claude/skills/motion-qc/run.mjs (unsteady runs);
     // tests/motion-qc.test.js ("sixth round")
     'Turning on the spot and setting off into a jog to the side, the foot he turned on no longer hops and snaps his knee; reversing at a sprint, his feet no longer skate across the floor or swing his knee across as he comes round; and his settling steps lift before they move.',
+    // the Unity build's GPU on the Retroid, round 5 (issue #262): BridgeRenderer.StaticBatch / Unbatch (static batches on
+    // Android), BridgeMetrics (-variants); tests/unity-retroid-batches.test.js; docs/systems/performance.md "Unity on the
+    // Retroid, round 5"
+    { text: 'The Unity preview on the Retroid draws the world’s still buildings and props in fewer batches: up to 3 frames a second more in the City Floating in Space and the Signal Market, 1 more over the City-Shaft. With the frame readout on, each world’s first seconds no longer stutter once.',
+      numbers: [{ title: 'Frames a second in the Unity preview, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova, Handheld preset at 0.75 of 1280 × 960, muted', rows: [
+        { where: 'the City Floating in Space, the wide view', before: 54.9, after: 58.2 },
+        { where: 'the City Floating in Space, its start', before: 50.9, after: 52.5 },
+        { where: 'the Signal Market, the wide view', before: 55.0, after: 56.8 },
+        { where: 'the Signal Market, the second crowd', before: 55.5, after: 57.3 },
+        { where: 'the City-Shaft, the wide view', before: 35.8, after: 36.8 },
+        { where: 'the City-Shaft, the second crowd', before: 56.7, after: 57.4 },
+        { where: 'the Desert, the spawn (the slowest 1 % of frames)', before: 28.7, after: 41.8 },
+      ], source: 'the bridge\'s bench (-views -bench 6), 16 October; the mean rate over each view', note: 'Lorn and Underwater are unchanged; GeckoView, the web version, is still ahead there and in the Signal Market.' }] },
   ] },
   { v: '1.79', date: '2026-10-15', items: [
     // the switch (issue #111, plan D19): scripts/steam-deck/deck.py DEFAULT_ENGINE 'unity', the Linux player's vsync

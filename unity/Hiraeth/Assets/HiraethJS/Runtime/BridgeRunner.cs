@@ -488,6 +488,14 @@ namespace Hiraeth.Bridge
             // -census what is drawn by kind, -skin-cull the skinned meshes skinned only when seen)
             if (BridgeArgs.Arg("-hide") is string hk) foreach (var k in hk.Split(',')) BridgeRenderer.hide.Add(k.Trim());
             BridgeRenderer.census = BridgeArgs.Flag("-census");
+            // (-merge-instances, a test: the GPU instances' sets of one mesh and material drawn as one, BridgeRenderer.mergeInstances;
+            // -merge-min N only the sets of N instances and up, -merge-max N up to N)
+            if (BridgeArgs.Flag("-merge-instances")) BridgeRenderer.mergeInstances = true;
+            // the still meshes in Unity's static batches (BridgeRenderer.StaticBatch): on Android, -static-batch elsewhere, -no-static-batch off
+            if (BridgeArgs.Flag("-static-batch")) BridgeRenderer.staticBatch = true;
+            if (BridgeArgs.Flag("-no-static-batch")) BridgeRenderer.staticBatch = false;
+            if (BridgeArgs.Arg("-merge-max") is string mmx && int.TryParse(mmx, out int mmv)) BridgeRenderer.mergeMax = mmv;
+            if (BridgeArgs.Arg("-merge-min") is string mmn && int.TryParse(mmn, out int mnv)) BridgeRenderer.mergeMin = mnv;
             BridgeRenderer.skinCull = BridgeArgs.Flag("-skin-cull");
             if (BridgeArgs.Flag("-no-view-instances")) InstMats.ViewCull = false;
             InstMats.ViewSetsOnly = BridgeArgs.Flag("-view-instance-sets");

@@ -41,6 +41,7 @@ import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, CROWD_DIST_CELL, buildPeople } from '../src/crowd.js';
 import { QUALITY_PRESETS, SmallCuller, tilesInstances, cullFar } from '../src/perf.js';
+import { LodManager } from '../src/lod.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
@@ -268,7 +269,7 @@ export const LOOK_KEYS = ['uSkyTop', 'uSkyHorizon', 'uInk', 'uShadowTint', 'uLig
 /** The look's vectors the engines take with the numbers (post.js: spot blacks, haze by depth and height, cast shadows). */
 export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uHazeLayers', 'uHazeTone', 'uHeightFog', 'uHeightFogTone', 'uCast', 'uInkShadow']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
   let combat = null, hpHurt = 0;
@@ -471,6 +472,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // tilesInstances) instance by instance where they are drawn (the mirror's `far`: Unity's InstMats.far), whole, past
   // propFar and a tile's reach (main.js leaves out a tile whose centre is past propFar by more than its radius)
   const small = farOn ? [...(level.smallProps ?? []), ...(flora?.small ?? [])] : [];
+  // (the levels of detail, lod.js as main.js: a test, -js-on lod; its levels built on the script's thread)
+  let lodLevels = null;
+  const lodKeep = () => [player.object, player.mount?.object, ...player.vehicles.map((v) => v.object ?? v.mesh), ...npcs.map((n) => n.object), ...(crowd?.pool ?? []).map((e) => e.npc?.object), level.ground?.mesh];
   if (farOn && Q?.propFar) scene.traverse((o) => { if (tilesInstances(o)) o.userData.instancesFar = (o.userData.drawFar ?? Q.propFar) + PROP_TILE_REACH; });
   if (flora?.noShadow) (level.noShadow ??= []).push(...flora.noShadow);
   // grass blades round the camera on the grassy grounds (flora-grass.js), by the graphics preset (the bench's: High), as main.js grows them
@@ -1374,6 +1378,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const hidden = Q?.propPx ? (smallCull ??= new SmallCuller(scene)).hide(camera, pxPerRad, Q.propPx, []) : [];
       // (and the small props' tiles past the preset's propFar: main.js renderFrame's cullFar)
       if (Q?.propFar && small.length) cullFar(small, camera, Q.propFar, hidden);
+      if (lodOn && Q?.lodPx) (lodLevels ??= new LodManager(scene, { keep: lodKeep(), budget: 1 })).update(camera, pxPerRad, Q.lodPx);
       veilsFrame();
       const stats = mirror.sync(scene, camera);
       for (const o of hidden) o.visible = true;

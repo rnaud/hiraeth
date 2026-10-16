@@ -157,12 +157,15 @@ namespace Hiraeth.Bridge
                 if (now - lastGrowth > 2)
                 {
                     settled = lastGrowth;
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
                     Write($"load: GPU Resident Drawer {BridgeRunner.ResidentDrawerState()}");
-                    Write($"load: prewarm: {BridgePrewarm.Save()} (layout, state) pairs kept for the next launch");
+                    Write($"load: prewarm: {BridgePrewarm.Save()} (layout, state) pairs kept for the next launch ({sw.Elapsed.TotalMilliseconds:0.0} ms)");
                     BridgePso.Settled();
                     var cam = Camera.main; var urpAsset = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
                     Write($"load: the picture: screen {Screen.width}x{Screen.height}, the camera's {(cam ? cam.pixelWidth : 0)}x{(cam ? cam.pixelHeight : 0)}, render scale {(urpAsset ? urpAsset.renderScale : 1)}, the display {Screen.currentResolution.width}x{Screen.currentResolution.height} {Screen.currentResolution.refreshRateRatio.value:0.##} Hz{DisplayModes()}");
-                    try { Write($"load: {scene.Variants()}"); } catch (Exception e) { Write("load: the variants: " + e.Message); }
+                    // (the scene's variants and layouts: every renderer, material and mesh looked at once, 30-60 ms of the main thread
+                    // on the Retroid, as the bench's first view runs: -variants asks for them, issue #262)
+                    if (BridgeArgs.Flag("-variants")) { sw.Restart(); try { Write($"load: {scene.Variants()} ({sw.Elapsed.TotalMilliseconds:0} ms)"); } catch (Exception e) { Write("load: the variants: " + e.Message); } }
                     Write($"load: world settled {settled * 1000:0} ms after launch ({nodes} nodes, {scene.Geometries} geometries); " +
                           $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
                           $"Unity's own part (without the wait on the script): {nativeSum:0} ms, longest {nativeMax:0} ms, {nativeSlow} over 50 ms");

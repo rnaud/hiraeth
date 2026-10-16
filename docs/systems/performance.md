@@ -3049,6 +3049,65 @@ To repeat: build as above, then for each world `-mute -metrics -level <world> -v
 -e unity '<plan>'`, the plan read back from the log before anything is measured), pull `unity-bench.json` (its `rs`)
 and the views' shots; `-js-off far -shadow-draws` gives the old behaviour on the same build.
 
+### Unity on the Retroid, round 5: the instances, the prepass, static batches, the first view's stutter (2026-10-16, issue #262)
+
+The worlds Unity trails GeckoView in (the Signal Market, Lorn, Underwater, the Floating city) and the City-Shaft, the same
+bench and device as round 4; before: origin/main at 18233e6ad (round 4 landed), after: this change. Each lever was tried
+on one build with its switch, at the views each world is worst in.
+
+**Where the trailing worlds' GPU goes** (GPU ms at the Signal Market's start / Lorn's start / Underwater's wide view /
+the Floating city's start; base 19.1 / 21.2 / 19.9 / 19.5): the plain meshes `-hide mesh` 9.3 / 8.4 / 5.9 / 7.1 (so 10-14
+ms of it with their pixels, 7.4 / 9.2 still at a quarter of the pixels); the people and the crowd 1-3; the shadow maps
+0.5-1.4; the GPU instances 0.3-0.6 there (5.8 ms in the City-Shaft's start, 5.5 wide); the Surface shader's fragment
+work (`-surface-debug 9`) 4.5-7.9; its vertex stage (`-surface-debug 12` against 9, a quarter of the pixels) 1.6-2.6.
+Unity's frame draws 2-4 × GeckoView's triangles over its passes (Lorn's start 3.3 M against 0.9 M), but fewer triangles
+alone buy nothing: Lorn's ground (one mesh 4.5 km across, 361 000 vertices) drawn by 128 m pieces in the view too, as
+the web tiles it, took 3.3 → 2.2 M triangles and the GPU 21.2 → **23.1** ms (the City-Shaft's big meshes in round 4: the
+same). The GPU is 99 % busy at 680 MHz throughout (kgsl).
+
+**Tried and kept as switches, off:**
+- **The GPU instances' sets merged** by mesh and material (BridgeRenderer.mergeInstances, `-merge-instances`; the bodies'
+  parts by their geometry's bytes): the City-Shaft has 175 sets, 112 of them one tree in one material. One draw for
+  them: the start 22.4 → 21.0-21.3 ms and the second crowd 16.8 → 16.2-16.4, but the wide view 27.0 → 29.2 (the
+  same triangles, 40 % fewer SetPass calls). By size (`-merge-min`, `-merge-max`): the parts' sets merged alone cost the
+  wide view 4 ms, the trees alone 2.5. A set that keeps moving leaves its group (it was made again every frame).
+  The other worlds: within 0.6 ms.
+- **The engine's levels of detail** (lod.js as main.js, `-js-on lod`): the Signal Market, Lorn and the Floating city
+  0.5-0.9 ms less, 5-13 % fewer triangles, but the start views' 1 % low 37-47 → 24-28 fps while their levels are built
+  on the script's thread.
+- **The depth prepass** is needed on Android: without it every one of these views is 0.5-5 ms slower (`-no-prepass`).
+
+**What changed:**
+- **The still meshes in Unity's static batches** (BridgeRenderer.StaticBatch, on Android; `-no-static-batch` off), as
+  the web draws its still meshes in batches (static-batch.js): once the script has made nothing for 3 s, every plain
+  opaque mesh that has not moved for 2 s (not skinned, instanced, in shadow pieces or with shape keys) is combined by
+  StaticBatchingUtility (500-1 100 a world in 9-23 ms); again after each later burst of new nodes. A batched node that
+  moves, takes another geometry, has its instances baked again or its points moved is drawn on its own again
+  (Unbatch: a renderer of its own on a child; the City-Shaft unbatched 6 in its bench, its doors and the like).
+  0.4-1.1 ms of GPU in the City-Shaft, the Signal Market and the Floating city, none in Lorn and Underwater; 36 MB
+  more memory in Lorn (PSS 1.13 → 1.17 GB). The same picture (the shots differ where the world moves).
+- **The first view's stutter**: the frame readout's load report (BridgeMetrics, with `-metrics`) listed the scene's
+  shader variants and vertex layouts 2 s after the world settled: every renderer, material and mesh looked at, 43 ms
+  of the main thread, inside the bench's first view (the desert's spawn 1 % low 30 fps, Lorn's start 26). Now only with
+  `-variants`: the spawn's 1 % low 42, Lorn's 37.
+
+| world (views) | Unity before: fps, worst view, 1 % low, GPU | Unity after: fps, worst view, 1 % low, GPU | GeckoView (round 4): fps, worst, 1 % low | after − GeckoView, worst view |
+|---|---|---|---|---|
+| City-Shaft (4) | 56.7, 35.8, 44.8, 22.3 | 57.4, 36.8, 36.1, 21.8 | 52.1, 37.0, 30.0 | −0.2 |
+| Signal Market (4) | 55.5, 51.7, 48.4, 18.0 | 57.3, 52.6, 51.4, 17.4 | 59.6, 59.4, 32.8 | −6.8 |
+| Lorn (4) | 60.1, 46.5, 50.7, 19.6 | 60.1, 47.1, 51.4, 19.3 | 59.6, 57.2, 32.8 | −10.1 |
+| Underwater (4) | 56.8, 50.0, 45.6, 17.5 | 56.9, 49.5, 50.4, 17.6 | 59.4, 58.8, 30.0 | −9.3 |
+| Floating city (4) | 60.0, 50.9, 50.5, 18.1 | 60.1, 52.5, 53.3, 17.1 | 59.9, 58.9, 45.0 | −6.4 |
+| Desert (5) | 60.1, 54.0, 51.8, 14.4 | 60.1, 54.8, 53.4, 14.4 | 59.3, 55.5, 30.0 | −0.7 |
+
+(The batches are made during each world's first view, so its numbers hold them for part of its 6 s.) The City-Shaft's
+crowd2 1 % low (44.8 → 36.1, three slow frames) is not explained yet.
+
+**What is left**: the plain meshes' cost that neither fewer triangles nor fewer SetPass calls touch; drawn into the
+G-buffer's three half-float targets (28 bytes a pixel, likely ~7 of the Adreno's bins at 960 × 720) a draw is likely paid in every
+bin it touches, and Unity draws each mesh in the prepass and the G-buffer where the web draws it once: a G-buffer of fewer
+bytes a pixel (the web's is the same), the Surface shader's vertex outputs (28-40 floats a vertex) and its fragment work.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

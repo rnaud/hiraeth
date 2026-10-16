@@ -219,6 +219,7 @@ namespace Hiraeth.Bridge
             if (Flag("-no-title")) args["noTitle"] = true;
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)
             if (Arg("-js-off") != null) args["off"] = Arg("-js-off");
+            if (Arg("-js-on") != null) args["on"] = Arg("-js-on");   // (-js-on a,b: the script's tests turned on: lod, engine/unity/game.js)
             // (-v8-gcs: each of V8's full collections logged with its frame, engine/unity/gc-watch.js; issue #113)
             if (Flag("-v8-gcs")) args["gcs"] = true;
             return JsonText(args);

@@ -94,6 +94,8 @@ namespace Hiraeth
         readonly int shadowPass; readonly System.Action<RasterCommandBuffer, HiraethShadows.Cascade> caster; int drawnAt = -1; bool casts;
         // the instances' bounds (their places, padded by the mesh's reach times their largest scale), made again on each Set from 0
         readonly float meshR; Vector3 lo, hi; float maxScale; bool boundsOk; Bounds bounds;
+        /// <summary>Where its instances stand (their places' middle; the last whole Set's).</summary>
+        public Vector3 Middle => (lo + hi) * 0.5f;
         int drew, said;
         static readonly List<InstMats> all = new();
         /// <summary>The highest any instanced caster reaches (for the shadow maps' sweep: HiraethShadows.CullFor).</summary>
@@ -137,6 +139,22 @@ namespace Hiraeth
             else if (growing) { lo = Vector3.Min(lo, p); hi = Vector3.Max(hi, p); maxScale = Mathf.Max(maxScale, s); }
             else partial = true;   // (some instances set again, not from the first: the bounds unknown till the next whole set)
             boundsOk = false;   // (whole again at the next Draw, after the last instance is set)
+        }
+        /// <summary>Instance j of another set of the same mesh as this set's i (a merged set: BridgeRenderer's instance groups),
+        /// its reach as that set worked it out.</summary>
+        public void CopyFrom(int i, InstMats src, int j)
+        {
+            if (i >= data.Length) System.Array.Resize(ref data, Mathf.Max(i + 1, data.Length * 2));
+            if (rad.Length < data.Length) System.Array.Resize(ref rad, data.Length);
+            data[i] = src.data[j]; if (i >= count) count = i + 1;
+            float r = j < src.rad.Length ? src.rad[j] : meshR;
+            rad[i] = r;
+            var p = new Vector3(data[i].r0.w, data[i].r1.w, data[i].r2.w);
+            float s = meshR > 0 ? Mathf.Max(0, r - 0.01f) / meshR : 1;
+            if (i == 0) { lo = hi = p; maxScale = s; growing = true; partial = false; }
+            else if (growing) { lo = Vector3.Min(lo, p); hi = Vector3.Max(hi, p); maxScale = Mathf.Max(maxScale, s); }
+            else partial = true;
+            boundsOk = false;
         }
         bool growing, partial;
         void FinishBounds()

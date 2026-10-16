@@ -15,7 +15,7 @@ namespace Hiraeth.Bridge
     /// </summary>
     public class BridgeRenderer : MonoBehaviour
     {
-        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; }
+        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; public Mesh shape; public List<Node> batchedBy; }   // (shape: the first mesh made from the same bytes: instance groups)
         class Node
         {
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
@@ -23,6 +23,8 @@ namespace Hiraeth.Bridge
             public Matrix4x4 bind; public string bindKey; public int nb;   // (a mesh on a shared skeleton: its bind pose)
             public MeshData src; public float moteSize, moteGlow; public Vector3[] qv;   // (points: camera-facing quads from src's points, each frame)
             public Puffs puffs;                                                 // (the footprints: the port's Print decal, instanced)
+            public bool batched; public int movedAt;   // (in a static batch: BridgeRenderer.StaticBatch; the frame it last moved)
+            public InstGroup group; public int moves;   // (its mesh and material's other sets: drawn together, mergeInstances; how often it moved since)
             public InstMats im; public Matrix4x4[] raw = new Matrix4x4[0]; public Color[] rawCol = new Color[0]; public int rawN; public bool imDirty;   // (instanced: on the GPU, the port's HIRAETH_INSTMAT)
             public List<GameObject> chunks; public MeshData chunkSrc;   // (a big still mesh's pieces for the shadow maps: BridgeShadowChunks)
         }
@@ -339,6 +341,7 @@ namespace Hiraeth.Bridge
             mesh.RecalculateBounds();
             if (rig != null) mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
             d.mesh = mesh;
+            d.shape = Shape(b, count, mesh);
             if (meshes.TryGetValue(key, out var old) && old.mesh) Destroy(old.mesh);
             meshes[key] = d;
             // (the variants of one geometry, by its id: cloth moves them all at once, op 8)
@@ -543,6 +546,7 @@ namespace Hiraeth.Bridge
         // ------------------------------------------------------------------ nodes
         public void Create(int id, string json)
         {
+            lastCreateFrame = Time.frameCount;
             var d = Json.Parse(json) as Dictionary<string, object>;
             var n = new Node { kind = d.S("kind"), mesh = d.S("mesh"), shadow = !(d.Get("shadow") is bool sh) || sh };
             Count("create " + n.kind);
@@ -616,7 +620,9 @@ namespace Hiraeth.Bridge
                 {
                     // (the shader multiplies the instance's tint by the vertex colour: a mesh without any gets white)
                     if (md.col == null) { md.col = new Color[md.pos.Length]; for (int i = 0; i < md.col.Length; i++) md.col[i] = Color.white; md.mesh.SetColors(md.col); }
-                    n.im = new InstMats(md.mesh, imat, 64) { far = d.F("far") }; nodes[id] = n; return;   // (far: engine/game.js instancesFar)
+                    n.im = new InstMats(md.mesh, imat, 64) { far = d.F("far") }; nodes[id] = n;   // (far: engine/game.js instancesFar)
+                    if ((mergeMax <= 0 || d.I("capacity") <= mergeMax) && d.I("capacity") >= mergeMin) Group(n, md.shape && md.shape.HasVertexAttribute(VertexAttribute.Color) == md.mesh.HasVertexAttribute(VertexAttribute.Color) ? md.shape : md.mesh, mid);
+                    return;
                 }
             }
             if (md != null && n.kind == "skinned" && d.I("bones") > 0 && d.Get("skeleton") != null)
@@ -676,6 +682,11 @@ namespace Hiraeth.Bridge
             if (!BridgeShadowChunks.On || n.kind != "mesh" || !n.shadow || !(n.r is MeshRenderer) || md == null || md.bones >= 0 || md.keys > 0 || md.unchunked || !BridgeShadowChunks.Wants(md.mesh)) return;
             n.chunks = BridgeShadowChunks.Attach(n.go, n.r, md.mesh); n.chunkSrc = md; chunked.Add(n);
         }
+        static bool Opaque(Renderer r)
+        {
+            foreach (var m in r.sharedMaterials) if (!m || m.renderQueue > (int)RenderQueue.GeometryLast) return false;
+            return true;
+        }
         /// <summary>A mesh's points moved in place: its pieces would be stale, so every node drawing it casts it whole again.</summary>
         void Unchunk(MeshData md)
         {
@@ -725,6 +736,7 @@ namespace Hiraeth.Bridge
         {
             if (!nodes.TryGetValue(id, out var n) || !meshes.TryGetValue(key, out var md)) return;
             n.mesh = key;
+            if (n.batched) Unbatch(n);
             if (n.smr && n.bindKey != null) { n.smr.sharedMesh = Bound(key, md, n); return; }
             if (n.smr) { if (md.bones != n.bones.Length) { var bp = new Matrix4x4[n.bones.Length]; for (int i = 0; i < bp.Length; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = bp.Length; } n.smr.sharedMesh = md.mesh; }
             else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = md.mesh;
@@ -770,7 +782,7 @@ namespace Hiraeth.Bridge
                     {
                         int n = (int)fu[o++];
                         for (int i = 0; i < n; i++, o += 17)
-                            if (nodes.TryGetValue((int)fu[o], out var nd)) Apply(nd.go.transform, Mat(ff, o + 1), true);
+                            if (nodes.TryGetValue((int)fu[o], out var nd)) { Apply(nd.go.transform, Mat(ff, o + 1), true); nd.movedAt = Time.frameCount; if (nd.batched) Unbatch(nd); }
                         break;
                     }
                     case 2:   // visible
@@ -789,7 +801,7 @@ namespace Hiraeth.Bridge
                             for (int i = 0; i < cnt; i++) { nd.raw[i] = Mat(ff, mo + i * 16); nd.rawCol[i] = hasCol ? new Color(ff[co + i * 3], ff[co + i * 3 + 1], ff[co + i * 3 + 2], 1) : Color.white; }
                             nd.rawN = cnt; nd.imDirty = true;
                         }
-                        else if (nd != null && nd.mf && meshes.TryGetValue(nd.mesh ?? "", out var md)) BakeInstances(nd, md, cnt, mo, hasCol ? co : -1);
+                        else if (nd != null && nd.mf && meshes.TryGetValue(nd.mesh ?? "", out var md)) { if (nd.batched) Unbatch(nd); BakeInstances(nd, md, cnt, mo, hasCol ? co : -1); }
                         break;
                     }
                     case 4:   // bones: each bone's matrix, local to the node
@@ -828,6 +840,7 @@ namespace Hiraeth.Bridge
                                 if (!md.mesh || md.pos.Length != n) continue;
                                 if (chunked.Count > 0) Unchunk(md);
                                 else md.unchunked = true;
+                                if (md.batchedBy != null) foreach (var bn in md.batchedBy.ToArray()) Unbatch(bn);   // (its points baked into a static batch: drawn on its own again)
                                 for (int i = 0; i < n; i++) md.pos[i] = new Vector3(ff[po + i * 3], ff[po + i * 3 + 1], ff[po + i * 3 + 2]);
                                 md.mesh.SetVertices(md.pos);
                                 if (hasN && md.nrm != null) { for (int i = 0; i < n; i++) md.nrm[i] = new Vector3(ff[no + i * 3], ff[no + i * 3 + 1], ff[no + i * 3 + 2]); md.mesh.SetNormals(md.nrm); }
@@ -1074,6 +1087,7 @@ namespace Hiraeth.Bridge
         public void DrawCrowds()
         {
             if (census && Time.frameCount % 300 == 0) Census();
+            if (staticBatch && lastCreateFrame > 0 && batchedFor != lastCreateFrame && Time.frameCount - lastCreateFrame > 180) StaticBatch();
             PointQuads();
             var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
             // (the GPU instances drawn only where the camera's view holds them: InstMats.ViewCull)
@@ -1085,14 +1099,43 @@ namespace Hiraeth.Bridge
                 if (n.puffs != null && !Hidden("puffs")) n.puffs.Draw(around.center, 500);
                 if (n.im == null || n.rawN == 0 || Hidden("inst")) continue;
                 // (each instance's world matrix: the node's, then its own; again when either moved)
-                if (n.imDirty || n.go.transform.hasChanged)
+                bool moved = n.imDirty || n.go.transform.hasChanged;
+                if (moved)
                 {
                     var W = n.go.transform.localToWorldMatrix;
                     if (n.im.data.Length < n.rawN) n.im.data = new InstMats.Inst[n.raw.Length];
                     for (int i = 0; i < n.rawN; i++) n.im.Set(i, W * n.raw[i], n.rawCol[i]);
                     n.im.count = n.rawN; n.imDirty = false; n.go.transform.hasChanged = false;
                 }
+                // (a set of a mesh and material other sets share: drawn by their group, below)
+                // (one that keeps moving, a body's parts, leaves its group for good: its group would be made again every frame)
+                if (n.group != null && moved && ++n.moves > 3) { n.group.dirty = true; n.group = null; }
+                if (n.group != null && n.group.im != null) { n.group.live.Add(n); n.group.dirty |= moved; continue; }
                 n.im.Draw(around, n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off, view);
+            }
+            foreach (var g in instGroups.Values)
+            {
+                if (g.im == null) continue;
+                // (again whenever a set moved, or another set is shown or hidden)
+                // (its sets near to far from the eye, as they were drawn apart: the depth prepass and the shadow maps draw the near
+                // ones first; again once the eye has gone 8 m)
+                var eye = InstMats.ViewEye;
+                if ((eye - g.sortedAt).sqrMagnitude > 64) g.sortedAt = eye;
+                var at0 = g.sortedAt;
+                g.live.Sort((a, b) => (a.im.Middle - at0).sqrMagnitude.CompareTo((b.im.Middle - at0).sqrMagnitude));
+                bool same = !g.dirty && g.live.Count == g.drawn.Count;
+                for (int k = 0; same && k < g.live.Count; k++) same = g.live[k] == g.drawn[k];
+                if (!same)
+                {
+                    g.im.count = 0;
+                    int at = 0;
+                    foreach (var m in g.live) for (int j = 0; j < m.rawN; j++) g.im.CopyFrom(at++, m.im, j);
+                    g.im.count = at;
+                    (g.drawn, g.live) = (g.live, g.drawn);
+                    rebuiltGroups++;
+                }
+                g.live.Clear(); g.dirty = false;
+                if (g.im.count > 0) g.im.Draw(around, g.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off, view);
             }
             foreach (var (id, g) in grass)
             {
@@ -1114,8 +1157,106 @@ namespace Hiraeth.Bridge
             }
         }
 
+        /// <summary>
+        /// The GPU instances' sets of one mesh, one material, one shadow and one distance drawn as one (issue #262): the City-Shaft
+        /// builds 112 sets of one tree in one material (a draw each in the prepass, the G-buffer and every cascade), and the
+        /// bodies' repeated parts come in sets of 3-10. A group's set holds every shown member's instances, made again when one
+        /// moves or is shown or hidden (one that keeps moving leaves it); the members draw nothing of their own (nor cast: InstMats
+        /// draws its shadow only on a frame it was drawn). A test (-merge-instances), off: on the Retroid the City-Shaft's start
+        /// and second crowd gain 1.1-0.4 ms of GPU and its wide view loses 2.5, the same triangles drawn in 40 % fewer SetPass
+        /// calls (performance.md, "Unity on the Retroid, round 5").
+        /// </summary>
+        public static bool mergeInstances;
+        class InstGroup { public InstMats im; public bool shadow, dirty = true; public int members; public List<Node> live = new(), drawn = new(); public int mid; public Mesh mesh; public float far; public Vector3 sortedAt = Vector3.positiveInfinity; }
+        readonly Dictionary<(Mesh, int, bool, float), InstGroup> instGroups = new();
+        // the meshes by their bytes as the script sent them (a body's parts each build a geometry of their own, the same shape)
+        readonly Dictionary<(ulong, int), Mesh> shapes = new();
+        Mesh Shape(byte[] b, int count, Mesh mesh)
+        {
+            if (!mergeInstances || count <= 0 || count > 1 << 18) return mesh;
+            ulong h = 14695981039346656037UL;
+            for (int i = 0; i < count; i++) { h ^= b[i]; h *= 1099511628211UL; }
+            if (shapes.TryGetValue((h, count), out var first) && first) return first;
+            shapes[(h, count)] = mesh;
+            return mesh;
+        }
+        public int rebuiltGroups;
+        /// <summary>-merge-max N: only the sets of up to N instances in groups (0: every set).</summary>
+        public static int mergeMax;
+        /// <summary>Only the sets of at least this many instances in groups (-merge-min N): the bodies' parts, sets of 3-10 of a
+        /// small mesh, cost the City-Shaft's wide view 4 ms of GPU merged (the same triangles), the trees, sets of 19-92, save it.</summary>
+        public static int mergeMin = 17;
+        void Group(Node n, Mesh mesh, int mid)
+        {
+            if (!mergeInstances || n.im == null || !mesh || !materials.TryGetValue(mid, out var bm) || !bm) return;
+            var key = (mesh, mid, n.shadow, n.im.far);
+            if (!instGroups.TryGetValue(key, out var g)) instGroups[key] = g = new InstGroup { shadow = n.shadow, mid = mid, mesh = mesh, far = n.im.far };
+            n.group = g;
+            if (++g.members == 2)
+            {
+                var mat = CopyOf(mid, bm); mat.name = bm.name + " (merged instances)";
+                g.im = new InstMats(mesh, mat, 256) { far = g.far };
+            }
+        }
+
         /// <summary>-census: what is drawn this frame, by kind: renderers on (and seen by a camera last frame) with their vertices,
         /// the GPU instances, the grass tufts and the crowd's figures with theirs.</summary>
+        /// <summary>
+        /// The world's still meshes in Unity's static batches (issue #262), as the web draws its still meshes in a few batches
+        /// (static-batch.js): once the script has made nothing for 3 s, every plain opaque mesh that has not moved for 2 s
+        /// (not skinned, instanced, cut into shadow pieces, with shape keys or hidden by a test) is combined
+        /// (StaticBatchingUtility.Combine: a mesh a material, its renderers drawn by their visible ranges); again after each
+        /// later burst of new nodes. The Retroid's GPU 0.6-1.2 ms a frame less in the City-Shaft, the Signal Market and the
+        /// Floating city, 36 MB more memory in Lorn. A batched node that moves, takes another geometry or whose points move
+        /// is drawn on its own again (Unbatch). On Android, -static-batch elsewhere, -no-static-batch off.
+        /// </summary>
+        public static bool staticBatch =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
+        int lastCreateFrame, batchedFor = -1, batchedCount;
+        void StaticBatch()
+        {
+            batchedFor = lastCreateFrame;
+            var gos = new List<GameObject>();
+            var picked = new List<(Node n, MeshData md)>();
+            int now = Time.frameCount;
+            foreach (var n in nodes.Values)
+            {
+                if (n.batched || n.kind != "mesh" || n.smr || !(n.r is MeshRenderer) || !n.r.enabled || n.chunks != null || !n.go || !n.mf || !n.mf.sharedMesh || !n.mf.sharedMesh.isReadable) continue;
+                if (now - n.movedAt < 120 || !meshes.TryGetValue(n.mesh ?? "", out var md) || md.keys > 0 || md.unchunked || md.mesh != n.mf.sharedMesh) continue;
+                if (!Opaque(n.r)) continue;
+                gos.Add(n.go); picked.Add((n, md));
+            }
+            if (gos.Count < 2) return;
+            var t0 = Time.realtimeSinceStartupAsDouble;
+            StaticBatchingUtility.Combine(gos.ToArray(), gameObject);
+            foreach (var (n, md) in picked) { n.batched = true; (md.batchedBy ??= new List<Node>()).Add(n); }
+            batchedCount += picked.Count;
+            Debug.Log($"Hiraeth bridge: static batches: {gos.Count} meshes combined in {(Time.realtimeSinceStartupAsDouble - t0) * 1000:0} ms ({batchedCount} in all)");
+        }
+        /// <summary>A batched node drawn on its own again: a renderer of its own on a child (the batched one, whose points are baked
+        /// where they were, drawing nothing), its mesh, materials, shadow and rendering layers as they were.</summary>
+        void Unbatch(Node n)
+        {
+            if (!n.batched) return;
+            n.batched = false; batchedCount--;
+            if (meshes.TryGetValue(n.mesh ?? "", out var md)) md.batchedBy?.Remove(n);
+            var old = n.r;
+            var c = new GameObject("own") { layer = n.go.layer };
+            c.transform.SetParent(n.go.transform, false);
+            var mf = c.AddComponent<MeshFilter>(); mf.sharedMesh = md?.mesh;
+            var r = c.AddComponent<MeshRenderer>();
+            r.sharedMaterials = old.sharedMaterials; r.shadowCastingMode = old.shadowCastingMode; r.receiveShadows = old.receiveShadows; r.renderingLayerMask = old.renderingLayerMask;
+            old.forceRenderingOff = true; old.shadowCastingMode = ShadowCastingMode.Off; old.renderingLayerMask = 0;
+            n.mf = mf; n.r = r;
+            unbatched++;
+            HiraethShadows.Instance.Rescan();
+        }
+        int unbatched;
+        readonly List<(int v, string name, float r, float d)> seenMeshes = new();
         void Census()
         {
             var by = new SortedDictionary<string, long[]>();
@@ -1127,7 +1268,18 @@ namespace Hiraeth.Bridge
                 if (n.r == null || !n.r.enabled) continue;
                 var m = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
                 Add(n.smr ? "skinned" : n.kind, 1, m ? m.vertexCount : 0, n.r.isVisible);
+                if (m && n.r.isVisible && !n.smr) seenMeshes.Add((m.vertexCount, n.go.name, n.r.bounds.extents.magnitude, cam ? Vector3.Distance(cam.transform.position, n.r.bounds.center) : 0));
             }
+            if (Time.frameCount % 900 == 0 && seenMeshes.Count > 0)
+            {
+                // (the largest meshes seen: their vertices, how far they reach and how far off they are)
+                seenMeshes.Sort((a, b) => b.v.CompareTo(a.v));
+                long all = 0; foreach (var s in seenMeshes) all += s.v;
+                var top = new System.Text.StringBuilder($"Hiraeth bridge: census, the largest meshes seen ({seenMeshes.Count}, {all / 1000}k vertices):");
+                for (int i = 0; i < Mathf.Min(16, seenMeshes.Count); i++) top.Append($"\n  {seenMeshes[i].v / 1000.0:0.0}k {seenMeshes[i].name} r {seenMeshes[i].r:0} m at {seenMeshes[i].d:0} m");
+                Debug.Log(top.ToString());
+            }
+            seenMeshes.Clear();
             foreach (var g in grass.Values) if (g.mesh) Add("grass", g.n, (long)g.n * g.mesh.vertexCount, true);
             foreach (var c in crowds.Values) if (c.mesh) Add("crowd", c.n, (long)c.n * c.mesh.vertexCount, true);
             if (Time.frameCount % 900 == 0)
@@ -1137,7 +1289,8 @@ namespace Hiraeth.Bridge
                 foreach (var n in nodes.Values) if (n.im != null && n.rawN > 0 && n.go && n.go.activeInHierarchy) sets.Append("\n  " + n.go.name + ": " + n.im.Describe(eye) + $" node at {n.go.transform.position:F1} scale {n.go.transform.lossyScale:F2}");
                 Debug.Log(sets.ToString());
             }
-            var sb = new System.Text.StringBuilder("Hiraeth bridge: census (on / vertices, seen / vertices):");
+            int gs = 0, gm = 0, gi = 0; foreach (var g in instGroups.Values) if (g.im != null) { gs++; gm += g.members; gi += g.im.count; }
+            var sb = new System.Text.StringBuilder($"Hiraeth bridge: census (static batches: {batchedCount} meshes, {unbatched} drawn on their own again; instance groups: {gs} drawing {gm} sets, {gi} instances, made again {rebuiltGroups} times) (on / vertices, seen / vertices):");
             foreach (var kv in by) sb.Append($" {kv.Key} {kv.Value[0]}/{kv.Value[1]}, {kv.Value[2]}/{kv.Value[3]};");
             Debug.Log(sb.ToString());
         }
@@ -1151,6 +1304,7 @@ namespace Hiraeth.Bridge
             Capes.Clear();
             WorldLoader.ReleaseSkinBuffers();   // (the temple skins' uniforms)
             foreach (var n in nodes.Values) { if (n.inst) Destroy(n.inst); n.im?.Release(); n.puffs?.Release(); }
+            foreach (var g in instGroups.Values) g.im?.Release();
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);
             foreach (var m in bound.Values) if (m) Destroy(m);
