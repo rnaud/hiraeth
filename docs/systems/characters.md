@@ -500,6 +500,22 @@ Vael, 14 %).
   the plain looks and the streams unchanged, the capes on the elders and staff-bearers. The cape tests' Sel and
   Hask fixtures carry their own capes (their reference designs wear robes); `tests/engine-unity.test.js` runs the Glass Dunes (Halden's cape reaches BridgeCape) instead of the Hangar, whose mechanics wear none now.
 
+## Skirts on a few (issue #370)
+
+The author: "Too many characters have skirts. Simplify." A robe from the belt down (`s.robe`, the hem's height:
+a knee-length skirt or a long robe; an open coat, `robeRole: 'cloak'` / `robeOpen`, is no skirt: `wearsSkirt`)
+was on 62 % of everyone the game dresses (`node scripts/cape-census.mjs --skirts`), every one of Vael's silent
+ones, the bell monastery and the listeners. Now 11 %.
+
+- **Who keeps one** (`robed` in `dressFor`, `src/costumes.js`): a robe the story or a reference sheet sets
+  (`look.robe`) is theirs. Otherwise the elders and those with a staff at `robeOdds.meant`, anyone else at
+  `robeOdds.other` (default `ROBE_ODDS` 0.35 / 0.06; the desert's pilgrims 0.08; the orders whose robes are
+  their habit, Vael's silent ones, the bell monastery and the listeners, 0.6 / 0.2). Everyone else wears
+  trousers in their legs' colour. Decided from a hash of the look already drawn, like the capes, so nobody's
+  other pieces move; the Unity port dresses people with the same JS (`scripts/unity-export/people.mjs`).
+- `tests/skirt-share.test.js`: skirts on ≤ 15 % of everyone and ≤ 20 % in a world (the three orders ≤ 50 % and
+  ≥ 20 %), the sheets' robes kept, the streams unchanged, robes kept more often by the elders and staff-bearers.
+
 ## Seated capes fall onto the seat
 
 Seated people's capes used to fan out round them like wings: the cloth's floor was a plane at

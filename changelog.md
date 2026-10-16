@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.79 — 2026-10-15
 
+- Far fewer people wear skirts and long robes: most of the crowds and townsfolk now wear trousers. Robes stay where they belong, on Vael’s silent ones, the bell monastery’s brothers and sisters and the Garden of Spheres’ listeners, on some elders and pilgrims with a staff, and on the people whose own design has one.
 - On the galactic map, up and down now choose a world too: every direction on the D-pad, the stick or the arrow keys picks the nearest world that way on the chart. Up and down used to step along the route, the same as left and right.
 - In Viridel and the Garden of Spheres the hoverbike leaves its glowing trails behind it again. Where Vael’s bird answers your call, the bike waiting by the ship rode without them.
 - The two helping prototypes in the Debug menu (catching the Elder’s stone feathers in the Roost, the water cannon in the Keeper’s cistern) are gone: the two games above take their place.

@@ -96,7 +96,7 @@ export const COSTUMES = {
     masks: { none: 5, veil: 2 }, body: { mantle: 2, none: 3 }, props: { none: 6, staff: 2, basket: 1 }, trim: { sash: 3, none: 2, stripes: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { straw: 1.68 }, headsF: { kerchief: 1.23, straw: 1.02 }, masks: { facewrap: 1.1, scarfmask: 0.5, glasses: 0.25 }, body: { neckerchief: 0.6 } },
-    capeOdds: { meant: 0.22 }, plain: { body: 'neckerchief', apron: 0.15 },
+    capeOdds: { meant: 0.22 }, robeOdds: { other: 0.08 }, plain: { body: 'neckerchief', apron: 0.15 },
     capes: [0, 0, 0.9, 1.25, 1.45], wide: [1, 1.25], robe: 0.85, robes: [0.1, 0.22, 0.38], flare: [0.3, 0.4], size: [0.95, 1.06],
     palette: {
       cloaks: ['#c8483a', '#b5562f', '#d8a24a', '#e6c48a', '#3b4f8a', '#2f437a', '#e6875f', '#f3ead8', '#a8552e', '#8a6fb8'],
@@ -179,7 +179,7 @@ export const COSTUMES = {
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { hooddown: 0.6 }, body: { muffler: 1 } },
     // (the riders of the great birds: their elders and staff-bearers caped, the rest in their long robes)
-    capeOdds: { meant: 0.14 },
+    capeOdds: { meant: 0.14 }, robeOdds: { meant: 0.6, other: 0.2 },   // (their order's long robes)
     capes: [1.25, 1.45], wide: [1, 1.15], robe: 1, robes: [0.06, 0.14], flare: [0.32, 0.4], size: [1.04, 1.12],
     palette: {
       cloaks: ['#f4efe2', '#ece4d2', '#e8dfcb', '#d8c7a6'],
@@ -200,7 +200,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { scarf: 3, none: 1 }, props: { bell: 2, staff: 1, none: 2 }, trim: { hem: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { skullcap: 1.2 }, headsF: { kerchief: 1.62 }, masks: { glasses: 0.12 } },
-    capeOdds: { meant: 0.25 },
+    capeOdds: { meant: 0.25 }, robeOdds: { meant: 0.6, other: 0.2 },   // (the monastery's habits)
     capes: [0, 0.55, 1.45], robe: 1, robes: [0.08, 0.16], flare: [0.34, 0.42], size: [0.98, 1.06],
     palette: {
       cloaks: ['#f3ead8', '#e9d7b0', '#d8c7a6', '#b9a7d8'],
@@ -283,7 +283,7 @@ export const COSTUMES = {
     masks: { none: 1 }, body: { ruff: 2, none: 3 }, props: { parasol: 2, none: 4 }, trim: { dots: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
     more: { heads: { circlet: 1.2, skullcap: 0.8, bowler: 0.5 }, masks: { glasses: 0.1 } },
-    capeOdds: { meant: 0.35 },
+    capeOdds: { meant: 0.35 }, robeOdds: { meant: 0.6, other: 0.2 },   // (the listeners' robes)
     capes: [0, 0.9, 1.3], robe: 1, robes: [0.07, 0.14], flare: [0.38, 0.46], size: [0.96, 1.04],
     palette: {
       cloaks: ['#f6efd0', '#f3efe2', '#f3e3a0', '#e8d890', '#f2c5b0', '#b7c46a'],
@@ -474,6 +474,7 @@ export const COSTUMES = {
     name: 'the walkers',
     heads: { hood: 1 }, as: { wrap: 'hood', hat: 'hood', hair: 'hood' },
     masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
+    robeOdds: { meant: 1, other: 1 },   // (the reference picture's robed figures)
     capes: [1.3], robe: 1, robes: [0.08], flare: [0.3, 0.32], size: [1, 1],
     palette: { tunics: ['#a688c4'], legs: ['#7e62a0'], skins: ['#e9cfb4'], accents: ['#b48ccf'] },
   })] },
@@ -481,6 +482,7 @@ export const COSTUMES = {
     name: 'the artist',
     heads: { beret: 1 }, as: { hood: 'beret', hat: 'beret', wrap: 'beret', hair: 'beret' },
     masks: { none: 1 }, body: { none: 1 }, props: { none: 1 }, trim: { none: 1 },
+    robeOdds: { meant: 1, other: 1 },
     capes: [0], robe: 1, robes: [0.5], flare: [0.27, 0.27], size: [1, 1],
     palette: { accents: ['#2b211f'] },
   })] },
@@ -639,6 +641,8 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   Object.assign(s, faceFor(T, mulberry32(hashSeed(`face|${s.eyes}|${s.skin}|${s.cloak}|${s.height}|${s.flare}`)), look));
   // who wears a cape (issue #347): a cape the story sets is theirs; otherwise only a few, where it means something
   caped(T, s, look, cape);
+  // who wears a skirt (issue #370): a robe the story sets is theirs; otherwise a few, where the culture wears one
+  robed(T, s, look);
   // a coat (the family's open coats: humanoid.js robeOptions), when the story asks for one
   for (const k of ['robeOpen', 'robeRole', 'robeLining', 'robeHem']) if (look[k] !== undefined) s[k] = look[k];
   return s;
@@ -662,6 +666,8 @@ export const CAPELETS = ['mantle', 'reedcape', 'tatters'];
 const STAFFS = ['staff', 'bellstaff', 'discstaff'];
 /** Does this look wear a cape (a cloth cape, or a cape over the shoulders)? */
 export const wearsCape = (s) => (s.capeLen ?? 0) > 0 || CAPELETS.includes(s.body);
+/** Does this look wear a skirt (a robe from the belt down: not an open coat, humanoid.js robeOptions role 'cloak')? */
+export const wearsSkirt = (s) => (s.robe ?? 0) > 0 && s.robeRole !== 'cloak' && !(s.robeOpen > 0);
 function caped(T, s, look, cape) {
   if (look.capeLen !== undefined) { s.capeLen = look.capeLen; return; }
   // (the story's cape: theirs; none, and no cape over the shoulders either unless the story puts one there)
@@ -684,6 +690,23 @@ function plainly(T, s, look) {
   // (only those who had a cape: everyone without one before keeps their look)
   const v = (hashSeed(`apron|${s.accent}|${s.hat}|${s.legs}|${s.height}`) % 100003) / 100003;
   if (lost && !look.trim && (s.trim ?? 'none') === 'none' && v < (T.plain?.apron ?? 0)) s.trim = 'bib';
+}
+
+/**
+ * Skirts (issue #370, the author: "Too many characters have skirts. Simplify"). A robe from the belt down (a
+ * skirt, a long robe) is kept by those the story or a sheet dresses in one (`look.robe`), and otherwise by a
+ * few: the elders and those who walk with a staff at the tribe's `robeOdds.meant`, anyone else at
+ * `robeOdds.other` (the monasteries and the listeners, whose robes are their order's, keep most of theirs);
+ * everyone else wears trousers in their own legs' colour. Drawn from no random number (a hash of the look
+ * already drawn), like the capes, so nobody's other pieces change.
+ */
+export const ROBE_ODDS = { meant: 0.35, other: 0.06 };
+function robed(T, s, look) {
+  if (look.robe !== undefined || !(s.robe > 0)) return;
+  const odds = { ...ROBE_ODDS, ...T.robeOdds };
+  const meant = s.faceType === 'elder' || STAFFS.includes(s.prop);
+  const u = (hashSeed(`robe|${s.legs}|${s.cloth}|${s.hair}|${s.skin}|${s.height}|${s.flare}`) % 100003) / 100003;
+  if (u >= (meant ? odds.meant : odds.other)) s.robe = 0;
 }
 
 /**

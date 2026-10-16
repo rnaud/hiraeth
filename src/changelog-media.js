@@ -1060,6 +1060,15 @@ const FUTURE342_FP_NUMBERS = [
 const HELPGAMES339 = 'Issue #339: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 6340), each game begun from its start card and played by its scripted player (window.__elderBot, window.__cisternBot); the signs in their worlds with the traveller set beside them; 15 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.79': [
+    // (issue #370, taken at 95c4da85 before the commit, the same code: the Signal Market's street, Vael's and the Salt Harbour's crowds in the studio; scripts/changelog-shots.mjs)
+    { match: 'Far fewer people wear skirts', tags: ['characters'], shots: [
+      { name: 'skirts-market', title: 'The Signal Market', caption: 'The market’s street: the knee-length skirts gone from most of the crowd, trousers in their place', commit: '95c4da85',
+        view: { level: 'bazaar', player: [-2.36, 0, -296.96], eye: [-2.32, 4, -291.36], target: [-2.41, 1.2, -305.36], fov: 55 } },
+      { name: 'skirts-harbour', title: 'The Salt Harbour’s crowd', caption: 'A lineup of the Salt Harbour’s crowd, full bodies in front and the GPU figures behind: robes on most before; after, trousers', commit: '95c4da85',
+        view: studio('lineup=crowd&world=saltharbour&count=8', [1280, 720]) },
+      { name: 'skirts-vael', title: 'Vael’s silent ones', caption: 'A lineup of Vael’s crowd: every one in a long robe before; after, the order’s robes on some, trousers on the rest', commit: '95c4da85',
+        view: studio('lineup=crowd&world=arzach&count=8', [1280, 720]) },
+    ] },
     { match: 'A new game in Vael, The Elder’s flight', tags: ['vael'], shots: [
       { name: 'elder-formation', only: 'after', title: 'At her wing', caption: 'In the slot off her right wingtip (the ring of light, teal while you hold it), her wake’s motes trailing off her wings; ahead, a wind gate hung between two rose needles, her great ring and yours beside it.', from: HELPGAMES339 },
       { name: 'elder-roost', only: 'after', title: 'The Old Roost', caption: 'The flight flown: she has set down on the riders’ Old Roost among its stone feathers, calm, the results card beside her.', from: HELPGAMES339 },
