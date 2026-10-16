@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_d73564a47f8c0b 7
+docs/systems/carry.md
+  s_9ca76055a220ed::t_284e75d6dfad71 35-37
+src/carry.js
+  s_9ca76055a220ed::t_e21e1913834add 5,164
+src/changelog-media.js
+  s_9ca76055a220ed::t_b9d1032fd9b260 1109
+src/changelog.js
+  s_9ca76055a220ed::t_5b8d6696a39118 60-62
+tests/carry.test.js
+  s_9ca76055a220ed::t_17f60499010cfb 9,317-337
+tests/engine-carry.test.js
+  s_9ca76055a220ed::t_3d1d81d3112952 1-43
+tests/i18n-shadow.test.js
+  s_9ca76055a220ed::t_e6785c161eeaba 1-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1a718225ea7e4d4d8d93dac65cbc2078142065a7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
