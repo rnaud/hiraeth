@@ -26,6 +26,7 @@ Marta; or `?game=fight-moonfoundry`. Below: "The Pour Floor".
 water stair; its host Hollis; `?game=fight-edena`), the City-Shaft's **Lift Depot** (on the middle terrace by its cab
 stop; Ulric; `?game=fight-incal`), the Buried Machine's **Tooth Gallery** (east of the domes; Greta; `?game=fight-buried`)
 and the Signal Market's **Back Rooms** (in the back alley west of the sign-hanger's ladder; Lettie; `?game=fight-bazaar`).
+And the Underwater City's **Flooded Gallery** (in the Dock hall; its host Sabine; `?game=fight-underwater`).
 Below, each under its name.
 
 ## The template
@@ -146,6 +147,7 @@ none: it teaches the crowd; there are more, and sooner, deeper in (the tests hol
 | `bloom` (Viridel) | a row of sleeping eyes down the lane opens one by one from its head, 1.2 s | they flash white, 0.35 s | dazzled (`Foes.blind` 0.6 s), a quarter heart | stunned 1.2 s and a cut; moths from 1.2 m beyond its edge drawn in |
 | `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | half a heart, thrown out | three cuts to all under it |
 | `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
+| `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 3.6 s: the floor black but for the discs (2.4 m) | out of the light a quarter heart a second (0.6 s first) | in a lamp's disc a cut a second |
 
 `drop` and `toll` have no lanes (`ON_LANES`): a load is begun on `{ spot }`, a toll on `{ sign }` (the signs farthest from
 him first, so the ring is seen coming). Since v1.81 the gust is drawn as it blows too: fourteen long white streaks race
@@ -246,6 +248,14 @@ shuttered row, the sign-painter's (two signs), the stockroom (a little maze of c
 (four signs, two rings at a time). Foes: horn lizards, antler hounds, moths, marionettes; the bell walker itself and a
 whole marionette at the end; 123, par 4:10; Signal neon. The ring is rolled through, not run from.
 
+## The Flooded Gallery (the Underwater City, `src/fight-temples/underwater.js`)
+
+Sealed halls under the glass: pale walls, the domes' white ribs, kelp and rising bubbles round them (`dress: 'deep'`),
+the lamps on their posts. Rooms: the airlock, the fish market (stalls for pillars, four lamps), the long gallery (three
+lamps down a narrow hall), the whale-watch (five lamps, one on the altar). Foes: glass crabs, lantern jellies, sky rays; a
+lamp tripod and a whole crab at the end; 110, par 4:10; Pearl and tide. Its doorway in the Dock hall's air, east of its
+middle (its height given), Sabine by it. The fight is fought from the lamps, the crowd drawn into their light.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
@@ -253,7 +263,7 @@ whole marionette at the end; 123, par 4:10; Signal neon. The ring is rolled thro
 | Vael | **The Wind Cloister** (built, v1.80, above): a roofless monastery court on a cliff, its gates the riders' old stalls; gusts through the arches shove the crowd | sky rays, herons, blots; a crab of the sky stones at the end | Rider's slate (blue-grey brass, white water) |
 | Lorn | **The Drowned Mill** (built, v1.80, above): four flooded rooms of a reed-cutters' mill, the water ankle-deep, the toads lobbing from the millstones | bellows toads, root knots, skitters; a shade at the end | Reed and rust |
 | Viridel | **The Seed Vault** (built, v1.81, above): the white builders' greenhouse cellars, beds of sleeping eyes that wake the moths | signal moths, root knots, a furnace brute at the end | Leafglass |
-| the Underwater City | **The Flooded Gallery**: sealed halls under the glass, the lamps flickering as the jellies ward the crabs | crabs, lantern jellies, sky rays; a lamp tripod at the end | Pearl and tide |
+| the Underwater City | **The Flooded Gallery** (built, v1.81, above): sealed halls under the glass, the lamps flickering as the jellies ward the crabs | crabs, lantern jellies, sky rays; a lamp tripod at the end | Pearl and tide |
 | the City-Shaft | **The Lift Depot** (built, v1.81, above): a stack of cab bays, each room a platform the cranes lower the next wave onto | lamp tripods, horn lizards, toads; two shades at the end | Cab yellow |
 | the Glass Dunes | **The Kiln Yard**: the glassworkers' cooling sheds, the floor glass that cracks under a brute | furnace brutes, glass crabs, worms; a drone pair at the end | Furnace glass |
 | the Buried Machine | **The Tooth Gallery** (built, v1.81, above): a gear-house between the canyon's teeth, rails across it the carts run on | mound worms, crucible carts, centipedes, skitters | Brass tooth |
@@ -270,14 +280,6 @@ as written here. Four are left.)
 Each on the same template: a table, a hazard of its own (a new `kind` in `hazards.js` where none of the four fits), a
 look (`ground`, `pillar`, `dress`), a host and a doorway by a settlement, its world's kinds light, gorged ones from the
 second room, two or three tough ones at the end.
-
-**The Underwater City: the Flooded Gallery.** Sealed halls under the glass, the lamps on the walls flickering. Foes:
-glass crabs, lantern jellies (they ward the crabs: a crab beside a jelly takes no cut until the jelly is down), sky rays;
-at the end a lamp tripod. Hazard **`dark`** (a room-wide one, a new kind): every so often the lamps go out for 3 s, all
-but the lit discs under the lamps on the floor; in the dark the foes see no farther than 6 m and he only what a lamp or
-a jelly lights, so you fight from the discs; the jellies glow, so they are seen and taken first. Rooms: the airlock, the
-fish market (stalls as pillars), the long gallery (the glass wall the camera looks through: no wall on the near side,
-the sea beyond), the whale-watch (the altar under the dome). Reward: Pearl and tide. Door: by the lamplighters' quay.
 
 **The Glass Dunes: the Kiln Yard.** The glassworkers' cooling sheds: a floor of glass tiles over a red glow. Foes:
 furnace brutes (the light wave's only big kind: one in a wave, two cuts), glass crabs, mound worms; at the end two

@@ -8,6 +8,9 @@
 //          'post'   (the Foundry)    a square iron post, a brass band, a cap
 //          'pipe'   (Viridel's vault) a boiler pipe: a slim column in bands, a valve wheel
 //          'crate'  (the market)      a stack of two crates, the top one turned
+//          'chimney' (the Kiln Yard)  a kiln chimney: a tapering stack, its mouth glowing
+//          'tree'   (the Orchard)     a tree: its trunk, a round crown for its cap
+//          'drum'   (the Oil Exchange) two oil drums stacked, banded
 //   dress  'cloister'  (Vael)        the sea of cloud far under the cliff, the riders' pennant poles, broken arches
 //          'mill'      (Lorn)        reed beds on the banks, the great wheel, sluice posts
 //          'foundry'   (the Foundry) crucibles on the banks, hoist frames, cooling slag
@@ -15,6 +18,10 @@
 //          'shaft'     (the City-Shaft) the shaft's far wall of lit windows, crane jibs over the bays
 //          'teeth'     (the Buried Machine) the canyon's teeth round the gear-house, a great gear
 //          'market'    (the Signal Market) the shops' neon signs on poles, awnings
+//          'deep'      (the Underwater City) the domes' white ribs, kelp, bubbles rising
+//          'kiln'      (the Glass Dunes) chimneys and glass shards on the dunes round the sheds
+//          'orchard'   (the Garden of Spheres) rows of trees beyond the walls, spheres on their stands
+//          'islands'   (the City Floating in Space) the rock under the depot, cables strung off it, lamps
 
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
@@ -40,6 +47,24 @@ export function pillarModel(kind = 'column', h, mat, capMat) {
     for (const y of [0.4, h * 0.4, h * 0.8]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.66, 0.18, 12).translate(0, y, 0), capMat); b.userData.noCollide = true; m.add(b); }
     const w = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.06, 5, 14), capMat); w.position.set(0, h * 0.6, 0.62); w.userData.noCollide = true; m.add(w);
     const c = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.7, 0.3, 12).translate(0, h + 0.15, 0), capMat); c.userData.noCollide = true; m.add(c);
+    return m;
+  }
+  if (kind === 'chimney') {
+    m = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, h, 10).translate(0, h / 2, 0), mat);
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.22, 10).translate(0, h * 0.55, 0), capMat); b.userData.noCollide = true; m.add(b);
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.68, 0.35, 10).translate(0, h + 0.17, 0), capMat); c.userData.noCollide = true; m.add(c);
+    return m;
+  }
+  if (kind === 'tree') {
+    m = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.45, h, 8).translate(0, h / 2, 0), mat);
+    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, 1).translate(0, h + 0.6, 0), capMat); c.userData.noCollide = true; m.add(c);
+    return m;
+  }
+  if (kind === 'drum') {
+    m = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, h * 0.5, 14).translate(0, h * 0.25, 0), mat);
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, h * 0.46, 14).translate(0, h * 0.74, 0), mat); t.userData.noCollide = true; m.add(t);
+    for (const y of [h * 0.1, h * 0.4, h * 0.6, h * 0.9]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.79, 0.79, 0.1, 14).translate(0, y, 0), capMat); b.userData.noCollide = true; m.add(b); }
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.76, 0.12, 14).translate(0, h + 0.06, 0), capMat); c.userData.noCollide = true; m.add(c);
     return m;
   }
   if (kind === 'crate') {
@@ -97,6 +122,65 @@ export function dressHall(group, def, terrain) {
 }
 
 const DRESS = {
+  // the Underwater City: the domes' white ribs over the halls, kelp on the sea floor round them, bubbles rising
+  deep(group, def, P, ground) {
+    const white = own({ color: '#f2f6f4', flat: true }), kelp = own({ color: '#3f8a6a', color2: '#5aa880', flat: true }), bubble = own({ color: '#e8fbff', flat: true, glow: 0.5 });
+    for (const [i, [x, z, a]] of farSpots(def, 6, { from: 2.5, to: 4, apart: 7, seed: 71 }).entries()) {
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.16, 5, 20, Math.PI), white); rib.rotation.y = a + Math.PI / 2 + (i % 2) * 0.15;
+      put(group, rib, x, ground(x, z), z);
+    }
+    for (const [i, [x, z]] of farSpots(def, 24, { from: 3, to: 13, apart: 2.4, seed: 73 }).entries()) {
+      const h = 2.5 + (i % 4) * 1.1, g = new THREE.Group();
+      for (let k = 0; k < 3; k++) { const b = new THREE.Mesh(new THREE.ConeGeometry(0.12, h, 4).translate(0, h / 2, 0), kelp); b.position.set((k - 1) * 0.25, 0, (k % 2) * 0.2); b.rotation.z = (k - 1) * 0.12; g.add(b); }
+      if (i % 3 === 0) for (let k = 0; k < 4; k++) { const s = new THREE.Mesh(new THREE.SphereGeometry(0.08 + k * 0.03, 6, 5), bubble); s.position.set(0.3, h + 0.6 + k * 0.9, 0); g.add(s); }
+      put(group, g, x, ground(x, z), z);
+    }
+  },
+  // the Glass Dunes: kiln chimneys behind the sheds, glass shards standing in the dunes
+  kiln(group, def, P, ground) {
+    const brick = own({ color: P.wall, color2: P.wall2, color3: P.wall3, mode: MODE_STRATA, strataSize: 0.6 }), mouth = own({ color: P.slag ?? P.glyph, flat: true, glow: 0.9 });
+    const glass = [own({ color: '#bfe8dc', flat: true, glow: 0.2 }), own({ color: '#e8d48a', flat: true, glow: 0.2 }), own({ color: '#9ad0e8', flat: true, glow: 0.2 })];
+    for (const [i, [x, z]] of farSpots(def, 5, { from: 3.5, to: 8, apart: 9, seed: 81 }).entries()) {
+      const h = 8 + (i % 3) * 2, g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.4, h, 10).translate(0, h / 2, 0), brick));
+      g.add(new THREE.Mesh(new THREE.CircleGeometry(0.85, 10).rotateX(-Math.PI / 2).translate(0, h + 0.01, 0), mouth));
+      put(group, g, x, ground(x, z), z);
+    }
+    for (const [i, [x, z]] of farSpots(def, 16, { from: 3, to: 13, apart: 3, seed: 83 }).entries()) {
+      const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.7 + (i % 3) * 0.35, 0), glass[i % 3]); m.scale.set(0.5, 1.6, 0.5); m.rotation.set(0.2 * (i % 3), i, 0.25);
+      put(group, m, x, ground(x, z) + 0.6, z);
+    }
+  },
+  // the Garden of Spheres: rows of trees beyond the garden walls, the spheres on their stands
+  orchard(group, def, P, ground) {
+    const bark = own({ color: '#6a5a4a', flat: true }), leaf = own({ color: '#6a9a5a', color2: '#8ab86a', flat: true }), sphere = own({ color: '#f4f0e6', flat: true, glow: 0.25 }), stand = own({ color: P.cap, flat: true });
+    for (const [i, [x, z]] of farSpots(def, 18, { from: 2.6, to: 12, apart: 3.6, seed: 91 }).entries()) {
+      const g = new THREE.Group(), h = 2.4 + (i % 3) * 0.6;
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.26, h, 6).translate(0, h / 2, 0), bark));
+      g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.3 + (i % 2) * 0.3, 1).translate(0, h + 0.7, 0), leaf));
+      put(group, g, x, ground(x, z), z);
+    }
+    for (const [x, z] of farSpots(def, 4, { from: 5, to: 12, apart: 12, seed: 93 })) {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 4, 6).translate(0, 2, 0), stand));
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 12).translate(0, 5.4, 0), sphere));
+      put(group, g, x, ground(x, z), z);
+    }
+  },
+  // the City Floating in Space: the rock the depot stands on, cables strung off its edge, lamps on posts
+  islands(group, def, P, ground) {
+    const rock = own({ color: '#8a7a6a', color2: '#a89888', color3: '#5a4e44', mode: MODE_STRATA, strataSize: 1.6 }), cable = own({ color: P.ink, flat: true }), lamp = own({ color: P.glyph, flat: true, glow: 0.95 });
+    const xs = def.rooms.flatMap((r) => r.x), zs = def.rooms.flatMap((r) => r.z), mx = (Math.min(...xs) + Math.max(...xs)) / 2, mz = (Math.min(...zs) + Math.max(...zs)) / 2;
+    const under = new THREE.Mesh(new THREE.ConeGeometry(34, 40, 9).rotateX(Math.PI), rock); put(group, under, mx, -36 - 20, mz);
+    for (const [i, [x, z, a]] of farSpots(def, 6, { from: 2.4, to: 3.2, apart: 9, seed: 95 }).entries()) {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 4, 6).translate(0, 2, 0), cable));
+      const l = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 6), lamp); l.position.y = 4.1; g.add(l);
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 30, 4).rotateZ(Math.PI / 2 - 0.25).translate(15, 1, 0), cable); g.add(c);
+      g.rotation.y = a - Math.PI / 2 + (i % 2) * 0.3;
+      put(group, g, x, ground(x, z), z);
+    }
+  },
   // Viridel: the Builders' greenhouse over its cellars, its white ribs, potted trees on the banks
   greenhouse(group, def, P, ground) {
     const white = own({ color: '#f4f2ea', flat: true }), glass = own({ color: '#cfe8d8', flat: true, glow: 0.2 });

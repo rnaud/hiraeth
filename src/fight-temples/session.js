@@ -98,6 +98,10 @@ export function startFightTemple(ctx) {
   const { player, camera, level, sfx, sound, tool, foes, rig, physics, state } = ctx;
   const F = level.fight, def = F.def, rooms = def.rooms;
   const gentle = foes?.difficulty === 'gentle';
+  // (a table's `stage`: the foes' place on the route's curve in here, src/foes.js stageHere, when its world's own is too
+  // harsh for a crowd this size: how many strike at once, how hard)
+  const stageWas = foes?.stage;
+  if (foes && def.stage != null) foes.stage = def.stage;
   const giveBack = lendTool(tool, { mode: 'shoot' });   // (the save's own bar; the plain shot in hand, the push a press of X / D-pad → away)
   const spawn = new THREE.Vector3(...def.spawn);
   standAt(player, spawn, Math.PI, rig, ISO.yaw);
@@ -260,7 +264,7 @@ export function startFightTemple(ctx) {
       f.hp = q.hp; f.light = !q.tough && !q.gorged; f.tough = q.tough; f.gorged = q.gorged;
       // (it sees the whole room and keeps after you; no high ground to hold (the pillars' tops); a light one strikes
       // half as hard, a gorged one as hard as its kind)
-      f.def = { ...f.def, sight: 80, giveUp: 1e9, perch: false, clamber: false, ...(q.tough || q.gorged ? {} : { attacks: f.def.attacks.map((a) => ({ ...a, damage: (a.damage ?? 1) * LIGHT_HARM })) }) };
+      f.def = { ...f.def, sight: 80, giveUp: 1e9, perch: false, clamber: false, ...(q.tough || q.gorged ? {} : { attacks: f.def.attacks.map((a) => ({ ...a, damage: (a.damage ?? 1) * (def.lightHarm ?? LIGHT_HARM) })) }) };   // (a table's lightHarm: its own share)
       if (!q.tough) { f.def.attack = f.def.attacks[0]; f.atk = f.def.attack; }
       f.state = 'chase'; f.cool = 0.8 + Math.random() * 0.8;
       if (q.tough) f.model.group.scale.multiplyScalar(1.12);
@@ -592,6 +596,7 @@ export function startFightTemple(ctx) {
       globalThis.document?.body?.classList.remove('fight-iso');
       words.dispose();
       giveBack();
+      if (foes && def.stage != null) foes.stage = stageWas;
       if (player.dead) player.restart?.();
     },
   };

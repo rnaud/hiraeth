@@ -1150,6 +1150,10 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Back Rooms', before: '—', after: 'cleared, C, 8 lost' },
       ], source: FIGHT341B, note: 'One run each. It lives on the hearts that drop (it picked up 4 to 13) and never parries or guards, so its ranks are a floor: an S needs at most one heart lost inside the par.' },
     ], see: 'In the Signal Market, walk into the back alley west of the sign-hanger’s ladder. In the rooms, when a sign lights, roll through the ring as it reaches you.' },
+    { match: 'A new fight temple in the Underwater City, the Flooded Gallery', tags: ['combat'], shots: [
+      { name: 'fight-flooded-hazard', only: 'after', title: 'The dark', caption: 'The fish market: the lamps out, the floor black but for their discs of light; he stands under one, crabs coming in from the dark.', from: FIGHT341B },
+      { name: 'fight-flooded-door', only: 'after', title: 'Its doorway', caption: 'In the Dock hall’s air, east of its middle: the doorway and Sabine, who trims the gallery lamps.', from: FIGHT341B },
+    ], see: 'In the Underwater City, walk into the Dock hall: the doorway stands east of its middle. In the fish market, when the lamps flicker, get under one.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

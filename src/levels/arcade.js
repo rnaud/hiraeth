@@ -24,7 +24,7 @@ import { pavedMask } from '../paved.js';
 // "games" button) lists them all, to jump straight into one.
 // ---------------------------------------------------------------------------
 
-const PLAZA = { radius: 25.5, wall: 28 };   // (wider for the fight temples' signs: ARCADE_RING)
+const PLAZA = { radius: 30, wall: 32.5 };   // (wider for the fight temples' signs: ARCADE_RING)
 
 /** A game's best as the signs and the board print it ('' for none). */
 export function bestText(g, state = game) {
