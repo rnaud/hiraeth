@@ -1,0 +1,25 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_92a702c5743c60 3593-3648
+scripts/bench/deck-engines.mjs
+  s_9ca76055a220ed::t_e34365d18afd5c 6,101
+scripts/bench/deck-unity.sh
+  s_9ca76055a220ed::t_fc0ba17b5b6752 10,32-33,43
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_32489dfe3aa0f8 404-408
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b71e2556e78c9dc4e8aefd9e890bd415f16fff79",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
