@@ -1,0 +1,49 @@
+changelog.md
+  s_9ca76055a220ed::t_90d6f8a41630a7 15
+src/boxes/placements.js
+  s_9ca76055a220ed::t_7c3a1fb099f5e9 114,209-210
+src/changelog.js
+  s_9ca76055a220ed::t_05fe70618a73da 56-60
+src/levels/content.js
+  s_9ca76055a220ed::t_ad1fafd2dc49f1 69,188
+src/levels/perdide.js
+  s_9ca76055a220ed::t_ffbf2fb8caa3cb 212
+src/levels/spheres.js
+  s_9ca76055a220ed::t_e7337194ac8877 113
+src/story/aliens-data.js
+  s_9ca76055a220ed::t_263b9027f163ea 115
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_29e0ec8e6863a7 354
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_84e59af295bddb 310-311,521
+src/story/buried-data.js
+  s_9ca76055a220ed::t_4e1cc25c545272 289
+src/story/desert-data.js
+  s_9ca76055a220ed::t_2a257e4e162cf4 1087,1089,1142
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_d3be6afbf31ba0 106
+src/story/rumour-places.js
+  s_9ca76055a220ed::t_97fe3204808a70 39
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_6c8a6ad0a71431 188
+tests/quest-steps.test.js
+  s_9ca76055a220ed::t_9deb0773d93c6d 178-229
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_c49a5d383c369d 346-347
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2a8d85b644840e6b0c131959959df75af412effd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
