@@ -1,0 +1,43 @@
+changelog.md
+  s_be080572ac7f7a::t_717355192838d8 7-8
+docs/systems/worlds.md
+  s_be080572ac7f7a::t_be2481dbab4b99 2724-2779
+"references/levels/The Glass Dunes/environment/diversity/selection.json"
+  s_be080572ac7f7a::t_3af96fbdcecd83 1-82
+src/changelog-media.js
+  s_be080572ac7f7a::t_2b166d5aa76f00 1137-1148
+src/changelog.js
+  s_be080572ac7f7a::t_90dc0c38ebe75e 33-37
+src/glass-dunes-architecture.js
+  s_be080572ac7f7a::t_3fd0ff76a89ecf 1-148
+src/glass-dunes-civic-kit.js
+  s_be080572ac7f7a::t_b7ea24049a3d95 1-59
+src/glass-dunes-enclosures.js
+  s_be080572ac7f7a::t_8dfb754c7f1adc 1-134
+src/glass-dunes-ruins.js
+  s_be080572ac7f7a::t_f45773c538f38b 1-45
+src/glass-dunes-streets.js
+  s_be080572ac7f7a::t_5c9f29d8060fd0 1-37
+src/glass-dunes-towers.js
+  s_be080572ac7f7a::t_0a8f284bac6da1 1-36
+src/glass-dunes-west.js
+  s_be080572ac7f7a::t_6f0b60bd9a4107 1-133
+tests/glass-dunes-quarter.test.js
+  s_be080572ac7f7a::t_9c75addeaf5a7b 1-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dad9d170c198d046d69f80296b15fff5c5825afa",
+  "prompts": {},
+  "sessions": {
+    "s_be080572ac7f7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14544-e974-7c30-a4fc-7a8dc20510dc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
