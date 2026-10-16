@@ -1,0 +1,27 @@
+engine/unity/backend.js
+  s_9ca76055a220ed::t_7cc20e33dcbc21 131
+engine/unity/pack.js
+  s_9ca76055a220ed::t_81b2a22d86e87e 43-45
+engine/unity/port-format.js
+  s_9ca76055a220ed::t_00041a433366d5 110-114
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_9ca76055a220ed::t_1c959587c4ce04 216-217
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_9ca76055a220ed::t_ea150f140da72d 92-96,152-153,477,1062-1105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0d292a3507927e6ea052c2d2fd900732e9b70c06",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
