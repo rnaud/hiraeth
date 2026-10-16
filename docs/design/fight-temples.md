@@ -22,6 +22,12 @@ the monastery, past the Almonry), its host Sister Maud; or `?game=fight-arzach`.
 **Built: the Moon Foundry's, the Pour Floor** (v1.80): on the open floor just south of the workers' quarter, its host
 Marta; or `?game=fight-moonfoundry`. Below: "The Pour Floor".
 
+**Built in v1.81:** Viridel's **Seed Vault** (on the plateau west-south-west of the Builders' Greenhouse, by the top of the
+water stair; its host Hollis; `?game=fight-edena`), the City-Shaft's **Lift Depot** (on the middle terrace by its cab
+stop; Ulric; `?game=fight-incal`), the Buried Machine's **Tooth Gallery** (east of the domes; Greta; `?game=fight-buried`)
+and the Signal Market's **Back Rooms** (in the back alley west of the sign-hanger's ladder; Lettie; `?game=fight-bazaar`).
+Below, each under its name.
+
 ## The template
 
 A fight temple is a minigame played on foot (docs/systems/minigames.md: `drives: false`, so the walking, the blade,
@@ -136,6 +142,14 @@ none: it teaches the crowd; there are more, and sooner, deeper in (the tests hol
 | `gust` (Vael) | pale chevrons run down the lane the way it will blow, 1.1 s | the wind blows 0.7 s | shoved along it 11 m/s, a quarter heart, a flinch | buffeted (a cut), carried at 15 m/s toward the wall at its end, slammed there (another) |
 | `stone` (Lorn) | the lane's edges in rust, a millstone rising at its head, 1.4 s | it rolls the length of the room at 8.5 m/s | a heart, thrown out of its way | crushed (three cuts); flyers above it |
 | `pour` (the Foundry) | the channel's rims glow, flickering faster, 1.5 s | slag runs down it at 14 m/s and lies 3.6 s, then crusts over | half a heart a tick (0.7 s) in it | a cut a tick; flyers above it |
+| `cart` (the Buried Machine) | the lamp on a cart at the rail's head blinks faster, 1.3 s (the rails drawn from the start) | the cart runs the rail at 11 m/s | a heart, thrown aside | three cuts; flyers above it |
+| `bloom` (Viridel) | a row of sleeping eyes down the lane opens one by one from its head, 1.2 s | they flash white, 0.35 s | dazzled (`Foes.blind` 0.6 s), a quarter heart | stunned 1.2 s and a cut; moths from 1.2 m beyond its edge drawn in |
+| `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | half a heart, thrown out | three cuts to all under it |
+| `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
+
+`drop` and `toll` have no lanes (`ON_LANES`): a load is begun on `{ spot }`, a toll on `{ sign }` (the signs farthest from
+him first, so the ring is seen coming). Since v1.81 the gust is drawn as it blows too: fourteen long white streaks race
+down the lane at waist and head height, the lane's floor flashes pale, sixty flecks fly with it.
 
 The pour's channels are cut into the floor from the start (a dark groove, its rims in the cap's colour), so the floor
 is read before the fight. `S.hazards` (the session) gives the lanes under way to the checks, and `start(room, lane)`.
@@ -199,37 +213,39 @@ Foundry's own sky and look and its two moons. The doorway is on the open floor j
 
 147 foes, par 4:20; Moon slag (ivory brass, molten water). Scripted run: 2:40, all 147, 18 pours.
 
+## The Seed Vault (Viridel, `src/fight-temples/edena.js`)
+
+The white builders' cellars under the Builders' Greenhouse: white tile and green glass, boiler pipes for pillars
+(`pillar: 'pipe'`), the greenhouse's white ribs and potted trees over the far walls (`dress: 'greenhouse'`). Rooms: the
+potting cellar (no eyes), the long bed (12 × 24, two beds down it), the boiler room (four pipes, a bed each way), the
+seed safe (four beds round the altar, two at a time). Foes: moths (most of them, a cut each), blots, root knots; a
+furnace brute and a whole root knot at the end; 151 in all, par 4:10; Leafglass. The bloom is what moths are for:
+they are drawn into a bed's flash from a little way off.
+
 ## The other worlds (one line each)
 
 | world | fight temple | its foes | its colours |
 |---|---|---|---|
 | Vael | **The Wind Cloister** (built, v1.80, above): a roofless monastery court on a cliff, its gates the riders' old stalls; gusts through the arches shove the crowd | sky rays, herons, blots; a crab of the sky stones at the end | Rider's slate (blue-grey brass, white water) |
 | Lorn | **The Drowned Mill** (built, v1.80, above): four flooded rooms of a reed-cutters' mill, the water ankle-deep, the toads lobbing from the millstones | bellows toads, root knots, skitters; a shade at the end | Reed and rust |
-| Viridel | **The Seed Vault**: the white builders' greenhouse cellars, beds of sleeping eyes that wake the moths | signal moths, root knots, a furnace brute at the end | Leafglass |
+| Viridel | **The Seed Vault** (built, v1.81, above): the white builders' greenhouse cellars, beds of sleeping eyes that wake the moths | signal moths, root knots, a furnace brute at the end | Leafglass |
 | the Underwater City | **The Flooded Gallery**: sealed halls under the glass, the lamps flickering as the jellies ward the crabs | crabs, lantern jellies, sky rays; a lamp tripod at the end | Pearl and tide |
-| the City-Shaft | **The Lift Depot**: a stack of cab bays, each room a platform the cranes lower the next wave onto | lamp tripods, horn lizards, toads; two shades at the end | Cab yellow |
+| the City-Shaft | **The Lift Depot** (built, v1.81, above): a stack of cab bays, each room a platform the cranes lower the next wave onto | lamp tripods, horn lizards, toads; two shades at the end | Cab yellow |
 | the Glass Dunes | **The Kiln Yard**: the glassworkers' cooling sheds, the floor glass that cracks under a brute | furnace brutes, glass crabs, worms; a drone pair at the end | Furnace glass |
-| the Buried Machine | **The Tooth Gallery**: a gear-house between the canyon's teeth, rails across it the carts run on | mound worms, crucible carts, centipedes, skitters | Brass tooth |
+| the Buried Machine | **The Tooth Gallery** (built, v1.81, above): a gear-house between the canyon's teeth, rails across it the carts run on | mound worms, crucible carts, centipedes, skitters | Brass tooth |
 | the Moon Foundry | **The Pour Floor** (built, v1.80, above): the casting bays, a pour every minute across one room's floor (step off the channels) | crucible carts, skitters, lizards; a brute at the end | Moon slag |
 | the Garden of Spheres | **The Quiet Orchard**: the spheres' walled gardens at dusk, the hounds running in the trees' long shadows | rollers, centipedes, antler hounds; a marionette at the end | Orchard dusk |
 | the City Floating in Space | **The Oil Exchange**: the islands' lamp-oil depot, its rooms joined by short bridges over the dark | ring drones, moths, rollers; a lamp tripod at the end | Lamp oil |
-| the Signal Market | **The Back Rooms**: the market's shuttered shops after hours, a bell walker tolling in the last | lizards, hounds, marionettes; a bell walker at the end | Signal neon |
+| the Signal Market | **The Back Rooms** (built, v1.81, above): the market's shuttered shops after hours, a bell walker tolling in the last | lizards, hounds, marionettes; a bell walker at the end | Signal neon |
 
 ## The next ones, written up (for later)
+
+(Built since from this list, in v1.81: the Seed Vault, the Lift Depot, the Tooth Gallery and the Back Rooms, above, much
+as written here. Four are left.)
 
 Each on the same template: a table, a hazard of its own (a new `kind` in `hazards.js` where none of the four fits), a
 look (`ground`, `pillar`, `dress`), a host and a doorway by a settlement, its world's kinds light, gorged ones from the
 second room, two or three tough ones at the end.
-
-**Viridel: the Seed Vault.** The white builders' greenhouse cellars under the Builders' Greenhouse: white tile, glass
-beds of sleeping eyes along the walls (`pillar` a glass bed on a plinth, `dress` the greenhouse's ribs over the far
-walls, its light coming down green). Foes: signal moths (a swarm of three, one cut), root knots, a blot or two; at the
-end a furnace brute out of the boiler room. Hazard **`bloom`** (lanes): a bed's eyes open down a lane (a row of pale
-irises lighting one by one, 1.2 s), then they flash: him blinded a moment (the moths' flash: `Foes.blind`), the moths in
-it drawn to it and stunned (a cut), so you herd moths into a lane before it opens. Rooms: the potting cellar (no
-eyes), the long bed (two lanes along it), the boiler room (pipes as pillars, the lanes across), the seed safe (both
-ways, the altar a seed drawer). Reward: Leafglass (green glass brass, clear water with a green core). Door: by the
-gardeners' stair at the foot of the water stair.
 
 **The Underwater City: the Flooded Gallery.** Sealed halls under the glass, the lamps on the walls flickering. Foes:
 glass crabs, lantern jellies (they ward the crabs: a crab beside a jelly takes no cut until the jelly is down), sky rays;
@@ -239,14 +255,6 @@ a jelly lights, so you fight from the discs; the jellies glow, so they are seen 
 fish market (stalls as pillars), the long gallery (the glass wall the camera looks through: no wall on the near side,
 the sea beyond), the whale-watch (the altar under the dome). Reward: Pearl and tide. Door: by the lamplighters' quay.
 
-**The City-Shaft: the Lift Depot.** A stack of cab bays: each room a platform, the next wave lowered onto it by a crane
-(the cab coming down is the spring: its shadow grows on the floor for 1.4 s, then it lands and opens). Foes: lamp
-tripods, horn lizards, bellows toads; at the end two shades. Hazard **`drop`** (spots, like the geysers): a crane lets a
-load fall on a ring of the floor that tightens as it comes (1.2 s; a heart, three cuts to the foes under it). The rooms
-are platforms with a drop to the shaft round them (the cliff of Vael's, here a shaft: `outside: 'shaft'`, its far wall
-of windows lit), joined by short bridges (doors with rails). Reward: Cab yellow. Door: on the middle terrace beside the
-cab stand.
-
 **The Glass Dunes: the Kiln Yard.** The glassworkers' cooling sheds: a floor of glass tiles over a red glow. Foes:
 furnace brutes (the light wave's only big kind: one in a wave, two cuts), glass crabs, mound worms; at the end two
 clock-house drones. Hazard **`crack`** (tiles, a new kind): a brute's slam, a worm's breaking through and a long fall
@@ -254,14 +262,6 @@ crack the tiles round it (drawn: a white star), and a cracked tile stood on for 
 for 6 s (half a heart, out at its edge); foes walk into them. The floor is a grid of 2 m tiles (`ground` none, the tiles
 drawn), the pillars kiln chimneys, the dress the sheds' glass roofs over the far walls. Reward: Furnace glass. Door:
 by the kiln-masters' yard at the glassworks.
-
-**The Buried Machine: the Tooth Gallery.** A gear-house between the canyon's teeth. Foes: mound worms, crucible carts,
-centipedes, skitters; no single tough one at the end but three centipedes whole. Hazard **`cart`** (lanes): rails cut
-across the floor (drawn from the start, as the pour's channels), and an ore cart comes down a rail with its lamp lit
-(the lamp on the rail's far end blinks 1.3 s first): a heart and thrown, every foe on the rail run down; the rails also
-carry the carts the foes ride (a crucible cart's charge runs along its rail). Rooms: the tooth gate, the gear pit (a
-great gear turning in the middle, solid, a pillar that turns), the rail yard (five rails), the tooth hall. Reward:
-Brass tooth. Door: under the canyon's first tooth by the lift.
 
 **The Garden of Spheres: the Quiet Orchard.** The spheres' walled gardens at dusk, rows of trees whose long shadows lie
 across the paths (the hour 18.6). Foes: rollers, centipedes, antler hounds (they run in the shadows: only there can
@@ -279,15 +279,6 @@ a pool that spreads to 2.5 m; the drones' sparks light it: a lit pool burns (hal
 the drum yard, the cable bridge (narrow, long), the clearing house. Reward: Lamp oil. Door: on the oil quay by the
 bill-runners' office.
 
-**The Signal Market: the Back Rooms.** The market's shuttered shops after hours, their signs dark: narrow rooms, many
-doors, crates as pillars. Foes: horn lizards, antler hounds, marionettes (strings: they pull you a little toward
-them); at the end a bell walker tolling. Hazard **`toll`** (room-wide rings): the bell walker's toll is heard from the
-first room on (it walks the market above): a ring of sound spreads from a sign on the wall (its neon flicking on 1 s
-first) across the room at 6 m/s; caught in its edge: a flinch and a quarter heart, foes stunned 1 s (cut them then);
-a roll through the ring takes him through. In the last room the walker itself tolls, from where it stands. Rooms: the
-shuttered row, the sign-painter's (signs as pillars, lit), the stockroom (crates in a maze), the counting house.
-Reward: Signal neon. Door: in the back alley behind the sign-hanger's yard.
-
-What each needs that is not built: a hazard kind (`bloom`, `dark`, `drop`, `crack`, `cart`, `shade`, `spill`, `toll`:
-`dark` and `toll` room-wide rather than on lanes, `crack` and `spill` changing the floor), two looks (`outside: 'shaft'`,
-the Kiln Yard's tiles), and for the Flooded Gallery a near wall left out (the camera looking through the glass).
+What each needs that is not built: a hazard kind (`dark` room-wide, `crack` and `spill` changing the floor, `shade`
+lanes that move), the Kiln Yard's tiles, and for the Flooded Gallery a near wall left out (the camera looking through
+the glass).

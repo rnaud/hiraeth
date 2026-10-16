@@ -186,7 +186,7 @@ export function stickToGround(s, dead = AIM.stick, I = ISO, out = new THREE.Vect
 
 // ------------------------------------------------------------------ the waves
 /** The light variants' health (cuts to fell them): the world's kinds, felled in one or two. A tough one keeps its own. */
-export const LIGHT_HP = { blot: 1, skitter: 1, moth: 1, worm: 2, heron: 2, toad: 2, ray: 2, crab: 2, lizard: 1, hound: 1, jelly: 1, drone: 2, rootknot: 2, cart: 2 };
+export const LIGHT_HP = { blot: 1, skitter: 1, moth: 1, worm: 2, heron: 2, toad: 2, ray: 2, crab: 2, lizard: 1, hound: 1, jelly: 1, drone: 2, rootknot: 2, cart: 2, tripod: 2, centipede: 2, marionette: 1, roller: 2, bell: 2 };
 export const lightHp = (kind, hp = 2) => Math.min(hp, LIGHT_HP[kind] ?? 2);
 
 /**

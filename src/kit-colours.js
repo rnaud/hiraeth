@@ -37,6 +37,9 @@ export const KIT_COLOURS = [
   // the Moon Foundry's Pour Floor: moon slag, ivory brass and molten water (src/fight-temples/moonfoundry.js)
   { id: 'slag', name: 'Moon slag', world: 'moonfoundry', pack: { brass: '#e8dcc4', brassDark: '#a99a86', canvas: '#5a4a4a', canvasDark: '#3a2e2e', cloth: '#ff8a3e', leather: '#2a2228' },
     water: { base: '#ff8a3e', cream: '#fff0c8', deep: '#b8432e', pale: '#ffc890', gold: '#ffd36a', light: '#fff6e0' } },
+  // Viridel's Seed Vault: green glass and the eyes' light (src/fight-temples/edena.js)
+  { id: 'leafglass', name: 'Leafglass', world: 'edena', pack: { brass: '#b8d8a8', brassDark: '#6a8a5a', canvas: '#eef0e6', canvasDark: '#b4bca8', cloth: '#8fd86a', leather: '#3e5a4a' },
+    water: { base: '#c8f0b0', cream: '#f4ffe8', deep: '#4a8a4a', pale: '#e0f8d0', gold: '#8fd86a', light: '#ffffff' } },
 ];
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;

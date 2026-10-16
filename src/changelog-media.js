@@ -869,6 +869,8 @@ const LANDMARKS76 = "Muted headless Chrome, High, 1280 × 720, clear at 10:00; 4
 const FIGHT341 = 'Issue #341: muted headless Chrome against a dev server of this branch (port 6341), High, 1280 × 720, a save with the sword and the shield; the run played by a script that walks to the nearest foe and cuts; 14 October';
 /** (v1.77, issue #365: the Sunken Hall more like Diablo IV, shot by hand before and after) */
 const FIGHT365 = 'Issue #365: muted headless Chrome (High, 1280 × 720) against its own Vite (port 6483), the Sunken Hall begun from its start card, the traveller set at the same spots, nothing hurting him; before, the tree at 46a9c59d8, after, this branch; 15 October; cwebp -q 72';
+/** (v1.81, issue #341: the fight temples of Viridel, the City-Shaft, the Buried Machine and the Signal Market) */
+const FIGHT341B = 'Issue #341: muted headless Chrome (High, 1280 × 720) against its own Vite (port 6741), each temple begun from its start card and played by a scripted player that walks to the next room, closes on the nearest foe and cuts, and steps out of the hazards (the scratchpad’s play.mjs, scenes.mjs; the mortal runs take their hits and roll); the doorways with the world loaded and the traveller set before them (door.mjs); before, the tree at c6be49168; 16 October; cwebp -q 72';
 /** (v1.79, issue #368: the Sunken Hall's cut and waves) */
 const FIGHT368 = 'Issue #368: muted headless Chrome (High, 1280 × 720) against its own Vite (port 6491), the Sunken Hall begun from its start card; the cut held at the end of its swing with blots pinned round him (the scratchpad’s swing.mjs), the waves played by a scripted player (play.mjs, scenes.mjs); before, the tree at ed4834a70, after, this branch; 15 October; cwebp -q 72';
 /** (v1.77, issue #336: the Rose House's rooms, shot by hand before and after) */
@@ -1116,6 +1118,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the Unity preview a low moon or sun', tags: ['devices'], shots: [
       { name: 'unity-low-moon', title: 'Viridel at dusk', caption: 'The moon low in the east: before, the whole meadow in shade (the world’s far rim cast over it); after, lit grass with the flowers’ long shadows, as on the web.', from: UNITY264_CHECK },
     ] },
+    { match: 'A new fight temple in Viridel, the Seed Vault', tags: ['combat'], shots: [
+      { name: 'fight-vault-bloom', only: 'after', title: 'A bed opening', caption: 'The long bed: its sleeping eyes open one by one down the lane, moths over it and root knots beside him.', from: FIGHT341B },
+      { name: 'fight-vault-flash', only: 'after', title: 'The flash', caption: 'The eyes flash: the lane white, the moths in it stunned and cut.', from: FIGHT341B },
+      { name: 'fight-vault-door', only: 'after', title: 'Its doorway', caption: 'On the plateau west of the Builders’ Greenhouse, by the top of the water stair: the doorway and Hollis, who keeps the seed cellars.', from: FIGHT341B },
+    ], see: 'In Viridel, climb the water stair to the Builders’ Greenhouse: the doorway is on the plateau just west of it. In the long bed, step off a bed whose eyes are opening.' },
+    { match: 'The Wind Cloister’s gusts are easier to read', tags: ['combat'], shots: [
+      { name: 'fight-cloister-blow', only: 'after', title: 'A gust blowing', caption: 'The cloister, the moment the wind blows down the lane: long white streaks race down it and its floor flashes (it was a few flecks and the arrows).', from: FIGHT341B },
+    ], see: 'In the Wind Cloister, wait in the cloister for a lane’s arrows: when the wind blows, watch the streaks.' },
+    { match: 'In the fight temples a foe thrown up onto a wall’s top', tags: ['combat'], see: 'Rare: in the Lift Depot, let a load land beside a crowd by a wall. Before, a tripod could be thrown onto the wall’s top and the wave never ended; now it is put back in the room within a second and a half.' },
   ],
   '1.80': [
     { match: 'A new fight temple in Vael, the Wind Cloister', tags: ['combat'], shots: [

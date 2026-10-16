@@ -24,7 +24,7 @@ import { pavedMask } from '../paved.js';
 // "games" button) lists them all, to jump straight into one.
 // ---------------------------------------------------------------------------
 
-const PLAZA = { radius: 21, wall: 23.5 };
+const PLAZA = { radius: 25.5, wall: 28 };   // (wider for the fight temples' signs: ARCADE_RING)
 
 /** A game's best as the signs and the board print it ('' for none). */
 export function bestText(g, state = game) {
@@ -187,7 +187,7 @@ export function* buildArcade(scene, { games = GAMES, state = game, search = glob
   }
   // coming back from a game (?back=<id>): standing in front of its sign, facing it
   const back = returnSpot(signs, new URLSearchParams(search).get('back'));
-  const spawn = back ? new THREE.Vector3(...back.pos) : new THREE.Vector3(0, 0, 19);
+  const spawn = back ? new THREE.Vector3(...back.pos) : new THREE.Vector3(0, 0, ARCADE_RING.radius + 2.5);
   const spawnHeading = back ? back.heading : Math.PI;
 
   return {

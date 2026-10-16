@@ -267,7 +267,7 @@ export function startFightTemple(ctx) {
       if (q.gorged) {
         // (swollen with the ink, a pale ring at its feet: it takes longer to fell, and leaves a heart and an ember shard)
         f.model.group.scale.multiplyScalar(GORGED.scale);
-        f.ring = ctx.add(W.gorged()); f.ring.visible = true; f.ring.position.set(f.pos.x, 0.07, f.pos.z);
+        f.gorgedRing = ctx.add(W.gorged()); f.gorgedRing.visible = true; f.gorgedRing.position.set(f.pos.x, 0.07, f.pos.z);
         words.pop(_v.copy(f.pos).setY(2.6), 'gorged!', 'bad', 1.2);
       }
       mine.push(f);
@@ -362,12 +362,12 @@ export function startFightTemple(ctx) {
     const R = rooms[run.room];
     for (const f of mine) {
       if (!f.alive || !R || f.air) continue;
-      if (inRoom(R, f.pos.x, f.pos.z, -0.3)) { f.strayT = 0; continue; }
+      if (inRoom(R, f.pos.x, f.pos.z, 0) && !(f.pos.y > 1.2 && !f.def.hover)) { f.strayT = 0; continue; }   // (out, or up on a wall: a hazard's knock can fling one there)
       if ((f.strayT = (f.strayT ?? 0) + dt) < 1.5) continue;
       const s = springsFor(run.room).at(-1) ?? spawn;
-      f.pos.set(s.x, 0, s.z); f.model.group.position.copy(f.pos); f.vel?.set?.(0, 0, 0); f.strayT = 0;
+      f.pos.set(s.x, 0, s.z); f.model?.group?.position.copy(f.pos); f.vel?.set?.(0, 0, 0); f.strayT = 0;
     }
-    for (const f of mine) if (f.ring) { f.ring.position.set(f.pos.x, 0.07, f.pos.z); f.ring.visible = f.alive; }
+    for (const f of mine) if (f.gorgedRing) { f.gorgedRing.position.set(f.pos.x, 0.07, f.pos.z); f.gorgedRing.visible = f.alive; }
   }
   /** A walker that got up onto a pillar's top (a hop, a leap) is put down beside it: the fight is on the floor. */
   function offTheTop(f) {
@@ -377,8 +377,15 @@ export function startFightTemple(ctx) {
       if (d > 1.3) continue;
       const k = d > 1e-3 ? 1.6 / d : 1;
       f.pos.set(cx + (d > 1e-3 ? dx : 1) * k, 0, cz + (d > 1e-3 ? dz : 0) * k);
-      f.model.group.position.copy(f.pos);
+      f.model?.group?.position.copy(f.pos);
       return;
+    }
+    // (or onto a wall's top, a toad's leap: put down inside the room by it; the run waited on it up there for ever)
+    const R = rooms[run.room];
+    if (R && !inRoom(R, f.pos.x, f.pos.z, 0.2)) {
+      const r = (f.def.radius ?? 0.5) + 0.4;
+      f.pos.set(THREE.MathUtils.clamp(f.pos.x, R.x[0] + r, R.x[1] - r), 0, THREE.MathUtils.clamp(f.pos.z, R.z[0] + r, R.z[1] - r));
+      f.model?.group?.position.copy(f.pos);
     }
   }
   function splash(s) {
@@ -396,7 +403,7 @@ export function startFightTemple(ctx) {
       // (a gorged one: a heart always, its ember shard, and its ring gone with it)
       run.gorged++;
       dropHeart(f.pos); dropShard(_v.copy(f.pos).add(_w.set(0.9, 0, 0.4)));
-      f.ring?.removeFromParent(); f.ring = null;
+      f.gorgedRing?.removeFromParent(); f.gorgedRing = null;
       ctx.kick?.(0.35);
     } else if (Math.random() < heartChance(player.hearts ?? 3, player.maxHearts ?? 3)) dropHeart(f.pos);
     const n = chimesFor(f, Math.random, first);
@@ -570,7 +577,7 @@ export function startFightTemple(ctx) {
       hearts.length = 0;
       for (const h of shards) h.m.removeFromParent();
       shards.length = 0;
-      for (const f of mine) f.ring?.removeFromParent();
+      for (const f of mine) f.gorgedRing?.removeFromParent();
       for (const w of [...wells, ...geysers]) { w.busy = false; w.m.visible = false; }
       pending = []; filling.length = 0;
       hz.clear();

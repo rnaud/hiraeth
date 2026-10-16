@@ -205,7 +205,13 @@ export class SmallCuller {
       const o = it.o;
       if (!o.visible) continue;
       const e = it.we, m = e[12] + e[13] * 3 + e[14] * 7;
-      if (m !== it.m) { it.m = m; it.c.copy(o.geometry.boundingSphere.center).applyMatrix4(o.matrixWorld); }   // it moved
+      if (m !== it.m) {
+        // (it moved; a geometry swapped in since it was collected may have no sphere yet: a foe's parts, a load's crate)
+        const g = o.geometry;
+        if (!g.boundingSphere) g.computeBoundingSphere();
+        if (!g.boundingSphere) continue;
+        it.m = m; it.c.copy(g.boundingSphere.center).applyMatrix4(o.matrixWorld);
+      }
       if (it.r * k < cam.distanceTo(it.c)) { o.visible = false; out.push(o); }
     }
     return out;

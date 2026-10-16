@@ -397,7 +397,7 @@ test('a gorged one: bigger, ringed, felled it leaves a heart and an ember shard;
     gorged = foes.list.find((f) => f.alive && f.gorged);
   }
   assert.ok(gorged, 'a gorged one came up');
-  assert.ok(gorged.model.group.scale.x > 1.3 && gorged.ring?.visible, 'bigger, a ring at its feet');
+  assert.ok(gorged.model.group.scale.x > 1.3 && gorged.gorgedRing?.visible, 'bigger, a ring at its feet');
   assert.ok(gorged.hp > FOES[gorged.kind].hp);
   const at = gorged.pos.clone();
   gorged.state = 'dead'; tick();

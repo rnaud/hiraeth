@@ -81,6 +81,12 @@ export const CHANGELOG = [
         { where: 'Underwater, the wide view', before: 49.4, after: 50.1 },
         { where: 'the City-Shaft, the wide view', before: 36.9, after: 37.5 },
       ], source: 'the bridge\'s bench (-views -bench 6), 16 October, the same APK with and without the change (-no-slim); the mean rate over each view', note: 'Lorn and the desert are unchanged; GeckoView, the web version, is still ahead in Lorn, Underwater, the Signal Market and the City Floating in Space.' }] },
+    // the fight temples of four more worlds (issue #341): src/fight-temples/edena.js, incal.js, buried.js, bazaar.js (the
+    // tables), hazards.js (bloom, drop, cart, toll; the gust drawn as it blows), dress.js (pipes, crates; the greenhouse,
+    // the shaft, the teeth, the market), story/hosts-data.js; docs/design/fight-temples.md
+    'A new fight temple in Viridel, the Seed Vault, on the plateau just west of the Builders’ Greenhouse: four white cellars of moths, root knots and blots, their seed beds full of sleeping eyes. When a bed’s eyes open one by one, get off it before they flash, and bring the moths onto it. Its prize: the Leafglass colours for your backpack, sword and shield.',
+    'The Wind Cloister’s gusts are easier to read: as the wind blows, long white streaks race down the lane and its floor flashes pale.',
+    'In the fight temples a foe thrown up onto a wall’s top is now put back down in the room, so a wave can always be finished.',
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js
