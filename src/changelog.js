@@ -46,6 +46,9 @@ export const CHANGELOG = [
     // scripts/temple-design/ (rules `through`, the well measured); tests/footprint-floors.test.js, temple-playthrough's
     // lift; docs/systems/temples.md "The Footprint across four floors", docs/design/temple-best-practices.md part 4
     'The Footprint in the Garden of Spheres now goes down: four floors round a great well, and from its rim you can see the Echo’s door at the very bottom. Drop through holes in the floors into pools that break your fall, push a sphere through a hatch onto a plate on the floor below, ride the great sphere’s lift (where it rests decides which bridges stand and which doors open), and climb a spiral of stones only the seeing lens shows. Eleven steps where there were five.',
+    // fewer hats (issue #403): src/costumes.js hatted() (HAT_ODDS, T.hatOdds, wearsHat), decided from a hash of the look like
+    // the capes; the oddest shapes out of the tribes' tables; scripts/cape-census.mjs --hats; tests/hat-share.test.js; docs/systems/characters.md
+    'Far fewer people wear hats: about one in four now has something on the head, down from four in five, and the rest show their hair. The oddest hats are gone from the crowds: the tall stovepipes and spires of the City-Shaft, the balls of the Garden of Spheres, Lorn’s reed thatches, the lamp hats, the antenna helmets, Viridel’s floating blossoms and the fezzes. The desert’s headcloths, Vael’s cowls and the miners’ hard hats stay a little more common, and the people whose own design has a hat keep theirs.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

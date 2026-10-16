@@ -1098,6 +1098,7 @@ const OPENING394 = 'Issue #394: the Unity bridge in the editor’s batch run on 
 const FP401 = 'Issue #401: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5401, scripts/design-qc/capture.mjs), the camera pinned; before: the same tree with src/temples/spheres.js as on origin/main (5b612814), the same camera where the house allows; 16 October; cwebp -q 72';
 const FP401P = 'Issue #401: the house’s plans drawn from its own rooms and pieces (scripts/temple-design/record.mjs: the kit’s halls, round halls and passages, every piece where the layout put it), one floor before, four after (local metres, the same scale), 16 October; cwebp -q 70';
 const FP401N = 'Issue #401: muted headless Chrome on this Mac (ANGLE Metal, High, render scale 1, 1280 × 720, vsync off), this branch’s own Vite, the camera pinned, 9 s a view, the median frame and the median draw calls (the game’s frameStats), the before with src/temples/spheres.js as on origin/main measured in the same minutes (load 11–13); 16 October';
+const HATS403 = 'Issue #403: the character studio’s crowd lineup (studio.html?lineup=crowd&count=12, seeds 1-12: full bodies in front, the GPU crowd figures behind), muted headless Chrome against this branch’s own Vite (port 5452), before at 9c1b698ba and after on the branch; cropped to the people, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.82': [
     { match: 'In the Unity version the opening plays as it does on the web', shots: [
@@ -1119,6 +1120,12 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Echo’s Hall (draw calls 209)', before: null, after: 3.8 },
       ], source: FP401N },
     ], see: 'In the Garden of Spheres, go in at the Footprint’s heel and walk out onto the rim: look down the well. The first drop opens once the Hall of Spheres is answered; ride the great sphere’s disc in the middle, or stand on its plate on the pier to call it.' },
+    // (issue #403: taken by hand, before at 9c1b698ba and after on the branch, the same lineups)
+    { match: 'Far fewer people wear hats', tags: ['characters'], shots: [
+      { name: 'hats-perdide', title: 'Lorn’s crowd', caption: 'A lineup of Lorn’s crowd: before, nearly everyone under a tall cone of reeds; after, their locks and braids, a wide soft hat on one', from: HATS403 },
+      { name: 'hats-spheres', title: 'The Garden of Spheres’ listeners', caption: 'Before, a ball balanced on almost every head; after, bare heads and buns, their ears clear', from: HATS403 },
+      { name: 'hats-edena', title: 'Viridel’s gardeners', caption: 'Before, crowns of blossoms floating round the head; after, long loose hair, a straw hat here and there', from: HATS403 },
+    ] },
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
       { name: 'fight-runs', only: 'after', title: 'Two runs of the Wind Cloister', caption: 'The same temple drawn from two seeds, seen from above: the bell walk and the cloister in the other order, the rooms laid out another way and turned, the waves drawn again (each room’s count of foes below it); the stalls first and the old roost last both times.', from: 'tests/fight-generate.test.js’s draws, the plans drawn from src/fight-temples/generate.js drawRun(ARZACH_FIGHT, 3) and (…, 8) as SVG and shot in muted headless Chrome; 16 October; cwebp -q 72' },
     ], see: 'Go into any fight temple twice: the rooms come in another order and layout. At the end, the card gives the run’s number: add ?seed= and that number to the address to play the same run again.' },

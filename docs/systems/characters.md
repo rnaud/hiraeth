@@ -516,6 +516,36 @@ ones, the bell monastery and the listeners. Now 11 %.
 - `tests/skirt-share.test.js`: skirts on ≤ 15 % of everyone and ≤ 20 % in a world (the three orders ≤ 50 % and
   ≥ 20 %), the sheets' robes kept, the streams unchanged, robes kept more often by the elders and staff-bearers.
 
+## Fewer hats (issue #403)
+
+The author: "We have too many weird hats, redesign the hats and have less of them on average." Something on the
+head (a hat, a cap, a hood up, a wrap: `wearsHat`; hair and a hood thrown back are not) was on 81 % of everyone
+the game dresses (`node scripts/cape-census.mjs --hats`, `--who` for the named people), every one of the Buried
+Machine's and the Moon Foundry's crowds. Now 28 %.
+
+- **Who keeps one** (`hatted` in `dressFor`, `src/costumes.js`): the headwear drawn is kept at the tribe's
+  `hatOdds` (default `HAT_ODDS` 0.3); otherwise the person goes bare-headed in the hair that was under it
+  (`s.under`, the tribe's hairstyle). Decided from a hash of the look already drawn, like the capes and skirts, so
+  nobody's other pieces move. Kept whatever the odds: `look.head` (a quest reference sheet, `quest-looks.js`; the
+  story's `look`), and a story head that names a piece of its own rather than the generic `hood` / `hat` / `wrap`
+  (`GENERIC_HEADS`): the Speaker's tall hat, Sefa's cap, Nour's sun hat, Marrow's rag hood, Haddu's fez. Bako's
+  head-wrap (on his sheet) is now `look.head`.
+- **Where the culture asks for more**: the desert (`hatOdds` 0.45: sun and sand, its headcloths; the Glass Dunes
+  dress as the desert), the Buried Machine and the Moon Foundry (0.38: padded hoods and hard hats are the mine's
+  work gear), Vael's silent ones (0.55: the cowl is their order's habit) and the bell monastery (0.4). Crowds
+  elsewhere: 15–33 %.
+- **The oddest shapes out of use** (taken out of the tribes' tables and `as` maps; the pieces stay in `HEADS` for
+  the sheets that wear them): the rim's `tophat` and `spire` (now `bowler`, `trilby`), the Garden of Spheres' `orb`
+  (`skullcap`, `circlet`), Lorn's `reeds` (`brim`, `hood`), the `lamphat` of Lorn II and the White Mangrove (`hood`,
+  `brim`), the Hangar's and the Forest of Antennas' `antenna` (`peak`, `beanie`, `hood`), Viridel's `flowers` (they
+  floated round the head: `straw`, `circlet`), the Signal Market's `fez` (`turban`, `flatcap`). The `wizard` hat was
+  already only on sheets (the Speaker, Ume, Hollin). Contact sheet of every headwear and the before / after crowds:
+  issue #403.
+- `tests/hat-share.test.js`: ≤ 33 % of everyone, each crowd ≤ 30 % (+5) unless its culture asks for more, the
+  dropped shapes on nobody but the sheets, the sheets' and the story's own heads kept, the streams unchanged.
+- **Next** (not modelled yet): a smaller, coherent set of hats per world, from Midjourney sheets the author picks:
+  `docs/design/hat-prompts.md`.
+
 ## Seated capes fall onto the seat
 
 Seated people's capes used to fan out round them like wings: the cloth's floor was a plane at
