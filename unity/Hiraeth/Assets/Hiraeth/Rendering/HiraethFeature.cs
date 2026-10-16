@@ -94,6 +94,8 @@ namespace Hiraeth.Rendering
             /// <summary>The prepass draws only the renderers in OccluderLayer (meshes whose bounds' radius is at least this, m;
             /// set by the bridge's BridgeRenderer): 0, every opaque.</summary>
             public static float prepassMinRadius;
+            /// <summary>The bridge's -gbuffer-test N (the G-buffer's targets in 8 bits, a test: GBufferPass).</summary>
+            public static int gbufferTest;
             public const uint OccluderLayer = 1u << 28;
             public static bool waterContact = WaterContactAsked(System.Environment.GetCommandLineArgs(), UnityEngine.Application.isMobilePlatform);
             /// <summary>The foam's default: on unless a mobile player or -noWaterContact; -waterContact wins.</summary>
@@ -208,16 +210,22 @@ namespace Hiraeth.Rendering
                 desc.depthBufferBits = 0;
                 desc.depthStencilFormat = GraphicsFormat.None;
                 var data = frame.Create<GBufferData>();
-                desc.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                // (-gbuffer-test N, a test of what the targets' bytes a pixel cost a tiled GPU (issue #262), the picture wrong: 1 the hatch
+                // target in 8 bits, 2 the albedo too, 3 all three, 4 only the albedo; else half floats, as the web's G-buffer)
+                int gt = Settings.gbufferTest;
+                var g8 = GraphicsFormat.R8G8B8A8_UNorm; var g16 = GraphicsFormat.R16G16B16A16_SFloat;
+                desc.graphicsFormat = gt == 2 || gt == 3 || gt == 4 ? g8 : g16;
                 data.albedo = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GAlbedo", true, FilterMode.Point);
+                desc.graphicsFormat = gt >= 1 && gt <= 3 ? g8 : g16;
                 data.hatch = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GHatch", true, FilterMode.Point);
                 // (half floats, as the web's G-buffer (pipeline.js createGBuffer): its normal and distance read by every tap of
                 // the composite's edges, pockets and creases, half the bandwidth of full floats)
+                desc.graphicsFormat = gt == 3 ? g8 : g16;
                 data.normal = UniversalRenderer.CreateRenderGraphTexture(rg, desc, "_GNormal", true, FilterMode.Point);
                 var ddesc = cam.cameraTargetDescriptor;
                 ddesc.msaaSamples = 1;
                 ddesc.graphicsFormat = GraphicsFormat.None;
-                ddesc.depthStencilFormat = GraphicsFormat.D32_SFloat;
+                ddesc.depthStencilFormat = gt == 5 ? GraphicsFormat.D16_UNorm : gt == 6 ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D32_SFloat;   // (-gbuffer-test 5: 16 bits, 6: 24)
                 data.depth = UniversalRenderer.CreateRenderGraphTexture(rg, ddesc, "_GDepth", true);
 
                 // the water's contact foam needs the scene's depth without the water (below): then the water is drawn in a pass

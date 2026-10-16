@@ -47,3 +47,11 @@ test('the tests kept as switches, off: the instanced sets merged, the engine\'s 
   assert.match(read('engine/unity/game.js'), /lod: String\(args\.on \?\? ''\)\.split\(','\)\.includes\('lod'\)/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /if \(Arg\("-js-on"\) != null\) args\["on"\] = Arg\("-js-on"\);/);
 });
+
+test('round 6: the G-buffer\'s formats as a test switch only, half floats by default as the web\'s', () => {
+  const f = read('unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs');
+  assert.match(f, /public static int gbufferTest;/);
+  assert.match(f, /desc\.graphicsFormat = gt == 2 \|\| gt == 3 \|\| gt == 4 \? g8 : g16;/);
+  assert.match(f, /: GraphicsFormat\.D32_SFloat;/);
+  assert.match(runner, /HiraethFeature\.Settings\.gbufferTest = gbv;/);
+});

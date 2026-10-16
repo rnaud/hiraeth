@@ -488,6 +488,7 @@ namespace Hiraeth.Bridge
             // -census what is drawn by kind, -skin-cull the skinned meshes skinned only when seen)
             if (BridgeArgs.Arg("-hide") is string hk) foreach (var k in hk.Split(',')) BridgeRenderer.hide.Add(k.Trim());
             BridgeRenderer.census = BridgeArgs.Flag("-census");
+            if (BridgeArgs.Arg("-gbuffer-test") is string gbt && int.TryParse(gbt, out int gbv)) Hiraeth.Rendering.HiraethFeature.Settings.gbufferTest = gbv;
             // (-merge-instances, a test: the GPU instances' sets of one mesh and material drawn as one, BridgeRenderer.mergeInstances;
             // -merge-min N only the sets of N instances and up, -merge-max N up to N)
             if (BridgeArgs.Flag("-merge-instances")) BridgeRenderer.mergeInstances = true;

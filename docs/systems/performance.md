@@ -3108,6 +3108,58 @@ G-buffer's three half-float targets (28 bytes a pixel, likely ~7 of the Adreno's
 bin it touches, and Unity draws each mesh in the prepass and the G-buffer where the web draws it once: a G-buffer of fewer
 bytes a pixel (the web's is the same), the Surface shader's vertex outputs (28-40 floats a vertex) and its fragment work.
 
+**A note on rounds 4 and 5** (found in round 6): the player's own app (`com.rnaud.hiraeth`, the web game) had been open
+on the Retroid since 20:24 on 15 October, 2.3 GB of memory, the top activity whenever the bench's app exited. Every
+measurement of rounds 4 and 5 (and round 6's first, discarded) was taken with it alive in the background: their
+before-and-after pairs share it, but a Unity run was killed once for memory (the Floating city) and their GeckoView
+numbers ran beside it too. Round 6's are taken with nothing else running.
+
+### Unity on the Retroid, round 6: the G-buffer's bytes, the vertex outputs (2026-10-16, issue #262)
+
+The levers round 5 named, tried at the trailing worlds' worst views (the same bench, device and preset; base: origin/main
+at ec27ca253, round 5 landed), then the trailing worlds, the City-Shaft and the desert against GeckoView **in one sitting
+with nothing else on the device**.
+
+**The tile cost, measured** (`-gbuffer-test N`, a test switch in HiraethFeature: the targets in 8 bits, the picture
+wrong; GPU ms at the Signal Market's start / Lorn's start / Underwater's wide view / the Floating city's start, base
+18.5 / 21.0 / 19.9 / 18.7): all three targets in 8 bits (16 bytes a pixel against 28) 17.8 / 20.0 / 18.5 / 17.6, the
+hatch target alone (24) 17.6 / 20.7 / 18.6 / 18.4, the albedo alone (24) 18.0 / 20.8 / 19.0 / 18.7, the depth in 16 bits
+nothing. So the G-buffer's bytes cost what a tiler's bins say, but **about 1 ms for 12 bytes a pixel**, not most of the
+gap. None of the targets is lossless in 8 bits (the hatch target packs flags and levels above 1 into each channel, the
+albedo's alpha the light and the line's step up to 3): a smaller G-buffer would change the picture. Left as the switch.
+
+**The vertex outputs**: the Surface shader's vertices pass on 28 floats; the bind pose (3), the folds (2) and the form's
+point (4) are read only by the people (outfits, eyes, creases, folds, faces), a picture's uv, the form's hatching, the
+fluid and the drawn face. A test build without the three (picture wrong for those) took 1.0 / 1.1 / 0.6 / 1.2 ms; then
+**slim lean variants** (`HIRAETH_LEAN_SLIM`, `HIRAETH_LEAN_TERRAIN_SLIM`, for the lean materials that read none of them;
+the picture the same, shot by shot): 0.4-1.3 ms in every view of the six worlds (the Floating city's wide view 57.9 → 60.1
+fps, the Signal Market's start 53.1 → 55.8, the City-Shaft's wide 36.9 → 38.2). **Not shipped**: with them a world's
+second view stalls once for up to a second (the desert's camps, the Floating city's crowd, the City-Shaft's second crowd:
+1 % lows 3-10 fps, every launch, with and without `-census`): the first draw of a variant combination the prewarm list
+does not hold, on the Adreno's compiler, and 128 more Surface variants (384 against 256) for every platform's build.
+`Shader.WarmupAllShaders` ran for over 20 minutes on the device. What it needs first: warming the pipelines on Android as
+the Xbox and the Deck do (BridgePso: a GraphicsStateCollection traced in a development player); then the slim variants
+(the change as tried, not kept in the tree: every `i.bind`, `o.bind` and the others through macros, the three fields under `#if !defined(SLIMV)`,
+the two keywords mapped onto the lean ones, and BridgeRenderer.Lean choosing them by the rule above) are worth their ~1 ms.
+
+**The fragment work** (4.5-7.9 ms): the web's Handheld already has its 4 shadow taps, light weathering (`_WearLite`)
+and one ink pass (`_PostLite`), and the bridge passes all three; no lever found in this round.
+
+**Where it stands** (nothing else running, one sitting; Unity: the slim test build with `-no-slim`, which draws what this commit does; GeckoView: the same commit's `dist`):
+
+| world (views) | Unity: fps, worst view, 1 % low, GPU ms | GeckoView: fps, worst view, 1 % low | Unity − GeckoView, worst view |
+|---|---|---|---|
+| City-Shaft (4) | 57.4, 36.9, 31.6, 22.1 | 52.9, 37.3, 30.0 | −0.4 |
+| Signal Market (4) | 59.4, 53.1, 52.5, 17.3 | 59.7, 58.3, 36.0 | −5.2 |
+| Lorn (4) | 60.1, 46.9, 53.4, 19.4 | 59.9, 56.6, 44.9 | −9.7 |
+| Underwater (4) | 56.9, 49.6, 42.7, 17.6 | 59.3, 59.0, 30.0 | −9.4 |
+| Floating city (4) | 60.1, 52.5, 53.0, 17.2 | 59.7, 59.1, 36.0 | −6.6 |
+| Desert (5) | 60.1, 55.2, 50.4, 14.3 | 57.2, 54.2, 30.0 | +1.0 |
+
+(Against round 5's table, taken beside the 2.3 GB app: the Signal Market's median 55.5 → 59.4 and its worst 51.7 → 53.1,
+the others within a frame; GeckoView's within a frame too.) GeckoView draws 0.4-0.9 M triangles a frame there over
+230-650 draws; Unity 1.1-3.3 M.
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the
