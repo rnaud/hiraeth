@@ -1,0 +1,29 @@
+changelog.md
+  s_5f899ba316b5dc::t_8928ecdf0ad57a 7
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_5841d68f19f227 3312-3362
+src/changelog-media.js
+  s_5f899ba316b5dc::t_560264bb0df641 1090-1091,1115-1126
+src/changelog.js
+  s_5f899ba316b5dc::t_e0c60c215a5c68 23-25
+tests/unity-thor.test.js
+  s_5f899ba316b5dc::t_a2dea0969ae333 1-33
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_09bbcc4800364e 373-375,698-710
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5aeac089c7ddd2ced1afffbc879bd50360ffdb32",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
