@@ -822,6 +822,9 @@ export class FluidBlade {
     const S = this.special ?? SWINGS[n];
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
     this.spec = S; this.sample = attackSample(S, 0); this.dur = this.sample.duration;
+    // (the press answered at once: the grip and the fluid drawn back, the cut's whoosh at the end of the wind-up;
+    // before, nothing was heard for the wind-up's 133 ms, issue #379. The dash cut and the riposte have their own.)
+    if (!force) T.sound?.fluidWindup?.(n, ENDS.has(this.special));
     this.hitAt = (this.sample.wind + this.sample.active * 0.45) / this.dur;
     // the swing's way: toward the nearest foe in reach, else where the traveller faces
     const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);

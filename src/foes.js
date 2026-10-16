@@ -1773,10 +1773,11 @@ export class Foes {
       })
       .sort((a, b) => (b.ahead - a.ahead) || a.score - b.score);
     if (!cands.length) { this.lock = null; return null; }
-    if (!this.lock) { this.lock = cands[0].f; this.sound?.fluidMode?.('stun'); this.reticle?.acquire(); return this.lock; }
+    if (!this.lock) { this.lock = cands[0].f; this.sound?.lockOn?.(true); this.reticle?.acquire(); return this.lock; }   // (its own tick: it was the gun's stun chirp, issue #379)
     const i = cands.findIndex((c) => c.f === this.lock);
     this.lock = i >= 0 && i < cands.length - 1 ? cands[i + 1].f : i === -1 ? cands[0].f : null;
     if (this.lock) this.reticle?.acquire();
+    this.sound?.lockOn?.(!!this.lock);   // (the next foe, or let go: heard either way)
     return this.lock;
   }
 
@@ -1901,7 +1902,7 @@ export class Foes {
       const d = Math.abs(p.x - c.x) + Math.abs(p.y - c.y) * 0.5;
       if (d < bd) { bd = d; best = f; }
     }
-    if (best) { this.lock = best; this.reticle?.acquire(); this.sound?.fluidMode?.('stun'); }
+    if (best) { this.lock = best; this.reticle?.acquire(); this.sound?.lockOn?.(true); }
     return this.lock;
   }
 

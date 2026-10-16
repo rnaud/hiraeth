@@ -172,7 +172,9 @@ export class Quests {
       else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`What happened: ${d.title}`); d.onFail?.(this); }
       else if ((prev === undefined || opening) && !d.background) this.startToast(d, st);   // (a makers' box offered on arrival starts quietly: its card was one notice too many on arriving, issue #78; the Quests page lists it)
       else if (hintsFor('objective')) this.toast(`${d.title}: ${st.text}`);   // (the next step pushed onto the screen: hints full; else its chime, and the quest log has it)
-      if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
+      // (a quest given, a step done and a quest done each their own: they were all the chime, issue #379)
+      const cue = stage === DONE ? 'done' : (prev === undefined || opening) && !d.background ? 'start' : 'step';
+      if (stage === FAILED) this.sound?.fail?.(); else if (this.sound?.quest) this.sound.quest(cue); else this.sound?.chime?.();
     }
     st?.onEnter?.(this);
     d.onStage?.(stage, this, prev);
@@ -275,7 +277,7 @@ export class Quests {
     if (big) this.startToast(this.def(big), this.current(big));
     const boxes = ids.filter((id) => this.def(id).background).length;
     if (boxes && hintsFor('tip')) this.toast(boxes > 1 ? `${boxes} makers’ boxes: the Quests page says where.` : 'A makers’ box: the Quests page says where.');
-    this.sound?.chime?.();
+    if (this.sound?.quest) this.sound.quest(big ? 'start' : 'step'); else this.sound?.chime?.();
     return true;
   }
   /** Who the scout finds while the opening quest waits: { id, quest, label, position } or null. */

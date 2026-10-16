@@ -210,7 +210,7 @@ export class Door {
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
     if (instant) { this.k = open ? 1 : 0; this.apply(); }
-    else { this.rt.sound?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }
+    else { const S = this.rt.sound; if (S?.doorOpen) S.doorOpen(); else S?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }   // (the bolt's clunk at once, then the rush: issue #379)
   }
   apply() {
     this.slab.position.y = -ease(this.k) * (this.h + 0.3);
@@ -2228,7 +2228,7 @@ export class Iris {
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
     if (instant) { this.k = open ? 1 : 0; this.apply(); }
-    else { this.rt.sound?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }
+    else { const S = this.rt.sound; if (S?.doorOpen) S.doorOpen(); else S?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }   // (the bolt's clunk at once, then the rush: issue #379)
   }
   apply() {
     // the blades slide out into the ceiling

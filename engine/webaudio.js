@@ -113,7 +113,12 @@ export class AudioParam {
     const buf = this._buf, ctx = this.ctx, t0 = b * Q / ctx.sampleRate, dt = 1 / ctx.sampleRate;
     if (!this.events.length) buf.fill(this._v);
     else if (this.rate === 'k') buf.fill(this.at(t0));
-    else {
+    else if (this.events.some((e) => e.t > t0 && e.t < t0 + Q * dt)) {
+      // (an event inside the block: sample by sample, so a sound that sets its level as it starts mid-block starts
+      // there, silent before it; interpolated from the block's ends, a gain at 1 until its first event leaked into
+      // the samples before it: a click at full level, 3.2 on the shop's purchase, issue #379)
+      for (let i = 0; i < Q; i++) buf[i] = this.at(t0 + i * dt);
+    } else {
       // (the timeline at the block's ends and middle, interpolated: exact for linear ramps, close for the others)
       const a = this.at(t0), m = this.at(t0 + (Q / 2) * dt), z = this.at(t0 + (Q - 1) * dt);
       if (a === z && a === m) buf.fill(a);

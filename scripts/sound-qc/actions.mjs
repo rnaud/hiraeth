@@ -16,7 +16,7 @@
 
 const A = (id, what, group, role, play, o = {}) => ({ id, what, group, role, play, web: [], engine: 'shared', key: false, repeats: true, ...o });
 const MAIN = 'src/main.js', ENG = 'engine/game.js', BLADE = 'src/fluid-blade.js', FOLEY = 'src/foley.js';
-const foley = (name) => ({ web: [[MAIN, /new BodyFoley\(/], [MAIN, /foley\.update\(/], [FOLEY, new RegExp(`emit\\('${name}'`)]], engine: [[ENG, /new BodyFoley\(/], [ENG, /foley\.update\(/]] });
+const foley = (name) => ({ web: [[MAIN, /new BodyFoley\(/], [MAIN, /foley\.update\(/], [FOLEY, new RegExp(`emit\\('${name}'`)]], engine: [[ENG, /new BodyFoley\(/], [ENG, /foley\??\.update\(/]] });
 
 export const ACTIONS = [
   // ------------------------------------------------------------------ the body
@@ -37,7 +37,7 @@ export const ACTIONS = [
   A('swim-stroke', 'a swimming stroke', 'the body', 'foley', (s) => s.stroke(0), { web: [[MAIN, /waters\.sound = sound/]], engine: [[ENG, /waters\.sound = sound/]] }),
   A('hurt', 'taking a blow', 'the body', 'impact', (s) => s.hurt(1, 'foe'), { key: true, web: [[MAIN, /sound\.hurt\(/]], engine: [[ENG, /sound\?\.hurt\?\.\(/]], drive: 'hurt', calls: ['hurt'] }),
   A('knockdown', 'knocked down', 'the body', 'impact', (s) => s.knockdown(), { key: true, ...foley('knockdown'), drive: 'knockout', calls: ['knockdown'] }),
-  A('get-up', 'getting up', 'the body', 'foley', (s) => s.getUp(), foley('getUp')),
+  A('get-up', 'getting up', 'the body', 'action', (s) => s.getUp(), foley('getUp')),
   A('low-health', 'the low-health heartbeat', 'the body', 'warn', (s) => s.heartbeat(), { key: true, web: [['src/low-health.js', /heartbeat/]], drive: 'low', calls: ['heartbeat'] }),
   A('potion-open', 'a potion uncorked', 'the body', 'action', (s) => s.potion('open'), { key: true, web: [[MAIN, /sound\.potion\('open'\)/]], engine: [['engine/combat.js', /potion\?\.\('open'\)|potion\('open'\)/]], drive: 'potion', calls: ['potion:open'] }),
   A('potion-heal', 'the hearts coming back', 'the body', 'cue', (s) => s.potion('heal'), { key: true, web: [[MAIN, /sound\.potion\('heal'\)/]], engine: [[ENG, /potion\?*\.?\(?'heal'/]], drive: 'potion', calls: ['potion:heal'] }),
@@ -59,8 +59,8 @@ export const ACTIONS = [
   A('block', 'a blow blocked', 'the blade', 'impact', (s) => s.fluidBlock(false), { key: true, web: [[BLADE, /fluidBlock/]] }),
   A('parry', 'a perfect parry', 'the blade', 'impact', (s) => s.fluidBlock(true), { web: [[BLADE, /fluidBlock/]] }),
   A('shield-break', 'the shield breaking', 'the blade', 'impact', (s) => s.shieldBreak(), { web: [[BLADE, /shieldBreak/]] }),
-  A('lock-on', 'locking on to a foe', 'the blade', 'ui', (s) => s.lockOn?.(true) ?? s.fluidMode('stun'), { key: true, web: [['src/foes.js', /lockOn\?\.\(true\)|fluidMode\?\.\('stun'\)/]], drive: 'lock', calls: ['lockOn', 'fluidMode'] }),
-  A('lock-off', 'letting the lock go', 'the blade', 'ui', (s) => s.lockOn?.(false), { web: [['src/foes.js', /lockOn\?\.\(false\)/]] }),
+  A('lock-on', 'locking on to a foe', 'the blade', 'ui', (s) => (s.lockOn ? s.lockOn(true) : s.fluidMode('stun')), { key: true, web: [['src/foes.js', /lockOn\?\.\(true\)|fluidMode\?\.\('stun'\)/]], drive: 'lock', calls: ['lockOn', 'fluidMode'] }),
+  A('lock-off', 'letting the lock go', 'the blade', 'ui', (s) => s.lockOn?.(false), { web: [['src/foes.js', /lockOn\?\.\(false\)|lockOn\?\.\(!!this\.lock\)/]] }),
   A('flurry', 'a perfect dodge\'s flurry', 'the blade', 'cue', (s) => s.flurry(), { web: [[MAIN, /sound\.flurry/]], engine: [['engine/combat.js', /flurry/]] }),
   // ------------------------------------------------------------------ the tool and the gadgets
   A('shoot', 'the gun\'s shot', 'the tool', 'action', (s) => s.fluidShoot('shoot'), { web: [['src/fluid-tool.js', /fluidShoot/]] }),
@@ -68,7 +68,7 @@ export const ACTIONS = [
   A('splash', 'a shot landing', 'the tool', 'impact', (s) => s.fluidSplash(true), { web: [['src/fluid-tool.js', /fluidSplash/]] }),
   A('empty', 'the tank empty', 'the tool', 'ui', (s) => s.fluidEmpty(), { web: [['src/fluid-tool.js', /fluidEmpty/]] }),
   A('scout', 'the scout drone sent', 'the tool', 'action', (s) => s.drone('go'), { web: [['src/scout.js', /drone\?*\.?\(?'go'/]], drive: 'scout', calls: ['drone'] }),
-  A('carry-throw', 'a carried thing thrown', 'the tool', 'action', (s) => s.toss?.(), { web: [['src/carry.js', /toss/]], engine: [[ENG, /carryHooks\.toss/]] }),
+  A('carry-throw', 'a carried thing thrown', 'the tool', 'action', (s) => s.toss?.(), { web: [['src/carry.js', /carryHooks\.toss/], [MAIN, /carryHooks\.toss/]], engine: [[ENG, /carryHooks\.toss/]] }),
   A('carry-put', 'a carried thing put down', 'the tool', 'foley', (s) => s.land({ speed: 2.5 }), { web: [[MAIN, /carryHooks\.sound/]], engine: [[ENG, /carryHooks\.sound/]] }),
   // ------------------------------------------------------------------ the world: pick-ups, chests, doors, quests
   A('pickup', 'picking something up (the use button)', 'the world', 'cue', (s) => s.pickup(), { key: true, web: [[MAIN, /interactHooks\.onUse/]], engine: [[ENG, /interactHooks\.onUse/]] }),
@@ -81,11 +81,11 @@ export const ACTIONS = [
   A('door', 'a temple door opening', 'the world', 'cue', (s) => (s.doorOpen ? s.doorOpen() : s.whoosh()), { web: [['src/temples/pieces.js', /doorOpen|whoosh/]] }),
   A('lever', 'a lever pulled', 'the world', 'action', (s) => s.critter('clank'), { web: [['src/temples/pieces.js', /critter\?*\.?\(?'clank'/]] }),
   A('portal', 'a doorway between worlds', 'the world', 'cue', (s) => s.page(), { web: [[MAIN, /sound\.page/]], engine: [[ENG, /sound\.page/]] }),
-  A('quest-start', 'a quest given', 'the world', 'cue', (s) => s.quest?.('start') ?? s.chime(), { key: true, repeats: false, web: [['src/story/quests.js', /quest\?\.\('start'\)|sound\?\.chime/]] }),
-  A('quest-step', 'a quest\'s step done', 'the world', 'cue', (s) => s.quest?.('step') ?? s.chime(), { key: true, repeats: false, web: [['src/story/quests.js', /quest\?\.\('step'\)|sound\?\.chime/]] }),
-  A('quest-done', 'a quest done', 'the world', 'cue', (s) => s.quest?.('done') ?? s.chime(), { key: true, repeats: false, web: [['src/story/quests.js', /quest\?\.\('done'\)|sound\?\.chime/]] }),
+  A('quest-start', 'a quest given', 'the world', 'cue', (s) => (s.quest ? s.quest('start') : s.chime()), { key: true, repeats: false, web: [['src/story/quests.js', /sound\.quest\(|sound\?\.chime/]] }),
+  A('quest-step', 'a quest\'s step done', 'the world', 'cue', (s) => (s.quest ? s.quest('step') : s.chime()), { key: true, repeats: false, web: [['src/story/quests.js', /sound\.quest\(|sound\?\.chime/]] }),
+  A('quest-done', 'a quest done', 'the world', 'cue', (s) => (s.quest ? s.quest('done') : s.chime()), { key: true, repeats: false, web: [['src/story/quests.js', /sound\.quest\(|sound\?\.chime/]] }),
   A('purchase', 'buying in a shop', 'the world', 'cue', (s) => s.purchase(10), { web: [['src/shop-panel.js', /purchase/]] }),
-  A('whistle', 'the mount\'s whistle', 'the world', 'action', (s) => s.whistle('mount'), { web: [[MAIN, /sound\.whistle/]], engine: [[ENG, /sound\?\.whistle/]] }),
+  A('whistle', 'the mount\'s whistle', 'the world', 'action', (s) => s.whistle('mount'), { repeats: false, web: [[MAIN, /sound\.whistle/]], engine: [[ENG, /sound\?\.whistle/]] }),
   // ------------------------------------------------------------------ the menus and the talk
   A('menu-open', 'a menu opening', 'the menus', 'ui', (s) => s.ui?.('open'), { key: true, web: [[MAIN, /sound\.ui\?*\.?\(?'open'|uiSound\(/]], engine: [[ENG, /sound\.ui|uiSound\(/]] }),
   A('menu-close', 'a menu closing', 'the menus', 'ui', (s) => s.ui?.('close'), { key: true, web: [[MAIN, /sound\.ui|uiSound\(/]], engine: [[ENG, /sound\.ui|uiSound\(/]] }),

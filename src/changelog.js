@@ -21,6 +21,25 @@ export const CHANGELOG = [
     // D12: scripts/unity-linux-smoke.sh, scripts/wait-tests.sh in unity-android.yml
     { text: 'A new Unity version for the Steam Deck reaches it only once the game\'s checks have passed and the new version has started, loaded the desert and drawn it on a test machine.',
       see: 'Nothing to see on the Deck: a version that fails those checks simply never arrives.' },
+    // issue #379, the sound QC (.claude/skills/sound-qc): src/audio.js fluidWindup, swish, effort / grunt, fluidSlash,
+    // fluidSlashHit; src/fluid-blade.js start; tests/action-sounds.test.js
+    { text: 'Your sword answers the moment you press: the grip tightens and the blade’s fluid draws back with a soft wet rush, then the cut whooshes through the air, never twice quite the same, the heavy third deeper with a grunt of effort behind it. A cut that lands cracks bright and short before the splat, so a hit never sounds like a block.',
+      see: 'Hear it: swing the sword (RB / R1) three times in a row at the air, then at a foe.' },
+    // engine/game.js (BodyFoley, interactHooks, carryHooks, waters, onDrink, footing), src/audio.js hurt / knockdown /
+    // getUp / pickup stand-ins, engine/webaudio.js (an event inside a block sampled exactly); tests/engine-sound.test.js
+    { text: 'The Unity preview hears your body as the web version does: jumps, landings soft and hard, the roll, climbing, the wings and jets, swimming, getting knocked down and up again, picking things up and the potion’s healing chord, and footsteps change between the ground and stone. A blow you take is no longer nearly silent there, and the shop’s chime no longer cracks.',
+      see: 'Hear it in the Unity preview on the Steam Deck or the Xbox: jump off a dune, roll (B / ○), and drink a potion after a fight.' },
+    // src/ui-sound.js, src/audio.js ui / toolClick, src/main.js (the panels, the pad, the keys, clicks), engine/game.js wrapMenus
+    { text: 'Every menu now makes soft, short sounds: opening and closing, the cursor moving, a choice confirmed, going back and changing tabs, and choosing an answer in a conversation. They play through the menu’s hush and follow the Effects volume.',
+      see: 'Hear it: open the game menu (View / Select), move along the tabs (LB / RB) and through a list, then press A / × and B / ○.' },
+    // src/audio.js quest, lockOn, shutter, toss, doorOpen, critter('clank'); src/story/quests.js, src/foes.js, src/carry.js,
+    // src/temples/pieces.js
+    { text: 'A quest given now rings an open, waiting call, a step done the familiar chime, and a quest finished a run of bells up to a held note. Locking on to a foe ticks softly and letting go ticks back; a photo clicks its shutter; throwing what you carry swishes; a temple door thunks its bolt before it rushes open; and a lever’s clank is heard at last.',
+      see: 'Hear it: accept a quest from someone and finish one; lock on with R3 / Tab near a foe and press it again to let go; take a photo in photo mode.' },
+    // src/audio.js TALK_DUCK, heartbeat, the swing/step/stroke levels (src/sfx.js), fluidShoot / fluidBoost / fluidEmpty /
+    // fluidMode; docs/systems/audio.md "Sound QC"
+    { text: 'The music steps back a little while someone speaks to you and comes back after. Footsteps, landings, the swimming stroke and the climb’s grab sit softer under the world, the low-health heartbeat is felt more than heard, and the gun’s shot, its empty click and the double jump’s lift no longer stand out over the music. Many small sounds (the shield, the potion, the charge, the scout) now vary a little each time.',
+      see: 'Hear it: talk to anyone while the music plays, then walk and sprint on sand and stone.' },
   ] },
   { v: '1.80', date: '2026-10-15', items: [
     // issues #375 and #377 (docs/design/gadget-temples.md): the Founders' Belfry's chest holds the hook, src/temples/arzach2.js

@@ -50,8 +50,10 @@ export function decodedTakes(cache) {
 /** Math.random seeded while `fn` runs (the noise and the takes' variation the same every run). */
 export function seeded(fn, seed = 12345) {
   const real = Math.random;
-  let x = seed >>> 0;
-  Math.random = () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 2 ** 32; };
+  // (mulberry32: neighbouring seeds give unrelated draws; a bare LCG's first draws for seeds 37 apart were 1 % apart,
+  // and every take's variation came out the same)
+  let x = (seed >>> 0) ^ 0x9e3779b9;
+  Math.random = () => { x = (x + 0x6d2b79f5) >>> 0; let z = x; z = Math.imul(z ^ (z >>> 15), z | 1); z ^= z + Math.imul(z ^ (z >>> 7), z | 61); return ((z ^ (z >>> 14)) >>> 0) / 2 ** 32; };
   try { return fn(); } finally { Math.random = real; }
 }
 

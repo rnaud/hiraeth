@@ -49,7 +49,7 @@ export const carrySnaps = () => [...snaps];
 export const IN_HANDS = Object.freeze({ carry: true, name: 'hands' });
 
 /** Hooks: a first-time line (main.js: the toast), a sound as it is set down. */
-export const carryHooks = { notice: null, sound: null };
+export const carryHooks = { notice: null, sound: null, toss: null };   // (toss: a thing thrown, heard: issue #379)
 const TAUGHT = 'carry.taught';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _f = new THREE.Vector3(), _q = new THREE.Quaternion();
@@ -208,6 +208,7 @@ export function throwCarried(p) {
   if (t.vel) { t.vel.copy(F).multiplyScalar(CARRY.throw.speed).addScaledVector(U, CARRY.throw.up); if (p.vel) t.vel.addScaledVector(p.vel, 0.5); }
   t.resting = false;
   t.onPut?.(t.pos.clone(), null, 'throw');
+  carryHooks.toss?.(t);
   return true;
 }
 

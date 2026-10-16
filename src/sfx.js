@@ -14,18 +14,19 @@
 
 /**
  * The groups: n takes (`<group>-<i>.mp3`), the level (on the effects bus, × the Effects volume),
- * the pitch spread (± playback rate) and the level spread (down to 1 - gain).
+ * the pitch spread (± playback rate) and the level spread (down to 1 - gain). The footsteps, the grab and the
+ * stroke 2.5-4.5 dB down since the sound QC (issue #379): they sat 3-7 dB under the music, foley sits 8 or more under.
  */
 export const SFX = {
-  'step-stone': { n: 5, vol: 0.2, rate: 0.07, gain: 0.25 },
-  'step-grass': { n: 5, vol: 0.16, rate: 0.08, gain: 0.25 },
-  'step-sand': { n: 5, vol: 0.2, rate: 0.08, gain: 0.25 },
+  'step-stone': { n: 5, vol: 0.15, rate: 0.07, gain: 0.25 },
+  'step-grass': { n: 5, vol: 0.12, rate: 0.08, gain: 0.25 },
+  'step-sand': { n: 5, vol: 0.15, rate: 0.08, gain: 0.25 },
   land: { n: 3, vol: 0.34, rate: 0.06, gain: 0.15 },
   'land-heavy': { n: 3, vol: 0.42, rate: 0.06, gain: 0.1 },
   fall: { n: 2, vol: 0.36, rate: 0.05, gain: 0.1 },
   cloth: { n: 4, vol: 0.14, rate: 0.1, gain: 0.3 },
   belt: { n: 2, vol: 0.1, rate: 0.1, gain: 0.3 },
-  grab: { n: 2, vol: 0.16, rate: 0.08, gain: 0.2 },
+  grab: { n: 2, vol: 0.12, rate: 0.08, gain: 0.2 },
   drop: { n: 1, vol: 0.14, rate: 0.08, gain: 0.2 },
   creak: { n: 3, vol: 0.14, rate: 0.06, gain: 0.2 },
   knock: { n: 3, vol: 0.16, rate: 0.08, gain: 0.2 },
@@ -37,7 +38,7 @@ export const SFX = {
   swing: { n: 4, vol: 0.15, rate: 0.08, gain: 0.2 },
   'swing-heavy': { n: 2, vol: 0.17, rate: 0.06, gain: 0.15 },
   splat: { n: 4, vol: 0.2, rate: 0.1, gain: 0.2 },
-  stroke: { n: 5, vol: 0.12, rate: 0.08, gain: 0.3 },
+  stroke: { n: 5, vol: 0.07, rate: 0.08, gain: 0.3 },
   splash: { n: 3, vol: 0.13, rate: 0.08, gain: 0.25 },
 };
 

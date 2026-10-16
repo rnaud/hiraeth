@@ -724,3 +724,71 @@ Sources: [Juice it or lose it](https://www.gdcvault.com/play/1016487/juice-it-or
 - **Repetitive**: the potion's cork, the shield opening, the charge, the scout's blip, the potion picked up, the
   mount's whistle. **Alike**: a quest given, a step done and a quest done were the same chime. **Too quiet**: a lever.
 - **The mix**: the music did not step back at all under a conversation (0 dB).
+
+(Measured again with the QC's seeding fixed, 16 October: its takes had drawn their variation from a bare LCG whose
+first draws for neighbouring seeds were 1 % apart, so every synth's takes came out alike. Before: the browser 43 of
+71 OK, the engines 30.)
+
+### The fixes (round 1, issue #379)
+
+- **The blade** (`Sound.fluidWindup`, called by `FluidBlade.start` on the swing's first frame, not for the dash cut
+  and the riposte, which have their own): the press answered at once, the grip's cloth and the fluid drawn back up the
+  blade (`swish`: noise through a band that rises and falls, swelling in), deeper for the heavy third; the cut
+  (`fluidSlash`) keeps its moment at the end of the wind-up, now a rising-and-falling swish with its pitch, band and
+  length varied (`Sound.vary`, ±7 %), the heavy third with a low weight under it and his effort three times in four
+  (`effort`: a recorded take in the browser; `grunt('effort')`, a buzz through two vowel formants and breath, where
+  there are no recordings). A hit landed has a bright 30 ms crack before the splat (the hit-confirm), so it never
+  sounds like a block.
+- **The engines** (engine/game.js): `BodyFoley` and its update, `interactHooks.onUse` (a pick-up), `carryHooks` (set
+  down, thrown), `waters.sound` and `player.onSwim`, the steps in water, `onDrink`'s healing chord, `footing` in
+  `sound.update`, and the menus (`wrapMenus`). The synth stand-ins for the recordings the engines never play now have
+  a body: the hurt (a knock, a low drop and `grunt('hurt')`), the knock-down, getting up, a pick-up.
+- **engine/webaudio.js**: an AudioParam with an event inside a 128-sample block is computed sample by sample there;
+  interpolating the block from its ends had let a gain's default 1 leak into the samples before a scheduled note's
+  first event (the purchase's +10 dBFS, a click on every delayed note of a chime run).
+- **The menus** (`Sound.ui(kind)`, src/ui-sound.js `uiKind`): move, confirm, back, tab, open, close, no; on a bus of
+  their own to the master (`uiOut`, `UI_LEVEL` × the effects volume: the world's bus is hushed under a menu); a held
+  stick ticks at most every 40 ms, the same kind twice within 60 ms once (a click and the pad's press). main.js plays
+  them from the panels' toggles, the pad's menu actions and directions, the keys and clicks in a menu; engine/game.js
+  wraps EngineMenus' key, action and navigate and hears it open and close. A conversation's answer calls
+  `toolClick` (it did not exist).
+- **New**: `lockOn(on)` (a tick and two glassy notes rising, falling as it lets go: was the gun's stun chirp),
+  `quest(kind)` (start: an open fifth left hanging; step: the chime; done: bells up to a held top over a low one),
+  `shutter()` (photo mode), `toss()` (a thrown carried thing), `doorOpen()` (a temple door's bolt, then the whoosh at
+  0.8), a louder lever (`critter('clank')`).
+- **Levels**: the recorded steps 2.5 dB down (sprinting a further 1 dB), the grab 2.5, the stroke 4.6; the heartbeat
+  a third of its level (-6 against the music); the gun's shot, its mode and its empty click, the double jump's lift
+  1.5-5 dB down; the heavy third's take 1 dB down. **Variation** added to the cork, the charge, the shield, the scout,
+  the potion picked up, the riposte.
+- **Ducking**: the music bus × `TALK_DUCK` (0.6, -4.4 dB) while a conversation's or a call's voice plays (`speak`
+  sets `_duckUntil` to its end; `hush('talk')` lets it go), in over 0.3 s, back over 0.8 s.
+
+Tests: `tests/action-sounds.test.js` (heard, bounded, varied; the menus under the hush; the lock and the quests told
+apart; the duck; the shim's click), `tests/engine-sound.test.js` (the engines' game driven by keys: the press in its
+frame, the body, the healing chord; the menus' kinds), `tests/sound-qc.test.js` (the QC itself).
+
+After: 71 of 71 OK in the browser and in the engines; the press to the first sound 133 → 0 ms; the music -4.3 dB
+under a conversation; the fight's loudest moment -20.0 dBFS, peak -6.3 (+4.7 against the music). The key actions:
+
+| action | browser before → after | engines before → after (press) |
+|---|---|---|
+| the blade pressed | missing → OK -11.7 | missing (133 ms) → OK -11.8 (0 ms) |
+| the combo's cuts | OK -2.6 / -0.9 / +0.4 → OK -1.3 / -1.2 / +2.0 | OK -2.3 / -1.6 / -1.9 → OK -3.1 / -2.0 / -4.5 |
+| a cut landing | OK +2.6 → OK +2.7 | OK -2.0 → OK -0.9 |
+| a footstep, sprinting | too loud -6.0 → OK -9.2 | OK -12.3 → OK -12.3 |
+| a jump, landings, the roll | OK | missing → OK (-14.4, -12.9 / -5.2, -10.6) |
+| taking a blow | OK +1.0 → OK -0.2 | too quiet -18.1 → OK 0 |
+| knocked down | OK +1.9 → OK +2.0 | missing → OK -0.6 |
+| the heartbeat | too loud +0.6 → OK -6.2 | too loud +0.6 → OK -6.2 |
+| the hearts coming back | OK +2.2 | missing → OK +2.2 |
+| locking on | too loud -2.6 → OK -10.8 | too loud -2.6 → OK -10.8 |
+| picking something up | OK -6.5 → OK -1.0 | missing → OK -1.2 |
+| a quest given / a step / done | alike +3.3 → OK -1.0 / +3.3 / +2.5 | the same |
+| the menus (open, close, move, confirm, back) | missing → OK -9.4, -10.7, -15.2, -8.3, -10.6 | the same |
+| an answer chosen | missing → OK -8.3 | the same |
+| buying in a shop | too loud +10.2 (peak +10 dBFS) → OK -0.3 | the same |
+
+What is left: the engines still play no recorded effect (engine/unity/music.js decodes the music only), so in Unity
+the body is its synth stand-ins; the QC drives the engines' build, not the browser (main.js's wiring is checked in
+the code, not pressed); no voice limits or priorities beyond `vocal`'s gap and the balloons' count; the loudness is a
+50 ms window per sound against the score, not integrated LUFS over play.

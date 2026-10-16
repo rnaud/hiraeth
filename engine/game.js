@@ -126,6 +126,9 @@ import { createFragments } from '../src/fragments.js';
 import { updateHazards } from '../src/hazards.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
+import { BodyFoley } from '../src/foley.js';
+import { interactHooks } from '../src/interact.js';
+import { wrapMenus, menusHeard } from '../src/ui-sound.js';
 import { InputMode } from '../src/input-mode.js';
 import { Passage, carryAcross, PASSAGE } from '../src/passage.js';
 import { Thresholds, THRESHOLD } from '../src/thresholds.js';
@@ -342,7 +345,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     // (the pad shakes as on the web, main.js's: a hit by the hearts it cost, the potion, a hard landing or a knockdown;
     // src/rumble.js, nothing without a pad that can, issue #346)
     onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); sound?.hurt?.(h, why); hpHurt = 3; if (why === 'foe') kick(0.45 + Math.min(1, h / 1.5) * 0.5); },
-    onDrink: () => rumblePlay('potion'),
+    onDrink: () => { sound?.potion?.('heal'); rumblePlay('potion'); },   // (the hearts coming back heard, as main.js: issue #379)
     onKnockdown: (dead, why) => { hpHurt = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
     onKnockout: (why) => combat?.knockout(why),
   });
@@ -415,6 +418,18 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
   const sound = audio ? makeSound(levelId, audio) : SILENT;
+  // the body heard, as main.js (src/foley.js: jumps, landings, the climb, the wings, the roll, falling and getting up),
+  // a pick-up, a thing carried set down or thrown, the water's splashes and strokes, the menus (src/ui-sound.js): the
+  // engines played none of them before issue #379 (the sound QC, .claude/skills/sound-qc)
+  const foley = sound !== SILENT ? new BodyFoley(sound) : null;
+  if (sound !== SILENT) {
+    interactHooks.onUse = () => sound.pickup?.({ pos: player.pos });
+    carryHooks.sound = (t) => sound.land?.({ speed: 2.5, pos: t?.pos ?? player.pos });
+    carryHooks.toss = () => sound.toss?.();
+    waters.sound = sound;
+    player.onSwim = (kind, info) => waters.event?.(kind, info);
+    wrapMenus(menus, (k) => sound.ui?.(k));
+  }
   // the journal's record (src/quest.js Journal: the worlds seen, the stories told, the relics, the errands), read from
   // the save as the page keeps it, without its page (the game menu draws from it: engine/menus.js)
   const journal = engineJournal({ write: !flags });
@@ -495,7 +510,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const houseAir = level.temples?.length ? quiet(() => new HouseAir(level, { lowDetail: !!Q?.lowDetail, host: scene, worldMotes: { scene: { children: motePoints } } })) : null;
   const footprints = quiet(() => new Footprints(scene));
   const onStep = player.onStep;
-  player.onStep = (p, heading, up, i) => { onStep?.(p, heading, up, i); footprints.add?.(p, heading, up, i); sound.step(Math.hypot(player.vel.x, player.vel.z)); };
+  player.onStep = (p, heading, up, i) => {
+    if (sound !== SILENT && waters.step?.(p)) return;   // (in the water: a splash, no print, as main.js)
+    onStep?.(p, heading, up, i); footprints.add?.(p, heading, up, i); sound.step(Math.hypot(player.vel.x, player.vel.z));
+  };
   const wildlife = optional('wildlife', () => new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife }));
   // (its pace, and the desert's first arrival clear until its flag, issue #139, as main.js's)
   const weather = optional('weather', () => new Weather(content.weather, { ...content.weatherPace, calm: content.calmUntil ? () => !gameState.flag(content.calmUntil) : null }));
@@ -1189,6 +1207,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
           photo.capture = 0;
           const name = `hiraeth-${levelId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
           backend.photo(name);
+          sound.shutter?.();
           photo.saved = 2.5;
           screen.set('photo', { hint: `Photo saved · ${photoHint()}` });
         }
@@ -1344,11 +1363,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         try {
           const gust = wind ? wind.gust() : Math.max(Math.min(Math.max(0.35 + 0.45 * Math.sin(simT * 0.21) + 0.3 * Math.sin(simT * 0.53 + 1.7), 0), 1), Wx?.storm ?? 0);
           const ground = level.ground?.heightAt ? level.ground.heightAt(player.pos.x, player.pos.z) : player.pos.y;
+          foley?.update(player, dt);
+          menusHeard(menus);
           sound.update(pinned || busy ? CALM : {
             speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust, storm: Wx?.storm ?? 0, rain: Wx?.rainOut ?? 0, rainRoof: Wx?.rainRoof ?? 0,
             thrusting: !!player.thrusting, riding: !!player.riding, rideKind: player.ride?.kind ?? null, rideSpeed: player.ride?.speed ?? 0,
             altitude: Number.isFinite(ground) ? player.pos.y - ground : 0, flying: !!(player.gliding || player.thrusting), indoor: shelter?.indoor ?? 0, night: sky.hour < 6.4 || sky.hour > 19.3,
             house: houseAir?.sound ?? null,   // (inside a makers' house: its bed, src/temples/air.js)
+            footing: player.footing,   // (the world's ground or something built on it: the footsteps' surface, as main.js)
           });
         } catch (e) { if (!game._soundFailed) { game._soundFailed = true; console.warn('[game] the sound failed in its update', e?.stack ?? e); } }
       }

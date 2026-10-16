@@ -36,6 +36,7 @@ export const PLUMBING = {
   setBands: 'the musicians (Songs)', makeBands: 'the musicians', band: 'the musicians', setBandMode: 'the musicians', bandBeat: 'the musicians',
   soloPhrase: 'the ney solo (Songs)', soloDrone: 'the ney solo', rand: 'a random number', vocal: 'the traveller\'s voice takes (Recorded takes)',
   canSpeak: 'the voices', holdFloor: 'the voices', hush: 'the voices', utterance: 'the voices', trace: 'the voices',
+  vary: 'a random factor (the synth\'s variation)', swish: 'a building block of the swings (fluidSlash, toss)', uiOut: 'the menus\' bus (ui)',
 };
 
 // ------------------------------------------------------------------ songs
@@ -128,6 +129,9 @@ add('The traveller', 'evade', 'The roll out of a blow', one((s) => s.evade()));
 add('The traveller', 'knockdown', 'Knocked down', one((s) => s.knockdown()));
 add('The traveller', 'getUp', 'Getting up', [pick('get up', (s) => s.getUp()), pick('with a sigh', (s) => s.getUp({ sigh: true }))]);
 add('The traveller', 'hurt', 'Hurt', [pick('a small hit', (s) => s.hurt(0.25)), pick('a big hit', (s) => s.hurt(1.5)), pick('a fall', (s) => s.hurt(1, 'fall'))]);
+add('The traveller', 'effort', 'His effort (a cut, a throw)', [pick('a heavy cut', (s) => s.effort(1, 0)), pick('his own, no recording (the engines)', (s) => s.grunt('effort', 1, 0))]);
+add('The traveller', 'grunt', 'Hurt, his own voice (the engines)', one((s) => s.grunt('hurt', 1, 0)), 'where the recorded takes are not played (issue #379)');
+add('The traveller', 'toss', 'Throwing what he carries', one((s) => s.toss()));
 add('The traveller', 'wings', 'The fluid wings', [pick('open', (s) => s.wings({ open: true })), pick('fold', (s) => s.wings({ open: false }))]);
 add('The traveller', 'flap', 'A wing beat', one((s) => s.flap()));
 add('The traveller', 'jets', 'The jets light', one((s) => s.jets()));
@@ -153,6 +157,8 @@ add('The fluid gun', 'fluidEmpty', 'The tank is empty', one((s) => s.fluidEmpty(
 add('The fluid gun', 'fluidDock', 'The pack in a socket', [pick('in', (s) => s.fluidDock(true)), pick('out', (s) => s.fluidDock(false))]);
 // the blade and the shield
 add('The blade and the shield', 'fluidSlash', 'A swing of the blade', [0, 1, 2].map((n) => pick(`combo ${n + 1}`, (s) => s.fluidSlash(n))));
+add('The blade and the shield', 'fluidWindup', 'The blade pressed: the swing begins', [pick('a light swing', (s) => s.fluidWindup(0)), pick('the heavy third', (s) => s.fluidWindup(2))], 'at the press, before the cut (issue #379)');
+add('The blade and the shield', 'lockOn', 'Locking on', [pick('on', (s) => s.lockOn(true)), pick('let go', (s) => s.lockOn(false))], 'Tab / R3 (issue #379)');
 add('The blade and the shield', 'fluidSlashHit', 'The blade lands', [pick('the air', (s) => s.fluidSlashHit(false)), pick('a foe', (s) => s.fluidSlashHit(true)), pick('heavy', (s) => s.fluidSlashHit(true, true))]);
 add('The blade and the shield', 'fluidCharge', 'The charged cut', [pick('gathering', (s) => s.fluidCharge(false)), pick('full', (s) => s.fluidCharge(true))]);
 add('The blade and the shield', 'fluidRiposte', 'The riposte', [pick('starts', (s) => s.fluidRiposte(false)), pick('lands', (s) => s.fluidRiposte(true))]);
@@ -187,6 +193,11 @@ add('Chimes and the shop', 'shopBell', 'The shop\'s bell', one((s) => s.shopBell
 add('Chimes and the shop', 'purchase', 'A sale', [pick('cheap', (s) => s.purchase(5)), pick('dear', (s) => s.purchase(80))]);
 // quests, fragments, the world's moments
 add('Quests and moments', 'chime', 'A quest step done', one((s) => s.chime()));
+add('Quests and moments', 'quest', 'A quest\'s moments', ['start', 'step', 'done'].map((k) => pick(k, (s) => s.quest(k))), 'given, a step done, done (issue #379)');
+add('Quests and moments', 'doorOpen', 'A temple door opening', one((s) => s.doorOpen()));
+add('Quests and moments', 'ui', 'The menus', ['move', 'confirm', 'back', 'tab', 'open', 'close', 'no'].map((k) => pick(k, (s) => s.ui(k))), 'every menu (src/ui-sound.js, issue #379)');
+add('Quests and moments', 'toolClick', 'An answer chosen', [pick('chosen', (s) => s.toolClick(true)), pick('back', (s) => s.toolClick(false))], 'a conversation\'s answers');
+add('Quests and moments', 'shutter', 'A photo taken', one((s) => s.shutter()), 'photo mode');
 add('Quests and moments', 'fail', 'A quest gone wrong', one((s) => s.fail()));
 add('Quests and moments', 'whoosh', 'Something giving way', one((s) => s.whoosh()));
 add('Quests and moments', 'rumble', 'Water and earth letting go', [pick('short', (s) => s.rumble(2.5)), pick('long', (s) => s.rumble(5))], 'Viridel\'s terraces');

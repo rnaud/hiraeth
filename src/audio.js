@@ -147,6 +147,15 @@ export function renderSyllable(ctx, dest, s, t, noise) {
 export const FOE_EAR = { near: 6, far: 40, floor: 0.4, hurtFloor: 0.2, view: 0.55, unseen: 1.25, open: 16000, behind: 5000 };
 
 /** A temple key's chime (Sound.keyGet, issue #274): scale degrees up the world's scale, one every `step` s; `great` the great key's run. */
+/** His voice where there is no recording (Sound.grunt): its level, length, buzz (Hz, falling), vowel formants [Hz, Q, gain] and breath band. */
+export const GRUNTS = {
+  effort: { vol: 0.11, dur: 0.17, f0: 150, f1: 108, formants: [[720, 5, 1], [1180, 6, 0.6]], breath: 1300 },
+  hurt: { vol: 0.13, dur: 0.26, f0: 175, f1: 118, formants: [[540, 5, 1], [960, 6, 0.55]], breath: 1000 },
+};
+/** The music under a conversation's or a call's voice (x its level: -4.4 dB, issue #379; eased in 0.3 s, out over 0.8 s). */
+export const TALK_DUCK = 0.6;
+/** The menus' sounds (Sound.ui): their bus straight to the master (the world is hushed under a menu), x the effects volume. */
+export const UI_LEVEL = 1.6;
 export const KEY_GET = { notes: [0, 2, 4, 7], great: [0, 4, 7, 9, 11], step: 0.075, vol: 0.06 };
 export const CRYSTAL_PARTIALS = [[1, 1, 1], [1.006, 0.55, 0.9], [2.32, 0.42, 0.62], [4.25, 0.2, 0.4], [6.63, 0.1, 0.25]];
 
@@ -631,7 +640,7 @@ export class Sound {
 
   /** The music bus's level as listen() sets it: the player's music volume, the musicians near, a moment's swell, a bench's. */
   musicLevel(near = 0, t = this.ctx?.currentTime ?? 0) {
-    const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
+    const swell = ((this._swellUntil ?? 0) > t ? 0.3 : 1) * ((this._duckUntil ?? 0) > t ? TALK_DUCK : 1);   // (and under a conversation's or a call's voice: TALK_DUCK)
     const seat = 1 + (SEATED_SWELL.lift - 1) * (this._sitK ?? 0);
     return this.menuOn ? 0 : 0.62 * this.musicVol * (1 - 0.7 * Math.min(near, 1)) * swell * seat;
   }
@@ -642,6 +651,7 @@ export class Sound {
     this.music.gain.setTargetAtTime(this.menuOn ? 0 : 0.62 * music, this.ctx.currentTime, 0.2);   // (under a menu: still out)
     this.fx.gain.setTargetAtTime(1.6 * fx, this.ctx.currentTime, 0.2);
     this.fxRoom?.gain.setTargetAtTime(fx, this.ctx.currentTime, 0.2);
+    this._ui?.gain.setTargetAtTime(UI_LEVEL * fx, this.ctx.currentTime, 0.2);
     if (this.menuBus && this.menuOn) this.menuBus.gain.setTargetAtTime(0.62 * music * MENU_LEVEL, this.ctx.currentTime, 0.2);
   }
 
@@ -1022,7 +1032,7 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     const k = Math.min(speed / 11, 1);
     const g = surface;
-    if (this.sample(`step-${g}`, { vol: (0.55 + 0.45 * k) * vol, at })) return;
+    if (this.sample(`step-${g}`, { vol: (0.55 + 0.35 * k) * vol, at })) return;
     const t = this.ctx.currentTime + at;
     if (g === 'stone') this.burst(t, { dur: 0.05, type: 'bandpass', freq: 1700 + Math.random() * 600, q: 2, vol: 0.12 + 0.12 * k });
     else if (g === 'grass') this.burst(t, { dur: 0.09, type: 'bandpass', freq: 2600 + Math.random() * 800, q: 0.8, vol: 0.05 + 0.06 * k });
@@ -1715,16 +1725,16 @@ export class Sound {
   }
 
   /** Something giving way, waking or moving (a quest's step): an airy sweep up, and four notes over it. */
-  whoosh() {
+  whoosh(vol = 1) {
     if (!this.ctx) return;
     const ctx = this.ctx, t = ctx.currentTime;
     const src = ctx.createBufferSource(); src.buffer = this.noiseBuf;
     const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
     f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(2200, t + 1.2);
-    const g = ctx.createGain(); g.gain.value = 0; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2, t + 0.6); g.gain.linearRampToValueAtTime(0, t + 1.4);
+    const g = ctx.createGain(); g.gain.value = 0; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.2 * vol, t + 0.6); g.gain.linearRampToValueAtTime(0, t + 1.4);
     src.connect(f).connect(g).connect(this.fx);
     src.start(t); src.stop(t + 1.5);
-    [0, 4, 7, 11].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.2 + i * 0.15, 0.08, 'triangle', this.fx));
+    [0, 4, 7, 11].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.2 + i * 0.15, 0.08 * vol, 'triangle', this.fx));
   }
 
   /**
@@ -1780,7 +1790,14 @@ export class Sound {
       case 'portal': sweep(900, 220, 0.5, 'sine', 0.05, 30); sweep(450, 1800, 0.4, 'sine', 0.025); break;
       case 'chime': case 'bloom': [0, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.09, 0.05 * v, 'sine', this.fx)); break;
       case 'jet': case 'whirr': noise({ dur: 1.1, type: 'bandpass', freq: kind === 'jet' ? 900 : 2400, q: 2, vol: 0.12, rate: 1.4 }); sweep(220, 900, 1, 'sawtooth', 0.012); break;
-      case 'clank': case 'clack': case 'blip': noise({ dur: 0.07, type: 'bandpass', freq: kind === 'clank' ? 1300 : kind === 'clack' ? 2200 : 3400, q: 6, vol: 0.18 }); if (kind === 'blip') sweep(1200, 1600, 0.12, 'square', 0.015); break;
+      case 'clank': case 'clack': case 'blip': {
+        // (a lever's clank was 20 dB under the music, too quiet for a thing pulled: a knock of the handle and a low thunk under it, issue #379)
+        const vr = this.vary(0.07);
+        noise({ dur: 0.07, type: 'bandpass', freq: (kind === 'clank' ? 1300 : kind === 'clack' ? 2200 : 3400) * vr, q: 6, vol: kind === 'clank' ? 0.4 : 0.18 });
+        if (kind === 'clank') { noise({ at: 0.01, dur: 0.12, type: 'lowpass', freq: 420 * vr, q: 0.8, vol: 0.2, rate: 0.7 }); sweep(240 * vr, 120 * vr, 0.14, 'triangle', 0.05); }
+        if (kind === 'blip') sweep(1200, 1600, 0.12, 'square', 0.015);
+        break;
+      }
       case 'splash': case 'skip': case 'plop': noise({ dur: 0.25, type: 'lowpass', freq: 1800, q: 0.6, vol: 0.12 }); sweep(kind === 'plop' ? 500 : 700, 160, 0.15, 'sine', 0.05); break;
       case 'poof': case 'puff': case 'spores': noise({ dur: kind === 'spores' ? 0.8 : 0.45, type: 'lowpass', freq: kind === 'spores' ? 2600 : 700, q: 0.5, vol: 0.16, rate: 0.7 }); break;
       case 'flutter': case 'scribble': for (let i = 0; i < 6; i++) noise({ at: i * 0.05, dur: 0.04, type: 'highpass', freq: kind === 'flutter' ? 3000 : 5000, q: 1, vol: 0.05 }); break;
@@ -1881,14 +1898,25 @@ export class Sound {
   /** Knocked down: the body meets the ground; a grunt (unless a hurt was just heard). */
   knockdown({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    if (!this.sample('fall', { vol: 1, pos })) this.burst(this.ctx.currentTime, { dur: 0.45, type: 'lowpass', freq: 200, q: 0.7, vol: 0.22, rate: 0.5 });
-    this.vocal('hurt', { vol: 0.85, at: 0.05, pos });
+    const t = this.ctx.currentTime, v = this.vary(0.08);
+    if (!this.sample('fall', { vol: 1, rate: v, pos })) {
+      // (the engines' stand-in: the body meeting the ground, a dull thud and the scrape of it, 12 dB under the music before)
+      this.burst(t, { dur: 0.45, type: 'lowpass', freq: 220 * v, q: 0.7, vol: 0.34, rate: 0.5 * v });
+      this.burst(t + 0.02, { dur: 0.3, type: 'bandpass', freq: 900 * v, q: 0.8, vol: 0.08, rate: 0.7 });
+      this.sweep(t, 150 * v, 55 * v, 0.25, 0.1, 'triangle');
+    }
+    if (!this.vocal('hurt', { vol: 0.85, at: 0.05, pos }) && this.bank?.state('hurt') !== 'ready') this.grunt('hurt', 1, 0.8);
   }
 
   /** Getting up again: cloth, the pack settling, often a sigh. */
   getUp({ sigh = false, pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    this.sample('cloth', { vol: 0.8, pos });
+    if (!this.sample('cloth', { vol: 0.8, pos })) {
+      // (the engines' stand-in: cloth and the pack settling, nothing before)
+      const t = this.ctx.currentTime, v = this.vary(0.08);
+      this.burst(t, { dur: 0.25, type: 'bandpass', freq: 1100 * v, q: 0.8, vol: 0.06, rate: 0.7 * v });
+      this.burst(t + 0.45, { dur: 0.08, type: 'bandpass', freq: 1800 * v, q: 2, vol: 0.05 });
+    }
     this.sample('belt', { vol: 0.6, at: 0.45, pos });
     if (sigh) this.vocal('sigh', { vol: 1, at: 0.3, gap: 2, pos });
   }
@@ -1896,11 +1924,14 @@ export class Sound {
   /** Hurt (Player onHurt: `amount` in hearts, why: 'foe', 'fall'…): a grunt or a sharp breath, and the blow on the body. */
   hurt(amount = 0.25, why = 'hit') {
     if (!this.ctx || this.muted) return;
-    const k = Math.min(1, Math.max(0, amount) / 1.5);
-    if (why !== 'fall') this.sample('land', { vol: 0.35 + 0.5 * k, rate: 1.2 });
-    if (!this.vocal('hurt', { vol: 0.7 + 0.4 * k })) {
-      if (this.bank?.state('hurt') !== 'ready') this.burst(this.ctx.currentTime, { dur: 0.18, type: 'bandpass', freq: 850, q: 1.6, vol: 0.04 + 0.04 * k, rate: 0.9 });
+    const k = Math.min(1, Math.max(0, amount) / 1.5), t = this.ctx.currentTime, v = this.vary(0.08);
+    // the blow on the body (the recorded thump, else its synth: a dull knock and a low drop, issue #379: in the
+    // engines a blow landed on him was a 40 ms burst, 19 dB under the music)
+    if (why !== 'fall' && !this.sample('land', { vol: 0.35 + 0.5 * k, rate: 1.2 * v })) {
+      this.burst(t, { dur: 0.14, type: 'lowpass', freq: 520 * v, q: 0.8, vol: 0.16 + 0.12 * k, rate: 0.7 * v });
+      this.sweep(t, 210 * v, 70 * v, 0.16, 0.08 + 0.06 * k, 'triangle');
     }
+    if (!this.vocal('hurt', { vol: 0.7 + 0.4 * k }) && this.bank?.state('hurt') !== 'ready') this.grunt('hurt', 0.8 + 0.4 * k, 0.8);
   }
 
   /**
@@ -1912,8 +1943,9 @@ export class Sound {
     const t = this.ctx.currentTime;
     if (phase === 'no') { this.burst(t, { dur: 0.05, type: 'bandpass', freq: 2400, q: 3, vol: 0.03 }); return; }
     if (phase === 'open') {
-      this.sweep(t, 900, 260, 0.06, 0.05, 'triangle');   // the cork
-      this.burst(t, { dur: 0.05, type: 'bandpass', freq: 3200, q: 2.5, vol: 0.05, rate: 1.4 });
+      const v = this.vary(0.08);
+      this.sweep(t, 900 * v, 260 * v, 0.06, 0.05, 'triangle');   // the cork
+      this.burst(t, { dur: 0.05, type: 'bandpass', freq: 3200 * v, q: 2.5, vol: 0.05, rate: 1.4 * v });
       this.sample('cloth', { vol: 0.35, at: 0.05 });
       return;
     }
@@ -1928,17 +1960,20 @@ export class Sound {
   heartbeat() {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
-    this.sweep(t, 78, 44, 0.16, 0.16);
-    this.sweep(t + 0.2, 70, 40, 0.14, 0.1);
-    this.burst(t, { dur: 0.06, type: 'lowpass', freq: 160, q: 0.7, vol: 0.05, rate: 0.6 });
+    // (a third of its old level: it measured over the music, and a warning that repeats sits well under it, issue #379)
+    const v = this.vary(0.03);
+    this.sweep(t, 78 * v, 44 * v, 0.16, 0.06);
+    this.sweep(t + 0.2, 70 * v, 40 * v, 0.14, 0.038);
+    this.burst(t, { dur: 0.06, type: 'lowpass', freq: 160, q: 0.7, vol: 0.022, rate: 0.6 });
   }
 
   /** A potion picked up from where a foe fell (src/potion-drops.js): the glass's clink and a small rising pair. */
   potionPickup() {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
-    this.burst(t, { dur: 0.04, type: 'bandpass', freq: 3400, q: 3, vol: 0.05, rate: 1.4 });
-    [0, 7].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.04 + i * 0.07, 0.05, 'sine', this.fx));
+    const v = this.vary(0.03);
+    this.burst(t, { dur: 0.04, type: 'bandpass', freq: 3400 * v, q: 3, vol: 0.05, rate: 1.4 * v });
+    [0, 7].forEach((d, i) => this.pluck(this.freq(d, 1) * v, t + 0.04 + i * 0.07, 0.05, 'sine', this.fx));
   }
 
   /** A small struck-metal ring (two partials, bell-like): the shop's counter bell. */
@@ -2029,8 +2064,11 @@ export class Sound {
 
   pickup({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    if (!this.sample('grab', { vol: 1, pos })) this.burst(this.ctx.currentTime, { dur: 0.08, type: 'bandpass', freq: 1500, q: 1, vol: 0.06 });
-    this.sample('cloth', { vol: 0.5, at: 0.12, pos });
+    const t = this.ctx.currentTime, v = this.vary(0.04);
+    if (!this.sample('grab', { vol: 1, pos })) this.burst(t, { dur: 0.08, type: 'bandpass', freq: 1500 * v, q: 1, vol: 0.12 });
+    if (!this.sample('cloth', { vol: 0.5, at: 0.12, pos })) this.burst(t + 0.12, { dur: 0.16, type: 'bandpass', freq: 1000 * v, q: 0.8, vol: 0.05, rate: 0.7 });
+    // (a thing gained: a small rising pair over the hand, issue #379; the engines heard a 80 ms burst 17 dB under the music)
+    [4, 7].forEach((d, i) => this.pluck(this.freq(d, 2) * v, t + 0.06 + i * 0.07, 0.035, 'sine', this.fx));
   }
 
   // ------------------------------------------------------------------ the traveller's tool
@@ -2051,18 +2089,20 @@ export class Sound {
     const t = this.ctx.currentTime;
     if (mode === 'stun') { this.sweep(t, 1400, 2600, 0.14, 0.08, 'sine'); this.sweep(t + 0.03, 2100, 900, 0.2, 0.04, 'triangle'); return; }
     if (mode === 'fire') { this.burst(t, { dur: 0.22, type: 'bandpass', freq: 600, q: 0.6, vol: 0.2, rate: 0.7 }); this.sweep(t, 180, 520, 0.16, 0.1, 'sawtooth'); return; }
-    this.sweep(t, 260, 720, 0.11, 0.16);
-    this.sweep(t + 0.02, 520, 1500, 0.08, 0.05, 'triangle');
-    this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100, q: 1.1, vol: 0.14, rate: 0.8 });
+    const v = this.vary(0.06);
+    this.sweep(t, 260 * v, 720 * v, 0.11, 0.13);
+    this.sweep(t + 0.02, 520 * v, 1500 * v, 0.08, 0.04, 'triangle');
+    this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100 * v, q: 1.1, vol: 0.12, rate: 0.8 * v });
   }
 
   /** The gun mode switches: a click and a rising (stilling: high, glassy; ember: low, warm) chirp. */
   fluidMode(mode = 'shoot') {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.burst(t, { dur: 0.03, type: 'highpass', freq: 3000, q: 1, vol: 0.06 });
+    const v = this.vary(0.03);
+    this.burst(t, { dur: 0.03, type: 'highpass', freq: 3000 * v, q: 1, vol: 0.05 });
     const f = mode === 'stun' ? [1500, 2400] : mode === 'fire' ? [300, 700] : [600, 1100];
-    this.sweep(t + 0.02, f[0], f[1], 0.12, 0.06, mode === 'fire' ? 'triangle' : 'sine');
+    this.sweep(t + 0.02, f[0] * v, f[1] * v, 0.12, 0.048, mode === 'fire' ? 'triangle' : 'sine');
   }
 
   /** The backpack clicks into a vehicle's socket (on) and comes back out: a clack and a hum rising or falling. */
@@ -2084,21 +2124,96 @@ export class Sound {
     if (target) [4, 9].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.07, 0.07, 'triangle', this.fx));
   }
 
-  /** The fluid blade swings (n: the combo's swing, 0..2): a hiss that rises with each, the third deeper. */
+  /** A random factor round 1 (± spread): no two synthesised takes alike (docs/systems/audio.md, "Sound QC": variation). */
+  vary(spread = 0.06) { return 1 + (Math.random() * 2 - 1) * spread; }
+
+  /**
+   * A swish of air (a blade, a throw): noise through a band that rises from f0 to f1 as it comes through and falls
+   * to f2 as it passes, swelling in over the first 40 % and dying after (the old bursts started at their loudest).
+   */
+  swish(t, { f0 = 900, f1 = 2600, f2 = 700, dur = 0.2, vol = 0.1, q = 1.3, rate = 1, out = this.fx } = {}) {
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.playbackRate.value = rate;
+    const flt = ctx.createBiquadFilter(); flt.type = 'bandpass'; flt.Q.value = q;
+    flt.frequency.setValueAtTime(f0, t); flt.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.45); flt.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    const g = ctx.createGain(); g.gain.value = 0;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    src.connect(flt).connect(g).connect(out);
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
+  }
+
+  /**
+   * The blade pressed (src/fluid-blade.js start, the swing's first frame: the press answered at once, issue #379): the
+   * grip and the sleeve, and the fluid drawn back up the blade, a short wet rise; deeper for the heavy third and the
+   * specials. The cut's own whoosh follows at the end of the wind-up (fluidSlash).
+   */
+  fluidWindup(n = 0, heavy = false) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, v = this.vary(0.08), h = heavy || n === 2;
+    this.sample('cloth', { vol: h ? 0.9 : 0.6, rate: (h ? 0.85 : 1.05) * v });
+    this.swish(t, { f0: (h ? 300 : 520) * v, f1: (h ? 900 : 1500) * v, f2: (h ? 700 : 1200) * v, dur: h ? 0.16 : 0.11, vol: h ? 0.1 : 0.075, q: 2.4, rate: 0.9 * v });
+    this.sweep(t, (h ? 140 : 230) * v, (h ? 260 : 420) * v, h ? 0.14 : 0.09, h ? 0.045 : 0.03, 'triangle');
+  }
+
+  /**
+   * The traveller's effort (a cut, a throw): a recorded grunt (the 'effort' takes) or, where there are none (the
+   * engines play no recordings), a short breathy "hah" of his own: a low buzz through two vowel formants and breath,
+   * falling. Never two within `gap` s (Sound.vocal). False if nothing was voiced.
+   */
+  effort(k = 1, gap = 1.4) {
+    if (!this.ctx || this.muted) return false;
+    if (this.vocal('effort', { vol: 0.75 * k, gap })) return true;
+    return this.bank?.state('effort') === 'ready' ? false : this.grunt('effort', k, gap);
+  }
+
+  /**
+   * His voice where there is no recording (the engines): 'effort' a short breathy "hah" (a cut, a throw), 'hurt' a
+   * lower, longer "uh" (a blow taken): a low buzz through two vowel formants and breath, falling. Never two within
+   * `gap` s, nor over a recorded one (Sound.vocal's clock). False if nothing was voiced.
+   */
+  grunt(kind = 'effort', k = 1, gap = 1.4) {
+    if (!this.ctx || this.muted) return false;
+    const now = this.ctx.currentTime;
+    if (now - (this._vocalAt ?? -1e9) < gap) return false;
+    this._vocalAt = now;
+    const G = GRUNTS[kind] ?? GRUNTS.effort, ctx = this.ctx, t = now + 0.005, v = this.vary(0.07), dur = G.dur * (0.9 + 0.2 * Math.random());
+    const out = ctx.createGain(); out.gain.value = 0;
+    out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(G.vol * k, t + 0.018); out.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    out.connect(this.fx);
+    const o = ctx.createOscillator(); o.type = 'sawtooth';
+    o.frequency.setValueAtTime(G.f0 * v, t); o.frequency.exponentialRampToValueAtTime(G.f1 * v, t + dur);
+    for (const [f, q, g] of G.formants) {
+      const b = ctx.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = f * v; b.Q.value = q;
+      const bg = ctx.createGain(); bg.gain.value = g;
+      o.connect(b).connect(bg).connect(out);
+    }
+    o.start(t); o.stop(t + dur + 0.03);
+    this.burst(t, { dur, type: 'bandpass', freq: G.breath * v, q: 0.9, vol: G.vol * 0.45 * k, rate: 0.9, out });
+    return true;
+  }
+
+  /**
+   * The fluid blade swings (n: the combo's swing, 0..2), at the end of its wind-up: the swish of the blade through the
+   * air (rising as it comes, falling as it passes), a hiss that rises with each swing, the third deeper and heavier,
+   * with his effort on it most times; every take a little different (pitch, band, the recorded take).
+   */
   fluidSlash(n = 0) {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    const air = n === 2 ? this.sample('swing-heavy', { vol: 1.1, rate: 0.88 }) : this.sample('swing', { vol: 0.85 + n * 0.15, rate: 1.08 - n * 0.07 });
-    if (n === 2 && this.rand() < 0.35) this.vocal('effort', { vol: 0.8, gap: 6 });
-    this.burst(t, { dur: 0.2, type: 'bandpass', freq: 1800 + n * 500, q: 1.4, vol: air ? 0.07 : 0.13, rate: 1.3 });
-    this.sweep(t, n === 2 ? 220 : 420 + n * 90, n === 2 ? 90 : 900 + n * 160, 0.18, air ? 0.045 : 0.07, 'sawtooth');
+    const t = this.ctx.currentTime, v = this.vary(0.07), heavy = n === 2;
+    const air = heavy ? this.sample('swing-heavy', { vol: 0.85, rate: 0.88 * v }) : this.sample('swing', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
+    if (this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? 0.85 : 0.65);
+    const d = (heavy ? 0.3 : 0.2) * this.vary(0.08);
+    this.swish(t, { f0: (heavy ? 420 : 800 + n * 220) * v, f1: (heavy ? 1500 : 2500 + n * 450) * v, f2: (heavy ? 300 : 600 + n * 120) * v, dur: d, vol: air ? 0.07 : 0.16, rate: 1.2 * v });
+    this.sweep(t, (heavy ? 220 : 420 + n * 90) * v, (heavy ? 90 : 900 + n * 160) * v, 0.18, air ? 0.04 : 0.06, 'sawtooth');
+    if (heavy) this.burst(t + d * 0.35, { dur: 0.22, type: 'lowpass', freq: 260 * v, q: 0.7, vol: air ? 0.05 : 0.14, rate: 0.6 });   // (the weight behind it)
   }
 
   /** The blade's charge (src/fluid-blade.js CHARGE): a low hum rising as it gathers; full, a bright two-note ping. */
   fluidCharge(full = false) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    if (!full) { this.sweep(t, 140, 420, 0.55, 0.05, 'sawtooth'); this.sweep(t, 280, 840, 0.55, 0.03, 'triangle'); return; }
+    const v = this.vary(0.06);
+    if (!full) { this.sweep(t, 140 * v, 420 * v, 0.55, 0.05, 'sawtooth'); this.sweep(t, 280 * v, 840 * v, 0.55, 0.03, 'triangle'); return; }
     this.sweep(t, 1500, 2200, 0.16, 0.07, 'sine');
     [7, 12].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.02 + i * 0.07, 0.06, 'sine', this.fx));
   }
@@ -2108,8 +2223,9 @@ export class Sound {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     if (!landed) { this.sweep(t, 1200, 3200, 0.12, 0.06, 'sine'); this.burst(t, { dur: 0.14, type: 'highpass', freq: 3500, q: 0.6, vol: 0.08, rate: 1.4 }); return; }
-    [0, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1), t + i * 0.035, 0.08, 'triangle', this.fx));
-    this.sweep(t, 140, 55, 0.35, 0.12, 'sine');
+    const v = this.vary(0.03), g = this.vary(0.12);
+    [0, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1) * v, t + i * 0.035, 0.08 * g, 'triangle', this.fx));
+    this.sweep(t, 140 * v, 55 * v, 0.35, 0.12 * g, 'sine');
   }
 
   /** A perfect dodge's flurry (src/flurry.js): a breath of air drawn in and a slow falling glass note as the world slows. */
@@ -2132,12 +2248,14 @@ export class Sound {
   /** The blade lands on something (a foe), or cuts the air. */
   fluidSlashHit(hit = false, heavy = false) {
     if (!this.ctx || !hit) return;
-    const t = this.ctx.currentTime;
+    const t = this.ctx.currentTime, v = this.vary(0.08);
     // the ink's wet slap, and the weight behind it (a body blow: the heavy one on the third)
-    this.sample('splat', { vol: heavy ? 1.3 : 1, rate: heavy ? 0.78 : 0.98 });
-    this.sample(heavy ? 'land-heavy' : 'land', { vol: heavy ? 0.75 : 0.45, rate: heavy ? 0.92 : 1.15 });
-    this.burst(t, { dur: 0.12, type: 'lowpass', freq: 900, q: 0.8, vol: 0.22, rate: 0.7 });
-    this.sweep(t, heavy ? 190 : 300, heavy ? 65 : 110, heavy ? 0.19 : 0.12, heavy ? 0.14 : 0.1, 'triangle');
+    this.sample('splat', { vol: heavy ? 1.3 : 1, rate: (heavy ? 0.78 : 0.98) * v });
+    this.sample(heavy ? 'land-heavy' : 'land', { vol: heavy ? 0.75 : 0.45, rate: (heavy ? 0.92 : 1.15) * v });
+    // the crack of it landing (a hit, not a block or the air: bright and short, on the hit-stop's frame)
+    this.burst(t, { dur: heavy ? 0.045 : 0.03, type: 'highpass', freq: 2400 * v, q: 0.7, vol: heavy ? 0.17 : 0.13, rate: 1.3 * v });
+    this.burst(t, { dur: heavy ? 0.16 : 0.12, type: 'lowpass', freq: 900 * v, q: 0.8, vol: 0.22, rate: 0.7 * v });
+    this.sweep(t, (heavy ? 190 : 300) * v, (heavy ? 65 : 110) * v, heavy ? 0.19 : 0.12, heavy ? 0.14 : 0.1, 'triangle');
   }
 
   /** The fluid shield takes a blow (src/fluid-blade.js block): a bright clang and a wet splash. */
@@ -2155,8 +2273,9 @@ export class Sound {
   shieldOpen() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    for (let i = 0; i < 4; i++) this.burst(t + i * 0.03, { dur: 0.025, type: 'bandpass', freq: 2600 + i * 380, q: 6, vol: 0.05 });
-    this.sweep(t + 0.02, 340, 820, 0.16, 0.05, 'triangle');
+    const v = this.vary(0.08), g = this.vary(0.15);
+    for (let i = 0; i < 4; i++) this.burst(t + i * 0.03 * v, { dur: 0.025, type: 'bandpass', freq: (2600 + i * 380) * v, q: 6, vol: 0.05 * g });
+    this.sweep(t + 0.02, 340 * v, 820 * v, 0.16, 0.05 * g, 'triangle');
     this.burst(t + 0.05, { dur: 0.14, type: 'highpass', freq: 2400, q: 0.6, vol: 0.05, rate: 1.4 });
   }
 
@@ -2175,6 +2294,97 @@ export class Sound {
     this.sweep(t, 520, 140, 0.22, 0.08, 'square');
     this.burst(t, { dur: 0.2, type: 'bandpass', freq: 900, q: 1.5, vol: 0.14, rate: 0.6 });
     for (let i = 0; i < 3; i++) this.burst(t + 0.06 + i * 0.05, { dur: 0.02, type: 'highpass', freq: 3800, q: 1, vol: 0.05 });
+  }
+
+  /**
+   * Locking on to a foe (src/foes.js cycleLock, switchLock: on) and letting it go (off): a soft tick and two small
+   * glassy notes rising a third (falling as it lets go), under the fight; it was the gun's stun chirp, 3 dB under the
+   * music and the same for both (issue #379).
+   */
+  lockOn(on = true) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, v = this.vary(0.025), [a, b] = on ? [7, 9] : [9, 7];
+    this.burst(t, { dur: 0.018, type: 'bandpass', freq: 3600 * v, q: 4, vol: on ? 0.035 : 0.025 });
+    this.sweep(t + 0.005, this.freq(a, 2) * v, this.freq(a, 2) * v * 1.004, 0.09, on ? 0.022 : 0.016, 'sine');
+    this.sweep(t + 0.055, this.freq(b, 2) * v, this.freq(b, 2) * v * 1.004, on ? 0.14 : 0.1, on ? 0.022 : 0.014, 'sine');
+  }
+
+  /** The menus' bus: straight to the master (the world's is hushed under a menu, MENU_HUSH), the effects volume. */
+  uiOut() {
+    if (!this._ui) { this._ui = this.ctx.createGain(); this._ui.gain.value = UI_LEVEL * this.fxVol; this._ui.connect(this.master); }
+    return this._ui;
+  }
+
+  /**
+   * The menus (issue #379: no menu made a sound): one family of soft, short, dry sounds in the world's scale, each
+   * a little different every time. 'move' the cursor (a small wooden tick: never two within 40 ms, a held stick does
+   * not rattle), 'confirm' two notes rising a third, 'back' the same falling, 'tab' a page flicked, 'open' a page
+   * turned and a soft rising triad, 'close' the same falling, 'no' (not now) a low double tap.
+   */
+  ui(kind = 'move') {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const last = (this._uiAt ??= {});
+    if (now - (last[kind] ?? -1) < (kind === 'move' ? 0.04 : 0.06)) return;   // (a held stick, a click and its pad press: once)
+    last[kind] = now;
+    const out = this.uiOut(), t = now, v = this.vary(0.03), f = (d, o = 2) => this.freq(d, o) * v;
+    const tick = (at, fr, vol, dur = 0.06) => this.sweep(at, fr, fr * 0.985, dur, vol, 'triangle', out);
+    if (kind === 'move') { tick(t, f(4), 0.03, 0.045); this.burst(t, { dur: 0.012, type: 'bandpass', freq: 4200 * v, q: 3, vol: 0.018, out }); }
+    else if (kind === 'confirm') { tick(t, f(0), 0.045, 0.08); tick(t + 0.06, f(2), 0.045, 0.16); }
+    else if (kind === 'back') { tick(t, f(2), 0.04, 0.07); tick(t + 0.055, f(0), 0.036, 0.13); }
+    else if (kind === 'tab') { this.noiseGlide(t, { type: 'bandpass', f: 1800 * v, f1: 3400 * v, q: 1.2, dur: 0.07, vol: 0.05 }, out); tick(t + 0.02, f(1), 0.025, 0.06); }
+    else if (kind === 'open') { this.noiseGlide(t, { type: 'bandpass', f: 900 * v, f1: 2600 * v, q: 0.9, dur: 0.16, vol: 0.05 }, out); [0, 2, 4].forEach((d, i) => tick(t + 0.03 + i * 0.045, f(d, 1), 0.03, 0.22)); }
+    else if (kind === 'close') { this.noiseGlide(t, { type: 'bandpass', f: 2600 * v, f1: 900 * v, q: 0.9, dur: 0.14, vol: 0.045 }, out); [4, 2, 0].forEach((d, i) => tick(t + 0.02 + i * 0.04, f(d, 1), 0.026, 0.18)); }
+    else if (kind === 'no') { tick(t, f(0, 1) * 0.94, 0.035, 0.08); tick(t + 0.08, f(0, 1) * 0.89, 0.03, 0.09); }
+  }
+
+  /** A conversation's answer chosen (src/story/dialogue.js choose; the market's tools): the menus' confirm (on) or back. */
+  toolClick(on = true) { this.ui(on ? 'confirm' : 'back'); }
+
+  /** A photo taken (photo mode's capture): the shutter's click and the clack of it closing, a breath of film winding. */
+  shutter() {
+    if (!this.ctx || this.muted) return;
+    const out = this.uiOut(), t = this.ctx.currentTime, v = this.vary(0.04);
+    this.burst(t, { dur: 0.02, type: 'highpass', freq: 3000 * v, q: 0.8, vol: 0.09, out });
+    this.burst(t + 0.065, { dur: 0.035, type: 'bandpass', freq: 1400 * v, q: 1.5, vol: 0.09, out });
+    this.sweep(t + 0.065, 900 * v, 500 * v, 0.05, 0.02, 'square', out);
+    this.noiseGlide(t + 0.12, { type: 'bandpass', f: 2200 * v, f1: 3000 * v, q: 2, dur: 0.18, vol: 0.02, rate: 1.6 }, out);
+  }
+
+  /**
+   * A quest's moments (src/story/quests.js; issue #379: a quest given, a step done and a quest done were the same
+   * chime): 'start' an open fifth struck and left hanging (something asked), 'step' the chime (a run up the scale),
+   * 'done' the run up to the octave on bells with the top held and a low bell under it (something finished).
+   */
+  quest(kind = 'step') {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime + 0.01;
+    if (kind === 'start') { this.keyBell(this.freq(0, 1), t, 0.05, 1.1); this.keyBell(this.freq(4, 1), t + 0.2, 0.05, 1.6); return; }
+    if (kind === 'done') {
+      [0, 2, 4, 7].forEach((d, i) => this.keyBell(this.freq(d, 1), t + i * 0.085, 0.045, 0.4));
+      this.keyBell(this.freq(7, 2), t + 4 * 0.085, 0.055, 1.8);
+      this.keyBell(this.freq(0, 0), t + 4 * 0.085, 0.05, 2);
+      return;
+    }
+    this.chime();
+  }
+
+  /** Something carried thrown (src/carry.js throwCarried): the swish of it leaving his hands, his effort now and then. */
+  toss() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, v = this.vary(0.08);
+    this.swish(t, { f0: 400 * v, f1: 1400 * v, f2: 500 * v, dur: 0.24, vol: 0.09, rate: 0.9 * v });
+    this.sample('cloth', { vol: 0.6, rate: v });
+    if (this.rand() < 0.4) this.effort(0.6, 3);
+  }
+
+  /** A temple's door opening (src/temples/pieces.js Door): the bolt's clunk at once, then the rush of it going (whoosh). */
+  doorOpen() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, v = this.vary(0.06);
+    this.burst(t, { dur: 0.05, type: 'bandpass', freq: 900 * v, q: 3, vol: 0.14 });
+    this.sweep(t, 160 * v, 80 * v, 0.14, 0.06, 'triangle');
+    this.whoosh(0.8);
   }
 
   /**
@@ -2337,9 +2547,10 @@ export class Sound {
   fluidBoost() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.burst(t, { dur: 0.4, type: 'bandpass', freq: 900, q: 0.7, vol: 0.26, rate: 0.7 });
-    this.sweep(t, 140, 420, 0.3, 0.14, 'triangle');
-    this.sweep(t + 0.05, 600, 1800, 0.22, 0.03);
+    const v = this.vary(0.06);
+    this.burst(t, { dur: 0.4, type: 'bandpass', freq: 900 * v, q: 0.7, vol: 0.18, rate: 0.7 * v });
+    this.sweep(t, 140 * v, 420 * v, 0.3, 0.1, 'triangle');
+    this.sweep(t + 0.05, 600 * v, 1800 * v, 0.22, 0.025);
   }
 
   /** The tank refills: a quick bubbling run up the scale (a longer, brighter one when a colour is added). */
@@ -2358,8 +2569,9 @@ export class Sound {
   fluidEmpty() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.sweep(t, 300, 180, 0.08, 0.06, 'square');
-    this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900, q: 2, vol: 0.06 });
+    const v = this.vary(0.08), g = this.vary(0.15);
+    this.sweep(t, 300 * v, 180 * v, 0.08, 0.035 * g, 'square');
+    this.burst(t + 0.03, { dur: 0.06, type: 'bandpass', freq: 900 * v, q: 2, vol: 0.04 * g });
   }
 
   /**
@@ -2373,7 +2585,7 @@ export class Sound {
     if (kind === 'found') { this.sweep(t, 1500, 2600, 0.07, 0.045); this.sweep(t + 0.11, 1900, 3200, 0.09, 0.05); this.pluck(this.freq(7, 2), t + 0.11, 0.05, 'sine', this.fx); }
     else if (kind === 'hint') { this.sweep(t, 620, 560, 0.1, 0.035, 'triangle'); this.sweep(t + 0.14, 1100, 2100, 0.08, 0.045); this.sweep(t + 0.24, 1600, 2900, 0.07, 0.04); }
     else if (kind === 'shrug') { this.sweep(t, 900, 760, 0.12, 0.04, 'triangle'); this.sweep(t + 0.17, 760, 520, 0.16, 0.04, 'triangle'); }
-    else this.sweep(t, 700, 1400, 0.1, 0.035);
+    else { const v = this.vary(0.05); this.sweep(t, 700 * v, 1400 * v, 0.1, 0.035); }
   }
 
   // ------------------------------------------------------------------ water (src/water.js)
@@ -2478,7 +2690,10 @@ export class Sound {
     // (and swells on a bench: SEATED_SWELL, eased here so the gain follows it smoothly)
     const swell = (this._swellUntil ?? 0) > t ? 0.3 : 1;
     this.seatedK(t);
-    this.music?.gain.setTargetAtTime(this.musicLevel(near, t), t, swell < 1 ? 0.35 : 0.8);   // (a menu up: out, menuMusic)
+    const ducking = (this._duckUntil ?? 0) > t;
+    if (ducking !== this._ducked) { this._ducked = ducking; this._duckT = t; }
+    // (a moment's swell and a voice starting: in quickly; the voice done: back over 0.8 s)
+    this.music?.gain.setTargetAtTime(this.musicLevel(near, t), t, swell < 1 || (ducking && t - this._duckT < 1) ? 0.3 : 0.8);   // (a menu up: out, menuMusic)
   }
   /** One beat of a band, scheduled with the score's beat. */
   bandBeat(b, t, spb) {
@@ -2635,6 +2850,7 @@ export class Sound {
     const fade = out.fade;
     out.fade = () => { fade(); for (const v of voices) v.fade(); };
     if (channel === 'balloon') this._balloons.push({ end });
+    if (channel === 'call' || channel === 'dialogue') this._duckUntil = Math.max(this._duckUntil ?? 0, end);
     if (channel === 'call') { this._calls?.fade(); this._calls = out; this._talkUntil = end; }
     if (channel === 'choice') this._talkUntil = Math.max(this._talkUntil, end);
     if (channel === 'dialogue') { this._talk?.fade(); this._talk = out; this._talkUntil = Math.max(this._talkUntil, end); }
@@ -2676,7 +2892,7 @@ export class Sound {
   /** Fade a voice: the call's (its subtitle was cleared or skipped), or the conversation's ('talk': its page turned, the talk closed). */
   hush(channel = 'call') {
     if (channel === 'call' && this._calls) { this._calls.fade(); this._calls = null; this._talkUntil = 0; }
-    if (channel === 'talk' && this._talk) { this._talk.fade(); this._talk = null; this._talkPlan = null; }
+    if (channel === 'talk' && this._talk) { this._talk.fade(); this._talk = null; this._talkPlan = null; this._duckUntil = 0; }
   }
 
   /** A short-lived chain for one utterance: input → (grille) → gain → pan → the voice bus. */

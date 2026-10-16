@@ -102,6 +102,7 @@ import { bikeComes, parkedBike, callKind, trailVehicles, trailVehicle } from './
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
+import { uiKind } from './ui-sound.js';
 import { items, ITEMS } from './items.js';
 import { menuSources } from './game-menu-data.js';
 import { ItemIcons } from './item-icons.js';
@@ -707,6 +708,7 @@ interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking som
 // (carrying, src/carry.js: the first time, how to put it down and throw it; a thud as it is set down)
 carryHooks.notice = (t) => showToast(keyText(t, { teach: true }), TEACH);
 carryHooks.sound = (t) => sound.land?.({ speed: 2.5, pos: t?.pos ?? player.pos });
+carryHooks.toss = () => sound.toss?.();
 waters.sound = sound;
 player.onSwim = (kind, info) => waters.event(kind, info);   // splashes, strokes, a gasp
 // hoverbikes and skiffs skim over any water (bike.js groundAt)
@@ -1493,6 +1495,13 @@ function quitToTitle() {
 // the game: frame() skips the world while one is open, and the menu music plays over the
 // hushed world (src/audio.js menuMusic).
 const paused = () => !!window.cinematicReview?.paused || menu.open || journal.open || changelog.open || !!minigame?.paused;
+// The menus heard (issue #379: none made a sound): a press in a menu (the keys, the pad, a click) plays Sound.ui's kind
+// for it (src/ui-sound.js uiKind); opening and closing a panel, below; a conversation's answers their own (toolClick).
+// (a menu, a card or a page up: not a conversation, a scene or the ship's moments, where the keys are the world's)
+const menuHeard = () => { const r = menuRoot(); return busy() && r !== storyRt.dialogue.el && (r !== pageEl || pageUp()); };
+function uiSound(press) { const k = uiKind(press); if (k) sound.ui?.(k); }
+window.addEventListener('keydown', (e) => { if (!e.ctrlKey && !e.metaKey && !/^(INPUT|TEXTAREA)$/.test(e.target?.tagName ?? '') && menuHeard()) uiSound({ key: e.code }); }, { capture: true });
+document.addEventListener('click', (e) => { if (e.isTrusted && menuHeard() && e.target?.closest?.('button, a, select, input, [role="button"], [data-i]')) sound.ui?.('confirm'); }, { capture: true });
 // one panel at a time: J over the open settings drew the sketchbook's quest log under the
 // settings card (and O over the sketchbook the other way round)
 {
@@ -1501,8 +1510,9 @@ const paused = () => !!window.cinematicReview?.paused || menu.open || journal.op
     const toggle = p.toggle.bind(p);
     p.toggle = (on = !p.open, ...rest) => {
       if (on) for (const q of panels) if (q !== p && q.open) q.toggle(false);
-      const r = toggle(on, ...rest);
+      const was = !!p.open, r = toggle(on, ...rest);
       sound.menuMusic(paused());
+      if (!!p.open !== was) sound.ui?.(p.open ? 'open' : 'close');   // (the menus heard: src/ui-sound.js, issue #379)
       return r;
     };
   }
@@ -1679,6 +1689,7 @@ function photoUpdate(dt, input) {
 }
 function savePhoto() {
   photo.capture = false;
+  sound.shutter?.();
   renderer.domElement.toBlob((blob) => {
     if (!blob) return;
     const name = `hiraeth-${levelId}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
@@ -1822,9 +1833,10 @@ const controller = new Controller({
   stickTaken: () => !!gadgets?.wheelOn,   // (the gadget wheel open: the right stick chooses, the camera holds: src/gadgets/index.js wheelStick)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y, fresh) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
+  navigate: (x, y, fresh) => { if (menuHeard()) uiSound({ nav: [x, y] }); if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
+    if (menuHeard()) uiSound({ action: name });   // (a menu's confirm, back and tabs heard: src/ui-sound.js)
     if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
     if (minigame && !menu.open && !journal.open && minigame.padAction(name)) return;   // (a game's cards, its pause: src/minigames/kit/runner.js)
     if (name === 'zoomOut' || name === 'zoomIn') rig.zoom(Math.exp((name === 'zoomOut' ? 1 : -1) * dt));
