@@ -32,8 +32,9 @@ if [ ! -d "$PROJECT/Packages/com.tencent.puerts.core" ] || [ ! -d "$PROJECT/Pack
   scripts/unity-js-setup.sh
 fi
 
-# the game's JavaScript for Puerts' V8 (StreamingAssets/hiraeth-js), as the local players take it
-node scripts/engine-bundle.mjs unity
+# the game's JavaScript for Puerts' V8 (StreamingAssets/hiraeth-js), as the local players take it; this testers' APK
+# looks for its script's updates over the air as the one built in Actions does (bundle.json's updates, BridgeUpdates.cs)
+UNITY_OTA=1 node scripts/engine-bundle.mjs unity
 
 # Puerts' IL2CPP glue (Assets/Gen), once: C# too, so an editor run of its own before the build's
 if [ ! -f "$PROJECT/Assets/Gen/Plugins/puerts_il2cpp/Puerts_il2cpp.cpp" ]; then

@@ -9,7 +9,7 @@
 // 'csharp', 'puerts') stay outside it.
 import { rolldown } from 'rolldown';
 import { viteImportGlobPlugin } from 'rolldown/experimental';
-import { mkdirSync, statSync, readdirSync, existsSync } from 'node:fs';
+import { mkdirSync, statSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -164,7 +164,43 @@ export async function unityStarmap({ to = UNITY_STARMAP.to } = {}) {
   return { n, bytes, to };
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+/**
+ * The Unity script's bundle.json beside hiraeth.cjs (release-info.mjs unityBundleInfo: the build, version and player
+ * it needs; BridgeUpdates.cs reads it): a player compares a downloaded script with the one it carries by it. `updates`
+ * (a player that looks for updates over the air): the published builds, made in GitHub Actions or with UNITY_OTA=1; a
+ * local build keeps the script it was built with (UNITY_OTA=0 turns it off in CI too).
+ */
+export async function unityBundleJson(dir = dirname(resolve(ROOT, ENTRIES.unity.out[0])), { updates = process.env.UNITY_OTA ? process.env.UNITY_OTA === '1' : process.env.GITHUB_ACTIONS === 'true' } = {}) {
+  const { gameBuild, unityBundleInfo } = await import('./release-info.mjs');
+  const { CHANGELOG } = await import('../src/changelog.js');
+  let build = 0;
+  try { build = gameBuild(); } catch (e) { console.warn(`bundle.json: no build number (${e.message}): 0, every downloaded script is newer`); }
+  const info = unityBundleInfo({ build, version: CHANGELOG[0].v, updates });
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(resolve(dir, 'bundle.json'), JSON.stringify(info) + '\n');
+  return info;
+}
+
+/**
+ * The script over the air (BridgeUpdates.cs, scripts/web-update.mjs --unity <dir>): the Unity player's
+ * StreamingAssets/hiraeth-js without its public/ folder, made into `dir`: hiraeth.cjs, audio.cjs, bundle.json (updates on)
+ * and the menus' pictures.
+ *   node scripts/engine-bundle.mjs ota <dir>
+ */
+export async function unityOta(dir) {
+  const to = resolve(dir);
+  for (const n of ['unity', 'unity-audio']) await bundle(n, { out: [resolve(to, ENTRIES[n].out[0].split('/').pop())] });
+  await unityPictures({ to: resolve(to, 'item-pictures') });
+  await unityTitle({ to });
+  await unityStarmap({ to: resolve(to, 'starmap') });
+  return unityBundleJson(to, { updates: true });
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === 'ota') {
+  if (!process.argv[3]) throw new Error('node scripts/engine-bundle.mjs ota <dir>');
+  const info = await unityOta(process.argv[3]);
+  console.log(`the Unity script over the air in ${process.argv[3]}: build ${info.build}, v${info.version}, needs player level ${info.minUnity}`);
+} else if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const asked = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ENTRIES);
   const names = [...new Set(asked.flatMap((n) => [n, ...(WITH[n] ?? [])]))];
   for (const n of names) {
@@ -175,5 +211,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const p = await unityPictures(); console.log(`the items' pictures: ${p.n} PNGs, ${(p.bytes / 1e6).toFixed(2)} MB, in ${p.to}`);
     const q = await unityTitle(); console.log(`the title's ${q.n} pictures, its lettering and the Map's ${q.marks} marks: ${(q.bytes / 1e6).toFixed(2)} MB, in ${q.to}`);
     const m = await unityStarmap(); console.log(`the galactic map's ${m.n} pictures: ${(m.bytes / 1e6).toFixed(2)} MB, in ${m.to}`);
+    const b = await unityBundleJson(); console.log(`bundle.json: build ${b.build}, v${b.version}, needs player level ${b.minUnity}, updates ${b.updates ? 'on' : 'off'}`);
   }
 }

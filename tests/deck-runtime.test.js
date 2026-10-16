@@ -71,7 +71,7 @@ test('the Cloudflare deploy puts the runtime on the site, numbered as the GitHub
   const number = 'export DECK_BUILD=$((WEB_BUILD * 1000 + GITHUB_RUN_ATTEMPT))';
   assert.ok(yml.includes(number) && deckYml.includes(number), 'one commit, one runtime number in both');
   assert.doesNotMatch(deckYml, /GITHUB_RUN_NUMBER/);
-  assert.match(JSON.parse(read('../package.json')).scripts['deploy:cloudflare'], /web-update\.mjs && node scripts\/deck-runtime\.mjs && wrangler deploy/);
+  assert.match(JSON.parse(read('../package.json')).scripts['deploy:cloudflare'], /web-update\.mjs( --unity [^ ]+)? && node scripts\/deck-runtime\.mjs && wrangler deploy/);
   // the packaged game leaves the site's updates out
   assert.match(read('../scripts/package-steam-deck.mjs'), /filter: \(src\) => !\/\^dist\[\\\\\/\]updates/);
 });

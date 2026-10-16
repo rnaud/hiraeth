@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
+import { UnityUpdates } from './updates.js';
 import { STARMAP_SCENES, STARMAP_BASE, poseStarMap } from '../starmap.js';
 import { readHref } from '../trials.js';
 import { Controller } from '../../src/controller.js';
@@ -69,7 +70,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending || a.starmap);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.noTitle || a.trial || a.game || a.ending || a.starmap || a.updatesPage);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -130,7 +131,10 @@ export function start(argsJson) {
   if (args.quality && settings.quality !== 'auto') settings.quality = args.quality;
   setFaces(settings.padFaces);
   setRumbleSettings(settings);   // (Settings > Rumble and its strength, src/rumble.js)
+  // (the script over the air, BridgeUpdates.cs: the Updates page, the game saved before its Restart now)
+  const updates = new UnityUpdates({ host, version: VERSION, save: () => S?.game?.save?.() });
   const menus = new EngineMenus({
+    updates: updates.on ? updates : null,
     store: slots, settings, dev: () => devMode({ settings }), version: `v${VERSION}`,
     onStart: (choice) => begin(choice),
     onResume: () => { S?.game?.applySettings?.(); },
@@ -157,7 +161,7 @@ export function start(argsJson) {
   if (args.boot) begin(args.boot);
   // (-page overnighttrain:bazaar: in the second world first, on the debug save, then by a page load's way to the first; below)
   else if (pageRun(args)) begin({ slot: DEBUG_SLOT, level: pageRun(args).from, arrive: true });
-  else { menus.show('title'); S.titleSound = titleSound(args, settings); }
+  else { menus.show('title'); S.titleSound = titleSound(args, settings); updates.auto(); }   // (and the title's own check for a newer script)
   showMenu();
 }
 
@@ -330,6 +334,13 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
     : args.foes ? (S.menus = new EngineMenus({ dev: () => false, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
+  // (-updates-page: the Start menu's Updates page photographed as it checks, downloads and restarts: BridgeUpdates, with
+  // -updates <manifest>; the debug save, so Restart now's save writes nothing of the player's)
+  if (args.updatesPage) {
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    const updates = new UnityUpdates({ host, version: VERSION, save: () => S?.game?.save?.() });
+    S.menus = new EngineMenus({ store: slots, settings: new Settings(), version: `v${VERSION}`, updates, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) });
+  }
   if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
@@ -472,6 +483,14 @@ function makePlan(args) {
   // ship attached, scenes: the hull hidden from the sun inside, as the web's; tests/engine-ship.test.js)
   // (-foes [world]: the Arena's list of foes as the menus draw it (BridgeMenu.cs DrawFoes): the Arena with its FOES tab, the
   // list on that world's page, the pad moved and a foe chosen (lit), then closed and the foe come in to fight)
+  if (args.updatesPage) {
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-updates-${host.UpdateInfo ? JSON.parse(host.UpdateInfo()).web : 0}-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'updates' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('open'));
+    // (each press waited out: the check's answer, the download's first bytes, then its end and the restart it is armed for)
+    const until = (states, secs = 30) => ({ kind: 'updates', until: states, secs });
+    steps.push({ kind: 'updates', act: 'check' }, until(['current', 'available', 'apk', 'offline', 'error', 'ready']), { kind: 'wait', frames: 5 }, ...shot('checked'));
+    steps.push({ kind: 'updates', act: 'download' }, until(['downloading', 'ready', 'error', 'offline', 'current']), ...shot('downloading'), until(['ready', 'error', 'offline', 'current'], 60), { kind: 'wait', frames: 20 }, ...shot('ready'), { kind: 'wait', frames: 120, secs: 4 });
+  }
   if (args.foes) {
     steps.push({ kind: 'wait', frames: 90, secs: 3 });
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-arena.png` });
@@ -842,6 +861,25 @@ export function frame(dt) {
     if (ok && step.world && step.world !== 'all') { const L = game.foeList; L.setWorld(step.world); S.menus.changed(); }
     console.log(ok ? `[unity] the list of foes: ${game.foeList.filterTitle()}, ${game.foeList.shown().reduce((n, s) => n + s.items.length, 0)} to fight` : '[unity] no list of foes here');
     next();
+  } else if (step.kind === 'updates') {
+    // (-updates-page: the Start menu open on Updates, then its buttons pressed as the pad would)
+    const m = S.menus;
+    if (step.until) {
+      // (the page's own poll moves the state: waited for, at most secs)
+      P.t += Math.min(dt, 0.1);
+      const st = m.updates?.info?.check;
+      if (step.until.includes(st) || P.t >= step.secs) { console.log(`[unity] Updates: ${st} after ${P.t.toFixed(1)} s`); next(); }
+    } else if (!step.act) {
+      m.show('start');
+      const i = m.startSide().findIndex((e) => e.id === 'updates');
+      if (i >= 0) { m.start.at = { in: 'page', i: m.updatesFirst() }; m.start.page = 'updates'; m.changed(); }
+      console.log(`[unity] the Updates page: ${i >= 0 ? JSON.stringify(m.updatesRowsNow().map((r) => r.text)) : 'none in this player'}`);
+    } else {
+      const rows = m.updatesRowsNow(), at = rows.findIndex((r) => r.act === step.act);
+      console.log(`[unity] Updates: ${step.act} ${at >= 0 ? 'pressed' : 'not offered'} (${m.updates?.info?.check ?? '?'})`);
+      if (at >= 0) { m.start.at = { in: 'page', i: at }; m.action('confirm'); }
+    }
+    if (!step.until) next();
   } else if (step.kind === 'menu') {
     if (step.act) S.menus.action(step.act); else S.menus.navigate(step.x, step.y);
     next();

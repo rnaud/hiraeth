@@ -73,7 +73,7 @@ namespace Hiraeth.Bridge
         {
             if (string.IsNullOrEmpty(id)) return null;
             if (pictures.TryGetValue(id, out var t)) return t;
-            var bytes = StreamingFile.Read(System.IO.Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "item-pictures", id + ".png"));
+            var bytes = BridgeUpdates.ScriptFile(System.IO.Path.Combine("item-pictures", id + ".png"));
             if (bytes != null)
             {
                 t = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = "item " + id, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
@@ -86,7 +86,7 @@ namespace Hiraeth.Bridge
         static Texture2D Streamed(Dictionary<string, Texture2D> cache, string rel)
         {
             if (cache.TryGetValue(rel, out var t)) return t;
-            var bytes = StreamingFile.Read(System.IO.Path.Combine(Application.streamingAssetsPath, "hiraeth-js", rel));
+            var bytes = BridgeUpdates.ScriptFile(rel);
             if (bytes != null)
             {
                 t = new Texture2D(2, 2, TextureFormat.RGBA32, true) { name = rel, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Trilinear };
@@ -463,7 +463,8 @@ namespace Hiraeth.Bridge
             Sheet(sx, sy, sw, sh, false);
             dim.color = Ui.Hex("#e9d9b3");   // (under the painted world when it shows: the sheet over it)
             Head(state.S("head"), sx + 24, sy + 18, sw - 48);
-            if (screen == "settings") { DrawSettings(state.O("page")?.L("rows"), sx + 24, sy + 60, sw - 48, sh - 76); return; }
+            // (Settings, and Updates in a player that updates its script: engine/menus.js, BridgeUpdates)
+            if (screen == "settings" || screen == "updates") { DrawSettings(state.O("page")?.L("rows"), sx + 24, sy + 60, sw - 48, sh - 76); return; }
             var list = state.L("rows") ?? new List<object>();
             float top = sy + 60, avail = sh - 76;
             var hs = new List<float>();

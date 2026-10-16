@@ -2,6 +2,7 @@
 //   dist/updates/web-<build>.zip  the built game (dist/ without updates/), the same files the APK and the Deck carry
 //                                 (without the site's own files and the themes fetched on demand: SHEET_FILE, MEDIA_FILE, onDemand)
 //   dist/updates/web.json         its manifest (release-info.mjs webJson): build, sha256, zip URL, minNative, minDesktop…
+//   dist/updates/unity-<build>.zip, unity.json   the Unity players' script (--unity <dir>: writeUnityUpdate, BridgeUpdates.cs)
 // read by the Android app (WebBundles.MANIFEST), the Steam Deck updater (deck.py CONTENT_MANIFEST_URL) and the
 // Xbox app (xbox/Hiraeth/WebBundles.cs Manifest).
 //
@@ -19,7 +20,7 @@ import { deflateRawSync, crc32 } from 'node:zlib';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
-import { deckEngineSwitch, desktopApi, gameBuild, webJson, xboxApi } from './release-info.mjs';
+import { deckEngineSwitch, desktopApi, gameBuild, unityJson, webJson, xboxApi } from './release-info.mjs';
 import { ON_DEVICE_THEMES } from '../src/music-store.js';
 
 export const SITE = 'https://hiraeth.alexandria-rnaud.workers.dev/';
@@ -99,19 +100,20 @@ const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
  * The previous build's zip from the live site, when its web.json names another build and the
  * zip's bytes match it. @returns { build, name, zip } or null (first deploy, offline, or the same build)
  */
-export async function previousZip(site, build, { fetch = globalThis.fetch, log = console.warn } = {}) {
+export async function previousZip(site, build, { fetch = globalThis.fetch, log = console.warn, kind = 'web' } = {}) {
+  // (kind 'unity': the Unity script's unity.json and unity-<build>.zip, kept the same way)
   try {
     const get = (path) => fetch(new URL(`${UPDATES}/${path}?t=${Date.now()}`, site), { signal: AbortSignal.timeout(60_000), headers: { 'Cache-Control': 'no-cache' } });
-    const res = await get('web.json');
-    if (!res.ok) { log(`no live web.json (HTTP ${res.status}): nothing to keep`); return null; }
+    const res = await get(`${kind}.json`);
+    if (!res.ok) { log(`no live ${kind}.json (HTTP ${res.status}): nothing to keep`); return null; }
     const live = await res.json();
-    if (!Number.isSafeInteger(live.build) || live.build <= 0 || !/^[0-9a-f]{64}$/.test(live.sha256 ?? '')) { log('the live web.json is not one of ours: nothing to keep'); return null; }
+    if (!Number.isSafeInteger(live.build) || live.build <= 0 || !/^[0-9a-f]{64}$/.test(live.sha256 ?? '')) { log(`the live ${kind}.json is not one of ours: nothing to keep`); return null; }
     if (live.build === build) return null;   // (the same build: this deploy's zip has the same name)
-    const name = `web-${live.build}.zip`;
+    const name = `${kind}-${live.build}.zip`;
     const z = await get(name);
     if (!z.ok) { log(`the live ${name} is gone (HTTP ${z.status})`); return null; }
     const zip = Buffer.from(await z.arrayBuffer());
-    if (sha256(zip) !== live.sha256) { log(`the live ${name} doesn't match its web.json: not kept`); return null; }
+    if (sha256(zip) !== live.sha256) { log(`the live ${name} doesn't match its ${kind}.json: not kept`); return null; }
     return { build: live.build, name, zip };
   } catch (error) {
     log(`couldn't read the live update (${error.message}): nothing to keep`);
@@ -169,8 +171,30 @@ export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
   await writeFile(join(out, `${name}.json`), JSON.stringify({ size: zip.length, sha256: sha256(zip), partSize, parts }) + '\n');
 }
 
-/** Write dist/updates/: this build's zip and web.json, and the previous build's zip. */
-export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART, music = process.env.OTA_MUSIC === '1' }) {
+/**
+ * The Unity script over the air (BridgeUpdates.cs, the Unity-default plan's D14): `dir` (scripts/engine-bundle.mjs ota: the
+ * player's StreamingAssets/hiraeth-js without public/) zipped as unity-<build>.zip beside web-<build>.zip, and its
+ * manifest updates/unity.json (release-info.mjs unityJson), the previous build's zip kept as web's is. The zip's
+ * bundle.json has to be this build's.
+ */
+export async function writeUnityUpdate({ out, dir, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART }) {
+  const { zip, names } = await zipDir(dir, { skip: (n) => n === 'public' || n.startsWith('public/') || n.endsWith('.meta') || n.endsWith('.DS_Store') });
+  if (!names.includes('hiraeth.cjs')) throw new Error(`no hiraeth.cjs in ${dir}: node scripts/engine-bundle.mjs ota ${dir}`);
+  const info = JSON.parse(await readFile(join(dir, 'bundle.json'), 'utf8').catch(() => '{}'));
+  if (info.build !== build) throw new Error(`${dir}/bundle.json is build ${info.build}, not ${build}`);
+  await mkdir(out, { recursive: true });
+  const file = join(out, `unity-${build}.zip`);
+  await writeFile(file, zip);
+  const manifest = unityJson({ build, version, file, zip: new URL(`${UPDATES}/unity-${build}.zip`, site).href, minUnity: info.minUnity });
+  await rm(file);
+  await writeArchive(out, `unity-${build}.zip`, zip, partSize);
+  if (previous) await writeArchive(out, previous.name, previous.zip, partSize);
+  await writeFile(join(out, 'unity.json'), JSON.stringify(manifest) + '\n');
+  return manifest;
+}
+
+/** Write dist/updates/: this build's zip and web.json, and the previous build's zip (and the Unity script's: `unity`, { dir, previous }). */
+export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART, music = process.env.OTA_MUSIC === '1', unity = null }) {
   const out = join(dist, UPDATES);
   await rm(out, { recursive: true, force: true });
   const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) || AUDIT_FILE.test(n) || REFERENCE_FILE.test(n) || LORE_FILE.test(n) || SITE_CONFIG.test(n) || (!music && onDemand(n)) });
@@ -184,6 +208,8 @@ export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site 
   await writeArchive(out, `web-${build}.zip`, zip, partSize);
   if (previous) await writeArchive(out, previous.name, previous.zip, partSize);
   await writeFile(join(out, 'web.json'), JSON.stringify(manifest) + '\n');
+  // (the Unity script beside it: its manifest returned here, not written into web.json)
+  if (unity) return { ...manifest, unity: await writeUnityUpdate({ out, dir: unity.dir, build, version, site, previous: unity.previous ?? null, partSize }) };
   return manifest;
 }
 
@@ -194,9 +220,17 @@ async function main(args) {
   const build = process.env.WEB_BUILD ? +process.env.WEB_BUILD : gameBuild();
   if (!Number.isSafeInteger(build) || build <= 0) throw new Error(`bad build number ${process.env.WEB_BUILD}`);
   const previous = args.includes('--no-previous') ? null : await previousZip(site, build);
-  const manifest = await writeUpdate({ dist, build, site, previous });
+  // (--unity <dir>: the Unity players' script too, made by node scripts/engine-bundle.mjs ota <dir>)
+  // (made here, scripts/engine-bundle.mjs unityOta, into <dir>: its bundle.json numbered as this build)
+  const u = args.indexOf('--unity');
+  if (u >= 0 && !args[u + 1]) throw new Error('--unity <dir>');
+  if (u >= 0 && process.env.WEB_BUILD) throw new Error('--unity numbers its script by the commit: not with WEB_BUILD');
+  if (u >= 0) await (await import('./engine-bundle.mjs')).unityOta(args[u + 1]);
+  const unity = u >= 0 ? { dir: args[u + 1], previous: args.includes('--no-previous') ? null : await previousZip(site, build, { kind: 'unity' }) } : null;
+  const manifest = await writeUpdate({ dist, build, site, previous, unity });
   const count = await checkLimits(dist);
   console.log(`updates/web-${build}.zip (${(manifest.size / 1048576).toFixed(1)} MiB)${previous ? ` and the previous ${previous.name}` : ''}, web.json; ${count} files in the site`);
+  if (manifest.unity) console.log(`updates/unity-${build}.zip (${(manifest.unity.size / 1048576).toFixed(1)} MiB, needs player level ${manifest.unity.minUnity})${unity.previous ? ` and the previous ${unity.previous.name}` : ''}, unity.json`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

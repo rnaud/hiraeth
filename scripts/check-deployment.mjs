@@ -35,7 +35,7 @@ await Promise.all(Array.from({ length: 8 }, async () => {
   }
 }));
 // Virtual archive URLs must also reconstruct the exact bytes declared by their indexes.
-for (const file of files.filter(file => /web-\d+\.zip\.json$/.test(file))) {
+for (const file of files.filter(file => /(web|unity)-\d+\.zip\.json$/.test(file))) {
   const index = JSON.parse(await readFile(file, 'utf8'));
   const name = relative(dist, file).split(sep).join('/').replace(/\.json$/, '');
   const response = await fetch(new URL(name, base), { signal: AbortSignal.timeout(120_000) });

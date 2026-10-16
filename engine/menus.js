@@ -103,6 +103,12 @@ export const START_SIDE = [
   { id: 'quit', label: () => t('menu.quit') },
 ];
 
+/**
+ * The Updates entry, before Quit to title, in a player that updates its script over the air (the Unity players:
+ * engine/unity/updates.js, BridgeUpdates.cs; the Unity-default plan's D13). The title has it too, under Settings.
+ */
+export const UPDATES_SIDE = { id: 'updates', label: () => 'Updates', page: 'updates' };
+
 /** The Controls page's own choices over the rebinding (src/ui.js: run and guard held or toggled). */
 export const CONTROL_ROWS = [
   { k: 'run', label: () => t('set.run'), kind: 'choice', opts: RUN_MODES, name: (v) => t(`set.run.${v ?? 'auto'}`) },
@@ -148,9 +154,10 @@ export class EngineMenus {
    *                    web's on the page (src/title-layout.js)
    * @param o.shots     (o) → the title's shot (src/title-shots.js chooseShot): a different world each opening
    * @param o.saveLine  () → the line under the Start menu's heading: the save, the world, the time played
+   * @param o.updates   the player's script updates (engine/unity/updates.js UnityUpdates: rows(), act(a), tick()); null: none
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '' } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates });
     this.mode = null;            // null | 'title' | 'start' | 'game' | 'shop' | 'card' | 'starmap'
     this.v = 0;
     this.title = { screen: 'main', i: 0, debugOpen: false, into: DEBUG_SLOT, ask: null, starting: null };
@@ -464,6 +471,7 @@ export class EngineMenus {
         sum ? { id: 'continue', text: t('title.continue'), sub: sum.world, primary: true } : { id: 'new', text: t('title.new'), primary: true },
         { id: 'saves', text: t('title.saves') },
         ...(this.settings ? [{ id: 'settings', text: t('title.settings') }] : []),
+        ...(this.hasUpdates() ? [{ id: 'updates', text: UPDATES_SIDE.label() }] : []),
       ];
     }
     if (T.screen === 'saves') {
@@ -491,6 +499,7 @@ export class EngineMenus {
     const T = this.title;
     if (T.ask) { if (x) T.ask.on = T.ask.on ? 0 : 1; return; }
     if (T.screen === 'settings') { this.settingsMove(x, y, T); return; }
+    if (T.screen === 'updates') { this.updatesMove(y, T); return; }
     const n = this.titleRows().length;
     if (y && n) T.i = (T.i + y + n) % n;
   }
@@ -506,6 +515,11 @@ export class EngineMenus {
       return;
     }
     if (T.screen === 'settings') { this.settingsAction(name, T, () => { T.screen = 'main'; T.i = this.titleRows().findIndex((r) => r.id === 'settings'); }); return; }
+    if (T.screen === 'updates') {
+      if (name === 'back') { T.screen = 'main'; T.i = this.titleRows().findIndex((r) => r.id === 'updates'); }
+      else if (name === 'confirm') this.updatesConfirm(T.at?.i ?? 0);
+      return;
+    }
     const rows = this.titleRows(), r = rows[Math.min(T.i, rows.length - 1)];
     if (name === 'back') { if (T.screen === 'saves') { T.screen = 'main'; T.i = 1; } return; }
     if (name === 'x' && r?.del) { T.ask = { kind: 'delete', slot: r.slot, on: 0, q: t('title.deleteAsk', { n: r.slot }), what: [r.sub, r.sub2].filter(Boolean).join(' · '), yes: t('title.delete') }; return; }
@@ -514,6 +528,7 @@ export class EngineMenus {
     else if (r.id === 'new') { const n = this.store.firstEmpty(); if (n) this.begin({ slot: n, fresh: true }); else { T.screen = 'saves'; T.i = 1; } }
     else if (r.id === 'saves') { T.screen = 'saves'; T.i = 1; T.debugOpen = false; }
     else if (r.id === 'settings') { T.screen = 'settings'; T.at = { in: 'page', i: 0 }; }
+    else if (r.id === 'updates') { T.screen = 'updates'; T.at = { in: 'page', i: this.updatesFirst() }; }
     else if (r.id === 'back') { T.screen = 'main'; T.i = 1; }
     else if (r.slot) this.begin({ slot: r.slot, fresh: !!r.empty });
     else if (r.id === 'debug') T.debugOpen = !T.debugOpen;
@@ -554,13 +569,54 @@ export class EngineMenus {
     return SETTINGS_ROWS.map((r, i) => ({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' }));
   }
 
+  // ------------------------------------------------------------------ the Updates page (the title's and the Start menu's)
+
+  /** Whether this player updates its script (engine/unity/updates.js). */
+  hasUpdates() { return !!this.updates?.on; }
+  /** The page's rows, the cursor's on (`at.i`): always a button, the nearest one when the rows changed under it. */
+  updatesRows(at) {
+    let rows = [];
+    try { rows = this.updates?.rows() ?? []; } catch (e) { console.warn(`[menus] the updates page: ${e?.message ?? e}`); }
+    if (at?.in === 'page' && !rows[at.i]?.act) {
+      const buttons = rows.map((r, i) => (r.act ? i : -1)).filter((i) => i >= 0);
+      if (buttons.length) at.i = buttons.reduce((a, b) => (Math.abs(b - at.i) < Math.abs(a - at.i) ? b : a));
+    }
+    return rows.map((r, i) => ({ ...r, on: at?.in === 'page' && at.i === i && !!r.act }));
+  }
+  /** The first button's row (where the cursor goes on the page). */
+  updatesFirst() { const i = this.updatesRowsNow().findIndex((r) => r.act); return i < 0 ? 0 : i; }
+  updatesRowsNow() { try { return this.updates?.rows() ?? []; } catch { return []; } }
+  /** Up / down: from button to button (the page's other rows are read, not chosen). */
+  updatesMove(y, at) {
+    const buttons = this.updatesRowsNow().map((r, i) => (r.act ? i : -1)).filter((i) => i >= 0);
+    at.at ??= { in: 'page', i: buttons[0] ?? 0 };
+    if (!y || !buttons.length) return;
+    const k = buttons.indexOf(at.at.i);
+    at.at.i = buttons[((k < 0 ? 0 : k + y) + buttons.length) % buttons.length];
+  }
+  /** A / × on the page: the row's button, if it is one. */
+  updatesConfirm(i) {
+    const rows = this.updatesRowsNow(), r = rows[Math.min(i, rows.length - 1)];
+    if (r?.act) this.updates.act(r.act);
+  }
+  /** Is the Updates page on screen (the title's or the Start menu's)? */
+  updatesShown() { return (this.mode === 'title' && this.title.screen === 'updates') || (this.mode === 'start' && this.startPage() === 'updates'); }
+
   // ------------------------------------------------------------------ the Start menu
 
-  startPage() { return ['controls', 'news'].includes(this.start.page) ? this.start.page : 'settings'; }
+  /** The Start menu's sidebar: START_SIDE, and Updates before Quit to title in a player that has them. */
+  startSide() {
+    if (!this.hasUpdates()) return START_SIDE;
+    const quit = START_SIDE.findIndex((e) => e.id === 'quit');
+    return [...START_SIDE.slice(0, quit), UPDATES_SIDE, ...START_SIDE.slice(quit)];
+  }
+
+  startPage() { return ['controls', 'news'].includes(this.start.page) || (this.start.page === 'updates' && this.hasUpdates()) ? this.start.page : 'settings'; }
   startPageRows() {
     const page = this.startPage(), at = this.start.at, on = (i) => at.in === 'page' && at.i === i;
     if (page === 'controls') return this.controlsRows().map((r, i) => ({ ...r, on: on(i) }));
     if (page === 'news') return this.newsRows().map((r, i) => ({ ...r, on: on(i) }));
+    if (page === 'updates') return this.updatesRows(at);
     return this.settingsPage(at);
   }
   /**
@@ -640,29 +696,33 @@ export class EngineMenus {
     if (this.rebinding && Date.now() > this.rebinding.until) this.stopRebind?.();
     // (the Map's view at rest: the part in view drawn again sharper, so the view asks for it once)
     if (this.onMap && !this.mapRested && Date.now() - this.mapMoved >= 400) { this.mapRested = true; this.changed(); }
+    // (the Updates page follows the player's check and download while it shows)
+    if (this.updatesShown()) { try { if (this.updates.tick()) this.changed(); } catch (e) { console.warn(`[menus] the updates page: ${e?.message ?? e}`); } }
   }
   startMove(x, y) {
-    const S = this.start, side = START_SIDE.length;
+    const S = this.start, SIDE = this.startSide(), side = SIDE.length;
     const pageRows = this.startPageRows(), page = pageRows.length;
     // (a slider, a switch or a choice in the page: left / right its value, as the web keeps a slider's; B goes back)
     if (S.at.in === 'page' && x && page && this.startPage() === 'settings') { const r = SETTINGS_ROWS[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settingValue(r), x)); return; }
     const control = S.at.in === 'page' && x && CONTROL_ROWS.find((r) => r.k === pageRows[S.at.i]?.control);
     if (control) { this.setSetting(control, settingStep(control, this.settings[control.k], x)); return; }
-    const home = START_SIDE.findIndex((e) => e.page === this.startPage());
+    if (S.at.in === 'page' && y && !x && this.startPage() === 'updates') { this.updatesMove(y, S); return; }
+    const home = SIDE.findIndex((e) => e.page === this.startPage());
     const go = sideStep({ side, page, at: S.at, home, back: S.back }, x, y);
     if (!go) return;
     if (S.at.in === 'page' && go.in === 'side') S.back = S.at.i;
     S.at = { in: go.in, i: go.to };
     // (on the sidebar, a page's entry shows its page)
-    const e = START_SIDE[S.at.i];
+    const e = SIDE[S.at.i];
     if (go.in === 'side' && e?.page) S.page = e.page;
   }
   startAction(name) {
-    const S = this.start;
+    const S = this.start, SIDE = this.startSide();
     if (name === 'start') { this.close(); return; }
     if (name === 'select') { this.show('game'); return; }
     if (S.at.in === 'page') {
-      if (name === 'back') { S.back = S.at.i; S.at = { in: 'side', i: Math.max(0, START_SIDE.findIndex((e) => e.page === this.startPage())) }; return; }
+      if (name === 'back') { S.back = S.at.i; S.at = { in: 'side', i: Math.max(0, SIDE.findIndex((e) => e.page === this.startPage())) }; return; }
+      if (name === 'confirm' && this.startPage() === 'updates') this.updatesConfirm(S.at.i);
       if (name === 'confirm' && this.startPage() === 'settings') this.settingsAction('confirm', S, () => {});
       if (name === 'confirm' && this.startPage() === 'controls') {
         const r = this.startPageRows()[S.at.i], control = CONTROL_ROWS.find((c) => c.k === r?.control);
@@ -676,10 +736,10 @@ export class EngineMenus {
     }
     if (name === 'back') { this.close(); return; }
     if (name !== 'confirm') return;
-    const e = START_SIDE[S.at.i];
+    const e = SIDE[S.at.i];
     if (e.id === 'resume') this.close();
     else if (e.panel) this.show('game', e.panel);
-    else if (e.page) { S.page = e.page; S.at = { in: 'page', i: 0 }; }
+    else if (e.page) { S.page = e.page; S.at = { in: 'page', i: e.page === 'updates' ? this.updatesFirst() : 0 }; }
     else if (e.id === 'quit') { this.mode = null; this.onQuit(); }
     else if (e.id === 'photo') { this.close(); this.onPhoto(); }
   }
@@ -847,6 +907,7 @@ export class EngineMenus {
     };
     if (T.starting) return { ...base, rows: [], starting: this.note || '…', layout: lay(2), hint: '' };
     if (T.screen === 'settings') return { ...base, head: t('title.settings').toUpperCase(), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ◀ ▶ adjust · B / ○ back' };
+    if (T.screen === 'updates') return { ...base, head: 'UPDATES', page: { rows: this.updatesRows(T.at) }, hint: 'A / × choose · B / ○ back' };
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1) }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose';
@@ -856,12 +917,12 @@ export class EngineMenus {
   startView() {
     const S = this.start, page = this.startPage();
     const keysFirst = page === 'controls' && this.keysFirst();
-    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}` }[page] ?? t('menu.settings');
+    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}`, updates: UPDATES_SIDE.label() }[page] ?? t('menu.settings');
     const hint = this.rebinding ? (this.rebinding.kind === 'keys' ? `${t('rebind.pressKey')} · Esc keeps it` : `${t('rebind.pressButton')} · Menu keeps it`)
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
-      : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
+      : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'updates' ? 'A / × choose · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
     return { v: this.v, kind: 'start', head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
-      side: START_SIDE.map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
+      side: this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
       page: { title, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
   }
   gameView() {

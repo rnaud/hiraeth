@@ -1,4 +1,5 @@
-// The game's updates in the Android app and on the Steam Deck, as the settings show them (src/update-panel.js).
+// The game's updates in the Android app and on the Steam Deck, as the settings show them (src/update-panel.js), and
+// the Unity players' script over the air (platform 'unity': BridgeUpdates.cs, engine/unity/updates.js).
 // Pure: what the app reports (AppShell.info, android/.../WebBundles.java fill()) in, what
 // to say and which buttons to offer out. The states are the app's (UpdateRules.java):
 //
@@ -65,8 +66,11 @@ const vb = (version, build) => [version && `v${version}`, build && `build ${buil
 export function updateView(info, { version = '', now = Date.now(), armed = false, restarting = false, failed = '', maxNotes = 4 } = {}) {
   if (!info?.web) return null;
   const deck = info.platform === 'deck';   // (the Steam Deck's runtime: every one has the buttons)
-  const legacy = !deck && info.platform !== 'xbox' && !(info.native >= SETTINGS_NATIVE);   // (the Xbox app's too: its own levels, xbox/)
-  const running = `${vb(version, info.web)}${info.bundle ? '' : ' (built in)'} · ${deck ? 'runtime' : 'app'} ${info.app}`;
+  const unity = info.platform === 'unity';   // (a Unity player: its script over the air, BridgeUpdates.cs; `app` the player's own build)
+  const legacy = !deck && !unity && info.platform !== 'xbox' && !(info.native >= SETTINGS_NATIVE);   // (the Xbox app's too: its own levels, xbox/)
+  const running = `${vb(version, info.web)}${info.bundle ? '' : ' (built in)'} · ${deck ? 'runtime' : unity ? 'player' : 'app'} ${info.app}`;
+  // (when a download not played yet starts: the web's at the next title screen, a Unity player's at its next start)
+  const later = unity ? 'the game starts' : 'you open the title screen';
   const state = STATES.includes(info.check) ? info.check : 'idle';
   const latest = vb(info.latestVersion, info.latest);
   const size = formatBytes(info.size || info.total);
@@ -113,18 +117,26 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
       v.title = `Downloading ${latest}…`;
       v.progress = total ? got / total : 0;
       v.progressText = total ? `${Math.floor(v.progress * 100)}% · ${formatBytes(got) || '0 KB'} of ${formatBytes(total)}` : formatBytes(got);
-      v.detail = armed ? 'The game restarts when it is done. Your saves are kept.' : 'You can keep playing: it starts the next time you open the title screen.';
+      v.detail = armed ? 'The game restarts when it is done. Your saves are kept.' : `You can keep playing: it starts the next time ${later}.`;
       v.busy = true;
       showNotes();
       break;
     }
     case 'ready':
       v.title = `${vb(info.readyVersion || info.latestVersion, info.ready || info.latest)} is downloaded`;
-      v.detail = armed ? 'Restarting…' : 'Restart to play it now, or it starts the next time you open the title screen. Your saves are kept.';
+      v.detail = armed ? 'Restarting…' : `Restart to play it now, or it starts the next time ${later}. Your saves are kept.`;
       showNotes();
       v.actions.push({ a: 'restart', label: 'Restart now', primary: true });
       break;
     case 'apk':
+      if (unity) {
+        // (the script needs a newer player, minUnity: the player's own update brings it, the Deck's in the background)
+        v.title = `${vb(info.latestVersion, info.latest) || 'The newest game'} needs a newer version of the player`;
+        v.detail = 'Its engine changed, so it can\'t come over the air: it comes with the player\'s next update. You can keep playing this version.';
+        showNotes();
+        v.actions.push(check('Check again'));
+        break;
+      }
       v.title = `${vb(info.apkVersion || info.latestVersion, info.latest) || 'The newest game'} needs a new version of the app`;
       v.detail = ['Its native part changed, so it can\'t come over the air. Install the new app over this one: your saves are kept.', noApkCheck].filter(Boolean).join(' ');
       showNotes();
@@ -144,7 +156,7 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
       break;
     case 'off':
       v.title = 'Updates are off in this build';
-      v.detail = 'A debug build keeps the game it was built with.';
+      v.detail = unity ? 'A local build keeps the game it was built with.' : 'A debug build keeps the game it was built with.';
       break;
     default:
       v.title = 'Not checked yet';

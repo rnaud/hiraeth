@@ -4,6 +4,8 @@
 //   node scripts/release-info.mjs notes                  → markdown release notes for that version
 //   node scripts/release-info.mjs native                 → the app's native bridge level (WebBundles.NATIVE_API)
 //   node scripts/release-info.mjs web-min-native         → the bridge the web game needs (WebBundles.WEB_MIN_NATIVE, web.json's minNative)
+//   node scripts/release-info.mjs unity-api              → the Unity player's bridge level (BridgeUpdates.UnityApi)
+//   node scripts/release-info.mjs unity-min              → the player the Unity script needs (BridgeUpdates.ScriptMinUnity, unity.json's minUnity)
 //   node scripts/release-info.mjs latest-json <build> <apk url>        → latest.json, read by Updater.java
 //   node scripts/release-info.mjs web-json <build> <web.zip> <zip url> → web.json, read by WebBundles.java
 //   node scripts/release-info.mjs web-zips <asset names…>              → the web zips a release can delete (staleWebZips)
@@ -50,6 +52,49 @@ export const desktopApi = (source = readFileSync(DESKTOP_MAIN, 'utf8')) =>
 /** XboxApi from xbox/Hiraeth/WebBundles.cs: the Xbox app's level (web.json's minXbox, docs/systems/xbox.md). */
 export const xboxApi = (source = readFileSync(XBOX_BUNDLES, 'utf8')) =>
   constant(source, /public const int XboxApi = (\d+);/, 'XboxApi in xbox/Hiraeth/WebBundles.cs');
+
+const UNITY_UPDATES = fileURLToPath(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeUpdates.cs', import.meta.url));
+
+/** UnityApi from BridgeUpdates.cs: the Unity player's C# bridge level (bumped when BridgeHost changes in a way the script relies on). */
+export const unityApi = (source = readFileSync(UNITY_UPDATES, 'utf8')) =>
+  constant(source, /public const int UnityApi = (\d+);/, 'UnityApi in BridgeUpdates.cs');
+
+/**
+ * ScriptMinUnity from BridgeUpdates.cs: the oldest Unity player the game's script runs on (unity.json's minUnity, the
+ * script bundle's bundle.json). It follows UnityApi only when the script starts relying on a bridge change.
+ */
+export const unityMinApi = (source = readFileSync(UNITY_UPDATES, 'utf8')) =>
+  constant(source, /public const int ScriptMinUnity = (\d+);/, 'ScriptMinUnity in BridgeUpdates.cs');
+
+/**
+ * The Unity script bundle's own record (StreamingAssets/hiraeth-js/bundle.json, and inside unity-<build>.zip): its build,
+ * version, the player it needs, and whether a player built with it looks for updates (`updates`: the published builds,
+ * GitHub Actions or UNITY_OTA=1; a local build keeps the script it was built with).
+ */
+export const unityBundleInfo = ({ build, version, minUnity = unityMinApi(), updates = false }) => ({ build, version, minUnity, updates: !!updates });
+
+/**
+ * The Unity script's manifest, updates/unity.json beside web.json (scripts/web-update.mjs; read by BridgeUpdates.cs):
+ * the zip of the player's StreamingAssets/hiraeth-js without public/, its sha256 and size, and `minUnity`, the player it needs.
+ */
+export function unityJson({ build, version, zip, file, minUnity = unityMinApi(), notes = releaseNotes() }) {
+  const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
+  const page = releasePage(zip);
+  return { version, build, sha256, zip, minUnity, size: statSync(file).size, notes, ...(page ? { page } : {}) };
+}
+
+/**
+ * What a Unity player does with unity.json (mirrors UpdateRules.Decide in BridgeUpdates.cs): 'skip' when it isn't one of
+ * ours, isn't newer than every build on the device (the player's own script, the one in use, one downloaded) or failed
+ * to start before; 'player' when it needs a newer player (minUnity above its UnityApi: the player's update comes first);
+ * else 'stage'.
+ */
+export function unityDecision(manifest, { unity, current, bad = [] }) {
+  if (!Number.isSafeInteger(manifest?.build) || manifest.build <= 0 || !/^[0-9a-f]{64}$/i.test(manifest.sha256 ?? '')) return 'skip';
+  if ((manifest.minUnity ?? 1) > unity) return 'player';
+  if (bad.includes(manifest.build) || manifest.build <= current) return 'skip';
+  return 'stage';
+}
 
 /**
  * The Steam Deck's kill switch for the Unity player (web.json's deckEngine, read by deck.py's remote_engine):
@@ -259,6 +304,8 @@ function main(what = 'version', ...args) {
   else if (what === 'build') console.log(gameBuild());
   else if (what === 'native') console.log(nativeApi());
   else if (what === 'web-min-native') console.log(webMinNative());
+  else if (what === 'unity-api') console.log(unityApi());
+  else if (what === 'unity-min') console.log(unityMinApi());
   else if (what === 'latest-json') console.log(JSON.stringify(latestJson({ build: +args[0], version: latest.v, apk: args[1] })));
   else if (what === 'web-json') console.log(JSON.stringify(webJson({ build: +args[0], version: latest.v, file: args[1], zip: args[2] })));
   else if (what === 'web-zips') console.log(staleWebZips(args).join('\n'));

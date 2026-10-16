@@ -312,6 +312,17 @@ namespace Hiraeth.Bridge
         public static void StorageSet(string k, string v) => (store ?? Ask(OpenStore)).Set(k, v);
         public static void StorageRemove(string k) => (store ?? Ask(OpenStore)).Remove(k);
 
+        // ---------------------------------------------------------------- the script's updates (BridgeUpdates; engine/unity/updates.js)
+        /// <summary>The Updates page's state (JSON, src/updates.js updateView's info).</summary>
+        public static string UpdateInfo() => Ask(BridgeUpdates.Info);
+        /// <summary>Look for a newer script (auto: the title's own check, which downloads it by itself).</summary>
+        public static void UpdateCheck(bool auto) => On(() => BridgeUpdates.Check(auto));
+        public static void UpdateDownload() => On(BridgeUpdates.Download);
+        /// <summary>Restart now, into the downloaded script (the script saved first).</summary>
+        public static void UpdateRestart() => On(BridgeUpdates.Restart);
+        /// <summary>The C# bridge's level (BridgeUpdates.UnityApi).</summary>
+        public static int UnityApi() => BridgeUpdates.UnityApi;
+
         // ---------------------------------------------------------------- input (as the page's: KeyboardEvent.code names, a standard Gamepad)
         static readonly Dictionary<Key, string> Codes = new()
         {

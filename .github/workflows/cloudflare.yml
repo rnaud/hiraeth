@@ -2,7 +2,8 @@ name: Deploy to Cloudflare Workers
 
 # The game's site, and its content updates next to it: /updates/web.json and
 # /updates/web-<build>.zip (scripts/web-update.mjs), which the Android app
-# (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read. This is the only
+# (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read, and the Unity players' script,
+# /updates/unity.json and /updates/unity-<build>.zip (BridgeUpdates.cs). This is the only
 # workflow that deploys the Worker: a deploy replaces every asset. The Steam Deck runtime
 # (Electron and the launcher, /updates/steam-deck.json and its parts) is on it too.
 #
@@ -58,9 +59,11 @@ jobs:
         run: |
           npm run build
           # this build's zip and web.json, and the previous build's zip from the live site
-          # (a device that read the old web.json a moment ago can finish its download)
-          node scripts/web-update.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/
-          cat dist/updates/web.json
+          # (a device that read the old web.json a moment ago can finish its download); and the Unity players' script over
+          # the air (--unity: BridgeUpdates.cs), the script bundle and the menus' pictures as the players carry them in
+          # StreamingAssets/hiraeth-js, made into that folder, then unity-<build>.zip and unity.json, the previous kept too
+          node scripts/web-update.mjs --live https://hiraeth.alexandria-rnaud.workers.dev/ --unity "$RUNNER_TEMP/unity-ota"
+          cat dist/updates/web.json dist/updates/unity.json
       - name: The Steam Deck runtime on the site
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1

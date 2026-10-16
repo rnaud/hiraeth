@@ -168,8 +168,11 @@ namespace Hiraeth.Bridge
                 var file = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs");
                 // (-bundle <file>: another bundle, a test of a change to the script alone without a new build: on the Xbox
                 // LocalState's (`ls.mjs put`), elsewhere the working directory's; the packaged one when it is not there)
+                // (else a newer script downloaded over the air, BridgeUpdates: persistentDataPath/bundle/<build>/)
+                if (BridgeArgs.Arg("-bundle") == null && BridgeUpdates.Choose() is string ota) file = Path.Combine(ota, "hiraeth.cjs");
                 if (BridgeArgs.Arg("-bundle") is string alt)
                 {
+                    BridgeUpdates.Hold();
 #if UNITY_WSA && !UNITY_EDITOR
                     var other = Path.IsPathRooted(alt) ? alt : Path.Combine(Application.persistentDataPath, alt);
 #else
@@ -180,14 +183,19 @@ namespace Hiraeth.Bridge
                 }
                 code = file.Contains("://") ? StreamingFile.Read(file) : File.Exists(file) ? File.ReadAllBytes(file) : null;
                 if (code == null) throw new FileNotFoundException($"no bundle: node scripts/engine-bundle.mjs unity ({file})");
-                Debug.Log($"Hiraeth bridge: started {Time.realtimeSinceStartup * 1000:0} ms after launch; the bundle {code.Length / 1e6:0.0} MB");
+                Debug.Log($"Hiraeth bridge: started {Time.realtimeSinceStartup * 1000:0} ms after launch; the bundle {code.Length / 1e6:0.0} MB{(BridgeUpdates.Serving > 0 ? $" (downloaded build {BridgeUpdates.Serving})" : "")}");
+                BridgeUpdates.Started();
             }
             catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; return; }
             bool onMain = Array.IndexOf(BridgeArgs.CommandLine(), "-js-main") >= 0 || args.Contains("\"jsMain\":true");
             if (onMain)
             {
                 try { Boot(code); started = true; }
-                catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; }
+                catch (Exception e)
+                {
+                    Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true;
+                    if (BridgeUpdates.Failed("its start threw")) { failed = false; pendingReboot = "{}"; RebootNow(); }
+                }
                 return;
             }
             // (V8 wants a deep stack, and takes its limit from the thread that makes the isolate: made there)
@@ -201,7 +209,7 @@ namespace Hiraeth.Bridge
             // With V8, the Xbox's since scripts/unity-uwp-v8.ps1, the sound has its own engine; -audio-js as with QuickJS)
             bool oneEngine = JsRuntime.Backend == "QuickJS";
             if (oneEngine) Debug.Log("Hiraeth bridge: QuickJS: the sound rendered on the script's thread");
-            var audioCode = oneEngine || Array.IndexOf(BridgeArgs.CommandLine(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "audio.cjs"));
+            var audioCode = oneEngine || Array.IndexOf(BridgeArgs.CommandLine(), "-audio-js") >= 0 ? null : BridgeUpdates.ScriptFile("audio.cjs");
             if (audioCode != null && audioOut)
             {
                 BridgeHost.audioThreaded = true;
@@ -577,6 +585,8 @@ namespace Hiraeth.Bridge
         {
             if (Time.realtimeSinceStartup > limitAt) { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); return; }
             BridgeHost.NewFrame();
+            // (a downloaded script that hasn't played its first frame in BridgeUpdates.BootSeconds: the built-in one instead)
+            if (started && !failed && !exiting && BridgeUpdates.Watchdog()) { pendingReboot = "{}"; RebootNow(); return; }
             if (!started || failed) return;
             // (drawn once the script's engine is made: it is made through this thread, which the prewarm's first frame holds
             // for as long as its pipelines take, 12-15 s on the Xbox; from then on its draws overlap the script's world build)
@@ -610,7 +620,8 @@ namespace Hiraeth.Bridge
                 if (exiting) return;
                 if (!ok)
                 {
-                    if (threadFailed) { Debug.LogError("Hiraeth bridge: " + threadError); failed = true; Exit(5); }
+                    if (threadFailed && BridgeUpdates.Failed("its start threw")) { Debug.LogError("Hiraeth bridge: " + threadError); pendingReboot = "{}"; RebootNow(); }
+                    else if (threadFailed) { Debug.LogError("Hiraeth bridge: " + threadError); failed = true; Exit(5); }
                     else { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); }
                     return;
                 }
@@ -646,6 +657,7 @@ namespace Hiraeth.Bridge
         {
             if (readyMarked) return;
             readyMarked = true;
+            BridgeUpdates.FirstFrame();   // (a downloaded script trusted from now on)
             Debug.Log($"Hiraeth bridge: ready, the first frame played {Time.realtimeSinceStartup * 1000:0} ms after launch");
             string path = Application.isEditor ? null : BridgeArgs.Arg("-ready");
             if (string.IsNullOrEmpty(path)) return;
@@ -900,9 +912,11 @@ namespace Hiraeth.Bridge
             Debug.Log("Hiraeth bridge: rebooting");
             Rebooted = true;
             quit = true; go.Set(); BridgeHost.AudioWake.Set();
-            if (thread != null && !thread.Join(5000)) Debug.LogWarning("Hiraeth bridge: the script's thread did not stop");
+            bool stuck = thread != null && !thread.Join(5000);
+            if (stuck) { Debug.LogWarning("Hiraeth bridge: the script's thread did not stop"); stuckScript = true; }
             if (audioThread != null && !audioThread.Join(2000)) Debug.LogWarning("Hiraeth bridge: the sound's thread did not stop");
-            try { js?.Dispose(); } catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the script's engine: " + e.Message); }
+            // (an engine still running on its thread, a downloaded script stuck in its start: left, not disposed under it)
+            if (!stuck) try { js?.Dispose(); } catch (Exception e) { Debug.LogWarning("Hiraeth bridge: the script's engine: " + e.Message); }
             js = null; thread = null; audioThread = null; started = false;
             BridgeHost.Reset();
             BridgeShadowChunks.Forget();
@@ -932,6 +946,27 @@ namespace Hiraeth.Bridge
         }
 
         bool exiting;
+        /// <summary>A script's engine that didn't stop at a reboot is still running on its thread (left, not disposed).</summary>
+        static bool stuckScript;
+#if (UNITY_STANDALONE_OSX || UNITY_STANDALONE_LINUX) && !UNITY_EDITOR
+#if UNITY_STANDALONE_LINUX
+        [System.Runtime.InteropServices.DllImport("libc.so.6", EntryPoint = "_exit")] static extern void PosixExit(int code);   // (glibc's libc.so is a linker script)
+#else
+        [System.Runtime.InteropServices.DllImport("libc", EntryPoint = "_exit")] static extern void PosixExit(int code);
+#endif
+#endif
+        static void HardExit(int code)
+        {
+            try
+            {
+#if (UNITY_STANDALONE_OSX || UNITY_STANDALONE_LINUX) && !UNITY_EDITOR
+                PosixExit(code);
+#elif !UNITY_EDITOR
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+#endif
+            }
+            catch (Exception e) { Debug.Log("Hiraeth bridge: the hard exit: " + e.Message); }
+        }
         public void Exit(int code)
         {
             if (exiting) return;
@@ -942,6 +977,9 @@ namespace Hiraeth.Bridge
             Debug.Log($"Hiraeth bridge: exit {code}");
             BridgePso.Exit();   // (the trace's states, or the warm-up's misses, saved before the player goes)
             BridgeHost.FlushStore();   // (the saves set in the last frames, on the disk)
+            // (an engine left running by a stuck script, BridgeUpdates' watchdog: a quit waited on it for good on the Mac,
+            // so the process goes at once, with its code)
+            if (stuckScript && OnExit == null) { Debug.Log("Hiraeth bridge: a stuck script's engine is still running: the process ends here"); HardExit(code); }
             if (OnExit != null) OnExit(code);
             else Application.Quit(code);
         }
