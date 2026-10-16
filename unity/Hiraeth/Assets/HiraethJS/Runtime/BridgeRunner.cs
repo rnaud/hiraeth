@@ -370,8 +370,9 @@ namespace Hiraeth.Bridge
             if (urp != null && BridgeArgs.Arg("-render-scale") is string rs && float.TryParse(rs, System.Globalization.NumberStyles.Float, inv, out float rsv)) urp.renderScale = rsv;
 #if UNITY_ANDROID && !UNITY_EDITOR
             // (the handheld at Handheld draws at 0.75 of its screen, as the web's Handheld preset holds it on the Retroid; the
-            // GPU was the frame there: 34-55 ms at 1, 23-25 at 0.65 with the lean surfaces)
-            else if (urp != null) urp.renderScale = BridgeArgs.Quality == "handheld" ? 0.75f : 1f;
+            // GPU was the frame there: 34-55 ms at 1, 23-25 at 0.65 with the lean surfaces); a larger screen fewer of its own,
+            // 960 x 540 at most (the AYN Thor's 1080p at 0.5, issue #395: HandheldScale)
+            else if (urp != null) urp.renderScale = BridgeArgs.Quality == "handheld" ? HandheldScale(Screen.width, Screen.height) : 1f;
 #endif
             // (-upscale fsr|linear|point: URP's filter from a render scale under 1 to the screen, FSR 1 by default there)
             if (urp != null && BridgeArgs.Arg("-upscale") is string up)
@@ -694,6 +695,19 @@ namespace Hiraeth.Bridge
         /// the web's Xbox preset adapts its scale the same way (src/perf.js `xbox` dynamic). Issue #113. On by default on the
         /// Xbox's 4K swap chain (Uhd.On), from 2/3 (1440p) to 1 (-no-dyn-res keeps the scale where it starts).
         /// </summary>
+        /// <summary>
+        /// The render scale of Handheld on Android, by the screen's size (issue #395): 0.75 on a screen up to the Retroid's
+        /// 1280 × 960 (960 × 720 drawn); on a larger one, as many pixels as 960 × 540 at most (the AYN Thor's 1920 × 1080 at
+        /// 0.5: an exact half, which the upscale likes). The Thor at 0.75 drew 1440 × 810, 1.7 times the Retroid's
+        /// pixels on the same GPU (the Adreno 740, here at 680 MHz at most): 39-47 fps in the open views. The GPU's fixed
+        /// ~14 ms leaves little to win below 0.5 (docs/systems/performance.md, "Unity on the AYN Thor").
+        /// </summary>
+        public static float HandheldScale(int w, int h)
+        {
+            const float retroid = 1280f * 960f, budget = 960f * 540f;
+            float px = Mathf.Max(1f, (float)w * h);
+            return px <= retroid ? 0.75f : Mathf.Min(0.75f, Mathf.Sqrt(budget / px));
+        }
         static bool dynOn; static float dynMin = 0.75f;   // (set by Experiments, once the screen is chosen)
         static void DynamicResolutionSettings()
         {

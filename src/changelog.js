@@ -23,6 +23,9 @@ export const CHANGELOG = [
     // issue #390: src/fluid-blade.js FIGHT, foeEngaged, bladeLitWant (drawn and open while a foe is awake within 10 m or
     // locked on, 3 s past the last); tests/blade-grip.test.js, tests/engine-combat.test.js
     'Your sword stays drawn and glowing for the whole fight. It used to go dark in your hand after every cut and light again for the next; now, while a foe is close and awake or you are locked on, the blade stays open between swings, through the guard, rolls and the charged cut. A few seconds after the fight is over it goes back on your back as before.',
+    // issue #395: unity/…/BridgeRunner.cs HandheldScale (Handheld on Android: 960 × 540's pixels at most on a screen
+    // larger than the Retroid's); tests/unity-thor.test.js; docs/systems/performance.md "Unity on the AYN Thor"
+    'The Unity version on the AYN Thor runs at or near 60 frames a second in most places instead of about 40: on its 1080p screen the world is now drawn at half its width and height and scaled up to fill it, a little softer for it. Retroid players see no change.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

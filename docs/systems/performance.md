@@ -3309,6 +3309,57 @@ To repeat: build both APKs as above, `node scripts/bench/android-pso-trace.mjs -
 -views … -bench 6 -slow-ms 50` cold (the app's `cache/vulkan_pso_cache.bin` deleted) and warm, with and without
 `-pso` (Android's default is now without) and `-no-slim`; the first frame, the frozen load frames and the late frames are in the app's `unity.log`.
 
+### Unity on the AYN Thor: its render scale (2026-10-16, issue #395)
+
+The author: 40 fps only in the Unity build on the AYN Thor. The Thor has the Retroid Pocket Nova's chip (QCS8550,
+Adreno 740; its GPU clock here at most 680 MHz, kgsl) and a 1920 × 1080 main screen at 60 Hz (120 offered, unused), thermal
+status 0. Its second, bottom screen (1080 × 1240) shows the launcher: the game draws nothing there (no `Display.displays`
+in the bridge). **What the build picked**: Handheld (the Android default; the author's saved setting too), the lean
+surfaces, a frame target of 60, and **0.75 of the screen**, the Retroid's rule: 1440 × 810, 1.7 times the Retroid's
+960 × 720 pixels on the same GPU. So the frame was the GPU's: 20-34 ms. 40 is no vsync divisor (that would be 30).
+
+**Measured** (the Unity testers' APK, v1.82 build 2490, as installed; `-render-scale` for each scale, so the same build
+throughout; the bench's views as on the Retroid, muted, the frame readout on, one sitting; GeckoView: this commit's
+`dist` in the test app, `android-worlds.mjs --modes fixed --scale 0.75`). Per world: fps (the mean over each view's 6 s,
+the median of the world's views), the worst view, the 1 % low (median of the views) and the GPU's ms (median):
+
+| world (views) | 0.75 (1440 × 810, as shipped) | 0.667 (1280 × 720) | 0.577 (the Retroid's pixels) | **0.5 (960 × 540, now)** | `-dyn-res` 0.667 → 0.5 | GeckoView, Handheld at 0.75 |
+|---|---|---|---|---|---|---|
+| Desert (5) | 46.9, 39.1, 38.3, 20.1 | 52.9, 43.3, 38.8, 17.4 | 59.5, 47.8, 51.7, 14.3 | 59.5, 55.0, 46.2, 13.4 | 59.5, 50.5, 48.6, 13.5 | 51.1, 49.7, 29.2 |
+| City-Shaft (4) | 39.3, 28.2, 29.6, 24.0 | 43.5, 30.9, 32.2, 21.4 | 47.3, 34.3, 33.6, 19.0 | 51.8, 37.0, 33.9, 17.2 | 51.4, 37.0, 35.1, 17.7 | 46.7, 32.6, 23.7 |
+| Signal Market (4) | 40.8, 39.7, 35.0, 23.5 | 46.7, 42.6, 38.6, 20.1 | 52.2, 48.7, 38.4, 17.5 | 59.5, 58.6, 51.4, 15.0 | 56.8, 52.8, 45.1, 15.6 | 57.3, 52.7, 29.5 |
+| Lorn (4) | 44.1, 33.9, 33.4, 22.3 | 49.6, 38.3, 42.6, 19.5 | 52.0, 44.2, 44.2, 17.5 | 54.4, 47.6, 41.0, 15.1 | 54.5, 44.9, 40.3, 15.8 | 54.2, 47.5, 29.5 |
+| Underwater (4) | 39.3, 34.7, 33.1, 24.4 | 44.7, 38.7, 36.4, 21.2 | 50.1, 44.6, 38.4, 18.4 | 57.1, 51.2, 38.9, 16.2 | 55.8, 51.2, 38.5, 16.3 | 53.0, 51.5, 28.3 |
+| Floating city (4) | 43.1, 38.8, 37.4, 22.3 | 47.0, 43.3, 39.5, 20.1 | 52.3, 48.8, 38.3, 17.4 | 59.5, 53.9, 49.1, 15.2 | 59.5, 50.9, 51.8, 15.2 | 59.2, 57.6, 32.4 |
+
+The 0.5 column is the new build's own default (no `-render-scale`, its log: render scale 0.5), within 0.5 fps of the
+same scale asked of the old build. GeckoView's "0.75" draws 1248 × 702: the web caps the pixel ratio at 2 (a canvas of
+1664 × 936 at 0.75); with its own dynamic scale (the web app's default) it settles at 0.65 (0.5-0.55 in Lorn) and makes
+53.8 / 48.4 / 58.6 / 58.5 / 58.7 / 59.1 fps in these six worlds.
+
+- **At the Retroid's pixels the Thor is a Retroid**: at 0.577 its GPU times are the Retroid's (the desert's median
+  14.3 ms on both) and its views miss 60 where the Retroid's do. Most of the open views needed fewer pixels still: at
+  0.5, 15 of the 25 views hold 58-60 (8 at 0.577, 1 at 0.75), and every world's median is level with or ahead of
+  GeckoView's; three views stay behind it: the Floating city's start (53.9 against 57.6), Lorn's start (47.6 / 49.1) and
+  Underwater's wide view (51.2 / 52.3).
+- **Below 0.5 there is little left**: the ~14 ms of GPU that does not scale with the pixels (above, "Unity on the Retroid") is most of
+  the frame there: the City-Shaft's wide view is 25.3 ms of GPU at 0.5 (37 fps), 27.5 at 0.577, 33.7 at 0.75.
+- **`-dyn-res` is no better than 0.5 held**: it starts at the scale given, steps 0.05 every 1.5 s toward a GPU of 15 ms,
+  URP making its targets again at each step; held at 0.5 is level or ahead in every world. Not made the default.
+
+**Now** (BridgeRunner `HandheldScale`): Handheld on Android draws 0.75 of a screen up to the Retroid's 1280 × 960 (the
+Retroid unchanged), and on a larger screen as many pixels as 960 × 540 at most: the Thor's 1080p at 0.5, an exact half.
+`-render-scale` still overrides it. The picture: softer, the ink a little heavier (it is drawn in the render's pixels,
+`HiraethLook.PixelRatio` 1 off the Xbox); the menus and the HUD stay at the screen's own size. With the upscalers of
+issue #392 (FSR 1 / SGSR 1 in HiraethFeature) the Thor is the device that gains most: a 2× upscale (the Retroid's is
+1.33×), so it would take the sharpest of them by default once they land.
+
+To repeat: the Retroid's scripts with the Thor's serial (`a78d67fe`): for Unity, the plan `-mute -metrics -level <world>
+-views <file> -bench 6 -slow-ms 50 [-render-scale s]` per world through the intent (as in round 4 above); GeckoView,
+`ANDROID_SERIAL=a78d67fe node scripts/bench/android-worlds.mjs --serve dist --worlds … --modes fixed,dynamic --scale 0.75
+--port <yours>`. **Back up the Unity app's `files/store.json` first and put it back after**: the bench's runs play in
+save slot 1 and write its flags and encounters (they did here; restored).
+
 ## The bench's desert start, under the ship's ramp from 10 to 12 October (issue #265)
 
 The Unity bridge's plans without fixed views (`-idle`, `-tour`, `-walk`, `-play`, and a launch with no plan before the

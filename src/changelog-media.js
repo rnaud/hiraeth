@@ -1088,6 +1088,8 @@ const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modul
 const DOORS391 = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on its own Vite (port 6391), the camera pinned 5.5 m before each way through of the twelve route worlds; before: the tree before the change (eb00b3c1, port 6394), after: the change; 16 October; cwebp -q 72';
 const DOORS391G = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden) on its own Vite (port 6391), the camera pinned before the door, noon (12:00) or dusk (18:36); before: the fitted veil (the fit commit), after: the glow; 16 October; cwebp -q 72';
 const SWORD390 = 'muted headless Chrome on this Mac, High, 1280 × 720, the Arena at 10:00, a blot (its health raised) fought with the combo, the camera off his right front quarter, origin/main against issue #390’s change; 16 October; cwebp -q 72';
+/** (v1.82, issue #395: the Unity build's render scale on the AYN Thor) */
+const THOR395 = 'Issue #395: the Unity testers’ APK on the AYN Thor (adb, muted, the frame readout on, the bench’s plan -views … -bench 6 in one sitting); before: the installed v1.82 build (build 2490, Handheld at 0.75 of 1920 × 1080), after: this change’s build (0.5); the pictures are the bench’s own frames of the desert’s spawn from this change’s build, before held at 0.75 (-render-scale 0.75), the middle 1280 × 720 cut at full size; 16 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.82': [
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
@@ -1115,6 +1117,18 @@ export const CHANGELOG_MEDIA = {
       { name: 'sword-open', size: [1280, 711], title: 'Between cuts', caption: 'The Arena, a blot fought with the combo, a frame every half second or so: before, the blade dark in the fist after each cut (only the cuts lit); after, open at full length between them', from: SWORD390 },
       { name: 'sword-sheathe', size: [960, 400], title: 'The fight over', caption: 'The blot gone: 1.5 s after, and 6.5 s after. Before, dark in the fist, then on his back; after, still open, then on his back with the same sheathe', from: SWORD390 },
     ], see: 'Fight anything: between your swings the blade stays lit in your hand. Walk away from the fight and a few seconds later he puts it back on his back.' },
+    { match: 'The Unity version on the AYN Thor runs at or near 60', tags: ['performance'], shots: [
+      { name: 'thor-render', caption: 'The desert’s first view on the Thor’s screen, the middle at its own pixels: before, drawn at 1440 × 810; after, at 960 × 540 and scaled up, softer at the edges', from: THOR395 },
+    ], numbers: [
+      { title: 'Frames a second on the AYN Thor, Unity version, the bench’s views (the mean over 6 s; the worst view in brackets)', unit: 'fps', better: 'higher', device: 'AYN Thor (Snapdragon 8 Gen 2, 1920 × 1080 at 60 Hz), Handheld, muted, the frame readout on', rows: [
+        { where: 'the Desert (5 views)', before: 46.9, after: 59.5 },
+        { where: 'the City-Shaft (4)', before: 39.3, after: 51.8 },
+        { where: 'the Signal Market (4)', before: 40.8, after: 59.5 },
+        { where: 'Lorn (4)', before: 44.1, after: 54.4 },
+        { where: 'Underwater (4)', before: 39.3, after: 57.1 },
+        { where: 'the Floating city (4)', before: 43.1, after: 59.5 },
+      ], source: THOR395, note: 'The median of each world’s views. The worst views: 28 → 37 fps (the City-Shaft’s wide view), 34 → 48 (Lorn’s start), 39 → 55 (the desert’s spawn). GeckoView on the same views, at its own Handheld: 47–59.' },
+    ], see: 'On the AYN Thor, play the Unity version with Graphics on Handheld (its default): the desert’s first view, the Signal Market or the Floating city now keep a steady 60.' },
   ],
   '1.81': [
     { match: 'Walking through a door no longer runs you into a wall first', shots: [

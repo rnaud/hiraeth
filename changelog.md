@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.82 — 2026-10-16
 
+- The Unity version on the AYN Thor runs at or near 60 frames a second in most places instead of about 40: on its 1080p screen the world is now drawn at half its width and height and scaled up to fill it, a little softer for it. Retroid players see no change.
 - Your sword stays drawn and glowing for the whole fight. It used to go dark in your hand after every cut and light again for the next; now, while a foe is close and awake or you are locked on, the blade stays open between swings, through the guard, rolls and the charged cut. A few seconds after the fight is over it goes back on your back as before.
 - And that light is new: instead of a curtain of flickering tongues, the doorway itself glows, brightest round its frame in a few flat steps, with the warm lamp of the room beyond (or the daylight, on the way out) faint in its middle. It softens as you walk up to it, so you can see into the door before you step through.
 - The light in a doorway now fills the whole opening. A temple’s great door, its ways out, the skull’s mouth, the sea locks, the shops and the crashed ship’s hatch all used to wear a narrow sheet of it, smaller than the dark it stood in, like a cut-out in front of a hole; now it reaches from jamb to jamb and up into the arch.
