@@ -56,10 +56,11 @@ test('its cradle, neck, cloth, back plate and straps; three charge lights on its
 });
 
 test('the stages: the lift valve, the wings and the Warden\'s bellows each add their parts (the valve\'s wheel, the vanes, the second valve)', () => {
-  assert.deepEqual(BACKPACK_STAGES, ['doublejump', 'glider', 'wardenbellows'], 'the double jump is its first strength (the bellows the wings\' third)');
+  assert.deepEqual(BACKPACK_STAGES, ['doublejump', 'glider', 'fan'], 'the double jump is its first strength (the Warden\'s Well\'s gust fan the third: issue #377, the bellows before)');
   assert.equal(backpackStage(() => false), 0);
   assert.equal(backpackStage((id) => id === 'doublejump'), 1);
-  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'wardenbellows'].includes(id)), 3);
+  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'fan'].includes(id)), 3);
+  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'wardenbellows'].includes(id)), 2, 'the bellows, found earlier on the route now (Lorn\'s court), are no stage');
   assert.equal(backpackStage((id) => ['doublejump', 'glider', 'jetpack'].includes(id)), 3, 'the debug jets count as the bellows');
   const f = buildFlask(glassMat(), { stage: 0 });
   assert.equal(f.stages.length, 4);

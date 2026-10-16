@@ -34,6 +34,61 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 /** The foes of a room still standing (src/foes.js placeMachinesIn: rt.machines, each with its room). */
 export const arenaFoes = (rt, room) => (rt.machines ?? []).filter((f) => f.room === room && f.alive && f.dead === undefined);
 
+/** What a condition (a door's `opens`, a switch's `when`) names: the elements, and the items ({ item }). */
+function named(c, els = new Set(), its = new Set()) {
+  if (c == null || typeof c !== 'object') return { els, its };
+  if (Array.isArray(c)) { for (const x of c) named(x, els, its); return { els, its }; }
+  for (const [k, v] of Object.entries(c)) {
+    if (k === 'all' || k === 'any' || k === 'not') named(v, els, its);
+    else if (k === 'item') its.add(v);
+    else if (k === 'gadget' || k === 'resolved') continue;
+    else for (const x of [v].flat()) if (typeof x === 'string') els.add(x);
+  }
+  return { els, its };
+}
+/** Does element `id` (a door, a switch, a drum…) want, or wait on something that wants, one of the items `lack`? */
+export function wants(def, id, lack, seen = new Set()) {
+  if (seen.has(id)) return false;
+  seen.add(id);
+  const e = def.elements[id];
+  if (!e) return false;
+  if ((e.needs ?? []).some((it) => lack(it))) return true;
+  for (const c of [e.opens, e.when, e.after ? { lit: e.after } : null]) {
+    const { els, its } = named(c);
+    if ([...its].some((it) => lack(it)) || [...els].some((x) => wants(def, x, lack, seen))) return true;
+  }
+  return false;
+}
+
+/**
+ * The rooms walked to from the entrance (issue #375's gadget gates), both ways: through a link whose `needs` `pass` lets
+ * by, and whose door is open now (`isOpen`) or opens without anything the save lacks (a door held by a bell the hook
+ * rings is a wall to a save without the hook). Everything else is taken as doable: keys, balls, plates, fights.
+ */
+export function roomsPast(def, pass, isOpen = () => false) {
+  const lack = (it) => !pass(it);
+  const seen = new Set([def.entry]), todo = [def.entry];
+  while (todo.length) {
+    const r = todo.pop();
+    for (const l of def.links) {
+      const other = l.a === r ? l.b : l.b === r ? l.a : null;
+      if (!other || seen.has(other) || !(l.needs ?? []).every((it) => pass(it))) continue;
+      if (l.door && !isOpen(l.door) && wants(def, l.door, lack)) continue;
+      seen.add(other); todo.push(other);
+    }
+  }
+  return seen;
+}
+
+/** The house's gadget gates (issue #375): each item it gives (its chest's, a find's) that a link or an element wants. */
+export function gateItems(def) {
+  const own = new Map();   // item -> how a save shows it passed the place it is earned: { chest } or { find: element id, box }
+  if (def.gadget) own.set(def.gadget, { chest: true });
+  for (const [id, e] of Object.entries(def.logic.elements)) if (e.type === 'find' && e.item) own.set(e.item, { find: id, box: e.box });
+  const wanted = new Set([...def.logic.links.flatMap((l) => l.needs ?? []), ...Object.values(def.logic.elements).flatMap((e) => [...(e.needs ?? []), ...named(e.opens).its])]);
+  return [...own].filter(([it]) => wanted.has(it));
+}
+
 export class TempleRuntime {
   constructor({ scene, level, def, game = sharedGame, items = sharedItems }) {
     this.def = def; this.level = level; this.scene = scene; this.game = game; this.items = items;
@@ -173,6 +228,40 @@ export class TempleRuntime {
     if (hurt) P.hurt?.(sparing(heartsOf(P), hurt), 'fall');   // (hearts; never the last quarter)
   }
 
+  /** The room the traveller stands in, as near as the house knows it: the nearest mark or piece of a room's. */
+  roomNear(p) {
+    let best = null, bd = Infinity;
+    const els = this.def.logic.elements;
+    const consider = (room, at) => { if (!room || !at?.isVector3) return; const d = at.distanceToSquared(p); if (d < bd) { bd = d; best = room; } };
+    for (const m of this.marks) consider(m.room, m.spot);
+    for (const q of this.pieces) if (q.id && els[q.id]?.room) consider(els[q.id].room, q.pos ?? q.center ?? q.at);
+    return best;
+  }
+  /** (issue #375) Past a gadget gate the save cannot cross back: the gadget if it has earned it, else a mark it can reach. */
+  unstrand() {
+    const P = this.player, def = this.def.logic;
+    const gates = gateItems(this.def).filter(([it]) => !this.items.has(it));
+    if (!P || !gates.length) return null;
+    const room = this.roomNear(P.pos);
+    const ok = (set) => (it) => !set.some(([g]) => g === it) || this.items.has(it);
+    const open = (d) => this.logic.computeOpen(d);   // (as the save stands now, not as last drawn)
+    if (!room || roomsPast(def, ok(gates), open).has(room) || !roomsPast(def, () => true).has(room)) return null;
+    // passed the place it is earned: it is the save's (the chest's gadget once the chest is taken, a find's once found)
+    let granted = null;
+    for (const [it, how] of gates) {
+      const earned = how.chest ? (this.logic.gadget || !!this.game.flag(`box.${this.def.gadgetBox}`)) : (this.logic.isFound(how.find) || !!this.game.flag(`box.${how.box}`));
+      if (earned) { this.items.grant(it); granted = it; }
+    }
+    const left = gates.filter(([it]) => !this.items.has(it));
+    if (!left.length || roomsPast(def, ok(left), open).has(room)) return { granted };
+    // else: the last mark if the way out is open from it, else the entrance's
+    const reach = roomsPast(def, ok(left), open);
+    const m = (this.checkpoint && reach.has(this.checkpoint.room) ? this.checkpoint : null) ?? this.marks.find((k) => k.room === def.entry) ?? this.marks.find((k) => reach.has(k.room));
+    if (m) { this.setCheckpoint(m); P.teleport?.(m.spot.clone(), V(0, 1, 0), V(0, 0, 1)); P.heading = m.heading; }
+    else if (this.arrival) { P.teleport?.(this.arrival.pos.clone(), V(0, 1, 0), V(0, 0, 1)); P.heading = this.arrival.heading; }
+    return { granted, moved: m?.room ?? 'arrival' };
+  }
+
   solids() {
     const out = [];
     for (const p of this.pieces) if (p.solid) out.push(p);
@@ -215,6 +304,11 @@ export class TempleRuntime {
     // temple.<id>.relaid): its first frame here, the traveller is taken to the last mark, in the new rooms
     const relaid = `temple.${this.id}.relaid`;
     if (P?.pos && this.game.flag(relaid)) { this.game.set(relaid, null); if (inside || this.below(P.pos)) this.toCheckpoint(); }
+    // a save loaded inside, past one of the house's gadget gates without its gadget (issue #375: the gadgets moved into the
+    // temples, and a house's rooms changed under old saves): never stranded. Past the chest (or the find), the gadget is
+    // the save's; else back to the last mark it can reach, or the entrance's
+    // (main.js sets `loaded` when it puts the traveller where a save left him: only then, once)
+    if (P?.pos && this.loaded) { this.loaded = false; if (inside) this.unstrand(); }
     this.def.onUpdate?.(this, dt, t);
     this.updateArenas(dt);
     this.applyDoors();

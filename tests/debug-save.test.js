@@ -181,8 +181,9 @@ test('every magical water that colours the tank is a band, and the code grants i
   assert.deepEqual([...new Set(sites)].sort(), TANK_BANDS.map((b) => `story/${b.world}.js`).sort(), 'a new tank band: add it to TANK_BANDS');
   // (main.js and the dev menu: the ?items= and dev switches; the boxes: PLACEMENTS; the trials: their rewards, held in
   // a debug save since v1.58 (TRIALS); the scientist's upgrades for the fragments of the singing light: fitted as the
-  // fragments of the worlds before reach them, since v1.58, issue #203)
-  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'fragment-shop.js', 'main.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
+  // fragments of the worlds before reach them, since v1.58, issue #203; a temple's runtime: the gadget of a chest already
+  // taken, to a save loaded past its gate without it, issue #375: the chest's own box, PLACEMENTS)
+  assert.deepEqual(grants.sort(), ['boxes/index.js', 'dev-menu.js', 'fragment-shop.js', 'main.js', 'temples/runtime.js', 'trials/index.js'], 'a new place that grants gear: cover it in src/debug-save.js');
   assert.deepEqual(gives, [], 'gear given in code by a quest: cover it in src/debug-save.js');
 });
 

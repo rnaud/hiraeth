@@ -337,12 +337,13 @@ export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bl
 
 /**
  * The backpack's strengths in the order the route brings them (docs/systems/progression.md): the lift valve's
- * double jump (the desert's giant's cave), the wings (Vael's Aerie), the bellows (the City-Shaft's Warden's Well).
+ * double jump (the desert's giant's cave), the wings (Vael's Aerie), the gust fan (the City-Shaft's Warden's Well; the
+ * Warden's bellows until issue #377, which wait in Lorn's makers' court since, earlier on the route: not a stage).
  * How many are owned is the backpack's stage (0..3): the round tank shows it (src/fluid-tool.js buildTank).
  */
-export const BACKPACK_STAGES = ['doublejump', 'glider', 'wardenbellows'];
-/** The backpack's stage (0..3) from what is owned (has: id -> bool); the debug jets count as the bellows (they turn a great vane too). */
-export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id) || (id === 'wardenbellows' && has('jetpack'))).length;
+export const BACKPACK_STAGES = ['doublejump', 'glider', 'fan'];
+/** The backpack's stage (0..3) from what is owned (has: id -> bool); the debug jets count as the third (they turn a great vane too). */
+export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id) || (id === 'fan' && has('jetpack'))).length;
 
 const key = (id) => `item.${id}`;
 const EQUIPPED = 'gadget.equipped';   // (src/gadgets/index.js EQUIPPED_FLAG: the gadget in hand)

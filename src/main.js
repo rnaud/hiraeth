@@ -1213,6 +1213,8 @@ if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.p
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
   player.heading = saved.heading ?? player.heading;
   rig.yaw = saved.yaw ?? rig.yaw;
+  // (issue #375) a save left inside a temple, past a gadget gate it can't cross back: the house sees to it on its first frame
+  for (const rt of [...(level.temples ?? []), level.temple].filter(Boolean)) rt.loaded = true;
 }
 // for development: ?aboard=cockpit | main | cabin | hold starts you in that room of the parked ship (src/ship/ship.js roomSpot)
 {
