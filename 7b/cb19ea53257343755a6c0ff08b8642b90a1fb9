@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_d42db08ffbabf1 7
+docs/systems/characters.md
+  s_9ca76055a220ed::t_d9f8d5eeaae04d 503-518
+scripts/cape-census.mjs
+  s_9ca76055a220ed::t_f199a05973d1d8 23,35,43-44,84,90-100
+src/changelog-media.js
+  s_9ca76055a220ed::t_6bae74ace150cc 1063-1071
+src/changelog.js
+  s_9ca76055a220ed::t_1cbeb92f815fce 50-52
+src/costumes.js
+  s_9ca76055a220ed::t_71d6fc26a3a5ff 99,182,203,286,477,485,644-645,669-670,695-711
+tests/skirt-share.test.js
+  s_9ca76055a220ed::t_b229a1024311c1 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7bcb19ea53257343755a6c0ff08b8642b90a1fb9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
