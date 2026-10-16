@@ -132,9 +132,10 @@ namespace Hiraeth.Bridge
             if (Application.isEditor) return null;
             try
             {
-                const string key = "hiraeth.js.hiraeth.settings.v1";
-                if (!PlayerPrefs.HasKey(key)) return null;
-                var q = (Json.Parse(PlayerPrefs.GetString(key)) as Dictionary<string, object>)?.S("quality");
+                // (the store's file, BridgeStore: PlayerPrefs' copy moved into it at its first read)
+                var text = BridgeHost.OpenStore().Get("hiraeth.settings.v1");
+                if (text == null) return null;
+                var q = (Json.Parse(text) as Dictionary<string, object>)?.S("quality");
                 return q switch { "handheld" or "deck" or "low" or "medium" or "high" => q, "xbox" => "high", _ => null };
             }
             catch { return null; }
@@ -229,11 +230,12 @@ namespace Hiraeth.Bridge
             return JsonText(args);
         }
 
+        static string QuoteJson(string s) { var b = new System.Text.StringBuilder(s.Length + 2); BridgeStore.Quote(b, s); return b.ToString(); }
         /// <summary>A little JSON writer (numbers, strings, lists, dictionaries).</summary>
         public static string JsonText(object v) => v switch
         {
             null => "null",
-            string s => "\"" + s.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"",
+            string s => QuoteJson(s),   // (control characters too: the Updates page's log has its lines, BridgeUpdates.Info)
             bool b => b ? "true" : "false",
             double d => d.ToString(CultureInfo.InvariantCulture),
             float f => f.ToString(CultureInfo.InvariantCulture),

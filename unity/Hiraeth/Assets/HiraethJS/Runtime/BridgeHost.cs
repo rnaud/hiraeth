@@ -289,9 +289,28 @@ namespace Hiraeth.Bridge
             }
             return null;
         }
-        public static string StorageGet(string k) => Ask(() => PlayerPrefs.HasKey("hiraeth.js." + k) ? PlayerPrefs.GetString("hiraeth.js." + k) : null);
-        public static void StorageSet(string k, string v) => On(() => { PlayerPrefs.SetString("hiraeth.js." + k, v); PlayerPrefs.Save(); });
-        public static void StorageRemove(string k) => On(() => PlayerPrefs.DeleteKey("hiraeth.js." + k));
+        // the script's localStorage: a JSON file in persistentDataPath (BridgeStore: UWP's PlayerPrefs hold at most 8 KB a
+        // value), each key moved from PlayerPrefs the first time it is read, PlayerPrefs left as a fallback read
+        static BridgeStore store;
+        /// <summary>The store, if open.</summary>
+        public static BridgeStore Store => store;
+        public const string PrefsPrefix = "hiraeth.js.";
+        /// <summary>The store, opened once a process (on the main thread: persistentDataPath is its; -store &lt;file&gt; another file).</summary>
+        public static BridgeStore OpenStore()
+        {
+            if (store != null) return store;
+            var file = BridgeArgs.Arg("-store") is string alt && alt.Length > 0 ? Path.GetFullPath(alt) : Path.Combine(Application.persistentDataPath, "store.json");
+            store = new BridgeStore(file,
+                k => Ask(() => PlayerPrefs.HasKey(PrefsPrefix + k) ? PlayerPrefs.GetString(PrefsPrefix + k) : null),
+                k => On(() => { if (PlayerPrefs.HasKey(PrefsPrefix + k)) { PlayerPrefs.DeleteKey(PrefsPrefix + k); PlayerPrefs.Save(); } }));
+            UnityEngine.Debug.Log($"Hiraeth bridge: the store {file} ({store.Source}, {store.Count} keys)");
+            return store;
+        }
+        /// <summary>What was set, on the disk (the exit, going away, an update's restart).</summary>
+        public static void FlushStore() { try { store?.Flush(); } catch (Exception e) { UnityEngine.Debug.Log("Hiraeth bridge: the store's flush: " + e.Message); } }
+        public static string StorageGet(string k) => (store ?? Ask(OpenStore)).Get(k);
+        public static void StorageSet(string k, string v) => (store ?? Ask(OpenStore)).Set(k, v);
+        public static void StorageRemove(string k) => (store ?? Ask(OpenStore)).Remove(k);
 
         // ---------------------------------------------------------------- input (as the page's: KeyboardEvent.code names, a standard Gamepad)
         static readonly Dictionary<Key, string> Codes = new()

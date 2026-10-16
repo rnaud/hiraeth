@@ -63,6 +63,7 @@ namespace Hiraeth.Bridge
         {
             BridgeHost.Runner = this;
             downloadRoot = Path.Combine(Application.persistentDataPath, "public");
+            BridgeHost.OpenStore();   // (the saves' file, once a process: BridgeStore)
             // a player's plan from its command line (BridgeBuild: -views, -bench, -out …; the editor's batch run sets args itself)
             if (!Application.isEditor && BridgeArgs.Arg("-limit") is string lim) limitAt = Time.realtimeSinceStartup + float.Parse(lim, System.Globalization.CultureInfo.InvariantCulture);
             if (RebootArgs != null) { args = RebootArgs; RebootArgs = null; Debug.Log($"Hiraeth bridge: started again: {args}"); }
@@ -926,6 +927,7 @@ namespace Hiraeth.Bridge
             away = on;
             if (on) Interlocked.Increment(ref BridgeHost.awayCount);
             if (!muted) AudioListener.pause = on;
+            if (on) BridgeHost.FlushStore();   // (the saves on the disk: a suspend may end in the player killed)
             Debug.Log("Hiraeth bridge: " + (on ? "away (silent, the Start menu next)" : "back"));
         }
 
@@ -939,6 +941,7 @@ namespace Hiraeth.Bridge
             if (music) Debug.Log($"Hiraeth bridge: music {music.Report()}");
             Debug.Log($"Hiraeth bridge: exit {code}");
             BridgePso.Exit();   // (the trace's states, or the warm-up's misses, saved before the player goes)
+            BridgeHost.FlushStore();   // (the saves set in the last frames, on the disk)
             if (OnExit != null) OnExit(code);
             else Application.Quit(code);
         }
@@ -968,6 +971,8 @@ namespace Hiraeth.Bridge
             System.Array.Clear(renderSum, 0, renderSum.Length); renderN = 0;
             return s;
         }
+
+        void OnApplicationQuit() => BridgeHost.FlushStore();   // (the window closed, Steam's Exit Game: the saves on the disk)
 
         void OnDestroy()
         {

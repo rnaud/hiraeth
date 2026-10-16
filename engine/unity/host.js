@@ -1,6 +1,6 @@
 // The host for the game's VM inside Unity (engine/platform.js reads it), through Puerts' CS
 // object: the files of the web game's public/ folder (BridgeHost.ReadFile: the repository's, or
-// StreamingAssets/hiraeth-js/public in a build), the save in PlayerPrefs, Unity's clock, the pads.
+// StreamingAssets/hiraeth-js/public in a build), the save in persistentDataPath/store.json (BridgeStore), Unity's clock, the pads.
 // First in the Unity bundle, before the game's modules load.
 const H = globalThis.CS?.Hiraeth?.Bridge?.BridgeHost;
 
