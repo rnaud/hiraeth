@@ -1,0 +1,174 @@
+// Every temple ends on a cinematic (issue #366: "Temples should end on a cinematic. Cinematic should have the level's
+// music playing"; src/temples/finale.js). One shape for all fourteen houses: the keeper at rest, its purse, the house
+// from high up with its glyphs lighting, the way out sinking open; its details from each house (its guardian, its arena,
+// the door that waits for it). Built here in node with their real rooms: every panel frames what it shows from inside
+// the house, the film is 8–15 s, it plays once, the world's theme is cued under it, the way out waits for its panel and
+// a skip (or no ship's camera) lands the same.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import './register-gadgets.js';
+import * as THREE from 'three';
+import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
+import { FINALE, FINALES, finaleLength, finaleShots, finaleFlag, playFinale, wayOut } from '../src/temples/finale.js';
+import { Moment, MomentStage } from '../src/story/moment.js';
+import { buildableById } from '../src/levels/buildable.js';
+import { Physics } from '../src/physics.js';
+import { game } from '../src/game-state.js';
+
+const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const quiet = (fn) => { const w = console.warn, l = console.log, i = console.info; console.warn = console.log = console.info = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; console.info = i; } };
+
+const built = new Map();
+/** A house in its world, built once: { rt, physics }; the traveller stood in its arena between the keeper and the way out. */
+function house(id) {
+  if (built.has(id)) return built.get(id);
+  const scene = new THREE.Scene();
+  const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
+  const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
+  quiet(() => level.init?.(physics));
+  const rt = templeOf(level, id) ?? level.temple;
+  scene.updateMatrixWorld(true);
+  const out = { rt, physics, scene };
+  built.set(id, out);
+  return out;
+}
+function standBy(rt) {
+  const G = rt.guardian, way = wayOut(rt);
+  const c = G.arena.center, door = way.piece.group.position;
+  const dir = V(door.x - G.model.pos.x, 0, door.z - G.model.pos.z).normalize();
+  const pos = G.model.pos.clone().addScaledVector(dir, Math.min(6, G.arena.r * 0.5)).setY(G.arena.y);
+  rt.player = { pos, vel: V(), heading: Math.atan2(-dir.x, -dir.z), riding: false };
+  return rt.player;
+}
+/** What drawn surface of the house stands between the lens and p (not the keeper, not the way out's own door, nothing see-through), or null. */
+function blocker(rt, from, p, skip) {
+  const d = from.distanceTo(p);
+  const ray = new THREE.Raycaster(from, p.clone().sub(from).normalize(), 0.05, d - 0.4);
+  const shown = (o) => { for (let q = o; q; q = q.parent) { if (!q.visible) return false; if (skip.includes(q)) return false; } return true; };
+  for (const h of ray.intersectObject(rt.root, true)) {
+    const mat = Array.isArray(h.object.material) ? h.object.material[0] : h.object.material;
+    if (!h.object.isMesh || mat?.transparent || mat?.visible === false || !shown(h.object)) continue;
+    return { name: h.object.name || h.object.parent?.name || '?', at: h.distance.toFixed(1) };
+  }
+  return null;
+}
+/** Is p in the frame of camera c (inside the letterbox, in front)? */
+function inFrame(c, p) {
+  const cam = new THREE.PerspectiveCamera(c.fov, 16 / 9, 0.1, 2000);
+  cam.position.copy(c.pos); cam.lookAt(c.look); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+  const v = p.clone().project(cam);
+  return v.z < 1 && Math.abs(v.x) < 0.92 && Math.abs(v.y) < 0.78;
+}
+
+test('the shape: four panels, 8–15 s, every house listed, a beat each', () => {
+  const len = finaleLength();
+  assert.ok(len >= 8 && len <= 15, `8–15 s (${len})`);
+  assert.deepEqual(Object.keys(FINALES).sort(), Object.keys(TEMPLES).sort(), 'every house has its entry');
+  for (const [id, f] of Object.entries(FINALES)) assert.ok(f.beat?.length > 10, `${id}: what it shows`);
+  assert.equal(finaleFlag('desert'), 'temple.desert.finale');
+});
+
+for (const id of Object.keys(TEMPLES)) {
+  test(`${id}: every panel frames what it shows, from inside the house`, () => {
+    const { rt, physics } = house(id);
+    assert.ok(rt?.guardian, 'a guardian');
+    const way = wayOut(rt);
+    assert.ok(way?.piece, 'its way out: a door that opens on the guardian');
+    assert.deepEqual(rt.logic.el(way.id).opens, { resolved: true });
+    standBy(rt);
+    const film = finaleShots(rt);
+    assert.equal(film.shots.length, 4);
+    const names = ['keeper', 'reward', 'house', 'way'];
+    // the camera as the moment makes it (pulled in to whatever stands between it and what it looks at)
+    const m = new Moment({ shots: film.shots, stage: { physics } });
+    let t0 = 0;
+    for (const [i, s] of film.shots.entries()) {
+      for (const k of [0.05, 0.5, 0.95]) {
+        m.t = t0 + s.dur * k;
+        const c = m.camera();
+        assert.equal(c.i, i);
+        const target = typeof film.at[names[i]] === 'function' ? film.at[names[i]]() : film.at[names[i]].clone();
+        if (names[i] === 'way') target.y += (way.piece.h ?? 6) * 0.45;
+        if (names[i] === 'reward') target.y += 0.3;   // (the chimes float over the floor)
+        assert.ok(rt.inside(c.pos), `${names[i]} at ${k}: the lens inside the house (${c.pos.toArray().map((v) => v.toFixed(1))})`);
+        assert.ok(inFrame(c, target), `${names[i]} at ${k}: in the frame`);
+        assert.ok(c.pos.distanceTo(c.look) > (names[i] === 'reward' ? 1.2 : 2.5), `${names[i]} at ${k}: not jammed against a wall (${c.pos.distanceTo(c.look).toFixed(1)} m)`);
+        const b = blocker(rt, c.pos, target, [rt.guardian.model.group, way.piece.group]);
+        const M = rt.guardian.model, gh = M.height ?? 3, lo = M.floats ? M.pos.y - gh / 2 : M.pos.y;
+        assert.ok(!(Math.hypot(c.pos.x - M.pos.x, c.pos.z - M.pos.z) < (M.radius ?? 2.6) && c.pos.y > lo && c.pos.y < lo + gh), `${names[i]} at ${k}: the lens not inside the keeper`);
+        if (names[i] === 'way') { const d = c.pos.clone().sub(target), hd = Math.hypot(d.x, d.z), p = target.clone().addScaledVector(d, 0.5); assert.ok(hd < 3 || Math.hypot(p.x - M.pos.x, p.z - M.pos.z) > (M.radius ?? 2.6) * 0.8, `${names[i]} at ${k}: not looking at the door through the keeper`); }
+        assert.equal(b, null, `${names[i]} at ${k}: nothing drawn in the way (${JSON.stringify(b)})`);
+      }
+      t0 += s.dur;
+    }
+  });
+}
+
+const fakeShip = () => {
+  const s = { log: [], shots: [], playing: false, busy: () => false, auto: null };
+  s.shot = (c) => s.shots.push(c);
+  s.release = (b) => s.log.push(['release', b]);
+  s.cinema = { bars: (on) => s.log.push(['bars', on]), hud: (on) => s.log.push(['hud', on]), say: () => {}, skip: () => {} };
+  return s;
+};
+const fakeSound = () => ({ cues: [], musicCue(k) { this.cues.push(k); }, trackBuffer: {}, trackOn: true });
+
+function resolveWith(id, { ship = fakeShip(), skipAt = null } = {}) {
+  game.reset();
+  const { rt, physics } = house(id);
+  rt.logic.store.set('boss', null);
+  rt.logic.forced.clear();
+  rt.applyDoors();
+  const way = wayOut(rt);
+  way.piece.setOpen(false, true);
+  const player = standBy(rt);
+  const sound = fakeSound();
+  const moments = new MomentStage({ ship, game, player, physics });
+  rt.onFinale = () => playFinale(rt, { moments, sound, game });
+  rt.game = game;
+  rt.guardian.state = 'weary';
+  quiet(() => rt.guardian.resolve());
+  const seen = { playing: moments.playing, open: [], shut: [] };
+  const dt = 1 / 30;
+  for (let t = 0; t < finaleLength() + 1; t += dt) {
+    if (skipAt !== null && t >= skipAt && moments.playing) moments.skip();
+    quiet(() => { moments.update(dt); rt.applyDoors(); rt.glowUpdate(dt); });
+    seen.lit = Math.max(seen.lit ?? 0, rt.litK ?? 0);
+    (rt.logic.isOpen(way.id) ? seen.open : seen.shut).push(t);
+  }
+  return { rt, way, sound, seen, ship, moments };
+}
+
+test('resolving the guardian plays it once, the theme cued, the way out held for its panel', () => {
+  const { rt, way, sound, seen, ship } = resolveWith('desert');
+  assert.ok(seen.playing, 'playing as the guardian is resolved');
+  assert.deepEqual(sound.cues, ['moment'], 'the world’s recorded theme cued under it');
+  assert.ok(rt.finaleLog.music.cued && rt.finaleLog.music.on, 'the theme on');
+  assert.equal(game.flag(finaleFlag('desert')), true, 'once per save');
+  assert.equal(game.flag('temple.desert.done'), true);
+  const tD = FINALE.keeper + FINALE.reward + FINALE.house;
+  assert.ok(seen.shut.length && Math.max(...seen.shut) >= tD - 0.05, `the door held shut until the way out’s panel (${Math.max(...seen.shut).toFixed(2)} s)`);
+  assert.ok(Math.min(...seen.open) < tD + 0.6, 'and opened in it');
+  assert.ok(rt.logic.isOpen(way.id), 'open at the end');
+  assert.ok(ship.shots.length > 100 && ship.log.some(([k, v]) => k === 'bars' && v === true), 'filmed in the letterbox');
+  assert.ok(rt.finaleLog.ended && !rt.finaleLog.skipped);
+  // the glyphs came up, and ease back
+  assert.ok(seen.lit > 0.9, `the house’s glyphs lit (${seen.lit.toFixed(2)})`);
+  const base = rt.glyphGlow;
+  for (let i = 0; i < 200; i++) rt.glowUpdate(1 / 30);
+  assert.equal(rt.litK, 0, 'and eased back');
+  assert.equal(rt.M.glyph.uniforms.uGlow.value, base);
+  // a second resolution (another save's?) in the same save: not again
+  assert.equal(playFinale(rt, { moments: new MomentStage({ ship: fakeShip(), game, player: rt.player }), sound: fakeSound(), game }), null);
+});
+
+test('a skip lands the same: the way out open, the flag set; without a ship the door opens at once', () => {
+  const r = resolveWith('arzach', { skipAt: 1.5 });
+  assert.ok(r.rt.finaleLog.skipped, 'skipped');
+  assert.ok(Math.min(...r.seen.open) < 1.7, 'the door open on the skip');
+  assert.ok(r.rt.logic.isOpen(r.way.id));
+  const n = resolveWith('spheres', { ship: null });
+  assert.equal(n.seen.playing, false, 'no ship’s camera: nothing played');
+  assert.equal(n.seen.shut.length, 0, 'the way out opened at once, as before');
+  assert.deepEqual(n.sound.cues, []);
+});

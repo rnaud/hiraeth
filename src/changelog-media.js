@@ -1107,6 +1107,10 @@ export const CHANGELOG_MEDIA = {
       ], note: 'The worst jolt at a blend: the Arena 4.8 → 2.8–4.6 cm, the street 6.0 → 2.6–4.4, the desert 4.4–14.2 → 3.4–5.3. The Arena’s floor came out within every limit in one of the three runs, the first time.' },
     ], see: 'Sprint (hold RT / R2), then pull the stick right back: his feet come round with him and land without a jolt. Stand, tap the stick left or right and push on: the foot stepping round lands before he sets off. Jog up and down a flight of stairs.' },
     { match: 'Picking up a crate or a weight for the first time', see: 'Start a new save and open the Gadget Yard (?level=gadgetyard), walk up to a wooden crate and press A / × to pick it up: before, the game stopped dead there and had to be restarted; now he lifts it and the line “Carried in both hands…” appears.' },
+    { match: 'Every temple now ends on a short film', tags: ['temples'], shots: [
+      { name: 'temple-finale-rose', title: 'The Rose House', caption: 'The moment the Keeper of the cistern is calmed: before, the follow camera over his shoulder and the toasts; after, the film’s first panel, the Keeper at rest in the letterbox (the world’s theme playing)', from: 'headless muted Chrome on this branch, the guardian resolved in its arena, before with the ending unhooked, 15 October', size: [1280, 720] },
+      { name: 'temple-finale-aerie', title: 'The Aerie', caption: 'The Elder’s resolution: before, the follow camera; after, the film’s first panel, the Elder opening her wings, him small at her feet', from: 'headless muted Chrome on this branch, the guardian resolved in its arena, before with the ending unhooked, 15 October', size: [1280, 720] },
+    ], see: 'Calm or stop any temple’s guardian: the film plays (about 11 s) with the world’s recorded theme, the way out opens in its last panel, then you are back in play, turned to it. B / ○, Menu, Esc or a tap on the corner skips it; it plays once per save.' },
   ],
   '1.78': [
     { match: 'In the Unity preview the stamina wheel and the floating', tags: ['devices'], shots: [

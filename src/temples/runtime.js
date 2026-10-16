@@ -10,6 +10,7 @@ import { TempleLogic, flagStore } from './logic.js';
 import { Guardian, guardianBar } from './boss.js';
 import { Mark, Pit } from './pieces.js';
 import { Veils } from '../veil.js';
+import { FINALE } from './finale.js';
 import { pitVoid, PIT_VOID } from '../pit-void.js';
 
 // One temple, alive: its rooms (built by the world's layout with the kit and
@@ -189,6 +190,9 @@ export class TempleRuntime {
   onBossResolved() {
     if (this.def.arenaDoor) this.logic.force(this.def.arenaDoor, null);
     this.logic.resolve();
+    // its ending, filmed (src/temples/finale.js, issue #366: the story's hook, index.js), before the way out opens: it
+    // holds that door for its last panel
+    try { this.onFinale?.(this); } catch (e) { console.warn(`temple ${this.id}: its ending could not play`, e); }
     this.applyDoors();
     this.game.set(`temple.${this.id}.done`, true);
     this.game.emit('temple:resolved', { id: this.id, pos: this.guardian?.model?.pos?.clone?.() ?? null });   // (pos: where it settled: its purse, src/chimes.js)
@@ -233,6 +237,19 @@ export class TempleRuntime {
     // fell into a pit
     if (P && !P.dead && inside) for (const pit of this.pits) if (pit.contains(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); break; }
     this.change?.update?.(dt, t);
+    this.glowUpdate(dt);
+  }
+
+  /** The house's glyphs brighten while its ending says so (rt.litWant 0..1: src/temples/finale.js), and ease back. */
+  glowUpdate(dt) {
+    const U = this.M.glyph?.uniforms?.uGlow;
+    if (!U) return;
+    const want = this.litWant ?? 0;
+    if (!want && !this.litK) return;
+    this.glyphGlow ??= U.value;
+    const k0 = this.litK ?? 0, k = want > k0 ? Math.min(want, k0 + dt / 1.2) : Math.max(want, k0 - dt / 2.5);
+    this.litK = k;
+    U.value = this.glyphGlow + FINALE.glow * k * k * (3 - 2 * k);
   }
 
   /**

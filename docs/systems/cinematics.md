@@ -333,6 +333,42 @@ The three ran 7.4–7.6 s in three panels until the v1.66 pass; `tests/moments-<
 its fourth panel framing its beat (the whale in frame and at the glass, the moon rising onto the hook and the hung
 moons turning, the capstan and its cables in frame with the lamps lighting), and the face last.
 
+### A temple's ending, filmed (v1.79, issue #366)
+
+"Temples should end on a cinematic. Cinematic should have the level's music playing." Every house (all fourteen) ends
+the same way once its guardian is resolved (`src/temples/finale.js`): one shape, its details read from the house, a
+moment on the ship's camera (letterbox, skip tag; B / ○, Menu, Esc or a tap skips it after the grace), once per save
+(`temple.<id>.finale`), 11 s (`FINALE`):
+
+- **A, keeper** (3.2 s): the guardian whole as its resolution plays out, from behind him and a little round, him small in
+  the foreground, the arc drifting on; a keeper too big for its hall at that reach gets a wider lens (to 68°).
+- **B, reward** (2.4 s): low over the floor where its purse fell (main.js `purseAt`: between him and it), the chimes
+  floating up, the keeper beyond.
+- **C, house** (2.6 s): high and wide over the arena from the side away from the way out; the house's glyphs come up
+  (`rt.litWant`, eased by `TempleRuntime.glowUpdate`: `uGlow` + 0.35, back down over 2.5 s after).
+- **D, way** (2.8 s): the way out, the door whose condition is `{ resolved: true }` (`wayOut`, the nearest the arena's
+  middle; `FINALES[id].door` where a house has two), straight on from the hall along its own normal, from as far back
+  as its passage lets the lens (up to 11 m). The logic holds it shut (`logic.force`) until 0.5 s into this panel, then
+  it sinks (1.8 s); he turns to it (`m.face`), so the follow camera comes back behind him looking at it.
+
+The **music**: as it starts, `sound.musicCue('moment')` brings the world's recorded theme in under it (src/music-moments.js,
+faded in over 3 s where it had gone quiet; inside a temple it is usually on already, indoors); without a recording the
+procedural score's moment plays. `rt.finaleLog` (and a console line, `[temple finale]`) says whether the theme was
+loaded and on.
+
+**Hooked** in `TempleRuntime.onBossResolved` (`rt.onFinale`, set by `setupOneTemple` with the story's `moments`), after
+the logic is resolved and before the doors and `temple.<id>.done`: the world's closing words that the flag sets off
+wait for it (`story.waitFor` is a conversation or a moment, main.js and engine/game.js), the guardian's line and the
+"outside" toast wait in the toasts (`cinema.held`). It can't play (no ship's camera, a scene up): the door opens at once,
+as before. A skip or a failure opens the door in `onEnd`. **Framing from data**: each lens is kept inside the house's
+bounds, clear of its drawn walls (`drawnHit`: a raycast of the house's meshes, since a wall high over a passage is drawn
+and not solid, so the moment's own collider pull-in misses it) and out of the keeper's column; `FINALES` holds each
+house's beat and its nudges (`side`, `door`, `wide`, `high`: the Mooring-House's hall view under its floating plates).
+**Unity** plays it from the same story (engine/game.js: the ship's cinema as the screen's 'cine').
+Tests: `tests/temple-finale.test.js` (all fourteen built: every panel frames its subject, from inside, not through a
+drawn wall or the keeper; once; the theme cued; the door held to its panel; a skip and no ship), and
+`tests/engine-temple-finale.test.js` (the Aerie's in the engine bundle).
+
 ### After the v1.66 pass: framing fixes (issues #296–#299)
 
 - **The stone** (`src/ship/homecoming.js`): the setting-down's angles (`TOMB_ANGLES`) are framed on where each of

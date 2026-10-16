@@ -66,6 +66,9 @@ export const CHANGELOG = [
     // tests/engine-mother-snapper.test.js; docs/systems/foes.md "Every glob that sounds like a hit takes"
     { text: 'The Mother Snapper’s fight can be finished from anywhere in her hall. Rearing to snap, her head now looms out over you, so a push reaches it even from the middle of the hall, and she rears to snap twice as often. Still her as she winds up and her head drops, mouth open, ready for the cold. Every stilling shot that rings bright now calms her and moves her bar, each crystal sung in turn too; one that does nothing splashes dull, as on a wall.',
       see: 'In the Hush-House, wake the Mother Snapper and shoot a stilling glob into her jaws as she rears back: her head drops spent, agape; still her mouth and the bar goes down. In her second phase stand in the middle of the hall: as she rears to snap her head comes out over you, and a push into it slams it down.' },
+    // a temple's ending filmed (issue #366): src/temples/finale.js (one shape, the house's own details), runtime.js
+    // onBossResolved / glowUpdate, index.js; docs/systems/cinematics.md "A temple's ending"
+    'Every temple now ends on a short film once its guardian is calmed or stopped: the guardian at rest, its reward on the floor, the house from high up as its glyphs light, then the way out sinking open, with the world’s own music playing through it. B / ○ or Esc skips it.',
   ] },
   { v: '1.78', date: '2026-10-15', items: [
     'The makers now sign their work with an open corner and a shorter upright: a bold, simple mark on temple doors, carved walls, machines and the ship’s scar. The dialogue and map show the same sign, and its descriptions match what you see.',

@@ -272,7 +272,7 @@ export function createStory(o) {
   // the cabs (src/taxi.js): they drive themselves, and ask where to as you get in (src/story/cab.js)
   const cabs = setupCabs({ player, dialogue, level, toast });
   // the world's temple (src/temples/): its quest, its local, its rooms and guardian
-  const temple = setupTempleStory({ ...o, quests, dialogue, game, spawn, talkable });
+  const temple = setupTempleStory({ ...o, quests, dialogue, game, spawn, talkable, moments });
   // the world's shops (src/story/shops.js): the keepers behind their counters, the wares on them
   const shops = setupShops({ level, game, spawn });
   // the fellow traveller (src/story/fellow.js): Tansy, a few steps from the ship in her stops along the route

@@ -73,6 +73,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (portals), marks and pits (and a net under the whole temple), the chest's site
   (the box system places it: `PLACEMENTS` entries with `temple`), the guardian
   and its meter on screen, and the world change (`change`: `set(on)`, `update`).
+  Once the guardian is resolved the house's ending is filmed (`finale.js`: docs/systems/cinematics.md, "A temple's
+  ending, filmed").
 - **`index.js`**: `attachTemple(levelId, scene, level)` (called by the level's
   `create`: joins portals, lights, `init`, `dynamic`, `update`, clears the
   world's own trees and rocks round the building) and `setupTempleStory(ctx)`

@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items } from '../items.js';
 import { TempleRuntime } from './runtime.js';
+import { playFinale } from './finale.js';
 import { templeLight } from './kit.js';
 import { KEYS, colourScript } from '../timeofday.js';
 import { DESERT_TEMPLE } from './desert.js';
@@ -234,11 +235,13 @@ export function setupTempleStory(ctx) {
 
 /** The story side of one temple: its quest, its people, the locators; returns { update } or null. */
 function setupOneTemple(ctx, rt) {
-  const { level, quests, spawn, player, sound, toast, game = sharedGame, physics, isNight = null } = ctx;
+  const { level, quests, spawn, player, sound, toast, game = sharedGame, physics, isNight = null, moments = null } = ctx;
   const T = rt && TEMPLES[rt.id];
   if (!rt || !T) return null;
   const levelId = rt.id;   // (the temple's own world: the desert's Sabri waits at the qanat's camps)
   rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
+  // its ending, filmed as the guardian is resolved (src/temples/finale.js, issue #366), the world's theme under it
+  rt.onFinale = () => playFinale(rt, { moments, sound, game });
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({

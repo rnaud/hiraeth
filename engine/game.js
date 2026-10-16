@@ -436,7 +436,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const shopPanel = menus?.openShop ? new ShopPanel({ el: SHOP_EL, doc: null, game: gameState, resources, sound, covered: () => true,
     onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts?.(resources.maxHearts); player.restore?.(player.maxHearts); } } }) : null;
   if (shopPanel) gameState.on('shop:open', ({ shop } = {}) => { shopWaiting = (shop === 'thrum' ? story?.scientist?.shopEntry?.() : story?.shops?.byId?.(shop)) ?? null; });
-  if (storyPage) storyPage.waitFor = () => !!story?.dialogue?.open;   // (a world's words never over a conversation: main.js)
+  if (storyPage) storyPage.waitFor = () => !!story?.dialogue?.open || !!story?.moments?.playing;   // (a world's words never over a conversation or a moment: main.js)
   journal.markSeen(levelId);   // (after the story read its first visit, as main.js marks it)
   if (Q) for (const n of npcs) { n.lowDetail = !!Q.lowDetail; n.clothFar = Q.clothFar ?? null; }
   // the makers' boxes (src/boxes/): each with its beacon, the pale pillar of light over a box that must be found

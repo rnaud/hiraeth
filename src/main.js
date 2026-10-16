@@ -803,7 +803,7 @@ const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crow
 // them starts, if it hadn't, so the quest log and the scout show the way
 game.on('travel:refused', ({ quest }) => { if (quest && !storyRt.quests.isStarted(quest)) storyRt.quests.start(quest); });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
-story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
+story.waitFor = () => storyRt.dialogue.open || !!storyRt.moments?.playing;   // a story page never opens over a conversation or a moment (a temple's ending: src/temples/finale.js): it waits for its end
 // the shops (src/shop.js, src/shop-panel.js, src/story/shops.js): talking to a keeper ("Show me what you have") or E at
 // their counter opens the panel; a heart container fills the hearts too, and the HUD shows the wallet and the hearts
 const shopPanel = new ShopPanel({ game, resources, sound,
