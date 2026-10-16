@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_fa323e362818ef 7
+docs/systems/performance.md
+  s_9ca76055a220ed::t_63ae14eea54bb9 2963-3051
+engine/game.js
+  s_9ca76055a220ed::t_c795964aed1134 43,142-143,267,453-458,1341-1343,1346
+engine/unity/backend.js
+  s_9ca76055a220ed::t_07b12509b95d03 125,172-173
+engine/unity/game.js
+  s_9ca76055a220ed::t_dc840e6c458ae1 293,331,873,897-898
+src/changelog.js
+  s_9ca76055a220ed::t_23543a3bbaa2d4 72-86
+src/perf.js
+  s_9ca76055a220ed::t_8c6c5a8f1d4769 28-34,42
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs
+  s_9ca76055a220ed::t_a2dcfc402eee15 129-131,213,277,289,353-355
+unity/Hiraeth/Assets/Hiraeth/Runtime/Wildlife.cs
+  s_9ca76055a220ed::t_2d5fd0c7428153 60-63,72-73,159-172,197-199,201,208-209
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_9ca76055a220ed::t_aa7fb1947fff3c 388-389
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_f7b4e7cadd3907 616,1078
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_919faf563f4fa3 442-444,578,936-961,965
+tests/unity-retroid-far.test.js
+  s_02ba46fb9a792d::t_0f5dcc4b0b3fc2 1-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "83783f10b09cc44010d24a0d04f0b583cb50e183",
+  "prompts": {},
+  "sessions": {
+    "s_02ba46fb9a792d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8b5ec1e63c943683",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
