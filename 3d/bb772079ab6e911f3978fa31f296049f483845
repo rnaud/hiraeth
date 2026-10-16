@@ -1,0 +1,77 @@
+changelog.md
+  s_9ca76055a220ed::t_e0797cb94acc8d 8-9
+docs/design/gadget-temples.md
+  s_9ca76055a220ed::t_594125f51df406 46,54,63-67,73-78,83-85,89-90,92-94,96,98-104
+docs/systems/gadgets.md
+  s_9ca76055a220ed::t_213c9dd6490f88 483-487,492-503
+docs/systems/temples.md
+  s_9ca76055a220ed::t_a936bfceed636d 1212-1223
+src/boxes/effects.js
+  s_9ca76055a220ed::t_48043ee9301819 122-123,128-129,259
+src/boxes/placements.js
+  s_9ca76055a220ed::t_8ddc86aa6b5c85 102-108,255-258,260-261
+src/changelog.js
+  s_9ca76055a220ed::t_0b035f1163717a 45-52
+src/echo-shell.js
+  s_9ca76055a220ed::t_5fce1723e70688 29,36,43-44
+src/gadgets/bridge.js
+  s_9ca76055a220ed::t_f469bf6324096f 255
+src/gadgets/index.js
+  s_9ca76055a220ed::t_f36c0664f0b8d0 193-196
+src/gadgets/recall.js
+  s_9ca76055a220ed::t_3c7421411b631b 148-149,275-277
+src/i18n/en.js
+  s_9ca76055a220ed::t_8e629019b2a9b8 532
+src/i18n/fr.js
+  s_9ca76055a220ed::t_947e78d930386d 529
+src/items.js
+  s_9ca76055a220ed::t_2a185cfe34b63f 160,162
+src/save-migrate.js
+  s_9ca76055a220ed::t_d84ec995e9ba28 287-289,291-309
+src/temples/bazaar-data.js
+  s_9ca76055a220ed::t_bf7c11bd2fd37b 59
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_ab956b8ec3ec5a 42-44,113,140,161-164,169,175,185,191,193,210,506,716
+src/temples/hints.js
+  s_9ca76055a220ed::t_530650f97cab61 214-215,218
+src/temples/incal.js
+  s_9ca76055a220ed::t_050328ef37c3ed 41-42,151,162-164,193-195,344-345,358-359,373,694-695
+src/temples/index.js
+  s_9ca76055a220ed::t_012dff79263b9e 107
+src/temples/migrate.js
+  s_9ca76055a220ed::t_ec6f0cedec9997 14,23
+src/trials/index.js
+  s_9ca76055a220ed::t_b09b274134e06f 62
+src/trials/kit-courses.js
+  s_9ca76055a220ed::t_97fe62e73a1b8c 121
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_1ea884acf4601b 26,130,133
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_4a5b9c2f29eebf 121
+tests/gadgets-qa.test.js
+  s_9ca76055a220ed::t_78de25cd33467a 331-335
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_25202e7f659a7e 419,453,781
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_8a05b2f25948b8 90,462-477
+tests/temples.test.js
+  s_9ca76055a220ed::t_cdff8cd4c06a19 48,382-383,394-395,477-480,517,526,541,1659-1676,1678-1681,1687-1691,4792-4798,4934,5175
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_f0b7d3941e8f7a 115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3dbb772079ab6e911f3978fa31f296049f483845",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
