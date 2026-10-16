@@ -1213,7 +1213,7 @@ beams, the sentinel's crown-vent plume (a target), the searchlights' attack cone
 "Leaving the skull cave it looks like it's blocked but it works. There should be a shader to show that I can go
 through." Every way to another space in a level's `portals` (doorways, shops and rooms, the temples' doors and ways
 out, the skull's mouth and the cave's way up, the Hearth, Viridel's hatch, the Avenue's lift and sea locks, the
-sinkhole) wears one look: a veil of light hanging in its opening, brightest at the sill and fading up, its rays
+sinkhole) wore, until issue #391's glow (below), a veil of light hanging in its opening, brightest at the sill and fading up, its rays
 drifting across and stepped into flat bands (the chest light's washes with `uRays` on, additive), and a pale pool of it
 across the sill. Two washes a way, only within `THRESHOLD.far` (48 m) of the eye; layer 31, nothing in the G-buffer.
 A way whose `when` says no (the skull's mouth before the backpack, a sea lock before its suit) wears none and stays as
@@ -1242,6 +1242,23 @@ their round doors a hand in front of them, the skull's mouth its tunnel's arch j
 it), the Crown's lift its booth door, Viridel's hull hatch its rounded, leaning hole inside the collar. Measured on the
 twelve route worlds (issue #391's scratchpad doorlight-391, fit.md): 29 of 91 veils were off their openings by more
 than 15 %, every temple door and way out among them.
+
+**Its look: a glow** (issue #391, "it's not a very nice shader, can we do something nicer?"; of three looks tried, rays,
+glow and paper, the author picked the glow; src/door-light.js). The opening filled with light, brightest round its frame
+in four flat steps (`DOOR_LIGHT.edge`, 0.8 m in), the far side's colour faint in its middle (`room`, a room's lamp, on
+the ways in; `sky`, the day, on the ways out), the middle fading as the eye comes from 4.5 to 1 m so you see into it;
+its sides a thin rim back into the frame (`depth`, at least 0.6 m), a pale pool on the floor before it, out 1.5 m.
+Additive, never a blur. One mesh and one draw a door, one program for them all, over the finished picture as the
+veils are (layer 31, its depth tested by hand against the G-buffer's): `doorLightGeometry` builds the opening as a
+grid (`openingGrid`: each point's distance to its edge) with the pool and the sides, each vertex's part in its colour
+(r part / 4, g how far out, b its distance to the edge / 4), faced to the side the door is walked into from
+(`approachSide`: a door's `side`, else the side with a floor and room before it). `uDoor` (x how strongly it shows:
+its fade, breath and flare; y the eye's distance) moves each frame. A way in the open (a `column`) keeps the #305 veil.
+**In Unity**: the material goes as `port: 'doorlight'` (engine/unity/port-format.js) to **Hiraeth/DoorLight**
+(Transparent+30, `Blend SrcAlpha One`, the same depth test against `_GNormalTex.w`), its parts read from the mesh's
+colours (the material's `vertexColors`), `uDoor` live as `_Door` (engine/mirror.js `LIVE_VECTORS`), its alpha brought
+down for Unity's linear blend as the veil's is; in `Batch.RuntimeShaders`; `-no-veil` leaves it out with the washes.
+`tests/door-light.test.js`, `tests/thresholds.test.js`.
 
 Going through (main.js): the veil flares (`flare`: ×2.6, settling over 0.9 s), and `Passage.go({ lead })` puts the
 doorway's light over the screen (`PassageCover.light`, a warm radial glow under the paper) for `THRESHOLD.lead`

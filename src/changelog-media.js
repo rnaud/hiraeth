@@ -1086,6 +1086,7 @@ const DOORS389 = 'Issue #389: the running game in muted headless Chrome (ANGLE M
 const DOORS389_N = 'Issue #389: tests/door-walk-sim.js on the game’s own modules in node (the real traveller, the level’s collision, the passage’s timings, 60 frames a second), every way through of the twelve route worlds walked and sprinted into from 4 m out';
 /** (v1.82, issue #391: the light of a way through fitted to its opening) */
 const DOORS391 = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on its own Vite (port 6391), the camera pinned 5.5 m before each way through of the twelve route worlds; before: the tree before the change (eb00b3c1, port 6394), after: the change; 16 October; cwebp -q 72';
+const DOORS391G = 'Issue #391: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden) on its own Vite (port 6391), the camera pinned before the door, noon (12:00) or dusk (18:36); before: the fitted veil (the fit commit), after: the glow; 16 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.82': [
     { match: 'The fight temples are different every time you go in', tags: ['combat'], shots: [
@@ -1105,6 +1106,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'The light in a doorway now fills the whole opening', shots: [
       { name: 'door-fit', caption: 'The Rose House’s door from its forecourt at noon: before, a narrow sheet of light 2.2 m wide and 4.2 m tall standing in the 6.5 m dark; after, the light from jamb to jamb and up into the pointed top', from: DOORS391 },
     ], see: 'Walk up to any temple’s door or a shop’s: the light fills the doorway from side to side.' },
+    { match: 'And that light is new: instead of a curtain of flickering tongues', shots: [
+      { name: 'door-glow', caption: 'The Rose House’s door at noon: before, the fitted veil of tongues; after, the glow round its frame, the room’s warm light faint in the middle', from: DOORS391G },
+      { name: 'door-glow-out', caption: 'The Rose House’s way out from its first hall, at dusk: before, the veil; after, the glow, the day outside faint in its middle', from: DOORS391G },
+    ], see: 'Walk up to any doorway, shop or temple door: its frame glows; come close and the glow in its middle fades so you can see in.' },
   ],
   '1.81': [
     { match: 'Walking through a door no longer runs you into a wall first', shots: [

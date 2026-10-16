@@ -1143,7 +1143,7 @@ export function buildDesertCity(scene, terrain) {
     door.y = terrain.heightAt(door.x, door.z) + 0.05;
     // (mouth: just inside the tunnel's lip, where the way's light hangs, its arch the tunnel's (4.3 m round, scaled), a
     // hand over it all round so the lip's face clips it: src/thresholds.js, issue #391)
-    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, mouth: giant.world(...skp(0, 0, 13.4).toArray()), mouthSize: { w: 2 * 4.3 * SIZE + 0.2, h: 4.3 * SIZE + 0.1, arch: true }, yaw: G.yaw, brow: giant.world(brow.x, brow.y, brow.z), hand: giant.world(wr.x, wr.y, wr.z), cairns: cairns.map((c) => giant.world(c.x, ground(c.x, c.z), c.z)), glow: giant.world(...skp(0, 0.5, 3.85).toArray()) };
+    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, mouth: giant.world(...skp(0, 0, 13.4).toArray()), mouthSize: { w: 2 * 4.3 * SIZE + 0.2, h: 4.3 * SIZE + 0.1, arch: true, side: 1 }, yaw: G.yaw, brow: giant.world(brow.x, brow.y, brow.z), hand: giant.world(wr.x, wr.y, wr.z), cairns: cairns.map((c) => giant.world(c.x, ground(c.x, c.z), c.z)), glow: giant.world(...skp(0, 0.5, 3.85).toArray()) };
     // the giant's breath (level design audit, fifth round: from Ama's fire the skull's mouth was blind, the skull 17 m
     // high behind the city's walls): the cool air of the cave under it breathing out through the skull's brow into the
     // morning heat, a thin pale column over the back gate, seen from the camps over the walls (55 m: it was 85 m, as big

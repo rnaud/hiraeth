@@ -66,7 +66,7 @@ namespace Hiraeth.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays" };   // (engine/mirror.js LIVE_VECTORS)
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door" };   // (engine/mirror.js LIVE_VECTORS)
         public double msCloth;
         /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
         public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();
@@ -434,6 +434,20 @@ namespace Hiraeth.Bridge
                 var vr = m.L("rays");
                 if (vr != null && vr.Count == 4) vm.SetVector("_WashRays", new Vector4(Json.Num(vr[0]), Json.Num(vr[1]), Json.Num(vr[2]), Json.Num(vr[3])));
                 materials[mid] = vm;
+                return;
+            }
+            if (m.S("port") == "doorlight")
+            {
+                // a way through's light (src/door-light.js, issue #391): a glow filling its opening, its parts in the mesh's
+                // colours, laid over the finished picture and tested against the G-buffer's depth (Hiraeth/DoorLight); _Door
+                // live (how strongly it shows, the eye's distance). -no-veil: none, as the washes
+                veilMats.Add(mid);
+                var dl = new Material(Shader.Find("Hiraeth/DoorLight")) { name = "door light (bridge)" };
+                Vector4 C4(string k) { var l = m.L(k); return l != null && l.Count >= 3 ? new Vector4(Json.Num(l[0]), Json.Num(l[1]), Json.Num(l[2]), 1) : Vector4.one; }
+                dl.SetVector("_Color", C4("color")); dl.SetVector("_Pool", C4("pool")); dl.SetVector("_Far", C4("far"));
+                var dd = m.L("door");
+                if (dd != null && dd.Count == 4) dl.SetVector("_Door", new Vector4(Json.Num(dd[0]), Json.Num(dd[1]), Json.Num(dd[2]), Json.Num(dd[3])));
+                materials[mid] = dl;
                 return;
             }
             if (m.S("port") == "pitvoid")

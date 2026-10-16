@@ -1,13 +1,15 @@
 import * as THREE from 'three';
+import { doorLightGeometry, doorLightMaterial, DOOR_LIGHT } from './door-light.js';
 
 // Ways through (issue #305, the author: "Some doors/gates look weird. Leaving the skull cave it looks like it's blocked
 // but it works. There should be a shader to show that I can go through. And maybe an animation showing me going through
 // the portal/door."). Every doorway, cave mouth, hatch, lift door and temple door that carries you to another space
-// (a level's `portals`, src/passage.js) wears one look: a soft veil of light hanging in its opening, brightest at the
-// sill and fading up, streaked into slow drifting rays and stepped into flat bands as the pictures draw light, with a
-// pale pool of it on the floor across the sill. Drawn as the game draws every shaft of light (src/veil.js: washes laid
-// over the finished picture after the ink pass, additive, the chest light's program with its rays on, issue #285), so
-// no ink round it, no shadow, nothing to bump into, no new program. A way that won't take you yet (`when` false: the
+// (a level's `portals`, src/passage.js) wears its light. Since issue #391 ("it's not a very nice shader, can we do
+// something nicer?") a glow filling the opening, sized and shaped to it, brightest round its frame in flat steps, the
+// far side's colour faint in its middle, fading as you come close (src/door-light.js: one mesh, one draw, one program);
+// a way in the open (no frame: the sinkhole, the divers' cage) keeps the veil of #305, a soft column of rays. Drawn as
+// the game draws every shaft of light (src/veil.js: washes laid over the finished picture after the ink pass,
+// additive), so no ink round it, no shadow, nothing to bump into. A way that won't take you yet (`when` false: the
 // skull's mouth before the backpack, a sea lock before its suit) wears none: it stays as solid as it is drawn.
 //
 // Going through: the veil flares, a warm light washes over the screen for a moment (THRESHOLD.lead, the traveller still
@@ -34,7 +36,6 @@ export const THRESHOLD = {
   flare: 2.6,         // its alpha × at the step-through
   flareFade: 0.9,     // s: the flare settling on the far side
   lead: 0.2,          // s: the flare and the light on the screen before the paper comes across
-  floorDepth: 0.9,    // m: the pool on the floor, front to back
   size: { w: [1.0, 5.5], h: [2.0, 5.0] },   // m: an opening measured blind (measureDoor: no way through given)
   // m: an opening whose way through is known (fitDoor), as wide and tall as doorways are drawn (a temple's 7 by 9):
   // each jamb looked for within `reach` of its middle, the lintel within `up`, the top's shape from `cols` rays up
@@ -178,6 +179,58 @@ export function openingGeometry(door) {
   return geo;
 }
 
+/**
+ * The opening as a grid of points (each with its distance to the opening's edge, m) a `cell` m or so apart, and its
+ * outline (up the left jamb, over the top, down the right one; a round door all round): src/door-light.js's looks.
+ */
+export function openingGrid(door, rows = 6, cell = 0.3) {
+  const { w } = door, nx = Math.max(door.top ? door.top.length - 1 : 4, Math.ceil(w / cell)), points = [], index = [];
+  let top = 0;
+  const cols = [];
+  for (let i = 0; i <= nx; i++) { const x = (i / nx - 0.5) * w; const [lo, hi] = openingAt(door, x); cols.push([x, lo, hi]); top = Math.max(top, hi); }
+  const ny = Math.max(rows, Math.ceil(top / cell));
+  for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) {
+    const [x, lo, hi] = cols[i], y = lo + (hi - lo) * (j / ny);
+    let edge = Math.min(x + w / 2, w / 2 - x, y - lo, hi - y);
+    // (and the nearest of the outline's points: an arch's or a cave's rock is near across, not only straight up)
+    for (const [x2, lo2, h2] of cols) edge = Math.min(edge, Math.hypot(x - x2, y - h2), lo2 > 0.01 ? Math.hypot(x - x2, y - lo2) : Infinity);
+    points.push({ x, y, u: i / nx, v: y / top, edge: Math.max(0, edge) });
+    if (i < nx && j < ny) { const a = i * (ny + 1) + j, b = a + ny + 1; index.push(a, b, a + 1, a + 1, b, b + 1); }
+  }
+  const outline = [];
+  if (door.round) {
+    for (let k = 0; k <= 32; k++) { const t = (k / 32) * Math.PI * 2 + Math.PI, r = w / 2, x = Math.cos(t) * r, y = door.h - r + Math.sin(t) * r; outline.push({ x, y, u: x / w + 0.5, v: y / top }); }
+  } else {
+    outline.push({ x: -w / 2, y: cols[0][1], u: 0, v: 0 });
+    for (const [x, , hi] of cols) outline.push({ x, y: hi, u: x / w + 0.5, v: hi / top });
+    outline.push({ x: w / 2, y: cols[nx][1], u: 1, v: 0 });
+  }
+  return { points, index, outline, top };
+}
+
+/**
+ * Which way a door is walked into from (+1: along its yaw, -1 against it): the side with a floor and room before it
+ * (a room's way out has nothing outside its wall; a shop's front, its body behind), else away from the portal's point
+ * (set a little through the door). A door's own `side` says it outright.
+ */
+export function approachSide(door, p, physics = null) {
+  if (door.side) return Math.sign(door.side);   // (its maker says: `side`)
+  const n = new THREE.Vector3(Math.sin(door.yaw ?? 0), 0, Math.cos(door.yaw ?? 0));
+  const free = (sg) => {
+    if (!physics?.rayDistance) return 0;
+    const reachOut = Math.max(0, (sg > 0 ? door.depth?.[1] : door.depth?.[0]) ?? 0);
+    const o = door.at.clone().addScaledVector(n, sg * (reachOut + 0.3)); o.y += 1.2;
+    const f = physics.rayDistance(o, sg > 0 ? n : n.clone().negate(), 8);
+    const q = door.at.clone().addScaledVector(n, sg * (reachOut + 1.5));
+    const g = physics.groundAt?.(q.x, door.at.y + 1, q.z, 2.5);
+    if (!Number.isFinite(g)) return 0;
+    return Number.isFinite(f) ? f : 8;
+  };
+  const a = free(1), b = free(-1);
+  if (Math.abs(a - b) > 0.8) return a > b ? 1 : -1;
+  return new THREE.Vector3().subVectors(door.at, p.at).dot(n) >= 0 ? 1 : -1;
+}
+
 /** Where a portal's light hangs: its own `door` (filled in from the walls where it leaves its size out), or measured, or
  *  a column round its point. */
 export function doorOf(p, physics = null) {
@@ -223,15 +276,28 @@ export class Thresholds {
       g.position.copy(door.at); g.rotation.set(-(door.tilt ?? 0), door.yaw ?? 0, 0, 'YXZ');
       this.group.add(g);
       const meshes = [];
-      if (door.column) {
-        const r = door.w / 2;
-        meshes.push([washMesh(new THREE.CylinderGeometry(r * 0.8, r, door.h, 20, 1, true).translate(0, door.h / 2, 0), g), C.color, C.alpha]);
-        meshes.push([washMesh(new THREE.CircleGeometry(r, 20).rotateX(-Math.PI / 2).translate(0, 0.04, 0), g), C.floor, C.floorAlpha]);
-      } else {
-        // the veil in the opening (square to the way through), and the pool across the sill, a little each side of it
-        meshes.push([washMesh(openingGeometry(door), g), C.color, C.alpha]);
-        meshes.push([washMesh(new THREE.PlaneGeometry(door.w * 0.92, C.floorDepth).rotateX(-Math.PI / 2).translate(0, 0.04, 0), g), C.floor, C.floorAlpha]);
+      if (!door.column) {
+        // (its light: a glow filling the opening, one mesh, one draw, src/door-light.js; issue #391)
+        const side = approachSide(door, p, physics);
+        const geo = doorLightGeometry(door, side), m = washMesh(geo, g);
+        g.updateMatrixWorld(true);
+        let wash = null;
+        if (veils) {
+          const toRoom = !!p.toSpace || (!p.toUp && !p.fromSpace && !!p.temple);
+          wash = new THREE.Mesh(geo, doorLightMaterial({ far: toRoom ? DOOR_LIGHT.room : DOOR_LIGHT.sky }));
+          wash.matrixAutoUpdate = false; wash.matrix.copy(m.matrixWorld); wash.matrixWorld.copy(m.matrixWorld);
+          wash.frustumCulled = false; wash.userData.off = true;
+          veils.addWash(wash, m);
+        }
+        const T = { portal: p, door, group: g, meshes: [m], alphas: [1], washes: wash ? [wash] : [], glow: true, side, k: 0, flare: 0, phase: this.list.length * 1.7, on: false };
+        p._threshold = T;
+        this.list.push(T);
+        continue;
       }
+      // (in the open: a soft round column of the veil's rays, and its pool)
+      const r = door.w / 2;
+      meshes.push([washMesh(new THREE.CylinderGeometry(r * 0.8, r, door.h, 20, 1, true).translate(0, door.h / 2, 0), g), C.color, C.alpha]);
+      meshes.push([washMesh(new THREE.CircleGeometry(r, 20).rotateX(-Math.PI / 2).translate(0, 0.04, 0), g), C.floor, C.floorAlpha]);
       g.updateMatrixWorld(true);
       const washes = veils ? meshes.map(([m, color, alpha], i) => {
         const w = veils.add(m, { color, glow: 1, alpha, near: 0 });
@@ -272,6 +338,7 @@ export class Thresholds {
         w.userData.off = !shown;
         if (!shown) return;
         const u = w.material.uniforms;
+        if (T.glow) { u.uDoor.value.set(T.k * swell * flare, eye ? T.door.at.distanceTo(eye) : 10, 0, 0); return; }
         u.uWash.value.x = T.alphas[i] * T.k * swell * flare;
         if (i === 0) u.uRays.value.y = t * C.rays.speed + T.phase;
       });

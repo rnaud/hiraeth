@@ -19,6 +19,8 @@ const loaded = new Map();
 const world = (id) => { if (!loaded.has(id)) loaded.set(id, A.loadWorld(id)); return loaded.get(id); };
 test.after(() => { for (const W of loaded.values()) W.dispose(); });
 
+// (how strongly a wash shows: a door's glow its uDoor.x, a column's veil its alpha)
+const strength = (w) => w.material.uniforms.uDoor?.value.x ?? w.material.uniforms.uWash.value.x;
 const lights = (W) => {
   const veils = new Veils();
   const T = new Thresholds({ veils, parent: new THREE.Group(), portals: W.level.portals, physics: W.physics });
@@ -34,13 +36,14 @@ test('every way through to another space has its light, sized to its opening', (
     for (const L of T.list) {
       const name = `${id}: ${L.portal.label ?? 'a doorway'}`;
       assert.equal(L.portal._threshold, L, `${name} knows its light`);
-      assert.equal(L.washes.length, 2, `${name}: its veil and the pool on its sill`);
+      assert.equal(L.washes.length, L.door.column ? 2 : 1, `${name}: ${L.door.column ? 'its column and the pool under it' : 'its glow, one draw'}`);
       const { w, h, at } = L.door;
       const F = THRESHOLD.fit;
       assert.ok(w >= F.w[0] && w <= F.w[1] + 1 && h >= F.h[0] && h <= F.h[1], `${name}: ${w.toFixed(2)} × ${h.toFixed(2)} m`);
       assert.ok(at.distanceTo(L.portal.at) < 3, `${name}: hung where the way is (${at.distanceTo(L.portal.at).toFixed(2)} m from it)`);
-      assert.ok(L.washes.every((x) => x.material.blending === THREE.AdditiveBlending && x.material.uniforms.uWash.value.y === 1), `${name}: light, glowing`);
-      assert.ok(L.washes[0].material.uniforms.uRays.value.x > 0, `${name}: its rays on`);
+      assert.ok(L.washes.every((x) => x.material.blending === THREE.AdditiveBlending), `${name}: light`);
+      if (L.door.column) assert.ok(L.washes[0].material.uniforms.uRays.value.x > 0, `${name}: its rays on`);
+      else assert.ok(L.glow && L.washes[0].material.name === 'door light', `${name}: its glow`);
       assert.ok(L.meshes.every((m) => m.layers.isEnabled(31) && !m.layers.isEnabled(0) && m.userData.noCollide), `${name}: drawn only as its wash, nothing to bump into`);
     }
   }
@@ -124,7 +127,7 @@ test('a way that won’t take you yet wears no light; it comes on once it will',
   assert.ok(mouth._threshold.washes.every((x) => x.userData.off), 'shut: as solid as it is drawn');
   items.grant('backpack');
   for (let i = 0; i < 30; i++) T.update(1 / 30, 2 + i / 30, eye);
-  assert.ok(mouth._threshold.k > 0.99 && mouth._threshold.washes.every((x) => !x.userData.off && x.material.uniforms.uWash.value.x > 0.2), 'open: its light on');
+  assert.ok(mouth._threshold.k > 0.99 && mouth._threshold.washes.every((x) => !x.userData.off && strength(x) > 0.2), 'open: its light on');
   if (!had) items.revoke('backpack');
 });
 
@@ -137,7 +140,7 @@ test('the sea locks: no light before the suit, as their story says', () => {
   for (const p of W.level.portals.filter((q) => !q.when)) assert.ok(p._threshold.k > 0.99, `${p.label}: lit`);
 });
 
-test('only the near ones are drawn; the rays drift; going through flares it, and the far side glows as you come out', () => {
+test('only the near ones are drawn; going through flares it, and the far side glows as you come out', () => {
   const W = world('desert'), { T } = lights(W);
   const shop = W.level.portals.find((p) => p.label === 'shop door');
   const eye = shop.at.clone().add(new THREE.Vector3(-6, 2, 0));
@@ -145,15 +148,13 @@ test('only the near ones are drawn; the rays drift; going through flares it, and
   const L = shop._threshold;
   assert.ok(!L.washes[0].userData.off, 'the shop’s door lit');
   assert.ok(T.list.filter((x) => !x.washes[0].userData.off).every((x) => x.door.at.distanceTo(eye) < THRESHOLD.far + 1), 'the far ones off');
-  const ray0 = L.washes[0].material.uniforms.uRays.value.y;
-  T.update(1 / 30, 2, eye);
-  assert.notEqual(L.washes[0].material.uniforms.uRays.value.y, ray0, 'its rays drift');
-  const a0 = L.washes[0].material.uniforms.uWash.value.x;
+  const a0 = strength(L.washes[0]);
+  assert.ok(Math.abs(L.washes[0].material.uniforms.uDoor.value.y - L.door.at.distanceTo(eye)) < 1e-6, 'it knows how near the eye is (its middle fades as you come close)');
   assert.equal(T.flare(shop), L);
   T.update(1 / 60, 2.02, eye);
-  assert.ok(L.washes[0].material.uniforms.uWash.value.x > a0 * 1.8, 'it flares going through');
+  assert.ok(strength(L.washes[0]) > a0 * 1.8, 'it flares going through');
   for (let i = 0; i < 60; i++) T.update(1 / 30, 3 + i / 30, eye);
-  assert.ok(L.washes[0].material.uniforms.uWash.value.x < a0 * 1.3, 'and settles');
+  assert.ok(strength(L.washes[0]) < a0 * 1.3, 'and settles');
   const inside = T.arrive(shop.to);
   assert.ok(inside && inside.portal.label === 'door', 'arriving in the shop: its door, the way back out, glows');
   assert.equal(inside.flare, 1);

@@ -30,6 +30,12 @@ export function portMaterial(spec, id = 0) {
     return { id, name: spec.name ?? '', port: 'pitvoid', inv: u.uInv.map(r5), min: u.uMin.map(r5), max: u.uMax.map(r5), color: col(u.uColor), ring: col(u.uRing),
       look: u.uLook.slice(0, 3).map(r5), rings: u.uRings.slice(0, 3).map(r5), mid: (u.uMid ?? [0, 0]).map(r5), side: 1, plain: 1 };
   }
+  // a way through's light (src/door-light.js, issue #391: a glow filling its opening, its parts in the mesh's colours, a
+  // wash over the finished picture tested by hand against the G-buffer's depth) → the bridge's Hiraeth/DoorLight: its
+  // colours, and uDoor (how strongly it shows, the eye's distance) live (engine/mirror.js LIVE_VECTORS)
+  if (spec.type === 'shader' && Array.isArray(u.uDoor) && u.uDoor.length === 4 && Array.isArray(u.uFar) && Array.isArray(u.uPool) && spec.transparent && spec.depthTest === false) {
+    return { id, name: spec.name ?? '', port: 'doorlight', color: col(u.uColor), pool: col(u.uPool), far: col(u.uFar), door: u.uDoor.map(r5), side: 2, plain: 1 };
+  }
   // a see-through surface's body (src/veil.js Veils: a wash over the finished picture, tested by hand against the
   // G-buffer's depth) → the bridge's Hiraeth/Veil: its colour, alpha a layer, glow, how near the eye it fades out
   if (spec.type === 'shader' && Array.isArray(u.uWash) && u.uWash.length === 3 && Array.isArray(u.uColor) && spec.transparent && spec.depthTest === false) {

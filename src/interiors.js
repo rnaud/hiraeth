@@ -169,8 +169,8 @@ export function portalPair({ at, heading, room, door = {} }) {
   // (toSpace / fromSpace: the room the ways lead into and out of, so the scout routes out of a room by its own door: src/scout.js viaPortal)
   return [
     // stepping into the doorway from outside: inside the room, facing in
-    { at: at.clone().addScaledVector(fwd, -0.2), r: 1.2, to: room.inside, heading: room.facingOut + Math.PI, door: { at: at.clone(), yaw: heading, ...door }, toSpace: room },
+    { at: at.clone().addScaledVector(fwd, -0.2), r: 1.2, to: room.inside, heading: room.facingOut + Math.PI, door: { at: at.clone(), yaw: heading, side: 1, ...door }, toSpace: room },
     // walking back out of the room's door: in front of the doorway, facing away
-    { at: room.doorOut.clone().addScaledVector(Y, 0.5), r: 1.4, to: at.clone().addScaledVector(fwd, 2.6), heading, door: room.door ?? { yaw: room.facingOut }, fromSpace: room },
+    { at: room.doorOut.clone().addScaledVector(Y, 0.5), r: 1.4, to: at.clone().addScaledVector(fwd, 2.6), heading, door: { side: -1, ...(room.door ?? { yaw: room.facingOut }) }, fromSpace: room },
   ];
 }

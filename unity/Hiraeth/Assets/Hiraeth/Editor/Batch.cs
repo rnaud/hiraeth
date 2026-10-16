@@ -197,7 +197,7 @@ namespace Hiraeth.EditorTools
         }
 
         /// <summary>The shaders the game finds by name at run time (Shader.Find): a build keeps only what it is told to.</summary>
-        public static readonly string[] RuntimeShaders = { "Hiraeth/Surface", "Hiraeth/Planet", "Hiraeth/UIText", "Hiraeth/Wisp", "Hiraeth/Mote", "Hiraeth/Print", "Hiraeth/Flame", "Hiraeth/Hologram", "Hiraeth/Veil", "Hiraeth/PitVoid",
+        public static readonly string[] RuntimeShaders = { "Hiraeth/Surface", "Hiraeth/Planet", "Hiraeth/UIText", "Hiraeth/Wisp", "Hiraeth/Mote", "Hiraeth/Print", "Hiraeth/Flame", "Hiraeth/Hologram", "Hiraeth/Veil", "Hiraeth/PitVoid", "Hiraeth/DoorLight",
             "Hidden/Hiraeth/Composite", "Hidden/Hiraeth/Bloom", "Hidden/Hiraeth/FXAA", "UI/Default" };
 
         static void IncludeShaders()

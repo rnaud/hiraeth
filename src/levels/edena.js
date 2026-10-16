@@ -281,7 +281,7 @@ function hullHatch(grp, hull, terrain, crashed) {
   foot.y = terrain.heightAt(foot.x, foot.z);
   crashed.hatchSpot = { x: HX, hw, hh, aMid, aTop: aMid - hh / r, r };
   // (its opening, where the way's light hangs: on the dark, inside the collar, leaning back with the hull: src/thresholds.js, issue #391)
-  const opening = { at: h.localToWorld(new THREE.Vector3(0, -hh, 0.22)), yaw: heading, w: hw * 2, h: hh * 2, corner: 0.5, tilt: Math.asin(THREE.MathUtils.clamp(n.y, -1, 1)) };
+  const opening = { at: h.localToWorld(new THREE.Vector3(0, -hh, 0.22)), yaw: heading, side: 1, w: hw * 2, h: hh * 2, corner: 0.5, tilt: Math.asin(THREE.MathUtils.clamp(n.y, -1, 1)) };
   return { at: foot, heading, opening };
 }
 

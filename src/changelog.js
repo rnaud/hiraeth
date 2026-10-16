@@ -17,6 +17,9 @@ export const CHANGELOG = [
     // top and depth measured), openingGeometry; the shopfronts', sea locks', skull's mouth's, Crown lift's and hull
     // hatch's own openings; tests/thresholds.test.js
     'The light in a doorway now fills the whole opening. A temple’s great door, its ways out, the skull’s mouth, the sea locks, the shops and the crashed ship’s hatch all used to wear a narrow sheet of it, smaller than the dark it stood in, like a cut-out in front of a hole; now it reaches from jamb to jamb and up into the arch.',
+    // issue #391: src/door-light.js (one draw a door), src/thresholds.js; Unity: Hiraeth/DoorLight (port 'doorlight');
+    // tests/door-light.test.js
+    'And that light is new: instead of a curtain of flickering tongues, the doorway itself glows, brightest round its frame in a few flat steps, with the warm lamp of the room beyond (or the daylight, on the way out) faint in its middle. It softens as you walk up to it, so you can see into the door before you step through.',
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

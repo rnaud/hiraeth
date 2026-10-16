@@ -9,7 +9,7 @@ import { skinMatrices } from '../skin.js';
 import { packClothDesc } from '../cloth.js';
 import { packCapeDesc, writeCapePacket } from '../cape-job.js';
 
-const OVER = new Set(['veil', 'pitvoid', 'wisp']);   // (drawn over the ink: no shadow)
+const OVER = new Set(['veil', 'pitvoid', 'wisp', 'doorlight']);   // (drawn over the ink: no shadow)
 const tally = (self, op, before) => { self._opWords[op] = (self._opWords[op] ?? 0) + self.w.n - before; };
 
 export class UnityBackend {

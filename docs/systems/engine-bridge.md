@@ -1507,6 +1507,11 @@ opaque surface (an air pillar a white column), the washes' scene was never mirro
 The blend is Unity's linear one (the camera target encodes sRGB), the web's is in display values: a pale wash over a
 dark city reads a little lighter than the web's. Android and the Deck get the same (one shader, one bridge).
 
+**A way through's glow** (src/door-light.js, issue #391) is a wash of its own making too: a shader with `uDoor`,
+`uFar` and `uPool`, its parts in the mesh's colours. It goes as `port: 'doorlight'` to **Hiraeth/DoorLight**
+(Transparent+30, added to the picture, the depth tested by hand as the veil's), `uDoor` live as `_Door` (LIVE_VECTORS),
+its alpha raised to 1.5 as the veil's lights are for the linear blend. rendering.md, "Ways through".
+
 **A deadly drop's dark** (src/pit-void.js, issue #312: every temple pit that puts you back, the Clock-House's, the
 Footprint's pools; a world's void under its kill height) is a wash of its own making in the same scene: a shader with
 `uInv`, `uMin`/`uMax`, `uLook` and `uRings`, which went to the port's Surface and drew nothing like it. It goes as
