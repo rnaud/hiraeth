@@ -1,0 +1,73 @@
+unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs
+  s_5f899ba316b5dc::t_517fbb51a9f018 200
+src/story/charge.js
+  s_5f899ba316b5dc::t_f9f5dbccf53f00 28,133-138,157
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_5f899ba316b5dc::t_2247537752cc3f 138-139
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_088a122ff568a0 12,82-83,99-109,150-151
+engine/boot.js
+  s_5f899ba316b5dc::t_c8cdd527060f33 17,24-48
+engine/unity/game.js
+  s_5f899ba316b5dc::t_7f9175fe084c79 23-24,75,336-341,350,645-656,889-899
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_dfd77cf898f643 69,398-417,490-511
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_b42913089e73da 225-226
+scripts/unity-compare/opening.mjs
+  s_5f899ba316b5dc::t_f3c17ece5936f7 1-85
+src/platform.js
+  s_5f899ba316b5dc::t_28a40c4a1a2cb3 62,77,90
+engine/opening-beats.js
+  s_5f899ba316b5dc::t_adc57193293582 1-30
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_a455900937d202 112,185-189,399,1170-1226,1344
+  s_5f899ba316b5dc::t_5bf16616b739d6 384-385
+  s_5f899ba316b5dc::t_254ddf30af1fc7 1336-1340
+engine/mirror.js
+  s_5f899ba316b5dc::t_3638bb530cc343 57
+src/ship/cinema.js
+  s_5f899ba316b5dc::t_c7ac024fbfc622 308,337,352,357
+engine/game.js
+  s_5f899ba316b5dc::t_840b510d7857b3 1584-1586
+  s_5f899ba316b5dc::t_3f40595bd6c78d 99,732-736
+tests/engine-hologram.test.js
+  s_5f899ba316b5dc::t_da80cf124d6f96 36-44
+  s_5f899ba316b5dc::t_b80c4dd7737cd6 1-35,45-79
+tests/charge.test.js
+  s_5f899ba316b5dc::t_4dc07376db708a 77-84
+src/ship/hologram.js
+  s_5f899ba316b5dc::t_4351b5965ec7ef 418-423,515,785-788
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_06d6a3bf25aaf6 54-66
+changelog.md
+  s_5f899ba316b5dc::t_d4837481f69e4d 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_a2def867026fbe 1695-1720
+src/changelog-media.js
+  s_5f899ba316b5dc::t_64e2cb97294ddb 1094,1097-1100
+src/changelog.js
+  s_5f899ba316b5dc::t_69cea95832b86b 33-37
+src/story/index.js
+  s_5f899ba316b5dc::t_0696e6a39a6661 493
+unity/Hiraeth/Assets/Hiraeth/Shaders/HoloFigure.shader
+  s_5f899ba316b5dc::t_679192ef5b0878 1-158
+unity/Hiraeth/Assets/Hiraeth/Shaders/HoloFigure.shader.meta
+  s_5f899ba316b5dc::t_d486fe6631a75a 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "75137a9debc7fa6a5ba757bd6d1353b4855e2f84",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
