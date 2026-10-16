@@ -205,7 +205,8 @@ for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloi
     assert.equal(S.hazards.active, 1);
     await run(g, 30);
     assert.equal(plain(S.hazards.list)[0].kind, kind);
-    await run(g, 360);
+    // (up to 30 s, not 18: the hazard runs on the real clock, which a slow runner's frames fall behind)
+    for (let i = 0; i < 60 && S.hazards.active; i++) await run(g, 10);
     assert.equal(S.hazards.active, 0, 'and gone');
     g.trials.runner.ctx.finish({ lines: ['Rooms cleared 4 of 4'] });
     await run(g, 60);
