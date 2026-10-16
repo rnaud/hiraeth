@@ -1,0 +1,41 @@
+.claude/skills/motion-qc/SKILL.md
+  s_9ca76055a220ed::t_7cdac716877177 32-36
+.claude/skills/motion-qc/run.mjs
+  s_9ca76055a220ed::t_fb31e880d676ce 177-181,193
+changelog.md
+  s_9ca76055a220ed::t_d1940e007456b9 7
+docs/systems/animation.md
+  s_9ca76055a220ed::t_98d8eeb30a87b9 1216-1287
+scripts/motion-qc/lib.mjs
+  s_9ca76055a220ed::t_0d6a13ee9ac607 115-117,120,131-141
+scripts/motion-qc/run.mjs
+  s_9ca76055a220ed::t_39e7a6be3e8abc 25-26,29-30,32-36
+scripts/motion-qc/scenarios.mjs
+  s_9ca76055a220ed::t_5c11c0ff87b526 61-71
+src/changelog-media.js
+  s_9ca76055a220ed::t_8608934b611c7b 1071-1073,1080-1097
+src/changelog.js
+  s_9ca76055a220ed::t_30b512903f3fc6 59-62
+src/feet.js
+  s_9ca76055a220ed::t_51e0843cb0141c 46,71,83-84,228-231,256-261,361-371,376-380,409-412,457-458,485,509
+src/locomotion.js
+  s_9ca76055a220ed::t_17a32992df31bb 101-103,116-119
+tests/motion-qc.test.js
+  s_9ca76055a220ed::t_34e35d0d54029a 10,278-321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "471573a72bf94684e978759dd71d300477def5ac",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
