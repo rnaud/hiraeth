@@ -1,0 +1,25 @@
+docs/systems/performance.md
+  s_9ca76055a220ed::t_1d0f7e12f07590 3111-3162
+tests/unity-retroid-batches.test.js
+  s_9ca76055a220ed::t_67094f7a989bef 50-57
+unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs
+  s_9ca76055a220ed::t_2c82517201e13d 97-98,213-217,219,223,228
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_50962e5bafcf64 491
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30fdb799f64af907e7856f1a0f2df3fc5dd072fa",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
