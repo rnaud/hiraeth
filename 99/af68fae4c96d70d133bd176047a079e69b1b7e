@@ -1,0 +1,94 @@
+src/main.js
+  s_5f899ba316b5dc::t_81dd9e1b1a19b9 150,848-851,856-858
+  s_5f899ba316b5dc::t_7052bd8a7b7cb0 836
+docs/systems/scout.md
+  s_5f899ba316b5dc::t_e6a33537cd8fb9 101-103,137-174
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_63a003cc13f746 122
+  s_5f899ba316b5dc::t_92020edf2e5cad 14,111
+engine/game.js
+  s_5f899ba316b5dc::t_7b8f170ed9d3a3 156,658-659,937-939
+  s_5f899ba316b5dc::t_15ed218b84251c 651
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_03cf2a352ca7b6 320
+  s_5f899ba316b5dc::t_1931b7c5ca8e2b 256
+docs/story-bible.md
+  s_5f899ba316b5dc::t_6a61fd47cda0cb 583-592
+src/changelog-media.js
+  s_5f899ba316b5dc::t_94ba53b20919d4 1144,1158-1164
+  s_5f899ba316b5dc::t_8182ed8a6fb6d2 1157
+  s_5f899ba316b5dc::t_f876d0aa94de5a 1165
+src/ship/cinematics.js
+  s_5f899ba316b5dc::t_529468b17ce93b 20,269-270,294,350,369-376,393-394,417-418,587-604,669-682,737-741
+engine/sequences.js
+  s_5f899ba316b5dc::t_5d0dd0e20f9bbf 77,87
+  s_5f899ba316b5dc::t_d427b90f20ad0c 88-89
+src/ship/prologue.js
+  s_5f899ba316b5dc::t_088ec86a20f82d 19,21,63,65
+src/story/desert.js
+  s_5f899ba316b5dc::t_d165435240979c 177-179,821
+engine/opening-beats.js
+  s_5f899ba316b5dc::t_7e572289e3c8ee 21-24,27-28
+src/ship/prologue-drone.js
+  s_5f899ba316b5dc::t_2c4f440310d2f2 1-115
+src/ship/ship.js
+  s_5f899ba316b5dc::t_d98ff1e6a53052 31-35,551-556,576
+tests/companion.test.js
+  s_5f899ba316b5dc::t_1553f5e422099d 4-6,103,135-137,140,142-144,149-243
+src/companion.js
+  s_5f899ba316b5dc::t_24b3a497c19184 3,7-8,10-15,17-22,32-33,35,49-51,60-119,139-142,186-218,223-227,233,246,248,253-254,256,258,262-266,268,271-283,288-305
+tests/prologue-drone.test.js
+  s_5f899ba316b5dc::t_fe80f150e8683d 1-107
+changelog.md
+  s_5f899ba316b5dc::t_6a4f9cc489272b 5-6
+  s_5f899ba316b5dc::t_c4b2ad376f33f8 7
+  s_5f899ba316b5dc::t_4ea111398b509b 8
+src/host/game-host.js
+  s_5f899ba316b5dc::t_fa35890397f2a6 16,36-38,195-236
+src/scout.js
+  s_5f899ba316b5dc::t_59530afdc13bc4 37-41,235-236,338-350,534,605-632
+tests/desert-story.test.js
+  s_5f899ba316b5dc::t_95b05fd012f16b 322-328
+lore/characters/plumb.md
+  s_5f899ba316b5dc::t_ba82fb3131db1c 3-7,10-19,34-35,41-46
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_5f2c04a27e3168 3
+  s_d2282157228329::t_7c4abf46eaecdc 1014-1026
+  s_5f899ba316b5dc::t_762411194538ff 1027
+  s_5f899ba316b5dc::t_4aa912494f10f9 296,330,368,407,446,487,524,561,598,637,677,715,832,843-950,972,1013,1028-1054,1068-1097
+tests/scout.test.js
+  s_5f899ba316b5dc::t_9787225983c278 406-434
+docs/systems/cinematics.md
+  s_5f899ba316b5dc::t_16bdabc7af44e4 139-142
+tests/game-host.test.js
+  s_5f899ba316b5dc::t_ce1999f3990243 9,179-200
+src/ship/interior.js
+  s_5f899ba316b5dc::t_ea8b9d067035a8 6,106-111,603-617,980
+src/changelog.js
+  s_5f899ba316b5dc::t_7aa5bc9b9cf77f 12-15
+  s_5f899ba316b5dc::t_2be60063bf32a2 11,16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "99af68fae4c96d70d133bd176047a079e69b1b7e",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d2282157228329": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7dd2898b81bc8137",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
