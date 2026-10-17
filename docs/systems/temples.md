@@ -1128,6 +1128,73 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   bomb's boom, the bellows' draught on the wings, the drops unhurt, the First Sign's three phases), `temples.test.js` (the
   logic, the line set both ways, each older tool needed, the migration), `temple-playthrough` (the levers pulled for real),
   `guardian-twists` (its puzzle and its last fight), `guardian-completable`.
+- **The Clock-House round its great hall, the hour its state** (v1.83, issue #414; the approved recommendations:
+  `docs/design/temple-best-practices.md`, G1, G2, G4, G6 and its Clock-House row). The round Winding Well and its wall to
+  climb are gone: the **Winding Well** (`WELL`, the room id `well` kept) is a square hall 64 m across under 36, the hub of
+  both floors, the **Escapement's stair** in its middle and the **great clock** on its west wall. The rooms north of it
+  (the Coil Chamber, the Winding Passage, the Clock Gallery, the Foreman's) moved north with its wall; the Pendulum Hall
+  and the Striking Room stand east of it now (`WING`), each with a floor door onto the hall and a high door at the upper
+  floor's height (`UP`).
+  - **The hour** (`HOUR`, LOGIC `hour`): a drum of three stops, `two` (t 0), `four` (0.5, the start: every clock in the
+    house stopped at four) and `six` (1), `roll: 'hand'`, `verb: 'hour'`, set from several rooms (logic.js `rooms`, issue
+    #408). `GreatClock` keeps it. Its hand runs on, never back (`turn(hour)`: the logic at once, the stair easing round at
+    `HOUR.turn` rad/s at most, so six on to two goes the long way round, past eight, ten and twelve).
+  - **The Escapement's stair** (`STAIR`): 23 steps round a still brass column from the floor to a crown at `UP`, and the
+    arm, the clock's hand, out from the crown to 23.5 m. It turns as one with the hand (`hourAngle`: twelve lies toward
+    the west-north-west, so two points due north, four and six at the east wall). The steps and crown are one moving
+    collider (`physics.addMover`), the arm another, hinged on the crown's edge (`ARM_PIVOT`): what stands on it is carried
+    round (src/carriers.js). The arm meets a dock (`DOCKS`, `HourDock`, the logic's bridges `st2`, `st4`, `st6`): a slab off
+    the wall at `UP` with a round tip on the hand's line (`dockTip`), its lamps lit when the arm is there and still. At two
+    the north dock and the north door to the chest (`d2`, two small keys); at four the Pendulum Hall's high door; at six
+    the Striking Room's loft.
+  - **The clock wound** (`WOUND`): the winding's counterweight (`COUNTER`, `ball1`) lies on the hall's floor now (it lay on
+    the Escapement's far landing for the north door); rolled into its socket it winds the great clock. Until then the
+    arm stands upright from the crown (`GreatClock.raised`), no dock is met (`st2`, `st4` and `st6` want `WOUND` with their
+    hour) and a lever only clanks; wound, the hand comes down level, pointing at the hour. From the north dock the socket
+    is in sight below.
+  - **Cheap to change** (G1): an `HourLever` by the stair's foot, at the crown's arbor (its middle: it turns round it), on
+    the Escapement's far landing (the lower hub): each turns the hand on two hours (A / ×); one on every dock brings the
+    arm round to that dock's hour (`to`), so nobody is left on a dock with the arm away.
+  - **Readable everywhere** (G1): an `HourGauge` (a clock face, its hand turning with the great clock's, a lamp ring of
+    the hour's colour: `HOUR.colors`, teal two, gold four, coral six, shared by `hourLamp`) in every room but the
+    guardian's; the great clock's face on the west wall; the floor's dial round the stair's foot with the three hours lit;
+    the levers' knobs and the arm's tip lamp.
+  - **What the hour changes, on both floors:** the dock the stair meets; the Striking Room's eye (`sS`) wakes only for
+    the ball on the hour track's plate of the hour the clock says (its `when`: two, four or six), and the key it frees is
+    up on the loft (`WING.loft`, room `strikeLoft`), reached at six; the Clockmaker's clock's lids lift only at four
+    (`c1`–`c3`: and the mainspring wound); the Clock Gallery's six eyes are counted round from the hour (`galleryOrder`,
+    a Bank `order` that is a function now, pieces.js). On the way the hour is set two, six, two, four, two.
+  - **The Pendulum Hall** (an arena): in by its high door off the dock at four (`dW`), its doors shut while its keepers
+    stand; won, the key's cage on the landing sinks and its floor door (`dWo`) opens back onto the hall: a loop.
+  - **G2, the hook and the boomerang at once:** the gallery's eyes sit behind brass shutters while its striking train is
+    still (`StrikingTrain`, LOGIC `train`, a held bell, `TRAIN.hold` 12 s); the grappling hook at the ring under the great
+    clock (`hb.train`, a `HookBell`, hooked from the near landing, 22 m) runs it, the shutters swing off, and six in a
+    breath, three on the boomerang's locks, in turn from the hour.
+  - **G6:** every dock's edge drops 10 m to the hall's floor, unhurt (`oneWay` links to `well`), and the loft's edge to
+    the Striking Room's floor. A mark on every dock; the antechamber's mark by the Foreman's door, as before.
+  - **The way through** (the solver): the pit's eyes; the counterweight (the clock wound, the hand down at four); up the
+    stair to the Pendulum Hall, its keepers and key, out by its floor door; the ball on four, the eye; on to six, the
+    loft's key; on to two, the north door; the boomerang; the passage's eyes; the train hooked and the gallery's eyes from
+    two; the Mainspring Room; four from the landing's lever, the Clockmaker's clock and the great key; two again; the
+    great lock; the Foreman.
+  - **The scout:** the counterweight before the hour (the hour is the last element, so anything else to do comes first),
+    then the nearest lever (`GreatClock.center`); the train's ring once the hook is carried. The temple maps' steps say
+    "Turn the great clock on to six, at a lever: the stair's arm meets the dock at six" and "Run the clock's striking train
+    … at its ring". Which hour is worth setting next: `TempleLogic.stopFor(drum)` (logic.js, additive), the first stop
+    that, tried, brings a room not in reach within reach or lets a waiting eye wake; the play-through and the route's
+    playthrough agent (tests/playthrough-agent.js) ask it for a state of several stops.
+  - **The audit** (all houses run together): steps 7 → 9 (skeleton `BAXLCRGXXLK` → `BAXXXXLCRGXXLK`), combinations 3 of
+    7 → 6 of 9 (the counterweight with each hour: the docks want both), mean obviousness 3.07 → 3.22, decoupled 5 → 4,
+    loops 1 → 5, the score 4.22 → 4.33 (combination 4 → 5, curve 3 → 4, decoupling 5 → 4; identity 3: 57 % like the Aerie). Each dock is a
+    lock whose keys are the counterweight and a lever in the hall: G1's "cheap to change" reads as obvious, as the Belfry's bell. Rules broken: none before or after. Its climb is gone (`tests/temple-climb.test.js`: no climb now).
+  Tests: `tests/clock-house.test.js` (new: the house on foot with a real traveller and a real boomerang: every lever pulled
+  with the use button, the stair climbed step by step, the arm walked out to each dock, the turn ridden on the crown, the
+  ring hooked from where he stands, both drops fallen unhurt, the Foreman set right; the old on-foot walk in
+  `tests/temples.test.js` replaced by it), `tests/temples.test.js` (the hub, the hour's ways, old saves),
+  `tests/temple-playthrough.test.js` (the hour set at a lever, several pulls for three stops; a stop that wakes something
+  or reaches a new room first; the train's ring hooked from its `from`), `temple-maps`, `house-map`, `hook-reach`,
+  `door-bypass`, `way-back`, `zfight`, `key-chests`. Old saves: `migrate.js` garage v4 (past the north door: the hand at two,
+  the counterweight home; one that stood inside: to its last mark).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -1249,12 +1316,12 @@ the interior's collision proxy `userData.noClimb`; the solids built inside `K.cl
 it. Pieces' colliders (doors, brambles, gates, bridges) are added `noClimb`. The exteriors stay climbable.
 
 The climbs the houses keep (`rt.kit.climbWhy` lists them): the Rose House's gallery (the Dry Channel's way up to the
-Sword Chamber, its glyph handholds), the Warden's Well's Climb (the block's face to the balcony), the Clock-House's
-Winding Well block (to the ledge and the door of two keyholes), the Hush-House's and the Lamp-House's root-walls (from the
+Sword Chamber, its glyph handholds), the Warden's Well's Climb (the block's face to the balcony), the Hush-House's and the Lamp-House's root-walls (from the
 riding disc and the moss-stones to the landing at 9) and the Lamp-House's loft of roots (the third pool), the
 Greenhouse's Glass Stair root-wall (to the sun-disc) and its two glasses (the Vine Gulf's and the Seed Vault's: climbed
 once a vine is up them, the `Glass` piece slipping you off till then), and the Whale-House's tank glass (its rungs). The
-other seven houses have none. `tests/temple-climb.test.js` pushes a real `Player` into the wall beside every lock's
+other eight houses have none (the Clock-House's Winding Well block went in v1.83, issue #414: the Escapement's stair turns
+in its place). `tests/temple-climb.test.js` pushes a real `Player` into the wall beside every lock's
 doorway, both faces, and into whatever a key stands up on, in every temple: he never takes hold.
 
 ## Hubs, keys and arenas (v1.48, issue #23)

@@ -230,9 +230,9 @@ test('every real temple builds a graph its measures can read (no layout needed)'
   const { solve } = await import('../src/temples/logic.js');
   for (const [id, { def }] of Object.entries(TEMPLES)) {
     // (its rooms in the order a player reaches them, as the audit reads it: the Footprint's guardian is a fall away from
-    // the rim, in its well, but reached last, issue #401; the Greenhouse's, the Lamp-House's, the Warden's Well's and the Whale-House's late steps want the hook, an older tool, #411, #410, #413, #412;
+    // the rim, in its well, but reached last, issue #401; the Greenhouse's, the Lamp-House's, the Warden's Well's, the Whale-House's and the Clock-House's late steps want the hook, an older tool, #411, #410, #413, #412, #414;
     // the Undertower's exam the wings, the hook, the lens and the bombs, #418)
-    const g = puzzleGraph(def.logic, [], { order: solve(def.logic, { items: ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun', 'glider']), ...(['edena', 'perdide2', 'incal', 'underwater', 'moonfoundry'].includes(id) ? ['hook'] : []), ...(id === 'bazaar' ? ['hook', 'monocle', 'bomb'] : [])] }).order });
+    const g = puzzleGraph(def.logic, [], { order: solve(def.logic, { items: ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun', 'glider']), ...(['edena', 'perdide2', 'incal', 'underwater', 'moonfoundry', 'garage'].includes(id) ? ['hook'] : []), ...(id === 'bazaar' ? ['hook', 'monocle', 'bomb'] : [])] }).order });
     const m = templeMetrics(g);
     assert.ok(m.steps.length >= 2, `${id}: ${m.steps.length} steps`);
     assert.ok(g.chestRoom, `${id}: a chest room`);

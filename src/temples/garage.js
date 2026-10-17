@@ -3,11 +3,13 @@ import { portal } from './portal.js';
 import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import { ceramic, metal, glazing, glaze } from './landmark-materials.js';
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Swing, Mark, Pit, Key, Coffer } from './pieces.js';
+import { TempleKit, ANTE, T, box, lathe, annulus, sector, prep } from './kit.js';
+import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Swing, Mark, Pit, Key, Coffer, HookBell } from './pieces.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 import { foremanModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { clockHouseSkin } from './skins/clock-house.js';
@@ -39,20 +41,29 @@ import { clockHouseSkin } from './skins/clock-house.js';
 //   the Cupboard         (off the far landing, west) the Clockmaker's: his clock standing on the landing has lost its
 //                        hand, so its three eyes wake round from the house's hour (four, eight, twelve); a coffer.
 //                        (v1.53, issue #23) Its clock has stopped, its eyes lidded, until the house's mainspring is
-//                        wound again: then they wake, and the great key is in it (a loop back)
+//                        wound again: then they wake, and the great key is in it (a loop back). (v1.83, issue #414)
+//                        And only while the great clock says four, the hour they count from: a lever on the landing
 //   the Mainspring Room  (off the far landing, east, across from the Cupboard's door: since v1.74, round 6 of issue
 //                        #23; it was off the Clock Gallery's landing, four rooms from the clock it starts) the
 //                        mainspring hangs slack until its weight, a ball on the landing, is rolled home; then six eyes
 //                        round it in one breath (the boomerang, past the chest: seen on the way in, wound on the way back),
 //                        and out on the landing the Clockmaker's clock begins to tick
-//   the Winding Well     the hub. A wall to climb, the door at its top; the door wants two small keys and the
-//                        winding's counterweight home in its socket, and the counterweight is a stone ball still
-//                        waiting at the foot of its groove on the Escapement's far landing, its socket there (a room
-//                        away, out of sight from the door; v1.77: its groove ran on through the doorway into the well)
-//   the Pendulum Hall    (west, an arena) its door shuts behind you while the pendulums' keepers stand; beaten, the
-//                        small key's cage on the landing sinks and a door above opens onto the ledge over the climb
-//   the Striking Room    (east) the hour track: a ball and three plates, at two, four and six; on the house's hour the
-//                        striking eye's lids lift, and woken it lets the second small key out of its cage
+//   the Winding Well     the hub, and since v1.83 (issue #414) the house's great hall: 64 m across under 36, the great
+//                        clock on its west wall. THE HOUR IS THE HOUSE'S STATE: the great clock's hand turns the
+//                        Escapement's stair in the middle of the hall (a stair round a brass column, its arm the hand,
+//                        out over the floor at the upper floor's height), and at two, four and six its arm meets a
+//                        different dock high on the walls: at two the north dock and the door over it, which wants two
+//                        small keys and the winding's counterweight home in its socket (a stone ball still waiting at the
+//                        foot of its groove on the Escapement's far landing); at four the Pendulum Hall's high door; at
+//                        six the Striking Room's loft. A clock face in every room says the hour; a lever by the stair's
+//                        foot, on its crown, on every dock and on the far landing turns the hand on. Every dock's edge
+//                        is a drop back down to the hall's floor (G6)
+//   the Pendulum Hall    (east, an arena, in from its high door at four) its doors shut behind you while the pendulums'
+//                        keepers stand; beaten, the small key's cage on the landing sinks and its floor door opens back
+//                        onto the hall
+//   the Striking Room    (east) the hour track: a ball and three plates, at two, four and six; with the ball on the hour
+//                        the great clock shows, the striking eye's lids lift, and woken it lets the second small key out
+//                        of its cage on the loft (in from the dock at six)
 //   the Coil Chamber     the makers' chest: the BOOMERANG (src/gadgets/boomerang.js; issue #377: the quick coil, a faster
 //                        refill of the magic bar, was here, and went to Lorn II's makers' court). Its north door sinks
 //                        for it in hand
@@ -62,9 +73,11 @@ import { clockHouseSkin } from './skins/clock-house.js';
 //                        first lock, where failing costs a breath)
 //   the Clock Gallery    the key hall, after its reference: a chasm with the makers' cogs turning in the dark,
 //                        a great clock face hung over the bridge's far end that has lost its hands, six eyes round it. The bridge
-//                        wants all six inside one breath (the boomerang) and in turn, counted round from the hour the
-//                        clock stopped at, which it no longer shows: the little clock over the way in does (and
-//                        the Winding Well's, and the one over the door outside). Out of turn they all go dark.
+//                        wants all six inside one breath (the boomerang) and in turn, counted round from the house's
+//                        hour, which it no longer shows: the little clock over the way in does. Out of turn they all
+//                        go dark. (v1.83, issue #414) Its eyes sit behind brass shutters while its striking train is
+//                        still: the grappling hook at the ring under the clock runs the train a while (the hook and
+//                        the boomerang at once, an older tool and the house's own)
 //                        Over the bridge the Foreman's door wants the house's great key. (v1.74) The gallery's great
 //                        pendulum hangs over the bridge and swings along it: cross in its beat, or it knocks you back
 //   the Foreman's Workshop the guardian (a robot: its meter is damage). When its face opens, hit all six
@@ -114,21 +127,90 @@ export const DOOR = { w: 7, h: 9 };
 export const ESC = { w: 32, z0: 12.6, z1: 72, y: -8, h: 30, near: 18, far: 40 };
 /** The escapement's dial, on its tower out in the pit beside the disc's way: its centre, the eyes' ring. */
 export const DIAL = { x: -5.8, y: 9.6, z: 29, r: 3.2 };
-/** The landing: the counterweight's groove up its east side to its socket, the Clockmaker's clock on its west. */
-export const LANDING = { ball: { x: 7, z0: 44, z1: 60 }, clock: { x: -5, z: 59 } };
-/** The Winding Well (a round hall): its middle, its radius, the climb's face (m north of its middle). */
-export const WELL = { z: 95.2, r: 18, h: 26, face: 8 };
+/** The landing: the Clockmaker's clock on its west side. */
+export const LANDING = { clock: { x: -5, z: 59 } };
+/**
+ * (v1.83, issue #414) The Winding Well, the house's great hall: a square hall `half` × 2 m across under `h`, its middle at
+ * z (a 4 m way from the Escapement's far landing); `r` its half-width (the skin's hangers read it).
+ */
+export const WELL = { z: ESC.z1 + 0.6 + 4 + 32.6, half: 32, r: 32, h: 36 };
+/**
+ * The hour, the house's state (issue #414, docs/design/temple-best-practices.md G1): the great clock's hand at two, four or
+ * six, a drum of three stops (LOGIC `hour`), four the start (every clock in the house stopped at four the night the light
+ * passed). The hand is the Escapement's stair's arm: at hour h it points `twelve` + h / 12 of a turn round the hall (angles
+ * as the round halls' gaps: 0 toward +z, toward +x), so two is due north, four and six on the east wall. It turns on, never
+ * back (a clock), `turn` rad/s at the most. One colour for each hour on every gauge's lamp (`colors`).
+ */
+export const HOUR = {
+  stops: { two: 0, four: 0.5, six: 1 }, hours: { two: 2, four: 4, six: 6 }, start: 'four',
+  twelve: -Math.PI / 3, turn: 0.42,
+  colors: { two: '#5fd8cc', four: '#f2c54b', six: '#e6875f' },
+};
+export const hourAngle = (h) => HOUR.twelve + (h / 12) * TAU;
+/** The hour the drum's t stands at ('two', 'four', 'six'), or the nearest. */
+export const hourOf = (t) => (t < 0.25 ? 'two' : t < 0.75 ? 'four' : 'six');
+/** The house at an hour: the logic's conditions. */
+export const TWO = { drumOn: ['hour', 'two'] }, FOUR = { drumOn: ['hour', 'four'] }, SIX = { drumOn: ['hour', 'six'] };
+/** The great clock wound: the winding's counterweight home in its socket. Until then its hand will not turn (it stopped at four). */
+export const WOUND = { drumOn: ['ball1', 'p1'] };
+/**
+ * The Escapement's stair (local m, round the hall's middle): a stair of `steps` round a brass column (`r`) out to `out`,
+ * from the floor to the crown at UP, the crown a sector `crown` m across round the arm, the arm (the hand) from the crown out
+ * to `arm`, `w` wide; its end meets a round tip of its dock, `tip` m out, `tipR` across. All of it turns with the hand.
+ */
+export const STAIR = { r: 1.6, out: 6.2, steps: 24, sweep: 290 * Math.PI / 180, crown: 6.6, crownSpan: 150 * Math.PI / 180, arm: 23.5, w: 3.6, tip: 26, tipR: 2.6 };
+/**
+ * The docks (local m) high on the great hall's walls where the arm meets them, one for each hour: a slab at UP (`x0`…`z1`),
+ * its round tip on the hand's line, the door behind it. `to`: what is through that door.
+ */
+export const DOCKS = {
+  two: { x0: -7, x1: 7, z0: WELL.z + 26.6, z1: WELL.z + WELL.half, to: 'the north door',
+    lever: [4.8, UP, WELL.z + 29.6], leverYaw: Math.PI, mark: [-4.8, UP, WELL.z + 29.4], markYaw: Math.PI },
+  four: { x0: 24.6, x1: WELL.half, z0: WELL.z + 10, z1: WELL.z + 24, to: 'the Pendulum Hall',
+    lever: [28.8, UP, WELL.z + 11.6], leverYaw: -Math.PI / 2, mark: [27, UP, WELL.z + 22.4], markYaw: -Math.PI / 2 },
+  six: { x0: 24.6, x1: WELL.half, z0: WELL.z - 24, z1: WELL.z - 10, to: 'the Striking Room’s loft',
+    lever: [28.8, UP, WELL.z - 11.6], leverYaw: -Math.PI / 2, mark: [27, UP, WELL.z - 22.4], markYaw: -Math.PI / 2 },
+};
+/** The tip of a dock (local [x, z]): on the hand's line at hour h, STAIR.tip out. */
+export const dockTip = (h) => { const a = hourAngle(HOUR.hours[h]); return [Math.sin(a) * STAIR.tip, WELL.z + Math.cos(a) * STAIR.tip]; };
+/** The winding's counterweight (v1.83: on the great hall's floor, its socket at z1, in sight from the north door). */
+export const COUNTER = { x: -8, z0: WELL.z + 3, z1: WELL.z + 19 };
+/** (G2) The Clock Gallery's striking train: hooked at its ring, it runs `hold` s and its shutters stand open off the eyes. */
+export const TRAIN = { hold: 12 };
 /** (v1.74) The Clock Gallery's great pendulum over the bridge (local m, s): its pivot's height, its length, its swing. */
 export const GALLERY_BEAT = { pivot: UP + 16, len: 14, amp: 0.55, period: 6 };
 export const VOLLEY = 4.6;   // s: the six eyes (and the Foreman's six numerals) must all be hit inside this
 /** The Foreman's numerals (its model's lamps, i at 2i o'clock as you face it) in the clock's order from four. */
 export const FROM_FOUR = [2, 3, 4, 5, 0, 1];
 
+// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23; v1.83, issue #414)
+/**
+ * Where the wings stand (local m): east of the great hall, the Pendulum Hall north of the Striking Room, each with a floor
+ * door onto the hall (`low` m from its middle, toward the hall's) and a high door at UP onto a dock: the Pendulum Hall's
+ * at four, the Striking Room's loft at six.
+ */
+export const WING = {
+  pend: { x: WELL.half + 0.6 + 3 + 0.6 + 15, z: WELL.z + 18.5, w: 30, d: 30, h: 22 },     // the arena
+  strike: { x: WELL.half + 0.6 + 3 + 0.6 + 15, z: WELL.z - 18.5, w: 30, d: 30, h: 22 },   // the hour track
+  low: 12,
+  upY: UP,
+  hours: { pS2: 2, pS4: 4, pS6: 6 },             // the hour track's plates, south to north
+};
+WING.stairZ = WING.pend.z + 12.4;                // the Pendulum Hall's stair, up its north wall to the landing by its high door
+WING.zone = { min: [WING.pend.x - 15, -1, WING.pend.z - 15], max: [WING.pend.x + 15, UP + 11, WING.pend.z + 15] };
+WING.track = { x: WING.strike.x + 2, z0: WING.strike.z - 5.6, z1: WING.strike.z + 5.6 };   // (down the middle of the room)
+/** The Striking Room's loft (local m): along its west wall at UP, the key's cage on it; its edge a drop to the floor. */
+WING.loft = { x0: WING.strike.x - 15, x1: WING.strike.x - 7, z0: WING.strike.z - 9, z1: WING.strike.z + 7 };
+
 export const LOGIC = {
   id: 'garage', entry: 'threshold', gadget: 'boomerang',
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, esc: { checkpoint: true, kind: 'puzzle' }, escFar: { kind: 'puzzle' },
     well: { checkpoint: true, kind: 'puzzle' }, pend: { checkpoint: true, kind: 'combat' }, springs: { checkpoint: true, kind: 'puzzle' },
+    // (v1.83, issue #414) the docks high on the great hall's walls, where the stair's arm meets them, and the Striking
+    // Room's loft
+    hourTwo: { checkpoint: true, kind: 'passage' }, hourFour: { checkpoint: true, kind: 'passage' }, hourSix: { checkpoint: true, kind: 'passage' },
+    strikeLoft: { checkpoint: true, kind: 'passage' },
     coil: { checkpoint: true, kind: 'chest' }, wind: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' },
     mainspring: { checkpoint: true, kind: 'puzzle' }, cupboard: { kind: 'passage' }, galleryFar: { kind: 'passage' },
     hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
@@ -139,12 +221,20 @@ export const LOGIC = {
     { a: 'escFar', b: 'well' },
     { a: 'escFar', b: 'cupboard', door: 'dC' },   // the Clockmaker's Cupboard (the great key since v1.53; a coffer)
     { a: 'escFar', b: 'mainspring' },             // (v1.74) the Mainspring Room, across the landing from the Cupboard's door
-    // the Winding Well is the hub (v1.48): west the Pendulum Hall (an arena), east the Striking Room, up the climb the
-    // door to the chest (the ledge over the climb is the well's: the block's face is the house's one climb)
-    { a: 'well', b: 'pend', door: 'dW' },         // (open: it shuts behind you while the machines stand)
-    { a: 'pend', b: 'well', door: 'dWo' },        // the Pendulum Hall's way out, onto the ledge over the climb (the loop)
+    // the Winding Well is the hub (v1.48) and the great hall (v1.83): the Escapement's stair up its middle, its arm meeting
+    // the dock of the hour the great clock says; every dock's edge a drop back to the hall's floor (G6)
+    { a: 'well', b: 'hourTwo', door: 'st2' },
+    { a: 'well', b: 'hourFour', door: 'st4' },
+    { a: 'well', b: 'hourSix', door: 'st6' },
+    { a: 'hourTwo', b: 'well', oneWay: true }, { a: 'hourFour', b: 'well', oneWay: true }, { a: 'hourSix', b: 'well', oneWay: true },
+    // east the Pendulum Hall (an arena), in by its high door at four, out by its floor door once won (the loop)
+    { a: 'hourFour', b: 'pend', door: 'dW' },     // (open: it shuts behind you while the machines stand)
+    { a: 'pend', b: 'well', door: 'dWo' },        // its floor door onto the hall, once its keepers are beaten
+    // east the Striking Room, its floor off the hall's; its loft off the dock at six, and a drop from it to the floor
     { a: 'well', b: 'springs' },
-    { a: 'well', b: 'coil', door: 'd2' },         // at the top of the climb: the counterweight home, and two small keys
+    { a: 'hourSix', b: 'strikeLoft' },
+    { a: 'strikeLoft', b: 'springs', oneWay: true },
+    { a: 'hourTwo', b: 'coil', door: 'd2' },      // the north door: the counterweight home, and two small keys
     { a: 'coil', b: 'wind', door: 'dP' },         // (v1.77) the chamber's north door, for the coil in your hand
     { a: 'wind', b: 'gallery', door: 'd3' },      // the Winding Passage's door, a room of its own since v1.77
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
@@ -157,29 +247,34 @@ export const LOGIC = {
     s2: { type: 'switch', room: 'esc', after: 's1' },
     s3: { type: 'switch', room: 'esc', after: 's2' },
     discs: { type: 'bridge', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
-    // the counterweight, on the escapement's far landing (issue #275: 1.2 m along its groove, room behind it to push
-    // from), and its socket at the groove's end on the landing (v1.77: it was in the well, the groove through its doorway)
-    ball1: { type: 'drum', room: 'escFar', plate: 'p1', plateAt: 1, start: 0.07 },
-    p1: { type: 'plate', room: 'escFar' },
-    // the Pendulum Hall: its keepers beaten, the key's cage sinks and the way out onto the ledge opens
+    // the counterweight (issue #275: 1.2 m along its groove, room behind it to push from) and its socket at the groove's end,
+    // on the great hall's floor (v1.77: on the escapement's far landing, for the north door; v1.83: in the hall, and it winds
+    // the great clock: until it is home the clock's hand will not turn)
+    ball1: { type: 'drum', room: 'well', plate: 'p1', plateAt: 1, start: 0.07 },
+    p1: { type: 'plate', room: 'well' },
+    // the Pendulum Hall: its keepers beaten, the key's cage sinks and its floor door opens
     arW: { type: 'arena', room: 'pend' },
     kW: { type: 'key', kind: 'small', room: 'pend', when: { lit: 'arW' } },
     dW: { type: 'door', opens: null },
     dWo: { type: 'door', opens: { lit: 'arW' }, latch: true },
-    // the Striking Room: the ball on the hour track, on the house's hour (four: every clock in the house stopped there)
+    // the Striking Room: the ball on the hour track, on the hour the great clock says (v1.83: it was four, where every
+    // clock stopped; the clock face in the room says it now); woken, the eye lets the key out of its cage on the loft
+    // (the eye first: the scout asks for it once the ball is on the hour, before the ball again)
+    sS: { type: 'switch', room: 'springs', when: { any: [{ all: [TWO, { drumOn: ['ballS', 'pS2'] }] }, { all: [FOUR, { drumOn: ['ballS', 'pS4'] }] }, { all: [SIX, { drumOn: ['ballS', 'pS6'] }] }] } },
     ballS: { type: 'drum', room: 'springs', stops: { pS2: 1 / 3, pS4: 2 / 3, pS6: 1 }, start: 0 },
     pS2: { type: 'plate', room: 'springs' }, pS4: { type: 'plate', room: 'springs' }, pS6: { type: 'plate', room: 'springs' },
-    sS: { type: 'switch', room: 'springs', when: { drumOn: ['ballS', 'pS4'] } },
-    kE: { type: 'key', kind: 'small', room: 'springs', when: { lit: 'sS' }, clue: 'hour' },
-    hour: { type: 'clue', room: 'well' },   // (the house's hour: the well's clock, stopped at four, as the one over the door outside)
-    d2: { type: 'door', lock: 'small', keys: 2, opens: { drumOn: ['ball1', 'p1'] }, latch: true },   // (the ball's weight: the winding's counterweight)
+    kE: { type: 'key', kind: 'small', room: 'strikeLoft', when: { lit: 'sS' } },
+    d2: { type: 'door', lock: 'small', keys: 2, latch: true },   // (v1.83: the counterweight winds the great clock now, not this door)
     // (issue #377: the chest held the quick coil, a faster refill: "more mana"; the boomerang now, whose locks strike three
     // eyes in one throw, in turn; the coil waits in Lorn II's makers' court)
     chest: { type: 'gadget', room: 'coil', item: 'boomerang' },
     dP: { type: 'door', opens: { item: 'boomerang' }, latch: true },
     k1: { type: 'switch', room: 'wind', needs: ['boomerang'] },   // the passage's six eyes in one breath: three thrown, three splashed
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
-    k2: { type: 'switch', room: 'gallery', needs: ['boomerang'], order: true },   // six in one breath, in turn from four
+    // (v1.83, issue #414, G2) the striking train under the great clock: the grappling hook at its ring runs it a while
+    // (a held bell: TRAIN.hold s), and while it runs the shutters stand open off the six eyes
+    train: { type: 'bell', room: 'gallery', needs: ['hook'], hold: TRAIN.hold },
+    k2: { type: 'switch', room: 'gallery', needs: ['boomerang'], order: true, when: { lit: 'train' } },   // six in one breath, in turn from the house's hour
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', lock: 'big', room: 'hall' },              // the great key; and shut while the Foreman fights
     foreman: { type: 'boss', room: 'hall', needs: ['gun', 'boomerang'] },
@@ -190,17 +285,25 @@ export const LOGIC = {
     ballM: { type: 'drum', room: 'mainspring', plate: 'pM', plateAt: 1, start: 0 },   // (at the way in)
     pM: { type: 'plate', room: 'mainspring' },
     k3: { type: 'switch', room: 'mainspring', needs: ['boomerang'], when: { drumOn: ['ballM', 'pM'] } },
-    // the Clockmaker's Cupboard (optional, so last: the marker never points at it): the Clockmaker's clock on the landing
-    // woken round from four (four, eight, twelve)
+    // the Clockmaker's Cupboard: the Clockmaker's clock on the landing woken round from four (four, eight, twelve)
     // (v1.53) its clock stopped, the eyes lidded, until the mainspring is wound: the great key inside
-    c1: { type: 'switch', room: 'escFar', when: { lit: 'k3' } },
-    c2: { type: 'switch', room: 'escFar', after: 'c1', when: { lit: 'k3' } },
-    c3: { type: 'switch', room: 'escFar', after: 'c2', when: { lit: 'k3' } },
+    // (v1.83, issue #414) and its lids up only while the great clock says four, the hour its eyes count from
+    c1: { type: 'switch', room: 'escFar', when: { all: [{ lit: 'k3' }, FOUR] } },
+    c2: { type: 'switch', room: 'escFar', after: 'c1', when: { all: [{ lit: 'k3' }, FOUR] } },
+    c3: { type: 'switch', room: 'escFar', after: 'c2', when: { all: [{ lit: 'k3' }, FOUR] } },
     dC: { type: 'door', opens: { all: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }] }, latch: true },   // (all three: in turn, the last lights after the others)
     kB: { type: 'key', kind: 'big', room: 'cupboard' },
     cache: { type: 'cache', room: 'cupboard' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'springs', at: [24.2, 0, 82.2], yaw: Math.PI / 4 },
+    map: { type: 'map', room: 'springs', at: [WING.strike.x + 10, 0, WING.strike.z - 11], yaw: -Math.PI / 4 },
+    // (v1.83, issue #414, G1) THE HOUR: the great clock's hand at two, four or six (four the start), turned on at a lever by
+    // the stair's foot, on its crown, on every dock and on the Escapement's far landing. Last, so the scout points at
+    // anything else to do first. Its arm meets one dock: st2 (the north door), st4 (the Pendulum Hall's high door), st6
+    // (the Striking Room's loft)
+    hour: { type: 'drum', room: 'well', rooms: ['hourTwo', 'hourFour', 'hourSix', 'escFar'], stops: HOUR.stops, start: HOUR.stops[HOUR.start], roll: 'hand', verb: 'hour' },
+    two: { type: 'plate' }, four: { type: 'plate' }, six: { type: 'plate' },
+    // (only once the clock is wound: until then its hand, the stair's arm, stands upright)
+    st2: { type: 'bridge', opens: { all: [TWO, WOUND] } }, st4: { type: 'bridge', opens: { all: [FOUR, WOUND] } }, st6: { type: 'bridge', opens: { all: [SIX, WOUND] } },
   },
 };
 
@@ -296,23 +399,13 @@ function galleryClockwork(rt, K, F0, brass) {
   rt.add(Clockwork, { parts });
 }
 
-// ------------------------------------------------------------------ the hub's wings (v1.48, issue #23)
-/** Where the wings stand (local m): the Pendulum Hall west of the well, the Striking Room east, the way up onto the ledge. */
-export const WING = {
-  stairZ: WELL.z + 12.4,                         // the Pendulum Hall's stair, up its north wall to the landing by its way out
-  upY: UP,                                       // its way out, over the way in: onto the well's balcony and the ledge over the climb
-  pend: { x: -38, z: WELL.z, w: 30, d: 30, h: 22 },    // the arena
-  strike: { x: 38, z: WELL.z, w: 30, d: 30, h: 18 },   // the hour track
-  zone: { min: [-53, -1, WELL.z - 15], max: [-23, UP + 11, WELL.z + 15] },
-  hours: { pS2: 2, pS4: 4, pS6: 6 },             // the hour track's plates, south to north
-  track: { x: 40, z0: WELL.z - 5.6, z1: WELL.z + 5.6 },   // (v1.77: down the middle of the room; it ran along the east wall)
-};
+// ------------------------------------------------------------------ the rooms off the landing and the upper house
 /** The Clockmaker's Cupboard, off the Escapement's far landing (west): its doors' z, its middle, the Clockmaker's clock's dial's height. */
 export const CUPBOARD = { z: 56, x: -26.8, dialY: 6 };
 /** The Mainspring Room, east off the landing across from the Cupboard: its middle, the spring's stele (its west face). */
 export const MAINSPRING = { x: 35.8, z: CUPBOARD.z, stele: 39.8 };
-/** The upper house, north of the well (floor UP): the Coil Chamber's middle and radius, the Winding Passage's middle. */
-export const COIL = { z: WELL.z + WELL.r + 5.2 + 13, r: 13 };
+/** The upper house, north of the great hall (floor UP): the Coil Chamber's middle and radius, the Winding Passage's middle. */
+export const COIL = { z: WELL.z + WELL.half + 5.2 + 13, r: 13 };
 export const WIND = { z: COIL.z + COIL.r + 5 + 15, w: 30, d: 30 };
 /** The Clock Gallery: its near end (F0), its width; the great clock hung over the bridge's far end. */
 export const GALLERY = { z0: WIND.z + WIND.d / 2 + 1.2, w: 36, d: 34.4, clock: { y: UP + 10, z: 27.2 } };
@@ -321,45 +414,45 @@ export const GALLERY = { z0: WIND.z + WIND.d / 2 + 1.2, w: 36, d: 34.4, clock: {
 export const ARENAS = [{
   el: 'arW', room: 'pend', zone: WING.zone, doors: ['dW', 'dWo'], extra: 2,
   shut: 'The door grinds shut behind you, and the pendulums’ keepers stir.',
-  won: 'The last keeper falls still. The key’s cage sinks, and a way opens above.',
+  won: 'The last keeper falls still. The key’s cage sinks, and the floor door opens.',
 }];
 
 /**
- * The Pendulum Hall (west, an arena: its doors shut behind you while the house's machines stand; won, the key's cage
- * sinks and its way out onto the ledge over the climb opens) and the Striking Room (east: the hour track down the middle
- * of the floor, a ball and three plates, each with its little clock on a post; on the house's hour the eye on its
- * obelisk opens its lids, and woken it lets the key out of its cage). Each holds one of the two small keys the door over
- * the climb takes.
+ * The Pendulum Hall (east of the great hall, north: an arena, in by its high door off the dock at four; its doors shut behind
+ * you while the house's machines stand; won, the key's cage on the landing by the high door sinks and its floor door opens
+ * back onto the great hall) and the Striking Room (east, south: the hour track down the middle of the floor, a ball and three
+ * plates, each with its little clock on a post; with the ball on the hour the great clock says, the eye on its obelisk
+ * opens its lids, and woken it lets the key out of its cage up on the loft, off the dock at six). Each holds one of the two
+ * small keys the north door takes. (v1.83, issue #414: they stood west and east of the round well, in from its floor.)
  */
-function wings(rt, K, M, { C2, dial, brass }) {
+function wings(rt, K, M, { dial, brass }) {
   const add = (P, o) => rt.add(P, o);
-  const Pn = WING.pend, S = WING.strike, D = DOOR, R = WELL.r;
-  const PX1 = Pn.x + Pn.w / 2, SX0 = S.x - S.w / 2;   // (the halls' inner faces toward the well)
-  // ---- the Pendulum Hall
-  K.corridor([PX1 + 0.6, C2], [-(R - 0.2), C2], 0, { w: D.w, h: D.h + 0.3, roof: false });   // (the way out's floor is its roof)
-  K.hall({ x: Pn.x, z: Pn.z, w: Pn.w, d: Pn.d, y: 0, h: Pn.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: 0, ...D }, { side: 'e', at: 0, ...D, y0: WING.upY }] });
-  add(Door, { id: 'dW', at: [PX1 + 1.8, 0, C2], yaw: Math.PI / 2, ...D });   // (open: it shuts behind you while they stand)
-  // the stair up the north wall to the landing along the east wall by the way out, the key caged on it
-  K.stairs([PX1 - 23, 0, WING.stairZ], [PX1 - 7, WING.upY, WING.stairZ], 3.6);
-  K.slab(PX1 - 7, C2 - 4.6, PX1, WING.stairZ + 1.8, WING.upY, 1.2);
-  add(Key, { id: 'kW', at: [PX1 - 3, WING.upY, C2 + 8], yaw: Math.PI / 2 });
-  // the way out, over the way in: a passage to a balcony inside the well, beside the ledge over the climb
-  add(Door, { id: 'dWo', at: [PX1 + 1.8, WING.upY, C2], yaw: Math.PI / 2, ...D, lamps: [{ lit: 'arW' }] });
-  K.corridor([PX1 + 0.6, C2], [-(R - 0.2), C2], WING.upY, D);
-  K.slab(-(R + 0.2), C2 - 4.6, -(R - 6), C2 + WELL.face, WING.upY, 1.2);   // (the balcony, up to the climb's block)
+  const Pn = WING.pend, S = WING.strike, D = DOOR, WX = WELL.half + 0.6, low = WING.low;
+  const PX0 = Pn.x - Pn.w / 2, SX0 = S.x - S.w / 2;   // (the halls' inner faces toward the great hall)
+  // ---- the Pendulum Hall: its high door off the dock at four, its floor door back onto the hall
+  K.corridor([WX, Pn.z], [PX0 - 0.6, Pn.z], UP, D);
+  K.corridor([WX, Pn.z - low], [PX0 - 0.6, Pn.z - low], 0, D);
+  K.hall({ x: Pn.x, z: Pn.z, w: Pn.w, d: Pn.d, y: 0, h: Pn.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, ...D, y0: UP }, { side: 'w', at: -low, ...D }] });
+  add(Door, { id: 'dW', at: [PX0 - 1.8, UP, Pn.z], yaw: Math.PI / 2, ...D });   // (open: it shuts behind you while they stand)
+  add(Door, { id: 'dWo', at: [PX0 - 1.8, 0, Pn.z - low], yaw: Math.PI / 2, ...D, lamps: [{ lit: 'arW' }] });
+  // the landing along the west wall by the high door, the key caged on it, and the stair down the north wall to the floor
+  K.stairs([PX0 + 23, 0, WING.stairZ], [PX0 + 7, UP, WING.stairZ], 3.6);
+  K.slab(PX0, Pn.z - 4.6, PX0 + 7, WING.stairZ + 1.8, UP, 1.2);
+  add(Key, { id: 'kW', at: [PX0 + 3, UP, Pn.z + 8], yaw: -Math.PI / 2 });
   // four columns to fight round, and great pendulums hung still along the south wall (the hall's name)
   for (const [dx, dz] of [[-7, -7], [7, -7], [-7, 7], [7, 7]]) K.column(Pn.x + dx, Pn.z + dz, 0, Pn.h, 0.9);
   for (const x of [Pn.x - 10, Pn.x, Pn.x + 10]) {
     K.add(brass, box(0.14, 13, 0.14, x, 12.5, Pn.z - Pn.d / 2 + 0.8));
     K.add(brass, T(new THREE.CylinderGeometry(1.4, 1.4, 0.25, 20).rotateX(Math.PI / 2), [x, 5.6, Pn.z - Pn.d / 2 + 0.8]));
   }
-  // (beside the ways in and out, not over them: hung in the way out's doorway, it was climbed over, issue #115)
-  dial(PX1 - 0.1, 6, C2 - 7, 1.4, -Math.PI / 2, [TAU * 4 / 12, 0.4]);
-  add(Mark, { room: 'pend', at: [PX1 - 4, 0, C2 - 6], yaw: -Math.PI / 2, foes: [Pn.x, 0, Pn.z] });
+  // (beside the ways in and out, not over them: hung in a doorway, it was climbed over, issue #115)
+  add(HourGauge, { room: 'pend', at: [PX0 + 0.1, 5.4, Pn.z - low + 6.2], yaw: Math.PI / 2, wall: true });
+  add(Mark, { room: 'pend', at: [PX0 + 4, 0, Pn.z - 4], yaw: Math.PI / 2, foes: [Pn.x, 0, Pn.z] });
 
   // ---- the Striking Room: the hour track down the middle of the floor, three plates on it, each with its clock on a post
-  K.corridor([R - 0.2, C2], [SX0 - 0.6, C2], 0, D);
-  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: S.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, ...D }] });
+  K.corridor([WX, S.z], [SX0 - 0.6, S.z], UP, D);
+  K.corridor([WX, S.z + low], [SX0 - 0.6, S.z + low], 0, D);
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: 0, h: S.h, roof: 'oculus', oculus: 0.3, doors: [{ side: 'w', at: 0, ...D, y0: UP }, { side: 'w', at: low, ...D }] });
   const { x: TX, z0: Z0, z1: Z1 } = WING.track;
   K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 2.2, TX, 0.02, (Z0 + Z1) / 2));
   for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, Z1 - Z0 + 2.2, TX + sd * 0.8, 0.06, (Z0 + Z1) / 2));
@@ -370,14 +463,22 @@ function wings(rt, K, M, { C2, dial, brass }) {
     dial(TX + 2.72, 3.2, z, 0.9, -Math.PI / 2, [TAU * hr / 12, TAU * hr / 12]);   // (its hour, both hands on it)
   });
   add(Ball, { id: 'ballS', a: [TX, 0.04, Z0], b: [TX, 0.04, Z1], r: 1.0, friction: 2.2 });
-  // the striking eye on its obelisk past the track, lidded until the ball sits on the house's hour
+  // the striking eye on its obelisk past the track, lidded until the ball sits on the hour the great clock says
   const OX = TX + 5.6;
   K.both(M.wallGlyph, box(1.4, 9.4, 1.4, OX + 0.7, 4.7, S.z));
   K.both(M.trim, box(1.8, 0.4, 1.8, OX + 0.7, 9.5, S.z));
-  add(Switch, { id: 'sS', at: [OX - 0.15, 7.6, S.z], yaw: -Math.PI / 2, size: 1.1, lids: true, wrong: 'Its lids stay shut. The ball on the hour track is not at the house’s hour.' });
+  add(Switch, { id: 'sS', at: [OX - 0.15, 7.6, S.z], yaw: -Math.PI / 2, size: 1.1, lids: true, wrong: 'Its lids stay shut. The ball on the hour track is not at the hour the great clock says.' });
   K.add(brass, T(new THREE.TorusGeometry(1.6, 0.16, 6, 28), [OX - 0.05, 7.6, S.z], [0, Math.PI / 2, 0]));
-  add(Key, { id: 'kE', at: [TX - 5, 0, S.z + 5], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'springs', at: [SX0 + 4, 0, S.z - 6], yaw: Math.PI / 2 });
+  // the clock face on the floor door's side, the house's hour (G1), seen from the track
+  add(HourGauge, { room: 'springs', at: [TX - 4.5, 0, Z1 + 3.2], yaw: -Math.PI * 0.75 });
+  add(Mark, { room: 'springs', at: [SX0 + 4, 0, S.z + low - 5], yaw: Math.PI / 2 });
+  // the loft along the west wall, off the dock at six: the key's cage on it; its edge a drop to the floor
+  const LF = WING.loft;
+  K.slab(LF.x0, LF.z0, LF.x1, LF.z1, UP, 1.2);
+  K.both(M.trim, box(0.3, 0.3, LF.z1 - LF.z0, LF.x1 - 0.15, UP + 0.15, (LF.z0 + LF.z1) / 2));   // (its lip)
+  add(Key, { id: 'kE', at: [LF.x1 - 1.8, UP, S.z + 1], yaw: -Math.PI / 2 });   // (by the loft's edge, the striking eye in sight over it; its chest faces into the loft)
+  add(HourGauge, { room: 'strikeLoft', at: [LF.x0 + 1.6, UP, LF.z0 + 1.6], yaw: Math.PI / 4 });
+  add(Mark, { room: 'strikeLoft', at: [LF.x0 + 3, UP, S.z - 4], yaw: Math.PI / 2 });
 }
 
 /**
@@ -409,6 +510,7 @@ function mainspring(rt, K, M, { brass }) {
     fade: 'They woke, and went dark again before the rest.',
     woke: 'The mainspring takes up with a groan, and out on the landing the Clockmaker’s clock begins to tick.' });
   add(Mark, { room: 'mainspring', at: [X0 + 5, Y, Z + 4], yaw: Math.PI / 2 });
+  add(HourGauge, { room: 'mainspring', at: [X0 + 4, Y, Z - 7], yaw: Math.PI / 4 });
 }
 
 /**
@@ -429,11 +531,353 @@ function cupboard(rt, K, M, { dial, brass }) {
   K.both(M.trim, box(5.0, 0.4, 1.6, C.x, 8.7, C.z + 0.8));
   K.both(brass, box(1.2, 2.6, 0.12, C.x, 2.4, C.z + 0.17));   // (its pendulum's window, still)
   dial(C.x, CUPBOARD.dialY, C.z + 0.12, 1.1, Math.PI, null);
-  const tick = 'It ticks once and goes still. This little clock has lost its hand: count round from the house’s hour.';
-  const stopped = 'Its lids stay shut. The little clock has stopped: whatever drives the house’s clocks hangs slack.';
+  const tick = 'It ticks once and goes still. This little clock has lost its hand: count round from four.';
+  // (v1.83, issue #414: its lids lift only while the great clock says four, the hour its eyes count from)
+  const stopped = () => (!rt.logic.isLit('k3') ? 'Its lids stay shut. The little clock has stopped: whatever drives the house’s clocks hangs slack.'
+    : 'Its lids stay shut: its eyes begin at four, and the great clock says otherwise.');
   for (const [id, hr] of [['c1', 4], ['c2', 8], ['c3', 12]]) { const a = TAU * hr / 12; add(Switch, { id, at: [C.x - Math.sin(a) * 1.9, CUPBOARD.dialY + Math.cos(a) * 1.9, C.z - 0.1], yaw: Math.PI, size: 0.5, wrong: tick, lids: true, unmet: stopped }); }
+  // the house's hour beside it, and a lever to turn the great clock on from the landing (the lower hub)
+  add(HourGauge, { room: 'escFar', at: [C.x - 4.2, 0, C.z - 0.4], yaw: Math.PI });
+  add(HourLever, { id: 'lever.escFar', room: 'escFar', at: [C.x + 4.2, 0, C.z - 1.2], yaw: Math.PI, sets: 'hour' });
+  add(HourGauge, { room: 'cupboard', at: [X + 3.5, 3.8, Z - 5.9], yaw: 0, wall: true, r: 0.6 });
   add(Coffer, { id: 'cache', at: [X - 2.2, Y, Z - 1.8], yaw: Math.PI / 2 });
   add(Key, { id: 'kB', big: true, at: [X - 2.2, Y, Z + 1.8], yaw: Math.PI / 2 });   // (v1.53: the great key, here since the mainspring moved off the gallery)
+}
+
+// ------------------------------------------------------------------ the hour, the house's state (v1.83, issue #414)
+/** The one lamp every gauge, lever, dock and the stair's arbor share: the hour's colour (GreatClock sets it once a frame). */
+const hourLamp = () => makeMaterial({ color: HOUR.colors.four, glow: 0.55, flat: true, key: 'temple.garage.hour' });
+const clockBrass = () => makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass', key: 'temple.garage.clockbrass' });
+const _hc = new THREE.Color(), _hc2 = new THREE.Color();
+/** The hour a hand angle stands at (2 … 14: past six it runs on round to two). */
+const hourAt = (a) => 2 + ((((a - hourAngle(2)) % TAU) + TAU) % TAU) / TAU * 12;
+/** The hour's colour, between the hours as the hand turns (six back to two over the hours it runs through). */
+function hourColor(h, out) {
+  const C = HOUR.colors;
+  if (h <= 4) return out.set(C.two).lerp(_hc2.set(C.four), (h - 2) / 2);
+  if (h <= 6) return out.set(C.four).lerp(_hc2.set(C.six), (h - 4) / 2);
+  return out.set(C.six).lerp(_hc2.set(C.two), Math.min(1, (h - 6) / 8));
+}
+/** The Clock Gallery's eyes in turn from the house's hour (ring6: eye i at 12 - 2i o'clock as you face it). */
+export const galleryOrder = (h) => Array.from({ length: 6 }, (_, k) => ((((12 - (HOUR.hours[h] ?? h)) / 2 - k) % 6) + 6) % 6);
+
+/**
+ * The Escapement's stair's solids, in its own frame (its column's foot, its arm along +z): the steps round the column from
+ * the floor to the crown (a sector round the arm, at UP). The arm's: armSolids.
+ */
+function stairSolids() {
+  const S = STAIR, N = S.steps, rise = UP / N, H = S.crownSpan / 2, D = S.sweep / (N - 1), out = [];
+  for (let i = 0; i < N - 1; i++) {
+    const c = H + D / 2 + (N - 2 - i) * D, top = (i + 1) * rise;   // (its middle: 0 toward +z, toward +x; the top step by the crown)
+    out.push(sector(S.r, S.out, Math.PI / 2 - (c + D / 2 + 0.01), Math.PI / 2 - (c - D / 2 - 0.01), Math.min(rise + 0.3, top)).translate(0, top, 0));
+  }
+  out.push(sector(0.02, S.crown, Math.PI / 2 - H, Math.PI / 2 + H, 0.6).translate(0, UP, 0));
+  return out;
+}
+/** Where the arm hinges on the crown (stair frame: m out along +z, at UP): it stands upright till the clock is wound. */
+export const ARM_PIVOT = STAIR.crown - 0.2;
+/**
+ * The arm's solids in its own frame (its hinge at the crown's edge, along +z): its deck, its top 2 cm over the crown's, out
+ * to STAIR.arm, and its parapets (you ride it as it turns: nothing tips you off).
+ */
+function armSolids() {
+  const S = STAIR, P0 = ARM_PIVOT, out = [box(S.w, 0.8, S.arm - P0, 0, 0.02 - 0.4, (S.arm - P0) / 2)];
+  for (const s of [-1, 1]) out.push(box(0.3, 0.9, S.arm - S.crown - 1.2, s * (S.w / 2 - 0.15), 0.47, (S.arm + S.crown + 0.6) / 2 - P0));
+  return out;
+}
+
+/**
+ * The great clock (LOGIC `hour`, a drum of three stops: two, four, six): this piece keeps the house's state. It turns the
+ * Escapement's stair in the middle of the great hall (a moving collider: physics.addMover, it carries whoever stands on it),
+ * so its arm, the hand, meets the dock of the hour; it runs on, never back, easing in and out (HOUR.turn rad/s at most).
+ * The great clock's face on the west wall and every gauge's hand follow it, and every lamp of the house's hour takes the
+ * hour's colour. A lever (HourLever) turns it on: `turn(hour)`. The scout's `center`: the nearest lever.
+ * o: { id: 'hour', at: [x, 0, z] the column's foot (local), face: [x, y, z] the great clock's face on the west wall, faceR }
+ */
+export class GreatClock {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, [x, y, z] = o.at, S = STAIR;
+    this.at = K.world(x, y, z);
+    this.pos = K.world(x, UP, z);
+    this.lamp = hourLamp();
+    this.setters = [];
+    rt.hourHands ??= [];
+    rt.greatClock = this;
+    const brass = clockBrass();
+    // the column, still, the stair turning round it; its capital under the crown
+    K.both(M.trim, lathe([[S.r * 1.3, 0], [S.r * 1.3, 0.5], [S.r - 0.12, 0.8], [S.r - 0.12, UP - 1.3], [S.r * 1.05, UP - 0.9], [S.r * 1.05, UP - 0.62]], 20).translate(x, y, z));
+    // the clock laid in the floor round the stair's foot: a ring, twelve marks, the three hours its arm stops at lit
+    K.both(M.trim, T(annulus(9.6, 10.4, 0.03, 64), [x, y + 0.03, z]));   // (its top 1 cm under the counterweight's groove's: no face shared)
+    for (let i = 0; i < 12; i++) {
+      const a = hourAngle(i), long = i % 3 === 0;
+      K.add(M.dark, T(new THREE.BoxGeometry(long ? 0.5 : 0.28, 0.05, long ? 1.6 : 0.9), [x + Math.sin(a) * 11.4, y + 0.03, z + Math.cos(a) * 11.4], [0, a, 0]));
+    }
+    for (const h of ['two', 'four', 'six']) {
+      const a = hourAngle(HOUR.hours[h]), m = makeMaterial({ color: HOUR.colors[h], glow: 0.7, flat: true, key: `temple.garage.hour.${h}` });
+      K.add(m, T(new THREE.CylinderGeometry(0.75, 0.75, 0.06, 18), [x + Math.sin(a) * 13, y + 0.04, z + Math.cos(a) * 13]));
+      for (let k = 0; k < HOUR.hours[h] / 2; k++) K.add(m, T(new THREE.BoxGeometry(0.22, 0.05, 1.4), [x + Math.sin(a) * 15 + Math.cos(a) * (k - (HOUR.hours[h] / 2 - 1) / 2) * 0.6, y + 0.03, z + Math.cos(a) * 15 - Math.sin(a) * (k - (HOUR.hours[h] / 2 - 1) / 2) * 0.6], [0, a, 0]));
+    }
+    // the stair: in a holder kept out of the level's bake; its solids one mesh, its brass and lamps drawn only
+    this.group = new THREE.Group();
+    this.group.name = 'The Escapement’s stair';
+    this.group.userData.noCollide = true;
+    rt.root.add(this.group);
+    this.stair = new THREE.Group();
+    this.stair.position.copy(this.at);
+    this.group.add(this.stair);
+    const solid = new THREE.Mesh(mergeGeometries(stairSolids().map(prep)), M.floor);
+    solid.userData.dynamic = true;
+    this.stair.add(solid);
+    // the arm, the hand: hinged on the crown's edge, a moving collider of its own; upright till the clock is wound
+    const P0 = ARM_PIVOT;
+    this.arm = new THREE.Group();
+    this.arm.position.set(0, UP, P0);
+    this.stair.add(this.arm);
+    const deck = new THREE.Mesh(mergeGeometries(armSolids().map(prep)), M.floor);
+    deck.userData.dynamic = true;
+    this.arm.add(deck);
+    // brass along the steps' noses and the crown's rim; the arm's edges, the hand's keel under it, its point
+    const N = S.steps, rise = UP / N, Hs = S.crownSpan / 2, D = S.sweep / (N - 1), trims = [], armTrims = [];
+    for (let i = 0; i < N - 1; i++) { const c = Hs + (N - 2 - i) * D; trims.push(T(new THREE.BoxGeometry(0.08, 0.08, S.out - S.r), [Math.sin(c) * (S.r + S.out) / 2, (i + 1) * rise + 0.02, Math.cos(c) * (S.r + S.out) / 2], [0, c, 0])); }
+    trims.push(sector(S.crown - 0.12, S.crown + 0.04, Math.PI / 2 - Hs, Math.PI / 2 + Hs, 0.62).translate(0, UP + 0.03, 0));   // (the crown's brass rim)
+    armTrims.push(box(0.6, 1.6, S.arm - S.crown - 1, 0, -1.2, (S.arm + S.crown) / 2 - P0));
+    armTrims.push(T(new THREE.ConeGeometry(1.4, 3.2, 4).rotateX(Math.PI / 2).scale(1, 0.35, 1), [0, -1.0, S.arm + 0.8 - P0]));
+    for (const s of [-1, 1]) armTrims.push(box(0.36, 0.12, S.arm - S.crown - 1.2, s * (S.w / 2 - 0.15), 0.98, (S.arm + S.crown + 0.6) / 2 - P0));
+    // its lamp at the tip, the hour's colour
+    const lamps = new THREE.Mesh(mergeGeometries([T(new THREE.SphereGeometry(0.42, 14, 10), [0, 1.5, S.arm - 0.7 - P0]), T(new THREE.CylinderGeometry(0.12, 0.12, 0.6, 8), [0, 1.1, S.arm - 0.7 - P0])].map(prep)), this.lamp);
+    const tr = new THREE.Mesh(mergeGeometries(trims.map(prep)), brass), atr = new THREE.Mesh(mergeGeometries(armTrims.map(prep)), brass);
+    for (const m of [tr, atr, lamps]) { m.userData.noCollide = true; m.userData.dynamic = true; }
+    this.stair.add(tr); this.arm.add(atr, lamps);
+    // the great clock on the west wall: a cream face, its marks, the three hours lit, and its hand
+    const [fx, fy, fz] = o.face, R = o.faceR ?? 7;
+    const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
+    K.both(cream, T(new THREE.CylinderGeometry(R, R, 0.3, 64).rotateX(Math.PI / 2), [fx, fy, fz], [0, Math.PI / 2, 0]));
+    K.both(M.trim, T(new THREE.TorusGeometry(R + 0.2, 0.4, 8, 64), [fx, fy, fz], [0, Math.PI / 2, 0]));
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(i % 3 ? 0.3 : 0.55, R * (i % 3 ? 0.12 : 0.2), 0.12).translate(Math.sin(a) * R * 0.84, Math.cos(a) * R * 0.84, 0.18).rotateZ(-a), [fx, fy, fz], [0, Math.PI / 2, 0])); }
+    for (const h of ['two', 'four', 'six']) { const a = (HOUR.hours[h] / 12) * TAU, m = makeMaterial({ color: HOUR.colors[h], glow: 0.7, flat: true, key: `temple.garage.hour.${h}` }); K.add(m, T(new THREE.CylinderGeometry(0.55, 0.55, 0.12, 16).rotateX(Math.PI / 2).translate(Math.sin(a) * R * 0.64, Math.cos(a) * R * 0.64, 0.2), [fx, fy, fz], [0, Math.PI / 2, 0])); }
+    this.face = hourHand(rt, [fx, fy, fz], Math.PI / 2, R, brass, 0.25);
+    this.a = hourAngle(HOUR.hours[hourOf(rt.logic.drumT(this.id))]);
+    this.want = this.a; this.v = 0;
+    this.raised = rt.logic.check(WOUND) ? 0 : 1;   // (the arm upright, 1, till the clock is wound: then it comes down level, 0)
+    this.arm.userData.noCollide = true;   // (out of the stair's own collider: a collider of its own, init)
+    this.place();
+  }
+  /** The hour the drum says now ('two', 'four', 'six'). */
+  get hour() { return hourOf(this.rt.logic.drumT(this.id)); }
+  /** Turning still (the logic has its new hour, the arm not there yet). */
+  get turning() { return this.want - this.a > 1e-3; }
+  init(physics) {
+    this.stair.updateMatrixWorld(true);
+    this.collider = physics?.addMover?.(this.stair) ?? null;
+    this.armCollider = physics?.addMover?.(this.arm) ?? null;
+  }
+  /** The hand on to `hour` (on round the dial, never back). Returns what it does. */
+  turn(hour, by = null) {
+    const rt = this.rt;
+    if (!HOUR.stops.hasOwnProperty(hour)) return null;
+    if (hour === this.hour && !this.turning) { rt.notice?.(`The great clock already says ${hour}.`, `hour.already.${hour}`); return 'already'; }
+    if (!rt.logic.check(WOUND)) { rt.sound?.critter?.('clank', 0.6); rt.notice?.('The lever clanks: the great clock’s counterweight lies slack.', 'hour.slack'); return 'slack'; }
+    rt.logic.moveDrum(this.id, HOUR.stops[hour]); rt.applyDoors?.();
+    const base = this.want, to = hourAngle(HOUR.hours[hour]);
+    this.want = base + ((((to - base) % TAU) + TAU) % TAU);
+    rt.sound?.chime?.(); rt.rumble?.(1.4, 0.35);
+    rt.notice?.(`The great clock strikes, and its hand turns the stair round to ${hour}.`, `hour.to.${hour}`);
+    rt.game?.emit?.('temple:lit', { id: rt.id, el: this.id, by });
+    return hour;
+  }
+  place() {
+    this.stair.rotation.y = this.rt.kit.heading(this.a);
+    this.arm.rotation.x = -Math.PI / 2 * this.raised * this.raised * (3 - 2 * this.raised);
+    this.stair.updateMatrixWorld(true);
+    const h = hourAt(this.a), fa = (h / 12) * TAU;
+    this.face.rotation.z = -fa;
+    for (const hand of this.rt.hourHands) hand.rotation.z = -fa;
+  }
+  update(dt, t) {
+    // wound: the hand comes down level, pointing at the hour (and stands up again if the counterweight is rolled out)
+    const raise = this.rt.logic.check(WOUND) ? 0 : 1;
+    if (raise !== this.raised) {
+      const was = this.raised;
+      this.raised = raise > this.raised ? Math.min(raise, this.raised + dt / 3) : Math.max(raise, this.raised - dt / 2.4);
+      if (was === 1 && !raise) { this.rt.sound?.chime?.(); this.rt.notice?.(`The counterweight takes up: the clock’s hand comes down, pointing at ${this.hour}.`, 'hour.wound'); }
+      if (!this.raised) this.rt.rumble?.(0.8, 0.4);
+      if (!this.turning) this.place();
+    }
+    if (this.turning) {
+      const left = this.want - this.a, acc = 0.35;
+      this.v = Math.min(HOUR.turn, this.v + acc * dt, Math.sqrt(2 * acc * left) + 0.02);
+      this.a = Math.min(this.want, this.a + this.v * dt);
+      if (!this.turning) { this.a = this.want; this.v = 0; this.rt.rumble?.(0.5, 0.25); }
+      this.place();
+    }
+    // every lamp of the hour at once: its colour, breathing as the hand turns
+    const u = this.lamp.uniforms;
+    hourColor(hourAt(this.a), _hc);
+    u.uColor.value.copy(_hc);
+    u.uGlow.value = 0.55 + (this.turning ? 0.3 * Math.sin(t * 9) : 0.1 * Math.sin(t * 1.7));
+  }
+  /** Where to set it from (the scout's): the nearest lever. */
+  get center() {
+    const P = this.rt.player?.pos, list = this.setters.map((s) => s.at);
+    if (!P || !list.length) return this.pos;
+    return list.reduce((b, p) => (p.distanceTo(P) < b.distanceTo(P) ? p : b));
+  }
+}
+
+/** A clock hand (a Group at a face's middle, facing `yaw`, its child turning on rotation.z): drawn only, the hour's. */
+function hourHand(rt, [x, y, z], yaw, r, mat, lift = 0.16) {
+  const K = rt.kit, g = new THREE.Group(), hand = new THREE.Group();
+  g.position.copy(K.world(x, y, z));
+  g.rotation.y = K.heading(yaw);
+  hand.add(new THREE.Mesh(mergeGeometries([new THREE.BoxGeometry(r * 0.09, r * 0.62, 0.08).translate(0, r * 0.31, lift), new THREE.ConeGeometry(r * 0.12, r * 0.2, 4).translate(0, r * 0.7, lift), new THREE.CylinderGeometry(r * 0.1, r * 0.1, 0.1, 14).rotateX(Math.PI / 2).translate(0, 0, lift)].map(prep)), mat));
+  g.add(hand);
+  g.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+  rt.root.add(g);
+  return hand;
+}
+
+/**
+ * A clock face of the house's hour (issue #414, G1: readable everywhere): a cream dial, its marks, a lamp ring in the hour's
+ * colour and a hand that turns with the great clock's. On a slender post (its foot `at`), or on a wall (`wall`: `at` its
+ * middle). o: { room, at (local), yaw (the way it faces), wall?, r? }; `shows: 'hour'` for the audit.
+ */
+export class HourGauge {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, M = rt.M, r = o.r ?? 0.8, [x, y, z] = o.at, yaw = o.yaw ?? 0;
+    const c = o.wall ? [x, y, z] : [x, y + 2.5, z];
+    if (!o.wall) {
+      K.both(M.trim, T(new THREE.CylinderGeometry(0.08, 0.14, 2.5 - r, 8), [x, y + (2.5 - r) / 2, z]));
+      K.add(M.trim, T(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 10), [x, y + 2.5 - r - 0.1, z]));
+    }
+    const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
+    K.both(cream, T(new THREE.CylinderGeometry(r, r, 0.16, 32).rotateX(Math.PI / 2), c, [0, yaw, 0]));
+    K.add(hourLamp(), T(new THREE.TorusGeometry(r + 0.06, 0.07, 6, 32), c, [0, yaw, 0]));
+    K.add(M.trim, T(new THREE.TorusGeometry(r + 0.12, 0.05, 6, 32), [c[0] - Math.sin(yaw) * 0.1, c[1], c[2] - Math.cos(yaw) * 0.1], [0, yaw, 0]));   // (behind the lamp's ring, a little wider)
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.06, r * (i % 3 ? 0.12 : 0.2), 0.04).translate(Math.sin(a) * r * 0.82, Math.cos(a) * r * 0.82, 0.09).rotateZ(-a), c, [0, yaw, 0])); }
+    this.hand = hourHand(rt, c, yaw, r, makeMaterial({ color: PALETTE.dark, flat: true, key: 'temple.garage.gaugehand' }), 0.1);
+    (rt.hourHands ??= []).push(this.hand);
+    this.at = K.world(...c);
+  }
+  update() {}
+}
+
+/**
+ * A lever of the great clock (issue #414, G1: cheap to change): a bronze arm on a slate post, a lamp of the hour on its knob.
+ * Pulled (A / ×) it turns the hand on two hours, or (`to`, on a dock) round to that dock's hour, so the arm comes to you.
+ * o: { id, room, at (its foot, local), yaw, to?: 'two' | 'four' | 'six', sets: 'hour' }
+ */
+export class HourLever {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, [x, y, z] = o.at, H = 1.05;
+    this.pos = K.world(x, y, z);
+    K.both(M.dark, T(new THREE.CylinderGeometry(0.3, 0.42, H, 8), [x, y + H / 2, z]));
+    K.add(M.trim, T(new THREE.TorusGeometry(0.33, 0.05, 6, 20), [x, y + H, z], [Math.PI / 2, 0, 0]));
+    K.add(hourLamp(), T(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 16), [x, y + H + 0.02, z]));
+    this.top = K.world(x, y + H + 0.1, z);
+    this.at = this.top;
+    this.arm = new THREE.Group();
+    this.arm.position.copy(this.top);
+    this.arm.rotation.y = K.heading(o.yaw ?? 0);
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 6).translate(0, 0.5, 0), clockBrass());
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8).translate(0, 1.02, 0), hourLamp());
+    this.pivot = new THREE.Group(); this.pivot.add(bar, knob);
+    this.arm.add(this.pivot);
+    this.arm.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+    rt.root.add(this.arm);
+    this.kick = 0;
+    const clock = () => rt.greatClock;
+    const next = () => { const h = clock()?.hour; return o.to ?? (h === 'two' ? 'four' : h === 'four' ? 'six' : 'two'); };
+    this.next = next;
+    this.off = registerInteractable({
+      id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.4, at: () => this.top,
+      prompt: () => (o.to ? `bring the great clock round to ${o.to}` : `turn the great clock on to ${next()}`),
+      enabled: () => !!clock(),
+      distance: (p) => Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + Math.max(0, Math.abs(p.pos.y - this.pos.y) - 1.2) * 4,
+      use: () => { this.kick = 1; return clock()?.turn(next(), this.id); },
+    });
+    this.joined = false;
+  }
+  update(dt) {
+    const C = this.rt.greatClock;
+    if (!this.joined && C) { this.joined = true; C.setters.push({ at: this.top, lever: this.id }); }
+    this.kick = Math.max(0, this.kick - dt * 1.6);
+    this.pivot.rotation.x = -0.6 + 1.2 * Math.sin(this.kick * Math.PI);
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A dock high on the great hall's wall (issue #414: the docks st2, st4, st6, LOGIC bridges open at their hour): the round tip
+ * on the hand's line where the stair's arm meets it, a ring of the hour's lamps round its rim, lit when the arm is there and
+ * still. Its slab and its door are the layout's. o: { id, hour, at: [x, UP, z] the tip (local) }
+ */
+export class HourDock {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, [x, , z] = o.at, r = STAIR.tipR;
+    K.both(M.floor, T(new THREE.CylinderGeometry(r, r * 0.92, 1.2, 40), [x, UP - 0.6, z]));
+    K.add(M.trim, T(annulus(r - 0.05, r + 0.12, 0.3, 40), [x, UP + 0.02, z]));
+    this.glow = makeMaterial({ color: HOUR.colors[o.hour], glow: 0.08, flat: true, key: `temple.garage.dock.${o.hour}` });
+    const a = hourAngle(HOUR.hours[o.hour]);
+    for (let k = 0; k < 10; k++) { const b = a + Math.PI + ((k - 4.5) / 10) * 2.4; K.add(this.glow, T(new THREE.CylinderGeometry(0.2, 0.2, 0.05, 12), [x + Math.sin(b) * (r - 0.35), UP + 0.025, z + Math.cos(b) * (r - 0.35)])); }   // (flush lamps round the tip's rim, toward the arm)
+    this.center = K.world(x, UP, z);
+    this.open = rt.logic.isOpen(o.id);
+  }
+  setOpen(open) { this.open = open; }
+  update(dt, t) {
+    const C = this.rt.greatClock, here = this.open && C && !C.turning;
+    const u = this.glow.uniforms;
+    u.uGlow.value += ((here ? 0.85 + 0.1 * Math.sin(t * 2) : this.open ? 0.4 + 0.3 * Math.sin(t * 8) : 0.08) - u.uGlow.value) * Math.min(1, dt * 5);
+  }
+}
+
+/**
+ * The Clock Gallery's striking train (issue #414, G2: the hook and the boomerang at once): a brass ring under the great
+ * clock (a HookBell, `ringId`), and six brass shutters over its six eyes. Hooked, the train runs TRAIN.hold s (LOGIC
+ * `train`, a held bell): the shutters swing off the eyes and the bank can wake; still, they close again.
+ * o: { id: 'train', ringId, at: the ring (local), bank: the eyes' element, eyes: [[x, y, z]…] (local, their middles), yaw (the way they face) }
+ */
+export class StrikingTrain {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, brass = clockBrass();
+    this.left = 0; this.k = 0;
+    // (each a brass disc in front of its eye, sliding out from the clock's middle, in the face's plane, while the train runs)
+    const mid = o.eyes.reduce((a, e) => a.map((v, i) => v + e[i] / o.eyes.length), [0, 0, 0]);
+    this.shutters = o.eyes.map((e) => {
+      const g = new THREE.Group();
+      g.position.copy(K.world(...e));
+      g.rotation.y = K.heading(o.yaw ?? 0);
+      g.add(new THREE.Mesh(mergeGeometries([new THREE.CylinderGeometry(1.2, 1.2, 0.1, 24).rotateX(Math.PI / 2).translate(0, 0, 0.55), new THREE.TorusGeometry(1.2, 0.08, 6, 24).translate(0, 0, 0.6)].map(prep)), brass));
+      g.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+      rt.root.add(g);
+      return { g, home: g.position.clone(), out: K.world(...e).sub(K.world(...mid)).normalize() };
+    });
+    this.center = K.world(...o.at);
+    this.off = rt.game?.on?.('bell', ({ by, struck } = {}) => { if (struck && by === o.ringId) this.run(); });
+  }
+  get running() { return this.left > 0 && this.rt.logic.isLit(this.id); }
+  run() {
+    const L = this.rt.logic;
+    L.quiet(this.id);
+    if (!L.light(this.id)) return;   // (the hook carried: nothing else tugs its ring)
+    this.left = TRAIN.hold;
+    this.rt.sound?.chime?.(); this.rt.rumble?.(1.0, 0.3);
+    this.rt.notice?.('The striking train runs: the shutters swing off the six eyes.', 'train.run');
+  }
+  update(dt) {
+    if (this.left > 0) {
+      this.left -= dt;
+      if (this.left <= 0) { this.left = 0; this.rt.logic.quiet(this.id); this.rt.notice?.('The train winds down, and the shutters close over the eyes.', 'train.still'); }
+    }
+    const want = this.running || this.rt.logic.isLit(this.o.bank) ? 1 : 0;
+    this.k += (want - this.k) * Math.min(1, dt * 4);
+    for (const s of this.shutters) s.g.position.copy(s.home).addScaledVector(s.out, this.k * 2.3);
+  }
+  dispose() { this.off?.(); }
 }
 
 // ------------------------------------------------------------------ inside
@@ -489,46 +933,60 @@ function layout(rt) {
   const tick = 'It ticks once, and goes still: the makers’ clock counts round from where its hand points, the way a clock goes.';
   for (const [id, hr] of [['s1', 8], ['s2', 12], ['s3', 4]]) { const a = TAU * hr / 12; add(Switch, { id, at: [DIAL.x - Math.sin(a) * DIAL.r, DIAL.y + Math.cos(a) * DIAL.r, DIAL.z - 0.2], yaw: Math.PI, size: 0.8, wrong: tick }); }
   add(Mark, { room: 'esc', at: [-6.5, 0, 15.4], yaw: Math.PI / 2 });
+  add(HourGauge, { room: 'esc', at: [8.5, 0, 14.6], yaw: -Math.PI * 0.3 });
   cupboard(rt, K, M, { dial, brass });
   mainspring(rt, K, M, { brass });   // (v1.74: east off the far landing, across from the Cupboard)
-  // the winding's counterweight on the landing (v1.77: its groove up the landing's east side to its socket; it ran on
-  // through the doorway into the well)
-  const B = LANDING.ball;
+
+  // ---- the Winding Well, the great hall (v1.83, issue #414: a round hub 36 m across with a wall to climb before): 64 m
+  // across under 36, the Escapement's stair turning in its middle, its arm (the great clock's hand) meeting the dock of
+  // the hour; the great clock on its west wall; the wings' floor doors and high doors on its east wall, the north door over
+  // the north dock
+  const C2 = WELL.z, HW = WELL.half, low = WING.low;
+  K.corridor([0, ESC.z1 + 0.6], [0, C2 - HW - 0.6], 0, D);
+  K.hall({ x: 0, z: C2, w: 2 * HW, d: 2 * HW, y: 0, h: WELL.h, roof: 'oculus', oculus: 0.3, doors: [
+    { side: 's', ...D }, { side: 'n', ...D, y0: UP },
+    { side: 'e', at: WING.pend.z - C2, ...D, y0: UP }, { side: 'e', at: WING.strike.z - C2, ...D, y0: UP },
+    { side: 'e', at: WING.pend.z - low - C2, ...D }, { side: 'e', at: WING.strike.z + low - C2, ...D },
+  ] });
+  add(GreatClock, { id: 'hour', at: [0, 0, C2], face: [-HW + 0.3, 21, C2], faceR: 7.5 });
+  // the docks: a slab off the wall at UP, its round tip on the hand's line, a lever that brings the arm round to it, a mark
+  for (const [h, dk] of Object.entries(DOCKS)) {
+    const room = `hour${h[0].toUpperCase()}${h.slice(1)}`, tip = dockTip(h);
+    K.slab(dk.x0, dk.z0, dk.x1, dk.z1, UP, 1.2);
+    add(HourDock, { id: `st${HOUR.hours[h]}`, hour: h, room, at: [tip[0], UP, tip[1]] });
+    add(HourLever, { id: `lever.${room}`, room, at: dk.lever, yaw: dk.leverYaw, to: h, sets: 'hour' });
+    add(Mark, { room, at: dk.mark, yaw: dk.markYaw });
+  }
+  add(Door, { id: 'd2', at: [0, UP, C2 + HW + 0.6], ...D });   // (two keyholes: logic `lock`)
+  // the winding's counterweight on the hall's floor (v1.83, issue #414: on the Escapement's far landing since v1.77, for the
+  // north door): its groove north to its socket, and its chain to the winding drum in the north wall: home, it winds the
+  // great clock, and only then does its hand turn the stair
+  const B = COUNTER;
   K.add(M.dark, box(1.0, 0.04, B.z1 - B.z0 + 1.8, B.x, 0.02, (B.z0 + B.z1) / 2));
   for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, B.z1 - B.z0 + 1.8, B.x + sd * 0.8, 0.06, (B.z0 + B.z1) / 2));
   add(Ball, { id: 'ball1', a: [B.x, 0.04, B.z0], b: [B.x, 0.04, B.z1], r: 1.1, friction: 1.0 });
   add(Plate, { id: 'p1', at: [B.x, 0, B.z1], r: 1.3 });
   K.both(brass, box(3.2, 0.5, 0.6, B.x, 0.25, B.z1 + 1.6));   // (the socket's brass stop)
-  // its chain, up the stop's post and over to the well's doorway: what the socket winds
-  K.both(M.wall, box(0.8, 9, 0.8, B.x, 4.5, B.z1 + 2.4));
-  K.add(brass, box(0.18, 0.18, ESC.z1 - B.z1 - 2.4, B.x, 8.6, (ESC.z1 + B.z1 + 2.4) / 2));
-
-  // ---- the Winding Well (a round hall): a wall to climb (its top at UP), the door at its top; the ways west and east
-  const C2 = WELL.z, R = WELL.r;
-  K.corridor([0, ESC.z1 + 0.6], [0, C2 - (R - 0.2)], 0, D);
-  // (the house's hub since v1.48: a way west to the Pendulum Hall and east to the Striking Room at its floor, and over
-  // the way west the Pendulum Hall's way out, onto a balcony beside the ledge over the climb)
-  K.rotunda({ x: 0, z: C2, y: 0, r: R, h: WELL.h, seg: 40, gaps: [{ a: Math.PI, ...D }, { a: 0, ...D, y0: UP }, { a: -Math.PI / 2, ...D }, { a: Math.PI / 2, ...D }, { a: -Math.PI / 2, ...D, y0: WING.upY }], oculus: 0.3 });
-  // (the house's one climb: its other walls are not climbed, issue #115)
-  const FZ = C2 + WELL.face, BZ = C2 + R - 0.05;
-  K.climbable('the Winding Well\'s climb: the block\'s face, from the hub\'s floor to the ledge and the door of two keyholes', () => {
-    K.both(M.wallGlyph, box(2 * R + 0.4, UP, BZ - FZ, 0, UP / 2, (FZ + BZ) / 2));
-    K.both(M.trim, box(2 * R + 0.6, 0.3, 0.6, 0, UP - 0.1, FZ + 0.25));
-  });
-  add(Door, { id: 'd2', at: [0, UP, C2 + R + 0.3], ...D, lamps: [{ drumOn: ['ball1', 'p1'] }] });   // (and two keyholes: logic `lock`)
-  dial(R - 0.6, 14.2, C2, 2.6, -Math.PI / 2, [TAU * 4 / 12, 0.4]);   // (stopped at four, as every clock in the house: over the way east)
-  add(Mark, { room: 'well', at: [-8, 0, C2 - 8], yaw: Math.PI * 0.75 });
-  wings(rt, K, M, { C2, dial, brass });
+  K.both(M.wall, box(0.8, 4.4, 0.8, B.x, 2.2, B.z1 + 2.4));
+  K.add(brass, box(0.18, 0.18, C2 + HW - B.z1 - 2.4, B.x, 4.0, (C2 + HW + B.z1 + 2.4) / 2));
+  K.both(brass, box(2.4, 2.4, 1.0, B.x, 4.0, C2 + HW - 0.5));   // (the winding drum it runs into, in the north wall)
+  // the levers on the floor by the stair's foot and on its crown (at its arbor, the middle: it turns round it)
+  add(HourLever, { id: 'lever.well', room: 'well', at: [-5.5, 0, C2 - 8.6], yaw: Math.PI * 0.8, sets: 'hour' });
+  add(HourLever, { id: 'lever.crown', room: 'well', at: [0, UP, C2], yaw: 0, sets: 'hour' });
+  add(HourGauge, { room: 'well', at: [-9.2, 0, C2 - 6.4], yaw: Math.PI * 0.75 });
+  add(Mark, { room: 'well', at: [-12, 0, C2 - 14], yaw: Math.PI * 0.75 });
+  wings(rt, K, M, { dial, brass });
 
   // ---- the corridor and the Coil Chamber (floor UP): the chest; its north door sinks for the coil in hand
   const C3 = COIL.z, RC = COIL.r;
-  K.corridor([0, C2 + R], [0, C3 - (RC - 0.2)], UP, D);
+  K.corridor([0, C2 + HW + 0.6], [0, C3 - (RC - 0.2)], UP, D);
   K.rotunda({ x: 0, z: C3, y: UP, r: RC, h: 16, seg: 32, gaps: [{ a: Math.PI, ...D }, { a: 0, ...D }], oculus: 0.35 });
   K.both(M.trim, ...chestMound(0, UP, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   // copper coils round the walls, warm
   const copper = { paint: new THREE.Color('#d9643a'), smooth: false, side: THREE.FrontSide };
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) K.add(copper, T(new THREE.TorusGeometry(0.9, 0.18, 6, 18), [s * (RC - 0.4), UP + 2 + i * 0.6, C3 + 2], [0, Math.PI / 2, 0]));
   add(Mark, { room: 'coil', at: [8, UP, C3 - 7], yaw: -Math.PI * 0.75 });
+  add(HourGauge, { room: 'coil', at: [-8, UP, C3 - 6], yaw: Math.PI * 0.75 });
   add(Door, { id: 'dP', at: [0, UP, C3 + RC + 0.3], ...D, lamps: [{ item: 'boomerang' }] });   // (v1.77: the coil in hand; the boomerang since issue #377)
 
   // ---- the Winding Passage (floor UP), a room of its own (v1.77): six eyes round the makers’ great escape wheel on its stele
@@ -545,6 +1003,7 @@ function layout(rt) {
     full: 'All six woke, and went dark again: six in a breath, more than a tank of shots.',
     fade: 'They woke, and went dark again before the rest. Six eyes, one breath: three on the boomerang, three splashed.' });
   add(Mark, { room: 'wind', at: [-8, UP, AZ0 + 5], yaw: Math.PI / 2 });
+  add(HourGauge, { room: 'wind', at: [9, UP, AZ0 + 4.5], yaw: -Math.PI / 4 });
   add(Door, { id: 'd3', at: [0, UP, F0 - 0.6], ...D, lamps: [{ lit: 'k1' }] });
 
   // ---- the Clock Gallery: a chasm, a bridge a second bank of six raises (round the great clock hung over its far end)
@@ -570,11 +1029,17 @@ function layout(rt) {
   K.both(brass, T(new THREE.TorusGeometry(6.3, 0.22, 6, 48), [0, GC.y, GZ - 0.1], [0, Math.PI, 0]));
   for (const s of [-1, 1]) K.both(brass, box(0.3, GY + 33 - (GC.y + 5.8), 0.3, s * 2.2, (GY + 33 + GC.y + 5.8) / 2, GZ + 0.05));
   K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [0, GC.y + 7.1, GZ - 0.15], [0, Math.PI, 0]));
-  add(Bank, { id: 'k2', eyes: ring6(0, GC.y, GZ - 0.5, 4.9, Math.PI), size: 1.0, window: VOLLEY, order: [4, 3, 2, 1, 0, 5],
+  // (v1.83, issue #414) in turn from the house's hour, as the gauge over the way in says it; under shutters while the striking
+  // train is still (G2: the hook at its ring under the clock runs it, TRAIN.hold s)
+  const eyes2 = ring6(0, GC.y, GZ - 0.5, 4.9, Math.PI);
+  add(Bank, { id: 'k2', eyes: eyes2, size: 1.0, window: VOLLEY, order: () => galleryOrder(rt.greatClock?.hour ?? hourOf(rt.logic.drumT('hour'))),
+    unmet: 'The eyes ring under their shutters: the clock’s striking train is not running.',
     full: 'All six woke round the clock, and went dark again: six in a breath, more than a tank of shots.',
     fade: 'They woke round the clock, and went dark again before the rest.',
-    wrong: 'The eyes ring out of step and all go dark. The great clock has lost its hands: count round from the hour every clock in this house stopped at.' });
-  dial(0, UP + 11.4, F0 + 0.3, 1.3, 0, [TAU * 4 / 12, 0.4]);   // the little clock over the way in, behind you: stopped at four
+    wrong: 'The eyes ring out of step and all go dark. This clock has lost its hands: count round from the house’s hour.' });
+  add(HookBell, { id: 'hb.train', at: [0, GC.y - 7.2, GZ - 0.7], chain: 1.4, yaw: Math.PI, size: 0.6, room: 'gallery', sets: 'train', from: [1.5, UP, F0 + 4.5] });
+  add(StrikingTrain, { id: 'train', ringId: 'hb.train', bank: 'k2', at: [0, GC.y - 7.2, GZ - 0.7], eyes: eyes2.map((e) => e.at), yaw: Math.PI });
+  add(HourGauge, { room: 'gallery', at: [0, UP + 11.4, F0 + 0.3], yaw: 0, wall: true, r: 1.3 });   // the little clock over the way in, behind you: the house's hour
   galleryClockwork(rt, K, F0, brass);
   add(Door, { id: 'd4', at: [0, UP, F0 + GD + 0.6], ...D });
   add(Mark, { room: 'gallery', at: [-7, UP, F0 + 3], yaw: 0 });
@@ -612,10 +1077,10 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-56, -12, -3), V(56, UP + 32, X1 + 2)),
+    bounds: new THREE.Box3(V(-72, -12, -3), V(72, WELL.h + 4, X1 + 2)),
     gadget: { at: W(0, UP + 0.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, UP + 0.5, X1 - 0.4), r: 1.5 }],
-    lights: [[0, 6, 6, 12], [0, 8, 26, 22], [0, 8, 56, 22], [CUPBOARD.x, 5, CUPBOARD.z, 10], [MAINSPRING.x, 9, MAINSPRING.z, 20], [0, 14, C2, 24], [WING.pend.x, 10, C2, 22], [WING.strike.x, 9, C2, 20],
+    lights: [[0, 6, 6, 12], [0, 8, 26, 22], [0, 8, 56, 22], [CUPBOARD.x, 5, CUPBOARD.z, 10], [MAINSPRING.x, 9, MAINSPRING.z, 20], [0, 16, C2, 36], [20, 14, C2, 22], [-20, 14, C2, 22], [WING.pend.x, 10, WING.pend.z, 22], [WING.strike.x, 9, WING.strike.z, 20],
       [0, UP + 8, C3, 18], [0, UP + 9, A, 22], [0, UP + 7, F0 + 16, 26], [0, UP + 7, F0 + 30, 18], [0, UP + 7, CW, 30]],
     guardian: { def: { ...FOREMAN, onHit: foremanHit }, model, arena },
   };

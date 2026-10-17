@@ -912,8 +912,10 @@ test('the Clock-House’s skin adds no collision and moves nothing (rt.noSkin: t
   assert.equal(b.skin, null);
   assert.equal(chDressing(b).length, 0);
   const verts = (m) => Array.from(m.geometry.attributes.position.array, (v) => Math.round(v * 1000));
+  // (no climbs since issue #414: its wall up the Winding Well went with the rework round the great hall)
   for (const end of [' collision', ' climbs']) {
     const ma = a.kit.group.children.find((m) => m.name.endsWith(end)), mb = b.kit.group.children.find((m) => m.name.endsWith(end));
+    if (end === ' climbs' && !ma && !mb) continue;
     assert.ok(ma && mb, `its${end}`);
     assert.deepEqual(verts(ma), verts(mb), `its${end} the same, vertex for vertex`);
   }

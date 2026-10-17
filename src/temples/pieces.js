@@ -84,6 +84,8 @@ const UP = V(0, 1, 0);
 // (the moving parts are dynamic too: never tiled, merged or culled as static props, src/perf.js)
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
 const ease = (k) => k * k * (3 - 2 * k);
+/** A piece's `unmet` words: a string, or a function that says which wait it is now (issue #414). */
+const unmetOf = (o) => (typeof o.unmet === 'function' ? o.unmet() : o.unmet);
 // (a shut door, a bramble, a gate: never taken hold of to climb, as the house's walls are not: issue #115)
 const NO_CLIMB = { noClimb: true };
 const _dl = new THREE.Vector3(), _dn = new THREE.Vector3(), _mk = new THREE.Vector3(), _mk2 = new THREE.Vector3();
@@ -1232,8 +1234,9 @@ export class Switch {
       return true;
     }
     if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
-    // (its `when` fails: what it waits on, `unmet`, the Clock-House's Cupboard, its clock stopped till the mainspring runs)
-    else if (!this.on && this.o.unmet && !this.rt.logic.check(this.rt.logic.el(this.id)?.when)) { this.flash = 0.6; this.rt.notice?.(this.o.unmet, `unmet.${this.id}`); }
+    // (its `when` fails: what it waits on, `unmet`, the Clock-House's Cupboard, its clock stopped till the mainspring runs;
+    // a function says which of its waits it is, each once: the Cupboard's, the mainspring or the hour, issue #414)
+    else if (!this.on && this.o.unmet && !this.rt.logic.check(this.rt.logic.el(this.id)?.when)) { this.flash = 0.6; const u = unmetOf(this.o); this.rt.notice?.(u, typeof this.o.unmet === 'function' ? `unmet.${this.id}.${u}` : `unmet.${this.id}`); }
     else if (!this.on && this.o.wrong) { this.flash = 0.6; this.rt.sound?.critter?.('blip', 0.5); this.rt.notice?.(this.o.wrong, `wrong.${this.id}`); }
     return true;
   }
@@ -1294,9 +1297,11 @@ export class Bank {
     const e = this.eyes[i];
     if (!this.isUp(i)) return true;   // (sunk behind the parapet)
     if (this.o.order) {
-      // in turn (o.order: the eyes' indices in the order they must wake): out of turn, every eye goes dark
+      // in turn (o.order: the eyes' indices in the order they must wake; or a function that says it now, the Clock-House's
+      // gallery counted from the house's hour, issue #414): out of turn, every eye goes dark
       if (this.time - e.at <= this.window) return true;   // (awake already: a second splash changes nothing)
-      if (i !== this.o.order[this.seq ?? 0]) {
+      const order = typeof this.o.order === 'function' ? this.o.order() : this.o.order;
+      if (i !== order[this.seq ?? 0]) {
         for (const x of this.eyes) x.at = -1e9;
         this.seq = 0;
         this.rt.sound?.critter?.('clack', 0.8);
@@ -1311,7 +1316,7 @@ export class Bank {
     if (this.eyes.every((x) => this.time - x.at <= this.window)) {
       const L = this.rt.logic;
       if (L.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); if (this.o.woke) this.rt.notice?.(this.o.woke, `bank.woke.${this.id}`); }
-      else if (this.o.unmet && !L.check(L.el(this.id)?.when)) this.rt.notice?.(this.o.unmet, `bank.unmet.${this.id}`);
+      else if (this.o.unmet && !L.check(L.el(this.id)?.when)) { const u = unmetOf(this.o); this.rt.notice?.(u, typeof this.o.unmet === 'function' ? `bank.unmet.${this.id}.${u}` : `bank.unmet.${this.id}`); }
       else this.rt.notice?.(this.o.full ?? 'All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
     }
     return true;

@@ -44,9 +44,9 @@ export const SPARE = 1.0;
 const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = () => {}; console.log = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; } };
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
-// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412)
+// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412, the Clock-House's striking train #414)
 // (the Undertower, the last house: the exam of the whole game, the wings, the hook, the lens and the bombs with its own, #418)
-const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'], bazaar: ['backpack', 'gun', 'doublejump', 'glider', 'hook', 'monocle', 'bomb'] };
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'], garage: ['backpack', 'gun', 'doublejump', 'hook'], bazaar: ['backpack', 'gun', 'doublejump', 'glider', 'hook', 'monocle', 'bomb'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**
@@ -108,7 +108,12 @@ export function playTemple(id, o = {}) {
   /** Where on its groove a ball should go now: [t, plate] (the awaited stop of several, as logic.next chose it, else its plate). */
   const goal = (b, e) => {
     if (!e.stops) return [e.plateAt ?? 1, e.plate];
-    const s = Object.entries(e.stops).find(([p]) => !L.drumOn(b.id, p) && L.awaited(p))
+    // (a house-wide state of more than two stops, the Clock-House's hour, issue #414: the stop its logic says is worth it now)
+    if (e.rooms) { const p = L.stopFor(b.id); if (p) return [e.stops[p], p]; }
+    // (first a stop that lets a waiting eye wake, tried without moving it: the Clock-House's hour track, whose eye wants the
+    // plate of the hour the great clock says, issue #414)
+    const wakes = (p) => { const was = L.trial; L.trial = { drum: b.id, t: e.stops[p] }; const ok = Object.entries(L.def.elements).some(([d, g]) => g.when && g.type === 'switch' && !L.isLit(d) && L.canUse(d)); L.trial = was; return ok; };
+    const s = Object.entries(e.stops).find(([p]) => !L.drumOn(b.id, p) && L.awaited(p) && wakes(p)) ?? Object.entries(e.stops).find(([p]) => !L.drumOn(b.id, p) && L.awaited(p))
       ?? (Object.keys(e.stops).some((p) => L.drumOn(b.id, p) && L.holdsShut(p)) ? Object.entries(e.stops).find(([p]) => !L.drumOn(b.id, p)) : null);
     return s ? [s[1], s[0]] : [e.plateAt ?? 1, e.plate];
   };
@@ -295,7 +300,8 @@ export function playTemple(id, o = {}) {
     const ways = B.setters.map((s) => {
       const p = rt.piece(s.lever ?? s.ring);
       if (!p) return null;
-      if (s.lever) return reach.has(p.o.room) ? { s, p, at: near(p.pos, 1.3) } : null;
+      // (a lever that brings the state round to its own stop, the Clock-House's docks', issue #414: only for that stop)
+      if (s.lever) return reach.has(p.o.room) && (!p.o.to || p.o.to === plate) ? { s, p, at: near(p.pos, 1.3) } : null;
       if (!has('hook') || ![p.o.room, ...(p.o.rooms ?? [])].some((r) => reach.has(r))) return null;
       const f = p.o.from && rt.kit.world(...p.o.from);
       return f ? { s, p, at: standAt(f, f.y) } : null;
@@ -306,7 +312,8 @@ export function playTemple(id, o = {}) {
     if (w.s.lever) {
       const pick = bestInteractable(P);
       if (pick?.entry?.id !== `temple.${rt.id}.${w.s.lever}`) { fail(`${eid}: the use button offers ${pick?.entry?.id ?? 'nothing'} by ${w.s.lever}`); return false; }
-      pick.entry.use(P);
+      // (a state of more than two stops turned on a stop a pull, the Clock-House's hour, issue #414: pulled till it comes)
+      for (let k = 0; k < Object.keys(e.stops ?? {}).length && !L.drumOn(eid, plate); k++) { pick.entry.use(P); wait(0.3); }
     } else w.p.hit('push', { mode: 'hook' });
     if (!wait(30, () => L.drumOn(eid, plate))) { fail(`${eid}: set from ${w.s.lever ?? w.s.ring}, never came to ${plate} (t ${L.drumT(eid)}, wanted ${t})`); return false; }
     say(`${eid}: ${w.s.lever ? 'pulled' : 'hooked'} ${w.s.lever ?? w.s.ring} → ${plate}`);
@@ -383,7 +390,8 @@ export function playTemple(id, o = {}) {
         if (L.isLit(eid)) return m;
       }
     }
-    // (issue #410) a valve on a ring the hook tugs (the Lamp-House's pipe): hooked from where the ring is hooked from
+    // (issues #410, #414) a valve or a train on a ring the hook tugs (the Lamp-House's pipe, the Clock-House's striking train):
+    // hooked from where the ring is hooked from
     if (piece?.o?.ringId && has('hook')) {
       const ring = rt.piece(piece.o.ringId), f = ring?.o?.from && rt.kit.world(...ring.o.from), s = f && standAt(f, f.y);
       if (s) { goTo(s, ring.at.clone().sub(s)); ring.hit('push', { mode: 'hook' }); wait(0.4); if (L.isLit(eid)) return 'hooked'; }
@@ -400,7 +408,7 @@ export function playTemple(id, o = {}) {
     // a bank of eyes, every one splashed within its window (in its order; an eye on a piston when it is up), a shot
     // every third of a second from where he stands
     if (piece instanceof Bank && has('gun')) {
-      const order = piece.o.order ?? piece.eyes.map((_, i) => i);
+      const order = (typeof piece.o.order === 'function' ? piece.o.order() : piece.o.order) ?? piece.eyes.map((_, i) => i);   // (a function: the Clock-House's, from its hour)
       const mid = piece.eyes.reduce((a, x) => a.add(x.base), V()).multiplyScalar(1 / piece.eyes.length);
       const s = near(mid.clone().setY(mid.y - 1.5), 4);
       if (s) goTo(s, mid.clone().sub(s));
@@ -489,7 +497,7 @@ export function playTemple(id, o = {}) {
     const e = L.el(eid);
     const k = (tries.get(eid) ?? 0) + 1;
     tries.set(eid, k);
-    // (a house-wide state is set back and forth on the way: the Casting-House's pour six times and more, issue #416)
+    // (a house-wide state is set back and forth on the way: the Casting-House's pour six times and more, issue #416; the Clock-House's hour five times, #414)
     if (k > (held(e) || e.rooms ? 12 : 4)) { fail(`${e.type} ${eid}: asked for again and again (${k} times)`); break; }
     let how = null;
     if (e.type === 'drum') how = roll(eid) ? (rt.piece(eid)?.setters ? 'set' : rt.piece(eid)?.carries ? 'called' : 'rolled') : null;

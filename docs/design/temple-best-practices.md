@@ -777,3 +777,33 @@ how it works: `docs/systems/temples.md`, "The Undertower round the Great Well"):
   22), and a player takes about twenty steps; the redesign's rules: none broken. The hook takes only the two
   counterweights here (#432's rule: rings, loose weights, bells and foes; `tests/hook-reach.test.js` passes). Not guarded:
   the spring boots' launch (14 m) reaches a 12 m floor, here as in every reworked house.
+### As built: the Clock-House (v1.83, issue #414)
+
+The Clock-House's row of Part 3 (the hour as the house's state, the Escapement's stair turned to meet a different landing
+at two, four and six; grow to 9 or 10 steps) with G1, G2, G4 and G6 (`src/temples/garage.js`; how it works:
+`docs/systems/temples.md`, "The Clock-House round its great hall, the hour its state"):
+
+- **G4, the great hall:** the round Winding Well and its wall to climb became a square hall 64 m across under 36, the hub
+  of both floors. The great clock hangs on its west wall; three docks stand off its walls at the upper floor's height.
+- **G1, the hour:** the great clock's hand at two, four or six. Its hand is the arm of the **Escapement's stair**, which
+  turns round a brass column in the hall's middle: at two the arm meets the north dock and the door to the chest, at four
+  the Pendulum Hall's high door, at six the Striking Room's loft (Snowpeak's and Stone Tower's rotating rooms, §6). The
+  stair carries you round if you ride it. **Set in one place, changing several rooms on both floors:** the dock the stair
+  meets; the Striking Room's eye, which wakes for the ball on the plate of the hour the clock says; the Clockmaker's clock,
+  whose lids lift only at four; the Clock Gallery's six eyes, counted round from the hour. **Cheap to change:** a lever
+  by the stair's foot, at its crown, on the Escapement's far landing, and one on every dock that brings the arm round to
+  it. **Readable everywhere:** a clock face in every room but the guardian's, its hand turning with the great clock's, a
+  lamp ring of the hour's colour (teal two, gold four, coral six). On the way the hour is set two, six, two, four, two.
+- **The clock wound first:** the winding's counterweight lies on the hall's floor (it waited on the Escapement's landing
+  for the north door); until it is rolled home the hand stands upright and no lever turns it. From the north dock its
+  socket is in sight.
+- **G2, the curve and an older tool:** nine steps (was seven). The gallery's eyes sit behind brass shutters while the
+  clock's striking train is still: the grappling hook (the Founders' Belfry's) at the ring under the clock runs it for
+  12 s, and the boomerang strikes three of the six in turn, the rest splashed.
+- **G6:** every dock's edge drops 10 m to the hall's floor, unhurt, and the loft's edge to the Striking Room's floor; a mark
+  on every dock; the antechamber's mark by the Foreman's door, as before.
+- **Length and scores** (all houses run together): steps 7 → 9 (`BAXLCRGXXLK` → `BAXXXXLCRGXXLK`), combinations 3 of 7 →
+  6 of 9, mean obviousness 3.07 → 3.22, decoupled 5 → 4, loops 1 → 5, design audit 4.22 → 4.33 (combination 4 → 5,
+  curve 3 → 4, decoupling 5 → 4, identity 3). The audit reads each dock as a lock whose key is the counterweight and a lever in the
+  hall, the lock's own room: G1's "cheap to change" makes them obvious, as the Belfry's bell. The redesign's rules: none
+  broken. A ball dropped through a floor hole (the author's ruling) was not needed here.

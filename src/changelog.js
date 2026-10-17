@@ -86,6 +86,10 @@ export const CHANGELOG = [
         { where: 'during a world’s load', before: 4.15, after: 0.43 },
         { where: 'in the desert', before: 0.91, after: 0.91 },
       ], source: 'docs/steam-deck.md, "Exit Game with the Unity player"' }] },
+    // issue #414: src/temples/garage.js (WELL, HOUR, STAIR, DOCKS, COUNTER, WOUND, TRAIN, GreatClock, HourLever, HourGauge,
+    // HourDock, StrikingTrain, galleryOrder), pieces.js (a Bank's order and an `unmet` may be functions), migrate.js garage v4,
+    // temple-maps makers.js (the hour's words); tests/clock-house.test.js
+    'The Clock-House is built round a great hall now, the Winding Well, 64 m across, and the hour is the house’s state. In its middle the Escapement’s stair turns with the great clock’s hand: at two its arm meets the north door, at four the Pendulum Hall’s high door, at six the Striking Room’s loft. Roll the counterweight home to wind the clock, then turn the hand on at a lever by the stair, on its top, on every ledge or on the Escapement’s landing. A clock face in every room says the hour, and the hour track, the Clockmaker’s clock and the gallery’s eyes count from it. In the Clock Gallery the eyes sit behind shutters now: hook the ring under the great clock to run its striking train, then throw the boomerang. Every ledge’s edge is a safe drop back to the hall’s floor.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

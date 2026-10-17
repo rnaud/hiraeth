@@ -58,13 +58,13 @@ export function nounOf(id, e, piece) {
   if (!e) return id;
   if (e.noun) return e.noun;   // (an element that names itself: the Undertower's counterweight knocked off its walkway, issue #418)
   switch (e.type) {
-    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.verb === 'pour' ? 'pour' : e.verb === 'relay' ? 'relay lever' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
+    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.verb === 'pour' ? 'pour' : e.verb === 'relay' ? 'relay lever' : e.verb === 'hour' ? 'great clock' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
     // (issue #410: the Lamp-House's lamps, its pool-lamps and its great lamp, read as lamps)
     case 'switch': return cls === 'LightEar' ? 'lamp' : cls === 'LampGlass' ? 'great lamp' : piece?.o?.light ? 'pool-lamp' : cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
     case 'brazier': return 'brazier';
     case 'bramble': return 'thorns';
-    case 'bell': return cls === 'HookBell' ? 'pull-ring bell' : 'bell';
+    case 'bell': return cls === 'HookBell' ? 'pull-ring bell' : cls === 'StrikingTrain' ? 'striking train' : 'bell';
     case 'vane': return 'vane';
     case 'key': return e.kind === 'big' ? 'great key' : 'small key';
     case 'gadget': return 'chest';
@@ -386,6 +386,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
       : e?.verb === 'tide' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Let the sea into the house' : 'Let the sea out of the house'}, at a tide valve${tag} → ${s.onto}`
       // (issue #418: the Undertower's line, the First Sign's word let into the cables or shut out at a relay lever)
       : e?.verb === 'relay' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Let the First Sign’s word into the cables' : 'Shut the word out of the cables'}, at a relay lever${tag} → ${s.onto}`
+      // (issue #414: the Clock-House's hour, the great clock's hand turned on at a lever: the stair's arm to that dock)
+      : e?.verb === 'hour' ? `Turn the great clock on to ${s.onto}, at a lever: the stair’s arm meets the dock at ${s.onto}${tag} → ${s.onto}`
       : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;
@@ -402,6 +404,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
         const verb = e?.act ?? (n === 'flower-door' || n === 'seed' ? 'Bloom' : n === 'brass horn' ? 'Play the note back into' : n === 'gate of jaws' ? 'Still' : n === 'bank of eyes' ? 'Wake every eye of' : n === 'lamp' || n === 'great lamp' || n === 'pool-lamp' ? 'Light' : 'Wake');
         return `${verb} the ${n}${where}${using}${tag}`;
       }
+      // (issue #414: the Clock-House's striking train, run with the hook at its ring)
+      if (el?.noun === 'striking train') return `Run the clock’s striking train${where}${using} at its ring${tag}`;
       return `${LIGHT[s.type] ?? 'Work'}${where}${using}${tag}`;
     }
     default: return `${s.verb} ${s.id}${where}`;

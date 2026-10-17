@@ -48,11 +48,16 @@ export const LAYOUTS = {
   // of its own behind the chamber's north door (dP: the coil in hand), the counterweight's socket on the landing (the same
   // pieces, the same state). A save that entered the house: taken to its last mark if it stood inside the old rooms
   // (runtime.js relaid)
+  // v1.83 (issue #414): the Winding Well the great hall, the Escapement's stair in its middle turned by the great clock's
+  // hand (the hour, drum.hour: two 0, four 0.5, six 1) to meet a dock at two, four or six; the counterweight on the hall's
+  // floor winds the clock (it held the north door before). Past the north door, or anything after it: the hand at two and
+  // the counterweight home. A save that entered the house: taken to its last mark in the new rooms
   garage: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d2', 'gadget', 'lit.k1', 'open.d3', 'lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d2': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'open.dWo': true, 'lit.sS': true } },
       { if: ['lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.k3': true } },
+      { if: ['open.d2', 'gadget', 'lit.k1', 'open.d3', 'lit.k2', 'open.br1', 'boss'], set: { 'drum.hour': 0, 'drum.ball1': 1 } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

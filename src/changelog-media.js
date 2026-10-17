@@ -1143,6 +1143,9 @@ const LENS382 = 'Issue #382: the game’s page (?game=lens-vault&from=arcade) in
 const UT418 = 'Issue #418: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5457, scripts/design-qc/capture.mjs), the camera pinned in the temple’s own metres, the house’s own pieces set from the page where it says (the line, a knock, a note played back); before: the tree at origin/main 1582ce084 (port 5458), the same camera; 17 October; cwebp -q 72';
 const UT418S = 'Issue #418: the running game as UT418, the camera high over the First Sign’s hall, its puzzle phase set from the page and held for each frame: flooded (its dish up, the house speaking), the word shut out (turned to OUT THERE), then to IS TALKING and TO YOU; four frames at half size in one picture; 17 October; cwebp -q 72';
 const UT418P = 'Issue #418: the Temple maps page (temples.html?t=bazaar, Plan, all floors) in muted headless Chrome, 1600 × 1000, the plan cut out at the same size; before: the tree at origin/main 1582ce084, after: this change; 17 October; cwebp -q 70';
+/** (v1.83, issue #414: the Clock-House round its great hall, the hour its state) */
+const CLOCK414 = 'Issue #414: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5414), the camera pinned in the temple’s own metres, the hour set on the save (or turned at the great clock, then waited for); before: the tree at origin/main 8172ca110 (the house as it is on main), the Winding Well from its way in; 17 October; cwebp -q 70';
+const CLOCK414P = 'Issue #414: the Temple maps page (temples.html?t=garage, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main 8172ca110, after: this change; 17 October; cwebp -q 70 -resize 1280';
 export const CHANGELOG_MEDIA = {
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [
@@ -1293,6 +1296,18 @@ export const CHANGELOG_MEDIA = {
       { where: 'the Pier from high', before: 513, after: 514 },
     ], source: 'Issue #397: the port adds 8 merged meshes to the Pier (its parked craft baked into them) and 6 a craft in flight, drawn only when in view' }],
     see: 'Land in the City Floating in Space and look back at the Pier from the bridge, or up over the islands for the craft.' },
+    { match: 'The Clock-House is built round a great hall now', shots: [
+      { name: 'clock-hall', title: 'In at the hall', caption: 'From the way in: before, the Winding Well, a round hub 36 m across with a wall to climb; after, the great hall 64 m across, the Escapement’s stair turning in its middle, its arm out to a ledge high on the wall', from: CLOCK414 },
+      { name: 'clock-unwound', only: 'after', title: 'Unwound', caption: 'From the west wall, before the counterweight is home: the great clock’s hand, the stair’s arm, stands upright and meets no ledge', from: CLOCK414 },
+      { name: 'clock-four', only: 'after', title: 'Four', caption: 'The same view, the clock wound: the hand comes down level at four, the Pendulum Hall’s ledge on the far wall', from: CLOCK414 },
+      { name: 'clock-six', only: 'after', title: 'Six', caption: 'Turned on to six at a lever: the stair has come round, its arm at the ledge of the Striking Room’s loft', from: CLOCK414 },
+      { name: 'clock-two', only: 'after', title: 'Two', caption: 'On round to two: the arm at the north ledge and its door to the chest', from: CLOCK414 },
+      { name: 'clock-face', only: 'after', title: 'The great clock', caption: 'Its face on the west wall says the hour (two here), the three hours the stair stops at lit in their colours; a clock face like it in every room', from: CLOCK414 },
+      { name: 'clock-drop', only: 'after', title: 'The way down', caption: 'Off the north ledge’s edge: a 10 m drop back to the hall’s floor, unhurt, the stair and the floor’s lever below', from: CLOCK414 },
+      { name: 'clock-train-still', only: 'after', title: 'Shutters shut', caption: 'The Clock Gallery: brass shutters over the six eyes round the handless clock, the striking train’s ring hanging under it', from: CLOCK414 },
+      { name: 'clock-train-run', only: 'after', title: 'The train runs', caption: 'The ring hooked: the shutters slide off the eyes for twelve seconds, time for the boomerang', from: CLOCK414 },
+      { name: 'clock-plan', title: 'The plan', caption: 'The house from above with the solver’s steps: before, the round well; after, the great hall, its three ledges, the wings east of it, the hour set two, six, two, four, two on the way', from: CLOCK414P },
+    ], see: 'In the Glass Dunes, go into the Clock-House. Past the Escapement, roll the counterweight on the great hall’s floor into its socket, then climb the stair in the middle to the Pendulum Hall; turn the great clock on at the lever by the stair’s foot to reach the other ledges.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

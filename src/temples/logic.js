@@ -308,6 +308,31 @@ export class TempleLogic {
     this.trial = null;
     return after.some((v, i) => v && !before[i]) || !gates.some((_, i) => before[i] && !after[i]);
   }
+  /**
+   * (issue #414) The stop a house-wide state of several stops is worth setting now (the Clock-House's hour: two, four,
+   * six): the first that, tried (nothing saved), brings a room not in reach now within reach or lets a waiting eye wake;
+   * null if none does (then a player's or a test's own rule chooses).
+   */
+  stopFor(drum) {
+    const e = this.el(drum);
+    if (!e?.stops) return null;
+    const now = this.reachable(), was = this.trial;
+    const tryStop = (t) => {
+      this.trial = { drum, t };
+      const rooms = new Set([this.def.entry]), todo = [this.def.entry];
+      while (todo.length) {
+        const r = todo.pop();
+        for (const l of this.def.links) {
+          const o = l.a === r ? l.b : l.b === r && !l.oneWay ? l.a : null;
+          if (o && !rooms.has(o) && (!l.door || this.computeOpen(l.door)) && (l.needs ?? []).every((it) => this.has(it))) { rooms.add(o); todo.push(o); }
+        }
+      }
+      const wakes = Object.entries(this.def.elements).some(([d, g]) => g.when && g.type === 'switch' && !this.isLit(d) && this.canUse(d));
+      this.trial = was;
+      return wakes || [...rooms].some((r) => !now.has(r));
+    };
+    return Object.keys(e.stops).find((p) => !this.drumOn(drum, p) && tryStop(e.stops[p])) ?? null;
+  }
   /** A shut door or bridge waits for this plate to be let go (its `opens` wants it `not` pressed: a stone out of a throat). */
   holdsShut(id) { return Object.entries(this.def.elements).some(([d, g]) => isGate(g) && !this.isOpen(d) && mentionsNot(g.opens, id)); }
   /** A side of the lock's doorway can be walked to. */
@@ -459,8 +484,8 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
       // (an eye that can be woken now first: it stays woken, and the ball can go on to its next place; then rooms, then doors)
       // (only one in a room that stop lets you reach: an eye that could be woken behind a locked door is no reason to choose
       // it, the Whale-House's tank ear behind the Song Passage's door while the tide wants letting out for the Horn Store,
-      // issue #412)
-      const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x) && (!g.room || inReach(g, rooms, has))).length;
+      // issue #412; and never one the solve is forbidden: the Clock-House's arena, left alone, behind a door the hour shuts, issue #414)
+      const usable = Object.entries(def.elements).filter(([x, g]) => !forbid.includes(x) && LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x) && (!g.room || inReach(g, rooms, has))).length;
       // (and a lock a key in hand fits, brought within reach: the Mooring-House's great lock past the west door, v1.53)
       const fits = lockIds.filter((x) => L.canUnlock(x) && L.lockReachable(x, rooms)).length;
       // (a room never reached before counts more than one left behind: the Aerie's one stone, its vent's shaft down into the

@@ -124,8 +124,9 @@ test('the climbs a temple keeps are marked, each with its why, and are still cli
     for (const why of kept[id]) assert.ok(why.length > 20, `${id}: a climb says what it is for (${why})`);
   }
   // (the houses whose route climbs: the rest have none)
-  for (const id of ['desert', 'incal', 'garage', 'perdide', 'perdide2', 'edena', 'underwater']) assert.ok(kept[id].length > 0, `${id} keeps its climb`);
-  for (const id of ['arzach', 'arzach2', 'bazaar', 'buried', 'moonfoundry', 'spacecity', 'spheres']) assert.deepEqual(kept[id], [], `${id} has no climb`);
+  // (the Clock-House's wall up the Winding Well went with its rework round the great hall, issue #414: its stair turns)
+  for (const id of ['desert', 'incal', 'perdide', 'perdide2', 'edena', 'underwater']) assert.ok(kept[id].length > 0, `${id} keeps its climb`);
+  for (const id of ['arzach', 'arzach2', 'bazaar', 'buried', 'garage', 'moonfoundry', 'spacecity', 'spheres']) assert.deepEqual(kept[id], [], `${id} has no climb`);
 });
 
 test('a climbable wall next to one that is not: the climb holds to its own wall', () => {
