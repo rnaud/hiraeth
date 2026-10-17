@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
 import { installSkeletonUpdate } from './skeleton-update.js';
 import { watchSceneEdits, updateSceneMatrices, catchUpShown } from '../engine/scene-matrices.js';
+import { flatPasses } from './flat-pass.js';
 import { EmptyInstances } from './empty-instances.js';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
@@ -1838,6 +1839,7 @@ function shadowPass(c, reach, hide = [], kept = false) {
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subjUp = new THREE.Vector3(0, 1, 0);
 const framePin = pinRenderFrame(renderer);   // (the passes of a frame update the skeletons once: perf.js)
+const flatPass = flatPasses(renderer, scene);   // (and are drawn from one list of the scene, not a walk each: src/flat-pass.js)
 function renderFrame() {
   renderer.info.reset();
   framePin.begin();
@@ -1868,6 +1870,7 @@ function renderFrame() {
   emptyInstances.hide(frameHidden);   // (last: what the levels of detail left shown and holds no instance)
   catchUpShown(scene);   // (what was hidden at the matrices and is shown now: its matrices as the walk's, before it is drawn)
   statics?.update(renderer);   // (the batched still meshes that moved: static-batch.js; after the catch-up, which may move one)
+  flatPass.begin();
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
   // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.
@@ -1943,6 +1946,7 @@ function renderFrame() {
   if (smaa && aaOf(preset) === 'smaa') smaa.render(renderer, composeRT);
   else renderer.render(blit.scene, post.camera);
   for (const o of frameHidden) o.visible = true;
+  flatPass.end();
   framePin.end();
   frameStats.calls += renderer.info.render.calls; frameStats.tris += renderer.info.render.triangles; frameStats.n++;
   scene.matrixWorldAutoUpdate = true;   // (anything else that renders the scene keeps the usual behaviour)
@@ -2590,7 +2594,7 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
+Object.assign(window, { flatPass, motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {

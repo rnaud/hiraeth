@@ -9,7 +9,7 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 |---|---:|---:|---:|
 | Materials and shaders the bridge draws as something else | 25 | 1 | 9 |
 | Where the game makes its own shaders | 5 | 3 | 12 |
-| Passes and scenes outside the main picture | 1 | 4 | 8 |
+| Passes and scenes outside the main picture | 1 | 5 | 8 |
 | Page elements (HTML) the game builds | 1 | 4 | 22 |
 | What src/main.js sets up that engine/game.js doesn't | 6 | 7 | 30 |
 | Dev pages and tools (web only by category) | | 28 | |
@@ -68,7 +68,7 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 - **the water's passes: drawn last over the scene's depth (its contact foam), the depth copy, and over the finished picture (under water: the tint and banded fog; the sun's sparkle)** (#264, seen in play). The surface crosses; the pass over the picture has no Unity side (to check: #264's streak in the Underwater City) `src/water.js: render(scene)`, `src/water.js: render(b.mesh)`, `src/water.js: copy.render(renderer)`, `src/water.js: render(c.quad)` and 2 more
 
-**Web only**: the fight's hitboxes (a dev overlay); drawing a way through's far side ahead (WarmDraw) (warms the web's programs; the engine has every mesh uploaded already (engine/game.js)); the page's pipeline, batches and shader warm-up (the page's own drawing (G-buffer, composite, shadows, batching, warm-up): Unity draws with its own (BridgeRenderer, Composite.shader, BridgeShadowChunks)); the arrival views' sight lines (offline only (scripts/arrival-views.mjs, its test)).
+**Web only**: each pass of the frame drawn from the scene's flat list (src/flat-pass.js: the stand-in scene three walks instead) (a shortcut in three.js's own walk of the scene; the engines have no three renderer, and the mirror walks the flat list already (engine/mirror.js)); the fight's hitboxes (a dev overlay); drawing a way through's far side ahead (WarmDraw) (warms the web's programs; the engine has every mesh uploaded already (engine/game.js)); the page's pipeline, batches and shader warm-up (the page's own drawing (G-buffer, composite, shadows, batching, warm-up): Unity draws with its own (BridgeRenderer, Composite.shader, BridgeShadowChunks)); the arrival views' sight lines (offline only (scripts/arrival-views.mjs, its test)).
 
 **Handled**: the main scene, the composite, the bloom, the anti-aliasing, the blit (the mirror walks the main scene; Composite.shader, Bloom.shader, SMAA.shader / FXAA.shader); the sun's shadow maps and the traveller's own fine map (Unity's own shadows (BridgeShadowChunks, the port's cascades)); the wind's wisps, drawn over the ink (engine/game.js hangs them in the mirrored scene (Hiraeth/Wisp)); the dust motes, drawn over the ink (engine/game.js takes them into the mirrored scene (motePoints; Hiraeth/Mote)); a makers' house's air (src/temples/air.js) (engine/game.js makes HouseAir with the scene as its host); the see-through surfaces' wash (Hiraeth/Veil, drawn in the scene over the ink); the recordings' hologram (the father's message) (engine/game.js hangs HOLO.scene in the mirrored scene (issue #394)); the world behind the title (the engines' title stands over the world they run (engine/menus.js chooseShot)).
 
