@@ -127,9 +127,13 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the gulf vent's stone in the
   // Vent Hall north of the balcony (the same pieces, the same state). A save that entered the house: taken to its last
   // mark if it stood inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #407): the well 62 m across with a gallery round it, the Fledgery off the gallery whose stone, dropped
+  // through its floor, opens the Wing Chamber's shutter (dW). With the wings, or anything after them: that stone dropped.
+  // A save that entered the house: taken to its last mark again (the rooms moved)
   arzach: {
-    v: 4,
+    v: 5,
     steps: [
+      { if: ['gadget', 'checkpoint=wings', 'checkpoint=top', 'checkpoint=eyrie', 'checkpoint=moult', 'checkpoint=gulf', 'checkpoint=perch', 'checkpoint=gulfFar', 'checkpoint=roost', 'drum.bF', 'drum.bE', 'drum.ballB', 'drum.ballP', 'drum.ballR', 'lit.arM', 'found.kM', 'found.kE', 'found.cache', 'unlocked.dG', 'boss', 'done'], set: { 'drum.bD': 1 } },
       { if: ['drum.ballB', 'drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.dG': 1, 'found.kM': true, 'lit.arM': true } },
       { if: ['drum.ballP', 'drum.ballR', 'boss'], set: { 'unlocked.d3': 1, 'found.kE': true, 'drum.bE': 1 } },
       { if: ['checkpoint=top', 'checkpoint=eyrie', 'checkpoint=moult', 'checkpoint=gulf', 'checkpoint=perch', 'checkpoint=gulfFar', 'checkpoint=roost', 'drum.bE', 'drum.ballB', 'drum.ballP', 'drum.ballR', 'lit.arM', 'found.kM', 'found.kE', 'found.cache', 'unlocked.dG', 'boss', 'done'], set: { 'drum.bF': 1 } },
@@ -273,7 +277,8 @@ export function migrateTempleLayouts(g) {
       // ('checkpoint=wing': the flag holds that value)
       const has = (f) => { const [k, v] = f.split('='); const x = g.flag(`temple.${id}.${k}`); return v === undefined ? !!x : x === v; };
       if (!st.if.some(has)) continue;
-      for (const [f, v] of Object.entries(st.set)) if (g.flag(`temple.${id}.${f}`) === undefined) { g.set(`temple.${id}.${f}`, v); n++; }
+      // (`relaid` is spent, null, once the traveller has been taken to his mark: a later version of the house sets it again)
+      for (const [f, v] of Object.entries(st.set)) { const was = g.flag(`temple.${id}.${f}`); if (was === undefined || (f === 'relaid' && was === null)) { g.set(`temple.${id}.${f}`, v); n++; } }
     }
     g.set(k, L.v);
   }

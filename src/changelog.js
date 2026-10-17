@@ -15,6 +15,9 @@ export const CHANGELOG = [
     // issue #430: src/balloon-part.js, src/hud-shows.js; the balloons, objective, cargo, endCard, breath and level parts
     // (BridgeHud.Parts.cs); the Arcade's board in engine/menus.js (BridgeMenu.cs DrawArcade); tests/engine-ui-parts.test.js
     'In the Unity version, everything the web game shows on the screen now shows there too: people’s speech balloons over their heads, the homecoming’s objective, cargo check and end card, the breath meter under water, the brass level and the Arcade’s board of games. The cargo check now waits for you to press A / × as it does on the web, and the hints, prompts and hearts come and go at the same moments as on the web.',
+    // issue #407: src/temples/arzach.js (WELL, PASSAGE, FLEDGE, SILL, Cushion, STACK.chute, the layout), migrate.js arzach v5;
+    // tests/temples.test.js; docs/systems/temples.md "The Aerie round a great hall"
+    'The Aerie in Vael is rebuilt round a great hall: the Wind Well is almost twice as wide, with a gallery round it halfway up, so you see its floor, the gallery and the high balcony at once, and a long narrow passage leads to it. Before the wings there is a new room, the Fledgery: roll its stone into the hole in its floor, and it drops onto a grate in the passage below and the wind lifts the Wing Chamber’s shutter. A marked drop off the gallery lands you softly back on the well’s floor, and from the Eyrie’s ledge you now look down a wide well onto the Moult before you go in.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

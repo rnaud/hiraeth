@@ -41,7 +41,7 @@ const HOLD_PILLAR = UNDERTOWER_HOLD.pillar;
 import { Key, KEY_CHEST, MapChest } from '../src/temples/pieces.js';
 import { BOX_SCALE } from '../src/boxes/model.js';
 import { TempleKit, ANTE } from '../src/temples/kit.js';
-import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as AERIE_TOP, BALCONY as AERIE_BALCONY } from '../src/temples/arzach.js';
+import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as AERIE_TOP, BALCONY as AERIE_BALCONY, FLEDGE as AERIE_FLEDGE, SILL as AERIE_SILL } from '../src/temples/arzach.js';
 import { KENNEL, WICK, ROOT_WAY, ROOMS as ROOMS_P2, FOUNT } from '../src/temples/perdide2.js';
 import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
 import fanGadget, { FAN } from '../src/gadgets/fan.js';
@@ -636,6 +636,32 @@ test('the Aerie is a stack (issue #23): the Moult off the well’s floor gives t
     assert.equal(B.isOpen('d3'), past, past ? 'past the perch: the Roost’s door open too' : 'on the perch: the great key still in the Eyrie');
     if (!past) assert.ok(B.reachable().has('eyrie'), 'and the way back to it is open');
   }
+});
+
+test('the Aerie reworked (issue #407): a step before the wings (the Fledgery’s stone dropped through its floor lifts the Wing Chamber’s shutter), a drop from the gallery back to the hub, the map early; old saves past the wings find the stone dropped', () => {
+  const L = TEMPLES.arzach.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield'];
+  assert.deepEqual(L.elements.dW.opens, { drumOn: ['bD', 'pD'] });
+  assert.equal(L.elements.bD.through, 'hole', 'dropped through the floor onto the plate below, no door between');
+  assert.ok(L.links.some((l) => l.a === 'gallery' && l.b === 'wings' && l.door === 'dW') && !L.links.some((l) => l.b === 'wings' && l.a === 'well'), 'the chamber off the gallery, behind its shutter');
+  assert.ok(L.links.some((l) => l.a === 'gallery' && l.b === 'well' && l.oneWay && !l.door && !l.needs), 'the Fledging Sill: a drop back to the hub that needs nothing');
+  const noStone = solve(L, { items, forbid: ['bD'] });
+  assert.ok(!noStone.done && !noStone.order.includes('wings'), 'without the Fledgery’s stone, no wings');
+  const order = solve(L, { items }).order;
+  assert.ok(order.indexOf('fledge') < order.indexOf('wings'), `the Fledgery before the wings (${order.join(' ')})`);
+  assert.equal(L.elements.map.room, 'fledge', 'the map in the Fledgery, early');
+  // a save from before the rework, past the wings: the stone lies on the grate, the shutter open; and taken to its mark
+  const g = new GameState(null);
+  for (const [k, v] of Object.entries({ layout: 4, entered: true, relaid: null, 'drum.ballW': 1, gadget: true, checkpoint: 'wings' })) g.set(`temple.arzach.${k}`, v);
+  migrateTempleLayouts(g);
+  assert.equal(g.flag('temple.arzach.drum.bD'), 1);
+  assert.equal(g.flag('temple.arzach.relaid'), true, 'taken to its mark in the new rooms, though it was once before');
+  const B = new TempleLogic(L, { store: flagStore(g, 'arzach'), has: (i) => [...items, 'glider'].includes(i) });
+  B.update();
+  assert.ok(B.isOpen('dW'), 'the shutter open behind them');
+  const fresh = new GameState(null);
+  for (const [k, v] of Object.entries({ layout: 4, entered: true, 'drum.ballW': 1, checkpoint: 'well' })) fresh.set(`temple.arzach.${k}`, v);
+  migrateTempleLayouts(fresh);
+  assert.equal(fresh.flag('temple.arzach.drum.bD'), undefined, 'before the wings: the new step still to do');
 });
 
 test('the Lamp-House (issue #23): the Kennel off its first hall gives the small key for the Wick Room along the hall (v1.60), whose great key the gallery’s far door wants; its two orbs must burn at once, and its keepers’ door back up opens with them; old saves past the gallery find it open', () => {
@@ -3619,7 +3645,7 @@ test('the Hush-House as shrines (v1.77, issue #336): a save that stood in the ol
   own();
 });
 
-test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the Moult’s door shut from the well, the feather raft, the wings, the column, the ledge round the well to the Eyrie, down its still vent’s shaft into the Moult’s arena and out of its door onto the well’s floor, up again by the raft and the column, and the Eyrie’s stone between two throats for the great key, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
+test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the Moult’s door shut from the well, the feather raft to the gallery, the Wing Chamber’s shutter shut, round the gallery to the Fledgery and its stone dropped through the floor onto the passage’s grate (the shutter lifts), the Fledging Sill’s drop onto the makers’ breath, the wings, the column, the ledge round the well to the Eyrie, down its still vent’s shaft into the Moult’s arena and out of its door onto the well’s floor, up again by the raft and the column, and the Eyrie’s stone between two throats for the great key, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('arzach');
@@ -3671,6 +3697,8 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   // (v1.77, issue #336: the hall 30 by 66, its stone's groove down its middle from z 26.8, a screen row every 9.4 m from
   // z 22, the well's middle at AERIE.C2, 18 m across, the Vent Hall north of the high balcony)
   const C2 = AERIE_WELL.z, WR = AERIE_WELL.r, BE = C2 + WR - AERIE_BALCONY.depth, TZ = AERIE_TOP.z, T1 = AERIE_TOP.z0 + AERIE_TOP.d, G0 = T1 + 5, [BX0] = AERIE_BALCONY.groove;
+  // (v1.83, issue #407: the well 62 m across, the Feather Gallery round it at GY, GW wide; the Fledgery south off it)
+  const GY = AERIE_WELL.gallery.y, GW = AERIE_WELL.gallery.w, FL = AERIE_FLEDGE, onGallery = (a) => L(Math.sin(a) * (WR - GW / 2), GY, C2 + Math.cos(a) * (WR - GW / 2));
   stand(-1.6, 0, 18);
   for (let i = 0; i < 6 / DT && gust.state !== 1; i++) frame();
   const z0 = local().z;
@@ -3700,34 +3728,53 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   // ---- the Moult, west off the well's floor (an arena): its door is shut from this side (issue #23's last round: the
   // way in is from above, down the Eyrie's vent, and this door its way out once won)
   assert.equal(rt.logic.isOpen('dM'), false, 'the Moult’s door is shut');
-  assert.equal(walk(L(-6, 0, C2)) && walk(L(-26, 0, C2), { max: 5 }), false, `and it holds: no way into the Moult from the well (${where()})`);
-  assert.ok(local().x > -23, `stopped at the door (${where()})`);
-  /** On the raft from the well's floor up to the Wing Chamber's balcony. */
+  assert.equal(walk(L(-6, 0, C2)) && walk(L(-WR - 8, 0, C2), { max: 8 }), false, `and it holds: no way into the Moult from the well (${where()})`);
+  assert.ok(local().x > -WR - 5.5, `stopped at the door (${where()})`);
+  /** On the raft from the well's floor up to the Feather Gallery, by the Wing Chamber's shutter. */
   const rideRaft = () => {
-    assert.equal(walk(L(8, 0, C2 - 2)), true, `in the well (${where()})`);
+    assert.equal(walk(L(AERIE_WELL.raft - 6, 0, C2 - 2)), true, `in the well (${where()})`);
     for (let i = 0; i < 30 / DT && !(raft.s < 0.2 && raft.wait > 0.8); i++) frame();
     assert.equal(walk(raft.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the raft (${where()})`);
     for (let i = 0; i < 30 / DT && !(raft.s > raft.total - 0.2); i++) frame();
     assert.ok(local().y > 15.5, `carried up (${where()})`);
-    assert.equal(walk(L(WR - 1, 16, C2), { tol: 0.8 }), true, `onto the balcony (${where()})`);
+    assert.equal(walk(L(WR - 1.5, GY, C2), { tol: 0.8 }), true, `onto the gallery (${where()})`);
   };
-  /** Off the Wing Chamber's balcony with the wings open, round and up the column to the high balcony. */
+  /** Off the gallery's edge with the wings open, round and up the column to the high balcony. */
   const upTheColumn = () => {
-    assert.equal(walk(L(WR - 1.2, 16, C2), { tol: 0.6 }), true, `on the balcony (${where()})`);
+    assert.equal(walk(L(WR - GW + 0.8, GY, C2 + 3), { tol: 0.6 }), true, `at the gallery's edge (${where()})`);
     let up = false;
     for (let i = 0; i < 20 / DT; i++) { P.heading = -Math.PI / 2; frame({ Space: true, KeyW: i < 20 }, -Math.PI / 2); if (local().y > 33.2) { up = true; break; } }
     assert.ok(up, `lifted up the well (${where()})`);
     assert.ok(Math.abs(glide(0, 6, () => local().z < BE + 2.5, L(0, 32, BE + 5)).y - 32) < 0.6 && local().z > BE + 1, `onto the high balcony (${where()})`);
   };
   rideRaft();
-  assert.equal(walk(L(WR + 4 + 7, 16, C2)), true, `into the wing chamber (${where()})`);
+  // ---- (v1.83, issue #407) the Wing Chamber's shutter is down: round the gallery to the Fledgery, its stone into the hole
+  // in its floor; it drops onto the grate in the Long Passage below, and the wind lifts the shutter
+  assert.equal(rt.logic.isOpen('dW'), false, 'the shutter is shut');
+  assert.equal(walk(L(WR + 4 + 7, GY, C2), { max: 4 }), false, `and it holds (${where()})`);
+  assert.ok([1.9, 2.3, 2.7, 3.0, Math.PI].every((a) => walk(onGallery(a), { max: 8 })), `round the gallery (${where()})`);
+  assert.equal(walk(L(0, GY, C2 - WR - 2)) && walk(L(4, GY, FL.z1 - 3)), true, `into the Fledgery (${where()})`);
+  assert.equal(roll('bD', 'pD', 1), true, `the stone dropped through the floor onto the grate below (${where()})`);
+  wait(0.5);
+  assert.ok(rt.logic.isOpen('dW') && said(/drops through the floor/), 'the shutter lifts');
+  assert.ok(!rt.pieces.find((p) => p.lift && JSON.stringify(p.o.when ?? {}).includes('"bD"')).on, 'the grate’s breath stopped');
+  // the Fledging Sill: off the gallery's edge between its two feathers, down onto the makers' breath, unhurt
+  assert.equal(walk(L(0, GY, C2 - WR + 1)) && walk(onGallery(AERIE_SILL.a), { max: 10 }), true, `to the sill (${where()})`);
+  const heartsS = P.hearts;
+  for (let i = 0; i < 6 / DT && !(P.onGround && local().y < 1); i++) frame({ KeyW: true }, toward(L(0, 0, C2)));
+  assert.ok(P.onGround && local().y < 0.6, `down on the well's floor (${where()})`);
+  wait(0.2);
+  assert.equal(P.hearts, heartsS, 'the breath took the fall: no hurt');
+  assert.ok(said(/breath takes your fall/), 'it says so');
+  rideRaft();
+  assert.equal(walk(L(WR + 4 + 7, GY, C2)), true, `through the shutter into the wing chamber (${where()})`);
   items.grant('glider'); game.emit('box:opened', { id: 'arzach.temple.glider' });
   assert.equal(rt.logic.gadget, true);
   // ---- (v1.74) the catch: off the balcony with the wings open, the column lets you go just over it, for the floor's
   // second vent by the Moult's door breathes half the wind away
   const vent2 = rt.pieces.find((p) => p.lift && JSON.stringify(p.o.when ?? {}).includes('"bF"'));
   assert.ok(vent2?.on && column.h < 20, 'the floor’s second vent breathes, and the column is low');
-  assert.equal(walk(L(WR - 1.2, 16, C2), { tol: 0.6 }), true, `on the balcony (${where()})`);
+  assert.equal(walk(L(WR - GW + 0.8, GY, C2 + 3), { tol: 0.6 }), true, `at the gallery's edge (${where()})`);
   let peak = 0;
   for (let i = 0; i < 6 / DT; i++) { P.heading = -Math.PI / 2; frame({ Space: true, KeyW: i < 20 }, -Math.PI / 2); peak = Math.max(peak, local().y); }
   assert.ok(peak > 16.5 && peak < 20, `lifted, and let go just over the balcony (${peak.toFixed(1)})`);
@@ -3744,7 +3791,7 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   assert.equal(walk(L(0, 32, C2 + WR - 1)), true, `back onto the balcony (${where()})`);
   // ---- the Eyrie, along the ledge round the well's west wall: two vents, one stone between their throats
   const bE = rt.piece('bE'), kE = rt.piece('kE');
-  const ring = [-0.55, -0.85, -1.15, -1.4, -Math.PI / 2].map((a) => L(Math.sin(a) * (WR - 1.7), 32, C2 + Math.cos(a) * (WR - 1.7)));
+  const ring = [-0.25, -0.55, -0.85, -1.15, -1.4, -Math.PI / 2].map((a) => L(Math.sin(a) * (WR - 1.7), 32, C2 + Math.cos(a) * (WR - 1.7)));
   assert.ok(ring.every((p) => walk(p, { max: 6 })) && walk(L(STACK.ledge[1] - 1, 32, C2)), `round the ledge into the Eyrie (${where()})`);
   let top = false;
   const ledgeVent = rt.pieces.find((p) => p.lift && p.o.when?.drumOn?.[1] === 'pU'), gapVent = rt.pieces.find((p) => p.lift && JSON.stringify(p.o.when ?? {}).includes('"pC"'));

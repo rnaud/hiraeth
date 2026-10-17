@@ -489,3 +489,16 @@ Rose House round its Great Hall"):
 - **Length:** six puzzle steps (the cage, the Flame, the Dry Channel, the Hall of Fires, the keepers' door, the cistern's
   door), plus the key's lock and the arena (skeleton `CBXXLAXGXK`, was `XTBCRAXBGXK`). Design audit 4.33 → 4.78, mean
   obviousness 3.44 → 2.42; the redesign's rules: none broken.
+## As built: the Aerie (v1.83, issue #407)
+
+- **A look down the well onto the Moult:** the Eyrie's vent shaft is a lit well 9.2 m across at the foot of the ledge;
+  the Moult's floor and its key's cage are in sight from the ledge before you go down it.
+- **One more step before the wings:** the Fledgery, off a new gallery 16 m up the Wind Well: its stone rolled into a
+  hole in its floor drops onto a grate in the passage below and lifts the Wing Chamber's shutter. The chest comes at
+  29 % of the steps (it was 17 %); seven steps (it was six).
+- **G4:** the Wind Well is the great hall, 62 m across, its floor, gallery and high balcony seen at once; a narrow
+  passage 38 m long leads to it from the Hall of Winds.
+- **G6:** the Fledging Sill, a marked drop from the gallery onto a soft updraft on the well's floor; the guardian's
+  checkpoint is the mark by the great door, as before.
+- The audit's scores are 4.56 before and after; no rule broken. How it works: `docs/systems/temples.md`, "The Aerie
+  round a great hall".

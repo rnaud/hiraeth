@@ -27,18 +27,27 @@ import { aerieSkin } from './skins/aerie.js';
 //   the Threshold        the first mark, the way out
 //   the Hall of Winds    gusts blow down it out of the vent in its far mouth and shove you back: wait them out
 //                        behind the stone screens, screen to screen
-//   the Wind Well        the hub: a tall round shaft open to the sky through a crown of stone feathers, bands of
+//   the Long Passage     (v1.83, issue #407) a narrow way 38 m long from the hall to the well, a grate in its floor
+//                        under a round shaft in its roof: the Fledgery's hole, straight above
+//   the Wind Well        the hub, and the house's great hall (v1.83, issue #407: 62 m across, its three floors seen at
+//                        once): a tall round shaft open to the sky through a crown of stone feathers, bands of
 //                        ochre, glyph lines up its walls like the lines on a wing. Its air is still: the stone sits
 //                        in the floor's vent. Roll it along its groove into the hall's vent (behind you: its throat a
 //                        grate in the middle of the hall's floor since v1.77) and the hall falls calm, and the wind rises up the well, and the feather
-//                        raft by the east wall rides up on it to the Wing Chamber's balcony
+//                        raft by the east wall rides up on it to the Feather Gallery, a ring round the well 16 m up
 //                        (since v1.49, issue #23, the well is a stack, rooms off it at its foot and up its height:)
+//   the Fledgery         (v1.83, issue #407: south off the gallery, over the Long Passage) where the young birds were
+//                        let fall for their first flight. A stone in a groove that ends at a hole in its floor: rolled
+//                        in, it drops down the shaft onto the passage's grate, and the wind that breathed out there
+//                        lifts the Wing Chamber's shutter (dW) instead. The Fledging Sill, on the gallery: a marked
+//                        drop back to the well's floor, onto the makers' breath (Cushion), which takes the fall
 //   the Moult            (west off its floor, an arena) where the birds raised here shed their first stone feathers.
 //                        Its door onto the well is shut from the other side: the way in is from above, down the
-//                        Eyrie's vent (since issue #23's last round, below). Won, the small key's cage sinks and the
-//                        door onto the well lets go
-//   the Wing Chamber     the makers' chest: the FLUID WINGS (src/items.js 'glider'). Step back out onto the
-//                        balcony and into the column of wind: it lifts open wings, round and up, and lets them go
+//                        Eyrie's vent (since issue #23's last round, below), a well 9 m across since v1.83 (#407): from
+//                        the Eyrie's ledge you look down it onto the Moult's floor, its key's cage, before you go in.
+//                        Won, the small key's cage sinks and the door onto the well lets go
+//   the Wing Chamber     (east off the gallery, behind its shutter) the makers' chest: the FLUID WINGS (src/items.js
+//                        'glider'). Step back out onto the gallery and into the column of wind: it lifts open wings, round and up, and lets them go
 //                        just over the balcony (v1.74, issue #23 round 6: the catch). The well's floor has a second
 //                        vent by the Moult's door, its stone beside it: while it is open, half the wind breathes out
 //                        of it there. Glide down, roll its stone into its throat, and the whole wind rises up the
@@ -105,6 +114,8 @@ export const LOGIC = {
   // (v1.77, issue #336: each room tagged with its kind, docs/design/temple-redesign.md; the Moult is the house's one fight)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, gusts: { checkpoint: true, kind: 'puzzle' }, well: { checkpoint: true, kind: 'puzzle' },
+    // (v1.83, issue #407: the Feather Gallery round the well 16 m up, the great hall's middle floor; the Fledgery off it)
+    gallery: { checkpoint: true, kind: 'passage' }, fledge: { checkpoint: true, kind: 'puzzle' },
     wings: { checkpoint: true, kind: 'chest' }, top: { checkpoint: true, kind: 'puzzle' }, moult: { checkpoint: true, kind: 'combat' },
     eyrie: { checkpoint: true, kind: 'puzzle' }, eyrieKey: { kind: 'passage' }, gulf: { checkpoint: true, kind: 'passage' }, perch: { checkpoint: true, kind: 'puzzle' },
     gulfFar: { checkpoint: true, kind: 'passage' }, gulfWay: { kind: 'passage' }, roost: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
@@ -116,7 +127,11 @@ export const LOGIC = {
     // room off that. The Moult, west off its floor, an arena: the small key; the Eyrie, west off the high balcony: two
     // winds and one stone, the great key
     { a: 'well', b: 'moult', door: 'dM' },                              // (shut till the Moult is won: its way out, onto the well's floor)
-    { a: 'well', b: 'wings', door: 'raft' },                            // the feather raft rides up on the well's wind
+    { a: 'well', b: 'gallery', door: 'raft' },                          // the feather raft rides up on the well's wind
+    // (v1.83, issue #407) the Fledging Sill: a marked drop off the gallery onto the makers' breath, back to the hub
+    { a: 'gallery', b: 'well', oneWay: true },
+    { a: 'gallery', b: 'fledge' },
+    { a: 'gallery', b: 'wings', door: 'dW' },                           // the Wing Chamber's shutter, lifted by the wind
     // the column (the raft's wind) lifts only open wings, and up to the high balcony only once the floor's second vent is
     // stopped (v1.74, issue #23 round 6: until then it lets you go just over the chest's balcony, and you ride it again from
     // the floor, where its stone is; it was { a: 'wings', b: 'top', needs: ['glider'] }, the audit's most obvious step)
@@ -144,6 +159,12 @@ export const LOGIC = {
     ballW: { type: 'drum', room: 'gusts', plate: 'pH', plateAt: 1, start: 0 },
     pH: { type: 'plate', room: 'gusts' },
     raft: { type: 'door', opens: { drumOn: ['ballW', 'pH'] } },
+    // (v1.83, issue #407) the Fledgery's stone: rolled into the hole at its groove's end, it drops down the shaft onto the
+    // grate in the Long Passage's floor below (pD, under the room: `through` the floor, no door), and the wind that
+    // breathed out there lifts the Wing Chamber's shutter instead
+    bD: { type: 'drum', room: 'fledge', plate: 'pD', plateAt: 1, start: 0, through: 'hole' },
+    pD: { type: 'plate', room: 'fledge' },
+    dW: { type: 'door', opens: { drumOn: ['bD', 'pD'] } },
     // (v1.74) the well floor's second vent, by the Moult's door: its stone beside it; while its throat is open half the
     // wind breathes out there, and the column lets open wings go just over the chest's balcony
     bF: { type: 'drum', room: 'well', plate: 'pF', plateAt: 1, start: 0 },
@@ -190,7 +211,8 @@ export const LOGIC = {
     // own column, as its stone starts
     cache: { type: 'cache', room: 'eyrie' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'gulf', at: [-14, 32, 159.8], yaw: Math.PI / 2 },
+    // (v1.83, issue #407: in the Fledgery's far corner, early; it was on the Gulf's lip. Its `at` set below: FLEDGE)
+    map: { type: 'map', room: 'fledge', yaw: Math.PI / 2 },
   },
 };
 
@@ -253,9 +275,9 @@ export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, car
  * groove across the perch is GULF.stone. (Issue #275: both grooves ran from near an edge, with a stride of floor behind
  * the stone, over the dark: tests/ball-room.test.js.)
  */
-export const BALCONY = { depth: 11.4, groove: [-3.6, 3.6] };
+export const BALCONY = { depth: 21, groove: [-3.6, 3.6] };   // (v1.83: 21 m out over the 62 m well, to 10 m from its middle)
 /** (v1.74) The Wind Well floor's second vent (local m off the well's middle, its groove along z) and how high the column rises while it breathes. */
-export const WELL_VENT = { x: -9, z0: -2, z1: 4.5, low: 17.5 };
+export const WELL_VENT = { x: -16, z0: -2, z1: 4.5, low: 17.5 };
 export const ROOST = { vent: 8, near: 12, ride: 0.7, wind: [0.15, 0.3, 0.075], still: [0.15, 0.15, 0], open: [null, 5.2, 6.6], miss: 1.4, over: 4.5, drift: 3 };
 /** Is p (the traveller) in the wind out of one of the roost's vents? */
 const inWind = (rt, p) => !!rt.roostWinds?.some((w) => w.contains(p));
@@ -264,6 +286,31 @@ export function elderOpenFor(g, a, s, missed = false) {
   const o = ROOST.open[Math.min(g.phaseIndex, 2)];
   const base = s && o ? Math.max(s, o) : s;
   return missed && base ? Math.max(base, (o ?? 0) + ROOST.miss) : base;
+}
+
+/**
+ * (v1.83, issue #407) The makers' breath under the Fledging Sill: fall over it from any height and it takes the fall in the
+ * last metres (SILL: slowed to `slow` m/s, from `over` m up or a few frames of the fall, whichever is more), a rush of
+ * wind, nothing hurt; the Footprint's pools (spheres.js Catch) done with the Aerie's wind. o: { at: [x, y, z] its foot
+ * (local), r, said }
+ */
+export class Cushion {
+  constructor(rt, o) { this.rt = rt; this.o = o; this.at = rt.kit.world(...(o.at ?? [0, 0, 0])); this.on = false; }
+  update() {
+    const P = this.rt.player;
+    if (!P?.pos) return;
+    const c = this.at;
+    const over = Math.hypot(P.pos.x - c.x, P.pos.z - c.z) < this.o.r + 0.5 && P.pos.y > c.y - 1.5 && P.pos.y < c.y + 60;
+    if (over && !P.onGround && !P.dead && P.vel.y < -SILL.slow) {
+      this.on = true;
+      if (P.pos.y - c.y < Math.max(SILL.over, -P.vel.y * 5 / 60)) P.vel.y = -SILL.slow;
+      return;
+    }
+    if (this.on && (P.onGround || !over || P.dead)) {
+      this.on = false;
+      if (P.onGround && over) { this.rt.sound?.whoosh?.(); this.rt.notice?.(this.o.said, 'arzach.sill'); }
+    }
+  }
 }
 
 function elderHit(g, part, mode) {
@@ -285,10 +332,29 @@ function elderHit(g, part, mode) {
  */
 export const DOOR = { w: 7, h: 9 };
 export const HALL = { z0: 12.6, d: 66, w: 30, h: 18, groove: [26.8, 64.6], screens: [22, 31.4, 40.8, 50.2, 59.6, 69] };
-export const WELL = { z: HALL.z0 + HALL.d + 4.4 + 18, r: 18, h: 50, raft: 18 - 4.1 };
+/**
+ * (v1.83, issue #407, the temple best practices' G4: one great hall, 60 m or more, several floors seen at once, with narrower
+ * passages between) The Long Passage from the Hall of Winds to the well (m), and the Wind Well 62 m across (it was 36): its
+ * floor, the Feather Gallery round it 16 m up (`gallery`: its floor's height and its width from the wall), the high balcony
+ * at 32; the raft rises beside the gallery's inner edge. SHIFT: how far west the stack's rooms moved with the well's wall.
+ */
+export const PASSAGE = { len: 38 };
+export const WELL = { z: HALL.z0 + HALL.d + PASSAGE.len + 31, r: 31, h: 50, gallery: { y: 16, w: 7 } };
+WELL.raft = WELL.r - WELL.gallery.w - 2.5;
+const SHIFT = WELL.r - 18;
 export const WING = { r: 13, h: 16 };
 export const TOP = { z0: WELL.z + WELL.r + 4, w: 30, d: 30, h: 18 };
 TOP.z = TOP.z0 + TOP.d / 2;
+/**
+ * (v1.83, issue #407) The Fledgery, south off the gallery over the Long Passage: its room (z0..z1 at the gallery's height),
+ * its stone's groove (x, from a to b, b over the hole) and the hole (half its side), straight over the grate in the
+ * passage's floor. The Fledging Sill: where on the gallery (the angle round the well, 0 north) the marked drop is, and the
+ * makers' breath under it on the well's floor (its distance from the well's middle, its radius).
+ */
+export const FLEDGE = { z1: WELL.z - WELL.r - 4, w: 30, d: 30, h: 18, x: -1.8, a: 8.6, b: -5.6, hole: 1.6 };
+FLEDGE.z0 = FLEDGE.z1 - FLEDGE.d; FLEDGE.z = FLEDGE.z0 + FLEDGE.d / 2;
+LOGIC.elements.map.at = [-12.4, WELL.gallery.y, FLEDGE.z0 + 2.6];   // (the far corner from its door, off the way on)
+export const SILL = { a: -2.35, r: 20, catch: 3.4, slow: 9, over: 2.5 };
 
 // ------------------------------------------------------------------ the stack's rooms (v1.49, issue #23)
 /**
@@ -302,19 +368,22 @@ TOP.z = TOP.z0 + TOP.d / 2;
 export const STACK = {
   // (the Moult under the Eyrie's gap since issue #23's last round: its middle under the vent at the gap's foot, its roof's
   // opening the foot of that vent's shaft, `chute`; v1.77 30 m square under 18, four columns to fight round)
-  moult: { x: -38.8, w: 30, d: 30, h: 18 },
-  eyrie: { x: -38, w: 30, d: 30, y: 32, floor: 20, h: 30 },
-  ledge: [-34, -23],                          // the Eyrie's ledge (x), level with the high balcony
-  perch: { x: [-53, -43], z: [WELL.z - 4.5, WELL.z + 4.5], y: 38 },   // (against the west wall, as it was: a glide to it stops there)
-  column: { x: -38.8, r: 2.6, h: 22 },        // out of the vent at the gap's foot, past the perch
+  // (v1.83, issue #407: every x SHIFT further west, with the well's wall)
+  moult: { x: -38.8 - SHIFT, w: 30, d: 30, h: 18 },
+  eyrie: { x: -38 - SHIFT, w: 30, d: 30, y: 32, floor: 20, h: 30 },
+  ledge: [-34 - SHIFT, -23 - SHIFT],          // the Eyrie's ledge (x), level with the high balcony
+  perch: { x: [-53 - SHIFT, -43 - SHIFT], z: [WELL.z - 4.5, WELL.z + 4.5], y: 38 },   // (against the west wall, as it was: a glide to it stops there)
+  column: { x: -38.8 - SHIFT, r: 2.6, h: 22 },   // out of the vent at the gap's foot, past the perch
   // the vent's shaft down from the gap's foot through the Moult's roof (r inside, t its wall; `hole` the square cut for it
-  // in the gap's floor and the Moult's roof, half its side): still while the stone stops the vent, a way down
-  chute: { r: 3.4, t: 1.6, hole: 3.4, top: 21.6, foot: 17.95 },
-  shelf: { x: [-26.6, -23], z: [WELL.z + 7, WELL.z + 10.2], y: 39.5 },
-  vent: { x: -25.2, z: WELL.z + 5.4, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
+  // in the gap's floor and the Moult's roof, half its side): still while the stone stops the vent, a way down. (v1.83,
+  // issue #407: a well 9.2 m across, where it was 6.8, its rim at the ledge's foot: from the ledge you look down it onto
+  // the Moult before you go in; its wall thick enough to close the square's corners)
+  chute: { r: 4.6, t: 2.0, hole: 4.6, top: 21.6, foot: 17.95 },
+  shelf: { x: [-26.6 - SHIFT, -23 - SHIFT], z: [WELL.z + 7, WELL.z + 10.2], y: 39.5 },
+  vent: { x: -25.2 - SHIFT, z: WELL.z + 5.4, r: 1.2, h: 9.5 }, // the ledge's own: a column beside the coffer's shelf
   // the stone's: the gap-vent's throat at its south end (pU), the ledge vent's at its north (pC). (Since issue #275 off the
   // gap's lip and off the south wall; v1.77 in the middle of the hall, 6.8 m in from the ledge's edge as it was)
-  groove: { x: -31.2, z: [WELL.z - 4.4, WELL.z] },
+  groove: { x: -31.2 - SHIFT, z: [WELL.z - 4.4, WELL.z] },
 };
 STACK.zone = { min: [STACK.moult.x - STACK.moult.w / 2, -1, WELL.z - STACK.moult.d / 2], max: [STACK.moult.x + STACK.moult.w / 2, STACK.moult.h - 1, WELL.z + STACK.moult.d / 2] };
 
@@ -349,13 +418,18 @@ function stack(rt, K, M, { C2, WR, feather }) {
   // the vent's shaft, from the Moult's roof up to the gap's foot (its rim a kerb round the vent there, standing proud of the
   // gap's dark floor: no face of it in that floor's plane)
   K.shaft(Cl0.x, C2, Ch.r, Ch.foot, Ch.top, { t: Ch.t, seg: 24 });
-  add(Key, { id: 'kM', at: [Mo.x - Mo.w / 2 + 1.6, 0, C2], yaw: Math.PI / 2 });
+  // (v1.83, issue #407) its rim lit, so the well down onto the Moult reads from the Eyrie's ledge
+  K.add(M.glyph, T(annulus(Ch.r + 0.15, Ch.r + 0.5, 0.06, 40), [Cl0.x, Ch.top + 0.06, C2]));
+  // (v1.83, issue #407: the key's cage under the well down from the Eyrie, seen from its ledge before you go in; it stood
+  // by the far wall)
+  add(Key, { id: 'kM', at: [Mo.x + 3.4, 0, C2 - 2.6], yaw: Math.PI / 2 });
   add(Mark, { room: 'moult', at: [Mo.x + 11, 0, C2 - 6], yaw: Math.PI / 2, foes: [Mo.x + 3, 0, C2 + 3] });
 
   // ---- the ledge round the well's west wall, from the high balcony's west end to the Eyrie's way in
-  const rotA = (a) => Math.PI / 2 - a;
-  K.both(M.floor, T(sector(WR - 2.8, WR - 0.6, rotA(-0.4), rotA(-Math.PI / 2 - 0.3), 0.7), [0, E.y, C2]));
-  K.both(M.trim, T(sector(WR - 2.85, WR - 2.6, rotA(-0.4), rotA(-Math.PI / 2 - 0.3), 0.25), [0, E.y + 0.25, C2]));   // (a kerb along its edge)
+  // (from under the balcony's west end: v1.83, the well 62 m across, that end at a smaller angle)
+  const rotA = (a) => Math.PI / 2 - a, a0 = -Math.asin(6.6 / (WR - 1.7));
+  K.both(M.floor, T(sector(WR - 2.8, WR - 0.6, rotA(a0), rotA(-Math.PI / 2 - 0.3), 0.7), [0, E.y, C2]));
+  K.both(M.trim, T(sector(WR - 2.85, WR - 2.6, rotA(a0 - 0.04), rotA(-Math.PI / 2 - 0.3), 0.25), [0, E.y + 0.25, C2]));   // (a kerb along its edge)
   // ---- the Eyrie: its ledge, the gap, the perch higher on the far side
   K.corridor([E.x + E.w / 2 + 0.6, C2], [-WR, C2], E.y, DOOR);
   K.hall({ x: E.x, z: C2, w: E.w, d: E.d, y: E.floor, h: E.h, floor: false, roof: 'oculus', oculus: 0.35, doors: [{ side: 'e', at: 0, ...DOOR, y0: E.y - E.floor }] });
@@ -446,24 +520,51 @@ function layout(rt) {
   add(Mark, { room: 'gusts', at: [-6, 0, 16], yaw: Math.PI / 2 });
 
   // ---- the corridor and the Wind Well (the hub: a tall round shaft open to the sky through a crown of stone feathers)
-  const C2 = WELL.z, WR = WELL.r, WH = WELL.h;
-  K.corridor([0, HZ1 + 0.6], [0, C2 - WR], 0, DOOR);
-  // (since v1.49 a way west off its floor into the Moult, and another at the high balcony's height into the Eyrie)
-  K.rotunda({ x: 0, z: C2, y: 0, r: WR, h: WH, seg: 32, gaps: [{ a: Math.PI, ...DOOR }, { a: Math.PI / 2, ...DOOR, y0: 16 }, { a: 0, ...DOOR, y0: 32 }, { a: -Math.PI / 2, ...DOOR }, { a: -Math.PI / 2, ...DOOR, y0: 32 }], oculus: 0.66 });
+  const C2 = WELL.z, WR = WELL.r, WH = WELL.h, GY = WELL.gallery.y, GW = WELL.gallery.w;
+  // (v1.83, issue #407) the Long Passage: 38 m, narrow after the hall and before the great well. Its roof is laid by hand
+  // round the hole under the Fledgery's (a round shaft between them), its grate straight below: the Fledgery's stone's plate
+  const FL = FLEDGE, HZ = FL.z + FL.b, HH = FL.hole, PZ0 = HZ1 + 0.6, PZ1 = C2 - WR;
+  K.corridor([0, PZ0], [0, PZ1], 0, { ...DOOR, roof: false });
+  {
+    const s = DOOR.w / 2 + 0.3 + 0.4, xw = s + 0.4, ry = DOOR.h + 0.42;
+    K.both(M.wall, box(2 * xw, 0.8, HZ - HH - PZ0, 0, ry, (PZ0 + HZ - HH) / 2));
+    K.both(M.wall, box(2 * xw, 0.8, PZ1 - HZ - HH, 0, ry, (HZ + HH + PZ1) / 2));
+    K.both(M.wall, box(FL.x - HH + xw, 0.8, 2 * HH, (FL.x - HH - xw) / 2, ry, HZ));
+    K.both(M.wall, box(xw - FL.x - HH, 0.8, 2 * HH, (FL.x + HH + xw) / 2, ry, HZ));
+    // (a tube, its foot inside the roof's slab: no face in its underside's plane; not the kit's shaft, which the house's map
+    // would draw as a floor of its own)
+    K.both(M.wall, T(annulus(HH, HH + 0.7, GY - 0.1 - DOOR.h - 0.3, 20), [FL.x, GY - 0.1, HZ]));
+    // the grate (the vent's throat), its lit ring, and the breath up the shaft while no stone stops it
+    K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [FL.x, 0.02, HZ]));
+    for (let i = 0; i < 3; i++) K.add(M.dark, box(2.6, 0.05, 0.3, FL.x, 0.04, HZ - 0.9 + i * 0.9));
+    add(Plate, { id: 'pD', at: [FL.x, 0, HZ], r: 1.3 });
+    add(Updraft, { at: [FL.x, 0, HZ], r: 1.2, h: DOOR.h - 0.4, lift: 3, when: { all: [{ drumOn: ['ballW', 'pH'] }, { not: { drumOn: ['bD', 'pD'] } }] }, hint: 'A breath of wind rises through the grate, up the shaft in the roof.' });
+    // (a fall down the shaft from the Fledgery: back to its mark)
+    add(Pit, { room: 'fledge', min: [FL.x - HH - 0.2, DOOR.h + 1, HZ - HH - 0.2], max: [FL.x + HH + 0.2, GY - 1.5, HZ + HH + 0.2] });
+  }
+  // (since v1.49 a way west off its floor into the Moult, and another at the high balcony's height into the Eyrie; v1.83 a
+  // way south off the gallery into the Fledgery, over the passage's)
+  K.rotunda({ x: 0, z: C2, y: 0, r: WR, h: WH, seg: 48, gaps: [{ a: Math.PI, ...DOOR }, { a: Math.PI, ...DOOR, y0: GY }, { a: Math.PI / 2, ...DOOR, y0: GY }, { a: 0, ...DOOR, y0: 32 }, { a: -Math.PI / 2, ...DOOR }, { a: -Math.PI / 2, ...DOOR, y0: 32 }], oculus: 0.66 });
+  // the Feather Gallery: a ring round the well at the Wing Chamber's height (the great hall's middle floor), its edge in
+  // ochre (and in the house's map: issue #405)
+  K.chartNote({ kind: 'ring', x: 0, z: C2, y: GY, r0: WR - GW, r1: WR, a0: 0, a1: TAU, holes: [] });
+  K.both(M.floor, T(annulus(WR - GW, WR - 0.05, 0.8, 144), [0, GY, C2]));
+  K.both(M.trim, T(annulus(WR - GW - 0.06, WR - GW + 0.2, 0.9, 144), [0, GY - 0.06, C2]));
   // bands of ochre round it, glyph lines up its walls like the lines on a wing, carved ledges low down, the crown
   for (const y of [10, 26, 42]) K.both(M.trim, T(annulus(WR - 0.35, WR + 0.1, 0.7, 80), [0, y, C2]));
   const wingLines = makeMaterial({ color: PALETTE.glow, glow: 0.35, flat: true, key: 'temple.vael.winglines' });
   const off = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
-  for (let i = 0; i < 18; i++) {
-    const a = (i / 18) * TAU + 0.11;
-    if (off(a, Math.PI) < 0.35) continue;
-    for (const [y0, y1] of [[1.5, 9.4], [10.6, 25.4], [26.6, 41.4], [42.6, 48]]) {
-      if ((off(a, Math.PI / 2) < 0.35 && y1 > 15 && y0 < 25.5) || (off(a, 0) < 0.35 && y1 > 31 && y0 < 41.5) || (off(a, -Math.PI / 2) < 0.35 && (y0 < 9.5 || (y1 > 31 && y0 < 41.5)))) continue;
+  // (v1.83: more of them round the 62 m well, broken by the gallery)
+  for (let i = 0; i < 26; i++) {
+    const a = (i / 26) * TAU + 0.11;
+    if (off(a, Math.PI) < 0.25) continue;
+    for (const [y0, y1] of [[1.5, 9.4], [10.6, 15], [17, 25.4], [26.6, 41.4], [42.6, 48]]) {
+      if ((off(a, Math.PI / 2) < 0.25 && y1 > 15 && y0 < 25.5) || (off(a, 0) < 0.25 && y1 > 31 && y0 < 41.5) || (off(a, -Math.PI / 2) < 0.25 && (y0 < 9.5 || (y1 > 31 && y0 < 41.5)))) continue;
       K.add(wingLines, T(new THREE.BoxGeometry(0.16, y1 - y0, 0.08), [Math.sin(a) * (WR - 0.05), (y0 + y1) / 2, C2 + Math.cos(a) * (WR - 0.05)], [0, a, Math.sin(i * 1.7) * 0.05]));
     }
   }
-  for (let i = 0; i < 30; i++) { const a = (i / 30) * TAU; if (off(a, Math.PI) < 0.4 || off(a, Math.PI / 2) < 0.5 || off(a, -Math.PI / 2) < 0.5) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
-  for (let i = 0; i < 20; i++) { const a = (i / 20) * TAU + 0.2, len = 14 + (i % 3) * 4; feather(i % 4 === 1 ? M.trim : M.wall, Math.sin(a) * (WR + 0.6), WH + 0.9, C2 + Math.cos(a) * (WR + 0.6), len, a, 0.45, true); }   // (solid: a climber up the well meets them as drawn)
+  for (let i = 0; i < 44; i++) { const a = (i / 44) * TAU; if (off(a, Math.PI) < 0.25 || off(a, Math.PI / 2) < 0.3 || off(a, -Math.PI / 2) < 0.3) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
+  for (let i = 0; i < 28; i++) { const a = (i / 28) * TAU + 0.2, len = 14 + (i % 3) * 4; feather(i % 4 === 1 ? M.trim : M.wall, Math.sin(a) * (WR + 0.6), WH + 0.9, C2 + Math.cos(a) * (WR + 0.6), len, a, 0.45, true); }   // (solid: a climber up the well meets them as drawn)
   // the vent in the well's floor: the wind rises out of it while the hall's vent is stopped (its grate, still till then)
   K.add(M.trim, T(annulus(4.4, 5, 0.05, 40), [0, 0.02, C2]));
   for (let i = 0; i < 6; i++) K.add(M.dark, box(8.6, 0.05, 0.3, 0, 0.04, C2 - 3.75 + i * 1.5));
@@ -483,13 +584,25 @@ function layout(rt) {
     add(Plate, { id: 'pF', at: [vx, 0, vz1], r: 1.3 });
     add(Updraft, { at: [vx, 0, vz1], r: 1.4, h: 6, lift: 5, when: { all: [{ drumOn: ['ballW', 'pH'] }, { not: { drumOn: ['bF', 'pF'] } }] }, hint: 'The wind breathes up out of the little vent by the Moult’s door.' });
   }
-  // the feather raft by the east wall: the well's wind lifts it to the Wing Chamber's balcony
+  // the feather raft by the east wall: the well's wind lifts it to the gallery, beside the Wing Chamber's shutter
   const RX = WELL.raft;
-  add(Platform, { id: 'raft', path: [[RX, 0.3, C2], [RX, 16, C2]], r: 2.2, speed: 1.6, pause: 2.2, when: { drumOn: ['ballW', 'pH'] } });
+  add(Platform, { id: 'raft', path: [[RX, 0.3, C2], [RX, GY, C2]], r: 2.2, speed: 1.6, pause: 2.2, when: { drumOn: ['ballW', 'pH'] } });
   K.add(M.trim, T(annulus(2.4, 2.9, 0.05, 32), [RX, 0.02, C2]));
-  K.slab(RX + 2.3, C2 - DOOR.w / 2, WR, C2 + DOOR.w / 2, 16, 0.7);
-  for (const s of [-1, 1]) feather(M.trim, RX + 2.7, 16, C2 + s * 3.3, 4, Math.PI / 2, s * 0.3);
+  for (const s of [-1, 1]) feather(M.trim, WR - GW + 0.6, GY, C2 + s * 3.3, 4, Math.PI / 2, s * 0.3);
   add(Mark, { room: 'well', at: [-6.5, 0, C2 - 10], yaw: Math.PI * 0.75 });
+  // (v1.83, issue #407) the Fledging Sill: on the gallery between two tall stone feathers, a drop to the well's floor onto
+  // the makers' breath, a ring of still wind that takes any fall over it (G6: a safe way down from an upper floor to the hub)
+  {
+    const at = (r, da = 0) => [Math.sin(SILL.a + da) * r, C2 + Math.cos(SILL.a + da) * r];
+    for (const s of [-1, 1]) { const [x, z] = at(WR - GW / 2, s * 0.09); feather(M.trim, x, GY, z, 7, SILL.a + Math.PI + s * 0.25, 0.12, true); }
+    const [lx, lz] = at(WR - GW + 0.1);
+    K.add(wingLines, T(new THREE.BoxGeometry(4.4, 0.06, 0.5), [lx, GY + 0.03, lz], [0, SILL.a + Math.PI / 2, 0]));
+    const [cx, cz] = at(SILL.r);
+    K.both(M.trim, T(annulus(SILL.catch - 0.2, SILL.catch + 0.4, 0.06, 40), [cx, 0.06, cz]));
+    for (let i = 0; i < 5; i++) K.add(M.dark, box(2 * SILL.catch - 1.4, 0.05, 0.3, cx, 0.04, cz - 2.4 + i * 1.2));
+    add(Updraft, { at: [cx, 0, cz], r: SILL.catch - 0.6, h: 11, lift: 4, hint: 'The makers’ breath rises here, soft and steady: enough to take a fall.' });
+    add(Cushion, { at: [cx, 0, cz], r: SILL.catch, said: 'The makers’ breath takes your fall.' });
+  }
 
   // ---- the Wing Chamber (east, floor 16): the chest
   const C3x = WR + 4 + WING.r;
@@ -498,6 +611,30 @@ function layout(rt) {
   K.both(M.trim, ...chestMound(C3x, 16, C2));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) feather(M.wall, C3x - 3 + i * 3, 16, C2 + s * (8.4 - i * 0.6), 7 + i * 1.5, Math.PI / 2 + s * 0.4, s * 0.25);
   add(Mark, { room: 'wings', at: [C3x + 5, 16, C2 - 6], yaw: -Math.PI * 0.75 });
+  // (v1.83, issue #407) its shutter, between the gallery and the chamber: it lifts on the wind once the Fledgery's stone
+  // stops the passage's grate (its lamp)
+  add(Door, { id: 'dW', at: [WR + 2, GY, C2], yaw: Math.PI / 2, ...DOOR, lamps: [{ drumOn: ['bD', 'pD'] }] });
+
+  // ---- the Fledgery (v1.83, issue #407; south off the gallery, over the Long Passage): a stone in a groove whose end is a
+  // hole in the floor, straight over the passage's grate; stone feathers on the walls like the young birds' first ones, and
+  // the hole's lit collar
+  K.corridor([0, C2 - WR], [0, FL.z1 + 0.6], GY, DOOR);
+  K.hall({ x: 0, z: FL.z, w: FL.w, d: FL.d, y: GY, h: FL.h, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 'n', ...DOOR }] });
+  {
+    const x0 = -FL.w / 2 - 0.6, x1 = FL.w / 2 + 0.6, z0 = FL.z0 - 0.6, z1 = FL.z1 + 0.6, hx0 = FL.x - HH, hx1 = FL.x + HH;
+    K.slab(x0, z0, x1, HZ - HH, GY);
+    K.slab(x0, HZ + HH, x1, z1, GY);
+    K.slab(x0, HZ - HH, hx0, HZ + HH, GY);
+    K.slab(hx1, HZ - HH, x1, HZ + HH, GY);
+  }
+  const FA = FL.z + FL.a, FB = HZ;
+  K.add(M.dark, box(1.0, 0.04, FA - FB - HH + 0.4, FL.x, GY + 0.02, (FA + FB + HH) / 2 + 0.2));
+  for (const sd of [-1, 1]) K.both(M.trim, box(0.22, 0.12, FA - FB - HH + 0.4, FL.x + sd * 0.8, GY + 0.06, (FA + FB + HH) / 2 + 0.2));
+  K.both(M.trim, T(annulus(HH + 0.05, HH + 0.75, 0.06, 40), [FL.x, GY + 0.06, HZ]));
+  K.add(wingLines, T(annulus(HH + 0.75, HH + 0.95, 0.07, 40), [FL.x, GY + 0.07, HZ]));
+  add(Ball, { id: 'bD', a: [FL.x, GY + 0.04, FA], b: [FL.x, GY + 0.04, FB], r: 1.1, friction: 1.2,
+    hole: { gate: 'hD', to: [FL.x, 0.04, HZ], fell: 'The stone drops through the floor. Below, the wind stops with a thud.' } });
+  for (const [x, z, a] of [[-12.6, FL.z - 9, 0.4], [12.6, FL.z - 9, -0.4], [-12.6, FL.z + 3, 0.2], [12.6, FL.z + 3, -0.2]]) feather(M.wall, x, GY, z, 9, x < 0 ? Math.PI / 2 : -Math.PI / 2, a);
 
   // ---- the high balcony over the well (floor 32): the great carved eye beside it, the way north to the Vent Hall
   // (issue #275: deep enough for room behind a stone and before it; v1.77 its stone in the Vent Hall beyond, and the
@@ -506,7 +643,11 @@ function layout(rt) {
   K.slab(-7, BE, 7, C2 + WR, 32, 0.7);
   K.add(M.trim, box(14, 0.35, 0.35, 0, 33.1, BE + 0.05));
   for (const s of [-1, 1]) K.add(M.trim, box(0.35, 1.1, 0.35, s * 6.9, 32.55, BE + 0.05));
-  K.both(M.wall, T(new THREE.ConeGeometry(6, 10, 4, 1, true).rotateY(Math.PI / 4), [0, 26.6, C2 + WR - 3.2], [Math.PI, 0, 0]));   // its corbel, down the wall
+  // its corbel, down the wall (v1.83: a long wedge under the pier, 21 m out over the 62 m well)
+  {
+    const sh = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(BALCONY.depth - 1, 0), new THREE.Vector2(0, -12)]);
+    K.both(M.wall, T(new THREE.ExtrudeGeometry(sh, { depth: 5, bevelEnabled: false }).translate(0, 0, -2.5), [0, 31.3, C2 + WR + 0.2], [0, Math.PI / 2, 0]));
+  }
   {
     // the eye: a great carved lid and iris in the wall to the balcony's left, as the makers carved their birds
     const a = -0.42, ex = Math.sin(a) * (WR - 0.2), ez = C2 + Math.cos(a) * (WR - 0.2);
@@ -624,6 +765,9 @@ function layout(rt) {
 
   // (the stack's rooms last: their marks after the others, so the machines' ids by mark stay as they were)
   stack(rt, K, M, { C2, WR, feather });
+  // (v1.83, issue #407: the Fledgery's mark last of all, the machines' ids by mark as they were)
+  add(Mark, { room: 'fledge', at: [7, GY, FL.z1 - 3.5], yaw: Math.PI });
+  add(Mark, { room: 'gallery', at: [Math.sin(2.1) * (WR - GW / 2), GY, C2 + Math.cos(2.1) * (WR - GW / 2)], yaw: -2.1 });
   const W = (x, y, z) => K.world(x, y, z);
   const Mo = STACK.moult, E = STACK.eyrie;
   return {
@@ -631,7 +775,7 @@ function layout(rt) {
     bounds: new THREE.Box3(V(Mo.x - Mo.w / 2 - 4, -6, -3), V(C3x + WING.r + 4, Math.max(WH, GULF.top, RY + 24) + 22, XZ + 2)),
     gadget: { at: W(C3x, 16.62, C2).toArray(), face: K.heading(-Math.PI / 2) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, RY + 0.5, XZ - 0.4), r: 1.5 }],
-    lights: [[0, 5, 6, 10], [0, 8, H.z0 + 16, 24], [0, 8, HZ1 - 16, 24], [0, 10, C2, 22], [Mo.x, 8, C2, 22], [0, 36, C2, 22], [E.x, 38, C2, 22], [C3x, 22, C2, 16], [0, 40, TZ, 22], [0, 36, G0 + 20, 24], [0, 36, PZ + 10, 24], [0, RY + 6, CL, 18], [GX + 3.2, 31, G0 + 30, 20], [GX + 3.2, 31, FZ - 16, 20]],
+    lights: [[0, 5, 6, 10], [0, 8, H.z0 + 16, 24], [0, 8, HZ1 - 16, 24], [0, 10, C2, 22], [-24, 8, C2 - 12, 20], [24, 8, C2 + 10, 20], [-8, 8, C2 + 26, 20], [12, 7, C2 - 25, 18], [16, 22, C2 + 4, 24], [0, 6, (PZ0 + PZ1) / 2, 18], [0, GY + 8, FL.z, 20], [Mo.x, 8, C2, 22], [0, 36, C2, 22], [E.x, 38, C2, 22], [C3x, 22, C2, 16], [0, 40, TZ, 22], [0, 36, G0 + 20, 24], [0, 36, PZ + 10, 24], [0, RY + 6, CL, 18], [GX + 3.2, 31, G0 + 30, 20], [GX + 3.2, 31, FZ - 16, 20]],
     guardian: { def: { ...ELDER, onHit: elderHit, openFor: elderOpenFor }, model, arena },
   };
 }

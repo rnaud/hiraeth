@@ -688,6 +688,33 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   the solver's, the rules' (none broken), the way back's, z-fights 2 → 0. Old saves: past the old far door, the new
   doors as done and the great key in the great door (`migrate.js` spheres v4); one that stood in the old rooms, to its
   last mark.
+- **The Aerie round a great hall** (v1.83, issue #407; the approved best practices, `docs/design/temple-best-practices.md`
+  G4 and G6 and its Aerie row). The Wind Well is the house's great hall: 62 m across where it was 36 (`WELL.r` 31), its
+  three floors seen at once: the floor (the hub), the **Feather Gallery**, a ring 7 m wide round the wall 16 m up
+  (`WELL.gallery`, `annulus`, in the house's map as a `ring` chart note), and the high balcony at 32, now a pier 21 m
+  out on a wedge (`BALCONY.depth`). A **Long Passage**, 38 m and 7 wide (`PASSAGE`), joins the Hall of Winds to it. The
+  raft rises beside the gallery's inner edge; the Wing Chamber opens off the gallery behind a shutter (`dW`). The stack's
+  rooms (the Moult, the Eyrie, the perch) moved west with the wall (`SHIFT`, 13 m); everything else is where it was
+  from its room. The pieces:
+  - **The Fledgery** (`FLEDGE`, room `fledge`, south off the gallery over the passage): a stone (`bD`) in a groove ending
+    at a square hole in its floor; rolled in, it drops down a tube onto the grate in the passage's floor (`pD`, `Ball`
+    `hole` with no gate element: always open; the drum `through: 'hole'`), the grate's breath stops, and the shutter lifts
+    (its lamp). One more step before the wings: the chest at 29 % of the steps (it was 17 %). A fall down the hole is
+    the Fledgery's pit (back to its mark). The house's map chest moved here, early (`house-map.test.js`: the first third).
+  - **The Fledging Sill** (`SILL`, G6): between two tall feathers on the gallery, a marked drop to the well's floor onto
+    the makers' breath (`Cushion`, the Footprint's `Catch` done with wind: over it, falling faster than `SILL.slow`, the
+    fall is slowed in its last metres; a rush, nothing hurt), an always-on soft updraft over a grate. The logic's
+    `gallery → well` one-way link.
+  - **The look down onto the Moult**: the Eyrie's vent shaft (`STACK.chute`) is a well 9.2 m across (it was 6.8), its rim
+    lit, at the foot of the ledge's edge; the Moult's key cage moved under it. From the ledge you see the Moult's floor and
+    its key before you go in.
+  - The guardian's checkpoint: the antechamber's mark by the great door, as before. The gallery has a mark of its own.
+  Audit: 6 → 7 steps, skeleton `BCXAXLXXXLK` → `BBCXAXLXXXLK`, mean obviousness 3.08 → 3.0, decoupled 4 → 5, loops
+  2 → 3, the scores 4.56 before and after; rules broken: none before or after. Old saves: with the wings or anything
+  after, the Fledgery's stone dropped (`migrate.js` arzach v5); one that stood in the old rooms, to its last mark (a
+  spent `relaid`, null, is set again by a later version: `migrateTempleLayouts`). Tests: `tests/temples.test.js` (the
+  logic, the migration, the house on foot with the Fledgery and the sill), `temple-playthrough` (the stone rolled for
+  real), `house-map`, `temple-maps`, `ball-room`, `way-back`, `zfight`.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
