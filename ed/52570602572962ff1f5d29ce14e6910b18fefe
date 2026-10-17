@@ -1,0 +1,64 @@
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_efe3eab6d8df74 87-88,1237-1239,1300-1301,1303-1304,1319
+tests/temple-playthrough.test.js
+  s_5f899ba316b5dc::t_256dad0219efa4 111-116,303-304,315-316,411,499-500
+  s_09746ee554b0c6::t_e4a5919990ee0d 395-398
+tests/temples.test.js
+  s_5f899ba316b5dc::t_3aeca402bc97a6 223-224,235-237,244-258,261-266,272-273,435,439-443,1654,3511
+tests/temple-skins.test.js
+  s_5f899ba316b5dc::t_14cbed4bab8db4 911,914
+changelog.md
+  s_5f899ba316b5dc::t_1d77925111bd7f 7
+src/changelog.js
+  s_5f899ba316b5dc::t_9bcd02d0ef1499 48-51
+src/temples/logic.js
+  s_5f899ba316b5dc::t_804159768abed1 311-335
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_66af724a0b6987 914-980,1102,1106-1107
+src/changelog-media.js
+  s_5f899ba316b5dc::t_d2cb6929638950 1128-1130,1207-1218
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_c849eb0bc1f2bf 632-662
+tests/clock-house.test.js
+  s_5f899ba316b5dc::t_88f0cbe066b8df 1-370
+src/temples/garage.js
+  s_5f899ba316b5dc::t_67f99c72a1356c 6,10-12,44-45,51-66,76-80,130-179,186-204,210-213,224-233,235-237,250-255,260-263,266-267,274-277,288,290-293,298-306,402,407-408,417,421-426,428,430-441,448-450,453-455,466,470,472-481,513,534-537,539-542,547-882,936,939-964,970-978,982,989,1006,1032-1036,1039-1042,1080,1083
+tests/playthrough-agent.js
+  s_5f899ba316b5dc::t_a500f3eff14846 672-674
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_ed8c64debf6f0d 51-54,56,60
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_c6f98ec475b1f6 66,376-377,394-395
+  s_5f899ba316b5dc::t_1d9b3ad30d8f46 60
+tests/temple-climb.test.js
+  s_5f899ba316b5dc::t_0821edf336f063 127-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed52570602572962ff1f5d29ce14e6910b18fefe",
+  "prompts": {},
+  "humans": {
+    "h_a9d45f2c234256": {
+      "author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_09746ee554b0c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aef08b54e1d261efb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
