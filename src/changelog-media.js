@@ -1154,6 +1154,10 @@ const CLOCK414P = 'Issue #414: the Temple maps page (temples.html?t=garage, Debu
 /** (v1.83, issue #417: the Mooring-House round its moored room) */
 const MOOR417 = 'Issue #417: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5418, scripts/design-qc/capture.mjs), the camera pinned in the temple’s own metres, the moored room set where the caption says; before: the tree at origin/main ec07b2d9d (port 5419), the same camera; 17 October; cwebp -q 70';
 const MOOR417P = 'Issue #417: the Temple maps page (temples.html?t=spacecity, Plan, all floors) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main ec07b2d9d, after: this change; 17 October; cwebp -q 70';
+/** (v1.84, issue #439: the hat sets) */
+const HATS439 = 'Issue #439: the character studio’s crowd lineup (studio.html?lineup=crowd&count=14, kind as seeded, the 14 seeds with the most hats in each world; full bodies in front, the GPU crowd figures behind), face view, muted headless Chrome (ANGLE Metal) against this branch’s own Vite (port 5441); before: the tree at origin/main 3a6ee5b29 (port 5446), the same people; 17 October; cwebp -q 70 -resize 1280';
+const HATS439S = 'Issue #439: the character studio’s headwear lineup (studio.html?lineup=mhheadwear&mh=hats): every piece of the 15 hat sets on a grown woman and a grown man in turn, labelled with its set, in its sheet’s first colour; muted headless Chrome against this branch’s own Vite (port 5441); 17 October; cwebp -q 70 -resize 1280';
+const hatRef = (set, what) => ({ sheet: `references/hats/${set}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what} (references/hats/${set})` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
     { match: 'In the fight temples the roll is on the button printed B', see: 'In a fight temple with a Nintendo-lettered pad or the Retroid, the start card lists the bottom button (printed B) as roll; press it. On an Xbox or PlayStation pad it is B / ○ as before.' },
@@ -1173,6 +1177,16 @@ export const CHANGELOG_MEDIA = {
     { match: 'A roll takes you through every hazard of the fight temples', shots: [
       { name: 'fight-roll-stone', only: 'after', title: 'Through a millstone', caption: 'The Drowned Mill: standing, the millstone takes a heart; rolling (B / ○) as it comes, through it unharmed, the perfect dodge’s ring at his feet', from: FIGHT442 },
     ] },
+    { match: 'Every people now wears hats of its own', tags: ['characters'], shots: [
+      { name: 'hats-cityshaft-rim', title: 'The City-Shaft’s rim', caption: 'The same fourteen people of the rim: before, bowlers and trilbies; after, the rim’s pale lacquered hat with its band, in rose, cream and pale blue', from: HATS439, reference: hatRef('city-shaft', 'the City-Shaft’s four hats') },
+      { name: 'hats-cityshaft-depths', title: 'The bottom of the shaft', caption: 'The bottom of the shaft: before, droopy hoods, beanies and trappers; after, soot-grey rag hoods wound round the chin and leather goggle bands', from: HATS439 },
+      { name: 'hats-market', title: 'The Signal Market', caption: 'Before, plumed and jewelled turbans, beanies and peak caps; after, plain wound turbans, a trader’s tasselled cap, a porter’s head-pad and printed headscarves', from: HATS439, reference: hatRef('signal-market', 'the market’s four') },
+      { name: 'hats-monastery', title: 'The bell monastery', caption: 'Vael II: before, tall pointed cowls and skull caps; after, the brothers’ rounded cream cowl with its roll round the neck, the sisters’ white bell wimple, the novices’ violet cap', from: HATS439, reference: hatRef('vael-ii', 'the monastery’s three') },
+      { name: 'hats-buried', title: 'The Buried Machine', caption: 'Before, padded balls and hard hats with a lamp sticking out; after, the padded dome hood with its rust ear pads, the miner’s hat with its lamp flush, the knitted cap', from: HATS439, reference: hatRef('buried', 'the mine’s three') },
+      { name: 'hats-viridel', title: 'Viridel', caption: 'Before, wide straw hats and thin circlets; after, the gardener’s straw hat with its mint ribbon, a band of woven leaves and a sun bonnet tied under the chin', from: HATS439, reference: hatRef('viridel', 'Viridel’s three') },
+      { name: 'hats-sets', only: 'after', title: 'Every hat', caption: 'All 47 hats of the 15 sets, from the front, each labelled with its world’s set', from: HATS439S },
+      { name: 'hats-sets-tq', only: 'after', title: 'Every hat, turned', caption: 'The same, turned three-quarters', from: HATS439S },
+    ], see: 'Walk through any town: about one person in four wears a hat, the one their people wear. The studio (Debug → Pages → Character studio, Lineup: MakeHuman every headwear, person: the hat sets) shows them all.' },
     { match: 'Your ship’s little drone has a name now, Plumb', shots: [
       { name: 'plumb-wake', only: 'after', title: 'In its cradle', caption: 'After the landing, by the amber reserve light: Plumb asleep in its charging cradle by the hatch, its eye waking', from: PLUMB434 },
       { name: 'plumb-lift', only: 'after', title: 'Out of the cradle', caption: 'Bloomed, its rotors spinning, it lifts out of the cup and flies over to him', from: PLUMB434 },

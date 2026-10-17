@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EYE_WHITE } from './eyes.js';
-import { BODY_STEP } from './costumes.js';
+import { BODY_STEP, HEAD_ID_LIMIT, FIXED } from './costumes.js';
 
 // GPU-animated crowd figures: the vertex shader poses each instance from a few
 // per-instance attributes, so hundreds of people walk, talk, lean and sit
@@ -11,7 +11,7 @@ import { BODY_STEP } from './costumes.js';
 // Per vertex (geometry):
 //   aRig.x  part   0 torso · 1 head · 2/3 thigh L/R · 4/5 shin L/R · 6/7 upper arm L/R · 8/9 forearm L/R · 10 cape · 11 robe
 //   aRig.y  colour zone (see CROWD_ZONES)
-//   aRig.z  costume piece: slot * 64 + id. Slots: 0 always · 1 headwear (HEAD_IDS) · 2 mask (MASK_IDS)
+//   aRig.z  costume piece: slot * 128 + id (costumes.js HEAD_ID_LIMIT). Slots: 0 always · 1 headwear (HEAD_IDS) · 2 mask (MASK_IDS)
 //           · 3 shoulder / chest piece (BODY_IDS) · 4 held prop (PROP_IDS) · 5 cape and its collar
 //           · 6 robe · 7 short hair under the headwear (costumes.js has the ids)
 //   aRig.w  cape / robe: 0 at the collar / belt → 1 at the hem (their shape comes from the lengths)
@@ -20,14 +20,16 @@ import { BODY_STEP } from './costumes.js';
 //   aReact  head yaw (rad, relative to the body), head pitch, talk 0..1, startle time (uTime; stumbling: when the shove landed, the pose's frozen time)
 //   aLook0  cloak, cloth, legs, skin as 0xRRGGBB packed in floats (exact up to 2^24)
 //   aLook1  hat, accent, hair, body = bulk (0..3) + 4 * sleeveless + 8 * cloth pattern (TRIM_IDS) + 128 * robe hem radius (cm)
-//   aDress  headwear + 64 * the hair cap under it (costumes.js HEAD_ID_LIMIT), mask + 16 * chest piece + 512 * prop (MASK_ID_LIMIT, BODY_ID_LIMIT),
+//   aDress  headwear + 128 * the hair cap under it (costumes.js HEAD_ID_LIMIT), mask + 16 * chest piece + 512 * prop (MASK_ID_LIMIT, BODY_ID_LIMIT),
 //           cape length (m) + 2 * cape width (tenths), robe length (m below the belt, 0 none) — costumes.js packDress
 //   aBody   female (0 / 1), shoulder width, girth (costumes.js packBody: the build), iris colour 0xRRGGBB; the height is the instance scale
 // A piece that isn't worn collapses to a point (zero-area triangles): every world bakes only its own
 // pieces into its figure (crowd.js figureGeometry), so the vertex count stays small.
 
 export const CROWD_POSES = { stand: 0, walk: 1, rail: 2, sit: 3, kerb: 4, stumble: 5, wall: 6 };
-export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10, dark: 11, metal: 12, wood: 13, lamp: 14, eye: 15 };
+export const CROWD_ZONES = { skin: 0, cloak: 1, cloth: 2, legs: 3, boots: 4, hat: 5, accent: 6, hair: 7, lining: 8, belt: 9, cuff: 10, dark: 11, metal: 12, wood: 13, lamp: 14, eye: 15,
+  // the hat sets' fixed colours (issue #439: costumes.js FIXED brass, ivory; clay, before only on the story's people)
+  brass: 16, ivory: 17, clay: 18 };
 export const CROWD_PARTS = { torso: 0, head: 1, thighL: 2, thighR: 3, shinL: 4, shinR: 5, armL: 6, armR: 7, foreL: 8, foreR: 9, cape: 10, robe: 11 };
 /** aRig.z slots (see above). */
 export const CROWD_SLOTS = { always: 0, head: 1, mask: 2, body: 3, prop: 4, cape: 5, robe: 6, hairCap: 7 };
@@ -67,6 +69,7 @@ export const ROBE_SEAT = { hip: [0, 0.14], knee: [-0.05, 0.07], under: 0.4, drop
 /** Joint pivots in figure space (metres, scale 1). */
 export const CROWD_JOINTS = { hip: 0.95, hipX: 0.09, knee: 0.5, shoulder: 1.43, shoulderX: 0.2, elbow: 1.13, neck: 1.5, collar: 1.45 };
 
+const glslRGB = (hex) => { const c = new THREE.Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; };
 const eyeWhite = (() => { const c = new THREE.Color(EYE_WHITE); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; })();
 export const CROWD_GLSL = /* glsl */ `
   in vec4 aRig;
@@ -101,12 +104,12 @@ export const CROWD_GLSL = /* glsl */ `
   //   shoulder fwd / abduction, elbow per arm; torso pitch / yaw / roll; head pitch / yaw; root offset
   void crowdAnimate(inout vec3 p, inout vec3 n, out vec3 col) {
     int part = int(aRig.x + 0.5), zone = int(aRig.y + 0.5), code = int(aRig.z + 0.5);
-    int slot = code / 64, pid = code - slot * 64;
+    int slot = code / ${HEAD_ID_LIMIT}, pid = code - slot * ${HEAD_ID_LIMIT};
     int pose = int(aAnim.w + 0.5);
     float seed = aAnim.z;
     // the costume (costumes.js packDress)
-    int headId = int(mod(aDress.x, 64.0) + 0.5);
-    bool hairCap = aDress.x > 63.5;
+    int headId = int(mod(aDress.x, ${HEAD_ID_LIMIT}.0) + 0.5);
+    bool hairCap = aDress.x > ${HEAD_ID_LIMIT - 0.5};
     int maskId = int(mod(aDress.y, 16.0) + 0.5), bodyId = int(mod(floor(aDress.y / 16.0 + 0.01), 32.0) + 0.5), propId = int(floor(aDress.y / 512.0 + 0.01) + 0.5);
     float capeWide = floor(aDress.z / 2.0 + 0.001);
     float capeLen = aDress.z - capeWide * 2.0;
@@ -338,7 +341,8 @@ export const CROWD_GLSL = /* glsl */ `
       : zone == 4 ? vec3(0.431, 0.247, 0.172) : zone == 5 ? crowdRGB(aLook1.x) : zone == 6 ? crowdRGB(aLook1.y)
       : zone == 7 ? crowdRGB(aLook1.z) : zone == 8 ? vec3(0.169, 0.129, 0.122) : zone == 9 ? legs * 0.6 + vec3(0.33, 0.24, 0.1)
       : zone == 10 ? cloak * 0.75 : zone == 11 ? vec3(0.169, 0.129, 0.122) : zone == 12 ? vec3(0.663, 0.643, 0.576)
-      : zone == 13 ? vec3(0.541, 0.376, 0.251) : zone == 15 ? ${eyeWhite} : vec3(1.0, 0.851, 0.541);
+      : zone == 13 ? vec3(0.541, 0.376, 0.251) : zone == 15 ? ${eyeWhite} : zone == 16 ? ${glslRGB(FIXED.brass)} : zone == 17 ? ${glslRGB(FIXED.ivory)}
+      : zone == 18 ? ${glslRGB(FIXED.clay)} : vec3(1.0, 0.851, 0.541);
     // the eyes: a white almond with the iris on it, or shut (skin) while they blink, every few seconds
     float blinkT = mod(uTime + seed * 37.0, 2.6 + seed * 3.4);
     bool shut = zone == 15 && blinkT < 0.13;

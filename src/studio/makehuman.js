@@ -105,7 +105,14 @@ export const HEADWEAR_HEADS = [
  * (hats, caps, hoods, bands...), 'masks' (the face's: goggles, glasses, cloths), 'neck' (the shoulder pieces),
  * or a world's own (`pieces`: { heads, masks, bodies }, crowd.js worldPieces). Each spec carries its piece (`look`).
  */
-export function mhHeadwearLineup(set = 'heads', { heads = [], masks = [], bodies = [] } = {}, offset = 0) {
+export function mhHeadwearLineup(set = 'heads', { heads = [], masks = [], bodies = [], tags = {}, colours = {} } = {}, offset = 0) {
+  // (the hat sets, issue #439: every piece on a grown woman and a grown man in turn, labelled with its set)
+  if (set === 'hats') {
+    return heads.map((h, i) => {
+      const P = HEADWEAR_HEADS[(i + offset) % 2];
+      return { who: 'blank', mh: { ...P, id: `${P.id}-${i}`, label: `${tags[h] ?? ''} · ${h}` }, kind: P.kind, look: { head: h, ...(colours[h] ? { hat: colours[h] } : {}) } };
+    });
+  }
   const items = set === 'masks' ? masks.map((m) => ({ mask: m })) : set === 'neck' ? bodies.map((b) => ({ body: b }))
     : set === 'world' ? [...heads.map((h) => ({ head: h })), ...masks.map((m) => ({ mask: m })), ...bodies.map((b) => ({ body: b }))]
       : heads.map((h) => ({ head: h }));

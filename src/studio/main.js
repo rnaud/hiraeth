@@ -18,7 +18,7 @@ import { Gear } from '../gear.js';
 import { FluidTool } from '../fluid-tool.js';
 import { GameState } from '../game-state.js';
 import { NPC } from '../npc.js';
-import { COSTUME_WORLDS, crowdLook, BUILDS, HEAD_IDS, HAIR_IDS, MASK_IDS, BODY_IDS, PROP_IDS, TRIM_IDS, tribeOf, setCostumeWorld } from '../costumes.js';
+import { COSTUME_WORLDS, crowdLook, BUILDS, HAT_SETS, HEADS, HEAD_IDS, HAIR_IDS, MASK_IDS, BODY_IDS, PROP_IDS, TRIM_IDS, tribeOf, setCostumeWorld } from '../costumes.js';
 import { figureGeometry, packLook, worldPieces } from '../crowd.js';
 import { CROWD_POSES } from '../crowd-shader.js';
 import { IRIS } from '../eyes.js';
@@ -237,8 +237,9 @@ async function rebuild() {
     else if (state.lineup === 'mhbuilds') specs.push(...mhBuildsLineup(state.kind === 'f' ? 'f' : 'm', state.mh));
     else if (state.lineup === 'mhheadwear') {
       // every headwear, face piece or shoulder piece (MakeHuman person: heads / masks / neck), or the world's own (world)
-      const set = ['masks', 'neck', 'world'].includes(state.mh) ? state.mh : 'heads';
-      const pieces = set === 'world' ? worldPieces(world) : { heads: HEAD_IDS.filter((h) => !HAIR_IDS.includes(h)), masks: MASK_IDS.filter((m) => m !== 'none'), bodies: BODY_IDS.filter((b) => b !== 'none') };
+      const set = ['masks', 'neck', 'world', 'hats'].includes(state.mh) ? state.mh : 'heads';
+      const pieces = set === 'hats' ? { heads: Object.values(HAT_SETS).flat(), tags: Object.fromEntries(Object.entries(HAT_SETS).flatMap(([k, ids]) => ids.map((id) => [id, k]))), colours: Object.fromEntries(Object.values(HAT_SETS).flat().map((id) => [id, HEADS[id].hats[0]])) }
+        : set === 'world' ? worldPieces(world) : { heads: HEAD_IDS.filter((h) => !HAIR_IDS.includes(h)), masks: MASK_IDS.filter((m) => m !== 'none'), bodies: BODY_IDS.filter((b) => b !== 'none') };
       specs.push(...mhHeadwearLineup(set, pieces, state.seed - 1));
     } else specs.push(...mhHairLineup(state.kind === 'f' ? 'f' : 'm'));
   } else if (state.lineup === 'cast') {
@@ -903,7 +904,7 @@ select(sWho, 'Body', 'kind', [['m', 'man'], ['f', 'woman']], () => { if (state.w
 select(sWho, 'Body source', 'source', [['makehuman', 'MakeHuman (the game’s)'], ['quaternius', 'Quaternius (the old bodies)']], rebuild);
 const mhSel = select(sWho, 'MakeHuman person', 'mh', () => [['', 'the first of their kind'], ...MH_PRESETS.map((e) => [e.id, e.label]),
   // (the headwear lineup: which pieces; '' the headwear)
-  ['masks', 'headwear lineup: the face pieces'], ['neck', 'headwear lineup: the shoulder pieces'], ['world', 'headwear lineup: the world’s own']],
+  ['masks', 'headwear lineup: the face pieces'], ['neck', 'headwear lineup: the shoulder pieces'], ['world', 'headwear lineup: the world’s own'], ['hats', 'headwear lineup: the hat sets']],
 () => { if (state.source === 'makehuman' || MH_LINEUPS.includes(state.lineup)) rebuild(); });
 refreshers.push(() => { mhSel.parentElement.hidden = state.source !== 'makehuman' && !MH_LINEUPS.includes(state.lineup); });
 refreshers.push(() => { spotSel.parentElement.hidden = state.world !== 'incal'; });

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { figureGeometry } from './crowd.js';
 import { CROWD_PARTS as P, CROWD_SLOTS as SLOT, CROWD_ZONES as Z, CROWD_JOINTS as J, CROWD_CAPE } from './crowd-shader.js';
-import { HEAD_IDS, PROP_IDS, BODY_IDS } from './costumes.js';
+import { HEAD_IDS, HEAD_ID_LIMIT, PROP_IDS, BODY_IDS } from './costumes.js';
 import { featherGeometry, smallWingGeometry } from './avian.js';
 import { buildBird, poseWings } from './bird.js';
 
@@ -25,7 +25,7 @@ const TAU = Math.PI * 2;
 export const GHOST_ZONES = {
   [Z.skin]: '#f2f7ec', [Z.cloak]: '#b9e2cc', [Z.cloth]: '#d9f0e1', [Z.legs]: '#a8d5bf', [Z.boots]: '#86b9a3', [Z.hat]: '#cbe9d8',
   [Z.accent]: '#9fd8bd', [Z.hair]: '#93c3ae', [Z.lining]: '#7fae9b', [Z.belt]: '#8dbfa8', [Z.cuff]: '#c5e6d4', [Z.dark]: '#5f8f7e',
-  [Z.metal]: '#bfe0d0', [Z.wood]: '#9cc7b2', [Z.lamp]: '#f4ffe8', [Z.eye]: '#3f6a5c',
+  [Z.metal]: '#bfe0d0', [Z.wood]: '#9cc7b2', [Z.lamp]: '#f4ffe8', [Z.eye]: '#3f6a5c', [Z.brass]: '#d6ecd9', [Z.ivory]: '#eef6ea', [Z.clay]: '#9cc7b2',
 };
 
 /**
@@ -72,7 +72,7 @@ export function frozenPerson(pose = 'stride', dress = {}, { world = 'desert', zo
   for (let ii = 0; ii < count; ii++) {
     const i = index ? index[ii] : ii;
     const part = Math.round(R0.getX(i)), zone = Math.round(R0.getY(i)), code = Math.round(R0.getZ(i)), t = R0.getW(i);
-    const slot = Math.floor(code / 64), pid = code - slot * 64;
+    const slot = Math.floor(code / HEAD_ID_LIMIT), pid = code - slot * HEAD_ID_LIMIT;
     const show = slot === SLOT.always || (slot === SLOT.head && pid === headId) || (slot === SLOT.body && pid === bodyId) || (slot === SLOT.prop && pid === propId)
       || (slot === SLOT.cape && D.cape > 0.01) || (slot === SLOT.robe && D.robe > 0.01);
     p.fromBufferAttribute(P0, i); n.fromBufferAttribute(N0, i);

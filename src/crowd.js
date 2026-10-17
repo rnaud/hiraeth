@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, sharedUniforms } from './materials.js';
 import { CROWD_GLSL, CROWD_POSES as POSE, CROWD_ZONES as Z, CROWD_PARTS as P, CROWD_SLOTS as SLOT } from './crowd-shader.js';
-import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, GENERIC_HAIR, tribeOf, hairCap, crowdLook, packDress, packBody, costumeWorld } from './costumes.js';
+import { COSTUMES, HEADS as HEADWEAR, MASKS, BODIES, PROPS, HEAD_IDS, HEAD_ID_LIMIT, MASK_IDS, BODY_IDS, PROP_IDS, CROWD_FRAMES, GENERIC_HAIR, tribeOf, hairCap, crowdLook, packDress, packBody, costumeWorld } from './costumes.js';
 import { KNOCKOVER } from './ragdoll.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
@@ -134,7 +134,7 @@ function capeGeometry(cols, ts, gap = 0.42) {
   const pos = [], nrm = [], rig = [], idx = [], rows = ts.length;
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
     const a = gap + (c / (cols - 1)) * (TAU - gap * 2), t = ts[r];
-    pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.cape, Z.cloak, SLOT.cape * 64, t);
+    pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.cape, Z.cloak, SLOT.cape * HEAD_ID_LIMIT, t);
   }
   for (let r = 0; r < rows - 1; r++) for (let c = 0; c < cols - 1; c++) {
     const a = r * cols + c, b = a + 1, d = a + cols, e = d + 1;
@@ -155,7 +155,7 @@ function robeGeometry(cols, rows) {
     const zone = r >= ts.length - 2 ? Z.accent : Z.cloth;
     for (let c = 0; c <= cols; c++) {
       const a = (c / cols) * TAU;
-      pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.robe, zone, SLOT.robe * 64, t);
+      pos.push(Math.sin(a), 0, Math.cos(a)); nrm.push(Math.sin(a), 0, Math.cos(a)); rig.push(P.robe, zone, SLOT.robe * HEAD_ID_LIMIT, t);
     }
   });
   for (let r = 0; r < ts.length - 1; r++) {
@@ -174,7 +174,7 @@ function robeGeometry(cols, rows) {
 }
 const at = (g, x, y, z) => g.translate(x, y, z);
 const ROLE_ZONE = { skin: Z.skin, cloak: Z.cloak, cloth: Z.cloth, legs: Z.legs, hat: Z.hat, accent: Z.accent, hair: Z.hair, lining: Z.lining,
-  dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp, clay: Z.wood, linen: Z.wood, canvas: Z.wood };   // (clay, linen, canvas: named people's pieces, never a crowd's; the figure would draw them as wood)
+  dark: Z.dark, metal: Z.metal, wood: Z.wood, lamp: Z.lamp, brass: Z.brass, ivory: Z.ivory, clay: Z.clay, linen: Z.wood, canvas: Z.wood };   // (linen, canvas: named people's pieces, never a crowd's; the figure would draw them as wood)
 const ids = (w) => Object.entries(w ?? {}).filter(([id, v]) => v > 0 && id !== 'none').map(([id]) => id);
 /** The pieces a world's crowd can wear (every tribe's), for its figure. */
 export function worldPieces(world) {
@@ -202,7 +202,7 @@ export function figureGeometry(detail = 'mid', world = null) {
   const frame = (g, f) => f === 'head' ? g.scale(F.head.s, F.head.s, F.head.s).translate(0, F.head.y, F.head.z)
     : f === 'chest' ? g.translate(0, F.chest.y, 0) : g.translate(F.hand.x, F.hand.y, F.hand.z);
   const partOf = { head: P.head, chest: P.torso, hand: P.foreR };
-  const costume = (list, f, slot, id) => { for (const pc of list) if (!far || pc.far) add(frame(pc.geo, f), partOf[f], ROLE_ZONE[pc.role] ?? Z.cloak, slot * 64 + id); };
+  const costume = (list, f, slot, id) => { for (const pc of list) if (!far || pc.far) add(frame(pc.geo, f), partOf[f], ROLE_ZONE[pc.role] ?? Z.cloak, slot * HEAD_ID_LIMIT + id); };
   // the world's headwear, masks, shoulder pieces and props (the shader keeps the ones each person wears)
   for (const id of W.heads) {
     costume(HEADWEAR[id].parts(q), 'head', SLOT.head, HEAD_IDS.indexOf(id));
@@ -245,7 +245,7 @@ export function figureGeometry(detail = 'mid', world = null) {
   add(at(new C.ConeGeometry(0.022, 0.12, 4).rotateX(Math.PI / 2 + 0.4), 0, 1.625, 0.105), P.head, Z.skin);
   // the cape and its collar
   parts.push(capeGeometry(9, CAPE_ROWS.mid));
-  add(at(new C.TorusGeometry(0.19, 0.03, 4, 10).rotateX(Math.PI / 2), 0, 1.45, 0), P.torso, Z.cloak, SLOT.cape * 64);
+  add(at(new C.TorusGeometry(0.19, 0.03, 4, 10).rotateX(Math.PI / 2), 0, 1.45, 0), P.torso, Z.cloak, SLOT.cape * HEAD_ID_LIMIT);
   return finish(parts);
 }
 function finish(parts) {

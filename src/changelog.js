@@ -9,6 +9,10 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.84', date: '2026-10-17', items: [
+    // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
+    // hoodEdge; each tribe's heads; the sets' colours last in dressFor), crowd-shader.js / crowd.js / Crowd.hlsl (HEAD_ID_LIMIT 128,
+    // zones brass, ivory, clay); tests/hat-share.test.js, tests/makehuman-worlds.test.js; docs/systems/characters.md "The hat sets"
+    'Every people now wears hats of its own, modelled from the design sheets picked for each world: pale lacquered hats on the City-Shaft’s rim, patched caps and goggle bands in its middle levels and rag hoods at the bottom; caps that leave the listeners’ ears clear; woven reed hats and moss hoods in Lorn; plain turbans, tasselled caps, porters’ head-pads and printed scarves in the Signal Market; the pilgrims’ headcloths with their cord and modest straw cones in the desert; bell wimples at the monastery; padded dome hoods and lamp hats in the mine; and so on in every world, each in its sheet’s colours. As many people wear a hat as before, and the same people.',
     // issue #434: src/companion.js (the name on its lines, the first word, places, StepWatch, FightWatch, GAP), src/scout.js
     // escort, src/ship/prologue-drone.js and the prologue's `drone` stage, interior.js DOCK, ship.js AUTO_WALK, desert.js
     // drone:village; tests/companion.test.js, tests/prologue-drone.test.js, tests/scout.test.js

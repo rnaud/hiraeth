@@ -543,8 +543,58 @@ Machine's and the Moon Foundry's crowds. Now 28 %.
   issue #403.
 - `tests/hat-share.test.js`: ≤ 33 % of everyone, each crowd ≤ 30 % (+5) unless its culture asks for more, the
   dropped shapes on nobody but the sheets, the sheets' and the story's own heads kept, the streams unchanged.
-- **Next** (not modelled yet): a smaller, coherent set of hats per world, from Midjourney sheets the author picks:
-  `docs/design/hat-prompts.md`.
+- **Next**: a smaller, coherent set of hats per world, from sheets the author picks (`docs/design/hat-prompts.md`):
+  done, "The hat sets" below.
+
+## The hat sets (issue #439)
+
+The author picked one sheet per culture in the reference lab (issue #437; `references/hats/<set>/sheet-1.jpg`), and
+each set's two to four hats are modelled as `HEADS` pieces in `src/costumes.js` (`set`: the sheet; `HAT_SETS` lists
+them, `HAT_SET_WORLDS` the worlds each dresses). 47 pieces, 15 sets:
+
+| Set | Worlds | Pieces |
+|---|---|---|
+| city-shaft | the City-Shaft, the City Floating in Space | `rimhat` (the rim: pale lacquer, flat crown, short brim, a band), `workcap` (the middle levels: soft patched cap, short peak), `soothood` (the depths: rag hood wound round the chin), `goggleband` (leather band, lilac goggles up) |
+| spheres | the Garden of Spheres | `listenercap` (the ears clear, a brass dot), `ringcap` (the same, a brass ring), `eldercowl` (to the shoulders, a gold edge) |
+| lorn | Lorn | `reedhat` (low woven reed), `swamphood` (moss, tied at the chin), `knotcloth` (lilac, knotted) |
+| signal-market | the Signal Market, the Overnight Train | `marketturban` (plain, wound), `tasselcap` (a trader's, brass tassel), `headpad` (a porter's flat coil, seated on the crown), `printscarf` (printed, tied at the nape) |
+| desert | the Desert, the Glass Dunes | `pilgrimcloth` (to the shoulders, a twisted cord), `desertwrap` (one end down the side), `conehat` (a modest straw cone over a white cloth), `glasscap` (the glassworker's canvas, ear flaps) |
+| vael | Vael | `ordercowl` (a low soft point behind, over the shoulders), `windhood` (a light hood, wound round the neck) |
+| vael-ii | Vael II | `monkcowl` (rounded, close round the face, a thick roll round the neck), `wimple` (the sisters' bell), `novicecap` (violet) |
+| buried | the Buried Machine, the Moon Foundry | `domehood` (padded, a rolled rim, rust ear pads), `minerhat` (its lamp flush), `knitcap` (sage) |
+| viridel | Viridel | `gardenstraw` (a mint ribbon), `leafband` (woven leaves on the hair), `bonnet` (a pink lining, tied under the chin) |
+| lorn-ii | Lorn II | `mosshood`, `keepercap` (a brass button; the lamps stay on their poles), `duskhood` (a rolled edge) |
+| mangrove | the White Mangrove, the City During the Eclipse | `lakehood` (lilac, a brass pin), `veilhood` (long, a gold edge), `flatreedhat` (flat, wide, a finial) |
+| harbour | the Salt Harbour, the Underside | `sailwrap` (knotted behind), `souwester` (the long back brim), `salthood` (a stiff edge, a scarf) |
+| falls | the City Behind the Waterfall, the Underwater City | `sprayhood` (rust, to the collar), `ringpad` (a basket-carrier's coil seated round a bun), `oilcap` (teal) |
+| antennas | the Forest of Antennas | `mendercap` (brass goggles up), `climbhood` (buckled under the chin), `wireband` (braided wire) |
+| fallen-ring | the Fallen Ring | `herderhood` (ivory, to the shoulders), `feltcap` (sage, a vermilion edge), `hullcloth` (vermilion, tied behind) |
+
+- **Shapes**: fitted to the skull egg like stage 3's hats (`shell`, `rim`, `visor`, `lathe`), so they sit on every
+  head the skull is measured on, every age and build (#402: the builds leave the head alone). The hoods are one new
+  shape, `hoodShell`: cloth `t` off the skull from an oval face opening (`brow` over the eyes, down the cheeks `face`
+  degrees round) to the crown, hanging below the skull to its hem (`drop`, `flare`, a soft `point` behind for Vael's
+  cowl); `hoodNeck` closes it under the chin (the close hoods: Lorn, Lorn II, the falls, the mine, the ring, Vael,
+  the monastery's wimple, the depths' rags), `hoodEdge` rolls its edge. Hats over hair carry a `cover` (the hair
+  squashed under them); hoods have none (the hair inside). `tests/makehuman-worlds.test.js` rays every piece's skin
+  and hair on seven MakeHuman heads (a man, a woman, a girl of 8, a boy of 15, the old and heavy, a broad man) in
+  three hairstyles: none through.
+- **Colours**: each piece carries its sheet's own (`HEADS[].hats`); a crowd person in one gets one of them, from a
+  hash of the look, at the very end of `dressFor` (nothing drawn or hashed before it moves). A story person's own
+  hat colour (`palette.hat`) is kept. Brass, the white cloth under the desert's cone and the clay of ear pads and
+  edges are fixed colours (`FIXED.brass`, `ivory`, `clay`: the crowd shader's zones 16-18, web and Unity alike).
+- **Who wears them**: each tribe's `heads` (and `headsF`, `more.heads`, `as`) name its set in place of the generic
+  shapes, the hats' weights summing to what they were and in the same order, so exactly the same people are under a
+  hat as before (#403's share: 28 % of everyone, `node scripts/cape-census.mjs --hats`), drawn from the same streams.
+  The Eclipse and the Underwater City weigh their own piece most (the veil-hood, the oiled cap). Named people whose
+  own head is a piece (`look.head`, the reference sheets; the Speaker, Sefa, Nour, Marrow, Haddu) keep theirs; a story
+  head that is the generic `hood` / `hat` / `wrap` is now the set's (Ama's wrap, Haro's straw cone, Ket's dome hood).
+- **The crowd figure**: 101 head ids now, so `HEAD_ID_LIMIT` is 128 (`aDress.x = id + 128 × hair cap`) and the
+  figure's costume codes step by it (`aRig.z = slot × 128 + id`: crowd.js, crowd-shader.js, glass-dunes-figures.js,
+  the Unity port's `Crowd.hlsl`). A world bakes only its own set; the figures stay under 2 500 / 600 triangles.
+- **Studio**: `studio.html?lineup=mhheadwear&mh=hats`: every piece on a grown woman and man in turn, labelled with
+  its set, in its sheet's colour (the contact sheet). Tests: `tests/hat-share.test.js` (the sets, their worlds and
+  nothing else in them, the same people under a hat, the colours last), `tests/makehuman-worlds.test.js` (the fit).
 
 ## Body shapes: thin to round (issue #402)
 

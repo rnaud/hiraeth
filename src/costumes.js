@@ -35,9 +35,28 @@ export const HEAD_IDS = ['hood', 'hat', 'wrap', 'hair', 'wizard', 'short', 'tail
   // more headwear (stage 3: docs/makehuman.md); appended, so the crowd's ids above keep their numbers
   'brim', 'straw', 'trilby', 'bowler', 'peak', 'flatcap', 'beanie', 'trapper', 'aviator', 'bandana', 'kerchief', 'skullcap', 'circlet', 'helmet', 'hooddown',
   // the desert: a cap worn over a braid (Sefa's sheet)
-  'braidcap'];
-/** How many head ids the crowd shader can tell apart (crowd-shader.js: aDress.x = id + HEAD_ID_LIMIT * hair cap). */
-export const HEAD_ID_LIMIT = 64;
+  'braidcap',
+  // the hat sets (issue #439): each culture's own, from the author's picks (references/hats/<set>/sheet-1.jpg; HAT_SETS)
+  'rimhat', 'workcap', 'soothood', 'goggleband',
+  'listenercap', 'ringcap', 'eldercowl',
+  'reedhat', 'swamphood', 'knotcloth',
+  'marketturban', 'tasselcap', 'headpad', 'printscarf',
+  'pilgrimcloth', 'desertwrap', 'conehat', 'glasscap',
+  'ordercowl', 'windhood',
+  'monkcowl', 'wimple', 'novicecap',
+  'domehood', 'minerhat', 'knitcap',
+  'gardenstraw', 'leafband', 'bonnet',
+  'mosshood', 'keepercap', 'duskhood',
+  'lakehood', 'veilhood', 'flatreedhat',
+  'sailwrap', 'souwester', 'salthood',
+  'sprayhood', 'ringpad', 'oilcap',
+  'mendercap', 'climbhood', 'wireband',
+  'herderhood', 'feltcap', 'hullcloth'];
+/**
+ * How many head ids the crowd shader can tell apart (crowd-shader.js: aDress.x = id + HEAD_ID_LIMIT * hair cap); also
+ * the stride of the figure's costume codes (aRig.z = slot * HEAD_ID_LIMIT + id: crowd.js). 128 since the hat sets (issue #439).
+ */
+export const HEAD_ID_LIMIT = 128;
 /** The bare-headed styles (no headwear): the studio's hair list, what tribes pick from (tribe.hair). */
 export const HAIR_IDS = ['short', 'hair', 'tail', 'long', 'bun', 'crop', 'shaved', 'bald', 'curls', 'braid', 'flow', 'locks', 'crest', 'bob', 'twin', 'swept', 'tonsure'];
 /** The story's generic bare heads: each tribe draws its own hairstyle for them (tribe.hair). */
@@ -61,7 +80,9 @@ export const TRIM_IDS = ['none', 'stripes', 'sash', 'yoke', 'bib', 'diamonds', '
 /** Fixed colours of the material roles that aren't the person's own. */
 /** The boots' colour when a look has none of its own (the body's outfit shader: humanoid.js). */
 export const BOOT = '#6e3f2c';
-export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f', linen: '#c2b59b', canvas: '#d9bc8c' };
+export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f', linen: '#c2b59b', canvas: '#d9bc8c',
+  // the hat sets (issue #439): brass rings, pins and goggles, the white cloth under a hat (crowd-shader.js zones 16, 17; clay 18)
+  brass: '#c9a24a', ivory: '#f1ebde' };
 
 // ------------------------------------------------------------------ the worlds
 // weights: { id: weight }; lists of colours; [min, max] ranges; robe: hem heights above the ground (m)
@@ -90,14 +111,15 @@ export const COSTUMES = {
   desert: { tribes: [tribe({
     name: 'pilgrims of the dunes',
     faces: { plain: 4, round: 2, long: 1.5, elder: 1.5 },
-    heads: { headcloth: 4, sunhat: 1.5, wrap: 2, hair: 1 }, headsF: { headcloth: 4, wrap: 2.5, sunhat: 0.8, hair: 1.8 }, as: { hood: 'headcloth', hat: 'sunhat', wrap: 'wrap' },
+    // (issue #439: the desert's set, references/hats/desert: the pilgrim's headcloth, a head-wrap, a straw cone, the glassworker's cap)
+    heads: { pilgrimcloth: 4, conehat: 1.5, desertwrap: 2, hair: 1 }, headsF: { pilgrimcloth: 4, desertwrap: 2.5, conehat: 0.8, hair: 1.8 }, as: { hood: 'pilgrimcloth', hat: 'conehat', wrap: 'desertwrap' },
     // (issue #403: the sun and the sand call for a cloth over the head, more than elsewhere)
     hatOdds: 0.45,
     // close crops and tight curls, the women's hair braided or down
     hair: { m: { crop: 3, curls: 2.5, shaved: 1.5 }, f: { braid: 3, flow: 2, bun: 1.5, curls: 1 } },
     masks: { none: 5, veil: 2 }, body: { mantle: 2, none: 3 }, props: { none: 6, staff: 2, basket: 1 }, trim: { sash: 3, none: 2, stripes: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { straw: 1.68 }, headsF: { kerchief: 1.23, straw: 1.02 }, masks: { facewrap: 1.1, scarfmask: 0.5, glasses: 0.25 }, body: { neckerchief: 0.6 } },
+    more: { heads: { glasscap: 1.68 }, headsF: { glasscap: 1.23, conehat: 1.02 }, masks: { facewrap: 1.1, scarfmask: 0.5, glasses: 0.25 }, body: { neckerchief: 0.6 } },
     capeOdds: { meant: 0.22 }, robeOdds: { other: 0.08 }, plain: { body: 'neckerchief', apron: 0.15 },
     capes: [0, 0, 0.9, 1.25, 1.45], wide: [1, 1.25], robe: 0.85, robes: [0.1, 0.22, 0.38], flare: [0.3, 0.4], size: [0.95, 1.06],
     palette: {
@@ -114,12 +136,13 @@ export const COSTUMES = {
     tribe({
       name: 'the rim', when: (c) => zoneIncal(c) === 'rim' || zoneIncal(c) === 'upper',
       moods: { amused: 3, curious: 2.5, kind: 2.5, calm: 1, stern: 0.6 },
-      heads: { bowler: 3, trilby: 2, hair: 1.5 }, headsF: { bowler: 2, hair: 2.5 }, as: { hat: 'bowler', wrap: 'hood' },   // (issue #403: the stovepipes and spires dropped)
+      // (issue #439: the City-Shaft's set, references/hats/city-shaft: the rim's lacquered hat; the bowlers and trilbies before it)
+      heads: { rimhat: 5, hair: 1.5 }, headsF: { rimhat: 2, hair: 2.5 }, as: { hat: 'rimhat', wrap: 'rimhat', hood: 'rimhat' },
       // the rim's fashion: swept back, bobbed, pinned up
       hair: { m: { swept: 3, short: 1.5 }, f: { bob: 3, bun: 2.5 } },
       masks: { none: 1 }, body: { collar: 5, none: 1 }, props: { none: 5, parasol: 2 }, trim: { yoke: 1 },
       // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-      more: { heads: { bowler: 1.5, trilby: 1 }, headsF: { bowler: 0.8 }, masks: { glasses: 0.13, monocle: 0.07 }, body: { muffler: 0.5 } },
+      more: { heads: { rimhat: 2.5 }, headsF: { rimhat: 0.8 }, masks: { glasses: 0.13, monocle: 0.07 }, body: { muffler: 0.5 } },
       capeOdds: { meant: 0.25 },
       capes: [0, 0, 0.55, 0.9], wide: [0.9, 1], robe: 0.5, robes: [0.45], flare: [0.24, 0.26], size: [1.0, 1.08],
       palette: {
@@ -134,11 +157,11 @@ export const COSTUMES = {
     }),
     tribe({
       name: 'the middle levels', when: (c) => zoneIncal(c) === 'middle',
-      heads: { hood: 3, raghood: 1, hair: 1.2 }, as: { hat: 'hood', wrap: 'hood' },
+      heads: { workcap: 2.4, goggleband: 1, soothood: 0.6, hair: 1.2 }, as: { hat: 'workcap', wrap: 'goggleband', hood: 'soothood' },
       hair: { m: { short: 2, crop: 2 }, f: { tail: 2.5, bun: 1.5 } },
       masks: { none: 3, browgoggles: 2 }, body: { none: 2, tatters: 1 }, props: { none: 5, lantern: 1 }, trim: { none: 1, patches: 1 },
       // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-      more: { heads: { peak: 1.6, beanie: 1.2, hooddown: 1 }, masks: { goggles: 0.8, glasses: 0.6 }, body: { muffler: 0.8, neckgoggles: 0.6 } },
+      more: { heads: { workcap: 1.6, goggleband: 1.2, hooddown: 1 }, masks: { goggles: 0.8, glasses: 0.6 }, body: { muffler: 0.8, neckgoggles: 0.6 } },
       capeOdds: { meant: 0.3 }, plain: { body: 'muffler', apron: 0.15 },
       capes: [0.55, 0.9, 1.25], robe: 0.4, robes: [0.35], flare: [0.27, 0.3], size: [0.93, 1.02],
       palette: {
@@ -153,12 +176,12 @@ export const COSTUMES = {
     tribe({
       name: 'the bottom of the shaft',
       faces: { plain: 4, round: 1, long: 2, elder: 1.5 }, moods: { kind: 3, calm: 3, curious: 1.5, amused: 1, stern: 1 },
-      heads: { raghood: 5, hood: 2, hair: 1 }, as: { hood: 'raghood', hat: 'raghood', wrap: 'raghood' },
+      heads: { soothood: 5.5, goggleband: 1.5, hair: 1 }, as: { hood: 'soothood', hat: 'soothood', wrap: 'goggleband' },
       // the bottom of the shaft: shaved for the lice, or tied back out of the way
       hair: { m: { shaved: 2.5, crop: 1.5, bald: 1 }, f: { tail: 2, shaved: 1 } },
       masks: { goggles: 3, browgoggles: 2, none: 2 }, body: { tatters: 3, none: 2 }, props: { none: 5, lantern: 1 }, trim: { patches: 3, none: 1 },
       // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-      more: { heads: { beanie: 1.5, trapper: 1, bandana: 1 }, masks: { scarfmask: 1.2 }, body: { muffler: 1, neckgoggles: 0.8 } },
+      more: { heads: { goggleband: 1.5, soothood: 1, workcap: 1 }, masks: { scarfmask: 1.2 }, body: { muffler: 1, neckgoggles: 0.8 } },
       capeOdds: { meant: 0.3 }, plain: { body: 'muffler', apron: 0.1 },
       capes: [0.9, 1.25, 1.45], wide: [1, 1.15], robe: 0.5, robes: [0.3, 0.45], flare: [0.28, 0.33], size: [0.88, 0.98],
       palette: {
@@ -175,7 +198,8 @@ export const COSTUMES = {
   arzach: { tribes: [tribe({
     name: 'the silent ones',
     moods: { calm: 4, kind: 3, curious: 1.5, amused: 0.5, stern: 0.6 },
-    heads: { cowl: 6, hood: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'cowl' },
+    // (issue #439: Vael's set, references/hats/vael: the order's cowl, its point low now, and a light travelling hood)
+    heads: { ordercowl: 5, windhood: 2 }, as: { hood: 'windhood', hat: 'ordercowl', wrap: 'windhood', hair: 'ordercowl' },
     // (issue #403: the cowl is their order's habit: about half wear it up; the rest shaved heads, a hood thrown back)
     hatOdds: 0.55,
     hair: { m: { shaved: 1 }, f: { shaved: 1 } },
@@ -198,13 +222,14 @@ export const COSTUMES = {
   arzach2: { tribes: [tribe({
     name: 'the bell monastery',
     faces: { plain: 3, long: 2, round: 1.5, elder: 2 }, moods: { kind: 3, calm: 3, curious: 1, amused: 1, stern: 1 },
-    heads: { cowl: 3, short: 1.4, hood: 1 }, as: { hood: 'cowl', hat: 'cowl', wrap: 'cowl', hair: 'short' },
+    // (issue #439: the monastery's set, references/hats/vael-ii: the brothers' cowl down round a tonsure, the sisters' bell wimple, the novices' cap)
+    heads: { monkcowl: 3, short: 1.4, novicecap: 1 }, headsF: { wimple: 3, short: 1.4, novicecap: 1 }, as: { hood: 'wimple', hat: 'novicecap', wrap: 'wimple', hair: 'short' },
     hatOdds: 0.4,   // (issue #403: the monastery's habits, a little more than elsewhere)
     // the bell monastery: tonsures and shaved heads, the sisters' hair in one braid
     hair: { m: { tonsure: 3, shaved: 1.5, bald: 1 }, f: { braid: 2, shaved: 1 } },
     masks: { none: 1 }, body: { scarf: 3, none: 1 }, props: { bell: 2, staff: 1, none: 2 }, trim: { hem: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { skullcap: 1.2 }, headsF: { kerchief: 1.62 }, masks: { glasses: 0.12 } },
+    more: { heads: { novicecap: 1.2 }, headsF: { wimple: 1.62 }, masks: { glasses: 0.12 } },
     capeOdds: { meant: 0.25 }, robeOdds: { meant: 0.6, other: 0.2 },   // (the monastery's habits)
     capes: [0, 0.55, 1.45], robe: 1, robes: [0.08, 0.16], flare: [0.34, 0.42], size: [0.98, 1.06],
     palette: {
@@ -241,12 +266,13 @@ export const COSTUMES = {
   buried: { tribes: [tribe({
     name: 'the dome people',
     moods: { curious: 3.5, kind: 3, amused: 1.5, calm: 1, stern: 0.3 },
-    heads: { padded: 5, hood: 1 }, as: { hood: 'padded', hat: 'padded', wrap: 'padded' },
+    // (issue #439: the mine's set, references/hats/buried: the padded dome hood, the miner's hard hat, the knitted under-cap)
+    heads: { domehood: 5, minerhat: 1 }, as: { hood: 'domehood', hat: 'minerhat', wrap: 'knitcap' },
     hatOdds: 0.38,   // (issue #403: padded hoods and hard hats are the mine's work gear: a few more than elsewhere)
     hair: { m: { crop: 3, curls: 2 }, f: { bun: 3, curls: 1.5 } },
     masks: { breather: 4, goggles: 1, none: 1 }, body: { pauldrons: 3, none: 2 }, props: { none: 4, lantern: 1 }, trim: { stripes: 2, none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { helmet: 2, beanie: 1.2, trapper: 1 }, masks: { scarfmask: 0.8 }, body: { muffler: 1 } },
+    more: { heads: { minerhat: 2, knitcap: 2.2 }, masks: { scarfmask: 0.8 }, body: { muffler: 1 } },
     capeOdds: { meant: 0.15, other: 0 }, plain: { apron: 0.2 },
     capes: [0, 0.6, 0.9, 1.2], robe: 0, size: [0.94, 1.02], bulk: 2,
     palette: {
@@ -262,12 +288,13 @@ export const COSTUMES = {
   edena: { tribes: [tribe({
     name: 'the gardeners',
     faces: { plain: 3, round: 3, long: 1, elder: 1 }, moods: { kind: 4.5, amused: 2.5, curious: 1.5, calm: 1.5, stern: 0 },
-    heads: { straw: 3, circlet: 2, hair: 2 }, as: { hood: 'straw', hat: 'straw', wrap: 'circlet' },   // (issue #403: the crowns of floating blossoms dropped)
+    // (issue #439: Viridel's set, references/hats/viridel: the gardener's straw hat, a band of leaves, a sun bonnet)
+    heads: { gardenstraw: 2.4, leafband: 1.6, bonnet: 1, hair: 2 }, as: { hood: 'bonnet', hat: 'gardenstraw', wrap: 'leafband' },
     // the gardeners wear it long and loose
     hair: { m: { long: 2.5, curls: 2, tail: 1.5 }, f: { flow: 4, curls: 1.5, braid: 1.5 } },
     masks: { none: 1 }, body: { garland: 3, none: 2 }, props: { flower: 1, basket: 1, none: 3 }, trim: { hem: 1, none: 2 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { brim: 0.6 }, body: { neckerchief: 0.6 } },
+    more: { heads: { bonnet: 0.6 }, body: { neckerchief: 0.6 } },
     capeOdds: { meant: 0.3 }, plain: { apron: 0.25 },
     capes: [0, 0, 0.5, 0.9], robe: 0.7, robes: [0.36, 0.5], flare: [0.26, 0.32], size: [1.0, 1.06], sleeveless: true,
     palette: {
@@ -283,7 +310,8 @@ export const COSTUMES = {
   spheres: { tribes: [tribe({
     name: 'the listeners',
     moods: { calm: 3, curious: 3, kind: 3, amused: 0.5, stern: 0.3 },
-    heads: { skullcap: 3, circlet: 2, hair: 1.4 }, as: { hood: 'hood', hat: 'skullcap', wrap: 'skullcap' },   // (issue #403: the balls on the head dropped)
+    // (issue #439: the listeners' set, references/hats/spheres: the cap that leaves the ears clear, the same ringed in brass, an elder's hood)
+    heads: { listenercap: 2.4, ringcap: 1.8, eldercowl: 0.8, hair: 1.4 }, as: { hood: 'eldercowl', hat: 'listenercap', wrap: 'ringcap' },
     // the listeners: bare heads (their ears clear) and buns
     hair: { m: { bald: 2, swept: 1.5 }, f: { twin: 2.5, bun: 2 } },
     masks: { none: 1 }, body: { ruff: 2, none: 3 }, props: { parasol: 2, none: 4 }, trim: { dots: 2, none: 1 },
@@ -304,12 +332,13 @@ export const COSTUMES = {
   perdide: { tribes: [tribe({
     name: 'the swamp people',
     faces: { plain: 3, round: 2, long: 1, elder: 2 }, moods: { amused: 3, kind: 3, curious: 1.5, calm: 1, stern: 0.5 },
-    heads: { brim: 3, hood: 2, hair: 1.3 }, as: { hat: 'brim', wrap: 'bandana' },   // (issue #403: the reed thatches dropped)
+    // (issue #439: Lorn's set, references/hats/lorn: a low woven reed hat, a moss hood, a knotted head-cloth)
+    heads: { reedhat: 2.4, swamphood: 1.6, knotcloth: 1, hair: 1.3 }, as: { hat: 'reedhat', wrap: 'knotcloth', hood: 'swamphood' },
     // the swamp people: locks and braids
     hair: { m: { locks: 3, shaved: 1 }, f: { locks: 2, braid: 2.5 } },
     masks: { none: 1 }, body: { reedcape: 5, none: 1 }, props: { staff: 1, lantern: 1, none: 3 }, trim: { none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { hooddown: 1, bandana: 0.8 }, body: { neckerchief: 0.6 } },
+    more: { heads: { hooddown: 1, knotcloth: 0.8 }, body: { neckerchief: 0.6 } },
     capeOdds: { meant: 0.22 }, plain: { body: 'neckerchief', apron: 0.1 },
     capes: [0, 0.9, 1.45], robe: 0.4, robes: [0.3], flare: [0.28, 0.33], size: [0.95, 1.04],
     palette: {
@@ -326,7 +355,8 @@ export const COSTUMES = {
   saltharbour: { tribes: [tribe({
     name: 'the harbour folk',
     moods: { kind: 3, calm: 3, amused: 2, curious: 1.5, stern: 0.4 },
-    heads: { hood: 3, wrap: 3, hat: 1, hair: 1 }, as: { hat: 'hood' },
+    // (issue #439: the harbour's set, references/hats/harbour: a sun-bleached hood, a sailcloth head-wrap, the fisher's sou'wester)
+    heads: { salthood: 3, sailwrap: 3, souwester: 1, hair: 1 }, as: { hat: 'souwester', hood: 'salthood', wrap: 'sailwrap' },
     hair: { m: { short: 2, tail: 1 }, f: { long: 2, braid: 2, bun: 1 } },
     masks: { none: 3, goggles: 1 }, body: { mantle: 2, none: 2 }, props: { none: 3, basket: 1.5 }, trim: { none: 1 },
     capeOdds: { meant: 0.4 }, plain: { body: 'neckerchief', apron: 0.2 },
@@ -345,7 +375,8 @@ export const COSTUMES = {
   mangrove: { tribes: [tribe({
     name: 'the lake folk',
     moods: { calm: 4, kind: 3, curious: 1.5, amused: 1.2, stern: 0.2 },
-    heads: { hood: 4, brim: 1, hair: 1 }, as: { hat: 'brim', wrap: 'hood' },   // (issue #403: the lamp hats dropped)
+    // (issue #439: the lake folk's set, references/hats/mangrove: a pale hood, the eclipse's long veil-hood, a flat wide reed hat)
+    heads: { lakehood: 3, veilhood: 1, flatreedhat: 1, hair: 1 }, as: { hat: 'flatreedhat', wrap: 'veilhood', hood: 'lakehood' },
     hair: { m: { tail: 2, locks: 1 }, f: { long: 3, braid: 2 } },
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lantern: 2, lamppole: 1, none: 2 }, trim: { none: 1 },
     capeOdds: { meant: 0.4 }, plain: { body: 'scarf' },
@@ -363,11 +394,12 @@ export const COSTUMES = {
   perdide2: { tribes: [tribe({
     name: 'the lamp-keepers',
     moods: { kind: 4.5, calm: 2, curious: 1.5, amused: 1, stern: 0.2 },
-    heads: { hood: 3, brim: 2, hair: 1 }, as: { hat: 'brim', wrap: 'hood' },   // (issue #403: the lamp hats dropped: the lamps are on their poles)
+    // (issue #439: the lamp-keepers' set, references/hats/lorn-ii: a moss hood, the keeper's round cap, a quilted dusk hood; the lamps on their poles)
+    heads: { mosshood: 2, keepercap: 2, duskhood: 1, hair: 1 }, as: { hat: 'keepercap', wrap: 'mosshood', hood: 'mosshood' },
     hair: { m: { tail: 2, locks: 2 }, f: { long: 3, braid: 2 } },
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lamppole: 3, lantern: 2, none: 1 }, trim: { none: 1 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { hooddown: 1, beanie: 1, trapper: 0.6 }, body: { muffler: 1 } },
+    more: { heads: { hooddown: 1, keepercap: 0.6, duskhood: 1 }, body: { muffler: 1 } },
     capeOdds: { meant: 0.4 }, plain: { body: 'muffler' },
     capes: [0.9, 1.25, 1.45], robe: 0.6, robes: [0.15, 0.3], flare: [0.3, 0.36], size: [0.98, 1.06],
     palette: {
@@ -383,13 +415,14 @@ export const COSTUMES = {
   bazaar: { tribes: [tribe({
     name: 'the market',
     moods: { amused: 3, kind: 3, curious: 2.5, calm: 1, stern: 0.6 },
-    heads: { turban: 4, wrap: 1, hair: 1.4 },
-    headsF: { turban: 3, wrap: 2, hair: 2.4 }, as: { wrap: 'turban', hat: 'flatcap', hood: 'turban' },   // (issue #403: the fezzes dropped)
+    // (issue #439: the market's set, references/hats/signal-market: a plain wound turban, a trader's tasselled cap, a porter's head-pad, a printed headscarf)
+    heads: { marketturban: 3.5, tasselcap: 1, headpad: 0.5, hair: 1.4 },
+    headsF: { printscarf: 3, marketturban: 1.2, headpad: 0.8, hair: 2.4 }, as: { wrap: 'marketturban', hat: 'tasselcap', hood: 'marketturban' },
     // the market: curls and close crops, braids and loose hair
     hair: { m: { curls: 3, crop: 2, shaved: 1.5, bald: 0.8 }, f: { braid: 2.5, curls: 2, flow: 2, bun: 1.5 } },
     masks: { none: 1 }, body: { badge: 4, none: 1 }, props: { basket: 2, none: 4 }, trim: { diamonds: 2, stripes: 2 },
     // (stage 3's headwear, drawn apart: the crowd's, not a named person's: dressFor)
-    more: { heads: { flatcap: 1.3, beanie: 1, peak: 1, hooddown: 0.8 }, headsF: { kerchief: 1.5, beanie: 0.8, hooddown: 0.8 }, masks: { glasses: 0.12, browgoggles: 0.09, scarfmask: 0.06 }, body: { muffler: 1, neckerchief: 1 } },
+    more: { heads: { tasselcap: 1.3, headpad: 1, marketturban: 1, hooddown: 0.8 }, headsF: { printscarf: 1.5, headpad: 0.8, hooddown: 0.8 }, masks: { glasses: 0.12, browgoggles: 0.09, scarfmask: 0.06 }, body: { muffler: 1, neckerchief: 1 } },
     capeOdds: { meant: 0.35 },
     capes: [0, 0.5, 0.9], robe: 0.6, robes: [0.4, 0.5], flare: [0.26, 0.29], size: [0.95, 1.05],
     palette: {
@@ -407,11 +440,12 @@ export const COSTUMES = {
   waterfall: { tribes: [tribe({
     name: 'the falls',
     moods: { calm: 3, kind: 3, curious: 2, amused: 1.5, stern: 0.4 },
-    heads: { hood: 3, wrap: 2.5, hair: 2 },
-    headsF: { wrap: 3, hood: 2, hair: 2.4 },
+    // (issue #439: the falls' set, references/hats/falls: a spray hood, the basket-carrier's ring pad, a close oiled cap)
+    heads: { sprayhood: 3, oilcap: 1.5, ringpad: 1, hair: 2 },
+    headsF: { ringpad: 2.5, sprayhood: 1.5, oilcap: 1, hair: 2.4 }, as: { hood: 'sprayhood', hat: 'oilcap', wrap: 'ringpad' },
     hair: { m: { crop: 2, curls: 2, bald: 0.8 }, f: { braid: 2.5, bun: 2, flow: 1.5 } },
     masks: { none: 1 }, body: { none: 3, badge: 1 }, props: { basket: 3, none: 3 }, trim: { stripes: 2, none: 2 },
-    more: { heads: { beanie: 1, hooddown: 1.2 }, headsF: { kerchief: 1.5, hooddown: 0.8 }, body: { muffler: 1 } },
+    more: { heads: { oilcap: 1, hooddown: 1.2 }, headsF: { ringpad: 1.5, hooddown: 0.8 }, body: { muffler: 1 } },
     capeOdds: { meant: 0.35 }, plain: { apron: 0.2 },
     capes: [0, 0.6, 1.0], robe: 0.7, robes: [0.3, 0.45], flare: [0.3, 0.36], size: [0.95, 1.05],
     palette: {
@@ -496,7 +530,8 @@ export const COSTUMES = {
   antennas: { tribes: [tribe({
     name: 'the mast-menders',
     moods: { calm: 3, kind: 3, curious: 2, amused: 1.5, stern: 0.4 },
-    heads: { hood: 2, peak: 1.5, beanie: 1, hair: 1.5 }, as: { hat: 'peak', wrap: 'hood' },   // (issue #403: the antenna helmets dropped)
+    // (issue #439: the menders' set, references/hats/antennas: the cap with brass goggles up, a climbing hood, a band of braided wire)
+    heads: { mendercap: 2, climbhood: 1.5, wireband: 1, hair: 1.5 }, as: { hat: 'mendercap', hood: 'climbhood', wrap: 'wireband' },
     hair: { m: { tail: 2, swept: 1 }, f: { long: 2, twin: 2 } },
     masks: { browgoggles: 2, none: 3 }, body: { toolbelt: 3, mantle: 1, none: 1 }, props: { wrench: 2, lantern: 1, none: 3 }, trim: { none: 1 },
     capeOdds: { meant: 0.4 }, plain: { body: 'toolbelt' },
@@ -515,7 +550,8 @@ export const COSTUMES = {
   fallenring: { tribes: [tribe({
     name: 'the ring folk',
     moods: { calm: 3, kind: 3, curious: 1.5, amused: 1.5, stern: 0.5 },
-    heads: { hood: 2, hair: 2 }, as: { hat: 'hood', wrap: 'hood' },
+    // (issue #439: the ring folk's set, references/hats/fallen-ring: the herder's hood, a round felt cap, the hull-worker's head-cloth)
+    heads: { herderhood: 1, feltcap: 0.6, hullcloth: 0.4, hair: 2 }, as: { hat: 'feltcap', hood: 'herderhood', wrap: 'hullcloth' },
     hair: { m: { tail: 1, swept: 2 }, f: { long: 2, twin: 1 } },
     masks: { none: 1 }, body: { mantle: 2, none: 2 }, props: { lantern: 1, none: 3 }, trim: { none: 1 },
     capeOdds: { meant: 0.4 }, plain: { body: 'neckerchief', apron: 0.1 },
@@ -535,8 +571,10 @@ export const COSTUMES = {
 COSTUMES.glassdunes = COSTUMES.desert;
 COSTUMES.moonfoundry = COSTUMES.buried;   // (the Moon Foundry, src/levels/moon-foundry.js: the Buried Machine's workers' clothes, in the foundry's own colours)
 COSTUMES.spacecity = COSTUMES.incal;   // (the City Floating in Space, src/levels/space-city.js: the City-Shaft's townsfolk, a city of terraces over a drop)
-COSTUMES.underwater = COSTUMES.waterfall;   // (the Underwater City, src/levels/underwater.js: the falls' wraps and hoods, in the city's own colours)
-COSTUMES.eclipse = COSTUMES.mangrove;   // (the City During the Eclipse, src/levels/eclipse.js: the lake folk's pale robes and hoods, their lanterns)
+// (the Underwater City, src/levels/underwater.js: the falls' people, in the city's own colours; the close oiled cap most of all, issue #439)
+COSTUMES.underwater = { tribes: [{ ...COSTUMES.waterfall.tribes[0], heads: { oilcap: 3.5, sprayhood: 1, ringpad: 1, hair: 2 }, headsF: { oilcap: 2.5, ringpad: 1.5, sprayhood: 1, hair: 2.4 } }] };
+// (the City During the Eclipse, src/levels/eclipse.js: the lake folk's pale robes and hoods, their lanterns; the veil-hood most of all, issue #439)
+COSTUMES.eclipse = { tribes: [{ ...COSTUMES.mangrove.tribes[0], heads: { veilhood: 3, lakehood: 1, flatreedhat: 1, hair: 1 } }] };
 COSTUMES.underside = COSTUMES.saltharbour;   // (the Underside, src/levels/underside.js: the harbour folk's terracotta cloaks and hoods)
 COSTUMES.lantern = COSTUMES.home;   // (the Lantern, src/levels/lantern.js: Ilen dresses as home does)
 COSTUMES.overnighttrain = COSTUMES.bazaar;   // (the Overnight Train, src/levels/overnight-train.js: the Signal Market's townsfolk, out for the night)
@@ -657,6 +695,10 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   for (const k of ['robeOpen', 'robeRole', 'robeLining', 'robeHem']) if (look[k] !== undefined) s[k] = look[k];
   // people of more different heights (issue #402): the one drawn, further from the middle
   if (look.height == null) s.height = stretchHeight(s.height, female);
+  // the hat sets' own colours (issue #439: each piece in its sheet's), unless the story gives the person theirs;
+  // last, from a hash, so nothing above (drawn or hashed from the hat's colour) changes
+  const own = HEADS[s.head]?.hats;
+  if (own && palette.hat == null && look.hat == null) s.hat = own[hashSeed(`hatcol|${s.cloak}|${s.cloth}|${s.skin}|${s.legs}`) % own.length];
   return s;
 }
 
@@ -1487,7 +1529,343 @@ export const HEADS = {
     P('cloak', ellipseTube(q, { rx: 0.105, front: 0.085, back: 0.1, y: 0.765, az0: 62, az1: 298, r: 0.034 }), true),
     P('cloak', sphere(0.1, q, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.62).scale(1.25, 0.95, 0.42).rotateX(-0.5).translate(0, 0.66, -0.135), true),
   ] },
+  // ---- the hat sets (issue #439): each culture's own few, modelled from the author's picks
+  // (references/hats/<set>/sheet-1.jpg; HAT_SETS lists them). `set`: the sheet; `hats`: the piece's own colours from
+  // the sheet (dressFor gives a crowd person one of them; a story person's own hat colour is kept). Everything is
+  // fitted to the skull egg (shell, rim, hoodShell), so it sits on every head and build the skull is measured on.
+  // -- the City-Shaft (and the City Floating in Space): the rim's hat, the middle levels' cap, the depths' rag hood, a goggle band
+  // the rim: pale lacquered felt, a flat crown, a short stiff brim, one pastel band
+  rimhat: { set: 'city-shaft', hats: ['#f3ead8', '#f2d7e0', '#d9e8f2', '#ece4f4'], cap: true, cover: { t: 0.03, front: 42, side: 34, back: 28 }, parts: (q) => [
+    P('hat', lathe([[0.166, 0.084], [0.165, 0.094], [0.15, 0.095], [0.128, 0.097], [0.126, 0.104], [0.124, 0.19], [0.119, 0.204], [0.1, 0.21], [0, 0.212]], q, 18), true),
+    P('accent', cyl(0.1275, 0.1268, 0.034, q, 16, true).translate(0, 0.122, 0), true),
+  ] },
+  // the middle levels: a soft patched canvas cap, a short peak
+  workcap: { set: 'city-shaft', hats: ['#a99be0', '#9c90c4', '#8f96ae', '#b4a8d6'], cap: true, cover: { t: 0.012, front: 24, side: 16, back: 2 }, parts: (q, l) => {
+    const k = kindOf(l);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.02, front: 30, side: 16, back: 2, flat: 0.93, bulge: 0.016, rows: 7 }), true),
+      P('accent', visor(q, k, 30, 0.06, 0.02, 62, 0.14), true),
+      ...Pq('clay', q < 1 ? null : patch(q, { kind: k, az0: 28, az1: 66, el0: 44, el1: 70, t0: 0.03, t1: 0.03, cols: 3, rows: 2 })),
+    ];
+  } },
+  // the bottom of the shaft: layered rags close round the face, wound round the neck and chin, lantern-soot grey
+  soothood: { set: 'city-shaft', hats: ['#6e6a62', '#5e5a54', '#7a7266', '#625c52'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.018, brow: 22, face: 76, w: 40, drop: 0.13, flare: 0.04, bulge: 0.02 };
+    return [
+      ...hood(q, 'hat', o, { neck: true }),
+      // the rags wound round the neck and up over the chin, a ragged hem over the shoulders
+      P('hat', torus(0.096, 0.036, q, 14, 6).scale(1, 0.95, 1.1).rotateX(Math.PI / 2 + 0.2).translate(0, -0.168, 0.004), true),
+      ...Pq('hat', q < 1 ? null : jag(cyl(0.135, 0.17, 0.06, q, 14, true).translate(0, -0.215, -0.02), 0.012, -0.235)),
+    ];
+  } },
+  // a leather band over cropped hair, the goggles pushed up on it (lilac glass)
+  goggleband: { set: 'city-shaft', hats: ['#b9a7e0', '#a99be0', '#c6b4ea'], cap: true, cover: { t: 0.008, front: 40, side: 30, back: 18, band: 16 }, parts: (q, l) => {
+    const k = kindOf(l);
+    return [
+      P('wood', rim(q, { kind: k, t: 0.012, front: 42, side: 30, back: 16, h: 9, r: 0.006, cols: 24 }), true),
+      ...lensPair(q, k, { el: 50, spread: 21, t: 0.012, cup: 'wood', lens: 'hat' }),
+    ];
+  } },
+  // -- the Garden of Spheres: the listener's cap (the ears clear), the same with a brass ring, an elder's soft hood
+  listenercap: { set: 'spheres', hats: ['#f6efd0', '#f3efe2', '#efe6c8'], cap: true, cover: { t: 0.006, front: 26, side: 22, back: -6 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    return [
+      P('hat', shell(q, { kind: k, t: 0.012, front: 28, side: 24, back: -6, bulge: 0.006, rows: 6 }), true),
+      ...Pq('brass', q < 0.4 ? null : cyl(0.017, 0.019, 0.008, q, 10).translate(0, S.y + 0.017, 0)),
+    ];
+  } },
+  ringcap: { set: 'spheres', hats: ['#f6efd0', '#f3efe2', '#efe6c8'], cap: true, cover: { t: 0.006, front: 26, side: 22, back: -6 }, parts: (q, l) => {
+    const k = kindOf(l);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.012, front: 28, side: 24, back: -6, bulge: 0.006, rows: 6 }), true),
+      P('brass', rim(q, { kind: k, t: 0.014, front: 28, side: 24, back: -6, h: 11, r: 0.012, cols: 24 }), true),
+    ];
+  } },
+  // an elder's soft hood falling to the shoulders, a gold edge round the face
+  eldercowl: { set: 'spheres', hats: ['#f6efd0', '#f3efe2', '#efe6c8'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.018, brow: 30, face: 70, w: 36, drop: 0.2, flare: 0.12, backDrop: 0.03, bulge: 0.016 };
+    return [P('hat', hoodShell(q, o), true), ...Pq('brass', q < 1 ? null : hoodEdge(q, o, 0.006))];
+  } },
+  // -- Lorn: a low woven reed hat, a moss hood, a knotted head-cloth
+  reedhat: { set: 'lorn', hats: ['#b8b46a', '#a8a462', '#c4bc78'], cap: true, cover: { t: 0.03, front: 34, side: 28, back: 22 }, parts: (q) => [
+    P('hat', lathe([[0.232, -0.006], [0.226, 0.004], [0.2, 0.026], [0.165, 0.056], [0.135, 0.083], [0.11, 0.108], [0.08, 0.134], [0.042, 0.152], [0, 0.158]], q, 22), true),
+    P('hat', torus(0.229, 0.007, q, 22, 4).rotateX(Math.PI / 2).translate(0, -0.002, 0)),
+    ...Pq('hat', q < 1 ? null : torus(0.152, 0.005, q, 20, 4).rotateX(Math.PI / 2).translate(0, 0.068, 0)),
+  ] },
+  swamphood: { set: 'lorn', hats: ['#7a8a4a', '#6c7c46', '#869456'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.017, brow: 24, face: 70, w: 36, drop: 0.12, flare: 0.03, bulge: 0.014 };
+    return [
+      ...hood(q, 'hat', o, { neck: true }),
+      ...Pq('wood', q < 1 ? null : sphere(0.012, q, 6, 4).translate(0, -0.168, 0.062)),
+      ...(q < 1 ? [] : [1, -1].map((s) => P('wood', box(0.004, 0.05, 0.004).rotateZ(s * 0.25).translate(s * 0.008, -0.192, 0.064)))),
+    ];
+  } },
+  knotcloth: { set: 'lorn', hats: ['#c7a6e0', '#b89ad8', '#d2b6ea'], cap: true, cover: { t: 0.006, front: 34, side: 12, back: -16 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    return [
+      P('hat', shell(q, { kind: k, t: 0.012, front: 36, side: 14, back: -16, bulge: 0.014 }), true),
+      // the twist over the brow, the knot at the back and its ends
+      P('hat', sphere(0.03, q, 8, 6).scale(1.3, 0.75, 0.8).translate(...onSkull(S, 0, 50 * DEG, 0.03))),
+      ...tieOff(q, k, 'hat', { az: 180, el: -10, len: 0.08 }),
+    ];
+  } },
+  // -- the Signal Market (and the Overnight Train): a plain wound turban, a trader's tasselled cap, a porter's head-pad, a printed headscarf
+  marketturban: { set: 'signal-market', hats: ['#ff7a5c', '#f0a083', '#e85a6a', '#f2c54b', '#2fa8a0'], cap: true, cover: { t: 0.008, front: 4, side: -10, back: -26 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k], wrap = (el, t, r, tilt) => ellipseTube(q, { rx: (S.x + t) * Math.cos(el * DEG), front: (S.front + t) * Math.cos(el * DEG), back: (S.back + t) * Math.cos(el * DEG), y: (S.y + t) * Math.sin(el * DEG), r }).rotateX(tilt);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.024, front: 30, side: 8, back: -12, bulge: 0.03, rows: 7 }), true),
+      P('hat', wrap(22, 0.036, 0.02, 0.1), true),
+      ...Pq('hat', q < 0.4 ? null : wrap(42, 0.04, 0.022, -0.12)),
+      ...Pq('hat', q < 1 ? null : wrap(60, 0.044, 0.02, 0.14)),
+    ];
+  } },
+  tasselcap: { set: 'signal-market', hats: ['#5f9aa8', '#4f8f9a', '#6aa6a8'], cap: true, cover: { t: 0.022, front: 28, side: 26, back: 22 }, parts: (q) => [
+    P('hat', lathe([[0.128, 0.056], [0.13, 0.09], [0.126, 0.134], [0.114, 0.146], [0.06, 0.151], [0, 0.152]], q, 16).scale(1, 1, 1.09), true),
+    ...Pq('brass', q < 0.4 ? null : sphere(0.009, q, 6, 4).translate(0.122, 0.112, 0.02)),
+    ...Pq('brass', q < 0.4 ? null : cyl(0.003, 0.003, 0.045, q, 4).translate(0.134, 0.088, 0.02)),
+    ...Pq('brass', q < 0.4 ? null : cone(0.014, 0.05, q, 6).rotateX(Math.PI).translate(0.136, 0.05, 0.02)),
+  ] },
+  headpad: { set: 'signal-market', hats: ['#e8c860', '#f2c54b', '#dcb456'], cap: true, cover: { t: 0.006, front: 30, side: 28, back: 24 }, parts: (q, l) => padRing(q, kindOf(l), 'hat', { r: 0.074, tube: 0.032 }) },
+  printscarf: { set: 'signal-market', hats: ['#e8b04a', '#f2c54b', '#e4a85a'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    return [
+      P('hat', shell(q, { kind: k, t: 0.012, front: 36, side: -28, back: -58, rows: q < 1 ? 6 : 9, cols: q < 1 ? 20 : 28, bulge: 0.006 }), true),
+      ...tieOff(q, k, 'hat', { az: 180, el: -52, len: 0.1, out: 0.02 }),
+      // the print: a scatter of flowers on the cloth
+      ...(q < 1 ? [] : [[30, 58], [-34, 50], [70, 30], [-72, 22], [120, 40], [-130, 20], [175, 52], [100, -5], [-100, -10]].map(([az, el]) =>
+        P(az > 0 ? 'clay' : 'accent', sphere(0.009, q, 6, 4).scale(1, 1, 0.35).lookAt(new THREE.Vector3(...onSkull(S, az * DEG, el * DEG, 1))).translate(...onSkull(S, az * DEG, el * DEG, 0.0185))))),
+    ];
+  } },
+  // -- the Desert (and the Glass Dunes): the pilgrim's headcloth and its cord, a loose head-wrap, a modest straw cone, the glassworker's cap
+  pilgrimcloth: { set: 'desert', hats: ['#f3ead8', '#f7f2e6', '#ece2cc'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), o = { kind: k, t: 0.016, brow: 30, face: 64, w: 30, drop: 0.2, flare: 0.11, backDrop: 0.05, bulge: 0.012 };
+    return [
+      P('hat', hoodShell(q, o), true),
+      P('brass', rim(q, { kind: k, t: 0.03, front: 42, side: 40, back: 34, h: 8, r: 0.012, cols: 24 })),
+      ...Pq('brass', q < 1 ? null : rim(q, { kind: k, t: 0.03, front: 44, side: 42, back: 36, h: 6, r: 0.016, cols: 24 })),
+    ];
+  } },
+  desertwrap: { set: 'desert', hats: ['#f3ead8', '#efe0c4', '#e6d6b4'], cap: true, cover: { t: 0.008, front: 2, side: -12, back: -26 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k], wrap = (el, t, r, tilt) => ellipseTube(q, { rx: (S.x + t) * Math.cos(el * DEG), front: (S.front + t) * Math.cos(el * DEG), back: (S.back + t) * Math.cos(el * DEG), y: (S.y + t) * Math.sin(el * DEG), r }).rotateX(tilt);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.024, front: 30, side: 10, back: -8, bulge: 0.028, rows: 7 }), true),
+      P('hat', wrap(20, 0.038, 0.021, -0.1), true),
+      ...Pq('hat', q < 0.4 ? null : wrap(40, 0.04, 0.024, 0.12)),
+      // one end hanging down the right side, behind the ear, to the shoulder
+      P('hat', fall(q, k, { az0: -100, az1: -146, el: 12, t: 0.044, drop: 0.22, flare: 0.09 })),
+    ];
+  } },
+  conehat: { set: 'desert', hats: ['#d9bf8f', '#e6c48a', '#cdb07a'], cap: false, parts: (q, l) => [
+    // the white cloth under it, down the neck
+    P('ivory', hoodShell(q, { kind: kindOf(l), t: 0.014, brow: 28, face: 72, w: 30, drop: 0.14, flare: 0.06, backDrop: 0.03 }), true),
+    P('hat', lathe([[0.22, 0.045], [0.21, 0.054], [0.13, 0.09], [0.115, 0.1], [0.045, 0.16], [0, 0.172]], q, 20), true),
+    ...Pq('hat', q < 0.4 ? null : sphere(0.014, q, 6, 4).translate(0, 0.174, 0)),
+  ] },
+  glasscap: { set: 'desert', hats: ['#a8a294', '#9a9488', '#b4ac9a'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    return [
+      P('hat', hoodShell(q, { kind: k, t: 0.014, brow: 30, face: 74, w: 20, drop: 0.08, flare: 0.03, backDrop: 0.02, bulge: 0.004 }), true),
+      ...Pq('hat', q < 1 ? null : seam(q, k, 32, 0.016)),
+      ...(q < 1 ? [] : [1, -1].map((s) => P('brass', cyl(0.012, 0.012, 0.006, q, 8).rotateZ(Math.PI / 2).translate(s * (S.x + 0.018), -0.03, 0.02)))),
+    ];
+  } },
+  // -- Vael: the order's cowl (a low soft point behind, over the shoulders), a light travelling hood
+  ordercowl: { set: 'vael', hats: ['#fbf8f0', '#efe7d6', '#f4efe2'], cap: false, parts: (q, l) => [
+    ...hood(q, 'hat', { kind: kindOf(l), t: 0.02, brow: 30, face: 66, w: 30, drop: 0.24, flare: 0.14, backDrop: 0.04, bulge: 0.02, point: 0.07 }, { neck: true }),
+  ] },
+  windhood: { set: 'vael', hats: ['#ffffff', '#f6f2ea', '#f1ece2'], cap: false, parts: (q, l) => [
+    P('hat', hoodShell(q, { kind: kindOf(l), t: 0.018, brow: 24, face: 70, w: 34, drop: 0.12, flare: 0.05, bulge: 0.018 }), true),
+    P('hat', torus(0.105, 0.036, q, 14, 6).scale(1, 0.9, 1.1).rotateX(Math.PI / 2 + 0.1).translate(0, -0.16, -0.008), true),
+  ] },
+  // -- Vael II, the bell monastery: the monk's cowl down round the neck (the tonsure bare), the sister's bell wimple, the novice's cap
+  // (the cowl up over the tonsured head, rounded and close round the face, its thick roll round the neck)
+  monkcowl: { set: 'vael-ii', hats: ['#efe6cf', '#e9dcc0', '#f3ead8'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.022, brow: 26, face: 66, w: 30, drop: 0.12, flare: 0.05, bulge: 0.026 };
+    return [...hood(q, 'hat', o, { neck: true, edge: 0.014 }),
+      P('hat', torus(0.11, 0.04, q, 14, 6).scale(1, 0.85, 1.12).rotateX(Math.PI / 2 + 0.1).translate(0, -0.2, -0.01), true)];
+  } },
+  wimple: { set: 'vael-ii', hats: ['#f7f4ec', '#fbf8f0', '#f1ede4'], cap: false, parts: (q, l) => [
+    // (a bell round the face, stiff, its hem flaring; the white cloth closed under the chin)
+    ...hood(q, 'hat', { kind: kindOf(l), t: 0.022, brow: 34, face: 62, w: 26, low: -16, drop: 0.11, flare: 0.085, backDrop: 0.02, bulge: 0.03 }, { neck: true }),
+  ] },
+  novicecap: { set: 'vael-ii', hats: ['#6a4a8a', '#7a5a9a', '#5e4a7c'], cap: true, cover: { t: 0.004, front: 32, side: 14, back: 0 }, parts: (q, l) => [
+    P('hat', shell(q, { kind: kindOf(l), t: 0.01, front: 34, side: 16, back: 2, bulge: 0.004, rows: 6 }), true),
+  ] },
+  // -- the Buried Machine (and the Moon Foundry): the padded dome hood, the miner's hard hat (its lamp flush), the knitted under-cap
+  domehood: { set: 'buried', hats: ['#e9dcc0', '#ded2b8', '#efe4cc'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k], o = { kind: k, t: 0.026, brow: 30, face: 58, w: 24, drop: 0.1, flare: 0.01, bulge: 0.02 };
+    return [
+      ...hood(q, 'hat', o, { neck: true }),
+      P('hat', hoodEdge(q, o, 0.02), true),
+      ...[1, -1].map((s) => P('clay', cyl(0.046, 0.046, 0.03, q, 12).rotateZ(Math.PI / 2).translate(s * (S.x + 0.044), -0.02, -0.004), true)),
+    ];
+  } },
+  minerhat: { set: 'buried', hats: ['#c8643f', '#b85a38', '#d0703f'], cap: true, cover: { t: 0.03, front: 20, side: 10, back: 0 }, parts: (q) => [
+    P('hat', sphere(0.15, q, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.52).scale(1, 0.95, 1.08).translate(0, 0.02, -0.008), true),
+    P('hat', lathe([[0.18, 0.012], [0.18, 0.022], [0.15, 0.028], [0.146, 0.032]], q, 18).scale(1, 1, 1.1), true),
+    // the lamp, set flush into the front
+    P('brass', cyl(0.028, 0.028, 0.01, q, 10).rotateX(Math.PI / 2 - 0.6).translate(0, 0.104, 0.125)),
+    ...Pq('lamp', q < 0.4 ? null : cyl(0.021, 0.021, 0.004, q, 10).rotateX(Math.PI / 2 - 0.6).translate(0, 0.107, 0.13)),
+  ] },
+  knitcap: { set: 'buried', hats: ['#8f9f6a', '#7f9060', '#9aa878'], cap: true, cover: { t: 0.01, front: 30, side: 12, back: -8 }, parts: (q, l) => [
+    P('hat', shell(q, { kind: kindOf(l), t: 0.016, front: 30, side: 12, back: -8, bulge: 0.014, rows: 7 }), true),
+    P('hat', rim(q, { kind: kindOf(l), t: 0.016, front: 30, side: 12, back: -8, h: 16, r: 0.012, cols: q < 1 ? 16 : 28 })),
+  ] },
+  // -- Viridel: the gardener's straw hat (a mint ribbon), a band of leaves on long loose hair, a cotton sun bonnet
+  gardenstraw: { set: 'viridel', hats: ['#e6c890', '#ecd29a', '#dcc080'], cap: true, cover: { t: 0.03, front: 32, side: 28, back: 24 }, parts: (q) => [
+    P('hat', droop(lathe([[0.232, 0.05], [0.22, 0.058], [0.17, 0.07], [0.128, 0.08], [0.126, 0.096], [0.122, 0.142], [0.108, 0.154], [0, 0.157]], q, 20), 0.14, 0.03), true),
+    P('accent', cyl(0.131, 0.13, 0.034, q, 16, true).translate(0, 0.104, 0), true),
+  ] },
+  leafband: { set: 'viridel', hats: ['#8fbf98', '#9fc8a0', '#7fb08a'], cap: true, cover: { t: 0.004, front: 26, side: 18, back: 8, band: 10 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k], n = q < 1 ? 10 : 22, out = [P('hat', rim(q, { kind: k, t: 0.008, front: 28, side: 20, back: 10, h: 6, r: 0.006, cols: 20 }), true)];
+    for (let i = 0; i < n; i++) {
+      // leaves laid flat along the band, slanting one way and the other (woven)
+      const az = Math.PI + (i / n) * Math.PI * 2, el = hairline(az, 28, 20, 10, 0, 0) + 3 * DEG, side = i % 2 ? 1 : -1;
+      const nrm = eggNormal(S, az, el), tan = new THREE.Vector3(Math.cos(az), 0, -Math.sin(az)), bit = new THREE.Vector3().crossVectors(nrm, tan);
+      const g = new THREE.OctahedronGeometry(1, 0).scale(0.022, 0.009, 0.004).rotateZ(side * 0.5).applyMatrix4(new THREE.Matrix4().makeBasis(tan, bit, nrm)).translate(...onSkull(S, az, el, 0.013));
+      out.push(P('hat', g, i % 2 === 0));
+    }
+    return out;
+  } },
+  bonnet: { set: 'viridel', hats: ['#f2a7b5', '#f0b8c4', '#e8a0b0'], cap: true, cover: { t: 0.016, front: 44, side: -20, back: -50 }, parts: (q, l) => {
+    const k = kindOf(l), arc = [1.0, Math.PI * 2 - 2.0];
+    // (the brim: an arc round the face from jaw to jaw, over the brow, opening forward)
+    const brim = (r0, r1) => cyl(r1, r0, 0.06, q, 16, true, ...arc).rotateX(Math.PI / 2).rotateX(-0.1).translate(0, 0.012, 0.062);
+    const ribbon = (s) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([[s * 0.1, -0.06, 0.07], [s * 0.074, -0.15, 0.07], [s * 0.016, -0.19, 0.072]].map((v) => new THREE.Vector3(...v))), 6, 0.0045, 3);
+    return [
+      P('ivory', shell(q, { kind: k, t: 0.022, front: 40, side: -24, back: -50, bulge: 0.02, rows: 7 }), true),
+      P('ivory', brim(0.122, 0.15), true),
+      P('hat', brim(0.117, 0.145)),
+      // the ribbons tied under the chin
+      ...(q < 1 ? [] : [1, -1].map((s) => P('hat', ribbon(s)))),
+      ...Pq('hat', q < 1 ? null : sphere(0.014, q, 6, 4).scale(1.6, 0.8, 0.8).translate(0, -0.192, 0.07)),
+    ];
+  } },
+  // -- Lorn II, the lamp-keepers: a felted moss hood, the keeper's round cap (the lamp on its pole, never on the hat), a quilted dusk hood
+  mosshood: { set: 'lorn-ii', hats: ['#6f7f3a', '#7a8a48', '#62723a'], cap: false, parts: (q, l) => [
+    ...hood(q, 'hat', { kind: kindOf(l), t: 0.018, brow: 26, face: 68, w: 32, drop: 0.12, flare: 0.04, bulge: 0.018 }, { neck: true }),
+    ...Pq('hat', q < 1 ? null : seam(q, kindOf(l), 30, 0.036)),
+  ] },
+  keepercap: { set: 'lorn-ii', hats: ['#6f7a4a', '#7a8450', '#62704a'], cap: true, cover: { t: 0.012, front: 24, side: 18, back: 4 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    return [
+      P('hat', shell(q, { kind: k, t: 0.02, front: 32, side: 18, back: 4, flat: 0.92, bulge: 0.016, rows: 7 }), true),
+      P('hat', visor(q, k, 32, 0.055, 0.02, 64, 0.2), true),
+      ...Pq('brass', q < 0.4 ? null : cyl(0.014, 0.014, 0.006, q, 8).rotateZ(Math.PI / 2).rotateY(-0.5).translate(...onSkull(S, 64 * DEG, 40 * DEG, 0.03))),
+    ];
+  } },
+  duskhood: { set: 'lorn-ii', hats: ['#4a4f8a', '#565c9a', '#3e4672'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.02, brow: 24, face: 70, w: 34, drop: 0.13, flare: 0.05, bulge: 0.02 };
+    return hood(q, 'hat', o, { neck: true, edge: 0.011 });
+  } },
+  // -- the White Mangrove (and the City During the Eclipse): a pale lake hood, the eclipse's long veil-hood, a flat wide reed hat
+  lakehood: { set: 'mangrove', hats: ['#c9c2e6', '#d8d0ee', '#bfb6e0'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), o = { kind: k, t: 0.018, brow: 24, face: 70, w: 36, drop: 0.2, flare: 0.12, backDrop: 0.04, bulge: 0.02 };
+    return [
+      P('hat', hoodShell(q, o), true),
+      ...Pq('ivory', q < 1 ? null : hoodEdge(q, o, 0.006)),
+      ...Pq('brass', q < 0.4 ? null : sphere(0.011, q, 6, 4).scale(1, 1.4, 0.7).translate(...onSkull(SKULL[k], 0, 30 * DEG, 0.012))),
+    ];
+  } },
+  veilhood: { set: 'mangrove', hats: ['#e9e2f2', '#ddd6ec', '#f1ecf6'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), o = { kind: k, t: 0.02, brow: 34, face: 60, w: 24, drop: 0.27, flare: 0.15, backDrop: 0.05, bulge: 0.016 };
+    return [
+      P('hat', hoodShell(q, o), true),
+      P('brass', hoodEdge(q, o, 0.005)),
+      ...Pq('brass', q < 0.4 ? null : sphere(0.013, q, 6, 4).scale(1, 1.6, 0.7).translate(...onSkull(SKULL[k], 0, 36 * DEG, 0.026))),
+    ];
+  } },
+  flatreedhat: { set: 'mangrove', hats: ['#c8c0a8', '#bdb59c', '#d4ccb4'], cap: true, cover: { t: 0.03, front: 34, side: 28, back: 22 }, parts: (q) => [
+    P('hat', lathe([[0.235, 0.048], [0.228, 0.054], [0.17, 0.08], [0.128, 0.1], [0.08, 0.124], [0.04, 0.142], [0, 0.15]], q, 22), true),
+    P('hat', cyl(0.122, 0.126, 0.05, q, 14, true).translate(0, 0.098, 0)),
+    ...Pq('brass', q < 0.4 ? null : cone(0.016, 0.05, q, 6).translate(0, 0.17, 0)),
+    ...Pq('brass', q < 1 ? null : sphere(0.012, q, 6, 4).translate(0, 0.198, 0)),
+  ] },
+  // -- the Salt Harbour (and the Underside): a sailcloth head-wrap, the fisher's sou'wester, a sun-bleached hood
+  sailwrap: { set: 'harbour', hats: ['#efe2cc', '#f3ead8', '#e2d8c4'], cap: true, cover: { t: 0.006, front: 34, side: 14, back: -12 }, parts: (q, l) => {
+    const k = kindOf(l);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.012, front: 34, side: 14, back: -12, bulge: 0.016 }), true),
+      ...tieOff(q, k, 'hat', { az: 205, el: -6, len: 0.1, out: 0.032 }),
+    ];
+  } },
+  souwester: { set: 'harbour', hats: ['#c4664a', '#b85a40', '#d0704e'], cap: true, cover: { t: 0.03, front: 36, side: 30, back: 24 }, parts: (q) => [
+    P('hat', lathe([[0.13, 0.064], [0.129, 0.1], [0.116, 0.148], [0.08, 0.174], [0, 0.18]], q, 18).scale(1, 1, 1.06), true),
+    P('hat', souBrim(q), true),
+  ] },
+  salthood: { set: 'harbour', hats: ['#efe8d8', '#e8e0cc', '#f3eee2'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.02, brow: 26, face: 72, w: 30, drop: 0.13, flare: 0.05, bulge: 0.02 };
+    return [
+      P('hat', hoodShell(q, o), true),
+      P('hat', hoodEdge(q, o, 0.012)),
+      P('hat', torus(0.1, 0.034, q, 14, 6).scale(1, 0.9, 1.1).rotateX(Math.PI / 2 + 0.12).translate(0, -0.17, -0.004), true),
+    ];
+  } },
+  // -- the City Behind the Waterfall (and the Underwater City): a spray hood, the basket-carrier's ring pad, a close oiled cap
+  sprayhood: { set: 'falls', hats: ['#c46b4e', '#b5523e', '#c2603f'], cap: false, parts: (q, l) => [
+    ...hood(q, 'hat', { kind: kindOf(l), t: 0.014, brow: 30, face: 60, w: 22, drop: 0.16, flare: 0.08, backDrop: 0.02, bulge: 0.006 }, { neck: true }),
+  ] },
+  ringpad: { set: 'falls', hats: ['#d9a35e', '#c8944e', '#e0b06a'], cap: true, cover: { t: 0.006, front: 30, side: 28, back: 24 }, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    // (the ring seated round the crown, the braided bun up through it: the sheet's basket-carrier)
+    return [...padRing(q, k, 'hat', { r: 0.068, tube: 0.028 }), P('hair', sphere(0.042, q, 8, 6).scale(1, 1.05, 1).translate(0, S.y + 0.04, -0.006), true)];
+  } },
+  oilcap: { set: 'falls', hats: ['#4f8f8a', '#2f8a8f', '#5f9a96'], cap: false, parts: (q, l) => [
+    P('hat', shell(q, { kind: kindOf(l), t: 0.012, front: 34, side: -36, back: -34, ears: 0, rows: 8 }), true),
+    ...Pq('hat', q < 1 ? null : seam(q, kindOf(l), 36, 0.014)),
+  ] },
+  // -- the Forest of Antennas: the mast-mender's cap with brass goggles up, a climbing hood buckled under the chin, a band of braided wire
+  mendercap: { set: 'antennas', hats: ['#b8a6d8', '#a898cc', '#c4b4e0'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    return [
+      P('hat', shell(q, { kind: k, t: 0.012, front: 32, side: -30, back: -30, ears: 0, rows: 8 }), true),
+      ...[1, -1].map((s) => P('hat', cyl(0.034, 0.034, 0.012, q, 10).rotateZ(Math.PI / 2).translate(s * (S.x + 0.016), -0.012, -0.004))),
+      P('wood', rim(q, { kind: k, t: 0.016, front: 44, side: 34, back: 22, h: 8, r: 0.005, cols: 24 })),
+      ...lensPair(q, k, { el: 52, spread: 20, t: 0.016, cup: 'brass', lens: 'dark' }),
+    ];
+  } },
+  climbhood: { set: 'antennas', hats: ['#d8784e', '#c8643f', '#d88a5a'], cap: false, parts: (q, l) => {
+    const k = kindOf(l), S = SKULL[k];
+    const strap = [[S.x + 0.014, -0.03, 0.004], [0.074, -0.13, 0.036], [0, -0.182, 0.064], [-0.074, -0.13, 0.036], [-(S.x + 0.014), -0.03, 0.004]].map((v) => new THREE.Vector3(...v));
+    return [
+      P('hat', shell(q, { kind: k, t: 0.014, front: 32, side: -46, back: -42, ears: 0, rows: 8 }), true),
+      ...Pq('hat', q < 1 ? null : seam(q, k, 34, 0.016)),
+      ...Pq('wood', q < 0.4 ? null : new THREE.TubeGeometry(new THREE.CatmullRomCurve3(strap), sg(12, q), 0.006, q < 1 ? 3 : 4)),
+      ...Pq('brass', q < 1 ? null : box(0.018, 0.014, 0.008).rotateZ(0.8).translate(0.074, -0.13, 0.04)),
+    ];
+  } },
+  wireband: { set: 'antennas', hats: ['#b8a6d8', '#a898cc', '#c4b4e0'], cap: true, cover: { t: 0.004, front: 34, side: 20, back: 4 }, parts: (q, l) => {
+    const k = kindOf(l);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.01, front: 36, side: 22, back: 6, rows: 6 }), true),
+      P('brass', braid(q, k, { front: 36, side: 22, back: 6, phase: 0 }), true),
+      ...Pq('metal', q < 1 ? null : braid(q, k, { front: 36, side: 22, back: 6, phase: Math.PI })),
+    ];
+  } },
+  // -- the Fallen Ring: the herder's ivory hood over the shoulders, a round felt cap (a vermilion edge), the hull-worker's head-cloth
+  herderhood: { set: 'fallen-ring', hats: ['#f0e2c4', '#f3ead8', '#e8dcc0'], cap: false, parts: (q, l) => {
+    const o = { kind: kindOf(l), t: 0.018, brow: 28, face: 64, w: 28, drop: 0.2, flare: 0.13, backDrop: 0.03, bulge: 0.016 };
+    return [...hood(q, 'hat', o, { neck: true }), ...Pq('brass', q < 1 ? null : box(0.026, 0.014, 0.01).translate(0, -0.236, 0.118))];
+  } },
+  feltcap: { set: 'fallen-ring', hats: ['#9c9e58', '#8a9a70', '#a4aa7c'], cap: true, cover: { t: 0.01, front: 30, side: 18, back: -2 }, parts: (q, l) => [
+    P('hat', shell(q, { kind: kindOf(l), t: 0.016, front: 30, side: 18, back: -2, bulge: 0.01, rows: 6 }), true),
+    P('clay', rim(q, { kind: kindOf(l), t: 0.017, front: 30, side: 18, back: -2, h: 6, r: 0.005, cols: 24 }), true),
+  ] },
+  hullcloth: { set: 'fallen-ring', hats: ['#d8603e', '#c8583a', '#e0704a'], cap: true, cover: { t: 0.003, front: 34, side: 18, back: -14 }, parts: (q, l) => {
+    const k = kindOf(l);
+    return [
+      P('hat', shell(q, { kind: k, t: 0.009, front: 34, side: 18, back: -14, bulge: 0.006 }), true),
+      ...tieOff(q, k, 'hat', { az: 180, el: -12, len: 0.12, out: 0.012 }),
+    ];
+  } },
 };
+
+/** The hat sets (issue #439): each sheet's pieces (references/hats/<set>/sheet-1.jpg), in HEADS order. */
+export const HAT_SETS = Object.entries(HEADS).reduce((o, [id, h]) => (h.set && (o[h.set] ??= []).push(id), o), {});
+/** The worlds each hat set dresses (their tribes' `heads`, `more.heads` and `as`). */
+export const HAT_SET_WORLDS = { 'city-shaft': ['incal', 'spacecity'], spheres: ['spheres'], lorn: ['perdide'], 'signal-market': ['bazaar', 'overnighttrain'],
+  desert: ['desert', 'glassdunes'], vael: ['arzach'], 'vael-ii': ['arzach2'], buried: ['buried', 'moonfoundry'], viridel: ['edena'], 'lorn-ii': ['perdide2'],
+  mangrove: ['mangrove', 'eclipse'], harbour: ['saltharbour', 'underside'], falls: ['waterfall', 'underwater'], antennas: ['antennas'], 'fallen-ring': ['fallenring'] };
 
 // ------------------------------------------------------------------ the headwear's shapes
 /** A hat (head frame) turned from a profile of [radius, height] pairs (from the brim's edge in to the crown's top). */
@@ -1586,6 +1964,154 @@ function slope(g, k) {
   }
   g.computeVertexNormals();
   return g;
+}
+
+// ------------------------------------------------------------------ the hat sets' shapes (issue #439)
+/** The skull egg's outward normal (head frame) at azimuth az, elevation el (rad). */
+function eggNormal(S, az, el) {
+  const [x, y, z] = onSkull(S, az, el, 0), rz = Math.cos(az) > 0 ? S.front : S.back;
+  return new THREE.Vector3(x / (S.x * S.x), y / (S.y * S.y), z / (rz * rz)).normalize();
+}
+/**
+ * A point of a hood (head frame) at azimuth az (rad) and "virtual elevation" v (degrees): on the skull egg `t` off it
+ * over `low`; under it, down the hood's hang to its hem (v -90), `drop` m under the skull's `low` line (`backDrop`
+ * further at the back), flaring out by `flare` m. `point` (m) lifts the crown behind into a soft point (Vael's cowl).
+ */
+function hoodAt(S, az, v, t, { low = -28, drop = 0.06, flare = 0.02, backDrop = 0, point = 0 } = {}) {
+  let p;
+  if (v >= low) p = onSkull(S, az, v * DEG, t);
+  else {
+    const k = (low - v) / (low + 90), b = onSkull(S, az, low * DEG, t), r = Math.max(1e-6, Math.hypot(b[0], b[2]));
+    const g = (r + flare * k ** 1.2) / r;
+    p = [b[0] * g, b[1] - (drop + backDrop * (1 - Math.cos(az)) / 2) * k, b[2] * g];
+  }
+  if (point) {
+    // (a function of the point, not of its column, so the crown stays closed)
+    const top = S.y + t, back = S.back + t;
+    const d = point * THREE.MathUtils.smoothstep(p[1], top * 0.45, top) * THREE.MathUtils.smoothstep(-p[2], 0, back * 0.75);
+    p[1] += d * 0.75; p[2] -= d;
+  }
+  return p;
+}
+/** A hood's face opening (degrees of virtual elevation) at azimuth a (degrees from the face): the brow over the face, down the cheeks to the hem at `face`. */
+const hoodEdgeEl = (a, { brow = 26, face = 64, w = 46 } = {}) => brow + (-90 - brow) * THREE.MathUtils.smoothstep(Math.abs(a), face - w, face);
+/**
+ * A hood (head frame): cloth `t` off the skull from its face opening (hoodEdgeEl: `brow` degrees over the eyes,
+ * down the cheeks `face` degrees either side of the front) round the head to the crown, hanging below the skull
+ * to its hem (hoodAt); fuller at the crown by `bulge` (m). The seam down the back.
+ */
+function hoodShell(q, o = {}) {
+  const { kind = 'm', t = 0.016, cols = 30, rows = 11, bulge = 0 } = o, S = SKULL[kind] ?? SKULL.m;
+  const nc = sg(cols, q), nr = sg(rows, q), pos = [];
+  for (let j = 0; j <= nc; j++) {
+    const az = Math.PI + (j / nc) * Math.PI * 2, a = Math.atan2(Math.sin(az), Math.cos(az)) / DEG, edge = hoodEdgeEl(a, o);
+    for (let i = 0; i <= nr; i++) {
+      const u = i / nr, v = edge + (90 - edge) * u;
+      pos.push(...hoodAt(S, az, v, t + bulge * THREE.MathUtils.smoothstep(v, -40, 50), o));
+    }
+  }
+  return grid(pos, nc, nr, true);
+}
+/** A rolled edge round a hood's face opening (head frame), `r` thick, from the hem on one side over the brow to the other. */
+function hoodEdge(q, o = {}, r = 0.01) {
+  const { kind = 'm', t = 0.016, face = 64 } = o, S = SKULL[kind] ?? SKULL.m, n = sg(24, q), pts = [];
+  for (let i = 0; i <= n; i++) {
+    const a = -face + (2 * face * i) / n;
+    pts.push(new THREE.Vector3(...hoodAt(S, a * DEG, hoodEdgeEl(a, o) + 1, t + r * 0.5, o)));
+  }
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), n, r, q < 1 ? 4 : 6);
+}
+/**
+ * A hood closed under the chin (head frame): the cloth from under the jaw (round the front, `reach` degrees either
+ * side) down to the hood's hem, a little inside the hood's own hang so it shows only through the face's opening.
+ */
+function hoodNeck(q, o = {}, reach = 115) {
+  const { kind = 'm', t = 0.016 } = o, S = SKULL[kind] ?? SKULL.m, nc = sg(20, q), nr = 3, pos = [];
+  const low = o.low ?? -28, ti = t - 0.005;
+  for (let j = 0; j <= nc; j++) {
+    const a = -reach + (2 * reach * j) / nc, az = a * DEG, f = 1 - THREE.MathUtils.smoothstep(Math.abs(a), 55, 110);
+    const side = hoodAt(S, az, low - 2, ti, o), chin = [Math.sin(az) * 0.07, -0.19, Math.cos(az) * 0.086];
+    // (its hem: the hood's round the sides, close round the throat in front, down to the collar)
+    const top = side.map((v, k) => v + (chin[k] - v) * f), hang = hoodAt(S, az, -90, ti, o), throat = [Math.sin(az) * 0.086, -0.25, Math.cos(az) * 0.1];
+    const hem = hang.map((v, k) => v + (throat[k] - v) * f);
+    hem[1] = Math.min(hem[1], top[1] - 0.05);
+    for (let i = 0; i <= nr; i++) {
+      const u = i / nr, out = 1 + 0.06 * Math.sin(u * Math.PI);
+      pos.push((top[0] + (hem[0] - top[0]) * u) * out, top[1] + (hem[1] - top[1]) * u, (top[2] + (hem[2] - top[2]) * u) * out);
+    }
+  }
+  return grid(pos, nc, nr);
+}
+/** A hood's pieces in one `role`: its shell, closed under the chin (`neck`), a rolled edge round the face (`edge`, m thick, in `edgeRole`). */
+function hood(q, role, o, { neck = false, edge = 0, edgeRole = role } = {}) {
+  return [P(role, hoodShell(q, o), true), ...(neck ? [P(role, hoodNeck(q, o), true)] : []), ...(edge && q >= 0.4 ? [P(edgeRole, hoodEdge(q, o, edge))] : [])];
+}
+/** A cloth's end hanging from a wrap (head frame): from azimuth az0 to az1 (degrees) at elevation `el`, `t` off the skull, `drop` m down, flaring `flare` m. */
+function fall(q, kind, { az0 = -100, az1 = -150, el = 8, t = 0.03, drop = 0.24, flare = 0.03 } = {}) {
+  const S = SKULL[kind] ?? SKULL.m, nc = sg(5, q), nr = sg(4, q), pos = [];
+  for (let j = 0; j <= nc; j++) {
+    const az = (az0 + ((az1 - az0) * j) / nc) * DEG, b = onSkull(S, az, el * DEG, t), r = Math.hypot(b[0], b[2]);
+    for (let i = 0; i <= nr; i++) { const u = i / nr, g = (r + flare * u) / r; pos.push(b[0] * g, b[1] - drop * u, b[2] * g); }
+  }
+  return grid(pos, nc, nr);
+}
+/** A piece (Y up) turned to stand on the skull along its normal at (az, el) degrees, `t` off it. */
+function onNormal(g, S, az, el, t) {
+  const n = eggNormal(S, az * DEG, el * DEG);
+  return g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), n)).translate(...onSkull(S, az * DEG, el * DEG, t));
+}
+/** Goggles pushed up on the brow (head frame): two cups (`cup` role) with their glass (`lens`), `spread` degrees either side, at `el`. */
+function lensPair(q, kind, { el = 50, spread = 21, t = 0.012, cup = 'wood', lens = 'hat' } = {}) {
+  const S = SKULL[kind] ?? SKULL.m, out = [];
+  for (const s of [1, -1]) {
+    out.push(P(cup, onNormal(cyl(0.025, 0.028, 0.022, q, 10).translate(0, 0.011, 0), S, s * spread, el, t), true));
+    if (q >= 0.4) out.push(P(lens, onNormal(cyl(0.02, 0.02, 0.004, q, 10).translate(0, 0.023, 0), S, s * spread, el, t)));
+  }
+  if (q >= 1) out.push(P(cup, onNormal(box(0.022, 0.006, 0.008).translate(0, 0.012, 0), S, 0, el, t)));
+  return out;
+}
+/** A cloth's knot (head frame) at (az, el) degrees and its two ends hanging `len` m, `out` off the skull. */
+function tieOff(q, kind, role, { az = 180, el = -10, len = 0.08, out = 0.014 } = {}) {
+  if (q < 1) return [];
+  const S = SKULL[kind] ?? SKULL.m, p = onSkull(S, az * DEG, el * DEG, out + 0.014), n = eggNormal(S, az * DEG, el * DEG);
+  const k = sphere(0.022, q, 8, 6).scale(1.25, 0.9, 0.8).lookAt(n).translate(...p);
+  const ends = [1, -1].map((s) => {
+    const g = box(0.028, len, 0.005).translate(0, -len / 2, 0).rotateZ(s * 0.28).lookAt(new THREE.Vector3(n.x, 0, n.z).normalize());
+    return P(role, g.translate(p[0] + n.x * 0.006, p[1] - 0.006, p[2] + n.z * 0.006));
+  });
+  return [P(role, k), ...ends];
+}
+/** A ring pad on the crown (head frame): a stuffed roll `tube` thick, `r` round, bound in four places. */
+function padRing(q, kind, role, { r = 0.06, tube = 0.03, flat = 0.6, t = 0.004 } = {}) {
+  // (seated: its underside on the crown at its own radius, a flattened coil, not a ring floating over the head)
+  const S = SKULL[kind] ?? SKULL.m, skull = (a) => S.y * Math.sqrt(Math.max(0, 1 - (r / a) ** 2));
+  const y = (skull(S.x) + skull((S.front + S.back) / 2)) / 2 + t + tube * flat * 0.8;
+  return [
+    P(role, torus(r, tube, q, 16, 8).rotateX(Math.PI / 2).scale(1, flat, 1.1).translate(0, y, -0.006), true),
+    ...(q < 1 ? [] : [0, 1, 2, 3].map((i) => {
+      const a = i * Math.PI / 2 + Math.PI / 4;
+      return P('wood', torus(tube + 0.002, 0.004, q, 10, 3).scale(1, flat, 1).rotateY(a - Math.PI / 2).translate(Math.sin(a) * r, y, Math.cos(a) * r * 1.1 - 0.006));
+    })),
+  ];
+}
+/** A sou'wester's brim (head frame): short over the brow, long and drooping down the back. */
+function souBrim(q) {
+  const n = sg(22, q), pos = [];
+  for (let j = 0; j <= n; j++) {
+    const az = Math.PI + (j / n) * Math.PI * 2, back01 = (1 - Math.cos(az)) / 2, w = 0.04 + 0.08 * back01 ** 1.4, drop = 0.02 + 0.07 * back01 ** 1.4;
+    const s = Math.sin(az), c = Math.cos(az) * 1.06;
+    pos.push(s * 0.129, 0.066, c * 0.129, s * (0.129 + w * 0.55), 0.066 - drop * 0.4, c * (0.129 + w * 0.55), s * (0.129 + w), 0.066 - drop, c * (0.129 + w));
+  }
+  return grid(pos, n, 2, true);
+}
+/** One strand of a braided wire band (head frame) round a hairline, crossing the other (phase π) as it goes. */
+function braid(q, kind, { front = 36, side = 22, back = 6, phase = 0, r = 0.0055 } = {}) {
+  const S = SKULL[kind] ?? SKULL.m, n = sg(56, q), pts = [];
+  for (let j = 0; j < n; j++) {
+    const az = Math.PI + (j / n) * Math.PI * 2, w = Math.sin(az * 14 + phase);
+    pts.push(new THREE.Vector3(...onSkull(S, az, hairline(az, front, side, back, 0, 0) + (4 + 2.2 * w) * DEG, 0.014 + 0.004 * Math.cos(az * 14 + phase))));
+  }
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), n, r, 3, true);
 }
 
 /** Masks (head frame). */

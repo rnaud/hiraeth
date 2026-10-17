@@ -45,11 +45,11 @@ void crowdAnimate(CrowdInst I, float4 aRig, inout float3 p, inout float3 n, out 
     float uTime = _CrowdTime;
     float4 aAnim = I.anim, aReact = I.react, aLook0 = I.look0, aLook1 = I.look1, aDress = I.dress, aBody = I.body;
     int part = (int)(aRig.x + 0.5), zone = (int)(aRig.y + 0.5), code = (int)(aRig.z + 0.5);
-    int slot = code / 64, pid = code - slot * 64;
+    int slot = code / 128, pid = code - slot * 128;   // (costumes.js HEAD_ID_LIMIT: the costume codes' stride, issue #439)
     int pose = (int)(aAnim.w + 0.5);
     float seed = aAnim.z;
-    int headId = (int)(cmod(aDress.x, 64.0) + 0.5);
-    bool hairCap = aDress.x > 63.5;
+    int headId = (int)(cmod(aDress.x, 128.0) + 0.5);
+    bool hairCap = aDress.x > 127.5;
     // (costumes.js packDress: mask + 16 x chest piece + 512 x prop; the old packing, 8 / 128, showed the wrong pieces, several at once)
     int maskId = (int)(cmod(aDress.y, 16.0) + 0.5), bodyId = (int)(cmod(floor(aDress.y / 16.0 + 0.01), 32.0) + 0.5), propId = (int)(floor(aDress.y / 512.0 + 0.01) + 0.5);
     float capeWide = floor(aDress.z / 2.0 + 0.001);
@@ -277,7 +277,9 @@ void crowdAnimate(CrowdInst I, float4 aRig, inout float3 p, inout float3 n, out 
       : zone == 4 ? float3(0.431, 0.247, 0.172) : zone == 5 ? crowdRGB(aLook1.x) : zone == 6 ? crowdRGB(aLook1.y)
       : zone == 7 ? crowdRGB(aLook1.z) : zone == 8 ? float3(0.169, 0.129, 0.122) : zone == 9 ? legs * 0.6 + float3(0.33, 0.24, 0.1)
       : zone == 10 ? cloak * 0.75 : zone == 11 ? float3(0.169, 0.129, 0.122) : zone == 12 ? float3(0.663, 0.643, 0.576)
-      : zone == 13 ? float3(0.541, 0.376, 0.251) : zone == 15 ? float3(0.957, 0.925, 0.863) : float3(1.0, 0.851, 0.541);
+      : zone == 13 ? float3(0.541, 0.376, 0.251) : zone == 15 ? float3(0.957, 0.925, 0.863)
+      // (the hat sets' brass, ivory and clay: costumes.js FIXED, crowd-shader.js zones 16-18, issue #439)
+      : zone == 16 ? float3(0.7882, 0.6353, 0.2902) : zone == 17 ? float3(0.9451, 0.9216, 0.8706) : zone == 18 ? float3(0.7098, 0.3373, 0.1843) : float3(1.0, 0.851, 0.541);
     // the eyes, small at this distance: the iris as one dark mark (eyes.js), shut (skin) while they blink
     float blinkT = cmod(uTime + seed * 37.0, 2.6 + seed * 3.4);
     if (zone == 15) col = blinkT < 0.13 ? skin : lerp(aBody.w > 0.5 ? crowdRGB(aBody.w) : float3(0.37, 0.23, 0.14), float3(0.10, 0.085, 0.09), 0.7);

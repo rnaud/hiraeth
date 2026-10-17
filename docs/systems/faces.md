@@ -119,7 +119,7 @@ covers the URL state, the build entry, the morphs, the expressions and the hair.
   loose hair in the garden; bald heads and buns among the listeners; locks and braids in the
   swamp; curls, crops and braids in the market. The beard (`MASKS.beard`) is a shell round
   the jaw now, up the cheeks to the sideburns, the mouth clear.
-- **The crowd shader** packs the head id as `id + 64 × hair cap` (`HEAD_ID_LIMIT`, was 32),
+- **The crowd shader** packs the head id as `id + 128 × hair cap` (`HEAD_ID_LIMIT`: 32, then 64, 128 since the hat sets, issue #439),
   so there is room for more styles; a world's figure bakes only the styles its tribes can
   give (`crowd.js worldPieces`), not the generic ones.
 - **Faces that talk** (`src/talk-face.js`). While someone says a line they wear its tone

@@ -166,6 +166,20 @@ test('the new headwear: on every kind of head, no skin and no hair through it', 
   assert.deepEqual(bad, []);
 });
 
+test('the hat sets (issue #439): on every kind of head and build, no skin and no hair through them', async () => {
+  const { HAT_SETS } = await import('../src/costumes.js');
+  const bad = [];
+  for (const [kind, years, build] of HEADS_TO_FIT) {
+    const h = humanoid(kind, years, build);
+    for (const head of Object.values(HAT_SETS).flat()) for (const under of ['flow', 'curls', 'short']) {
+      if (!HEADS[head].cover && under !== 'short') continue;
+      const r = poking(h, { ...BLANK(kind), kind, head, under, mask: 'none' });
+      if (r.skin > 0.003 || r.hair > 0.012) bad.push(`${head}/${under} on ${kind} ${years} ${build}: skin ${(r.skin * 100).toFixed(1)}%, hair ${(r.hair * 100).toFixed(1)}%, ${(r.worst * 1000).toFixed(0)} mm`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
 test('the older hats over hair: the hair squashed under them, none through them', () => {
   const old = HEAD_IDS.filter((id) => HEADS[id].cover && !NEW_HEADS.includes(id));
   assert.ok(old.length >= 10, old.join());
@@ -192,8 +206,14 @@ test('the studio shows every headwear on MakeHuman heads of every age, and each 
   assert.equal(mhHeadwearLineup('masks', { masks: MASK_IDS.slice(1) }).length, MASK_IDS.length - 1);
   const W = worldPieces('bazaar'), mine = mhHeadwearLineup('world', W);
   assert.equal(mine.length, W.heads.length + W.masks.length + W.bodies.length);
-  assert.ok(W.heads.includes('flatcap') && W.heads.includes('kerchief') && W.masks.includes('glasses'));
+  assert.ok(W.heads.includes('tasselcap') && W.heads.includes('printscarf') && W.masks.includes('glasses'));
   assert.ok(HEADWEAR_HEADS.length >= 6);
+  // the hat sets (issue #439): every piece on a grown woman and man in turn, labelled with its set, in its own colour
+  const { HAT_SETS, HEADS: H } = await import('../src/costumes.js');
+  const ids = Object.values(HAT_SETS).flat(), tags = Object.fromEntries(Object.entries(HAT_SETS).flatMap(([k, v]) => v.map((id) => [id, k])));
+  const sets = mhHeadwearLineup('hats', { heads: ids, tags, colours: Object.fromEntries(ids.map((id) => [id, H[id].hats[0]])) });
+  assert.equal(sets.length, ids.length);
+  assert.ok(sets.every((sp, i) => sp.mh.label === `${tags[ids[i]]} · ${ids[i]}` && sp.look.hat === H[ids[i]].hats[0] && sp.mh.years >= 30));
   const main = readFileSync(new URL('../src/studio/main.js', import.meta.url), 'utf8');
   assert.match(main, /'mhheadwear'/);
 });
@@ -201,18 +221,21 @@ test('the studio shows every headwear on MakeHuman heads of every age, and each 
 test('each world wears its own headwear: the new pieces where they belong', async () => {
   const has = (w, id) => COSTUMES[w].tribes.some((t) => [t.heads, t.headsF, t.headsM, t.masks, t.body, ...Object.values(t.more ?? {})].some((x) => x?.[id] > 0));
   for (const [w, ids] of Object.entries({
-    desert: ['straw', 'kerchief', 'facewrap', 'scarfmask'], incal: ['bowler', 'peak', 'beanie', 'trapper', 'goggles', 'scarfmask'],
-    garage: ['aviator', 'peak', 'neckgoggles'], buried: ['helmet', 'trapper'], edena: ['straw', 'circlet'], spheres: ['circlet'],
-    perdide: ['brim', 'hooddown'], perdide2: ['beanie', 'muffler'], bazaar: ['flatcap', 'beanie', 'kerchief', 'glasses', 'muffler'], arzach2: ['skullcap', 'kerchief'],
+    // (issue #439: each culture's own hat set in place of stage 3's caps and hats)
+    desert: ['glasscap', 'conehat', 'facewrap', 'scarfmask'], incal: ['rimhat', 'workcap', 'goggleband', 'soothood', 'goggles', 'scarfmask'],
+    garage: ['aviator', 'peak', 'neckgoggles'], buried: ['minerhat', 'knitcap'], edena: ['gardenstraw', 'leafband', 'bonnet'], spheres: ['ringcap'],
+    perdide: ['reedhat', 'hooddown'], perdide2: ['keepercap', 'muffler'], bazaar: ['tasselcap', 'headpad', 'printscarf', 'glasses', 'muffler'], arzach2: ['novicecap', 'wimple'],
   })) for (const id of ids) assert.ok(has(w, id), `${w}: ${id}`);
-  // the desert keeps no caps, the City-Shaft's rim no ear-flaps
+  // the desert keeps no caps, the City-Shaft's rim nothing but its own hat
   assert.ok(!has('desert', 'peak') && !has('desert', 'beanie'));
-  assert.ok(!COSTUMES.incal.tribes[0].heads.trapper && !COSTUMES.incal.tribes[0].more.heads.trapper);
+  assert.ok(!COSTUMES.incal.tribes[0].heads.trapper && !COSTUMES.incal.tribes[0].more.heads.trapper && !COSTUMES.incal.tribes[0].more.heads.bowler);
   // the crowds wear them (a fair share), the story's people as they were drawn (none of the extras unless the story says so)
   const { crowdLook, namedLook } = await import('../src/costumes.js');
   const { mulberry32 } = await import('../src/noise.js');
   const rng = mulberry32(7), crowd = Array.from({ length: 300 }, (_, i) => crowdLook(rng, { world: 'bazaar', kind: i % 2 ? 'f' : 'm' }));
-  const extra = (s) => ['heads', 'headsF', 'masks', 'body'].some((k) => COSTUMES.bazaar.tribes[0].more[k]?.[k === 'masks' ? s.mask : k === 'body' ? s.body : s.head]);
+  // (an extra: a piece only stage 3's tables give; the hat set's pieces are in both, issue #439)
+  const T = COSTUMES.bazaar.tribes[0];
+  const extra = (s) => ['heads', 'headsF', 'masks', 'body'].some((k) => { const id = k === 'masks' ? s.mask : k === 'body' ? s.body : s.head; return T.more[k]?.[id] && !T[k]?.[id] && !T.heads[id] && !T.headsF?.[id]; });
   const share = crowd.filter(extra).length / crowd.length;
   assert.ok(share > 0.25 && share < 0.7, `the market's crowd: ${(share * 100).toFixed(0)} % wear the new pieces`);
   for (let i = 0; i < 60; i++) {

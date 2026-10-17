@@ -7,7 +7,7 @@ costumes, plus the "stage 3" hats (bowler, trilby, flat cap, peak cap, beanie, t
 twentieth-century Earth street rather than a Moebius world. This file prepares the redesign: a small coherent set
 of hats per culture, **three to five at most**, from one design sheet per world.
 
-**Nothing here is modelled yet.** The prompts below run in the reference lab (issue #437; docs/systems/reference-lab.md),
+**Modelled (issue #439)**: the author's picks are in the game, each set's pieces listed in docs/systems/characters.md, "The hat sets". The prompts below run in the reference lab (issue #437; docs/systems/reference-lab.md),
 text alone, Gemini and OpenAI: `node scripts/gen-reference.mjs --from docs/design/hat-prompts.md#<id>`. The author
 picks in the lab's Pick mode, and only the picked designs are modelled (as `HEADS` pieces in `src/costumes.js`,
 fitted to the skull like the stage 3 hats, then given to each tribe's `heads` table). A pick goes to its set's
